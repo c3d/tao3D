@@ -22,32 +22,19 @@
 #* Revision   : $Revision$
 #* Date       : $Date$
 #******************************************************************************
+ifndef BUILDENV
+BUILDENV=macosx
+endif
 
-BROOT=../
+OBJ_DIR=obj/$(BUILDENV)/
 
-# List of directories to process
-SOURCES     =					\
-	main.cpp				\
-	options.cpp				\
-	errors.cpp				\
-	tree.cpp				\
-	syntax.cpp				\
-	scanner.cpp				\
-	parser.cpp				\
-	renderer.cpp				\
-	compiler.cpp				\
-	context.cpp				\
-	runtime.cpp				\
-	basics.cpp				\
-	types.cpp				\
-	opcodes.cpp
+all:
+	mkdir -p $(OBJ_DIR)
+	cd $(OBJ_DIR) && /usr/bin/qmake ../../xlr.pro -spec macx-g++ -r && make -w
 
-PRODUCT=xlr$(EXE)
+clean:
+	cd $(OBJ_DIR) && make clean
 
-include $(BROOT)Makefile.config
+distclean:
+	cd $(OBJ_DIR) && make distclean
 
-LLVM_FLAGS=`llvm-config --cppflags | sed -e s/-DNDEBUG//g`
-LLVM_LIBS=`llvm-config --ldflags --libs core jit native interpreter`
-
-CPPFLAGS+=$(LLVM_FLAGS)
-LDFLAGS=-L/usr/local/lib $(LLVM_LIBS)

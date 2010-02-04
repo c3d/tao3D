@@ -3,7 +3,7 @@
 # #####################################################################
 DATE = $$system(date)
 
-# To build xlr as an application set TEMPALTE = app
+# To build xlr as an application set TEMPLATE = app
 # To build xlr as a library set TEMPLATE = lib
 TEMPLATE = lib
 
@@ -14,10 +14,11 @@ message(| building xlr as a $$TEMPLATE )
 message(| $$DATE )
 message(+-----------------------------------------------------)
 
-LLVM_FLAGS = $$system(/opt/local/bin/llvm-config --cppflags | sed -e s/-DNDEBUG//g)
-LLVM_LIBS = $$system(/opt/local/bin/llvm-config --ldflags --libs core jit native)
-LLVM_INC = $$system(/opt/local/bin/llvm-config --includedir)
-LLVM_DEF = $$system(/opt/local/bin/llvm-config --cppflags | grep -o .D_.* | sed s/-D//g)
+LLVM_PATH=/usr/local/bin
+LLVM_FLAGS = $$system($$LLVM_PATH/llvm-config --cppflags | sed -e s/-DNDEBUG//g)
+LLVM_LIBS = $$system($$LLVM_PATH/llvm-config --ldflags --libs core jit native)
+LLVM_INC = $$system($$LLVM_PATH/llvm-config --includedir)
+LLVM_DEF = $$system($$LLVM_PATH/llvm-config --cppflags | grep -o .D_.* | sed s/-D//g)
 DEFAULT_FONT = /Library/Fonts/Arial.ttf
 LIBS += -framework \
     ApplicationServices \

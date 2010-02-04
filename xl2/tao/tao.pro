@@ -6,6 +6,7 @@ TARGET =
 DEPENDPATH += . ../xlr
 INCLUDEPATH += . ../xlr
 QT += opengl svg
+CONFIG += warn_off
 
 # Tell the XLR portion that we are building for Tao
 DEFINES += TAO
@@ -23,8 +24,10 @@ linux {
 
 # Input
 HEADERS += glwidget.h
-SOURCES += glwidget.cpp \
+SOURCES += \
     tao_main.cpp \
+    graphics.cpp \
+    glwidget.cpp \
     ../xlr/tree.cpp \
     ../xlr/syntax.cpp \
     ../xlr/scanner.cpp \

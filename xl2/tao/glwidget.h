@@ -32,6 +32,9 @@
 #include "main.h"
 
 class GLWidget : public QGLWidget
+// ----------------------------------------------------------------------------
+//   This is the widget we use to display the runtime environment
+// ----------------------------------------------------------------------------
 {
     Q_OBJECT
 
@@ -48,6 +51,10 @@ public:
     void mouseMoveEvent(QMouseEvent *);
     void timerEvent(QTimerEvent *);
     void wheelEvent(QWheelEvent *);
+                             
+    void caption(text t) { caption_text = t; }
+     
+    static GLWidget *current;
 
 public slots:
     void animate(qreal);
@@ -67,6 +74,11 @@ private:
     QGLFramebufferObject *render_fbo;
     QGLFramebufferObject *texture_fbo;
 
+private:
+    // XL Runtime
     XL::Main *xl_runtime;
+    text  caption_text;
 };
 
+
+#define GW (*GLWidget::current)

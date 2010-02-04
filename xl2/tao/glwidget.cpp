@@ -41,6 +41,7 @@
 
 #include <QtGui/QImage>
 #include "glwidget.h"
+#include "main.h"
 
 #include <math.h>
 
@@ -48,8 +49,9 @@
 #define GL_MULTISAMPLE  0x809D
 #endif
 
-GLWidget::GLWidget(QWidget *parent)
-    : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent)
+GLWidget::GLWidget(QWidget *parent, XL::Main *xlr)
+    : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
+      xl_runtime(xlr)
 {
     setWindowTitle(tr("OpenGL framebuffer objects"));
     makeCurrent();

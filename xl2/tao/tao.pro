@@ -3,15 +3,23 @@
 # #####################################################################
 TEMPLATE = app
 TARGET = 
-DEPENDPATH += . \
-    ../xlr
-INCLUDEPATH += . \
-    ../xlr
-QT += opengl \
-    svg
+DEPENDPATH += . ../xlr
+INCLUDEPATH += . ../xlr
+QT += opengl svg
 
 # Tell the XLR portion that we are building for Tao
-DEFINES += TAO CONFIG_MACOSX
+DEFINES += TAO
+
+macx {
+    DEFINES += CONFIG_MACOSX
+    XLRDIR = Contents/MacOS
+}
+win32 {
+    DEFINES += CONFIG_WIN32
+}
+linux {
+    DEFINES += CONFIG_LINUX
+}
 
 # Input
 HEADERS += glwidget.h
@@ -33,9 +41,6 @@ SOURCES += glwidget.cpp \
 
 RESOURCES += framebufferobject.qrc
 
-LIBS += -L../xlr \
-    -lxlr
-
 # LLVM dependencies
 LLVM_PATH = /usr/local/bin
 LLVM_FLAGS = $$system($$LLVM_PATH/llvm-config --cppflags | sed -e s/-DNDEBUG//g)
@@ -45,3 +50,17 @@ LLVM_DEF = $$system($$LLVM_PATH/llvm-config --cppflags | grep -o .D_.* | sed s/-
 DEFAULT_FONT = /Library/Fonts/Arial.ttf
 LIBS += $$LLVM_LIBS
 DEFINES += $$LLVM_DEF
+
+OTHER_FILES += ../xlr/xl.syntax \
+    ../xlr/xl.stylesheet \
+    ../xlr/short.stylesheet \
+    ../xlr/html.stylesheet \
+    ../xlr/debug.stylesheet \
+    ../xlr/dbghtml.stylesheet \
+    ../xlr/bytecode.stylesheet \
+    ../xlr/builtins.xl
+
+# Copy the support files to the target directory
+xlr_support.path = $${DESTDIR}/$${XLRDIR}
+xlr_support.files += $${OTHER_FILES}
+QMAKE_BUNDLE_DATA += xlr_support

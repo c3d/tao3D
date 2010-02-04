@@ -28,6 +28,7 @@
 #include <QtGui/QMessageBox>
 #include "glwidget.h"
 #include "main.h"
+#include "graphics.h"
 
 
 
@@ -59,6 +60,8 @@ int main(int argc, char **argv)
     // Setup the XL runtime environment
     XL::Compiler compiler("xl_tao");
     XL::Main *xlr = new XL::Main(argc, argv, compiler);
+    EnterGraphics(&xlr->context);
+    xlr->LoadFiles();
 
     // Create the widget window
     GLWidget widget(0, xlr);

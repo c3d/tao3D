@@ -222,6 +222,7 @@ void GLWidget::draw()
 
     // Run all the programs we were given as input
     current = this;
+    xl_runtime->Run();
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *e)

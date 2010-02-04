@@ -79,6 +79,8 @@ struct Main
 
 extern Main *MAIN;
 
+int start_xl(int argc, char **argv);
+
 XL_END
 
 #endif // MAIN_H

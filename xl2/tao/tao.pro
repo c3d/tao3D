@@ -4,8 +4,8 @@
 
 TEMPLATE = app
 TARGET =
-DEPENDPATH += .
-INCLUDEPATH += .
+DEPENDPATH += . ../xlr
+INCLUDEPATH += . ../xlr
 
 QT += opengl svg
 
@@ -16,9 +16,28 @@ HEADERS += glwidget.h
 SOURCES += glwidget.cpp main.cpp
 RESOURCES += framebufferobject.qrc
 
-LIBS += -L../xlr/obj -lxlr
+LIBS += -L../xlr -lxlr
 
-
+LLVM_PATH=/usr/local/bin
+LLVM_FLAGS = $$system($$LLVM_PATH/llvm-config --cppflags | sed -e s/-DNDEBUG//g)
+LLVM_LIBS = $$system($$LLVM_PATH/llvm-config --ldflags --libs core jit native)
+LLVM_INC = $$system($$LLVM_PATH/llvm-config --includedir)
+LLVM_DEF = $$system($$LLVM_PATH/llvm-config --cppflags | grep -o .D_.* | sed s/-D//g)
+DEFAULT_FONT = /Library/Fonts/Arial.ttf
+LIBS += -framework \
+    ApplicationServices \
+    -framework \
+    OpenGL \
+    -framework \
+    GLUT \
+    -L/usr/X11R6/lib \
+    -L/usr/local/lib \
+    -L/opt/local/lib \
+    -lftgl \
+    -lfontconfig \
+    -ljpeg \
+    -lpng \
+    $$LLVM_LIBS
 
 #g++ -headerpad_max_install_names -o framebufferobject.app/Contents/MacOS/framebufferobject glwidget.o main.o moc_glwidget.o qrc_framebufferobject.o -F/Library/Frameworks -L/Library/Frameworks -framework QtSvg -framework QtOpenGL -framework QtGui -framework QtCore -framework OpenGL -framework AGL
 #g++ -headerpad_max_install_names -o tao.app/Contents/MacOS/tao                             glwidget.o main.o moc_glwidget.o qrc_framebufferobject.o -F/Library/Frameworks -L/Library/Frameworks -framework QtSvg -framework QtOpenGL -framework QtGui -framework QtCore -framework OpenGL -framework AGL -L../xlr/obj -lxlr

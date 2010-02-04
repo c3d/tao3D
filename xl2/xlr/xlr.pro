@@ -6,6 +6,7 @@ DATE = $$system(date)
 # To build xlr as an application set TEMPLATE = app
 # To build xlr as a library set TEMPLATE = lib
 TEMPLATE = lib
+CONFIG += staticlib
 
 
 message(+-----------------------------------------------------)

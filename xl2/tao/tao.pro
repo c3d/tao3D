@@ -45,11 +45,20 @@ SOURCES += \
 RESOURCES += framebufferobject.qrc
 
 # LLVM dependencies
-LLVM_PATH = /usr/local/bin
+exists(/usr/local/bin/llvm-config) {
+    LLVM_PATH = /usr/local/bin
+}
+exists(/opt/local/bin/llvm-config) {
+    LLVM_PATH = /opt/local/bin
+}
+
 LLVM_FLAGS = $$system($$LLVM_PATH/llvm-config --cppflags | sed -e s/-DNDEBUG//g)
 LLVM_LIBS = $$system($$LLVM_PATH/llvm-config --ldflags --libs core jit native)
 LLVM_INC = $$system($$LLVM_PATH/llvm-config --includedir)
 LLVM_DEF = $$system($$LLVM_PATH/llvm-config --cppflags | grep -o .D_.* | sed s/-D//g)
+
+INCLUDEPATH *= $$LLVM_INC
+
 DEFAULT_FONT = /Library/Fonts/Arial.ttf
 LIBS += $$LLVM_LIBS
 DEFINES += $$LLVM_DEF

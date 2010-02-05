@@ -51,6 +51,9 @@ exists(/usr/local/bin/llvm-config) {
 exists(/opt/local/bin/llvm-config) {
     LLVM_PATH = /opt/local/bin
 }
+exists(/usr/bin/llvm-config) {
+    LLVM_PATH = /usr/bin
+}
 
 LLVM_FLAGS = $$system($$LLVM_PATH/llvm-config --cppflags | sed -e s/-DNDEBUG//g)
 LLVM_LIBS = $$system($$LLVM_PATH/llvm-config --ldflags --libs core jit native)

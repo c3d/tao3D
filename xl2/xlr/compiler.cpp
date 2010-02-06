@@ -121,7 +121,7 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
         optimizer->add(createPromoteMemoryToRegisterPass());
 
         // Do simple "peephole" optimizations and bit-twiddling optimizations.
-        optimizer->add(createInstructionCombiningPass());
+        // optimizer->add(createInstructionCombiningPass());
 
         // Inlining of tails
         // optimizer->add(createTailDuplicationPass());

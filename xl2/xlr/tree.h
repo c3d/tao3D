@@ -51,6 +51,7 @@ struct Infix;                                   // Infix: A+B, newline
 struct Block;                                   // Block: (A), {A}
 struct Action;                                  // Action on trees
 struct Symbols;                                 // Symbol table
+struct Sha1;                                    // Hash used for id-ing trees
 typedef ulong tree_position;                    // Position in context
 typedef std::vector<Tree *> tree_list;          // A list of trees
 typedef Tree *(*eval_fn) (Tree *);              // Compiled evaluation code
@@ -83,14 +84,15 @@ struct Tree
 
     // Constructor and destructor
     Tree (kind k, tree_position pos = NOWHERE):
-        tag((pos<<KINDBITS) | k), code(NULL), symbols(NULL), type(NULL) {}
+        tag((pos<<KINDBITS) | k), code(NULL), symbols(NULL), type(NULL),
+        hash(NULL) {}
     Tree(kind k, Tree *from):
         tag(from->tag),
-        code(from->code), symbols(from->symbols), type(from->type)
+        code(from->code), symbols(from->symbols), type(from->type), hash(NULL)
     {
         assert(k == Kind());
     }
-    ~Tree() {}
+    ~Tree();
 
     // Perform recursive actions on a tree
     Tree *              Do(Action *action);
@@ -124,6 +126,7 @@ public:
     eval_fn     code;                           // Compiled code
     Symbols *   symbols;                        // Local symbols
     Tree *      type;                           // Type information
+    Sha1 *      hash;                           // Cryptographic hash or NULL
 };
 
 
@@ -652,6 +655,9 @@ struct RewriteKey : Action
 
     ulong key;
 };
+
+
+extern text sha1(Tree *t);
 
 XL_END
 

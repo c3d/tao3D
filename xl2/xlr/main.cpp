@@ -156,7 +156,7 @@ int Main::LoadFiles()
         }
         Symbols *syms = new Symbols(&context);
         Symbols::symbols = syms;
-        tree->SetSymbols(syms);
+        tree->Set<SymbolsInfo>(syms);
 
         files[cmd] = SourceFile (cmd, tree, syms);
         context.CollectGarbage();

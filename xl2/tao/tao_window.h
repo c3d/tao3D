@@ -43,8 +43,7 @@ class TaoWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    TaoWindow(XL::Main *xlr);
-    TaoWindow(const QString &fileName, XL::Main *xlr);
+    TaoWindow(XL::Main *xlr, XL::SourceFile *sf = NULL);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -58,11 +57,11 @@ private slots:
     void documentWasModified();
 
 private:
-    void init(XL::Main *xlr);
     void createActions();
     void createMenus();
     void createToolBars();
     void createStatusBar();
+
     void readSettings();
     void writeSettings();
     bool maybeSave();
@@ -71,6 +70,10 @@ private:
     void setCurrentFile(const QString &fileName);
     QString strippedName(const QString &fullFileName);
     TaoWindow *findTaoWindow(const QString &fileName);
+
+private:
+    XL::Main *          xlRuntime;
+    XL::SourceFile *    xlProgram;
 
     QTextEdit *textEdit;
     TaoWidget *taoWidget;
@@ -95,7 +98,6 @@ private:
     QAction *aboutAct;
     QAction *aboutQtAct;
 
-    XL::Main *xl_runtime;
 };
 
 #endif // TAO_WINDOW_H

@@ -24,6 +24,7 @@
 #include <math.h>
 #include "tao_widget.h"
 #include "main.h"
+#include "runtime.h"
 
 
 #ifndef GL_MULTISAMPLE
@@ -35,12 +36,12 @@ TaoWidget *TaoWidget::current = NULL;
 
 
 
-TaoWidget::TaoWidget(QWidget *parent, XL::Main *xlr)
+TaoWidget::TaoWidget(QWidget *parent, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xl_runtime(xlr),
+      xlProgram(sf),
       caption_text("A simple OpenGL framebuffer object example.")
 {
     setWindowTitle(tr("OpenGL framebuffer objects"));
@@ -217,7 +218,8 @@ void TaoWidget::draw()
 
     // Run all the programs we were given as input
     current = this;
-    xl_runtime->Run();
+    if (xlProgram)
+        xl_evaluate(xlProgram->tree.tree);
 }
 
 void TaoWidget::mousePressEvent(QMouseEvent *e)

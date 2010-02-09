@@ -74,7 +74,7 @@ int main(int argc, char **argv)
     for (it = names.begin(); it != names.end(); it++)
     {
         XL::SourceFile &sf = xlr->files[*it];
-        TaoWindow *window = new TaoWindow (QString(sf.name.c_str()), xlr);
+        TaoWindow *window = new TaoWindow (xlr, &sf);
         window->show();
     }
 

@@ -34,7 +34,7 @@ class TaoWidget : public QGLWidget
     Q_OBJECT
 
 public:
-    TaoWidget(QWidget *parent, XL::Main *xlr);
+    TaoWidget(QWidget *parent, XL::SourceFile *sf = NULL);
     ~TaoWidget();
 
     // GL state
@@ -71,9 +71,9 @@ private:
     QGLFramebufferObject *render_fbo;
     QGLFramebufferObject *texture_fbo;
 
-private:
+public:
     // XL Runtime
-    XL::Main         *xl_runtime;
+    XL::SourceFile *  xlProgram;
     text              caption_text;
     static TaoWidget *current;
 };

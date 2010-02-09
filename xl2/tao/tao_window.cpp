@@ -26,17 +26,43 @@
 
 
 
-TaoWindow::TaoWindow(XL::Main *xlr)
+TaoWindow::TaoWindow(XL::Main *xlr, XL::SourceFile *sf)
+// ----------------------------------------------------------------------------
+//    Create a Tao window with default parameters
+// ----------------------------------------------------------------------------
+    : xlRuntime(xlr), xlProgram(sf),
+      textEdit(NULL), taoWidget(NULL),
+      isUntitled(sf == NULL)
 {
-    init(xlr);
-    setCurrentFile("");
+    // Create the widgets
+    QDockWidget *dock = new QDockWidget(tr("Source"));
+    dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    textEdit = new QTextEdit(dock);
+    dock->setWidget(textEdit);
+    addDockWidget(Qt::RightDockWidgetArea, dock);
+
+    taoWidget = new TaoWidget(NULL, sf);
+    setCentralWidget(taoWidget);
+
+    // Create menus, actions, stuff
+    createActions();
+    createMenus();
+    createToolBars();
+    createStatusBar();
+
+    connect(textEdit->document(), SIGNAL(contentsChanged()),
+            this, SLOT(documentWasModified()));
+
+    // Set the window attributes
+    setAttribute(Qt::WA_DeleteOnClose);
+    readSettings();
+    setUnifiedTitleAndToolBarOnMac(true);
+    if (sf)
+        loadFile(QString::fromStdString(sf->name));
+    else
+        setCurrentFile("");
 }
 
-TaoWindow::TaoWindow(const QString &fileName, XL::Main *xlr)
-{
-    init(xlr);
-    loadFile(fileName);
-}
 
 void TaoWindow::closeEvent(QCloseEvent *event)
 {
@@ -50,7 +76,7 @@ void TaoWindow::closeEvent(QCloseEvent *event)
 
 void TaoWindow::newFile()
 {
-    TaoWindow *other = new TaoWindow(xl_runtime);
+    TaoWindow *other = new TaoWindow(xlRuntime, NULL);
     other->move(x() + 40, y() + 40);
     other->show();
 }
@@ -71,7 +97,10 @@ void TaoWindow::open()
                 && !isWindowModified()) {
             loadFile(fileName);
         } else {
-            TaoWindow *other = new TaoWindow(fileName, xl_runtime);
+            text fn = fileName.toStdString();
+            xlRuntime->LoadFile(fn);
+            XL::SourceFile &sf = xlRuntime->files[fn];
+            TaoWindow *other = new TaoWindow(xlRuntime, &sf);
             if (other->isUntitled) {
                 delete other;
                 return;
@@ -111,36 +140,6 @@ void TaoWindow::about()
 void TaoWindow::documentWasModified()
 {
     setWindowModified(true);
-}
-
-void TaoWindow::init(XL::Main *xlr)
-{
-    xl_runtime = xlr;
-
-    setAttribute(Qt::WA_DeleteOnClose);
-
-    isUntitled = true;
-
-    QDockWidget *dock = new QDockWidget(tr("Source"));
-    dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    textEdit = new QTextEdit(dock);
-    dock->setWidget(textEdit);
-    addDockWidget(Qt::RightDockWidgetArea, dock);
-
-    taoWidget = new TaoWidget(NULL, xlr);
-    setCentralWidget(taoWidget);
-
-    createActions();
-    createMenus();
-    createToolBars();
-    createStatusBar();
-
-    readSettings();
-
-    connect(textEdit->document(), SIGNAL(contentsChanged()),
-            this, SLOT(documentWasModified()));
-
-    setUnifiedTitleAndToolBarOnMac(true);
 }
 
 void TaoWindow::createActions()
@@ -320,13 +319,22 @@ bool TaoWindow::saveFile(const QString &fileName)
         return false;
     }
 
-    QTextStream out(&file);
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    out << textEdit->toPlainText();
-    QApplication::restoreOverrideCursor();
+    do
+    {
+        QTextStream out(&file);
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+        out << textEdit->toPlainText();
+        QApplication::restoreOverrideCursor();
+    } while (0);                // Flush
 
     setCurrentFile(fileName);
     statusBar()->showMessage(tr("File saved"), 2000);
+
+    text fn = fileName.toStdString();
+    xlRuntime->LoadFile(fn);
+    xlProgram = &xlRuntime->files[fn];
+    taoWidget->xlProgram = xlProgram;
+
     return true;
 }
 

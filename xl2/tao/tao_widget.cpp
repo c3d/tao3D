@@ -1,8 +1,5 @@
 // ****************************************************************************
-//  glwidget.cpp                                                    XLR project
-//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2009 Nokia Corporation and/or its subsidiary(-ies).
-//  (C) 2010 Taodyne SAS
+//  tao_widget.cpp                                                  XLR project
 // ****************************************************************************
 // 
 //   File Description:
@@ -19,34 +16,32 @@
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
-// ****************************************************************************
-// * File       : $RCSFile$
-// * Revision   : $Revision$
-// * Date       : $Date$
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
 #include <QtGui/QImage>
-#include "glwidget.h"
+#include <math.h>
+#include "tao_widget.h"
 #include "main.h"
 
-#include <math.h>
 
 #ifndef GL_MULTISAMPLE
 #define GL_MULTISAMPLE  0x809D
 #endif
 
 
-GLWidget *GLWidget::current = NULL;
+TaoWidget *TaoWidget::current = NULL;
 
 
 
-GLWidget::GLWidget(QWidget *parent, XL::Main *xlr)
-    : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xl_runtime(xlr),
-      caption_text("A simple OpenGL framebuffer object example.")
+TaoWidget::TaoWidget(QWidget *parent, XL::Main *xlr)
 // ----------------------------------------------------------------------------
 //    Create the GL widget
 // ----------------------------------------------------------------------------
+    : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
+      xl_runtime(xlr),
+      caption_text("A simple OpenGL framebuffer object example.")
 {
     setWindowTitle(tr("OpenGL framebuffer objects"));
     makeCurrent();
@@ -118,7 +113,7 @@ GLWidget::GLWidget(QWidget *parent, XL::Main *xlr)
     startTimer(30); // wave timer
 }
 
-GLWidget::~GLWidget()
+TaoWidget::~TaoWidget()
 {
     delete[] wave;
     glDeleteLists(tile_list, 1);
@@ -127,12 +122,12 @@ GLWidget::~GLWidget()
         delete render_fbo;
 }
 
-void GLWidget::paintEvent(QPaintEvent *)
+void TaoWidget::paintEvent(QPaintEvent *)
 {
     draw();
 }
 
-void GLWidget::draw()
+void TaoWidget::draw()
 {
     QPainter p(this); // used for text overlay
 
@@ -225,12 +220,12 @@ void GLWidget::draw()
     xl_runtime->Run();
 }
 
-void GLWidget::mousePressEvent(QMouseEvent *e)
+void TaoWidget::mousePressEvent(QMouseEvent *e)
 {
     anchor = e->pos();
 }
 
-void GLWidget::mouseMoveEvent(QMouseEvent *e)
+void TaoWidget::mouseMoveEvent(QMouseEvent *e)
 {
     QPoint diff = e->pos() - anchor;
     if (e->buttons() & Qt::LeftButton) {
@@ -244,24 +239,24 @@ void GLWidget::mouseMoveEvent(QMouseEvent *e)
     draw();
 }
 
-void GLWidget::wheelEvent(QWheelEvent *e)
+void TaoWidget::wheelEvent(QWheelEvent *e)
 {
     e->delta() > 0 ? scale += scale*0.1f : scale -= scale*0.1f;
     draw();
 }
 
-void GLWidget::mouseDoubleClickEvent(QMouseEvent *)
+void TaoWidget::mouseDoubleClickEvent(QMouseEvent *)
 {
     anim->start();
 }
 
-void GLWidget::animate(qreal val)
+void TaoWidget::animate(qreal val)
 {
     rot_y = val * 180;
     draw();
 }
 
-void GLWidget::animFinished()
+void TaoWidget::animFinished()
 {
     if (anim->direction() == QTimeLine::Forward)
         anim->setDirection(QTimeLine::Backward);
@@ -269,7 +264,7 @@ void GLWidget::animFinished()
         anim->setDirection(QTimeLine::Forward);
 }
 
-void GLWidget::saveGLState()
+void TaoWidget::saveGLState()
 {
     glPushAttrib(GL_ALL_ATTRIB_BITS);
     glMatrixMode(GL_PROJECTION);
@@ -278,7 +273,7 @@ void GLWidget::saveGLState()
     glPushMatrix();
 }
 
-void GLWidget::restoreGLState()
+void TaoWidget::restoreGLState()
 {
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
@@ -289,7 +284,7 @@ void GLWidget::restoreGLState()
 
 #define PI 3.14159
 
-void GLWidget::timerEvent(QTimerEvent *)
+void TaoWidget::timerEvent(QTimerEvent *)
 {
     if (QApplication::mouseButtons() != 0)
         return;

@@ -1,28 +1,23 @@
 // ****************************************************************************
-//  glwidget.h                                                      XLR project
-//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2009 Nokia Corporation and/or its subsidiary(-ies).
-//  (C) 2010 Taodyne SAS
+//  tao_widget.h                                                   XLR project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
-//     Description of the GL widget (derived from original Qt example)
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//    The primary graphical widget used to display Tao contents
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
-// ****************************************************************************
-// * File       : $RCSFile$
-// * Revision   : $Revision$
-// * Date       : $Date$
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
 #include <QtOpenGL>
@@ -31,30 +26,32 @@
 #include <QSvgRenderer>
 #include "main.h"
 
-class GLWidget : public QGLWidget
+class TaoWidget : public QGLWidget
 // ----------------------------------------------------------------------------
-//   This is the widget we use to display the runtime environment
+//   This is the widget we use to display XL programs output
 // ----------------------------------------------------------------------------
 {
     Q_OBJECT
 
 public:
-    GLWidget(QWidget *parent, XL::Main *xlr);
-    ~GLWidget();
+    TaoWidget(QWidget *parent, XL::Main *xlr);
+    ~TaoWidget();
 
+    // GL state
     void saveGLState();
     void restoreGLState();
 
+    // Events
     void paintEvent(QPaintEvent *);
     void mousePressEvent(QMouseEvent *);
     void mouseDoubleClickEvent(QMouseEvent *);
     void mouseMoveEvent(QMouseEvent *);
     void timerEvent(QTimerEvent *);
     void wheelEvent(QWheelEvent *);
-                             
+
+    // XLR entry points
     void caption(text t) { caption_text = t; }
-     
-    static GLWidget *current;
+    static TaoWidget *Tao() { return current; }
 
 public slots:
     void animate(qreal);
@@ -76,9 +73,10 @@ private:
 
 private:
     // XL Runtime
-    XL::Main *xl_runtime;
-    text  caption_text;
+    XL::Main         *xl_runtime;
+    text              caption_text;
+    static TaoWidget *current;
 };
 
 
-#define GW (*GLWidget::current)
+#define TAO (*TaoWidget::Tao())

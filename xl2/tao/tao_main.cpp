@@ -25,9 +25,11 @@
 // * Date       : $Date$
 // ****************************************************************************
 
+#include <QtGui>
 #include <QtGui/QApplication>
 #include <QtGui/QMessageBox>
-#include "glwidget.h"
+#include "tao_widget.h"
+#include "tao_window.h"
 #include "main.h"
 #include "graphics.h"
 
@@ -42,6 +44,8 @@ int main(int argc, char **argv)
 
     // Initialize the Tao applications
     QApplication tao(argc, argv);
+    tao.setApplicationName ("Tao");
+    tao.setOrganizationName ("Taodyne SAS");
 
     // Basic sanity tests to check if we can actually run
     if (!QGLFormat::hasOpenGL())
@@ -64,10 +68,9 @@ int main(int argc, char **argv)
     EnterGraphics(&xlr->context);
     xlr->LoadFiles();
 
-    // Create the widget window
-    GLWidget widget(0, xlr);
-    widget.resize(640, 480);
-    widget.show();
+    // Create the window and place a widget in it
+    TaoWindow *window = new TaoWindow (xlr);
+    window->show();
 
     return tao.exec();
 }

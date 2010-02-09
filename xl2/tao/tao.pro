@@ -47,11 +47,24 @@ linux {
 }
 
 # Input
-HEADERS += glwidget.h
+HEADERS += tao_widget.h tao_window.h                    \
+../xlr/base.h			../xlr/options.h        \
+../xlr/basics.h			../xlr/parser.h         \
+../xlr/compiler.h		../xlr/renderer.h       \
+../xlr/configuration.h		../xlr/runtime.h        \
+../xlr/context.h		../xlr/scanner.h        \
+../xlr/errors.h			../xlr/serializer.h     \
+../xlr/hash.h			../xlr/sha1.h           \
+../xlr/main.h			../xlr/sha1_ostream.h   \
+../xlr/opcodes.h		../xlr/syntax.h         \
+../xlr/opcodes_declare.h	../xlr/tree.h           \
+../xlr/opcodes_define.h		../xlr/types.h
+
 SOURCES += \
     tao_main.cpp \
     graphics.cpp \
-    glwidget.cpp \
+    tao_widget.cpp \
+    tao_window.cpp \
     ../xlr/tree.cpp \
     ../xlr/sha1.cpp \
     ../xlr/serializer.cpp \

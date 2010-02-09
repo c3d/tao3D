@@ -54,6 +54,7 @@ SOURCES += \
     glwidget.cpp \
     ../xlr/tree.cpp \
     ../xlr/sha1.cpp \
+    ../xlr/serializer.cpp \
     ../xlr/syntax.cpp \
     ../xlr/scanner.cpp \
     ../xlr/runtime.cpp \

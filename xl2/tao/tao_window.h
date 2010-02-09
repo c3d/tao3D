@@ -32,6 +32,9 @@ class QTextEdit;
 QT_END_NAMESPACE
 
 
+class TaoWidget;
+
+
 class TaoWindow : public QMainWindow
 // ----------------------------------------------------------------------------
 //    The main window where we display our stuff
@@ -70,6 +73,8 @@ private:
     TaoWindow *findTaoWindow(const QString &fileName);
 
     QTextEdit *textEdit;
+    TaoWidget *taoWidget;
+    
     QString curFile;
     bool isUntitled;
 

@@ -121,16 +121,14 @@ void TaoWindow::init(XL::Main *xlr)
 
     isUntitled = true;
 
-    textEdit = new QTextEdit;
-    setCentralWidget(textEdit);
-
-#if 1
-    QDockWidget *dock = new QDockWidget(tr("Graphics"));
+    QDockWidget *dock = new QDockWidget(tr("Source"));
     dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    TaoWidget *taow = new TaoWidget(dock, xlr);
-    dock->setWidget(taow);
+    textEdit = new QTextEdit(dock);
+    dock->setWidget(textEdit);
     addDockWidget(Qt::RightDockWidgetArea, dock);
-#endif
+
+    taoWidget = new TaoWidget(NULL, xlr);
+    setCentralWidget(taoWidget);
 
     createActions();
     createMenus();

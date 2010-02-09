@@ -68,9 +68,15 @@ int main(int argc, char **argv)
     EnterGraphics(&xlr->context);
     xlr->LoadFiles();
 
-    // Create the window and place a widget in it
-    TaoWindow *window = new TaoWindow (xlr);
-    window->show();
+    // Create the windows for each file on the command line
+    XL::source_names::iterator it;
+    XL::source_names &names = xlr->file_names;
+    for (it = names.begin(); it != names.end(); it++)
+    {
+        XL::SourceFile &sf = xlr->files[*it];
+        TaoWindow *window = new TaoWindow (QString(sf.name.c_str()), xlr);
+        window->show();
+    }
 
     return tao.exec();
 }

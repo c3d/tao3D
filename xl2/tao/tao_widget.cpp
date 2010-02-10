@@ -322,7 +322,7 @@ SheetPainter::SheetPainter(TaoWidget *wid, SheetInfo *info)
     : QPainter(), tao(wid), info(info)
 {
     // Draw without any transformation (reset the coordinates system)
-    wid->saveGLState();
+    tao->saveGLState();
     glLoadIdentity();
 
     // Clear the render FBO
@@ -348,6 +348,8 @@ SheetPainter::~SheetPainter()
         QGLFramebufferObject::blitFramebuffer(info->texture_fbo, rect,
                                               info->render_fbo, rect);
     }
+
+    tao->restoreGLState();
 }
 
 
@@ -417,7 +419,7 @@ Tree *TaoWidget::rotateX(Tree *self, double rx)
 // 
 // ----------------------------------------------------------------------------
 {
-    glRotatef(1.0, 0.0, 0.0, rx);
+    glRotatef(rx, 1.0, 0.0, 0.0);
     return NULL;
 }
 
@@ -427,7 +429,7 @@ Tree *TaoWidget::rotateY(Tree *self, double ry)
 // 
 // ----------------------------------------------------------------------------
 {
-    glRotatef(0.0, 1.0, 0.0, ry);
+    glRotatef(ry, 0.0, 1.0, 0.0);
     return NULL;
 }
 
@@ -437,7 +439,7 @@ Tree *TaoWidget::rotateZ(Tree *self, double rz)
 // 
 // ----------------------------------------------------------------------------
 {
-    glRotatef(0.0, 0.0, 1.0, rz);
+    glRotatef(rz, 0.0, 0.0, 1.0);
     return NULL;
 }
 

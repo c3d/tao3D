@@ -32,9 +32,9 @@ PREFIX("rotatex", PARM(rx, real), GraphRotateX, RTAO(rotateX(self, rx)))
 PREFIX("rotatey", PARM(ry, real), GraphRotateY, RTAO(rotateY(self, ry)))
 PREFIX("rotatez", PARM(rz, real), GraphRotateZ, RTAO(rotateZ(self, rz)))
 PREFIX("rotate",
-       PARM(rx, real) PARM(ry, real) PARM(rz, real) PARM(ra, real),
+       PARM(ra, real) PARM(rx, real) PARM(ry, real) PARM(rz, real),
        GraphRotate,
-       RTAO(rotate(self, rx, ry, rz, ra)))
+       RTAO(rotate(self, ra, rx, ry, rz)))
 
 PREFIX("translatex", PARM(x, real), GraphTranslateX, RTAO(translateX(self, x)))
 PREFIX("translatey", PARM(y, real), GraphTranslateY, RTAO(translateY(self, y)))

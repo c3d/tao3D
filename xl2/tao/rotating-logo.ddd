@@ -1,0 +1,16 @@
+caption "Hello World, it is " & text(hours) & ":" & text(minutes) & ":" & text(seconds) & "..."
+
+glow(Dur, Amp)    -> (1.0 + sin(time / Dur * pi)) * Amp * 0.5
+unglow(Dur, Amp)  -> 1.0 - glow(Dur, Amp)
+
+color unglow(0.5, 0.3), unglow(2.0, 0.4), unglow(1.21, 0.3), glow(3.0, 1.0)
+svg "bubbles.svg"
+
+translate 0.0, 0.0, 1.0
+rotatex time
+rotatey time * 2.3
+rotatez time * 6.7
+color 1.0, 1.0, 1.0, 1.0
+svg "logo-v3.svg"
+
+refresh 1.0

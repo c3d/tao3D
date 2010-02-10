@@ -82,7 +82,12 @@ void TaoWindow::newFile()
 
 void TaoWindow::open()
 {
-    QString fileName = QFileDialog::getOpenFileName(this);
+    QString fileName = QFileDialog::getOpenFileName
+        (this,
+         tr("Open Tao Document"),
+         tr(""),
+         tr("Tao documents (*.ddd);;XL programs (*.xl);;"
+            "Headers (*.dds *.xs);;All files (*.*)"));
     if (!fileName.isEmpty()) {
         TaoWindow *existing = findTaoWindow(fileName);
         if (existing) {
@@ -356,7 +361,7 @@ void TaoWindow::setCurrentFile(const QString &fileName)
 
     isUntitled = fileName.isEmpty();
     if (isUntitled) {
-        curFile = tr("document%1.txt").arg(sequenceNumber++);
+        curFile = tr("document%1.ddd").arg(sequenceNumber++);
     } else {
         curFile = QFileInfo(fileName).canonicalFilePath();
     }

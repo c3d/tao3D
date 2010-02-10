@@ -397,6 +397,7 @@ Tree *TaoWidget::drawSvg(Tree *self, text img)
     }
 
     // Bind to the texture
+    saveGLState();
 #ifndef GL_MULTISAMPLE
 #define GL_MULTISAMPLE  0x809D
 #endif
@@ -409,6 +410,7 @@ Tree *TaoWidget::drawSvg(Tree *self, text img)
 
     // Draw a tile
     glCallList(rinfo->tile_list);
+    restoreGLState();
 
     return NULL;
 }
@@ -500,5 +502,15 @@ Tree *TaoWidget::color(Tree *self, double r, double g, double b, double a)
 // ----------------------------------------------------------------------------
 {
     glColor4f(r,g,b,a);
+    return NULL;
+}
+
+
+Tree *TaoWidget::refresh(Tree *self, double delay)
+// ----------------------------------------------------------------------------
+//    Refresh after the given number of seconds
+// ----------------------------------------------------------------------------
+{
+    QTimer::singleShot(1000 * delay, this, SLOT(draw()));
     return NULL;
 }

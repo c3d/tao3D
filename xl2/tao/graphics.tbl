@@ -48,3 +48,6 @@ PREFIX("color", PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real), GraphCo
        RTAO(color(self, r,g,b, a)))
 PREFIX("color", PARM(r, real) PARM(g, real) PARM(b, real), GraphColorRGB,
        RTAO(color(self, r,g,b, 1.0)))
+
+PREFIX("refresh", PARM(delay, real), GraphRefresh,
+       RTAO(refresh(self, delay)))

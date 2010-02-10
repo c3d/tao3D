@@ -69,6 +69,8 @@ public:
 
     Tree *color(Tree *self, double r, double g, double b, double a);
 
+    Tree *refresh(Tree *self, double delay);
+
 public slots:
     void draw();
 

@@ -373,7 +373,7 @@ Tree *TaoWidget::drawSvg(Tree *self, text img)
 //    The image may be animated, in which case we will get repaintNeeded()
 //    signals that we send to our 'draw()' so that we redraw as needed.
 {
-    SvgRendererInfo *rinfo = self->Get<SvgRendererInfo>();
+    SvgRendererInfo *rinfo = self->GetInfo<SvgRendererInfo>();
     QSvgRenderer    *r     = NULL;
 
     if (rinfo)
@@ -386,7 +386,7 @@ Tree *TaoWidget::drawSvg(Tree *self, text img)
         r = new QSvgRenderer(qs, this);
         connect(r, SIGNAL(repaintNeeded()), this, SLOT(draw()));
         rinfo = new SvgRendererInfo(r);
-        self->Set<SvgRendererInfo>(rinfo);
+        self->SetInfo<SvgRendererInfo>(rinfo);
     }
 
     {

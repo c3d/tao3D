@@ -514,3 +514,17 @@ Tree *TaoWidget::refresh(Tree *self, double delay)
     QTimer::singleShot(1000 * delay, this, SLOT(draw()));
     return NULL;
 }
+
+
+Tree *TaoWidget::time(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return a fractional time, including milliseconds
+// ----------------------------------------------------------------------------
+{
+    QTime t = QTime::currentTime();
+    double d = (3600.0   * t.hour()
+                + 60.0   * t.minute()
+                +          t.second()
+                +  0.001 * t.msec());
+    return new Real(d);
+}

@@ -51,3 +51,5 @@ PREFIX("color", PARM(r, real) PARM(g, real) PARM(b, real), GraphColorRGB,
 
 PREFIX("refresh", PARM(delay, real), GraphRefresh,
        RTAO(refresh(self, delay)))
+
+PREFIX("time", , GraphDaySeconds, RTAO(time(self)))

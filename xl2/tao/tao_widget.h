@@ -70,6 +70,7 @@ public:
     Tree *color(Tree *self, double r, double g, double b, double a);
 
     Tree *refresh(Tree *self, double delay);
+    Tree *time(Tree *self);
 
 public slots:
     void draw();

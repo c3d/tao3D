@@ -26,13 +26,15 @@
 #include <QSvgRenderer>
 #include "main.h"
 
+
+using namespace XL;
+
 class TaoWidget : public QGLWidget
 // ----------------------------------------------------------------------------
 //   This is the widget we use to display XL programs output
 // ----------------------------------------------------------------------------
 {
     Q_OBJECT
-
 public:
     TaoWidget(QWidget *parent, XL::SourceFile *sf = NULL);
     ~TaoWidget();
@@ -50,26 +52,17 @@ public:
     void wheelEvent(QWheelEvent *);
 
     // XLR entry points
-    void caption(text t) { caption_text = t; }
     static TaoWidget *Tao() { return current; }
+    Tree *caption(Tree *self, text t);
+    Tree *drawSvg(Tree *self, text t);
 
 public slots:
-    void animate(qreal);
-    void animFinished();
     void draw();
 
 private:
-    QPoint anchor;
-    float scale;
-    float rot_x, rot_y, rot_z;
-    GLuint tile_list;
-    GLfloat *wave;
-
-    QImage logo;
-    QTimeLine *anim;
-    QSvgRenderer *svg_renderer;
     QGLFramebufferObject *render_fbo;
     QGLFramebufferObject *texture_fbo;
+    GLuint tile_list;
 
 public:
     // XL Runtime
@@ -79,4 +72,5 @@ public:
 };
 
 
-#define TAO (*TaoWidget::Tao())
+#define TAO(x)  (TaoWidget::Tao() ? TaoWidget::Tao()->x : 0)
+#define RTAO(x) return TAO(x)

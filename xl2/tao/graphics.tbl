@@ -24,4 +24,8 @@
 // * Date       : $Date$
 // ****************************************************************************
 
-PREFIX("caption", PARM(t, text), GraphCaption, TAO.caption(t))
+PREFIX("caption", PARM(t, text), GraphCaption, RTAO(caption(self, t)))
+
+PREFIX("svg", PARM(img, text), GraphSvg, RTAO(drawSvg(self, img)))
+
+

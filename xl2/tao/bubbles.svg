@@ -187,7 +187,7 @@
       <path fill="black" d="M 37,50 L 50,37 L 12,-1 L 22,-11 L 10,-24 L -24,10
                             L -11,22 L -1,12 Z" />
       <animateTransform attributeName="transform"  type="rotate" additive="sum" values="0; 360"
-	         begin="0s" dur="10s" fill="freeze" repeatCount="indefinite" />
+	         begin="0s" dur="1s" fill="freeze" repeatCount="indefinite" />
     </g>
     <g transform="translate(200,375)">
       <use xlink:href="#shadow" transform="translate(25,55) scale(1.0,0.5)" />

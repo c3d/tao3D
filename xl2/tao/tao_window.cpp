@@ -132,9 +132,15 @@ bool TaoWindow::saveAs()
 
 void TaoWindow::about()
 {
-   QMessageBox::about(this, tr("About SDI"),
-            tr("The <b>SDI</b> example demonstrates how to write single "
-               "document interface applications using Qt."));
+    kstring txt =
+        "<b>Tao</b>, an interactive collaboration tool.<br/>"
+        "Brought to you by Taodyne SAS:<br/>"
+        "Anne Lempereur<br/>"
+        "Catherine Burvelle<br/>"
+        "Jérôme Forissier<br/>"
+        "Lionel Schaffhauser<br/>"
+        "Christophe de Dinechin.";
+   QMessageBox::about (this, tr("About Tao"), tr(txt));
 }
 
 void TaoWindow::documentWasModified()

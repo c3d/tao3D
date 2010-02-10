@@ -81,7 +81,7 @@ SOURCES += \
     ../xlr/compiler.cpp \
     ../xlr/basics.cpp
 
-RESOURCES += framebufferobject.qrc
+RESOURCES += tao.qrc
 
 # LLVM dependencies
 exists(/usr/local/bin/llvm-config) {

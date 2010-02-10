@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 //    Main entry point of the graphical front-end
 // ----------------------------------------------------------------------------
 {
-    Q_INIT_RESOURCE(framebufferobject);
+    Q_INIT_RESOURCE(tao);
 
     // Initialize the Tao applications
     QApplication tao(argc, argv);

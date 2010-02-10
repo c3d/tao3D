@@ -50,19 +50,27 @@ public:
     void mouseMoveEvent(QMouseEvent *);
     void timerEvent(QTimerEvent *);
     void wheelEvent(QWheelEvent *);
-
+    
+public:
     // XLR entry points
     static TaoWidget *Tao() { return current; }
     Tree *caption(Tree *self, text t);
     Tree *drawSvg(Tree *self, text t);
 
+    Tree *rotateX(Tree *self, double rx);
+    Tree *rotateY(Tree *self, double ry);
+    Tree *rotateZ(Tree *self, double rz);
+    Tree *rotate(Tree *self, double rx, double ry, double rz, double ra);
+
+    Tree *translateX(Tree *self, double x);
+    Tree *translateY(Tree *self, double y);
+    Tree *translateZ(Tree *self, double z);
+    Tree *translate(Tree *self, double x, double y, double z);
+
+    Tree *color(Tree *self, double r, double g, double b, double a);
+
 public slots:
     void draw();
-
-private:
-    QGLFramebufferObject *render_fbo;
-    QGLFramebufferObject *texture_fbo;
-    GLuint tile_list;
 
 public:
     // XL Runtime

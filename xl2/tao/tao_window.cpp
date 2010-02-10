@@ -311,6 +311,12 @@ void TaoWindow::loadFile(const QString &fileName)
 
     setCurrentFile(fileName);
     statusBar()->showMessage(tr("File loaded"), 2000);
+
+    text fn = fileName.toStdString();
+    xlRuntime->LoadFile(fn);
+    xlProgram = &xlRuntime->files[fn];
+    taoWidget->xlProgram = xlProgram;
+    taoWidget->draw();
 }
 
 bool TaoWindow::saveFile(const QString &fileName)
@@ -339,6 +345,7 @@ bool TaoWindow::saveFile(const QString &fileName)
     xlRuntime->LoadFile(fn);
     xlProgram = &xlRuntime->files[fn];
     taoWidget->xlProgram = xlProgram;
+    taoWidget->draw();
 
     return true;
 }

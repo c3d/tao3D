@@ -28,4 +28,23 @@ PREFIX("caption", PARM(t, text), GraphCaption, RTAO(caption(self, t)))
 
 PREFIX("svg", PARM(img, text), GraphSvg, RTAO(drawSvg(self, img)))
 
+PREFIX("rotatex", PARM(rx, real), GraphRotateX, RTAO(rotateX(self, rx)))
+PREFIX("rotatey", PARM(ry, real), GraphRotateY, RTAO(rotateY(self, ry)))
+PREFIX("rotatez", PARM(rz, real), GraphRotateZ, RTAO(rotateZ(self, rz)))
+PREFIX("rotate",
+       PARM(rx, real) PARM(ry, real) PARM(rz, real) PARM(ra, real),
+       GraphRotate,
+       RTAO(rotate(self, rx, ry, rz, ra)))
 
+PREFIX("translatex", PARM(x, real), GraphTranslateX, RTAO(translateX(self, x)))
+PREFIX("translatey", PARM(y, real), GraphTranslateY, RTAO(translateY(self, y)))
+PREFIX("translatez", PARM(z, real), GraphTranslateZ, RTAO(translateZ(self, z)))
+PREFIX("translate",
+       PARM(x, real) PARM(y, real) PARM(z, real),
+       GraphTranslate,
+       RTAO(translate(self, x, y, z)))
+
+PREFIX("color", PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real), GraphColorRGBA,
+       RTAO(color(self, r,g,b, a)))
+PREFIX("color", PARM(r, real) PARM(g, real) PARM(b, real), GraphColorRGB,
+       RTAO(color(self, r,g,b, 1.0)))

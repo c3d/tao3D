@@ -26,6 +26,8 @@
 #include "main.h"
 #include "runtime.h"
 
+#include <iostream>
+
 
 
 // ============================================================================
@@ -39,67 +41,11 @@ TaoWidget::TaoWidget(QWidget *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      render_fbo(NULL), texture_fbo(NULL),
       xlProgram(sf),
       caption_text("A simple OpenGL framebuffer object example.")
 {
     // Make this the current context for OpenGL
     makeCurrent();
-
-    // Select whether we draw directly in texture or blit to it
-    // REVISIT ddd: why is this even remotely useful? Is it just a demo?
-    if (QGLFramebufferObject::hasOpenGLFramebufferBlit())
-    {
-        QGLFramebufferObjectFormat format;
-        format.setSamples(4);
-        format.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
-
-        render_fbo = new QGLFramebufferObject(512, 512, format);
-        texture_fbo = new QGLFramebufferObject(512, 512);
-    }
-    else
-    {
-        render_fbo = new QGLFramebufferObject(1024, 1024);
-        texture_fbo = render_fbo;
-    }
-
-    // Generate a cube tile that we will use for drawing
-    tile_list = glGenLists(1);
-    glNewList(tile_list, GL_COMPILE);
-    glBegin(GL_QUADS);
-    {
-        glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);
-        glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);
-        glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f,  1.0f);
-        glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f,  1.0f);
-
-        glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f, -1.0f);
-        glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);
-        glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);
-        glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);
-
-        glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);
-        glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f,  1.0f,  1.0f);
-        glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f,  1.0f,  1.0f);
-        glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);
-
-        glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -1.0f, -1.0f);
-        glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f, -1.0f, -1.0f);
-        glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);
-        glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);
-
-        glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);
-        glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);
-        glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  1.0f,  1.0f);
-        glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);
-
-        glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f, -1.0f);
-        glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);
-        glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f,  1.0f);
-        glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);
-    }
-    glEnd();
-    glEndList();
 }
 
 
@@ -107,12 +53,7 @@ TaoWidget::~TaoWidget()
 // ----------------------------------------------------------------------------
 //   Destroy the widget
 // ----------------------------------------------------------------------------
-{
-    glDeleteLists(tile_list, 1);
-    delete texture_fbo;
-    if (render_fbo != texture_fbo)
-        delete render_fbo;
-}
+{}
 
 
 
@@ -267,16 +208,161 @@ Tree *TaoWidget::caption(Tree *self, text caption)
 }
 
 
-struct SvgRendererInfo : Info
+struct SheetInfo : Info
+// ----------------------------------------------------------------------------
+//    Information about a given sheet being rendered in a dynamic texture
+// ----------------------------------------------------------------------------
+{
+    typedef SheetInfo *data_t;
+
+    SheetInfo();
+    ~SheetInfo();
+
+    void begin();
+    void end();
+
+    QGLFramebufferObject *render_fbo;
+    QGLFramebufferObject *texture_fbo;
+    GLuint                tile_list;
+};
+
+
+SheetInfo::SheetInfo()
+// ----------------------------------------------------------------------------
+//   Create the required frame buffer objects and tile
+// ----------------------------------------------------------------------------
+    : render_fbo(NULL), texture_fbo(NULL)
+{
+    // Select whether we draw directly in texture or blit to it
+    // If we can blit, we first draw in a multisample buffer
+    // with 4 samples per pixel. This cannot be used directly as texture.
+    if (QGLFramebufferObject::hasOpenGLFramebufferBlit())
+    {
+        QGLFramebufferObjectFormat format;
+        format.setSamples(4);
+        format.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
+
+        render_fbo = new QGLFramebufferObject(512, 512, format);
+        texture_fbo = new QGLFramebufferObject(512, 512);
+    }
+    else
+    {
+        render_fbo = new QGLFramebufferObject(512, 512);
+        texture_fbo = render_fbo;
+    }
+
+    // Generate a cube tile that we will use for drawing
+    tile_list = glGenLists(1);
+    glNewList(tile_list, GL_COMPILE);
+    glBegin(GL_QUADS);
+    {
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f,  1.0f);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f,  1.0f);
+
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f, -1.0f);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);
+
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f,  1.0f,  1.0f);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f,  1.0f,  1.0f);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);
+
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -1.0f, -1.0f);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f, -1.0f, -1.0f);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);
+
+        glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  1.0f,  1.0f);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);
+
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f, -1.0f);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f,  1.0f);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);
+    }
+    glEnd();
+    glEndList();
+}
+
+
+SheetInfo::~SheetInfo()
+// ----------------------------------------------------------------------------
+//   Delete the frame buffer object and GL tile
+// ----------------------------------------------------------------------------
+{
+    glDeleteLists(tile_list, 1);
+    delete texture_fbo;
+    if (render_fbo != texture_fbo)
+        delete render_fbo;
+}
+
+
+struct SheetPainter : QPainter
+// ----------------------------------------------------------------------------
+//   Paint on a given sheet, given a SheetInfo
+// ----------------------------------------------------------------------------
+{
+    SheetPainter(TaoWidget *wid, SheetInfo *info);
+    ~SheetPainter();
+    TaoWidget *tao;
+    SheetInfo *info;
+};
+
+
+SheetPainter::SheetPainter(TaoWidget *wid, SheetInfo *info)
+// ----------------------------------------------------------------------------
+//   Begin drawing in the current context
+// ----------------------------------------------------------------------------
+    : QPainter(), tao(wid), info(info)
+{
+    // Draw without any transformation (reset the coordinates system)
+    wid->saveGLState();
+    glLoadIdentity();
+
+    // Clear the render FBO
+    info->render_fbo->bind();
+    glClearColor(0.0, 0.0, 0.3, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    info->render_fbo->release();
+
+    begin(info->render_fbo);
+}
+
+
+SheetPainter::~SheetPainter()
+// ----------------------------------------------------------------------------
+//   Finish the drawing on the current sheet
+// ----------------------------------------------------------------------------
+{
+    end();
+
+    // Blit the result in the texture if necessary
+    if (info->render_fbo != info->texture_fbo) {
+        QRect rect(0, 0, info->render_fbo->width(), info->render_fbo->height());
+        QGLFramebufferObject::blitFramebuffer(info->texture_fbo, rect,
+                                              info->render_fbo, rect);
+    }
+}
+
+
+struct SvgRendererInfo : SheetInfo
 // ----------------------------------------------------------------------------
 //    Hold information about the SVG renderer for a tree
 // ----------------------------------------------------------------------------
 {
-    typedef QSvgRenderer *data_t;
-    SvgRendererInfo(QSvgRenderer *r): renderer(r) {}
+    typedef SvgRendererInfo *data_t;
+
+    SvgRendererInfo(QSvgRenderer *r): SheetInfo(), renderer(r) {}
     ~SvgRendererInfo() { delete renderer; }
-    operator data_t() { return renderer; }
-    QSvgRenderer *renderer;
+    operator data_t() { return this; }
+
+    QSvgRenderer         *renderer;
 };
 
 
@@ -287,32 +373,32 @@ Tree *TaoWidget::drawSvg(Tree *self, text img)
 //    The image may be animated, in which case we will get repaintNeeded()
 //    signals that we send to our 'draw()' so that we redraw as needed.
 {
-    QSvgRenderer *r = self->Get<SvgRendererInfo>();
-    if (!r)
+    SvgRendererInfo *rinfo = self->Get<SvgRendererInfo>();
+    QSvgRenderer    *r     = NULL;
+
+    if (rinfo)
+    {
+        r = rinfo->renderer;
+    }
+    else
     {
         QString qs = QString::fromStdString(img);
         r = new QSvgRenderer(qs, this);
         connect(r, SIGNAL(repaintNeeded()), this, SLOT(draw()));
-        self->Set<SvgRendererInfo>(r);
+        rinfo = new SvgRendererInfo(r);
+        self->Set<SvgRendererInfo>(rinfo);
     }
 
-    // Render the SVG in our frame buffer object
-    QPainter fbo_painter(render_fbo);
-    r->render(&fbo_painter);
-    fbo_painter.end();
-
-    // Blit the result in the texture if necessary
-    if (render_fbo != texture_fbo) {
-        QRect rect(0, 0, render_fbo->width(), render_fbo->height());
-        QGLFramebufferObject::blitFramebuffer(texture_fbo, rect,
-                                              render_fbo, rect);
+    {
+        SheetPainter painter(this, rinfo);
+        r->render(&painter);
     }
 
     // Bind to the texture
 #ifndef GL_MULTISAMPLE
 #define GL_MULTISAMPLE  0x809D
 #endif
-    glBindTexture(GL_TEXTURE_2D, texture_fbo->texture());
+    glBindTexture(GL_TEXTURE_2D, rinfo->texture_fbo->texture());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glEnable(GL_TEXTURE_2D);
@@ -320,9 +406,97 @@ Tree *TaoWidget::drawSvg(Tree *self, text img)
     glEnable(GL_CULL_FACE);
 
     // Draw a tile
-    glCallList(tile_list);
+    glCallList(rinfo->tile_list);
 
     return NULL;
 }
 
 
+Tree *TaoWidget::rotateX(Tree *self, double rx)
+// ----------------------------------------------------------------------------
+// 
+// ----------------------------------------------------------------------------
+{
+    glRotatef(1.0, 0.0, 0.0, rx);
+    return NULL;
+}
+
+
+Tree *TaoWidget::rotateY(Tree *self, double ry)
+// ----------------------------------------------------------------------------
+// 
+// ----------------------------------------------------------------------------
+{
+    glRotatef(0.0, 1.0, 0.0, ry);
+    return NULL;
+}
+
+
+Tree *TaoWidget::rotateZ(Tree *self, double rz)
+// ----------------------------------------------------------------------------
+// 
+// ----------------------------------------------------------------------------
+{
+    glRotatef(0.0, 0.0, 1.0, rz);
+    return NULL;
+}
+
+
+Tree *TaoWidget::rotate(Tree *self, double rx, double ry, double rz, double ra)
+// ----------------------------------------------------------------------------
+// 
+// ----------------------------------------------------------------------------
+{
+    glRotatef(rx, ry, rz, ra);
+    return NULL;
+}
+
+
+Tree *TaoWidget::translateX(Tree *self, double rx)
+// ----------------------------------------------------------------------------
+// 
+// ----------------------------------------------------------------------------
+{
+    glTranslatef(rx, 0.0, 0.0);
+    return NULL;
+}
+
+
+Tree *TaoWidget::translateY(Tree *self, double ry)
+// ----------------------------------------------------------------------------
+// 
+// ----------------------------------------------------------------------------
+{
+    glTranslatef(0.0, ry, 0.0);
+    return NULL;
+}
+
+
+Tree *TaoWidget::translateZ(Tree *self, double rz)
+// ----------------------------------------------------------------------------
+// 
+// ----------------------------------------------------------------------------
+{
+    glTranslatef(0.0, 0.0, rz);
+    return NULL;
+}
+
+
+Tree *TaoWidget::translate(Tree *self, double rx, double ry, double rz)
+// ----------------------------------------------------------------------------
+// 
+// ----------------------------------------------------------------------------
+{
+    glTranslatef(rx, ry, rz);
+    return NULL;
+}
+
+
+Tree *TaoWidget::color(Tree *self, double r, double g, double b, double a)
+// ----------------------------------------------------------------------------
+// 
+// ----------------------------------------------------------------------------
+{
+    glColor4f(r,g,b,a);
+    return NULL;
+}

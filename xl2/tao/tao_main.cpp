@@ -77,6 +77,11 @@ int main(int argc, char **argv)
         TaoWindow *window = new TaoWindow (xlr, &sf);
         window->show();
     }
+    if (names.begin() == names.end())
+    {
+        TaoWindow *untitled = new TaoWindow(xlr, NULL);
+        untitled->show();
+    }
 
     return tao.exec();
 }

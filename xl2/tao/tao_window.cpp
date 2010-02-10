@@ -41,7 +41,7 @@ TaoWindow::TaoWindow(XL::Main *xlr, XL::SourceFile *sf)
     dock->setWidget(textEdit);
     addDockWidget(Qt::RightDockWidgetArea, dock);
 
-    taoWidget = new TaoWidget(NULL, sf);
+    taoWidget = new TaoWidget(this, sf);
     setCentralWidget(taoWidget);
 
     // Create menus, actions, stuff
@@ -49,7 +49,6 @@ TaoWindow::TaoWindow(XL::Main *xlr, XL::SourceFile *sf)
     createMenus();
     createToolBars();
     createStatusBar();
-
     connect(textEdit->document(), SIGNAL(contentsChanged()),
             this, SLOT(documentWasModified()));
 

@@ -302,7 +302,7 @@ void TaoWindow::loadFile(const QString &fileName)
 
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("SDI"),
+        QMessageBox::warning(this, tr("Cannot read file"),
                              tr("Cannot read file %1:\n%2.")
                              .arg(fileName)
                              .arg(file.errorString()));

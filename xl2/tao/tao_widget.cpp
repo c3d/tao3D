@@ -101,7 +101,19 @@ void TaoWidget::draw()
     glPushMatrix();
     current = this;
     if (xlProgram)
-        xl_evaluate(xlProgram->tree.tree);
+    {
+        try
+        {
+            xl_evaluate(xlProgram->tree.tree);
+        }
+        catch (Error &e)
+        {
+            xlProgram = NULL;
+            QMessageBox::warning(this, tr("Runtime error"),
+                                 tr("Error executing the program:\n%1")
+                                 .arg(QString::fromStdString(e.Message())));
+        }
+    }
     glPopMatrix();
 
     // restore the GL state that QPainter expects

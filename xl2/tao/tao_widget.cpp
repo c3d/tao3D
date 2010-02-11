@@ -252,7 +252,10 @@ SheetInfo::SheetInfo()
     if (QGLFramebufferObject::hasOpenGLFramebufferBlit())
     {
         QGLFramebufferObjectFormat format;
+#ifndef CONFIG_LINUX
+        // Setting this crashes in the first framebuffer object ctor
         format.setSamples(4);
+#endif
         format.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
 
         render_fbo = new QGLFramebufferObject(w, h, format);

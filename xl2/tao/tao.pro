@@ -42,7 +42,7 @@ macx {
 win32 {
     DEFINES += CONFIG_WIN32
 }
-linux {
+linux-g++ {
     DEFINES += CONFIG_LINUX
 }
 

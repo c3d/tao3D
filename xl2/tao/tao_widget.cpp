@@ -130,6 +130,9 @@ void TaoWidget::draw()
     QFontMetrics fm(p.font());
     p.drawText(width()/2 - fm.width(str1)/2, 20, str1);
     p.drawText(width()/2 - fm.width(str2)/2, 20 + fm.lineSpacing(), str2);
+
+    // Once we are done, do a garbage collection
+    Context::context->CollectGarbage();
 }
 
 

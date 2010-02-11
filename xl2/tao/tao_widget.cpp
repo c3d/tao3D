@@ -236,18 +236,19 @@ SheetInfo::SheetInfo()
     // Select whether we draw directly in texture or blit to it
     // If we can blit, we first draw in a multisample buffer
     // with 4 samples per pixel. This cannot be used directly as texture.
+    const int w = 512, h = 512;
     if (QGLFramebufferObject::hasOpenGLFramebufferBlit())
     {
         QGLFramebufferObjectFormat format;
         format.setSamples(4);
         format.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
 
-        render_fbo = new QGLFramebufferObject(512, 512, format);
-        texture_fbo = new QGLFramebufferObject(512, 512);
+        render_fbo = new QGLFramebufferObject(w, h, format);
+        texture_fbo = new QGLFramebufferObject(w, h);
     }
     else
     {
-        render_fbo = new QGLFramebufferObject(512, 512);
+        render_fbo = new QGLFramebufferObject(w, h);
         texture_fbo = render_fbo;
     }
 
@@ -418,7 +419,7 @@ Tree *TaoWidget::drawSvg(Tree *self, text img)
 
 Tree *TaoWidget::rotateX(Tree *self, double rx)
 // ----------------------------------------------------------------------------
-// 
+//   Rotation along the X axis
 // ----------------------------------------------------------------------------
 {
     glRotatef(rx, 1.0, 0.0, 0.0);
@@ -428,7 +429,7 @@ Tree *TaoWidget::rotateX(Tree *self, double rx)
 
 Tree *TaoWidget::rotateY(Tree *self, double ry)
 // ----------------------------------------------------------------------------
-// 
+//    Rotation along the Y axis
 // ----------------------------------------------------------------------------
 {
     glRotatef(ry, 0.0, 1.0, 0.0);
@@ -438,7 +439,7 @@ Tree *TaoWidget::rotateY(Tree *self, double ry)
 
 Tree *TaoWidget::rotateZ(Tree *self, double rz)
 // ----------------------------------------------------------------------------
-// 
+//    Rotation along the Z axis
 // ----------------------------------------------------------------------------
 {
     glRotatef(rz, 0.0, 0.0, 1.0);
@@ -448,7 +449,7 @@ Tree *TaoWidget::rotateZ(Tree *self, double rz)
 
 Tree *TaoWidget::rotate(Tree *self, double rx, double ry, double rz, double ra)
 // ----------------------------------------------------------------------------
-// 
+//    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
 {
     glRotatef(rx, ry, rz, ra);
@@ -458,7 +459,7 @@ Tree *TaoWidget::rotate(Tree *self, double rx, double ry, double rz, double ra)
 
 Tree *TaoWidget::translateX(Tree *self, double rx)
 // ----------------------------------------------------------------------------
-// 
+//    Translation along the X axis
 // ----------------------------------------------------------------------------
 {
     glTranslatef(rx, 0.0, 0.0);
@@ -468,7 +469,7 @@ Tree *TaoWidget::translateX(Tree *self, double rx)
 
 Tree *TaoWidget::translateY(Tree *self, double ry)
 // ----------------------------------------------------------------------------
-// 
+//     Translation along the Y axis
 // ----------------------------------------------------------------------------
 {
     glTranslatef(0.0, ry, 0.0);
@@ -478,7 +479,7 @@ Tree *TaoWidget::translateY(Tree *self, double ry)
 
 Tree *TaoWidget::translateZ(Tree *self, double rz)
 // ----------------------------------------------------------------------------
-// 
+//     Translation along the Z axis
 // ----------------------------------------------------------------------------
 {
     glTranslatef(0.0, 0.0, rz);
@@ -488,7 +489,7 @@ Tree *TaoWidget::translateZ(Tree *self, double rz)
 
 Tree *TaoWidget::translate(Tree *self, double rx, double ry, double rz)
 // ----------------------------------------------------------------------------
-// 
+//     Translation along three axes
 // ----------------------------------------------------------------------------
 {
     glTranslatef(rx, ry, rz);
@@ -496,9 +497,49 @@ Tree *TaoWidget::translate(Tree *self, double rx, double ry, double rz)
 }
 
 
+Tree *TaoWidget::scaleX(Tree *self, double sx)
+// ----------------------------------------------------------------------------
+//    Scaling along the X axis
+// ----------------------------------------------------------------------------
+{
+    glScalef(sx, 1.0, 1.0);
+    return NULL;
+}
+
+
+Tree *TaoWidget::scaleY(Tree *self, double sy)
+// ----------------------------------------------------------------------------
+//     Scaling along the Y axis
+// ----------------------------------------------------------------------------
+{
+    glScalef(1.0, sy, 1.0);
+    return NULL;
+}
+
+
+Tree *TaoWidget::scaleZ(Tree *self, double sz)
+// ----------------------------------------------------------------------------
+//     Scaling along the Z axis
+// ----------------------------------------------------------------------------
+{
+    glScalef(1.0, 1.0, sz);
+    return NULL;
+}
+
+
+Tree *TaoWidget::scale(Tree *self, double sx, double sy, double sz)
+// ----------------------------------------------------------------------------
+//     Scaling along three axes
+// ----------------------------------------------------------------------------
+{
+    glScalef(sx, sy, sz);
+    return NULL;
+}
+
+
 Tree *TaoWidget::color(Tree *self, double r, double g, double b, double a)
 // ----------------------------------------------------------------------------
-// 
+//    Set the RGBA color
 // ----------------------------------------------------------------------------
 {
     glColor4f(r,g,b,a);
@@ -513,6 +554,18 @@ Tree *TaoWidget::refresh(Tree *self, double delay)
 {
     QTimer::singleShot(1000 * delay, this, SLOT(draw()));
     return NULL;
+}
+
+
+Tree *TaoWidget::locally(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree while preserving the OpenGL context
+// ----------------------------------------------------------------------------
+{
+    saveGLState();
+    Tree *result = xl_evaluate(child);
+    restoreGLState();
+    return result;
 }
 
 

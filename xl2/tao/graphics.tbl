@@ -44,6 +44,16 @@ PREFIX("translate",
        GraphTranslate,
        RTAO(translate(self, x, y, z)))
 
+PREFIX("scalex", PARM(x, real), GraphScaleX, RTAO(scaleX(self, x)))
+PREFIX("scaley", PARM(y, real), GraphScaleY, RTAO(scaleY(self, y)))
+PREFIX("scalez", PARM(z, real), GraphScaleZ, RTAO(scaleZ(self, z)))
+PREFIX("scale",
+       PARM(x, real) PARM(y, real) PARM(z, real),
+       GraphScale,
+       RTAO(scale(self, x, y, z)))
+
+PREFIX("locally", PARM(t, tree), GraphLocally, RTAO(locally(self, &t)))
+
 PREFIX("color", PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real), GraphColorRGBA,
        RTAO(color(self, r,g,b, a)))
 PREFIX("color", PARM(r, real) PARM(g, real) PARM(b, real), GraphColorRGB,

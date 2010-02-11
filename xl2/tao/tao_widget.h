@@ -67,6 +67,13 @@ public:
     Tree *translateZ(Tree *self, double z);
     Tree *translate(Tree *self, double x, double y, double z);
 
+    Tree *scaleX(Tree *self, double x);
+    Tree *scaleY(Tree *self, double y);
+    Tree *scaleZ(Tree *self, double z);
+    Tree *scale(Tree *self, double x, double y, double z);
+
+    Tree *locally(Tree *self, Tree *t);
+
     Tree *color(Tree *self, double r, double g, double b, double a);
 
     Tree *refresh(Tree *self, double delay);

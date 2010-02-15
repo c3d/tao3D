@@ -144,7 +144,7 @@ PREFIX("text", PARM(x, real), RealToText,
        std::ostringstream out; out << x; RTEXT(out.str()))
 
 // Time computations
-PREFIX("time",,    SystemTime,    time_t t; time(&t); RINT(t))
+PREFIX("system_time",,    SystemTime,    time_t t; time(&t); RINT(t))
 PREFIX("hours", PARM(t, integer),   TimeHours,
        struct tm tm; time_t clock = t;
        localtime_r(&clock, &tm); RINT(tm.tm_hour))

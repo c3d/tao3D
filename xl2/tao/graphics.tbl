@@ -1,0 +1,65 @@
+// ****************************************************************************
+//  graphics.tbl                                                    XLR project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     List of basic entry points used to create Tao documents
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+// * File       : $RCSFile$
+// * Revision   : $Revision$
+// * Date       : $Date$
+// ****************************************************************************
+
+PREFIX("caption", PARM(t, text), GraphCaption, RTAO(caption(self, t)))
+
+PREFIX("svg", PARM(img, text), GraphSvg, RTAO(drawSvg(self, img)))
+
+PREFIX("rotatex", PARM(rx, real), GraphRotateX, RTAO(rotateX(self, rx)))
+PREFIX("rotatey", PARM(ry, real), GraphRotateY, RTAO(rotateY(self, ry)))
+PREFIX("rotatez", PARM(rz, real), GraphRotateZ, RTAO(rotateZ(self, rz)))
+PREFIX("rotate",
+       PARM(ra, real) PARM(rx, real) PARM(ry, real) PARM(rz, real),
+       GraphRotate,
+       RTAO(rotate(self, ra, rx, ry, rz)))
+
+PREFIX("translatex", PARM(x, real), GraphTranslateX, RTAO(translateX(self, x)))
+PREFIX("translatey", PARM(y, real), GraphTranslateY, RTAO(translateY(self, y)))
+PREFIX("translatez", PARM(z, real), GraphTranslateZ, RTAO(translateZ(self, z)))
+PREFIX("translate",
+       PARM(x, real) PARM(y, real) PARM(z, real),
+       GraphTranslate,
+       RTAO(translate(self, x, y, z)))
+
+PREFIX("scalex", PARM(x, real), GraphScaleX, RTAO(scaleX(self, x)))
+PREFIX("scaley", PARM(y, real), GraphScaleY, RTAO(scaleY(self, y)))
+PREFIX("scalez", PARM(z, real), GraphScaleZ, RTAO(scaleZ(self, z)))
+PREFIX("scale",
+       PARM(x, real) PARM(y, real) PARM(z, real),
+       GraphScale,
+       RTAO(scale(self, x, y, z)))
+
+PREFIX("locally", PARM(t, tree), GraphLocally, RTAO(locally(self, &t)))
+
+PREFIX("color", PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real), GraphColorRGBA,
+       RTAO(color(self, r,g,b, a)))
+PREFIX("color", PARM(r, real) PARM(g, real) PARM(b, real), GraphColorRGB,
+       RTAO(color(self, r,g,b, 1.0)))
+
+PREFIX("refresh", PARM(delay, real), GraphRefresh,
+       RTAO(refresh(self, delay)))
+
+PREFIX("time", , GraphDaySeconds, RTAO(time(self)))

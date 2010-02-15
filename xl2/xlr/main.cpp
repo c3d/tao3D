@@ -1,18 +1,18 @@
 // ****************************************************************************
 //  main.cpp                                                        XLR project
 // ****************************************************************************
-//
+// 
 //   File Description:
-//
-//      Main entry point of the compiler
-//
-//
-//
-//
-//
-//
-//
-//
+// 
+//    Main entry point of the XL runtime and compiler
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -276,6 +276,7 @@ int Main::Run()
 XL_END
 
 
+#ifndef TAO
 int main(int argc, char **argv)
 // ----------------------------------------------------------------------------
 //   Parse the command line and run the compiler phases
@@ -301,3 +302,5 @@ int main(int argc, char **argv)
 
     return rc;
 }
+
+#endif // TAO

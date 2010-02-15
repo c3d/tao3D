@@ -514,7 +514,6 @@ void Compiler::FreeResources(Tree *tree)
 {
     if (functions.count(tree) > 0 && closet.count(tree) == 0)
     {
-        std::cerr << "Freed one tree\n";
         Function *f = functions[tree];
         f->deleteBody();
         runtime->freeMachineCodeForFunction(f);
@@ -531,7 +530,6 @@ void Compiler::FreeResources()
 {
     while (!deleted.empty())
     {
-        std::cerr << "Freed functions\n";
         deleted_set::iterator i = deleted.begin();
         Tree *tree = *i;
         Function *f = functions[tree];

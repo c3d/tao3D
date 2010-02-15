@@ -599,3 +599,15 @@ Tree *TaoWidget::time(Tree *self)
                 +  0.001 * t.msec());
     return new Real(d);
 }
+
+
+Tree *TaoWidget::polygon(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree within a polygon 
+// ----------------------------------------------------------------------------
+{
+    glBegin(GL_POLYGON);
+    xl_evaluate(child);
+    glEnd();
+    return NULL;
+}

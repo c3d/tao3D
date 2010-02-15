@@ -25,6 +25,7 @@
 #include "tao_widget.h"
 #include "main.h"
 #include "runtime.h"
+#include <GL.h>
 
 #include <iostream>
 
@@ -609,5 +610,15 @@ Tree *TaoWidget::polygon(Tree *self, Tree *child)
     glBegin(GL_POLYGON);
     xl_evaluate(child);
     glEnd();
+    return NULL;
+}
+
+
+Tree *TaoWidget::vertex(Tree *self, double x, double y, double z)
+// ----------------------------------------------------------------------------
+//     GL vertex
+// ----------------------------------------------------------------------------
+{
+    glVertex3f(x, y, z);
     return NULL;
 }

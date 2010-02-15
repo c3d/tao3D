@@ -80,6 +80,7 @@ public:
     Tree *time(Tree *self);
 
     Tree *polygon(Tree *self, Tree *t);
+    Tree *vertex(Tree *self, double x, double y, double z);
 
 public slots:
     void draw();

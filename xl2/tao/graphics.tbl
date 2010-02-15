@@ -63,3 +63,5 @@ PREFIX("refresh", PARM(delay, real), GraphRefresh,
        RTAO(refresh(self, delay)))
 
 PREFIX("time", , GraphDaySeconds, RTAO(time(self)))
+
+PREFIX("vertex", PARM(x, real) PARM(y, real) PARM(z, real), Vertex, RTAO(vertex(self, x, y, z)))

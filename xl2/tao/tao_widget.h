@@ -79,6 +79,8 @@ public:
     Tree *refresh(Tree *self, double delay);
     Tree *time(Tree *self);
 
+    Tree *vertex(Tree *self, double x, double y, double z);
+
 public slots:
     void draw();
 

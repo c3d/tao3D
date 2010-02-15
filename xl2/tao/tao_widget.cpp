@@ -25,6 +25,7 @@
 #include "tao_widget.h"
 #include "main.h"
 #include "runtime.h"
+#include <GL.h>
 
 #include <iostream>
 
@@ -598,4 +599,13 @@ Tree *TaoWidget::time(Tree *self)
                 +          t.second()
                 +  0.001 * t.msec());
     return new Real(d);
+}
+
+Tree *TaoWidget::vertex(Tree *self, double x, double y, double z)
+// ----------------------------------------------------------------------------
+//     Scaling along three axes
+// ----------------------------------------------------------------------------
+{
+    glVertex3f(x, y, z);
+    return NULL;
 }

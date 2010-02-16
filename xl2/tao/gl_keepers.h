@@ -37,6 +37,7 @@ struct GLAttribKeeper
 {
     GLAttribKeeper(GLbitfield bits = GL_ALL_ATTRIB_BITS) { glPushAttrib(bits); }
     ~GLAttribKeeper()    { glPopAttrib(); }
+
 private:
     GLAttribKeeper(const GLAttribKeeper &other) {}
 };
@@ -50,6 +51,7 @@ struct GLMatrixKeeper
 {
     GLMatrixKeeper()    { glPushMatrix(); }
     ~GLMatrixKeeper()   { glPopMatrix(); }
+
 private:
     GLMatrixKeeper(const GLMatrixKeeper &other) {}
 };

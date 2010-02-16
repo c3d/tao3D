@@ -234,7 +234,6 @@ struct SheetInfo : XL::Info
 
     QGLFramebufferObject *render_fbo;
     QGLFramebufferObject *texture_fbo;
-    GLuint                tile_list;
 };
 
 
@@ -265,48 +264,6 @@ SheetInfo::SheetInfo()
         render_fbo = new QGLFramebufferObject(w, h);
         texture_fbo = render_fbo;
     }
-
-    // Generate a cube tile that we will use for drawing
-    tile_list = glGenLists(1);
-    glNewList(tile_list, GL_COMPILE);
-    glBegin(GL_QUADS);
-    {
-        double xs = 100.0;
-        double ys = 100.0;
-        double zs = 100.0;
-
-        glTexCoord2f(0.0f, 0.0f); glVertex3f(-xs, -ys,  zs);
-        glTexCoord2f(1.0f, 0.0f); glVertex3f( xs, -ys,  zs);
-        glTexCoord2f(1.0f, 1.0f); glVertex3f( xs,  ys,  zs);
-        glTexCoord2f(0.0f, 1.0f); glVertex3f(-xs,  ys,  zs);
-
-        glTexCoord2f(1.0f, 0.0f); glVertex3f(-xs, -ys, -zs);
-        glTexCoord2f(1.0f, 1.0f); glVertex3f(-xs,  ys, -zs);
-        glTexCoord2f(0.0f, 1.0f); glVertex3f( xs,  ys, -zs);
-        glTexCoord2f(0.0f, 0.0f); glVertex3f( xs, -ys, -zs);
-
-        glTexCoord2f(0.0f, 1.0f); glVertex3f(-xs,  ys, -zs);
-        glTexCoord2f(0.0f, 0.0f); glVertex3f(-xs,  ys,  zs);
-        glTexCoord2f(1.0f, 0.0f); glVertex3f( xs,  ys,  zs);
-        glTexCoord2f(1.0f, 1.0f); glVertex3f( xs,  ys, -zs);
-
-        glTexCoord2f(1.0f, 1.0f); glVertex3f(-xs, -ys, -zs);
-        glTexCoord2f(0.0f, 1.0f); glVertex3f( xs, -ys, -zs);
-        glTexCoord2f(0.0f, 0.0f); glVertex3f( xs, -ys,  zs);
-        glTexCoord2f(1.0f, 0.0f); glVertex3f(-xs, -ys,  zs);
-
-        glTexCoord2f(1.0f, 0.0f); glVertex3f( xs, -ys, -zs);
-        glTexCoord2f(1.0f, 1.0f); glVertex3f( xs,  ys, -zs);
-        glTexCoord2f(0.0f, 1.0f); glVertex3f( xs,  ys,  zs);
-        glTexCoord2f(0.0f, 0.0f); glVertex3f( xs, -ys,  zs);
-
-        glTexCoord2f(0.0f, 0.0f); glVertex3f(-xs, -ys, -zs);
-        glTexCoord2f(1.0f, 0.0f); glVertex3f(-xs, -ys,  zs);
-        glTexCoord2f(1.0f, 1.0f); glVertex3f(-xs,  ys,  zs);
-        glTexCoord2f(0.0f, 1.0f); glVertex3f(-xs,  ys, -zs);
-    }
-    glEnd();
-    glEndList();
 }
 
 
@@ -315,7 +272,6 @@ SheetInfo::~SheetInfo()
 //   Delete the frame buffer object and GL tile
 // ----------------------------------------------------------------------------
 {
-    glDeleteLists(tile_list, 1);
     delete texture_fbo;
     if (render_fbo != texture_fbo)
         delete render_fbo;
@@ -413,19 +369,12 @@ Tree *Widget::drawSvg(Tree *self, text img)
         r->render(&painter);
     }
 
-    {
-        // Bind to the texture
-        GLStateKeeper save;
-        glBindTexture(GL_TEXTURE_2D, rinfo->texture_fbo->texture());
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glEnable(GL_TEXTURE_2D);
-        glEnable(GL_MULTISAMPLE);
-        glEnable(GL_CULL_FACE);
-
-        // Draw a tile
-        glCallList(rinfo->tile_list);
-    }
+    glBindTexture(GL_TEXTURE_2D, rinfo->texture_fbo->texture());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_MULTISAMPLE);
+    glEnable(GL_CULL_FACE);
 
     return NULL;
 }
@@ -656,9 +605,17 @@ Tree *Widget::texture(Tree *self, text n, Tree *body)
 
     glDisable(GL_TEXTURE_2D);
     glDeleteTextures(1, &textureId);
-    
     return NULL;
 }
 
+    
+Tree *Widget::texCoord(Tree *self, double x, double y)
+// ----------------------------------------------------------------------------
+//     GL texture coordinate
+// ----------------------------------------------------------------------------
+{
+    glTexCoord2f(x, y);
+    return NULL;
+}
 
 TAO_END

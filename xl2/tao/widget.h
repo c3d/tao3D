@@ -85,6 +85,7 @@ public:
     Tree *sphere(Tree *self, double x, double y, double z, double r);
 
     Tree *texture(Tree *self, text n, Tree *body);
+    Tree *texCoord(Tree *self, double x, double y);
 
 public slots:
     void draw();

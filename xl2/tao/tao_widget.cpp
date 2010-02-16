@@ -17,6 +17,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -25,6 +26,7 @@
 #include "tao_widget.h"
 #include "main.h"
 #include "runtime.h"
+#include "gl_keepers.h"
 #include <GL.h>
 
 #include <iostream>
@@ -80,45 +82,46 @@ void TaoWidget::draw()
 {
     QPainter p(this); // used for text overlay
 
-    // Save the GL state set for QPainter
-    saveGLState();
-
-    // Setup the GL widget for execution of the XL program
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glFrustum(-1, 1, -1, 1, 10, 100);
-    glTranslatef(0.0f, 0.0f, -15.0f);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glViewport(0, 0, width(), height());
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDepthFunc(GL_LESS);
-    glEnable(GL_DEPTH_TEST);
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-
-    // Run the XL program associated with this widget
-    glPushMatrix();
-    current = this;
-    if (xlProgram)
     {
-        try
+        // Save the GL state set for QPainter
+        GLStateKeeper save;
+
+        // Setup the GL widget for execution of the XL program
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glFrustum(-1, 1, -1, 1, 10, 100);
+        glTranslatef(0.0f, 0.0f, -15.0f);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glViewport(0, 0, width(), height());
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDepthFunc(GL_LESS);
+        glEnable(GL_DEPTH_TEST);
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+        // Run the XL program associated with this widget
+        glPushMatrix();
+        current = this;
+        if (xlProgram)
         {
-            xl_evaluate(xlProgram->tree.tree);
+            try
+            {
+                xl_evaluate(xlProgram->tree.tree);
+            }
+            catch (Error &e)
+            {
+                xlProgram = NULL;
+                QMessageBox::warning(this, tr("Runtime error"),
+                                     tr("Error executing the program:\n%1")
+                                     .arg(QString::fromStdString(e.Message())));
+            }
         }
-        catch (Error &e)
-        {
-            xlProgram = NULL;
-            QMessageBox::warning(this, tr("Runtime error"),
-                                 tr("Error executing the program:\n%1")
-                                 .arg(QString::fromStdString(e.Message())));
-        }
-    }
-    glPopMatrix();
+        glPopMatrix();
 
     // restore the GL state that QPainter expects
-    restoreGLState();
+    }
 
     // draw the overlayed text using QPainter
     p.setPen(QColor(197, 197, 197, 157));
@@ -167,32 +170,6 @@ void TaoWidget::mouseDoubleClickEvent(QMouseEvent *)
 //   Mouse double click
 // ----------------------------------------------------------------------------
 {
-}
-
-
-void TaoWidget::saveGLState()
-// ----------------------------------------------------------------------------
-//   Save the GL state to be able to restore what the QPainter wants
-// ----------------------------------------------------------------------------
-{
-    glPushAttrib(GL_ALL_ATTRIB_BITS);
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-}
-
-
-void TaoWidget::restoreGLState()
-// ----------------------------------------------------------------------------
-//    Restore the GL state to what the QPainter wants
-// ----------------------------------------------------------------------------
-{
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-    glPopAttrib();
 }
 
 
@@ -328,21 +305,20 @@ struct SheetPainter : QPainter
 //   Paint on a given sheet, given a SheetInfo
 // ----------------------------------------------------------------------------
 {
-    SheetPainter(TaoWidget *wid, SheetInfo *info);
+    SheetPainter(SheetInfo *info);
     ~SheetPainter();
-    TaoWidget *tao;
     SheetInfo *info;
+    GLStateKeeper save;
 };
 
 
-SheetPainter::SheetPainter(TaoWidget *wid, SheetInfo *info)
+SheetPainter::SheetPainter(SheetInfo *info)
 // ----------------------------------------------------------------------------
 //   Begin drawing in the current context
 // ----------------------------------------------------------------------------
-    : QPainter(), tao(wid), info(info)
+    : QPainter(), info(info), save()
 {
     // Draw without any transformation (reset the coordinates system)
-    tao->saveGLState();
     glLoadIdentity();
 
     // Clear the render FBO
@@ -368,8 +344,6 @@ SheetPainter::~SheetPainter()
         QGLFramebufferObject::blitFramebuffer(info->texture_fbo, rect,
                                               info->render_fbo, rect);
     }
-
-    tao->restoreGLState();
 }
 
 
@@ -412,25 +386,26 @@ Tree *TaoWidget::drawSvg(Tree *self, text img)
     }
 
     {
-        SheetPainter painter(this, rinfo);
+        SheetPainter painter(rinfo);
         r->render(&painter);
     }
 
-    // Bind to the texture
-    saveGLState();
+    {
+        // Bind to the texture
+        GLStateKeeper save;
 #ifndef GL_MULTISAMPLE
 #define GL_MULTISAMPLE  0x809D
 #endif
-    glBindTexture(GL_TEXTURE_2D, rinfo->texture_fbo->texture());
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_MULTISAMPLE);
-    glEnable(GL_CULL_FACE);
+        glBindTexture(GL_TEXTURE_2D, rinfo->texture_fbo->texture());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_MULTISAMPLE);
+        glEnable(GL_CULL_FACE);
 
-    // Draw a tile
-    glCallList(rinfo->tile_list);
-    restoreGLState();
+        // Draw a tile
+        glCallList(rinfo->tile_list);
+    }
 
     return NULL;
 }
@@ -581,9 +556,8 @@ Tree *TaoWidget::locally(Tree *self, Tree *child)
 //   Evaluate the child tree while preserving the OpenGL context
 // ----------------------------------------------------------------------------
 {
-    saveGLState();
+    GLStateKeeper save;
     Tree *result = xl_evaluate(child);
-    restoreGLState();
     return result;
 }
 
@@ -607,6 +581,7 @@ Tree *TaoWidget::polygon(Tree *self, Tree *child)
 //   Evaluate the child tree within a polygon 
 // ----------------------------------------------------------------------------
 {
+    GLStateKeeper save;
     glBegin(GL_POLYGON);
     xl_evaluate(child);
     glEnd();

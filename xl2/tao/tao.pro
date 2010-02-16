@@ -33,7 +33,7 @@ QT += opengl svg
 CONFIG += warn_off
 
 # Tell the XLR portion that we are building for Tao
-DEFINES += TAO
+DEFINES += TAO DEBUG
 
 macx {
     DEFINES += CONFIG_MACOSX

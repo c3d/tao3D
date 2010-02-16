@@ -361,7 +361,8 @@ SheetPainter::~SheetPainter()
     end();
 
     // Blit the result in the texture if necessary
-    if (info->render_fbo != info->texture_fbo) {
+    if (info->render_fbo != info->texture_fbo)
+    {
         QRect rect(0, 0, info->render_fbo->width(), info->render_fbo->height());
         QGLFramebufferObject::blitFramebuffer(info->texture_fbo, rect,
                                               info->render_fbo, rect);
@@ -415,9 +416,6 @@ Tree *Widget::drawSvg(Tree *self, text img)
     {
         // Bind to the texture
         GLStateKeeper save;
-#ifndef GL_MULTISAMPLE
-#define GL_MULTISAMPLE  0x809D
-#endif
         glBindTexture(GL_TEXTURE_2D, rinfo->texture_fbo->texture());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

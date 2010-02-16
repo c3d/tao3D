@@ -19,49 +19,54 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
+//  (C) 2010 Christophe de Dinechin <ddd@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
 #include <QtOpenGL>
 
 
-class GLAttribKeeper
+struct GLAttribKeeper
 // ----------------------------------------------------------------------------
 //   Save and restore selected OpenGL attributes
 // ----------------------------------------------------------------------------
+//   By default, all attributes are saved (GL_ALL_ATTRIB_BITS)
 {
-public:
-    // By default, all attributes are saved
-    GLAttribKeeper(GLbitfield bits = GL_ALL_ATTRIB_BITS);
-    ~GLAttribKeeper();
+    GLAttribKeeper(GLbitfield bits = GL_ALL_ATTRIB_BITS) { glPushAttrib(bits); }
+    ~GLAttribKeeper()    { glPopAttrib(); }
+private:
+    GLAttribKeeper(const GLAttribKeeper &other) {}
 };
 
 
-class GLMatrixKeeper
+struct GLMatrixKeeper
 // ----------------------------------------------------------------------------
 //   Save and restore the current matrix
 // ----------------------------------------------------------------------------
+//   Caller is responsible for current matrix mode (model or projection view)
 {
-public:
-    GLMatrixKeeper();
-    ~GLMatrixKeeper();
+    GLMatrixKeeper()    { glPushMatrix(); }
+    ~GLMatrixKeeper()   { glPopMatrix(); }
+private:
+    GLMatrixKeeper(const GLMatrixKeeper &other) {}
 };
 
 
-class GLStateKeeper
+struct GLStateKeeper
 // ----------------------------------------------------------------------------
 //   Save and restore both selected attributes and the current matrix
 // ----------------------------------------------------------------------------
 {
-public:
-    GLStateKeeper(GLbitfield bits);
-    // Default constructor will save all attributes
-    GLStateKeeper();
-    ~GLStateKeeper();
+    GLStateKeeper(GLbitfield bits): attribs(bits), matrix() {}
+    GLStateKeeper(): attribs(), matrix() {}
+    ~GLStateKeeper() {}
 
 public:
-    GLAttribKeeper attribKeeper;
-    GLMatrixKeeper matrixKeeper;
+    GLAttribKeeper attribs;
+    GLMatrixKeeper matrix;
+
+private:
+    GLStateKeeper(const GLStateKeeper &other) {}
 };
 
 #endif // GL_KEEPERS_H

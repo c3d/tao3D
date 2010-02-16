@@ -56,7 +56,6 @@ public:
     // XLR entry points
     static Widget *Tao() { return current; }
     Tree *caption(Tree *self, text t);
-    Tree *drawSvg(Tree *self, text t);
 
     Tree *rotateX(Tree *self, double rx);
     Tree *rotateY(Tree *self, double ry);
@@ -84,7 +83,8 @@ public:
     Tree *vertex(Tree *self, double x, double y, double z);
     Tree *sphere(Tree *self, double x, double y, double z, double r);
 
-    Tree *texture(Tree *self, text n, Tree *body);
+    Tree *texture(Tree *self, text n);
+    Tree *svg(Tree *self, text t);
     Tree *texCoord(Tree *self, double x, double y);
 
     Tree *fromCm(Tree *self, double cm);

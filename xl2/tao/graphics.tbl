@@ -26,8 +26,6 @@
 
 PREFIX("caption", PARM(t, text), GraphCaption, RTAO(caption(self, t)))
 
-PREFIX("svg", PARM(img, text), GraphSvg, RTAO(drawSvg(self, img)))
-
 PREFIX("rotatex", PARM(rx, real), GraphRotateX, RTAO(rotateX(self, rx)))
 PREFIX("rotatey", PARM(ry, real), GraphRotateY, RTAO(rotateY(self, ry)))
 PREFIX("rotatez", PARM(rz, real), GraphRotateZ, RTAO(rotateZ(self, rz)))
@@ -71,8 +69,8 @@ PREFIX("vertex", PARM(x, real) PARM(y, real) PARM(z, real), Vertex,
 
 PREFIX("sphere", PARM(x, real) PARM(y, real) PARM(z, real) PARM(r, real),
        Sphere, RTAO(sphere(self, x,y,z,r)))
-PREFIX("texture", PARM(n, text) PARM(body, tree), Texture,
-       RTAO(texture(self, n, &body)))
+PREFIX("svg", PARM(img, text), GraphSvg,  RTAO(svg(self, img)))
+PREFIX("texture", PARM(n, text), Texture, RTAO(texture(self, n)))
 PREFIX("texcoord", PARM(x, real) PARM(y, real), GraphTexCoord, RTAO(texCoord(self, x, y)))
 
 POSTFIX(PARM(c, real), "cm", GraphFromCm, RTAO(fromCm(self, c)))

@@ -1,0 +1,53 @@
+caption "Hello"
+
+size -> 20.0
+delta -> 25.0
+count -> 5
+
+poly 1, 1 -> polygon
+   vertex 0.0, 0.0, 0.0
+   vertex 0.0, size, 0.0
+   vertex size, size, 0.0
+   vertex size, 0.0, 0.0
+
+poly N, 1 ->
+    poly 1, 1
+    translate delta, -delta * real(count-1), 0.0
+    rotatez 0.0 - 25.0
+    rotatey 15.0
+    poly N-1, count
+
+poly N, M ->
+    color sin(time*real(N)), cos(time*real(M)*1.2254), sin(2.122*time), 0.8
+    poly 1, 1
+    translate 0.0, delta, 0.0
+    poly N, M-1
+
+if time mod 25.5 < 2.25 then
+    locally
+        color 1.0, 0.0, 0.0, 0.2
+        translatez 2500.0 * sin(time* 0.85) - 2500.0
+        rotatex 60.0
+        rotatez 100.0*time
+        poly 25, count
+
+translate 0.0, 0.0, -1500.0
+rotatex 20.0
+
+D -> 0.5
+rotatex 270.0
+rotatez time * D
+rotatex 23.27
+
+color 1.0, 1.0, 1.0, 1.0
+texture "earth.bmp"
+locally
+   translate 900.0, 0.0, 0.0
+   rotatez time * D * 365.0
+   sphere 0.0, 0.0, 0.0, 100.0
+
+texture ""
+color 1.0, 1.0, 0.7, 0.8
+sphere 0.0, 0.0, 0.0, 200.0
+
+refresh 0.25

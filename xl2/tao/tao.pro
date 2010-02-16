@@ -47,7 +47,7 @@ linux-g++ {
 }
 
 # Input
-HEADERS += widget.h window.h gl_keepers.h       \
+HEADERS += widget.h window.h page.h gl_keepers.h       \
 ../xlr/base.h			../xlr/options.h        \
 ../xlr/basics.h			../xlr/parser.h         \
 ../xlr/compiler.h		../xlr/renderer.h       \
@@ -65,6 +65,7 @@ SOURCES += \
     graphics.cpp \
     widget.cpp \
     window.cpp \
+    page.cpp \
     gl_keepers.cpp \
     ../xlr/tree.cpp \
     ../xlr/sha1.cpp \

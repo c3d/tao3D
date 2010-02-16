@@ -47,7 +47,7 @@ linux-g++ {
 }
 
 # Input
-HEADERS += tao_widget.h tao_window.h gl_keepers.h       \
+HEADERS += widget.h window.h gl_keepers.h       \
 ../xlr/base.h			../xlr/options.h        \
 ../xlr/basics.h			../xlr/parser.h         \
 ../xlr/compiler.h		../xlr/renderer.h       \
@@ -63,8 +63,8 @@ HEADERS += tao_widget.h tao_window.h gl_keepers.h       \
 SOURCES += \
     tao_main.cpp \
     graphics.cpp \
-    tao_widget.cpp \
-    tao_window.cpp \
+    widget.cpp \
+    window.cpp \
     gl_keepers.cpp \
     ../xlr/tree.cpp \
     ../xlr/sha1.cpp \

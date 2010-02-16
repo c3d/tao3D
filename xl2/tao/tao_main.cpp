@@ -28,8 +28,8 @@
 #include <QtGui>
 #include <QtGui/QApplication>
 #include <QtGui/QMessageBox>
-#include "tao_widget.h"
-#include "tao_window.h"
+#include "widget.h"
+#include "window.h"
 #include "main.h"
 #include "graphics.h"
 
@@ -74,12 +74,12 @@ int main(int argc, char **argv)
     for (it = names.begin(); it != names.end(); it++)
     {
         XL::SourceFile &sf = xlr->files[*it];
-        TaoWindow *window = new TaoWindow (xlr, &sf);
+        Tao::Window *window = new Tao::Window (xlr, &sf);
         window->show();
     }
     if (names.begin() == names.end())
     {
-        TaoWindow *untitled = new TaoWindow(xlr, NULL);
+        Tao::Window *untitled = new Tao::Window(xlr, NULL);
         untitled->show();
     }
 

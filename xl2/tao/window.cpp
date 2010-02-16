@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  tao_window.cpp                                                  XLR project
+//  window.cpp                                                     Tao project
 // ****************************************************************************
 // 
 //   File Description:
@@ -21,12 +21,13 @@
 // ****************************************************************************
 
 #include <QtGui>
-#include "tao_window.h"
-#include "tao_widget.h"
+#include "window.h"
+#include "widget.h"
 
 
+TAO_BEGIN
 
-TaoWindow::TaoWindow(XL::Main *xlr, XL::SourceFile *sf)
+Window::Window(XL::Main *xlr, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create a Tao window with default parameters
 // ----------------------------------------------------------------------------
@@ -41,7 +42,7 @@ TaoWindow::TaoWindow(XL::Main *xlr, XL::SourceFile *sf)
     dock->setWidget(textEdit);
     addDockWidget(Qt::RightDockWidgetArea, dock);
 
-    taoWidget = new TaoWidget(this, sf);
+    taoWidget = new Widget(this, sf);
     setCentralWidget(taoWidget);
 
     // Create menus, actions, stuff
@@ -63,7 +64,7 @@ TaoWindow::TaoWindow(XL::Main *xlr, XL::SourceFile *sf)
 }
 
 
-void TaoWindow::closeEvent(QCloseEvent *event)
+void Window::closeEvent(QCloseEvent *event)
 {
     if (maybeSave()) {
         writeSettings();
@@ -73,14 +74,14 @@ void TaoWindow::closeEvent(QCloseEvent *event)
     }
 }
 
-void TaoWindow::newFile()
+void Window::newFile()
 {
-    TaoWindow *other = new TaoWindow(xlRuntime, NULL);
+    Window *other = new Window(xlRuntime, NULL);
     other->move(x() + 40, y() + 40);
     other->show();
 }
 
-void TaoWindow::open()
+void Window::open()
 {
     QString fileName = QFileDialog::getOpenFileName
         (this,
@@ -89,7 +90,7 @@ void TaoWindow::open()
          tr("Tao documents (*.ddd);;XL programs (*.xl);;"
             "Headers (*.dds *.xs);;All files (*.*)"));
     if (!fileName.isEmpty()) {
-        TaoWindow *existing = findTaoWindow(fileName);
+        Window *existing = findWindow(fileName);
         if (existing) {
             existing->show();
             existing->raise();
@@ -104,7 +105,7 @@ void TaoWindow::open()
             text fn = fileName.toStdString();
             xlRuntime->LoadFile(fn);
             XL::SourceFile &sf = xlRuntime->files[fn];
-            TaoWindow *other = new TaoWindow(xlRuntime, &sf);
+            Window *other = new Window(xlRuntime, &sf);
             if (other->isUntitled) {
                 delete other;
                 return;
@@ -115,7 +116,7 @@ void TaoWindow::open()
     }
 }
 
-bool TaoWindow::save()
+bool Window::save()
 {
     if (isUntitled) {
         return saveAs();
@@ -124,7 +125,7 @@ bool TaoWindow::save()
     }
 }
 
-bool TaoWindow::saveAs()
+bool Window::saveAs()
 {
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
                                                     curFile);
@@ -134,7 +135,7 @@ bool TaoWindow::saveAs()
     return saveFile(fileName);
 }
 
-void TaoWindow::about()
+void Window::about()
 {
     kstring txt =
         "<b>Tao</b>, an interactive collaboration tool.<br/>"
@@ -147,12 +148,12 @@ void TaoWindow::about()
    QMessageBox::about (this, tr("About Tao"), tr(txt));
 }
 
-void TaoWindow::documentWasModified()
+void Window::documentWasModified()
 {
     setWindowModified(true);
 }
 
-void TaoWindow::createActions()
+void Window::createActions()
 {
     newAct = new QAction(QIcon(":/images/new.png"), tr("&New"), this);
     newAct->setShortcuts(QKeySequence::New);
@@ -220,7 +221,7 @@ void TaoWindow::createActions()
 }
 
 //! [implicit tr context]
-void TaoWindow::createMenus()
+void Window::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
 //! [implicit tr context]
@@ -244,7 +245,7 @@ void TaoWindow::createMenus()
     helpMenu->addAction(aboutQtAct);
 }
 
-void TaoWindow::createToolBars()
+void Window::createToolBars()
 {
 //! [0]
     fileToolBar = addToolBar(tr("File"));
@@ -259,12 +260,12 @@ void TaoWindow::createToolBars()
     editToolBar->addAction(pasteAct);
 }
 
-void TaoWindow::createStatusBar()
+void Window::createStatusBar()
 {
     statusBar()->showMessage(tr("Ready"));
 }
 
-void TaoWindow::readSettings()
+void Window::readSettings()
 {
     QSettings settings;
     QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
@@ -273,14 +274,14 @@ void TaoWindow::readSettings()
     resize(size);
 }
 
-void TaoWindow::writeSettings()
+void Window::writeSettings()
 {
     QSettings settings;
     settings.setValue("pos", pos());
     settings.setValue("size", size());
 }
 
-bool TaoWindow::maybeSave()
+bool Window::maybeSave()
 {
     if (textEdit->document()->isModified()) {
 	QMessageBox::StandardButton ret;
@@ -297,7 +298,7 @@ bool TaoWindow::maybeSave()
     return true;
 }
 
-void TaoWindow::loadFile(const QString &fileName)
+void Window::loadFile(const QString &fileName)
 {
 
     QFile file(fileName);
@@ -324,7 +325,7 @@ void TaoWindow::loadFile(const QString &fileName)
     taoWidget->draw();
 }
 
-bool TaoWindow::saveFile(const QString &fileName)
+bool Window::saveFile(const QString &fileName)
 {
     QFile file(fileName);
     if (!file.open(QFile::WriteOnly | QFile::Text)) {
@@ -355,7 +356,7 @@ bool TaoWindow::saveFile(const QString &fileName)
     return true;
 }
 
-void TaoWindow::setCurrentFile(const QString &fileName)
+void Window::setCurrentFile(const QString &fileName)
 {
     static int sequenceNumber = 1;
 
@@ -371,20 +372,22 @@ void TaoWindow::setCurrentFile(const QString &fileName)
     setWindowFilePath(curFile);
 }
 
-QString TaoWindow::strippedName(const QString &fullFileName)
+QString Window::strippedName(const QString &fullFileName)
 {
     return QFileInfo(fullFileName).fileName();
 }
 
-TaoWindow *TaoWindow::findTaoWindow(const QString &fileName)
+Window *Window::findWindow(const QString &fileName)
 {
     QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
 
     foreach (QWidget *widget, qApp->topLevelWidgets()) {
-        TaoWindow *mainWin = qobject_cast<TaoWindow *>(widget);
+        Window *mainWin = qobject_cast<Window *>(widget);
         if (mainWin && mainWin->curFile == canonicalFilePath)
             return mainWin;
     }
     return 0;
 }
+
+TAO_END
 

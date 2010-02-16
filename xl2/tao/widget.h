@@ -1,7 +1,7 @@
-#ifndef TAO_WIDGET_H
-#define TAO_WIDGET_H
+#ifndef WIDGET_H
+#define WIDGET_H
 // ****************************************************************************
-//  tao_widget.h                                                    XLR project
+//  widget.h                                                       Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -28,19 +28,19 @@
 #include <QTimeLine>
 #include <QSvgRenderer>
 #include "main.h"
+#include "tao.h"
 
+namespace Tao {
 
-using namespace XL;
-
-class TaoWidget : public QGLWidget
+class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
 //   This is the widget we use to display XL programs output
 // ----------------------------------------------------------------------------
 {
     Q_OBJECT
 public:
-    TaoWidget(QWidget *parent, XL::SourceFile *sf = NULL);
-    ~TaoWidget();
+    Widget(QWidget *parent, XL::SourceFile *sf = NULL);
+    ~Widget();
 
     // Events
     void paintEvent(QPaintEvent *);
@@ -51,8 +51,10 @@ public:
     void wheelEvent(QWheelEvent *);
     
 public:
+    typedef XL::Tree Tree;
+
     // XLR entry points
-    static TaoWidget *Tao() { return current; }
+    static Widget *Tao() { return current; }
     Tree *caption(Tree *self, text t);
     Tree *drawSvg(Tree *self, text t);
 
@@ -88,11 +90,13 @@ public:
     // XL Runtime
     XL::SourceFile *  xlProgram;
     text              caption_text;
-    static TaoWidget *current;
+    static Widget    *current;
 };
 
 
-#define TAO(x)  (TaoWidget::Tao() ? TaoWidget::Tao()->x : 0)
+#define TAO(x)  (Tao::Widget::Tao() ? Tao::Widget::Tao()->x : 0)
 #define RTAO(x) return TAO(x)
+
+} // namespace Tao
 
 #endif // TAO_WIDGET_H

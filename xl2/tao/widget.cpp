@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  tao_widget.cpp                                                  XLR project
+//  widget.cpp                                                     Tao project
 // ****************************************************************************
 // 
 //   File Description:
@@ -23,7 +23,8 @@
 
 #include <QtGui/QImage>
 #include <math.h>
-#include "tao_widget.h"
+#include "widget.h"
+#include "tao.h"
 #include "main.h"
 #include "runtime.h"
 #include "gl_keepers.h"
@@ -33,6 +34,7 @@
 #include <iostream>
 
 
+TAO_BEGIN
 
 // ============================================================================
 // 
@@ -40,7 +42,7 @@
 // 
 // ============================================================================
 
-TaoWidget::TaoWidget(QWidget *parent, XL::SourceFile *sf)
+Widget::Widget(QWidget *parent, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create the GL widget
 // ----------------------------------------------------------------------------
@@ -53,7 +55,7 @@ TaoWidget::TaoWidget(QWidget *parent, XL::SourceFile *sf)
 }
 
 
-TaoWidget::~TaoWidget()
+Widget::~Widget()
 // ----------------------------------------------------------------------------
 //   Destroy the widget
 // ----------------------------------------------------------------------------
@@ -67,7 +69,7 @@ TaoWidget::~TaoWidget()
 // 
 // ============================================================================
 
-void TaoWidget::paintEvent(QPaintEvent *)
+void Widget::paintEvent(QPaintEvent *)
 // ----------------------------------------------------------------------------
 //    Repaint the widget
 // ----------------------------------------------------------------------------
@@ -77,7 +79,7 @@ void TaoWidget::paintEvent(QPaintEvent *)
 
 
 
-void TaoWidget::draw()
+void Widget::draw()
 // ----------------------------------------------------------------------------
 //    Redraw the widget
 // ----------------------------------------------------------------------------
@@ -127,7 +129,7 @@ void TaoWidget::draw()
             {
                 xl_evaluate(xlProgram->tree.tree);
             }
-            catch (Error &e)
+            catch (XL::Error &e)
             {
                 xlProgram = NULL;
                 QMessageBox::warning(this, tr("Runtime error"),
@@ -150,11 +152,11 @@ void TaoWidget::draw()
     p.drawText(width()/2 - fm.width(str2)/2, 20 + fm.lineSpacing(), str2);
 
     // Once we are done, do a garbage collection
-    Context::context->CollectGarbage();
+    XL::Context::context->CollectGarbage();
 }
 
 
-void TaoWidget::mousePressEvent(QMouseEvent *e)
+void Widget::mousePressEvent(QMouseEvent *e)
 // ----------------------------------------------------------------------------
 //   Mouse button click
 // ----------------------------------------------------------------------------
@@ -162,7 +164,7 @@ void TaoWidget::mousePressEvent(QMouseEvent *e)
 }
 
 
-void TaoWidget::mouseMoveEvent(QMouseEvent *e)
+void Widget::mouseMoveEvent(QMouseEvent *e)
 // ----------------------------------------------------------------------------
 //    Mouse move
 // ----------------------------------------------------------------------------
@@ -171,7 +173,7 @@ void TaoWidget::mouseMoveEvent(QMouseEvent *e)
 }
 
 
-void TaoWidget::wheelEvent(QWheelEvent *e)
+void Widget::wheelEvent(QWheelEvent *e)
 // ----------------------------------------------------------------------------
 //   Mouse wheel
 // ----------------------------------------------------------------------------
@@ -179,7 +181,7 @@ void TaoWidget::wheelEvent(QWheelEvent *e)
 }
 
 
-void TaoWidget::mouseDoubleClickEvent(QMouseEvent *)
+void Widget::mouseDoubleClickEvent(QMouseEvent *)
 // ----------------------------------------------------------------------------
 //   Mouse double click
 // ----------------------------------------------------------------------------
@@ -187,7 +189,7 @@ void TaoWidget::mouseDoubleClickEvent(QMouseEvent *)
 }
 
 
-void TaoWidget::timerEvent(QTimerEvent *)
+void Widget::timerEvent(QTimerEvent *)
 // ----------------------------------------------------------------------------
 //    Timer expired
 // ----------------------------------------------------------------------------
@@ -202,10 +204,12 @@ void TaoWidget::timerEvent(QTimerEvent *)
 // 
 // ============================================================================
 
-TaoWidget *TaoWidget::current = NULL;
+Widget *Widget::current = NULL;
+
+typedef XL::Tree Tree;
 
 
-Tree *TaoWidget::caption(Tree *self, text caption)
+Tree *Widget::caption(Tree *self, text caption)
 // ----------------------------------------------------------------------------
 //   Set the caption in the title
 // ----------------------------------------------------------------------------
@@ -215,7 +219,7 @@ Tree *TaoWidget::caption(Tree *self, text caption)
 }
 
 
-struct SheetInfo : Info
+struct SheetInfo : XL::Info
 // ----------------------------------------------------------------------------
 //    Information about a given sheet being rendered in a dynamic texture
 // ----------------------------------------------------------------------------
@@ -380,7 +384,7 @@ struct SvgRendererInfo : SheetInfo
 };
 
 
-Tree *TaoWidget::drawSvg(Tree *self, text img)
+Tree *Widget::drawSvg(Tree *self, text img)
 // ----------------------------------------------------------------------------
 //    Draw an image in SVG format
 // ----------------------------------------------------------------------------
@@ -429,7 +433,7 @@ Tree *TaoWidget::drawSvg(Tree *self, text img)
 }
 
 
-Tree *TaoWidget::rotateX(Tree *self, double rx)
+Tree *Widget::rotateX(Tree *self, double rx)
 // ----------------------------------------------------------------------------
 //   Rotation along the X axis
 // ----------------------------------------------------------------------------
@@ -439,7 +443,7 @@ Tree *TaoWidget::rotateX(Tree *self, double rx)
 }
 
 
-Tree *TaoWidget::rotateY(Tree *self, double ry)
+Tree *Widget::rotateY(Tree *self, double ry)
 // ----------------------------------------------------------------------------
 //    Rotation along the Y axis
 // ----------------------------------------------------------------------------
@@ -449,7 +453,7 @@ Tree *TaoWidget::rotateY(Tree *self, double ry)
 }
 
 
-Tree *TaoWidget::rotateZ(Tree *self, double rz)
+Tree *Widget::rotateZ(Tree *self, double rz)
 // ----------------------------------------------------------------------------
 //    Rotation along the Z axis
 // ----------------------------------------------------------------------------
@@ -459,7 +463,7 @@ Tree *TaoWidget::rotateZ(Tree *self, double rz)
 }
 
 
-Tree *TaoWidget::rotate(Tree *self, double rx, double ry, double rz, double ra)
+Tree *Widget::rotate(Tree *self, double rx, double ry, double rz, double ra)
 // ----------------------------------------------------------------------------
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
@@ -469,7 +473,7 @@ Tree *TaoWidget::rotate(Tree *self, double rx, double ry, double rz, double ra)
 }
 
 
-Tree *TaoWidget::translateX(Tree *self, double rx)
+Tree *Widget::translateX(Tree *self, double rx)
 // ----------------------------------------------------------------------------
 //    Translation along the X axis
 // ----------------------------------------------------------------------------
@@ -479,7 +483,7 @@ Tree *TaoWidget::translateX(Tree *self, double rx)
 }
 
 
-Tree *TaoWidget::translateY(Tree *self, double ry)
+Tree *Widget::translateY(Tree *self, double ry)
 // ----------------------------------------------------------------------------
 //     Translation along the Y axis
 // ----------------------------------------------------------------------------
@@ -489,7 +493,7 @@ Tree *TaoWidget::translateY(Tree *self, double ry)
 }
 
 
-Tree *TaoWidget::translateZ(Tree *self, double rz)
+Tree *Widget::translateZ(Tree *self, double rz)
 // ----------------------------------------------------------------------------
 //     Translation along the Z axis
 // ----------------------------------------------------------------------------
@@ -499,7 +503,7 @@ Tree *TaoWidget::translateZ(Tree *self, double rz)
 }
 
 
-Tree *TaoWidget::translate(Tree *self, double rx, double ry, double rz)
+Tree *Widget::translate(Tree *self, double rx, double ry, double rz)
 // ----------------------------------------------------------------------------
 //     Translation along three axes
 // ----------------------------------------------------------------------------
@@ -509,7 +513,7 @@ Tree *TaoWidget::translate(Tree *self, double rx, double ry, double rz)
 }
 
 
-Tree *TaoWidget::scaleX(Tree *self, double sx)
+Tree *Widget::scaleX(Tree *self, double sx)
 // ----------------------------------------------------------------------------
 //    Scaling along the X axis
 // ----------------------------------------------------------------------------
@@ -519,7 +523,7 @@ Tree *TaoWidget::scaleX(Tree *self, double sx)
 }
 
 
-Tree *TaoWidget::scaleY(Tree *self, double sy)
+Tree *Widget::scaleY(Tree *self, double sy)
 // ----------------------------------------------------------------------------
 //     Scaling along the Y axis
 // ----------------------------------------------------------------------------
@@ -529,7 +533,7 @@ Tree *TaoWidget::scaleY(Tree *self, double sy)
 }
 
 
-Tree *TaoWidget::scaleZ(Tree *self, double sz)
+Tree *Widget::scaleZ(Tree *self, double sz)
 // ----------------------------------------------------------------------------
 //     Scaling along the Z axis
 // ----------------------------------------------------------------------------
@@ -539,7 +543,7 @@ Tree *TaoWidget::scaleZ(Tree *self, double sz)
 }
 
 
-Tree *TaoWidget::scale(Tree *self, double sx, double sy, double sz)
+Tree *Widget::scale(Tree *self, double sx, double sy, double sz)
 // ----------------------------------------------------------------------------
 //     Scaling along three axes
 // ----------------------------------------------------------------------------
@@ -549,7 +553,7 @@ Tree *TaoWidget::scale(Tree *self, double sx, double sy, double sz)
 }
 
 
-Tree *TaoWidget::color(Tree *self, double r, double g, double b, double a)
+Tree *Widget::color(Tree *self, double r, double g, double b, double a)
 // ----------------------------------------------------------------------------
 //    Set the RGBA color
 // ----------------------------------------------------------------------------
@@ -559,7 +563,7 @@ Tree *TaoWidget::color(Tree *self, double r, double g, double b, double a)
 }
 
 
-Tree *TaoWidget::refresh(Tree *self, double delay)
+Tree *Widget::refresh(Tree *self, double delay)
 // ----------------------------------------------------------------------------
 //    Refresh after the given number of seconds
 // ----------------------------------------------------------------------------
@@ -569,7 +573,7 @@ Tree *TaoWidget::refresh(Tree *self, double delay)
 }
 
 
-Tree *TaoWidget::locally(Tree *self, Tree *child)
+Tree *Widget::locally(Tree *self, Tree *child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree while preserving the OpenGL context
 // ----------------------------------------------------------------------------
@@ -580,7 +584,7 @@ Tree *TaoWidget::locally(Tree *self, Tree *child)
 }
 
 
-Tree *TaoWidget::time(Tree *self)
+Tree *Widget::time(Tree *self)
 // ----------------------------------------------------------------------------
 //   Return a fractional time, including milliseconds
 // ----------------------------------------------------------------------------
@@ -590,11 +594,11 @@ Tree *TaoWidget::time(Tree *self)
                 + 60.0   * t.minute()
                 +          t.second()
                 +  0.001 * t.msec());
-    return new Real(d);
+    return new XL::Real(d);
 }
 
 
-Tree *TaoWidget::polygon(Tree *self, Tree *child)
+Tree *Widget::polygon(Tree *self, Tree *child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree within a polygon 
 // ----------------------------------------------------------------------------
@@ -607,7 +611,7 @@ Tree *TaoWidget::polygon(Tree *self, Tree *child)
 }
 
 
-Tree *TaoWidget::vertex(Tree *self, double x, double y, double z)
+Tree *Widget::vertex(Tree *self, double x, double y, double z)
 // ----------------------------------------------------------------------------
 //     GL vertex
 // ----------------------------------------------------------------------------
@@ -615,3 +619,6 @@ Tree *TaoWidget::vertex(Tree *self, double x, double y, double z)
     glVertex3f(x, y, z);
     return NULL;
 }
+
+
+TAO_END

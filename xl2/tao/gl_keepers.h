@@ -24,7 +24,10 @@
 // ****************************************************************************
 
 #include <QtOpenGL>
+#include "tao.h"
 
+
+TAO_BEGIN
 
 struct GLAttribKeeper
 // ----------------------------------------------------------------------------
@@ -68,5 +71,7 @@ public:
 private:
     GLStateKeeper(const GLStateKeeper &other) {}
 };
+
+TAO_END
 
 #endif // GL_KEEPERS_H

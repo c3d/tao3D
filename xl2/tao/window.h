@@ -1,7 +1,7 @@
-#ifndef TAO_WINDOW_H
-#define TAO_WINDOW_H
+#ifndef WINDOW_H
+#define WINDOW_H
 // ****************************************************************************
-//  tao_window.h                                                    XLR project
+//  window.h                                                       Tao project
 // ****************************************************************************
 // 
 //   File Description:
@@ -24,6 +24,7 @@
 
 #include <QMainWindow>
 #include "main.h"
+#include "tao.h"
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -31,11 +32,12 @@ class QMenu;
 class QTextEdit;
 QT_END_NAMESPACE
 
+namespace Tao {
 
-class TaoWidget;
+struct Widget;
 
 
-class TaoWindow : public QMainWindow
+class Window : public QMainWindow
 // ----------------------------------------------------------------------------
 //    The main window where we display our stuff
 // ----------------------------------------------------------------------------
@@ -43,7 +45,7 @@ class TaoWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    TaoWindow(XL::Main *xlr, XL::SourceFile *sf = NULL);
+    Window(XL::Main *xlr, XL::SourceFile *sf = NULL);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -69,35 +71,35 @@ private:
     bool saveFile(const QString &fileName);
     void setCurrentFile(const QString &fileName);
     QString strippedName(const QString &fullFileName);
-    TaoWindow *findTaoWindow(const QString &fileName);
+    Window *findWindow(const QString &fileName);
 
 private:
-    XL::Main *          xlRuntime;
-    XL::SourceFile *    xlProgram;
+    XL::Main *        xlRuntime;
+    XL::SourceFile *  xlProgram;
 
-    QTextEdit *textEdit;
-    TaoWidget *taoWidget;
-    
-    QString curFile;
-    bool isUntitled;
+    QTextEdit        *textEdit;
+    Widget           *taoWidget;
+    QString           curFile;
+    bool              isUntitled;
 
-    QMenu *fileMenu;
-    QMenu *editMenu;
-    QMenu *helpMenu;
-    QToolBar *fileToolBar;
-    QToolBar *editToolBar;
-    QAction *newAct;
-    QAction *openAct;
-    QAction *saveAct;
-    QAction *saveAsAct;
-    QAction *closeAct;
-    QAction *exitAct;
-    QAction *cutAct;
-    QAction *copyAct;
-    QAction *pasteAct;
-    QAction *aboutAct;
-    QAction *aboutQtAct;
-
+    QMenu            *fileMenu;
+    QMenu            *editMenu;
+    QMenu            *helpMenu;
+    QToolBar         *fileToolBar;
+    QToolBar         *editToolBar;
+    QAction          *newAct;
+    QAction          *openAct;
+    QAction          *saveAct;
+    QAction          *saveAsAct;
+    QAction          *closeAct;
+    QAction          *exitAct;
+    QAction          *cutAct;
+    QAction          *copyAct;
+    QAction          *pasteAct;
+    QAction          *aboutAct;
+    QAction          *aboutQtAct;
 };
 
-#endif // TAO_WINDOW_H
+}
+
+#endif // WINDOW_H

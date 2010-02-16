@@ -27,7 +27,7 @@
 #include "graphics.h"
 #include "opcodes.h"
 #include "options.h"
-#include "tao_widget.h"
+#include "widget.h"
 #include <iostream>
 
 

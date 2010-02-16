@@ -4,7 +4,7 @@ glow(Dur, Amp)    -> (1.0 + sin(time / Dur * pi)) * Amp * 0.5
 unglow(Dur, Amp)  -> 1.0 - glow(Dur, Amp)
 
 
-translatez 0.0 - glow(8.0, 25.0)
+translatez 0.0 - 100.0 - glow(8.0, 250.0)
 locally
     color unglow(0.5, 0.3), unglow(2.0, 0.4), unglow(1.21, 0.3), glow(3.0, 1.0)
     rotatex time *7.6
@@ -12,7 +12,7 @@ locally
     svg "bubbles.svg"
 
 rotatey time * 65.5
-translate 0.0, 0.0, 4.5
+translate 0.0, 0.0, 450.0
 rotatex time
 rotatey time * 28.3
 rotatez time * 62.7

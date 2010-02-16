@@ -27,6 +27,7 @@
 #include "runtime.h"
 #include <GL.h>
 
+
 #include <iostream>
 
 
@@ -73,6 +74,11 @@ void TaoWidget::paintEvent(QPaintEvent *)
 }
 
 
+double zNear = 1000.0, zFar = 40000.0;
+double eyeX = 0.0, eyeY = 0.0, eyeZ = 1000.0;
+double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
+double upX = 0.0, upY = 1.0, upZ = 0.0;
+
 void TaoWidget::draw()
 // ----------------------------------------------------------------------------
 //    Redraw the widget
@@ -83,15 +89,25 @@ void TaoWidget::draw()
     // Save the GL state set for QPainter
     saveGLState();
 
-    // Setup the GL widget for execution of the XL program
+    // Clear the background
+    glClearColor (1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Setup the projection matrix
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glFrustum(-1, 1, -1, 1, 10, 100);
-    glTranslatef(0.0f, 0.0f, -15.0f);
+    double w = width(), h = height();
+    glFrustum (-w/2, w/2, -h/2, h/2, zNear, zFar);
+    gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+
+    // Setup the model view matrix so that 1.0 unit = 1px
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glViewport(0, 0, width(), height());
+    glTranslatef(0.0, 0.0, -zNear);
+    glScalef(2.0, 2.0, 2.0);
+
+    // Setup other 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthFunc(GL_LESS);
@@ -276,35 +292,39 @@ SheetInfo::SheetInfo()
     glNewList(tile_list, GL_COMPILE);
     glBegin(GL_QUADS);
     {
-        glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);
-        glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);
-        glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f,  1.0f);
-        glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f,  1.0f);
+        double xs = 100.0;
+        double ys = 100.0;
+        double zs = 100.0;
 
-        glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f, -1.0f);
-        glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);
-        glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);
-        glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-xs, -ys,  zs);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f( xs, -ys,  zs);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f( xs,  ys,  zs);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(-xs,  ys,  zs);
 
-        glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);
-        glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f,  1.0f,  1.0f);
-        glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f,  1.0f,  1.0f);
-        glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(-xs, -ys, -zs);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(-xs,  ys, -zs);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f( xs,  ys, -zs);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f( xs, -ys, -zs);
 
-        glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -1.0f, -1.0f);
-        glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f, -1.0f, -1.0f);
-        glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);
-        glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(-xs,  ys, -zs);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-xs,  ys,  zs);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f( xs,  ys,  zs);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f( xs,  ys, -zs);
 
-        glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);
-        glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);
-        glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  1.0f,  1.0f);
-        glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(-xs, -ys, -zs);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f( xs, -ys, -zs);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f( xs, -ys,  zs);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(-xs, -ys,  zs);
 
-        glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f, -1.0f);
-        glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);
-        glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f,  1.0f);
-        glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f( xs, -ys, -zs);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f( xs,  ys, -zs);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f( xs,  ys,  zs);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f( xs, -ys,  zs);
+
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-xs, -ys, -zs);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(-xs, -ys,  zs);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(-xs,  ys,  zs);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(-xs,  ys, -zs);
     }
     glEnd();
     glEndList();

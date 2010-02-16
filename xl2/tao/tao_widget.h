@@ -1,5 +1,7 @@
+#ifndef TAO_WIDGET_H
+#define TAO_WIDGET_H
 // ****************************************************************************
-//  tao_widget.h                                                   XLR project
+//  tao_widget.h                                                    XLR project
 // ****************************************************************************
 //
 //   File Description:
@@ -17,6 +19,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -38,10 +41,6 @@ class TaoWidget : public QGLWidget
 public:
     TaoWidget(QWidget *parent, XL::SourceFile *sf = NULL);
     ~TaoWidget();
-
-    // GL state
-    void saveGLState();
-    void restoreGLState();
 
     // Events
     void paintEvent(QPaintEvent *);
@@ -95,3 +94,5 @@ public:
 
 #define TAO(x)  (TaoWidget::Tao() ? TaoWidget::Tao()->x : 0)
 #define RTAO(x) return TAO(x)
+
+#endif // TAO_WIDGET_H

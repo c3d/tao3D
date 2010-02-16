@@ -45,10 +45,10 @@ extern Name *   xl_false;
 #define REAL(v)         ((real_t) (v))
 #define TEXT(v)         ((text_t) (v))
 #define BOOL(v)         ((boolean_t) (v))
-#define RINT(val)       return new Integer(val)
-#define RREAL(val)      return new Real(val)
-#define RTEXT(val)      return new Text(val)
-#define RBOOL(val)      return (val) ? xl_true : xl_false
+#define RINT(val)       return new XL::Integer(val)
+#define RREAL(val)      return new XL::Real(val)
+#define RTEXT(val)      return new XL::Text(val)
+#define RBOOL(val)      return (val) ? XL::xl_true : XL::xl_false
 #define RTREE(val)      return (val)
 
 typedef Integer &       integer_r;

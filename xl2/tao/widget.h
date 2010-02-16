@@ -87,6 +87,11 @@ public:
     Tree *texture(Tree *self, text n, Tree *body);
     Tree *texCoord(Tree *self, double x, double y);
 
+    Tree *fromCm(Tree *self, double cm);
+    Tree *fromMm(Tree *self, double mm);
+    Tree *fromIn(Tree *self, double in);
+    Tree *fromPt(Tree *self, double pt);
+
 public slots:
     void draw();
 

@@ -74,3 +74,8 @@ PREFIX("sphere", PARM(x, real) PARM(y, real) PARM(z, real) PARM(r, real),
 PREFIX("texture", PARM(n, text) PARM(body, tree), Texture,
        RTAO(texture(self, n, &body)))
 PREFIX("texcoord", PARM(x, real) PARM(y, real), GraphTexCoord, RTAO(texCoord(self, x, y)))
+
+POSTFIX(PARM(c, real), "cm", GraphFromCm, RTAO(fromCm(self, c)))
+POSTFIX(PARM(m, real), "mm", GraphFromMm, RTAO(fromMm(self, m)))
+POSTFIX(PARM(i, real), "inch", GraphFromIn, RTAO(fromIn(self, i)))
+POSTFIX(PARM(p, real), "pt", GraphFromPt, RTAO(fromPt(self, p)))

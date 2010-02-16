@@ -27,6 +27,7 @@
 #include "tao.h"
 #include "main.h"
 #include "runtime.h"
+#include "opcodes.h"
 #include "gl_keepers.h"
 #include <GL.h>
 
@@ -568,21 +569,6 @@ Tree *Widget::vertex(Tree *self, double x, double y, double z)
 }
 
 
-Tree *Widget::sphere(Tree *self, double x, double y, double z, double r)
-// ----------------------------------------------------------------------------
-//     GL sphere
-// ----------------------------------------------------------------------------
-{
-    GLUquadric *q = gluNewQuadric();
-    gluQuadricTexture (q, true);
-    glPushMatrix();
-    glTranslatef(x,y,z);
-    gluSphere(q, r, 15, 15);
-    glPopMatrix();
-    return NULL;
-}
-
-
 Tree *Widget::texture(Tree *self, text n, Tree *body)
 // ----------------------------------------------------------------------------
 //     GL sphere
@@ -616,6 +602,57 @@ Tree *Widget::texCoord(Tree *self, double x, double y)
 {
     glTexCoord2f(x, y);
     return NULL;
+}
+
+
+Tree *Widget::sphere(Tree *self, double x, double y, double z, double r)
+// ----------------------------------------------------------------------------
+//     GL sphere
+// ----------------------------------------------------------------------------
+{
+    GLUquadric *q = gluNewQuadric();
+    gluQuadricTexture (q, true);
+    glPushMatrix();
+    glTranslatef(x,y,z);
+    gluSphere(q, r, 15, 15);
+    glPopMatrix();
+    return NULL;
+}
+
+
+Tree *Widget::fromCm(Tree *self, double cm)
+// ----------------------------------------------------------------------------
+//   Convert from cm to pixels
+// ----------------------------------------------------------------------------
+{
+    RREAL(cm * logicalDpiX() * (1.0 / 2.54));
+}
+
+
+Tree *Widget::fromMm(Tree *self, double mm)
+// ----------------------------------------------------------------------------
+//   Convert from mm to pixels
+// ----------------------------------------------------------------------------
+{
+    RREAL(mm * logicalDpiX() * (0.1 / 2.54));
+}
+
+
+Tree *Widget::fromIn(Tree *self, double in)
+// ----------------------------------------------------------------------------
+//   Convert from inch to pixels
+// ----------------------------------------------------------------------------
+{
+    RREAL(in * logicalDpiX());
+}
+
+
+Tree *Widget::fromPt(Tree *self, double pt)
+// ----------------------------------------------------------------------------
+//   Convert from pt to pixels
+// ----------------------------------------------------------------------------
+{
+    RREAL(pt * logicalDpiX() * (1.0 / 72.0));
 }
 
 TAO_END

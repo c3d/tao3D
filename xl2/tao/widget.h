@@ -82,6 +82,7 @@ public:
 
     Tree *polygon(Tree *self, Tree *t);
     Tree *vertex(Tree *self, double x, double y, double z);
+    Tree *texCoord(Tree *self, double x, double y);
 
 public slots:
     void draw();

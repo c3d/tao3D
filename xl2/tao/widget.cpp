@@ -619,4 +619,46 @@ Tree *Widget::vertex(Tree *self, double x, double y, double z)
 }
 
 
+Tree *Widget::sphere(Tree *self, double x, double y, double z, double r)
+// ----------------------------------------------------------------------------
+//     GL sphere
+// ----------------------------------------------------------------------------
+{
+    GLUquadric *q = gluNewQuadric();
+    gluQuadricTexture (q, true);
+    glPushMatrix();
+    glTranslatef(x,y,z);
+    gluSphere(q, r, 15, 15);
+    glPopMatrix();
+    return NULL;
+}
+
+
+Tree *Widget::texture(Tree *self, text n, Tree *body)
+// ----------------------------------------------------------------------------
+//     GL sphere
+// ----------------------------------------------------------------------------
+{
+    QImage source (QString::fromStdString(n));
+    QImage glTex = convertToGLFormat(source);
+    GLuint textureId;
+    glGenTextures(1, &textureId);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3,
+                 glTex.width(), glTex.height(), 0, GL_RGBA,
+                  GL_UNSIGNED_BYTE, glTex.bits());
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_MULTISAMPLE);
+
+    xl_evaluate(body);
+
+    glDisable(GL_TEXTURE_2D);
+    glDeleteTextures(1, &textureId);
+    
+    return NULL;
+}
+
+
 TAO_END

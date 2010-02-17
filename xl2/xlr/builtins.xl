@@ -12,10 +12,10 @@ if false then TrueBody -> false
 // Graphics stuff
 rectangle x:real,y:real,w:real,h:real ->
     polygon
-        texcoord 0.0, 0.0;      vertex x,   y,   0.0
-        texcoord 1.0, 0.0;      vertex x+w, y,   0.0
-        texcoord 1.0, 1.0;      vertex x+w, y+h, 0.0
-        texcoord 0.0, 1.0;      vertex x,   y+h, 0.0
+        texcoord 0.0, 0.0;      vertex x,   y
+        texcoord 1.0, 0.0;      vertex x+w, y
+        texcoord 1.0, 1.0;      vertex x+w, y+h
+        texcoord 0.0, 1.0;      vertex x,   y+h
 
 rectangle w:real, h:real ->
     rectangle 0.0, 0.0, w, h

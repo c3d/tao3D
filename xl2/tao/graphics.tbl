@@ -64,8 +64,10 @@ PREFIX("time", , DaySeconds, RTAO(time(self)))
 
 PREFIX("polygon", PARM(t, tree), Polygon, RTAO(polygon(self, &t)))
 
-PREFIX("vertex", PARM(x, real) PARM(y, real) PARM(z, real), Vertex,
+PREFIX("vertex", PARM(x, real) PARM(y, real) PARM(z, real), Vertex3,
        RTAO(vertex(self, x, y, z)))
+PREFIX("vertex", PARM(x, real) PARM(y, real), Vertex2,
+       RTAO(vertex(self, x, y, 0.0)))
 
 PREFIX("sphere",
        PARM(x, real) PARM(y, real) PARM(z, real)

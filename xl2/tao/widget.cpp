@@ -497,6 +497,84 @@ Tree *Widget::sphere(Tree *self, double r)
 }
 
 
+Tree *Widget::circle(Tree *self, double x, double y, double r)
+// ----------------------------------------------------------------------------
+//     GL circle
+// ----------------------------------------------------------------------------
+// 'x' and 'y' denote the offset of the circle centre from the origin.
+{
+    int step = 15; // Triangles will use every <step> points
+    int grid = 1;  // Tolerance for points on the circle
+    double end = 0.707106781186548; // sqrt(1/2) for a perfect finish
+    double error = -r;
+    double x1 = r, x2 = r;
+    double y1 = 0, y2 = 0;
+
+    glBegin(GL_TRIANGLES);
+    int i = 0;
+    while (x1 > y1)
+    {
+        error += y2;
+        y2 += grid;
+        error += y2;
+ 
+        if (error >= 0)
+        {
+            x2 -= grid;
+            error -= x2;
+            error -= x2;
+        }
+
+        if (x2 <= y2)
+        {
+            x2 = end * r;
+            y2 = end * r;
+            i = step;
+        }
+
+        if (++i >= step)
+        {
+            circleDraw8(x, y, x1, y1, x2, y2);
+            i = 0;
+            x1 = x2;
+            y1 = y2;
+        }
+    }
+    glEnd();
+    return NULL;
+}
+ 
+void Widget::circleDraw8(double x0, double y0, double x1, double y1, double x2,
+        double y2)
+{
+    // Triangles need to be drawn counter-clockwise
+  circleDraw4(x0, y0, x1, y1, x2, y2);
+  circleDraw4(x0, y0, y2, x2, y1, x1);
+}
+ 
+void Widget::circleDraw4(double x0, double y0, double x1, double y1, double x2,
+        double y2)
+{
+    // Triangles need to be drawn counter-clockwise
+    glVertex2f(x0, y0);
+    glVertex2f(x0 + x1, y0 + y1);
+    glVertex2f(x0 + x2, y0 + y2);
+  
+    glVertex2f(x0, y0);
+    glVertex2f(x0 - x1, y0 - y1);
+    glVertex2f(x0 - x2, y0 - y2);
+  
+    glVertex2f(x0, y0);
+    glVertex2f(x0 - x2, y0 + y2);
+    glVertex2f(x0 - x1, y0 + y1);
+  
+    glVertex2f(x0, y0);
+    glVertex2f(x0 + x2, y0 - y2);
+    glVertex2f(x0 + x1, y0 - y1);
+}
+
+
+
 Tree *Widget::fromCm(Tree *self, double cm)
 // ----------------------------------------------------------------------------
 //   Convert from cm to pixels

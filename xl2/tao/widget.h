@@ -82,6 +82,7 @@ public:
     Tree *polygon(Tree *self, Tree *t);
     Tree *vertex(Tree *self, double x, double y, double z);
     Tree *sphere(Tree *self, double r);
+    Tree *circle(Tree *self, double x, double y, double r);
 
     Tree *texture(Tree *self, text n);
     Tree *svg(Tree *self, text t);
@@ -91,6 +92,10 @@ public:
     Tree *fromMm(Tree *self, double mm);
     Tree *fromIn(Tree *self, double in);
     Tree *fromPt(Tree *self, double pt);
+
+private:
+    void circleDraw8(double x0, double y0, double x1, double y1, double x2, double y2);
+    void circleDraw4(double x0, double y0, double x1, double y1, double x2, double y2);
 
 public slots:
     void draw();

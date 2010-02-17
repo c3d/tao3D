@@ -426,7 +426,7 @@ Tree *Widget::texture(Tree *self, text img)
         glDisable(GL_TEXTURE_2D);
         return NULL;
     }
-    
+
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
 
     if (!rinfo)
@@ -499,6 +499,108 @@ Tree *Widget::sphere(Tree *self,
     glRotatef(-90.0, 1.0, 0.0, 0.0);
     gluSphere(q, r, nslices, nstacks);
     glPopMatrix();
+    return NULL;
+}
+
+
+static inline void circleVertex (double cx, double cy, double r,
+                                 double x, double y)
+// ----------------------------------------------------------------------------
+//   A vertex on a circle, including texture coordinate
+// ----------------------------------------------------------------------------
+//   x range between -1 and 1, y between -1 and 1
+//   cx and cy are the center of the circle, r its radius
+{
+    glTexCoord2f((x + 1.0) / 2.0, (y + 1.0) / 2.0);
+    glVertex2f(cx + r * x, cy + r * y);
+}
+
+
+static inline void circleDraw4(double cx, double cy, double r,
+                               double x1, double y1,
+                               double x2, double y2)
+// ----------------------------------------------------------------------------
+//   Draw four triangles (taking into account symmetries)
+// ----------------------------------------------------------------------------
+{
+    // Triangles need to be drawn counter-clockwise
+    circleVertex(cx, cy, r, 0, 0);
+    circleVertex(cx, cy, r, x1, y1);
+    circleVertex(cx, cy, r, x2, y2);
+
+    circleVertex(cx, cy, r, 0, 0);
+    circleVertex(cx, cy, r, -x1, -y1);
+    circleVertex(cx, cy, r, -x2, -y2);
+    
+    circleVertex(cx, cy, r, 0, 0);
+    circleVertex(cx, cy, r, -x2, y2);
+    circleVertex(cx, cy, r, -x1, y1);
+    
+    circleVertex(cx, cy, r, 0, 0);
+    circleVertex(cx, cy, r, x2, -y2);
+    circleVertex(cx, cy, r, x1, -y1);
+}
+
+                               
+static inline void circleDraw8(double cx, double cy, double r,
+                               double x1, double y1,
+                               double x2, double y2)
+// ----------------------------------------------------------------------------
+//   Draw eight triangles (taking into account symmetries)
+// ----------------------------------------------------------------------------
+{
+    // Triangles need to be drawn counter-clockwise
+    circleDraw4(cx, cy, r, x1, y1, x2, y2);
+    circleDraw4(cx, cy, r, y2, x2, y1, x1);
+}
+
+
+Tree *Widget::circle(Tree *self, double cx, double cy, double r)
+// ----------------------------------------------------------------------------
+//     GL circle centered around (x,y), radius r
+// ----------------------------------------------------------------------------
+//   We use a reduced Bresenham-like algorithm for circles (midpoint circle)
+{
+    // The two first values configure how precise the circle is
+    int step = 10;               // Triangles generated every <step> points
+    double grid = 1 / 500.0;     // Tolerance for points on the circle 
+
+    double end = M_SQRT2 / 2;    // sqrt(1/2) for a perfect finish
+    double error = -1.0;
+    double x1 = 1.0, x2 = 1.0;
+    double y1 = 0, y2 = 0;
+    int i = 0;
+
+    glBegin(GL_TRIANGLES);
+    while (x1 > y1)
+    {
+        error += y2;
+        y2 += grid;
+        error += y2;
+
+        if (error >= 0)
+        {
+            x2 -= grid;
+            error -= x2;
+            error -= x2;
+        }
+
+        if (x2 <= y2)
+        {
+            x2 = end;
+            y2 = end;
+            i = step;
+        }
+
+        if (++i >= step)
+        {
+            circleDraw8(cx, cy, r, x1, y1, x2, y2);
+            i = 0;
+            x1 = x2;
+            y1 = y2;
+        }
+    }
+    glEnd();
     return NULL;
 }
 

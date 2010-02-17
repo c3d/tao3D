@@ -84,6 +84,7 @@ public:
     Tree *sphere(Tree *self,
                  double x, double y, double z,
                  double r, int nslices, int nstacks);
+    Tree *circle(Tree *self, double x, double y, double r);
 
     Tree *texture(Tree *self, text n);
     Tree *svg(Tree *self, text t);

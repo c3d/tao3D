@@ -24,45 +24,45 @@
 // * Date       : $Date$
 // ****************************************************************************
 
-PREFIX("caption", PARM(t, text), GraphCaption, RTAO(caption(self, t)))
+PREFIX("caption", PARM(t, text), Caption, RTAO(caption(self, t)))
 
-PREFIX("rotatex", PARM(rx, real), GraphRotateX, RTAO(rotateX(self, rx)))
-PREFIX("rotatey", PARM(ry, real), GraphRotateY, RTAO(rotateY(self, ry)))
-PREFIX("rotatez", PARM(rz, real), GraphRotateZ, RTAO(rotateZ(self, rz)))
+PREFIX("rotatex", PARM(rx, real), RotateX, RTAO(rotateX(self, rx)))
+PREFIX("rotatey", PARM(ry, real), RotateY, RTAO(rotateY(self, ry)))
+PREFIX("rotatez", PARM(rz, real), RotateZ, RTAO(rotateZ(self, rz)))
 PREFIX("rotate",
        PARM(ra, real) PARM(rx, real) PARM(ry, real) PARM(rz, real),
-       GraphRotate,
+       Rotate,
        RTAO(rotate(self, ra, rx, ry, rz)))
 
-PREFIX("translatex", PARM(x, real), GraphTranslateX, RTAO(translateX(self, x)))
-PREFIX("translatey", PARM(y, real), GraphTranslateY, RTAO(translateY(self, y)))
-PREFIX("translatez", PARM(z, real), GraphTranslateZ, RTAO(translateZ(self, z)))
+PREFIX("translatex", PARM(x, real), TranslateX, RTAO(translateX(self, x)))
+PREFIX("translatey", PARM(y, real), TranslateY, RTAO(translateY(self, y)))
+PREFIX("translatez", PARM(z, real), TranslateZ, RTAO(translateZ(self, z)))
 PREFIX("translate",
        PARM(x, real) PARM(y, real) PARM(z, real),
-       GraphTranslate,
+       Translate,
        RTAO(translate(self, x, y, z)))
 
-PREFIX("scalex", PARM(x, real), GraphScaleX, RTAO(scaleX(self, x)))
-PREFIX("scaley", PARM(y, real), GraphScaleY, RTAO(scaleY(self, y)))
-PREFIX("scalez", PARM(z, real), GraphScaleZ, RTAO(scaleZ(self, z)))
+PREFIX("scalex", PARM(x, real), ScaleX, RTAO(scaleX(self, x)))
+PREFIX("scaley", PARM(y, real), ScaleY, RTAO(scaleY(self, y)))
+PREFIX("scalez", PARM(z, real), ScaleZ, RTAO(scaleZ(self, z)))
 PREFIX("scale",
        PARM(x, real) PARM(y, real) PARM(z, real),
-       GraphScale,
+       Scale,
        RTAO(scale(self, x, y, z)))
 
-PREFIX("locally", PARM(t, tree), GraphLocally, RTAO(locally(self, &t)))
+PREFIX("locally", PARM(t, tree), Locally, RTAO(locally(self, &t)))
 
-PREFIX("color", PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real), GraphColorRGBA,
+PREFIX("color", PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real), ColorRGBA,
        RTAO(color(self, r,g,b, a)))
-PREFIX("color", PARM(r, real) PARM(g, real) PARM(b, real), GraphColorRGB,
+PREFIX("color", PARM(r, real) PARM(g, real) PARM(b, real), ColorRGB,
        RTAO(color(self, r,g,b, 1.0)))
 
-PREFIX("refresh", PARM(delay, real), GraphRefresh,
+PREFIX("refresh", PARM(delay, real), Refresh,
        RTAO(refresh(self, delay)))
 
-PREFIX("time", , GraphDaySeconds, RTAO(time(self)))
+PREFIX("time", , DaySeconds, RTAO(time(self)))
 
-PREFIX("polygon", PARM(t, tree), GraphPolygon, RTAO(polygon(self, &t)))
+PREFIX("polygon", PARM(t, tree), Polygon, RTAO(polygon(self, &t)))
 
 PREFIX("vertex", PARM(x, real) PARM(y, real) PARM(z, real), Vertex,
        RTAO(vertex(self, x, y, z)))
@@ -70,13 +70,13 @@ PREFIX("vertex", PARM(x, real) PARM(y, real) PARM(z, real), Vertex,
 PREFIX("sphere",
        PARM(x, real) PARM(y, real) PARM(z, real)
        PARM(r, real) PARM(slices, integer) PARM(stacks, integer),
-       GraphSphere, RTAO(sphere(self, x,y,z,r,slices,stacks)))
+       Sphere, RTAO(sphere(self, x,y,z,r,slices,stacks)))
 
-PREFIX("svg", PARM(img, text), GraphSvg,  RTAO(svg(self, img)))
+PREFIX("svg", PARM(img, text), Svg,  RTAO(svg(self, img)))
 PREFIX("texture", PARM(n, text), Texture, RTAO(texture(self, n)))
-PREFIX("texcoord", PARM(x, real) PARM(y, real), GraphTexCoord, RTAO(texCoord(self, x, y)))
+PREFIX("texcoord", PARM(x, real) PARM(y, real), TexCoord, RTAO(texCoord(self, x, y)))
 
-POSTFIX(PARM(c, real), "cm", GraphFromCm, RTAO(fromCm(self, c)))
-POSTFIX(PARM(m, real), "mm", GraphFromMm, RTAO(fromMm(self, m)))
-POSTFIX(PARM(i, real), "inch", GraphFromIn, RTAO(fromIn(self, i)))
-POSTFIX(PARM(p, real), "pt", GraphFromPt, RTAO(fromPt(self, p)))
+POSTFIX(PARM(x, real), "cm", FromCm, RTAO(fromCm(self, x)))
+POSTFIX(PARM(x, real), "mm", FromMm, RTAO(fromMm(self, x)))
+POSTFIX(PARM(x, real), "inch", FromIn, RTAO(fromIn(self, x)))
+POSTFIX(PARM(x, real), "pt", FromPt, RTAO(fromPt(self, x)))

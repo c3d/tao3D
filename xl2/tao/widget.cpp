@@ -492,7 +492,7 @@ Tree *Widget::sphere(Tree *self, double r)
 {
     GLUquadric *q = gluNewQuadric();
     gluQuadricTexture (q, true);
-    gluSphere(q, r, 15, 15);
+    gluSphere(q, r, 25, 25);
     return NULL;
 }
 

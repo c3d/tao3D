@@ -7,3 +7,22 @@ if false then TrueBody else FalseBody -> FalseBody
 
 if true then TrueBody -> TrueBody
 if false then TrueBody -> false
+
+
+// Graphics stuff
+rectangle x:real,y:real,w:real,h:real ->
+    polygon
+        texcoord 0.0, 0.0;      vertex x,   y,   0.0
+        texcoord 1.0, 0.0;      vertex x+w, y,   0.0
+        texcoord 1.0, 1.0;      vertex x+w, y+h, 0.0
+        texcoord 0.0, 1.0;      vertex x,   y+h, 0.0
+
+rectangle w:real, h:real ->
+    rectangle 0.0, 0.0, w, h
+
+sphere x:real,y:real,z:real,r:real ->
+    locally
+        translate x,y,z
+        sphere r
+
+        

@@ -119,7 +119,7 @@ void Widget::draw()
 	// Setup other
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDepthFunc(GL_LESS);
+	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_DEPTH_TEST);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -485,17 +485,14 @@ Tree *Widget::texCoord(Tree *self, double x, double y)
 }
 
 
-Tree *Widget::sphere(Tree *self, double x, double y, double z, double r)
+Tree *Widget::sphere(Tree *self, double r)
 // ----------------------------------------------------------------------------
 //     GL sphere
 // ----------------------------------------------------------------------------
 {
     GLUquadric *q = gluNewQuadric();
     gluQuadricTexture (q, true);
-    glPushMatrix();
-    glTranslatef(x,y,z);
     gluSphere(q, r, 15, 15);
-    glPopMatrix();
     return NULL;
 }
 

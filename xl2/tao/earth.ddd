@@ -50,4 +50,4 @@ texture ""
 color 1.0, 1.0, 0.7, 0.8
 sphere 0.0, 0.0, 0.0, 200.0
 
-refresh 0.25
+refresh 0.05

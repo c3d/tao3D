@@ -485,14 +485,20 @@ Tree *Widget::texCoord(Tree *self, double x, double y)
 }
 
 
-Tree *Widget::sphere(Tree *self, double r)
+Tree *Widget::sphere(Tree *self,
+                     double x, double y, double z,
+                     double r, int nslices, int nstacks)
 // ----------------------------------------------------------------------------
 //     GL sphere
 // ----------------------------------------------------------------------------
 {
     GLUquadric *q = gluNewQuadric();
     gluQuadricTexture (q, true);
-    gluSphere(q, r, 25, 25);
+    glPushMatrix();
+    glTranslatef(x,y,z);
+    glRotatef(-90.0, 1.0, 0.0, 0.0);
+    gluSphere(q, r, nslices, nstacks);
+    glPopMatrix();
     return NULL;
 }
 

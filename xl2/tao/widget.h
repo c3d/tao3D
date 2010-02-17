@@ -81,7 +81,9 @@ public:
 
     Tree *polygon(Tree *self, Tree *t);
     Tree *vertex(Tree *self, double x, double y, double z);
-    Tree *sphere(Tree *self, double r);
+    Tree *sphere(Tree *self,
+                 double x, double y, double z,
+                 double r, int nslices, int nstacks);
 
     Tree *texture(Tree *self, text n);
     Tree *svg(Tree *self, text t);

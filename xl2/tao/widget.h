@@ -82,9 +82,16 @@ public:
     Tree *polygon(Tree *self, Tree *t);
     Tree *vertex(Tree *self, double x, double y, double z);
     Tree *sphere(Tree *self,
-                 double x, double y, double z,
+                 double cx, double cy, double cz,
                  double r, int nslices, int nstacks);
-    Tree *circle(Tree *self, double x, double y, double r);
+    Tree *circle(Tree *self, double cx, double cy, 
+                 double r);
+    Tree *circsector(Tree *self, double cx, double cy, 
+                     double r, double a, double b);
+    Tree *roundrect(Tree *self, double cx, double cy, 
+                    double w, double h, double r);
+    Tree *rectangle(Tree *self, double cx, double cy, 
+                    double w, double h);
 
     Tree *texture(Tree *self, text n);
     Tree *svg(Tree *self, text t);
@@ -94,6 +101,7 @@ public:
     Tree *fromMm(Tree *self, double mm);
     Tree *fromIn(Tree *self, double in);
     Tree *fromPt(Tree *self, double pt);
+    Tree *fromPx(Tree *self, double px);
 
 public slots:
     void draw();

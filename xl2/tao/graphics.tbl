@@ -69,15 +69,23 @@ PREFIX("vertex", PARM(x, real) PARM(y, real), Vertex2,
 PREFIX("sphere",
        PARM(x, real) PARM(y, real) PARM(z, real)
        PARM(r, real) PARM(slices, integer) PARM(stacks, integer),
-       Sphere, RTAO(sphere(self, x,y,z,r,slices,stacks)))
+       Sphere, RTAO(sphere(self, x, y, z, r, slices, stacks)))
 
 PREFIX("svg", PARM(img, text), Svg,  RTAO(svg(self, img)))
 PREFIX("texture", PARM(n, text), Texture, RTAO(texture(self, n)))
-PREFIX("texcoord", PARM(x, real) PARM(y, real), TexCoord, RTAO(texCoord(self, x, y)))
+PREFIX("texcoord", PARM(x, real) PARM(y, real), TexCoord, 
+       RTAO(texCoord(self, x, y)))
 PREFIX("circle", PARM(x, real) PARM(y, real) PARM(r, real),
        Circle, RTAO(circle(self, x, y, r)))
+PREFIX("circsector", PARM(x, real) PARM(y, real) PARM(r, real) PARM(a, real)
+       PARM(b, real), CircSector, RTAO(circsector(self, x, y, r, a, b)))
+PREFIX("roundrect", PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real) 
+       PARM(r, real), RoundRect, RTAO(roundrect(self, x, y, w, h, r)))
+PREFIX("rectangle", PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real),
+       Rectangle, RTAO(rectangle(self, x, y, w, h)))
 
 POSTFIX(PARM(x, real), "cm", FromCm, RTAO(fromCm(self, x)))
 POSTFIX(PARM(x, real), "mm", FromMm, RTAO(fromMm(self, x)))
 POSTFIX(PARM(x, real), "inch", FromIn, RTAO(fromIn(self, x)))
 POSTFIX(PARM(x, real), "pt", FromPt, RTAO(fromPt(self, x)))
+POSTFIX(PARM(x, real), "px", FromPx, RTAO(fromPx(self, x)))

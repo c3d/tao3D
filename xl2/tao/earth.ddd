@@ -39,8 +39,11 @@ rotatex 270.0
 rotatez time * D
 rotatex 23.27
 
+mytex 0 -> "earth.bmp"
+mytex 1 -> "logo-v3.svg"
+
 color 1.0, 1.0, 1.0, 1.0
-texture "earth.bmp"
+texture mytex(integer(time) mod 2)
 locally
    translate 900.0, 0.0, 0.0
    rotatez time * D * 365.0

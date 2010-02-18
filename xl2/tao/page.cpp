@@ -25,19 +25,12 @@
 
 TAO_BEGIN
 
-ImageTextureInfo::ImageTextureInfo(QImage &img)
+ImageTextureInfo::ImageTextureInfo()
 // ----------------------------------------------------------------------------
-//   Create an OpenGL texture for the given image
+//   Prepare to record texture IDs for the various images
 // ----------------------------------------------------------------------------
-    : textureId(0)
-{
-    QImage glTex = QGLWidget::convertToGLFormat(img);
-    glGenTextures(1, &textureId);
-    glBindTexture(GL_TEXTURE_2D, textureId);
-    glTexImage2D(GL_TEXTURE_2D, 0, 3,
-		 glTex.width(), glTex.height(), 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, glTex.bits());
-}
+    : textures()
+{}
 
 
 ImageTextureInfo::~ImageTextureInfo()
@@ -45,16 +38,40 @@ ImageTextureInfo::~ImageTextureInfo()
 //   Release the GL texture
 // ----------------------------------------------------------------------------
 {
+    texture_map::iterator i;
     glDisable(GL_TEXTURE_2D);
-    glDeleteTextures(1, &textureId);
+    for (i = textures.begin(); i != textures.end(); i++)
+        glDeleteTextures(1, &(*i).second);
 }
 
 
-void ImageTextureInfo::bind()
+void ImageTextureInfo::bind(text fileName)
 // ----------------------------------------------------------------------------
 //   Bind the given GL texture
 // ----------------------------------------------------------------------------
 {
+    GLuint textureId = textures[fileName];
+    if (textureId == 0)
+    {
+        // Prune the map if it gets too big
+        while (textures.size() > MAX_TEXTURES)
+            textures.erase(textures.begin());
+
+        // Read the image file and convert to proper GL image format
+        QImage original(QString::fromStdString(fileName));
+        QImage texture = QGLWidget::convertToGLFormat(original);
+
+        // Generate the GL texture
+        glGenTextures(1, &textureId);
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        glTexImage2D(GL_TEXTURE_2D, 0, 3,
+                     texture.width(), texture.height(), 0, GL_RGBA,
+                     GL_UNSIGNED_BYTE, texture.bits());
+
+        // Remember the texture for next time
+        textures[fileName] = textureId;
+    }
+
     glBindTexture(GL_TEXTURE_2D, textureId);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

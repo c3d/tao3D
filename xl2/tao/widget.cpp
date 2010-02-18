@@ -431,12 +431,11 @@ Tree *Widget::texture(Tree *self, text img)
 
     if (!rinfo)
     {
-        QImage  image(QString::fromStdString(img));
-        rinfo = new ImageTextureInfo(image);
+        rinfo = new ImageTextureInfo();
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
 
-    rinfo->bind();
+    rinfo->bind(img);
     return NULL;
 }
 

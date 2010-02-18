@@ -24,6 +24,7 @@
 
 #include "tree.h"
 #include "gl_keepers.h"
+#include <map>
 #include <QtOpenGL>
 #include <QImage>
 #include <QTimeLine>
@@ -37,14 +38,17 @@ struct ImageTextureInfo : XL::Info
 //    Hold information about an image texture
 // ----------------------------------------------------------------------------
 {
-    typedef ImageTextureInfo *data_t;
+    typedef ImageTextureInfo *          data_t;
+    typedef std::map<text, GLuint>      texture_map;
+    enum { MAX_TEXTURES = 20 };
 
-    ImageTextureInfo(QImage &img);
+    ImageTextureInfo();
     ~ImageTextureInfo();
-    void bind();
+    void bind(text img);
     operator data_t() { return this; }
 
-    GLuint      textureId;
+
+    texture_map textures;
 };
 
 

@@ -428,13 +428,11 @@ Tree *Widget::texture(Tree *self, text img)
     }
 
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
-
     if (!rinfo)
     {
         rinfo = new ImageTextureInfo();
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
-
     rinfo->bind(img);
     return NULL;
 }
@@ -448,28 +446,12 @@ Tree *Widget::svg(Tree *self, text img)
 //    signals that we send to our 'draw()' so that we redraw as needed.
 {
     SvgRendererInfo *rinfo = self->GetInfo<SvgRendererInfo>();
-    QSvgRenderer    *r     = NULL;
-
-    if (rinfo)
+    if (!rinfo)
     {
-        r = rinfo->renderer;
-    }
-    else
-    {
-        QString qs = QString::fromStdString(img);
-        r = new QSvgRenderer(qs, this);
-        connect(r, SIGNAL(repaintNeeded()), this, SLOT(draw()));
-        rinfo = new SvgRendererInfo(r);
+        rinfo = new SvgRendererInfo(this);
         self->SetInfo<SvgRendererInfo>(rinfo);
     }
-
-    {
-        PagePainter painter(rinfo);
-        r->render(&painter);
-    }
-
-    rinfo->bind();
-
+    rinfo->bind(img);
     return NULL;
 }
 

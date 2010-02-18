@@ -34,16 +34,14 @@ if time mod 25.5 < 2.25 then
 translate 0.0, 0.0, -1500.0
 rotatex 20.0
 
+
 D -> 0.5
 rotatex 270.0
 rotatez time * D
 rotatex 23.27
 
-mytex 0 -> "earth.bmp"
-mytex 1 -> "logo-v3.svg"
-
 color 1.0, 1.0, 1.0, 1.0
-texture mytex(integer(time) mod 2)
+texture "earth.bmp"
 locally
    translate 900.0, 0.0, 0.0
    rotatez time * D * 365.0

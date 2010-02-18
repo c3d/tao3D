@@ -45,12 +45,12 @@ ImageTextureInfo::~ImageTextureInfo()
 }
 
 
-void ImageTextureInfo::bind(text fileName)
+void ImageTextureInfo::bind(text file)
 // ----------------------------------------------------------------------------
 //   Bind the given GL texture
 // ----------------------------------------------------------------------------
 {
-    GLuint textureId = textures[fileName];
+    GLuint textureId = textures[file];
     if (textureId == 0)
     {
         // Prune the map if it gets too big
@@ -58,7 +58,7 @@ void ImageTextureInfo::bind(text fileName)
             textures.erase(textures.begin());
 
         // Read the image file and convert to proper GL image format
-        QImage original(QString::fromStdString(fileName));
+        QImage original(QString::fromStdString(file));
         QImage texture = QGLWidget::convertToGLFormat(original);
 
         // Generate the GL texture
@@ -69,7 +69,7 @@ void ImageTextureInfo::bind(text fileName)
                      GL_UNSIGNED_BYTE, texture.bits());
 
         // Remember the texture for next time
-        textures[fileName] = textureId;
+        textures[file] = textureId;
     }
 
     glBindTexture(GL_TEXTURE_2D, textureId);
@@ -168,6 +168,59 @@ PagePainter::~PagePainter()
         QGLFramebufferObject::blitFramebuffer(info->texture_fbo, rect,
                                               info->render_fbo, rect);
     }
+}
+
+
+SvgRendererInfo::SvgRendererInfo(QGLWidget *w, uint width, uint height)
+// ----------------------------------------------------------------------------
+//   Create a renderer with the right size
+// ----------------------------------------------------------------------------
+    : PageInfo(width, height), widget(w)
+{}
+
+
+SvgRendererInfo::~SvgRendererInfo()
+// ----------------------------------------------------------------------------
+//   When deleting the info, delete all renderers we have
+// ----------------------------------------------------------------------------
+{
+    renderer_map::iterator i;
+    glDisable(GL_TEXTURE_2D);
+    for (i = renderers.begin(); i != renderers.end(); i++)
+        delete (*i).second;
+}
+
+
+void SvgRendererInfo::bind (text file)
+// ----------------------------------------------------------------------------
+//    Activate a given SVG renderer
+// ----------------------------------------------------------------------------
+{
+    QSvgRenderer *r = renderers[file];
+    if (!r)
+    {
+        while (renderers.size() > MAX_TEXTURES)
+        {
+            renderer_map::iterator first = renderers.begin();
+            delete (*first).second;
+            renderers.erase(first);
+        }
+
+        r = new QSvgRenderer(QString::fromStdString(file), widget);
+        r->connect(r, SIGNAL(repaintNeeded()), widget, SLOT(draw()));
+        renderers[file] = r;
+    }
+
+    if (r)
+    {
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_MULTISAMPLE);
+        glDisable(GL_CULL_FACE);
+        PagePainter painter(this);
+        r->render(&painter);
+    }
+
+    PageInfo::bind();
 }
 
 TAO_END

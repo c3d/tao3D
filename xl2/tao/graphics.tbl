@@ -49,15 +49,19 @@ PREFIX("scale",
 
 PREFIX("locally", PARM(t, tree), Locally, RTAO(locally(self, &t)))
 
+PREFIX("refresh", PARM(delay, real), Refresh,
+       RTAO(refresh(self, delay)))
+
+PREFIX("time", , DaySeconds, RTAO(time(self)))
+
 PREFIX("color", PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
        ColorRGBA, RTAO(color(self, r,g,b, a)))
 PREFIX("color", PARM(r, real) PARM(g, real) PARM(b, real),
        ColorRGB, RTAO(color(self, r,g,b, 1.0)))
 
-PREFIX("refresh", PARM(delay, real), Refresh,
-       RTAO(refresh(self, delay)))
-
-PREFIX("time", , DaySeconds, RTAO(time(self)))
+PREFIX("filled", , Filled, RTAO(filled(self)))
+PREFIX("hollow", , Hollow, RTAO(hollow(self)))
+PREFIX("linewidth", PARM(lw, real), LineWidth, RTAO(linewidth(self, lw)))
 
 PREFIX("polygon", PARM(t, tree), Polygon, RTAO(polygon(self, &t)))
 
@@ -70,7 +74,6 @@ PREFIX("sphere",
        PARM(x, real) PARM(y, real) PARM(z, real)
        PARM(r, real) PARM(slices, integer) PARM(stacks, integer),
        Sphere, RTAO(sphere(self, x, y, z, r, slices, stacks)))
-
 PREFIX("svg", PARM(img, text), Svg,  RTAO(svg(self, img)))
 PREFIX("texture", PARM(n, text), Texture, RTAO(texture(self, n)))
 PREFIX("texcoord", PARM(x, real) PARM(y, real), TexCoord, 

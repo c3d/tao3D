@@ -31,6 +31,7 @@ DEPENDPATH += . ../xlr
 INCLUDEPATH += . ../xlr
 QT += opengl svg
 CONFIG += warn_off
+#CONFIG += release
 
 # Tell the XLR portion that we are building for Tao
 DEFINES += TAO DEBUG

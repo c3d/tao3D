@@ -50,7 +50,8 @@ Widget::Widget(QWidget *parent, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
       xlProgram(sf),
-      caption_text("A simple OpenGL framebuffer object example.")
+      caption_text("A simple OpenGL framebuffer object example."),
+      polygonMode(GL_POLYGON)
 {
     // Make this the current context for OpenGL
     makeCurrent();
@@ -341,16 +342,6 @@ Tree *Widget::scale(Tree *self, double sx, double sy, double sz)
 }
 
 
-Tree *Widget::color(Tree *self, double r, double g, double b, double a)
-// ----------------------------------------------------------------------------
-//    Set the RGBA color
-// ----------------------------------------------------------------------------
-{
-    glColor4f(r,g,b,a);
-    return NULL;
-}
-
-
 Tree *Widget::refresh(Tree *self, double delay)
 // ----------------------------------------------------------------------------
 //    Refresh after the given number of seconds
@@ -386,13 +377,53 @@ Tree *Widget::time(Tree *self)
 }
 
 
+Tree *Widget::filled(Tree *self)
+// ----------------------------------------------------------------------------
+//   Select filled polygon mode
+// ----------------------------------------------------------------------------
+{
+    polygonMode = GL_POLYGON;
+    return NULL;
+}
+
+
+Tree *Widget::hollow(Tree *self)
+// ----------------------------------------------------------------------------
+//   Select hollow polygon mode
+// ----------------------------------------------------------------------------
+{
+    polygonMode = GL_LINE_STRIP;
+    return NULL;
+}
+
+
+Tree *Widget::linewidth(Tree *self, double lw)
+// ----------------------------------------------------------------------------
+//    Select the line width for OpenGL
+// ----------------------------------------------------------------------------
+{
+    glLineWidth(lw);
+    return NULL;
+}
+
+
+Tree *Widget::color(Tree *self, double r, double g, double b, double a)
+// ----------------------------------------------------------------------------
+//    Set the RGBA color
+// ----------------------------------------------------------------------------
+{
+    glColor4f(r,g,b,a);
+    return NULL;
+}
+
+
 Tree *Widget::polygon(Tree *self, Tree *child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree within a polygon
 // ----------------------------------------------------------------------------
 {
     GLStateKeeper save;
-    glBegin(GL_POLYGON);
+    glBegin(polygonMode);
     xl_evaluate(child);
     glEnd();
     return NULL;
@@ -608,7 +639,7 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
 //     GL circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    glBegin(GL_TRIANGLES);
+    glBegin(polygonMode);
     circSectorN(cx, cy, r, 0, 8);
     glEnd();
 
@@ -638,7 +669,7 @@ Tree *Widget::circsector(Tree *self, double cx, double cy, double r,
     }
     int sa = (int(a / 45) % 8); // Starting sector
 
-    glBegin(GL_TRIANGLES);
+    glBegin(polygonMode);
     circSectorN(cx, cy, r, sa, n);
     glEnd();
 
@@ -658,7 +689,7 @@ Tree *Widget::roundrect(Tree *self, double cx, double cy,
     if (r > w / 2) r = w / 2;
     if (r > h / 2) r = h / 2;
 
-    glBegin(GL_TRIANGLES);
+    glBegin(polygonMode);
 
     circSectorN(cx + w / 2.0 - r, cy + h / 2.0 - r, r, 0, 2);
 

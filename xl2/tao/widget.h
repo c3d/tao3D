@@ -74,10 +74,13 @@ public:
 
     Tree *locally(Tree *self, Tree *t);
 
-    Tree *color(Tree *self, double r, double g, double b, double a);
-
     Tree *refresh(Tree *self, double delay);
     Tree *time(Tree *self);
+
+    Tree *color(Tree *self, double r, double g, double b, double a);
+    Tree *filled(Tree *self);
+    Tree *hollow(Tree *self);
+    Tree *linewidth(Tree *self, double lw);
 
     Tree *polygon(Tree *self, Tree *t);
     Tree *vertex(Tree *self, double x, double y, double z);
@@ -111,6 +114,7 @@ public:
     XL::SourceFile *  xlProgram;
     text              caption_text;
     static Widget    *current;
+    GLuint            polygonMode;
 };
 
 

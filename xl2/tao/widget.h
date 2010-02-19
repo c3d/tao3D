@@ -28,6 +28,7 @@
 #include <QTimeLine>
 #include <QTimer>
 #include <QSvgRenderer>
+#include <iostream>
 #include "main.h"
 #include "tao.h"
 
@@ -84,7 +85,7 @@ public:
     Tree *scale(Tree *self, double x, double y, double z);
 
     Tree *locally(Tree *self, Tree *t);
-    Tree *pagebits(Tree *self, int sz);
+    Tree *pagesize(Tree *self, uint w, uint h);
     Tree *page(Tree *self, Tree *p);
 
     Tree *refresh(Tree *self, double delay);
@@ -132,9 +133,30 @@ public:
     // ------------------------------------------------------------------------
     {
         GLuint  polygonMode;
-        GLuint  pagesize;
+        GLuint  pageWidth, pageHeight;
     } state;
 };
+
+
+
+// ============================================================================
+// 
+//    Simple utility functions
+// 
+// ============================================================================
+
+inline void glShowErrors()
+// ----------------------------------------------------------------------------
+//   Display pending GL errors
+// ----------------------------------------------------------------------------
+{                
+    GLenum err = glGetError();                                         
+    while (err != GL_NO_ERROR)
+    {
+        std::cerr << "GL Error: " << (char *) gluErrorString(err) << "\n";
+        err = glGetError();                                     
+    }                                                               
+}
 
 
 #define TAO(x)  (Tao::Widget::Tao() ? Tao::Widget::Tao()->x : 0)

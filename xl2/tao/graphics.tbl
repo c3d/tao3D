@@ -48,7 +48,7 @@ PREFIX("scale",
        RTAO(scale(self, x, y, z)))
 
 PREFIX("locally", PARM(t, tree), Locally, RTAO(locally(self, &t)))
-PREFIX("pagebits", PARM(s, integer), PageBits, RTAO(pagebits(self, s)))
+PREFIX("pagesize", PARM(w, integer) PARM(h, integer), PageSize, RTAO(pagesize(self, w,h)))
 PREFIX("page", PARM(p, tree), Page, RTAO(page(self, &p)))
 
 PREFIX("refresh", PARM(delay, real), Refresh,

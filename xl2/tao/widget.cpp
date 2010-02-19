@@ -96,6 +96,7 @@ void Widget::paintGL()
 // ----------------------------------------------------------------------------
 {
     draw();
+    glShowErrors();
 }
 
 
@@ -104,10 +105,6 @@ void Widget::setup(double w, double h)
 //   Setup an initial environment for drawing
 // ----------------------------------------------------------------------------
 {
-    // Clear the background
-    glClearColor (1.0, 1.0, 1.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     // Setup the projection matrix
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -134,7 +131,8 @@ void Widget::setup(double w, double h)
 
     // Initial state
     state.polygonMode = GL_POLYGON;
-    state.pagesize = 8;
+    state.pageWidth = 128;
+    state.pageHeight = 128;
 }
 
 
@@ -146,8 +144,14 @@ void Widget::draw()
     // If there is a program, we need to run it
     if (xlProgram)
     {
-	// Run the XL program associated with this widget
+        // Clear the background
+        glClearColor (1.0, 1.0, 1.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Setup the initial drawing environment
         setup(width(), height());
+
+	// Run the XL program associated with this widget
 	current = this;
         try
         {
@@ -378,14 +382,16 @@ Tree *Widget::locally(Tree *self, Tree *child)
 }
 
 
-Tree *Widget::pagebits(Tree *self, int sz)
+Tree *Widget::pagesize(Tree *self, uint w, uint h)
 // ----------------------------------------------------------------------------
 //    Set the bit size for the page textures
 // ----------------------------------------------------------------------------
 {
-    if (sz < 5)         sz = 5;
-    if (sz > 16)        sz = 16;
-    state.pagesize = sz;
+    // Little practical point in ever creating textures bigger than viewport
+    if (w > width())    w = width();
+    if (h > height())   h = height();
+    state.pageWidth = w;
+    state.pageHeight = h;
     return NULL;
 }
 
@@ -395,30 +401,38 @@ Tree *Widget::page(Tree *self, Tree *p)
 //  Evaluate the tree in a page with the given size
 // ----------------------------------------------------------------------------
 {
-    uint sz = 1<<state.pagesize;
+    uint w = state.pageWidth, h = state.pageHeight;
+    PageInfo *page = self->GetInfo<PageInfo>();
+    if (!page)
+    {
+        page = new PageInfo(w,h);
+        self->SetInfo<PageInfo> (page);
+    }
     Tree *result = NULL;
 
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
-    PageInfo page(sz, sz);
-    page.begin();
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+
+    page->resize(w,h);
+    page->begin();
     {
         // Clear the background and setup initial state
-        glClearColor (1.0, 0.0, 1.0, 1.0);
-        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glLoadIdentity();
-        double zNear = 1000.0;
-        glTranslatef(0.0, 0.0, -zNear);
-        glScalef(2.0, 2.0, 2.0);
-        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        state.polygonMode = GL_POLYGON;
-        state.pagesize = 8;
-
+        setup(w, h);
         result = xl_evaluate(p);
     }
-    page.end();
-    glPopMatrix();
+    page->end();
 
-    page.bind();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glPopAttrib();
+
+    page->bind();
+
     return result;
 }
 

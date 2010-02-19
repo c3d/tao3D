@@ -24,6 +24,7 @@
 #include "gl_keepers.h"
 #include <QtOpenGL>
 
+
 TAO_BEGIN
 
 PageInfo::PageInfo(uint w, uint h)
@@ -47,23 +48,20 @@ PageInfo::~PageInfo()
 }
 
 
-void PageInfo::resize(uint width, uint height)
+void PageInfo::resize(uint w, uint h)
 // ----------------------------------------------------------------------------
 //   Change the size of the frame buffer used for rendering
 // ----------------------------------------------------------------------------
 {
+    // Don't change anything if size stays the same
+    if (render_fbo && render_fbo->width() == w && render_fbo->height() == h)
+        return;
+
     // Delete anything we might have
     if (texture_fbo)
         delete texture_fbo;
     if (render_fbo != texture_fbo)
         delete render_fbo;
-
-    // Round up width and height to the next power of two
-    uint w = 32, h = 32;
-    while (w < width)
-        w *= 2;
-    while (h < height)
-        h *= 2;
 
     // Select whether we draw directly in texture or blit to it
     // If we can blit, we first draw in a multisample buffer
@@ -85,6 +83,7 @@ void PageInfo::resize(uint width, uint height)
         render_fbo = new QGLFramebufferObject(w, h);
         texture_fbo = render_fbo;
     }
+    glShowErrors();
 }
 
 
@@ -95,6 +94,8 @@ void PageInfo::begin()
 {
     // Clear the render FBO
     int ok = render_fbo->bind();
+    if (!ok) std::cerr << "PageInfo::begin(): unexpected result\n";
+    glShowErrors();
 
     glLoadIdentity();
 
@@ -102,7 +103,7 @@ void PageInfo::begin()
     glDisable(GL_MULTISAMPLE);
     glDisable(GL_CULL_FACE);
 
-    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -113,6 +114,8 @@ void PageInfo::end()
 // ----------------------------------------------------------------------------
 {
     int ok = render_fbo->release();
+    if (!ok) std::cerr << "PageInfo::end(): unexpected result\n";
+    glShowErrors();
 
     // Blit the result in the texture if necessary
     if (render_fbo != texture_fbo)
@@ -121,6 +124,7 @@ void PageInfo::end()
         QGLFramebufferObject::blitFramebuffer(texture_fbo, rect,
                                               render_fbo, rect);
     }    
+    glShowErrors();
 }
     
 

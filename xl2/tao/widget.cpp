@@ -651,7 +651,7 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
 //     GL circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    glBegin(state.polygonMode);
+    glBegin(GL_TRIANGLES);
     circSectorN(cx, cy, r, 0, 8);
     glEnd();
 
@@ -693,15 +693,14 @@ Tree *Widget::circsector(Tree *self, double cx, double cy, double r,
 Tree *Widget::roundrect(Tree *self, double cx, double cy, 
                         double w, double h, double r)
 // ----------------------------------------------------------------------------
-//     GL rounded rectangle centered around (cx,cy), width w, height h and 
-//     radius r for the corners
+//     GL rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
 {
     if (r <= 0) return rectangle(self, cx, cy, w, h);
     if (r > w / 2) r = w / 2;
     if (r > h / 2) r = h / 2;
 
-    glBegin(state.polygonMode);
+    glBegin(GL_TRIANGLES);
 
     circSectorN(cx + w / 2.0 - r, cy + h / 2.0 - r, r, 0, 2);
 
@@ -741,12 +740,19 @@ Tree *Widget::roundrect(Tree *self, double cx, double cy,
 }
 
 
-Tree *Widget::rectangle(Tree *self, double cx, double cy, 
-                        double w, double h)
+Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
 // ----------------------------------------------------------------------------
 //     GL rectangle centered around (cx,cy), width w, height h
 // ----------------------------------------------------------------------------
 {
+    glBegin(state.polygonMode);
+    {
+        glTexCoord2f(0, 0);     glVertex2f(cx-w/2, cy-h/2);
+        glTexCoord2f(1, 0);     glVertex2f(cx+w/2, cy-h/2);
+        glTexCoord2f(1, 1);     glVertex2f(cx+w/2, cy+h/2);
+        glTexCoord2f(0, 1);     glVertex2f(cx-w/2, cy+h/2);
+    }
+    glEnd;
     return NULL;
 }
 

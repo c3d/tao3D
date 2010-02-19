@@ -30,6 +30,7 @@
 #include "runtime.h"
 #include "opcodes.h"
 #include "gl_keepers.h"
+#include "window.h"
 #include <GL.h>
 
 
@@ -44,13 +45,12 @@ TAO_BEGIN
 //
 // ============================================================================
 
-Widget::Widget(QWidget *parent, XL::SourceFile *sf)
+Widget::Widget(Window *parent, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf),
-      caption_text("A simple OpenGL framebuffer object example.")
+      xlProgram(sf), page()
 {
     // Make this the current context for OpenGL
     makeCurrent();
@@ -74,14 +74,60 @@ Widget::~Widget()
 //
 // ============================================================================
 
-void Widget::paintEvent(QPaintEvent *)
+static inline void whatAmIDoing(text what)
 // ----------------------------------------------------------------------------
-//    Repaint the widget
+//   Test where we are and what we are doing
 // ----------------------------------------------------------------------------
 {
+    QTime t = QTime::currentTime();
+    double d = (3600.0	 * t.hour()
+		+ 60.0	 * t.minute()
+		+	   t.second()
+		+  0.001 * t.msec());
+    std::cerr << what << " " << d << "\n";
+}
+
+
+void Widget::initializeGL()
+// ----------------------------------------------------------------------------
+//    Called once per rendering to setup the GL environment
+// ----------------------------------------------------------------------------
+{
+    whatAmIDoing ("INIT");
+}
+
+
+void Widget::resizeGL(int width, int height)
+// ----------------------------------------------------------------------------
+//   Called when the size changes
+// ----------------------------------------------------------------------------
+{
+    whatAmIDoing("RESIZE");
+    page.resize(width, height);
     draw();
 }
 
+
+void Widget::paintGL()
+// ----------------------------------------------------------------------------
+//    Repaint the contents of the window
+// ----------------------------------------------------------------------------
+{
+    whatAmIDoing("UPDATE");
+
+    glLoadIdentity();
+    glColor4f(1,1,1,1);
+    page.bind();
+    double w = width()/2, h = height()/2;
+    glBegin(GL_QUADS);
+    {
+        glTexCoord2f(0, 0);     glVertex2f(-w, -h);
+        glTexCoord2f(1, 0);     glVertex2f( w, -h);
+        glTexCoord2f(1, 1);     glVertex2f( w,  h);
+        glTexCoord2f(0, 1);     glVertex2f(-w,  h);
+    }
+    glEnd();
+}
 
 
 void Widget::draw()
@@ -89,75 +135,72 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
-    QPainter p(this); // used for text overlay
+    whatAmIDoing("DRAW");
 
-    // Run the XL program associated with this widget
+    // Begin the page
+    page.begin();
+
+    // If there is a program, we need to run it
     if (xlProgram)
     {
-	// Save the GL state set for QPainter
-	GLStateKeeper save;
+        // Clear the background
+        glClearColor (1.0, 1.0, 1.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// Clear the background
-	glClearColor (1.0, 1.0, 1.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // Setup the projection matrix
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        double w = width(), h = height();
+        double zNear = 1000.0, zFar = 40000.0;
+        double eyeX = 0.0, eyeY = 0.0, eyeZ = 1000.0;
+        double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
+        double upX = 0.0, upY = 1.0, upZ = 0.0;
+        glFrustum (-w/2, w/2, -h/2, h/2, zNear, zFar);
+        gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
 
-	// Setup the projection matrix
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	double w = width(), h = height();
-	double zNear = 1000.0, zFar = 40000.0;
-	double eyeX = 0.0, eyeY = 0.0, eyeZ = 1000.0;
-	double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
-	double upX = 0.0, upY = 1.0, upZ = 0.0;
-	glFrustum (-w/2, w/2, -h/2, h/2, zNear, zFar);
-	gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+        // Setup the model view matrix so that 1.0 unit = 1px
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glViewport(0, 0, width(), height());
+        glTranslatef(0.0, 0.0, -zNear);
+        glScalef(2.0, 2.0, 2.0);
 
-	// Setup the model view matrix so that 1.0 unit = 1px
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glViewport(0, 0, width(), height());
-	glTranslatef(0.0, 0.0, -zNear);
-	glScalef(2.0, 2.0, 2.0);
-
-	// Setup other
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDepthFunc(GL_LEQUAL);
-	glEnable(GL_DEPTH_TEST);
-	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        // Setup other
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDepthFunc(GL_LEQUAL);
+        glEnable(GL_DEPTH_TEST);
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// Run the XL program associated with this widget
 	current = this;
-	if (xlProgram)
-	{
-	    try
-	    {
-		xl_evaluate(xlProgram->tree.tree);
-	    }
-	    catch (XL::Error &e)
-	    {
-		xlProgram = NULL;
-		QMessageBox::warning(this, tr("Runtime error"),
-				     tr("Error executing the program:\n%1")
-				     .arg(QString::fromStdString(e.Message())));
-	    }
-	}
+        try
+        {
+            xl_evaluate(xlProgram->tree.tree);
+        }
+        catch (XL::Error &e)
+        {
+            xlProgram = NULL;
+            QMessageBox::warning(this, tr("Runtime error"),
+                                 tr("Error executing the program:\n%1")
+                                 .arg(QString::fromStdString(e.Message())));
+        }
+        catch(...)
+        {
+            xlProgram = NULL;
+            QMessageBox::warning(this, tr("Runtime error"),
+                                 tr("Unknown error executing the program"));
+        }
+
+        // Once we are done, do a garbage collection
+        XL::Context::context->CollectGarbage();
     }
 
-    // Draw the overlayed text using QPainter
-    p.setPen(QColor(197, 197, 197, 157));
-    p.setBrush(QColor(197, 197, 197, 127));
-    p.drawRect(QRect(0, 0, width(), 50));
-    p.setPen(Qt::black);
-    p.setBrush(Qt::NoBrush);
-    const QString str1 = QString::fromStdString(caption_text);
-    const QString str2(tr("Use the mouse wheel to zoom, press buttons and move mouse to rotate, double-click to flip."));
-    QFontMetrics fm(p.font());
-    p.drawText(width()/2 - fm.width(str1)/2, 20, str1);
-    p.drawText(width()/2 - fm.width(str2)/2, 20 + fm.lineSpacing(), str2);
+    // Finish the page
+    page.end();
 
-    // Once we are done, do a garbage collection
-    XL::Context::context->CollectGarbage();
+    // Update the GL widget
+    updateGL();
 }
 
 
@@ -218,7 +261,8 @@ Tree *Widget::caption(Tree *self, text caption)
 //   Set the caption in the title
 // ----------------------------------------------------------------------------
 {
-    caption_text = caption;
+    Window *window = (Window *) parentWidget();
+    window->statusBar()->showMessage(QString::fromStdString(caption));
     return NULL;
 }
 
@@ -348,7 +392,7 @@ Tree *Widget::refresh(Tree *self, double delay)
 //    Refresh after the given number of seconds
 // ----------------------------------------------------------------------------
 {
-    QTimer::singleShot(1000 * delay, this, SLOT(update()));
+    QTimer::singleShot(1000 * delay, this, SLOT(draw()));
     return NULL;
 }
 

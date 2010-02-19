@@ -9,7 +9,6 @@
 //    Off-screen OpenGL rendering to a 2D texture
 //
 //    A 'PageInfo' associates persistent rendering data to a particular tree
-//    A 'PagePainter' is a transient Qt QPainter for a PageInfo
 //
 //
 //
@@ -22,8 +21,8 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include "tao.h"
 #include "tree.h"
-#include "gl_keepers.h"
 #include <map>
 #include <QtOpenGL>
 #include <QImage>
@@ -61,8 +60,12 @@ struct PageInfo : XL::Info
 {
     typedef PageInfo *data_t;
 
-    PageInfo(uint width = 512, uint height = 512);
+    PageInfo(uint width = 32, uint height = 32);
     ~PageInfo();
+
+    void resize(uint width, uint height);
+    void begin();
+    void end();
     void bind();
 
     QGLFramebufferObject *render_fbo;
@@ -86,19 +89,6 @@ struct SvgRendererInfo : PageInfo
 
     QGLWidget *         widget;
     renderer_map        renderers;
-};
-
-
-struct PagePainter : QPainter
-// ----------------------------------------------------------------------------
-//   Paint on a given page, given as a PageInfo
-// ----------------------------------------------------------------------------
-//   A PagePainter structure is a transient rendering mechanism for a PageInfo
-{
-    PagePainter(PageInfo *info);
-    ~PagePainter();
-    PageInfo *info;
-    GLStateKeeper save;
 };
 
 TAO_END

@@ -29,8 +29,11 @@
 #include <QSvgRenderer>
 #include "main.h"
 #include "tao.h"
+#include "page.h"
 
 namespace Tao {
+
+struct Window;
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -39,17 +42,24 @@ class Widget : public QGLWidget
 {
     Q_OBJECT
 public:
-    Widget(QWidget *parent, XL::SourceFile *sf = NULL);
+    Widget(Window *parent, XL::SourceFile *sf = NULL);
     ~Widget();
 
     // Events
-    void paintEvent(QPaintEvent *);
     void mousePressEvent(QMouseEvent *);
     void mouseDoubleClickEvent(QMouseEvent *);
     void mouseMoveEvent(QMouseEvent *);
     void timerEvent(QTimerEvent *);
     void wheelEvent(QWheelEvent *);
     
+public:
+    void initializeGL();
+    void resizeGL(int width, int height);
+    void paintGL();
+
+public slots:
+    void draw();
+
 public:
     typedef XL::Tree Tree;
 
@@ -107,13 +117,10 @@ public:
     Tree *fromPt(Tree *self, double pt);
     Tree *fromPx(Tree *self, double px);
 
-public slots:
-    void draw();
-
 public:
     // XL Runtime
     XL::SourceFile *  xlProgram;
-    text              caption_text;
+    PageInfo          page;
     static Widget    *current;
 
     struct State

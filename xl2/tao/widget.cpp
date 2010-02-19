@@ -533,8 +533,8 @@ Tree *Widget::sphere(Tree *self,
 
 
 static inline void circVertex(double cx, double cy, double r,
-                              double x, double y,
-                              double tx0, double ty0, double tx1, double ty1)
+                        double x, double y,
+                        double tx0, double ty0, double tx1, double ty1)
 // ----------------------------------------------------------------------------
 //   A circular vertex, including texture coordinate
 // ----------------------------------------------------------------------------
@@ -547,110 +547,80 @@ static inline void circVertex(double cx, double cy, double r,
 }
 
 
-static inline void circTriangle1(double cx, double cy, double r,
-                                 double x1, double y1,
-                                 double x2, double y2)
+static inline void circSectorN(double cx, double cy, double r,
+                            double tx0, double ty0, double tx1, double ty1,
+                            int sq, int nq)
 // ----------------------------------------------------------------------------
-//   Draw 1 circular triangle
-// ----------------------------------------------------------------------------
-{
-    // Triangles need to be drawn counter-clockwise
-    circVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);
-    circVertex(cx, cy, r, x1, y1, 0, 0, 1, 1);
-    circVertex(cx, cy, r, x2, y2, 0, 0, 1, 1);
-}
-
-
-static inline void circTriangleN(double cx, double cy, double r,
-                           double x1, double y1,
-                           double x2, double y2, int sa, int n)
-// ----------------------------------------------------------------------------
-//   Draw n circular triangles (n from 1 to 8, taking into account symmetries)
-// ----------------------------------------------------------------------------
-{
-    // Triangles need to be drawn counter-clockwise
-    for (int i = 0; i < n; i++)
-    { 
-        switch ((sa + i) % 8)
-        {
-            case 7: 
-                circTriangle1(cx, cy, r,  x2, -y2,  x1, -y1);
-                break;
-            case 6: 
-                circTriangle1(cx, cy, r,  y1, -x1,  y2, -x2);
-                break;
-            case 5: 
-                circTriangle1(cx, cy, r, -y2, -x2, -y1, -x1);
-                break;
-            case 4: 
-                circTriangle1(cx, cy, r, -x1, -y1, -x2, -y2);
-                break;
-            case 3: 
-                circTriangle1(cx, cy, r, -x2,  y2, -x1,  y1);
-                break;
-            case 2: 
-                circTriangle1(cx, cy, r, -y1,  x1, -y2,  x2);
-                break;
-            case 1: 
-                circTriangle1(cx, cy, r,  y2,  x2,  y1,  x1);
-                break;
-            case 0: 
-                circTriangle1(cx, cy, r,  x1,  y1,  x2,  y2);
-                break;
-        }
-    }
-}
-
-
-static inline void circSectorN(double cx, double cy, double r, int sa, int n)
-// ----------------------------------------------------------------------------
-//     Draw a circular sector of N/8th of a circle
+//     Draw a circular sector of N/4th of a circle
 // ----------------------------------------------------------------------------
 //   We use a reduced Bresenham-like algorithm for circles (midpoint circle)
 //
-//   For now the sector is limited to multiples of 1/8th of circle. For
+//   For now the sector is limited to multiples of 1/4th of circle. For
 //   example, an angle of 280 will draw 3/4 of a circle.
 {
     // The two first values configure how precise the circle is
     int step = 10;              // Triangles generated every <step> points
-    double grid = 1 / 500.0;    // Tolerance for points on the circle 
+    double grid = 1.0 / 500.0;    // Tolerance for points on the circle 
 
-    double end = M_SQRT2 / 2;   // sqrt(1/2) for a perfect finish
-    double error = -1.0;
-    double x1 = 1.0, x2 = 1.0;
-    double y1 = 0, y2 = 0;
-    int i = 0;
+    double error, x, y, s;
 
-    while (x1 > y1)
+
+    for (int q = 0; q < nq; q++)
+    { 
+    error = -1.0;
+    x = 1.0;
+    y = 0;
+    s = step;
+
+    while (x > 0)
     {
-        error += y2;
-        y2 += grid;
-        error += y2;
-
+        if (++s >= step)
+        {
+        s = 0;
+        switch ((sq + q) % 4)
+        {
+            case 3: 
+                circVertex(cx, cy, r,  y, -x, tx0, ty0, tx1, ty1);
+                break;
+            case 2: 
+                circVertex(cx, cy, r, -x, -y, tx0, ty0, tx1, ty1);
+                break;
+            case 1: 
+                circVertex(cx, cy, r, -y,  x, tx0, ty0, tx1, ty1);
+                break;
+            case 0: 
+                circVertex(cx, cy, r,  x,  y, tx0, ty0, tx1, ty1);
+                break;
+        }
+        }
         if (error >= 0)
         {
-            x2 -= grid;
-            error -= x2;
-            error -= x2;
+            x -= grid;
+            error -= x + x;
         }
-
-        if (x2 <= y2)
+        else 
         {
-            x2 = end;
-            y2 = end;
-            i = step;
-        }
-
-        if (++i >= step)
-        {
-            // drawing n triangles at a time
-            circTriangleN(cx, cy, r, x1, y1, x2, y2, sa, n);
-            i = 0;
-            x1 = x2;
-            y1 = y2;
+            y += grid;
+            error += y + y;
         }
     }
-}
+    }
+    switch ((sq + nq) % 4)
+    {
+        case 3: 
+            circVertex(cx, cy, r,  0, -1, tx0, ty0, tx1, ty1);
+            break;
+        case 2: 
+            circVertex(cx, cy, r, -1,  0, tx0, ty0, tx1, ty1);
+            break;
+        case 1: 
+            circVertex(cx, cy, r,  0,  1, tx0, ty0, tx1, ty1);
+            break;
+        case 0: 
+            circVertex(cx, cy, r,  1,  0, tx0, ty0, tx1, ty1);
+            break;
+    }
+ }
 
 
 Tree *Widget::circle(Tree *self, double cx, double cy, double r)
@@ -658,8 +628,8 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
 //     GL circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    glBegin(GL_TRIANGLES);
-    circSectorN(cx, cy, r, 0, 8);
+    glBegin(state.polygonMode);
+    circSectorN(cx, cy, r, 0, 0, 1, 1, 0, 4);
     glEnd();
 
     return NULL;
@@ -677,20 +647,21 @@ Tree *Widget::circsector(Tree *self,
     {
         b += 360;
     }
-    int n = int((b-a) / 45);    // Number of 1/8th of circle sectors to draw
-    if (n > 8)
+    int nq = int((b-a) / 90);                   // Number of quadrants to draw
+    if (nq > 4)
     {
-        n = 8;
+        nq = 4;
     }
 
     while (a < 0)
     {
         a += 360;
     }
-    int sa = (int(a / 45) % 8); // Starting sector
+    int sq = (int(a / 90) % 4);                 // Starting quadrant
 
     glBegin(state.polygonMode);
-    circSectorN(cx, cy, r, sa, n);
+    circVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);    // The center
+    circSectorN(cx, cy, r, 0, 0, 1, 1, sq, nq);
     glEnd();
 
     return NULL;
@@ -709,40 +680,57 @@ Tree *Widget::roundrect(Tree *self,
     if (r > w / 2) r = w / 2;
     if (r > h / 2) r = h / 2;
 
-    glBegin(GL_TRIANGLES);
+    double x0  = cx - w / 2.0;
+    double x0r = x0 + r;
+    double x1  = cx + w / 2.0;
+    double x1r = x1 - r;
 
-    circSectorN(cx + w / 2.0 - r, cy + h / 2.0 - r, r, 0, 2);
+    double y0  = cy - h / 2.0;
+    double y0r = y0 + r;
+    double y1  = cy + h / 2.0;
+    double y1r = y1 - r;
 
-    glVertex2f(cx - w / 2.0 + r, cy + h / 2.0 - r);
-    glVertex2f(cx + w / 2.0 - r, cy + h / 2.0 - r);
-    glVertex2f(cx + w / 2.0 - r, cy + h / 2.0);
-    
-    glVertex2f(cx + w / 2.0 - r, cy + h / 2.0);
-    glVertex2f(cx - w / 2.0 + r, cy + h / 2.0);
-    glVertex2f(cx - w / 2.0 + r, cy + h / 2.0 - r);
-    
-    circSectorN(cx - w / 2.0 + r, cy + h / 2.0 - r, r, 2, 2);
+    double tx0  = 0;
+    double tx0r = 0 + r / w;
+    double tx1  = 1;
+    double tx1r = 1 - r / w;
 
-    glVertex2f(cx - w / 2.0, cy - h / 2.0 + r);
-    glVertex2f(cx + w / 2.0, cy - h / 2.0 + r);
-    glVertex2f(cx + w / 2.0, cy + h / 2.0 - r);
-    
-    glVertex2f(cx + w / 2.0, cy + h / 2.0 - r);
-    glVertex2f(cx - w / 2.0, cy + h / 2.0 - r);
-    glVertex2f(cx - w / 2.0, cy - h / 2.0 + r);
-    
-    circSectorN(cx - w / 2.0 + r, cy - h / 2.0 + r, r, 4, 2);
+    double ty0  = 0;
+    double ty0r = 0 + r / h;
+    double ty1  = 1;
+    double ty1r = 1 - r / h;
 
-    glVertex2f(cx - w / 2.0 + r, cy - h / 2.0);
-    glVertex2f(cx + w / 2.0 - r, cy - h / 2.0);
-    glVertex2f(cx + w / 2.0 - r, cy - h / 2.0 + r);
+    glBegin(state.polygonMode);
+
+    glTexCoord2f(tx1, ty1r);
+    glVertex2f(x1, y1r);
+
+    circSectorN(x1r, y1r, r, tx1r, ty1r, tx1, ty1, 0, 1);
+
+    glTexCoord2f(tx1r, ty1);
+    glVertex2f(x1r, y1);
+    glTexCoord2f(tx0r, ty1);
+    glVertex2f(x0r, y1);
     
-    glVertex2f(cx + w / 2.0 - r, cy - h / 2.0 + r);
-    glVertex2f(cx - w / 2.0 + r, cy - h / 2.0 + r);
-    glVertex2f(cx - w / 2.0 + r, cy - h / 2.0);
+    circSectorN(x0r, y1r, r, tx0, ty1r, tx0r, ty1, 1, 1);
+
+    glTexCoord2f(tx0, ty1r);
+    glVertex2f(x0, y1r);
+    glTexCoord2f(tx0, ty0r);
+    glVertex2f(x0, y0r);
     
-    circSectorN(cx + w / 2.0 - r, cy - h / 2.0 + r, r, 6, 2);
+    circSectorN(x0r, y0r, r, tx0, ty0, tx0r, ty0r, 2, 1);
+
+    glTexCoord2f(tx0r, ty0);
+    glVertex2f(x0r, y0);
+    glTexCoord2f(tx1r, ty0);
+    glVertex2f(x1r, y0);
+    
+    circSectorN(x1r, y0r, r, tx1r, ty0, tx1, ty0r, 3, 1);
    
+    glTexCoord2f(tx1, ty0r);
+    glVertex2f(x1, y0r);
+
     glEnd();
 
     return NULL;

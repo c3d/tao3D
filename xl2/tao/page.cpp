@@ -131,7 +131,7 @@ void PageInfo::resize(uint width, uint height)
     // Select whether we draw directly in texture or blit to it
     // If we can blit, we first draw in a multisample buffer
     // with 4 samples per pixel. This cannot be used directly as texture.
-    if (false && QGLFramebufferObject::hasOpenGLFramebufferBlit())
+    if (QGLFramebufferObject::hasOpenGLFramebufferBlit())
     {
         QGLFramebufferObjectFormat format;
 #ifndef CONFIG_LINUX

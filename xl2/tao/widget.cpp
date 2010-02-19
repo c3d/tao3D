@@ -50,11 +50,13 @@ Widget::Widget(QWidget *parent, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
       xlProgram(sf),
-      caption_text("A simple OpenGL framebuffer object example."),
-      polygonMode(GL_POLYGON)
+      caption_text("A simple OpenGL framebuffer object example.")
 {
     // Make this the current context for OpenGL
     makeCurrent();
+
+    // Initial state
+    state.polygonMode = GL_POLYGON;
 }
 
 
@@ -357,7 +359,7 @@ Tree *Widget::locally(Tree *self, Tree *child)
 //   Evaluate the child tree while preserving the OpenGL context
 // ----------------------------------------------------------------------------
 {
-    GLStateKeeper save;
+    GLAndWidgetKeeper save(this);
     Tree *result = xl_evaluate(child);
     return result;
 }
@@ -382,7 +384,7 @@ Tree *Widget::filled(Tree *self)
 //   Select filled polygon mode
 // ----------------------------------------------------------------------------
 {
-    polygonMode = GL_POLYGON;
+    state.polygonMode = GL_POLYGON;
     return NULL;
 }
 
@@ -392,7 +394,17 @@ Tree *Widget::hollow(Tree *self)
 //   Select hollow polygon mode
 // ----------------------------------------------------------------------------
 {
-    polygonMode = GL_LINE_STRIP;
+    state.polygonMode = GL_LINE_LOOP;
+    return NULL;
+}
+
+
+Tree *Widget::disconnected(Tree *self)
+// ----------------------------------------------------------------------------
+//   Select a polygon mode that creates disconnected lines
+// ----------------------------------------------------------------------------
+{
+    state.polygonMode = GL_LINE_STRIP;
     return NULL;
 }
 
@@ -422,8 +434,8 @@ Tree *Widget::polygon(Tree *self, Tree *child)
 //   Evaluate the child tree within a polygon
 // ----------------------------------------------------------------------------
 {
-    GLStateKeeper save;
-    glBegin(polygonMode);
+    GLAndWidgetKeeper save(this);
+    glBegin(state.polygonMode);
     xl_evaluate(child);
     glEnd();
     return NULL;
@@ -639,7 +651,7 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
 //     GL circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    glBegin(polygonMode);
+    glBegin(state.polygonMode);
     circSectorN(cx, cy, r, 0, 8);
     glEnd();
 
@@ -669,7 +681,7 @@ Tree *Widget::circsector(Tree *self, double cx, double cy, double r,
     }
     int sa = (int(a / 45) % 8); // Starting sector
 
-    glBegin(polygonMode);
+    glBegin(state.polygonMode);
     circSectorN(cx, cy, r, sa, n);
     glEnd();
 
@@ -689,7 +701,7 @@ Tree *Widget::roundrect(Tree *self, double cx, double cy,
     if (r > w / 2) r = w / 2;
     if (r > h / 2) r = h / 2;
 
-    glBegin(polygonMode);
+    glBegin(state.polygonMode);
 
     circSectorN(cx + w / 2.0 - r, cy + h / 2.0 - r, r, 0, 2);
 
@@ -782,6 +794,5 @@ Tree *Widget::fromPx(Tree *self, double px)
 {
     RREAL(px);
 }
-
 
 TAO_END

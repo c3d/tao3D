@@ -26,10 +26,10 @@
 #include <QtOpenGL>
 #include <QImage>
 #include <QTimeLine>
+#include <QTimer>
 #include <QSvgRenderer>
 #include "main.h"
 #include "tao.h"
-#include "page.h"
 
 namespace Tao {
 
@@ -120,7 +120,7 @@ public:
 public:
     // XL Runtime
     XL::SourceFile *  xlProgram;
-    PageInfo          page;
+    QTimer            timer;
     static Widget    *current;
 
     struct State

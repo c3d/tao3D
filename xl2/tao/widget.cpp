@@ -25,11 +25,11 @@
 #include <math.h>
 #include "widget.h"
 #include "tao.h"
-#include "page.h"
 #include "main.h"
 #include "runtime.h"
 #include "opcodes.h"
 #include "gl_keepers.h"
+#include "page.h"
 #include "window.h"
 #include <GL.h>
 
@@ -50,13 +50,16 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf), page()
+      xlProgram(sf), timer(this)
 {
     // Make this the current context for OpenGL
     makeCurrent();
 
     // Initial state
     state.polygonMode = GL_POLYGON;
+
+    // Prepare the timer
+    connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
 }
 
 
@@ -74,26 +77,11 @@ Widget::~Widget()
 //
 // ============================================================================
 
-static inline void whatAmIDoing(text what)
-// ----------------------------------------------------------------------------
-//   Test where we are and what we are doing
-// ----------------------------------------------------------------------------
-{
-    QTime t = QTime::currentTime();
-    double d = (3600.0	 * t.hour()
-		+ 60.0	 * t.minute()
-		+	   t.second()
-		+  0.001 * t.msec());
-    std::cerr << what << " " << d << "\n";
-}
-
-
 void Widget::initializeGL()
 // ----------------------------------------------------------------------------
 //    Called once per rendering to setup the GL environment
 // ----------------------------------------------------------------------------
 {
-    whatAmIDoing ("INIT");
 }
 
 
@@ -102,9 +90,6 @@ void Widget::resizeGL(int width, int height)
 //   Called when the size changes
 // ----------------------------------------------------------------------------
 {
-    whatAmIDoing("RESIZE");
-    page.resize(width, height);
-    draw();
 }
 
 
@@ -113,20 +98,7 @@ void Widget::paintGL()
 //    Repaint the contents of the window
 // ----------------------------------------------------------------------------
 {
-    whatAmIDoing("UPDATE");
-
-    glLoadIdentity();
-    glColor4f(1,1,1,1);
-    page.bind();
-    double w = width()/2, h = height()/2;
-    glBegin(GL_QUADS);
-    {
-        glTexCoord2f(0, 0);     glVertex2f(-w, -h);
-        glTexCoord2f(1, 0);     glVertex2f( w, -h);
-        glTexCoord2f(1, 1);     glVertex2f( w,  h);
-        glTexCoord2f(0, 1);     glVertex2f(-w,  h);
-    }
-    glEnd();
+    draw();
 }
 
 
@@ -135,11 +107,6 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
-    whatAmIDoing("DRAW");
-
-    // Begin the page
-    page.begin();
-
     // If there is a program, we need to run it
     if (xlProgram)
     {
@@ -195,12 +162,6 @@ void Widget::draw()
         // Once we are done, do a garbage collection
         XL::Context::context->CollectGarbage();
     }
-
-    // Finish the page
-    page.end();
-
-    // Update the GL widget
-    updateGL();
 }
 
 
@@ -392,7 +353,8 @@ Tree *Widget::refresh(Tree *self, double delay)
 //    Refresh after the given number of seconds
 // ----------------------------------------------------------------------------
 {
-    QTimer::singleShot(1000 * delay, this, SLOT(draw()));
+    timer.setSingleShot(true);
+    timer.start(1000 * delay);
     return NULL;
 }
 

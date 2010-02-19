@@ -131,7 +131,7 @@ void PageInfo::resize(uint width, uint height)
     // Select whether we draw directly in texture or blit to it
     // If we can blit, we first draw in a multisample buffer
     // with 4 samples per pixel. This cannot be used directly as texture.
-    if (QGLFramebufferObject::hasOpenGLFramebufferBlit())
+    if (false && QGLFramebufferObject::hasOpenGLFramebufferBlit())
     {
         QGLFramebufferObjectFormat format;
 #ifndef CONFIG_LINUX
@@ -293,7 +293,7 @@ void SvgRendererInfo::bind (text file)
         }
 
         r = new QSvgRenderer(QString::fromStdString(file), widget);
-        r->connect(r, SIGNAL(repaintNeeded()), widget, SLOT(draw()));
+        r->connect(r, SIGNAL(repaintNeeded()), widget, SLOT(updateGL()));
         renderers[file] = r;
     }
 

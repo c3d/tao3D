@@ -533,8 +533,8 @@ Tree *Widget::sphere(Tree *self,
 
 
 static inline void circVertex(double cx, double cy, double r,
-                        double x, double y,
-                        double tx0, double ty0, double tx1, double ty1)
+                              double x, double y,
+                              double tx0, double ty0, double tx1, double ty1)
 // ----------------------------------------------------------------------------
 //   A circular vertex, including texture coordinate
 // ----------------------------------------------------------------------------
@@ -548,8 +548,8 @@ static inline void circVertex(double cx, double cy, double r,
 
 
 static inline void circSectorN(double cx, double cy, double r,
-                            double tx0, double ty0, double tx1, double ty1,
-                            int sq, int nq)
+                               double tx0, double ty0, double tx1, double ty1,
+                               int sq, int nq)
 // ----------------------------------------------------------------------------
 //     Draw a circular sector of N/4th of a circle
 // ----------------------------------------------------------------------------
@@ -559,9 +559,8 @@ static inline void circSectorN(double cx, double cy, double r,
 //   example, an angle of 280 will draw 3/4 of a circle.
 {
     // The two first values configure how precise the circle is
-    int step = 10;              // Triangles generated every <step> points
+    int step = 10;                // Triangles generated every <step> points
     double grid = 1.0 / 500.0;    // Tolerance for points on the circle 
-
     double error, x, y, s;
 
 
@@ -749,7 +748,7 @@ Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
         glTexCoord2f(1, 1);     glVertex2f(cx+w/2, cy+h/2);
         glTexCoord2f(0, 1);     glVertex2f(cx-w/2, cy+h/2);
     }
-    glEnd;
+    glEnd();
     return NULL;
 }
 

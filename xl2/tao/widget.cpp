@@ -174,7 +174,6 @@ void Widget::mouseMoveEvent(QMouseEvent *e)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
-    draw();
 }
 
 
@@ -349,7 +348,7 @@ Tree *Widget::refresh(Tree *self, double delay)
 //    Refresh after the given number of seconds
 // ----------------------------------------------------------------------------
 {
-    QTimer::singleShot(1000 * delay, this, SLOT(draw()));
+    QTimer::singleShot(1000 * delay, this, SLOT(update()));
     return NULL;
 }
 
@@ -661,7 +660,8 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
 }
 
 
-Tree *Widget::circsector(Tree *self, double cx, double cy, double r, 
+Tree *Widget::circsector(Tree *self,
+                         double cx, double cy, double r, 
                          double a, double b)
 // ----------------------------------------------------------------------------
 //     GL circular sector centered around (cx,cy), radius r and two angles a, b
@@ -692,7 +692,8 @@ Tree *Widget::circsector(Tree *self, double cx, double cy, double r,
 
 
 
-Tree *Widget::roundrect(Tree *self, double cx, double cy, 
+Tree *Widget::roundrect(Tree *self,
+                        double cx, double cy, 
                         double w, double h, double r)
 // ----------------------------------------------------------------------------
 //     GL rounded rectangle with radius r for the rounded corners

@@ -207,7 +207,7 @@ void SvgRendererInfo::bind (text file)
         }
 
         r = new QSvgRenderer(QString::fromStdString(file), widget);
-        r->connect(r, SIGNAL(repaintNeeded()), widget, SLOT(draw()));
+        r->connect(r, SIGNAL(repaintNeeded()), widget, SLOT(update()));
         renderers[file] = r;
     }
 

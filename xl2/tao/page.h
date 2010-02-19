@@ -24,6 +24,7 @@
 
 #include "tree.h"
 #include "gl_keepers.h"
+#include <map>
 #include <QtOpenGL>
 #include <QImage>
 #include <QTimeLine>
@@ -37,14 +38,16 @@ struct ImageTextureInfo : XL::Info
 //    Hold information about an image texture
 // ----------------------------------------------------------------------------
 {
-    typedef ImageTextureInfo *data_t;
+    typedef ImageTextureInfo *          data_t;
+    typedef std::map<text, GLuint>      texture_map;
+    enum { MAX_TEXTURES = 20 };
 
-    ImageTextureInfo(QImage &img);
+    ImageTextureInfo();
     ~ImageTextureInfo();
-    void bind();
+    void bind(text img);
     operator data_t() { return this; }
 
-    GLuint      textureId;
+    texture_map textures;
 };
 
 
@@ -58,7 +61,7 @@ struct PageInfo : XL::Info
 {
     typedef PageInfo *data_t;
 
-    PageInfo(uint w = 512, uint h = 512);
+    PageInfo(uint width = 512, uint height = 512);
     ~PageInfo();
     void bind();
 
@@ -72,13 +75,17 @@ struct SvgRendererInfo : PageInfo
 //    Hold information about the SVG renderer for a tree
 // ----------------------------------------------------------------------------
 {
-    typedef SvgRendererInfo *data_t;
+    typedef SvgRendererInfo *                   data_t;
+    typedef std::map<text, QSvgRenderer *>      renderer_map;
+    enum { MAX_TEXTURES = 20 };
 
-    SvgRendererInfo(QSvgRenderer *r): PageInfo(), renderer(r) {}
-    ~SvgRendererInfo() { delete renderer; }
+    SvgRendererInfo(QGLWidget *w, uint width=512, uint height=512);
+    ~SvgRendererInfo();
     operator data_t() { return this; }
+    void bind(text img);
 
-    QSvgRenderer         *renderer;
+    QGLWidget *         widget;
+    renderer_map        renderers;
 };
 
 

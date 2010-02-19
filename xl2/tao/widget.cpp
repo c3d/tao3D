@@ -528,8 +528,8 @@ Tree *Widget::sphere(Tree *self,
 
 
 static inline void circVertex(double cx, double cy, double r,
-                              double x, double y,
-                              double tx0, double ty0, double tx1, double ty1)
+                        double x, double y,
+                        double tx0, double ty0, double tx1, double ty1)
 // ----------------------------------------------------------------------------
 //   A circular vertex, including texture coordinate
 // ----------------------------------------------------------------------------
@@ -543,22 +543,23 @@ static inline void circVertex(double cx, double cy, double r,
 
 
 static inline void circTriangle1(double cx, double cy, double r,
-                                 double x1, double y1,
-                                 double x2, double y2)
+                            double x1, double y1, double x2, double y2,
+                            double tx0, double ty0, double tx1, double ty1)
 // ----------------------------------------------------------------------------
 //   Draw 1 circular triangle
 // ----------------------------------------------------------------------------
 {
     // Triangles need to be drawn counter-clockwise
-    circVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);
-    circVertex(cx, cy, r, x1, y1, 0, 0, 1, 1);
-    circVertex(cx, cy, r, x2, y2, 0, 0, 1, 1);
+    circVertex(cx, cy, r, 0, 0, tx0, ty0, tx1, ty1);
+    circVertex(cx, cy, r, x1, y1, tx0, ty0, tx1, ty1);
+    circVertex(cx, cy, r, x2, y2, tx0, ty0, tx1, ty1);
 }
 
 
 static inline void circTriangleN(double cx, double cy, double r,
-                           double x1, double y1,
-                           double x2, double y2, int sa, int n)
+                            double x1, double y1, double x2, double y2, 
+                            double tx0, double ty0, double tx1, double ty1,
+                            int sa, int n)
 // ----------------------------------------------------------------------------
 //   Draw n circular triangles (n from 1 to 8, taking into account symmetries)
 // ----------------------------------------------------------------------------
@@ -569,35 +570,37 @@ static inline void circTriangleN(double cx, double cy, double r,
         switch ((sa + i) % 8)
         {
             case 7: 
-                circTriangle1(cx, cy, r,  x2, -y2,  x1, -y1);
+                circTriangle1(cx, cy, r,  x2, -y2,  x1, -y1, tx0, ty0, tx1, ty1);
                 break;
             case 6: 
-                circTriangle1(cx, cy, r,  y1, -x1,  y2, -x2);
+                circTriangle1(cx, cy, r,  y1, -x1,  y2, -x2, tx0, ty0, tx1, ty1);
                 break;
             case 5: 
-                circTriangle1(cx, cy, r, -y2, -x2, -y1, -x1);
+                circTriangle1(cx, cy, r, -y2, -x2, -y1, -x1, tx0, ty0, tx1, ty1);
                 break;
             case 4: 
-                circTriangle1(cx, cy, r, -x1, -y1, -x2, -y2);
+                circTriangle1(cx, cy, r, -x1, -y1, -x2, -y2, tx0, ty0, tx1, ty1);
                 break;
             case 3: 
-                circTriangle1(cx, cy, r, -x2,  y2, -x1,  y1);
+                circTriangle1(cx, cy, r, -x2,  y2, -x1,  y1, tx0, ty0, tx1, ty1);
                 break;
             case 2: 
-                circTriangle1(cx, cy, r, -y1,  x1, -y2,  x2);
+                circTriangle1(cx, cy, r, -y1,  x1, -y2,  x2, tx0, ty0, tx1, ty1);
                 break;
             case 1: 
-                circTriangle1(cx, cy, r,  y2,  x2,  y1,  x1);
+                circTriangle1(cx, cy, r,  y2,  x2,  y1,  x1, tx0, ty0, tx1, ty1);
                 break;
             case 0: 
-                circTriangle1(cx, cy, r,  x1,  y1,  x2,  y2);
+                circTriangle1(cx, cy, r,  x1,  y1,  x2,  y2, tx0, ty0, tx1, ty1);
                 break;
         }
     }
 }
 
 
-static inline void circSectorN(double cx, double cy, double r, int sa, int n)
+static inline void circSectorN(double cx, double cy, double r,
+                            double tx0, double ty0, double tx1, double ty1,
+                            int sa, int n)
 // ----------------------------------------------------------------------------
 //     Draw a circular sector of N/8th of a circle
 // ----------------------------------------------------------------------------
@@ -639,7 +642,7 @@ static inline void circSectorN(double cx, double cy, double r, int sa, int n)
         if (++i >= step)
         {
             // drawing n triangles at a time
-            circTriangleN(cx, cy, r, x1, y1, x2, y2, sa, n);
+            circTriangleN(cx, cy, r, x1, y1, x2, y2, tx0, ty0, tx1, ty1, sa, n);
             i = 0;
             x1 = x2;
             y1 = y2;
@@ -654,7 +657,7 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
 // ----------------------------------------------------------------------------
 {
     glBegin(state.polygonMode);
-    circSectorN(cx, cy, r, 0, 8);
+    circSectorN(cx, cy, r, 0, 0, 1, 1, 0, 8);
     glEnd();
 
     return NULL;
@@ -684,7 +687,7 @@ Tree *Widget::circsector(Tree *self, double cx, double cy, double r,
     int sa = (int(a / 45) % 8); // Starting sector
 
     glBegin(state.polygonMode);
-    circSectorN(cx, cy, r, sa, n);
+    circSectorN(cx, cy, r, 0, 0, 1, 1, sa, n);
     glEnd();
 
     return NULL;
@@ -703,39 +706,77 @@ Tree *Widget::roundrect(Tree *self, double cx, double cy,
     if (r > w / 2) r = w / 2;
     if (r > h / 2) r = h / 2;
 
+    double x0  = cx - w / 2.0;
+    double x0r = x0 + r;
+    double x1  = cx + w / 2.0;
+    double x1r = x1 - r;
+
+    double y0  = cy - h / 2.0;
+    double y0r = y0 + r;
+    double y1  = cy + h / 2.0;
+    double y1r = y1 - r;
+
+    double tx0  = 0;
+    double tx0r = 0 + r / w;
+    double tx1  = 1;
+    double tx1r = 1 - r / w;
+
+    double ty0  = 0;
+    double ty0r = 0 + r / h;
+    double ty1  = 1;
+    double ty1r = 1 - r / h;
+
     glBegin(state.polygonMode);
 
-    circSectorN(cx + w / 2.0 - r, cy + h / 2.0 - r, r, 0, 2);
+    circSectorN(x1r, y1r, r, tx1r, ty1r, tx1, ty1, 0, 2);
 
-    glVertex2f(cx - w / 2.0 + r, cy + h / 2.0 - r);
-    glVertex2f(cx + w / 2.0 - r, cy + h / 2.0 - r);
-    glVertex2f(cx + w / 2.0 - r, cy + h / 2.0);
+    glTexCoord2f(tx0r, ty1r);
+    glVertex2f(x0r, y1r);
+    glTexCoord2f(tx1r, ty1r);
+    glVertex2f(x1r, y1r);
+    glTexCoord2f(tx1r, ty1);
+    glVertex2f(x1r, y1);
     
-    glVertex2f(cx + w / 2.0 - r, cy + h / 2.0);
-    glVertex2f(cx - w / 2.0 + r, cy + h / 2.0);
-    glVertex2f(cx - w / 2.0 + r, cy + h / 2.0 - r);
+    glTexCoord2f(tx1r, ty1);
+    glVertex2f(x1r, y1);
+    glTexCoord2f(tx0r, ty1);
+    glVertex2f(x0r, y1);
+    glTexCoord2f(tx0r, ty1r);
+    glVertex2f(x0r, y1r);
     
-    circSectorN(cx - w / 2.0 + r, cy + h / 2.0 - r, r, 2, 2);
+    circSectorN(x0r, y1r, r, tx0, ty1r, tx0r, ty1, 2, 2);
 
-    glVertex2f(cx - w / 2.0, cy - h / 2.0 + r);
-    glVertex2f(cx + w / 2.0, cy - h / 2.0 + r);
-    glVertex2f(cx + w / 2.0, cy + h / 2.0 - r);
+    glTexCoord2f(tx0, ty0r);
+    glVertex2f(x0, y0r);
+    glTexCoord2f(tx1, ty0r);
+    glVertex2f(x1, y0r);
+    glTexCoord2f(tx1, ty1r);
+    glVertex2f(x1, y1r);
     
-    glVertex2f(cx + w / 2.0, cy + h / 2.0 - r);
-    glVertex2f(cx - w / 2.0, cy + h / 2.0 - r);
-    glVertex2f(cx - w / 2.0, cy - h / 2.0 + r);
+    glTexCoord2f(tx1, ty1r);
+    glVertex2f(x1, y1r);
+    glTexCoord2f(tx0, ty1r);
+    glVertex2f(x0, y1r);
+    glTexCoord2f(tx0, ty0r);
+    glVertex2f(x0, y0r);
     
-    circSectorN(cx - w / 2.0 + r, cy - h / 2.0 + r, r, 4, 2);
+    circSectorN(x0r, y0r, r, tx0, ty0, tx0r, ty0r, 4, 2);
 
-    glVertex2f(cx - w / 2.0 + r, cy - h / 2.0);
-    glVertex2f(cx + w / 2.0 - r, cy - h / 2.0);
-    glVertex2f(cx + w / 2.0 - r, cy - h / 2.0 + r);
+    glTexCoord2f(tx0r, ty0);
+    glVertex2f(x0r, y0);
+    glTexCoord2f(tx1r, ty0);
+    glVertex2f(x1r, y0);
+    glTexCoord2f(tx1r, ty0r);
+    glVertex2f(x1r, y0r);
     
-    glVertex2f(cx + w / 2.0 - r, cy - h / 2.0 + r);
-    glVertex2f(cx - w / 2.0 + r, cy - h / 2.0 + r);
-    glVertex2f(cx - w / 2.0 + r, cy - h / 2.0);
+    glTexCoord2f(tx1r, ty0r);
+    glVertex2f(x1r, y0r);
+    glTexCoord2f(tx0r, ty0r);
+    glVertex2f(x0r, y0r);
+    glTexCoord2f(tx0r, ty0);
+    glVertex2f(x0r, y0);
     
-    circSectorN(cx + w / 2.0 - r, cy - h / 2.0 + r, r, 6, 2);
+    circSectorN(x1r, y0r, r, tx1r, ty0, tx1, ty0r, 6, 2);
    
     glEnd();
 

@@ -30,10 +30,10 @@
 #include "opcodes.h"
 #include "gl_keepers.h"
 #include "page.h"
+#include "texture.h"
+#include "svg.h"
 #include "window.h"
 #include <GL.h>
-
-
 #include <iostream>
 
 

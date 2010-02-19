@@ -26,69 +26,6 @@
 
 TAO_BEGIN
 
-ImageTextureInfo::ImageTextureInfo()
-// ----------------------------------------------------------------------------
-//   Prepare to record texture IDs for the various images
-// ----------------------------------------------------------------------------
-    : textures()
-{}
-
-
-ImageTextureInfo::~ImageTextureInfo()
-// ----------------------------------------------------------------------------
-//   Release the GL texture
-// ----------------------------------------------------------------------------
-{
-    texture_map::iterator i;
-    glDisable(GL_TEXTURE_2D);
-    for (i = textures.begin(); i != textures.end(); i++)
-        glDeleteTextures(1, &(*i).second);
-}
-
-
-void ImageTextureInfo::bind(text file)
-// ----------------------------------------------------------------------------
-//   Bind the given GL texture
-// ----------------------------------------------------------------------------
-{
-    GLuint textureId = textures[file];
-    if (textureId == 0)
-    {
-        // Prune the map if it gets too big
-        while (textures.size() > MAX_TEXTURES)
-            textures.erase(textures.begin());
-
-        // Read the image file and convert to proper GL image format
-        QImage original(QString::fromStdString(file));
-        QImage texture = QGLWidget::convertToGLFormat(original);
-
-        // Generate the GL texture
-        glGenTextures(1, &textureId);
-        glBindTexture(GL_TEXTURE_2D, textureId);
-        glTexImage2D(GL_TEXTURE_2D, 0, 3,
-                     texture.width(), texture.height(), 0, GL_RGBA,
-                     GL_UNSIGNED_BYTE, texture.bits());
-
-        // Remember the texture for next time
-        textures[file] = textureId;
-    }
-
-    glBindTexture(GL_TEXTURE_2D, textureId);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_MULTISAMPLE);
-    glEnable(GL_CULL_FACE);
-}
-
-
-
-// ============================================================================
-// 
-//    PageInfo: representation of a page
-// 
-// ============================================================================
-
 PageInfo::PageInfo(uint w, uint h)
 // ----------------------------------------------------------------------------
 //   Create the required frame buffer objects
@@ -208,19 +145,6 @@ void PageInfo::bind()
 // 
 // ============================================================================
 
-struct PagePainter : QPainter
-// ----------------------------------------------------------------------------
-//   Paint on a given page, given as a PageInfo
-// ----------------------------------------------------------------------------
-//   A PagePainter structure is a transient rendering mechanism for a PageInfo
-{
-    PagePainter(PageInfo *info);
-    ~PagePainter();
-    PageInfo *info;
-    GLStateKeeper save;
-};
-
-
 PagePainter::PagePainter(PageInfo *info)
 // ----------------------------------------------------------------------------
 //   Begin drawing in the current context
@@ -254,59 +178,6 @@ PagePainter::~PagePainter()
         QGLFramebufferObject::blitFramebuffer(info->texture_fbo, rect,
                                               info->render_fbo, rect);
     }
-}
-
-
-SvgRendererInfo::SvgRendererInfo(QGLWidget *w, uint width, uint height)
-// ----------------------------------------------------------------------------
-//   Create a renderer with the right size
-// ----------------------------------------------------------------------------
-    : PageInfo(width, height), widget(w)
-{}
-
-
-SvgRendererInfo::~SvgRendererInfo()
-// ----------------------------------------------------------------------------
-//   When deleting the info, delete all renderers we have
-// ----------------------------------------------------------------------------
-{
-    renderer_map::iterator i;
-    glDisable(GL_TEXTURE_2D);
-    for (i = renderers.begin(); i != renderers.end(); i++)
-        delete (*i).second;
-}
-
-
-void SvgRendererInfo::bind (text file)
-// ----------------------------------------------------------------------------
-//    Activate a given SVG renderer
-// ----------------------------------------------------------------------------
-{
-    QSvgRenderer *r = renderers[file];
-    if (!r)
-    {
-        while (renderers.size() > MAX_TEXTURES)
-        {
-            renderer_map::iterator first = renderers.begin();
-            delete (*first).second;
-            renderers.erase(first);
-        }
-
-        r = new QSvgRenderer(QString::fromStdString(file), widget);
-        r->connect(r, SIGNAL(repaintNeeded()), widget, SLOT(updateGL()));
-        renderers[file] = r;
-    }
-
-    if (r)
-    {
-        glDisable(GL_TEXTURE_2D);
-        glDisable(GL_MULTISAMPLE);
-        glDisable(GL_CULL_FACE);
-        PagePainter painter(this);
-        r->render(&painter);
-    }
-
-    PageInfo::bind();
 }
 
 TAO_END

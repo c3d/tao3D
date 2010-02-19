@@ -23,32 +23,12 @@
 
 #include "tao.h"
 #include "tree.h"
+#include "gl_keepers.h"
 #include <map>
 #include <QtOpenGL>
-#include <QImage>
-#include <QTimeLine>
-#include <QSvgRenderer>
 
 
 TAO_BEGIN
-
-struct ImageTextureInfo : XL::Info
-// ----------------------------------------------------------------------------
-//    Hold information about an image texture
-// ----------------------------------------------------------------------------
-{
-    typedef ImageTextureInfo *          data_t;
-    typedef std::map<text, GLuint>      texture_map;
-    enum { MAX_TEXTURES = 20 };
-
-    ImageTextureInfo();
-    ~ImageTextureInfo();
-    void bind(text img);
-    operator data_t() { return this; }
-
-    texture_map textures;
-};
-
 
 struct PageInfo : XL::Info
 // ----------------------------------------------------------------------------
@@ -73,22 +53,16 @@ struct PageInfo : XL::Info
 };
 
 
-struct SvgRendererInfo : PageInfo
+struct PagePainter : QPainter
 // ----------------------------------------------------------------------------
-//    Hold information about the SVG renderer for a tree
+//   Paint on a given page, given as a PageInfo
 // ----------------------------------------------------------------------------
+//   A PagePainter structure is a transient rendering mechanism for a PageInfo
 {
-    typedef SvgRendererInfo *                   data_t;
-    typedef std::map<text, QSvgRenderer *>      renderer_map;
-    enum { MAX_TEXTURES = 20 };
-
-    SvgRendererInfo(QGLWidget *w, uint width=512, uint height=512);
-    ~SvgRendererInfo();
-    operator data_t() { return this; }
-    void bind(text img);
-
-    QGLWidget *         widget;
-    renderer_map        renderers;
+    PagePainter(PageInfo *info);
+    ~PagePainter();
+    PageInfo *info;
+    GLStateKeeper save;
 };
 
 TAO_END

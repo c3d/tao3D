@@ -40,7 +40,7 @@ struct PageInfo : XL::Info
 {
     typedef PageInfo *data_t;
 
-    PageInfo(uint width = 32, uint height = 32);
+    PageInfo(uint width = 512, uint height = 512);
     ~PageInfo();
 
     void resize(uint width, uint height);

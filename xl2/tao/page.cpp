@@ -94,7 +94,7 @@ void PageInfo::begin()
 // ----------------------------------------------------------------------------
 {
     // Clear the render FBO
-    render_fbo->bind();
+    int ok = render_fbo->bind();
 
     glLoadIdentity();
 
@@ -102,7 +102,7 @@ void PageInfo::begin()
     glDisable(GL_MULTISAMPLE);
     glDisable(GL_CULL_FACE);
 
-    glClearColor(1.0, 1.0, 1.0, 1.0);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -112,7 +112,7 @@ void PageInfo::end()
 //   Finish rendering in an off-screen buffer
 // ----------------------------------------------------------------------------
 {
-    render_fbo->release();
+    int ok = render_fbo->release();
 
     // Blit the result in the texture if necessary
     if (render_fbo != texture_fbo)

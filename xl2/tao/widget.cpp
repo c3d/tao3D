@@ -99,6 +99,45 @@ void Widget::paintGL()
 }
 
 
+void Widget::setup(double w, double h)
+// ----------------------------------------------------------------------------
+//   Setup an initial environment for drawing
+// ----------------------------------------------------------------------------
+{
+    // Clear the background
+    glClearColor (1.0, 1.0, 1.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Setup the projection matrix
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    double zNear = 1000.0, zFar = 40000.0;
+    double eyeX = 0.0, eyeY = 0.0, eyeZ = 1000.0;
+    double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
+    double upX = 0.0, upY = 1.0, upZ = 0.0;
+    glFrustum (-w/2, w/2, -h/2, h/2, zNear, zFar);
+    gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+
+    // Setup the model view matrix so that 1.0 unit = 1px
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glViewport(0, 0, w, h);
+    glTranslatef(0.0, 0.0, -zNear);
+    glScalef(2.0, 2.0, 2.0);
+
+    // Setup other
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthFunc(GL_LEQUAL);
+    glEnable(GL_DEPTH_TEST);
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+    // Initial state
+    state.polygonMode = GL_POLYGON;
+    state.pagesize = 8;
+}
+
+
 void Widget::draw()
 // ----------------------------------------------------------------------------
 //    Redraw the widget
@@ -107,39 +146,8 @@ void Widget::draw()
     // If there is a program, we need to run it
     if (xlProgram)
     {
-        // Clear the background
-        glClearColor (1.0, 1.0, 1.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Setup the projection matrix
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        double w = width(), h = height();
-        double zNear = 1000.0, zFar = 40000.0;
-        double eyeX = 0.0, eyeY = 0.0, eyeZ = 1000.0;
-        double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
-        double upX = 0.0, upY = 1.0, upZ = 0.0;
-        glFrustum (-w/2, w/2, -h/2, h/2, zNear, zFar);
-        gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
-
-        // Setup the model view matrix so that 1.0 unit = 1px
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        glViewport(0, 0, width(), height());
-        glTranslatef(0.0, 0.0, -zNear);
-        glScalef(2.0, 2.0, 2.0);
-
-        // Setup other
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDepthFunc(GL_LEQUAL);
-        glEnable(GL_DEPTH_TEST);
-        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-
-        // Initial state
-        state.polygonMode = GL_POLYGON;
-
 	// Run the XL program associated with this widget
+        setup(width(), height());
 	current = this;
         try
         {
@@ -366,6 +374,51 @@ Tree *Widget::locally(Tree *self, Tree *child)
 {
     GLAndWidgetKeeper save(this);
     Tree *result = xl_evaluate(child);
+    return result;
+}
+
+
+Tree *Widget::pagebits(Tree *self, int sz)
+// ----------------------------------------------------------------------------
+//    Set the bit size for the page textures
+// ----------------------------------------------------------------------------
+{
+    if (sz < 5)         sz = 5;
+    if (sz > 16)        sz = 16;
+    state.pagesize = sz;
+    return NULL;
+}
+
+
+Tree *Widget::page(Tree *self, Tree *p)
+// ----------------------------------------------------------------------------
+//  Evaluate the tree in a page with the given size
+// ----------------------------------------------------------------------------
+{
+    uint sz = 1<<state.pagesize;
+    Tree *result = NULL;
+
+    glPushMatrix();
+    PageInfo page(sz, sz);
+    page.begin();
+    {
+        // Clear the background and setup initial state
+        glClearColor (1.0, 0.0, 1.0, 1.0);
+        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glLoadIdentity();
+        double zNear = 1000.0;
+        glTranslatef(0.0, 0.0, -zNear);
+        glScalef(2.0, 2.0, 2.0);
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        state.polygonMode = GL_POLYGON;
+        state.pagesize = 8;
+
+        result = xl_evaluate(p);
+    }
+    page.end();
+    glPopMatrix();
+
+    page.bind();
     return result;
 }
 

@@ -56,6 +56,7 @@ public:
     void initializeGL();
     void resizeGL(int width, int height);
     void paintGL();
+    void setup(double w, double h);
 
 public slots:
     void draw();
@@ -83,6 +84,8 @@ public:
     Tree *scale(Tree *self, double x, double y, double z);
 
     Tree *locally(Tree *self, Tree *t);
+    Tree *pagebits(Tree *self, int sz);
+    Tree *page(Tree *self, Tree *p);
 
     Tree *refresh(Tree *self, double delay);
     Tree *time(Tree *self);
@@ -128,7 +131,8 @@ public:
     //    State that we need to save
     // ------------------------------------------------------------------------
     {
-        GLuint            polygonMode;
+        GLuint  polygonMode;
+        GLuint  pagesize;
     } state;
 };
 

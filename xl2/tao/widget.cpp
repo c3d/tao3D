@@ -528,14 +528,16 @@ Tree *Widget::sphere(Tree *self,
 
 
 static inline void circVertex(double cx, double cy, double r,
-                                double x, double y)
+                              double x, double y,
+                              double tx0, double ty0, double tx1, double ty1)
 // ----------------------------------------------------------------------------
 //   A circular vertex, including texture coordinate
 // ----------------------------------------------------------------------------
 //   x range between -1 and 1, y between -1 and 1
 //   cx and cy are the center of the circle, r its radius
 {
-    glTexCoord2f((x + 1.0) / 2.0, (y + 1.0) / 2.0);
+    glTexCoord2f(tx0 + ((x + 1.0) / 2.0 * (tx1 - tx0)),
+                 ty0 + ((y + 1.0) / 2.0 * (ty1 - ty0)));
     glVertex2f(cx + r * x, cy + r * y);
 }
 
@@ -548,9 +550,9 @@ static inline void circTriangle1(double cx, double cy, double r,
 // ----------------------------------------------------------------------------
 {
     // Triangles need to be drawn counter-clockwise
-    circVertex(cx, cy, r, 0, 0);
-    circVertex(cx, cy, r, x1, y1);
-    circVertex(cx, cy, r, x2, y2);
+    circVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);
+    circVertex(cx, cy, r, x1, y1, 0, 0, 1, 1);
+    circVertex(cx, cy, r, x2, y2, 0, 0, 1, 1);
 }
 
 

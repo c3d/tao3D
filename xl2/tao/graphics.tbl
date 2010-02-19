@@ -61,6 +61,7 @@ PREFIX("color", PARM(r, real) PARM(g, real) PARM(b, real),
 
 PREFIX("filled", , Filled, RTAO(filled(self)))
 PREFIX("hollow", , Hollow, RTAO(hollow(self)))
+PREFIX("disconnected", , Disconnected, RTAO(disconnected(self)))
 PREFIX("linewidth", PARM(lw, real), LineWidth, RTAO(linewidth(self, lw)))
 
 PREFIX("polygon", PARM(t, tree), Polygon, RTAO(polygon(self, &t)))

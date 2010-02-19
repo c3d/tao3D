@@ -80,6 +80,7 @@ public:
     Tree *color(Tree *self, double r, double g, double b, double a);
     Tree *filled(Tree *self);
     Tree *hollow(Tree *self);
+    Tree *disconnected(Tree *self);
     Tree *linewidth(Tree *self, double lw);
 
     Tree *polygon(Tree *self, Tree *t);
@@ -114,7 +115,14 @@ public:
     XL::SourceFile *  xlProgram;
     text              caption_text;
     static Widget    *current;
-    GLuint            polygonMode;
+
+    struct State
+    // ------------------------------------------------------------------------
+    //    State that we need to save
+    // ------------------------------------------------------------------------
+    {
+        GLuint            polygonMode;
+    } state;
 };
 
 

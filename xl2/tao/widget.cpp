@@ -55,9 +55,6 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     // Make this the current context for OpenGL
     makeCurrent();
 
-    // Initial state
-    state.polygonMode = GL_POLYGON;
-
     // Prepare the timer
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
 }
@@ -138,6 +135,9 @@ void Widget::draw()
         glDepthFunc(GL_LEQUAL);
         glEnable(GL_DEPTH_TEST);
         glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+        // Initial state
+        state.polygonMode = GL_POLYGON;
 
 	// Run the XL program associated with this widget
 	current = this;

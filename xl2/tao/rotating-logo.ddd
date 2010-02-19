@@ -1,4 +1,4 @@
-caption "Hello World, it is " & text(hours) & ":" & text(minutes) & ":" & text(seconds) & "..."
+status "Hello World, it is " & text(hours) & ":" & text(minutes) & ":" & text(seconds) & "..."
 
 glow(Dur, Amp)    -> (1.0 + sin(time / Dur * pi)) * Amp * 0.5
 unglow(Dur, Amp)  -> 1.0 - glow(Dur, Amp)

@@ -65,7 +65,7 @@ public:
 
     // XLR entry points
     static Widget *Tao() { return current; }
-    Tree *caption(Tree *self, text t);
+    Tree *status(Tree *self, text t);
 
     Tree *rotateX(Tree *self, double rx);
     Tree *rotateY(Tree *self, double ry);

@@ -217,9 +217,9 @@ Widget *Widget::current = NULL;
 typedef XL::Tree Tree;
 
 
-Tree *Widget::caption(Tree *self, text caption)
+Tree *Widget::status(Tree *self, text caption)
 // ----------------------------------------------------------------------------
-//   Set the caption in the title
+//   Set the status line of the window
 // ----------------------------------------------------------------------------
 {
     Window *window = (Window *) parentWidget();

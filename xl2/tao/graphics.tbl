@@ -21,7 +21,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-PREFIX("caption", PARM(t, text), Caption, RTAO(caption(self, t)))
+PREFIX("status", PARM(t, text), Caption, RTAO(status(self, t)))
 
 PREFIX("rotatex", PARM(rx, real), RotateX, RTAO(rotateX(self, rx)))
 PREFIX("rotatey", PARM(ry, real), RotateY, RTAO(rotateY(self, ry)))

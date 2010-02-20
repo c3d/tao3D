@@ -1,0 +1,22 @@
+
+color 0,1,0,1
+texture "earth.bmp"
+circle -400,300, 80
+circular_sector -200,300,80,270,90
+rounded_rectangle 0,300,160,100,30
+rectangle 200,300,160,100
+regular_polygon -400,100,80,3
+regular_polygon -200,100,80,4
+regular_polygon 0,100,80,5
+regular_polygon 200,100,80,6
+regular_polygon 400,100,80,7
+regular_polygon -400,-100,80,8
+regular_polygon -200,-100,80,9
+regular_polygon 0,-100,80,10
+regular_polygon 200,-100,80,11
+regular_polygon 400,-100,80,12
+
+// look at the difference...
+rectangle -400,-300,160,160
+regular_polygon -200,-300,80,4
+rectangle 0,-300,80,80

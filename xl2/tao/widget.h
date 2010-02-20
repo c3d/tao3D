@@ -104,12 +104,13 @@ public:
                  double r, int nslices, int nstacks);
     Tree *circle(Tree *self, double cx, double cy, 
                  double r);
-    Tree *circsector(Tree *self, double cx, double cy, 
+    Tree *circularSector(Tree *self, double cx, double cy, 
                      double r, double a, double b);
-    Tree *roundrect(Tree *self, double cx, double cy, 
+    Tree *roundedRectangle(Tree *self, double cx, double cy, 
                     double w, double h, double r);
     Tree *rectangle(Tree *self, double cx, double cy, 
                     double w, double h);
+    Tree *regularPolygon(Tree *self, double cx, double cy, double r, int n);
 
     Tree *texture(Tree *self, text n);
     Tree *svg(Tree *self, text t);

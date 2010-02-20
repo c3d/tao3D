@@ -33,7 +33,7 @@
 #include "texture.h"
 #include "svg.h"
 #include "window.h"
-#include <GL.h>
+#include <QtOpenGL>
 #include <iostream>
 
 

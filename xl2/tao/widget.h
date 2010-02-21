@@ -100,17 +100,19 @@ public:
     Tree *polygon(Tree *self, Tree *t);
     Tree *vertex(Tree *self, double x, double y, double z);
     Tree *sphere(Tree *self,
-                 double cx, double cy, double cz,
-                 double r, int nslices, int nstacks);
+                double cx, double cy, double cz,
+                double r, int nslices, int nstacks);
     Tree *circle(Tree *self, double cx, double cy, 
-                 double r);
+                double r);
     Tree *circularSector(Tree *self, double cx, double cy, 
-                     double r, double a, double b);
+                double r, double a, double b);
     Tree *roundedRectangle(Tree *self, double cx, double cy, 
-                    double w, double h, double r);
+                double w, double h, double r);
     Tree *rectangle(Tree *self, double cx, double cy, 
-                    double w, double h);
-    Tree *regularPolygon(Tree *self, double cx, double cy, double r, int n);
+                double w, double h);
+    Tree *regularPolygon(Tree *self, double cx, double cy, double r, int p);
+    Tree *regularStarPolygon(Tree *self, double cx, double cy, double r, 
+                int p, int q);
 
     Tree *texture(Tree *self, text n);
     Tree *svg(Tree *self, text t);

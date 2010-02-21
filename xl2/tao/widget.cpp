@@ -867,7 +867,10 @@ Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
     
     glBegin(mode);
     {
-        circVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);    // The center
+        if (mode == GL_TRIANGLE_FAN)
+        {
+            circVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);    // The center
+        }
 
         for (int i = 0; i < p; i++)
         {
@@ -882,7 +885,10 @@ Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
                     (1-R_r)/2, (1-R_r)/2, (1+R_r)/2, (1+R_r)/2);
         }
 
-        circVertex(cx, cy, r, 0, 1, 0, 0, 1, 1);
+        if (mode == GL_TRIANGLE_FAN)
+        {
+            circVertex(cx, cy, r, 0, 1, 0, 0, 1, 1);    // Closing the star
+        }
     }
     glEnd();
     return NULL;

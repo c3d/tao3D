@@ -124,6 +124,9 @@ public:
     Tree *fromPt(Tree *self, double pt);
     Tree *fromPx(Tree *self, double px);
 
+    Tree *textBlock(Tree *self, text content);
+
+
 public:
     // XL Runtime
     XL::SourceFile *  xlProgram;

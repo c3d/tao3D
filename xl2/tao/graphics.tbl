@@ -100,3 +100,6 @@ POSTFIX(PARM(x, real), "mm", FromMm, RTAO(fromMm(self, x)))
 POSTFIX(PARM(x, real), "inch", FromIn, RTAO(fromIn(self, x)))
 POSTFIX(PARM(x, real), "pt", FromPt, RTAO(fromPt(self, x)))
 POSTFIX(PARM(x, real), "px", FromPx, RTAO(fromPx(self, x)))
+
+
+PREFIX("text_block", PARM(content, text), TextBlock,  RTAO(textBlock(self, content)))

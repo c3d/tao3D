@@ -150,10 +150,10 @@ void Widget::draw()
     p.setBrush(Qt::NoBrush);
     const QString str1 = QString::fromStdString(caption_text);
     const QString str2(tr("Use the mouse wheel to zoom, press buttons and move mouse to rotate, double-click to flip."));
-    QFontMetrics fm(p.font());
-    p.drawText(width()/2 - fm.width(str1)/2, 20, str1);
-    p.drawText(width()/2 - fm.width(str2)/2, 20 + fm.lineSpacing(), str2);
 
+    QFontMetrics fm(p.font());
+    p.drawText(0,20, width(),fm.lineSpacing(), Qt::AlignHCenter, str1 );
+    p.drawText(0,20+fm.lineSpacing(), width(),fm.lineSpacing(), Qt::AlignHCenter, str2 );
     // Once we are done, do a garbage collection
     XL::Context::context->CollectGarbage();
 }
@@ -172,7 +172,7 @@ void Widget::mouseMoveEvent(QMouseEvent *e)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
-    draw();
+    //  draw();
 }
 
 

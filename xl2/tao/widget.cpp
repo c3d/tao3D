@@ -33,7 +33,8 @@
 #include "texture.h"
 #include "svg.h"
 #include "window.h"
-#include <GL.h>
+#include <QtOpenGL>
+#include <QFont>
 #include <iostream>
 
 
@@ -133,6 +134,8 @@ void Widget::setup(double w, double h)
     state.polygonMode = GL_POLYGON;
     state.pageWidth = 128;
     state.pageHeight = 128;
+    state.font = QFont();
+    state.paintDevice = this;
 }
 
 
@@ -141,18 +144,19 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
+    // Clear the background
+    glClearColor (1.0, 1.0, 1.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     // If there is a program, we need to run it
     if (xlProgram)
     {
-        // Clear the background
-        glClearColor (1.0, 1.0, 1.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         // Setup the initial drawing environment
         setup(width(), height());
 
 	// Run the XL program associated with this widget
 	current = this;
+
         try
         {
             xl_evaluate(xlProgram->tree.tree);
@@ -190,6 +194,7 @@ void Widget::mouseMoveEvent(QMouseEvent *e)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
+
 }
 
 
@@ -417,11 +422,15 @@ Tree *Widget::page(Tree *self, Tree *p)
     glPushMatrix();
 
     page->resize(w,h);
+
+    QPaintDevice *savedPaintDevice = state.paintDevice;
     page->begin();
     {
         // Clear the background and setup initial state
         setup(w, h);
+        state.paintDevice = page->render_fbo;
         result = xl_evaluate(p);
+        state.paintDevice = savedPaintDevice;
     }
     page->end();
 
@@ -915,6 +924,137 @@ Tree *Widget::fromPx(Tree *self, double px)
 // ----------------------------------------------------------------------------
 {
     RREAL(px);
+}
+
+
+Tree *Widget::font(Tree *self, text description)
+// ----------------------------------------------------------------------------
+//   Select a font family
+// ----------------------------------------------------------------------------
+{
+    state.font.fromString((QString::fromStdString(description)));
+    return NULL;
+}
+
+
+Tree *Widget::fontSize(Tree *self, double size)
+// ----------------------------------------------------------------------------
+//   Select a font size
+// ----------------------------------------------------------------------------
+{
+    state.font.setPointSizeF(size);
+    return NULL;
+}
+
+
+Tree *Widget::fontItalic(Tree *self, bool italic)
+// ----------------------------------------------------------------------------
+//   Select whether this is italic or not
+// ----------------------------------------------------------------------------
+{
+    state.font.setItalic(italic);
+    return NULL;
+}
+
+
+Tree *Widget::fontBold(Tree *self, bool bold)
+// ----------------------------------------------------------------------------
+//   Select whether the font is bold or not
+// ----------------------------------------------------------------------------
+{
+    state.font.setBold(bold);
+    return NULL;
+}
+
+
+Tree *Widget::fontUnderline(Tree *self, bool underline)
+// ----------------------------------------------------------------------------
+//    Select whether we underline a font
+// ----------------------------------------------------------------------------
+{
+    state.font.setUnderline(underline);
+    return NULL;
+}
+
+
+Tree *Widget::fontOverline(Tree *self, bool overline)
+// ----------------------------------------------------------------------------
+//    Select whether we draw an overline 
+// ----------------------------------------------------------------------------
+{
+    state.font.setOverline(overline);
+    return NULL;
+}
+
+
+Tree *Widget::fontStrikeout(Tree *self, bool strikeout)
+// ----------------------------------------------------------------------------
+//    Select whether we strikeout a font
+// ----------------------------------------------------------------------------
+{
+    state.font.setStrikeOut(strikeout);
+    return NULL;
+}
+
+
+Tree *Widget::textLine(Tree *self, double x, double y, double z, text t)
+// ----------------------------------------------------------------------------
+//    Render text in 3D
+// ----------------------------------------------------------------------------
+{
+    renderText(x,y,z, QString::fromStdString(t), state.font);
+    return NULL;
+}
+
+
+Tree *Widget::textBlock(Tree *self, text content)
+// ----------------------------------------------------------------------------
+//   Insert a block of text
+// ----------------------------------------------------------------------------
+{
+    QTextLayout textLayout(QString::fromStdString(content), state.font);
+    qreal w = state.paintDevice->width(), h = state.paintDevice->height();
+    qreal margin = 10;
+    qreal radius = qMin(w/2, h/2) - margin;
+    QFontMetrics fm(state.font);
+
+    qreal lineHeight = fm.height();
+    qreal y = 0;
+
+    textLayout.beginLayout();
+
+    while (1)
+    {
+        // Create a new line
+        QTextLine line = textLayout.createLine();
+        if (!line.isValid())
+            break;
+
+        qreal x1 = qMax(0.0, pow(pow(radius,2)-pow(radius-y,2), 0.5));
+        qreal x2 = qMax(0.0, pow(pow(radius,2)-pow(radius-(y+lineHeight),2), 0.5));
+        qreal x = qMax(x1, x2) + margin;
+        qreal lineWidth = (w - margin) - x;
+
+        line.setLineWidth(lineWidth);
+        line.setPosition(QPointF(x, margin+y));
+        y += line.height();
+    }
+
+    textLayout.endLayout();
+
+    QPainter painter(state.paintDevice);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.fillRect(rect(), Qt::white);
+    painter.setBrush(QBrush(Qt::black));
+    painter.setPen(QPen(Qt::black));
+    textLayout.draw(&painter, QPoint(0,0));
+
+    painter.setBrush(QBrush(QColor("#a6ce39")));
+    painter.setPen(QPen(Qt::black));
+    painter.drawEllipse(QRectF(-radius, margin, 2*radius, 2*radius));
+    painter.end();
+
+    return NULL;
 }
 
 TAO_END

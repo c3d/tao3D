@@ -1,7 +1,7 @@
 texture "earth.bmp"
 circle -200,-100,70
 
-pagesize 800,600
+page_size 800,600
 page
     load "rotating-logo.ddd"
     color 1,0,0,1

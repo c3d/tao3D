@@ -1,3 +1,4 @@
+machiné -> rounded_rectangle 400,300,160,120,40
 
 color 0,1,0,1
 texture "earth.bmp"
@@ -6,7 +7,8 @@ circle -400,300, 80
 rectangle -200,300,160,160
 rectangle 0,300,160,120
 circular_sector 200,300,80,270,180
-rounded_rectangle 400,300,160,120,40
+//rounded_rectangle 400,300,160,120,40
+machiné
 
 regular_polygon -400,100,80,3
 regular_polygon -200,100,80,4

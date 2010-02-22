@@ -124,6 +124,15 @@ public:
     Tree *fromPt(Tree *self, double pt);
     Tree *fromPx(Tree *self, double px);
 
+    Tree *font(Tree *self, text family);
+    Tree *fontSize(Tree *self, double size);
+    Tree *fontItalic(Tree *self, bool=true);
+    Tree *fontBold(Tree *self, bool=true);
+    Tree *fontUnderline(Tree *self, bool=true);
+    Tree *fontOverline(Tree *self, bool=true);
+    Tree *fontStrikeout(Tree *self, bool=true);
+
+    Tree *textLine(Tree *self, double x, double y, double z, text content);
     Tree *textBlock(Tree *self, text content);
 
 
@@ -138,8 +147,10 @@ public:
     //    State that we need to save
     // ------------------------------------------------------------------------
     {
-        GLuint  polygonMode;
-        GLuint  pageWidth, pageHeight;
+        GLuint         polygonMode;
+        GLuint         pageWidth, pageHeight;
+        QFont          font;
+        QPaintDevice * paintDevice;
     } state;
 };
 

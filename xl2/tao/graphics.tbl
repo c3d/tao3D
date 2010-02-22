@@ -48,7 +48,7 @@ PREFIX("scale",
         RTAO(scale(self, x, y, z)))
 
 PREFIX("locally", PARM(t, tree), Locally, RTAO(locally(self, &t)))
-PREFIX("pagesize", PARM(w, integer) PARM(h, integer), PageSize, RTAO(pagesize(self, w,h)))
+PREFIX("page_size", PARM(w, integer) PARM(h, integer), PageSize, RTAO(pagesize(self, w,h)))
 PREFIX("page", PARM(p, tree), Page, RTAO(page(self, &p)))
 
 PREFIX("refresh", PARM(delay, real), Refresh,
@@ -102,4 +102,14 @@ POSTFIX(PARM(x, real), "pt", FromPt, RTAO(fromPt(self, x)))
 POSTFIX(PARM(x, real), "px", FromPx, RTAO(fromPx(self, x)))
 
 
+PREFIX("font", PARM(f, text), Font, RTAO(font(self, f)))
+PREFIX("font_size", PARM(s, real), FontSize, RTAO(fontSize(self, s)))
+PREFIX("italic",, FontItalic, RTAO(fontItalic(self)))
+PREFIX("bold",, FontBold, RTAO(fontBold(self)))
+PREFIX("underline",, FontUnderline, RTAO(fontUnderline(self)))
+PREFIX("overline",, FontOverline, RTAO(fontOverline(self)))
+PREFIX("strikeout",, FontStrikeout, RTAO(fontStrikeout(self)))
+
+PREFIX("text_line", PARM(x,real) PARM(y,real) PARM(z, real) PARM(t, text),
+       TextLine, RTAO(textLine(self, x,y,z,t)))
 PREFIX("text_block", PARM(content, text), TextBlock,  RTAO(textBlock(self, content)))

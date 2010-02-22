@@ -599,6 +599,16 @@ Tree *Widget::sphere(Tree *self,
 }
 
 
+static inline void texVertex(double x, double y, double tx, double ty)
+// ----------------------------------------------------------------------------
+//   A vertex, including texture coordinate
+// ----------------------------------------------------------------------------
+{
+    glTexCoord2f(tx, ty);
+    glVertex2f(x, y);
+}
+
+
 static inline void circVertex(double cx, double cy, double r,
                               double x, double y,
                               double tx0, double ty0, double tx1, double ty1)
@@ -702,7 +712,7 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
 }
 
 
-Tree *Widget::circsector(Tree *self,
+Tree *Widget::circularSector(Tree *self,
                          double cx, double cy, double r, 
                          double a, double b)
 // ----------------------------------------------------------------------------
@@ -735,7 +745,7 @@ Tree *Widget::circsector(Tree *self,
 
 
 
-Tree *Widget::roundrect(Tree *self,
+Tree *Widget::roundedRectangle(Tree *self,
                         double cx, double cy, 
                         double w, double h, double r)
 // ----------------------------------------------------------------------------
@@ -743,60 +753,56 @@ Tree *Widget::roundrect(Tree *self,
 // ----------------------------------------------------------------------------
 {
     if (r <= 0) return rectangle(self, cx, cy, w, h);
-    if (r > w / 2) r = w / 2;
-    if (r > h / 2) r = h / 2;
+    if (r > w/2) r = w/2;
+    if (r > h/2) r = h/2;
 
-    double x0  = cx - w / 2.0;
-    double x0r = x0 + r;
-    double x1  = cx + w / 2.0;
-    double x1r = x1 - r;
+    double x0  = cx-w/2;
+    double x0r = x0+r;
+    double x1  = cx+w/2;
+    double x1r = x1-r;
 
-    double y0  = cy - h / 2.0;
-    double y0r = y0 + r;
-    double y1  = cy + h / 2.0;
-    double y1r = y1 - r;
+    double y0  = cy-h/2;
+    double y0r = y0+r;
+    double y1  = cy+h/2;
+    double y1r = y1-r;
 
     double tx0  = 0;
-    double tx0r = 0 + r / w;
+    double tx0r = 0+r/w;
+    double tx0d = 0+2*r/w;
     double tx1  = 1;
-    double tx1r = 1 - r / w;
+    double tx1r = 1-r/w;
+    double tx1d = 1-2*r/w;
 
     double ty0  = 0;
-    double ty0r = 0 + r / h;
+    double ty0r = 0+r/h;
+    double ty0d = 0+2*r/h;
     double ty1  = 1;
-    double ty1r = 1 - r / h;
+    double ty1r = 1-r/h;
+    double ty1d = 1-2*r/h;
 
     glBegin(state.polygonMode);
+    {
+        texVertex(x1, y1r, tx1, ty1r);
 
-    glTexCoord2f(tx1, ty1r);
-    glVertex2f(x1, y1r);
+        circSectorN(x1r, y1r, r, tx1d, ty1d, tx1, ty1, 0, 1);
 
-    circSectorN(x1r, y1r, r, tx1r, ty1r, tx1, ty1, 0, 1);
-
-    glTexCoord2f(tx1r, ty1);
-    glVertex2f(x1r, y1);
-    glTexCoord2f(tx0r, ty1);
-    glVertex2f(x0r, y1);
+        texVertex(x1r, y1, tx1r, ty1);
+        texVertex(x0r, y1, tx0r, ty1);
     
-    circSectorN(x0r, y1r, r, tx0, ty1r, tx0r, ty1, 1, 1);
+        circSectorN(x0r, y1r, r, tx0, ty1d, tx0d, ty1, 1, 1);
 
-    glTexCoord2f(tx0, ty1r);
-    glVertex2f(x0, y1r);
-    glTexCoord2f(tx0, ty0r);
-    glVertex2f(x0, y0r);
+        texVertex(x0, y1r, tx0, ty1r);
+        texVertex(x0, y0r, tx0, ty0r);
     
-    circSectorN(x0r, y0r, r, tx0, ty0, tx0r, ty0r, 2, 1);
+        circSectorN(x0r, y0r, r, tx0, ty0, tx0d, ty0d, 2, 1);
 
-    glTexCoord2f(tx0r, ty0);
-    glVertex2f(x0r, y0);
-    glTexCoord2f(tx1r, ty0);
-    glVertex2f(x1r, y0);
+        texVertex(x0r, y0, tx0r, ty0);
+        texVertex(x1r, y0, tx1r, ty0);
     
-    circSectorN(x1r, y0r, r, tx1r, ty0, tx1, ty0r, 3, 1);
+        circSectorN(x1r, y0r, r, tx1d, ty0, tx1, ty0d, 3, 1);
    
-    glTexCoord2f(tx1, ty0r);
-    glVertex2f(x1, y0r);
-
+        texVertex(x1, y0r, tx1, ty0r);
+    }
     glEnd();
 
     return NULL;
@@ -810,10 +816,79 @@ Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
 {
     glBegin(state.polygonMode);
     {
-        glTexCoord2f(0, 0);     glVertex2f(cx-w/2, cy-h/2);
-        glTexCoord2f(1, 0);     glVertex2f(cx+w/2, cy-h/2);
-        glTexCoord2f(1, 1);     glVertex2f(cx+w/2, cy+h/2);
-        glTexCoord2f(0, 1);     glVertex2f(cx-w/2, cy+h/2);
+        texVertex(cx-w/2, cy-h/2, 0, 0);
+        texVertex(cx+w/2, cy-h/2, 1, 0);
+        texVertex(cx+w/2, cy+h/2, 1, 1);
+        texVertex(cx-w/2, cy+h/2, 0, 1);
+    }
+    glEnd();
+    return NULL;
+}
+
+
+Tree *Widget::regularPolygon(Tree *self, double cx, double cy, double r, int p)
+// ----------------------------------------------------------------------------
+//     GL regular p-side polygon {p} centered around (cx,cy), radius r
+// ----------------------------------------------------------------------------
+{
+    if (p < 2) return NULL;
+
+    glBegin(state.polygonMode);
+    {
+        for (int i = 0; i < p; i++)
+        {
+            circVertex(cx, cy, r, 
+                    cos( i * 2*M_PI/p + M_PI_2 + (p+1)%2*M_PI/p), 
+                    sin( i * 2*M_PI/p + M_PI_2 + (p+1)%2*M_PI/p),
+                    0, 0, 1, 1);
+        }
+    }
+    glEnd();
+    return NULL;
+}
+
+
+Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r, 
+                        int p, int q)
+// ----------------------------------------------------------------------------
+//     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
+// ----------------------------------------------------------------------------
+{
+    if (p < 2 || q < 1 || q > (p-1)/2) return NULL;
+
+    double R_r = cos( q*M_PI/p ) / cos( (q-1)*M_PI/p);
+    double R = r * R_r;
+
+    GLuint mode = state.polygonMode;
+    if (mode == GL_POLYGON) 
+    {
+        mode = GL_TRIANGLE_FAN; // GL_POLYGON does not work here
+    }
+    
+    glBegin(mode);
+    {
+        if (mode == GL_TRIANGLE_FAN)
+        {
+            circVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);    // The center
+        }
+
+        for (int i = 0; i < p; i++)
+        {
+            circVertex(cx, cy, r, 
+                    cos( i * 2*M_PI/p + M_PI_2), 
+                    sin( i * 2*M_PI/p + M_PI_2),
+                    0, 0, 1, 1);
+
+            circVertex(cx, cy, R, 
+                    cos( i * 2*M_PI/p + M_PI_2 + M_PI/p), 
+                    sin( i * 2*M_PI/p + M_PI_2 + M_PI/p),
+                    (1-R_r)/2, (1-R_r)/2, (1+R_r)/2, (1+R_r)/2);
+        }
+
+        if (mode == GL_TRIANGLE_FAN)
+        {
+            circVertex(cx, cy, r, 0, 1, 0, 0, 1, 1);    // Closing the star
+        }
     }
     glEnd();
     return NULL;

@@ -1,21 +1,56 @@
-caption "Hello World, it is " & text(hours) & ":" & text(minutes) & ":" & text(seconds) & "..."
+status "Hello World, it is " & text(hours) & ":" & text(minutes) & ":" & text(seconds) & "..."
 
 glow(Dur, Amp)    -> (1.0 + sin(time / Dur * pi)) * Amp * 0.5
 unglow(Dur, Amp)  -> 1.0 - glow(Dur, Amp)
 
-
-translatez 0.0 - 100.0 - glow(8.0, 250.0)
+translatez glow(8.0, 550)-450
 locally
-    color unglow(0.5, 0.3), unglow(2.0, 0.4), unglow(1.21, 0.3), glow(3.0, 1.0)
-    rotatex time *7.6
-    rotatey time *27.6
-    svg "bubbles.svg"
+    texture "earth.bmp"
+    color 1,1,1,1
+    rotatey 30*time
+    sphere 0,0,0,200
 
-rotatey time * 65.5
-translate 0.0, 0.0, 450.0
-rotatex time
-rotatey time * 28.3
-rotatez time * 62.7
-svg "logo-v3.svg"
+satellite F, R, S ->
+    rotatey -F*65*time
+    translate 0, 0, R
+    rotatex F*2.5*time
+    rotatey F*3.2*time
+    rotatez F*4.1*time
 
-refresh 1.0
+    texture ""
+    color 80%, 80%, 80%, glow(3, 0.5) + 0.5
+    sphere 0, 0, 0, 28*S
+    svg "logo-v3.svg"
+    color 1,1,1,1
+    sphere 0, 0, 0, 30*S
+
+truc 0 -> 0
+
+truc N ->
+    locally
+        satellite 100%, 450, 100%
+        locally
+            satellite 250%, 80, 30%
+        locally    
+            satellite 420%, 55, 20%
+
+    locally
+        rotatez 5
+        satellite 120%, 350, 70%
+
+    locally
+        rotatez 8
+        satellite 40%, 600, 120%
+
+    locally
+        rotatez 4
+        satellite 82%, 280, 47%
+
+    locally
+        rotatex 5
+        rotatey 45
+        truc N-1
+
+truc 1
+
+refresh 0.04

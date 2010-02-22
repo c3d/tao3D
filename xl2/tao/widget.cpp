@@ -25,14 +25,15 @@
 #include <math.h>
 #include "widget.h"
 #include "tao.h"
-#include "page.h"
 #include "main.h"
 #include "runtime.h"
 #include "opcodes.h"
 #include "gl_keepers.h"
-#include <GL.h>
-
-
+#include "page.h"
+#include "texture.h"
+#include "svg.h"
+#include "window.h"
+#include <QtOpenGL>
 #include <iostream>
 
 
@@ -44,17 +45,18 @@ TAO_BEGIN
 //
 // ============================================================================
 
-Widget::Widget(QWidget *parent, XL::SourceFile *sf)
+Widget::Widget(Window *parent, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf),
-      caption_text("A simple OpenGL framebuffer object example."),
-      polygonMode(GL_POLYGON)
+      xlProgram(sf), timer(this)
 {
     // Make this the current context for OpenGL
     makeCurrent();
+
+    // Prepare the timer
+    connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
 }
 
 
@@ -72,14 +74,66 @@ Widget::~Widget()
 //
 // ============================================================================
 
-void Widget::paintEvent(QPaintEvent *)
+void Widget::initializeGL()
 // ----------------------------------------------------------------------------
-//    Repaint the widget
+//    Called once per rendering to setup the GL environment
+// ----------------------------------------------------------------------------
+{
+}
+
+
+void Widget::resizeGL(int width, int height)
+// ----------------------------------------------------------------------------
+//   Called when the size changes
+// ----------------------------------------------------------------------------
+{
+}
+
+
+void Widget::paintGL()
+// ----------------------------------------------------------------------------
+//    Repaint the contents of the window
 // ----------------------------------------------------------------------------
 {
     draw();
+    glShowErrors();
 }
 
+
+void Widget::setup(double w, double h)
+// ----------------------------------------------------------------------------
+//   Setup an initial environment for drawing
+// ----------------------------------------------------------------------------
+{
+    // Setup the projection matrix
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    double zNear = 1000.0, zFar = 40000.0;
+    double eyeX = 0.0, eyeY = 0.0, eyeZ = 1000.0;
+    double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
+    double upX = 0.0, upY = 1.0, upZ = 0.0;
+    glFrustum (-w/2, w/2, -h/2, h/2, zNear, zFar);
+    gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+
+    // Setup the model view matrix so that 1.0 unit = 1px
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glViewport(0, 0, w, h);
+    glTranslatef(0.0, 0.0, -zNear);
+    glScalef(2.0, 2.0, 2.0);
+
+    // Setup other
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthFunc(GL_LEQUAL);
+    glEnable(GL_DEPTH_TEST);
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+    // Initial state
+    state.polygonMode = GL_POLYGON;
+    state.pageWidth = 128;
+    state.pageHeight = 128;
+}
 
 
 void Widget::draw()
@@ -87,75 +141,40 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
-    QPainter p(this); // used for text overlay
-
-    // Run the XL program associated with this widget
+    // If there is a program, we need to run it
     if (xlProgram)
     {
-	// Save the GL state set for QPainter
-	GLStateKeeper save;
+        // Clear the background
+        glClearColor (1.0, 1.0, 1.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// Clear the background
-	glClearColor (1.0, 1.0, 1.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Setup the projection matrix
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	double w = width(), h = height();
-	double zNear = 1000.0, zFar = 40000.0;
-	double eyeX = 0.0, eyeY = 0.0, eyeZ = 1000.0;
-	double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
-	double upX = 0.0, upY = 1.0, upZ = 0.0;
-	glFrustum (-w/2, w/2, -h/2, h/2, zNear, zFar);
-	gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
-
-	// Setup the model view matrix so that 1.0 unit = 1px
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glViewport(0, 0, width(), height());
-	glTranslatef(0.0, 0.0, -zNear);
-	glScalef(2.0, 2.0, 2.0);
-
-	// Setup other
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDepthFunc(GL_LEQUAL);
-	glEnable(GL_DEPTH_TEST);
-	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        // Setup the initial drawing environment
+        setup(width(), height());
 
 	// Run the XL program associated with this widget
 	current = this;
-	if (xlProgram)
-	{
-	    try
-	    {
-		xl_evaluate(xlProgram->tree.tree);
-	    }
-	    catch (XL::Error &e)
-	    {
-		xlProgram = NULL;
-		QMessageBox::warning(this, tr("Runtime error"),
-				     tr("Error executing the program:\n%1")
-				     .arg(QString::fromStdString(e.Message())));
-	    }
-	}
+
+        try
+        {
+            xl_evaluate(xlProgram->tree.tree);
+        }
+        catch (XL::Error &e)
+        {
+            xlProgram = NULL;
+            QMessageBox::warning(this, tr("Runtime error"),
+                                 tr("Error executing the program:\n%1")
+                                 .arg(QString::fromStdString(e.Message())));
+        }
+        catch(...)
+        {
+            xlProgram = NULL;
+            QMessageBox::warning(this, tr("Runtime error"),
+                                 tr("Unknown error executing the program"));
+        }
+
+        // Once we are done, do a garbage collection
+        XL::Context::context->CollectGarbage();
     }
-
-    // Draw the overlayed text using QPainter
-    p.setPen(QColor(197, 197, 197, 157));
-    p.setBrush(QColor(197, 197, 197, 127));
-    p.drawRect(QRect(0, 0, width(), 50));
-    p.setPen(Qt::black);
-    p.setBrush(Qt::NoBrush);
-    const QString str1 = QString::fromStdString(caption_text);
-    const QString str2(tr("Use the mouse wheel to zoom, press buttons and move mouse to rotate, double-click to flip."));
-
-    QFontMetrics fm(p.font());
-    p.drawText(0,20, width(),fm.lineSpacing(), Qt::AlignHCenter, str1 );
-    p.drawText(0,20+fm.lineSpacing(), width(),fm.lineSpacing(), Qt::AlignHCenter, str2 );
-    // Once we are done, do a garbage collection
-    XL::Context::context->CollectGarbage();
 }
 
 
@@ -172,7 +191,7 @@ void Widget::mouseMoveEvent(QMouseEvent *e)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
-    //  draw();
+
 }
 
 
@@ -212,12 +231,13 @@ Widget *Widget::current = NULL;
 typedef XL::Tree Tree;
 
 
-Tree *Widget::caption(Tree *self, text caption)
+Tree *Widget::status(Tree *self, text caption)
 // ----------------------------------------------------------------------------
-//   Set the caption in the title
+//   Set the status line of the window
 // ----------------------------------------------------------------------------
 {
-    caption_text = caption;
+    Window *window = (Window *) parentWidget();
+    window->statusBar()->showMessage(QString::fromStdString(caption));
     return NULL;
 }
 
@@ -347,7 +367,8 @@ Tree *Widget::refresh(Tree *self, double delay)
 //    Refresh after the given number of seconds
 // ----------------------------------------------------------------------------
 {
-    QTimer::singleShot(1000 * delay, this, SLOT(draw()));
+    timer.setSingleShot(true);
+    timer.start(1000 * delay);
     return NULL;
 }
 
@@ -357,8 +378,63 @@ Tree *Widget::locally(Tree *self, Tree *child)
 //   Evaluate the child tree while preserving the OpenGL context
 // ----------------------------------------------------------------------------
 {
-    GLStateKeeper save;
+    GLAndWidgetKeeper save(this);
     Tree *result = xl_evaluate(child);
+    return result;
+}
+
+
+Tree *Widget::pagesize(Tree *self, uint w, uint h)
+// ----------------------------------------------------------------------------
+//    Set the bit size for the page textures
+// ----------------------------------------------------------------------------
+{
+    // Little practical point in ever creating textures bigger than viewport
+    if (w > width())    w = width();
+    if (h > height())   h = height();
+    state.pageWidth = w;
+    state.pageHeight = h;
+    return NULL;
+}
+
+
+Tree *Widget::page(Tree *self, Tree *p)
+// ----------------------------------------------------------------------------
+//  Evaluate the tree in a page with the given size
+// ----------------------------------------------------------------------------
+{
+    uint w = state.pageWidth, h = state.pageHeight;
+    PageInfo *page = self->GetInfo<PageInfo>();
+    if (!page)
+    {
+        page = new PageInfo(w,h);
+        self->SetInfo<PageInfo> (page);
+    }
+    Tree *result = NULL;
+
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+
+    page->resize(w,h);
+    page->begin();
+    {
+        // Clear the background and setup initial state
+        setup(w, h);
+        result = xl_evaluate(p);
+    }
+    page->end();
+
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glPopAttrib();
+
+    page->bind();
+
     return result;
 }
 
@@ -382,7 +458,7 @@ Tree *Widget::filled(Tree *self)
 //   Select filled polygon mode
 // ----------------------------------------------------------------------------
 {
-    polygonMode = GL_POLYGON;
+    state.polygonMode = GL_POLYGON;
     return NULL;
 }
 
@@ -392,7 +468,17 @@ Tree *Widget::hollow(Tree *self)
 //   Select hollow polygon mode
 // ----------------------------------------------------------------------------
 {
-    polygonMode = GL_LINE_STRIP;
+    state.polygonMode = GL_LINE_LOOP;
+    return NULL;
+}
+
+
+Tree *Widget::disconnected(Tree *self)
+// ----------------------------------------------------------------------------
+//   Select a polygon mode that creates disconnected lines
+// ----------------------------------------------------------------------------
+{
+    state.polygonMode = GL_LINE_STRIP;
     return NULL;
 }
 
@@ -422,8 +508,8 @@ Tree *Widget::polygon(Tree *self, Tree *child)
 //   Evaluate the child tree within a polygon
 // ----------------------------------------------------------------------------
 {
-    GLStateKeeper save;
-    glBegin(polygonMode);
+    GLAndWidgetKeeper save(this);
+    glBegin(state.polygonMode);
     xl_evaluate(child);
     glEnd();
     return NULL;
@@ -515,123 +601,104 @@ Tree *Widget::sphere(Tree *self,
 }
 
 
+static inline void texVertex(double x, double y, double tx, double ty)
+// ----------------------------------------------------------------------------
+//   A vertex, including texture coordinate
+// ----------------------------------------------------------------------------
+{
+    glTexCoord2f(tx, ty);
+    glVertex2f(x, y);
+}
+
+
 static inline void circVertex(double cx, double cy, double r,
-                                double x, double y)
+                              double x, double y,
+                              double tx0, double ty0, double tx1, double ty1)
 // ----------------------------------------------------------------------------
 //   A circular vertex, including texture coordinate
 // ----------------------------------------------------------------------------
 //   x range between -1 and 1, y between -1 and 1
 //   cx and cy are the center of the circle, r its radius
 {
-    glTexCoord2f((x + 1.0) / 2.0, (y + 1.0) / 2.0);
+    glTexCoord2f(tx0 + ((x + 1.0) / 2.0 * (tx1 - tx0)),
+                 ty0 + ((y + 1.0) / 2.0 * (ty1 - ty0)));
     glVertex2f(cx + r * x, cy + r * y);
 }
 
 
-static inline void circTriangle1(double cx, double cy, double r,
-                                 double x1, double y1,
-                                 double x2, double y2)
+static inline void circSectorN(double cx, double cy, double r,
+                               double tx0, double ty0, double tx1, double ty1,
+                               int sq, int nq)
 // ----------------------------------------------------------------------------
-//   Draw 1 circular triangle
-// ----------------------------------------------------------------------------
-{
-    // Triangles need to be drawn counter-clockwise
-    circVertex(cx, cy, r, 0, 0);
-    circVertex(cx, cy, r, x1, y1);
-    circVertex(cx, cy, r, x2, y2);
-}
-
-
-static inline void circTriangleN(double cx, double cy, double r,
-                           double x1, double y1,
-                           double x2, double y2, int sa, int n)
-// ----------------------------------------------------------------------------
-//   Draw n circular triangles (n from 1 to 8, taking into account symmetries)
-// ----------------------------------------------------------------------------
-{
-    // Triangles need to be drawn counter-clockwise
-    for (int i = 0; i < n; i++)
-    { 
-        switch ((sa + i) % 8)
-        {
-            case 7: 
-                circTriangle1(cx, cy, r,  x2, -y2,  x1, -y1);
-                break;
-            case 6: 
-                circTriangle1(cx, cy, r,  y1, -x1,  y2, -x2);
-                break;
-            case 5: 
-                circTriangle1(cx, cy, r, -y2, -x2, -y1, -x1);
-                break;
-            case 4: 
-                circTriangle1(cx, cy, r, -x1, -y1, -x2, -y2);
-                break;
-            case 3: 
-                circTriangle1(cx, cy, r, -x2,  y2, -x1,  y1);
-                break;
-            case 2: 
-                circTriangle1(cx, cy, r, -y1,  x1, -y2,  x2);
-                break;
-            case 1: 
-                circTriangle1(cx, cy, r,  y2,  x2,  y1,  x1);
-                break;
-            case 0: 
-                circTriangle1(cx, cy, r,  x1,  y1,  x2,  y2);
-                break;
-        }
-    }
-}
-
-
-static inline void circSectorN(double cx, double cy, double r, int sa, int n)
-// ----------------------------------------------------------------------------
-//     Draw a circular sector of N/8th of a circle
+//     Draw a circular sector of N/4th of a circle
 // ----------------------------------------------------------------------------
 //   We use a reduced Bresenham-like algorithm for circles (midpoint circle)
 //
-//   For now the sector is limited to multiples of 1/8th of circle. For
+//   For now the sector is limited to multiples of 1/4th of circle. For
 //   example, an angle of 280 will draw 3/4 of a circle.
 {
     // The two first values configure how precise the circle is
-    int step = 10;              // Triangles generated every <step> points
-    double grid = 1 / 500.0;    // Tolerance for points on the circle 
+    int step = 10;                // Triangles generated every <step> points
+    double grid = 1.0 / 500.0;    // Tolerance for points on the circle 
+    double error, x, y, s;
 
-    double end = M_SQRT2 / 2;   // sqrt(1/2) for a perfect finish
-    double error = -1.0;
-    double x1 = 1.0, x2 = 1.0;
-    double y1 = 0, y2 = 0;
-    int i = 0;
 
-    while (x1 > y1)
+    for (int q = 0; q < nq; q++)
+    { 
+    error = -1.0;
+    x = 1.0;
+    y = 0;
+    s = step;
+
+    while (x > 0)
     {
-        error += y2;
-        y2 += grid;
-        error += y2;
-
+        if (++s >= step)
+        {
+        s = 0;
+        switch ((sq + q) % 4)
+        {
+            case 3: 
+                circVertex(cx, cy, r,  y, -x, tx0, ty0, tx1, ty1);
+                break;
+            case 2: 
+                circVertex(cx, cy, r, -x, -y, tx0, ty0, tx1, ty1);
+                break;
+            case 1: 
+                circVertex(cx, cy, r, -y,  x, tx0, ty0, tx1, ty1);
+                break;
+            case 0: 
+                circVertex(cx, cy, r,  x,  y, tx0, ty0, tx1, ty1);
+                break;
+        }
+        }
         if (error >= 0)
         {
-            x2 -= grid;
-            error -= x2;
-            error -= x2;
+            x -= grid;
+            error -= x + x;
         }
-
-        if (x2 <= y2)
+        else 
         {
-            x2 = end;
-            y2 = end;
-            i = step;
-        }
-
-        if (++i >= step)
-        {
-            // drawing n triangles at a time
-            circTriangleN(cx, cy, r, x1, y1, x2, y2, sa, n);
-            i = 0;
-            x1 = x2;
-            y1 = y2;
+            y += grid;
+            error += y + y;
         }
     }
-}
+    }
+    switch ((sq + nq) % 4)
+    {
+        case 3: 
+            circVertex(cx, cy, r,  0, -1, tx0, ty0, tx1, ty1);
+            break;
+        case 2: 
+            circVertex(cx, cy, r, -1,  0, tx0, ty0, tx1, ty1);
+            break;
+        case 1: 
+            circVertex(cx, cy, r,  0,  1, tx0, ty0, tx1, ty1);
+            break;
+        case 0: 
+            circVertex(cx, cy, r,  1,  0, tx0, ty0, tx1, ty1);
+            break;
+    }
+ }
 
 
 Tree *Widget::circle(Tree *self, double cx, double cy, double r)
@@ -639,15 +706,16 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
 //     GL circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    glBegin(polygonMode);
-    circSectorN(cx, cy, r, 0, 8);
+    glBegin(state.polygonMode);
+    circSectorN(cx, cy, r, 0, 0, 1, 1, 0, 4);
     glEnd();
 
     return NULL;
 }
 
 
-Tree *Widget::circsector(Tree *self, double cx, double cy, double r, 
+Tree *Widget::circularSector(Tree *self,
+                         double cx, double cy, double r, 
                          double a, double b)
 // ----------------------------------------------------------------------------
 //     GL circular sector centered around (cx,cy), radius r and two angles a, b
@@ -657,20 +725,21 @@ Tree *Widget::circsector(Tree *self, double cx, double cy, double r,
     {
         b += 360;
     }
-    int n = int((b-a) / 45);    // Number of 1/8th of circle sectors to draw
-    if (n > 8)
+    int nq = int((b-a) / 90);                   // Number of quadrants to draw
+    if (nq > 4)
     {
-        n = 8;
+        nq = 4;
     }
 
     while (a < 0)
     {
         a += 360;
     }
-    int sa = (int(a / 45) % 8); // Starting sector
+    int sq = (int(a / 90) % 4);                 // Starting quadrant
 
-    glBegin(polygonMode);
-    circSectorN(cx, cy, r, sa, n);
+    glBegin(state.polygonMode);
+    circVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);    // The center
+    circSectorN(cx, cy, r, 0, 0, 1, 1, sq, nq);
     glEnd();
 
     return NULL;
@@ -678,63 +747,152 @@ Tree *Widget::circsector(Tree *self, double cx, double cy, double r,
 
 
 
-Tree *Widget::roundrect(Tree *self, double cx, double cy, 
+Tree *Widget::roundedRectangle(Tree *self,
+                        double cx, double cy, 
                         double w, double h, double r)
 // ----------------------------------------------------------------------------
-//     GL rounded rectangle centered around (cx,cy), width w, height h and 
-//     radius r for the corners
+//     GL rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
 {
     if (r <= 0) return rectangle(self, cx, cy, w, h);
-    if (r > w / 2) r = w / 2;
-    if (r > h / 2) r = h / 2;
+    if (r > w/2) r = w/2;
+    if (r > h/2) r = h/2;
 
-    glBegin(polygonMode);
+    double x0  = cx-w/2;
+    double x0r = x0+r;
+    double x1  = cx+w/2;
+    double x1r = x1-r;
 
-    circSectorN(cx + w / 2.0 - r, cy + h / 2.0 - r, r, 0, 2);
+    double y0  = cy-h/2;
+    double y0r = y0+r;
+    double y1  = cy+h/2;
+    double y1r = y1-r;
 
-    glVertex2f(cx - w / 2.0 + r, cy + h / 2.0 - r);
-    glVertex2f(cx + w / 2.0 - r, cy + h / 2.0 - r);
-    glVertex2f(cx + w / 2.0 - r, cy + h / 2.0);
-    
-    glVertex2f(cx + w / 2.0 - r, cy + h / 2.0);
-    glVertex2f(cx - w / 2.0 + r, cy + h / 2.0);
-    glVertex2f(cx - w / 2.0 + r, cy + h / 2.0 - r);
-    
-    circSectorN(cx - w / 2.0 + r, cy + h / 2.0 - r, r, 2, 2);
+    double tx0  = 0;
+    double tx0r = 0+r/w;
+    double tx0d = 0+2*r/w;
+    double tx1  = 1;
+    double tx1r = 1-r/w;
+    double tx1d = 1-2*r/w;
 
-    glVertex2f(cx - w / 2.0, cy - h / 2.0 + r);
-    glVertex2f(cx + w / 2.0, cy - h / 2.0 + r);
-    glVertex2f(cx + w / 2.0, cy + h / 2.0 - r);
-    
-    glVertex2f(cx + w / 2.0, cy + h / 2.0 - r);
-    glVertex2f(cx - w / 2.0, cy + h / 2.0 - r);
-    glVertex2f(cx - w / 2.0, cy - h / 2.0 + r);
-    
-    circSectorN(cx - w / 2.0 + r, cy - h / 2.0 + r, r, 4, 2);
+    double ty0  = 0;
+    double ty0r = 0+r/h;
+    double ty0d = 0+2*r/h;
+    double ty1  = 1;
+    double ty1r = 1-r/h;
+    double ty1d = 1-2*r/h;
 
-    glVertex2f(cx - w / 2.0 + r, cy - h / 2.0);
-    glVertex2f(cx + w / 2.0 - r, cy - h / 2.0);
-    glVertex2f(cx + w / 2.0 - r, cy - h / 2.0 + r);
+    glBegin(state.polygonMode);
+    {
+        texVertex(x1, y1r, tx1, ty1r);
+
+        circSectorN(x1r, y1r, r, tx1d, ty1d, tx1, ty1, 0, 1);
+
+        texVertex(x1r, y1, tx1r, ty1);
+        texVertex(x0r, y1, tx0r, ty1);
     
-    glVertex2f(cx + w / 2.0 - r, cy - h / 2.0 + r);
-    glVertex2f(cx - w / 2.0 + r, cy - h / 2.0 + r);
-    glVertex2f(cx - w / 2.0 + r, cy - h / 2.0);
+        circSectorN(x0r, y1r, r, tx0, ty1d, tx0d, ty1, 1, 1);
+
+        texVertex(x0, y1r, tx0, ty1r);
+        texVertex(x0, y0r, tx0, ty0r);
     
-    circSectorN(cx + w / 2.0 - r, cy - h / 2.0 + r, r, 6, 2);
+        circSectorN(x0r, y0r, r, tx0, ty0, tx0d, ty0d, 2, 1);
+
+        texVertex(x0r, y0, tx0r, ty0);
+        texVertex(x1r, y0, tx1r, ty0);
+    
+        circSectorN(x1r, y0r, r, tx1d, ty0, tx1, ty0d, 3, 1);
    
+        texVertex(x1, y0r, tx1, ty0r);
+    }
     glEnd();
 
     return NULL;
 }
 
 
-Tree *Widget::rectangle(Tree *self, double cx, double cy, 
-                        double w, double h)
+Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
 // ----------------------------------------------------------------------------
 //     GL rectangle centered around (cx,cy), width w, height h
 // ----------------------------------------------------------------------------
 {
+    glBegin(state.polygonMode);
+    {
+        texVertex(cx-w/2, cy-h/2, 0, 0);
+        texVertex(cx+w/2, cy-h/2, 1, 0);
+        texVertex(cx+w/2, cy+h/2, 1, 1);
+        texVertex(cx-w/2, cy+h/2, 0, 1);
+    }
+    glEnd();
+    return NULL;
+}
+
+
+Tree *Widget::regularPolygon(Tree *self, double cx, double cy, double r, int p)
+// ----------------------------------------------------------------------------
+//     GL regular p-side polygon {p} centered around (cx,cy), radius r
+// ----------------------------------------------------------------------------
+{
+    if (p < 2) return NULL;
+
+    glBegin(state.polygonMode);
+    {
+        for (int i = 0; i < p; i++)
+        {
+            circVertex(cx, cy, r, 
+                    cos( i * 2*M_PI/p + M_PI_2 + (p+1)%2*M_PI/p), 
+                    sin( i * 2*M_PI/p + M_PI_2 + (p+1)%2*M_PI/p),
+                    0, 0, 1, 1);
+        }
+    }
+    glEnd();
+    return NULL;
+}
+
+
+Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r, 
+                        int p, int q)
+// ----------------------------------------------------------------------------
+//     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
+// ----------------------------------------------------------------------------
+{
+    if (p < 2 || q < 1 || q > (p-1)/2) return NULL;
+
+    double R_r = cos( q*M_PI/p ) / cos( (q-1)*M_PI/p);
+    double R = r * R_r;
+
+    GLuint mode = state.polygonMode;
+    if (mode == GL_POLYGON) 
+    {
+        mode = GL_TRIANGLE_FAN; // GL_POLYGON does not work here
+    }
+    
+    glBegin(mode);
+    {
+        if (mode == GL_TRIANGLE_FAN)
+        {
+            circVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);    // The center
+        }
+
+        for (int i = 0; i < p; i++)
+        {
+            circVertex(cx, cy, r, 
+                    cos( i * 2*M_PI/p + M_PI_2), 
+                    sin( i * 2*M_PI/p + M_PI_2),
+                    0, 0, 1, 1);
+
+            circVertex(cx, cy, R, 
+                    cos( i * 2*M_PI/p + M_PI_2 + M_PI/p), 
+                    sin( i * 2*M_PI/p + M_PI_2 + M_PI/p),
+                    (1-R_r)/2, (1-R_r)/2, (1+R_r)/2, (1+R_r)/2);
+        }
+
+        if (mode == GL_TRIANGLE_FAN)
+        {
+            circVertex(cx, cy, r, 0, 1, 0, 0, 1, 1);    // Closing the star
+        }
+    }
+    glEnd();
     return NULL;
 }
 
@@ -782,6 +940,5 @@ Tree *Widget::fromPx(Tree *self, double px)
 {
     RREAL(px);
 }
-
 
 TAO_END

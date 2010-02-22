@@ -1,10 +1,10 @@
-caption "Hello"
+status "Displaying the Earth"
 
 size -> 20.0
 delta -> 25.0
 count -> 5
 
-hollow
+filled
 linewidth 2.2
 poly 1, 1 -> polygon
    vertex 0.0, 0.0, 0.0
@@ -38,7 +38,6 @@ rotatex 20.0
 
 
 D -> 0.5
-rotatex 270.0
 rotatez time * D
 rotatex 23.27
 

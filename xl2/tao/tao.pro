@@ -48,9 +48,8 @@ linux-g++ {
 }
 
 # Input
-HEADERS += widget.h window.h page.h \
- utf8.h coords3d.h \
- gl_keepers.h       \
+HEADERS += widget.h window.h page.h svg.h texture.h     \
+  utf8.h coords3d.h gl_keepers.h                        \
 ../xlr/base.h			../xlr/options.h        \
 ../xlr/basics.h			../xlr/parser.h         \
 ../xlr/compiler.h		../xlr/renderer.h       \
@@ -63,28 +62,30 @@ HEADERS += widget.h window.h page.h \
 ../xlr/opcodes_declare.h	../xlr/tree.h           \
 ../xlr/opcodes_define.h		../xlr/types.h
 
-SOURCES += \
-    tao_main.cpp \
-    graphics.cpp \
-    widget.cpp \
-    window.cpp \
-    page.cpp \
-    utf8.cpp \
-    gl_keepers.cpp \
-    ../xlr/tree.cpp \
-    ../xlr/sha1.cpp \
-    ../xlr/serializer.cpp \
-    ../xlr/syntax.cpp \
-    ../xlr/scanner.cpp \
-    ../xlr/runtime.cpp \
-    ../xlr/renderer.cpp \
-    ../xlr/parser.cpp \
-    ../xlr/options.cpp \
-    ../xlr/opcodes.cpp \
-    ../xlr/main.cpp \
-    ../xlr/errors.cpp \
-    ../xlr/context.cpp \
-    ../xlr/compiler.cpp \
+SOURCES +=                                      \
+    tao_main.cpp                                \
+    graphics.cpp                                \
+    widget.cpp                                  \
+    window.cpp                                  \
+    page.cpp                                    \
+    svg.cpp                                     \
+    texture.cpp                                 \
+    utf8.cpp                                    \
+    gl_keepers.cpp                              \
+    ../xlr/tree.cpp                             \
+    ../xlr/sha1.cpp                             \
+    ../xlr/serializer.cpp                       \
+    ../xlr/syntax.cpp                           \
+    ../xlr/scanner.cpp                          \
+    ../xlr/runtime.cpp                          \
+    ../xlr/renderer.cpp                         \
+    ../xlr/parser.cpp                           \
+    ../xlr/options.cpp                          \
+    ../xlr/opcodes.cpp                          \
+    ../xlr/main.cpp                             \
+    ../xlr/errors.cpp                           \
+    ../xlr/context.cpp                          \
+    ../xlr/compiler.cpp                         \
     ../xlr/basics.cpp
 
 RESOURCES += tao.qrc

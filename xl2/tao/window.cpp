@@ -322,7 +322,7 @@ void Window::loadFile(const QString &fileName)
     xlRuntime->LoadFile(fn);
     xlProgram = &xlRuntime->files[fn];
     taoWidget->xlProgram = xlProgram;
-    taoWidget->draw();
+    taoWidget->updateGL();
 }
 
 bool Window::saveFile(const QString &fileName)
@@ -351,7 +351,7 @@ bool Window::saveFile(const QString &fileName)
     xlRuntime->LoadFile(fn);
     xlProgram = &xlRuntime->files[fn];
     taoWidget->xlProgram = xlProgram;
-    taoWidget->draw();
+    taoWidget->updateGL();
 
     return true;
 }

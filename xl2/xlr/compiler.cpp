@@ -507,13 +507,17 @@ void Compiler::FreeResources(Tree *tree)
 //   calling foo(), we will get an LLVM assert deleting one while the
 //   other's body still makes a reference.
 {
-    if (functions.count(tree) > 0 && closet.count(tree) == 0)
+    if (closet.count(tree))
+    {
+        tree->code = (eval_fn) -1;
+    }
+    else if (functions.count(tree) > 0)
     {
         Function *f = functions[tree];
         f->deleteBody();
         runtime->freeMachineCodeForFunction(f);
-        deleted.insert(tree);
     }
+    deleted.insert(tree);
 }
 
 
@@ -527,9 +531,14 @@ void Compiler::FreeResources()
     {
         deleted_set::iterator i = deleted.begin();
         Tree *tree = *i;
-        Function *f = functions[tree];
-        delete f;               // Now safe to do
+        if (functions.count(tree) > 0 && closet.count(tree) == 0)
+        {
+            Function *f = functions[tree];
+            delete f;               // Now safe to do
+        }
         functions.erase(tree);
+        globals.erase(tree);
+        closet.erase(tree);
         deleted.erase(tree);
     }
 }
@@ -1485,8 +1494,7 @@ void debugm(XL::value_map &m)
     XL::value_map::iterator i;
     llvm::raw_stderr_ostream llvmstderr;
     for (i = m.begin(); i != m.end(); i++)
-        llvmstderr << "map[" << (*i).first.tree << "]="
-                   << *(*i).second << '\n';
+        llvmstderr << "map[" << (*i).first << "]=" << *(*i).second << '\n';
 }
 
 

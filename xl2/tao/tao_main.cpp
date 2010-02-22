@@ -65,6 +65,7 @@ int main(int argc, char **argv)
     // Setup the XL runtime environment
     XL::Compiler compiler("xl_tao");
     XL::Main *xlr = new XL::Main(argc, argv, compiler);
+    XL::MAIN = xlr;
     EnterGraphics(&xlr->context);
     xlr->LoadFiles();
 

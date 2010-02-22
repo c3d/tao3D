@@ -26,11 +26,15 @@
 #include <QtOpenGL>
 #include <QImage>
 #include <QTimeLine>
+#include <QTimer>
 #include <QSvgRenderer>
+#include <iostream>
 #include "main.h"
 #include "tao.h"
 
 namespace Tao {
+
+struct Window;
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -39,11 +43,10 @@ class Widget : public QGLWidget
 {
     Q_OBJECT
 public:
-    Widget(QWidget *parent, XL::SourceFile *sf = NULL);
+    Widget(Window *parent, XL::SourceFile *sf = NULL);
     ~Widget();
 
     // Events
-    void paintEvent(QPaintEvent *);
     void mousePressEvent(QMouseEvent *);
     void mouseDoubleClickEvent(QMouseEvent *);
     void mouseMoveEvent(QMouseEvent *);
@@ -51,11 +54,20 @@ public:
     void wheelEvent(QWheelEvent *);
     
 public:
+    void initializeGL();
+    void resizeGL(int width, int height);
+    void paintGL();
+    void setup(double w, double h);
+
+public slots:
+    void draw();
+
+public:
     typedef XL::Tree Tree;
 
     // XLR entry points
     static Widget *Tao() { return current; }
-    Tree *caption(Tree *self, text t);
+    Tree *status(Tree *self, text t);
 
     Tree *rotateX(Tree *self, double rx);
     Tree *rotateY(Tree *self, double ry);
@@ -73,6 +85,8 @@ public:
     Tree *scale(Tree *self, double x, double y, double z);
 
     Tree *locally(Tree *self, Tree *t);
+    Tree *pagesize(Tree *self, uint w, uint h);
+    Tree *page(Tree *self, Tree *p);
 
     Tree *refresh(Tree *self, double delay);
     Tree *time(Tree *self);
@@ -80,21 +94,25 @@ public:
     Tree *color(Tree *self, double r, double g, double b, double a);
     Tree *filled(Tree *self);
     Tree *hollow(Tree *self);
+    Tree *disconnected(Tree *self);
     Tree *linewidth(Tree *self, double lw);
 
     Tree *polygon(Tree *self, Tree *t);
     Tree *vertex(Tree *self, double x, double y, double z);
     Tree *sphere(Tree *self,
-                 double cx, double cy, double cz,
-                 double r, int nslices, int nstacks);
+                double cx, double cy, double cz,
+                double r, int nslices, int nstacks);
     Tree *circle(Tree *self, double cx, double cy, 
-                 double r);
-    Tree *circsector(Tree *self, double cx, double cy, 
-                     double r, double a, double b);
-    Tree *roundrect(Tree *self, double cx, double cy, 
-                    double w, double h, double r);
+                double r);
+    Tree *circularSector(Tree *self, double cx, double cy, 
+                double r, double a, double b);
+    Tree *roundedRectangle(Tree *self, double cx, double cy, 
+                double w, double h, double r);
     Tree *rectangle(Tree *self, double cx, double cy, 
-                    double w, double h);
+                double w, double h);
+    Tree *regularPolygon(Tree *self, double cx, double cy, double r, int p);
+    Tree *regularStarPolygon(Tree *self, double cx, double cy, double r, 
+                int p, int q);
 
     Tree *texture(Tree *self, text n);
     Tree *svg(Tree *self, text t);
@@ -106,16 +124,42 @@ public:
     Tree *fromPt(Tree *self, double pt);
     Tree *fromPx(Tree *self, double px);
 
-public slots:
-    void draw();
-
 public:
     // XL Runtime
     XL::SourceFile *  xlProgram;
-    text              caption_text;
+    QTimer            timer;
     static Widget    *current;
-    GLuint            polygonMode;
+
+    struct State
+    // ------------------------------------------------------------------------
+    //    State that we need to save
+    // ------------------------------------------------------------------------
+    {
+        GLuint  polygonMode;
+        GLuint  pageWidth, pageHeight;
+    } state;
 };
+
+
+
+// ============================================================================
+// 
+//    Simple utility functions
+// 
+// ============================================================================
+
+inline void glShowErrors()
+// ----------------------------------------------------------------------------
+//   Display pending GL errors
+// ----------------------------------------------------------------------------
+{                
+    GLenum err = glGetError();                                         
+    while (err != GL_NO_ERROR)
+    {
+        std::cerr << "GL Error: " << (char *) gluErrorString(err) << "\n";
+        err = glGetError();                                     
+    }                                                               
+}
 
 
 #define TAO(x)  (Tao::Widget::Tao() ? Tao::Widget::Tao()->x : 0)

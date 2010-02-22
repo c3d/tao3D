@@ -826,28 +826,6 @@ Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
 }
 
 
-Tree *Widget::regularPolygon(Tree *self, double cx, double cy, double r, int p)
-// ----------------------------------------------------------------------------
-//     GL regular p-side polygon {p} centered around (cx,cy), radius r
-// ----------------------------------------------------------------------------
-{
-    if (p < 2) return NULL;
-
-    glBegin(state.polygonMode);
-    {
-        for (int i = 0; i < p; i++)
-        {
-            circVertex(cx, cy, r, 
-                    cos( i * 2*M_PI/p + M_PI_2 + (p+1)%2*M_PI/p), 
-                    sin( i * 2*M_PI/p + M_PI_2 + (p+1)%2*M_PI/p),
-                    0, 0, 1, 1);
-        }
-    }
-    glEnd();
-    return NULL;
-}
-
-
 Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r, 
                         int p, int q)
 // ----------------------------------------------------------------------------
@@ -856,7 +834,7 @@ Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
 {
     if (p < 2 || q < 1 || q > (p-1)/2) return NULL;
 
-    double R_r = cos( q*M_PI/p ) / cos( (q-1)*M_PI/p);
+    double R_r = cos( q*M_PI/p ) / cos( (q-1)*M_PI/p );
     double R = r * R_r;
 
     GLuint mode = state.polygonMode;

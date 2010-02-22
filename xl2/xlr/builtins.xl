@@ -10,9 +10,64 @@ if false then TrueBody -> false
 
 
 // Graphics stuff
+sphere x:real, y:real, z:real, r:real -> 
+    sphere x,y,z,r,25,25
+
+sphere r:real -> 
+    sphere 0.0, 0.0, 0.0, r
+
+circle r:real ->
+    circle 0.0, 0.0, r
+
+circular_sector r:real, a:real, b:real ->
+    circular_sector 0.0, 0.0, r, a, b
+
 rectangle w:real, h:real ->
     rectangle 0.0, 0.0, w, h
 
-sphere x:real,y:real,z:real,r:real -> sphere x,y,z,r,25,25
-sphere r:real -> sphere 0.0, 0.0, 0.0, r
-        
+square t:tree, c:real ->
+    rectangle t, c, c 
+
+rounded_rectangle w:real, h:real, r:real ->
+    rounded_rectangle 0.0, 0.0, w, h, r
+
+regular_star_polygon r:real, p:integer, q:integer ->
+    regular_star_polygon 0.0, 0.0, r, p, q
+
+regular_polygram t:tree -> regular_star_polygon t
+
+regular_polygon t:tree ->
+    regular_star_polygon t, 1
+
+schlaefli {p:integer}, t:tree -> regular_polygon t, p
+schlaefli {p:integer/q:integer}, t:tree -> regular_star_polygon t, p, q
+
+equilateral_triangle t:tree -> regular_polygon t:tree, 3
+regular_tetragon t:tree -> regular_polygon t:tree, 4
+regular_pentagon t:tree -> regular_polygon t:tree, 5
+regular_hexagon t:tree -> regular_polygon t:tree, 6
+regular_heptagon t:tree -> regular_polygon t:tree, 7
+regular_octagon t:tree -> regular_polygon t:tree, 8
+regular_nonagon t:tree -> regular_polygon t:tree, 9
+regular_decagon t:tree -> regular_polygon t:tree, 10
+regular_hendecagon t:tree -> regular_polygon t:tree, 11
+regular_dodecagon t:tree -> regular_polygon t:tree, 12
+regular_tridecagon t:tree -> regular_polygon t:tree, 13
+regular_tetradecagon t:tree -> regular_polygon t:tree, 14
+regular_pentadecagon t:tree -> regular_polygon t:tree, 15
+regular_hexadecagon t:tree -> regular_polygon t:tree, 16
+regular_heptadecagon t:tree -> regular_polygon t:tree, 17
+regular_octadecagon t:tree -> regular_polygon t:tree, 18
+regular_enneadecagon t:tree -> regular_polygon t:tree, 19
+regular_icosagon t:tree -> regular_polygon t:tree, 20
+
+regular_pentagram t:tree -> regular_star_polygon t, 5, 2
+star t:tree -> regular_star_polygon t, 5, 2
+regular_hexagram t:tree -> regular_star_polygon t:tree, 6, 2
+star_of_david t:tree -> regular_star_polygon t:tree, 6, 2
+regular_heptagram t:tree -> regular_star_polygon t:tree, 7, 2
+star_of_lakshmi t:tree -> regular_star_polygon t:tree, 8, 2
+regular_octagram t:tree -> regular_star_polygon t:tree, 8, 3
+regular_nonagram t:tree -> regular_star_polygon t:tree, 9, 3
+regular_decagram t:tree -> regular_star_polygon t:tree, 10, 3
+

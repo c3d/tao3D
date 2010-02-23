@@ -1018,6 +1018,24 @@ Tree *Widget::fontStrikeout(Tree *self, bool strikeout)
     return NULL;
 }
 
+Tree *Widget::fontStretch(Tree *self, int stretch)
+// ----------------------------------------------------------------------------
+//    font streching factor
+// ----------------------------------------------------------------------------
+{
+    state.font.setStretch(stretch);
+    return NULL;
+}
+
+Tree *Widget::textAlignment(Tree *self, int align)
+// ----------------------------------------------------------------------------
+//   text alignment
+// ----------------------------------------------------------------------------
+ {
+     Qt::Alignment qt_align (align);
+     state.textOptions.setAlignment(qt_align);
+     return NULL;
+ }
 
 Tree *Widget::textLine(Tree *self, double x, double y, double z, text t)
 // ----------------------------------------------------------------------------
@@ -1042,7 +1060,7 @@ Tree *Widget::textBlock(Tree *self, text content)
 
     qreal lineHeight = fm.height();
     qreal y = 0;
-
+    textLayout.setTextOption(state.textOptions);
     textLayout.beginLayout();
 
     while (1)

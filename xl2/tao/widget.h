@@ -134,7 +134,8 @@ public:
 
     Tree *textLine(Tree *self, double x, double y, double z, text content);
     Tree *textBlock(Tree *self, text content);
-
+    Tree *textAlignment(Tree *self, int align);
+    Tree *fontStretch(Tree *self, int stretch);
 
 public:
     // XL Runtime
@@ -150,6 +151,7 @@ public:
         GLuint         polygonMode;
         GLuint         pageWidth, pageHeight;
         QFont          font;
+        QTextOption    textOptions;
         QPaintDevice * paintDevice;
     } state;
 };

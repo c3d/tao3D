@@ -113,3 +113,6 @@ PREFIX("strikeout",, FontStrikeout, RTAO(fontStrikeout(self)))
 PREFIX("text_line", PARM(x,real) PARM(y,real) PARM(z, real) PARM(t, text),
        TextLine, RTAO(textLine(self, x,y,z,t)))
 PREFIX("text_block", PARM(content, text), TextBlock,  RTAO(textBlock(self, content)))
+PREFIX("text_align", PARM(align, integer), TextAlignment,  RTAO(textAlignment(self, align)))
+
+PREFIX("stretch", PARM(stretchFactor, integer), FontStretch, RTAO(fontStretch(self, stretchFactor)))

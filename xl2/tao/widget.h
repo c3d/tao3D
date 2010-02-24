@@ -31,6 +31,7 @@
 #include <iostream>
 #include "main.h"
 #include "tao.h"
+#include "textFlow.h"
 
 namespace Tao {
 
@@ -137,6 +138,9 @@ public:
     Tree *textAlignment(Tree *self, int align);
     Tree *fontStretch(Tree *self, int stretch);
 
+    Tree *textSpan(Tree *self, text content);
+    Tree *frame(Tree *self, double width, double height, textFlow * content);
+
 public:
     // XL Runtime
     XL::SourceFile *  xlProgram;
@@ -150,7 +154,8 @@ public:
     {
         GLuint         polygonMode;
         GLuint         pageWidth, pageHeight;
-        QFont          font;
+        textFlow     * mainFlow;
+        QTextCharFormat charFormat;
         QTextOption    textOptions;
         QPaintDevice * paintDevice;
     } state;

@@ -116,3 +116,5 @@ PREFIX("text_block", PARM(content, text), TextBlock,  RTAO(textBlock(self, conte
 PREFIX("text_align", PARM(align, integer), TextAlignment,  RTAO(textAlignment(self, align)))
 
 PREFIX("stretch", PARM(stretchFactor, integer), FontStretch, RTAO(fontStretch(self, stretchFactor)))
+PREFIX("text_span", PARM(content, text), TextSpan, RTAO(textSpan(self, content)))
+PREFIX("frame", PARM(w,real) PARM(h,real), Frame, RTAO(frame(self, w, h, NULL)))

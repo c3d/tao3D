@@ -70,7 +70,6 @@ SOURCES +=                                      \
     page.cpp                                    \
     svg.cpp                                     \
     texture.cpp                                 \
-    utf8.cpp                                    \
     gl_keepers.cpp                              \
     ../xlr/tree.cpp                             \
     ../xlr/sha1.cpp                             \

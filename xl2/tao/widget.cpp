@@ -911,7 +911,7 @@ Tree *Widget::fromCm(Tree *self, double cm)
 //   Convert from cm to pixels
 // ----------------------------------------------------------------------------
 {
-    RREAL(cm * logicalDpiX() * (1.0 / 2.54));
+    XL_R_REAL(cm * logicalDpiX() * (1.0 / 2.54));
 }
 
 
@@ -920,7 +920,7 @@ Tree *Widget::fromMm(Tree *self, double mm)
 //   Convert from mm to pixels
 // ----------------------------------------------------------------------------
 {
-    RREAL(mm * logicalDpiX() * (0.1 / 2.54));
+    XL_R_REAL(mm * logicalDpiX() * (0.1 / 2.54));
 }
 
 
@@ -929,7 +929,7 @@ Tree *Widget::fromIn(Tree *self, double in)
 //   Convert from inch to pixels
 // ----------------------------------------------------------------------------
 {
-    RREAL(in * logicalDpiX());
+    XL_R_REAL(in * logicalDpiX());
 }
 
 
@@ -938,7 +938,7 @@ Tree *Widget::fromPt(Tree *self, double pt)
 //   Convert from pt to pixels
 // ----------------------------------------------------------------------------
 {
-    RREAL(pt * logicalDpiX() * (1.0 / 72.0));
+    XL_R_REAL(pt * logicalDpiX() * (1.0 / 72.0));
 }
 
 
@@ -947,7 +947,7 @@ Tree *Widget::fromPx(Tree *self, double px)
 //   Convert from pixel to pixels (trivial)
 // ----------------------------------------------------------------------------
 {
-    RREAL(px);
+    XL_R_REAL(px);
 }
 
 

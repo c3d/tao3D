@@ -18,11 +18,8 @@
 #See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 # (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 # (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+# (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 # (C) 2010 Taodyne SAS
-#******************************************************************************
-#* File       : $RCSFile$
-#* Revision   : $Revision$
-#* Date       : $Date$
 #******************************************************************************
 
 TEMPLATE = app
@@ -41,9 +38,9 @@ macx {
     XLRDIR = Contents/MacOS
 }
 win32 {
-    DEFINES += CONFIG_WIN32
+    DEFINES += CONFIG_MINGW
 }
-linux-g++ {
+linux {
     DEFINES += CONFIG_LINUX
 }
 
@@ -90,20 +87,11 @@ SOURCES +=                                      \
 RESOURCES += tao.qrc
 
 # LLVM dependencies
-exists(/usr/local/bin/llvm-config) {
-    LLVM_PATH = /usr/local/bin
-}
-exists(/opt/local/bin/llvm-config) {
-    LLVM_PATH = /opt/local/bin
-}
-exists(/usr/bin/llvm-config) {
-    LLVM_PATH = /usr/bin
-}
 
-LLVM_FLAGS = $$system($$LLVM_PATH/llvm-config --cppflags | sed -e s/-DNDEBUG//g)
-LLVM_LIBS = $$system($$LLVM_PATH/llvm-config --ldflags --libs core jit native)
-LLVM_INC = $$system($$LLVM_PATH/llvm-config --includedir)
-LLVM_DEF = $$system($$LLVM_PATH/llvm-config --cppflags | grep -o .D_.* | sed s/-D//g)
+LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\")
+LLVM_LIBS += $$system(bash -c \"llvm-config --ldflags\")
+LLVM_INC  = $$system(bash -c \"llvm-config --includedir\")
+LLVM_DEF  = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
 
 INCLUDEPATH *= $$LLVM_INC
 

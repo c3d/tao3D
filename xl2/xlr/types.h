@@ -54,10 +54,10 @@ struct TypeInfo : Info
 //    Information recording the type of a given tree
 // ----------------------------------------------------------------------------
 {
-    typedef Symbols *   data_t;
+    typedef Tree *      data_t;
     TypeInfo(Tree *type): type(type) {}
     operator            data_t()  { return type; }
-    Tree *              tree;
+    Tree *              type;
 };
 
 
@@ -79,7 +79,6 @@ struct InferTypes : Action
     Tree *DoBlock(Block *what);
 
     Symbols *   symbols;
-    type_map    types;
 };
 
 extern Tree * integer_type;

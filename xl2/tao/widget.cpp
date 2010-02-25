@@ -137,6 +137,7 @@ void Widget::setup(double w, double h)
     state.frameHeight = 128;
     state.charFormat = QTextCharFormat();
     state.paintDevice = this;
+    state.textOptions = QTextOption(Qt::AlignCenter);
 }
 
 
@@ -1036,83 +1037,26 @@ Tree *Widget::fontStrikeout(Tree *self, bool strikeout)
 
 Tree *Widget::fontStretch(Tree *self, int stretch)
 // ----------------------------------------------------------------------------
-//    font streching factor
+//    Set font streching factor
 // ----------------------------------------------------------------------------
 {
-//    state.font.setStretch(stretch);
-    return XL::xl_false;        // Doesn't work :-)
-}
-
-
-Tree *Widget::textAlignment(Tree *self, int align)
-// ----------------------------------------------------------------------------
-//   text alignment
-// ----------------------------------------------------------------------------
-{
-    Qt::Alignment qt_align (align);
-    state.textOptions.setAlignment(qt_align);
+    //state.charFormat.setFontStretch(stretch);
     return XL::xl_true;
 }
 
 
-Tree *Widget::textLine(Tree *self, double x, double y, double z, text t)
+Tree *Widget::align(Tree *self, int align)
 // ----------------------------------------------------------------------------
-//    Render text in 3D
-// ----------------------------------------------------------------------------
-{
-    renderText(x,y,z, QString::fromStdString(t), state.charFormat.font());
-    return XL::xl_true;
-}
-
-
-Tree *Widget::textBlock(Tree *self, text content)
-// ----------------------------------------------------------------------------
-//   Insert a block of text
+//   Set text alignment
 // ----------------------------------------------------------------------------
 {
-    QTextLayout textLayout(QString::fromStdString(content),
-                           state.charFormat.font());
-    qreal w = state.paintDevice->width(), h = state.paintDevice->height();
-    qreal margin = 10;
-    qreal radius = qMin(w/2, h/2) - margin;
-    QFontMetrics fm( state.charFormat.font());
-
-    qreal lineHeight = fm.height();
-    qreal y = 0;
-    textLayout.setTextOption(state.textOptions);
-    textLayout.beginLayout();
-
-    while (1)
-    {
-        // Create a new line
-        QTextLine line = textLayout.createLine();
-        if (!line.isValid())
-            break;
-
-        qreal x1 = qMax(0.0, pow(pow(radius,2)-pow(radius-y,2), 0.5));
-        qreal x2 = qMax(0.0, pow(pow(radius,2)-pow(radius-(y+lineHeight),2), 0.5));
-        qreal x = qMax(x1, x2) + margin;
-        qreal lineWidth = (w - margin) - x;
-
-        line.setLineWidth(lineWidth);
-        line.setPosition(QPointF(x, margin+y));
-        y += line.height();
-    }
-
-    textLayout.endLayout();
-
-    QPainter painter(state.paintDevice);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.fillRect(rect(), Qt::white);
-    painter.setBrush(QBrush(Qt::black));
-    painter.setPen(QPen(Qt::black));
-    textLayout.draw(&painter, QPoint(0,0));
-
-    painter.setBrush(QBrush(QColor("#a6ce39")));
-    painter.setPen(QPen(Qt::black));
-    painter.drawEllipse(QRectF(-radius, margin, 2*radius, 2*radius));
-    painter.end();
-
+    Qt::Alignment old = state.textOptions.alignment();
+    if (align & Qt::AlignHorizontal_Mask)
+        old &= ~Qt::AlignHorizontal_Mask;
+    if (align & Qt::AlignVertical_Mask)
+        old &= ~Qt::AlignVertical_Mask;
+    align |= old;
+    state.textOptions.setAlignment(Qt::Alignment(align));
     return XL::xl_true;
 }
 
@@ -1122,7 +1066,6 @@ Tree *Widget::textSpan(Tree *self, text content)
 //   Insert a block of text with the current definition of font, color, ...
 // ----------------------------------------------------------------------------
 {
-    assert(state.flow);
     state.flow->addText(QString::fromStdString(content), state.charFormat);
     return XL::xl_true;
 }
@@ -1144,11 +1087,9 @@ Tree *Widget::flow(Tree *self)
 }
 
 
-Tree *Widget::frame(Tree *self,
-                    double cx, double cy, double w, double h,
-                    Tree *flowTree)
+Tree *Widget::frameTexture(Tree *self, double w, double h)
 // ----------------------------------------------------------------------------
-//   Insert a block of text
+//   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
 {
     if (w < 16) w = 16;
@@ -1162,15 +1103,6 @@ Tree *Widget::frame(Tree *self,
         self->SetInfo<FrameInfo> (frame);
     }
 
-    // Get or build the current layout info if we don't have one
-    Tree *layoutTree = flowTree ? flowTree : self;
-    LayoutInfo *layout = layoutTree->GetInfo<LayoutInfo> ();
-    if (!layout)
-    {
-        layout = new LayoutInfo();
-        layoutTree->SetInfo<LayoutInfo> (layout);
-    }
-    
     glPushAttrib(GL_ALL_ATTRIB_BITS);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
@@ -1179,48 +1111,40 @@ Tree *Widget::frame(Tree *self,
 
     frame->resize(w,h);
 
-    QPaintDevice *savedPaintDevice = state.paintDevice;
     frame->begin();
     {
         // Clear the background and setup initial state
         setup(w, h);
         XL::LocalSave<QPaintDevice *> sv(state.paintDevice, frame->render_fbo);
 
-        qreal margin = 10, y = 0;
-
         TextFlow *flow = state.flow;
-        if (flowTree)
-        {
-            Tree *result = xl_evaluate(flowTree);
-            TextFlow *givenFlow = flowTree->GetInfo<TextFlow>();
-            if (givenFlow)
-                flow = givenFlow;
-        }
+        qreal lineY = 0, lineHeight = 0, topY = flow->topLineY;
 
-        layout->setText(flow->getCompleteText());
-        layout->setAdditionalFormats(flow->getListOfFormat());
-        layout->setTextOption(flow->getParagraphOption());
-        layout->beginLayout();
+        flow->setText(flow->completeText);
+        flow->setAdditionalFormats(flow->formats);
+        flow->setTextOption(flow->paragraphOption);
+        flow->beginLayout();
 
-        do
+        while(true)
         {
             // Create a new line
-            QTextLine line = layout->createLine();
+            QTextLine line = flow->createLine();
             if (!line.isValid())
                 break;
-            if (line.height() + y >= h)
+            if (lineHeight + lineY - topY >= h)
                 break;
             line.setLineWidth(w);
-            line.setPosition(QPoint(0, margin+y));
-            y += line.height();
-        } while(y < h);
-
-        layout->endLayout();
+            line.setPosition(QPoint(0, lineY - topY));
+            lineHeight = line.height();
+            lineY += lineHeight;
+        }
+        
+        flow->topLineY = lineY;
+        flow->endLayout();
 
         QPainter painter(state.paintDevice);
         painter.setRenderHint(QPainter::Antialiasing);
-        layout->draw(&painter, QPoint(0,0));
-
+        flow->draw(&painter, QPoint(0,0));
         painter.end();
     }
     frame->end();
@@ -1231,19 +1155,31 @@ Tree *Widget::frame(Tree *self,
     glPopMatrix();
     glPopAttrib();
 
+    // Bind the resulting texture
     frame->bind();
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::frame(Tree *self, double x, double y, double w, double h)
+// ----------------------------------------------------------------------------
+//   Draw a frame with the current text flow
+// ----------------------------------------------------------------------------
+{
+    glPushAttrib(GL_TEXTURE_BIT);
+    frameTexture(self, w, h);
 
     // Draw a rectangle with the resulting texture
     glBegin(state.polygonMode);
     {
-        texVertex(cx-w/2, cy-h/2, 0, 0);
-        texVertex(cx+w/2, cy-h/2, 1, 0);
-        texVertex(cx+w/2, cy+h/2, 1, 1);
-        texVertex(cx-w/2, cy+h/2, 0, 1);
+        texVertex(x-w/2, y-h/2, 0, 0);
+        texVertex(x+w/2, y-h/2, 1, 0);
+        texVertex(x+w/2, y+h/2, 1, 1);
+        texVertex(x-w/2, y+h/2, 0, 1);
     }
     glEnd();
-
-
+    glPopAttrib();
 
     return XL::xl_true;
 }

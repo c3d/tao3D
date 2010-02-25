@@ -135,15 +135,14 @@ public:
     Tree *fontUnderline(Tree *self, bool=true);
     Tree *fontOverline(Tree *self, bool=true);
     Tree *fontStrikeout(Tree *self, bool=true);
-
-    Tree *textLine(Tree *self, double x, double y, double z, text content);
-    Tree *textBlock(Tree *self, text content);
-    Tree *textAlignment(Tree *self, int align);
     Tree *fontStretch(Tree *self, int stretch);
 
+    Tree *align(Tree *self, int align);
     Tree *textSpan(Tree *self, text content);
-    Tree *frame(Tree *self, double x, double y, double w, double h, Tree *f);
+
     Tree *flow(Tree *self);
+    Tree *frameTexture(Tree *self, double w, double h);
+    Tree *frame(Tree *self, double x, double y, double w, double h);
 
 public:
     // XL Runtime

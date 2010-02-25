@@ -112,24 +112,21 @@ PREFIX(FontBold, tree, "bold",, RTAO(fontBold(self)))
 PREFIX(FontUnderline, tree, "underline",, RTAO(fontUnderline(self)))
 PREFIX(FontOverline, tree, "overline",, RTAO(fontOverline(self)))
 PREFIX(FontStrikeout, tree, "strikeout",, RTAO(fontStrikeout(self)))
+PREFIX(FontStretch, tree, "stretch", PARM(s,integer),RTAO(fontStretch(self,s)))
 
-PREFIX(TextLine, tree, "text_line",
-       PARM(x,real) PARM(y,real) PARM(z, real) PARM(t, text),
-       RTAO(textLine(self, x,y,z,t)))
-PREFIX(TextBlock, tree, "text_block", PARM(content, text),
-       RTAO(textBlock(self, content)))
+PREFIX(TextLeft, tree, "align_left",, RTAO(align(self,Qt::AlignLeft)))
+PREFIX(TextRight, tree, "align_right",, RTAO(align(self,Qt::AlignRight)))
+PREFIX(TextCenter, tree, "align_center",, RTAO(align(self,Qt::AlignHCenter)))
+PREFIX(TextJustify, tree, "align_justify",, RTAO(align(self,Qt::AlignJustify)))
+PREFIX(TextTop, tree, "align_top",, RTAO(align(self,Qt::AlignTop)))
+PREFIX(TextBottom, tree, "align_bottom",, RTAO(align(self,Qt::AlignBottom)))
+PREFIX(TextMiddle, tree, "align_middle",, RTAO(align(self,Qt::AlignVCenter)))
 
-PREFIX(TextAlignment, tree, "text_align", PARM(align, integer), 
-       RTAO(textAlignment(self, align)))
+PREFIX(TextSpan, tree,"text", PARM(t, text), RTAO(textSpan(self, t)))
 
-PREFIX(FontStretch, tree, "stretch", PARM(stretchFactor, integer),
-       RTAO(fontStretch(self, stretchFactor)))
-PREFIX(TextSpan, tree,"text_span", PARM(content, text),
-       RTAO(textSpan(self, content)))
-PREFIX(Frame, tree, "frame",
-       PARM(x,real) PARM(y,real)PARM(w,real) PARM(h,real), 
-       RTAO(frame(self, x, y, w, h, NULL)))
-PREFIX(FrameFlow, tree, "frame",
-       PARM(x,real) PARM(y,real)PARM(w,real) PARM(h,real) PARM(f, tree), 
-       RTAO(frame(self, x, y, w, h, &f)))
 PREFIX(Flow, tree, "flow", , RTAO(flow(self)))
+PREFIX(Frame, tree, "frame",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
+       RTAO(frame(self, x, y, w, h)))
+PREFIX(FrameTexture, tree, "frame_texture",
+       PARM(w,real) PARM(h,real), RTAO(frameTexture(self, w, h)))

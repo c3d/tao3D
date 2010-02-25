@@ -31,68 +31,34 @@ TextFlow::TextFlow(QTextOption paraOption)
 // ----------------------------------------------------------------------------
 //  Create an empty text flow.
 // ----------------------------------------------------------------------------
-{
-    paragraphOption = paraOption;
-}
-
-
-TextFlow::TextFlow(QString pieceOfText,
-                   QTextCharFormat aFormat, QTextOption paraOption)
-// ----------------------------------------------------------------------------
-// Create a text flow with the initial value.
-// ----------------------------------------------------------------------------
-{
-    paragraphOption = paraOption;
-    addText( pieceOfText, aFormat);
-}
-
-
-int TextFlow::addText(QString pieceOfText, QTextCharFormat aFormat)
-// ----------------------------------------------------------------------------
-// Add a piece of text and its associated format to the flow.
-// ----------------------------------------------------------------------------
-{
-    QTextLayout::FormatRange range;
-    range.start = completeText.length();
-    range.length = pieceOfText.length();
-    range.format = aFormat;
-    listOfFormat.append(range);
-
-    completeText.append(pieceOfText);    
-}
+    : completeText(""),
+      formats(),
+      paragraphOption(paraOption),
+      topLineY(0)
+{}
 
 
 TextFlow::~TextFlow()
 // ----------------------------------------------------------------------------
 //  Destroy the flow.
 // ----------------------------------------------------------------------------
-{ }
+{}
 
 
-QString TextFlow::getCompleteText()
+int TextFlow::addText(QString pieceOfText, QTextCharFormat aFormat)
 // ----------------------------------------------------------------------------
-//  Return the complete plain text of the flow
-// ----------------------------------------------------------------------------
-{
-    return completeText;
-}
-
-
-QList<QTextLayout::FormatRange> TextFlow::getListOfFormat()
-// ----------------------------------------------------------------------------
-// Return the list of format associated with the text of this flow.
+//   Add a piece of text and its associated format to the flow.
 // ----------------------------------------------------------------------------
 {
-    return listOfFormat;
-}
+    QTextLayout::FormatRange range;
+    range.start = completeText.length();
+    range.length = pieceOfText.length();
+    range.format = aFormat;
+    formats.append(range);
 
+    completeText.append(pieceOfText);
 
-QTextOption & TextFlow::getParagraphOption()
-// ----------------------------------------------------------------------------
-// Return a reference onto the text option to allow modification.
-// ----------------------------------------------------------------------------
-{
-    return paragraphOption;
+    topLineY = 0;
 }
 
 TAO_END

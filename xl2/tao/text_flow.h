@@ -1,5 +1,5 @@
-#ifndef TEXTFLOW_H
-#define TEXTFLOW_H
+#ifndef TEXT_FLOW_H
+#define TEXT_FLOW_H
 // ****************************************************************************
 //  text_flow.h                                                     Tao project
 // ****************************************************************************
@@ -32,35 +32,27 @@
 
 TAO_BEGIN
 
-struct TextFlow : XL::Info
+struct TextFlow : XL::Info, QTextLayout
 //-----------------------------------------------------------------------------
-// This is the builder of the text
+//  A particular text flow, that we may then render in various frames
 //-----------------------------------------------------------------------------
 {
+    typedef QTextLayout::FormatRange    FormatRange;
+    typedef QList<FormatRange>          FormatRanges;
+
+public:
     TextFlow(QTextOption parOption);
-    TextFlow(QString pieceOfText, QTextCharFormat format, QTextOption options);
     ~TextFlow();
-    int addText(QString pieceOfText, QTextCharFormat aFormat);
 
-    QString getCompleteText();
-    QList<QTextLayout::FormatRange> getListOfFormat();
-    QTextOption & getParagraphOption();
+    int                 addText(QString pieceOfText, QTextCharFormat aFormat);
 
-private :
-    QString completeText;
-    QList<QTextLayout::FormatRange> listOfFormat;
-    QTextOption paragraphOption;
-};
-
-
-struct LayoutInfo : XL::Info, QTextLayout
-// ----------------------------------------------------------------------------
-//   Record the current state of the layout for a given flow
-// ----------------------------------------------------------------------------
-{
-    LayoutInfo(): XL::Info(), QTextLayout() {}
+public:
+    QString             completeText;
+    FormatRanges        formats;
+    QTextOption         paragraphOption;
+    double              topLineY;
 };
 
 TAO_END
 
-#endif // TEXTFLOW_H
+#endif // TEXT_FLOW_H

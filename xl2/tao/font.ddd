@@ -1,14 +1,27 @@
+locally
+    translatez -400
+    load "rotating-logo.ddd"
+
 color 0.5*(sin(time) + 1),0,0,1
-
-font "TImes"
+font "Times New Roman"
 font_size 48
-text_span "Toto il est bo le lavabo"
-text_align 8
+text "Toto!"
+color 0,1,0,60%
+font_size 24
+text "Il est bo le lavabo."
+italic
+color 0,0,1,1
+text "Bo bo bo bo, il est bo."
+align_center
+align_middle
 
-rectangle 300*sin(time)+300, 100
+font "Arial"
+font_size 12
+text "Enables caching of the complete layout information if enable is true; otherwise disables layout caching. Usually QTextLayout throws most of the layouting information away after a call to endLayout() to reduce memory consumption. If you however want to draw the laid out text directly afterwards enabling caching might speed up drawing significantly."
 
-frame 0,0,300+300*sin(time),100
-
+color 1,1,1,1
+rotatez 25*sin(time*0.12)
+frame 0,0,300+300*sin(time),400
 
 refresh 0.02
 

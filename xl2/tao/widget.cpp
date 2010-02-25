@@ -1151,6 +1151,9 @@ Tree *Widget::frame(Tree *self,
 //   Insert a block of text
 // ----------------------------------------------------------------------------
 {
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
     // Get or build the current frame if we don't have one
     FrameInfo *frame = self->GetInfo<FrameInfo>();
     if (!frame)

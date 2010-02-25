@@ -1,0 +1,14 @@
+color 0.5*(sin(time) + 1),0,0,1
+
+font "TImes"
+font_size 48
+text_span "Toto il est bo le lavabo"
+text_align 8
+
+rectangle 300*sin(time)+300, 100
+
+frame 0,0,300+300*sin(time),100
+
+
+refresh 0.02
+

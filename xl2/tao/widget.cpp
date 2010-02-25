@@ -133,8 +133,8 @@ void Widget::setup(double w, double h)
 
     // Initial state
     state.polygonMode = GL_POLYGON;
-    state.frameWidth = 128;
-    state.frameHeight = 128;
+    state.frameWidth = w;
+    state.frameHeight = h;
     state.charFormat = QTextCharFormat();
     state.paintDevice = this;
     state.textOptions = QTextOption(Qt::AlignCenter);
@@ -428,14 +428,12 @@ Tree *Widget::page(Tree *self, Tree *p)
 
     frame->resize(w,h);
 
-    QPaintDevice *savedPaintDevice = state.paintDevice;
     frame->begin();
     {
         // Clear the background and setup initial state
         setup(w, h);
-        state.paintDevice = frame->render_fbo;
+        XL::LocalSave<QPaintDevice *> sv(state.paintDevice, frame->render_fbo);
         result = xl_evaluate(p);
-        state.paintDevice = savedPaintDevice;
     }
     frame->end();
 

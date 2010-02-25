@@ -1124,6 +1124,7 @@ Tree *Widget::textSpan(Tree *self, text content)
 {
     assert(state.flow);
     state.flow->addText(QString::fromStdString(content), state.charFormat);
+    return XL::xl_true;
 }
 
 

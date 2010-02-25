@@ -63,7 +63,10 @@ public slots:
     void draw();
 
 public:
-    typedef XL::Tree Tree;
+    typedef XL::Tree    Tree;
+    typedef XL::Integer Integer;
+    typedef XL::Real    Real;
+    typedef XL::Text    Text;
 
     // XLR entry points
     static Widget *Tao() { return current; }
@@ -118,11 +121,11 @@ public:
     Tree *svg(Tree *self, text t);
     Tree *texCoord(Tree *self, double x, double y);
 
-    Tree *fromCm(Tree *self, double cm);
-    Tree *fromMm(Tree *self, double mm);
-    Tree *fromIn(Tree *self, double in);
-    Tree *fromPt(Tree *self, double pt);
-    Tree *fromPx(Tree *self, double px);
+    Real *fromCm(Tree *self, double cm);
+    Real *fromMm(Tree *self, double mm);
+    Real *fromIn(Tree *self, double in);
+    Real *fromPt(Tree *self, double pt);
+    Real *fromPx(Tree *self, double px);
 
     Tree *font(Tree *self, text family);
     Tree *fontSize(Tree *self, double size);

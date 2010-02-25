@@ -906,48 +906,48 @@ Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
 }
 
 
-Tree *Widget::fromCm(Tree *self, double cm)
+XL::Real *Widget::fromCm(Tree *self, double cm)
 // ----------------------------------------------------------------------------
 //   Convert from cm to pixels
 // ----------------------------------------------------------------------------
 {
-    XL_R_REAL(cm * logicalDpiX() * (1.0 / 2.54));
+    XL_RREAL(cm * logicalDpiX() * (1.0 / 2.54));
 }
 
 
-Tree *Widget::fromMm(Tree *self, double mm)
+XL::Real *Widget::fromMm(Tree *self, double mm)
 // ----------------------------------------------------------------------------
 //   Convert from mm to pixels
 // ----------------------------------------------------------------------------
 {
-    XL_R_REAL(mm * logicalDpiX() * (0.1 / 2.54));
+    XL_RREAL(mm * logicalDpiX() * (0.1 / 2.54));
 }
 
 
-Tree *Widget::fromIn(Tree *self, double in)
+XL::Real *Widget::fromIn(Tree *self, double in)
 // ----------------------------------------------------------------------------
 //   Convert from inch to pixels
 // ----------------------------------------------------------------------------
 {
-    XL_R_REAL(in * logicalDpiX());
+    XL_RREAL(in * logicalDpiX());
 }
 
 
-Tree *Widget::fromPt(Tree *self, double pt)
+XL::Real *Widget::fromPt(Tree *self, double pt)
 // ----------------------------------------------------------------------------
 //   Convert from pt to pixels
 // ----------------------------------------------------------------------------
 {
-    XL_R_REAL(pt * logicalDpiX() * (1.0 / 72.0));
+    XL_RREAL(pt * logicalDpiX() * (1.0 / 72.0));
 }
 
 
-Tree *Widget::fromPx(Tree *self, double px)
+XL::Real *Widget::fromPx(Tree *self, double px)
 // ----------------------------------------------------------------------------
 //   Convert from pixel to pixels (trivial)
 // ----------------------------------------------------------------------------
 {
-    XL_R_REAL(px);
+    XL_RREAL(px);
 }
 
 

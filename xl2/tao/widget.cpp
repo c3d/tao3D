@@ -248,7 +248,7 @@ Tree *Widget::status(Tree *self, text caption)
 {
     Window *window = (Window *) parentWidget();
     window->statusBar()->showMessage(QString::fromStdString(caption));
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -258,7 +258,7 @@ Tree *Widget::rotateX(Tree *self, double rx)
 // ----------------------------------------------------------------------------
 {
     glRotatef(rx, 1.0, 0.0, 0.0);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -268,7 +268,7 @@ Tree *Widget::rotateY(Tree *self, double ry)
 // ----------------------------------------------------------------------------
 {
     glRotatef(ry, 0.0, 1.0, 0.0);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -278,7 +278,7 @@ Tree *Widget::rotateZ(Tree *self, double rz)
 // ----------------------------------------------------------------------------
 {
     glRotatef(rz, 0.0, 0.0, 1.0);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -288,7 +288,7 @@ Tree *Widget::rotate(Tree *self, double rx, double ry, double rz, double ra)
 // ----------------------------------------------------------------------------
 {
     glRotatef(rx, ry, rz, ra);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -298,7 +298,7 @@ Tree *Widget::translateX(Tree *self, double rx)
 // ----------------------------------------------------------------------------
 {
     glTranslatef(rx, 0.0, 0.0);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -308,7 +308,7 @@ Tree *Widget::translateY(Tree *self, double ry)
 // ----------------------------------------------------------------------------
 {
     glTranslatef(0.0, ry, 0.0);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -318,7 +318,7 @@ Tree *Widget::translateZ(Tree *self, double rz)
 // ----------------------------------------------------------------------------
 {
     glTranslatef(0.0, 0.0, rz);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -328,7 +328,7 @@ Tree *Widget::translate(Tree *self, double rx, double ry, double rz)
 // ----------------------------------------------------------------------------
 {
     glTranslatef(rx, ry, rz);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -338,7 +338,7 @@ Tree *Widget::scaleX(Tree *self, double sx)
 // ----------------------------------------------------------------------------
 {
     glScalef(sx, 1.0, 1.0);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -348,7 +348,7 @@ Tree *Widget::scaleY(Tree *self, double sy)
 // ----------------------------------------------------------------------------
 {
     glScalef(1.0, sy, 1.0);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -358,7 +358,7 @@ Tree *Widget::scaleZ(Tree *self, double sz)
 // ----------------------------------------------------------------------------
 {
     glScalef(1.0, 1.0, sz);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -368,7 +368,7 @@ Tree *Widget::scale(Tree *self, double sx, double sy, double sz)
 // ----------------------------------------------------------------------------
 {
     glScalef(sx, sy, sz);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -379,7 +379,7 @@ Tree *Widget::refresh(Tree *self, double delay)
 {
     timer.setSingleShot(true);
     timer.start(1000 * delay);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -404,7 +404,7 @@ Tree *Widget::pagesize(Tree *self, uint w, uint h)
     if (h > height())   h = height();
     state.pageWidth = w;
     state.pageHeight = h;
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -473,7 +473,7 @@ Tree *Widget::filled(Tree *self)
 // ----------------------------------------------------------------------------
 {
     state.polygonMode = GL_POLYGON;
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -483,7 +483,7 @@ Tree *Widget::hollow(Tree *self)
 // ----------------------------------------------------------------------------
 {
     state.polygonMode = GL_LINE_LOOP;
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -493,7 +493,7 @@ Tree *Widget::disconnected(Tree *self)
 // ----------------------------------------------------------------------------
 {
     state.polygonMode = GL_LINE_STRIP;
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -503,7 +503,7 @@ Tree *Widget::linewidth(Tree *self, double lw)
 // ----------------------------------------------------------------------------
 {
     glLineWidth(lw);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -513,7 +513,7 @@ Tree *Widget::color(Tree *self, double r, double g, double b, double a)
 // ----------------------------------------------------------------------------
 {
     glColor4f(r,g,b,a);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -526,7 +526,7 @@ Tree *Widget::polygon(Tree *self, Tree *child)
     glBegin(state.polygonMode);
     xl_evaluate(child);
     glEnd();
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -548,7 +548,7 @@ Tree *Widget::vertex(Tree *self, double x, double y, double z)
         *boundingBox |= dot;
     }
 
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -567,7 +567,7 @@ Tree *Widget::texture(Tree *self, text img)
     if (img == "")
     {
         glDisable(GL_TEXTURE_2D);
-        return NULL;
+        return XL::xl_true;
     }
 
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
@@ -577,7 +577,7 @@ Tree *Widget::texture(Tree *self, text img)
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
     rinfo->bind(img);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -595,7 +595,7 @@ Tree *Widget::svg(Tree *self, text img)
         self->SetInfo<SvgRendererInfo>(rinfo);
     }
     rinfo->bind(img);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -605,7 +605,7 @@ Tree *Widget::texCoord(Tree *self, double x, double y)
 // ----------------------------------------------------------------------------
 {
     glTexCoord2f(x, y);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -623,7 +623,7 @@ Tree *Widget::sphere(Tree *self,
     glRotatef(-90.0, 1.0, 0.0, 0.0);
     gluSphere(q, r, nslices, nstacks);
     glPopMatrix();
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -758,7 +758,7 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
     // DEBUG: draw the bounding box
     debugBoundingBox();
 
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -793,7 +793,7 @@ Tree *Widget::circularSector(Tree *self,
     // DEBUG: draw the bounding box
     debugBoundingBox();
 
-    return NULL;
+    return XL::xl_true;
  }
 
 
@@ -861,7 +861,7 @@ Tree *Widget::roundedRectangle(Tree *self,
     // DEBUG: draw the bounding box
     debugBoundingBox();
 
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -882,7 +882,7 @@ Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
     // DEBUG: draw the bounding box
     debugBoundingBox();
 
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -892,7 +892,8 @@ Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
 //     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    if (p < 2 || q < 1 || q > (p-1)/2) return NULL;
+    if (p < 2 || q < 1 || q > (p-1)/2)
+        return XL::xl_false;
 
     double R_r = cos( q*M_PI/p ) / cos( (q-1)*M_PI/p );
     double R = r * R_r;
@@ -933,7 +934,7 @@ Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
     // DEBUG: draw the bounding box
     debugBoundingBox();
 
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -942,7 +943,7 @@ Tree *Widget::fromCm(Tree *self, double cm)
 //   Convert from cm to pixels
 // ----------------------------------------------------------------------------
 {
-    RREAL(cm * logicalDpiX() * (1.0 / 2.54));
+    XL_R_REAL(cm * logicalDpiX() * (1.0 / 2.54));
 }
 
 
@@ -951,7 +952,7 @@ Tree *Widget::fromMm(Tree *self, double mm)
 //   Convert from mm to pixels
 // ----------------------------------------------------------------------------
 {
-    RREAL(mm * logicalDpiX() * (0.1 / 2.54));
+    XL_R_REAL(mm * logicalDpiX() * (0.1 / 2.54));
 }
 
 
@@ -960,7 +961,7 @@ Tree *Widget::fromIn(Tree *self, double in)
 //   Convert from inch to pixels
 // ----------------------------------------------------------------------------
 {
-    RREAL(in * logicalDpiX());
+    XL_R_REAL(in * logicalDpiX());
 }
 
 
@@ -969,7 +970,7 @@ Tree *Widget::fromPt(Tree *self, double pt)
 //   Convert from pt to pixels
 // ----------------------------------------------------------------------------
 {
-    RREAL(pt * logicalDpiX() * (1.0 / 72.0));
+    XL_R_REAL(pt * logicalDpiX() * (1.0 / 72.0));
 }
 
 
@@ -978,7 +979,7 @@ Tree *Widget::fromPx(Tree *self, double px)
 //   Convert from pixel to pixels (trivial)
 // ----------------------------------------------------------------------------
 {
-    RREAL(px);
+    XL_R_REAL(px);
 }
 
 
@@ -988,7 +989,7 @@ Tree *Widget::font(Tree *self, text description)
 // ----------------------------------------------------------------------------
 {
     state.font.fromString((QString::fromStdString(description)));
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -998,7 +999,7 @@ Tree *Widget::fontSize(Tree *self, double size)
 // ----------------------------------------------------------------------------
 {
     state.font.setPointSizeF(size);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -1008,7 +1009,7 @@ Tree *Widget::fontItalic(Tree *self, bool italic)
 // ----------------------------------------------------------------------------
 {
     state.font.setItalic(italic);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -1018,7 +1019,7 @@ Tree *Widget::fontBold(Tree *self, bool bold)
 // ----------------------------------------------------------------------------
 {
     state.font.setBold(bold);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -1028,7 +1029,7 @@ Tree *Widget::fontUnderline(Tree *self, bool underline)
 // ----------------------------------------------------------------------------
 {
     state.font.setUnderline(underline);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -1038,7 +1039,7 @@ Tree *Widget::fontOverline(Tree *self, bool overline)
 // ----------------------------------------------------------------------------
 {
     state.font.setOverline(overline);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -1048,7 +1049,7 @@ Tree *Widget::fontStrikeout(Tree *self, bool strikeout)
 // ----------------------------------------------------------------------------
 {
     state.font.setStrikeOut(strikeout);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -1058,7 +1059,7 @@ Tree *Widget::textLine(Tree *self, double x, double y, double z, text t)
 // ----------------------------------------------------------------------------
 {
     renderText(x,y,z, QString::fromStdString(t), state.font);
-    return NULL;
+    return XL::xl_true;
 }
 
 
@@ -1109,7 +1110,7 @@ Tree *Widget::textBlock(Tree *self, text content)
     painter.drawEllipse(QRectF(-radius, margin, 2*radius, 2*radius));
     painter.end();
 
-    return NULL;
+    return XL::xl_true;
 }
 
 TAO_END

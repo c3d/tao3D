@@ -24,6 +24,7 @@
 // * Date       : $Date$
 // ****************************************************************************
 
+
 #include "graphics.h"
 #include "opcodes.h"
 #include "options.h"
@@ -52,4 +53,3 @@ void EnterGraphics(XL::Context *c)
 #include "opcodes_define.h"
 #include "graphics.tbl"
 }
-

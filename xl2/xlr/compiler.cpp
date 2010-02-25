@@ -245,7 +245,7 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     xl_same_shape = ExternFunction(FN(xl_same_shape),
                                    boolTy, 2, treePtrTy, treePtrTy);
     xl_infix_match_check = ExternFunction(FN(xl_infix_match_check),
-                                          boolTy, 2, treePtrTy, treePtrTy);
+                                          treePtrTy, 2, treePtrTy, treePtrTy);
     xl_type_check = ExternFunction(FN(xl_type_check),
                                    treePtrTy, 2, treePtrTy, treePtrTy);
     xl_type_error = ExternFunction(FN(xl_type_error),
@@ -1338,8 +1338,10 @@ BasicBlock *CompiledUnit::InfixMatchTest(Tree *actual, Infix *reference)
 
     // Where we go if the tests fail
     BasicBlock *notGood = NeedTest();
-    Value *isGood = code->CreateCall2(compiler->xl_infix_match_check,
-                                      actualVal, refCst);
+    Value *afterExtract = code->CreateCall2(compiler->xl_infix_match_check,
+                                            actualVal, refCst);
+    Constant *null = ConstantPointerNull::get(compiler->treePtrTy);
+    Value *isGood = code->CreateICmpNE(afterExtract, null, "isGoodInfix");
     BasicBlock *isGoodBB = BasicBlock::Create(*context, "isGood", function);
     code->CreateCondBr(isGood, isGoodBB, notGood);
 
@@ -1347,7 +1349,10 @@ BasicBlock *CompiledUnit::InfixMatchTest(Tree *actual, Infix *reference)
     code->SetInsertPoint(isGoodBB);
 
     // We are on the right path: extract left and right
-    Copy(actual, reference);
+    code->CreateStore(afterExtract, refVal);
+    MarkComputed(reference, NULL);
+    MarkComputed(reference->left, NULL);
+    MarkComputed(reference->right, NULL);
     Left(reference);
     Right(reference);
 
@@ -1525,7 +1530,7 @@ void debugm(XL::value_map &m)
     XL::value_map::iterator i;
     llvm::raw_stderr_ostream llvmstderr;
     for (i = m.begin(); i != m.end(); i++)
-        llvmstderr << "map[" << (*i).first << "]=" << *(*i).second << '\n';
+        llvmstderr << "map[" << (*i).first.tree << "]=" << *(*i).second << '\n';
 }
 
 

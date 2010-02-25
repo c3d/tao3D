@@ -68,7 +68,9 @@ void SvgRendererInfo::bind (text file)
     if (r)
     {
         glDisable(GL_TEXTURE_2D);
+#ifdef GL_MULTISAMPLE   // Not supported on Windows
         glDisable(GL_MULTISAMPLE);
+#endif
         glDisable(GL_CULL_FACE);
         PagePainter painter(this);
         r->render(&painter);

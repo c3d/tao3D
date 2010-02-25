@@ -42,6 +42,7 @@ SOURCES     =					\
 	types.cpp				\
         sha1.cpp				\
 	serializer.cpp				\
+        diff.cpp				\
 	opcodes.cpp
 
 PRODUCT=xlr$(EXE)
@@ -49,10 +50,11 @@ PRODUCT=xlr$(EXE)
 include $(BROOT)Makefile.config
 
 LLVM_FLAGS=`llvm-config --cppflags | sed -e s/-DNDEBUG//g`
-LLVM_LIBS=`llvm-config --ldflags --libs core jit native interpreter`
+LLVM_LIBS=`llvm-config --libs core jit native interpreter`
+LLVM_LDFLAGS=`llvm-config --ldflags`
 
 CPPFLAGS+=$(LLVM_FLAGS)
-LDFLAGS=-L/usr/local/lib $(LLVM_LIBS)
+LDFLAGS=-L/usr/local/lib $(LLVM_LIBS) $(LLVM_LDFLAGS)
 
 test: unit_tests xl_tests
 

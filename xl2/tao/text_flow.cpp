@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  textFlow.h                                                       Tao project
+//  text_flow.cpp                                                  Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -17,14 +17,15 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 2010 Catherine Burvelle <catherine@taodyne.com>
+//  (C) 2010 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
+
 #include "tao.h"
-#include "textFlow.h"
+#include "text_flow.h"
 
 
-
-textFlow::textFlow(QTextOption paraOption)
+TextFlow::TextFlow(QTextOption paraOption)
 // ----------------------------------------------------------------------------
 //  Create an empty text flow.
 // ----------------------------------------------------------------------------
@@ -32,7 +33,9 @@ textFlow::textFlow(QTextOption paraOption)
     paragraphOption = paraOption;
 }
 
-textFlow::textFlow(QString pieceOfText, QTextCharFormat aFormat, QTextOption paraOption)
+
+TextFlow::TextFlow(QString pieceOfText,
+                   QTextCharFormat aFormat, QTextOption paraOption)
 // ----------------------------------------------------------------------------
 // Create a text flow with the initial value.
 // ----------------------------------------------------------------------------
@@ -41,28 +44,30 @@ textFlow::textFlow(QString pieceOfText, QTextCharFormat aFormat, QTextOption par
     addText( pieceOfText, aFormat);
 }
 
-int textFlow::addText(QString pieceOfText, QTextCharFormat aFormat)
+
+int TextFlow::addText(QString pieceOfText, QTextCharFormat aFormat)
 // ----------------------------------------------------------------------------
 // Add a piece of text and its associated format to the flow.
 // ----------------------------------------------------------------------------
 {
     QTextLayout::FormatRange range;
-    range.start = 0;
+    range.start = completeText.length();
     range.length = pieceOfText.length();
     range.format = aFormat;
     listOfFormat.append(range);
 
-    completeText.append(pieceOfText);
-    
+    completeText.append(pieceOfText);    
 }
 
- textFlow::~textFlow()
+
+TextFlow::~TextFlow()
 // ----------------------------------------------------------------------------
 //  Destroy the flow.
 // ----------------------------------------------------------------------------
 { }
 
-QString textFlow::getCompleteText()
+
+QString TextFlow::getCompleteText()
 // ----------------------------------------------------------------------------
 //  Return the complete plain text of the flow
 // ----------------------------------------------------------------------------
@@ -70,7 +75,8 @@ QString textFlow::getCompleteText()
     return completeText;
 }
 
-QList<QTextLayout::FormatRange> textFlow::getListOfFormat()
+
+QList<QTextLayout::FormatRange> TextFlow::getListOfFormat()
 // ----------------------------------------------------------------------------
 // Return the list of format associated with the text of this flow.
 // ----------------------------------------------------------------------------
@@ -78,7 +84,8 @@ QList<QTextLayout::FormatRange> textFlow::getListOfFormat()
     return listOfFormat;
 }
 
-QTextOption & textFlow::getParagraphOption()
+
+QTextOption & TextFlow::getParagraphOption()
 // ----------------------------------------------------------------------------
 // Return a reference onto the text option to allow modification.
 // ----------------------------------------------------------------------------

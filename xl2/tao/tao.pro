@@ -38,8 +38,8 @@ linux {
 }
 
 # Input
-HEADERS += widget.h window.h frame.h svg.h texture.h     \
-  utf8.h coords3d.h gl_keepers.h                        \
+HEADERS += widget.h window.h frame.h svg.h texture.h    \
+  utf8.h coords3d.h gl_keepers.h text_flow.h            \
 ../xlr/base.h			../xlr/options.h        \
 ../xlr/basics.h			../xlr/parser.h         \
 ../xlr/compiler.h		../xlr/renderer.h       \
@@ -60,7 +60,7 @@ SOURCES +=                                      \
     frame.cpp                                   \
     svg.cpp                                     \
     texture.cpp                                 \
-    textFlow.cpp                                \
+    text_flow.cpp                               \
     gl_keepers.cpp                              \
     ../xlr/tree.cpp                             \
     ../xlr/sha1.cpp                             \

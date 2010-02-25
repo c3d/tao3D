@@ -1,7 +1,7 @@
 #ifndef TEXTFLOW_H
 #define TEXTFLOW_H
 // ****************************************************************************
-//  textFlow.h                                                       Tao project
+//  text_flow.h                                                     Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -19,31 +19,25 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 2010 Catherine Burvelle <catherine@taodyne.com>
+//  (C) 2010 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-// Include for QString
 #include <QString>
-// Include for QList
 #include <QList>
-// Include for QTextCharFormat
 #include <QTextCharFormat>
-// Include for QTextLayout and QFormatRange
 #include <QTextLayout>
-// Include for QTextOption
 #include <QTextOption>
 
-class textFlow 
+
+struct TextFlow 
 //-----------------------------------------------------------------------------
 // This is the builder of the text
 //-----------------------------------------------------------------------------
 {
-
-
-public:
-    textFlow(QTextOption parOption);
-    textFlow(QString pieceOfText, QTextCharFormat aFormat, QTextOption parOption);
-    ~textFlow();
+    TextFlow(QTextOption parOption);
+    TextFlow(QString pieceOfText, QTextCharFormat format, QTextOption options);
+    ~TextFlow();
     int addText(QString pieceOfText, QTextCharFormat aFormat);
 
     QString getCompleteText();

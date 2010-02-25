@@ -31,7 +31,7 @@
 #include <iostream>
 #include "main.h"
 #include "tao.h"
-#include "textFlow.h"
+#include "text_flow.h"
 
 namespace Tao {
 
@@ -142,7 +142,7 @@ public:
     Tree *fontStretch(Tree *self, int stretch);
 
     Tree *textSpan(Tree *self, text content);
-    Tree *frame(Tree *self, double width, double height, textFlow * content);
+    Tree *frame(Tree *self, double width, double height, TextFlow * content);
 
 public:
     // XL Runtime
@@ -157,7 +157,7 @@ public:
     {
         GLuint          polygonMode;
         GLuint          frameWidth, frameHeight;
-        textFlow     *  mainFlow;
+        TextFlow     *  flow;
         QTextCharFormat charFormat;
         QTextOption     textOptions;
         QPaintDevice *  paintDevice;

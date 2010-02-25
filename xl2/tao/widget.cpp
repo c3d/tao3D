@@ -58,8 +58,6 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 
     // Prepare the timer
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
-
-    state.mainFlow = state.mainFlow = new textFlow(state.textOptions);
 }
 
 
@@ -68,11 +66,6 @@ Widget::~Widget()
 //   Destroy the widget
 // ----------------------------------------------------------------------------
 {
-    if (NULL != state.mainFlow)
-    {
-        delete state.mainFlow;
-        state.mainFlow = NULL;
-    }
 }
 
 
@@ -144,6 +137,7 @@ void Widget::setup(double w, double h)
     state.frameHeight = 128;
     state.charFormat = QTextCharFormat();
     state.paintDevice = this;
+    state.flow = NULL;
 }
 
 
@@ -164,6 +158,8 @@ void Widget::draw()
 
 	// Run the XL program associated with this widget
 	current = this;
+        TextFlow mainFlow(state.textOptions);
+        state.flow = &mainFlow;
 
         try
         {
@@ -1126,22 +1122,20 @@ Tree *Widget::textSpan(Tree *self, text content)
 //   Insert a block of text with the current definition of font, color, ...
 // ----------------------------------------------------------------------------
 {
-    if (NULL == state.mainFlow)
-        state.mainFlow = new textFlow(state.textOptions);
-
-    state.mainFlow->addText(QString::fromStdString(content), state.charFormat);
+    assert(state.flow);
+    state.flow->addText(QString::fromStdString(content), state.charFormat);
 }
 
 
-Tree *Widget::frame(Tree *self, double width, double height, textFlow *content)
+Tree *Widget::frame(Tree *self, double width, double height, TextFlow *content)
 // ----------------------------------------------------------------------------
 //   Insert a block of text
 // ----------------------------------------------------------------------------
 {
     qreal margin = 10, y = 0;
-    QTextLayout textLayout(state.mainFlow->getCompleteText());
-    textLayout.setAdditionalFormats(state.mainFlow->getListOfFormat());
-    textLayout.setTextOption(state.mainFlow->getParagraphOption());
+    QTextLayout textLayout(state.flow->getCompleteText());
+    textLayout.setAdditionalFormats(state.flow->getListOfFormat());
+    textLayout.setTextOption(state.flow->getParagraphOption());
     textLayout.beginLayout();
 
     while (1)

@@ -38,7 +38,7 @@ linux {
 }
 
 # Input
-HEADERS += widget.h window.h page.h svg.h texture.h     \
+HEADERS += widget.h window.h frame.h svg.h texture.h     \
   utf8.h coords3d.h gl_keepers.h                        \
 ../xlr/base.h			../xlr/options.h        \
 ../xlr/basics.h			../xlr/parser.h         \
@@ -57,7 +57,7 @@ SOURCES +=                                      \
     graphics.cpp                                \
     widget.cpp                                  \
     window.cpp                                  \
-    page.cpp                                    \
+    frame.cpp                                   \
     svg.cpp                                     \
     texture.cpp                                 \
     textFlow.cpp                                \

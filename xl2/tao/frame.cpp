@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  page.cpp                                                        XLR project
+//  frame.cpp                                                      Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -20,14 +20,14 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "page.h"
+#include "frame.h"
 #include "gl_keepers.h"
 #include <QtOpenGL>
 
 
 TAO_BEGIN
 
-PageInfo::PageInfo(uint w, uint h)
+FrameInfo::FrameInfo(uint w, uint h)
 // ----------------------------------------------------------------------------
 //   Create the required frame buffer objects
 // ----------------------------------------------------------------------------
@@ -37,7 +37,7 @@ PageInfo::PageInfo(uint w, uint h)
 }
 
 
-PageInfo::~PageInfo()
+FrameInfo::~FrameInfo()
 // ----------------------------------------------------------------------------
 //   Delete the frame buffer object and GL tile
 // ----------------------------------------------------------------------------
@@ -48,7 +48,7 @@ PageInfo::~PageInfo()
 }
 
 
-void PageInfo::resize(uint w, uint h)
+void FrameInfo::resize(uint w, uint h)
 // ----------------------------------------------------------------------------
 //   Change the size of the frame buffer used for rendering
 // ----------------------------------------------------------------------------
@@ -87,14 +87,14 @@ void PageInfo::resize(uint w, uint h)
 }
 
 
-void PageInfo::begin()
+void FrameInfo::begin()
 // ----------------------------------------------------------------------------
 //   Begin rendering in the given off-screen buffer
 // ----------------------------------------------------------------------------
 {
     // Clear the render FBO
     int ok = render_fbo->bind();
-    if (!ok) std::cerr << "PageInfo::begin(): unexpected result\n";
+    if (!ok) std::cerr << "FrameInfo::begin(): unexpected result\n";
     glShowErrors();
 
     glLoadIdentity();
@@ -110,13 +110,13 @@ void PageInfo::begin()
 }
 
 
-void PageInfo::end()
+void FrameInfo::end()
 // ----------------------------------------------------------------------------
 //   Finish rendering in an off-screen buffer
 // ----------------------------------------------------------------------------
 {
     int ok = render_fbo->release();
-    if (!ok) std::cerr << "PageInfo::end(): unexpected result\n";
+    if (!ok) std::cerr << "FrameInfo::end(): unexpected result\n";
     glShowErrors();
 
     // Blit the result in the texture if necessary
@@ -130,7 +130,7 @@ void PageInfo::end()
 }
     
 
-void PageInfo::bind()
+void FrameInfo::bind()
 // ----------------------------------------------------------------------------
 //   Bind the GL texture associated to the off-screen buffer
 // ----------------------------------------------------------------------------
@@ -149,11 +149,11 @@ void PageInfo::bind()
 
 // ============================================================================
 // 
-//   PagePainter
+//   FramePainter
 // 
 // ============================================================================
 
-PagePainter::PagePainter(PageInfo *info)
+FramePainter::FramePainter(FrameInfo *info)
 // ----------------------------------------------------------------------------
 //   Begin drawing in the current context
 // ----------------------------------------------------------------------------
@@ -172,9 +172,9 @@ PagePainter::PagePainter(PageInfo *info)
 }
 
 
-PagePainter::~PagePainter()
+FramePainter::~FramePainter()
 // ----------------------------------------------------------------------------
-//   Finish the drawing on the current page
+//   Finish the drawing on the current frame
 // ----------------------------------------------------------------------------
 {
     end();

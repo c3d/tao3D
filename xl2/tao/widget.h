@@ -155,12 +155,12 @@ public:
     //    State that we need to save
     // ------------------------------------------------------------------------
     {
-        GLuint         polygonMode;
-        GLuint         pageWidth, pageHeight;
-        textFlow     * mainFlow;
+        GLuint          polygonMode;
+        GLuint          frameWidth, frameHeight;
+        textFlow     *  mainFlow;
         QTextCharFormat charFormat;
-        QTextOption    textOptions;
-        QPaintDevice * paintDevice;
+        QTextOption     textOptions;
+        QPaintDevice *  paintDevice;
     } state;
 };
 

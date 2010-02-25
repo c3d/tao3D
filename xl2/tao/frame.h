@@ -1,14 +1,14 @@
-#ifndef PAGE_H
-#define PAGE_H
+#ifndef FRAME_H
+#define FRAME_H
 // ****************************************************************************
-//  page.h                                                          Tao project
+//  frame.h                                                        Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
 //    Off-screen OpenGL rendering to a 2D texture
 //
-//    A 'PageInfo' associates persistent rendering data to a particular tree
+//    A 'FrameInfo' associates persistent rendering data to a particular tree
 //
 //
 //
@@ -30,18 +30,18 @@
 
 TAO_BEGIN
 
-struct PageInfo : XL::Info
+struct FrameInfo : XL::Info
 // ----------------------------------------------------------------------------
-//    Information about a given page being rendered in a dynamic texture
+//    Information about a given frame being rendered in a dynamic texture
 // ----------------------------------------------------------------------------
-//    A PageInfo structure tends to be permanently attached to a tree
+//    A FrameInfo structure tends to be permanently attached to a tree
 //    to record information that we don't want to re-create / destroy
 //    at each and every evaluation of the tree
 {
-    typedef PageInfo *data_t;
+    typedef FrameInfo *data_t;
 
-    PageInfo(uint width = 512, uint height = 512);
-    ~PageInfo();
+    FrameInfo(uint width = 512, uint height = 512);
+    ~FrameInfo();
 
     void resize(uint width, uint height);
     void begin();
@@ -53,18 +53,18 @@ struct PageInfo : XL::Info
 };
 
 
-struct PagePainter : QPainter
+struct FramePainter : QPainter
 // ----------------------------------------------------------------------------
-//   Paint on a given page, given as a PageInfo
+//   Paint on a given frame, given as a FrameInfo
 // ----------------------------------------------------------------------------
-//   A PagePainter structure is a transient rendering mechanism for a PageInfo
+//   A FramePainter structure is a transient rendering mechanism for a FrameInfo
 {
-    PagePainter(PageInfo *info);
-    ~PagePainter();
-    PageInfo *info;
+    FramePainter(FrameInfo *info);
+    ~FramePainter();
+    FrameInfo *info;
     GLStateKeeper save;
 };
 
 TAO_END
 
-#endif // PAGE_H
+#endif // FRAME_H

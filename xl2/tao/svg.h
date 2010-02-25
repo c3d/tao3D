@@ -22,11 +22,11 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "page.h"
+#include "frame.h"
 
 TAO_BEGIN
 
-struct SvgRendererInfo : PageInfo
+struct SvgRendererInfo : FrameInfo
 // ----------------------------------------------------------------------------
 //    Hold information about the SVG renderer for a tree
 // ----------------------------------------------------------------------------

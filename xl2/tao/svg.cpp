@@ -29,7 +29,7 @@ SvgRendererInfo::SvgRendererInfo(QGLWidget *w, uint width, uint height)
 // ----------------------------------------------------------------------------
 //   Create a renderer with the right size
 // ----------------------------------------------------------------------------
-    : PageInfo(width, height), widget(w)
+    : FrameInfo(width, height), widget(w)
 {}
 
 
@@ -72,11 +72,11 @@ void SvgRendererInfo::bind (text file)
         glDisable(GL_MULTISAMPLE);
 #endif
         glDisable(GL_CULL_FACE);
-        PagePainter painter(this);
+        FramePainter painter(this);
         r->render(&painter);
     }
 
-    PageInfo::bind();
+    FrameInfo::bind();
 }
 
 TAO_END

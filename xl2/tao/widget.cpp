@@ -29,7 +29,7 @@
 #include "runtime.h"
 #include "opcodes.h"
 #include "gl_keepers.h"
-#include "page.h"
+#include "frame.h"
 #include "texture.h"
 #include "svg.h"
 #include "window.h"
@@ -140,8 +140,8 @@ void Widget::setup(double w, double h)
 
     // Initial state
     state.polygonMode = GL_POLYGON;
-    state.pageWidth = 128;
-    state.pageHeight = 128;
+    state.frameWidth = 128;
+    state.frameHeight = 128;
     state.charFormat = QTextCharFormat();
     state.paintDevice = this;
 }
@@ -403,23 +403,23 @@ Tree *Widget::pagesize(Tree *self, uint w, uint h)
     // Little practical point in ever creating textures bigger than viewport
     if (w > width())    w = width();
     if (h > height())   h = height();
-    state.pageWidth = w;
-    state.pageHeight = h;
+    state.frameWidth = w;
+    state.frameHeight = h;
     return XL::xl_true;
 }
 
 
 Tree *Widget::page(Tree *self, Tree *p)
 // ----------------------------------------------------------------------------
-//  Evaluate the tree in a page with the given size
+//  Evaluate the tree in a frame with the given size
 // ----------------------------------------------------------------------------
 {
-    uint w = state.pageWidth, h = state.pageHeight;
-    PageInfo *page = self->GetInfo<PageInfo>();
-    if (!page)
+    uint w = state.frameWidth, h = state.frameHeight;
+    FrameInfo *frame = self->GetInfo<FrameInfo>();
+    if (!frame)
     {
-        page = new PageInfo(w,h);
-        self->SetInfo<PageInfo> (page);
+        frame = new FrameInfo(w,h);
+        self->SetInfo<FrameInfo> (frame);
     }
     Tree *result = NULL;
 
@@ -429,18 +429,18 @@ Tree *Widget::page(Tree *self, Tree *p)
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
 
-    page->resize(w,h);
+    frame->resize(w,h);
 
     QPaintDevice *savedPaintDevice = state.paintDevice;
-    page->begin();
+    frame->begin();
     {
         // Clear the background and setup initial state
         setup(w, h);
-        state.paintDevice = page->render_fbo;
+        state.paintDevice = frame->render_fbo;
         result = xl_evaluate(p);
         state.paintDevice = savedPaintDevice;
     }
-    page->end();
+    frame->end();
 
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
@@ -448,7 +448,7 @@ Tree *Widget::page(Tree *self, Tree *p)
     glPopMatrix();
     glPopAttrib();
 
-    page->bind();
+    frame->bind();
 
     return result;
 }

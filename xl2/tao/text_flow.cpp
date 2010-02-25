@@ -25,6 +25,8 @@
 #include "text_flow.h"
 
 
+TAO_BEGIN
+
 TextFlow::TextFlow(QTextOption paraOption)
 // ----------------------------------------------------------------------------
 //  Create an empty text flow.
@@ -93,4 +95,4 @@ QTextOption & TextFlow::getParagraphOption()
     return paragraphOption;
 }
 
-
+TAO_END

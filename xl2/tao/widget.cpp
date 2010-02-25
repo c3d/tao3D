@@ -137,7 +137,6 @@ void Widget::setup(double w, double h)
     state.frameHeight = 128;
     state.charFormat = QTextCharFormat();
     state.paintDevice = this;
-    state.flow = NULL;
 }
 
 
@@ -180,6 +179,7 @@ void Widget::draw()
         }
 
         // Once we are done, do a garbage collection
+        state.flow = NULL;
         XL::Context::context->CollectGarbage();
     }
 }
@@ -1128,39 +1128,119 @@ Tree *Widget::textSpan(Tree *self, text content)
 }
 
 
-Tree *Widget::frame(Tree *self, double width, double height, TextFlow *content)
+Tree *Widget::flow(Tree *self)
+// ----------------------------------------------------------------------------
+//   Create a new text flow
+// ----------------------------------------------------------------------------
+{
+    TextFlow *thisFlow = self->GetInfo<TextFlow>();
+    if (!thisFlow)
+    {
+        thisFlow = new TextFlow(state.textOptions);
+        self->SetInfo<TextFlow> (thisFlow);
+    }
+    state.flow = thisFlow;
+    return XL::xl_true;
+}
+
+
+Tree *Widget::frame(Tree *self,
+                    double cx, double cy, double w, double h,
+                    Tree *flowTree)
 // ----------------------------------------------------------------------------
 //   Insert a block of text
 // ----------------------------------------------------------------------------
 {
-    qreal margin = 10, y = 0;
-    QTextLayout textLayout(state.flow->getCompleteText());
-    textLayout.setAdditionalFormats(state.flow->getListOfFormat());
-    textLayout.setTextOption(state.flow->getParagraphOption());
-    textLayout.beginLayout();
-
-    while (1)
+    // Get or build the current frame if we don't have one
+    FrameInfo *frame = self->GetInfo<FrameInfo>();
+    if (!frame)
     {
-        // Create a new line
-        QTextLine line = textLayout.createLine();
-        if (!line.isValid())
-            break;
-
-        line.setLineWidth(width);
-        line.setPosition(QPoint(0, margin+y));
-        y += line.height();
+        frame = new FrameInfo(w,h);
+        self->SetInfo<FrameInfo> (frame);
     }
 
-    textLayout.endLayout();
+    // Get or build the current layout info if we don't have one
+    Tree *layoutTree = flowTree ? flowTree : self;
+    LayoutInfo *layout = layoutTree->GetInfo<LayoutInfo> ();
+    if (!layout)
+    {
+        layout = new LayoutInfo();
+        layoutTree->SetInfo<LayoutInfo> (layout);
+    }
+    
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
 
-    QPainter painter(state.paintDevice);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.fillRect(rect(), Qt::white);
-//    painter.setBrush(QBrush(Qt::black));
-//    painter.setPen(QPen(Qt::black));
-    textLayout.draw(&painter, QPoint(0,0));
+    frame->resize(w,h);
 
-    painter.end();
+    QPaintDevice *savedPaintDevice = state.paintDevice;
+    frame->begin();
+    {
+        // Clear the background and setup initial state
+        setup(w, h);
+        XL::LocalSave<QPaintDevice *> sv(state.paintDevice, frame->render_fbo);
+
+        qreal margin = 10, y = 0;
+
+        TextFlow *flow = state.flow;
+        if (flowTree)
+        {
+            Tree *result = xl_evaluate(flowTree);
+            TextFlow *givenFlow = flowTree->GetInfo<TextFlow>();
+            if (givenFlow)
+                flow = givenFlow;
+        }
+
+        layout->setText(flow->getCompleteText());
+        layout->setAdditionalFormats(flow->getListOfFormat());
+        layout->setTextOption(flow->getParagraphOption());
+        layout->beginLayout();
+
+        do
+        {
+            // Create a new line
+            QTextLine line = layout->createLine();
+            if (!line.isValid())
+                break;
+            if (line.height() + y >= h)
+                break;
+            line.setLineWidth(w);
+            line.setPosition(QPoint(0, margin+y));
+            y += line.height();
+        } while(y < h);
+
+        layout->endLayout();
+
+        QPainter painter(state.paintDevice);
+        painter.setRenderHint(QPainter::Antialiasing);
+        layout->draw(&painter, QPoint(0,0));
+
+        painter.end();
+    }
+    frame->end();
+
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glPopAttrib();
+
+    frame->bind();
+
+    // Draw a rectangle with the resulting texture
+    glBegin(state.polygonMode);
+    {
+        texVertex(cx-w/2, cy-h/2, 0, 0);
+        texVertex(cx+w/2, cy-h/2, 1, 0);
+        texVertex(cx+w/2, cy+h/2, 1, 1);
+        texVertex(cx-w/2, cy+h/2, 0, 1);
+    }
+    glEnd();
+
+
 
     return XL::xl_true;
 }

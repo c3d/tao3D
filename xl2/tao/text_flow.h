@@ -28,9 +28,11 @@
 #include <QTextCharFormat>
 #include <QTextLayout>
 #include <QTextOption>
+#include "tree.h"
 
+TAO_BEGIN
 
-struct TextFlow 
+struct TextFlow : XL::Info
 //-----------------------------------------------------------------------------
 // This is the builder of the text
 //-----------------------------------------------------------------------------
@@ -49,5 +51,16 @@ private :
     QList<QTextLayout::FormatRange> listOfFormat;
     QTextOption paragraphOption;
 };
+
+
+struct LayoutInfo : XL::Info, QTextLayout
+// ----------------------------------------------------------------------------
+//   Record the current state of the layout for a given flow
+// ----------------------------------------------------------------------------
+{
+    LayoutInfo(): XL::Info(), QTextLayout() {}
+};
+
+TAO_END
 
 #endif // TEXTFLOW_H

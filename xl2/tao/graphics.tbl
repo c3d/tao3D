@@ -126,5 +126,10 @@ PREFIX(FontStretch, tree, "stretch", PARM(stretchFactor, integer),
        RTAO(fontStretch(self, stretchFactor)))
 PREFIX(TextSpan, tree,"text_span", PARM(content, text),
        RTAO(textSpan(self, content)))
-PREFIX(Frame, tree, "frame", PARM(w,real) PARM(h,real), 
-       RTAO(frame(self, w, h, NULL)))
+PREFIX(Frame, tree, "frame",
+       PARM(x,real) PARM(y,real)PARM(w,real) PARM(h,real), 
+       RTAO(frame(self, x, y, w, h, NULL)))
+PREFIX(FrameFlow, tree, "frame",
+       PARM(x,real) PARM(y,real)PARM(w,real) PARM(h,real) PARM(f, tree), 
+       RTAO(frame(self, x, y, w, h, &f)))
+PREFIX(Flow, tree, "flow", , RTAO(flow(self)))

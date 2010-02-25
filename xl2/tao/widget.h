@@ -142,7 +142,8 @@ public:
     Tree *fontStretch(Tree *self, int stretch);
 
     Tree *textSpan(Tree *self, text content);
-    Tree *frame(Tree *self, double width, double height, TextFlow * content);
+    Tree *frame(Tree *self, double x, double y, double w, double h, Tree *f);
+    Tree *flow(Tree *self);
 
 public:
     // XL Runtime

@@ -118,3 +118,13 @@ PREFIX(TextLine, tree, "text_line",
        RTAO(textLine(self, x,y,z,t)))
 PREFIX(TextBlock, tree, "text_block", PARM(content, text),
        RTAO(textBlock(self, content)))
+
+PREFIX(TextAlignment, tree, "text_align", PARM(align, integer), 
+       RTAO(textAlignment(self, align)))
+
+PREFIX(FontStretch, tree, "stretch", PARM(stretchFactor, integer),
+       RTAO(fontStretch(self, stretchFactor)))
+PREFIX(TextSpan, tree,"text_span", PARM(content, text),
+       RTAO(textSpan(self, content)))
+PREFIX(Frame, tree, "frame", PARM(w,real) PARM(h,real), 
+       RTAO(frame(self, w, h, NULL)))

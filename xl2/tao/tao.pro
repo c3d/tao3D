@@ -1,21 +1,11 @@
-#******************************************************************************
+# ******************************************************************************
 # tao.pro                                                           XLR project
-#******************************************************************************
-#
-#  File Description:
-#
-#    Main Qt build file for Tao
-#
-#
-#
-#
-#
-#
-#
-#
-#******************************************************************************
-#This document is released under the GNU General Public License.
-#See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+# ******************************************************************************
+# File Description:
+# Main Qt build file for Tao
+# ******************************************************************************
+# This document is released under the GNU General Public License.
+# See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 # (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 # (C) 2010 Catherine Burvelle <cathy@taodyne.com>
 # (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
@@ -24,16 +14,19 @@
 
 TEMPLATE = app
 TARGET = 
-DEPENDPATH += . ../xlr
-INCLUDEPATH += . ../xlr
-QT += opengl svg
+DEPENDPATH += . \
+    ../xlr
+INCLUDEPATH += . \
+    ../xlr
+QT += opengl \
+    svg
 CONFIG += warn_off
-#CONFIG += release
 
+# CONFIG += release
 # Tell the XLR portion that we are building for Tao
-DEFINES += TAO DEBUG
-
-macx {
+DEFINES += TAO \
+    DEBUG
+macx { 
     DEFINES += CONFIG_MACOSX
     XLRDIR = Contents/MacOS
 }
@@ -67,6 +60,7 @@ SOURCES +=                                      \
     page.cpp                                    \
     svg.cpp                                     \
     texture.cpp                                 \
+    textFlow.cpp                                \
     gl_keepers.cpp                              \
     ../xlr/tree.cpp                             \
     ../xlr/sha1.cpp                             \
@@ -94,11 +88,9 @@ LLVM_INC  = $$system(bash -c \"llvm-config --includedir\")
 LLVM_DEF  = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
 
 INCLUDEPATH *= $$LLVM_INC
-
 DEFAULT_FONT = /Library/Fonts/Arial.ttf
 LIBS += $$LLVM_LIBS
 DEFINES += $$LLVM_DEF
-
 OTHER_FILES += ../xlr/xl.syntax \
     ../xlr/xl.stylesheet \
     ../xlr/short.stylesheet \

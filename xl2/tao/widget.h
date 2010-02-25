@@ -31,6 +31,7 @@
 #include <iostream>
 #include "main.h"
 #include "tao.h"
+#include "coords3d.h"
 
 namespace Tao {
 
@@ -135,10 +136,19 @@ public:
     Tree *textLine(Tree *self, double x, double y, double z, text content);
     Tree *textBlock(Tree *self, text content);
 
+private:
+    void widgetVertex(double x, double y, double tx, double ty);
+    void circularVertex(double cx, double cy, double r,
+                double x, double y,
+                double tx0, double ty0, double tx1, double ty1);
+    void circularSectorN(double cx, double cy, double r,
+                double tx0, double ty0, double tx1, double ty1,
+                int sq, int nq);
+    void debugBoundingBox();
 
 public:
     // XL Runtime
-    XL::SourceFile *  xlProgram;
+    XL::SourceFile   *xlProgram;
     QTimer            timer;
     static Widget    *current;
 
@@ -150,8 +160,10 @@ public:
         GLuint         polygonMode;
         GLuint         pageWidth, pageHeight;
         QFont          font;
-        QPaintDevice * paintDevice;
+        QPaintDevice  *paintDevice;
     } state;
+
+    Box               *boundingBox;
 };
 
 

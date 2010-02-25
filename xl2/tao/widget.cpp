@@ -1146,6 +1146,8 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
         painter.setRenderHint(QPainter::Antialiasing);
         flow->draw(&painter, QPoint(0,0));
         painter.end();
+
+        flow->clear();
     }
     frame->end();
 

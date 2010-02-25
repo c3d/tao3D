@@ -61,4 +61,15 @@ int TextFlow::addText(QString pieceOfText, QTextCharFormat aFormat)
     topLineY = 0;
 }
 
+
+void TextFlow::clear()
+// ----------------------------------------------------------------------------
+//   Discard the contents of a text flow
+// ----------------------------------------------------------------------------
+{
+    completeText = "";
+    formats.clear();
+    topLineY = 0;
+}
+
 TAO_END

@@ -45,6 +45,7 @@ public:
     ~TextFlow();
 
     int                 addText(QString pieceOfText, QTextCharFormat aFormat);
+    void                clear();
 
 public:
     QString             completeText;

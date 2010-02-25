@@ -1,6 +1,20 @@
+Body ->
+    flow
+    font "Times New Roman"
+    font_size 12
+
+Title ->
+    flow
+    font "Arial"
+    font_size 52
+    color 1,0,0,75%
+
+
 locally
     translatez -400
     load "rotating-logo.ddd"
+
+Body
 
 color 0.5*(sin(time) + 1),0,0,1
 font "Times New Roman"
@@ -19,9 +33,19 @@ font "Arial"
 font_size 12
 text "Enables caching of the complete layout information if enable is true; otherwise disables layout caching. Usually QTextLayout throws most of the layouting information away after a call to endLayout() to reduce memory consumption. If you however want to draw the laid out text directly afterwards enabling caching might speed up drawing significantly."
 
-color 1,1,1,1
-rotatez 25*sin(time*0.12)
-frame 0,0,300+300*sin(time),400
+Title
+text "This is a big title!"
+
+locally
+    Body
+    color 1,1,1,1
+    rotatez 25*sin(time*0.12)
+    frame 0,0,300+300*sin(time),400
+
+locally
+    Title
+    frame 0,200, 400, 300
+
 
 refresh 0.02
 

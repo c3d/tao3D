@@ -37,7 +37,7 @@ PREFIX
         500     &
 
 POSTFIX
-        400     ! ? % cm inch mm pt
+        400     ! ? % cm inch mm pt px
 BLOCK
         5       INDENT UNINDENT
         21      '{' '}'

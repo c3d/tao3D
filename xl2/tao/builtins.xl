@@ -1,1 +1,76 @@
-../xlr/builtins.xl
+0! -> 1
+N! -> N * (N-1)!
+
+// If-then-else statement
+if true then TrueBody else FalseBody -> TrueBody
+if false then TrueBody else FalseBody -> FalseBody
+
+if true then TrueBody -> TrueBody
+if false then TrueBody -> false
+
+
+// Graphics stuff
+sphere x:real, y:real, z:real, r:real -> 
+    sphere x,y,z,r,25,25
+
+sphere r:real -> 
+    sphere 0.0, 0.0, 0.0, r
+
+circle r:real ->
+    circle 0.0, 0.0, r
+
+circular_sector r:real, a:real, b:real ->
+    circular_sector 0.0, 0.0, r, a, b
+
+rectangle w:real, h:real ->
+    rectangle 0.0, 0.0, w, h
+
+square t, c:real ->
+    rectangle t, c, c 
+
+square c:real ->
+    rectangle c, c 
+
+rounded_rectangle w:real, h:real, r:real ->
+    rounded_rectangle 0.0, 0.0, w, h, r
+
+regular_star_polygon r:real, p:integer, q:integer ->
+    regular_star_polygon 0.0, 0.0, r, p, q
+
+regular_polygram t -> regular_star_polygon t
+
+regular_polygon t ->
+    regular_star_polygon t, 1
+
+schläfli t, {p:integer} -> regular_polygon t, p
+schläfli t, {p:integer/q:integer} -> regular_star_polygon t, p, q
+
+equilateral_triangle t -> regular_polygon t, 3
+regular_tetragon t -> regular_polygon t, 4
+regular_pentagon t -> regular_polygon t, 5
+regular_hexagon t -> regular_polygon t, 6
+regular_heptagon t -> regular_polygon t, 7
+regular_octagon t -> regular_polygon t, 8
+regular_nonagon t -> regular_polygon t, 9
+regular_decagon t -> regular_polygon t, 10
+regular_hendecagon t -> regular_polygon t, 11
+regular_dodecagon t -> regular_polygon t, 12
+regular_tridecagon t -> regular_polygon t, 13
+regular_tetradecagon t -> regular_polygon t, 14
+regular_pentadecagon t -> regular_polygon t, 15
+regular_hexadecagon t -> regular_polygon t, 16
+regular_heptadecagon t -> regular_polygon t, 17
+regular_octadecagon t -> regular_polygon t, 18
+regular_enneadecagon t -> regular_polygon t, 19
+regular_icosagon t -> regular_polygon t, 20
+
+regular_pentagram t -> regular_star_polygon t, 5, 2
+star t -> regular_star_polygon t, 5, 2
+regular_hexagram t -> regular_star_polygon t, 6, 2
+star_of_david t -> regular_star_polygon t, 6, 2
+regular_heptagram t -> regular_star_polygon t, 7, 2
+star_of_lakshmi t -> regular_star_polygon t, 8, 2
+regular_octagram t -> regular_star_polygon t, 8, 3
+regular_nonagram t -> regular_star_polygon t, 9, 3
+regular_decagram t -> regular_star_polygon t, 10, 3
+

@@ -483,16 +483,6 @@ Tree *Widget::hollow(Tree *self)
 }
 
 
-Tree *Widget::disconnected(Tree *self)
-// ----------------------------------------------------------------------------
-//   Select a polygon mode that creates disconnected lines
-// ----------------------------------------------------------------------------
-{
-    state.polygonMode = GL_LINE_STRIP;
-    return XL::xl_true;
-}
-
-
 Tree *Widget::linewidth(Tree *self, double lw)
 // ----------------------------------------------------------------------------
 //    Select the line width for OpenGL

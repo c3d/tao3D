@@ -15,4 +15,4 @@ rectangle w:real, h:real ->
 
 sphere x:real,y:real,z:real,r:real -> sphere x,y,z,r,25,25
 sphere r:real -> sphere 0.0, 0.0, 0.0, r
-        
+

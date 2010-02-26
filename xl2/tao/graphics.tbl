@@ -62,8 +62,7 @@ PREFIX(ColorRGB, tree, "color", PARM(r, real) PARM(g, real) PARM(b, real),
 
 PREFIX(Filled, tree, "filled", , RTAO(filled(self)))
 PREFIX(Hollow, tree, "hollow", , RTAO(hollow(self)))
-PREFIX(Disconnected, tree, "disconnected", , RTAO(disconnected(self)))
-PREFIX(LineWidth, tree, "linewidth", PARM(lw, real), RTAO(linewidth(self, lw)))
+PREFIX(LineWidth, tree, "line_width", PARM(lw, real), RTAO(linewidth(self, lw)))
 
 PREFIX(Polygon, tree, "polygon", PARM(t, tree), RTAO(polygon(self, &t)))
 

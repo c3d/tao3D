@@ -137,7 +137,8 @@ void Widget::setup(double w, double h)
     state.frameHeight = h;
     state.charFormat = QTextCharFormat();
     state.paintDevice = this;
-    state.textOptions = QTextOption(Qt::AlignCenter);
+    QTextOption tmp(Qt::AlignCenter);
+    state.textOptions = &tmp;
 }
 
 
@@ -158,8 +159,13 @@ void Widget::draw()
 
 	// Run the XL program associated with this widget
 	current = this;
-        TextFlow mainFlow(state.textOptions);
+        TextFlow mainFlow(*state.textOptions);
         state.flow = &mainFlow;
+        state.textOptions = & state.flow->paragraphOption;
+        state.charFormat.setTextOutline(QPen(Qt::black));
+        state.charFormat.setForeground(QBrush(Qt::black));
+        state.charFormat.setBackground(QBrush(QColor(255,255,255,0)));
+
 
         try
         {
@@ -513,8 +519,10 @@ Tree *Widget::color(Tree *self, double r, double g, double b, double a)
     // Set color for text layout
     const double amp=255.9;
     QColor qcolor(floor(amp*r),floor(amp*g),floor(amp*b),floor(amp*a));
-    state.charFormat.setForeground(QBrush(qcolor));
     state.charFormat.setTextOutline(QPen(qcolor));
+    state.charFormat.setForeground(QBrush(qcolor));
+    state.charFormat.setBackground(QBrush(QColor(255,255,255,0)));
+ //   state.charFormat.setTextOutline(QPen(Qt::red));
 
     return XL::xl_true;
 }
@@ -1048,13 +1056,13 @@ Tree *Widget::align(Tree *self, int align)
 //   Set text alignment
 // ----------------------------------------------------------------------------
 {
-    Qt::Alignment old = state.textOptions.alignment();
+    Qt::Alignment old = state.textOptions->alignment();
     if (align & Qt::AlignHorizontal_Mask)
         old &= ~Qt::AlignHorizontal_Mask;
     if (align & Qt::AlignVertical_Mask)
         old &= ~Qt::AlignVertical_Mask;
     align |= old;
-    state.textOptions.setAlignment(Qt::Alignment(align));
+    state.textOptions->setAlignment(Qt::Alignment(align));
     return XL::xl_true;
 }
 
@@ -1077,10 +1085,11 @@ Tree *Widget::flow(Tree *self)
     TextFlow *thisFlow = self->GetInfo<TextFlow>();
     if (!thisFlow)
     {
-        thisFlow = new TextFlow(state.textOptions);
+        thisFlow = new TextFlow(*state.textOptions);
         self->SetInfo<TextFlow> (thisFlow);
     }
     state.flow = thisFlow;
+    state.textOptions = &(state.flow->paragraphOption);
     return XL::xl_true;
 }
 
@@ -1141,7 +1150,10 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
         flow->endLayout();
 
         QPainter painter(state.paintDevice);
-        painter.setRenderHint(QPainter::Antialiasing);
+//       painter.setRenderHint(QPainter::Antialiasing);
+        painter.setRenderHint(QPainter::Antialiasing, false);
+        painter.setRenderHint(QPainter::HighQualityAntialiasing, false);
+        painter.setRenderHint(QPainter::TextAntialiasing, false);
         flow->draw(&painter, QPoint(0,0));
         painter.end();
 

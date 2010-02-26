@@ -7,12 +7,3 @@ if false then TrueBody else FalseBody -> FalseBody
 
 if true then TrueBody -> TrueBody
 if false then TrueBody -> false
-
-
-// Graphics stuff
-rectangle w:real, h:real ->
-    rectangle 0.0, 0.0, w, h
-
-sphere x:real,y:real,z:real,r:real -> sphere x,y,z,r,25,25
-sphere r:real -> sphere 0.0, 0.0, 0.0, r
-        

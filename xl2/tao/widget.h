@@ -32,6 +32,7 @@
 #include "main.h"
 #include "tao.h"
 #include "text_flow.h"
+#include "coords3d.h"
 
 namespace Tao {
 
@@ -98,7 +99,6 @@ public:
     Tree *color(Tree *self, double r, double g, double b, double a);
     Tree *filled(Tree *self);
     Tree *hollow(Tree *self);
-    Tree *disconnected(Tree *self);
     Tree *linewidth(Tree *self, double lw);
 
     Tree *polygon(Tree *self, Tree *t);
@@ -114,7 +114,6 @@ public:
                 double w, double h, double r);
     Tree *rectangle(Tree *self, double cx, double cy, 
                 double w, double h);
-    Tree *regularPolygon(Tree *self, double cx, double cy, double r, int p);
     Tree *regularStarPolygon(Tree *self, double cx, double cy, double r, 
                 int p, int q);
 
@@ -130,6 +129,7 @@ public:
 
     Tree *font(Tree *self, text family);
     Tree *fontSize(Tree *self, double size);
+    Tree *fontPlain(Tree *self);
     Tree *fontItalic(Tree *self, bool=true);
     Tree *fontBold(Tree *self, bool=true);
     Tree *fontUnderline(Tree *self, bool=true);
@@ -144,9 +144,19 @@ public:
     Tree *frameTexture(Tree *self, double w, double h);
     Tree *frame(Tree *self, double x, double y, double w, double h);
 
+private:
+    void widgetVertex(double x, double y, double tx, double ty);
+    void circularVertex(double cx, double cy, double r,
+                double x, double y,
+                double tx0, double ty0, double tx1, double ty1);
+    void circularSectorN(double cx, double cy, double r,
+                double tx0, double ty0, double tx1, double ty1,
+                int sq, int nq);
+    void debugBoundingBox();
+
 public:
     // XL Runtime
-    XL::SourceFile *  xlProgram;
+    XL::SourceFile   *xlProgram;
     QTimer            timer;
     static Widget    *current;
 
@@ -167,6 +177,8 @@ public:
         QTextOption     * textOptions;
         QPaintDevice    * paintDevice;
     } state;
+
+    Box               *boundingBox;
 };
 
 

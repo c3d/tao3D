@@ -62,8 +62,7 @@ PREFIX(ColorRGB, tree, "color", PARM(r, real) PARM(g, real) PARM(b, real),
 
 PREFIX(Filled, tree, "filled", , RTAO(filled(self)))
 PREFIX(Hollow, tree, "hollow", , RTAO(hollow(self)))
-PREFIX(Disconnected, tree, "disconnected", , RTAO(disconnected(self)))
-PREFIX(LineWidth, tree, "linewidth", PARM(lw, real), RTAO(linewidth(self, lw)))
+PREFIX(LineWidth, tree, "line_width", PARM(lw, real), RTAO(linewidth(self, lw)))
 
 PREFIX(Polygon, tree, "polygon", PARM(t, tree), RTAO(polygon(self, &t)))
 
@@ -91,9 +90,6 @@ PREFIX(RoundedRectangle, tree, "rounded_rectangle",
 PREFIX(Rectangle, tree, "rectangle",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real),
        RTAO(rectangle(self, x, y, w, h)))
-PREFIX(RegularPolygon, tree, "regular_polygon",
-       PARM(x, real) PARM(y, real) PARM(r, real) PARM(p, integer),
-       RTAO(regularPolygon(self, x, y, r, p)))
 PREFIX(RegularStarPolygon, tree, "regular_star_polygon",
        PARM(x, real) PARM(y, real) PARM(r, real)
        PARM(p, integer) PARM(q, integer), 
@@ -107,11 +103,17 @@ POSTFIX(FromPx,   real, PARM(x, real), "px", RTAO(fromPx(self, x)))
 
 PREFIX(Font, tree, "font", PARM(f, text), RTAO(font(self, f)))
 PREFIX(FontSize, tree, "font_size", PARM(s, real), RTAO(fontSize(self, s)))
+PREFIX(FontPlain, tree, "plain",, RTAO(fontPlain(self)))
 PREFIX(FontItalic, tree, "italic",, RTAO(fontItalic(self)))
+PREFIX(FontNoItalic, tree, "no_italic",, RTAO(fontItalic(self, false)))
 PREFIX(FontBold, tree, "bold",, RTAO(fontBold(self)))
+PREFIX(FontNoBold, tree, "no_bold",, RTAO(fontBold(self, false)))
 PREFIX(FontUnderline, tree, "underline",, RTAO(fontUnderline(self)))
+PREFIX(FontNoUnderline, tree, "no_underline",, RTAO(fontUnderline(self, false)))
 PREFIX(FontOverline, tree, "overline",, RTAO(fontOverline(self)))
+PREFIX(FontNoOverline, tree, "no_overline",, RTAO(fontOverline(self, false)))
 PREFIX(FontStrikeout, tree, "strikeout",, RTAO(fontStrikeout(self)))
+PREFIX(FontNoStrikeout, tree, "no_strikeout",, RTAO(fontStrikeout(self, false)))
 PREFIX(FontStretch, tree, "stretch", PARM(s,integer),RTAO(fontStretch(self,s)))
 
 PREFIX(TextLeft, tree, "align_left",, RTAO(align(self,Qt::AlignLeft)))

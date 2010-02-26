@@ -20,17 +20,24 @@ color 0.5*(sin(time) + 1),0,0,1
 font "Times New Roman"
 font_size 48
 text "Toto!"
-color 0,1,0,60%
+if time mod 2 < 1 then
+    align_bottom
+    text "Bottom"
+else
+    align_top
+    text "Top"
+
+color 0,1,0,16%
 font_size 24
 text "Il est bo le lavabo."
 italic
 color 0,0,1,1
 text "Bo bo bo bo, il est bo."
 align_center
-align_middle
 
 font "Arial"
-font_size 12
+font_size 12 pt
+plain
 text "Enables caching of the complete layout information if enable is true; otherwise disables layout caching. Usually QTextLayout throws most of the layouting information away after a call to endLayout() to reduce memory consumption. If you however want to draw the laid out text directly afterwards enabling caching might speed up drawing significantly."
 
 Title
@@ -41,11 +48,12 @@ locally
     color 1,1,1,1
     rotatez 25*sin(time*0.12)
     frame 0,0,300+300*sin(time),400
+    color 1,1,0,20%
+    rectangle 0,0,300+300*sin(time),400
 
 locally
     Title
     frame 0,200, 400, 300
 
 
-refresh 0.02
-
+refresh 0.1

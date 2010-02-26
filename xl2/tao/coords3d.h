@@ -33,8 +33,8 @@ TAO_BEGIN
 // 
 // ============================================================================
 
-typedef float coord;            // Coordinate type
-typedef float scale;            // Scale type
+typedef double coord;           // Coordinate type
+typedef double scale;           // Scale type
 struct Point;                   // 2D point
 struct Vector;                  // 2D vector
 struct Point3;                  // 3D point

@@ -90,9 +90,6 @@ PREFIX(RoundedRectangle, tree, "rounded_rectangle",
 PREFIX(Rectangle, tree, "rectangle",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real),
        RTAO(rectangle(self, x, y, w, h)))
-PREFIX(RegularPolygon, tree, "regular_polygon",
-       PARM(x, real) PARM(y, real) PARM(r, real) PARM(p, integer),
-       RTAO(regularPolygon(self, x, y, r, p)))
 PREFIX(RegularStarPolygon, tree, "regular_star_polygon",
        PARM(x, real) PARM(y, real) PARM(r, real)
        PARM(p, integer) PARM(q, integer), 

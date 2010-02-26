@@ -22,7 +22,7 @@
 // ****************************************************************************
 
 #include <QtGui/QImage>
-#include <math.h>
+#include <cmath>
 #include "widget.h"
 #include "tao.h"
 #include "main.h"
@@ -58,6 +58,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 
     // Prepare the timer
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
+
+    // No bounding box to start with
+    boundingBox = NULL;
 }
 
 
@@ -138,6 +141,10 @@ void Widget::setup(double w, double h)
     state.charFormat = QTextCharFormat();
     state.paintDevice = this;
     state.textOptions = QTextOption(Qt::AlignCenter);
+
+    // Initial bounding box
+    delete boundingBox;
+    boundingBox = NULL;
 }
 
 
@@ -529,6 +536,18 @@ Tree *Widget::vertex(Tree *self, double x, double y, double z)
 // ----------------------------------------------------------------------------
 {
     glVertex3f(x, y, z);
+
+    Box dot(x, y, 0, 0); // FIXME: Temporary projection to the plan z=0
+    if (boundingBox == NULL)
+    {
+        boundingBox = new Box();
+        *boundingBox = dot;
+    }
+    else
+    {
+        *boundingBox |= dot;
+    }
+
     return XL::xl_true;
 }
 
@@ -608,34 +627,35 @@ Tree *Widget::sphere(Tree *self,
 }
 
 
-static inline void texVertex(double x, double y, double tx, double ty)
+void Widget::widgetVertex(double x, double y, double tx, double ty)
 // ----------------------------------------------------------------------------
-//   A vertex, including texture coordinate
+//   A vertex, including texture coordinate and bounding box
 // ----------------------------------------------------------------------------
 {
-    glTexCoord2f(tx, ty);
-    glVertex2f(x, y);
+    texCoord(NULL, tx, ty);
+    vertex(NULL, x, y, 0.0);   
 }
 
 
-static inline void circVertex(double cx, double cy, double r,
-                              double x, double y,
-                              double tx0, double ty0, double tx1, double ty1)
+void Widget::circularVertex(double cx, double cy, double r,
+                            double x, double y,
+                            double tx0, double ty0, double tx1, double ty1)
 // ----------------------------------------------------------------------------
 //   A circular vertex, including texture coordinate
 // ----------------------------------------------------------------------------
 //   x range between -1 and 1, y between -1 and 1
 //   cx and cy are the center of the circle, r its radius
 {
-    glTexCoord2f(tx0 + ((x + 1.0) / 2.0 * (tx1 - tx0)),
+    widgetVertex(cx + r * x, 
+                 cy + r * y,
+                 tx0 + ((x + 1.0) / 2.0 * (tx1 - tx0)),
                  ty0 + ((y + 1.0) / 2.0 * (ty1 - ty0)));
-    glVertex2f(cx + r * x, cy + r * y);
 }
 
 
-static inline void circSectorN(double cx, double cy, double r,
-                               double tx0, double ty0, double tx1, double ty1,
-                               int sq, int nq)
+void Widget::circularSectorN(double cx, double cy, double r,
+                            double tx0, double ty0, double tx1, double ty1,
+                            int sq, int nq)
 // ----------------------------------------------------------------------------
 //     Draw a circular sector of N/4th of a circle
 // ----------------------------------------------------------------------------
@@ -665,16 +685,16 @@ static inline void circSectorN(double cx, double cy, double r,
         switch ((sq + q) % 4)
         {
             case 3: 
-                circVertex(cx, cy, r,  y, -x, tx0, ty0, tx1, ty1);
+                circularVertex(cx, cy, r,  y, -x, tx0, ty0, tx1, ty1);
                 break;
             case 2: 
-                circVertex(cx, cy, r, -x, -y, tx0, ty0, tx1, ty1);
+                circularVertex(cx, cy, r, -x, -y, tx0, ty0, tx1, ty1);
                 break;
             case 1: 
-                circVertex(cx, cy, r, -y,  x, tx0, ty0, tx1, ty1);
+                circularVertex(cx, cy, r, -y,  x, tx0, ty0, tx1, ty1);
                 break;
             case 0: 
-                circVertex(cx, cy, r,  x,  y, tx0, ty0, tx1, ty1);
+                circularVertex(cx, cy, r,  x,  y, tx0, ty0, tx1, ty1);
                 break;
         }
         }
@@ -693,19 +713,37 @@ static inline void circSectorN(double cx, double cy, double r,
     switch ((sq + nq) % 4)
     {
         case 3: 
-            circVertex(cx, cy, r,  0, -1, tx0, ty0, tx1, ty1);
+            circularVertex(cx, cy, r,  0, -1, tx0, ty0, tx1, ty1);
             break;
         case 2: 
-            circVertex(cx, cy, r, -1,  0, tx0, ty0, tx1, ty1);
+            circularVertex(cx, cy, r, -1,  0, tx0, ty0, tx1, ty1);
             break;
         case 1: 
-            circVertex(cx, cy, r,  0,  1, tx0, ty0, tx1, ty1);
+            circularVertex(cx, cy, r,  0,  1, tx0, ty0, tx1, ty1);
             break;
         case 0: 
-            circVertex(cx, cy, r,  1,  0, tx0, ty0, tx1, ty1);
+            circularVertex(cx, cy, r,  1,  0, tx0, ty0, tx1, ty1);
             break;
     }
- }
+}
+
+
+void Widget::debugBoundingBox()
+{
+    if (boundingBox == NULL) return;
+
+    // DEBUG: draw the bounding box
+    GLAndWidgetKeeper save(this);
+    //glColor4f(1.0f, 0.0f, 0.0f, 0.8f);
+    glBegin(GL_LINE_LOOP);
+    {
+        glVertex2f(boundingBox->lower.x, boundingBox->lower.y);
+        glVertex2f(boundingBox->upper.x, boundingBox->lower.y);
+        glVertex2f(boundingBox->upper.x, boundingBox->upper.y);
+        glVertex2f(boundingBox->lower.x, boundingBox->upper.y);
+    }
+    glEnd();
+}
 
 
 Tree *Widget::circle(Tree *self, double cx, double cy, double r)
@@ -714,8 +752,11 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
 // ----------------------------------------------------------------------------
 {
     glBegin(state.polygonMode);
-    circSectorN(cx, cy, r, 0, 0, 1, 1, 0, 4);
+    circularSectorN(cx, cy, r, 0, 0, 1, 1, 0, 4);
     glEnd();
+
+    // DEBUG: draw the bounding box
+    debugBoundingBox();
 
     return XL::xl_true;
 }
@@ -745,9 +786,12 @@ Tree *Widget::circularSector(Tree *self,
     int sq = (int(a / 90) % 4);                 // Starting quadrant
 
     glBegin(state.polygonMode);
-    circVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);    // The center
-    circSectorN(cx, cy, r, 0, 0, 1, 1, sq, nq);
+    circularVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);    // The center
+    circularSectorN(cx, cy, r, 0, 0, 1, 1, sq, nq);
     glEnd();
+
+    // DEBUG: draw the bounding box
+    debugBoundingBox();
 
     return XL::xl_true;
  }
@@ -791,28 +835,31 @@ Tree *Widget::roundedRectangle(Tree *self,
 
     glBegin(state.polygonMode);
     {
-        texVertex(x1, y1r, tx1, ty1r);
+        widgetVertex(x1, y1r, tx1, ty1r);
 
-        circSectorN(x1r, y1r, r, tx1d, ty1d, tx1, ty1, 0, 1);
+        circularSectorN(x1r, y1r, r, tx1d, ty1d, tx1, ty1, 0, 1);
 
-        texVertex(x1r, y1, tx1r, ty1);
-        texVertex(x0r, y1, tx0r, ty1);
+        widgetVertex(x1r, y1, tx1r, ty1);
+        widgetVertex(x0r, y1, tx0r, ty1);
     
-        circSectorN(x0r, y1r, r, tx0, ty1d, tx0d, ty1, 1, 1);
+        circularSectorN(x0r, y1r, r, tx0, ty1d, tx0d, ty1, 1, 1);
 
-        texVertex(x0, y1r, tx0, ty1r);
-        texVertex(x0, y0r, tx0, ty0r);
+        widgetVertex(x0, y1r, tx0, ty1r);
+        widgetVertex(x0, y0r, tx0, ty0r);
     
-        circSectorN(x0r, y0r, r, tx0, ty0, tx0d, ty0d, 2, 1);
+        circularSectorN(x0r, y0r, r, tx0, ty0, tx0d, ty0d, 2, 1);
 
-        texVertex(x0r, y0, tx0r, ty0);
-        texVertex(x1r, y0, tx1r, ty0);
+        widgetVertex(x0r, y0, tx0r, ty0);
+        widgetVertex(x1r, y0, tx1r, ty0);
     
-        circSectorN(x1r, y0r, r, tx1d, ty0, tx1, ty0d, 3, 1);
+        circularSectorN(x1r, y0r, r, tx1d, ty0, tx1, ty0d, 3, 1);
    
-        texVertex(x1, y0r, tx1, ty0r);
+        widgetVertex(x1, y0r, tx1, ty0r);
     }
     glEnd();
+
+    // DEBUG: draw the bounding box
+    debugBoundingBox();
 
     return XL::xl_true;
 }
@@ -825,35 +872,16 @@ Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
 {
     glBegin(state.polygonMode);
     {
-        texVertex(cx-w/2, cy-h/2, 0, 0);
-        texVertex(cx+w/2, cy-h/2, 1, 0);
-        texVertex(cx+w/2, cy+h/2, 1, 1);
-        texVertex(cx-w/2, cy+h/2, 0, 1);
+        widgetVertex(cx-w/2, cy-h/2, 0, 0);
+        widgetVertex(cx+w/2, cy-h/2, 1, 0);
+        widgetVertex(cx+w/2, cy+h/2, 1, 1);
+        widgetVertex(cx-w/2, cy+h/2, 0, 1);
     }
     glEnd();
-    return XL::xl_true;
-}
 
+    // DEBUG: draw the bounding box
+    debugBoundingBox();
 
-Tree *Widget::regularPolygon(Tree *self, double cx, double cy, double r, int p)
-// ----------------------------------------------------------------------------
-//     GL regular p-side polygon {p} centered around (cx,cy), radius r
-// ----------------------------------------------------------------------------
-{
-    if (p < 2)
-        return XL::xl_false;
-
-    glBegin(state.polygonMode);
-    {
-        for (int i = 0; i < p; i++)
-        {
-            circVertex(cx, cy, r, 
-                    cos( i * 2*M_PI/p + M_PI_2 + (p+1)%2*M_PI/p), 
-                    sin( i * 2*M_PI/p + M_PI_2 + (p+1)%2*M_PI/p),
-                    0, 0, 1, 1);
-        }
-    }
-    glEnd();
     return XL::xl_true;
 }
 
@@ -867,7 +895,7 @@ Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
     if (p < 2 || q < 1 || q > (p-1)/2)
         return XL::xl_false;
 
-    double R_r = cos( q*M_PI/p ) / cos( (q-1)*M_PI/p);
+    double R_r = cos( q*M_PI/p ) / cos( (q-1)*M_PI/p );
     double R = r * R_r;
 
     GLuint mode = state.polygonMode;
@@ -880,17 +908,17 @@ Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
     {
         if (mode == GL_TRIANGLE_FAN)
         {
-            circVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);    // The center
+            circularVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);    // The center
         }
 
         for (int i = 0; i < p; i++)
         {
-            circVertex(cx, cy, r, 
+            circularVertex(cx, cy, r, 
                     cos( i * 2*M_PI/p + M_PI_2), 
                     sin( i * 2*M_PI/p + M_PI_2),
                     0, 0, 1, 1);
 
-            circVertex(cx, cy, R, 
+            circularVertex(cx, cy, R, 
                     cos( i * 2*M_PI/p + M_PI_2 + M_PI/p), 
                     sin( i * 2*M_PI/p + M_PI_2 + M_PI/p),
                     (1-R_r)/2, (1-R_r)/2, (1+R_r)/2, (1+R_r)/2);
@@ -898,10 +926,14 @@ Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
 
         if (mode == GL_TRIANGLE_FAN)
         {
-            circVertex(cx, cy, r, 0, 1, 0, 0, 1, 1);    // Closing the star
+            circularVertex(cx, cy, r, 0, 1, 0, 0, 1, 1);    // Closing the star
         }
     }
     glEnd();
+
+    // DEBUG: draw the bounding box
+    debugBoundingBox();
+
     return XL::xl_true;
 }
 
@@ -1177,10 +1209,10 @@ Tree *Widget::frame(Tree *self, double x, double y, double w, double h)
     // Draw a rectangle with the resulting texture
     glBegin(state.polygonMode);
     {
-        texVertex(x-w/2, y-h/2, 0, 0);
-        texVertex(x+w/2, y-h/2, 1, 0);
-        texVertex(x+w/2, y+h/2, 1, 1);
-        texVertex(x-w/2, y+h/2, 0, 1);
+        widgetVertex(x-w/2, y-h/2, 0, 0);
+        widgetVertex(x+w/2, y-h/2, 1, 0);
+        widgetVertex(x+w/2, y+h/2, 1, 1);
+        widgetVertex(x-w/2, y+h/2, 0, 1);
     }
     glEnd();
     glPopAttrib();

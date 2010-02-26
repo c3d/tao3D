@@ -32,6 +32,7 @@
 #include "main.h"
 #include "tao.h"
 #include "text_flow.h"
+#include "coords3d.h"
 
 namespace Tao {
 
@@ -113,7 +114,6 @@ public:
                 double w, double h, double r);
     Tree *rectangle(Tree *self, double cx, double cy, 
                 double w, double h);
-    Tree *regularPolygon(Tree *self, double cx, double cy, double r, int p);
     Tree *regularStarPolygon(Tree *self, double cx, double cy, double r, 
                 int p, int q);
 
@@ -144,9 +144,19 @@ public:
     Tree *frameTexture(Tree *self, double w, double h);
     Tree *frame(Tree *self, double x, double y, double w, double h);
 
+private:
+    void widgetVertex(double x, double y, double tx, double ty);
+    void circularVertex(double cx, double cy, double r,
+                double x, double y,
+                double tx0, double ty0, double tx1, double ty1);
+    void circularSectorN(double cx, double cy, double r,
+                double tx0, double ty0, double tx1, double ty1,
+                int sq, int nq);
+    void debugBoundingBox();
+
 public:
     // XL Runtime
-    XL::SourceFile *  xlProgram;
+    XL::SourceFile   *xlProgram;
     QTimer            timer;
     static Widget    *current;
 
@@ -162,6 +172,8 @@ public:
         QTextOption     textOptions;
         QPaintDevice *  paintDevice;
     } state;
+
+    Box               *boundingBox;
 };
 
 

@@ -130,6 +130,7 @@ public:
 
     Tree *font(Tree *self, text family);
     Tree *fontSize(Tree *self, double size);
+    Tree *fontPlain(Tree *self);
     Tree *fontItalic(Tree *self, bool=true);
     Tree *fontBold(Tree *self, bool=true);
     Tree *fontUnderline(Tree *self, bool=true);

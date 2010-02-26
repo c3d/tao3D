@@ -983,6 +983,20 @@ Tree *Widget::fontSize(Tree *self, double size)
 }
 
 
+Tree *Widget::fontPlain(Tree *self)
+// ----------------------------------------------------------------------------
+//   Select whether this is italic or not
+// ----------------------------------------------------------------------------
+{
+    state.charFormat.setFontItalic(false);
+    state.charFormat.setFontWeight(QFont::Normal);
+    state.charFormat.setFontUnderline(false);
+    state.charFormat.setFontOverline(false);
+    state.charFormat.setFontStrikeOut(false);
+    return XL::xl_true;
+}
+
+
 Tree *Widget::fontItalic(Tree *self, bool italic)
 // ----------------------------------------------------------------------------
 //   Select whether this is italic or not

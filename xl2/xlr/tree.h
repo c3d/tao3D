@@ -105,8 +105,6 @@ struct Tree
     {
         assert(k == Kind());
     }
-    Tree (const Tree &o):
-        tag(o.tag), code(o.code), info(o.info ? o.info->Copy() : NULL) {}
     ~Tree();
 
     // Perform recursive actions on a tree
@@ -155,6 +153,10 @@ public:
     ulonglong   tag;                            // Position + kind
     eval_fn     code;                           // Compiled code
     Info *      info;                           // Information for tree
+
+private:
+    Tree (const Tree &o):
+        tag(o.tag), code(NULL), info(NULL) {}
 };
 
 

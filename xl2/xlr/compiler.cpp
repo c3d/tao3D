@@ -92,6 +92,7 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
       xl_new_integer(NULL), xl_new_real(NULL), xl_new_character(NULL),
       xl_new_text(NULL), xl_new_xtext(NULL), xl_new_block(NULL),
       xl_new_prefix(NULL), xl_new_postfix(NULL), xl_new_infix(NULL),
+      xl_debug_code(NULL),
       functions()
 {
     // Initialize native target (new features)
@@ -183,16 +184,16 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     {
         LocalTree (const Tree &o) :
             tag(o.tag), code(o.code), info(o.info) {}
-        ulong    tag;
-        eval_fn  code;
-        Info    *info;
+        ulonglong  tag;
+        eval_fn    code;
+        Info      *info;
     };
     // If this assert fails, you changed struct tree and need to modify here
     XL_CASSERT(sizeof(LocalTree) == sizeof(Tree));
                
     // Create the Tree type
     std::vector<const Type *> treeElements;
-    treeElements.push_back(LLVM_INTTYPE(ulong));           // tag
+    treeElements.push_back(LLVM_INTTYPE(ulonglong));       // tag
     treeElements.push_back(evalFnTy);                      // code
     treeElements.push_back(infoPtrTy);                     // symbols
     treeTy = StructType::get(*context, treeElements);      // struct Tree {}
@@ -204,27 +205,30 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
 
 
     // Create the Integer type
-    std::vector<const Type *> integerElements = treeElements;
-    integerElements.push_back(LLVM_INTTYPE(longlong));  // value
-    integerTreeTy = StructType::get(*context, integerElements);   // struct Integer{}
+    std::vector<const Type *> integerElements;
+    integerElements.push_back(treeTy);                      // Base class
+    integerElements.push_back(LLVM_INTTYPE(((Integer *)0)->value));  // value
+    integerTreeTy = StructType::get(*context, integerElements);   // Integer
     integerTreePtrTy = PointerType::get(integerTreeTy,0); // Integer *
-#define INTEGER_VALUE_INDEX     3
+#define INTEGER_VALUE_INDEX     1
 
     // Create the Real type
-    std::vector<const Type *> realElements = treeElements;
+    std::vector<const Type *> realElements;
+    realElements.push_back(treeTy);
     realElements.push_back(Type::getDoubleTy(*context));  // value
     realTreeTy = StructType::get(*context, realElements); // struct Real{}
     realTreePtrTy = PointerType::get(realTreeTy, 0);      // Real *
-#define REAL_VALUE_INDEX        3
+#define REAL_VALUE_INDEX        1
 
     // Create the Prefix type (which we also use for Infix and Block)
-    std::vector<const Type *> prefixElements = treeElements;
+    std::vector<const Type *> prefixElements;
+    prefixElements.push_back(treeTy);
     prefixElements.push_back(treePtrTy);                // Tree *
     prefixElements.push_back(treePtrTy);                // Tree *
     prefixTreeTy = StructType::get(*context, prefixElements); // struct Prefix
     prefixTreePtrTy = PointerType::get(prefixTreeTy, 0);// Prefix *
-#define LEFT_VALUE_INDEX        3
-#define RIGHT_VALUE_INDEX       4
+#define LEFT_VALUE_INDEX        1
+#define RIGHT_VALUE_INDEX       2
 
     // Record the type names
     module->addTypeName("tree", treeTy);
@@ -271,6 +275,8 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
                                     treePtrTy, 3,treePtrTy,treePtrTy,treePtrTy);
     xl_new_infix = ExternFunction(FN(xl_new_infix),
                                   treePtrTy, 3, treePtrTy,treePtrTy,treePtrTy);
+    xl_debug_code = ExternFunction(FN(xl_debug_code),
+                                   treePtrTy, 1, treePtrTy);
 }
 
 
@@ -1189,7 +1195,7 @@ BasicBlock *CompiledUnit::TagTest(Tree *tree, ulong tagValue)
         Ooops("No value for '$1'", tree);
         return NULL;
     }
-    Value *tagPtr = code->CreateConstGEP2_32(treeValue, 0, 0, "tagPtr");
+    Value *tagPtr = code->CreateConstGEP2_32(treeValue, 0, TAG_INDEX, "tagPtr");
     Value *tag = code->CreateLoad(tagPtr, "tag");
     Value *mask = ConstantInt::get(tag->getType(), Tree::KINDMASK);
     Value *kind = code->CreateAnd(tag, mask, "tagAndMask");

@@ -105,6 +105,8 @@ struct Tree
     {
         assert(k == Kind());
     }
+    Tree (const Tree &o):
+        tag(o.tag), code(o.code), info(o.info ? o.info->Copy() : NULL) {}
     ~Tree();
 
     // Perform recursive actions on a tree
@@ -150,7 +152,7 @@ struct Tree
     void *              operator new(size_t sz);
 
 public:
-    ulong       tag;                            // Position + kind
+    ulonglong   tag;                            // Position + kind
     eval_fn     code;                           // Compiled code
     Info *      info;                           // Information for tree
 };
@@ -312,7 +314,7 @@ struct Integer : Tree
     Integer(longlong i = 0, tree_position pos = NOWHERE):
         Tree(INTEGER, pos), value(i) {}
     Integer(Integer *i): Tree(INTEGER, i), value(i->value) {}
-    longlong            value;
+    longlong        value;
     operator longlong()         { return value; }
 };
 

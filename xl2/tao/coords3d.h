@@ -23,6 +23,7 @@
 // ****************************************************************************
 
 #include "base.h"
+#include "tao.h"
 #include <cmath>
 
 TAO_BEGIN
@@ -523,7 +524,12 @@ struct Box
     }
     coord Width() const      { return upper.x - lower.x; }
     coord Height() const     { return upper.y - lower.y; }
+    coord Left() const       { return lower.x; }
+    coord Right() const      { return upper.x; }
+    coord Top() const        { return upper.y; }
+    coord Bottom() const     { return lower.y; }
 
+public:
     Point lower, upper;
     static const coord inf = 1e32;
 };
@@ -670,7 +676,14 @@ struct Box3
     coord Width() const       { return upper.x - lower.x; }
     coord Height() const      { return upper.y - lower.y; }
     coord Depth() const       { return upper.z - lower.z; }
-            
+    coord Left() const        { return lower.x; }
+    coord Right() const       { return upper.x; }
+    coord Top() const         { return upper.y; }
+    coord Bottom() const      { return lower.y; }
+    coord Front() const       { return upper.z; }
+    coord Back() const        { return lower.z; }
+
+public:
     Point3 lower, upper;
     static const coord inf = 1e33;
 };

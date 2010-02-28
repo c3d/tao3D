@@ -1,7 +1,7 @@
 #ifndef GL_KEEPERS_H
 #define GL_KEEPERS_H
 // ****************************************************************************
-//  gl_state_keepr.h                                                XLR project
+//  gl_state_keepr.h                                                Tao project
 // ****************************************************************************
 //
 //   File Description:

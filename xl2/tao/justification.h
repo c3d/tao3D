@@ -61,20 +61,20 @@ struct Justifier
     ~Justifier() {}
 
     // Add elements to the layout
-    void        AddItem(coord size, Item *item);
+    void        AddItem(coord size, Item item);
     void        AddBreak(coord size);
 
 public:
     // Structure recording an item (NULL = break) and its size / position
     struct JustifierItem
     {
-        JustifierItem(Item *item, coord size):
-            item(item), size(size), position(0) {}
-        bool    IsBreak()       { return item == NULL; }
+        JustifierItem(coord size, Item item):
+            size(size), position(0), item(item) {}
+        bool    IsBreak()       { return item == 0; }
 
-        Item *  item;
         coord   size;
         coord   position;
+        Item    item;
     };
     typedef std::vector<JustifierItem> JustifierItems;
     typedef typename JustifierItems::iterator JustifierItemsIterator;
@@ -107,12 +107,12 @@ public:
 // ============================================================================
 
 template<class Item>
-void Justifier<Item>::AddItem(coord size, Item *item)
+void Justifier<Item>::AddItem(coord size, Item item)
 // ----------------------------------------------------------------------------
 //    Add an item to the layout
 // ----------------------------------------------------------------------------
 {
-    items.push_back(JustifierItem(item, size));
+    items.push_back(JustifierItem(size, item));
     total += size;
 }
 
@@ -123,7 +123,7 @@ void Justifier<Item>::AddBreak(coord size)
 //    Add a break to the layout (identified with NULL pointer)
 // ----------------------------------------------------------------------------
 {
-    items.push_back(JustifierItem(NULL, size));
+    items.push_back(JustifierItem(size, 0));
     total += size;
 }
 
@@ -135,13 +135,13 @@ typename Justifier<Item>::JustifierItems &Justifier<Item>::Compute()
 // ----------------------------------------------------------------------------
 {
     JustifierItemsIterator i;
-    JustifierItemsIterator lastBreak = items.begin();
-    coord               size = 0.0;
-    coord               sizeAtBreak = -1.0;
-    bool                isBreak = false;
-    uint                numBreaks = 0;
-    uint                numNonBreaks = 0;
-    uint                numNonBreaksBeforeLastBreak = 0;
+    JustifierItemsIterator lastBreak                   = items.begin();
+    coord                  size                        = 0.0;
+    coord                  sizeAtBreak                 = -1.0;
+    bool                   isBreak                     = false;
+    uint                   numBreaks                   = 0;
+    uint                   numNonBreaks                = 0;
+    uint                   numNonBreaksBeforeLastBreak = 0;
 
     // Find last break before we reach target size
     for (i = items.begin(); i != items.end(); i++)
@@ -216,4 +216,4 @@ typename Justifier<Item>::JustifierItems &Justifier<Item>::Compute()
 
 TAO_END
 
-#endif // LAYOUT_H
+#endif // JUSTIFICATION_H

@@ -384,7 +384,7 @@ struct Box
 //   A simple 2D box, used most often as a bounding box
 // ----------------------------------------------------------------------------
 {
-    Box(): lower(), upper() {}
+    Box(): lower(inf, inf), upper(-inf, -inf) {}
     Box(const Point &l, const Point &u): lower(l), upper(u) {}
     Box(const Point &l, const Vector &s): lower(l), upper(l+s) {}
     Box(coord x, coord y, coord w, coord h): lower(x, y), upper(x+w, y+h) {}
@@ -525,6 +525,7 @@ struct Box
     coord Height() const     { return upper.y - lower.y; }
 
     Point lower, upper;
+    static const coord inf = 1e32;
 };
 
 
@@ -533,7 +534,7 @@ struct Box3
 //   A simple 3D box, used most often as a bounding box
 // ----------------------------------------------------------------------------
 {
-    Box3(): lower(), upper() {}
+    Box3(): lower(inf, inf, inf), upper(-inf, -inf, -inf) {}
     Box3(const Point3 &l, const Point3 &u): lower(l), upper(u) {}
     Box3(const Point3 &l, const Vector3 &s): lower(l), upper(l+s) {}
     Box3(coord x, coord y, coord z, coord w, coord h, coord d)
@@ -671,6 +672,7 @@ struct Box3
     coord Depth() const       { return upper.z - lower.z; }
             
     Point3 lower, upper;
+    static const coord inf = 1e33;
 };
 
 

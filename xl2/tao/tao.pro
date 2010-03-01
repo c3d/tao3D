@@ -33,9 +33,6 @@ macx {
 win32 {
     DEFINES += CONFIG_MINGW
 }
-linux {
-    DEFINES += CONFIG_LINUX
-}
 linux-g++ {
     DEFINES += CONFIG_LINUX
 }

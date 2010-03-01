@@ -29,9 +29,12 @@ macx {
     DEFINES += CONFIG_MACOSX
     XLRDIR = Contents/MacOS
 }
-
-win32:DEFINES += CONFIG_MINGW
-linux:DEFINES += CONFIG_LINUX
+win32 {
+    DEFINES += CONFIG_MINGW
+}
+linux-g++ {
+    DEFINES += CONFIG_LINUX
+}
 
 # Input
 HEADERS += widget.h \
@@ -100,14 +103,14 @@ INCLUDEPATH *= $$LLVM_INC
 DEFAULT_FONT = /Library/Fonts/Arial.ttf
 LIBS += $$LLVM_LIBS
 DEFINES += $$LLVM_DEF
-OTHER_FILES += ../xlr/xl.syntax \
-    ../xlr/xl.stylesheet \
-    ../xlr/short.stylesheet \
-    ../xlr/html.stylesheet \
-    ../xlr/debug.stylesheet \
-    ../xlr/dbghtml.stylesheet \
-    ../xlr/bytecode.stylesheet \
-    ../xlr/builtins.xl \
+OTHER_FILES += xl.syntax \
+    xl.stylesheet \
+    short.stylesheet \
+    html.stylesheet \
+    debug.stylesheet \
+    dbghtml.stylesheet \
+    bytecode.stylesheet \
+    builtins.xl \
     graphics.tbl
 
 # Copy the support files to the target directory

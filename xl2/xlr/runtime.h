@@ -93,6 +93,8 @@ Tree *xl_load(text name);
 Tree *xl_load_csv(text name);
 Tree *xl_load_tsv(text name);
 
+Tree *xl_debug_code(Tree *input);
+
 XL_END
 
 #endif // RUNTIME_H

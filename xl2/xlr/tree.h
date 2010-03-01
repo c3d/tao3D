@@ -150,9 +150,13 @@ struct Tree
     void *              operator new(size_t sz);
 
 public:
-    ulong       tag;                            // Position + kind
+    ulonglong   tag;                            // Position + kind
     eval_fn     code;                           // Compiled code
     Info *      info;                           // Information for tree
+
+private:
+    Tree (const Tree &o):
+        tag(o.tag), code(NULL), info(NULL) {}
 };
 
 
@@ -312,7 +316,7 @@ struct Integer : Tree
     Integer(longlong i = 0, tree_position pos = NOWHERE):
         Tree(INTEGER, pos), value(i) {}
     Integer(Integer *i): Tree(INTEGER, i), value(i->value) {}
-    longlong            value;
+    longlong        value;
     operator longlong()         { return value; }
 };
 

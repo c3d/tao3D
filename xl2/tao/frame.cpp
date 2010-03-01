@@ -66,6 +66,9 @@ void FrameInfo::resize(uint w, uint h)
     // Select whether we draw directly in texture or blit to it
     // If we can blit, we first draw in a multisample buffer
     // with 4 samples per pixel. This cannot be used directly as texture.
+#ifndef CONFIG_MINGW
+    // FrameBuffer objects don't work well under VMware, although
+    // they seem to work native
     if (QGLFramebufferObject::hasOpenGLFramebufferBlit())
     {
         QGLFramebufferObjectFormat format;
@@ -79,6 +82,7 @@ void FrameInfo::resize(uint w, uint h)
         texture_fbo = new QGLFramebufferObject(w, h);
     }
     else
+#endif // CONFIG_MINGW
     {
         render_fbo = new QGLFramebufferObject(w, h);
         texture_fbo = render_fbo;

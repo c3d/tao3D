@@ -760,4 +760,14 @@ Tree *xl_load_tsv(text name)
     return tree;
 }
 
+
+Tree *xl_debug_code(Tree *input)
+// ----------------------------------------------------------------------------
+//   Called by generated code for debugging purpose
+// ----------------------------------------------------------------------------
+{
+    std::cerr << "DEBUG-CODE: " << input << "\n";
+    return input;
+}
+
 XL_END

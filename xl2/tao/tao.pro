@@ -36,6 +36,9 @@ win32 {
 linux {
     DEFINES += CONFIG_LINUX
 }
+linux-g++ {
+    DEFINES += CONFIG_LINUX
+}
 
 # Input
 HEADERS += widget.h window.h frame.h svg.h texture.h    \

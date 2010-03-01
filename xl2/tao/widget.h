@@ -74,19 +74,8 @@ public:
     static Widget *Tao() { return current; }
     Tree *status(Tree *self, text t);
 
-    Tree *rotateX(Tree *self, double rx);
-    Tree *rotateY(Tree *self, double ry);
-    Tree *rotateZ(Tree *self, double rz);
-    Tree *rotate(Tree *self, double rx, double ry, double rz, double ra);
-
-    Tree *translateX(Tree *self, double x);
-    Tree *translateY(Tree *self, double y);
-    Tree *translateZ(Tree *self, double z);
+    Tree *rotate(Tree *self, double ra, double rx, double ry, double rz);
     Tree *translate(Tree *self, double x, double y, double z);
-
-    Tree *scaleX(Tree *self, double x);
-    Tree *scaleY(Tree *self, double y);
-    Tree *scaleZ(Tree *self, double z);
     Tree *scale(Tree *self, double x, double y, double z);
 
     Tree *locally(Tree *self, Tree *t);
@@ -158,7 +147,6 @@ public:
     // XL Runtime
     XL::SourceFile   *xlProgram;
     QTimer            timer;
-    static Widget    *current;
 
     struct State
     // ------------------------------------------------------------------------
@@ -178,7 +166,7 @@ public:
         QPaintDevice    * paintDevice;
     } state;
 
-    Box               *boundingBox;
+    static Widget    *current;
 };
 
 

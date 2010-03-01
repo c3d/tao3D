@@ -58,9 +58,6 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 
     // Prepare the timer
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
-
-    // No bounding box to start with
-    boundingBox = NULL;
 }
 
 
@@ -142,10 +139,6 @@ void Widget::setup(double w, double h)
     state.charFormat = QTextCharFormat();
     state.paintDevice = this;
     state.textOptions = NULL;
-
-    // Initial bounding box
-    delete boundingBox;
-    boundingBox = NULL;
 }
 
 
@@ -162,7 +155,8 @@ void Widget::draw()
     if (xlProgram)
     {
         // Setup the initial drawing environment
-        setup(width(), height());
+        double w = width(), h = height();
+        setup(w, h);
 
 	// Run the XL program associated with this widget
 	current = this;
@@ -173,7 +167,6 @@ void Widget::draw()
         state.charFormat.setTextOutline(QPen(Qt::black));
         state.charFormat.setForeground(QBrush(Qt::black));
         state.charFormat.setBackground(QBrush(QColor(255,255,255,0)));
-
 
         try
         {
@@ -264,72 +257,12 @@ Tree *Widget::status(Tree *self, text caption)
 }
 
 
-Tree *Widget::rotateX(Tree *self, double rx)
-// ----------------------------------------------------------------------------
-//   Rotation along the X axis
-// ----------------------------------------------------------------------------
-{
-    glRotatef(rx, 1.0, 0.0, 0.0);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::rotateY(Tree *self, double ry)
-// ----------------------------------------------------------------------------
-//    Rotation along the Y axis
-// ----------------------------------------------------------------------------
-{
-    glRotatef(ry, 0.0, 1.0, 0.0);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::rotateZ(Tree *self, double rz)
-// ----------------------------------------------------------------------------
-//    Rotation along the Z axis
-// ----------------------------------------------------------------------------
-{
-    glRotatef(rz, 0.0, 0.0, 1.0);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::rotate(Tree *self, double rx, double ry, double rz, double ra)
+Tree *Widget::rotate(Tree *self, double ra, double rx, double ry, double rz)
 // ----------------------------------------------------------------------------
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
 {
-    glRotatef(rx, ry, rz, ra);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::translateX(Tree *self, double rx)
-// ----------------------------------------------------------------------------
-//    Translation along the X axis
-// ----------------------------------------------------------------------------
-{
-    glTranslatef(rx, 0.0, 0.0);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::translateY(Tree *self, double ry)
-// ----------------------------------------------------------------------------
-//     Translation along the Y axis
-// ----------------------------------------------------------------------------
-{
-    glTranslatef(0.0, ry, 0.0);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::translateZ(Tree *self, double rz)
-// ----------------------------------------------------------------------------
-//     Translation along the Z axis
-// ----------------------------------------------------------------------------
-{
-    glTranslatef(0.0, 0.0, rz);
+    glRotatef(ra, rx, ry, rz);
     return XL::xl_true;
 }
 
@@ -340,36 +273,6 @@ Tree *Widget::translate(Tree *self, double rx, double ry, double rz)
 // ----------------------------------------------------------------------------
 {
     glTranslatef(rx, ry, rz);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::scaleX(Tree *self, double sx)
-// ----------------------------------------------------------------------------
-//    Scaling along the X axis
-// ----------------------------------------------------------------------------
-{
-    glScalef(sx, 1.0, 1.0);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::scaleY(Tree *self, double sy)
-// ----------------------------------------------------------------------------
-//     Scaling along the Y axis
-// ----------------------------------------------------------------------------
-{
-    glScalef(1.0, sy, 1.0);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::scaleZ(Tree *self, double sz)
-// ----------------------------------------------------------------------------
-//     Scaling along the Z axis
-// ----------------------------------------------------------------------------
-{
-    glScalef(1.0, 1.0, sz);
     return XL::xl_true;
 }
 
@@ -520,7 +423,6 @@ Tree *Widget::color(Tree *self, double r, double g, double b, double a)
     state.charFormat.setTextOutline(QPen(qcolor));
     state.charFormat.setForeground(QBrush(qcolor));
     state.charFormat.setBackground(QBrush(QColor(255,255,255,0)));
- //   state.charFormat.setTextOutline(QPen(Qt::red));
 
     return XL::xl_true;
 }
@@ -545,18 +447,6 @@ Tree *Widget::vertex(Tree *self, double x, double y, double z)
 // ----------------------------------------------------------------------------
 {
     glVertex3f(x, y, z);
-
-    Box dot(x, y, 0, 0); // FIXME: Temporary projection to the plan z=0
-    if (boundingBox == NULL)
-    {
-        boundingBox = new Box();
-        *boundingBox = dot;
-    }
-    else
-    {
-        *boundingBox |= dot;
-    }
-
     return XL::xl_true;
 }
 
@@ -638,7 +528,7 @@ Tree *Widget::sphere(Tree *self,
 
 void Widget::widgetVertex(double x, double y, double tx, double ty)
 // ----------------------------------------------------------------------------
-//   A vertex, including texture coordinate and bounding box
+//   A vertex, including texture coordinate
 // ----------------------------------------------------------------------------
 {
     texCoord(NULL, tx, ty);
@@ -737,24 +627,6 @@ void Widget::circularSectorN(double cx, double cy, double r,
 }
 
 
-void Widget::debugBoundingBox()
-{
-    if (boundingBox == NULL) return;
-
-    // DEBUG: draw the bounding box
-    GLAndWidgetKeeper save(this);
-    //glColor4f(1.0f, 0.0f, 0.0f, 0.8f);
-    glBegin(GL_LINE_LOOP);
-    {
-        glVertex2f(boundingBox->lower.x, boundingBox->lower.y);
-        glVertex2f(boundingBox->upper.x, boundingBox->lower.y);
-        glVertex2f(boundingBox->upper.x, boundingBox->upper.y);
-        glVertex2f(boundingBox->lower.x, boundingBox->upper.y);
-    }
-    glEnd();
-}
-
-
 Tree *Widget::circle(Tree *self, double cx, double cy, double r)
 // ----------------------------------------------------------------------------
 //     GL circle centered around (cx,cy), radius r
@@ -763,9 +635,6 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
     glBegin(state.polygonMode);
     circularSectorN(cx, cy, r, 0, 0, 1, 1, 0, 4);
     glEnd();
-
-    // DEBUG: draw the bounding box
-    debugBoundingBox();
 
     return XL::xl_true;
 }
@@ -798,9 +667,6 @@ Tree *Widget::circularSector(Tree *self,
     circularVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);    // The center
     circularSectorN(cx, cy, r, 0, 0, 1, 1, sq, nq);
     glEnd();
-
-    // DEBUG: draw the bounding box
-    debugBoundingBox();
 
     return XL::xl_true;
  }
@@ -867,9 +733,6 @@ Tree *Widget::roundedRectangle(Tree *self,
     }
     glEnd();
 
-    // DEBUG: draw the bounding box
-    debugBoundingBox();
-
     return XL::xl_true;
 }
 
@@ -887,9 +750,6 @@ Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
         widgetVertex(cx-w/2, cy+h/2, 0, 1);
     }
     glEnd();
-
-    // DEBUG: draw the bounding box
-    debugBoundingBox();
 
     return XL::xl_true;
 }
@@ -939,9 +799,6 @@ Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
         }
     }
     glEnd();
-
-    // DEBUG: draw the bounding box
-    debugBoundingBox();
 
     return XL::xl_true;
 }

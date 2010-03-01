@@ -23,23 +23,23 @@
 
 PREFIX(Caption, tree, "status", PARM(t, text), RTAO(status(self, t)))
 
-PREFIX(RotateX, tree, "rotatex", PARM(rx, real), RTAO(rotateX(self, rx)))
-PREFIX(RotateY, tree, "rotatey", PARM(ry, real), RTAO(rotateY(self, ry)))
-PREFIX(RotateZ, tree, "rotatez", PARM(rz, real), RTAO(rotateZ(self, rz)))
+PREFIX(RotateX, tree, "rotatex", PARM(rx, real), RTAO(rotate(self, rx,1,0,0)))
+PREFIX(RotateY, tree, "rotatey", PARM(ry, real), RTAO(rotate(self, ry,0,1,0)))
+PREFIX(RotateZ, tree, "rotatez", PARM(rz, real), RTAO(rotate(self, rz,0,0,1)))
 PREFIX(Rotate, tree, "rotate",
        PARM(ra, real) PARM(rx, real) PARM(ry, real) PARM(rz, real),
        RTAO(rotate(self, ra, rx, ry, rz)))
 
-PREFIX(TranslateX, tree, "translatex", PARM(x, real), RTAO(translateX(self, x)))
-PREFIX(TranslateY, tree, "translatey", PARM(y, real), RTAO(translateY(self, y)))
-PREFIX(TranslateZ, tree, "translatez", PARM(z, real), RTAO(translateZ(self, z)))
+PREFIX(TransX, tree, "translatex", PARM(x, real), RTAO(translate(self, x,0,0)))
+PREFIX(TransY, tree, "translatey", PARM(y, real), RTAO(translate(self, 0,y,0)))
+PREFIX(TransZ, tree, "translatez", PARM(z, real), RTAO(translate(self, 0,0,z)))
 PREFIX(Translate, tree, "translate",
        PARM(x, real) PARM(y, real) PARM(z, real),
        RTAO(translate(self, x, y, z)))
 
-PREFIX(ScaleX, tree, "scalex", PARM(x, real), RTAO(scaleX(self, x)))
-PREFIX(ScaleY, tree, "scaley", PARM(y, real), RTAO(scaleY(self, y)))
-PREFIX(ScaleZ, tree, "scalez", PARM(z, real), RTAO(scaleZ(self, z)))
+PREFIX(ScaleX, tree, "scalex", PARM(x, real), RTAO(scale(self, x,1,1)))
+PREFIX(ScaleY, tree, "scaley", PARM(y, real), RTAO(scale(self, 1,y,1)))
+PREFIX(ScaleZ, tree, "scalez", PARM(z, real), RTAO(scale(self, 1,1,z)))
 PREFIX(Scale, tree, "scale",
        PARM(x, real) PARM(y, real) PARM(z, real),
        RTAO(scale(self, x, y, z)))

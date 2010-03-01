@@ -24,4 +24,4 @@ star_of_david -200,-300,80
 regular_heptagram 0,-300,80
 regular_polygram 200,-300,80,7,3
 //regular_star_polygon 400,-300,80, 17, 6
-schlaefli {17/6}, 400, -300, 80
+schläfli 400, -300, 80, {17/6}

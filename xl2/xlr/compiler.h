@@ -53,6 +53,7 @@ struct CompiledUnit;
 struct Options;
 typedef std::map<text, llvm::Function *>   builtins_map;
 typedef std::map<Tree *, llvm::Value *>    value_map;
+typedef std::map<TreeRoot, llvm::Value *>  globals_map;
 typedef std::map<Tree *, llvm::Function *> function_map;
 typedef std::map<uint, eval_fn>            closure_map;
 typedef std::set<Tree *>                   closure_set;
@@ -124,7 +125,7 @@ public:
     llvm::Function            *xl_debug_code;
     builtins_map               builtins;
     function_map               functions;
-    value_map                  globals;
+    globals_map                globals;
     closure_map                closures;
     closure_set                closet;
     deleted_set                deleted;

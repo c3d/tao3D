@@ -29,6 +29,7 @@ macx {
     DEFINES += CONFIG_MACOSX
     XLRDIR = Contents/MacOS
 }
+
 win32:DEFINES += CONFIG_MINGW
 linux:DEFINES += CONFIG_LINUX
 

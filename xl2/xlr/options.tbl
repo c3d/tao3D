@@ -32,6 +32,12 @@
 // matching option is considered good, so short options should be first
 
 
+// ============================================================================
+// 
+//    XLR options
+// 
+// ============================================================================
+
 // Getting help on options
 OPTION(help, "List usage information", Usage(argv))
 
@@ -88,6 +94,20 @@ OPTION(v, "Short form for -verbose.", verbose = true)
 // Output file
 OPTVAR(output_file, std::string, "")
 OPTION(o, "Select output file", output_file = STRING)
+
+
+
+#ifdef TAO
+// ============================================================================
+// 
+//   Tao options
+// 
+// ============================================================================
+
+OPTVAR(prefer_opengl, bool, false)
+OPTION(gl, "Prefer OpenGL for rendering", prefer_opengl = true)
+
+#endif // TAO
 
 // Traces. The first ones must match the MzTrace definition in base.h
 // We use lower-case names here to avoid duplicate definition and be able

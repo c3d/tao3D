@@ -141,8 +141,7 @@ void Widget::setup(double w, double h)
     state.frameHeight = h;
     state.charFormat = QTextCharFormat();
     state.paintDevice = this;
-    QTextOption tmp(Qt::AlignCenter);
-    state.textOptions = &tmp;
+    state.textOptions = NULL;
 
     // Initial bounding box
     delete boundingBox;
@@ -1126,6 +1125,7 @@ Tree *Widget::flow(Tree *self)
         self->SetInfo<TextFlow> (thisFlow);
     }
     state.flow = thisFlow;
+    thisFlow->clear();
     state.textOptions = &(state.flow->paragraphOption);
     return XL::xl_true;
 }
@@ -1174,8 +1174,6 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
             // Create a new line
             QTextLine line = flow->createLine();
             if (!line.isValid())
-                break;
-            if (lineHeight + lineY - topY >= h)
                 break;
             line.setLineWidth(w);
             line.setPosition(QPoint(0, lineY - topY));

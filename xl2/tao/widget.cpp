@@ -133,6 +133,7 @@ void Widget::setup(double w, double h)
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_DEPTH_TEST);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glDisable(GL_TEXTURE_2D);
 
     // Initial state
     state.polygonMode = GL_POLYGON;

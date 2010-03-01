@@ -166,7 +166,8 @@ void Widget::draw()
 
 	// Run the XL program associated with this widget
 	current = this;
-        TextFlow mainFlow(*state.textOptions);
+        QTextOption alignCenter(Qt::AlignCenter);
+        TextFlow mainFlow(alignCenter);
         state.flow = &mainFlow;
         state.textOptions = & state.flow->paragraphOption;
         state.charFormat.setTextOutline(QPen(Qt::black));

@@ -22,7 +22,8 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "coord3d.h"
+#include "coords.h"
+#include "tao.h"
 
 TAO_BEGIN
 

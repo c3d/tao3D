@@ -165,12 +165,17 @@ public:
     //    State that we need to save
     // ------------------------------------------------------------------------
     {
-        GLuint          polygonMode;
-        GLuint          frameWidth, frameHeight;
-        TextFlow     *  flow;
-        QTextCharFormat charFormat;
-        QTextOption     textOptions;
-        QPaintDevice *  paintDevice;
+        GLuint            polygonMode;
+        GLuint            frameWidth, frameHeight;
+        TextFlow        * flow;
+        // charFormat is the current character formating info that will be
+        //   given to the next text creation.
+        QTextCharFormat   charFormat;
+        // textOptions is a pointer to flow.paragraphOptions. It allows to
+        //   start a new flow with the paragraph option values of the previous
+        //   one as default ones.
+        QTextOption     * textOptions;
+        QPaintDevice    * paintDevice;
     } state;
 
     Box               *boundingBox;

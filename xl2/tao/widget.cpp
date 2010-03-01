@@ -1126,7 +1126,6 @@ Tree *Widget::flow(Tree *self)
         self->SetInfo<TextFlow> (thisFlow);
     }
     state.flow = thisFlow;
-    thisFlow->clear();
     state.textOptions = &(state.flow->paragraphOption);
     return XL::xl_true;
 }

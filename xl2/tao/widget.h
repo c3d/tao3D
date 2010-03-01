@@ -141,7 +141,6 @@ private:
     void circularSectorN(double cx, double cy, double r,
                 double tx0, double ty0, double tx1, double ty1,
                 int sq, int nq);
-    void debugBoundingBox();
 
 public:
     // XL Runtime

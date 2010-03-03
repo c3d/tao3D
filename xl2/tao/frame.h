@@ -6,9 +6,10 @@
 //
 //   File Description:
 //
-//    Off-screen OpenGL rendering to a 2D texture
+//     Frames are 2D drawing surfaces, most often rectangular
+//     Frames can be placed in other frames in a hierarchy.
 //
-//    A 'FrameInfo' associates persistent rendering data to a particular tree
+//
 //
 //
 //
@@ -26,9 +27,44 @@
 #include "gl_keepers.h"
 #include <map>
 #include <QtOpenGL>
+#include <cairo.h>
+#include <cairo-gl.h>
 
 
 TAO_BEGIN
+
+struct Frame : XL::Info
+// ----------------------------------------------------------------------------
+//   A 2D (rectangular) drawing structure
+// ----------------------------------------------------------------------------
+{
+    Frame(uint width, uint height);
+    ~Frame();
+
+    // Drawing
+    void             Color(double red, double grn, double blu, double alpha=1);
+    void             Clear();
+    void             MoveTo(double x, double y);
+    void             Font(text s);
+    void             FontSize(double s);
+    void             Text(text s);
+    void             Rectangle(double x, double y, double w, double h);
+
+    // Bind to a GL texture
+    void             Bind();
+    void             Paint(double x, double y, double w, double h);
+
+private:
+    uint             width, height;
+    byte            *data;
+    cairo_surface_t *surface;
+    cairo_t         *context;
+    GLuint           textureId;
+
+    // Can't copy
+    Frame(const Frame &o) {}
+};
+
 
 struct FrameInfo : XL::Info
 // ----------------------------------------------------------------------------

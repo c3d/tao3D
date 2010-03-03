@@ -84,12 +84,21 @@ SOURCES +=                                      \
     ../xlr/basics.cpp
 RESOURCES += tao.qrc
 
+# Cairo
+CAIRO_PREFIX=/usr/local
+CAIRO_INC=/usr/local/include/cairo
+CAIRO_LIBS=-L/usr/local/lib -lcairo
+
+INCLUDEPATH += $$CAIRO_INC
+LIBS += $$CAIRO_LIBS
+
+
 # LLVM dependencies
 LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\")
 LLVM_LIBS += $$system(bash -c \"llvm-config --ldflags\")
 LLVM_INC = $$system(bash -c \"llvm-config --includedir\")
 LLVM_DEF = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
-INCLUDEPATH *= $$LLVM_INC
+INCLUDEPATH += $$LLVM_INC
 DEFAULT_FONT = /Library/Fonts/Arial.ttf
 LIBS += $$LLVM_LIBS
 DEFINES += $$LLVM_DEF

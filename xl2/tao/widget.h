@@ -34,9 +34,11 @@
 #include "text_flow.h"
 #include "coords3d.h"
 
+
 namespace Tao {
 
 struct Window;
+struct Frame;
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -131,11 +133,14 @@ public:
 
     Tree *flow(Tree *self);
     Tree *frameTexture(Tree *self, double w, double h);
-    Tree *frame(Tree *self, double x, double y, double w, double h);
+    Tree *framePaint(Tree *self, double x, double y, double w, double h);
 
     Tree *qtrectangle(Tree *self, double x, double y, double w, double h);
     Tree *qttext(Tree *self, double x, double y, text s);
 
+    Tree *KmoveTo(Tree *self, double x, double y);
+    Tree *Ktext(Tree *self, text s);
+    Tree *Krectangle(Tree *self, double x, double y, double w, double h);
 
 private:
     void widgetVertex(double x, double y, double tx, double ty);
@@ -150,6 +155,7 @@ public:
     // XL Runtime
     XL::SourceFile   *xlProgram;
     QTimer            timer;
+    Frame *           frame;
 
     struct State
     // ------------------------------------------------------------------------

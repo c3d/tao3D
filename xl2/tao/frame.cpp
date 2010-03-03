@@ -22,10 +22,162 @@
 
 #include "frame.h"
 #include "gl_keepers.h"
+#include "widget.h"
 #include <QtOpenGL>
+#include <cairo.h>
 
 
 TAO_BEGIN
+
+Frame::Frame(uint width, uint height)
+// ----------------------------------------------------------------------------
+//    Create a frame of the given size
+// ----------------------------------------------------------------------------
+    : width(width), height(height),
+      surface(NULL), data(NULL), context(NULL),
+      textureId(0)
+{
+    uint channels = 4;
+    uint stride = channels * width;
+    data = new byte[width * height * channels];
+    surface = cairo_image_surface_create_for_data(data, CAIRO_FORMAT_ARGB32,
+                                                  width, height, stride);
+    if (cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS)
+        throw &surface;
+
+    context = cairo_create(surface);
+    if (cairo_status(context) != CAIRO_STATUS_SUCCESS)
+        throw &context;
+
+    // Set some initial parameters
+    cairo_set_operator(context, CAIRO_OPERATOR_OVER);
+    cairo_set_source_rgba(context, 0, 0, 0, 0);
+    cairo_paint(context);
+
+    // Generate the GL texture
+    glGenTextures(1, &textureId);
+}
+
+
+Frame::~Frame()
+// ----------------------------------------------------------------------------
+//   Delete the Cairo resources
+// ----------------------------------------------------------------------------
+{
+    glDeleteTextures(1, &textureId);
+
+    if (context)
+        cairo_destroy(context);
+    if (surface)
+        cairo_surface_destroy(surface);
+    if (data)
+        delete[] data;    
+}
+
+
+void Frame::Color (double red, double green, double blue, double alpha)
+// ----------------------------------------------------------------------------
+//    Select the color for the current context
+// ----------------------------------------------------------------------------
+{
+    cairo_set_source_rgba(context, red, green, blue, alpha);
+}
+    
+
+
+void Frame::Clear()
+// ----------------------------------------------------------------------------
+//    Paint the entire surface with a uniform color
+// ----------------------------------------------------------------------------
+{
+    cairo_paint(context);
+}
+
+
+void Frame::MoveTo(double x, double y)
+// ----------------------------------------------------------------------------
+//   Move the cursor to the given Cairo coordinates
+// ----------------------------------------------------------------------------
+{
+    cairo_move_to(context, x, y);
+}
+
+
+void Frame::Font(text s)
+// ----------------------------------------------------------------------------
+//   Select a given font name
+// ----------------------------------------------------------------------------
+{
+    cairo_select_font_face(context, s.c_str(),
+                           CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+}
+
+
+void Frame::FontSize(double s)
+// ----------------------------------------------------------------------------
+//    Set the font size
+// ----------------------------------------------------------------------------
+{
+    cairo_set_font_size(context, s);
+}
+
+
+void Frame::Text(text s)
+// ----------------------------------------------------------------------------
+//   Show the given text on the context
+// ----------------------------------------------------------------------------
+{
+    cairo_show_text(context, s.c_str());
+}
+
+
+void Frame::Rectangle(double x, double y, double w, double h)
+// ----------------------------------------------------------------------------
+//   Paint a rectangle using Cairo
+// ----------------------------------------------------------------------------
+{
+    cairo_rectangle(context, x, y, w, h);
+}
+
+
+void Frame::Bind()
+// ----------------------------------------------------------------------------
+//    Bind to the GL texture
+// ----------------------------------------------------------------------------
+{
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D,
+                 0, GL_RGBA, width, height, 0,
+                 GL_RGBA, GL_UNSIGNED_BYTE, data);
+}
+
+
+void Frame::Paint(double x, double y, double w, double h)
+// ----------------------------------------------------------------------------
+//    Paint the resulting texture over the given rectangle
+// ----------------------------------------------------------------------------
+{
+    Bind();
+    glColor4f(1,1,1,1);
+    glBegin(GL_QUADS);
+    {
+        glVertex2f(x,   y);
+        glVertex2f(x+w, y);
+        glVertex2f(x+w, y+h);
+        glVertex2f(x,   y+h);
+    }
+    glEnd();
+}
+
+
+
+// ============================================================================
+// 
+//   FrameInfo class
+// 
+// ============================================================================
 
 FrameInfo::FrameInfo(uint w, uint h)
 // ----------------------------------------------------------------------------

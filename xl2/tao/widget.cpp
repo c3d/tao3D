@@ -51,7 +51,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf), timer(this)
+      xlProgram(sf), timer(this), frame(NULL)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -166,6 +166,9 @@ void Widget::draw()
         TextFlow mainFlow(alignCenter);
         XL::LocalSave<TextFlow *> saveFlow(state.flow, &mainFlow);
 
+        Frame mainFrame(w, h);
+        XL::LocalSave<Frame *> saveFrame (frame, &mainFrame);
+
         state.textOptions = & state.flow->paragraphOption;
         state.charFormat.setTextOutline(QPen(Qt::black));
         state.charFormat.setForeground(QBrush(Qt::black));
@@ -189,6 +192,9 @@ void Widget::draw()
             QMessageBox::warning(this, tr("Runtime error"),
                                  tr("Unknown error executing the program"));
         }
+
+        // After we are done, flush the frame and over-paint it
+        mainFrame.Paint(-w/2, -h/2, w, h);
 
         // Once we are done, do a garbage collection
         XL::Context::context->CollectGarbage();
@@ -338,6 +344,14 @@ Tree *Widget::page(Tree *self, Tree *p)
         frame = new FrameInfo(w,h);
         self->SetInfo<FrameInfo> (frame);
     }
+
+    Frame *cairo = self->GetInfo<Frame>();
+    if (!cairo)
+    {
+        cairo = new Frame(w, h);
+        self->SetInfo<Frame>(cairo);
+    }
+
     Tree *result = NULL;
 
     glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -353,8 +367,10 @@ Tree *Widget::page(Tree *self, Tree *p)
         // Clear the background and setup initial state
         setup(w, h);
         XL::LocalSave<QPaintDevice *> sv(state.paintDevice, frame->render_fbo);
+        XL::LocalSave<Frame *> svc(this->frame, cairo);
         result = xl_evaluate(p);
     }
+    cairo->Paint(-w/2, -h/2, w, h);
     frame->end();
 
     glMatrixMode(GL_PROJECTION);
@@ -426,6 +442,9 @@ Tree *Widget::color(Tree *self, double r, double g, double b, double a)
     state.charFormat.setTextOutline(QPen(qcolor));
     state.charFormat.setForeground(QBrush(qcolor));
     state.charFormat.setBackground(QBrush(QColor(255,255,255,0)));
+
+    // For Cairo
+    frame->Color(r,g,b,a);
 
     return XL::xl_true;
 }
@@ -860,6 +879,7 @@ Tree *Widget::font(Tree *self, text description)
     QFont font = state.charFormat.font();
     font.fromString((QString::fromStdString(description)));
     state.charFormat.setFont(font);
+    frame->Font(description);
     return XL::xl_true;
 }
 
@@ -870,6 +890,7 @@ Tree *Widget::fontSize(Tree *self, double size)
 // ----------------------------------------------------------------------------
 {
     state.charFormat.setFontPointSize(size);
+    frame->FontSize(size);
     return XL::xl_true;
 }
 
@@ -1068,7 +1089,7 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
 }
 
 
-Tree *Widget::frame(Tree *self, double x, double y, double w, double h)
+Tree *Widget::framePaint(Tree *self, double x, double y, double w, double h)
 // ----------------------------------------------------------------------------
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
@@ -1122,5 +1143,34 @@ Tree *Widget::qttext(Tree *self, double x, double y, text s)
     return XL::xl_true;
 }
 
+
+Tree *Widget::KmoveTo(Tree *self, double x, double y)
+// ----------------------------------------------------------------------------
+//   Move to the given Cairo coordinates
+// ----------------------------------------------------------------------------
+{
+    frame->MoveTo(x,y);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::Ktext(Tree *self, text s)
+// ----------------------------------------------------------------------------
+//    Text at the current cursor position
+// ----------------------------------------------------------------------------
+{
+    frame->Text(s);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::Krectangle(Tree *self, double x, double y, double w, double h)
+// ----------------------------------------------------------------------------
+//    Draw a rectangle using Cairo
+// ----------------------------------------------------------------------------
+{
+    frame->Rectangle(x, y, w, h);
+    return XL::xl_true;
+}
 
 TAO_END

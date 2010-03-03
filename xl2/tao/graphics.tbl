@@ -129,7 +129,7 @@ PREFIX(TextSpan, tree,"text", PARM(t, text), RTAO(textSpan(self, t)))
 PREFIX(Flow, tree, "flow", , RTAO(flow(self)))
 PREFIX(Frame, tree, "frame",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
-       RTAO(frame(self, x, y, w, h)))
+       RTAO(framePaint(self, x, y, w, h)))
 PREFIX(FrameTexture, tree, "frame_texture",
        PARM(w,real) PARM(h,real), RTAO(frameTexture(self, w, h)))
 
@@ -139,3 +139,13 @@ PREFIX(QtRect, tree, "qtrectangle",
 PREFIX(QtText, tree, "qttext",
        PARM(x,real) PARM(y,real) PARM(s, text),
        RTAO(qttext(self, x, y, s)))
+
+PREFIX(KRect, tree, "krectangle",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
+       RTAO(Krectangle(self, x, y, w, h)))
+PREFIX(KMove, tree, "kmoveto",
+       PARM(x,real) PARM(y,real),
+       RTAO(KmoveTo(self, x,y)))
+PREFIX(KText, tree, "ktext",
+       PARM(s, text),
+       RTAO(Ktext(self, s)))

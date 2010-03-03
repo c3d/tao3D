@@ -164,9 +164,8 @@ void Widget::draw()
         TextFlow mainFlow(alignCenter);
         state.flow = &mainFlow;
         state.textOptions = & state.flow->paragraphOption;
-        state.charFormat.setTextOutline(QPen(Qt::black));
-        state.charFormat.setForeground(QBrush(Qt::black));
-        state.charFormat.setBackground(QBrush(QColor(255,255,255,0)));
+        state.charFormat.setForeground(Qt::black);
+        state.charFormat.setBackground(Qt::white);
 
         try
         {
@@ -417,12 +416,24 @@ Tree *Widget::color(Tree *self, double r, double g, double b, double a)
 {
     glColor4f(r,g,b,a);
 
-    // Set color for text layout
+    return XL::xl_true;
+}
+
+Tree *Widget::textColor(Tree *self, double r, double g, double b, double a, bool isFg)
+// ----------------------------------------------------------------------------
+//    Set the RGBA color
+// ----------------------------------------------------------------------------
+{
+      // Set color for text layout
     const double amp=255.9;
     QColor qcolor(floor(amp*r),floor(amp*g),floor(amp*b),floor(amp*a));
-    state.charFormat.setTextOutline(QPen(qcolor));
-    state.charFormat.setForeground(QBrush(qcolor));
-    state.charFormat.setBackground(QBrush(QColor(255,255,255,0)));
+
+    if (isFg)
+    {
+        state.charFormat.setForeground(qcolor);
+    } else {
+        state.charFormat.setBackground(qcolor);
+    }
 
     return XL::xl_true;
 }
@@ -624,6 +635,26 @@ void Widget::circularSectorN(double cx, double cy, double r,
             circularVertex(cx, cy, r,  1,  0, tx0, ty0, tx1, ty1);
             break;
     }
+}
+
+
+void Widget::debugBoundingBox()
+{
+    return;// No debug
+
+//    if (boundingBox == NULL) return;
+//
+//    // DEBUG: draw the bounding box
+//    GLAndWidgetKeeper save(this);
+//    //glColor4f(1.0f, 0.0f, 0.0f, 0.8f);
+//    glBegin(GL_LINE_LOOP);
+//    {
+//        glVertex2f(boundingBox->lower.x, boundingBox->lower.y);
+//        glVertex2f(boundingBox->upper.x, boundingBox->lower.y);
+//        glVertex2f(boundingBox->upper.x, boundingBox->upper.y);
+//        glVertex2f(boundingBox->lower.x, boundingBox->upper.y);
+//    }
+//    glEnd();
 }
 
 
@@ -1041,11 +1072,10 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
         flow->topLineY = lineY;
         flow->endLayout();
 
-        QPainter painter(state.paintDevice);
-//       painter.setRenderHint(QPainter::Antialiasing);
-        painter.setRenderHint(QPainter::Antialiasing, false);
-        painter.setRenderHint(QPainter::HighQualityAntialiasing, false);
-        painter.setRenderHint(QPainter::TextAntialiasing, false);
+       QPainter painter(state.paintDevice);
+        painter.setRenderHint(QPainter::Antialiasing, true);
+        painter.setRenderHint(QPainter::HighQualityAntialiasing, true);
+        painter.setRenderHint(QPainter::TextAntialiasing, true);
         flow->draw(&painter, QPoint(0,0));
         painter.end();
 

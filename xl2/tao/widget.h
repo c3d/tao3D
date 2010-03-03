@@ -86,6 +86,7 @@ public:
     Tree *time(Tree *self);
 
     Tree *color(Tree *self, double r, double g, double b, double a);
+    Tree *textColor(Tree *self, double r, double g, double b, double a, bool isFg);
     Tree *filled(Tree *self);
     Tree *hollow(Tree *self);
     Tree *linewidth(Tree *self, double lw);

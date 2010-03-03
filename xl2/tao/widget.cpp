@@ -53,6 +53,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
       xlProgram(sf), timer(this)
 {
+    // Make sure we don't fill background with crap
+    setAutoFillBackground(false);
+
     // Make this the current context for OpenGL
     makeCurrent();
 
@@ -1127,7 +1130,6 @@ Tree *Widget::qtrectangle(Tree *self, double x, double y, double w, double h)
 // ----------------------------------------------------------------------------
 {
     QPainter painter(state.paintDevice);
-    // painter.setBrush(Qt::darkCyan);
     QPen pen(QColor(Qt::red));
     pen.setWidth(4);
     painter.setPen(pen);

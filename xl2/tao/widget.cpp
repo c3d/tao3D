@@ -137,7 +137,6 @@ void Widget::setup(double w, double h)
     state.frameWidth = w;
     state.frameHeight = h;
     state.charFormat = QTextCharFormat();
-    state.paintDevice = this;
     state.textOptions = NULL;
 }
 
@@ -162,10 +161,14 @@ void Widget::draw()
 	current = this;
         QTextOption alignCenter(Qt::AlignCenter);
         TextFlow mainFlow(alignCenter);
-        state.flow = &mainFlow;
+        XL::LocalSave<TextFlow *> saveFlow(state.flow, &mainFlow);
+
         state.textOptions = & state.flow->paragraphOption;
+
         state.charFormat.setForeground(Qt::black);
         state.charFormat.setBackground(Qt::white);
+
+        state.paintDevice = this;
 
         try
         {
@@ -186,7 +189,6 @@ void Widget::draw()
         }
 
         // Once we are done, do a garbage collection
-        state.flow = NULL;
         XL::Context::context->CollectGarbage();
     }
 }
@@ -1072,7 +1074,7 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
         flow->topLineY = lineY;
         flow->endLayout();
 
-       QPainter painter(state.paintDevice);
+        QPainter painter(state.paintDevice);
         painter.setRenderHint(QPainter::Antialiasing, true);
         painter.setRenderHint(QPainter::HighQualityAntialiasing, true);
         painter.setRenderHint(QPainter::TextAntialiasing, true);
@@ -1117,5 +1119,39 @@ Tree *Widget::frame(Tree *self, double x, double y, double w, double h)
 
     return XL::xl_true;
 }
+
+
+Tree *Widget::qtrectangle(Tree *self, double x, double y, double w, double h)
+// ----------------------------------------------------------------------------
+//    Draw a rectangle using the Qt primitive
+// ----------------------------------------------------------------------------
+{
+    QPainter painter(state.paintDevice);
+    // painter.setBrush(Qt::darkCyan);
+    QPen pen(QColor(Qt::red));
+    pen.setWidth(4);
+    painter.setPen(pen);
+    painter.drawRect(QRectF(x,y,w,h));
+    painter.end();
+    return XL::xl_true;
+}
+
+
+Tree *Widget::qttext(Tree *self, double x, double y, text s)
+// ----------------------------------------------------------------------------
+//    Draw a text using the Qt text primitive
+// ----------------------------------------------------------------------------
+{
+    QPainter painter(state.paintDevice);
+    painter.setBrush(Qt::green);
+    painter.setPen(Qt::darkRed);
+    QFont font("Arial");
+    font.setPointSizeF(24);
+    painter.setFont(font);
+    painter.drawText(QPointF(x,y), Utf8(s));
+    painter.end();
+    return XL::xl_true;
+}
+
 
 TAO_END

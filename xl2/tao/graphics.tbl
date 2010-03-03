@@ -132,6 +132,7 @@ PREFIX(Frame, tree, "frame",
        RTAO(frame(self, x, y, w, h)))
 PREFIX(FrameTexture, tree, "frame_texture",
        PARM(w,real) PARM(h,real), RTAO(frameTexture(self, w, h)))
+
 PREFIX(TextFgColorRGBA, tree, "text_fg_color",
        PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
        RTAO(textColor(self, r,g,b, a, true)))
@@ -142,3 +143,11 @@ PREFIX(TextBgColorRGBA, tree, "text_bg_color",
        RTAO(textColor(self, r,g,b, a, false)))
 PREFIX(TextBgColorRGB, tree, "text_bg_color", PARM(r, real) PARM(g, real) PARM(b, real),
        RTAO(textColor(self, r,g,b, 1.0, false)))
+
+PREFIX(QtRect, tree, "qtrectangle",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
+       RTAO(qtrectangle(self, x, y, w, h)))
+PREFIX(QtText, tree, "qttext",
+       PARM(x,real) PARM(y,real) PARM(s, text),
+       RTAO(qttext(self, x, y, s)))
+

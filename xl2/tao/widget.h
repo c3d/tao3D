@@ -134,6 +134,10 @@ public:
     Tree *frameTexture(Tree *self, double w, double h);
     Tree *frame(Tree *self, double x, double y, double w, double h);
 
+    Tree *qtrectangle(Tree *self, double x, double y, double w, double h);
+    Tree *qttext(Tree *self, double x, double y, text s);
+
+
 private:
     void widgetVertex(double x, double y, double tx, double ty);
     void circularVertex(double cx, double cy, double r,
@@ -142,7 +146,6 @@ private:
     void circularSectorN(double cx, double cy, double r,
                 double tx0, double ty0, double tx1, double ty1,
                 int sq, int nq);
-    void debugBoundingBox();
 
 public:
     // XL Runtime
@@ -151,20 +154,15 @@ public:
 
     struct State
     // ------------------------------------------------------------------------
-    //    State that we need to save
+    //    State that is preserved by 'locally'
     // ------------------------------------------------------------------------
     {
-        GLuint            polygonMode;
-        GLuint            frameWidth, frameHeight;
-        TextFlow        * flow;
-        // charFormat is the current character formating info that will be
-        //   given to the next text creation.
-        QTextCharFormat   charFormat;
-        // textOptions is a pointer to flow.paragraphOptions. It allows to
-        //   start a new flow with the paragraph option values of the previous
-        //   one as default ones.
-        QTextOption     * textOptions;
-        QPaintDevice    * paintDevice;
+        GLuint          polygonMode;
+        GLuint          frameWidth, frameHeight;
+        TextFlow *      flow;
+        QTextCharFormat charFormat;  // Font, color, ...
+        QTextOption *   textOptions; // Save format of last paragraph
+        QPaintDevice *  paintDevice;
     } state;
 
     static Widget    *current;
@@ -191,6 +189,18 @@ inline void glShowErrors()
     }                                                               
 }
 
+
+inline QString Utf8(text utf8, uint index = 0)
+// ----------------------------------------------------------------------------
+//    Convert our internal UTF-8 encoded strings to QString format
+// ----------------------------------------------------------------------------
+{
+    kstring data = utf8.data();
+    uint len = utf8.length();
+    len = len > index ? len - index : 0;
+    index = index < len ? index : 0;
+    return QString::fromUtf8(data + index, len);
+}
 
 #define TAO(x)  (Tao::Widget::Tao() ? Tao::Widget::Tao()->x : 0)
 #define RTAO(x) return TAO(x)

@@ -42,8 +42,8 @@ regular_polygram t -> regular_star_polygon t
 regular_polygon t ->
     regular_star_polygon t, 1
 
-schläfli t, {p:integer} -> regular_polygon t, p
 schläfli t, {p:integer/q:integer} -> regular_star_polygon t, p, q
+schläfli t, {p:integer} -> regular_polygon t, p
 
 equilateral_triangle t -> regular_polygon t, 3
 regular_tetragon t -> regular_polygon t, 4

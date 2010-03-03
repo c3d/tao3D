@@ -1,0 +1,42 @@
+translate 0,0,0
+
+color 1,0,0,1
+font "Times New Roman"
+font_size 25
+text "This function does not handle the newline character (\n), as it cannot break text into multiple lines, and it cannot display the newline character. Use the QPainter::drawText() overload that takes a rectangle instead if you want to draw multiple lines of text with the newline character, or if you want the text to be wrapped. By default, QPainter draws text anti-aliased. There is no such thing as a very long line of text that overfllows the entire buffer..."
+
+
+color 1,1,1,1
+/*
+//rotatey 100*time
+
+color 1,1,1,1
+texture "earth.bmp"
+sphere 70
+*/
+frame_texture 300,400
+rectangle -100,100,300,400
+rectangle -100,100,-300,400
+
+//qttext 40,40,"Hello world, this is no longer fitting in the box, what's happening?"
+
+page_size 250,250
+page
+    color 0,0,1,100%
+    sphere 25
+    color 0,1,0,1
+    rectangle 0,0,20,20
+    color 1,75%,0,1
+    font "Arial"
+    font_size 15
+    rotatey 050
+    frame 0,0,300,300
+    color 0,0,0,1
+    //qtrectangle 40,40,40,40
+    //qttext 30,30, "Hello"
+
+rotatey 0
+rectangle 270,70,250,250
+//qtrectangle 100,100,30,30
+
+refresh 0.02

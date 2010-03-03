@@ -158,7 +158,7 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     JITEmitDebugInfo = true;
     UnwindTablesMandatory = true;
     // PerformTailCallOpt = true;
-    // NoFramePointerElim = true;
+    NoFramePointerElim = true;
 
     // Install a fallback mechanism to resolve references to the runtime, on
     // systems which do not allow the program to dlopen itself.
@@ -532,7 +532,6 @@ void Compiler::FreeResources(GCAction &gc)
     {
         deleted_set::iterator i = deleted.begin();
         Tree *tree = *i;
-        bool keepIt = false;
         if (functions.count(tree) > 0)
         {
             Function *f = functions[tree];

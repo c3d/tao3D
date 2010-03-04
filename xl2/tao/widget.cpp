@@ -36,7 +36,8 @@
 #include <QtOpenGL>
 #include <QFont>
 #include <iostream>
-
+#include <QVariant>
+#include "treeholder.h"
 
 TAO_BEGIN
 
@@ -51,8 +52,10 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf), timer(this)
+      xlProgram(sf), timer(this), contextMenu(this)
 {
+//    actions = QList<TreeHolder>();
+
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
 
@@ -140,7 +143,9 @@ void Widget::setup(double w, double h)
     state.frameWidth = w;
     state.frameHeight = h;
     state.charFormat = QTextCharFormat();
-    state.textOptions = NULL;
+    state.charFormat.setForeground(Qt::black);
+    state.charFormat.setBackground(Qt::white);
+
 }
 
 
@@ -150,8 +155,8 @@ void Widget::draw()
 // ----------------------------------------------------------------------------
 {
     // Clear the background
-    glClearColor (1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor (1.0, 1.0, 1.0, 1.0);
 
     // If there is a program, we need to run it
     if (xlProgram)
@@ -166,16 +171,16 @@ void Widget::draw()
         TextFlow mainFlow(alignCenter);
         XL::LocalSave<TextFlow *> saveFlow(state.flow, &mainFlow);
 
-        state.textOptions = & state.flow->paragraphOption;
-
-        state.charFormat.setForeground(Qt::black);
-        state.charFormat.setBackground(Qt::white);
-
+        initMenu();
         state.paintDevice = this;
 
         try
         {
             xl_evaluate(xlProgram->tree.tree);
+            for (int i = 0; i <  actions.size(); i++)
+            {
+                xl_evaluate(actions.at(i).tree);
+            }
         }
         catch (XL::Error &e)
         {
@@ -202,6 +207,13 @@ void Widget::mousePressEvent(QMouseEvent *e)
 //   Mouse button click
 // ----------------------------------------------------------------------------
 {
+    if (e->button() == Qt::RightButton)
+    {
+        QAction *p_action = contextMenu.exec(e->globalPos());
+        if (! p_action) return ;
+        TreeHolder t = p_action->data().value<TreeHolder >();
+        actions.append(t);
+    }
 }
 
 
@@ -210,7 +222,6 @@ void Widget::mouseMoveEvent(QMouseEvent *e)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
-
 }
 
 
@@ -643,9 +654,9 @@ void Widget::circularSectorN(double cx, double cy, double r,
 }
 
 
-void Widget::debugBoundingBox()
-{
-    return;// No debug
+//void Widget::debugBoundingBox()
+//{
+//    return;// No debug
 
 //    if (boundingBox == NULL) return;
 //
@@ -660,7 +671,7 @@ void Widget::debugBoundingBox()
 //        glVertex2f(boundingBox->lower.x, boundingBox->upper.y);
 //    }
 //    glEnd();
-}
+//}
 
 
 Tree *Widget::circle(Tree *self, double cx, double cy, double r)
@@ -986,13 +997,13 @@ Tree *Widget::align(Tree *self, int align)
 //   Set text alignment
 // ----------------------------------------------------------------------------
 {
-    Qt::Alignment old = state.textOptions->alignment();
+    Qt::Alignment old = state.flow->paragraphOption.alignment();
     if (align & Qt::AlignHorizontal_Mask)
         old &= ~Qt::AlignHorizontal_Mask;
     if (align & Qt::AlignVertical_Mask)
         old &= ~Qt::AlignVertical_Mask;
     align |= old;
-    state.textOptions->setAlignment(Qt::Alignment(align));
+    state.flow->paragraphOption.setAlignment(Qt::Alignment(align));
     return XL::xl_true;
 }
 
@@ -1015,11 +1026,11 @@ Tree *Widget::flow(Tree *self)
     TextFlow *thisFlow = self->GetInfo<TextFlow>();
     if (!thisFlow)
     {
-        thisFlow = new TextFlow(*state.textOptions);
+        thisFlow = new TextFlow(state.flow->paragraphOption);
         self->SetInfo<TextFlow> (thisFlow);
     }
     state.flow = thisFlow;
-    state.textOptions = &(state.flow->paragraphOption);
+
     return XL::xl_true;
 }
 
@@ -1082,8 +1093,7 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
         painter.setRenderHint(QPainter::HighQualityAntialiasing, true);
         painter.setRenderHint(QPainter::TextAntialiasing, true);
         flow->draw(&painter, QPoint(0,0));
-        painter.end();
-
+        //painter.end();
         flow->clear();
     }
     frame->end();
@@ -1106,6 +1116,7 @@ Tree *Widget::frame(Tree *self, double x, double y, double w, double h)
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
+
     glPushAttrib(GL_TEXTURE_BIT);
     frameTexture(self, w, h);
 
@@ -1129,12 +1140,14 @@ Tree *Widget::qtrectangle(Tree *self, double x, double y, double w, double h)
 //    Draw a rectangle using the Qt primitive
 // ----------------------------------------------------------------------------
 {
+
     QPainter painter(state.paintDevice);
     QPen pen(QColor(Qt::red));
     pen.setWidth(4);
     painter.setPen(pen);
     painter.drawRect(QRectF(x,y,w,h));
-    painter.end();
+//    painter.end();
+
     return XL::xl_true;
 }
 
@@ -1144,16 +1157,45 @@ Tree *Widget::qttext(Tree *self, double x, double y, text s)
 //    Draw a text using the Qt text primitive
 // ----------------------------------------------------------------------------
 {
+
     QPainter painter(state.paintDevice);
-    painter.setBrush(Qt::green);
+    setAutoFillBackground(false);
+//    painter.setBrush(Qt::green);
     painter.setPen(Qt::darkRed);
+
     QFont font("Arial");
     font.setPointSizeF(24);
     painter.setFont(font);
     painter.drawText(QPointF(x,y), Utf8(s));
-    painter.end();
+//    painter.end();
+
     return XL::xl_true;
 }
 
+Tree *Widget::menuItem(Tree *self, text s, Tree *t)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    QAction * p_action = contextMenu.addAction(QString::fromStdString(s));
+    QVariant var = QVariant::fromValue(TreeHolder(t));
+    p_action->setData(var);
+
+
+    return XL::xl_true;
+
+}
+
+void Widget::initMenu()
+{
+    contextMenu.clear();
+    QAction *p_action = contextMenu.addAction("Clear");
+    connect(p_action, SIGNAL(triggered()), this,SLOT(clearActions()));
+
+}
+void Widget::clearActions()
+{
+    actions.clear();
+}
 
 TAO_END

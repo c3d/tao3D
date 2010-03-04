@@ -160,7 +160,6 @@ void Frame::Bind()
 //    Bind to the GL texture
 // ----------------------------------------------------------------------------
 {
-    cairo_surface_write_to_png(surface, "debug.png");
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, textureId);
     glTexImage2D(GL_TEXTURE_RECTANGLE_ARB,
                  0, 4, width, height, 0,

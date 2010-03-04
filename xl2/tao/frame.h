@@ -49,6 +49,7 @@ struct Frame : XL::Info
     void             FontSize(double s);
     void             Text(text s);
     void             Rectangle(double x, double y, double w, double h);
+    void             Stroke();
 
     // Bind to a GL texture
     void             Bind();

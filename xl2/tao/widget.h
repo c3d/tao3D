@@ -141,6 +141,8 @@ public:
     Tree *KmoveTo(Tree *self, double x, double y);
     Tree *Ktext(Tree *self, text s);
     Tree *Krectangle(Tree *self, double x, double y, double w, double h);
+    Tree *Kstroke(Tree *self);
+    Tree *Kclear(Tree *self);
 
 private:
     void widgetVertex(double x, double y, double tx, double ty);

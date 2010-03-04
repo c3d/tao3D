@@ -149,3 +149,5 @@ PREFIX(KMove, tree, "kmoveto",
 PREFIX(KText, tree, "ktext",
        PARM(s, text),
        RTAO(Ktext(self, s)))
+PREFIX(KStroke, tree, "kstroke",, RTAO(Kstroke(self)))
+PREFIX(KClear, tree, "kclear",, RTAO(Kclear(self)))

@@ -134,6 +134,7 @@ void Widget::setup(double w, double h)
     glEnable(GL_DEPTH_TEST);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glDisable(GL_TEXTURE_2D);
+    glEnable(GL_TEXTURE_RECTANGLE_ARB);
 
     // Initial state
     state.polygonMode = GL_POLYGON;
@@ -1170,6 +1171,26 @@ Tree *Widget::Krectangle(Tree *self, double x, double y, double w, double h)
 // ----------------------------------------------------------------------------
 {
     frame->Rectangle(x, y, w, h);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::Kstroke(Tree *self)
+// ----------------------------------------------------------------------------
+//    Stroke the current path
+// ----------------------------------------------------------------------------
+{
+    frame->Stroke();
+    return XL::xl_true;
+}
+
+
+Tree *Widget::Kclear(Tree *self)
+// ----------------------------------------------------------------------------
+//    Clear the current frame
+// ----------------------------------------------------------------------------
+{
+    frame->Clear();
     return XL::xl_true;
 }
 

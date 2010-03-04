@@ -50,9 +50,10 @@ Frame::Frame(uint width, uint height)
         throw &context;
 
     // Set some initial parameters
-    cairo_set_operator(context, CAIRO_OPERATOR_OVER);
+    cairo_set_operator(context, CAIRO_OPERATOR_SOURCE);
     cairo_set_source_rgba(context, 0, 0, 0, 0);
     cairo_paint(context);
+    cairo_set_operator(context, CAIRO_OPERATOR_OVER);
 
     // Generate the GL texture
     glGenTextures(1, &textureId);
@@ -90,7 +91,12 @@ void Frame::Clear()
 //    Paint the entire surface with a uniform color
 // ----------------------------------------------------------------------------
 {
-    cairo_paint(context);
+    cairo_save(context);
+    {
+        cairo_set_operator(context, CAIRO_OPERATOR_SOURCE);
+        cairo_paint(context);
+    }
+    cairo_restore(context);
 }
 
 
@@ -140,17 +146,26 @@ void Frame::Rectangle(double x, double y, double w, double h)
 }
 
 
+void Frame::Stroke()
+// ----------------------------------------------------------------------------
+//    Stroke the current path
+// ----------------------------------------------------------------------------
+{
+    cairo_stroke(context);
+}
+
+
 void Frame::Bind()
 // ----------------------------------------------------------------------------
 //    Bind to the GL texture
 // ----------------------------------------------------------------------------
 {
-    glBindTexture(GL_TEXTURE_2D, textureId);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D,
-                 0, GL_RGBA, width, height, 0,
-                 GL_RGBA, GL_UNSIGNED_BYTE, data);
+    cairo_surface_write_to_png(surface, "debug.png");
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, textureId);
+    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB,
+                 0, 4, width, height, 0,
+                 GL_BGRA, GL_UNSIGNED_BYTE, data);
+    glEnable(GL_TEXTURE_RECTANGLE_ARB);
 }
 
 
@@ -163,10 +178,10 @@ void Frame::Paint(double x, double y, double w, double h)
     glColor4f(1,1,1,1);
     glBegin(GL_QUADS);
     {
-        glVertex2f(x,   y);
-        glVertex2f(x+w, y);
-        glVertex2f(x+w, y+h);
-        glVertex2f(x,   y+h);
+        glTexCoord2f(0,    height);     glVertex2f(x,   y);
+        glTexCoord2f(width,height);     glVertex2f(x+w, y);
+        glTexCoord2f(width,0);          glVertex2f(x+w, y+h);
+        glTexCoord2f(0,    0);          glVertex2f(x,   y+h);
     }
     glEnd();
 }

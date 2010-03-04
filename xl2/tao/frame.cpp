@@ -29,19 +29,13 @@
 
 TAO_BEGIN
 
-Frame::Frame(uint width, uint height)
+Frame::Frame()
 // ----------------------------------------------------------------------------
 //    Create a frame of the given size
 // ----------------------------------------------------------------------------
-    : width(width), height(height),
-      surface(NULL), data(NULL), context(NULL),
-      textureId(0)
+    : surface(NULL), context(NULL)
 {
-    uint channels = 4;
-    uint stride = channels * width;
-    data = new byte[width * height * channels];
-    surface = cairo_image_surface_create_for_data(data, CAIRO_FORMAT_ARGB32,
-                                                  width, height, stride);
+    surface = cairo_gl_surface_create_for_current_gl_context();
     if (cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS)
         throw &surface;
 
@@ -54,9 +48,6 @@ Frame::Frame(uint width, uint height)
     cairo_set_source_rgba(context, 0, 0, 0, 0);
     cairo_paint(context);
     cairo_set_operator(context, CAIRO_OPERATOR_OVER);
-
-    // Generate the GL texture
-    glGenTextures(1, &textureId);
 }
 
 
@@ -65,14 +56,10 @@ Frame::~Frame()
 //   Delete the Cairo resources
 // ----------------------------------------------------------------------------
 {
-    glDeleteTextures(1, &textureId);
-
     if (context)
         cairo_destroy(context);
     if (surface)
         cairo_surface_destroy(surface);
-    if (data)
-        delete[] data;    
 }
 
 
@@ -155,34 +142,13 @@ void Frame::Stroke()
 }
 
 
-void Frame::Bind()
-// ----------------------------------------------------------------------------
-//    Bind to the GL texture
-// ----------------------------------------------------------------------------
-{
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, textureId);
-    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB,
-                 0, 4, width, height, 0,
-                 GL_BGRA, GL_UNSIGNED_BYTE, data);
-    glEnable(GL_TEXTURE_RECTANGLE_ARB);
-}
-
-
 void Frame::Paint(double x, double y, double w, double h)
 // ----------------------------------------------------------------------------
 //    Paint the resulting texture over the given rectangle
 // ----------------------------------------------------------------------------
 {
-    Bind();
-    glColor4f(1,1,1,1);
-    glBegin(GL_QUADS);
-    {
-        glTexCoord2f(0,    height);     glVertex2f(x,   y);
-        glTexCoord2f(width,height);     glVertex2f(x+w, y);
-        glTexCoord2f(width,0);          glVertex2f(x+w, y+h);
-        glTexCoord2f(0,    0);          glVertex2f(x,   y+h);
-    }
-    glEnd();
+    cairo_surface_write_to_png (surface, "debug.png");
+    cairo_surface_finish(surface);
 }
 
 

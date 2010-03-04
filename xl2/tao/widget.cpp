@@ -167,7 +167,7 @@ void Widget::draw()
         TextFlow mainFlow(alignCenter);
         XL::LocalSave<TextFlow *> saveFlow(state.flow, &mainFlow);
 
-        Frame mainFrame(w, h);
+        Frame mainFrame;
         XL::LocalSave<Frame *> saveFrame (frame, &mainFrame);
 
         state.textOptions = & state.flow->paragraphOption;
@@ -175,6 +175,8 @@ void Widget::draw()
         state.charFormat.setForeground(QBrush(Qt::black));
         state.charFormat.setBackground(QBrush(QColor(255,255,255,0)));
         state.paintDevice = this;
+
+        setup(w, h);
 
         try
         {
@@ -349,7 +351,7 @@ Tree *Widget::page(Tree *self, Tree *p)
     Frame *cairo = self->GetInfo<Frame>();
     if (!cairo)
     {
-        cairo = new Frame(w, h);
+        cairo = new Frame;
         self->SetInfo<Frame>(cairo);
     }
 
@@ -445,6 +447,7 @@ Tree *Widget::color(Tree *self, double r, double g, double b, double a)
     state.charFormat.setBackground(QBrush(QColor(255,255,255,0)));
 
     // For Cairo
+    GLStateKeeper save;
     frame->Color(r,g,b,a);
 
     return XL::xl_true;
@@ -880,6 +883,7 @@ Tree *Widget::font(Tree *self, text description)
     QFont font = state.charFormat.font();
     font.fromString((QString::fromStdString(description)));
     state.charFormat.setFont(font);
+    GLStateKeeper save;
     frame->Font(description);
     return XL::xl_true;
 }
@@ -891,6 +895,7 @@ Tree *Widget::fontSize(Tree *self, double size)
 // ----------------------------------------------------------------------------
 {
     state.charFormat.setFontPointSize(size);
+    GLStateKeeper save;
     frame->FontSize(size);
     return XL::xl_true;
 }
@@ -1150,6 +1155,7 @@ Tree *Widget::KmoveTo(Tree *self, double x, double y)
 //   Move to the given Cairo coordinates
 // ----------------------------------------------------------------------------
 {
+    GLStateKeeper save;
     frame->MoveTo(x,y);
     return XL::xl_true;
 }
@@ -1160,6 +1166,7 @@ Tree *Widget::Ktext(Tree *self, text s)
 //    Text at the current cursor position
 // ----------------------------------------------------------------------------
 {
+    GLStateKeeper save;
     frame->Text(s);
     return XL::xl_true;
 }
@@ -1170,6 +1177,7 @@ Tree *Widget::Krectangle(Tree *self, double x, double y, double w, double h)
 //    Draw a rectangle using Cairo
 // ----------------------------------------------------------------------------
 {
+    GLStateKeeper save;
     frame->Rectangle(x, y, w, h);
     return XL::xl_true;
 }
@@ -1180,6 +1188,7 @@ Tree *Widget::Kstroke(Tree *self)
 //    Stroke the current path
 // ----------------------------------------------------------------------------
 {
+    GLStateKeeper save;
     frame->Stroke();
     return XL::xl_true;
 }
@@ -1190,6 +1199,7 @@ Tree *Widget::Kclear(Tree *self)
 //    Clear the current frame
 // ----------------------------------------------------------------------------
 {
+    GLStateKeeper save;
     frame->Clear();
     return XL::xl_true;
 }

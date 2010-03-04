@@ -38,7 +38,7 @@ struct Frame : XL::Info
 //   A 2D (rectangular) drawing structure
 // ----------------------------------------------------------------------------
 {
-    Frame(uint width, uint height);
+    Frame();
     ~Frame();
 
     // Drawing
@@ -51,16 +51,12 @@ struct Frame : XL::Info
     void             Rectangle(double x, double y, double w, double h);
     void             Stroke();
 
-    // Bind to a GL texture
-    void             Bind();
+    // End of drawing, paint the frame
     void             Paint(double x, double y, double w, double h);
 
 private:
-    uint             width, height;
-    byte            *data;
     cairo_surface_t *surface;
     cairo_t         *context;
-    GLuint           textureId;
 
     // Can't copy
     Frame(const Frame &o) {}

@@ -44,12 +44,6 @@ Frame::Frame()
     context = cairo_create(surface);
     if (cairo_status(context) != CAIRO_STATUS_SUCCESS)
         throw &context;
-
-    // Set some initial parameters
-    cairo_set_operator(context, CAIRO_OPERATOR_SOURCE);
-    cairo_set_source_rgba(context, 0, 0, 0, 0);
-    cairo_paint(context);
-    cairo_set_operator(context, CAIRO_OPERATOR_OVER);
 }
 
 
@@ -62,6 +56,15 @@ Frame::~Frame()
         cairo_destroy(context);
     if (surface)
         cairo_surface_destroy(surface);
+}
+
+
+void Frame::Resize(uint w, uint h)
+// ----------------------------------------------------------------------------
+//   Change the size of the frame
+// ----------------------------------------------------------------------------
+{
+    cairo_gl_surface_set_size(surface, w, h);
 }
 
 
@@ -122,7 +125,9 @@ void Frame::Text(text s)
 //   Show the given text on the context
 // ----------------------------------------------------------------------------
 {
+    cairo_scale(context, 1, -1);
     cairo_show_text(context, s.c_str());
+    cairo_scale(context, 1, -1);
 }
 
 
@@ -131,7 +136,7 @@ void Frame::Rectangle(double x, double y, double w, double h)
 //   Paint a rectangle using Cairo
 // ----------------------------------------------------------------------------
 {
-    cairo_rectangle(context, x, y, w, h);
+    cairo_rectangle(context, x-w/2, y-h/2, w, h);
 }
 
 
@@ -149,7 +154,7 @@ void Frame::Paint(double x, double y, double w, double h)
 //    Paint the resulting texture over the given rectangle
 // ----------------------------------------------------------------------------
 {
-    cairo_surface_finish(surface);
+    cairo_surface_flush(surface);
 }
 
 

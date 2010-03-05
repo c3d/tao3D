@@ -41,6 +41,9 @@ struct Frame : XL::Info
     Frame();
     ~Frame();
 
+    // Setup
+    void             Resize(uint w, uint h);
+
     // Drawing
     void             Color(double red, double grn, double blu, double alpha=1);
     void             Clear();

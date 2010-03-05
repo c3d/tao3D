@@ -34,7 +34,6 @@
 #include "text_flow.h"
 #include "coords3d.h"
 
-
 namespace Tao {
 
 struct Window;
@@ -157,7 +156,13 @@ public:
     // XL Runtime
     XL::SourceFile   *xlProgram;
     QTimer            timer;
+    Frame *           mainFrame;
     Frame *           frame;
+
+    // Timing for drawing
+    ulonglong         tmin, tmax, tsum, tcount;
+    ulonglong         now();
+    ulonglong         elapsed(ulonglong since, bool stats=true, bool show=true);
 
     struct State
     // ------------------------------------------------------------------------

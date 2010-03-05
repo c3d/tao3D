@@ -36,6 +36,7 @@
 #include <QtOpenGL>
 #include <QFont>
 #include <iostream>
+#include <sys/time.h>
 
 
 TAO_BEGIN
@@ -51,13 +52,16 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf), timer(this), frame(NULL)
+      xlProgram(sf), timer(this), frame(NULL), mainFrame(NULL),
+      tmin(~0ULL), tmax(0), tsum(0), tcount(0)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
 
     // Make this the current context for OpenGL
     makeCurrent();
+    mainFrame = new Frame;
+
 
     // Prepare the timer
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
@@ -69,6 +73,8 @@ Widget::~Widget()
 //   Destroy the widget
 // ----------------------------------------------------------------------------
 {
+    if (mainFrame)
+        delete mainFrame;
 }
 
 
@@ -92,6 +98,9 @@ void Widget::resizeGL(int width, int height)
 //   Called when the size changes
 // ----------------------------------------------------------------------------
 {
+    mainFrame->Resize(width, height);
+    tmax = tsum = tcount = 0;
+    tmin = ~tmax;
 }
 
 
@@ -119,13 +128,13 @@ void Widget::setup(double w, double h)
     double upX = 0.0, upY = 1.0, upZ = 0.0;
     glFrustum (-w/2, w/2, -h/2, h/2, zNear, zFar);
     gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+    glTranslatef(0.0, 0.0, -zNear);
+    glScalef(2.0, 2.0, 2.0);
 
     // Setup the model view matrix so that 1.0 unit = 1px
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glViewport(0, 0, w, h);
-    glTranslatef(0.0, 0.0, -zNear);
-    glScalef(2.0, 2.0, 2.0);
 
     // Setup other
     glEnable(GL_BLEND);
@@ -158,6 +167,9 @@ void Widget::draw()
     // If there is a program, we need to run it
     if (xlProgram)
     {
+        // Timing
+        ulonglong t = now();
+
         // Setup the initial drawing environment
         double w = width(), h = height();
         setup(w, h);
@@ -167,9 +179,7 @@ void Widget::draw()
         QTextOption alignCenter(Qt::AlignCenter);
         TextFlow mainFlow(alignCenter);
         XL::LocalSave<TextFlow *> saveFlow(state.flow, &mainFlow);
-
-        Frame mainFrame;
-        XL::LocalSave<Frame *> saveFrame (frame, &mainFrame);
+        XL::LocalSave<Frame *> saveFrame (frame, mainFrame);
 
         state.textOptions = & state.flow->paragraphOption;
         state.charFormat.setTextOutline(QPen(Qt::black));
@@ -196,12 +206,58 @@ void Widget::draw()
         }
 
         // After we are done, flush the frame and over-paint it
-        mainFrame.Paint(-w/2, -h/2, w, h);
+        mainFrame->Paint(-w/2, -h/2, w, h);
+
+        // Timing
+        elapsed(t);
 
         // Once we are done, do a garbage collection
         XL::Context::context->CollectGarbage();
     }
 }
+
+
+ulonglong Widget::now()
+// ----------------------------------------------------------------------------
+//    Return the current time in microseconds
+// ----------------------------------------------------------------------------
+{
+    // Timing
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    ulonglong t = tv.tv_sec * 1000000ULL + tv.tv_usec;
+    return t;
+}
+
+
+ulonglong Widget::elapsed(ulonglong since, bool stats, bool show)
+// ----------------------------------------------------------------------------
+//    Record how much time passed since last measurement
+// ----------------------------------------------------------------------------
+{
+    ulonglong t = now() - since;
+
+    if (stats)
+    {
+        if (tmin > t) tmin = t;
+        if (tmax < t) tmax = t;
+        tsum += t;
+        tcount++;
+    }
+
+    if (show)
+    {
+        char buffer[80];
+        snprintf(buffer, sizeof(buffer),
+                 "Duration=%llu-%llu (~%f) %f FPS",
+                 tmin, tmax, double(tsum )/ tcount, 1e6*tcount / tsum);
+        Window *window = (Window *) parentWidget();
+        window->statusBar()->showMessage(QString(buffer));
+    }
+
+    return t;
+}
+
 
 
 void Widget::mousePressEvent(QMouseEvent *e)

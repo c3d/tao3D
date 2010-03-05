@@ -35,6 +35,8 @@ Frame::Frame()
 // ----------------------------------------------------------------------------
     : surface(NULL), context(NULL)
 {
+    GLStateKeeper save;
+
     surface = cairo_gl_surface_create_for_current_gl_context();
     if (cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS)
         throw &surface;
@@ -147,7 +149,6 @@ void Frame::Paint(double x, double y, double w, double h)
 //    Paint the resulting texture over the given rectangle
 // ----------------------------------------------------------------------------
 {
-    cairo_surface_write_to_png (surface, "debug.png");
     cairo_surface_finish(surface);
 }
 

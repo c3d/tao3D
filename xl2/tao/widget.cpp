@@ -134,7 +134,8 @@ void Widget::setup(double w, double h)
     glEnable(GL_DEPTH_TEST);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glDisable(GL_TEXTURE_2D);
-    glEnable(GL_TEXTURE_RECTANGLE_ARB);
+    glDisable(GL_TEXTURE_RECTANGLE_ARB);
+    glDisable(GL_CULL_FACE);
 
     // Initial state
     state.polygonMode = GL_POLYGON;
@@ -175,8 +176,6 @@ void Widget::draw()
         state.charFormat.setForeground(QBrush(Qt::black));
         state.charFormat.setBackground(QBrush(QColor(255,255,255,0)));
         state.paintDevice = this;
-
-        setup(w, h);
 
         try
         {

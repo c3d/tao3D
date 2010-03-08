@@ -28,10 +28,12 @@
 #include <QTimeLine>
 #include <QTimer>
 #include <QSvgRenderer>
+#include <QList>
 #include <iostream>
 #include "main.h"
 #include "tao.h"
 #include "text_flow.h"
+#include "treeholder.h"
 #include "coords3d.h"
 
 namespace Tao {
@@ -61,9 +63,11 @@ public:
     void resizeGL(int width, int height);
     void paintGL();
     void setup(double w, double h);
+    void initMenu();
 
 public slots:
     void draw();
+    void clearActions();
 
 public:
     typedef XL::Tree    Tree;
@@ -87,6 +91,7 @@ public:
     Tree *time(Tree *self);
 
     Tree *color(Tree *self, double r, double g, double b, double a);
+    Tree *textColor(Tree *self, double r,double g,double b,double a, bool fg);
     Tree *filled(Tree *self);
     Tree *hollow(Tree *self);
     Tree *linewidth(Tree *self, double lw);
@@ -143,6 +148,8 @@ public:
     Tree *Kstroke(Tree *self);
     Tree *Kclear(Tree *self);
 
+    Tree *menuItem(Tree *self, text s, Tree *t);
+
 private:
     void widgetVertex(double x, double y, double tx, double ty);
     void circularVertex(double cx, double cy, double r,
@@ -156,6 +163,8 @@ public:
     // XL Runtime
     XL::SourceFile   *xlProgram;
     QTimer            timer;
+    QMenu             contextMenu;
+    QList<TreeHolder> actions;
     Frame *           mainFrame;
     Frame *           frame;
 
@@ -163,6 +172,7 @@ public:
     ulonglong         tmin, tmax, tsum, tcount;
     ulonglong         now();
     ulonglong         elapsed(ulonglong since, bool stats=true, bool show=true);
+
 
     struct State
     // ------------------------------------------------------------------------
@@ -173,7 +183,6 @@ public:
         GLuint          frameWidth, frameHeight;
         TextFlow *      flow;
         QTextCharFormat charFormat;  // Font, color, ...
-        QTextOption *   textOptions; // Save format of last paragraph
         QPaintDevice *  paintDevice;
     } state;
 
@@ -218,5 +227,6 @@ inline QString Utf8(text utf8, uint index = 0)
 #define RTAO(x) return TAO(x)
 
 } // namespace Tao
+
 
 #endif // TAO_WIDGET_H

@@ -29,59 +29,74 @@ macx {
     DEFINES += CONFIG_MACOSX
     XLRDIR = Contents/MacOS
 }
-win32 {
-    DEFINES += CONFIG_MINGW
-}
-linux-g++ {
-    DEFINES += CONFIG_LINUX
-}
+win32:DEFINES += CONFIG_MINGW
+linux-g++:DEFINES += CONFIG_LINUX
 
 # Input
-HEADERS += widget.h window.h frame.h svg.h texture.h    \
-  coords.h coords3d.h gl_keepers.h text_flow.h          \
-  drawing.h shapes_drawing.h                            \
-../xlr/utf8.h                                           \
-../xlr/base.h			../xlr/options.h        \
-../xlr/basics.h			../xlr/parser.h         \
-../xlr/compiler.h		../xlr/renderer.h       \
-../xlr/configuration.h		../xlr/runtime.h        \
-../xlr/context.h		../xlr/scanner.h        \
-../xlr/errors.h			../xlr/serializer.h     \
-../xlr/hash.h			../xlr/sha1.h           \
-../xlr/main.h			../xlr/sha1_ostream.h   \
-../xlr/opcodes.h		../xlr/syntax.h         \
-../xlr/opcodes_declare.h	../xlr/tree.h           \
-../xlr/opcodes_define.h		../xlr/types.h
-
-SOURCES +=                                      \
-    tao_main.cpp                                \
-    coords.cpp                                  \
-    coords3d.cpp                                \
-    graphics.cpp                                \
-    widget.cpp                                  \
-    window.cpp                                  \
-    frame.cpp                                   \
-    svg.cpp                                     \
-    texture.cpp                                 \
-    text_flow.cpp                               \
-    drawing.cpp                                 \
-    shapes_drawing.cpp                          \
-    gl_keepers.cpp                              \
-    ../xlr/tree.cpp                             \
-    ../xlr/sha1.cpp                             \
-    ../xlr/serializer.cpp                       \
-    ../xlr/syntax.cpp                           \
-    ../xlr/scanner.cpp                          \
-    ../xlr/runtime.cpp                          \
-    ../xlr/renderer.cpp                         \
-    ../xlr/parser.cpp                           \
-    ../xlr/options.cpp                          \
-    ../xlr/opcodes.cpp                          \
-    ../xlr/main.cpp                             \
-    ../xlr/errors.cpp                           \
-    ../xlr/context.cpp                          \
-    ../xlr/compiler.cpp                         \
-    ../xlr/basics.cpp
+HEADERS += widget.h \
+    window.h \
+    frame.h \
+    svg.h \
+    texture.h \
+    coords.h \
+    coords3d.h \
+    gl_keepers.h \
+    text_flow.h \
+    drawing.h \
+    shapes_drawing.h \
+    ../xlr/utf8.h \
+    ../xlr/base.h \
+    ../xlr/options.h \
+    ../xlr/basics.h \
+    ../xlr/parser.h \
+    ../xlr/compiler.h \
+    ../xlr/renderer.h \
+    ../xlr/configuration.h \
+    ../xlr/runtime.h \
+    ../xlr/context.h \
+    ../xlr/scanner.h \
+    ../xlr/errors.h \
+    ../xlr/serializer.h \
+    ../xlr/hash.h \
+    ../xlr/sha1.h \
+    ../xlr/main.h \
+    ../xlr/sha1_ostream.h \
+    ../xlr/opcodes.h \
+    ../xlr/syntax.h \
+    ../xlr/opcodes_declare.h \
+    ../xlr/tree.h \
+    ../xlr/opcodes_define.h \
+    ../xlr/types.h \
+    treeholder.h
+SOURCES += tao_main.cpp \
+    coords.cpp \
+    coords3d.cpp \
+    graphics.cpp \
+    widget.cpp \
+    window.cpp \
+    frame.cpp \
+    svg.cpp \
+    texture.cpp \
+    text_flow.cpp \
+    drawing.cpp \
+    shapes_drawing.cpp \
+    gl_keepers.cpp \
+    ../xlr/tree.cpp \
+    ../xlr/sha1.cpp \
+    ../xlr/serializer.cpp \
+    ../xlr/syntax.cpp \
+    ../xlr/scanner.cpp \
+    ../xlr/runtime.cpp \
+    ../xlr/renderer.cpp \
+    ../xlr/parser.cpp \
+    ../xlr/options.cpp \
+    ../xlr/opcodes.cpp \
+    ../xlr/main.cpp \
+    ../xlr/errors.cpp \
+    ../xlr/context.cpp \
+    ../xlr/compiler.cpp \
+    ../xlr/basics.cpp \
+    treeholder.cpp
 RESOURCES += tao.qrc
 
 # Cairo
@@ -116,3 +131,4 @@ OTHER_FILES += xl.syntax \
 xlr_support.path = $${DESTDIR}/$${XLRDIR}
 xlr_support.files += $${OTHER_FILES}
 QMAKE_BUNDLE_DATA += xlr_support
+FORMS += 

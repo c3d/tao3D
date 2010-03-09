@@ -53,6 +53,7 @@ PREFIX(Page, tree, "page", PARM(p, tree),
 PREFIX(Refresh, tree, "refresh", PARM(delay, real), RTAO(refresh(self, delay)))
 
 PREFIX(DaySeconds, tree, "time", , RTAO(time(self)))
+PREFIX(PageSeconds, tree, "page_time", , RTAO(page_time(self)))
 
 PREFIX(ColorRGBA, tree, "color",
        PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),

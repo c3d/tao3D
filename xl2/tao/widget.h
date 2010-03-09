@@ -89,6 +89,7 @@ public:
 
     Tree *refresh(Tree *self, double delay);
     Tree *time(Tree *self);
+    Tree *page_time(Tree *self);
 
     Tree *color(Tree *self, double r, double g, double b, double a);
     Tree *textColor(Tree *self, double r,double g,double b,double a, bool fg);
@@ -167,6 +168,7 @@ public:
     QList<TreeHolder> actions;
     Frame *           mainFrame;
     Frame *           frame;
+    double            page_start_time;
 
     // Timing for drawing
     ulonglong         tmin, tmax, tsum, tcount;
@@ -222,6 +224,21 @@ inline QString Utf8(text utf8, uint index = 0)
     index = index < len ? index : 0;
     return QString::fromUtf8(data + index, len);
 }
+
+
+inline double CurrentTime()
+// ----------------------------------------------------------------------------
+//    Return the current time
+// ----------------------------------------------------------------------------
+{
+    QTime t = QTime::currentTime();
+    double d = (3600.0	 * t.hour()
+		+ 60.0	 * t.minute()
+		+	   t.second()
+		+  0.001 * t.msec());
+    return d;
+}
+
 
 #define TAO(x)  (Tao::Widget::Tao() ? Tao::Widget::Tao()->x : 0)
 #define RTAO(x) return TAO(x)

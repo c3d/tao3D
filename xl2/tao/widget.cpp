@@ -55,7 +55,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
       xlProgram(sf), timer(this), contextMenu(this),
       frame(NULL), mainFrame(NULL),
-      tmin(~0ULL), tmax(0), tsum(0), tcount(0)
+      tmin(~0ULL), tmax(0), tsum(0), tcount(0),
+      page_start_time(CurrentTime())
 {
 //    actions = QList<TreeHolder>();
 
@@ -409,18 +410,12 @@ Tree *Widget::page(Tree *self, Tree *p)
 // ----------------------------------------------------------------------------
 {
     uint w = state.frameWidth, h = state.frameHeight;
+    Frame *cairo = self->GetInfo<Frame>();
     FrameInfo *frame = self->GetInfo<FrameInfo>();
     if (!frame)
     {
         frame = new FrameInfo(w,h);
         self->SetInfo<FrameInfo> (frame);
-    }
-
-    Frame *cairo = self->GetInfo<Frame>();
-    if (!cairo)
-    {
-        cairo = new Frame;
-        self->SetInfo<Frame>(cairo);
     }
 
     Tree *result = NULL;
@@ -437,6 +432,13 @@ Tree *Widget::page(Tree *self, Tree *p)
     {
         // Clear the background and setup initial state
         setup(w, h);
+
+        if (!cairo)
+        {
+            cairo = new Frame;
+            self->SetInfo<Frame>(cairo);
+        }
+
         XL::LocalSave<QPaintDevice *> sv(state.paintDevice, frame->render_fbo);
         XL::LocalSave<Frame *> svc(this->frame, cairo);
         result = xl_evaluate(p);
@@ -461,12 +463,16 @@ Tree *Widget::time(Tree *self)
 //   Return a fractional time, including milliseconds
 // ----------------------------------------------------------------------------
 {
-    QTime t = QTime::currentTime();
-    double d = (3600.0	 * t.hour()
-		+ 60.0	 * t.minute()
-		+	   t.second()
-		+  0.001 * t.msec());
-    return new XL::Real(d);
+    return new XL::Real(CurrentTime());
+}
+
+
+Tree *Widget::page_time(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return a fractional time, including milliseconds
+// ----------------------------------------------------------------------------
+{
+    return new XL::Real(CurrentTime() - page_start_time);
 }
 
 

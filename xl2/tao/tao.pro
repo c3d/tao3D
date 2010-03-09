@@ -100,6 +100,8 @@ SOURCES += tao_main.cpp \
 RESOURCES += tao.qrc
 
 # LLVM dependencies
+!system(bash --version >/dev/null):error("Can't execute bash")
+!system(bash -c \"llvm-config --version\" >/dev/null):error("Can't execute llvm-config")
 LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\")
 LLVM_LIBS += $$system(bash -c \"llvm-config --ldflags\")
 LLVM_INC = $$system(bash -c \"llvm-config --includedir\")

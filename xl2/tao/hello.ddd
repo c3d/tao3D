@@ -1,0 +1,25 @@
+locally
+    texture "earth.bmp"
+    rotatey 25 * page_time
+    sphere 0,0,0,150
+
+locally
+    texture "milkyway.jpg"
+    rotatey 0.8 * page_time
+    scale 1,-1,1
+    sphere 0,0,0,1000
+
+page_size 800,300
+page
+    color 1,1,1,1
+    font "Times New Roman"
+    font_size 72
+    kmoveto 0,-15
+    ktext "Hello World!"
+
+color 100%,90%,20%,90%
+
+rotatey -29*page_time + 120
+sphere 0,0,0,170
+
+refresh 0.02

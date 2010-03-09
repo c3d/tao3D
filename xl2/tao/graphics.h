@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 // ****************************************************************************
-//  graphics.h                                                      XLR project
+//  graphics.h                                                      Tao project
 // ****************************************************************************
 //
 //   File Description:

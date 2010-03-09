@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  tao_main.cpp                                                    XLR project
+//  tao_main.cpp                                                    Tao project
 // ****************************************************************************
 // 
 //   File Description:
@@ -41,6 +41,11 @@ int main(int argc, char **argv)
 // ----------------------------------------------------------------------------
 {
     Q_INIT_RESOURCE(tao);
+
+    // We need to brute-force option parsing here...
+    for (uint a = 1; a < argc; a++)
+        if (text(argv[a]) == text("-gl"))
+            QGL::setPreferredPaintEngine(QPaintEngine::OpenGL);
 
     // Initialize the Tao applications
     QApplication tao(argc, argv);

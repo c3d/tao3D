@@ -1,0 +1,38 @@
+//qttext 130,130, "Hello"
+//qtrectangle 100,100,140,140
+color 1,0,0
+rectangle 0,450,250,250
+color 1,1,0
+circle -500, -500, 50
+
+menu_item "Rectangle",  {
+     color 0,1,0
+     rectangle -500,0,350,250
+    }
+
+menu_item "Cercle", {
+    color 1,1,0
+   circle -500, -500, 50
+  }
+//font "Arial"
+font_size 24
+align_justify
+color 1,1,1
+text_bg_color 1,1,1,1
+text_fg_color 0.0,1.0,0.0
+
+text "This function does not handle the newline character (\n), as it cannot break text into multiple lines, and it cannot display the newline character. Use the QPainter::drawText() overload that takes a rectangle instead if you want to draw multiple lines of text with the newline character, or if you want the text to be wrapped. By default, QPainter draws text anti-aliased. There is no such thing as a very long line of text that overfllows the entire buffer..."
+
+frame 0,0,500,500
+qtrectangle 100,500,240,140
+
+//qtrectangle 100,100,140,140
+
+color 1,0,1
+qttext 130,130, "Hello"
+
+rectangle 470,0,250,250
+//qtrectangle 100,100,30,30
+
+//refresh 0.02
+qtrectangle 100,100,30,30

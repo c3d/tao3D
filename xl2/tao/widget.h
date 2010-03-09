@@ -28,15 +28,18 @@
 #include <QTimeLine>
 #include <QTimer>
 #include <QSvgRenderer>
+#include <QList>
 #include <iostream>
 #include "main.h"
 #include "tao.h"
 #include "text_flow.h"
+#include "treeholder.h"
 #include "coords3d.h"
 
 namespace Tao {
 
 struct Window;
+struct Frame;
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -60,9 +63,11 @@ public:
     void resizeGL(int width, int height);
     void paintGL();
     void setup(double w, double h);
+    void initMenu();
 
 public slots:
     void draw();
+    void clearActions();
 
 public:
     typedef XL::Tree    Tree;
@@ -74,19 +79,8 @@ public:
     static Widget *Tao() { return current; }
     Tree *status(Tree *self, text t);
 
-    Tree *rotateX(Tree *self, double rx);
-    Tree *rotateY(Tree *self, double ry);
-    Tree *rotateZ(Tree *self, double rz);
-    Tree *rotate(Tree *self, double rx, double ry, double rz, double ra);
-
-    Tree *translateX(Tree *self, double x);
-    Tree *translateY(Tree *self, double y);
-    Tree *translateZ(Tree *self, double z);
+    Tree *rotate(Tree *self, double ra, double rx, double ry, double rz);
     Tree *translate(Tree *self, double x, double y, double z);
-
-    Tree *scaleX(Tree *self, double x);
-    Tree *scaleY(Tree *self, double y);
-    Tree *scaleZ(Tree *self, double z);
     Tree *scale(Tree *self, double x, double y, double z);
 
     Tree *locally(Tree *self, Tree *t);
@@ -95,8 +89,10 @@ public:
 
     Tree *refresh(Tree *self, double delay);
     Tree *time(Tree *self);
+    Tree *page_time(Tree *self);
 
     Tree *color(Tree *self, double r, double g, double b, double a);
+    Tree *textColor(Tree *self, double r,double g,double b,double a, bool fg);
     Tree *filled(Tree *self);
     Tree *hollow(Tree *self);
     Tree *linewidth(Tree *self, double lw);
@@ -142,7 +138,18 @@ public:
 
     Tree *flow(Tree *self);
     Tree *frameTexture(Tree *self, double w, double h);
-    Tree *frame(Tree *self, double x, double y, double w, double h);
+    Tree *framePaint(Tree *self, double x, double y, double w, double h);
+
+    Tree *qtrectangle(Tree *self, double x, double y, double w, double h);
+    Tree *qttext(Tree *self, double x, double y, text s);
+
+    Tree *KmoveTo(Tree *self, double x, double y);
+    Tree *Ktext(Tree *self, text s);
+    Tree *Krectangle(Tree *self, double x, double y, double w, double h);
+    Tree *Kstroke(Tree *self);
+    Tree *Kclear(Tree *self);
+
+    Tree *menuItem(Tree *self, text s, Tree *t);
 
 private:
     void widgetVertex(double x, double y, double tx, double ty);
@@ -152,33 +159,36 @@ private:
     void circularSectorN(double cx, double cy, double r,
                 double tx0, double ty0, double tx1, double ty1,
                 int sq, int nq);
-    void debugBoundingBox();
 
 public:
     // XL Runtime
     XL::SourceFile   *xlProgram;
     QTimer            timer;
-    static Widget    *current;
+    QMenu             contextMenu;
+    QList<TreeHolder> actions;
+    Frame *           mainFrame;
+    Frame *           frame;
+    double            page_start_time;
+
+    // Timing for drawing
+    ulonglong         tmin, tmax, tsum, tcount;
+    ulonglong         now();
+    ulonglong         elapsed(ulonglong since, bool stats=true, bool show=true);
+
 
     struct State
     // ------------------------------------------------------------------------
-    //    State that we need to save
+    //    State that is preserved by 'locally'
     // ------------------------------------------------------------------------
     {
-        GLuint            polygonMode;
-        GLuint            frameWidth, frameHeight;
-        TextFlow        * flow;
-        // charFormat is the current character formating info that will be
-        //   given to the next text creation.
-        QTextCharFormat   charFormat;
-        // textOptions is a pointer to flow.paragraphOptions. It allows to
-        //   start a new flow with the paragraph option values of the previous
-        //   one as default ones.
-        QTextOption     * textOptions;
-        QPaintDevice    * paintDevice;
+        GLuint          polygonMode;
+        GLuint          frameWidth, frameHeight;
+        TextFlow *      flow;
+        QTextCharFormat charFormat;  // Font, color, ...
+        QPaintDevice *  paintDevice;
     } state;
 
-    Box               *boundingBox;
+    static Widget    *current;
 };
 
 
@@ -203,9 +213,37 @@ inline void glShowErrors()
 }
 
 
+inline QString Utf8(text utf8, uint index = 0)
+// ----------------------------------------------------------------------------
+//    Convert our internal UTF-8 encoded strings to QString format
+// ----------------------------------------------------------------------------
+{
+    kstring data = utf8.data();
+    uint len = utf8.length();
+    len = len > index ? len - index : 0;
+    index = index < len ? index : 0;
+    return QString::fromUtf8(data + index, len);
+}
+
+
+inline double CurrentTime()
+// ----------------------------------------------------------------------------
+//    Return the current time
+// ----------------------------------------------------------------------------
+{
+    QTime t = QTime::currentTime();
+    double d = (3600.0	 * t.hour()
+		+ 60.0	 * t.minute()
+		+	   t.second()
+		+  0.001 * t.msec());
+    return d;
+}
+
+
 #define TAO(x)  (Tao::Widget::Tao() ? Tao::Widget::Tao()->x : 0)
 #define RTAO(x) return TAO(x)
 
 } // namespace Tao
+
 
 #endif // TAO_WIDGET_H

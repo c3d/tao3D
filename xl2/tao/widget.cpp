@@ -36,7 +36,9 @@
 #include <QtOpenGL>
 #include <QFont>
 #include <iostream>
-
+#include <sys/time.h>
+#include <QVariant>
+#include "treeholder.h"
 
 TAO_BEGIN
 
@@ -51,16 +53,23 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf), timer(this)
+      xlProgram(sf), timer(this), contextMenu(this),
+      frame(NULL), mainFrame(NULL),
+      tmin(~0ULL), tmax(0), tsum(0), tcount(0),
+      page_start_time(CurrentTime())
 {
+//    actions = QList<TreeHolder>();
+
+    // Make sure we don't fill background with crap
+    setAutoFillBackground(false);
+
     // Make this the current context for OpenGL
     makeCurrent();
+    mainFrame = new Frame;
+
 
     // Prepare the timer
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
-
-    // No bounding box to start with
-    boundingBox = NULL;
 }
 
 
@@ -69,6 +78,8 @@ Widget::~Widget()
 //   Destroy the widget
 // ----------------------------------------------------------------------------
 {
+    if (mainFrame)
+        delete mainFrame;
 }
 
 
@@ -92,6 +103,9 @@ void Widget::resizeGL(int width, int height)
 //   Called when the size changes
 // ----------------------------------------------------------------------------
 {
+    mainFrame->Resize(width, height);
+    tmax = tsum = tcount = 0;
+    tmin = ~tmax;
 }
 
 
@@ -119,13 +133,13 @@ void Widget::setup(double w, double h)
     double upX = 0.0, upY = 1.0, upZ = 0.0;
     glFrustum (-w/2, w/2, -h/2, h/2, zNear, zFar);
     gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+    glTranslatef(0.0, 0.0, -zNear);
+    glScalef(2.0, 2.0, 2.0);
 
     // Setup the model view matrix so that 1.0 unit = 1px
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glViewport(0, 0, w, h);
-    glTranslatef(0.0, 0.0, -zNear);
-    glScalef(2.0, 2.0, 2.0);
 
     // Setup other
     glEnable(GL_BLEND);
@@ -133,19 +147,18 @@ void Widget::setup(double w, double h)
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_DEPTH_TEST);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_TEXTURE_RECTANGLE_ARB);
+    glDisable(GL_CULL_FACE);
 
     // Initial state
     state.polygonMode = GL_POLYGON;
     state.frameWidth = w;
     state.frameHeight = h;
     state.charFormat = QTextCharFormat();
-    state.paintDevice = this;
-    QTextOption tmp(Qt::AlignCenter);
-    state.textOptions = &tmp;
+    state.charFormat.setForeground(Qt::black);
+    state.charFormat.setBackground(Qt::white);
 
-    // Initial bounding box
-    delete boundingBox;
-    boundingBox = NULL;
 }
 
 
@@ -155,28 +168,36 @@ void Widget::draw()
 // ----------------------------------------------------------------------------
 {
     // Clear the background
-    glClearColor (1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor (1.0, 1.0, 1.0, 1.0);
 
     // If there is a program, we need to run it
     if (xlProgram)
     {
+        // Timing
+        ulonglong t = now();
+
         // Setup the initial drawing environment
-        setup(width(), height());
+        double w = width(), h = height();
+        setup(w, h);
 
 	// Run the XL program associated with this widget
 	current = this;
-        TextFlow mainFlow(*state.textOptions);
-        state.flow = &mainFlow;
-        state.textOptions = & state.flow->paragraphOption;
-        state.charFormat.setTextOutline(QPen(Qt::black));
-        state.charFormat.setForeground(QBrush(Qt::black));
-        state.charFormat.setBackground(QBrush(QColor(255,255,255,0)));
+        QTextOption alignCenter(Qt::AlignCenter);
+        TextFlow mainFlow(alignCenter);
+        XL::LocalSave<TextFlow *> saveFlow(state.flow, &mainFlow);
+        XL::LocalSave<Frame *> saveFrame (frame, mainFrame);
 
+        initMenu();
+        state.paintDevice = this;
 
         try
         {
             xl_evaluate(xlProgram->tree.tree);
+            for (int i = 0; i <  actions.size(); i++)
+            {
+                xl_evaluate(actions.at(i).tree);
+            }
         }
         catch (XL::Error &e)
         {
@@ -192,11 +213,59 @@ void Widget::draw()
                                  tr("Unknown error executing the program"));
         }
 
+        // After we are done, flush the frame and over-paint it
+        mainFrame->Paint(-w/2, -h/2, w, h);
+
+        // Timing
+        elapsed(t);
+
         // Once we are done, do a garbage collection
-        state.flow = NULL;
         XL::Context::context->CollectGarbage();
     }
 }
+
+
+ulonglong Widget::now()
+// ----------------------------------------------------------------------------
+//    Return the current time in microseconds
+// ----------------------------------------------------------------------------
+{
+    // Timing
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    ulonglong t = tv.tv_sec * 1000000ULL + tv.tv_usec;
+    return t;
+}
+
+
+ulonglong Widget::elapsed(ulonglong since, bool stats, bool show)
+// ----------------------------------------------------------------------------
+//    Record how much time passed since last measurement
+// ----------------------------------------------------------------------------
+{
+    ulonglong t = now() - since;
+
+    if (stats)
+    {
+        if (tmin > t) tmin = t;
+        if (tmax < t) tmax = t;
+        tsum += t;
+        tcount++;
+    }
+
+    if (show)
+    {
+        char buffer[80];
+        snprintf(buffer, sizeof(buffer),
+                 "Duration=%llu-%llu (~%f) %f FPS",
+                 tmin, tmax, double(tsum )/ tcount, 1e6*tcount / tsum);
+        Window *window = (Window *) parentWidget();
+        window->statusBar()->showMessage(QString(buffer));
+    }
+
+    return t;
+}
+
 
 
 void Widget::mousePressEvent(QMouseEvent *e)
@@ -204,6 +273,13 @@ void Widget::mousePressEvent(QMouseEvent *e)
 //   Mouse button click
 // ----------------------------------------------------------------------------
 {
+    if (e->button() == Qt::RightButton)
+    {
+        QAction *p_action = contextMenu.exec(e->globalPos());
+        if (! p_action) return ;
+        TreeHolder t = p_action->data().value<TreeHolder >();
+        actions.append(t);
+    }
 }
 
 
@@ -212,7 +288,6 @@ void Widget::mouseMoveEvent(QMouseEvent *e)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
-
 }
 
 
@@ -263,72 +338,12 @@ Tree *Widget::status(Tree *self, text caption)
 }
 
 
-Tree *Widget::rotateX(Tree *self, double rx)
-// ----------------------------------------------------------------------------
-//   Rotation along the X axis
-// ----------------------------------------------------------------------------
-{
-    glRotatef(rx, 1.0, 0.0, 0.0);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::rotateY(Tree *self, double ry)
-// ----------------------------------------------------------------------------
-//    Rotation along the Y axis
-// ----------------------------------------------------------------------------
-{
-    glRotatef(ry, 0.0, 1.0, 0.0);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::rotateZ(Tree *self, double rz)
-// ----------------------------------------------------------------------------
-//    Rotation along the Z axis
-// ----------------------------------------------------------------------------
-{
-    glRotatef(rz, 0.0, 0.0, 1.0);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::rotate(Tree *self, double rx, double ry, double rz, double ra)
+Tree *Widget::rotate(Tree *self, double ra, double rx, double ry, double rz)
 // ----------------------------------------------------------------------------
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
 {
-    glRotatef(rx, ry, rz, ra);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::translateX(Tree *self, double rx)
-// ----------------------------------------------------------------------------
-//    Translation along the X axis
-// ----------------------------------------------------------------------------
-{
-    glTranslatef(rx, 0.0, 0.0);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::translateY(Tree *self, double ry)
-// ----------------------------------------------------------------------------
-//     Translation along the Y axis
-// ----------------------------------------------------------------------------
-{
-    glTranslatef(0.0, ry, 0.0);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::translateZ(Tree *self, double rz)
-// ----------------------------------------------------------------------------
-//     Translation along the Z axis
-// ----------------------------------------------------------------------------
-{
-    glTranslatef(0.0, 0.0, rz);
+    glRotatef(ra, rx, ry, rz);
     return XL::xl_true;
 }
 
@@ -339,36 +354,6 @@ Tree *Widget::translate(Tree *self, double rx, double ry, double rz)
 // ----------------------------------------------------------------------------
 {
     glTranslatef(rx, ry, rz);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::scaleX(Tree *self, double sx)
-// ----------------------------------------------------------------------------
-//    Scaling along the X axis
-// ----------------------------------------------------------------------------
-{
-    glScalef(sx, 1.0, 1.0);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::scaleY(Tree *self, double sy)
-// ----------------------------------------------------------------------------
-//     Scaling along the Y axis
-// ----------------------------------------------------------------------------
-{
-    glScalef(1.0, sy, 1.0);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::scaleZ(Tree *self, double sz)
-// ----------------------------------------------------------------------------
-//     Scaling along the Z axis
-// ----------------------------------------------------------------------------
-{
-    glScalef(1.0, 1.0, sz);
     return XL::xl_true;
 }
 
@@ -425,12 +410,14 @@ Tree *Widget::page(Tree *self, Tree *p)
 // ----------------------------------------------------------------------------
 {
     uint w = state.frameWidth, h = state.frameHeight;
+    Frame *cairo = self->GetInfo<Frame>();
     FrameInfo *frame = self->GetInfo<FrameInfo>();
     if (!frame)
     {
         frame = new FrameInfo(w,h);
         self->SetInfo<FrameInfo> (frame);
     }
+
     Tree *result = NULL;
 
     glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -445,9 +432,18 @@ Tree *Widget::page(Tree *self, Tree *p)
     {
         // Clear the background and setup initial state
         setup(w, h);
+
+        if (!cairo)
+        {
+            cairo = new Frame;
+            self->SetInfo<Frame>(cairo);
+        }
+
         XL::LocalSave<QPaintDevice *> sv(state.paintDevice, frame->render_fbo);
+        XL::LocalSave<Frame *> svc(this->frame, cairo);
         result = xl_evaluate(p);
     }
+    cairo->Paint(-w/2, -h/2, w, h);
     frame->end();
 
     glMatrixMode(GL_PROJECTION);
@@ -467,12 +463,16 @@ Tree *Widget::time(Tree *self)
 //   Return a fractional time, including milliseconds
 // ----------------------------------------------------------------------------
 {
-    QTime t = QTime::currentTime();
-    double d = (3600.0	 * t.hour()
-		+ 60.0	 * t.minute()
-		+	   t.second()
-		+  0.001 * t.msec());
-    return new XL::Real(d);
+    return new XL::Real(CurrentTime());
+}
+
+
+Tree *Widget::page_time(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return a fractional time, including milliseconds
+// ----------------------------------------------------------------------------
+{
+    return new XL::Real(CurrentTime() - page_start_time);
 }
 
 
@@ -512,14 +512,32 @@ Tree *Widget::color(Tree *self, double r, double g, double b, double a)
 // ----------------------------------------------------------------------------
 {
     glColor4f(r,g,b,a);
+    frame->Color(r,g,b,a);
+    return XL::xl_true;
+}
 
-    // Set color for text layout
+
+Tree *Widget::textColor(Tree *self,
+                        double r, double g, double b, double a,
+                        bool isFg)
+// ----------------------------------------------------------------------------
+//    Set the RGBA color
+// ----------------------------------------------------------------------------
+{
+      // Set color for text layout
     const double amp=255.9;
     QColor qcolor(floor(amp*r),floor(amp*g),floor(amp*b),floor(amp*a));
-    state.charFormat.setTextOutline(QPen(qcolor));
-    state.charFormat.setForeground(QBrush(qcolor));
-    state.charFormat.setBackground(QBrush(QColor(255,255,255,0)));
- //   state.charFormat.setTextOutline(QPen(Qt::red));
+
+    if (isFg)
+    {
+        state.charFormat.setForeground(qcolor);
+    } else {
+        state.charFormat.setBackground(qcolor);
+    }
+
+    // For Cairo
+    GLStateKeeper save;
+    frame->Color(r,g,b,a);
 
     return XL::xl_true;
 }
@@ -544,18 +562,6 @@ Tree *Widget::vertex(Tree *self, double x, double y, double z)
 // ----------------------------------------------------------------------------
 {
     glVertex3f(x, y, z);
-
-    Box dot(x, y, 0, 0); // FIXME: Temporary projection to the plan z=0
-    if (boundingBox == NULL)
-    {
-        boundingBox = new Box();
-        *boundingBox = dot;
-    }
-    else
-    {
-        *boundingBox |= dot;
-    }
-
     return XL::xl_true;
 }
 
@@ -637,7 +643,7 @@ Tree *Widget::sphere(Tree *self,
 
 void Widget::widgetVertex(double x, double y, double tx, double ty)
 // ----------------------------------------------------------------------------
-//   A vertex, including texture coordinate and bounding box
+//   A vertex, including texture coordinate
 // ----------------------------------------------------------------------------
 {
     texCoord(NULL, tx, ty);
@@ -736,22 +742,24 @@ void Widget::circularSectorN(double cx, double cy, double r,
 }
 
 
-void Widget::debugBoundingBox()
-{
-    if (boundingBox == NULL) return;
+//void Widget::debugBoundingBox()
+//{
+//    return;// No debug
 
-    // DEBUG: draw the bounding box
-    GLAndWidgetKeeper save(this);
-    //glColor4f(1.0f, 0.0f, 0.0f, 0.8f);
-    glBegin(GL_LINE_LOOP);
-    {
-        glVertex2f(boundingBox->lower.x, boundingBox->lower.y);
-        glVertex2f(boundingBox->upper.x, boundingBox->lower.y);
-        glVertex2f(boundingBox->upper.x, boundingBox->upper.y);
-        glVertex2f(boundingBox->lower.x, boundingBox->upper.y);
-    }
-    glEnd();
-}
+//    if (boundingBox == NULL) return;
+//
+//    // DEBUG: draw the bounding box
+//    GLAndWidgetKeeper save(this);
+//    //glColor4f(1.0f, 0.0f, 0.0f, 0.8f);
+//    glBegin(GL_LINE_LOOP);
+//    {
+//        glVertex2f(boundingBox->lower.x, boundingBox->lower.y);
+//        glVertex2f(boundingBox->upper.x, boundingBox->lower.y);
+//        glVertex2f(boundingBox->upper.x, boundingBox->upper.y);
+//        glVertex2f(boundingBox->lower.x, boundingBox->upper.y);
+//    }
+//    glEnd();
+//}
 
 
 Tree *Widget::circle(Tree *self, double cx, double cy, double r)
@@ -762,9 +770,6 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
     glBegin(state.polygonMode);
     circularSectorN(cx, cy, r, 0, 0, 1, 1, 0, 4);
     glEnd();
-
-    // DEBUG: draw the bounding box
-    debugBoundingBox();
 
     return XL::xl_true;
 }
@@ -797,9 +802,6 @@ Tree *Widget::circularSector(Tree *self,
     circularVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);    // The center
     circularSectorN(cx, cy, r, 0, 0, 1, 1, sq, nq);
     glEnd();
-
-    // DEBUG: draw the bounding box
-    debugBoundingBox();
 
     return XL::xl_true;
  }
@@ -866,9 +868,6 @@ Tree *Widget::roundedRectangle(Tree *self,
     }
     glEnd();
 
-    // DEBUG: draw the bounding box
-    debugBoundingBox();
-
     return XL::xl_true;
 }
 
@@ -886,9 +885,6 @@ Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
         widgetVertex(cx-w/2, cy+h/2, 0, 1);
     }
     glEnd();
-
-    // DEBUG: draw the bounding box
-    debugBoundingBox();
 
     return XL::xl_true;
 }
@@ -938,9 +934,6 @@ Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
         }
     }
     glEnd();
-
-    // DEBUG: draw the bounding box
-    debugBoundingBox();
 
     return XL::xl_true;
 }
@@ -999,6 +992,8 @@ Tree *Widget::font(Tree *self, text description)
     QFont font = state.charFormat.font();
     font.fromString((QString::fromStdString(description)));
     state.charFormat.setFont(font);
+    GLStateKeeper save;
+    frame->Font(description);
     return XL::xl_true;
 }
 
@@ -1009,6 +1004,8 @@ Tree *Widget::fontSize(Tree *self, double size)
 // ----------------------------------------------------------------------------
 {
     state.charFormat.setFontPointSize(size);
+    GLStateKeeper save;
+    frame->FontSize(size);
     return XL::xl_true;
 }
 
@@ -1092,13 +1089,13 @@ Tree *Widget::align(Tree *self, int align)
 //   Set text alignment
 // ----------------------------------------------------------------------------
 {
-    Qt::Alignment old = state.textOptions->alignment();
+    Qt::Alignment old = state.flow->paragraphOption.alignment();
     if (align & Qt::AlignHorizontal_Mask)
         old &= ~Qt::AlignHorizontal_Mask;
     if (align & Qt::AlignVertical_Mask)
         old &= ~Qt::AlignVertical_Mask;
     align |= old;
-    state.textOptions->setAlignment(Qt::Alignment(align));
+    state.flow->paragraphOption.setAlignment(Qt::Alignment(align));
     return XL::xl_true;
 }
 
@@ -1121,11 +1118,11 @@ Tree *Widget::flow(Tree *self)
     TextFlow *thisFlow = self->GetInfo<TextFlow>();
     if (!thisFlow)
     {
-        thisFlow = new TextFlow(*state.textOptions);
+        thisFlow = new TextFlow(state.flow->paragraphOption);
         self->SetInfo<TextFlow> (thisFlow);
     }
     state.flow = thisFlow;
-    state.textOptions = &(state.flow->paragraphOption);
+
     return XL::xl_true;
 }
 
@@ -1174,8 +1171,6 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
             QTextLine line = flow->createLine();
             if (!line.isValid())
                 break;
-            if (lineHeight + lineY - topY >= h)
-                break;
             line.setLineWidth(w);
             line.setPosition(QPoint(0, lineY - topY));
             lineHeight = line.height();
@@ -1186,13 +1181,11 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
         flow->endLayout();
 
         QPainter painter(state.paintDevice);
-//       painter.setRenderHint(QPainter::Antialiasing);
-        painter.setRenderHint(QPainter::Antialiasing, false);
-        painter.setRenderHint(QPainter::HighQualityAntialiasing, false);
-        painter.setRenderHint(QPainter::TextAntialiasing, false);
+        painter.setRenderHint(QPainter::Antialiasing, true);
+        painter.setRenderHint(QPainter::HighQualityAntialiasing, true);
+        painter.setRenderHint(QPainter::TextAntialiasing, true);
         flow->draw(&painter, QPoint(0,0));
-        painter.end();
-
+        //painter.end();
         flow->clear();
     }
     frame->end();
@@ -1210,11 +1203,12 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
 }
 
 
-Tree *Widget::frame(Tree *self, double x, double y, double w, double h)
+Tree *Widget::framePaint(Tree *self, double x, double y, double w, double h)
 // ----------------------------------------------------------------------------
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
+
     glPushAttrib(GL_TEXTURE_BIT);
     frameTexture(self, w, h);
 
@@ -1229,6 +1223,124 @@ Tree *Widget::frame(Tree *self, double x, double y, double w, double h)
     glEnd();
     glPopAttrib();
 
+    return XL::xl_true;
+}
+
+
+Tree *Widget::qtrectangle(Tree *self, double x, double y, double w, double h)
+// ----------------------------------------------------------------------------
+//    Draw a rectangle using the Qt primitive
+// ----------------------------------------------------------------------------
+{
+
+    QPainter painter(state.paintDevice);
+    QPen pen(QColor(Qt::red));
+    pen.setWidth(4);
+    painter.setPen(pen);
+    painter.drawRect(QRectF(x,y,w,h));
+//    painter.end();
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::qttext(Tree *self, double x, double y, text s)
+// ----------------------------------------------------------------------------
+//    Draw a text using the Qt text primitive
+// ----------------------------------------------------------------------------
+{
+
+    QPainter painter(state.paintDevice);
+    setAutoFillBackground(false);
+//    painter.setBrush(Qt::green);
+    painter.setPen(Qt::darkRed);
+
+    QFont font("Arial");
+    font.setPointSizeF(24);
+    painter.setFont(font);
+    painter.drawText(QPointF(x,y), Utf8(s));
+//    painter.end();
+
+    return XL::xl_true;
+}
+
+Tree *Widget::menuItem(Tree *self, text s, Tree *t)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    QAction * p_action = contextMenu.addAction(QString::fromStdString(s));
+    QVariant var = QVariant::fromValue(TreeHolder(t));
+    p_action->setData(var);
+
+
+    return XL::xl_true;
+
+}
+
+void Widget::initMenu()
+{
+    contextMenu.clear();
+    QAction *p_action = contextMenu.addAction("Clear");
+    connect(p_action, SIGNAL(triggered()), this,SLOT(clearActions()));
+
+}
+void Widget::clearActions()
+{
+    actions.clear();
+}
+
+Tree *Widget::KmoveTo(Tree *self, double x, double y)
+// ----------------------------------------------------------------------------
+//   Move to the given Cairo coordinates
+// ----------------------------------------------------------------------------
+{
+    GLStateKeeper save;
+    frame->MoveTo(x,y);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::Ktext(Tree *self, text s)
+// ----------------------------------------------------------------------------
+//    Text at the current cursor position
+// ----------------------------------------------------------------------------
+{
+    GLStateKeeper save;
+    frame->Text(s);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::Krectangle(Tree *self, double x, double y, double w, double h)
+// ----------------------------------------------------------------------------
+//    Draw a rectangle using Cairo
+// ----------------------------------------------------------------------------
+{
+    GLStateKeeper save;
+    frame->Rectangle(x, y, w, h);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::Kstroke(Tree *self)
+// ----------------------------------------------------------------------------
+//    Stroke the current path
+// ----------------------------------------------------------------------------
+{
+    GLStateKeeper save;
+    frame->Stroke();
+    return XL::xl_true;
+}
+
+
+Tree *Widget::Kclear(Tree *self)
+// ----------------------------------------------------------------------------
+//    Clear the current frame
+// ----------------------------------------------------------------------------
+{
+    GLStateKeeper save;
+    frame->Clear();
     return XL::xl_true;
 }
 

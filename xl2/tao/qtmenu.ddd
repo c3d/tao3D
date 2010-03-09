@@ -1,0 +1,17 @@
+menu_item "Rectangle" & text(seconds),  {
+     color 0,1,0, 30%
+     rectangle -500,0,350,350
+    }
+
+menu_item "Cercle", {
+   color 1,1,0
+   circle -500, 0, 50
+  }
+
+text_bg_color 1,0,1
+text_fg_color 0,1,0
+font_size 25
+
+text "Hello the wonderful tao world"
+frame 0,0,500, 500
+refresh 0.5

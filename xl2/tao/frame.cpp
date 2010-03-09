@@ -22,10 +22,148 @@
 
 #include "frame.h"
 #include "gl_keepers.h"
+#include "widget.h"
 #include <QtOpenGL>
+#include <cairo.h>
 
 
 TAO_BEGIN
+
+Frame::Frame()
+// ----------------------------------------------------------------------------
+//    Create a frame of the given size
+// ----------------------------------------------------------------------------
+    : surface(NULL), context(NULL)
+{
+    GLStateKeeper save;
+
+    surface = cairo_gl_surface_create_for_current_gl_context();
+    if (cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS)
+        throw &surface;
+
+    context = cairo_create(surface);
+    if (cairo_status(context) != CAIRO_STATUS_SUCCESS)
+        throw &context;
+}
+
+
+Frame::~Frame()
+// ----------------------------------------------------------------------------
+//   Delete the Cairo resources
+// ----------------------------------------------------------------------------
+{
+    if (context)
+        cairo_destroy(context);
+    if (surface)
+        cairo_surface_destroy(surface);
+}
+
+
+void Frame::Resize(uint w, uint h)
+// ----------------------------------------------------------------------------
+//   Change the size of the frame
+// ----------------------------------------------------------------------------
+{
+    cairo_gl_surface_set_size(surface, w, h);
+}
+
+
+void Frame::Color (double red, double green, double blue, double alpha)
+// ----------------------------------------------------------------------------
+//    Select the color for the current context
+// ----------------------------------------------------------------------------
+{
+    cairo_set_source_rgba(context, red, green, blue, alpha);
+}
+    
+
+
+void Frame::Clear()
+// ----------------------------------------------------------------------------
+//    Paint the entire surface with a uniform color
+// ----------------------------------------------------------------------------
+{
+    cairo_save(context);
+    {
+        cairo_set_operator(context, CAIRO_OPERATOR_SOURCE);
+        cairo_paint(context);
+    }
+    cairo_restore(context);
+}
+
+
+void Frame::MoveTo(double x, double y)
+// ----------------------------------------------------------------------------
+//   Move the cursor to the given Cairo coordinates
+// ----------------------------------------------------------------------------
+{
+    cairo_move_to(context, x, y);
+}
+
+
+void Frame::Font(text s)
+// ----------------------------------------------------------------------------
+//   Select a given font name
+// ----------------------------------------------------------------------------
+{
+    cairo_select_font_face(context, s.c_str(),
+                           CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+}
+
+
+void Frame::FontSize(double s)
+// ----------------------------------------------------------------------------
+//    Set the font size
+// ----------------------------------------------------------------------------
+{
+    cairo_set_font_size(context, s);
+}
+
+
+void Frame::Text(text s)
+// ----------------------------------------------------------------------------
+//   Show the given text on the context
+// ----------------------------------------------------------------------------
+{
+    cairo_scale(context, 1, -1);
+    cairo_show_text(context, s.c_str());
+    cairo_scale(context, 1, -1);
+}
+
+
+void Frame::Rectangle(double x, double y, double w, double h)
+// ----------------------------------------------------------------------------
+//   Paint a rectangle using Cairo
+// ----------------------------------------------------------------------------
+{
+    cairo_rectangle(context, x-w/2, y-h/2, w, h);
+}
+
+
+void Frame::Stroke()
+// ----------------------------------------------------------------------------
+//    Stroke the current path
+// ----------------------------------------------------------------------------
+{
+    cairo_stroke(context);
+}
+
+
+void Frame::Paint(double x, double y, double w, double h)
+// ----------------------------------------------------------------------------
+//    Paint the resulting texture over the given rectangle
+// ----------------------------------------------------------------------------
+{
+    cairo_surface_flush(surface);
+}
+
+
+
+// ============================================================================
+// 
+//   FrameInfo class
+// 
+// ============================================================================
 
 FrameInfo::FrameInfo(uint w, uint h)
 // ----------------------------------------------------------------------------
@@ -168,7 +306,7 @@ FramePainter::FramePainter(FrameInfo *info)
 
     // Clear the render FBO
     info->render_fbo->bind();
-    glClearColor(0.0, 0.0, 0.3, 0.0);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     info->render_fbo->release();
 

@@ -29,12 +29,8 @@ macx {
     DEFINES += CONFIG_MACOSX
     XLRDIR = Contents/MacOS
 }
-win32 {
-    DEFINES += CONFIG_MINGW
-}
-linux-g++ {
-    DEFINES += CONFIG_LINUX
-}
+win32:DEFINES += CONFIG_MINGW
+linux-g++:DEFINES += CONFIG_LINUX
 
 # Input
 HEADERS += widget.h \
@@ -42,10 +38,13 @@ HEADERS += widget.h \
     frame.h \
     svg.h \
     texture.h \
-    utf8.h \
+    coords.h \
     coords3d.h \
     gl_keepers.h \
     text_flow.h \
+    drawing.h \
+    shapes_drawing.h \
+    ../xlr/utf8.h \
     ../xlr/base.h \
     ../xlr/options.h \
     ../xlr/basics.h \
@@ -67,8 +66,11 @@ HEADERS += widget.h \
     ../xlr/opcodes_declare.h \
     ../xlr/tree.h \
     ../xlr/opcodes_define.h \
-    ../xlr/types.h
+    ../xlr/types.h \
+    treeholder.h
 SOURCES += tao_main.cpp \
+    coords.cpp \
+    coords3d.cpp \
     graphics.cpp \
     widget.cpp \
     window.cpp \
@@ -76,6 +78,8 @@ SOURCES += tao_main.cpp \
     svg.cpp \
     texture.cpp \
     text_flow.cpp \
+    drawing.cpp \
+    shapes_drawing.cpp \
     gl_keepers.cpp \
     ../xlr/tree.cpp \
     ../xlr/sha1.cpp \
@@ -91,15 +95,25 @@ SOURCES += tao_main.cpp \
     ../xlr/errors.cpp \
     ../xlr/context.cpp \
     ../xlr/compiler.cpp \
-    ../xlr/basics.cpp
+    ../xlr/basics.cpp \
+    treeholder.cpp
 RESOURCES += tao.qrc
+
+# Cairo
+CAIRO_PREFIX=/usr/local
+CAIRO_INC=/usr/local/include/cairo
+CAIRO_LIBS=-L/usr/local/lib -lcairo
+
+INCLUDEPATH += $$CAIRO_INC
+LIBS += $$CAIRO_LIBS
+
 
 # LLVM dependencies
 LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\")
 LLVM_LIBS += $$system(bash -c \"llvm-config --ldflags\")
 LLVM_INC = $$system(bash -c \"llvm-config --includedir\")
 LLVM_DEF = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
-INCLUDEPATH *= $$LLVM_INC
+INCLUDEPATH += $$LLVM_INC
 DEFAULT_FONT = /Library/Fonts/Arial.ttf
 LIBS += $$LLVM_LIBS
 DEFINES += $$LLVM_DEF
@@ -117,3 +131,4 @@ OTHER_FILES += xl.syntax \
 xlr_support.path = $${DESTDIR}/$${XLRDIR}
 xlr_support.files += $${OTHER_FILES}
 QMAKE_BUNDLE_DATA += xlr_support
+FORMS += 

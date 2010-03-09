@@ -1,12 +1,10 @@
-#ifndef TAO_H
-#define TAO_H
 // ****************************************************************************
-//  tao.h                                                           Tao project
+//  coords3d.cpp                                                    XLR project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    Basic defines for Tao
+//     Basic operations on 2D and 3D coordinates (3-vectors, 3-points)
 //
 //
 //
@@ -22,7 +20,10 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#define TAO_BEGIN                namespace Tao {
-#define TAO_END                  }
+#include "coords3d.h"
 
-#endif // TAO_H
+TAO_BEGIN
+
+const coord Box3::inf;         // Stupid stupid stupid C++
+
+TAO_END

@@ -23,23 +23,23 @@
 
 PREFIX(Caption, tree, "status", PARM(t, text), RTAO(status(self, t)))
 
-PREFIX(RotateX, tree, "rotatex", PARM(rx, real), RTAO(rotateX(self, rx)))
-PREFIX(RotateY, tree, "rotatey", PARM(ry, real), RTAO(rotateY(self, ry)))
-PREFIX(RotateZ, tree, "rotatez", PARM(rz, real), RTAO(rotateZ(self, rz)))
+PREFIX(RotateX, tree, "rotatex", PARM(rx, real), RTAO(rotate(self, rx,1,0,0)))
+PREFIX(RotateY, tree, "rotatey", PARM(ry, real), RTAO(rotate(self, ry,0,1,0)))
+PREFIX(RotateZ, tree, "rotatez", PARM(rz, real), RTAO(rotate(self, rz,0,0,1)))
 PREFIX(Rotate, tree, "rotate",
        PARM(ra, real) PARM(rx, real) PARM(ry, real) PARM(rz, real),
        RTAO(rotate(self, ra, rx, ry, rz)))
 
-PREFIX(TranslateX, tree, "translatex", PARM(x, real), RTAO(translateX(self, x)))
-PREFIX(TranslateY, tree, "translatey", PARM(y, real), RTAO(translateY(self, y)))
-PREFIX(TranslateZ, tree, "translatez", PARM(z, real), RTAO(translateZ(self, z)))
+PREFIX(TransX, tree, "translatex", PARM(x, real), RTAO(translate(self, x,0,0)))
+PREFIX(TransY, tree, "translatey", PARM(y, real), RTAO(translate(self, 0,y,0)))
+PREFIX(TransZ, tree, "translatez", PARM(z, real), RTAO(translate(self, 0,0,z)))
 PREFIX(Translate, tree, "translate",
        PARM(x, real) PARM(y, real) PARM(z, real),
        RTAO(translate(self, x, y, z)))
 
-PREFIX(ScaleX, tree, "scalex", PARM(x, real), RTAO(scaleX(self, x)))
-PREFIX(ScaleY, tree, "scaley", PARM(y, real), RTAO(scaleY(self, y)))
-PREFIX(ScaleZ, tree, "scalez", PARM(z, real), RTAO(scaleZ(self, z)))
+PREFIX(ScaleX, tree, "scalex", PARM(x, real), RTAO(scale(self, x,1,1)))
+PREFIX(ScaleY, tree, "scaley", PARM(y, real), RTAO(scale(self, 1,y,1)))
+PREFIX(ScaleZ, tree, "scalez", PARM(z, real), RTAO(scale(self, 1,1,z)))
 PREFIX(Scale, tree, "scale",
        PARM(x, real) PARM(y, real) PARM(z, real),
        RTAO(scale(self, x, y, z)))
@@ -53,6 +53,7 @@ PREFIX(Page, tree, "page", PARM(p, tree),
 PREFIX(Refresh, tree, "refresh", PARM(delay, real), RTAO(refresh(self, delay)))
 
 PREFIX(DaySeconds, tree, "time", , RTAO(time(self)))
+PREFIX(PageSeconds, tree, "page_time", , RTAO(page_time(self)))
 
 PREFIX(ColorRGBA, tree, "color",
        PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
@@ -129,6 +130,39 @@ PREFIX(TextSpan, tree,"text", PARM(t, text), RTAO(textSpan(self, t)))
 PREFIX(Flow, tree, "flow", , RTAO(flow(self)))
 PREFIX(Frame, tree, "frame",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
-       RTAO(frame(self, x, y, w, h)))
+       RTAO(framePaint(self, x, y, w, h)))
 PREFIX(FrameTexture, tree, "frame_texture",
        PARM(w,real) PARM(h,real), RTAO(frameTexture(self, w, h)))
+
+PREFIX(TextFgColorRGBA, tree, "text_fg_color",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(textColor(self, r,g,b, a, true)))
+PREFIX(TextFgColorRGB, tree, "text_fg_color", PARM(r, real) PARM(g, real) PARM(b, real),
+       RTAO(textColor(self, r,g,b, 1.0, true)))
+PREFIX(TextBgColorRGBA, tree, "text_bg_color",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(textColor(self, r,g,b, a, false)))
+PREFIX(TextBgColorRGB, tree, "text_bg_color", PARM(r, real) PARM(g, real) PARM(b, real),
+       RTAO(textColor(self, r,g,b, 1.0, false)))
+
+PREFIX(QtRect, tree, "qtrectangle",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
+       RTAO(qtrectangle(self, x, y, w, h)))
+PREFIX(QtText, tree, "qttext",
+       PARM(x,real) PARM(y,real) PARM(s, text),
+       RTAO(qttext(self, x, y, s)))
+
+PREFIX(KRect, tree, "krectangle",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
+       RTAO(Krectangle(self, x, y, w, h)))
+PREFIX(KMove, tree, "kmoveto",
+       PARM(x,real) PARM(y,real),
+       RTAO(KmoveTo(self, x,y)))
+PREFIX(KText, tree, "ktext",
+       PARM(s, text),
+       RTAO(Ktext(self, s)))
+PREFIX(KStroke, tree, "kstroke",, RTAO(Kstroke(self)))
+PREFIX(KClear, tree, "kclear",, RTAO(Kclear(self)))
+
+PREFIX(MenuItem, tree, "menu_item", PARM(s, text) PARM(t, tree),
+       RTAO(menuItem(self, s, &t)))

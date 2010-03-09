@@ -24,6 +24,7 @@
 
 #include "tao.h"
 #include "tree.h"
+#include "widget.h"
 #include <QtOpenGL>
 
 TAO_BEGIN
@@ -37,12 +38,13 @@ struct ImageTextureInfo : XL::Info
     typedef std::map<text, GLuint>      texture_map;
     enum { MAX_TEXTURES = 20 };
 
-    ImageTextureInfo();
+    ImageTextureInfo(Widget *w);
     ~ImageTextureInfo();
     void bind(text img);
     operator data_t() { return this; }
 
     texture_map textures;
+    Widget *    widget;
 };
 
 TAO_END

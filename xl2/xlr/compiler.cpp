@@ -738,7 +738,12 @@ Value *CompiledUnit::Known(Tree *tree, uint which)
         // Check if this is a global
         result = compiler->Known(tree);
         if (result)
-            result = code->CreateLoad(result, "glob");
+        {
+            text label = "glob";
+            IFTRACE(labels)
+                label += "[" + text(*tree) + "]";
+            result = code->CreateLoad(result, label);
+        }
     }
     return result;
 }
@@ -883,7 +888,8 @@ void CompiledUnit::EndLazy(Tree *subexpr,
 }
 
 
-llvm::Value *CompiledUnit::Invoke(Tree *subexpr, Tree *callee, tree_list args)
+llvm::Value *CompiledUnit::Invoke(Tree *subexpr, Tree *callee,
+                                  tree_list args, tree_list parms)
 // ----------------------------------------------------------------------------
 //    Generate a call with the given arguments
 // ----------------------------------------------------------------------------
@@ -909,11 +915,15 @@ llvm::Value *CompiledUnit::Invoke(Tree *subexpr, Tree *callee, tree_list args)
     Value *defaultVal = ConstantTree(subexpr);
     argV.push_back(defaultVal);
 
-    tree_list::iterator a;
-    for (a = args.begin(); a != args.end(); a++)
+    tree_list::iterator a, p;
+    p = parms.begin();
+    for (a = args.begin(); a != args.end(); a++, p++)
     {
+        Tree *parm = *p;
         Tree *arg = *a;
-        Value *value = Known(arg);
+        Value *value = typecast[parm];
+        if (!value)
+            value = Known(arg);
         if (!value)
             value = ConstantTree(arg);
         argV.push_back(value);
@@ -1383,7 +1393,7 @@ BasicBlock *CompiledUnit::InfixMatchTest(Tree *actual, Infix *reference)
 }
 
 
-BasicBlock *CompiledUnit::TypeTest(Tree *value, Tree *type)
+BasicBlock *CompiledUnit::TypeTest(Tree *value, Tree *type, Tree *param)
 // ----------------------------------------------------------------------------
 //   Test if the given value has the given type
 // ----------------------------------------------------------------------------
@@ -1400,12 +1410,10 @@ BasicBlock *CompiledUnit::TypeTest(Tree *value, Tree *type)
     BasicBlock *isGoodBB = BasicBlock::Create(*context, "isGood", function);
     code->CreateCondBr(isGood, isGoodBB, notGood);
 
-    // If the value is the same, then go on, switch to the isGood basic block
+    // If the value matched, we may have a type cast, remember it
     code->SetInsertPoint(isGoodBB);
-
-    // And update the value to be the value after cast
-    Value *ptr = NeedStorage(value);
-    code->CreateStore(afterCast, ptr);
+    typecast[param] = afterCast;
+    NeedStorage(value);
 
     return isGoodBB;
 }

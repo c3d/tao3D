@@ -25,7 +25,7 @@
 
 TAO_BEGIN
 
-SvgRendererInfo::SvgRendererInfo(QGLWidget *w, uint width, uint height)
+SvgRendererInfo::SvgRendererInfo(Widget *w, uint width, uint height)
 // ----------------------------------------------------------------------------
 //   Create a renderer with the right size
 // ----------------------------------------------------------------------------
@@ -60,7 +60,17 @@ void SvgRendererInfo::bind (text file)
             renderers.erase(first);
         }
 
-        r = new QSvgRenderer(QString::fromStdString(file), widget);
+        QString svgFile(QString::fromStdString(file));
+        QFileInfo svgInfo(svgFile);
+        if (!svgInfo.exists())
+        {
+            // Look for SVG file in current document's directory
+            QString   svgFileName(svgInfo.fileName());
+            QFileInfo docInfo(QString::fromStdString(widget->xlProgram->name));
+            QString   docDir(docInfo.canonicalPath());
+            svgFile = QString("%1/%2").arg(docDir).arg(svgFileName);
+        }
+        r = new QSvgRenderer(svgFile, widget);
         r->connect(r, SIGNAL(repaintNeeded()), widget, SLOT(updateGL()));
         renderers[file] = r;
     }

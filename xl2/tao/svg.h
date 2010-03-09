@@ -35,12 +35,12 @@ struct SvgRendererInfo : FrameInfo
     typedef std::map<text, QSvgRenderer *>      renderer_map;
     enum { MAX_TEXTURES = 20 };
 
-    SvgRendererInfo(QGLWidget *w, uint width=512, uint height=512);
+    SvgRendererInfo(Widget *w, uint width=512, uint height=512);
     ~SvgRendererInfo();
     operator data_t() { return this; }
     void bind(text img);
 
-    QGLWidget *         widget;
+    Widget *            widget;
     renderer_map        renderers;
 };
 

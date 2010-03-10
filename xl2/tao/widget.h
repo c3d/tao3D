@@ -148,6 +148,7 @@ public:
     Tree *Krectangle(Tree *self, double x, double y, double w, double h);
     Tree *Kstroke(Tree *self);
     Tree *Kclear(Tree *self);
+    Tree *KlayoutText(Tree *self, text s);
 
     Tree *menuItem(Tree *self, text s, Tree *t);
 

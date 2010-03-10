@@ -104,12 +104,20 @@ SOURCES += tao_main.cpp                         \
 RESOURCES += tao.qrc
 
 # Cairo
-CAIRO_PREFIX=/usr/local
 CAIRO_INC=/usr/local/include/cairo
 CAIRO_LIBS=-L/usr/local/lib -lcairo
 
 INCLUDEPATH += $$CAIRO_INC
 LIBS += $$CAIRO_LIBS
+
+# Pango
+PANGO_INC= /usr/local/include/pango-1.0         \
+           /opt/local/include/glib-2.0          \
+           /opt/local/lib/glib-2.0/include
+PANGO_LIBS=-L/usr/local/lib -lpango-1.0 -lpangocairo-1.0 -L/opt/local/lib -lgobject-2.0
+
+INCLUDEPATH += $$PANGO_INC
+LIBS += $$PANGO_LIBS
 
 
 # LLVM dependencies

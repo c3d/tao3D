@@ -1295,7 +1295,6 @@ Tree *Widget::KmoveTo(Tree *self, double x, double y)
 //   Move to the given Cairo coordinates
 // ----------------------------------------------------------------------------
 {
-    GLStateKeeper save;
     frame->MoveTo(x,y);
     return XL::xl_true;
 }
@@ -1306,8 +1305,17 @@ Tree *Widget::Ktext(Tree *self, text s)
 //    Text at the current cursor position
 // ----------------------------------------------------------------------------
 {
-    GLStateKeeper save;
     frame->Text(s);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::KlayoutText(Tree *self, text s)
+// ----------------------------------------------------------------------------
+//    Text layout with Pango at the current cursor position
+// ----------------------------------------------------------------------------
+{
+    frame->LayoutText(s);
     return XL::xl_true;
 }
 
@@ -1317,7 +1325,6 @@ Tree *Widget::Krectangle(Tree *self, double x, double y, double w, double h)
 //    Draw a rectangle using Cairo
 // ----------------------------------------------------------------------------
 {
-    GLStateKeeper save;
     frame->Rectangle(x, y, w, h);
     return XL::xl_true;
 }
@@ -1328,7 +1335,6 @@ Tree *Widget::Kstroke(Tree *self)
 //    Stroke the current path
 // ----------------------------------------------------------------------------
 {
-    GLStateKeeper save;
     frame->Stroke();
     return XL::xl_true;
 }
@@ -1339,7 +1345,6 @@ Tree *Widget::Kclear(Tree *self)
 //    Clear the current frame
 // ----------------------------------------------------------------------------
 {
-    GLStateKeeper save;
     frame->Clear();
     return XL::xl_true;
 }

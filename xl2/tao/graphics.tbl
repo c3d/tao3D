@@ -163,6 +163,9 @@ PREFIX(KText, tree, "ktext",
        RTAO(Ktext(self, s)))
 PREFIX(KStroke, tree, "kstroke",, RTAO(Kstroke(self)))
 PREFIX(KClear, tree, "kclear",, RTAO(Kclear(self)))
+PREFIX(LText, tree, "ltext",
+       PARM(s, text),
+       RTAO(KlayoutText(self, s)))
 
 PREFIX(MenuItem, tree, "menu_item", PARM(s, text) PARM(t, tree),
        RTAO(menuItem(self, s, &t)))

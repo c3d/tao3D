@@ -136,7 +136,7 @@ void Frame::Rectangle(double x, double y, double w, double h)
 //   Paint a rectangle using Cairo
 // ----------------------------------------------------------------------------
 {
-    cairo_rectangle(context, x-w/2, y-h/2, w, h);
+    cairo_rectangle(context, x, y, w, h);
 }
 
 

@@ -153,8 +153,8 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     }
 
     // Other target options
-    DwarfExceptionHandling = true;
-    JITEmitDebugInfo = true;
+    DwarfExceptionHandling = true;   // Present in 2.6, but crashes
+    JITEmitDebugInfo = true;         // Not present in 2.6
     UnwindTablesMandatory = true;
     // PerformTailCallOpt = true;
     NoFramePointerElim = true;
@@ -732,7 +732,12 @@ Value *CompiledUnit::Known(Tree *tree, uint which)
         // Check if this is a global
         result = compiler->Known(tree);
         if (result)
-            result = code->CreateLoad(result, "glob");
+        {
+            text label = "glob";
+            IFTRACE(labels)
+                label += "[" + text(*tree) + "]";
+            result = code->CreateLoad(result, label);
+        }
     }
     return result;
 }
@@ -854,11 +859,21 @@ BasicBlock *CompiledUnit::BeginLazy(Tree *subexpr)
 //    Begin lazy evaluation of a block of code
 // ----------------------------------------------------------------------------
 {
-    BasicBlock *skip = BasicBlock::Create(*context, "skip", function);
-    BasicBlock *work = BasicBlock::Create(*context, "work", function);
+    text lskip = "skip";
+    text lwork = "work";
+    text llazy = "lazy";
+    IFTRACE(labels)
+    {
+        text lbl = text("[") + text(*subexpr) + "]";
+        lskip += lbl;
+        lwork += lbl;
+        llazy += lbl;
+    }
+    BasicBlock *skip = BasicBlock::Create(*context, lskip, function);
+    BasicBlock *work = BasicBlock::Create(*context, lwork, function);
 
     Value *lazyFlagPtr = NeedLazy(subexpr);
-    Value *lazyFlag = code->CreateLoad(lazyFlagPtr, "lazy");
+    Value *lazyFlag = code->CreateLoad(lazyFlagPtr, llazy);
     code->CreateCondBr(lazyFlag, skip, work);
 
     code->SetInsertPoint(work);
@@ -1394,10 +1409,8 @@ BasicBlock *CompiledUnit::TypeTest(Tree *value, Tree *type)
     BasicBlock *isGoodBB = BasicBlock::Create(*context, "isGood", function);
     code->CreateCondBr(isGood, isGoodBB, notGood);
 
-    // If the value is the same, then go on, switch to the isGood basic block
+    // If the value matched, we may have a type cast, remember it
     code->SetInsertPoint(isGoodBB);
-
-    // And update the value to be the value after cast
     Value *ptr = NeedStorage(value);
     code->CreateStore(afterCast, ptr);
 

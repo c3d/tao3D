@@ -43,6 +43,7 @@ SOURCES     =					\
         sha1.cpp				\
 	serializer.cpp				\
         diff.cpp				\
+        lcs.cpp                                 \
 	opcodes.cpp
 
 PRODUCT=xlr$(EXE)
@@ -58,7 +59,7 @@ LDFLAGS=-L/usr/local/lib $(LLVM_LIBS) $(LLVM_LDFLAGS)
 
 test: unit_tests xl_tests
 
-unit_tests: sha1_test
+unit_tests: sha1_test lcs_test
 
 %_test: %.cpp
 	$(CXX) -DUNIT_TEST $(CXXFLAGS) -o $* $*.cpp && ./$* && rm ./$*

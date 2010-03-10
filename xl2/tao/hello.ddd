@@ -13,8 +13,8 @@ page_size 1200,300
 page
     color 1,1,1,1
     font "Arial Unicode MS"
-    font_size 30
-    kmoveto -600,-5
+    font_size 40
+    kmoveto -600,-10
     ktext "Hello World! or Καλημέρα κόσμε; or こんにちは 世界"
 
 rotatey -29*page_time + 270

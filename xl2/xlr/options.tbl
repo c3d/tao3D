@@ -1,28 +1,25 @@
-/* ************************************************************************* */
-/*   Christophe de Dinechin                                     XL2 PROJECT  */
-/*   XL COMPILER: options.tbl                                                */
-/* ************************************************************************* */
-/*                                                                           */
-/*   File Description:                                                       */
-/*                                                                           */
-/*     This table defines the options known to the compiler                  */
-/*                                                                           */
-/*                                                                           */
-/*                                                                           */
-/*                                                                           */
-/*                                                                           */
-/*                                                                           */
-/*                                                                           */
-/*                                                                           */
-/*                                                                           */
-/* ************************************************************************* */
-/* This document is distributed under the GNU general public license.        */
-/* See the accompanying license file for information                         */
-/* ****************************************************************************
-   * File       : $RCSFile$
-   * Revision   : $Revision $
-   * Date       : $Date $
-   ************************************************************************* */
+// ****************************************************************************
+//  options.tbl                                                     XLR project
+// ****************************************************************************
+// 
+//   File Description:
+// 
+//     This table defines the options known to the compiler.
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jerome Forissier <jerome@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
 // Keywords:
 // OPTVAR defines an option-controlling variable
 // OPTION defines an option and associated code
@@ -95,6 +92,9 @@ OPTION(v, "Short form for -verbose.", verbose = true)
 OPTVAR(output_file, std::string, "")
 OPTION(o, "Select output file", output_file = STRING)
 
+// Debug controlling options
+OPTVAR(doDiff, bool, false)
+OPTION(diff, "Compute difference of two parse trees (you must give exactly two input files)", doDiff=true)
 
 
 #ifdef TAO
@@ -120,6 +120,7 @@ TRACE(typecheck)
 TRACE(labels)
 TRACE(builtins)
 TRACE(closure)
+TRACE(diff)
 
 // Undefine for next use...
 #undef OPTVAR

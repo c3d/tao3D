@@ -113,7 +113,9 @@ LIBS += $$CAIRO_LIBS
 # Pango
 PANGO_INC= /usr/local/include/pango-1.0         \
            /opt/local/include/glib-2.0          \
-           /opt/local/lib/glib-2.0/include
+           /opt/local/lib/glib-2.0/include      \
+           /usr/include/glib-2.0                \
+           /usr/lib/glib-2.0/include
 PANGO_LIBS=-L/usr/local/lib -lpango-1.0 -lpangocairo-1.0 -L/opt/local/lib -lgobject-2.0
 
 INCLUDEPATH += $$PANGO_INC

@@ -27,7 +27,7 @@
 
 TAO_BEGIN
 
-WebPage::WebPage(QGLWidget *w, uint width, uint height)
+WebPage::WebPage(Widget *w, uint width, uint height)
 // ----------------------------------------------------------------------------
 //   Create a renderer with the right size
 // ----------------------------------------------------------------------------
@@ -100,6 +100,10 @@ void WebPage::bind (text url)
 #ifdef GL_MULTISAMPLE   // Not supported on Windows
     glEnable(GL_MULTISAMPLE);
 #endif
+
+    // Set the focus for the parent
+    Widget *parent = (Widget *) webView->parent();
+    parent->requestFocus(webView);
 }
 
 

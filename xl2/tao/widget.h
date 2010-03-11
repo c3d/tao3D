@@ -37,24 +37,6 @@
 #include "coords3d.h"
 
 
-// ============================================================================
-// 
-//   Forward declarations (from QtWebKit)
-// 
-// ============================================================================
-
-class QWebView;
-QT_BEGIN_NAMESPACE
-class QLineEdit;
-QT_END_NAMESPACE
-
-
-
-// ============================================================================
-// 
-//   Declarations from this file
-// 
-// ============================================================================
 
 namespace Tao {
 
@@ -108,6 +90,8 @@ public:
     Tree *locally(Tree *self, Tree *t);
     Tree *pagesize(Tree *self, uint w, uint h);
     Tree *page(Tree *self, Tree *p);
+    Integer *page_width(Tree *self);
+    Integer *page_height(Tree *self);
 
     Tree *refresh(Tree *self, double delay);
     Tree *time(Tree *self);
@@ -176,6 +160,11 @@ public:
     Tree *KlayoutMarkup(Tree *self, text s);
 
     Tree *menuItem(Tree *self, text s, Tree *t);
+    Tree *focus(Tree *self);
+
+    // Focus management
+    void              setFocus();
+    void              requestFocus(QWidget *widget);
 
 private:
     void widgetVertex(double x, double y, double tx, double ty);
@@ -214,21 +203,6 @@ public:
     } state;
 
     static Widget    *current;
-
-public:
-    // Web view
-    QWebView         *webView;
-    QLineEdit        *urlEdit;
-    int               progress;
-
-
-protected slots:
-    void adjustLocation();
-    void changeLocation();
-    void adjustTitle();
-    void setProgress(int p);
-    void finishLoading(bool);
-
 };
 
 

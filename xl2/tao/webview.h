@@ -30,6 +30,8 @@ class QWebView;
 
 namespace Tao {
 
+struct Widget;
+
 struct WebPage : QObject, XL::Info
 // ----------------------------------------------------------------------------
 //    Hold information about the web page for a given tree
@@ -40,7 +42,7 @@ public:
     typedef WebPage * data_t;
     enum { MAX_PAGES = 20 };
 
-    WebPage(QGLWidget *w, uint width=512, uint height=512);
+    WebPage(Widget *w, uint width=512, uint height=512);
     ~WebPage();
     operator data_t() { return this; }
     void resize(uint width, uint height);

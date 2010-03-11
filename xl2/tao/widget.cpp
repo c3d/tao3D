@@ -58,8 +58,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       xlProgram(sf), timer(this), contextMenu(this),
       frame(NULL), mainFrame(NULL),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
-      page_start_time(CurrentTime()),
-      webView(NULL), urlEdit(NULL), progress(0)
+      page_start_time(CurrentTime())
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -71,28 +70,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     // Prepare the timer
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
 
-    // Create the Web view
+    // Configure the proxies for URLs
     QNetworkProxyFactory::setUseSystemConfiguration(true);
-
-    webView = new QWebView(this);
-    webView->load(QUrl("http://www.google.com"));
-    connect(webView, SIGNAL(loadFinished(bool)), SLOT(adjustLocation()));
-    connect(webView, SIGNAL(titleChanged(QString)), SLOT(adjustTitle()));
-    connect(webView, SIGNAL(loadProgress(int)), SLOT(setProgress(int)));
-    connect(webView, SIGNAL(loadFinished(bool)), SLOT(finishLoading(bool)));
-
-    // Create the URL edit bar
-    urlEdit = new QLineEdit(this);
-    urlEdit->setSizePolicy(QSizePolicy::Expanding,
-                           urlEdit->sizePolicy().verticalPolicy());
-    connect(urlEdit, SIGNAL(returnPressed()), SLOT(changeLocation()));
-
-    QToolBar *toolBar = parent->addToolBar(tr("Navigation"));
-    toolBar->addAction(webView->pageAction(QWebPage::Back));
-    toolBar->addAction(webView->pageAction(QWebPage::Forward));
-    toolBar->addAction(webView->pageAction(QWebPage::Reload));
-    toolBar->addAction(webView->pageAction(QWebPage::Stop));
-    toolBar->addWidget(urlEdit);
 }
 
 
@@ -126,7 +105,6 @@ void Widget::resizeGL(int width, int height)
 // ----------------------------------------------------------------------------
 {
     mainFrame->Resize(width, height);
-    webView->resize(width, height);
     tmax = tsum = tcount = 0;
     tmin = ~tmax;
 }
@@ -139,6 +117,38 @@ void Widget::paintGL()
 {
     draw();
     glShowErrors();
+}
+
+
+void Widget::setFocus()
+// ----------------------------------------------------------------------------
+//   When we receive the focus, hand it down to widget that requested it
+// ----------------------------------------------------------------------------
+{
+    if (focusProxy())
+        focusProxy()->setFocus();
+    else
+        QGLWidget::setFocus();
+}
+
+
+void Widget::requestFocus(QWidget *widget)
+// ----------------------------------------------------------------------------
+//   Some other widget request the focus
+// ----------------------------------------------------------------------------
+{
+    if (!focusProxy())
+        setFocusProxy(widget);
+}
+
+
+XL::Tree *Widget::focus(Tree *self)
+// ----------------------------------------------------------------------------
+//   The next widget to request the focus gets it
+// ----------------------------------------------------------------------------
+{
+    setFocusProxy(NULL);
+    return XL::xl_true;
 }
 
 
@@ -181,7 +191,6 @@ void Widget::setup(double w, double h)
     state.charFormat = QTextCharFormat();
     state.charFormat.setForeground(Qt::black);
     state.charFormat.setBackground(Qt::white);
-
 }
 
 
@@ -201,43 +210,6 @@ void Widget::draw()
     glClearColor (1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-#if 0
-    // Render the web view in a texture
-    QImage webImage(width(), height(), QImage::Format_ARGB32);
-    webView->render(&webImage);
-    QImage texture = convertToGLFormat(webImage);
-
-    glPushAttrib(GL_TEXTURE_BIT);
-    {
-        // Generate the GL texture
-        GLuint textureId;
-
-        glGenTextures(1, &textureId);
-        glBindTexture(GL_TEXTURE_2D, textureId);
-        glTexImage2D(GL_TEXTURE_2D, 0, 3,
-                     texture.width(), texture.height(), 0, GL_RGBA,
-                     GL_UNSIGNED_BYTE, texture.bits());
-
-        glBindTexture(GL_TEXTURE_2D, textureId);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glEnable(GL_TEXTURE_2D);
-
-        // Draw a rectangle with the resulting texture
-        glBegin(GL_QUADS);
-        {
-            glTexCoord2f(0,0); glVertex2f(-w/2, -h/2);
-            glTexCoord2f(1,0); glVertex2f( w/2, -h/2);
-            glTexCoord2f(1,1); glVertex2f( w/2,  h/2);
-            glTexCoord2f(0,1); glVertex2f(-w/2,  h/2);
-        }
-        glEnd();
-
-        glDeleteTextures(1, &textureId);
-    }
-    glPopAttrib();
-#endif    
-
     // If there is a program, we need to run it
     if (xlProgram)
     {
@@ -250,6 +222,7 @@ void Widget::draw()
 
         initMenu();
         state.paintDevice = this;
+        setFocusProxy(NULL);
 
         try
         {
@@ -345,6 +318,11 @@ void Widget::mousePressEvent(QMouseEvent *e)
         TreeHolder t = p_action->data().value<TreeHolder >();
         actions.append(t);
     }
+
+    if (QWidget *proxy = focusProxy())
+        proxy->setFocus();
+    else
+        QGLWidget::mousePressEvent(e);
 }
 
 
@@ -353,6 +331,7 @@ void Widget::mouseMoveEvent(QMouseEvent *e)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
+    QGLWidget::mouseMoveEvent(e);
 }
 
 
@@ -361,22 +340,25 @@ void Widget::wheelEvent(QWheelEvent *e)
 //   Mouse wheel
 // ----------------------------------------------------------------------------
 {
+    QGLWidget::wheelEvent(e);
 }
 
 
-void Widget::mouseDoubleClickEvent(QMouseEvent *)
+void Widget::mouseDoubleClickEvent(QMouseEvent *e)
 // ----------------------------------------------------------------------------
 //   Mouse double click
 // ----------------------------------------------------------------------------
 {
+    QGLWidget::mouseDoubleClickEvent(e);
 }
 
 
-void Widget::timerEvent(QTimerEvent *)
+void Widget::timerEvent(QTimerEvent *e)
 // ----------------------------------------------------------------------------
 //    Timer expired
 // ----------------------------------------------------------------------------
 {
+    QGLWidget::timerEvent(e);
 }
 
 
@@ -520,6 +502,24 @@ Tree *Widget::page(Tree *self, Tree *p)
     frame->bind();
 
     return result;
+}
+
+
+XL::Integer *Widget::page_width(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return the width of the page
+// ----------------------------------------------------------------------------
+{
+    return new Integer(width());
+}
+
+
+XL::Integer *Widget::page_height(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return the height of the page
+// ----------------------------------------------------------------------------
+{
+    return new Integer(height());
 }
 
 
@@ -1457,66 +1457,6 @@ Tree *Widget::Kclear(Tree *self)
 {
     frame->Clear();
     return XL::xl_true;
-}
-
-
-// ============================================================================
-// 
-//    Web kit experiment
-// 
-// ============================================================================
-
-void Widget::adjustLocation()
-// ----------------------------------------------------------------------------
-//   Update the URL edit bar with the address being viewed
-// ----------------------------------------------------------------------------
-{
-    urlEdit->setText(webView->url().toString());
-}
-
-
-void Widget::changeLocation()
-// ----------------------------------------------------------------------------
-//    Load the location in the URL edit box
-// ----------------------------------------------------------------------------
-{
-    QUrl url = QUrl(urlEdit->text());
-    webView->load(url);
-    webView->setFocus();
-}
-
-
-void Widget::adjustTitle()
-// ----------------------------------------------------------------------------
-//    Adjust the title bar to match the current progress
-// ----------------------------------------------------------------------------
-{
-    Window *window = (Window *) parentWidget();
-    if (progress <= 0 || progress >= 100)
-        window->setWindowTitle(webView->title());
-    else
-        window->setWindowTitle(QString("%1 (%2%)")
-                               .arg(webView->title()).arg(progress));
-}
-
-
-void Widget::setProgress(int p)
-// ----------------------------------------------------------------------------
-//   Set the progress for the window
-// ----------------------------------------------------------------------------
-{
-    progress = p;
-    adjustTitle();
-}
-
-
-void Widget::finishLoading(bool)
-// ----------------------------------------------------------------------------
-//    Done loading a page
-// ----------------------------------------------------------------------------
-{
-    progress = 100;
-    adjustTitle();
 }
 
 TAO_END

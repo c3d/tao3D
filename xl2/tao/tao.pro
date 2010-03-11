@@ -67,7 +67,8 @@ HEADERS += widget.h \
     ../xlr/tree.h \
     ../xlr/opcodes_define.h \
     ../xlr/types.h \
-    treeholder.h
+    treeholder.h \
+    git_backend.h
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \
@@ -96,7 +97,8 @@ SOURCES += tao_main.cpp \
     ../xlr/context.cpp \
     ../xlr/compiler.cpp \
     ../xlr/basics.cpp \
-    treeholder.cpp
+    treeholder.cpp \
+    git_backend.cpp
 RESOURCES += tao.qrc
 
 # LLVM dependencies

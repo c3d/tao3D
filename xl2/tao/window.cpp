@@ -135,6 +135,16 @@ bool Window::saveAs()
     return saveFile(fileName);
 }
 
+bool Window::saveToGit()
+{
+    if (isUntitled)
+    {
+        if (!saveAs())
+            return false;
+    }
+    return gitRepo.SaveDocument(curFile, xlProgram->tree);
+}
+
 void Window::about()
 {
     kstring txt =
@@ -174,6 +184,11 @@ void Window::createActions()
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
     saveAsAct->setStatusTip(tr("Save the document under a new name"));
     connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
+
+    saveToGitAct = new QAction(QIcon(":/images/savetogit.png"),
+                               tr("Save to Git"), this);
+    saveToGitAct->setStatusTip(tr("Save the document as a new Git commit"));
+    connect(saveToGitAct, SIGNAL(triggered()), this, SLOT(saveToGit()));
 
     closeAct = new QAction(tr("&Close"), this);
     closeAct->setShortcut(tr("Ctrl+W"));
@@ -229,6 +244,7 @@ void Window::createMenus()
     fileMenu->addAction(openAct);
     fileMenu->addAction(saveAct);
     fileMenu->addAction(saveAsAct);
+    fileMenu->addAction(saveToGitAct);
     fileMenu->addSeparator();
     fileMenu->addAction(closeAct);
     fileMenu->addAction(exitAct);
@@ -253,6 +269,7 @@ void Window::createToolBars()
     fileToolBar->addAction(openAct);
 //! [0]
     fileToolBar->addAction(saveAct);
+    fileToolBar->addAction(saveToGitAct);
 
     editToolBar = addToolBar(tr("Edit"));
     editToolBar->addAction(cutAct);

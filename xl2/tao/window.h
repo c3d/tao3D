@@ -25,6 +25,7 @@
 #include <QMainWindow>
 #include "main.h"
 #include "tao.h"
+#include "git_backend.h"
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -55,6 +56,7 @@ private slots:
     void open();
     bool save();
     bool saveAs();
+    bool saveToGit();
     void about();
     void documentWasModified();
 
@@ -81,6 +83,7 @@ private:
     Widget           *taoWidget;
     QString           curFile;
     bool              isUntitled;
+    GitRepo           gitRepo;
 
     QMenu            *fileMenu;
     QMenu            *editMenu;
@@ -91,6 +94,7 @@ private:
     QAction          *openAct;
     QAction          *saveAct;
     QAction          *saveAsAct;
+    QAction          *saveToGitAct;
     QAction          *closeAct;
     QAction          *exitAct;
     QAction          *cutAct;

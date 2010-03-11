@@ -347,10 +347,7 @@ bool Window::saveFile(const QString &fileName)
     setCurrentFile(fileName);
     statusBar()->showMessage(tr("File saved"), 2000);
 
-    text fn = fileName.toStdString();
-    xlRuntime->LoadFile(fn);
-    xlProgram = &xlRuntime->files[fn];
-    taoWidget->xlProgram = xlProgram;
+    taoWidget->updateProgram();
     taoWidget->updateGL();
 
     return true;

@@ -48,6 +48,27 @@ XL_BEGIN
 
 Main *MAIN = NULL;
 
+SourceFile::SourceFile(text n, Tree *t, Symbols *s)
+// ----------------------------------------------------------------------------
+//   Construct a source file given a name
+// ----------------------------------------------------------------------------
+    : name(n), tree(t), symbols(s),
+      modified(0), changed(false)
+{
+    struct stat st;
+    stat (n.c_str(), &st);
+    modified = st.st_mtime;
+}
+ 
+
+SourceFile::SourceFile()
+// ----------------------------------------------------------------------------
+//   Default constructor
+// ----------------------------------------------------------------------------
+    : name(""), tree(NULL), symbols(NULL),
+      modified(0), changed(false)
+{}
+
 
 Main::Main(int inArgc, char **inArgv, Compiler &comp)
 // ----------------------------------------------------------------------------

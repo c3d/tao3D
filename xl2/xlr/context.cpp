@@ -698,8 +698,27 @@ void Context::CollectGarbage ()
             }
         }
 
+        // Mark all imported symbol tables
+        symbols_set::iterator as, is;
+        bool more_symbols = true;
+        while (more_symbols)
+        {
+            more_symbols = false;
+            for (as=gc.alive_symbols.begin(); as!=gc.alive_symbols.end(); as++)
+            {
+                Symbols *s = *as;
+                for (is = s->imported.begin(); is != s->imported.end(); is++)
+                {
+                    if (!gc.alive_symbols.count(*is))
+                    {
+                        gc.alive_symbols.insert(*is);
+                        more_symbols = true;
+                    }
+                }
+            }
+        }
+
         // Same with the symbol tables
-        symbols_set::iterator as;
         for (as = active_symbols.begin(); as != active_symbols.end(); as++)
             if (!gc.alive_symbols.count(*as))
                 delete *as;

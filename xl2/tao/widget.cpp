@@ -34,13 +34,16 @@
 #include "svg.h"
 #include "webview.h"
 #include "window.h"
+#include "treeholder.h"
+#include "apply-changes.h"
 #include <QtOpenGL>
 #include <QFont>
 #include <iostream>
-#include <sys/time.h>
 #include <QVariant>
 #include <QtWebKit>
-#include "treeholder.h"
+#include <sys/time.h>
+#include <sys/stat.h>
+
 
 TAO_BEGIN
 
@@ -129,6 +132,82 @@ void Widget::setFocus()
         focusProxy()->setFocus();
     else
         QGLWidget::setFocus();
+}
+
+
+void Widget::updateProgram()
+// ----------------------------------------------------------------------------
+//   Change the XL program, clean up stuff along the way
+// ----------------------------------------------------------------------------
+{
+    Tree *prog = xlProgram->tree.tree;
+    Tree *repl = prog;
+
+    import_set iset;
+    if (ImportedFilesChanged(prog, iset, false))
+    {
+        import_set::iterator it;
+        bool needBigHammer = false;
+        for (it = iset.begin(); it != iset.end(); it++)
+        {
+            XL::SourceFile &sf = **it;
+            text fname = sf.name;
+            struct stat st;
+            stat (fname.c_str(), &st);
+
+            if (st.st_mtime > sf.modified)
+            {
+                IFTRACE(filesync)
+                    std::cerr << "File " << fname << " changed\n";
+
+                XL::Parser parser(fname.c_str(),
+                                  XL::MAIN->syntax,
+                                  XL::MAIN->positions,
+                                  XL::MAIN->errors);
+                XL::Tree *replacement = parser.Parse();
+                if (!replacement)
+                {
+                    // Uh oh, file went away?
+                    needBigHammer = true;
+                }
+                else
+                {
+                    // Check if we can simply change some parameters in file
+                    ApplyChanges changes(replacement);
+                    if (!sf.tree.tree->Do(changes))
+                    {
+                        needBigHammer = true;
+                        if (sf.tree.tree == prog)
+                        {
+                            repl = replacement;
+                            repl->Set<XL::SymbolsInfo> (sf.symbols);
+                        }
+                    }
+                    else
+                    {
+                        sf.modified = st.st_mtime;
+                    }
+                        
+
+                    IFTRACE(filesync)
+                    {
+                        if (needBigHammer)
+                            std::cerr << "Need to reload everything.\n";
+                        else
+                            std::cerr << "Surgical replacement worked\n";
+                    }
+                }
+
+                // If we were not successful with simple changes...
+                if (needBigHammer)
+                {
+                    // ... reload everything
+                    XL::Context::context->CollectGarbage();
+                    xlProgram->tree.tree = repl;
+                }
+            }
+        }
+    }
 }
 
 

@@ -107,6 +107,7 @@ OPTION(diff, "Compute difference of two parse trees (you must give exactly two i
 OPTVAR(prefer_opengl, bool, false)
 OPTION(gl, "Prefer OpenGL for rendering", prefer_opengl = true)
 
+TRACE(filesync)
 #endif // TAO
 
 // Traces. The first ones must match the MzTrace definition in base.h

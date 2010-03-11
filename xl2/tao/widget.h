@@ -68,6 +68,7 @@ public:
     void paintGL();
     void setup(double w, double h);
     void initMenu();
+    void updateProgram();
 
 public slots:
     void draw();

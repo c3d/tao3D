@@ -26,7 +26,6 @@
 #include "tree.h"
 #include "gl_keepers.h"
 #include <map>
-#include <QtOpenGL>
 #include <cairo.h>
 #include <cairo-gl.h>
 

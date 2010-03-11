@@ -33,7 +33,6 @@
 #include "texture.h"
 #include "svg.h"
 #include "window.h"
-#include <QtOpenGL>
 #include <QFont>
 #include <iostream>
 #include <sys/time.h>

@@ -104,9 +104,14 @@ SOURCES += tao_main.cpp                         \
 RESOURCES += tao.qrc
 
 # Cairo
-CAIRO_PREFIX=/usr/local
-CAIRO_INC=/usr/local/include/cairo
-CAIRO_LIBS=-L/usr/local/lib -lcairo
+CAIRO_PREFIX  = /usr/local
+CAIRO_INC     = /usr/local/include/cairo
+CAIRO_LIBS    = -L/usr/local/lib -lcairo
+win32 {
+  CAIRO_LIBS += -L/opt/gtk/lib -lpixman-1 -lfontconfig -lfreetype -lpng14 \
+               -lglew32 -lopengl32 -lglu32 -lgdi32 -lmsimg32
+}
+
 
 INCLUDEPATH += $$CAIRO_INC
 LIBS += $$CAIRO_LIBS

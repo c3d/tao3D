@@ -1105,7 +1105,8 @@ Tree *Widget::textSpan(Tree *self, text content)
 //   Insert a block of text with the current definition of font, color, ...
 // ----------------------------------------------------------------------------
 {
-    state.flow->addText(QString::fromStdString(content), state.charFormat);
+    state.flow->addText(QString::fromUtf8(content.c_str(), content.length()),
+                        state.charFormat);
     return XL::xl_true;
 }
 
@@ -1316,6 +1317,16 @@ Tree *Widget::KlayoutText(Tree *self, text s)
 // ----------------------------------------------------------------------------
 {
     frame->LayoutText(s);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::KlayoutMarkup(Tree *self, text s)
+// ----------------------------------------------------------------------------
+//    Text layout with markup using Pango at the current cursor position
+// ----------------------------------------------------------------------------
+{
+    frame->LayoutMarkup(s);
     return XL::xl_true;
 }
 

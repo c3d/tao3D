@@ -74,8 +74,8 @@ void Frame::Resize(uint w, uint h)
 // ----------------------------------------------------------------------------
 {
     cairo_gl_surface_set_size(surface, w, h);
-    //pango_layout_set_width(layout, w);
-    //pango_layout_set_height(layout, h);
+    pango_layout_set_width(layout, w * PANGO_SCALE);
+    pango_layout_set_height(layout, h * PANGO_SCALE);
     pango_layout_set_wrap(layout, PANGO_WRAP_WORD_CHAR);
 }
 
@@ -173,8 +173,27 @@ void Frame::LayoutText(text s)
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save;
+    glDisable(GL_DEPTH_TEST);
     cairo_scale(context, 1, -1);
-    pango_layout_set_markup(layout, s.c_str(), -1);
+    pango_layout_set_text(layout, s.c_str(), s.length());
+    pango_cairo_update_layout(context, layout);
+    pango_cairo_show_layout(context, layout);
+    // pango_cairo_layout_path(context, layout);
+    // cairo_stroke_preserve(context);
+    // cairo_fill(context);
+    cairo_scale(context, 1, -1);
+}
+
+
+void Frame::LayoutMarkup(text s)
+// ----------------------------------------------------------------------------
+//   Add text to a layout using the Pango markup language
+// ----------------------------------------------------------------------------
+{
+    GLAttribKeeper save;
+    glDisable(GL_DEPTH_TEST);
+    cairo_scale(context, 1, -1);
+    pango_layout_set_markup(layout, s.c_str(), s.length());
     pango_cairo_update_layout(context, layout);
     pango_cairo_show_layout(context, layout);
     // pango_cairo_layout_path(context, layout);

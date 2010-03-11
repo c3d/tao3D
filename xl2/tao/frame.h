@@ -52,6 +52,7 @@ struct Frame : XL::Info
     void             Text(text s);
     void             Rectangle(double x, double y, double w, double h);
     void             Stroke();
+    void             LayoutMarkup(text s);
     void             LayoutText(text s);
 
     // End of drawing, paint the frame

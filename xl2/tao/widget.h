@@ -149,6 +149,7 @@ public:
     Tree *Kstroke(Tree *self);
     Tree *Kclear(Tree *self);
     Tree *KlayoutText(Tree *self, text s);
+    Tree *KlayoutMarkup(Tree *self, text s);
 
     Tree *menuItem(Tree *self, text s, Tree *t);
 

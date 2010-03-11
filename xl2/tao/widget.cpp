@@ -70,7 +70,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     makeCurrent();
     mainFrame = new Frame;
 
-    // Prepare the timer
+    // Prepare the timers
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
 
     // Configure the proxies for URLs
@@ -135,14 +135,16 @@ void Widget::setFocus()
 }
 
 
-void Widget::updateProgram()
+void Widget::updateProgram(XL::SourceFile *source)
 // ----------------------------------------------------------------------------
 //   Change the XL program, clean up stuff along the way
 // ----------------------------------------------------------------------------
 {
-    Tree *prog = xlProgram->tree.tree;
+    Tree *prog = source->tree.tree;
     Tree *repl = prog;
+    xlProgram = source;
 
+    // Loop on imported files
     import_set iset;
     if (ImportedFilesChanged(prog, iset, false))
     {
@@ -196,18 +198,28 @@ void Widget::updateProgram()
                         else
                             std::cerr << "Surgical replacement worked\n";
                     }
-                }
+                } // Replacement checked
+            } // If file modified
+        } // For all files
 
-                // If we were not successful with simple changes...
-                if (needBigHammer)
-                {
-                    // ... reload everything
-                    XL::Context::context->CollectGarbage();
-                    xlProgram->tree.tree = repl;
-                }
+        // If we were not successful with simple changes, reload everything...
+        if (needBigHammer)
+        { 
+            for (it = iset.begin(); it != iset.end(); it++)
+            {
+                XL::SourceFile &sf = **it;
+                text fname = sf.name;
+                XL::MAIN->LoadFile(fname);
             }
         }
     }
+
+    // Perform a good old garbage collection to clean things up
+    XL::Context::context->CollectGarbage();
+
+    // Reset focus to this widget
+    setFocusProxy(NULL);
+    this->setFocus();    
 }
 
 

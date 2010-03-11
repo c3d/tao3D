@@ -23,6 +23,7 @@
 #include <QtGui>
 #include "window.h"
 #include "widget.h"
+#include "apply-changes.h"
 
 
 TAO_BEGIN
@@ -31,9 +32,9 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create a Tao window with default parameters
 // ----------------------------------------------------------------------------
-    : xlRuntime(xlr), xlProgram(sf),
-      textEdit(NULL), taoWidget(NULL),
-      isUntitled(sf == NULL)
+    : xlRuntime(xlr),
+      textEdit(NULL), taoWidget(NULL), curFile(),
+      isUntitled(sf == NULL), fileCheckTimer(this)
 {
     // Create the widgets
     QDockWidget *dock = new QDockWidget(tr("Source"));
@@ -61,27 +62,57 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
         loadFile(QString::fromStdString(sf->name));
     else
         setCurrentFile("");
+
+    // Fire a timer to check if files changed
+    fileCheckTimer.start(500);
+    connect(&fileCheckTimer, SIGNAL(timeout()), this, SLOT(checkFiles()));
 }
 
 
 void Window::closeEvent(QCloseEvent *event)
+// ----------------------------------------------------------------------------
+//   Close the window - Save settings
+// ----------------------------------------------------------------------------
 {
-    if (maybeSave()) {
+    if (maybeSave())
+    {
         writeSettings();
         event->accept();
-    } else {
+    }
+    else
+    {
         event->ignore();
     }
 }
 
+
+void Window::checkFiles()
+// ----------------------------------------------------------------------------
+//   Check if any of the open files associated with the widget changed
+// ----------------------------------------------------------------------------
+{
+    import_set done;
+    XL::SourceFile *prog = taoWidget->xlProgram;
+    if (ImportedFilesChanged(prog->tree.tree, done, false))
+        loadFile(QString::fromStdString(prog->name));
+}
+
+
 void Window::newFile()
+// ----------------------------------------------------------------------------
+//   Create a new window
+// ----------------------------------------------------------------------------
 {
     Window *other = new Window(xlRuntime, NULL);
     other->move(x() + 40, y() + 40);
     other->show();
 }
 
+
 void Window::open()
+// ----------------------------------------------------------------------------
+//   Openg a file
+// ----------------------------------------------------------------------------
 {
     QString fileName = QFileDialog::getOpenFileName
         (this,
@@ -89,24 +120,33 @@ void Window::open()
          tr(""),
          tr("Tao documents (*.ddd);;XL programs (*.xl);;"
             "Headers (*.dds *.xs);;All files (*.*)"));
-    if (!fileName.isEmpty()) {
+
+    if (!fileName.isEmpty())
+    {
         Window *existing = findWindow(fileName);
-        if (existing) {
+        if (existing)
+        {
             existing->show();
             existing->raise();
             existing->activateWindow();
             return;
         }
 
-        if (isUntitled && textEdit->document()->isEmpty()
-                && !isWindowModified()) {
+        if (isUntitled &&
+            textEdit->document()->isEmpty() &&
+            !isWindowModified())
+        {
             loadFile(fileName);
-        } else {
-            text fn = fileName.toStdString();
+        }
+        else
+        {
+            QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
+            text fn = canonicalFilePath.toStdString();
             xlRuntime->LoadFile(fn);
             XL::SourceFile &sf = xlRuntime->files[fn];
             Window *other = new Window(xlRuntime, &sf);
-            if (other->isUntitled) {
+            if (other->isUntitled)
+            {
                 delete other;
                 return;
             }
@@ -116,26 +156,36 @@ void Window::open()
     }
 }
 
+
 bool Window::save()
+// ----------------------------------------------------------------------------
+//    Save the current window
+// ----------------------------------------------------------------------------
 {
-    if (isUntitled) {
+    if (isUntitled)
         return saveAs();
-    } else {
-        return saveFile(curFile);
-    }
+    return saveFile(curFile);
 }
 
+
 bool Window::saveAs()
+// ----------------------------------------------------------------------------
+//   Select file name and save under that name
+// ----------------------------------------------------------------------------
 {
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
-                                                    curFile);
+    QString fileName =
+        QFileDialog::getSaveFileName(this, tr("Save As"), curFile);
     if (fileName.isEmpty())
         return false;
 
     return saveFile(fileName);
 }
 
+
 void Window::about()
+// ----------------------------------------------------------------------------
+//    About Box
+// ----------------------------------------------------------------------------
 {
     kstring txt =
         "<b>Tao</b>, an interactive collaboration tool.<br/>"
@@ -148,12 +198,20 @@ void Window::about()
    QMessageBox::about (this, tr("About Tao"), tr(txt));
 }
 
+
 void Window::documentWasModified()
+// ----------------------------------------------------------------------------
+//   Record when the document was modified
+// ----------------------------------------------------------------------------
 {
     setWindowModified(true);
 }
 
+
 void Window::createActions()
+// ----------------------------------------------------------------------------
+//   Create the various menus and icons on the toolbar
+// ----------------------------------------------------------------------------
 {
     newAct = new QAction(QIcon(":/images/new.png"), tr("&New"), this);
     newAct->setShortcuts(QKeySequence::New);
@@ -211,7 +269,6 @@ void Window::createActions()
     aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
     connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
-
     cutAct->setEnabled(false);
     copyAct->setEnabled(false);
     connect(textEdit, SIGNAL(copyAvailable(bool)),
@@ -220,11 +277,13 @@ void Window::createActions()
             copyAct, SLOT(setEnabled(bool)));
 }
 
-//! [implicit tr context]
+
 void Window::createMenus()
+// ----------------------------------------------------------------------------
+//    Create all Tao menus
+// ----------------------------------------------------------------------------
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
-//! [implicit tr context]
     fileMenu->addAction(newAct);
     fileMenu->addAction(openAct);
     fileMenu->addAction(saveAct);
@@ -245,13 +304,15 @@ void Window::createMenus()
     helpMenu->addAction(aboutQtAct);
 }
 
+
 void Window::createToolBars()
+// ----------------------------------------------------------------------------
+//   Create the application tool bars
+// ----------------------------------------------------------------------------
 {
-//! [0]
     fileToolBar = addToolBar(tr("File"));
     fileToolBar->addAction(newAct);
     fileToolBar->addAction(openAct);
-//! [0]
     fileToolBar->addAction(saveAct);
 
     editToolBar = addToolBar(tr("Edit"));
@@ -260,12 +321,20 @@ void Window::createToolBars()
     editToolBar->addAction(pasteAct);
 }
 
+
 void Window::createStatusBar()
+// ----------------------------------------------------------------------------
+//    Create the status bar for the window
+// ----------------------------------------------------------------------------
 {
     statusBar()->showMessage(tr("Ready"));
 }
 
+
 void Window::readSettings()
+// ----------------------------------------------------------------------------
+//   Load the settings from persistent user preference
+// ----------------------------------------------------------------------------
 {
     QSettings settings;
     QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
@@ -274,22 +343,31 @@ void Window::readSettings()
     resize(size);
 }
 
+
 void Window::writeSettings()
+// ----------------------------------------------------------------------------
+//   Write settings to persistent user preferences
+// ----------------------------------------------------------------------------
 {
     QSettings settings;
     settings.setValue("pos", pos());
     settings.setValue("size", size());
 }
 
+
 bool Window::maybeSave()
+// ----------------------------------------------------------------------------
+//   Check if we need to save the document
+// ----------------------------------------------------------------------------
 {
-    if (textEdit->document()->isModified()) {
+    if (textEdit->document()->isModified())
+    {
 	QMessageBox::StandardButton ret;
-        ret = QMessageBox::warning(this, tr("SDI"),
-                     tr("The document has been modified.\n"
-                        "Do you want to save your changes?"),
-                     QMessageBox::Save | QMessageBox::Discard
-		     | QMessageBox::Cancel);
+        ret = QMessageBox::warning
+            (this, tr("Save changes?"),
+             tr("The document has been modified.\n"
+                "Do you want to save your changes?"),
+             QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
         if (ret == QMessageBox::Save)
             return save();
         else if (ret == QMessageBox::Cancel)
@@ -298,18 +376,22 @@ bool Window::maybeSave()
     return true;
 }
 
-void Window::loadFile(const QString &fileName)
-{
 
+void Window::loadFile(const QString &fileName)
+// ----------------------------------------------------------------------------
+//    Load a specific file
+// ----------------------------------------------------------------------------
+{
     QFile file(fileName);
-    if (!file.open(QFile::ReadOnly | QFile::Text)) {
+    if (!file.open(QFile::ReadOnly | QFile::Text))
+    {
         QMessageBox::warning(this, tr("Cannot read file"),
                              tr("Cannot read file %1:\n%2.")
                              .arg(fileName)
                              .arg(file.errorString()));
         return;
     }
-
+    
     QTextStream in(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
     textEdit->setPlainText(in.readAll());
@@ -317,18 +399,38 @@ void Window::loadFile(const QString &fileName)
 
     setCurrentFile(fileName);
     statusBar()->showMessage(tr("File loaded"), 2000);
+    updateProgram(fileName);
+}
 
-    text fn = fileName.toStdString();
+
+void Window::updateProgram(const QString &fileName)
+// ----------------------------------------------------------------------------
+//   When a file has changed, reload corresponding XL program
+// ----------------------------------------------------------------------------
+{
+    QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
+    text fn = canonicalFilePath.toStdString();
+    if (xlRuntime->files.count(fn) > 0)
+    {
+        PruneInfo prune;
+        XL::SourceFile &sf = xlRuntime->files[fn];
+        sf.tree.tree->Do(prune);
+    }        
     xlRuntime->LoadFile(fn);
-    xlProgram = &xlRuntime->files[fn];
-    taoWidget->xlProgram = xlProgram;
+    XL::SourceFile *sf = &xlRuntime->files[fn];    
+    taoWidget->updateProgram(sf);
     taoWidget->updateGL();
 }
 
+
 bool Window::saveFile(const QString &fileName)
+// ----------------------------------------------------------------------------
+//   Save a file with a given name
+// ----------------------------------------------------------------------------
 {
     QFile file(fileName);
-    if (!file.open(QFile::WriteOnly | QFile::Text)) {
+    if (!file.open(QFile::WriteOnly | QFile::Text))
+    {
         QMessageBox::warning(this, tr("SDI"),
                              tr("Cannot write file %1:\n%2.")
                              .arg(fileName)
@@ -342,48 +444,64 @@ bool Window::saveFile(const QString &fileName)
         QApplication::setOverrideCursor(Qt::WaitCursor);
         out << textEdit->toPlainText();
         QApplication::restoreOverrideCursor();
-    } while (0);                // Flush
+    } while (0); // Flush
 
     setCurrentFile(fileName);
     statusBar()->showMessage(tr("File saved"), 2000);
-
-    taoWidget->updateProgram();
-    taoWidget->updateGL();
+    updateProgram(fileName);
 
     return true;
 }
 
+
 void Window::setCurrentFile(const QString &fileName)
+// ----------------------------------------------------------------------------
+//   Set the current file name, create one for empty documents
+// ----------------------------------------------------------------------------
 {
     static int sequenceNumber = 1;
+    QString name = fileName;
 
-    isUntitled = fileName.isEmpty();
-    if (isUntitled) {
-        curFile = tr("document%1.ddd").arg(sequenceNumber++);
-    } else {
-        curFile = QFileInfo(fileName).canonicalFilePath();
+    isUntitled = name.isEmpty();
+
+    // If the document name doesn't exist, loop until we find an unused one
+    while (isUntitled)
+    {
+        name = QString(tr("document%1.ddd")).arg(sequenceNumber++);
+        QFile file(name);
+        isUntitled = file.open(QFile::ReadOnly | QFile::Text);
     }
+
+    curFile = QFileInfo(name).canonicalFilePath();
 
     textEdit->document()->setModified(false);
     setWindowModified(false);
     setWindowFilePath(curFile);
 }
 
+
 QString Window::strippedName(const QString &fullFileName)
+// ----------------------------------------------------------------------------
+//   Return the short name for a document (no directory name)
+// ----------------------------------------------------------------------------
 {
     return QFileInfo(fullFileName).fileName();
 }
 
+
 Window *Window::findWindow(const QString &fileName)
+// ----------------------------------------------------------------------------
+//   Find a window given its file name
+// ----------------------------------------------------------------------------
 {
     QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
-
-    foreach (QWidget *widget, qApp->topLevelWidgets()) {
+    foreach (QWidget *widget, qApp->topLevelWidgets())
+    {
         Window *mainWin = qobject_cast<Window *>(widget);
         if (mainWin && mainWin->curFile == canonicalFilePath)
             return mainWin;
     }
-    return 0;
+    return NULL;
 }
 
 TAO_END

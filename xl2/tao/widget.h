@@ -68,7 +68,7 @@ public:
     void paintGL();
     void setup(double w, double h);
     void initMenu();
-    void updateProgram();
+    void updateProgram(XL::SourceFile *sf);
 
 public slots:
     void draw();

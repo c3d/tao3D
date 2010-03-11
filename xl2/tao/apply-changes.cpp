@@ -22,7 +22,9 @@
 
 #include "apply-changes.h"
 #include "main.h"
+#include "webview.h"
 #include <sys/stat.h>
+#include <iostream>
 
 TAO_BEGIN
 
@@ -74,6 +76,16 @@ bool ImportedFilesChanged(XL::Tree *prog,
         }
     }
     return result;
+}
+
+
+XL::Tree *PruneInfo::Do(XL::Tree *what)
+// ----------------------------------------------------------------------------
+//   Prune info that we don't want to preserve when the tree changes
+// ----------------------------------------------------------------------------
+{
+    what->Purge<WebPage>();
+    return what;
 }
 
 TAO_END

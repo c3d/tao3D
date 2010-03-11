@@ -173,6 +173,16 @@ struct ApplyChanges : XL::Action
 };
 
 
+struct PruneInfo : XL::Action
+// ----------------------------------------------------------------------------
+//    Remove info that we don't want to persist if we change programs
+// ----------------------------------------------------------------------------
+{
+    PruneInfo() : XL::Action() {}
+    XL::Tree *Do(XL::Tree *what);
+};
+
+
 typedef std::set<XL::SourceFile *> import_set;
 bool ImportedFilesChanged(XL::Tree *prog,
                           import_set &done,

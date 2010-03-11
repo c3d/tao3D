@@ -38,6 +38,7 @@
 #include <iostream>
 #include <sys/time.h>
 #include <QVariant>
+#include <QtWebKit>
 #include "treeholder.h"
 
 TAO_BEGIN
@@ -56,10 +57,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       xlProgram(sf), timer(this), contextMenu(this),
       frame(NULL), mainFrame(NULL),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
-      page_start_time(CurrentTime())
+      page_start_time(CurrentTime()),
+      webView(NULL), urlEdit(NULL), progress(0)
 {
-//    actions = QList<TreeHolder>();
-
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
 
@@ -67,9 +67,31 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     makeCurrent();
     mainFrame = new Frame;
 
-
     // Prepare the timer
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
+
+    // Create the Web view
+    QNetworkProxyFactory::setUseSystemConfiguration(true);
+
+    webView = new QWebView(this);
+    webView->load(QUrl("http://www.google.com"));
+    connect(webView, SIGNAL(loadFinished(bool)), SLOT(adjustLocation()));
+    connect(webView, SIGNAL(titleChanged(QString)), SLOT(adjustTitle()));
+    connect(webView, SIGNAL(loadProgress(int)), SLOT(setProgress(int)));
+    connect(webView, SIGNAL(loadFinished(bool)), SLOT(finishLoading(bool)));
+
+    // Create the URL edit bar
+    urlEdit = new QLineEdit(this);
+    urlEdit->setSizePolicy(QSizePolicy::Expanding,
+                           urlEdit->sizePolicy().verticalPolicy());
+    connect(urlEdit, SIGNAL(returnPressed()), SLOT(changeLocation()));
+
+    QToolBar *toolBar = parent->addToolBar(tr("Navigation"));
+    toolBar->addAction(webView->pageAction(QWebPage::Back));
+    toolBar->addAction(webView->pageAction(QWebPage::Forward));
+    toolBar->addAction(webView->pageAction(QWebPage::Reload));
+    toolBar->addAction(webView->pageAction(QWebPage::Stop));
+    toolBar->addWidget(urlEdit);
 }
 
 
@@ -78,8 +100,7 @@ Widget::~Widget()
 //   Destroy the widget
 // ----------------------------------------------------------------------------
 {
-    if (mainFrame)
-        delete mainFrame;
+    delete mainFrame;
 }
 
 
@@ -104,6 +125,7 @@ void Widget::resizeGL(int width, int height)
 // ----------------------------------------------------------------------------
 {
     mainFrame->Resize(width, height);
+    webView->resize(width, height);
     tmax = tsum = tcount = 0;
     tmin = ~tmax;
 }
@@ -167,20 +189,56 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
+    // Timing
+    ulonglong t = now();
+
+    // Setup the initial drawing environment
+    double w = width(), h = height();
+    setup(w, h);
+
     // Clear the background
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor (1.0, 1.0, 1.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Render the web view in a texture
+    QImage webImage(width(), height(), QImage::Format_ARGB32);
+    webView->render(&webImage);
+    QImage texture = convertToGLFormat(webImage);
+
+    glPushAttrib(GL_TEXTURE_BIT);
+    {
+        // Generate the GL texture
+        GLuint textureId;
+
+        glGenTextures(1, &textureId);
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        glTexImage2D(GL_TEXTURE_2D, 0, 3,
+                     texture.width(), texture.height(), 0, GL_RGBA,
+                     GL_UNSIGNED_BYTE, texture.bits());
+
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glEnable(GL_TEXTURE_2D);
+
+        // Draw a rectangle with the resulting texture
+        glBegin(GL_QUADS);
+        {
+            glTexCoord2f(0,0); glVertex2f(-w/2, -h/2);
+            glTexCoord2f(1,0); glVertex2f( w/2, -h/2);
+            glTexCoord2f(1,1); glVertex2f( w/2,  h/2);
+            glTexCoord2f(0,1); glVertex2f(-w/2,  h/2);
+        }
+        glEnd();
+
+        glDeleteTextures(1, &textureId);
+    }
+    glPopAttrib();
+    
 
     // If there is a program, we need to run it
     if (xlProgram)
     {
-        // Timing
-        ulonglong t = now();
-
-        // Setup the initial drawing environment
-        double w = width(), h = height();
-        setup(w, h);
-
 	// Run the XL program associated with this widget
 	current = this;
         QTextOption alignCenter(Qt::AlignCenter);
@@ -221,6 +279,11 @@ void Widget::draw()
 
         // Once we are done, do a garbage collection
         XL::Context::context->CollectGarbage();
+    }
+    else
+    {
+        // Timing
+        elapsed(t);
     }
 }
 
@@ -809,8 +872,8 @@ Tree *Widget::circularSector(Tree *self,
 
 
 Tree *Widget::roundedRectangle(Tree *self,
-                        double cx, double cy, 
-                        double w, double h, double r)
+                               double cx, double cy, 
+                               double w, double h, double r)
 // ----------------------------------------------------------------------------
 //     GL rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
@@ -1358,6 +1421,66 @@ Tree *Widget::Kclear(Tree *self)
 {
     frame->Clear();
     return XL::xl_true;
+}
+
+
+// ============================================================================
+// 
+//    Web kit experiment
+// 
+// ============================================================================
+
+void Widget::adjustLocation()
+// ----------------------------------------------------------------------------
+//   Update the URL edit bar with the address being viewed
+// ----------------------------------------------------------------------------
+{
+    urlEdit->setText(webView->url().toString());
+}
+
+
+void Widget::changeLocation()
+// ----------------------------------------------------------------------------
+//    Load the location in the URL edit box
+// ----------------------------------------------------------------------------
+{
+    QUrl url = QUrl(urlEdit->text());
+    webView->load(url);
+    webView->setFocus();
+}
+
+
+void Widget::adjustTitle()
+// ----------------------------------------------------------------------------
+//    Adjust the title bar to match the current progress
+// ----------------------------------------------------------------------------
+{
+    Window *window = (Window *) parentWidget();
+    if (progress <= 0 || progress >= 100)
+        window->setWindowTitle(webView->title());
+    else
+        window->setWindowTitle(QString("%1 (%2%)")
+                               .arg(webView->title()).arg(progress));
+}
+
+
+void Widget::setProgress(int p)
+// ----------------------------------------------------------------------------
+//   Set the progress for the window
+// ----------------------------------------------------------------------------
+{
+    progress = p;
+    adjustTitle();
+}
+
+
+void Widget::finishLoading(bool)
+// ----------------------------------------------------------------------------
+//    Done loading a page
+// ----------------------------------------------------------------------------
+{
+    progress = 100;
+    adjustTitle();
 }
 
 TAO_END

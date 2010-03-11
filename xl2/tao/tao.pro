@@ -17,8 +17,7 @@ DEPENDPATH += . \
     ../xlr
 INCLUDEPATH += . \
     ../xlr
-QT += opengl \
-    svg
+QT += opengl svg webkit
 CONFIG += warn_off
 
 # CONFIG += release

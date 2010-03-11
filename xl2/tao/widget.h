@@ -36,10 +36,32 @@
 #include "treeholder.h"
 #include "coords3d.h"
 
+
+// ============================================================================
+// 
+//   Forward declarations (from QtWebKit)
+// 
+// ============================================================================
+
+class QWebView;
+QT_BEGIN_NAMESPACE
+class QLineEdit;
+QT_END_NAMESPACE
+
+
+
+// ============================================================================
+// 
+//   Declarations from this file
+// 
+// ============================================================================
+
 namespace Tao {
 
 struct Window;
 struct Frame;
+struct FrameInfo;
+
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -177,7 +199,6 @@ public:
     ulonglong         now();
     ulonglong         elapsed(ulonglong since, bool stats=true, bool show=true);
 
-
     struct State
     // ------------------------------------------------------------------------
     //    State that is preserved by 'locally'
@@ -191,6 +212,21 @@ public:
     } state;
 
     static Widget    *current;
+
+public:
+    // Web view
+    QWebView         *webView;
+    QLineEdit        *urlEdit;
+    int               progress;
+
+
+protected slots:
+    void adjustLocation();
+    void changeLocation();
+    void adjustTitle();
+    void setProgress(int p);
+    void finishLoading(bool);
+
 };
 
 

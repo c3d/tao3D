@@ -298,7 +298,6 @@ void FrameInfo::begin()
 #ifdef GL_MULTISAMPLE   // Not supported on Windows
     glDisable(GL_MULTISAMPLE);
 #endif
-    glDisable(GL_CULL_FACE);
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -337,7 +336,6 @@ void FrameInfo::bind()
 #ifdef GL_MULTISAMPLE   // Not supported on Windows
     glEnable(GL_MULTISAMPLE);
 #endif
-    glEnable(GL_CULL_FACE);
 }
 
 

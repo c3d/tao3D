@@ -133,6 +133,12 @@ PREFIX(Frame, tree, "frame",
        RTAO(framePaint(self, x, y, w, h)))
 PREFIX(FrameTexture, tree, "frame_texture",
        PARM(w,real) PARM(h,real), RTAO(frameTexture(self, w, h)))
+PREFIX(Url, tree, "url",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(u, text),
+       RTAO(urlPaint(self, x, y, w, h, u)))
+PREFIX(UrlTexture, tree, "url_texture",
+       PARM(w,real) PARM(h,real) PARM(u, text),
+       RTAO(urlTexture(self, w, h, u)))
 
 PREFIX(TextFgColorRGBA, tree, "text_fg_color",
        PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),

@@ -32,6 +32,7 @@
 #include "frame.h"
 #include "texture.h"
 #include "svg.h"
+#include "webview.h"
 #include "window.h"
 #include <QtOpenGL>
 #include <QFont>
@@ -200,6 +201,7 @@ void Widget::draw()
     glClearColor (1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+#if 0
     // Render the web view in a texture
     QImage webImage(width(), height(), QImage::Format_ARGB32);
     webView->render(&webImage);
@@ -234,7 +236,7 @@ void Widget::draw()
         glDeleteTextures(1, &textureId);
     }
     glPopAttrib();
-    
+#endif    
 
     // If there is a program, we need to run it
     if (xlProgram)
@@ -1207,58 +1209,50 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
         self->SetInfo<FrameInfo> (frame);
     }
 
-    glPushAttrib(GL_ALL_ATTRIB_BITS);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-
-    frame->resize(w,h);
-
-    frame->begin();
+    if (1)
     {
-        // Clear the background and setup initial state
-        setup(w, h);
-        XL::LocalSave<QPaintDevice *> sv(state.paintDevice, frame->render_fbo);
+        GLStateKeeper save;
 
-        TextFlow *flow = state.flow;
-        qreal lineY = 0, lineHeight = 0, topY = flow->topLineY;
-
-        flow->setText(flow->completeText);
-        flow->setAdditionalFormats(flow->formats);
-        flow->setTextOption(flow->paragraphOption);
-        flow->beginLayout();
-
-        while(true)
+        frame->resize(w,h);
+        frame->begin();
         {
-            // Create a new line
-            QTextLine line = flow->createLine();
-            if (!line.isValid())
-                break;
-            line.setLineWidth(w);
-            line.setPosition(QPoint(0, lineY - topY));
-            lineHeight = line.height();
-            lineY += lineHeight;
-        }
+            // Clear the background and setup initial state
+            setup(w, h);
+            XL::LocalSave<QPaintDevice *> sv(state.paintDevice,
+                                             frame->render_fbo);
+
+            TextFlow *flow = state.flow;
+            qreal lineY = 0, lineHeight = 0, topY = flow->topLineY;
+
+            flow->setText(flow->completeText);
+            flow->setAdditionalFormats(flow->formats);
+            flow->setTextOption(flow->paragraphOption);
+            flow->beginLayout();
+
+            while(true)
+            {
+                // Create a new line
+                QTextLine line = flow->createLine();
+                if (!line.isValid())
+                    break;
+                line.setLineWidth(w);
+                line.setPosition(QPoint(0, lineY - topY));
+                lineHeight = line.height();
+                lineY += lineHeight;
+            }
         
-        flow->topLineY = lineY;
-        flow->endLayout();
+            flow->topLineY = lineY;
+            flow->endLayout();
 
-        QPainter painter(state.paintDevice);
-        painter.setRenderHint(QPainter::Antialiasing, true);
-        painter.setRenderHint(QPainter::HighQualityAntialiasing, true);
-        painter.setRenderHint(QPainter::TextAntialiasing, true);
-        flow->draw(&painter, QPoint(0,0));
-        //painter.end();
-        flow->clear();
-    }
-    frame->end();
-
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-    glPopAttrib();
+            QPainter painter(state.paintDevice);
+            painter.setRenderHint(QPainter::Antialiasing, true);
+            painter.setRenderHint(QPainter::HighQualityAntialiasing, true);
+            painter.setRenderHint(QPainter::TextAntialiasing, true);
+            flow->draw(&painter, QPoint(0,0));
+            flow->clear();
+        }
+        frame->end();
+    } // GLSateKeeper
 
     // Bind the resulting texture
     frame->bind();
@@ -1272,12 +1266,11 @@ Tree *Widget::framePaint(Tree *self, double x, double y, double w, double h)
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
-
-    glPushAttrib(GL_TEXTURE_BIT);
+    GLAttribKeeper save(GL_TEXTURE_BIT);
     frameTexture(self, w, h);
 
     // Draw a rectangle with the resulting texture
-    glBegin(state.polygonMode);
+    glBegin(GL_QUADS);
     {
         widgetVertex(x-w/2, y-h/2, 0, 0);
         widgetVertex(x+w/2, y-h/2, 1, 0);
@@ -1285,7 +1278,53 @@ Tree *Widget::framePaint(Tree *self, double x, double y, double w, double h)
         widgetVertex(x-w/2, y+h/2, 0, 1);
     }
     glEnd();
-    glPopAttrib();
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::urlTexture(Tree *self, double w, double h, text url)
+// ----------------------------------------------------------------------------
+//   Make a texture out of a given URL
+// ----------------------------------------------------------------------------
+{
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
+    // Get or build the current frame if we don't have one
+    WebPage *page = self->GetInfo<WebPage>();
+    if (!page)
+    {
+        page = new WebPage(this, w,h);
+        self->SetInfo<WebPage> (page);
+    }
+
+    page->resize(w,h);
+    page->bind(url);
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::urlPaint(Tree *self,
+                       double x, double y,
+                       double w, double h, text url)
+// ----------------------------------------------------------------------------
+//   Draw a URL in the curent frame
+// ----------------------------------------------------------------------------
+{
+    GLAttribKeeper save(GL_TEXTURE_BIT);
+    urlTexture(self, w, h, url);
+
+    // Draw a rectangle with the resulting texture
+    glBegin(GL_QUADS);
+    {
+        widgetVertex(x-w/2, y-h/2, 0, 0);
+        widgetVertex(x+w/2, y-h/2, 1, 0);
+        widgetVertex(x+w/2, y+h/2, 1, 1);
+        widgetVertex(x-w/2, y+h/2, 0, 1);
+    }
+    glEnd();
 
     return XL::xl_true;
 }
@@ -1302,7 +1341,6 @@ Tree *Widget::qtrectangle(Tree *self, double x, double y, double w, double h)
     pen.setWidth(4);
     painter.setPen(pen);
     painter.drawRect(QRectF(x,y,w,h));
-//    painter.end();
 
     return XL::xl_true;
 }
@@ -1316,14 +1354,12 @@ Tree *Widget::qttext(Tree *self, double x, double y, text s)
 
     QPainter painter(state.paintDevice);
     setAutoFillBackground(false);
-//    painter.setBrush(Qt::green);
     painter.setPen(Qt::darkRed);
 
     QFont font("Arial");
     font.setPointSizeF(24);
     painter.setFont(font);
     painter.drawText(QPointF(x,y), Utf8(s));
-//    painter.end();
 
     return XL::xl_true;
 }

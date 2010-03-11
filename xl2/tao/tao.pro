@@ -36,6 +36,7 @@ HEADERS += widget.h                             \
     window.h                                    \
     frame.h                                     \
     svg.h                                       \
+    webview.h                                   \
     texture.h                                   \
     coords.h                                    \
     coords3d.h                                  \
@@ -77,6 +78,7 @@ SOURCES += tao_main.cpp                         \
     window.cpp                                  \
     frame.cpp                                   \
     svg.cpp                                     \
+    webview.cpp                                 \
     texture.cpp                                 \
     text_flow.cpp                               \
     drawing.cpp                                 \

@@ -115,7 +115,7 @@ QString GitRepo::CreateCommit(QString sha1, QString commitMessage)
 
     qDebug() << "Merging tree into index";
     GitProcess git2(*this);
-    git2.start(QStringList() << "read-tree" << "-m" << sha1);
+    git2.start(QStringList() << "read-tree" << "-i" << "-m" << sha1);
     git2.closeWriteChannel();
     git2.waitForFinished();
 

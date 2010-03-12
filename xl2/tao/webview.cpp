@@ -34,25 +34,11 @@ WebPage::WebPage(Widget *w, uint width, uint height)
     : webView(NULL), url(""),
       textureId(0), dirty(true)
 {
-    QWebSettings *settings = QWebSettings::globalSettings();
-    settings->setAttribute(QWebSettings::JavascriptEnabled, true);
-    settings->setAttribute(QWebSettings::JavaEnabled, true);
-    settings->setAttribute(QWebSettings::PluginsEnabled, true);
-    settings->setAttribute(QWebSettings::JavascriptCanOpenWindows, true);
-    settings->setAttribute(QWebSettings::JavascriptCanAccessClipboard, true);
-    settings->setAttribute(QWebSettings::LinksIncludedInFocusChain, true);
-    settings->setAttribute(QWebSettings::OfflineStorageDatabaseEnabled, true);
-    settings->setAttribute(QWebSettings::OfflineWebApplicationCacheEnabled, true);
-    settings->setAttribute(QWebSettings::LocalStorageEnabled, true);
-
     webView = new QWebView(w);
     connect(webView->page(),
             SIGNAL(repaintRequested(const QRect &)),
             this,
             SLOT(pageRepaint(const QRect &)));
-    webView->setEnabled(true);
-    webView->activateWindow();
-    webView->raise();
 
     glGenTextures(1, &textureId);
 

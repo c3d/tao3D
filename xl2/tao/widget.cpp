@@ -78,6 +78,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     // Receive notifications for focus
     connect(qApp, SIGNAL(focusChanged (QWidget *, QWidget *)),
             this,  SLOT(appFocusChanged(QWidget *, QWidget *)));
+
+    // Set focus policy so that we can get the focus
+    setFocusPolicy(Qt::WheelFocus);
 }
 
 
@@ -443,6 +446,7 @@ void Widget::mousePressEvent(QMouseEvent *e)
         actions.append(t);
     }
 
+    printf("Got mouse press event, focusProxy="); printWidget(focusProxy());
     if (focusProxy())
         qApp->notify(focusProxy(), e);
     else
@@ -1429,6 +1433,9 @@ Tree *Widget::urlPaint(Tree *self,
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
+    if (CurrentTime() - page_start_time < 5.0)
+        return XL::xl_false;
+
     GLAttribKeeper save(GL_TEXTURE_BIT);
     urlTexture(self, w, h, url);
 

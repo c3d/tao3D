@@ -28,6 +28,7 @@
 #include <QtGui>
 #include <QtGui/QApplication>
 #include <QtGui/QMessageBox>
+#include <QtWebKit>
 #include "widget.h"
 #include "window.h"
 #include "main.h"
@@ -66,6 +67,18 @@ int main(int argc, char **argv)
 				 "This system does not support framebuffers.");
         return -1;
     }
+
+    // Web settings
+    QWebSettings *gs = QWebSettings::globalSettings();
+    gs->setAttribute(QWebSettings::JavascriptEnabled, true);
+    gs->setAttribute(QWebSettings::JavaEnabled, true);
+    gs->setAttribute(QWebSettings::PluginsEnabled, true);
+    gs->setAttribute(QWebSettings::JavascriptCanOpenWindows, true);
+    gs->setAttribute(QWebSettings::JavascriptCanAccessClipboard, true);
+    gs->setAttribute(QWebSettings::LinksIncludedInFocusChain, true);
+    gs->setAttribute(QWebSettings::OfflineStorageDatabaseEnabled, true);
+    gs->setAttribute(QWebSettings::OfflineWebApplicationCacheEnabled,true);
+    gs->setAttribute(QWebSettings::LocalStorageEnabled, true);
 
     // Setup the XL runtime environment
     XL::Compiler compiler("xl_tao");

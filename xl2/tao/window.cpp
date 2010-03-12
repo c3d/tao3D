@@ -92,9 +92,13 @@ void Window::checkFiles()
 // ----------------------------------------------------------------------------
 {
     import_set done;
-    XL::SourceFile *prog = taoWidget->xlProgram;
-    if (ImportedFilesChanged(prog->tree.tree, done, false))
-        loadFile(QString::fromStdString(prog->name));
+    if (taoWidget)
+    {
+        XL::SourceFile *prog = taoWidget->xlProgram;
+        if (prog)
+            if (ImportedFilesChanged(prog->tree.tree, done, false))
+                loadFile(QString::fromStdString(prog->name));
+    }
 }
 
 

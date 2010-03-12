@@ -39,10 +39,9 @@ WebPage::WebPage(Widget *w, uint width, uint height)
             SIGNAL(repaintRequested(const QRect &)),
             this,
             SLOT(pageRepaint(const QRect &)));
+    webView->show();
 
     glGenTextures(1, &textureId);
-
-    fprintf(stderr, "Creating webview %p\n", webView);
 }
 
 
@@ -51,8 +50,6 @@ WebPage::~WebPage()
 //   When deleting the info, delete all renderers we have
 // ----------------------------------------------------------------------------
 {
-    fprintf(stderr, "Destroying webview %p\n", webView);
-    webView->clearFocus();
     delete webView;
     glDeleteTextures(1, &textureId);
 }

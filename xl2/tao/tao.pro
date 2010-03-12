@@ -109,7 +109,7 @@ RESOURCES += tao.qrc
 # Pango / Cairo
 PANGOCAIRO_LIBS = $$system(bash -c \"pkg-config --libs pangocairo\")
 PANGOCAIRO_INC  = $$system(bash -c \"pkg-config --cflags-only-I pangocairo | sed s/-I//g\")
-PANGOCAIRO_FLAGS= $$system(bash -c \"pkg-config --cflags-only-other pangocairo)
+PANGOCAIRO_FLAGS= $$system(bash -c \"pkg-config --cflags-only-other pangocairo\")
 
 # LLVM
 LLVM_LIBS       = $$system(bash -c \"llvm-config --libs core jit native\") \

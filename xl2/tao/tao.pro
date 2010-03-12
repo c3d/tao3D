@@ -106,14 +106,6 @@ SOURCES += tao_main.cpp                         \
     treeholder.cpp
 RESOURCES += tao.qrc
 
-# Cairo
-#CAIRO_INC       = /usr/local/include/cairo
-#CAIRO_LIBS      = -L/usr/local/lib -lcairo
-#win32 {
-#  CAIRO_LIBS   += -L/opt/gtk/lib -lpixman-1 -lfontconfig -lfreetype -lpng14 \
-#                  -lglew32 -lopengl32 -lglu32 -lgdi32 -lmsimg32
-#}
-
 # Pango / Cairo
 PANGOCAIRO_LIBS = $$system(bash -c \"pkg-config --libs pangocairo\")
 PANGOCAIRO_INC  = $$system(bash -c \"pkg-config --cflags-only-I pangocairo | sed s/-I//g\")
@@ -129,8 +121,9 @@ LLVM_DEF        = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g
 INCLUDEPATH    += $$PANGOCAIRO_INC $$LLVM_INC
 LIBS           += $$PANGOCAIRO_LIBS $$LLVM_LIBS
 DEFINES        += $$LLVM_DEF
-CFLAGS         += $$PANGOCAIRO_FLAGS
-CXXFLAGS       += $$PANGOCAIRO_FLAGS
+## This does not work!
+#CFLAGS         += $$PANGOCAIRO_FLAGS
+#CXXFLAGS       += $$PANGOCAIRO_FLAGS
 DEFAULT_FONT    = /Library/Fonts/Arial.ttf
 OTHER_FILES    += xl.syntax \
     xl.stylesheet \

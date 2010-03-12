@@ -113,7 +113,6 @@ token_t Parser::NextToken()
             {
                 text longText = scanner.Comment(closing);
                 ulong cLen = closing.length();
-                ulong oLen = opening.length();
                 longText.erase(longText.length() - cLen, cLen);
                 scanner.SetTextValue(longText);
                 openquote = opening;

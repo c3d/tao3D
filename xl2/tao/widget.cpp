@@ -75,6 +75,10 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 
     // Configure the proxies for URLs
     QNetworkProxyFactory::setUseSystemConfiguration(true);
+
+    // Receive notifications for focus
+    connect(qApp, SIGNAL(focusChanged (QWidget *, QWidget *)),
+            this,  SLOT(appFocusChanged(QWidget *, QWidget *)));
 }
 
 
@@ -132,6 +136,36 @@ void Widget::setFocus()
         focusProxy()->setFocus();
     else
         QGLWidget::setFocus();
+}
+
+
+static void printWidget(QWidget *w)
+// ----------------------------------------------------------------------------
+//   Print a widget for debugging purpose
+// ----------------------------------------------------------------------------
+{
+    printf("%p", w);
+    if (w)
+        printf(" (%s)", w->metaObject()->className());
+}
+
+
+
+void Widget::appFocusChanged(QWidget *prev, QWidget *next)
+// ----------------------------------------------------------------------------
+//   Notifications when focus changes
+// ----------------------------------------------------------------------------
+{
+    printf("Focus "); printWidget(prev); printf ("->"); printWidget(next);
+    const QObjectList &children = this->children();
+    QObjectList::const_iterator it;
+    printf("\nChildren:");
+    for (it = children.begin(); it != children.end(); it++)
+    {
+        printf(" ");
+        printWidget((QWidget *) *it);
+    }
+    printf("\n");
 }
 
 
@@ -410,8 +444,8 @@ void Widget::mousePressEvent(QMouseEvent *e)
         actions.append(t);
     }
 
-    if (QWidget *proxy = focusProxy())
-        proxy->setFocus();
+    if (focusProxy())
+        qApp->notify(focusProxy(), e);
     else
         QGLWidget::mousePressEvent(e);
 }
@@ -422,7 +456,10 @@ void Widget::mouseMoveEvent(QMouseEvent *e)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
-    QGLWidget::mouseMoveEvent(e);
+    if (focusProxy())
+        qApp->notify(focusProxy(), e);
+    else
+        QGLWidget::mouseMoveEvent(e);
 }
 
 
@@ -431,7 +468,10 @@ void Widget::wheelEvent(QWheelEvent *e)
 //   Mouse wheel
 // ----------------------------------------------------------------------------
 {
-    QGLWidget::wheelEvent(e);
+    if (focusProxy())
+        qApp->notify(focusProxy(), e);
+    else
+        QGLWidget::wheelEvent(e);
 }
 
 
@@ -440,7 +480,10 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *e)
 //   Mouse double click
 // ----------------------------------------------------------------------------
 {
-    QGLWidget::mouseDoubleClickEvent(e);
+    if (focusProxy())
+        qApp->notify(focusProxy(), e);
+    else
+        QGLWidget::mouseDoubleClickEvent(e);
 }
 
 
@@ -449,7 +492,10 @@ void Widget::timerEvent(QTimerEvent *e)
 //    Timer expired
 // ----------------------------------------------------------------------------
 {
-    QGLWidget::timerEvent(e);
+    if (focusProxy())
+        qApp->notify(focusProxy(), e);
+    else
+        QGLWidget::timerEvent(e);
 }
 
 
@@ -896,26 +942,6 @@ void Widget::circularSectorN(double cx, double cy, double r,
             break;
     }
 }
-
-
-//void Widget::debugBoundingBox()
-//{
-//    return;// No debug
-
-//    if (boundingBox == NULL) return;
-//
-//    // DEBUG: draw the bounding box
-//    GLAndWidgetKeeper save(this);
-//    //glColor4f(1.0f, 0.0f, 0.0f, 0.8f);
-//    glBegin(GL_LINE_LOOP);
-//    {
-//        glVertex2f(boundingBox->lower.x, boundingBox->lower.y);
-//        glVertex2f(boundingBox->upper.x, boundingBox->lower.y);
-//        glVertex2f(boundingBox->upper.x, boundingBox->upper.y);
-//        glVertex2f(boundingBox->lower.x, boundingBox->upper.y);
-//    }
-//    glEnd();
-//}
 
 
 Tree *Widget::circle(Tree *self, double cx, double cy, double r)
@@ -1455,9 +1481,17 @@ Tree *Widget::qttext(Tree *self, double x, double y, text s)
     return XL::xl_true;
 }
 
+
+
+// ============================================================================
+// 
+//   Menu management
+// 
+// ============================================================================
+
 Tree *Widget::menuItem(Tree *self, text s, Tree *t)
 // ----------------------------------------------------------------------------
-//
+//   Create a menu item
 // ----------------------------------------------------------------------------
 {
     QAction * p_action = contextMenu.addAction(QString::fromStdString(s));
@@ -1469,17 +1503,27 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
 
 }
 
+
 void Widget::initMenu()
+// ----------------------------------------------------------------------------
+//    Initialize the menus
+// ----------------------------------------------------------------------------
 {
     contextMenu.clear();
     QAction *p_action = contextMenu.addAction("Clear");
     connect(p_action, SIGNAL(triggered()), this,SLOT(clearActions()));
 
 }
+
+
 void Widget::clearActions()
+// ----------------------------------------------------------------------------
+//   Clear the menus
+// ----------------------------------------------------------------------------
 {
     actions.clear();
 }
+
 
 Tree *Widget::KmoveTo(Tree *self, double x, double y)
 // ----------------------------------------------------------------------------

@@ -73,6 +73,7 @@ public:
 public slots:
     void draw();
     void clearActions();
+    void appFocusChanged(QWidget *prev, QWidget *next);
 
 public:
     typedef XL::Tree    Tree;

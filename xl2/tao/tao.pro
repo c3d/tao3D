@@ -41,6 +41,8 @@ HEADERS += widget.h                             \
     coords.h                                    \
     coords3d.h                                  \
     gl_keepers.h                                \
+    GL/glew.h                                   \
+    GL/glxew.h                                  \
     text_flow.h                                 \
     drawing.h                                   \
     shapes_drawing.h                            \
@@ -86,6 +88,7 @@ SOURCES += tao_main.cpp                         \
     shapes_drawing.cpp                          \
     apply-changes.cpp                           \
     gl_keepers.cpp                              \
+    glew.c                                      \
     ../xlr/tree.cpp                             \
     ../xlr/sha1.cpp                             \
     ../xlr/serializer.cpp                       \

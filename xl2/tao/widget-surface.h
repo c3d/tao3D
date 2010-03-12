@@ -1,7 +1,7 @@
-#ifndef WEBVIEW_H
-#define WEBVIEW_H
+#ifndef WIDGET_SURFACE_H
+#define WIDGET_SURFACE_H
 // ****************************************************************************
-//  webview.h                                                       XLR project
+//  widget-surface.h                                                Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -27,37 +27,50 @@
 #include <GL/glew.h>
 #include <QtOpenGL>
 
-class QWebView;
+class QWidget;
 
 namespace Tao {
 
 struct Widget;
 
-struct WebPage : QObject, XL::Info
+
+struct WidgetSurface : QObject, XL::Info
 // ----------------------------------------------------------------------------
-//    Hold information about the web page for a given tree
+//    Hold information about the the widget associated to a given tree
 // ----------------------------------------------------------------------------
 {
     Q_OBJECT
 public:
-    typedef WebPage * data_t;
-    enum { MAX_PAGES = 20 };
+    typedef WidgetSurface * data_t;
 
-    WebPage(Widget *w, uint width=512, uint height=512);
-    ~WebPage();
+    WidgetSurface(Widget *parent, QWidget *widget, uint width, uint height);
+    ~WidgetSurface();
     operator data_t() { return this; }
     void resize(uint width, uint height);
-    void bind(text url);
+    virtual void bind();
 
-    QWebView  * webView;
-    text        url;
+    QWidget   * widget;
     GLuint      textureId;
     bool        dirty;
 
 protected slots:
-    void        pageRepaint(const QRect &dirty);
+    void        repaint();
+};
+
+
+struct WebViewSurface : WidgetSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a QWebView
+// ----------------------------------------------------------------------------
+{
+    typedef WebViewSurface * data_t;
+    WebViewSurface(Widget *parent, uint width, uint height);
+    operator data_t() { return this; }
+    virtual void bind(text url);
+
+    text url;
 };
 
 } // namespace Tao
 
-#endif // WEBVIEW_H
+#endif // WIDGET_SURFACE_H

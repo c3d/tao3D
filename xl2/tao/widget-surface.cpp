@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  webview.cpp                                                     XLR project
+//  widget-surface.cpp                                              Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -20,68 +20,66 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "webview.h"
+#include "widget-surface.h"
 #include "gl_keepers.h"
 #include <QtWebKit>
 
 
 TAO_BEGIN
 
-WebPage::WebPage(Widget *w, uint width, uint height)
+
+// ============================================================================
+//
+//    WidgetSurface - Surface for any kind of QWidget
+//
+// ============================================================================
+
+WidgetSurface::WidgetSurface(Widget *parent, QWidget *widget,
+                             uint width, uint height)
 // ----------------------------------------------------------------------------
 //   Create a renderer with the right size
 // ----------------------------------------------------------------------------
-    : webView(NULL), url(""),
-      textureId(0), dirty(true)
+    : widget(widget), textureId(0), dirty(true)
 {
-    webView = new QWebView(w);
-    connect(webView->page(),
-            SIGNAL(repaintRequested(const QRect &)),
-            this,
-            SLOT(pageRepaint(const QRect &)));
-    webView->show();
-
+    widget->show();
     glGenTextures(1, &textureId);
 }
 
 
-WebPage::~WebPage()
+WidgetSurface::~WidgetSurface()
 // ----------------------------------------------------------------------------
 //   When deleting the info, delete all renderers we have
 // ----------------------------------------------------------------------------
 {
-    delete webView;
+    delete widget;
     glDeleteTextures(1, &textureId);
 }
 
 
-void WebPage::resize(uint w, uint h)
+void WidgetSurface::resize(uint w, uint h)
 // ----------------------------------------------------------------------------
 //   Resize the FBO and if necessary request a repaint
 // ----------------------------------------------------------------------------
 {
-    // Resizing the web view should trigger a repaint
-    if (w != webView->width() || h != webView->height())
-        webView->resize(w, h);
+    // Resizing the widget should trigger a repaint
+    if (w != widget->width() || h != widget->height())
+    {
+        widget->resize(w, h);
+        dirty = true;
+    }
 }
 
 
-void WebPage::bind (text url)
+void WidgetSurface::bind ()
 // ----------------------------------------------------------------------------
-//    Activate a given SVG renderer
+//    Activate a given widget
 // ----------------------------------------------------------------------------
 {
-    if (url != this->url)
-    {
-        webView->load(QUrl(QString::fromStdString(url)));
-        this->url = url;
-    }
-
     if (dirty)
     {
-        QImage image(webView->width(), webView->height(),
+        QImage image(widget->width(), widget->height(),
                      QImage::Format_ARGB32);
-        webView->render(&image);
+        widget->render(&image);
 
         // Generate the GL texture
         image = QGLWidget::convertToGLFormat(image);
@@ -101,19 +99,51 @@ void WebPage::bind (text url)
 #ifdef GL_MULTISAMPLE   // Not supported on Windows
     glEnable(GL_MULTISAMPLE);
 #endif
-
-    // Set the focus for the parent
-    Widget *parent = (Widget *) webView->parent();
-    parent->requestFocus(webView);
 }
 
 
-void WebPage::pageRepaint(const QRect &dirtyRect)
+void WidgetSurface::repaint()
 // ----------------------------------------------------------------------------
 //   The page requests a repaint, repaint in the frame buffer object
 // ----------------------------------------------------------------------------
 {
     dirty = true;
 }
+
+
+
+// ============================================================================
+//
+//   WebViewSurface - Specialization for QWebView
+//
+// ============================================================================
+
+WebViewSurface::WebViewSurface(Widget *parent, uint width, uint height)
+// ----------------------------------------------------------------------------
+//    Build the QWebView
+// ----------------------------------------------------------------------------
+    : WidgetSurface(parent, new QWebView(parent), width, height), url("")
+{
+    QWebView *webView = (QWebView *) widget;
+    connect(webView->page(),    SIGNAL(repaintRequested(const QRect &)),
+            this,               SLOT(repaint()));
+}
+
+
+void WebViewSurface::bind(text url)
+// ----------------------------------------------------------------------------
+//    Update depending on URL changes, then bind texture
+// ----------------------------------------------------------------------------
+{
+    if (url != this->url)
+    {
+        QWebView *webView = (QWebView *) widget;
+        webView->load(QUrl(QString::fromStdString(url)));
+        this->url = url;
+    }
+
+    WidgetSurface::bind();
+}
+
 
 TAO_END

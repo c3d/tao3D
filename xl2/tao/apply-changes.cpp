@@ -22,7 +22,7 @@
 
 #include "apply-changes.h"
 #include "main.h"
-#include "webview.h"
+#include "widget-surface.h"
 #include <sys/stat.h>
 #include <iostream>
 
@@ -84,7 +84,7 @@ XL::Tree *PruneInfo::Do(XL::Tree *what)
 //   Prune info that we don't want to preserve when the tree changes
 // ----------------------------------------------------------------------------
 {
-    what->Purge<WebPage>();
+    what->Purge<WidgetSurface>();
     return what;
 }
 

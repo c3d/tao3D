@@ -32,7 +32,7 @@
 #include "frame.h"
 #include "texture.h"
 #include "svg.h"
-#include "webview.h"
+#include "widget-surface.h"
 #include "window.h"
 #include "treeholder.h"
 #include "apply-changes.h"
@@ -1404,7 +1404,7 @@ Tree *Widget::framePaint(Tree *self, double x, double y, double w, double h)
 }
 
 
-Tree *Widget::urlTexture(Tree *self, double w, double h, text url)
+Tree *Widget::urlTexture(Tree *self, double w, double h, Text *url)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given URL
 // ----------------------------------------------------------------------------
@@ -1413,15 +1413,16 @@ Tree *Widget::urlTexture(Tree *self, double w, double h, text url)
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    WebPage *page = self->GetInfo<WebPage>();
-    if (!page)
+    WebViewSurface *surface = self->GetInfo<WebViewSurface>();
+    if (!surface)
     {
-        page = new WebPage(this, w,h);
-        self->SetInfo<WebPage> (page);
+        surface = new WebViewSurface(this, w,h);
+        self->SetInfo<WebViewSurface> (surface);
     }
 
-    page->resize(w,h);
-    page->bind(url);
+    // Resize to requested size, and bind texture
+    surface->resize(w,h);
+    surface->bind(url->value);
 
     return XL::xl_true;
 }
@@ -1429,7 +1430,7 @@ Tree *Widget::urlTexture(Tree *self, double w, double h, text url)
 
 Tree *Widget::urlPaint(Tree *self,
                        double x, double y,
-                       double w, double h, text url)
+                       double w, double h, Text *url)
 // ----------------------------------------------------------------------------
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------

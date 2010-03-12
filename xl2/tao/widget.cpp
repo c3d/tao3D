@@ -78,9 +78,6 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     // Receive notifications for focus
     connect(qApp, SIGNAL(focusChanged (QWidget *, QWidget *)),
             this,  SLOT(appFocusChanged(QWidget *, QWidget *)));
-
-    // Set focus policy so that we can get the focus
-    setFocusPolicy(Qt::WheelFocus);
 }
 
 
@@ -158,6 +155,7 @@ void Widget::appFocusChanged(QWidget *prev, QWidget *next)
 //   Notifications when focus changes
 // ----------------------------------------------------------------------------
 {
+#if 0
     printf("Focus "); printWidget(prev); printf ("->"); printWidget(next);
     const QObjectList &children = this->children();
     QObjectList::const_iterator it;
@@ -168,6 +166,7 @@ void Widget::appFocusChanged(QWidget *prev, QWidget *next)
         printWidget((QWidget *) *it);
     }
     printf("\n");
+#endif
 }
 
 
@@ -422,8 +421,11 @@ ulonglong Widget::elapsed(ulonglong since, bool stats, bool show)
     {
         char buffer[80];
         snprintf(buffer, sizeof(buffer),
-                 "Duration=%llu-%llu (~%f) %f FPS",
-                 tmin, tmax, double(tsum )/ tcount, 1e6*tcount / tsum);
+                 "Duration=%llu-%llu (~%f) %5.2f-%5.2f FPS (~%5.2f)",
+                 tmin, tmax, double(tsum )/ tcount,
+                 (100000000ULL / tmax)*0.01,
+                 (100000000ULL / tmin)*0.01,
+                 (100000000ULL * tcount / tsum) * 0.01);
         Window *window = (Window *) parentWidget();
         window->statusBar()->showMessage(QString(buffer));
     }
@@ -446,7 +448,6 @@ void Widget::mousePressEvent(QMouseEvent *e)
         actions.append(t);
     }
 
-    printf("Got mouse press event, focusProxy="); printWidget(focusProxy());
     if (focusProxy())
         qApp->notify(focusProxy(), e);
     else
@@ -1433,9 +1434,6 @@ Tree *Widget::urlPaint(Tree *self,
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
-    if (CurrentTime() - page_start_time < 5.0)
-        return XL::xl_false;
-
     GLAttribKeeper save(GL_TEXTURE_BIT);
     urlTexture(self, w, h, url);
 

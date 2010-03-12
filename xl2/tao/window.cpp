@@ -91,13 +91,15 @@ void Window::checkFiles()
 //   Check if any of the open files associated with the widget changed
 // ----------------------------------------------------------------------------
 {
-    import_set done;
     if (taoWidget)
     {
         XL::SourceFile *prog = taoWidget->xlProgram;
         if (prog && prog->tree.tree)
+        {
+            import_set done;
             if (ImportedFilesChanged(prog->tree.tree, done, false))
                 loadFile(QString::fromStdString(prog->name));
+        }
     }
 }
 
@@ -414,14 +416,9 @@ void Window::updateProgram(const QString &fileName)
 {
     QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
     text fn = canonicalFilePath.toStdString();
-    if (xlRuntime->files.count(fn) > 0)
-    {
-        PruneInfo prune;
-        XL::SourceFile &sf = xlRuntime->files[fn];
-        sf.tree.tree->Do(prune);
-    }        
-    xlRuntime->LoadFile(fn);
-    XL::SourceFile *sf = &xlRuntime->files[fn];    
+    XL::SourceFile *sf = &xlRuntime->files[fn];
+    if (!sf->tree.tree)
+        xlRuntime->LoadFile(fn);
     taoWidget->updateProgram(sf);
     taoWidget->updateGL();
 }

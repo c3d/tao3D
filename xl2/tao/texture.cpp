@@ -80,7 +80,6 @@ void ImageTextureInfo::bind(text file)
 #ifdef GL_MULTISAMPLE   // Not supported on Windows
     glEnable(GL_MULTISAMPLE);
 #endif
-    glEnable(GL_CULL_FACE);
 }
 
 TAO_END

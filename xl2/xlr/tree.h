@@ -137,7 +137,7 @@ struct Tree
     template<class I>
     bool                Exists();
     template <class I>
-    void                Purge();
+    bool                Purge();
 
     // Safe cast to an appropriate subclass
     Integer *           AsInteger();
@@ -264,13 +264,14 @@ template <class I> inline bool Tree::Exists()
 }
 
 
-template <class I> inline void Tree::Purge()
+template <class I> inline bool Tree::Purge()
 // ----------------------------------------------------------------------------
 //   Find and purge information of the given type
 // ----------------------------------------------------------------------------
 {
     Info *last = NULL;
     Info *next = NULL;
+    bool purged = false;
     for (Info *i = info; i; i = next)
     {
         next = i->next;
@@ -281,6 +282,7 @@ template <class I> inline void Tree::Purge()
             else
                 info = next;
             delete ic;
+            purged = true;
         }
         else
         {
@@ -289,6 +291,7 @@ template <class I> inline void Tree::Purge()
     }
     if (last)
         last->next = NULL;
+    return purged;
 }
 
 

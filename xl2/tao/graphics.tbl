@@ -49,6 +49,9 @@ PREFIX(PageSize, tree, "page_size", PARM(w, integer) PARM(h, integer),
        RTAO(pagesize(self, w,h)))
 PREFIX(Page, tree, "page", PARM(p, tree),
        RTAO(page(self, &p)))
+PREFIX(PageWidth, integer, "page_width", , RTAO(page_width(self)))
+PREFIX(PageHeight, integer, "page_height", , RTAO(page_height(self)))
+PREFIX(Focus, tree, "focus", , RTAO(focus(self)))
 
 PREFIX(Refresh, tree, "refresh", PARM(delay, real), RTAO(refresh(self, delay)))
 
@@ -133,6 +136,12 @@ PREFIX(Frame, tree, "frame",
        RTAO(framePaint(self, x, y, w, h)))
 PREFIX(FrameTexture, tree, "frame_texture",
        PARM(w,real) PARM(h,real), RTAO(frameTexture(self, w, h)))
+PREFIX(Url, tree, "url",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(u, text),
+       RTAO(urlPaint(self, x, y, w, h, u)))
+PREFIX(UrlTexture, tree, "url_texture",
+       PARM(w,real) PARM(h,real) PARM(u, text),
+       RTAO(urlTexture(self, w, h, u)))
 
 PREFIX(TextFgColorRGBA, tree, "text_fg_color",
        PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),

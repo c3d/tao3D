@@ -36,10 +36,14 @@
 #include "treeholder.h"
 #include "coords3d.h"
 
+
+
 namespace Tao {
 
 struct Window;
 struct Frame;
+struct FrameInfo;
+
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -64,6 +68,7 @@ public:
     void paintGL();
     void setup(double w, double h);
     void initMenu();
+    void updateProgram(XL::SourceFile *sf);
 
 public slots:
     void draw();
@@ -86,6 +91,8 @@ public:
     Tree *locally(Tree *self, Tree *t);
     Tree *pagesize(Tree *self, uint w, uint h);
     Tree *page(Tree *self, Tree *p);
+    Integer *page_width(Tree *self);
+    Integer *page_height(Tree *self);
 
     Tree *refresh(Tree *self, double delay);
     Tree *time(Tree *self);
@@ -139,6 +146,8 @@ public:
     Tree *flow(Tree *self);
     Tree *frameTexture(Tree *self, double w, double h);
     Tree *framePaint(Tree *self, double x, double y, double w, double h);
+    Tree *urlTexture(Tree *self, double x, double y, text s);
+    Tree *urlPaint(Tree *self, double x, double y, double w, double h, text s);
 
     Tree *qtrectangle(Tree *self, double x, double y, double w, double h);
     Tree *qttext(Tree *self, double x, double y, text s);
@@ -152,6 +161,11 @@ public:
     Tree *KlayoutMarkup(Tree *self, text s);
 
     Tree *menuItem(Tree *self, text s, Tree *t);
+    Tree *focus(Tree *self);
+
+    // Focus management
+    void              setFocus();
+    void              requestFocus(QWidget *widget);
 
 private:
     void widgetVertex(double x, double y, double tx, double ty);
@@ -176,7 +190,6 @@ public:
     ulonglong         tmin, tmax, tsum, tcount;
     ulonglong         now();
     ulonglong         elapsed(ulonglong since, bool stats=true, bool show=true);
-
 
     struct State
     // ------------------------------------------------------------------------

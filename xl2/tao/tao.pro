@@ -17,8 +17,7 @@ DEPENDPATH += . \
     ../xlr
 INCLUDEPATH += . \
     ../xlr
-QT += opengl \
-    svg
+QT += opengl svg webkit
 CONFIG += warn_off
 
 # CONFIG += release
@@ -37,6 +36,7 @@ HEADERS += widget.h                             \
     window.h                                    \
     frame.h                                     \
     svg.h                                       \
+    webview.h                                   \
     texture.h                                   \
     coords.h                                    \
     coords3d.h                                  \
@@ -44,6 +44,7 @@ HEADERS += widget.h                             \
     text_flow.h                                 \
     drawing.h                                   \
     shapes_drawing.h                            \
+    apply-changes.h                             \
     ../xlr/utf8.h                               \
     ../xlr/base.h                               \
     ../xlr/options.h                            \
@@ -78,10 +79,12 @@ SOURCES += tao_main.cpp                         \
     window.cpp                                  \
     frame.cpp                                   \
     svg.cpp                                     \
+    webview.cpp                                 \
     texture.cpp                                 \
     text_flow.cpp                               \
     drawing.cpp                                 \
     shapes_drawing.cpp                          \
+    apply-changes.cpp                           \
     gl_keepers.cpp                              \
     ../xlr/tree.cpp                             \
     ../xlr/sha1.cpp                             \

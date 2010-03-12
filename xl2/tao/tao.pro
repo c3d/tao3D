@@ -17,8 +17,7 @@ DEPENDPATH += . \
     ../xlr
 INCLUDEPATH += . \
     ../xlr
-QT += opengl \
-    svg
+QT += webkit network opengl svg 
 CONFIG += warn_off
 
 # CONFIG += release
@@ -37,6 +36,7 @@ HEADERS += widget.h                             \
     window.h                                    \
     frame.h                                     \
     svg.h                                       \
+    webview.h                                   \
     texture.h                                   \
     coords.h                                    \
     coords3d.h                                  \
@@ -44,6 +44,7 @@ HEADERS += widget.h                             \
     text_flow.h                                 \
     drawing.h                                   \
     shapes_drawing.h                            \
+    apply-changes.h                             \
     ../xlr/utf8.h                               \
     ../xlr/base.h                               \
     ../xlr/options.h                            \
@@ -78,10 +79,12 @@ SOURCES += tao_main.cpp                         \
     window.cpp                                  \
     frame.cpp                                   \
     svg.cpp                                     \
+    webview.cpp                                 \
     texture.cpp                                 \
     text_flow.cpp                               \
     drawing.cpp                                 \
     shapes_drawing.cpp                          \
+    apply-changes.cpp                           \
     gl_keepers.cpp                              \
     ../xlr/tree.cpp                             \
     ../xlr/sha1.cpp                             \
@@ -104,29 +107,32 @@ SOURCES += tao_main.cpp                         \
 RESOURCES += tao.qrc
 
 # Cairo
-CAIRO_PREFIX  = /usr/local
-CAIRO_INC     = /usr/local/include/cairo
-CAIRO_LIBS    = -L/usr/local/lib -lcairo
-win32 {
-  CAIRO_LIBS += -L/opt/gtk/lib -lpixman-1 -lfontconfig -lfreetype -lpng14 \
-               -lglew32 -lopengl32 -lglu32 -lgdi32 -lmsimg32
-}
+#CAIRO_INC       = /usr/local/include/cairo
+#CAIRO_LIBS      = -L/usr/local/lib -lcairo
+#win32 {
+#  CAIRO_LIBS   += -L/opt/gtk/lib -lpixman-1 -lfontconfig -lfreetype -lpng14 \
+#                  -lglew32 -lopengl32 -lglu32 -lgdi32 -lmsimg32
+#}
+
+# Pango / Cairo
+PANGOCAIRO_LIBS = $$system(bash -c \"pkg-config --libs pangocairo\")
+PANGOCAIRO_INC  = $$system(bash -c \"pkg-config --cflags-only-I pangocairo | sed s/-I//g\")
+PANGOCAIRO_FLAGS= $$system(bash -c \"pkg-config --cflags-only-other pangocairo)
+
+# LLVM
+LLVM_LIBS       = $$system(bash -c \"llvm-config --libs core jit native\") \
+                  $$system(bash -c \"llvm-config --ldflags\")
+LLVM_INC        = $$system(bash -c \"llvm-config --includedir\")
+LLVM_DEF        = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
 
 
-INCLUDEPATH += $$CAIRO_INC
-LIBS += $$CAIRO_LIBS
-
-
-# LLVM dependencies
-LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\")
-LLVM_LIBS += $$system(bash -c \"llvm-config --ldflags\")
-LLVM_INC = $$system(bash -c \"llvm-config --includedir\")
-LLVM_DEF = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
-INCLUDEPATH += $$LLVM_INC
-DEFAULT_FONT = /Library/Fonts/Arial.ttf
-LIBS += $$LLVM_LIBS
-DEFINES += $$LLVM_DEF
-OTHER_FILES += xl.syntax \
+INCLUDEPATH    += $$PANGOCAIRO_INC $$LLVM_INC
+LIBS           += $$PANGOCAIRO_LIBS $$LLVM_LIBS
+DEFINES        += $$LLVM_DEF
+CFLAGS         += $$PANGOCAIRO_FLAGS
+CXXFLAGS       += $$PANGOCAIRO_FLAGS
+DEFAULT_FONT    = /Library/Fonts/Arial.ttf
+OTHER_FILES    += xl.syntax \
     xl.stylesheet \
     short.stylesheet \
     html.stylesheet \

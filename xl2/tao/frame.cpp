@@ -24,6 +24,8 @@
 #include "gl_keepers.h"
 #include "widget.h"
 #include <cairo.h>
+#include <cairo-gl.h>
+#include <pango/pangocairo.h>
 
 
 TAO_BEGIN
@@ -32,17 +34,21 @@ Frame::Frame()
 // ----------------------------------------------------------------------------
 //    Create a frame of the given size
 // ----------------------------------------------------------------------------
-    : surface(NULL), context(NULL)
+    : surface(NULL), context(NULL), layout(NULL), font(NULL)
 {
     GLStateKeeper save;
 
     surface = cairo_gl_surface_create_for_current_gl_context();
     if (cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS)
-        throw &surface;
+        XL::Ooops("Unable to create Cairo surface");
 
     context = cairo_create(surface);
     if (cairo_status(context) != CAIRO_STATUS_SUCCESS)
-        throw &context;
+        XL::Ooops("Unable to create Cairo context");
+
+    layout = pango_cairo_create_layout(context);
+    font = pango_font_description_from_string("Sans Bold 12");
+    pango_layout_set_font_description(layout, font);
 }
 
 
@@ -55,6 +61,9 @@ Frame::~Frame()
         cairo_destroy(context);
     if (surface)
         cairo_surface_destroy(surface);
+
+    pango_font_description_free(font);
+    g_object_unref(layout);
 }
 
 
@@ -64,6 +73,9 @@ void Frame::Resize(uint w, uint h)
 // ----------------------------------------------------------------------------
 {
     cairo_gl_surface_set_size(surface, w, h);
+    pango_layout_set_width(layout, w * PANGO_SCALE);
+    pango_layout_set_height(layout, h * PANGO_SCALE);
+    pango_layout_set_wrap(layout, PANGO_WRAP_WORD_CHAR);
 }
 
 
@@ -105,6 +117,10 @@ void Frame::Font(text s)
 //   Select a given font name
 // ----------------------------------------------------------------------------
 {
+    pango_font_description_free(font);
+    font = pango_font_description_from_string(s.c_str());
+    pango_layout_set_font_description(layout, font);
+
     cairo_select_font_face(context, s.c_str(),
                            CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
 }
@@ -124,6 +140,7 @@ void Frame::Text(text s)
 //   Show the given text on the context
 // ----------------------------------------------------------------------------
 {
+    GLAttribKeeper save;
     cairo_scale(context, 1, -1);
     cairo_show_text(context, s.c_str());
     cairo_scale(context, 1, -1);
@@ -144,7 +161,44 @@ void Frame::Stroke()
 //    Stroke the current path
 // ----------------------------------------------------------------------------
 {
+    GLAttribKeeper save(GL_TEXTURE_BIT|GL_ENABLE_BIT|GL_CURRENT_BIT);
     cairo_stroke(context);
+}
+
+
+void Frame::LayoutText(text s)
+// ----------------------------------------------------------------------------
+//   Add text to a layout
+// ----------------------------------------------------------------------------
+{
+    GLAttribKeeper save;
+    glDisable(GL_DEPTH_TEST);
+    cairo_scale(context, 1, -1);
+    pango_layout_set_text(layout, s.c_str(), s.length());
+    pango_cairo_update_layout(context, layout);
+    pango_cairo_show_layout(context, layout);
+    // pango_cairo_layout_path(context, layout);
+    // cairo_stroke_preserve(context);
+    // cairo_fill(context);
+    cairo_scale(context, 1, -1);
+}
+
+
+void Frame::LayoutMarkup(text s)
+// ----------------------------------------------------------------------------
+//   Add text to a layout using the Pango markup language
+// ----------------------------------------------------------------------------
+{
+    GLAttribKeeper save;
+    glDisable(GL_DEPTH_TEST);
+    cairo_scale(context, 1, -1);
+    pango_layout_set_markup(layout, s.c_str(), s.length());
+    pango_cairo_update_layout(context, layout);
+    pango_cairo_show_layout(context, layout);
+    // pango_cairo_layout_path(context, layout);
+    // cairo_stroke_preserve(context);
+    // cairo_fill(context);
+    cairo_scale(context, 1, -1);
 }
 
 
@@ -155,7 +209,6 @@ void Frame::Paint(double x, double y, double w, double h)
 {
     cairo_surface_flush(surface);
 }
-
 
 
 // ============================================================================
@@ -244,7 +297,6 @@ void FrameInfo::begin()
 #ifdef GL_MULTISAMPLE   // Not supported on Windows
     glDisable(GL_MULTISAMPLE);
 #endif
-    glDisable(GL_CULL_FACE);
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -283,7 +335,6 @@ void FrameInfo::bind()
 #ifdef GL_MULTISAMPLE   // Not supported on Windows
     glEnable(GL_MULTISAMPLE);
 #endif
-    glEnable(GL_CULL_FACE);
 }
 
 

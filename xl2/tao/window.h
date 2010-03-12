@@ -23,6 +23,7 @@
 // ****************************************************************************
 
 #include <QMainWindow>
+#include <QTimer>
 #include "main.h"
 #include "tao.h"
 
@@ -57,6 +58,7 @@ private slots:
     bool saveAs();
     void about();
     void documentWasModified();
+    void checkFiles();
 
 private:
     void createActions();
@@ -72,16 +74,17 @@ private:
     void setCurrentFile(const QString &fileName);
     QString strippedName(const QString &fullFileName);
     Window *findWindow(const QString &fileName);
+    void updateProgram(const QString &filename);
 
 private:
     XL::Main *        xlRuntime;
-    XL::SourceFile *  xlProgram;
 
     QTextEdit        *textEdit;
     Widget           *taoWidget;
     QString           curFile;
     bool              isUntitled;
 
+    QTimer            fileCheckTimer;
     QMenu            *fileMenu;
     QMenu            *editMenu;
     QMenu            *helpMenu;

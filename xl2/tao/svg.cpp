@@ -1,18 +1,18 @@
 // ****************************************************************************
 //  svg.cpp                                                         Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//    Render SVG documents in a texture
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -71,7 +71,6 @@ void SvgRendererInfo::bind (text file)
 #ifdef GL_MULTISAMPLE   // Not supported on Windows
         glDisable(GL_MULTISAMPLE);
 #endif
-        glDisable(GL_CULL_FACE);
         FramePainter painter(this);
         r->render(&painter);
     }

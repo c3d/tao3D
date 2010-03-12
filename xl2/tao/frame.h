@@ -27,8 +27,7 @@
 #include "gl_keepers.h"
 #include <map>
 #include <cairo.h>
-#include <cairo-gl.h>
-
+#include <pango/pango.h>
 
 TAO_BEGIN
 
@@ -52,15 +51,19 @@ struct Frame : XL::Info
     void             Text(text s);
     void             Rectangle(double x, double y, double w, double h);
     void             Stroke();
+    void             LayoutMarkup(text s);
+    void             LayoutText(text s);
 
     // End of drawing, paint the frame
     void             Paint(double x, double y, double w, double h);
 
 private:
-    cairo_surface_t *surface;
-    cairo_t         *context;
+    cairo_surface_t      *surface;
+    cairo_t              *context;
+    PangoLayout          *layout;
+    PangoFontDescription *font;
 
-    // Can't copy
+    // No support for copying frames around
     Frame(const Frame &o) {}
 };
 

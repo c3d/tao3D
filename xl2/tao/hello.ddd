@@ -15,7 +15,7 @@ page
     font "Arial Unicode MS"
     font_size 40
     kmoveto -600,-10
-    ktext "Hello World! or Καλημέρα κόσμε; or こんにちは 世界"
+    ktext "Hello World! إجتهاد or Καλημέρα κόσμε; or こんにちは 世界"
 
 rotatey -29*page_time + 270
 color 0%,0%,0%,40%

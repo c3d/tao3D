@@ -122,7 +122,6 @@ public:
     llvm::Function            *xl_new_postfix;
     llvm::Function            *xl_new_infix;
     llvm::Function            *xl_new_closure;
-    llvm::Function            *xl_debug_code;
     builtins_map               builtins;
     function_map               functions;
     value_map                  globals;

@@ -167,7 +167,7 @@
 #define CONFIG_HAS_UINT                 1
 #define CONFIG_HAS_ULONG                1
 #define CONFIG_HAS_USHORT               1
-#define CONFIG_HAS_LONGLONG             1
+#define CONFIG_HAS_LONGLONG             0
 #define CONFIG_HAS_INT64                1
 #define CONFIG_USE_SBRK                 0
 

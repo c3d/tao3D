@@ -36,7 +36,6 @@
 #include "window.h"
 #include "treeholder.h"
 #include "apply-changes.h"
-#include <QtOpenGL>
 #include <QFont>
 #include <iostream>
 #include <QVariant>

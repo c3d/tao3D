@@ -22,7 +22,6 @@
 
 #include "shapes_drawing.h"
 #include "widget.h"
-#include <QtOpenGL>
 
 TAO_BEGIN
 

@@ -17,7 +17,7 @@ DEPENDPATH += . \
     ../xlr
 INCLUDEPATH += . \
     ../xlr
-QT += opengl svg webkit
+QT += webkit network opengl svg 
 CONFIG += warn_off
 
 # CONFIG += release
@@ -106,35 +106,25 @@ SOURCES += tao_main.cpp                         \
     treeholder.cpp
 RESOURCES += tao.qrc
 
-# Cairo
-CAIRO_INC=/usr/local/include/cairo
-CAIRO_LIBS=-L/usr/local/lib -lcairo
+# Pango / Cairo
+PANGOCAIRO_LIBS = $$system(bash -c \"pkg-config --libs pangocairo\")
+PANGOCAIRO_INC  = $$system(bash -c \"pkg-config --cflags-only-I pangocairo | sed s/-I//g\")
+PANGOCAIRO_FLAGS= $$system(bash -c \"pkg-config --cflags-only-other pangocairo)
 
-INCLUDEPATH += $$CAIRO_INC
-LIBS += $$CAIRO_LIBS
+# LLVM
+LLVM_LIBS       = $$system(bash -c \"llvm-config --libs core jit native\") \
+                  $$system(bash -c \"llvm-config --ldflags\")
+LLVM_INC        = $$system(bash -c \"llvm-config --includedir\")
+LLVM_DEF        = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
 
-# Pango
-PANGO_INC= /usr/local/include/pango-1.0         \
-           /opt/local/include/glib-2.0          \
-           /opt/local/lib/glib-2.0/include      \
-           /usr/include/glib-2.0                \
-           /usr/lib/glib-2.0/include
-PANGO_LIBS=-L/usr/local/lib -lpango-1.0 -lpangocairo-1.0 -L/opt/local/lib -lgobject-2.0
-
-INCLUDEPATH += $$PANGO_INC
-LIBS += $$PANGO_LIBS
-
-
-# LLVM dependencies
-LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\")
-LLVM_LIBS += $$system(bash -c \"llvm-config --ldflags\")
-LLVM_INC = $$system(bash -c \"llvm-config --includedir\")
-LLVM_DEF = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
-INCLUDEPATH += $$LLVM_INC
-DEFAULT_FONT = /Library/Fonts/Arial.ttf
-LIBS += $$LLVM_LIBS
-DEFINES += $$LLVM_DEF
-OTHER_FILES += xl.syntax \
+INCLUDEPATH    += $$PANGOCAIRO_INC $$LLVM_INC
+LIBS           += $$PANGOCAIRO_LIBS $$LLVM_LIBS
+DEFINES        += $$LLVM_DEF
+## This does not work!
+#CFLAGS         += $$PANGOCAIRO_FLAGS
+#CXXFLAGS       += $$PANGOCAIRO_FLAGS
+DEFAULT_FONT    = /Library/Fonts/Arial.ttf
+OTHER_FILES    += xl.syntax \
     xl.stylesheet \
     short.stylesheet \
     html.stylesheet \

@@ -23,6 +23,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include <GL/glew.h>
 #include <QtOpenGL>
 #include <QImage>
 #include <QTimeLine>

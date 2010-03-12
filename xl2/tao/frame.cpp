@@ -23,7 +23,6 @@
 #include "frame.h"
 #include "gl_keepers.h"
 #include "widget.h"
-#include <QtOpenGL>
 #include <cairo.h>
 #include <cairo-gl.h>
 #include <pango/pangocairo.h>

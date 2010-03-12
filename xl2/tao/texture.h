@@ -24,6 +24,7 @@
 
 #include "tao.h"
 #include "tree.h"
+#include <GL/glew.h>
 #include <QtOpenGL>
 
 TAO_BEGIN

@@ -120,7 +120,8 @@ OTHER_FILES += xl.syntax \
     dbghtml.stylesheet \
     bytecode.stylesheet \
     builtins.xl \
-    graphics.tbl
+    graphics.tbl \
+    git.stylesheet
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}

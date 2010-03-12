@@ -137,11 +137,9 @@ bool Window::saveAs()
 
 bool Window::saveToGit()
 {
-    if (isUntitled)
-    {
-        if (!saveAs())
-            return false;
-    }
+    if (!save())
+        return false;
+
     return gitRepo.SaveDocument(curFile, xlProgram->tree);
 }
 

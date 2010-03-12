@@ -20,9 +20,11 @@
 // ****************************************************************************
 
 #include "git_backend.h"
+#include "renderer.h"
 #include <QDir>
 #include <QDebug>
 #include <QtGlobal>
+#include <iostream>
 
 TAO_BEGIN
 
@@ -38,9 +40,11 @@ bool GitRepo::SaveDocument(QString docName, XL::Tree *tree, QString msg)
     qDebug() << Q_FUNC_INFO << "Saving document to Git repository" << repoPath;
     if (!Open(repoPath))
         return false;
-    GitCreateObjects toGit(*this);
-    tree->Do(toGit);
-    CreateCommit(toGit.sha1, msg);
+    GitBlobMaker toGit(*this);
+    XL::Renderer render(toGit);
+    render.SelectStyleSheet("git.stylesheet");
+    render.Render(tree);
+    CreateCommit(CreateTopDir(toGit.ReadSha1()), msg);
     qDebug() << Q_FUNC_INFO << "done";
     return true;
 }
@@ -84,13 +88,15 @@ QString GitRepo::CreateCommit(QString sha1, QString commitMessage)
 //   Create a commit for tree ID sha1 and return SHA1 of commit.
 // ------------------------------------------------------------------------
 {
-    qDebug() << Q_FUNC_INFO << "Tree ID:" << sha1;
+    qDebug() << Q_FUNC_INFO << "Create commit (if needed) for tree ID:"
+             << sha1;
 
     bool hasMaster = false;
     if (QFile(curPath + "/.git/refs/heads/master").exists())
     {
         GitProcess git(*this);
-        git.start(QStringList() << "show" << "--pretty=format:%H%T" << "master");
+        git.start(QStringList() << "show" << "--pretty=format:%H%T"
+                  << "master");
         git.closeWriteChannel();
         git.waitForReadyRead(-1);
         QString masterCommitSha1 = QString(git.readLine(41));
@@ -102,7 +108,7 @@ QString GitRepo::CreateCommit(QString sha1, QString commitMessage)
         if (masterTreeSha1 == sha1)
         {
             qDebug() << Q_FUNC_INFO << "No need to create commit (no change)";
-            return masterCommitSha1;  // FIXME should return commit ID not tree ID
+            return masterCommitSha1;
         }
 
         qDebug() << "Loading HEAD into index";
@@ -182,175 +188,22 @@ void GitProcess::start(const QStringList &arguments)
     QProcess::start("git", arguments);
 }
 
-XL::Tree *GitCreateObjects::DoInteger(XL::Integer *what)
-{
-    char value[50];
-    size_t size = snprintf(value, sizeof(value), "integer %lld", what->value);
-    QByteArray data(value, size);
-    sha1 = MakeBlob(data);
-    return what;
-}
-
-XL::Tree *GitCreateObjects::DoReal(XL::Real *what)
-{
-    char value[50];
-    size_t size = snprintf(value, sizeof(value), "real %g", what->value);
-    QByteArray data(value, size);
-    sha1 = MakeBlob(data);
-    return what;
-}
-
-XL::Tree *GitCreateObjects::DoText(XL::Text *what)
-{
-    QByteArray data("text ");
-    data.append(what->value.data(), what->value.length());
-    sha1 = MakeBlob(data);
-    return what;
-}
-
-XL::Tree *GitCreateObjects::DoName(XL::Name *what)
-{
-    QByteArray data("name ");
-    data.append(what->value.data(), what->value.length());
-    sha1 = MakeBlob(data);
-    return what;
-}
-
-XL::Tree *GitCreateObjects::DoBlock(XL::Block *what)
-{
-    bool       childIsLeaf;
-    QString    sha1Opening, sha1Closing, sha1Child;
-    QString    treeSpec;
-    QByteArray data;
-
-    data.append(what->opening.data(), what->opening.size());
-    sha1Opening = MakeBlob(data);
-    data.clear();
-    data.append(what->closing.data(), what->closing.size());
-    sha1Closing = MakeBlob(data);
-    childIsLeaf = what->child->Do(this);
-    sha1Child   = sha1;
-
-    treeSpec = QString("100644 blob %1\topening\n"
-                       "100644 blob %2\tclosing\n"
-                                "%3 %4\tchild\n")
-                       .arg(sha1Opening)
-                       .arg(sha1Closing)
-                       .arg(childIsLeaf  ? "100644 blob"
-                                         : "040000 tree")
-                       .arg(sha1Child);
-    sha1 = MakeTree(treeSpec);
-    return NULL;
-}
-
-XL::Tree *GitCreateObjects::DoInfix(XL::Infix *what)
-{
-    bool       leftIsLeaf, rightIsLeaf;
-    QString    sha1Infix, sha1Left, sha1Right;
-    QString    treeSpec;
-    QByteArray data;
-
-    data.append(what->name.data(), what->name.size());
-    sha1Infix   = MakeBlob(data);
-    leftIsLeaf  = what->left->Do(this);
-    sha1Left    = sha1;
-    rightIsLeaf = what->right->Do(this);
-    sha1Right   = sha1;
-
-    treeSpec = QString("100644 blob %1\tinfix\n"
-                                "%2 %3\tleft\n"
-                                "%4 %5\tright\n")
-                       .arg(sha1Infix)
-                       .arg(leftIsLeaf  ? "100644 blob"
-                                        : "040000 tree")
-                       .arg(sha1Left)
-                       .arg(rightIsLeaf ? "100644 blob"
-                                        : "040000 tree")
-                       .arg(sha1Right);
-    sha1 = MakeTree(treeSpec);
-    return NULL;
-}
-
-XL::Tree *GitCreateObjects::DoPrefix(XL::Prefix *what)
-{
-    bool       leftIsLeaf, rightIsLeaf;
-    QString    sha1Prefix, sha1Left, sha1Right;
-    QString    treeSpec;
-    QByteArray data;
-
-    data.append("", 0);
-    sha1Prefix  = MakeBlob(data);
-    leftIsLeaf  = what->left->Do(this);
-    sha1Left    = sha1;
-    rightIsLeaf = what->right->Do(this);
-    sha1Right   = sha1;
-
-    treeSpec = QString("100644 blob %1\tprefix\n"
-                                "%2 %3\tleft\n"
-                                "%4 %5\tright\n")
-                       .arg(sha1Prefix)
-                       .arg(leftIsLeaf  ? "100644 blob"
-                                        : "040000 tree")
-                       .arg(sha1Left)
-                       .arg(rightIsLeaf ? "100644 blob"
-                                        : "040000 tree")
-                       .arg(sha1Right);
-    sha1 = MakeTree(treeSpec);
-    return NULL;
-}
-
-XL::Tree *GitCreateObjects::DoPostfix(XL::Postfix *what)
-{
-    bool       leftIsLeaf, rightIsLeaf;
-    QString    sha1Postfix, sha1Left, sha1Right;
-    QString    treeSpec;
-    QByteArray data;
-
-    data.append("", 0);
-    sha1Postfix = MakeBlob(data);
-    leftIsLeaf  = what->left->Do(this);
-    sha1Left    = sha1;
-    rightIsLeaf = what->right->Do(this);
-    sha1Right   = sha1;
-
-    treeSpec = QString("100644 blob %1\tpostfix\n"
-                                "%2 %3\tleft\n"
-                                "%4 %5\tright\n")
-                       .arg(sha1Postfix)
-                       .arg(leftIsLeaf  ? "100644 blob"
-                                        : "040000 tree")
-                       .arg(sha1Left)
-                       .arg(rightIsLeaf ? "100644 blob"
-                                        : "040000 tree")
-                       .arg(sha1Right);
-    sha1 = MakeTree(treeSpec);
-    return NULL;
-}
-
-QString GitCreateObjects::MakeBlob(const QByteArray &data)
+QString GitRepo::CreateTopDir(QString docSha1)
 // ------------------------------------------------------------------------
-//   Create a Git blob from supplied buffer and return its ID
+//   Create a Git tree containing the specified document and return its ID
 // ------------------------------------------------------------------------
 {
-    GitProcess git(repo);
-    git.start(QStringList() << "hash-object" << "-w" << "--stdin");
-    if (!git.waitForStarted())
-        return false;
-    git.write(data);
-    git.closeWriteChannel();
-    git.waitForReadyRead(-1);
-    QString ret = QString(git.readLine());
-    ret.resize(40);
-    git.waitForFinished();
+    QString ret =  MakeTree(QString("100644 blob %1\tdoc\n").arg(docSha1));
+    qDebug() << Q_FUNC_INFO << "Git tree for top dir created, ID:" << ret;
     return ret;
 }
 
-QString GitCreateObjects::MakeTree(QString treeSpec)
+QString GitRepo::MakeTree(QString treeSpec)
 // ------------------------------------------------------------------------
 //   Create a Git tree-object from ls-tree formatted text and return its ID
 // ------------------------------------------------------------------------
 {
-    GitProcess git(repo);
+    GitProcess git(*this);
     git.start(QStringList() << "mktree");
     if (!git.waitForStarted())
         return false;
@@ -360,6 +213,83 @@ QString GitCreateObjects::MakeTree(QString treeSpec)
     QString ret = QString(git.readLine());
     ret.resize(40);
     git.waitForFinished();
+    return ret;
+}
+
+GitBlobMakerStreamBuf::GitBlobMakerStreamBuf(GitRepo &repo, size_t bufSize)
+        : repo(repo), git(NULL)
+{
+    char *ptr = new char[bufSize];
+    setp(ptr, ptr + bufSize);
+}
+
+GitBlobMakerStreamBuf::~GitBlobMakerStreamBuf()
+{
+    sync();
+    delete[] pbase();
+    if (git)
+        delete git;
+}
+
+void GitBlobMakerStreamBuf::PipeToProcess(std::string str)
+// ------------------------------------------------------------------------
+//   Pipe a string to the standard input of the Git subprocess
+// ------------------------------------------------------------------------
+{
+    if (!git)
+    {
+        qDebug() << Q_FUNC_INFO << "Starting Git subprocess";
+        git = new GitProcess(repo);
+        git->start(QStringList() << "hash-object" << "-w" << "--stdin");
+        if (!git->waitForStarted())
+            Q_ASSERT(!"Problem starting Git subprocess");
+    }
+    git->write(str.c_str());
+}
+
+int GitBlobMakerStreamBuf::overflow(int c)
+// ------------------------------------------------------------------------
+//   Overriding std::streambuf::overflow()
+// ------------------------------------------------------------------------
+{
+    sync();
+    if (c != EOF)
+    {
+        if (pbase() == epptr())
+            PipeToProcess("" + char(c));
+        else
+            sputc(c);
+    }
+    return 0;
+}
+
+int GitBlobMakerStreamBuf::sync()
+// ------------------------------------------------------------------------
+//   Overriding std::streambuf::sync()
+// ------------------------------------------------------------------------
+{
+    if (pbase() != pptr())
+    {
+        PipeToProcess(std::string(pbase(), int(pptr() - pbase())));
+        setp(pbase(), epptr());
+    }
+    return 0;
+}
+
+QString GitBlobMaker::ReadSha1()
+// ------------------------------------------------------------------------
+//   Flush pending output to Git subprocess and read blob's SHA1
+// ------------------------------------------------------------------------
+{
+    flush();
+    Q_ASSERT(sb.git);
+    sb.sync();
+    sb.git->closeWriteChannel();
+    sb.git->waitForReadyRead(-1);
+    QString ret = QString(sb.git->readLine());
+    ret.resize(40);
+    sb.git->waitForFinished();
+    qDebug() << Q_FUNC_INFO << "Git blob for document created, ID:" << ret;
     return ret;
 }
 

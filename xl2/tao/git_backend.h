@@ -27,6 +27,7 @@
 #include <QString>
 #include <QProcess>
 #include <QtGlobal>
+#include <iostream>
 
 TAO_BEGIN
 
@@ -45,6 +46,8 @@ protected:
     bool     Init(QString path);
     QString  CreateCommit(QString sha1, QString commitMessage = "");
     bool     UpdateRef(QString ref, QString sha1);
+    QString  CreateTopDir(QString docSha1);
+    QString  MakeTree(QString treeSpec);
 
 public:
     QString  curPath;
@@ -62,32 +65,38 @@ struct GitProcess : QProcess
     void SetGitEnvironmentForCommit();
 };
 
-struct GitCreateObjects : XL::Action
+struct GitBlobMakerStreamBuf : std::streambuf
 // ------------------------------------------------------------------------
-//   Store whole XL tree in Git repository (as Git blobs and trees)
+//   Utility class to interface GitBlobMaker with a Git process
 // ------------------------------------------------------------------------
 {
-    GitCreateObjects(GitRepo &repo): repo(repo) {}
-    virtual ~GitCreateObjects() {}
+    GitBlobMakerStreamBuf(GitRepo &repo, size_t bufSize = 1024);
+    virtual ~GitBlobMakerStreamBuf();
 
-    XL::Tree *DoInteger(XL::Integer *what);
-    XL::Tree *DoReal(XL::Real *what);
-    XL::Tree *DoText(XL::Text *what);
-    XL::Tree *DoName(XL::Name *what);
-    XL::Tree *DoBlock(XL::Block *what);
-    XL::Tree *DoInfix(XL::Infix *what);
-    XL::Tree *DoPrefix(XL::Prefix *what);
-    XL::Tree *DoPostfix(XL::Postfix *what);
-    XL::Tree *Do(XL::Tree *what) { Q_ASSERT(!"Unexpected node kind"); }
+    void PipeToProcess(std::string str);
 
-    QString    sha1;    // Git hash
+    GitRepo    & repo;
+    GitProcess * git;
+
+    int overflow(int c);
+    int sync();
+};
+
+struct GitBlobMaker : std::ostream
+// ------------------------------------------------------------------------
+//   Store data in a Git repository (as a Git blob) and return blob ID
+// ------------------------------------------------------------------------
+{
+    GitBlobMaker(GitRepo &repo):
+        std::ios(0), std::ostream(&sb), repo(repo), sb(repo) {}
+    virtual ~GitBlobMaker() {}
+    QString  ReadSha1();
 
 protected:
+    GitRepo &  repo;
 
-    QString MakeBlob(const QByteArray &data);
-    QString MakeTree(QString treeSpec);
-
-    GitRepo &  repo;    // The Git repository
+private:
+    GitBlobMakerStreamBuf sb;
 };
 
 TAO_END

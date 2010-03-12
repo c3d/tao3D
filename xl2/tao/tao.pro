@@ -18,7 +18,7 @@ DEPENDPATH += . \
 INCLUDEPATH += . \
     ../xlr
 QT += webkit network opengl svg 
-CONFIG += warn_off
+CONFIG += warn_off debug
 
 # CONFIG += release
 # Tell the XLR portion that we are building for Tao

@@ -1552,7 +1552,6 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
     QVariant var = QVariant::fromValue(TreeHolder(t));
     p_action->setData(var);
 
-
     return XL::xl_true;
 
 }
@@ -1566,7 +1565,6 @@ void Widget::initMenu()
     contextMenu.clear();
     QAction *p_action = contextMenu.addAction("Clear");
     connect(p_action, SIGNAL(triggered()), this,SLOT(clearActions()));
-
 }
 
 

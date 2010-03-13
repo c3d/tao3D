@@ -149,8 +149,7 @@ void WebViewSurface::bind(XL::Text *urlTree, XL::Integer *progressTree)
         url = urlTree->value;
         this->urlTree = urlTree;
         webView->load(QUrl(QString::fromStdString(url)));
-        if (progress)
-            progress->value = 0;
+        loadProgress(0);
     }
 
     WidgetSurface::bind();
@@ -162,13 +161,7 @@ void WebViewSurface::finishedLoading (bool loadedOK)
 //   When we loaded the surface, update the URL
 // ----------------------------------------------------------------------------
 {
-    if (urlTree)
-    {
-        QWebView *webView = (QWebView *) widget;
-        urlTree->value = webView->url().toString().toStdString();
-    }
-    if (progress)
-        progress->value = 100;
+    loadProgress(100);
 }
 
 
@@ -177,6 +170,15 @@ void WebViewSurface::loadProgress(int progressPercent)
 //   If we have a progress status, update it
 // ----------------------------------------------------------------------------
 {
+    if (urlTree)
+    {
+        QWebView *webView = (QWebView *) widget;
+        if (webView->url().isValid() && progressPercent >= 20)
+        {
+            url = webView->url().toString().toStdString();
+            urlTree->value = url;
+        }
+    }
     if (progress)
         progress->value = progressPercent;
 }

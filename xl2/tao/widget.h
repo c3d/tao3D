@@ -148,8 +148,11 @@ public:
     Tree *flow(Tree *self);
     Tree *frameTexture(Tree *self, double w, double h);
     Tree *framePaint(Tree *self, double x, double y, double w, double h);
-    Tree *urlTexture(Tree *self, double x, double y, Text *s);
-    Tree *urlPaint(Tree *self, double x, double y, double w, double h, Text *s);
+    Tree *urlTexture(Tree *self, double x, double y, Text *s, Integer *p);
+    Tree *urlPaint(Tree *self, double x, double y, double w, double h,
+                   Text *s, Integer *p);
+    Tree *lineEditTexture(Tree *self, double x, double y, Text *s);
+    Tree *lineEdit(Tree *self, double x, double y, double w, double h, Text *s);
 
     Tree *qtrectangle(Tree *self, double x, double y, double w, double h);
     Tree *qttext(Tree *self, double x, double y, text s);

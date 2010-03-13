@@ -63,12 +63,40 @@ struct WebViewSurface : WidgetSurface
 //    Hold information about a QWebView
 // ----------------------------------------------------------------------------
 {
+    Q_OBJECT;
+public:
     typedef WebViewSurface * data_t;
     WebViewSurface(Widget *parent, uint width, uint height);
     operator data_t() { return this; }
-    virtual void bind(text url);
+    virtual void bind(XL::Text *url, XL::Integer *progress=NULL);
 
-    text url;
+    XL::Text    *urlTree;
+    text         url;
+    XL::Integer *progress;
+
+protected slots:
+    void        finishedLoading(bool loadedOK);
+    void        loadProgress(int progress);
+};
+
+
+struct LineEditSurface : WidgetSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a QLineEdit
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT;
+public:
+    typedef LineEditSurface * data_t;
+    LineEditSurface(Widget *parent, uint width, uint height, bool immed=false);
+    operator data_t() { return this; }
+    virtual void bind(XL::Text *contents);
+    XL::Text *contents;
+    bool immediate;
+
+public slots:
+    void textChanged(const QString &text);
+    void inputValidated();
 };
 
 } // namespace Tao

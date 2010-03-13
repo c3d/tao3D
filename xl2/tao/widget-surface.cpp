@@ -122,28 +122,138 @@ WebViewSurface::WebViewSurface(Widget *parent, uint width, uint height)
 // ----------------------------------------------------------------------------
 //    Build the QWebView
 // ----------------------------------------------------------------------------
-    : WidgetSurface(parent, new QWebView(parent), width, height), url("")
+    : WidgetSurface(parent, new QWebView(parent), width, height),
+      urlTree(NULL), url(""), progress(0)
 {
     QWebView *webView = (QWebView *) widget;
     connect(webView->page(),    SIGNAL(repaintRequested(const QRect &)),
             this,               SLOT(repaint()));
+    connect(webView,            SIGNAL(loadFinished(bool)),
+            this,               SLOT(finishedLoading(bool)));
+    connect(webView,            SIGNAL(loadProgress(int)),
+            this,               SLOT(loadProgress(int)));
 }
 
 
-void WebViewSurface::bind(text url)
+void WebViewSurface::bind(XL::Text *urlTree, XL::Integer *progressTree)
 // ----------------------------------------------------------------------------
 //    Update depending on URL changes, then bind texture
 // ----------------------------------------------------------------------------
 {
-    if (url != this->url)
+    if (progress != progressTree)
+        progress = progressTree;
+
+    if (urlTree != this->urlTree || urlTree->value != url)
     {
         QWebView *webView = (QWebView *) widget;
+        url = urlTree->value;
+        this->urlTree = urlTree;
         webView->load(QUrl(QString::fromStdString(url)));
-        this->url = url;
+        if (progress)
+            progress->value = 0;
     }
 
     WidgetSurface::bind();
 }
 
+
+void WebViewSurface::finishedLoading (bool loadedOK)
+// ----------------------------------------------------------------------------
+//   When we loaded the surface, update the URL
+// ----------------------------------------------------------------------------
+{
+    if (urlTree)
+    {
+        QWebView *webView = (QWebView *) widget;
+        urlTree->value = webView->url().toString().toStdString();
+    }
+    if (progress)
+        progress->value = 100;
+}
+
+
+void WebViewSurface::loadProgress(int progressPercent)
+// ----------------------------------------------------------------------------
+//   If we have a progress status, update it
+// ----------------------------------------------------------------------------
+{
+    if (progress)
+        progress->value = progressPercent;
+}
+
+
+
+// ============================================================================
+//
+//   LineEditSurface - Specialization for QLineView
+//
+// ============================================================================
+
+LineEditSurface::LineEditSurface(Widget *parent,
+                                 uint width, uint height,
+                                 bool immed)
+// ----------------------------------------------------------------------------
+//    Build the QLineEdit
+// ----------------------------------------------------------------------------
+    : WidgetSurface(parent, new QLineEdit(parent), width, height),
+      contents(NULL), immediate(immed)
+{
+    QLineEdit *lineEdit = (QLineEdit *) widget;
+    lineEdit->setFrame(true);
+    lineEdit->setReadOnly(false);
+    lineEdit->selectAll();
+    connect(lineEdit, SIGNAL(textChanged(const QString &)),
+            this,     SLOT(textChanged(const QString &)));
+    connect(lineEdit, SIGNAL(editingFinished()),
+            this,     SLOT(repaint()));
+    connect(lineEdit, SIGNAL(selectionChanged()),
+            this,     SLOT(repaint()));
+    connect(lineEdit, SIGNAL(cursorPositionChanged(int, int)),
+            this,     SLOT(repaint()));
+    connect(lineEdit, SIGNAL(returnPressed()),
+            this,     SLOT(inputValidated()));
+}
+
+
+void LineEditSurface::bind(XL::Text *contents)
+// ----------------------------------------------------------------------------
+//    Update text based on text changes
+// ----------------------------------------------------------------------------
+{
+    if (contents != this->contents)
+    {
+        QLineEdit *lineEdit = (QLineEdit *) widget;
+        this->contents = NULL;
+        lineEdit->setText(QString::fromStdString(contents->value));
+        this->contents = contents;
+    }
+
+    WidgetSurface::bind();
+}
+
+
+void LineEditSurface::textChanged(const QString &text)
+// ----------------------------------------------------------------------------
+//    If the text changed, update the associated XL::Text
+// ----------------------------------------------------------------------------
+{
+    if (contents && immediate)
+        contents->value = text.toStdString();
+    repaint();
+}
+
+
+void LineEditSurface::inputValidated()
+// ----------------------------------------------------------------------------
+//    If the text changed, update the associated XL::Text
+// ----------------------------------------------------------------------------
+{
+    if (contents)
+    {
+        QLineEdit *lineEdit = (QLineEdit *) widget;
+        contents->value = lineEdit->text().toStdString();
+    }
+    repaint();
+}
 
 TAO_END

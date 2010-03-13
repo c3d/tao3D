@@ -1404,7 +1404,8 @@ Tree *Widget::framePaint(Tree *self, double x, double y, double w, double h)
 }
 
 
-Tree *Widget::urlTexture(Tree *self, double w, double h, Text *url)
+Tree *Widget::urlTexture(Tree *self, double w, double h,
+                         Text *url, Integer *progress)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given URL
 // ----------------------------------------------------------------------------
@@ -1422,21 +1423,69 @@ Tree *Widget::urlTexture(Tree *self, double w, double h, Text *url)
 
     // Resize to requested size, and bind texture
     surface->resize(w,h);
-    surface->bind(url->value);
+    surface->bind(url, progress);
 
     return XL::xl_true;
 }
 
 
 Tree *Widget::urlPaint(Tree *self,
-                       double x, double y,
-                       double w, double h, Text *url)
+                       double x, double y, double w, double h,
+                       Text *url, Integer *progress)
 // ----------------------------------------------------------------------------
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    urlTexture(self, w, h, url);
+    urlTexture(self, w, h, url, progress);
+
+    // Draw a rectangle with the resulting texture
+    glBegin(GL_QUADS);
+    {
+        widgetVertex(x-w/2, y-h/2, 0, 0);
+        widgetVertex(x+w/2, y-h/2, 1, 0);
+        widgetVertex(x+w/2, y+h/2, 1, 1);
+        widgetVertex(x-w/2, y+h/2, 0, 1);
+    }
+    glEnd();
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
+// ----------------------------------------------------------------------------
+//   Make a texture out of a given line editor
+// ----------------------------------------------------------------------------
+{
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
+    // Get or build the current frame if we don't have one
+    LineEditSurface *surface = self->GetInfo<LineEditSurface>();
+    if (!surface)
+    {
+        surface = new LineEditSurface(this, w,h);
+        self->SetInfo<LineEditSurface> (surface);
+    }
+
+    // Resize to requested size, and bind texture
+    surface->resize(w,h);
+    surface->bind(txt);
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::lineEdit(Tree *self,
+                       double x, double y,
+                       double w, double h, Text *txt)
+// ----------------------------------------------------------------------------
+//   Draw a line editor in the curent frame
+// ----------------------------------------------------------------------------
+{
+    GLAttribKeeper save(GL_TEXTURE_BIT);
+    lineEditTexture(self, w, h, txt);
 
     // Draw a rectangle with the resulting texture
     glBegin(GL_QUADS);

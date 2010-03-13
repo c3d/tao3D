@@ -196,7 +196,7 @@ LineEditSurface::LineEditSurface(Widget *parent,
 //    Build the QLineEdit
 // ----------------------------------------------------------------------------
     : WidgetSurface(parent, new QLineEdit(parent), width, height),
-      contents(NULL), immediate(immed)
+      contents(NULL), immediate(immed), locallyModified(false)
 {
     QLineEdit *lineEdit = (QLineEdit *) widget;
     lineEdit->setFrame(true);
@@ -215,17 +215,18 @@ LineEditSurface::LineEditSurface(Widget *parent,
 }
 
 
-void LineEditSurface::bind(XL::Text *contents)
+void LineEditSurface::bind(XL::Text *textTree)
 // ----------------------------------------------------------------------------
 //    Update text based on text changes
 // ----------------------------------------------------------------------------
 {
-    if (contents != this->contents)
+    QLineEdit *lineEdit = (QLineEdit *) widget;
+    if (contents != textTree ||
+        (!locallyModified && textTree->value != lineEdit->text().toStdString()))
     {
-        QLineEdit *lineEdit = (QLineEdit *) widget;
-        this->contents = NULL;
-        lineEdit->setText(QString::fromStdString(contents->value));
-        this->contents = contents;
+        contents = NULL;
+        lineEdit->setText(QString::fromStdString(textTree->value));
+        contents = textTree;
     }
 
     WidgetSurface::bind();
@@ -237,8 +238,19 @@ void LineEditSurface::textChanged(const QString &text)
 //    If the text changed, update the associated XL::Text
 // ----------------------------------------------------------------------------
 {
-    if (contents && immediate)
-        contents->value = text.toStdString();
+    if (contents)
+    {
+        if (immediate)
+        {
+            contents->value = text.toStdString();
+            locallyModified = false;
+        }
+        else
+        {
+            locallyModified = true;
+        }
+    }
+
     repaint();
 }
 
@@ -252,6 +264,7 @@ void LineEditSurface::inputValidated()
     {
         QLineEdit *lineEdit = (QLineEdit *) widget;
         contents->value = lineEdit->text().toStdString();
+        locallyModified = false;
     }
     repaint();
 }

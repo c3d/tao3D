@@ -70,6 +70,7 @@ public:
     operator data_t() { return this; }
     virtual void bind(XL::Text *url, XL::Integer *progress=NULL);
 
+private:
     XL::Text    *urlTree;
     text         url;
     XL::Integer *progress;
@@ -91,8 +92,11 @@ public:
     LineEditSurface(Widget *parent, uint width, uint height, bool immed=false);
     operator data_t() { return this; }
     virtual void bind(XL::Text *contents);
+
+private:
     XL::Text *contents;
-    bool immediate;
+    bool      immediate;
+    bool      locallyModified;
 
 public slots:
     void textChanged(const QString &text);

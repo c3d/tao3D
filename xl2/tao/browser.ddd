@@ -1,0 +1,48 @@
+locally
+    texture "milkyway.jpg"
+    rotatey 0.8 * page_time + 90
+    scale 1,-1,1
+    sphere 0,0,0,2000
+
+locally
+    translate 0,0,-300
+
+    locally
+        texture "earth.bmp"
+        rotatey 20*time
+        sphere 200
+ 
+    page_size 1200,300
+    page
+        color 1,1,1,1
+        font "Arial Unicode MS"
+        font_size 40
+        kmoveto -600,-10
+        ktext "Hello World! إجتهاد or Καλημέρα κόσμε; or こんにちは 世界"
+
+    locally
+        rotatey -29*page_time + 270
+        color 0%,0%,0%,40%
+        sphere 210
+        color 100%,90%,20%,90%
+        sphere 270
+
+rotatey 0
+translate 0,0,-0
+color 100%,100%,100%,90%+5%*sin(0.5*time)
+
+website -> "http://www.google.com"
+progress -> 0
+
+scale 100%+0%*sin time, 100%+0%*sin time, 100%
+
+url 0,0,page_width,page_height, website, progress
+
+color 100%,progress%, progress%, 80%
+rectangle 0,page_height/2-16, page_width*progress%, 24
+
+color 90%, 90%, 100%, 80%
+line_edit 0,page_height/2-16, page_width, 32, website
+
+
+refresh 0.05

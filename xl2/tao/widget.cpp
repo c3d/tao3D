@@ -225,7 +225,7 @@ void Widget::updateProgram(XL::SourceFile *source)
                     {
                         sf.modified = st.st_mtime;
                     }
-                        
+
 
                     IFTRACE(filesync)
                     {
@@ -240,7 +240,7 @@ void Widget::updateProgram(XL::SourceFile *source)
 
         // If we were not successful with simple changes, reload everything...
         if (needBigHammer)
-        { 
+        {
             for (it = iset.begin(); it != iset.end(); it++)
             {
                 XL::SourceFile &sf = **it;
@@ -255,7 +255,7 @@ void Widget::updateProgram(XL::SourceFile *source)
 
     // Reset focus to this widget
     setFocusProxy(NULL);
-    this->setFocus();    
+    this->setFocus();
 }
 
 
@@ -292,7 +292,7 @@ Point3 Widget::unproject (coord x, coord y, coord z)
     // Get the current viewport information
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
-	
+
     // Get 3D coordinates for the near plane based on window coordinates
     GLdouble x3dn, y3dn, z3dn;
     gluUnProject(x, y, 0.0,
@@ -316,7 +316,7 @@ Point3 Widget::unproject (coord x, coord y, coord z)
 }
 
 
-void Widget::setup(double w, double h)
+void Widget::setup(double w, double h, Box *picking)
 // ----------------------------------------------------------------------------
 //   Setup an initial environment for drawing
 // ----------------------------------------------------------------------------
@@ -324,6 +324,20 @@ void Widget::setup(double w, double h)
     // Setup the projection matrix
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+
+    // Restrict the picking area if any is given as input
+    if (picking)
+    {
+        GLint viewport[4];
+        Box b = *picking;
+        b.Normalize();
+        Vector size = b.upper - b.lower;
+        Point center = b.lower + size / 2;
+        glGetIntegerv(GL_VIEWPORT, viewport);
+        gluPickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
+    }
+
+    // Setup the frustrum for the projection
     double zNear = 1000.0, zFar = 40000.0;
     double eyeX = 0.0, eyeY = 0.0, eyeZ = 1000.0;
     double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
@@ -348,6 +362,7 @@ void Widget::setup(double w, double h)
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);
 
+
     // Initial state
     state.polygonMode = GL_POLYGON;
     state.frameWidth = w;
@@ -355,6 +370,7 @@ void Widget::setup(double w, double h)
     state.charFormat = QTextCharFormat();
     state.charFormat.setForeground(Qt::black);
     state.charFormat.setBackground(Qt::white);
+    state.selectable = true;
 }
 
 
@@ -376,54 +392,64 @@ void Widget::draw()
 
     // If there is a program, we need to run it
     if (xlProgram)
+        runProgram();
+
+    // Timing
+    elapsed(t);
+}
+
+
+void Widget::runProgram()
+// ----------------------------------------------------------------------------
+//   Run the current XL program
+// ----------------------------------------------------------------------------
+{
+    double w = width(), h = height();
+
+    // Reset the id for the various elements being drawn
+    id = 0;    
+
+    // Run the XL program associated with this widget
+    current = this;
+    QTextOption alignCenter(Qt::AlignCenter);
+    TextFlow mainFlow(alignCenter);
+    XL::LocalSave<TextFlow *> saveFlow(state.flow, &mainFlow);
+    XL::LocalSave<Frame *> saveFrame (frame, mainFrame);
+
+    initMenu();
+    state.paintDevice = this;
+    setFocusProxy(NULL);
+
+    try
     {
-	// Run the XL program associated with this widget
-	current = this;
-        QTextOption alignCenter(Qt::AlignCenter);
-        TextFlow mainFlow(alignCenter);
-        XL::LocalSave<TextFlow *> saveFlow(state.flow, &mainFlow);
-        XL::LocalSave<Frame *> saveFrame (frame, mainFrame);
-
-        initMenu();
-        state.paintDevice = this;
-        setFocusProxy(NULL);
-
-        try
+        xl_evaluate(xlProgram->tree.tree);
+        for (int i = 0; i <  actions.size(); i++)
         {
-            xl_evaluate(xlProgram->tree.tree);
-            for (int i = 0; i <  actions.size(); i++)
-            {
-                xl_evaluate(actions.at(i).tree);
-            }
+            xl_evaluate(actions.at(i).tree);
         }
-        catch (XL::Error &e)
-        {
-            xlProgram = NULL;
-            QMessageBox::warning(this, tr("Runtime error"),
-                                 tr("Error executing the program:\n%1")
-                                 .arg(QString::fromStdString(e.Message())));
-        }
-        catch(...)
-        {
-            xlProgram = NULL;
-            QMessageBox::warning(this, tr("Runtime error"),
-                                 tr("Unknown error executing the program"));
-        }
-
-        // After we are done, flush the frame and over-paint it
-        mainFrame->Paint(-w/2, -h/2, w, h);
-
-        // Timing
-        elapsed(t);
-
-        // Once we are done, do a garbage collection
-        XL::Context::context->CollectGarbage();
     }
-    else
+    catch (XL::Error &e)
     {
-        // Timing
-        elapsed(t);
+        xlProgram = NULL;
+        QMessageBox::warning(this, tr("Runtime error"),
+                             tr("Error executing the program:\n%1")
+                             .arg(QString::fromStdString(e.Message())));
     }
+    catch(...)
+    {
+        xlProgram = NULL;
+        QMessageBox::warning(this, tr("Runtime error"),
+                             tr("Unknown error executing the program"));
+    }
+
+    // After we are done, flush the frame and over-paint it
+    mainFrame->Paint(-w/2, -h/2, w, h);
+
+    // Once we are done, do a garbage collection
+    XL::Context::context->CollectGarbage();
+
+    // Remember how many elements are drawn on the page
+    capacity = id;
 }
 
 
@@ -760,6 +786,45 @@ Tree *Widget::page_time(Tree *self)
 }
 
 
+XL::Name *Widget::selectable(Tree *self, bool new_selectable)
+// ----------------------------------------------------------------------------
+//   Return current selectable state, and set new one
+// ----------------------------------------------------------------------------
+{
+    Name *result = state.selectable ? XL::xl_true : XL::xl_false;
+    state.selectable = new_selectable;
+    return result;
+}
+
+
+GLuint Widget::shapeId()
+// ----------------------------------------------------------------------------
+//   Return an identifier for the shape in selections
+// ----------------------------------------------------------------------------
+{
+    return state.selectable? ++id : 0;
+}
+
+
+void Widget::select()
+// ----------------------------------------------------------------------------
+//    Select the current shape if we are in selectable state
+// ----------------------------------------------------------------------------
+{
+    if (state.selectable)
+        selection.insert(id);
+}
+
+
+bool Widget::selected()
+// ----------------------------------------------------------------------------
+//   Test if the current shape is selected
+// ----------------------------------------------------------------------------
+{
+    return state.selectable ? selection.count(id) > 0 : false;
+}
+
+
 Tree *Widget::filled(Tree *self)
 // ----------------------------------------------------------------------------
 //   Select filled polygon mode
@@ -931,7 +996,7 @@ void Widget::widgetVertex(double x, double y, double tx, double ty)
 // ----------------------------------------------------------------------------
 {
     texCoord(NULL, tx, ty);
-    vertex(NULL, x, y, 0.0);   
+    vertex(NULL, x, y, 0.0);
 }
 
 
@@ -944,7 +1009,7 @@ void Widget::circularVertex(double cx, double cy, double r,
 //   x range between -1 and 1, y between -1 and 1
 //   cx and cy are the center of the circle, r its radius
 {
-    widgetVertex(cx + r * x, 
+    widgetVertex(cx + r * x,
                  cy + r * y,
                  tx0 + ((x + 1.0) / 2.0 * (tx1 - tx0)),
                  ty0 + ((y + 1.0) / 2.0 * (ty1 - ty0)));
@@ -964,12 +1029,12 @@ void Widget::circularSectorN(double cx, double cy, double r,
 {
     // The two first values configure how precise the circle is
     int step = 10;                // Triangles generated every <step> points
-    double grid = 1.0 / 500.0;    // Tolerance for points on the circle 
+    double grid = 1.0 / 500.0;    // Tolerance for points on the circle
     double error, x, y, s;
 
 
     for (int q = 0; q < nq; q++)
-    { 
+    {
     error = -1.0;
     x = 1.0;
     y = 0;
@@ -982,16 +1047,16 @@ void Widget::circularSectorN(double cx, double cy, double r,
         s = 0;
         switch ((sq + q) % 4)
         {
-            case 3: 
+            case 3:
                 circularVertex(cx, cy, r,  y, -x, tx0, ty0, tx1, ty1);
                 break;
-            case 2: 
+            case 2:
                 circularVertex(cx, cy, r, -x, -y, tx0, ty0, tx1, ty1);
                 break;
-            case 1: 
+            case 1:
                 circularVertex(cx, cy, r, -y,  x, tx0, ty0, tx1, ty1);
                 break;
-            case 0: 
+            case 0:
                 circularVertex(cx, cy, r,  x,  y, tx0, ty0, tx1, ty1);
                 break;
         }
@@ -1001,7 +1066,7 @@ void Widget::circularSectorN(double cx, double cy, double r,
             x -= grid;
             error -= x + x;
         }
-        else 
+        else
         {
             y += grid;
             error += y + y;
@@ -1010,16 +1075,16 @@ void Widget::circularSectorN(double cx, double cy, double r,
     }
     switch ((sq + nq) % 4)
     {
-        case 3: 
+        case 3:
             circularVertex(cx, cy, r,  0, -1, tx0, ty0, tx1, ty1);
             break;
-        case 2: 
+        case 2:
             circularVertex(cx, cy, r, -1,  0, tx0, ty0, tx1, ty1);
             break;
-        case 1: 
+        case 1:
             circularVertex(cx, cy, r,  0,  1, tx0, ty0, tx1, ty1);
             break;
-        case 0: 
+        case 0:
             circularVertex(cx, cy, r,  1,  0, tx0, ty0, tx1, ty1);
             break;
     }
@@ -1040,7 +1105,7 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
 
 
 Tree *Widget::circularSector(Tree *self,
-                         double cx, double cy, double r, 
+                         double cx, double cy, double r,
                          double a, double b)
 // ----------------------------------------------------------------------------
 //     GL circular sector centered around (cx,cy), radius r and two angles a, b
@@ -1073,7 +1138,7 @@ Tree *Widget::circularSector(Tree *self,
 
 
 Tree *Widget::roundedRectangle(Tree *self,
-                               double cx, double cy, 
+                               double cx, double cy,
                                double w, double h, double r)
 // ----------------------------------------------------------------------------
 //     GL rounded rectangle with radius r for the rounded corners
@@ -1115,19 +1180,19 @@ Tree *Widget::roundedRectangle(Tree *self,
 
         widgetVertex(x1r, y1, tx1r, ty1);
         widgetVertex(x0r, y1, tx0r, ty1);
-    
+
         circularSectorN(x0r, y1r, r, tx0, ty1d, tx0d, ty1, 1, 1);
 
         widgetVertex(x0, y1r, tx0, ty1r);
         widgetVertex(x0, y0r, tx0, ty0r);
-    
+
         circularSectorN(x0r, y0r, r, tx0, ty0, tx0d, ty0d, 2, 1);
 
         widgetVertex(x0r, y0, tx0r, ty0);
         widgetVertex(x1r, y0, tx1r, ty0);
-    
+
         circularSectorN(x1r, y0r, r, tx1d, ty0, tx1, ty0d, 3, 1);
-   
+
         widgetVertex(x1, y0r, tx1, ty0r);
     }
     glEnd();
@@ -1154,7 +1219,7 @@ Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
 }
 
 
-Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r, 
+Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
                         int p, int q)
 // ----------------------------------------------------------------------------
 //     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
@@ -1167,11 +1232,11 @@ Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
     double R = r * R_r;
 
     GLuint mode = state.polygonMode;
-    if (mode == GL_POLYGON) 
+    if (mode == GL_POLYGON)
     {
         mode = GL_TRIANGLE_FAN; // GL_POLYGON does not work here
     }
-    
+
     glBegin(mode);
     {
         if (mode == GL_TRIANGLE_FAN)
@@ -1181,13 +1246,13 @@ Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
 
         for (int i = 0; i < p; i++)
         {
-            circularVertex(cx, cy, r, 
-                    cos( i * 2*M_PI/p + M_PI_2), 
+            circularVertex(cx, cy, r,
+                    cos( i * 2*M_PI/p + M_PI_2),
                     sin( i * 2*M_PI/p + M_PI_2),
                     0, 0, 1, 1);
 
-            circularVertex(cx, cy, R, 
-                    cos( i * 2*M_PI/p + M_PI_2 + M_PI/p), 
+            circularVertex(cx, cy, R,
+                    cos( i * 2*M_PI/p + M_PI_2 + M_PI/p),
                     sin( i * 2*M_PI/p + M_PI_2 + M_PI/p),
                     (1-R_r)/2, (1-R_r)/2, (1+R_r)/2, (1+R_r)/2);
         }
@@ -1320,7 +1385,7 @@ Tree *Widget::fontUnderline(Tree *self, bool underline)
 
 Tree *Widget::fontOverline(Tree *self, bool overline)
 // ----------------------------------------------------------------------------
-//    Select whether we draw an overline 
+//    Select whether we draw an overline
 // ----------------------------------------------------------------------------
 {
     state.charFormat.setFontOverline(overline);
@@ -1439,7 +1504,7 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
                 lineHeight = line.height();
                 lineY += lineHeight;
             }
-        
+
             flow->topLineY = lineY;
             flow->endLayout();
 
@@ -1616,9 +1681,9 @@ Tree *Widget::qttext(Tree *self, double x, double y, text s)
 
 
 // ============================================================================
-// 
+//
 //   Menu management
-// 
+//
 // ============================================================================
 
 Tree *Widget::menuItem(Tree *self, text s, Tree *t)

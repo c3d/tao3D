@@ -69,13 +69,17 @@ public:
     void        initializeGL();
     void        resizeGL(int width, int height);
     void        paintGL();
-    void        setup(double w, double h);
+    void        setup(double w, double h, Box *picking = NULL);
     Point3      unproject (coord x, coord y, coord z = 0.0);
     void        initMenu();
     void        updateProgram(XL::SourceFile *sf);
+    GLuint      shapeId();
+    bool        selected();
+    void        select();
 
 public slots:
     void        draw();
+    void        runProgram();
     void        clearActions();
     void        appFocusChanged(QWidget *prev, QWidget *next);
 
@@ -84,6 +88,7 @@ public:
     typedef XL::Integer Integer;
     typedef XL::Real    Real;
     typedef XL::Text    Text;
+    typedef XL::Name    Name;
 
     // XLR entry points
     static Widget *Tao() { return current; }
@@ -102,6 +107,7 @@ public:
     Tree *refresh(Tree *self, double delay);
     Tree *time(Tree *self);
     Tree *page_time(Tree *self);
+    Name *selectable(Tree *self, bool selectable);
 
     Tree *color(Tree *self, double r, double g, double b, double a);
     Tree *textColor(Tree *self, double r,double g,double b,double a, bool fg);
@@ -194,6 +200,8 @@ public:
     Frame *           mainFrame;
     Activity *        activities;
     double            page_start_time;
+    GLuint            id, capacity;
+    std::set<GLuint>  selection, savedSelection;
 
     // Timing for drawing
     ulonglong         tmin, tmax, tsum, tcount;
@@ -210,6 +218,7 @@ public:
         TextFlow *      flow;
         QTextCharFormat charFormat;  // Font, color, ...
         QPaintDevice *  paintDevice;
+        bool            selectable;
     } state;
 
     static Widget    *current;

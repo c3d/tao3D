@@ -48,6 +48,7 @@ HEADERS += widget.h                             \
     shapes_drawing.h                            \
     apply-changes.h                             \
     activity.h                                  \
+    selection.h                                 \
     ../xlr/utf8.h                               \
     ../xlr/base.h                               \
     ../xlr/options.h                            \
@@ -89,6 +90,7 @@ SOURCES += tao_main.cpp                         \
     shapes_drawing.cpp                          \
     apply-changes.cpp                           \
     activity.cpp                                \
+    selection.cpp                               \
     gl_keepers.cpp                              \
     glew.c                                      \
     ../xlr/tree.cpp                             \

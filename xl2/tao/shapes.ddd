@@ -27,4 +27,6 @@ regular_polygram 200,-300,80,7,3
 //regular_star_polygon 400,-300,80, 17, 6
 schläfli 400, -300, 80, {17/6}
 
+sphere 0,0,0,50
+
 refresh 0.02

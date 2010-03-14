@@ -901,7 +901,7 @@ void Widget::drawSelection(const Box3 &bounds)
 //    Draw a nice little selection with the given coordinates
 // ----------------------------------------------------------------------------
 {
-    GLAttribKeeper save(GL_TEXTURE_BIT | GL_CURRENT_BIT);
+    GLAttribKeeper save(GL_TEXTURE_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT);
 
     Point3 c = bounds.Center();
     coord xc = c.x;
@@ -916,14 +916,15 @@ void Widget::drawSelection(const Box3 &bounds)
     if (r < 15.0)
         r = 15.0;
 
-    coord xl = (3 * bounds.lower.x + xc) / 4;
-    coord xu = (3 * bounds.upper.x + xc) / 4;
-    coord yl = (3 * bounds.lower.y + yc) / 4;
-    coord yu = (3 * bounds.upper.y + yc) / 4;
-    coord zl = (3 * bounds.lower.z + zc) / 4;
-    coord zu = (3 * bounds.upper.z + zc) / 4;
+    coord xl = (3 * bounds.lower.x + xc) / 4 - r/4;
+    coord xu = (3 * bounds.upper.x + xc) / 4 + r/4;
+    coord yl = (3 * bounds.lower.y + yc) / 4 - r/4;
+    coord yu = (3 * bounds.upper.y + yc) / 4 + r/4;
+    coord zl = (3 * bounds.lower.z + zc) / 4 - r/4;
+    coord zu = (3 * bounds.upper.z + zc) / 4 + r/4;
 
     glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_DEPTH_TEST);
 
     glBegin(GL_TRIANGLE_FAN);
     glColor4f(1.0, 1.0, 1.0, 0.1);    glVertex3f(xc, yc, zu);
@@ -1850,7 +1851,7 @@ Tree *Widget::Ktext(Tree *self, text s)
 //    Text at the current cursor position
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
+    // ShapeName name(this);
     frame->Text(s);
     return XL::xl_true;
 }

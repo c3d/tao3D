@@ -23,6 +23,7 @@
 // ****************************************************************************
 
 #include "widget.h"
+#include "coords3d.h"
 
 
 TAO_BEGIN
@@ -37,6 +38,26 @@ struct ShapeName
 
 public:
     Widget      *widget;
+};
+
+
+struct ShapeSelection : ShapeName
+// ----------------------------------------------------------------------------
+//    Structure used to assigne shape IDs and draw a selection rectangle
+// ----------------------------------------------------------------------------
+{
+    ShapeSelection(Widget *widget, const Box3 &box)
+        : ShapeName(widget), bounds(box) {}
+    ShapeSelection(Widget *widget, coord x, coord y, coord w, coord h)
+        : ShapeName(widget), bounds(x, y, -(w+h)/4, w, h, (w+h)/2) {}
+
+    ~ShapeSelection()
+    {
+        if (widget->selected())
+            widget->drawSelection(bounds);
+    }
+
+    Box3 bounds;
 };
 
 TAO_END

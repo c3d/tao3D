@@ -896,6 +896,55 @@ bool Widget::selected()
 }
 
 
+void Widget::drawSelection(const Box3 &bounds)
+// ----------------------------------------------------------------------------
+//    Draw a nice little selection with the given coordinates
+// ----------------------------------------------------------------------------
+{
+    GLAttribKeeper save(GL_TEXTURE_BIT | GL_CURRENT_BIT);
+
+    Point3 c = bounds.Center();
+    coord xc = c.x;
+    coord yc = c.y;
+    coord zc = c.z;
+
+    coord w = bounds.Width(); 
+    coord h = bounds.Height(); 
+    coord d = bounds.Depth();
+
+    coord r = sqrt(w*w + h*h + d*d)/2;
+    if (r < 15.0)
+        r = 15.0;
+
+    coord xl = (3 * bounds.lower.x + xc) / 4;
+    coord xu = (3 * bounds.upper.x + xc) / 4;
+    coord yl = (3 * bounds.lower.y + yc) / 4;
+    coord yu = (3 * bounds.upper.y + yc) / 4;
+    coord zl = (3 * bounds.lower.z + zc) / 4;
+    coord zu = (3 * bounds.upper.z + zc) / 4;
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glBegin(GL_TRIANGLE_FAN);
+    glColor4f(1.0, 1.0, 1.0, 0.1);    glVertex3f(xc, yc, zu);
+    glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
+    glColor4f(0.0, 0.0, 1.0, 0.4);    glVertex3f(xl, yu, zc);
+    glColor4f(0.0, 1.0, 1.0, 0.4);    glVertex3f(xu, yu, zc);
+    glColor4f(1.0, 1.0, 0.0, 0.4);    glVertex3f(xu, yl, zc);
+    glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
+    glEnd();
+
+    glBegin(GL_TRIANGLE_FAN);
+    glColor4f(0.0, 0.0, 0.0, 0.4);    glVertex3f(xc, yc, zl);
+    glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
+    glColor4f(0.0, 0.0, 1.0, 0.4);    glVertex3f(xl, yu, zc);
+    glColor4f(0.0, 1.0, 1.0, 0.4);    glVertex3f(xu, yu, zc);
+    glColor4f(1.0, 1.0, 0.0, 0.4);    glVertex3f(xu, yl, zc);
+    glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
+    glEnd();
+}
+
+
 void Widget::loadName(bool load)
 // ----------------------------------------------------------------------------
 //   Load a name on the GL stack
@@ -1062,7 +1111,9 @@ Tree *Widget::sphere(Tree *self,
 //     GL sphere
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
+    Box3 bounds(x-r, y-r, z-r, 2*r, 2*r, 2*r);
+    ShapeSelection name(this, bounds);
+
     GLUquadric *q = gluNewQuadric();
     gluQuadricTexture (q, true);
     glPushMatrix();
@@ -1180,7 +1231,7 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
 //     GL circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
+    ShapeSelection name(this, cx-r, cy-r, 2*r, 2*r);
 
     glBegin(state.polygonMode);
     circularSectorN(cx, cy, r, 0, 0, 1, 1, 0, 4);
@@ -1197,7 +1248,7 @@ Tree *Widget::circularSector(Tree *self,
 //     GL circular sector centered around (cx,cy), radius r and two angles a, b
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
+    ShapeSelection name(this, cx-r, cy-r, 2*r, 2*r);
 
     while (b < a)
     {
@@ -1232,7 +1283,7 @@ Tree *Widget::roundedRectangle(Tree *self,
 //     GL rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
+    ShapeSelection name(this, cx-w/2, cy-h/2, w, h);
 
     if (r <= 0) return rectangle(self, cx, cy, w, h);
     if (r > w/2) r = w/2;
@@ -1296,7 +1347,7 @@ Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
 //     GL rectangle centered around (cx,cy), width w, height h
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
+    ShapeSelection name(this, cx-w/2, cy-h/2, w, h);
 
     glBegin(state.polygonMode);
     {
@@ -1312,12 +1363,12 @@ Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
 
 
 Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
-                        int p, int q)
+                                 int p, int q)
 // ----------------------------------------------------------------------------
 //     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
+    ShapeSelection name(this, cx-r, cy-r, 2*r, 2*r);
 
     if (p < 2 || q < 1 || q > (p-1)/2)
         return XL::xl_false;
@@ -1624,7 +1675,7 @@ Tree *Widget::framePaint(Tree *self, double x, double y, double w, double h)
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
+    ShapeSelection name(this, x-w/2, y-h/2, w, h);
 
     GLAttribKeeper save(GL_TEXTURE_BIT);
     frameTexture(self, w, h);
@@ -1675,7 +1726,7 @@ Tree *Widget::urlPaint(Tree *self,
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
+    ShapeSelection name(this, x-w/2, y-h/2, w, h);
 
     GLAttribKeeper save(GL_TEXTURE_BIT);
     urlTexture(self, w, h, url, progress);
@@ -1725,7 +1776,7 @@ Tree *Widget::lineEdit(Tree *self,
 //   Draw a line editor in the curent frame
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
+    ShapeSelection name(this, x-w/2, y-h/2, w, h);
 
     GLAttribKeeper save(GL_TEXTURE_BIT);
     lineEditTexture(self, w, h, txt);
@@ -1749,7 +1800,7 @@ Tree *Widget::qtrectangle(Tree *self, double x, double y, double w, double h)
 //    Draw a rectangle using the Qt primitive
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
+    ShapeSelection name(this, x, y, w, h);
 
     QPainter painter(state.paintDevice);
     QPen pen(QColor(Qt::red));
@@ -1770,7 +1821,10 @@ Tree *Widget::qttext(Tree *self, double x, double y, text s)
 
     QPainter painter(state.paintDevice);
     setAutoFillBackground(false);
-    painter.setPen(Qt::darkRed);
+    if (selected())
+        painter.setPen(Qt::darkRed);
+    else
+        painter.setPen(Qt::darkBlue);
 
     QFont font("Arial");
     font.setPointSizeF(24);

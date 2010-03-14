@@ -236,6 +236,7 @@ struct Box3
     Box3(const Point3 &l, const Vector3 &s): lower(l), upper(l+s) {}
     Box3(coord x, coord y, coord z, coord w, coord h, coord d)
         : lower(x,y,z), upper(x+w, y+h, z+d) {}
+    Box3(const Box3 &o): upper(o.upper), lower(o.lower) {}
 
     Box3 & operator = (const Box3 &o)
     {

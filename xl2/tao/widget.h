@@ -76,6 +76,7 @@ public:
     GLuint      shapeId();
     bool        selected();
     void        select();
+    void        drawSelection(const Box3 &bounds);
     void        loadName(bool load);
 
 public slots:

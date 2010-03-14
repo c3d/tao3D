@@ -218,6 +218,7 @@ struct Box
     Box(const Point &l, const Point &u): lower(l), upper(u) {}
     Box(const Point &l, const Vector &s): lower(l), upper(l+s) {}
     Box(coord x, coord y, coord w, coord h): lower(x, y), upper(x+w, y+h) {}
+    Box(const Box &o): lower(o.lower), upper(o.upper) {}
 
     Box & operator = (const Box &o)
     {

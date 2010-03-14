@@ -28,25 +28,25 @@
 
 TAO_BEGIN
 
-bool GitRepo::SaveDocument(QString docName, XL::Tree *tree, QString msg)
+GitRepo::Status
+GitRepo::SaveDocument(QString docName, XL::Tree *tree, QString msg)
 // ------------------------------------------------------------------------
 //   Save Tao document 'tree' in Git repository for 'docName'
 // ------------------------------------------------------------------------
 {
     if (!tree)
-        return false;
+        return notSavedSaveError;
     QString repoPath = docName + ".git";
-    bool status;
     qDebug() << Q_FUNC_INFO << "Saving document to Git repository" << repoPath;
     if (!Open(repoPath))
-        return false;
+        return notSavedSaveError;
     GitBlobMaker toGit(*this);
     XL::Renderer render(toGit);
     render.SelectStyleSheet("git.stylesheet");
     render.Render(tree);
-    CreateCommit(CreateTopDir(toGit.ReadSha1()), msg);
+    Status status = CreateCommit(CreateTopDir(toGit.ReadSha1()), msg);
     qDebug() << Q_FUNC_INFO << "done";
-    return true;
+    return status;
 }
 
 bool GitRepo::Init(QString path)
@@ -83,7 +83,7 @@ bool GitRepo::Open(QString path)
     return Init(path);
 }
 
-QString GitRepo::CreateCommit(QString sha1, QString commitMessage)
+GitRepo::Status GitRepo::CreateCommit(QString sha1, QString commitMessage)
 // ------------------------------------------------------------------------
 //   Create a commit for tree ID sha1 and return SHA1 of commit.
 // ------------------------------------------------------------------------
@@ -108,7 +108,7 @@ QString GitRepo::CreateCommit(QString sha1, QString commitMessage)
         if (masterTreeSha1 == sha1)
         {
             qDebug() << Q_FUNC_INFO << "No need to create commit (no change)";
-            return masterCommitSha1;
+            return notSavedNoChange;
         }
 
         qDebug() << "Loading HEAD into index";
@@ -151,7 +151,7 @@ QString GitRepo::CreateCommit(QString sha1, QString commitMessage)
     qDebug() << Q_FUNC_INFO << "New commit ID:" << ret;
 
     UpdateRef("refs/heads/master", ret);
-    return ret;
+    return savedNewVersionCreated;
 }
 
 bool GitRepo::UpdateRef(QString ref, QString sha1)

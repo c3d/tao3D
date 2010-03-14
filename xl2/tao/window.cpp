@@ -137,10 +137,29 @@ bool Window::saveAs()
 
 bool Window::saveToGit()
 {
+    bool ret = true;
+
     if (!save())
         return false;
 
-    return gitRepo.SaveDocument(curFile, xlProgram->tree);
+    switch (gitRepo.SaveDocument(curFile, xlProgram->tree))
+    {
+    case GitRepo::savedNewVersionCreated:
+        statusBar()->showMessage(tr("New version saved"), 2000);
+        break;
+    case GitRepo::notSavedNoChange:
+        statusBar()->showMessage(tr("No change"), 2000);
+        break;
+    case GitRepo::notSavedSaveError:
+        statusBar()->showMessage(tr("Save error"), 2000);
+        ret = false;
+        break;
+    default:
+        Q_ASSERT(!"Unexpected save status");
+        ret = false;
+    }
+
+    return ret;
 }
 
 void Window::about()

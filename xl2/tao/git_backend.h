@@ -36,15 +36,22 @@ struct GitRepo
 //   A Git repository
 // ------------------------------------------------------------------------
 {
+    enum Status
+    {
+        savedNewVersionCreated,  // A new commit was created
+        notSavedNoChange,        // Document has not changed since last commit
+        notSavedSaveError        // Save error
+    };
+
     GitRepo() {}
     virtual ~GitRepo() {}
 
-    bool SaveDocument(QString docName, XL::Tree *tree, QString msg = "");
+    Status SaveDocument(QString docName, XL::Tree *tree, QString msg = "");
 
 protected:
     bool     Open(QString path);
     bool     Init(QString path);
-    QString  CreateCommit(QString sha1, QString commitMessage = "");
+    Status   CreateCommit(QString sha1, QString commitMessage = "");
     bool     UpdateRef(QString ref, QString sha1);
     QString  CreateTopDir(QString docSha1);
     QString  MakeTree(QString treeSpec);

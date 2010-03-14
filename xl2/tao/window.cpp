@@ -90,6 +90,13 @@ void Window::open()
          tr("Tao documents (*.ddd);;XL programs (*.xl);;"
             "Headers (*.dds *.xs);;All files (*.*)"));
     if (!fileName.isEmpty()) {
+        if (fileName.endsWith(".git") &&
+            QDir(fileName).exists())
+        {
+            fileName.replace(".git", "");
+            gitRepo.CheckoutDocument(fileName);
+        }
+
         Window *existing = findWindow(fileName);
         if (existing) {
             existing->show();

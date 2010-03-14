@@ -47,6 +47,7 @@ struct GitRepo
     virtual ~GitRepo() {}
 
     Status SaveDocument(QString docName, XL::Tree *tree, QString msg = "");
+    void   CheckoutDocument(const QString & docName);
 
 protected:
     bool     Open(QString path);

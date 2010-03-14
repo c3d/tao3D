@@ -167,6 +167,23 @@ bool GitRepo::UpdateRef(QString ref, QString sha1)
     return true;
 }
 
+void GitRepo::CheckoutDocument(const QString & docName)
+// ------------------------------------------------------------------------
+//   Checkout 'docname'.git/doc as 'docName'
+// ------------------------------------------------------------------------
+{
+    QString repoPath = docName + ".git";
+    qDebug() << Q_FUNC_INFO << "Checking out from Git repository" << repoPath;
+    if (!Open(repoPath))
+        return;
+    GitProcess git(*this);
+    git.start(QStringList() << "checkout" << "--" << "doc");
+    git.waitForFinished();
+    QFile docFile(repoPath + "/doc");
+    docFile.copy(docName);
+    qDebug() << Q_FUNC_INFO << "End of checkout";
+}
+
 GitProcess::GitProcess(GitRepo &repo): QProcess()
 {
     setWorkingDirectory(repo.curPath);

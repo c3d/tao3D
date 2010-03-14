@@ -41,7 +41,7 @@ WidgetSurface::WidgetSurface(Widget *parent, QWidget *widget,
 // ----------------------------------------------------------------------------
     : widget(widget), textureId(0), dirty(true)
 {
-    widget->show();
+    widget->hide();
     glGenTextures(1, &textureId);
 }
 
@@ -99,6 +99,10 @@ void WidgetSurface::bind ()
 #ifdef GL_MULTISAMPLE   // Not supported on Windows
     glEnable(GL_MULTISAMPLE);
 #endif
+
+    // Request focus for this widget
+    Widget *parent = (Widget *) widget->parent();
+    parent->requestFocus(widget);
 }
 
 

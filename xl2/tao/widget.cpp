@@ -58,7 +58,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
       xlProgram(sf), timer(this), contextMenu(this),
-      frame(NULL), mainFrame(NULL),
+      frame(NULL), mainFrame(NULL), activities(NULL),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       page_start_time(CurrentTime())
 {
@@ -78,6 +78,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     // Receive notifications for focus
     connect(qApp, SIGNAL(focusChanged (QWidget *, QWidget *)),
             this,  SLOT(appFocusChanged(QWidget *, QWidget *)));
+    setFocusPolicy(Qt::StrongFocus);
 }
 
 
@@ -155,7 +156,7 @@ void Widget::appFocusChanged(QWidget *prev, QWidget *next)
 //   Notifications when focus changes
 // ----------------------------------------------------------------------------
 {
-#if 0
+#if 1
     printf("Focus "); printWidget(prev); printf ("->"); printWidget(next);
     const QObjectList &children = this->children();
     QObjectList::const_iterator it;
@@ -434,72 +435,112 @@ ulonglong Widget::elapsed(ulonglong since, bool stats, bool show)
 }
 
 
+void Widget::keyPressEvent(QKeyEvent *event)
+// ----------------------------------------------------------------------------
+//   A key is pressed
+// ----------------------------------------------------------------------------
+{
+    printf("KeyPress "); printWidget(focusProxy()); printf ("\n");
+    if (focusProxy())
+        qApp->notify(focusProxy(), event);
+    else
+        QGLWidget::keyPressEvent(event);
+}
 
-void Widget::mousePressEvent(QMouseEvent *e)
+
+void Widget::keyReleaseEvent(QKeyEvent *event)
+// ----------------------------------------------------------------------------
+//   A key is released
+// ----------------------------------------------------------------------------
+{
+    printf("KeyRelease "); printWidget(focusProxy()); printf ("\n");
+    if (focusProxy())
+        qApp->notify(focusProxy(), event);
+    else
+        QGLWidget::keyReleaseEvent(event);
+}
+
+
+void Widget::mousePressEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 //   Mouse button click
 // ----------------------------------------------------------------------------
 {
-    if (e->button() == Qt::RightButton)
+    printf("MousePress "); printWidget(focusProxy()); printf ("\n");
+
+    if (false && event->button() == Qt::RightButton)
     {
-        QAction *p_action = contextMenu.exec(e->globalPos());
-        if (! p_action) return ;
+        QAction *p_action = contextMenu.exec(event->globalPos());
+        if (!p_action) return ;
         TreeHolder t = p_action->data().value<TreeHolder >();
         actions.append(t);
     }
 
     if (focusProxy())
-        qApp->notify(focusProxy(), e);
+        qApp->notify(focusProxy(), event);
     else
-        QGLWidget::mousePressEvent(e);
+        QGLWidget::mousePressEvent(event);
 }
 
 
-void Widget::mouseMoveEvent(QMouseEvent *e)
+void Widget::mouseReleaseEvent(QMouseEvent *event)
+// ----------------------------------------------------------------------------
+//   Mouse button is released
+// ----------------------------------------------------------------------------
+{
+    printf("MouseRelease "); printWidget(focusProxy()); printf ("\n");
+    if (focusProxy())
+        qApp->notify(focusProxy(), event);
+    else
+        QGLWidget::mouseReleaseEvent(event);
+}
+
+
+void Widget::mouseMoveEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
     if (focusProxy())
-        qApp->notify(focusProxy(), e);
+        qApp->notify(focusProxy(), event);
     else
-        QGLWidget::mouseMoveEvent(e);
+        QGLWidget::mouseMoveEvent(event);
 }
 
 
-void Widget::wheelEvent(QWheelEvent *e)
+void Widget::wheelEvent(QWheelEvent *event)
 // ----------------------------------------------------------------------------
 //   Mouse wheel
 // ----------------------------------------------------------------------------
 {
     if (focusProxy())
-        qApp->notify(focusProxy(), e);
+        qApp->notify(focusProxy(), event);
     else
-        QGLWidget::wheelEvent(e);
+        QGLWidget::wheelEvent(event);
 }
 
 
-void Widget::mouseDoubleClickEvent(QMouseEvent *e)
+void Widget::mouseDoubleClickEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 //   Mouse double click
 // ----------------------------------------------------------------------------
 {
     if (focusProxy())
-        qApp->notify(focusProxy(), e);
+        qApp->notify(focusProxy(), event);
     else
-        QGLWidget::mouseDoubleClickEvent(e);
+        QGLWidget::mouseDoubleClickEvent(event);
 }
 
 
-void Widget::timerEvent(QTimerEvent *e)
+void Widget::timerEvent(QTimerEvent *event)
 // ----------------------------------------------------------------------------
 //    Timer expired
 // ----------------------------------------------------------------------------
 {
     if (focusProxy())
-        qApp->notify(focusProxy(), e);
+        qApp->notify(focusProxy(), event);
     else
-        QGLWidget::timerEvent(e);
+        QGLWidget::timerEvent(event);
 }
 
 

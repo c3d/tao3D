@@ -37,13 +37,12 @@
 #include "treeholder.h"
 #include "coords3d.h"
 
-
-
 namespace Tao {
 
 struct Window;
 struct Frame;
 struct FrameInfo;
+struct Activity;
 
 
 class Widget : public QGLWidget
@@ -57,7 +56,10 @@ public:
     ~Widget();
 
     // Events
+    void keyPressEvent(QKeyEvent *event);
+    void keyReleaseEvent(QKeyEvent *event);
     void mousePressEvent(QMouseEvent *);
+    void mouseReleaseEvent(QMouseEvent *);
     void mouseDoubleClickEvent(QMouseEvent *);
     void mouseMoveEvent(QMouseEvent *);
     void timerEvent(QTimerEvent *);
@@ -187,8 +189,9 @@ public:
     QTimer            timer;
     QMenu             contextMenu;
     QList<TreeHolder> actions;
-    Frame *           mainFrame;
     Frame *           frame;
+    Frame *           mainFrame;
+    Activity *        activities;
     double            page_start_time;
 
     // Timing for drawing

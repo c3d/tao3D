@@ -24,6 +24,14 @@
 #include "window.h"
 #include "widget.h"
 
+#include <iostream>
+#include <sstream>
+#include <string>
+
+#include <menuinfo.h>
+#include <bfs.h>
+#include <QList>
+#include <QRegExp>
 
 TAO_BEGIN
 
@@ -142,7 +150,7 @@ void Window::about()
         "Brought to you by Taodyne SAS:<br/>"
         "Anne Lempereur<br/>"
         "Catherine Burvelle<br/>"
-        "Jérôme Forissier<br/>"
+        "JÃ©rÃ´me Forissier<br/>"
         "Lionel Schaffhauser<br/>"
         "Christophe de Dinechin.";
    QMessageBox::about (this, tr("About Tao"), tr(txt));
@@ -318,6 +326,9 @@ void Window::loadFile(const QString &fileName)
     setCurrentFile(fileName);
     statusBar()->showMessage(tr("File loaded"), 2000);
 
+    // Clean menus
+    resetTaoMenus();
+
     text fn = fileName.toStdString();
     xlRuntime->LoadFile(fn);
     xlProgram = &xlRuntime->files[fn];
@@ -347,6 +358,9 @@ bool Window::saveFile(const QString &fileName)
     setCurrentFile(fileName);
     statusBar()->showMessage(tr("File saved"), 2000);
 
+    // Clean menus
+    resetTaoMenus();
+
     text fn = fileName.toStdString();
     xlRuntime->LoadFile(fn);
     xlProgram = &xlRuntime->files[fn];
@@ -354,6 +368,27 @@ bool Window::saveFile(const QString &fileName)
     taoWidget->updateGL();
 
     return true;
+}
+void Window::resetTaoMenus()
+{
+    // Clean menus
+    if (taoWidget->xlProgram)
+    {
+        QRegExp reg("^_TOP_MENU_.*", Qt::CaseSensitive);
+        QList<QMenu *> menu_list = menuBar()->findChildren<QMenu *>(reg);
+        QList<QMenu *>::iterator it;
+        for(it = menu_list.begin(); it!=menu_list.end(); ++it)
+        {
+            QMenu *menu = *it;
+            std::cout << menu->objectName().toStdString()
+                    << " removed from menu bar \n";
+            menuBar()->removeAction(menu->menuAction());
+            delete menu;
+        }
+        taoWidget->currentMenu = NULL;
+        taoWidget->currentMenuBar = this->menuBar();
+    }
+
 }
 
 void Window::setCurrentFile(const QString &fileName)
@@ -387,6 +422,16 @@ Window *Window::findWindow(const QString &fileName)
             return mainWin;
     }
     return 0;
+}
+
+void Window::updateProgram(XL::Tree *tree)
+{
+    if ( ! tree) return ;
+//    std::cerr << "Updating program with " << tree << "\n";
+    std::ostringstream oss;
+    oss << tree << "\n";
+    textEdit->setPlainText(QString::fromStdString(oss.str()));
+    // save();
 }
 
 TAO_END

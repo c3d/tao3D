@@ -66,7 +66,7 @@ public:
 
 public slots:
     void draw();
-    void clearActions();
+    void userMenu(QAction *action);
 
 public:
     typedef XL::Tree    Tree;
@@ -142,6 +142,7 @@ public:
     Tree *qttext(Tree *self, double x, double y, text s);
 
     Tree *menuItem(Tree *self, text s, Tree *t);
+    Tree *menu(Tree *self, text s, bool=false);
 
 
 private:
@@ -155,10 +156,11 @@ private:
 
 public:
     // XL Runtime
-    XL::SourceFile   *xlProgram;
-    QTimer            timer;
-    QMenu             contextMenu;
-    QList<TreeHolder> actions;
+    XL::SourceFile   * xlProgram;
+    QTimer             timer;
+    QMenu            * currentMenu;
+    QMenuBar         * currentMenuBar;
+
 
     struct State
     // ------------------------------------------------------------------------

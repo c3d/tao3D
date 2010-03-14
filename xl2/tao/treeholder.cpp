@@ -7,14 +7,14 @@ TreeHolder::TreeHolder()
 {
 }
 
-TreeHolder::TreeHolder(XL::Tree *the_tree)
-    : tree(the_tree)
+TreeHolder::TreeHolder(XL::Tree *copy)
+    : tree(copy)
 {
 }
 
 TreeHolder::TreeHolder(const TreeHolder& other)
+    : tree(other.tree)
 {
-    this->tree = other.tree;
 }
 
 TreeHolder::~TreeHolder()

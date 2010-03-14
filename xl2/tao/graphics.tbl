@@ -154,4 +154,9 @@ PREFIX(QtText, tree, "qttext",
 PREFIX(MenuItem, tree, "menu_item", PARM(s, text) PARM(t, tree),
        RTAO(menuItem(self, s, &t)))
 
+PREFIX(Menu, tree, "menu", PARM(s, text),
+      RTAO(menu(self, s, false)))
+
+PREFIX(SubMenu, tree, "submenu", PARM(s, text),
+      RTAO(menu(self, s, true)))
 

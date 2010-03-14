@@ -279,6 +279,43 @@ XL::Tree *Widget::focus(Tree *self)
 }
 
 
+Point3 Widget::unproject (coord x, coord y, coord z)
+// ----------------------------------------------------------------------------
+//   Convert mouse clicks into 3D planar coordinates
+// ----------------------------------------------------------------------------
+{
+    // Get the current model and projection matrices
+    GLdouble model_view[16], projection[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, model_view);
+    glGetDoublev(GL_PROJECTION_MATRIX, projection);
+
+    // Get the current viewport information
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+	
+    // Get 3D coordinates for the near plane based on window coordinates
+    GLdouble x3dn, y3dn, z3dn;
+    gluUnProject(x, y, 0.0,
+                 model_view, projection, viewport,
+                 &x3dn, &y3dn, &z3dn);
+
+    // Same with far-plane 3D coordinates
+    GLdouble x3df, y3df, z3df;
+    gluUnProject(x, y, 1.0,
+                 model_view, projection, viewport,
+                 &x3df, &y3df, &z3df);
+
+    GLfloat zDistance = z3dn - z3df;
+    if (zDistance == 0.0)
+        zDistance = 1.0;
+    GLfloat ratio = (z3dn - z) / zDistance;
+    GLfloat x3d = x3dn + ratio * (x3df - x3dn);
+    GLfloat y3d = y3dn + ratio * (y3df - y3dn);
+
+    return Point3(x3d, y3d, z);
+}
+
+
 void Widget::setup(double w, double h)
 // ----------------------------------------------------------------------------
 //   Setup an initial environment for drawing

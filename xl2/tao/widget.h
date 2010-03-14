@@ -56,27 +56,28 @@ public:
     ~Widget();
 
     // Events
-    void keyPressEvent(QKeyEvent *event);
-    void keyReleaseEvent(QKeyEvent *event);
-    void mousePressEvent(QMouseEvent *);
-    void mouseReleaseEvent(QMouseEvent *);
-    void mouseDoubleClickEvent(QMouseEvent *);
-    void mouseMoveEvent(QMouseEvent *);
-    void timerEvent(QTimerEvent *);
-    void wheelEvent(QWheelEvent *);
+    void        keyPressEvent(QKeyEvent *event);
+    void        keyReleaseEvent(QKeyEvent *event);
+    void        mousePressEvent(QMouseEvent *);
+    void        mouseReleaseEvent(QMouseEvent *);
+    void        mouseDoubleClickEvent(QMouseEvent *);
+    void        mouseMoveEvent(QMouseEvent *);
+    void        timerEvent(QTimerEvent *);
+    void        wheelEvent(QWheelEvent *);
     
 public:
-    void initializeGL();
-    void resizeGL(int width, int height);
-    void paintGL();
-    void setup(double w, double h);
-    void initMenu();
-    void updateProgram(XL::SourceFile *sf);
+    void        initializeGL();
+    void        resizeGL(int width, int height);
+    void        paintGL();
+    void        setup(double w, double h);
+    Point3      unproject (coord x, coord y, coord z = 0.0);
+    void        initMenu();
+    void        updateProgram(XL::SourceFile *sf);
 
 public slots:
-    void draw();
-    void clearActions();
-    void appFocusChanged(QWidget *prev, QWidget *next);
+    void        draw();
+    void        clearActions();
+    void        appFocusChanged(QWidget *prev, QWidget *next);
 
 public:
     typedef XL::Tree    Tree;

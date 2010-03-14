@@ -40,7 +40,7 @@ struct Activity
     // Callbacks, return true if this activity 'handled' the event
     virtual void        Display(void);
     virtual bool        Idle(void);
-    virtual bool        Key(uint key, int x, int y);
+    virtual bool        Key(uint key, bool down);
     virtual bool        Click(uint button, bool down, int x, int y);
     virtual bool        MouseMove(int x, int y, bool active);
 

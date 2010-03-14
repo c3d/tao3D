@@ -73,7 +73,7 @@ bool Activity::Idle(void)
 }
 
 
-bool Activity::Key(uint key, int x, int y)
+bool Activity::Key(uint key, bool down)
 // ----------------------------------------------------------------------------
 //   The default is to not process keys, leave it to the next activity
 // ----------------------------------------------------------------------------

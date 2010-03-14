@@ -49,6 +49,7 @@ HEADERS += widget.h                             \
     apply-changes.h                             \
     activity.h                                  \
     selection.h                                 \
+    shapename.h                                 \
     ../xlr/utf8.h                               \
     ../xlr/base.h                               \
     ../xlr/options.h                            \

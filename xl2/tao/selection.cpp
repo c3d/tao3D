@@ -26,6 +26,7 @@
 #include "selection.h"
 #include "widget.h"
 #include <glew.h>
+#include <QtGui>
 
 TAO_BEGIN
 
@@ -55,9 +56,9 @@ void Selection::Display(void)
     Box b = rectangle;
     b.Normalize();
 
-    glColor4f(0.4 * sin(tick / 1900.0) + 0.6,
-              0.4 * sin(tick / 1400.0) + 0.6,
-              0.4 * sin(tick / 500.0) + 0.6,
+    glColor4f(0.4 * sin(tick / 1.9e6) + 0.6,
+              0.4 * sin(tick / 1.4e6) + 0.6,
+              0.4 * sin(tick / 0.5e6) + 0.6,
               0.3);
 
     glBegin(GL_QUADS);
@@ -96,9 +97,10 @@ bool Selection::Click(uint button, bool down, int x, int y)
 {
     bool firstClick = false;
     bool doneWithSelection = false;
-    bool shiftModifier = false; // REVISIT
+    bool shiftModifier = qApp->keyboardModifiers() & Qt::ShiftModifier;
+    y = widget->height() - y;
 
-    if (button == 0)
+    if (button & Qt::LeftButton)
     {
         if (down)
         {
@@ -168,6 +170,9 @@ bool Selection::Click(uint button, bool down, int x, int y)
     if (doneWithSelection)
         delete this;
 
+    // Need a refresh
+    widget->updateGL();
+
     return true;                // We dealt with it
 }
 
@@ -180,6 +185,7 @@ bool Selection::MouseMove(int x, int y, bool active)
     if (!active)
         return false;
 
+    y = widget->height() - y;
     rectangle.upper.Set(x,y);
 
     // Create the select buffer and switch to select mode
@@ -219,6 +225,9 @@ bool Selection::MouseMove(int x, int y, bool active)
         
     }
     delete[] buffer;
+
+    // Need a refresh
+    widget->updateGL();
 
     return true;                // We dealt with the mouse move
 }

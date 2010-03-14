@@ -21,8 +21,6 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include <QtGui/QImage>
-#include <cmath>
 #include "widget.h"
 #include "tao.h"
 #include "main.h"
@@ -36,6 +34,11 @@
 #include "window.h"
 #include "treeholder.h"
 #include "apply-changes.h"
+#include "activity.h"
+#include "selection.h"
+#include "shapename.h"
+#include <QtGui/QImage>
+#include <cmath>
 #include <QFont>
 #include <iostream>
 #include <QVariant>
@@ -396,6 +399,11 @@ void Widget::draw()
 
     // Timing
     elapsed(t);
+
+    // Render all activities, e.g. the selection rectangle
+    glDisable(GL_DEPTH_TEST);
+    for (Activity *a = activities; a; a = a->next)
+        a->Display();
 }
 
 
@@ -504,6 +512,13 @@ void Widget::keyPressEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 {
     printf("KeyPress "); printWidget(focusProxy()); printf ("\n");
+    
+    // Check if there is an activity that deals with it
+    uint key = (uint) event->key();
+    bool found = false;
+    for (Activity *a = activities; !found && a; a = a->next)
+        found = a->Key(key, true);
+
     if (focusProxy())
         qApp->notify(focusProxy(), event);
     else
@@ -517,10 +532,20 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 {
     printf("KeyRelease "); printWidget(focusProxy()); printf ("\n");
-    if (focusProxy())
-        qApp->notify(focusProxy(), event);
-    else
-        QGLWidget::keyReleaseEvent(event);
+
+    // Check if there is an activity that deals with it
+    uint key = (uint) event->key();
+    bool found = false;
+    for (Activity *a = activities; !found && a; a = a->next)
+        found = a->Key(key, false);
+
+    if (!found)
+    {
+        if (focusProxy())
+            qApp->notify(focusProxy(), event);
+        else
+            QGLWidget::keyReleaseEvent(event);
+    }
 }
 
 
@@ -531,18 +556,39 @@ void Widget::mousePressEvent(QMouseEvent *event)
 {
     printf("MousePress "); printWidget(focusProxy()); printf ("\n");
 
-    if (false && event->button() == Qt::RightButton)
-    {
-        QAction *p_action = contextMenu.exec(event->globalPos());
-        if (!p_action) return ;
-        TreeHolder t = p_action->data().value<TreeHolder >();
-        actions.append(t);
-    }
+    uint button = (uint) event->button();
+    int x = event->x();
+    int y = event->y();
 
-    if (focusProxy())
-        qApp->notify(focusProxy(), event);
-    else
-        QGLWidget::mousePressEvent(event);
+    // Check if there is an activity that deals with it
+    bool found = false;
+    for (Activity *a = activities; !found && a; a = a->next)
+        found = a->Click(button, true, x, y);
+
+    if (!found)
+    {
+        Selection *s = new Selection(this);
+        s->Click(button, true, x, y);
+
+        return;
+
+        if (false && event->button() == Qt::RightButton)
+        {
+            QAction *p_action = contextMenu.exec(event->globalPos());
+            if (!p_action) return ;
+            TreeHolder t = p_action->data().value<TreeHolder >();
+            actions.append(t);
+        }
+
+        if (focusProxy())
+        {
+            qApp->notify(focusProxy(), event);
+        }
+        else
+        {
+            QGLWidget::mousePressEvent(event);
+        }
+    }
 }
 
 
@@ -552,10 +598,23 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     printf("MouseRelease "); printWidget(focusProxy()); printf ("\n");
-    if (focusProxy())
-        qApp->notify(focusProxy(), event);
-    else
-        QGLWidget::mouseReleaseEvent(event);
+
+    uint button = (uint) event->button();
+    int x = event->x();
+    int y = event->y();
+
+    // Check if there is an activity that deals with it
+    bool found = false;
+    for (Activity *a = activities; !found && a; a = a->next)
+        found = a->Click(button, false, x, y);
+
+    if (!found)
+    {
+        if (focusProxy())
+            qApp->notify(focusProxy(), event);
+        else
+            QGLWidget::mouseReleaseEvent(event);
+    }
 }
 
 
@@ -564,10 +623,22 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
-    if (focusProxy())
-        qApp->notify(focusProxy(), event);
-    else
-        QGLWidget::mouseMoveEvent(event);
+    bool active = event->buttons() != Qt::NoButton;
+    int x = event->x();
+    int y = event->y();
+
+    // Check if there is an activity that deals with it
+    bool found = false;
+    for (Activity *a = activities; !found && a; a = a->next)
+        found = a->MouseMove(x, y, active);
+
+    if (!found)
+    {
+        if (focusProxy())
+            qApp->notify(focusProxy(), event);
+        else
+            QGLWidget::mouseMoveEvent(event);
+    }
 }
 
 
@@ -825,6 +896,18 @@ bool Widget::selected()
 }
 
 
+void Widget::loadName(bool load)
+// ----------------------------------------------------------------------------
+//   Load a name on the GL stack
+// ----------------------------------------------------------------------------
+{
+    if (state.selectable && load)
+        glLoadName(shapeId());
+    else
+        glLoadName(0);
+}
+
+
 Tree *Widget::filled(Tree *self)
 // ----------------------------------------------------------------------------
 //   Select filled polygon mode
@@ -979,6 +1062,7 @@ Tree *Widget::sphere(Tree *self,
 //     GL sphere
 // ----------------------------------------------------------------------------
 {
+    ShapeName name(this);
     GLUquadric *q = gluNewQuadric();
     gluQuadricTexture (q, true);
     glPushMatrix();
@@ -1096,6 +1180,8 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
 //     GL circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
+    ShapeName name(this);
+
     glBegin(state.polygonMode);
     circularSectorN(cx, cy, r, 0, 0, 1, 1, 0, 4);
     glEnd();
@@ -1111,6 +1197,8 @@ Tree *Widget::circularSector(Tree *self,
 //     GL circular sector centered around (cx,cy), radius r and two angles a, b
 // ----------------------------------------------------------------------------
 {
+    ShapeName name(this);
+
     while (b < a)
     {
         b += 360;
@@ -1144,6 +1232,8 @@ Tree *Widget::roundedRectangle(Tree *self,
 //     GL rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
 {
+    ShapeName name(this);
+
     if (r <= 0) return rectangle(self, cx, cy, w, h);
     if (r > w/2) r = w/2;
     if (r > h/2) r = h/2;
@@ -1206,6 +1296,8 @@ Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
 //     GL rectangle centered around (cx,cy), width w, height h
 // ----------------------------------------------------------------------------
 {
+    ShapeName name(this);
+
     glBegin(state.polygonMode);
     {
         widgetVertex(cx-w/2, cy-h/2, 0, 0);
@@ -1225,6 +1317,8 @@ Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
 //     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
+    ShapeName name(this);
+
     if (p < 2 || q < 1 || q > (p-1)/2)
         return XL::xl_false;
 
@@ -1530,6 +1624,8 @@ Tree *Widget::framePaint(Tree *self, double x, double y, double w, double h)
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
+    ShapeName name(this);
+
     GLAttribKeeper save(GL_TEXTURE_BIT);
     frameTexture(self, w, h);
 
@@ -1579,6 +1675,8 @@ Tree *Widget::urlPaint(Tree *self,
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
+    ShapeName name(this);
+
     GLAttribKeeper save(GL_TEXTURE_BIT);
     urlTexture(self, w, h, url, progress);
 
@@ -1627,6 +1725,8 @@ Tree *Widget::lineEdit(Tree *self,
 //   Draw a line editor in the curent frame
 // ----------------------------------------------------------------------------
 {
+    ShapeName name(this);
+
     GLAttribKeeper save(GL_TEXTURE_BIT);
     lineEditTexture(self, w, h, txt);
 
@@ -1649,6 +1749,7 @@ Tree *Widget::qtrectangle(Tree *self, double x, double y, double w, double h)
 //    Draw a rectangle using the Qt primitive
 // ----------------------------------------------------------------------------
 {
+    ShapeName name(this);
 
     QPainter painter(state.paintDevice);
     QPen pen(QColor(Qt::red));
@@ -1665,6 +1766,7 @@ Tree *Widget::qttext(Tree *self, double x, double y, text s)
 //    Draw a text using the Qt text primitive
 // ----------------------------------------------------------------------------
 {
+    ShapeName name(this);
 
     QPainter painter(state.paintDevice);
     setAutoFillBackground(false);
@@ -1675,6 +1777,81 @@ Tree *Widget::qttext(Tree *self, double x, double y, text s)
     painter.setFont(font);
     painter.drawText(QPointF(x,y), Utf8(s));
 
+    return XL::xl_true;
+}
+
+
+Tree *Widget::KmoveTo(Tree *self, double x, double y)
+// ----------------------------------------------------------------------------
+//   Move to the given Cairo coordinates
+// ----------------------------------------------------------------------------
+{
+    frame->MoveTo(x,y);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::Ktext(Tree *self, text s)
+// ----------------------------------------------------------------------------
+//    Text at the current cursor position
+// ----------------------------------------------------------------------------
+{
+    ShapeName name(this);
+    frame->Text(s);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::KlayoutText(Tree *self, text s)
+// ----------------------------------------------------------------------------
+//    Text layout with Pango at the current cursor position
+// ----------------------------------------------------------------------------
+{
+    ShapeName name(this);
+    frame->LayoutText(s);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::KlayoutMarkup(Tree *self, text s)
+// ----------------------------------------------------------------------------
+//    Text layout with markup using Pango at the current cursor position
+// ----------------------------------------------------------------------------
+{
+    ShapeName name(this);
+    frame->LayoutMarkup(s);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::Krectangle(Tree *self, double x, double y, double w, double h)
+// ----------------------------------------------------------------------------
+//    Draw a rectangle using Cairo
+// ----------------------------------------------------------------------------
+{
+    ShapeName name(this);
+    frame->Rectangle(x, y, w, h);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::Kstroke(Tree *self)
+// ----------------------------------------------------------------------------
+//    Stroke the current path
+// ----------------------------------------------------------------------------
+{
+    ShapeName name(this);
+    frame->Stroke();
+    return XL::xl_true;
+}
+
+
+Tree *Widget::Kclear(Tree *self)
+// ----------------------------------------------------------------------------
+//    Clear the current frame
+// ----------------------------------------------------------------------------
+{
+    frame->Clear();
     return XL::xl_true;
 }
 
@@ -1717,76 +1894,6 @@ void Widget::clearActions()
 // ----------------------------------------------------------------------------
 {
     actions.clear();
-}
-
-
-Tree *Widget::KmoveTo(Tree *self, double x, double y)
-// ----------------------------------------------------------------------------
-//   Move to the given Cairo coordinates
-// ----------------------------------------------------------------------------
-{
-    frame->MoveTo(x,y);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::Ktext(Tree *self, text s)
-// ----------------------------------------------------------------------------
-//    Text at the current cursor position
-// ----------------------------------------------------------------------------
-{
-    frame->Text(s);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::KlayoutText(Tree *self, text s)
-// ----------------------------------------------------------------------------
-//    Text layout with Pango at the current cursor position
-// ----------------------------------------------------------------------------
-{
-    frame->LayoutText(s);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::KlayoutMarkup(Tree *self, text s)
-// ----------------------------------------------------------------------------
-//    Text layout with markup using Pango at the current cursor position
-// ----------------------------------------------------------------------------
-{
-    frame->LayoutMarkup(s);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::Krectangle(Tree *self, double x, double y, double w, double h)
-// ----------------------------------------------------------------------------
-//    Draw a rectangle using Cairo
-// ----------------------------------------------------------------------------
-{
-    frame->Rectangle(x, y, w, h);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::Kstroke(Tree *self)
-// ----------------------------------------------------------------------------
-//    Stroke the current path
-// ----------------------------------------------------------------------------
-{
-    frame->Stroke();
-    return XL::xl_true;
-}
-
-
-Tree *Widget::Kclear(Tree *self)
-// ----------------------------------------------------------------------------
-//    Clear the current frame
-// ----------------------------------------------------------------------------
-{
-    frame->Clear();
-    return XL::xl_true;
 }
 
 TAO_END

@@ -252,34 +252,30 @@ void Widget::requestFocus(QWidget *widget)
 // ----------------------------------------------------------------------------
 {
     if (!focusWidget)
+    {
         focusWidget = widget;
+        glGetDoublev(GL_PROJECTION_MATRIX, focusProjection);
+        glGetDoublev(GL_MODELVIEW_MATRIX, focusModel);
+        glGetIntegerv(GL_VIEWPORT, focusViewport);
+    }
 }
 
 
 Point3 Widget::unproject (coord x, coord y, coord z)
 // ----------------------------------------------------------------------------
-//   Convert mouse clicks into 3D planar coordinates
+//   Convert mouse clicks into 3D planar coordinates for the focus object
 // ----------------------------------------------------------------------------
 {
-    // Get the current model and projection matrices
-    GLdouble model_view[16], projection[16];
-    glGetDoublev(GL_MODELVIEW_MATRIX, model_view);
-    glGetDoublev(GL_PROJECTION_MATRIX, projection);
-
-    // Get the current viewport information
-    GLint viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
-
     // Get 3D coordinates for the near plane based on window coordinates
     GLdouble x3dn, y3dn, z3dn;
     gluUnProject(x, y, 0.0,
-                 model_view, projection, viewport,
+                 focusModel, focusProjection, focusViewport,
                  &x3dn, &y3dn, &z3dn);
 
     // Same with far-plane 3D coordinates
     GLdouble x3df, y3df, z3df;
     gluUnProject(x, y, 1.0,
-                 model_view, projection, viewport,
+                 focusModel, focusProjection, focusViewport,
                  &x3df, &y3df, &z3df);
 
     GLfloat zDistance = z3dn - z3df;
@@ -503,6 +499,30 @@ bool Widget::forwardEvent(QEvent *event)
 }
 
 
+bool Widget::forwardEvent(QMouseEvent *event)
+// ----------------------------------------------------------------------------
+//   Forward event to the focus proxy if there is any, adjusting coordinates
+// ----------------------------------------------------------------------------
+{
+    if (QObject *focus = focusWidget)
+    {
+        int x = event->x();
+        int y = event->y();
+        int w = focusWidget->width();
+        int h = focusWidget->height();
+
+        Point3 u = unproject(x, y, 0);
+        u.x = w/2 + u.x;
+        u.y = h/2 + u.y;
+        QMouseEvent local(event->type(), QPoint(u.x, u.y),
+                          event->button(), event->buttons(),
+                          event->modifiers());
+        return focus->event(&local);
+    }
+    return false;
+}
+
+
 void Widget::keyPressEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 //   A key is pressed
@@ -559,7 +579,6 @@ void Widget::mousePressEvent(QMouseEvent *event)
     {
         Selection *s = new Selection(this);
         s->Click(button, true, x, y);
-        
         forwardEvent(event);
     }
 }
@@ -606,9 +625,9 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 }
 
 
-void Widget::wheelEvent(QWheelEvent *event)
+void Widget::mouseDoubleClickEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
-//   Mouse wheel
+//   Mouse double click
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
@@ -616,9 +635,9 @@ void Widget::wheelEvent(QWheelEvent *event)
 }
 
 
-void Widget::mouseDoubleClickEvent(QMouseEvent *event)
+void Widget::wheelEvent(QWheelEvent *event)
 // ----------------------------------------------------------------------------
-//   Mouse double click
+//   Mouse wheel
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);

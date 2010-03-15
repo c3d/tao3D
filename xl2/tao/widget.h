@@ -57,6 +57,7 @@ public:
 
     // Events
     bool        forwardEvent(QEvent *event);
+    bool        forwardEvent(QMouseEvent *event);
     void        keyPressEvent(QKeyEvent *event);
     void        keyReleaseEvent(QKeyEvent *event);
     void        mousePressEvent(QMouseEvent *);
@@ -207,6 +208,8 @@ public:
     std::set<GLuint>  selection, savedSelection;
     QEvent *          event;
     QWidget *         focusWidget;
+    GLdouble          focusProjection[16], focusModel[16];
+    GLint             focusViewport[4];
 
     // Timing for drawing
     ulonglong         tmin, tmax, tsum, tcount;

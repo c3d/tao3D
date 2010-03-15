@@ -102,7 +102,8 @@ void WidgetSurface::bind ()
 
     // Request focus for this widget
     Widget *parent = (Widget *) widget->parent();
-    parent->requestFocus(widget);
+    if (parent->selected())
+        parent->requestFocus(widget);
 }
 
 

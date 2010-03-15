@@ -1113,7 +1113,7 @@ Tree *Widget::sphere(Tree *self,
 // ----------------------------------------------------------------------------
 {
     Box3 bounds(x-r, y-r, z-r, 2*r, 2*r, 2*r);
-    ShapeSelection name(this, bounds);
+    // ShapeSelection name(this, bounds);
 
     GLUquadric *q = gluNewQuadric();
     gluQuadricTexture (q, true);
@@ -1676,12 +1676,11 @@ Tree *Widget::framePaint(Tree *self, double x, double y, double w, double h)
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, x-w/2, y-h/2, w, h);
-
     GLAttribKeeper save(GL_TEXTURE_BIT);
     frameTexture(self, w, h);
 
     // Draw a rectangle with the resulting texture
+    ShapeSelection name(this, x-w/2, y-h/2, w, h);
     glBegin(GL_QUADS);
     {
         widgetVertex(x-w/2, y-h/2, 0, 0);
@@ -1727,12 +1726,11 @@ Tree *Widget::urlPaint(Tree *self,
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, x-w/2, y-h/2, w, h);
-
     GLAttribKeeper save(GL_TEXTURE_BIT);
     urlTexture(self, w, h, url, progress);
 
     // Draw a rectangle with the resulting texture
+    ShapeSelection name(this, x-w/2, y-h/2, w, h);
     glBegin(GL_QUADS);
     {
         widgetVertex(x-w/2, y-h/2, 0, 0);
@@ -1777,12 +1775,11 @@ Tree *Widget::lineEdit(Tree *self,
 //   Draw a line editor in the curent frame
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, x-w/2, y-h/2, w, h);
-
     GLAttribKeeper save(GL_TEXTURE_BIT);
     lineEditTexture(self, w, h, txt);
 
     // Draw a rectangle with the resulting texture
+    ShapeSelection name(this, x-w/2, y-h/2, w, h);
     glBegin(GL_QUADS);
     {
         widgetVertex(x-w/2, y-h/2, 0, 0);

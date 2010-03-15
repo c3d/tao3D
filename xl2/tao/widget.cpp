@@ -267,6 +267,7 @@ void Widget::requestFocus(QWidget *widget)
 //   Some other widget request the focus
 // ----------------------------------------------------------------------------
 {
+    printf("RequestFocus from "); printWidget(widget); printf("\n");
     if (!focusProxy())
         setFocusProxy(widget);
 }
@@ -531,9 +532,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
     for (Activity *a = activities; !found && a; a = a->next)
         found = a->Key(key, true);
 
-    if (focusProxy())
-        qApp->notify(focusProxy(), event);
-    else
+    if (!found)
         QGLWidget::keyPressEvent(event);
 }
 
@@ -553,12 +552,7 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
         found = a->Key(key, false);
 
     if (!found)
-    {
-        if (focusProxy())
-            qApp->notify(focusProxy(), event);
-        else
-            QGLWidget::keyReleaseEvent(event);
-    }
+        QGLWidget::keyReleaseEvent(event);
 }
 
 
@@ -584,24 +578,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
         Selection *s = new Selection(this);
         s->Click(button, true, x, y);
 
-        return;
-
-        if (false && event->button() == Qt::RightButton)
-        {
-            QAction *p_action = contextMenu.exec(event->globalPos());
-            if (!p_action) return ;
-            TreeHolder t = p_action->data().value<TreeHolder >();
-            actions.append(t);
-        }
-
-        if (focusProxy())
-        {
-            qApp->notify(focusProxy(), event);
-        }
-        else
-        {
-            QGLWidget::mousePressEvent(event);
-        }
+        QGLWidget::mousePressEvent(event);
     }
 }
 
@@ -624,12 +601,7 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
         found = a->Click(button, false, x, y);
 
     if (!found)
-    {
-        if (focusProxy())
-            qApp->notify(focusProxy(), event);
-        else
-            QGLWidget::mouseReleaseEvent(event);
-    }
+        QGLWidget::mouseReleaseEvent(event);
 }
 
 
@@ -649,12 +621,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
         found = a->MouseMove(x, y, active);
 
     if (!found)
-    {
-        if (focusProxy())
-            qApp->notify(focusProxy(), event);
-        else
-            QGLWidget::mouseMoveEvent(event);
-    }
+        QGLWidget::mouseMoveEvent(event);
 }
 
 
@@ -664,10 +631,7 @@ void Widget::wheelEvent(QWheelEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
-    if (focusProxy())
-        qApp->notify(focusProxy(), event);
-    else
-        QGLWidget::wheelEvent(event);
+    QGLWidget::wheelEvent(event);
 }
 
 
@@ -677,10 +641,7 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
-    if (focusProxy())
-        qApp->notify(focusProxy(), event);
-    else
-        QGLWidget::mouseDoubleClickEvent(event);
+    QGLWidget::mouseDoubleClickEvent(event);
 }
 
 
@@ -690,10 +651,7 @@ void Widget::timerEvent(QTimerEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
-    if (focusProxy())
-        qApp->notify(focusProxy(), event);
-    else
-        QGLWidget::timerEvent(event);
+    QGLWidget::timerEvent(event);
 }
 
 
@@ -937,16 +895,20 @@ void Widget::drawSelection(const Box3 &bounds)
     coord h = bounds.Height(); 
     coord d = bounds.Depth();
 
-    coord r = sqrt(w*w + h*h + d*d)/2;
+    // Compute the box around the item
+    coord r = w;
+    if (r > h) r = h;
+    if (r > d) r = d;
+    r /= 4;
     if (r < 15.0)
         r = 15.0;
 
-    coord xl = (3 * bounds.lower.x + xc) / 4 - r/4;
-    coord xu = (3 * bounds.upper.x + xc) / 4 + r/4;
-    coord yl = (3 * bounds.lower.y + yc) / 4 - r/4;
-    coord yu = (3 * bounds.upper.y + yc) / 4 + r/4;
-    coord zl = (3 * bounds.lower.z + zc) / 4 - r/4;
-    coord zu = (3 * bounds.upper.z + zc) / 4 + r/4;
+    coord xl = bounds.lower.x - r;
+    coord xu = bounds.upper.x + r;
+    coord yl = bounds.lower.y - r;
+    coord yu = bounds.upper.y + r;
+    coord zl = bounds.lower.z - r;
+    coord zu = bounds.upper.z + r;
 
     setupGL();
     glDisable(GL_DEPTH_TEST);
@@ -1753,10 +1715,10 @@ Tree *Widget::urlPaint(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
+    ShapeSelection name(this, x-w/2, y-h/2, w, h);
     urlTexture(self, w, h, url, progress);
 
     // Draw a rectangle with the resulting texture
-    ShapeSelection name(this, x-w/2, y-h/2, w, h);
     glBegin(GL_QUADS);
     {
         widgetVertex(x-w/2, y-h/2, 0, 0);
@@ -1802,10 +1764,10 @@ Tree *Widget::lineEdit(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
+    ShapeSelection name(this, x-w/2, y-h/2, w, h);
     lineEditTexture(self, w, h, txt);
 
     // Draw a rectangle with the resulting texture
-    ShapeSelection name(this, x-w/2, y-h/2, w, h);
     glBegin(GL_QUADS);
     {
         widgetVertex(x-w/2, y-h/2, 0, 0);

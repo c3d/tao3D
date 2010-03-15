@@ -11,7 +11,7 @@ locally
     locally
         texture "earth.bmp"
         rotatey 20*time
-        sphere 200
+        sphere 50
  
     page_size 1200,300
     page
@@ -24,12 +24,12 @@ locally
     locally
         rotatey -29*page_time + 270
         color 0%,0%,0%,40%
-        sphere 210
+        sphere 52
         color 100%,90%,20%,90%
-        sphere 270
+        sphere 55
 
-rotatey 0*sin time
-translate 0,0,-0
+rotatey 25*sin time - 2.5
+translate 0,0,-200
 color 100%,100%,100%,90%+5%*sin(0.5*time)
 
 website -> "http://www.google.com"
@@ -38,18 +38,21 @@ progress -> 0
 scale 100%+0%*sin time, 100%+0%*sin time, 100%
 
 locally
-    translate sin(5*time) * (20*progress-2000), cos(5*time) * (20*progress-2000),20*progress-2000
+    translate sin(5*time) * (10*progress-1000), cos(5*time) * (10*progress-1000),20*progress-2000
     url 0,0,page_width,page_height, website, progress
 
 locally
-    translate 0,0,0
+    rotatey 4*sin time
+    translate 0,50,-10
     color 100%,progress%, progress%, 80%
     not_selectable
     rectangle 0,page_height/2-16, page_width*progress%, 24
 
-translate 0,0,0
-color 90%, 90%, 100%, 80%
-line_edit 0,page_height/2-16, page_width, 32, website
+locally
+    rotatey 5*sin time
+    translate 0,50,0
+    color 90%, 90%, 100%, 80%
+    line_edit 0,page_height/2-16, page_width, 32, website
 
 
 refresh 0.05

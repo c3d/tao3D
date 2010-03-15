@@ -2,6 +2,7 @@ locally
     texture "milkyway.jpg"
     rotatey 0.8 * page_time + 90
     scale 1,-1,1
+    not_selectable
     sphere 0,0,0,2000
 
 locally

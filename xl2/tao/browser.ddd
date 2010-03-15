@@ -42,46 +42,46 @@ browser URL, progress, rw, rh ->
 
 
 color 1,1,1,95%
-browser "http://www.slashdot.org", 0, 600, 800
+browser "http://www.slashdot.org", 0, 800, 900
 
 color 1,1,1,90%
 locally
-    translate -410,250,150
+    translate -500,250,150
     rotatey 40
     scale 50%, 50%, 50%
     color 1,1,1,80%
     browser "http://www.google.com", 0, 600,400
 
 locally
-    translate -410,0,150
+    translate -500,0,150
     rotatey 40
     scale 50%, 50%, 50%
     color 1,1,1,80%
     browser "http://grenouille-bouillie.blogspot.com", 0, 600,400
 
 locally
-    translate -410,-250,150
+    translate -500,-250,150
     rotatey 40
     scale 50%, 50%, 50%
     color 1,1,1,80%
     browser "http://www.dilbert.com", 0, 600,400
 
 locally
-    translate 410,250,150
+    translate 500,250,150
     rotatey -40
     scale 50%, 50%, 50%
     color 1,1,1,80%
     browser "http://www.apple.com", 0, 600,400
 
 locally
-    translate 410,0,150
+    translate 500,0,150
     rotatey -50
     scale 50%, 50%, 50%
     color 1,1,1,80%
     browser "http://www.beautifulfreepictures.com", 0, 600,400
 
 locally
-    translate 410,-250,150
+    translate 500,-250,150
     rotatey -40
     scale 50%, 50%, 50%
     color 1,1,1,80%

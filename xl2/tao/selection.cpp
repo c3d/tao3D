@@ -25,6 +25,7 @@
 
 #include "selection.h"
 #include "widget.h"
+#include "gl_keepers.h"
 #include <glew.h>
 #include <QtGui>
 

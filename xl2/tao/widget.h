@@ -205,6 +205,7 @@ public:
     double            page_start_time;
     GLuint            id, capacity;
     std::set<GLuint>  selection, savedSelection;
+    QEvent *          event;
 
     // Timing for drawing
     ulonglong         tmin, tmax, tsum, tcount;
@@ -225,6 +226,8 @@ public:
     } state;
 
     static Widget    *current;
+
+    typedef XL::LocalSave<QEvent *> EventSave;
 };
 
 

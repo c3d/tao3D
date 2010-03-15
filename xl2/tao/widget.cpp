@@ -63,7 +63,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       xlProgram(sf), timer(this), contextMenu(this),
       frame(NULL), mainFrame(NULL), activities(NULL),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
-      page_start_time(CurrentTime())
+      page_start_time(CurrentTime()), event(NULL)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -394,6 +394,7 @@ void Widget::draw()
 {
     // Timing
     ulonglong t = now();
+    event = NULL;
 
     // Setup the initial drawing environment
     double w = width(), h = height();
@@ -522,6 +523,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 {
     printf("KeyPress "); printWidget(focusProxy()); printf ("\n");
+    EventSave save(this->event, event);
     
     // Check if there is an activity that deals with it
     uint key = (uint) event->key();
@@ -542,6 +544,7 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 {
     printf("KeyRelease "); printWidget(focusProxy()); printf ("\n");
+    EventSave save(this->event, event);
 
     // Check if there is an activity that deals with it
     uint key = (uint) event->key();
@@ -565,6 +568,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     printf("MousePress "); printWidget(focusProxy()); printf ("\n");
+    EventSave save(this->event, event);
 
     uint button = (uint) event->button();
     int x = event->x();
@@ -608,6 +612,7 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     printf("MouseRelease "); printWidget(focusProxy()); printf ("\n");
+    EventSave save(this->event, event);
 
     uint button = (uint) event->button();
     int x = event->x();
@@ -633,6 +638,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
+    EventSave save(this->event, event);
     bool active = event->buttons() != Qt::NoButton;
     int x = event->x();
     int y = event->y();
@@ -657,6 +663,7 @@ void Widget::wheelEvent(QWheelEvent *event)
 //   Mouse wheel
 // ----------------------------------------------------------------------------
 {
+    EventSave save(this->event, event);
     if (focusProxy())
         qApp->notify(focusProxy(), event);
     else
@@ -669,6 +676,7 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
 //   Mouse double click
 // ----------------------------------------------------------------------------
 {
+    EventSave save(this->event, event);
     if (focusProxy())
         qApp->notify(focusProxy(), event);
     else
@@ -681,6 +689,7 @@ void Widget::timerEvent(QTimerEvent *event)
 //    Timer expired
 // ----------------------------------------------------------------------------
 {
+    EventSave save(this->event, event);
     if (focusProxy())
         qApp->notify(focusProxy(), event);
     else
@@ -793,39 +802,45 @@ Tree *Widget::page(Tree *self, Tree *p)
 
     Tree *result = NULL;
 
-    glPushAttrib(GL_ALL_ATTRIB_BITS);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-
-    frame->resize(w,h);
-
-    frame->begin();
+    // Do to a bug in the NVIDIA kernel driver on MacOSX, we need to avoid the
+    // following code when in GL_SELECT mode or die.
+    if (!event)
     {
-        // Clear the background and setup initial state
-        setup(w, h);
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
 
-        if (!cairo)
+        frame->resize(w,h);
+
+        frame->begin();
         {
-            cairo = new Frame;
-            self->SetInfo<Frame>(cairo);
+            // Clear the background and setup initial state
+            setup(w, h);
+
+            if (!cairo)
+            {
+                cairo = new Frame;
+                self->SetInfo<Frame>(cairo);
+            }
+
+            XL::LocalSave<QPaintDevice *> sv(state.paintDevice,
+                                             frame->render_fbo);
+            XL::LocalSave<Frame *> svc(this->frame, cairo);
+            result = xl_evaluate(p);
         }
+        cairo->Paint(-w/2, -h/2, w, h);
+        frame->end();
 
-        XL::LocalSave<QPaintDevice *> sv(state.paintDevice, frame->render_fbo);
-        XL::LocalSave<Frame *> svc(this->frame, cairo);
-        result = xl_evaluate(p);
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
+        glPopAttrib();
+
+        frame->bind();
     }
-    cairo->Paint(-w/2, -h/2, w, h);
-    frame->end();
-
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-    glPopAttrib();
-
-    frame->bind();
 
     return result;
 }

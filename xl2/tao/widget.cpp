@@ -63,7 +63,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       xlProgram(sf), timer(this), contextMenu(this),
       frame(NULL), mainFrame(NULL), activities(NULL),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
-      page_start_time(CurrentTime()), event(NULL)
+      page_start_time(CurrentTime()), event(NULL), focusWidget(NULL)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -127,18 +127,6 @@ void Widget::paintGL()
 {
     draw();
     glShowErrors();
-}
-
-
-void Widget::setFocus()
-// ----------------------------------------------------------------------------
-//   When we receive the focus, hand it down to widget that requested it
-// ----------------------------------------------------------------------------
-{
-    if (focusProxy())
-        focusProxy()->setFocus();
-    else
-        QGLWidget::setFocus();
 }
 
 
@@ -255,10 +243,6 @@ void Widget::updateProgram(XL::SourceFile *source)
 
     // Perform a good old garbage collection to clean things up
     XL::Context::context->CollectGarbage();
-
-    // Reset focus to this widget
-    setFocusProxy(NULL);
-    this->setFocus();
 }
 
 
@@ -268,18 +252,8 @@ void Widget::requestFocus(QWidget *widget)
 // ----------------------------------------------------------------------------
 {
     printf("RequestFocus from "); printWidget(widget); printf("\n");
-    if (!focusProxy())
-        setFocusProxy(widget);
-}
-
-
-XL::Tree *Widget::focus(Tree *self)
-// ----------------------------------------------------------------------------
-//   The next widget to request the focus gets it
-// ----------------------------------------------------------------------------
-{
-    setFocusProxy(NULL);
-    return XL::xl_true;
+    if (!focusWidget)
+        focusWidget = widget;
 }
 
 
@@ -426,8 +400,9 @@ void Widget::runProgram()
 {
     double w = width(), h = height();
 
-    // Reset the id for the various elements being drawn
+    // Reset the selection id for the various elements being drawn
     id = 0;    
+    focusWidget = NULL;
 
     // Run the XL program associated with this widget
     current = this;
@@ -438,7 +413,6 @@ void Widget::runProgram()
 
     initMenu();
     state.paintDevice = this;
-    setFocusProxy(NULL);
 
     try
     {
@@ -518,12 +492,22 @@ ulonglong Widget::elapsed(ulonglong since, bool stats, bool show)
 }
 
 
+bool Widget::forwardEvent(QEvent *event)
+// ----------------------------------------------------------------------------
+//   Forward event to the focus proxy if there is any
+// ----------------------------------------------------------------------------
+{
+    if (QObject *focus = focusWidget)
+        return focus->event(event);
+    return false;
+}
+
+
 void Widget::keyPressEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 //   A key is pressed
 // ----------------------------------------------------------------------------
 {
-    printf("KeyPress "); printWidget(focusProxy()); printf ("\n");
     EventSave save(this->event, event);
     
     // Check if there is an activity that deals with it
@@ -533,7 +517,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
         found = a->Key(key, true);
 
     if (!found)
-        QGLWidget::keyPressEvent(event);
+        forwardEvent(event);
 }
 
 
@@ -542,7 +526,6 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
 //   A key is released
 // ----------------------------------------------------------------------------
 {
-    printf("KeyRelease "); printWidget(focusProxy()); printf ("\n");
     EventSave save(this->event, event);
 
     // Check if there is an activity that deals with it
@@ -552,7 +535,7 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
         found = a->Key(key, false);
 
     if (!found)
-        QGLWidget::keyReleaseEvent(event);
+        forwardEvent(event);
 }
 
 
@@ -561,7 +544,6 @@ void Widget::mousePressEvent(QMouseEvent *event)
 //   Mouse button click
 // ----------------------------------------------------------------------------
 {
-    printf("MousePress "); printWidget(focusProxy()); printf ("\n");
     EventSave save(this->event, event);
 
     uint button = (uint) event->button();
@@ -577,8 +559,8 @@ void Widget::mousePressEvent(QMouseEvent *event)
     {
         Selection *s = new Selection(this);
         s->Click(button, true, x, y);
-
-        QGLWidget::mousePressEvent(event);
+        
+        forwardEvent(event);
     }
 }
 
@@ -588,7 +570,6 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
 //   Mouse button is released
 // ----------------------------------------------------------------------------
 {
-    printf("MouseRelease "); printWidget(focusProxy()); printf ("\n");
     EventSave save(this->event, event);
 
     uint button = (uint) event->button();
@@ -601,7 +582,7 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
         found = a->Click(button, false, x, y);
 
     if (!found)
-        QGLWidget::mouseReleaseEvent(event);
+        forwardEvent(event);
 }
 
 
@@ -621,7 +602,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
         found = a->MouseMove(x, y, active);
 
     if (!found)
-        QGLWidget::mouseMoveEvent(event);
+        forwardEvent(event);
 }
 
 
@@ -631,7 +612,7 @@ void Widget::wheelEvent(QWheelEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
-    QGLWidget::wheelEvent(event);
+    forwardEvent(event);
 }
 
 
@@ -641,7 +622,7 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
-    QGLWidget::mouseDoubleClickEvent(event);
+    forwardEvent(event);
 }
 
 
@@ -651,7 +632,7 @@ void Widget::timerEvent(QTimerEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
-    QGLWidget::timerEvent(event);
+    forwardEvent(event);
 }
 
 
@@ -881,7 +862,7 @@ bool Widget::selected()
 
 void Widget::drawSelection(const Box3 &bounds)
 // ----------------------------------------------------------------------------
-//    Draw a nice little selection with the given coordinates
+//    Draw a 3D selection with the given coordinates
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT);
@@ -929,6 +910,25 @@ void Widget::drawSelection(const Box3 &bounds)
     glColor4f(0.0, 1.0, 1.0, 0.4);    glVertex3f(xu, yu, zc);
     glColor4f(1.0, 1.0, 0.0, 0.4);    glVertex3f(xu, yl, zc);
     glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
+    glEnd();
+}
+
+
+void Widget::drawSelection(const Box &bounds)
+// ----------------------------------------------------------------------------
+//    Draw a 2D selection with the given box
+// ----------------------------------------------------------------------------
+{
+    GLAttribKeeper save(GL_CURRENT_BIT | GL_LINE_BIT);
+    glLineWidth (3.0);
+    glColor4f(1.0, 0.0, 0.0, 0.5);
+    glBegin(GL_LINE_LOOP);
+    {
+        glVertex2f(bounds.lower.x, bounds.lower.y);
+        glVertex2f(bounds.lower.x, bounds.upper.y);
+        glVertex2f(bounds.upper.x, bounds.upper.y);
+        glVertex2f(bounds.upper.x, bounds.lower.y);
+    }
     glEnd();
 }
 
@@ -1715,7 +1715,7 @@ Tree *Widget::urlPaint(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeSelection name(this, x-w/2, y-h/2, w, h);
+    ShapeName name(this);
     urlTexture(self, w, h, url, progress);
 
     // Draw a rectangle with the resulting texture
@@ -1727,6 +1727,8 @@ Tree *Widget::urlPaint(Tree *self,
         widgetVertex(x-w/2, y+h/2, 0, 1);
     }
     glEnd();
+    if (selected())
+        drawSelection(Box(x-w/2, y-h/2, w, h));
 
     return XL::xl_true;
 }
@@ -1764,7 +1766,7 @@ Tree *Widget::lineEdit(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeSelection name(this, x-w/2, y-h/2, w, h);
+    ShapeName name(this);
     lineEditTexture(self, w, h, txt);
 
     // Draw a rectangle with the resulting texture
@@ -1776,6 +1778,9 @@ Tree *Widget::lineEdit(Tree *self,
         widgetVertex(x-w/2, y+h/2, 0, 1);
     }
     glEnd();
+
+    if (selected())
+        drawSelection(Box(x-w/2, y-h/2, w, h));
 
     return XL::xl_true;
 }

@@ -51,7 +51,6 @@ PREFIX(Page, tree, "page", PARM(p, tree),
        RTAO(page(self, &p)))
 PREFIX(PageWidth, integer, "page_width", , RTAO(page_width(self)))
 PREFIX(PageHeight, integer, "page_height", , RTAO(page_height(self)))
-PREFIX(Focus, tree, "focus", , RTAO(focus(self)))
 
 PREFIX(Refresh, tree, "refresh", PARM(delay, real), RTAO(refresh(self, delay)))
 

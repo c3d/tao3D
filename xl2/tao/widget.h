@@ -56,6 +56,7 @@ public:
     ~Widget();
 
     // Events
+    bool        forwardEvent(QEvent *event);
     void        keyPressEvent(QKeyEvent *event);
     void        keyReleaseEvent(QKeyEvent *event);
     void        mousePressEvent(QMouseEvent *);
@@ -78,6 +79,7 @@ public:
     bool        selected();
     void        select();
     void        drawSelection(const Box3 &bounds);
+    void        drawSelection(const Box &bounds);
     void        loadName(bool load);
 
 public slots:
@@ -178,10 +180,8 @@ public:
     Tree *KlayoutMarkup(Tree *self, text s);
 
     Tree *menuItem(Tree *self, text s, Tree *t);
-    Tree *focus(Tree *self);
 
     // Focus management
-    void              setFocus();
     void              requestFocus(QWidget *widget);
 
 private:
@@ -206,6 +206,7 @@ public:
     GLuint            id, capacity;
     std::set<GLuint>  selection, savedSelection;
     QEvent *          event;
+    QWidget *         focusWidget;
 
     // Timing for drawing
     ulonglong         tmin, tmax, tsum, tcount;

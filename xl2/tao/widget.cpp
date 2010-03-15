@@ -147,7 +147,7 @@ void Widget::appFocusChanged(QWidget *prev, QWidget *next)
 //   Notifications when focus changes
 // ----------------------------------------------------------------------------
 {
-#if 1
+#if 0
     printf("Focus "); printWidget(prev); printf ("->"); printWidget(next);
     const QObjectList &children = this->children();
     QObjectList::const_iterator it;
@@ -251,7 +251,6 @@ void Widget::requestFocus(QWidget *widget)
 //   Some other widget request the focus
 // ----------------------------------------------------------------------------
 {
-    printf("RequestFocus from "); printWidget(widget); printf("\n");
     if (!focusWidget)
         focusWidget = widget;
 }
@@ -442,8 +441,9 @@ void Widget::runProgram()
     // Once we are done, do a garbage collection
     XL::Context::context->CollectGarbage();
 
-    // Remember how many elements are drawn on the page
-    capacity = id + 1;
+    // Remember how many elements are drawn on the page, plus arbitrary buffer
+    if (id > capacity)
+        capacity = id + 100;
 }
 
 
@@ -836,8 +836,12 @@ GLuint Widget::shapeId()
 // ----------------------------------------------------------------------------
 //   Return an identifier for the shape in selections
 // ----------------------------------------------------------------------------
+//   We assign an identifier only if we are selectable and if we are not
+//   rendering in an off-screen buffer of some sort
 {
-    return state.selectable? ++id : 0;
+    return state.selectable && state.paintDevice == this
+        ? ++id
+        : 0;
 }
 
 
@@ -846,7 +850,7 @@ void Widget::select()
 //    Select the current shape if we are in selectable state
 // ----------------------------------------------------------------------------
 {
-    if (state.selectable)
+    if (state.selectable && state.paintDevice == this)
         selection.insert(id);
 }
 
@@ -856,7 +860,9 @@ bool Widget::selected()
 //   Test if the current shape is selected
 // ----------------------------------------------------------------------------
 {
-    return state.selectable ? selection.count(id) > 0 : false;
+    return state.selectable && state.paintDevice == this
+        ? selection.count(id) > 0
+        : false;
 }
 
 

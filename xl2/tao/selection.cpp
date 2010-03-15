@@ -1,19 +1,19 @@
 // ****************************************************************************
-//  selection.cpp                   (C) 1992-2009 Christophe de Dinechin (ddd) 
-//                                                                 XL2 project 
+//  selection.cpp                   (C) 1992-2009 Christophe de Dinechin (ddd)
+//                                                                 XL2 project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     A selection is a kind of activity for selection rectangles and clicks
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -51,6 +51,8 @@ void Selection::Display(void)
     gluOrtho2D(0, widget->width(), 0, widget->height());
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+
+    widget->setupGL();
 
     ulong tick = widget->now();
     Box b = rectangle;
@@ -98,6 +100,7 @@ bool Selection::Click(uint button, bool down, int x, int y)
     bool firstClick = false;
     bool doneWithSelection = false;
     bool shiftModifier = qApp->keyboardModifiers() & Qt::ShiftModifier;
+
     y = widget->height() - y;
 
     if (button & Qt::LeftButton)
@@ -145,9 +148,9 @@ bool Selection::Click(uint button, bool down, int x, int y)
         for (int i = 0; i < hits; i++)
         {
             uint size = ptr[0];
-            if (ptr[1] < depth)
+            if (ptr[3] && ptr[1] < depth)
                 selected = ptr[3];
-            ptr += 3 + size;            
+            ptr += 3 + size;
         }
         if (selected)
             doneWithSelection = true;
@@ -163,7 +166,8 @@ bool Selection::Click(uint button, bool down, int x, int y)
         else
             widget->savedSelection.clear();
         widget->selection = widget->savedSelection;
-        widget->selection.insert(selected);
+        if (selected)
+            widget->selection.insert(selected);
     }
 
     // If we are done with the selection, remove it
@@ -219,10 +223,10 @@ bool Selection::MouseMove(int x, int y, bool active)
         {
             uint size = ptr[0];
             selected = ptr[3];
-            widget->selection.insert(selected);
-            ptr += 3 + size;            
+            if (selected)
+                widget->selection.insert(selected);
+            ptr += 3 + size;
         }
-        
     }
     delete[] buffer;
 

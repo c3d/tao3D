@@ -324,6 +324,9 @@ void Widget::setup(double w, double h, Box *picking)
 //   Setup an initial environment for drawing
 // ----------------------------------------------------------------------------
 {
+    // Setup viewport
+    glViewport(0, 0, w, h);
+
     // Setup the projection matrix
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -331,12 +334,11 @@ void Widget::setup(double w, double h, Box *picking)
     // Restrict the picking area if any is given as input
     if (picking)
     {
-        GLint viewport[4];
+        GLint viewport[4] = { 0, 0, w, h };
         Box b = *picking;
         b.Normalize();
         Vector size = b.upper - b.lower;
         Point center = b.lower + size / 2;
-        glGetIntegerv(GL_VIEWPORT, viewport);
         gluPickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
     }
 
@@ -353,18 +355,9 @@ void Widget::setup(double w, double h, Box *picking)
     // Setup the model view matrix so that 1.0 unit = 1px
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glViewport(0, 0, w, h);
 
-    // Setup other
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDepthFunc(GL_LEQUAL);
-    glEnable(GL_DEPTH_TEST);
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_TEXTURE_RECTANGLE_ARB);
-    glDisable(GL_CULL_FACE);
-
+    // Reset default GL parameters
+    setupGL();
 
     // Initial state
     state.polygonMode = GL_POLYGON;
@@ -374,6 +367,23 @@ void Widget::setup(double w, double h, Box *picking)
     state.charFormat.setForeground(Qt::black);
     state.charFormat.setBackground(Qt::white);
     state.selectable = true;
+}
+
+
+void Widget::setupGL()
+// ----------------------------------------------------------------------------
+//   Setup default GL parameters
+// ----------------------------------------------------------------------------
+{
+    // Setup other
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthFunc(GL_LEQUAL);
+    glEnable(GL_DEPTH_TEST);
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_TEXTURE_RECTANGLE_ARB);
+    glDisable(GL_CULL_FACE);
 }
 
 
@@ -457,7 +467,7 @@ void Widget::runProgram()
     XL::Context::context->CollectGarbage();
 
     // Remember how many elements are drawn on the page
-    capacity = id;
+    capacity = id + 1;
 }
 
 
@@ -923,7 +933,7 @@ void Widget::drawSelection(const Box3 &bounds)
     coord zl = (3 * bounds.lower.z + zc) / 4 - r/4;
     coord zu = (3 * bounds.upper.z + zc) / 4 + r/4;
 
-    glBindTexture(GL_TEXTURE_2D, 0);
+    setupGL();
     glDisable(GL_DEPTH_TEST);
 
     glBegin(GL_TRIANGLE_FAN);
@@ -1113,7 +1123,7 @@ Tree *Widget::sphere(Tree *self,
 // ----------------------------------------------------------------------------
 {
     Box3 bounds(x-r, y-r, z-r, 2*r, 2*r, 2*r);
-    // ShapeSelection name(this, bounds);
+    ShapeSelection name(this, bounds);
 
     GLUquadric *q = gluNewQuadric();
     gluQuadricTexture (q, true);
@@ -1122,6 +1132,7 @@ Tree *Widget::sphere(Tree *self,
     glRotatef(-90.0, 1.0, 0.0, 0.0);
     gluSphere(q, r, nslices, nstacks);
     glPopMatrix();
+    gluDeleteQuadric(q);
     return XL::xl_true;
 }
 
@@ -1848,7 +1859,7 @@ Tree *Widget::Ktext(Tree *self, text s)
 //    Text at the current cursor position
 // ----------------------------------------------------------------------------
 {
-    // ShapeName name(this);
+    ShapeName name(this);
     frame->Text(s);
     return XL::xl_true;
 }

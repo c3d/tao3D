@@ -70,6 +70,7 @@ public:
     void        resizeGL(int width, int height);
     void        paintGL();
     void        setup(double w, double h, Box *picking = NULL);
+    void        setupGL();
     Point3      unproject (coord x, coord y, coord z = 0.0);
     void        initMenu();
     void        updateProgram(XL::SourceFile *sf);

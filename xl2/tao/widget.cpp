@@ -510,11 +510,11 @@ bool Widget::forwardEvent(QMouseEvent *event)
         int y = event->y();
         int w = focusWidget->width();
         int h = focusWidget->height();
+        int hh = height();
 
-        Point3 u = unproject(x, y, 0);
-        u.x = w/2 + u.x;
-        u.y = h/2 + u.y;
-        QMouseEvent local(event->type(), QPoint(u.x, u.y),
+        Point3 u = unproject(x, hh-y, 0);
+        Point3 v = unproject(x, y, 0);
+        QMouseEvent local(event->type(), QPoint(u.x + w/2, h/2 - u.y),
                           event->button(), event->buttons(),
                           event->modifiers());
         return focus->event(&local);
@@ -1717,11 +1717,11 @@ Tree *Widget::urlTexture(Tree *self, double w, double h,
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    WebViewSurface *surface = self->GetInfo<WebViewSurface>();
+    WebViewSurface *surface = url->GetInfo<WebViewSurface>();
     if (!surface)
     {
         surface = new WebViewSurface(this, w,h);
-        self->SetInfo<WebViewSurface> (surface);
+        url->SetInfo<WebViewSurface> (surface);
     }
 
     // Resize to requested size, and bind texture
@@ -1768,11 +1768,11 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    LineEditSurface *surface = self->GetInfo<LineEditSurface>();
+    LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
     if (!surface)
     {
         surface = new LineEditSurface(this, w,h);
-        self->SetInfo<LineEditSurface> (surface);
+        txt->SetInfo<LineEditSurface> (surface);
     }
 
     // Resize to requested size, and bind texture

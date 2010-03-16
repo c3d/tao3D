@@ -4,7 +4,7 @@
 //
 //   File Description:
 //
-//     Storing a Tao document in a Git repository.
+//     Storing Tao documents in a Git repository.
 //
 //
 //

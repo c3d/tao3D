@@ -80,7 +80,8 @@ HEADERS += widget.h \
     ../xlr/lcs.h \
     treeholder.h \
     git_backend.h \
-    widget-surface.h
+    widget-surface.h \
+    application.h
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \
@@ -117,7 +118,8 @@ SOURCES += tao_main.cpp \
     ../xlr/diff.cpp \
     ../xlr/lcs.cpp \
     treeholder.cpp \
-    git_backend.cpp
+    git_backend.cpp \
+    application.cpp
 RESOURCES += tao.qrc
 
 # Pango / Cairo

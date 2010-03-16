@@ -7,7 +7,7 @@
 //
 //   File Description:
 //
-//     Storing a Tao document in a Git repository.
+//     Storing Tao documents in a Git repository.
 //
 //
 //
@@ -47,11 +47,11 @@ struct GitRepo
     GitRepo(): isOpen(false) {}
     virtual ~GitRepo() {}
 
+    bool   Open();
     Status SaveDocument(XL::Tree *tree, QString msg = "");
     void   CheckoutDocument(const QString & docName);
 
 protected:
-    bool     Open();
     bool     Init();
     Status   CreateCommit(QString sha1, QString commitMessage = "");
     bool     UpdateRef(QString ref, QString sha1);

@@ -1,4 +1,4 @@
-rotatey 45*sin(2*time)
+rotatey 105*sin(0.2*time)
 color 0.5+0.5*cos(2*time),0.5*sin(time)+0.5,0,1
 texture "earth.bmp"
 
@@ -26,5 +26,7 @@ regular_heptagram 0,-300,80
 regular_polygram 200,-300,80,7,3
 //regular_star_polygon 400,-300,80, 17, 6
 schläfli 400, -300, 80, {17/6}
+
+sphere 0,0,0,50
 
 refresh 0.02

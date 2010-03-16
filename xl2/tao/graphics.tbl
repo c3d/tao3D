@@ -49,10 +49,15 @@ PREFIX(PageSize, tree, "page_size", PARM(w, integer) PARM(h, integer),
        RTAO(pagesize(self, w,h)))
 PREFIX(Page, tree, "page", PARM(p, tree),
        RTAO(page(self, &p)))
+PREFIX(PageWidth, integer, "page_width", , RTAO(page_width(self)))
+PREFIX(PageHeight, integer, "page_height", , RTAO(page_height(self)))
 
 PREFIX(Refresh, tree, "refresh", PARM(delay, real), RTAO(refresh(self, delay)))
 
 PREFIX(DaySeconds, tree, "time", , RTAO(time(self)))
+PREFIX(PageSeconds, tree, "page_time", , RTAO(page_time(self)))
+PREFIX(Selectable, boolean, "selectable",, RTAO(selectable(self, true)))
+PREFIX(NotSelectable, boolean, "not_selectable",, RTAO(selectable(self, false)))
 
 PREFIX(ColorRGBA, tree, "color",
        PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
@@ -129,9 +134,28 @@ PREFIX(TextSpan, tree,"text", PARM(t, text), RTAO(textSpan(self, t)))
 PREFIX(Flow, tree, "flow", , RTAO(flow(self)))
 PREFIX(Frame, tree, "frame",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
-       RTAO(frame(self, x, y, w, h)))
+       RTAO(framePaint(self, x, y, w, h)))
 PREFIX(FrameTexture, tree, "frame_texture",
        PARM(w,real) PARM(h,real), RTAO(frameTexture(self, w, h)))
+PREFIX(Url, tree, "url",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(u, text),
+       RTAO(urlPaint(self, x, y, w, h, &u, NULL)))
+PREFIX(UrlTexture, tree, "url_texture",
+       PARM(w,real) PARM(h,real) PARM(u, text),
+       RTAO(urlTexture(self, w, h, &u, NULL)))
+PREFIX(UrlProgress, tree, "url",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
+       PARM(u, text) PARM(progress, integer),
+       RTAO(urlPaint(self, x, y, w, h, &u, &progress)))
+PREFIX(UrlTextureProgress, tree, "url_texture",
+       PARM(w,real) PARM(h,real) PARM(u, text) PARM(progress, integer),
+       RTAO(urlTexture(self, w, h, &u, &progress)))
+PREFIX(LineEdit, tree, "line_edit",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(u, text),
+       RTAO(lineEdit(self, x, y, w, h, &u)))
+PREFIX(LineEditTexture, tree, "line_edit_texture",
+       PARM(w,real) PARM(h,real) PARM(u, text),
+       RTAO(lineEditTexture(self, w, h, &u)))
 
 PREFIX(TextFgColorRGBA, tree, "text_fg_color",
        PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
@@ -151,7 +175,23 @@ PREFIX(QtText, tree, "qttext",
        PARM(x,real) PARM(y,real) PARM(s, text),
        RTAO(qttext(self, x, y, s)))
 
+PREFIX(KRect, tree, "krectangle",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
+       RTAO(Krectangle(self, x, y, w, h)))
+PREFIX(KMove, tree, "kmoveto",
+       PARM(x,real) PARM(y,real),
+       RTAO(KmoveTo(self, x,y)))
+PREFIX(KText, tree, "ktext",
+       PARM(s, text),
+       RTAO(Ktext(self, s)))
+PREFIX(KStroke, tree, "kstroke",, RTAO(Kstroke(self)))
+PREFIX(KClear, tree, "kclear",, RTAO(Kclear(self)))
+PREFIX(LText, tree, "ltext",
+       PARM(s, text),
+       RTAO(KlayoutText(self, s)))
+PREFIX(LMarkup, tree, "lmarkup",
+       PARM(s, text),
+       RTAO(KlayoutMarkup(self, s)))
+
 PREFIX(MenuItem, tree, "menu_item", PARM(s, text) PARM(t, tree),
        RTAO(menuItem(self, s, &t)))
-
-

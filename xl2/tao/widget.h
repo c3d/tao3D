@@ -23,6 +23,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include <GL/glew.h>
 #include <QtOpenGL>
 #include <QImage>
 #include <QTimeLine>
@@ -39,6 +40,10 @@
 namespace Tao {
 
 struct Window;
+struct Frame;
+struct FrameInfo;
+struct Activity;
+
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -51,28 +56,45 @@ public:
     ~Widget();
 
     // Events
-    void mousePressEvent(QMouseEvent *);
-    void mouseDoubleClickEvent(QMouseEvent *);
-    void mouseMoveEvent(QMouseEvent *);
-    void timerEvent(QTimerEvent *);
-    void wheelEvent(QWheelEvent *);
+    bool        forwardEvent(QEvent *event);
+    bool        forwardEvent(QMouseEvent *event);
+    void        keyPressEvent(QKeyEvent *event);
+    void        keyReleaseEvent(QKeyEvent *event);
+    void        mousePressEvent(QMouseEvent *);
+    void        mouseReleaseEvent(QMouseEvent *);
+    void        mouseDoubleClickEvent(QMouseEvent *);
+    void        mouseMoveEvent(QMouseEvent *);
+    void        timerEvent(QTimerEvent *);
+    void        wheelEvent(QWheelEvent *);
     
 public:
-    void initializeGL();
-    void resizeGL(int width, int height);
-    void paintGL();
-    void setup(double w, double h);
-    void initMenu();
+    void        initializeGL();
+    void        resizeGL(int width, int height);
+    void        paintGL();
+    void        setup(double w, double h, Box *picking = NULL);
+    void        setupGL();
+    Point3      unproject (coord x, coord y, coord z = 0.0);
+    void        initMenu();
+    void        updateProgram(XL::SourceFile *sf);
+    GLuint      shapeId();
+    bool        selected();
+    void        select();
+    void        drawSelection(const Box3 &bounds);
+    void        drawSelection(const Box &bounds);
+    void        loadName(bool load);
 
 public slots:
-    void draw();
-    void clearActions();
+    void        draw();
+    void        runProgram();
+    void        clearActions();
+    void        appFocusChanged(QWidget *prev, QWidget *next);
 
 public:
     typedef XL::Tree    Tree;
     typedef XL::Integer Integer;
     typedef XL::Real    Real;
     typedef XL::Text    Text;
+    typedef XL::Name    Name;
 
     // XLR entry points
     static Widget *Tao() { return current; }
@@ -85,12 +107,16 @@ public:
     Tree *locally(Tree *self, Tree *t);
     Tree *pagesize(Tree *self, uint w, uint h);
     Tree *page(Tree *self, Tree *p);
+    Integer *page_width(Tree *self);
+    Integer *page_height(Tree *self);
 
     Tree *refresh(Tree *self, double delay);
     Tree *time(Tree *self);
+    Tree *page_time(Tree *self);
+    Name *selectable(Tree *self, bool selectable);
 
     Tree *color(Tree *self, double r, double g, double b, double a);
-    Tree *textColor(Tree *self, double r, double g, double b, double a, bool isFg);
+    Tree *textColor(Tree *self, double r,double g,double b,double a, bool fg);
     Tree *filled(Tree *self);
     Tree *hollow(Tree *self);
     Tree *linewidth(Tree *self, double lw);
@@ -136,13 +162,28 @@ public:
 
     Tree *flow(Tree *self);
     Tree *frameTexture(Tree *self, double w, double h);
-    Tree *frame(Tree *self, double x, double y, double w, double h);
+    Tree *framePaint(Tree *self, double x, double y, double w, double h);
+    Tree *urlTexture(Tree *self, double x, double y, Text *s, Integer *p);
+    Tree *urlPaint(Tree *self, double x, double y, double w, double h,
+                   Text *s, Integer *p);
+    Tree *lineEditTexture(Tree *self, double x, double y, Text *s);
+    Tree *lineEdit(Tree *self, double x, double y, double w, double h, Text *s);
 
     Tree *qtrectangle(Tree *self, double x, double y, double w, double h);
     Tree *qttext(Tree *self, double x, double y, text s);
 
+    Tree *KmoveTo(Tree *self, double x, double y);
+    Tree *Ktext(Tree *self, text s);
+    Tree *Krectangle(Tree *self, double x, double y, double w, double h);
+    Tree *Kstroke(Tree *self);
+    Tree *Kclear(Tree *self);
+    Tree *KlayoutText(Tree *self, text s);
+    Tree *KlayoutMarkup(Tree *self, text s);
+
     Tree *menuItem(Tree *self, text s, Tree *t);
 
+    // Focus management
+    void              requestFocus(QWidget *widget);
 
 private:
     void widgetVertex(double x, double y, double tx, double ty);
@@ -159,6 +200,21 @@ public:
     QTimer            timer;
     QMenu             contextMenu;
     QList<TreeHolder> actions;
+    Frame *           frame;
+    Frame *           mainFrame;
+    Activity *        activities;
+    double            page_start_time;
+    GLuint            id, capacity;
+    std::set<GLuint>  selection, savedSelection;
+    QEvent *          event;
+    QWidget *         focusWidget;
+    GLdouble          focusProjection[16], focusModel[16];
+    GLint             focusViewport[4];
+
+    // Timing for drawing
+    ulonglong         tmin, tmax, tsum, tcount;
+    ulonglong         now();
+    ulonglong         elapsed(ulonglong since, bool stats=true, bool show=true);
 
     struct State
     // ------------------------------------------------------------------------
@@ -170,9 +226,12 @@ public:
         TextFlow *      flow;
         QTextCharFormat charFormat;  // Font, color, ...
         QPaintDevice *  paintDevice;
+        bool            selectable;
     } state;
 
     static Widget    *current;
+
+    typedef XL::LocalSave<QEvent *> EventSave;
 };
 
 
@@ -208,6 +267,21 @@ inline QString Utf8(text utf8, uint index = 0)
     index = index < len ? index : 0;
     return QString::fromUtf8(data + index, len);
 }
+
+
+inline double CurrentTime()
+// ----------------------------------------------------------------------------
+//    Return the current time
+// ----------------------------------------------------------------------------
+{
+    QTime t = QTime::currentTime();
+    double d = (3600.0	 * t.hour()
+		+ 60.0	 * t.minute()
+		+	   t.second()
+		+  0.001 * t.msec());
+    return d;
+}
+
 
 #define TAO(x)  (Tao::Widget::Tao() ? Tao::Widget::Tao()->x : 0)
 #define RTAO(x) return TAO(x)

@@ -23,9 +23,9 @@
 // ****************************************************************************
 
 #include <QMainWindow>
+#include <QTimer>
 #include "main.h"
 #include "tao.h"
-#include "git_backend.h"
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -58,6 +58,7 @@ private slots:
     bool saveAs();
     void about();
     void documentWasModified();
+    void checkFiles();
 
 private:
     void createActions();
@@ -71,26 +72,19 @@ private:
     void loadFile(const QString &fileName);
     bool saveFile(const QString &fileName);
     void setCurrentFile(const QString &fileName);
+    QString strippedName(const QString &fullFileName);
     Window *findWindow(const QString &fileName);
-    QString tmpDir();         // /tmp
-    QString docFileName();    // document1.tao
-    QString tmpDocPath();     // /tmp/document1.tao.tmp
-    QString repoFileName();   // document1.tao.git
-    QString repoPath();       // /tmp/document1.tao.git
-    bool saveToGit();
-    void loadSource(const QString &fileName);
-
+    void updateProgram(const QString &filename);
 
 private:
     XL::Main *        xlRuntime;
-    XL::SourceFile *  xlProgram;
 
     QTextEdit        *textEdit;
     Widget           *taoWidget;
     QString           curFile;
     bool              isUntitled;
-    GitRepo           gitRepo;
 
+    QTimer            fileCheckTimer;
     QMenu            *fileMenu;
     QMenu            *editMenu;
     QMenu            *helpMenu;

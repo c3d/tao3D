@@ -6,9 +6,10 @@
 //
 //   File Description:
 //
-//    Off-screen OpenGL rendering to a 2D texture
+//     Frames are 2D drawing surfaces, most often rectangular
+//     Frames can be placed in other frames in a hierarchy.
 //
-//    A 'FrameInfo' associates persistent rendering data to a particular tree
+//
 //
 //
 //
@@ -25,10 +26,47 @@
 #include "tree.h"
 #include "gl_keepers.h"
 #include <map>
-#include <QtOpenGL>
-
+#include <cairo.h>
+#include <pango/pango.h>
 
 TAO_BEGIN
+
+struct Frame : XL::Info
+// ----------------------------------------------------------------------------
+//   A 2D (rectangular) drawing structure
+// ----------------------------------------------------------------------------
+{
+    Frame();
+    ~Frame();
+
+    // Setup
+    void             Resize(uint w, uint h);
+
+    // Drawing
+    void             Color(double red, double grn, double blu, double alpha=1);
+    void             Clear();
+    void             MoveTo(double x, double y);
+    void             Font(text s);
+    void             FontSize(double s);
+    void             Text(text s);
+    void             Rectangle(double x, double y, double w, double h);
+    void             Stroke();
+    void             LayoutMarkup(text s);
+    void             LayoutText(text s);
+
+    // End of drawing, paint the frame
+    void             Paint(double x, double y, double w, double h);
+
+private:
+    cairo_surface_t      *surface;
+    cairo_t              *context;
+    PangoLayout          *layout;
+    PangoFontDescription *font;
+
+    // No support for copying frames around
+    Frame(const Frame &o) {}
+};
+
 
 struct FrameInfo : XL::Info
 // ----------------------------------------------------------------------------

@@ -1,0 +1,87 @@
+locally
+    texture "milkyway.jpg"
+    rotatey 0.8 * page_time + 90
+    scale 1,-1,1
+    not_selectable
+    sphere 0,0,0,2000
+
+locally
+    translate 0,0,-300
+
+    locally
+        texture "earth.bmp"
+        rotatey 20*time
+        sphere 100
+ 
+    page_size 1200,300
+    page
+        color 1,1,1,1
+        font "Arial Unicode MS"
+        font_size 40
+        kmoveto -600,-10
+        ktext "Hello World! إجتهاد or Καλημέρα κόσμε; or こんにちは 世界"
+
+    locally
+        rotatey -29*page_time + 270
+        color 0%,0%,0%,40%
+        sphere 105
+        color 100%,90%,20%,90%
+        sphere 110
+
+browser URL, progress, rw, rh ->
+    url 0,0,rw, rh, URL, progress
+    locally
+        translate 0,rh/2+15,5
+
+        color 100%,progress%, progress%, 80%
+        rectangle 0, 0, rw*progress%, 24
+
+        translate 0,0,5
+        color 90%, 90%, 100%, 80%
+        line_edit 0, 0, rw, 32, URL
+
+
+locally
+    color 1,1,1,95%
+    translate 0,-30,50
+    browser "http://www.slashdot.org", 0, 1000, 900
+
+color 1,1,1,70%
+locally
+    translate -570,250,150
+    rotatey 40
+    scale 30%, 30%, 30%
+    browser "http://www.google.com", 0, 700,800
+
+locally
+    translate -570,0,150
+    rotatey 40
+    scale 30%, 30%, 30%
+    browser "http://grenouille-bouillie.blogspot.com", 0, 700,800
+
+locally
+    translate -570,-250,150
+    rotatey 40
+    scale 30%, 30%, 30%
+    browser "http://www.dilbert.com", 0, 700,800
+
+locally
+    translate 570,250,150
+    rotatey -40
+    scale 30%, 30%, 30%
+    browser "http://www.apple.com", 0, 700,800
+
+locally
+    translate 570,0,150
+    rotatey -50
+    scale 30%, 30%, 30%
+    browser "http://www.beautifulfreepictures.com", 0, 700,800
+
+locally
+    translate 570,-250,150
+    rotatey -40
+    scale 30%, 30%, 30%
+    browser "http://www.twitter.com", 0, 700,800
+
+
+refresh 0.05

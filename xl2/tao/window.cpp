@@ -23,6 +23,7 @@
 #include <QtGui>
 #include "window.h"
 #include "widget.h"
+#include "apply-changes.h"
 
 
 TAO_BEGIN
@@ -31,9 +32,9 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create a Tao window with default parameters
 // ----------------------------------------------------------------------------
-    : xlRuntime(xlr), xlProgram(sf),
-      textEdit(NULL), taoWidget(NULL),
-      isUntitled(sf == NULL)
+    : xlRuntime(xlr),
+      textEdit(NULL), taoWidget(NULL), curFile(),
+      isUntitled(sf == NULL), fileCheckTimer(this)
 {
     // Create the widgets
     QDockWidget *dock = new QDockWidget(tr("Source"));
@@ -58,69 +59,100 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
     readSettings();
     setUnifiedTitleAndToolBarOnMac(true);
     if (sf)
-        loadSource(QString::fromStdString(sf->name));    // untested
+        loadFile(QString::fromStdString(sf->name));
     else
         setCurrentFile("");
+
+    // Fire a timer to check if files changed
+    fileCheckTimer.start(500);
+    connect(&fileCheckTimer, SIGNAL(timeout()), this, SLOT(checkFiles()));
 }
 
 
 void Window::closeEvent(QCloseEvent *event)
+// ----------------------------------------------------------------------------
+//   Close the window - Save settings
+// ----------------------------------------------------------------------------
 {
-    if (maybeSave()) {
+    if (maybeSave())
+    {
         writeSettings();
-        QDir().remove(tmpDocPath());
-        // FIXME: Qt does not support recursive deletion!
-        QDir().rename(repoPath(),
-                      repoPath() + QString(".to_delete_%1")
-                      .arg(QDateTime::currentDateTime().toTime_t()));
-
         event->accept();
-    } else {
+    }
+    else
+    {
         event->ignore();
     }
 }
 
+
+void Window::checkFiles()
+// ----------------------------------------------------------------------------
+//   Check if any of the open files associated with the widget changed
+// ----------------------------------------------------------------------------
+{
+    if (taoWidget)
+    {
+        XL::SourceFile *prog = taoWidget->xlProgram;
+        if (prog && prog->tree.tree)
+        {
+            import_set done;
+            if (ImportedFilesChanged(prog->tree.tree, done, false))
+                loadFile(QString::fromStdString(prog->name));
+        }
+    }
+}
+
+
 void Window::newFile()
+// ----------------------------------------------------------------------------
+//   Create a new window
+// ----------------------------------------------------------------------------
 {
     Window *other = new Window(xlRuntime, NULL);
     other->move(x() + 40, y() + 40);
     other->show();
 }
 
-/*
-TODO ADD IMPORT FUNCTION
+
+void Window::open()
+// ----------------------------------------------------------------------------
+//   Openg a file
+// ----------------------------------------------------------------------------
+{
     QString fileName = QFileDialog::getOpenFileName
         (this,
          tr("Open Tao Document"),
          tr(""),
          tr("Tao documents (*.ddd);;XL programs (*.xl);;"
             "Headers (*.dds *.xs);;All files (*.*)"));
-*/
 
-void Window::open()
-{
-    QString fileName = QFileDialog::getOpenFileName
-        (this,
-         tr("Open Tao Document"),
-         tr(""),
-         tr("Tao documents (*.tao);;All files (*.*)"));
-    if (!fileName.isEmpty()) {
-
+    if (!fileName.isEmpty())
+    {
         Window *existing = findWindow(fileName);
-        if (existing && !existing->isUntitled) {
+        if (existing)
+        {
             existing->show();
             existing->raise();
             existing->activateWindow();
             return;
         }
 
-        if (isUntitled && textEdit->document()->isEmpty()
-                && !isWindowModified()) {
+        if (isUntitled &&
+            textEdit->document()->isEmpty() &&
+            !isWindowModified())
+        {
             loadFile(fileName);
-        } else {
-            Window *other = new Window(xlRuntime, NULL);
-            other->loadFile(fileName);
-            if (other->isUntitled) {
+        }
+        else
+        {
+            QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
+            text fn = canonicalFilePath.toStdString();
+            xlRuntime->LoadFile(fn);
+            XL::SourceFile &sf = xlRuntime->files[fn];
+            Window *other = new Window(xlRuntime, &sf);
+            if (other->isUntitled)
+            {
                 delete other;
                 return;
             }
@@ -130,48 +162,36 @@ void Window::open()
     }
 }
 
+
 bool Window::save()
+// ----------------------------------------------------------------------------
+//    Save the current window
+// ----------------------------------------------------------------------------
 {
-    if (isUntitled) {
+    if (isUntitled)
         return saveAs();
-    } else {
-        return saveFile(curFile);
-    }
+    return saveFile(curFile);
 }
 
+
 bool Window::saveAs()
+// ----------------------------------------------------------------------------
+//   Select file name and save under that name
+// ----------------------------------------------------------------------------
 {
-    // FIXME: clean tmp files when saving under a new name
-    // (save as doc1, then save as doc2: doc1.git and doc1.git.tmp not deleted)
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
-                                                    curFile);
+    QString fileName =
+        QFileDialog::getSaveFileName(this, tr("Save As"), curFile);
     if (fileName.isEmpty())
         return false;
 
     return saveFile(fileName);
 }
 
-bool Window::saveToGit()
-{
-    switch (gitRepo.SaveDocument(xlProgram->tree))
-    {
-    case GitRepo::savedNewVersionCreated:
-    case GitRepo::notSavedNullTree:
-        statusBar()->showMessage(tr("Saved"), 2000);
-        return true;
-    case GitRepo::notSavedNoChange:
-        statusBar()->showMessage(tr("No change"), 2000);
-        break;
-    case GitRepo::notSavedSaveError:
-        statusBar()->showMessage(tr("Save error"), 2000);
-        break;
-    default:
-        Q_ASSERT(!"Unexpected save status");
-    }
-    return false;
-}
 
 void Window::about()
+// ----------------------------------------------------------------------------
+//    About Box
+// ----------------------------------------------------------------------------
 {
     kstring txt =
         "<b>Tao</b>, an interactive collaboration tool.<br/>"
@@ -184,12 +204,20 @@ void Window::about()
    QMessageBox::about (this, tr("About Tao"), tr(txt));
 }
 
+
 void Window::documentWasModified()
+// ----------------------------------------------------------------------------
+//   Record when the document was modified
+// ----------------------------------------------------------------------------
 {
     setWindowModified(true);
 }
 
+
 void Window::createActions()
+// ----------------------------------------------------------------------------
+//   Create the various menus and icons on the toolbar
+// ----------------------------------------------------------------------------
 {
     newAct = new QAction(QIcon(":/images/new.png"), tr("&New"), this);
     newAct->setShortcuts(QKeySequence::New);
@@ -247,7 +275,6 @@ void Window::createActions()
     aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
     connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
-
     cutAct->setEnabled(false);
     copyAct->setEnabled(false);
     connect(textEdit, SIGNAL(copyAvailable(bool)),
@@ -256,11 +283,13 @@ void Window::createActions()
             copyAct, SLOT(setEnabled(bool)));
 }
 
-//! [implicit tr context]
+
 void Window::createMenus()
+// ----------------------------------------------------------------------------
+//    Create all Tao menus
+// ----------------------------------------------------------------------------
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
-//! [implicit tr context]
     fileMenu->addAction(newAct);
     fileMenu->addAction(openAct);
     fileMenu->addAction(saveAct);
@@ -281,13 +310,15 @@ void Window::createMenus()
     helpMenu->addAction(aboutQtAct);
 }
 
+
 void Window::createToolBars()
+// ----------------------------------------------------------------------------
+//   Create the application tool bars
+// ----------------------------------------------------------------------------
 {
-//! [0]
     fileToolBar = addToolBar(tr("File"));
     fileToolBar->addAction(newAct);
     fileToolBar->addAction(openAct);
-//! [0]
     fileToolBar->addAction(saveAct);
 
     editToolBar = addToolBar(tr("Edit"));
@@ -296,12 +327,20 @@ void Window::createToolBars()
     editToolBar->addAction(pasteAct);
 }
 
+
 void Window::createStatusBar()
+// ----------------------------------------------------------------------------
+//    Create the status bar for the window
+// ----------------------------------------------------------------------------
 {
     statusBar()->showMessage(tr("Ready"));
 }
 
+
 void Window::readSettings()
+// ----------------------------------------------------------------------------
+//   Load the settings from persistent user preference
+// ----------------------------------------------------------------------------
 {
     QSettings settings;
     QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
@@ -310,22 +349,31 @@ void Window::readSettings()
     resize(size);
 }
 
+
 void Window::writeSettings()
+// ----------------------------------------------------------------------------
+//   Write settings to persistent user preferences
+// ----------------------------------------------------------------------------
 {
     QSettings settings;
     settings.setValue("pos", pos());
     settings.setValue("size", size());
 }
 
+
 bool Window::maybeSave()
+// ----------------------------------------------------------------------------
+//   Check if we need to save the document
+// ----------------------------------------------------------------------------
 {
-    if (textEdit->document()->isModified()) {
+    if (textEdit->document()->isModified())
+    {
 	QMessageBox::StandardButton ret;
-        ret = QMessageBox::warning(this, tr("SDI"),
-                     tr("The document has been modified.\n"
-                        "Do you want to save your changes?"),
-                     QMessageBox::Save | QMessageBox::Discard
-		     | QMessageBox::Cancel);
+        ret = QMessageBox::warning
+            (this, tr("Save changes?"),
+             tr("The document has been modified.\n"
+                "Do you want to save your changes?"),
+             QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
         if (ret == QMessageBox::Save)
             return save();
         else if (ret == QMessageBox::Cancel)
@@ -334,157 +382,127 @@ bool Window::maybeSave()
     return true;
 }
 
+
 void Window::loadFile(const QString &fileName)
+// ----------------------------------------------------------------------------
+//    Load a specific file
+// ----------------------------------------------------------------------------
 {
-    // Check document exists and is readable
-    QFile docFile(fileName);
-    if (!docFile.open(QFile::ReadOnly)) {
-        QMessageBox::warning(this, tr("Cannot read file"),
-                             tr("Cannot read file %1:\n%2.")
-                             .arg(fileName)
-                             .arg(docFile.errorString()));
-        return;
-    }
-    docFile.close();
-    setCurrentFile(fileName);
-
-    qDebug() << "loadFile()" << fileName;
-
-    // Extract document's Git repo to temporary directory
-    QProcess tar;
-    tar.setWorkingDirectory(tmpDir());
-    tar.start("tar", QStringList() << "zxf" << fileName);
-    if (!tar.waitForFinished())
-        return;
-
-    // Checkout main file to temporary path
-    gitRepo.curPath = repoPath();
-    gitRepo.CheckoutDocument(tmpDocPath());
-
-    // Load source from temporary path
-    loadSource(tmpDocPath());
-
-    statusBar()->showMessage(tr("File loaded"), 2000);
-}
-
-void Window::loadSource(const QString &fileName)
-{
-    // Load doc source from temporary path
     QFile file(fileName);
-    if (!file.open(QFile::ReadOnly)) {
+    if (!file.open(QFile::ReadOnly | QFile::Text))
+    {
         QMessageBox::warning(this, tr("Cannot read file"),
                              tr("Cannot read file %1:\n%2.")
                              .arg(fileName)
                              .arg(file.errorString()));
         return;
     }
+    
     QTextStream in(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
     textEdit->setPlainText(in.readAll());
     QApplication::restoreOverrideCursor();
 
-    // Update program
-    text fn = tmpDocPath().toStdString();
-    xlRuntime->LoadFile(fn);
-    xlProgram = &xlRuntime->files[fn];
-    taoWidget->xlProgram = xlProgram;
+    setCurrentFile(fileName);
+    statusBar()->showMessage(tr("File loaded"), 2000);
+    updateProgram(fileName);
+}
+
+
+void Window::updateProgram(const QString &fileName)
+// ----------------------------------------------------------------------------
+//   When a file has changed, reload corresponding XL program
+// ----------------------------------------------------------------------------
+{
+    QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
+    text fn = canonicalFilePath.toStdString();
+    XL::SourceFile *sf = &xlRuntime->files[fn];
+    if (!sf->tree.tree)
+        xlRuntime->LoadFile(fn);
+    taoWidget->updateProgram(sf);
     taoWidget->updateGL();
 }
 
+
 bool Window::saveFile(const QString &fileName)
+// ----------------------------------------------------------------------------
+//   Save a file with a given name
+// ----------------------------------------------------------------------------
 {
-    // Save current doc source to temporary path
-    QFile file(tmpDocPath());
-    if (!file.open(QFile::WriteOnly | QFile::Text)) {
+    QFile file(fileName);
+    if (!file.open(QFile::WriteOnly | QFile::Text))
+    {
         QMessageBox::warning(this, tr("SDI"),
                              tr("Cannot write file %1:\n%2.")
-                             .arg(tmpDocPath())
+                             .arg(fileName)
                              .arg(file.errorString()));
         return false;
     }
-    QApplication::setOverrideCursor(Qt::WaitCursor);
 
     do
     {
         QTextStream out(&file);
+        QApplication::setOverrideCursor(Qt::WaitCursor);
         out << textEdit->toPlainText();
-    } while (0);                // Flush  // REVISIT (.flush())
+        QApplication::restoreOverrideCursor();
+    } while (0); // Flush
 
-    // Update XL tree from temporary doc source
-    text fn = tmpDocPath().toStdString();
-    xlRuntime->LoadFile(fn);
-    xlProgram = &xlRuntime->files[fn];
-    taoWidget->xlProgram = xlProgram;
-    taoWidget->updateGL();
-
-    // Save to Git
-    gitRepo.curPath = repoPath();
-    saveToGit();
-
-    // Make archive of Git repository
-    QProcess tar;
-    tar.setWorkingDirectory(tmpDir());
-    tar.start("tar", QStringList() << "zcf" << fileName << repoFileName());
-    tar.waitForFinished();
-
-    QApplication::restoreOverrideCursor();
     setCurrentFile(fileName);
+    statusBar()->showMessage(tr("File saved"), 2000);
+    updateProgram(fileName);
 
     return true;
 }
 
+
 void Window::setCurrentFile(const QString &fileName)
+// ----------------------------------------------------------------------------
+//   Set the current file name, create one for empty documents
+// ----------------------------------------------------------------------------
 {
     static int sequenceNumber = 1;
+    QString name = fileName;
 
-    isUntitled = fileName.isEmpty();
-    if (isUntitled) {
-        curFile = QDir().currentPath() + "/" +
-                  tr("document%1.tao").arg(sequenceNumber++);
-    } else {
-        curFile = fileName;
+    isUntitled = name.isEmpty();
+
+    // If the document name doesn't exist, loop until we find an unused one
+    while (isUntitled)
+    {
+        name = QString(tr("document%1.ddd")).arg(sequenceNumber++);
+        QFile file(name);
+        isUntitled = file.open(QFile::ReadOnly | QFile::Text);
     }
+
+    curFile = QFileInfo(name).canonicalFilePath();
 
     textEdit->document()->setModified(false);
     setWindowModified(false);
     setWindowFilePath(curFile);
 }
 
+
+QString Window::strippedName(const QString &fullFileName)
+// ----------------------------------------------------------------------------
+//   Return the short name for a document (no directory name)
+// ----------------------------------------------------------------------------
+{
+    return QFileInfo(fullFileName).fileName();
+}
+
+
 Window *Window::findWindow(const QString &fileName)
+// ----------------------------------------------------------------------------
+//   Find a window given its file name
+// ----------------------------------------------------------------------------
 {
     QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
-
-    foreach (QWidget *widget, qApp->topLevelWidgets()) {
+    foreach (QWidget *widget, qApp->topLevelWidgets())
+    {
         Window *mainWin = qobject_cast<Window *>(widget);
         if (mainWin && mainWin->curFile == canonicalFilePath)
             return mainWin;
     }
-    return 0;
-}
-
-QString Window::tmpDir()
-{
-    return QDir().tempPath();
-}
-
-QString Window::docFileName()
-{
-    return QFileInfo(curFile).fileName();
-}
-
-QString Window::repoFileName()
-{
-    return docFileName() + ".git";
-}
-
-QString Window::tmpDocPath()
-{
-    return tmpDir() + "/" + docFileName() + ".tmp";
-}
-
-QString Window::repoPath()
-{
-    return tmpDir() + "/" + repoFileName();
+    return NULL;
 }
 
 TAO_END

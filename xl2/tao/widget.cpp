@@ -21,8 +21,6 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include <QtGui/QImage>
-#include <cmath>
 #include "widget.h"
 #include "tao.h"
 #include "main.h"
@@ -32,12 +30,22 @@
 #include "frame.h"
 #include "texture.h"
 #include "svg.h"
+#include "widget-surface.h"
 #include "window.h"
-#include <QtOpenGL>
+#include "treeholder.h"
+#include "apply-changes.h"
+#include "activity.h"
+#include "selection.h"
+#include "shapename.h"
+#include <QtGui/QImage>
+#include <cmath>
 #include <QFont>
 #include <iostream>
 #include <QVariant>
-#include "treeholder.h"
+#include <QtWebKit>
+#include <sys/time.h>
+#include <sys/stat.h>
+
 
 TAO_BEGIN
 
@@ -52,18 +60,28 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf), timer(this), contextMenu(this)
+      xlProgram(sf), timer(this), contextMenu(this),
+      frame(NULL), mainFrame(NULL), activities(NULL),
+      tmin(~0ULL), tmax(0), tsum(0), tcount(0),
+      page_start_time(CurrentTime()), event(NULL), focusWidget(NULL)
 {
-//    actions = QList<TreeHolder>();
-
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
 
     // Make this the current context for OpenGL
     makeCurrent();
+    mainFrame = new Frame;
 
-    // Prepare the timer
+    // Prepare the timers
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
+
+    // Configure the proxies for URLs
+    QNetworkProxyFactory::setUseSystemConfiguration(true);
+
+    // Receive notifications for focus
+    connect(qApp, SIGNAL(focusChanged (QWidget *, QWidget *)),
+            this,  SLOT(appFocusChanged(QWidget *, QWidget *)));
+    setFocusPolicy(Qt::StrongFocus);
 }
 
 
@@ -72,6 +90,7 @@ Widget::~Widget()
 //   Destroy the widget
 // ----------------------------------------------------------------------------
 {
+    delete mainFrame;
 }
 
 
@@ -95,6 +114,9 @@ void Widget::resizeGL(int width, int height)
 //   Called when the size changes
 // ----------------------------------------------------------------------------
 {
+    mainFrame->Resize(width, height);
+    tmax = tsum = tcount = 0;
+    tmin = ~tmax;
 }
 
 
@@ -108,35 +130,208 @@ void Widget::paintGL()
 }
 
 
-void Widget::setup(double w, double h)
+static void printWidget(QWidget *w)
+// ----------------------------------------------------------------------------
+//   Print a widget for debugging purpose
+// ----------------------------------------------------------------------------
+{
+    printf("%p", w);
+    if (w)
+        printf(" (%s)", w->metaObject()->className());
+}
+
+
+
+void Widget::appFocusChanged(QWidget *prev, QWidget *next)
+// ----------------------------------------------------------------------------
+//   Notifications when focus changes
+// ----------------------------------------------------------------------------
+{
+#if 0
+    printf("Focus "); printWidget(prev); printf ("->"); printWidget(next);
+    const QObjectList &children = this->children();
+    QObjectList::const_iterator it;
+    printf("\nChildren:");
+    for (it = children.begin(); it != children.end(); it++)
+    {
+        printf(" ");
+        printWidget((QWidget *) *it);
+    }
+    printf("\n");
+#endif
+}
+
+
+void Widget::updateProgram(XL::SourceFile *source)
+// ----------------------------------------------------------------------------
+//   Change the XL program, clean up stuff along the way
+// ----------------------------------------------------------------------------
+{
+    Tree *prog = source->tree.tree;
+    Tree *repl = prog;
+    xlProgram = source;
+
+    // Loop on imported files
+    import_set iset;
+    if (ImportedFilesChanged(prog, iset, false))
+    {
+        import_set::iterator it;
+        bool needBigHammer = false;
+        for (it = iset.begin(); it != iset.end(); it++)
+        {
+            XL::SourceFile &sf = **it;
+            text fname = sf.name;
+            struct stat st;
+            stat (fname.c_str(), &st);
+
+            if (st.st_mtime > sf.modified)
+            {
+                IFTRACE(filesync)
+                    std::cerr << "File " << fname << " changed\n";
+
+                XL::Parser parser(fname.c_str(),
+                                  XL::MAIN->syntax,
+                                  XL::MAIN->positions,
+                                  XL::MAIN->errors);
+                XL::Tree *replacement = parser.Parse();
+                if (!replacement)
+                {
+                    // Uh oh, file went away?
+                    needBigHammer = true;
+                }
+                else
+                {
+                    // Check if we can simply change some parameters in file
+                    ApplyChanges changes(replacement);
+                    if (!sf.tree.tree->Do(changes))
+                    {
+                        needBigHammer = true;
+                        if (sf.tree.tree == prog)
+                        {
+                            repl = replacement;
+                            repl->Set<XL::SymbolsInfo> (sf.symbols);
+                        }
+                    }
+                    else
+                    {
+                        sf.modified = st.st_mtime;
+                    }
+
+
+                    IFTRACE(filesync)
+                    {
+                        if (needBigHammer)
+                            std::cerr << "Need to reload everything.\n";
+                        else
+                            std::cerr << "Surgical replacement worked\n";
+                    }
+                } // Replacement checked
+            } // If file modified
+        } // For all files
+
+        // If we were not successful with simple changes, reload everything...
+        if (needBigHammer)
+        {
+            for (it = iset.begin(); it != iset.end(); it++)
+            {
+                XL::SourceFile &sf = **it;
+                text fname = sf.name;
+                XL::MAIN->LoadFile(fname);
+            }
+        }
+    }
+
+    // Perform a good old garbage collection to clean things up
+    XL::Context::context->CollectGarbage();
+}
+
+
+void Widget::requestFocus(QWidget *widget)
+// ----------------------------------------------------------------------------
+//   Some other widget request the focus
+// ----------------------------------------------------------------------------
+{
+    if (!focusWidget)
+    {
+        focusWidget = widget;
+        glGetDoublev(GL_PROJECTION_MATRIX, focusProjection);
+        glGetDoublev(GL_MODELVIEW_MATRIX, focusModel);
+        glGetIntegerv(GL_VIEWPORT, focusViewport);
+        
+        QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
+        QObject *fin = focusWidget;
+        fin->event(&focusIn);
+    }
+}
+
+
+Point3 Widget::unproject (coord x, coord y, coord z)
+// ----------------------------------------------------------------------------
+//   Convert mouse clicks into 3D planar coordinates for the focus object
+// ----------------------------------------------------------------------------
+{
+    // Get 3D coordinates for the near plane based on window coordinates
+    GLdouble x3dn, y3dn, z3dn;
+    gluUnProject(x, y, 0.0,
+                 focusModel, focusProjection, focusViewport,
+                 &x3dn, &y3dn, &z3dn);
+
+    // Same with far-plane 3D coordinates
+    GLdouble x3df, y3df, z3df;
+    gluUnProject(x, y, 1.0,
+                 focusModel, focusProjection, focusViewport,
+                 &x3df, &y3df, &z3df);
+
+    GLfloat zDistance = z3dn - z3df;
+    if (zDistance == 0.0)
+        zDistance = 1.0;
+    GLfloat ratio = (z3dn - z) / zDistance;
+    GLfloat x3d = x3dn + ratio * (x3df - x3dn);
+    GLfloat y3d = y3dn + ratio * (y3df - y3dn);
+
+    return Point3(x3d, y3d, z);
+}
+
+
+void Widget::setup(double w, double h, Box *picking)
 // ----------------------------------------------------------------------------
 //   Setup an initial environment for drawing
 // ----------------------------------------------------------------------------
 {
+    // Setup viewport
+    glViewport(0, 0, w, h);
+
     // Setup the projection matrix
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+
+    // Restrict the picking area if any is given as input
+    if (picking)
+    {
+        GLint viewport[4] = { 0, 0, w, h };
+        Box b = *picking;
+        b.Normalize();
+        Vector size = b.upper - b.lower;
+        Point center = b.lower + size / 2;
+        gluPickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
+    }
+
+    // Setup the frustrum for the projection
     double zNear = 1000.0, zFar = 40000.0;
     double eyeX = 0.0, eyeY = 0.0, eyeZ = 1000.0;
     double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
     double upX = 0.0, upY = 1.0, upZ = 0.0;
     glFrustum (-w/2, w/2, -h/2, h/2, zNear, zFar);
     gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+    glTranslatef(0.0, 0.0, -zNear);
+    glScalef(2.0, 2.0, 2.0);
 
     // Setup the model view matrix so that 1.0 unit = 1px
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glViewport(0, 0, w, h);
-    glTranslatef(0.0, 0.0, -zNear);
-    glScalef(2.0, 2.0, 2.0);
 
-    // Setup other
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDepthFunc(GL_LEQUAL);
-    glEnable(GL_DEPTH_TEST);
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-    glDisable(GL_TEXTURE_2D);
+    // Reset default GL parameters
+    setupGL();
 
     // Initial state
     state.polygonMode = GL_POLYGON;
@@ -145,7 +340,24 @@ void Widget::setup(double w, double h)
     state.charFormat = QTextCharFormat();
     state.charFormat.setForeground(Qt::black);
     state.charFormat.setBackground(Qt::white);
+    state.selectable = true;
+}
 
+
+void Widget::setupGL()
+// ----------------------------------------------------------------------------
+//   Setup default GL parameters
+// ----------------------------------------------------------------------------
+{
+    // Setup other
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthFunc(GL_LEQUAL);
+    glEnable(GL_DEPTH_TEST);
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_TEXTURE_RECTANGLE_ARB);
+    glDisable(GL_CULL_FACE);
 }
 
 
@@ -154,98 +366,296 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
+    // Timing
+    ulonglong t = now();
+    event = NULL;
+
+    // Setup the initial drawing environment
+    double w = width(), h = height();
+    setup(w, h);
+
     // Clear the background
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor (1.0, 1.0, 1.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // If there is a program, we need to run it
     if (xlProgram)
-    {
-        // Setup the initial drawing environment
-        double w = width(), h = height();
-        setup(w, h);
+        runProgram();
 
-	// Run the XL program associated with this widget
-	current = this;
-        QTextOption alignCenter(Qt::AlignCenter);
-        TextFlow mainFlow(alignCenter);
-        XL::LocalSave<TextFlow *> saveFlow(state.flow, &mainFlow);
+    // Timing
+    elapsed(t);
 
-        initMenu();
-        state.paintDevice = this;
-
-        try
-        {
-            xl_evaluate(xlProgram->tree.tree);
-            for (int i = 0; i <  actions.size(); i++)
-            {
-                xl_evaluate(actions.at(i).tree);
-            }
-        }
-        catch (XL::Error &e)
-        {
-            xlProgram = NULL;
-            QMessageBox::warning(this, tr("Runtime error"),
-                                 tr("Error executing the program:\n%1")
-                                 .arg(QString::fromStdString(e.Message())));
-        }
-        catch(...)
-        {
-            xlProgram = NULL;
-            QMessageBox::warning(this, tr("Runtime error"),
-                                 tr("Unknown error executing the program"));
-        }
-
-        // Once we are done, do a garbage collection
-        XL::Context::context->CollectGarbage();
-    }
+    // Render all activities, e.g. the selection rectangle
+    glDisable(GL_DEPTH_TEST);
+    for (Activity *a = activities; a; a = a->next)
+        a->Display();
 }
 
 
-void Widget::mousePressEvent(QMouseEvent *e)
+void Widget::runProgram()
+// ----------------------------------------------------------------------------
+//   Run the current XL program
+// ----------------------------------------------------------------------------
+{
+    double w = width(), h = height();
+
+    // Reset the selection id for the various elements being drawn
+    id = 0;    
+    focusWidget = NULL;
+
+    // Run the XL program associated with this widget
+    current = this;
+    QTextOption alignCenter(Qt::AlignCenter);
+    TextFlow mainFlow(alignCenter);
+    XL::LocalSave<TextFlow *> saveFlow(state.flow, &mainFlow);
+    XL::LocalSave<Frame *> saveFrame (frame, mainFrame);
+
+    initMenu();
+    state.paintDevice = this;
+
+    try
+    {
+        xl_evaluate(xlProgram->tree.tree);
+        for (int i = 0; i <  actions.size(); i++)
+        {
+            xl_evaluate(actions.at(i).tree);
+        }
+    }
+    catch (XL::Error &e)
+    {
+        xlProgram = NULL;
+        QMessageBox::warning(this, tr("Runtime error"),
+                             tr("Error executing the program:\n%1")
+                             .arg(QString::fromStdString(e.Message())));
+    }
+    catch(...)
+    {
+        xlProgram = NULL;
+        QMessageBox::warning(this, tr("Runtime error"),
+                             tr("Unknown error executing the program"));
+    }
+
+    // After we are done, flush the frame and over-paint it
+    mainFrame->Paint(-w/2, -h/2, w, h);
+
+    // Once we are done, do a garbage collection
+    XL::Context::context->CollectGarbage();
+
+    // Remember how many elements are drawn on the page, plus arbitrary buffer
+    if (id > capacity)
+        capacity = id + 100;
+}
+
+
+ulonglong Widget::now()
+// ----------------------------------------------------------------------------
+//    Return the current time in microseconds
+// ----------------------------------------------------------------------------
+{
+    // Timing
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    ulonglong t = tv.tv_sec * 1000000ULL + tv.tv_usec;
+    return t;
+}
+
+
+ulonglong Widget::elapsed(ulonglong since, bool stats, bool show)
+// ----------------------------------------------------------------------------
+//    Record how much time passed since last measurement
+// ----------------------------------------------------------------------------
+{
+    ulonglong t = now() - since;
+
+    if (stats)
+    {
+        if (tmin > t) tmin = t;
+        if (tmax < t) tmax = t;
+        tsum += t;
+        tcount++;
+    }
+
+    if (show)
+    {
+        char buffer[80];
+        snprintf(buffer, sizeof(buffer),
+                 "Duration=%llu-%llu (~%f) %5.2f-%5.2f FPS (~%5.2f)",
+                 tmin, tmax, double(tsum )/ tcount,
+                 (100000000ULL / tmax)*0.01,
+                 (100000000ULL / tmin)*0.01,
+                 (100000000ULL * tcount / tsum) * 0.01);
+        Window *window = (Window *) parentWidget();
+        window->statusBar()->showMessage(QString(buffer));
+    }
+
+    return t;
+}
+
+
+bool Widget::forwardEvent(QEvent *event)
+// ----------------------------------------------------------------------------
+//   Forward event to the focus proxy if there is any
+// ----------------------------------------------------------------------------
+{
+    if (QObject *focus = focusWidget)
+        return focus->event(event);
+    return false;
+}
+
+
+bool Widget::forwardEvent(QMouseEvent *event)
+// ----------------------------------------------------------------------------
+//   Forward event to the focus proxy if there is any, adjusting coordinates
+// ----------------------------------------------------------------------------
+{
+    if (QObject *focus = focusWidget)
+    {
+        int x = event->x();
+        int y = event->y();
+        int w = focusWidget->width();
+        int h = focusWidget->height();
+        int hh = height();
+
+        Point3 u = unproject(x, hh-y, 0);
+        Point3 v = unproject(x, y, 0);
+        QMouseEvent local(event->type(), QPoint(u.x + w/2, h/2 - u.y),
+                          event->button(), event->buttons(),
+                          event->modifiers());
+        return focus->event(&local);
+    }
+    return false;
+}
+
+
+void Widget::keyPressEvent(QKeyEvent *event)
+// ----------------------------------------------------------------------------
+//   A key is pressed
+// ----------------------------------------------------------------------------
+{
+    EventSave save(this->event, event);
+    
+    // Check if there is an activity that deals with it
+    uint key = (uint) event->key();
+    bool found = false;
+    for (Activity *a = activities; !found && a; a = a->next)
+        found = a->Key(key, true);
+
+    if (!found)
+        forwardEvent(event);
+}
+
+
+void Widget::keyReleaseEvent(QKeyEvent *event)
+// ----------------------------------------------------------------------------
+//   A key is released
+// ----------------------------------------------------------------------------
+{
+    EventSave save(this->event, event);
+
+    // Check if there is an activity that deals with it
+    uint key = (uint) event->key();
+    bool found = false;
+    for (Activity *a = activities; !found && a; a = a->next)
+        found = a->Key(key, false);
+
+    if (!found)
+        forwardEvent(event);
+}
+
+
+void Widget::mousePressEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 //   Mouse button click
 // ----------------------------------------------------------------------------
 {
-    if (e->button() == Qt::RightButton)
+    EventSave save(this->event, event);
+
+    uint button = (uint) event->button();
+    int x = event->x();
+    int y = event->y();
+
+    // Check if there is an activity that deals with it
+    bool found = false;
+    for (Activity *a = activities; !found && a; a = a->next)
+        found = a->Click(button, true, x, y);
+
+    if (!found)
     {
-        QAction *p_action = contextMenu.exec(e->globalPos());
-        if (! p_action) return ;
-        TreeHolder t = p_action->data().value<TreeHolder >();
-        actions.append(t);
+        Selection *s = new Selection(this);
+        s->Click(button, true, x, y);
+        forwardEvent(event);
     }
 }
 
 
-void Widget::mouseMoveEvent(QMouseEvent *e)
+void Widget::mouseReleaseEvent(QMouseEvent *event)
+// ----------------------------------------------------------------------------
+//   Mouse button is released
+// ----------------------------------------------------------------------------
+{
+    EventSave save(this->event, event);
+
+    uint button = (uint) event->button();
+    int x = event->x();
+    int y = event->y();
+
+    // Check if there is an activity that deals with it
+    bool found = false;
+    for (Activity *a = activities; !found && a; a = a->next)
+        found = a->Click(button, false, x, y);
+
+    if (!found)
+        forwardEvent(event);
+}
+
+
+void Widget::mouseMoveEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
+    EventSave save(this->event, event);
+    bool active = event->buttons() != Qt::NoButton;
+    int x = event->x();
+    int y = event->y();
+
+    // Check if there is an activity that deals with it
+    bool found = false;
+    for (Activity *a = activities; !found && a; a = a->next)
+        found = a->MouseMove(x, y, active);
+
+    if (!found)
+        forwardEvent(event);
 }
 
 
-void Widget::wheelEvent(QWheelEvent *e)
-// ----------------------------------------------------------------------------
-//   Mouse wheel
-// ----------------------------------------------------------------------------
-{
-}
-
-
-void Widget::mouseDoubleClickEvent(QMouseEvent *)
+void Widget::mouseDoubleClickEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 //   Mouse double click
 // ----------------------------------------------------------------------------
 {
+    EventSave save(this->event, event);
+    forwardEvent(event);
 }
 
 
-void Widget::timerEvent(QTimerEvent *)
+void Widget::wheelEvent(QWheelEvent *event)
+// ----------------------------------------------------------------------------
+//   Mouse wheel
+// ----------------------------------------------------------------------------
+{
+    EventSave save(this->event, event);
+    forwardEvent(event);
+}
+
+
+void Widget::timerEvent(QTimerEvent *event)
 // ----------------------------------------------------------------------------
 //    Timer expired
 // ----------------------------------------------------------------------------
 {
+    EventSave save(this->event, event);
+    forwardEvent(event);
 }
 
 
@@ -344,40 +754,75 @@ Tree *Widget::page(Tree *self, Tree *p)
 // ----------------------------------------------------------------------------
 {
     uint w = state.frameWidth, h = state.frameHeight;
+    Frame *cairo = self->GetInfo<Frame>();
     FrameInfo *frame = self->GetInfo<FrameInfo>();
     if (!frame)
     {
         frame = new FrameInfo(w,h);
         self->SetInfo<FrameInfo> (frame);
     }
+
     Tree *result = NULL;
 
-    glPushAttrib(GL_ALL_ATTRIB_BITS);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-
-    frame->resize(w,h);
-
-    frame->begin();
+    // Do to a bug in the NVIDIA kernel driver on MacOSX, we need to avoid the
+    // following code when in GL_SELECT mode or die.
+    if (!event)
     {
-        // Clear the background and setup initial state
-        setup(w, h);
-        XL::LocalSave<QPaintDevice *> sv(state.paintDevice, frame->render_fbo);
-        result = xl_evaluate(p);
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+
+        frame->resize(w,h);
+
+        frame->begin();
+        {
+            // Clear the background and setup initial state
+            setup(w, h);
+
+            if (!cairo)
+            {
+                cairo = new Frame;
+                self->SetInfo<Frame>(cairo);
+            }
+
+            XL::LocalSave<QPaintDevice *> sv(state.paintDevice,
+                                             frame->render_fbo);
+            XL::LocalSave<Frame *> svc(this->frame, cairo);
+            result = xl_evaluate(p);
+        }
+        cairo->Paint(-w/2, -h/2, w, h);
+        frame->end();
+
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
+        glPopAttrib();
+
+        frame->bind();
     }
-    frame->end();
-
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-    glPopAttrib();
-
-    frame->bind();
 
     return result;
+}
+
+
+XL::Integer *Widget::page_width(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return the width of the page
+// ----------------------------------------------------------------------------
+{
+    return new Integer(width());
+}
+
+
+XL::Integer *Widget::page_height(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return the height of the page
+// ----------------------------------------------------------------------------
+{
+    return new Integer(height());
 }
 
 
@@ -386,12 +831,146 @@ Tree *Widget::time(Tree *self)
 //   Return a fractional time, including milliseconds
 // ----------------------------------------------------------------------------
 {
-    QTime t = QTime::currentTime();
-    double d = (3600.0	 * t.hour()
-		+ 60.0	 * t.minute()
-		+	   t.second()
-		+  0.001 * t.msec());
-    return new XL::Real(d);
+    return new XL::Real(CurrentTime());
+}
+
+
+Tree *Widget::page_time(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return a fractional time, including milliseconds
+// ----------------------------------------------------------------------------
+{
+    return new XL::Real(CurrentTime() - page_start_time);
+}
+
+
+XL::Name *Widget::selectable(Tree *self, bool new_selectable)
+// ----------------------------------------------------------------------------
+//   Return current selectable state, and set new one
+// ----------------------------------------------------------------------------
+{
+    Name *result = state.selectable ? XL::xl_true : XL::xl_false;
+    state.selectable = new_selectable;
+    return result;
+}
+
+
+GLuint Widget::shapeId()
+// ----------------------------------------------------------------------------
+//   Return an identifier for the shape in selections
+// ----------------------------------------------------------------------------
+//   We assign an identifier only if we are selectable and if we are not
+//   rendering in an off-screen buffer of some sort
+{
+    return state.selectable && state.paintDevice == this
+        ? ++id
+        : 0;
+}
+
+
+void Widget::select()
+// ----------------------------------------------------------------------------
+//    Select the current shape if we are in selectable state
+// ----------------------------------------------------------------------------
+{
+    if (state.selectable && state.paintDevice == this)
+        selection.insert(id);
+}
+
+
+bool Widget::selected()
+// ----------------------------------------------------------------------------
+//   Test if the current shape is selected
+// ----------------------------------------------------------------------------
+{
+    return state.selectable && state.paintDevice == this
+        ? selection.count(id) > 0
+        : false;
+}
+
+
+void Widget::drawSelection(const Box3 &bounds)
+// ----------------------------------------------------------------------------
+//    Draw a 3D selection with the given coordinates
+// ----------------------------------------------------------------------------
+{
+    GLAttribKeeper save(GL_TEXTURE_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT);
+
+    Point3 c = bounds.Center();
+    coord xc = c.x;
+    coord yc = c.y;
+    coord zc = c.z;
+
+    coord w = bounds.Width(); 
+    coord h = bounds.Height(); 
+    coord d = bounds.Depth();
+
+    // Compute the box around the item
+    coord r = w;
+    if (r > h) r = h;
+    if (r > d) r = d;
+    r /= 4;
+    if (r < 15.0)
+        r = 15.0;
+
+    coord xl = bounds.lower.x - r;
+    coord xu = bounds.upper.x + r;
+    coord yl = bounds.lower.y - r;
+    coord yu = bounds.upper.y + r;
+    coord zl = bounds.lower.z - r;
+    coord zu = bounds.upper.z + r;
+
+    setupGL();
+    glDisable(GL_DEPTH_TEST);
+
+    glBegin(GL_TRIANGLE_FAN);
+    glColor4f(1.0, 1.0, 1.0, 0.1);    glVertex3f(xc, yc, zu);
+    glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
+    glColor4f(0.0, 0.0, 1.0, 0.4);    glVertex3f(xl, yu, zc);
+    glColor4f(0.0, 1.0, 1.0, 0.4);    glVertex3f(xu, yu, zc);
+    glColor4f(1.0, 1.0, 0.0, 0.4);    glVertex3f(xu, yl, zc);
+    glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
+    glEnd();
+
+    glBegin(GL_TRIANGLE_FAN);
+    glColor4f(0.0, 0.0, 0.0, 0.4);    glVertex3f(xc, yc, zl);
+    glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
+    glColor4f(0.0, 0.0, 1.0, 0.4);    glVertex3f(xl, yu, zc);
+    glColor4f(0.0, 1.0, 1.0, 0.4);    glVertex3f(xu, yu, zc);
+    glColor4f(1.0, 1.0, 0.0, 0.4);    glVertex3f(xu, yl, zc);
+    glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
+    glEnd();
+}
+
+
+void Widget::drawSelection(const Box &bounds)
+// ----------------------------------------------------------------------------
+//    Draw a 2D selection with the given box
+// ----------------------------------------------------------------------------
+{
+    GLAttribKeeper save(GL_CURRENT_BIT | GL_LINE_BIT);
+    glLineWidth (3.0);
+    glColor4f(1.0, 0.0, 0.0, 0.5);
+    glBegin(GL_LINE_LOOP);
+    {
+        glVertex2f(bounds.lower.x, bounds.lower.y);
+        glVertex2f(bounds.lower.x, bounds.upper.y);
+        glVertex2f(bounds.upper.x, bounds.upper.y);
+        glVertex2f(bounds.upper.x, bounds.lower.y);
+    }
+    glEnd();
+}
+
+
+void Widget::loadName(bool load)
+// ----------------------------------------------------------------------------
+//   Load a name on the GL stack
+// ----------------------------------------------------------------------------
+{
+    if (state.selectable && load)
+        glLoadName(shapeId());
+    else
+        glLoadName(0);
 }
 
 
@@ -431,11 +1010,14 @@ Tree *Widget::color(Tree *self, double r, double g, double b, double a)
 // ----------------------------------------------------------------------------
 {
     glColor4f(r,g,b,a);
-
+    frame->Color(r,g,b,a);
     return XL::xl_true;
 }
 
-Tree *Widget::textColor(Tree *self, double r, double g, double b, double a, bool isFg)
+
+Tree *Widget::textColor(Tree *self,
+                        double r, double g, double b, double a,
+                        bool isFg)
 // ----------------------------------------------------------------------------
 //    Set the RGBA color
 // ----------------------------------------------------------------------------
@@ -450,6 +1032,10 @@ Tree *Widget::textColor(Tree *self, double r, double g, double b, double a, bool
     } else {
         state.charFormat.setBackground(qcolor);
     }
+
+    // For Cairo
+    GLStateKeeper save;
+    frame->Color(r,g,b,a);
 
     return XL::xl_true;
 }
@@ -542,6 +1128,9 @@ Tree *Widget::sphere(Tree *self,
 //     GL sphere
 // ----------------------------------------------------------------------------
 {
+    Box3 bounds(x-r, y-r, z-r, 2*r, 2*r, 2*r);
+    ShapeSelection name(this, bounds);
+
     GLUquadric *q = gluNewQuadric();
     gluQuadricTexture (q, true);
     glPushMatrix();
@@ -549,6 +1138,7 @@ Tree *Widget::sphere(Tree *self,
     glRotatef(-90.0, 1.0, 0.0, 0.0);
     gluSphere(q, r, nslices, nstacks);
     glPopMatrix();
+    gluDeleteQuadric(q);
     return XL::xl_true;
 }
 
@@ -559,7 +1149,7 @@ void Widget::widgetVertex(double x, double y, double tx, double ty)
 // ----------------------------------------------------------------------------
 {
     texCoord(NULL, tx, ty);
-    vertex(NULL, x, y, 0.0);   
+    vertex(NULL, x, y, 0.0);
 }
 
 
@@ -572,7 +1162,7 @@ void Widget::circularVertex(double cx, double cy, double r,
 //   x range between -1 and 1, y between -1 and 1
 //   cx and cy are the center of the circle, r its radius
 {
-    widgetVertex(cx + r * x, 
+    widgetVertex(cx + r * x,
                  cy + r * y,
                  tx0 + ((x + 1.0) / 2.0 * (tx1 - tx0)),
                  ty0 + ((y + 1.0) / 2.0 * (ty1 - ty0)));
@@ -592,12 +1182,12 @@ void Widget::circularSectorN(double cx, double cy, double r,
 {
     // The two first values configure how precise the circle is
     int step = 10;                // Triangles generated every <step> points
-    double grid = 1.0 / 500.0;    // Tolerance for points on the circle 
+    double grid = 1.0 / 500.0;    // Tolerance for points on the circle
     double error, x, y, s;
 
 
     for (int q = 0; q < nq; q++)
-    { 
+    {
     error = -1.0;
     x = 1.0;
     y = 0;
@@ -610,16 +1200,16 @@ void Widget::circularSectorN(double cx, double cy, double r,
         s = 0;
         switch ((sq + q) % 4)
         {
-            case 3: 
+            case 3:
                 circularVertex(cx, cy, r,  y, -x, tx0, ty0, tx1, ty1);
                 break;
-            case 2: 
+            case 2:
                 circularVertex(cx, cy, r, -x, -y, tx0, ty0, tx1, ty1);
                 break;
-            case 1: 
+            case 1:
                 circularVertex(cx, cy, r, -y,  x, tx0, ty0, tx1, ty1);
                 break;
-            case 0: 
+            case 0:
                 circularVertex(cx, cy, r,  x,  y, tx0, ty0, tx1, ty1);
                 break;
         }
@@ -629,7 +1219,7 @@ void Widget::circularSectorN(double cx, double cy, double r,
             x -= grid;
             error -= x + x;
         }
-        else 
+        else
         {
             y += grid;
             error += y + y;
@@ -638,40 +1228,20 @@ void Widget::circularSectorN(double cx, double cy, double r,
     }
     switch ((sq + nq) % 4)
     {
-        case 3: 
+        case 3:
             circularVertex(cx, cy, r,  0, -1, tx0, ty0, tx1, ty1);
             break;
-        case 2: 
+        case 2:
             circularVertex(cx, cy, r, -1,  0, tx0, ty0, tx1, ty1);
             break;
-        case 1: 
+        case 1:
             circularVertex(cx, cy, r,  0,  1, tx0, ty0, tx1, ty1);
             break;
-        case 0: 
+        case 0:
             circularVertex(cx, cy, r,  1,  0, tx0, ty0, tx1, ty1);
             break;
     }
 }
-
-
-//void Widget::debugBoundingBox()
-//{
-//    return;// No debug
-
-//    if (boundingBox == NULL) return;
-//
-//    // DEBUG: draw the bounding box
-//    GLAndWidgetKeeper save(this);
-//    //glColor4f(1.0f, 0.0f, 0.0f, 0.8f);
-//    glBegin(GL_LINE_LOOP);
-//    {
-//        glVertex2f(boundingBox->lower.x, boundingBox->lower.y);
-//        glVertex2f(boundingBox->upper.x, boundingBox->lower.y);
-//        glVertex2f(boundingBox->upper.x, boundingBox->upper.y);
-//        glVertex2f(boundingBox->lower.x, boundingBox->upper.y);
-//    }
-//    glEnd();
-//}
 
 
 Tree *Widget::circle(Tree *self, double cx, double cy, double r)
@@ -679,6 +1249,8 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
 //     GL circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
+    ShapeSelection name(this, cx-r, cy-r, 2*r, 2*r);
+
     glBegin(state.polygonMode);
     circularSectorN(cx, cy, r, 0, 0, 1, 1, 0, 4);
     glEnd();
@@ -688,12 +1260,14 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
 
 
 Tree *Widget::circularSector(Tree *self,
-                         double cx, double cy, double r, 
+                         double cx, double cy, double r,
                          double a, double b)
 // ----------------------------------------------------------------------------
 //     GL circular sector centered around (cx,cy), radius r and two angles a, b
 // ----------------------------------------------------------------------------
 {
+    ShapeSelection name(this, cx-r, cy-r, 2*r, 2*r);
+
     while (b < a)
     {
         b += 360;
@@ -721,12 +1295,14 @@ Tree *Widget::circularSector(Tree *self,
 
 
 Tree *Widget::roundedRectangle(Tree *self,
-                        double cx, double cy, 
-                        double w, double h, double r)
+                               double cx, double cy,
+                               double w, double h, double r)
 // ----------------------------------------------------------------------------
 //     GL rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
 {
+    ShapeSelection name(this, cx-w/2, cy-h/2, w, h);
+
     if (r <= 0) return rectangle(self, cx, cy, w, h);
     if (r > w/2) r = w/2;
     if (r > h/2) r = h/2;
@@ -763,19 +1339,19 @@ Tree *Widget::roundedRectangle(Tree *self,
 
         widgetVertex(x1r, y1, tx1r, ty1);
         widgetVertex(x0r, y1, tx0r, ty1);
-    
+
         circularSectorN(x0r, y1r, r, tx0, ty1d, tx0d, ty1, 1, 1);
 
         widgetVertex(x0, y1r, tx0, ty1r);
         widgetVertex(x0, y0r, tx0, ty0r);
-    
+
         circularSectorN(x0r, y0r, r, tx0, ty0, tx0d, ty0d, 2, 1);
 
         widgetVertex(x0r, y0, tx0r, ty0);
         widgetVertex(x1r, y0, tx1r, ty0);
-    
+
         circularSectorN(x1r, y0r, r, tx1d, ty0, tx1, ty0d, 3, 1);
-   
+
         widgetVertex(x1, y0r, tx1, ty0r);
     }
     glEnd();
@@ -789,6 +1365,8 @@ Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
 //     GL rectangle centered around (cx,cy), width w, height h
 // ----------------------------------------------------------------------------
 {
+    ShapeSelection name(this, cx-w/2, cy-h/2, w, h);
+
     glBegin(state.polygonMode);
     {
         widgetVertex(cx-w/2, cy-h/2, 0, 0);
@@ -802,12 +1380,14 @@ Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
 }
 
 
-Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r, 
-                        int p, int q)
+Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
+                                 int p, int q)
 // ----------------------------------------------------------------------------
 //     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
+    ShapeSelection name(this, cx-r, cy-r, 2*r, 2*r);
+
     if (p < 2 || q < 1 || q > (p-1)/2)
         return XL::xl_false;
 
@@ -815,11 +1395,11 @@ Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
     double R = r * R_r;
 
     GLuint mode = state.polygonMode;
-    if (mode == GL_POLYGON) 
+    if (mode == GL_POLYGON)
     {
         mode = GL_TRIANGLE_FAN; // GL_POLYGON does not work here
     }
-    
+
     glBegin(mode);
     {
         if (mode == GL_TRIANGLE_FAN)
@@ -829,13 +1409,13 @@ Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
 
         for (int i = 0; i < p; i++)
         {
-            circularVertex(cx, cy, r, 
-                    cos( i * 2*M_PI/p + M_PI_2), 
+            circularVertex(cx, cy, r,
+                    cos( i * 2*M_PI/p + M_PI_2),
                     sin( i * 2*M_PI/p + M_PI_2),
                     0, 0, 1, 1);
 
-            circularVertex(cx, cy, R, 
-                    cos( i * 2*M_PI/p + M_PI_2 + M_PI/p), 
+            circularVertex(cx, cy, R,
+                    cos( i * 2*M_PI/p + M_PI_2 + M_PI/p),
                     sin( i * 2*M_PI/p + M_PI_2 + M_PI/p),
                     (1-R_r)/2, (1-R_r)/2, (1+R_r)/2, (1+R_r)/2);
         }
@@ -904,6 +1484,8 @@ Tree *Widget::font(Tree *self, text description)
     QFont font = state.charFormat.font();
     font.fromString((QString::fromStdString(description)));
     state.charFormat.setFont(font);
+    GLStateKeeper save;
+    frame->Font(description);
     return XL::xl_true;
 }
 
@@ -914,6 +1496,8 @@ Tree *Widget::fontSize(Tree *self, double size)
 // ----------------------------------------------------------------------------
 {
     state.charFormat.setFontPointSize(size);
+    GLStateKeeper save;
+    frame->FontSize(size);
     return XL::xl_true;
 }
 
@@ -964,7 +1548,7 @@ Tree *Widget::fontUnderline(Tree *self, bool underline)
 
 Tree *Widget::fontOverline(Tree *self, bool overline)
 // ----------------------------------------------------------------------------
-//    Select whether we draw an overline 
+//    Select whether we draw an overline
 // ----------------------------------------------------------------------------
 {
     state.charFormat.setFontOverline(overline);
@@ -1013,7 +1597,8 @@ Tree *Widget::textSpan(Tree *self, text content)
 //   Insert a block of text with the current definition of font, color, ...
 // ----------------------------------------------------------------------------
 {
-    state.flow->addText(QString::fromStdString(content), state.charFormat);
+    state.flow->addText(QString::fromUtf8(content.c_str(), content.length()),
+                        state.charFormat);
     return XL::xl_true;
 }
 
@@ -1051,58 +1636,50 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
         self->SetInfo<FrameInfo> (frame);
     }
 
-    glPushAttrib(GL_ALL_ATTRIB_BITS);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-
-    frame->resize(w,h);
-
-    frame->begin();
+    if (1)
     {
-        // Clear the background and setup initial state
-        setup(w, h);
-        XL::LocalSave<QPaintDevice *> sv(state.paintDevice, frame->render_fbo);
+        GLStateKeeper save;
 
-        TextFlow *flow = state.flow;
-        qreal lineY = 0, lineHeight = 0, topY = flow->topLineY;
-
-        flow->setText(flow->completeText);
-        flow->setAdditionalFormats(flow->formats);
-        flow->setTextOption(flow->paragraphOption);
-        flow->beginLayout();
-
-        while(true)
+        frame->resize(w,h);
+        frame->begin();
         {
-            // Create a new line
-            QTextLine line = flow->createLine();
-            if (!line.isValid())
-                break;
-            line.setLineWidth(w);
-            line.setPosition(QPoint(0, lineY - topY));
-            lineHeight = line.height();
-            lineY += lineHeight;
+            // Clear the background and setup initial state
+            setup(w, h);
+            XL::LocalSave<QPaintDevice *> sv(state.paintDevice,
+                                             frame->render_fbo);
+
+            TextFlow *flow = state.flow;
+            qreal lineY = 0, lineHeight = 0, topY = flow->topLineY;
+
+            flow->setText(flow->completeText);
+            flow->setAdditionalFormats(flow->formats);
+            flow->setTextOption(flow->paragraphOption);
+            flow->beginLayout();
+
+            while(true)
+            {
+                // Create a new line
+                QTextLine line = flow->createLine();
+                if (!line.isValid())
+                    break;
+                line.setLineWidth(w);
+                line.setPosition(QPoint(0, lineY - topY));
+                lineHeight = line.height();
+                lineY += lineHeight;
+            }
+
+            flow->topLineY = lineY;
+            flow->endLayout();
+
+            QPainter painter(state.paintDevice);
+            painter.setRenderHint(QPainter::Antialiasing, true);
+            painter.setRenderHint(QPainter::HighQualityAntialiasing, true);
+            painter.setRenderHint(QPainter::TextAntialiasing, true);
+            flow->draw(&painter, QPoint(0,0));
+            flow->clear();
         }
-        
-        flow->topLineY = lineY;
-        flow->endLayout();
-
-        QPainter painter(state.paintDevice);
-        painter.setRenderHint(QPainter::Antialiasing, true);
-        painter.setRenderHint(QPainter::HighQualityAntialiasing, true);
-        painter.setRenderHint(QPainter::TextAntialiasing, true);
-        flow->draw(&painter, QPoint(0,0));
-        //painter.end();
-        flow->clear();
-    }
-    frame->end();
-
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-    glPopAttrib();
+        frame->end();
+    } // GLSateKeeper
 
     // Bind the resulting texture
     frame->bind();
@@ -1111,17 +1688,17 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
 }
 
 
-Tree *Widget::frame(Tree *self, double x, double y, double w, double h)
+Tree *Widget::framePaint(Tree *self, double x, double y, double w, double h)
 // ----------------------------------------------------------------------------
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
-
-    glPushAttrib(GL_TEXTURE_BIT);
+    GLAttribKeeper save(GL_TEXTURE_BIT);
     frameTexture(self, w, h);
 
     // Draw a rectangle with the resulting texture
-    glBegin(state.polygonMode);
+    ShapeSelection name(this, x-w/2, y-h/2, w, h);
+    glBegin(GL_QUADS);
     {
         widgetVertex(x-w/2, y-h/2, 0, 0);
         widgetVertex(x+w/2, y-h/2, 1, 0);
@@ -1129,7 +1706,110 @@ Tree *Widget::frame(Tree *self, double x, double y, double w, double h)
         widgetVertex(x-w/2, y+h/2, 0, 1);
     }
     glEnd();
-    glPopAttrib();
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::urlTexture(Tree *self, double w, double h,
+                         Text *url, Integer *progress)
+// ----------------------------------------------------------------------------
+//   Make a texture out of a given URL
+// ----------------------------------------------------------------------------
+{
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
+    // Get or build the current frame if we don't have one
+    WebViewSurface *surface = url->GetInfo<WebViewSurface>();
+    if (!surface)
+    {
+        surface = new WebViewSurface(this, w,h);
+        url->SetInfo<WebViewSurface> (surface);
+    }
+
+    // Resize to requested size, and bind texture
+    surface->resize(w,h);
+    surface->bind(url, progress);
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::urlPaint(Tree *self,
+                       double x, double y, double w, double h,
+                       Text *url, Integer *progress)
+// ----------------------------------------------------------------------------
+//   Draw a URL in the curent frame
+// ----------------------------------------------------------------------------
+{
+    GLAttribKeeper save(GL_TEXTURE_BIT);
+    ShapeName name(this);
+    urlTexture(self, w, h, url, progress);
+
+    // Draw a rectangle with the resulting texture
+    glBegin(GL_QUADS);
+    {
+        widgetVertex(x-w/2, y-h/2, 0, 0);
+        widgetVertex(x+w/2, y-h/2, 1, 0);
+        widgetVertex(x+w/2, y+h/2, 1, 1);
+        widgetVertex(x-w/2, y+h/2, 0, 1);
+    }
+    glEnd();
+    if (selected())
+        drawSelection(Box(x-w/2, y-h/2, w, h));
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
+// ----------------------------------------------------------------------------
+//   Make a texture out of a given line editor
+// ----------------------------------------------------------------------------
+{
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
+    // Get or build the current frame if we don't have one
+    LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
+    if (!surface)
+    {
+        surface = new LineEditSurface(this, w,h);
+        txt->SetInfo<LineEditSurface> (surface);
+    }
+
+    // Resize to requested size, and bind texture
+    surface->resize(w,h);
+    surface->bind(txt);
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::lineEdit(Tree *self,
+                       double x, double y,
+                       double w, double h, Text *txt)
+// ----------------------------------------------------------------------------
+//   Draw a line editor in the curent frame
+// ----------------------------------------------------------------------------
+{
+    GLAttribKeeper save(GL_TEXTURE_BIT);
+    ShapeName name(this);
+    lineEditTexture(self, w, h, txt);
+
+    // Draw a rectangle with the resulting texture
+    glBegin(GL_QUADS);
+    {
+        widgetVertex(x-w/2, y-h/2, 0, 0);
+        widgetVertex(x+w/2, y-h/2, 1, 0);
+        widgetVertex(x+w/2, y+h/2, 1, 1);
+        widgetVertex(x-w/2, y+h/2, 0, 1);
+    }
+    glEnd();
+
+    if (selected())
+        drawSelection(Box(x-w/2, y-h/2, w, h));
 
     return XL::xl_true;
 }
@@ -1140,13 +1820,13 @@ Tree *Widget::qtrectangle(Tree *self, double x, double y, double w, double h)
 //    Draw a rectangle using the Qt primitive
 // ----------------------------------------------------------------------------
 {
+    ShapeSelection name(this, x, y, w, h);
 
     QPainter painter(state.paintDevice);
     QPen pen(QColor(Qt::red));
     pen.setWidth(4);
     painter.setPen(pen);
     painter.drawRect(QRectF(x,y,w,h));
-//    painter.end();
 
     return XL::xl_true;
 }
@@ -1157,43 +1837,135 @@ Tree *Widget::qttext(Tree *self, double x, double y, text s)
 //    Draw a text using the Qt text primitive
 // ----------------------------------------------------------------------------
 {
+    ShapeName name(this);
 
     QPainter painter(state.paintDevice);
     setAutoFillBackground(false);
-//    painter.setBrush(Qt::green);
-    painter.setPen(Qt::darkRed);
+    if (selected())
+        painter.setPen(Qt::darkRed);
+    else
+        painter.setPen(Qt::darkBlue);
 
     QFont font("Arial");
     font.setPointSizeF(24);
     painter.setFont(font);
     painter.drawText(QPointF(x,y), Utf8(s));
-//    painter.end();
 
     return XL::xl_true;
 }
 
+
+Tree *Widget::KmoveTo(Tree *self, double x, double y)
+// ----------------------------------------------------------------------------
+//   Move to the given Cairo coordinates
+// ----------------------------------------------------------------------------
+{
+    frame->MoveTo(x,y);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::Ktext(Tree *self, text s)
+// ----------------------------------------------------------------------------
+//    Text at the current cursor position
+// ----------------------------------------------------------------------------
+{
+    ShapeName name(this);
+    frame->Text(s);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::KlayoutText(Tree *self, text s)
+// ----------------------------------------------------------------------------
+//    Text layout with Pango at the current cursor position
+// ----------------------------------------------------------------------------
+{
+    ShapeName name(this);
+    frame->LayoutText(s);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::KlayoutMarkup(Tree *self, text s)
+// ----------------------------------------------------------------------------
+//    Text layout with markup using Pango at the current cursor position
+// ----------------------------------------------------------------------------
+{
+    ShapeName name(this);
+    frame->LayoutMarkup(s);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::Krectangle(Tree *self, double x, double y, double w, double h)
+// ----------------------------------------------------------------------------
+//    Draw a rectangle using Cairo
+// ----------------------------------------------------------------------------
+{
+    ShapeName name(this);
+    frame->Rectangle(x, y, w, h);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::Kstroke(Tree *self)
+// ----------------------------------------------------------------------------
+//    Stroke the current path
+// ----------------------------------------------------------------------------
+{
+    ShapeName name(this);
+    frame->Stroke();
+    return XL::xl_true;
+}
+
+
+Tree *Widget::Kclear(Tree *self)
+// ----------------------------------------------------------------------------
+//    Clear the current frame
+// ----------------------------------------------------------------------------
+{
+    frame->Clear();
+    return XL::xl_true;
+}
+
+
+
+// ============================================================================
+//
+//   Menu management
+//
+// ============================================================================
+
 Tree *Widget::menuItem(Tree *self, text s, Tree *t)
 // ----------------------------------------------------------------------------
-//
+//   Create a menu item
 // ----------------------------------------------------------------------------
 {
     QAction * p_action = contextMenu.addAction(QString::fromStdString(s));
     QVariant var = QVariant::fromValue(TreeHolder(t));
     p_action->setData(var);
 
-
     return XL::xl_true;
 
 }
 
+
 void Widget::initMenu()
+// ----------------------------------------------------------------------------
+//    Initialize the menus
+// ----------------------------------------------------------------------------
 {
     contextMenu.clear();
     QAction *p_action = contextMenu.addAction("Clear");
     connect(p_action, SIGNAL(triggered()), this,SLOT(clearActions()));
-
 }
+
+
 void Widget::clearActions()
+// ----------------------------------------------------------------------------
+//   Clear the menus
+// ----------------------------------------------------------------------------
 {
     actions.clear();
 }

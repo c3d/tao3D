@@ -17,9 +17,12 @@ DEPENDPATH += . \
     ../xlr
 INCLUDEPATH += . \
     ../xlr
-QT += opengl \
+QT += webkit \
+    network \
+    opengl \
     svg
-CONFIG += warn_off
+CONFIG += warn_off \
+    debug
 
 # CONFIG += release
 # Tell the XLR portion that we are building for Tao
@@ -41,9 +44,15 @@ HEADERS += widget.h \
     coords.h \
     coords3d.h \
     gl_keepers.h \
+    GL/glew.h \
+    GL/glxew.h \
     text_flow.h \
     drawing.h \
     shapes_drawing.h \
+    apply-changes.h \
+    activity.h \
+    selection.h \
+    shapename.h \
     ../xlr/utf8.h \
     ../xlr/base.h \
     ../xlr/options.h \
@@ -67,8 +76,11 @@ HEADERS += widget.h \
     ../xlr/tree.h \
     ../xlr/opcodes_define.h \
     ../xlr/types.h \
+    ../xlr/diff.h \
+    ../xlr/lcs.h \
     treeholder.h \
-    git_backend.h
+    git_backend.h \
+    widget-surface.h
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \
@@ -77,11 +89,16 @@ SOURCES += tao_main.cpp \
     window.cpp \
     frame.cpp \
     svg.cpp \
+    widget-surface.cpp \
     texture.cpp \
     text_flow.cpp \
     drawing.cpp \
     shapes_drawing.cpp \
+    apply-changes.cpp \
+    activity.cpp \
+    selection.cpp \
     gl_keepers.cpp \
+    glew.c \
     ../xlr/tree.cpp \
     ../xlr/sha1.cpp \
     ../xlr/serializer.cpp \
@@ -97,21 +114,32 @@ SOURCES += tao_main.cpp \
     ../xlr/context.cpp \
     ../xlr/compiler.cpp \
     ../xlr/basics.cpp \
+    ../xlr/diff.cpp \
+    ../xlr/lcs.cpp \
     treeholder.cpp \
     git_backend.cpp
 RESOURCES += tao.qrc
 
-# LLVM dependencies
-!system(bash --version >/dev/null):error("Can't execute bash")
-!system(bash -c \"llvm-config --version\" >/dev/null):error("Can't execute llvm-config")
-LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\")
-LLVM_LIBS += $$system(bash -c \"llvm-config --ldflags\")
+# Pango / Cairo
+PANGOCAIRO_LIBS = $$system(bash -c \"pkg-config --libs pangocairo\")
+PANGOCAIRO_INC = $$system(bash -c \"pkg-config --cflags-only-I pangocairo | sed s/-I//g\")
+PANGOCAIRO_FLAGS = $$system(bash -c \"pkg-config --cflags-only-other pangocairo\")
+
+# LLVM
+LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\") \
+    $$system(bash -c \"llvm-config --ldflags\")
 LLVM_INC = $$system(bash -c \"llvm-config --includedir\")
 LLVM_DEF = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
-INCLUDEPATH *= $$LLVM_INC
-DEFAULT_FONT = /Library/Fonts/Arial.ttf
-LIBS += $$LLVM_LIBS
+INCLUDEPATH += $$PANGOCAIRO_INC \
+    $$LLVM_INC
+LIBS += $$PANGOCAIRO_LIBS \
+    $$LLVM_LIBS
 DEFINES += $$LLVM_DEF
+
+# # This does not work!
+# CFLAGS         += $$PANGOCAIRO_FLAGS
+# CXXFLAGS       += $$PANGOCAIRO_FLAGS
+DEFAULT_FONT = /Library/Fonts/Arial.ttf
 OTHER_FILES += xl.syntax \
     xl.stylesheet \
     short.stylesheet \

@@ -17,8 +17,12 @@ DEPENDPATH += . \
     ../xlr
 INCLUDEPATH += . \
     ../xlr
-QT += webkit network opengl svg 
-CONFIG += warn_off debug
+QT += webkit \
+    network \
+    opengl \
+    svg
+CONFIG += warn_off \
+    debug
 
 # CONFIG += release
 # Tell the XLR portion that we are building for Tao
@@ -32,107 +36,109 @@ win32:DEFINES += CONFIG_MINGW
 linux-g++:DEFINES += CONFIG_LINUX
 
 # Input
-HEADERS += widget.h                             \
-    window.h                                    \
-    frame.h                                     \
-    svg.h                                       \
-    widget-surface.h                            \
-    texture.h                                   \
-    coords.h                                    \
-    coords3d.h                                  \
-    gl_keepers.h                                \
-    GL/glew.h                                   \
-    GL/glxew.h                                  \
-    text_flow.h                                 \
-    drawing.h                                   \
-    shapes_drawing.h                            \
-    apply-changes.h                             \
-    activity.h                                  \
-    selection.h                                 \
-    shapename.h                                 \
-    ../xlr/utf8.h                               \
-    ../xlr/base.h                               \
-    ../xlr/options.h                            \
-    ../xlr/basics.h                             \
-    ../xlr/parser.h                             \
-    ../xlr/compiler.h                           \
-    ../xlr/renderer.h                           \
-    ../xlr/configuration.h                      \
-    ../xlr/runtime.h                            \
-    ../xlr/context.h                            \
-    ../xlr/scanner.h                            \
-    ../xlr/errors.h                             \
-    ../xlr/serializer.h                         \
-    ../xlr/hash.h                               \
-    ../xlr/sha1.h                               \
-    ../xlr/main.h                               \
-    ../xlr/sha1_ostream.h                       \
-    ../xlr/opcodes.h                            \
-    ../xlr/syntax.h                             \
-    ../xlr/opcodes_declare.h                    \
-    ../xlr/tree.h                               \
-    ../xlr/opcodes_define.h                     \
-    ../xlr/types.h                              \
-    ../xlr/diff.h                               \
-    ../xlr/lcs.h                                \
+HEADERS += widget.h \
+    window.h \
+    frame.h \
+    svg.h \
+    widget-surface.h \
+    texture.h \
+    coords.h \
+    coords3d.h \
+    gl_keepers.h \
+    GL/glew.h \
+    GL/glxew.h \
+    text_flow.h \
+    drawing.h \
+    shapes_drawing.h \
+    apply-changes.h \
+    activity.h \
+    selection.h \
+    shapename.h \
+    ../xlr/utf8.h \
+    ../xlr/base.h \
+    ../xlr/options.h \
+    ../xlr/basics.h \
+    ../xlr/parser.h \
+    ../xlr/compiler.h \
+    ../xlr/renderer.h \
+    ../xlr/configuration.h \
+    ../xlr/runtime.h \
+    ../xlr/context.h \
+    ../xlr/scanner.h \
+    ../xlr/errors.h \
+    ../xlr/serializer.h \
+    ../xlr/hash.h \
+    ../xlr/sha1.h \
+    ../xlr/main.h \
+    ../xlr/sha1_ostream.h \
+    ../xlr/opcodes.h \
+    ../xlr/syntax.h \
+    ../xlr/opcodes_declare.h \
+    ../xlr/tree.h \
+    ../xlr/opcodes_define.h \
+    ../xlr/types.h \
+    ../xlr/diff.h \
+    ../xlr/lcs.h \
     treeholder.h
-SOURCES += tao_main.cpp                         \
-    coords.cpp                                  \
-    coords3d.cpp                                \
-    graphics.cpp                                \
-    widget.cpp                                  \
-    window.cpp                                  \
-    frame.cpp                                   \
-    svg.cpp                                     \
-    widget-surface.cpp                          \
-    texture.cpp                                 \
-    text_flow.cpp                               \
-    drawing.cpp                                 \
-    shapes_drawing.cpp                          \
-    apply-changes.cpp                           \
-    activity.cpp                                \
-    selection.cpp                               \
-    gl_keepers.cpp                              \
-    glew.c                                      \
-    ../xlr/tree.cpp                             \
-    ../xlr/sha1.cpp                             \
-    ../xlr/serializer.cpp                       \
-    ../xlr/syntax.cpp                           \
-    ../xlr/scanner.cpp                          \
-    ../xlr/runtime.cpp                          \
-    ../xlr/renderer.cpp                         \
-    ../xlr/parser.cpp                           \
-    ../xlr/options.cpp                          \
-    ../xlr/opcodes.cpp                          \
-    ../xlr/main.cpp                             \
-    ../xlr/errors.cpp                           \
-    ../xlr/context.cpp                          \
-    ../xlr/compiler.cpp                         \
-    ../xlr/basics.cpp                           \
-    ../xlr/diff.cpp				\
-    ../xlr/lcs.cpp                              \
+SOURCES += tao_main.cpp \
+    coords.cpp \
+    coords3d.cpp \
+    graphics.cpp \
+    widget.cpp \
+    window.cpp \
+    frame.cpp \
+    svg.cpp \
+    widget-surface.cpp \
+    texture.cpp \
+    text_flow.cpp \
+    drawing.cpp \
+    shapes_drawing.cpp \
+    apply-changes.cpp \
+    activity.cpp \
+    selection.cpp \
+    gl_keepers.cpp \
+    glew.c \
+    ../xlr/tree.cpp \
+    ../xlr/sha1.cpp \
+    ../xlr/serializer.cpp \
+    ../xlr/syntax.cpp \
+    ../xlr/scanner.cpp \
+    ../xlr/runtime.cpp \
+    ../xlr/renderer.cpp \
+    ../xlr/parser.cpp \
+    ../xlr/options.cpp \
+    ../xlr/opcodes.cpp \
+    ../xlr/main.cpp \
+    ../xlr/errors.cpp \
+    ../xlr/context.cpp \
+    ../xlr/compiler.cpp \
+    ../xlr/basics.cpp \
+    ../xlr/diff.cpp \
+    ../xlr/lcs.cpp \
     treeholder.cpp
 RESOURCES += tao.qrc
 
 # Pango / Cairo
 PANGOCAIRO_LIBS = $$system(bash -c \"pkg-config --libs pangocairo\")
-PANGOCAIRO_INC  = $$system(bash -c \"pkg-config --cflags-only-I pangocairo | sed s/-I//g\")
-PANGOCAIRO_FLAGS= $$system(bash -c \"pkg-config --cflags-only-other pangocairo\")
+PANGOCAIRO_INC = $$system(bash -c \"pkg-config --cflags-only-I pangocairo | sed s/-I//g\")
+PANGOCAIRO_FLAGS = $$system(bash -c \"pkg-config --cflags-only-other pangocairo\")
 
 # LLVM
-LLVM_LIBS       = $$system(bash -c \"llvm-config --libs core jit native\") \
-                  $$system(bash -c \"llvm-config --ldflags\")
-LLVM_INC        = $$system(bash -c \"llvm-config --includedir\")
-LLVM_DEF        = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
+LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\") \
+    $$system(bash -c \"llvm-config --ldflags\")
+LLVM_INC = $$system(bash -c \"llvm-config --includedir\")
+LLVM_DEF = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
+INCLUDEPATH += $$PANGOCAIRO_INC \
+    $$LLVM_INC
+LIBS += $$PANGOCAIRO_LIBS \
+    $$LLVM_LIBS
+DEFINES += $$LLVM_DEF
 
-INCLUDEPATH    += $$PANGOCAIRO_INC $$LLVM_INC
-LIBS           += $$PANGOCAIRO_LIBS $$LLVM_LIBS
-DEFINES        += $$LLVM_DEF
-## This does not work!
-#CFLAGS         += $$PANGOCAIRO_FLAGS
-#CXXFLAGS       += $$PANGOCAIRO_FLAGS
-DEFAULT_FONT    = /Library/Fonts/Arial.ttf
-OTHER_FILES    += xl.syntax \
+# # This does not work!
+# CFLAGS         += $$PANGOCAIRO_FLAGS
+# CXXFLAGS       += $$PANGOCAIRO_FLAGS
+DEFAULT_FONT = /Library/Fonts/Arial.ttf
+OTHER_FILES += xl.syntax \
     xl.stylesheet \
     short.stylesheet \
     html.stylesheet \

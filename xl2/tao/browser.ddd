@@ -41,51 +41,47 @@ browser URL, progress, rw, rh ->
         line_edit 0, 0, rw, 32, URL
 
 
-color 1,1,1,95%
-browser "http://www.slashdot.org", 0, 800, 900
-
-color 1,1,1,90%
 locally
-    translate -500,250,150
+    color 1,1,1,95%
+    translate 0,-30,50
+    browser "http://www.slashdot.org", 0, 1000, 900
+
+color 1,1,1,70%
+locally
+    translate -570,250,150
     rotatey 40
-    scale 50%, 50%, 50%
-    color 1,1,1,80%
-    browser "http://www.google.com", 0, 600,400
+    scale 30%, 30%, 30%
+    browser "http://www.google.com", 0, 700,800
 
 locally
-    translate -500,0,150
+    translate -570,0,150
     rotatey 40
-    scale 50%, 50%, 50%
-    color 1,1,1,80%
-    browser "http://grenouille-bouillie.blogspot.com", 0, 600,400
+    scale 30%, 30%, 30%
+    browser "http://grenouille-bouillie.blogspot.com", 0, 700,800
 
 locally
-    translate -500,-250,150
+    translate -570,-250,150
     rotatey 40
-    scale 50%, 50%, 50%
-    color 1,1,1,80%
-    browser "http://www.dilbert.com", 0, 600,400
+    scale 30%, 30%, 30%
+    browser "http://www.dilbert.com", 0, 700,800
 
 locally
-    translate 500,250,150
+    translate 570,250,150
     rotatey -40
-    scale 50%, 50%, 50%
-    color 1,1,1,80%
-    browser "http://www.apple.com", 0, 600,400
+    scale 30%, 30%, 30%
+    browser "http://www.apple.com", 0, 700,800
 
 locally
-    translate 500,0,150
+    translate 570,0,150
     rotatey -50
-    scale 50%, 50%, 50%
-    color 1,1,1,80%
-    browser "http://www.beautifulfreepictures.com", 0, 600,400
+    scale 30%, 30%, 30%
+    browser "http://www.beautifulfreepictures.com", 0, 700,800
 
 locally
-    translate 500,-250,150
+    translate 570,-250,150
     rotatey -40
-    scale 50%, 50%, 50%
-    color 1,1,1,80%
-    browser "http://www.twitter.com", 0, 600,400
+    scale 30%, 30%, 30%
+    browser "http://www.twitter.com", 0, 700,800
 
 
 refresh 0.05

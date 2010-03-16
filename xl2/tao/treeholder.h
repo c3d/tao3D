@@ -9,13 +9,16 @@ struct TreeHolder
 {
 public:
     TreeHolder();
-    TreeHolder(XL::Tree *the_tree);
+    TreeHolder(XL::Tree *copy);
     TreeHolder(const TreeHolder& other);
     ~TreeHolder();
 
-    XL::Tree *tree;
+    XL::TreeRoot tree;
+
 };
 TAO_END
+
+#define TREEHOLDER_TYPE 383 // (QVariant::UserType | 0x100)
 
 Q_DECLARE_METATYPE(Tao::TreeHolder)
 

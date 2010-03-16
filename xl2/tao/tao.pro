@@ -54,6 +54,8 @@ HEADERS += widget.h \
     activity.h \
     selection.h \
     shapename.h \
+    treeholder.h \
+    menuinfo.h \
     ../xlr/utf8.h \
     ../xlr/base.h \
     ../xlr/options.h \
@@ -79,7 +81,8 @@ HEADERS += widget.h \
     ../xlr/types.h \
     ../xlr/diff.h \
     ../xlr/lcs.h \
-    treeholder.h
+    ../xlr/bfs.h
+
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \
@@ -98,6 +101,8 @@ SOURCES += tao_main.cpp \
     selection.cpp \
     gl_keepers.cpp \
     glew.c \
+    treeholder.cpp \
+    menuinfo.cpp \
     ../xlr/tree.cpp \
     ../xlr/sha1.cpp \
     ../xlr/serializer.cpp \
@@ -114,8 +119,8 @@ SOURCES += tao_main.cpp \
     ../xlr/compiler.cpp \
     ../xlr/basics.cpp \
     ../xlr/diff.cpp \
-    ../xlr/lcs.cpp \
-    treeholder.cpp
+    ../xlr/lcs.cpp
+
 RESOURCES += tao.qrc
 
 # Pango / Cairo

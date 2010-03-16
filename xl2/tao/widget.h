@@ -86,8 +86,8 @@ public:
 public slots:
     void        draw();
     void        runProgram();
-    void        clearActions();
     void        appFocusChanged(QWidget *prev, QWidget *next);
+    void        userMenu(QAction *action);
 
 public:
     typedef XL::Tree    Tree;
@@ -181,6 +181,7 @@ public:
     Tree *KlayoutMarkup(Tree *self, text s);
 
     Tree *menuItem(Tree *self, text s, Tree *t);
+    Tree *menu(Tree *self, text s, bool=false);
 
     // Focus management
     void              requestFocus(QWidget *widget);
@@ -198,7 +199,8 @@ public:
     // XL Runtime
     XL::SourceFile   *xlProgram;
     QTimer            timer;
-    QMenu             contextMenu;
+    QMenu            *currentMenu;
+    QMenuBar         *currentMenuBar;
     QList<TreeHolder> actions;
     Frame *           frame;
     Frame *           mainFrame;

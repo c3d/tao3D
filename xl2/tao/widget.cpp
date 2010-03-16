@@ -37,6 +37,9 @@
 #include "activity.h"
 #include "selection.h"
 #include "shapename.h"
+#include "treeholder.h"
+#include "menuinfo.h"
+
 #include <QtGui/QImage>
 #include <cmath>
 #include <QFont>
@@ -60,7 +63,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf), timer(this), contextMenu(this),
+      xlProgram(sf), timer(this), currentMenu(NULL),
       frame(NULL), mainFrame(NULL), activities(NULL),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       page_start_time(CurrentTime()), event(NULL), focusWidget(NULL)
@@ -82,6 +85,11 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     connect(qApp, SIGNAL(focusChanged (QWidget *, QWidget *)),
             this,  SLOT(appFocusChanged(QWidget *, QWidget *)));
     setFocusPolicy(Qt::StrongFocus);
+
+    // Prepare the menubar
+    currentMenuBar = parent->menuBar();
+    connect(parent->menuBar(),  SIGNAL(triggered(QAction*)),
+            this,               SLOT(userMenu(QAction*)));
 }
 
 
@@ -402,6 +410,7 @@ void Widget::runProgram()
     // Reset the selection id for the various elements being drawn
     id = 0;    
     focusWidget = NULL;
+    state.paintDevice = this;
 
     // Run the XL program associated with this widget
     current = this;
@@ -410,16 +419,9 @@ void Widget::runProgram()
     XL::LocalSave<TextFlow *> saveFlow(state.flow, &mainFlow);
     XL::LocalSave<Frame *> saveFrame (frame, mainFrame);
 
-    initMenu();
-    state.paintDevice = this;
-
     try
     {
         xl_evaluate(xlProgram->tree.tree);
-        for (int i = 0; i <  actions.size(); i++)
-        {
-            xl_evaluate(actions.at(i).tree);
-        }
     }
     catch (XL::Error &e)
     {
@@ -502,6 +504,26 @@ bool Widget::forwardEvent(QEvent *event)
     return false;
 }
 
+void Widget::userMenu(QAction *p_action)
+// ----------------------------------------------------------------------------
+//   user menu slot activation
+// ----------------------------------------------------------------------------
+{
+    if (! p_action) return ;
+
+    std::cerr << "user Menu " << p_action << "\n";
+
+    QVariant var =  p_action->data();
+//    if (var.userType() != TREEHOLDER_TYPE ) return;
+    if (! var.isValid() ) return;
+
+    TreeHolder t = var.value<TreeHolder >();
+
+    xlProgram->tree.tree = new XL::Infix("\n", xlProgram->tree.tree, t.tree);
+
+    ((Window*)this->parent())->updateProgram(xlProgram->tree.tree);
+
+}
 
 bool Widget::forwardEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
@@ -1941,33 +1963,145 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
 // ----------------------------------------------------------------------------
 //   Create a menu item
 // ----------------------------------------------------------------------------
+/* Menu name philosophy :
+ * The full name is used to register menus and menu items against the menubar.
+   Those names are not displayed.
+ * Menu created by the XL programmer must be differentiated from the originals
+   ones because they have to be recreated or modified at each loop of XL.
+   When top menus are deleted they recursively delete their children (sub
+   menus and menu items), so we have to take care of sub menu at deletion time.
+   Regarding those constraints, main menus are prefixed with _TOP_MENU_, sub
+   menus are prefexed by _SUB_MENU_. Then each menu item and sub menu are
+   prefixed by the "current menu" name (this current menu may itself be a
+   submenu). Each part of the name are separated by a /.
+ */
+#define TOPMENU "_TOP_MENU_"
+#define SUBMENU "_SUB_MENU_"
 {
-    QAction * p_action = contextMenu.addAction(QString::fromStdString(s));
-    QVariant var = QVariant::fromValue(TreeHolder(t));
+    if (!currentMenu)
+        return XL::xl_false;
+
+    QString fullName = currentMenu->objectName() +
+                      "/" +
+                      QString::fromStdString(s);
+
+    if (currentMenuBar->findChild<QAction*>(fullName))
+    {
+        IFTRACE(menus)
+            std::cout<< "MenuItem " << s
+                     << " found in current MenuBar with fullname "
+                     << fullName.toStdString() << "\n";
+        return XL::xl_true;
+    }
+
+    // Get or build the current Menu if we don't have one
+    MenuInfo *menuInfo = self->GetInfo<MenuInfo>();
+
+    // Store a copy of the tree in the QAction.
+    XL::TreeClone cloner;
+    XL::Tree *copy = t->Do(cloner);
+    QVariant var = QVariant::fromValue(TreeHolder(copy));
+
+    if (menuInfo)
+    {
+        // The name of the menuItem has changed.
+        IFTRACE(menus)
+            std::cout << "menuInfo found, old name is "
+                      << menuInfo->fullName << " new name is "
+                      << fullName.toStdString() << "\n";
+        menuInfo->action->setText(QString::fromStdString(s));
+        menuInfo->action->setObjectName(fullName);
+        menuInfo->action->setData(var);
+        menuInfo->fullName = fullName.toStdString();
+        return XL::xl_true;
+    }
+
+    menuInfo = new MenuInfo(currentMenu, fullName.toStdString());
+    self->SetInfo<MenuInfo> (menuInfo);
+
+    IFTRACE(menus)
+        std::cout << "menuItem creation with name "
+                  << fullName.toStdString() << "\n";
+    QAction * p_action = currentMenu->addAction(QString::fromStdString(s));
+    menuInfo->action = p_action;
     p_action->setData(var);
+    p_action->setObjectName(fullName);
 
     return XL::xl_true;
-
 }
 
-
-void Widget::initMenu()
+Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 // ----------------------------------------------------------------------------
-//    Initialize the menus
-// ----------------------------------------------------------------------------
-{
-    contextMenu.clear();
-    QAction *p_action = contextMenu.addAction("Clear");
-    connect(p_action, SIGNAL(triggered()), this,SLOT(clearActions()));
-}
-
-
-void Widget::clearActions()
-// ----------------------------------------------------------------------------
-//   Clear the menus
+// Add the menu to the current menu bar
 // ----------------------------------------------------------------------------
 {
-    actions.clear();
+    QMenu * tmp = NULL;
+
+    // Build the full name of the menu from the current menu name,
+    // the given string and the isSubmenu.
+    QString fullname;
+    if (isSubMenu && currentMenu)
+    {
+        QString prefix = currentMenu->objectName();
+        prefix.replace(TOPMENU, SUBMENU);
+        fullname = prefix + '/' + QString::fromStdString(s);
+
+    }
+    else
+    {
+        fullname = TOPMENU + QString::fromStdString(s);
+    }
+
+    // Get or build the current Menu if we don't have one
+    MenuInfo *menuInfo = self->GetInfo<MenuInfo>();
+
+
+    // If the menu already exists, no need to recreate it.
+    // This is used at reload time, recreate the MenuInfo if required.
+    if (tmp = currentMenuBar->findChild<QMenu*>(fullname))
+    {
+        currentMenu = tmp;
+        if (!menuInfo)
+        {
+            menuInfo = new MenuInfo(currentMenuBar,
+                                    currentMenu,
+                                    fullname.toStdString());
+            self->SetInfo<MenuInfo> (menuInfo);
+            menuInfo->action = currentMenu->menuAction();
+
+        }
+        return XL::xl_true;
+    }
+
+    // The name may have change but not the content
+    // (in the loop of the XL program execution).
+    if (menuInfo)
+    {
+        currentMenu = menuInfo->menu;
+        menuInfo->action->setText(QString::fromStdString(s));
+        menuInfo->menu->setObjectName(fullname);
+        menuInfo->fullName = fullname.toStdString();
+        return XL::xl_true;
+    }
+
+    if (isSubMenu)
+        currentMenu = currentMenu->addMenu(QString::fromStdString(s));
+    else
+        currentMenu = currentMenuBar->addMenu(QString::fromStdString(s));
+
+    currentMenu->setObjectName(fullname);
+
+    IFTRACE(menus)
+        std::cout << currentMenu->title().toStdString()
+                  << " menu found, "
+                  << currentMenuBar->children().size()
+                  << " children in menu bar "
+                  << currentMenuBar->objectName().toStdString() << "\n";
+    menuInfo = new MenuInfo(currentMenuBar,currentMenu, fullname.toStdString());
+    self->SetInfo<MenuInfo> (menuInfo);
+    menuInfo->action = currentMenu->menuAction();
+
+    return XL::xl_true;
 }
 
 TAO_END

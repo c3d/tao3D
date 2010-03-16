@@ -47,6 +47,7 @@ class Window : public QMainWindow
 
 public:
     Window(XL::Main *xlr, XL::SourceFile *sf = NULL);
+    void updateProgram(XL::Tree *tree);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -75,6 +76,7 @@ private:
     QString strippedName(const QString &fullFileName);
     Window *findWindow(const QString &fileName);
     void updateProgram(const QString &filename);
+    void resetTaoMenus();
 
 private:
     XL::Main *        xlRuntime;

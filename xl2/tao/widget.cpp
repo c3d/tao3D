@@ -1107,7 +1107,7 @@ Tree *Widget::texture(Tree *self, text img)
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
     if (!rinfo)
     {
-        rinfo = new ImageTextureInfo();
+        rinfo = new ImageTextureInfo(this);
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
     rinfo->bind(img);

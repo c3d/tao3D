@@ -25,11 +25,11 @@
 
 TAO_BEGIN
 
-ImageTextureInfo::ImageTextureInfo()
+ImageTextureInfo::ImageTextureInfo(Widget *w)
 // ----------------------------------------------------------------------------
 //   Prepare to record texture IDs for the various images
 // ----------------------------------------------------------------------------
-    : textures()
+    : textures(), widget(w)
 {}
 
 
@@ -58,7 +58,18 @@ void ImageTextureInfo::bind(text file)
             textures.erase(textures.begin());
 
         // Read the image file and convert to proper GL image format
-        QImage original(QString::fromStdString(file));
+        QString imgFile(QString::fromStdString(file));
+        QImage original(imgFile);
+        if (original.isNull())
+        {
+            // Look for image file in current document's directory
+            QFileInfo ifi(imgFile);
+            QString   imgFileName(ifi.fileName());
+            QFileInfo dfi(QString::fromStdString(widget->xlProgram->name));
+            QString   docDir(dfi.canonicalPath());
+            imgFile = QString("%1/%2").arg(docDir).arg(imgFileName);
+            original.load(imgFile);
+        }
         QImage texture = QGLWidget::convertToGLFormat(original);
 
         // Generate the GL texture

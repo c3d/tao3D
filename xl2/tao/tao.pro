@@ -123,14 +123,19 @@ SOURCES += tao_main.cpp \
 
 RESOURCES += tao.qrc
 
+# We need bash, llvm-config and pkg-config
+!system(bash --version >/dev/null):error("Can't execute bash")
+!system(bash -c \"llvm-config --version\" >/dev/null):error("Can't execute llvm-config")
+!system(bash -c \"pkg-config --version\" >/dev/null):error("Can't execute pkg-config")
+
 # Pango / Cairo
 PANGOCAIRO_LIBS = $$system(bash -c \"pkg-config --libs pangocairo\")
 PANGOCAIRO_INC = $$system(bash -c \"pkg-config --cflags-only-I pangocairo | sed s/-I//g\")
 PANGOCAIRO_FLAGS = $$system(bash -c \"pkg-config --cflags-only-other pangocairo\")
 
-# LLVM
-LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\") \
-    $$system(bash -c \"llvm-config --ldflags\")
+# LLVM dependencies
+LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\")
+LLVM_LIBS += $$system(bash -c \"llvm-config --ldflags\")
 LLVM_INC = $$system(bash -c \"llvm-config --includedir\")
 LLVM_DEF = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
 INCLUDEPATH += $$PANGOCAIRO_INC \

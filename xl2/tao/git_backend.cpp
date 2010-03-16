@@ -22,65 +22,55 @@
 #include "git_backend.h"
 #include "renderer.h"
 #include <QDir>
-#include <QDebug>
 #include <QtGlobal>
 #include <iostream>
 
 TAO_BEGIN
 
 GitRepo::Status
-GitRepo::SaveDocument(QString docName, XL::Tree *tree, QString msg)
+GitRepo::SaveDocument(XL::Tree *tree, QString msg)
 // ------------------------------------------------------------------------
 //   Save Tao document 'tree' in Git repository for 'docName'
 // ------------------------------------------------------------------------
 {
+    if (!Open())
+        return notSavedSaveError;
     if (!tree)
-        return notSavedSaveError;
-    QString repoPath = docName + ".git";
-    qDebug() << Q_FUNC_INFO << "Saving document to Git repository" << repoPath;
-    if (!Open(repoPath))
-        return notSavedSaveError;
+        return notSavedNullTree;
     GitBlobMaker toGit(*this);
     XL::Renderer render(toGit);
     render.SelectStyleSheet("git.stylesheet");
     render.Render(tree);
-    Status status = CreateCommit(CreateTopDir(toGit.ReadSha1()), msg);
-    qDebug() << Q_FUNC_INFO << "done";
-    return status;
+    return CreateCommit(CreateTopDir(toGit.ReadSha1()), msg);
 }
 
-bool GitRepo::Init(QString path)
+bool GitRepo::Init()
 // ------------------------------------------------------------------------
 //   Initialize a Git repository
 // ------------------------------------------------------------------------
 {
-    qDebug() << Q_FUNC_INFO << "Initializing GIT repository" << path;
-    if (!QDir().mkpath(path))
+    if (!QDir().mkpath(curPath))
         return false;
-    curPath = path;
     GitProcess git(*this);
     git.start(QStringList() << "init" /*<< "--bare"*/);
     if (!git.waitForStarted()  ||
         !git.waitForFinished() ||
          git.exitStatus()      != QProcess::NormalExit)
         return false;
-    qDebug() << Q_FUNC_INFO << "GIT repository initialized";
+    isOpen = true;
     return true;
 }
 
-bool GitRepo::Open(QString path)
+bool GitRepo::Open()
 // ------------------------------------------------------------------------
 //   Make sure repoitory is available (initialize it if needed)
 // ------------------------------------------------------------------------
 {
-    if (curPath == path)
+    if (isOpen)
         return true;
-    if (QDir(path).isReadable())
-    {
-        curPath = path;
+    if (QDir(curPath).isReadable())
         return true;
-    }
-    return Init(path);
+    return Init();
 }
 
 GitRepo::Status GitRepo::CreateCommit(QString sha1, QString commitMessage)
@@ -88,9 +78,6 @@ GitRepo::Status GitRepo::CreateCommit(QString sha1, QString commitMessage)
 //   Create a commit for tree ID sha1 and return SHA1 of commit.
 // ------------------------------------------------------------------------
 {
-    qDebug() << Q_FUNC_INFO << "Create commit (if needed) for tree ID:"
-             << sha1;
-
     bool hasMaster = false;
     if (QFile(curPath + "/.git/refs/heads/master").exists())
     {
@@ -99,19 +86,13 @@ GitRepo::Status GitRepo::CreateCommit(QString sha1, QString commitMessage)
                   << "master");
         git.closeWriteChannel();
         git.waitForReadyRead(-1);
-        QString masterCommitSha1 = QString(git.readLine(41));
+        QString masterCommitSha1 = QString(git.readLine(41)); // REVISIT unused
         QString masterTreeSha1   = QString(git.readLine(41));
-        qDebug() << "master tree:" << masterTreeSha1
-                 << "master commit:" << masterCommitSha1;
         git.waitForFinished();
 
         if (masterTreeSha1 == sha1)
-        {
-            qDebug() << Q_FUNC_INFO << "No need to create commit (no change)";
             return notSavedNoChange;
-        }
 
-        qDebug() << "Loading HEAD into index";
         GitProcess git1(*this);
         git1.start(QStringList() << "read-tree" << "HEAD");
         git1.closeWriteChannel();
@@ -119,13 +100,11 @@ GitRepo::Status GitRepo::CreateCommit(QString sha1, QString commitMessage)
         hasMaster = true;
     }
 
-    qDebug() << "Merging tree into index";
     GitProcess git2(*this);
     git2.start(QStringList() << "read-tree" << "-i" << "-m" << sha1);
     git2.closeWriteChannel();
     git2.waitForFinished();
 
-    qDebug() << "Writing tree from index";
     GitProcess git3(*this);
     git3.start(QStringList() << "write-tree");
     git3.closeWriteChannel();
@@ -133,7 +112,6 @@ GitRepo::Status GitRepo::CreateCommit(QString sha1, QString commitMessage)
     QString msha1 = QString(git3.readLine());
     msha1.resize(40);
     git3.waitForFinished();
-    qDebug() << "Merged tree ID:" << msha1 << "- committing...";
 
     QStringList args;
     args << "commit-tree" << msha1;
@@ -148,7 +126,6 @@ GitRepo::Status GitRepo::CreateCommit(QString sha1, QString commitMessage)
     QString ret = QString(git4.readLine());
     ret.resize(40);
     git4.waitForFinished();
-    qDebug() << Q_FUNC_INFO << "New commit ID:" << ret;
 
     UpdateRef("refs/heads/master", ret);
     return savedNewVersionCreated;
@@ -159,7 +136,6 @@ bool GitRepo::UpdateRef(QString ref, QString sha1)
 //   Update a branch ref to point to a specific commit
 // ------------------------------------------------------------------------
 {
-    qDebug() << Q_FUNC_INFO << ref << "->" << sha1;
     GitProcess git(*this);
     git.start(QStringList() << "update-ref" << ref << sha1);
     git.closeWriteChannel();
@@ -169,19 +145,16 @@ bool GitRepo::UpdateRef(QString ref, QString sha1)
 
 void GitRepo::CheckoutDocument(const QString & docName)
 // ------------------------------------------------------------------------
-//   Checkout 'docname'.git/doc as 'docName'
+//   Checkout 'docname'.git/main as 'docName'
 // ------------------------------------------------------------------------
 {
-    QString repoPath = docName + ".git";
-    qDebug() << Q_FUNC_INFO << "Checking out from Git repository" << repoPath;
-    if (!Open(repoPath))
+    if (!Open())
         return;
     GitProcess git(*this);
-    git.start(QStringList() << "checkout" << "--" << "doc");
+    git.start(QStringList() << "checkout" << "--" << "main");
     git.waitForFinished();
-    QFile docFile(repoPath + "/doc");
+    QFile docFile(curPath + "/main");
     docFile.copy(docName);
-    qDebug() << Q_FUNC_INFO << "End of checkout";
 }
 
 GitProcess::GitProcess(GitRepo &repo): QProcess()
@@ -210,9 +183,7 @@ QString GitRepo::CreateTopDir(QString docSha1)
 //   Create a Git tree containing the specified document and return its ID
 // ------------------------------------------------------------------------
 {
-    QString ret =  MakeTree(QString("100644 blob %1\tdoc\n").arg(docSha1));
-    qDebug() << Q_FUNC_INFO << "Git tree for top dir created, ID:" << ret;
-    return ret;
+    return MakeTree(QString("100644 blob %1\tmain\n").arg(docSha1));
 }
 
 QString GitRepo::MakeTree(QString treeSpec)
@@ -255,7 +226,6 @@ void GitBlobMakerStreamBuf::PipeToProcess(std::string str)
 {
     if (!git)
     {
-        qDebug() << Q_FUNC_INFO << "Starting Git subprocess";
         git = new GitProcess(repo);
         git->start(QStringList() << "hash-object" << "-w" << "--stdin");
         if (!git->waitForStarted())
@@ -306,7 +276,6 @@ QString GitBlobMaker::ReadSha1()
     QString ret = QString(sb.git->readLine());
     ret.resize(40);
     sb.git->waitForFinished();
-    qDebug() << Q_FUNC_INFO << "Git blob for document created, ID:" << ret;
     return ret;
 }
 

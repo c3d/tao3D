@@ -39,19 +39,20 @@ struct GitRepo
     enum Status
     {
         savedNewVersionCreated,  // A new commit was created
+        notSavedNullTree,        // Nothing to save
         notSavedNoChange,        // Document has not changed since last commit
         notSavedSaveError        // Save error
     };
 
-    GitRepo() {}
+    GitRepo(): isOpen(false) {}
     virtual ~GitRepo() {}
 
-    Status SaveDocument(QString docName, XL::Tree *tree, QString msg = "");
+    Status SaveDocument(XL::Tree *tree, QString msg = "");
     void   CheckoutDocument(const QString & docName);
 
 protected:
-    bool     Open(QString path);
-    bool     Init(QString path);
+    bool     Open();
+    bool     Init();
     Status   CreateCommit(QString sha1, QString commitMessage = "");
     bool     UpdateRef(QString ref, QString sha1);
     QString  CreateTopDir(QString docSha1);
@@ -59,6 +60,7 @@ protected:
 
 public:
     QString  curPath;
+    bool     isOpen;
 };
 
 struct GitProcess : QProcess

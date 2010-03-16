@@ -10,6 +10,5 @@
         <file>images/open.png</file>
         <file>images/paste.png</file>
         <file>images/save.png</file>
-        <file>images/savetogit.png</file>
     </qresource>
 </RCC>

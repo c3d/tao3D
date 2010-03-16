@@ -56,7 +56,6 @@ private slots:
     void open();
     bool save();
     bool saveAs();
-    bool saveToGit();
     void about();
     void documentWasModified();
 
@@ -72,8 +71,15 @@ private:
     void loadFile(const QString &fileName);
     bool saveFile(const QString &fileName);
     void setCurrentFile(const QString &fileName);
-    QString strippedName(const QString &fullFileName);
     Window *findWindow(const QString &fileName);
+    QString tmpDir();         // /tmp
+    QString docFileName();    // document1.tao
+    QString tmpDocPath();     // /tmp/document1.tao.tmp
+    QString repoFileName();   // document1.tao.git
+    QString repoPath();       // /tmp/document1.tao.git
+    bool saveToGit();
+    void loadSource(const QString &fileName);
+
 
 private:
     XL::Main *        xlRuntime;
@@ -94,7 +100,6 @@ private:
     QAction          *openAct;
     QAction          *saveAct;
     QAction          *saveAsAct;
-    QAction          *saveToGitAct;
     QAction          *closeAct;
     QAction          *exitAct;
     QAction          *cutAct;

@@ -509,18 +509,18 @@ void Widget::userMenu(QAction *p_action)
 //   user menu slot activation
 // ----------------------------------------------------------------------------
 {
-    if (! p_action) return ;
+    if (!p_action)
+        return;
 
-    std::cerr << "user Menu " << p_action << "\n";
+    IFTRACE(menus)
+        std::cerr << "User menu " << p_action << "\n";
 
     QVariant var =  p_action->data();
-//    if (var.userType() != TREEHOLDER_TYPE ) return;
-    if (! var.isValid() ) return;
+    if (!var.isValid())
+        return;
 
     TreeHolder t = var.value<TreeHolder >();
-
     xlProgram->tree.tree = new XL::Infix("\n", xlProgram->tree.tree, t.tree);
-
     ((Window*)this->parent())->updateProgram(xlProgram->tree.tree);
 
 }

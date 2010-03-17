@@ -45,6 +45,8 @@ public:
     virtual bool        write(text fileName, XL::Tree *tree);
     virtual XL::Tree *  read(text fileName);
     virtual bool        setTask(text name);
+    virtual bool        selectWorkBranch();
+    virtual bool        selectUndoBranch();
 
 public:
     virtual bool        valid()                         = 0;
@@ -55,6 +57,7 @@ public:
     virtual bool        change(text name)               = 0;
     virtual bool        rename(text from, text to)      = 0;
     virtual bool        commit(text message)            = 0;
+    virtual bool        merge(text branch)              = 0;
 
     static Repository * repository(const QString &path);
 

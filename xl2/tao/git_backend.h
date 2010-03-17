@@ -52,6 +52,7 @@ public:
     virtual bool        change(text name);
     virtual bool        rename(text from, text to);
     virtual bool        commit(text message);
+    virtual bool        merge(text branch);
 
 protected:
     virtual QString     command();

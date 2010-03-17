@@ -25,6 +25,7 @@
 #include "options.h"
 
 #include <cassert>
+#include <QMessageBox>
 
 
 TAO_BEGIN
@@ -61,16 +62,25 @@ Process::~Process()
 }
 
 
-void Process::start(const QString &cmd, const QStringList &arguments)
+void Process::start(const QString &cmd, const QStringList &args)
 // ----------------------------------------------------------------------------
 //   Start child process
 // ----------------------------------------------------------------------------
 {
-    QProcess::start(cmd, arguments);
+    IFTRACE(process)
+    {
+        QStringList::const_iterator it;
+        std::cerr << "Process: " << cmd.toStdString();
+        for (it = args.begin(); it != args.end(); it++)
+            std::cerr << " " << (*it).toStdString();
+        std::cerr << "\n";
+    }
+
+    QProcess::start(cmd, args);
 }
 
 
-bool Process::done()
+bool Process::done(bool showErrors)
 // ----------------------------------------------------------------------------
 //    Return true if the process was successful
 // ----------------------------------------------------------------------------
@@ -88,11 +98,18 @@ bool Process::done()
     closeWriteChannel();
     if (!waitForFinished())
     {
-        IFTRACE(process)
+        if (showErrors)
         {
-            QByteArray ba = readAll();
-            QString s(ba);
-            std::cerr << s.toStdString() << "\n";
+            
+        }
+        else
+        {
+            IFTRACE(process)
+            {
+                QByteArray ba = readAll();
+                QString s(ba);
+                std::cerr << s.toStdString() << "\n";
+            }
         }
         ok = false;
     }

@@ -140,4 +140,14 @@ bool GitRepository::commit(text message)
     return cmd.done();
 }
 
+
+bool GitRepository::merge(text branch)
+// ----------------------------------------------------------------------------
+//   Merge another branch into the current one
+// ----------------------------------------------------------------------------
+{
+    Process cmd(command(), QStringList("merge") << +branch, path);
+    return cmd.done();
+}
+
 TAO_END

@@ -137,4 +137,22 @@ Repository *Repository::repository(const QString &path)
     return NULL;
 }
 
+
+bool Repository::selectWorkBranch()
+// ----------------------------------------------------------------------------
+//    Select the work branch
+// ----------------------------------------------------------------------------
+{
+    return branch(task);
+}
+
+
+bool Repository::selectUndoBranch()
+// ----------------------------------------------------------------------------
+//    Select the undo branch
+// ----------------------------------------------------------------------------
+{
+    return branch(task + "_undo");
+}
+
 TAO_END

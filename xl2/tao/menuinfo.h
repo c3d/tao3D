@@ -1,5 +1,27 @@
 #ifndef MENUINFO_H
 #define MENUINFO_H
+// ****************************************************************************
+//  menuinfo.h                                                      XLR project
+// ****************************************************************************
+//
+//   File Description:
+//
+//    Associate Qt menu data to XL trees
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
 
 #include <string>
 #include <QMenu>
@@ -10,6 +32,9 @@
 TAO_BEGIN
 
 struct MenuInfo : public XL::Info
+// ----------------------------------------------------------------------------
+//  Qt menu data associated to an XL tree
+// ----------------------------------------------------------------------------
 {
 public:
     MenuInfo(QMenu *menu, std::string name);
@@ -24,7 +49,6 @@ public:
     QAction      * action;
 
 };
-
 
 TAO_END
 

@@ -44,8 +44,6 @@ HEADERS += widget.h \
     coords.h \
     coords3d.h \
     gl_keepers.h \
-    GL/glew.h \
-    GL/glxew.h \
     text_flow.h \
     drawing.h \
     shapes_drawing.h \
@@ -102,7 +100,6 @@ SOURCES += tao_main.cpp \
     activity.cpp \
     selection.cpp \
     gl_keepers.cpp \
-    glew.c \
     treeholder.cpp \
     menuinfo.cpp \
     git_backend.cpp \
@@ -125,6 +122,12 @@ SOURCES += tao_main.cpp \
     ../xlr/diff.cpp \
     ../xlr/lcs.cpp
 
+!win32 { 
+    HEADERS += GL/glew.h \
+        GL/glxew.h \
+        GL/wglew.h
+    SOURCES += glew.c
+}
 RESOURCES += tao.qrc
 
 # We need bash, llvm-config and pkg-config
@@ -133,7 +136,7 @@ RESOURCES += tao.qrc
 !system(bash -c \"pkg-config --version\" >/dev/null):error("Can't execute pkg-config")
 
 # Pango / Cairo
-PANGOCAIRO_LIBS = $$system(bash -c \"pkg-config --libs pangocairo\")
+PANGOCAIRO_LIBS = $$system(bash -c \"pkg-config --libs pangocairo \")
 PANGOCAIRO_INC = $$system(bash -c \"pkg-config --cflags-only-I pangocairo | sed s/-I//g\")
 PANGOCAIRO_FLAGS = $$system(bash -c \"pkg-config --cflags-only-other pangocairo\")
 
@@ -142,13 +145,15 @@ LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\")
 LLVM_LIBS += $$system(bash -c \"llvm-config --ldflags\")
 LLVM_INC = $$system(bash -c \"llvm-config --includedir\")
 LLVM_DEF = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
+
+# Consolidated flags and libs
 INCLUDEPATH += $$PANGOCAIRO_INC \
     $$LLVM_INC
 LIBS += $$PANGOCAIRO_LIBS \
     $$LLVM_LIBS
 DEFINES += $$LLVM_DEF
 
-# # This does not work!
+# --- This does not work! ---
 # CFLAGS         += $$PANGOCAIRO_FLAGS
 # CXXFLAGS       += $$PANGOCAIRO_FLAGS
 DEFAULT_FONT = /Library/Fonts/Arial.ttf

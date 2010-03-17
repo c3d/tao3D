@@ -63,10 +63,11 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf), timer(this), currentMenu(NULL),
+      xlProgram(sf), timer(this), idleTimer(this), currentMenu(NULL),
       frame(NULL), mainFrame(NULL), activities(NULL),
-      tmin(~0ULL), tmax(0), tsum(0), tcount(0),
-      page_start_time(CurrentTime()), event(NULL), focusWidget(NULL)
+      tmin(~0ULL), tmax(0), tsum(0), tcount(0), nextSave(0),
+      page_start_time(CurrentTime()), event(NULL), focusWidget(NULL),
+      whatsNew("")
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -77,6 +78,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 
     // Prepare the timers
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
+    connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));
+    idleTimer.start(0);
 
     // Configure the proxies for URLs
     QNetworkProxyFactory::setUseSystemConfiguration(true);
@@ -254,6 +257,28 @@ void Widget::updateProgram(XL::SourceFile *source)
 }
 
 
+void Widget::markChanged(text reason)
+// ----------------------------------------------------------------------------
+//    Record that the program changed
+// ----------------------------------------------------------------------------
+{
+    if (whatsNew.find(reason) == whatsNew.npos)
+    {
+        if (whatsNew.length())
+            whatsNew += "\n";
+        whatsNew += reason;
+    }
+    if (xlProgram)
+    {
+        if (Tree *prog = xlProgram->tree.tree)
+        {
+            import_set done;
+            ImportedFilesChanged(prog, done, true);
+        }
+    }
+}
+
+
 void Widget::requestFocus(QWidget *widget)
 // ----------------------------------------------------------------------------
 //   Some other widget request the focus
@@ -369,6 +394,18 @@ void Widget::setupGL()
 }
 
 
+void Widget::dawdle()
+// ----------------------------------------------------------------------------
+//   Operations to do when idle (in the background)
+// ----------------------------------------------------------------------------
+{
+    // Run all activities, which will get them a chance to update refresh
+    for (Activity *a = activities; a; a = a->next)
+        if (a->Idle())
+            break;
+}
+
+
 void Widget::draw()
 // ----------------------------------------------------------------------------
 //    Redraw the widget
@@ -387,8 +424,7 @@ void Widget::draw()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // If there is a program, we need to run it
-    if (xlProgram)
-        runProgram();
+    runProgram();
 
     // Timing
     elapsed(t);
@@ -421,7 +457,8 @@ void Widget::runProgram()
 
     try
     {
-        xl_evaluate(xlProgram->tree.tree);
+        if (xlProgram && xlProgram->tree.tree)
+            xl_evaluate(xlProgram->tree.tree);
     }
     catch (XL::Error &e)
     {
@@ -523,9 +560,10 @@ void Widget::userMenu(QAction *p_action)
 
     TreeHolder t = var.value<TreeHolder >();
     xlProgram->tree.tree = new XL::Infix("\n", xlProgram->tree.tree, t.tree);
-    ((Window*)this->parent())->updateProgram(xlProgram->tree.tree);
 
+    markChanged("Menu clicked, added program element");
 }
+
 
 bool Widget::forwardEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------

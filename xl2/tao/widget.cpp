@@ -39,6 +39,8 @@
 #include "shapename.h"
 #include "treeholder.h"
 #include "menuinfo.h"
+#include "repository.h"
+#include "application.h"
 
 #include <QtGui/QImage>
 #include <cmath>
@@ -65,7 +67,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
       xlProgram(sf), timer(this), idleTimer(this), currentMenu(NULL),
       frame(NULL), mainFrame(NULL), activities(NULL),
-      tmin(~0ULL), tmax(0), tsum(0), tcount(0), nextSave(0),
+      tmin(~0ULL), tmax(0), tsum(0), tcount(0),
+      nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
       page_start_time(CurrentTime()), event(NULL), focusWidget(NULL),
       whatsNew("")
 {
@@ -178,9 +181,21 @@ void Widget::updateProgram(XL::SourceFile *source)
 //   Change the XL program, clean up stuff along the way
 // ----------------------------------------------------------------------------
 {
-    Tree *prog = source->tree.tree;
-    Tree *repl = prog;
     xlProgram = source;
+    refreshProgram();
+}
+
+
+void Widget::refreshProgram()
+// ----------------------------------------------------------------------------
+//   Check if any of the source files we depend on changed
+// ----------------------------------------------------------------------------
+{
+    if (!xlProgram)
+        return;
+
+    Repository *repository = TaoApp->Library();
+    Tree *prog = xlProgram->tree.tree;
 
     // Loop on imported files
     import_set iset;
@@ -200,11 +215,20 @@ void Widget::updateProgram(XL::SourceFile *source)
                 IFTRACE(filesync)
                     std::cerr << "File " << fname << " changed\n";
 
-                XL::Parser parser(fname.c_str(),
-                                  XL::MAIN->syntax,
-                                  XL::MAIN->positions,
-                                  XL::MAIN->errors);
-                XL::Tree *replacement = parser.Parse();
+                Tree *replacement = NULL;
+                if (repository)
+                {
+                    replacement = repository->read(fname);
+                }
+                else
+                {
+                    XL::Syntax syntax(XL::MAIN->syntax);
+                    XL::Positions &positions = XL::MAIN->positions;
+                    XL::Errors &errors = XL::MAIN->errors;
+                    XL::Parser parser(fname.c_str(), syntax, positions, errors);
+                    XL::Tree *replacement = parser.Parse();
+                }
+
                 if (!replacement)
                 {
                     // Uh oh, file went away?
@@ -215,19 +239,10 @@ void Widget::updateProgram(XL::SourceFile *source)
                     // Check if we can simply change some parameters in file
                     ApplyChanges changes(replacement);
                     if (!sf.tree.tree->Do(changes))
-                    {
                         needBigHammer = true;
-                        if (sf.tree.tree == prog)
-                        {
-                            repl = replacement;
-                            repl->Set<XL::SymbolsInfo> (sf.symbols);
-                        }
-                    }
-                    else
-                    {
-                        sf.modified = st.st_mtime;
-                    }
 
+                    // Record new modification time
+                    sf.modified = st.st_mtime;
 
                     IFTRACE(filesync)
                     {
@@ -403,6 +418,68 @@ void Widget::dawdle()
     for (Activity *a = activities; a; a = a->next)
         if (a->Idle())
             break;
+
+    // We will only auto-save and commit if we have a valid repository
+    Repository *repository     = TaoApp->Library();
+    XL::Main   *xlr            = XL::MAIN;
+    bool        savedSomething = false;
+
+    // Check if there's something to save
+    ulonglong tick = now();
+    longlong saveDelay = longlong(nextSave - tick);
+    if (repository && saveDelay < 0)
+    {
+        XL::source_files::iterator it;
+        for (it = xlr->files.begin(); it != xlr->files.end(); it++)
+        {
+            XL::SourceFile &sf = (*it).second;
+            text fname = sf.name;
+            if (sf.changed)
+            {
+                if (repository->write(fname, sf.tree.tree))
+                {
+                    // Mark the tree as no longer changed
+                    sf.changed = false;
+
+                    // Record that we need to commit it sometime soon
+                    repository->change(fname);
+                    IFTRACE(filesync)
+                        std::cerr << "Changedfile " << fname << "\n";
+                        
+                    // Record time when file was changed
+                    struct stat st;
+                    stat (fname.c_str(), &st);
+                    sf.modified = st.st_mtime;
+                }
+            }
+        }
+
+        // Record when we will save file again
+        nextSave = tick + xlr->options.save_interval * 1000;
+    }
+
+    // Check if there's something to commit
+    longlong commitDelay = longlong (nextCommit - tick);
+    if (savedSomething && commitDelay < 0)
+    {
+        // If we saved anything, then commit changes
+        IFTRACE(filesync)
+            std::cerr << "Commit: " << whatsNew << "\n";
+        if (repository->commit(whatsNew))
+        {            
+            whatsNew = "";            
+            nextCommit = tick + xlr->options.commit_interval * 1000;
+            savedSomething = false;
+        }
+    }
+
+    // Check if there's something to reload
+    longlong syncDelay = longlong(nextSync - tick);
+    if (syncDelay < 0)
+    {
+        refreshProgram();
+        syncDelay = tick + xlr->options.sync_interval * 1000;
+    }
 }
 
 

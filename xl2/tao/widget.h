@@ -75,6 +75,7 @@ public:
     void        setupGL();
     Point3      unproject (coord x, coord y, coord z = 0.0);
     void        updateProgram(XL::SourceFile *sf);
+    void        refreshProgram();
     void        markChanged(text reason);
 
     // Selection
@@ -219,7 +220,7 @@ public:
 
     // Timing for drawing and saving
     ulonglong         tmin, tmax, tsum, tcount;
-    ulonglong         nextSave;
+    ulonglong         nextSave, nextCommit, nextSync;
     ulonglong         now();
     ulonglong         elapsed(ulonglong since, bool stats=true, bool show=true);
 

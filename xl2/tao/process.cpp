@@ -80,7 +80,7 @@ void Process::start(const QString &cmd, const QStringList &args)
 }
 
 
-bool Process::done(bool showErrors)
+bool Process::done(text *errors)
 // ----------------------------------------------------------------------------
 //    Return true if the process was successful
 // ----------------------------------------------------------------------------
@@ -107,25 +107,13 @@ bool Process::done(bool showErrors)
 
     if (!ok)
     {
-        if (showErrors)
-        {
-            QMessageBox::warning(0,
-                                 tr("Error executing process"),
-                                 tr("Process '%1' terminated abormally "
-                                    "with exit code %2:\n%3")
-                                 .arg(commandLine)
-                                 .arg(rc)
-                                 .arg(QString(readAll())),
-                                 QMessageBox::Ok);
-        }
-        else
-        {
-            IFTRACE(process)
-            {
-                QByteArray ba = readAll();
-                std::cerr << QString(ba).toStdString() << "\n";
-            }
-        }
+        QString err = tr("Process '%1' terminated abormally "
+                         "with exit code %2:\n%3")
+            .arg(commandLine) .arg(rc) .arg(QString(readAll()));
+        if (errors)
+            *errors = +err;
+        IFTRACE(process)
+            std::cerr << +err << "\n";
     }
 
     return ok;

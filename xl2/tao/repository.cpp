@@ -106,19 +106,20 @@ bool Repository::setTask(text name)
 //       <name> is the work branch itself, recording user-defined checkpoints
 //       <name>.undo is the undo branch, managed by us
 {
-    bool ok = true;
-
     task = name;
-    if (!checkout(name))
-    {
-        // Presumably, the branch doesn't exist yet, create it
-        branch(name + ".undo");
-        branch(name);
-        if (!checkout(name))
-            ok = false;
-    }
 
-    return ok;
+    // Check if we can checkout the task branch
+    if (!checkout(name))
+        if (!branch(name) || !checkout(name))
+            return false;
+
+    // Check if we can checkout the undo branch
+    if (!checkout(name + "_undo"))
+        if (!branch(name + "_undo") || !checkout(name + "_undo"))
+            return false;
+
+    // We are now on the _undo branch
+    return true;
 }
 
 
@@ -143,7 +144,7 @@ bool Repository::selectWorkBranch()
 //    Select the work branch
 // ----------------------------------------------------------------------------
 {
-    return branch(task);
+    return checkout(task);
 }
 
 
@@ -152,7 +153,7 @@ bool Repository::selectUndoBranch()
 //    Select the undo branch
 // ----------------------------------------------------------------------------
 {
-    return branch(task + "_undo");
+    return checkout(task + "_undo");
 }
 
 TAO_END

@@ -44,13 +44,16 @@ public:
     Application(int & argc, char ** argv);
     ~Application();
 
-    void OpenLibrary();
-    void OpenLibrary(QString path);
-    QDir LibraryDirectory();
+    void        OpenLibrary();
+    void        OpenLibrary(QString path);
+    QDir        LibraryDirectory();
+    Repository *Library()       { return repository; }
 
 private:
     Repository  *repository;    // REVISIT: One per application or per doc?
 };
+
+#define TaoApp  ((Application *) qApp)
 
 TAO_END
 

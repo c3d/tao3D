@@ -39,7 +39,7 @@ Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
 //    Build the Tao application
 // ----------------------------------------------------------------------------
-    : QApplication(argc, argv)
+    : QApplication(argc, argv), repository(NULL)
 {}
 
 
@@ -128,6 +128,17 @@ void Application::OpenLibrary(QString path)
                                       QMessageBox::No);
             }
         }
+
+        // Select the task branch, either current branch or without _undo
+        if (repository && repository->valid())
+        {
+            text task = repository->branch();
+            size_t len = task.length() - (sizeof ("_undo") - 1);
+            if (task.find("_undo") == len)
+                task = task.substr(0, len);
+            repository->setTask(task);
+        }
+
     } while (!ok);
 
     if (ok)

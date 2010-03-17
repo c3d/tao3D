@@ -104,6 +104,16 @@ OPTION(diff, "Compute difference of two parse trees (you must give exactly two i
 // 
 // ============================================================================
 
+OPTVAR(sync_interval, ulong,   500)
+OPTVAR(save_interval, ulong,   1000)
+OPTVAR(commit_interval, ulong, 5000)
+OPTION(autosync, "Interval for automatic file sync in milliseconds",
+       sync_interval = INTEGER)
+OPTION(autosave, "Interval for automatic save in milliseconds",
+       save_interval = INTEGER)
+OPTION(autocommit, "Interval for automatic commit in milliseconds",
+       commit_interval = INTEGER)
+
 OPTVAR(prefer_opengl, bool, false)
 OPTION(gl, "Prefer OpenGL for rendering", prefer_opengl = true)
 

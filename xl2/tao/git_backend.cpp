@@ -56,7 +56,7 @@ bool GitRepository::valid()
     if (!QDir(path).exists())
         return false;
     Process cmd(command(), QStringList("branch"), path);
-    return cmd.done();
+    return cmd.done(&errors);
 }
 
 
@@ -68,7 +68,28 @@ bool GitRepository::initialize()
     if (!QDir(path).mkpath("."))
         return false;
     Process cmd(command(), QStringList("init"), path);
-    return cmd.done();
+    return cmd.done(&errors);
+}
+
+
+text GitRepository::branch()
+// ----------------------------------------------------------------------------
+//    Return the name of the current branch
+// ----------------------------------------------------------------------------
+{
+    Process cmd(command(), QStringList("branch"), path);
+    bool    ok = cmd.done(&errors);
+    QString result;
+    if (ok)
+    {
+        QString output(cmd.readAll());
+        QStringList branches = output.split("\n");
+        QRegExp re("^[*].*");
+        int index = branches.indexOf(re);
+        if (index > 0)
+            result = branches[index].mid(2);
+    }
+    return +result;
 }
 
 
@@ -78,7 +99,7 @@ bool GitRepository::checkout(text branch)
 // ----------------------------------------------------------------------------
 {
     Process cmd(command(), QStringList("checkout") << +branch, path);
-    return cmd.done();
+    return cmd.done(&errors);
 }
 
 
@@ -88,7 +109,7 @@ bool GitRepository::branch(text name)
 // ----------------------------------------------------------------------------
 {
     Process cmd(command(), QStringList("branch") << +name, path);
-    return cmd.done();
+    return cmd.done(&errors);
 }
 
 
@@ -98,7 +119,7 @@ bool GitRepository::add(text name)
 // ----------------------------------------------------------------------------
 {
     Process cmd(command(), QStringList("add") << +name, path);
-    return cmd.done();
+    return cmd.done(&errors);
 }
 
 
@@ -108,7 +129,7 @@ bool GitRepository::change(text name)
 // ----------------------------------------------------------------------------
 {
     Process cmd(command(), QStringList("add") << +name, path);
-    return cmd.done();
+    return cmd.done(&errors);
 }
 
 
@@ -118,7 +139,7 @@ bool GitRepository::rename(text from, text to)
 // ----------------------------------------------------------------------------
 {
     Process cmd(command(), QStringList("mv") << +from << +to, path);
-    return cmd.done();
+    return cmd.done(&errors);
 }
 
 
@@ -128,7 +149,7 @@ bool GitRepository::commit(text message)
 // ----------------------------------------------------------------------------
 {
     Process cmd(command(), QStringList("commit") << "-m" << +message, path);
-    return cmd.done();
+    return cmd.done(&errors);
 }
 
 
@@ -138,7 +159,7 @@ bool GitRepository::merge(text branch)
 // ----------------------------------------------------------------------------
 {
     Process cmd(command(), QStringList("merge") << +branch, path);
-    return cmd.done();
+    return cmd.done(&errors);
 }
 
 TAO_END

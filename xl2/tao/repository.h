@@ -51,6 +51,7 @@ public:
 public:
     virtual bool        valid()                         = 0;
     virtual bool        initialize()                    = 0;
+    virtual text        branch()                        = 0;
     virtual bool        checkout(text name)             = 0;
     virtual bool        branch(text name)               = 0;
     virtual bool        add(text name)                  = 0;
@@ -69,6 +70,7 @@ protected:
 public:
     QString  path;
     text     task;
+    text     errors;
 };
 
 

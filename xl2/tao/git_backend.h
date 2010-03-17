@@ -46,6 +46,7 @@ public:
     // Redefine Repository virtual functions
     virtual bool        valid();
     virtual bool        initialize();
+    virtual text        branch();
     virtual bool        checkout(text branch);
     virtual bool        branch(text name);
     virtual bool        add(text name);

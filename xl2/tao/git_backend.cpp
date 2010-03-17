@@ -28,15 +28,6 @@
 TAO_BEGIN
 
 
-static inline QString operator +(text s)
-// ----------------------------------------------------------------------------
-//   An implicit conversion that should be there
-// ----------------------------------------------------------------------------
-{
-    return QString::fromStdString(s);
-}
-
-
 QString GitRepository::command()
 // ----------------------------------------------------------------------------
 //   Return the command for 'git'

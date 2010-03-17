@@ -34,6 +34,7 @@ Process::Process(size_t bufSize)
 // ----------------------------------------------------------------------------
 //   Create a QProcess without starting it yet
 // ----------------------------------------------------------------------------
+    : commandLine("")
 {
     initialize(bufSize);
 }
@@ -46,6 +47,7 @@ Process::Process(const QString &cmd,
 // ----------------------------------------------------------------------------
 //   Create a QProcess and start it
 // ----------------------------------------------------------------------------
+    : commandLine("")
 {
     setWorkingDirectory(wd);
     initialize(bufSize);
@@ -58,7 +60,8 @@ Process::~Process()
 //    Make sure we are done with all the data for that process
 // ----------------------------------------------------------------------------
 {
-    done();
+    if (pbase())
+        done();
 }
 
 
@@ -67,14 +70,11 @@ void Process::start(const QString &cmd, const QStringList &args)
 //   Start child process
 // ----------------------------------------------------------------------------
 {
+    commandLine = cmd + " " + args.join(" ");
+
     IFTRACE(process)
-    {
-        QStringList::const_iterator it;
-        std::cerr << "Process: " << cmd.toStdString();
-        for (it = args.begin(); it != args.end(); it++)
-            std::cerr << " " << (*it).toStdString();
-        std::cerr << "\n";
-    }
+        std::cerr << "Process: " << +commandLine
+                  << " (wd " << +workingDirectory() << ")\n";
 
     QProcess::start(cmd, args);
 }
@@ -97,25 +97,36 @@ bool Process::done(bool showErrors)
     // Close QProcess
     closeWriteChannel();
     if (!waitForFinished())
+        ok = false;
+
+    int rc = exitCode();
+    IFTRACE(process)
+        std::cerr << "Process: " << +commandLine << " returned " << rc << "\n";
+    if (rc)
+        ok = false;
+
+    if (!ok)
     {
         if (showErrors)
         {
-            
+            QMessageBox::warning(0,
+                                 tr("Error executing process"),
+                                 tr("Process '%1' terminated abormally "
+                                    "with exit code %2:\n%3")
+                                 .arg(commandLine)
+                                 .arg(rc)
+                                 .arg(QString(readAll())),
+                                 QMessageBox::Ok);
         }
         else
         {
             IFTRACE(process)
             {
                 QByteArray ba = readAll();
-                QString s(ba);
-                std::cerr << s.toStdString() << "\n";
+                std::cerr << QString(ba).toStdString() << "\n";
             }
         }
-        ok = false;
     }
-
-    if (exitCode())
-        ok = false;
 
     return ok;
 }

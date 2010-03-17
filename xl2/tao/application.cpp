@@ -39,8 +39,17 @@ void Application::OpenLibrary()
 //   Open the default library, or ask the user which one to choose
 // ----------------------------------------------------------------------------
 {
-    bool    ok = true;
     QString path = QSettings().value("defaultlibrary").toString();
+    OpenLibrary(path);
+}
+
+
+void Application::OpenLibrary(QString path)
+// ----------------------------------------------------------------------------
+//   Open the default library, or ask the user which one to choose
+// ----------------------------------------------------------------------------
+{
+    bool ok = true;
 
     do
     {
@@ -104,6 +113,26 @@ void Application::OpenLibrary()
 
     if (ok)
         QSettings().setValue("defaultlibrary", path);
+}
+
+
+QDir Application::LibraryDirectory()
+// ----------------------------------------------------------------------------
+//   Return the best path candidate for the library
+// ----------------------------------------------------------------------------
+{
+    QDir result(QDir::current());
+    if (repository)
+    {
+        result.cd(repository->path);
+    }
+    else
+    {
+        QString path = QSettings().value("defaultlibrary").toString();
+        if (!path.isNull())
+            result.cd(path);
+    }
+    return result;    
 }
 
 

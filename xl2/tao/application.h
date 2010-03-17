@@ -22,8 +22,11 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include <QApplication>
 #include "tao.h"
+
+#include <QApplication>
+#include <QDir>
+
 
 TAO_BEGIN
 
@@ -41,6 +44,8 @@ public:
     Application(int & argc, char ** argv): QApplication(argc, argv) {}
 
     void OpenLibrary();
+    void OpenLibrary(QString path);
+    QDir LibraryDirectory();
 
 private:
     Repository  *repository;    // REVISIT: One per application or per doc?

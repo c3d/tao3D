@@ -23,6 +23,7 @@
 // ****************************************************************************
 
 #include "tao.h"
+#include "base.h"
 
 #include <QString>
 #include <QProcess>
@@ -52,7 +53,27 @@ protected:
 protected:                      // From std::streambuf
     virtual int sync();
     virtual int overflow(int c);
+
+public:
+    QString commandLine;
 };
+
+
+inline QString operator +(text s)
+// ----------------------------------------------------------------------------
+//   Quickly convert from text to QString
+// ----------------------------------------------------------------------------
+{
+    return QString::fromStdString(s);
+}
+
+inline text operator +(QString s)
+// ----------------------------------------------------------------------------
+//   Quickly convert from QString to text
+// ----------------------------------------------------------------------------
+{
+    return s.toStdString();
+}
 
 TAO_END
 

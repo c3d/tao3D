@@ -50,7 +50,7 @@ int main(int argc, char **argv)
             QGL::setPreferredPaintEngine(QPaintEngine::OpenGL);
 
     // Initialize the Tao applications
-    Tao::TaoApplication tao(argc, argv);
+    Tao::Application tao(argc, argv);
     tao.setApplicationName ("Tao");
     tao.setOrganizationName ("Taodyne SAS");
 

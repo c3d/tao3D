@@ -126,7 +126,7 @@ QString Application::DefaultDocumentLibraryPath()
 //    The path proposed by default (first time run) for the user's doc library
 // ----------------------------------------------------------------------------
 {
-    return QDir::homePath() + tr("/Tao Library.tao");
+    return QDir::homePath() + tr("/Tao Library");
 }
 
 QString Application::UserDocumentLibraryPath()

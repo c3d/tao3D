@@ -29,6 +29,7 @@
 #include <QtGui/QApplication>
 #include <QtGui/QMessageBox>
 #include <QtWebKit>
+#include "application.h"
 #include "widget.h"
 #include "window.h"
 #include "main.h"
@@ -49,7 +50,7 @@ int main(int argc, char **argv)
             QGL::setPreferredPaintEngine(QPaintEngine::OpenGL);
 
     // Initialize the Tao applications
-    QApplication tao(argc, argv);
+    Tao::TaoApplication tao(argc, argv);
     tao.setApplicationName ("Tao");
     tao.setOrganizationName ("Taodyne SAS");
 
@@ -79,6 +80,9 @@ int main(int argc, char **argv)
     gs->setAttribute(QWebSettings::OfflineStorageDatabaseEnabled, true);
     gs->setAttribute(QWebSettings::OfflineWebApplicationCacheEnabled,true);
     gs->setAttribute(QWebSettings::LocalStorageEnabled, true);
+
+    // Open default document library
+    tao.OpenLibrary();
 
     // Setup the XL runtime environment
     XL::Compiler compiler("xl_tao");

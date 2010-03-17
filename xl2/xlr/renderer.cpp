@@ -435,7 +435,7 @@ void Renderer::RenderOne(Tree *what)
     case INTEGER:
         toText << ((Integer *) what)->value;
         t = toText.str();
-        RenderFormat (t, t, "integer");
+        RenderFormat (t, t, "integer ");
         break;
     case REAL:
         toText << ((Real *) what)->value;
@@ -448,7 +448,7 @@ void Renderer::RenderOne(Tree *what)
             else
                 t.insert(exponent, ".0");
         }
-        RenderFormat (t, t, "real");
+        RenderFormat (t, t, "real ");
         break;
     case TEXT: {
         Text *w = (Text *) what;

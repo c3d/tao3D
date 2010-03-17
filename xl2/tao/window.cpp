@@ -487,6 +487,7 @@ void Window::resetTaoMenus()
 }
 
 
+
 void Window::setCurrentFile(const QString &fileName)
 // ----------------------------------------------------------------------------
 //   Set the current file name, create one for empty documents
@@ -537,14 +538,19 @@ Window *Window::findWindow(const QString &fileName)
     return NULL;
 }
 
+
 void Window::updateProgram(XL::Tree *tree)
+// ----------------------------------------------------------------------------
+//    Change the program with the one given as input
+// ----------------------------------------------------------------------------
 {
-    if ( ! tree) return ;
-//    std::cerr << "Updating program with " << tree << "\n";
+    if (!tree)
+        return ;
+    IFTRACE(menus)
+        std::cerr << "Updating program with " << tree << "\n";
     std::ostringstream oss;
     oss << tree << "\n";
     textEdit->setPlainText(QString::fromStdString(oss.str()));
-    // save();
 }
 
 TAO_END

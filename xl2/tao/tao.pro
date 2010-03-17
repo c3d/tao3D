@@ -40,7 +40,6 @@ HEADERS += widget.h \
     window.h \
     frame.h \
     svg.h \
-    widget-surface.h \
     texture.h \
     coords.h \
     coords3d.h \
@@ -56,6 +55,9 @@ HEADERS += widget.h \
     shapename.h \
     treeholder.h \
     menuinfo.h \
+    git_backend.h \
+    widget-surface.h \
+    application.h \
     ../xlr/utf8.h \
     ../xlr/base.h \
     ../xlr/options.h \
@@ -103,6 +105,8 @@ SOURCES += tao_main.cpp \
     glew.c \
     treeholder.cpp \
     menuinfo.cpp \
+    git_backend.cpp \
+    application.cpp \
     ../xlr/tree.cpp \
     ../xlr/sha1.cpp \
     ../xlr/serializer.cpp \
@@ -156,7 +160,8 @@ OTHER_FILES += xl.syntax \
     dbghtml.stylesheet \
     bytecode.stylesheet \
     builtins.xl \
-    graphics.tbl
+    graphics.tbl \
+    git.stylesheet
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}

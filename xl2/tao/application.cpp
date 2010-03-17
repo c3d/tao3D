@@ -33,7 +33,7 @@ TAO_BEGIN
 
 void Application::OpenLibrary()
 // ----------------------------------------------------------------------------
-//    Open the user's default doc library, create it and save pref if needed
+//    Open the user's doc library, create it if needed
 // ----------------------------------------------------------------------------
 {
     bool ok = false;
@@ -45,13 +45,24 @@ void Application::OpenLibrary()
                                      QLineEdit::Normal,
                                      DefaultDocumentLibraryPath(),
                                      &ok);
+    else
+        if (!QDir(path).isReadable())
+            path = QInputDialog::getText(NULL, tr("Tao"),
+                                     tr("Your Tao document library cannot be "
+                                        "opened.\n"
+                                        "Please choose a folder where your "
+                                        "Tao documents will be stored:"),
+                                     QLineEdit::Normal,
+                                     path,
+                                     &ok);
     if (path.isNull())
         return;
     docLibrary.curPath = path;
     if (!docLibrary.Open())
     {
         QMessageBox::information(0, tr("Tao Library"),
-                                 tr("Failed to open Tao library"));
+                                 tr("Failed to open Tao library:\n") +
+                                 path);
         return;
     }
     if (ok)
@@ -126,7 +137,7 @@ QString Application::DefaultDocumentLibraryPath()
 //    The path proposed by default (first time run) for the user's doc library
 // ----------------------------------------------------------------------------
 {
-    return QDir::homePath() + tr("/Tao Library");
+    return QDir::homePath() + tr("/Tao Document Library");
 }
 
 QString Application::UserDocumentLibraryPath()

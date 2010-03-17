@@ -109,6 +109,7 @@ OPTION(gl, "Prefer OpenGL for rendering", prefer_opengl = true)
 
 TRACE(filesync)
 TRACE(menus)
+TRACE(process)
 #endif // TAO
 
 // Traces. The first ones must match the MzTrace definition in base.h

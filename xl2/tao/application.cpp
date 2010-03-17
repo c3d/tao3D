@@ -20,14 +20,15 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include "application.h"
+#include "repository.h"
+
 #include <QString>
 #include <QSettings>
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QLineEdit>
 #include <QDir>
-#include "application.h"
-#include "tao.h"
 
 TAO_BEGIN
 
@@ -47,8 +48,9 @@ void Application::OpenLibrary()
                                      &ok);
     if (path.isNull())
         return;
-    docLibrary.curPath = path;
-    if (!docLibrary.Open())
+    
+    repository = Repository::repository(path);
+    if (!repository)
     {
         QMessageBox::information(0, tr("Tao Library"),
                                  tr("Failed to open Tao library"));

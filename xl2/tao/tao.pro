@@ -38,6 +38,7 @@ linux-g++:DEFINES += CONFIG_LINUX
 # Input
 HEADERS += widget.h \
     window.h \
+    application.h \
     frame.h \
     svg.h \
     texture.h \
@@ -53,9 +54,10 @@ HEADERS += widget.h \
     shapename.h \
     treeholder.h \
     menuinfo.h \
-    git_backend.h \
     widget-surface.h \
-    application.h \
+    process.h \
+    repository.h \
+    git_backend.h \
     ../xlr/utf8.h \
     ../xlr/base.h \
     ../xlr/options.h \
@@ -102,6 +104,8 @@ SOURCES += tao_main.cpp \
     gl_keepers.cpp \
     treeholder.cpp \
     menuinfo.cpp \
+    process.cpp \
+    repository.cpp \
     git_backend.cpp \
     application.cpp \
     ../xlr/tree.cpp \

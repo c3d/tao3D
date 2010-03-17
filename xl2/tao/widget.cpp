@@ -290,7 +290,7 @@ void Widget::requestFocus(QWidget *widget)
         glGetDoublev(GL_PROJECTION_MATRIX, focusProjection);
         glGetDoublev(GL_MODELVIEW_MATRIX, focusModel);
         glGetIntegerv(GL_VIEWPORT, focusViewport);
-        
+
         QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
         QObject *fin = focusWidget;
         fin->event(&focusIn);

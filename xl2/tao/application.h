@@ -24,11 +24,11 @@
 
 #include <QApplication>
 #include "tao.h"
-#include "git_backend.h"
 
 TAO_BEGIN
 
 struct Widget;
+struct Repository;
 
 
 class Application : public QApplication
@@ -43,7 +43,7 @@ public:
     void OpenLibrary();
 
 private:
-    GitRepo           docLibrary;
+    Repository  *repository;    // REVISIT: One per application or per doc?
 };
 
 TAO_END

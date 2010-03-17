@@ -59,9 +59,12 @@ bool GitRepository::valid()
 // ----------------------------------------------------------------------------
 //   Check if the repository exists and is a valid git repository
 // ----------------------------------------------------------------------------
-//   We simply use 'git status' and check for errors
+//   We simply use 'git branch' and check for errors
+//   First, I tried with 'git status', but the return code is 1 after init
 {
-    Process cmd(command(), QStringList("status"), path);
+    if (!QDir(path).exists())
+        return false;
+    Process cmd(command(), QStringList("branch"), path);
     return cmd.done();
 }
 
@@ -71,6 +74,8 @@ bool GitRepository::initialize()
 //    Initialize a git repository if we need to
 // ----------------------------------------------------------------------------
 {
+    if (!QDir(path).mkpath("."))
+        return false;
     Process cmd(command(), QStringList("init"), path);
     return cmd.done();
 }

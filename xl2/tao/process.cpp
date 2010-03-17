@@ -97,6 +97,9 @@ bool Process::done()
         ok = false;
     }
 
+    if (exitCode())
+        ok = false;
+
     return ok;
 }
 

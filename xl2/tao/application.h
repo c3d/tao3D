@@ -41,6 +41,12 @@ public:
     Application(int & argc, char ** argv): QApplication(argc, argv) {}
 
     void OpenLibrary();
+    void InternalCleanEverythingAsIfTaoWereNeverRun();
+
+protected:
+    bool    RecursiveDelete(QString path);
+    QString DefaultDocumentLibraryPath();
+    QString UserDocumentLibraryPath();
 
 private:
     GitRepo           docLibrary;

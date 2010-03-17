@@ -584,28 +584,76 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
         forwardEvent(event);
 }
 
+#define         CONTEXT_MENU  "TAO_CONTEXT_MENU"
+#define   SHIFT_CONTEXT_MENU  "TAO_CONTEXT_MENU_SHIFT"
+#define CONTROL_CONTEXT_MENU  "TAO_CONTEXT_MENU_CONTROL"
+#define     ALT_CONTEXT_MENU  "TAO_CONTEXT_MENU_ALT"
+#define    META_CONTEXT_MENU  "TAO_CONTEXT_MENU_META"
+
 
 void Widget::mousePressEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 //   Mouse button click
 // ----------------------------------------------------------------------------
 {
-    EventSave save(this->event, event);
-
-    uint button = (uint) event->button();
-    int x = event->x();
-    int y = event->y();
-
-    // Check if there is an activity that deals with it
-    bool found = false;
-    for (Activity *a = activities; !found && a; a = a->next)
-        found = a->Click(button, true, x, y);
-
-    if (!found)
+    if (event->button() ==  Qt::RightButton)
     {
-        Selection *s = new Selection(this);
-        s->Click(button, true, x, y);
-        forwardEvent(event);
+    
+        QMenu * contextMenu = NULL;
+        switch (event->modifiers())
+        {
+        case Qt::NoModifier :
+            {
+                contextMenu = parent()->findChild<QMenu*>(CONTEXT_MENU);
+                break;
+            }
+        case Qt::ShiftModifier :
+            {
+                contextMenu = parent()->findChild<QMenu*>(SHIFT_CONTEXT_MENU);
+                break;
+            }
+        case Qt::ControlModifier :
+            {
+                contextMenu = parent()->findChild<QMenu*>(CONTROL_CONTEXT_MENU);
+                break;
+            }
+        case Qt::AltModifier :
+            {
+                contextMenu = parent()->findChild<QMenu*>(ALT_CONTEXT_MENU);
+                break;
+            }
+        case Qt::MetaModifier :
+            {
+                contextMenu = parent()->findChild<QMenu*>(META_CONTEXT_MENU);
+                break;
+            }
+        default : return;
+        }
+
+        if (!contextMenu) return;
+
+        contextMenu->exec(event->globalPos());
+        return;
+    } 
+    else 
+    {
+        EventSave save(this->event, event);
+
+        uint button = (uint) event->button();
+        int x = event->x();
+        int y = event->y();
+
+        // Check if there is an activity that deals with it
+        bool found = false;
+        for (Activity *a = activities; !found && a; a = a->next)
+            found = a->Click(button, true, x, y);
+
+        if (!found)
+        {
+            Selection *s = new Selection(this);
+            s->Click(button, true, x, y);
+            forwardEvent(event);
+        }
     }
 }
 
@@ -2046,8 +2094,12 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
         prefix.replace(TOPMENU, SUBMENU);
         fullname = prefix + '/' + QString::fromStdString(s);
 
+    } 
+    else if (QString::fromStdString(s).startsWith(CONTEXT_MENU))
+    {
+        fullname = QString::fromStdString(s);
     }
-    else
+    else 
     {
         fullname = TOPMENU + QString::fromStdString(s);
     }

@@ -31,7 +31,7 @@
 
 TAO_BEGIN
 
-void TaoApplication::OpenLibrary()
+void Application::OpenLibrary()
 {
     bool ok = false;
     QString path = QSettings().value("defaultlibrary").toString();

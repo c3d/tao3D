@@ -31,14 +31,14 @@ TAO_BEGIN
 struct Widget;
 
 
-class TaoApplication : public QApplication
+class Application : public QApplication
 // ----------------------------------------------------------------------------
 //    The main Tao application
 // ----------------------------------------------------------------------------
 {
 
 public:
-    TaoApplication(int & argc, char ** argv): QApplication(argc, argv) {}
+    Application(int & argc, char ** argv): QApplication(argc, argv) {}
 
     void OpenLibrary();
 

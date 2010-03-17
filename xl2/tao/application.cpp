@@ -32,6 +32,9 @@
 TAO_BEGIN
 
 void Application::OpenLibrary()
+// ----------------------------------------------------------------------------
+//    Open the user's default doc library, create it and save pref if needed
+// ----------------------------------------------------------------------------
 {
     bool ok = false;
     QString path = QSettings().value("defaultlibrary").toString();

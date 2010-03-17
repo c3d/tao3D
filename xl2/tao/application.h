@@ -41,7 +41,8 @@ class Application : public QApplication
 {
 
 public:
-    Application(int & argc, char ** argv): QApplication(argc, argv) {}
+    Application(int & argc, char ** argv);
+    ~Application();
 
     void OpenLibrary();
     void OpenLibrary(QString path);

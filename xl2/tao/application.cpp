@@ -34,6 +34,24 @@
 
 TAO_BEGIN
 
+
+Application::Application(int & argc, char ** argv)
+// ----------------------------------------------------------------------------
+//    Build the Tao application
+// ----------------------------------------------------------------------------
+    : QApplication(argc, argv)
+{}
+
+
+Application::~Application()
+// ----------------------------------------------------------------------------
+//    Delete application's repository object
+// ----------------------------------------------------------------------------
+{
+    delete repository;
+}
+
+
 void Application::OpenLibrary()
 // ----------------------------------------------------------------------------
 //   Open the default library, or ask the user which one to choose
@@ -69,6 +87,7 @@ void Application::OpenLibrary(QString path)
         if (path.isNull() || !ok)
             break;
  
+        delete repository;
         repository = Repository::repository(path);
         if (!repository)
         {

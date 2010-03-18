@@ -80,7 +80,7 @@ void Process::start(const QString &cmd, const QStringList &args)
 }
 
 
-bool Process::done(text *errors)
+bool Process::done(text *errors, text *output)
 // ----------------------------------------------------------------------------
 //    Return true if the process was successful
 // ----------------------------------------------------------------------------
@@ -105,15 +105,29 @@ bool Process::done(text *errors)
     if (rc)
         ok = false;
 
+    QString err, out;
+    bool tracing = XLTRACE(process);
     if (!ok)
     {
-        QString err = tr("Process '%1' terminated abormally "
-                         "with exit code %2:\n%3")
+        err = tr("Process '%1' terminated abormally "
+                 "with exit code %2:\n%3")
             .arg(commandLine) .arg(rc) .arg(QString(readAll()));
-        if (errors)
-            *errors = +err;
-        IFTRACE(process)
-            std::cerr << +err << "\n";
+    }
+    if (output || tracing)
+        out += QString(readAllStandardOutput());
+    if (errors || tracing)
+        err += QString(readAllStandardError());
+    if (output)
+        *output = +out;
+    if (errors)
+        *errors = +err;
+
+    if (tracing)
+    {
+        if (err.length())
+            std::cerr << "Process: Error " << +err << "\n";
+        if (out.length())
+            std::cerr << "Process: Output " << +out << "\n";
     }
 
     return ok;

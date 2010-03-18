@@ -44,7 +44,7 @@ struct Process : QProcess, std::streambuf
     virtual ~Process();
 
     virtual void start(const QString &cmd, const QStringList & arguments);
-    virtual bool done(text *errors = NULL);
+    virtual bool done(text *errors = NULL, text *output = NULL);
 
 protected:
     virtual void initialize(size_t bufSize);

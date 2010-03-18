@@ -182,9 +182,11 @@ externc void xl_assert_failed(kstring msg, kstring file, uint line);
 
 #ifdef XL_DEBUG
 extern ulong xl_traces;
-#  define IFTRACE(x)    if (xl_traces & (1 << XL::TRACE_##x))
+#  define IFTRACE(x)    if XLTRACE(x)
+#  define XLTRACE(x)    (xl_traces & (1 << XL::TRACE_##x))
 #else
 #  define IFTRACE(x)    if(0)
+#  define XLTRACE(x)    0
 #endif
 
 

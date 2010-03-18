@@ -77,19 +77,18 @@ text GitRepository::branch()
 //    Return the name of the current branch
 // ----------------------------------------------------------------------------
 {
+    text    output, result;
     Process cmd(command(), QStringList("branch"), path);
-    bool    ok = cmd.done(&errors);
-    QString result;
+    bool    ok = cmd.done(&errors, &output);
     if (ok)
     {
-        QString output(cmd.readAll());
-        QStringList branches = output.split("\n");
+        QStringList branches = (+output).split("\n");
         QRegExp re("^[*].*");
         int index = branches.indexOf(re);
         if (index > 0)
-            result = branches[index].mid(2);
+            result = +branches[index].mid(2);
     }
-    return +result;
+    return result;
 }
 
 

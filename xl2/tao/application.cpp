@@ -28,22 +28,23 @@
 #include <QMessageBox>
 #include <QLineEdit>
 #include <QDir>
+#include <QDebug>
 
 TAO_BEGIN
 
-void Application::OpenLibrary()
+void Application::openLibrary()
 // ----------------------------------------------------------------------------
 //    Open the user's doc library, create it if needed
 // ----------------------------------------------------------------------------
 {
     bool ok = false;
-    QString path = UserDocumentLibraryPath();
+    QString path = userDocumentLibraryPath();
     if (path.isNull())
         path = QInputDialog::getText(NULL, tr("Welcome to Tao!"),
                                      tr("Please choose a folder where your "
                                         "Tao documents will be stored:"),
                                      QLineEdit::Normal,
-                                     DefaultDocumentLibraryPath(),
+                                     defaultDocumentLibraryPath(),
                                      &ok);
     else
         if (!QDir(path).isReadable())
@@ -69,7 +70,7 @@ void Application::OpenLibrary()
         QSettings().setValue("defaultlibrary", path);
 }
 
-void Application::InternalCleanEverythingAsIfTaoWereNeverRun()
+void Application::internalCleanEverythingAsIfTaoWereNeverRun()
 // ----------------------------------------------------------------------------
 //    Clean persistent stuff that previous Tao runs may have created
 // ----------------------------------------------------------------------------
@@ -90,7 +91,7 @@ void Application::InternalCleanEverythingAsIfTaoWereNeverRun()
         return;
 
     // Default document library
-    QString path = DefaultDocumentLibraryPath();
+    QString path = defaultDocumentLibraryPath();
     ret = QMessageBox::question(0, tr("Tao"),
                                 tr("Do you want to delete:\n\n"
                                    "Default document library?") +
@@ -100,11 +101,11 @@ void Application::InternalCleanEverythingAsIfTaoWereNeverRun()
     if (ret == QMessageBox::Cancel)
         return;
     if (ret == QMessageBox::Yes || ret == QMessageBox::YesAll)
-        RecursiveDelete(path);
+        recursiveDelete(path);
 
     // User's document library, if not the default
-    path = UserDocumentLibraryPath();
-    if (!path.isNull() && path != DefaultDocumentLibraryPath())
+    path = userDocumentLibraryPath();
+    if (!path.isNull() && path != defaultDocumentLibraryPath())
     {
         if (ret != QMessageBox::YesAll)
             ret = QMessageBox::question(0, tr("Tao"),
@@ -116,7 +117,7 @@ void Application::InternalCleanEverythingAsIfTaoWereNeverRun()
         if (ret == QMessageBox::Cancel)
             return;
         if (ret == QMessageBox::Yes || ret == QMessageBox::YesAll)
-            RecursiveDelete(path);
+            recursiveDelete(path);
     }
 
     // User preferences
@@ -132,15 +133,54 @@ void Application::InternalCleanEverythingAsIfTaoWereNeverRun()
         QSettings().clear();
 }
 
-QString Application::DefaultDocumentLibraryPath()
+QString Application::documentsPath()
+// ----------------------------------------------------------------------------
+//    Try to guess the best documents folder to use by default
+// ----------------------------------------------------------------------------
+{
+#ifdef QT_WS_WIN
+    // Looking at the Windows registry
+    QSettings settings("HKEY_CURRENT_USER\\Software\\Microsoft\\CurrentVersion\\Explorer",
+                       QSettings::NativeFormat);
+    // For Windows Vista/7
+    QString path = settings.value("User Shell Folders\\Personal").toString();
+    if (!path.isNull())
+    {
+        // Typically C:\Users\username\Documents
+        return path;
+    }
+    // For Windows XP
+    path = settings.value("User Shell Folders\\Personal").toString();
+    if (!path.isNull())
+    {
+        // Typically C:\Documents and Settings\username\My Documents
+        return path;
+    }
+#endif // QT_WS_WIN
+
+    // Trying to ding a home sub-directory ending with "Documents"
+    QFileInfoList list = QDir::home().entryInfoList(QDir::NoDotAndDotDot | QDir::Dirs );
+    for (int i = 0; i < list.size(); i++)
+    {
+        QFileInfo info = list[i];
+        if (info.fileName().endsWith("documents", Qt::CaseInsensitive))
+        {
+            return info.canonicalFilePath();
+        }
+    }
+    // Last default would be home itself
+    return QDir::homePath();
+}
+
+QString Application::defaultDocumentLibraryPath()
 // ----------------------------------------------------------------------------
 //    The path proposed by default (first time run) for the user's doc library
 // ----------------------------------------------------------------------------
 {
-    return QDir::homePath() + tr("/Tao Document Library");
+    return documentsPath() + tr("/Tao Document Library");
 }
 
-QString Application::UserDocumentLibraryPath()
+QString Application::userDocumentLibraryPath()
 // ----------------------------------------------------------------------------
 //    The path to the current user's document library
 // ----------------------------------------------------------------------------
@@ -148,7 +188,7 @@ QString Application::UserDocumentLibraryPath()
     return QSettings().value("defaultlibrary").toString();
 }
 
-bool Application::RecursiveDelete(QString path)
+bool Application::recursiveDelete(QString path)
 // ----------------------------------------------------------------------------
 //    Delete a directory including all its files and sub-directories
 // ----------------------------------------------------------------------------
@@ -166,7 +206,7 @@ bool Application::RecursiveDelete(QString path)
             QFileInfo entryInfo = list[i];
             QString path = entryInfo.absoluteFilePath();
             if (entryInfo.isDir())
-                err = RecursiveDelete(path);
+                err = recursiveDelete(path);
             else
                 if (!QFile(path).remove())
                     err = true;

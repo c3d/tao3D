@@ -24,7 +24,8 @@ QT += webkit \
 
 # CONFIG += release
 CONFIG += warn_off \
-    debug
+    debug \
+    console
 
 # Tell the XLR portion that we are building for Tao
 DEFINES += TAO \

@@ -40,13 +40,14 @@ class Application : public QApplication
 public:
     Application(int & argc, char ** argv): QApplication(argc, argv) {}
 
-    void OpenLibrary();
-    void InternalCleanEverythingAsIfTaoWereNeverRun();
+    void openLibrary();
+    void internalCleanEverythingAsIfTaoWereNeverRun();
 
 protected:
-    bool    RecursiveDelete(QString path);
-    QString DefaultDocumentLibraryPath();
-    QString UserDocumentLibraryPath();
+    bool    recursiveDelete(QString path);
+    QString documentsPath();
+    QString defaultDocumentLibraryPath();
+    QString userDocumentLibraryPath();
 
 private:
     GitRepo           docLibrary;

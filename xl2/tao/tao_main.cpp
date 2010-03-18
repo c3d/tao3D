@@ -58,7 +58,7 @@ int main(int argc, char **argv)
     // Internal clean option
     if (tao.arguments().contains("--cleanenv"))
     {
-        tao.InternalCleanEverythingAsIfTaoWereNeverRun();
+        tao.internalCleanEverythingAsIfTaoWereNeverRun();
         return 0;
     }
 
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
     gs->setAttribute(QWebSettings::LocalStorageEnabled, true);
 
     // Open default document library
-    tao.OpenLibrary();
+    tao.openLibrary();
 
     // Setup the XL runtime environment
     XL::Compiler compiler("xl_tao");

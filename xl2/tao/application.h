@@ -44,8 +44,8 @@ public:
     Application(int & argc, char ** argv);
     ~Application();
 
-    void        OpenLibrary();
-    void        OpenLibrary(QString path);
+    bool        OpenLibrary();
+    bool        OpenLibrary(QString path, bool confirm = true);
     QDir        LibraryDirectory();
     Repository *Library()       { return repository; }
 

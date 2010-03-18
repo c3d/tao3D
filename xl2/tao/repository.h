@@ -73,6 +73,7 @@ public:
     text     errors;
 };
 
+#define TAO_UNDO_SUFFIX "_tao_undo"
 
 TAO_END
 

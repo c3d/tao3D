@@ -52,22 +52,23 @@ Application::~Application()
 }
 
 
-void Application::OpenLibrary()
+bool Application::OpenLibrary()
 // ----------------------------------------------------------------------------
 //   Open the default library, or ask the user which one to choose
 // ----------------------------------------------------------------------------
 {
     QString path = QSettings().value("defaultlibrary").toString();
-    OpenLibrary(path);
+    return OpenLibrary(path, false);
 }
 
 
-void Application::OpenLibrary(QString path)
+bool Application::OpenLibrary(QString path, bool confirm)
 // ----------------------------------------------------------------------------
 //   Open the default library, or ask the user which one to choose
 // ----------------------------------------------------------------------------
 {
     bool ok = true;
+    bool saveSettings = !confirm;
 
     do
     {
@@ -81,7 +82,7 @@ void Application::OpenLibrary(QString path)
 
         if (!ok)
             path = QInputDialog::getText(NULL, tr("Welcome to Tao!"),
-                                         tr("Please choose a folder "
+                                         tr("Please choose a directory "
                                              "for your project:"),
                                          QLineEdit::Normal, path, &ok);
         if (path.isNull() || !ok)
@@ -91,17 +92,16 @@ void Application::OpenLibrary(QString path)
         repository = Repository::repository(path);
         if (!repository)
         {
-            QMessageBox::StandardButton b = QMessageBox::
-                question (0, tr("Tao Library"),
-                          tr("The project '%1' does not appear to exist. "
-                             "Do you want to create it?\n\n"
-                             "'Yes' will create the project.\n"
-                             "'No' will continue without a valid project.\n"
-                             "'Retry' will let you select another location.")
-                          .arg(path),
-                          QMessageBox::Yes |
-                          QMessageBox::No |
-                          QMessageBox::Retry);
+            QMessageBox::StandardButton b = QMessageBox::question
+                (0, tr("Tao Library"),
+                 tr("The project '%1' does not appear to exist. "
+                    "Do you want to create it?\n\n"
+                    "Select 'Yes' to create the project, "
+                    "'No' to continue without a valid project, and"
+                    "'Retry' to choose another location.")
+                 .arg(path),
+                 QMessageBox::Yes | QMessageBox::No | QMessageBox::Retry);
+
             switch(b)
             {
             case QMessageBox::Retry:
@@ -129,20 +129,83 @@ void Application::OpenLibrary(QString path)
             }
         }
 
-        // Select the task branch, either current branch or without _undo
-        if (repository && repository->valid())
+        // Select the task branch, either current branch or without _tao_undo
+        if (ok && repository && repository->valid())
         {
             text task = repository->branch();
-            size_t len = task.length() - (sizeof ("_undo") - 1);
-            if (task.find("_undo") == len)
+            size_t len = task.length() - (sizeof (TAO_UNDO_SUFFIX) - 1);
+            text currentBranch = task;
+            bool onUndoBranch = task.find(TAO_UNDO_SUFFIX) == len;
+            bool setTask = false;
+            if (onUndoBranch)
                 task = task.substr(0, len);
-            repository->setTask(task);
+
+            if (confirm)
+            {
+                QMessageBox::StandardButton b;
+                if (onUndoBranch)
+                    b = QMessageBox::question
+                        (0, tr("Tao Library"),
+                         tr("The library '%1' appears to be in use by Tao, "
+                            "because the current branch is named '%2'.\n"
+                            "Do you want Tao to use it for this session? "
+                            "Select 'Yes' to use it for this session only, "
+                            "'No' to leave it unmodified, "
+                            "'Save' to use it for this session and later ones, "
+                            "and 'Retry' to select another location.").
+                         arg(path).arg(+currentBranch),
+                         QMessageBox::Yes | QMessageBox::No |
+                         QMessageBox::Save | QMessageBox::Retry);
+                else
+                    b = QMessageBox::question
+                        (0, tr("Tao Library"),
+                         tr("The library '%1' is a valid repository, but "
+                            "is not currently used for Tao, because the "
+                            "current branch is named '%2'. If you use it "
+                            "for Tao, the current branch will be changed "
+                            "to '%3'.\n"
+                            "Select 'Yes' to use it for this session only, "
+                            "'No' to leave it unmodified, "
+                            "'Save' to use it for this session and later ones, "
+                            "and 'Retry' to select another location.").
+                         arg(path).arg(+currentBranch)
+                         .arg(+currentBranch + TAO_UNDO_SUFFIX),
+                         QMessageBox::Yes | QMessageBox::No |
+                         QMessageBox::Save | QMessageBox::Retry);
+
+                switch (b)
+                {
+                case QMessageBox::Yes:
+                    setTask = true;
+                    break;
+                case QMessageBox::No:
+                    setTask = false;
+                    break;
+                case QMessageBox::Retry:
+                    ok = false;
+                    setTask = false;
+                    break;
+                case QMessageBox::Save:
+                    setTask = true;
+                    saveSettings = true;
+                    break;
+                default:
+                    QMessageBox::question(0, tr("Coin?"),
+                                          tr("How did you do that?"),
+                                          QMessageBox::Discard);
+                }
+            }
+
+            if (setTask)
+                repository->setTask(task);
         }
 
     } while (!ok);
 
-    if (ok)
+    if (ok && saveSettings)
         QSettings().setValue("defaultlibrary", path);
+
+    return ok;
 }
 
 

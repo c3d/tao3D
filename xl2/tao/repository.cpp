@@ -114,8 +114,8 @@ bool Repository::setTask(text name)
             return false;
 
     // Check if we can checkout the undo branch
-    if (!checkout(name + "_undo"))
-        if (!branch(name + "_undo") || !checkout(name + "_undo"))
+    if (!checkout(name + TAO_UNDO_SUFFIX))
+        if (!branch(name + TAO_UNDO_SUFFIX)||!checkout(name + TAO_UNDO_SUFFIX))
             return false;
 
     // We are now on the _undo branch
@@ -153,7 +153,7 @@ bool Repository::selectUndoBranch()
 //    Select the undo branch
 // ----------------------------------------------------------------------------
 {
-    return checkout(task + "_undo");
+    return checkout(task + TAO_UNDO_SUFFIX);
 }
 
 TAO_END

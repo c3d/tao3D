@@ -178,7 +178,7 @@ bool Selection::Click(uint button, bool down, int x, int y)
         if (selected)
         {
             Drag *d = new Drag(saved_widget);
-            d->Click(button, down, x, widget->height() - y);
+            d->Click(button, down, x, saved_widget->height() - y);
         }
     }
 

@@ -1400,7 +1400,7 @@ Tree *Widget::circle(Tree *self, real_r cx, real_r cy, real_r r)
 //     GL circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, self, cx-r, cy-r, 2*r, 2*r);
+    ShapeSelection name(this, self, cx, cy, r, r);
 
     glBegin(state.polygonMode);
     circularSectorN(cx, cy, r, 0, 0, 1, 1, 0, 4);
@@ -1417,7 +1417,7 @@ Tree *Widget::circularSector(Tree *self,
 //     GL circular sector centered around (cx,cy), radius r and two angles a, b
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, self, cx-r, cy-r, 2*r, 2*r);
+    ShapeSelection name(this, self, cx, cy, r, r);
 
     double db = b;
     double da = a;
@@ -1454,7 +1454,7 @@ Tree *Widget::roundedRectangle(Tree *self,
 //     GL rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, self, cx-w/2, cy-h/2, w, h);
+    ShapeSelection name(this, self, cx, cy, w, h);
 
     if (r <= 0) return rectangle(self, cx, cy, w, h);
     if (r > w/2) r = w/2;
@@ -1518,27 +1518,7 @@ Tree *Widget::rectangle(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
 //     GL rectangle centered around (cx,cy), width w, height h
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, self, cx-w/2, cy-h/2, w, h);
-
-    if (selected())
-    {
-        requestFocus();
-        if (Drag *d = dynamic_cast<Drag *>(activities))
-        {
-            double x1 = d->x1;
-            double y1 = d->y1;
-            double x2 = d->x2;
-            double y2 = d->y2;
-            int hh = height();
-
-            Point3 u1 = unproject(x1, hh-y1, 0);
-            Point3 u2 = unproject(x2, hh-y2, 0);
-            cx.value += (u2 - u1).x;
-            cy.value += (u2 - u1).y;
-
-            name.bounds = Box3(cx-w/2, cy-h/2, -(w+h), w, h, 2*(w+h));
-        }
-    }
+    ShapeSelection name(this, self, cx, cy, w, h);
 
     glBegin(state.polygonMode);
     {
@@ -1559,7 +1539,7 @@ Tree *Widget::regularStarPolygon(Tree *self, real_r cx, real_r cy, real_r r,
 //     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, self, cx-r, cy-r, 2*r, 2*r);
+    ShapeSelection name(this, self, cx, cy, r, r);
 
     if (p < 2 || q < 1 || q > (p-1)/2)
         return XL::xl_false;
@@ -1870,7 +1850,7 @@ Tree *Widget::framePaint(Tree *self, real_r x, real_r y, real_r w, real_r h)
     frameTexture(self, w, h);
 
     // Draw a rectangle with the resulting texture
-    ShapeSelection name(this, self, x-w/2, y-h/2, w, h, false);
+    ShapeSelection name(this, self, x, y, w, h, false);
     glBegin(GL_QUADS);
     {
         widgetVertex(x-w/2, y-h/2, 0, 0);
@@ -1910,14 +1890,14 @@ Tree *Widget::urlTexture(Tree *self, double w, double h,
 
 
 Tree *Widget::urlPaint(Tree *self,
-                       double x, double y, double w, double h,
+                       real_r x, real_r y, real_r w, real_r h,
                        Text *url, Integer *progress)
 // ----------------------------------------------------------------------------
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeSelection name(this, self, x-w/2, y-h/2, w, h, false);
+    ShapeSelection name(this, self, x, y, w, h, false);
     urlTexture(self, w, h, url, progress);
 
     // Draw a rectangle with the resulting texture
@@ -1959,14 +1939,14 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
 
 
 Tree *Widget::lineEdit(Tree *self,
-                       double x, double y,
-                       double w, double h, Text *txt)
+                       real_r x, real_r y, real_r w, real_r h,
+                       Text *txt)
 // ----------------------------------------------------------------------------
 //   Draw a line editor in the curent frame
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeSelection name(this, self, x-w/2, y-h/2, w, h, false);
+    ShapeSelection name(this, self, x, y, w, h, false);
     lineEditTexture(self, w, h, txt);
 
     // Draw a rectangle with the resulting texture

@@ -101,6 +101,7 @@ SOURCES += tao_main.cpp \
     apply-changes.cpp \
     activity.cpp \
     selection.cpp \
+    shapename.cpp \
     gl_keepers.cpp \
     treeholder.cpp \
     menuinfo.cpp \

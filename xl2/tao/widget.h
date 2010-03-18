@@ -95,12 +95,14 @@ public slots:
     void        userMenu(QAction *action);
 
 public:
-    typedef XL::Tree    Tree;
-    typedef XL::Integer Integer;
-    typedef XL::Real    Real;
-    typedef XL::Text    Text;
-    typedef XL::Name    Name;
-    typedef XL::real_r  real_r;
+    typedef XL::Tree      Tree;
+    typedef XL::Integer   Integer;
+    typedef XL::Real      Real;
+    typedef XL::Text      Text;
+    typedef XL::Name      Name;
+    typedef XL::real_r    real_r;
+    typedef XL::integer_r integer_r;
+    typedef XL::text_r    text_r;
 
     // XLR entry points
     static Widget *Tao() { return current; }
@@ -170,10 +172,10 @@ public:
     Tree *frameTexture(Tree *self, double w, double h);
     Tree *framePaint(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *urlTexture(Tree *self, double x, double y, Text *s, Integer *p);
-    Tree *urlPaint(Tree *self, double x, double y, double w, double h,
+    Tree *urlPaint(Tree *self, real_r x, real_r y, real_r w, real_r h,
                    Text *s, Integer *p);
     Tree *lineEditTexture(Tree *self, double x, double y, Text *s);
-    Tree *lineEdit(Tree *self, double x, double y, double w, double h, Text *s);
+    Tree *lineEdit(Tree *self, real_r x,real_r y, real_r w,real_r h, Text *s);
 
     Tree *qtrectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *qttext(Tree *self, double x, double y, text s);

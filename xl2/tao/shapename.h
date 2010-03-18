@@ -25,6 +25,7 @@
 #include "widget.h"
 #include "tree.h"
 #include "coords3d.h"
+#include "opcodes.h"
 
 
 TAO_BEGIN
@@ -59,19 +60,21 @@ struct ShapeSelection : ShapeName
 {
     ShapeSelection(Widget *widget, XL::Tree *tree,
                    const Box3 &box, bool deep = true)
-        : ShapeName(widget, tree), bounds(box), deep(deep) {}
+        : ShapeName(widget, tree), bounds(box), 
+          x(NULL), y(NULL), w(NULL), h(NULL),
+          deep(deep) {}
     ShapeSelection(Widget *widget, XL::Tree *tree,
-                   coord x, coord y, coord w, coord h,
+                   XL::real_r x, XL::real_r y, XL::real_r w, XL::real_r h,
                    bool deep = true)
-        : ShapeName(widget,tree),bounds(x,y,-(w+h)/4,w,h,(w+h)/2),deep(deep) {}
+        : ShapeName(widget,tree),
+          bounds(x,y,-(w+h)/4,w,h,(w+h)/2),
+          x(&x), y(&y), w(&w), h(&h),
+          deep(deep) {}
 
-    ~ShapeSelection()
-    {
-        if (widget->selected())
-            widget->drawSelection(bounds, deep);
-    }
+    ~ShapeSelection();
 
     Box3 bounds;
+    XL::tree_p x, y, w, h;
     bool deep;
 };
 

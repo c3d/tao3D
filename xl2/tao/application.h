@@ -49,6 +49,13 @@ public:
     QDir        LibraryDirectory();
     Repository *Library()       { return repository; }
 
+    void        InternalCleanEverythingAsIfTaoWereNeverRun();
+
+protected:
+    bool        RecursiveDelete(QString path);
+    QString     DefaultDocumentLibraryPath();
+    QString     UserDocumentLibraryPath();
+
 private:
     Repository  *repository;    // REVISIT: One per application or per doc?
 };

@@ -23,6 +23,7 @@
 #include "application.h"
 #include "repository.h"
 #include "git_backend.h"
+#include "tao.h"
 
 #include <QString>
 #include <QSettings>
@@ -58,7 +59,7 @@ bool Application::OpenLibrary()
 //   Open the default library, or ask the user which one to choose
 // ----------------------------------------------------------------------------
 {
-    QString path = QSettings().value("defaultlibrary").toString();
+    QString path = UserDocumentLibraryPath();
     return OpenLibrary(path, false);
 }
 
@@ -75,8 +76,7 @@ bool Application::OpenLibrary(QString path, bool confirm)
     {
         if (path.isNull())
         {
-            QDir dir(QDir::homePath());
-            dir.filePath("Tao Library.tao");
+            path = DefaultDocumentLibraryPath();
             ok = false;
         }
         path = QDir::cleanPath(path);
@@ -267,6 +267,118 @@ void pqs(const QString &qs)
 // ----------------------------------------------------------------------------
 {
     qDebug() << qs << "\n";
+}
+
+
+void Application::InternalCleanEverythingAsIfTaoWereNeverRun()
+// ----------------------------------------------------------------------------
+//    Clean persistent stuff that previous Tao runs may have created
+// ----------------------------------------------------------------------------
+{
+    int ret;
+    ret = QMessageBox::warning(0, tr("Tao"),
+                               tr("Cleaning the Tao environment"
+                                  "\n\n"
+                                  "This command allows you to clean the Tao "
+                                  "environment: user preferences, default "
+                                  "document library, etc.\n"
+                                  "A confirmation will be asked for each "
+                                  "item to be deleted. You may also choose to "
+                                  "delete all items at once."),
+                             QMessageBox::Ok | QMessageBox::Cancel,
+                             QMessageBox::Cancel);
+    if (ret  != QMessageBox::Ok)
+        return;
+
+    // Default document library
+    QString path = DefaultDocumentLibraryPath();
+    ret = QMessageBox::question(0, tr("Tao"),
+                                tr("Do you want to delete:\n\n"
+                                   "Default document library?") +
+                                " (" + path + ")",
+                                QMessageBox::Yes    | QMessageBox::No |
+                                QMessageBox::YesAll | QMessageBox::Cancel);
+    if (ret == QMessageBox::Cancel)
+        return;
+    if (ret == QMessageBox::Yes || ret == QMessageBox::YesAll)
+        RecursiveDelete(path);
+
+    // User's document library, if not the default
+    path = UserDocumentLibraryPath();
+    if (!path.isNull() && path != DefaultDocumentLibraryPath())
+    {
+        if (ret != QMessageBox::YesAll)
+            ret = QMessageBox::question(0, tr("Tao"),
+                                        tr("Do you want to delete:\n\n"
+                                           "User's document library?") +
+                                        " (" + path + ")",
+                                        QMessageBox::Yes    | QMessageBox::No |
+                                        QMessageBox::YesAll | QMessageBox::Cancel);
+        if (ret == QMessageBox::Cancel)
+            return;
+        if (ret == QMessageBox::Yes || ret == QMessageBox::YesAll)
+            RecursiveDelete(path);
+    }
+
+    // User preferences
+    if (ret != QMessageBox::YesAll)
+        ret = QMessageBox::question(0, tr("Tao"),
+                                    tr("Do you want to delete:\n\n"
+                                       "Tao user preferences?"),
+                                    QMessageBox::Yes    | QMessageBox::No |
+                                    QMessageBox::YesAll | QMessageBox::Cancel);
+    if (ret == QMessageBox::Cancel)
+        return;
+    if (ret == QMessageBox::Yes || ret == QMessageBox::YesAll)
+        QSettings().clear();
+}
+
+
+QString Application::DefaultDocumentLibraryPath()
+// ----------------------------------------------------------------------------
+//    The path proposed by default (first time run) for the user's doc library
+// ----------------------------------------------------------------------------
+{
+    return QDir::homePath() + tr("/Tao Document Library");
+}
+
+
+QString Application::UserDocumentLibraryPath()
+// ----------------------------------------------------------------------------
+//    The path to the current user's document library
+// ----------------------------------------------------------------------------
+{
+    return QSettings().value("defaultlibrary").toString();
+}
+
+
+bool Application::RecursiveDelete(QString path)
+// ----------------------------------------------------------------------------
+//    Delete a directory including all its files and sub-directories
+// ----------------------------------------------------------------------------
+{
+    QDir dir(path);
+
+    bool err = false;
+    if (dir.exists())
+    {
+        QFileInfoList list = dir.entryInfoList(QDir::NoDotAndDotDot |
+                                               QDir::Dirs | QDir::Files |
+                                               QDir::Hidden);
+        for (int i = 0; (i < list.size()) && !err; i++)
+        {
+            QFileInfo entryInfo = list[i];
+            QString path = entryInfo.absoluteFilePath();
+            if (entryInfo.isDir())
+                err = RecursiveDelete(path);
+            else
+                if (!QFile(path).remove())
+                    err = true;
+        }
+        if (!QDir().rmdir(path))
+            err = true;
+    }
+    return err;
 }
 
 TAO_END

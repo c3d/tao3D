@@ -54,7 +54,7 @@ locally
     browser "http://www.google.com", 0, 700,800
 
 locally
-    translate -570,0,150
+    translate -570 + 200*sin time,0,150
     rotatey 40
     scale 30%, 30%, 30%
     browser "http://grenouille-bouillie.blogspot.com", 0, 700,800

@@ -57,19 +57,22 @@ struct ShapeSelection : ShapeName
 //    Structure used to assigne shape IDs and draw a selection rectangle
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection(Widget *widget, XL::Tree *tree, const Box3 &box)
-        : ShapeName(widget, tree), bounds(box) {}
     ShapeSelection(Widget *widget, XL::Tree *tree,
-                   coord x, coord y, coord w, coord h)
-        : ShapeName(widget, tree), bounds(x, y, -(w+h)/4, w, h, (w+h)/2) {}
+                   const Box3 &box, bool deep = true)
+        : ShapeName(widget, tree), bounds(box), deep(deep) {}
+    ShapeSelection(Widget *widget, XL::Tree *tree,
+                   coord x, coord y, coord w, coord h,
+                   bool deep = true)
+        : ShapeName(widget,tree),bounds(x,y,-(w+h)/4,w,h,(w+h)/2),deep(deep) {}
 
     ~ShapeSelection()
     {
         if (widget->selected())
-            widget->drawSelection(bounds);
+            widget->drawSelection(bounds, deep);
     }
 
     Box3 bounds;
+    bool deep;
 };
 
 TAO_END

@@ -1037,76 +1037,79 @@ bool Widget::selected()
 }
 
 
-void Widget::drawSelection(const Box3 &bounds)
+void Widget::drawSelection(const Box3 &bounds, bool deep)
 // ----------------------------------------------------------------------------
-//    Draw a 3D selection with the given coordinates
-// ----------------------------------------------------------------------------
-{
-    GLAttribKeeper save(GL_TEXTURE_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT);
-
-    Point3 c = bounds.Center();
-    coord xc = c.x;
-    coord yc = c.y;
-    coord zc = c.z;
-
-    coord w = bounds.Width(); 
-    coord h = bounds.Height(); 
-    coord d = bounds.Depth();
-
-    // Compute the box around the item
-    coord r = w;
-    if (r > h) r = h;
-    if (r > d) r = d;
-    r /= 4;
-    if (r < 15.0)
-        r = 15.0;
-
-    coord xl = bounds.lower.x - r;
-    coord xu = bounds.upper.x + r;
-    coord yl = bounds.lower.y - r;
-    coord yu = bounds.upper.y + r;
-    coord zl = bounds.lower.z - r;
-    coord zu = bounds.upper.z + r;
-
-    setupGL();
-    glDisable(GL_DEPTH_TEST);
-
-    glBegin(GL_TRIANGLE_FAN);
-    glColor4f(1.0, 1.0, 1.0, 0.1);    glVertex3f(xc, yc, zu);
-    glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
-    glColor4f(0.0, 0.0, 1.0, 0.4);    glVertex3f(xl, yu, zc);
-    glColor4f(0.0, 1.0, 1.0, 0.4);    glVertex3f(xu, yu, zc);
-    glColor4f(1.0, 1.0, 0.0, 0.4);    glVertex3f(xu, yl, zc);
-    glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
-    glEnd();
-
-    glBegin(GL_TRIANGLE_FAN);
-    glColor4f(0.0, 0.0, 0.0, 0.4);    glVertex3f(xc, yc, zl);
-    glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
-    glColor4f(0.0, 0.0, 1.0, 0.4);    glVertex3f(xl, yu, zc);
-    glColor4f(0.0, 1.0, 1.0, 0.4);    glVertex3f(xu, yu, zc);
-    glColor4f(1.0, 1.0, 0.0, 0.4);    glVertex3f(xu, yl, zc);
-    glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
-    glEnd();
-}
-
-
-void Widget::drawSelection(const Box &bounds)
-// ----------------------------------------------------------------------------
-//    Draw a 2D selection with the given box
+//    Draw a 2D or 3D selection with the given coordinates
 // ----------------------------------------------------------------------------
 {
-    GLAttribKeeper save(GL_CURRENT_BIT | GL_LINE_BIT);
-    glLineWidth (3.0);
-    glColor4f(1.0, 0.0, 0.0, 0.5);
-    glBegin(GL_LINE_LOOP);
+    if (deep)
     {
-        glVertex2f(bounds.lower.x, bounds.lower.y);
-        glVertex2f(bounds.lower.x, bounds.upper.y);
-        glVertex2f(bounds.upper.x, bounds.upper.y);
-        glVertex2f(bounds.upper.x, bounds.lower.y);
+        // Use 3D selection
+        coord x = bounds.Left();
+        coord y = bounds.Bottom();
+        coord w = bounds.Width();
+        coord h = bounds.Height();
+        coord d = bounds.Depth();
+
+        GLAttribKeeper save(GL_TEXTURE_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT);
+
+        Point3 c  = bounds.Center();
+        coord  xc = c.x;
+        coord  yc = c.y;
+        coord  zc = c.z;
+
+        // Compute the box around the item
+        coord r = w;
+        if (r > h) r = h;
+        if (r > d) r = d;
+        r /= 4;
+        if (r < 15.0)
+            r = 15.0;
+
+        coord xl = bounds.lower.x - r;
+        coord xu = bounds.upper.x + r;
+        coord yl = bounds.lower.y - r;
+        coord yu = bounds.upper.y + r;
+        coord zl = bounds.lower.z - r;
+        coord zu = bounds.upper.z + r;
+
+        setupGL();
+        glDisable(GL_DEPTH_TEST);
+
+        glBegin(GL_TRIANGLE_FAN);
+        glColor4f(1.0, 1.0, 1.0, 0.1);    glVertex3f(xc, yc, zu);
+        glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
+        glColor4f(0.0, 0.0, 1.0, 0.4);    glVertex3f(xl, yu, zc);
+        glColor4f(0.0, 1.0, 1.0, 0.4);    glVertex3f(xu, yu, zc);
+        glColor4f(1.0, 1.0, 0.0, 0.4);    glVertex3f(xu, yl, zc);
+        glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
+        glEnd();
+
+        glBegin(GL_TRIANGLE_FAN);
+        glColor4f(0.0, 0.0, 0.0, 0.4);    glVertex3f(xc, yc, zl);
+        glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
+        glColor4f(0.0, 0.0, 1.0, 0.4);    glVertex3f(xl, yu, zc);
+        glColor4f(0.0, 1.0, 1.0, 0.4);    glVertex3f(xu, yu, zc);
+        glColor4f(1.0, 1.0, 0.0, 0.4);    glVertex3f(xu, yl, zc);
+        glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
+        glEnd();
     }
-    glEnd();
+    else
+    {
+        // 2D drawing: Just draw a rectangle around the shape
+        GLAttribKeeper save(GL_CURRENT_BIT | GL_LINE_BIT);
+        double z = (bounds.lower.z + bounds.upper.z) / 2;
+        glLineWidth (3.0);
+        glColor4f(1.0, 0.0, 0.0, 0.5);
+        glBegin(GL_LINE_LOOP);
+        {
+            glVertex3f(bounds.lower.x, bounds.lower.y, z);
+            glVertex3f(bounds.lower.x, bounds.upper.y, z);
+            glVertex3f(bounds.upper.x, bounds.upper.y, z);
+            glVertex3f(bounds.upper.x, bounds.lower.y, z);
+        }
+        glEnd();
+    }
 }
 
 
@@ -1865,7 +1868,7 @@ Tree *Widget::framePaint(Tree *self, double x, double y, double w, double h)
     frameTexture(self, w, h);
 
     // Draw a rectangle with the resulting texture
-    ShapeSelection name(this, self, x-w/2, y-h/2, w, h);
+    ShapeSelection name(this, self, x-w/2, y-h/2, w, h, false);
     glBegin(GL_QUADS);
     {
         widgetVertex(x-w/2, y-h/2, 0, 0);
@@ -1912,7 +1915,7 @@ Tree *Widget::urlPaint(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, self);
+    ShapeSelection name(this, self, x-w/2, y-h/2, w, h, false);
     urlTexture(self, w, h, url, progress);
 
     // Draw a rectangle with the resulting texture
@@ -1924,8 +1927,6 @@ Tree *Widget::urlPaint(Tree *self,
         widgetVertex(x-w/2, y+h/2, 0, 1);
     }
     glEnd();
-    if (selected())
-        drawSelection(Box(x-w/2, y-h/2, w, h));
 
     return XL::xl_true;
 }
@@ -1963,7 +1964,7 @@ Tree *Widget::lineEdit(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, self);
+    ShapeSelection name(this, self, x-w/2, y-h/2, w, h, false);
     lineEditTexture(self, w, h, txt);
 
     // Draw a rectangle with the resulting texture
@@ -1975,9 +1976,6 @@ Tree *Widget::lineEdit(Tree *self,
         widgetVertex(x-w/2, y+h/2, 0, 1);
     }
     glEnd();
-
-    if (selected())
-        drawSelection(Box(x-w/2, y-h/2, w, h));
 
     return XL::xl_true;
 }

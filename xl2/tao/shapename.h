@@ -59,18 +59,10 @@ struct ShapeSelection : ShapeName
 // ----------------------------------------------------------------------------
 {
     ShapeSelection(Widget *widget, XL::Tree *tree,
-                   const Box3 &box, bool deep = true)
-        : ShapeName(widget, tree), bounds(box), 
-          x(NULL), y(NULL), w(NULL), h(NULL),
-          deep(deep) {}
+                   const Box3 &box, bool deep = true);
     ShapeSelection(Widget *widget, XL::Tree *tree,
                    XL::real_r x, XL::real_r y, XL::real_r w, XL::real_r h,
-                   bool deep = true)
-        : ShapeName(widget,tree),
-          bounds(x,y,-(w+h)/4,w,h,(w+h)/2),
-          x(&x), y(&y), w(&w), h(&h),
-          deep(deep) {}
-
+                   bool deep = true);
     ~ShapeSelection();
 
     Box3 bounds;

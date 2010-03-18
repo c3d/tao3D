@@ -81,8 +81,8 @@ HEADERS += widget.h \
     ../xlr/types.h \
     ../xlr/diff.h \
     ../xlr/lcs.h \
-    ../xlr/bfs.h
-
+    ../xlr/bfs.h \
+    drag.h
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \
@@ -120,8 +120,8 @@ SOURCES += tao_main.cpp \
     ../xlr/compiler.cpp \
     ../xlr/basics.cpp \
     ../xlr/diff.cpp \
-    ../xlr/lcs.cpp
-
+    ../xlr/lcs.cpp \
+    drag.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \

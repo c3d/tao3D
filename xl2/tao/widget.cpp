@@ -36,6 +36,7 @@
 #include "apply-changes.h"
 #include "activity.h"
 #include "selection.h"
+#include "drag.h"
 #include "shapename.h"
 #include "treeholder.h"
 #include "menuinfo.h"
@@ -272,6 +273,15 @@ void Widget::requestFocus(QWidget *widget)
     }
 }
 
+void Widget::requestFocus()
+// ----------------------------------------------------------------------------
+//   Some other non-widget request the focus
+// ----------------------------------------------------------------------------
+{
+    glGetDoublev(GL_PROJECTION_MATRIX, focusProjection);
+    glGetDoublev(GL_MODELVIEW_MATRIX, focusModel);
+    glGetIntegerv(GL_VIEWPORT, focusViewport);
+}
 
 Point3 Widget::unproject (coord x, coord y, coord z)
 // ----------------------------------------------------------------------------
@@ -541,7 +551,6 @@ bool Widget::forwardEvent(QMouseEvent *event)
         int hh = height();
 
         Point3 u = unproject(x, hh-y, 0);
-        Point3 v = unproject(x, y, 0);
         QMouseEvent local(event->type(), QPoint(u.x + w/2, h/2 - u.y),
                           event->button(), event->buttons(),
                           event->modifiers());
@@ -1319,8 +1328,8 @@ Tree *Widget::circularSector(Tree *self,
 
 
 Tree *Widget::roundedRectangle(Tree *self,
-                               double cx, double cy,
-                               double w, double h, double r)
+                               real_r cx, real_r cy,
+                               real_r w, real_r h, real_r r)
 // ----------------------------------------------------------------------------
 //     GL rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
@@ -1384,12 +1393,29 @@ Tree *Widget::roundedRectangle(Tree *self,
 }
 
 
-Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
+Tree *Widget::rectangle(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //     GL rectangle centered around (cx,cy), width w, height h
 // ----------------------------------------------------------------------------
 {
     ShapeSelection name(this, cx-w/2, cy-h/2, w, h);
+
+    if (selected())
+    {
+        requestFocus();
+        if (Drag *d = dynamic_cast<Drag *>(activities))
+        {
+            double x = d->x;
+            double y = d->y;
+            int hh = height();
+
+            Point3 u = unproject(x, hh-y, 0);
+            cx.value = u.x;
+            cy.value = u.y;
+
+            name.bounds = Box3(cx-w/2, cy-h/2, -(w+h), w, h, 2*(w+h));
+        }
+    }
 
     glBegin(state.polygonMode);
     {

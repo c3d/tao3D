@@ -288,6 +288,7 @@ inline double CurrentTime()
 #define TAO(x)  (Tao::Widget::Tao() ? Tao::Widget::Tao()->x : 0)
 #define RTAO(x) return TAO(x)
 
+
 } // namespace Tao
 
 

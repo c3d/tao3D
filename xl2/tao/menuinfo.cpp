@@ -47,9 +47,8 @@ MenuInfo::MenuInfo(QMenuBar *menubar, QMenu *menu, std::string name)
     : menubar(menubar), action(NULL), menu(menu),fullName(name)
 {
     IFTRACE(menus)
-        std::cout<< "MenuInfo : " << name<< " menu created, "
-                 << menubar->children().size()
-                 << " children present in the menubar\n";
+        std::cout<< "MenuInfo : " << name<< " menu created\n";
+
 }
 
 
@@ -60,6 +59,13 @@ MenuInfo::~MenuInfo()
 {
     IFTRACE(menus)
         std::cout << "Delete MenuInfo for " << fullName << "\n";
+}
+
+
+XL::Tree * CleanMenuInfo::Do(XL::Tree *what)
+{
+    if (what) what->Purge<MenuInfo>();
+    return what;
 }
 
 TAO_END

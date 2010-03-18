@@ -70,7 +70,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       frame(NULL), mainFrame(NULL), activities(NULL),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
-      page_start_time(CurrentTime()), event(NULL), focusWidget(NULL),
+      page_start_time(CurrentTime()),
+      id(0), capacity(0),
+      event(NULL), focusWidget(NULL),
       whatsNew("")
 {
     // Make sure we don't fill background with crap
@@ -570,6 +572,8 @@ void Widget::runProgram()
     // Remember how many elements are drawn on the page, plus arbitrary buffer
     if (id > capacity)
         capacity = id + 100;
+    else if (id + 50 < capacity / 2)
+        capacity = capacity / 2;
 }
 
 

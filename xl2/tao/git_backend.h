@@ -57,6 +57,7 @@ public:
 
 protected:
     virtual QString     command();
+    virtual QString     userVisibleName();
     virtual text        styleSheet();
 };
 

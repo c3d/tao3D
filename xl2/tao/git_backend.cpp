@@ -37,6 +37,15 @@ QString GitRepository::command()
 }
 
 
+QString GitRepository::userVisibleName()
+// ----------------------------------------------------------------------------
+//   Return the user visible name for the kind of repository
+// ----------------------------------------------------------------------------
+{
+    return "Git";
+}
+
+
 text GitRepository::styleSheet()
 // ----------------------------------------------------------------------------
 //   Return the XL style sheet to be used for rendering files in git
@@ -87,6 +96,8 @@ text GitRepository::branch()
         int index = branches.indexOf(re);
         if (index > 0)
             result = +branches[index].mid(2);
+        else
+            result = "master";  // May happen on a totally empty repository
     }
     return result;
 }

@@ -28,6 +28,7 @@
 #include <QSettings>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QLineEdit>
 #include <QDir>
 #include <QDebug>
@@ -92,23 +93,31 @@ bool Application::OpenLibrary(QString path, bool confirm)
         repository = Repository::repository(path);
         if (!repository)
         {
-            QMessageBox::StandardButton b = QMessageBox::question
-                (0, tr("Tao Library"),
-                 tr("The project '%1' does not appear to exist. "
-                    "Do you want to create it?\n\n"
-                    "Select 'Yes' to create the project, "
-                    "'No' to continue without a valid project, and"
-                    "'Retry' to choose another location.")
-                 .arg(path),
-                 QMessageBox::Yes | QMessageBox::No | QMessageBox::Retry);
+            QMessageBox box;
+            box.setWindowTitle("Tao Library");
+            box.setText
+                (tr("The project '%1' does not exist.")
+                 .arg(path));
+            box.setInformativeText
+                (tr("Do you want to create a new project, "
+                    "skip project selection and continue without a project, "
+                    "or choose another location for the project?"));
+            QPushButton *choose = box.addButton(tr("Choose..."),
+                                                QMessageBox::ActionRole);
+            QPushButton *skip = box.addButton(tr("Skip"),
+                                              QMessageBox::RejectRole);
+            QPushButton *create = box.addButton(tr("Create"),
+                                                QMessageBox::AcceptRole);
+            box.setDefaultButton(create);
+            int index = box.exec();
+            QAbstractButton *which = box.clickedButton();
 
-            switch(b)
+            if (which == choose)
             {
-            case QMessageBox::Retry:
                 ok = false;
-                break;
-                
-            case QMessageBox::Yes:
+            }
+            else if (which == create)
+            {
                 repository = new GitRepository(path);
                 repository->initialize();
                 ok = repository->valid();
@@ -117,12 +126,14 @@ bool Application::OpenLibrary(QString path, bool confirm)
                     delete repository;
                     repository = NULL;
                 }
-                break;
-
-            case QMessageBox::No:
-                break;
-
-            defaut:
+            }
+            else if (which == skip)
+            {
+                // Continue with repository == NULL
+                saveSettings = false;
+            }
+            else
+            {
                 QMessageBox::question(0, tr("Puzzled"),
                                       tr("How did you do that?"),
                                       QMessageBox::No);
@@ -142,54 +153,75 @@ bool Application::OpenLibrary(QString path, bool confirm)
 
             if (confirm)
             {
-                QMessageBox::StandardButton b;
+                QMessageBox box;
+                QString repo = repository->userVisibleName();
+                box.setWindowTitle
+                    (tr("Existing %1 repository").arg(repo));
                 if (onUndoBranch)
-                    b = QMessageBox::question
-                        (0, tr("Tao Library"),
-                         tr("The library '%1' appears to be in use by Tao, "
-                            "because the current branch is named '%2'.\n"
-                            "Do you want Tao to use it for this session? "
-                            "Select 'Yes' to use it for this session only, "
-                            "'No' to leave it unmodified, "
-                            "'Save' to use it for this session and later ones, "
-                            "and 'Retry' to select another location.").
-                         arg(path).arg(+currentBranch),
-                         QMessageBox::Yes | QMessageBox::No |
-                         QMessageBox::Save | QMessageBox::Retry);
-                else
-                    b = QMessageBox::question
-                        (0, tr("Tao Library"),
-                         tr("The library '%1' is a valid repository, but "
-                            "is not currently used for Tao, because the "
-                            "current branch is named '%2'. If you use it "
-                            "for Tao, the current branch will be changed "
-                            "to '%3'.\n"
-                            "Select 'Yes' to use it for this session only, "
-                            "'No' to leave it unmodified, "
-                            "'Save' to use it for this session and later ones, "
-                            "and 'Retry' to select another location.").
-                         arg(path).arg(+currentBranch)
-                         .arg(+currentBranch + TAO_UNDO_SUFFIX),
-                         QMessageBox::Yes | QMessageBox::No |
-                         QMessageBox::Save | QMessageBox::Retry);
-
-                switch (b)
                 {
-                case QMessageBox::Yes:
+                    box.setText
+                        (tr("The project '%1' looks like "
+                            "a valid %2 repository previously used by Tao.")
+                         .arg(path).arg(repo));
+                    box.setInformativeText
+                        (tr("This repository appears to have been used by Tao, "
+                            "because the current branch is named '%1'. "
+                            "Do you want to use this repository for Tao "
+                            "and perform new commits there, "
+                            "to skip project selection, or "
+                            "to choose another repository location?")
+                         .arg(+currentBranch));
+                }
+                else
+                {
+                    box.setText
+                        (tr("The project '%1' looks like a valid "
+                            "%2 repository, but not currently used by Tao.")
+                         .arg(path).arg(repo));
+                    box.setInformativeText
+                        (tr("This repository appears to not be currently in "
+                            "use by Tao, because the current branch is "
+                            "named '%1'. "
+                            "Do you want to use this repository for Tao "
+                            "and perform new commits in '%2' branch, "
+                            "to skip project selection, or "
+                            "to choose another repository location?")
+                         .arg(+currentBranch)
+                         .arg(+currentBranch + TAO_UNDO_SUFFIX));
+                }
+
+                QPushButton *choose = box.addButton(tr("Choose..."),
+                                                    QMessageBox::ActionRole);
+                QPushButton *skip = box.addButton(tr("Skip"),
+                                                  QMessageBox::NoRole);
+                QPushButton *use = box.addButton(tr("Use now"),
+                                                 QMessageBox::YesRole);
+                QPushButton *remember = box.addButton(tr("Use always"),
+                                                      QMessageBox::YesRole);
+                box.setDefaultButton(use);
+                int index = box.exec();
+                QAbstractButton *which = box.clickedButton();
+
+                if (which == use)
+                {
                     setTask = true;
-                    break;
-                case QMessageBox::No:
+                }
+                else if (which == skip)
+                {
                     setTask = false;
-                    break;
-                case QMessageBox::Retry:
+                }
+                else if (which == choose)
+                {
                     ok = false;
                     setTask = false;
-                    break;
-                case QMessageBox::Save:
+                }
+                else if (which == remember)
+                {
                     setTask = true;
                     saveSettings = true;
-                    break;
-                default:
+                }
+                else
+                {
                     QMessageBox::question(0, tr("Coin?"),
                                           tr("How did you do that?"),
                                           QMessageBox::Discard);

@@ -49,6 +49,7 @@ public:
     virtual bool        selectUndoBranch();
 
 public:
+    virtual QString     userVisibleName()               = 0;
     virtual bool        valid()                         = 0;
     virtual bool        initialize()                    = 0;
     virtual text        branch()                        = 0;

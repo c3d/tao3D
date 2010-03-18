@@ -42,7 +42,7 @@ browser URL, progress, rw, rh ->
 
 
 locally
-    color 1,1,1,95%
+    color 1,1,1,85%
     translate 0,-30,50
     browser "http://www.slashdot.org", 0, 1000, 900
 

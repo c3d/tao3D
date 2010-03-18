@@ -199,3 +199,7 @@ PREFIX(Menu, tree, "menu", PARM(s, text),
       RTAO(menu(self, s, false)))
 PREFIX(SubMenu, tree, "submenu", PARM(s, text),
       RTAO(menu(self, s, true)))
+
+PREFIX(Insert, boolean, "insert", PARM(t, tree), RTAO(insert(self, &t)))
+PREFIX(Delete, boolean, "delete", , RTAO(deleteSelection(self)))
+

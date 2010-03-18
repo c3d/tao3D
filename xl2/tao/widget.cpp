@@ -1268,7 +1268,7 @@ Tree *Widget::sphere(Tree *self,
 // ----------------------------------------------------------------------------
 {
     Box3 bounds(x-r, y-r, z-r, 2*r, 2*r, 2*r);
-    ShapeSelection name(this, bounds);
+    ShapeSelection name(this, self, bounds);
 
     GLUquadric *q = gluNewQuadric();
     gluQuadricTexture (q, true);
@@ -1388,7 +1388,7 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
 //     GL circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, cx-r, cy-r, 2*r, 2*r);
+    ShapeSelection name(this, self, cx-r, cy-r, 2*r, 2*r);
 
     glBegin(state.polygonMode);
     circularSectorN(cx, cy, r, 0, 0, 1, 1, 0, 4);
@@ -1405,7 +1405,7 @@ Tree *Widget::circularSector(Tree *self,
 //     GL circular sector centered around (cx,cy), radius r and two angles a, b
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, cx-r, cy-r, 2*r, 2*r);
+    ShapeSelection name(this, self, cx-r, cy-r, 2*r, 2*r);
 
     while (b < a)
     {
@@ -1440,7 +1440,7 @@ Tree *Widget::roundedRectangle(Tree *self,
 //     GL rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, cx-w/2, cy-h/2, w, h);
+    ShapeSelection name(this, self, cx-w/2, cy-h/2, w, h);
 
     if (r <= 0) return rectangle(self, cx, cy, w, h);
     if (r > w/2) r = w/2;
@@ -1504,7 +1504,7 @@ Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
 //     GL rectangle centered around (cx,cy), width w, height h
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, cx-w/2, cy-h/2, w, h);
+    ShapeSelection name(this, self, cx-w/2, cy-h/2, w, h);
 
     glBegin(state.polygonMode);
     {
@@ -1525,7 +1525,7 @@ Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
 //     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, cx-r, cy-r, 2*r, 2*r);
+    ShapeSelection name(this, self, cx-r, cy-r, 2*r, 2*r);
 
     if (p < 2 || q < 1 || q > (p-1)/2)
         return XL::xl_false;
@@ -1836,7 +1836,7 @@ Tree *Widget::framePaint(Tree *self, double x, double y, double w, double h)
     frameTexture(self, w, h);
 
     // Draw a rectangle with the resulting texture
-    ShapeSelection name(this, x-w/2, y-h/2, w, h);
+    ShapeSelection name(this, self, x-w/2, y-h/2, w, h);
     glBegin(GL_QUADS);
     {
         widgetVertex(x-w/2, y-h/2, 0, 0);
@@ -1883,7 +1883,7 @@ Tree *Widget::urlPaint(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this);
+    ShapeName name(this, self);
     urlTexture(self, w, h, url, progress);
 
     // Draw a rectangle with the resulting texture
@@ -1934,7 +1934,7 @@ Tree *Widget::lineEdit(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this);
+    ShapeName name(this, self);
     lineEditTexture(self, w, h, txt);
 
     // Draw a rectangle with the resulting texture
@@ -1959,7 +1959,7 @@ Tree *Widget::qtrectangle(Tree *self, double x, double y, double w, double h)
 //    Draw a rectangle using the Qt primitive
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, x, y, w, h);
+    ShapeSelection name(this, self, x, y, w, h);
 
     QPainter painter(state.paintDevice);
     QPen pen(QColor(Qt::red));
@@ -1976,7 +1976,7 @@ Tree *Widget::qttext(Tree *self, double x, double y, text s)
 //    Draw a text using the Qt text primitive
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
+    ShapeName name(this, self);
 
     QPainter painter(state.paintDevice);
     setAutoFillBackground(false);
@@ -2009,7 +2009,7 @@ Tree *Widget::Ktext(Tree *self, text s)
 //    Text at the current cursor position
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
+    ShapeName name(this, self);
     frame->Text(s);
     return XL::xl_true;
 }
@@ -2020,7 +2020,7 @@ Tree *Widget::KlayoutText(Tree *self, text s)
 //    Text layout with Pango at the current cursor position
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
+    ShapeName name(this, self);
     frame->LayoutText(s);
     return XL::xl_true;
 }
@@ -2031,7 +2031,7 @@ Tree *Widget::KlayoutMarkup(Tree *self, text s)
 //    Text layout with markup using Pango at the current cursor position
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
+    ShapeName name(this, self);
     frame->LayoutMarkup(s);
     return XL::xl_true;
 }
@@ -2042,7 +2042,7 @@ Tree *Widget::Krectangle(Tree *self, double x, double y, double w, double h)
 //    Draw a rectangle using Cairo
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
+    ShapeName name(this, self);
     frame->Rectangle(x, y, w, h);
     return XL::xl_true;
 }
@@ -2053,7 +2053,7 @@ Tree *Widget::Kstroke(Tree *self)
 //    Stroke the current path
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
+    ShapeName name(this, self);
     frame->Stroke();
     return XL::xl_true;
 }
@@ -2220,5 +2220,32 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 
     return XL::xl_true;
 }
+
+
+
+// ============================================================================
+// 
+//    Tree selection management
+// 
+// ============================================================================
+
+XL::Name *Widget::insert(Tree *self, Tree *toInsert)
+// ----------------------------------------------------------------------------
+//    Insert the tree after the selection, assuming there is only one
+// ----------------------------------------------------------------------------
+{
+    return XL::xl_true;
+}
+
+
+XL::Name *Widget::deleteSelection(Tree *self)
+// ----------------------------------------------------------------------------
+//    Delete the selection
+// ----------------------------------------------------------------------------
+{
+    return XL::xl_true;
+}
+
+
 
 TAO_END

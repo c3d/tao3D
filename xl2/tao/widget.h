@@ -23,6 +23,12 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include "main.h"
+#include "tao.h"
+#include "text_flow.h"
+#include "treeholder.h"
+#include "coords3d.h"
+
 #include <GL/glew.h>
 #include <QtOpenGL>
 #include <QImage>
@@ -31,11 +37,7 @@
 #include <QSvgRenderer>
 #include <QList>
 #include <iostream>
-#include "main.h"
-#include "tao.h"
-#include "text_flow.h"
-#include "treeholder.h"
-#include "coords3d.h"
+#include <map>
 
 namespace Tao {
 
@@ -43,7 +45,6 @@ struct Window;
 struct Frame;
 struct FrameInfo;
 struct Activity;
-
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -187,6 +188,9 @@ public:
     Tree *menuItem(Tree *self, text s, Tree *t);
     Tree *menu(Tree *self, text s, bool=false);
 
+    Name *insert(Tree *self, Tree *toInsert);
+    Name *deleteSelection(Tree *self);
+
     // Focus management
     void              requestFocus(QWidget *widget);
 
@@ -201,22 +205,23 @@ private:
 
 public:
     // XL Runtime
-    XL::SourceFile   *xlProgram;
-    QTimer            timer, idleTimer;
-    QMenu            *currentMenu;
-    QMenuBar         *currentMenuBar;
-    QList<TreeHolder> actions;
-    Frame *           frame;
-    Frame *           mainFrame;
-    Activity *        activities;
-    double            page_start_time;
-    GLuint            id, capacity;
-    std::set<GLuint>  selection, savedSelection;
-    QEvent *          event;
-    QWidget *         focusWidget;
-    GLdouble          focusProjection[16], focusModel[16];
-    GLint             focusViewport[4];
-    text              whatsNew;
+    XL::SourceFile       *xlProgram;
+    QTimer                timer, idleTimer;
+    QMenu                *currentMenu;
+    QMenuBar             *currentMenuBar;
+    QList<TreeHolder>     actions;
+    Frame *               frame;
+    Frame *               mainFrame;
+    Activity *            activities;
+    double                page_start_time;
+    GLuint                id, capacity;
+    std::set<GLuint>      selection, savedSelection;
+    std::set<XL::Tree *>  selectionTrees;
+    QEvent *              event;
+    QWidget *             focusWidget;
+    GLdouble              focusProjection[16], focusModel[16];
+    GLint                 focusViewport[4];
+    text                  whatsNew;
 
     // Timing for drawing and saving
     ulonglong         tmin, tmax, tsum, tcount;

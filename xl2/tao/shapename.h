@@ -23,6 +23,7 @@
 // ****************************************************************************
 
 #include "widget.h"
+#include "tree.h"
 #include "coords3d.h"
 
 
@@ -33,11 +34,21 @@ struct ShapeName
 //   Structure used simply to assign shape IDs during selection
 // ----------------------------------------------------------------------------
 {
-    ShapeName(Widget *w): widget(w)        { widget->loadName(true); }
-    ~ShapeName()                           { widget->loadName(false); }
+    ShapeName(Widget *w, XL::Tree *t)
+        : widget(w), tree(t)
+    {
+        widget->loadName(true);
+    }
+    ~ShapeName()
+    {
+        widget->loadName(false);
+        if (widget->selected())
+            widget->selectionTrees.insert(tree);
+    }
 
 public:
     Widget      *widget;
+    XL::Tree    *tree;
 };
 
 
@@ -46,10 +57,11 @@ struct ShapeSelection : ShapeName
 //    Structure used to assigne shape IDs and draw a selection rectangle
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection(Widget *widget, const Box3 &box)
-        : ShapeName(widget), bounds(box) {}
-    ShapeSelection(Widget *widget, coord x, coord y, coord w, coord h)
-        : ShapeName(widget), bounds(x, y, -(w+h)/4, w, h, (w+h)/2) {}
+    ShapeSelection(Widget *widget, XL::Tree *tree, const Box3 &box)
+        : ShapeName(widget, tree), bounds(box) {}
+    ShapeSelection(Widget *widget, XL::Tree *tree,
+                   coord x, coord y, coord w, coord h)
+        : ShapeName(widget, tree), bounds(x, y, -(w+h)/4, w, h, (w+h)/2) {}
 
     ~ShapeSelection()
     {

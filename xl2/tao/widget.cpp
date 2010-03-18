@@ -630,8 +630,8 @@ void Widget::userMenu(QAction *p_action)
 
     IFTRACE(menus)
     {
-        std::cout << "Action " << p_action->objectName()
-                << " (" << p_action->text() << ") activated\n";
+        std::cout << "Action " << p_action->objectName().toStdString()
+                << " (" << p_action->text().toStdString() << ") activated\n";
     }
     QVariant var =  p_action->data();
     if (!var.isValid())

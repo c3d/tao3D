@@ -53,7 +53,7 @@ ShapeName::~ShapeName()
         Vector3 v = dragDelta();
 
         uint modifiers = qApp->keyboardModifiers();
-        bool resize = modifiers & Qt::ControlModifier;
+        bool resize = modifiers & Qt::ShiftModifier;
         bool zaxis = modifiers & Qt::AltModifier;
 
         uint x = (argPos >> 0)  & 0xF;
@@ -68,12 +68,15 @@ ShapeName::~ShapeName()
         tree_ptrs list;
         args(list);
 
-        tree_ptrs::iterator it;
-        std::cerr << "Args (" << tree << ")= " << (void *) argPos << ": ";
-        for (it = list.begin(); it != list.end(); it++)
-            std::cerr << **it << "; ";
-        std::cerr << "V=" << v.x << ", " << v.y << ", " << v.z
-                  << " resize=" << resize << "\n";
+        IFTRACE(drag)
+        {
+            tree_ptrs::iterator it;
+            std::cerr << "Args (" << tree << ")= " << (void *) argPos << ": ";
+            for (it = list.begin(); it != list.end(); it++)
+                std::cerr << **it << "; ";
+            std::cerr << "V=" << v.x << ", " << v.y << ", " << v.z
+                      << " resize=" << resize << "\n";
+        }
 
         v.z = 0;
         if (resize)
@@ -190,7 +193,7 @@ void ShapeName::updateArg(tree_ptrs &list, uint index, coord delta)
     {
         // Create an Infix + with the delta we add
         *ptr = new XL::Infix("+", new XL::Real(delta), *ptr);
-
+        widget->reloadProgram = true;
     }
 }
 

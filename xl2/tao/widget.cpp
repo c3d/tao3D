@@ -73,7 +73,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       page_start_time(CurrentTime()),
       id(0), capacity(0),
       event(NULL), focusWidget(NULL),
-      whatsNew("")
+      whatsNew(""), reloadProgram(false)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -545,8 +545,22 @@ void Widget::runProgram()
 
     try
     {
-        if (xlProgram && xlProgram->tree.tree)
-            xl_evaluate(xlProgram->tree.tree);
+        if (xlProgram)
+        {
+            if (Tree *prog = xlProgram->tree.tree)
+            {
+                if (reloadProgram)
+                {
+                    XL::TreeClone cloneAction;
+                    Tree *copy = prog->Do(cloneAction);
+                    copy->Set<XL::SymbolsInfo>(prog->Get<XL::SymbolsInfo>());
+                    xlProgram->tree.tree = copy;
+                    prog = copy;
+                    reloadProgram = false;
+                }
+                xl_evaluate(prog);
+            }
+        }
     }
     catch (XL::Error &e)
     {

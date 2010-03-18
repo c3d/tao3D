@@ -116,6 +116,11 @@ bool Selection::Click(uint button, bool down, int x, int y)
             doneWithSelection = true;
         }
     }
+    else
+    {
+        return false;
+    }
+
 
     // Create the select buffer and switch to select mode
     GLuint *buffer = new GLuint[4 * widget->capacity];

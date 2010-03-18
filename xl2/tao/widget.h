@@ -227,6 +227,7 @@ public:
     GLdouble              focusProjection[16], focusModel[16];
     GLint                 focusViewport[4];
     text                  whatsNew;
+    bool                  reloadProgram;
 
     // Timing for drawing and saving
     ulonglong         tmin, tmax, tsum, tcount;

@@ -186,6 +186,7 @@ inline Vector3 operator +(const Vector3& l, const Vector3 &r)
     result += r;
     return result;
 }
+
 inline Vector3 operator -(const Vector3& l, const Vector3 &r)
 {
     Vector3 result(l);

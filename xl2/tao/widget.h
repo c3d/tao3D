@@ -28,6 +28,7 @@
 #include "text_flow.h"
 #include "treeholder.h"
 #include "coords3d.h"
+#include "opcodes.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -100,6 +101,7 @@ public:
     typedef XL::Real    Real;
     typedef XL::Text    Text;
     typedef XL::Name    Name;
+    typedef XL::real_r  real_r;
 
     // XLR entry points
     static Widget *Tao() { return current; }
@@ -135,10 +137,10 @@ public:
                 double r);
     Tree *circularSector(Tree *self, double cx, double cy, 
                 double r, double a, double b);
-    Tree *roundedRectangle(Tree *self, double cx, double cy, 
-                double w, double h, double r);
-    Tree *rectangle(Tree *self, double cx, double cy, 
-                double w, double h);
+    Tree *roundedRectangle(Tree *self, real_r cx, real_r cy,
+                real_r w, real_r h, real_r r);
+    Tree *rectangle(Tree *self, real_r cx, real_r cy,
+                real_r w, real_r h);
     Tree *regularStarPolygon(Tree *self, double cx, double cy, double r, 
                 int p, int q);
 
@@ -193,6 +195,7 @@ public:
 
     // Focus management
     void              requestFocus(QWidget *widget);
+    void              requestFocus();
 
 private:
     void widgetVertex(double x, double y, double tx, double ty);

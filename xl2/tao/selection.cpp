@@ -1,6 +1,5 @@
 // ****************************************************************************
-//  selection.cpp                   (C) 1992-2009 Christophe de Dinechin (ddd)
-//                                                                 XL2 project
+//  selection.h                                                     Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -17,12 +16,11 @@
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
-// ****************************************************************************
-// * File       : $RCSFile$
-// * Revision   : $Revision$
-// * Date       : $Date$
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include "drag.h"
 #include "selection.h"
 #include "widget.h"
 #include "gl_keepers.h"
@@ -173,11 +171,19 @@ bool Selection::Click(uint button, bool down, int x, int y)
     }
 
     // If we are done with the selection, remove it
+    Widget *saved_widget = widget;
     if (doneWithSelection)
+    {
         delete this;
+        if (selected)
+        {
+            Drag *d = new Drag(saved_widget);
+            d->Click(button, down, x, widget->height() - y);
+        }
+    }
 
     // Need a refresh
-    widget->updateGL();
+    saved_widget->updateGL();
 
     return true;                // We dealt with it
 }

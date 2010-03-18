@@ -80,6 +80,7 @@ Tree *xl_infix_cast(Tree *source, Tree *value);
 Tree *xl_prefix_cast(Tree *source, Tree *value);
 Tree *xl_postfix_cast(Tree *source, Tree *value);
 Tree *xl_block_cast(Tree *source, Tree *value);
+Tree *xl_pre_cast(Tree *source);
 
 Tree *xl_invoke(Tree *(*toCall)(Tree *),
                 Tree *source, uint numarg, Tree **args);

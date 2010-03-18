@@ -22,6 +22,7 @@
 
 #include "shapename.h"
 #include "drag.h"
+#include "runtime.h"
 
 TAO_BEGIN
 
@@ -55,6 +56,7 @@ ShapeSelection::~ShapeSelection()
 //   Destructor checks the various drag / resizing actions
 // ----------------------------------------------------------------------------
 {
+    typedef XL::Tree Tree;
     typedef XL::Integer Integer;
     typedef XL::Real Real;
 
@@ -77,35 +79,35 @@ ShapeSelection::~ShapeSelection()
 
             if (resize)
             {
-                if (w)
+                if (Tree *cw = xl_pre_cast(w))
                 {
-                    if (Integer *iw = w->AsInteger())
+                    if (Integer *iw = cw->AsInteger())
                         iw->value += v.x;
-                    else if (Real *rw = w->AsReal())
+                    else if (Real *rw = cw->AsReal())
                         rw->value += v.x;
                 }
-                if (h)
+                if (Tree *ch = xl_pre_cast(h))
                 {
-                    if (Integer *ih = h->AsInteger())
+                    if (Integer *ih = ch->AsInteger())
                         ih->value += v.y;
-                    else if (Real *rh = h->AsReal())
+                    else if (Real *rh = ch->AsReal())
                         rh->value += v.y;
                 }
             }
             else
             {
-                if (x)
+                if (Tree *cx = xl_pre_cast(x))
                 {
-                    if (Integer *ix = x->AsInteger())
+                    if (Integer *ix = cx->AsInteger())
                         ix->value += v.x;
-                    else if (Real *rx = x->AsReal())
+                    else if (Real *rx = cx->AsReal())
                         rx->value += v.x;
                 }
-                if (y)
+                if (Tree *cy = xl_pre_cast(y))
                 {
-                    if (Integer *iy = y->AsInteger())
+                    if (Integer *iy = cy->AsInteger())
                         iy->value += v.y;
-                    else if (Real *ry = y->AsReal())
+                    else if (Real *ry = cy->AsReal())
                         ry->value += v.y;
                 }
             }

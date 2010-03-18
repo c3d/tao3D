@@ -1405,13 +1405,16 @@ Tree *Widget::rectangle(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
         requestFocus();
         if (Drag *d = dynamic_cast<Drag *>(activities))
         {
-            double x = d->x;
-            double y = d->y;
+            double x1 = d->x1;
+            double y1 = d->y1;
+            double x2 = d->x2;
+            double y2 = d->y2;
             int hh = height();
 
-            Point3 u = unproject(x, hh-y, 0);
-            cx.value = u.x;
-            cy.value = u.y;
+            Point3 u1 = unproject(x1, hh-y1, 0);
+            Point3 u2 = unproject(x2, hh-y2, 0);
+            cx.value += (u2 - u1).x;
+            cy.value += (u2 - u1).y;
 
             name.bounds = Box3(cx-w/2, cy-h/2, -(w+h), w, h, 2*(w+h));
         }

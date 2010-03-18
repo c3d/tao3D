@@ -30,16 +30,19 @@ TAO_BEGIN
 
 struct Drag : Activity
 // ----------------------------------------------------------------------------
-//   A drag action (typically to make a shape follow the mouse)
+//   A drag action (typically used to make a shape follow the mouse)
 // ----------------------------------------------------------------------------
 {
     Drag(Widget *w);
 
     virtual bool        Click(uint button, bool down, int x, int y);
     virtual bool        MouseMove(int x, int y, bool active);
+    void                Display(void);
 
-    int                 x;
-    int                 y;
+    int                 x1;
+    int                 y1;
+    int                 x2;
+    int                 y2;
 };
 
 TAO_END

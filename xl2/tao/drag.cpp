@@ -43,8 +43,8 @@ bool Drag::Click(uint button, bool down, int x, int y)
     {
         if (down)
         {
-            this->x = x;
-            this->y = y;
+            x2 = x1 = x;
+            y2 = y1 = y;
         }
         else
         {
@@ -60,9 +60,17 @@ bool Drag::MouseMove(int x, int y, bool active)
 //   Save mouse position as it moves
 // ----------------------------------------------------------------------------
 {
-    this->x = x;
-    this->y = y;
+    x2 = x;
+    y2 = y;
     return true;
+}
+void Drag::Display(void)
+// ----------------------------------------------------------------------------
+//   Reset delta once per screen refresh
+// ----------------------------------------------------------------------------
+{
+    x1 = x2;
+    y1 = y2;
 }
 
 TAO_END

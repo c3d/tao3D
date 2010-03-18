@@ -316,30 +316,6 @@ Tree *xl_type_error(Tree *what)
 //
 // ============================================================================
 
-struct CastInfo : Info
-// ----------------------------------------------------------------------------
-//   Remember the original value for a cast
-// ----------------------------------------------------------------------------
-{
-    CastInfo(Tree *original) : original(original) {}
-    typedef Tree *      data_t;
-    operator            data_t()  { return original; }
-    Tree *              original;
-};
-
-
-Tree *xl_pre_cast(Tree *casted)
-// ----------------------------------------------------------------------------
-//    Return the pre-cast value for a casted tree
-// ----------------------------------------------------------------------------
-{
-    if (casted)
-        if (Tree *original = casted->Get<CastInfo>())
-            return original;
-    return casted;
-}
-
-
 Tree *xl_boolean_cast(Tree *source, Tree *value)
 // ----------------------------------------------------------------------------
 //   Check if argument can be evaluated as a boolean value (true/false)
@@ -373,11 +349,7 @@ Tree *xl_real_cast(Tree *source, Tree *value)
     if (Real *rt = value->AsReal())
         return rt;
     if (Integer *it = value->AsInteger())
-    {
-        Real *result = new Real(it->value);
-        result->Set<CastInfo> (it);
-        return result;
-    }
+        return new Real(it->value);
     return NULL;
 }
 

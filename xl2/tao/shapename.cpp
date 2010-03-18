@@ -4,7 +4,7 @@
 // 
 //   File Description:
 // 
-// 
+//    Helper class used to assign GL names to individual graphic shapes
 // 
 // 
 // 
@@ -26,43 +26,120 @@
 
 TAO_BEGIN
 
-ShapeSelection::ShapeSelection(Widget *widget, XL::Tree *tree,
-                               const Box3 &box, bool deep)
+// ============================================================================
+// 
+//    Shape name (providing an 
+// 
+// ============================================================================
+
+ShapeName::ShapeName(Widget *w, XL::Tree *t, uint argPos, Box3 box)
 // ----------------------------------------------------------------------------
-//   Initialize a selection based on a 3D bounding box
+//   Record the GL name for a given tree
 // ----------------------------------------------------------------------------
-    : ShapeName(widget, tree), bounds(box), 
-      x(NULL), y(NULL), w(NULL), h(NULL),
-      deep(deep)
-{}
+    : widget(w), tree(t), argPos(argPos), box(box)
+{
+    widget->loadName(true);
+}
 
 
-ShapeSelection::ShapeSelection(Widget *widget, XL::Tree *tree,
-                               XL::real_r x, XL::real_r y,
-                               XL::real_r w, XL::real_r h,
-                               bool deep)
+ShapeName::~ShapeName()
 // ----------------------------------------------------------------------------
-//   Initialize a selection based on tree coordinates
-// ----------------------------------------------------------------------------
-    : ShapeName(widget,tree),
-      bounds(x-w/2,y-h/2,-(w+h)/4,w,h,(w+h)/2),
-      x(&x), y(&y), w(&w), h(&h),
-      deep(deep)
-{}
-
-
-ShapeSelection::~ShapeSelection()
-// ----------------------------------------------------------------------------
-//   Destructor checks the various drag / resizing actions
+//    Maintain the selection for the given tree
 // ----------------------------------------------------------------------------
 {
-    typedef XL::Tree Tree;
-    typedef XL::Integer Integer;
-    typedef XL::Real Real;
+    widget->loadName(false);
+    if (widget->selected())
+    {
+        Vector3 v = dragDelta();
+
+        uint modifiers = qApp->keyboardModifiers();
+        bool resize = modifiers & Qt::ControlModifier;
+        bool zaxis = modifiers & Qt::AltModifier;
+
+        uint x = (argPos >> 0)  & 0xF;
+        uint y = (argPos >> 4)  & 0xF;
+        uint z = (argPos >> 8)  & 0xF;
+        uint w = (argPos >> 12) & 0xF;
+        uint h = (argPos >> 16) & 0xF;
+        uint d = (argPos >> 20) & 0xF;
+        uint yz = zaxis ? z : y;
+        uint hd = zaxis ? d : h;
+
+        tree_ptrs list;
+        args(list);
+
+        tree_ptrs::iterator it;
+        std::cerr << "Args (" << tree << ")= " << (void *) argPos << ": ";
+        for (it = list.begin(); it != list.end(); it++)
+            std::cerr << **it << "; ";
+        std::cerr << "V=" << v.x << ", " << v.y << ", " << v.z
+                  << " resize=" << resize << "\n";
+
+        v.z = 0;
+        if (resize)
+        {
+            if (w)      updateArg(list, w,  v.x);
+            if (hd)     updateArg(list, hd, v.y);
+            box += v;
+        }
+        else
+        {
+            if (x)      updateArg(list, x,  v.x);
+            if (yz)     updateArg(list, yz, v.y);
+            v /= 2;
+            box.upper += v;
+            box.lower -= v;
+        }
+        widget->selectionTrees.insert(tree);
+        widget->drawSelection(box);
+    }
+}
+
+
+bool ShapeName::args(tree_ptrs &list)
+// ----------------------------------------------------------------------------
+//   Reconstruct the arg list for the given tree
+// ----------------------------------------------------------------------------
+//   The shape of the tree is assumed to be a Prefix with arguments
+//   separated by Infix , trees
+{
+    // We need a valid input argument
+    if (!tree)
+        return false;
+
+    // The input must be a prefix tree
+    XL::Prefix *prefix = tree->AsPrefix();
+    if (!prefix)
+        return false;
+
+    // Point to the arguments
+    XL::Tree **ptr = &prefix->right;
+ 
+    // Walk down the comma-separated arguments
+    while (true)
+    {
+        // Check if we have more arguments
+        XL::Infix *infix = (*ptr)->AsInfix();
+        if (!infix || infix->name != ",")
+            break;
+        list.push_back(&infix->right);
+        ptr = &infix->left;
+    }
+    list.push_back(ptr);
+    return true;
+}
+
+
+Vector3 ShapeName::dragDelta()
+// ----------------------------------------------------------------------------
+//   Compute the drag delta based on the current rotation coordinates
+// ----------------------------------------------------------------------------
+{
+    Vector3 result;
 
     if (widget->selected())
     {
-        widget->requestFocus();
+        widget->recordProjection();
         if (Drag *d = dynamic_cast<Drag *>(widget->activities))
         {
             double x1 = d->x1;
@@ -73,49 +150,47 @@ ShapeSelection::~ShapeSelection()
 
             Point3 u1 = widget->unproject(x1, hh-y1, 0);
             Point3 u2 = widget->unproject(x2, hh-y2, 0);
-            Vector3 v = u2 - u1;
-
-            bool resize = qApp->keyboardModifiers() & Qt::ControlModifier;
-
-            if (resize)
-            {
-                if (Tree *cw = xl_pre_cast(w))
-                {
-                    if (Integer *iw = cw->AsInteger())
-                        iw->value += v.x;
-                    else if (Real *rw = cw->AsReal())
-                        rw->value += v.x;
-                }
-                if (Tree *ch = xl_pre_cast(h))
-                {
-                    if (Integer *ih = ch->AsInteger())
-                        ih->value += v.y;
-                    else if (Real *rh = ch->AsReal())
-                        rh->value += v.y;
-                }
-            }
-            else
-            {
-                if (Tree *cx = xl_pre_cast(x))
-                {
-                    if (Integer *ix = cx->AsInteger())
-                        ix->value += v.x;
-                    else if (Real *rx = cx->AsReal())
-                        rx->value += v.x;
-                }
-                if (Tree *cy = xl_pre_cast(y))
-                {
-                    if (Integer *iy = cy->AsInteger())
-                        iy->value += v.y;
-                    else if (Real *ry = cy->AsReal())
-                        ry->value += v.y;
-                }
-            }
-
-            v.z = 0;
-            bounds += v;
+            result = u2 - u1;
         }
-        widget->drawSelection(bounds, deep);
+    }
+    return result;
+}
+
+
+void ShapeName::updateArg(tree_ptrs &list, uint index, coord delta)
+// ----------------------------------------------------------------------------
+//   Update the given argument by the given offset
+// ----------------------------------------------------------------------------
+{
+    // Check if we have the given argument
+    if (index > list.size())
+        return;
+
+    XL::Tree **ptr = list[list.size() - index];
+
+    // Check if we have an Infix +, if so walk down the left side
+    while (XL::Infix *infix = (*ptr)->AsInfix())
+    {
+        if (infix->name == "+")
+            ptr = &infix->left;
+        else
+            break;
+    }
+
+    // Test the simple cases where the argument is directly an Integer or Real
+    if (XL::Integer *ival = (*ptr)->AsInteger())
+    {
+        ival->value += delta;
+    }
+    else if (XL::Real *rval = (*ptr)->AsReal())
+    {
+        rval->value += delta;
+    }
+    else
+    {
+        // Create an Infix + with the delta we add
+        *ptr = new XL::Infix("+", new XL::Real(delta), *ptr);
+
     }
 }
 

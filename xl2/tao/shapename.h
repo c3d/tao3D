@@ -6,7 +6,7 @@
 // 
 //   File Description:
 // 
-//    Helper class used to assign names to individual graphic shapes
+//    Helper class used to assign GL names to individual graphic shapes
 // 
 // 
 // 
@@ -27,6 +27,8 @@
 #include "coords3d.h"
 #include "opcodes.h"
 
+#include <vector>
+
 
 TAO_BEGIN
 
@@ -35,39 +37,29 @@ struct ShapeName
 //   Structure used simply to assign shape IDs during selection
 // ----------------------------------------------------------------------------
 {
-    ShapeName(Widget *w, XL::Tree *t)
-        : widget(w), tree(t)
+    enum
     {
-        widget->loadName(true);
-    }
-    ~ShapeName()
-    {
-        widget->loadName(false);
-        if (widget->selected())
-            widget->selectionTrees.insert(tree);
-    }
+        none   = 0,
+        xy     = 0x000021,
+        xywh   = 0x043021,
+        xyr    = 0x003021,
+        xyzr   = 0x004321,
+        xyzwhd = 0x654321
+    };
+    typedef std::vector<XL::Tree **> tree_ptrs;
+
+    ShapeName(Widget *w, XL::Tree *t, uint argsPos = xywh, Box3 box = Box3());
+    ~ShapeName();
+
+    bool        args(tree_ptrs &list);
+    void        updateArg(tree_ptrs &list, uint index, coord delta);
+    Vector3     dragDelta();
 
 public:
+    Box3        box;
     Widget      *widget;
     XL::Tree    *tree;
-};
-
-
-struct ShapeSelection : ShapeName
-// ----------------------------------------------------------------------------
-//    Structure used to assigne shape IDs and draw a selection rectangle
-// ----------------------------------------------------------------------------
-{
-    ShapeSelection(Widget *widget, XL::Tree *tree,
-                   const Box3 &box, bool deep = true);
-    ShapeSelection(Widget *widget, XL::Tree *tree,
-                   XL::real_r x, XL::real_r y, XL::real_r w, XL::real_r h,
-                   bool deep = true);
-    ~ShapeSelection();
-
-    Box3 bounds;
-    XL::tree_p x, y, w, h;
-    bool deep;
+    uint        argPos;
 };
 
 TAO_END

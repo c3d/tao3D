@@ -305,25 +305,24 @@ void Widget::requestFocus(QWidget *widget)
     if (!focusWidget)
     {
         focusWidget = widget;
-        glGetDoublev(GL_PROJECTION_MATRIX, focusProjection);
-        glGetDoublev(GL_MODELVIEW_MATRIX, focusModel);
-        glGetIntegerv(GL_VIEWPORT, focusViewport);
-
+        recordProjection();
         QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
         QObject *fin = focusWidget;
         fin->event(&focusIn);
     }
 }
 
-void Widget::requestFocus()
+
+void Widget::recordProjection()
 // ----------------------------------------------------------------------------
-//   Some other non-widget request the focus
+//   Record the transformation matrix for the current projection
 // ----------------------------------------------------------------------------
 {
     glGetDoublev(GL_PROJECTION_MATRIX, focusProjection);
     glGetDoublev(GL_MODELVIEW_MATRIX, focusModel);
     glGetIntegerv(GL_VIEWPORT, focusViewport);
 }
+
 
 Point3 Widget::unproject (coord x, coord y, coord z)
 // ----------------------------------------------------------------------------
@@ -1041,12 +1040,15 @@ bool Widget::selected()
 }
 
 
-void Widget::drawSelection(const Box3 &bounds, bool deep)
+void Widget::drawSelection(const Box3 &bounds)
 // ----------------------------------------------------------------------------
 //    Draw a 2D or 3D selection with the given coordinates
 // ----------------------------------------------------------------------------
 {
-    if (deep)
+    if (bounds.Width() < 0 || bounds.Height() < 0)
+        return;
+
+    if (bounds.Depth() > 0)
     {
         // Use 3D selection
         coord x = bounds.Left();
@@ -1126,6 +1128,15 @@ void Widget::loadName(bool load)
         glLoadName(shapeId());
     else
         glLoadName(0);
+}
+
+
+Box3 Widget::bbox(coord x, coord y, coord w, coord h)
+// ----------------------------------------------------------------------------
+//   Return a selection bounding box
+// ----------------------------------------------------------------------------
+{
+    return Box3(x-w/2, y-h/2, -(w+h)/4, w, h, (w+h)/2);
 }
 
 
@@ -1277,14 +1288,14 @@ Tree *Widget::texCoord(Tree *self, double x, double y)
 
 
 Tree *Widget::sphere(Tree *self,
-                     real_r x, real_r y, real_r z,
-                     real_r r, int nslices, int nstacks)
+                     coord x, coord y, coord z,
+                     coord r, int nslices, int nstacks)
 // ----------------------------------------------------------------------------
 //     GL sphere
 // ----------------------------------------------------------------------------
 {
     Box3 bounds(x-r, y-r, z-r, 2*r, 2*r, 2*r);
-    ShapeSelection name(this, self, bounds);
+    ShapeName name(this, self, ShapeName::xyzr, bounds);
 
     GLUquadric *q = gluNewQuadric();
     gluQuadricTexture (q, true);
@@ -1399,12 +1410,12 @@ void Widget::circularSectorN(double cx, double cy, double r,
 }
 
 
-Tree *Widget::circle(Tree *self, real_r cx, real_r cy, real_r r)
+Tree *Widget::circle(Tree *self, coord cx, coord cy, coord r)
 // ----------------------------------------------------------------------------
 //     GL circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, self, cx, cy, r, r);
+    ShapeName name(this, self, ShapeName::xyr, bbox(cx, cy, r, r));
 
     glBegin(state.polygonMode);
     circularSectorN(cx, cy, r, 0, 0, 1, 1, 0, 4);
@@ -1415,13 +1426,13 @@ Tree *Widget::circle(Tree *self, real_r cx, real_r cy, real_r r)
 
 
 Tree *Widget::circularSector(Tree *self,
-                             real_r cx, real_r cy, real_r r,
-                             real_r a, real_r b)
+                             coord cx, coord cy, coord r,
+                             coord a, coord b)
 // ----------------------------------------------------------------------------
 //     GL circular sector centered around (cx,cy), radius r and two angles a, b
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, self, cx, cy, r, r);
+    ShapeName name(this, self, ShapeName::xyr, bbox(cx, cy, r, r));
 
     double db = b;
     double da = a;
@@ -1452,13 +1463,13 @@ Tree *Widget::circularSector(Tree *self,
 
 
 Tree *Widget::roundedRectangle(Tree *self,
-                               real_r cx, real_r cy,
-                               real_r w, real_r h, real_r r)
+                               coord cx, coord cy,
+                               coord w, coord h, coord r)
 // ----------------------------------------------------------------------------
 //     GL rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, self, cx, cy, w, h);
+    ShapeName name(this, self, ShapeName::xywh, bbox(cx, cy, w, h));
 
     if (r <= 0) return rectangle(self, cx, cy, w, h);
     if (r > w/2) r = w/2;
@@ -1517,12 +1528,12 @@ Tree *Widget::roundedRectangle(Tree *self,
 }
 
 
-Tree *Widget::rectangle(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
+Tree *Widget::rectangle(Tree *self, coord cx, coord cy, coord w, coord h)
 // ----------------------------------------------------------------------------
 //     GL rectangle centered around (cx,cy), width w, height h
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, self, cx, cy, w, h);
+    ShapeName name(this, self, ShapeName::xywh, bbox(cx, cy, w, h));
 
     glBegin(state.polygonMode);
     {
@@ -1537,13 +1548,13 @@ Tree *Widget::rectangle(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
 }
 
 
-Tree *Widget::regularStarPolygon(Tree *self, real_r cx, real_r cy, real_r r,
+Tree *Widget::regularStarPolygon(Tree *self, coord cx, coord cy, coord r,
                                  int p, int q)
 // ----------------------------------------------------------------------------
 //     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, self, cx, cy, r, r);
+    ShapeName name(this, self, ShapeName::xyr, bbox(cx, cy, r, r));
 
     if (p < 2 || q < 1 || q > (p-1)/2)
         return XL::xl_false;
@@ -1845,7 +1856,7 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
 }
 
 
-Tree *Widget::framePaint(Tree *self, real_r x, real_r y, real_r w, real_r h)
+Tree *Widget::framePaint(Tree *self, coord x, coord y, coord w, coord h)
 // ----------------------------------------------------------------------------
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
@@ -1854,7 +1865,7 @@ Tree *Widget::framePaint(Tree *self, real_r x, real_r y, real_r w, real_r h)
     frameTexture(self, w, h);
 
     // Draw a rectangle with the resulting texture
-    ShapeSelection name(this, self, x, y, w, h, false);
+    ShapeName name(this, self, ShapeName::xywh, bbox(x, y, w, h));
     glBegin(GL_QUADS);
     {
         widgetVertex(x-w/2, y-h/2, 0, 0);
@@ -1894,14 +1905,14 @@ Tree *Widget::urlTexture(Tree *self, double w, double h,
 
 
 Tree *Widget::urlPaint(Tree *self,
-                       real_r x, real_r y, real_r w, real_r h,
+                       coord x, coord y, coord w, coord h,
                        Text *url, Integer *progress)
 // ----------------------------------------------------------------------------
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeSelection name(this, self, x, y, w, h, false);
+    ShapeName name(this, self, ShapeName::xywh, Box3(x, y, 0, w, h, 0));
     urlTexture(self, w, h, url, progress);
 
     // Draw a rectangle with the resulting texture
@@ -1943,14 +1954,15 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
 
 
 Tree *Widget::lineEdit(Tree *self,
-                       real_r x, real_r y, real_r w, real_r h,
+                       coord x, coord y, coord w, coord h,
                        Text *txt)
 // ----------------------------------------------------------------------------
 //   Draw a line editor in the curent frame
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeSelection name(this, self, x, y, w, h, false);
+    ShapeName name(this, self, ShapeName::xywh, Box3(x, y, 0, w, h, 0));
+
     lineEditTexture(self, w, h, txt);
 
     // Draw a rectangle with the resulting texture
@@ -1967,12 +1979,12 @@ Tree *Widget::lineEdit(Tree *self,
 }
 
 
-Tree *Widget::qtrectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
+Tree *Widget::qtrectangle(Tree *self, coord x, coord y, coord w, coord h)
 // ----------------------------------------------------------------------------
 //    Draw a rectangle using the Qt primitive
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, self, x, y, w, h);
+    ShapeName name(this, self, ShapeName::xywh, bbox(x, y, w, h));
 
     QPainter painter(state.paintDevice);
     QPen pen(QColor(Qt::red));
@@ -1989,8 +2001,6 @@ Tree *Widget::qttext(Tree *self, double x, double y, text s)
 //    Draw a text using the Qt text primitive
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self);
-
     QPainter painter(state.paintDevice);
     setAutoFillBackground(false);
     if (selected())
@@ -2022,7 +2032,6 @@ Tree *Widget::Ktext(Tree *self, text s)
 //    Text at the current cursor position
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self);
     frame->Text(s);
     return XL::xl_true;
 }
@@ -2033,7 +2042,6 @@ Tree *Widget::KlayoutText(Tree *self, text s)
 //    Text layout with Pango at the current cursor position
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self);
     frame->LayoutText(s);
     return XL::xl_true;
 }
@@ -2044,7 +2052,6 @@ Tree *Widget::KlayoutMarkup(Tree *self, text s)
 //    Text layout with markup using Pango at the current cursor position
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self);
     frame->LayoutMarkup(s);
     return XL::xl_true;
 }
@@ -2055,7 +2062,7 @@ Tree *Widget::Krectangle(Tree *self, double x, double y, double w, double h)
 //    Draw a rectangle using Cairo
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self);
+    ShapeName name(this, self, ShapeName::xywh, bbox(x,y,w,h));
     frame->Rectangle(x, y, w, h);
     return XL::xl_true;
 }
@@ -2066,7 +2073,6 @@ Tree *Widget::Kstroke(Tree *self)
 //    Stroke the current path
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self);
     frame->Stroke();
     return XL::xl_true;
 }

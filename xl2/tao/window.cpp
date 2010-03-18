@@ -520,6 +520,7 @@ void Window::resetTaoMenus(XL::Tree * a_tree)
 }
 
 
+
 void Window::setCurrentFile(const QString &fileName)
 // ----------------------------------------------------------------------------
 //   Set the current file name, create one for empty documents
@@ -568,16 +569,6 @@ Window *Window::findWindow(const QString &fileName)
             return mainWin;
     }
     return NULL;
-}
-
-void Window::updateProgram(XL::Tree *tree)
-{
-    if ( ! tree) return ;
-//    std::cerr << "Updating program with " << tree << "\n";
-    std::ostringstream oss;
-    oss << tree << "\n";
-    textEdit->setPlainText(QString::fromStdString(oss.str()));
-    // save();
 }
 
 TAO_END

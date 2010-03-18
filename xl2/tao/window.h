@@ -47,7 +47,6 @@ class Window : public QMainWindow
 
 public:
     Window(XL::Main *xlr, XL::SourceFile *sf = NULL);
-    void updateProgram(XL::Tree *tree);
 
 protected:
     void closeEvent(QCloseEvent *event);

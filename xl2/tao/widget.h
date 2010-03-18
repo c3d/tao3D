@@ -74,8 +74,11 @@ public:
     void        setup(double w, double h, Box *picking = NULL);
     void        setupGL();
     Point3      unproject (coord x, coord y, coord z = 0.0);
-    void        initMenu();
     void        updateProgram(XL::SourceFile *sf);
+    void        refreshProgram();
+    void        markChanged(text reason);
+
+    // Selection
     GLuint      shapeId();
     bool        selected();
     void        select();
@@ -84,6 +87,7 @@ public:
     void        loadName(bool load);
 
 public slots:
+    void        dawdle();
     void        draw();
     void        runProgram();
     void        appFocusChanged(QWidget *prev, QWidget *next);
@@ -198,7 +202,7 @@ private:
 public:
     // XL Runtime
     XL::SourceFile   *xlProgram;
-    QTimer            timer;
+    QTimer            timer, idleTimer;
     QMenu            *currentMenu;
     QMenuBar         *currentMenuBar;
     QList<TreeHolder> actions;
@@ -212,9 +216,11 @@ public:
     QWidget *         focusWidget;
     GLdouble          focusProjection[16], focusModel[16];
     GLint             focusViewport[4];
+    text              whatsNew;
 
-    // Timing for drawing
+    // Timing for drawing and saving
     ulonglong         tmin, tmax, tsum, tcount;
+    ulonglong         nextSave, nextCommit, nextSync;
     ulonglong         now();
     ulonglong         elapsed(ulonglong since, bool stats=true, bool show=true);
 

@@ -126,17 +126,17 @@ public:
     Tree *polygon(Tree *self, Tree *t);
     Tree *vertex(Tree *self, double x, double y, double z);
     Tree *sphere(Tree *self,
-                double cx, double cy, double cz,
-                double r, int nslices, int nstacks);
-    Tree *circle(Tree *self, double cx, double cy, 
-                double r);
-    Tree *circularSector(Tree *self, double cx, double cy, 
-                double r, double a, double b);
+                real_r cx, real_r cy, real_r cz,
+                real_r r, int nslices, int nstacks);
+    Tree *circle(Tree *self, real_r cx, real_r cy,
+                real_r r);
+    Tree *circularSector(Tree *self, real_r cx, real_r cy,
+                real_r r, real_r a, real_r b);
     Tree *roundedRectangle(Tree *self, real_r cx, real_r cy,
                 real_r w, real_r h, real_r r);
     Tree *rectangle(Tree *self, real_r cx, real_r cy,
                 real_r w, real_r h);
-    Tree *regularStarPolygon(Tree *self, double cx, double cy, double r, 
+    Tree *regularStarPolygon(Tree *self, real_r cx, real_r cy, real_r r,
                 int p, int q);
 
     Tree *texture(Tree *self, text n);
@@ -164,14 +164,14 @@ public:
 
     Tree *flow(Tree *self);
     Tree *frameTexture(Tree *self, double w, double h);
-    Tree *framePaint(Tree *self, double x, double y, double w, double h);
+    Tree *framePaint(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *urlTexture(Tree *self, double x, double y, Text *s, Integer *p);
     Tree *urlPaint(Tree *self, double x, double y, double w, double h,
                    Text *s, Integer *p);
     Tree *lineEditTexture(Tree *self, double x, double y, Text *s);
     Tree *lineEdit(Tree *self, double x, double y, double w, double h, Text *s);
 
-    Tree *qtrectangle(Tree *self, double x, double y, double w, double h);
+    Tree *qtrectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *qttext(Tree *self, double x, double y, text s);
 
     Tree *KmoveTo(Tree *self, double x, double y);

@@ -1155,8 +1155,8 @@ Tree *Widget::texCoord(Tree *self, double x, double y)
 
 
 Tree *Widget::sphere(Tree *self,
-                     double x, double y, double z,
-                     double r, int nslices, int nstacks)
+                     real_r x, real_r y, real_r z,
+                     real_r r, int nslices, int nstacks)
 // ----------------------------------------------------------------------------
 //     GL sphere
 // ----------------------------------------------------------------------------
@@ -1277,7 +1277,7 @@ void Widget::circularSectorN(double cx, double cy, double r,
 }
 
 
-Tree *Widget::circle(Tree *self, double cx, double cy, double r)
+Tree *Widget::circle(Tree *self, real_r cx, real_r cy, real_r r)
 // ----------------------------------------------------------------------------
 //     GL circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
@@ -1293,29 +1293,31 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
 
 
 Tree *Widget::circularSector(Tree *self,
-                         double cx, double cy, double r,
-                         double a, double b)
+                             real_r cx, real_r cy, real_r r,
+                             real_r a, real_r b)
 // ----------------------------------------------------------------------------
 //     GL circular sector centered around (cx,cy), radius r and two angles a, b
 // ----------------------------------------------------------------------------
 {
     ShapeSelection name(this, cx-r, cy-r, 2*r, 2*r);
 
-    while (b < a)
+    double db = b;
+    double da = a;
+    while (db < da)
     {
-        b += 360;
+        db += 360;
     }
-    int nq = int((b-a) / 90);                   // Number of quadrants to draw
+    int nq = int((db-da) / 90);                 // Number of quadrants to draw
     if (nq > 4)
     {
         nq = 4;
     }
 
-    while (a < 0)
+    while (da < 0)
     {
-        a += 360;
+        da += 360;
     }
-    int sq = (int(a / 90) % 4);                 // Starting quadrant
+    int sq = (int(da / 90) % 4);                // Starting quadrant
 
     glBegin(state.polygonMode);
     circularVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);    // The center
@@ -1433,7 +1435,7 @@ Tree *Widget::rectangle(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
 }
 
 
-Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
+Tree *Widget::regularStarPolygon(Tree *self, real_r cx, real_r cy, real_r r,
                                  int p, int q)
 // ----------------------------------------------------------------------------
 //     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
@@ -1741,7 +1743,7 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
 }
 
 
-Tree *Widget::framePaint(Tree *self, double x, double y, double w, double h)
+Tree *Widget::framePaint(Tree *self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
@@ -1868,7 +1870,7 @@ Tree *Widget::lineEdit(Tree *self,
 }
 
 
-Tree *Widget::qtrectangle(Tree *self, double x, double y, double w, double h)
+Tree *Widget::qtrectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //    Draw a rectangle using the Qt primitive
 // ----------------------------------------------------------------------------

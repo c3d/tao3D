@@ -125,9 +125,9 @@ bool Process::done(text *errors, text *output)
     if (tracing)
     {
         if (err.length())
-            std::cerr << "Process: Error " << +err << "\n";
+            std::cerr << "Process: Error output:\n" << +err;
         if (out.length())
-            std::cerr << "Process: Output " << +out << "\n";
+            std::cerr << "Process: Standard output\n" << +out;
     }
 
     return ok;

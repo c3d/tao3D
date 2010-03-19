@@ -51,8 +51,7 @@ struct Point
 //    A 2D dimensional point
 // ----------------------------------------------------------------------------
 {
-    Point(): x(0), y(0) {}
-    Point(coord X, coord Y): x(X), y(Y) {}
+    Point(coord X = 0, coord Y = 0): x(X), y(Y) {}
     Point(const Point &o): x(o.x), y(o.y) {}
     Point &Set(coord X, coord Y) { x = X; y = Y; return *this; }
     Point& operator = (const Point& o)
@@ -90,7 +89,6 @@ struct Vector : Point
 //    A three-dimensional vector
 // ----------------------------------------------------------------------------
 {
-    Vector(): Point() {}
     Vector(coord x = 0.0, coord y = 0.0): Point(x,y) {}
     Vector(const Vector &o): Point(o) {}
 

@@ -36,9 +36,12 @@
 #include "apply-changes.h"
 #include "activity.h"
 #include "selection.h"
+#include "drag.h"
 #include "shapename.h"
 #include "treeholder.h"
 #include "menuinfo.h"
+#include "repository.h"
+#include "application.h"
 
 #include <QtGui/QImage>
 #include <cmath>
@@ -63,10 +66,14 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf), timer(this), currentMenu(NULL),
+      xlProgram(sf), timer(this), idleTimer(this), currentMenu(NULL),
       frame(NULL), mainFrame(NULL), activities(NULL),
+      page_start_time(CurrentTime()),
+      id(0), capacity(0),
+      event(NULL), focusWidget(NULL),
+      whatsNew(""), reloadProgram(false),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
-      page_start_time(CurrentTime()), event(NULL), focusWidget(NULL)
+      nextSave(now()), nextCommit(nextSave), nextSync(nextSave)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -77,6 +84,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 
     // Prepare the timers
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
+    connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));
+    idleTimer.start(0);
 
     // Configure the proxies for URLs
     QNetworkProxyFactory::setUseSystemConfiguration(true);
@@ -155,18 +164,19 @@ void Widget::appFocusChanged(QWidget *prev, QWidget *next)
 //   Notifications when focus changes
 // ----------------------------------------------------------------------------
 {
-#if 0
-    printf("Focus "); printWidget(prev); printf ("->"); printWidget(next);
-    const QObjectList &children = this->children();
-    QObjectList::const_iterator it;
-    printf("\nChildren:");
-    for (it = children.begin(); it != children.end(); it++)
+    IFTRACE(focus)
     {
-        printf(" ");
-        printWidget((QWidget *) *it);
+        printf("Focus "); printWidget(prev); printf ("->"); printWidget(next);
+        const QObjectList &children = this->children();
+        QObjectList::const_iterator it;
+        printf("\nChildren:");
+        for (it = children.begin(); it != children.end(); it++)
+        {
+            printf(" ");
+            printWidget((QWidget *) *it);
+        }
+        printf("\n");
     }
-    printf("\n");
-#endif
 }
 
 
@@ -175,9 +185,21 @@ void Widget::updateProgram(XL::SourceFile *source)
 //   Change the XL program, clean up stuff along the way
 // ----------------------------------------------------------------------------
 {
-    Tree *prog = source->tree.tree;
-    Tree *repl = prog;
     xlProgram = source;
+    refreshProgram();
+}
+
+
+void Widget::refreshProgram()
+// ----------------------------------------------------------------------------
+//   Check if any of the source files we depend on changed
+// ----------------------------------------------------------------------------
+{
+    if (!xlProgram)
+        return;
+
+    Repository *repository = TaoApp->Library();
+    Tree *prog = xlProgram->tree.tree;
 
     // Loop on imported files
     import_set iset;
@@ -197,11 +219,20 @@ void Widget::updateProgram(XL::SourceFile *source)
                 IFTRACE(filesync)
                     std::cerr << "File " << fname << " changed\n";
 
-                XL::Parser parser(fname.c_str(),
-                                  XL::MAIN->syntax,
-                                  XL::MAIN->positions,
-                                  XL::MAIN->errors);
-                XL::Tree *replacement = parser.Parse();
+                Tree *replacement = NULL;
+                if (repository)
+                {
+                    replacement = repository->read(fname);
+                }
+                else
+                {
+                    XL::Syntax syntax(XL::MAIN->syntax);
+                    XL::Positions &positions = XL::MAIN->positions;
+                    XL::Errors &errors = XL::MAIN->errors;
+                    XL::Parser parser(fname.c_str(), syntax, positions, errors);
+                    replacement = parser.Parse();
+                }
+
                 if (!replacement)
                 {
                     // Uh oh, file went away?
@@ -212,19 +243,10 @@ void Widget::updateProgram(XL::SourceFile *source)
                     // Check if we can simply change some parameters in file
                     ApplyChanges changes(replacement);
                     if (!sf.tree.tree->Do(changes))
-                    {
                         needBigHammer = true;
-                        if (sf.tree.tree == prog)
-                        {
-                            repl = replacement;
-                            repl->Set<XL::SymbolsInfo> (sf.symbols);
-                        }
-                    }
-                    else
-                    {
-                        sf.modified = st.st_mtime;
-                    }
 
+                    // Record new modification time
+                    sf.modified = st.st_mtime;
 
                     IFTRACE(filesync)
                     {
@@ -254,6 +276,28 @@ void Widget::updateProgram(XL::SourceFile *source)
 }
 
 
+void Widget::markChanged(text reason)
+// ----------------------------------------------------------------------------
+//    Record that the program changed
+// ----------------------------------------------------------------------------
+{
+    if (whatsNew.find(reason) == whatsNew.npos)
+    {
+        if (whatsNew.length())
+            whatsNew += "\n";
+        whatsNew += reason;
+    }
+    if (xlProgram)
+    {
+        if (Tree *prog = xlProgram->tree.tree)
+        {
+            import_set done;
+            ImportedFilesChanged(prog, done, true);
+        }
+    }
+}
+
+
 void Widget::requestFocus(QWidget *widget)
 // ----------------------------------------------------------------------------
 //   Some other widget request the focus
@@ -262,14 +306,22 @@ void Widget::requestFocus(QWidget *widget)
     if (!focusWidget)
     {
         focusWidget = widget;
-        glGetDoublev(GL_PROJECTION_MATRIX, focusProjection);
-        glGetDoublev(GL_MODELVIEW_MATRIX, focusModel);
-        glGetIntegerv(GL_VIEWPORT, focusViewport);
-        
+        recordProjection();
         QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
         QObject *fin = focusWidget;
         fin->event(&focusIn);
     }
+}
+
+
+void Widget::recordProjection()
+// ----------------------------------------------------------------------------
+//   Record the transformation matrix for the current projection
+// ----------------------------------------------------------------------------
+{
+    glGetDoublev(GL_PROJECTION_MATRIX, focusProjection);
+    glGetDoublev(GL_MODELVIEW_MATRIX, focusModel);
+    glGetIntegerv(GL_VIEWPORT, focusViewport);
 }
 
 
@@ -342,12 +394,14 @@ void Widget::setup(double w, double h, Box *picking)
     setupGL();
 
     // Initial state
+    depth = 0.0;
     state.polygonMode = GL_POLYGON;
     state.frameWidth = w;
     state.frameHeight = h;
     state.charFormat = QTextCharFormat();
     state.charFormat.setForeground(Qt::black);
     state.charFormat.setBackground(Qt::white);
+    state.depthDelta = 0.05;
     state.selectable = true;
 }
 
@@ -369,6 +423,80 @@ void Widget::setupGL()
 }
 
 
+void Widget::dawdle()
+// ----------------------------------------------------------------------------
+//   Operations to do when idle (in the background)
+// ----------------------------------------------------------------------------
+{
+    // Run all activities, which will get them a chance to update refresh
+    for (Activity *a = activities; a; a = a->next)
+        if (a->Idle())
+            break;
+
+    // We will only auto-save and commit if we have a valid repository
+    Repository *repository     = TaoApp->Library();
+    XL::Main   *xlr            = XL::MAIN;
+    bool        savedSomething = false;
+
+    // Check if there's something to save
+    ulonglong tick = now();
+    longlong saveDelay = longlong(nextSave - tick);
+    if (repository && saveDelay < 0)
+    {
+        XL::source_files::iterator it;
+        for (it = xlr->files.begin(); it != xlr->files.end(); it++)
+        {
+            XL::SourceFile &sf = (*it).second;
+            text fname = sf.name;
+            if (sf.changed)
+            {
+                if (repository->write(fname, sf.tree.tree))
+                {
+                    // Mark the tree as no longer changed
+                    sf.changed = false;
+
+                    // Record that we need to commit it sometime soon
+                    repository->change(fname);
+                    IFTRACE(filesync)
+                        std::cerr << "Changedfile " << fname << "\n";
+                        
+                    // Record time when file was changed
+                    struct stat st;
+                    stat (fname.c_str(), &st);
+                    sf.modified = st.st_mtime;
+                }
+            }
+        }
+
+        // Record when we will save file again
+        nextSave = tick + xlr->options.save_interval * 1000;
+    }
+
+    // Check if there's something to commit
+    longlong commitDelay = longlong (nextCommit - tick);
+    if (savedSomething && commitDelay < 0)
+    {
+        // If we saved anything, then commit changes
+        IFTRACE(filesync)
+            std::cerr << "Commit: " << whatsNew << "\n";
+        if (repository->commit(whatsNew))
+        {            
+            whatsNew = "";            
+            nextCommit = tick + xlr->options.commit_interval * 1000;
+            savedSomething = false;
+        }
+    }
+
+    // Check if there's something to reload
+    longlong syncDelay = longlong(nextSync - tick);
+    if (syncDelay < 0)
+    {
+        refreshProgram();
+        syncDelay = tick + xlr->options.sync_interval * 1000;
+    }
+}
+
+
 void Widget::draw()
 // ----------------------------------------------------------------------------
 //    Redraw the widget
@@ -387,8 +515,7 @@ void Widget::draw()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // If there is a program, we need to run it
-    if (xlProgram)
-        runProgram();
+    runProgram();
 
     // Timing
     elapsed(t);
@@ -405,8 +532,6 @@ void Widget::runProgram()
 //   Run the current XL program
 // ----------------------------------------------------------------------------
 {
-    double w = width(), h = height();
-
     // Reset the selection id for the various elements being drawn
     id = 0;    
     focusWidget = NULL;
@@ -421,7 +546,22 @@ void Widget::runProgram()
 
     try
     {
-        xl_evaluate(xlProgram->tree.tree);
+        if (xlProgram)
+        {
+            if (Tree *prog = xlProgram->tree.tree)
+            {
+                if (reloadProgram)
+                {
+                    XL::TreeClone cloneAction;
+                    Tree *copy = prog->Do(cloneAction);
+                    copy->Set<XL::SymbolsInfo>(prog->Get<XL::SymbolsInfo>());
+                    xlProgram->tree.tree = copy;
+                    prog = copy;
+                    reloadProgram = false;
+                }
+                xl_evaluate(prog);
+            }
+        }
     }
     catch (XL::Error &e)
     {
@@ -438,7 +578,7 @@ void Widget::runProgram()
     }
 
     // After we are done, flush the frame and over-paint it
-    mainFrame->Paint(-w/2, -h/2, w, h);
+    mainFrame->Paint();
 
     // Once we are done, do a garbage collection
     XL::Context::context->CollectGarbage();
@@ -446,6 +586,8 @@ void Widget::runProgram()
     // Remember how many elements are drawn on the page, plus arbitrary buffer
     if (id > capacity)
         capacity = id + 100;
+    else if (id + 50 < capacity / 2)
+        capacity = capacity / 2;
 }
 
 
@@ -523,9 +665,10 @@ void Widget::userMenu(QAction *p_action)
 
     TreeHolder t = var.value<TreeHolder >();
     xlProgram->tree.tree = new XL::Infix("\n", xlProgram->tree.tree, t.tree);
-    ((Window*)this->parent())->updateProgram(xlProgram->tree.tree);
 
+    markChanged("Menu clicked, added program element");
 }
+
 
 bool Widget::forwardEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
@@ -541,7 +684,6 @@ bool Widget::forwardEvent(QMouseEvent *event)
         int hh = height();
 
         Point3 u = unproject(x, hh-y, 0);
-        Point3 v = unproject(x, y, 0);
         QMouseEvent local(event->type(), QPoint(u.x + w/2, h/2 - u.y),
                           event->button(), event->buttons(),
                           event->modifiers());
@@ -690,10 +832,10 @@ void Widget::timerEvent(QTimerEvent *event)
 //
 // ============================================================================
 
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 Widget *Widget::current = NULL;
-
 typedef XL::Tree Tree;
-
 
 Tree *Widget::status(Tree *self, text caption)
 // ----------------------------------------------------------------------------
@@ -736,6 +878,16 @@ Tree *Widget::scale(Tree *self, double sx, double sy, double sz)
 }
 
 
+Tree *Widget::depthDelta(Tree *self, double dx)
+// ----------------------------------------------------------------------------
+//   Change the delta we use for the depth
+// ----------------------------------------------------------------------------
+{
+    state.depthDelta = dx;
+    return XL::xl_true;
+}
+
+
 Tree *Widget::refresh(Tree *self, double delay)
 // ----------------------------------------------------------------------------
 //    Refresh after the given number of seconds
@@ -764,8 +916,8 @@ Tree *Widget::pagesize(Tree *self, uint w, uint h)
 // ----------------------------------------------------------------------------
 {
     // Little practical point in ever creating textures bigger than viewport
-    if (w > width())    w = width();
-    if (h > height())   h = height();
+    if (w > (uint) width())    w = width();
+    if (h > (uint) height())   h = height();
     state.frameWidth = w;
     state.frameHeight = h;
     return XL::xl_true;
@@ -816,7 +968,7 @@ Tree *Widget::page(Tree *self, Tree *p)
             XL::LocalSave<Frame *> svc(this->frame, cairo);
             result = xl_evaluate(p);
         }
-        cairo->Paint(-w/2, -h/2, w, h);
+        cairo->Paint();
         frame->end();
 
         glMatrixMode(GL_PROJECTION);
@@ -915,74 +1067,78 @@ bool Widget::selected()
 
 void Widget::drawSelection(const Box3 &bounds)
 // ----------------------------------------------------------------------------
-//    Draw a 3D selection with the given coordinates
+//    Draw a 2D or 3D selection with the given coordinates
 // ----------------------------------------------------------------------------
 {
-    GLAttribKeeper save(GL_TEXTURE_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT);
+    if (bounds.Width() < 0 || bounds.Height() < 0)
+        return;
 
-    Point3 c = bounds.Center();
-    coord xc = c.x;
-    coord yc = c.y;
-    coord zc = c.z;
-
-    coord w = bounds.Width(); 
-    coord h = bounds.Height(); 
-    coord d = bounds.Depth();
-
-    // Compute the box around the item
-    coord r = w;
-    if (r > h) r = h;
-    if (r > d) r = d;
-    r /= 4;
-    if (r < 15.0)
-        r = 15.0;
-
-    coord xl = bounds.lower.x - r;
-    coord xu = bounds.upper.x + r;
-    coord yl = bounds.lower.y - r;
-    coord yu = bounds.upper.y + r;
-    coord zl = bounds.lower.z - r;
-    coord zu = bounds.upper.z + r;
-
-    setupGL();
-    glDisable(GL_DEPTH_TEST);
-
-    glBegin(GL_TRIANGLE_FAN);
-    glColor4f(1.0, 1.0, 1.0, 0.1);    glVertex3f(xc, yc, zu);
-    glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
-    glColor4f(0.0, 0.0, 1.0, 0.4);    glVertex3f(xl, yu, zc);
-    glColor4f(0.0, 1.0, 1.0, 0.4);    glVertex3f(xu, yu, zc);
-    glColor4f(1.0, 1.0, 0.0, 0.4);    glVertex3f(xu, yl, zc);
-    glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
-    glEnd();
-
-    glBegin(GL_TRIANGLE_FAN);
-    glColor4f(0.0, 0.0, 0.0, 0.4);    glVertex3f(xc, yc, zl);
-    glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
-    glColor4f(0.0, 0.0, 1.0, 0.4);    glVertex3f(xl, yu, zc);
-    glColor4f(0.0, 1.0, 1.0, 0.4);    glVertex3f(xu, yu, zc);
-    glColor4f(1.0, 1.0, 0.0, 0.4);    glVertex3f(xu, yl, zc);
-    glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
-    glEnd();
-}
-
-
-void Widget::drawSelection(const Box &bounds)
-// ----------------------------------------------------------------------------
-//    Draw a 2D selection with the given box
-// ----------------------------------------------------------------------------
-{
-    GLAttribKeeper save(GL_CURRENT_BIT | GL_LINE_BIT);
-    glLineWidth (3.0);
-    glColor4f(1.0, 0.0, 0.0, 0.5);
-    glBegin(GL_LINE_LOOP);
+    if (bounds.Depth() > 0)
     {
-        glVertex2f(bounds.lower.x, bounds.lower.y);
-        glVertex2f(bounds.lower.x, bounds.upper.y);
-        glVertex2f(bounds.upper.x, bounds.upper.y);
-        glVertex2f(bounds.upper.x, bounds.lower.y);
+        // Use 3D selection
+        coord w = bounds.Width();
+        coord h = bounds.Height();
+        coord d = bounds.Depth();
+
+        GLAttribKeeper save(GL_TEXTURE_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT);
+
+        Point3 c  = bounds.Center();
+        coord  xc = c.x;
+        coord  yc = c.y;
+        coord  zc = c.z;
+
+        // Compute the box around the item
+        coord r = w;
+        if (r > h) r = h;
+        if (r > d) r = d;
+        r /= 4;
+        if (r < 15.0)
+            r = 15.0;
+
+        coord xl = bounds.lower.x - r;
+        coord xu = bounds.upper.x + r;
+        coord yl = bounds.lower.y - r;
+        coord yu = bounds.upper.y + r;
+        coord zl = bounds.lower.z - r;
+        coord zu = bounds.upper.z + r;
+
+        setupGL();
+        glDisable(GL_DEPTH_TEST);
+
+        glBegin(GL_TRIANGLE_FAN);
+        glColor4f(1.0, 1.0, 1.0, 0.1);    glVertex3f(xc, yc, zu);
+        glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
+        glColor4f(0.0, 0.0, 1.0, 0.4);    glVertex3f(xl, yu, zc);
+        glColor4f(0.0, 1.0, 1.0, 0.4);    glVertex3f(xu, yu, zc);
+        glColor4f(1.0, 1.0, 0.0, 0.4);    glVertex3f(xu, yl, zc);
+        glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
+        glEnd();
+
+        glBegin(GL_TRIANGLE_FAN);
+        glColor4f(0.0, 0.0, 0.0, 0.4);    glVertex3f(xc, yc, zl);
+        glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
+        glColor4f(0.0, 0.0, 1.0, 0.4);    glVertex3f(xl, yu, zc);
+        glColor4f(0.0, 1.0, 1.0, 0.4);    glVertex3f(xu, yu, zc);
+        glColor4f(1.0, 1.0, 0.0, 0.4);    glVertex3f(xu, yl, zc);
+        glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
+        glEnd();
     }
-    glEnd();
+    else
+    {
+        // 2D drawing: Just draw a rectangle around the shape
+        GLAttribKeeper save(GL_CURRENT_BIT | GL_LINE_BIT);
+        double z = (bounds.lower.z + bounds.upper.z) / 2;
+        glLineWidth (3.0);
+        glColor4f(1.0, 0.0, 0.0, 0.5);
+        glBegin(GL_LINE_LOOP);
+        {
+            glVertex3f(bounds.lower.x, bounds.lower.y, z);
+            glVertex3f(bounds.lower.x, bounds.upper.y, z);
+            glVertex3f(bounds.upper.x, bounds.upper.y, z);
+            glVertex3f(bounds.upper.x, bounds.lower.y, z);
+        }
+        glEnd();
+    }
 }
 
 
@@ -991,10 +1147,22 @@ void Widget::loadName(bool load)
 //   Load a name on the GL stack
 // ----------------------------------------------------------------------------
 {
+    if (!load)
+        depth += state.depthDelta;
+
     if (state.selectable && load)
         glLoadName(shapeId());
     else
         glLoadName(0);
+}
+
+
+Box3 Widget::bbox(coord x, coord y, coord w, coord h)
+// ----------------------------------------------------------------------------
+//   Return a selection bounding box
+// ----------------------------------------------------------------------------
+{
+    return Box3(x-w/2, y-h/2, -(w+h)/4, w, h, (w+h)/2);
 }
 
 
@@ -1146,14 +1314,15 @@ Tree *Widget::texCoord(Tree *self, double x, double y)
 
 
 Tree *Widget::sphere(Tree *self,
-                     double x, double y, double z,
-                     double r, int nslices, int nstacks)
+                     real_r x, real_r y, real_r z, real_r r,
+                     integer_r nslices, integer_r nstacks)
 // ----------------------------------------------------------------------------
 //     GL sphere
 // ----------------------------------------------------------------------------
 {
     Box3 bounds(x-r, y-r, z-r, 2*r, 2*r, 2*r);
-    ShapeSelection name(this, bounds);
+    ShapeName name(this, bounds);
+    name.x(x).y(y).z(z).w(r).h(r).d(r);
 
     GLUquadric *q = gluNewQuadric();
     gluQuadricTexture (q, true);
@@ -1173,7 +1342,7 @@ void Widget::widgetVertex(double x, double y, double tx, double ty)
 // ----------------------------------------------------------------------------
 {
     texCoord(NULL, tx, ty);
-    vertex(NULL, x, y, 0.0);
+    vertex(NULL, x, y, depth);
 }
 
 
@@ -1268,12 +1437,13 @@ void Widget::circularSectorN(double cx, double cy, double r,
 }
 
 
-Tree *Widget::circle(Tree *self, double cx, double cy, double r)
+Tree *Widget::circle(Tree *self, real_r cx, real_r cy, real_r r)
 // ----------------------------------------------------------------------------
 //     GL circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, cx-r, cy-r, 2*r, 2*r);
+    ShapeName name(this, bbox(cx, cy, 2*r, 2*r));
+    name.x(cx).y(cy).w(r).h(r);
 
     glBegin(state.polygonMode);
     circularSectorN(cx, cy, r, 0, 0, 1, 1, 0, 4);
@@ -1284,29 +1454,32 @@ Tree *Widget::circle(Tree *self, double cx, double cy, double r)
 
 
 Tree *Widget::circularSector(Tree *self,
-                         double cx, double cy, double r,
-                         double a, double b)
+                             real_r cx, real_r cy, real_r r,
+                             real_r a, real_r b)
 // ----------------------------------------------------------------------------
 //     GL circular sector centered around (cx,cy), radius r and two angles a, b
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, cx-r, cy-r, 2*r, 2*r);
+    ShapeName name(this, bbox(cx, cy, 2*r, 2*r));
+    name.x(cx).y(cy).w(r).h(r);
 
-    while (b < a)
+    double db = b;
+    double da = a;
+    while (db < da)
     {
-        b += 360;
+        db += 360;
     }
-    int nq = int((b-a) / 90);                   // Number of quadrants to draw
+    int nq = int((db-da) / 90);                 // Number of quadrants to draw
     if (nq > 4)
     {
         nq = 4;
     }
 
-    while (a < 0)
+    while (da < 0)
     {
-        a += 360;
+        da += 360;
     }
-    int sq = (int(a / 90) % 4);                 // Starting quadrant
+    int sq = (int(da / 90) % 4);                // Starting quadrant
 
     glBegin(state.polygonMode);
     circularVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);    // The center
@@ -1319,13 +1492,14 @@ Tree *Widget::circularSector(Tree *self,
 
 
 Tree *Widget::roundedRectangle(Tree *self,
-                               double cx, double cy,
-                               double w, double h, double r)
+                               real_r cx, real_r cy,
+                               real_r w, real_r h, real_r r)
 // ----------------------------------------------------------------------------
 //     GL rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, cx-w/2, cy-h/2, w, h);
+    ShapeName name(this, bbox(cx, cy, w, h));
+    name.x(cx).y(cy).w(w).h(h);
 
     if (r <= 0) return rectangle(self, cx, cy, w, h);
     if (r > w/2) r = w/2;
@@ -1384,12 +1558,13 @@ Tree *Widget::roundedRectangle(Tree *self,
 }
 
 
-Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
+Tree *Widget::rectangle(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //     GL rectangle centered around (cx,cy), width w, height h
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, cx-w/2, cy-h/2, w, h);
+    ShapeName name(this, bbox(cx, cy, w, h));
+    name.x(cx).y(cy).w(w).h(h);
 
     glBegin(state.polygonMode);
     {
@@ -1404,13 +1579,14 @@ Tree *Widget::rectangle(Tree *self, double cx, double cy, double w, double h)
 }
 
 
-Tree *Widget::regularStarPolygon(Tree *self, double cx, double cy, double r,
-                                 int p, int q)
+Tree *Widget::regularStarPolygon(Tree *self, real_r cx, real_r cy, real_r r,
+                                 integer_r p, integer_r q)
 // ----------------------------------------------------------------------------
 //     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, cx-r, cy-r, 2*r, 2*r);
+    ShapeName name(this, bbox(cx, cy, 2*r, 2*r));
+    name.x(cx).y(cy).w(r).h(r);
 
     if (p < 2 || q < 1 || q > (p-1)/2)
         return XL::xl_false;
@@ -1712,7 +1888,7 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
 }
 
 
-Tree *Widget::framePaint(Tree *self, double x, double y, double w, double h)
+Tree *Widget::framePaint(Tree *self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
@@ -1721,7 +1897,8 @@ Tree *Widget::framePaint(Tree *self, double x, double y, double w, double h)
     frameTexture(self, w, h);
 
     // Draw a rectangle with the resulting texture
-    ShapeSelection name(this, x-w/2, y-h/2, w, h);
+    ShapeName name(this, bbox(x, y, w, h));
+    name.x(x).y(y).w(w).h(h);
     glBegin(GL_QUADS);
     {
         widgetVertex(x-w/2, y-h/2, 0, 0);
@@ -1748,7 +1925,7 @@ Tree *Widget::urlTexture(Tree *self, double w, double h,
     WebViewSurface *surface = url->GetInfo<WebViewSurface>();
     if (!surface)
     {
-        surface = new WebViewSurface(this, w,h);
+        surface = new WebViewSurface(this);
         url->SetInfo<WebViewSurface> (surface);
     }
 
@@ -1761,14 +1938,15 @@ Tree *Widget::urlTexture(Tree *self, double w, double h,
 
 
 Tree *Widget::urlPaint(Tree *self,
-                       double x, double y, double w, double h,
+                       real_r x, real_r y, real_r w, real_r h,
                        Text *url, Integer *progress)
 // ----------------------------------------------------------------------------
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this);
+    ShapeName name(this, Box3(x, y, 0, w, h, 0));
+    name.x(x).y(y).w(w).h(h);
     urlTexture(self, w, h, url, progress);
 
     // Draw a rectangle with the resulting texture
@@ -1780,8 +1958,6 @@ Tree *Widget::urlPaint(Tree *self,
         widgetVertex(x-w/2, y+h/2, 0, 1);
     }
     glEnd();
-    if (selected())
-        drawSelection(Box(x-w/2, y-h/2, w, h));
 
     return XL::xl_true;
 }
@@ -1799,7 +1975,7 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
     if (!surface)
     {
-        surface = new LineEditSurface(this, w,h);
+        surface = new LineEditSurface(this);
         txt->SetInfo<LineEditSurface> (surface);
     }
 
@@ -1812,14 +1988,16 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
 
 
 Tree *Widget::lineEdit(Tree *self,
-                       double x, double y,
-                       double w, double h, Text *txt)
+                       real_r x, real_r y, real_r w, real_r h,
+                       Text *txt)
 // ----------------------------------------------------------------------------
 //   Draw a line editor in the curent frame
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this);
+    ShapeName name(this, Box3(x, y, 0, w, h, 0));
+    name.x(x).y(y).w(w).h(h);
+
     lineEditTexture(self, w, h, txt);
 
     // Draw a rectangle with the resulting texture
@@ -1832,19 +2010,17 @@ Tree *Widget::lineEdit(Tree *self,
     }
     glEnd();
 
-    if (selected())
-        drawSelection(Box(x-w/2, y-h/2, w, h));
-
     return XL::xl_true;
 }
 
 
-Tree *Widget::qtrectangle(Tree *self, double x, double y, double w, double h)
+Tree *Widget::qtrectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //    Draw a rectangle using the Qt primitive
 // ----------------------------------------------------------------------------
 {
-    ShapeSelection name(this, x, y, w, h);
+    ShapeName name(this, bbox(x, y, w, h));
+    name.x(x).y(y).w(w).h(h);
 
     QPainter painter(state.paintDevice);
     QPen pen(QColor(Qt::red));
@@ -1861,8 +2037,6 @@ Tree *Widget::qttext(Tree *self, double x, double y, text s)
 //    Draw a text using the Qt text primitive
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
-
     QPainter painter(state.paintDevice);
     setAutoFillBackground(false);
     if (selected())
@@ -1894,7 +2068,6 @@ Tree *Widget::Ktext(Tree *self, text s)
 //    Text at the current cursor position
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
     frame->Text(s);
     return XL::xl_true;
 }
@@ -1905,7 +2078,6 @@ Tree *Widget::KlayoutText(Tree *self, text s)
 //    Text layout with Pango at the current cursor position
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
     frame->LayoutText(s);
     return XL::xl_true;
 }
@@ -1916,18 +2088,18 @@ Tree *Widget::KlayoutMarkup(Tree *self, text s)
 //    Text layout with markup using Pango at the current cursor position
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
     frame->LayoutMarkup(s);
     return XL::xl_true;
 }
 
 
-Tree *Widget::Krectangle(Tree *self, double x, double y, double w, double h)
+Tree *Widget::Krectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //    Draw a rectangle using Cairo
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
+    ShapeName name(this, bbox(x,y,w,h));
+    name.x(x).y(y).w(w).h(h);
     frame->Rectangle(x, y, w, h);
     return XL::xl_true;
 }
@@ -1938,7 +2110,6 @@ Tree *Widget::Kstroke(Tree *self)
 //    Stroke the current path
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this);
     frame->Stroke();
     return XL::xl_true;
 }
@@ -2037,8 +2208,6 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 // Add the menu to the current menu bar
 // ----------------------------------------------------------------------------
 {
-    QMenu * tmp = NULL;
-
     // Build the full name of the menu from the current menu name,
     // the given string and the isSubmenu.
     QString fullname;
@@ -2060,7 +2229,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 
     // If the menu already exists, no need to recreate it.
     // This is used at reload time, recreate the MenuInfo if required.
-    if (tmp = currentMenuBar->findChild<QMenu*>(fullname))
+    if (QMenu *tmp = currentMenuBar->findChild<QMenu*>(fullname))
     {
         currentMenu = tmp;
         if (!menuInfo)
@@ -2105,5 +2274,32 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 
     return XL::xl_true;
 }
+
+
+
+// ============================================================================
+// 
+//    Tree selection management
+// 
+// ============================================================================
+
+XL::Name *Widget::insert(Tree *self, Tree *toInsert)
+// ----------------------------------------------------------------------------
+//    Insert the tree after the selection, assuming there is only one
+// ----------------------------------------------------------------------------
+{
+    return XL::xl_true;
+}
+
+
+XL::Name *Widget::deleteSelection(Tree *self)
+// ----------------------------------------------------------------------------
+//    Delete the selection
+// ----------------------------------------------------------------------------
+{
+    return XL::xl_true;
+}
+
+
 
 TAO_END

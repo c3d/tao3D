@@ -6,7 +6,7 @@
 // 
 //   File Description:
 // 
-//    Helper class used to assign names to individual graphic shapes
+//    Helper class used to assign GL names to individual graphic shapes
 // 
 // 
 // 
@@ -23,7 +23,11 @@
 // ****************************************************************************
 
 #include "widget.h"
+#include "tree.h"
 #include "coords3d.h"
+#include "opcodes.h"
+
+#include <vector>
 
 
 TAO_BEGIN
@@ -33,31 +37,27 @@ struct ShapeName
 //   Structure used simply to assign shape IDs during selection
 // ----------------------------------------------------------------------------
 {
-    ShapeName(Widget *w): widget(w)        { widget->loadName(true); }
-    ~ShapeName()                           { widget->loadName(false); }
+    ShapeName(Widget *w, Box3 box = Box3());
+    ~ShapeName();
 
-public:
+    typedef XL::Tree Tree, *tree_p;
+
+    // Specifying where arguments are
+    ShapeName&  x(Tree &xr)     { xp = &xr; return *this; }
+    ShapeName&  y(Tree &yr)     { yp = &yr; return *this; }
+    ShapeName&  z(Tree &zr)     { zp = &zr; return *this; }
+    ShapeName&  w(Tree &wr)     { wp = &wr; return *this; }
+    ShapeName&  h(Tree &hr)     { hp = &hr; return *this; }
+    ShapeName&  d(Tree &dr)     { dp = &dr; return *this; }
+
+protected:
+    void        updateArg(tree_p param, coord delta);
+    Vector3     dragDelta();
+
+protected:
     Widget      *widget;
-};
-
-
-struct ShapeSelection : ShapeName
-// ----------------------------------------------------------------------------
-//    Structure used to assigne shape IDs and draw a selection rectangle
-// ----------------------------------------------------------------------------
-{
-    ShapeSelection(Widget *widget, const Box3 &box)
-        : ShapeName(widget), bounds(box) {}
-    ShapeSelection(Widget *widget, coord x, coord y, coord w, coord h)
-        : ShapeName(widget), bounds(x, y, -(w+h)/4, w, h, (w+h)/2) {}
-
-    ~ShapeSelection()
-    {
-        if (widget->selected())
-            widget->drawSelection(bounds);
-    }
-
-    Box3 bounds;
+    Box3        box;
+    tree_p      xp, yp, zp, wp, hp, dp;
 };
 
 TAO_END

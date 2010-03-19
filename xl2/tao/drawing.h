@@ -37,7 +37,7 @@ struct Drawing
 {
     Drawing() {}
     virtual ~Drawing() {}
-    virtual void        Draw(const Point &where)  {}
+    virtual void        Draw(const Point &)  {}
     virtual bool        IsWordBreak()   { return false; }
     virtual bool        IsLineBreak()   { return false; }
     virtual bool        IsAttribute()   { return false; }

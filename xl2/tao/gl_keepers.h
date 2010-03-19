@@ -41,7 +41,7 @@ struct GLAttribKeeper
     ~GLAttribKeeper()    { glPopAttrib(); }
 
 private:
-    GLAttribKeeper(const GLAttribKeeper &other) {}
+    GLAttribKeeper(const GLAttribKeeper &) {}
 };
 
 
@@ -55,7 +55,7 @@ struct GLMatrixKeeper
     ~GLMatrixKeeper()   { glPopMatrix(); }
 
 private:
-    GLMatrixKeeper(const GLMatrixKeeper &other) {}
+    GLMatrixKeeper(const GLMatrixKeeper &) {}
 };
 
 

@@ -22,13 +22,16 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include <QApplication>
 #include "tao.h"
-#include "git_backend.h"
+
+#include <QApplication>
+#include <QDir>
+
 
 TAO_BEGIN
 
 struct Widget;
+struct Repository;
 
 
 class Application : public QApplication
@@ -38,20 +41,26 @@ class Application : public QApplication
 {
 
 public:
-    Application(int & argc, char ** argv): QApplication(argc, argv) {}
+    Application(int & argc, char ** argv);
+    ~Application();
 
-    void openLibrary();
-    void internalCleanEverythingAsIfTaoWereNeverRun();
+    bool        OpenLibrary();
+    bool        OpenLibrary(QString path, bool confirm = true);
+    QDir        LibraryDirectory();
+    Repository *Library()       { return repository; }
+
+    void        InternalCleanEverythingAsIfTaoWereNeverRun();
 
 protected:
-    bool    recursiveDelete(QString path);
-    QString documentsPath();
-    QString defaultDocumentLibraryPath();
-    QString userDocumentLibraryPath();
+    bool        RecursiveDelete(QString path);
+    QString     DefaultDocumentLibraryPath();
+    QString     UserDocumentLibraryPath();
 
 private:
-    GitRepo           docLibrary;
+    Repository  *repository;    // REVISIT: One per application or per doc?
 };
+
+#define TaoApp  ((Application *) qApp)
 
 TAO_END
 

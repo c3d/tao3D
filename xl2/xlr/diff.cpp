@@ -178,7 +178,7 @@ struct Node
     {
         if (!t)
             return;
-        t->Set2<MatchedInfo>(true);
+        t->Set2<MatchedInfo>(matched);
     }
     unsigned int LeafCount()
     {
@@ -327,7 +327,7 @@ struct PrintNode : Action
         out << "[Postfix] ";
         return NULL;
     }
-    Tree *Do(Tree *what)
+    Tree *Do(Tree *)
     {
         return NULL;
     }
@@ -371,19 +371,19 @@ struct SetParentInfo : Action
     SetParentInfo() {}
     virtual ~SetParentInfo() {}
 
-    Tree *DoInteger(Integer *what)
+    Tree *DoInteger(Integer *)
     {
         return NULL;
     }
-    Tree *DoReal(Real *what)
+    Tree *DoReal(Real *)
     {
         return NULL;
     }
-    Tree *DoText(Text *what)
+    Tree *DoText(Text *)
     {
         return NULL;
     }
-    Tree *DoName(Name *what)
+    Tree *DoName(Name *)
     {
         return NULL;
     }
@@ -411,7 +411,7 @@ struct SetParentInfo : Action
         what->right->Set2<ParentInfo>(what);
         return NULL;
     }
-    Tree *Do(Tree *what)
+    Tree *Do(Tree *)
     {
         return NULL;
     }
@@ -425,19 +425,19 @@ struct SetChildVectorInfo : Action
     SetChildVectorInfo() {}
     virtual ~SetChildVectorInfo() {}
 
-    Tree *DoInteger(Integer *what)
+    Tree *DoInteger(Integer *)
     {
         return NULL;
     }
-    Tree *DoReal(Real *what)
+    Tree *DoReal(Real *)
     {
         return NULL;
     }
-    Tree *DoText(Text *what)
+    Tree *DoText(Text *)
     {
         return NULL;
     }
-    Tree *DoName(Name *what)
+    Tree *DoName(Name *)
     {
         return NULL;
     }
@@ -479,7 +479,7 @@ struct SetChildVectorInfo : Action
         what->Set2<ChildVectorInfo>(v);
         return NULL;
     }
-    Tree *Do(Tree *what)
+    Tree *Do(Tree *)
     {
         return NULL;
     }
@@ -493,19 +493,19 @@ struct SyncWithChildVectorInfo : Action
     SyncWithChildVectorInfo() {}
     virtual ~SyncWithChildVectorInfo() {}
 
-    Tree *DoInteger(Integer *what)
+    Tree *DoInteger(Integer *)
     {
         return NULL;
     }
-    Tree *DoReal(Real *what)
+    Tree *DoReal(Real *)
     {
         return NULL;
     }
-    Tree *DoText(Text *what)
+    Tree *DoText(Text *)
     {
         return NULL;
     }
-    Tree *DoName(Name *what)
+    Tree *DoName(Name *)
     {
         return NULL;
     }
@@ -547,7 +547,7 @@ struct SyncWithChildVectorInfo : Action
         what->right->Do(this);
         return NULL;
     }
-    Tree *Do(Tree *what)
+    Tree *Do(Tree *)
     {
         return NULL;
     }
@@ -616,7 +616,7 @@ struct CountLeaves : Action
         what->Set2<LeafCountInfo>(lc + rc);
         return NULL;
     }
-    Tree *Do(Tree *what)
+    Tree *Do(Tree *)
     {
         return NULL;
     }
@@ -960,7 +960,7 @@ static bool LeafEqual(Tree *t1, Tree *t2)
 }
 
 // FIXME rewrite as an Action?
-static bool NonLeafEqual(Tree *t1, Tree *t2, TreeDiff &td)
+static bool NonLeafEqual(Tree *t1, Tree *t2)
 // ----------------------------------------------------------------------------
 //    Test if two internal nodes should be considered equal (matching phase)
 // ----------------------------------------------------------------------------
@@ -1466,7 +1466,7 @@ bool Node::operator ==(const Node &n)
     if (t1->IsLeaf())
         return LeafEqual(t1, t2);
     else
-        return NonLeafEqual(t1, t2, *(t1->Get<TreeDiffInfo>()));
+        return NonLeafEqual(t1, t2);
 }
 
 bool NodeForAlign::operator ==(const NodeForAlign &n)
@@ -1558,7 +1558,7 @@ void EditOperation::Move::Apply(NodeTable &table)
         }
 }
 
-Tree * EditScript::Apply(Tree *tree)
+Tree * EditScript::Apply(Tree *)
 // ----------------------------------------------------------------------------
 //    Apply an Edit Script to a tree
 // ----------------------------------------------------------------------------

@@ -107,9 +107,8 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     runtime->DisableLazyCompilation(false);
 
     // Setup the optimizer - REVISIT: Adjust with optimization level
-    uint optLevel = 2;
     optimizer = new FunctionPassManager(module);
-    createStandardFunctionPasses(optimizer, optLevel);
+    createStandardFunctionPasses(optimizer, optimize_level);
     {
         // Register target data structure layout info
         optimizer->add(new TargetData(*runtime->getTargetData()));
@@ -294,7 +293,7 @@ void Compiler::Reset()
 
 
 Function *Compiler::EnterBuiltin(text name,
-                                 Tree *from, Tree *to,
+                                 Tree *to,
                                  tree_list parms,
                                  eval_fn code)
 // ----------------------------------------------------------------------------
@@ -497,7 +496,7 @@ Value *Compiler::Known(Tree *tree)
 }
 
 
-void Compiler::FreeResources(GCAction &gc, Tree *tree)
+void Compiler::FreeResources(Tree *tree)
 // ----------------------------------------------------------------------------
 //   Free the LLVM resources associated to the tree, if any
 // ----------------------------------------------------------------------------
@@ -887,6 +886,7 @@ void CompiledUnit::EndLazy(Tree *subexpr,
 //   Finish lazy evaluation of a block of code
 // ----------------------------------------------------------------------------
 {
+    (void) subexpr;
     code->CreateBr(skip);
     code->SetInsertPoint(skip);
 }

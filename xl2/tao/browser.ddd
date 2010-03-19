@@ -42,7 +42,7 @@ browser URL, progress, rw, rh ->
 
 
 locally
-    color 1,1,1,95%
+    color 1,1,1,85%
     translate 0,-30,50
     browser "http://www.slashdot.org", 0, 1000, 900
 
@@ -54,7 +54,7 @@ locally
     browser "http://www.google.com", 0, 700,800
 
 locally
-    translate -570,0,150
+    translate -570 + 200*sin time,0,150
     rotatey 40
     scale 30%, 30%, 30%
     browser "http://grenouille-bouillie.blogspot.com", 0, 700,800

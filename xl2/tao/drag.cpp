@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  menuinfo.cpp                                                    XLR project
+//  drag.cpp                                                       Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    Associate Qt menu data to XL trees
+//     An activity to drag widgets
 //
 //
 //
@@ -17,49 +17,63 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Jerome Forissier <jerome@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "tao.h"
-#include "menuinfo.h"
-#include "options.h"
-#include <iostream>
+#include "drag.h"
+//#include "coords3d.h"
+#include <QtDebug>
 
 TAO_BEGIN
 
-MenuInfo::MenuInfo(QMenu *menu, std::string name)
+Drag::Drag(Widget *w)
 // ----------------------------------------------------------------------------
-//   Associated a menu entry to a tree
+//   Initialize the drag object
 // ----------------------------------------------------------------------------
-    : fullName(name), menu(menu), menubar(NULL), action(NULL)
+    : Activity("Drag Activity", w)
+{}
+
+bool Drag::Click(uint button, bool down, int x, int y)
+// ----------------------------------------------------------------------------
+//   Initial and final click when dragging an object
+// ----------------------------------------------------------------------------
 {
-    IFTRACE(menus)
-        std::cout<<"MenuInfo : "<< name << " menuItem created, "
-                 << menu->children().size()
-                 << " children present in the menu\n";
+    if (button & Qt::LeftButton)
+    {
+        if (down)
+        {
+            x2 = x1 = x;
+            y2 = y1 = y;
+        }
+        else
+        {
+            delete this;
+        }
+    }
+
+    return true;
 }
 
-MenuInfo::MenuInfo(QMenuBar *menubar, QMenu *menu, std::string name)
+bool Drag::MouseMove(int x, int y, bool active)
 // ----------------------------------------------------------------------------
-//    Associate a menu bar entry to a tree
+//   Save mouse position as it moves
 // ----------------------------------------------------------------------------
-    : fullName(name), menu(menu), menubar(menubar), action(NULL)
 {
-    IFTRACE(menus)
-        std::cout<< "MenuInfo : " << name<< " menu created, "
-                 << menubar->children().size()
-                 << " children present in the menubar\n";
+    if (active)
+    {
+        x2 = x;
+        y2 = y;
+    }
+    return true;
 }
-
-
-MenuInfo::~MenuInfo()
+void Drag::Display(void)
 // ----------------------------------------------------------------------------
-//   Delete a menu entry
+//   Reset delta once per screen refresh
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(menus)
-        std::cout << "Delete MenuInfo for " << fullName << "\n";
+    x1 = x2;
+    y1 = y2;
 }
 
 TAO_END

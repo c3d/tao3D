@@ -46,7 +46,7 @@
         to->Set<SymbolsInfo>(c);                                        \
         to->Set<TypeInfo> (rtype##_type);                               \
         compiler->EnterBuiltin("xl_" #name,                             \
-                               from, to, rw->parameters, fn);           \
+                               to, rw->parameters, fn);                 \
     } while(0);
 
 
@@ -81,7 +81,7 @@
             to->Set<SymbolsInfo> (c);                                   \
             to->Set<TypeInfo> (rtype##_type);                           \
             compiler->EnterBuiltin("xl_" #name,                         \
-                                   from, to, rw->parameters, fn);       \
+                                   to, rw->parameters, fn);             \
         }                                                               \
         else                                                            \
         {                                                               \
@@ -91,7 +91,7 @@
             n ->Set<TypeInfo> (rtype##_type);                           \
             c->EnterName(symbol, n);                                    \
             tree_list noparms;                                          \
-            compiler->EnterBuiltin("xl_" #name, n, n, noparms, fn);     \
+            compiler->EnterBuiltin("xl_" #name, n, noparms, fn);        \
         }                                                               \
     } while(0);
 
@@ -110,7 +110,7 @@
         to->Set<SymbolsInfo> (c);                                       \
         to->Set<TypeInfo> (rtype##_type);                               \
         compiler->EnterBuiltin("xl_" #name,                             \
-                               from, to, rw->parameters, to->code);     \
+                               to, rw->parameters, to->code);           \
     } while(0);
 
 
@@ -125,7 +125,7 @@
         to->code = fn;                                                  \
         to->Set<SymbolsInfo> (c);                                       \
         to->Set<TypeInfo> (rtype##_type);                               \
-        compiler->EnterBuiltin("xl_" #name, from, to,                   \
+        compiler->EnterBuiltin("xl_" #name, to,                         \
                                rw->parameters, to->code);               \
     } while (0);
 
@@ -163,6 +163,6 @@
         to->code = typeTestFn;                                          \
         to->Set<SymbolsInfo> (c);                                       \
         compiler->EnterBuiltin("xl_" #symbol,                           \
-                               from, to, rw->parameters, typeTestFn);   \
+                               to, rw->parameters, typeTestFn);         \
                                                                         \
     } while(0);

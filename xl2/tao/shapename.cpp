@@ -111,7 +111,8 @@ void ShapeName::updateArg(tree_p arg, coord delta)
 // ----------------------------------------------------------------------------
 {
     // Defensive coding against bad callers...
-    if (!arg) return;
+    if (!arg || delta == 0.0)
+        return;
 
     arg = xl_source(arg);       // Find the source expression
     tree_p *ptr = &arg;

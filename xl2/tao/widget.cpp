@@ -198,7 +198,7 @@ void Widget::refreshProgram()
     if (!xlProgram)
         return;
 
-    Repository *repository = TaoApp->Library();
+    Repository *repository = TaoApp->library();
     Tree *prog = xlProgram->tree.tree;
 
     // Loop on imported files
@@ -434,7 +434,7 @@ void Widget::dawdle()
             break;
 
     // We will only auto-save and commit if we have a valid repository
-    Repository *repository     = TaoApp->Library();
+    Repository *repository     = TaoApp->library();
     XL::Main   *xlr            = XL::MAIN;
     bool        savedSomething = false;
 

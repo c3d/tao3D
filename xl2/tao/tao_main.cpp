@@ -59,7 +59,7 @@ int main(int argc, char **argv)
     // Internal clean option
     if (tao.arguments().contains("--internal-use-only-clean-environment"))
     {
-        tao.InternalCleanEverythingAsIfTaoWereNeverRun();
+        tao.internalCleanEverythingAsIfTaoWereNeverRun();
         return 0;
     }
 

@@ -25,6 +25,7 @@
 #include "options.h"
 
 #include <cassert>
+#include <cstdio>
 #include <QMessageBox>
 
 

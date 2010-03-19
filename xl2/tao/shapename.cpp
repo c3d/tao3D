@@ -64,14 +64,14 @@ ShapeName::~ShapeName()
             if (wp)     updateArg(wp,  v.x);
             if (hdp)    updateArg(hdp, v.y);
             if (v.x != 0 || v.y != 0.0)
-                widget->markChanged("Moved shape");
+                widget->markChanged("Resized shape");
         }
         else
         {
             if (xp)     updateArg(xp,  v.x);
             if (yzp)    updateArg(yzp, v.y);
             if (v.x != 0 || v.y != 0.0)
-                widget->markChanged("Resized shape");
+                widget->markChanged("Moved shape");
         }
         box.Normalize();
         widget->drawSelection(box);

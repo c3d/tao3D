@@ -1585,7 +1585,7 @@ Tree *Widget::regularStarPolygon(Tree *self, real_r cx, real_r cy, real_r r,
 //     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, bbox(cx, cy, r, r));
+    ShapeName name(this, bbox(cx, cy, 2*r, 2*r));
     name.x(cx).y(cy).w(r).h(r);
 
     if (p < 2 || q < 1 || q > (p-1)/2)

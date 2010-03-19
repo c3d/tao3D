@@ -75,7 +75,7 @@ bool Repository::write(text fileName, XL::Tree *tree)
 
     // If we were successful writing, rename to new file
     if (ok)
-        ok = rename(copy.c_str(), full.c_str()) == 0;
+        ok = std::rename(copy.c_str(), full.c_str()) == 0;
 
     return ok;
 }

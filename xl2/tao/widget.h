@@ -85,6 +85,7 @@ public:
     GLuint      shapeId();
     bool        selected();
     void        select();
+    Activity *  newDragActivity();
     void        drawSelection(const Box3 &bounds);
     void        loadName(bool load);
     Box3        bbox(coord x, coord y, coord w, coord h);

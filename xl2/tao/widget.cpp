@@ -461,9 +461,7 @@ void Widget::dawdle()
 // ----------------------------------------------------------------------------
 {
     // Run all activities, which will get them a chance to update refresh
-    for (Activity *a = activities; a; a = a->next)
-        if (a->Idle())
-            break;
+    for (Activity *a = activities; a; a = a->Idle()) ;
 
     // We will only auto-save and commit if we have a valid repository
     Repository *repository     = TaoApp->Library();
@@ -554,8 +552,7 @@ void Widget::draw()
 
     // Render all activities, e.g. the selection rectangle
     glDisable(GL_DEPTH_TEST);
-    for (Activity *a = activities; a; a = a->next)
-        a->Display();
+    for (Activity *a = activities; a; a = a->Display()) ;
 }
 
 
@@ -734,12 +731,10 @@ void Widget::keyPressEvent(QKeyEvent *event)
     
     // Check if there is an activity that deals with it
     uint key = (uint) event->key();
-    bool found = false;
-    for (Activity *a = activities; !found && a; a = a->next)
-        found = a->Key(key, true);
+    for (Activity *a = activities; a; a = a->Key(key, true)) ;
 
-    if (!found)
-        forwardEvent(event);
+    // Forward it down the regular event chain
+    forwardEvent(event);
 }
 
 
@@ -752,12 +747,10 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
 
     // Check if there is an activity that deals with it
     uint key = (uint) event->key();
-    bool found = false;
-    for (Activity *a = activities; !found && a; a = a->next)
-        found = a->Key(key, false);
+    for (Activity *a = activities; a; a = a->Key(key, false)) ;
 
-    if (!found)
-        forwardEvent(event);
+    // Forward it down the regular event chain
+    forwardEvent(event);
 }
 
 
@@ -772,17 +765,15 @@ void Widget::mousePressEvent(QMouseEvent *event)
     int x = event->x();
     int y = event->y();
 
-    // Check if there is an activity that deals with it
-    bool found = false;
-    for (Activity *a = activities; !found && a; a = a->next)
-        found = a->Click(button, true, x, y);
+    // Create a selection if there is no activity active at the moment
+    if (!activities)
+        new Selection(this);
 
-    if (!found)
-    {
-        Selection *s = new Selection(this);
-        s->Click(button, true, x, y);
-        forwardEvent(event);
-    }
+    // Send the click to all activities
+    for (Activity *a = activities; a; a = a->Click(button, true, x, y)) ;
+
+    // Pass the event down the event chain
+    forwardEvent(event);
 }
 
 
@@ -798,12 +789,10 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
     int y = event->y();
 
     // Check if there is an activity that deals with it
-    bool found = false;
-    for (Activity *a = activities; !found && a; a = a->next)
-        found = a->Click(button, false, x, y);
+    for (Activity *a = activities; a; a = a->Click(button, false, x, y)) ;
 
-    if (!found)
-        forwardEvent(event);
+    // Pass the event down the event chain
+    forwardEvent(event);
 }
 
 
@@ -818,12 +807,10 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
     int y = event->y();
 
     // Check if there is an activity that deals with it
-    bool found = false;
-    for (Activity *a = activities; !found && a; a = a->next)
-        found = a->MouseMove(x, y, active);
+    for (Activity *a = activities; a; a = a->MouseMove(x, y, active)) ;
 
-    if (!found)
-        forwardEvent(event);
+    // Pass the event down the event chain
+    forwardEvent(event);
 }
 
 
@@ -1094,6 +1081,16 @@ bool Widget::selected()
     return state.selectable && state.paintDevice == this
         ? selection.count(id) > 0
         : false;
+}
+
+
+Activity *Widget::newDragActivity()
+// ----------------------------------------------------------------------------
+//   Return a new drag activity, depending on current mode
+// ----------------------------------------------------------------------------
+{
+    // For now, we only support regular drag
+    return new Drag(this);
 }
 
 

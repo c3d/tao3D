@@ -334,12 +334,51 @@ void Application::internalCleanEverythingAsIfTaoWereNeverRun()
 }
 
 
+QString Application::defaultDocumentsFolderPath()
+// ----------------------------------------------------------------------------
+//    Try to guess the best documents folder to use by default
+// ----------------------------------------------------------------------------
+{
+#ifdef QT_WS_WIN
+    // Looking at the Windows registry
+    QSettings settings("HKEY_CURRENT_USER\\Software\\Microsoft\\CurrentVersion\\Explorer",
+                       QSettings::NativeFormat);
+    // For Windows Vista/7
+    QString path = settings.value("User Shell Folders\\Personal").toString();
+    if (!path.isNull())
+    {
+        // Typically C:\Users\username\Documents
+        return path;
+    }
+    // For Windows XP
+    path = settings.value("User Shell Folders\\Personal").toString();
+    if (!path.isNull())
+    {
+        // Typically C:\Documents and Settings\username\My Documents
+        return path;
+    }
+#endif // QT_WS_WIN
+
+    // Trying to ding a home sub-directory ending with "Documents"
+    QFileInfoList list = QDir::home().entryInfoList(QDir::NoDotAndDotDot | QDir::Dirs );
+    for (int i = 0; i < list.size(); i++)
+    {
+        QFileInfo info = list[i];
+        if (info.fileName().endsWith("documents", Qt::CaseInsensitive))
+        {
+            return info.canonicalFilePath();
+        }
+    }
+    // Last default would be home itself
+    return QDir::homePath();
+}
+
 QString Application::defaultDocumentLibraryPath()
 // ----------------------------------------------------------------------------
 //    The path proposed by default (first time run) for the user's doc library
 // ----------------------------------------------------------------------------
 {
-    return QDir::homePath() + tr("/Tao Document Library");
+    return defaultDocumentsFolderPath() + tr("/Tao Document Library");
 }
 
 

@@ -53,6 +53,7 @@ public:
 
 protected:
     bool        recursiveDelete(QString path);
+    QString     defaultDocumentsFolderPath()
     QString     defaultDocumentLibraryPath();
     QString     userDocumentLibraryPath();
 

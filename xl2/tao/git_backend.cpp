@@ -119,7 +119,11 @@ bool GitRepository::branch(text name)
 // ----------------------------------------------------------------------------
 {
     Process cmd(command(), QStringList("branch") << +name, path);
-    return cmd.done(&errors);
+    bool result = cmd.done(&errors);
+    if (!result)
+        if (errors.find("already exists") != errors.npos)
+            result = true;
+    return result;
 }
 
 

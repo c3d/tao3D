@@ -112,11 +112,11 @@ bool Repository::setTask(text name)
     task = name;
 
     // Check if we can checkout the task branch
+    if (!commit("Automatic commit on Tao startup", true))
+        return false;
     if (!checkout(task))
         if (!branch(task) || !checkout(task))
             return false;
-    if (!commit("Automatic commit on Tao startup", true))
-        return false;
     if (!merge(undo))
         return false;
 
@@ -124,8 +124,6 @@ bool Repository::setTask(text name)
     if (!checkout(undo))
         if (!branch(undo)||!checkout(undo))
             return false;
-    if (!commit("Automatic commit on Tao startup", true))
-        return false;
     if (!merge(task))
         return false;
 

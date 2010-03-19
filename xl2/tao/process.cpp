@@ -160,7 +160,7 @@ int Process::overflow(int c)
 // ------------------------------------------------------------------------
 {
     int error = sync();
-    if (!error && c != EOF)
+    if (!error && c != traits_type::eof())
     {
         assert(pbase() != epptr());
         error = sputc(c);

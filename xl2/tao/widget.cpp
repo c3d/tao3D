@@ -393,12 +393,14 @@ void Widget::setup(double w, double h, Box *picking)
     setupGL();
 
     // Initial state
+    depth = 0.0;
     state.polygonMode = GL_POLYGON;
     state.frameWidth = w;
     state.frameHeight = h;
     state.charFormat = QTextCharFormat();
     state.charFormat.setForeground(Qt::black);
     state.charFormat.setBackground(Qt::white);
+    state.depthDelta = 0.05;
     state.selectable = true;
 }
 
@@ -877,6 +879,16 @@ Tree *Widget::scale(Tree *self, double sx, double sy, double sz)
 }
 
 
+Tree *Widget::depthDelta(Tree *self, double dx)
+// ----------------------------------------------------------------------------
+//   Change the delta we use for the depth
+// ----------------------------------------------------------------------------
+{
+    state.depthDelta = dx;
+    return XL::xl_true;
+}
+
+
 Tree *Widget::refresh(Tree *self, double delay)
 // ----------------------------------------------------------------------------
 //    Refresh after the given number of seconds
@@ -1138,6 +1150,9 @@ void Widget::loadName(bool load)
 //   Load a name on the GL stack
 // ----------------------------------------------------------------------------
 {
+    if (!load)
+        depth += state.depthDelta;
+
     if (state.selectable && load)
         glLoadName(shapeId());
     else
@@ -1329,7 +1344,7 @@ void Widget::widgetVertex(double x, double y, double tx, double ty)
 // ----------------------------------------------------------------------------
 {
     texCoord(NULL, tx, ty);
-    vertex(NULL, x, y, 0.0);
+    vertex(NULL, x, y, depth);
 }
 
 

@@ -52,6 +52,7 @@ PREFIX(Page, tree, "page", PARM(p, tree),
 PREFIX(PageWidth, integer, "page_width", , RTAO(page_width(self)))
 PREFIX(PageHeight, integer, "page_height", , RTAO(page_height(self)))
 
+PREFIX(DepthDelta, tree, "depth_delta", PARM(x, real), RTAO(depthDelta(self,x)))
 PREFIX(Refresh, tree, "refresh", PARM(delay, real), RTAO(refresh(self, delay)))
 
 PREFIX(DaySeconds, tree, "time", , RTAO(time(self)))

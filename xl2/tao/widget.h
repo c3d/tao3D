@@ -112,6 +112,7 @@ public:
     Tree *rotate(Tree *self, double ra, double rx, double ry, double rz);
     Tree *translate(Tree *self, double x, double y, double z);
     Tree *scale(Tree *self, double x, double y, double z);
+    Tree *depthDelta(Tree *self, double x);
 
     Tree *locally(Tree *self, Tree *t);
     Tree *pagesize(Tree *self, uint w, uint h);
@@ -223,6 +224,7 @@ public:
     std::set<GLuint>      selection, savedSelection;
     std::set<XL::Tree *>  selectionTrees;
     QEvent *              event;
+    GLdouble              depth;
     QWidget *             focusWidget;
     GLdouble              focusProjection[16], focusModel[16];
     GLint                 focusViewport[4];
@@ -245,6 +247,7 @@ public:
         TextFlow *      flow;
         QTextCharFormat charFormat;  // Font, color, ...
         QPaintDevice *  paintDevice;
+        GLdouble        depthDelta;
         bool            selectable;
     } state;
 

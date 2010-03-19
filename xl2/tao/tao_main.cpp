@@ -103,16 +103,29 @@ int main(int argc, char **argv)
     // Create the windows for each file on the command line
     XL::source_names::iterator it;
     XL::source_names &names = xlr->file_names;
+    bool hadFile = false;
     for (it = names.begin(); it != names.end(); it++)
     {
         using namespace Tao;
-        XL::SourceFile &sf = xlr->files[*it];
-        if (it == names.begin())
-            tao.openLibrary(QFileInfo(+sf.name).canonicalPath());
-        Tao::Window *window = new Tao::Window (xlr, &sf);
-        window->show();
+        if (xlr->files.count(*it))
+        {
+            XL::SourceFile &sf = xlr->files[*it];
+            if (!hadFile)
+            {
+                hadFile = true;
+                tao.openLibrary(QFileInfo(+sf.name).canonicalPath());
+            }
+            Tao::Window *window = new Tao::Window (xlr, &sf);
+            window->show();
+        }
+        else
+        {
+            QMessageBox::warning(NULL, tao.tr("Invalid input file"),
+                                 tao.tr("The file %1 cannot be read.")
+                                 .arg(+*it));
+        }
     }
-    if (names.begin() == names.end())
+    if (!hadFile)
     {
         Tao::Window *untitled = new Tao::Window(xlr, NULL);
         untitled->show();

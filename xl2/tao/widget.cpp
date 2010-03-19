@@ -201,6 +201,8 @@ void Widget::refreshProgram()
 
     Repository *repository = TaoApp->library();
     Tree *prog = xlProgram->tree.tree;
+    if (!prog)
+        return;
 
     // Loop on imported files
     import_set iset;

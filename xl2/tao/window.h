@@ -48,6 +48,8 @@ class Window : public QMainWindow
 public:
     Window(XL::Main *xlr, XL::SourceFile *sf = NULL);
 
+    void setText(QString txt);
+
 protected:
     void closeEvent(QCloseEvent *event);
 

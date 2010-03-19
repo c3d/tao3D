@@ -42,6 +42,7 @@
 #include "menuinfo.h"
 #include "repository.h"
 #include "application.h"
+#include "process.h"
 
 #include <QtGui/QImage>
 #include <cmath>
@@ -489,7 +490,19 @@ void Widget::dawdle()
                     // Record that we need to commit it sometime soon
                     repository->change(fname);
                     IFTRACE(filesync)
-                        std::cerr << "Changedfile " << fname << "\n";
+                        std::cerr << "Changed " << fname << "\n";
+
+                    if (&sf == xlProgram)
+                    {
+                        text txt = *sf.tree.tree;
+                        Window *window = (Window *) parentWidget();
+                        window->setText(+txt);
+                    }
+                    
+                    // Record time when file was changed
+                    struct stat st;
+                    stat (fname.c_str(), &st);
+                    sf.modified = st.st_mtime;
                 }
             }
         }

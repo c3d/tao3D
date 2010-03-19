@@ -32,11 +32,11 @@ TAO_BEGIN
 // 
 // ============================================================================
 
-ShapeName::ShapeName(Widget *w, XL::Tree *t, uint argPos, Box3 box)
+ShapeName::ShapeName(Widget *w, Box3 box)
 // ----------------------------------------------------------------------------
 //   Record the GL name for a given tree
 // ----------------------------------------------------------------------------
-    : widget(w), tree(t), argPos(argPos), box(box)
+    : widget(w), box(box), xp(0), yp(0), zp(0), wp(0), hp(0), dp(0)
 {
     widget->loadName(true);
 }
@@ -55,81 +55,23 @@ ShapeName::~ShapeName()
         uint modifiers = qApp->keyboardModifiers();
         bool resize = modifiers & Qt::ShiftModifier;
         bool zaxis = modifiers & Qt::AltModifier;
-
-        uint x = (argPos >> 0)  & 0xF;
-        uint y = (argPos >> 4)  & 0xF;
-        uint z = (argPos >> 8)  & 0xF;
-        uint w = (argPos >> 12) & 0xF;
-        uint h = (argPos >> 16) & 0xF;
-        uint d = (argPos >> 20) & 0xF;
-        uint yz = zaxis ? z : y;
-        uint hd = zaxis ? d : h;
-
-        tree_ptrs list;
-        args(list);
-
-        IFTRACE(drag)
-        {
-            tree_ptrs::iterator it;
-            std::cerr << "Args (" << tree << ")= " << (void *) argPos << ": ";
-            for (it = list.begin(); it != list.end(); it++)
-                std::cerr << **it << "; ";
-            std::cerr << "V=" << v.x << ", " << v.y << ", " << v.z
-                      << " resize=" << resize << "\n";
-        }
+        tree_p yzp = zaxis ? zp : yp;
+        tree_p hdp = zaxis ? dp : hp;
 
         v.z = 0;
         if (resize)
         {
-            if (w)      updateArg(list, w,  v.x);
-            if (hd)     updateArg(list, hd, v.y);
-            box += v;
+            if (wp)     updateArg(wp,  v.x);
+            if (hdp)    updateArg(hdp, v.y);
         }
         else
         {
-            if (x)      updateArg(list, x,  v.x);
-            if (yz)     updateArg(list, yz, v.y);
-            v /= 2;
-            box.upper += v;
-            box.lower -= v;
+            if (xp)     updateArg(xp,  v.x);
+            if (yzp)    updateArg(yzp, v.y);
         }
-        widget->selectionTrees.insert(tree);
+        box.Normalize();
         widget->drawSelection(box);
     }
-}
-
-
-bool ShapeName::args(tree_ptrs &list)
-// ----------------------------------------------------------------------------
-//   Reconstruct the arg list for the given tree
-// ----------------------------------------------------------------------------
-//   The shape of the tree is assumed to be a Prefix with arguments
-//   separated by Infix , trees
-{
-    // We need a valid input argument
-    if (!tree)
-        return false;
-
-    // The input must be a prefix tree
-    XL::Prefix *prefix = tree->AsPrefix();
-    if (!prefix)
-        return false;
-
-    // Point to the arguments
-    XL::Tree **ptr = &prefix->right;
- 
-    // Walk down the comma-separated arguments
-    while (true)
-    {
-        // Check if we have more arguments
-        XL::Infix *infix = (*ptr)->AsInfix();
-        if (!infix || infix->name != ",")
-            break;
-        list.push_back(&infix->right);
-        ptr = &infix->left;
-    }
-    list.push_back(ptr);
-    return true;
 }
 
 
@@ -160,24 +102,52 @@ Vector3 ShapeName::dragDelta()
 }
 
 
-void ShapeName::updateArg(tree_ptrs &list, uint index, coord delta)
+void ShapeName::updateArg(tree_p arg, coord delta)
 // ----------------------------------------------------------------------------
 //   Update the given argument by the given offset
 // ----------------------------------------------------------------------------
 {
-    // Check if we have the given argument
-    if (index > list.size())
+    // Defensive coding against bad callers...
+    if (!arg || delta == 0.0)
         return;
 
-    XL::Tree **ptr = list[list.size() - index];
+    Tree *source = xl_source(arg);       // Find the source expression
+    arg = source;
+
+    tree_p *ptr = &arg;
+    bool more = true;
+    bool negative = false;
 
     // Check if we have an Infix +, if so walk down the left side
-    while (XL::Infix *infix = (*ptr)->AsInfix())
+    while (more)
     {
-        if (infix->name == "+")
-            ptr = &infix->left;
-        else
-            break;
+        more = false;
+        if (XL::Infix *infix = (*ptr)->AsInfix())
+        {
+            if (infix->name == "+")
+            {
+                ptr = &infix->left;
+                more = true;
+            }
+        }
+        if (XL::Prefix *prefix = (*ptr)->AsPrefix())
+        {
+            if (XL::Name *name = prefix->left->AsName())
+            {
+                if (name->value == "-")
+                {
+                    ptr = &prefix->right;
+                    more = true;
+                    negative = !negative;
+                    delta = -delta;
+                }
+                else if (name->value == "+")
+                {
+                    ptr = &prefix->right;
+                    more = true;
+                }
+            }
+        }
     }
 
     // Test the simple cases where the argument is directly an Integer or Real
@@ -192,8 +162,11 @@ void ShapeName::updateArg(tree_ptrs &list, uint index, coord delta)
     else
     {
         // Create an Infix + with the delta we add
-        *ptr = new XL::Infix("+", new XL::Real(delta), *ptr);
-        widget->reloadProgram = true;
+        if (ptr != &arg)
+        {
+            *ptr = new XL::Infix("+", new XL::Real(delta), *ptr);
+            widget->reloadProgram = true;
+        }
     }
 }
 

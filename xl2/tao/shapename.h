@@ -37,29 +37,27 @@ struct ShapeName
 //   Structure used simply to assign shape IDs during selection
 // ----------------------------------------------------------------------------
 {
-    enum
-    {
-        none   = 0,
-        xy     = 0x000021,
-        xywh   = 0x043021,
-        xyr    = 0x003021,
-        xyzr   = 0x004321,
-        xyzwhd = 0x654321
-    };
-    typedef std::vector<XL::Tree **> tree_ptrs;
-
-    ShapeName(Widget *w, XL::Tree *t, uint argsPos = xywh, Box3 box = Box3());
+    ShapeName(Widget *w, Box3 box = Box3());
     ~ShapeName();
 
-    bool        args(tree_ptrs &list);
-    void        updateArg(tree_ptrs &list, uint index, coord delta);
+    typedef XL::Tree Tree, *tree_p;
+
+    // Specifying where arguments are
+    ShapeName&  x(Tree &xr)     { xp = &xr; return *this; }
+    ShapeName&  y(Tree &yr)     { yp = &yr; return *this; }
+    ShapeName&  z(Tree &zr)     { zp = &zr; return *this; }
+    ShapeName&  w(Tree &wr)     { wp = &wr; return *this; }
+    ShapeName&  h(Tree &hr)     { hp = &hr; return *this; }
+    ShapeName&  d(Tree &dr)     { dp = &dr; return *this; }
+
+protected:
+    void        updateArg(tree_p param, coord delta);
     Vector3     dragDelta();
 
-public:
-    Box3        box;
+protected:
     Widget      *widget;
-    XL::Tree    *tree;
-    uint        argPos;
+    Box3        box;
+    tree_p      xp, yp, zp, wp, hp, dp;
 };
 
 TAO_END

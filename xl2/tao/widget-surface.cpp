@@ -34,8 +34,7 @@ TAO_BEGIN
 //
 // ============================================================================
 
-WidgetSurface::WidgetSurface(Widget *parent, QWidget *widget,
-                             uint width, uint height)
+WidgetSurface::WidgetSurface(QWidget *widget)
 // ----------------------------------------------------------------------------
 //   Create a renderer with the right size
 // ----------------------------------------------------------------------------
@@ -62,7 +61,7 @@ void WidgetSurface::resize(uint w, uint h)
 // ----------------------------------------------------------------------------
 {
     // Resizing the widget should trigger a repaint
-    if (w != widget->width() || h != widget->height())
+    if (int(w) != widget->width() || int(h) != widget->height())
     {
         widget->resize(w, h);
         dirty = true;
@@ -123,11 +122,11 @@ void WidgetSurface::repaint()
 //
 // ============================================================================
 
-WebViewSurface::WebViewSurface(Widget *parent, uint width, uint height)
+WebViewSurface::WebViewSurface(Widget *parent)
 // ----------------------------------------------------------------------------
 //    Build the QWebView
 // ----------------------------------------------------------------------------
-    : WidgetSurface(parent, new QWebView(parent), width, height),
+    : WidgetSurface(new QWebView(parent)),
       urlTree(NULL), url(""), progress(0)
 {
     QWebView *webView = (QWebView *) widget;
@@ -166,7 +165,7 @@ void WebViewSurface::finishedLoading (bool loadedOK)
 //   When we loaded the surface, update the URL
 // ----------------------------------------------------------------------------
 {
-    loadProgress(100);
+    loadProgress(loadedOK ? 100 : 100);
 }
 
 
@@ -196,13 +195,11 @@ void WebViewSurface::loadProgress(int progressPercent)
 //
 // ============================================================================
 
-LineEditSurface::LineEditSurface(Widget *parent,
-                                 uint width, uint height,
-                                 bool immed)
+LineEditSurface::LineEditSurface(Widget *parent, bool immed)
 // ----------------------------------------------------------------------------
 //    Build the QLineEdit
 // ----------------------------------------------------------------------------
-    : WidgetSurface(parent, new QLineEdit(parent), width, height),
+    : WidgetSurface(new QLineEdit(parent)),
       contents(NULL), immediate(immed), locallyModified(false)
 {
     QLineEdit *lineEdit = (QLineEdit *) widget;

@@ -109,7 +109,7 @@ bool Application::OpenLibrary(QString path, bool confirm)
             QPushButton *create = box.addButton(tr("Create"),
                                                 QMessageBox::AcceptRole);
             box.setDefaultButton(create);
-            int index = box.exec();
+            int index = box.exec(); (void) index;
             QAbstractButton *which = box.clickedButton();
 
             if (which == choose)
@@ -199,7 +199,7 @@ bool Application::OpenLibrary(QString path, bool confirm)
                 QPushButton *remember = box.addButton(tr("Use always"),
                                                       QMessageBox::YesRole);
                 box.setDefaultButton(use);
-                int index = box.exec();
+                int index = box.exec(); (void) index;
                 QAbstractButton *which = box.clickedButton();
 
                 if (which == use)

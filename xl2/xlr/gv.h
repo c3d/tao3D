@@ -82,7 +82,7 @@ struct GvOutput : Action
     Tree *DoInfix(Infix *what);
     Tree *DoPrefix(Prefix *what);
     Tree *DoPostfix(Postfix *what);
-    Tree *Do(Tree *what) { return NULL; }
+    Tree *Do(Tree *) { return NULL; }
 
     std::ostream &out;
 };

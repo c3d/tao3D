@@ -21,8 +21,7 @@ QT += webkit \
     network \
     opengl \
     svg
-CONFIG += warn_off \
-    debug
+CONFIG += debug
 
 # CONFIG += release
 # Tell the XLR portion that we are building for Tao

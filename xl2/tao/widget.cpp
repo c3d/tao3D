@@ -68,12 +68,12 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
       xlProgram(sf), timer(this), idleTimer(this), currentMenu(NULL),
       frame(NULL), mainFrame(NULL), activities(NULL),
-      tmin(~0ULL), tmax(0), tsum(0), tcount(0),
-      nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
       page_start_time(CurrentTime()),
       id(0), capacity(0),
       event(NULL), focusWidget(NULL),
-      whatsNew(""), reloadProgram(false)
+      whatsNew(""), reloadProgram(false),
+      tmin(~0ULL), tmax(0), tsum(0), tcount(0),
+      nextSave(now()), nextCommit(nextSave), nextSync(nextSave)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -164,18 +164,19 @@ void Widget::appFocusChanged(QWidget *prev, QWidget *next)
 //   Notifications when focus changes
 // ----------------------------------------------------------------------------
 {
-#if 0
-    printf("Focus "); printWidget(prev); printf ("->"); printWidget(next);
-    const QObjectList &children = this->children();
-    QObjectList::const_iterator it;
-    printf("\nChildren:");
-    for (it = children.begin(); it != children.end(); it++)
+    IFTRACE(focus)
     {
-        printf(" ");
-        printWidget((QWidget *) *it);
+        printf("Focus "); printWidget(prev); printf ("->"); printWidget(next);
+        const QObjectList &children = this->children();
+        QObjectList::const_iterator it;
+        printf("\nChildren:");
+        for (it = children.begin(); it != children.end(); it++)
+        {
+            printf(" ");
+            printWidget((QWidget *) *it);
+        }
+        printf("\n");
     }
-    printf("\n");
-#endif
 }
 
 
@@ -229,7 +230,7 @@ void Widget::refreshProgram()
                     XL::Positions &positions = XL::MAIN->positions;
                     XL::Errors &errors = XL::MAIN->errors;
                     XL::Parser parser(fname.c_str(), syntax, positions, errors);
-                    XL::Tree *replacement = parser.Parse();
+                    replacement = parser.Parse();
                 }
 
                 if (!replacement)
@@ -531,8 +532,6 @@ void Widget::runProgram()
 //   Run the current XL program
 // ----------------------------------------------------------------------------
 {
-    double w = width(), h = height();
-
     // Reset the selection id for the various elements being drawn
     id = 0;    
     focusWidget = NULL;
@@ -579,7 +578,7 @@ void Widget::runProgram()
     }
 
     // After we are done, flush the frame and over-paint it
-    mainFrame->Paint(-w/2, -h/2, w, h);
+    mainFrame->Paint();
 
     // Once we are done, do a garbage collection
     XL::Context::context->CollectGarbage();
@@ -833,10 +832,10 @@ void Widget::timerEvent(QTimerEvent *event)
 //
 // ============================================================================
 
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 Widget *Widget::current = NULL;
-
 typedef XL::Tree Tree;
-
 
 Tree *Widget::status(Tree *self, text caption)
 // ----------------------------------------------------------------------------
@@ -917,8 +916,8 @@ Tree *Widget::pagesize(Tree *self, uint w, uint h)
 // ----------------------------------------------------------------------------
 {
     // Little practical point in ever creating textures bigger than viewport
-    if (w > width())    w = width();
-    if (h > height())   h = height();
+    if (w > (uint) width())    w = width();
+    if (h > (uint) height())   h = height();
     state.frameWidth = w;
     state.frameHeight = h;
     return XL::xl_true;
@@ -969,7 +968,7 @@ Tree *Widget::page(Tree *self, Tree *p)
             XL::LocalSave<Frame *> svc(this->frame, cairo);
             result = xl_evaluate(p);
         }
-        cairo->Paint(-w/2, -h/2, w, h);
+        cairo->Paint();
         frame->end();
 
         glMatrixMode(GL_PROJECTION);
@@ -1077,8 +1076,6 @@ void Widget::drawSelection(const Box3 &bounds)
     if (bounds.Depth() > 0)
     {
         // Use 3D selection
-        coord x = bounds.Left();
-        coord y = bounds.Bottom();
         coord w = bounds.Width();
         coord h = bounds.Height();
         coord d = bounds.Depth();
@@ -1317,14 +1314,15 @@ Tree *Widget::texCoord(Tree *self, double x, double y)
 
 
 Tree *Widget::sphere(Tree *self,
-                     coord x, coord y, coord z,
-                     coord r, int nslices, int nstacks)
+                     real_r x, real_r y, real_r z, real_r r,
+                     integer_r nslices, integer_r nstacks)
 // ----------------------------------------------------------------------------
 //     GL sphere
 // ----------------------------------------------------------------------------
 {
     Box3 bounds(x-r, y-r, z-r, 2*r, 2*r, 2*r);
-    ShapeName name(this, self, ShapeName::xyzr, bounds);
+    ShapeName name(this, bounds);
+    name.x(x).y(y).z(z).w(r).h(r).d(r);
 
     GLUquadric *q = gluNewQuadric();
     gluQuadricTexture (q, true);
@@ -1439,12 +1437,13 @@ void Widget::circularSectorN(double cx, double cy, double r,
 }
 
 
-Tree *Widget::circle(Tree *self, coord cx, coord cy, coord r)
+Tree *Widget::circle(Tree *self, real_r cx, real_r cy, real_r r)
 // ----------------------------------------------------------------------------
 //     GL circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self, ShapeName::xyr, bbox(cx, cy, r, r));
+    ShapeName name(this, bbox(cx, cy, 2*r, 2*r));
+    name.x(cx).y(cy).w(r).h(r);
 
     glBegin(state.polygonMode);
     circularSectorN(cx, cy, r, 0, 0, 1, 1, 0, 4);
@@ -1455,13 +1454,14 @@ Tree *Widget::circle(Tree *self, coord cx, coord cy, coord r)
 
 
 Tree *Widget::circularSector(Tree *self,
-                             coord cx, coord cy, coord r,
-                             coord a, coord b)
+                             real_r cx, real_r cy, real_r r,
+                             real_r a, real_r b)
 // ----------------------------------------------------------------------------
 //     GL circular sector centered around (cx,cy), radius r and two angles a, b
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self, ShapeName::xyr, bbox(cx, cy, r, r));
+    ShapeName name(this, bbox(cx, cy, 2*r, 2*r));
+    name.x(cx).y(cy).w(r).h(r);
 
     double db = b;
     double da = a;
@@ -1492,13 +1492,14 @@ Tree *Widget::circularSector(Tree *self,
 
 
 Tree *Widget::roundedRectangle(Tree *self,
-                               coord cx, coord cy,
-                               coord w, coord h, coord r)
+                               real_r cx, real_r cy,
+                               real_r w, real_r h, real_r r)
 // ----------------------------------------------------------------------------
 //     GL rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self, ShapeName::xywh, bbox(cx, cy, w, h));
+    ShapeName name(this, bbox(cx, cy, w, h));
+    name.x(cx).y(cy).w(w).h(h);
 
     if (r <= 0) return rectangle(self, cx, cy, w, h);
     if (r > w/2) r = w/2;
@@ -1557,12 +1558,13 @@ Tree *Widget::roundedRectangle(Tree *self,
 }
 
 
-Tree *Widget::rectangle(Tree *self, coord cx, coord cy, coord w, coord h)
+Tree *Widget::rectangle(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //     GL rectangle centered around (cx,cy), width w, height h
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self, ShapeName::xywh, bbox(cx, cy, w, h));
+    ShapeName name(this, bbox(cx, cy, w, h));
+    name.x(cx).y(cy).w(w).h(h);
 
     glBegin(state.polygonMode);
     {
@@ -1577,13 +1579,14 @@ Tree *Widget::rectangle(Tree *self, coord cx, coord cy, coord w, coord h)
 }
 
 
-Tree *Widget::regularStarPolygon(Tree *self, coord cx, coord cy, coord r,
-                                 int p, int q)
+Tree *Widget::regularStarPolygon(Tree *self, real_r cx, real_r cy, real_r r,
+                                 integer_r p, integer_r q)
 // ----------------------------------------------------------------------------
 //     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self, ShapeName::xyr, bbox(cx, cy, r, r));
+    ShapeName name(this, bbox(cx, cy, 2*r, 2*r));
+    name.x(cx).y(cy).w(r).h(r);
 
     if (p < 2 || q < 1 || q > (p-1)/2)
         return XL::xl_false;
@@ -1885,7 +1888,7 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
 }
 
 
-Tree *Widget::framePaint(Tree *self, coord x, coord y, coord w, coord h)
+Tree *Widget::framePaint(Tree *self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
@@ -1894,7 +1897,8 @@ Tree *Widget::framePaint(Tree *self, coord x, coord y, coord w, coord h)
     frameTexture(self, w, h);
 
     // Draw a rectangle with the resulting texture
-    ShapeName name(this, self, ShapeName::xywh, bbox(x, y, w, h));
+    ShapeName name(this, bbox(x, y, w, h));
+    name.x(x).y(y).w(w).h(h);
     glBegin(GL_QUADS);
     {
         widgetVertex(x-w/2, y-h/2, 0, 0);
@@ -1921,7 +1925,7 @@ Tree *Widget::urlTexture(Tree *self, double w, double h,
     WebViewSurface *surface = url->GetInfo<WebViewSurface>();
     if (!surface)
     {
-        surface = new WebViewSurface(this, w,h);
+        surface = new WebViewSurface(this);
         url->SetInfo<WebViewSurface> (surface);
     }
 
@@ -1934,14 +1938,15 @@ Tree *Widget::urlTexture(Tree *self, double w, double h,
 
 
 Tree *Widget::urlPaint(Tree *self,
-                       coord x, coord y, coord w, coord h,
+                       real_r x, real_r y, real_r w, real_r h,
                        Text *url, Integer *progress)
 // ----------------------------------------------------------------------------
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, self, ShapeName::xywh, Box3(x, y, 0, w, h, 0));
+    ShapeName name(this, Box3(x, y, 0, w, h, 0));
+    name.x(x).y(y).w(w).h(h);
     urlTexture(self, w, h, url, progress);
 
     // Draw a rectangle with the resulting texture
@@ -1970,7 +1975,7 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
     if (!surface)
     {
-        surface = new LineEditSurface(this, w,h);
+        surface = new LineEditSurface(this);
         txt->SetInfo<LineEditSurface> (surface);
     }
 
@@ -1983,14 +1988,15 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
 
 
 Tree *Widget::lineEdit(Tree *self,
-                       coord x, coord y, coord w, coord h,
+                       real_r x, real_r y, real_r w, real_r h,
                        Text *txt)
 // ----------------------------------------------------------------------------
 //   Draw a line editor in the curent frame
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, self, ShapeName::xywh, Box3(x, y, 0, w, h, 0));
+    ShapeName name(this, Box3(x, y, 0, w, h, 0));
+    name.x(x).y(y).w(w).h(h);
 
     lineEditTexture(self, w, h, txt);
 
@@ -2008,12 +2014,13 @@ Tree *Widget::lineEdit(Tree *self,
 }
 
 
-Tree *Widget::qtrectangle(Tree *self, coord x, coord y, coord w, coord h)
+Tree *Widget::qtrectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //    Draw a rectangle using the Qt primitive
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self, ShapeName::xywh, bbox(x, y, w, h));
+    ShapeName name(this, bbox(x, y, w, h));
+    name.x(x).y(y).w(w).h(h);
 
     QPainter painter(state.paintDevice);
     QPen pen(QColor(Qt::red));
@@ -2086,12 +2093,13 @@ Tree *Widget::KlayoutMarkup(Tree *self, text s)
 }
 
 
-Tree *Widget::Krectangle(Tree *self, double x, double y, double w, double h)
+Tree *Widget::Krectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //    Draw a rectangle using Cairo
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self, ShapeName::xywh, bbox(x,y,w,h));
+    ShapeName name(this, bbox(x,y,w,h));
+    name.x(x).y(y).w(w).h(h);
     frame->Rectangle(x, y, w, h);
     return XL::xl_true;
 }
@@ -2200,8 +2208,6 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 // Add the menu to the current menu bar
 // ----------------------------------------------------------------------------
 {
-    QMenu * tmp = NULL;
-
     // Build the full name of the menu from the current menu name,
     // the given string and the isSubmenu.
     QString fullname;
@@ -2223,7 +2229,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 
     // If the menu already exists, no need to recreate it.
     // This is used at reload time, recreate the MenuInfo if required.
-    if (tmp = currentMenuBar->findChild<QMenu*>(fullname))
+    if (QMenu *tmp = currentMenuBar->findChild<QMenu*>(fullname))
     {
         currentMenu = tmp;
         if (!menuInfo)

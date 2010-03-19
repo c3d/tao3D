@@ -202,7 +202,7 @@ void Frame::LayoutMarkup(text s)
 }
 
 
-void Frame::Paint(double x, double y, double w, double h)
+void Frame::Paint()
 // ----------------------------------------------------------------------------
 //    Paint the resulting texture over the given rectangle
 // ----------------------------------------------------------------------------
@@ -244,7 +244,9 @@ void FrameInfo::resize(uint w, uint h)
 // ----------------------------------------------------------------------------
 {
     // Don't change anything if size stays the same
-    if (render_fbo && render_fbo->width() == w && render_fbo->height() == h)
+    if (render_fbo &&
+        render_fbo->width() == int(w) &&
+        render_fbo->height() == int(h))
         return;
 
     // Delete anything we might have

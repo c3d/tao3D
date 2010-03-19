@@ -45,7 +45,7 @@ TextFlow::~TextFlow()
 {}
 
 
-int TextFlow::addText(QString pieceOfText, QTextCharFormat aFormat)
+void TextFlow::addText(QString pieceOfText, QTextCharFormat aFormat)
 // ----------------------------------------------------------------------------
 //   Add a piece of text and its associated format to the flow.
 // ----------------------------------------------------------------------------

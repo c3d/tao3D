@@ -96,6 +96,15 @@ Vector3 ShapeName::dragDelta()
             Point3 u1 = widget->unproject(x1, hh-y1, 0);
             Point3 u2 = widget->unproject(x2, hh-y2, 0);
             result = u2 - u1;
+
+            // Clamp amplification resulting from reverse projection
+            const double maxAmp = 5.0;
+            double ampX = fabs(result.x) / (fabs(x2-x1) + 0.01);
+            double ampY = fabs(result.y) / (fabs(y2-y1) + 0.01);
+            if (ampX > maxAmp)
+                result *= maxAmp/ampX;
+            if (ampY > maxAmp)
+                result *= maxAmp/ampY;
         }
     }
     return result;

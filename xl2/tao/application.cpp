@@ -17,10 +17,13 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 2010 Jerome Forissier <jerome@taodyne.com>
+//  (C) 2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
 #include "application.h"
+#include "widget.h"
 #include "repository.h"
 #include "git_backend.h"
 #include "tao.h"
@@ -33,6 +36,7 @@
 #include <QLineEdit>
 #include <QDir>
 #include <QDebug>
+#include <QtWebKit>
 
 TAO_BEGIN
 
@@ -42,7 +46,53 @@ Application::Application(int & argc, char ** argv)
 //    Build the Tao application
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), repository(NULL)
-{}
+{
+    // Set some useful parameters for the application
+    setApplicationName ("Tao");
+    setOrganizationName ("Taodyne SAS");
+    setOrganizationDomain ("taodyne.com");
+
+    // Internal clean option
+    if (arguments().contains("--internal-use-only-clean-environment"))
+    {
+        internalCleanEverythingAsIfTaoWereNeverRun();
+        exit(0);
+    }
+
+    // Web settings
+    QWebSettings *gs = QWebSettings::globalSettings();
+    gs->setAttribute(QWebSettings::JavascriptEnabled, true);
+    gs->setAttribute(QWebSettings::JavaEnabled, true);
+    gs->setAttribute(QWebSettings::PluginsEnabled, true);
+    gs->setAttribute(QWebSettings::JavascriptCanOpenWindows, true);
+    gs->setAttribute(QWebSettings::JavascriptCanAccessClipboard, true);
+    gs->setAttribute(QWebSettings::LinksIncludedInFocusChain, true);
+    gs->setAttribute(QWebSettings::OfflineStorageDatabaseEnabled, true);
+    gs->setAttribute(QWebSettings::OfflineWebApplicationCacheEnabled,true);
+    gs->setAttribute(QWebSettings::LocalStorageEnabled, true);
+
+    // Configure the proxies for URLs
+    QNetworkProxyFactory::setUseSystemConfiguration(true);
+
+    // Basic sanity tests to check if we can actually run
+    if (!QGLFormat::hasOpenGL())
+    {
+        QMessageBox::information(0, "OpenGL support",
+                                 "This system doesn't support OpenGL.");
+        exit(1);
+    }
+    if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
+    {
+        // Check frame buffer support (non-fatal)
+	QMessageBox::information(0,
+                                 "Framebuffer support",
+				 "This system does not support framebuffers. "
+                                 "Performance may not be optimal. "
+                                 "Consider updating the OpenGL drivers.");
+    }
+
+
+}
 
 
 Application::~Application()
@@ -229,7 +279,12 @@ bool Application::openLibrary(QString path, bool confirm)
             }
 
             if (setTask)
-                repository->setTask(task);
+                if (!repository->setTask(task))
+                    QMessageBox::information
+                        (0, tr("Task selection"),
+                         tr("An error occured setting the task:\n%1.")
+                         .arg(+repository->errors),
+                         QMessageBox::Ok);
         }
 
     } while (!ok);

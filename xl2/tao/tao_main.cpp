@@ -35,7 +35,6 @@
 #include <QtGui>
 #include <QtGui/QApplication>
 #include <QtGui/QMessageBox>
-#include <QtWebKit>
 
 
 int main(int argc, char **argv)
@@ -45,50 +44,14 @@ int main(int argc, char **argv)
 {
     Q_INIT_RESOURCE(tao);
 
-    // We need to brute-force option parsing here...
+    // We need to brute-force option parsing here, the OpenGL choice must
+    // be made before calling the QApplication constructor...
     for (int a = 1; a < argc; a++)
-        if (text(argv[a]) == text("-gl"))
+        if (text(argv[a]) == "-gl")
             QGL::setPreferredPaintEngine(QPaintEngine::OpenGL);
 
     // Initialize the Tao applications
     Tao::Application tao(argc, argv);
-    tao.setApplicationName ("Tao");
-    tao.setOrganizationName ("Taodyne SAS");
-    tao.setOrganizationDomain ("taodyne.com");
-
-    // Internal clean option
-    if (tao.arguments().contains("--internal-use-only-clean-environment"))
-    {
-        tao.internalCleanEverythingAsIfTaoWereNeverRun();
-        return 0;
-    }
-
-    // Basic sanity tests to check if we can actually run
-    if (!QGLFormat::hasOpenGL())
-    {
-        QMessageBox::information(0, "OpenGL support",
-                                 "This system doesn't support OpenGL.");
-        return -1;
-    }
-    if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
-    {
-	QMessageBox::information(0,
-                                 "Framebuffer support",
-				 "This system does not support framebuffers.");
-        return -1;
-    }
-
-    // Web settings
-    QWebSettings *gs = QWebSettings::globalSettings();
-    gs->setAttribute(QWebSettings::JavascriptEnabled, true);
-    gs->setAttribute(QWebSettings::JavaEnabled, true);
-    gs->setAttribute(QWebSettings::PluginsEnabled, true);
-    gs->setAttribute(QWebSettings::JavascriptCanOpenWindows, true);
-    gs->setAttribute(QWebSettings::JavascriptCanAccessClipboard, true);
-    gs->setAttribute(QWebSettings::LinksIncludedInFocusChain, true);
-    gs->setAttribute(QWebSettings::OfflineStorageDatabaseEnabled, true);
-    gs->setAttribute(QWebSettings::OfflineWebApplicationCacheEnabled,true);
-    gs->setAttribute(QWebSettings::LocalStorageEnabled, true);
 
     // Setup the XL runtime environment
     XL::Compiler compiler("xl_tao");

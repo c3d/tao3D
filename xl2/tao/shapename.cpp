@@ -50,7 +50,7 @@ ShapeName::~ShapeName()
     widget->loadName(false);
     if (widget->selected())
     {
-        Vector3 v = dragDelta();
+        Vector3 v = widget->dragDelta();
 
         uint modifiers = qApp->keyboardModifiers();
         bool resize = modifiers & Qt::ShiftModifier;
@@ -63,42 +63,19 @@ ShapeName::~ShapeName()
         {
             if (wp)     updateArg(wp,  v.x);
             if (hdp)    updateArg(hdp, v.y);
+            if (v.x != 0 || v.y != 0.0)
+                widget->markChanged("Resized shape");
         }
         else
         {
             if (xp)     updateArg(xp,  v.x);
             if (yzp)    updateArg(yzp, v.y);
+            if (v.x != 0 || v.y != 0.0)
+                widget->markChanged("Moved shape");
         }
         box.Normalize();
         widget->drawSelection(box);
     }
-}
-
-
-Vector3 ShapeName::dragDelta()
-// ----------------------------------------------------------------------------
-//   Compute the drag delta based on the current rotation coordinates
-// ----------------------------------------------------------------------------
-{
-    Vector3 result;
-
-    if (widget->selected())
-    {
-        widget->recordProjection();
-        if (Drag *d = dynamic_cast<Drag *>(widget->activities))
-        {
-            double x1 = d->x1;
-            double y1 = d->y1;
-            double x2 = d->x2;
-            double y2 = d->y2;
-            int hh = widget->height();
-
-            Point3 u1 = widget->unproject(x1, hh-y1, 0);
-            Point3 u2 = widget->unproject(x2, hh-y2, 0);
-            result = u2 - u1;
-        }
-    }
-    return result;
 }
 
 

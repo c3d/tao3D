@@ -38,11 +38,11 @@ struct Activity
     virtual ~Activity();
 
     // Callbacks, return true if this activity 'handled' the event
-    virtual void        Display(void);
-    virtual bool        Idle(void);
-    virtual bool        Key(uint key, bool down);
-    virtual bool        Click(uint button, bool down, int x, int y);
-    virtual bool        MouseMove(int x, int y, bool active);
+    virtual Activity *  Display(void);
+    virtual Activity *  Idle(void);
+    virtual Activity *  Key(uint key, bool down);
+    virtual Activity *  Click(uint button, bool down, int x, int y);
+    virtual Activity *  MouseMove(int x, int y, bool active);
 
 public:
     Activity *          next;

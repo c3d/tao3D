@@ -57,48 +57,50 @@ Activity::~Activity()
 }
 
 
-void Activity::Display(void)
+Activity *Activity::Display(void)
 // ----------------------------------------------------------------------------
-//   The default is to display nothing
-// ----------------------------------------------------------------------------
-{}
-
-
-bool Activity::Idle(void)
-// ----------------------------------------------------------------------------
-//   The default idle callback for an activity is to do nothing
+//   The default is to display the next activity
 // ----------------------------------------------------------------------------
 {
-    return false;
+    return next;
+}
+
+
+Activity * Activity::Idle(void)
+// ----------------------------------------------------------------------------
+//   Call the next idle activity
+// ----------------------------------------------------------------------------
+{
+    return next;
 }
 
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-bool Activity::Key(uint key, bool down)
+Activity *Activity::Key(uint key, bool down)
 // ----------------------------------------------------------------------------
 //   The default is to not process keys, leave it to the next activity
 // ----------------------------------------------------------------------------
 {
-    return false;
+    return next;
 }
 
 
-bool Activity::Click(uint button, bool down, int x, int y)
+Activity *Activity::Click(uint button, bool down, int x, int y)
 // ----------------------------------------------------------------------------
 //   The default is to not deal with clicks, leave it to the next activity
 // ----------------------------------------------------------------------------
 {
-    return false;
+    return next;
 }
 
 
-bool Activity::MouseMove(int x, int y, bool active)
+Activity *Activity::MouseMove(int x, int y, bool active)
 // ----------------------------------------------------------------------------
 //   The default is to not deal with mouse movements, leave it to the next
 // ----------------------------------------------------------------------------
 {
-    return false;
+    return next;
 }
 
 TAO_END

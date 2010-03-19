@@ -1324,7 +1324,8 @@ Tree *Widget::sphere(Tree *self,
 // ----------------------------------------------------------------------------
 {
     Box3 bounds(x-r, y-r, z-r, 2*r, 2*r, 2*r);
-    ShapeName name(this, self, ShapeName::xyzr, bounds);
+    ShapeName name(this, bounds);
+    name.x(x).y(y).z(z).w(r).h(r).d(r);
 
     GLUquadric *q = gluNewQuadric();
     gluQuadricTexture (q, true);
@@ -1444,7 +1445,8 @@ Tree *Widget::circle(Tree *self, real_r cx, real_r cy, real_r r)
 //     GL circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self, ShapeName::xyr, bbox(cx, cy, r, r));
+    ShapeName name(this, bbox(cx, cy, 2*r, 2*r));
+    name.x(cx).y(cy).w(r).h(r);
 
     glBegin(state.polygonMode);
     circularSectorN(cx, cy, r, 0, 0, 1, 1, 0, 4);
@@ -1461,7 +1463,8 @@ Tree *Widget::circularSector(Tree *self,
 //     GL circular sector centered around (cx,cy), radius r and two angles a, b
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self, ShapeName::xyr, bbox(cx, cy, r, r));
+    ShapeName name(this, bbox(cx, cy, 2*r, 2*r));
+    name.x(cx).y(cy).w(r).h(r);
 
     double db = b;
     double da = a;
@@ -1498,7 +1501,8 @@ Tree *Widget::roundedRectangle(Tree *self,
 //     GL rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self, ShapeName::xywh, bbox(cx, cy, w, h));
+    ShapeName name(this, bbox(cx, cy, w, h));
+    name.x(cx).y(cy).w(w).h(h);
 
     if (r <= 0) return rectangle(self, cx, cy, w, h);
     if (r > w/2) r = w/2;
@@ -1562,7 +1566,8 @@ Tree *Widget::rectangle(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
 //     GL rectangle centered around (cx,cy), width w, height h
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self, ShapeName::xywh, bbox(cx, cy, w, h));
+    ShapeName name(this, bbox(cx, cy, w, h));
+    name.x(cx).y(cy).w(w).h(h);
 
     glBegin(state.polygonMode);
     {
@@ -1583,7 +1588,8 @@ Tree *Widget::regularStarPolygon(Tree *self, real_r cx, real_r cy, real_r r,
 //     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self, ShapeName::xyr, bbox(cx, cy, r, r));
+    ShapeName name(this, bbox(cx, cy, r, r));
+    name.x(cx).y(cy).w(r).h(r);
 
     if (p < 2 || q < 1 || q > (p-1)/2)
         return XL::xl_false;
@@ -1894,7 +1900,8 @@ Tree *Widget::framePaint(Tree *self, real_r x, real_r y, real_r w, real_r h)
     frameTexture(self, w, h);
 
     // Draw a rectangle with the resulting texture
-    ShapeName name(this, self, ShapeName::xywh, bbox(x, y, w, h));
+    ShapeName name(this, bbox(x, y, w, h));
+    name.x(x).y(y).w(w).h(h);
     glBegin(GL_QUADS);
     {
         widgetVertex(x-w/2, y-h/2, 0, 0);
@@ -1941,7 +1948,8 @@ Tree *Widget::urlPaint(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, self, ShapeName::xywh, Box3(x, y, 0, w, h, 0));
+    ShapeName name(this, Box3(x, y, 0, w, h, 0));
+    name.x(x).y(y).w(w).h(h);
     urlTexture(self, w, h, url, progress);
 
     // Draw a rectangle with the resulting texture
@@ -1990,7 +1998,8 @@ Tree *Widget::lineEdit(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, self, ShapeName::xywh, Box3(x, y, 0, w, h, 0));
+    ShapeName name(this, Box3(x, y, 0, w, h, 0));
+    name.x(x).y(y).w(w).h(h);
 
     lineEditTexture(self, w, h, txt);
 
@@ -2013,7 +2022,8 @@ Tree *Widget::qtrectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 //    Draw a rectangle using the Qt primitive
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self, ShapeName::xywh, bbox(x, y, w, h));
+    ShapeName name(this, bbox(x, y, w, h));
+    name.x(x).y(y).w(w).h(h);
 
     QPainter painter(state.paintDevice);
     QPen pen(QColor(Qt::red));
@@ -2086,12 +2096,13 @@ Tree *Widget::KlayoutMarkup(Tree *self, text s)
 }
 
 
-Tree *Widget::Krectangle(Tree *self, double x, double y, double w, double h)
+Tree *Widget::Krectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //    Draw a rectangle using Cairo
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, self, ShapeName::xywh, bbox(x,y,w,h));
+    ShapeName name(this, bbox(x,y,w,h));
+    name.x(x).y(y).w(w).h(h);
     frame->Rectangle(x, y, w, h);
     return XL::xl_true;
 }

@@ -185,7 +185,7 @@ public:
 
     Tree *KmoveTo(Tree *self, double x, double y);
     Tree *Ktext(Tree *self, text s);
-    Tree *Krectangle(Tree *self, double x, double y, double w, double h);
+    Tree *Krectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *Kstroke(Tree *self);
     Tree *Kclear(Tree *self);
     Tree *KlayoutText(Tree *self, text s);

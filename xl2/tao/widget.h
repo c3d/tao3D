@@ -305,7 +305,7 @@ inline double CurrentTime()
     return d;
 }
 
-
+#undef TAO // From the command line
 #define TAO(x)  (Tao::Widget::Tao() ? Tao::Widget::Tao()->x : 0)
 #define RTAO(x) return TAO(x)
 

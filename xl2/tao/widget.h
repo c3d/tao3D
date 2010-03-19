@@ -104,6 +104,9 @@ public:
     typedef XL::real_r    real_r;
     typedef XL::integer_r integer_r;
     typedef XL::text_r    text_r;
+    typedef XL::real_p    real_p;
+    typedef XL::integer_p integer_p;
+    typedef XL::text_p    text_p;
 
     // XLR entry points
     static Widget *Tao() { return current; }
@@ -134,18 +137,16 @@ public:
     Tree *polygon(Tree *self, Tree *t);
     Tree *vertex(Tree *self, double x, double y, double z);
     Tree *sphere(Tree *self,
-                coord cx, coord cy, coord cz,
-                coord r, int nslices, int nstacks);
-    Tree *circle(Tree *self, coord cx, coord cy,
-                coord r);
-    Tree *circularSector(Tree *self, coord cx, coord cy,
-                coord r, coord a, coord b);
-    Tree *roundedRectangle(Tree *self, coord cx, coord cy,
-                coord w, coord h, coord r);
-    Tree *rectangle(Tree *self, coord cx, coord cy,
-                coord w, coord h);
-    Tree *regularStarPolygon(Tree *self, coord cx, coord cy, coord r,
-                int p, int q);
+                 real_r cx, real_r cy, real_r cz, real_r r,
+                 integer_r nslices, integer_r nstacks);
+    Tree *circle(Tree *self, real_r cx, real_r cy, real_r r);
+    Tree *circularSector(Tree *self, real_r cx, real_r cy, real_r r,
+                         real_r a, real_r b);
+    Tree *roundedRectangle(Tree *self,
+                           real_r cx, real_r cy, real_r w, real_r h, real_r r);
+    Tree *rectangle(Tree *self, real_r cx, real_r cy, real_r w, real_r h);
+    Tree *regularStarPolygon(Tree *self, real_r cx, real_r cy, real_r r,
+                integer_r p, integer_r q);
 
     Tree *texture(Tree *self, text n);
     Tree *svg(Tree *self, text t);
@@ -172,14 +173,14 @@ public:
 
     Tree *flow(Tree *self);
     Tree *frameTexture(Tree *self, double w, double h);
-    Tree *framePaint(Tree *self, coord x, coord y, coord w, coord h);
+    Tree *framePaint(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *urlTexture(Tree *self, double x, double y, Text *s, Integer *p);
-    Tree *urlPaint(Tree *self, coord x, coord y, coord w, coord h,
-                   Text *s, Integer *p);
+    Tree *urlPaint(Tree *self, real_r x, real_r y, real_r w, real_r h,
+                   text_p s, integer_p p);
     Tree *lineEditTexture(Tree *self, double x, double y, Text *s);
-    Tree *lineEdit(Tree *self, coord x,coord y, coord w,coord h, Text *s);
+    Tree *lineEdit(Tree *self, real_r x,real_r y, real_r w,real_r h, text_p s);
 
-    Tree *qtrectangle(Tree *self, coord x, coord y, coord w, coord h);
+    Tree *qtrectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *qttext(Tree *self, double x, double y, text s);
 
     Tree *KmoveTo(Tree *self, double x, double y);

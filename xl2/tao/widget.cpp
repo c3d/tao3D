@@ -1317,8 +1317,8 @@ Tree *Widget::texCoord(Tree *self, double x, double y)
 
 
 Tree *Widget::sphere(Tree *self,
-                     coord x, coord y, coord z,
-                     coord r, int nslices, int nstacks)
+                     real_r x, real_r y, real_r z, real_r r,
+                     integer_r nslices, integer_r nstacks)
 // ----------------------------------------------------------------------------
 //     GL sphere
 // ----------------------------------------------------------------------------
@@ -1439,7 +1439,7 @@ void Widget::circularSectorN(double cx, double cy, double r,
 }
 
 
-Tree *Widget::circle(Tree *self, coord cx, coord cy, coord r)
+Tree *Widget::circle(Tree *self, real_r cx, real_r cy, real_r r)
 // ----------------------------------------------------------------------------
 //     GL circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
@@ -1455,8 +1455,8 @@ Tree *Widget::circle(Tree *self, coord cx, coord cy, coord r)
 
 
 Tree *Widget::circularSector(Tree *self,
-                             coord cx, coord cy, coord r,
-                             coord a, coord b)
+                             real_r cx, real_r cy, real_r r,
+                             real_r a, real_r b)
 // ----------------------------------------------------------------------------
 //     GL circular sector centered around (cx,cy), radius r and two angles a, b
 // ----------------------------------------------------------------------------
@@ -1492,8 +1492,8 @@ Tree *Widget::circularSector(Tree *self,
 
 
 Tree *Widget::roundedRectangle(Tree *self,
-                               coord cx, coord cy,
-                               coord w, coord h, coord r)
+                               real_r cx, real_r cy,
+                               real_r w, real_r h, real_r r)
 // ----------------------------------------------------------------------------
 //     GL rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
@@ -1557,7 +1557,7 @@ Tree *Widget::roundedRectangle(Tree *self,
 }
 
 
-Tree *Widget::rectangle(Tree *self, coord cx, coord cy, coord w, coord h)
+Tree *Widget::rectangle(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //     GL rectangle centered around (cx,cy), width w, height h
 // ----------------------------------------------------------------------------
@@ -1577,8 +1577,8 @@ Tree *Widget::rectangle(Tree *self, coord cx, coord cy, coord w, coord h)
 }
 
 
-Tree *Widget::regularStarPolygon(Tree *self, coord cx, coord cy, coord r,
-                                 int p, int q)
+Tree *Widget::regularStarPolygon(Tree *self, real_r cx, real_r cy, real_r r,
+                                 integer_r p, integer_r q)
 // ----------------------------------------------------------------------------
 //     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
@@ -1885,7 +1885,7 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
 }
 
 
-Tree *Widget::framePaint(Tree *self, coord x, coord y, coord w, coord h)
+Tree *Widget::framePaint(Tree *self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
@@ -1934,7 +1934,7 @@ Tree *Widget::urlTexture(Tree *self, double w, double h,
 
 
 Tree *Widget::urlPaint(Tree *self,
-                       coord x, coord y, coord w, coord h,
+                       real_r x, real_r y, real_r w, real_r h,
                        Text *url, Integer *progress)
 // ----------------------------------------------------------------------------
 //   Draw a URL in the curent frame
@@ -1983,7 +1983,7 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
 
 
 Tree *Widget::lineEdit(Tree *self,
-                       coord x, coord y, coord w, coord h,
+                       real_r x, real_r y, real_r w, real_r h,
                        Text *txt)
 // ----------------------------------------------------------------------------
 //   Draw a line editor in the curent frame
@@ -2008,7 +2008,7 @@ Tree *Widget::lineEdit(Tree *self,
 }
 
 
-Tree *Widget::qtrectangle(Tree *self, coord x, coord y, coord w, coord h)
+Tree *Widget::qtrectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //    Draw a rectangle using the Qt primitive
 // ----------------------------------------------------------------------------

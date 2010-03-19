@@ -119,7 +119,11 @@ bool GitRepository::branch(text name)
 // ----------------------------------------------------------------------------
 {
     Process cmd(command(), QStringList("branch") << +name, path);
-    return cmd.done(&errors);
+    bool result = cmd.done(&errors);
+    if (!result)
+        if (errors.find("already exists") != errors.npos)
+            result = true;
+    return result;
 }
 
 
@@ -153,13 +157,21 @@ bool GitRepository::rename(text from, text to)
 }
 
 
-bool GitRepository::commit(text message)
+bool GitRepository::commit(text message, bool all)
 // ----------------------------------------------------------------------------
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
-    Process cmd(command(), QStringList("commit") << "-m" << +message, path);
-    return cmd.done(&errors);
+    QStringList args("commit");
+    if (all)
+        args << "-a";
+    args << "-m" << +message;
+    Process cmd(command(), args, path);
+    bool result = cmd.done(&errors);
+    if (!result)
+        if (errors.find("nothing added") != errors.npos)
+            result = true;
+    return result;
 }
 
 

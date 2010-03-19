@@ -88,9 +88,6 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));
     idleTimer.start(0);
 
-    // Configure the proxies for URLs
-    QNetworkProxyFactory::setUseSystemConfiguration(true);
-
     // Receive notifications for focus
     connect(qApp, SIGNAL(focusChanged (QWidget *, QWidget *)),
             this,  SLOT(appFocusChanged(QWidget *, QWidget *)));
@@ -201,6 +198,8 @@ void Widget::refreshProgram()
 
     Repository *repository = TaoApp->library();
     Tree *prog = xlProgram->tree.tree;
+    if (!prog)
+        return;
 
     // Loop on imported files
     import_set iset;
@@ -469,6 +468,13 @@ void Widget::dawdle()
     XL::Main   *xlr            = XL::MAIN;
     bool        savedSomething = false;
 
+    if (xlProgram && xlProgram->changed)
+    {
+        text txt = *xlProgram->tree.tree;
+        Window *window = (Window *) parentWidget();
+        window->setText(+txt);
+    }
+
     // Check if there's something to save
     ulonglong tick = now();
     longlong saveDelay = longlong(nextSave - tick);
@@ -492,13 +498,6 @@ void Widget::dawdle()
                     IFTRACE(filesync)
                         std::cerr << "Changed " << fname << "\n";
 
-                    if (&sf == xlProgram)
-                    {
-                        text txt = *sf.tree.tree;
-                        Window *window = (Window *) parentWidget();
-                        window->setText(+txt);
-                    }
-                    
                     // Record time when file was changed
                     struct stat st;
                     stat (fname.c_str(), &st);
@@ -1983,7 +1982,7 @@ Tree *Widget::urlPaint(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, Box3(x, y, 0, w, h, 0));
+    ShapeName name(this, Box3(x-w/2, y-h/2, 0, w, h, 0));
     name.x(x).y(y).w(w).h(h);
     urlTexture(self, w, h, url, progress);
 
@@ -2033,7 +2032,7 @@ Tree *Widget::lineEdit(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, Box3(x, y, 0, w, h, 0));
+    ShapeName name(this, Box3(x-w/2, y-h/2, 0, w, h, 0));
     name.x(x).y(y).w(w).h(h);
 
     lineEditTexture(self, w, h, txt);
@@ -2337,7 +2336,5 @@ XL::Name *Widget::deleteSelection(Tree *self)
 {
     return XL::xl_true;
 }
-
-
 
 TAO_END

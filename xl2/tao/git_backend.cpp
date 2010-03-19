@@ -37,6 +37,15 @@ QString GitRepository::command()
 }
 
 
+QString GitRepository::userVisibleName()
+// ----------------------------------------------------------------------------
+//   Return the user visible name for the kind of repository
+// ----------------------------------------------------------------------------
+{
+    return "Git";
+}
+
+
 text GitRepository::styleSheet()
 // ----------------------------------------------------------------------------
 //   Return the XL style sheet to be used for rendering files in git
@@ -77,19 +86,20 @@ text GitRepository::branch()
 //    Return the name of the current branch
 // ----------------------------------------------------------------------------
 {
+    text    output, result;
     Process cmd(command(), QStringList("branch"), path);
-    bool    ok = cmd.done(&errors);
-    QString result;
+    bool    ok = cmd.done(&errors, &output);
     if (ok)
     {
-        QString output(cmd.readAll());
-        QStringList branches = output.split("\n");
+        QStringList branches = (+output).split("\n");
         QRegExp re("^[*].*");
         int index = branches.indexOf(re);
         if (index > 0)
-            result = branches[index].mid(2);
+            result = +branches[index].mid(2);
+        else
+            result = "master";  // May happen on a totally empty repository
     }
-    return +result;
+    return result;
 }
 
 

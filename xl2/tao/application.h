@@ -44,10 +44,17 @@ public:
     Application(int & argc, char ** argv);
     ~Application();
 
-    void        OpenLibrary();
-    void        OpenLibrary(QString path);
+    bool        OpenLibrary();
+    bool        OpenLibrary(QString path, bool confirm = true);
     QDir        LibraryDirectory();
     Repository *Library()       { return repository; }
+
+    void        InternalCleanEverythingAsIfTaoWereNeverRun();
+
+protected:
+    bool        RecursiveDelete(QString path);
+    QString     DefaultDocumentLibraryPath();
+    QString     UserDocumentLibraryPath();
 
 private:
     Repository  *repository;    // REVISIT: One per application or per doc?

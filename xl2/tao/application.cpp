@@ -23,11 +23,13 @@
 #include "application.h"
 #include "repository.h"
 #include "git_backend.h"
+#include "tao.h"
 
 #include <QString>
 #include <QSettings>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QLineEdit>
 #include <QDir>
 #include <QDebug>
@@ -52,36 +54,36 @@ Application::~Application()
 }
 
 
-void Application::OpenLibrary()
+bool Application::OpenLibrary()
 // ----------------------------------------------------------------------------
 //   Open the default library, or ask the user which one to choose
 // ----------------------------------------------------------------------------
 {
-    QString path = QSettings().value("defaultlibrary").toString();
-    OpenLibrary(path);
+    QString path = UserDocumentLibraryPath();
+    return OpenLibrary(path, false);
 }
 
 
-void Application::OpenLibrary(QString path)
+bool Application::OpenLibrary(QString path, bool confirm)
 // ----------------------------------------------------------------------------
 //   Open the default library, or ask the user which one to choose
 // ----------------------------------------------------------------------------
 {
     bool ok = true;
+    bool saveSettings = !confirm;
 
     do
     {
         if (path.isNull())
         {
-            QDir dir(QDir::homePath());
-            dir.filePath("Tao Library.tao");
+            path = DefaultDocumentLibraryPath();
             ok = false;
         }
         path = QDir::cleanPath(path);
 
         if (!ok)
             path = QInputDialog::getText(NULL, tr("Welcome to Tao!"),
-                                         tr("Please choose a folder "
+                                         tr("Please choose a directory "
                                              "for your project:"),
                                          QLineEdit::Normal, path, &ok);
         if (path.isNull() || !ok)
@@ -91,24 +93,31 @@ void Application::OpenLibrary(QString path)
         repository = Repository::repository(path);
         if (!repository)
         {
-            QMessageBox::StandardButton b = QMessageBox::
-                question (0, tr("Tao Library"),
-                          tr("The project '%1' does not appear to exist. "
-                             "Do you want to create it?\n\n"
-                             "'Yes' will create the project.\n"
-                             "'No' will continue without a valid project.\n"
-                             "'Retry' will let you select another location.")
-                          .arg(path),
-                          QMessageBox::Yes |
-                          QMessageBox::No |
-                          QMessageBox::Retry);
-            switch(b)
+            QMessageBox box;
+            box.setWindowTitle("Tao Library");
+            box.setText
+                (tr("The project '%1' does not exist.")
+                 .arg(path));
+            box.setInformativeText
+                (tr("Do you want to create a new project, "
+                    "skip project selection and continue without a project, "
+                    "or choose another location for the project?"));
+            QPushButton *choose = box.addButton(tr("Choose..."),
+                                                QMessageBox::ActionRole);
+            QPushButton *skip = box.addButton(tr("Skip"),
+                                              QMessageBox::RejectRole);
+            QPushButton *create = box.addButton(tr("Create"),
+                                                QMessageBox::AcceptRole);
+            box.setDefaultButton(create);
+            int index = box.exec();
+            QAbstractButton *which = box.clickedButton();
+
+            if (which == choose)
             {
-            case QMessageBox::Retry:
                 ok = false;
-                break;
-                
-            case QMessageBox::Yes:
+            }
+            else if (which == create)
+            {
                 repository = new GitRepository(path);
                 repository->initialize();
                 ok = repository->valid();
@@ -117,32 +126,118 @@ void Application::OpenLibrary(QString path)
                     delete repository;
                     repository = NULL;
                 }
-                break;
-
-            case QMessageBox::No:
-                break;
-
-            defaut:
+            }
+            else if (which == skip)
+            {
+                // Continue with repository == NULL
+                saveSettings = false;
+            }
+            else
+            {
                 QMessageBox::question(0, tr("Puzzled"),
                                       tr("How did you do that?"),
                                       QMessageBox::No);
             }
         }
 
-        // Select the task branch, either current branch or without _undo
-        if (repository && repository->valid())
+        // Select the task branch, either current branch or without _tao_undo
+        if (ok && repository && repository->valid())
         {
             text task = repository->branch();
-            size_t len = task.length() - (sizeof ("_undo") - 1);
-            if (task.find("_undo") == len)
+            size_t len = task.length() - (sizeof (TAO_UNDO_SUFFIX) - 1);
+            text currentBranch = task;
+            bool onUndoBranch = task.find(TAO_UNDO_SUFFIX) == len;
+            bool setTask = false;
+            if (onUndoBranch)
                 task = task.substr(0, len);
-            repository->setTask(task);
+
+            if (confirm)
+            {
+                QMessageBox box;
+                QString repo = repository->userVisibleName();
+                box.setWindowTitle
+                    (tr("Existing %1 repository").arg(repo));
+                if (onUndoBranch)
+                {
+                    box.setText
+                        (tr("The project '%1' looks like "
+                            "a valid %2 repository previously used by Tao.")
+                         .arg(path).arg(repo));
+                    box.setInformativeText
+                        (tr("This repository appears to have been used by Tao, "
+                            "because the current branch is named '%1'. "
+                            "Do you want to use this repository for Tao "
+                            "and perform new commits there, "
+                            "to skip project selection, or "
+                            "to choose another repository location?")
+                         .arg(+currentBranch));
+                }
+                else
+                {
+                    box.setText
+                        (tr("The project '%1' looks like a valid "
+                            "%2 repository, but not currently used by Tao.")
+                         .arg(path).arg(repo));
+                    box.setInformativeText
+                        (tr("This repository appears to not be currently in "
+                            "use by Tao, because the current branch is "
+                            "named '%1'. "
+                            "Do you want to use this repository for Tao "
+                            "and perform new commits in '%2' branch, "
+                            "to skip project selection, or "
+                            "to choose another repository location?")
+                         .arg(+currentBranch)
+                         .arg(+currentBranch + TAO_UNDO_SUFFIX));
+                }
+
+                QPushButton *choose = box.addButton(tr("Choose..."),
+                                                    QMessageBox::ActionRole);
+                QPushButton *skip = box.addButton(tr("Skip"),
+                                                  QMessageBox::NoRole);
+                QPushButton *use = box.addButton(tr("Use now"),
+                                                 QMessageBox::YesRole);
+                QPushButton *remember = box.addButton(tr("Use always"),
+                                                      QMessageBox::YesRole);
+                box.setDefaultButton(use);
+                int index = box.exec();
+                QAbstractButton *which = box.clickedButton();
+
+                if (which == use)
+                {
+                    setTask = true;
+                }
+                else if (which == skip)
+                {
+                    setTask = false;
+                }
+                else if (which == choose)
+                {
+                    ok = false;
+                    setTask = false;
+                }
+                else if (which == remember)
+                {
+                    setTask = true;
+                    saveSettings = true;
+                }
+                else
+                {
+                    QMessageBox::question(0, tr("Coin?"),
+                                          tr("How did you do that?"),
+                                          QMessageBox::Discard);
+                }
+            }
+
+            if (setTask)
+                repository->setTask(task);
         }
 
     } while (!ok);
 
-    if (ok)
+    if (ok && saveSettings)
         QSettings().setValue("defaultlibrary", path);
+
+    return ok;
 }
 
 
@@ -172,6 +267,118 @@ void pqs(const QString &qs)
 // ----------------------------------------------------------------------------
 {
     qDebug() << qs << "\n";
+}
+
+
+void Application::InternalCleanEverythingAsIfTaoWereNeverRun()
+// ----------------------------------------------------------------------------
+//    Clean persistent stuff that previous Tao runs may have created
+// ----------------------------------------------------------------------------
+{
+    int ret;
+    ret = QMessageBox::warning(0, tr("Tao"),
+                               tr("Cleaning the Tao environment"
+                                  "\n\n"
+                                  "This command allows you to clean the Tao "
+                                  "environment: user preferences, default "
+                                  "document library, etc.\n"
+                                  "A confirmation will be asked for each "
+                                  "item to be deleted. You may also choose to "
+                                  "delete all items at once."),
+                             QMessageBox::Ok | QMessageBox::Cancel,
+                             QMessageBox::Cancel);
+    if (ret  != QMessageBox::Ok)
+        return;
+
+    // Default document library
+    QString path = DefaultDocumentLibraryPath();
+    ret = QMessageBox::question(0, tr("Tao"),
+                                tr("Do you want to delete:\n\n"
+                                   "Default document library?") +
+                                " (" + path + ")",
+                                QMessageBox::Yes    | QMessageBox::No |
+                                QMessageBox::YesAll | QMessageBox::Cancel);
+    if (ret == QMessageBox::Cancel)
+        return;
+    if (ret == QMessageBox::Yes || ret == QMessageBox::YesAll)
+        RecursiveDelete(path);
+
+    // User's document library, if not the default
+    path = UserDocumentLibraryPath();
+    if (!path.isNull() && path != DefaultDocumentLibraryPath())
+    {
+        if (ret != QMessageBox::YesAll)
+            ret = QMessageBox::question(0, tr("Tao"),
+                                        tr("Do you want to delete:\n\n"
+                                           "User's document library?") +
+                                        " (" + path + ")",
+                                        QMessageBox::Yes    | QMessageBox::No |
+                                        QMessageBox::YesAll | QMessageBox::Cancel);
+        if (ret == QMessageBox::Cancel)
+            return;
+        if (ret == QMessageBox::Yes || ret == QMessageBox::YesAll)
+            RecursiveDelete(path);
+    }
+
+    // User preferences
+    if (ret != QMessageBox::YesAll)
+        ret = QMessageBox::question(0, tr("Tao"),
+                                    tr("Do you want to delete:\n\n"
+                                       "Tao user preferences?"),
+                                    QMessageBox::Yes    | QMessageBox::No |
+                                    QMessageBox::YesAll | QMessageBox::Cancel);
+    if (ret == QMessageBox::Cancel)
+        return;
+    if (ret == QMessageBox::Yes || ret == QMessageBox::YesAll)
+        QSettings().clear();
+}
+
+
+QString Application::DefaultDocumentLibraryPath()
+// ----------------------------------------------------------------------------
+//    The path proposed by default (first time run) for the user's doc library
+// ----------------------------------------------------------------------------
+{
+    return QDir::homePath() + tr("/Tao Document Library");
+}
+
+
+QString Application::UserDocumentLibraryPath()
+// ----------------------------------------------------------------------------
+//    The path to the current user's document library
+// ----------------------------------------------------------------------------
+{
+    return QSettings().value("defaultlibrary").toString();
+}
+
+
+bool Application::RecursiveDelete(QString path)
+// ----------------------------------------------------------------------------
+//    Delete a directory including all its files and sub-directories
+// ----------------------------------------------------------------------------
+{
+    QDir dir(path);
+
+    bool err = false;
+    if (dir.exists())
+    {
+        QFileInfoList list = dir.entryInfoList(QDir::NoDotAndDotDot |
+                                               QDir::Dirs | QDir::Files |
+                                               QDir::Hidden);
+        for (int i = 0; (i < list.size()) && !err; i++)
+        {
+            QFileInfo entryInfo = list[i];
+            QString path = entryInfo.absoluteFilePath();
+            if (entryInfo.isDir())
+                err = RecursiveDelete(path);
+            else
+                if (!QFile(path).remove())
+                    err = true;
+        }
+        if (!QDir().rmdir(path))
+            err = true;
+    }
+    return err;
 }
 
 TAO_END

@@ -23,6 +23,13 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include "main.h"
+#include "tao.h"
+#include "text_flow.h"
+#include "treeholder.h"
+#include "coords3d.h"
+#include "opcodes.h"
+
 #include <GL/glew.h>
 #include <QtOpenGL>
 #include <QImage>
@@ -31,11 +38,7 @@
 #include <QSvgRenderer>
 #include <QList>
 #include <iostream>
-#include "main.h"
-#include "tao.h"
-#include "text_flow.h"
-#include "treeholder.h"
-#include "coords3d.h"
+#include <map>
 
 namespace Tao {
 
@@ -43,7 +46,6 @@ struct Window;
 struct Frame;
 struct FrameInfo;
 struct Activity;
-
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -83,8 +85,8 @@ public:
     bool        selected();
     void        select();
     void        drawSelection(const Box3 &bounds);
-    void        drawSelection(const Box &bounds);
     void        loadName(bool load);
+    Box3        bbox(coord x, coord y, coord w, coord h);
 
 public slots:
     void        dawdle();
@@ -94,11 +96,14 @@ public slots:
     void        userMenu(QAction *action);
 
 public:
-    typedef XL::Tree    Tree;
-    typedef XL::Integer Integer;
-    typedef XL::Real    Real;
-    typedef XL::Text    Text;
-    typedef XL::Name    Name;
+    typedef XL::Tree      Tree;
+    typedef XL::Integer   Integer;
+    typedef XL::Real      Real;
+    typedef XL::Text      Text;
+    typedef XL::Name      Name;
+    typedef XL::real_r    real_r;
+    typedef XL::integer_r integer_r;
+    typedef XL::text_r    text_r;
 
     // XLR entry points
     static Widget *Tao() { return current; }
@@ -128,17 +133,17 @@ public:
     Tree *polygon(Tree *self, Tree *t);
     Tree *vertex(Tree *self, double x, double y, double z);
     Tree *sphere(Tree *self,
-                double cx, double cy, double cz,
-                double r, int nslices, int nstacks);
-    Tree *circle(Tree *self, double cx, double cy, 
-                double r);
-    Tree *circularSector(Tree *self, double cx, double cy, 
-                double r, double a, double b);
-    Tree *roundedRectangle(Tree *self, double cx, double cy, 
-                double w, double h, double r);
-    Tree *rectangle(Tree *self, double cx, double cy, 
-                double w, double h);
-    Tree *regularStarPolygon(Tree *self, double cx, double cy, double r, 
+                coord cx, coord cy, coord cz,
+                coord r, int nslices, int nstacks);
+    Tree *circle(Tree *self, coord cx, coord cy,
+                coord r);
+    Tree *circularSector(Tree *self, coord cx, coord cy,
+                coord r, coord a, coord b);
+    Tree *roundedRectangle(Tree *self, coord cx, coord cy,
+                coord w, coord h, coord r);
+    Tree *rectangle(Tree *self, coord cx, coord cy,
+                coord w, coord h);
+    Tree *regularStarPolygon(Tree *self, coord cx, coord cy, coord r,
                 int p, int q);
 
     Tree *texture(Tree *self, text n);
@@ -166,14 +171,14 @@ public:
 
     Tree *flow(Tree *self);
     Tree *frameTexture(Tree *self, double w, double h);
-    Tree *framePaint(Tree *self, double x, double y, double w, double h);
+    Tree *framePaint(Tree *self, coord x, coord y, coord w, coord h);
     Tree *urlTexture(Tree *self, double x, double y, Text *s, Integer *p);
-    Tree *urlPaint(Tree *self, double x, double y, double w, double h,
+    Tree *urlPaint(Tree *self, coord x, coord y, coord w, coord h,
                    Text *s, Integer *p);
     Tree *lineEditTexture(Tree *self, double x, double y, Text *s);
-    Tree *lineEdit(Tree *self, double x, double y, double w, double h, Text *s);
+    Tree *lineEdit(Tree *self, coord x,coord y, coord w,coord h, Text *s);
 
-    Tree *qtrectangle(Tree *self, double x, double y, double w, double h);
+    Tree *qtrectangle(Tree *self, coord x, coord y, coord w, coord h);
     Tree *qttext(Tree *self, double x, double y, text s);
 
     Tree *KmoveTo(Tree *self, double x, double y);
@@ -187,8 +192,12 @@ public:
     Tree *menuItem(Tree *self, text s, Tree *t);
     Tree *menu(Tree *self, text s, bool=false);
 
+    Name *insert(Tree *self, Tree *toInsert);
+    Name *deleteSelection(Tree *self);
+
     // Focus management
     void              requestFocus(QWidget *widget);
+    void              recordProjection();
 
 private:
     void widgetVertex(double x, double y, double tx, double ty);
@@ -201,22 +210,24 @@ private:
 
 public:
     // XL Runtime
-    XL::SourceFile   *xlProgram;
-    QTimer            timer, idleTimer;
-    QMenu            *currentMenu;
-    QMenuBar         *currentMenuBar;
-    QList<TreeHolder> actions;
-    Frame *           frame;
-    Frame *           mainFrame;
-    Activity *        activities;
-    double            page_start_time;
-    GLuint            id, capacity;
-    std::set<GLuint>  selection, savedSelection;
-    QEvent *          event;
-    QWidget *         focusWidget;
-    GLdouble          focusProjection[16], focusModel[16];
-    GLint             focusViewport[4];
-    text              whatsNew;
+    XL::SourceFile       *xlProgram;
+    QTimer                timer, idleTimer;
+    QMenu                *currentMenu;
+    QMenuBar             *currentMenuBar;
+    QList<TreeHolder>     actions;
+    Frame *               frame;
+    Frame *               mainFrame;
+    Activity *            activities;
+    double                page_start_time;
+    GLuint                id, capacity;
+    std::set<GLuint>      selection, savedSelection;
+    std::set<XL::Tree *>  selectionTrees;
+    QEvent *              event;
+    QWidget *             focusWidget;
+    GLdouble              focusProjection[16], focusModel[16];
+    GLint                 focusViewport[4];
+    text                  whatsNew;
+    bool                  reloadProgram;
 
     // Timing for drawing and saving
     ulonglong         tmin, tmax, tsum, tcount;

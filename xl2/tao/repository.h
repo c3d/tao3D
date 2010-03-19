@@ -49,6 +49,7 @@ public:
     virtual bool        selectUndoBranch();
 
 public:
+    virtual QString     userVisibleName()               = 0;
     virtual bool        valid()                         = 0;
     virtual bool        initialize()                    = 0;
     virtual text        branch()                        = 0;
@@ -73,6 +74,7 @@ public:
     text     errors;
 };
 
+#define TAO_UNDO_SUFFIX "_tao_undo"
 
 TAO_END
 

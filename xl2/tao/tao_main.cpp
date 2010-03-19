@@ -54,6 +54,14 @@ int main(int argc, char **argv)
     Tao::Application tao(argc, argv);
     tao.setApplicationName ("Tao");
     tao.setOrganizationName ("Taodyne SAS");
+    tao.setOrganizationDomain ("taodyne.com");
+
+    // Internal clean option
+    if (tao.arguments().contains("--internal-use-only-clean-environment"))
+    {
+        tao.InternalCleanEverythingAsIfTaoWereNeverRun();
+        return 0;
+    }
 
     // Basic sanity tests to check if we can actually run
     if (!QGLFormat::hasOpenGL())

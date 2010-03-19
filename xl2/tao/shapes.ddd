@@ -4,7 +4,7 @@ texture "earth.bmp"
 
 circle -400,300, 80
 square -200,300,160
-rectangle 0,300,160,120
+rectangle 0.0,300.0,160,120
 circular_sector 200,300,80,270,180
 rounded_rectangle 400,300,160,120,40
 

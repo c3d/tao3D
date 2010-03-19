@@ -106,6 +106,11 @@ void ShapeName::updateArg(tree_p arg, coord delta)
                 ptr = &infix->left;
                 more = true;
             }
+            else if (infix->name == "-")
+            {
+                ptr = &infix->left;
+                more = true;
+            }
         }
         if (XL::Prefix *prefix = (*ptr)->AsPrefix())
         {

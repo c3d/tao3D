@@ -44,17 +44,17 @@ public:
     Application(int & argc, char ** argv);
     ~Application();
 
-    bool        OpenLibrary();
-    bool        OpenLibrary(QString path, bool confirm = true);
-    QDir        LibraryDirectory();
-    Repository *Library()       { return repository; }
+    bool        openLibrary();
+    bool        openLibrary(QString path, bool confirm = true);
+    QDir        libraryDirectory();
+    Repository *library()       { return repository; }
 
-    void        InternalCleanEverythingAsIfTaoWereNeverRun();
+    void        internalCleanEverythingAsIfTaoWereNeverRun();
 
 protected:
-    bool        RecursiveDelete(QString path);
-    QString     DefaultDocumentLibraryPath();
-    QString     UserDocumentLibraryPath();
+    bool        recursiveDelete(QString path);
+    QString     defaultDocumentLibraryPath();
+    QString     userDocumentLibraryPath();
 
 private:
     Repository  *repository;    // REVISIT: One per application or per doc?

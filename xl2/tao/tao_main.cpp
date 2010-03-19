@@ -98,7 +98,7 @@ int main(int argc, char **argv)
     xlr->LoadFiles();
 
     // Open default document library
-    tao.OpenLibrary();
+    tao.openLibrary();
 
     // Create the windows for each file on the command line
     XL::source_names::iterator it;
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
         using namespace Tao;
         XL::SourceFile &sf = xlr->files[*it];
         if (it == names.begin())
-            tao.OpenLibrary(QFileInfo(+sf.name).canonicalPath());
+            tao.openLibrary(QFileInfo(+sf.name).canonicalPath());
         Tao::Window *window = new Tao::Window (xlr, &sf);
         window->show();
     }

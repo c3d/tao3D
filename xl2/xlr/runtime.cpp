@@ -51,6 +51,18 @@ Tree *xl_identity(Tree *what)
 }
 
 
+struct SourceInfo : Info
+// ----------------------------------------------------------------------------
+//    Record which source lead to the evaluation of a given tree
+// ----------------------------------------------------------------------------
+{
+    SourceInfo(Tree *source) : source(source) {}
+    typedef Tree *      data_t;
+    operator            data_t()  { return source; }
+    Tree *              source;
+};
+
+
 Tree *xl_evaluate(Tree *what)
 // ----------------------------------------------------------------------------
 //   Compile the tree if necessary, then evaluate it
@@ -62,7 +74,21 @@ Tree *xl_evaluate(Tree *what)
     Symbols *symbols = what->Get<SymbolsInfo>();
     if (!symbols)
         symbols = Symbols::symbols;
-    return symbols->Run(what);
+    Tree *result = symbols->Run(what);
+    if (result != what)
+        result->Set<SourceInfo>(what);
+    return result;
+}
+
+
+Tree *xl_source(Tree *value)
+// ----------------------------------------------------------------------------
+//   Return the source that led to the evaluation of a given tree
+// ----------------------------------------------------------------------------
+{
+    if (Tree *source = value->Get<SourceInfo>())
+        return source;
+    return value;
 }
 
 

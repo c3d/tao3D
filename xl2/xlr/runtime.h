@@ -51,6 +51,7 @@ struct Postfix;
 
 Tree *xl_identity(Tree *);
 Tree *xl_evaluate(Tree *);
+Tree *xl_source(Tree *);
 bool  xl_same_text(Tree *, const char *);
 bool  xl_same_shape(Tree *t1, Tree *t2);
 Tree* xl_infix_match_check(Tree *value, Infix *ref);

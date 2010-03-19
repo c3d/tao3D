@@ -683,7 +683,7 @@ void Context::CollectGarbage ()
         {
             for (a = active.begin(); a != active.end(); a++)
                 if (!gc.alive.count(*a))
-                    compiler->FreeResources(gc, *a);
+                    compiler->FreeResources(*a);
             compiler->FreeResources(gc);
         }
 
@@ -744,7 +744,7 @@ void Context::CollectGarbage ()
 //
 // ============================================================================
 
-Tree *InterpretedArgumentMatch::Do(Tree *what)
+Tree *InterpretedArgumentMatch::Do(Tree *)
 // ----------------------------------------------------------------------------
 //   Default is to return failure
 // ----------------------------------------------------------------------------
@@ -1268,7 +1268,7 @@ Tree *ArgumentMatch::CompileClosure(Tree *source)
 }
 
 
-Tree *ArgumentMatch::Do(Tree *what)
+Tree *ArgumentMatch::Do(Tree *)
 // ----------------------------------------------------------------------------
 //   Default is to return failure
 // ----------------------------------------------------------------------------

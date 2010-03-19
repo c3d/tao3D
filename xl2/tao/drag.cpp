@@ -60,8 +60,11 @@ bool Drag::MouseMove(int x, int y, bool active)
 //   Save mouse position as it moves
 // ----------------------------------------------------------------------------
 {
-    x2 = x;
-    y2 = y;
+    if (active)
+    {
+        x2 = x;
+        y2 = y;
+    }
     return true;
 }
 void Drag::Display(void)

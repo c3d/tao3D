@@ -43,7 +43,7 @@ struct WidgetSurface : QObject, XL::Info
 public:
     typedef WidgetSurface * data_t;
 
-    WidgetSurface(Widget *parent, QWidget *widget, uint width, uint height);
+    WidgetSurface(QWidget *widget);
     ~WidgetSurface();
     operator data_t() { return this; }
     void resize(uint width, uint height);
@@ -66,7 +66,7 @@ struct WebViewSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef WebViewSurface * data_t;
-    WebViewSurface(Widget *parent, uint width, uint height);
+    WebViewSurface(Widget *parent);
     operator data_t() { return this; }
     virtual void bind(XL::Text *url, XL::Integer *progress=NULL);
 
@@ -89,7 +89,7 @@ struct LineEditSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef LineEditSurface * data_t;
-    LineEditSurface(Widget *parent, uint width, uint height, bool immed=false);
+    LineEditSurface(Widget *parent, bool immed=false);
     operator data_t() { return this; }
     virtual void bind(XL::Text *contents);
 

@@ -164,7 +164,7 @@ struct ApplyChanges : XL::Action
         }
         return NULL;
     }
-    Tree *Do(Tree *what)
+    Tree *Do(Tree *)
     {
         return NULL;
     }

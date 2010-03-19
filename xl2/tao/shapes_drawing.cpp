@@ -66,6 +66,7 @@ void RoundedRectangle::Draw(const Point &where)
 //   Draw a rounded rectangle
 // ----------------------------------------------------------------------------
 {
+    (void) where;
 }
 
 
@@ -81,6 +82,7 @@ void Circle::Draw(const Point &where)
 //   Draw a circle
 // ----------------------------------------------------------------------------
 {
+    (void) where;
 }
 
 

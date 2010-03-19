@@ -32,7 +32,7 @@ MenuInfo::MenuInfo(QMenu *menu, std::string name)
 // ----------------------------------------------------------------------------
 //   Associated a menu entry to a tree
 // ----------------------------------------------------------------------------
-    : menu(menu), action(NULL), menubar(NULL), fullName(name)
+    : fullName(name), menu(menu), menubar(NULL), action(NULL)
 {
     IFTRACE(menus)
         std::cout<<"MenuInfo : "<< name << " menuItem created, "
@@ -44,7 +44,7 @@ MenuInfo::MenuInfo(QMenuBar *menubar, QMenu *menu, std::string name)
 // ----------------------------------------------------------------------------
 //    Associate a menu bar entry to a tree
 // ----------------------------------------------------------------------------
-    : menubar(menubar), action(NULL), menu(menu),fullName(name)
+    : fullName(name), menu(menu), menubar(menubar), action(NULL)
 {
     IFTRACE(menus)
         std::cout<< "MenuInfo : " << name<< " menu created, "

@@ -55,7 +55,7 @@ struct Frame : XL::Info
     void             LayoutText(text s);
 
     // End of drawing, paint the frame
-    void             Paint(double x, double y, double w, double h);
+    void             Paint();
 
 private:
     cairo_surface_t      *surface;
@@ -64,7 +64,7 @@ private:
     PangoFontDescription *font;
 
     // No support for copying frames around
-    Frame(const Frame &o) {}
+    Frame(const Frame &o): XL::Info(o) {}
 };
 
 

@@ -71,7 +71,7 @@ struct Compiler
     ~Compiler();
 
     llvm::Function *          EnterBuiltin(text name,
-                                           Tree *from, Tree *to,
+                                           Tree *to,
                                            tree_list parms,
                                            eval_fn code);
     llvm::Function *          ExternFunction(kstring name, void *address,
@@ -83,7 +83,7 @@ struct Compiler
     bool                      IsKnown(Tree *value);
     llvm::Value *             Known(Tree *value);
 
-    void                      FreeResources(GCAction &gc, Tree *tree);
+    void                      FreeResources(Tree *tree);
     void                      FreeResources(GCAction &gc);
 
     void                      Reset();

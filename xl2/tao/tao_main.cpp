@@ -46,7 +46,7 @@ int main(int argc, char **argv)
     Q_INIT_RESOURCE(tao);
 
     // We need to brute-force option parsing here...
-    for (uint a = 1; a < argc; a++)
+    for (int a = 1; a < argc; a++)
         if (text(argv[a]) == text("-gl"))
             QGL::setPreferredPaintEngine(QPaintEngine::OpenGL);
 
@@ -107,7 +107,8 @@ int main(int argc, char **argv)
     {
         using namespace Tao;
         XL::SourceFile &sf = xlr->files[*it];
-        tao.OpenLibrary(QFileInfo(+sf.name).canonicalPath());
+        if (it == names.begin())
+            tao.OpenLibrary(QFileInfo(+sf.name).canonicalPath());
         Tao::Window *window = new Tao::Window (xlr, &sf);
         window->show();
     }

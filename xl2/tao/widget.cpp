@@ -68,12 +68,12 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
       xlProgram(sf), timer(this), idleTimer(this), currentMenu(NULL),
       frame(NULL), mainFrame(NULL), activities(NULL),
-      tmin(~0ULL), tmax(0), tsum(0), tcount(0),
-      nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
       page_start_time(CurrentTime()),
       id(0), capacity(0),
       event(NULL), focusWidget(NULL),
-      whatsNew(""), reloadProgram(false)
+      whatsNew(""), reloadProgram(false),
+      tmin(~0ULL), tmax(0), tsum(0), tcount(0),
+      nextSave(now()), nextCommit(nextSave), nextSync(nextSave)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -164,18 +164,19 @@ void Widget::appFocusChanged(QWidget *prev, QWidget *next)
 //   Notifications when focus changes
 // ----------------------------------------------------------------------------
 {
-#if 0
-    printf("Focus "); printWidget(prev); printf ("->"); printWidget(next);
-    const QObjectList &children = this->children();
-    QObjectList::const_iterator it;
-    printf("\nChildren:");
-    for (it = children.begin(); it != children.end(); it++)
+    IFTRACE(focus)
     {
-        printf(" ");
-        printWidget((QWidget *) *it);
+        printf("Focus "); printWidget(prev); printf ("->"); printWidget(next);
+        const QObjectList &children = this->children();
+        QObjectList::const_iterator it;
+        printf("\nChildren:");
+        for (it = children.begin(); it != children.end(); it++)
+        {
+            printf(" ");
+            printWidget((QWidget *) *it);
+        }
+        printf("\n");
     }
-    printf("\n");
-#endif
 }
 
 
@@ -229,7 +230,7 @@ void Widget::refreshProgram()
                     XL::Positions &positions = XL::MAIN->positions;
                     XL::Errors &errors = XL::MAIN->errors;
                     XL::Parser parser(fname.c_str(), syntax, positions, errors);
-                    XL::Tree *replacement = parser.Parse();
+                    replacement = parser.Parse();
                 }
 
                 if (!replacement)
@@ -531,8 +532,6 @@ void Widget::runProgram()
 //   Run the current XL program
 // ----------------------------------------------------------------------------
 {
-    double w = width(), h = height();
-
     // Reset the selection id for the various elements being drawn
     id = 0;    
     focusWidget = NULL;
@@ -579,7 +578,7 @@ void Widget::runProgram()
     }
 
     // After we are done, flush the frame and over-paint it
-    mainFrame->Paint(-w/2, -h/2, w, h);
+    mainFrame->Paint();
 
     // Once we are done, do a garbage collection
     XL::Context::context->CollectGarbage();
@@ -833,10 +832,10 @@ void Widget::timerEvent(QTimerEvent *event)
 //
 // ============================================================================
 
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 Widget *Widget::current = NULL;
-
 typedef XL::Tree Tree;
-
 
 Tree *Widget::status(Tree *self, text caption)
 // ----------------------------------------------------------------------------
@@ -917,8 +916,8 @@ Tree *Widget::pagesize(Tree *self, uint w, uint h)
 // ----------------------------------------------------------------------------
 {
     // Little practical point in ever creating textures bigger than viewport
-    if (w > width())    w = width();
-    if (h > height())   h = height();
+    if (w > (uint) width())    w = width();
+    if (h > (uint) height())   h = height();
     state.frameWidth = w;
     state.frameHeight = h;
     return XL::xl_true;
@@ -969,7 +968,7 @@ Tree *Widget::page(Tree *self, Tree *p)
             XL::LocalSave<Frame *> svc(this->frame, cairo);
             result = xl_evaluate(p);
         }
-        cairo->Paint(-w/2, -h/2, w, h);
+        cairo->Paint();
         frame->end();
 
         glMatrixMode(GL_PROJECTION);
@@ -1077,8 +1076,6 @@ void Widget::drawSelection(const Box3 &bounds)
     if (bounds.Depth() > 0)
     {
         // Use 3D selection
-        coord x = bounds.Left();
-        coord y = bounds.Bottom();
         coord w = bounds.Width();
         coord h = bounds.Height();
         coord d = bounds.Depth();
@@ -1928,7 +1925,7 @@ Tree *Widget::urlTexture(Tree *self, double w, double h,
     WebViewSurface *surface = url->GetInfo<WebViewSurface>();
     if (!surface)
     {
-        surface = new WebViewSurface(this, w,h);
+        surface = new WebViewSurface(this);
         url->SetInfo<WebViewSurface> (surface);
     }
 
@@ -1978,7 +1975,7 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
     if (!surface)
     {
-        surface = new LineEditSurface(this, w,h);
+        surface = new LineEditSurface(this);
         txt->SetInfo<LineEditSurface> (surface);
     }
 
@@ -2211,8 +2208,6 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 // Add the menu to the current menu bar
 // ----------------------------------------------------------------------------
 {
-    QMenu * tmp = NULL;
-
     // Build the full name of the menu from the current menu name,
     // the given string and the isSubmenu.
     QString fullname;
@@ -2234,7 +2229,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 
     // If the menu already exists, no need to recreate it.
     // This is used at reload time, recreate the MenuInfo if required.
-    if (tmp = currentMenuBar->findChild<QMenu*>(fullname))
+    if (QMenu *tmp = currentMenuBar->findChild<QMenu*>(fullname))
     {
         currentMenu = tmp;
         if (!menuInfo)

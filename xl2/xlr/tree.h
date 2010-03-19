@@ -87,7 +87,7 @@ struct Info
 // ----------------------------------------------------------------------------
 {
                         Info(): next(NULL) {}
-                        Info(const Info &o) : next(NULL) {}
+                        Info(const Info &) : next(NULL) {}
     virtual             ~Info() {}
     virtual Info *      Copy() { return next ? next->Copy() : NULL; }
     Info *next;
@@ -912,7 +912,7 @@ template <TreeMatchMode mode> struct TreeMatchTemplate : Action
         }
         return NULL;
     }
-    Tree *Do(Tree *what)
+    Tree *Do(Tree *)
     {
         return NULL;
     }

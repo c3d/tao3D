@@ -44,7 +44,7 @@ public:
     TextFlow(QTextOption parOption);
     ~TextFlow();
 
-    int                 addText(QString pieceOfText, QTextCharFormat aFormat);
+    void                addText(QString pieceOfText, QTextCharFormat aFormat);
     void                clear();
 
 public:

@@ -342,6 +342,8 @@ Tree *xl_type_error(Tree *what)
 //
 // ============================================================================
 
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 Tree *xl_boolean_cast(Tree *source, Tree *value)
 // ----------------------------------------------------------------------------
 //   Check if argument can be evaluated as a boolean value (true/false)

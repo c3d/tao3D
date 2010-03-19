@@ -21,9 +21,12 @@ QT += webkit \
     network \
     opengl \
     svg
-CONFIG += debug
 
 # CONFIG += release
+CONFIG += warn_off \
+    debug \
+    console
+
 # Tell the XLR portion that we are building for Tao
 DEFINES += TAO \
     DEBUG
@@ -135,9 +138,9 @@ SOURCES += tao_main.cpp \
 RESOURCES += tao.qrc
 
 # We need bash, llvm-config and pkg-config
-!system(bash --version >/dev/null):error("Can't execute bash")
-!system(bash -c \"llvm-config --version\" >/dev/null):error("Can't execute llvm-config")
-!system(bash -c \"pkg-config --version\" >/dev/null):error("Can't execute pkg-config")
+!system(bash -c \"bash --version >/dev/null\"):error("Can't execute bash")
+!system(bash -c \"llvm-config --version >/dev/null\"):error("Can't execute llvm-config")
+!system(bash -c \"pkg-config --version >/dev/null\"):error("Can't execute pkg-config")
 
 # Pango / Cairo
 PANGOCAIRO_LIBS = $$system(bash -c \"pkg-config --libs pangocairo \")
@@ -157,9 +160,13 @@ LIBS += $$PANGOCAIRO_LIBS \
     $$LLVM_LIBS
 DEFINES += $$LLVM_DEF
 
-# --- This does not work! ---
-# CFLAGS         += $$PANGOCAIRO_FLAGS
-# CXXFLAGS       += $$PANGOCAIRO_FLAGS
+# Extra flags for CC and CXX
+QMAKE_CFLAGS_RELEASE += $$PANGOCAIRO_FLAGS
+QMAKE_CFLAGS_DEBUG += $$PANGOCAIRO_FLAGS
+QMAKE_CXXFLAGS_RELEASE += $$PANGOCAIRO_FLAGS
+QMAKE_CXXFLAGS_DEBUG += $$PANGOCAIRO_FLAGS
+
+# Others
 DEFAULT_FONT = /Library/Fonts/Arial.ttf
 OTHER_FILES += xl.syntax \
     xl.stylesheet \

@@ -88,9 +88,6 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));
     idleTimer.start(0);
 
-    // Configure the proxies for URLs
-    QNetworkProxyFactory::setUseSystemConfiguration(true);
-
     // Receive notifications for focus
     connect(qApp, SIGNAL(focusChanged (QWidget *, QWidget *)),
             this,  SLOT(appFocusChanged(QWidget *, QWidget *)));
@@ -471,6 +468,13 @@ void Widget::dawdle()
     XL::Main   *xlr            = XL::MAIN;
     bool        savedSomething = false;
 
+    if (xlProgram && xlProgram->changed)
+    {
+        text txt = *xlProgram->tree.tree;
+        Window *window = (Window *) parentWidget();
+        window->setText(+txt);
+    }
+
     // Check if there's something to save
     ulonglong tick = now();
     longlong saveDelay = longlong(nextSave - tick);
@@ -494,13 +498,6 @@ void Widget::dawdle()
                     IFTRACE(filesync)
                         std::cerr << "Changed " << fname << "\n";
 
-                    if (&sf == xlProgram)
-                    {
-                        text txt = *sf.tree.tree;
-                        Window *window = (Window *) parentWidget();
-                        window->setText(+txt);
-                    }
-                    
                     // Record time when file was changed
                     struct stat st;
                     stat (fname.c_str(), &st);
@@ -2339,7 +2336,5 @@ XL::Name *Widget::deleteSelection(Tree *self)
 {
     return XL::xl_true;
 }
-
-
 
 TAO_END

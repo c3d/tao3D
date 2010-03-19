@@ -1985,7 +1985,7 @@ Tree *Widget::urlPaint(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, Box3(x, y, 0, w, h, 0));
+    ShapeName name(this, Box3(x-w/2, y-h/2, 0, w, h, 0));
     name.x(x).y(y).w(w).h(h);
     urlTexture(self, w, h, url, progress);
 
@@ -2035,7 +2035,7 @@ Tree *Widget::lineEdit(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, Box3(x, y, 0, w, h, 0));
+    ShapeName name(this, Box3(x-w/2, y-h/2, 0, w, h, 0));
     name.x(x).y(y).w(w).h(h);
 
     lineEditTexture(self, w, h, txt);

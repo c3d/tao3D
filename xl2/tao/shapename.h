@@ -43,12 +43,12 @@ struct ShapeName
     typedef XL::Tree Tree, *tree_p;
 
     // Specifying where arguments are
-    ShapeName&  x(Tree &xr)     { xp = &xr; }
-    ShapeName&  y(Tree &yr)     { yp = &yr; }
-    ShapeName&  z(Tree &zr)     { zp = &zr; }
-    ShapeName&  w(Tree &wr)     { wp = &wr; }
-    ShapeName&  h(Tree &hr)     { hp = &hr; }
-    ShapeName&  d(Tree &dr)     { dp = &dr; }
+    ShapeName&  x(Tree &xr)     { xp = &xr; return *this; }
+    ShapeName&  y(Tree &yr)     { yp = &yr; return *this; }
+    ShapeName&  z(Tree &zr)     { zp = &zr; return *this; }
+    ShapeName&  w(Tree &wr)     { wp = &wr; return *this; }
+    ShapeName&  h(Tree &hr)     { hp = &hr; return *this; }
+    ShapeName&  d(Tree &dr)     { dp = &dr; return *this; }
 
 protected:
     void        updateArg(tree_p param, coord delta);

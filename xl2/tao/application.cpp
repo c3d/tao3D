@@ -54,17 +54,17 @@ Application::~Application()
 }
 
 
-bool Application::OpenLibrary()
+bool Application::openLibrary()
 // ----------------------------------------------------------------------------
 //   Open the default library, or ask the user which one to choose
 // ----------------------------------------------------------------------------
 {
-    QString path = UserDocumentLibraryPath();
-    return OpenLibrary(path, false);
+    QString path = userDocumentLibraryPath();
+    return openLibrary(path, false);
 }
 
 
-bool Application::OpenLibrary(QString path, bool confirm)
+bool Application::openLibrary(QString path, bool confirm)
 // ----------------------------------------------------------------------------
 //   Open the default library, or ask the user which one to choose
 // ----------------------------------------------------------------------------
@@ -76,7 +76,7 @@ bool Application::OpenLibrary(QString path, bool confirm)
     {
         if (path.isNull())
         {
-            path = DefaultDocumentLibraryPath();
+            path = defaultDocumentLibraryPath();
             ok = false;
         }
         path = QDir::cleanPath(path);
@@ -241,7 +241,7 @@ bool Application::OpenLibrary(QString path, bool confirm)
 }
 
 
-QDir Application::LibraryDirectory()
+QDir Application::libraryDirectory()
 // ----------------------------------------------------------------------------
 //   Return the best path candidate for the library
 // ----------------------------------------------------------------------------
@@ -270,7 +270,7 @@ void pqs(const QString &qs)
 }
 
 
-void Application::InternalCleanEverythingAsIfTaoWereNeverRun()
+void Application::internalCleanEverythingAsIfTaoWereNeverRun()
 // ----------------------------------------------------------------------------
 //    Clean persistent stuff that previous Tao runs may have created
 // ----------------------------------------------------------------------------
@@ -291,7 +291,7 @@ void Application::InternalCleanEverythingAsIfTaoWereNeverRun()
         return;
 
     // Default document library
-    QString path = DefaultDocumentLibraryPath();
+    QString path = defaultDocumentLibraryPath();
     ret = QMessageBox::question(0, tr("Tao"),
                                 tr("Do you want to delete:\n\n"
                                    "Default document library?") +
@@ -301,11 +301,11 @@ void Application::InternalCleanEverythingAsIfTaoWereNeverRun()
     if (ret == QMessageBox::Cancel)
         return;
     if (ret == QMessageBox::Yes || ret == QMessageBox::YesAll)
-        RecursiveDelete(path);
+        recursiveDelete(path);
 
     // User's document library, if not the default
-    path = UserDocumentLibraryPath();
-    if (!path.isNull() && path != DefaultDocumentLibraryPath())
+    path = userDocumentLibraryPath();
+    if (!path.isNull() && path != defaultDocumentLibraryPath())
     {
         if (ret != QMessageBox::YesAll)
             ret = QMessageBox::question(0, tr("Tao"),
@@ -317,7 +317,7 @@ void Application::InternalCleanEverythingAsIfTaoWereNeverRun()
         if (ret == QMessageBox::Cancel)
             return;
         if (ret == QMessageBox::Yes || ret == QMessageBox::YesAll)
-            RecursiveDelete(path);
+            recursiveDelete(path);
     }
 
     // User preferences
@@ -334,16 +334,55 @@ void Application::InternalCleanEverythingAsIfTaoWereNeverRun()
 }
 
 
-QString Application::DefaultDocumentLibraryPath()
+QString Application::defaultDocumentsFolderPath()
+// ----------------------------------------------------------------------------
+//    Try to guess the best documents folder to use by default
+// ----------------------------------------------------------------------------
+{
+#ifdef QT_WS_WIN
+    // Looking at the Windows registry
+    QSettings settings("HKEY_CURRENT_USER\\Software\\Microsoft\\CurrentVersion\\Explorer",
+                       QSettings::NativeFormat);
+    // For Windows Vista/7
+    QString path = settings.value("User Shell Folders\\Personal").toString();
+    if (!path.isNull())
+    {
+        // Typically C:\Users\username\Documents
+        return path;
+    }
+    // For Windows XP
+    path = settings.value("User Shell Folders\\Personal").toString();
+    if (!path.isNull())
+    {
+        // Typically C:\Documents and Settings\username\My Documents
+        return path;
+    }
+#endif // QT_WS_WIN
+
+    // Trying to ding a home sub-directory ending with "Documents"
+    QFileInfoList list = QDir::home().entryInfoList(QDir::NoDotAndDotDot | QDir::Dirs );
+    for (int i = 0; i < list.size(); i++)
+    {
+        QFileInfo info = list[i];
+        if (info.fileName().endsWith("documents", Qt::CaseInsensitive))
+        {
+            return info.canonicalFilePath();
+        }
+    }
+    // Last default would be home itself
+    return QDir::homePath();
+}
+
+QString Application::defaultDocumentLibraryPath()
 // ----------------------------------------------------------------------------
 //    The path proposed by default (first time run) for the user's doc library
 // ----------------------------------------------------------------------------
 {
-    return QDir::homePath() + tr("/Tao Document Library");
+    return defaultDocumentsFolderPath() + tr("/Tao Document Library");
 }
 
 
-QString Application::UserDocumentLibraryPath()
+QString Application::userDocumentLibraryPath()
 // ----------------------------------------------------------------------------
 //    The path to the current user's document library
 // ----------------------------------------------------------------------------
@@ -352,7 +391,7 @@ QString Application::UserDocumentLibraryPath()
 }
 
 
-bool Application::RecursiveDelete(QString path)
+bool Application::recursiveDelete(QString path)
 // ----------------------------------------------------------------------------
 //    Delete a directory including all its files and sub-directories
 // ----------------------------------------------------------------------------
@@ -370,7 +409,7 @@ bool Application::RecursiveDelete(QString path)
             QFileInfo entryInfo = list[i];
             QString path = entryInfo.absoluteFilePath();
             if (entryInfo.isDir())
-                err = RecursiveDelete(path);
+                err = recursiveDelete(path);
             else
                 if (!QFile(path).remove())
                     err = true;

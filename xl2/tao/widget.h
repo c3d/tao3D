@@ -76,6 +76,7 @@ public:
     void        setup(double w, double h, Box *picking = NULL);
     void        setupGL();
     Point3      unproject (coord x, coord y, coord z = 0.0);
+    Vector3     dragDelta();
     void        updateProgram(XL::SourceFile *sf);
     void        refreshProgram();
     void        markChanged(text reason);
@@ -84,6 +85,7 @@ public:
     GLuint      shapeId();
     bool        selected();
     void        select();
+    Activity *  newDragActivity();
     void        drawSelection(const Box3 &bounds);
     void        loadName(bool load);
     Box3        bbox(coord x, coord y, coord w, coord h);

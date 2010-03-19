@@ -77,6 +77,15 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
 }
 
 
+void Window::setText(QString txt)
+// ----------------------------------------------------------------------------
+//   Update the text edit widget with updates we made
+// ----------------------------------------------------------------------------
+{
+    textEdit->document()->setPlainText(txt);
+}
+
+
 void Window::closeEvent(QCloseEvent *event)
 // ----------------------------------------------------------------------------
 //   Close the window - Save settings

@@ -231,6 +231,10 @@ void LineEditSurface::bind(XL::Text *textTree)
         contents = NULL;
         lineEdit->setText(QString::fromStdString(textTree->value));
         contents = textTree;
+
+        // Record the change
+        Widget *parent = (Widget *) widget->parent();
+        parent->markChanged("Text change");
     }
 
     WidgetSurface::bind();

@@ -76,6 +76,7 @@ public:
     void        setup(double w, double h, Box *picking = NULL);
     void        setupGL();
     Point3      unproject (coord x, coord y, coord z = 0.0);
+    Vector3     dragDelta();
     void        updateProgram(XL::SourceFile *sf);
     void        refreshProgram();
     void        markChanged(text reason);

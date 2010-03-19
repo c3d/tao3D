@@ -50,7 +50,7 @@ ShapeName::~ShapeName()
     widget->loadName(false);
     if (widget->selected())
     {
-        Vector3 v = dragDelta();
+        Vector3 v = widget->dragDelta();
 
         uint modifiers = qApp->keyboardModifiers();
         bool resize = modifiers & Qt::ShiftModifier;
@@ -72,42 +72,6 @@ ShapeName::~ShapeName()
         box.Normalize();
         widget->drawSelection(box);
     }
-}
-
-
-Vector3 ShapeName::dragDelta()
-// ----------------------------------------------------------------------------
-//   Compute the drag delta based on the current rotation coordinates
-// ----------------------------------------------------------------------------
-{
-    Vector3 result;
-
-    if (widget->selected())
-    {
-        widget->recordProjection();
-        if (Drag *d = dynamic_cast<Drag *>(widget->activities))
-        {
-            double x1 = d->x1;
-            double y1 = d->y1;
-            double x2 = d->x2;
-            double y2 = d->y2;
-            int hh = widget->height();
-
-            Point3 u1 = widget->unproject(x1, hh-y1, 0);
-            Point3 u2 = widget->unproject(x2, hh-y2, 0);
-            result = u2 - u1;
-
-            // Clamp amplification resulting from reverse projection
-            const double maxAmp = 5.0;
-            double ampX = fabs(result.x) / (fabs(x2-x1) + 0.01);
-            double ampY = fabs(result.y) / (fabs(y2-y1) + 0.01);
-            if (ampX > maxAmp)
-                result *= maxAmp/ampX;
-            if (ampY > maxAmp)
-                result *= maxAmp/ampY;
-        }
-    }
-    return result;
 }
 
 

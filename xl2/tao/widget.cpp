@@ -484,6 +484,7 @@ void Widget::dawdle()
                 {
                     // Mark the tree as no longer changed
                     sf.changed = false;
+                    savedSomething = true;
 
                     // Record that we need to commit it sometime soon
                     repository->change(fname);

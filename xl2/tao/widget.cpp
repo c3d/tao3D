@@ -490,11 +490,6 @@ void Widget::dawdle()
                     repository->change(fname);
                     IFTRACE(filesync)
                         std::cerr << "Changedfile " << fname << "\n";
-                        
-                    // Record time when file was changed
-                    struct stat st;
-                    stat (fname.c_str(), &st);
-                    sf.modified = st.st_mtime;
                 }
             }
         }

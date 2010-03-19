@@ -63,16 +63,13 @@ ShapeName::~ShapeName()
         {
             if (wp)     updateArg(wp,  v.x);
             if (hdp)    updateArg(hdp, v.y);
-            box += v;
         }
         else
         {
             if (xp)     updateArg(xp,  v.x);
             if (yzp)    updateArg(yzp, v.y);
-            v /= 2;
-            box.upper += v;
-            box.lower -= v;
         }
+        box.Normalize();
         widget->drawSelection(box);
     }
 }
@@ -114,7 +111,9 @@ void ShapeName::updateArg(tree_p arg, coord delta)
     if (!arg || delta == 0.0)
         return;
 
-    arg = xl_source(arg);       // Find the source expression
+    Tree *source = xl_source(arg);       // Find the source expression
+    arg = source;
+
     tree_p *ptr = &arg;
     bool more = true;
     bool negative = false;
@@ -133,7 +132,7 @@ void ShapeName::updateArg(tree_p arg, coord delta)
         }
         if (XL::Prefix *prefix = (*ptr)->AsPrefix())
         {
-            if (XL::Name *name = prefix->AsName())
+            if (XL::Name *name = prefix->left->AsName())
             {
                 if (name->value == "-")
                 {

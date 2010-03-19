@@ -23,11 +23,6 @@
 // * Date       : $Date$
 // ****************************************************************************
 
-#include <iostream>
-#include <cstdarg>
-#include <cstdio>
-#include <sys/stat.h>
-
 #include "runtime.h"
 #include "tree.h"
 #include "parser.h"
@@ -39,17 +34,13 @@
 #include "compiler.h"
 #include "main.h"
 
+#include <iostream>
+#include <cstdarg>
+#include <cstdio>
+#include <sys/stat.h>
+
 
 XL_BEGIN
-
-Tree *xl_identity(Tree *what)
-// ----------------------------------------------------------------------------
-//   Return the input tree unchanged
-// ----------------------------------------------------------------------------
-{
-    return what;
-}
-
 
 struct SourceInfo : Info
 // ----------------------------------------------------------------------------
@@ -61,6 +52,15 @@ struct SourceInfo : Info
     operator            data_t()  { return source; }
     Tree *              source;
 };
+
+
+Tree *xl_identity(Tree *what)
+// ----------------------------------------------------------------------------
+//   Return the input tree unchanged
+// ----------------------------------------------------------------------------
+{
+    return what;
+}
 
 
 Tree *xl_evaluate(Tree *what)
@@ -76,7 +76,7 @@ Tree *xl_evaluate(Tree *what)
         symbols = Symbols::symbols;
     Tree *result = symbols->Run(what);
     if (result != what)
-        result->Set<SourceInfo>(what);
+        result->Set<SourceInfo>(xl_source(what));
     return result;
 }
 
@@ -88,6 +88,16 @@ Tree *xl_source(Tree *value)
 {
     if (Tree *source = value->Get<SourceInfo>())
         return source;
+    return value;
+}
+
+
+Tree *xl_set_source(Tree *value, Tree *source)
+// ----------------------------------------------------------------------------
+//   Return the source that led to the evaluation of a given tree
+// ----------------------------------------------------------------------------
+{
+    value->Set<SourceInfo>(xl_source(source));
     return value;
 }
 
@@ -147,12 +157,15 @@ Tree *xl_type_check(Tree *value, Tree *type)
     }
 
     // Check if this is a closure or something we want to evaluate
+    Tree *original = value;
     if (!value->IsConstant() && value->code)
         value = value->code(value);
 
     Infix *typeExpr = Symbols::symbols->CompileTypeTest(type);
     typecheck_fn typecheck = (typecheck_fn) typeExpr->code;
     Tree *afterTypeCast = typecheck(typeExpr, value);
+    if (afterTypeCast && afterTypeCast != original)
+        afterTypeCast->Set<SourceInfo>(xl_source(value));
     IFTRACE(typecheck)
     {
         if (afterTypeCast)
@@ -321,6 +334,7 @@ Tree *xl_new_closure(Tree *expr, uint ntrees, ...)
         compiler->functions.erase(result);
     }
     result->code = fn;
+    result->Set<SourceInfo> (expr);
 
     return result;
 }

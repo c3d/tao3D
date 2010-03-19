@@ -108,17 +108,26 @@ bool Repository::setTask(text name)
 //       <name> is the work branch itself, recording user-defined checkpoints
 //       <name>.undo is the undo branch, managed by us
 {
+    text undo = name + TAO_UNDO_SUFFIX;
     task = name;
 
     // Check if we can checkout the task branch
-    if (!checkout(name))
-        if (!branch(name) || !checkout(name))
+    if (!checkout(task))
+        if (!branch(task) || !checkout(task))
             return false;
+    if (!commit("Automatic commit on Tao startup", true))
+        return false;
+    if (!merge(undo))
+        return false;
 
     // Check if we can checkout the undo branch
-    if (!checkout(name + TAO_UNDO_SUFFIX))
-        if (!branch(name + TAO_UNDO_SUFFIX)||!checkout(name + TAO_UNDO_SUFFIX))
+    if (!checkout(undo))
+        if (!branch(undo)||!checkout(undo))
             return false;
+    if (!commit("Automatic commit on Tao startup", true))
+        return false;
+    if (!merge(task))
+        return false;
 
     // We are now on the _undo branch
     return true;

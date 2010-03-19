@@ -64,16 +64,18 @@ bool Repository::write(text fileName, XL::Tree *tree)
 
     // Write the file in a copy (avoid overwriting original)
     text copy = full + "~";
-    std::ofstream output(copy.c_str());
-    XL::Renderer renderer(output);
-    renderer.SelectStyleSheet(styleSheet());
-    renderer.Render(tree);
-    output.flush();
+    {
+        std::ofstream output(copy.c_str());
+        XL::Renderer renderer(output);
+        renderer.SelectStyleSheet(styleSheet());
+        renderer.Render(tree);
+        output.flush();
+        ok = output.good()  && !output.fail() && !output.bad();
+    }
 
     // If we were successful writing, rename to new file
-    if (output.good()  && !output.fail() && !output.bad())
-        if (rename(copy.c_str(), full.c_str()) == 0)
-            ok = true;
+    if (ok)
+        ok = rename(copy.c_str(), full.c_str()) == 0;
 
     return ok;
 }

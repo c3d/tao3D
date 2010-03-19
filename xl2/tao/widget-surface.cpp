@@ -253,6 +253,10 @@ void LineEditSurface::textChanged(const QString &text)
         {
             locallyModified = true;
         }
+
+        // Record the change
+        Widget *parent = (Widget *) widget->parent();
+        parent->markChanged("Text change");
     }
 
     repaint();

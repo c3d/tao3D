@@ -1109,8 +1109,9 @@ void Widget::drawSelection(const Box3 &bnds)
 {
     // Symbols where we will find the selection code
     XL::Symbols *symbols = XL::Symbols::symbols;
-    if (xlProgram)
-        symbols = xlProgram->symbols;
+    if (0)
+        if (xlProgram)
+            symbols = xlProgram->symbols;
 
     Box3 bounds(bnds);
     bounds.Normalize();
@@ -1138,6 +1139,7 @@ void Widget::drawSelection(const Box3 &bnds)
         XL::LocalSave<bool>   save2(state.selectable, false);
         glLineWidth (3.0);
         glColor4f(1.0, 0.0, 0.0, 0.5);
+        glDisable(GL_DEPTH_TEST);
         (XL::XLCall("draw_selection"), c.x, c.y, w, h) (symbols);
     }
 

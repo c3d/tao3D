@@ -76,23 +76,25 @@ regular_decagram t -> regular_star_polygon t, 10, 3
 
 draw_selection x,y,z,w,h,d ->
     polygon
-        color 1.0, 1.0, 1.0, 0.1; vertex x,   y,   z+d
-        color 1.0, 0.0, 0.0, 0.4; vertex x-w, y-h, z
-        color 0.0, 0.0, 1.0, 0.4; vertex x-w, y+h, z
-        color 0.0, 1.0, 1.0, 0.4; vertex x+w, y+h, z
-        color 1.0, 1.0, 0.0, 0.4; vertex x+w, y-h, z
-        color 1.0, 0.0, 0.0, 0.4; vertex x-w, y-h, z
+        color 1.0, 1.0, 1.0, 0.1; vertex x,   y,   z+d/2
+        color 1.0, 0.0, 0.0, 0.4; vertex x-w/2, y-h/2, z
+        color 0.0, 0.0, 1.0, 0.4; vertex x-w/2, y+h/2, z
+        color 0.0, 1.0, 1.0, 0.4; vertex x+w/2, y+h/2, z
+        color 1.0, 1.0, 0.0, 0.4; vertex x+w/2, y-h/2, z
+        color 1.0, 0.0, 0.0, 0.4; vertex x-w/2, y-h/2, z
     polygon
-        color 0.0, 0.0, 0.0, 0.4; vertex x,   y,   z-d;
-        color 1.0, 0.0, 0.0, 0.4; vertex x-w, y-h, z;
-        color 0.0, 0.0, 1.0, 0.4; vertex x-w, y+h, z;
-        color 0.0, 1.0, 1.0, 0.4; vertex x+w, y+h, z;
-        color 1.0, 1.0, 0.0, 0.4; vertex x+w, y-h, z;
-        color 1.0, 0.0, 0.0, 0.4; vertex x-w, y-h, z;
+        color 0.0, 0.0, 0.0, 0.4; vertex x,   y,   z-d/2;
+        color 1.0, 0.0, 0.0, 0.4; vertex x-w/2, y-h/2, z;
+        color 0.0, 0.0, 1.0, 0.4; vertex x-w/2, y+h/2, z;
+        color 0.0, 1.0, 1.0, 0.4; vertex x+w/2, y+h/2, z;
+        color 1.0, 1.0, 0.0, 0.4; vertex x+w/2, y-h/2, z;
+        color 1.0, 0.0, 0.0, 0.4; vertex x-w/2, y-h/2, z;
 
 draw_selection x,y,w,h ->
+    line_width 20
+    color 0.5+0.5*sin(time), 0.5+0.5*sin(2.5*time), 0.5+0.5*sin(13.17*time), 0.75+0.25*sin(0.3*time)
     polygon
-        vertex x-w, y-h
-        vertex x-w, y+h
-        vertex x+w, y+h
-        vertex x+w, y-h
+        vertex x-w/2, y-h/2
+        vertex x-w/2, y+h/2
+        vertex x+w/2, y+h/2
+        vertex x+w/2, y-h/2

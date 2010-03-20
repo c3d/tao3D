@@ -128,6 +128,33 @@ Tree *xl_load_csv(text name);
 Tree *xl_load_tsv(text name);
 
 
+
+// ============================================================================
+// 
+//    Inline functions
+// 
+// ============================================================================
+
+inline Tree *xl_source(Tree *value)
+// ----------------------------------------------------------------------------
+//   Return the source that led to the evaluation of a given tree
+// ----------------------------------------------------------------------------
+{
+    if (Tree *source = value->source)
+        return source;
+    return value;
+}
+
+
+inline Tree *xl_set_source(Tree *value, Tree *source)
+// ----------------------------------------------------------------------------
+//   Return the source that led to the evaluation of a given tree
+// ----------------------------------------------------------------------------
+{
+    value->source = xl_source(source);
+    return value;
+}
+
 XL_END
 
 #endif // RUNTIME_H

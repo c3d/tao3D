@@ -104,10 +104,10 @@ struct Tree
 
     // Constructor and destructor
     Tree (kind k, tree_position pos = NOWHERE):
-        tag((pos<<KINDBITS) | k), code(NULL), info(NULL) {}
+        tag((pos<<KINDBITS) | k), code(NULL), info(NULL), source(NULL) {}
     Tree(kind k, Tree *from):
         tag(from->tag), code(from->code),
-        info(from->info ? from->info->Copy() : NULL)
+        info(from->info ? from->info->Copy() : NULL), source(from)
     {
         assert(k == Kind());
     }
@@ -159,6 +159,7 @@ public:
     ulong       tag;                            // Position + kind
     eval_fn     code;                           // Compiled code
     Info *      info;                           // Information for tree
+    Tree *      source;                         // Source for the tree
 
 private:
     Tree (const Tree &o):

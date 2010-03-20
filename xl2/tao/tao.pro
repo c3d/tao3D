@@ -30,12 +30,21 @@ CONFIG += warn_off \
 # Tell the XLR portion that we are building for Tao
 DEFINES += TAO \
     DEBUG
-macx { 
+
+macx {
     DEFINES += CONFIG_MACOSX
     XLRDIR = Contents/MacOS
+    ICON = tao.icns
 }
-win32:DEFINES += CONFIG_MINGW
-linux-g++:DEFINES += CONFIG_LINUX
+
+win32 {
+    DEFINES += CONFIG_MINGW
+}
+
+linux-g++ {
+    DEFINES += CONFIG_LINUX
+}
+
 
 # Input
 HEADERS += widget.h \

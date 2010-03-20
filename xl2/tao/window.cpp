@@ -44,6 +44,9 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
       textEdit(NULL), taoWidget(NULL), curFile(),
       isUntitled(sf == NULL), fileCheckTimer(this)
 {
+    // Define the icon
+    setWindowIcon(QIcon(":/images/tao.png"));
+
     // Create the widgets
     QDockWidget *dock = new QDockWidget(tr("Source"));
     dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
@@ -452,7 +455,7 @@ bool Window::saveFile(const QString &fileName)
     QFile file(fileName);
     if (!file.open(QFile::WriteOnly | QFile::Text))
     {
-        QMessageBox::warning(this, tr("SDI"),
+        QMessageBox::warning(this, tr("Error saving file"),
                              tr("Cannot write file %1:\n%2.")
                              .arg(fileName)
                              .arg(file.errorString()));

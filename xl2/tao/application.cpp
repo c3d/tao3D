@@ -51,6 +51,7 @@ Application::Application(int & argc, char ** argv)
     setApplicationName ("Tao");
     setOrganizationName ("Taodyne SAS");
     setOrganizationDomain ("taodyne.com");
+    setWindowIcon(QIcon(":/images/tao.png"));
 
     // Internal clean option
     if (arguments().contains("--internal-use-only-clean-environment"))
@@ -77,18 +78,17 @@ Application::Application(int & argc, char ** argv)
     // Basic sanity tests to check if we can actually run
     if (!QGLFormat::hasOpenGL())
     {
-        QMessageBox::information(0, "OpenGL support",
-                                 "This system doesn't support OpenGL.");
+        QMessageBox::warning(NULL, tr("OpenGL support"),
+                             tr("This system doesn't support OpenGL."));
         exit(1);
     }
     if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
     {
         // Check frame buffer support (non-fatal)
-	QMessageBox::information(0,
-                                 "Framebuffer support",
-				 "This system does not support framebuffers. "
-                                 "Performance may not be optimal. "
-                                 "Consider updating the OpenGL drivers.");
+	QMessageBox::information(NULL, tr("Framebuffer support"),
+				 tr("This system does not support framebuffers."
+                                    " Performance may not be optimal."
+                                    " Consider updating the OpenGL drivers."));
     }
 
 
@@ -152,6 +152,7 @@ bool Application::openLibrary(QString path, bool confirm)
                 (tr("Do you want to create a new project, "
                     "skip project selection and continue without a project, "
                     "or choose another location for the project?"));
+            box.setIcon(QMessageBox::Question);
             QPushButton *choose = box.addButton(tr("Choose..."),
                                                 QMessageBox::ActionRole);
             QPushButton *skip = box.addButton(tr("Skip"),
@@ -184,7 +185,7 @@ bool Application::openLibrary(QString path, bool confirm)
             }
             else
             {
-                QMessageBox::question(0, tr("Puzzled"),
+                QMessageBox::question(NULL, tr("Puzzled"),
                                       tr("How did you do that?"),
                                       QMessageBox::No);
             }
@@ -205,6 +206,7 @@ bool Application::openLibrary(QString path, bool confirm)
             {
                 QMessageBox box;
                 QString repo = repository->userVisibleName();
+                box.setIcon(QMessageBox::Question);
                 box.setWindowTitle
                     (tr("Existing %1 repository").arg(repo));
                 if (onUndoBranch)
@@ -272,7 +274,7 @@ bool Application::openLibrary(QString path, bool confirm)
                 }
                 else
                 {
-                    QMessageBox::question(0, tr("Coin?"),
+                    QMessageBox::question(NULL, tr("Coin?"),
                                           tr("How did you do that?"),
                                           QMessageBox::Discard);
                 }
@@ -281,7 +283,7 @@ bool Application::openLibrary(QString path, bool confirm)
             if (setTask)
                 if (!repository->setTask(task))
                     QMessageBox::information
-                        (0, tr("Task selection"),
+                        (NULL, tr("Task selection"),
                          tr("An error occured setting the task:\n%1.")
                          .arg(+repository->errors),
                          QMessageBox::Ok);
@@ -331,7 +333,7 @@ void Application::internalCleanEverythingAsIfTaoWereNeverRun()
 // ----------------------------------------------------------------------------
 {
     int ret;
-    ret = QMessageBox::warning(0, tr("Tao"),
+    ret = QMessageBox::warning(NULL, tr("Tao"),
                                tr("Cleaning the Tao environment"
                                   "\n\n"
                                   "This command allows you to clean the Tao "
@@ -340,14 +342,14 @@ void Application::internalCleanEverythingAsIfTaoWereNeverRun()
                                   "A confirmation will be asked for each "
                                   "item to be deleted. You may also choose to "
                                   "delete all items at once."),
-                             QMessageBox::Ok | QMessageBox::Cancel,
-                             QMessageBox::Cancel);
+                               QMessageBox::Ok | QMessageBox::Cancel,
+                               QMessageBox::Cancel);
     if (ret  != QMessageBox::Ok)
         return;
 
     // Default document library
     QString path = defaultDocumentLibraryPath();
-    ret = QMessageBox::question(0, tr("Tao"),
+    ret = QMessageBox::question(NULL, tr("Tao"),
                                 tr("Do you want to delete:\n\n"
                                    "Default document library?") +
                                 " (" + path + ")",
@@ -363,7 +365,7 @@ void Application::internalCleanEverythingAsIfTaoWereNeverRun()
     if (!path.isNull() && path != defaultDocumentLibraryPath())
     {
         if (ret != QMessageBox::YesAll)
-            ret = QMessageBox::question(0, tr("Tao"),
+            ret = QMessageBox::question(NULL, tr("Tao"),
                                         tr("Do you want to delete:\n\n"
                                            "User's document library?") +
                                         " (" + path + ")",
@@ -377,7 +379,7 @@ void Application::internalCleanEverythingAsIfTaoWereNeverRun()
 
     // User preferences
     if (ret != QMessageBox::YesAll)
-        ret = QMessageBox::question(0, tr("Tao"),
+        ret = QMessageBox::question(NULL, tr("Tao"),
                                     tr("Do you want to delete:\n\n"
                                        "Tao user preferences?"),
                                     QMessageBox::Yes    | QMessageBox::No |

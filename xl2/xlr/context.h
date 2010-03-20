@@ -523,6 +523,8 @@ struct GCAction : Action
         inserted ins = alive.insert(what);
         if (Symbols *syms = what->Get<SymbolsInfo> ())
             alive_symbols.insert(syms);
+        if (what->source && what->source != what)
+            what->source->Do(this);
         return ins.second;
     }
     Tree *Do(Tree *what)

@@ -73,7 +73,6 @@ ShapeName::~ShapeName()
             if (v.x != 0 || v.y != 0.0)
                 widget->markChanged("Moved shape");
         }
-        box.Normalize();
         widget->drawSelection(box);
     }
 }

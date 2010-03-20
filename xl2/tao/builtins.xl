@@ -74,3 +74,25 @@ regular_octagram t -> regular_star_polygon t, 8, 3
 regular_nonagram t -> regular_star_polygon t, 9, 3
 regular_decagram t -> regular_star_polygon t, 10, 3
 
+draw_selection x,y,z,w,h,d ->
+    polygon
+        color 1.0, 1.0, 1.0, 0.1; vertex x,   y,   z+d
+        color 1.0, 0.0, 0.0, 0.4; vertex x-w, y-h, z
+        color 0.0, 0.0, 1.0, 0.4; vertex x-w, y+h, z
+        color 0.0, 1.0, 1.0, 0.4; vertex x+w, y+h, z
+        color 1.0, 1.0, 0.0, 0.4; vertex x+w, y-h, z
+        color 1.0, 0.0, 0.0, 0.4; vertex x-w, y-h, z
+    polygon
+        color 0.0, 0.0, 0.0, 0.4; vertex x,   y,   z-d;
+        color 1.0, 0.0, 0.0, 0.4; vertex x-w, y-h, z;
+        color 0.0, 0.0, 1.0, 0.4; vertex x-w, y+h, z;
+        color 0.0, 1.0, 1.0, 0.4; vertex x+w, y+h, z;
+        color 1.0, 1.0, 0.0, 0.4; vertex x+w, y-h, z;
+        color 1.0, 0.0, 0.0, 0.4; vertex x-w, y-h, z;
+
+draw_selection x,y,w,h ->
+    polygon
+        vertex x-w, y-h
+        vertex x-w, y+h
+        vertex x+w, y+h
+        vertex x+w, y-h

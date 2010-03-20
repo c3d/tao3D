@@ -26,6 +26,7 @@
 // ****************************************************************************
 
 #include "base.h"
+#include "tree.h"
 
 
 XL_BEGIN
@@ -83,17 +84,49 @@ Tree *xl_prefix_cast(Tree *source, Tree *value);
 Tree *xl_postfix_cast(Tree *source, Tree *value);
 Tree *xl_block_cast(Tree *source, Tree *value);
 
+
+// ============================================================================
+//
+//    Call management
+//
+// ============================================================================
+
 Tree *xl_invoke(Tree *(*toCall)(Tree *),
                 Tree *source, uint numarg, Tree **args);
 
-Tree *xl_call(text name);
-Tree *xl_call(text name, text arg);
-Tree *xl_call(text name, double x, double y);
-Tree *xl_call(text name, double x, double y, double w, double h);
+struct XLCall
+// ----------------------------------------------------------------------------
+//    A structure that encapsulates a call to an XL tree
+// ----------------------------------------------------------------------------
+{
+    XLCall(text name): name(name), args() {}
+
+    // Adding arguments
+    XLCall &operator, (Tree *tree) { args.push_back(tree); return *this; }
+    XLCall &operator, (Tree &tree) { return *this, &tree; }
+    XLCall &operator, (longlong v) { return *this, new Integer(v); }
+    XLCall &operator()(double  v)  { return *this, new Real(v); }
+    XLCall &operator()(text  v)    { return *this, new Text(v); }
+
+    // Calling in a given symbol context
+    Tree * operator() (Symbols *syms = NULL);
+
+public:
+    text        name;
+    tree_list   args;
+};
+
+
+// ============================================================================
+//
+//    Loading trees from external files
+//
+// ============================================================================
 
 Tree *xl_load(text name);
 Tree *xl_load_csv(text name);
 Tree *xl_load_tsv(text name);
+
 
 XL_END
 

@@ -231,8 +231,11 @@ Tree *Symbols::CompileCall(text callee, tree_list &arglist)
 {
     // Build key for this call
     uint arity = arglist.size();
+    const char keychars[] = "IRTN.[]|";
     std::ostringstream keyBuilder;
-    keyBuilder << callee << ":" << arity;
+    keyBuilder << callee << ":";
+    for (uint i = 0; i < arity; i++)
+        keyBuilder << keychars[arglist[i]->Kind()];
     text key = keyBuilder.str();
 
     // Check if we already have a call compiled

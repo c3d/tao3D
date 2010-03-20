@@ -1102,11 +1102,46 @@ Activity *Widget::newDragActivity()
 }
 
 
-void Widget::drawSelection(const Box3 &bounds)
+void Widget::drawSelection(const Box3 &bnds)
 // ----------------------------------------------------------------------------
 //    Draw a 2D or 3D selection with the given coordinates
 // ----------------------------------------------------------------------------
 {
+    // Symbols where we will find the selection code
+    XL::Symbols *symbols = XL::Symbols::symbols;
+    if (xlProgram)
+        symbols = xlProgram->symbols;
+
+    Box3 bounds(bnds);
+    bounds.Normalize();
+
+    coord w = bounds.Width();
+    coord h = bounds.Height();
+    coord d = bounds.Depth();
+    Point3 c  = bounds.Center();
+
+    if (bounds.Depth() > 0)
+    {
+        GLAttribKeeper save;
+        XL::LocalSave<GLuint> save1(state.polygonMode, GL_TRIANGLE_FAN);
+        XL::LocalSave<bool>   save2(state.selectable, false);
+
+        setupGL();
+        glDisable(GL_DEPTH_TEST);
+
+        (XL::XLCall("draw_selection"), c.x, c.y, c.z, w, h, d) (symbols);
+    }
+    else
+    {
+        GLAttribKeeper save(GL_CURRENT_BIT | GL_LINE_BIT);
+        XL::LocalSave<GLuint> save1(state.polygonMode, GL_LINE_LOOP);
+        XL::LocalSave<bool>   save2(state.selectable, false);
+        glLineWidth (3.0);
+        glColor4f(1.0, 0.0, 0.0, 0.5);
+        (XL::XLCall("draw_selection"), c.x, c.y, w, h) (symbols);
+    }
+
+#if 0
     if (bounds.Width() < 0 || bounds.Height() < 0)
         return;
 
@@ -1176,6 +1211,7 @@ void Widget::drawSelection(const Box3 &bounds)
         }
         glEnd();
     }
+#endif
 }
 
 

@@ -486,6 +486,27 @@ Tree *xl_block_cast(Tree *source, Tree *value)
 }
 
 
+
+// ============================================================================
+//
+//   Managing calls to/from XL
+//
+// ============================================================================
+
+Tree *XLCall::operator() (Symbols *syms)
+// ----------------------------------------------------------------------------
+//    Perform the given call in the given context
+// ----------------------------------------------------------------------------
+{
+    if (!syms)
+        syms = Symbols::symbols;
+    Tree *callee = syms->CompileCall(name, args);
+    if (callee && callee->code)
+        callee = callee->code(callee);
+    return callee;
+}
+
+
 Tree *xl_invoke(eval_fn toCall, Tree *src, uint numargs, Tree **args)
 // ----------------------------------------------------------------------------
 //   Invoke a callback with the right number of arguments
@@ -498,64 +519,12 @@ Tree *xl_invoke(eval_fn toCall, Tree *src, uint numargs, Tree **args)
 }
 
 
-Tree *xl_call(text name)
-// ----------------------------------------------------------------------------
-//   Invoke the tree with the given name
-// ----------------------------------------------------------------------------
-{
-    tree_list args;
-    Tree *callee = Symbols::symbols->CompileCall(name, args);
-    if (callee && callee->code)
-        callee = callee->code(callee);
-    return callee;
-}
 
-
-Tree *xl_call(text name, double x, double y, double w, double h)
-// ----------------------------------------------------------------------------
-//   Invoke the tree with the given name
-// ----------------------------------------------------------------------------
-{
-    tree_list args;
-    args.push_back(new Real(x));
-    args.push_back(new Real(y));
-    args.push_back(new Real(w));
-    args.push_back(new Real(h));
-    Tree *callee = Symbols::symbols->CompileCall(name, args);
-    if (callee && callee->code)
-        callee = callee->code(callee);
-    return callee;
-}
-
-
-Tree *xl_call(text name, double x, double y)
-// ----------------------------------------------------------------------------
-//   Invoke the tree with the given name
-// ----------------------------------------------------------------------------
-{
-    tree_list args;
-    args.push_back(new Real(x));
-    args.push_back(new Real(y));
-    Tree *callee = Symbols::symbols->CompileCall(name, args);
-    if (callee && callee->code)
-        callee = callee->code(callee);
-    return callee;
-}
-
-
-Tree *xl_call(text name, text arg)
-// ----------------------------------------------------------------------------
-//   Invoke the tree with the given name
-// ----------------------------------------------------------------------------
-{
-    tree_list args;
-    args.push_back(new Text(arg));
-    Tree *callee = Symbols::symbols->CompileCall(name, args);
-    if (callee && callee->code)
-        callee = callee->code(callee);
-    return callee;
-}
-
+// ============================================================================
+//
+//    Loading trees from external files
+//
+// ============================================================================
 
 Tree *xl_load(text name)
 // ----------------------------------------------------------------------------

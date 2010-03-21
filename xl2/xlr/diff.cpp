@@ -1056,7 +1056,7 @@ void TreeDiff::DoEditScript()
             //  i. k <- FindPos(x);
             unsigned k = FindPos(x);
 
-            TreeCloneTemplate<NODE_ONLY> clone;
+            NodeOnlyTreeClone clone;
             Tree *t = xptr->Do(clone);
             EditOperation::Insert *ins;
             ins = new EditOperation::Insert(t, z, k);
@@ -1096,7 +1096,7 @@ void TreeDiff::DoEditScript()
                 {
                     // ii. If v(w) != v(x)
                     
-                    TreeCloneTemplate<NODE_ONLY> clone;
+                    NodeOnlyTreeClone clone;
                     Tree *t = xptr->Do(clone);
                     EditOperation::Update *upd;
                     upd = new EditOperation::Update(w, t);

@@ -589,7 +589,7 @@ void Widget::runProgram()
             {
                 if (reloadProgram)
                 {
-                    XL::TreeClone cloneAction;
+                    XL::NormalizedClone cloneAction;
                     Tree *copy = prog->Do(cloneAction);
                     copy->Set<XL::SymbolsInfo>(prog->Get<XL::SymbolsInfo>());
                     xlProgram->tree.tree = copy;

@@ -542,17 +542,12 @@ inline Postfix *Tree::AsPostfix()
 // 
 // ============================================================================
 
-enum CloneMode
-// ----------------------------------------------------------------------------
-//   Several ways of cloning a tree
-// ----------------------------------------------------------------------------
-{
-    DEEP_COPY = 1,    // Child nodes are cloned, too
-    SHALLOW_COPY,     // Child nodes are referenced
-    NODE_ONLY         // Child nodes are left NULL
-};
+struct DeepCopyCloneMode;       // Child nodes are cloned too (default)
+struct ShallowCopyCloneMode;    // Child nodes are referenced
+struct NodeOnlyCloneMode;       // Child nodes are left NULL
 
-template <CloneMode mode> struct TreeCloneTemplate : Action
+
+template <typename mode> struct TreeCloneTemplate : Action
 // ----------------------------------------------------------------------------
 //   Clone a tree
 // ----------------------------------------------------------------------------
@@ -604,21 +599,33 @@ template <CloneMode mode> struct TreeCloneTemplate : Action
         return what;            // ??? Should not happen
     }
 protected:
-    Tree * Clone(Tree *t)
-    {
-        switch (mode)
-        {
-        case DEEP_COPY:
-            return t->Do(this);
-        case SHALLOW_COPY:
-            return t;
-        case NODE_ONLY:
-            return NULL;
-        }
-    }
+    // Default is to do a deep copy
+    Tree * Clone(Tree *t) { return t->Do(this); }
 };
 
-typedef struct TreeCloneTemplate<DEEP_COPY> TreeClone;
+
+template<> inline Tree *TreeCloneTemplate<ShallowCopyCloneMode>::Clone(Tree *t)
+// ----------------------------------------------------------------------------
+//   Specialization for the shallow copy clone
+// ----------------------------------------------------------------------------
+{
+    return t;
+}
+
+
+template<> inline Tree *TreeCloneTemplate<NodeOnlyCloneMode>::Clone(Tree *t)
+// ----------------------------------------------------------------------------
+//   Specialization for the node-only clone
+// ----------------------------------------------------------------------------
+{
+    return NULL;
+}
+
+
+typedef struct TreeCloneTemplate<DeepCopyCloneMode>     TreeClone;
+typedef struct TreeCloneTemplate<ShallowCopyCloneMode>  ShallowCopyTreeClone;
+typedef struct TreeCloneTemplate<NodeOnlyCloneMode>     NodeOnlyTreeClone;
+
 
 
 // ============================================================================

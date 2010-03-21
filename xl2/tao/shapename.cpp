@@ -88,24 +88,27 @@ void ShapeName::updateArg(tree_p arg, coord delta)
         return;
 
     Tree *source = xl_source(arg);       // Find the source expression
-    arg = source;
-
-    tree_p *ptr = &arg;
-    bool more = true;
-    bool negative = false;
+    tree_p    *ptr       = &source;
+    bool       more      = true;
+    bool       negative  = false;
+    tree_p    *pptr      = NULL;
+    tree_p    *ppptr     = NULL;
 
     // Check if we have an Infix +, if so walk down the left side
+    arg = source;
     while (more)
     {
         more = false;
+        ppptr = pptr;
+        pptr = NULL;
         if (XL::Infix *infix = (*ptr)->AsInfix())
         {
-            if (infix->name == "+")
+            if (infix->name == "-")
             {
                 ptr = &infix->left;
                 more = true;
             }
-            else if (infix->name == "-")
+            else if (infix->name == "+")
             {
                 ptr = &infix->left;
                 more = true;
@@ -117,15 +120,11 @@ void ShapeName::updateArg(tree_p arg, coord delta)
             {
                 if (name->value == "-")
                 {
+                    pptr = ptr;
                     ptr = &prefix->right;
                     more = true;
                     negative = !negative;
                     delta = -delta;
-                }
-                else if (name->value == "+")
-                {
-                    ptr = &prefix->right;
-                    more = true;
                 }
             }
         }
@@ -135,10 +134,14 @@ void ShapeName::updateArg(tree_p arg, coord delta)
     if (XL::Integer *ival = (*ptr)->AsInteger())
     {
         ival->value += delta;
+        if (ppptr && ival->value < 0)
+            widget->reloadProgram = true;
     }
     else if (XL::Real *rval = (*ptr)->AsReal())
     {
         rval->value += delta;
+        if (ppptr && rval->value < 0)
+            widget->reloadProgram = true;
     }
     else
     {

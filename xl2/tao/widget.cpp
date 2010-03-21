@@ -456,7 +456,7 @@ void Widget::dawdle()
                     repository->change(fname);
                     IFTRACE(filesync)
                         std::cerr << "Changedfile " << fname << "\n";
-                        
+
                     // Record time when file was changed
                     struct stat st;
                     stat (fname.c_str(), &st);
@@ -477,8 +477,8 @@ void Widget::dawdle()
         IFTRACE(filesync)
             std::cerr << "Commit: " << whatsNew << "\n";
         if (repository->commit(whatsNew))
-        {            
-            whatsNew = "";            
+        {
+            whatsNew = "";
             nextCommit = tick + xlr->options.commit_interval * 1000;
             savedSomething = false;
         }
@@ -532,7 +532,7 @@ void Widget::runProgram()
     double w = width(), h = height();
 
     // Reset the selection id for the various elements being drawn
-    id = 0;    
+    id = 0;
     focusWidget = NULL;
     state.paintDevice = this;
 
@@ -700,7 +700,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
-    
+
     // Check if there is an activity that deals with it
     uint key = (uint) event->key();
     bool found = false;
@@ -736,7 +736,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() ==  Qt::RightButton)
     {
-    
+
         QMenu * contextMenu = NULL;
         switch (event->modifiers())
         {
@@ -772,8 +772,8 @@ void Widget::mousePressEvent(QMouseEvent *event)
 
         contextMenu->exec(event->globalPos());
         return;
-    } 
-    else 
+    }
+    else
     {
         EventSave save(this->event, event);
 
@@ -2144,7 +2144,58 @@ Tree *Widget::Kclear(Tree *self)
     return XL::xl_true;
 }
 
+#define K_STROKE 0x1
+#define K_FILL   0x2
+Tree *Widget::KbuildPath(Tree *self, Tree *path, int strokeOrFill)
+// ----------------------------------------------------------------------------
+//    Build and stroke and / or fill a path
+// ----------------------------------------------------------------------------
+{
+    if (! path) return XL::xl_false;
 
+    GLAttribKeeper save;
+
+    frame->CleanPath();
+
+    xl_evaluate(path);
+
+    if (strokeOrFill & K_STROKE)
+        frame->StrokePreserve();
+    if (strokeOrFill & K_FILL)
+        frame->FillPreserve();
+    frame->CleanPath();
+
+    return XL::xl_true;
+}
+Tree *Widget::Karc(Tree *self,
+                   double x,
+                   double y,
+                   double r,
+                   double a1,
+                   double a2,
+                   bool isPositive)
+{
+    frame->Arc(x, y, r, a1, a2, isPositive);
+    return XL::xl_true;
+}
+
+Tree *Widget::Kcurve(Tree *self,double x1, double y1, double x2, double y2, double x3, double y3)
+{
+    frame->CurveTo(x1, y1, x2, y2, x3, y3);
+    return XL::xl_true;
+}
+
+Tree *Widget::Kline(Tree *self,double x, double y)
+{
+    frame->LineTo(x, y);
+    return XL::xl_true;
+}
+
+Tree *Widget::KclosePath(Tree *self)
+{
+    frame->ClosePath();
+    return XL::xl_true;
+}
 
 // ============================================================================
 //
@@ -2256,12 +2307,12 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
         fullname.prepend(currentMenu->objectName() +'/');
         fullname.replace(TOPMENU, SUBMENU);
 
-    } 
+    }
     else if (fullname.startsWith(CONTEXT_MENU))
     {
         isContextMenu = true;
     }
-    else 
+    else
     {
         fullname.prepend( TOPMENU );
     }
@@ -2333,9 +2384,9 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 
 
 // ============================================================================
-// 
+//
 //    Tree selection management
-// 
+//
 // ============================================================================
 
 XL::Name *Widget::insert(Tree *self, Tree *toInsert)

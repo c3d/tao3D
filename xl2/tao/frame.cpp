@@ -86,7 +86,7 @@ void Frame::Color (double red, double green, double blue, double alpha)
 {
     cairo_set_source_rgba(context, red, green, blue, alpha);
 }
-    
+
 
 
 void Frame::Clear()
@@ -165,6 +165,30 @@ void Frame::Stroke()
     cairo_stroke(context);
 }
 
+void Frame::StrokePreserve()
+// ----------------------------------------------------------------------------
+//    Stroke the current path and preserve it.
+// ----------------------------------------------------------------------------
+{
+    cairo_stroke_preserve(context);
+}
+
+void Frame::Fill()
+// ----------------------------------------------------------------------------
+//    Fill the current path.
+// ----------------------------------------------------------------------------
+{
+    GLAttribKeeper save(GL_TEXTURE_BIT|GL_ENABLE_BIT|GL_CURRENT_BIT);
+    cairo_fill(context);
+
+}
+void Frame::FillPreserve()
+// ----------------------------------------------------------------------------
+//    Fill the current path and preserve it.
+// ----------------------------------------------------------------------------
+{
+    cairo_fill_preserve(context);
+}
 
 void Frame::LayoutText(text s)
 // ----------------------------------------------------------------------------
@@ -210,11 +234,61 @@ void Frame::Paint(double x, double y, double w, double h)
     cairo_surface_flush(surface);
 }
 
+void Frame::Arc(double xCenter,
+                double yCenter,
+                double radius,
+                double angleStart,
+                double angleStop,
+                bool   isPositive)
+// ----------------------------------------------------------------------------
+//   Add an arc to the current path.
+// ----------------------------------------------------------------------------
+{
+    if (isPositive)
+        cairo_arc(context, xCenter, yCenter, radius, angleStart, angleStop);
+    else
+        cairo_arc_negative(context, xCenter, yCenter, radius, angleStart, angleStop);
+
+}
+
+void Frame::CurveTo(double x1,
+                    double y1,
+                    double x2,
+                    double y2,
+                    double x3,
+                    double y3)
+// ----------------------------------------------------------------------------
+//   Add a curve to the current path.
+// ----------------------------------------------------------------------------
+{
+    cairo_curve_to(context, x1, y1, x2, y2, x3, y3);
+}
+
+void Frame::LineTo(double x,
+                   double y)
+// ----------------------------------------------------------------------------
+//   Add a line to the current path.
+// ----------------------------------------------------------------------------
+{
+    cairo_line_to( context, x, y);
+}
+
+void Frame::ClosePath()
+{
+    cairo_close_path(context);
+}
+void Frame::CleanPath()
+// ----------------------------------------------------------------------------
+//    Reset the current path.
+// ----------------------------------------------------------------------------
+{
+    cairo_new_path(context);
+}
 
 // ============================================================================
-// 
+//
 //   FrameInfo class
-// 
+//
 // ============================================================================
 
 FrameInfo::FrameInfo(uint w, uint h)
@@ -318,10 +392,10 @@ void FrameInfo::end()
         QRect rect(0, 0, render_fbo->width(), render_fbo->height());
         QGLFramebufferObject::blitFramebuffer(texture_fbo, rect,
                                               render_fbo, rect);
-    }    
+    }
     glShowErrors();
 }
-    
+
 
 void FrameInfo::bind()
 // ----------------------------------------------------------------------------
@@ -340,9 +414,9 @@ void FrameInfo::bind()
 
 
 // ============================================================================
-// 
+//
 //   FramePainter
-// 
+//
 // ============================================================================
 
 FramePainter::FramePainter(FrameInfo *info)

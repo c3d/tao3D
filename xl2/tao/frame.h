@@ -51,8 +51,29 @@ struct Frame : XL::Info
     void             Text(text s);
     void             Rectangle(double x, double y, double w, double h);
     void             Stroke();
+    void             Fill();
     void             LayoutMarkup(text s);
     void             LayoutText(text s);
+
+    // Path
+    void             CleanPath();
+    void             StrokePreserve();
+    void             FillPreserve();
+    void             ClosePath();
+    void             CurveTo(double x1,
+                             double y1,
+                             double x2,
+                             double y2,
+                             double x3,
+                             double y3);
+    void              LineTo(double x,
+                             double y);
+    void             Arc(double xCenter,
+                         double yCenter,
+                         double radius,
+                         double angleStart,
+                         double angleStop,
+                         bool isPositive);
 
     // End of drawing, paint the frame
     void             Paint(double x, double y, double w, double h);

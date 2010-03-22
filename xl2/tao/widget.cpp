@@ -1153,9 +1153,8 @@ void Widget::drawSelection(const Box3 &bnds)
 {
     // Symbols where we will find the selection code
     XL::Symbols *symbols = XL::Symbols::symbols;
-    if (0)
-        if (xlProgram)
-            symbols = xlProgram->symbols;
+    if (xlProgram)
+        symbols = xlProgram->symbols;
 
     Box3 bounds(bnds);
     bounds.Normalize();

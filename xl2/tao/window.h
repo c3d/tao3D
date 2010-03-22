@@ -48,6 +48,8 @@ class Window : public QMainWindow
 public:
     Window(XL::Main *xlr, XL::SourceFile *sf = NULL);
 
+    void setText(QString txt);
+
 protected:
     void closeEvent(QCloseEvent *event);
 
@@ -75,7 +77,7 @@ private:
     QString strippedName(const QString &fullFileName);
     Window *findWindow(const QString &fileName);
     void updateProgram(const QString &filename);
-    void resetTaoMenus();
+    void resetTaoMenus(XL::Tree *a_tree);
 
 private:
     XL::Main *        xlRuntime;
@@ -103,6 +105,17 @@ private:
     QAction          *aboutAct;
     QAction          *aboutQtAct;
 };
+
+// Prefixes for the created menus and sub menus
+#define TOPMENU "TAO_TOP_MENU_"
+#define SUBMENU "TAO_SUB_MENU_"
+
+// Name of the availables contextual menus
+#define         CONTEXT_MENU  "TAO_CONTEXT_MENU"
+#define   SHIFT_CONTEXT_MENU  "TAO_CONTEXT_MENU_SHIFT"
+#define CONTROL_CONTEXT_MENU  "TAO_CONTEXT_MENU_CONTROL"
+#define     ALT_CONTEXT_MENU  "TAO_CONTEXT_MENU_ALT"
+#define    META_CONTEXT_MENU  "TAO_CONTEXT_MENU_META"
 
 }
 

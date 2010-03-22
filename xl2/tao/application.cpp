@@ -17,10 +17,13 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 2010 Jerome Forissier <jerome@taodyne.com>
+//  (C) 2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
 #include "application.h"
+#include "widget.h"
 #include "repository.h"
 #include "git_backend.h"
 #include "tao.h"
@@ -33,6 +36,7 @@
 #include <QLineEdit>
 #include <QDir>
 #include <QDebug>
+#include <QtWebKit>
 
 TAO_BEGIN
 
@@ -42,7 +46,53 @@ Application::Application(int & argc, char ** argv)
 //    Build the Tao application
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), repository(NULL)
-{}
+{
+    // Set some useful parameters for the application
+    setApplicationName ("Tao");
+    setOrganizationName ("Taodyne SAS");
+    setOrganizationDomain ("taodyne.com");
+    setWindowIcon(QIcon(":/images/tao.png"));
+
+    // Internal clean option
+    if (arguments().contains("--internal-use-only-clean-environment"))
+    {
+        internalCleanEverythingAsIfTaoWereNeverRun();
+        exit(0);
+    }
+
+    // Web settings
+    QWebSettings *gs = QWebSettings::globalSettings();
+    gs->setAttribute(QWebSettings::JavascriptEnabled, true);
+    gs->setAttribute(QWebSettings::JavaEnabled, true);
+    gs->setAttribute(QWebSettings::PluginsEnabled, true);
+    gs->setAttribute(QWebSettings::JavascriptCanOpenWindows, true);
+    gs->setAttribute(QWebSettings::JavascriptCanAccessClipboard, true);
+    gs->setAttribute(QWebSettings::LinksIncludedInFocusChain, true);
+    gs->setAttribute(QWebSettings::OfflineStorageDatabaseEnabled, true);
+    gs->setAttribute(QWebSettings::OfflineWebApplicationCacheEnabled,true);
+    gs->setAttribute(QWebSettings::LocalStorageEnabled, true);
+
+    // Configure the proxies for URLs
+    QNetworkProxyFactory::setUseSystemConfiguration(true);
+
+    // Basic sanity tests to check if we can actually run
+    if (!QGLFormat::hasOpenGL())
+    {
+        QMessageBox::warning(NULL, tr("OpenGL support"),
+                             tr("This system doesn't support OpenGL."));
+        exit(1);
+    }
+    if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
+    {
+        // Check frame buffer support (non-fatal)
+	QMessageBox::information(NULL, tr("Framebuffer support"),
+				 tr("This system does not support framebuffers."
+                                    " Performance may not be optimal."
+                                    " Consider updating the OpenGL drivers."));
+    }
+
+
+}
 
 
 Application::~Application()
@@ -102,6 +152,7 @@ bool Application::openLibrary(QString path, bool confirm)
                 (tr("Do you want to create a new project, "
                     "skip project selection and continue without a project, "
                     "or choose another location for the project?"));
+            box.setIcon(QMessageBox::Question);
             QPushButton *choose = box.addButton(tr("Choose..."),
                                                 QMessageBox::ActionRole);
             QPushButton *skip = box.addButton(tr("Skip"),
@@ -134,7 +185,7 @@ bool Application::openLibrary(QString path, bool confirm)
             }
             else
             {
-                QMessageBox::question(0, tr("Puzzled"),
+                QMessageBox::question(NULL, tr("Puzzled"),
                                       tr("How did you do that?"),
                                       QMessageBox::No);
             }
@@ -155,6 +206,7 @@ bool Application::openLibrary(QString path, bool confirm)
             {
                 QMessageBox box;
                 QString repo = repository->userVisibleName();
+                box.setIcon(QMessageBox::Question);
                 box.setWindowTitle
                     (tr("Existing %1 repository").arg(repo));
                 if (onUndoBranch)
@@ -222,14 +274,19 @@ bool Application::openLibrary(QString path, bool confirm)
                 }
                 else
                 {
-                    QMessageBox::question(0, tr("Coin?"),
+                    QMessageBox::question(NULL, tr("Coin?"),
                                           tr("How did you do that?"),
                                           QMessageBox::Discard);
                 }
             }
 
             if (setTask)
-                repository->setTask(task);
+                if (!repository->setTask(task))
+                    QMessageBox::information
+                        (NULL, tr("Task selection"),
+                         tr("An error occured setting the task:\n%1.")
+                         .arg(+repository->errors),
+                         QMessageBox::Ok);
         }
 
     } while (!ok);
@@ -276,7 +333,7 @@ void Application::internalCleanEverythingAsIfTaoWereNeverRun()
 // ----------------------------------------------------------------------------
 {
     int ret;
-    ret = QMessageBox::warning(0, tr("Tao"),
+    ret = QMessageBox::warning(NULL, tr("Tao"),
                                tr("Cleaning the Tao environment"
                                   "\n\n"
                                   "This command allows you to clean the Tao "
@@ -285,14 +342,14 @@ void Application::internalCleanEverythingAsIfTaoWereNeverRun()
                                   "A confirmation will be asked for each "
                                   "item to be deleted. You may also choose to "
                                   "delete all items at once."),
-                             QMessageBox::Ok | QMessageBox::Cancel,
-                             QMessageBox::Cancel);
+                               QMessageBox::Ok | QMessageBox::Cancel,
+                               QMessageBox::Cancel);
     if (ret  != QMessageBox::Ok)
         return;
 
     // Default document library
     QString path = defaultDocumentLibraryPath();
-    ret = QMessageBox::question(0, tr("Tao"),
+    ret = QMessageBox::question(NULL, tr("Tao"),
                                 tr("Do you want to delete:\n\n"
                                    "Default document library?") +
                                 " (" + path + ")",
@@ -308,7 +365,7 @@ void Application::internalCleanEverythingAsIfTaoWereNeverRun()
     if (!path.isNull() && path != defaultDocumentLibraryPath())
     {
         if (ret != QMessageBox::YesAll)
-            ret = QMessageBox::question(0, tr("Tao"),
+            ret = QMessageBox::question(NULL, tr("Tao"),
                                         tr("Do you want to delete:\n\n"
                                            "User's document library?") +
                                         " (" + path + ")",
@@ -322,7 +379,7 @@ void Application::internalCleanEverythingAsIfTaoWereNeverRun()
 
     // User preferences
     if (ret != QMessageBox::YesAll)
-        ret = QMessageBox::question(0, tr("Tao"),
+        ret = QMessageBox::question(NULL, tr("Tao"),
                                     tr("Do you want to delete:\n\n"
                                        "Tao user preferences?"),
                                     QMessageBox::Yes    | QMessageBox::No |

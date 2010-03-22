@@ -44,6 +44,9 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
       textEdit(NULL), taoWidget(NULL), curFile(),
       isUntitled(sf == NULL), fileCheckTimer(this)
 {
+    // Define the icon
+    setWindowIcon(QIcon(":/images/tao.png"));
+
     // Create the widgets
     QDockWidget *dock = new QDockWidget(tr("Source"));
     dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
@@ -74,6 +77,15 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
     // Fire a timer to check if files changed
     fileCheckTimer.start(500);
     connect(&fileCheckTimer, SIGNAL(timeout()), this, SLOT(checkFiles()));
+}
+
+
+void Window::setText(QString txt)
+// ----------------------------------------------------------------------------
+//   Update the text edit widget with updates we made
+// ----------------------------------------------------------------------------
+{
+    textEdit->document()->setPlainText(txt);
 }
 
 
@@ -425,11 +437,13 @@ void Window::updateProgram(const QString &fileName)
     QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
     text fn = canonicalFilePath.toStdString();
     XL::SourceFile *sf = &xlRuntime->files[fn];
+
+    // Clean menus and reload XL program
+    resetTaoMenus(sf->tree.tree);
+
     if (!sf->tree.tree)
         xlRuntime->LoadFile(fn);
 
-    // Clean menus and reload XL program
-    resetTaoMenus();
     taoWidget->updateProgram(sf);
     taoWidget->updateGL();
 }
@@ -443,7 +457,7 @@ bool Window::saveFile(const QString &fileName)
     QFile file(fileName);
     if (!file.open(QFile::WriteOnly | QFile::Text))
     {
-        QMessageBox::warning(this, tr("SDI"),
+        QMessageBox::warning(this, tr("Error saving file"),
                              tr("Cannot write file %1:\n%2.")
                              .arg(fileName)
                              .arg(file.errorString()));
@@ -464,24 +478,55 @@ bool Window::saveFile(const QString &fileName)
 
     return true;
 }
-void Window::resetTaoMenus()
+
+void Window::resetTaoMenus(XL::Tree * a_tree)
+// ----------------------------------------------------------------------------
+//   Clean added menus (from menu bar and contextual menus)
+// ----------------------------------------------------------------------------
 {
-    // Clean menus
-    if (taoWidget->xlProgram)
+    // Removes top menu from the menu bar
+    QRegExp reg("^"+ QString(TOPMENU) +".*", Qt::CaseSensitive);
+    QList<QMenu *> menu_list = menuBar()->findChildren<QMenu *>(reg);
+    QList<QMenu *>::iterator it;
+    for(it = menu_list.begin(); it!=menu_list.end(); ++it)
     {
-        QRegExp reg("^_TOP_MENU_.*", Qt::CaseSensitive);
-        QList<QMenu *> menu_list = menuBar()->findChildren<QMenu *>(reg);
-        QList<QMenu *>::iterator it;
-        for(it = menu_list.begin(); it!=menu_list.end(); ++it)
+        QMenu *menu = *it;
+        IFTRACE(menus)
         {
-            QMenu *menu = *it;
             std::cout << menu->objectName().toStdString()
                     << " removed from menu bar \n";
-            menuBar()->removeAction(menu->menuAction());
-            delete menu;
+            std::cout.flush();
         }
-        taoWidget->currentMenu = NULL;
-        taoWidget->currentMenuBar = this->menuBar();
+
+        menuBar()->removeAction(menu->menuAction());
+        delete menu;
+    }
+
+    // Reset currentMenu and currentMenuBar
+    taoWidget->currentMenu = NULL;
+    taoWidget->currentMenuBar = this->menuBar();
+
+    // Removes contextual menus
+    reg.setPattern("^"+QString(CONTEXT_MENU)+".*");
+    menu_list = taoWidget->findChildren<QMenu *>(reg);
+    for(it = menu_list.begin(); it!=menu_list.end(); ++it)
+    {
+        QMenu *menu = *it;
+        IFTRACE(menus)
+        {
+            std::cout << menu->objectName().toStdString()
+                    << " Contextual menu removed\n";
+            std::cout.flush();
+        }
+        delete menu;
+    }
+
+    if (a_tree)
+    {
+        // Clean MenuInfo from tree
+        CleanMenuInfo cmi;
+        XL::BreadthFirstSearch bfs(cmi);
+        a_tree->Do(bfs);
     }
 
 }

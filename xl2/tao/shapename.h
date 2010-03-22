@@ -62,4 +62,40 @@ protected:
 
 TAO_END
 
+XL_BEGIN
+
+// ============================================================================
+// 
+//    Specialized variant of 'TreeClone' that normalizes --x into x
+// 
+// ============================================================================
+
+struct NormalizedCloneMode;
+template<>
+inline Tree *TreeCloneTemplate<NormalizedCloneMode>::DoPrefix(Prefix *what)
+// ----------------------------------------------------------------------------
+//   Specialization of TreeClone that changes --x into x
+// ----------------------------------------------------------------------------
+{
+    if (Name *n = what->left->AsName())
+    {
+        if (n->value == "-")
+        {
+            if (Real *rv = what->right->AsReal())
+                if (rv->value < 0)
+                    return new Real(-rv->value, rv->Position());
+            if (Integer *iv = what->right->AsInteger())
+                if (iv->value < 0)
+                    return new Integer(-iv->value, iv->Position());
+        }
+    }
+    return new Prefix(Clone(what->left), Clone(what->right),
+                      what->Position());
+}
+
+
+typedef XL::TreeCloneTemplate<NormalizedCloneMode> NormalizedClone;
+
+XL_END
+
 #endif // SHAPENAME_H

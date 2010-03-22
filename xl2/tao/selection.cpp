@@ -38,7 +38,7 @@ Selection::Selection(Widget *w)
 {}
 
 
-void Selection::Display(void)
+Activity *Selection::Display(void)
 // ----------------------------------------------------------------------------
 //   Display the selection rectangle
 // ----------------------------------------------------------------------------
@@ -78,20 +78,22 @@ void Selection::Display(void)
     glEnd();
 
     glPopMatrix();
+
+    return next;
 }
 
 
-bool Selection::Idle(void)
+Activity *Selection::Idle(void)
 // ----------------------------------------------------------------------------
 //   Make the refresh rate shorter so that we animate the rectangle
 // ----------------------------------------------------------------------------
 {
     widget->refresh(NULL, 0.1);
-    return false;               // Keep doing other idle activities
+    return next;               // Keep doing other idle activities
 }
 
 
-bool Selection::Click(uint button, bool down, int x, int y)
+Activity *Selection::Click(uint button, bool down, int x, int y)
 // ----------------------------------------------------------------------------
 //   Initial and final click in a selection rectangle
 // ----------------------------------------------------------------------------
@@ -118,7 +120,8 @@ bool Selection::Click(uint button, bool down, int x, int y)
     }
     else
     {
-        return false;
+        delete this;
+        return next;
     }
 
 
@@ -165,7 +168,7 @@ bool Selection::Click(uint button, bool down, int x, int y)
     // If this is the first click, then update selection
     if (firstClick)
     {
-        if (shiftModifier)
+        if (shiftModifier || widget->selection.count(selected))
             widget->savedSelection = widget->selection;
         else
             widget->savedSelection.clear();
@@ -175,32 +178,29 @@ bool Selection::Click(uint button, bool down, int x, int y)
             widget->selection.insert(selected);
     }
 
-    // If we are done with the selection, remove it
-    Widget *saved_widget = widget;
+    // In all cases, we want a screen refresh
+    widget->updateGL();
+
+    // If we are done with the selection, remove it and shift to a Drag
     if (doneWithSelection)
     {
+        Widget *widget = this->widget; // Save before 'delete this'
         delete this;
         if (selected)
-        {
-            Drag *d = new Drag(saved_widget);
-            d->Click(button, down, x, saved_widget->height() - y);
-        }
+            return widget->newDragActivity();
     }
 
-    // Need a refresh
-    saved_widget->updateGL();
-
-    return true;                // We dealt with it
+    return NULL;                // We dealt with the event
 }
 
 
-bool Selection::MouseMove(int x, int y, bool active)
+Activity *Selection::MouseMove(int x, int y, bool active)
 // ----------------------------------------------------------------------------
 //   Track selection rectangle as mouse moves
 // ----------------------------------------------------------------------------
 {
     if (!active)
-        return false;
+        return next;
 
     y = widget->height() - y;
     rectangle.upper.Set(x,y);
@@ -246,7 +246,8 @@ bool Selection::MouseMove(int x, int y, bool active)
     // Need a refresh
     widget->updateGL();
 
-    return true;                // We dealt with the mouse move
+    // We dealt with the mouse move, don't let other activities get it
+    return NULL;
 }
 
 TAO_END

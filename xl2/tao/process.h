@@ -64,7 +64,7 @@ inline QString operator +(text s)
 //   Quickly convert from text to QString
 // ----------------------------------------------------------------------------
 {
-    return QString::fromStdString(s);
+    return QString::fromUtf8(s.data(), s.length());
 }
 
 inline text operator +(QString s)

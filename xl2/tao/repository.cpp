@@ -64,16 +64,18 @@ bool Repository::write(text fileName, XL::Tree *tree)
 
     // Write the file in a copy (avoid overwriting original)
     text copy = full + "~";
-    std::ofstream output(copy.c_str());
-    XL::Renderer renderer(output);
-    renderer.SelectStyleSheet(styleSheet());
-    renderer.Render(tree);
-    output.flush();
+    {
+        std::ofstream output(copy.c_str());
+        XL::Renderer renderer(output);
+        renderer.SelectStyleSheet(styleSheet());
+        renderer.Render(tree);
+        output.flush();
+        ok = output.good()  && !output.fail() && !output.bad();
+    }
 
     // If we were successful writing, rename to new file
-    if (output.good()  && !output.fail() && !output.bad())
-        if (rename(copy.c_str(), full.c_str()) == 0)
-            ok = true;
+    if (ok)
+        ok = std::rename(copy.c_str(), full.c_str()) == 0;
 
     return ok;
 }
@@ -106,17 +108,28 @@ bool Repository::setTask(text name)
 //       <name> is the work branch itself, recording user-defined checkpoints
 //       <name>.undo is the undo branch, managed by us
 {
+    text undo = name + TAO_UNDO_SUFFIX;
     task = name;
 
     // Check if we can checkout the task branch
-    if (!checkout(name))
-        if (!branch(name) || !checkout(name))
+    if (!commit("Automatic commit on Tao startup", true))
+        return false;
+    if (!checkout(task))
+        if (!branch(task) || !checkout(task))
             return false;
 
     // Check if we can checkout the undo branch
-    if (!checkout(name + TAO_UNDO_SUFFIX))
-        if (!branch(name + TAO_UNDO_SUFFIX)||!checkout(name + TAO_UNDO_SUFFIX))
+    if (!checkout(undo))
+        if (!branch(undo)||!checkout(undo))
             return false;
+
+    // Merge the undo branch into the task branch
+    if (!checkout(task) || !merge(undo))
+        return false;
+
+    // Merge the task branch into the undo branch, stay on undo
+    if (!checkout(undo) || !merge(task))
+        return false;
 
     // We are now on the _undo branch
     return true;

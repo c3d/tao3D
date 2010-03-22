@@ -50,7 +50,7 @@ ShapeName::~ShapeName()
     widget->loadName(false);
     if (widget->selected())
     {
-        Vector3 v = dragDelta();
+        Vector3 v = widget->dragDelta();
 
         uint modifiers = qApp->keyboardModifiers();
         bool resize = modifiers & Qt::ShiftModifier;
@@ -63,51 +63,18 @@ ShapeName::~ShapeName()
         {
             if (wp)     updateArg(wp,  v.x);
             if (hdp)    updateArg(hdp, v.y);
+            if (v.x != 0 || v.y != 0.0)
+                widget->markChanged("Resized shape");
         }
         else
         {
             if (xp)     updateArg(xp,  v.x);
             if (yzp)    updateArg(yzp, v.y);
+            if (v.x != 0 || v.y != 0.0)
+                widget->markChanged("Moved shape");
         }
-        box.Normalize();
         widget->drawSelection(box);
     }
-}
-
-
-Vector3 ShapeName::dragDelta()
-// ----------------------------------------------------------------------------
-//   Compute the drag delta based on the current rotation coordinates
-// ----------------------------------------------------------------------------
-{
-    Vector3 result;
-
-    if (widget->selected())
-    {
-        widget->recordProjection();
-        if (Drag *d = dynamic_cast<Drag *>(widget->activities))
-        {
-            double x1 = d->x1;
-            double y1 = d->y1;
-            double x2 = d->x2;
-            double y2 = d->y2;
-            int hh = widget->height();
-
-            Point3 u1 = widget->unproject(x1, hh-y1, 0);
-            Point3 u2 = widget->unproject(x2, hh-y2, 0);
-            result = u2 - u1;
-
-            // Clamp amplification resulting from reverse projection
-            const double maxAmp = 5.0;
-            double ampX = fabs(result.x) / (fabs(x2-x1) + 0.01);
-            double ampY = fabs(result.y) / (fabs(y2-y1) + 0.01);
-            if (ampX > maxAmp)
-                result *= maxAmp/ampX;
-            if (ampY > maxAmp)
-                result *= maxAmp/ampY;
-        }
-    }
-    return result;
 }
 
 
@@ -121,19 +88,27 @@ void ShapeName::updateArg(tree_p arg, coord delta)
         return;
 
     Tree *source = xl_source(arg);       // Find the source expression
-    arg = source;
-
-    tree_p *ptr = &arg;
-    bool more = true;
-    bool negative = false;
+    tree_p    *ptr       = &source;
+    bool       more      = true;
+    bool       negative  = false;
+    tree_p    *pptr      = NULL;
+    tree_p    *ppptr     = NULL;
 
     // Check if we have an Infix +, if so walk down the left side
+    arg = source;
     while (more)
     {
         more = false;
+        ppptr = pptr;
+        pptr = NULL;
         if (XL::Infix *infix = (*ptr)->AsInfix())
         {
-            if (infix->name == "+")
+            if (infix->name == "-")
+            {
+                ptr = &infix->left;
+                more = true;
+            }
+            else if (infix->name == "+")
             {
                 ptr = &infix->left;
                 more = true;
@@ -145,15 +120,11 @@ void ShapeName::updateArg(tree_p arg, coord delta)
             {
                 if (name->value == "-")
                 {
+                    pptr = ptr;
                     ptr = &prefix->right;
                     more = true;
                     negative = !negative;
                     delta = -delta;
-                }
-                else if (name->value == "+")
-                {
-                    ptr = &prefix->right;
-                    more = true;
                 }
             }
         }
@@ -163,10 +134,14 @@ void ShapeName::updateArg(tree_p arg, coord delta)
     if (XL::Integer *ival = (*ptr)->AsInteger())
     {
         ival->value += delta;
+        if (ppptr && ival->value < 0)
+            widget->reloadProgram = true;
     }
     else if (XL::Real *rval = (*ptr)->AsReal())
     {
         rval->value += delta;
+        if (ppptr && rval->value < 0)
+            widget->reloadProgram = true;
     }
     else
     {

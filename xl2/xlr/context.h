@@ -145,6 +145,7 @@ struct Runtime;                                 // Runtime context
 struct Errors;                                  // Error handlers
 struct Compiler;                                // JIT compiler
 struct CompiledUnit;                            // Compilation unit
+struct GCAction;                                // Garbage collection action
 
 typedef std::map<text, Tree *>    symbol_table; // Symbol table in context
 typedef std::set<Tree *>          active_set;   // Not to be garbage collected
@@ -206,6 +207,9 @@ struct Symbols
     Tree *              Error (text message,
                                Tree *a1=NULL, Tree *a2=NULL, Tree *a3=NULL);
 
+    // Garbage collection
+    bool                Mark(GCAction &gc);
+
 public:
     Symbols *           parent;
     symbol_table        names;
@@ -230,8 +234,8 @@ struct Context : Symbols
         Symbols(NULL),
         errors(err),                            // Global error list
         compiler(comp),                         // Tree compilation
-        active(), roots(),                      // Garbage collection
-        active_symbols(), gc_threshold(200) {}  // More garbage collection
+        active(), active_symbols(), roots(),    // Garbage collection
+        gc_threshold(200) {}                    // When do we collect?
     ~Context();
 
     // Garbage collection
@@ -249,8 +253,8 @@ public:
     Errors &            errors;
     Compiler *          compiler;
     active_set          active;
-    root_set            roots;
     symbols_set         active_symbols;
+    root_set            roots;
     ulong               gc_threshold;
 };
 
@@ -521,8 +525,13 @@ struct GCAction : Action
     {
         typedef std::pair<active_set::iterator, bool> inserted;
         inserted ins = alive.insert(what);
-        if (Symbols *syms = what->Get<SymbolsInfo> ())
-            alive_symbols.insert(syms);
+        if (ins.second)
+        {
+            if (Symbols *syms = what->Get<SymbolsInfo> ())
+                syms->Mark(*this);
+            if (what->source && what->source != what)
+                what->source->Do(this);
+        }
         return ins.second;
     }
     Tree *Do(Tree *what)

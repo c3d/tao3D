@@ -42,6 +42,7 @@
 #include "menuinfo.h"
 #include "repository.h"
 #include "application.h"
+#include "process.h"
 
 #include <QtGui/QImage>
 #include <cmath>
@@ -87,10 +88,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     // Prepare the timers
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
     connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));
-    idleTimer.start(0);
-
-    // Configure the proxies for URLs
-    QNetworkProxyFactory::setUseSystemConfiguration(true);
+    idleTimer.start(100);
 
     // Receive notifications for focus
     connect(qApp, SIGNAL(focusChanged (QWidget *, QWidget *)),
@@ -202,6 +200,8 @@ void Widget::refreshProgram()
 
     Repository *repository = TaoApp->library();
     Tree *prog = xlProgram->tree.tree;
+    if (!prog)
+        return;
 
     // Loop on imported files
     import_set iset;
@@ -355,6 +355,38 @@ Point3 Widget::unproject (coord x, coord y, coord z)
 }
 
 
+Vector3 Widget::dragDelta()
+// ----------------------------------------------------------------------------
+//   Compute the drag delta based on the current Drag object if there is any
+// ----------------------------------------------------------------------------
+{
+    Vector3 result;
+    recordProjection();
+    if (Drag *d = dynamic_cast<Drag *>(activities))
+    {
+        double x1 = d->x1;
+        double y1 = d->y1;
+        double x2 = d->x2;
+        double y2 = d->y2;
+        int hh = height();
+
+        Point3 u1 = unproject(x1, hh-y1, 0);
+        Point3 u2 = unproject(x2, hh-y2, 0);
+        result = u2 - u1;
+
+        // Clamp amplification resulting from reverse projection
+        const double maxAmp = 5.0;
+        double ampX = fabs(result.x) / (fabs(x2-x1) + 0.01);
+        double ampY = fabs(result.y) / (fabs(y2-y1) + 0.01);
+        if (ampX > maxAmp)
+            result *= maxAmp/ampX;
+        if (ampY > maxAmp)
+            result *= maxAmp/ampY;
+    }
+    return result;
+}
+
+
 void Widget::setup(double w, double h, Box *picking)
 // ----------------------------------------------------------------------------
 //   Setup an initial environment for drawing
@@ -464,14 +496,19 @@ void Widget::dawdle()
 // ----------------------------------------------------------------------------
 {
     // Run all activities, which will get them a chance to update refresh
-    for (Activity *a = activities; a; a = a->next)
-        if (a->Idle())
-            break;
+    for (Activity *a = activities; a; a = a->Idle()) ;
 
     // We will only auto-save and commit if we have a valid repository
     Repository *repository     = TaoApp->library();
     XL::Main   *xlr            = XL::MAIN;
     bool        savedSomething = false;
+
+    if (xlProgram && xlProgram->changed)
+    {
+        text txt = *xlProgram->tree.tree;
+        Window *window = (Window *) parentWidget();
+        window->setText(+txt);
+    }
 
     // Check if there's something to save
     ulonglong tick = now();
@@ -489,12 +526,13 @@ void Widget::dawdle()
                 {
                     // Mark the tree as no longer changed
                     sf.changed = false;
+                    savedSomething = true;
 
                     // Record that we need to commit it sometime soon
                     repository->change(fname);
                     IFTRACE(filesync)
-                        std::cerr << "Changedfile " << fname << "\n";
-                        
+                        std::cerr << "Changed " << fname << "\n";
+
                     // Record time when file was changed
                     struct stat st;
                     stat (fname.c_str(), &st);
@@ -515,8 +553,8 @@ void Widget::dawdle()
         IFTRACE(filesync)
             std::cerr << "Commit: " << whatsNew << "\n";
         if (repository->commit(whatsNew))
-        {            
-            whatsNew = "";            
+        {
+            whatsNew = "";
             nextCommit = tick + xlr->options.commit_interval * 1000;
             savedSomething = false;
         }
@@ -557,8 +595,7 @@ void Widget::draw()
 
     // Render all activities, e.g. the selection rectangle
     glDisable(GL_DEPTH_TEST);
-    for (Activity *a = activities; a; a = a->next)
-        a->Display();
+    for (Activity *a = activities; a; a = a->Display()) ;
 }
 
 
@@ -568,7 +605,7 @@ void Widget::runProgram()
 // ----------------------------------------------------------------------------
 {
     // Reset the selection id for the various elements being drawn
-    id = 0;    
+    id = 0;
     focusWidget = NULL;
     state.paintDevice = this;
 
@@ -587,7 +624,7 @@ void Widget::runProgram()
             {
                 if (reloadProgram)
                 {
-                    XL::TreeClone cloneAction;
+                    XL::NormalizedClone cloneAction;
                     Tree *copy = prog->Do(cloneAction);
                     copy->Set<XL::SymbolsInfo>(prog->Get<XL::SymbolsInfo>());
                     xlProgram->tree.tree = copy;
@@ -692,8 +729,10 @@ void Widget::userMenu(QAction *p_action)
         return;
 
     IFTRACE(menus)
-        std::cerr << "User menu " << p_action << "\n";
-
+    {
+        std::cout << "Action " << p_action->objectName().toStdString()
+                << " (" << p_action->text().toStdString() << ") activated\n";
+    }
     QVariant var =  p_action->data();
     if (!var.isValid())
         return;
@@ -734,15 +773,13 @@ void Widget::keyPressEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
-    
+
     // Check if there is an activity that deals with it
     uint key = (uint) event->key();
-    bool found = false;
-    for (Activity *a = activities; !found && a; a = a->next)
-        found = a->Key(key, true);
+    for (Activity *a = activities; a; a = a->Key(key, true)) ;
 
-    if (!found)
-        forwardEvent(event);
+    // Forward it down the regular event chain
+    forwardEvent(event);
 }
 
 
@@ -755,14 +792,11 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
 
     // Check if there is an activity that deals with it
     uint key = (uint) event->key();
-    bool found = false;
-    for (Activity *a = activities; !found && a; a = a->next)
-        found = a->Key(key, false);
+    for (Activity *a = activities; a; a = a->Key(key, false)) ;
 
-    if (!found)
-        forwardEvent(event);
+    // Forward it down the regular event chain
+    forwardEvent(event);
 }
-
 
 void Widget::mousePressEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
@@ -774,18 +808,59 @@ void Widget::mousePressEvent(QMouseEvent *event)
     uint button = (uint) event->button();
     int x = event->x();
     int y = event->y();
+    bool handled = false;
 
-    // Check if there is an activity that deals with it
-    bool found = false;
-    for (Activity *a = activities; !found && a; a = a->next)
-        found = a->Click(button, true, x, y);
+    // Create a selection if left click and nothing going on right now
+    if (!activities && button == Qt::LeftButton)
+        new Selection(this);
 
-    if (!found)
+    // Send the click to all activities
+    for (Activity *a = activities; a; a = a->Click(button, true, x, y))
+        handled = true;
+
+    if (button ==  Qt::RightButton)
     {
-        Selection *s = new Selection(this);
-        s->Click(button, true, x, y);
-        forwardEvent(event);
+        QMenu * contextMenu = NULL;
+        switch (event->modifiers())
+        {
+        default :
+        case Qt::NoModifier :
+            {
+                contextMenu = parent()->findChild<QMenu*>(CONTEXT_MENU);
+                break;
+            }
+        case Qt::ShiftModifier :
+            {
+                contextMenu = parent()->findChild<QMenu*>(SHIFT_CONTEXT_MENU);
+                break;
+            }
+        case Qt::ControlModifier :
+            {
+                contextMenu = parent()->findChild<QMenu*>(CONTROL_CONTEXT_MENU);
+                break;
+            }
+        case Qt::AltModifier :
+            {
+                contextMenu = parent()->findChild<QMenu*>(ALT_CONTEXT_MENU);
+                break;
+            }
+        case Qt::MetaModifier :
+            {
+                contextMenu = parent()->findChild<QMenu*>(META_CONTEXT_MENU);
+                break;
+            }
+        }
+
+        if (contextMenu)
+        {
+            contextMenu->exec(event->globalPos());
+            handled = true;
+        }
     }
+
+    // Pass the event down the event chain
+    if (!handled)
+        forwardEvent(event);
 }
 
 
@@ -801,12 +876,10 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
     int y = event->y();
 
     // Check if there is an activity that deals with it
-    bool found = false;
-    for (Activity *a = activities; !found && a; a = a->next)
-        found = a->Click(button, false, x, y);
+    for (Activity *a = activities; a; a = a->Click(button, false, x, y)) ;
 
-    if (!found)
-        forwardEvent(event);
+    // Pass the event down the event chain
+    forwardEvent(event);
 }
 
 
@@ -821,12 +894,10 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
     int y = event->y();
 
     // Check if there is an activity that deals with it
-    bool found = false;
-    for (Activity *a = activities; !found && a; a = a->next)
-        found = a->MouseMove(x, y, active);
+    for (Activity *a = activities; a; a = a->MouseMove(x, y, active)) ;
 
-    if (!found)
-        forwardEvent(event);
+    // Pass the event down the event chain
+    forwardEvent(event);
 }
 
 
@@ -1100,11 +1171,57 @@ bool Widget::selected()
 }
 
 
-void Widget::drawSelection(const Box3 &bounds)
+Activity *Widget::newDragActivity()
+// ----------------------------------------------------------------------------
+//   Return a new drag activity, depending on current mode
+// ----------------------------------------------------------------------------
+{
+    // For now, we only support regular drag
+    return new Drag(this);
+}
+
+
+void Widget::drawSelection(const Box3 &bnds)
 // ----------------------------------------------------------------------------
 //    Draw a 2D or 3D selection with the given coordinates
 // ----------------------------------------------------------------------------
 {
+    // Symbols where we will find the selection code
+    XL::Symbols *symbols = XL::Symbols::symbols;
+    if (xlProgram)
+        symbols = xlProgram->symbols;
+
+    Box3 bounds(bnds);
+    bounds.Normalize();
+
+    coord w = bounds.Width();
+    coord h = bounds.Height();
+    coord d = bounds.Depth();
+    Point3 c  = bounds.Center();
+
+    if (bounds.Depth() > 0)
+    {
+        GLAttribKeeper save;
+        XL::LocalSave<GLuint> save1(state.polygonMode, GL_TRIANGLE_FAN);
+        XL::LocalSave<bool>   save2(state.selectable, false);
+
+        setupGL();
+        glDisable(GL_DEPTH_TEST);
+
+        (XL::XLCall("draw_selection"), c.x, c.y, c.z, w, h, d) (symbols);
+    }
+    else
+    {
+        GLAttribKeeper save(GL_CURRENT_BIT | GL_LINE_BIT);
+        XL::LocalSave<GLuint> save1(state.polygonMode, GL_LINE_LOOP);
+        XL::LocalSave<bool>   save2(state.selectable, false);
+        glLineWidth (3.0);
+        glColor4f(1.0, 0.0, 0.0, 0.5);
+        glDisable(GL_DEPTH_TEST);
+        (XL::XLCall("draw_selection"), c.x, c.y, w, h) (symbols);
+    }
+
+#if 0
     if (bounds.Width() < 0 || bounds.Height() < 0)
         return;
 
@@ -1174,6 +1291,7 @@ void Widget::drawSelection(const Box3 &bounds)
         }
         glEnd();
     }
+#endif
 }
 
 
@@ -1980,7 +2098,7 @@ Tree *Widget::urlPaint(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, Box3(x, y, 0, w, h, 0));
+    ShapeName name(this, Box3(x-w/2, y-h/2, 0, w, h, 0));
     name.x(x).y(y).w(w).h(h);
     urlTexture(self, w, h, url, progress);
 
@@ -2030,7 +2148,7 @@ Tree *Widget::lineEdit(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, Box3(x, y, 0, w, h, 0));
+    ShapeName name(this, Box3(x-w/2, y-h/2, 0, w, h, 0));
     name.x(x).y(y).w(w).h(h);
 
     lineEditTexture(self, w, h, txt);
@@ -2159,32 +2277,88 @@ Tree *Widget::Kclear(Tree *self)
     return XL::xl_true;
 }
 
+#define K_STROKE 0x1
+#define K_FILL   0x2
+Tree *Widget::KbuildPath(Tree *self, Tree *path, int strokeOrFill)
+// ----------------------------------------------------------------------------
+//    Build and stroke and / or fill a path
+// ----------------------------------------------------------------------------
+{
+    if (! path) return XL::xl_false;
 
+    GLAttribKeeper save;
+
+    frame->CleanPath();
+
+    xl_evaluate(path);
+
+    if (strokeOrFill & K_STROKE)
+        frame->StrokePreserve();
+    if (strokeOrFill & K_FILL)
+        frame->FillPreserve();
+    frame->CleanPath();
+
+    return XL::xl_true;
+}
+Tree *Widget::Karc(Tree *self,
+                   double x,
+                   double y,
+                   double r,
+                   double a1,
+                   double a2,
+                   bool isPositive)
+{
+    frame->Arc(x, y, r, a1, a2, isPositive);
+    return XL::xl_true;
+}
+
+Tree *Widget::Kcurve(Tree *self,double x1, double y1, double x2, double y2, double x3, double y3)
+{
+    frame->CurveTo(x1, y1, x2, y2, x3, y3);
+    return XL::xl_true;
+}
+
+Tree *Widget::Kline(Tree *self,double x, double y)
+{
+    frame->LineTo(x, y);
+    return XL::xl_true;
+}
+
+Tree *Widget::KclosePath(Tree *self)
+{
+    frame->ClosePath();
+    return XL::xl_true;
+}
 
 // ============================================================================
 //
 //   Menu management
 //
 // ============================================================================
+// * Menu name philosophy :
+// * The full name is used to register menus and menu items against the menubar.
+//   Those names are not displayed.
+// * Menu created by the XL programmer must be differentiated from the originals
+//   ones because they have to be recreated or modified at each loop of XL.
+//   When top menus are deleted they recursively delete their children (sub
+//   menus and menu items), so we have to take care of sub menu at deletion
+//   time. Regarding those constraints, main menus are prefixed with _TOP_MENU_,
+//   sub menus are prefixed by _SUB_MENU_. Then each menu item and sub menu are
+//   prefixed by the "current menu" name (this current menu may itself be a
+//   submenu). Each part of the name are separated by a /.
+//
+// * Menu and menu items lifecycle :
+//   Menus are created when the xl program is executed the first time.
+//   Menus display text can be modified at each execution.
+//   Menus are destroyed when the xl program is invalidated.
+//   At save time, the old xl program is invalidated and the new one is executed
+//      for the first time.
+// ============================================================================
 
 Tree *Widget::menuItem(Tree *self, text s, Tree *t)
 // ----------------------------------------------------------------------------
 //   Create a menu item
 // ----------------------------------------------------------------------------
-/* Menu name philosophy :
- * The full name is used to register menus and menu items against the menubar.
-   Those names are not displayed.
- * Menu created by the XL programmer must be differentiated from the originals
-   ones because they have to be recreated or modified at each loop of XL.
-   When top menus are deleted they recursively delete their children (sub
-   menus and menu items), so we have to take care of sub menu at deletion time.
-   Regarding those constraints, main menus are prefixed with _TOP_MENU_, sub
-   menus are prefexed by _SUB_MENU_. Then each menu item and sub menu are
-   prefixed by the "current menu" name (this current menu may itself be a
-   submenu). Each part of the name are separated by a /.
- */
-#define TOPMENU "_TOP_MENU_"
-#define SUBMENU "_SUB_MENU_"
 {
     if (!currentMenu)
         return XL::xl_false;
@@ -2193,12 +2367,15 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
                       "/" +
                       QString::fromStdString(s);
 
-    if (currentMenuBar->findChild<QAction*>(fullName))
+    if (parent()->findChild<QAction*>(fullName))
     {
         IFTRACE(menus)
+        {
             std::cout<< "MenuItem " << s
                      << " found in current MenuBar with fullname "
                      << fullName.toStdString() << "\n";
+            std::cout.flush();
+        }
         return XL::xl_true;
     }
 
@@ -2214,9 +2391,12 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
     {
         // The name of the menuItem has changed.
         IFTRACE(menus)
+        {
             std::cout << "menuInfo found, old name is "
                       << menuInfo->fullName << " new name is "
                       << fullName.toStdString() << "\n";
+            std::cout.flush();
+        }
         menuInfo->action->setText(QString::fromStdString(s));
         menuInfo->action->setObjectName(fullName);
         menuInfo->action->setData(var);
@@ -2228,8 +2408,12 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
     self->SetInfo<MenuInfo> (menuInfo);
 
     IFTRACE(menus)
+    {
         std::cout << "menuItem creation with name "
                   << fullName.toStdString() << "\n";
+        std::cout.flush();
+    }
+
     QAction * p_action = currentMenu->addAction(QString::fromStdString(s));
     menuInfo->action = p_action;
     p_action->setData(var);
@@ -2240,36 +2424,45 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
 
 Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 // ----------------------------------------------------------------------------
-// Add the menu to the current menu bar
+// Add the menu to the current menu bar or create the contextual menu
 // ----------------------------------------------------------------------------
 {
-    // Build the full name of the menu from the current menu name,
-    // the given string and the isSubmenu.
-    QString fullname;
+    bool isContextMenu = false;
+
+    //---------------------------------
+    // Build the full name of the menu
+    //---------------------------------
+    // Uses the current menu name, the given string and the isSubmenu.
+    QString fullname = QString::fromStdString(s);
     if (isSubMenu && currentMenu)
     {
-        QString prefix = currentMenu->objectName();
-        prefix.replace(TOPMENU, SUBMENU);
-        fullname = prefix + '/' + QString::fromStdString(s);
+        fullname.prepend(currentMenu->objectName() +'/');
+        fullname.replace(TOPMENU, SUBMENU);
 
+    }
+    else if (fullname.startsWith(CONTEXT_MENU))
+    {
+        isContextMenu = true;
     }
     else
     {
-        fullname = TOPMENU + QString::fromStdString(s);
+        fullname.prepend( TOPMENU );
     }
 
     // Get or build the current Menu if we don't have one
     MenuInfo *menuInfo = self->GetInfo<MenuInfo>();
 
 
-    // If the menu already exists, no need to recreate it.
+    //---------------------------------------------------
+    // If the menu is registered, no need to recreate it.
+    //---------------------------------------------------
     // This is used at reload time, recreate the MenuInfo if required.
-    if (QMenu *tmp = currentMenuBar->findChild<QMenu*>(fullname))
+    if (QMenu *tmp = parent()->findChild<QMenu*>(fullname))
     {
         currentMenu = tmp;
         if (!menuInfo)
         {
-            menuInfo = new MenuInfo(currentMenuBar,
+            menuInfo = new MenuInfo(isContextMenu ? NULL : currentMenuBar,
                                     currentMenu,
                                     fullname.toStdString());
             self->SetInfo<MenuInfo> (menuInfo);
@@ -2279,10 +2472,14 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
         return XL::xl_true;
     }
 
+    //-------------------------------
+    // The menu is not yet registered.
+    //-------------------------------
     // The name may have change but not the content
     // (in the loop of the XL program execution).
     if (menuInfo)
     {
+        // The menu exists : update its info
         currentMenu = menuInfo->menu;
         menuInfo->action->setText(QString::fromStdString(s));
         menuInfo->menu->setObjectName(fullname);
@@ -2290,20 +2487,26 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
         return XL::xl_true;
     }
 
-    if (isSubMenu)
+    //----------------------------------------
+    // The menu is not existing. Creating it.
+    //----------------------------------------
+    if (isContextMenu)
+    {
+        currentMenu = new QMenu((Window*)parent());
+        connect(currentMenu, SIGNAL(triggered(QAction*)),
+                this,        SLOT(userMenu(QAction*)));
+
+    }
+    else if (isSubMenu)
         currentMenu = currentMenu->addMenu(QString::fromStdString(s));
     else
         currentMenu = currentMenuBar->addMenu(QString::fromStdString(s));
 
     currentMenu->setObjectName(fullname);
 
-    IFTRACE(menus)
-        std::cout << currentMenu->title().toStdString()
-                  << " menu found, "
-                  << currentMenuBar->children().size()
-                  << " children in menu bar "
-                  << currentMenuBar->objectName().toStdString() << "\n";
-    menuInfo = new MenuInfo(currentMenuBar,currentMenu, fullname.toStdString());
+    menuInfo = new MenuInfo(isContextMenu ? NULL : currentMenuBar,
+                            currentMenu,
+                            fullname.toStdString());
     self->SetInfo<MenuInfo> (menuInfo);
     menuInfo->action = currentMenu->menuAction();
 
@@ -2313,9 +2516,9 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 
 
 // ============================================================================
-// 
+//
 //    Tree selection management
-// 
+//
 // ============================================================================
 
 XL::Name *Widget::insert(Tree *self, Tree *toInsert)
@@ -2334,7 +2537,5 @@ XL::Name *Widget::deleteSelection(Tree *self)
 {
     return XL::xl_true;
 }
-
-
 
 TAO_END

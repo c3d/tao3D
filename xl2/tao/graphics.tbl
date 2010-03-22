@@ -98,7 +98,7 @@ PREFIX(Rectangle, tree, "rectangle",
        RTAO(rectangle(self, x, y, w, h)))
 PREFIX(RegularStarPolygon, tree, "regular_star_polygon",
        PARM(x, real) PARM(y, real) PARM(r, real)
-       PARM(p, integer) PARM(q, integer), 
+       PARM(p, integer) PARM(q, integer),
        RTAO(regularStarPolygon(self, x, y, r, p, q)))
 
 POSTFIX(FromCm,   real, PARM(x, real), "cm", RTAO(fromCm(self, x)))
@@ -193,6 +193,27 @@ PREFIX(LText, tree, "ltext",
 PREFIX(LMarkup, tree, "lmarkup",
        PARM(s, text),
        RTAO(KlayoutMarkup(self, s)))
+
+PREFIX(KPath, tree, "kpath", PARM(t, tree), RTAO(KbuildPath(self, &t, 0x0)))
+PREFIX(KPathStroke, tree, "kpathstroke",
+       PARM(t, tree),
+       RTAO(KbuildPath(self, &t, 0x1)))
+PREFIX(KPathFill, tree, "kpathfill",
+       PARM(t, tree),
+       RTAO(KbuildPath(self, &t, 0x2)))
+PREFIX(KPathStrokeFill, tree, "kpathstrokefill",
+       PARM(t, tree),
+       RTAO(KbuildPath(self, &t, 0x3)))
+PREFIX(KArc, tree, "karc",
+       PARM(x, real) PARM(y, real)
+       PARM(r, real) PARM(a1, real) PARM(a2, real),
+       RTAO(Karc(self, x, y, r, a1, a2, true)))
+PREFIX(KArcNegative, tree, "karcnegative",
+       PARM(x, real) PARM(y, real)
+       PARM(r, real) PARM(a1, real) PARM(a2, real),
+       RTAO(Karc(self, x, y, r, a1, a2, false)))
+PREFIX(KClosePath, tree, "kclosepath",, RTAO(KclosePath(self)))
+PREFIX(KLine, tree, "kline", PARM(x, real) PARM(y, real), RTAO(Kline(self, x, y)))
 
 PREFIX(MenuItem, tree, "menu_item", PARM(s, text) PARM(t, tree),
        RTAO(menuItem(self, s, &t)))

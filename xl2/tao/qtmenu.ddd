@@ -1,6 +1,11 @@
+menu "TAO_CONTEXT_MENU" 
+menu_item "titi", {text "Titi" 
+frame 10, 10, 50, 50} 
+menu_item "tata", {text "Tata" 
+frame 20, 20, 50, 50} 
 menu "Schtroumph" 
 submenu "Rectangles" 
-submenu "vert" 
+submenu "vert de gris" 
 menu_item "Rectangle1", {color 0, 1, 0, 30% 
 rectangle 500, 0, 100, 50} 
 menu_item "Rectangle2", {color 1, 1, 0, 30% 
@@ -26,4 +31,4 @@ text_fg_color 0, 1, 0
 font_size 30 
 text "Hello the wonderful tao world "& text time 
 frame 0, 0, 500, 500 
-refresh 0.1
+refresh 2 

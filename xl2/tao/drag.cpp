@@ -34,7 +34,8 @@ Drag::Drag(Widget *w)
     : Activity("Drag Activity", w)
 {}
 
-bool Drag::Click(uint button, bool down, int x, int y)
+
+Activity *Drag::Click(uint button, bool down, int x, int y)
 // ----------------------------------------------------------------------------
 //   Initial and final click when dragging an object
 // ----------------------------------------------------------------------------
@@ -48,14 +49,18 @@ bool Drag::Click(uint button, bool down, int x, int y)
         }
         else
         {
+            Activity *next = this->next;
             delete this;
+            return next;
         }
     }
 
-    return true;
+    // Pass it down the chain
+    return next;
 }
 
-bool Drag::MouseMove(int x, int y, bool active)
+
+Activity *Drag::MouseMove(int x, int y, bool active)
 // ----------------------------------------------------------------------------
 //   Save mouse position as it moves
 // ----------------------------------------------------------------------------
@@ -65,15 +70,20 @@ bool Drag::MouseMove(int x, int y, bool active)
         x2 = x;
         y2 = y;
     }
-    return true;
+
+    // Pass it down the chain
+    return next;
 }
-void Drag::Display(void)
+
+
+Activity *Drag::Display(void)
 // ----------------------------------------------------------------------------
 //   Reset delta once per screen refresh
 // ----------------------------------------------------------------------------
 {
     x1 = x2;
     y1 = y2;
+    return next;                // Display following activities
 }
 
 TAO_END

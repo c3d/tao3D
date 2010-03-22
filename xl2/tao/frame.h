@@ -68,12 +68,12 @@ struct Frame : XL::Info
                              double y3);
     void              LineTo(double x,
                              double y);
-    void             Arc(double xCenter,
-                         double yCenter,
-                         double radius,
-                         double angleStart,
-                         double angleStop,
-                         bool isPositive);
+    void              Arc(double xCenter,
+                          double yCenter,
+                          double radius,
+                          double angleStart,
+                          double angleStop,
+                          bool isPositive);
 
     // End of drawing, paint the frame
     void             Paint();

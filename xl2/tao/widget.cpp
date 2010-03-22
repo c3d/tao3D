@@ -722,10 +722,10 @@ void Widget::mousePressEvent(QMouseEvent *event)
 {
     EventSave save(this->event, event);
 
-    uint button = (uint) event->button();
-    int x = event->x();
-    int y = event->y();
-    bool handled = false;
+    QMenu * contextMenu = NULL;
+    uint    button      = (uint) event->button();
+    int     x           = event->x();
+    int     y           = event->y();
 
     // Create a selection if left click and nothing going on right now
     if (!activities && button == Qt::LeftButton)
@@ -736,7 +736,6 @@ void Widget::mousePressEvent(QMouseEvent *event)
 
     if (button ==  Qt::RightButton)
     {
-        QMenu * contextMenu = NULL;
         switch (event->modifiers())
         {
         default :
@@ -768,14 +767,11 @@ void Widget::mousePressEvent(QMouseEvent *event)
         }
 
         if (contextMenu)
-        {
             contextMenu->exec(event->globalPos());
-            handled = true;
-        }
     }
 
     // Pass the event down the event chain
-    if (!handled)
+    if (!contextMenu)
         forwardEvent(event);
 }
 

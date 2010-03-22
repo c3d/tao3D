@@ -185,30 +185,31 @@ public:
     Tree *qtrectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *qttext(Tree *self, double x, double y, text s);
 
-    Tree *KmoveTo(Tree *self, double x, double y);
+    Tree *moveTo(Tree *self, double x, double y, bool isRelative);
     Tree *Ktext(Tree *self, text s);
     Tree *Krectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
-    Tree *Kstroke(Tree *self);
-    Tree *Kclear(Tree *self);
+    Tree *stroke(Tree *self);
+    Tree *clear(Tree *self);
     Tree *KlayoutText(Tree *self, text s);
     Tree *KlayoutMarkup(Tree *self, text s);
-    Tree *KbuildPath(Tree *self, Tree *path, int strokeOrFill);
-    Tree *Karc(Tree *self,
+    Tree *buildPath(Tree *self, Tree *path, int strokeOrFill);
+    Tree *arc(Tree *self,
                double x,
                double y,
                double r,
                double a1,
                double a2,
                bool isPositive);
-    Tree *Kcurve(Tree *self,
+    Tree *curveTo(Tree *self,
                  double x1,
                  double y1,
                  double x2,
                  double y2,
                  double x3,
-                 double y3);
-    Tree *Kline(Tree *self, double x, double y);
-    Tree *KclosePath(Tree *self);
+                 double y3,
+                 bool isRelative);
+    Tree *lineTo(Tree *self, double x, double y, bool isRelative);
+    Tree *closePath(Tree *self);
     Tree *menuItem(Tree *self, text s, Tree *t);
     Tree *menu(Tree *self, text s, bool=false);
 

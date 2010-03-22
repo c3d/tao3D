@@ -179,14 +179,18 @@ PREFIX(QtText, tree, "qttext",
 PREFIX(KRect, tree, "krectangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
        RTAO(Krectangle(self, x, y, w, h)))
-PREFIX(KMove, tree, "kmoveto",
+PREFIX(Move, tree, "moveto",
        PARM(x,real) PARM(y,real),
-       RTAO(KmoveTo(self, x,y)))
+       RTAO(moveTo(self, x, y, false)))
+PREFIX(RelMove, tree, "relmoveto",
+       PARM(x,real) PARM(y,real),
+       RTAO(moveTo(self, x, y, true)))
+
 PREFIX(KText, tree, "ktext",
        PARM(s, text),
        RTAO(Ktext(self, s)))
-PREFIX(KStroke, tree, "kstroke",, RTAO(Kstroke(self)))
-PREFIX(KClear, tree, "kclear",, RTAO(Kclear(self)))
+PREFIX(Stroke, tree, "stroke",, RTAO(stroke(self)))
+PREFIX(Clear, tree, "clear",, RTAO(clear(self)))
 PREFIX(LText, tree, "ltext",
        PARM(s, text),
        RTAO(KlayoutText(self, s)))
@@ -194,26 +198,39 @@ PREFIX(LMarkup, tree, "lmarkup",
        PARM(s, text),
        RTAO(KlayoutMarkup(self, s)))
 
-PREFIX(KPath, tree, "kpath", PARM(t, tree), RTAO(KbuildPath(self, &t, 0x0)))
-PREFIX(KPathStroke, tree, "kpathstroke",
+PREFIX(Path, tree, "path", PARM(t, tree), RTAO(buildPath(self, &t, 0x0)))
+PREFIX(pathStroke, tree, "pathstroke",
        PARM(t, tree),
-       RTAO(KbuildPath(self, &t, 0x1)))
-PREFIX(KPathFill, tree, "kpathfill",
+       RTAO(buildPath(self, &t, 0x1)))
+PREFIX(pathFill, tree, "pathfill",
        PARM(t, tree),
-       RTAO(KbuildPath(self, &t, 0x2)))
-PREFIX(KPathStrokeFill, tree, "kpathstrokefill",
+       RTAO(buildPath(self, &t, 0x2)))
+PREFIX(pathStrokeFill, tree, "pathstrokefill",
        PARM(t, tree),
-       RTAO(KbuildPath(self, &t, 0x3)))
-PREFIX(KArc, tree, "karc",
+       RTAO(buildPath(self, &t, 0x3)))
+PREFIX(Arc, tree, "arc",
        PARM(x, real) PARM(y, real)
        PARM(r, real) PARM(a1, real) PARM(a2, real),
-       RTAO(Karc(self, x, y, r, a1, a2, true)))
-PREFIX(KArcNegative, tree, "karcnegative",
+       RTAO(arc(self, x, y, r, a1, a2, true)))
+PREFIX(ArcNegative, tree, "arcnegative",
        PARM(x, real) PARM(y, real)
        PARM(r, real) PARM(a1, real) PARM(a2, real),
-       RTAO(Karc(self, x, y, r, a1, a2, false)))
-PREFIX(KClosePath, tree, "kclosepath",, RTAO(KclosePath(self)))
-PREFIX(KLine, tree, "kline", PARM(x, real) PARM(y, real), RTAO(Kline(self, x, y)))
+       RTAO(arc(self, x, y, r, a1, a2, false)))
+PREFIX(CurveTo, tree, "curveto",
+       PARM(x1, real) PARM(y1, real)
+       PARM(x2, real) PARM(y2, real)
+       PARM(x3, real) PARM(y3, real),
+       RTAO(curveTo(self, x1, y1, x2, y2, x3, y3, false)))
+PREFIX(RelCurveTo, tree, "relcurveto",
+       PARM(x1, real) PARM(y1, real)
+       PARM(x2, real) PARM(y2, real)
+       PARM(x3, real) PARM(y3, real),
+       RTAO(curveTo(self, x1, y1, x2, y2, x3, y3, true)))
+
+
+PREFIX(ClosePath, tree, "closepath",, RTAO(closePath(self)))
+PREFIX(LineTo, tree, "lineto", PARM(x, real) PARM(y, real), RTAO(lineTo(self, x, y, false)))
+PREFIX(RelLineTo, tree, "rellineto", PARM(x, real) PARM(y, real), RTAO(lineTo(self, x, y, true)))
 
 PREFIX(MenuItem, tree, "menu_item", PARM(s, text) PARM(t, tree),
        RTAO(menuItem(self, s, &t)))

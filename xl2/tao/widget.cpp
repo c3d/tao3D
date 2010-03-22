@@ -1311,6 +1311,7 @@ Tree *Widget::linewidth(Tree *self, double lw)
 // ----------------------------------------------------------------------------
 {
     glLineWidth(lw);
+    frame->LineWidth(lw);
     return XL::xl_true;
 }
 
@@ -2172,12 +2173,12 @@ Tree *Widget::qttext(Tree *self, double x, double y, text s)
 }
 
 
-Tree *Widget::KmoveTo(Tree *self, double x, double y)
+Tree *Widget::moveTo(Tree *self, double x, double y, bool isRelative)
 // ----------------------------------------------------------------------------
 //   Move to the given Cairo coordinates
 // ----------------------------------------------------------------------------
 {
-    frame->MoveTo(x,y);
+    frame->MoveTo(x,y, isRelative);
     return XL::xl_true;
 }
 
@@ -2224,7 +2225,7 @@ Tree *Widget::Krectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 }
 
 
-Tree *Widget::Kstroke(Tree *self)
+Tree *Widget::stroke(Tree *self)
 // ----------------------------------------------------------------------------
 //    Stroke the current path
 // ----------------------------------------------------------------------------
@@ -2234,7 +2235,7 @@ Tree *Widget::Kstroke(Tree *self)
 }
 
 
-Tree *Widget::Kclear(Tree *self)
+Tree *Widget::clear(Tree *self)
 // ----------------------------------------------------------------------------
 //    Clear the current frame
 // ----------------------------------------------------------------------------
@@ -2245,7 +2246,7 @@ Tree *Widget::Kclear(Tree *self)
 
 #define K_STROKE 0x1
 #define K_FILL   0x2
-Tree *Widget::KbuildPath(Tree *self, Tree *path, int strokeOrFill)
+Tree *Widget::buildPath(Tree *self, Tree *path, int strokeOrFill)
 // ----------------------------------------------------------------------------
 //    Build and stroke and / or fill a path
 // ----------------------------------------------------------------------------
@@ -2262,35 +2263,53 @@ Tree *Widget::KbuildPath(Tree *self, Tree *path, int strokeOrFill)
         frame->StrokePreserve();
     if (strokeOrFill & K_FILL)
         frame->FillPreserve();
+
+    ShapeName name(this, frame->bbox());
+  //  name.x(x).y(y).w(w).h(h);
+
     frame->CleanPath();
 
     return XL::xl_true;
 }
-Tree *Widget::Karc(Tree *self,
+
+Tree *Widget::arc(Tree *self,
                    double x,
                    double y,
                    double r,
                    double a1,
                    double a2,
                    bool isPositive)
+// ----------------------------------------------------------------------------
+//    Add an arc to the current path
+// ----------------------------------------------------------------------------
 {
     frame->Arc(x, y, r, a1, a2, isPositive);
     return XL::xl_true;
 }
 
-Tree *Widget::Kcurve(Tree *self,double x1, double y1, double x2, double y2, double x3, double y3)
+Tree *Widget::curveTo(Tree *self,double x1, double y1, double x2, double y2,
+                      double x3, double y3, bool isRelative)
+// ----------------------------------------------------------------------------
+//    Add a curve to the current path
+// ----------------------------------------------------------------------------
 {
-    frame->CurveTo(x1, y1, x2, y2, x3, y3);
+    frame->CurveTo(x1, y1, x2, y2, x3, y3, isRelative);
     return XL::xl_true;
 }
 
-Tree *Widget::Kline(Tree *self,double x, double y)
+Tree *Widget::lineTo(Tree *self,double x, double y, bool isRelative)
+// ----------------------------------------------------------------------------
+//    Add a line to the current path
+// ----------------------------------------------------------------------------
 {
-    frame->LineTo(x, y);
+    frame->LineTo(x, y, isRelative);
     return XL::xl_true;
 }
 
-Tree *Widget::KclosePath(Tree *self)
+Tree *Widget::closePath(Tree *self)
+// ----------------------------------------------------------------------------
+//    Close the current path
+// ----------------------------------------------------------------------------
 {
     frame->ClosePath();
     return XL::xl_true;

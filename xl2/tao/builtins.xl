@@ -119,13 +119,14 @@ boxedges xl,yl,zl,xu,yu,zu ->
             vertex xl, yu, zl
 
 
+
+x..y / t -> x + (y-x) * (1 + sin(time * 2*pi / t)) / 2
+
 selection_background_color ->
-    k -> (1+sin(time*2*pi))*0.05+0.9
-    color k*0.71,k*0.83,k,0.4
+    color 0.7..1 / 1.17, 0.8..1 / 1.21, 0.9..1 / 1.27, 0.4..0.6 / 0.7
 
 selection_outline_color ->
-    k -> (1+sin(time*2*pi))*0.05+0.9
-    color k*0.6,k*0.70,k*0.85,0.6
+    color 0.8..1 / 2.51, 0.3..0.7 / 2.61, 0.2..0.5 / 2.67, 0.8..1 / 1.32
 
 draw_selection x,y,z,w,h,d ->
     r -> 2.0
@@ -156,12 +157,25 @@ draw_3D_selection x,y,z,w,h,d ->
     draw_pyramid_selection x,y,z,w/2,h/2,d*2
 
 draw_widget_selection x,y,w,h ->
+    r -> 7
+    selection_outline_color
     line_width 3
     line_loop
         vertex x-w/2, y-h/2
         vertex x-w/2, y+h/2
         vertex x+w/2, y+h/2
         vertex x+w/2, y-h/2
+    quads
+        vertex x-w/2, y+h/2-r
+        vertex x-w/2, y+h/2
+        vertex x+w/2, y+h/2
+        vertex x+w/2, y+h/2-r
+    selector "size"
+    quads
+        vertex x+w/2-r, y-h/2
+        vertex x+w/2-r, y-h/2+r
+        vertex x+w/2,   y-h/2+r
+        vertex x+w/2,   y-h/2
 
 draw_selection x,y,w,h ->
     selection_background_color

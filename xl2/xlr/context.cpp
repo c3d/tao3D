@@ -2302,6 +2302,11 @@ Tree * CompileAction::Rewrites(Tree *what)
         }
         return Ooops("No rewrite candidate for '$1'", what);
     }
+
+    // Set the symbols for the result
+    if (!what->Exists<SymbolsInfo>())
+        what->Set<SymbolsInfo>(symbols);
+
     return what;
 }
 

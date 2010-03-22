@@ -114,6 +114,7 @@ boxedges xl,yl,zl,xu,yu,zu ->
             vertex xu, yl, zu
             vertex xu, yl, zl
             vertex xl, yl, zu
+            vertex xl, yl, zl
             vertex xl, yu, zu
             vertex xl, yu, zl
 

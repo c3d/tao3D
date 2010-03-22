@@ -1308,16 +1308,105 @@ Tree *Widget::textColor(Tree *self,
 }
 
 
+Tree *Widget::evalInGlMode(GLenum mode, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree (typically, a list of vertexes) in given GL mode
+// ----------------------------------------------------------------------------
+{
+    GLAndWidgetKeeper save(this);
+    glBegin(mode);
+    xl_evaluate(child);
+    glEnd();
+    return XL::xl_true;
+}
+
+
 Tree *Widget::polygon(Tree *self, Tree *child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree within a polygon
 // ----------------------------------------------------------------------------
 {
-    GLAndWidgetKeeper save(this);
-    glBegin(state.polygonMode);
-    xl_evaluate(child);
-    glEnd();
-    return XL::xl_true;
+    return evalInGlMode(state.polygonMode, child);
+}
+
+
+Tree *Widget::points(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_POINTS mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_POINTS, child);
+}
+
+Tree *Widget::lines(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_LINES mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_LINES, child);
+}
+
+
+Tree *Widget::line_strip(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_LINE_STRIP mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_LINE_STRIP, child);
+}
+
+
+Tree *Widget::line_loop(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_LINE_LOOP mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_LINE_LOOP, child);
+}
+
+
+Tree *Widget::triangles(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_TRIANGLES mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_TRIANGLES, child);
+}
+
+
+Tree *Widget::quads(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_QUADS mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_QUADS, child);
+}
+
+
+Tree *Widget::quad_strip(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_QUAD_STRIP mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_QUAD_STRIP, child);
+}
+
+
+Tree *Widget::triangle_fan(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_TRIANGLE_FAN mode
+// ----------------------------------------------------------------------------
+{
+     return evalInGlMode(GL_TRIANGLE_FAN, child);
+}
+
+
+Tree *Widget::triangle_strip(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_TRIANGLE_STRIP mode
+// ----------------------------------------------------------------------------
+{
+     return evalInGlMode(GL_TRIANGLE_STRIP, child);
 }
 
 

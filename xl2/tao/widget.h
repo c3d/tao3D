@@ -137,6 +137,15 @@ public:
     Tree *linewidth(Tree *self, double lw);
 
     Tree *polygon(Tree *self, Tree *t);
+    Tree *points(Tree *self, Tree *t);
+    Tree *lines(Tree *self, Tree *t);
+    Tree *line_strip(Tree *self, Tree *t);
+    Tree *line_loop(Tree *self, Tree *t);
+    Tree *triangles(Tree *self, Tree *t);
+    Tree *triangle_fan(Tree *self, Tree *t);
+    Tree *triangle_strip(Tree *self, Tree *t);
+    Tree *quads(Tree *self, Tree *t);
+    Tree *quad_strip(Tree *self, Tree *t);
     Tree *vertex(Tree *self, double x, double y, double z);
     Tree *sphere(Tree *self,
                  real_r cx, real_r cy, real_r cz, real_r r,
@@ -211,6 +220,7 @@ private:
     void circularSectorN(double cx, double cy, double r,
                 double tx0, double ty0, double tx1, double ty1,
                 int sq, int nq);
+    Tree *evalInGlMode(GLenum mode, Tree *child);
 
 public:
     // XL Runtime

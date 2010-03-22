@@ -53,6 +53,8 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 
+#define Z_NEAR  1000.0
+#define Z_FAR  40000.0
 
 TAO_BEGIN
 
@@ -70,7 +72,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       xlProgram(sf), timer(this), idleTimer(this), currentMenu(NULL),
       frame(NULL), mainFrame(NULL), activities(NULL),
       page_start_time(CurrentTime()),
-      id(0), capacity(0),
+      id(0), capacity(0), selector(0), activeSelector(0),
       event(NULL), focusWidget(NULL),
       whatsNew(""), reloadProgram(false),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
@@ -86,10 +88,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     // Prepare the timers
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
     connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));
-    idleTimer.start(0);
-
-    // Configure the proxies for URLs
-    QNetworkProxyFactory::setUseSystemConfiguration(true);
+    idleTimer.start(100);
 
     // Receive notifications for focus
     connect(qApp, SIGNAL(focusChanged (QWidget *, QWidget *)),
@@ -100,6 +99,10 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     currentMenuBar = parent->menuBar();
     connect(parent->menuBar(),  SIGNAL(triggered(QAction*)),
             this,               SLOT(userMenu(QAction*)));
+
+    // Make sure we have at least a selector name for "move"
+    selectors["move"] = 1;
+    selectorNames.push_back("move");    // Index 1
 }
 
 
@@ -201,6 +204,8 @@ void Widget::refreshProgram()
 
     Repository *repository = TaoApp->library();
     Tree *prog = xlProgram->tree.tree;
+    if (!prog)
+        return;
 
     // Loop on imported files
     import_set iset;
@@ -299,93 +304,6 @@ void Widget::markChanged(text reason)
 }
 
 
-void Widget::requestFocus(QWidget *widget)
-// ----------------------------------------------------------------------------
-//   Some other widget request the focus
-// ----------------------------------------------------------------------------
-{
-    if (!focusWidget)
-    {
-        focusWidget = widget;
-        recordProjection();
-        QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
-        QObject *fin = focusWidget;
-        fin->event(&focusIn);
-    }
-}
-
-
-void Widget::recordProjection()
-// ----------------------------------------------------------------------------
-//   Record the transformation matrix for the current projection
-// ----------------------------------------------------------------------------
-{
-    glGetDoublev(GL_PROJECTION_MATRIX, focusProjection);
-    glGetDoublev(GL_MODELVIEW_MATRIX, focusModel);
-    glGetIntegerv(GL_VIEWPORT, focusViewport);
-}
-
-
-Point3 Widget::unproject (coord x, coord y, coord z)
-// ----------------------------------------------------------------------------
-//   Convert mouse clicks into 3D planar coordinates for the focus object
-// ----------------------------------------------------------------------------
-{
-    // Get 3D coordinates for the near plane based on window coordinates
-    GLdouble x3dn, y3dn, z3dn;
-    gluUnProject(x, y, 0.0,
-                 focusModel, focusProjection, focusViewport,
-                 &x3dn, &y3dn, &z3dn);
-
-    // Same with far-plane 3D coordinates
-    GLdouble x3df, y3df, z3df;
-    gluUnProject(x, y, 1.0,
-                 focusModel, focusProjection, focusViewport,
-                 &x3df, &y3df, &z3df);
-
-    GLfloat zDistance = z3dn - z3df;
-    if (zDistance == 0.0)
-        zDistance = 1.0;
-    GLfloat ratio = (z3dn - z) / zDistance;
-    GLfloat x3d = x3dn + ratio * (x3df - x3dn);
-    GLfloat y3d = y3dn + ratio * (y3df - y3dn);
-
-    return Point3(x3d, y3d, z);
-}
-
-
-Vector3 Widget::dragDelta()
-// ----------------------------------------------------------------------------
-//   Compute the drag delta based on the current Drag object if there is any
-// ----------------------------------------------------------------------------
-{
-    Vector3 result;
-    recordProjection();
-    if (Drag *d = dynamic_cast<Drag *>(activities))
-    {
-        double x1 = d->x1;
-        double y1 = d->y1;
-        double x2 = d->x2;
-        double y2 = d->y2;
-        int hh = height();
-
-        Point3 u1 = unproject(x1, hh-y1, 0);
-        Point3 u2 = unproject(x2, hh-y2, 0);
-        result = u2 - u1;
-
-        // Clamp amplification resulting from reverse projection
-        const double maxAmp = 5.0;
-        double ampX = fabs(result.x) / (fabs(x2-x1) + 0.01);
-        double ampY = fabs(result.y) / (fabs(y2-y1) + 0.01);
-        if (ampX > maxAmp)
-            result *= maxAmp/ampX;
-        if (ampY > maxAmp)
-            result *= maxAmp/ampY;
-    }
-    return result;
-}
-
-
 void Widget::setup(double w, double h, Box *picking)
 // ----------------------------------------------------------------------------
 //   Setup an initial environment for drawing
@@ -410,7 +328,7 @@ void Widget::setup(double w, double h, Box *picking)
     }
 
     // Setup the frustrum for the projection
-    double zNear = 1000.0, zFar = 40000.0;
+    double zNear = Z_NEAR, zFar = Z_FAR;
     double eyeX = 0.0, eyeY = 0.0, eyeZ = 1000.0;
     double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
     double upX = 0.0, upY = 1.0, upZ = 0.0;
@@ -453,6 +371,39 @@ void Widget::setupGL()
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);
+    glGetIntegerv(GL_DEPTH_BITS, &depthBits);
+    switch (depthBits) 
+    {
+        case 32:
+            depthBitsMax = UINT32_MAX;
+            break;
+        default:
+            depthBitsMax = (1u<<depthBits) - 1;
+    }
+}
+
+
+coord Widget::zBuffer(coord z, int pos)
+// ----------------------------------------------------------------------------
+//   Calculate minimal z increment depending on the GL_DEPTH_BITS 
+// ----------------------------------------------------------------------------
+{
+    long b = 2 * pos;
+    return b2z( z2b(z) + b );   
+}
+ 
+double Widget::z2b(coord z)
+{
+    double n = Z_NEAR, f = Z_FAR;
+    double s = double(depthBitsMax);
+    return floor(s * (f - (f * n / z)) / (f - n) + 0.5);
+}
+
+double  Widget::b2z(ulong b)
+{
+    double n = Z_NEAR, f = Z_FAR;
+    double s = double(depthBitsMax);
+    return f * n / ((double(b) / s) * (n - f) + f);
 }
 
 
@@ -468,6 +419,13 @@ void Widget::dawdle()
     Repository *repository     = TaoApp->library();
     XL::Main   *xlr            = XL::MAIN;
     bool        savedSomething = false;
+
+    if (xlProgram && xlProgram->changed)
+    {
+        text txt = *xlProgram->tree.tree;
+        Window *window = (Window *) parentWidget();
+        window->setText(+txt);
+    }
 
     // Check if there's something to save
     ulonglong tick = now();
@@ -492,13 +450,6 @@ void Widget::dawdle()
                     IFTRACE(filesync)
                         std::cerr << "Changed " << fname << "\n";
 
-                    if (&sf == xlProgram)
-                    {
-                        text txt = *sf.tree.tree;
-                        Window *window = (Window *) parentWidget();
-                        window->setText(+txt);
-                    }
-                    
                     // Record time when file was changed
                     struct stat st;
                     stat (fname.c_str(), &st);
@@ -519,8 +470,8 @@ void Widget::dawdle()
         IFTRACE(filesync)
             std::cerr << "Commit: " << whatsNew << "\n";
         if (repository->commit(whatsNew))
-        {            
-            whatsNew = "";            
+        {
+            whatsNew = "";
             nextCommit = tick + xlr->options.commit_interval * 1000;
             savedSomething = false;
         }
@@ -571,7 +522,7 @@ void Widget::runProgram()
 // ----------------------------------------------------------------------------
 {
     // Reset the selection id for the various elements being drawn
-    id = 0;    
+    id = 0;
     focusWidget = NULL;
     state.paintDevice = this;
 
@@ -590,7 +541,7 @@ void Widget::runProgram()
             {
                 if (reloadProgram)
                 {
-                    XL::TreeClone cloneAction;
+                    XL::NormalizedClone cloneAction;
                     Tree *copy = prog->Do(cloneAction);
                     copy->Set<XL::SymbolsInfo>(prog->Get<XL::SymbolsInfo>());
                     xlProgram->tree.tree = copy;
@@ -695,8 +646,10 @@ void Widget::userMenu(QAction *p_action)
         return;
 
     IFTRACE(menus)
-        std::cerr << "User menu " << p_action << "\n";
-
+    {
+        std::cout << "Action " << p_action->objectName().toStdString()
+                << " (" << p_action->text().toStdString() << ") activated\n";
+    }
     QVariant var =  p_action->data();
     if (!var.isValid())
         return;
@@ -737,7 +690,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
-    
+
     // Check if there is an activity that deals with it
     uint key = (uint) event->key();
     for (Activity *a = activities; a; a = a->Key(key, true)) ;
@@ -762,7 +715,6 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
     forwardEvent(event);
 }
 
-
 void Widget::mousePressEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 //   Mouse button click
@@ -773,16 +725,59 @@ void Widget::mousePressEvent(QMouseEvent *event)
     uint button = (uint) event->button();
     int x = event->x();
     int y = event->y();
+    bool handled = false;
 
-    // Create a selection if there is no activity active at the moment
-    if (!activities)
+    // Create a selection if left click and nothing going on right now
+    if (!activities && button == Qt::LeftButton)
         new Selection(this);
 
     // Send the click to all activities
-    for (Activity *a = activities; a; a = a->Click(button, true, x, y)) ;
+    for (Activity *a = activities; a; a = a->Click(button, true, x, y))
+        handled = true;
+
+    if (button ==  Qt::RightButton)
+    {
+        QMenu * contextMenu = NULL;
+        switch (event->modifiers())
+        {
+        default :
+        case Qt::NoModifier :
+            {
+                contextMenu = parent()->findChild<QMenu*>(CONTEXT_MENU);
+                break;
+            }
+        case Qt::ShiftModifier :
+            {
+                contextMenu = parent()->findChild<QMenu*>(SHIFT_CONTEXT_MENU);
+                break;
+            }
+        case Qt::ControlModifier :
+            {
+                contextMenu = parent()->findChild<QMenu*>(CONTROL_CONTEXT_MENU);
+                break;
+            }
+        case Qt::AltModifier :
+            {
+                contextMenu = parent()->findChild<QMenu*>(ALT_CONTEXT_MENU);
+                break;
+            }
+        case Qt::MetaModifier :
+            {
+                contextMenu = parent()->findChild<QMenu*>(META_CONTEXT_MENU);
+                break;
+            }
+        }
+
+        if (contextMenu)
+        {
+            contextMenu->exec(event->globalPos());
+            handled = true;
+        }
+    }
 
     // Pass the event down the event chain
-    forwardEvent(event);
+    if (!handled)
+        forwardEvent(event);
 }
 
 
@@ -1059,6 +1054,40 @@ XL::Name *Widget::selectable(Tree *self, bool new_selectable)
 }
 
 
+XL::Name *Widget::selectorName(Tree *self, Text &name)
+// ----------------------------------------------------------------------------
+//   Assign the selector name
+// ----------------------------------------------------------------------------
+{
+    if (!selector)
+    {
+        if (Tree *o = Ooops("Selector '$1' used outside of selection", &name))
+            if (Name *n = o->AsName())
+                return n;
+        return XL::xl_false;
+    }
+
+    GLuint selectorId;
+    if (selectors.count(name.value) == 0)
+    {
+        // Already identified, return existing selector ID
+        selectorId = selectors[name.value];
+    }
+    else
+    {
+        // First time we see it, return a new selector ID
+        selectorId = selectors.size();
+        selectors[name.value] = selectorId;
+        selectorNames.push_back(name.value);
+    }
+
+    // Load selector name on the OpenGL selection stack
+    glLoadName(selectorId);
+
+    return XL::xl_true;
+}
+
+
 GLuint Widget::shapeId()
 // ----------------------------------------------------------------------------
 //   Return an identifier for the shape in selections
@@ -1066,19 +1095,9 @@ GLuint Widget::shapeId()
 //   We assign an identifier only if we are selectable and if we are not
 //   rendering in an off-screen buffer of some sort
 {
-    return state.selectable && state.paintDevice == this
+    return state.selectable && state.paintDevice == this && !selector
         ? ++id
         : 0;
-}
-
-
-void Widget::select()
-// ----------------------------------------------------------------------------
-//    Select the current shape if we are in selectable state
-// ----------------------------------------------------------------------------
-{
-    if (state.selectable && state.paintDevice == this)
-        selection.insert(id);
 }
 
 
@@ -1093,90 +1112,160 @@ bool Widget::selected()
 }
 
 
-Activity *Widget::newDragActivity()
+void Widget::select()
 // ----------------------------------------------------------------------------
-//   Return a new drag activity, depending on current mode
+//    Select the current shape if we are in selectable state
 // ----------------------------------------------------------------------------
 {
-    // For now, we only support regular drag
-    return new Drag(this);
+    if (state.selectable && state.paintDevice == this && !selector)
+        selection.insert(id);
 }
 
 
-void Widget::drawSelection(const Box3 &bounds)
+void Widget::requestFocus(QWidget *widget)
+// ----------------------------------------------------------------------------
+//   Some other widget request the focus
+// ----------------------------------------------------------------------------
+{
+    if (!focusWidget)
+    {
+        focusWidget = widget;
+        recordProjection();
+        QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
+        QObject *fin = focusWidget;
+        fin->event(&focusIn);
+    }
+}
+
+
+void Widget::recordProjection()
+// ----------------------------------------------------------------------------
+//   Record the transformation matrix for the current projection
+// ----------------------------------------------------------------------------
+{
+    glGetDoublev(GL_PROJECTION_MATRIX, focusProjection);
+    glGetDoublev(GL_MODELVIEW_MATRIX, focusModel);
+    glGetIntegerv(GL_VIEWPORT, focusViewport);
+}
+
+
+Point3 Widget::unproject (coord x, coord y, coord z)
+// ----------------------------------------------------------------------------
+//   Convert mouse clicks into 3D planar coordinates for the focus object
+// ----------------------------------------------------------------------------
+{
+    // Get 3D coordinates for the near plane based on window coordinates
+    GLdouble x3dn, y3dn, z3dn;
+    gluUnProject(x, y, 0.0,
+                 focusModel, focusProjection, focusViewport,
+                 &x3dn, &y3dn, &z3dn);
+
+    // Same with far-plane 3D coordinates
+    GLdouble x3df, y3df, z3df;
+    gluUnProject(x, y, 1.0,
+                 focusModel, focusProjection, focusViewport,
+                 &x3df, &y3df, &z3df);
+
+    GLfloat zDistance = z3dn - z3df;
+    if (zDistance == 0.0)
+        zDistance = 1.0;
+    GLfloat ratio = (z3dn - z) / zDistance;
+    GLfloat x3d = x3dn + ratio * (x3df - x3dn);
+    GLfloat y3d = y3dn + ratio * (y3df - y3dn);
+
+    return Point3(x3d, y3d, z);
+}
+
+
+Vector3 Widget::dragDelta()
+// ----------------------------------------------------------------------------
+//   Compute the drag delta based on the current Drag object if there is any
+// ----------------------------------------------------------------------------
+{
+    Vector3 result;
+    recordProjection();
+    if (Drag *d = dynamic_cast<Drag *>(activities))
+    {
+        double x1 = d->x1;
+        double y1 = d->y1;
+        double x2 = d->x2;
+        double y2 = d->y2;
+        int hh = height();
+
+        Point3 u1 = unproject(x1, hh-y1, 0);
+        Point3 u2 = unproject(x2, hh-y2, 0);
+        result = u2 - u1;
+
+        // Clamp amplification resulting from reverse projection
+        const double maxAmp = 5.0;
+        double ampX = fabs(result.x) / (fabs(x2-x1) + 0.01);
+        double ampY = fabs(result.y) / (fabs(y2-y1) + 0.01);
+        if (ampX > maxAmp)
+            result *= maxAmp/ampX;
+        if (ampY > maxAmp)
+            result *= maxAmp/ampY;
+    }
+    return result;
+}
+
+
+text Widget::dragSelector()
+// ----------------------------------------------------------------------------
+//   Return the name of the drag selector if there's any, or "move" otherwise
+// ----------------------------------------------------------------------------
+{
+    if (activeSelector)
+    {
+        assert (activeSelector <= selectorNames.size());
+        return selectorNames[activeSelector - 1];
+    }
+    return "move";
+}
+
+
+void Widget::drawSelection(const Box3 &bnds, text selName)
 // ----------------------------------------------------------------------------
 //    Draw a 2D or 3D selection with the given coordinates
 // ----------------------------------------------------------------------------
 {
-    if (bounds.Width() < 0 || bounds.Height() < 0)
-        return;
+    // Symbols where we will find the selection code
+    XL::Symbols *symbols = XL::Symbols::symbols;
+    if (xlProgram)
+        symbols = xlProgram->symbols;
 
+    Box3 bounds(bnds);
+    bounds.Normalize();
+
+    coord w = bounds.Width();
+    coord h = bounds.Height();
+    coord d = bounds.Depth();
+    Point3 c  = bounds.Center();
+
+    XL::LocalSave<bool>   save_selectable(state.selectable, false);
+    XL::LocalSave<GLuint> save_selector(selector, selectors["move"]);
+
+    glPushName(selector);
     if (bounds.Depth() > 0)
     {
-        // Use 3D selection
-        coord w = bounds.Width();
-        coord h = bounds.Height();
-        coord d = bounds.Depth();
-
-        GLAttribKeeper save(GL_TEXTURE_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT);
-
-        Point3 c  = bounds.Center();
-        coord  xc = c.x;
-        coord  yc = c.y;
-        coord  zc = c.z;
-
-        // Compute the box around the item
-        coord r = w;
-        if (r > h) r = h;
-        if (r > d) r = d;
-        r /= 4;
-        if (r < 15.0)
-            r = 15.0;
-
-        coord xl = bounds.lower.x - r;
-        coord xu = bounds.upper.x + r;
-        coord yl = bounds.lower.y - r;
-        coord yu = bounds.upper.y + r;
-        coord zl = bounds.lower.z - r;
-        coord zu = bounds.upper.z + r;
+        GLAttribKeeper save;
+        XL::LocalSave<GLuint> save_mode(state.polygonMode, GL_TRIANGLE_FAN);
 
         setupGL();
         glDisable(GL_DEPTH_TEST);
 
-        glBegin(GL_TRIANGLE_FAN);
-        glColor4f(1.0, 1.0, 1.0, 0.1);    glVertex3f(xc, yc, zu);
-        glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
-        glColor4f(0.0, 0.0, 1.0, 0.4);    glVertex3f(xl, yu, zc);
-        glColor4f(0.0, 1.0, 1.0, 0.4);    glVertex3f(xu, yu, zc);
-        glColor4f(1.0, 1.0, 0.0, 0.4);    glVertex3f(xu, yl, zc);
-        glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
-        glEnd();
-
-        glBegin(GL_TRIANGLE_FAN);
-        glColor4f(0.0, 0.0, 0.0, 0.4);    glVertex3f(xc, yc, zl);
-        glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
-        glColor4f(0.0, 0.0, 1.0, 0.4);    glVertex3f(xl, yu, zc);
-        glColor4f(0.0, 1.0, 1.0, 0.4);    glVertex3f(xu, yu, zc);
-        glColor4f(1.0, 1.0, 0.0, 0.4);    glVertex3f(xu, yl, zc);
-        glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
-        glEnd();
+        (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
     }
     else
     {
-        // 2D drawing: Just draw a rectangle around the shape
         GLAttribKeeper save(GL_CURRENT_BIT | GL_LINE_BIT);
-        double z = (bounds.lower.z + bounds.upper.z) / 2;
+        XL::LocalSave<GLuint> save1(state.polygonMode, GL_LINE_LOOP);
+        XL::LocalSave<bool>   save2(state.selectable, false);
         glLineWidth (3.0);
         glColor4f(1.0, 0.0, 0.0, 0.5);
-        glBegin(GL_LINE_LOOP);
-        {
-            glVertex3f(bounds.lower.x, bounds.lower.y, z);
-            glVertex3f(bounds.lower.x, bounds.upper.y, z);
-            glVertex3f(bounds.upper.x, bounds.upper.y, z);
-            glVertex3f(bounds.upper.x, bounds.lower.y, z);
-        }
-        glEnd();
+        glDisable(GL_DEPTH_TEST);
+        (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (symbols);
     }
+    glPopName();
 }
 
 
@@ -1188,10 +1277,13 @@ void Widget::loadName(bool load)
     if (!load)
         depth += state.depthDelta;
 
-    if (state.selectable && load)
-        glLoadName(shapeId());
-    else
-        glLoadName(0);
+    if (!selector)
+    {
+        if (state.selectable && load)
+            glLoadName(shapeId());
+        else
+            glLoadName(0);
+    }
 }
 
 
@@ -1201,6 +1293,15 @@ Box3 Widget::bbox(coord x, coord y, coord w, coord h)
 // ----------------------------------------------------------------------------
 {
     return Box3(x-w/2, y-h/2, -(w+h)/4, w, h, (w+h)/2);
+}
+
+
+Box3 Widget::bbox(coord x, coord y, coord z, coord w, coord h, coord d)
+// ----------------------------------------------------------------------------
+//   Return a selection bounding box
+// ----------------------------------------------------------------------------
+{
+    return Box3(x-w/2, y-h/2, z-d/2, w, h, d);
 }
 
 
@@ -1271,16 +1372,105 @@ Tree *Widget::textColor(Tree *self,
 }
 
 
+Tree *Widget::evalInGlMode(GLenum mode, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree (typically, a list of vertexes) in given GL mode
+// ----------------------------------------------------------------------------
+{
+    GLAndWidgetKeeper save(this);
+    glBegin(mode);
+    xl_evaluate(child);
+    glEnd();
+    return XL::xl_true;
+}
+
+
 Tree *Widget::polygon(Tree *self, Tree *child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree within a polygon
 // ----------------------------------------------------------------------------
 {
-    GLAndWidgetKeeper save(this);
-    glBegin(state.polygonMode);
-    xl_evaluate(child);
-    glEnd();
-    return XL::xl_true;
+    return evalInGlMode(state.polygonMode, child);
+}
+
+
+Tree *Widget::points(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_POINTS mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_POINTS, child);
+}
+
+Tree *Widget::lines(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_LINES mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_LINES, child);
+}
+
+
+Tree *Widget::line_strip(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_LINE_STRIP mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_LINE_STRIP, child);
+}
+
+
+Tree *Widget::line_loop(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_LINE_LOOP mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_LINE_LOOP, child);
+}
+
+
+Tree *Widget::triangles(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_TRIANGLES mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_TRIANGLES, child);
+}
+
+
+Tree *Widget::quads(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_QUADS mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_QUADS, child);
+}
+
+
+Tree *Widget::quad_strip(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_QUAD_STRIP mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_QUAD_STRIP, child);
+}
+
+
+Tree *Widget::triangle_fan(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_TRIANGLE_FAN mode
+// ----------------------------------------------------------------------------
+{
+     return evalInGlMode(GL_TRIANGLE_FAN, child);
+}
+
+
+Tree *Widget::triangle_strip(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_TRIANGLE_STRIP mode
+// ----------------------------------------------------------------------------
+{
+     return evalInGlMode(GL_TRIANGLE_STRIP, child);
 }
 
 
@@ -1358,9 +1548,8 @@ Tree *Widget::sphere(Tree *self,
 //     GL sphere
 // ----------------------------------------------------------------------------
 {
-    Box3 bounds(x-r, y-r, z-r, 2*r, 2*r, 2*r);
-    ShapeName name(this, bounds);
-    name.x(x).y(y).z(z).w(r).h(r).d(r);
+    ShapeName name(this, bbox(x,y,z, 2*r,2*r,2*r), "selection_3D");
+    name.x(x).y(y).w(r).h(r).y(z, "depth");
 
     GLUquadric *q = gluNewQuadric();
     gluQuadricTexture (q, true);
@@ -1983,7 +2172,7 @@ Tree *Widget::urlPaint(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, Box3(x, y, 0, w, h, 0));
+    ShapeName name(this, bbox(x, y, 0, w, h, 0));
     name.x(x).y(y).w(w).h(h);
     urlTexture(self, w, h, url, progress);
 
@@ -2033,7 +2222,7 @@ Tree *Widget::lineEdit(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, Box3(x, y, 0, w, h, 0));
+    ShapeName name(this, bbox(x,y,0,w,h,0));
     name.x(x).y(y).w(w).h(h);
 
     lineEditTexture(self, w, h, txt);
@@ -2162,32 +2351,88 @@ Tree *Widget::Kclear(Tree *self)
     return XL::xl_true;
 }
 
+#define K_STROKE 0x1
+#define K_FILL   0x2
+Tree *Widget::KbuildPath(Tree *self, Tree *path, int strokeOrFill)
+// ----------------------------------------------------------------------------
+//    Build and stroke and / or fill a path
+// ----------------------------------------------------------------------------
+{
+    if (! path) return XL::xl_false;
 
+    GLAttribKeeper save;
+
+    frame->CleanPath();
+
+    xl_evaluate(path);
+
+    if (strokeOrFill & K_STROKE)
+        frame->StrokePreserve();
+    if (strokeOrFill & K_FILL)
+        frame->FillPreserve();
+    frame->CleanPath();
+
+    return XL::xl_true;
+}
+Tree *Widget::Karc(Tree *self,
+                   double x,
+                   double y,
+                   double r,
+                   double a1,
+                   double a2,
+                   bool isPositive)
+{
+    frame->Arc(x, y, r, a1, a2, isPositive);
+    return XL::xl_true;
+}
+
+Tree *Widget::Kcurve(Tree *self,double x1, double y1, double x2, double y2, double x3, double y3)
+{
+    frame->CurveTo(x1, y1, x2, y2, x3, y3);
+    return XL::xl_true;
+}
+
+Tree *Widget::Kline(Tree *self,double x, double y)
+{
+    frame->LineTo(x, y);
+    return XL::xl_true;
+}
+
+Tree *Widget::KclosePath(Tree *self)
+{
+    frame->ClosePath();
+    return XL::xl_true;
+}
 
 // ============================================================================
 //
 //   Menu management
 //
 // ============================================================================
+// * Menu name philosophy :
+// * The full name is used to register menus and menu items against the menubar.
+//   Those names are not displayed.
+// * Menu created by the XL programmer must be differentiated from the originals
+//   ones because they have to be recreated or modified at each loop of XL.
+//   When top menus are deleted they recursively delete their children (sub
+//   menus and menu items), so we have to take care of sub menu at deletion
+//   time. Regarding those constraints, main menus are prefixed with _TOP_MENU_,
+//   sub menus are prefixed by _SUB_MENU_. Then each menu item and sub menu are
+//   prefixed by the "current menu" name (this current menu may itself be a
+//   submenu). Each part of the name are separated by a /.
+//
+// * Menu and menu items lifecycle :
+//   Menus are created when the xl program is executed the first time.
+//   Menus display text can be modified at each execution.
+//   Menus are destroyed when the xl program is invalidated.
+//   At save time, the old xl program is invalidated and the new one is executed
+//      for the first time.
+// ============================================================================
 
 Tree *Widget::menuItem(Tree *self, text s, Tree *t)
 // ----------------------------------------------------------------------------
 //   Create a menu item
 // ----------------------------------------------------------------------------
-/* Menu name philosophy :
- * The full name is used to register menus and menu items against the menubar.
-   Those names are not displayed.
- * Menu created by the XL programmer must be differentiated from the originals
-   ones because they have to be recreated or modified at each loop of XL.
-   When top menus are deleted they recursively delete their children (sub
-   menus and menu items), so we have to take care of sub menu at deletion time.
-   Regarding those constraints, main menus are prefixed with _TOP_MENU_, sub
-   menus are prefexed by _SUB_MENU_. Then each menu item and sub menu are
-   prefixed by the "current menu" name (this current menu may itself be a
-   submenu). Each part of the name are separated by a /.
- */
-#define TOPMENU "_TOP_MENU_"
-#define SUBMENU "_SUB_MENU_"
 {
     if (!currentMenu)
         return XL::xl_false;
@@ -2196,12 +2441,15 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
                       "/" +
                       QString::fromStdString(s);
 
-    if (currentMenuBar->findChild<QAction*>(fullName))
+    if (parent()->findChild<QAction*>(fullName))
     {
         IFTRACE(menus)
+        {
             std::cout<< "MenuItem " << s
                      << " found in current MenuBar with fullname "
                      << fullName.toStdString() << "\n";
+            std::cout.flush();
+        }
         return XL::xl_true;
     }
 
@@ -2217,9 +2465,12 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
     {
         // The name of the menuItem has changed.
         IFTRACE(menus)
+        {
             std::cout << "menuInfo found, old name is "
                       << menuInfo->fullName << " new name is "
                       << fullName.toStdString() << "\n";
+            std::cout.flush();
+        }
         menuInfo->action->setText(QString::fromStdString(s));
         menuInfo->action->setObjectName(fullName);
         menuInfo->action->setData(var);
@@ -2231,8 +2482,12 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
     self->SetInfo<MenuInfo> (menuInfo);
 
     IFTRACE(menus)
+    {
         std::cout << "menuItem creation with name "
                   << fullName.toStdString() << "\n";
+        std::cout.flush();
+    }
+
     QAction * p_action = currentMenu->addAction(QString::fromStdString(s));
     menuInfo->action = p_action;
     p_action->setData(var);
@@ -2243,36 +2498,45 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
 
 Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 // ----------------------------------------------------------------------------
-// Add the menu to the current menu bar
+// Add the menu to the current menu bar or create the contextual menu
 // ----------------------------------------------------------------------------
 {
-    // Build the full name of the menu from the current menu name,
-    // the given string and the isSubmenu.
-    QString fullname;
+    bool isContextMenu = false;
+
+    //---------------------------------
+    // Build the full name of the menu
+    //---------------------------------
+    // Uses the current menu name, the given string and the isSubmenu.
+    QString fullname = QString::fromStdString(s);
     if (isSubMenu && currentMenu)
     {
-        QString prefix = currentMenu->objectName();
-        prefix.replace(TOPMENU, SUBMENU);
-        fullname = prefix + '/' + QString::fromStdString(s);
+        fullname.prepend(currentMenu->objectName() +'/');
+        fullname.replace(TOPMENU, SUBMENU);
 
+    }
+    else if (fullname.startsWith(CONTEXT_MENU))
+    {
+        isContextMenu = true;
     }
     else
     {
-        fullname = TOPMENU + QString::fromStdString(s);
+        fullname.prepend( TOPMENU );
     }
 
     // Get or build the current Menu if we don't have one
     MenuInfo *menuInfo = self->GetInfo<MenuInfo>();
 
 
-    // If the menu already exists, no need to recreate it.
+    //---------------------------------------------------
+    // If the menu is registered, no need to recreate it.
+    //---------------------------------------------------
     // This is used at reload time, recreate the MenuInfo if required.
-    if (QMenu *tmp = currentMenuBar->findChild<QMenu*>(fullname))
+    if (QMenu *tmp = parent()->findChild<QMenu*>(fullname))
     {
         currentMenu = tmp;
         if (!menuInfo)
         {
-            menuInfo = new MenuInfo(currentMenuBar,
+            menuInfo = new MenuInfo(isContextMenu ? NULL : currentMenuBar,
                                     currentMenu,
                                     fullname.toStdString());
             self->SetInfo<MenuInfo> (menuInfo);
@@ -2282,10 +2546,14 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
         return XL::xl_true;
     }
 
+    //-------------------------------
+    // The menu is not yet registered.
+    //-------------------------------
     // The name may have change but not the content
     // (in the loop of the XL program execution).
     if (menuInfo)
     {
+        // The menu exists : update its info
         currentMenu = menuInfo->menu;
         menuInfo->action->setText(QString::fromStdString(s));
         menuInfo->menu->setObjectName(fullname);
@@ -2293,20 +2561,26 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
         return XL::xl_true;
     }
 
-    if (isSubMenu)
+    //----------------------------------------
+    // The menu is not existing. Creating it.
+    //----------------------------------------
+    if (isContextMenu)
+    {
+        currentMenu = new QMenu((Window*)parent());
+        connect(currentMenu, SIGNAL(triggered(QAction*)),
+                this,        SLOT(userMenu(QAction*)));
+
+    }
+    else if (isSubMenu)
         currentMenu = currentMenu->addMenu(QString::fromStdString(s));
     else
         currentMenu = currentMenuBar->addMenu(QString::fromStdString(s));
 
     currentMenu->setObjectName(fullname);
 
-    IFTRACE(menus)
-        std::cout << currentMenu->title().toStdString()
-                  << " menu found, "
-                  << currentMenuBar->children().size()
-                  << " children in menu bar "
-                  << currentMenuBar->objectName().toStdString() << "\n";
-    menuInfo = new MenuInfo(currentMenuBar,currentMenu, fullname.toStdString());
+    menuInfo = new MenuInfo(isContextMenu ? NULL : currentMenuBar,
+                            currentMenu,
+                            fullname.toStdString());
     self->SetInfo<MenuInfo> (menuInfo);
     menuInfo->action = currentMenu->menuAction();
 
@@ -2316,9 +2590,9 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 
 
 // ============================================================================
-// 
+//
 //    Tree selection management
-// 
+//
 // ============================================================================
 
 XL::Name *Widget::insert(Tree *self, Tree *toInsert)
@@ -2337,7 +2611,5 @@ XL::Name *Widget::deleteSelection(Tree *self)
 {
     return XL::xl_true;
 }
-
-
 
 TAO_END

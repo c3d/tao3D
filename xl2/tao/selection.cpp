@@ -147,7 +147,8 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
     // [2]: Maximum depth
     // [3..3+[0]-1]: List of names
     int hits = glRenderMode(GL_RENDER);
-    uint selected = 0;
+    GLuint selected = 0;
+    GLuint selector = 0;
     if (hits > 0)
     {
         GLuint depth = ~0U;
@@ -157,6 +158,8 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
             uint size = ptr[0];
             if (ptr[3] && ptr[1] < depth)
                 selected = ptr[3];
+            if (size > 1)
+                selector = ptr[4];
             ptr += 3 + size;
         }
         if (selected)
@@ -168,12 +171,13 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
     // If this is the first click, then update selection
     if (firstClick)
     {
-        if (shiftModifier)
+        if (shiftModifier || widget->selection.count(selected))
             widget->savedSelection = widget->selection;
         else
             widget->savedSelection.clear();
         widget->selectionTrees.clear();
         widget->selection = widget->savedSelection;
+        widget->activeSelector = selector;
         if (selected)
             widget->selection.insert(selected);
     }
@@ -187,7 +191,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
         Widget *widget = this->widget; // Save before 'delete this'
         delete this;
         if (selected)
-            return widget->newDragActivity();
+            return new Drag(widget);
     }
 
     return NULL;                // We dealt with the event
@@ -228,7 +232,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     // [3..3+[0]-1]: List of names
     widget->selection = widget->savedSelection;
     int hits = glRenderMode(GL_RENDER);
-    uint selected = 0;
+    GLuint selected = 0;
     if (hits > 0)
     {
         GLuint *ptr = buffer;

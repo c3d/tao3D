@@ -1257,7 +1257,7 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
     }
     else
     {
-        GLAttribKeeper save(GL_CURRENT_BIT | GL_LINE_BIT);
+        GLAttribKeeper save;
         XL::LocalSave<GLuint> save1(state.polygonMode, GL_LINE_LOOP);
         XL::LocalSave<bool>   save2(state.selectable, false);
         glLineWidth (3.0);

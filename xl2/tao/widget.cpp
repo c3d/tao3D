@@ -732,8 +732,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
         new Selection(this);
 
     // Send the click to all activities
-    for (Activity *a = activities; a; a = a->Click(button, true, x, y))
-        handled = true;
+    for (Activity *a = activities; a; a = a->Click(button, true, x, y)) ;
 
     if (button ==  Qt::RightButton)
     {

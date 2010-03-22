@@ -613,7 +613,7 @@ template<> inline Tree *TreeCloneTemplate<ShallowCopyCloneMode>::Clone(Tree *t)
 }
 
 
-template<> inline Tree *TreeCloneTemplate<NodeOnlyCloneMode>::Clone(Tree *t)
+template<> inline Tree *TreeCloneTemplate<NodeOnlyCloneMode>::Clone(Tree *)
 // ----------------------------------------------------------------------------
 //   Specialization for the node-only clone
 // ----------------------------------------------------------------------------

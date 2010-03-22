@@ -234,7 +234,7 @@ struct Context : Symbols
         Symbols(NULL),
         errors(err),                            // Global error list
         compiler(comp),                         // Tree compilation
-        active(), roots(), active_symbols(),    // Garbage collection
+        active(), active_symbols(), roots(),    // Garbage collection
         gc_threshold(200) {}                    // When do we collect?
     ~Context();
 

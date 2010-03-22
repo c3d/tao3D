@@ -86,7 +86,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     // Prepare the timers
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
     connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));
-    idleTimer.start(0);
+    idleTimer.start(100);
 
     // Receive notifications for focus
     connect(qApp, SIGNAL(focusChanged (QWidget *, QWidget *)),

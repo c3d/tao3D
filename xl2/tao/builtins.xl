@@ -74,21 +74,56 @@ regular_octagram t -> regular_star_polygon t, 8, 3
 regular_nonagram t -> regular_star_polygon t, 9, 3
 regular_decagram t -> regular_star_polygon t, 10, 3
 
+box xl,yl,zl,xu,yu,zu ->
+        quad_strip
+            vertex xl, yu, zu
+            vertex xu, yu, zu
+            vertex xl, yl, zu
+            vertex xu, yl, zu
+            vertex xl, yl, zl
+            vertex xu, yl, zl
+            vertex xl, yu, zl
+            vertex xu, yu, zl
+            vertex xl, yu, zu
+            vertex xu, yu, zu
+        quad_strip
+            vertex xu, yu, zu
+            vertex xu, yu, zl
+            vertex xu, yl, zu
+            vertex xu, yl, zl
+        quad_strip
+            vertex xl, yl, zu
+            vertex xl, yl, zl
+            vertex xl, yu, zu
+            vertex xl, yu, zl
+
+boxedges xl,yl,zl,xu,yu,zu ->
+        line_loop
+            vertex xl, yu, zu
+            vertex xu, yu, zu
+            vertex xu, yl, zu
+            vertex xl, yl, zu
+        line_loop
+            vertex xu, yu, zl
+            vertex xl, yu, zl
+            vertex xl, yl, zl
+            vertex xu, yl, zl
+        lines
+            vertex xu, yu, zu
+            vertex xu, yu, zl
+            vertex xu, yl, zu
+            vertex xu, yl, zl
+            vertex xl, yl, zu
+            vertex xl, yu, zu
+            vertex xl, yu, zl
+
 draw_selection x,y,z,w,h,d ->
-    polygon
-        color 1.0, 1.0, 1.0, 0.1; vertex x,   y,   z+d/2
-        color 1.0, 0.0, 0.0, 0.4; vertex x-w/2, y-h/2, z
-        color 0.0, 0.0, 1.0, 0.4; vertex x-w/2, y+h/2, z
-        color 0.0, 1.0, 1.0, 0.4; vertex x+w/2, y+h/2, z
-        color 1.0, 1.0, 0.0, 0.4; vertex x+w/2, y-h/2, z
-        color 1.0, 0.0, 0.0, 0.4; vertex x-w/2, y-h/2, z
-    polygon
-        color 0.0, 0.0, 0.0, 0.4; vertex x,   y,   z-d/2;
-        color 1.0, 0.0, 0.0, 0.4; vertex x-w/2, y-h/2, z;
-        color 0.0, 0.0, 1.0, 0.4; vertex x-w/2, y+h/2, z;
-        color 0.0, 1.0, 1.0, 0.4; vertex x+w/2, y+h/2, z;
-        color 1.0, 1.0, 0.0, 0.4; vertex x+w/2, y-h/2, z;
-        color 1.0, 0.0, 0.0, 0.4; vertex x-w/2, y-h/2, z;
+    r -> 2.0
+    k -> (1+sin(time*2*pi))*0.05+0.9
+    color k*0.71,k*0.83,k,0.6
+    box x-w/2-r, y-h/2-r, z-d/2-r, x+w/2+r, y+h/2+r, z+d/2+r
+    color k*0.6,k*0.70,k*0.85,0.6
+    boxedges x-w/2-r, y-h/2-r, z-d/2-r, x+w/2+r, y+h/2+r, z+d/2+r
 
 draw_selection x,y,w,h ->
     line_width 20

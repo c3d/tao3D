@@ -60,6 +60,7 @@ public:
     virtual bool        rename(text from, text to)      = 0;
     virtual bool        commit(text msg,bool all=false) = 0;
     virtual bool        merge(text branch)              = 0;
+    virtual bool        reset()                         = 0;
 
     static Repository * repository(const QString &path);
 

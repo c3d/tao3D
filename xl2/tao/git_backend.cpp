@@ -184,4 +184,14 @@ bool GitRepository::merge(text branch)
     return cmd.done(&errors);
 }
 
+
+bool GitRepository::reset()
+// ----------------------------------------------------------------------------
+//   Reset a branch to normal state
+// ----------------------------------------------------------------------------
+{
+    Process cmd(command(), QStringList("reset") << "--hard", path);
+    return cmd.done(&errors);
+}
+
 TAO_END

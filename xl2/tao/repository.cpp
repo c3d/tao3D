@@ -117,14 +117,18 @@ bool Repository::setTask(text name)
     if (!checkout(task))
         if (!branch(task) || !checkout(task))
             return false;
-    if (!merge(undo))
-        return false;
 
     // Check if we can checkout the undo branch
     if (!checkout(undo))
         if (!branch(undo)||!checkout(undo))
             return false;
-    if (!merge(task))
+
+    // Merge the undo branch into the task branch
+    if (!checkout(task) || !merge(undo))
+        return false;
+
+    // Merge the task branch into the undo branch, stay on undo
+    if (!checkout(undo) || !merge(task))
         return false;
 
     // We are now on the _undo branch

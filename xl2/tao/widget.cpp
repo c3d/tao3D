@@ -53,6 +53,8 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 
+#define Z_NEAR  1000.0
+#define Z_FAR  40000.0
 
 TAO_BEGIN
 
@@ -326,7 +328,7 @@ void Widget::setup(double w, double h, Box *picking)
     }
 
     // Setup the frustrum for the projection
-    double zNear = 1000.0, zFar = 40000.0;
+    double zNear = Z_NEAR, zFar = Z_FAR;
     double eyeX = 0.0, eyeY = 0.0, eyeZ = 1000.0;
     double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
     double upX = 0.0, upY = 1.0, upZ = 0.0;
@@ -369,6 +371,39 @@ void Widget::setupGL()
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);
+    glGetIntegerv(GL_DEPTH_BITS, &depthBits);
+    switch (depthBits) 
+    {
+        case 32:
+            depthBitsMax = UINT32_MAX;
+            break;
+        default:
+            depthBitsMax = (1u<<depthBits) - 1;
+    }
+}
+
+
+coord Widget::zBuffer(coord z, int pos)
+// ----------------------------------------------------------------------------
+//   Calculate minimal z increment depending on the GL_DEPTH_BITS 
+// ----------------------------------------------------------------------------
+{
+    long b = 2 * pos;
+    return b2z( z2b(z) + b );   
+}
+ 
+double Widget::z2b(coord z)
+{
+    double n = Z_NEAR, f = Z_FAR;
+    double s = double(depthBitsMax);
+    return floor(s * (f - (f * n / z)) / (f - n) + 0.5);
+}
+
+double  Widget::b2z(ulong b)
+{
+    double n = Z_NEAR, f = Z_FAR;
+    double s = double(depthBitsMax);
+    return f * n / ((double(b) / s) * (n - f) + f);
 }
 
 
@@ -1337,16 +1372,105 @@ Tree *Widget::textColor(Tree *self,
 }
 
 
+Tree *Widget::evalInGlMode(GLenum mode, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree (typically, a list of vertexes) in given GL mode
+// ----------------------------------------------------------------------------
+{
+    GLAndWidgetKeeper save(this);
+    glBegin(mode);
+    xl_evaluate(child);
+    glEnd();
+    return XL::xl_true;
+}
+
+
 Tree *Widget::polygon(Tree *self, Tree *child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree within a polygon
 // ----------------------------------------------------------------------------
 {
-    GLAndWidgetKeeper save(this);
-    glBegin(state.polygonMode);
-    xl_evaluate(child);
-    glEnd();
-    return XL::xl_true;
+    return evalInGlMode(state.polygonMode, child);
+}
+
+
+Tree *Widget::points(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_POINTS mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_POINTS, child);
+}
+
+Tree *Widget::lines(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_LINES mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_LINES, child);
+}
+
+
+Tree *Widget::line_strip(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_LINE_STRIP mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_LINE_STRIP, child);
+}
+
+
+Tree *Widget::line_loop(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_LINE_LOOP mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_LINE_LOOP, child);
+}
+
+
+Tree *Widget::triangles(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_TRIANGLES mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_TRIANGLES, child);
+}
+
+
+Tree *Widget::quads(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_QUADS mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_QUADS, child);
+}
+
+
+Tree *Widget::quad_strip(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_QUAD_STRIP mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_QUAD_STRIP, child);
+}
+
+
+Tree *Widget::triangle_fan(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_TRIANGLE_FAN mode
+// ----------------------------------------------------------------------------
+{
+     return evalInGlMode(GL_TRIANGLE_FAN, child);
+}
+
+
+Tree *Widget::triangle_strip(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_TRIANGLE_STRIP mode
+// ----------------------------------------------------------------------------
+{
+     return evalInGlMode(GL_TRIANGLE_STRIP, child);
 }
 
 

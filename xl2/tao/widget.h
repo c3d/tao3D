@@ -75,6 +75,9 @@ public:
     void        paintGL();
     void        setup(double w, double h, Box *picking = NULL);
     void        setupGL();
+    coord       zBuffer(coord z, int pos);
+    coord       bringForward(coord z) { return zBuffer(z,1); }
+    coord       sendBackward(coord z) { return zBuffer(z,-1); }
     void        updateProgram(XL::SourceFile *sf);
     void        refreshProgram();
     void        markChanged(text reason);
@@ -92,6 +95,10 @@ public:
     void        loadName(bool load);
     Box3        bbox(coord x, coord y, coord w, coord h);
     Box3        bbox(coord x, coord y, coord z, coord w, coord h, coord d);
+
+private:
+    double      z2b(coord z);
+    double      b2z(ulong b);
 
 public slots:
     void        dawdle();
@@ -141,6 +148,15 @@ public:
     Tree *linewidth(Tree *self, double lw);
 
     Tree *polygon(Tree *self, Tree *t);
+    Tree *points(Tree *self, Tree *t);
+    Tree *lines(Tree *self, Tree *t);
+    Tree *line_strip(Tree *self, Tree *t);
+    Tree *line_loop(Tree *self, Tree *t);
+    Tree *triangles(Tree *self, Tree *t);
+    Tree *triangle_fan(Tree *self, Tree *t);
+    Tree *triangle_strip(Tree *self, Tree *t);
+    Tree *quads(Tree *self, Tree *t);
+    Tree *quad_strip(Tree *self, Tree *t);
     Tree *vertex(Tree *self, double x, double y, double z);
     Tree *sphere(Tree *self,
                  real_r cx, real_r cy, real_r cz, real_r r,
@@ -227,6 +243,7 @@ private:
     void circularSectorN(double cx, double cy, double r,
                 double tx0, double ty0, double tx1, double ty1,
                 int sq, int nq);
+    Tree *evalInGlMode(GLenum mode, Tree *child);
 
 public:
     // XL Runtime
@@ -246,6 +263,8 @@ public:
     std::vector<text>     selectorNames;
     QEvent *              event;
     GLdouble              depth;
+    GLint                 depthBits;
+    ulong                 depthBitsMax;
     QWidget *             focusWidget;
     GLdouble              focusProjection[16], focusModel[16];
     GLint                 focusViewport[4];

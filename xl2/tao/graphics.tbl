@@ -73,6 +73,15 @@ PREFIX(Hollow, tree, "hollow", , RTAO(hollow(self)))
 PREFIX(LineWidth, tree, "line_width", PARM(lw, real), RTAO(linewidth(self, lw)))
 
 PREFIX(Polygon, tree, "polygon", PARM(t, tree), RTAO(polygon(self, &t)))
+PREFIX(Points, tree, "points", PARM(t, tree), RTAO(points(self, &t)))
+PREFIX(Lines, tree, "lines", PARM(t, tree), RTAO(lines(self, &t)))
+PREFIX(LineStrip, tree, "line_strip", PARM(t, tree), RTAO(line_strip(self, &t)))
+PREFIX(LineLoop, tree, "line_loop", PARM(t, tree), RTAO(line_loop(self, &t)))
+PREFIX(Triangles, tree, "triangles", PARM(t, tree), RTAO(line_loop(self, &t)))
+PREFIX(TriangleStrip, tree, "triangle_strip", PARM(t, tree), RTAO(triangle_strip(self, &t)))
+PREFIX(TriangleFan, tree, "triangle_fan", PARM(t, tree), RTAO(triangle_fan(self, &t)))
+PREFIX(Quads, tree, "quads", PARM(t, tree), RTAO(quads(self, &t)))
+PREFIX(QuadStrip, tree, "quad_strip", PARM(t, tree), RTAO(quad_strip(self, &t)))
 
 PREFIX(Vertex3, tree, "vertex",
        PARM(x, real) PARM(y, real) PARM(z, real), RTAO(vertex(self, x, y, z)))

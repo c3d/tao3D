@@ -86,7 +86,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     // Prepare the timers
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
     connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));
-    idleTimer.start(0);
+    idleTimer.start(100);
 
     // Receive notifications for focus
     connect(qApp, SIGNAL(focusChanged (QWidget *, QWidget *)),
@@ -1153,9 +1153,8 @@ void Widget::drawSelection(const Box3 &bnds)
 {
     // Symbols where we will find the selection code
     XL::Symbols *symbols = XL::Symbols::symbols;
-    if (0)
-        if (xlProgram)
-            symbols = xlProgram->symbols;
+    if (xlProgram)
+        symbols = xlProgram->symbols;
 
     Box3 bounds(bnds);
     bounds.Normalize();

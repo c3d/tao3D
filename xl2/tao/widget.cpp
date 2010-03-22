@@ -1211,7 +1211,7 @@ Vector3 Widget::dragDelta()
 
 text Widget::dragSelector()
 // ----------------------------------------------------------------------------
-//   Return the name of the drag selector if there's any, or "move" otherwise
+//   Return the name of the drag selector if there's any, or "none" otherwise
 // ----------------------------------------------------------------------------
 {
     if (activeSelector)
@@ -1219,7 +1219,7 @@ text Widget::dragSelector()
         assert (activeSelector <= selectorNames.size());
         return selectorNames[activeSelector - 1];
     }
-    return "move";
+    return "none";
 }
 
 

@@ -68,7 +68,7 @@ public:
     void        mouseMoveEvent(QMouseEvent *);
     void        timerEvent(QTimerEvent *);
     void        wheelEvent(QWheelEvent *);
-    
+
 public:
     void        initializeGL();
     void        resizeGL(int width, int height);
@@ -201,7 +201,23 @@ public:
     Tree *Kclear(Tree *self);
     Tree *KlayoutText(Tree *self, text s);
     Tree *KlayoutMarkup(Tree *self, text s);
-
+    Tree *KbuildPath(Tree *self, Tree *path, int strokeOrFill);
+    Tree *Karc(Tree *self,
+               double x,
+               double y,
+               double r,
+               double a1,
+               double a2,
+               bool isPositive);
+    Tree *Kcurve(Tree *self,
+                 double x1,
+                 double y1,
+                 double x2,
+                 double y2,
+                 double x3,
+                 double y3);
+    Tree *Kline(Tree *self, double x, double y);
+    Tree *KclosePath(Tree *self);
     Tree *menuItem(Tree *self, text s, Tree *t);
     Tree *menu(Tree *self, text s, bool=false);
 
@@ -272,22 +288,22 @@ public:
 
 
 // ============================================================================
-// 
+//
 //    Simple utility functions
-// 
+//
 // ============================================================================
 
 inline void glShowErrors()
 // ----------------------------------------------------------------------------
 //   Display pending GL errors
 // ----------------------------------------------------------------------------
-{                
-    GLenum err = glGetError();                                         
+{
+    GLenum err = glGetError();
     while (err != GL_NO_ERROR)
     {
         std::cerr << "GL Error: " << (char *) gluErrorString(err) << "\n";
-        err = glGetError();                                     
-    }                                                               
+        err = glGetError();
+    }
 }
 
 
@@ -311,15 +327,16 @@ inline double CurrentTime()
 {
     QTime t = QTime::currentTime();
     double d = (3600.0	 * t.hour()
-		+ 60.0	 * t.minute()
-		+	   t.second()
-		+  0.001 * t.msec());
+                + 60.0	 * t.minute()
+                +	   t.second()
+                +  0.001 * t.msec());
     return d;
 }
 
 #undef TAO // From the command line
 #define TAO(x)  (Tao::Widget::Tao() ? Tao::Widget::Tao()->x : 0)
 #define RTAO(x) return TAO(x)
+
 
 } // namespace Tao
 

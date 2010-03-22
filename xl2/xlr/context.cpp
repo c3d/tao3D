@@ -611,6 +611,45 @@ Tree *Symbols::ErrorHandler()
 }
 
 
+bool Symbols::Mark(GCAction &gc)
+// ----------------------------------------------------------------------------
+//    Mark all elements in a symbol table that we must keep around
+// ----------------------------------------------------------------------------
+{
+    // Don't do this twice, it's expensive
+    typedef std::pair<symbols_set::iterator, bool> inserted;
+    inserted result = gc.alive_symbols.insert(this);
+    if (result.second)
+    {
+        // Mark all the trees we reference
+        for (symbol_iter y = names.begin(); y != names.end(); y++)
+            if (Tree *named = (*y).second)
+                named->Do(gc);
+        for (symbol_iter call = calls.begin(); call != calls.end(); call++)
+            if (Tree *named = (*call).second)
+                named->Do(gc);
+        for (value_iter tt = type_tests.begin(); tt != type_tests.end(); tt++)
+            if (Tree *typecheck = (*tt).second)
+                typecheck->Do(gc);
+        if (rewrites)
+            rewrites->Do(gc);
+
+        // Mark all imported symbol tables
+        symbols_set::iterator is;
+        for (is = imported.begin(); is != imported.end(); is++)
+        {
+            Symbols *syms = *is;
+            syms->Mark(gc);
+        }
+
+        // Mark parent if it exists
+        if (parent)
+            parent->Mark(gc);
+    }
+    return result.second;
+}
+
+
 
 // ============================================================================
 //
@@ -645,6 +684,7 @@ Tree **Context::AddGlobal(Tree *value)
 }
 
 
+
 void Context::CollectGarbage ()
 // ----------------------------------------------------------------------------
 //   Mark all active trees
@@ -658,22 +698,17 @@ void Context::CollectGarbage ()
         IFTRACE(memory)
             std::cerr << "Garbage collecting...";
 
-        // Mark roots, names, rewrites and stack
+        // Mark roots
         for (root_set::iterator a = roots.begin(); a != roots.end(); a++)
             if ((*a)->tree)
                 (*a)->tree->Do(gc);
-        for (symbol_iter y = names.begin(); y != names.end(); y++)
-            if (Tree *named = (*y).second)
-                named->Do(gc);
-        for (symbol_iter call = calls.begin(); call != calls.end(); call++)
-            if (Tree *named = (*call).second)
-                named->Do(gc);
-        for (value_iter tt = type_tests.begin(); tt != type_tests.end(); tt++)
-            if (Tree *typecheck = (*tt).second)
-                typecheck->Do(gc);
-        if (rewrites)
-            rewrites->Do(gc);
 
+        // Mark root symbol tables
+        Symbols::Mark(gc);
+        if (Symbols::symbols && Symbols::symbols != this)
+            Symbols::symbols->Mark(gc);
+
+        // Mark renderer formats
         formats_table::iterator f;
         formats_table &formats = Renderer::renderer->formats;
         for (f = formats.begin(); f != formats.end(); f++)
@@ -701,27 +736,8 @@ void Context::CollectGarbage ()
             }
         }
 
-        // Mark all imported symbol tables
-        symbols_set::iterator as, is;
-        bool more_symbols = true;
-        while (more_symbols)
-        {
-            more_symbols = false;
-            for (as=gc.alive_symbols.begin(); as!=gc.alive_symbols.end(); as++)
-            {
-                Symbols *s = *as;
-                for (is = s->imported.begin(); is != s->imported.end(); is++)
-                {
-                    if (!gc.alive_symbols.count(*is))
-                    {
-                        gc.alive_symbols.insert(*is);
-                        more_symbols = true;
-                    }
-                }
-            }
-        }
-
         // Same with the symbol tables
+        symbols_set::iterator as;
         for (as = active_symbols.begin(); as != active_symbols.end(); as++)
             if (!gc.alive_symbols.count(*as))
                 delete *as;
@@ -2286,6 +2302,11 @@ Tree * CompileAction::Rewrites(Tree *what)
         }
         return Ooops("No rewrite candidate for '$1'", what);
     }
+
+    // Set the symbols for the result
+    if (!what->Exists<SymbolsInfo>())
+        what->Set<SymbolsInfo>(symbols);
+
     return what;
 }
 

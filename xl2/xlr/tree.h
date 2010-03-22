@@ -613,7 +613,7 @@ template<> inline Tree *TreeCloneTemplate<ShallowCopyCloneMode>::Clone(Tree *t)
 }
 
 
-template<> inline Tree *TreeCloneTemplate<NodeOnlyCloneMode>::Clone(Tree *t)
+template<> inline Tree *TreeCloneTemplate<NodeOnlyCloneMode>::Clone(Tree *)
 // ----------------------------------------------------------------------------
 //   Specialization for the node-only clone
 // ----------------------------------------------------------------------------
@@ -642,6 +642,7 @@ enum CopyMode
     CM_RECURSIVE = 1,    // Copy child nodes (as long as their kind match)
     CM_NODE_ONLY         // Copy only one node
 };
+
 
 template <CopyMode mode> struct TreeCopyTemplate : Action
 // ----------------------------------------------------------------------------
@@ -783,6 +784,7 @@ template <CopyMode mode> struct TreeCopyTemplate : Action
     }
     Tree *dest;
 };
+
 
 
 // ============================================================================
@@ -929,6 +931,8 @@ template <TreeMatchMode mode> struct TreeMatchTemplate : Action
 };
 
 typedef struct TreeMatchTemplate<TM_RECURSIVE> TreeMatch;
+
+
 
 // ============================================================================
 //

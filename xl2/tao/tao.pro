@@ -23,8 +23,7 @@ QT += webkit \
     svg
 
 # CONFIG += release
-CONFIG += warn_off \
-    debug \
+CONFIG += debug \
     console
 
 # Tell the XLR portion that we are building for Tao

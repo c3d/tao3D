@@ -643,6 +643,7 @@ enum CopyMode
     CM_NODE_ONLY         // Copy only one node
 };
 
+
 template <CopyMode mode> struct TreeCopyTemplate : Action
 // ----------------------------------------------------------------------------
 //   Copy a tree into another tree. Node values are copied, infos are not.
@@ -783,6 +784,7 @@ template <CopyMode mode> struct TreeCopyTemplate : Action
     }
     Tree *dest;
 };
+
 
 
 // ============================================================================
@@ -929,6 +931,8 @@ template <TreeMatchMode mode> struct TreeMatchTemplate : Action
 };
 
 typedef struct TreeMatchTemplate<TM_RECURSIVE> TreeMatch;
+
+
 
 // ============================================================================
 //

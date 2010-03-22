@@ -75,8 +75,6 @@ public:
     void        paintGL();
     void        setup(double w, double h, Box *picking = NULL);
     void        setupGL();
-    Point3      unproject (coord x, coord y, coord z = 0.0);
-    Vector3     dragDelta();
     void        updateProgram(XL::SourceFile *sf);
     void        refreshProgram();
     void        markChanged(text reason);
@@ -85,10 +83,15 @@ public:
     GLuint      shapeId();
     bool        selected();
     void        select();
-    Activity *  newDragActivity();
-    void        drawSelection(const Box3 &bounds);
+    void        requestFocus(QWidget *widget);
+    void        recordProjection();
+    Point3      unproject (coord x, coord y, coord z = 0.0);
+    Vector3     dragDelta();
+    text        dragSelector();
+    void        drawSelection(const Box3 &bounds, text selector);
     void        loadName(bool load);
     Box3        bbox(coord x, coord y, coord w, coord h);
+    Box3        bbox(coord x, coord y, coord z, coord w, coord h, coord d);
 
 public slots:
     void        dawdle();
@@ -129,6 +132,7 @@ public:
     Tree *time(Tree *self);
     Tree *page_time(Tree *self);
     Name *selectable(Tree *self, bool selectable);
+    Name *selectorName(Tree *self, Text &name);
 
     Tree *color(Tree *self, double r, double g, double b, double a);
     Tree *textColor(Tree *self, double r,double g,double b,double a, bool fg);
@@ -215,10 +219,6 @@ public:
     Name *insert(Tree *self, Tree *toInsert);
     Name *deleteSelection(Tree *self);
 
-    // Focus management
-    void              requestFocus(QWidget *widget);
-    void              recordProjection();
-
 private:
     void widgetVertex(double x, double y, double tx, double ty);
     void circularVertex(double cx, double cy, double r,
@@ -239,9 +239,11 @@ public:
     Frame *               mainFrame;
     Activity *            activities;
     double                page_start_time;
-    GLuint                id, capacity;
+    GLuint                id, capacity, selector, activeSelector;
     std::set<GLuint>      selection, savedSelection;
     std::set<XL::Tree *>  selectionTrees;
+    std::map<text, uint>  selectors;
+    std::vector<text>     selectorNames;
     QEvent *              event;
     GLdouble              depth;
     QWidget *             focusWidget;

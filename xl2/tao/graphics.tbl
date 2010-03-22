@@ -59,6 +59,8 @@ PREFIX(DaySeconds, tree, "time", , RTAO(time(self)))
 PREFIX(PageSeconds, tree, "page_time", , RTAO(page_time(self)))
 PREFIX(Selectable, boolean, "selectable",, RTAO(selectable(self, true)))
 PREFIX(NotSelectable, boolean, "not_selectable",, RTAO(selectable(self, false)))
+PREFIX(Selector, tree, "selector", PARM(n, text),
+       RTAO(selectorName(self, n)))
 
 PREFIX(ColorRGBA, tree, "color",
        PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),

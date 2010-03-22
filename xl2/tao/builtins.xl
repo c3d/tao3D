@@ -89,6 +89,14 @@ draw_selection x,y,z,w,h,d ->
         color 0.0, 1.0, 1.0, 0.4; vertex x+w/2, y+h/2, z;
         color 1.0, 1.0, 0.0, 0.4; vertex x+w/2, y-h/2, z;
         color 1.0, 0.0, 0.0, 0.4; vertex x-w/2, y-h/2, z;
+    selector "size"
+    color 1,0.5+20*sin(25*time),1,50% + 30%*sin(time)
+    sphere x, y, z, (w+h)/20
+
+draw_selection_3D x,y,z,w,h,d ->
+    draw_selection x,y,z,w,h,d
+    selector "depth"
+    regular_decagram x, y, (w+h)/5
 
 draw_selection x,y,w,h ->
     line_width 20

@@ -32,11 +32,11 @@ TAO_BEGIN
 // 
 // ============================================================================
 
-ShapeName::ShapeName(Widget *w, Box3 box)
+ShapeName::ShapeName(Widget *w, Box3 box, text selector)
 // ----------------------------------------------------------------------------
 //   Record the GL name for a given tree
 // ----------------------------------------------------------------------------
-    : widget(w), box(box), xp(0), yp(0), zp(0), wp(0), hp(0), dp(0)
+    : widget(w), box(box), selector(selector), xp(), yp()
 {
     widget->loadName(true);
 }
@@ -51,29 +51,17 @@ ShapeName::~ShapeName()
     if (widget->selected())
     {
         Vector3 v = widget->dragDelta();
-
-        uint modifiers = qApp->keyboardModifiers();
-        bool resize = modifiers & Qt::ShiftModifier;
-        bool zaxis = modifiers & Qt::AltModifier;
-        tree_p yzp = zaxis ? zp : yp;
-        tree_p hdp = zaxis ? dp : hp;
+        text selName = widget->dragSelector();
+        tree_p x = xp.count(selName) ? xp[selName] : NULL;
+        tree_p y = yp.count(selName) ? yp[selName] : NULL;
 
         v.z = 0;
-        if (resize)
-        {
-            if (wp)     updateArg(wp,  v.x);
-            if (hdp)    updateArg(hdp, v.y);
-            if (v.x != 0 || v.y != 0.0)
-                widget->markChanged("Resized shape");
-        }
-        else
-        {
-            if (xp)     updateArg(xp,  v.x);
-            if (yzp)    updateArg(yzp, v.y);
-            if (v.x != 0 || v.y != 0.0)
-                widget->markChanged("Moved shape");
-        }
-        widget->drawSelection(box);
+        if (x)  updateArg(x,  v.x);
+        if (y)  updateArg(y,  v.y);
+        if ((x || y) && (v.x != 0 || v.y != 0))
+            widget->markChanged("Shape " + selName);
+
+        widget->drawSelection(box, selector);
     }
 }
 

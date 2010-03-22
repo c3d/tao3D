@@ -75,6 +75,9 @@ public:
     void        paintGL();
     void        setup(double w, double h, Box *picking = NULL);
     void        setupGL();
+    coord       zBuffer(coord z, int pos);
+    coord       bringForward(coord z) { return zBuffer(z,1); }
+    coord       sendBackward(coord z) { return zBuffer(z,-1); }
     Point3      unproject (coord x, coord y, coord z = 0.0);
     void        updateProgram(XL::SourceFile *sf);
     void        refreshProgram();
@@ -87,6 +90,10 @@ public:
     void        drawSelection(const Box3 &bounds);
     void        loadName(bool load);
     Box3        bbox(coord x, coord y, coord w, coord h);
+
+private:
+    double      z2b(coord z);
+    double      b2z(ulong b);
 
 public slots:
     void        dawdle();
@@ -226,6 +233,8 @@ public:
     std::set<XL::Tree *>  selectionTrees;
     QEvent *              event;
     GLdouble              depth;
+    GLint                 depthBits;
+    ulong                 depthBitsMax;
     QWidget *             focusWidget;
     GLdouble              focusProjection[16], focusModel[16];
     GLint                 focusViewport[4];

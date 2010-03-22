@@ -437,11 +437,13 @@ void Window::updateProgram(const QString &fileName)
     QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
     text fn = canonicalFilePath.toStdString();
     XL::SourceFile *sf = &xlRuntime->files[fn];
+
+    // Clean menus and reload XL program
+    resetTaoMenus(sf->tree.tree);
+
     if (!sf->tree.tree)
         xlRuntime->LoadFile(fn);
 
-    // Clean menus and reload XL program
-    resetTaoMenus();
     taoWidget->updateProgram(sf);
     taoWidget->updateGL();
 }
@@ -476,24 +478,55 @@ bool Window::saveFile(const QString &fileName)
 
     return true;
 }
-void Window::resetTaoMenus()
+
+void Window::resetTaoMenus(XL::Tree * a_tree)
+// ----------------------------------------------------------------------------
+//   Clean added menus (from menu bar and contextual menus)
+// ----------------------------------------------------------------------------
 {
-    // Clean menus
-    if (taoWidget->xlProgram)
+    // Removes top menu from the menu bar
+    QRegExp reg("^"+ QString(TOPMENU) +".*", Qt::CaseSensitive);
+    QList<QMenu *> menu_list = menuBar()->findChildren<QMenu *>(reg);
+    QList<QMenu *>::iterator it;
+    for(it = menu_list.begin(); it!=menu_list.end(); ++it)
     {
-        QRegExp reg("^_TOP_MENU_.*", Qt::CaseSensitive);
-        QList<QMenu *> menu_list = menuBar()->findChildren<QMenu *>(reg);
-        QList<QMenu *>::iterator it;
-        for(it = menu_list.begin(); it!=menu_list.end(); ++it)
+        QMenu *menu = *it;
+        IFTRACE(menus)
         {
-            QMenu *menu = *it;
             std::cout << menu->objectName().toStdString()
                     << " removed from menu bar \n";
-            menuBar()->removeAction(menu->menuAction());
-            delete menu;
+            std::cout.flush();
         }
-        taoWidget->currentMenu = NULL;
-        taoWidget->currentMenuBar = this->menuBar();
+
+        menuBar()->removeAction(menu->menuAction());
+        delete menu;
+    }
+
+    // Reset currentMenu and currentMenuBar
+    taoWidget->currentMenu = NULL;
+    taoWidget->currentMenuBar = this->menuBar();
+
+    // Removes contextual menus
+    reg.setPattern("^"+QString(CONTEXT_MENU)+".*");
+    menu_list = taoWidget->findChildren<QMenu *>(reg);
+    for(it = menu_list.begin(); it!=menu_list.end(); ++it)
+    {
+        QMenu *menu = *it;
+        IFTRACE(menus)
+        {
+            std::cout << menu->objectName().toStdString()
+                    << " Contextual menu removed\n";
+            std::cout.flush();
+        }
+        delete menu;
+    }
+
+    if (a_tree)
+    {
+        // Clean MenuInfo from tree
+        CleanMenuInfo cmi;
+        XL::BreadthFirstSearch bfs(cmi);
+        a_tree->Do(bfs);
     }
 
 }

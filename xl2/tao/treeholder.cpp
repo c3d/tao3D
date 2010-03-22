@@ -19,7 +19,6 @@ TreeHolder::TreeHolder(const TreeHolder& other)
 
 TreeHolder::~TreeHolder()
 {
-    tree = NULL;
 }
 
 TAO_END

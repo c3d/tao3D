@@ -1,0 +1,16 @@
+kpathstroke
+   color 1,0,1
+   krectangle 0, 0, 50, 70
+
+kpathfill
+   color 0,0,1
+   krectangle 100, 100, 50, 10
+
+kpathstroke
+   color 0,1,1
+   karc 0, 0, 50, 0, 1.6
+   karc -100, -100, 20, 1.0, 3.5
+   kline 20, -50
+   kclosepath
+
+  

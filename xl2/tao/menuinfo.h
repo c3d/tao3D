@@ -50,6 +50,12 @@ public:
 
 };
 
+struct CleanMenuInfo : XL::SimpleAction
+{
+    XL::Tree * Do(XL::Tree *what);
+
+};
+
 TAO_END
 
 #endif // MENUINFO_H

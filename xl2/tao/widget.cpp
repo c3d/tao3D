@@ -496,6 +496,9 @@ void Widget::draw()
     ulonglong t = now();
     event = NULL;
 
+    // Need to setup initial context for the activities
+    XL::LocalSave<Frame *> saveFrame (frame, mainFrame);
+
     // Setup the initial drawing environment
     double w = width(), h = height();
     setup(w, h);
@@ -1243,11 +1246,8 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
     if (bounds.Depth() > 0)
     {
         GLAttribKeeper save;
-        XL::LocalSave<GLuint> save_mode(state.polygonMode, GL_TRIANGLE_FAN);
-
         setupGL();
         glDisable(GL_DEPTH_TEST);
-
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
     }
     else

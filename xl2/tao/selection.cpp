@@ -43,7 +43,7 @@ Activity *Selection::Display(void)
 //   Display the selection rectangle
 // ----------------------------------------------------------------------------
 {
-    glPushMatrix();
+    GLStateKeeper save;
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -51,33 +51,11 @@ Activity *Selection::Display(void)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    widget->setupGL();
-
-    ulong tick = widget->now();
     Box b = rectangle;
     b.Normalize();
-
-    glColor4f(0.4 * sin(tick / 1.9e6) + 0.6,
-              0.4 * sin(tick / 1.4e6) + 0.6,
-              0.4 * sin(tick / 0.5e6) + 0.6,
-              0.3);
-
-    glBegin(GL_QUADS);
-    glVertex2f (b.lower.x, b.lower.y);
-    glVertex2f (b.upper.x, b.lower.y);
-    glVertex2f (b.upper.x, b.upper.y);
-    glVertex2f (b.lower.x, b.upper.y);
-    glEnd();
-
-    glColor4f(1.0, 0.4, 0.4, 0.9);
-    glBegin(GL_LINE_LOOP);
-    glVertex2f (b.lower.x, b.lower.y);
-    glVertex2f (b.lower.x, b.upper.y);
-    glVertex2f (b.upper.x, b.upper.y);
-    glVertex2f (b.upper.x, b.lower.y);
-    glEnd();
-
-    glPopMatrix();
+    Box3 b3 (b.lower.x, b.lower.y, 0, b.Width(), b.Height(), 0);
+    widget->setupGL();
+    widget->drawSelection(b3, "selection_rectangle");
 
     return next;
 }

@@ -117,15 +117,23 @@ boxedges xl,yl,zl,xu,yu,zu ->
             vertex xl, yu, zu
             vertex xl, yu, zl
 
-draw_selection x,y,z,w,h,d ->
-    r -> 2.0
+
+selection_background_color ->
     k -> (1+sin(time*2*pi))*0.05+0.9
     color k*0.71,k*0.83,k,0.4
-    box x-w/2-r, y-h/2-r, z-d/2-r, x+w/2+r, y+h/2+r, z+d/2+r
+
+selection_outline_color ->
+    k -> (1+sin(time*2*pi))*0.05+0.9
     color k*0.6,k*0.70,k*0.85,0.6
+
+draw_selection x,y,z,w,h,d ->
+    r -> 2.0
+    selection_background_color
+    box x-w/2-r, y-h/2-r, z-d/2-r, x+w/2+r, y+h/2+r, z+d/2+r
+    selection_outline_color
     boxedges x-w/2-r, y-h/2-r, z-d/2-r, x+w/2+r, y+h/2+r, z+d/2+r
 
-draw_selection_pyramid x,y,z,w,h,d ->
+draw_pyramid_selection x,y,z,w,h,d ->
     polygon
         color 1.0, 1.0, 1.0, 0.1; vertex x,   y,   z+d/2
         color 1.0, 0.0, 0.0, 0.4; vertex x-w/2, y-h/2, z
@@ -141,16 +149,25 @@ draw_selection_pyramid x,y,z,w,h,d ->
         color 1.0, 1.0, 0.0, 0.4; vertex x+w/2, y-h/2, z;
         color 1.0, 0.0, 0.0, 0.4; vertex x-w/2, y-h/2, z;
 
-draw_selection_3D x,y,z,w,h,d ->
+draw_3D_selection x,y,z,w,h,d ->
     draw_selection x,y,z,w,h,d
     selector "depth"
-    regular_decagram x, y, (w+h)/5
+    draw_pyramid_selection x,y,z,w/2,h/2,d*2
 
-draw_selection x,y,w,h ->
-    line_width 20
-    color 0.5+0.5*sin(time), 0.5+0.5*sin(2.5*time), 0.5+0.5*sin(13.17*time), 0.75+0.25*sin(0.3*time)
-    polygon
+draw_widget_selection x,y,w,h ->
+    line_width 3
+    line_loop
         vertex x-w/2, y-h/2
         vertex x-w/2, y+h/2
         vertex x+w/2, y+h/2
         vertex x+w/2, y-h/2
+
+draw_selection x,y,w,h ->
+    selection_background_color
+    quads
+        vertex x-w/2, y-h/2
+        vertex x-w/2, y+h/2
+        vertex x+w/2, y+h/2
+        vertex x+w/2, y-h/2
+    selection_outline_color
+    draw_widget_selection x,y,w,h

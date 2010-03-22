@@ -1289,16 +1289,16 @@ void Widget::loadName(bool load)
 
 Box3 Widget::bbox(coord x, coord y, coord w, coord h)
 // ----------------------------------------------------------------------------
-//   Return a selection bounding box
+//   Return a selection bounding box for a flat shape
 // ----------------------------------------------------------------------------
 {
-    return Box3(x-w/2, y-h/2, -(w+h)/4, w, h, (w+h)/2);
+    return Box3(x-w/2, y-h/2, 0, w, h, 0);
 }
 
 
 Box3 Widget::bbox(coord x, coord y, coord z, coord w, coord h, coord d)
 // ----------------------------------------------------------------------------
-//   Return a selection bounding box
+//   Return a selection bounding box for a 3D shape
 // ----------------------------------------------------------------------------
 {
     return Box3(x-w/2, y-h/2, z-d/2, w, h, d);
@@ -1548,7 +1548,7 @@ Tree *Widget::sphere(Tree *self,
 //     GL sphere
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, bbox(x,y,z, 2*r,2*r,2*r), "selection_3D");
+    ShapeName name(this, bbox(x,y,z, 2*r,2*r,2*r), "3D_selection");
     name.x(x).y(y).w(r).h(r).y(z, "depth");
 
     GLUquadric *q = gluNewQuadric();
@@ -2172,7 +2172,7 @@ Tree *Widget::urlPaint(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, bbox(x, y, 0, w, h, 0));
+    ShapeName name(this, bbox(x, y, 0, w, h, 0), "widget_selection");
     name.x(x).y(y).w(w).h(h);
     urlTexture(self, w, h, url, progress);
 
@@ -2222,7 +2222,7 @@ Tree *Widget::lineEdit(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, bbox(x,y,0,w,h,0));
+    ShapeName name(this, bbox(x,y,0,w,h,0), "widget_selection");
     name.x(x).y(y).w(w).h(h);
 
     lineEditTexture(self, w, h, txt);

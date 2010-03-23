@@ -90,8 +90,6 @@ Application::Application(int & argc, char ** argv)
                                     " Performance may not be optimal."
                                     " Consider updating the OpenGL drivers."));
     }
-
-
 }
 
 
@@ -130,6 +128,8 @@ bool Application::openLibrary(QString path, bool confirm)
             ok = false;
         }
         path = QDir::cleanPath(path);
+        if (path == userDocumentLibraryPath())
+            confirm = false;
 
         if (!ok)
             path = QInputDialog::getText(NULL, tr("Welcome to Tao!"),

@@ -44,6 +44,10 @@ PREFIX(Scale, tree, "scale",
        PARM(x, real) PARM(y, real) PARM(z, real),
        RTAO(scale(self, x, y, z)))
 
+PREFIX(EnableDepthTest, boolean, "enable_depth_test",,
+       RTAO(depthTest(self, true)))
+PREFIX(DisableDepthTest, boolean, "disable_depth_test",,
+       RTAO(depthTest(self, false)))
 PREFIX(Locally, tree, "locally", PARM(t, tree), RTAO(locally(self, &t)))
 PREFIX(PageSize, tree, "page_size", PARM(w, integer) PARM(h, integer),
        RTAO(pagesize(self, w,h)))

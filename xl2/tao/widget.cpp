@@ -909,6 +909,21 @@ Tree *Widget::depthDelta(Tree *self, double dx)
 }
 
 
+XL::Name *Widget::depthTest(XL::Tree *self, bool enable)
+// ----------------------------------------------------------------------------
+//   Change the delta we use for the depth
+// ----------------------------------------------------------------------------
+{
+    GLboolean old;
+    glGetBooleanv(GL_DEPTH_TEST, &old);
+    if (enable)
+        glEnable(GL_DEPTH_TEST);
+    else
+        glDisable(GL_DEPTH_TEST);
+    return old ? XL::xl_true : XL::xl_false;
+}
+
+
 Tree *Widget::refresh(Tree *self, double delay)
 // ----------------------------------------------------------------------------
 //    Refresh after the given number of seconds

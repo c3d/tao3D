@@ -128,6 +128,7 @@ public:
     Tree *translate(Tree *self, double x, double y, double z);
     Tree *scale(Tree *self, double x, double y, double z);
     Tree *depthDelta(Tree *self, double x);
+    Name *depthTest(Tree *self, bool enable);
 
     Tree *locally(Tree *self, Tree *t);
     Tree *pagesize(Tree *self, uint w, uint h);

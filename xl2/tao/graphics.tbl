@@ -85,17 +85,17 @@ PREFIX(Svg, tree,"svg", PARM(img, text), RTAO(svg(self, img)))
 PREFIX(Texture, tree, "texture", PARM(n, text), RTAO(texture(self, n)))
 PREFIX(TexCoord, tree, "texcoord", PARM(x, real) PARM(y, real),
        RTAO(texCoord(self, x, y)))
-PREFIX(Circle, tree, "circle", PARM(x, real) PARM(y, real) PARM(r, real),
-       RTAO(circle(self, x, y, r)))
-PREFIX(CircularSector, tree, "circular_sector",
+PREFIX(GLCircle, tree, "glcircle", PARM(x, real) PARM(y, real) PARM(r, real),
+       RTAO(glcircle(self, x, y, r)))
+PREFIX(GLCircularSector, tree, "glcircular_sector",
        PARM(x, real) PARM(y, real) PARM(r, real) PARM(a, real) PARM(b, real),
-       RTAO(circularSector(self, x, y, r, a, b)))
-PREFIX(RoundedRectangle, tree, "rounded_rectangle",
+       RTAO(glcircularSector(self, x, y, r, a, b)))
+PREFIX(GLRoundedRectangle, tree, "glrounded_rectangle",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real) PARM(r, real),
-       RTAO(roundedRectangle(self, x, y, w, h, r)))
-PREFIX(Rectangle, tree, "rectangle",
+       RTAO(glroundedRectangle(self, x, y, w, h, r)))
+PREFIX(GLRectangle, tree, "glrectangle",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real),
-       RTAO(rectangle(self, x, y, w, h)))
+       RTAO(glrectangle(self, x, y, w, h)))
 PREFIX(RegularStarPolygon, tree, "regular_star_polygon",
        PARM(x, real) PARM(y, real) PARM(r, real)
        PARM(p, integer) PARM(q, integer),
@@ -169,16 +169,9 @@ PREFIX(TextBgColorRGBA, tree, "text_bg_color",
 PREFIX(TextBgColorRGB, tree, "text_bg_color", PARM(r, real) PARM(g, real) PARM(b, real),
        RTAO(textColor(self, r,g,b, 1.0, false)))
 
-PREFIX(QtRect, tree, "qtrectangle",
+PREFIX(Rect, tree, "rectangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
-       RTAO(qtrectangle(self, x, y, w, h)))
-PREFIX(QtText, tree, "qttext",
-       PARM(x,real) PARM(y,real) PARM(s, text),
-       RTAO(qttext(self, x, y, s)))
-
-PREFIX(KRect, tree, "krectangle",
-       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
-       RTAO(Krectangle(self, x, y, w, h)))
+       RTAO(rectangle(self, x, y, w, h)))
 PREFIX(Move, tree, "moveto",
        PARM(x,real) PARM(y,real),
        RTAO(moveTo(self, x, y, false)))
@@ -227,10 +220,19 @@ PREFIX(RelCurveTo, tree, "relcurveto",
        PARM(x3, real) PARM(y3, real),
        RTAO(curveTo(self, x1, y1, x2, y2, x3, y3, true)))
 
-
 PREFIX(ClosePath, tree, "closepath",, RTAO(closePath(self)))
 PREFIX(LineTo, tree, "lineto", PARM(x, real) PARM(y, real), RTAO(lineTo(self, x, y, false)))
 PREFIX(RelLineTo, tree, "rellineto", PARM(x, real) PARM(y, real), RTAO(lineTo(self, x, y, true)))
+
+PREFIX(Circle, tree, "circle", PARM(x, real) PARM(y, real) PARM(r, real),
+       RTAO(circle(self, x, y, r)))
+PREFIX(CircularSector, tree, "circular_sector",
+       PARM(x, real) PARM(y, real) PARM(r, real) PARM(a, real) PARM(b, real),
+       RTAO(circularSector(self, x, y, r, a, b)))
+PREFIX(RoundedRectangle, tree, "rounded_rectangle",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real) PARM(r, real),
+       RTAO(roundedRectangle(self, x, y, w, h, r)))
+
 
 PREFIX(MenuItem, tree, "menu_item", PARM(s, text) PARM(t, tree),
        RTAO(menuItem(self, s, &t)))

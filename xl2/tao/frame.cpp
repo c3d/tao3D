@@ -163,7 +163,9 @@ void Frame::Rectangle(double x, double y, double w, double h)
 //   Paint a rectangle using Cairo
 // ----------------------------------------------------------------------------
 {
-    cairo_rectangle(context, x, y, w, h);
+    GLAttribKeeper save;
+    cairo_rectangle(context, x-w/2, y-h/2, w, h);
+    cairo_stroke(context);
 }
 
 
@@ -307,10 +309,22 @@ void Frame::CleanPath()
 }
 
 Box3 Frame::bbox()
+// ----------------------------------------------------------------------------
+//    Compute the bounding box of the current path
+// ----------------------------------------------------------------------------
 {
     double x1, x2, y1, y2;
     cairo_path_extents(context, &x1, &y1, &x2, &y2);
+    IFTRACE(cairo)
+    {
+      cairo_path_t * savedPath = cairo_copy_path(context);
+      cairo_new_path(context);
+      cairo_rectangle(context, x1, y1, x2-x1, y2-y1);
+      cairo_stroke(context);
+      cairo_append_path(context, savedPath);
+    }
     return Box3(Point3(x1, y1, 0.0), Point3(x2, y2, 0.0));
+
 }
 
 // ============================================================================

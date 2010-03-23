@@ -155,9 +155,13 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
             widget->savedSelection.clear();
         widget->selectionTrees.clear();
         widget->selection = widget->savedSelection;
-        widget->activeSelector = selector;
         if (selected)
+        {
             widget->selection.insert(selected);
+            if (!selector)
+                selector = 1;   // Move by default
+        }
+        widget->activeSelector = selector;
     }
 
     // In all cases, we want a screen refresh

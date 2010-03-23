@@ -53,8 +53,6 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 
-#include <QDebug>
-
 #define Z_NEAR  2000.0
 #define Z_FAR  40000.0
 
@@ -413,14 +411,6 @@ void Widget::setup(double w, double h, Box *picking)
     }
 
     // Setup the frustrum for the projection
-    //double zNear = Z_NEAR, zFar = Z_FAR;
-    //double eyeX = 0.0, eyeY = 0.0, eyeZ = 1000.0;
-    //double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
-    //double upX = 0.0, upY = 1.0, upZ = 0.0;
-    //glFrustum (-w/2, w/2, -h/2, h/2, zNear, zFar);
-    //gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
-    //glTranslatef(0.0, 0.0, -zNear);
-    //glScalef(2.0, 2.0, 2.0);
     double zNear = Z_NEAR, zFar = Z_FAR;
     double eyeX = 0.0, eyeY = 0.0, eyeZ = zNear;
     double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
@@ -439,20 +429,6 @@ void Widget::setup(double w, double h, Box *picking)
         default:
             depthBitsMax = (1u<<depthBits) - 1;
     }
-    qDebug() << "b->z(0):" << QString::number(b2z(0), 'f', 8);
-    qDebug() << "b->z(1):" << QString::number(b2z(1), 'f', 8);
-    qDebug() << "b->z(2):" << QString::number(b2z(2), 'f', 8);
-    qDebug() << "b->z(8830113):" << QString::number(b2z(8830113), 'f', 8);
-    qDebug() << "b->z(8830114):" << QString::number(b2z(8830114), 'f', 8);
-    qDebug() << "b->z(max-2):" << QString::number(b2z(depthBitsMax - 2), 'f', 8);
-    qDebug() << "b->z(max-1):" << QString::number(b2z(depthBitsMax - 1), 'f', 8);
-    qDebug() << "b->z(max):" << QString::number(b2z(depthBitsMax), 'f', 8);
-    qDebug() << "z->b(1000.0):" << QString::number(z2b(1000.0), 'f', 8);
-    qDebug() << "z->b(999.9):" << QString::number(z2b(999.9), 'f', 8);
-    qDebug() << "z->b(0.0):" << QString::number(z2b(0.0), 'f', 8);
-    qDebug() << "z->b(-1000.0):" << QString::number(z2b(-1000.0), 'f', 8);
-    qDebug() << "z->b(-17999.9):" << QString::number(z2b(-17999.9), 'f', 8);
-    qDebug() << "z->b(-18000.0):" << QString::number(z2b(-18000.0), 'f', 8);
 
     // Setup the model view matrix so that 1.0 unit = 1px
     glMatrixMode(GL_MODELVIEW);
@@ -496,8 +472,9 @@ coord Widget::zBuffer(coord z, int pos)
 //   Calculate minimal z increment depending on the GL_DEPTH_BITS 
 // ----------------------------------------------------------------------------
 {
-    long b = 2 * pos;
-    return b2z( z2b(z) + b );   
+    long b = 50 * pos; // Don't touch this settings unless you exactly know 
+                       // what you are going
+    return b2z( z2b(z) - b );   
 }
  
 double Widget::z2b(coord z)

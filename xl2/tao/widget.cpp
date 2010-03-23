@@ -1341,6 +1341,7 @@ Tree *Widget::linewidth(Tree *self, double lw)
 // ----------------------------------------------------------------------------
 {
     glLineWidth(lw);
+    frame->LineWidth(lw);
     return XL::xl_true;
 }
 
@@ -1674,7 +1675,7 @@ void Widget::circularSectorN(double cx, double cy, double r,
 }
 
 
-Tree *Widget::circle(Tree *self, real_r cx, real_r cy, real_r r)
+Tree *Widget::glcircle(Tree *self, real_r cx, real_r cy, real_r r)
 // ----------------------------------------------------------------------------
 //     GL circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
@@ -1690,7 +1691,7 @@ Tree *Widget::circle(Tree *self, real_r cx, real_r cy, real_r r)
 }
 
 
-Tree *Widget::circularSector(Tree *self,
+Tree *Widget::glcircularSector(Tree *self,
                              real_r cx, real_r cy, real_r r,
                              real_r a, real_r b)
 // ----------------------------------------------------------------------------
@@ -1728,7 +1729,7 @@ Tree *Widget::circularSector(Tree *self,
 
 
 
-Tree *Widget::roundedRectangle(Tree *self,
+Tree *Widget::glroundedRectangle(Tree *self,
                                real_r cx, real_r cy,
                                real_r w, real_r h, real_r r)
 // ----------------------------------------------------------------------------
@@ -1738,7 +1739,7 @@ Tree *Widget::roundedRectangle(Tree *self,
     ShapeName name(this, bbox(cx, cy, w, h));
     name.x(cx).y(cy).w(w).h(h);
 
-    if (r <= 0) return rectangle(self, cx, cy, w, h);
+    if (r <= 0) return glrectangle(self, cx, cy, w, h);
     if (r > w/2) r = w/2;
     if (r > h/2) r = h/2;
 
@@ -1795,7 +1796,7 @@ Tree *Widget::roundedRectangle(Tree *self,
 }
 
 
-Tree *Widget::rectangle(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
+Tree *Widget::glrectangle(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //     GL rectangle centered around (cx,cy), width w, height h
 // ----------------------------------------------------------------------------
@@ -2116,7 +2117,7 @@ Tree *Widget::frameTexture(Tree *self, double w, double h)
             flow->clear();
         }
         frame->end();
-    } // GLSateKeeper
+    } // GLStateKeeper
 
     // Bind the resulting texture
     frame->bind();
@@ -2290,12 +2291,12 @@ Tree *Widget::qttext(Tree *self, double x, double y, text s)
 }
 
 
-Tree *Widget::KmoveTo(Tree *self, double x, double y)
+Tree *Widget::moveTo(Tree *self, double x, double y, bool isRelative)
 // ----------------------------------------------------------------------------
 //   Move to the given Cairo coordinates
 // ----------------------------------------------------------------------------
 {
-    frame->MoveTo(x,y);
+    frame->MoveTo(x,y, isRelative);
     return XL::xl_true;
 }
 
@@ -2330,7 +2331,7 @@ Tree *Widget::KlayoutMarkup(Tree *self, text s)
 }
 
 
-Tree *Widget::Krectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
+Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //    Draw a rectangle using Cairo
 // ----------------------------------------------------------------------------
@@ -2342,7 +2343,7 @@ Tree *Widget::Krectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 }
 
 
-Tree *Widget::Kstroke(Tree *self)
+Tree *Widget::stroke(Tree *self)
 // ----------------------------------------------------------------------------
 //    Stroke the current path
 // ----------------------------------------------------------------------------
@@ -2352,7 +2353,7 @@ Tree *Widget::Kstroke(Tree *self)
 }
 
 
-Tree *Widget::Kclear(Tree *self)
+Tree *Widget::clear(Tree *self)
 // ----------------------------------------------------------------------------
 //    Clear the current frame
 // ----------------------------------------------------------------------------
@@ -2363,7 +2364,7 @@ Tree *Widget::Kclear(Tree *self)
 
 #define K_STROKE 0x1
 #define K_FILL   0x2
-Tree *Widget::KbuildPath(Tree *self, Tree *path, int strokeOrFill)
+Tree *Widget::buildPath(Tree *self, Tree *path, int strokeOrFill)
 // ----------------------------------------------------------------------------
 //    Build and stroke and / or fill a path
 // ----------------------------------------------------------------------------
@@ -2380,37 +2381,134 @@ Tree *Widget::KbuildPath(Tree *self, Tree *path, int strokeOrFill)
         frame->StrokePreserve();
     if (strokeOrFill & K_FILL)
         frame->FillPreserve();
+
+ //   ShapeName name(this, frame->bbox());
+  //  name.x(x).y(y).w(w).h(h);
+
+    frame->bbox();
     frame->CleanPath();
 
     return XL::xl_true;
 }
-Tree *Widget::Karc(Tree *self,
-                   double x,
-                   double y,
-                   double r,
-                   double a1,
-                   double a2,
+
+Tree *Widget::arc(Tree *self,
+                   real_r x,
+                   real_r y,
+                   real_r r,
+                   real_r a1,
+                   real_r a2,
                    bool isPositive)
+// ----------------------------------------------------------------------------
+//    Add an arc to the current path
+// ----------------------------------------------------------------------------
 {
+//    ShapeName name(this, bbox(x, y, 2*r, 2*r));
+//    name.x(x).y(y).w(r).h(r);
+
     frame->Arc(x, y, r, a1, a2, isPositive);
+
     return XL::xl_true;
 }
 
-Tree *Widget::Kcurve(Tree *self,double x1, double y1, double x2, double y2, double x3, double y3)
+Tree *Widget::curveTo(Tree *self,
+                      real_r x1, real_r y1,
+                      real_r x2, real_r y2,
+                      real_r x3, real_r y3, bool isRelative)
+// ----------------------------------------------------------------------------
+//    Add a curve to the current path
+// ----------------------------------------------------------------------------
 {
-    frame->CurveTo(x1, y1, x2, y2, x3, y3);
+    frame->CurveTo(x1, y1, x2, y2, x3, y3, isRelative);
+
     return XL::xl_true;
 }
 
-Tree *Widget::Kline(Tree *self,double x, double y)
+Tree *Widget::lineTo(Tree *self,real_r x, real_r y, bool isRelative)
+// ----------------------------------------------------------------------------
+//    Add a line to the current path
+// ----------------------------------------------------------------------------
 {
-    frame->LineTo(x, y);
+    frame->LineTo(x, y, isRelative);
     return XL::xl_true;
 }
 
-Tree *Widget::KclosePath(Tree *self)
+Tree *Widget::closePath(Tree *self)
+// ----------------------------------------------------------------------------
+//    Close the current path
+// ----------------------------------------------------------------------------
 {
     frame->ClosePath();
+    return XL::xl_true;
+}
+
+
+Tree *Widget::circle(Tree *self, real_r cx, real_r cy, real_r r)
+// ----------------------------------------------------------------------------
+//   Cairo circle centered around (cx,cy), radius r
+// ----------------------------------------------------------------------------
+{
+    ShapeName name(this, bbox(cx, cy, 2*r, 2*r));
+    name.x(cx).y(cy).w(r).h(r);
+
+    GLAttribKeeper save;
+
+    frame->Arc(cx, cy, r, 0, 2*M_PI, true);
+    frame->Stroke();
+    return XL::xl_true;
+}
+
+
+Tree *Widget::circularSector(Tree *self,
+                             real_r cx, real_r cy, real_r r,
+                             real_r a, real_r b)
+// ----------------------------------------------------------------------------
+//   Cairo circular sector centered around (cx,cy), radius r and two angles a, b
+// ----------------------------------------------------------------------------
+{
+    ShapeName name(this, bbox(cx, cy, 2*r, 2*r));
+    name.x(cx).y(cy).w(r).h(r);
+
+    GLAttribKeeper save;
+
+    frame->MoveTo(cx, cy, false);
+    frame->Arc(cx, cy, r, a, b, true);
+    frame->ClosePath();
+    frame->Stroke();
+
+    return XL::xl_true;
+ }
+
+
+
+Tree *Widget::roundedRectangle(Tree *self,
+                               real_r cx, real_r cy,
+                               real_r w, real_r h, real_r r)
+// ----------------------------------------------------------------------------
+//   Cairo rounded rectangle with radius r for the rounded corners
+// ----------------------------------------------------------------------------
+{
+    ShapeName name(this, bbox(cx, cy, w, h));
+    name.x(cx).y(cy).w(w).h(h);
+
+    GLAttribKeeper save;
+
+    if (r <= 0) return rectangle(self, cx, cy, w, h);
+    if (r > w/2) r = w/2;
+    if (r > h/2) r = h/2;
+
+    double w0  = w-2*r;
+    double h0  = h-2*r;
+    double x0  = cx+r - w/2;
+    double y0  = cy+r - h/2;
+
+    frame->Arc(x0   , y0   , r, M_PI    , 3*M_PI_2, true);
+    frame->Arc(x0+w0, y0   , r, 3*M_PI_2, 0       , true);
+    frame->Arc(x0+w0, y0+h0, r, 0       , M_PI_2  , true);
+    frame->Arc(x0   , y0+h0, r, M_PI_2  , M_PI    , true);
+    frame->ClosePath();
+    frame->Stroke();
+
+
     return XL::xl_true;
 }
 

@@ -1,16 +1,110 @@
-kpathstroke
+line_width 2
+pathstroke
    color 1,0,1
-   krectangle 0, 0, 50, 70
+   rectangle 0, 0, 50, 70
 
-kpathfill
-   color 0,0,1
-   krectangle 100, 100, 50, 10
+pathfill
+   color 1,0,0
+   arc 0, 0, 10, 0, 6.28
 
-kpathstroke
+pathstroke
+   color 1,0,0
+   moveto 0, -500
+   lineto 0, 500
+   moveto -500, 0
+   lineto 500, 0
+   moveto 50, 5
+   rellineto 0, -10
+   ltext "50"
+   moveto 100, 5
+   rellineto 0, -10
+   ltext "100" 
+   moveto 150, 5
+   rellineto 0, -10
+   ltext "150" 
+   moveto 200, 5
+   rellineto 0, -10
+   ltext "200" 
+   moveto 250, 5
+   rellineto 0, -10
+   ltext "250" 
+   moveto 300, 5
+   rellineto 0, -10
+   ltext "300" 
+   moveto 350, 5
+   rellineto 0, -10
+   ltext "350" 
+   moveto 400, 5
+   rellineto 0, -10
+   ltext "400" 
+   moveto -5, 300
+   ltext "300"
+   rellineto 500, 0
+   moveto 300, 5
+   rellineto 0, 500
+   moveto -200, -5
+   ltext "-200"
+   rellineto 0, 500
+   moveto 5, 200
+   ltext "200"
+   rellineto -500, 0
+   moveto -100, -5
+   ltext "-100"
+   rellineto 0, -500
+
+
+font_size 80
+moveto -500, 100
+ktext "Hello wonderful world"
+
+color 1, 0, 1,0.5
+moveto 0,-100
+ltext "In this wonderful world of Tao the long text goes like this... And how is a longer and bigger text"
+
+pathfill
+   color 0,0,1, 0.4
+   rectangle -100, -100, 200, 200
+
+color 1,1,0
+
+pathstroke
    color 0,1,1
-   karc 0, 0, 50, 0, 1.6
-   karc -100, -100, 20, 1.0, 3.5
-   kline 20, -50
-   kclosepath
+   arc 0, 0, 150, 5, 1.6
+   arc -100, -100, 20, 1.0, 3.5
+   lineto 20, -70
+   relcurveto 0, 0, 40, -50, -80, -100
+   closepath
 
-  
+glrectangle -200, 200, 150, 90
+color 0,1,0
+
+pathstrokefill
+   color 0,1,1, 0.3
+   arcnegative -100, 100, 50, 3.13, 1.6
+   arcnegative 100, 100, 50, 1.6, 0 
+   arcnegative 100, -100, 50, 0, 4.73
+   arcnegative -100, -100, 50, 4.73, 3.14
+   closepath
+
+pathstrokefill
+   color 1,0.1,1, 0.3
+   arc -90, -90, 10, 3.14, 4.73
+   arc 90, -90, 10, 4.73, 0
+   arc 90, 90, 10, 0, 1.6 
+   arc -90, 90, 10, 1.6, 3.14
+   closepath
+
+pathstrokefill
+   color 0,1,0
+   moveto 400, -400
+   arc 400, -400, 100, 0.5, 6.0
+   closepath
+
+rounded_rectangle -100, -100, 300, 200, 10
+rounded_rectangle 300, 300, 300, 200, 50
+rounded_rectangle 300, 300, 300, 200, 200
+//rounded_rectangle 300, 300, 300, 200, 0.1
+//rectangle 300, 300, 300, 200
+stroke
+
+circle -500, -400, 100

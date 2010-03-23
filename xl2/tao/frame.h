@@ -44,8 +44,10 @@ struct Frame : XL::Info
 
     // Drawing
     void             Color(double red, double grn, double blu, double alpha=1);
+    void             LineWidth(double lw);
     void             Clear();
-    void             MoveTo(double x, double y);
+    void             MoveTo(double x, double y,
+                            bool isRelative);
     void             Font(text s);
     void             FontSize(double s);
     void             Text(text s);
@@ -65,15 +67,18 @@ struct Frame : XL::Info
                              double x2,
                              double y2,
                              double x3,
-                             double y3);
+                             double y3,
+                             bool isRelative);
     void              LineTo(double x,
-                             double y);
+                             double y,
+                             bool isRelative);
     void              Arc(double xCenter,
                           double yCenter,
                           double radius,
                           double angleStart,
                           double angleStop,
                           bool isPositive);
+    Box3             bbox();
 
     // End of drawing, paint the frame
     void             Paint();

@@ -87,6 +87,13 @@ void Frame::Color (double red, double green, double blue, double alpha)
     cairo_set_source_rgba(context, red, green, blue, alpha);
 }
 
+void Frame::LineWidth(double lw)
+// ----------------------------------------------------------------------------
+//    Select the line width for the current context
+// ----------------------------------------------------------------------------
+{
+    cairo_set_line_width(context, lw);
+}
 
 
 void Frame::Clear()
@@ -103,12 +110,16 @@ void Frame::Clear()
 }
 
 
-void Frame::MoveTo(double x, double y)
+void Frame::MoveTo(double x, double y, bool isRelative)
 // ----------------------------------------------------------------------------
-//   Move the cursor to the given Cairo coordinates
+//   Move the cursor to the given Cairo coordinates, either in absolute
+//   coordinate or relatively to the latest current point of the path.
 // ----------------------------------------------------------------------------
 {
-    cairo_move_to(context, x, y);
+    if (isRelative)
+        cairo_rel_move_to(context, x, y);
+    else
+        cairo_move_to(context, x, y);
 }
 
 
@@ -152,7 +163,9 @@ void Frame::Rectangle(double x, double y, double w, double h)
 //   Paint a rectangle using Cairo
 // ----------------------------------------------------------------------------
 {
-    cairo_rectangle(context, x, y, w, h);
+    GLAttribKeeper save;
+    cairo_rectangle(context, x-w/2, y-h/2, w, h);
+    cairo_stroke(context);
 }
 
 
@@ -256,21 +269,31 @@ void Frame::CurveTo(double x1,
                     double x2,
                     double y2,
                     double x3,
-                    double y3)
+                    double y3,
+                    bool isRelative)
 // ----------------------------------------------------------------------------
-//   Add a curve to the current path.
+//   Add a curve to the current path. Either in absolute
+//   coordinate or relatively to the latest current point of the path.
 // ----------------------------------------------------------------------------
 {
-    cairo_curve_to(context, x1, y1, x2, y2, x3, y3);
+    if (isRelative)
+        cairo_rel_curve_to(context, x1, y1, x2, y2, x3, y3);
+    else
+        cairo_curve_to(context, x1, y1, x2, y2, x3, y3);
 }
 
 void Frame::LineTo(double x,
-                   double y)
+                   double y,
+                   bool isRelative)
 // ----------------------------------------------------------------------------
-//   Add a line to the current path.
+//   Add a line to the current path. Either in absolute
+//   coordinate or relatively to the latest current point of the path.
 // ----------------------------------------------------------------------------
 {
-    cairo_line_to( context, x, y);
+    if (isRelative)
+        cairo_rel_line_to( context, x, y);
+    else
+        cairo_line_to( context, x, y);
 }
 
 void Frame::ClosePath()
@@ -283,6 +306,25 @@ void Frame::CleanPath()
 // ----------------------------------------------------------------------------
 {
     cairo_new_path(context);
+}
+
+Box3 Frame::bbox()
+// ----------------------------------------------------------------------------
+//    Compute the bounding box of the current path
+// ----------------------------------------------------------------------------
+{
+    double x1, x2, y1, y2;
+    cairo_path_extents(context, &x1, &y1, &x2, &y2);
+    IFTRACE(cairo)
+    {
+      cairo_path_t * savedPath = cairo_copy_path(context);
+      cairo_new_path(context);
+      cairo_rectangle(context, x1, y1, x2-x1, y2-y1);
+      cairo_stroke(context);
+      cairo_append_path(context, savedPath);
+    }
+    return Box3(Point3(x1, y1, 0.0), Point3(x2, y2, 0.0));
+
 }
 
 // ============================================================================

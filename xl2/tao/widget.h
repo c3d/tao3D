@@ -162,12 +162,12 @@ public:
     Tree *sphere(Tree *self,
                  real_r cx, real_r cy, real_r cz, real_r r,
                  integer_r nslices, integer_r nstacks);
-    Tree *circle(Tree *self, real_r cx, real_r cy, real_r r);
-    Tree *circularSector(Tree *self, real_r cx, real_r cy, real_r r,
+    Tree *glcircle(Tree *self, real_r cx, real_r cy, real_r r);
+    Tree *glcircularSector(Tree *self, real_r cx, real_r cy, real_r r,
                          real_r a, real_r b);
-    Tree *roundedRectangle(Tree *self,
+    Tree *glroundedRectangle(Tree *self,
                            real_r cx, real_r cy, real_r w, real_r h, real_r r);
-    Tree *rectangle(Tree *self, real_r cx, real_r cy, real_r w, real_r h);
+    Tree *glrectangle(Tree *self, real_r cx, real_r cy, real_r w, real_r h);
     Tree *regularStarPolygon(Tree *self, real_r cx, real_r cy, real_r r,
                 integer_r p, integer_r q);
 
@@ -206,30 +206,38 @@ public:
     Tree *qtrectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *qttext(Tree *self, double x, double y, text s);
 
-    Tree *KmoveTo(Tree *self, double x, double y);
+    Tree *moveTo(Tree *self, double x, double y, bool isRelative);
     Tree *Ktext(Tree *self, text s);
-    Tree *Krectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
-    Tree *Kstroke(Tree *self);
-    Tree *Kclear(Tree *self);
+    Tree *rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
+    Tree *stroke(Tree *self);
+    Tree *clear(Tree *self);
     Tree *KlayoutText(Tree *self, text s);
     Tree *KlayoutMarkup(Tree *self, text s);
-    Tree *KbuildPath(Tree *self, Tree *path, int strokeOrFill);
-    Tree *Karc(Tree *self,
-               double x,
-               double y,
-               double r,
-               double a1,
-               double a2,
+    Tree *buildPath(Tree *self, Tree *path, int strokeOrFill);
+    Tree *arc(Tree *self,
+               real_r x,
+               real_r y,
+               real_r r,
+               real_r a1,
+               real_r a2,
                bool isPositive);
-    Tree *Kcurve(Tree *self,
-                 double x1,
-                 double y1,
-                 double x2,
-                 double y2,
-                 double x3,
-                 double y3);
-    Tree *Kline(Tree *self, double x, double y);
-    Tree *KclosePath(Tree *self);
+    Tree *curveTo(Tree *self,
+                 real_r x1,
+                 real_r y1,
+                 real_r x2,
+                 real_r y2,
+                 real_r x3,
+                 real_r y3,
+                 bool isRelative);
+    Tree *lineTo(Tree *self, real_r x, real_r y, bool isRelative);
+    Tree *closePath(Tree *self);
+    Tree *circle(Tree *self, real_r cx, real_r cy, real_r r);
+    Tree *circularSector(Tree *self, real_r cx, real_r cy, real_r r,
+                         real_r a, real_r b);
+    Tree *roundedRectangle(Tree *self,
+                           real_r cx, real_r cy, real_r w, real_r h, real_r r);
+
+
     Tree *menuItem(Tree *self, text s, Tree *t);
     Tree *menu(Tree *self, text s, bool=false);
 

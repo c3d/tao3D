@@ -58,6 +58,8 @@ void Layout::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     (void) where;               // REVISIT...
+    Compute();
+
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
         (*i)->Draw(this);

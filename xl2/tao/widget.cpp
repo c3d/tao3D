@@ -43,6 +43,13 @@
 #include "repository.h"
 #include "application.h"
 #include "process.h"
+#include "layout.h"
+#include "page_layout.h"
+#include "space_layout.h"
+#include "shapes.h"
+#include "shapes3d.h"
+#include "attributes.h"
+#include "transforms.h"
 
 #include <QtGui/QImage>
 #include <cmath>
@@ -70,7 +77,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
       xlProgram(sf), timer(this), idleTimer(this), currentMenu(NULL),
-      frame(NULL), mainFrame(NULL), activities(NULL),
+      frame(NULL), mainFrame(NULL), layout(NULL), activities(NULL),
       page_start_time(CurrentTime()),
       id(0), capacity(0), selector(0), activeSelector(0),
       event(NULL), focusWidget(NULL),

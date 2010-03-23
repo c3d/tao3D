@@ -38,13 +38,18 @@ struct PageLayout : Layout
                         PageLayout(const PageLayout &o);
                         ~PageLayout();
 
+    virtual Box3        Space();
+    virtual void        Compute();
+
+public:
+    // Space requested for the layout
+    Box3                space;
+    Justification       horizontal, vertical;
+
 protected:
     // We use cairo to record most of our internal state (color, ...)
-    cairo_surface_t      *surface;
-    cairo_t              *context;
-
-    // Justification information
-    Justification       alongX, alongY;
+    cairo_surface_t     *surface;
+    cairo_t             *context;
 };
 
 TAO_END

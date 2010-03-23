@@ -22,11 +22,12 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "page_layout.h"
+#include "layout.h"
+#include "justification.h"
 
 TAO_BEGIN
 
-struct SpaceLayout : PageLayout
+struct SpaceLayout : Layout
 // ----------------------------------------------------------------------------
 //   Layout objects in 3D space
 // ----------------------------------------------------------------------------
@@ -34,8 +35,13 @@ struct SpaceLayout : PageLayout
                         SpaceLayout();
                         ~SpaceLayout();
 
-protected:
-    Justification       alongZ;
+    virtual Box3        Space();
+    virtual void        Compute();
+
+public:
+    // Space requested for the layout
+    Box3                space;
+    Justification       alongX, alongY, alongZ;
 };
 
 TAO_END

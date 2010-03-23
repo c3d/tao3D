@@ -46,6 +46,7 @@ struct Window;
 struct Frame;
 struct FrameInfo;
 struct Activity;
+struct Layout;
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -263,6 +264,7 @@ public:
     QList<TreeHolder>     actions;
     Frame *               frame;
     Frame *               mainFrame;
+    Layout *              layout;
     Activity *            activities;
     double                page_start_time;
     GLuint                id, capacity, selector, activeSelector;

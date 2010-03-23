@@ -32,7 +32,9 @@ PageLayout::PageLayout()
 // ----------------------------------------------------------------------------
 //   Create a new layout
 // ----------------------------------------------------------------------------
-    : surface(NULL), context(NULL)
+    : Layout(),
+      space(), horizontal(), vertical(),
+      surface(NULL), context(NULL)
 {
     GLStateKeeper save;
 
@@ -50,7 +52,9 @@ PageLayout::PageLayout(const PageLayout &o)
 // ----------------------------------------------------------------------------
 //   Copy a layout from another layout
 // ----------------------------------------------------------------------------
-    : Layout(o), surface(NULL), context(NULL)
+    : Layout(o),
+      space(o.space), horizontal(o.horizontal), vertical(o.vertical),
+      surface(NULL), context(NULL)
 {
     GLStateKeeper save;
 
@@ -70,6 +74,25 @@ PageLayout::~PageLayout()
         cairo_destroy(context);
     if (surface)
         cairo_surface_destroy(surface);
+}
+
+
+Box3 PageLayout::Space()
+// ----------------------------------------------------------------------------
+//   Return the space for the box
+// ----------------------------------------------------------------------------
+{
+    Box3 result = Bounds();
+    result |= space;
+    return result;
+}
+
+
+void PageLayout::Compute()
+// ----------------------------------------------------------------------------
+//   Layout the objects in the space box
+// ----------------------------------------------------------------------------
+{
 }
 
 TAO_END

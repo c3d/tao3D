@@ -496,6 +496,9 @@ void Widget::draw()
     ulonglong t = now();
     event = NULL;
 
+    // Need to setup initial context for the activities
+    XL::LocalSave<Frame *> saveFrame (frame, mainFrame);
+
     // Setup the initial drawing environment
     double w = width(), h = height();
     setup(w, h);
@@ -722,22 +725,20 @@ void Widget::mousePressEvent(QMouseEvent *event)
 {
     EventSave save(this->event, event);
 
-    uint button = (uint) event->button();
-    int x = event->x();
-    int y = event->y();
-    bool handled = false;
+    QMenu * contextMenu = NULL;
+    uint    button      = (uint) event->button();
+    int     x           = event->x();
+    int     y           = event->y();
 
     // Create a selection if left click and nothing going on right now
     if (!activities && button == Qt::LeftButton)
         new Selection(this);
 
     // Send the click to all activities
-    for (Activity *a = activities; a; a = a->Click(button, true, x, y))
-        handled = true;
+    for (Activity *a = activities; a; a = a->Click(button, true, x, y)) ;
 
     if (button ==  Qt::RightButton)
     {
-        QMenu * contextMenu = NULL;
         switch (event->modifiers())
         {
         default :
@@ -769,14 +770,11 @@ void Widget::mousePressEvent(QMouseEvent *event)
         }
 
         if (contextMenu)
-        {
             contextMenu->exec(event->globalPos());
-            handled = true;
-        }
     }
 
     // Pass the event down the event chain
-    if (!handled)
+    if (!contextMenu)
         forwardEvent(event);
 }
 
@@ -908,6 +906,21 @@ Tree *Widget::depthDelta(Tree *self, double dx)
 {
     state.depthDelta = dx;
     return XL::xl_true;
+}
+
+
+XL::Name *Widget::depthTest(XL::Tree *self, bool enable)
+// ----------------------------------------------------------------------------
+//   Change the delta we use for the depth
+// ----------------------------------------------------------------------------
+{
+    GLboolean old;
+    glGetBooleanv(GL_DEPTH_TEST, &old);
+    if (enable)
+        glEnable(GL_DEPTH_TEST);
+    else
+        glDisable(GL_DEPTH_TEST);
+    return old ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -1211,7 +1224,7 @@ Vector3 Widget::dragDelta()
 
 text Widget::dragSelector()
 // ----------------------------------------------------------------------------
-//   Return the name of the drag selector if there's any, or "move" otherwise
+//   Return the name of the drag selector if there's any, or "none" otherwise
 // ----------------------------------------------------------------------------
 {
     if (activeSelector)
@@ -1219,7 +1232,7 @@ text Widget::dragSelector()
         assert (activeSelector <= selectorNames.size());
         return selectorNames[activeSelector - 1];
     }
-    return "move";
+    return "none";
 }
 
 
@@ -1248,16 +1261,13 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
     if (bounds.Depth() > 0)
     {
         GLAttribKeeper save;
-        XL::LocalSave<GLuint> save_mode(state.polygonMode, GL_TRIANGLE_FAN);
-
         setupGL();
         glDisable(GL_DEPTH_TEST);
-
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
     }
     else
     {
-        GLAttribKeeper save(GL_CURRENT_BIT | GL_LINE_BIT);
+        GLAttribKeeper save;
         XL::LocalSave<GLuint> save1(state.polygonMode, GL_LINE_LOOP);
         XL::LocalSave<bool>   save2(state.selectable, false);
         glLineWidth (3.0);
@@ -1289,16 +1299,16 @@ void Widget::loadName(bool load)
 
 Box3 Widget::bbox(coord x, coord y, coord w, coord h)
 // ----------------------------------------------------------------------------
-//   Return a selection bounding box
+//   Return a selection bounding box for a flat shape
 // ----------------------------------------------------------------------------
 {
-    return Box3(x-w/2, y-h/2, -(w+h)/4, w, h, (w+h)/2);
+    return Box3(x-w/2, y-h/2, 0, w, h, 0);
 }
 
 
 Box3 Widget::bbox(coord x, coord y, coord z, coord w, coord h, coord d)
 // ----------------------------------------------------------------------------
-//   Return a selection bounding box
+//   Return a selection bounding box for a 3D shape
 // ----------------------------------------------------------------------------
 {
     return Box3(x-w/2, y-h/2, z-d/2, w, h, d);
@@ -1548,7 +1558,7 @@ Tree *Widget::sphere(Tree *self,
 //     GL sphere
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, bbox(x,y,z, 2*r,2*r,2*r), "selection_3D");
+    ShapeName name(this, bbox(x,y,z, 2*r,2*r,2*r), "3D_selection");
     name.x(x).y(y).w(r).h(r).y(z, "depth");
 
     GLUquadric *q = gluNewQuadric();
@@ -2172,7 +2182,7 @@ Tree *Widget::urlPaint(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, bbox(x, y, 0, w, h, 0));
+    ShapeName name(this, bbox(x, y, 0, w, h, 0), "widget_selection");
     name.x(x).y(y).w(w).h(h);
     urlTexture(self, w, h, url, progress);
 
@@ -2222,7 +2232,7 @@ Tree *Widget::lineEdit(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, bbox(x,y,0,w,h,0));
+    ShapeName name(this, bbox(x,y,0,w,h,0), "widget_selection");
     name.x(x).y(y).w(w).h(h);
 
     lineEditTexture(self, w, h, txt);
@@ -2503,9 +2513,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 {
     bool isContextMenu = false;
 
-    //---------------------------------
     // Build the full name of the menu
-    //---------------------------------
     // Uses the current menu name, the given string and the isSubmenu.
     QString fullname = QString::fromStdString(s);
     if (isSubMenu && currentMenu)
@@ -2527,9 +2535,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
     MenuInfo *menuInfo = self->GetInfo<MenuInfo>();
 
 
-    //---------------------------------------------------
     // If the menu is registered, no need to recreate it.
-    //---------------------------------------------------
     // This is used at reload time, recreate the MenuInfo if required.
     if (QMenu *tmp = parent()->findChild<QMenu*>(fullname))
     {
@@ -2546,9 +2552,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
         return XL::xl_true;
     }
 
-    //-------------------------------
     // The menu is not yet registered.
-    //-------------------------------
     // The name may have change but not the content
     // (in the loop of the XL program execution).
     if (menuInfo)
@@ -2561,9 +2565,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
         return XL::xl_true;
     }
 
-    //----------------------------------------
     // The menu is not existing. Creating it.
-    //----------------------------------------
     if (isContextMenu)
     {
         currentMenu = new QMenu((Window*)parent());

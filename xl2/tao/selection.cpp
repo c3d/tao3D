@@ -43,7 +43,7 @@ Activity *Selection::Display(void)
 //   Display the selection rectangle
 // ----------------------------------------------------------------------------
 {
-    glPushMatrix();
+    GLStateKeeper save;
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -51,33 +51,11 @@ Activity *Selection::Display(void)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    widget->setupGL();
-
-    ulong tick = widget->now();
     Box b = rectangle;
     b.Normalize();
-
-    glColor4f(0.4 * sin(tick / 1.9e6) + 0.6,
-              0.4 * sin(tick / 1.4e6) + 0.6,
-              0.4 * sin(tick / 0.5e6) + 0.6,
-              0.3);
-
-    glBegin(GL_QUADS);
-    glVertex2f (b.lower.x, b.lower.y);
-    glVertex2f (b.upper.x, b.lower.y);
-    glVertex2f (b.upper.x, b.upper.y);
-    glVertex2f (b.lower.x, b.upper.y);
-    glEnd();
-
-    glColor4f(1.0, 0.4, 0.4, 0.9);
-    glBegin(GL_LINE_LOOP);
-    glVertex2f (b.lower.x, b.lower.y);
-    glVertex2f (b.lower.x, b.upper.y);
-    glVertex2f (b.upper.x, b.upper.y);
-    glVertex2f (b.upper.x, b.lower.y);
-    glEnd();
-
-    glPopMatrix();
+    Box3 b3 (b.lower.x, b.lower.y, 0, b.Width(), b.Height(), 0);
+    widget->setupGL();
+    widget->drawSelection(b3, "selection_rectangle");
 
     return next;
 }
@@ -88,7 +66,9 @@ Activity *Selection::Idle(void)
 //   Make the refresh rate shorter so that we animate the rectangle
 // ----------------------------------------------------------------------------
 {
-    widget->refresh(NULL, 0.1);
+    if (!widget->timer.isActive())
+        widget->refresh(NULL, 0.005);
+    widget->updateGL();
     return next;               // Keep doing other idle activities
 }
 
@@ -120,6 +100,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
     }
     else
     {
+        Idle();
         delete this;
         return next;
     }
@@ -177,13 +158,17 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
             widget->savedSelection.clear();
         widget->selectionTrees.clear();
         widget->selection = widget->savedSelection;
-        widget->activeSelector = selector;
         if (selected)
+        {
             widget->selection.insert(selected);
+            if (!selector)
+                selector = 1;   // Move by default
+        }
+        widget->activeSelector = selector;
     }
 
     // In all cases, we want a screen refresh
-    widget->updateGL();
+    Idle();
 
     // If we are done with the selection, remove it and shift to a Drag
     if (doneWithSelection)
@@ -204,7 +189,10 @@ Activity *Selection::MouseMove(int x, int y, bool active)
 // ----------------------------------------------------------------------------
 {
     if (!active)
+    {
+        Idle();
         return next;
+    }
 
     y = widget->height() - y;
     rectangle.upper.Set(x,y);
@@ -248,7 +236,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     delete[] buffer;
 
     // Need a refresh
-    widget->updateGL();
+    Idle();
 
     // We dealt with the mouse move, don't let other activities get it
     return NULL;

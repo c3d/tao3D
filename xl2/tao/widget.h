@@ -291,13 +291,13 @@ public:
     //    State that is preserved by 'locally'
     // ------------------------------------------------------------------------
     {
-        GLuint          polygonMode;
         GLuint          frameWidth, frameHeight;
         TextFlow *      flow;
         QTextCharFormat charFormat;  // Font, color, ...
         QPaintDevice *  paintDevice;
         GLdouble        depthDelta;
         bool            selectable;
+        bool            filled;
     } state;
 
     static Widget    *current;

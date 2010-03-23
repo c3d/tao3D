@@ -356,7 +356,6 @@ void Widget::setup(double w, double h, Box *picking)
 
     // Initial state
     depth = 0.0;
-    state.polygonMode = GL_POLYGON;
     state.frameWidth = w;
     state.frameHeight = h;
     state.charFormat = QTextCharFormat();
@@ -364,6 +363,7 @@ void Widget::setup(double w, double h, Box *picking)
     state.charFormat.setBackground(Qt::white);
     state.depthDelta = 0.05;
     state.selectable = true;
+    state.filled = true;
 }
 
 
@@ -1272,10 +1272,6 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
     else
     {
         GLAttribKeeper save;
-        XL::LocalSave<GLuint> save1(state.polygonMode, GL_LINE_LOOP);
-        XL::LocalSave<bool>   save2(state.selectable, false);
-        glLineWidth (3.0);
-        glColor4f(1.0, 0.0, 0.0, 0.5);
         glDisable(GL_DEPTH_TEST);
         (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (symbols);
     }
@@ -1324,7 +1320,7 @@ Tree *Widget::filled(Tree *self)
 //   Select filled polygon mode
 // ----------------------------------------------------------------------------
 {
-    state.polygonMode = GL_POLYGON;
+    state.filled = true;
     return XL::xl_true;
 }
 
@@ -1334,7 +1330,7 @@ Tree *Widget::hollow(Tree *self)
 //   Select hollow polygon mode
 // ----------------------------------------------------------------------------
 {
-    state.polygonMode = GL_LINE_LOOP;
+    state.filled = false;
     return XL::xl_true;
 }
 
@@ -1405,7 +1401,7 @@ Tree *Widget::polygon(Tree *self, Tree *child)
 //   Evaluate the child tree within a polygon
 // ----------------------------------------------------------------------------
 {
-    return evalInGlMode(state.polygonMode, child);
+    return evalInGlMode(state.filled ? GL_POLYGON : GL_LINE_LOOP, child);
 }
 
 
@@ -1687,7 +1683,7 @@ Tree *Widget::glcircle(Tree *self, real_r cx, real_r cy, real_r r)
     ShapeName name(this, bbox(cx, cy, 2*r, 2*r));
     name.x(cx).y(cy).w(r).h(r);
 
-    glBegin(state.polygonMode);
+    glBegin(state.filled ? GL_POLYGON : GL_LINE_LOOP);
     circularSectorN(cx, cy, r, 0, 0, 1, 1, 0, 4);
     glEnd();
 
@@ -1723,7 +1719,7 @@ Tree *Widget::glcircularSector(Tree *self,
     }
     int sq = (int(da / 90) % 4);                // Starting quadrant
 
-    glBegin(state.polygonMode);
+    glBegin(state.filled ? GL_POLYGON : GL_LINE_LOOP);
     circularVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);    // The center
     circularSectorN(cx, cy, r, 0, 0, 1, 1, sq, nq);
     glEnd();
@@ -1771,7 +1767,7 @@ Tree *Widget::glroundedRectangle(Tree *self,
     double ty1r = 1-r/h;
     double ty1d = 1-2*r/h;
 
-    glBegin(state.polygonMode);
+    glBegin(state.filled ? GL_POLYGON : GL_LINE_LOOP);
     {
         widgetVertex(x1, y1r, tx1, ty1r);
 
@@ -1808,7 +1804,7 @@ Tree *Widget::glrectangle(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
     ShapeName name(this, bbox(cx, cy, w, h));
     name.x(cx).y(cy).w(w).h(h);
 
-    glBegin(state.polygonMode);
+    glBegin(state.filled ? GL_POLYGON : GL_LINE_LOOP);
     {
         widgetVertex(cx-w/2, cy-h/2, 0, 0);
         widgetVertex(cx+w/2, cy-h/2, 1, 0);
@@ -1836,18 +1832,11 @@ Tree *Widget::regularStarPolygon(Tree *self, real_r cx, real_r cy, real_r r,
     double R_r = cos( q*M_PI/p ) / cos( (q-1)*M_PI/p );
     double R = r * R_r;
 
-    GLuint mode = state.polygonMode;
-    if (mode == GL_POLYGON)
-    {
-        mode = GL_TRIANGLE_FAN; // GL_POLYGON does not work here
-    }
-
+    GLuint mode = state.filled ? GL_TRIANGLE_FAN : GL_LINE_LOOP;
     glBegin(mode);
     {
-        if (mode == GL_TRIANGLE_FAN)
-        {
+        if (state.filled)
             circularVertex(cx, cy, r, 0, 0, 0, 0, 1, 1);    // The center
-        }
 
         for (int i = 0; i < p; i++)
         {
@@ -1862,10 +1851,8 @@ Tree *Widget::regularStarPolygon(Tree *self, real_r cx, real_r cy, real_r r,
                     (1-R_r)/2, (1-R_r)/2, (1+R_r)/2, (1+R_r)/2);
         }
 
-        if (mode == GL_TRIANGLE_FAN)
-        {
+        if (state.filled)
             circularVertex(cx, cy, r, 0, 1, 0, 0, 1, 1);    // Closing the star
-        }
     }
     glEnd();
 
@@ -2457,7 +2444,10 @@ Tree *Widget::circle(Tree *self, real_r cx, real_r cy, real_r r)
     GLAttribKeeper save;
 
     frame->Arc(cx, cy, r, 0, 2*M_PI, true);
-    frame->Stroke();
+    if (state.filled)
+        frame->Fill();
+    else
+        frame->Stroke();
     return XL::xl_true;
 }
 
@@ -2477,7 +2467,10 @@ Tree *Widget::circularSector(Tree *self,
     frame->MoveTo(cx, cy, false);
     frame->Arc(cx, cy, r, a, b, true);
     frame->ClosePath();
-    frame->Stroke();
+    if (state.filled)
+        frame->Fill();
+    else
+        frame->Stroke();
 
     return XL::xl_true;
  }
@@ -2510,8 +2503,10 @@ Tree *Widget::roundedRectangle(Tree *self,
     frame->Arc(x0+w0, y0+h0, r, 0       , M_PI_2  , true);
     frame->Arc(x0   , y0+h0, r, M_PI_2  , M_PI    , true);
     frame->ClosePath();
-    frame->Stroke();
-
+    if (state.filled)
+        frame->Fill();
+    else
+        frame->Stroke();
 
     return XL::xl_true;
 }

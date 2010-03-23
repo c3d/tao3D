@@ -1,12 +1,12 @@
-#ifndef TRANSFORMS_H
-#define TRANSFORMS_H
+#ifndef TEXT_DRAWING_H
+#define TEXT_DRAWING_H
 // ****************************************************************************
-//  transforms.h                                                    Tao project
+//  text_drawing.h                                                  Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    Record transformations being applied in a layout
+//     Rendering of text
 //
 //
 //
@@ -26,50 +26,44 @@
 
 TAO_BEGIN
 
-struct Transform : Attribute
+struct Glyphs : Shape
 // ----------------------------------------------------------------------------
-//   Base class for all transforms
+//    A contiguous run of glyphs
 // ----------------------------------------------------------------------------
 {
-    Transform() : Attribute() {}
+    Glyphs(text utf8): Shape(), utf8(utf8) {}
+    virtual void Draw(Layout *where);
+    virtual Box3 Bounds();
+    virtual Box3 Space();
+    text utf8;
 };
 
 
-struct Rotation : Transform
+struct FontChange : Attribute
 // ----------------------------------------------------------------------------
-//    Record a rotation
+//    Record a font change
 // ----------------------------------------------------------------------------
 {
-    Rotation(float a, float x, float y, float z):
-        Transform(), amount(a), xaxis(x), yaxis(y), zaxis(z) {}
+    FontChange(text name): Attribute(), font(font) {}
     virtual void Draw(Layout *where);
-    float amount, xaxis, yaxis, zaxis;
+    virtual Box3 Bounds();
+    virtual Box3 Space();
+    text font;
 };
 
 
-struct Translation : Transform
+struct FontSizeChange : Attribute
 // ----------------------------------------------------------------------------
-//    Record a translation
-// ----------------------------------------------------------------------------
-{
-    Translation(float x, float y, float z):
-        Transform(), xaxis(x), yaxis(y), zaxis(z) {}
-    virtual void Draw(Layout *where);
-    float xaxis, yaxis, zaxis;
-};
-
-
-struct Scale : Transform
-// ----------------------------------------------------------------------------
-//    Record a scale change
+//    Record a font size change
 // ----------------------------------------------------------------------------
 {
-    Scale(float x, float y, float z):
-        Transform(), xaxis(x), yaxis(y), zaxis(z) {}
+    FontSizeChange(float size): Attribute(), size(size) {}
     virtual void Draw(Layout *where);
-    float xaxis, yaxis, zaxis;
+    virtual Box3 Bounds();
+    virtual Box3 Space();
+    float size;
 };
 
 TAO_END
 
-#endif // TRANSFORMS_H
+#endif // TEXT_DRAWING_H

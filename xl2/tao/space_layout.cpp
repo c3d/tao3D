@@ -1,12 +1,10 @@
-#ifndef SHAPES3D_H
-#define SHAPES3D_H
 // ****************************************************************************
-//  shapes3d.h                                                      Tao project
+//  space_layout.cpp                                                Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Drawing of elementary 3D geometry shapes
+//     Layout objects in 3D space (z-ordering, ...)
 //
 //
 //
@@ -22,31 +20,26 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "drawing.h"
+#include "space_layout.h"
+#include "attributes.h"
+#include <cairo.h>
+#include <cairo-gl.h>
+
 
 TAO_BEGIN
 
-struct Shape3 : Drawing
+SpaceLayout::SpaceLayout()
 // ----------------------------------------------------------------------------
-//   Base class for all 3D shapes, just in case
+//   Constructor sets defaults
 // ----------------------------------------------------------------------------
-{
-    Shape3(): Drawing() {}
-};
+    : PageLayout(), alongZ()
+{}
 
 
-struct Sphere : Shape3
+SpaceLayout::~SpaceLayout()
 // ----------------------------------------------------------------------------
-//   Draw a sphere
+//   Destructore
 // ----------------------------------------------------------------------------
-{
-    Sphere(Point3 c, coord r): Shape3(), center(c), radius(r) {}
-    virtual void        Draw(Layout *where);
-    virtual Box3        Bounds();
-    Point3  center;
-    coord   radius;
-};
+{}
 
 TAO_END
-
-#endif // SHAPES3D_H

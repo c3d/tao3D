@@ -1,7 +1,7 @@
 #ifndef SHAPENAME_H
 #define SHAPENAME_H
 // ****************************************************************************
-//  shapename.h                                                     XLR project
+//  shapename.h                                                     Tao project
 // ****************************************************************************
 // 
 //   File Description:

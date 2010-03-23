@@ -1,7 +1,7 @@
 #ifndef LAYOUT_H
 #define LAYOUT_H
 // ****************************************************************************
-//  layout.h                                                        XLR project
+//  layout.h                                                        Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -24,8 +24,7 @@
 
 #include "drawing.h"
 #include <vector>
-
-struct cairo_t;                 // from <cairo.h>
+#include <cairo.h>
 
 TAO_BEGIN
 
@@ -37,6 +36,7 @@ struct Layout : Drawing
 // ----------------------------------------------------------------------------
 {
                         Layout();
+                        Layout(const Layout &o);
                         ~Layout();
 
     // Drawing interface
@@ -47,16 +47,11 @@ struct Layout : Drawing
 public:
     virtual Layout &    Add (Drawing *d) { items.push_back(d); return *this; }
     virtual void        Compute()        {}
-    virtual cairo_t *   Cairo()          { return NULL; }
 
 protected:
     // List of drawing elements
     typedef std::vector<Drawing *>      layout_items;
     layout_items        items;
-
-private:
-    // We don't want to copy layouts by mistake...
-    Layout(const Layout &o): Drawing(o) {}
 };
 
 TAO_END

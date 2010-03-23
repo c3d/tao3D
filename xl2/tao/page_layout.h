@@ -1,7 +1,7 @@
 #ifndef PAGE_LAYOUT_H
 #define PAGE_LAYOUT_H
 // ****************************************************************************
-//  page_layout.h                                                   XLR project
+//  page_layout.h                                                   Tao project
 // ****************************************************************************
 // 
 //   File Description:
@@ -24,6 +24,8 @@
 
 #include "layout.h"
 #include "justification.h"
+#include <cairo.h>
+
 
 TAO_BEGIN
 
@@ -38,8 +40,8 @@ struct PageLayout : Layout
 
 protected:
     // We use cairo to record most of our internal state (color, ...)
-    cairo_surface_t      *cairo_surface;
-    cairo_t              *cairo_context;
+    cairo_surface_t      *surface;
+    cairo_t              *context;
 
     // Justification information
     Justification       alongX, alongY;

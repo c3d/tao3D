@@ -61,6 +61,9 @@ HEADERS += widget.h \
     shapes3d.h \
     attributes.h \
     transforms.h \
+    layout.h \
+    page_layout.h \
+    space_layout.h \
     apply-changes.h \
     activity.h \
     selection.h \
@@ -114,6 +117,9 @@ SOURCES += tao_main.cpp \
     shapes3d.cpp \
     attributes.cpp \
     transforms.cpp \
+    layout.cpp \
+    page_layout.cpp \
+    space_layout.cpp \
     apply-changes.cpp \
     activity.cpp \
     selection.cpp \

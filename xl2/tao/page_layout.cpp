@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  page_layout.cpp                                                 XLR project
+//  page_layout.cpp                                                 Tao project
 // ****************************************************************************
 // 
 //   File Description:
@@ -21,7 +21,10 @@
 // ****************************************************************************
 
 #include "page_layout.h"
-#include "attribute.h"
+#include "attributes.h"
+#include "gl_keepers.h"
+#include <cairo.h>
+#include <cairo-gl.h>
 
 TAO_BEGIN
 
@@ -29,16 +32,16 @@ PageLayout::PageLayout()
 // ----------------------------------------------------------------------------
 //   Create a new layout
 // ----------------------------------------------------------------------------
-    : cairo_surface(NULL), cairo_context(NULL)
+    : surface(NULL), context(NULL)
 {
     GLStateKeeper save;
 
-    cairo_surface = cairo_gl_surface_create_for_current_gl_context();
-    if (cairo_surface_status(cairo_surface) != CAIRO_STATUS_SUCCESS)
+    surface = cairo_gl_surface_create_for_current_gl_context();
+    if (cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS)
         XL::Ooops("Unable to create Cairo surface");
 
-    cairo_context = cairo_create(cairo_surface);
-    if (cairo_status(cairo_context) != CAIRO_STATUS_SUCCESS)
+    context = cairo_create(surface);
+    if (cairo_status(context) != CAIRO_STATUS_SUCCESS)
         XL::Ooops("Unable to create Cairo context");
 }
 
@@ -47,13 +50,13 @@ PageLayout::PageLayout(const PageLayout &o)
 // ----------------------------------------------------------------------------
 //   Copy a layout from another layout
 // ----------------------------------------------------------------------------
-    : cairo_surface(NULL), cairo_context(NULL)
+    : Layout(o), surface(NULL), context(NULL)
 {
     GLStateKeeper save;
 
-    cairo_surface = cairo_surface_reference(o.cairo_surface);
-    cairo_context = cairo_create(cairo_surface);
-    if (cairo_status(cairo_context) != CAIRO_STATUS_SUCCESS)
+    surface = cairo_surface_reference(o.surface);
+    context = cairo_create(surface);
+    if (cairo_status(context) != CAIRO_STATUS_SUCCESS)
         XL::Ooops("Unable to create Cairo context");
 }
 
@@ -62,21 +65,11 @@ PageLayout::~PageLayout()
 // ----------------------------------------------------------------------------
 //    Destroy the cairo context
 // ----------------------------------------------------------------------------
-
-    if (context)
-        cairo_destroy(cairo_context);
-    if (surface)
-        cairo_surface_destroy(cairo_surface);
-}
-
-
-void PageLayout::SetAttribute(Attribute *attribute)
-// ----------------------------------------------------------------------------
-//    Set the attribute in Cairo
-// ----------------------------------------------------------------------------
 {
-    attribute->SetCairo(cairo_context);
+    if (context)
+        cairo_destroy(context);
+    if (surface)
+        cairo_surface_destroy(surface);
 }
-
 
 TAO_END

@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  layout.cpp                                                      XLR project
+//  layout.cpp                                                      Tao project
 // ****************************************************************************
 // 
 //   File Description:
@@ -33,6 +33,14 @@ Layout::Layout()
 {}
 
 
+Layout::Layout(const Layout &o)
+// ----------------------------------------------------------------------------
+//   Copy constructor
+// ----------------------------------------------------------------------------
+    : Drawing(o), items(o.items)
+{}
+
+
 Layout::~Layout()
 // ----------------------------------------------------------------------------
 //   Destroy a layout
@@ -49,6 +57,7 @@ void Layout::Draw(Layout *where)
 //   Draw the elements in the layout
 // ----------------------------------------------------------------------------
 {
+    (void) where;               // REVISIT...
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
         (*i)->Draw(this);

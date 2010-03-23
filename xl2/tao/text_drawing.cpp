@@ -1,20 +1,18 @@
-#ifndef SHAPES3D_H
-#define SHAPES3D_H
 // ****************************************************************************
-//  shapes3d.h                                                      Tao project
+//  text_drawing.cpp                                                Tao project
 // ****************************************************************************
-//
+// 
 //   File Description:
-//
-//     Drawing of elementary 3D geometry shapes
-//
-//
-//
-//
-//
-//
-//
-//
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -22,31 +20,41 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "drawing.h"
+#include "text_drawing.h"
 
 TAO_BEGIN
 
-struct Shape3 : Drawing
+// ============================================================================
+//
+//   FontChange
+//
+// ============================================================================
+
+void FontChange::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Base class for all 3D shapes, just in case
+//    Record the font change
 // ----------------------------------------------------------------------------
 {
-    Shape3(): Drawing() {}
-};
+    
+}
 
 
-struct Sphere : Shape3
+coord FontChange::MinLineHeight()
 // ----------------------------------------------------------------------------
-//   Draw a sphere
+//   Return the minimum line height
 // ----------------------------------------------------------------------------
 {
-    Sphere(Point3 c, coord r): Shape3(), center(c), radius(r) {}
-    virtual void        Draw(Layout *where);
-    virtual Box3        Bounds();
-    Point3  center;
-    coord   radius;
-};
+    return font->LineHeight();
+}
+
+
+Box FontChange::Bounds()
+// ----------------------------------------------------------------------------
+//   Record the font change while we are scanning for glyph bounds
+// ----------------------------------------------------------------------------
+{
+    tao.font = font;
+    return Box();
+}
 
 TAO_END
-
-#endif // SHAPES3D_H

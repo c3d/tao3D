@@ -1,7 +1,7 @@
 #ifndef ATTRIBUTES_H
 #define ATTRIBUTES_H
 // ****************************************************************************
-//  attributes.h                                                    XLR project
+//  attributes.h                                                    Tao project
 // ****************************************************************************
 //
 //   File Description:

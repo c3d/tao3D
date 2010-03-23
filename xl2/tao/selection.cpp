@@ -66,7 +66,9 @@ Activity *Selection::Idle(void)
 //   Make the refresh rate shorter so that we animate the rectangle
 // ----------------------------------------------------------------------------
 {
-    widget->refresh(NULL, 0.1);
+    if (!widget->timer.isActive())
+        widget->refresh(NULL, 0.005);
+    widget->updateGL();
     return next;               // Keep doing other idle activities
 }
 
@@ -98,6 +100,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
     }
     else
     {
+        Idle();
         delete this;
         return next;
     }
@@ -165,7 +168,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
     }
 
     // In all cases, we want a screen refresh
-    widget->updateGL();
+    Idle();
 
     // If we are done with the selection, remove it and shift to a Drag
     if (doneWithSelection)
@@ -186,7 +189,10 @@ Activity *Selection::MouseMove(int x, int y, bool active)
 // ----------------------------------------------------------------------------
 {
     if (!active)
+    {
+        Idle();
         return next;
+    }
 
     y = widget->height() - y;
     rectangle.upper.Set(x,y);
@@ -230,7 +236,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     delete[] buffer;
 
     // Need a refresh
-    widget->updateGL();
+    Idle();
 
     // We dealt with the mouse move, don't let other activities get it
     return NULL;

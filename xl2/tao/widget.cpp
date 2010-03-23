@@ -2513,9 +2513,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 {
     bool isContextMenu = false;
 
-    //---------------------------------
     // Build the full name of the menu
-    //---------------------------------
     // Uses the current menu name, the given string and the isSubmenu.
     QString fullname = QString::fromStdString(s);
     if (isSubMenu && currentMenu)
@@ -2537,9 +2535,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
     MenuInfo *menuInfo = self->GetInfo<MenuInfo>();
 
 
-    //---------------------------------------------------
     // If the menu is registered, no need to recreate it.
-    //---------------------------------------------------
     // This is used at reload time, recreate the MenuInfo if required.
     if (QMenu *tmp = parent()->findChild<QMenu*>(fullname))
     {
@@ -2556,9 +2552,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
         return XL::xl_true;
     }
 
-    //-------------------------------
     // The menu is not yet registered.
-    //-------------------------------
     // The name may have change but not the content
     // (in the loop of the XL program execution).
     if (menuInfo)
@@ -2571,9 +2565,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
         return XL::xl_true;
     }
 
-    //----------------------------------------
     // The menu is not existing. Creating it.
-    //----------------------------------------
     if (isContextMenu)
     {
         currentMenu = new QMenu((Window*)parent());

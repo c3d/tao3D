@@ -2517,23 +2517,23 @@ Tree *Widget::roundedRectangle(Tree *self,
 //
 // ============================================================================
 // * Menu name philosophy :
-// * The full name is used to register menus and menu items against the menubar.
-//   Those names are not displayed.
-// * Menu created by the XL programmer must be differentiated from the originals
-//   ones because they have to be recreated or modified at each loop of XL.
-//   When top menus are deleted they recursively delete their children (sub
-//   menus and menu items), so we have to take care of sub menu at deletion
-//   time. Regarding those constraints, main menus are prefixed with _TOP_MENU_,
+// * The full name is used to register menus and menu items against
+//   the menubar.  Those names are not displayed.
+// * Menu created by the XL programmer must be differentiated from the
+//   originals ones because they have to be recreated or modified at
+//   each loop of XL.  When top menus are deleted they recursively
+//   delete their children (sub menus and menu items), so we have to
+//   take care of sub menu at deletion time.
+//   Regarding those constraints, main menus are prefixed with _TOP_MENU_,
 //   sub menus are prefixed by _SUB_MENU_. Then each menu item and sub menu are
 //   prefixed by the "current menu" name (this current menu may itself be a
 //   submenu). Each part of the name are separated by a /.
 //
-// * Menu and menu items lifecycle :
-//   Menus are created when the xl program is executed the first time.
-//   Menus display text can be modified at each execution.
-//   Menus are destroyed when the xl program is invalidated.
-//   At save time, the old xl program is invalidated and the new one is executed
-//      for the first time.
+// * Menu and menu items lifecycle : Menus are created when the xl
+//   program is executed the first time.  Menus display text can be
+//   modified at each execution.  Menus are destroyed when the xl
+//   program is invalidated.  At save time, the old xl program is
+//   invalidated and the new one is executed for the first time.
 // ============================================================================
 
 Tree *Widget::menuItem(Tree *self, text s, Tree *t)

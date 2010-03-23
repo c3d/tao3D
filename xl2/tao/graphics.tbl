@@ -199,12 +199,6 @@ PREFIX(KText, tree, "ktext",
        RTAO(Ktext(self, s)))
 PREFIX(Stroke, tree, "stroke",, RTAO(stroke(self)))
 PREFIX(Clear, tree, "clear",, RTAO(clear(self)))
-PREFIX(LText, tree, "ltext",
-       PARM(s, text),
-       RTAO(KlayoutText(self, s)))
-PREFIX(LMarkup, tree, "lmarkup",
-       PARM(s, text),
-       RTAO(KlayoutMarkup(self, s)))
 
 PREFIX(Path, tree, "path", PARM(t, tree), RTAO(buildPath(self, &t, 0x0)))
 PREFIX(pathStroke, tree, "pathstroke",

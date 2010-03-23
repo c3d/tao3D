@@ -2302,26 +2302,6 @@ Tree *Widget::Ktext(Tree *self, text s)
 }
 
 
-Tree *Widget::KlayoutText(Tree *self, text s)
-// ----------------------------------------------------------------------------
-//    Text layout with Pango at the current cursor position
-// ----------------------------------------------------------------------------
-{
-    frame->LayoutText(s);
-    return XL::xl_true;
-}
-
-
-Tree *Widget::KlayoutMarkup(Tree *self, text s)
-// ----------------------------------------------------------------------------
-//    Text layout with markup using Pango at the current cursor position
-// ----------------------------------------------------------------------------
-{
-    frame->LayoutMarkup(s);
-    return XL::xl_true;
-}
-
-
 Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //    Draw a rectangle using Cairo

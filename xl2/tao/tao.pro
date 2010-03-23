@@ -162,10 +162,10 @@ RESOURCES += tao.qrc
 !system(bash -c \"llvm-config --version >/dev/null\"):error("Can't execute llvm-config")
 !system(bash -c \"pkg-config --version >/dev/null\"):error("Can't execute pkg-config")
 
-# Pango / Cairo
-PANGOCAIRO_LIBS = $$system(bash -c \"pkg-config --libs pangocairo \")
-PANGOCAIRO_INC = $$system(bash -c \"pkg-config --cflags-only-I pangocairo | sed s/-I//g\")
-PANGOCAIRO_FLAGS = $$system(bash -c \"pkg-config --cflags-only-other pangocairo\")
+# Cairo
+CAIRO_LIBS = $$system(bash -c \"pkg-config --libs cairo \")
+CAIRO_INC = $$system(bash -c \"pkg-config --cflags-only-I cairo | sed s/-I//g\")
+CAIRO_FLAGS = $$system(bash -c \"pkg-config --cflags-only-other cairo\")
 
 # LLVM dependencies
 LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\")
@@ -174,17 +174,17 @@ LLVM_INC = $$system(bash -c \"llvm-config --includedir\")
 LLVM_DEF = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
 
 # Consolidated flags and libs
-INCLUDEPATH += $$PANGOCAIRO_INC \
+INCLUDEPATH += $$CAIRO_INC \
     $$LLVM_INC
-LIBS += $$PANGOCAIRO_LIBS \
+LIBS += $$CAIRO_LIBS \
     $$LLVM_LIBS
 DEFINES += $$LLVM_DEF
 
 # Extra flags for CC and CXX
-QMAKE_CFLAGS_RELEASE += $$PANGOCAIRO_FLAGS
-QMAKE_CFLAGS_DEBUG += $$PANGOCAIRO_FLAGS
-QMAKE_CXXFLAGS_RELEASE += $$PANGOCAIRO_FLAGS
-QMAKE_CXXFLAGS_DEBUG += $$PANGOCAIRO_FLAGS
+QMAKE_CFLAGS_RELEASE += $$CAIRO_FLAGS
+QMAKE_CFLAGS_DEBUG += $$CAIRO_FLAGS
+QMAKE_CXXFLAGS_RELEASE += $$CAIRO_FLAGS
+QMAKE_CXXFLAGS_DEBUG += $$CAIRO_FLAGS
 
 # Others
 DEFAULT_FONT = /Library/Fonts/Arial.ttf

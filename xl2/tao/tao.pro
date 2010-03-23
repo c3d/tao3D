@@ -57,7 +57,10 @@ HEADERS += widget.h \
     gl_keepers.h \
     text_flow.h \
     drawing.h \
-    shapes_drawing.h \
+    shapes.h \
+    shapes3d.h \
+    attributes.h \
+    transforms.h \
     apply-changes.h \
     activity.h \
     selection.h \
@@ -107,7 +110,10 @@ SOURCES += tao_main.cpp \
     texture.cpp \
     text_flow.cpp \
     drawing.cpp \
-    shapes_drawing.cpp \
+    shapes.cpp \
+    shapes3d.cpp \
+    attributes.cpp \
+    transforms.cpp \
     apply-changes.cpp \
     activity.cpp \
     selection.cpp \

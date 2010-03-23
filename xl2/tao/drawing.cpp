@@ -4,7 +4,7 @@
 // 
 //   File Description:
 // 
-// 
+//      Elements that can be drawn on a 2D layout
 // 
 // 
 // 

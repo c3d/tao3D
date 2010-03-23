@@ -50,6 +50,7 @@ struct Point3
 {
     Point3(coord X = 0, coord Y = 0, coord Z = 0): x(X), y(Y), z(Z) {}
     Point3(const Point3 &o): x(o.x), y(o.y), z(o.z) {}
+    Point3(const Point &p): x(p.x), y(p.y), z(0) {}
     Point3 &Set(coord X, coord Y, coord Z) { x=X; y=Y; z=Z; return *this; }
     Point3& operator = (const Point3& o)
     {
@@ -88,6 +89,7 @@ struct Vector3 : Point3
 {
     Vector3(coord x = 0.0, coord y = 0.0, coord z = 0.0): Point3(x,y,z) {}
     Vector3(const Vector3 &o): Point3(o) {}
+    Vector3(const Vector &o): Point3(o) {}
 
     Vector3& operator +=(const Vector3& o)
     {
@@ -236,6 +238,7 @@ struct Box3
     Box3(coord x, coord y, coord z, coord w, coord h, coord d)
         : lower(x,y,z), upper(x+w, y+h, z+d) {}
     Box3(const Box3 &o): lower(o.lower), upper(o.upper) {}
+    Box3(const Box &o): lower(o.lower), upper(o.upper) {}
 
     Box3 & operator = (const Box3 &o)
     {

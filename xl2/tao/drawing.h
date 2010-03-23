@@ -22,27 +22,31 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "coords.h"
+#include "coords3d.h"
 #include "tao.h"
 
 TAO_BEGIN
 
+
+struct Layout;
+
 struct Drawing
 // ----------------------------------------------------------------------------
-//   Something that can be drawn in a layout
+//   Something that can be drawn in a 2D or 3D layout
 // ----------------------------------------------------------------------------
-//   A single Drawing class can represent a number of items in a layout
-//   For example, a text Drawing can represent consecutive glyphs.
-//   In that case, the caller is supposed to iterate until More() == false
+//   Draw() draws the shape in the given layout
+//   Bounds() returns the untransformed bounding box for the shape
+//   Space() returns the untransformed space desired around object
+//   For instance, for text, Space() considers font line height, not Bounds()
 {
-    Drawing() {}
-    virtual ~Drawing() {}
-    virtual void        Draw(const Point &)  {}
+                        Drawing() {}
+    virtual             ~Drawing() {}
+    virtual void        Draw(Layout *)  {}
+    virtual Box3        Bounds()        { return Box3(); }
+    virtual Box3        Space()         { return Bounds(); }
     virtual bool        IsWordBreak()   { return false; }
     virtual bool        IsLineBreak()   { return false; }
     virtual bool        IsAttribute()   { return false; }
-    virtual Box         Bounds()        { return Box(); }
-    virtual bool        More()          { return false; }
 };
 
 TAO_END

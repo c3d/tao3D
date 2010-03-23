@@ -1,12 +1,12 @@
-#ifndef SHAPES_DRAWING_H
-#define SHAPES_DRAWING_H
+#ifndef SHAPES_H
+#define SHAPES_H
 // ****************************************************************************
-//  shapes_drawing.h                                                Tao project
+//  shapes.h                                                       Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Drawing of elementary geometry shapes on a 2D layout
+//     Drawing of elementary 2D geometry shapes
 //
 //
 //
@@ -26,14 +26,23 @@
 
 TAO_BEGIN
 
-struct Rectangle : Drawing
+struct Shape : Drawing
+// ----------------------------------------------------------------------------
+//   Common base class, just in case
+// ----------------------------------------------------------------------------
+{
+    Shape(): Drawing() {}
+};
+
+
+struct Rectangle : Shape
 // ----------------------------------------------------------------------------
 //    A rectangle that can be placed in a layout
 // ----------------------------------------------------------------------------
 {
-    Rectangle(const Box &b): Drawing(), bounds(b) {}
-    virtual void        Draw(const Point &where);
-    virtual Box         Bounds()        { return bounds; }
+    Rectangle(const Box &b): Shape(), bounds(b) {}
+    virtual void        Draw(Layout *where);
+    virtual Box3        Bounds()        { return bounds; }
     Box                 bounds;
 };
 
@@ -44,19 +53,19 @@ struct RoundedRectangle : Rectangle
 // ----------------------------------------------------------------------------
 {
     RoundedRectangle(const Box &b, coord r): Rectangle(b), radius(r) {}
-    virtual void        Draw(const Point &where);
+    virtual void        Draw(Layout *where);
     coord               radius;
 };    
 
 
-struct Circle : Drawing
+struct Circle : Shape
 // ----------------------------------------------------------------------------
 //    A circle that can be placed in a layout
 // ----------------------------------------------------------------------------
 {
-    Circle(Point c, coord r): Drawing(), center(c), radius(r) {}
-    virtual void        Draw(const Point &where);
-    virtual Box         Bounds();
+    Circle(Point c, coord r): Shape(), center(c), radius(r) {}
+    virtual void        Draw(Layout *where);
+    virtual Box3        Bounds();
     Point               center;
     coord               radius;
 };

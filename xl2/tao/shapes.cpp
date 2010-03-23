@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  shapes_drawing.cpp                                              XLR project
+//  shapes.cpp                                                     Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -20,7 +20,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "shapes_drawing.h"
+#include "shapes.h"
 #include "widget.h"
 
 TAO_BEGIN
@@ -31,26 +31,12 @@ TAO_BEGIN
 //
 // ============================================================================
 
-void Rectangle::Draw(const Point &where)
+void Rectangle::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw a rectangle
 // ----------------------------------------------------------------------------
 {
-    coord px = where.x;
-    coord py = where.y;
-    coord xl = bounds.Left() + px;
-    coord xu = bounds.Right() + px;
-    coord yl = bounds.Bottom() + py;
-    coord yu = bounds.Top() + py;
-
-    glBegin(TAO(state.polygonMode));
-    {
-        glTexCoord2f(0.0,0.0);    glVertex3f (xl, yl, 0.0);
-        glTexCoord2f(0.0,1.0);    glVertex3f (xl, yu, 0.0);
-        glTexCoord2f(1.0,1.0);    glVertex3f (xu, yu, 0.0);
-        glTexCoord2f(1.0,0.0);    glVertex3f (xu, yl, 0.0);
-    }
-    glEnd();
+    (void) where;
 }
 
 
@@ -61,7 +47,7 @@ void Rectangle::Draw(const Point &where)
 // 
 // ============================================================================
 
-void RoundedRectangle::Draw(const Point &where)
+void RoundedRectangle::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw a rounded rectangle
 // ----------------------------------------------------------------------------
@@ -77,7 +63,7 @@ void RoundedRectangle::Draw(const Point &where)
 //
 // ============================================================================
 
-void Circle::Draw(const Point &where)
+void Circle::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw a circle
 // ----------------------------------------------------------------------------
@@ -86,12 +72,13 @@ void Circle::Draw(const Point &where)
 }
 
 
-Box Circle::Bounds()
+Box3 Circle::Bounds()
 // ----------------------------------------------------------------------------
 //    Return the bounding box for a circle
 // ----------------------------------------------------------------------------
 {
-    return Box(center.x - radius, center.y - radius, 2*radius, 2*radius);
+    return Box3(center.x - radius, center.y - radius, 0,
+                2*radius, 2*radius, 0);
 }
 
 TAO_END

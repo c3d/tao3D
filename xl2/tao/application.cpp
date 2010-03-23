@@ -57,7 +57,7 @@ Application::Application(int & argc, char ** argv)
     if (arguments().contains("--internal-use-only-clean-environment"))
     {
         internalCleanEverythingAsIfTaoWereNeverRun();
-        exit(0);
+        std::exit(0);
     }
 
     // Web settings

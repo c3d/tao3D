@@ -60,6 +60,8 @@ void GraphicPath::Draw(Layout *where)
         case LINE_TO:
             vdata.push_back(pos);
             tdata.push_back(tex);
+            vctrl.push_back(pos);
+            tctrl.push_back(pos);
             break;
 
         case CURVE_CONTROL:

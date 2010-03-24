@@ -22,6 +22,8 @@
 
 #include "layout.h"
 #include "gl_keepers.h"
+#include <cairo.h>
+#include <cairo-gl.h>
 
 TAO_BEGIN
 
@@ -29,16 +31,33 @@ Layout::Layout()
 // ----------------------------------------------------------------------------
 //    Create an empty layout
 // ----------------------------------------------------------------------------
-    : items()
-{}
+    : items(), offset(), surface(NULL), context(NULL)
+{
+    GLStateKeeper save;
+
+    surface = cairo_gl_surface_create_for_current_gl_context();
+    if (cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS)
+        XL::Ooops("Unable to create Cairo surface");
+
+    context = cairo_create(surface);
+    if (cairo_status(context) != CAIRO_STATUS_SUCCESS)
+        XL::Ooops("Unable to create Cairo context");
+}
 
 
 Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
 //   Copy constructor
 // ----------------------------------------------------------------------------
-    : Drawing(o), items(o.items)
-{}
+    : Drawing(o), items(o.items), surface(NULL), context(NULL)
+{
+    GLStateKeeper save;
+
+    surface = cairo_surface_reference(o.surface);
+    context = cairo_create(surface);
+    if (cairo_status(context) != CAIRO_STATUS_SUCCESS)
+        XL::Ooops("Unable to create Cairo context");
+}
 
 
 Layout::~Layout()
@@ -49,6 +68,11 @@ Layout::~Layout()
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
         delete *i;
+
+    if (context)
+        cairo_destroy(context);
+    if (surface)
+        cairo_surface_destroy(surface);
 }
 
 
@@ -57,12 +81,22 @@ void Layout::Draw(Layout *where)
 //   Draw the elements in the layout
 // ----------------------------------------------------------------------------
 {
-    (void) where;               // REVISIT...
-    Compute();
+    // Inherit offset from our parent layout if there is one
+    if (where)
+        offset = where->Offset();
 
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
         (*i)->Draw(this);
+}
+
+
+Vector3 Layout::Offset()
+// ----------------------------------------------------------------------------
+//   Return the offset at which the layout expects us to draw
+// ----------------------------------------------------------------------------
+{
+    return offset;
 }
 
 
@@ -90,5 +124,16 @@ Box3 Layout::Space()
         result |= (*i)->Space();
     return result;
 }
+
+
+Layout &Layout::Add(Drawing *d)
+// ----------------------------------------------------------------------------
+//   Add a drawing to the items - Override with layout computations
+// ----------------------------------------------------------------------------
+{
+    items.push_back(d);
+    return *this;
+}
+
 
 TAO_END

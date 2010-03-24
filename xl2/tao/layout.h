@@ -44,14 +44,21 @@ struct Layout : Drawing
     virtual Box3        Bounds();
     virtual Box3        Space();
 
-public:
-    virtual Layout &    Add (Drawing *d) { items.push_back(d); return *this; }
-    virtual void        Compute()        {}
+    // Layout interface
+    virtual Layout &    Add (Drawing *d);
+    virtual Vector3     Offset();
+
+    cairo_t *           Cairo()          { return context; }
 
 protected:
     // List of drawing elements
     typedef std::vector<Drawing *>      layout_items;
     layout_items        items;
+    Vector3             offset;
+
+    // We use cairo to record most of our internal state (color, ...)
+    cairo_surface_t     *surface;
+    cairo_t             *context;
 };
 
 TAO_END

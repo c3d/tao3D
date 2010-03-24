@@ -33,18 +33,8 @@ PageLayout::PageLayout()
 //   Create a new layout
 // ----------------------------------------------------------------------------
     : Layout(),
-      space(), horizontal(), vertical(),
-      surface(NULL), context(NULL)
+      space(), horizontal(), vertical()
 {
-    GLStateKeeper save;
-
-    surface = cairo_gl_surface_create_for_current_gl_context();
-    if (cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS)
-        XL::Ooops("Unable to create Cairo surface");
-
-    context = cairo_create(surface);
-    if (cairo_status(context) != CAIRO_STATUS_SUCCESS)
-        XL::Ooops("Unable to create Cairo context");
 }
 
 
@@ -53,15 +43,8 @@ PageLayout::PageLayout(const PageLayout &o)
 //   Copy a layout from another layout
 // ----------------------------------------------------------------------------
     : Layout(o),
-      space(o.space), horizontal(o.horizontal), vertical(o.vertical),
-      surface(NULL), context(NULL)
+      space(o.space), horizontal(o.horizontal), vertical(o.vertical)
 {
-    GLStateKeeper save;
-
-    surface = cairo_surface_reference(o.surface);
-    context = cairo_create(surface);
-    if (cairo_status(context) != CAIRO_STATUS_SUCCESS)
-        XL::Ooops("Unable to create Cairo context");
 }
 
 
@@ -69,12 +52,7 @@ PageLayout::~PageLayout()
 // ----------------------------------------------------------------------------
 //    Destroy the cairo context
 // ----------------------------------------------------------------------------
-{
-    if (context)
-        cairo_destroy(context);
-    if (surface)
-        cairo_surface_destroy(surface);
-}
+{}
 
 
 Box3 PageLayout::Space()
@@ -88,11 +66,12 @@ Box3 PageLayout::Space()
 }
 
 
-void PageLayout::Compute()
+Layout &PageLayout::Add(Drawing *d)
 // ----------------------------------------------------------------------------
-//   Layout the objects in the space box
+//   Add items to the list at the right position
 // ----------------------------------------------------------------------------
 {
+    return Layout::Add(d);
 }
 
 TAO_END

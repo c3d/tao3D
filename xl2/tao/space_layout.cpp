@@ -54,11 +54,12 @@ Box3 SpaceLayout::Space()
 }
 
 
-void SpaceLayout::Compute()
+Layout &SpaceLayout::Add(Drawing *d)
 // ----------------------------------------------------------------------------
-//    Compute the layout of objects in 3D space
+//   Add items to the list at the right position
 // ----------------------------------------------------------------------------
 {
+    return Layout::Add(d);
 }
 
 

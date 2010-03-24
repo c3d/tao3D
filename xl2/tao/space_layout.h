@@ -36,7 +36,7 @@ struct SpaceLayout : Layout
                         ~SpaceLayout();
 
     virtual Box3        Space();
-    virtual void        Compute();
+    virtual Layout &    Add(Drawing *d);
 
 public:
     // Space requested for the layout

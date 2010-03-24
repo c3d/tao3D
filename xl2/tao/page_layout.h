@@ -24,8 +24,6 @@
 
 #include "layout.h"
 #include "justification.h"
-#include <cairo.h>
-
 
 TAO_BEGIN
 
@@ -39,17 +37,12 @@ struct PageLayout : Layout
                         ~PageLayout();
 
     virtual Box3        Space();
-    virtual void        Compute();
+    virtual Layout &    Add(Drawing *d);
 
 public:
     // Space requested for the layout
     Box3                space;
     Justification       horizontal, vertical;
-
-protected:
-    // We use cairo to record most of our internal state (color, ...)
-    cairo_surface_t     *surface;
-    cairo_t             *context;
 };
 
 TAO_END

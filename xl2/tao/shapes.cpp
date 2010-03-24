@@ -35,12 +35,10 @@ TAO_BEGIN
 //
 // ============================================================================
 
-static Layout *fillLayout = NULL;
-static Layout *outlineLayout = NULL;
-static Layout *textLayout = NULL;
+static double red = -1, green = -1, blue = -1, alpha = -1;
 
 
-static bool setTexture(Layout *where)
+static inline bool setTexture(Layout *where)
 // ----------------------------------------------------------------------------
 //   Get the texture from the layout
 // ----------------------------------------------------------------------------
@@ -60,15 +58,11 @@ static bool setTexture(Layout *where)
 }
 
 
-static bool setFillColor(Layout *where)
+static inline bool setFillColor(Layout *where)
 // ----------------------------------------------------------------------------
 //    Set the fill color and texture according to the layout attributes
 // ----------------------------------------------------------------------------
 {
-    // Cache in case we use only fill
-    if (fillLayout == where)
-        return true;
-
     // Check if we have a non-transparent fill color
     if (where)
     {
@@ -76,12 +70,16 @@ static bool setFillColor(Layout *where)
         {
             if (color->alpha > 0.0)
             {
-                // Load the color
+                // Check cached GL color
+                if (color->red  == red  && color->green == green &&
+                    color->blue == blue && color->alpha != alpha)
+                    return true;
+                
                 glColor4f(color->red, color->green, color->blue, color->alpha);
-
-                fillLayout = where;
-                outlineLayout = NULL;
-                textLayout = NULL;
+                red = color->red;
+                green = color->green;
+                blue = color->blue;
+                alpha = color->alpha;
                 return true;
             }
         }
@@ -90,61 +88,28 @@ static bool setFillColor(Layout *where)
 }
 
 
-static bool setOutlineColor(Layout *where)
+static inline bool setLineColor(Layout *where)
 // ----------------------------------------------------------------------------
 //    Set the outline color according to the layout attributes
 // ----------------------------------------------------------------------------
 {
-    // Cache in case we use only outline
-    if (outlineLayout == where)
-        return true;
-
     // Check if we have a non-transparent outline color
     if (where)
     {
-        if (OutlineColor *color = where->outlineColor)
+        if (LineColor *color = where->lineColor)
         {
             if (color->alpha > 0.0)
             {
-                // No texture on the outline?
-                glDisable(GL_TEXTURE_2D);
-
-                // Load the color
+                // Check cached GL color
+                if (color->red  == red  && color->green == green &&
+                    color->blue == blue && color->alpha != alpha)
+                    return true;
+                
                 glColor4f(color->red, color->green, color->blue, color->alpha);
-
-                fillLayout = NULL;
-                outlineLayout = where;
-                textLayout = NULL;
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-
-static bool setTextColor(Layout *where)
-// ----------------------------------------------------------------------------
-//    Set the text color according to the layout attributes
-// ----------------------------------------------------------------------------
-{
-    // Cache in case we use only text
-    if (textLayout == where)
-        return true;
-
-    // Check if we have a non-transparent text color
-    if (where)
-    {
-        if (TextColor *color = where->textColor)
-        {
-            if (color->alpha > 0.0)
-            {
-                // Load the color
-                glColor4f(color->red, color->green, color->blue, color->alpha);
-
-                fillLayout = NULL;
-                outlineLayout = NULL;
-                textLayout = where;
+                red = color->red;
+                green = color->green;
+                blue = color->blue;
+                alpha = color->alpha;
                 return true;
             }
         }
@@ -164,9 +129,9 @@ static void drawPath(Layout *where, GraphicPath &path)
         path.mode = GL_POLYGON;
         path.Draw(where);
     }
-    if (setOutlineColor(where))
+    if (setLineColor(where))
     {
-        path.mode = GL_LINES;
+        path.mode = GL_LINE_STRIP;
         path.Draw(where);
     }
 }

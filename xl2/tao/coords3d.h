@@ -420,9 +420,12 @@ inline Point3 operator/ (const Point3 &p, const Box3 &b)
 //   Return the point as scaled within the bounding box
 // ----------------------------------------------------------------------------
 {
-    return Point3((p.x - b.lower.x) / (b.upper.x - b.lower.x),
-                  (p.y - b.lower.y) / (b.upper.y - b.lower.y),
-                  (p.z - b.lower.z) / (b.upper.z - b.lower.z));
+    coord dx = b.upper.x - b.lower.x; dx += dx == 0.0;
+    coord dy = b.upper.y - b.lower.y; dy += dy == 0.0;
+    coord dz = b.upper.z - b.lower.z; dz += dz == 0.0;
+    return Point3((p.x - b.lower.x) / dx,
+                  (p.y - b.lower.y) / dy,
+                  (p.z - b.lower.z) / dz);
 }
 
 TAO_END

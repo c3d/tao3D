@@ -66,15 +66,17 @@ PREFIX(NotSelectable, boolean, "not_selectable",, RTAO(selectable(self, false)))
 PREFIX(Selector, tree, "selector", PARM(n, text),
        RTAO(selectorName(self, n)))
 
-PREFIX(ColorRGBA, tree, "color",
+PREFIX(FillColorRGBA, tree, "color",
        PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
-       RTAO(color(self, r,g,b, a)))
-PREFIX(ColorRGB, tree, "color", PARM(r, real) PARM(g, real) PARM(b, real),
-        RTAO(color(self, r,g,b, 1.0)))
+       RTAO(fillColor(self, r,g,b, a)))
+PREFIX(LineColorRGBA, tree, "line_color",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(lineColor(self, r,g,b, a)))
 
-PREFIX(Filled, tree, "filled", , RTAO(filled(self)))
-PREFIX(Hollow, tree, "hollow", , RTAO(hollow(self)))
-PREFIX(LineWidth, tree, "line_width", PARM(lw, real), RTAO(linewidth(self, lw)))
+PREFIX(LineWidth, tree, "line_width", PARM(lw, real), RTAO(lineWidth(self, lw)))
+PREFIX(LineStipple, tree, "line_stipple",
+       PARM(p, integer) PARM(s, integer),
+       RTAO(lineStipple(self, p, s)))
 
 PREFIX(Polygon, tree, "polygon", PARM(t, tree), RTAO(polygon(self, &t)))
 PREFIX(Points, tree, "points", PARM(t, tree), RTAO(points(self, &t)))
@@ -172,17 +174,6 @@ PREFIX(LineEdit, tree, "line_edit",
 PREFIX(LineEditTexture, tree, "line_edit_texture",
        PARM(w,real) PARM(h,real) PARM(u, text),
        RTAO(lineEditTexture(self, w, h, &u)))
-
-PREFIX(TextFgColorRGBA, tree, "text_fg_color",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
-       RTAO(textColor(self, r,g,b, a, true)))
-PREFIX(TextFgColorRGB, tree, "text_fg_color", PARM(r, real) PARM(g, real) PARM(b, real),
-       RTAO(textColor(self, r,g,b, 1.0, true)))
-PREFIX(TextBgColorRGBA, tree, "text_bg_color",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
-       RTAO(textColor(self, r,g,b, a, false)))
-PREFIX(TextBgColorRGB, tree, "text_bg_color", PARM(r, real) PARM(g, real) PARM(b, real),
-       RTAO(textColor(self, r,g,b, 1.0, false)))
 
 PREFIX(Rect, tree, "rectangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),

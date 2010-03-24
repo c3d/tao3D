@@ -28,17 +28,15 @@
 
 TAO_BEGIN
 
-static OutlineColor     blackOutline    (0,0,0,1); // Black
+static LineColor        blackLine       (0,0,0,1); // Black
 static FillColor        transparentFill (0,0,0,0); // Transparent
-static TextColor        blackText       (0,0,0,1); // Black
-
 
 Layout::Layout()
 // ----------------------------------------------------------------------------
 //    Create an empty layout
 // ----------------------------------------------------------------------------
     : Drawing(),
-      outlineColor(NULL), fillColor(NULL), textColor(NULL), fillTexture(NULL),
+      lineColor(NULL), fillColor(NULL), fillTexture(NULL),
       items(), offset(), surface(NULL), context(NULL)
 {
     GLStateKeeper save;
@@ -52,9 +50,8 @@ Layout::Layout()
         XL::Ooops("Unable to create Cairo context");
 
     // Select the default colors
-    blackOutline.Draw(this);
+    blackLine.Draw(this);
     transparentFill.Draw(this);
-    blackText.Draw(this);
 }
 
 
@@ -63,9 +60,8 @@ Layout::Layout(const Layout &o)
 //   Copy constructor
 // ----------------------------------------------------------------------------
     : Drawing(o),
-      outlineColor(o.outlineColor), // REVISIT: Safe to copy?
+      lineColor(o.lineColor), // REVISIT: Safe to copy?
       fillColor(o.fillColor),
-      textColor(o.textColor),
       fillTexture(o.fillTexture),
       items(o.items), surface(NULL), context(NULL)
 {

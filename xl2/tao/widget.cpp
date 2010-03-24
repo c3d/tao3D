@@ -546,6 +546,8 @@ void Widget::runProgram()
     TextFlow mainFlow(alignCenter);
     XL::LocalSave<TextFlow *> saveFlow(state.flow, &mainFlow);
     XL::LocalSave<Frame *> saveFrame (frame, mainFrame);
+    Layout mainLayout;
+    XL::LocalSave<Layout *> saveLayout(layout, &mainLayout);
 
     try
     {
@@ -582,6 +584,7 @@ void Widget::runProgram()
 
     // After we are done, flush the frame and over-paint it
     mainFrame->Paint();
+    mainLayout.Draw(layout);
 
     // Once we are done, do a garbage collection
     XL::Context::context->CollectGarbage();
@@ -1322,70 +1325,42 @@ Box3 Widget::bbox(coord x, coord y, coord z, coord w, coord h, coord d)
 }
 
 
-Tree *Widget::filled(Tree *self)
-// ----------------------------------------------------------------------------
-//   Select filled polygon mode
-// ----------------------------------------------------------------------------
-{
-    state.filled = true;
-    return XL::xl_true;
-}
-
-
-Tree *Widget::hollow(Tree *self)
-// ----------------------------------------------------------------------------
-//   Select hollow polygon mode
-// ----------------------------------------------------------------------------
-{
-    state.filled = false;
-    return XL::xl_true;
-}
-
-
-Tree *Widget::linewidth(Tree *self, double lw)
+Tree *Widget::lineWidth(Tree *self, double lw)
 // ----------------------------------------------------------------------------
 //    Select the line width for OpenGL
 // ----------------------------------------------------------------------------
 {
-    glLineWidth(lw);
-    frame->LineWidth(lw);
+    layout->Add(new LineWidth(lw));
     return XL::xl_true;
 }
 
 
-Tree *Widget::color(Tree *self, double r, double g, double b, double a)
+Tree *Widget::lineStipple(Tree *self, uint16 pattern, uint16 scale)
 // ----------------------------------------------------------------------------
-//    Set the RGBA color
+//    Select the line width for OpenGL
 // ----------------------------------------------------------------------------
 {
-    glColor4f(r,g,b,a);
-    frame->Color(r,g,b,a);
+    layout->Add(new LineStipple(pattern, scale));
     return XL::xl_true;
 }
 
 
-Tree *Widget::textColor(Tree *self,
-                        double r, double g, double b, double a,
-                        bool isFg)
+Tree *Widget::fillColor(Tree *self, double r, double g, double b, double a)
 // ----------------------------------------------------------------------------
-//    Set the RGBA color
+//    Set the RGBA color for fill
 // ----------------------------------------------------------------------------
 {
-      // Set color for text layout
-    const double amp=255.9;
-    QColor qcolor(floor(amp*r),floor(amp*g),floor(amp*b),floor(amp*a));
+    layout->Add(new FillColor(r, g, b, a));
+    return XL::xl_true;
+}
 
-    if (isFg)
-    {
-        state.charFormat.setForeground(qcolor);
-    } else {
-        state.charFormat.setBackground(qcolor);
-    }
 
-    // For Cairo
-    GLStateKeeper save;
-    frame->Color(r,g,b,a);
-
+Tree *Widget::lineColor(Tree *self, double r, double g, double b, double a)
+// ----------------------------------------------------------------------------
+//    Set the RGBA color for lines
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new LineColor(r, g, b, a));
     return XL::xl_true;
 }
 
@@ -2316,7 +2291,7 @@ Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 {
     ShapeName name(this, bbox(x,y,w,h));
     name.x(x).y(y).w(w).h(h);
-    frame->Rectangle(x, y, w, h);
+    layout->Add(new Rectangle(Box(x-w/2, y-h/2, w, h)));
     return XL::xl_true;
 }
 

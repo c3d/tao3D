@@ -29,9 +29,8 @@
 
 TAO_BEGIN
 
-struct OutlineColor;
+struct LineColor;
 struct FillColor;
-struct TextColor;
 struct FillTexture;
 
 struct Layout : Drawing
@@ -56,9 +55,8 @@ struct Layout : Drawing
 
 public:
     // Attributes
-    OutlineColor *      outlineColor;
+    LineColor *         lineColor;
     FillColor *         fillColor;
-    TextColor *         textColor;
     FillTexture *       fillTexture;
     Justification       alongX, alongY, alongZ;
 

@@ -28,12 +28,12 @@
 
 TAO_BEGIN
 
-void OutlineColor::Draw(Layout *where)
+void LineColor::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Remember the color in the layout
 // ----------------------------------------------------------------------------
 {
-    where->outlineColor = this;
+    where->lineColor = this;
 }
 
 
@@ -43,15 +43,6 @@ void FillColor::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     where->fillColor = this;
-}
-
-
-void TextColor::Draw(Layout *where)
-// ----------------------------------------------------------------------------
-//   Remember the text color in the layout
-// ----------------------------------------------------------------------------
-{
-    where->textColor = this;
 }
 
 
@@ -66,11 +57,25 @@ void FillTexture::Draw(Layout *where)
 
 void LineWidth::Draw(Layout *where)
 // ----------------------------------------------------------------------------
+//   Replay a line width change
+// ----------------------------------------------------------------------------
+{
+    (void) where;
+    glLineWidth(width);
+}
+
+
+void LineStipple::Draw(Layout *where)
+// ----------------------------------------------------------------------------
 //   Replay a color change
 // ----------------------------------------------------------------------------
 {
-    glLineWidth(width);
-    cairo_set_line_width(where->Cairo(), width);
+    (void) where;
+    glLineStipple(scale, pattern);
+    if (scale)
+        glEnable(GL_LINE_STIPPLE);
+    else
+        glDisable(GL_LINE_STIPPLE);
 }
 
 

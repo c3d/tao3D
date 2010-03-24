@@ -125,6 +125,8 @@ void GraphicPath::Draw(Layout *where)
                     // We need to add the last vertex and texture coordinate
                     vdata.push_back(pos);
                     tdata.push_back(tex);
+                    lastV = vdata.end();
+                    lastT = tdata.end();
 
                     // Use a GL evaluator to generate coordinates
                     glMap1d(GL_MAP1_VERTEX_3, 0.0,1.0,3,size,&vdata[0].x);
@@ -159,10 +161,12 @@ void GraphicPath::Draw(Layout *where)
                 // If we are still able to use an array, add last vertex
                 vdata.push_back(pos);
                 tdata.push_back(tex);
+                lastV = vdata.end();
+                lastT = tdata.end();
                 size++;
 
             case MOVE_TO:
-                if (!hadCurve)
+                if (!hadCurve && size)
                 {
                     // We didn't have any line before, can use arrays
                     if (began)

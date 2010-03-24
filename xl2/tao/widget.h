@@ -143,11 +143,10 @@ public:
     Name *selectable(Tree *self, bool selectable);
     Name *selectorName(Tree *self, Text &name);
 
-    Tree *color(Tree *self, double r, double g, double b, double a);
-    Tree *textColor(Tree *self, double r,double g,double b,double a, bool fg);
-    Tree *filled(Tree *self);
-    Tree *hollow(Tree *self);
-    Tree *linewidth(Tree *self, double lw);
+    Tree *fillColor(Tree *self, double r, double g, double b, double a);
+    Tree *lineColor(Tree *self, double r, double g, double b, double a);
+    Tree *lineWidth(Tree *self, double lw);
+    Tree *lineStipple(Tree *self, uint16 pattern, uint16 scale);
 
     Tree *polygon(Tree *self, Tree *t);
     Tree *points(Tree *self, Tree *t);

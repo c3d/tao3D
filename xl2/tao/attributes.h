@@ -47,12 +47,12 @@ struct Color : Attribute
 };
 
 
-struct OutlineColor : Color
+struct LineColor : Color
 // ----------------------------------------------------------------------------
 //   Record the color for shape outline
 // ----------------------------------------------------------------------------
 {
-    OutlineColor(float r, float g, float b, float a):
+    LineColor(float r, float g, float b, float a):
         Color(r,g,b,a) {}
     virtual void Draw(Layout *where);
 };
@@ -64,17 +64,6 @@ struct FillColor : Color
 // ----------------------------------------------------------------------------
 {
     FillColor(float r, float g, float b, float a):
-        Color(r,g,b,a) {}
-    virtual void Draw(Layout *where);
-};
-
-
-struct TextColor : Color
-// ----------------------------------------------------------------------------
-//   Record the color for text
-// ----------------------------------------------------------------------------
-{
-    TextColor(float r, float g, float b, float a):
         Color(r,g,b,a) {}
     virtual void Draw(Layout *where);
 };

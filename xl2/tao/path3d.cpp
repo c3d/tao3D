@@ -48,13 +48,8 @@ void GraphicPath::Draw(Layout *where)
         Kind     kind       = e.kind;
         Point3   pos        = e.position + offset; // Geometry coordinates
         Point3   tex        = e.position / bounds; // Texture coordinates
-        bool     doIt       = false;
         uint     size;
         double   dt;
-
-        // Check if we need to emit what existed before
-        if (i+1 == end)
-            doIt = true;
 
         switch (kind)
         {
@@ -62,9 +57,6 @@ void GraphicPath::Draw(Layout *where)
             std::cerr << "GraphicPath::Draw: Unexpected element kind\n";
 
         case MOVE_TO:
-            doIt = true;
-            break;
-
         case LINE_TO:
             vdata.push_back(pos);
             tdata.push_back(tex);
@@ -149,8 +141,8 @@ void GraphicPath::Draw(Layout *where)
             tctrl.clear();
         } // switch(kind)
 
-        // Check if we need to draw what existed so far
-        if (doIt)
+        // Check if we need to emit what existed before
+        if (i+1 == end || kind == MOVE_TO)
         {
             // Get size of previous elements
             if (uint size = vdata.size())
@@ -167,6 +159,9 @@ void GraphicPath::Draw(Layout *where)
                 vdata.clear();
                 tdata.clear();
             }
+
+            vdata.push_back(pos);
+            tdata.push_back(tex);
         }
 
     } // Loop on all elements

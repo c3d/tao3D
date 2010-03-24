@@ -176,6 +176,10 @@ void RoundedRectangle::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     QPainterPath pp;
+    if (radiusX > bounds.Width() / 2)
+        radiusX = bounds.Width() / 2;
+    if (radiusY > bounds.Height() / 2)
+        radiusY = bounds.Height() / 2;
     pp.addRoundedRect(bounds.lower.x, bounds.lower.y,
                       bounds.Width(), bounds.Height(),
                       radiusX, radiusY);

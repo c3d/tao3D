@@ -203,6 +203,13 @@ inline Vector3 operator *(const Vector3& l, coord s)
     return result;
 }
 
+inline Vector3 operator *(coord s, const Vector3& l)
+{
+    Vector3 result(l);
+    result *= s;
+    return result;
+}
+
 inline Vector3 operator /(const Vector3& l, coord s)
 {
     Vector3 result(l);

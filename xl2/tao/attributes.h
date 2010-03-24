@@ -36,48 +36,82 @@ struct Attribute : Drawing
 };
 
 
-struct ColorChange : Attribute
+struct Color : Attribute
 // ----------------------------------------------------------------------------
-//    Record a color change
+//    Record a color
 // ----------------------------------------------------------------------------
 {
-    ColorChange(float r, float g, float b, float a):
+    Color(float r, float g, float b, float a):
         Attribute(), red(r), green(g), blue(b), alpha(a) {}
-    virtual void Draw(Layout *where);
     float red, green, blue, alpha;
 };
 
 
-struct TextureChange : Attribute
+struct OutlineColor : Color
+// ----------------------------------------------------------------------------
+//   Record the color for shape outline
+// ----------------------------------------------------------------------------
+{
+    OutlineColor(float r, float g, float b, float a):
+        Color(r,g,b,a) {}
+    virtual void Draw(Layout *where);
+};
+
+
+struct FillColor : Color
+// ----------------------------------------------------------------------------
+//   Record the color for shape fill
+// ----------------------------------------------------------------------------
+{
+    FillColor(float r, float g, float b, float a):
+        Color(r,g,b,a) {}
+    virtual void Draw(Layout *where);
+};
+
+
+struct TextColor : Color
+// ----------------------------------------------------------------------------
+//   Record the color for text
+// ----------------------------------------------------------------------------
+{
+    TextColor(float r, float g, float b, float a):
+        Color(r,g,b,a) {}
+    virtual void Draw(Layout *where);
+};
+
+
+struct FillTexture : Attribute
 // ----------------------------------------------------------------------------
 //    Record a texture change
 // ----------------------------------------------------------------------------
 {
-    TextureChange(text tname): Attribute(), name(tname) {}
+    FillTexture(uint glName): Attribute(), glName(glName) {}
     virtual void Draw(Layout *where);
-    text name;
+    uint        glName;
 };
 
 
-struct FillModeChange : Attribute
-// ----------------------------------------------------------------------------
-//    Record a fill mode change
-// ----------------------------------------------------------------------------
-{
-    FillModeChange(bool fill) : Attribute(), fill(fill) {}
-    virtual void Draw(Layout *where);
-    bool fill;
-};
-
-
-struct LineWidthChange : Attribute
+struct LineWidth : Attribute
 // ----------------------------------------------------------------------------
 //    Record the line width when drawing elements
 // ----------------------------------------------------------------------------
 {
-    LineWidthChange(float w) : Attribute(), width(w) {}
+    LineWidth(float w) : Attribute(), width(w) {}
     virtual void Draw(Layout *where);
     float width;
+};
+
+
+struct LineStipple : Attribute
+// ----------------------------------------------------------------------------
+//    Record the line width when drawing elements
+// ----------------------------------------------------------------------------
+{
+    LineStipple(uint16 pattern, uint scale = 1)
+        : Attribute(), scale(scale), pattern(pattern) {}
+    virtual void Draw(Layout *where);
+    uint16 scale;
+    uint16 pattern;
 };
 
 

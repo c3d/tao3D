@@ -312,6 +312,20 @@ struct Box3
         return *this;
     }
 
+    Box3 &operator |= (const Point3 &o)
+    {
+        // Make sure that the box contains the 3D point
+        if (o.x < lower.x)        lower.x = o.x;
+        if (o.y < lower.y)        lower.y = o.y;
+        if (o.z < lower.z)        lower.z = o.z;
+
+        if (o.x > upper.x)        upper.x = o.x;
+        if (o.y > upper.y)        upper.y = o.y;
+        if (o.z > upper.z)        upper.z = o.z;
+
+        return *this;
+    }
+
     Box3 &operator |= (const Box3 &o)
     {
         // Return union of the two boxes (smallest box containing both)
@@ -391,12 +405,25 @@ public:
 // ============================================================================
 
 inline Box3 operator+ (const Box3 &b, const Vector3 &v)
+// ----------------------------------------------------------------------------
+//   Translate the box by a given vector
+// ----------------------------------------------------------------------------
 {
     Box3 result(b);
     result += v;
     return result;
 }
 
+
+inline Point3 operator/ (const Point3 &p, const Box3 &b)
+// ----------------------------------------------------------------------------
+//   Return the point as scaled within the bounding box
+// ----------------------------------------------------------------------------
+{
+    return Point3((p.x - b.lower.x) / (b.upper.x - b.lower.x),
+                  (p.y - b.lower.y) / (b.upper.y - b.lower.y),
+                  (p.z - b.lower.z) / (b.upper.z - b.lower.z));
+}
 
 TAO_END
 

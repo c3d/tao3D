@@ -22,16 +22,24 @@
 
 #include "layout.h"
 #include "gl_keepers.h"
+#include "attributes.h"
 #include <cairo.h>
 #include <cairo-gl.h>
 
 TAO_BEGIN
 
+static OutlineColor     blackOutline    (0,0,0,1); // Black
+static FillColor        transparentFill (0,0,0,0); // Transparent
+static TextColor        blackText       (0,0,0,1); // Black
+
+
 Layout::Layout()
 // ----------------------------------------------------------------------------
 //    Create an empty layout
 // ----------------------------------------------------------------------------
-    : items(), offset(), surface(NULL), context(NULL)
+    : Drawing(),
+      outlineColor(NULL), fillColor(NULL), textColor(NULL), fillTexture(NULL),
+      items(), offset(), surface(NULL), context(NULL)
 {
     GLStateKeeper save;
 
@@ -42,6 +50,11 @@ Layout::Layout()
     context = cairo_create(surface);
     if (cairo_status(context) != CAIRO_STATUS_SUCCESS)
         XL::Ooops("Unable to create Cairo context");
+
+    // Select the default colors
+    blackOutline.Draw(this);
+    transparentFill.Draw(this);
+    blackText.Draw(this);
 }
 
 
@@ -49,7 +62,12 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
 //   Copy constructor
 // ----------------------------------------------------------------------------
-    : Drawing(o), items(o.items), surface(NULL), context(NULL)
+    : Drawing(o),
+      outlineColor(o.outlineColor), // REVISIT: Safe to copy?
+      fillColor(o.fillColor),
+      textColor(o.textColor),
+      fillTexture(o.fillTexture),
+      items(o.items), surface(NULL), context(NULL)
 {
     GLStateKeeper save;
 

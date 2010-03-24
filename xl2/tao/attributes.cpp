@@ -22,43 +22,73 @@
 
 #include "attributes.h"
 #include "layout.h"
+#include <GL/glew.h>
+#include <iostream>
 
 
 TAO_BEGIN
 
-void ColorChange::Draw(Layout *where)
+void OutlineColor::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Replay a color change
+//   Remember the color in the layout
 // ----------------------------------------------------------------------------
 {
-    (void) where;
+    where->outlineColor = this;
 }
 
 
-void TextureChange::Draw(Layout *where)
+void FillColor::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Replay a color change
+//   Remember the color in the layout
 // ----------------------------------------------------------------------------
 {
-    (void) where;
+    where->fillColor = this;
 }
 
 
-void FillModeChange::Draw(Layout *where)
+void TextColor::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Replay a color change
+//   Remember the text color in the layout
 // ----------------------------------------------------------------------------
 {
-    (void) where;
+    where->textColor = this;
 }
 
 
-void LineWidthChange::Draw(Layout *where)
+void FillTexture::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Replay a texture change
+// ----------------------------------------------------------------------------
+{
+    where->fillTexture = this;
+}
+
+
+void LineWidth::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Replay a color change
 // ----------------------------------------------------------------------------
 {
-    (void) where;
+    glLineWidth(width);
+    cairo_set_line_width(where->Cairo(), width);
+}
+
+
+static inline Justification &layoutJustification(Layout *where,
+                                                 JustificationChange::Axis a)
+// ----------------------------------------------------------------------------
+//   Return the justification to be modified by a given attribute
+// ----------------------------------------------------------------------------
+{
+    switch (a)
+    {
+    default:
+        std::cerr << "layoutJustification: Invalid axis " << a << "\n";
+
+    case JustificationChange::AlongX:   return where->alongX;
+    case JustificationChange::AlongY:   return where->alongY;
+    case JustificationChange::AlongZ:   return where->alongZ;
+    }
 }
 
 
@@ -67,7 +97,7 @@ void JustificationChange::Draw(Layout *where)
 //   Replay a color change
 // ----------------------------------------------------------------------------
 {
-    (void) where;
+    layoutJustification(where, axis).amount = amount;
 }
 
 
@@ -76,7 +106,7 @@ void CenteringChange::Draw(Layout *where)
 //   Replay a color change
 // ----------------------------------------------------------------------------
 {
-    (void) where;
+    layoutJustification(where, axis).centering = amount;
 }
 
 
@@ -85,7 +115,7 @@ void SpreadChange::Draw(Layout *where)
 //   Replay a color change
 // ----------------------------------------------------------------------------
 {
-    (void) where;
+    layoutJustification(where, axis).spread = amount;
 }
 
 
@@ -94,7 +124,7 @@ void SpacingChange::Draw(Layout *where)
 //   Replay a color change
 // ----------------------------------------------------------------------------
 {
-    (void) where;
+    layoutJustification(where, axis).spacing = amount;
 }
 
 TAO_END

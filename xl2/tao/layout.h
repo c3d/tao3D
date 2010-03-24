@@ -23,12 +23,16 @@
 // ****************************************************************************
 
 #include "drawing.h"
+#include "justification.h"
 #include <vector>
 #include <cairo.h>
 
 TAO_BEGIN
 
-struct Attribute;
+struct OutlineColor;
+struct FillColor;
+struct TextColor;
+struct FillTexture;
 
 struct Layout : Drawing
 // ----------------------------------------------------------------------------
@@ -49,6 +53,14 @@ struct Layout : Drawing
     virtual Vector3     Offset();
 
     cairo_t *           Cairo()          { return context; }
+
+public:
+    // Attributes
+    OutlineColor *      outlineColor;
+    FillColor *         fillColor;
+    TextColor *         textColor;
+    FillTexture *       fillTexture;
+    Justification       alongX, alongY, alongZ;
 
 protected:
     // List of drawing elements

@@ -23,6 +23,8 @@
 // ****************************************************************************
 
 #include "drawing.h"
+#include "coords3d.h"
+#include <vector>
 
 TAO_BEGIN
 

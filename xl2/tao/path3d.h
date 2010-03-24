@@ -26,6 +26,8 @@
 #include "shapes.h"
 #include <GL/glew.h>
 
+struct QPainterPath;
+
 TAO_BEGIN
 
 struct GraphicPath : Shape
@@ -44,6 +46,7 @@ struct GraphicPath : Shape
     GraphicPath&        curveTo(Point3 control, Point3 dst);
     GraphicPath&        curveTo(Point3 c1, Point3 c2, Point3 dst);
     GraphicPath&        close();
+    GraphicPath&        addQtPath(QPainterPath &path);
 
     // Relative coordinates
     GraphicPath&        moveTo(Vector3 dst)     { return moveTo(position+dst); }

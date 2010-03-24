@@ -23,9 +23,10 @@
 #include "path3d.h"
 #include "layout.h"
 #include <GL/glew.h>
+#include <QPainterPath>
+#include <iostream>
 
 TAO_BEGIN
-
 
 void GraphicPath::Draw(Layout *where)
 // ----------------------------------------------------------------------------
@@ -37,10 +38,9 @@ void GraphicPath::Draw(Layout *where)
     Vector3 offset = where->Offset();
     Point3V vdata;   // Vertex coordinates
     Point3V tdata;   // Texture coordinates
+    Point3V vctrl;   // Vertex control points
+    Point3V tctrl;   // Texture control points
     path_elements::iterator i, begin = elements.begin(), end = elements.end();
-    bool hadCurve = false;
-    bool began = false;
-    Point3 lastPos, lastTex;
 
     for (path_elements::iterator i = begin; i != end; i++)
     {
@@ -48,159 +48,128 @@ void GraphicPath::Draw(Layout *where)
         Kind     kind       = e.kind;
         Point3   pos        = e.position + offset; // Geometry coordinates
         Point3   tex        = e.position / bounds; // Texture coordinates
-        bool     emit       = false;
+        bool     doIt       = false;
+        uint     size;
+        double   dt;
 
         // Check if we need to emit what existed before
         if (i+1 == end)
-            emit = true;
+            doIt = true;
 
-        // Select what operation to perform
         switch (kind)
         {
+        default:
+            std::cerr << "GraphicPath::Draw: Unexpected element kind\n";
+
         case MOVE_TO:
-            emit = true;
+            doIt = true;
             break;
+
         case LINE_TO:
-            emit |= hadCurve;
+            vdata.push_back(pos);
+            tdata.push_back(tex);
             break;
-        case CURVE_TO:
-            emit = true;
-            break;
+
         case CURVE_CONTROL:
-            emit |= !hadCurve;
+            vctrl.push_back(pos);
+            tctrl.push_back(tex);
             break;
-        }
 
-        // Check if we need to draw what existed so far
-        if (emit)
-        {
-            // Get size of previous elements
-            uint size = vdata.size();
+        case CURVE_TO:
+            vctrl.push_back(pos);
+            tctrl.push_back(tex);
 
-            // Select where we will clear
-            Point3V::iterator lastV = vdata.end();
-            Point3V::iterator lastT = tdata.end();
-
-            switch(kind)
+            // Optimize common sizes, give up for the rest:
+            size = vctrl.size();
+            dt = 1.0 / resolution;
+            switch (size)
             {
-            case CURVE_CONTROL:
-                // For control points, also keep previous MOVE_TO / LINE_TO
-                if (lastV != vdata.begin())     lastV--;
-                if (lastT != tdata.begin())     lastT--;
-
-            case CURVE_TO:
-                // For CURVE_TO and CURVE_CONTROL, draw previous lines if any
-                if (!hadCurve)
-                {
-                    // We will be emitting a curve, but only had lines so far
-                    // Can't use array mode, so we emit individual vertices
-                    if (!began)
-                    {
-                        glBegin(mode);
-                        began = true;
-                    }
-
-                    // Emit the texture and vertex coordinates for the lines
-                    Point3V::iterator v = vdata.begin();
-                    Point3V::iterator t = tdata.begin();
-                    for (uint j = 0; j < size; j++, v++, t++)
-                    {
-                        glTexCoord3d(t->x, t->y, t->z);
-                        glVertex3d(v->x, v->y, v->z);
-                    }
-
-                    // We saw a curve on this path segment
-                    hadCurve = true;
-                }
-
-                if (kind == CURVE_TO)
-                {
-                    // We are at the end of a subpath path, draw it
-                    if (!began)
-                    {
-                        glBegin(mode);
-                        began = true;
-                    }
-
-                    // We need to add the last vertex and texture coordinate
-                    vdata.push_back(pos);
-                    tdata.push_back(tex);
-                    lastV = vdata.end();
-                    lastT = tdata.end();
-
-                    // Use a GL evaluator to generate coordinates
-                    glMap1d(GL_MAP1_VERTEX_3, 0.0,1.0,3,size,&vdata[0].x);
-                    glMap1d(GL_MAP1_TEXTURE_COORD_3,0.0,1.0,3,size,&tdata[0].x);
-                    glEnable(GL_MAP1_VERTEX_3);
-                    glEnable(GL_MAP1_TEXTURE_COORD_3);
-                    for (uint i = 0; i <= resolution; i++)
-                        glEvalCoord1f(GLfloat(i) / resolution);
-                    glDisable(GL_MAP1_VERTEX_3);
-                    glDisable(GL_MAP1_TEXTURE_COORD_3);
-                }
-
+            case 1:
+            case 2:
+                // Simple line, just push the last point
+                vdata.push_back(pos);
+                vdata.push_back(tex);
                 break;
 
-            case LINE_TO:
-                if (hadCurve)
-                {
-                    // We had a curve before, we can't use arrays
-                    // Make sure we had a glBegin()
-                    if (!began)
-                    {
-                        glBegin(mode);
-                        began = true;
-                    }
+            case 3:
+            {
+                // Quadratic Bezier curve
+                Vector3 v0(vctrl[0]);
+                Vector3 v1(vctrl[1]);
+                Vector3 v2(vctrl[2]);
+                Vector3 t0(tctrl[0]);
+                Vector3 t1(tctrl[1]);
+                Vector3 t2(tctrl[2]);
 
-                    // Emit more vertex / texture coordinates
-                    glTexCoord3d (tex.x, tex.y, tex.z);
-                    glVertex3d (pos.x, pos.y, pos.z);
-                    break;
+                for (double t = 0.0; t < 1.0; t += dt)
+                {
+                    double tt = t*t;
+                    double m = 1-t;
+                    double mm = m*m;
+                    Vector3 vd = mm * v0 + 2*m*t * v1 + tt * v2;
+                    Vector3 td = mm * t0 + 2*m*t * t1 + tt * t2;
+                    vdata.push_back(vd);
+                    tdata.push_back(td);
+                }
+                break;
                 }
 
-                // If we are still able to use an array, add last vertex
-                vdata.push_back(pos);
-                tdata.push_back(tex);
-                lastV = vdata.end();
-                lastT = tdata.end();
-                size++;
-
-            case MOVE_TO:
-                if (!hadCurve && size)
+            default:
+                std::cerr << "GraphicPath::Draw: Unimplemented Bezier\n";
+            case 4:
+            {
+                // Cubic Bezier curve
+                Vector3 v0(vctrl[0]);
+                Vector3 v1(vctrl[1]);
+                Vector3 v2(vctrl[2]);
+                Vector3 v3(vctrl[3]);
+                Vector3 t0(tctrl[0]);
+                Vector3 t1(tctrl[1]);
+                Vector3 t2(tctrl[2]);
+                Vector3 t3(tctrl[3]);
+                
+                for (double t = 0.0; t < 1.0; t += dt)
                 {
-                    // We didn't have any line before, can use arrays
-                    if (began)
-                    {
-                        glEnd();
-                        began = false;
-                    }
-                    glVertexPointer(3,GL_DOUBLE,sizeof(Point3), &vdata[0].x);
-                    glTexCoordPointer(3,GL_DOUBLE,sizeof(Point3), &tdata[0].x);
-                    glEnableClientState(GL_VERTEX_ARRAY);
-                    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                    glDrawArrays(mode, 0, size);
-                    glDisableClientState(GL_VERTEX_ARRAY);
-                    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                    double tt = t*t;
+                    double ttt = t*tt;
+                    double m = 1-t;
+                    double mm = m*m;
+                    double mmm = m*mm;
+                    
+                    Vector3 vd = mmm*v0 + 3*mm*t*v1 + 3*m*tt*v2 + ttt*v3;
+                    Vector3 td = mmm*t0 + 3*mm*t*t1 + 3*m*tt*t2 + ttt*t3;
+                    vdata.push_back(vd);
+                    tdata.push_back(td);
                 }
+                break;
+            }
+            }
+            
+            vctrl.clear();
+            tctrl.clear();
+        } // switch(kind)
 
-                // After a MOVE_TO, we can use arrays again
-                hadCurve = false;
+        // Check if we need to draw what existed so far
+        if (doIt)
+        {
+            // Get size of previous elements
+            if (uint size = vdata.size())
+            {
+                // Pass the data we had so far to OpenGL and clear it
+                glVertexPointer(3,GL_DOUBLE,sizeof(Point3), &vdata[0].x);
+                glTexCoordPointer(3,GL_DOUBLE,sizeof(Point3), &tdata[0].x);
+                glEnableClientState(GL_VERTEX_ARRAY);
+                glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                glDrawArrays(mode, 0, size);
+                glDisableClientState(GL_VERTEX_ARRAY);
+                glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-            } // switch(kind)
+                vdata.clear();
+                tdata.clear();
+            }
+        }
 
-            // Clear all the vertex / coord data we already drew
-            vdata.erase(vdata.begin(), lastV);
-            tdata.erase(tdata.begin(), lastT);
-        } // if (emit)
-
-        // Insert the last element
-        vdata.push_back(pos);
-        tdata.push_back(tex);
     } // Loop on all elements
-
-    // Make sure we have a glEnd() matching any glBegin() we did
-    if (began)
-        glEnd();
 }
 
 
@@ -279,6 +248,48 @@ GraphicPath& GraphicPath::close()
 }
 
 
+GraphicPath& GraphicPath::addQtPath(QPainterPath &qt)
+// ----------------------------------------------------------------------------
+//   Add a QT path
+// ----------------------------------------------------------------------------
+{
+    // Check that Kind and QPainterPath::ElementType numerical values match
+    XL_CASSERT (int(QPainterPath::MoveToElement) == int(MOVE_TO) &&
+                int(QPainterPath::LineToElement) == int(LINE_TO) &&
+                int(QPainterPath::CurveToElement) == int(CURVE_TO) &&
+                int(QPainterPath::CurveToDataElement) == int(CURVE_CONTROL));
+
+    // Loop on the Qt Path and insert elements
+    // Qt paths place CURVE_TO before control points, we place it last
+    uint i, max = qt.elementCount();
+    bool hadControl = false;
+    for (i = 0; i < max; i++)
+    {
+        const QPainterPath::Element &e = qt.elementAt(i);
+        Kind kind = Kind(e.type);
+        position = Point3(e.x, e.y, 0);
+        if (kind == CURVE_CONTROL)
+        {
+            hadControl = true;
+        }
+        else
+        {
+            if (hadControl)
+            {
+                elements.back().kind = CURVE_TO;
+                hadControl = false;
+            }
+            if (kind == CURVE_TO)
+                kind = CURVE_CONTROL;
+        }
+        elements.push_back(Element(kind, position));
+        bounds |= position;
+    }
+
+    return *this;
+}
+
+
 Box3 GraphicPath::Bounds()
 // ----------------------------------------------------------------------------
 //   Return the bounding box, computed from all path elements
@@ -286,5 +297,7 @@ Box3 GraphicPath::Bounds()
 {
     return bounds;
 }
+
+
 
 TAO_END

@@ -230,8 +230,9 @@ PREFIX(CircularSector, tree, "circular_sector",
        PARM(x, real) PARM(y, real) PARM(r, real) PARM(a, real) PARM(b, real),
        RTAO(circularSector(self, x, y, r, a, b)))
 PREFIX(RoundedRectangle, tree, "rounded_rectangle",
-       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real) PARM(r, real),
-       RTAO(roundedRectangle(self, x, y, w, h, r)))
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
+       PARM(rx, real) PARM(ry, real),
+       RTAO(roundedRectangle(self, x, y, w, h, rx, ry)))
 
 
 PREFIX(MenuItem, tree, "menu_item", PARM(s, text) PARM(t, tree),

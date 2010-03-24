@@ -235,7 +235,8 @@ public:
     Tree *circularSector(Tree *self, real_r cx, real_r cy, real_r r,
                          real_r a, real_r b);
     Tree *roundedRectangle(Tree *self,
-                           real_r cx, real_r cy, real_r w, real_r h, real_r r);
+                           real_r cx, real_r cy, real_r w, real_r h,
+                           real_r rx, real_r ry);
 
 
     Tree *menuItem(Tree *self, text s, Tree *t);

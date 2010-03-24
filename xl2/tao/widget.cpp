@@ -2444,37 +2444,18 @@ Tree *Widget::circularSector(Tree *self,
 
 Tree *Widget::roundedRectangle(Tree *self,
                                real_r cx, real_r cy,
-                               real_r w, real_r h, real_r r)
+                               real_r w, real_r h, real_r rx, real_r ry)
 // ----------------------------------------------------------------------------
 //   Cairo rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
 {
     ShapeName name(this, bbox(cx, cy, w, h));
     name.x(cx).y(cy).w(w).h(h);
-
-    GLAttribKeeper save;
-
-    if (r <= 0) return rectangle(self, cx, cy, w, h);
-    if (r > w/2) r = w/2;
-    if (r > h/2) r = h/2;
-
-    double w0  = w-2*r;
-    double h0  = h-2*r;
-    double x0  = cx+r - w/2;
-    double y0  = cy+r - h/2;
-
-    frame->Arc(x0   , y0   , r, M_PI    , 3*M_PI_2, true);
-    frame->Arc(x0+w0, y0   , r, 3*M_PI_2, 0       , true);
-    frame->Arc(x0+w0, y0+h0, r, 0       , M_PI_2  , true);
-    frame->Arc(x0   , y0+h0, r, M_PI_2  , M_PI    , true);
-    frame->ClosePath();
-    if (state.filled)
-        frame->Fill();
-    else
-        frame->Stroke();
-
+    layout->Add(new RoundedRectangle(Box(cx-w/2, cy-h/2, w, h), rx, ry));
     return XL::xl_true;
 }
+
+
 
 // ============================================================================
 //

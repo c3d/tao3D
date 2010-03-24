@@ -25,6 +25,7 @@
 #include "attributes.h"
 #include "path3d.h"
 #include <GL/glew.h>
+#include <QPainterPath>
 
 
 TAO_BEGIN
@@ -174,7 +175,14 @@ void RoundedRectangle::Draw(Layout *where)
 //   Draw a rounded rectangle
 // ----------------------------------------------------------------------------
 {
-    (void) where;
+    QPainterPath pp;
+    pp.addRoundedRect(bounds.lower.x, bounds.lower.y,
+                      bounds.Width(), bounds.Height(),
+                      radiusX, radiusY);
+    GraphicPath path;
+    path.addQtPath(pp);
+
+    drawPath(where, path);
 }
 
 

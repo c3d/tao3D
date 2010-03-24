@@ -384,7 +384,10 @@ void Widget::setupGL()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LINE_SMOOTH);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glLineWidth(1);
+    glLineStipple(1, -1);
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);

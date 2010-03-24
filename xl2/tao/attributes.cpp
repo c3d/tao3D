@@ -71,11 +71,15 @@ void LineStipple::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     (void) where;
-    glLineStipple(scale, pattern);
     if (scale)
+    {
+        glLineStipple(scale, pattern);
         glEnable(GL_LINE_STIPPLE);
+    }
     else
+    {
         glDisable(GL_LINE_STIPPLE);
+    }
 }
 
 

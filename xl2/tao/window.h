@@ -26,6 +26,7 @@
 #include <QTimer>
 #include "main.h"
 #include "tao.h"
+#include "repository.h"
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -49,6 +50,8 @@ public:
     Window(XL::Main *xlr, XL::SourceFile *sf = NULL);
 
     void setText(QString txt);
+    bool openProject(QString path, QString filename, bool confirm = true);
+    Repository * repository() { return repo; }
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -71,16 +74,18 @@ private:
     void readSettings();
     void writeSettings();
     bool maybeSave();
-    void loadFile(const QString &fileName);
+    bool loadFile(const QString &fileName, bool openProj = false);
     bool saveFile(const QString &fileName);
     void setCurrentFile(const QString &fileName);
     QString strippedName(const QString &fullFileName);
     Window *findWindow(const QString &fileName);
     void updateProgram(const QString &filename);
     void resetTaoMenus(XL::Tree *a_tree);
+    QString currentProjectFolderPath();
 
 private:
     XL::Main *        xlRuntime;
+    Repository *      repo;
 
     QTextEdit        *textEdit;
     Widget           *taoWidget;

@@ -116,6 +116,15 @@ Widget::~Widget()
 
 
 
+Repository * Widget::repository()
+// ----------------------------------------------------------------------------
+//   Return the repository associated with the current document (may be NULL)
+// ----------------------------------------------------------------------------
+{
+    Window * win = (Window *)parentWidget();
+    return win->repository();
+}
+
 // ============================================================================
 //
 //   Widget basic events (painting, mause, ...)
@@ -202,7 +211,7 @@ void Widget::refreshProgram()
     if (!xlProgram)
         return;
 
-    Repository *repository = TaoApp->library();
+    Repository *repo = repository();
     Tree *prog = xlProgram->tree.tree;
     if (!prog)
         return;
@@ -226,9 +235,9 @@ void Widget::refreshProgram()
                     std::cerr << "File " << fname << " changed\n";
 
                 Tree *replacement = NULL;
-                if (repository)
+                if (repo)
                 {
-                    replacement = repository->read(fname);
+                    replacement = repo->read(fname);
                 }
                 else
                 {
@@ -416,7 +425,7 @@ void Widget::dawdle()
     for (Activity *a = activities; a; a = a->Idle()) ;
 
     // We will only auto-save and commit if we have a valid repository
-    Repository *repository     = TaoApp->library();
+    Repository *repo           = repository();
     XL::Main   *xlr            = XL::MAIN;
     bool        savedSomething = false;
 
@@ -430,32 +439,14 @@ void Widget::dawdle()
     // Check if there's something to save
     ulonglong tick = now();
     longlong saveDelay = longlong(nextSave - tick);
-    if (repository && saveDelay < 0)
+    if (repo && saveDelay < 0)
     {
         XL::source_files::iterator it;
         for (it = xlr->files.begin(); it != xlr->files.end(); it++)
         {
             XL::SourceFile &sf = (*it).second;
-            text fname = sf.name;
-            if (sf.changed)
-            {
-                if (repository->write(fname, sf.tree.tree))
-                {
-                    // Mark the tree as no longer changed
-                    sf.changed = false;
-                    savedSomething = true;
-
-                    // Record that we need to commit it sometime soon
-                    repository->change(fname);
-                    IFTRACE(filesync)
-                        std::cerr << "Changed " << fname << "\n";
-
-                    // Record time when file was changed
-                    struct stat st;
-                    stat (fname.c_str(), &st);
-                    sf.modified = st.st_mtime;
-                }
-            }
+            if (writeIfChanged(sf))
+                savedSomething = true;
         }
 
         // Record when we will save file again
@@ -467,14 +458,8 @@ void Widget::dawdle()
     if (savedSomething && commitDelay < 0)
     {
         // If we saved anything, then commit changes
-        IFTRACE(filesync)
-            std::cerr << "Commit: " << whatsNew << "\n";
-        if (repository->commit(whatsNew))
-        {
-            whatsNew = "";
-            nextCommit = tick + xlr->options.commit_interval * 1000;
+        if (doCommit())
             savedSomething = false;
-        }
     }
 
     // Check if there's something to reload
@@ -486,6 +471,54 @@ void Widget::dawdle()
     }
 }
 
+
+bool Widget::writeIfChanged(XL::SourceFile &sf)
+// ----------------------------------------------------------------------------
+//   Write file to repository if marked 'changed' and reset change attributes
+// ----------------------------------------------------------------------------
+{
+    text fname = sf.name;
+    if (sf.changed)
+    {
+        Repository *repo = repository();
+        if (repo && repo->write(fname, sf.tree.tree))
+        {
+            // Mark the tree as no longer changed
+            sf.changed = false;
+
+            // Record that we need to commit it sometime soon
+            repo->change(fname);
+            IFTRACE(filesync)
+                    std::cerr << "Changed " << fname << "\n";
+
+            // Record time when file was changed
+            struct stat st;
+            stat (fname.c_str(), &st);
+            sf.modified = st.st_mtime;
+
+            return true;
+        }
+    }
+    return false;
+}
+
+
+bool Widget::doCommit()
+// ----------------------------------------------------------------------------
+//   Commit files previously written to repository and reset next commit time
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(filesync)
+            std::cerr << "Commit: " << whatsNew << "\n";
+    if (repository()->commit(whatsNew))
+    {
+        XL::Main *xlr = XL::MAIN;
+        whatsNew = "";
+        nextCommit = now() + xlr->options.commit_interval * 1000;
+        return true;
+    }
+    return false;
+}
 
 void Widget::draw()
 // ----------------------------------------------------------------------------

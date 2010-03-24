@@ -39,7 +39,7 @@ struct GitRepository : Repository
 //   A Git repository
 // ----------------------------------------------------------------------------
 {
-    GitRepository(const QString &path): Repository(path) {}
+    GitRepository(const QString &path): Repository(path) { }
     virtual ~GitRepository() {}
 
 public:
@@ -60,6 +60,9 @@ protected:
     virtual QString     command();
     virtual QString     userVisibleName();
     virtual text        styleSheet();
+
+private:
+    bool                initialCommit();
 };
 
 TAO_END

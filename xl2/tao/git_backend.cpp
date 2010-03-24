@@ -77,6 +77,26 @@ bool GitRepository::initialize()
     if (!QDir(path).mkpath("."))
         return false;
     Process cmd(command(), QStringList("init"), path);
+    if (cmd.done(&errors))
+        return initialCommit();
+    return false;
+}
+
+
+bool GitRepository::initialCommit()
+// ----------------------------------------------------------------------------
+//    Commit an empty file. Required after init or "git branch" fails
+// ----------------------------------------------------------------------------
+{
+    QFile dummy(path + "/.tao");
+    if (!dummy.open(QIODevice::WriteOnly))
+        return false;
+    dummy.close();
+    Process cmd(command(), QStringList("add") << ".tao", path);
+    if (!cmd.done(&errors))
+        return false;
+    Process cmd2(command(), QStringList("commit") << "-a" << "-m"
+                 << "\"Automatic initial commit\"", path);
     return cmd.done(&errors);
 }
 

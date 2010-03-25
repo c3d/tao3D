@@ -187,7 +187,7 @@ void RoundedRectangle::Draw(Layout *where)
     pp.addRoundedRect(bounds.lower.x, bounds.lower.y,
                       bounds.Width(), bounds.Height(),
                       radiusX, radiusY);
-    pp.addText(QPoint(0,0), QFont("Arial", 130), "Hello World");
+    pp.addText(QPoint(0,0), QFont("Times New Roman", 130), "Hello World");
     
     GraphicPath path;
     path.addQtPath(pp);

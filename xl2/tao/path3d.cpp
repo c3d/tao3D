@@ -22,6 +22,7 @@
 
 #include "path3d.h"
 #include "layout.h"
+#include "gl_keepers.h"
 #include <GL/glew.h>
 #include <QtOpenGL>
 #include <QPainterPath>
@@ -165,6 +166,7 @@ void GraphicPath::Draw(Layout *where)
             case 1:
             case 2:
                 // Simple line, just push the last point
+                std::cerr << "Got line in CURVE_TO\n";
                 data.push_back(here);
                 break;
 
@@ -221,8 +223,9 @@ void GraphicPath::Draw(Layout *where)
                 break;
             }
             } // switch(size)
-            
+
             control.clear();
+            control.push_back(here);
         } // switch(kind)
 
         // Check if we need to emit what existed before

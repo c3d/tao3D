@@ -29,8 +29,21 @@
 
 TAO_BEGIN
 
-typedef GraphicPath::VertexData  VertexData;
-typedef GraphicPath::PolygonData PolygonData;
+typedef GraphicPath::VertexData         VertexData;
+typedef GraphicPath::PolygonData        PolygonData;
+typedef GraphicPath::Vertices           Vertices;
+typedef GraphicPath::DynamicVertices    DynamicVertices;
+
+
+GraphicPath::PolygonData::~PolygonData()
+// ----------------------------------------------------------------------------
+//   Delete all the intersections we created
+// ----------------------------------------------------------------------------
+{
+    DynamicVertices::iterator i;
+    for (i = allocated.begin(); i != allocated.end(); i++)
+        delete *i;
+}
 
 
 static void tessBegin(GLenum mode, PolygonData *poly)
@@ -74,14 +87,16 @@ static void tessCombine(GLdouble coords[3],
 
 {
     Point3 pos(coords[0], coords[1], coords[2]);
-    Point3 tex =
-          weight[0] * vertex[0]->texture
-        + weight[1] * vertex[1]->texture
-        + weight[2] * vertex[2]->texture
-        + weight[3] * vertex[3]->texture;
 
-    polygon->push_back(VertexData(pos, tex));
-    *dataOut = &polygon->back();
+    // The documentation states that all pointers are "valid", but valid
+    // seems to mean they can be NULL if we come from SpliceMergeVertices
+    Point3 tex = weight[0] * vertex[0]->texture;
+    if (vertex[1]) tex += weight[1] * vertex[1]->texture;
+    if (vertex[2]) tex += weight[2] * vertex[2]->texture;
+    if (vertex[3]) tex += weight[3] * vertex[3]->texture;
+    VertexData *result = new VertexData(pos, tex);
+    polygon->allocated.push_back(result);
+    *dataOut = result;
 }
 
 
@@ -91,8 +106,9 @@ void GraphicPath::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Vector3 offset = where->Offset();
-    PolygonData data;           // Actual vertices
-    PolygonData control;        // Control points
+    PolygonData polygon;        // Polygon information
+    Vertices &data = polygon.vertices;
+    Vertices control;           // Control points
     path_elements::iterator i, begin = elements.begin(), end = elements.end();
 
     // Check if we need to tesselate polygon
@@ -103,14 +119,14 @@ void GraphicPath::Draw(Layout *where)
         {
             tess = gluNewTess();
             typedef GLvoid (*fn)();
-            gluTessCallback(tess, GLU_TESS_BEGIN_DATA, fn(tessBegin));
-            gluTessCallback(tess, GLU_TESS_END_DATA, fn(tessEnd));
-            gluTessCallback(tess, GLU_TESS_VERTEX_DATA, fn(tessVertex));
-            gluTessCallback(tess, GLU_TESS_COMBINE, fn(tessCombine));
+            gluTessCallback(tess, GLU_TESS_BEGIN_DATA,   fn(tessBegin));
+            gluTessCallback(tess, GLU_TESS_END_DATA,     fn(tessEnd));
+            gluTessCallback(tess, GLU_TESS_VERTEX_DATA,  fn(tessVertex));
+            gluTessCallback(tess, GLU_TESS_COMBINE_DATA, fn(tessCombine));
         }
 
         gluTessProperty(tess, GLU_TESS_WINDING_RULE, tesselation);
-        gluTessBeginPolygon(tess, &data);
+        gluTessBeginPolygon(tess, &polygon);
     }
 
     for (path_elements::iterator i = begin; i != end; i++)
@@ -220,7 +236,11 @@ void GraphicPath::Draw(Layout *where)
                 {
                     gluTessBeginContour(tess);
                     for (uint j = 0; j < size; j++)
-                        gluTessVertex(tess, &data[j].vertex.x, &data[j]);
+                    {
+                        VertexData *dynv = new VertexData(data[j]);
+                        polygon.allocated.push_back(dynv);
+                        gluTessVertex(tess, &dynv->vertex.x, dynv);
+                    }
                     gluTessEndContour(tess);
                 }
                 else

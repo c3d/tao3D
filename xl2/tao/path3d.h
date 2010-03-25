@@ -61,14 +61,21 @@ public:
         Point3  position;
     };
     typedef std::vector<Element> path_elements;
-
     struct VertexData
     {
         VertexData(const Point3& v, const Point3& t): vertex(v), texture(t) {}
         Vector3  vertex;
         Vector3  texture;
     };
-    typedef std::vector<VertexData>     PolygonData;
+    typedef std::vector<VertexData>   Vertices;
+    typedef std::vector<VertexData *> DynamicVertices;
+    struct PolygonData
+    {
+        PolygonData() {}
+        ~PolygonData();
+        Vertices        vertices;
+        DynamicVertices allocated;
+    };
 
 public:
     path_elements       elements;

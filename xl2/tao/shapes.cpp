@@ -25,6 +25,7 @@
 #include "attributes.h"
 #include "path3d.h"
 #include <GL/glew.h>
+#include <QtOpenGL>
 #include <QPainterPath>
 #include <QFont>
 
@@ -129,11 +130,13 @@ static void drawPath(Layout *where, GraphicPath &path)
     if (setFillColor(where))
     {
         path.mode = GL_POLYGON;
+        path.tesselation = GLU_TESS_WINDING_ODD;
         path.Draw(where);
     }
     if (setLineColor(where))
     {
         path.mode = GL_LINE_STRIP;
+        path.tesselation = 0;
         path.Draw(where);
     }
 }

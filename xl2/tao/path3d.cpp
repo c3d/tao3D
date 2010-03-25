@@ -265,7 +265,7 @@ GraphicPath& GraphicPath::addQtPath(QPainterPath &qt)
     {
         const QPainterPath::Element &e = qt.elementAt(i);
         Kind kind = Kind(e.type);
-        position = Point3(e.x, e.y, 0);
+        position = Point3(e.x, -e.y, 0);
         if (kind == CURVE_CONTROL)
         {
             hadControl = true;

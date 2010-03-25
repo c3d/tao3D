@@ -52,8 +52,9 @@ struct GraphicPath : Shape
     GraphicPath&        lineTo(Vector3 dst)     { return lineTo(position+dst); }
 
     // Qt path conversion
-    GraphicPath&        addQtPath(QPainterPath &path);
-    static void         Draw(Layout *where, QPainterPath &path, GLenum tess=0);
+    GraphicPath&        addQtPath(QPainterPath &path, scale sy = 1);
+    static void         Draw(Layout *where, QPainterPath &path,
+                             GLenum tess = 0, scale sy = 1);
 
 public:
     enum Kind { MOVE_TO, LINE_TO, CURVE_TO, CURVE_CONTROL };
@@ -84,6 +85,7 @@ public:
     path_elements       elements;
     Point3              start, position;
     Box3                bounds;
+    static scale        default_steps;
 };
 
 TAO_END

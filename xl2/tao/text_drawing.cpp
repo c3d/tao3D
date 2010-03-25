@@ -40,7 +40,7 @@ void TextSpan::Draw(Layout *where)
     QFont font = where->textFont ? where->textFont->font : qApp->font();
     QPainterPath path;
     path.addText(0,0, font, qs);
-    GraphicPath::Draw(where, path, GLU_TESS_WINDING_ODD);
+    GraphicPath::Draw(where, path, GLU_TESS_WINDING_ODD, -1);
 }
 
 

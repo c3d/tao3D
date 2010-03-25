@@ -34,6 +34,7 @@ typedef GraphicPath::VertexData         VertexData;
 typedef GraphicPath::PolygonData        PolygonData;
 typedef GraphicPath::Vertices           Vertices;
 typedef GraphicPath::DynamicVertices    DynamicVertices;
+scale GraphicPath::default_steps = 3;
 
 
 GraphicPath::PolygonData::~PolygonData()
@@ -192,10 +193,11 @@ void GraphicPath::Draw(Layout *where, GLenum mode, GLenum tesselation)
                 Vector3& t1 = control[1].texture;
                 Vector3& t2 = control[2].texture;
 
+                // REVISIT: Implement a true optimization of the interpolation
                 // Compute a good number of points for approximating the curve
                 scale length = (v2-v0).Length() + 1;
                 scale order = log(length);
-                uint steps = ceil (order + 0.5);
+                uint steps = ceil (order + default_steps);
                 dt = 1.0 / steps;
 
                 // Emit the points
@@ -230,7 +232,7 @@ void GraphicPath::Draw(Layout *where, GLenum mode, GLenum tesselation)
                 // Compute a good number of points for approximating the curve
                 scale length = (v2-v0).Length() + 1;
                 scale order = log(length);
-                uint steps = ceil (order + 0.5);
+                uint steps = ceil (order + default_steps);
                 dt = 1.0 / steps;
 
                 for (double t = 0.0; t < 1.0; t += dt)
@@ -376,7 +378,7 @@ GraphicPath& GraphicPath::close()
 }
 
 
-GraphicPath& GraphicPath::addQtPath(QPainterPath &qt)
+GraphicPath& GraphicPath::addQtPath(QPainterPath &qt, scale sy)
 // ----------------------------------------------------------------------------
 //   Add a QT path
 // ----------------------------------------------------------------------------
@@ -395,7 +397,7 @@ GraphicPath& GraphicPath::addQtPath(QPainterPath &qt)
     {
         const QPainterPath::Element &e = qt.elementAt(i);
         Kind kind = Kind(e.type);
-        position = Point3(e.x, -e.y, 0);
+        position = Point3(e.x, sy * e.y, 0);
         if (kind == CURVE_CONTROL)
         {
             hadControl = true;
@@ -420,13 +422,14 @@ GraphicPath& GraphicPath::addQtPath(QPainterPath &qt)
 }
 
 
-void GraphicPath::Draw(Layout *where, QPainterPath &qtPath, GLenum tessel)
+void GraphicPath::Draw(Layout *where, QPainterPath &qtPath,
+                       GLenum tessel, scale sy)
 // ----------------------------------------------------------------------------
 //   Draw the graphic path using the current texture, fill and line color
 // ----------------------------------------------------------------------------
 {
     GraphicPath path;
-    path.addQtPath(qtPath);
+    path.addQtPath(qtPath, sy);
 
     path.setTexture(where);
     if (path.setFillColor(where))

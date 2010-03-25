@@ -36,7 +36,7 @@ struct GraphicPath : Shape
 // ----------------------------------------------------------------------------
 {
     GraphicPath(GLenum m = GL_POLYGON, uint r = 20)
-        : Shape(), mode(m), resolution(r) {}
+        : Shape(), mode(m), tesselation(0), resolution(r) {}
     virtual void        Draw(Layout *where);
     virtual Box3        Bounds();
 
@@ -56,17 +56,26 @@ public:
     enum Kind { MOVE_TO, LINE_TO, CURVE_TO, CURVE_CONTROL };
     struct Element
     {
-        Element(Kind k, Point3 p): kind(k), position(p) {}
+        Element(Kind k, const Point3 &p): kind(k), position(p) {}
         Kind    kind;
         Point3  position;
     };
     typedef std::vector<Element> path_elements;
+
+    struct VertexData
+    {
+        VertexData(const Point3& v, const Point3& t): vertex(v), texture(t) {}
+        Vector3  vertex;
+        Vector3  texture;
+    };
+    typedef std::vector<VertexData>     PolygonData;
 
 public:
     path_elements       elements;
     Point3              start, position;
     Box3                bounds;
     GLenum              mode;
+    GLenum              tesselation;
     uint                resolution;
 };
 

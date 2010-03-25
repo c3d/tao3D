@@ -180,14 +180,21 @@ inline Vector operator -(const Vector& l, const Vector &r)
     return result;
 }
 
-inline Vector operator *(const Vector& l, coord s)
+inline Vector operator *(const Vector& l, scale s)
 {
     Vector result(l);
     result *= s;
     return result;
 }
 
-inline Vector operator /(const Vector& l, coord s)
+inline Vector operator *(scale s, const Vector& l)
+{
+    Vector result(l);
+    result *= s;
+    return result;
+}
+
+inline Vector operator /(const Vector& l, scale s)
 {
     Vector result(l);
     result /= s;

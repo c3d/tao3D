@@ -196,21 +196,21 @@ inline Vector3 operator -(const Vector3& l, const Vector3 &r)
     return result;
 }
 
-inline Vector3 operator *(const Vector3& l, coord s)
+inline Vector3 operator *(const Vector3& l, scale s)
 {
     Vector3 result(l);
     result *= s;
     return result;
 }
 
-inline Vector3 operator *(coord s, const Vector3& l)
+inline Vector3 operator *(scale s, const Vector3& l)
 {
     Vector3 result(l);
     result *= s;
     return result;
 }
 
-inline Vector3 operator /(const Vector3& l, coord s)
+inline Vector3 operator /(const Vector3& l, scale s)
 {
     Vector3 result(l);
     result /= s;

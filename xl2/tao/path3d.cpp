@@ -23,33 +23,105 @@
 #include "path3d.h"
 #include "layout.h"
 #include <GL/glew.h>
+#include <QtOpenGL>
 #include <QPainterPath>
 #include <iostream>
 
 TAO_BEGIN
+
+typedef GraphicPath::VertexData  VertexData;
+typedef GraphicPath::PolygonData PolygonData;
+
+
+static void tessBegin(GLenum mode, PolygonData *poly)
+// ----------------------------------------------------------------------------
+//   Callback for beginning of rendering
+// ----------------------------------------------------------------------------
+{
+    (void) poly;
+    glBegin(mode);
+}
+
+
+static void tessEnd(PolygonData *poly)
+// ----------------------------------------------------------------------------
+//   Callback for end of rendering
+// ----------------------------------------------------------------------------
+{
+    (void) poly;
+    glEnd();
+}
+
+
+static void tessVertex(VertexData *vertex, PolygonData *poly)
+// ----------------------------------------------------------------------------
+//   Emit a vertex during tesselation
+// ----------------------------------------------------------------------------
+{
+    (void) poly;
+    glVertex3dv(&vertex->vertex.x);
+    glTexCoord3dv(&vertex->texture.x);
+}
+
+
+static void tessCombine(GLdouble coords[3],
+                        VertexData *vertex[4],
+                        GLfloat weight[4], VertexData **dataOut,
+                        PolygonData *polygon)
+// ----------------------------------------------------------------------------
+//   Combine vertex data when the polygon self-intersects
+// ----------------------------------------------------------------------------
+
+{
+    Point3 pos(coords[0], coords[1], coords[2]);
+    Point3 tex =
+          weight[0] * vertex[0]->texture
+        + weight[1] * vertex[1]->texture
+        + weight[2] * vertex[2]->texture
+        + weight[3] * vertex[3]->texture;
+
+    polygon->push_back(VertexData(pos, tex));
+    *dataOut = &polygon->back();
+}
+
 
 void GraphicPath::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the graphic path using curves
 // ----------------------------------------------------------------------------
 {
-    typedef std::vector<Point3> Point3V;
-
     Vector3 offset = where->Offset();
-    Point3V vdata;   // Vertex coordinates
-    Point3V tdata;   // Texture coordinates
-    Point3V vctrl;   // Vertex control points
-    Point3V tctrl;   // Texture control points
+    PolygonData data;           // Actual vertices
+    PolygonData control;        // Control points
     path_elements::iterator i, begin = elements.begin(), end = elements.end();
+
+    // Check if we need to tesselate polygon
+    static GLUtesselator *tess = 0;
+    if (tesselation)
+    {
+        if (!tess)
+        {
+            tess = gluNewTess();
+            typedef GLvoid (*fn)();
+            gluTessCallback(tess, GLU_TESS_BEGIN_DATA, fn(tessBegin));
+            gluTessCallback(tess, GLU_TESS_END_DATA, fn(tessEnd));
+            gluTessCallback(tess, GLU_TESS_VERTEX_DATA, fn(tessVertex));
+            gluTessCallback(tess, GLU_TESS_COMBINE, fn(tessCombine));
+        }
+
+        gluTessProperty(tess, GLU_TESS_WINDING_RULE, tesselation);
+        gluTessBeginPolygon(tess, &data);
+    }
 
     for (path_elements::iterator i = begin; i != end; i++)
     {
-        Element &e          = *i;
-        Kind     kind       = e.kind;
-        Point3   pos        = e.position + offset; // Geometry coordinates
-        Point3   tex        = e.position / bounds; // Texture coordinates
-        uint     size;
-        double   dt;
+        Element    &e    = *i;
+        Kind        kind = e.kind;
+        Point3      pos  = e.position + offset; // Geometry coordinates
+        Point3      tex  = e.position / bounds; // Texture coordinates
+        VertexData  here(pos, tex);
+        uint        size;
+        double      dt;
 
         switch (kind)
         {
@@ -57,43 +129,38 @@ void GraphicPath::Draw(Layout *where)
             std::cerr << "GraphicPath::Draw: Unexpected element kind\n";
 
         case LINE_TO:
-            vdata.push_back(pos);
-            tdata.push_back(tex);
+            data.push_back(here);
         case MOVE_TO:
-            vctrl.clear();
-            tctrl.clear();
+            control.clear();
             // Fallback
 
         case CURVE_CONTROL:
-            vctrl.push_back(pos);
-            tctrl.push_back(tex);
+            control.push_back(here);
             break;
 
         case CURVE_TO:
-            vctrl.push_back(pos);
-            tctrl.push_back(tex);
+            control.push_back(here);
 
             // Optimize common sizes, give up for the rest:
-            size = vctrl.size();
+            size = control.size();
             dt = 1.0 / resolution;
             switch (size)
             {
             case 1:
             case 2:
                 // Simple line, just push the last point
-                vdata.push_back(pos);
-                vdata.push_back(tex);
+                data.push_back(here);
                 break;
 
             case 3:
             {
                 // Quadratic Bezier curve
-                Vector3 v0(vctrl[0]);
-                Vector3 v1(vctrl[1]);
-                Vector3 v2(vctrl[2]);
-                Vector3 t0(tctrl[0]);
-                Vector3 t1(tctrl[1]);
-                Vector3 t2(tctrl[2]);
+                Vector3& v0 = control[0].vertex;
+                Vector3& v1 = control[1].vertex;
+                Vector3& v2 = control[2].vertex;
+                Vector3& t0 = control[0].texture;
+                Vector3& t1 = control[1].texture;
+                Vector3& t2 = control[2].texture;
 
                 for (double t = 0.0; t < 1.0; t += dt)
                 {
@@ -102,8 +169,8 @@ void GraphicPath::Draw(Layout *where)
                     double mm = m*m;
                     Vector3 vd = mm * v0 + 2*m*t * v1 + tt * v2;
                     Vector3 td = mm * t0 + 2*m*t * t1 + tt * t2;
-                    vdata.push_back(vd);
-                    tdata.push_back(td);
+                    VertexData intermediate(vd, td);
+                    data.push_back(intermediate);
                 }
                 break;
                 }
@@ -114,14 +181,14 @@ void GraphicPath::Draw(Layout *where)
             case 4:
             {
                 // Cubic Bezier curve
-                Vector3 v0(vctrl[0]);
-                Vector3 v1(vctrl[1]);
-                Vector3 v2(vctrl[2]);
-                Vector3 v3(vctrl[3]);
-                Vector3 t0(tctrl[0]);
-                Vector3 t1(tctrl[1]);
-                Vector3 t2(tctrl[2]);
-                Vector3 t3(tctrl[3]);
+                Vector3& v0 = control[0].vertex;
+                Vector3& v1 = control[1].vertex;
+                Vector3& v2 = control[2].vertex;
+                Vector3& v3 = control[3].vertex;
+                Vector3& t0 = control[0].texture;
+                Vector3& t1 = control[1].texture;
+                Vector3& t2 = control[2].texture;
+                Vector3& t3 = control[2].texture;
                 
                 for (double t = 0.0; t < 1.0; t += dt)
                 {
@@ -130,44 +197,59 @@ void GraphicPath::Draw(Layout *where)
                     double m = 1-t;
                     double mm = m*m;
                     double mmm = m*mm;
-                    
                     Vector3 vd = mmm*v0 + 3*mm*t*v1 + 3*m*tt*v2 + ttt*v3;
                     Vector3 td = mmm*t0 + 3*mm*t*t1 + 3*m*tt*t2 + ttt*t3;
-                    vdata.push_back(vd);
-                    tdata.push_back(td);
+                    VertexData intermediate(vd, td);
+                    data.push_back(intermediate);
                 }
                 break;
             }
             } // switch(size)
             
-            vctrl.clear();
-            tctrl.clear();
+            control.clear();
         } // switch(kind)
 
         // Check if we need to emit what existed before
         if (i+1 == end || kind == MOVE_TO)
         {
             // Get size of previous elements
-            if (uint size = vdata.size())
+            if (uint size = data.size())
             {
                 // Pass the data we had so far to OpenGL and clear it
-                glVertexPointer(3,GL_DOUBLE,sizeof(Point3), &vdata[0].x);
-                glTexCoordPointer(3,GL_DOUBLE,sizeof(Point3), &tdata[0].x);
-                glEnableClientState(GL_VERTEX_ARRAY);
-                glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                glDrawArrays(mode, 0, size);
-                glDisableClientState(GL_VERTEX_ARRAY);
-                glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                if (tesselation)
+                {
+                    gluTessBeginContour(tess);
+                    for (uint j = 0; j < size; j++)
+                        gluTessVertex(tess, &data[j].vertex.x, &data[j]);
+                    gluTessEndContour(tess);
+                }
+                else
+                {
+                    // If no tesselation is required, draw directly
+                    double *vdata = &data[0].vertex.x;
+                    double *tdata = &data[0].texture.x;
+                    glVertexPointer(3,GL_DOUBLE,sizeof(VertexData), vdata);
+                    glTexCoordPointer(3,GL_DOUBLE,sizeof(VertexData), tdata);
+                    glEnableClientState(GL_VERTEX_ARRAY);
+                    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                    glDrawArrays(mode, 0, size);
+                    glDisableClientState(GL_VERTEX_ARRAY);
+                    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                }
 
-                vdata.clear();
-                tdata.clear();
+                data.clear();
             }
 
-            vdata.push_back(pos);
-            tdata.push_back(tex);
+            data.push_back(here);
         }
 
     } // Loop on all elements
+
+    // End of tesselation
+    if (tesselation)
+    {
+        gluTessEndPolygon(tess);
+    }
 }
 
 
@@ -269,6 +351,8 @@ GraphicPath& GraphicPath::addQtPath(QPainterPath &qt)
         if (kind == CURVE_CONTROL)
         {
             hadControl = true;
+            if (i+1 == max)
+                kind = CURVE_TO;
         }
         else
         {

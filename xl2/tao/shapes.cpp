@@ -26,6 +26,7 @@
 #include "path3d.h"
 #include <GL/glew.h>
 #include <QPainterPath>
+#include <QFont>
 
 
 TAO_BEGIN
@@ -183,6 +184,8 @@ void RoundedRectangle::Draw(Layout *where)
     pp.addRoundedRect(bounds.lower.x, bounds.lower.y,
                       bounds.Width(), bounds.Height(),
                       radiusX, radiusY);
+    pp.addText(QPoint(0,0), QFont("Arial", 44), "Hello World");
+    
     GraphicPath path;
     path.addQtPath(pp);
 

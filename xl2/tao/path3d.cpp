@@ -60,9 +60,9 @@ void GraphicPath::Draw(Layout *where)
         case LINE_TO:
             vdata.push_back(pos);
             tdata.push_back(tex);
-            vctrl.push_back(pos);
-            tctrl.push_back(pos);
-            break;
+            vctrl.clear();
+            tctrl.clear();
+            // Fallback
 
         case CURVE_CONTROL:
             vctrl.push_back(pos);
@@ -109,7 +109,8 @@ void GraphicPath::Draw(Layout *where)
                 }
 
             default:
-                std::cerr << "GraphicPath::Draw: Unimplemented Bezier\n";
+                std::cerr << "GraphicPath::Draw: Unimplemented Bezier"
+                          << " (order " << size << ")\n";
             case 4:
             {
                 // Cubic Bezier curve
@@ -137,7 +138,7 @@ void GraphicPath::Draw(Layout *where)
                 }
                 break;
             }
-            }
+            } // switch(size)
             
             vctrl.clear();
             tctrl.clear();

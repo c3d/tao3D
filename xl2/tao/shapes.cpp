@@ -27,7 +27,6 @@
 #include <GL/glew.h>
 #include <QtOpenGL>
 #include <QPainterPath>
-#include <QFont>
 
 
 TAO_BEGIN
@@ -130,7 +129,29 @@ static void drawPath(Layout *where, GraphicPath &path)
     if (setFillColor(where))
     {
         path.mode = GL_POLYGON;
-        path.tesselation = GLU_TESS_WINDING_ODD;
+        path.Draw(where);
+    }
+    if (setLineColor(where))
+    {
+        path.mode = GL_LINE_STRIP;
+        path.Draw(where);
+    }
+}
+
+
+static void drawPath(Layout *where, QPainterPath &qtPath, GLenum tessel = 0)
+// ----------------------------------------------------------------------------
+//   Stroke and fill a path in the given layout
+// ----------------------------------------------------------------------------
+{
+    GraphicPath path;
+    path.addQtPath(qtPath);
+
+    setTexture(where);
+    if (setFillColor(where))
+    {
+        path.mode = GL_POLYGON;
+        path.tesselation = tessel;
         path.Draw(where);
     }
     if (setLineColor(where))
@@ -145,7 +166,7 @@ static void drawPath(Layout *where, GraphicPath &path)
 
 // ============================================================================
 //
-//   Rectangle
+//   Shape drawing routines
 //
 // ============================================================================
 
@@ -154,71 +175,58 @@ void Rectangle::Draw(Layout *where)
 //   Draw a rectangle
 // ----------------------------------------------------------------------------
 {
-    // Define a graphic path for the rectangle
     GraphicPath path;
     path.moveTo(Point3(bounds.lower.x, bounds.lower.y, 0));
     path.lineTo(Point3(bounds.upper.x, bounds.lower.y, 0));
     path.lineTo(Point3(bounds.upper.x, bounds.upper.y, 0));
     path.lineTo(Point3(bounds.lower.x, bounds.upper.y, 0));
     path.close();
-
-    // And draw that path
     drawPath(where, path);
 }
 
-
-
-// ============================================================================
-//
-//   Rounded Rectangle
-//
-// ============================================================================
 
 void RoundedRectangle::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw a rounded rectangle
 // ----------------------------------------------------------------------------
 {
-    QPainterPath pp;
+    QPainterPath path;
     if (radiusX > bounds.Width() / 2)
         radiusX = bounds.Width() / 2;
     if (radiusY > bounds.Height() / 2)
         radiusY = bounds.Height() / 2;
-    pp.addRoundedRect(bounds.lower.x, bounds.lower.y,
-                      bounds.Width(), bounds.Height(),
-                      radiusX, radiusY);
-    pp.addText(QPoint(0,0), QFont("Times New Roman", 130), "Hello World");
-    
-    GraphicPath path;
-    path.addQtPath(pp);
-
+    path.addRoundedRect(bounds.lower.x, bounds.lower.y,
+                        bounds.Width(), bounds.Height(),
+                        radiusX, radiusY);
     drawPath(where, path);
 }
 
 
-
-// ============================================================================
-//
-//   Circle
-//
-// ============================================================================
-
-void Circle::Draw(Layout *where)
+void Ellipse::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Draw a circle
+//   Draw an ellipse inside the bounds
 // ----------------------------------------------------------------------------
 {
-    (void) where;
+    QPainterPath path;
+    path.addEllipse(bounds.lower.x, bounds.lower.y,
+                    bounds.Width(), bounds.Height());
+    drawPath(where, path);
 }
 
 
-Box3 Circle::Bounds()
+void EllipseArc::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//    Return the bounding box for a circle
+//    Draw an arc of ellipse
 // ----------------------------------------------------------------------------
 {
-    return Box3(center.x - radius, center.y - radius, 0,
-                2*radius, 2*radius, 0);
+    QPainterPath path;
+    Point center = bounds.Center();
+    path.moveTo(center.x, center.y);
+    path.arcTo(bounds.lower.x, bounds.lower.y,
+               bounds.Width(), bounds.Height(),
+               start, sweep);
+    path.closeSubpath();
+    drawPath(where, path);
 }
 
 TAO_END

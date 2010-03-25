@@ -61,16 +61,25 @@ struct RoundedRectangle : Rectangle
 };    
 
 
-struct Circle : Shape
+struct Ellipse : Rectangle
 // ----------------------------------------------------------------------------
-//    A circle that can be placed in a layout
+//    An ellipse that fits within the given bounds
 // ----------------------------------------------------------------------------
 {
-    Circle(Point c, coord r): Shape(), center(c), radius(r) {}
+    Ellipse(const Box &b): Rectangle(b) {}
     virtual void        Draw(Layout *where);
-    virtual Box3        Bounds();
-    Point               center;
-    coord               radius;
+};
+
+
+struct EllipseArc : Ellipse
+// ----------------------------------------------------------------------------
+//    An arc of ellipse that fits within the given bounds
+// ----------------------------------------------------------------------------
+{
+    EllipseArc(const Box &b, float start, float sweep)
+        : Ellipse(b), start(start), sweep(sweep) {}
+    virtual void        Draw(Layout *where);
+    float start, sweep;
 };
 
 TAO_END

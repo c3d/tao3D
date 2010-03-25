@@ -173,7 +173,6 @@ void GraphicPath::Draw(Layout *where, GLenum mode, GLenum tesselation)
 
             // Optimize common sizes, give up for the rest:
             size = control.size();
-            dt = 1.0 / resolution;
             switch (size)
             {
             case 1:
@@ -193,6 +192,13 @@ void GraphicPath::Draw(Layout *where, GLenum mode, GLenum tesselation)
                 Vector3& t1 = control[1].texture;
                 Vector3& t2 = control[2].texture;
 
+                // Compute a good number of points for approximating the curve
+                scale length = (v2-v0).Length() + 1;
+                scale order = log(length);
+                uint steps = ceil (order + 0.5);
+                dt = 1.0 / steps;
+
+                // Emit the points
                 for (double t = 0.0; t < 1.0; t += dt)
                 {
                     double tt = t*t;
@@ -221,6 +227,12 @@ void GraphicPath::Draw(Layout *where, GLenum mode, GLenum tesselation)
                 Vector3& t2 = control[2].texture;
                 Vector3& t3 = control[2].texture;
                 
+                // Compute a good number of points for approximating the curve
+                scale length = (v2-v0).Length() + 1;
+                scale order = log(length);
+                uint steps = ceil (order + 0.5);
+                dt = 1.0 / steps;
+
                 for (double t = 0.0; t < 1.0; t += dt)
                 {
                     double tt = t*t;
@@ -420,7 +432,7 @@ void GraphicPath::Draw(Layout *where, QPainterPath &qtPath, GLenum tessel)
     if (path.setFillColor(where))
         path.Draw(where, GL_POLYGON, tessel);
     if (path.setLineColor(where))
-        path.Draw(where, GL_LINE_STRIP);
+        path.Draw(where, tessel ? GL_LINE_LOOP : GL_LINE_STRIP);
 }
 
 

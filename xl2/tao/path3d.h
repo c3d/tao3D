@@ -35,7 +35,7 @@ struct GraphicPath : Shape
 //    An arbitrary graphic path
 // ----------------------------------------------------------------------------
 {
-    GraphicPath(uint r = 20): Shape(), resolution(r) {}
+    GraphicPath(): Shape() {}
     virtual void        Draw(Layout *where);
     virtual void        Draw(Layout *where, GLenum mode, GLenum tessel=0);
     virtual Box3        Bounds();
@@ -84,7 +84,6 @@ public:
     path_elements       elements;
     Point3              start, position;
     Box3                bounds;
-    uint                resolution;
 };
 
 TAO_END

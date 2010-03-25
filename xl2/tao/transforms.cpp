@@ -32,6 +32,7 @@ void Rotation::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     (void) where;
+    glRotatef(amount, xaxis, yaxis, zaxis);
 }
 
 
@@ -41,6 +42,7 @@ void Translation::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     (void) where;
+    glTranslatef(xaxis, yaxis, zaxis);
 }
 
 
@@ -50,6 +52,7 @@ void Scale::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     (void) where;
+    glScalef(xaxis, yaxis, zaxis);
 }
 
 TAO_END

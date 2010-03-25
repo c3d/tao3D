@@ -103,7 +103,20 @@ static void tessCombine(GLdouble coords[3],
 
 void GraphicPath::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Draw the graphic path using curves
+//   Draw the graphic path using the current texture, fill and line color
+// ----------------------------------------------------------------------------
+{
+    setTexture(where);
+    if (setFillColor(where))
+        Draw(where, GL_POLYGON);
+    if (setLineColor(where))
+        Draw(where, GL_LINE_STRIP);
+}
+
+
+void GraphicPath::Draw(Layout *where, GLenum mode, GLenum tesselation)
+// ----------------------------------------------------------------------------
+//   Draw the graphic path using curves with the given mode and tesselation
 // ----------------------------------------------------------------------------
 {
     Vector3 offset = where->Offset();
@@ -392,6 +405,22 @@ GraphicPath& GraphicPath::addQtPath(QPainterPath &qt)
     }
 
     return *this;
+}
+
+
+void GraphicPath::Draw(Layout *where, QPainterPath &qtPath, GLenum tessel)
+// ----------------------------------------------------------------------------
+//   Draw the graphic path using the current texture, fill and line color
+// ----------------------------------------------------------------------------
+{
+    GraphicPath path;
+    path.addQtPath(qtPath);
+
+    path.setTexture(where);
+    if (path.setFillColor(where))
+        path.Draw(where, GL_POLYGON, tessel);
+    if (path.setLineColor(where))
+        path.Draw(where, GL_LINE_STRIP);
 }
 
 

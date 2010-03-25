@@ -23,15 +23,18 @@
 // ****************************************************************************
 
 #include "attributes.h"
+#include "shapes.h"
+#include <QFont>
+
 
 TAO_BEGIN
 
-struct Glyphs : Shape
+struct TextSpan : Shape
 // ----------------------------------------------------------------------------
 //    A contiguous run of glyphs
 // ----------------------------------------------------------------------------
 {
-    Glyphs(text utf8): Shape(), utf8(utf8) {}
+    TextSpan(text utf8): Shape(), utf8(utf8) {}
     virtual void Draw(Layout *where);
     virtual Box3 Bounds();
     virtual Box3 Space();
@@ -39,29 +42,15 @@ struct Glyphs : Shape
 };
 
 
-struct FontChange : Attribute
+struct TextFont : Attribute
 // ----------------------------------------------------------------------------
 //    Record a font change
 // ----------------------------------------------------------------------------
 {
-    FontChange(text name): Attribute(), font(font) {}
+    TextFont(const QFont &f): font(f) {}
     virtual void Draw(Layout *where);
-    virtual Box3 Bounds();
-    virtual Box3 Space();
-    text font;
-};
-
-
-struct FontSizeChange : Attribute
-// ----------------------------------------------------------------------------
-//    Record a font size change
-// ----------------------------------------------------------------------------
-{
-    FontSizeChange(float size): Attribute(), size(size) {}
-    virtual void Draw(Layout *where);
-    virtual Box3 Bounds();
-    virtual Box3 Space();
-    float size;
+    QFont font;
+    static TextFont *last;
 };
 
 TAO_END

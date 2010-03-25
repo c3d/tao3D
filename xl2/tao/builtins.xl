@@ -8,7 +8,6 @@ if false then TrueBody else FalseBody -> do FalseBody
 if true then TrueBody -> do TrueBody
 if false then TrueBody -> false
 
-
 // Graphics stuff
 sphere x:real, y:real, z:real, r:real -> 
     sphere x,y,z,r,25,25

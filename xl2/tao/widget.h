@@ -295,7 +295,7 @@ public:
     {
         GLuint          frameWidth, frameHeight;
         TextFlow *      flow;
-        QTextCharFormat charFormat;  // Font, color, ...
+        QFont           font;
         QPaintDevice *  paintDevice;
         GLdouble        depthDelta;
         bool            selectable;

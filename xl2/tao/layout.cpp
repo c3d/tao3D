@@ -36,7 +36,7 @@ Layout::Layout()
 //    Create an empty layout
 // ----------------------------------------------------------------------------
     : Drawing(),
-      lineColor(NULL), fillColor(NULL), fillTexture(NULL),
+      lineColor(NULL), fillColor(NULL), fillTexture(NULL), textFont(NULL),
       items(), offset(), surface(NULL), context(NULL)
 {
     GLStateKeeper save;
@@ -63,7 +63,8 @@ Layout::Layout(const Layout &o)
       lineColor(o.lineColor), // REVISIT: Safe to copy?
       fillColor(o.fillColor),
       fillTexture(o.fillTexture),
-      items(o.items), surface(NULL), context(NULL)
+      textFont(o.textFont),
+      items(), surface(NULL), context(NULL)
 {
     GLStateKeeper save;
 

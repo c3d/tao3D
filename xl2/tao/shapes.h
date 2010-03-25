@@ -34,6 +34,14 @@ struct Shape : Drawing
 // ----------------------------------------------------------------------------
 {
     Shape(): Drawing() {}
+
+protected:
+    bool setTexture(Layout *where);
+    bool setFillColor(Layout *where);
+    bool setLineColor(Layout *where);
+
+    // The current color
+    static double red, green, blue, alpha;
 };
 
 

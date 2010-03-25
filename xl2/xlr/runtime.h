@@ -52,6 +52,7 @@ struct Postfix;
 
 Tree *xl_identity(Tree *);
 Tree *xl_evaluate(Tree *);
+Tree *xl_repeat(Tree *code, longlong count);
 Tree *xl_source(Tree *);
 Tree *xl_set_source(Tree *val, Tree *src);
 bool  xl_same_text(Tree *, const char *);
@@ -83,6 +84,7 @@ Tree *xl_infix_cast(Tree *source, Tree *value);
 Tree *xl_prefix_cast(Tree *source, Tree *value);
 Tree *xl_postfix_cast(Tree *source, Tree *value);
 Tree *xl_block_cast(Tree *source, Tree *value);
+
 
 
 // ============================================================================

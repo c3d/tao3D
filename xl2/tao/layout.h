@@ -32,6 +32,7 @@ TAO_BEGIN
 struct LineColor;
 struct FillColor;
 struct FillTexture;
+struct TextFont;
 
 struct Layout : Drawing
 // ----------------------------------------------------------------------------
@@ -58,6 +59,7 @@ public:
     LineColor *         lineColor;
     FillColor *         fillColor;
     FillTexture *       fillTexture;
+    TextFont *          textFont;
     Justification       alongX, alongY, alongZ;
 
 protected:

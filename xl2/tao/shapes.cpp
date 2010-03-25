@@ -37,10 +37,13 @@ TAO_BEGIN
 //
 // ============================================================================
 
-static double red = -1, green = -1, blue = -1, alpha = -1;
+double Shape::red = -1;
+double Shape::green = -1;
+double Shape::blue = -1;
+double Shape::alpha = -1;
 
 
-static inline bool setTexture(Layout *where)
+bool Shape::setTexture(Layout *where)
 // ----------------------------------------------------------------------------
 //   Get the texture from the layout
 // ----------------------------------------------------------------------------
@@ -60,7 +63,7 @@ static inline bool setTexture(Layout *where)
 }
 
 
-static inline bool setFillColor(Layout *where)
+bool Shape::setFillColor(Layout *where)
 // ----------------------------------------------------------------------------
 //    Set the fill color and texture according to the layout attributes
 // ----------------------------------------------------------------------------
@@ -90,7 +93,7 @@ static inline bool setFillColor(Layout *where)
 }
 
 
-static inline bool setLineColor(Layout *where)
+bool Shape::setLineColor(Layout *where)
 // ----------------------------------------------------------------------------
 //    Set the outline color according to the layout attributes
 // ----------------------------------------------------------------------------
@@ -120,49 +123,6 @@ static inline bool setLineColor(Layout *where)
 }
 
 
-static void drawPath(Layout *where, GraphicPath &path)
-// ----------------------------------------------------------------------------
-//   Stroke and fill a path in the given layout
-// ----------------------------------------------------------------------------
-{
-    setTexture(where);
-    if (setFillColor(where))
-    {
-        path.mode = GL_POLYGON;
-        path.Draw(where);
-    }
-    if (setLineColor(where))
-    {
-        path.mode = GL_LINE_STRIP;
-        path.Draw(where);
-    }
-}
-
-
-static void drawPath(Layout *where, QPainterPath &qtPath, GLenum tessel = 0)
-// ----------------------------------------------------------------------------
-//   Stroke and fill a path in the given layout
-// ----------------------------------------------------------------------------
-{
-    GraphicPath path;
-    path.addQtPath(qtPath);
-
-    setTexture(where);
-    if (setFillColor(where))
-    {
-        path.mode = GL_POLYGON;
-        path.tesselation = tessel;
-        path.Draw(where);
-    }
-    if (setLineColor(where))
-    {
-        path.mode = GL_LINE_STRIP;
-        path.tesselation = 0;
-        path.Draw(where);
-    }
-}
-
-
 
 // ============================================================================
 //
@@ -181,7 +141,7 @@ void Rectangle::Draw(Layout *where)
     path.lineTo(Point3(bounds.upper.x, bounds.upper.y, 0));
     path.lineTo(Point3(bounds.lower.x, bounds.upper.y, 0));
     path.close();
-    drawPath(where, path);
+    path.Draw(where);
 }
 
 
@@ -198,7 +158,7 @@ void RoundedRectangle::Draw(Layout *where)
     path.addRoundedRect(bounds.lower.x, bounds.lower.y,
                         bounds.Width(), bounds.Height(),
                         radiusX, radiusY);
-    drawPath(where, path);
+    GraphicPath::Draw(where, path);
 }
 
 
@@ -210,7 +170,7 @@ void Ellipse::Draw(Layout *where)
     QPainterPath path;
     path.addEllipse(bounds.lower.x, bounds.lower.y,
                     bounds.Width(), bounds.Height());
-    drawPath(where, path);
+    GraphicPath::Draw(where, path);
 }
 
 
@@ -226,7 +186,7 @@ void EllipseArc::Draw(Layout *where)
                bounds.Width(), bounds.Height(),
                start, sweep);
     path.closeSubpath();
-    drawPath(where, path);
+    GraphicPath::Draw(where, path);
 }
 
 TAO_END

@@ -35,9 +35,9 @@ struct GraphicPath : Shape
 //    An arbitrary graphic path
 // ----------------------------------------------------------------------------
 {
-    GraphicPath(GLenum m = GL_POLYGON, uint r = 20)
-        : Shape(), mode(m), tesselation(0), resolution(r) {}
+    GraphicPath(uint r = 20): Shape(), resolution(r) {}
     virtual void        Draw(Layout *where);
+    virtual void        Draw(Layout *where, GLenum mode, GLenum tessel=0);
     virtual Box3        Bounds();
 
     // Absolute coordinates
@@ -46,11 +46,14 @@ struct GraphicPath : Shape
     GraphicPath&        curveTo(Point3 control, Point3 dst);
     GraphicPath&        curveTo(Point3 c1, Point3 c2, Point3 dst);
     GraphicPath&        close();
-    GraphicPath&        addQtPath(QPainterPath &path);
 
     // Relative coordinates
     GraphicPath&        moveTo(Vector3 dst)     { return moveTo(position+dst); }
     GraphicPath&        lineTo(Vector3 dst)     { return lineTo(position+dst); }
+
+    // Qt path conversion
+    GraphicPath&        addQtPath(QPainterPath &path);
+    static void         Draw(Layout *where, QPainterPath &path, GLenum tess=0);
 
 public:
     enum Kind { MOVE_TO, LINE_TO, CURVE_TO, CURVE_CONTROL };
@@ -81,8 +84,6 @@ public:
     path_elements       elements;
     Point3              start, position;
     Box3                bounds;
-    GLenum              mode;
-    GLenum              tesselation;
     uint                resolution;
 };
 

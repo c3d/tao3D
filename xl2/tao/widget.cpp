@@ -47,6 +47,7 @@
 #include "page_layout.h"
 #include "space_layout.h"
 #include "shapes.h"
+#include "text_drawing.h"
 #include "shapes3d.h"
 #include "attributes.h"
 #include "transforms.h"
@@ -365,9 +366,7 @@ void Widget::setup(double w, double h, Box *picking)
     depth = 0.0;
     state.frameWidth = w;
     state.frameHeight = h;
-    state.charFormat = QTextCharFormat();
-    state.charFormat.setForeground(Qt::black);
-    state.charFormat.setBackground(Qt::white);
+    state.font = TaoApp->font();
     state.depthDelta = 0.05;
     state.selectable = true;
     state.filled = true;
@@ -891,7 +890,7 @@ Tree *Widget::rotate(Tree *self, double ra, double rx, double ry, double rz)
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
 {
-    glRotatef(ra, rx, ry, rz);
+    layout->Add(new Rotation(ra, rx, ry, rz));
     return XL::xl_true;
 }
 
@@ -901,7 +900,7 @@ Tree *Widget::translate(Tree *self, double rx, double ry, double rz)
 //     Translation along three axes
 // ----------------------------------------------------------------------------
 {
-    glTranslatef(rx, ry, rz);
+    layout->Add(new Translation(rx, ry, rz));
     return XL::xl_true;
 }
 
@@ -911,7 +910,7 @@ Tree *Widget::scale(Tree *self, double sx, double sy, double sz)
 //     Scaling along three axes
 // ----------------------------------------------------------------------------
 {
-    glScalef(sx, sy, sz);
+    layout->Add(new Scale(sx, sy, sz));
     return XL::xl_true;
 }
 
@@ -1895,11 +1894,7 @@ Tree *Widget::font(Tree *self, text description)
 //   Select a font family
 // ----------------------------------------------------------------------------
 {
-    QFont font = state.charFormat.font();
-    font.fromString((QString::fromStdString(description)));
-    state.charFormat.setFont(font);
-    GLStateKeeper save;
-    frame->Font(description);
+    state.font.fromString(+description);
     return XL::xl_true;
 }
 
@@ -1909,9 +1904,7 @@ Tree *Widget::fontSize(Tree *self, double size)
 //   Select a font size
 // ----------------------------------------------------------------------------
 {
-    state.charFormat.setFontPointSize(size);
-    GLStateKeeper save;
-    frame->FontSize(size);
+    state.font.setPointSizeF(size);
     return XL::xl_true;
 }
 
@@ -1921,11 +1914,12 @@ Tree *Widget::fontPlain(Tree *self)
 //   Select whether this is italic or not
 // ----------------------------------------------------------------------------
 {
-    state.charFormat.setFontItalic(false);
-    state.charFormat.setFontWeight(QFont::Normal);
-    state.charFormat.setFontUnderline(false);
-    state.charFormat.setFontOverline(false);
-    state.charFormat.setFontStrikeOut(false);
+    state.font.setStyle(QFont::StyleNormal);
+    state.font.setWeight(QFont::Normal);
+    state.font.setStretch(QFont::Unstretched);
+    state.font.setUnderline(false);
+    state.font.setStrikeOut(false);
+    state.font.setOverline(false);
     return XL::xl_true;
 }
 
@@ -1935,7 +1929,7 @@ Tree *Widget::fontItalic(Tree *self, bool italic)
 //   Select whether this is italic or not
 // ----------------------------------------------------------------------------
 {
-    state.charFormat.setFontItalic(italic);
+    state.font.setStyle(italic ? QFont::StyleItalic : QFont::StyleNormal);
     return XL::xl_true;
 }
 
@@ -1945,7 +1939,7 @@ Tree *Widget::fontBold(Tree *self, bool bold)
 //   Select whether the font is bold or not
 // ----------------------------------------------------------------------------
 {
-    state.charFormat.setFontWeight( bold ? QFont::Bold : QFont::Normal);
+    state.font.setWeight(bold ? QFont::Bold : QFont::Normal);
     return XL::xl_true;
 }
 
@@ -1955,7 +1949,7 @@ Tree *Widget::fontUnderline(Tree *self, bool underline)
 //    Select whether we underline a font
 // ----------------------------------------------------------------------------
 {
-    state.charFormat.setFontUnderline(underline);
+    state.font.setUnderline(underline);
     return XL::xl_true;
 }
 
@@ -1965,7 +1959,7 @@ Tree *Widget::fontOverline(Tree *self, bool overline)
 //    Select whether we draw an overline
 // ----------------------------------------------------------------------------
 {
-    state.charFormat.setFontOverline(overline);
+    state.font.setOverline(overline);
     return XL::xl_true;
 }
 
@@ -1975,7 +1969,7 @@ Tree *Widget::fontStrikeout(Tree *self, bool strikeout)
 //    Select whether we strikeout a font
 // ----------------------------------------------------------------------------
 {
-    state.charFormat.setFontStrikeOut(strikeout);
+    state.font.setStrikeOut(strikeout);
     return XL::xl_true;
 }
 
@@ -1985,7 +1979,19 @@ Tree *Widget::fontStretch(Tree *self, int stretch)
 //    Set font streching factor
 // ----------------------------------------------------------------------------
 {
-    //state.charFormat.setFontStretch(stretch);
+    state.font.setStretch(stretch);
+    return XL::xl_true;
+}
+
+
+Tree *Widget::textSpan(Tree *self, text content)
+// ----------------------------------------------------------------------------
+//   Insert a block of text with the current definition of font, color, ...
+// ----------------------------------------------------------------------------
+{
+    if (!layout->textFont || layout->textFont->font != state.font)
+        layout->Add(new TextFont(state.font));
+    layout->Add(new TextSpan(content));
     return XL::xl_true;
 }
 
@@ -2002,17 +2008,6 @@ Tree *Widget::align(Tree *self, int align)
         old &= ~Qt::AlignVertical_Mask;
     align |= old;
     state.flow->paragraphOption.setAlignment(Qt::Alignment(align));
-    return XL::xl_true;
-}
-
-
-Tree *Widget::textSpan(Tree *self, text content)
-// ----------------------------------------------------------------------------
-//   Insert a block of text with the current definition of font, color, ...
-// ----------------------------------------------------------------------------
-{
-    state.flow->addText(QString::fromUtf8(content.c_str(), content.length()),
-                        state.charFormat);
     return XL::xl_true;
 }
 

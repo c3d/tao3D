@@ -58,6 +58,7 @@ HEADERS += widget.h \
     text_flow.h \
     drawing.h \
     shapes.h \
+    text_drawing.h \
     shapes3d.h \
     path3d.h \
     attributes.h \
@@ -115,6 +116,7 @@ SOURCES += tao_main.cpp \
     text_flow.cpp \
     drawing.cpp \
     shapes.cpp \
+    text_drawing.cpp \
     shapes3d.cpp \
     path3d.cpp \
     attributes.cpp \

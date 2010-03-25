@@ -12,7 +12,7 @@
 # (C) 2010 Taodyne SAS
 # ******************************************************************************
 TEMPLATE = app
-TARGET = 
+TARGET = Tao
 DEPENDPATH += . \
     ../xlr
 INCLUDEPATH += . \

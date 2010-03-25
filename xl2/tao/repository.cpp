@@ -32,6 +32,7 @@
 
 TAO_BEGIN
 
+QMap<QString, Repository *> Repository::cache;
 
 text Repository::fullName(text fileName)
 // ----------------------------------------------------------------------------
@@ -106,14 +107,14 @@ bool Repository::setTask(text name)
 // ----------------------------------------------------------------------------
 //   We use the task to identify two branches in the repository
 //       <name> is the work branch itself, recording user-defined checkpoints
-//       <name>.undo is the undo branch, managed by us
+//       <name>_tao_undo is the undo branch, managed by us
 {
     text undo = name + TAO_UNDO_SUFFIX;
     task = name;
 
     // Check if we can checkout the task branch
-    if (!commit("Automatic commit on Tao startup", true))
-        return false;
+//    if (!commit("Automatic commit on Tao startup", true))
+//        return false;
     if (!checkout(task))
         if (!branch(task) || !checkout(task))
             return false;
@@ -136,20 +137,43 @@ bool Repository::setTask(text name)
 }
 
 
-Repository *Repository::repository(const QString &path)
+Repository *Repository::repository(const QString &path, bool create)
 // ----------------------------------------------------------------------------
-//    Factory creating the right repository kind for the current directory
+//    Factory returning the right repository kind for a directory
+// ----------------------------------------------------------------------------
+{
+    // Do we know this guy already?
+    if (cache.contains(path))
+        return cache.value(path);
+    Repository *rep = newRepository(path, create);
+    if (rep)
+        cache.insert(path, rep);
+
+    return rep;
+}
+
+
+Repository *Repository::newRepository(const QString &path, bool create)
+// ----------------------------------------------------------------------------
+//    Create the right repository object kind for a directory
 // ----------------------------------------------------------------------------
 {
     // Try a Git repository first
     Repository *git = new GitRepository(path);
     if (git->valid())
         return git;
+    if (create)
+    {
+        git->initialize();
+        if (git->valid())
+            return git;
+    }
     delete git;
 
     // Didn't work, fail
     return NULL;
 }
+
 
 
 bool Repository::selectWorkBranch()

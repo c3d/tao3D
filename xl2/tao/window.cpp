@@ -24,6 +24,8 @@
 #include "window.h"
 #include "widget.h"
 #include "apply-changes.h"
+#include "git_backend.h"
+#include "application.h"
 
 #include <iostream>
 #include <sstream>
@@ -40,7 +42,7 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create a Tao window with default parameters
 // ----------------------------------------------------------------------------
-    : xlRuntime(xlr),
+    : xlRuntime(xlr), repo(NULL),
       textEdit(NULL), taoWidget(NULL), curFile(),
       isUntitled(sf == NULL), fileCheckTimer(this)
 {
@@ -69,9 +71,14 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
     setAttribute(Qt::WA_DeleteOnClose);
     readSettings();
     setUnifiedTitleAndToolBarOnMac(true);
+    bool loaded = false;
     if (sf)
-        loadFile(QString::fromStdString(sf->name));
-    else
+    {
+        QString fileName(QString::fromStdString(sf->name));
+        if (loadFile(fileName, true))
+            loaded = true;
+    }
+    if (!loaded)
         setCurrentFile("");
 
     // Fire a timer to check if files changed
@@ -143,7 +150,7 @@ void Window::open()
     QString fileName = QFileDialog::getOpenFileName
         (this,
          tr("Open Tao Document"),
-         tr(""),
+         currentProjectFolderPath(),
          tr("Tao documents (*.ddd);;XL programs (*.xl);;"
             "Headers (*.dds *.xs);;All files (*.*)"));
 
@@ -162,7 +169,8 @@ void Window::open()
             textEdit->document()->isEmpty() &&
             !isWindowModified())
         {
-            loadFile(fileName);
+            if (!loadFile(fileName, true))
+                return;
         }
         else
         {
@@ -171,11 +179,15 @@ void Window::open()
             xlRuntime->LoadFile(fn);
             XL::SourceFile &sf = xlRuntime->files[fn];
             Window *other = new Window(xlRuntime, &sf);
-            if (other->isUntitled)
+            if (other->isUntitled ||
+                !other->openProject(QFileInfo(+sf.name).canonicalPath(),
+                                    QFileInfo(+sf.name).fileName()))
             {
                 delete other;
                 return;
             }
+
+
             other->move(x() + 40, y() + 40);
             other->show();
         }
@@ -199,9 +211,16 @@ bool Window::saveAs()
 //   Select file name and save under that name
 // ----------------------------------------------------------------------------
 {
+    // REVISIT: create custom dialog to have the last part of the directory
+    // path be the basename of file, as the user types it, while still
+    // allowing override of directory name.
     QString fileName =
         QFileDialog::getSaveFileName(this, tr("Save As"), curFile);
     if (fileName.isEmpty())
+        return false;
+    QString projpath = QFileInfo(fileName).absolutePath();
+    QString fileNameOnly = QFileInfo(fileName).fileName();
+    if (!openProject(projpath, fileNameOnly, false))
         return false;
 
     return saveFile(fileName);
@@ -403,11 +422,15 @@ bool Window::maybeSave()
 }
 
 
-void Window::loadFile(const QString &fileName)
+bool Window::loadFile(const QString &fileName, bool openProj)
 // ----------------------------------------------------------------------------
 //    Load a specific file
 // ----------------------------------------------------------------------------
 {
+    if ( openProj &&
+        !openProject(QFileInfo(fileName).canonicalPath(),
+                     QFileInfo(fileName).fileName()))
+        return false;
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text))
     {
@@ -415,7 +438,7 @@ void Window::loadFile(const QString &fileName)
                              tr("Cannot read file %1:\n%2.")
                              .arg(fileName)
                              .arg(file.errorString()));
-        return;
+        return false;
     }
     
     QTextStream in(&file);
@@ -426,6 +449,8 @@ void Window::loadFile(const QString &fileName)
     setCurrentFile(fileName);
     statusBar()->showMessage(tr("File loaded"), 2000);
     updateProgram(fileName);
+
+    return true;
 }
 
 
@@ -476,8 +501,176 @@ bool Window::saveFile(const QString &fileName)
     statusBar()->showMessage(tr("File saved"), 2000);
     updateProgram(fileName);
 
+    // Trigger immediate commit to repository
+    taoWidget->markChanged("Manual save");
+    QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
+    text fn = canonicalFilePath.toStdString();
+    XL::SourceFile &sf = xlRuntime->files[fn];
+    if (taoWidget->writeIfChanged(sf))
+        taoWidget->doCommit();
+
     return true;
 }
+
+bool Window::openProject(QString path, QString fileName, bool confirm)
+// ----------------------------------------------------------------------------
+//   Find and open a project (= SCM repository)
+// ----------------------------------------------------------------------------
+{
+    // If project does not exist and 'confirm' is true, user will be asked to
+    // confirm project creation. User is always prompted before re-using a
+    // valid repository not currently used by Tao.
+    // Returns true if project is open succesfully or user has chosen to
+    // proceed without a project, false if user cancelled.
+    bool ok = true;
+    bool created = false;
+
+    do
+    {
+        repo = Repository::repository(path);
+        if (!repo)
+        {
+            bool docreate = !confirm;
+            if (confirm)
+            {
+                QMessageBox box;
+                box.setWindowTitle("No Tao Project");
+                box.setText
+                        (tr("The file '%1' is not associated with a Tao project.")
+                         .arg(fileName));
+                box.setInformativeText
+                        (tr("Do you want to create a new project in %1, or skip "
+                            "and continue without a project (version control and "
+                            "sharing will be disabled)?").arg(path));
+                box.setIcon(QMessageBox::Question);
+                QPushButton *cancel = box.addButton(tr("Cancel"),
+                                                    QMessageBox::RejectRole);
+                QPushButton *skip = box.addButton(tr("Skip"),
+                                                  QMessageBox::RejectRole);
+                QPushButton *create = box.addButton(tr("Create"),
+                                                    QMessageBox::AcceptRole);
+                box.setDefaultButton(create);
+                int index = box.exec(); (void) index;
+                QAbstractButton *which = box.clickedButton();
+
+                if (which == cancel)
+                {
+                    return false;
+                }
+                else if (which == create)
+                {
+                    docreate = true;
+                }
+                else if (which == skip)
+                {
+                    // Continue with repo == NULL
+                }
+                else
+                {
+                    QMessageBox::question(NULL, tr("Puzzled"),
+                                          tr("How did you do that?"),
+                                          QMessageBox::No);
+                }
+            }
+            if (docreate)
+            {
+                repo = Repository::repository(path, true);
+                created = (repo != NULL);
+            }
+        }
+
+        // Select the task branch, either current branch or without _tao_undo
+        if (ok && repo && repo->valid())
+        {
+            text task = repo->branch();
+            size_t len = task.length() - (sizeof (TAO_UNDO_SUFFIX) - 1);
+            text currentBranch = task;
+            bool onUndoBranch = task.find(TAO_UNDO_SUFFIX) == len;
+            bool setTask = true;
+            if (onUndoBranch)
+            {
+                task = task.substr(0, len);
+            }
+            else if (!created)
+            {
+                QMessageBox box;
+                QString rep = repo->userVisibleName();
+                box.setIcon(QMessageBox::Question);
+                box.setWindowTitle
+                    (tr("Existing %1 repository").arg(rep));
+                box.setText
+                        (tr("The folder '%1' looks like a valid "
+                            "%2 repository, but is not currently used by Tao.")
+                         .arg(path).arg(rep));
+                box.setInformativeText
+                        (tr("This repository appears to not be currently "
+                            "used by Tao, because the current branch, "
+                            "'%1', is not a Tao working branch. "
+                            "Do you want to use this repository (Tao will "
+                            "use the '%2' branch and make it the active one) "
+                            "or skip and use '%3' without a project (version "
+                            "control and sharing will be disabled)?")
+                         .arg(+currentBranch)
+                         .arg(+currentBranch + TAO_UNDO_SUFFIX)
+                         .arg(fileName));
+                // REVISIT: this info text is not very well suited to the
+                // "Save as..." case.
+
+                QPushButton *cancel = box.addButton(tr("Cancel"),
+                                                    QMessageBox::RejectRole);
+                QPushButton *skip = box.addButton(tr("Skip"),
+                                                  QMessageBox::NoRole);
+                QPushButton *use = box.addButton(tr("Use"),
+                                                 QMessageBox::YesRole);
+                box.setDefaultButton(use);
+                int index = box.exec(); (void) index;
+                QAbstractButton *which = box.clickedButton();
+
+                if (which == cancel)
+                {
+                    return false;
+                }
+                else if (which == use)
+                {
+                    setTask = true;
+                }
+                else if (which == skip)
+                {
+                    setTask = false;
+                }
+                else
+                {
+                    QMessageBox::question(NULL, tr("Coin?"),
+                                          tr("How did you do that?"),
+                                          QMessageBox::Discard);
+                }
+            }
+
+            if (setTask)
+                if (!repo->setTask(task))
+                    QMessageBox::information
+                        (NULL, tr("Task selection"),
+                         tr("An error occured setting the task:\n%1")
+                         .arg(+repo->errors),
+                         QMessageBox::Ok);
+        }
+
+    } while (!ok);
+
+    return ok;
+}
+
+
+QString Window::currentProjectFolderPath()
+// ----------------------------------------------------------------------------
+//    The folder to use in the "Save as..." dialog
+// ----------------------------------------------------------------------------
+{
+    if (repo)
+        return repo->path;
+    return Application::defaultProjectFolderPath();
+}
+
 
 void Window::resetTaoMenus(XL::Tree * a_tree)
 // ----------------------------------------------------------------------------
@@ -538,20 +731,26 @@ void Window::setCurrentFile(const QString &fileName)
 //   Set the current file name, create one for empty documents
 // ----------------------------------------------------------------------------
 {
-    static int sequenceNumber = 1;
     QString name = fileName;
-
     isUntitled = name.isEmpty();
 
     // If the document name doesn't exist, loop until we find an unused one
-    while (isUntitled)
+    // in the current project
+    if (isUntitled)
     {
-        name = QString(tr("document%1.ddd")).arg(sequenceNumber++);
-        QFile file(name);
-        isUntitled = file.open(QFile::ReadOnly | QFile::Text);
+        static int sequenceNumber = 1;
+        bool       exists;
+        do
+        {
+            name = QString(tr("%1/Untitled%2.ddd"))
+                   .arg(currentProjectFolderPath())
+                   .arg(sequenceNumber++);
+            QFile file(name);
+            exists = file.open(QFile::ReadOnly | QFile::Text);
+        } while (exists);
     }
 
-    curFile = QFileInfo(name).canonicalFilePath();
+    curFile = QFileInfo(name).absoluteFilePath();
 
     textEdit->document()->setModified(false);
     setWindowModified(false);

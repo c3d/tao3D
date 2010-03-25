@@ -29,6 +29,7 @@
 #include <QString>
 #include <QProcess>
 #include <QtGlobal>
+#include <QMap>
 #include <iostream>
 
 TAO_BEGIN
@@ -62,17 +63,23 @@ public:
     virtual bool        merge(text branch)              = 0;
     virtual bool        reset()                         = 0;
 
-    static Repository * repository(const QString &path);
+    static Repository * repository(const QString &path, bool create = false);
 
 protected:
     virtual QString     command()                       = 0;
     virtual text        styleSheet();
     virtual text        fullName(text fileName);
+    static Repository * newRepository(const QString &path,
+                                      bool create = false);
+
 
 public:
     QString  path;
     text     task;
     text     errors;
+
+protected:
+    static QMap<QString, Repository *> cache;
 };
 
 #define TAO_UNDO_SUFFIX "_tao_undo"

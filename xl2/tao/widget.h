@@ -46,6 +46,7 @@ struct Window;
 struct Frame;
 struct FrameInfo;
 struct Activity;
+struct Repository;
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -81,6 +82,8 @@ public:
     void        updateProgram(XL::SourceFile *sf);
     void        refreshProgram();
     void        markChanged(text reason);
+    bool        writeIfChanged(XL::SourceFile &sf);
+    bool        doCommit();
 
     // Selection
     GLuint      shapeId();
@@ -245,6 +248,7 @@ private:
                 double tx0, double ty0, double tx1, double ty1,
                 int sq, int nq);
     Tree *evalInGlMode(GLenum mode, Tree *child);
+    Repository *repository();
 
 public:
     // XL Runtime

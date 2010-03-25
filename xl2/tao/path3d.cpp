@@ -56,10 +56,10 @@ void GraphicPath::Draw(Layout *where)
         default:
             std::cerr << "GraphicPath::Draw: Unexpected element kind\n";
 
-        case MOVE_TO:
         case LINE_TO:
             vdata.push_back(pos);
             tdata.push_back(tex);
+        case MOVE_TO:
             vctrl.clear();
             tctrl.clear();
             // Fallback

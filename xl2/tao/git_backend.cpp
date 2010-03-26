@@ -204,7 +204,8 @@ bool GitRepository::commit(text message, bool all)
     QStringList args("commit");
     if (all)
         args << "-a";
-    args << "-m" << +message;
+    args << "--allow-empty"    // Don't fail if working directory is clean
+         << "-m" << +message;
     Process cmd(command(), args, path);
     bool result = cmd.done(&errors);
     if (!result)

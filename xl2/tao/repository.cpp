@@ -113,9 +113,10 @@ bool Repository::setTask(text name)
     text undo = name + TAO_UNDO_SUFFIX;
     task = name;
 
+    // Don't fail if working directory is not clean
+    if (!commit("Automatic commit on Tao startup", true))
+        return false;
     // Check if we can checkout the task branch
-//    if (!commit("Automatic commit on Tao startup", true))
-//        return false;
     if (!checkout(task))
         if (!branch(task) || !checkout(task))
             return false;

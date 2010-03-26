@@ -72,8 +72,7 @@ int main(int argc, char **argv)
             XL::SourceFile &sf = xlr->files[*it];
             hadFile = true;
             Tao::Window *window = new Tao::Window (xlr, &sf);
-            if (!window->openProject(QFileInfo(+sf.name).canonicalPath(),
-                                     QFileInfo(+sf.name).fileName()))
+            if (window->isUntitled)
                 delete window;
             else
                 window->show();

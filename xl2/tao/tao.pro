@@ -56,7 +56,6 @@ HEADERS += widget.h \
     coords3d.h \
     color.h \
     gl_keepers.h \
-    text_flow.h \
     drawing.h \
     shapes.h \
     text_drawing.h \
@@ -114,7 +113,6 @@ SOURCES += tao_main.cpp \
     svg.cpp \
     widget-surface.cpp \
     texture.cpp \
-    text_flow.cpp \
     drawing.cpp \
     shapes.cpp \
     text_drawing.cpp \

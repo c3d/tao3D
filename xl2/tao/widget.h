@@ -75,8 +75,9 @@ public:
     void        paintGL();
     void        setup(double w, double h, Box *picking = NULL);
     void        setupGL();
-    Point3      unproject (coord x, coord y, coord z = 0.0);
-    Vector3     dragDelta();
+    coord       zBuffer(coord z, int pos);
+    coord       bringForward(coord z) { return zBuffer(z,1); }
+    coord       sendBackward(coord z) { return zBuffer(z,-1); }
     void        updateProgram(XL::SourceFile *sf);
     void        refreshProgram();
     void        markChanged(text reason);
@@ -85,10 +86,19 @@ public:
     GLuint      shapeId();
     bool        selected();
     void        select();
-    Activity *  newDragActivity();
-    void        drawSelection(const Box3 &bounds);
+    void        requestFocus(QWidget *widget);
+    void        recordProjection();
+    Point3      unproject (coord x, coord y, coord z = 0.0);
+    Vector3     dragDelta();
+    text        dragSelector();
+    void        drawSelection(const Box3 &bounds, text selector);
     void        loadName(bool load);
     Box3        bbox(coord x, coord y, coord w, coord h);
+    Box3        bbox(coord x, coord y, coord z, coord w, coord h, coord d);
+
+private:
+    double      z2b(coord z);
+    double      b2z(ulong b);
 
 public slots:
     void        dawdle();
@@ -118,6 +128,7 @@ public:
     Tree *translate(Tree *self, double x, double y, double z);
     Tree *scale(Tree *self, double x, double y, double z);
     Tree *depthDelta(Tree *self, double x);
+    Name *depthTest(Tree *self, bool enable);
 
     Tree *locally(Tree *self, Tree *t);
     Tree *pagesize(Tree *self, uint w, uint h);
@@ -129,6 +140,7 @@ public:
     Tree *time(Tree *self);
     Tree *page_time(Tree *self);
     Name *selectable(Tree *self, bool selectable);
+    Name *selectorName(Tree *self, Text &name);
 
     Tree *color(Tree *self, double r, double g, double b, double a);
     Tree *textColor(Tree *self, double r,double g,double b,double a, bool fg);
@@ -137,6 +149,15 @@ public:
     Tree *linewidth(Tree *self, double lw);
 
     Tree *polygon(Tree *self, Tree *t);
+    Tree *points(Tree *self, Tree *t);
+    Tree *lines(Tree *self, Tree *t);
+    Tree *line_strip(Tree *self, Tree *t);
+    Tree *line_loop(Tree *self, Tree *t);
+    Tree *triangles(Tree *self, Tree *t);
+    Tree *triangle_fan(Tree *self, Tree *t);
+    Tree *triangle_strip(Tree *self, Tree *t);
+    Tree *quads(Tree *self, Tree *t);
+    Tree *quad_strip(Tree *self, Tree *t);
     Tree *vertex(Tree *self, double x, double y, double z);
     Tree *sphere(Tree *self,
                  real_r cx, real_r cy, real_r cz, real_r r,
@@ -216,10 +237,6 @@ public:
     Name *insert(Tree *self, Tree *toInsert);
     Name *deleteSelection(Tree *self);
 
-    // Focus management
-    void              requestFocus(QWidget *widget);
-    void              recordProjection();
-
 private:
     void widgetVertex(double x, double y, double tx, double ty);
     void circularVertex(double cx, double cy, double r,
@@ -228,6 +245,7 @@ private:
     void circularSectorN(double cx, double cy, double r,
                 double tx0, double ty0, double tx1, double ty1,
                 int sq, int nq);
+    Tree *evalInGlMode(GLenum mode, Tree *child);
 
 public:
     // XL Runtime
@@ -240,11 +258,15 @@ public:
     Frame *               mainFrame;
     Activity *            activities;
     double                page_start_time;
-    GLuint                id, capacity;
+    GLuint                id, capacity, selector, activeSelector;
     std::set<GLuint>      selection, savedSelection;
     std::set<XL::Tree *>  selectionTrees;
+    std::map<text, uint>  selectors;
+    std::vector<text>     selectorNames;
     QEvent *              event;
     GLdouble              depth;
+    GLint                 depthBits;
+    ulong                 depthBitsMax;
     QWidget *             focusWidget;
     GLdouble              focusProjection[16], focusModel[16];
     GLint                 focusViewport[4];

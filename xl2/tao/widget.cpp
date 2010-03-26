@@ -53,6 +53,8 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 
+#define Z_NEAR  1000.0
+#define Z_FAR  40000.0
 
 TAO_BEGIN
 
@@ -70,7 +72,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       xlProgram(sf), timer(this), idleTimer(this), currentMenu(NULL),
       frame(NULL), mainFrame(NULL), activities(NULL),
       page_start_time(CurrentTime()),
-      id(0), capacity(0),
+      id(0), capacity(0), selector(0), activeSelector(0),
       event(NULL), focusWidget(NULL),
       whatsNew(""), reloadProgram(false),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
@@ -86,7 +88,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     // Prepare the timers
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
     connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));
-    idleTimer.start(0);
+    idleTimer.start(100);
 
     // Receive notifications for focus
     connect(qApp, SIGNAL(focusChanged (QWidget *, QWidget *)),
@@ -97,6 +99,10 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     currentMenuBar = parent->menuBar();
     connect(parent->menuBar(),  SIGNAL(triggered(QAction*)),
             this,               SLOT(userMenu(QAction*)));
+
+    // Make sure we have at least a selector name for "move"
+    selectors["move"] = 1;
+    selectorNames.push_back("move");    // Index 1
 }
 
 
@@ -298,93 +304,6 @@ void Widget::markChanged(text reason)
 }
 
 
-void Widget::requestFocus(QWidget *widget)
-// ----------------------------------------------------------------------------
-//   Some other widget request the focus
-// ----------------------------------------------------------------------------
-{
-    if (!focusWidget)
-    {
-        focusWidget = widget;
-        recordProjection();
-        QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
-        QObject *fin = focusWidget;
-        fin->event(&focusIn);
-    }
-}
-
-
-void Widget::recordProjection()
-// ----------------------------------------------------------------------------
-//   Record the transformation matrix for the current projection
-// ----------------------------------------------------------------------------
-{
-    glGetDoublev(GL_PROJECTION_MATRIX, focusProjection);
-    glGetDoublev(GL_MODELVIEW_MATRIX, focusModel);
-    glGetIntegerv(GL_VIEWPORT, focusViewport);
-}
-
-
-Point3 Widget::unproject (coord x, coord y, coord z)
-// ----------------------------------------------------------------------------
-//   Convert mouse clicks into 3D planar coordinates for the focus object
-// ----------------------------------------------------------------------------
-{
-    // Get 3D coordinates for the near plane based on window coordinates
-    GLdouble x3dn, y3dn, z3dn;
-    gluUnProject(x, y, 0.0,
-                 focusModel, focusProjection, focusViewport,
-                 &x3dn, &y3dn, &z3dn);
-
-    // Same with far-plane 3D coordinates
-    GLdouble x3df, y3df, z3df;
-    gluUnProject(x, y, 1.0,
-                 focusModel, focusProjection, focusViewport,
-                 &x3df, &y3df, &z3df);
-
-    GLfloat zDistance = z3dn - z3df;
-    if (zDistance == 0.0)
-        zDistance = 1.0;
-    GLfloat ratio = (z3dn - z) / zDistance;
-    GLfloat x3d = x3dn + ratio * (x3df - x3dn);
-    GLfloat y3d = y3dn + ratio * (y3df - y3dn);
-
-    return Point3(x3d, y3d, z);
-}
-
-
-Vector3 Widget::dragDelta()
-// ----------------------------------------------------------------------------
-//   Compute the drag delta based on the current Drag object if there is any
-// ----------------------------------------------------------------------------
-{
-    Vector3 result;
-    recordProjection();
-    if (Drag *d = dynamic_cast<Drag *>(activities))
-    {
-        double x1 = d->x1;
-        double y1 = d->y1;
-        double x2 = d->x2;
-        double y2 = d->y2;
-        int hh = height();
-
-        Point3 u1 = unproject(x1, hh-y1, 0);
-        Point3 u2 = unproject(x2, hh-y2, 0);
-        result = u2 - u1;
-
-        // Clamp amplification resulting from reverse projection
-        const double maxAmp = 5.0;
-        double ampX = fabs(result.x) / (fabs(x2-x1) + 0.01);
-        double ampY = fabs(result.y) / (fabs(y2-y1) + 0.01);
-        if (ampX > maxAmp)
-            result *= maxAmp/ampX;
-        if (ampY > maxAmp)
-            result *= maxAmp/ampY;
-    }
-    return result;
-}
-
-
 void Widget::setup(double w, double h, Box *picking)
 // ----------------------------------------------------------------------------
 //   Setup an initial environment for drawing
@@ -409,7 +328,7 @@ void Widget::setup(double w, double h, Box *picking)
     }
 
     // Setup the frustrum for the projection
-    double zNear = 1000.0, zFar = 40000.0;
+    double zNear = Z_NEAR, zFar = Z_FAR;
     double eyeX = 0.0, eyeY = 0.0, eyeZ = 1000.0;
     double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
     double upX = 0.0, upY = 1.0, upZ = 0.0;
@@ -452,6 +371,39 @@ void Widget::setupGL()
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);
+    glGetIntegerv(GL_DEPTH_BITS, &depthBits);
+    switch (depthBits) 
+    {
+        case 32:
+            depthBitsMax = UINT32_MAX;
+            break;
+        default:
+            depthBitsMax = (1u<<depthBits) - 1;
+    }
+}
+
+
+coord Widget::zBuffer(coord z, int pos)
+// ----------------------------------------------------------------------------
+//   Calculate minimal z increment depending on the GL_DEPTH_BITS 
+// ----------------------------------------------------------------------------
+{
+    long b = 2 * pos;
+    return b2z( z2b(z) + b );   
+}
+ 
+double Widget::z2b(coord z)
+{
+    double n = Z_NEAR, f = Z_FAR;
+    double s = double(depthBitsMax);
+    return floor(s * (f - (f * n / z)) / (f - n) + 0.5);
+}
+
+double  Widget::b2z(ulong b)
+{
+    double n = Z_NEAR, f = Z_FAR;
+    double s = double(depthBitsMax);
+    return f * n / ((double(b) / s) * (n - f) + f);
 }
 
 
@@ -543,6 +495,9 @@ void Widget::draw()
     // Timing
     ulonglong t = now();
     event = NULL;
+
+    // Need to setup initial context for the activities
+    XL::LocalSave<Frame *> saveFrame (frame, mainFrame);
 
     // Setup the initial drawing environment
     double w = width(), h = height();
@@ -770,22 +725,20 @@ void Widget::mousePressEvent(QMouseEvent *event)
 {
     EventSave save(this->event, event);
 
-    uint button = (uint) event->button();
-    int x = event->x();
-    int y = event->y();
-    bool handled = false;
+    QMenu * contextMenu = NULL;
+    uint    button      = (uint) event->button();
+    int     x           = event->x();
+    int     y           = event->y();
 
     // Create a selection if left click and nothing going on right now
     if (!activities && button == Qt::LeftButton)
         new Selection(this);
 
     // Send the click to all activities
-    for (Activity *a = activities; a; a = a->Click(button, true, x, y))
-        handled = true;
+    for (Activity *a = activities; a; a = a->Click(button, true, x, y)) ;
 
     if (button ==  Qt::RightButton)
     {
-        QMenu * contextMenu = NULL;
         switch (event->modifiers())
         {
         default :
@@ -817,14 +770,11 @@ void Widget::mousePressEvent(QMouseEvent *event)
         }
 
         if (contextMenu)
-        {
             contextMenu->exec(event->globalPos());
-            handled = true;
-        }
     }
 
     // Pass the event down the event chain
-    if (!handled)
+    if (!contextMenu)
         forwardEvent(event);
 }
 
@@ -956,6 +906,21 @@ Tree *Widget::depthDelta(Tree *self, double dx)
 {
     state.depthDelta = dx;
     return XL::xl_true;
+}
+
+
+XL::Name *Widget::depthTest(XL::Tree *self, bool enable)
+// ----------------------------------------------------------------------------
+//   Change the delta we use for the depth
+// ----------------------------------------------------------------------------
+{
+    GLboolean old;
+    glGetBooleanv(GL_DEPTH_TEST, &old);
+    if (enable)
+        glEnable(GL_DEPTH_TEST);
+    else
+        glDisable(GL_DEPTH_TEST);
+    return old ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -1102,6 +1067,40 @@ XL::Name *Widget::selectable(Tree *self, bool new_selectable)
 }
 
 
+XL::Name *Widget::selectorName(Tree *self, Text &name)
+// ----------------------------------------------------------------------------
+//   Assign the selector name
+// ----------------------------------------------------------------------------
+{
+    if (!selector)
+    {
+        if (Tree *o = Ooops("Selector '$1' used outside of selection", &name))
+            if (Name *n = o->AsName())
+                return n;
+        return XL::xl_false;
+    }
+
+    GLuint selectorId;
+    if (selectors.count(name.value) == 0)
+    {
+        // Already identified, return existing selector ID
+        selectorId = selectors[name.value];
+    }
+    else
+    {
+        // First time we see it, return a new selector ID
+        selectorId = selectors.size();
+        selectors[name.value] = selectorId;
+        selectorNames.push_back(name.value);
+    }
+
+    // Load selector name on the OpenGL selection stack
+    glLoadName(selectorId);
+
+    return XL::xl_true;
+}
+
+
 GLuint Widget::shapeId()
 // ----------------------------------------------------------------------------
 //   Return an identifier for the shape in selections
@@ -1109,19 +1108,9 @@ GLuint Widget::shapeId()
 //   We assign an identifier only if we are selectable and if we are not
 //   rendering in an off-screen buffer of some sort
 {
-    return state.selectable && state.paintDevice == this
+    return state.selectable && state.paintDevice == this && !selector
         ? ++id
         : 0;
-}
-
-
-void Widget::select()
-// ----------------------------------------------------------------------------
-//    Select the current shape if we are in selectable state
-// ----------------------------------------------------------------------------
-{
-    if (state.selectable && state.paintDevice == this)
-        selection.insert(id);
 }
 
 
@@ -1136,26 +1125,126 @@ bool Widget::selected()
 }
 
 
-Activity *Widget::newDragActivity()
+void Widget::select()
 // ----------------------------------------------------------------------------
-//   Return a new drag activity, depending on current mode
+//    Select the current shape if we are in selectable state
 // ----------------------------------------------------------------------------
 {
-    // For now, we only support regular drag
-    return new Drag(this);
+    if (state.selectable && state.paintDevice == this && !selector)
+        selection.insert(id);
 }
 
 
-void Widget::drawSelection(const Box3 &bnds)
+void Widget::requestFocus(QWidget *widget)
+// ----------------------------------------------------------------------------
+//   Some other widget request the focus
+// ----------------------------------------------------------------------------
+{
+    if (!focusWidget)
+    {
+        focusWidget = widget;
+        recordProjection();
+        QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
+        QObject *fin = focusWidget;
+        fin->event(&focusIn);
+    }
+}
+
+
+void Widget::recordProjection()
+// ----------------------------------------------------------------------------
+//   Record the transformation matrix for the current projection
+// ----------------------------------------------------------------------------
+{
+    glGetDoublev(GL_PROJECTION_MATRIX, focusProjection);
+    glGetDoublev(GL_MODELVIEW_MATRIX, focusModel);
+    glGetIntegerv(GL_VIEWPORT, focusViewport);
+}
+
+
+Point3 Widget::unproject (coord x, coord y, coord z)
+// ----------------------------------------------------------------------------
+//   Convert mouse clicks into 3D planar coordinates for the focus object
+// ----------------------------------------------------------------------------
+{
+    // Get 3D coordinates for the near plane based on window coordinates
+    GLdouble x3dn, y3dn, z3dn;
+    gluUnProject(x, y, 0.0,
+                 focusModel, focusProjection, focusViewport,
+                 &x3dn, &y3dn, &z3dn);
+
+    // Same with far-plane 3D coordinates
+    GLdouble x3df, y3df, z3df;
+    gluUnProject(x, y, 1.0,
+                 focusModel, focusProjection, focusViewport,
+                 &x3df, &y3df, &z3df);
+
+    GLfloat zDistance = z3dn - z3df;
+    if (zDistance == 0.0)
+        zDistance = 1.0;
+    GLfloat ratio = (z3dn - z) / zDistance;
+    GLfloat x3d = x3dn + ratio * (x3df - x3dn);
+    GLfloat y3d = y3dn + ratio * (y3df - y3dn);
+
+    return Point3(x3d, y3d, z);
+}
+
+
+Vector3 Widget::dragDelta()
+// ----------------------------------------------------------------------------
+//   Compute the drag delta based on the current Drag object if there is any
+// ----------------------------------------------------------------------------
+{
+    Vector3 result;
+    recordProjection();
+    if (Drag *d = dynamic_cast<Drag *>(activities))
+    {
+        double x1 = d->x1;
+        double y1 = d->y1;
+        double x2 = d->x2;
+        double y2 = d->y2;
+        int hh = height();
+
+        Point3 u1 = unproject(x1, hh-y1, 0);
+        Point3 u2 = unproject(x2, hh-y2, 0);
+        result = u2 - u1;
+
+        // Clamp amplification resulting from reverse projection
+        const double maxAmp = 5.0;
+        double ampX = fabs(result.x) / (fabs(x2-x1) + 0.01);
+        double ampY = fabs(result.y) / (fabs(y2-y1) + 0.01);
+        if (ampX > maxAmp)
+            result *= maxAmp/ampX;
+        if (ampY > maxAmp)
+            result *= maxAmp/ampY;
+    }
+    return result;
+}
+
+
+text Widget::dragSelector()
+// ----------------------------------------------------------------------------
+//   Return the name of the drag selector if there's any, or "none" otherwise
+// ----------------------------------------------------------------------------
+{
+    if (activeSelector)
+    {
+        assert (activeSelector <= selectorNames.size());
+        return selectorNames[activeSelector - 1];
+    }
+    return "none";
+}
+
+
+void Widget::drawSelection(const Box3 &bnds, text selName)
 // ----------------------------------------------------------------------------
 //    Draw a 2D or 3D selection with the given coordinates
 // ----------------------------------------------------------------------------
 {
     // Symbols where we will find the selection code
     XL::Symbols *symbols = XL::Symbols::symbols;
-    if (0)
-        if (xlProgram)
-            symbols = xlProgram->symbols;
+    if (xlProgram)
+        symbols = xlProgram->symbols;
 
     Box3 bounds(bnds);
     bounds.Normalize();
@@ -1165,99 +1254,28 @@ void Widget::drawSelection(const Box3 &bnds)
     coord d = bounds.Depth();
     Point3 c  = bounds.Center();
 
+    XL::LocalSave<bool>   save_selectable(state.selectable, false);
+    XL::LocalSave<GLuint> save_selector(selector, selectors["move"]);
+
+    glPushName(selector);
     if (bounds.Depth() > 0)
     {
         GLAttribKeeper save;
-        XL::LocalSave<GLuint> save1(state.polygonMode, GL_TRIANGLE_FAN);
-        XL::LocalSave<bool>   save2(state.selectable, false);
-
         setupGL();
         glDisable(GL_DEPTH_TEST);
-
-        (XL::XLCall("draw_selection"), c.x, c.y, c.z, w, h, d) (symbols);
+        (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
     }
     else
     {
-        GLAttribKeeper save(GL_CURRENT_BIT | GL_LINE_BIT);
+        GLAttribKeeper save;
         XL::LocalSave<GLuint> save1(state.polygonMode, GL_LINE_LOOP);
         XL::LocalSave<bool>   save2(state.selectable, false);
         glLineWidth (3.0);
         glColor4f(1.0, 0.0, 0.0, 0.5);
         glDisable(GL_DEPTH_TEST);
-        (XL::XLCall("draw_selection"), c.x, c.y, w, h) (symbols);
+        (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (symbols);
     }
-
-#if 0
-    if (bounds.Width() < 0 || bounds.Height() < 0)
-        return;
-
-    if (bounds.Depth() > 0)
-    {
-        // Use 3D selection
-        coord w = bounds.Width();
-        coord h = bounds.Height();
-        coord d = bounds.Depth();
-
-        GLAttribKeeper save(GL_TEXTURE_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT);
-
-        Point3 c  = bounds.Center();
-        coord  xc = c.x;
-        coord  yc = c.y;
-        coord  zc = c.z;
-
-        // Compute the box around the item
-        coord r = w;
-        if (r > h) r = h;
-        if (r > d) r = d;
-        r /= 4;
-        if (r < 15.0)
-            r = 15.0;
-
-        coord xl = bounds.lower.x - r;
-        coord xu = bounds.upper.x + r;
-        coord yl = bounds.lower.y - r;
-        coord yu = bounds.upper.y + r;
-        coord zl = bounds.lower.z - r;
-        coord zu = bounds.upper.z + r;
-
-        setupGL();
-        glDisable(GL_DEPTH_TEST);
-
-        glBegin(GL_TRIANGLE_FAN);
-        glColor4f(1.0, 1.0, 1.0, 0.1);    glVertex3f(xc, yc, zu);
-        glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
-        glColor4f(0.0, 0.0, 1.0, 0.4);    glVertex3f(xl, yu, zc);
-        glColor4f(0.0, 1.0, 1.0, 0.4);    glVertex3f(xu, yu, zc);
-        glColor4f(1.0, 1.0, 0.0, 0.4);    glVertex3f(xu, yl, zc);
-        glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
-        glEnd();
-
-        glBegin(GL_TRIANGLE_FAN);
-        glColor4f(0.0, 0.0, 0.0, 0.4);    glVertex3f(xc, yc, zl);
-        glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
-        glColor4f(0.0, 0.0, 1.0, 0.4);    glVertex3f(xl, yu, zc);
-        glColor4f(0.0, 1.0, 1.0, 0.4);    glVertex3f(xu, yu, zc);
-        glColor4f(1.0, 1.0, 0.0, 0.4);    glVertex3f(xu, yl, zc);
-        glColor4f(1.0, 0.0, 0.0, 0.4);    glVertex3f(xl, yl, zc);
-        glEnd();
-    }
-    else
-    {
-        // 2D drawing: Just draw a rectangle around the shape
-        GLAttribKeeper save(GL_CURRENT_BIT | GL_LINE_BIT);
-        double z = (bounds.lower.z + bounds.upper.z) / 2;
-        glLineWidth (3.0);
-        glColor4f(1.0, 0.0, 0.0, 0.5);
-        glBegin(GL_LINE_LOOP);
-        {
-            glVertex3f(bounds.lower.x, bounds.lower.y, z);
-            glVertex3f(bounds.lower.x, bounds.upper.y, z);
-            glVertex3f(bounds.upper.x, bounds.upper.y, z);
-            glVertex3f(bounds.upper.x, bounds.lower.y, z);
-        }
-        glEnd();
-    }
-#endif
+    glPopName();
 }
 
 
@@ -1269,19 +1287,31 @@ void Widget::loadName(bool load)
     if (!load)
         depth += state.depthDelta;
 
-    if (state.selectable && load)
-        glLoadName(shapeId());
-    else
-        glLoadName(0);
+    if (!selector)
+    {
+        if (state.selectable && load)
+            glLoadName(shapeId());
+        else
+            glLoadName(0);
+    }
 }
 
 
 Box3 Widget::bbox(coord x, coord y, coord w, coord h)
 // ----------------------------------------------------------------------------
-//   Return a selection bounding box
+//   Return a selection bounding box for a flat shape
 // ----------------------------------------------------------------------------
 {
-    return Box3(x-w/2, y-h/2, -(w+h)/4, w, h, (w+h)/2);
+    return Box3(x-w/2, y-h/2, 0, w, h, 0);
+}
+
+
+Box3 Widget::bbox(coord x, coord y, coord z, coord w, coord h, coord d)
+// ----------------------------------------------------------------------------
+//   Return a selection bounding box for a 3D shape
+// ----------------------------------------------------------------------------
+{
+    return Box3(x-w/2, y-h/2, z-d/2, w, h, d);
 }
 
 
@@ -1353,16 +1383,105 @@ Tree *Widget::textColor(Tree *self,
 }
 
 
+Tree *Widget::evalInGlMode(GLenum mode, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree (typically, a list of vertexes) in given GL mode
+// ----------------------------------------------------------------------------
+{
+    GLAndWidgetKeeper save(this);
+    glBegin(mode);
+    xl_evaluate(child);
+    glEnd();
+    return XL::xl_true;
+}
+
+
 Tree *Widget::polygon(Tree *self, Tree *child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree within a polygon
 // ----------------------------------------------------------------------------
 {
-    GLAndWidgetKeeper save(this);
-    glBegin(state.polygonMode);
-    xl_evaluate(child);
-    glEnd();
-    return XL::xl_true;
+    return evalInGlMode(state.polygonMode, child);
+}
+
+
+Tree *Widget::points(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_POINTS mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_POINTS, child);
+}
+
+Tree *Widget::lines(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_LINES mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_LINES, child);
+}
+
+
+Tree *Widget::line_strip(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_LINE_STRIP mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_LINE_STRIP, child);
+}
+
+
+Tree *Widget::line_loop(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_LINE_LOOP mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_LINE_LOOP, child);
+}
+
+
+Tree *Widget::triangles(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_TRIANGLES mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_TRIANGLES, child);
+}
+
+
+Tree *Widget::quads(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_QUADS mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_QUADS, child);
+}
+
+
+Tree *Widget::quad_strip(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_QUAD_STRIP mode
+// ----------------------------------------------------------------------------
+{
+    return evalInGlMode(GL_QUAD_STRIP, child);
+}
+
+
+Tree *Widget::triangle_fan(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_TRIANGLE_FAN mode
+// ----------------------------------------------------------------------------
+{
+     return evalInGlMode(GL_TRIANGLE_FAN, child);
+}
+
+
+Tree *Widget::triangle_strip(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree in GL_TRIANGLE_STRIP mode
+// ----------------------------------------------------------------------------
+{
+     return evalInGlMode(GL_TRIANGLE_STRIP, child);
 }
 
 
@@ -1440,9 +1559,8 @@ Tree *Widget::sphere(Tree *self,
 //     GL sphere
 // ----------------------------------------------------------------------------
 {
-    Box3 bounds(x-r, y-r, z-r, 2*r, 2*r, 2*r);
-    ShapeName name(this, bounds);
-    name.x(x).y(y).z(z).w(r).h(r).d(r);
+    ShapeName name(this, bbox(x,y,z, 2*r,2*r,2*r), "3D_selection");
+    name.x(x).y(y).w(r).h(r).y(z, "depth");
 
     GLUquadric *q = gluNewQuadric();
     gluQuadricTexture (q, true);
@@ -2065,7 +2183,7 @@ Tree *Widget::urlPaint(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, Box3(x-w/2, y-h/2, 0, w, h, 0));
+    ShapeName name(this, bbox(x, y, 0, w, h, 0), "widget_selection");
     name.x(x).y(y).w(w).h(h);
     urlTexture(self, w, h, url, progress);
 
@@ -2115,7 +2233,7 @@ Tree *Widget::lineEdit(Tree *self,
 // ----------------------------------------------------------------------------
 {
     GLAttribKeeper save(GL_TEXTURE_BIT);
-    ShapeName name(this, Box3(x-w/2, y-h/2, 0, w, h, 0));
+    ShapeName name(this, bbox(x,y,0,w,h,0), "widget_selection");
     name.x(x).y(y).w(w).h(h);
 
     lineEditTexture(self, w, h, txt);
@@ -2414,9 +2532,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 {
     bool isContextMenu = false;
 
-    //---------------------------------
     // Build the full name of the menu
-    //---------------------------------
     // Uses the current menu name, the given string and the isSubmenu.
     QString fullname = QString::fromStdString(s);
     if (isSubMenu && currentMenu)
@@ -2438,9 +2554,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
     MenuInfo *menuInfo = self->GetInfo<MenuInfo>();
 
 
-    //---------------------------------------------------
     // If the menu is registered, no need to recreate it.
-    //---------------------------------------------------
     // This is used at reload time, recreate the MenuInfo if required.
     if (QMenu *tmp = parent()->findChild<QMenu*>(fullname))
     {
@@ -2457,9 +2571,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
         return XL::xl_true;
     }
 
-    //-------------------------------
     // The menu is not yet registered.
-    //-------------------------------
     // The name may have change but not the content
     // (in the loop of the XL program execution).
     if (menuInfo)
@@ -2472,9 +2584,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
         return XL::xl_true;
     }
 
-    //----------------------------------------
     // The menu is not existing. Creating it.
-    //----------------------------------------
     if (isContextMenu)
     {
         currentMenu = new QMenu((Window*)parent());

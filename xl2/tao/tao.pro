@@ -160,10 +160,9 @@ SOURCES += tao_main.cpp \
 }
 RESOURCES += tao.qrc
 
-# We need bash, llvm-config and pkg-config
+# We need bash, llvm-config
 !system(bash -c \"bash --version >/dev/null\"):error("Can't execute bash")
 !system(bash -c \"llvm-config --version >/dev/null\"):error("Can't execute llvm-config")
-!system(bash -c \"pkg-config --version >/dev/null\"):error("Can't execute pkg-config")
 
 # LLVM dependencies
 LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\")

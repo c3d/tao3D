@@ -23,272 +23,9 @@
 #include "frame.h"
 #include "gl_keepers.h"
 #include "widget.h"
-#include <cairo.h>
-#include <cairo-gl.h>
 
 
 TAO_BEGIN
-
-Frame::Frame()
-// ----------------------------------------------------------------------------
-//    Create a frame of the given size
-// ----------------------------------------------------------------------------
-    : surface(NULL), context(NULL)
-{
-    GLStateKeeper save;
-
-    surface = cairo_gl_surface_create_for_current_gl_context();
-    if (cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS)
-        XL::Ooops("Unable to create Cairo surface");
-
-    context = cairo_create(surface);
-    if (cairo_status(context) != CAIRO_STATUS_SUCCESS)
-        XL::Ooops("Unable to create Cairo context");
-}
-
-
-Frame::~Frame()
-// ----------------------------------------------------------------------------
-//   Delete the Cairo resources
-// ----------------------------------------------------------------------------
-{
-    if (context)
-        cairo_destroy(context);
-    if (surface)
-        cairo_surface_destroy(surface);
-}
-
-
-void Frame::Resize(uint w, uint h)
-// ----------------------------------------------------------------------------
-//   Change the size of the frame
-// ----------------------------------------------------------------------------
-{
-    cairo_gl_surface_set_size(surface, w, h);
-}
-
-
-void Frame::Color (double red, double green, double blue, double alpha)
-// ----------------------------------------------------------------------------
-//    Select the color for the current context
-// ----------------------------------------------------------------------------
-{
-    cairo_set_source_rgba(context, red, green, blue, alpha);
-}
-
-void Frame::LineWidth(double lw)
-// ----------------------------------------------------------------------------
-//    Select the line width for the current context
-// ----------------------------------------------------------------------------
-{
-    cairo_set_line_width(context, lw);
-}
-
-
-void Frame::Clear()
-// ----------------------------------------------------------------------------
-//    Paint the entire surface with a uniform color
-// ----------------------------------------------------------------------------
-{
-    cairo_save(context);
-    {
-        cairo_set_operator(context, CAIRO_OPERATOR_SOURCE);
-        cairo_paint(context);
-    }
-    cairo_restore(context);
-}
-
-
-void Frame::MoveTo(double x, double y, bool isRelative)
-// ----------------------------------------------------------------------------
-//   Move the cursor to the given Cairo coordinates, either in absolute
-//   coordinate or relatively to the latest current point of the path.
-// ----------------------------------------------------------------------------
-{
-    if (isRelative)
-        cairo_rel_move_to(context, x, y);
-    else
-        cairo_move_to(context, x, y);
-}
-
-
-void Frame::Font(text s)
-// ----------------------------------------------------------------------------
-//   Select a given font name
-// ----------------------------------------------------------------------------
-{
-    cairo_select_font_face(context, s.c_str(),
-                           CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-}
-
-
-void Frame::FontSize(double s)
-// ----------------------------------------------------------------------------
-//    Set the font size
-// ----------------------------------------------------------------------------
-{
-    cairo_set_font_size(context, s);
-}
-
-
-void Frame::Text(text s)
-// ----------------------------------------------------------------------------
-//   Show the given text on the context
-// ----------------------------------------------------------------------------
-{
-    GLAttribKeeper save;
-    cairo_scale(context, 1, -1);
-    cairo_show_text(context, s.c_str());
-    cairo_scale(context, 1, -1);
-}
-
-
-void Frame::Rectangle(double x, double y, double w, double h)
-// ----------------------------------------------------------------------------
-//   Paint a rectangle using Cairo
-// ----------------------------------------------------------------------------
-{
-    GLAttribKeeper save;
-    cairo_rectangle(context, x-w/2, y-h/2, w, h);
-    cairo_stroke(context);
-}
-
-
-void Frame::Stroke()
-// ----------------------------------------------------------------------------
-//    Stroke the current path
-// ----------------------------------------------------------------------------
-{
-    GLAttribKeeper save(GL_TEXTURE_BIT|GL_ENABLE_BIT|GL_CURRENT_BIT);
-    cairo_stroke(context);
-}
-
-
-void Frame::StrokePreserve()
-// ----------------------------------------------------------------------------
-//    Stroke the current path and preserve it.
-// ----------------------------------------------------------------------------
-{
-    GLAttribKeeper save(GL_TEXTURE_BIT|GL_ENABLE_BIT|GL_CURRENT_BIT);
-    cairo_stroke_preserve(context);
-}
-
-
-void Frame::Fill()
-// ----------------------------------------------------------------------------
-//    Fill the current path.
-// ----------------------------------------------------------------------------
-{
-    GLAttribKeeper save(GL_TEXTURE_BIT|GL_ENABLE_BIT|GL_CURRENT_BIT);
-    cairo_fill(context);
-
-}
-
-
-void Frame::FillPreserve()
-// ----------------------------------------------------------------------------
-//    Fill the current path and preserve it.
-// ----------------------------------------------------------------------------
-{
-    GLAttribKeeper save(GL_TEXTURE_BIT|GL_ENABLE_BIT|GL_CURRENT_BIT);
-    cairo_fill_preserve(context);
-}
-
-
-void Frame::Paint()
-// ----------------------------------------------------------------------------
-//    Paint the resulting texture over the given rectangle
-// ----------------------------------------------------------------------------
-{
-    cairo_surface_flush(surface);
-}
-
-
-void Frame::Arc(double xCenter,
-                double yCenter,
-                double radius,
-                double angleStart,
-                double angleStop,
-                bool   isPositive)
-// ----------------------------------------------------------------------------
-//   Add an arc to the current path.
-// ----------------------------------------------------------------------------
-{
-    if (isPositive)
-        cairo_arc(context, xCenter, yCenter, radius, angleStart, angleStop);
-    else
-        cairo_arc_negative(context, xCenter, yCenter, radius, angleStart, angleStop);
-
-}
-
-void Frame::CurveTo(double x1,
-                    double y1,
-                    double x2,
-                    double y2,
-                    double x3,
-                    double y3,
-                    bool isRelative)
-// ----------------------------------------------------------------------------
-//   Add a curve to the current path. Either in absolute
-//   coordinate or relatively to the latest current point of the path.
-// ----------------------------------------------------------------------------
-{
-    if (isRelative)
-        cairo_rel_curve_to(context, x1, y1, x2, y2, x3, y3);
-    else
-        cairo_curve_to(context, x1, y1, x2, y2, x3, y3);
-}
-
-void Frame::LineTo(double x,
-                   double y,
-                   bool isRelative)
-// ----------------------------------------------------------------------------
-//   Add a line to the current path. Either in absolute
-//   coordinate or relatively to the latest current point of the path.
-// ----------------------------------------------------------------------------
-{
-    if (isRelative)
-        cairo_rel_line_to( context, x, y);
-    else
-        cairo_line_to( context, x, y);
-}
-
-void Frame::ClosePath()
-{
-    cairo_close_path(context);
-}
-void Frame::CleanPath()
-// ----------------------------------------------------------------------------
-//    Reset the current path.
-// ----------------------------------------------------------------------------
-{
-    cairo_new_path(context);
-}
-
-Box3 Frame::bbox()
-// ----------------------------------------------------------------------------
-//    Compute the bounding box of the current path
-// ----------------------------------------------------------------------------
-{
-    double x1, x2, y1, y2;
-    cairo_path_extents(context, &x1, &y1, &x2, &y2);
-    IFTRACE(cairo)
-    {
-      cairo_path_t * savedPath = cairo_copy_path(context);
-      cairo_new_path(context);
-      cairo_rectangle(context, x1, y1, x2-x1, y2-y1);
-      cairo_stroke(context);
-      cairo_append_path(context, savedPath);
-    }
-    return Box3(Point3(x1, y1, 0.0), Point3(x2, y2, 0.0));
-
-}
-
-// ============================================================================
-//
-//   FrameInfo class
-//
-// ============================================================================
 
 FrameInfo::FrameInfo(uint w, uint h)
 // ----------------------------------------------------------------------------
@@ -398,18 +135,20 @@ void FrameInfo::end()
 }
 
 
-void FrameInfo::bind()
+GLuint FrameInfo::bind()
 // ----------------------------------------------------------------------------
 //   Bind the GL texture associated to the off-screen buffer
 // ----------------------------------------------------------------------------
 {
-    glBindTexture(GL_TEXTURE_2D, texture_fbo->texture());
+    GLuint texId = texture_fbo->texture();
+    glBindTexture(GL_TEXTURE_2D, texId);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glEnable(GL_TEXTURE_2D);
 #ifdef GL_MULTISAMPLE   // Not supported on Windows
     glEnable(GL_MULTISAMPLE);
 #endif
+    return texId;
 }
 
 

@@ -28,7 +28,6 @@
 #include <QtOpenGL>
 #include <QPainterPath>
 
-
 TAO_BEGIN
 
 // ============================================================================
@@ -123,6 +122,26 @@ bool Shape::setLineColor(Layout *where)
 }
 
 
+void Shape::Draw(GraphicPath &path)
+// ----------------------------------------------------------------------------
+//    Draw the shape in a path
+// ----------------------------------------------------------------------------
+{
+    (void) path;
+}
+
+
+void Shape::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    Draw the shape using a path
+// ----------------------------------------------------------------------------
+{
+    GraphicPath path;
+    Draw(path);
+    path.Draw(where);
+}
+
+
 
 // ============================================================================
 //
@@ -130,63 +149,95 @@ bool Shape::setLineColor(Layout *where)
 //
 // ============================================================================
 
-void Rectangle::Draw(Layout *where)
+void Rectangle::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 //   Draw a rectangle
 // ----------------------------------------------------------------------------
 {
-    GraphicPath path;
     path.moveTo(Point3(bounds.lower.x, bounds.lower.y, 0));
     path.lineTo(Point3(bounds.upper.x, bounds.lower.y, 0));
     path.lineTo(Point3(bounds.upper.x, bounds.upper.y, 0));
     path.lineTo(Point3(bounds.lower.x, bounds.upper.y, 0));
     path.close();
-    path.Draw(where);
 }
 
 
-void RoundedRectangle::Draw(Layout *where)
+void RoundedRectangle::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 //   Draw a rounded rectangle
 // ----------------------------------------------------------------------------
 {
-    QPainterPath path;
+    QPainterPath qt;
     if (radiusX > bounds.Width() / 2)
         radiusX = bounds.Width() / 2;
     if (radiusY > bounds.Height() / 2)
         radiusY = bounds.Height() / 2;
-    path.addRoundedRect(bounds.lower.x, bounds.lower.y,
-                        bounds.Width(), bounds.Height(),
-                        radiusX, radiusY);
-    GraphicPath::Draw(where, path);
+    qt.addRoundedRect(bounds.lower.x, bounds.lower.y,
+                      bounds.Width(), bounds.Height(),
+                      radiusX, radiusY);
+    path.addQtPath(qt);
 }
 
 
-void Ellipse::Draw(Layout *where)
+void Ellipse::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 //   Draw an ellipse inside the bounds
 // ----------------------------------------------------------------------------
 {
-    QPainterPath path;
-    path.addEllipse(bounds.lower.x, bounds.lower.y,
-                    bounds.Width(), bounds.Height());
-    GraphicPath::Draw(where, path);
+    QPainterPath qt;
+    qt.addEllipse(bounds.lower.x, bounds.lower.y,
+                  bounds.Width(), bounds.Height());
+    path.addQtPath(qt);
 }
 
 
-void EllipseArc::Draw(Layout *where)
+void EllipseArc::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 //    Draw an arc of ellipse
 // ----------------------------------------------------------------------------
 {
-    QPainterPath path;
+    QPainterPath qt;
     Point center = bounds.Center();
-    path.moveTo(center.x, center.y);
-    path.arcTo(bounds.lower.x, bounds.lower.y,
-               bounds.Width(), bounds.Height(),
-               start, sweep);
-    path.closeSubpath();
-    GraphicPath::Draw(where, path);
+    qt.moveTo(center.x, center.y);
+    qt.arcTo(bounds.lower.x, bounds.lower.y,
+             bounds.Width(), bounds.Height(),
+             start, sweep);
+    qt.closeSubpath();
+    path.addQtPath(qt);
+}
+
+
+void StarPolygon::Draw(GraphicPath &path)
+// ----------------------------------------------------------------------------
+//   Draw a regular polygon or star
+// ----------------------------------------------------------------------------
+{
+    scale  R_r    = cos(q * M_PI/p) / cos((q-1) * M_PI/p);
+    scale  w1     = bounds.Width()/2;
+    scale  w2     = w1 * R_r;
+    scale  h1     = bounds.Height()/2;
+    scale  h2     = h1 * R_r;
+    Point3 center = bounds.Center();
+    coord  cx     = center.x;
+    coord  cy     = center.y;
+
+    for (uint i = 0; i < p; i++)
+    {
+        double a1 = i * 2*M_PI/p + M_PI_2;
+        double a2 = a1 + M_PI/p;
+        double x1 = cx + w1 * cos(a1);
+        double y1 = cy + h1 * sin(a1);
+        double x2 = cx + w2 * cos(a2);
+        double y2 = cy + h2 * sin(a2);
+
+        if (i)
+            path.lineTo(Point3(x1, y1, 0));
+        else
+            path.moveTo(Point3(x1, y1, 0));
+
+        path.lineTo(Point3(x2, y2, 0));
+    }
+    path.close();
 }
 
 TAO_END

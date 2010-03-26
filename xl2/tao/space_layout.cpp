@@ -22,9 +22,6 @@
 
 #include "space_layout.h"
 #include "attributes.h"
-#include <cairo.h>
-#include <cairo-gl.h>
-
 
 TAO_BEGIN
 
@@ -32,7 +29,7 @@ SpaceLayout::SpaceLayout()
 // ----------------------------------------------------------------------------
 //   Constructor sets defaults
 // ----------------------------------------------------------------------------
-    : Layout(), alongZ()
+    : Layout()
 {}
 
 

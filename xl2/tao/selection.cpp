@@ -24,7 +24,7 @@
 #include "selection.h"
 #include "widget.h"
 #include "gl_keepers.h"
-#include <glew.h>
+#include <GL/glew.h>
 #include <QtGui>
 
 TAO_BEGIN
@@ -66,7 +66,7 @@ Activity *Selection::Idle(void)
 //   Make the refresh rate shorter so that we animate the rectangle
 // ----------------------------------------------------------------------------
 {
-    if (!widget->timer.isActive())
+    if (!widget->timerIsActive())
         widget->refresh(NULL, 0.005);
     widget->updateGL();
     return next;               // Keep doing other idle activities
@@ -107,8 +107,9 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
 
 
     // Create the select buffer and switch to select mode
-    GLuint *buffer = new GLuint[4 * widget->capacity];
-    glSelectBuffer(4 * widget->capacity, buffer);
+    GLuint capacity = widget->selectionCapacity();
+    GLuint *buffer = new GLuint[4 * capacity];
+    glSelectBuffer(4 * capacity, buffer);
     glRenderMode(GL_SELECT);
 
     // Adjust viewport for rendering

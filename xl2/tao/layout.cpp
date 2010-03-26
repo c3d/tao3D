@@ -23,8 +23,6 @@
 #include "layout.h"
 #include "gl_keepers.h"
 #include "attributes.h"
-#include <cairo.h>
-#include <cairo-gl.h>
 
 TAO_BEGIN
 
@@ -36,19 +34,9 @@ Layout::Layout()
 //    Create an empty layout
 // ----------------------------------------------------------------------------
     : Drawing(),
-      lineColor(NULL), fillColor(NULL), fillTexture(NULL), textFont(NULL),
-      items(), offset(), surface(NULL), context(NULL)
+      lineColor(NULL), fillColor(NULL), fillTexture(NULL),
+      offset(), font(qApp->font()), items()
 {
-    GLStateKeeper save;
-
-    surface = cairo_gl_surface_create_for_current_gl_context();
-    if (cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS)
-        XL::Ooops("Unable to create Cairo surface");
-
-    context = cairo_create(surface);
-    if (cairo_status(context) != CAIRO_STATUS_SUCCESS)
-        XL::Ooops("Unable to create Cairo context");
-
     // Select the default colors
     blackLine.Draw(this);
     transparentFill.Draw(this);
@@ -63,16 +51,9 @@ Layout::Layout(const Layout &o)
       lineColor(o.lineColor), // REVISIT: Safe to copy?
       fillColor(o.fillColor),
       fillTexture(o.fillTexture),
-      textFont(o.textFont),
-      items(), surface(NULL), context(NULL)
-{
-    GLStateKeeper save;
-
-    surface = cairo_surface_reference(o.surface);
-    context = cairo_create(surface);
-    if (cairo_status(context) != CAIRO_STATUS_SUCCESS)
-        XL::Ooops("Unable to create Cairo context");
-}
+      offset(o.offset), font(o.font),
+      items()
+{}
 
 
 Layout::~Layout()
@@ -83,11 +64,6 @@ Layout::~Layout()
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
         delete *i;
-
-    if (context)
-        cairo_destroy(context);
-    if (surface)
-        cairo_surface_destroy(surface);
 }
 
 
@@ -98,7 +74,7 @@ void Layout::Draw(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     if (where)
-        offset = where->Offset();
+        offset += where->Offset();
 
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
@@ -149,6 +125,5 @@ Layout &Layout::Add(Drawing *d)
     items.push_back(d);
     return *this;
 }
-
 
 TAO_END

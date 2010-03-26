@@ -33,14 +33,24 @@ TAO_BEGIN
 
 void TextSpan::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Render a portion of text
+//   Render a portion of text and advance by the width of the text
 // ----------------------------------------------------------------------------
 {
-    QString qs = QString::fromUtf8(utf8.data(), utf8.length());
-    QFont font = where->textFont ? where->textFont->font : qApp->font();
-    QPainterPath path;
-    path.addText(0,0, font, qs);
-    GraphicPath::Draw(where, path, GLU_TESS_WINDING_ODD, -1);
+    Shape::Draw(where);
+    QFontMetrics fm(font);
+    where->offset.x += fm.width(value);
+}
+
+
+void TextSpan::Draw(GraphicPath &path)
+// ----------------------------------------------------------------------------
+//   Render a portion of text and advance by the width of the text
+// ----------------------------------------------------------------------------
+{
+    Point3 position = path.position;
+    Shape::Draw(path);
+    QFontMetrics fm(font);
+    path.moveTo(position + Vector3(fm.width(value), 0, 0));
 }
 
 
@@ -49,10 +59,8 @@ Box3 TextSpan::Bounds()
 //   Return the smallest box that surrounds the text
 // ----------------------------------------------------------------------------
 {
-    QString qs = QString::fromUtf8(utf8.data(), utf8.length());
-    QFont font = TextFont::last ? TextFont::last->font : qApp->font();
     QFontMetrics fm(font);
-    QRect rect = fm.boundingRect(qs);
+    QRect rect = fm.tightBoundingRect(value);
     return Box3(rect.x(), rect.y(), 0, rect.width(), rect.height(), 0);    
 }
 
@@ -62,25 +70,11 @@ Box3 TextSpan::Space()
 //   Return the box that surrounds the text, including leading
 // ----------------------------------------------------------------------------
 {
-    QString qs = QString::fromUtf8(utf8.data(), utf8.length());
-    QFont font = TextFont::last ? TextFont::last->font : qApp->font();
     QFontMetrics fm(font);
     int flags = Qt::AlignCenter;
     QRect openSpace(-10000, -10000, 20000, 20000);
-    QRect rect = fm.boundingRect(openSpace, flags, qs);
+    QRect rect = fm.boundingRect(openSpace, flags, value);
     return Box3(rect.x(), rect.y(), 0, rect.width(), rect.height(), 0);    
 }
-
-
-void TextFont::Draw(Layout *where)
-// ----------------------------------------------------------------------------
-//   Set the font in the layout
-// ----------------------------------------------------------------------------
-{
-    where->textFont = this;
-    last = this;
-}
-
-TextFont *TextFont::last = NULL;
 
 TAO_END

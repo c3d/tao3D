@@ -34,23 +34,14 @@ struct TextSpan : Shape
 //    A contiguous run of glyphs
 // ----------------------------------------------------------------------------
 {
-    TextSpan(text utf8): Shape(), utf8(utf8) {}
+    TextSpan(const QString &value, const QFont &font)
+        : Shape(), value(value), font(font) {}
     virtual void Draw(Layout *where);
+    virtual void Draw(GraphicPath &path);
     virtual Box3 Bounds();
     virtual Box3 Space();
-    text utf8;
-};
-
-
-struct TextFont : Attribute
-// ----------------------------------------------------------------------------
-//    Record a font change
-// ----------------------------------------------------------------------------
-{
-    TextFont(const QFont &f): font(f) {}
-    virtual void Draw(Layout *where);
-    QFont font;
-    static TextFont *last;
+    QString value;
+    QFont   font;
 };
 
 TAO_END

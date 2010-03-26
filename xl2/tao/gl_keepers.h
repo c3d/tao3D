@@ -76,30 +76,6 @@ private:
     GLStateKeeper(const GLStateKeeper &other);
 };
 
-
-struct WidgetStateKeeper
-// ----------------------------------------------------------------------------
-//    Save custom attributes we have in our widget
-// ----------------------------------------------------------------------------
-{
-    WidgetStateKeeper(Widget *w): widget(w), state(w->state) {}
-    ~WidgetStateKeeper() { widget->state = state; }
-    Widget *widget;
-    Widget::State state;
-};
-
-
-struct GLAndWidgetKeeper
-// ----------------------------------------------------------------------------
-//    Save the state of a widget as well as the GL state
-// ----------------------------------------------------------------------------
-{
-    GLAndWidgetKeeper(Widget *w, GLbitfield bits = GL_ALL_ATTRIB_BITS):
-        widget(w), gl(bits) {}
-    WidgetStateKeeper   widget;
-    GLStateKeeper       gl;
-};
-
 TAO_END
 
 #endif // GL_KEEPERS_H

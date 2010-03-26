@@ -25,14 +25,14 @@
 #include "drawing.h"
 #include "justification.h"
 #include <vector>
-#include <cairo.h>
+#include <QFont>
+
 
 TAO_BEGIN
 
 struct LineColor;
 struct FillColor;
 struct FillTexture;
-struct TextFont;
 
 struct Layout : Drawing
 // ----------------------------------------------------------------------------
@@ -51,26 +51,21 @@ struct Layout : Drawing
     // Layout interface
     virtual Layout &    Add (Drawing *d);
     virtual Vector3     Offset();
-
-    cairo_t *           Cairo()          { return context; }
+    virtual Layout *    NewChild()      { return new Layout(*this); }
 
 public:
     // Attributes
     LineColor *         lineColor;
     FillColor *         fillColor;
     FillTexture *       fillTexture;
-    TextFont *          textFont;
     Justification       alongX, alongY, alongZ;
+    Vector3             offset;
+    QFont               font;
 
 protected:
     // List of drawing elements
     typedef std::vector<Drawing *>      layout_items;
     layout_items        items;
-    Vector3             offset;
-
-    // We use cairo to record most of our internal state (color, ...)
-    cairo_surface_t     *surface;
-    cairo_t             *context;
 };
 
 TAO_END

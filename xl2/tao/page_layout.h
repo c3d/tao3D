@@ -38,11 +38,11 @@ struct PageLayout : Layout
 
     virtual Box3        Space();
     virtual Layout &    Add(Drawing *d);
+    virtual PageLayout *NewChild()      { return new PageLayout(*this); }
 
 public:
     // Space requested for the layout
     Box3                space;
-    Justification       horizontal, vertical;
 };
 
 TAO_END

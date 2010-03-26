@@ -21,25 +21,96 @@
 // ****************************************************************************
 
 #include "shapes3d.h"
+#include "layout.h"
+#include <QtOpenGL>
 
 TAO_BEGIN
+
+Box3 Cube::Bounds()
+// ----------------------------------------------------------------------------
+//   Return the bounding box for a 3D shape
+// ----------------------------------------------------------------------------
+{
+    return bounds;
+}
+
+
+void Cube::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    Draw the cube within the bounding box
+// ----------------------------------------------------------------------------
+{
+    Box3 b = bounds + where->Offset();
+    coord xl = bounds.lower.x;
+    coord yl = bounds.lower.y;
+    coord zl = bounds.lower.z;
+    coord xu = bounds.upper.x;
+    coord yu = bounds.upper.y;
+    coord zu = bounds.upper.z;
+
+    coord vertices[][3] =
+    {
+        {xl, yl, zl}, {xl, yu, zl}, {xu, yu, zl}, {xu, yl, zl},
+        {xl, yl, zu}, {xu, yl, zu}, {xu, yu, zu}, {xl, yu, zu},
+        {xl, yl, zl}, {xu, yl, zl}, {xu, yl, zu}, {xl, yl, zu},
+        {xl, yu, zl}, {xl, yu, zu}, {xu, yu, zu}, {xu, yu, zl},
+        {xl, yu, zl}, {xl, yl, zl}, {xl, yl, zu}, {xl, yu, zu},
+        {xu, yl, zl}, {xu, yu, zl}, {xu, yu, zu}, {xu, yl, zu}
+    };
+
+    static GLint textures[][2] = {
+        {0, 0}, {1, 0}, {1, 1}, {0, 1},
+        {0, 0}, {0, 1}, {1, 1}, {1, 0},
+        {0, 0}, {1, 0}, {1, 1}, {0, 1},
+        {1, 0}, {0, 0}, {0, 1}, {1, 1},
+        {0, 0}, {1, 0}, {1, 1}, {0, 1},
+        {1, 0}, {0, 0}, {0, 1}, {1, 1}
+    };
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glVertexPointer(3, GL_DOUBLE, 0, vertices);
+    glTexCoordPointer(2, GL_INT, 0, textures);
+    setTexture(where);
+    if (setFillColor(where))
+        glDrawArrays(GL_QUADS, 0, 24);
+    if (setLineColor(where))
+        for (uint face = 0; face < 6; face++)
+            glDrawArrays(GL_LINE_LOOP, 4*face, 4);
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
 
 void Sphere::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the sphere
 // ----------------------------------------------------------------------------
 {
-    (void) where;
-}
+    Point3 p = bounds.Center() + where->Offset();
+    double radius = 1.0;
 
+    GLUquadric *q = gluNewQuadric();
+    gluQuadricTexture (q, true);
+    glPushMatrix();
+    glTranslatef(p.x, p.y, p.z);
+    glRotatef(-90.0, 1.0, 0.0, 0.0);
+    glScalef(bounds.Width(), bounds.Height(), bounds.Depth());
 
-Box3 Sphere::Bounds()
-// ----------------------------------------------------------------------------
-//   Return the bounding box for a sphere
-// ----------------------------------------------------------------------------
-{
-    return Box3(center.x-radius, center.y-radius, center.z-radius,
-                2*radius, 2*radius, 2*radius);
+    setTexture(where);
+    if (setFillColor(where))
+    {
+        gluQuadricDrawStyle(q, GLU_FILL);
+        gluSphere(q, radius, slices, stacks);
+    }
+    if (setLineColor(where))
+    {
+        gluQuadricDrawStyle(q, GLU_LINE);
+        gluSphere(q, radius, slices, stacks);
+    }
+    glPopMatrix();
+    gluDeleteQuadric(q);
 }
 
 TAO_END

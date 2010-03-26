@@ -23,8 +23,6 @@
 #include "page_layout.h"
 #include "attributes.h"
 #include "gl_keepers.h"
-#include <cairo.h>
-#include <cairo-gl.h>
 
 TAO_BEGIN
 
@@ -32,8 +30,7 @@ PageLayout::PageLayout()
 // ----------------------------------------------------------------------------
 //   Create a new layout
 // ----------------------------------------------------------------------------
-    : Layout(),
-      space(), horizontal(), vertical()
+    : Layout(), space()
 {
 }
 
@@ -42,15 +39,14 @@ PageLayout::PageLayout(const PageLayout &o)
 // ----------------------------------------------------------------------------
 //   Copy a layout from another layout
 // ----------------------------------------------------------------------------
-    : Layout(o),
-      space(o.space), horizontal(o.horizontal), vertical(o.vertical)
+    : Layout(o), space(o.space)
 {
 }
 
 
 PageLayout::~PageLayout()
 // ----------------------------------------------------------------------------
-//    Destroy the cairo context
+//    Destroy the page layout
 // ----------------------------------------------------------------------------
 {}
 

@@ -166,11 +166,6 @@ RESOURCES += tao.qrc
 !system(bash -c \"llvm-config --version >/dev/null\"):error("Can't execute llvm-config")
 !system(bash -c \"pkg-config --version >/dev/null\"):error("Can't execute pkg-config")
 
-# Cairo
-CAIRO_LIBS = $$system(bash -c \"pkg-config --libs cairo \")
-CAIRO_INC = $$system(bash -c \"pkg-config --cflags-only-I cairo | sed s/-I//g\")
-CAIRO_FLAGS = $$system(bash -c \"pkg-config --cflags-only-other cairo\")
-
 # LLVM dependencies
 LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\")
 LLVM_LIBS += $$system(bash -c \"llvm-config --ldflags\")
@@ -178,20 +173,11 @@ LLVM_INC = $$system(bash -c \"llvm-config --includedir\")
 LLVM_DEF = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
 
 # Consolidated flags and libs
-INCLUDEPATH += $$CAIRO_INC \
-    $$LLVM_INC
-LIBS += $$CAIRO_LIBS \
-    $$LLVM_LIBS
+INCLUDEPATH += $$LLVM_INC
+LIBS += $$LLVM_LIBS
 DEFINES += $$LLVM_DEF
 
-# Extra flags for CC and CXX
-QMAKE_CFLAGS_RELEASE += $$CAIRO_FLAGS
-QMAKE_CFLAGS_DEBUG += $$CAIRO_FLAGS
-QMAKE_CXXFLAGS_RELEASE += $$CAIRO_FLAGS
-QMAKE_CXXFLAGS_DEBUG += $$CAIRO_FLAGS
-
 # Others
-DEFAULT_FONT = /Library/Fonts/Arial.ttf
 OTHER_FILES += xl.syntax \
     xl.stylesheet \
     short.stylesheet \

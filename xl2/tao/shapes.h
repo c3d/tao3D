@@ -28,6 +28,8 @@
 
 TAO_BEGIN
 
+struct GraphicPath;
+
 struct Shape : Drawing
 // ----------------------------------------------------------------------------
 //   Common base class, just in case
@@ -35,10 +37,13 @@ struct Shape : Drawing
 {
     Shape(): Drawing() {}
 
+    virtual void        Draw(Layout *where);
+    virtual void        Draw(GraphicPath &path);
+
 protected:
-    bool setTexture(Layout *where);
-    bool setFillColor(Layout *where);
-    bool setLineColor(Layout *where);
+    bool                setTexture(Layout *where);
+    bool                setFillColor(Layout *where);
+    bool                setLineColor(Layout *where);
 
     // The current color
     static double red, green, blue, alpha;
@@ -51,7 +56,7 @@ struct Rectangle : Shape
 // ----------------------------------------------------------------------------
 {
     Rectangle(const Box &b): Shape(), bounds(b) {}
-    virtual void        Draw(Layout *where);
+    virtual void        Draw(GraphicPath &where);
     virtual Box3        Bounds()        { return bounds; }
     Box                 bounds;
 };
@@ -64,7 +69,7 @@ struct RoundedRectangle : Rectangle
 {
     RoundedRectangle(const Box &b, coord rx, coord ry)
         : Rectangle(b), radiusX(rx), radiusY(ry) {}
-    virtual void        Draw(Layout *where);
+    virtual void        Draw(GraphicPath &path);
     coord radiusX, radiusY;
 };    
 
@@ -75,7 +80,7 @@ struct Ellipse : Rectangle
 // ----------------------------------------------------------------------------
 {
     Ellipse(const Box &b): Rectangle(b) {}
-    virtual void        Draw(Layout *where);
+    virtual void        Draw(GraphicPath &path);
 };
 
 
@@ -86,8 +91,19 @@ struct EllipseArc : Ellipse
 {
     EllipseArc(const Box &b, float start, float sweep)
         : Ellipse(b), start(start), sweep(sweep) {}
-    virtual void        Draw(Layout *where);
+    virtual void        Draw(GraphicPath &path);
     float start, sweep;
+};
+
+
+struct StarPolygon : Rectangle
+// ----------------------------------------------------------------------------
+//   A star or a regular polygon
+// ----------------------------------------------------------------------------
+{
+    StarPolygon(const Box &b, uint p, uint q): Rectangle(b), p(p), q(q) {}
+    virtual void        Draw(GraphicPath &path);
+    uint p,q;
 };
 
 TAO_END

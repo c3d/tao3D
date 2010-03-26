@@ -448,5 +448,14 @@ Box3 GraphicPath::Bounds()
 }
 
 
+void GraphicPath::clear()
+// ----------------------------------------------------------------------------
+//    Clear a path
+// ----------------------------------------------------------------------------
+{
+    elements.clear();
+    start = position = Point3();
+    bounds = Box3();
+}
 
 TAO_END

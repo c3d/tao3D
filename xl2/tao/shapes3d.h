@@ -22,30 +22,42 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "drawing.h"
+#include "shapes.h"
 
 TAO_BEGIN
 
-struct Shape3 : Drawing
+struct Shape3 : Shape
 // ----------------------------------------------------------------------------
 //   Base class for all 3D shapes, just in case
 // ----------------------------------------------------------------------------
 {
-    Shape3(): Drawing() {}
+    Shape3(): Shape() {}
 };
 
 
-struct Sphere : Shape3
+struct Cube : Shape3
 // ----------------------------------------------------------------------------
-//   Draw a sphere
+//   Draw a cube (OK, not really a cube, but the name is short)
 // ----------------------------------------------------------------------------
 {
-    Sphere(Point3 c, coord r): Shape3(), center(c), radius(r) {}
+    Cube(const Box3 &bounds): Shape3(), bounds(bounds) {}
     virtual void        Draw(Layout *where);
     virtual Box3        Bounds();
-    Point3  center;
-    coord   radius;
+    Box3 bounds;
 };
+
+
+struct Sphere : Cube
+// ----------------------------------------------------------------------------
+//   Draw a sphere or ellipsoid
+// ----------------------------------------------------------------------------
+{
+    Sphere(Box3 bounds, uint sl, uint st)
+        : Cube(bounds), slices(sl), stacks(st) {}
+    virtual void        Draw(Layout *where);
+    uint    slices, stacks;
+};
+
 
 TAO_END
 

@@ -38,7 +38,7 @@ struct SvgRendererInfo : FrameInfo
     SvgRendererInfo(Widget *w, uint width=512, uint height=512);
     ~SvgRendererInfo();
     operator data_t() { return this; }
-    void bind(text img);
+    GLuint bind(text img);
 
     Widget *            widget;
     renderer_map        renderers;

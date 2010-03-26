@@ -56,6 +56,9 @@ struct GraphicPath : Shape
     static void         Draw(Layout *where, QPainterPath &path,
                              GLenum tess = 0, scale sy = 1);
 
+    // Other operations
+    void                clear();
+
 public:
     enum Kind { MOVE_TO, LINE_TO, CURVE_TO, CURVE_CONTROL };
     struct Element

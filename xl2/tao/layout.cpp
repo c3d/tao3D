@@ -92,8 +92,20 @@ void Layout::Draw(Layout *where)
     XL::LocalSave<Point3> save(offset, offset);
     GLStateKeeper glSave;
     if (where)
+    {
+        // Add offset of parent to the one we have
         offset += where->Offset();
 
+        // Inherit color and other parameters as initial values
+        font        = where->font;
+        alongX      = where->alongX;
+        alongY      = where->alongY;
+        alongZ      = where->alongZ;
+        lineColor   = where->lineColor;
+        fillColor   = where->fillColor;
+        fillTexture = where->fillTexture;
+    }
+        
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
         (*i)->Draw(this);

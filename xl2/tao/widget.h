@@ -47,6 +47,7 @@ struct Activity;
 struct Layout;
 struct SpaceLayout;
 struct GraphicPath;
+struct Repository;
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -91,6 +92,9 @@ public:
     void        updateProgram(XL::SourceFile *sf);
     void        refreshProgram();
     void        markChanged(text reason);
+    bool        writeIfChanged(XL::SourceFile &sf);
+    bool        doCommit();
+    Repository *repository();
 
     // Timing
     ulonglong   now();
@@ -336,6 +340,5 @@ inline double CurrentTime()
 
 
 } // namespace Tao
-
 
 #endif // TAO_WIDGET_H

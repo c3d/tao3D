@@ -60,9 +60,6 @@ int main(int argc, char **argv)
     EnterGraphics(&xlr->context);
     xlr->LoadFiles();
 
-    // Open default document library
-    tao.openLibrary();
-
     // Create the windows for each file on the command line
     XL::source_names::iterator it;
     XL::source_names &names = xlr->file_names;
@@ -73,13 +70,12 @@ int main(int argc, char **argv)
         if (xlr->files.count(*it))
         {
             XL::SourceFile &sf = xlr->files[*it];
-            if (!hadFile)
-            {
-                hadFile = true;
-                tao.openLibrary(QFileInfo(+sf.name).canonicalPath());
-            }
+            hadFile = true;
             Tao::Window *window = new Tao::Window (xlr, &sf);
-            window->show();
+            if (window->isUntitled)
+                delete window;
+            else
+                window->show();
         }
         else
         {

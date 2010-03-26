@@ -111,6 +111,7 @@ void GraphicPath::Draw(Layout *where)
     if (setFillColor(where))
         Draw(where, GL_POLYGON);
     if (setLineColor(where))
+        // REVISIT: If lines is thick, use a QPainterPathStroker
         Draw(where, GL_LINE_STRIP);
 }
 

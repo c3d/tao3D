@@ -592,9 +592,9 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         if (ok && repo && repo->valid())
         {
             text task = repo->branch();
-            size_t len = task.length() - (sizeof (TAO_UNDO_SUFFIX) - 1);
+            ssize_t len = task.length() - (sizeof (TAO_UNDO_SUFFIX) - 1);
             text currentBranch = task;
-            bool onUndoBranch = task.find(TAO_UNDO_SUFFIX) == len;
+            bool onUndoBranch = len > 0 && task.find(TAO_UNDO_SUFFIX) == len;
             bool setTask = true;
             if (onUndoBranch)
             {

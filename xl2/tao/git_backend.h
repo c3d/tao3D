@@ -56,6 +56,8 @@ public:
     virtual bool        merge(text branch);
     virtual bool        reset();
 
+    static  bool        checkGit();
+
 protected:
     virtual QString     command();
     virtual QString     userVisibleName();
@@ -63,6 +65,8 @@ protected:
 
 private:
     bool                initialCommit();
+
+    static QString      gitCommand;
 };
 
 TAO_END

@@ -90,8 +90,17 @@ Application::Application(int & argc, char ** argv)
                                     " Performance may not be optimal."
                                     " Consider updating the OpenGL drivers."));
     }
+    if (!Repository::available())
+    {
+        QMessageBox::warning(NULL, tr("Version control software"),
+                             tr("No supported version control software was "
+                                "found. Some functions will not be available. "
+                                "Consider re-installing the application, "
+                                "or installing Git."));
+    }
 
-    // Create default folder for Tao documents ("Save as..." box will land there)
+    // Create default folder for Tao documents
+    // ("Save as..." box will land there)
     createDefaultProjectFolder();
 }
 

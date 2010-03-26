@@ -33,6 +33,7 @@
 TAO_BEGIN
 
 QMap<QString, Repository *> Repository::cache;
+Repository::Kind            Repository::availableScm = Repository::Unknown;
 
 text Repository::fullName(text fileName)
 // ----------------------------------------------------------------------------
@@ -172,6 +173,21 @@ Repository *Repository::newRepository(const QString &path, bool create)
 
     // Didn't work, fail
     return NULL;
+}
+
+
+bool Repository::available()
+// ----------------------------------------------------------------------------
+//    Test if Repository features are available
+// ----------------------------------------------------------------------------
+{
+    if (availableScm == Unknown)
+    {
+        availableScm = None;
+        if (GitRepository::checkGit())
+            availableScm = Git;
+    }
+    return (availableScm != None);
 }
 
 

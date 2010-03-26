@@ -42,9 +42,9 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create a Tao window with default parameters
 // ----------------------------------------------------------------------------
-    : xlRuntime(xlr), repo(NULL),
+    : isUntitled(sf == NULL), xlRuntime(xlr), repo(NULL),
       textEdit(NULL), taoWidget(NULL), curFile(),
-      isUntitled(sf == NULL), fileCheckTimer(this)
+      fileCheckTimer(this)
 {
     // Define the icon
     setWindowIcon(QIcon(":/images/tao.png"));
@@ -235,12 +235,14 @@ void Window::about()
     kstring txt =
         "<b>Tao</b>, an interactive collaboration tool.<br/>"
         "Brought to you by Taodyne SAS:<br/>"
+        "<center>"
         "Anne Lempereur<br/>"
         "Catherine Burvelle<br/>"
-        "Jérôme Forissier<br/>"
+        "J\303\251r\303\264me Forissier<br/>"
         "Lionel Schaffhauser<br/>"
-        "Christophe de Dinechin.";
-   QMessageBox::about (this, tr("About Tao"), tr(txt));
+        "Christophe de Dinechin"
+        "</center>";
+   QMessageBox::about (this, tr("About Tao"), trUtf8(txt));
 }
 
 
@@ -520,8 +522,15 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
     // If project does not exist and 'confirm' is true, user will be asked to
     // confirm project creation. User is always prompted before re-using a
     // valid repository not currently used by Tao.
-    // Returns true if project is open succesfully or user has chosen to
-    // proceed without a project, false if user cancelled.
+    // Returns:
+    // - true if project is open succesfully, or
+    //        user has chosen to proceed without a project, or
+    //        no repository management tool is available;
+    // - false if user cancelled.
+
+    if (!Repository::available())
+        return true;
+
     bool ok = true;
     bool created = false;
 
@@ -583,9 +592,9 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         if (ok && repo && repo->valid())
         {
             text task = repo->branch();
-            size_t len = task.length() - (sizeof (TAO_UNDO_SUFFIX) - 1);
+            ssize_t len = task.length() - (sizeof (TAO_UNDO_SUFFIX) - 1);
             text currentBranch = task;
-            bool onUndoBranch = task.find(TAO_UNDO_SUFFIX) == len;
+            bool onUndoBranch = len > 0 && task.find(TAO_UNDO_SUFFIX) == len;
             bool setTask = true;
             if (onUndoBranch)
             {

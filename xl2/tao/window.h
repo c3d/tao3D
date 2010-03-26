@@ -53,6 +53,8 @@ public:
     bool openProject(QString path, QString filename, bool confirm = true);
     Repository * repository() { return repo; }
 
+    bool isUntitled;
+
 protected:
     void closeEvent(QCloseEvent *event);
 
@@ -90,7 +92,6 @@ private:
     QTextEdit        *textEdit;
     Widget           *taoWidget;
     QString           curFile;
-    bool              isUntitled;
 
     QTimer            fileCheckTimer;
     QMenu            *fileMenu;

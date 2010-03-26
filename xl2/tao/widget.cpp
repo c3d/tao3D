@@ -53,7 +53,7 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 
-#define Z_NEAR  1000.0
+#define Z_NEAR  2000.0
 #define Z_FAR  40000.0
 
 TAO_BEGIN
@@ -338,13 +338,23 @@ void Widget::setup(double w, double h, Box *picking)
 
     // Setup the frustrum for the projection
     double zNear = Z_NEAR, zFar = Z_FAR;
-    double eyeX = 0.0, eyeY = 0.0, eyeZ = 1000.0;
+    double eyeX = 0.0, eyeY = 0.0, eyeZ = zNear;
     double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
     double upX = 0.0, upY = 1.0, upZ = 0.0;
     glFrustum (-w/2, w/2, -h/2, h/2, zNear, zFar);
     gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
     glTranslatef(0.0, 0.0, -zNear);
     glScalef(2.0, 2.0, 2.0);
+
+    glGetIntegerv(GL_DEPTH_BITS, &depthBits);
+    switch (depthBits) 
+    {
+        case 32:
+            depthBitsMax = UINT32_MAX;
+            break;
+        default:
+            depthBitsMax = (1u<<depthBits) - 1;
+    }
 
     // Setup the model view matrix so that 1.0 unit = 1px
     glMatrixMode(GL_MODELVIEW);
@@ -380,15 +390,6 @@ void Widget::setupGL()
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);
-    glGetIntegerv(GL_DEPTH_BITS, &depthBits);
-    switch (depthBits) 
-    {
-        case 32:
-            depthBitsMax = UINT32_MAX;
-            break;
-        default:
-            depthBitsMax = (1u<<depthBits) - 1;
-    }
 }
 
 
@@ -397,22 +398,25 @@ coord Widget::zBuffer(coord z, int pos)
 //   Calculate minimal z increment depending on the GL_DEPTH_BITS 
 // ----------------------------------------------------------------------------
 {
-    long b = 2 * pos;
-    return b2z( z2b(z) + b );   
+    long b = 50 * pos; // Don't touch this settings unless you exactly know 
+                       // what you are going
+    return b2z( z2b(z) - b );   
 }
  
 double Widget::z2b(coord z)
 {
     double n = Z_NEAR, f = Z_FAR;
     double s = double(depthBitsMax);
-    return floor(s * (f - (f * n / z)) / (f - n) + 0.5);
+    double zn = 2.0 * (n - z);
+    return floor(s * (f - (f * n / zn)) / (f - n) + 0.5);
 }
 
 double  Widget::b2z(ulong b)
 {
     double n = Z_NEAR, f = Z_FAR;
     double s = double(depthBitsMax);
-    return f * n / ((double(b) / s) * (n - f) + f);
+    double zn = f * n / ((double(b) / s) * (f - n) - f);
+    return n + zn / 2.0;
 }
 
 

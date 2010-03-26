@@ -510,6 +510,7 @@ void Widget::setupGL()
 }
 
 
+
 // ============================================================================
 //
 //   Widget basic events (painting, mause, ...)
@@ -1396,9 +1397,10 @@ Tree *Widget::moveTo(Tree *self, real_r x, real_r y, real_r z)
 //    Add a 'moveTo' to the current path
 // ----------------------------------------------------------------------------
 {
-    if (!path)
-        return Ooops("No path for '$1'", self);
-    path->moveTo(Point3(x,y,z));
+    if (path)
+        path->moveTo(Point3(x,y,z));
+    else
+        layout->Add(new MoveTo(x, y, z));
     return XL::xl_true;
 }
 
@@ -1449,9 +1451,10 @@ Tree *Widget::moveToRel(Tree *self, real_r x, real_r y, real_r z)
 //    Add a relative moveTo
 // ----------------------------------------------------------------------------
 {
-    if (!path)
-        return Ooops("No path for '$1'", self);
-    path->moveTo(Vector3(x,y,z));
+    if (path)
+        path->moveTo(Vector3(x,y,z));
+    else
+        layout->Add(new MoveToRel(x, y, z));
     return XL::xl_true;
 }
 
@@ -1800,7 +1803,7 @@ Tree *Widget::framePaint(Tree *self,
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
-    GLAttribKeeper save(GL_TEXTURE_BIT);
+    XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
     Tree *result = frameTexture(self, w, h, prog);
 
     // Draw a rectangle with the resulting texture
@@ -1817,7 +1820,7 @@ Tree *Widget::frameTexture(Tree *self, double w, double h, Tree *prog)
 // ----------------------------------------------------------------------------
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
-{
+{ 
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
@@ -1832,17 +1835,27 @@ Tree *Widget::frameTexture(Tree *self, double w, double h, Tree *prog)
 
     do
     {
-        GLStateKeeper save;
+        GLAllStateKeeper saveGL;
+        XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
 
         frame->resize(w,h);
         frame->begin();
-        {
-            // Clear the background and setup initial state
+        { 
+           // Clear the background and setup initial state
             setup(w, h);
-            result = xl_evaluate(prog);
+            try
+            {
+                result = xl_evaluate(prog);
+            }
+            catch(...)
+            {
+                std::cerr << "Error evaluating frame program\n";
+            }
         }
+        layout->Draw(NULL);
+
         frame->end();
-    } while(0); // GLStateKeeper
+    } while (0); // State keeper and layout
 
     // Bind the resulting texture
     GLuint tex = frame->bind();
@@ -1859,7 +1872,7 @@ Tree *Widget::urlPaint(Tree *self,
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
-    GLAttribKeeper save(GL_TEXTURE_BIT);
+    XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
     ShapeName name(this, bbox(x, y, 0, w, h, 0), "widget_selection");
     name.x(x).y(y).w(w).h(h);
     urlTexture(self, w, h, url, progress);
@@ -1903,7 +1916,8 @@ Tree *Widget::lineEdit(Tree *self,
 //   Draw a line editor in the curent frame
 // ----------------------------------------------------------------------------
 {
-    GLAttribKeeper save(GL_TEXTURE_BIT);
+    XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
+
     ShapeName name(this, bbox(x,y,0,w,h,0), "widget_selection");
     name.x(x).y(y).w(w).h(h);
 

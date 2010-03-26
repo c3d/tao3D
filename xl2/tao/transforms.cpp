@@ -32,7 +32,6 @@ void Rotation::Draw(Layout *where)
 //    Rotation in a drawing
 // ----------------------------------------------------------------------------
 {
-    (void) where;
     glRotatef(amount, xaxis, yaxis, zaxis);
     where->offset = Point3();
 }
@@ -43,7 +42,6 @@ void Translation::Draw(Layout *where)
 //    Rotation in a drawing
 // ----------------------------------------------------------------------------
 {
-    (void) where;
     glTranslatef(xaxis, yaxis, zaxis);
     where->offset = Point3();
 }
@@ -54,9 +52,26 @@ void Scale::Draw(Layout *where)
 //    Scale in a drawing
 // ----------------------------------------------------------------------------
 {
-    (void) where;
     glScalef(xaxis, yaxis, zaxis);
     where->offset = Point3();
+}
+
+
+void MoveTo::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    Position in a drawing
+// ----------------------------------------------------------------------------
+{
+    where->offset = Point3(xaxis, yaxis, zaxis);
+}
+
+
+void MoveToRel::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    Position in a drawing
+// ----------------------------------------------------------------------------
+{
+    where->offset += Vector3(xaxis, yaxis, zaxis);
 }
 
 TAO_END

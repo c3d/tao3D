@@ -76,6 +76,29 @@ private:
     GLStateKeeper(const GLStateKeeper &other);
 };
 
+
+struct GLAllStateKeeper : GLStateKeeper
+// ----------------------------------------------------------------------------
+//   Save and restore both selected attributes and the current matrices
+// ----------------------------------------------------------------------------
+{
+    GLAllStateKeeper(GLbitfield bits = GL_ALL_ATTRIB_BITS): GLStateKeeper(bits)
+    {
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glMatrixMode(GL_MODELVIEW);
+    }
+    ~GLAllStateKeeper()
+    {
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+    }
+
+private:
+    GLAllStateKeeper(const GLStateKeeper &other);
+};
+
 TAO_END
 
 #endif // GL_KEEPERS_H

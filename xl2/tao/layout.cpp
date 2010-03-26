@@ -51,6 +51,7 @@ Layout::Layout(const Layout &o)
       alongX(o.alongX), alongY(o.alongY), alongZ(o.alongZ),
       lineColor(o.lineColor),
       fillColor(o.fillColor),
+      fillTexture(o.fillTexture),
       items()
 {}
 
@@ -80,6 +81,7 @@ void Layout::Clear()
     alongX = alongY = alongZ = Justification();
     lineColor.Set(0,0,0,0); // Transparent black
     fillColor.Set(0,0,0,1); // Black
+    fillTexture = 0;
 }
 
 

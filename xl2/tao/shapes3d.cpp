@@ -89,7 +89,7 @@ void Sphere::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Point3 p = bounds.Center() + where->Offset();
-    double radius = 1.0;
+    double radius = 0.5;
 
     GLUquadric *q = gluNewQuadric();
     gluQuadricTexture (q, true);

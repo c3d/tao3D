@@ -40,10 +40,10 @@ struct Rotation : Transform
 //    Record a rotation
 // ----------------------------------------------------------------------------
 {
-    Rotation(float a, float x, float y, float z):
+    Rotation(coord a, coord x, coord y, coord z):
         Transform(), amount(a), xaxis(x), yaxis(y), zaxis(z) {}
     virtual void Draw(Layout *where);
-    float amount, xaxis, yaxis, zaxis;
+    coord amount, xaxis, yaxis, zaxis;
 };
 
 
@@ -52,10 +52,10 @@ struct Translation : Transform
 //    Record a translation
 // ----------------------------------------------------------------------------
 {
-    Translation(float x, float y, float z):
+    Translation(coord x, coord y, coord z):
         Transform(), xaxis(x), yaxis(y), zaxis(z) {}
     virtual void Draw(Layout *where);
-    float xaxis, yaxis, zaxis;
+    coord xaxis, yaxis, zaxis;
 };
 
 
@@ -64,10 +64,32 @@ struct Scale : Transform
 //    Record a scale change
 // ----------------------------------------------------------------------------
 {
-    Scale(float x, float y, float z):
+    Scale(scale x, scale y, scale z):
         Transform(), xaxis(x), yaxis(y), zaxis(z) {}
     virtual void Draw(Layout *where);
-    float xaxis, yaxis, zaxis;
+    scale xaxis, yaxis, zaxis;
+};
+
+
+struct MoveTo : Transform
+// ----------------------------------------------------------------------------
+//    Record a move-to operation
+// ----------------------------------------------------------------------------
+{
+    MoveTo(coord x, coord y, coord z):
+        Transform(), xaxis(x), yaxis(y), zaxis(z) {}
+    virtual void Draw(Layout *where);
+    scale xaxis, yaxis, zaxis;
+};
+
+
+struct MoveToRel : MoveTo
+// ----------------------------------------------------------------------------
+//    Record a move-to operation
+// ----------------------------------------------------------------------------
+{
+    MoveToRel(coord x, coord y, coord z): MoveTo(x, y, z) {}
+    virtual void Draw(Layout *where);
 };
 
 TAO_END

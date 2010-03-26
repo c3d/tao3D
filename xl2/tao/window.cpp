@@ -23,7 +23,7 @@
 #include <QtGui>
 #include "window.h"
 #include "widget.h"
-#include "apply-changes.h"
+#include "apply_changes.h"
 #include "git_backend.h"
 #include "application.h"
 
@@ -594,7 +594,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
             text task = repo->branch();
             ssize_t len = task.length() - (sizeof (TAO_UNDO_SUFFIX) - 1);
             text currentBranch = task;
-            bool onUndoBranch = len > 0 && task.find(TAO_UNDO_SUFFIX) == len;
+            bool onUndoBranch = len > 0U && task.find(TAO_UNDO_SUFFIX) == len;
             bool setTask = true;
             if (onUndoBranch)
             {

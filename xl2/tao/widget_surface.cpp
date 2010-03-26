@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  widget-surface.cpp                                              Tao project
+//  widget_surface.cpp                                              Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -20,7 +20,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "widget-surface.h"
+#include "widget_surface.h"
 #include "gl_keepers.h"
 #include <QtWebKit>
 

@@ -66,13 +66,13 @@ HEADERS += widget.h \
     layout.h \
     page_layout.h \
     space_layout.h \
-    apply-changes.h \
+    apply_changes.h \
     activity.h \
     selection.h \
     shapename.h \
     treeholder.h \
     menuinfo.h \
-    widget-surface.h \
+    widget_surface.h \
     process.h \
     repository.h \
     git_backend.h \
@@ -111,7 +111,7 @@ SOURCES += tao_main.cpp \
     window.cpp \
     frame.cpp \
     svg.cpp \
-    widget-surface.cpp \
+    widget_surface.cpp \
     texture.cpp \
     drawing.cpp \
     shapes.cpp \
@@ -123,7 +123,7 @@ SOURCES += tao_main.cpp \
     layout.cpp \
     page_layout.cpp \
     space_layout.cpp \
-    apply-changes.cpp \
+    apply_changes.cpp \
     activity.cpp \
     selection.cpp \
     shapename.cpp \

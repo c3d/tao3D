@@ -1,7 +1,7 @@
 #ifndef WIDGET_SURFACE_H
 #define WIDGET_SURFACE_H
 // ****************************************************************************
-//  widget-surface.h                                                Tao project
+//  widget_surface.h                                                Tao project
 // ****************************************************************************
 //
 //   File Description:

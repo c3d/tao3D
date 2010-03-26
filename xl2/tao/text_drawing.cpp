@@ -55,6 +55,7 @@ void TextSpan::Draw(Layout *where)
     path.addText(position.x, -position.y, font, str);
     position.x += fm.width(str);
 
+    where->offset = Point3();
     GraphicPath::Draw(where, path, GLU_TESS_WINDING_ODD, -1);
     where->offset = position;
 }

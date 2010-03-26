@@ -74,8 +74,8 @@ static void tessVertex(VertexData *vertex, PolygonData *poly)
 // ----------------------------------------------------------------------------
 {
     (void) poly;
-    glVertex3dv(&vertex->vertex.x);
     glTexCoord3dv(&vertex->texture.x);
+    glVertex3dv(&vertex->vertex.x);
 }
 
 
@@ -92,7 +92,7 @@ static void tessCombine(GLdouble coords[3],
 
     // The documentation states that all pointers are "valid", but valid
     // seems to mean they can be NULL if we come from SpliceMergeVertices
-    Point3 tex = weight[0] * vertex[0]->texture;
+    Point3 tex =          weight[0] * vertex[0]->texture;
     if (vertex[1]) tex += weight[1] * vertex[1]->texture;
     if (vertex[2]) tex += weight[2] * vertex[2]->texture;
     if (vertex[3]) tex += weight[3] * vertex[3]->texture;
@@ -228,7 +228,7 @@ void GraphicPath::Draw(Layout *where, GLenum mode, GLenum tesselation)
                 Vector3& t0 = control[0].texture;
                 Vector3& t1 = control[1].texture;
                 Vector3& t2 = control[2].texture;
-                Vector3& t3 = control[2].texture;
+                Vector3& t3 = control[3].texture;
                 
                 // Compute a good number of points for approximating the curve
                 scale length = (v2-v0).Length() + 1;

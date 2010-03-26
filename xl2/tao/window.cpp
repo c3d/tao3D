@@ -520,8 +520,15 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
     // If project does not exist and 'confirm' is true, user will be asked to
     // confirm project creation. User is always prompted before re-using a
     // valid repository not currently used by Tao.
-    // Returns true if project is open succesfully or user has chosen to
-    // proceed without a project, false if user cancelled.
+    // Returns:
+    // - true if project is open succesfully, or
+    //        user has chosen to proceed without a project, or
+    //        no repository management tool is available;
+    // - false if user cancelled.
+
+    if (!Repository::available())
+        return true;
+
     bool ok = true;
     bool created = false;
 

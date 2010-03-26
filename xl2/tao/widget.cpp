@@ -1048,16 +1048,16 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
     glPushName(selector);
     try
     {
+        GLAttribKeeper save;
+        XL::LocalSave<Layout *> saveLayout(layout, space);
         if (bounds.Depth() > 0)
         {
-            GLAttribKeeper save;
             setupGL();
             glDisable(GL_DEPTH_TEST);
             (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
         }
         else
         {
-            GLAttribKeeper save;
             glDisable(GL_DEPTH_TEST);
             (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (symbols);
         }
@@ -1590,7 +1590,7 @@ Tree *Widget::starPolygon(Tree *self,
 //     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    if (p < 2 || q < 1 || q > (p-1)/2)
+    if (p < 2 || q == 0 || q > (p-1)/2 || q < -(p-1)/2)
         return ellipse(self, cx, cy, w, h); // Show something else in its place
 
     ShapeName name(this, bbox(cx, cy, w, h));

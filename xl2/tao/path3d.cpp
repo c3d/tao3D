@@ -153,7 +153,6 @@ void GraphicPath::Draw(Layout *where, GLenum mode, GLenum tesselation)
         Point3      tex  = e.position / bounds; // Texture coordinates
         VertexData  here(pos, tex);
         uint        size;
-        double      dt;
 
         switch (kind)
         {
@@ -199,10 +198,11 @@ void GraphicPath::Draw(Layout *where, GLenum mode, GLenum tesselation)
                 scale length = (v2-v0).Length() + 1;
                 scale order = log(length);
                 uint steps = ceil (order + default_steps);
-                dt = 1.0 / steps;
+                double dt = 1.0 / steps;
+                double lt = 1.0 + dt/2;
 
                 // Emit the points
-                for (double t = 0.0; t < 1.0; t += dt)
+                for (double t = 0.0; t < lt; t += dt)
                 {
                     double tt = t*t;
                     double m = 1-t;
@@ -234,9 +234,10 @@ void GraphicPath::Draw(Layout *where, GLenum mode, GLenum tesselation)
                 scale length = (v2-v0).Length() + 1;
                 scale order = log(length);
                 uint steps = ceil (order + default_steps);
-                dt = 1.0 / steps;
+                double dt = 1.0 / steps;
+                double lt = 1.0 + dt/2;
 
-                for (double t = 0.0; t < 1.0; t += dt)
+                for (double t = 0.0; t < lt; t += dt)
                 {
                     double tt = t*t;
                     double ttt = t*tt;

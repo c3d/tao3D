@@ -101,9 +101,10 @@ struct StarPolygon : Rectangle
 //   A star or a regular polygon
 // ----------------------------------------------------------------------------
 {
-    StarPolygon(const Box &b, uint p, uint q): Rectangle(b), p(p), q(q) {}
+    StarPolygon(const Box &b, int p, int q): Rectangle(b), p(p), q(q) {}
+    virtual void        Draw(Layout *where);
     virtual void        Draw(GraphicPath &path);
-    uint p,q;
+    int p,q;
 };
 
 TAO_END

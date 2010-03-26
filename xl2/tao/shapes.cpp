@@ -203,37 +203,99 @@ void EllipseArc::Draw(GraphicPath &path)
 }
 
 
+void StarPolygon::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    We need correct tesselation when q != 1
+// ----------------------------------------------------------------------------
+{
+    GraphicPath path;
+    Draw(path);
+    if (q == 1)
+    {
+        // Regular polygon, no need to tesselate
+        path.Draw(where);
+    }
+    else
+    {
+        setTexture(where);
+        if (setFillColor(where))
+            path.Draw(where, GL_POLYGON,
+                      q > 0 ? GLU_TESS_WINDING_POSITIVE : GLU_TESS_WINDING_ODD);
+        if (setLineColor(where))
+            // REVISIT: If lines is thick, use a QPainterPathStroker
+            path.Draw(where, GL_LINE_STRIP);
+    }
+}
+
+
 void StarPolygon::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 //   Draw a regular polygon or star
 // ----------------------------------------------------------------------------
 {
-    scale  R_r    = cos(q * M_PI/p) / cos((q-1) * M_PI/p);
     scale  w1     = bounds.Width()/2;
-    scale  w2     = w1 * R_r;
     scale  h1     = bounds.Height()/2;
-    scale  h2     = h1 * R_r;
     Point3 center = bounds.Center();
     coord  cx     = center.x;
     coord  cy     = center.y;
 
-    for (uint i = 0; i < p; i++)
+    if (q > 0)
     {
-        double a1 = i * 2*M_PI/p + M_PI_2;
-        double a2 = a1 + M_PI/p;
-        double x1 = cx + w1 * cos(a1);
-        double y1 = cy + h1 * sin(a1);
-        double x2 = cx + w2 * cos(a2);
-        double y2 = cy + h2 * sin(a2);
+        scale  R_r    = cos(q * M_PI/p) / cos((q-1) * M_PI/p);
+        scale  w2     = w1 * R_r;
+        scale  h2     = h1 * R_r;
+        double a      = 0;
+        double da     = M_PI/p;
 
-        if (i)
-            path.lineTo(Point3(x1, y1, 0));
-        else
-            path.moveTo(Point3(x1, y1, 0));
+        for (int i = 0; i < p; i++)
+        {
+            double x1 = cx + w1 * sin(a);
+            double y1 = cy + h1 * cos(a);
+            a += da;
+            double x2 = cx + w2 * sin(a);
+            double y2 = cy + h2 * cos(a);
+            a += da;
 
-        path.lineTo(Point3(x2, y2, 0));
+            if (i)
+                path.lineTo(Point3(x1, y1, 0));
+            else
+                path.moveTo(Point3(x1, y1, 0));
+            
+            path.lineTo(Point3(x2, y2, 0));
+
+            
+        }
+        path.close();
     }
-    path.close();
+    else
+    {
+        double a      = 0;
+        double da     = 2 * M_PI * q / p;
+        
+        for (int i = 0; i <= p; i++)
+        {
+            if (2*i == p)
+            {
+                path.close();
+                a += da/2;
+            }
+
+            double x1 = cx + w1 * sin(a);
+            double y1 = cy + h1 * cos(a);
+            a += da;
+
+            if (i == 0 || 2*i == p)
+            {
+                path.moveTo(Point3(x1, y1, 0));
+            }
+            else
+            {
+                path.lineTo(Point3(x1, y1, 0));
+            }
+        }
+        path.close();
+    }
 }
+
 
 TAO_END

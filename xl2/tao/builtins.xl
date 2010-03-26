@@ -9,115 +9,60 @@ if true then TrueBody -> do TrueBody
 if false then TrueBody -> false
 
 // Graphics stuff
-sphere x:real, y:real, z:real, r:real -> 
-    sphere x,y,z,r,25,25
+sphere x:real, y:real, z:real, r:real   -> sphere x,y,z,2*r,2*r,2*r,25,25
+sphere r:real                           ->
+    sphere 0.0, 0.0, 0.0, 2*r, 2*r, 2*r, 25, 25
+circle x:real, y:real, r:real           -> ellipse x, y, 2*r, 2*r
+circle r:real                           -> ellipse 0.0, 0.0, 2*r, 2*r
+circular_sector x:real, y:real, r:real, a:real, b:real ->
+    ellipse_arc x, y, 2*r, 2*r, a, b
+circular_sector r:real, a:real, b:real  -> ellipse_arc 0.0, 0.0, 2*r,2*r, a, b
+rectangle w:real, h:real                -> rectangle 0.0, 0.0, w, h
+square x:real, y:real, c:real           -> rectangle x, y, c, c 
+square c:real                           -> rectangle 0.0, 0.0, c, c 
 
-sphere r:real -> 
-    sphere 0.0, 0.0, 0.0, r
+rounded_rectangle x:real, y:real, w:real, h:real, r:real ->
+    rounded_rectangle x, y, w, h, r, r
+rounded_rectangle w:real, h:real, r:real-> rounded_rectangle 0.0, 0.0, w, h, r,r
 
-circle r:real ->
-    circle 0.0, 0.0, r
+regular_star_polygon x:real, y:real, r:real, p:integer, q:integer ->
+    star_polygon x, y, 2*r, 2*r, p, q
+regular_polygram x:real, y:real, r:real, p:integer, q:integer ->
+        star_polygon x, y, 2*r, 2*r, p, q
+regular_polygon x:real, y:real, r:real, p:integer ->
+        star_polygon x, y, 2*r, 2*r, p, 1
 
-circular_sector r:real, a:real, b:real ->
-    circular_sector 0.0, 0.0, r, a, b
+schläfli t, {p:integer/q:integer}       -> regular_star_polygon t, p, q
+schläfli t, {p:integer}                 -> regular_polygon t, p
 
-rectangle w:real, h:real ->
-    rectangle 0.0, 0.0, w, h
+equilateral_triangle t                  -> regular_polygon t, 3
+regular_tetragon t                      -> regular_polygon t, 4
+regular_pentagon t                      -> regular_polygon t, 5
+regular_hexagon t                       -> regular_polygon t, 6
+regular_heptagon t                      -> regular_polygon t, 7
+regular_octagon t                       -> regular_polygon t, 8
+regular_nonagon t                       -> regular_polygon t, 9
+regular_decagon t                       -> regular_polygon t, 10
+regular_hendecagon t                    -> regular_polygon t, 11
+regular_dodecagon t                     -> regular_polygon t, 12
+regular_tridecagon t                    -> regular_polygon t, 13
+regular_tetradecagon t                  -> regular_polygon t, 14
+regular_pentadecagon t                  -> regular_polygon t, 15
+regular_hexadecagon t                   -> regular_polygon t, 16
+regular_heptadecagon t                  -> regular_polygon t, 17
+regular_octadecagon t                   -> regular_polygon t, 18
+regular_enneadecagon t                  -> regular_polygon t, 19
+regular_icosagon t                      -> regular_polygon t, 20
 
-square t, c:real ->
-    rectangle t, c, c 
-
-square c:real ->
-    rectangle c, c 
-
-rounded_rectangle w:real, h:real, r:real ->
-    rounded_rectangle 0.0, 0.0, w, h, r
-
-regular_star_polygon r:real, p:integer, q:integer ->
-    regular_star_polygon 0.0, 0.0, r, p, q
-
-regular_polygram t -> regular_star_polygon t
-
-regular_polygon t ->
-    regular_star_polygon t, 1
-
-schläfli t, {p:integer/q:integer} -> regular_star_polygon t, p, q
-schläfli t, {p:integer} -> regular_polygon t, p
-
-equilateral_triangle t -> regular_polygon t, 3
-regular_tetragon t -> regular_polygon t, 4
-regular_pentagon t -> regular_polygon t, 5
-regular_hexagon t -> regular_polygon t, 6
-regular_heptagon t -> regular_polygon t, 7
-regular_octagon t -> regular_polygon t, 8
-regular_nonagon t -> regular_polygon t, 9
-regular_decagon t -> regular_polygon t, 10
-regular_hendecagon t -> regular_polygon t, 11
-regular_dodecagon t -> regular_polygon t, 12
-regular_tridecagon t -> regular_polygon t, 13
-regular_tetradecagon t -> regular_polygon t, 14
-regular_pentadecagon t -> regular_polygon t, 15
-regular_hexadecagon t -> regular_polygon t, 16
-regular_heptadecagon t -> regular_polygon t, 17
-regular_octadecagon t -> regular_polygon t, 18
-regular_enneadecagon t -> regular_polygon t, 19
-regular_icosagon t -> regular_polygon t, 20
-
-regular_pentagram t -> regular_star_polygon t, 5, 2
-star t -> regular_star_polygon t, 5, 2
-regular_hexagram t -> regular_star_polygon t, 6, 2
-star_of_david t -> regular_star_polygon t, 6, 2
-regular_heptagram t -> regular_star_polygon t, 7, 2
-star_of_lakshmi t -> regular_star_polygon t, 8, 2
-regular_octagram t -> regular_star_polygon t, 8, 3
-regular_nonagram t -> regular_star_polygon t, 9, 3
-regular_decagram t -> regular_star_polygon t, 10, 3
-
-box xl,yl,zl,xu,yu,zu ->
-        quad_strip
-            vertex xl, yu, zu
-            vertex xu, yu, zu
-            vertex xl, yl, zu
-            vertex xu, yl, zu
-            vertex xl, yl, zl
-            vertex xu, yl, zl
-            vertex xl, yu, zl
-            vertex xu, yu, zl
-            vertex xl, yu, zu
-            vertex xu, yu, zu
-        quad_strip
-            vertex xu, yu, zu
-            vertex xu, yu, zl
-            vertex xu, yl, zu
-            vertex xu, yl, zl
-        quad_strip
-            vertex xl, yl, zu
-            vertex xl, yl, zl
-            vertex xl, yu, zu
-            vertex xl, yu, zl
-
-boxedges xl,yl,zl,xu,yu,zu ->
-        line_loop
-            vertex xl, yu, zu
-            vertex xu, yu, zu
-            vertex xu, yl, zu
-            vertex xl, yl, zu
-        line_loop
-            vertex xu, yu, zl
-            vertex xl, yu, zl
-            vertex xl, yl, zl
-            vertex xu, yl, zl
-        lines
-            vertex xu, yu, zu
-            vertex xu, yu, zl
-            vertex xu, yl, zu
-            vertex xu, yl, zl
-            vertex xl, yl, zu
-            vertex xl, yl, zl
-            vertex xl, yu, zu
-            vertex xl, yu, zl
-
-
+regular_pentagram t                     -> regular_star_polygon t, 5, 2
+star t                                  -> regular_star_polygon t, 5, 2
+regular_hexagram t                      -> regular_star_polygon t, 6, 2
+star_of_david t                         -> regular_star_polygon t, 6, 2
+regular_heptagram t                     -> regular_star_polygon t, 7, 2
+star_of_lakshmi t                       -> regular_star_polygon t, 8, 2
+regular_octagram t                      -> regular_star_polygon t, 8, 3
+regular_nonagram t                      -> regular_star_polygon t, 9, 3
+regular_decagram t                      -> regular_star_polygon t, 10, 3
 
 x..y / t -> x + (y-x) * (1 + sin(time/t * 2*pi)) / 2
 
@@ -125,74 +70,30 @@ selection_background_color ->
     color 0.4..0.8 / 5.17, 0.6..0.9 / 5.21, 0.9..1 / 5.27, 0.4..0.6 / 5.7
 
 selection_outline_color ->
-    color 0.8..1 / 3.51, 0.3..0.7 / 3.61, 0.2..0.5 / 3.67, 0.8..1 / 3.32
+    line_color 0.8..1 / 3.51, 0.3..0.7 / 3.61, 0.2..0.5 / 3.67, 0.8..1 / 3.32
 
 draw_selection x,y,z,w,h,d ->
     r -> 2.0
     selection_background_color
-    box x-w/2-r, y-h/2-r, z-d/2-r, x+w/2+r, y+h/2+r, z+d/2+r
     selection_outline_color
-    boxedges x-w/2-r, y-h/2-r, z-d/2-r, x+w/2+r, y+h/2+r, z+d/2+r
-
-draw_pyramid_selection x,y,z,w,h,d ->
-    triangle_fan
-        color 1.0, 1.0, 1.0, 0.1; vertex x,     y,     z+d/2
-        color 1.0, 0.0, 0.0, 0.4; vertex x-w/2, y-h/2, z
-        color 0.0, 0.0, 1.0, 0.4; vertex x-w/2, y+h/2, z
-        color 0.0, 1.0, 1.0, 0.4; vertex x+w/2, y+h/2, z
-        color 1.0, 1.0, 0.0, 0.4; vertex x+w/2, y-h/2, z
-        color 1.0, 0.0, 0.0, 0.4; vertex x-w/2, y-h/2, z
-    triangle_fan
-        color 0.0, 0.0, 0.0, 0.4; vertex x,     y,     z-d/2;
-        color 1.0, 0.0, 0.0, 0.4; vertex x-w/2, y-h/2, z;
-        color 0.0, 0.0, 1.0, 0.4; vertex x-w/2, y+h/2, z;
-        color 0.0, 1.0, 1.0, 0.4; vertex x+w/2, y+h/2, z;
-        color 1.0, 1.0, 0.0, 0.4; vertex x+w/2, y-h/2, z;
-        color 1.0, 0.0, 0.0, 0.4; vertex x-w/2, y-h/2, z;
+    cube x-w/2-r, y-h/2-r, z-d/2-r, w, h, d
 
 draw_3D_selection x,y,z,w,h,d ->
     enable_depth_test
     selection_background_color
-    // sphere x, y, z, (w+h+d)/5.8
-    draw_selection x,y,z,w,h,d
-    selector "depth"
-    draw_pyramid_selection x,y,z,w/2,h/2,d*2
+    selection_outline_color
+    sphere x, y, z, w, h, d
 
 draw_widget_selection x,y,w,h ->
     r -> 7
     selection_outline_color
-    line_width 1
-    line_loop
-        vertex x-w/2, y-h/2
-        vertex x-w/2, y+h/2
-        vertex x+w/2, y+h/2
-        vertex x+w/2, y-h/2
-    quads
-        vertex x-w/2, y+h/2-r
-        vertex x-w/2, y+h/2
-        vertex x+w/2, y+h/2
-        vertex x+w/2, y+h/2-r
-    selector "size"
-    quads
-        vertex x+w/2-r, y-h/2
-        vertex x+w/2-r, y-h/2+r
-        vertex x+w/2,   y-h/2+r
-        vertex x+w/2,   y-h/2
+    color 0,0,0,0
+    rectangle x, y, w, h
 
 draw_selection x,y,w,h ->
     selection_background_color
-    quads
-        vertex x-w/2, y-h/2
-        vertex x-w/2, y+h/2
-        vertex x+w/2, y+h/2
-        vertex x+w/2, y-h/2
     selection_outline_color
-    line_width 1
-    line_loop
-        vertex x-w/2, y-h/2
-        vertex x-w/2, y+h/2
-        vertex x+w/2, y+h/2
-        vertex x+w/2, y-h/2
+    rectangle x, y, w, h
 
 draw_selection_rectangle x, y, w, h ->
     draw_selection x,y,w,h

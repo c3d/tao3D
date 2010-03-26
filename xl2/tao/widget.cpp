@@ -1010,18 +1010,27 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
     Point3 c  = bounds.Center();
 
     glPushName(selector);
-    if (bounds.Depth() > 0)
+    try
     {
-        GLAttribKeeper save;
-        setupGL();
-        glDisable(GL_DEPTH_TEST);
-        (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
+        if (bounds.Depth() > 0)
+        {
+            GLAttribKeeper save;
+            setupGL();
+            glDisable(GL_DEPTH_TEST);
+            (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
+        }
+        else
+        {
+            GLAttribKeeper save;
+            glDisable(GL_DEPTH_TEST);
+            (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (symbols);
+        }
     }
-    else
+    catch(XL::Error &e)
     {
-        GLAttribKeeper save;
-        glDisable(GL_DEPTH_TEST);
-        (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (symbols);
+    }
+    catch(...)
+    {
     }
     glPopName();
 }

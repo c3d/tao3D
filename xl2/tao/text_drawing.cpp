@@ -36,7 +36,10 @@ void TextSpan::Draw(Layout *where)
 //   Render a portion of text and advance by the width of the text
 // ----------------------------------------------------------------------------
 {
-    Shape::Draw(where);
+    Point3 position = where->offset;
+    QPainterPath path;
+    path.addText(position.x, position.y, font, value);
+    GraphicPath::Draw(where, path, GLU_TESS_WINDING_ODD, -1);
     QFontMetrics fm(font);
     where->offset.x += fm.width(value);
 }
@@ -48,7 +51,9 @@ void TextSpan::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 {
     Point3 position = path.position;
-    Shape::Draw(path);
+    QPainterPath qt;
+    qt.addText(position.x, position.y, font, value);
+    path.addQtPath(qt, -1);
     QFontMetrics fm(font);
     path.moveTo(position + Vector3(fm.width(value), 0, 0));
 }

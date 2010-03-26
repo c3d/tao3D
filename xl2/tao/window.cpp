@@ -42,9 +42,9 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create a Tao window with default parameters
 // ----------------------------------------------------------------------------
-    : xlRuntime(xlr), repo(NULL),
+    : isUntitled(sf == NULL), xlRuntime(xlr), repo(NULL),
       textEdit(NULL), taoWidget(NULL), curFile(),
-      isUntitled(sf == NULL), fileCheckTimer(this)
+      fileCheckTimer(this)
 {
     // Define the icon
     setWindowIcon(QIcon(":/images/tao.png"));

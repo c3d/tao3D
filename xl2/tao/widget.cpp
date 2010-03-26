@@ -271,6 +271,14 @@ void Widget::refreshProgram()
                             std::cerr << "Surgical replacement worked\n";
                     }
                 } // Replacement checked
+
+                if (fname == xlProgram->name)
+                {
+                    // Update source file view
+                    text txt = *xlProgram->tree.tree;
+                    Window *window = (Window *) parentWidget();
+                    window->setText(+txt);
+                }
             } // If file modified
         } // For all files
 

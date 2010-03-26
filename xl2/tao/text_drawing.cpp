@@ -38,10 +38,25 @@ void TextSpan::Draw(Layout *where)
 {
     Point3 position = where->offset;
     QPainterPath path;
-    path.addText(position.x, position.y, font, value);
-    GraphicPath::Draw(where, path, GLU_TESS_WINDING_ODD, -1);
+    QString str = value;
     QFontMetrics fm(font);
-    where->offset.x += fm.width(value);
+
+    int index = str.indexOf(QChar('\n'));
+    while (index >= 0)
+    {
+        QString fragment = str.left(index);
+        path.addText(position.x, -position.y, font, fragment);
+        position.x = 0;
+        position.y -= fm.height();
+        str = str.mid(index+1);
+        index = str.indexOf(QChar('\n'));
+    }
+
+    path.addText(position.x, -position.y, font, str);
+    position.x += fm.width(str);
+
+    GraphicPath::Draw(where, path, GLU_TESS_WINDING_ODD, -1);
+    where->offset = position;
 }
 
 
@@ -51,11 +66,27 @@ void TextSpan::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 {
     Point3 position = path.position;
-    QPainterPath qt;
-    qt.addText(position.x, position.y, font, value);
-    path.addQtPath(qt, -1);
     QFontMetrics fm(font);
-    path.moveTo(position + Vector3(fm.width(value), 0, 0));
+
+    QPainterPath qt;
+
+    QString str = value;
+    int index = str.indexOf(QChar('\n'));
+    while (index >= 0)
+    {
+        QString fragment = str.left(index);
+        qt.addText(position.x, -position.y, font, fragment);
+        position.x = 0;
+        position.y -= fm.height();
+        str = str.mid(index+1);
+        index = str.indexOf(QChar('\n'));
+    }
+
+    qt.addText(position.x, -position.y, font, str);
+    position.x += fm.width(str);
+
+    path.addQtPath(qt, -1);
+    path.moveTo(position);
 }
 
 

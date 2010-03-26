@@ -78,8 +78,8 @@ void Layout::Clear()
     font = qApp->font();
 
     alongX = alongY = alongZ = Justification();
-    lineColor.Set(0,0,0,1); // Black
-    fillColor.Set(0,0,0,0); // Transparent black
+    lineColor.Set(0,0,0,0); // Transparent black
+    fillColor.Set(0,0,0,1); // Black
 }
 
 

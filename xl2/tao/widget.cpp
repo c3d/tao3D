@@ -260,8 +260,8 @@ void Widget::runProgram()
     current = this;
     QTextOption alignCenter(Qt::AlignCenter);
     TextFlow mainFlow(alignCenter);
-    Layout mainLayout;
-    XL::LocalSave<Layout *> saveLayout(layout, &mainLayout);
+    space->Clear();
+    XL::LocalSave<Layout *> saveLayout(layout, space);
 
     try
     {
@@ -296,8 +296,8 @@ void Widget::runProgram()
                              tr("Unknown error executing the program"));
     }
 
-    // After we are done, flush the frame and over-paint it
-    mainLayout.Draw(layout);
+    // After we are done, draw the space with all the drawings in it
+    redraw();
 
     // Once we are done, do a garbage collection
     XL::Context::context->CollectGarbage();
@@ -308,6 +308,16 @@ void Widget::runProgram()
     else if (id + 50 < capacity / 2)
         capacity = capacity / 2;
 }
+
+
+void Widget::redraw()
+// ----------------------------------------------------------------------------
+//   Draw the global space (and all its children as a result)
+// ----------------------------------------------------------------------------
+{
+    space->Draw(NULL);
+}
+
 
 
 static void printWidget(QWidget *w)

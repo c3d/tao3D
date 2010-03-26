@@ -63,6 +63,7 @@ public slots:
     // Slots
     void        dawdle();
     void        draw();
+    void        redraw();
     void        runProgram();
     void        appFocusChanged(QWidget *prev, QWidget *next);
     void        userMenu(QAction *action);

@@ -54,6 +54,7 @@ HEADERS += widget.h \
     texture.h \
     coords.h \
     coords3d.h \
+    color.h \
     gl_keepers.h \
     text_flow.h \
     drawing.h \

@@ -33,7 +33,7 @@ void LineColor::Draw(Layout *where)
 //   Remember the color in the layout
 // ----------------------------------------------------------------------------
 {
-    where->lineColor = this;
+    where->lineColor = color;
 }
 
 
@@ -42,7 +42,7 @@ void FillColor::Draw(Layout *where)
 //   Remember the color in the layout
 // ----------------------------------------------------------------------------
 {
-    where->fillColor = this;
+    where->fillColor = color;
 }
 
 
@@ -51,7 +51,7 @@ void FillTexture::Draw(Layout *where)
 //   Replay a texture change
 // ----------------------------------------------------------------------------
 {
-    where->fillTexture = this;
+    where->fillTexture = glName;
 }
 
 

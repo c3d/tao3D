@@ -120,7 +120,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
     glPushName(0);
 
     // Run the programs, which will give us the list of selectable things
-    widget->runProgram();
+    widget->redraw();
 
     // Get number of hits and extract selection
     // Each record is as follows:
@@ -211,7 +211,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     glPushName(0);
 
     // Run the programs, which detects selected items
-    widget->runProgram();
+    widget->redraw();
 
     // Get number of hits and extract selection
     // Each record is as follows:

@@ -49,7 +49,7 @@ bool Shape::setTexture(Layout *where)
 {
     if (where->fillTexture)
     {
-        glBindTexture(GL_TEXTURE_2D, where->fillTexture->glName);
+        glBindTexture(GL_TEXTURE_2D, where->fillTexture);
         glEnable(GL_TEXTURE_2D);
         glEnable(GL_MULTISAMPLE);
     }
@@ -70,22 +70,20 @@ bool Shape::setFillColor(Layout *where)
     // Check if we have a non-transparent fill color
     if (where)
     {
-        if (FillColor *color = where->fillColor)
+        Color &color = where->fillColor;
+        if (color.alpha > 0.0)
         {
-            if (color->alpha > 0.0)
-            {
-                // Check cached GL color
-                if (color->red  == red  && color->green == green &&
-                    color->blue == blue && color->alpha != alpha)
-                    return true;
-                
-                glColor4f(color->red, color->green, color->blue, color->alpha);
-                red = color->red;
-                green = color->green;
-                blue = color->blue;
-                alpha = color->alpha;
+            // Check cached GL color
+            if (color.red  == red  && color.green == green &&
+                color.blue == blue && color.alpha != alpha)
                 return true;
-            }
+
+            glColor4f(color.red, color.green, color.blue, color.alpha);
+            red = color.red;
+            green = color.green;
+            blue = color.blue;
+            alpha = color.alpha;
+            return true;
         }
     }
     return false;
@@ -100,22 +98,20 @@ bool Shape::setLineColor(Layout *where)
     // Check if we have a non-transparent outline color
     if (where)
     {
-        if (LineColor *color = where->lineColor)
+        Color &color = where->lineColor;
+        if (color.alpha > 0.0)
         {
-            if (color->alpha > 0.0)
-            {
-                // Check cached GL color
-                if (color->red  == red  && color->green == green &&
-                    color->blue == blue && color->alpha != alpha)
-                    return true;
-                
-                glColor4f(color->red, color->green, color->blue, color->alpha);
-                red = color->red;
-                green = color->green;
-                blue = color->blue;
-                alpha = color->alpha;
+            // Check cached GL color
+            if (color.red  == red  && color.green == green &&
+                color.blue == blue && color.alpha != alpha)
                 return true;
-            }
+                
+            glColor4f(color.red, color.green, color.blue, color.alpha);
+            red = color.red;
+            green = color.green;
+            blue = color.blue;
+            alpha = color.alpha;
+            return true;
         }
     }
     return false;

@@ -23,16 +23,13 @@
 // ****************************************************************************
 
 #include "drawing.h"
+#include "color.h"
 #include "justification.h"
 #include <vector>
 #include <QFont>
 
 
 TAO_BEGIN
-
-struct LineColor;
-struct FillColor;
-struct FillTexture;
 
 struct Layout : Drawing
 // ----------------------------------------------------------------------------
@@ -52,15 +49,16 @@ struct Layout : Drawing
     virtual Layout &    Add (Drawing *d);
     virtual Vector3     Offset();
     virtual Layout *    NewChild()      { return new Layout(*this); }
+    virtual void        Clear();
 
 public:
-    // Attributes
-    LineColor *         lineColor;
-    FillColor *         fillColor;
-    FillTexture *       fillTexture;
-    Justification       alongX, alongY, alongZ;
-    Vector3             offset;
-    QFont               font;
+    // Attributes that get propagated to children
+    Vector3         offset;
+    QFont           font;
+    Justification   alongX, alongY, alongZ;
+    Color           lineColor;
+    Color           fillColor;
+    uint            fillTexture;
 
 protected:
     // List of drawing elements

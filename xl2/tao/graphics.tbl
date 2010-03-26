@@ -164,6 +164,10 @@ PREFIX(EllipseArc, tree, "ellipse_arc",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(start, real) PARM(sweep, real),
        RTAO(ellipseArc(self, x, y, w, h, start, sweep)))
+PREFIX(RoundedRectangle, tree, "rounded_rectangle",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
+       PARM(rx, real) PARM(ry, real),
+       RTAO(roundedRectangle(self, x, y, w, h, rx, ry)))
 PREFIX(RegularStarPolygon, tree, "star_polygon",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
        PARM(p, integer) PARM(q, integer),

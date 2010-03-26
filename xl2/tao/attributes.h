@@ -23,6 +23,7 @@
 // ****************************************************************************
 
 #include "drawing.h"
+#include "color.h"
 
 TAO_BEGIN
 
@@ -36,35 +37,35 @@ struct Attribute : Drawing
 };
 
 
-struct Color : Attribute
+struct ColorAttribute : Attribute
 // ----------------------------------------------------------------------------
 //    Record a color
 // ----------------------------------------------------------------------------
 {
-    Color(float r, float g, float b, float a):
-        Attribute(), red(r), green(g), blue(b), alpha(a) {}
-    float red, green, blue, alpha;
+    ColorAttribute(float r, float g, float b, float a):
+        Attribute(), color(r, g, b, a) {}
+    Color color;
 };
 
 
-struct LineColor : Color
+struct LineColor : ColorAttribute
 // ----------------------------------------------------------------------------
 //   Record the color for shape outline
 // ----------------------------------------------------------------------------
 {
     LineColor(float r, float g, float b, float a):
-        Color(r,g,b,a) {}
+        ColorAttribute(r,g,b,a) {}
     virtual void Draw(Layout *where);
 };
 
 
-struct FillColor : Color
+struct FillColor : ColorAttribute
 // ----------------------------------------------------------------------------
 //   Record the color for shape fill
 // ----------------------------------------------------------------------------
 {
     FillColor(float r, float g, float b, float a):
-        Color(r,g,b,a) {}
+        ColorAttribute(r,g,b,a) {}
     virtual void Draw(Layout *where);
 };
 

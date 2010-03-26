@@ -26,21 +26,19 @@
 
 TAO_BEGIN
 
-static LineColor        blackLine       (0,0,0,1); // Black
-static FillColor        transparentFill (0,0,0,0); // Transparent
-
 Layout::Layout()
 // ----------------------------------------------------------------------------
 //    Create an empty layout
 // ----------------------------------------------------------------------------
     : Drawing(),
-      lineColor(NULL), fillColor(NULL), fillTexture(NULL),
-      offset(), font(qApp->font()), items()
-{
-    // Select the default colors
-    blackLine.Draw(this);
-    transparentFill.Draw(this);
-}
+      offset(),
+      font(qApp->font()),
+      alongX(), alongY(), alongZ(),
+      lineColor(0,0,0,1),       // Black
+      fillColor(0,0,0,0),       // Transparent black
+      fillTexture(0),
+      items()
+{}
 
 
 Layout::Layout(const Layout &o)
@@ -48,10 +46,11 @@ Layout::Layout(const Layout &o)
 //   Copy constructor
 // ----------------------------------------------------------------------------
     : Drawing(o),
-      lineColor(o.lineColor), // REVISIT: Safe to copy?
+      offset(),                 // Zero, because we take parent offset in Draw
+      font(o.font),
+      alongX(o.alongX), alongY(o.alongY), alongZ(o.alongZ),
+      lineColor(o.lineColor),
       fillColor(o.fillColor),
-      fillTexture(o.fillTexture),
-      offset(o.offset), font(o.font),
       items()
 {}
 
@@ -61,9 +60,26 @@ Layout::~Layout()
 //   Destroy a layout
 // ----------------------------------------------------------------------------
 {
+    Clear();
+}
+
+
+void Layout::Clear()
+// ----------------------------------------------------------------------------
+//   Reset the layout to the initial setup
+// ----------------------------------------------------------------------------
+{
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
         delete *i;
+    items.clear();
+
+    offset.Set(0,0,0);
+    font = qApp->font();
+
+    alongX = alongY = alongZ = Justification();
+    lineColor.Set(0,0,0,1); // Black
+    fillColor.Set(0,0,0,0); // Transparent black
 }
 
 
@@ -73,6 +89,7 @@ void Layout::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // Inherit offset from our parent layout if there is one
+    XL::LocalSave<Point3> save(offset, offset);
     if (where)
         offset += where->Offset();
 

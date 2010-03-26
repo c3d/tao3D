@@ -90,6 +90,7 @@ void Layout::Draw(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
+    GLStateKeeper glSave;
     if (where)
         offset += where->Offset();
 

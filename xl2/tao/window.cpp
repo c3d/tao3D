@@ -235,12 +235,14 @@ void Window::about()
     kstring txt =
         "<b>Tao</b>, an interactive collaboration tool.<br/>"
         "Brought to you by Taodyne SAS:<br/>"
+        "<center>"
         "Anne Lempereur<br/>"
         "Catherine Burvelle<br/>"
-        "Jérôme Forissier<br/>"
+        "J\303\251r\303\264me Forissier<br/>"
         "Lionel Schaffhauser<br/>"
-        "Christophe de Dinechin.";
-   QMessageBox::about (this, tr("About Tao"), tr(txt));
+        "Christophe de Dinechin"
+        "</center>";
+   QMessageBox::about (this, tr("About Tao"), trUtf8(txt));
 }
 
 

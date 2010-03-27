@@ -244,7 +244,7 @@ private:
     friend class Window;
     friend class Activity;
     friend class Selection;
-    friend class ShapeName;
+    friend class Manipulator;
 
     typedef XL::LocalSave<QEvent *> EventSave;
     typedef std::map<GLuint, uint>  selection_map;

@@ -69,7 +69,7 @@ HEADERS += widget.h \
     apply_changes.h \
     activity.h \
     selection.h \
-    shapename.h \
+    manipulator.h \
     treeholder.h \
     menuinfo.h \
     widget_surface.h \
@@ -126,7 +126,7 @@ SOURCES += tao_main.cpp \
     apply_changes.cpp \
     activity.cpp \
     selection.cpp \
-    shapename.cpp \
+    manipulator.cpp \
     gl_keepers.cpp \
     treeholder.cpp \
     menuinfo.cpp \

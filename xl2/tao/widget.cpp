@@ -39,7 +39,7 @@
 #include "activity.h"
 #include "selection.h"
 #include "drag.h"
-#include "shapename.h"
+#include "manipulator.h"
 #include "treeholder.h"
 #include "menuinfo.h"
 #include "repository.h"
@@ -1513,7 +1513,7 @@ Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 //    Draw a rectangle using Cairo
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, bbox(x,y,w,h));
+    Manipulator name(this, bbox(x,y,w,h));
     name.x(x).y(y).w(w).h(h);
 
     Rectangle shape(Box(x-w/2, y-h/2, w, h));
@@ -1531,7 +1531,7 @@ Tree *Widget::ellipse(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
 //   Cairo circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, bbox(cx, cy, w, h));
+    Manipulator name(this, bbox(cx, cy, w, h));
     name.x(cx).y(cy).w(w).h(h);
 
     Ellipse shape(Box(cx-w/2, cy-h/2, w, h));
@@ -1551,7 +1551,7 @@ Tree *Widget::ellipseArc(Tree *self,
 //   Cairo circular sector centered around (cx,cy), radius r and two angles a, b
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, bbox(cx, cy, w, h));
+    Manipulator name(this, bbox(cx, cy, w, h));
     name.x(cx).y(cy).w(w).h(h);
 
     EllipseArc shape(Box(cx-w/2, cy-h/2, w, h), start, sweep);
@@ -1572,7 +1572,7 @@ Tree *Widget::roundedRectangle(Tree *self,
 //   Cairo rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, bbox(cx, cy, w, h));
+    Manipulator name(this, bbox(cx, cy, w, h));
     name.x(cx).y(cy).w(w).h(h);
 
     RoundedRectangle shape(Box(cx-w/2, cy-h/2, w, h), rx, ry);
@@ -1596,7 +1596,7 @@ Tree *Widget::starPolygon(Tree *self,
     if (p < 2 || q == 0 || q > (p-1)/2 || q < -(p-1)/2)
         return ellipse(self, cx, cy, w, h); // Show something else in its place
 
-    ShapeName name(this, bbox(cx, cy, w, h));
+    Manipulator name(this, bbox(cx, cy, w, h));
     name.x(cx).y(cy).w(w).h(h);
 
     StarPolygon shape(Box(cx-w/2, cy-h/2, w, h), p, q);
@@ -1624,7 +1624,7 @@ Tree *Widget::sphere(Tree *self,
 //     GL sphere
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, bbox(x,y,z, w, h, d), "3D_selection");
+    Manipulator name(this, bbox(x,y,z, w, h, d), "3D_selection");
     name.x(x).y(y).w(w).h(h).y(z, "depth");
     layout->Add (new Sphere(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks));
     return XL::xl_true;
@@ -1638,7 +1638,7 @@ Tree *Widget::cube(Tree *self,
 //    A simple cubic box
 // ----------------------------------------------------------------------------
 {
-    ShapeName name(this, bbox(x,y,z, w, h, d), "3D_selection");
+    Manipulator name(this, bbox(x,y,z, w, h, d), "3D_selection");
     name.x(x).y(y).w(w).h(h).y(z, "depth");
     layout->Add(new Cube(Box3(x-w/2, y-h/2, z-d/2, w,h,d)));
     return XL::xl_true;
@@ -1807,7 +1807,7 @@ Tree *Widget::framePaint(Tree *self,
     Tree *result = frameTexture(self, w, h, prog);
 
     // Draw a rectangle with the resulting texture
-    ShapeName name(this, bbox(x, y, w, h));
+    Manipulator name(this, bbox(x, y, w, h));
     name.x(x).y(y).w(w).h(h);
 
     layout->Add(new Rectangle(Box(x-w/2, y-h/2, w, h)));
@@ -1873,7 +1873,7 @@ Tree *Widget::urlPaint(Tree *self,
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
-    ShapeName name(this, bbox(x, y, 0, w, h, 0), "widget_selection");
+    Manipulator name(this, bbox(x, y, 0, w, h, 0), "widget_selection");
     name.x(x).y(y).w(w).h(h);
     urlTexture(self, w, h, url, progress);
 
@@ -1918,7 +1918,7 @@ Tree *Widget::lineEdit(Tree *self,
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
 
-    ShapeName name(this, bbox(x,y,0,w,h,0), "widget_selection");
+    Manipulator name(this, bbox(x,y,0,w,h,0), "widget_selection");
     name.x(x).y(y).w(w).h(h);
 
     lineEditTexture(self, w, h, txt);

@@ -1,7 +1,7 @@
-#ifndef SHAPENAME_H
-#define SHAPENAME_H
+#ifndef MANIPULATOR_H
+#define MANIPULATOR_H
 // ****************************************************************************
-//  shapename.h                                                     Tao project
+//  manipulator.h                                                   Tao project
 // ****************************************************************************
 // 
 //   File Description:
@@ -25,7 +25,7 @@
 #include "widget.h"
 #include "tree.h"
 #include "coords3d.h"
-#include "opcodes.h"
+#include "drawing.h"
 
 #include <vector>
 #include <map>
@@ -33,22 +33,22 @@
 
 TAO_BEGIN
 
-struct ShapeName
+struct Manipulator
 // ----------------------------------------------------------------------------
 //   Structure used simply to assign shape IDs during selection
 // ----------------------------------------------------------------------------
 {
-    ShapeName(Widget *w, Box3 box = Box3(), text selector = "selection");
-    ~ShapeName();
+    Manipulator(Widget *w, Box3 box = Box3(), text selector = "selection");
+    ~Manipulator();
 
     typedef XL::Tree                    Tree, *tree_p;
     typedef std::map<text, tree_p>      tree_map;
 
     // Specifying where arguments are
-    ShapeName&  x(Tree &xr, text s = "move")    { xp[s] = &xr; return *this; }
-    ShapeName&  y(Tree &yr, text s = "move")    { yp[s] = &yr; return *this; }
-    ShapeName&  w(Tree &xr)                     { return x(xr, "size"); }
-    ShapeName&  h(Tree &yr)                     { return y(yr, "size"); }
+    Manipulator&  x(Tree &xr, text s = "move")    { xp[s] = &xr; return *this; }
+    Manipulator&  y(Tree &yr, text s = "move")    { yp[s] = &yr; return *this; }
+    Manipulator&  w(Tree &xr)                     { return x(xr, "size"); }
+    Manipulator&  h(Tree &yr)                     { return y(yr, "size"); }
 
 protected:
     void        updateArg(tree_p param, coord delta);
@@ -99,4 +99,4 @@ typedef XL::TreeCloneTemplate<NormalizedCloneMode> NormalizedClone;
 
 XL_END
 
-#endif // SHAPENAME_H
+#endif // MANIPULATOR_H

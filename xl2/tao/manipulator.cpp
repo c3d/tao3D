@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  shapename.cpp                                                   Tao project
+//  manipulator.cpp                                                 Tao project
 // ****************************************************************************
 // 
 //   File Description:
@@ -20,7 +20,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "shapename.h"
+#include "manipulator.h"
 #include "drag.h"
 #include "runtime.h"
 
@@ -32,7 +32,7 @@ TAO_BEGIN
 // 
 // ============================================================================
 
-ShapeName::ShapeName(Widget *w, Box3 box, text selector)
+Manipulator::Manipulator(Widget *w, Box3 box, text selector)
 // ----------------------------------------------------------------------------
 //   Record the GL name for a given tree
 // ----------------------------------------------------------------------------
@@ -42,7 +42,7 @@ ShapeName::ShapeName(Widget *w, Box3 box, text selector)
 }
 
 
-ShapeName::~ShapeName()
+Manipulator::~Manipulator()
 // ----------------------------------------------------------------------------
 //    Maintain the selection for the given tree
 // ----------------------------------------------------------------------------
@@ -66,7 +66,7 @@ ShapeName::~ShapeName()
 }
 
 
-void ShapeName::updateArg(tree_p arg, coord delta)
+void Manipulator::updateArg(tree_p arg, coord delta)
 // ----------------------------------------------------------------------------
 //   Update the given argument by the given offset
 // ----------------------------------------------------------------------------

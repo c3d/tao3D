@@ -26,11 +26,11 @@
 
 TAO_BEGIN
 
-PageLayout::PageLayout()
+PageLayout::PageLayout(Widget *widget)
 // ----------------------------------------------------------------------------
 //   Create a new layout
 // ----------------------------------------------------------------------------
-    : Layout(), space()
+    : Layout(widget), space()
 {
 }
 

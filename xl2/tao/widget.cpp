@@ -100,7 +100,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     makeCurrent();
 
     // Create the main page we draw on
-    space = new SpaceLayout;
+    space = new SpaceLayout(this);
 
     // Prepare the timers
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
@@ -908,22 +908,22 @@ GLuint Widget::shapeId()
 }
 
 
-bool Widget::selected()
+uint Widget::selected()
 // ----------------------------------------------------------------------------
 //   Test if the current shape is selected
 // ----------------------------------------------------------------------------
 {
-    return selection.count(id) > 0;
+    return selection.count(id) > 0 ? selection[id] : 0;
 }
 
 
-void Widget::select()
+void Widget::select(uint manipulator)
 // ----------------------------------------------------------------------------
 //    Select the current shape if we are in selectable state
 // ----------------------------------------------------------------------------
 {
     if (!selector)
-        selection.insert(id);
+        selection[id] = manipulator;
 }
 
 

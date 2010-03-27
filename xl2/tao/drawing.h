@@ -41,12 +41,15 @@ struct Drawing
 {
                         Drawing() {}
     virtual             ~Drawing() {}
+
     virtual void        Draw(Layout *)  {}
     virtual Box3        Bounds()        { return Box3(); }
     virtual Box3        Space()         { return Bounds(); }
+
     virtual bool        IsWordBreak()   { return false; }
     virtual bool        IsLineBreak()   { return false; }
     virtual bool        IsAttribute()   { return false; }
+
 };
 
 TAO_END

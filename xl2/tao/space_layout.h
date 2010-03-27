@@ -32,7 +32,7 @@ struct SpaceLayout : Layout
 //   Layout objects in 3D space
 // ----------------------------------------------------------------------------
 {
-                        SpaceLayout();
+                        SpaceLayout(Widget *widget);
                         ~SpaceLayout();
 
     virtual Box3        Space();

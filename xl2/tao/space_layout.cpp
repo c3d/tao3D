@@ -25,11 +25,11 @@
 
 TAO_BEGIN
 
-SpaceLayout::SpaceLayout()
+SpaceLayout::SpaceLayout(Widget *widget)
 // ----------------------------------------------------------------------------
 //   Constructor sets defaults
 // ----------------------------------------------------------------------------
-    : Layout()
+    : Layout(widget)
 {}
 
 

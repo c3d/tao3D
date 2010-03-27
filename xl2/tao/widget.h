@@ -104,8 +104,8 @@ public:
     // Selection
     GLuint      shapeId();
     GLuint      selectionCapacity()     { return capacity; }
-    bool        selected();
-    void        select();
+    uint        selected();
+    void        select(uint manipulator);
     void        requestFocus(QWidget *widget);
     void        recordProjection();
     Point3      unproject (coord x, coord y, coord z = 0.0);
@@ -246,6 +246,9 @@ private:
     friend class Selection;
     friend class ShapeName;
 
+    typedef XL::LocalSave<QEvent *> EventSave;
+    typedef std::map<GLuint, uint>  selection_map;
+
     // XL Runtime
     XL::SourceFile       *xlProgram;
 
@@ -257,7 +260,7 @@ private:
     // Selection
     Activity *            activities;
     GLuint                id, capacity, selector, activeSelector;
-    std::set<GLuint>      selection, savedSelection;
+    selection_map         selection, savedSelection;
     std::set<XL::Tree *>  selectionTrees;
     std::map<text, uint>  selectors;
     std::vector<text>     selectorNames;
@@ -282,7 +285,6 @@ private:
     ulonglong             nextSave, nextCommit, nextSync;
 
     static Widget    *current;
-    typedef XL::LocalSave<QEvent *> EventSave;
     static double       zNear, zFar;
 };
 

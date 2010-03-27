@@ -160,11 +160,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
         widget->selectionTrees.clear();
         widget->selection = widget->savedSelection;
         if (selected)
-        {
-            widget->selection.insert(selected);
-            if (!selector)
-                selector = 1;   // Move by default
-        }
+            selector = ++(widget->selection[selected]);
         widget->activeSelector = selector;
     }
 
@@ -230,7 +226,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
             uint size = ptr[0];
             selected = ptr[3];
             if (selected)
-                widget->selection.insert(selected);
+                widget->selection[selected] = 1;
             ptr += 3 + size;
         }
     }

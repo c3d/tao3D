@@ -31,12 +31,14 @@
 
 TAO_BEGIN
 
+struct Widget;
+
 struct Layout : Drawing
 // ----------------------------------------------------------------------------
 //   A layout is responsible for laying out Drawing objects in 2D or 3D space
 // ----------------------------------------------------------------------------
 {
-                        Layout();
+                        Layout(Widget *display);
                         Layout(const Layout &o);
                         ~Layout();
 
@@ -50,6 +52,7 @@ struct Layout : Drawing
     virtual Vector3     Offset();
     virtual Layout *    NewChild()      { return new Layout(*this); }
     virtual void        Clear();
+    virtual Widget *    Display()        { return display; }
 
 public:
     // Attributes that get propagated to children
@@ -64,6 +67,7 @@ protected:
     // List of drawing elements
     typedef std::vector<Drawing *>      layout_items;
     layout_items        items;
+    Widget *            display;
 };
 
 TAO_END

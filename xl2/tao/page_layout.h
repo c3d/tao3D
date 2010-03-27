@@ -32,7 +32,7 @@ struct PageLayout : Layout
 //   A 2D layout specialized for placing text and 2D shapes on pages
 // ----------------------------------------------------------------------------
 {
-                        PageLayout();
+                        PageLayout(Widget *widget);
                         PageLayout(const PageLayout &o);
                         ~PageLayout();
 

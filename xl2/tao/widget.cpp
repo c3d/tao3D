@@ -286,7 +286,6 @@ void Widget::runProgram()
 // ----------------------------------------------------------------------------
 {
     // Reset the selection id for the various elements being drawn
-    id = 0;
     focusWidget = NULL;
 
     // Run the XL program associated with this widget
@@ -329,7 +328,9 @@ void Widget::runProgram()
     }
 
     // After we are done, draw the space with all the drawings in it
+    id = 0;
     space->Draw(NULL);
+    id = 0;
     space->DrawSelection(NULL);
 
     // Once we are done, do a garbage collection
@@ -348,6 +349,7 @@ void Widget::identifySelection()
 //   Draw the elements in global space for selection purpose
 // ----------------------------------------------------------------------------
 {
+    id = 0;
     space->Identify(NULL);
 }
 
@@ -899,7 +901,7 @@ uint Widget::selected()
 //   Test if the current shape is selected
 // ----------------------------------------------------------------------------
 {
-    return selection.count(id) > 0 ? selection[id] : 0;
+    return id && selection.count(id) > 0 ? selection[id] : 0;
 }
 
 

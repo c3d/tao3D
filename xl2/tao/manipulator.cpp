@@ -238,6 +238,8 @@ void DrawingManipulator::Draw(Layout *layout)
 //   Draw the child and then the manipulator
 // ----------------------------------------------------------------------------
 {
+    Widget *widget = layout->Display();
+    widget->newId();
     child->Draw(layout);
     Manipulator::Draw(layout);
 }
@@ -248,6 +250,8 @@ void DrawingManipulator::DrawSelection(Layout *layout)
 //   Draw the selection for the child, and then for this
 // ----------------------------------------------------------------------------
 {
+    Widget *widget = layout->Display();
+    widget->newId();
     child->DrawSelection(layout);
     Manipulator::DrawSelection(layout);
 }
@@ -258,7 +262,10 @@ void DrawingManipulator::Identify(Layout *layout)
 //   Identify the child
 // ----------------------------------------------------------------------------
 {
+    Widget *widget = layout->Display();
+    glLoadName(widget->newId());
     child->Identify(layout);
+    glLoadName(0);
     Manipulator::Identify(layout);
 }
 

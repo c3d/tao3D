@@ -36,6 +36,10 @@ typedef GraphicPath::Vertices           Vertices;
 typedef GraphicPath::DynamicVertices    DynamicVertices;
 scale GraphicPath::default_steps = 3;
 
+#ifndef CALLBACK // Needed for Windows
+#define CALLBACK
+#endif
+
 
 GraphicPath::PolygonData::~PolygonData()
 // ----------------------------------------------------------------------------

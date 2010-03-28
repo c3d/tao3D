@@ -87,8 +87,6 @@ PREFIX(EnableDepthTest, boolean, "enable_depth_test",,
 PREFIX(DisableDepthTest, boolean, "disable_depth_test",,
        RTAO(depthTest(self, false)))
 PREFIX(Refresh, tree, "refresh", PARM(delay, real), RTAO(refresh(self, delay)))
-PREFIX(Selector, tree, "selector", PARM(n, text),
-       RTAO(selectorName(self, n)))
 
 
 

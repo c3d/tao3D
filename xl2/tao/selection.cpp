@@ -120,7 +120,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
     glPushName(0);
 
     // Run the programs, which will give us the list of selectable things
-    widget->redraw();
+    widget->identifySelection();
 
     // Get number of hits and extract selection
     // Each record is as follows:
@@ -130,7 +130,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
     // [3..3+[0]-1]: List of names
     int hits = glRenderMode(GL_RENDER);
     GLuint selected = 0;
-    GLuint selector = 0;
+    GLuint manipulator = 0;
     if (hits > 0)
     {
         GLuint depth = ~0U;
@@ -141,7 +141,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
             if (ptr[3] && ptr[1] < depth)
                 selected = ptr[3];
             if (size > 1)
-                selector = ptr[4];
+                manipulator = ptr[4];
             ptr += 3 + size;
         }
         if (selected)
@@ -160,8 +160,8 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
         widget->selectionTrees.clear();
         widget->selection = widget->savedSelection;
         if (selected)
-            selector = ++(widget->selection[selected]);
-        widget->activeSelector = selector;
+            widget->selection[selected]++;
+        widget->manipulator = manipulator;
     }
 
     // In all cases, we want a screen refresh
@@ -207,7 +207,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     glPushName(0);
 
     // Run the programs, which detects selected items
-    widget->redraw();
+    widget->identifySelection();
 
     // Get number of hits and extract selection
     // Each record is as follows:

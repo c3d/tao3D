@@ -424,6 +424,28 @@ inline Box3 operator+ (const Box3 &b, const Vector3 &v)
 }
 
 
+inline Box3 operator* (const Box3 &b, scale s)
+// ----------------------------------------------------------------------------
+//   Translate the box by a given vector
+// ----------------------------------------------------------------------------
+{
+    Box3 result(b);
+    result *= s;
+    return result;
+}
+
+
+inline Box3 operator* (scale s, const Box3 &b)
+// ----------------------------------------------------------------------------
+//   Translate the box by a given vector
+// ----------------------------------------------------------------------------
+{
+    Box3 result(b);
+    result *= s;
+    return result;
+}
+
+
 inline Point3 operator/ (const Point3 &p, const Box3 &b)
 // ----------------------------------------------------------------------------
 //   Return the point as scaled within the bounding box

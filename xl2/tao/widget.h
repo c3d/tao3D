@@ -63,7 +63,6 @@ public slots:
     // Slots
     void        dawdle();
     void        draw();
-    void        redraw();
     void        runProgram();
     void        appFocusChanged(QWidget *prev, QWidget *next);
     void        userMenu(QAction *action);
@@ -75,6 +74,7 @@ public:
     void        paintGL();
     void        setup(double w, double h, Box *picking = NULL);
     void        setupGL();
+    void        identifySelection();
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -102,19 +102,16 @@ public:
     bool        timerIsActive()         { return timer.isActive(); }
 
     // Selection
-    GLuint      shapeId();
+    GLuint      newId()                 { return ++id; }
+    GLuint      currentId()             { return id; }
     GLuint      selectionCapacity()     { return capacity; }
     uint        selected();
-    void        select(uint manipulator);
+    void        select(uint count);
     void        requestFocus(QWidget *widget);
     void        recordProjection();
     Point3      unproject (coord x, coord y, coord z = 0.0);
     Vector3     dragDelta();
-    text        dragSelector();
     void        drawSelection(const Box3 &bounds, text selector);
-    void        loadName(bool load);
-    Box3        bbox(coord x, coord y, coord w, coord h);
-    Box3        bbox(coord x, coord y, coord z, coord w, coord h, coord d);
 
 public:
     typedef XL::Tree      Tree;
@@ -259,11 +256,9 @@ private:
 
     // Selection
     Activity *            activities;
-    GLuint                id, capacity, selector, activeSelector;
+    GLuint                id, capacity, manipulator;
     selection_map         selection, savedSelection;
     std::set<XL::Tree *>  selectionTrees;
-    std::map<text, uint>  selectors;
-    std::vector<text>     selectorNames;
     QEvent *              event;
     QWidget *             focusWidget;
     GLdouble              focusProjection[16], focusModel[16];

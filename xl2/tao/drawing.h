@@ -39,17 +39,18 @@ struct Drawing
 //   Space() returns the untransformed space desired around object
 //   For instance, for text, Space() considers font line height, not Bounds()
 {
-                        Drawing() {}
-    virtual             ~Drawing() {}
+                        Drawing()               {}
+    virtual             ~Drawing()              {}
 
-    virtual void        Draw(Layout *)  {}
-    virtual Box3        Bounds()        { return Box3(); }
-    virtual Box3        Space()         { return Bounds(); }
+    virtual void        Draw(Layout *);
+    virtual void        DrawSelection(Layout *);
+    virtual void        Identify(Layout *l);
+    virtual Box3        Bounds();
+    virtual Box3        Space();
 
-    virtual bool        IsWordBreak()   { return false; }
-    virtual bool        IsLineBreak()   { return false; }
-    virtual bool        IsAttribute()   { return false; }
-
+    virtual bool        IsWordBreak();
+    virtual bool        IsLineBreak();
+    virtual bool        IsAttribute();
 };
 
 TAO_END

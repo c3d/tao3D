@@ -84,7 +84,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       xlProgram(sf),
       space(NULL), layout(NULL), path(NULL),
       activities(NULL),
-      id(0), capacity(0), selector(0), activeSelector(0),
+      id(0), capacity(0), manipulator(0),
       event(NULL), focusWidget(NULL),
       currentMenu(NULL), currentMenuBar(NULL),
       whatsNew(""), reloadProgram(false),
@@ -116,10 +116,6 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     currentMenuBar = parent->menuBar();
     connect(parent->menuBar(),  SIGNAL(triggered(QAction*)),
             this,               SLOT(userMenu(QAction*)));
-
-    // Make sure we have at least a selector name for "move"
-    selectors["move"] = 1;
-    selectorNames.push_back("move");    // Index 1
 }
 
 
@@ -333,7 +329,8 @@ void Widget::runProgram()
     }
 
     // After we are done, draw the space with all the drawings in it
-    redraw();
+    space->Draw(NULL);
+    space->DrawSelection(NULL);
 
     // Once we are done, do a garbage collection
     XL::Context::context->CollectGarbage();
@@ -346,12 +343,12 @@ void Widget::runProgram()
 }
 
 
-void Widget::redraw()
+void Widget::identifySelection()
 // ----------------------------------------------------------------------------
-//   Draw the global space (and all its children as a result)
+//   Draw the elements in global space for selection purpose
 // ----------------------------------------------------------------------------
 {
-    space->Draw(NULL);
+    space->Identify(NULL);
 }
 
 
@@ -897,17 +894,6 @@ ulonglong Widget::elapsed(ulonglong since, bool stats, bool show)
 //
 // ============================================================================
 
-GLuint Widget::shapeId()
-// ----------------------------------------------------------------------------
-//   Return an identifier for the shape in selections
-// ----------------------------------------------------------------------------
-//   We assign an identifier only if we are selectable and if we are not
-//   rendering in an off-screen buffer of some sort
-{
-    return !selector ? ++id : 0;
-}
-
-
 uint Widget::selected()
 // ----------------------------------------------------------------------------
 //   Test if the current shape is selected
@@ -917,13 +903,12 @@ uint Widget::selected()
 }
 
 
-void Widget::select(uint manipulator)
+void Widget::select(uint count)
 // ----------------------------------------------------------------------------
 //    Select the current shape if we are in selectable state
 // ----------------------------------------------------------------------------
 {
-    if (!selector)
-        selection[id] = manipulator;
+    selection[id] = count;
 }
 
 
@@ -1014,20 +999,6 @@ Vector3 Widget::dragDelta()
 }
 
 
-text Widget::dragSelector()
-// ----------------------------------------------------------------------------
-//   Return the name of the drag selector if there's any, or "none" otherwise
-// ----------------------------------------------------------------------------
-{
-    if (activeSelector)
-    {
-        assert (activeSelector <= selectorNames.size());
-        return selectorNames[activeSelector - 1];
-    }
-    return "none";
-}
-
-
 void Widget::drawSelection(const Box3 &bnds, text selName)
 // ----------------------------------------------------------------------------
 //    Draw a 2D or 3D selection with the given coordinates
@@ -1046,7 +1017,6 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
     coord d = bounds.Depth();
     Point3 c  = bounds.Center();
 
-    glPushName(selector);
     try
     {
         GLAttribKeeper save;
@@ -1069,40 +1039,6 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
     catch(...)
     {
     }
-    glPopName();
-}
-
-
-void Widget::loadName(bool load)
-// ----------------------------------------------------------------------------
-//   Load a name on the GL stack
-// ----------------------------------------------------------------------------
-{
-    if (!selector)
-    {
-        if (load)
-            glLoadName(shapeId());
-        else
-            glLoadName(0);
-    }
-}
-
-
-Box3 Widget::bbox(coord x, coord y, coord w, coord h)
-// ----------------------------------------------------------------------------
-//   Return a selection bounding box for a flat shape
-// ----------------------------------------------------------------------------
-{
-    return Box3(x-w/2, y-h/2, 0, w, h, 0);
-}
-
-
-Box3 Widget::bbox(coord x, coord y, coord z, coord w, coord h, coord d)
-// ----------------------------------------------------------------------------
-//   Return a selection bounding box for a 3D shape
-// ----------------------------------------------------------------------------
-{
-    return Box3(x-w/2, y-h/2, z-d/2, w, h, d);
 }
 
 
@@ -1245,40 +1181,6 @@ Tree *Widget::refresh(Tree *self, double delay)
 {
     timer.setSingleShot(true);
     timer.start(1000 * delay);
-    return XL::xl_true;
-}
-
-
-XL::Name *Widget::selectorName(Tree *self, Text &name)
-// ----------------------------------------------------------------------------
-//   Assign the selector name
-// ----------------------------------------------------------------------------
-{
-    if (!selector)
-    {
-        if (Tree *o = Ooops("Selector '$1' used outside of selection", &name))
-            if (Name *n = o->AsName())
-                return n;
-        return XL::xl_false;
-    }
-
-    GLuint selectorId;
-    if (selectors.count(name.value) == 0)
-    {
-        // Already identified, return existing selector ID
-        selectorId = selectors[name.value];
-    }
-    else
-    {
-        // First time we see it, return a new selector ID
-        selectorId = selectors.size();
-        selectors[name.value] = selectorId;
-        selectorNames.push_back(name.value);
-    }
-
-    // Load selector name on the OpenGL selection stack
-    glLoadName(selectorId);
-
     return XL::xl_true;
 }
 
@@ -1513,14 +1415,11 @@ Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 //    Draw a rectangle using Cairo
 // ----------------------------------------------------------------------------
 {
-    Manipulator name(this, bbox(x,y,w,h));
-    name.x(x).y(y).w(w).h(h);
-
     Rectangle shape(Box(x-w/2, y-h/2, w, h));
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new Rectangle(shape));
+        layout->Add(new ControlRectangle(x, y, w, h, new Rectangle(shape)));
 
     return XL::xl_true;
 }
@@ -1531,14 +1430,11 @@ Tree *Widget::ellipse(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
 //   Cairo circle centered around (cx,cy), radius r
 // ----------------------------------------------------------------------------
 {
-    Manipulator name(this, bbox(cx, cy, w, h));
-    name.x(cx).y(cy).w(w).h(h);
-
     Ellipse shape(Box(cx-w/2, cy-h/2, w, h));
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new Ellipse(shape));
+        layout->Add(new ControlRectangle(cx, cy, w, h, new Ellipse(shape)));
 
     return XL::xl_true;
 }
@@ -1548,17 +1444,14 @@ Tree *Widget::ellipseArc(Tree *self,
                          real_r cx, real_r cy, real_r w, real_r h,
                          real_r start, real_r sweep)
 // ----------------------------------------------------------------------------
-//   Cairo circular sector centered around (cx,cy), radius r and two angles a, b
+//   Circular sector centered around (cx,cy)
 // ----------------------------------------------------------------------------
 {
-    Manipulator name(this, bbox(cx, cy, w, h));
-    name.x(cx).y(cy).w(w).h(h);
-
     EllipseArc shape(Box(cx-w/2, cy-h/2, w, h), start, sweep);
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new EllipseArc(shape));
+        layout->Add(new ControlRectangle(cx, cy, w, h, new EllipseArc(shape)));
 
     return XL::xl_true;
  }
@@ -1572,14 +1465,12 @@ Tree *Widget::roundedRectangle(Tree *self,
 //   Cairo rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
 {
-    Manipulator name(this, bbox(cx, cy, w, h));
-    name.x(cx).y(cy).w(w).h(h);
-
     RoundedRectangle shape(Box(cx-w/2, cy-h/2, w, h), rx, ry);
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new RoundedRectangle(shape));
+        layout->Add(new ControlRectangle(cx, cy, w, h,
+                                         new RoundedRectangle(shape)));
 
     return XL::xl_true;
 }
@@ -1596,14 +1487,12 @@ Tree *Widget::starPolygon(Tree *self,
     if (p < 2 || q == 0 || q > (p-1)/2 || q < -(p-1)/2)
         return ellipse(self, cx, cy, w, h); // Show something else in its place
 
-    Manipulator name(this, bbox(cx, cy, w, h));
-    name.x(cx).y(cy).w(w).h(h);
-
     StarPolygon shape(Box(cx-w/2, cy-h/2, w, h), p, q);
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new StarPolygon(shape));
+        layout->Add(new ControlRectangle(cx, cy, w, h,
+                                         new StarPolygon(shape)));
 
     return XL::xl_true;
 }
@@ -1624,8 +1513,6 @@ Tree *Widget::sphere(Tree *self,
 //     GL sphere
 // ----------------------------------------------------------------------------
 {
-    Manipulator name(this, bbox(x,y,z, w, h, d), "3D_selection");
-    name.x(x).y(y).w(w).h(h).y(z, "depth");
     layout->Add (new Sphere(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks));
     return XL::xl_true;
 }
@@ -1638,8 +1525,6 @@ Tree *Widget::cube(Tree *self,
 //    A simple cubic box
 // ----------------------------------------------------------------------------
 {
-    Manipulator name(this, bbox(x,y,z, w, h, d), "3D_selection");
-    name.x(x).y(y).w(w).h(h).y(z, "depth");
     layout->Add(new Cube(Box3(x-w/2, y-h/2, z-d/2, w,h,d)));
     return XL::xl_true;
 }
@@ -1807,10 +1692,8 @@ Tree *Widget::framePaint(Tree *self,
     Tree *result = frameTexture(self, w, h, prog);
 
     // Draw a rectangle with the resulting texture
-    Manipulator name(this, bbox(x, y, w, h));
-    name.x(x).y(y).w(w).h(h);
-
-    layout->Add(new Rectangle(Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ControlRectangle(x, y, w, h,
+                                     new Rectangle(Box(x-w/2, y-h/2, w, h))));
 
     return result;
 }
@@ -1873,11 +1756,9 @@ Tree *Widget::urlPaint(Tree *self,
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
-    Manipulator name(this, bbox(x, y, 0, w, h, 0), "widget_selection");
-    name.x(x).y(y).w(w).h(h);
     urlTexture(self, w, h, url, progress);
-
-    layout->Add(new Rectangle(Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ControlRectangle(x, y, w, h,
+                                     new Rectangle(Box(x-w/2, y-h/2, w, h))));
 
     return XL::xl_true;
 }
@@ -1918,11 +1799,9 @@ Tree *Widget::lineEdit(Tree *self,
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
 
-    Manipulator name(this, bbox(x,y,0,w,h,0), "widget_selection");
-    name.x(x).y(y).w(w).h(h);
-
     lineEditTexture(self, w, h, txt);
-    layout->Add(new Rectangle (Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ControlRectangle(x, y, w, h,
+                                     new Rectangle (Box(x-w/2, y-h/2, w, h))));
 
     return XL::xl_true;
 }

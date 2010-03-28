@@ -22,51 +22,83 @@
 
 #include "manipulator.h"
 #include "drag.h"
+#include "layout.h"
+#include "gl_keepers.h"
 #include "runtime.h"
 
 TAO_BEGIN
 
 // ============================================================================
 // 
-//    Shape name (providing an 
+//    Simple manipulator
 // 
 // ============================================================================
 
-Manipulator::Manipulator(Widget *w, Box3 box, text selector)
+Manipulator::Manipulator()
 // ----------------------------------------------------------------------------
 //   Record the GL name for a given tree
 // ----------------------------------------------------------------------------
-    : widget(w), box(box), selector(selector), xp(), yp()
 {
-    widget->loadName(true);
 }
 
 
-Manipulator::~Manipulator()
+void Manipulator::Draw(Layout *layout)
 // ----------------------------------------------------------------------------
-//    Maintain the selection for the given tree
+//   During drawing path, we don't draw nothing
 // ----------------------------------------------------------------------------
 {
-    widget->loadName(false);
+    (void) layout;
+}
+
+
+void Manipulator::DrawSelection(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the manipulator using simple GL points
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = layout->Display();
     if (widget->selected())
     {
-        Vector3 v = widget->dragDelta();
-        text selName = widget->dragSelector();
-        tree_p x = xp.count(selName) ? xp[selName] : NULL;
-        tree_p y = yp.count(selName) ? yp[selName] : NULL;
+        GLAttribKeeper save(GL_CURRENT_BIT | GL_POINT_BIT);
+        glPointSize(4);
+        glEnable(GL_POINT_SMOOTH);
+        glColor4f(1, 0, 0, 0.8);
 
-        v.z = 0;
-        if (x)  updateArg(x,  v.x);
-        if (y)  updateArg(y,  v.y);
-        if ((x || y) && (v.x != 0 || v.y != 0))
-            widget->markChanged("Shape " + selName);
-
-        widget->drawSelection(box, selector);
+        glPushName(0);
+        DrawHandles(layout);
+        glPopName();
     }
 }
 
 
-void Manipulator::updateArg(tree_p arg, coord delta)
+void Manipulator::Identify(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the manipulator selection handles
+// ----------------------------------------------------------------------------
+{
+    DrawSelection(layout);
+}
+
+
+bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id)
+// ----------------------------------------------------------------------------
+//   Draw one of the handles for the current manipulator
+// ----------------------------------------------------------------------------
+{
+    glLoadName(id);
+    glBegin(GL_POINTS);
+    {
+        glVertex3dv(&p.x);
+    }
+    glEnd();
+
+    Widget *widget   = layout->Display();
+    bool    selected = widget->manipulator == id;
+    return selected;
+}
+
+
+void Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
 // ----------------------------------------------------------------------------
 //   Update the given argument by the given offset
 // ----------------------------------------------------------------------------
@@ -75,12 +107,12 @@ void Manipulator::updateArg(tree_p arg, coord delta)
     if (!arg || delta == 0.0)
         return;
 
-    Tree *source = xl_source(arg);       // Find the source expression
-    tree_p    *ptr       = &source;
-    bool       more      = true;
-    bool       negative  = false;
-    tree_p    *pptr      = NULL;
-    tree_p    *ppptr     = NULL;
+    Tree   *source   = xl_source(arg); // Find the source expression
+    tree_p *ptr      = &source;
+    bool    more     = true;
+    bool    negative = false;
+    tree_p *pptr     = NULL;
+    tree_p *ppptr    = NULL;
 
     // Check if we have an Infix +, if so walk down the left side
     arg = source;
@@ -140,6 +172,224 @@ void Manipulator::updateArg(tree_p arg, coord delta)
             widget->reloadProgram = true;
         }
     }
+}
+
+
+
+// ============================================================================
+// 
+//    A control point updates specific coordinates
+// 
+// ============================================================================
+
+ControlPoint::ControlPoint(real_r x, real_r y, uint id)
+// ----------------------------------------------------------------------------
+//   Record where we want to draw
+// ----------------------------------------------------------------------------
+    : Manipulator(), x(x), y(y), id(id)
+{}
+
+
+void ControlPoint::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   For a control point, there is a single handle
+// ----------------------------------------------------------------------------
+{
+    if (DrawHandle(layout, Point3(x, y, 0), id))
+    {
+        Widget *widget = layout->Display();
+        Vector3 v = widget->dragDelta();
+        if (v.x != 0 || v.y != 0)
+        {
+            updateArg(widget, &x,  v.x);
+            updateArg(widget, &y,  v.y);
+            widget->markChanged("Control point moved");
+        }
+    }
+}
+
+
+
+// ============================================================================
+// 
+//   A DrawingManipulator represents an object
+// 
+// ============================================================================
+
+DrawingManipulator::DrawingManipulator(Drawing *child)
+// ----------------------------------------------------------------------------
+//   Record the child we own
+// ----------------------------------------------------------------------------
+    : child(child)
+{}
+
+
+DrawingManipulator::~DrawingManipulator()
+// ----------------------------------------------------------------------------
+//   Delete the child with the control rectangle
+// ----------------------------------------------------------------------------
+{
+    delete child;
+}
+
+
+void DrawingManipulator::Draw(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the child and then the manipulator
+// ----------------------------------------------------------------------------
+{
+    child->Draw(layout);
+    Manipulator::Draw(layout);
+}
+
+
+void DrawingManipulator::DrawSelection(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the selection for the child, and then for this
+// ----------------------------------------------------------------------------
+{
+    child->DrawSelection(layout);
+    Manipulator::DrawSelection(layout);
+}
+
+
+void DrawingManipulator::Identify(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Identify the child
+// ----------------------------------------------------------------------------
+{
+    child->Identify(layout);
+    Manipulator::Identify(layout);
+}
+
+
+Box3 DrawingManipulator::Bounds()
+// ----------------------------------------------------------------------------
+//   Return the bounds of the child
+// ----------------------------------------------------------------------------
+{
+    return child->Bounds();
+}
+
+
+Box3 DrawingManipulator::Space()
+// ----------------------------------------------------------------------------
+//   Return the space of the child
+// ----------------------------------------------------------------------------
+{
+    return child->Space();
+}
+
+
+bool DrawingManipulator::IsWordBreak()
+// ----------------------------------------------------------------------------
+//   Return the property of the child
+// ----------------------------------------------------------------------------
+{
+    return child->IsWordBreak();
+}
+
+
+bool DrawingManipulator::IsLineBreak()
+// ----------------------------------------------------------------------------
+//   Return the property of the child
+// ----------------------------------------------------------------------------
+{
+    return child->IsLineBreak();
+}
+
+
+bool DrawingManipulator::IsAttribute()
+// ----------------------------------------------------------------------------
+//   Return the property of the child
+// ----------------------------------------------------------------------------
+{
+    return child->IsAttribute();
+}
+
+
+
+// ============================================================================
+//
+//   A rectangle manipulator udpates x, y, w and h
+//
+// ============================================================================
+
+ControlRectangle::ControlRectangle(real_r x, real_r y, real_r w, real_r h,
+                                   Drawing *child)
+// ----------------------------------------------------------------------------
+//   A control rectangle owns a given child and manipulates it
+// ----------------------------------------------------------------------------
+    : DrawingManipulator(child), x(x), y(y), w(w), h(h)
+{}
+
+
+void ControlRectangle::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the handles for a rectangular object
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = layout->Display();
+    coord   xx = x, yy = y, ww = w, hh = h;
+    Vector3 v = widget->dragDelta();
+    bool    changed = v.x != 0 || v.y != 0;
+
+    // Lower-left corner
+    if (DrawHandle(layout, Point3(xx - ww/2, yy - hh/2, 0), 1))
+    {
+        if (changed)
+        {
+            updateArg(widget, &x,  v.x/2);
+            updateArg(widget, &y,  v.y/2);
+            updateArg(widget, &w, -v.x/2);
+            updateArg(widget, &h, -v.y/2);
+            widget->markChanged("Lower left corner moved");
+            changed = false;
+        }
+    }
+
+    // Lower-right corner
+    if (DrawHandle(layout, Point3(xx + ww/2, yy - hh/2, 0), 2))
+    {
+        if (changed)
+        {
+            updateArg(widget, &x,  v.x/2);
+            updateArg(widget, &y,  v.y/2);
+            updateArg(widget, &w,  v.x/2);
+            updateArg(widget, &h, -v.y/2);
+            widget->markChanged("Lower right corner moved");
+            changed = false;
+        }
+    }
+
+    // Upper-left corner
+    if (DrawHandle(layout, Point3(xx - ww/2, yy + hh/2, 0), 3))
+    {
+        if (changed)
+        {
+            updateArg(widget, &x,  v.x/2);
+            updateArg(widget, &y,  v.y/2);
+            updateArg(widget, &w, -v.x/2);
+            updateArg(widget, &h,  v.y/2);
+            widget->markChanged("Uppper left corner moved");
+            changed = false;
+        }
+    }
+
+    // Upper-right corner
+    if (DrawHandle(layout, Point3(xx + ww/2, yy + hh/2, 0), 4))
+    {
+        if (changed)
+        {
+            updateArg(widget, &x,  v.x/2);
+            updateArg(widget, &y,  v.y/2);
+            updateArg(widget, &w,  v.x/2);
+            updateArg(widget, &h,  v.y/2);
+            widget->markChanged("Upper right corner moved");
+            changed = false;
+        }
+    }
+
 }
 
 TAO_END

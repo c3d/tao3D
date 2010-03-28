@@ -33,32 +33,76 @@
 
 TAO_BEGIN
 
-struct Manipulator
+struct Manipulator : Drawing
 // ----------------------------------------------------------------------------
-//   Structure used simply to assign shape IDs during selection
+//   Structure used to manipulate XL coordinates using the mouse
 // ----------------------------------------------------------------------------
 {
-    Manipulator(Widget *w, Box3 box = Box3(), text selector = "selection");
-    ~Manipulator();
+    typedef XL::Tree     Tree, *tree_p;
+    typedef XL::Real&    real_r;
+    typedef XL::Integer& integer_r;
 
-    typedef XL::Tree                    Tree, *tree_p;
-    typedef std::map<text, tree_p>      tree_map;
+    Manipulator();
 
-    // Specifying where arguments are
-    Manipulator&  x(Tree &xr, text s = "move")    { xp[s] = &xr; return *this; }
-    Manipulator&  y(Tree &yr, text s = "move")    { yp[s] = &yr; return *this; }
-    Manipulator&  w(Tree &xr)                     { return x(xr, "size"); }
-    Manipulator&  h(Tree &yr)                     { return y(yr, "size"); }
-
-protected:
-    void        updateArg(tree_p param, coord delta);
-    Vector3     dragDelta();
+    virtual void        Draw(Layout *layout);
+    virtual void        DrawSelection(Layout *layout);
+    virtual void        Identify(Layout *layout);
+    virtual bool        DrawHandle(Layout *layout, Point3 p, uint id);
+    virtual void        DrawHandles(Layout *layout) = 0;
 
 protected:
-    Widget      *widget;
-    Box3        box;
-    text        selector;
-    tree_map    xp, yp;
+    void                updateArg(Widget *widget, tree_p param, coord delta);
+};
+
+
+struct ControlPoint : Manipulator
+// ----------------------------------------------------------------------------
+//    A control point in an object like a path
+// ----------------------------------------------------------------------------
+{
+    ControlPoint(real_r x, real_r y, uint id);
+    virtual void        DrawHandles(Layout *layout);
+
+protected:
+    real_r              x, y;
+    uint                id;
+};
+
+
+struct DrawingManipulator : Manipulator
+// ----------------------------------------------------------------------------
+//   Manipulators for objects that have a child
+// ----------------------------------------------------------------------------
+{
+    DrawingManipulator(Drawing *child);
+    ~DrawingManipulator();
+
+    virtual void        Draw(Layout *layout);
+    virtual void        DrawSelection(Layout *layout);
+    virtual void        Identify(Layout *layout);
+    virtual Box3        Bounds();
+    virtual Box3        Space();
+    virtual bool        IsWordBreak();
+    virtual bool        IsLineBreak();
+    virtual bool        IsAttribute();
+
+protected:
+    Drawing *           child;
+};
+
+
+struct ControlRectangle : DrawingManipulator
+// ----------------------------------------------------------------------------
+//   Manipulators for a rectangle-bounded object
+// ----------------------------------------------------------------------------
+{
+    ControlRectangle(real_r x, real_r y, real_r w, real_r h,
+                     Drawing *child);
+
+    virtual void        DrawHandles(Layout *layout);
+
+protected:
+    real_r              x, y, w, h;
 };
 
 TAO_END

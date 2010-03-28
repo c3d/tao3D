@@ -44,6 +44,8 @@ struct Layout : Drawing
 
     // Drawing interface
     virtual void        Draw(Layout *where);
+    virtual void        DrawSelection(Layout *);
+    virtual void        Identify(Layout *l);
     virtual Box3        Bounds();
     virtual Box3        Space();
 

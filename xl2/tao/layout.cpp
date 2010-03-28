@@ -119,6 +119,74 @@ void Layout::Draw(Layout *where)
 }
 
 
+void Layout::DrawSelection(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw the selection for the elements in the layout
+// ----------------------------------------------------------------------------
+{
+    // Inherit offset from our parent layout if there is one
+    XL::LocalSave<Point3> save(offset, offset);
+    GLStateKeeper glSave;
+    if (where)
+    {
+        // Add offset of parent to the one we have
+        offset += where->Offset();
+
+        // Inherit color and other parameters as initial values
+        // These parameters may impact the rendering of the selection,
+        // e.g. transparent colors may cause children not to be drawn
+        font        = where->font;
+        alongX      = where->alongX;
+        alongY      = where->alongY;
+        alongZ      = where->alongZ;
+        lineColor   = where->lineColor;
+        fillColor   = where->fillColor;
+        fillTexture = where->fillTexture;
+    }
+        
+    layout_items::iterator i;
+    for (i = items.begin(); i != items.end(); i++)
+    {
+        Drawing *child = *i;
+        child->DrawSelection(this);
+    }
+}
+
+
+void Layout::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   Identify the elements of the layout for OpenGL selection
+// ----------------------------------------------------------------------------
+{
+    // Inherit offset from our parent layout if there is one
+    XL::LocalSave<Point3> save(offset, offset);
+    GLStateKeeper glSave;
+    if (where)
+    {
+        // Add offset of parent to the one we have
+        offset += where->Offset();
+
+        // Inherit color and other parameters as initial values
+        // These parameters may impact the rendering of the selection,
+        // e.g. transparent colors may cause children not to be drawn
+        font        = where->font;
+        alongX      = where->alongX;
+        alongY      = where->alongY;
+        alongZ      = where->alongZ;
+        lineColor   = where->lineColor;
+        fillColor   = where->fillColor;
+        fillTexture = where->fillTexture;
+    }
+        
+    layout_items::iterator i;
+    for (i = items.begin(); i != items.end(); i++)
+    {
+        Drawing *child = *i;
+        child->Identify(this);
+    }
+}
+
+
 Vector3 Layout::Offset()
 // ----------------------------------------------------------------------------
 //   Return the offset at which the layout expects us to draw

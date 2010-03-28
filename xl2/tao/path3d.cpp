@@ -134,7 +134,7 @@ void GraphicPath::Draw(Layout *where, GLenum mode, GLenum tesselation)
         if (!tess)
         {
             tess = gluNewTess();
-            typedef GLvoid (*fn)();
+            typedef void CALLBACK (*fn)();
             gluTessCallback(tess, GLU_TESS_BEGIN_DATA,   fn(tessBegin));
             gluTessCallback(tess, GLU_TESS_END_DATA,     fn(tessEnd));
             gluTessCallback(tess, GLU_TESS_VERTEX_DATA,  fn(tessVertex));

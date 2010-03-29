@@ -104,6 +104,7 @@ double Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
     bool    negative = false;
     tree_p *pptr     = NULL;
     tree_p *ppptr    = NULL;
+    double  scale    = 1.0;
 
     // Check if we have an Infix +, if so walk down the left side
     arg = source;
@@ -124,6 +125,29 @@ double Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
                 ptr = &infix->left;
                 more = true;
             }
+            else if (infix->name == "*")
+            {
+                if (XL::Real *lr = infix->left->AsReal())
+                {
+                    scale *= lr->value;
+                    ptr = &infix->right;
+                }
+                else if (XL::Real *rr = infix->right->AsReal())
+                {
+                    scale *= rr->value;
+                    ptr = &infix->left;
+                }
+                else if (XL::Integer *li = infix->left->AsInteger())
+                {
+                    scale *= li->value;
+                    ptr = &infix->right;
+                }
+                else if (XL::Integer *ri = infix->right->AsInteger())
+                {
+                    scale *= ri->value;
+                    ptr = &infix->left;
+                }
+            }
         }
         if (XL::Prefix *prefix = (*ptr)->AsPrefix())
         {
@@ -140,6 +164,9 @@ double Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
             }
         }
     }
+    if (scale == 0.0)
+        scale = 1.0;
+    delta /= scale;
 
     // Test the simple cases where the argument is directly an Integer or Real
     if (XL::Integer *ival = (*ptr)->AsInteger())

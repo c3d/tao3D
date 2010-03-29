@@ -22,7 +22,7 @@
 // ****************************************************************************
 
 #include "drag.h"
-//#include "coords3d.h"
+#include "widget.h"
 #include <QtDebug>
 
 TAO_BEGIN
@@ -50,6 +50,7 @@ Activity *Drag::Click(uint button, bool down, int x, int y)
         else
         {
             Activity *next = this->next;
+            widget->manipulator = 0;
             delete this;
             return next;
         }

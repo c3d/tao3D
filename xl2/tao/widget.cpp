@@ -883,7 +883,7 @@ ulonglong Widget::elapsed(ulonglong since, bool stats, bool show)
 {
     ulonglong t = now() - since;
     if (t == 0)
-        t = 1; // Because windows lies
+        t = 1; // Because Windows lies
 
     if (stats)
     {
@@ -935,14 +935,16 @@ void Widget::select(uint count)
 }
 
 
-void Widget::requestFocus(QWidget *widget)
+void Widget::requestFocus(QWidget *widget, coord x, coord y)
 // ----------------------------------------------------------------------------
 //   Some other widget request the focus
 // ----------------------------------------------------------------------------
 {
     if (!focusWidget)
     {
+        GLMatrixKeeper saveGL;
         focusWidget = widget;
+        glTranslatef(x, y, 0);
         recordProjection();
         QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
         QObject *fin = focusWidget;
@@ -1741,9 +1743,9 @@ Tree *Widget::framePaint(Tree *self,
     Tree *result = frameTexture(self, w, h, prog);
 
     // Draw a rectangle with the resulting texture
-    layout->Add(new ControlRectangle(x, y, w, h,
+    layout->Add(new FrameManipulator(x, y, w, h,
                                      new Rectangle(Box(x-w/2, y-h/2, w, h))));
-
+    saveLayout.saved->Add(layout);
     return result;
 }
 
@@ -1806,9 +1808,9 @@ Tree *Widget::urlPaint(Tree *self,
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
     urlTexture(self, w, h, url, progress);
-    layout->Add(new ControlRectangle(x, y, w, h,
-                                     new Rectangle(Box(x-w/2, y-h/2, w, h))));
-
+    WidgetSurface *surface = url->GetInfo<WidgetSurface>();
+    layout->Add(new WidgetManipulator(x, y, w, h, surface));
+    saveLayout.saved->Add(layout);
     return XL::xl_true;
 }
 
@@ -1849,9 +1851,9 @@ Tree *Widget::lineEdit(Tree *self,
     XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
 
     lineEditTexture(self, w, h, txt);
-    layout->Add(new ControlRectangle(x, y, w, h,
-                                     new Rectangle (Box(x-w/2, y-h/2, w, h))));
-
+    WidgetSurface *surface = txt->GetInfo<WidgetSurface>();
+    layout->Add(new WidgetManipulator(x, y, w, h, surface));
+    saveLayout.saved->Add(layout);
     return XL::xl_true;
 }
 

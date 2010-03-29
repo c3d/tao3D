@@ -100,12 +100,19 @@ GLuint WidgetSurface::bind ()
     glEnable(GL_MULTISAMPLE);
 #endif
 
+    return textureId;
+}
+
+
+void WidgetSurface::requestFocus(coord x, coord y)
+// ----------------------------------------------------------------------------
+//    If the widget is selected, request focus
+// ----------------------------------------------------------------------------
+{
     // Request focus for this widget
     Widget *parent = (Widget *) widget->parent();
     if (parent->selected())
-        parent->requestFocus(widget);
-
-    return textureId;
+        parent->requestFocus(widget, x, y);
 }
 
 

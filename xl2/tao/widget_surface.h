@@ -24,6 +24,7 @@
 
 #include "tao.h"
 #include "tree.h"
+#include "coords.h"
 #include <GL/glew.h>
 #include <QtOpenGL>
 
@@ -45,16 +46,18 @@ public:
 
     WidgetSurface(QWidget *widget);
     ~WidgetSurface();
-    operator data_t() { return this; }
-    void resize(uint width, uint height);
-    virtual GLuint bind();
 
-    QWidget   * widget;
-    GLuint      textureId;
-    bool        dirty;
+    operator            data_t() { return this; }
+    void                resize(uint width, uint height);
+    virtual GLuint      bind();
+    virtual void        requestFocus(coord x, coord y);
+
+    QWidget *           widget;
+    GLuint              textureId;
+    bool                dirty;
 
 protected slots:
-    void        repaint();
+    void                repaint();
 };
 
 

@@ -107,7 +107,7 @@ public:
     GLuint      selectionCapacity()     { return capacity; }
     uint        selected();
     void        select(uint count);
-    void        requestFocus(QWidget *widget);
+    void        requestFocus(QWidget *widget, coord x, coord y);
     void        recordProjection();
     Point3      unproject (coord x, coord y, coord z = 0.0);
     Vector3     dragDelta();
@@ -253,6 +253,7 @@ private:
     friend class Window;
     friend class Activity;
     friend class Selection;
+    friend class Drag;
     friend class Manipulator;
 
     typedef XL::LocalSave<QEvent *> EventSave;
@@ -279,7 +280,6 @@ private:
     // Menus
     QMenu                *currentMenu;
     QMenuBar             *currentMenuBar;
-    QList<TreeHolder>     actions;
 
     // Program changes
     text                  whatsNew;

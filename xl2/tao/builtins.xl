@@ -2,11 +2,11 @@
 N! -> N * (N-1)!
 
 // If-then-else statement
-if true then TrueBody else FalseBody -> do TrueBody
-if false then TrueBody else FalseBody -> do FalseBody
+if true then TrueBody else FalseBody    -> do TrueBody
+if false then TrueBody else FalseBody   -> do FalseBody
 
-if true then TrueBody -> do TrueBody
-if false then TrueBody -> false
+if true then TrueBody                   -> do TrueBody
+if false then TrueBody                  -> false
 
 // Graphics stuff
 sphere x:real, y:real, z:real, r:real   -> sphere x,y,z,2*r,2*r,2*r,25,25
@@ -98,6 +98,6 @@ draw_selection_rectangle x, y, w, h ->
     draw_selection x,y,w,h
 
 draw_handle x, y ->
-    color 1,0,0,80%
+    color 0,0,0.1,80%
     line_color 0,0,0,0
     rectangle x, y, 8, 8

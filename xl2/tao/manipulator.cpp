@@ -23,6 +23,8 @@
 #include "manipulator.h"
 #include "drag.h"
 #include "layout.h"
+#include "shapes.h"
+#include "widget_surface.h"
 #include "gl_keepers.h"
 #include "runtime.h"
 
@@ -84,7 +86,7 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id)
     glLoadName(id);
     widget->drawHandle(p, "handle");
     glLoadName(0);
-    bool    selected = widget->manipulator == id;
+    bool selected = widget->manipulator == id;
     return selected;
 }
 
@@ -101,9 +103,9 @@ double Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
     Tree   *source   = xl_source(arg); // Find the source expression
     tree_p *ptr      = &source;
     bool    more     = true;
-    bool    negative = false;
     tree_p *pptr     = NULL;
     tree_p *ppptr    = NULL;
+    double  scale    = 1.0;
 
     // Check if we have an Infix +, if so walk down the left side
     arg = source;
@@ -124,6 +126,33 @@ double Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
                 ptr = &infix->left;
                 more = true;
             }
+            else if (infix->name == "*")
+            {
+                if (XL::Real *lr = infix->left->AsReal())
+                {
+                    scale *= lr->value;
+                    ptr = &infix->right;
+                    more = true;
+                }
+                else if (XL::Real *rr = infix->right->AsReal())
+                {
+                    scale *= rr->value;
+                    ptr = &infix->left;
+                    more = true;
+                }
+                else if (XL::Integer *li = infix->left->AsInteger())
+                {
+                    scale *= li->value;
+                    ptr = &infix->right;
+                    more = true;
+                }
+                else if (XL::Integer *ri = infix->right->AsInteger())
+                {
+                    scale *= ri->value;
+                    ptr = &infix->left;
+                    more = true;
+                }
+            }
         }
         if (XL::Prefix *prefix = (*ptr)->AsPrefix())
         {
@@ -134,12 +163,14 @@ double Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
                     pptr = ptr;
                     ptr = &prefix->right;
                     more = true;
-                    negative = !negative;
-                    delta = -delta;
+                    scale = -scale;
                 }
             }
         }
     }
+    if (scale == 0.0)
+        scale = 1.0;
+    delta /= scale;
 
     // Test the simple cases where the argument is directly an Integer or Real
     if (XL::Integer *ival = (*ptr)->AsInteger())
@@ -165,7 +196,7 @@ double Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
         }
     }
 
-    return delta;
+    return delta * scale;
 }
 
 
@@ -184,7 +215,7 @@ ControlPoint::ControlPoint(real_r x, real_r y, uint id)
 {}
 
 
-void ControlPoint::DrawHandles(Layout *layout)
+bool ControlPoint::DrawHandles(Layout *layout)
 // ----------------------------------------------------------------------------
 //   For a control point, there is a single handle
 // ----------------------------------------------------------------------------
@@ -198,8 +229,10 @@ void ControlPoint::DrawHandles(Layout *layout)
             updateArg(widget, &x,  v.x);
             updateArg(widget, &y,  v.y);
             widget->markChanged("Control point moved");
+            return true;
         }
     }
+    return false;
 }
 
 
@@ -323,12 +356,12 @@ bool DrawingManipulator::IsAttribute()
 
 // ============================================================================
 //
-//   A rectangle manipulator udpates x, y, w and h
+//   A widget manipulator doesn't take input in the middle of the surface
 //
 // ============================================================================
 
-ControlRectangle::ControlRectangle(real_r x, real_r y, real_r w, real_r h,
-                                   Drawing *child)
+FrameManipulator::FrameManipulator(real_r x, real_r y, real_r w, real_r h,
+                             Drawing *child)
 // ----------------------------------------------------------------------------
 //   A control rectangle owns a given child and manipulates it
 // ----------------------------------------------------------------------------
@@ -336,9 +369,24 @@ ControlRectangle::ControlRectangle(real_r x, real_r y, real_r w, real_r h,
 {}
 
 
-void ControlRectangle::DrawHandles(Layout *layout)
+void FrameManipulator::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
-//   Draw the handles for a rectangular object
+//   Avoid drawing the selection for the child
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = layout->Display();
+    bool loadId = widget->currentId() != ~0U;
+    if (loadId)
+        glLoadName(widget->newId());
+    Manipulator::DrawSelection(layout);
+    if (loadId)
+        glLoadName(0);
+}
+
+
+bool FrameManipulator::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the handles around a widget
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
@@ -394,13 +442,79 @@ void ControlRectangle::DrawHandles(Layout *layout)
         }
     }
 
-    // Anywhere else in the shape
+    return changed;
+}
+
+
+
+// ============================================================================
+//
+//   A rectangle manipulator udpates x, y, w and h
+//
+// ============================================================================
+
+ControlRectangle::ControlRectangle(real_r x, real_r y, real_r w, real_r h,
+                                   Drawing *child)
+// ----------------------------------------------------------------------------
+//   A control rectangle owns a given child and manipulates it
+// ----------------------------------------------------------------------------
+    : FrameManipulator(x, y, w, h, child)
+{}
+
+
+bool ControlRectangle::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the handles for a rectangular object
+// ----------------------------------------------------------------------------
+{
+    // Check if we clicked anywhere else in the shape
+    bool changed = FrameManipulator::DrawHandles(layout);
     if (changed)
     {
+        Widget *widget = layout->Display();
+        Vector3 v = widget->dragDelta();
         updateArg(widget, &x, v.x);
         updateArg(widget, &y, v.y);
         widget->markChanged("Shape moved");
+        changed = false;
     }
+    return changed;
+}
+
+
+
+// ============================================================================
+// 
+//   Manipulate a widget
+// 
+// ============================================================================
+
+WidgetManipulator::WidgetManipulator(real_r x, real_r y, real_r w, real_r h,
+                                     WidgetSurface *s)
+// ----------------------------------------------------------------------------
+//    Create a widget manipulator within the given rectangle
+// ----------------------------------------------------------------------------
+    : FrameManipulator(x, y, w, h, new Rectangle(Box(x-w/2, y-h/2, w, h))),
+      surface(s)
+{}
+
+
+void WidgetManipulator::DrawSelection(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the selection as usual, and if selected, request focus
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = layout->Display();
+    bool loadId = widget->currentId() != ~0U;
+    if (loadId)
+        glLoadName(widget->newId());
+    bool selected = widget->selected();
+    Manipulator::DrawSelection(layout);
+    if (selected)
+        surface->requestFocus(x, y);
+    // widget->drawSelection(Bounds(), "widget_selection");
+    if (loadId)
+        glLoadName(0);
 }
 
 TAO_END

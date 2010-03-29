@@ -103,6 +103,44 @@ public slots:
     void inputValidated();
 };
 
+struct PushButtonSurface : WidgetSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a QPushButton
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT;
+public:
+    typedef PushButtonSurface * data_t;
+    PushButtonSurface(Widget *parent, XL::Text* lbl, XL::Tree *act);
+    operator data_t() { return this; }
+    virtual void bind(XL::Text *lbl, XL::Tree *action);
+
+private:
+    XL::Text *label;
+    XL::Tree * action;
+
+public slots:
+    void clicked(bool checked);
+};
+
+struct ColorChooserSurface : WidgetSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a QPushButton
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT;
+public:
+    typedef ColorChooserSurface * data_t;
+    ColorChooserSurface(Widget *parent);
+    operator data_t() { return this; }
+//    virtual void bind();
+
+private:
+
+public slots:
+    void colorchosen(const QColor &color);
+};
+
 } // namespace Tao
 
 #endif // WIDGET_SURFACE_H

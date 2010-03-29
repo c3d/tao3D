@@ -173,6 +173,21 @@ PREFIX(LineEditTexture, tree, "line_edit_texture",
        PARM(w,real) PARM(h,real) PARM(u, text),
        RTAO(lineEditTexture(self, w, h, &u)))
 
+PREFIX(PushButton, tree, "pushbutton",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
+       PARM(u, text) PARM(a, tree),
+       RTAO(pushButton(self, x, y, w, h, &u, &a)))
+PREFIX(PushButtonTexture, tree, "pushbuttontexture",
+       PARM(w,real) PARM(h,real) PARM(u, text) PARM(a, tree),
+       RTAO(pushButtonTexture(self, w, h, &u, &a)))
+
+PREFIX(ColorChooser, tree, "colorchooser",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
+       RTAO(colorChooser(self, x, y, w, h)))
+PREFIX(ColorChooserTexture, tree, "colorchoosertexture",
+       PARM(w,real) PARM(h,real),
+       RTAO(colorChooserTexture(self, w, h)))
+
 PREFIX(TextFgColorRGBA, tree, "text_fg_color",
        PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
        RTAO(textColor(self, r,g,b, a, true)))

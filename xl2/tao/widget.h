@@ -203,6 +203,16 @@ public:
     Tree *lineEditTexture(Tree *self, double x, double y, Text *s);
     Tree *lineEdit(Tree *self, real_r x,real_r y, real_r w,real_r h, text_p s);
 
+    Tree *pushButtonTexture(Tree *self,
+                            double w, double h,
+                            Text *lbl, Tree *act);
+    Tree *pushButton(Tree *self,
+                     real_r x,real_r y, real_r w,real_r h,
+                     text_p lbl, Tree *act);
+
+    Tree *colorChooserTexture(Tree *self,double w, double h);
+    Tree *colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h);
+
     Tree *qtrectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *qttext(Tree *self, double x, double y, text s);
 

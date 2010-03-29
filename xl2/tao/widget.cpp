@@ -372,7 +372,7 @@ void Widget::setupGL()
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);
     glGetIntegerv(GL_DEPTH_BITS, &depthBits);
-    switch (depthBits) 
+    switch (depthBits)
     {
         case 32:
             depthBitsMax = UINT32_MAX;
@@ -385,13 +385,13 @@ void Widget::setupGL()
 
 coord Widget::zBuffer(coord z, int pos)
 // ----------------------------------------------------------------------------
-//   Calculate minimal z increment depending on the GL_DEPTH_BITS 
+//   Calculate minimal z increment depending on the GL_DEPTH_BITS
 // ----------------------------------------------------------------------------
 {
     long b = 2 * pos;
-    return b2z( z2b(z) + b );   
+    return b2z( z2b(z) + b );
 }
- 
+
 double Widget::z2b(coord z)
 {
     double n = Z_NEAR, f = Z_FAR;
@@ -1352,7 +1352,8 @@ Tree *Widget::color(Tree *self, double r, double g, double b, double a)
 // ----------------------------------------------------------------------------
 {
     glColor4f(r,g,b,a);
-    frame->Color(r,g,b,a);
+//    if (frame)
+//        frame->Color(r,g,b,a);
     return XL::xl_true;
 }
 
@@ -2237,6 +2238,105 @@ Tree *Widget::lineEdit(Tree *self,
     name.x(x).y(y).w(w).h(h);
 
     lineEditTexture(self, w, h, txt);
+
+    // Draw a rectangle with the resulting texture
+    glBegin(GL_QUADS);
+    {
+        widgetVertex(x-w/2, y-h/2, 0, 0);
+        widgetVertex(x+w/2, y-h/2, 1, 0);
+        widgetVertex(x+w/2, y+h/2, 1, 1);
+        widgetVertex(x-w/2, y+h/2, 0, 1);
+    }
+    glEnd();
+
+    return XL::xl_true;
+}
+
+Tree *Widget::pushButtonTexture(Tree *self,
+                                double w, double h,
+                                Text *lbl, Tree *act)
+// ----------------------------------------------------------------------------
+//   Make a texture out of a given push button
+// ----------------------------------------------------------------------------
+{
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
+    // Get or build the current frame if we don't have one
+    PushButtonSurface *surface = lbl->GetInfo<PushButtonSurface>();
+    if (!surface)
+    {
+        surface = new PushButtonSurface(this, lbl, act);
+        lbl->SetInfo<PushButtonSurface> (surface);
+    }
+
+    // Resize to requested size, and bind texture
+    surface->resize(w,h);
+    surface->bind(lbl, act);
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::pushButton(Tree *self,
+                         real_r x, real_r y, real_r w, real_r h,
+                         Text *lbl, Tree* act)
+// ----------------------------------------------------------------------------
+//   Draw a push button in the curent frame
+// ----------------------------------------------------------------------------
+{
+    GLAttribKeeper save(GL_TEXTURE_BIT);
+    ShapeName name(this, bbox(x,y,0,w,h,0), "widget_selection");
+    name.x(x).y(y).w(w).h(h);
+
+    pushButtonTexture(self, w, h, lbl, act);
+
+    // Draw a rectangle with the resulting texture
+    glBegin(GL_QUADS);
+    {
+        widgetVertex(x-w/2, y-h/2, 0, 0);
+        widgetVertex(x+w/2, y-h/2, 1, 0);
+        widgetVertex(x+w/2, y+h/2, 1, 1);
+        widgetVertex(x-w/2, y+h/2, 0, 1);
+    }
+    glEnd();
+
+    return XL::xl_true;
+}
+
+Tree *Widget::colorChooserTexture(Tree *self,double w, double h)
+// ----------------------------------------------------------------------------
+//   Make a texture out of a given push button
+ // ----------------------------------------------------------------------------
+{
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
+    // Get or build the current frame if we don't have one
+    ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
+    if (!surface)
+    {
+        surface = new ColorChooserSurface(this);
+        self->SetInfo<ColorChooserSurface> (surface);
+    }
+
+    // Resize to requested size, and bind texture
+    surface->resize(w,h);
+    surface->bind();
+
+    return XL::xl_true;
+}
+
+Tree *Widget::colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h)
+// ----------------------------------------------------------------------------
+//   Draw a push button in the curent frame
+// ----------------------------------------------------------------------------
+{
+    GLAttribKeeper save(GL_TEXTURE_BIT);
+    ShapeName name(this, bbox(x,y,0,w,h,0), "widget_selection");
+    name.x(x).y(y).w(w).h(h);
+
+    colorChooserTexture(self, w, h);
 
     // Draw a rectangle with the resulting texture
     glBegin(GL_QUADS);

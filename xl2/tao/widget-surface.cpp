@@ -22,6 +22,7 @@
 
 #include "widget-surface.h"
 #include "gl_keepers.h"
+#include "runtime.h"
 #include <QtWebKit>
 
 
@@ -279,6 +280,92 @@ void LineEditSurface::inputValidated()
         locallyModified = false;
     }
     repaint();
+}
+
+PushButtonSurface::PushButtonSurface(Widget *parent,
+                                     XL::Text* lbl, XL::Tree *act)
+// ----------------------------------------------------------------------------
+//    Create the Push Button surface
+// ----------------------------------------------------------------------------
+  : WidgetSurface(new QPushButton(parent)), label(lbl), action(act)
+{
+    QPushButton *button = (QPushButton *) widget;
+    if (lbl) button->setText(QString::fromStdString(lbl->value));
+    connect(button, SIGNAL(clicked(bool)),
+            this,     SLOT(clicked(bool)));
+}
+
+void PushButtonSurface::bind(XL::Text *lbl, XL::Tree *act)
+// ----------------------------------------------------------------------------
+//    If the label or associated action changes
+// ----------------------------------------------------------------------------
+{
+    QPushButton *button = (QPushButton *) widget;
+    button->setText(QString::fromStdString(lbl ?lbl->value : ""));
+    label = lbl;
+    action = act;
+
+    WidgetSurface::bind();
+
+}
+
+void PushButtonSurface::clicked(bool checked)
+// ----------------------------------------------------------------------------
+//    The button was clicked. Evaluate the action.
+// ----------------------------------------------------------------------------
+{
+    IFTRACE (widgets)
+    {
+        std::cerr << "button "<< label->value << " was cliked\n";
+    }
+
+    if (action)
+        xl_evaluate(action);
+}
+
+ColorChooserSurface::ColorChooserSurface(Widget *parent)
+// ----------------------------------------------------------------------------
+//    Create the Push Button surface
+// ----------------------------------------------------------------------------
+  : WidgetSurface(new QColorDialog(parent))
+{
+    QColorDialog *diag = (QColorDialog *) widget;
+    connect(diag, SIGNAL(colorSelected (const QColor&)),
+            this,   SLOT(colorchosen(const QColor &)));
+    diag->setModal(false);
+    diag->setOption(QColorDialog::ShowAlphaChannel, true);
+    diag->setVisible(true);
+}
+
+//void ColorChooserSurface::bind()
+//// ----------------------------------------------------------------------------
+////    If the label or associated action changes
+//// ----------------------------------------------------------------------------
+//{
+//    QPushButton *button = (QPushButton *) widget;
+//    button->setText(QString::fromStdString(lbl ?lbl->value : ""));
+//    label = lbl;
+//    action = act;
+//
+//    WidgetSurface::bind();
+//
+//}
+
+void ColorChooserSurface::colorchosen(const QColor &color)
+// ----------------------------------------------------------------------------
+//    The button was clicked. Evaluate the action.
+// ----------------------------------------------------------------------------
+{
+    IFTRACE (widgets)
+    {
+        std::cerr << "Color was chosen "<< color.name().toStdString() << "\n";
+    }
+    ((Widget *)parent())->color(NULL,
+                                color.redF(),
+                                color.greenF(),
+                                color.blueF(),
+                                color.alphaF());
+    widget->setVisible(false);
 }
 
 TAO_END

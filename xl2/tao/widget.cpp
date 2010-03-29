@@ -279,6 +279,7 @@ void Widget::draw()
         (XL::XLCall("draw_widget_selection"), x,x,x,x).build(s);
         (XL::XLCall("draw_widget_selection"), x,x,x,x,x,x).build(s);
         (XL::XLCall("draw_3D_selection"), x,x,x,x,x,x).build(s);
+        (XL::XLCall("draw_handle"), x, x).build(s);
         first = false;
     }
 
@@ -1040,19 +1041,42 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
     try
     {
         XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-        XL::LocalSave<GLuint>   saveId(id, 0);
+        XL::LocalSave<GLuint>   saveId(id, ~0);
         GLAttribKeeper          saveGL;
+        glDisable(GL_DEPTH_TEST);
         if (bounds.Depth() > 0)
-        {
-            setupGL();
-            glDisable(GL_DEPTH_TEST);
             (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
-        }
         else
-        {
-            glDisable(GL_DEPTH_TEST);
             (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (symbols);
-        }
+        selectionSpace.Draw(NULL);
+    }
+    catch(XL::Error &e)
+    {
+    }
+    catch(...)
+    {
+    }
+}
+
+
+void Widget::drawHandle(const Point3 &p, text handleName)
+// ----------------------------------------------------------------------------
+//    Draw the handle of a 2D or 3D selection
+// ----------------------------------------------------------------------------
+{
+    // Symbols where we will find the selection code
+    XL::Symbols *symbols = XL::Symbols::symbols;
+    if (xlProgram)
+        symbols = xlProgram->symbols;
+
+    SpaceLayout selectionSpace(this);
+    try
+    {
+        XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
+        XL::LocalSave<GLuint>   saveId(id, ~0U);
+        GLAttribKeeper          saveGL;
+        glDisable(GL_DEPTH_TEST);
+        (XL::XLCall("draw_" + handleName), p.x, p.y) (symbols);
         selectionSpace.Draw(NULL);
     }
     catch(XL::Error &e)

@@ -59,12 +59,6 @@ void Manipulator::DrawSelection(Layout *layout)
     Widget *widget = layout->Display();
     if (widget->selected())
     {
-        GLAttribKeeper save(GL_CURRENT_BIT | GL_POINT_BIT);
-        glPointSize(8);
-        glEnable(GL_POINT_SMOOTH);
-        glDisable(GL_DEPTH_TEST);
-        glColor4f(1, 0, 0, 0.8);
-
         glPushName(0);
         DrawHandles(layout);
         glPopName();
@@ -86,17 +80,10 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id)
 //   Draw one of the handles for the current manipulator
 // ----------------------------------------------------------------------------
 {
+    Widget *widget = layout->Display();
     glLoadName(id);
-    glBegin(GL_QUADS);
-    {
-        glVertex3d(p.x - 8, p.y - 8, 0);
-        glVertex3d(p.x + 8, p.y - 8, 0);
-        glVertex3d(p.x + 8, p.y + 8, 0);
-        glVertex3d(p.x - 8, p.y + 8, 0);
-    }
-    glEnd();
-
-    Widget *widget   = layout->Display();
+    widget->drawHandle(p, "handle");
+    glLoadName(0);
     bool    selected = widget->manipulator == id;
     return selected;
 }
@@ -243,10 +230,13 @@ void DrawingManipulator::Draw(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    glLoadName(widget->newId());
+    bool loadId = widget->currentId() != ~0U;
+    if (loadId)
+        glLoadName(widget->newId());
     child->Draw(layout);
     Manipulator::Draw(layout);
-    glLoadName(0);
+    if (loadId)
+        glLoadName(0);
 }
 
 
@@ -256,10 +246,13 @@ void DrawingManipulator::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    glLoadName(widget->newId());
+    bool loadId = widget->currentId() != ~0U;
+    if (loadId)
+        glLoadName(widget->newId());
     child->DrawSelection(layout);
     Manipulator::DrawSelection(layout);
-    glLoadName(0);
+    if (loadId)
+        glLoadName(0);
 }
 
 
@@ -269,10 +262,13 @@ void DrawingManipulator::Identify(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    glLoadName(widget->newId());
+    bool loadId = widget->currentId() != ~0U;
+    if (loadId)
+        glLoadName(widget->newId());
     child->Identify(layout);
     Manipulator::Identify(layout);
-    glLoadName(0);
+    if (loadId)
+        glLoadName(0);
 }
 
 

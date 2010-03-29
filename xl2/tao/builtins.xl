@@ -96,3 +96,8 @@ draw_selection x,y,w,h ->
 
 draw_selection_rectangle x, y, w, h ->
     draw_selection x,y,w,h
+
+draw_handle x, y ->
+    color 1,0,0,80%
+    line_color 0,0,0,0
+    rectangle x, y, 8, 8

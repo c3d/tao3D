@@ -60,8 +60,9 @@ void Manipulator::DrawSelection(Layout *layout)
     if (widget->selected())
     {
         GLAttribKeeper save(GL_CURRENT_BIT | GL_POINT_BIT);
-        glPointSize(4);
+        glPointSize(8);
         glEnable(GL_POINT_SMOOTH);
+        glDisable(GL_DEPTH_TEST);
         glColor4f(1, 0, 0, 0.8);
 
         glPushName(0);
@@ -397,6 +398,13 @@ void ControlRectangle::DrawHandles(Layout *layout)
         }
     }
 
+    // Anywhere else in the shape
+    if (changed)
+    {
+        updateArg(widget, &x, v.x);
+        updateArg(widget, &y, v.y);
+        widget->markChanged("Shape moved");
+    }
 }
 
 TAO_END

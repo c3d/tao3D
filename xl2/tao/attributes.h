@@ -33,7 +33,9 @@ struct Attribute : Drawing
 // ----------------------------------------------------------------------------
 {
     Attribute(): Drawing() {}
-    virtual bool IsAttribute()          { return true; }
+    virtual void        DrawSelection(Layout *l)        { Draw(l); }
+    virtual void        Identify(Layout *l)             { Draw(l); }
+    virtual bool        IsAttribute()                   { return true; }
 };
 
 

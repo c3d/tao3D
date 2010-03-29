@@ -1018,11 +1018,12 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
     coord h = bounds.Height();
     coord d = bounds.Depth();
     Point3 c  = bounds.Center();
+    SpaceLayout selectionSpace(this);
 
     try
     {
         GLAttribKeeper save;
-        XL::LocalSave<Layout *> saveLayout(layout, space);
+        XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
         if (bounds.Depth() > 0)
         {
             setupGL();
@@ -1041,6 +1042,8 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
     catch(...)
     {
     }
+
+    selectionSpace.Draw(NULL);
 }
 
 

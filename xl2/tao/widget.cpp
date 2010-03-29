@@ -883,7 +883,7 @@ ulonglong Widget::elapsed(ulonglong since, bool stats, bool show)
 {
     ulonglong t = now() - since;
     if (t == 0)
-        t = 1; // Because windows lies
+        t = 1; // Because Windows lies
 
     if (stats)
     {

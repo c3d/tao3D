@@ -354,8 +354,8 @@ void ControlRectangle::DrawHandles(Layout *layout)
         {
             updateArg(widget, &x,  v.x/2);
             updateArg(widget, &y,  v.y/2);
-            updateArg(widget, &w, -v.x/2);
-            updateArg(widget, &h, -v.y/2);
+            updateArg(widget, &w, -v.x);
+            updateArg(widget, &h, -v.y);
             widget->markChanged("Lower left corner moved");
             changed = false;
         }
@@ -368,8 +368,8 @@ void ControlRectangle::DrawHandles(Layout *layout)
         {
             updateArg(widget, &x,  v.x/2);
             updateArg(widget, &y,  v.y/2);
-            updateArg(widget, &w,  v.x/2);
-            updateArg(widget, &h, -v.y/2);
+            updateArg(widget, &w,  v.x);
+            updateArg(widget, &h, -v.y);
             widget->markChanged("Lower right corner moved");
             changed = false;
         }
@@ -382,8 +382,8 @@ void ControlRectangle::DrawHandles(Layout *layout)
         {
             updateArg(widget, &x,  v.x/2);
             updateArg(widget, &y,  v.y/2);
-            updateArg(widget, &w, -v.x/2);
-            updateArg(widget, &h,  v.y/2);
+            updateArg(widget, &w, -v.x);
+            updateArg(widget, &h,  v.y);
             widget->markChanged("Uppper left corner moved");
             changed = false;
         }
@@ -396,8 +396,8 @@ void ControlRectangle::DrawHandles(Layout *layout)
         {
             updateArg(widget, &x,  v.x/2);
             updateArg(widget, &y,  v.y/2);
-            updateArg(widget, &w,  v.x/2);
-            updateArg(widget, &h,  v.y/2);
+            updateArg(widget, &w,  v.x);
+            updateArg(widget, &h,  v.y);
             widget->markChanged("Upper right corner moved");
             changed = false;
         }

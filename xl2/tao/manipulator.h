@@ -51,7 +51,7 @@ struct Manipulator : Drawing
     virtual void        DrawHandles(Layout *layout) = 0;
 
 protected:
-    void                updateArg(Widget *widget, tree_p param, coord delta);
+    double              updateArg(Widget *widget, tree_p param, coord delta);
 };
 
 

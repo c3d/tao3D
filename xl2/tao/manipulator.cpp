@@ -89,14 +89,14 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id)
 }
 
 
-void Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
+double Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
 // ----------------------------------------------------------------------------
 //   Update the given argument by the given offset
 // ----------------------------------------------------------------------------
 {
     // Defensive coding against bad callers...
     if (!arg || delta == 0.0)
-        return;
+        return delta;
 
     Tree   *source   = xl_source(arg); // Find the source expression
     tree_p *ptr      = &source;
@@ -144,6 +144,7 @@ void Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
     // Test the simple cases where the argument is directly an Integer or Real
     if (XL::Integer *ival = (*ptr)->AsInteger())
     {
+        delta = longlong(delta);
         ival->value += delta;
         if (ppptr && ival->value < 0)
             widget->reloadProgram = true;
@@ -163,6 +164,8 @@ void Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
             widget->reloadProgram = true;
         }
     }
+
+    return delta;
 }
 
 
@@ -348,10 +351,8 @@ void ControlRectangle::DrawHandles(Layout *layout)
     {
         if (changed)
         {
-            updateArg(widget, &x,  v.x/2);
-            updateArg(widget, &y,  v.y/2);
-            updateArg(widget, &w, -v.x);
-            updateArg(widget, &h, -v.y);
+            updateArg(widget, &w, -2*updateArg(widget, &x,  v.x/2));
+            updateArg(widget, &h, -2*updateArg(widget, &y,  v.y/2));
             widget->markChanged("Lower left corner moved");
             changed = false;
         }
@@ -362,10 +363,8 @@ void ControlRectangle::DrawHandles(Layout *layout)
     {
         if (changed)
         {
-            updateArg(widget, &x,  v.x/2);
-            updateArg(widget, &y,  v.y/2);
-            updateArg(widget, &w,  v.x);
-            updateArg(widget, &h, -v.y);
+            updateArg(widget, &w,  2*updateArg(widget, &x,  v.x/2));
+            updateArg(widget, &h, -2*updateArg(widget, &y,  v.y/2));
             widget->markChanged("Lower right corner moved");
             changed = false;
         }
@@ -376,10 +375,8 @@ void ControlRectangle::DrawHandles(Layout *layout)
     {
         if (changed)
         {
-            updateArg(widget, &x,  v.x/2);
-            updateArg(widget, &y,  v.y/2);
-            updateArg(widget, &w, -v.x);
-            updateArg(widget, &h,  v.y);
+            updateArg(widget, &w, -2*updateArg(widget, &x,  v.x/2));
+            updateArg(widget, &h,  2*updateArg(widget, &y,  v.y/2));
             widget->markChanged("Uppper left corner moved");
             changed = false;
         }
@@ -390,10 +387,8 @@ void ControlRectangle::DrawHandles(Layout *layout)
     {
         if (changed)
         {
-            updateArg(widget, &x,  v.x/2);
-            updateArg(widget, &y,  v.y/2);
-            updateArg(widget, &w,  v.x);
-            updateArg(widget, &h,  v.y);
+            updateArg(widget, &w,  2*updateArg(widget, &x,  v.x/2));
+            updateArg(widget, &h,  2*updateArg(widget, &y,  v.y/2));
             widget->markChanged("Upper right corner moved");
             changed = false;
         }

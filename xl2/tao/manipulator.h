@@ -131,6 +131,31 @@ protected:
 };
 
 
+struct BoxManipulator : DrawingManipulator
+// ----------------------------------------------------------------------------
+//   Dispays 8 handles in the corner, but clicks in the volume pass through
+// ----------------------------------------------------------------------------
+{
+    BoxManipulator(real_r x, real_r y, real_r z, real_r w, real_r h, real_r d,
+                   Drawing *child);
+    virtual void        DrawSelection(Layout *layout);
+    virtual bool        DrawHandles(Layout *layout);
+
+protected:
+    real_r              x, y, z, w, h, d;
+};
+
+
+struct ControlBox : BoxManipulator
+// ----------------------------------------------------------------------------
+//   Manipulators for a box-bounded object
+// ----------------------------------------------------------------------------
+{
+    ControlBox(real_r x, real_r y, real_r z, real_r w, real_r h, real_r d,
+               Drawing *child);
+    virtual bool        DrawHandles(Layout *layout);
+};
+
 TAO_END
 
 XL_BEGIN

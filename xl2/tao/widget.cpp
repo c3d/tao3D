@@ -279,7 +279,7 @@ void Widget::draw()
         (XL::XLCall("draw_widget_selection"), x,x,x,x).build(s);
         (XL::XLCall("draw_widget_selection"), x,x,x,x,x,x).build(s);
         (XL::XLCall("draw_3D_selection"), x,x,x,x,x,x).build(s);
-        (XL::XLCall("draw_handle"), x, x).build(s);
+        (XL::XLCall("draw_handle"), x, x, x).build(s);
         first = false;
     }
 
@@ -1081,7 +1081,7 @@ void Widget::drawHandle(const Point3 &p, text handleName)
         XL::LocalSave<GLuint>   saveId(id, ~0U);
         GLAttribKeeper          saveGL;
         glDisable(GL_DEPTH_TEST);
-        (XL::XLCall("draw_" + handleName), p.x, p.y) (symbols);
+        (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
         selectionSpace.Draw(NULL);
     }
     catch(XL::Error &e)
@@ -1564,7 +1564,8 @@ Tree *Widget::sphere(Tree *self,
 //     GL sphere
 // ----------------------------------------------------------------------------
 {
-    layout->Add (new Sphere(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks));
+    Sphere *s = new Sphere(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks);
+    layout->Add (new ControlBox(x, y, z, w, h, d, s));
     return XL::xl_true;
 }
 
@@ -1576,7 +1577,8 @@ Tree *Widget::cube(Tree *self,
 //    A simple cubic box
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Cube(Box3(x-w/2, y-h/2, z-d/2, w,h,d)));
+    Cube *c = new Cube(Box3(x-w/2, y-h/2, z-d/2, w,h,d));
+    layout->Add(new ControlBox(x, y, z, w, h, d, c));
     return XL::xl_true;
 }
 

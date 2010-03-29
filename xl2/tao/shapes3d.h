@@ -1,12 +1,12 @@
-#ifndef SHAPES_DRAWING_H
-#define SHAPES_DRAWING_H
+#ifndef SHAPES3D_H
+#define SHAPES3D_H
 // ****************************************************************************
-//  shapes_drawing.h                                                Tao project
+//  shapes3d.h                                                      Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Drawing of elementary geometry shapes on a 2D layout
+//     Drawing of elementary 3D geometry shapes
 //
 //
 //
@@ -22,45 +22,43 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "drawing.h"
+#include "shapes.h"
 
 TAO_BEGIN
 
-struct Rectangle : Drawing
+struct Shape3 : Shape
 // ----------------------------------------------------------------------------
-//    A rectangle that can be placed in a layout
+//   Base class for all 3D shapes, just in case
 // ----------------------------------------------------------------------------
 {
-    Rectangle(const Box &b): Drawing(), bounds(b) {}
-    virtual void        Draw(const Point &where);
-    virtual Box         Bounds()        { return bounds; }
-    Box                 bounds;
+    Shape3(): Shape() {}
 };
 
 
-struct RoundedRectangle : Rectangle
+struct Cube : Shape3
 // ----------------------------------------------------------------------------
-//   A rectangle with rounded corners
-// ----------------------------------------------------------------------------
-{
-    RoundedRectangle(const Box &b, coord r): Rectangle(b), radius(r) {}
-    virtual void        Draw(const Point &where);
-    coord               radius;
-};    
-
-
-struct Circle : Drawing
-// ----------------------------------------------------------------------------
-//    A circle that can be placed in a layout
+//   Draw a cube (OK, not really a cube, but the name is short)
 // ----------------------------------------------------------------------------
 {
-    Circle(Point c, coord r): Drawing(), center(c), radius(r) {}
-    virtual void        Draw(const Point &where);
-    virtual Box         Bounds();
-    Point               center;
-    coord               radius;
+    Cube(const Box3 &bounds): Shape3(), bounds(bounds) {}
+    virtual void        Draw(Layout *where);
+    virtual Box3        Bounds();
+    Box3 bounds;
 };
+
+
+struct Sphere : Cube
+// ----------------------------------------------------------------------------
+//   Draw a sphere or ellipsoid
+// ----------------------------------------------------------------------------
+{
+    Sphere(Box3 bounds, uint sl, uint st)
+        : Cube(bounds), slices(sl), stacks(st) {}
+    virtual void        Draw(Layout *where);
+    uint    slices, stacks;
+};
+
 
 TAO_END
 
-#endif // SHAP
+#endif // SHAPES3D_H

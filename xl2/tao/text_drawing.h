@@ -1,20 +1,20 @@
-#ifndef SVG_H
-#define SVG_H
+#ifndef TEXT_DRAWING_H
+#define TEXT_DRAWING_H
 // ****************************************************************************
-//  svg.h                                                           Tao project
+//  text_drawing.h                                                  Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
-//     Rendering of an SVG file in an off-screen buffer
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//     Rendering of text
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -22,28 +22,28 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "frame.h"
+#include "attributes.h"
+#include "shapes.h"
+#include <QFont>
+
 
 TAO_BEGIN
 
-struct SvgRendererInfo : FrameInfo
+struct TextSpan : Shape
 // ----------------------------------------------------------------------------
-//    Hold information about the SVG renderer for a tree
+//    A contiguous run of glyphs
 // ----------------------------------------------------------------------------
 {
-    typedef SvgRendererInfo *                   data_t;
-    typedef std::map<text, QSvgRenderer *>      renderer_map;
-    enum { MAX_TEXTURES = 20 };
-
-    SvgRendererInfo(Widget *w, uint width=512, uint height=512);
-    ~SvgRendererInfo();
-    operator data_t() { return this; }
-    GLuint bind(text img);
-
-    Widget *            widget;
-    renderer_map        renderers;
+    TextSpan(const QString &value, const QFont &font)
+        : Shape(), value(value), font(font) {}
+    virtual void Draw(Layout *where);
+    virtual void Draw(GraphicPath &path);
+    virtual Box3 Bounds();
+    virtual Box3 Space();
+    QString value;
+    QFont   font;
 };
 
 TAO_END
 
-#endif // SVG_H
+#endif // TEXT_DRAWING_H

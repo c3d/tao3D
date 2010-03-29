@@ -180,14 +180,21 @@ inline Vector operator -(const Vector& l, const Vector &r)
     return result;
 }
 
-inline Vector operator *(const Vector& l, coord s)
+inline Vector operator *(const Vector& l, scale s)
 {
     Vector result(l);
     result *= s;
     return result;
 }
 
-inline Vector operator /(const Vector& l, coord s)
+inline Vector operator *(scale s, const Vector& l)
+{
+    Vector result(l);
+    result *= s;
+    return result;
+}
+
+inline Vector operator /(const Vector& l, scale s)
 {
     Vector result(l);
     result /= s;
@@ -377,6 +384,39 @@ inline Box operator+ (const Box &b, const Vector &v)
     return result;
 }
 
+
+inline Box operator* (const Box &b, scale s)
+// ----------------------------------------------------------------------------
+//   Translate the box by a given vector
+// ----------------------------------------------------------------------------
+{
+    Box result(b);
+    result *= s;
+    return result;
+}
+
+
+inline Box operator* (scale s, const Box &b)
+// ----------------------------------------------------------------------------
+//   Translate the box by a given vector
+// ----------------------------------------------------------------------------
+{
+    Box result(b);
+    result *= s;
+    return result;
+}
+
+
+inline Point operator/ (const Point &p, const Box &b)
+// ----------------------------------------------------------------------------
+//   Return the point as scaled within the bounding box
+// ----------------------------------------------------------------------------
+{
+    coord dx = b.upper.x - b.lower.x; dx += dx == 0.0;
+    coord dy = b.upper.y - b.lower.y; dy += dy == 0.0;
+    return Point((p.x - b.lower.x) / dx,
+                 (p.y - b.lower.y) / dy);
+}
 
 TAO_END
 

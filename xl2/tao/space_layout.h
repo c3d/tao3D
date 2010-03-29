@@ -1,20 +1,20 @@
-#ifndef SVG_H
-#define SVG_H
+#ifndef SPACE_LAYOUT_H
+#define SPACE_LAYOUT_H
 // ****************************************************************************
-//  svg.h                                                           Tao project
+//  space_layout.h                                                  Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
-//     Rendering of an SVG file in an off-screen buffer
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//     Layout objects in 3D space (z-ordering, ...)
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -22,28 +22,29 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "frame.h"
+#include "layout.h"
+#include "justification.h"
 
 TAO_BEGIN
 
-struct SvgRendererInfo : FrameInfo
+struct SpaceLayout : Layout
 // ----------------------------------------------------------------------------
-//    Hold information about the SVG renderer for a tree
+//   Layout objects in 3D space
 // ----------------------------------------------------------------------------
 {
-    typedef SvgRendererInfo *                   data_t;
-    typedef std::map<text, QSvgRenderer *>      renderer_map;
-    enum { MAX_TEXTURES = 20 };
+                        SpaceLayout(Widget *widget);
+                        ~SpaceLayout();
 
-    SvgRendererInfo(Widget *w, uint width=512, uint height=512);
-    ~SvgRendererInfo();
-    operator data_t() { return this; }
-    GLuint bind(text img);
+    virtual Box3        Space();
+    virtual Layout &    Add(Drawing *d);
+    virtual SpaceLayout*NewChild()      { return new SpaceLayout(*this); }
 
-    Widget *            widget;
-    renderer_map        renderers;
+public:
+    // Space requested for the layout
+    Box3                space;
+    Justification       alongX, alongY, alongZ;
 };
 
 TAO_END
 
-#endif // SVG_H
+#endif // SPACE_LAYOUT_H

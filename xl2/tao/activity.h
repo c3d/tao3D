@@ -1,7 +1,7 @@
 #ifndef ACTIVITY_H
 #define ACTIVITY_H
 // ****************************************************************************
-//  activity.h                                                      XLR project
+//  activity.h                                                      Tao project
 // ****************************************************************************
 //
 //   File Description:

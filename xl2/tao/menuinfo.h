@@ -1,7 +1,7 @@
 #ifndef MENUINFO_H
 #define MENUINFO_H
 // ****************************************************************************
-//  menuinfo.h                                                      XLR project
+//  menuinfo.h                                                      Tao project
 // ****************************************************************************
 //
 //   File Description:

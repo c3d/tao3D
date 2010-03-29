@@ -25,7 +25,6 @@
 
 #include "main.h"
 #include "tao.h"
-#include "text_flow.h"
 #include "treeholder.h"
 #include "coords3d.h"
 #include "opcodes.h"
@@ -43,9 +42,12 @@
 namespace Tao {
 
 struct Window;
-struct Frame;
 struct FrameInfo;
 struct Activity;
+struct Layout;
+struct SpaceLayout;
+struct GraphicPath;
+struct Repository;
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -57,6 +59,23 @@ public:
     Widget(Window *parent, XL::SourceFile *sf = NULL);
     ~Widget();
 
+public slots:
+    // Slots
+    void        dawdle();
+    void        draw();
+    void        runProgram();
+    void        appFocusChanged(QWidget *prev, QWidget *next);
+    void        userMenu(QAction *action);
+
+public:
+    // OpenGL
+    void        initializeGL();
+    void        resizeGL(int width, int height);
+    void        paintGL();
+    void        setup(double w, double h, Box *picking = NULL);
+    void        setupGL();
+    void        identifySelection();
+
     // Events
     bool        forwardEvent(QEvent *event);
     bool        forwardEvent(QMouseEvent *event);
@@ -64,48 +83,36 @@ public:
     void        keyReleaseEvent(QKeyEvent *event);
     void        mousePressEvent(QMouseEvent *);
     void        mouseReleaseEvent(QMouseEvent *);
-    void        mouseDoubleClickEvent(QMouseEvent *);
     void        mouseMoveEvent(QMouseEvent *);
-    void        timerEvent(QTimerEvent *);
+    void        mouseDoubleClickEvent(QMouseEvent *);
     void        wheelEvent(QWheelEvent *);
+    void        timerEvent(QTimerEvent *);
 
-public:
-    void        initializeGL();
-    void        resizeGL(int width, int height);
-    void        paintGL();
-    void        setup(double w, double h, Box *picking = NULL);
-    void        setupGL();
-    coord       zBuffer(coord z, int pos);
-    coord       bringForward(coord z) { return zBuffer(z,1); }
-    coord       sendBackward(coord z) { return zBuffer(z,-1); }
+    // XL program management
     void        updateProgram(XL::SourceFile *sf);
     void        refreshProgram();
     void        markChanged(text reason);
+    bool        writeIfChanged(XL::SourceFile &sf);
+    bool        doCommit();
+    Repository *repository();
+
+    // Timing
+    ulonglong   now();
+    ulonglong   elapsed(ulonglong since, bool stats = true, bool show=true);
+    bool        timerIsActive()         { return timer.isActive(); }
 
     // Selection
-    GLuint      shapeId();
-    bool        selected();
-    void        select();
+    GLuint      newId()                 { return ++id; }
+    GLuint      currentId()             { return id; }
+    GLuint      selectionCapacity()     { return capacity; }
+    uint        selected();
+    void        select(uint count);
     void        requestFocus(QWidget *widget);
     void        recordProjection();
     Point3      unproject (coord x, coord y, coord z = 0.0);
     Vector3     dragDelta();
-    text        dragSelector();
-    void        drawSelection(const Box3 &bounds, text selector);
-    void        loadName(bool load);
-    Box3        bbox(coord x, coord y, coord w, coord h);
-    Box3        bbox(coord x, coord y, coord z, coord w, coord h, coord d);
-
-private:
-    double      z2b(coord z);
-    double      b2z(ulong b);
-
-public slots:
-    void        dawdle();
-    void        draw();
-    void        runProgram();
-    void        appFocusChanged(QWidget *prev, QWidget *next);
-    void        userMenu(QAction *action);
+    void        drawSelection(const Box3 &bounds, text name);
+    void        drawHandle(const Point3 &point, text name);
 
 public:
     typedef XL::Tree      Tree;
@@ -122,190 +129,170 @@ public:
 
     // XLR entry points
     static Widget *Tao() { return current; }
-    Tree *status(Tree *self, text t);
 
-    Tree *rotate(Tree *self, double ra, double rx, double ry, double rz);
-    Tree *translate(Tree *self, double x, double y, double z);
-    Tree *scale(Tree *self, double x, double y, double z);
-    Tree *depthDelta(Tree *self, double x);
-    Name *depthTest(Tree *self, bool enable);
+    // Getting attributes
+    Integer *   pageWidth(Tree *self);
+    Integer *   pageHeight(Tree *self);
+    Real *      frameWidth(Tree *self);
+    Real *      frameHeight(Tree *self);
+    Real *      frameDepth(Tree *self);
+    Real *      time(Tree *self);
+    Real *      pageTime(Tree *self);
 
-    Tree *locally(Tree *self, Tree *t);
-    Tree *pagesize(Tree *self, uint w, uint h);
-    Tree *page(Tree *self, Tree *p);
-    Integer *page_width(Tree *self);
-    Integer *page_height(Tree *self);
+    // Preserving attributes
+    Tree *      locally(Tree *self, Tree *t);
 
-    Tree *refresh(Tree *self, double delay);
-    Tree *time(Tree *self);
-    Tree *page_time(Tree *self);
-    Name *selectable(Tree *self, bool selectable);
-    Name *selectorName(Tree *self, Text &name);
+    // Transforms
+    Tree *      rotate(Tree *self, double ra, double rx, double ry, double rz);
+    Tree *      translate(Tree *self, double x, double y, double z);
+    Tree *      rescale(Tree *self, double x, double y, double z);
 
-    Tree *color(Tree *self, double r, double g, double b, double a);
-    Tree *textColor(Tree *self, double r,double g,double b,double a, bool fg);
-    Tree *filled(Tree *self);
-    Tree *hollow(Tree *self);
-    Tree *linewidth(Tree *self, double lw);
+    // Setting attributes
+    Name *      depthTest(Tree *self, bool enable);
+    Tree *      refresh(Tree *self, double delay);
+    Name *      selectorName(Tree *self, Text &name);
 
-    Tree *polygon(Tree *self, Tree *t);
-    Tree *points(Tree *self, Tree *t);
-    Tree *lines(Tree *self, Tree *t);
-    Tree *line_strip(Tree *self, Tree *t);
-    Tree *line_loop(Tree *self, Tree *t);
-    Tree *triangles(Tree *self, Tree *t);
-    Tree *triangle_fan(Tree *self, Tree *t);
-    Tree *triangle_strip(Tree *self, Tree *t);
-    Tree *quads(Tree *self, Tree *t);
-    Tree *quad_strip(Tree *self, Tree *t);
-    Tree *vertex(Tree *self, double x, double y, double z);
-    Tree *sphere(Tree *self,
-                 real_r cx, real_r cy, real_r cz, real_r r,
-                 integer_r nslices, integer_r nstacks);
-    Tree *circle(Tree *self, real_r cx, real_r cy, real_r r);
-    Tree *circularSector(Tree *self, real_r cx, real_r cy, real_r r,
-                         real_r a, real_r b);
-    Tree *roundedRectangle(Tree *self,
-                           real_r cx, real_r cy, real_r w, real_r h, real_r r);
-    Tree *rectangle(Tree *self, real_r cx, real_r cy, real_r w, real_r h);
-    Tree *regularStarPolygon(Tree *self, real_r cx, real_r cy, real_r r,
-                integer_r p, integer_r q);
+    // Graphic attributes
+    Tree *      lineColor(Tree *self, double r, double g, double b, double a);
+    Tree *      lineWidth(Tree *self, double lw);
+    Tree *      lineStipple(Tree *self, uint16 pattern, uint16 scale);
+    Tree *      fillColor(Tree *self, double r, double g, double b, double a);
+    Tree *      fillTexture(Tree *self, text fileName);
+    Tree *      fillTextureFromSVG(Tree *self, text svg);
 
-    Tree *texture(Tree *self, text n);
-    Tree *svg(Tree *self, text t);
-    Tree *texCoord(Tree *self, double x, double y);
+    // Generating a path
+    Tree *      newPath(Tree *self, Tree *t);
+    Tree *      moveTo(Tree *self, real_r x, real_r y, real_r z);
+    Tree *      lineTo(Tree *self, real_r x, real_r y, real_r z);
+    Tree *      curveTo(Tree *self,
+                        real_r cx, real_r cy, real_r cz,
+                        real_r x, real_r y, real_r z);
+    Tree *      curveTo(Tree *self,
+                        real_r c1x, real_r c1y, real_r c1z,
+                        real_r c2x, real_r c2y, real_r c2z,
+                        real_r x, real_r y, real_r z);
+    Tree *      moveToRel(Tree *self, real_r x, real_r y, real_r z);
+    Tree *      lineToRel(Tree *self, real_r x, real_r y, real_r z);
+    Tree *      pathTextureCoord(Tree *self, real_r x, real_r y, real_r r);
+    Tree *      pathColor(Tree *self, real_r r, real_r g, real_r b, real_r a);
+    Tree *      closePath(Tree *self);
 
-    Real *fromCm(Tree *self, double cm);
-    Real *fromMm(Tree *self, double mm);
-    Real *fromIn(Tree *self, double in);
-    Real *fromPt(Tree *self, double pt);
-    Real *fromPx(Tree *self, double px);
+    // 2D primitive that can be in a path or standalone
+    Tree *      rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
+    Tree *      ellipse(Tree *self, real_r x, real_r y, real_r w, real_r h);
+    Tree *      ellipseArc(Tree *self, real_r x, real_r y, real_r w, real_r h,
+                           real_r start, real_r sweep);
+    Tree *      roundedRectangle(Tree *self,
+                                 real_r cx, real_r cy, real_r w, real_r h,
+                                 real_r rx, real_r ry);
+    Tree *      starPolygon(Tree *self,
+                            real_r cx, real_r cy, real_r w, real_r h,
+                            integer_r p, integer_r q);
 
-    Tree *font(Tree *self, text family);
-    Tree *fontSize(Tree *self, double size);
-    Tree *fontPlain(Tree *self);
-    Tree *fontItalic(Tree *self, bool=true);
-    Tree *fontBold(Tree *self, bool=true);
-    Tree *fontUnderline(Tree *self, bool=true);
-    Tree *fontOverline(Tree *self, bool=true);
-    Tree *fontStrikeout(Tree *self, bool=true);
-    Tree *fontStretch(Tree *self, int stretch);
+    // 3D primitives
+    Tree *      sphere(Tree *self,
+                       real_r cx, real_r cy, real_r cz,
+                       real_r w, real_r, real_r d,
+                       integer_r nslices, integer_r nstacks);
+    Tree *      cube(Tree *self, real_r cx, real_r cy, real_r cz,
+                     real_r w, real_r h, real_r d);
 
-    Tree *align(Tree *self, int align);
-    Tree *textSpan(Tree *self, text content);
+    // Text and font
+    Tree *      textSpan(Tree *self, text_r content);
+    Tree *      font(Tree *self, text family);
+    Tree *      fontSize(Tree *self, double size);
+    Tree *      fontPlain(Tree *self);
+    Tree *      fontItalic(Tree *self, scale amount = 1);
+    Tree *      fontBold(Tree *self, scale amount = 1);
+    Tree *      fontUnderline(Tree *self, scale amount = 1);
+    Tree *      fontOverline(Tree *self, scale amount = 1);
+    Tree *      fontStrikeout(Tree *self, scale amount = 1);
+    Tree *      fontStretch(Tree *self, scale amount = 1);
 
-    Tree *flow(Tree *self);
-    Tree *frameTexture(Tree *self, double w, double h);
-    Tree *framePaint(Tree *self, real_r x, real_r y, real_r w, real_r h);
-    Tree *urlTexture(Tree *self, double x, double y, Text *s, Integer *p);
-    Tree *urlPaint(Tree *self, real_r x, real_r y, real_r w, real_r h,
-                   text_p s, integer_p p);
-    Tree *lineEditTexture(Tree *self, double x, double y, Text *s);
-    Tree *lineEdit(Tree *self, real_r x,real_r y, real_r w,real_r h, text_p s);
+    // Frames and widgets
+    Tree *      status(Tree *self, text t);
+    Tree *      framePaint(Tree *self, real_r x, real_r y, real_r w, real_r h,
+                           Tree *prog);
+    Tree *      frameTexture(Tree *self, double w, double h, Tree *prog);
 
-    Tree *pushButtonTexture(Tree *self,
-                            double w, double h,
-                            Text *lbl, Tree *act);
-    Tree *pushButton(Tree *self,
-                     real_r x,real_r y, real_r w,real_r h,
-                     text_p lbl, Tree *act);
+    Tree *      urlPaint(Tree *self, real_r x, real_r y, real_r w, real_r h,
+                         text_p s, integer_p p);
+    Tree *      urlTexture(Tree *self, double x, double y, Text *s, Integer *p);
+    
+    Tree *      lineEdit(Tree *self, real_r x,real_r y,
+                         real_r w,real_r h, text_p s);
+    Tree *      lineEditTexture(Tree *self, double x, double y, Text *s);
 
-    Tree *colorChooserTexture(Tree *self,double w, double h);
-    Tree *colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h);
+    Tree *      pushButton(Tree *self,
+                           real_r x,real_r y, real_r w,real_r h,
+                           text_p lbl, Tree *act);
+    Tree *      pushButtonTexture(Tree *self,
+                                  double w, double h,
+                                  Text *lbl, Tree *act);
 
-    Tree *qtrectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
-    Tree *qttext(Tree *self, double x, double y, text s);
+    Tree *      colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h);
+    Tree *      colorChooserTexture(Tree *self,double w, double h);
 
-    Tree *moveTo(Tree *self, double x, double y, bool isRelative);
-    Tree *Ktext(Tree *self, text s);
-    Tree *Krectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
-    Tree *stroke(Tree *self);
-    Tree *clear(Tree *self);
-    Tree *KlayoutText(Tree *self, text s);
-    Tree *KlayoutMarkup(Tree *self, text s);
-    Tree *buildPath(Tree *self, Tree *path, int strokeOrFill);
-    Tree *arc(Tree *self,
-               double x,
-               double y,
-               double r,
-               double a1,
-               double a2,
-               bool isPositive);
-    Tree *curveTo(Tree *self,
-                 double x1,
-                 double y1,
-                 double x2,
-                 double y2,
-                 double x3,
-                 double y3,
-                 bool isRelative);
-    Tree *lineTo(Tree *self, double x, double y, bool isRelative);
-    Tree *closePath(Tree *self);
-    Tree *menuItem(Tree *self, text s, Tree *t);
-    Tree *menu(Tree *self, text s, bool=false);
 
-    Name *insert(Tree *self, Tree *toInsert);
-    Name *deleteSelection(Tree *self);
+    // Menus
+    Tree *      menuItem(Tree *self, text s, Tree *t);
+    Tree *      menu(Tree *self, text s, bool=false);
+
+    // Tree management
+    Name *      insert(Tree *self, Tree *toInsert);
+    Name *      deleteSelection(Tree *self);
+
+    // Unit conversions
+    Real *      fromCm(Tree *self, double cm);
+    Real *      fromMm(Tree *self, double mm);
+    Real *      fromIn(Tree *self, double in);
+    Real *      fromPt(Tree *self, double pt);
+    Real *      fromPx(Tree *self, double px);
 
 private:
-    void widgetVertex(double x, double y, double tx, double ty);
-    void circularVertex(double cx, double cy, double r,
-                double x, double y,
-                double tx0, double ty0, double tx1, double ty1);
-    void circularSectorN(double cx, double cy, double r,
-                double tx0, double ty0, double tx1, double ty1,
-                int sq, int nq);
-    Tree *evalInGlMode(GLenum mode, Tree *child);
+    friend class Window;
+    friend class Activity;
+    friend class Selection;
+    friend class Manipulator;
 
-public:
+    typedef XL::LocalSave<QEvent *> EventSave;
+    typedef std::map<GLuint, uint>  selection_map;
+
     // XL Runtime
     XL::SourceFile       *xlProgram;
-    QTimer                timer, idleTimer;
-    QMenu                *currentMenu;
-    QMenuBar             *currentMenuBar;
-    QList<TreeHolder>     actions;
-    Frame *               frame;
-    Frame *               mainFrame;
+
+    // Rendering
+    SpaceLayout *         space;
+    Layout *              layout;
+    GraphicPath *         path;
+
+    // Selection
     Activity *            activities;
-    double                page_start_time;
-    GLuint                id, capacity, selector, activeSelector;
-    std::set<GLuint>      selection, savedSelection;
+    GLuint                id, capacity, manipulator;
+    selection_map         selection, savedSelection;
     std::set<XL::Tree *>  selectionTrees;
-    std::map<text, uint>  selectors;
-    std::vector<text>     selectorNames;
     QEvent *              event;
-    GLdouble              depth;
-    GLint                 depthBits;
-    ulong                 depthBitsMax;
     QWidget *             focusWidget;
     GLdouble              focusProjection[16], focusModel[16];
     GLint                 focusViewport[4];
+
+    // Menus
+    QMenu                *currentMenu;
+    QMenuBar             *currentMenuBar;
+    QList<TreeHolder>     actions;
+
+    // Program changes
     text                  whatsNew;
     bool                  reloadProgram;
 
-    // Timing for drawing and saving
-    ulonglong         tmin, tmax, tsum, tcount;
-    ulonglong         nextSave, nextCommit, nextSync;
-    ulonglong         now();
-    ulonglong         elapsed(ulonglong since, bool stats=true, bool show=true);
-
-    struct State
-    // ------------------------------------------------------------------------
-    //    State that is preserved by 'locally'
-    // ------------------------------------------------------------------------
-    {
-        GLuint          polygonMode;
-        GLuint          frameWidth, frameHeight;
-        TextFlow *      flow;
-        QTextCharFormat charFormat;  // Font, color, ...
-        QPaintDevice *  paintDevice;
-        GLdouble        depthDelta;
-        bool            selectable;
-    } state;
+    // Timing
+    QTimer                timer, idleTimer;
+    double                pageStartTime;
+    ulonglong             tmin, tmax, tsum, tcount;
+    ulonglong             nextSave, nextCommit, nextSync;
 
     static Widget    *current;
-
-    typedef XL::LocalSave<QEvent *> EventSave;
+    static double       zNear, zFar;
 };
 
 
@@ -362,6 +349,5 @@ inline double CurrentTime()
 
 
 } // namespace Tao
-
 
 #endif // TAO_WIDGET_H

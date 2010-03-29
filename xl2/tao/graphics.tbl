@@ -21,7 +21,37 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-PREFIX(Caption, tree, "status", PARM(t, text), RTAO(status(self, t)))
+// ============================================================================
+//
+// Getting attributes
+//
+// ============================================================================
+
+PREFIX(PageWidth,   integer,  "page_width", ,   RTAO(pageWidth(self)))
+PREFIX(PageHeight,  integer,  "page_height", ,  RTAO(pageHeight(self)))
+PREFIX(FrameWidth,  real,     "frame_width", ,  RTAO(frameWidth(self)))
+PREFIX(FrameHeight, real,     "frame_height", , RTAO(frameHeight(self)))
+PREFIX(FrameDepth,  real,     "frame_depth", ,  RTAO(frameDepth(self)))
+PREFIX(DaySeconds,  real,     "time", ,         RTAO(time(self)))
+PREFIX(PageSeconds, real,     "page_time", ,    RTAO(pageTime(self)))
+
+
+
+// ============================================================================
+//
+// Preserving attributes
+//
+// ============================================================================
+
+PREFIX(Locally, tree, "locally", PARM(t, tree), RTAO(locally(self, &t)))
+
+
+
+// ============================================================================
+//
+//   Transforms
+//
+// ============================================================================
 
 PREFIX(RotateX, tree, "rotatex", PARM(rx, real), RTAO(rotate(self, rx,1,0,0)))
 PREFIX(RotateY, tree, "rotatey", PARM(ry, real), RTAO(rotate(self, ry,0,1,0)))
@@ -37,132 +67,181 @@ PREFIX(Translate, tree, "translate",
        PARM(x, real) PARM(y, real) PARM(z, real),
        RTAO(translate(self, x, y, z)))
 
-PREFIX(ScaleX, tree, "scalex", PARM(x, real), RTAO(scale(self, x,1,1)))
-PREFIX(ScaleY, tree, "scaley", PARM(y, real), RTAO(scale(self, 1,y,1)))
-PREFIX(ScaleZ, tree, "scalez", PARM(z, real), RTAO(scale(self, 1,1,z)))
+PREFIX(ScaleX, tree, "scalex", PARM(x, real), RTAO(rescale(self, x,1,1)))
+PREFIX(ScaleY, tree, "scaley", PARM(y, real), RTAO(rescale(self, 1,y,1)))
+PREFIX(ScaleZ, tree, "scalez", PARM(z, real), RTAO(rescale(self, 1,1,z)))
 PREFIX(Scale, tree, "scale",
        PARM(x, real) PARM(y, real) PARM(z, real),
-       RTAO(scale(self, x, y, z)))
+       RTAO(rescale(self, x, y, z)))
+
+
+
+// ============================================================================
+//
+//    Setting attributes
+//
+// ============================================================================
 
 PREFIX(EnableDepthTest, boolean, "enable_depth_test",,
        RTAO(depthTest(self, true)))
 PREFIX(DisableDepthTest, boolean, "disable_depth_test",,
        RTAO(depthTest(self, false)))
-PREFIX(Locally, tree, "locally", PARM(t, tree), RTAO(locally(self, &t)))
-PREFIX(PageSize, tree, "page_size", PARM(w, integer) PARM(h, integer),
-       RTAO(pagesize(self, w,h)))
-PREFIX(Page, tree, "page", PARM(p, tree),
-       RTAO(page(self, &p)))
-PREFIX(PageWidth, integer, "page_width", , RTAO(page_width(self)))
-PREFIX(PageHeight, integer, "page_height", , RTAO(page_height(self)))
-
-PREFIX(DepthDelta, tree, "depth_delta", PARM(x, real), RTAO(depthDelta(self,x)))
 PREFIX(Refresh, tree, "refresh", PARM(delay, real), RTAO(refresh(self, delay)))
 
-PREFIX(DaySeconds, tree, "time", , RTAO(time(self)))
-PREFIX(PageSeconds, tree, "page_time", , RTAO(page_time(self)))
-PREFIX(Selectable, boolean, "selectable",, RTAO(selectable(self, true)))
-PREFIX(NotSelectable, boolean, "not_selectable",, RTAO(selectable(self, false)))
-PREFIX(Selector, tree, "selector", PARM(n, text),
-       RTAO(selectorName(self, n)))
 
-PREFIX(ColorRGBA, tree, "color",
+
+// ============================================================================
+//
+//    Graphic attributes
+//
+// ============================================================================
+
+PREFIX(LineColorRGBA, tree, "line_color",
        PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
-       RTAO(color(self, r,g,b, a)))
-PREFIX(ColorRGB, tree, "color", PARM(r, real) PARM(g, real) PARM(b, real),
-        RTAO(color(self, r,g,b, 1.0)))
+       RTAO(lineColor(self, r,g,b, a)))
+PREFIX(LineWidth, tree, "line_width", PARM(lw, real), RTAO(lineWidth(self, lw)))
+PREFIX(LineStipple, tree, "line_stipple",
+       PARM(p, integer) PARM(s, integer),
+       RTAO(lineStipple(self, p, s)))
+PREFIX(FillColorRGBA, tree, "color",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(fillColor(self, r,g,b, a)))
+PREFIX(FillTexture, tree, "texture", PARM(n, text),
+       RTAO(fillTexture(self, n)))
+PREFIX(FillTextureSVG, tree,"svg", PARM(img, text),
+       RTAO(fillTextureFromSVG(self, img)))
 
-PREFIX(Filled, tree, "filled", , RTAO(filled(self)))
-PREFIX(Hollow, tree, "hollow", , RTAO(hollow(self)))
-PREFIX(LineWidth, tree, "line_width", PARM(lw, real), RTAO(linewidth(self, lw)))
 
-PREFIX(Polygon, tree, "polygon", PARM(t, tree), RTAO(polygon(self, &t)))
-PREFIX(Points, tree, "points", PARM(t, tree), RTAO(points(self, &t)))
-PREFIX(Lines, tree, "lines", PARM(t, tree), RTAO(lines(self, &t)))
-PREFIX(LineStrip, tree, "line_strip", PARM(t, tree), RTAO(line_strip(self, &t)))
-PREFIX(LineLoop, tree, "line_loop", PARM(t, tree), RTAO(line_loop(self, &t)))
-PREFIX(Triangles, tree, "triangles", PARM(t, tree), RTAO(line_loop(self, &t)))
-PREFIX(TriangleStrip, tree, "triangle_strip", PARM(t, tree), RTAO(triangle_strip(self, &t)))
-PREFIX(TriangleFan, tree, "triangle_fan", PARM(t, tree), RTAO(triangle_fan(self, &t)))
-PREFIX(Quads, tree, "quads", PARM(t, tree), RTAO(quads(self, &t)))
-PREFIX(QuadStrip, tree, "quad_strip", PARM(t, tree), RTAO(quad_strip(self, &t)))
 
-PREFIX(Vertex3, tree, "vertex",
-       PARM(x, real) PARM(y, real) PARM(z, real), RTAO(vertex(self, x, y, z)))
-PREFIX(Vertex2, tree, "vertex",
-       PARM(x, real) PARM(y, real), RTAO(vertex(self, x, y, 0.0)))
+// ============================================================================
+//
+//   Generating a path
+//
+// ============================================================================
+
+PREFIX(Path,   tree, "path", PARM(t, tree), RTAO(newPath(self, &t)))
+PREFIX(MoveTo, tree, "move_to", PARM(x, real) PARM(y, real) PARM(z, real),
+       RTAO(moveTo(self, x, y, z)))
+PREFIX(LineTo, tree, "line_to", PARM(x, real) PARM(y, real) PARM(z, real),
+       RTAO(lineTo(self, x, y, z)))
+PREFIX(CurveTo2, tree, "curve_to",
+       PARM(cx, real) PARM(cy, real) PARM(cz, real)
+       PARM(x, real) PARM(y, real) PARM(z, real),
+       RTAO(curveTo(self, cx, cy, cz, x, y, z)))
+PREFIX(CurveTo3, tree, "curve_to",
+       PARM(c1x, real) PARM(c1y, real) PARM(c1z, real)
+       PARM(c2x, real) PARM(c2y, real) PARM(c2z, real)
+       PARM(x, real) PARM(y, real) PARM(z, real),
+       RTAO(curveTo(self, c1x, c1y, c1z, c2x, c2y, c2z, x, y, z)))
+PREFIX(MoveRel, tree, "move_relative", PARM(x,real) PARM(y,real) PARM(z,real),
+       RTAO(moveToRel(self, x, y, z)))
+PREFIX(LineRel, tree, "line_relative", PARM(x,real) PARM(y,real) PARM(z,real),
+       RTAO(lineToRel(self, x, y, z)))
+PREFIX(PathTexCoord, tree, "path_texture", PARM(x,real)PARM(y,real)PARM(z,real),
+       RTAO(pathTextureCoord(self, x, y, z)))
+PREFIX(PathColor, tree, "path_color",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(pathColor(self, r,g,b, a)))
+PREFIX(ClosePath, tree, "close_path",, RTAO(closePath(self)))
+
+
+
+// ============================================================================
+//
+//   2D primitives (either standalone, or added to the current path)
+//
+// ============================================================================
+
+PREFIX(Rectangle, tree, "rectangle",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
+       RTAO(rectangle(self, x, y, w, h)))
+PREFIX(Ellipse, tree, "ellipse",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
+       RTAO(ellipse(self, x, y, w, h)))
+PREFIX(EllipseArc, tree, "ellipse_arc",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
+       PARM(start, real) PARM(sweep, real),
+       RTAO(ellipseArc(self, x, y, w, h, start, sweep)))
+PREFIX(RoundedRectangle, tree, "rounded_rectangle",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
+       PARM(rx, real) PARM(ry, real),
+       RTAO(roundedRectangle(self, x, y, w, h, rx, ry)))
+PREFIX(RegularStarPolygon, tree, "star_polygon",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
+       PARM(p, integer) PARM(q, integer),
+       RTAO(starPolygon(self, x, y, w, h, p, q)))
+
+
+
+// ============================================================================
+//
+//   3D primitives
+//
+// ============================================================================
 
 PREFIX(Sphere, tree, "sphere",
        PARM(x, real) PARM(y, real) PARM(z, real)
-       PARM(r, real) PARM(slices, integer) PARM(stacks, integer),
-       RTAO(sphere(self, x, y, z, r, slices, stacks)))
-PREFIX(Svg, tree,"svg", PARM(img, text), RTAO(svg(self, img)))
-PREFIX(Texture, tree, "texture", PARM(n, text), RTAO(texture(self, n)))
-PREFIX(TexCoord, tree, "texcoord", PARM(x, real) PARM(y, real),
-       RTAO(texCoord(self, x, y)))
-PREFIX(Circle, tree, "circle", PARM(x, real) PARM(y, real) PARM(r, real),
-       RTAO(circle(self, x, y, r)))
-PREFIX(CircularSector, tree, "circular_sector",
-       PARM(x, real) PARM(y, real) PARM(r, real) PARM(a, real) PARM(b, real),
-       RTAO(circularSector(self, x, y, r, a, b)))
-PREFIX(RoundedRectangle, tree, "rounded_rectangle",
-       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real) PARM(r, real),
-       RTAO(roundedRectangle(self, x, y, w, h, r)))
-PREFIX(Rectangle, tree, "rectangle",
-       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real),
-       RTAO(rectangle(self, x, y, w, h)))
-PREFIX(RegularStarPolygon, tree, "regular_star_polygon",
-       PARM(x, real) PARM(y, real) PARM(r, real)
-       PARM(p, integer) PARM(q, integer),
-       RTAO(regularStarPolygon(self, x, y, r, p, q)))
+       PARM(w, real) PARM(h, real) PARM(d, real)
+       PARM(slices, integer) PARM(stacks, integer),
+       RTAO(sphere(self, x, y, z, w, h, d, slices, stacks)))
+PREFIX(Cube, tree, "cube",
+       PARM(x, real) PARM(y, real) PARM(z, real)
+       PARM(w, real) PARM(h, real) PARM(d, real),
+       RTAO(cube(self, x, y, z, w, h, d)))
 
-POSTFIX(FromCm,   real, PARM(x, real), "cm", RTAO(fromCm(self, x)))
-POSTFIX(FromMm,   real, PARM(x, real), "mm", RTAO(fromMm(self, x)))
-POSTFIX(FromInch, real, PARM(x, real), "inch", RTAO(fromIn(self, x)))
-POSTFIX(FromPt,   real, PARM(x, real), "pt", RTAO(fromPt(self, x)))
-POSTFIX(FromPx,   real, PARM(x, real), "px", RTAO(fromPx(self, x)))
 
+
+// ============================================================================
+//
+//   Text and font
+//
+// ============================================================================
+
+PREFIX(TextSpan, tree,"text", PARM(t, text), RTAO(textSpan(self, t)))
 PREFIX(Font, tree, "font", PARM(f, text), RTAO(font(self, f)))
 PREFIX(FontSize, tree, "font_size", PARM(s, real), RTAO(fontSize(self, s)))
 PREFIX(FontPlain, tree, "plain",, RTAO(fontPlain(self)))
-PREFIX(FontItalic, tree, "italic",, RTAO(fontItalic(self)))
-PREFIX(FontNoItalic, tree, "no_italic",, RTAO(fontItalic(self, false)))
-PREFIX(FontBold, tree, "bold",, RTAO(fontBold(self)))
-PREFIX(FontNoBold, tree, "no_bold",, RTAO(fontBold(self, false)))
-PREFIX(FontUnderline, tree, "underline",, RTAO(fontUnderline(self)))
-PREFIX(FontNoUnderline, tree, "no_underline",, RTAO(fontUnderline(self, false)))
-PREFIX(FontOverline, tree, "overline",, RTAO(fontOverline(self)))
-PREFIX(FontNoOverline, tree, "no_overline",, RTAO(fontOverline(self, false)))
-PREFIX(FontStrikeout, tree, "strikeout",, RTAO(fontStrikeout(self)))
-PREFIX(FontNoStrikeout, tree, "no_strikeout",, RTAO(fontStrikeout(self, false)))
-PREFIX(FontStretch, tree, "stretch", PARM(s,integer),RTAO(fontStretch(self,s)))
+PREFIX(FontSlant, tree, "slant", PARM(a, real), RTAO(fontItalic(self, a/100)))
+PREFIX(FontRoman, tree, "roman",, RTAO(fontItalic(self, 0)))
+PREFIX(FontItalic, tree, "italic",, RTAO(fontItalic(self, 1)))
+PREFIX(FontOblique, tree, "oblique",, RTAO(fontItalic(self, 2)))
+PREFIX(FontWeight, tree, "weight", PARM(a, real), RTAO(fontBold(self, a)))
+PREFIX(FontRegular, tree, "regular",, RTAO(fontBold(self, 50)))
+PREFIX(FontLight, tree, "light",, RTAO(fontBold(self, 25)))
+PREFIX(FontBold, tree, "bold",, RTAO(fontBold(self, 75)))
+PREFIX(FontUnderline, tree, "underline", PARM(a, real),
+       RTAO(fontUnderline(self, a)))
+PREFIX(FontOverline, tree, "overline", PARM(a, real),
+       RTAO(fontOverline(self, a)))
+PREFIX(FontStrikeout, tree, "strikeout", PARM(a, real),
+       RTAO(fontStrikeout(self, a)))
+PREFIX(FontStretch, tree, "stretch", PARM(s,real),RTAO(fontStretch(self,s)))
 
-PREFIX(TextLeft, tree, "align_left",, RTAO(align(self,Qt::AlignLeft)))
-PREFIX(TextRight, tree, "align_right",, RTAO(align(self,Qt::AlignRight)))
-PREFIX(TextCenter, tree, "align_center",, RTAO(align(self,Qt::AlignHCenter)))
-PREFIX(TextJustify, tree, "align_justify",, RTAO(align(self,Qt::AlignJustify)))
-PREFIX(TextTop, tree, "align_top",, RTAO(align(self,Qt::AlignTop)))
-PREFIX(TextBottom, tree, "align_bottom",, RTAO(align(self,Qt::AlignBottom)))
-PREFIX(TextMiddle, tree, "align_middle",, RTAO(align(self,Qt::AlignVCenter)))
 
-PREFIX(TextSpan, tree,"text", PARM(t, text), RTAO(textSpan(self, t)))
 
-PREFIX(Flow, tree, "flow", , RTAO(flow(self)))
+// ============================================================================
+//
+//   Frames and widgets
+//
+// ============================================================================
+
+PREFIX(Caption, tree, "status", PARM(t, text), RTAO(status(self, t)))
 PREFIX(Frame, tree, "frame",
-       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
-       RTAO(framePaint(self, x, y, w, h)))
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(p, tree),
+       RTAO(framePaint(self, x, y, w, h, &p)))
 PREFIX(FrameTexture, tree, "frame_texture",
-       PARM(w,real) PARM(h,real), RTAO(frameTexture(self, w, h)))
+       PARM(w,real) PARM(h,real) PARM(p, tree),
+       RTAO(frameTexture(self, w, h, &p)))
 PREFIX(Url, tree, "url",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(u, text),
        RTAO(urlPaint(self, x, y, w, h, &u, NULL)))
-PREFIX(UrlTexture, tree, "url_texture",
-       PARM(w,real) PARM(h,real) PARM(u, text),
-       RTAO(urlTexture(self, w, h, &u, NULL)))
 PREFIX(UrlProgress, tree, "url",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(u, text) PARM(progress, integer),
        RTAO(urlPaint(self, x, y, w, h, &u, &progress)))
+PREFIX(UrlTexture, tree, "url_texture",
+       PARM(w,real) PARM(h,real) PARM(u, text),
+       RTAO(urlTexture(self, w, h, &u, NULL)))
 PREFIX(UrlTextureProgress, tree, "url_texture",
        PARM(w,real) PARM(h,real) PARM(u, text) PARM(progress, integer),
        RTAO(urlTexture(self, w, h, &u, &progress)))
@@ -188,87 +267,41 @@ PREFIX(ColorChooserTexture, tree, "colorchoosertexture",
        PARM(w,real) PARM(h,real),
        RTAO(colorChooserTexture(self, w, h)))
 
-PREFIX(TextFgColorRGBA, tree, "text_fg_color",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
-       RTAO(textColor(self, r,g,b, a, true)))
-PREFIX(TextFgColorRGB, tree, "text_fg_color", PARM(r, real) PARM(g, real) PARM(b, real),
-       RTAO(textColor(self, r,g,b, 1.0, true)))
-PREFIX(TextBgColorRGBA, tree, "text_bg_color",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
-       RTAO(textColor(self, r,g,b, a, false)))
-PREFIX(TextBgColorRGB, tree, "text_bg_color", PARM(r, real) PARM(g, real) PARM(b, real),
-       RTAO(textColor(self, r,g,b, 1.0, false)))
-
-PREFIX(QtRect, tree, "qtrectangle",
-       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
-       RTAO(qtrectangle(self, x, y, w, h)))
-PREFIX(QtText, tree, "qttext",
-       PARM(x,real) PARM(y,real) PARM(s, text),
-       RTAO(qttext(self, x, y, s)))
-
-PREFIX(KRect, tree, "krectangle",
-       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
-       RTAO(Krectangle(self, x, y, w, h)))
-PREFIX(Move, tree, "moveto",
-       PARM(x,real) PARM(y,real),
-       RTAO(moveTo(self, x, y, false)))
-PREFIX(RelMove, tree, "relmoveto",
-       PARM(x,real) PARM(y,real),
-       RTAO(moveTo(self, x, y, true)))
-
-PREFIX(KText, tree, "ktext",
-       PARM(s, text),
-       RTAO(Ktext(self, s)))
-PREFIX(Stroke, tree, "stroke",, RTAO(stroke(self)))
-PREFIX(Clear, tree, "clear",, RTAO(clear(self)))
-PREFIX(LText, tree, "ltext",
-       PARM(s, text),
-       RTAO(KlayoutText(self, s)))
-PREFIX(LMarkup, tree, "lmarkup",
-       PARM(s, text),
-       RTAO(KlayoutMarkup(self, s)))
-
-PREFIX(Path, tree, "path", PARM(t, tree), RTAO(buildPath(self, &t, 0x0)))
-PREFIX(pathStroke, tree, "pathstroke",
-       PARM(t, tree),
-       RTAO(buildPath(self, &t, 0x1)))
-PREFIX(pathFill, tree, "pathfill",
-       PARM(t, tree),
-       RTAO(buildPath(self, &t, 0x2)))
-PREFIX(pathStrokeFill, tree, "pathstrokefill",
-       PARM(t, tree),
-       RTAO(buildPath(self, &t, 0x3)))
-PREFIX(Arc, tree, "arc",
-       PARM(x, real) PARM(y, real)
-       PARM(r, real) PARM(a1, real) PARM(a2, real),
-       RTAO(arc(self, x, y, r, a1, a2, true)))
-PREFIX(ArcNegative, tree, "arcnegative",
-       PARM(x, real) PARM(y, real)
-       PARM(r, real) PARM(a1, real) PARM(a2, real),
-       RTAO(arc(self, x, y, r, a1, a2, false)))
-PREFIX(CurveTo, tree, "curveto",
-       PARM(x1, real) PARM(y1, real)
-       PARM(x2, real) PARM(y2, real)
-       PARM(x3, real) PARM(y3, real),
-       RTAO(curveTo(self, x1, y1, x2, y2, x3, y3, false)))
-PREFIX(RelCurveTo, tree, "relcurveto",
-       PARM(x1, real) PARM(y1, real)
-       PARM(x2, real) PARM(y2, real)
-       PARM(x3, real) PARM(y3, real),
-       RTAO(curveTo(self, x1, y1, x2, y2, x3, y3, true)))
-
-
-PREFIX(ClosePath, tree, "closepath",, RTAO(closePath(self)))
-PREFIX(LineTo, tree, "lineto", PARM(x, real) PARM(y, real), RTAO(lineTo(self, x, y, false)))
-PREFIX(RelLineTo, tree, "rellineto", PARM(x, real) PARM(y, real), RTAO(lineTo(self, x, y, true)))
+// ============================================================================
+//
+//    Menus
+//
+// ============================================================================
 
 PREFIX(MenuItem, tree, "menu_item", PARM(s, text) PARM(t, tree),
        RTAO(menuItem(self, s, &t)))
 PREFIX(Menu, tree, "menu", PARM(s, text),
       RTAO(menu(self, s, false)))
 PREFIX(SubMenu, tree, "submenu", PARM(s, text),
-      RTAO(menu(self, s, true)))
+       RTAO(menu(self, s, true)))
+
+
+
+// ============================================================================
+//
+//   Tree management
+//
+// ============================================================================
 
 PREFIX(Insert, boolean, "insert", PARM(t, tree), RTAO(insert(self, &t)))
 PREFIX(Delete, boolean, "delete", , RTAO(deleteSelection(self)))
+
+
+
+// ============================================================================
+//
+//   Unit conversions
+//
+// ============================================================================
+
+POSTFIX(FromCm,   real, PARM(x, real), "cm", RTAO(fromCm(self, x)))
+POSTFIX(FromMm,   real, PARM(x, real), "mm", RTAO(fromMm(self, x)))
+POSTFIX(FromInch, real, PARM(x, real), "inch", RTAO(fromIn(self, x)))
+POSTFIX(FromPt,   real, PARM(x, real), "pt", RTAO(fromPt(self, x)))
+POSTFIX(FromPx,   real, PARM(x, real), "px", RTAO(fromPx(self, x)))
 

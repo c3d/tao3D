@@ -1,7 +1,7 @@
 #ifndef WIDGET_SURFACE_H
 #define WIDGET_SURFACE_H
 // ****************************************************************************
-//  widget-surface.h                                                Tao project
+//  widget_surface.h                                                Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -47,7 +47,7 @@ public:
     ~WidgetSurface();
     operator data_t() { return this; }
     void resize(uint width, uint height);
-    virtual void bind();
+    virtual GLuint bind();
 
     QWidget   * widget;
     GLuint      textureId;
@@ -68,7 +68,7 @@ public:
     typedef WebViewSurface * data_t;
     WebViewSurface(Widget *parent);
     operator data_t() { return this; }
-    virtual void bind(XL::Text *url, XL::Integer *progress=NULL);
+    virtual GLuint bind(XL::Text *url, XL::Integer *progress=NULL);
 
 private:
     XL::Text    *urlTree;
@@ -91,7 +91,7 @@ public:
     typedef LineEditSurface * data_t;
     LineEditSurface(Widget *parent, bool immed=false);
     operator data_t() { return this; }
-    virtual void bind(XL::Text *contents);
+    virtual GLuint bind(XL::Text *contents);
 
 private:
     XL::Text *contents;

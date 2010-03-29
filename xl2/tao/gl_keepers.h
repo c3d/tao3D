@@ -77,27 +77,26 @@ private:
 };
 
 
-struct WidgetStateKeeper
+struct GLAllStateKeeper : GLStateKeeper
 // ----------------------------------------------------------------------------
-//    Save custom attributes we have in our widget
-// ----------------------------------------------------------------------------
-{
-    WidgetStateKeeper(Widget *w): widget(w), state(w->state) {}
-    ~WidgetStateKeeper() { widget->state = state; }
-    Widget *widget;
-    Widget::State state;
-};
-
-
-struct GLAndWidgetKeeper
-// ----------------------------------------------------------------------------
-//    Save the state of a widget as well as the GL state
+//   Save and restore both selected attributes and the current matrices
 // ----------------------------------------------------------------------------
 {
-    GLAndWidgetKeeper(Widget *w, GLbitfield bits = GL_ALL_ATTRIB_BITS):
-        widget(w), gl(bits) {}
-    WidgetStateKeeper   widget;
-    GLStateKeeper       gl;
+    GLAllStateKeeper(GLbitfield bits = GL_ALL_ATTRIB_BITS): GLStateKeeper(bits)
+    {
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glMatrixMode(GL_MODELVIEW);
+    }
+    ~GLAllStateKeeper()
+    {
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+    }
+
+private:
+    GLAllStateKeeper(const GLStateKeeper &other);
 };
 
 TAO_END

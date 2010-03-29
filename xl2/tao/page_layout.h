@@ -1,12 +1,12 @@
-#ifndef SVG_H
-#define SVG_H
+#ifndef PAGE_LAYOUT_H
+#define PAGE_LAYOUT_H
 // ****************************************************************************
-//  svg.h                                                           Tao project
+//  page_layout.h                                                   Tao project
 // ****************************************************************************
 // 
 //   File Description:
 // 
-//     Rendering of an SVG file in an off-screen buffer
+// 
 // 
 // 
 // 
@@ -22,28 +22,29 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "frame.h"
+#include "layout.h"
+#include "justification.h"
 
 TAO_BEGIN
 
-struct SvgRendererInfo : FrameInfo
+struct PageLayout : Layout
 // ----------------------------------------------------------------------------
-//    Hold information about the SVG renderer for a tree
+//   A 2D layout specialized for placing text and 2D shapes on pages
 // ----------------------------------------------------------------------------
 {
-    typedef SvgRendererInfo *                   data_t;
-    typedef std::map<text, QSvgRenderer *>      renderer_map;
-    enum { MAX_TEXTURES = 20 };
+                        PageLayout(Widget *widget);
+                        PageLayout(const PageLayout &o);
+                        ~PageLayout();
 
-    SvgRendererInfo(Widget *w, uint width=512, uint height=512);
-    ~SvgRendererInfo();
-    operator data_t() { return this; }
-    GLuint bind(text img);
+    virtual Box3        Space();
+    virtual Layout &    Add(Drawing *d);
+    virtual PageLayout *NewChild()      { return new PageLayout(*this); }
 
-    Widget *            widget;
-    renderer_map        renderers;
+public:
+    // Space requested for the layout
+    Box3                space;
 };
 
 TAO_END
 
-#endif // SVG_H
+#endif // PAGE_LAYOUT_H

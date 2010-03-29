@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  menuinfo.cpp                                                    Tao project
+//  space_layout.cpp                                                Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    Associate Qt menu data to XL trees
+//     Layout objects in 3D space (z-ordering, ...)
 //
 //
 //
@@ -17,55 +17,47 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "tao.h"
-#include "menuinfo.h"
-#include "options.h"
-#include <iostream>
+#include "space_layout.h"
+#include "attributes.h"
 
 TAO_BEGIN
 
-MenuInfo::MenuInfo(QMenu *menu, std::string name)
+SpaceLayout::SpaceLayout(Widget *widget)
 // ----------------------------------------------------------------------------
-//   Associated a menu entry to a tree
+//   Constructor sets defaults
 // ----------------------------------------------------------------------------
-    : fullName(name), menu(menu), menubar(NULL), action(NULL)
-{
-    IFTRACE(menus)
-        std::cout<<"MenuInfo : "<< name << " menuItem created, "
-                 << menu->children().size()
-                 << " children present in the menu\n";
-}
-
-MenuInfo::MenuInfo(QMenuBar *menubar, QMenu *menu, std::string name)
-// ----------------------------------------------------------------------------
-//    Associate a menu bar entry to a tree
-// ----------------------------------------------------------------------------
-    : fullName(name), menu(menu), menubar(menubar), action(NULL)
-{
-    IFTRACE(menus)
-        std::cout<< "MenuInfo : " << name<< " menu created\n";
-
-}
+    : Layout(widget)
+{}
 
 
-MenuInfo::~MenuInfo()
+SpaceLayout::~SpaceLayout()
 // ----------------------------------------------------------------------------
-//   Delete a menu entry
+//   Destructore
+// ----------------------------------------------------------------------------
+{}
+
+
+Box3 SpaceLayout::Space()
+// ----------------------------------------------------------------------------
+//   Return the space for the layout
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(menus)
-        std::cout << "Delete MenuInfo for " << fullName << "\n";
+    Box3 result = Bounds();
+    result |= space;
+    return result;
 }
 
 
-XL::Tree * CleanMenuInfo::Do(XL::Tree *what)
+Layout &SpaceLayout::Add(Drawing *d)
+// ----------------------------------------------------------------------------
+//   Add items to the list at the right position
+// ----------------------------------------------------------------------------
 {
-    if (what) what->Purge<MenuInfo>();
-    return what;
+    return Layout::Add(d);
 }
+
 
 TAO_END

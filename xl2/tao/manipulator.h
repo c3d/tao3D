@@ -48,7 +48,7 @@ struct Manipulator : Drawing
     virtual void        DrawSelection(Layout *layout);
     virtual void        Identify(Layout *layout);
     virtual bool        DrawHandle(Layout *layout, Point3 p, uint id);
-    virtual void        DrawHandles(Layout *layout) = 0;
+    virtual bool        DrawHandles(Layout *layout) = 0;
 
 protected:
     double              updateArg(Widget *widget, tree_p param, coord delta);
@@ -61,7 +61,7 @@ struct ControlPoint : Manipulator
 // ----------------------------------------------------------------------------
 {
     ControlPoint(real_r x, real_r y, uint id);
-    virtual void        DrawHandles(Layout *layout);
+    virtual bool        DrawHandles(Layout *layout);
 
 protected:
     real_r              x, y;
@@ -91,7 +91,21 @@ protected:
 };
 
 
-struct ControlRectangle : DrawingManipulator
+struct FrameManipulator : DrawingManipulator
+// ----------------------------------------------------------------------------
+//   Dispays 4 handles in the corner, but clicks in the surface pass through
+// ----------------------------------------------------------------------------
+{
+    FrameManipulator(real_r x, real_r y, real_r w, real_r h, Drawing *child);
+    virtual void        DrawSelection(Layout *layout);
+    virtual bool        DrawHandles(Layout *layout);
+
+protected:
+    real_r              x, y, w, h;
+};
+
+
+struct ControlRectangle : FrameManipulator
 // ----------------------------------------------------------------------------
 //   Manipulators for a rectangle-bounded object
 // ----------------------------------------------------------------------------
@@ -99,11 +113,23 @@ struct ControlRectangle : DrawingManipulator
     ControlRectangle(real_r x, real_r y, real_r w, real_r h,
                      Drawing *child);
 
-    virtual void        DrawHandles(Layout *layout);
+    virtual bool        DrawHandles(Layout *layout);
+};
+
+
+struct WidgetSurface;
+struct WidgetManipulator : FrameManipulator
+// ----------------------------------------------------------------------------
+//   Manipulators for widgets
+// ----------------------------------------------------------------------------
+{
+    WidgetManipulator(real_r x, real_r y, real_r w, real_r h, WidgetSurface *s);
+    virtual void        DrawSelection(Layout *layout);
 
 protected:
-    real_r              x, y, w, h;
+    WidgetSurface *     surface;
 };
+
 
 TAO_END
 

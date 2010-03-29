@@ -84,7 +84,7 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id)
     glLoadName(id);
     widget->drawHandle(p, "handle");
     glLoadName(0);
-    bool    selected = widget->manipulator == id;
+    bool selected = widget->manipulator == id;
     return selected;
 }
 
@@ -130,21 +130,25 @@ double Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
                 {
                     scale *= lr->value;
                     ptr = &infix->right;
+                    more = true;
                 }
                 else if (XL::Real *rr = infix->right->AsReal())
                 {
                     scale *= rr->value;
                     ptr = &infix->left;
+                    more = true;
                 }
                 else if (XL::Integer *li = infix->left->AsInteger())
                 {
                     scale *= li->value;
                     ptr = &infix->right;
+                    more = true;
                 }
                 else if (XL::Integer *ri = infix->right->AsInteger())
                 {
                     scale *= ri->value;
                     ptr = &infix->left;
+                    more = true;
                 }
             }
         }

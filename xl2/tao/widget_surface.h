@@ -113,7 +113,7 @@ public:
     typedef PushButtonSurface * data_t;
     PushButtonSurface(Widget *parent, XL::Text* lbl, XL::Tree *act);
     operator data_t() { return this; }
-    virtual void bind(XL::Text *lbl, XL::Tree *action);
+    virtual GLuint bind(XL::Text *lbl, XL::Tree *action);
 
 private:
     XL::Text *label;
@@ -133,7 +133,6 @@ public:
     typedef ColorChooserSurface * data_t;
     ColorChooserSurface(Widget *parent);
     operator data_t() { return this; }
-//    virtual void bind();
 
 private:
 

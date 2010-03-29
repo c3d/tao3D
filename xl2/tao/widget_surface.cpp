@@ -297,7 +297,7 @@ PushButtonSurface::PushButtonSurface(Widget *parent,
             this,     SLOT(clicked(bool)));
 }
 
-void PushButtonSurface::bind(XL::Text *lbl, XL::Tree *act)
+GLuint PushButtonSurface::bind(XL::Text *lbl, XL::Tree *act)
 // ----------------------------------------------------------------------------
 //    If the label or associated action changes
 // ----------------------------------------------------------------------------
@@ -307,10 +307,11 @@ void PushButtonSurface::bind(XL::Text *lbl, XL::Tree *act)
     label = lbl;
     action = act;
 
-    WidgetSurface::bind();
+    return WidgetSurface::bind();
 
 }
 
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 void PushButtonSurface::clicked(bool checked)
 // ----------------------------------------------------------------------------
 //    The button was clicked. Evaluate the action.
@@ -339,19 +340,6 @@ ColorChooserSurface::ColorChooserSurface(Widget *parent)
     diag->setVisible(true);
 }
 
-//void ColorChooserSurface::bind()
-//// ----------------------------------------------------------------------------
-////    If the label or associated action changes
-//// ----------------------------------------------------------------------------
-//{
-//    QPushButton *button = (QPushButton *) widget;
-//    button->setText(QString::fromStdString(lbl ?lbl->value : ""));
-//    label = lbl;
-//    action = act;
-//
-//    WidgetSurface::bind();
-//
-//}
 
 void ColorChooserSurface::colorchosen(const QColor &color)
 // ----------------------------------------------------------------------------
@@ -362,7 +350,7 @@ void ColorChooserSurface::colorchosen(const QColor &color)
     {
         std::cerr << "Color was chosen "<< color.name().toStdString() << "\n";
     }
-    ((Widget *)parent())->color(NULL,
+    ((Widget *)parent())->lineColor(NULL,
                                 color.redF(),
                                 color.greenF(),
                                 color.blueF(),

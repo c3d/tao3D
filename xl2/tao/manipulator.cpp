@@ -46,7 +46,7 @@ Manipulator::Manipulator()
 
 void Manipulator::Draw(Layout *layout)
 // ----------------------------------------------------------------------------
-//   During drawing path, we don't draw nothing
+//   When drawing a manipulator, we don't draw anything
 // ----------------------------------------------------------------------------
 {
     (void) layout;
@@ -378,6 +378,7 @@ void FrameManipulator::DrawSelection(Layout *layout)
     bool loadId = widget->currentId() != ~0U;
     if (loadId)
         glLoadName(widget->newId());
+    child->Identify(layout);    // Don't draw it
     Manipulator::DrawSelection(layout);
     if (loadId)
         glLoadName(0);
@@ -509,12 +510,14 @@ void WidgetManipulator::DrawSelection(Layout *layout)
     if (loadId)
         glLoadName(widget->newId());
     bool selected = widget->selected();
+    child->Identify(layout);
     Manipulator::DrawSelection(layout);
     if (selected)
         surface->requestFocus(x, y);
-    // widget->drawSelection(Bounds(), "widget_selection");
     if (loadId)
         glLoadName(0);
+    if (selected)
+        widget->drawSelection(Bounds(), "widget_selection");
 }
 
 TAO_END

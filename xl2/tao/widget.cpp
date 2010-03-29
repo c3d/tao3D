@@ -1808,7 +1808,7 @@ Tree *Widget::urlPaint(Tree *self,
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
     urlTexture(self, w, h, url, progress);
-    WidgetSurface *surface = url->GetInfo<WidgetSurface>();
+    WebViewSurface *surface = url->GetInfo<WebViewSurface>();
     layout->Add(new WidgetManipulator(x, y, w, h, surface));
     saveLayout.saved->Add(layout);
     return XL::xl_true;
@@ -1851,7 +1851,7 @@ Tree *Widget::lineEdit(Tree *self,
     XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
 
     lineEditTexture(self, w, h, txt);
-    WidgetSurface *surface = txt->GetInfo<WidgetSurface>();
+    LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
     layout->Add(new WidgetManipulator(x, y, w, h, surface));
     saveLayout.saved->Add(layout);
     return XL::xl_true;

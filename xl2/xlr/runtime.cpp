@@ -493,6 +493,18 @@ Tree *XLCall::operator() (Symbols *syms)
 }
 
 
+Tree *XLCall::build(Symbols *syms)
+// ----------------------------------------------------------------------------
+//    Perform the given call in the given context
+// ----------------------------------------------------------------------------
+{
+    if (!syms)
+        syms = Symbols::symbols;
+    Tree *callee = syms->CompileCall(name, args);
+    return callee;
+}
+
+
 Tree *xl_invoke(eval_fn toCall, Tree *src, uint numargs, Tree **args)
 // ----------------------------------------------------------------------------
 //   Invoke a callback with the right number of arguments

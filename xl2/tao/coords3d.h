@@ -178,7 +178,7 @@ inline Point3 operator +(const Point3& l, const Vector3 &r)
 
 inline Vector3 operator -(const Point3& l, const Point3 &r)
 {
-    Vector3 result(l.x-r.x, l.y-r.y, l.x-r.z);
+    Vector3 result(l.x-r.x, l.y-r.y, l.z-r.z);
     return result;
 }
 

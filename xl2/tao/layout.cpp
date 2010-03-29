@@ -94,7 +94,7 @@ void Layout::Draw(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
-    GLStateKeeper glSave;
+    GLStateKeeper         glSave;
     if (where)
     {
         // Add offset of parent to the one we have
@@ -126,7 +126,7 @@ void Layout::DrawSelection(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
-    GLStateKeeper glSave;
+    GLStateKeeper         glSave;
     if (where)
     {
         // Add offset of parent to the one we have
@@ -160,7 +160,7 @@ void Layout::Identify(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
-    GLStateKeeper glSave;
+    GLStateKeeper         glSave;
     if (where)
     {
         // Add offset of parent to the one we have

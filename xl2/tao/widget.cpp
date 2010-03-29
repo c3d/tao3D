@@ -268,6 +268,20 @@ void Widget::draw()
     glClearColor (1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // Make sure we compile the selection the first time
+    static bool first = true;
+    if (xlProgram && first)
+    {
+        XL::Symbols *s = xlProgram->symbols;
+        double x = 0;
+        (XL::XLCall("draw_selection"), x,x,x,x).build(s);
+        (XL::XLCall("draw_selection"), x,x,x,x,x,x).build(s);
+        (XL::XLCall("draw_widget_selection"), x,x,x,x).build(s);
+        (XL::XLCall("draw_widget_selection"), x,x,x,x,x,x).build(s);
+        (XL::XLCall("draw_3D_selection"), x,x,x,x,x,x).build(s);
+        first = false;
+    }
+
     // If there is a program, we need to run it
     runProgram();
 
@@ -275,8 +289,11 @@ void Widget::draw()
     elapsed(t);
 
     // Render all activities, e.g. the selection rectangle
+    SpaceLayout selectionSpace(this);
+    XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
     glDisable(GL_DEPTH_TEST);
     for (Activity *a = activities; a; a = a->Display()) ;
+    selectionSpace.Draw(NULL);
 }
 
 
@@ -1022,8 +1039,9 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
 
     try
     {
-        GLAttribKeeper save;
         XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
+        XL::LocalSave<GLuint>   saveId(id, 0);
+        GLAttribKeeper          saveGL;
         if (bounds.Depth() > 0)
         {
             setupGL();
@@ -1035,6 +1053,7 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
             glDisable(GL_DEPTH_TEST);
             (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (symbols);
         }
+        selectionSpace.Draw(NULL);
     }
     catch(XL::Error &e)
     {
@@ -1042,8 +1061,6 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
     catch(...)
     {
     }
-
-    selectionSpace.Draw(NULL);
 }
 
 

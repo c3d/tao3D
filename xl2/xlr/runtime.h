@@ -112,6 +112,7 @@ struct XLCall
 
     // Calling in a given symbol context
     Tree * operator() (Symbols *syms = NULL);
+    Tree * build(Symbols *syms = NULL);
 
 public:
     text        name;

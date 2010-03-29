@@ -44,13 +44,11 @@ void Drawing::DrawSelection(Layout *layout)
     Widget *widget = layout->Display();
     if (widget->selected())
     {
-        // The default is to draw a bounding box
         Color line(1.0, 0.0, 0.0, 0.5);
         Color fill(0.0, 0.7, 1.0, 0.1);
         XL::LocalSave<Color> saveLine(layout->lineColor, line);
         XL::LocalSave<Color> saveFill(layout->fillColor, fill);
-        Cube cube(Bounds() * 1.05);
-        cube.Draw(layout);
+        widget->drawSelection(Bounds(), "selection");
     }
 }
 

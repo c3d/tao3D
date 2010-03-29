@@ -1743,7 +1743,7 @@ Tree *Widget::framePaint(Tree *self,
     // Draw a rectangle with the resulting texture
     layout->Add(new ControlRectangle(x, y, w, h,
                                      new Rectangle(Box(x-w/2, y-h/2, w, h))));
-
+    saveLayout.saved->Add(layout);
     return result;
 }
 
@@ -1808,7 +1808,7 @@ Tree *Widget::urlPaint(Tree *self,
     urlTexture(self, w, h, url, progress);
     layout->Add(new ControlRectangle(x, y, w, h,
                                      new Rectangle(Box(x-w/2, y-h/2, w, h))));
-
+    saveLayout.saved->Add(layout);
     return XL::xl_true;
 }
 
@@ -1851,7 +1851,7 @@ Tree *Widget::lineEdit(Tree *self,
     lineEditTexture(self, w, h, txt);
     layout->Add(new ControlRectangle(x, y, w, h,
                                      new Rectangle (Box(x-w/2, y-h/2, w, h))));
-
+    saveLayout.saved->Add(layout);
     return XL::xl_true;
 }
 

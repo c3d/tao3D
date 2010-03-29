@@ -38,11 +38,18 @@ bool GitRepository::checkGit()
 //   Return true if Git is functional, and set the git command accordingly
 // ----------------------------------------------------------------------------
 {
-    text errors;
-    Process cmd(gitCommand, QStringList("--version"));
-    if (cmd.done(&errors))
-        return true;
-    gitCommand = qApp->applicationDirPath() + "/git";
+    // Look for "git" in $PATH, then in application's directory
+    QStringList commands;
+    commands << "git" << qApp->applicationDirPath() + "/git";
+    QStringListIterator it(commands);
+    while (it.hasNext())
+    {
+        text errors;
+        gitCommand = it.next();
+        Process cmd(gitCommand, QStringList("--version"));
+        if (cmd.done(&errors))
+            return true;
+    }
     return false;
 }
 

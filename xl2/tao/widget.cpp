@@ -518,6 +518,9 @@ void Widget::setupGL()
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_POINT_SMOOTH);
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glEnable(GL_POLYGON_OFFSET_LINE);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glLineWidth(1);
     glLineStipple(1, -1);

@@ -114,6 +114,7 @@ void Layout::Draw(Layout *where)
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
+        glPolygonOffset (i - items.begin(), 2.0);
         child->Draw(this);
     }
 }
@@ -148,6 +149,7 @@ void Layout::DrawSelection(Layout *where)
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
+        glPolygonOffset (i - items.begin(), 2.0);
         child->DrawSelection(this);
     }
 }

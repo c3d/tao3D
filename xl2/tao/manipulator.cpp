@@ -101,7 +101,6 @@ double Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
     Tree   *source   = xl_source(arg); // Find the source expression
     tree_p *ptr      = &source;
     bool    more     = true;
-    bool    negative = false;
     tree_p *pptr     = NULL;
     tree_p *ppptr    = NULL;
     double  scale    = 1.0;
@@ -158,8 +157,7 @@ double Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
                     pptr = ptr;
                     ptr = &prefix->right;
                     more = true;
-                    negative = !negative;
-                    delta = -delta;
+                    scale = -scale;
                 }
             }
         }
@@ -192,7 +190,7 @@ double Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
         }
     }
 
-    return delta;
+    return delta * scale;
 }
 
 

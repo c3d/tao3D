@@ -77,7 +77,7 @@ void Manipulator::Identify(Layout *layout)
 //   Draw the manipulator selection handles
 // ----------------------------------------------------------------------------
 {
-    DrawSelection(layout);
+    Manipulator::DrawSelection(layout);
 }
 
 
@@ -87,9 +87,12 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id)
 // ----------------------------------------------------------------------------
 {
     glLoadName(id);
-    glBegin(GL_POINTS);
+    glBegin(GL_QUADS);
     {
-        glVertex3dv(&p.x);
+        glVertex3d(p.x - 8, p.y - 8, 0);
+        glVertex3d(p.x + 8, p.y - 8, 0);
+        glVertex3d(p.x + 8, p.y + 8, 0);
+        glVertex3d(p.x - 8, p.y + 8, 0);
     }
     glEnd();
 
@@ -240,9 +243,10 @@ void DrawingManipulator::Draw(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    widget->newId();
+    glLoadName(widget->newId());
     child->Draw(layout);
     Manipulator::Draw(layout);
+    glLoadName(0);
 }
 
 
@@ -252,9 +256,10 @@ void DrawingManipulator::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    widget->newId();
+    glLoadName(widget->newId());
     child->DrawSelection(layout);
     Manipulator::DrawSelection(layout);
+    glLoadName(0);
 }
 
 
@@ -266,8 +271,8 @@ void DrawingManipulator::Identify(Layout *layout)
     Widget *widget = layout->Display();
     glLoadName(widget->newId());
     child->Identify(layout);
-    glLoadName(0);
     Manipulator::Identify(layout);
+    glLoadName(0);
 }
 
 

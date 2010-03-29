@@ -139,9 +139,11 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
         {
             uint size = ptr[0];
             if (ptr[3] && ptr[1] < depth)
+            {
                 selected = ptr[3];
-            if (size > 1)
-                manipulator = ptr[4];
+                if (size > 1)
+                    manipulator = ptr[4];
+            }
             ptr += 3 + size;
         }
         if (selected)

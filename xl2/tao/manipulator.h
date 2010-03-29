@@ -112,7 +112,7 @@ struct ControlRectangle : FrameManipulator
 {
     ControlRectangle(real_r x, real_r y, real_r w, real_r h,
                      Drawing *child);
-
+    virtual void        DrawSelection(Layout *layout);
     virtual bool        DrawHandles(Layout *layout);
 };
 

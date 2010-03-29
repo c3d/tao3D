@@ -81,10 +81,9 @@ draw_selection x,y,z,w,h,d ->
     cube x-w/2, y-h/2, z-d/2, w, h, d
 
 draw_3D_selection x,y,z,w,h,d ->
-    enable_depth_test
     selection_background_color
     selection_outline_color
-    sphere x, y, z, w, h, d
+    cube x, y, z, w, h, d
 
 draw_widget_selection x,y,w,h ->
     selection_outline_color

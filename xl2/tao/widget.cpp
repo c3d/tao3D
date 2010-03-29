@@ -1011,6 +1011,7 @@ Vector3 Widget::dragDelta()
         Point3 u2 = unproject(x2, hh-y2, 0);
         result = u2 - u1;
 
+#if 0
         // Clamp amplification resulting from reverse projection
         const double maxAmp = 5.0;
         double ampX = fabs(result.x) / (fabs(x2-x1) + 0.01);
@@ -1019,6 +1020,7 @@ Vector3 Widget::dragDelta()
             result *= maxAmp/ampX;
         if (ampY > maxAmp)
             result *= maxAmp/ampY;
+#endif
     }
     return result;
 }

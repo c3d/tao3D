@@ -463,6 +463,22 @@ ControlRectangle::ControlRectangle(real_r x, real_r y, real_r w, real_r h,
 {}
 
 
+void ControlRectangle::DrawSelection(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Avoid drawing the selection for the child
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = layout->Display();
+    bool loadId = widget->currentId() != ~0U;
+    if (loadId)
+        glLoadName(widget->newId());
+    child->DrawSelection(layout);    // Don't draw it
+    Manipulator::DrawSelection(layout);
+    if (loadId)
+        glLoadName(0);
+}
+
+
 bool ControlRectangle::DrawHandles(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Draw the handles for a rectangular object
@@ -547,7 +563,7 @@ void BoxManipulator::DrawSelection(Layout *layout)
     bool loadId = widget->currentId() != ~0U;
     if (loadId)
         glLoadName(widget->newId());
-    child->Identify(layout);    // Don't draw the child, only identify it
+    child->DrawSelection(layout);    // Don't draw the child, only identify it
     Manipulator::DrawSelection(layout);
     if (loadId)
         glLoadName(0);

@@ -242,6 +242,7 @@ private:
     friend class Window;
     friend class Activity;
     friend class Selection;
+    friend class Drag;
     friend class Manipulator;
 
     typedef XL::LocalSave<QEvent *> EventSave;

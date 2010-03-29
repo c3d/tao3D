@@ -92,7 +92,7 @@ draw_widget_selection x,y,w,h ->
 draw_selection x,y,w,h ->
     selection_background_color
     selection_outline_color
-    rectangle x, y, w, h
+    rectangle x, y, w+4, h+4
 
 draw_selection_rectangle x, y, w, h ->
     draw_selection x,y,w,h

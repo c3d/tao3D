@@ -50,7 +50,7 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
     setWindowIcon(QIcon(":/images/tao.png"));
 
     // Create the widgets
-    QDockWidget *dock = new QDockWidget(tr("Source"));
+    dock = new QDockWidget(tr("Source"));
     dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     textEdit = new QTextEdit(dock);
     dock->setWidget(textEdit);
@@ -343,6 +343,9 @@ void Window::createMenus()
     editMenu->addAction(cutAct);
     editMenu->addAction(copyAct);
     editMenu->addAction(pasteAct);
+
+    viewMenu = menuBar()->addMenu(tr("&View"));
+    viewMenu->addAction(dock->toggleViewAction());
 
     menuBar()->addSeparator();
 

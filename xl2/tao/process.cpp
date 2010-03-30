@@ -65,12 +65,15 @@ Process::~Process()
 }
 
 
-void Process::start(const QString &cmd, const QStringList &args)
+void Process::start(const QString &cmd, const QStringList &args,
+                    const QString &wd)
 // ----------------------------------------------------------------------------
 //   Start child process
 // ----------------------------------------------------------------------------
 {
     commandLine = cmd + " " + args.join(" ");
+    if (!wd.isEmpty())
+        setWorkingDirectory(wd);
 
     IFTRACE(process)
         std::cerr << "Process: " << +commandLine

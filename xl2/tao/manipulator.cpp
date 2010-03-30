@@ -207,11 +207,11 @@ double Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
 // 
 // ============================================================================
 
-ControlPoint::ControlPoint(real_r x, real_r y, uint id)
+ControlPoint::ControlPoint(real_r x, real_r y, real_r z, uint id)
 // ----------------------------------------------------------------------------
 //   Record where we want to draw
 // ----------------------------------------------------------------------------
-    : Manipulator(), x(x), y(y), id(id)
+    : Manipulator(), x(x), y(y), z(z), id(id)
 {}
 
 
@@ -220,7 +220,7 @@ bool ControlPoint::DrawHandles(Layout *layout)
 //   For a control point, there is a single handle
 // ----------------------------------------------------------------------------
 {
-    if (DrawHandle(layout, Point3(x, y, 0), id))
+    if (DrawHandle(layout, Point3(x, y, z), id))
     {
         Widget *widget = layout->Display();
         Vector3 v = widget->dragDelta();
@@ -228,6 +228,7 @@ bool ControlPoint::DrawHandles(Layout *layout)
         {
             updateArg(widget, &x,  v.x);
             updateArg(widget, &y,  v.y);
+            updateArg(widget, &z,  v.z);
             widget->markChanged("Control point moved");
             return true;
         }
@@ -351,6 +352,17 @@ bool DrawingManipulator::IsAttribute()
 {
     return child->IsAttribute();
 }
+
+
+bool DrawingManipulator::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Default is to draw no handle...
+// ----------------------------------------------------------------------------
+{
+    (void) layout;
+    return false;
+}
+
 
 
 

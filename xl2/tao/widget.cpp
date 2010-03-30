@@ -1010,17 +1010,6 @@ Vector3 Widget::dragDelta()
         Point3 u1 = unproject(x1, hh-y1, 0);
         Point3 u2 = unproject(x2, hh-y2, 0);
         result = u2 - u1;
-
-#if 0
-        // Clamp amplification resulting from reverse projection
-        const double maxAmp = 5.0;
-        double ampX = fabs(result.x) / (fabs(x2-x1) + 0.01);
-        double ampY = fabs(result.y) / (fabs(y2-y1) + 0.01);
-        if (ampX > maxAmp)
-            result *= maxAmp/ampX;
-        if (ampY > maxAmp)
-            result *= maxAmp/ampY;
-#endif
     }
     return result;
 }
@@ -1341,7 +1330,7 @@ Tree *Widget::newPath(Tree *self, Tree *child)
 
     XL::LocalSave<GraphicPath *> save(path, new GraphicPath);
     Tree *result = xl_evaluate(child);
-    layout->Add(path);
+    layout->Add(new DrawingManipulator(path));
 
     return result;
 }
@@ -1353,9 +1342,14 @@ Tree *Widget::moveTo(Tree *self, real_r x, real_r y, real_r z)
 // ----------------------------------------------------------------------------
 {
     if (path)
+    {
         path->moveTo(Point3(x,y,z));
+        layout->Add(new ControlPoint(x, y, z, path->elements.size()));
+    }
     else
+    {
         layout->Add(new MoveTo(x, y, z));
+    }
     return XL::xl_true;
 }
 
@@ -1368,6 +1362,7 @@ Tree *Widget::lineTo(Tree *self, real_r x, real_r y, real_r z)
     if (!path)
         return Ooops("No path for '$1'", self);
     path->lineTo(Point3(x,y,z));
+    layout->Add(new ControlPoint(x, y, z, path->elements.size()));
     return XL::xl_true;
 }
 
@@ -1382,6 +1377,7 @@ Tree *Widget::curveTo(Tree *self,
     if (!path)
         return Ooops("No path for '$1'", self);
     path->curveTo(Point3(cx, cy, cz), Point3(x,y,z));
+    layout->Add(new ControlPoint(x, y, z, path->elements.size()));
     return XL::xl_true;
 }
 
@@ -1397,6 +1393,7 @@ Tree *Widget::curveTo(Tree *self,
     if (!path)
         return Ooops("No path for '$1'", self);
     path->curveTo(Point3(c1x, c1y, c1z), Point3(c2x, c2y, c2z), Point3(x,y,z));
+    layout->Add(new ControlPoint(x, y, z, path->elements.size()));
     return XL::xl_true;
 }
 
@@ -1407,9 +1404,14 @@ Tree *Widget::moveToRel(Tree *self, real_r x, real_r y, real_r z)
 // ----------------------------------------------------------------------------
 {
     if (path)
+    {
         path->moveTo(Vector3(x,y,z));
+        layout->Add(new ControlPoint(x, y, z, path->elements.size()));
+    }
     else
+    {
         layout->Add(new MoveToRel(x, y, z));
+    }
     return XL::xl_true;
 }
 
@@ -1422,6 +1424,7 @@ Tree *Widget::lineToRel(Tree *self, real_r x, real_r y, real_r z)
     if (!path)
         return Ooops("No path for '$1'", self);
     path->lineTo(Vector3(x,y,z));
+    layout->Add(new ControlPoint(x, y, z, path->elements.size()));
     return XL::xl_true;
 }
 

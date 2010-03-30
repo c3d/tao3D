@@ -60,11 +60,11 @@ struct ControlPoint : Manipulator
 //    A control point in an object like a path
 // ----------------------------------------------------------------------------
 {
-    ControlPoint(real_r x, real_r y, uint id);
+    ControlPoint(real_r x, real_r y, real_r z, uint id);
     virtual bool        DrawHandles(Layout *layout);
 
 protected:
-    real_r              x, y;
+    real_r              x, y, z;
     uint                id;
 };
 
@@ -80,6 +80,7 @@ struct DrawingManipulator : Manipulator
     virtual void        Draw(Layout *layout);
     virtual void        DrawSelection(Layout *layout);
     virtual void        Identify(Layout *layout);
+    virtual bool        DrawHandles(Layout *layout);
     virtual Box3        Bounds();
     virtual Box3        Space();
     virtual bool        IsWordBreak();

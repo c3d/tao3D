@@ -2085,6 +2085,8 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
 
     Tree  *program = xlProgram->tree.tree;
     XL::Infix *parent  = NULL;
+    if (XL::Block *block = toInsert->AsBlock())
+        toInsert = block->child;
 
     while (true)
     {

@@ -464,4 +464,18 @@ void GraphicPath::clear()
     bounds = Box3();
 }
 
+
+void TesselatedPath::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw the graphic path using the current texture, fill and line color
+// ----------------------------------------------------------------------------
+{
+    setTexture(where);
+    if (setFillColor(where))
+        GraphicPath::Draw(where, GL_POLYGON, tesselation);
+    if (setLineColor(where))
+        // REVISIT: If lines is thick, use a QPainterPathStroker
+        GraphicPath::Draw(where, GL_LINE_STRIP);
+}
+
 TAO_END

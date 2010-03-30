@@ -91,6 +91,17 @@ public:
     static scale        default_steps;
 };
 
+
+struct TesselatedPath : GraphicPath
+// ----------------------------------------------------------------------------
+//   Like a graphic path, but with explicit tesselation
+// ----------------------------------------------------------------------------
+{
+    TesselatedPath(GLuint tesselation): tesselation(tesselation) {}
+    void Draw(Layout *where);
+    GLuint tesselation;
+};
+
 TAO_END
 
 #endif // PATH3D_H

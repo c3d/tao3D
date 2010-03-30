@@ -34,7 +34,7 @@ typedef GraphicPath::VertexData         VertexData;
 typedef GraphicPath::PolygonData        PolygonData;
 typedef GraphicPath::Vertices           Vertices;
 typedef GraphicPath::DynamicVertices    DynamicVertices;
-scale GraphicPath::default_steps = 3;
+scale GraphicPath::default_steps = 5;
 
 #ifndef CALLBACK // Needed for Windows
 #define CALLBACK
@@ -200,7 +200,7 @@ void GraphicPath::Draw(Layout *where, GLenum mode, GLenum tesselation)
                 // REVISIT: Implement a true optimization of the interpolation
                 // Compute a good number of points for approximating the curve
                 scale length = (v2-v0).Length() + 1;
-                scale order = log(length);
+                scale order = log2(length);
                 uint steps = ceil (order + default_steps);
                 double dt = 1.0 / steps;
                 double lt = 1.0 + dt/2;

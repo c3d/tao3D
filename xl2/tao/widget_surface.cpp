@@ -335,7 +335,7 @@ void PushButtonSurface::clicked(bool checked)
 
 ColorChooserSurface::ColorChooserSurface(Widget *parent)
 // ----------------------------------------------------------------------------
-//    Create the Push Button surface
+//    Create the Color Chooser surface
 // ----------------------------------------------------------------------------
   : WidgetSurface(new QColorDialog(parent))
 {
@@ -344,9 +344,14 @@ ColorChooserSurface::ColorChooserSurface(Widget *parent)
             this,   SLOT(colorchosen(const QColor &)));
     diag->setModal(false);
     diag->setOption(QColorDialog::ShowAlphaChannel, true);
-    diag->setVisible(true);
 }
 
+GLuint ColorChooserSurface::bind()
+{
+    widget->setVisible(true);
+    return WidgetSurface::bind();
+
+}
 
 void ColorChooserSurface::colorchosen(const QColor &color)
 // ----------------------------------------------------------------------------
@@ -358,11 +363,27 @@ void ColorChooserSurface::colorchosen(const QColor &color)
         std::cerr << "Color was chosen "<< color.name().toStdString() << "\n";
     }
     ((Widget *)parent())->lineColor(NULL,
-                                color.redF(),
-                                color.greenF(),
-                                color.blueF(),
-                                color.alphaF());
+                                    color.redF(),
+                                    color.greenF(),
+                                    color.blueF(),
+                                    color.alphaF());
     widget->setVisible(false);
+}
+
+
+GroupBoxSurface::GroupBoxSurface(Widget *parent, XL::Text* lbl)
+// ----------------------------------------------------------------------------
+//    Create the Group Box surface
+// ----------------------------------------------------------------------------
+    : WidgetSurface(new QGroupBox(parent))
+{
+    QGroupBox *group = (QGroupBox *) widget;
+
+}
+
+GLuint GroupBoxSurface::bind(XL::Text *lbl)
+{
+    return WidgetSurface::bind();
 }
 
 TAO_END

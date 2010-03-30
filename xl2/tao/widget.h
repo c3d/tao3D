@@ -218,7 +218,7 @@ public:
     Tree *      urlPaint(Tree *self, real_r x, real_r y, real_r w, real_r h,
                          text_p s, integer_p p);
     Tree *      urlTexture(Tree *self, double x, double y, Text *s, Integer *p);
-    
+
     Tree *      lineEdit(Tree *self, real_r x,real_r y,
                          real_r w,real_r h, text_p s);
     Tree *      lineEditTexture(Tree *self, double x, double y, Text *s);
@@ -232,6 +232,13 @@ public:
 
     Tree *      colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *      colorChooserTexture(Tree *self,double w, double h);
+
+    Tree *      groupBox(Tree *self,
+                         real_r x,real_r y, real_r w,real_r h,
+                         text_p lbl, Tree *buttons);
+    Tree *      groupBoxTexture(Tree *self,
+                                double w, double h,
+                                Text *lbl);
 
 
     // Menus

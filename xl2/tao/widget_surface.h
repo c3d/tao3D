@@ -126,6 +126,25 @@ public slots:
     void clicked(bool checked);
 };
 
+struct GroupBoxSurface : WidgetSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a QPushButton
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT;
+public:
+    typedef GroupBoxSurface * data_t;
+    GroupBoxSurface(Widget *parent, XL::Text* lbl);
+    operator data_t() { return this; }
+    virtual GLuint bind(XL::Text *lbl);
+
+private:
+    XL::Text *label;
+
+//public slots:
+//    void clicked(bool checked);
+};
+
 struct ColorChooserSurface : WidgetSurface
 // ----------------------------------------------------------------------------
 //    Hold information about a QPushButton
@@ -136,6 +155,7 @@ public:
     typedef ColorChooserSurface * data_t;
     ColorChooserSurface(Widget *parent);
     operator data_t() { return this; }
+    virtual GLuint bind();
 
 private:
 

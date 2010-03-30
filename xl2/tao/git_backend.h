@@ -67,11 +67,21 @@ protected:
     virtual QString     userVisibleName();
     virtual text        styleSheet();
 
+protected:
+    struct ProcQueueConsumer
+    {
+        ProcQueueConsumer(GitRepository &repo): repo(repo) {}
+        ~ProcQueueConsumer();
+
+        GitRepository &repo;
+    };
+
 private:
     bool                initialCommit();
+    void                dispatch(Process *cmd);
 
     static QString      gitCommand;
-    QList<Process *>    asyncProc;
+    QList<Process *>    pQueue;
 
 private slots:
     void                asyncProcessFinished(int exitCode);

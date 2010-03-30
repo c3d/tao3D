@@ -189,15 +189,7 @@ bool GitRepository::change(text name)
 //   Signal that a file in the repository changed
 // ----------------------------------------------------------------------------
 {
-    Process *cmd;
-    cmd = new Process(command(), QStringList("add") << +name, path, false);
-    connect(cmd,  SIGNAL(finished(int,QProcess::ExitStatus)),
-            this, SLOT  (asyncProcessFinished(int)));
-    connect(cmd,  SIGNAL(error(QProcess::ProcessError)),
-            this, SLOT  (asyncProcessError(QProcess::ProcessError)));
-    asyncProc.append(cmd);
-    if (asyncProc.count() == 1)
-        cmd->start();
+    dispatch(new Process(command(), QStringList("add") << +name, path, false));
     return true;
 }
 
@@ -241,14 +233,7 @@ bool GitRepository::asyncCommit(text message, bool all)
         args << "-a";
     args << "--allow-empty"    // Don't fail if working directory is clean
          << "-m" << +message;
-    Process *cmd = new Process(command(), args, path, false);
-    connect(cmd,  SIGNAL(finished(int,QProcess::ExitStatus)),
-            this, SLOT  (asyncProcessFinished(int)));
-    connect(cmd,  SIGNAL(error(QProcess::ProcessError)),
-            this, SLOT  (asyncProcessError(QProcess::ProcessError)));
-    asyncProc.append(cmd);
-    if (asyncProc.count() == 1)
-        cmd->start();
+    dispatch(new Process(command(), args, path, false));
     return true;
 }
 
@@ -258,7 +243,9 @@ void GitRepository::asyncProcessFinished(int exitCode)
 //   An asynchronous subprocess has finished normally
 // ----------------------------------------------------------------------------
 {
-    Process *cmd = dynamic_cast<Process*>(sender());
+    ProcQueueConsumer p(*this);
+    Process *cmd = (Process *)sender();
+    Q_ASSERT(cmd == pQueue.first());
     if (exitCode)
     {
         bool ok = false;
@@ -270,9 +257,6 @@ void GitRepository::asyncProcessFinished(int exitCode)
             std::cerr << +tr("Async command failed, exit status %1: %2")
                              .arg((int)exitCode).arg(cmd->commandLine);
     }
-    delete asyncProc.takeFirst();  // TODO RAII?
-    if (asyncProc.count())
-        asyncProc.first()->start();
 }
 
 
@@ -281,12 +265,26 @@ void  GitRepository::asyncProcessError(QProcess::ProcessError error)
 //   An asynchronous subprocess has finished in error (e.g., crashed)
 // ----------------------------------------------------------------------------
 {
-    Process *cmd = dynamic_cast<Process*>(sender());
+    ProcQueueConsumer p(*this);
+    Process *cmd = (Process *)sender();
+    Q_ASSERT(cmd == pQueue.first());
     std::cerr << +tr("Async command error %1: %2")
                     .arg((int)error).arg(cmd->commandLine);
-    delete asyncProc.takeFirst();  // TODO RAII?
-    if (asyncProc.count())
-        asyncProc.first()->start();
+}
+
+
+void GitRepository::dispatch(Process *cmd)
+// ----------------------------------------------------------------------------
+//   Insert process in run queue and start first process
+// ----------------------------------------------------------------------------
+{
+    connect(cmd,  SIGNAL(finished(int,QProcess::ExitStatus)),
+            this, SLOT  (asyncProcessFinished(int)));
+    connect(cmd,  SIGNAL(error(QProcess::ProcessError)),
+            this, SLOT  (asyncProcessError(QProcess::ProcessError)));
+    pQueue.append(cmd);
+    if (pQueue.count() == 1)
+        cmd->start();
 }
 
 
@@ -307,6 +305,17 @@ bool GitRepository::reset()
 {
     Process cmd(command(), QStringList("reset") << "--hard", path);
     return cmd.done(&errors);
+}
+
+
+GitRepository::ProcQueueConsumer::~ProcQueueConsumer()
+// ----------------------------------------------------------------------------
+//   Pop the head process from process queue, delete it and start next one
+// ----------------------------------------------------------------------------
+{
+    delete repo.pQueue.takeFirst();
+    if (repo.pQueue.count())
+        repo.pQueue.first()->start();
 }
 
 TAO_END

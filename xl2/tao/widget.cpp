@@ -1329,7 +1329,8 @@ Tree *Widget::newPath(Tree *self, Tree *child)
     if (path)
         return Ooops("Path '$1' while evaluating a path", self);
 
-    XL::LocalSave<GraphicPath *> save(path, new GraphicPath);
+    TesselatedPath *localPath = new TesselatedPath(GLU_TESS_WINDING_ODD);
+    XL::LocalSave<GraphicPath *> save(path, localPath);
     Tree *result = xl_evaluate(child);
     layout->Add(new DrawingManipulator(path));
 
@@ -2207,6 +2208,32 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
 //    Insert the tree after the selection, assuming there is only one
 // ----------------------------------------------------------------------------
 {
+    if (!xlProgram)
+        return XL::xl_false;
+
+    Tree  *program = xlProgram->tree.tree;
+    XL::Infix *parent  = NULL;
+    if (XL::Block *block = toInsert->AsBlock())
+        toInsert = block->child;
+
+    while (true)
+    {
+        XL::Infix *infix = program->AsInfix();
+        if (!infix)
+            break;
+        if (infix->name != ";" && infix->name != "\n")
+            break;
+        parent = infix;
+        program = infix->right;
+    }
+
+    if (parent)
+        parent->right = new XL::Infix("\n", parent->right, toInsert);
+    else
+        xlProgram->tree.tree = new XL::Infix("\n",
+                                             xlProgram->tree.tree, toInsert);
+    reloadProgram = true;
+
     return XL::xl_true;
 }
 

@@ -22,10 +22,29 @@
 #include "git_backend.h"
 #include "renderer.h"
 #include <QDir>
+#include <QString>
 #include <QtGlobal>
+#include <QApplication>
 #include <iostream>
 
 TAO_BEGIN
+
+// The 'git' command. May be updated by checkGit().
+QString GitRepository::gitCommand("git");
+
+
+bool GitRepository::checkGit()
+// ----------------------------------------------------------------------------
+//   Return true if Git is functional, and set the git command accordingly
+// ----------------------------------------------------------------------------
+{
+    text errors;
+    Process cmd(gitCommand, QStringList("--version"));
+    if (cmd.done(&errors))
+        return true;
+    gitCommand = qApp->applicationDirPath() + "/git";
+    return false;
+}
 
 
 QString GitRepository::command()
@@ -33,7 +52,7 @@ QString GitRepository::command()
 //   Return the command for 'git'
 // ----------------------------------------------------------------------------
 {
-    return "git";
+    return gitCommand;
 }
 
 
@@ -77,6 +96,26 @@ bool GitRepository::initialize()
     if (!QDir(path).mkpath("."))
         return false;
     Process cmd(command(), QStringList("init"), path);
+    if (cmd.done(&errors))
+        return initialCommit();
+    return false;
+}
+
+
+bool GitRepository::initialCommit()
+// ----------------------------------------------------------------------------
+//    Commit an empty file. Required after init or "git branch" fails
+// ----------------------------------------------------------------------------
+{
+    QFile dummy(path + "/.tao");
+    if (!dummy.open(QIODevice::WriteOnly))
+        return false;
+    dummy.close();
+    Process cmd(command(), QStringList("add") << ".tao", path);
+    if (!cmd.done(&errors))
+        return false;
+    Process cmd2(command(), QStringList("commit") << "-a" << "-m"
+                 << "\"Automatic initial commit\"", path);
     return cmd.done(&errors);
 }
 

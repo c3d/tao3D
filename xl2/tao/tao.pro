@@ -12,7 +12,7 @@
 # (C) 2010 Taodyne SAS
 # ******************************************************************************
 TEMPLATE = app
-TARGET = 
+TARGET = Tao
 DEPENDPATH += . \
     ../xlr
 INCLUDEPATH += . \
@@ -54,17 +54,25 @@ HEADERS += widget.h \
     texture.h \
     coords.h \
     coords3d.h \
+    color.h \
     gl_keepers.h \
-    text_flow.h \
     drawing.h \
-    shapes_drawing.h \
-    apply-changes.h \
+    shapes.h \
+    text_drawing.h \
+    shapes3d.h \
+    path3d.h \
+    attributes.h \
+    transforms.h \
+    layout.h \
+    page_layout.h \
+    space_layout.h \
+    apply_changes.h \
     activity.h \
     selection.h \
-    shapename.h \
+    manipulator.h \
     treeholder.h \
     menuinfo.h \
-    widget-surface.h \
+    widget_surface.h \
     process.h \
     repository.h \
     git_backend.h \
@@ -103,15 +111,22 @@ SOURCES += tao_main.cpp \
     window.cpp \
     frame.cpp \
     svg.cpp \
-    widget-surface.cpp \
+    widget_surface.cpp \
     texture.cpp \
-    text_flow.cpp \
     drawing.cpp \
-    shapes_drawing.cpp \
-    apply-changes.cpp \
+    shapes.cpp \
+    text_drawing.cpp \
+    shapes3d.cpp \
+    path3d.cpp \
+    attributes.cpp \
+    transforms.cpp \
+    layout.cpp \
+    page_layout.cpp \
+    space_layout.cpp \
+    apply_changes.cpp \
     activity.cpp \
     selection.cpp \
-    shapename.cpp \
+    manipulator.cpp \
     gl_keepers.cpp \
     treeholder.cpp \
     menuinfo.cpp \
@@ -145,15 +160,9 @@ SOURCES += tao_main.cpp \
 }
 RESOURCES += tao.qrc
 
-# We need bash, llvm-config and pkg-config
+# We need bash, llvm-config
 !system(bash -c \"bash --version >/dev/null\"):error("Can't execute bash")
 !system(bash -c \"llvm-config --version >/dev/null\"):error("Can't execute llvm-config")
-!system(bash -c \"pkg-config --version >/dev/null\"):error("Can't execute pkg-config")
-
-# Pango / Cairo
-PANGOCAIRO_LIBS = $$system(bash -c \"pkg-config --libs pangocairo \")
-PANGOCAIRO_INC = $$system(bash -c \"pkg-config --cflags-only-I pangocairo | sed s/-I//g\")
-PANGOCAIRO_FLAGS = $$system(bash -c \"pkg-config --cflags-only-other pangocairo\")
 
 # LLVM dependencies
 LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\")
@@ -162,20 +171,11 @@ LLVM_INC = $$system(bash -c \"llvm-config --includedir\")
 LLVM_DEF = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
 
 # Consolidated flags and libs
-INCLUDEPATH += $$PANGOCAIRO_INC \
-    $$LLVM_INC
-LIBS += $$PANGOCAIRO_LIBS \
-    $$LLVM_LIBS
+INCLUDEPATH += $$LLVM_INC
+LIBS += $$LLVM_LIBS
 DEFINES += $$LLVM_DEF
 
-# Extra flags for CC and CXX
-QMAKE_CFLAGS_RELEASE += $$PANGOCAIRO_FLAGS
-QMAKE_CFLAGS_DEBUG += $$PANGOCAIRO_FLAGS
-QMAKE_CXXFLAGS_RELEASE += $$PANGOCAIRO_FLAGS
-QMAKE_CXXFLAGS_DEBUG += $$PANGOCAIRO_FLAGS
-
 # Others
-DEFAULT_FONT = /Library/Fonts/Arial.ttf
 OTHER_FILES += xl.syntax \
     xl.stylesheet \
     short.stylesheet \

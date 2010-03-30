@@ -1,75 +1,73 @@
 // ****************************************************************************
-//  text_flow.cpp                                                  Tao project
+//  page_layout.cpp                                                 Tao project
 // ****************************************************************************
-//
+// 
 //   File Description:
-//
-//    This is the description of a text with its formatting information
-//
-//
-//
-//
-//
-//
-//
-//
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
-//  (C) 2010 Catherine Burvelle <catherine@taodyne.com>
-//  (C) 2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "tao.h"
-#include "text_flow.h"
-
+#include "page_layout.h"
+#include "attributes.h"
+#include "gl_keepers.h"
 
 TAO_BEGIN
 
-TextFlow::TextFlow(QTextOption paraOption)
+PageLayout::PageLayout(Widget *widget)
 // ----------------------------------------------------------------------------
-//  Create an empty text flow.
+//   Create a new layout
 // ----------------------------------------------------------------------------
-    : completeText(""),
-      formats(),
-      paragraphOption(paraOption),
-      topLineY(0)
-{}
-
-
-TextFlow::~TextFlow()
-// ----------------------------------------------------------------------------
-//  Destroy the flow.
-// ----------------------------------------------------------------------------
-{}
-
-
-void TextFlow::addText(QString pieceOfText, QTextCharFormat aFormat)
-// ----------------------------------------------------------------------------
-//   Add a piece of text and its associated format to the flow.
-// ----------------------------------------------------------------------------
+    : Layout(widget), space()
 {
-    QTextLayout::FormatRange range;
-    range.start = completeText.length();
-    range.length = pieceOfText.length();
-    range.format = aFormat;
-    formats.append(range);
-
-    completeText.append(pieceOfText);
-
-    topLineY = 0;
 }
 
 
-void TextFlow::clear()
+PageLayout::PageLayout(const PageLayout &o)
 // ----------------------------------------------------------------------------
-//   Discard the contents of a text flow
+//   Copy a layout from another layout
+// ----------------------------------------------------------------------------
+    : Layout(o), space(o.space)
+{
+}
+
+
+PageLayout::~PageLayout()
+// ----------------------------------------------------------------------------
+//    Destroy the page layout
+// ----------------------------------------------------------------------------
+{}
+
+
+Box3 PageLayout::Space()
+// ----------------------------------------------------------------------------
+//   Return the space for the box
 // ----------------------------------------------------------------------------
 {
-    completeText = "";
-    formats.clear();
-    topLineY = 0;
+    Box3 result = Bounds();
+    result |= space;
+    return result;
+}
+
+
+Layout &PageLayout::Add(Drawing *d)
+// ----------------------------------------------------------------------------
+//   Add items to the list at the right position
+// ----------------------------------------------------------------------------
+{
+    return Layout::Add(d);
 }
 
 TAO_END

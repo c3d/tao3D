@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  drag.cpp                                                       Tao project
+//  transforms.cpp                                                  Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     An activity to drag widgets
+//    Record transformations being applied in a layout
 //
 //
 //
@@ -17,74 +17,61 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2010 Jerome Forissier <jerome@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "drag.h"
-#include "widget.h"
-#include <QtDebug>
+#include "transforms.h"
+#include "layout.h"
+#include <GL/glew.h>
+
 
 TAO_BEGIN
 
-Drag::Drag(Widget *w)
+void Rotation::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Initialize the drag object
-// ----------------------------------------------------------------------------
-    : Activity("Drag Activity", w)
-{}
-
-
-Activity *Drag::Click(uint button, bool down, int x, int y)
-// ----------------------------------------------------------------------------
-//   Initial and final click when dragging an object
+//    Rotation in a drawing
 // ----------------------------------------------------------------------------
 {
-    if (button & Qt::LeftButton)
-    {
-        if (down)
-        {
-            x2 = x1 = x;
-            y2 = y1 = y;
-        }
-        else
-        {
-            Activity *next = this->next;
-            widget->manipulator = 0;
-            delete this;
-            return next;
-        }
-    }
-
-    // Pass it down the chain
-    return next;
+    glRotatef(amount, xaxis, yaxis, zaxis);
+    where->offset = Point3();
 }
 
 
-Activity *Drag::MouseMove(int x, int y, bool active)
+void Translation::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Save mouse position as it moves
+//    Rotation in a drawing
 // ----------------------------------------------------------------------------
 {
-    if (active)
-    {
-        x2 = x;
-        y2 = y;
-    }
-
-    // Pass it down the chain
-    return next;
+    glTranslatef(xaxis, yaxis, zaxis);
+    where->offset = Point3();
 }
 
 
-Activity *Drag::Display(void)
+void Scale::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Reset delta once per screen refresh
+//    Scale in a drawing
 // ----------------------------------------------------------------------------
 {
-    x1 = x2;
-    y1 = y2;
-    return next;                // Display following activities
+    glScalef(xaxis, yaxis, zaxis);
+    where->offset = Point3();
+}
+
+
+void MoveTo::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    Position in a drawing
+// ----------------------------------------------------------------------------
+{
+    where->offset = Point3(xaxis, yaxis, zaxis);
+}
+
+
+void MoveToRel::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    Position in a drawing
+// ----------------------------------------------------------------------------
+{
+    where->offset += Vector3(xaxis, yaxis, zaxis);
 }
 
 TAO_END

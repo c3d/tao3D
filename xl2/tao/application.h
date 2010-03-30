@@ -31,7 +31,6 @@
 TAO_BEGIN
 
 struct Widget;
-struct Repository;
 
 
 class Application : public QApplication
@@ -42,23 +41,14 @@ class Application : public QApplication
 
 public:
     Application(int & argc, char ** argv);
-    ~Application();
 
-    bool        openLibrary();
-    bool        openLibrary(QString path, bool confirm = true);
-    QDir        libraryDirectory();
-    Repository *library()       { return repository; }
-
-    void        internalCleanEverythingAsIfTaoWereNeverRun();
+    void           internalCleanEverythingAsIfTaoWereNeverRun();
+    static QString defaultProjectFolderPath();
 
 protected:
-    bool        recursiveDelete(QString path);
-    QString     defaultDocumentsFolderPath();
-    QString     defaultDocumentLibraryPath();
-    QString     userDocumentLibraryPath();
-
-private:
-    Repository  *repository;    // REVISIT: One per application or per doc?
+    static bool    recursiveDelete(QString path);
+    static QString defaultDocumentsFolderPath();
+    static bool    createDefaultProjectFolder();
 };
 
 #define TaoApp  ((Application *) qApp)

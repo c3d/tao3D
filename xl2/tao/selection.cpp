@@ -24,7 +24,7 @@
 #include "selection.h"
 #include "widget.h"
 #include "gl_keepers.h"
-#include <glew.h>
+#include <GL/glew.h>
 #include <QtGui>
 
 TAO_BEGIN
@@ -43,7 +43,7 @@ Activity *Selection::Display(void)
 //   Display the selection rectangle
 // ----------------------------------------------------------------------------
 {
-    glPushMatrix();
+    GLStateKeeper save;
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -51,33 +51,11 @@ Activity *Selection::Display(void)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    widget->setupGL();
-
-    ulong tick = widget->now();
     Box b = rectangle;
     b.Normalize();
-
-    glColor4f(0.4 * sin(tick / 1.9e6) + 0.6,
-              0.4 * sin(tick / 1.4e6) + 0.6,
-              0.4 * sin(tick / 0.5e6) + 0.6,
-              0.3);
-
-    glBegin(GL_QUADS);
-    glVertex2f (b.lower.x, b.lower.y);
-    glVertex2f (b.upper.x, b.lower.y);
-    glVertex2f (b.upper.x, b.upper.y);
-    glVertex2f (b.lower.x, b.upper.y);
-    glEnd();
-
-    glColor4f(1.0, 0.4, 0.4, 0.9);
-    glBegin(GL_LINE_LOOP);
-    glVertex2f (b.lower.x, b.lower.y);
-    glVertex2f (b.lower.x, b.upper.y);
-    glVertex2f (b.upper.x, b.upper.y);
-    glVertex2f (b.upper.x, b.lower.y);
-    glEnd();
-
-    glPopMatrix();
+    Box3 b3 (b.lower.x, b.lower.y, 0, b.Width(), b.Height(), 0);
+    widget->setupGL();
+    widget->drawSelection(b3, "selection_rectangle");
 
     return next;
 }
@@ -88,7 +66,9 @@ Activity *Selection::Idle(void)
 //   Make the refresh rate shorter so that we animate the rectangle
 // ----------------------------------------------------------------------------
 {
-    widget->refresh(NULL, 0.1);
+    if (!widget->timerIsActive())
+        widget->refresh(NULL, 0.005);
+    widget->updateGL();
     return next;               // Keep doing other idle activities
 }
 
@@ -120,14 +100,16 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
     }
     else
     {
+        Idle();
         delete this;
         return next;
     }
 
 
     // Create the select buffer and switch to select mode
-    GLuint *buffer = new GLuint[4 * widget->capacity];
-    glSelectBuffer(4 * widget->capacity, buffer);
+    GLuint capacity = widget->selectionCapacity();
+    GLuint *buffer = new GLuint[4 * capacity];
+    glSelectBuffer(4 * capacity, buffer);
     glRenderMode(GL_SELECT);
 
     // Adjust viewport for rendering
@@ -138,7 +120,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
     glPushName(0);
 
     // Run the programs, which will give us the list of selectable things
-    widget->runProgram();
+    widget->identifySelection();
 
     // Get number of hits and extract selection
     // Each record is as follows:
@@ -147,7 +129,8 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
     // [2]: Maximum depth
     // [3..3+[0]-1]: List of names
     int hits = glRenderMode(GL_RENDER);
-    uint selected = 0;
+    GLuint selected = 0;
+    GLuint manipulator = 0;
     if (hits > 0)
     {
         GLuint depth = ~0U;
@@ -156,7 +139,11 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
         {
             uint size = ptr[0];
             if (ptr[3] && ptr[1] < depth)
+            {
                 selected = ptr[3];
+                if (size > 1)
+                    manipulator = ptr[4];
+            }
             ptr += 3 + size;
         }
         if (selected)
@@ -175,11 +162,12 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
         widget->selectionTrees.clear();
         widget->selection = widget->savedSelection;
         if (selected)
-            widget->selection.insert(selected);
+            widget->selection[selected]++;
+        widget->manipulator = manipulator;
     }
 
     // In all cases, we want a screen refresh
-    widget->updateGL();
+    Idle();
 
     // If we are done with the selection, remove it and shift to a Drag
     if (doneWithSelection)
@@ -187,7 +175,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
         Widget *widget = this->widget; // Save before 'delete this'
         delete this;
         if (selected)
-            return widget->newDragActivity();
+            return new Drag(widget);
     }
 
     return NULL;                // We dealt with the event
@@ -200,7 +188,10 @@ Activity *Selection::MouseMove(int x, int y, bool active)
 // ----------------------------------------------------------------------------
 {
     if (!active)
+    {
+        Idle();
         return next;
+    }
 
     y = widget->height() - y;
     rectangle.upper.Set(x,y);
@@ -218,7 +209,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     glPushName(0);
 
     // Run the programs, which detects selected items
-    widget->runProgram();
+    widget->identifySelection();
 
     // Get number of hits and extract selection
     // Each record is as follows:
@@ -228,7 +219,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     // [3..3+[0]-1]: List of names
     widget->selection = widget->savedSelection;
     int hits = glRenderMode(GL_RENDER);
-    uint selected = 0;
+    GLuint selected = 0;
     if (hits > 0)
     {
         GLuint *ptr = buffer;
@@ -237,14 +228,14 @@ Activity *Selection::MouseMove(int x, int y, bool active)
             uint size = ptr[0];
             selected = ptr[3];
             if (selected)
-                widget->selection.insert(selected);
+                widget->selection[selected] = 1;
             ptr += 3 + size;
         }
     }
     delete[] buffer;
 
     // Need a refresh
-    widget->updateGL();
+    Idle();
 
     // We dealt with the mouse move, don't let other activities get it
     return NULL;

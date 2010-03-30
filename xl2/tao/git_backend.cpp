@@ -21,6 +21,7 @@
 
 #include "git_backend.h"
 #include "renderer.h"
+#include "options.h"
 #include <QDir>
 #include <QString>
 #include <QtGlobal>
@@ -188,8 +189,16 @@ bool GitRepository::change(text name)
 //   Signal that a file in the repository changed
 // ----------------------------------------------------------------------------
 {
-    Process cmd(command(), QStringList("add") << +name, path);
-    return cmd.done(&errors);
+    Process *cmd;
+    cmd = new Process(command(), QStringList("add") << +name, path, false);
+    connect(cmd,  SIGNAL(finished(int,QProcess::ExitStatus)),
+            this, SLOT  (asyncProcessFinished(int)));
+    connect(cmd,  SIGNAL(error(QProcess::ProcessError)),
+            this, SLOT  (asyncProcessError(QProcess::ProcessError)));
+    asyncProc.append(cmd);
+    if (asyncProc.count() == 1)
+        cmd->start();
+    return true;
 }
 
 
@@ -219,6 +228,65 @@ bool GitRepository::commit(text message, bool all)
         if (errors.find("nothing added") != errors.npos)
             result = true;
     return result;
+}
+
+
+bool GitRepository::asyncCommit(text message, bool all)
+// ----------------------------------------------------------------------------
+//   Rename a file in the repository
+// ----------------------------------------------------------------------------
+{
+    QStringList args("commit");
+    if (all)
+        args << "-a";
+    args << "--allow-empty"    // Don't fail if working directory is clean
+         << "-m" << +message;
+    Process *cmd = new Process(command(), args, path, false);
+    connect(cmd,  SIGNAL(finished(int,QProcess::ExitStatus)),
+            this, SLOT  (asyncProcessFinished(int)));
+    connect(cmd,  SIGNAL(error(QProcess::ProcessError)),
+            this, SLOT  (asyncProcessError(QProcess::ProcessError)));
+    asyncProc.append(cmd);
+    if (asyncProc.count() == 1)
+        cmd->start();
+    return true;
+}
+
+
+void GitRepository::asyncProcessFinished(int exitCode)
+// ----------------------------------------------------------------------------
+//   An asynchronous subprocess has finished normally
+// ----------------------------------------------------------------------------
+{
+    Process *cmd = dynamic_cast<Process*>(sender());
+    if (exitCode)
+    {
+        bool ok = false;
+        cmd->done(&errors);
+        if (cmd->args.first() == "commit")
+            if (errors.find("nothing added") != errors.npos)
+                ok = true;
+        if (!ok)
+            std::cerr << +tr("Async command failed, exit status %1: %2")
+                             .arg((int)exitCode).arg(cmd->commandLine);
+    }
+    delete asyncProc.takeFirst();  // TODO RAII?
+    if (asyncProc.count())
+        asyncProc.first()->start();
+}
+
+
+void  GitRepository::asyncProcessError(QProcess::ProcessError error)
+// ----------------------------------------------------------------------------
+//   An asynchronous subprocess has finished in error (e.g., crashed)
+// ----------------------------------------------------------------------------
+{
+    Process *cmd = dynamic_cast<Process*>(sender());
+    std::cerr << +tr("Async command error %1: %2")
+                    .arg((int)error).arg(cmd->commandLine);
+    delete asyncProc.takeFirst();  // TODO RAII?
+    if (asyncProc.count())
+        asyncProc.first()->start();
 }
 
 

@@ -32,13 +32,16 @@
 #include <QtGlobal>
 #include <iostream>
 
-TAO_BEGIN
+namespace Tao {
 
-struct GitRepository : Repository
+class GitRepository : public QObject, public Repository
 // ----------------------------------------------------------------------------
 //   A Git repository
 // ----------------------------------------------------------------------------
 {
+    Q_OBJECT
+
+public:
     GitRepository(const QString &path): Repository(path) { }
     virtual ~GitRepository() {}
 
@@ -53,6 +56,7 @@ public:
     virtual bool        change(text name);
     virtual bool        rename(text from, text to);
     virtual bool        commit(text message, bool all=false);
+    virtual bool        asyncCommit(text message, bool all=false);
     virtual bool        merge(text branch);
     virtual bool        reset();
 
@@ -67,8 +71,13 @@ private:
     bool                initialCommit();
 
     static QString      gitCommand;
+    QList<Process *>    asyncProc;
+
+private slots:
+    void                asyncProcessFinished(int exitCode);
+    void                asyncProcessError(QProcess::ProcessError error);
 };
 
-TAO_END
+}
 
 #endif // GIT_BACKEND_H

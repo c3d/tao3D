@@ -522,7 +522,7 @@ bool Widget::doCommit()
 {
     IFTRACE(filesync)
             std::cerr << "Commit: " << whatsNew << "\n";
-    if (repository()->commit(whatsNew))
+    if (repository()->asyncCommit(whatsNew))
     {
         XL::Main *xlr = XL::MAIN;
         whatsNew = "";

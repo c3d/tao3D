@@ -43,15 +43,17 @@ Process::Process(size_t bufSize)
 Process::Process(const QString &cmd,
                  const QStringList &args,
                  const QString &wd,
+                 bool  startImmediately,
                  size_t bufSize)
 // ----------------------------------------------------------------------------
-//   Create a QProcess and start it
+//   Create a QProcess
 // ----------------------------------------------------------------------------
-    : commandLine("")
+    : commandLine(""), cmd(cmd), args(args), wd(wd)
 {
     setWorkingDirectory(wd);
     initialize(bufSize);
-    start(cmd, args);
+    if (startImmediately)
+        start();
 }
 
 
@@ -80,6 +82,15 @@ void Process::start(const QString &cmd, const QStringList &args,
                   << " (wd " << +workingDirectory() << ")\n";
 
     QProcess::start(cmd, args);
+}
+
+
+void Process::start()
+// ----------------------------------------------------------------------------
+//   Start child process
+// ----------------------------------------------------------------------------
+{
+    start(cmd, args, wd);
 }
 
 

@@ -207,11 +207,11 @@ double Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
 // 
 // ============================================================================
 
-ControlPoint::ControlPoint(real_r x, real_r y, uint id)
+ControlPoint::ControlPoint(real_r x, real_r y, real_r z, uint id)
 // ----------------------------------------------------------------------------
 //   Record where we want to draw
 // ----------------------------------------------------------------------------
-    : Manipulator(), x(x), y(y), id(id)
+    : Manipulator(), x(x), y(y), z(z), id(id)
 {}
 
 
@@ -220,7 +220,7 @@ bool ControlPoint::DrawHandles(Layout *layout)
 //   For a control point, there is a single handle
 // ----------------------------------------------------------------------------
 {
-    if (DrawHandle(layout, Point3(x, y, 0), id))
+    if (DrawHandle(layout, Point3(x, y, z), id))
     {
         Widget *widget = layout->Display();
         Vector3 v = widget->dragDelta();
@@ -228,6 +228,7 @@ bool ControlPoint::DrawHandles(Layout *layout)
         {
             updateArg(widget, &x,  v.x);
             updateArg(widget, &y,  v.y);
+            updateArg(widget, &z,  v.z);
             widget->markChanged("Control point moved");
             return true;
         }
@@ -353,10 +354,21 @@ bool DrawingManipulator::IsAttribute()
 }
 
 
+bool DrawingManipulator::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Default is to draw no handle...
+// ----------------------------------------------------------------------------
+{
+    (void) layout;
+    return false;
+}
+
+
+
 
 // ============================================================================
 //
-//   A widget manipulator doesn't take input in the middle of the surface
+//   A frame manipulator allows click-through for rectangular shapes
 //
 // ============================================================================
 
@@ -450,7 +462,7 @@ bool FrameManipulator::DrawHandles(Layout *layout)
 
 // ============================================================================
 //
-//   A rectangle manipulator udpates x, y, w and h
+//   A rectangle manipulator udpates x, y, w and h and allows translation
 //
 // ============================================================================
 
@@ -461,6 +473,22 @@ ControlRectangle::ControlRectangle(real_r x, real_r y, real_r w, real_r h,
 // ----------------------------------------------------------------------------
     : FrameManipulator(x, y, w, h, child)
 {}
+
+
+void ControlRectangle::DrawSelection(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Avoid drawing the selection for the child
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = layout->Display();
+    bool loadId = widget->currentId() != ~0U;
+    if (loadId)
+        glLoadName(widget->newId());
+    child->DrawSelection(layout);    // Don't draw it
+    Manipulator::DrawSelection(layout);
+    if (loadId)
+        glLoadName(0);
+}
 
 
 bool ControlRectangle::DrawHandles(Layout *layout)
@@ -518,6 +546,195 @@ void WidgetManipulator::DrawSelection(Layout *layout)
         glLoadName(0);
     if (selected)
         widget->drawSelection(Bounds(), "widget_selection");
+}
+
+
+
+// ============================================================================
+//
+//   A box manipulator displays the 8 external control points
+//
+// ============================================================================
+
+BoxManipulator::BoxManipulator(real_r x, real_r y, real_r z,
+                               real_r w, real_r h, real_r d,
+                               Drawing *child)
+// ----------------------------------------------------------------------------
+//   A control rectangle owns a given child and manipulates it
+// ----------------------------------------------------------------------------
+    : DrawingManipulator(child), x(x), y(y), z(z), w(w), h(h), d(d)
+{}
+
+
+void BoxManipulator::DrawSelection(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Avoid drawing the selection for the child
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = layout->Display();
+    bool loadId = widget->currentId() != ~0U;
+    if (loadId)
+        glLoadName(widget->newId());
+    child->DrawSelection(layout);    // Don't draw the child, only identify it
+    Manipulator::DrawSelection(layout);
+    if (loadId)
+        glLoadName(0);
+}
+
+
+bool BoxManipulator::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the handles around a widget
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = layout->Display();
+    coord   xx = x, yy = y, zz = z, ww = w, hh = h, dd = d;
+    Vector3 v = widget->dragDelta();
+    bool    changed = v.x != 0 || v.y != 0 || v.z != 0;
+
+    // Lower-left front corner
+    if (DrawHandle(layout, Point3(xx - ww/2, yy - hh/2, zz - dd/2), 1))
+    {
+        if (changed)
+        {
+            updateArg(widget, &w, -2*updateArg(widget, &x,  v.x/2));
+            updateArg(widget, &h, -2*updateArg(widget, &y,  v.y/2));
+            updateArg(widget, &d, -2*updateArg(widget, &z,  v.z/2));
+            widget->markChanged("Lower left front corner moved");
+            changed = false;
+        }
+    }
+
+    // Lower-right front corner
+    if (DrawHandle(layout, Point3(xx + ww/2, yy - hh/2, zz - dd/2), 2))
+    {
+        if (changed)
+        {
+            updateArg(widget, &w,  2*updateArg(widget, &x,  v.x/2));
+            updateArg(widget, &h, -2*updateArg(widget, &y,  v.y/2));
+            updateArg(widget, &d, -2*updateArg(widget, &z,  v.z/2));
+            widget->markChanged("Lower right front corner moved");
+            changed = false;
+        }
+    }
+
+    // Upper-left front corner
+    if (DrawHandle(layout, Point3(xx - ww/2, yy + hh/2, zz - dd/2), 3))
+    {
+        if (changed)
+        {
+            updateArg(widget, &w, -2*updateArg(widget, &x,  v.x/2));
+            updateArg(widget, &h,  2*updateArg(widget, &y,  v.y/2));
+            updateArg(widget, &d, -2*updateArg(widget, &z,  v.z/2));
+            widget->markChanged("Uppper left front corner moved");
+            changed = false;
+        }
+    }
+
+    // Upper-right front corner
+    if (DrawHandle(layout, Point3(xx + ww/2, yy + hh/2, zz - dd/2), 4))
+    {
+        if (changed)
+        {
+            updateArg(widget, &w,  2*updateArg(widget, &x,  v.x/2));
+            updateArg(widget, &h,  2*updateArg(widget, &y,  v.y/2));
+            updateArg(widget, &d, -2*updateArg(widget, &z,  v.z/2));
+            widget->markChanged("Upper right front corner moved");
+            changed = false;
+        }
+    }
+
+    // Lower-left back corner
+    if (DrawHandle(layout, Point3(xx - ww/2, yy - hh/2, zz + dd/2), 5))
+    {
+        if (changed)
+        {
+            updateArg(widget, &w, -2*updateArg(widget, &x,  v.x/2));
+            updateArg(widget, &h, -2*updateArg(widget, &y,  v.y/2));
+            updateArg(widget, &d,  2*updateArg(widget, &z,  v.z/2));
+            widget->markChanged("Lower left back corner moved");
+            changed = false;
+        }
+    }
+
+    // Lower-right back corner
+    if (DrawHandle(layout, Point3(xx + ww/2, yy - hh/2, zz + dd/2), 6))
+    {
+        if (changed)
+        {
+            updateArg(widget, &w,  2*updateArg(widget, &x,  v.x/2));
+            updateArg(widget, &h, -2*updateArg(widget, &y,  v.y/2));
+            updateArg(widget, &d,  2*updateArg(widget, &z,  v.z/2));
+            widget->markChanged("Lower right back corner moved");
+            changed = false;
+        }
+    }
+
+    // Upper-left back corner
+    if (DrawHandle(layout, Point3(xx - ww/2, yy + hh/2, zz + dd/2), 7))
+    {
+        if (changed)
+        {
+            updateArg(widget, &w, -2*updateArg(widget, &x,  v.x/2));
+            updateArg(widget, &h,  2*updateArg(widget, &y,  v.y/2));
+            updateArg(widget, &d,  2*updateArg(widget, &z,  v.z/2));
+            widget->markChanged("Uppper left back corner moved");
+            changed = false;
+        }
+    }
+
+    // Upper-right back corner
+    if (DrawHandle(layout, Point3(xx + ww/2, yy + hh/2, zz + dd/2), 8))
+    {
+        if (changed)
+        {
+            updateArg(widget, &w,  2*updateArg(widget, &x,  v.x/2));
+            updateArg(widget, &h,  2*updateArg(widget, &y,  v.y/2));
+            updateArg(widget, &d,  2*updateArg(widget, &z,  v.z/2));
+            widget->markChanged("Upper right back corner moved");
+            changed = false;
+        }
+    }
+
+    return changed;
+}
+
+
+
+// ============================================================================
+//
+//   A control box manipulator udpates 3D position and size
+//
+// ============================================================================
+
+ControlBox::ControlBox(real_r x, real_r y, real_r z,
+                       real_r w, real_r h, real_r d,
+                       Drawing *child)
+// ----------------------------------------------------------------------------
+//   A control rectangle owns a given child and manipulates it
+// ----------------------------------------------------------------------------
+    : BoxManipulator(x, y, z, w, h, d, child)
+{}
+
+
+bool ControlBox::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the handles for a 3D object
+// ----------------------------------------------------------------------------
+{
+    // Check if we clicked anywhere else in the shape
+    bool changed = BoxManipulator::DrawHandles(layout);
+    if (changed)
+    {
+        Widget *widget = layout->Display();
+        Vector3 v = widget->dragDelta();
+        updateArg(widget, &x, v.x);
+        updateArg(widget, &y, v.y);
+        updateArg(widget, &z, v.z);
+        widget->markChanged("3D shape moved");
+        changed = false;
+    }
+    return changed;
 }
 
 TAO_END

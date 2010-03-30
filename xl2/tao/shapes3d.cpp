@@ -22,10 +22,28 @@
 
 #include "shapes3d.h"
 #include "layout.h"
+#include "widget.h"
 #include <QtOpenGL>
 
 TAO_BEGIN
 
+void Shape3::DrawSelection(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw a selection for 3-dimensional objects
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = layout->Display();
+    if (widget->selected())
+    {
+        Color line(1.0, 0.0, 0.0, 0.5);
+        Color fill(0.0, 0.7, 1.0, 0.1);
+        XL::LocalSave<Color> saveLine(layout->lineColor, line);
+        XL::LocalSave<Color> saveFill(layout->fillColor, fill);
+        widget->drawSelection(Bounds(), "3D_selection");
+    }
+}
+
+    
 Box3 Cube::Bounds()
 // ----------------------------------------------------------------------------
 //   Return the bounding box for a 3D shape
@@ -59,12 +77,12 @@ void Cube::Draw(Layout *where)
     };
 
     static GLint textures[][2] = {
+        {1, 0}, {1, 1}, {0, 1}, {0, 0},
         {0, 0}, {1, 0}, {1, 1}, {0, 1},
-        {0, 0}, {0, 1}, {1, 1}, {1, 0},
         {0, 0}, {1, 0}, {1, 1}, {0, 1},
-        {1, 0}, {0, 0}, {0, 1}, {1, 1},
-        {0, 0}, {1, 0}, {1, 1}, {0, 1},
-        {1, 0}, {0, 0}, {0, 1}, {1, 1}
+        {0, 1}, {0, 0}, {1, 0}, {1, 1},
+        {0, 1}, {0, 0}, {1, 0}, {1, 1},
+        {1, 0}, {1, 1}, {0, 1}, {0, 0}
     };
 
     glEnableClientState(GL_VERTEX_ARRAY);

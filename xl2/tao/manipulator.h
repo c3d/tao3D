@@ -60,11 +60,11 @@ struct ControlPoint : Manipulator
 //    A control point in an object like a path
 // ----------------------------------------------------------------------------
 {
-    ControlPoint(real_r x, real_r y, uint id);
+    ControlPoint(real_r x, real_r y, real_r z, uint id);
     virtual bool        DrawHandles(Layout *layout);
 
 protected:
-    real_r              x, y;
+    real_r              x, y, z;
     uint                id;
 };
 
@@ -80,6 +80,7 @@ struct DrawingManipulator : Manipulator
     virtual void        Draw(Layout *layout);
     virtual void        DrawSelection(Layout *layout);
     virtual void        Identify(Layout *layout);
+    virtual bool        DrawHandles(Layout *layout);
     virtual Box3        Bounds();
     virtual Box3        Space();
     virtual bool        IsWordBreak();
@@ -112,7 +113,7 @@ struct ControlRectangle : FrameManipulator
 {
     ControlRectangle(real_r x, real_r y, real_r w, real_r h,
                      Drawing *child);
-
+    virtual void        DrawSelection(Layout *layout);
     virtual bool        DrawHandles(Layout *layout);
 };
 
@@ -130,6 +131,31 @@ protected:
     WidgetSurface *     surface;
 };
 
+
+struct BoxManipulator : DrawingManipulator
+// ----------------------------------------------------------------------------
+//   Dispays 8 handles in the corner, but clicks in the volume pass through
+// ----------------------------------------------------------------------------
+{
+    BoxManipulator(real_r x, real_r y, real_r z, real_r w, real_r h, real_r d,
+                   Drawing *child);
+    virtual void        DrawSelection(Layout *layout);
+    virtual bool        DrawHandles(Layout *layout);
+
+protected:
+    real_r              x, y, z, w, h, d;
+};
+
+
+struct ControlBox : BoxManipulator
+// ----------------------------------------------------------------------------
+//   Manipulators for a box-bounded object
+// ----------------------------------------------------------------------------
+{
+    ControlBox(real_r x, real_r y, real_r z, real_r w, real_r h, real_r d,
+               Drawing *child);
+    virtual bool        DrawHandles(Layout *layout);
+};
 
 TAO_END
 

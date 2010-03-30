@@ -36,12 +36,6 @@ TAO_BEGIN
 //
 // ============================================================================
 
-double Shape::red = -1;
-double Shape::green = -1;
-double Shape::blue = -1;
-double Shape::alpha = -1;
-
-
 bool Shape::setTexture(Layout *where)
 // ----------------------------------------------------------------------------
 //   Get the texture from the layout
@@ -73,16 +67,7 @@ bool Shape::setFillColor(Layout *where)
         Color &color = where->fillColor;
         if (color.alpha > 0.0)
         {
-            // Check cached GL color
-            if (color.red  == red  && color.green == green &&
-                color.blue == blue && color.alpha != alpha)
-                return true;
-
             glColor4f(color.red, color.green, color.blue, color.alpha);
-            red = color.red;
-            green = color.green;
-            blue = color.blue;
-            alpha = color.alpha;
             return true;
         }
     }
@@ -101,16 +86,7 @@ bool Shape::setLineColor(Layout *where)
         Color &color = where->lineColor;
         if (color.alpha > 0.0)
         {
-            // Check cached GL color
-            if (color.red  == red  && color.green == green &&
-                color.blue == blue && color.alpha != alpha)
-                return true;
-                
             glColor4f(color.red, color.green, color.blue, color.alpha);
-            red = color.red;
-            green = color.green;
-            blue = color.blue;
-            alpha = color.alpha;
             return true;
         }
     }

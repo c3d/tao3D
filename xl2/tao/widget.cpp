@@ -101,6 +101,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 
     // Create the main page we draw on
     space = new SpaceLayout(this);
+    layout = space;
 
     // Prepare the timers
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
@@ -1961,7 +1962,7 @@ Tree *Widget::colorChooserTexture(Tree *self,double w, double h)
     ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
     if (!surface)
     {
-        surface = new ColorChooserSurface(this);
+        surface = new ColorChooserSurface(self, this);
         self->SetInfo<ColorChooserSurface> (surface);
     }
 

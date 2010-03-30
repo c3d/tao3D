@@ -333,11 +333,11 @@ void PushButtonSurface::clicked(bool checked)
         xl_evaluate(action);
 }
 
-ColorChooserSurface::ColorChooserSurface(Widget *parent)
+ColorChooserSurface::ColorChooserSurface(XL::Tree *self, Widget *parent)
 // ----------------------------------------------------------------------------
 //    Create the Color Chooser surface
 // ----------------------------------------------------------------------------
-  : WidgetSurface(new QColorDialog(parent))
+  : WidgetSurface(new QColorDialog(parent)), ref(self)
 {
     QColorDialog *diag = (QColorDialog *) widget;
     connect(diag, SIGNAL(colorSelected (const QColor&)),
@@ -362,7 +362,7 @@ void ColorChooserSurface::colorchosen(const QColor &color)
     {
         std::cerr << "Color was chosen "<< color.name().toStdString() << "\n";
     }
-    ((Widget *)parent())->lineColor(NULL,
+    ((Widget*)widget->parent())->lineColor(ref,
                                     color.redF(),
                                     color.greenF(),
                                     color.blueF(),

@@ -244,6 +244,7 @@ private:
     friend class Selection;
     friend class Drag;
     friend class Manipulator;
+    friend class ControlPoint;
 
     typedef XL::LocalSave<QEvent *> EventSave;
     typedef std::map<GLuint, uint>  selection_map;

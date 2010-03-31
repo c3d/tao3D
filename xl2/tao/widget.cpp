@@ -1164,9 +1164,8 @@ Tree *Widget::locally(Tree *self, Tree *child)
 //   Evaluate the child tree while preserving the OpenGL context
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> save(layout, layout->NewChild());
+    XL::LocalSave<Layout *> save(layout, layout->AddChild());
     Tree *result = xl_evaluate(child);
-    save.saved->Add(layout);
     return result;
 }
 
@@ -1345,7 +1344,7 @@ Tree *Widget::moveTo(Tree *self, real_r x, real_r y, real_r z)
     if (path)
     {
         path->moveTo(Point3(x,y,z));
-        layout->Add(new ControlPoint(x, y, z, path->elements.size()));
+        path->AddControl(x, y, z);
     }
     else
     {
@@ -1363,7 +1362,7 @@ Tree *Widget::lineTo(Tree *self, real_r x, real_r y, real_r z)
     if (!path)
         return Ooops("No path for '$1'", self);
     path->lineTo(Point3(x,y,z));
-    layout->Add(new ControlPoint(x, y, z, path->elements.size()));
+    path->AddControl(x, y, z);
     return XL::xl_true;
 }
 
@@ -1378,7 +1377,7 @@ Tree *Widget::curveTo(Tree *self,
     if (!path)
         return Ooops("No path for '$1'", self);
     path->curveTo(Point3(cx, cy, cz), Point3(x,y,z));
-    layout->Add(new ControlPoint(x, y, z, path->elements.size()));
+    path->AddControl(x, y, z);
     return XL::xl_true;
 }
 
@@ -1394,7 +1393,7 @@ Tree *Widget::curveTo(Tree *self,
     if (!path)
         return Ooops("No path for '$1'", self);
     path->curveTo(Point3(c1x, c1y, c1z), Point3(c2x, c2y, c2z), Point3(x,y,z));
-    layout->Add(new ControlPoint(x, y, z, path->elements.size()));
+    path->AddControl(x, y, z);
     return XL::xl_true;
 }
 
@@ -1407,7 +1406,7 @@ Tree *Widget::moveToRel(Tree *self, real_r x, real_r y, real_r z)
     if (path)
     {
         path->moveTo(Vector3(x,y,z));
-        layout->Add(new ControlPoint(x, y, z, path->elements.size()));
+        path->AddControl(x, y, z);
     }
     else
     {
@@ -1425,7 +1424,7 @@ Tree *Widget::lineToRel(Tree *self, real_r x, real_r y, real_r z)
     if (!path)
         return Ooops("No path for '$1'", self);
     path->lineTo(Vector3(x,y,z));
-    layout->Add(new ControlPoint(x, y, z, path->elements.size()));
+    path->AddControl(x, y, z);
     return XL::xl_true;
 }
 
@@ -1747,13 +1746,12 @@ Tree *Widget::framePaint(Tree *self,
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
     Tree *result = frameTexture(self, w, h, prog);
 
     // Draw a rectangle with the resulting texture
     layout->Add(new FrameManipulator(x, y, w, h,
                                      new Rectangle(Box(x-w/2, y-h/2, w, h))));
-    saveLayout.saved->Add(layout);
     return result;
 }
 
@@ -1814,11 +1812,10 @@ Tree *Widget::urlPaint(Tree *self,
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
     urlTexture(self, w, h, url, progress);
     WebViewSurface *surface = url->GetInfo<WebViewSurface>();
     layout->Add(new WidgetManipulator(x, y, w, h, surface));
-    saveLayout.saved->Add(layout);
     return XL::xl_true;
 }
 
@@ -1856,12 +1853,11 @@ Tree *Widget::lineEdit(Tree *self,
 //   Draw a line editor in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
     lineEditTexture(self, w, h, txt);
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
     layout->Add(new WidgetManipulator(x, y, w, h, surface));
-    saveLayout.saved->Add(layout);
     return XL::xl_true;
 }
 

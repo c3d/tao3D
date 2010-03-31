@@ -67,6 +67,17 @@ Layout::~Layout()
 }
 
 
+Layout *Layout::AddChild()
+// ----------------------------------------------------------------------------
+//   Add a new layout as a child of this one
+// ----------------------------------------------------------------------------
+{
+    Layout *result = NewChild();
+    Add(result);
+    return result;
+}
+
+
 void Layout::Clear()
 // ----------------------------------------------------------------------------
 //   Reset the layout to the initial setup

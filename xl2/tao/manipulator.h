@@ -62,6 +62,9 @@ struct ControlPoint : Manipulator
 {
     ControlPoint(real_r x, real_r y, real_r z, uint id);
     virtual bool        DrawHandles(Layout *layout);
+    virtual void        Draw(Layout *layout);
+    virtual void        DrawSelection(Layout *layout);
+    virtual void        Identify(Layout *layout);
 
 protected:
     real_r              x, y, z;

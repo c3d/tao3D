@@ -83,8 +83,9 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
+    Vector3 offset = layout->Offset();
     glLoadName(id);
-    widget->drawHandle(p, "handle");
+    widget->drawHandle(p + offset, "handle");
     glLoadName(0);
     bool selected = widget->manipulator == id;
     return selected;
@@ -213,6 +214,36 @@ ControlPoint::ControlPoint(real_r x, real_r y, real_r z, uint id)
 // ----------------------------------------------------------------------------
     : Manipulator(), x(x), y(y), z(z), id(id)
 {}
+
+
+void ControlPoint::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    Draw a control point
+// ----------------------------------------------------------------------------
+{
+    Manipulator::Draw(where);
+}
+
+
+void ControlPoint::DrawSelection(Layout *layout)
+// ----------------------------------------------------------------------------
+//    Draw the selection for a control point
+// ----------------------------------------------------------------------------
+{
+    // We don't need to glPushName, as the parent should have done it for us
+    Widget *widget = layout->Display();
+    if (widget->selected())
+        DrawHandles(layout);
+}
+
+
+void ControlPoint::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//    Select the identity for a control point
+// ----------------------------------------------------------------------------
+{
+    ControlPoint::DrawSelection(where);
+}
 
 
 bool ControlPoint::DrawHandles(Layout *layout)
@@ -545,7 +576,7 @@ void WidgetManipulator::DrawSelection(Layout *layout)
     if (loadId)
         glLoadName(0);
     if (selected)
-        widget->drawSelection(Bounds(), "widget_selection");
+        widget->drawSelection(Bounds() + layout->Offset(), "widget_selection");
 }
 
 

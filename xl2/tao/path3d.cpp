@@ -22,6 +22,7 @@
 
 #include "path3d.h"
 #include "layout.h"
+#include "manipulator.h"
 #include "gl_keepers.h"
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -34,11 +35,28 @@ typedef GraphicPath::VertexData         VertexData;
 typedef GraphicPath::PolygonData        PolygonData;
 typedef GraphicPath::Vertices           Vertices;
 typedef GraphicPath::DynamicVertices    DynamicVertices;
-scale GraphicPath::default_steps = 3;
+scale GraphicPath::default_steps = 5;
 
 #ifndef CALLBACK // Needed for Windows
 #define CALLBACK
 #endif
+
+
+GraphicPath::GraphicPath()
+// ----------------------------------------------------------------------------
+//   Constructor
+// ----------------------------------------------------------------------------
+    : Shape()
+{}
+
+
+GraphicPath::~GraphicPath()
+// ----------------------------------------------------------------------------
+//   Destructor deletes all control points
+// ----------------------------------------------------------------------------
+{
+    clear();
+}
 
 
 GraphicPath::PolygonData::~PolygonData()
@@ -200,7 +218,7 @@ void GraphicPath::Draw(Layout *where, GLenum mode, GLenum tesselation)
                 // REVISIT: Implement a true optimization of the interpolation
                 // Compute a good number of points for approximating the curve
                 scale length = (v2-v0).Length() + 1;
-                scale order = log(length);
+                scale order = log2(length);
                 uint steps = ceil (order + default_steps);
                 double dt = 1.0 / steps;
                 double lt = 1.0 + dt/2;
@@ -462,6 +480,62 @@ void GraphicPath::clear()
     elements.clear();
     start = position = Point3();
     bounds = Box3();
+
+    // Delete the control points
+    control_points::iterator i;
+    for (i = controls.begin(); i != controls.end(); i++)
+        delete *i;
+    controls.clear();
+}
+
+
+void GraphicPath::AddControl(real_r x, real_r y, real_r z)
+// ----------------------------------------------------------------------------
+//   Add a control point to a path
+// ----------------------------------------------------------------------------
+{
+    controls.push_back(new ControlPoint(x, y, z, controls.size() + 1));
+}
+
+
+void GraphicPath::DrawSelection(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw the control points
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = where->Display();
+    if (widget->selected())
+    {
+        glPushName(0);
+        control_points::iterator i;
+        for (i = controls.begin(); i != controls.end(); i++)
+        {
+            ControlPoint *child = *i;
+            child->DrawSelection(where);
+        }
+        glPopName();
+    }
+}
+
+
+void GraphicPath::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   Identify the control points
+// ----------------------------------------------------------------------------
+{
+    Draw(where);
+    Widget *widget = where->Display();
+    if (widget->selected())
+    {
+        glPushName(0);
+        control_points::iterator i;
+        for (i = controls.begin(); i != controls.end(); i++)
+        {
+            ControlPoint *child = *i;
+            child->Identify(where);
+        }
+        glPopName();
+    }
 }
 
 

@@ -45,7 +45,7 @@ SvgRendererInfo::~SvgRendererInfo()
 }
 
 
-void SvgRendererInfo::bind (text file)
+GLuint SvgRendererInfo::bind (text file)
 // ----------------------------------------------------------------------------
 //    Activate a given SVG renderer
 // ----------------------------------------------------------------------------
@@ -62,17 +62,12 @@ void SvgRendererInfo::bind (text file)
 
         QString svgFile(QString::fromStdString(file));
         QFileInfo svgInfo(svgFile);
-        if (!svgInfo.exists())
+        if (svgInfo.exists())
         {
-            // Look for SVG file in current document's directory
-            QString   svgFileName(svgInfo.fileName());
-            QFileInfo docInfo(QString::fromStdString(widget->xlProgram->name));
-            QString   docDir(docInfo.canonicalPath());
-            svgFile = QString("%1/%2").arg(docDir).arg(svgFileName);
+            r = new QSvgRenderer(svgFile, widget);
+            r->connect(r, SIGNAL(repaintNeeded()), widget, SLOT(updateGL()));
+            renderers[file] = r;
         }
-        r = new QSvgRenderer(svgFile, widget);
-        r->connect(r, SIGNAL(repaintNeeded()), widget, SLOT(updateGL()));
-        renderers[file] = r;
     }
 
     if (r)
@@ -85,7 +80,7 @@ void SvgRendererInfo::bind (text file)
         r->render(&painter);
     }
 
-    FrameInfo::bind();
+    return FrameInfo::bind();
 }
 
 TAO_END

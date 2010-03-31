@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  drag.cpp                                                       Tao project
+//  space_layout.cpp                                                Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     An activity to drag widgets
+//     Layout objects in 3D space (z-ordering, ...)
 //
 //
 //
@@ -17,74 +17,47 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2010 Jerome Forissier <jerome@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "drag.h"
-#include "widget.h"
-#include <QtDebug>
+#include "space_layout.h"
+#include "attributes.h"
 
 TAO_BEGIN
 
-Drag::Drag(Widget *w)
+SpaceLayout::SpaceLayout(Widget *widget)
 // ----------------------------------------------------------------------------
-//   Initialize the drag object
+//   Constructor sets defaults
 // ----------------------------------------------------------------------------
-    : Activity("Drag Activity", w)
+    : Layout(widget)
 {}
 
 
-Activity *Drag::Click(uint button, bool down, int x, int y)
+SpaceLayout::~SpaceLayout()
 // ----------------------------------------------------------------------------
-//   Initial and final click when dragging an object
+//   Destructore
+// ----------------------------------------------------------------------------
+{}
+
+
+Box3 SpaceLayout::Space()
+// ----------------------------------------------------------------------------
+//   Return the space for the layout
 // ----------------------------------------------------------------------------
 {
-    if (button & Qt::LeftButton)
-    {
-        if (down)
-        {
-            x2 = x1 = x;
-            y2 = y1 = y;
-        }
-        else
-        {
-            Activity *next = this->next;
-            widget->manipulator = 0;
-            delete this;
-            return next;
-        }
-    }
-
-    // Pass it down the chain
-    return next;
+    Box3 result = Bounds();
+    result |= space;
+    return result;
 }
 
 
-Activity *Drag::MouseMove(int x, int y, bool active)
+Layout &SpaceLayout::Add(Drawing *d)
 // ----------------------------------------------------------------------------
-//   Save mouse position as it moves
-// ----------------------------------------------------------------------------
-{
-    if (active)
-    {
-        x2 = x;
-        y2 = y;
-    }
-
-    // Pass it down the chain
-    return next;
-}
-
-
-Activity *Drag::Display(void)
-// ----------------------------------------------------------------------------
-//   Reset delta once per screen refresh
+//   Add items to the list at the right position
 // ----------------------------------------------------------------------------
 {
-    x1 = x2;
-    y1 = y2;
-    return next;                // Display following activities
+    return Layout::Add(d);
 }
+
 
 TAO_END

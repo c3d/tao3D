@@ -6,7 +6,7 @@
 //
 //   File Description:
 //
-//     Frames are 2D drawing surfaces, most often rectangular
+//     Frames are 2D rectangular drawing surfaces rendered in a GL framebuffer
 //     Frames can be placed in other frames in a hierarchy.
 //
 //
@@ -26,68 +26,8 @@
 #include "tree.h"
 #include "gl_keepers.h"
 #include <map>
-#include <cairo.h>
-#include <pango/pango.h>
 
 TAO_BEGIN
-
-struct Frame : XL::Info
-// ----------------------------------------------------------------------------
-//   A 2D (rectangular) drawing structure
-// ----------------------------------------------------------------------------
-{
-    Frame();
-    ~Frame();
-
-    // Setup
-    void             Resize(uint w, uint h);
-
-    // Drawing
-    void             Color(double red, double grn, double blu, double alpha=1);
-    void             Clear();
-    void             MoveTo(double x, double y);
-    void             Font(text s);
-    void             FontSize(double s);
-    void             Text(text s);
-    void             Rectangle(double x, double y, double w, double h);
-    void             Stroke();
-    void             Fill();
-    void             LayoutMarkup(text s);
-    void             LayoutText(text s);
-
-    // Path
-    void             CleanPath();
-    void             StrokePreserve();
-    void             FillPreserve();
-    void             ClosePath();
-    void             CurveTo(double x1,
-                             double y1,
-                             double x2,
-                             double y2,
-                             double x3,
-                             double y3);
-    void              LineTo(double x,
-                             double y);
-    void              Arc(double xCenter,
-                          double yCenter,
-                          double radius,
-                          double angleStart,
-                          double angleStop,
-                          bool isPositive);
-
-    // End of drawing, paint the frame
-    void             Paint();
-
-private:
-    cairo_surface_t      *surface;
-    cairo_t              *context;
-    PangoLayout          *layout;
-    PangoFontDescription *font;
-
-    // No support for copying frames around
-    Frame(const Frame &o): XL::Info(o) {}
-};
-
 
 struct FrameInfo : XL::Info
 // ----------------------------------------------------------------------------
@@ -105,7 +45,7 @@ struct FrameInfo : XL::Info
     void resize(uint width, uint height);
     void begin();
     void end();
-    void bind();
+    GLuint bind();
 
     QGLFramebufferObject *render_fbo;
     QGLFramebufferObject *texture_fbo;

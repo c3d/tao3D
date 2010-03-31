@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  apply-changes.cpp                                               XLR project
+//  apply_changes.cpp                                               Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -20,9 +20,9 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "apply-changes.h"
+#include "apply_changes.h"
 #include "main.h"
-#include "widget-surface.h"
+#include "widget_surface.h"
 #include <sys/stat.h>
 #include <iostream>
 

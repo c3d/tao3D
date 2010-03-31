@@ -1,18 +1,18 @@
 // ****************************************************************************
 //  options.tbl                                                     XLR project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     This table defines the options known to the compiler.
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -30,9 +30,9 @@
 
 
 // ============================================================================
-// 
+//
 //    XLR options
-// 
+//
 // ============================================================================
 
 // Getting help on options
@@ -99,9 +99,9 @@ OPTION(diff, "Compute difference of two parse trees (you must give exactly two i
 
 #ifdef TAO
 // ============================================================================
-// 
+//
 //   Tao options
-// 
+//
 // ============================================================================
 
 OPTVAR(sync_interval, ulong,   500)
@@ -119,6 +119,7 @@ OPTION(gl, "Prefer OpenGL for rendering", prefer_opengl = true)
 
 TRACE(filesync)
 TRACE(menus)
+TRACE(cairo)
 TRACE(process)
 TRACE(drag)
 TRACE(focus)

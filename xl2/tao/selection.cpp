@@ -24,7 +24,7 @@
 #include "selection.h"
 #include "widget.h"
 #include "gl_keepers.h"
-#include <glew.h>
+#include <GL/glew.h>
 #include <QtGui>
 
 TAO_BEGIN
@@ -66,7 +66,7 @@ Activity *Selection::Idle(void)
 //   Make the refresh rate shorter so that we animate the rectangle
 // ----------------------------------------------------------------------------
 {
-    if (!widget->timer.isActive())
+    if (!widget->timerIsActive())
         widget->refresh(NULL, 0.005);
     widget->updateGL();
     return next;               // Keep doing other idle activities
@@ -107,8 +107,9 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
 
 
     // Create the select buffer and switch to select mode
-    GLuint *buffer = new GLuint[4 * widget->capacity];
-    glSelectBuffer(4 * widget->capacity, buffer);
+    GLuint capacity = widget->selectionCapacity();
+    GLuint *buffer = new GLuint[4 * capacity];
+    glSelectBuffer(4 * capacity, buffer);
     glRenderMode(GL_SELECT);
 
     // Adjust viewport for rendering
@@ -119,7 +120,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
     glPushName(0);
 
     // Run the programs, which will give us the list of selectable things
-    widget->runProgram();
+    widget->identifySelection();
 
     // Get number of hits and extract selection
     // Each record is as follows:
@@ -129,7 +130,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
     // [3..3+[0]-1]: List of names
     int hits = glRenderMode(GL_RENDER);
     GLuint selected = 0;
-    GLuint selector = 0;
+    GLuint manipulator = 0;
     if (hits > 0)
     {
         GLuint depth = ~0U;
@@ -138,9 +139,11 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
         {
             uint size = ptr[0];
             if (ptr[3] && ptr[1] < depth)
+            {
                 selected = ptr[3];
-            if (size > 1)
-                selector = ptr[4];
+                if (size > 1)
+                    manipulator = ptr[4];
+            }
             ptr += 3 + size;
         }
         if (selected)
@@ -159,12 +162,8 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
         widget->selectionTrees.clear();
         widget->selection = widget->savedSelection;
         if (selected)
-        {
-            widget->selection.insert(selected);
-            if (!selector)
-                selector = 1;   // Move by default
-        }
-        widget->activeSelector = selector;
+            widget->selection[selected]++;
+        widget->manipulator = manipulator;
     }
 
     // In all cases, we want a screen refresh
@@ -210,7 +209,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     glPushName(0);
 
     // Run the programs, which detects selected items
-    widget->runProgram();
+    widget->identifySelection();
 
     // Get number of hits and extract selection
     // Each record is as follows:
@@ -229,7 +228,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
             uint size = ptr[0];
             selected = ptr[3];
             if (selected)
-                widget->selection.insert(selected);
+                widget->selection[selected] = 1;
             ptr += 3 + size;
         }
     }

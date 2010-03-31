@@ -514,6 +514,8 @@ bool Window::saveFile(const QString &fileName)
     if (taoWidget->writeIfChanged(sf))
         taoWidget->doCommit();
 
+    textEdit->document()->setModified(false);
+    setWindowModified(false);
     return true;
 }
 

@@ -23,7 +23,7 @@
 #include <QtGui>
 #include "window.h"
 #include "widget.h"
-#include "apply-changes.h"
+#include "apply_changes.h"
 #include "git_backend.h"
 #include "application.h"
 
@@ -50,7 +50,7 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
     setWindowIcon(QIcon(":/images/tao.png"));
 
     // Create the widgets
-    QDockWidget *dock = new QDockWidget(tr("Source"));
+    dock = new QDockWidget(tr("Source"));
     dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     textEdit = new QTextEdit(dock);
     dock->setWidget(textEdit);
@@ -344,6 +344,9 @@ void Window::createMenus()
     editMenu->addAction(copyAct);
     editMenu->addAction(pasteAct);
 
+    viewMenu = menuBar()->addMenu(tr("&View"));
+    viewMenu->addAction(dock->toggleViewAction());
+
     menuBar()->addSeparator();
 
     helpMenu = menuBar()->addMenu(tr("&Help"));
@@ -511,6 +514,8 @@ bool Window::saveFile(const QString &fileName)
     if (taoWidget->writeIfChanged(sf))
         taoWidget->doCommit();
 
+    textEdit->document()->setModified(false);
+    setWindowModified(false);
     return true;
 }
 
@@ -592,9 +597,10 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         if (ok && repo && repo->valid())
         {
             text task = repo->branch();
-            ssize_t len = task.length() - (sizeof (TAO_UNDO_SUFFIX) - 1);
+            size_t pos = task.rfind(TAO_UNDO_SUFFIX);
+            size_t len = task.length() - (sizeof(TAO_UNDO_SUFFIX) - 1);
             text currentBranch = task;
-            bool onUndoBranch = len > 0 && task.find(TAO_UNDO_SUFFIX) == len;
+            bool onUndoBranch = pos != task.npos && pos == len;
             bool setTask = true;
             if (onUndoBranch)
             {

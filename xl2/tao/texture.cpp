@@ -45,7 +45,7 @@ ImageTextureInfo::~ImageTextureInfo()
 }
 
 
-void ImageTextureInfo::bind(text file)
+GLuint ImageTextureInfo::bind(text file)
 // ----------------------------------------------------------------------------
 //   Bind the given GL texture
 // ----------------------------------------------------------------------------
@@ -60,27 +60,20 @@ void ImageTextureInfo::bind(text file)
         // Read the image file and convert to proper GL image format
         QString imgFile(QString::fromStdString(file));
         QImage original(imgFile);
-        if (original.isNull())
+        if (!original.isNull())
         {
-            // Look for image file in current document's directory
-            QFileInfo ifi(imgFile);
-            QString   imgFileName(ifi.fileName());
-            QFileInfo dfi(QString::fromStdString(widget->xlProgram->name));
-            QString   docDir(dfi.canonicalPath());
-            imgFile = QString("%1/%2").arg(docDir).arg(imgFileName);
-            original.load(imgFile);
+            QImage texture = QGLWidget::convertToGLFormat(original);
+
+            // Generate the GL texture
+            glGenTextures(1, &textureId);
+            glBindTexture(GL_TEXTURE_2D, textureId);
+            glTexImage2D(GL_TEXTURE_2D, 0, 3,
+                         texture.width(), texture.height(), 0, GL_RGBA,
+                         GL_UNSIGNED_BYTE, texture.bits());
+
+            // Remember the texture for next time
+            textures[file] = textureId;
         }
-        QImage texture = QGLWidget::convertToGLFormat(original);
-
-        // Generate the GL texture
-        glGenTextures(1, &textureId);
-        glBindTexture(GL_TEXTURE_2D, textureId);
-        glTexImage2D(GL_TEXTURE_2D, 0, 3,
-                     texture.width(), texture.height(), 0, GL_RGBA,
-                     GL_UNSIGNED_BYTE, texture.bits());
-
-        // Remember the texture for next time
-        textures[file] = textureId;
     }
 
     glBindTexture(GL_TEXTURE_2D, textureId);
@@ -90,6 +83,8 @@ void ImageTextureInfo::bind(text file)
 #ifdef GL_MULTISAMPLE   // Not supported on Windows
     glEnable(GL_MULTISAMPLE);
 #endif
+
+    return textureId;
 }
 
 TAO_END

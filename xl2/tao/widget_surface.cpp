@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  widget-surface.cpp                                              Tao project
+//  widget_surface.cpp                                              Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -20,7 +20,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "widget-surface.h"
+#include "widget_surface.h"
 #include "gl_keepers.h"
 #include <QtWebKit>
 
@@ -69,7 +69,7 @@ void WidgetSurface::resize(uint w, uint h)
 }
 
 
-void WidgetSurface::bind ()
+GLuint WidgetSurface::bind ()
 // ----------------------------------------------------------------------------
 //    Activate a given widget
 // ----------------------------------------------------------------------------
@@ -99,10 +99,19 @@ void WidgetSurface::bind ()
     glEnable(GL_MULTISAMPLE);
 #endif
 
+    return textureId;
+}
+
+
+void WidgetSurface::requestFocus(coord x, coord y)
+// ----------------------------------------------------------------------------
+//    If the widget is selected, request focus
+// ----------------------------------------------------------------------------
+{
     // Request focus for this widget
     Widget *parent = (Widget *) widget->parent();
     if (parent->selected())
-        parent->requestFocus(widget);
+        parent->requestFocus(widget, x, y);
 }
 
 
@@ -139,7 +148,7 @@ WebViewSurface::WebViewSurface(Widget *parent)
 }
 
 
-void WebViewSurface::bind(XL::Text *urlTree, XL::Integer *progressTree)
+GLuint WebViewSurface::bind(XL::Text *urlTree, XL::Integer *progressTree)
 // ----------------------------------------------------------------------------
 //    Update depending on URL changes, then bind texture
 // ----------------------------------------------------------------------------
@@ -156,7 +165,7 @@ void WebViewSurface::bind(XL::Text *urlTree, XL::Integer *progressTree)
         loadProgress(0);
     }
 
-    WidgetSurface::bind();
+    return WidgetSurface::bind();
 }
 
 
@@ -219,7 +228,7 @@ LineEditSurface::LineEditSurface(Widget *parent, bool immed)
 }
 
 
-void LineEditSurface::bind(XL::Text *textTree)
+GLuint LineEditSurface::bind(XL::Text *textTree)
 // ----------------------------------------------------------------------------
 //    Update text based on text changes
 // ----------------------------------------------------------------------------
@@ -237,7 +246,7 @@ void LineEditSurface::bind(XL::Text *textTree)
         parent->markChanged("Text change");
     }
 
-    WidgetSurface::bind();
+    return WidgetSurface::bind();
 }
 
 

@@ -69,6 +69,25 @@ Tree *xl_evaluate(Tree *what)
 }
 
 
+Tree *xl_repeat(Tree *what, longlong count)
+// ----------------------------------------------------------------------------
+//   Compile the tree if necessary, then evaluate it count times
+// ----------------------------------------------------------------------------
+{
+    if (!what)
+        return what;
+    Symbols *symbols = what->Get<SymbolsInfo>();
+    if (!symbols)
+        symbols = Symbols::symbols;
+    Tree *result = what;
+    while (count-- > 0)
+        result = symbols->Run(what);
+    if (result != what)
+        result->source = xl_source(what);
+    return result;
+}
+
+
 bool xl_same_text(Tree *what, const char *ref)
 // ----------------------------------------------------------------------------
 //   Compile the tree if necessary, then evaluate it
@@ -470,6 +489,18 @@ Tree *XLCall::operator() (Symbols *syms)
     Tree *callee = syms->CompileCall(name, args);
     if (callee && callee->code)
         callee = callee->code(callee);
+    return callee;
+}
+
+
+Tree *XLCall::build(Symbols *syms)
+// ----------------------------------------------------------------------------
+//    Perform the given call in the given context
+// ----------------------------------------------------------------------------
+{
+    if (!syms)
+        syms = Symbols::symbols;
+    Tree *callee = syms->CompileCall(name, args);
     return callee;
 }
 

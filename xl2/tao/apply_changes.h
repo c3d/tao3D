@@ -1,7 +1,7 @@
 #ifndef APPLY_CHANGES_H
 #define APPLY_CHANGES_H
 // ****************************************************************************
-//  apply-changes.h                                                 XLR project
+//  apply_changes.h                                                 Tao project
 // ****************************************************************************
 //
 //   File Description:

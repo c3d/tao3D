@@ -130,7 +130,9 @@ PREFIX(RandomNumber2i, integer, "random", PARM(low,integer) PARM(high,integer),
        XL_RINT(xl_random(XL_INT(low), XL_INT(high))))
 
 // Executing some code
-PREFIX(DoCode,   tree, "do", PARM(code, tree), return xl_evaluate(&code))
+PREFIX(DoCode,    tree, "do", PARM(code, tree), return xl_evaluate(&code))
+PREFIX(RepeatCode,tree, "repeat", PARM(n, integer) PARM(code, tree),
+       return xl_repeat(&code, n))
 PREFIX(LoadFile, tree, "load", PARM(file, text), return xl_load(file))
 PREFIX(LoadCSV,  tree, "load_csv", PARM(file, text), return xl_load_csv(file))
 PREFIX(LoadTSV,  tree, "load_tsv", PARM(file, text), return xl_load_tsv(file))

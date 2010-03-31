@@ -41,7 +41,7 @@ struct ImageTextureInfo : XL::Info
 
     ImageTextureInfo(Widget *w);
     ~ImageTextureInfo();
-    void bind(text img);
+    GLuint bind(text img);
     operator data_t() { return this; }
 
     texture_map textures;

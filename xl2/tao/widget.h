@@ -235,6 +235,11 @@ public:
     Tree *      colorChooserTexture(Tree *self,double w, double h,
                                     Tree *action);
 
+    Tree *      fontChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
+                             Tree *action);
+    Tree *      fontChooserTexture(Tree *self,double w, double h,
+                                    Tree *action);
+
     Tree *      groupBox(Tree *self,
                          real_r x,real_r y, real_r w,real_r h,
                          text_p lbl, Tree *buttons);
@@ -242,6 +247,10 @@ public:
                                 double w, double h,
                                 Text *lbl);
 
+    Tree *      videoPlayer(Tree *self,
+                            real_r x, real_r y, real_r w, real_r h, Text *url);
+
+    Tree *      videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url);
 
     // Menus
     Tree *      menuItem(Tree *self, text s, Tree *t);

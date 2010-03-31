@@ -23,6 +23,7 @@
 #include "widget_surface.h"
 #include "gl_keepers.h"
 #include "runtime.h"
+#include <phonon>
 #include <QtWebKit>
 
 
@@ -371,8 +372,7 @@ void ColorChooserSurface::colorchosen(const QColor &col)
     }
 
     struct MyTreeClone : XL::TreeClone {
-        MyTreeClone(const QColor &c)
-                                     : color(c){}
+        MyTreeClone(const QColor &c) : color(c){}
         XL::Tree *DoName(XL::Name *what)
         {
             if (what->value == "red")
@@ -390,12 +390,79 @@ void ColorChooserSurface::colorchosen(const QColor &col)
     } replacer(col);
 
     XL::Tree *toBeEvaluated = action->tree->Do(replacer);
+    toBeEvaluated->SetInfo<XL::SymbolsInfo>(new XL::SymbolsInfo(XL::Symbols::symbols));
     xl_evaluate(toBeEvaluated);
 
     widget->setVisible(false);
 }
 
 ColorChooserSurface::~ColorChooserSurface()
+{
+    delete action;
+}
+
+FontChooserSurface::FontChooserSurface(Widget *parent,
+                                         XL::Tree *act)
+// ----------------------------------------------------------------------------
+//    Create the Color Chooser surface
+// ----------------------------------------------------------------------------
+  : WidgetSurface(new QFontDialog(parent)), action(NULL)
+{
+
+    XL::TreeClone cloner;
+    action = new XL::TreeRoot(act->Do(cloner));
+
+    QFontDialog *diag = (QFontDialog *) widget;
+    connect(diag, SIGNAL(fontSelected (const QFont&)),
+            this,   SLOT(fontchosen(const QFont&)));
+    diag->setModal(false);
+}
+
+GLuint FontChooserSurface::bind()
+{
+    widget->setVisible(true);
+    return WidgetSurface::bind();
+
+}
+
+void FontChooserSurface::fontchosen(const QFont& ft)
+// ----------------------------------------------------------------------------
+//    The button was clicked. Evaluate the action.
+// ----------------------------------------------------------------------------
+{
+    IFTRACE (widgets)
+    {
+        std::cerr << "Font "<< ft.toString().toStdString()
+                << "was chosen for reference "<< action->tree
+                <<"\nand action " << action << "\n";
+    }
+
+    struct MyTreeClone : XL::TreeClone {
+        MyTreeClone(const QFont &f) : font(f){}
+        XL::Tree *DoName(XL::Name *what)
+        {
+            if (what->value == "family")
+                return new XL::Text(font.family().toStdString(),"\"" ,"\"",what->Position());
+            if (what->value == "pointSize")
+                return new XL::Integer(font.pointSize(), what->Position());
+            if (what->value == "weight")
+                return new XL::Integer(font.weight(), what->Position());
+            if (what->value == "italic")
+                return new XL::Integer(font.italic(), what->Position());
+
+            return new XL::Name(what->value, what->Position());
+        }
+       QFont font;
+    } replacer(ft);
+
+    XL::Tree *toBeEvaluated = action->tree->Do(replacer);
+    toBeEvaluated->SetInfo<XL::SymbolsInfo>(new XL::SymbolsInfo(XL::Symbols::symbols));
+    xl_evaluate(toBeEvaluated);
+
+    widget->setVisible(false);
+}
+
+FontChooserSurface::~FontChooserSurface()
 {
     delete action;
 }
@@ -413,6 +480,24 @@ GroupBoxSurface::GroupBoxSurface(Widget *parent, XL::Text* lbl)
 GLuint GroupBoxSurface::bind(XL::Text *lbl)
 {
     return WidgetSurface::bind();
+}
+
+VideoPlayerSurface::VideoPlayerSurface(Widget *parent)
+    : WidgetSurface(new Phonon::VideoPlayer(Phonon::VideoCategory,parent))
+{
+
+}
+GLuint VideoPlayerSurface::bind(XL::Text *url)
+{
+    Phonon::VideoPlayer *player = (Phonon::VideoPlayer*)widget;
+    player->play(Phonon::MediaSource(QUrl(QString::fromStdString(url->value))));
+    return WidgetSurface::bind();
+}
+
+VideoPlayerSurface::~VideoPlayerSurface()
+{
+   Phonon::VideoPlayer *player = (Phonon::VideoPlayer*)widget;
+   player->stop();
 }
 
 TAO_END

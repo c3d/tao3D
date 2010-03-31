@@ -20,7 +20,8 @@ INCLUDEPATH += . \
 QT += webkit \
     network \
     opengl \
-    svg
+    svg \
+    phonon
 
 # CONFIG += release
 CONFIG += debug \
@@ -152,7 +153,7 @@ SOURCES += tao_main.cpp \
     ../xlr/diff.cpp \
     ../xlr/lcs.cpp \
     drag.cpp
-!win32 { 
+!win32 {
     HEADERS += GL/glew.h \
         GL/glxew.h \
         GL/wglew.h
@@ -191,4 +192,4 @@ OTHER_FILES += xl.syntax \
 xlr_support.path = $${DESTDIR}/$${XLRDIR}
 xlr_support.files += $${OTHER_FILES}
 QMAKE_BUNDLE_DATA += xlr_support
-FORMS += 
+FORMS +=

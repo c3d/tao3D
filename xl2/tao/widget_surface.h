@@ -147,7 +147,7 @@ private:
 
 struct ColorChooserSurface : WidgetSurface
 // ----------------------------------------------------------------------------
-//    Hold information about a QPushButton
+//    Hold information about a QColorChooser
 // ----------------------------------------------------------------------------
 {
     Q_OBJECT;
@@ -164,6 +164,44 @@ public slots:
     void colorchosen(const QColor &color);
 };
 
+struct FontChooserSurface : WidgetSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a QFontChooser
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT;
+public:
+    typedef FontChooserSurface * data_t;
+    FontChooserSurface(Widget *parent, XL::Tree *action);
+    ~FontChooserSurface();
+    operator data_t() { return this; }
+    virtual GLuint bind();
+
+private:
+    XL::TreeRoot *action;
+public slots:
+    void fontchosen(const QFont &font);
+};
+
+struct VideoPlayerSurface : WidgetSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a Phonon::VideoPlayer
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT;
+public:
+    typedef VideoPlayerSurface * data_t;
+    VideoPlayerSurface(Widget *parent);
+    ~VideoPlayerSurface();
+    operator data_t() { return this; }
+    virtual GLuint bind(XL::Text *url);
+
+//private:
+//    XL::Text *url;
+//public slots:
+//    void colorchosen(const QColor &color);
+
+};
 } // namespace Tao
 
 #endif // WIDGET_SURFACE_H

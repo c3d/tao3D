@@ -230,8 +230,10 @@ public:
                                   double w, double h,
                                   Text *lbl, Tree *act);
 
-    Tree *      colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h);
-    Tree *      colorChooserTexture(Tree *self,double w, double h);
+    Tree *      colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
+                             Tree *action);
+    Tree *      colorChooserTexture(Tree *self,double w, double h,
+                                    Tree *action);
 
     Tree *      groupBox(Tree *self,
                          real_r x,real_r y, real_r w,real_r h,

@@ -333,12 +333,17 @@ void PushButtonSurface::clicked(bool checked)
         xl_evaluate(action);
 }
 
-ColorChooserSurface::ColorChooserSurface(XL::Tree *self, Widget *parent)
+ColorChooserSurface::ColorChooserSurface(Widget *parent,
+                                         XL::Tree *act)
 // ----------------------------------------------------------------------------
 //    Create the Color Chooser surface
 // ----------------------------------------------------------------------------
-  : WidgetSurface(new QColorDialog(parent)), ref(self)
+  : WidgetSurface(new QColorDialog(parent)), action(NULL)
 {
+
+    XL::TreeClone cloner;
+    action = new XL::TreeRoot(act->Do(cloner));
+
     QColorDialog *diag = (QColorDialog *) widget;
     connect(diag, SIGNAL(colorSelected (const QColor&)),
             this,   SLOT(colorchosen(const QColor &)));
@@ -353,23 +358,47 @@ GLuint ColorChooserSurface::bind()
 
 }
 
-void ColorChooserSurface::colorchosen(const QColor &color)
+void ColorChooserSurface::colorchosen(const QColor &col)
 // ----------------------------------------------------------------------------
 //    The button was clicked. Evaluate the action.
 // ----------------------------------------------------------------------------
 {
     IFTRACE (widgets)
     {
-        std::cerr << "Color was chosen "<< color.name().toStdString() << "\n";
+        std::cerr << "Color "<< col.name().toStdString()
+                << "was chosen for reference "<< action->tree
+                <<"\nand action " << action << "\n";
     }
-    ((Widget*)widget->parent())->lineColor(ref,
-                                    color.redF(),
-                                    color.greenF(),
-                                    color.blueF(),
-                                    color.alphaF());
+
+    struct MyTreeClone : XL::TreeClone {
+        MyTreeClone(const QColor &c)
+                                     : color(c){}
+        XL::Tree *DoName(XL::Name *what)
+        {
+            if (what->value == "red")
+                return new XL::Real(color.redF(), what->Position());
+            if (what->value == "green")
+                return new XL::Real(color.greenF(), what->Position());
+            if (what->value == "blue")
+                return new XL::Real(color.blueF(), what->Position());
+            if (what->value == "alpha")
+                return new XL::Real(color.alphaF(), what->Position());
+
+            return new XL::Name(what->value, what->Position());
+        }
+        QColor color;
+    } replacer(col);
+
+    XL::Tree *toBeEvaluated = action->tree->Do(replacer);
+    xl_evaluate(toBeEvaluated);
+
     widget->setVisible(false);
 }
 
+ColorChooserSurface::~ColorChooserSurface()
+{
+    delete action;
+}
 
 GroupBoxSurface::GroupBoxSurface(Widget *parent, XL::Text* lbl)
 // ----------------------------------------------------------------------------

@@ -153,12 +153,13 @@ struct ColorChooserSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef ColorChooserSurface * data_t;
-    ColorChooserSurface(XL::Tree *self, Widget *parent);
+    ColorChooserSurface(Widget *parent, XL::Tree *action);
+    ~ColorChooserSurface();
     operator data_t() { return this; }
     virtual GLuint bind();
 
 private:
-    XL::Tree *ref;
+    XL::TreeRoot *action;
 public slots:
     void colorchosen(const QColor &color);
 };

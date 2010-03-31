@@ -1936,14 +1936,15 @@ Tree *Widget::pushButtonTexture(Tree *self,
 }
 
 
-Tree *Widget::colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h)
+Tree *Widget::colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
+                           Tree *action)
 // ----------------------------------------------------------------------------
 //   Draw a push button in the curent frame
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
 
-    colorChooserTexture(self, w, h);
+    colorChooserTexture(self, w, h, action);
 
     ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
     layout->Add(new WidgetManipulator(x, y, w, h, surface));
@@ -1951,7 +1952,8 @@ Tree *Widget::colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h)
     return XL::xl_true;
 }
 
-Tree *Widget::colorChooserTexture(Tree *self,double w, double h)
+Tree *Widget::colorChooserTexture(Tree *self, double w, double h,
+                                  Tree *action)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given push button
  // ----------------------------------------------------------------------------
@@ -1960,11 +1962,11 @@ Tree *Widget::colorChooserTexture(Tree *self,double w, double h)
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
+    ColorChooserSurface *surface = action->GetInfo<ColorChooserSurface>();
     if (!surface)
     {
-        surface = new ColorChooserSurface(self, this);
-        self->SetInfo<ColorChooserSurface> (surface);
+        surface = new ColorChooserSurface(this, action);
+        action->SetInfo<ColorChooserSurface> (surface);
     }
 
     // Resize to requested size, and bind texture
@@ -1995,7 +1997,7 @@ Tree *Widget::groupBox(Tree *self,
     return XL::xl_true;
 }
 
-Tree *Widget::groupBoxTexture(Tree *self,double w, double h, Text *lbl)
+Tree *Widget::groupBoxTexture(Tree *self, double w, double h, Text *lbl)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given push button
  // ----------------------------------------------------------------------------

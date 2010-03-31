@@ -1378,6 +1378,7 @@ Tree *Widget::curveTo(Tree *self,
         return Ooops("No path for '$1'", self);
     path->curveTo(Point3(cx, cy, cz), Point3(x,y,z));
     path->AddControl(x, y, z);
+    path->AddControl(cx, cy, cz);
     return XL::xl_true;
 }
 
@@ -1394,6 +1395,8 @@ Tree *Widget::curveTo(Tree *self,
         return Ooops("No path for '$1'", self);
     path->curveTo(Point3(c1x, c1y, c1z), Point3(c2x, c2y, c2z), Point3(x,y,z));
     path->AddControl(x, y, z);
+    path->AddControl(c1x, c1y, c1z);
+    path->AddControl(c2x, c2y, c2z);
     return XL::xl_true;
 }
 

@@ -230,7 +230,7 @@ void ControlPoint::DrawSelection(Layout *layout)
 //    Draw the selection for a control point
 // ----------------------------------------------------------------------------
 {
-    // We don't need to glPushName, as the parrent should have done it for us
+    // We don't need to glPushName, as the parent should have done it for us
     Widget *widget = layout->Display();
     if (widget->selected())
         DrawHandles(layout);
@@ -242,7 +242,7 @@ void ControlPoint::Identify(Layout *where)
 //    Select the identity for a control point
 // ----------------------------------------------------------------------------
 {
-    Manipulator::Identify(where);
+    ControlPoint::DrawSelection(where);
 }
 
 

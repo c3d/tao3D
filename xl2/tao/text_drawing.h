@@ -38,6 +38,7 @@ struct TextSpan : Shape
         : Shape(), value(value), font(font) {}
     virtual void Draw(Layout *where);
     virtual void DrawSelection(Layout *where);
+    virtual void Identify(Layout *where);
     virtual void Draw(GraphicPath &path);
     virtual Box3 Bounds();
     virtual Box3 Space();

@@ -260,34 +260,6 @@ void GitRepository::asyncProcessFinished(int exitCode)
 }
 
 
-void  GitRepository::asyncProcessError(QProcess::ProcessError error)
-// ----------------------------------------------------------------------------
-//   An asynchronous subprocess has finished in error (e.g., crashed)
-// ----------------------------------------------------------------------------
-{
-    ProcQueueConsumer p(*this);
-    Process *cmd = (Process *)sender();
-    Q_ASSERT(cmd == pQueue.first());
-    std::cerr << +tr("Async command error %1: %2")
-                    .arg((int)error).arg(cmd->commandLine);
-}
-
-
-void GitRepository::dispatch(Process *cmd)
-// ----------------------------------------------------------------------------
-//   Insert process in run queue and start first process
-// ----------------------------------------------------------------------------
-{
-    connect(cmd,  SIGNAL(finished(int,QProcess::ExitStatus)),
-            this, SLOT  (asyncProcessFinished(int)));
-    connect(cmd,  SIGNAL(error(QProcess::ProcessError)),
-            this, SLOT  (asyncProcessError(QProcess::ProcessError)));
-    pQueue.append(cmd);
-    if (pQueue.count() == 1)
-        cmd->start();
-}
-
-
 bool GitRepository::merge(text branch)
 // ----------------------------------------------------------------------------
 //   Merge another branch into the current one
@@ -305,17 +277,6 @@ bool GitRepository::reset()
 {
     Process cmd(command(), QStringList("reset") << "--hard", path);
     return cmd.done(&errors);
-}
-
-
-GitRepository::ProcQueueConsumer::~ProcQueueConsumer()
-// ----------------------------------------------------------------------------
-//   Pop the head process from process queue, delete it and start next one
-// ----------------------------------------------------------------------------
-{
-    delete repo.pQueue.takeFirst();
-    if (repo.pQueue.count())
-        repo.pQueue.first()->start();
 }
 
 TAO_END

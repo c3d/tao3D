@@ -323,6 +323,7 @@ PushButtonSurface::PushButtonSurface(Widget *parent)
     QPushButton *button = (QPushButton *) widget;
     connect(button, SIGNAL(clicked(bool)),
             this,   SLOT(clicked(bool)));
+    widget->setVisible(true);
 }
 
 
@@ -336,8 +337,8 @@ GLuint PushButtonSurface::bind(XL::Text *lbl, XL::Tree *act)
     {
         label = lbl->value;
         button->setText(+label);
-        dirty = true;
     }
+    dirty = true;
     action.tree = act;
 
     return WidgetSurface::bind();
@@ -351,10 +352,11 @@ void PushButtonSurface::clicked(bool checked)
 {
     IFTRACE (widgets)
     {
-        std::cerr << "button "<< label << " was clicked\n";
+        std::cerr << "button "<< label
+                  << " was clicked with checked=" << checked << "\n";
     }
 
-    if (action.tree && checked)
+    if (action.tree)
         xl_evaluate(action);
 }
 

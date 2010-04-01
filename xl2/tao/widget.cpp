@@ -2062,7 +2062,7 @@ Tree *Widget::groupBox(Tree *self,
 Tree *Widget::groupBoxTexture(Tree *self, double w, double h, Text *lbl)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given push button
- // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
@@ -2077,7 +2077,7 @@ Tree *Widget::groupBoxTexture(Tree *self, double w, double h, Text *lbl)
 
     // Resize to requested size, and bind texture
     surface->resize(w,h);
-    GLuint tex = surface->bind(lbl);
+    GLuint tex = surface->bind();
     layout->Add(new FillTexture(tex));
 
     return XL::xl_true;
@@ -2087,15 +2087,14 @@ Tree *Widget::groupBoxTexture(Tree *self, double w, double h, Text *lbl)
 Tree *Widget::videoPlayer(Tree *self,
                           real_r x, real_r y, real_r w, real_r h, Text *url)
 // ----------------------------------------------------------------------------
-//   Create a new video player
+//   Make a video player
 // ----------------------------------------------------------------------------
-
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
     videoPlayerTexture(self, w, h, url);
 
-    VideoPlayerSurface *surface = url->GetInfo<VideoPlayerSurface>();
+    VideoPlayerSurface *surface = self->GetInfo<VideoPlayerSurface>();
     layout->Add(new WidgetManipulator(x, y, w, h, surface));
 
     return XL::xl_true;
@@ -2105,18 +2104,18 @@ Tree *Widget::videoPlayer(Tree *self,
 
 Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
 // ----------------------------------------------------------------------------
-//   Create a video player texture
+//   Make a video player texture
 // ----------------------------------------------------------------------------
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    VideoPlayerSurface *surface = url->GetInfo<VideoPlayerSurface>();
+    VideoPlayerSurface *surface = self->GetInfo<VideoPlayerSurface>();
     if (!surface)
     {
         surface = new VideoPlayerSurface(this);
-        url->SetInfo<VideoPlayerSurface> (surface);
+        self->SetInfo<VideoPlayerSurface> (surface);
     }
 
     // Resize to requested size, and bind texture

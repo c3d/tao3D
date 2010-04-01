@@ -501,10 +501,15 @@ void FontChooserSurface::fontChosen(const QFont& ft)
                                     "\"" ,"\"",what->Position());
             if (what->value == "pointSize")
                 return new XL::Integer(font.pointSize(), what->Position());
-            if (what->value == "weight")
+            if (what->value == "p_weight")
                 return new XL::Integer(font.weight(), what->Position());
-            if (what->value == "italic")
-                return new XL::Integer(font.italic(), what->Position());
+            if (what->value == "p_italic")
+            {
+                return new XL::Name(font.italic() ?
+                                      XL::xl_true->value :
+                                      XL::xl_false->value,
+                                      what->Position());
+            }
 
             return new XL::Name(what->value, what->Position());
         }

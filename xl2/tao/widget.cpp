@@ -2125,8 +2125,8 @@ Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
     layout->Add(new FillTexture(tex));
 
     return XL::xl_true;
-
 }
+
 
 
 // ============================================================================
@@ -2336,12 +2336,10 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
         program = infix->right;
     }
 
-    if (parent)
-        parent->right = new XL::Infix("\n", parent->right, toInsert);
-    else
-        xlProgram->tree.tree = new XL::Infix("\n",
-                                             xlProgram->tree.tree, toInsert);
+    XL::Tree * &what = parent ? parent->right : xlProgram->tree.tree;
+    what = new XL::Infix("\n", what, toInsert);
     reloadProgram = true;
+    markChanged("Inserted tree");
 
     return XL::xl_true;
 }

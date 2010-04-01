@@ -230,7 +230,7 @@ bool Widget::doCommit()
 {
     IFTRACE(filesync)
             std::cerr << "Commit: " << whatsNew << "\n";
-    if (repository()->commit(whatsNew))
+    if (repository()->asyncCommit(whatsNew))
     {
         XL::Main *xlr = XL::MAIN;
         whatsNew = "";
@@ -814,6 +814,14 @@ void Widget::refreshProgram()
                             std::cerr << "Surgical replacement worked\n";
                     }
                 } // Replacement checked
+
+                if (fname == xlProgram->name)
+                {
+                    // Update source file view
+                    text txt = *xlProgram->tree.tree;
+                    Window *window = (Window *) parentWidget();
+                    window->setText(+txt);
+                }
             } // If file modified
         } // For all files
 

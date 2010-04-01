@@ -90,12 +90,14 @@ private:
     Repository *      repo;
 
     QTextEdit        *textEdit;
+    QDockWidget      *dock;
     Widget           *taoWidget;
     QString           curFile;
 
     QTimer            fileCheckTimer;
     QMenu            *fileMenu;
     QMenu            *editMenu;
+    QMenu            *viewMenu;
     QMenu            *helpMenu;
     QToolBar         *fileToolBar;
     QToolBar         *editToolBar;

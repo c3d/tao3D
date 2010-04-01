@@ -106,6 +106,100 @@ public slots:
     void inputValidated();
 };
 
+
+struct PushButtonSurface : WidgetSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a QPushButton
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT;
+public:
+    typedef PushButtonSurface * data_t;
+    PushButtonSurface(Widget *parent);
+    operator data_t() { return this; }
+    virtual GLuint bind(XL::Text *lbl, XL::Tree *action);
+
+private:
+    text         label;
+    XL::TreeRoot action;
+
+public slots:
+    void clicked(bool checked);
+};
+
+
+struct GroupBoxSurface : WidgetSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a QPushButton
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT;
+public:
+    typedef GroupBoxSurface * data_t;
+    GroupBoxSurface(Widget *parent);
+    operator data_t() { return this; }
+    virtual GLuint bind(XL::Text *lbl);
+
+private:
+    text label;
+};
+
+
+struct ColorChooserSurface : WidgetSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a QColorChooser
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT;
+public:
+    typedef ColorChooserSurface * data_t;
+    ColorChooserSurface(Widget *parent, XL::Tree *action);
+    ~ColorChooserSurface();
+    operator data_t() { return this; }
+    virtual GLuint bind();
+
+private:
+    XL::TreeRoot action;
+public slots:
+    void colorChosen(const QColor &color);
+};
+
+
+struct FontChooserSurface : WidgetSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a QFontChooser
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT;
+public:
+    typedef FontChooserSurface * data_t;
+    FontChooserSurface(Widget *parent, XL::Tree *action);
+    ~FontChooserSurface();
+    operator data_t() { return this; }
+    virtual GLuint bind();
+
+private:
+    XL::TreeRoot action;
+public slots:
+    void fontChosen(const QFont &font);
+};
+
+
+struct VideoPlayerSurface : WidgetSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a Phonon::VideoPlayer
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT;
+public:
+    typedef VideoPlayerSurface * data_t;
+    VideoPlayerSurface(Widget *parent);
+    ~VideoPlayerSurface();
+    operator data_t() { return this; }
+    virtual GLuint bind(XL::Text *url);
+public:
+    text url;
+};
 } // namespace Tao
 
 #endif // WIDGET_SURFACE_H

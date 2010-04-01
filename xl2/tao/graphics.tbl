@@ -252,6 +252,34 @@ PREFIX(LineEditTexture, tree, "line_edit_texture",
        PARM(w,real) PARM(h,real) PARM(u, text),
        RTAO(lineEditTexture(self, w, h, &u)))
 
+PREFIX(PushButton, tree, "push_button",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
+       PARM(u, text) PARM(a, tree),
+       RTAO(pushButton(self, x, y, w, h, &u, &a)))
+PREFIX(PushButtonTexture, tree, "push_button_texture",
+       PARM(w,real) PARM(h,real) PARM(u, text) PARM(a, tree),
+       RTAO(pushButtonTexture(self, w, h, &u, &a)))
+
+PREFIX(ColorChooser, tree, "color_chooser",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,tree),
+       RTAO(colorChooser(self, x, y, w, h, &t)))
+PREFIX(ColorChooserTexture, tree, "color_chooser_texture",
+       PARM(w,real) PARM(h,real) PARM(t,tree),
+       RTAO(colorChooserTexture(self, w, h, &t)))
+
+PREFIX(FontChooser, tree, "font_chooser",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,tree),
+       RTAO(fontChooser(self, x, y, w, h, &t)))
+PREFIX(FontChooserTexture, tree, "font_chooser_texture",
+       PARM(w,real) PARM(h,real) PARM(t,tree),
+       RTAO(fontChooserTexture(self, w, h, &t)))
+
+PREFIX(VideoPlayer, tree, "video_player",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(u,text),
+       RTAO(videoPlayer(self, x, y, w, h, &u)))
+PREFIX(VideoPlayerTexture, tree, "video_player_texture",
+       PARM(w,real) PARM(h,real) PARM(u,text),
+       RTAO(videoPlayerTexture(self, w, h, &u)))
 
 
 // ============================================================================

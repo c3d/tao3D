@@ -50,15 +50,15 @@ int main(int argc, char **argv)
         if (text(argv[a]) == "-gl")
             QGL::setPreferredPaintEngine(QPaintEngine::OpenGL);
 
-    // Initialize the Tao applications
-    Tao::Application tao(argc, argv);
-
     // Setup the XL runtime environment
     XL::Compiler compiler("xl_tao");
     XL::Main *xlr = new XL::Main(argc, argv, compiler);
     XL::MAIN = xlr;
     EnterGraphics(&xlr->context);
     xlr->LoadFiles();
+
+    // Initialize the Tao application
+    Tao::Application tao(argc, argv);
 
     // Create the windows for each file on the command line
     XL::source_names::iterator it;

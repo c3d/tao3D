@@ -24,19 +24,27 @@
 
 #include "coords3d.h"
 #include "shapes.h"
+#include "tree.h"
 #include <GL/glew.h>
 
 struct QPainterPath;
 
 TAO_BEGIN
 
+struct ControlPoint;
 struct GraphicPath : Shape
 // ----------------------------------------------------------------------------
 //    An arbitrary graphic path
 // ----------------------------------------------------------------------------
 {
-    GraphicPath(): Shape() {}
+    typedef XL::Real &real_r;
+
+    GraphicPath();
+    ~GraphicPath();
+
     virtual void        Draw(Layout *where);
+    virtual void        DrawSelection(Layout *where);
+    virtual void        Identify(Layout *where);
     virtual void        Draw(Layout *where, GLenum mode, GLenum tessel=0);
     virtual Box3        Bounds();
 
@@ -58,6 +66,7 @@ struct GraphicPath : Shape
 
     // Other operations
     void                clear();
+    void                AddControl(real_r x, real_r y, real_r z);
 
 public:
     enum Kind { MOVE_TO, LINE_TO, CURVE_TO, CURVE_CONTROL };
@@ -68,6 +77,7 @@ public:
         Point3  position;
     };
     typedef std::vector<Element> path_elements;
+    typedef std::vector<ControlPoint *> control_points;
     struct VertexData
     {
         VertexData(const Point3& v, const Point3& t): vertex(v), texture(t) {}
@@ -86,9 +96,21 @@ public:
 
 public:
     path_elements       elements;
+    control_points      controls;
     Point3              start, position;
     Box3                bounds;
     static scale        default_steps;
+};
+
+
+struct TesselatedPath : GraphicPath
+// ----------------------------------------------------------------------------
+//   Like a graphic path, but with explicit tesselation
+// ----------------------------------------------------------------------------
+{
+    TesselatedPath(GLuint tesselation): tesselation(tesselation) {}
+    void Draw(Layout *where);
+    GLuint tesselation;
 };
 
 TAO_END

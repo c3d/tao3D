@@ -21,6 +21,7 @@
 
 #include "git_backend.h"
 #include "renderer.h"
+#include "options.h"
 #include <QDir>
 #include <QString>
 #include <QtGlobal>
@@ -38,11 +39,18 @@ bool GitRepository::checkGit()
 //   Return true if Git is functional, and set the git command accordingly
 // ----------------------------------------------------------------------------
 {
-    text errors;
-    Process cmd(gitCommand, QStringList("--version"));
-    if (cmd.done(&errors))
-        return true;
-    gitCommand = qApp->applicationDirPath() + "/git";
+    // Look for "git" in $PATH, then in application's directory
+    QStringList commands;
+    commands << "git" << qApp->applicationDirPath() + "/git";
+    QStringListIterator it(commands);
+    while (it.hasNext())
+    {
+        text errors;
+        gitCommand = it.next();
+        Process cmd(gitCommand, QStringList("--version"));
+        if (cmd.done(&errors))
+            return true;
+    }
     return false;
 }
 
@@ -181,8 +189,8 @@ bool GitRepository::change(text name)
 //   Signal that a file in the repository changed
 // ----------------------------------------------------------------------------
 {
-    Process cmd(command(), QStringList("add") << +name, path);
-    return cmd.done(&errors);
+    dispatch(new Process(command(), QStringList("add") << +name, path, false));
+    return true;
 }
 
 
@@ -204,13 +212,79 @@ bool GitRepository::commit(text message, bool all)
     QStringList args("commit");
     if (all)
         args << "-a";
-    args << "-m" << +message;
+    args << "--allow-empty"    // Don't fail if working directory is clean
+         << "-m" << +message;
     Process cmd(command(), args, path);
     bool result = cmd.done(&errors);
     if (!result)
         if (errors.find("nothing added") != errors.npos)
             result = true;
     return result;
+}
+
+
+bool GitRepository::asyncCommit(text message, bool all)
+// ----------------------------------------------------------------------------
+//   Rename a file in the repository
+// ----------------------------------------------------------------------------
+{
+    QStringList args("commit");
+    if (all)
+        args << "-a";
+    args << "--allow-empty"    // Don't fail if working directory is clean
+         << "-m" << +message;
+    dispatch(new Process(command(), args, path, false));
+    return true;
+}
+
+
+void GitRepository::asyncProcessFinished(int exitCode)
+// ----------------------------------------------------------------------------
+//   An asynchronous subprocess has finished normally
+// ----------------------------------------------------------------------------
+{
+    ProcQueueConsumer p(*this);
+    Process *cmd = (Process *)sender();
+    Q_ASSERT(cmd == pQueue.first());
+    if (exitCode)
+    {
+        bool ok = false;
+        cmd->done(&errors);
+        if (cmd->args.first() == "commit")
+            if (errors.find("nothing added") != errors.npos)
+                ok = true;
+        if (!ok)
+            std::cerr << +tr("Async command failed, exit status %1: %2")
+                             .arg((int)exitCode).arg(cmd->commandLine);
+    }
+}
+
+
+void  GitRepository::asyncProcessError(QProcess::ProcessError error)
+// ----------------------------------------------------------------------------
+//   An asynchronous subprocess has finished in error (e.g., crashed)
+// ----------------------------------------------------------------------------
+{
+    ProcQueueConsumer p(*this);
+    Process *cmd = (Process *)sender();
+    Q_ASSERT(cmd == pQueue.first());
+    std::cerr << +tr("Async command error %1: %2")
+                    .arg((int)error).arg(cmd->commandLine);
+}
+
+
+void GitRepository::dispatch(Process *cmd)
+// ----------------------------------------------------------------------------
+//   Insert process in run queue and start first process
+// ----------------------------------------------------------------------------
+{
+    connect(cmd,  SIGNAL(finished(int,QProcess::ExitStatus)),
+            this, SLOT  (asyncProcessFinished(int)));
+    connect(cmd,  SIGNAL(error(QProcess::ProcessError)),
+            this, SLOT  (asyncProcessError(QProcess::ProcessError)));
+    pQueue.append(cmd);
+    if (pQueue.count() == 1)
+        cmd->start();
 }
 
 
@@ -231,6 +305,17 @@ bool GitRepository::reset()
 {
     Process cmd(command(), QStringList("reset") << "--hard", path);
     return cmd.done(&errors);
+}
+
+
+GitRepository::ProcQueueConsumer::~ProcQueueConsumer()
+// ----------------------------------------------------------------------------
+//   Pop the head process from process queue, delete it and start next one
+// ----------------------------------------------------------------------------
+{
+    delete repo.pQueue.takeFirst();
+    if (repo.pQueue.count())
+        repo.pQueue.first()->start();
 }
 
 TAO_END

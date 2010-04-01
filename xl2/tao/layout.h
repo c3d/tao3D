@@ -52,7 +52,8 @@ struct Layout : Drawing
     // Layout interface
     virtual Layout &    Add (Drawing *d);
     virtual Vector3     Offset();
-    virtual Layout *    NewChild()      { return new Layout(*this); }
+    virtual Layout *    NewChild()       { return new Layout(*this); }
+    virtual Layout *    AddChild();
     virtual void        Clear();
     virtual Widget *    Display()        { return display; }
 

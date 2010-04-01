@@ -40,10 +40,13 @@ struct Process : QProcess, std::streambuf
     Process(const QString &cmd,
             const QStringList &args = QStringList(),
             const QString &workingDirectory = "",
+            bool  startImmediately = true,
             size_t bufSize = 1024);
     virtual ~Process();
 
-    virtual void start(const QString &cmd, const QStringList & arguments);
+    virtual void start(const QString &cmd, const QStringList & arguments,
+                       const QString &wd = "");
+    virtual void start();
     virtual bool done(text *errors = NULL, text *output = NULL);
 
 protected:
@@ -55,7 +58,10 @@ protected:                      // From std::streambuf
     virtual int overflow(int c);
 
 public:
-    QString commandLine;
+    QString     commandLine;
+    QString     cmd;
+    QStringList args;
+    QString     wd;
 };
 
 

@@ -536,143 +536,139 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
     if (!Repository::available())
         return true;
 
-    bool ok = true;
     bool created = false;
-
-    do
+    QSharedPointer<Repository> repo;
+    repo = QSharedPointer<Repository>(Repository::repository(path));
+    if (!repo)
     {
-        repo = Repository::repository(path);
-        if (!repo)
+        bool docreate = !confirm;
+        if (confirm)
         {
-            bool docreate = !confirm;
-            if (confirm)
-            {
-                QMessageBox box;
-                box.setWindowTitle("No Tao Project");
-                box.setText
-                        (tr("The file '%1' is not associated with a Tao project.")
-                         .arg(fileName));
-                box.setInformativeText
-                        (tr("Do you want to create a new project in %1, or skip "
-                            "and continue without a project (version control and "
-                            "sharing will be disabled)?").arg(path));
-                box.setIcon(QMessageBox::Question);
-                QPushButton *cancel = box.addButton(tr("Cancel"),
-                                                    QMessageBox::RejectRole);
-                QPushButton *skip = box.addButton(tr("Skip"),
-                                                  QMessageBox::RejectRole);
-                QPushButton *create = box.addButton(tr("Create"),
-                                                    QMessageBox::AcceptRole);
-                box.setDefaultButton(create);
-                int index = box.exec(); (void) index;
-                QAbstractButton *which = box.clickedButton();
+            QMessageBox box;
+            box.setWindowTitle("No Tao Project");
+            box.setText
+                    (tr("The file '%1' is not associated with a Tao project.")
+                     .arg(fileName));
+            box.setInformativeText
+                    (tr("Do you want to create a new project in %1, or skip "
+                        "and continue without a project (version control and "
+                        "sharing will be disabled)?").arg(path));
+            box.setIcon(QMessageBox::Question);
+            QPushButton *cancel = box.addButton(tr("Cancel"),
+                                                QMessageBox::RejectRole);
+            QPushButton *skip = box.addButton(tr("Skip"),
+                                              QMessageBox::RejectRole);
+            QPushButton *create = box.addButton(tr("Create"),
+                                                QMessageBox::AcceptRole);
+            box.setDefaultButton(create);
+            int index = box.exec(); (void) index;
+            QAbstractButton *which = box.clickedButton();
 
-                if (which == cancel)
-                {
-                    return false;
-                }
-                else if (which == create)
-                {
-                    docreate = true;
-                }
-                else if (which == skip)
-                {
-                    // Continue with repo == NULL
-                }
-                else
-                {
-                    QMessageBox::question(NULL, tr("Puzzled"),
-                                          tr("How did you do that?"),
-                                          QMessageBox::No);
-                }
-            }
-            if (docreate)
+            if (which == cancel)
             {
-                repo = Repository::repository(path, true);
-                created = (repo != NULL);
+                return false;
+            }
+            else if (which == create)
+            {
+                docreate = true;
+            }
+            else if (which == skip)
+            {
+                // Continue with repo == NULL
+            }
+            else
+            {
+                QMessageBox::question(NULL, tr("Puzzled"),
+                                      tr("How did you do that?"),
+                                      QMessageBox::No);
+            }
+        }
+        if (docreate)
+        {
+            repo = QSharedPointer<Repository>(Repository::repository(path));
+            created = (repo != NULL);
+        }
+    }
+
+    // Select the task branch, either current branch or without _tao_undo
+    if (repo && repo->valid())
+    {
+        text task = repo->branch();
+        size_t pos = task.rfind(TAO_UNDO_SUFFIX);
+        size_t len = task.length() - (sizeof(TAO_UNDO_SUFFIX) - 1);
+        text currentBranch = task;
+        bool onUndoBranch = pos != task.npos && pos == len;
+        if (onUndoBranch)
+        {
+            task = task.substr(0, len);
+        }
+        else if (!created)
+        {
+            QMessageBox box;
+            QString rep = repo->userVisibleName();
+            box.setIcon(QMessageBox::Question);
+            box.setWindowTitle
+                    (tr("Existing %1 repository").arg(rep));
+            box.setText
+                    (tr("The folder '%1' looks like a valid "
+                        "%2 repository, but is not currently used by Tao.")
+                     .arg(path).arg(rep));
+            box.setInformativeText
+                    (tr("This repository appears to not be currently "
+                        "used by Tao, because the current branch, "
+                        "'%1', is not a Tao working branch. "
+                        "Do you want to use this repository (Tao will "
+                        "use the '%2' branch and make it the active one) "
+                        "or skip and use '%3' without a project (version "
+                        "control and sharing will be disabled)?")
+                     .arg(+currentBranch)
+                     .arg(+currentBranch + TAO_UNDO_SUFFIX)
+                     .arg(fileName));
+            // REVISIT: this info text is not very well suited to the
+            // "Save as..." case.
+
+            QPushButton *cancel = box.addButton(tr("Cancel"),
+                                                QMessageBox::RejectRole);
+            QPushButton *skip = box.addButton(tr("Skip"),
+                                              QMessageBox::NoRole);
+            QPushButton *use = box.addButton(tr("Use"),
+                                             QMessageBox::YesRole);
+            box.setDefaultButton(use);
+            int index = box.exec(); (void) index;
+            QAbstractButton *which = box.clickedButton();
+
+            if (which == cancel)
+            {
+                return false;
+            }
+            else if (which == use)
+            {
+                // Continue with current repo
+            }
+            else if (which == skip)
+            {
+                repo.clear();  // Drop shared pointer reference -> repo == NULL
+            }
+            else
+            {
+                QMessageBox::question(NULL, tr("Coin?"),
+                                      tr("How did you do that?"),
+                                      QMessageBox::Discard);
             }
         }
 
-        // Select the task branch, either current branch or without _tao_undo
-        if (ok && repo && repo->valid())
-        {
-            text task = repo->branch();
-            size_t pos = task.rfind(TAO_UNDO_SUFFIX);
-            size_t len = task.length() - (sizeof(TAO_UNDO_SUFFIX) - 1);
-            text currentBranch = task;
-            bool onUndoBranch = pos != task.npos && pos == len;
-            bool setTask = true;
-            if (onUndoBranch)
-            {
-                task = task.substr(0, len);
-            }
-            else if (!created)
-            {
-                QMessageBox box;
-                QString rep = repo->userVisibleName();
-                box.setIcon(QMessageBox::Question);
-                box.setWindowTitle
-                    (tr("Existing %1 repository").arg(rep));
-                box.setText
-                        (tr("The folder '%1' looks like a valid "
-                            "%2 repository, but is not currently used by Tao.")
-                         .arg(path).arg(rep));
-                box.setInformativeText
-                        (tr("This repository appears to not be currently "
-                            "used by Tao, because the current branch, "
-                            "'%1', is not a Tao working branch. "
-                            "Do you want to use this repository (Tao will "
-                            "use the '%2' branch and make it the active one) "
-                            "or skip and use '%3' without a project (version "
-                            "control and sharing will be disabled)?")
-                         .arg(+currentBranch)
-                         .arg(+currentBranch + TAO_UNDO_SUFFIX)
-                         .arg(fileName));
-                // REVISIT: this info text is not very well suited to the
-                // "Save as..." case.
-
-                QPushButton *cancel = box.addButton(tr("Cancel"),
-                                                    QMessageBox::RejectRole);
-                QPushButton *skip = box.addButton(tr("Skip"),
-                                                  QMessageBox::NoRole);
-                QPushButton *use = box.addButton(tr("Use"),
-                                                 QMessageBox::YesRole);
-                box.setDefaultButton(use);
-                int index = box.exec(); (void) index;
-                QAbstractButton *which = box.clickedButton();
-
-                if (which == cancel)
-                {
-                    return false;
-                }
-                else if (which == use)
-                {
-                    setTask = true;
-                }
-                else if (which == skip)
-                {
-                    setTask = false;
-                }
-                else
-                {
-                    QMessageBox::question(NULL, tr("Coin?"),
-                                          tr("How did you do that?"),
-                                          QMessageBox::Discard);
-                }
-            }
-
-            if (setTask)
-                if (!repo->setTask(task))
-                    QMessageBox::information
+        if (repo)
+            if (!repo->setTask(task))
+                QMessageBox::information
                         (NULL, tr("Task selection"),
                          tr("An error occured setting the task:\n%1")
                          .arg(+repo->errors),
                          QMessageBox::Ok);
-        }
+            else
+                this->repo = repo;
+    }
 
-    } while (!ok);
-
-    return ok;
+    return true;
 }
 
 

@@ -106,6 +106,7 @@ public slots:
     void inputValidated();
 };
 
+
 struct PushButtonSurface : WidgetSurface
 // ----------------------------------------------------------------------------
 //    Hold information about a QPushButton
@@ -114,17 +115,18 @@ struct PushButtonSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef PushButtonSurface * data_t;
-    PushButtonSurface(Widget *parent, XL::Text* lbl, XL::Tree *act);
+    PushButtonSurface(Widget *parent);
     operator data_t() { return this; }
     virtual GLuint bind(XL::Text *lbl, XL::Tree *action);
 
 private:
-    XL::Text *label;
-    XL::Tree * action;
+    text         label;
+    XL::TreeRoot action;
 
 public slots:
     void clicked(bool checked);
 };
+
 
 struct GroupBoxSurface : WidgetSurface
 // ----------------------------------------------------------------------------
@@ -134,16 +136,14 @@ struct GroupBoxSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef GroupBoxSurface * data_t;
-    GroupBoxSurface(Widget *parent, XL::Text* lbl);
+    GroupBoxSurface(Widget *parent);
     operator data_t() { return this; }
     virtual GLuint bind(XL::Text *lbl);
 
 private:
-    XL::Text *label;
-
-//public slots:
-//    void clicked(bool checked);
+    text label;
 };
+
 
 struct ColorChooserSurface : WidgetSurface
 // ----------------------------------------------------------------------------
@@ -159,10 +159,11 @@ public:
     virtual GLuint bind();
 
 private:
-    XL::TreeRoot *action;
+    XL::TreeRoot action;
 public slots:
-    void colorchosen(const QColor &color);
+    void colorChosen(const QColor &color);
 };
+
 
 struct FontChooserSurface : WidgetSurface
 // ----------------------------------------------------------------------------
@@ -178,10 +179,11 @@ public:
     virtual GLuint bind();
 
 private:
-    XL::TreeRoot *action;
+    XL::TreeRoot action;
 public slots:
-    void fontchosen(const QFont &font);
+    void fontChosen(const QFont &font);
 };
+
 
 struct VideoPlayerSurface : WidgetSurface
 // ----------------------------------------------------------------------------
@@ -195,12 +197,8 @@ public:
     ~VideoPlayerSurface();
     operator data_t() { return this; }
     virtual GLuint bind(XL::Text *url);
-
-//private:
-//    XL::Text *url;
-//public slots:
-//    void colorchosen(const QColor &color);
-
+public:
+    text url;
 };
 } // namespace Tao
 

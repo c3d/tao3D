@@ -23,11 +23,23 @@
 #include "widget_surface.h"
 #include "gl_keepers.h"
 #include "runtime.h"
+#include "process.h"
 #include <phonon>
 #include <QtWebKit>
 
 
 TAO_BEGIN
+
+
+// ============================================================================
+//
+//   Names we use from XL namespace
+//
+// ============================================================================
+
+typedef XL::SymbolsInfo SymbolsInfo;
+typedef XL::Symbols     Symbols;
+
 
 
 // ============================================================================
@@ -52,6 +64,8 @@ WidgetSurface::~WidgetSurface()
 //   When deleting the info, delete all renderers we have
 // ----------------------------------------------------------------------------
 {
+    Widget *parent = (Widget *) widget->parent();
+    parent->deleteFocus(widget);
     delete widget;
     glDeleteTextures(1, &textureId);
 }
@@ -292,18 +306,25 @@ void LineEditSurface::inputValidated()
     repaint();
 }
 
-PushButtonSurface::PushButtonSurface(Widget *parent,
-                                     XL::Text* lbl, XL::Tree *act)
+
+
+// ============================================================================
+//
+//   Push Button
+//
+// ============================================================================
+
+PushButtonSurface::PushButtonSurface(Widget *parent)
 // ----------------------------------------------------------------------------
 //    Create the Push Button surface
 // ----------------------------------------------------------------------------
-  : WidgetSurface(new QPushButton(parent)), label(lbl), action(act)
+    : WidgetSurface(new QPushButton(parent)), label(), action(XL::xl_false)
 {
     QPushButton *button = (QPushButton *) widget;
-    if (lbl) button->setText(QString::fromStdString(lbl->value));
     connect(button, SIGNAL(clicked(bool)),
-            this,     SLOT(clicked(bool)));
+            this,   SLOT(clicked(bool)));
 }
+
 
 GLuint PushButtonSurface::bind(XL::Text *lbl, XL::Tree *act)
 // ----------------------------------------------------------------------------
@@ -311,15 +332,18 @@ GLuint PushButtonSurface::bind(XL::Text *lbl, XL::Tree *act)
 // ----------------------------------------------------------------------------
 {
     QPushButton *button = (QPushButton *) widget;
-    button->setText(QString::fromStdString(lbl ?lbl->value : ""));
-    label = lbl;
-    action = act;
+    if (lbl->value != label)
+    {
+        label = lbl->value;
+        button->setText(+label);
+        dirty = true;
+    }
+    action.tree = act;
 
     return WidgetSurface::bind();
-
 }
 
-#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 void PushButtonSurface::clicked(bool checked)
 // ----------------------------------------------------------------------------
 //    The button was clicked. Evaluate the action.
@@ -327,52 +351,62 @@ void PushButtonSurface::clicked(bool checked)
 {
     IFTRACE (widgets)
     {
-        std::cerr << "button "<< label->value << " was cliked\n";
+        std::cerr << "button "<< label << " was clicked\n";
     }
 
-    if (action)
+    if (action.tree && checked)
         xl_evaluate(action);
 }
 
-ColorChooserSurface::ColorChooserSurface(Widget *parent,
-                                         XL::Tree *act)
+
+
+// ============================================================================
+//
+//   Color Chooser
+//
+// ============================================================================
+
+ColorChooserSurface::ColorChooserSurface(Widget *parent, XL::Tree *act)
 // ----------------------------------------------------------------------------
 //    Create the Color Chooser surface
 // ----------------------------------------------------------------------------
-  : WidgetSurface(new QColorDialog(parent)), action(NULL)
+    : WidgetSurface(new QColorDialog(parent)), action(act)
 {
-
-    XL::TreeClone cloner;
-    action = new XL::TreeRoot(act->Do(cloner));
-
     QColorDialog *diag = (QColorDialog *) widget;
     connect(diag, SIGNAL(colorSelected (const QColor&)),
-            this,   SLOT(colorchosen(const QColor &)));
+            this, SLOT(colorchosen(const QColor &)));
     diag->setModal(false);
     diag->setOption(QColorDialog::ShowAlphaChannel, true);
 }
 
+
 GLuint ColorChooserSurface::bind()
+// ----------------------------------------------------------------------------
+//    Activate the widget
+// ----------------------------------------------------------------------------
+//    At least on MacOSX, the color chooser shows in its own window
 {
     widget->setVisible(true);
     return WidgetSurface::bind();
-
 }
 
-void ColorChooserSurface::colorchosen(const QColor &col)
+
+void ColorChooserSurface::colorChosen(const QColor &col)
 // ----------------------------------------------------------------------------
-//    The button was clicked. Evaluate the action.
+//    A color was selected. Evaluate the action.
 // ----------------------------------------------------------------------------
 {
     IFTRACE (widgets)
     {
         std::cerr << "Color "<< col.name().toStdString()
-                << "was chosen for reference "<< action->tree
-                <<"\nand action " << action << "\n";
+                  << "was chosen for reference "<< action.tree
+                  <<"\nand action " << action << "\n";
     }
 
-    struct MyTreeClone : XL::TreeClone {
-        MyTreeClone(const QColor &c) : color(c){}
+    // We override names 'red', 'green', 'blue' and 'alpha' in the input tree
+    struct ColorTreeClone : XL::TreeClone
+    {
+        ColorTreeClone(const QColor &c) : color(c){}
         XL::Tree *DoName(XL::Name *what)
         {
             if (what->value == "red")
@@ -389,60 +423,80 @@ void ColorChooserSurface::colorchosen(const QColor &col)
         QColor color;
     } replacer(col);
 
-    XL::Tree *toBeEvaluated = action->tree->Do(replacer);
-    toBeEvaluated->SetInfo<XL::SymbolsInfo>(new XL::SymbolsInfo(XL::Symbols::symbols));
+    // The tree to be evaluated needs its own symbol table before evaluation
+    XL::Tree *toBeEvaluated = action.tree;
+    XL::Symbols *syms = toBeEvaluated->Get<SymbolsInfo>();
+    if (!syms)
+        syms = XL::Symbols::symbols;
+    syms = new Symbols(syms);
+    toBeEvaluated = toBeEvaluated->Do(replacer);
+    toBeEvaluated->Set<SymbolsInfo>(syms);
+
+    // Evaluate the input tree
     xl_evaluate(toBeEvaluated);
 
     widget->setVisible(false);
 }
 
+
 ColorChooserSurface::~ColorChooserSurface()
-{
-    delete action;
-}
+// ----------------------------------------------------------------------------
+//   Delete the color chooser
+// ----------------------------------------------------------------------------
+{}
+
+
+
+// ============================================================================
+//
+//    Font Chooser
+//
+// ============================================================================
 
 FontChooserSurface::FontChooserSurface(Widget *parent,
-                                         XL::Tree *act)
+                                       XL::Tree *act)
 // ----------------------------------------------------------------------------
 //    Create the Color Chooser surface
 // ----------------------------------------------------------------------------
-  : WidgetSurface(new QFontDialog(parent)), action(NULL)
+  : WidgetSurface(new QFontDialog(parent)), action(act)
 {
-
-    XL::TreeClone cloner;
-    action = new XL::TreeRoot(act->Do(cloner));
-
     QFontDialog *diag = (QFontDialog *) widget;
     connect(diag, SIGNAL(fontSelected (const QFont&)),
-            this,   SLOT(fontchosen(const QFont&)));
+            this, SLOT(fontchosen(const QFont&)));
     diag->setModal(false);
 }
 
+
 GLuint FontChooserSurface::bind()
+// ----------------------------------------------------------------------------
+//   Display the font chooser
+// ----------------------------------------------------------------------------
 {
     widget->setVisible(true);
     return WidgetSurface::bind();
-
 }
 
-void FontChooserSurface::fontchosen(const QFont& ft)
+
+void FontChooserSurface::fontChosen(const QFont& ft)
 // ----------------------------------------------------------------------------
-//    The button was clicked. Evaluate the action.
+//    A font was selected. Evaluate the action.
 // ----------------------------------------------------------------------------
 {
     IFTRACE (widgets)
     {
         std::cerr << "Font "<< ft.toString().toStdString()
-                << "was chosen for reference "<< action->tree
-                <<"\nand action " << action << "\n";
+                  << "was chosen for reference "<< action.tree
+                  <<"\nand action " << action << "\n";
     }
 
-    struct MyTreeClone : XL::TreeClone {
-        MyTreeClone(const QFont &f) : font(f){}
+    struct FontTreeClone : XL::TreeClone
+    {
+        FontTreeClone(const QFont &f) : font(f){}
         XL::Tree *DoName(XL::Name *what)
         {
             if (what->value == "family")
-                return new XL::Text(font.family().toStdString(),"\"" ,"\"",what->Position());
+                return new XL::Text(font.family().toStdString(),
+                                    "\"" ,"\"",what->Position());
             if (what->value == "pointSize")
                 return new XL::Integer(font.pointSize(), what->Position());
             if (what->value == "weight")
@@ -452,51 +506,102 @@ void FontChooserSurface::fontchosen(const QFont& ft)
 
             return new XL::Name(what->value, what->Position());
         }
-       QFont font;
+        QFont font;
     } replacer(ft);
 
-    XL::Tree *toBeEvaluated = action->tree->Do(replacer);
-    toBeEvaluated->SetInfo<XL::SymbolsInfo>(new XL::SymbolsInfo(XL::Symbols::symbols));
+    // The tree to be evaluated needs its own symbol table before evaluation
+    XL::Tree *toBeEvaluated = action.tree;
+    XL::Symbols *syms = toBeEvaluated->Get<SymbolsInfo>();
+    if (!syms)
+        syms = XL::Symbols::symbols;
+    syms = new Symbols(syms);
+    toBeEvaluated = toBeEvaluated->Do(replacer);
+    toBeEvaluated->Set<SymbolsInfo>(syms);
+
+    // Evaluate the input tree
     xl_evaluate(toBeEvaluated);
 
     widget->setVisible(false);
 }
 
+
 FontChooserSurface::~FontChooserSurface()
+// ----------------------------------------------------------------------------
+//    Delete the font chooser
+// ----------------------------------------------------------------------------
 {
-    delete action;
 }
 
-GroupBoxSurface::GroupBoxSurface(Widget *parent, XL::Text* lbl)
+
+
+// ============================================================================
+//
+//   Group Box
+//
+// ============================================================================
+
+GroupBoxSurface::GroupBoxSurface(Widget *parent)
 // ----------------------------------------------------------------------------
 //    Create the Group Box surface
 // ----------------------------------------------------------------------------
     : WidgetSurface(new QGroupBox(parent))
 {
-    QGroupBox *group = (QGroupBox *) widget;
-
 }
+
 
 GLuint GroupBoxSurface::bind(XL::Text *lbl)
+// ----------------------------------------------------------------------------
+//   Display the group box
+// ----------------------------------------------------------------------------
 {
+    if (lbl->value != label)
+    {
+        label = lbl->value;
+        QGroupBox *gbox = (QGroupBox *) widget;
+        gbox->setTitle(+label);
+        dirty = true;
+    }
     return WidgetSurface::bind();
 }
+
+
+
+// ============================================================================
+//
+//   Video Player
+//
+// ============================================================================
 
 VideoPlayerSurface::VideoPlayerSurface(Widget *parent)
-    : WidgetSurface(new Phonon::VideoPlayer(Phonon::VideoCategory,parent))
-{
+// ----------------------------------------------------------------------------
+//   Create the video player
+// ----------------------------------------------------------------------------
+    : WidgetSurface(new Phonon::VideoPlayer(Phonon::VideoCategory, parent))
+{}
 
-}
-GLuint VideoPlayerSurface::bind(XL::Text *url)
+
+GLuint VideoPlayerSurface::bind(XL::Text *urlTree)
+// ----------------------------------------------------------------------------
+//    Bind the surface to the texture
+// ----------------------------------------------------------------------------
 {
-    Phonon::VideoPlayer *player = (Phonon::VideoPlayer*)widget;
-    player->play(Phonon::MediaSource(QUrl(QString::fromStdString(url->value))));
+    if (urlTree->value != url)
+    {
+        url = urlTree->value;
+        Phonon::VideoPlayer *player = (Phonon::VideoPlayer*) widget;
+        player->play(Phonon::MediaSource(QUrl(+url)));
+    }
+    dirty = true;
     return WidgetSurface::bind();
 }
 
+
 VideoPlayerSurface::~VideoPlayerSurface()
+// ----------------------------------------------------------------------------
+//    Make sure we stop the player
+// ----------------------------------------------------------------------------
 {
-   Phonon::VideoPlayer *player = (Phonon::VideoPlayer*)widget;
+   Phonon::VideoPlayer *player = (Phonon::VideoPlayer*) widget;
    player->stop();
 }
 

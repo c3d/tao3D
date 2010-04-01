@@ -107,6 +107,7 @@ public:
     GLuint      selectionCapacity()     { return capacity; }
     uint        selected();
     void        select(uint count);
+    void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);
     void        recordProjection();
     Point3      unproject (coord x, coord y, coord z = 0.0);

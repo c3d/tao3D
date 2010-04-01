@@ -548,6 +548,7 @@ bool Widget::forwardEvent(QEvent *event)
     return false;
 }
 
+
 bool Widget::forwardEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 //   Forward event to the focus proxy if there is any, adjusting coordinates
@@ -941,6 +942,16 @@ void Widget::select(uint count)
 // ----------------------------------------------------------------------------
 {
     selection[id] = count;
+}
+
+
+void Widget::deleteFocus(QWidget *widget)
+// ----------------------------------------------------------------------------
+//   Make sure we don't keep a focus on a widget that was deleted
+// ----------------------------------------------------------------------------
+{
+    if (focusWidget == widget)
+        focusWidget = NULL;
 }
 
 
@@ -1898,6 +1909,7 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
     return XL::xl_true;
 }
 
+
 Tree *Widget::pushButton(Tree *self,
                          real_r x, real_r y, real_r w, real_r h,
                          Text *lbl, Tree* act)
@@ -1915,6 +1927,7 @@ Tree *Widget::pushButton(Tree *self,
     return XL::xl_true;
 }
 
+
 Tree *Widget::pushButtonTexture(Tree *self,
                                 double w, double h,
                                 Text *lbl, Tree *act)
@@ -1929,7 +1942,7 @@ Tree *Widget::pushButtonTexture(Tree *self,
     PushButtonSurface *surface = lbl->GetInfo<PushButtonSurface>();
     if (!surface)
     {
-        surface = new PushButtonSurface(this, lbl, act);
+        surface = new PushButtonSurface(this);
         lbl->SetInfo<PushButtonSurface> (surface);
     }
 
@@ -1957,6 +1970,7 @@ Tree *Widget::colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
     return XL::xl_true;
 }
 
+
 Tree *Widget::colorChooserTexture(Tree *self, double w, double h,
                                   Tree *action)
 // ----------------------------------------------------------------------------
@@ -1982,6 +1996,7 @@ Tree *Widget::colorChooserTexture(Tree *self, double w, double h,
     return XL::xl_true;
 }
 
+
 Tree *Widget::fontChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
                            Tree *action)
 // ----------------------------------------------------------------------------
@@ -1996,6 +2011,7 @@ Tree *Widget::fontChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
     layout->Add(new WidgetManipulator(x, y, w, h, surface));
     return XL::xl_true;
 }
+
 
 Tree *Widget::fontChooserTexture(Tree *self, double w, double h,
                                   Tree *action)
@@ -2042,6 +2058,7 @@ Tree *Widget::groupBox(Tree *self,
     return XL::xl_true;
 }
 
+
 Tree *Widget::groupBoxTexture(Tree *self, double w, double h, Text *lbl)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given push button
@@ -2054,7 +2071,7 @@ Tree *Widget::groupBoxTexture(Tree *self, double w, double h, Text *lbl)
     GroupBoxSurface *surface = lbl->GetInfo<GroupBoxSurface>();
     if (!surface)
     {
-        surface = new GroupBoxSurface(this, lbl);
+        surface = new GroupBoxSurface(this);
         lbl->SetInfo<GroupBoxSurface> (surface);
     }
 
@@ -2066,8 +2083,13 @@ Tree *Widget::groupBoxTexture(Tree *self, double w, double h, Text *lbl)
     return XL::xl_true;
 }
 
+
 Tree *Widget::videoPlayer(Tree *self,
                           real_r x, real_r y, real_r w, real_r h, Text *url)
+// ----------------------------------------------------------------------------
+//   Create a new video player
+// ----------------------------------------------------------------------------
+
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
@@ -2080,7 +2102,11 @@ Tree *Widget::videoPlayer(Tree *self,
 
 }
 
+
 Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
+// ----------------------------------------------------------------------------
+//   Create a video player texture
+// ----------------------------------------------------------------------------
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;

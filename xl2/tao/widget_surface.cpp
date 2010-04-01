@@ -376,7 +376,7 @@ ColorChooserSurface::ColorChooserSurface(Widget *parent, XL::Tree *act)
 {
     QColorDialog *diag = (QColorDialog *) widget;
     connect(diag, SIGNAL(colorSelected (const QColor&)),
-            this, SLOT(colorchosen(const QColor &)));
+            this, SLOT(colorChosen(const QColor &)));
     diag->setModal(false);
     diag->setOption(QColorDialog::ShowAlphaChannel, true);
 }
@@ -464,7 +464,7 @@ FontChooserSurface::FontChooserSurface(Widget *parent,
 {
     QFontDialog *diag = (QFontDialog *) widget;
     connect(diag, SIGNAL(fontSelected (const QFont&)),
-            this, SLOT(fontchosen(const QFont&)));
+            this, SLOT(fontChosen(const QFont&)));
     diag->setModal(false);
 }
 
@@ -501,9 +501,9 @@ void FontChooserSurface::fontChosen(const QFont& ft)
                                     "\"" ,"\"",what->Position());
             if (what->value == "pointSize")
                 return new XL::Integer(font.pointSize(), what->Position());
-            if (what->value == "p_weight")
+            if (what->value == "weight")
                 return new XL::Integer(font.weight(), what->Position());
-            if (what->value == "p_italic")
+            if (what->value == "italic")
             {
                 return new XL::Name(font.italic() ?
                                       XL::xl_true->value :

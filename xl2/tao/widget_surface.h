@@ -138,6 +138,7 @@ public:
     typedef GroupBoxSurface * data_t;
     GroupBoxSurface(Widget *parent);
     operator data_t() { return this; }
+    virtual GLuint bind(XL::Text *lbl);
 
 private:
     text label;

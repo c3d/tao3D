@@ -2077,7 +2077,7 @@ Tree *Widget::groupBoxTexture(Tree *self, double w, double h, Text *lbl)
 
     // Resize to requested size, and bind texture
     surface->resize(w,h);
-    GLuint tex = surface->bind();
+    GLuint tex = surface->bind(lbl);
     layout->Add(new FillTexture(tex));
 
     return XL::xl_true;

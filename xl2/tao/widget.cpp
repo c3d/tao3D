@@ -101,6 +101,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 
     // Create the main page we draw on
     space = new SpaceLayout(this);
+    layout = space;
 
     // Prepare the timers
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
@@ -1771,7 +1772,7 @@ Tree *Widget::frameTexture(Tree *self, double w, double h, Tree *prog)
 // ----------------------------------------------------------------------------
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
-{ 
+{
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
@@ -1791,7 +1792,7 @@ Tree *Widget::frameTexture(Tree *self, double w, double h, Tree *prog)
 
         frame->resize(w,h);
         frame->begin();
-        { 
+        {
            // Clear the background and setup initial state
             setup(w, h);
             try
@@ -1897,6 +1898,209 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
     return XL::xl_true;
 }
 
+Tree *Widget::pushButton(Tree *self,
+                         real_r x, real_r y, real_r w, real_r h,
+                         Text *lbl, Tree* act)
+// ----------------------------------------------------------------------------
+//   Draw a push button in the curent frame
+// ----------------------------------------------------------------------------
+{
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+
+    pushButtonTexture(self, w, h, lbl, act);
+
+    PushButtonSurface *surface = lbl->GetInfo<PushButtonSurface>();
+    layout->Add(new WidgetManipulator(x, y, w, h, surface));
+
+    return XL::xl_true;
+}
+
+Tree *Widget::pushButtonTexture(Tree *self,
+                                double w, double h,
+                                Text *lbl, Tree *act)
+// ----------------------------------------------------------------------------
+//   Make a texture out of a given push button
+// ----------------------------------------------------------------------------
+{
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
+    // Get or build the current frame if we don't have one
+    PushButtonSurface *surface = lbl->GetInfo<PushButtonSurface>();
+    if (!surface)
+    {
+        surface = new PushButtonSurface(this, lbl, act);
+        lbl->SetInfo<PushButtonSurface> (surface);
+    }
+
+    // Resize to requested size, and bind texture
+    surface->resize(w,h);
+    GLuint tex = surface->bind(lbl, act);
+    layout->Add(new FillTexture(tex));
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
+                           Tree *action)
+// ----------------------------------------------------------------------------
+//   Draw a color chooser
+// ----------------------------------------------------------------------------
+{
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+
+    colorChooserTexture(self, w, h, action);
+
+    ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
+    layout->Add(new WidgetManipulator(x, y, w, h, surface));
+    return XL::xl_true;
+}
+
+Tree *Widget::colorChooserTexture(Tree *self, double w, double h,
+                                  Tree *action)
+// ----------------------------------------------------------------------------
+//   Make a texture out of a given color chooser
+// ----------------------------------------------------------------------------
+{
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
+    // Get or build the current frame if we don't have one
+    ColorChooserSurface *surface = action->GetInfo<ColorChooserSurface>();
+    if (!surface)
+    {
+        surface = new ColorChooserSurface(this, action);
+        action->SetInfo<ColorChooserSurface> (surface);
+    }
+
+    // Resize to requested size, and bind texture
+    surface->resize(w,h);
+    GLuint tex = surface->bind();
+    layout->Add(new FillTexture(tex));
+
+    return XL::xl_true;
+}
+
+Tree *Widget::fontChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
+                           Tree *action)
+// ----------------------------------------------------------------------------
+//   Draw a color chooser
+// ----------------------------------------------------------------------------
+{
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+
+    fontChooserTexture(self, w, h, action);
+
+    FontChooserSurface *surface = self->GetInfo<FontChooserSurface>();
+    layout->Add(new WidgetManipulator(x, y, w, h, surface));
+    return XL::xl_true;
+}
+
+Tree *Widget::fontChooserTexture(Tree *self, double w, double h,
+                                  Tree *action)
+// ----------------------------------------------------------------------------
+//   Make a texture out of a given color chooser
+// ----------------------------------------------------------------------------
+{
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
+    // Get or build the current frame if we don't have one
+    FontChooserSurface *surface = action->GetInfo<FontChooserSurface>();
+    if (!surface)
+    {
+        surface = new FontChooserSurface(this, action);
+        action->SetInfo<FontChooserSurface> (surface);
+    }
+
+    // Resize to requested size, and bind texture
+    surface->resize(w,h);
+    GLuint tex = surface->bind();
+    layout->Add(new FillTexture(tex));
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::groupBox(Tree *self,
+                       real_r x, real_r y, real_r w, real_r h,
+                       Text *lbl, Tree *buttons)
+// ----------------------------------------------------------------------------
+//   Draw a push button in the curent frame
+// ----------------------------------------------------------------------------
+{
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+
+    groupBoxTexture(self, w, h, lbl);
+
+    GroupBoxSurface *surface = lbl->GetInfo<GroupBoxSurface>();
+    layout->Add(new WidgetManipulator(x, y, w, h, surface));
+
+    xl_evaluate(buttons);
+
+    return XL::xl_true;
+}
+
+Tree *Widget::groupBoxTexture(Tree *self, double w, double h, Text *lbl)
+// ----------------------------------------------------------------------------
+//   Make a texture out of a given push button
+ // ----------------------------------------------------------------------------
+{
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
+    // Get or build the current frame if we don't have one
+    GroupBoxSurface *surface = lbl->GetInfo<GroupBoxSurface>();
+    if (!surface)
+    {
+        surface = new GroupBoxSurface(this, lbl);
+        lbl->SetInfo<GroupBoxSurface> (surface);
+    }
+
+    // Resize to requested size, and bind texture
+    surface->resize(w,h);
+    GLuint tex = surface->bind(lbl);
+    layout->Add(new FillTexture(tex));
+
+    return XL::xl_true;
+}
+
+Tree *Widget::videoPlayer(Tree *self,
+                          real_r x, real_r y, real_r w, real_r h, Text *url)
+{
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+
+    videoPlayerTexture(self, w, h, url);
+
+    VideoPlayerSurface *surface = url->GetInfo<VideoPlayerSurface>();
+    layout->Add(new WidgetManipulator(x, y, w, h, surface));
+
+    return XL::xl_true;
+
+}
+
+Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
+{
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
+    // Get or build the current frame if we don't have one
+    VideoPlayerSurface *surface = url->GetInfo<VideoPlayerSurface>();
+    if (!surface)
+    {
+        surface = new VideoPlayerSurface(this);
+        url->SetInfo<VideoPlayerSurface> (surface);
+    }
+
+    // Resize to requested size, and bind texture
+    surface->resize(w,h);
+    GLuint tex = surface->bind(url);
+    layout->Add(new FillTexture(tex));
+
+    return XL::xl_true;
+
+}
 
 
 // ============================================================================
@@ -2128,9 +2332,9 @@ XL::Name *Widget::deleteSelection(Tree *self)
 
 
 // ============================================================================
-// 
+//
 //   Unit conversions
-// 
+//
 // ============================================================================
 
 XL::Real *Widget::fromCm(Tree *self, double cm)

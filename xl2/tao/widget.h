@@ -218,10 +218,39 @@ public:
     Tree *      urlPaint(Tree *self, real_r x, real_r y, real_r w, real_r h,
                          text_p s, integer_p p);
     Tree *      urlTexture(Tree *self, double x, double y, Text *s, Integer *p);
-    
+
     Tree *      lineEdit(Tree *self, real_r x,real_r y,
                          real_r w,real_r h, text_p s);
     Tree *      lineEditTexture(Tree *self, double x, double y, Text *s);
+
+    Tree *      pushButton(Tree *self,
+                           real_r x,real_r y, real_r w,real_r h,
+                           text_p lbl, Tree *act);
+    Tree *      pushButtonTexture(Tree *self,
+                                  double w, double h,
+                                  Text *lbl, Tree *act);
+
+    Tree *      colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
+                             Tree *action);
+    Tree *      colorChooserTexture(Tree *self,double w, double h,
+                                    Tree *action);
+
+    Tree *      fontChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
+                             Tree *action);
+    Tree *      fontChooserTexture(Tree *self,double w, double h,
+                                    Tree *action);
+
+    Tree *      groupBox(Tree *self,
+                         real_r x,real_r y, real_r w,real_r h,
+                         text_p lbl, Tree *buttons);
+    Tree *      groupBoxTexture(Tree *self,
+                                double w, double h,
+                                Text *lbl);
+
+    Tree *      videoPlayer(Tree *self,
+                            real_r x, real_r y, real_r w, real_r h, Text *url);
+
+    Tree *      videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url);
 
     // Menus
     Tree *      menuItem(Tree *self, text s, Tree *t);

@@ -137,6 +137,7 @@ TRACE(labels)
 TRACE(builtins)
 TRACE(closure)
 TRACE(diff)
+TRACE(widgets)
 
 // Undefine for next use...
 #undef OPTVAR

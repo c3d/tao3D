@@ -836,9 +836,8 @@ void Widget::refreshProgram()
                 if (fname == xlProgram->name)
                 {
                     // Update source file view
-                    text txt = *xlProgram->tree.tree;
                     Window *window = (Window *) parentWidget();
-                    window->setText(+txt);
+                    window->loadFileIntoSourceFileView(+fname);
                 }
             } // If file modified
         } // For all files

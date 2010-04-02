@@ -69,17 +69,18 @@ Tree *xl_evaluate(Tree *what)
 }
 
 
-Tree *xl_repeat(Tree *what, longlong count)
+Tree *xl_repeat(Tree *self, Tree *what, longlong count)
 // ----------------------------------------------------------------------------
 //   Compile the tree if necessary, then evaluate it count times
 // ----------------------------------------------------------------------------
 {
     if (!what)
         return what;
-    Symbols *symbols = what->Get<SymbolsInfo>();
+    Symbols *symbols = self->Get<SymbolsInfo>();
     if (!symbols)
         symbols = Symbols::symbols;
     Tree *result = what;
+
     while (count-- > 0)
         result = symbols->Run(what);
     if (result != what)

@@ -174,6 +174,10 @@ void Widget::dawdle()
         nextSave = tick + xlr->options.save_interval * 1000;
     }
 
+    // If things are saved on disk, no need to keep the window "dirty"
+    Window *window = (Window *) parentWidget();
+    window->markChanged(false);
+
     // Check if there's something to commit
     longlong commitDelay = longlong (nextCommit - tick);
     if (savedSomething && commitDelay < 0)
@@ -1208,32 +1212,116 @@ Tree *Widget::locally(Tree *self, Tree *child)
 }
 
 
-Tree *Widget::rotate(Tree *self, double ra, double rx, double ry, double rz)
+static inline XL::Real &r(double x) { return *new XL::Real(x); }
+
+
+Tree *Widget::rotatex(Tree *self, real_r rx)
+// ----------------------------------------------------------------------------
+//   Rotate around X
+// ----------------------------------------------------------------------------
+{
+    return rotate(self, rx, r(1), r(0), r(0));
+}
+
+
+Tree *Widget::rotatey(Tree *self, real_r ry)
+// ----------------------------------------------------------------------------
+//   Rotate around Y
+// ----------------------------------------------------------------------------
+{
+    return rotate(self, ry, r(0), r(1), r(0));
+}
+
+
+Tree *Widget::rotatez(Tree *self, real_r rz)
+// ----------------------------------------------------------------------------
+//   Rotate around Z
+// ----------------------------------------------------------------------------
+{
+    return rotate(self, rz, r(0), r(0), r(1));
+}
+
+
+Tree *Widget::rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz)
 // ----------------------------------------------------------------------------
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Rotation(ra, rx, ry, rz));
+    layout->Add(new RotationManipulator(ra, rx, ry, rz));
     return XL::xl_true;
 }
 
 
-Tree *Widget::translate(Tree *self, double rx, double ry, double rz)
+Tree *Widget::translatex(Tree *self, real_r x)
+// ----------------------------------------------------------------------------
+//   Translate along X
+// ----------------------------------------------------------------------------
+{
+    return translate(self, x, r(0), r(0));
+}
+
+
+Tree *Widget::translatey(Tree *self, real_r y)
+// ----------------------------------------------------------------------------
+//   Translate along Y
+// ----------------------------------------------------------------------------
+{
+    return translate(self, y, r(0), r(0));
+}
+
+
+Tree *Widget::translatez(Tree *self, real_r z)
+// ----------------------------------------------------------------------------
+//   Translate along Z
+// ----------------------------------------------------------------------------
+{
+    return translate(self, z, r(0), r(0));
+}
+
+
+Tree *Widget::translate(Tree *self, real_r rx, real_r ry, real_r rz)
 // ----------------------------------------------------------------------------
 //     Translation along three axes
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Translation(rx, ry, rz));
+    layout->Add(new TranslationManipulator(rx, ry, rz));
     return XL::xl_true;
 }
 
 
-Tree *Widget::rescale(Tree *self, double sx, double sy, double sz)
+Tree *Widget::rescalex(Tree *self, real_r x)
+// ----------------------------------------------------------------------------
+//   Rescale along X
+// ----------------------------------------------------------------------------
+{
+    return rescale(self, x, r(0), r(0));
+}
+
+
+Tree *Widget::rescaley(Tree *self, real_r y)
+// ----------------------------------------------------------------------------
+//   Rescale along Y
+// ----------------------------------------------------------------------------
+{
+    return rescale(self, y, r(0), r(0));
+}
+
+
+Tree *Widget::rescalez(Tree *self, real_r z)
+// ----------------------------------------------------------------------------
+//   Rescale along Z
+// ----------------------------------------------------------------------------
+{
+    return rescale(self, z, r(0), r(0));
+}
+
+
+Tree *Widget::rescale(Tree *self, real_r sx, real_r sy, real_r sz)
 // ----------------------------------------------------------------------------
 //     Scaling along three axes
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Scale(sx, sy, sz));
+    layout->Add(new ScaleManipulator(sx, sy, sz));
     return XL::xl_true;
 }
 

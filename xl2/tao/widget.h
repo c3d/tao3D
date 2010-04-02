@@ -145,9 +145,18 @@ public:
     Tree *      locally(Tree *self, Tree *t);
 
     // Transforms
-    Tree *      rotate(Tree *self, double ra, double rx, double ry, double rz);
-    Tree *      translate(Tree *self, double x, double y, double z);
-    Tree *      rescale(Tree *self, double x, double y, double z);
+    Tree *      rotatex(Tree *self, real_r rx);
+    Tree *      rotatey(Tree *self, real_r ry);
+    Tree *      rotatez(Tree *self, real_r rz);
+    Tree *      rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz);
+    Tree *      translatex(Tree *self, real_r x);
+    Tree *      translatey(Tree *self, real_r y);
+    Tree *      translatez(Tree *self, real_r z);
+    Tree *      translate(Tree *self, real_r x, real_r y, real_r z);
+    Tree *      rescalex(Tree *self, real_r x);
+    Tree *      rescaley(Tree *self, real_r y);
+    Tree *      rescalez(Tree *self, real_r z);
+    Tree *      rescale(Tree *self, real_r x, real_r y, real_r z);
 
     // Setting attributes
     Name *      depthTest(Tree *self, bool enable);

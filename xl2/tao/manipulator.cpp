@@ -27,6 +27,7 @@
 #include "widget_surface.h"
 #include "gl_keepers.h"
 #include "runtime.h"
+#include "transforms.h"
 
 TAO_BEGIN
 
@@ -77,7 +78,7 @@ void Manipulator::Identify(Layout *layout)
 }
 
 
-bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id)
+bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id, text name)
 // ----------------------------------------------------------------------------
 //   Draw one of the handles for the current manipulator
 // ----------------------------------------------------------------------------
@@ -85,7 +86,7 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id)
     Widget *widget = layout->Display();
     Vector3 offset = layout->Offset();
     glLoadName(id);
-    widget->drawHandle(p + offset, "handle");
+    widget->drawHandle(p + offset, name);
     glLoadName(0);
     bool selected = widget->manipulator == id;
     return selected;
@@ -767,5 +768,233 @@ bool ControlBox::DrawHandles(Layout *layout)
     }
     return changed;
 }
+
+
+
+// ============================================================================
+// 
+//   Rotation manipulator
+// 
+// ============================================================================
+
+RotationManipulator::RotationManipulator(real_r a, real_r x,real_r y,real_r z)
+// ----------------------------------------------------------------------------
+//   Manipulation of a rotation
+// ----------------------------------------------------------------------------
+    : DrawingManipulator(new Rotation(a, x, y, z)), a(a), x(x), y(y), z(z)
+{}
+
+
+bool RotationManipulator::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the selection for a rotation
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = layout->Display();
+    Vector3 offset = layout->Offset();
+    Vector3 v = widget->dragDelta();
+    bool    changed = v.x != 0 || v.y != 0 || v.z != 0;
+
+    // Draw the sphere
+    if (DrawHandle(layout, Point3(0, 0, 0), 1, "rotation_handle"))
+    {
+        if (changed)
+        {
+            // REVISIT: Use trackball or something like that
+            updateArg(widget, &a,  v.x);
+            widget->markChanged("Rotation center");
+            changed = false;
+        }
+    }
+
+    // Size of the X, Y, Z direction
+    if (DrawHandle(layout, Point3(25, 0, 0), 2, "rotation_x"))
+    {
+        if (changed)
+        {
+            // REVISIT: Use trackball or something like that
+            updateArg(widget, &x,  v.x);
+            widget->markChanged("Rotation along X");
+            changed = false;
+        }
+    }
+
+    if (DrawHandle(layout, Point3(0, 25, 0), 3, "rotation_y"))
+    {
+        if (changed)
+        {
+            // REVISIT: Use trackball or something like that
+            updateArg(widget, &y,  v.y);
+            widget->markChanged("Rotation along Y");
+            changed = false;
+        }
+    }
+
+    if (DrawHandle(layout, Point3(0, 0, 25), 4, "rotation_z"))
+    {
+        if (changed)
+        {
+            // REVISIT: Use trackball or something like that
+            updateArg(widget, &z,  v.y);
+            widget->markChanged("Rotation along Z");
+            changed = false;
+        }
+    }
+
+    return changed;
+}
+
+
+
+// ============================================================================
+// 
+//   Translation manipulator
+// 
+// ============================================================================
+
+TranslationManipulator::TranslationManipulator(real_r x, real_r y, real_r z)
+// ----------------------------------------------------------------------------
+//   Manipulation of a translation
+// ----------------------------------------------------------------------------
+    : DrawingManipulator(new Translation(x, y, z)), x(x), y(y), z(z)
+{}
+
+
+bool TranslationManipulator::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Manipulate the translation
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = layout->Display();
+    Vector3 offset = layout->Offset();
+    Vector3 v = widget->dragDelta();
+    bool    changed = v.x != 0 || v.y != 0 || v.z != 0;
+
+    // Draw the sphere
+    if (DrawHandle(layout, Point3(0, 0, 0), 1, "translation_handle"))
+    {
+        if (changed)
+        {
+            // REVISIT: Use trackball or something like that
+            updateArg(widget, &x,  v.x);
+            updateArg(widget, &y,  v.y);
+            widget->markChanged("Translation");
+            changed = false;
+        }
+    }
+
+    // Size of the X, Y, Z direction
+    if (DrawHandle(layout, Point3(25, 0, 0), 2, "translation_x"))
+    {
+        if (changed)
+        {
+            // REVISIT: Use trackball or something like that
+            updateArg(widget, &x,  v.x);
+            widget->markChanged("Translation X axis");
+            changed = false;
+        }
+    }
+
+    if (DrawHandle(layout, Point3(0, 25, 0), 3, "translation_y"))
+    {
+        if (changed)
+        {
+            // REVISIT: Use trackball or something like that
+            updateArg(widget, &y,  v.y);
+            widget->markChanged("Translation Y axis");
+            changed = false;
+        }
+    }
+
+    if (DrawHandle(layout, Point3(0, 0, 25), 4, "translation_z"))
+    {
+        if (changed)
+        {
+            // REVISIT: Use trackball or something like that
+            updateArg(widget, &z,  v.y);
+            widget->markChanged("Translation Z axis");
+            changed = false;
+        }
+    }
+
+    return changed;
+};
+
+
+
+
+// ============================================================================
+// 
+//   Scale manipulator
+// 
+// ============================================================================
+
+ScaleManipulator::ScaleManipulator(real_r x, real_r y, real_r z)
+// ----------------------------------------------------------------------------
+//   Manipulation of a scale
+// ----------------------------------------------------------------------------
+    : DrawingManipulator(new Scale(x, y, z)), x(x), y(y), z(z)
+{}
+
+
+bool ScaleManipulator::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Manipulate the scale
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = layout->Display();
+    Vector3 offset = layout->Offset();
+    Vector3 v = widget->dragDelta();
+    bool    changed = v.x != 0 || v.y != 0 || v.z != 0;
+
+    // Draw the sphere
+    if (DrawHandle(layout, Point3(0, 0, 0), 1, "scale_handle"))
+    {
+        if (changed)
+        {
+            // REVISIT: Use trackball or something like that
+            updateArg(widget, &x,  v.x);
+            updateArg(widget, &y,  v.y);
+            widget->markChanged("Scale center");
+            changed = false;
+        }
+    }
+
+    // Size of the X, Y, Z direction
+    if (DrawHandle(layout, Point3(25, 0, 0), 2, "scale_x"))
+    {
+        if (changed)
+        {
+            // REVISIT: Use trackball or something like that
+            updateArg(widget, &x,  v.x);
+            widget->markChanged("Scale X axis");
+            changed = false;
+        }
+    }
+
+    if (DrawHandle(layout, Point3(0, 25, 0), 3, "scale_y"))
+    {
+        if (changed)
+        {
+            // REVISIT: Use trackball or something like that
+            updateArg(widget, &y,  v.y);
+            widget->markChanged("Scale Y axis");
+            changed = false;
+        }
+    }
+
+    if (DrawHandle(layout, Point3(0, 0, 25), 4, "scale_z"))
+    {
+        if (changed)
+        {
+            // REVISIT: Use trackball or something like that
+            updateArg(widget, &z,  v.y);
+            widget->markChanged("Scale Z axis");
+            changed = false;
+        }
+    }
+
+    return changed;
+};
 
 TAO_END

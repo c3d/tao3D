@@ -1,3 +1,5 @@
 /Makefile
 /moc_*.cpp
 /qrc_tao.cpp
+/Tao.app/
+tao.pro.user

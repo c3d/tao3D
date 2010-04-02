@@ -210,4 +210,57 @@ bool Repository::selectUndoBranch()
     return checkout(task + TAO_UNDO_SUFFIX);
 }
 
+
+void Repository::dispatch(Process *cmd)
+// ----------------------------------------------------------------------------
+//   Insert process in run queue and start first process
+// ----------------------------------------------------------------------------
+{
+    connect(cmd,  SIGNAL(finished(int,QProcess::ExitStatus)),
+            this, SLOT  (asyncProcessFinished(int)));
+    connect(cmd,  SIGNAL(error(QProcess::ProcessError)),
+            this, SLOT  (asyncProcessError(QProcess::ProcessError)));
+    pQueue.append(cmd);
+    if (pQueue.count() == 1)
+        cmd->start();
+}
+
+
+void Repository::asyncProcessFinished(int exitCode)
+// ----------------------------------------------------------------------------
+//   Default action when an asynchronous subprocess has finished normally
+// ----------------------------------------------------------------------------
+{
+    ProcQueueConsumer p(*this);
+    Process *cmd = (Process *)sender();
+    Q_ASSERT(cmd == pQueue.first());
+    if (exitCode)
+        std::cerr << +tr("Async command failed, exit status %1: %2")
+                     .arg((int)exitCode).arg(cmd->commandLine);
+}
+
+
+void Repository::asyncProcessError(QProcess::ProcessError error)
+// ----------------------------------------------------------------------------
+//   Default action when an asynchronous subprocess has not finished normally
+// ----------------------------------------------------------------------------
+{
+    ProcQueueConsumer p(*this);
+    Process *cmd = (Process *)sender();
+    Q_ASSERT(cmd == pQueue.first());
+    std::cerr << +tr("Async command error %1: %2")
+                 .arg((int)error).arg(cmd->commandLine);
+}
+
+
+Repository::ProcQueueConsumer::~ProcQueueConsumer()
+// ----------------------------------------------------------------------------
+//   Pop the head process from process queue, delete it and start next one
+// ----------------------------------------------------------------------------
+{
+    delete repo.pQueue.takeFirst();
+    if (repo.pQueue.count())
+        repo.pQueue.first()->start();
+}
+
 TAO_END

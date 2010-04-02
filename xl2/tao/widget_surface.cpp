@@ -24,9 +24,8 @@
 #include "gl_keepers.h"
 #include "runtime.h"
 #include "process.h"
-#include <phonon>
 #include <QtWebKit>
-
+#include <phonon>
 
 TAO_BEGIN
 
@@ -552,8 +551,7 @@ GroupBoxSurface::GroupBoxSurface(Widget *parent)
 //    Create the Group Box surface
 // ----------------------------------------------------------------------------
     : WidgetSurface(new QGroupBox(parent))
-{
-}
+{}
 
 
 GLuint GroupBoxSurface::bind(XL::Text *lbl)
@@ -583,8 +581,23 @@ VideoPlayerSurface::VideoPlayerSurface(Widget *parent)
 // ----------------------------------------------------------------------------
 //   Create the video player
 // ----------------------------------------------------------------------------
-    : WidgetSurface(new Phonon::VideoPlayer(Phonon::VideoCategory, parent))
-{}
+    : WidgetSurface(new Phonon::VideoPlayer(Phonon::VideoCategory, NULL)),
+      fbo(NULL)
+{
+    widget->setVisible(true);
+    widget->setAttribute(Qt::WA_DontShowOnScreen);
+}
+
+
+VideoPlayerSurface::~VideoPlayerSurface()
+// ----------------------------------------------------------------------------
+//    Stop the player and delete the frame buffer object
+// ----------------------------------------------------------------------------
+{
+   Phonon::VideoPlayer *player = (Phonon::VideoPlayer*) widget;
+   player->stop();
+   delete fbo;
+}
 
 
 GLuint VideoPlayerSurface::bind(XL::Text *urlTree)
@@ -592,24 +605,28 @@ GLuint VideoPlayerSurface::bind(XL::Text *urlTree)
 //    Bind the surface to the texture
 // ----------------------------------------------------------------------------
 {
+    Phonon::VideoPlayer *player = (Phonon::VideoPlayer*) widget;
+    if (!fbo ||
+        fbo->width() != player->width() ||
+        fbo->height() != player->height())
+    {
+        delete fbo;
+        fbo = new QGLFramebufferObject(player->width(), player->height(),
+                                       GL_TEXTURE_2D);
+    }
+
     if (urlTree->value != url)
     {
         url = urlTree->value;
-        Phonon::VideoPlayer *player = (Phonon::VideoPlayer*) widget;
         player->play(Phonon::MediaSource(QUrl(+url)));
     }
     dirty = true;
-    return WidgetSurface::bind();
-}
 
+    fbo->bind();
+    widget->render(fbo);
+    fbo->release();
 
-VideoPlayerSurface::~VideoPlayerSurface()
-// ----------------------------------------------------------------------------
-//    Make sure we stop the player
-// ----------------------------------------------------------------------------
-{
-   Phonon::VideoPlayer *player = (Phonon::VideoPlayer*) widget;
-   player->stop();
+    return fbo->texture();
 }
 
 TAO_END

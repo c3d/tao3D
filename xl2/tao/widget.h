@@ -98,7 +98,8 @@ public:
 
     // Timing
     ulonglong   now();
-    ulonglong   elapsed(ulonglong since, bool stats = true, bool show=true);
+    ulonglong   elapsed(ulonglong since, ulonglong until,
+                        bool stats = true, bool show=true);
     bool        timerIsActive()         { return timer.isActive(); }
 
     // Selection
@@ -151,7 +152,7 @@ public:
     // Setting attributes
     Name *      depthTest(Tree *self, bool enable);
     Tree *      refresh(Tree *self, double delay);
-    Name *      selectorName(Tree *self, Text &name);
+    Name *      fullScreen(Tree *self, bool fs);
 
     // Graphic attributes
     Tree *      lineColor(Tree *self, double r, double g, double b, double a);
@@ -307,12 +308,12 @@ private:
 
     // Timing
     QTimer                timer, idleTimer;
-    double                pageStartTime;
+    double                pageStartTime, pageRefresh;
     ulonglong             tmin, tmax, tsum, tcount;
     ulonglong             nextSave, nextCommit, nextSync;
 
-    static Widget    *current;
-    static double       zNear, zFar;
+    static Widget *       current;
+    static double         zNear, zFar;
 };
 
 

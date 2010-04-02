@@ -24,6 +24,7 @@
 
 #include <QMainWindow>
 #include <QTimer>
+#include <QSharedPointer>
 #include "main.h"
 #include "tao.h"
 #include "repository.h"
@@ -51,9 +52,13 @@ public:
 
     void setText(QString txt);
     bool openProject(QString path, QString filename, bool confirm = true);
-    Repository * repository() { return repo; }
+    Repository * repository() { return repo.data(); }
+    void switchToFullScreen(bool fs);
 
     bool isUntitled;
+
+public slots:
+    void markChanged(bool changed = true);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -66,6 +71,7 @@ private slots:
     void about();
     void documentWasModified();
     void checkFiles();
+    void toggleFullScreen();
 
 private:
     void createActions();
@@ -87,7 +93,7 @@ private:
 
 private:
     XL::Main *        xlRuntime;
-    Repository *      repo;
+    QSharedPointer<Repository> repo;
 
     QTextEdit        *textEdit;
     QDockWidget      *dock;
@@ -112,6 +118,7 @@ private:
     QAction          *pasteAct;
     QAction          *aboutAct;
     QAction          *aboutQtAct;
+    QAction          *fullScreenAct;
 };
 
 // Prefixes for the created menus and sub menus

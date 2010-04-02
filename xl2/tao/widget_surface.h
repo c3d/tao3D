@@ -136,12 +136,14 @@ struct GroupBoxSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef GroupBoxSurface * data_t;
-    GroupBoxSurface(Widget *parent);
+    GroupBoxSurface(Widget *parent, QGridLayout *l);
     operator data_t() { return this; }
     virtual GLuint bind(XL::Text *lbl);
 
 private:
     text label;
+public:
+    QGridLayout *grid;
 };
 
 

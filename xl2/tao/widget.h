@@ -287,6 +287,7 @@ private:
     SpaceLayout *         space;
     Layout *              layout;
     GraphicPath *         path;
+    QGridLayout *         currentGroupLayout;
 
     // Selection
     Activity *            activities;

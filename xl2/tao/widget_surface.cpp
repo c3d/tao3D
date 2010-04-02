@@ -387,8 +387,13 @@ GLuint ColorChooserSurface::bind()
 // ----------------------------------------------------------------------------
 //    At least on MacOSX, the color chooser shows in its own window
 {
+//    QColorDialog *diag = (QColorDialog *) widget;
+//    diag->setOption(QColorDialog::DontUseNativeDialog, false);
+
     widget->setVisible(true);
+    dirty = true;
     return WidgetSurface::bind();
+
 }
 
 
@@ -546,12 +551,16 @@ FontChooserSurface::~FontChooserSurface()
 //
 // ============================================================================
 
-GroupBoxSurface::GroupBoxSurface(Widget *parent)
+GroupBoxSurface::GroupBoxSurface(Widget *parent, QGridLayout *l)
 // ----------------------------------------------------------------------------
 //    Create the Group Box surface
 // ----------------------------------------------------------------------------
-    : WidgetSurface(new QGroupBox(parent))
-{}
+    : WidgetSurface(new QGroupBox(parent)), grid(l)
+{
+    QGroupBox *gbox = (QGroupBox *) widget;
+    grid->setParent(gbox);
+    gbox->setLayout(grid);
+}
 
 
 GLuint GroupBoxSurface::bind(XL::Text *lbl)
@@ -565,6 +574,11 @@ GLuint GroupBoxSurface::bind(XL::Text *lbl)
         QGroupBox *gbox = (QGroupBox *) widget;
         gbox->setTitle(+label);
         dirty = true;
+        IFTRACE(widgets)
+        {
+            QLayout *l = gbox->layout();
+            std::cerr << "Layout : "<<(l?l->objectName().toStdString():"No Layout")<<"\n";
+        }
     }
     return WidgetSurface::bind();
 }

@@ -45,7 +45,7 @@ public:
     typedef WidgetSurface * data_t;
 
     WidgetSurface(QWidget *widget);
-    ~WidgetSurface();
+    virtual ~WidgetSurface();
 
     operator            data_t() { return this; }
     void                resize(uint width, uint height);
@@ -199,6 +199,7 @@ public:
     virtual GLuint bind(XL::Text *url);
 public:
     text url;
+    QGLFramebufferObject *fbo;
 };
 } // namespace Tao
 

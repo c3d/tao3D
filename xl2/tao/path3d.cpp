@@ -70,7 +70,7 @@ GraphicPath::PolygonData::~PolygonData()
 }
 
 
-static void tessBegin(GLenum mode, PolygonData *poly)
+static void CALLBACK tessBegin(GLenum mode, PolygonData *poly)
 // ----------------------------------------------------------------------------
 //   Callback for beginning of rendering
 // ----------------------------------------------------------------------------
@@ -80,7 +80,7 @@ static void tessBegin(GLenum mode, PolygonData *poly)
 }
 
 
-static void tessEnd(PolygonData *poly)
+static void CALLBACK tessEnd(PolygonData *poly)
 // ----------------------------------------------------------------------------
 //   Callback for end of rendering
 // ----------------------------------------------------------------------------
@@ -90,7 +90,7 @@ static void tessEnd(PolygonData *poly)
 }
 
 
-static void tessVertex(VertexData *vertex, PolygonData *poly)
+static void CALLBACK tessVertex(VertexData *vertex, PolygonData *poly)
 // ----------------------------------------------------------------------------
 //   Emit a vertex during tesselation
 // ----------------------------------------------------------------------------
@@ -101,10 +101,10 @@ static void tessVertex(VertexData *vertex, PolygonData *poly)
 }
 
 
-static void tessCombine(GLdouble coords[3],
-                        VertexData *vertex[4],
-                        GLfloat weight[4], VertexData **dataOut,
-                        PolygonData *polygon)
+static void CALLBACK tessCombine(GLdouble coords[3],
+                                 VertexData *vertex[4],
+                                 GLfloat weight[4], VertexData **dataOut,
+                                 PolygonData *polygon)
 // ----------------------------------------------------------------------------
 //   Combine vertex data when the polygon self-intersects
 // ----------------------------------------------------------------------------

@@ -702,8 +702,6 @@ void Window::switchToFullScreen(bool fs)
     if (fs)
     {
         setUnifiedTitleAndToolBarOnMac(false);
-        textEdit->hide();
-        dock->hide();
         removeToolBar(fileToolBar);
         removeToolBar(editToolBar);
         showFullScreen();
@@ -713,8 +711,6 @@ void Window::switchToFullScreen(bool fs)
     {
         showNormal();
         taoWidget->showNormal();
-        textEdit->show();
-        dock->show();
         addToolBar(fileToolBar);
         addToolBar(editToolBar);
         fileToolBar->show();

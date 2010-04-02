@@ -25,7 +25,6 @@ if page_time mod 3 > 0.5 then
 else 
     color 0, 0, 1, 60% 
 
-repetavatch 30, text "Hello" 
 move_to 0, 0, 0 
 sphere 0, 0, 0, 270 
 refresh 0.02

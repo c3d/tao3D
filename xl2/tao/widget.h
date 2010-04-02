@@ -98,7 +98,8 @@ public:
 
     // Timing
     ulonglong   now();
-    ulonglong   elapsed(ulonglong since, bool stats = true, bool show=true);
+    ulonglong   elapsed(ulonglong since, ulonglong until,
+                        bool stats = true, bool show=true);
     bool        timerIsActive()         { return timer.isActive(); }
 
     // Selection
@@ -307,12 +308,12 @@ private:
 
     // Timing
     QTimer                timer, idleTimer;
-    double                pageStartTime;
+    double                pageStartTime, pageRefresh;
     ulonglong             tmin, tmax, tsum, tcount;
     ulonglong             nextSave, nextCommit, nextSync;
 
-    static Widget    *current;
-    static double       zNear, zFar;
+    static Widget *       current;
+    static double         zNear, zFar;
 };
 
 

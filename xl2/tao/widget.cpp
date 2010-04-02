@@ -89,7 +89,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentMenu(NULL), currentMenuBar(NULL),
       whatsNew(""), reloadProgram(false),
       timer(this), idleTimer(this),
-      pageStartTime(CurrentTime()),
+      pageStartTime(CurrentTime()), pageRefresh(86400),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       nextSave(now()), nextCommit(nextSave), nextSync(nextSave)
 {
@@ -236,6 +236,10 @@ bool Widget::doCommit()
         XL::Main *xlr = XL::MAIN;
         whatsNew = "";
         nextCommit = now() + xlr->options.commit_interval * 1000;
+
+        Window *window = (Window *) parentWidget();
+        window->markChanged(false);
+
         return true;
     }
     return false;
@@ -258,7 +262,7 @@ void Widget::draw()
 // ----------------------------------------------------------------------------
 {
     // Timing
-    ulonglong t = now();
+    ulonglong before = now();
     event = NULL;
 
     // Setup the initial drawing environment
@@ -285,10 +289,19 @@ void Widget::draw()
     }
 
     // If there is a program, we need to run it
+    pageRefresh = 86400;        // 24 hours
     runProgram();
 
+    // Check if we want to refresh something
+    ulonglong after = now();
+    double remaining = pageRefresh - 1e-6 * (after - before) - 0.001;
+    if (remaining <= 0)
+        remaining = 0.001;
+    timer.setSingleShot(true);
+    timer.start(1000 * remaining);
+
     // Timing
-    elapsed(t);
+    elapsed(before, after);
 
     // Render all activities, e.g. the selection rectangle
     SpaceLayout selectionSpace(this);
@@ -864,6 +877,7 @@ void Widget::markChanged(text reason)
             ImportedFilesChanged(prog, done, true);
         }
     }
+    refresh(NULL, 0);
 }
 
 
@@ -887,12 +901,13 @@ ulonglong Widget::now()
 }
 
 
-ulonglong Widget::elapsed(ulonglong since, bool stats, bool show)
+ulonglong Widget::elapsed(ulonglong since, ulonglong until,
+                          bool stats, bool show)
 // ----------------------------------------------------------------------------
 //    Record how much time passed since last measurement
 // ----------------------------------------------------------------------------
 {
-    ulonglong t = now() - since;
+    ulonglong t = until - since;
     if (t == 0)
         t = 1; // Because Windows lies
 
@@ -1167,6 +1182,7 @@ XL::Real *Widget::time(Tree *self)
 //   Return a fractional time, including milliseconds
 // ----------------------------------------------------------------------------
 {
+    refresh(NULL, 0.1);
     return new XL::Real(CurrentTime());
 }
 
@@ -1176,6 +1192,7 @@ XL::Real *Widget::pageTime(Tree *self)
 //   Return a fractional time, including milliseconds
 // ----------------------------------------------------------------------------
 {
+    refresh(NULL, 0.1);
     return new XL::Real(CurrentTime() - pageStartTime);
 }
 
@@ -1241,9 +1258,12 @@ Tree *Widget::refresh(Tree *self, double delay)
 //    Refresh after the given number of seconds
 // ----------------------------------------------------------------------------
 {
-    timer.setSingleShot(true);
-    timer.start(1000 * delay);
-    return XL::xl_true;
+    if (pageRefresh > delay)
+    {
+        pageRefresh = delay;
+        return XL::xl_true;
+    }
+    return XL::xl_false;
 }
 
 
@@ -2419,3 +2439,18 @@ XL::Real *Widget::fromPx(Tree *self, double px)
 }
 
 TAO_END
+
+
+// ============================================================================
+// 
+//   Helper functions
+// 
+// ============================================================================
+
+void tao_widget_refresh(double delay)
+// ----------------------------------------------------------------------------
+//    Refresh the current widget
+// ----------------------------------------------------------------------------
+{
+    TAO(refresh(NULL, delay));
+}

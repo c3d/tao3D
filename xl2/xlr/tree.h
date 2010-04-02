@@ -301,7 +301,7 @@ struct TreeRoot
 //    A tree that shouldn't be garbage collected until the root dies
 // ----------------------------------------------------------------------------
 {
-    TreeRoot(Tree *t);
+    TreeRoot(Tree *t = NULL);
     TreeRoot(const TreeRoot &o);
     ~TreeRoot();
     operator Tree *(void) { return tree; }

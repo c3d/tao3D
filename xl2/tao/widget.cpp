@@ -34,13 +34,11 @@
 #include "svg.h"
 #include "widget_surface.h"
 #include "window.h"
-#include "treeholder.h"
 #include "apply_changes.h"
 #include "activity.h"
 #include "selection.h"
 #include "drag.h"
 #include "manipulator.h"
-#include "treeholder.h"
 #include "menuinfo.h"
 #include "repository.h"
 #include "application.h"
@@ -443,7 +441,7 @@ void Widget::userMenu(QAction *p_action)
 
     markChanged(+("Menu '" + p_action->text() + "' selected"));
 
-    TreeHolder t = var.value<TreeHolder >();
+    XL::TreeRoot t = var.value<XL::TreeRoot >();
     xl_evaluate(t.tree);        // Typically will insert something...
 }
 
@@ -2303,9 +2301,7 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
     MenuInfo *menuInfo = self->GetInfo<MenuInfo>();
 
     // Store a copy of the tree in the QAction.
-    XL::TreeClone cloner;
-    XL::Tree *copy = t->Do(cloner);
-    QVariant var = QVariant::fromValue(TreeHolder(copy));
+    QVariant var = QVariant::fromValue(XL::TreeRoot(t));
 
     if (menuInfo)
     {
@@ -2341,6 +2337,7 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
 
     return XL::xl_true;
 }
+
 
 Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 // ----------------------------------------------------------------------------

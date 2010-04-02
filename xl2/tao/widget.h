@@ -25,7 +25,6 @@
 
 #include "main.h"
 #include "tao.h"
-#include "treeholder.h"
 #include "coords3d.h"
 #include "opcodes.h"
 
@@ -377,7 +376,17 @@ inline double CurrentTime()
 #define TAO(x)  (Tao::Widget::Tao() ? Tao::Widget::Tao()->x : 0)
 #define RTAO(x) return TAO(x)
 
-
 } // namespace Tao
+
+
+
+// ============================================================================
+//
+//   Qt interface for XL types
+//
+// ============================================================================
+
+#define TREEROOT_TYPE 383 // (QVariant::UserType | 0x100)
+Q_DECLARE_METATYPE(XL::TreeRoot)
 
 #endif // TAO_WIDGET_H

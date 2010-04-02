@@ -148,6 +148,21 @@ void Widget::dawdle()
     XL::Main   *xlr            = XL::MAIN;
     bool        savedSomething = false;
 
+    // Check if we need to refresh something
+    double idleInterval = 0.001 * idleTimer.interval();
+    double remaining = pageRefresh - idleInterval;
+    if (remaining <= idleInterval &&
+        (!timer.isActive() || remaining <= timer.interval() * 0.001))
+    {
+        if (remaining <= 0)
+            remaining = 0.001;
+        timer.stop();
+        timer.setSingleShot(true);
+        timer.start(1000 * remaining);
+        remaining = 86400;
+    }
+    pageRefresh = remaining;
+
     if (xlProgram && xlProgram->changed)
     {
         text txt = *xlProgram->tree.tree;
@@ -443,6 +458,20 @@ void Widget::userMenu(QAction *p_action)
 
     XL::TreeRoot t = var.value<XL::TreeRoot >();
     xl_evaluate(t.tree);        // Typically will insert something...
+}
+
+
+bool Widget::refresh(double delay)
+// ----------------------------------------------------------------------------
+//   Refresh the screen after the given time interval
+// ----------------------------------------------------------------------------
+{
+    if (pageRefresh > delay)
+    {
+        pageRefresh = delay;
+        return true;
+    }
+    return false;
 }
 
 
@@ -879,7 +908,7 @@ void Widget::markChanged(text reason)
             ImportedFilesChanged(prog, done, true);
         }
     }
-    refresh(NULL, 0);
+    refresh(0);
 }
 
 
@@ -1184,7 +1213,7 @@ XL::Real *Widget::time(Tree *self)
 //   Return a fractional time, including milliseconds
 // ----------------------------------------------------------------------------
 {
-    refresh(NULL, 0.1);
+    refresh(0.1);
     return new XL::Real(CurrentTime());
 }
 
@@ -1194,7 +1223,7 @@ XL::Real *Widget::pageTime(Tree *self)
 //   Return a fractional time, including milliseconds
 // ----------------------------------------------------------------------------
 {
-    refresh(NULL, 0.1);
+    refresh(0.1);
     return new XL::Real(CurrentTime() - pageStartTime);
 }
 
@@ -1344,12 +1373,7 @@ Tree *Widget::refresh(Tree *self, double delay)
 //    Refresh after the given number of seconds
 // ----------------------------------------------------------------------------
 {
-    if (pageRefresh > delay)
-    {
-        pageRefresh = delay;
-        return XL::xl_true;
-    }
-    return XL::xl_false;
+    return refresh (delay) ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -2537,5 +2561,5 @@ void tao_widget_refresh(double delay)
 //    Refresh the current widget
 // ----------------------------------------------------------------------------
 {
-    TAO(refresh(NULL, delay));
+    TAO(refresh(delay));
 }

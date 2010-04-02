@@ -37,6 +37,14 @@
 #include "runtime.h"
 #include "types.h"
 
+
+#ifdef TAO
+extern void tao_widget_refresh(double delay);
+#else
+#define tao_widget_refresh(x)    (void) (x)
+#endif
+
+
 XL_BEGIN
 
 // ============================================================================
@@ -120,15 +128,17 @@ static inline real_t xl_powf(real_r xr, integer_r yr)
 }
 
 
-static inline integer_t xl_time()
+static inline integer_t xl_time(double delay)
 // ----------------------------------------------------------------------------
 //   Return the current system time
 // ----------------------------------------------------------------------------
 {
     time_t t;
     time(&t);
+    tao_widget_refresh(delay);
     return t;
 }
+
 
 #define XL_RTIME(tmfield)                       \
     struct tm tm;                               \
@@ -136,11 +146,13 @@ static inline integer_t xl_time()
     localtime_r(&clock, &tm);                   \
     XL_RINT(tmfield)
 
-#define XL_RCTIME(tmfield)                      \
+
+#define XL_RCTIME(tmfield, delay)               \
     struct tm tm;                               \
     time_t clock;                               \
     time(&clock);                               \
     localtime_r(&clock, &tm);                   \
+    tao_widget_refresh(delay);                  \
     XL_RINT(tmfield)
 
 

@@ -499,6 +499,9 @@ bool Window::saveFile(const QString &fileName)
 // ----------------------------------------------------------------------------
 {
     QFile file(fileName);
+    QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
+    text fn = canonicalFilePath.toStdString();
+
     if (!file.open(QFile::WriteOnly | QFile::Text))
     {
         QMessageBox::warning(this, tr("Error saving file"),
@@ -517,20 +520,26 @@ bool Window::saveFile(const QString &fileName)
     } while (0); // Flush
 
     setCurrentFile(fileName);
+    xlRuntime->LoadFile(fn);
     statusBar()->showMessage(tr("File saved"), 2000);
     updateProgram(fileName);
 
     // Trigger immediate commit to repository
     taoWidget->markChanged("Manual save");
-    QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
-    text fn = canonicalFilePath.toStdString();
     XL::SourceFile &sf = xlRuntime->files[fn];
     if (taoWidget->writeIfChanged(sf))
         taoWidget->doCommit();
-
-    textEdit->document()->setModified(false);
-    setWindowModified(false);
     return true;
+}
+
+
+void Window::markChanged(bool changed)
+// ----------------------------------------------------------------------------
+//   Someone else tells us that the window is changed or not
+// ----------------------------------------------------------------------------
+{
+    textEdit->document()->setModified(changed);
+    setWindowModified(changed);
 }
 
 

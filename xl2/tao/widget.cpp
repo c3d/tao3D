@@ -236,6 +236,10 @@ bool Widget::doCommit()
         XL::Main *xlr = XL::MAIN;
         whatsNew = "";
         nextCommit = now() + xlr->options.commit_interval * 1000;
+
+        Window *window = (Window *) parentWidget();
+        window->markChanged(false);
+
         return true;
     }
     return false;

@@ -57,6 +57,9 @@ public:
 
     bool isUntitled;
 
+public slots:
+    void markChanged(bool changed = true);
+
 protected:
     void closeEvent(QCloseEvent *event);
 

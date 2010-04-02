@@ -52,6 +52,7 @@ public:
     void setText(QString txt);
     bool openProject(QString path, QString filename, bool confirm = true);
     Repository * repository() { return repo; }
+    void switchToFullScreen(bool fs);
 
     bool isUntitled;
 
@@ -66,6 +67,7 @@ private slots:
     void about();
     void documentWasModified();
     void checkFiles();
+    void toggleFullScreen();
 
 private:
     void createActions();
@@ -112,6 +114,7 @@ private:
     QAction          *pasteAct;
     QAction          *aboutAct;
     QAction          *aboutQtAct;
+    QAction          *fullScreenAct;
 };
 
 // Prefixes for the created menus and sub menus

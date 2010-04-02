@@ -159,7 +159,6 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
             widget->savedSelection = widget->selection;
         else
             widget->savedSelection.clear();
-        widget->selectionTrees.clear();
         widget->selection = widget->savedSelection;
         if (selected)
             widget->selection[selected]++;

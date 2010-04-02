@@ -151,7 +151,7 @@ public:
     // Setting attributes
     Name *      depthTest(Tree *self, bool enable);
     Tree *      refresh(Tree *self, double delay);
-    Name *      selectorName(Tree *self, Text &name);
+    Name *      fullScreen(Tree *self, bool fs);
 
     // Graphic attributes
     Tree *      lineColor(Tree *self, double r, double g, double b, double a);

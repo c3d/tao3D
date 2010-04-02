@@ -175,6 +175,8 @@ void Widget::dawdle()
         text txt = *xlProgram->tree.tree;
         Window *window = (Window *) parentWidget();
         window->setText(+txt);
+        if (!repo)
+            xlProgram->changed = false;
     }
 
     // Check if there's something to save

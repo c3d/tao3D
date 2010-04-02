@@ -131,6 +131,15 @@ void Window::checkFiles()
 }
 
 
+void Window::toggleFullScreen()
+// ----------------------------------------------------------------------------
+//   Toggle between full-screen and normal mode
+// ----------------------------------------------------------------------------
+{
+    switchToFullScreen(!isFullScreen());
+}
+
+
 void Window::newFile()
 // ----------------------------------------------------------------------------
 //   Create a new window
@@ -316,6 +325,10 @@ void Window::createActions()
     aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
     connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
+    fullScreenAct = new QAction(tr("Fullscreen"), this);
+    fullScreenAct->setStatusTip(tr("Toggle full-screen mode"));
+    connect(fullScreenAct, SIGNAL(triggered()), this, SLOT(toggleFullScreen()));
+
     cutAct->setEnabled(false);
     copyAct->setEnabled(false);
     connect(textEdit, SIGNAL(copyAvailable(bool)),
@@ -346,6 +359,7 @@ void Window::createMenus()
 
     viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(dock->toggleViewAction());
+    viewMenu->addAction(fullScreenAct);
 
     menuBar()->addSeparator();
 
@@ -519,6 +533,7 @@ bool Window::saveFile(const QString &fileName)
     return true;
 }
 
+
 bool Window::openProject(QString path, QString fileName, bool confirm)
 // ----------------------------------------------------------------------------
 //   Find and open a project (= SCM repository)
@@ -673,6 +688,39 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
     } while (!ok);
 
     return ok;
+}
+
+
+void Window::switchToFullScreen(bool fs)
+// ----------------------------------------------------------------------------
+//   Switch a window to full screen mode, hiding children
+// ----------------------------------------------------------------------------
+{
+    if (fs == isFullScreen())
+        return;
+
+    if (fs)
+    {
+        setUnifiedTitleAndToolBarOnMac(false);
+        textEdit->hide();
+        dock->hide();
+        removeToolBar(fileToolBar);
+        removeToolBar(editToolBar);
+        showFullScreen();
+        taoWidget->showFullScreen();
+    }
+    else
+    {
+        showNormal();
+        taoWidget->showNormal();
+        textEdit->show();
+        dock->show();
+        addToolBar(fileToolBar);
+        addToolBar(editToolBar);
+        fileToolBar->show();
+        editToolBar->show();
+        setUnifiedTitleAndToolBarOnMac(true);
+    }
 }
 
 

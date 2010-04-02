@@ -312,6 +312,7 @@ void Widget::runProgram()
     QTextOption alignCenter(Qt::AlignCenter);
     space->Clear();
     XL::LocalSave<Layout *> saveLayout(layout, space);
+    selectionTrees.clear();
 
     try
     {
@@ -1243,6 +1244,18 @@ Tree *Widget::refresh(Tree *self, double delay)
     timer.setSingleShot(true);
     timer.start(1000 * delay);
     return XL::xl_true;
+}
+
+
+XL::Name *Widget::fullScreen(XL::Tree *self, bool fs)
+// ----------------------------------------------------------------------------
+//   Switch to full screen
+// ----------------------------------------------------------------------------
+{
+    bool oldFs = isFullScreen();
+    Window *window = (Window *) parentWidget();
+    window->switchToFullScreen(fs);
+    return oldFs ? XL::xl_true : XL::xl_false;
 }
 
 

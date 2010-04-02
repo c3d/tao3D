@@ -26,23 +26,26 @@
 
 #include "tao.h"
 #include "tree.h"
+#include "process.h"
 #include <QString>
 #include <QProcess>
 #include <QtGlobal>
 #include <QMap>
 #include <iostream>
 
-TAO_BEGIN
+namespace Tao {
 
-struct Repository
+class Repository : public QObject
 // ----------------------------------------------------------------------------
 //   A repository storing the history of documents
 // ----------------------------------------------------------------------------
 {
+    Q_OBJECT
 
     // ------------------------------------------------------------------------
     //   The kind of SCM tool available to the application
     // ------------------------------------------------------------------------
+public:
     enum Kind
     {
         Unknown,
@@ -50,6 +53,7 @@ struct Repository
         Git
     };
 
+public:
     Repository(const QString &path): path(path), task("work") {}
     virtual ~Repository() {}
 
@@ -75,6 +79,7 @@ public:
     virtual bool        merge(text branch)              = 0;
     virtual bool        reset()                         = 0;
 
+public:
     static Repository * repository(const QString &path, bool create = false);
     static bool         available();
 
@@ -84,12 +89,28 @@ protected:
     virtual text        fullName(text fileName);
     static Repository * newRepository(const QString &path,
                                       bool create = false);
+    void                dispatch(Process *cmd);
 
+protected slots:
+    virtual void        asyncProcessFinished(int exitCode);
+    virtual void        asyncProcessError(QProcess::ProcessError error);
+
+protected:
+    struct ProcQueueConsumer
+    {
+        ProcQueueConsumer(Repository &repo): repo(repo) {}
+        ~ProcQueueConsumer();
+
+        Repository &repo;
+    };
 
 public:
     QString  path;
     text     task;
     text     errors;
+
+protected:
+    QList<Process *> pQueue;
 
 protected:
     static QMap<QString, Repository *> cache;
@@ -98,6 +119,6 @@ protected:
 
 #define TAO_UNDO_SUFFIX "_tao_undo"
 
-TAO_END
+}
 
 #endif // REPOSITORY_H

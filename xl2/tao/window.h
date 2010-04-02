@@ -24,6 +24,7 @@
 
 #include <QMainWindow>
 #include <QTimer>
+#include <QSharedPointer>
 #include "main.h"
 #include "tao.h"
 #include "repository.h"
@@ -51,7 +52,7 @@ public:
 
     void setText(QString txt);
     bool openProject(QString path, QString filename, bool confirm = true);
-    Repository * repository() { return repo; }
+    Repository * repository() { return repo.data(); }
     void switchToFullScreen(bool fs);
 
     bool isUntitled;
@@ -89,7 +90,7 @@ private:
 
 private:
     XL::Main *        xlRuntime;
-    Repository *      repo;
+    QSharedPointer<Repository> repo;
 
     QTextEdit        *textEdit;
     QDockWidget      *dock;

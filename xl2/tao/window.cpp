@@ -825,8 +825,7 @@ void Window::setCurrentFile(const QString &fileName)
 
     curFile = QFileInfo(name).absoluteFilePath();
 
-    textEdit->document()->setModified(false);
-    setWindowModified(false);
+    markChanged(false);
     setWindowFilePath(curFile);
 }
 

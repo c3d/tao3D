@@ -34,13 +34,11 @@
 #include "svg.h"
 #include "widget_surface.h"
 #include "window.h"
-#include "treeholder.h"
 #include "apply_changes.h"
 #include "activity.h"
 #include "selection.h"
 #include "drag.h"
 #include "manipulator.h"
-#include "treeholder.h"
 #include "menuinfo.h"
 #include "repository.h"
 #include "application.h"
@@ -150,6 +148,21 @@ void Widget::dawdle()
     XL::Main   *xlr            = XL::MAIN;
     bool        savedSomething = false;
 
+    // Check if we need to refresh something
+    double idleInterval = 0.001 * idleTimer.interval();
+    double remaining = pageRefresh - idleInterval;
+    if (remaining <= idleInterval &&
+        (!timer.isActive() || remaining <= timer.interval() * 0.001))
+    {
+        if (remaining <= 0)
+            remaining = 0.001;
+        timer.stop();
+        timer.setSingleShot(true);
+        timer.start(1000 * remaining);
+        remaining = 86400;
+    }
+    pageRefresh = remaining;
+
     if (xlProgram && xlProgram->changed)
     {
         text txt = *xlProgram->tree.tree;
@@ -176,6 +189,10 @@ void Widget::dawdle()
         // Record when we will save file again
         nextSave = tick + xlr->options.save_interval * 1000;
     }
+
+    // If things are saved on disk, no need to keep the window "dirty"
+    Window *window = (Window *) parentWidget();
+    window->markChanged(false);
 
     // Check if there's something to commit
     longlong commitDelay = longlong (nextCommit - tick);
@@ -442,8 +459,22 @@ void Widget::userMenu(QAction *p_action)
 
     markChanged(+("Menu '" + p_action->text() + "' selected"));
 
-    TreeHolder t = var.value<TreeHolder >();
+    XL::TreeRoot t = var.value<XL::TreeRoot >();
     xl_evaluate(t.tree);        // Typically will insert something...
+}
+
+
+bool Widget::refresh(double delay)
+// ----------------------------------------------------------------------------
+//   Refresh the screen after the given time interval
+// ----------------------------------------------------------------------------
+{
+    if (pageRefresh > delay)
+    {
+        pageRefresh = delay;
+        return true;
+    }
+    return false;
 }
 
 
@@ -879,7 +910,7 @@ void Widget::markChanged(text reason)
             ImportedFilesChanged(prog, done, true);
         }
     }
-    refresh(NULL, 0);
+    refresh(0);
 }
 
 
@@ -981,8 +1012,9 @@ void Widget::requestFocus(QWidget *widget, coord x, coord y)
     if (!focusWidget)
     {
         GLMatrixKeeper saveGL;
+        Vector3 v = layout->Offset() + Vector3(x, y, 0);
         focusWidget = widget;
-        glTranslatef(x, y, 0);
+        glTranslatef(v.x, v.y, v.z);
         recordProjection();
         QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
         QObject *fin = focusWidget;
@@ -1184,7 +1216,7 @@ XL::Real *Widget::time(Tree *self)
 //   Return a fractional time, including milliseconds
 // ----------------------------------------------------------------------------
 {
-    refresh(NULL, 0.1);
+    refresh(0.1);
     return new XL::Real(CurrentTime());
 }
 
@@ -1194,7 +1226,7 @@ XL::Real *Widget::pageTime(Tree *self)
 //   Return a fractional time, including milliseconds
 // ----------------------------------------------------------------------------
 {
-    refresh(NULL, 0.1);
+    refresh(0.1);
     return new XL::Real(CurrentTime() - pageStartTime);
 }
 
@@ -1210,32 +1242,116 @@ Tree *Widget::locally(Tree *self, Tree *child)
 }
 
 
-Tree *Widget::rotate(Tree *self, double ra, double rx, double ry, double rz)
+static inline XL::Real &r(double x) { return *new XL::Real(x); }
+
+
+Tree *Widget::rotatex(Tree *self, real_r rx)
+// ----------------------------------------------------------------------------
+//   Rotate around X
+// ----------------------------------------------------------------------------
+{
+    return rotate(self, rx, r(1), r(0), r(0));
+}
+
+
+Tree *Widget::rotatey(Tree *self, real_r ry)
+// ----------------------------------------------------------------------------
+//   Rotate around Y
+// ----------------------------------------------------------------------------
+{
+    return rotate(self, ry, r(0), r(1), r(0));
+}
+
+
+Tree *Widget::rotatez(Tree *self, real_r rz)
+// ----------------------------------------------------------------------------
+//   Rotate around Z
+// ----------------------------------------------------------------------------
+{
+    return rotate(self, rz, r(0), r(0), r(1));
+}
+
+
+Tree *Widget::rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz)
 // ----------------------------------------------------------------------------
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Rotation(ra, rx, ry, rz));
+    layout->Add(new RotationManipulator(ra, rx, ry, rz));
     return XL::xl_true;
 }
 
 
-Tree *Widget::translate(Tree *self, double rx, double ry, double rz)
+Tree *Widget::translatex(Tree *self, real_r x)
+// ----------------------------------------------------------------------------
+//   Translate along X
+// ----------------------------------------------------------------------------
+{
+    return translate(self, x, r(0), r(0));
+}
+
+
+Tree *Widget::translatey(Tree *self, real_r y)
+// ----------------------------------------------------------------------------
+//   Translate along Y
+// ----------------------------------------------------------------------------
+{
+    return translate(self, y, r(0), r(0));
+}
+
+
+Tree *Widget::translatez(Tree *self, real_r z)
+// ----------------------------------------------------------------------------
+//   Translate along Z
+// ----------------------------------------------------------------------------
+{
+    return translate(self, z, r(0), r(0));
+}
+
+
+Tree *Widget::translate(Tree *self, real_r rx, real_r ry, real_r rz)
 // ----------------------------------------------------------------------------
 //     Translation along three axes
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Translation(rx, ry, rz));
+    layout->Add(new TranslationManipulator(rx, ry, rz));
     return XL::xl_true;
 }
 
 
-Tree *Widget::rescale(Tree *self, double sx, double sy, double sz)
+Tree *Widget::rescalex(Tree *self, real_r x)
+// ----------------------------------------------------------------------------
+//   Rescale along X
+// ----------------------------------------------------------------------------
+{
+    return rescale(self, x, r(0), r(0));
+}
+
+
+Tree *Widget::rescaley(Tree *self, real_r y)
+// ----------------------------------------------------------------------------
+//   Rescale along Y
+// ----------------------------------------------------------------------------
+{
+    return rescale(self, y, r(0), r(0));
+}
+
+
+Tree *Widget::rescalez(Tree *self, real_r z)
+// ----------------------------------------------------------------------------
+//   Rescale along Z
+// ----------------------------------------------------------------------------
+{
+    return rescale(self, z, r(0), r(0));
+}
+
+
+Tree *Widget::rescale(Tree *self, real_r sx, real_r sy, real_r sz)
 // ----------------------------------------------------------------------------
 //     Scaling along three axes
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Scale(sx, sy, sz));
+    layout->Add(new ScaleManipulator(sx, sy, sz));
     return XL::xl_true;
 }
 
@@ -1260,12 +1376,7 @@ Tree *Widget::refresh(Tree *self, double delay)
 //    Refresh after the given number of seconds
 // ----------------------------------------------------------------------------
 {
-    if (pageRefresh > delay)
-    {
-        pageRefresh = delay;
-        return XL::xl_true;
-    }
-    return XL::xl_false;
+    return refresh (delay) ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -2217,9 +2328,7 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
     MenuInfo *menuInfo = self->GetInfo<MenuInfo>();
 
     // Store a copy of the tree in the QAction.
-    XL::TreeClone cloner;
-    XL::Tree *copy = t->Do(cloner);
-    QVariant var = QVariant::fromValue(TreeHolder(copy));
+    QVariant var = QVariant::fromValue(XL::TreeRoot(t));
 
     if (menuInfo)
     {
@@ -2255,6 +2364,7 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
 
     return XL::xl_true;
 }
+
 
 Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 // ----------------------------------------------------------------------------
@@ -2454,5 +2564,5 @@ void tao_widget_refresh(double delay)
 //    Refresh the current widget
 // ----------------------------------------------------------------------------
 {
-    TAO(refresh(NULL, delay));
+    TAO(refresh(delay));
 }

@@ -155,6 +155,7 @@ void Widget::dawdle()
         text txt = *xlProgram->tree.tree;
         Window *window = (Window *) parentWidget();
         window->setText(+txt);
+        window->markChanged(false);
         if (!repo)
             xlProgram->changed = false;
     }

@@ -69,6 +69,7 @@ private slots:
     void open();
     bool save();
     bool saveAs();
+    void setPullUrl();
     void about();
     void documentWasModified();
     void checkFiles();
@@ -104,6 +105,7 @@ private:
     QTimer            fileCheckTimer;
     QMenu            *fileMenu;
     QMenu            *editMenu;
+    QMenu            *toolsMenu;
     QMenu            *viewMenu;
     QMenu            *helpMenu;
     QToolBar         *fileToolBar;
@@ -117,6 +119,7 @@ private:
     QAction          *cutAct;
     QAction          *copyAct;
     QAction          *pasteAct;
+    QAction          *setPullUrlAct;
     QAction          *aboutAct;
     QAction          *aboutQtAct;
     QAction          *fullScreenAct;

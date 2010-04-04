@@ -26,6 +26,7 @@
 #include "apply_changes.h"
 #include "git_backend.h"
 #include "application.h"
+#include "ui_pull_url_dialog.h"
 
 #include <iostream>
 #include <sstream>
@@ -236,6 +237,33 @@ bool Window::saveAs()
 }
 
 
+void Window::setPullUrl()
+// ----------------------------------------------------------------------------
+//    Prompt user for address of remote repository to pull from
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+    {
+        QMessageBox::warning(this, tr("No project"),
+                             tr("This feature is not available because the "
+                                "current document is not in a project."));
+        return;
+    }
+
+    QDialog *dialog = new QDialog;
+    Ui::PullUrlDialog ui;
+    ui.setupUi(dialog);
+    if (dialog->exec())
+    {
+        repo->pullUrl = ui.url->toPlainText();
+        if (ui.ours->isChecked())
+            repo->conflictResolution = Repository::CR_Ours;
+        else
+            repo->conflictResolution = Repository::CR_Theirs;
+    }
+ }
+
+
 void Window::about()
 // ----------------------------------------------------------------------------
 //    About Box
@@ -317,6 +345,12 @@ void Window::createActions()
                               "selection"));
     connect(pasteAct, SIGNAL(triggered()), textEdit, SLOT(paste()));
 
+    setPullUrlAct = new QAction(tr("Set &pull URL..."), this);
+    setPullUrlAct->setStatusTip(tr("Set the remote address to \"pull\" from "
+                                   "when synchronizing the current "
+                                   "document with a remote one"));
+    connect(setPullUrlAct, SIGNAL(triggered()), this, SLOT(setPullUrl()));
+
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setStatusTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
@@ -356,6 +390,9 @@ void Window::createMenus()
     editMenu->addAction(cutAct);
     editMenu->addAction(copyAct);
     editMenu->addAction(pasteAct);
+
+    toolsMenu = menuBar()->addMenu(tr("&Tools"));
+    toolsMenu->addAction(setPullUrlAct);
 
     viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(dock->toggleViewAction());

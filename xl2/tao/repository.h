@@ -42,10 +42,10 @@ class Repository : public QObject
 {
     Q_OBJECT
 
+public:
     // ------------------------------------------------------------------------
     //   The kind of SCM tool available to the application
     // ------------------------------------------------------------------------
-public:
     enum Kind
     {
         Unknown,
@@ -53,8 +53,28 @@ public:
         Git
     };
 
+    // ------------------------------------------------------------------------
+    //   The behavior in case of merge conflict
+    // ------------------------------------------------------------------------
+    enum ConflictResolution
+    {
+        CR_Unknown,
+        CR_Ours,     // Keep local version
+        CR_Theirs,   // Take remote version
+    };
+
+    // ------------------------------------------------------------------------
+    //   Repository states
+    // ------------------------------------------------------------------------
+    enum State
+    {
+        RS_Clean,     // Work area reflects last commit
+        RS_NotClean,  // Work area has been modified since last commit
+    };
+
 public:
-    Repository(const QString &path): path(path), task("work") {}
+    Repository(const QString &path): path(path), task("work"),
+                                     state(RS_Clean) {}
     virtual ~Repository() {}
 
 public:
@@ -63,6 +83,7 @@ public:
     virtual bool        setTask(text name);
     virtual bool        selectWorkBranch();
     virtual bool        selectUndoBranch();
+    virtual bool        idle();
 
 public:
     virtual QString     userVisibleName()               = 0;
@@ -78,6 +99,7 @@ public:
     virtual bool        asyncCommit(text msg, bool all=false) = 0;
     virtual bool        merge(text branch)              = 0;
     virtual bool        reset()                         = 0;
+    virtual bool        pull()                          = 0;
 
 public:
     static Repository * repository(const QString &path, bool create = false);
@@ -105,9 +127,12 @@ protected:
     };
 
 public:
-    QString  path;
-    text     task;
-    text     errors;
+    QString            path;
+    text               task;
+    text               errors;
+    QString            pullUrl;
+    ConflictResolution conflictResolution;
+    State              state;
 
 protected:
     QList<Process *> pQueue;

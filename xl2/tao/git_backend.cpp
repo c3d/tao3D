@@ -219,6 +219,7 @@ bool GitRepository::commit(text message, bool all)
     if (!result)
         if (errors.find("nothing added") != errors.npos)
             result = true;
+    state = RS_Clean;
     return result;
 }
 
@@ -246,17 +247,21 @@ void GitRepository::asyncProcessFinished(int exitCode)
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
+    bool isCommit = (cmd->args.first() == "commit");
+    bool ok       = true;
     if (exitCode)
     {
-        bool ok = false;
+        ok = false;
         cmd->done(&errors);
-        if (cmd->args.first() == "commit")
+        if (isCommit)
             if (errors.find("nothing added") != errors.npos)
                 ok = true;
         if (!ok)
             std::cerr << +tr("Async command failed, exit status %1: %2")
                              .arg((int)exitCode).arg(cmd->commandLine);
     }
+    if (ok && isCommit)
+        state = RS_Clean;
 }
 
 
@@ -277,6 +282,27 @@ bool GitRepository::reset()
 {
     Process cmd(command(), QStringList("reset") << "--hard", path);
     return cmd.done(&errors);
+}
+
+
+bool GitRepository::pull()
+// ----------------------------------------------------------------------------
+//   Pull from remote branch, if remote is set
+// ----------------------------------------------------------------------------
+{
+    if (pullUrl.isEmpty())
+        return true;
+    QStringList args("pull");
+    args << "-s" << "recursive";
+    switch (conflictResolution)
+    {
+    case CR_Ours:    args << "-Xours";   break;
+    case CR_Theirs:  args << "-Xtheirs"; break;
+    case CR_Unknown: std::cerr << "Unspecified conflict resolution mode\n";
+    }
+    args << pullUrl << "master_tao_undo";  // TODO hardcoded branch!
+    dispatch(new Process(command(), args, path, false));
+    return true;
 }
 
 TAO_END

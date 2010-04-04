@@ -59,6 +59,7 @@ public:
     virtual bool        asyncCommit(text message, bool all=false);
     virtual bool        merge(text branch);
     virtual bool        reset();
+    virtual bool        pull();
 
     static  bool        checkGit();
 

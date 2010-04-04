@@ -79,6 +79,8 @@ bool Repository::write(text fileName, XL::Tree *tree)
     if (ok)
         ok = std::rename(copy.c_str(), full.c_str()) == 0;
 
+    state = RS_NotClean;
+
     return ok;
 }
 
@@ -211,6 +213,15 @@ bool Repository::selectUndoBranch()
 }
 
 
+bool Repository::idle()
+// ----------------------------------------------------------------------------
+//    Return true if there is no pending command to execute
+// ----------------------------------------------------------------------------
+{
+    return pQueue.empty();
+}
+
+
 void Repository::dispatch(Process *cmd)
 // ----------------------------------------------------------------------------
 //   Insert process in run queue and start first process
@@ -235,7 +246,7 @@ void Repository::asyncProcessFinished(int exitCode)
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
     if (exitCode)
-        std::cerr << +tr("Async command failed, exit status %1: %2")
+        std::cerr << +tr("Async command failed, exit status %1: %2\n")
                      .arg((int)exitCode).arg(cmd->commandLine);
 }
 
@@ -248,7 +259,7 @@ void Repository::asyncProcessError(QProcess::ProcessError error)
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
-    std::cerr << +tr("Async command error %1: %2")
+    std::cerr << +tr("Async command error %1: %2\n")
                  .arg((int)error).arg(cmd->commandLine);
 }
 

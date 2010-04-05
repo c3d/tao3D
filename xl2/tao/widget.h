@@ -209,6 +209,8 @@ public:
                        integer_r nslices, integer_r nstacks);
     Tree *      cube(Tree *self, real_r cx, real_r cy, real_r cz,
                      real_r w, real_r h, real_r d);
+    Tree *      cone(Tree *self, real_r cx, real_r cy, real_r cz,
+                     real_r w, real_r h, real_r d);
 
     // Text and font
     Tree *      textSpan(Tree *self, text_r content);

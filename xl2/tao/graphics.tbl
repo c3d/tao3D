@@ -190,6 +190,10 @@ PREFIX(Cube, tree, "cube",
        PARM(x, real) PARM(y, real) PARM(z, real)
        PARM(w, real) PARM(h, real) PARM(d, real),
        RTAO(cube(self, x, y, z, w, h, d)))
+PREFIX(Cone, tree, "cone",
+       PARM(x, real) PARM(y, real) PARM(z, real)
+       PARM(w, real) PARM(h, real) PARM(d, real),
+       RTAO(cone(self, x, y, z, w, h, d)))
 
 
 

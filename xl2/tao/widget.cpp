@@ -988,8 +988,13 @@ void Widget::select(uint id, uint count)
 //    Select the current shape if we are in selectable state
 // ----------------------------------------------------------------------------
 {
-    if (id && id != ~0U && count)
-        selection[id] = count;
+    if (id && id != ~0U)
+    {
+        if (count)
+            selection[id] = count;
+        else
+            selection.erase(id);
+    }
 }
 
 
@@ -1743,6 +1748,19 @@ Tree *Widget::cube(Tree *self,
 // ----------------------------------------------------------------------------
 {
     Cube *c = new Cube(Box3(x-w/2, y-h/2, z-d/2, w,h,d));
+    layout->Add(new ControlBox(x, y, z, w, h, d, c));
+    return XL::xl_true;
+}
+
+
+Tree *Widget::cone(Tree *self,
+                   real_r x, real_r y, real_r z,
+                   real_r w, real_r h, real_r d)
+// ----------------------------------------------------------------------------
+//    A simple cone
+// ----------------------------------------------------------------------------
+{
+    Cube *c = new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d));
     layout->Add(new ControlBox(x, y, z, w, h, d, c));
     return XL::xl_true;
 }

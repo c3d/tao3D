@@ -60,12 +60,13 @@ void Manipulator::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    if (widget->selected())
+    if (uint sel = widget->selected())
     {
         // REVISIT: The values we give for 'count' are for debugging purpose
-        widget->select(layout->lastRotation,    0x1000);
-        widget->select(layout->lastTranslation, 0x2000);
-        widget->select(layout->lastScale,       0x4000);
+        sel = sel & 3;
+        widget->select(layout->lastRotation,    sel == 1 ? 0x1000 : 0);
+        widget->select(layout->lastTranslation, sel == 2 ? 0x2000 : 0);
+        widget->select(layout->lastScale,       sel == 3 ? 0x4000 : 0);
 
         glPushName(0);
         DrawHandles(layout);
@@ -908,7 +909,7 @@ bool TranslationManipulator::DrawHandles(Layout *layout)
                 widget->markChanged("Updated translation Y axis");
                 break;
             case 4:
-                updateArg(widget, &z,  p0.x + p0.y, p1.x + p1.y, p2.x + p2.y);
+                updateArg(widget, &z,  p0.x - p0.y, p1.x - p1.y, p2.x - p2.y);
                 widget->markChanged("Updated translation Z axis");
                 break;
             }

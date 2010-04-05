@@ -607,9 +607,8 @@ bool Widget::forwardEvent(QMouseEvent *event)
         int y = event->y();
         int w = focusWidget->width();
         int h = focusWidget->height();
-        int hh = height();
 
-        Point3 u = unproject(x, hh-y, 0);
+        Point3 u = unproject(x, y, 0);
         QMouseEvent local(event->type(), QPoint(u.x + w/2, h/2 - u.y),
                           event->button(), event->buttons(),
                           event->modifiers());
@@ -1039,6 +1038,9 @@ Point3 Widget::unproject (coord x, coord y, coord z)
 //   Convert mouse clicks into 3D planar coordinates for the focus object
 // ----------------------------------------------------------------------------
 {
+    // Adjust between mouse and OpenGL coordinate systems
+    y = height() - y;
+
     // Get 3D coordinates for the near plane based on window coordinates
     GLdouble x3dn, y3dn, z3dn;
     gluUnProject(x, y, 0.0,
@@ -1062,32 +1064,14 @@ Point3 Widget::unproject (coord x, coord y, coord z)
 }
 
 
-Vector3 Widget::dragDelta(Point3 *p2, Point3 *p1, Point3 *p0)
+Drag *Widget::drag()
 // ----------------------------------------------------------------------------
-//   Compute the drag delta based on the current Drag object if there is any
+//   Return the drag activity that we can use to unproject
 // ----------------------------------------------------------------------------
 {
-    Vector3 result;
-    recordProjection();
-    if (Drag *d = dynamic_cast<Drag *>(activities))
-    {
-        double x1 = d->x1;
-        double y1 = d->y1;
-        double x2 = d->x2;
-        double y2 = d->y2;
-        int hh = height();
-
-        Point3 u1 = unproject(x1, hh-y1, 0);
-        Point3 u2 = unproject(x2, hh-y2, 0);
-        result = u2 - u1;
-
-        if (p1)
-            *p1 = u1;
-        if (p2)
-            *p2 = u2;
-        if (p0)
-            *p0 = unproject(d->x0, hh - d->y0, 0);
-    }
+    Drag *result = dynamic_cast<Drag *>(activities);
+    if (result)
+        recordProjection();
     return result;
 }
 

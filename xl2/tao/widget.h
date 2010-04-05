@@ -47,6 +47,7 @@ struct Layout;
 struct SpaceLayout;
 struct GraphicPath;
 struct Repository;
+struct Drag;
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -113,7 +114,7 @@ public:
     void        requestFocus(QWidget *widget, coord x, coord y);
     void        recordProjection();
     Point3      unproject (coord x, coord y, coord z = 0.0);
-    Vector3     dragDelta(Point3 *p2 = 0, Point3 *p1 = 0, Point3 *p0 = 0);
+    Drag *      drag();
     void        drawSelection(const Box3 &bounds, text name);
     void        drawHandle(const Point3 &point, text name);
 

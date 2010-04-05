@@ -52,7 +52,8 @@ struct Manipulator : Drawing
     virtual bool        DrawHandles(Layout *layout) = 0;
 
 protected:
-    double              updateArg(Widget *widget, tree_p param, coord delta);
+    void                updateArg(Widget *widget, tree_p param,
+                                  coord first, coord previous, coord current);
 };
 
 

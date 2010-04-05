@@ -44,8 +44,8 @@ Activity *Drag::Click(uint button, bool down, int x, int y)
     {
         if (down)
         {
-            x2 = x1 = x;
-            y2 = y1 = y;
+            x0 = x1 = x2 = x;
+            y0 = y1 = y2 = x;
         }
         else
         {

@@ -1062,7 +1062,7 @@ Point3 Widget::unproject (coord x, coord y, coord z)
 }
 
 
-Vector3 Widget::dragDelta()
+Vector3 Widget::dragDelta(Point3 *p2, Point3 *p1, Point3 *p0)
 // ----------------------------------------------------------------------------
 //   Compute the drag delta based on the current Drag object if there is any
 // ----------------------------------------------------------------------------
@@ -1080,6 +1080,13 @@ Vector3 Widget::dragDelta()
         Point3 u1 = unproject(x1, hh-y1, 0);
         Point3 u2 = unproject(x2, hh-y2, 0);
         result = u2 - u1;
+
+        if (p1)
+            *p1 = u1;
+        if (p2)
+            *p2 = u2;
+        if (p0)
+            *p0 = unproject(d->x0, hh - d->y0, 0);
     }
     return result;
 }

@@ -830,23 +830,31 @@ bool RotationManipulator::DrawHandles(Layout *layout)
 {
     Widget *widget = layout->Display();
     Vector3 offset = layout->Offset();
-    Vector3 v = widget->dragDelta();
+    Point3  p0, p1, p2;
+    Vector3 v = widget->dragDelta(&p2, &p1, &p0);
     bool    changed = v.x != 0 || v.y != 0 || v.z != 0;
 
     // Draw the sphere
-    if (DrawHandle(layout, Point3(0, 0, 0), 0x1001, "rotation_handle"))
+    if (DrawHandle(layout, offset, 0x1001, "rotation_handle"))
     {
         if (changed)
         {
-            // REVISIT: Use trackball or something like that
-            updateArg(widget, &a,  v.x);
+            // Compute the desired angle
+            Vector3 v0 = Vector3(p0) - offset;
+            double  a0 = atan2(v0.y, v0.x) * (180 / M_PI);
+            Vector3 v1 = Vector3(p1) - offset;
+            double  a1 = atan2(v1.y, v1.x) * (180 / M_PI);
+            Vector3 v2 = Vector3(p2) - offset;
+            double  a2 = atan2(v2.y, v2.x) * (180 / M_PI);
+            updateArg(widget, &a,  a0 - a1);
+            updateArg(widget, &a,  a2 - a0);
             widget->markChanged("Rotation center");
             changed = false;
         }
     }
 
     // Size of the X, Y, Z direction
-    if (DrawHandle(layout, Point3(25, 0, 0), 0x1002, "rotation_x"))
+    if (DrawHandle(layout, offset, 0x1002, "rotation_x"))
     {
         if (changed)
         {
@@ -857,7 +865,7 @@ bool RotationManipulator::DrawHandles(Layout *layout)
         }
     }
 
-    if (DrawHandle(layout, Point3(0, 25, 0), 0x1003, "rotation_y"))
+    if (DrawHandle(layout, offset, 0x1003, "rotation_y"))
     {
         if (changed)
         {
@@ -868,7 +876,7 @@ bool RotationManipulator::DrawHandles(Layout *layout)
         }
     }
 
-    if (DrawHandle(layout, Point3(0, 0, 25), 0x1004, "rotation_z"))
+    if (DrawHandle(layout, offset, 0x1004, "rotation_z"))
     {
         if (changed)
         {

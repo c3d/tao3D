@@ -46,19 +46,19 @@ void Transform::Draw(Layout *where)
 
 void Transform::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
-//   Same as Draw
+//   Transforms don't have a selection, they just draw themselves
 // ----------------------------------------------------------------------------
 {
-    Transform::Draw(where);
+    Draw(where);
 }
 
 
 void Transform::Identify(Layout *where)
 // ----------------------------------------------------------------------------
-//   Same as Draw
+//   Transforms don't have their own identity, they just draw themselves
 // ----------------------------------------------------------------------------
 {
-    Transform::Draw(where);
+    Draw(where);
 }
 
 

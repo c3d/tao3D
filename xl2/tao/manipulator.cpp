@@ -62,6 +62,11 @@ void Manipulator::DrawSelection(Layout *layout)
     Widget *widget = layout->Display();
     if (widget->selected())
     {
+        // REVISIT: The values we give for 'count' are for debugging purpose
+        widget->select(layout->lastRotation,    0x1000);
+        widget->select(layout->lastTranslation, 0x2000);
+        widget->select(layout->lastScale,       0x4000);
+
         glPushName(0);
         DrawHandles(layout);
         glPopName();
@@ -303,7 +308,7 @@ void DrawingManipulator::Draw(Layout *layout)
     if (loadId)
         glLoadName(widget->newId());
     child->Draw(layout);
-    Manipulator::Draw(layout);
+    // Manipulator::Draw(layout); is a NOOP
     if (loadId)
         glLoadName(0);
 }
@@ -533,11 +538,14 @@ bool ControlRectangle::DrawHandles(Layout *layout)
     if (changed)
     {
         Widget *widget = layout->Display();
-        Vector3 v = widget->dragDelta();
-        updateArg(widget, &x, v.x);
-        updateArg(widget, &y, v.y);
-        widget->markChanged("Shape moved");
-        changed = false;
+        if (!widget->manipulatorId())
+        {
+            Vector3 v = widget->dragDelta();
+            updateArg(widget, &x, v.x);
+            updateArg(widget, &y, v.y);
+            widget->markChanged("Shape moved");
+            changed = false;
+        }
     }
     return changed;
 }
@@ -759,15 +767,33 @@ bool ControlBox::DrawHandles(Layout *layout)
     if (changed)
     {
         Widget *widget = layout->Display();
-        Vector3 v = widget->dragDelta();
-        updateArg(widget, &x, v.x);
-        updateArg(widget, &y, v.y);
-        updateArg(widget, &z, v.z);
-        widget->markChanged("3D shape moved");
-        changed = false;
+        if (!widget->manipulatorId())
+        {
+            Vector3 v = widget->dragDelta();
+            updateArg(widget, &x, v.x);
+            updateArg(widget, &y, v.y);
+            updateArg(widget, &z, v.z);
+            widget->markChanged("3D shape moved");
+            changed = false;
+        }
     }
     return changed;
 }
+
+
+
+// ============================================================================
+// 
+//   A TransformManipulator is used for rotation, translation, scale
+// 
+// ============================================================================
+
+TransformManipulator::TransformManipulator(Drawing *child)
+// ----------------------------------------------------------------------------
+//   Record the child we own
+// ----------------------------------------------------------------------------
+    : DrawingManipulator(child)
+{}
 
 
 
@@ -781,8 +807,20 @@ RotationManipulator::RotationManipulator(real_r a, real_r x,real_r y,real_r z)
 // ----------------------------------------------------------------------------
 //   Manipulation of a rotation
 // ----------------------------------------------------------------------------
-    : DrawingManipulator(new Rotation(a, x, y, z)), a(a), x(x), y(y), z(z)
+    : TransformManipulator(new Rotation(a, x, y, z)), a(a), x(x), y(y), z(z)
 {}
+
+
+void RotationManipulator::Identify(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Remember the last rotation for subsequent shapes
+// ----------------------------------------------------------------------------
+{
+    TransformManipulator::Identify(layout);
+    Widget *widget = layout->Display();
+    uint id = widget->currentId();
+    layout->lastRotation = id;
+}
 
 
 bool RotationManipulator::DrawHandles(Layout *layout)
@@ -796,7 +834,7 @@ bool RotationManipulator::DrawHandles(Layout *layout)
     bool    changed = v.x != 0 || v.y != 0 || v.z != 0;
 
     // Draw the sphere
-    if (DrawHandle(layout, Point3(0, 0, 0), 1, "rotation_handle"))
+    if (DrawHandle(layout, Point3(0, 0, 0), 0x1001, "rotation_handle"))
     {
         if (changed)
         {
@@ -808,7 +846,7 @@ bool RotationManipulator::DrawHandles(Layout *layout)
     }
 
     // Size of the X, Y, Z direction
-    if (DrawHandle(layout, Point3(25, 0, 0), 2, "rotation_x"))
+    if (DrawHandle(layout, Point3(25, 0, 0), 0x1002, "rotation_x"))
     {
         if (changed)
         {
@@ -819,7 +857,7 @@ bool RotationManipulator::DrawHandles(Layout *layout)
         }
     }
 
-    if (DrawHandle(layout, Point3(0, 25, 0), 3, "rotation_y"))
+    if (DrawHandle(layout, Point3(0, 25, 0), 0x1003, "rotation_y"))
     {
         if (changed)
         {
@@ -830,7 +868,7 @@ bool RotationManipulator::DrawHandles(Layout *layout)
         }
     }
 
-    if (DrawHandle(layout, Point3(0, 0, 25), 4, "rotation_z"))
+    if (DrawHandle(layout, Point3(0, 0, 25), 0x1004, "rotation_z"))
     {
         if (changed)
         {
@@ -856,8 +894,20 @@ TranslationManipulator::TranslationManipulator(real_r x, real_r y, real_r z)
 // ----------------------------------------------------------------------------
 //   Manipulation of a translation
 // ----------------------------------------------------------------------------
-    : DrawingManipulator(new Translation(x, y, z)), x(x), y(y), z(z)
+    : TransformManipulator(new Translation(x, y, z)), x(x), y(y), z(z)
 {}
+
+
+void TranslationManipulator::Identify(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Remember the last translation for subsequent shapes
+// ----------------------------------------------------------------------------
+{
+    TransformManipulator::Identify(layout);
+    Widget *widget = layout->Display();
+    uint id = widget->currentId();
+    layout->lastTranslation = id;
+}
 
 
 bool TranslationManipulator::DrawHandles(Layout *layout)
@@ -871,7 +921,7 @@ bool TranslationManipulator::DrawHandles(Layout *layout)
     bool    changed = v.x != 0 || v.y != 0 || v.z != 0;
 
     // Draw the sphere
-    if (DrawHandle(layout, Point3(0, 0, 0), 1, "translation_handle"))
+    if (DrawHandle(layout, Point3(0, 0, 0), 0x2001, "translation_handle"))
     {
         if (changed)
         {
@@ -884,7 +934,7 @@ bool TranslationManipulator::DrawHandles(Layout *layout)
     }
 
     // Size of the X, Y, Z direction
-    if (DrawHandle(layout, Point3(25, 0, 0), 2, "translation_x"))
+    if (DrawHandle(layout, Point3(25, 0, 0), 0x2002, "translation_x"))
     {
         if (changed)
         {
@@ -895,7 +945,7 @@ bool TranslationManipulator::DrawHandles(Layout *layout)
         }
     }
 
-    if (DrawHandle(layout, Point3(0, 25, 0), 3, "translation_y"))
+    if (DrawHandle(layout, Point3(0, 25, 0), 0x2003, "translation_y"))
     {
         if (changed)
         {
@@ -906,7 +956,7 @@ bool TranslationManipulator::DrawHandles(Layout *layout)
         }
     }
 
-    if (DrawHandle(layout, Point3(0, 0, 25), 4, "translation_z"))
+    if (DrawHandle(layout, Point3(0, 0, 25), 0x2004, "translation_z"))
     {
         if (changed)
         {
@@ -933,8 +983,20 @@ ScaleManipulator::ScaleManipulator(real_r x, real_r y, real_r z)
 // ----------------------------------------------------------------------------
 //   Manipulation of a scale
 // ----------------------------------------------------------------------------
-    : DrawingManipulator(new Scale(x, y, z)), x(x), y(y), z(z)
+    : TransformManipulator(new Scale(x, y, z)), x(x), y(y), z(z)
 {}
+
+
+void ScaleManipulator::Identify(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Remember the last scaling for subsequent shapes
+// ----------------------------------------------------------------------------
+{
+    TransformManipulator::Identify(layout);
+    Widget *widget = layout->Display();
+    uint id = widget->currentId();
+    layout->lastScale = id;
+}
 
 
 bool ScaleManipulator::DrawHandles(Layout *layout)
@@ -948,7 +1010,7 @@ bool ScaleManipulator::DrawHandles(Layout *layout)
     bool    changed = v.x != 0 || v.y != 0 || v.z != 0;
 
     // Draw the sphere
-    if (DrawHandle(layout, Point3(0, 0, 0), 1, "scale_handle"))
+    if (DrawHandle(layout, Point3(0, 0, 0), 0x4001, "scale_handle"))
     {
         if (changed)
         {
@@ -961,7 +1023,7 @@ bool ScaleManipulator::DrawHandles(Layout *layout)
     }
 
     // Size of the X, Y, Z direction
-    if (DrawHandle(layout, Point3(25, 0, 0), 2, "scale_x"))
+    if (DrawHandle(layout, Point3(25, 0, 0), 0x4002, "scale_x"))
     {
         if (changed)
         {
@@ -972,7 +1034,7 @@ bool ScaleManipulator::DrawHandles(Layout *layout)
         }
     }
 
-    if (DrawHandle(layout, Point3(0, 25, 0), 3, "scale_y"))
+    if (DrawHandle(layout, Point3(0, 25, 0), 0x4003, "scale_y"))
     {
         if (changed)
         {
@@ -983,7 +1045,7 @@ bool ScaleManipulator::DrawHandles(Layout *layout)
         }
     }
 
-    if (DrawHandle(layout, Point3(0, 0, 25), 4, "scale_z"))
+    if (DrawHandle(layout, Point3(0, 0, 25), 0x4004, "scale_z"))
     {
         if (changed)
         {

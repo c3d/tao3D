@@ -984,12 +984,13 @@ uint Widget::selected()
 }
 
 
-void Widget::select(uint count)
+void Widget::select(uint id, uint count)
 // ----------------------------------------------------------------------------
 //    Select the current shape if we are in selectable state
 // ----------------------------------------------------------------------------
 {
-    selection[id] = count;
+    if (id && id != ~0U && count)
+        selection[id] = count;
 }
 
 

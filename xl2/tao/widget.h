@@ -105,9 +105,10 @@ public:
     // Selection
     GLuint      newId()                 { return ++id; }
     GLuint      currentId()             { return id; }
+    GLuint      manipulatorId()         { return manipulator; }
     GLuint      selectionCapacity()     { return capacity; }
     uint        selected();
-    void        select(uint count);
+    void        select(uint id, uint count);
     void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);
     void        recordProjection();

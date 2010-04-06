@@ -27,11 +27,13 @@
 //
 // ============================================================================
 
-PREFIX(PageWidth,   integer,  "page_width", ,   RTAO(pageWidth(self)))
-PREFIX(PageHeight,  integer,  "page_height", ,  RTAO(pageHeight(self)))
+PREFIX(PageWidth,   real,     "page_width", ,   RTAO(pageWidth(self)))
+PREFIX(PageHeight,  real,     "page_height", ,  RTAO(pageHeight(self)))
 PREFIX(FrameWidth,  real,     "frame_width", ,  RTAO(frameWidth(self)))
 PREFIX(FrameHeight, real,     "frame_height", , RTAO(frameHeight(self)))
 PREFIX(FrameDepth,  real,     "frame_depth", ,  RTAO(frameDepth(self)))
+PREFIX(WindowWidth, real,     "window_width", , RTAO(windowWidth(self)))
+PREFIX(WindowHeight,real,     "window_height", ,RTAO(windowHeight(self)))
 PREFIX(DaySeconds,  real,     "time", ,         RTAO(time(self)))
 PREFIX(PageSeconds, real,     "page_time", ,    RTAO(pageTime(self)))
 
@@ -89,6 +91,8 @@ PREFIX(DisableDepthTest, boolean, "disable_depth_test",,
 PREFIX(Refresh, tree, "refresh", PARM(delay, real), RTAO(refresh(self, delay)))
 PREFIX(FullScreen, boolean, "full_screen", PARM(fs, boolean),
        RTAO(fullScreen(self, fs)))
+PREFIX(ToggleFullScreen, boolean, "toggle_full_screen", ,
+       RTAO(toggleFullScreen(self)))
 
 
 

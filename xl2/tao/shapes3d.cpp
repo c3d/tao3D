@@ -151,7 +151,7 @@ void Cone::Draw(Layout *where)
     for (double a = 0; a <= 2 * M_PI; a += M_PI / 10)
     {
         tex.push_back(Point3(0.5 + 0.5 * cos(a), 0.5 + 0.5 * sin(a), 1));
-        geom.push_back(Point3(tip.x + w * cos(a), tip.y + h * sin(a), tip.z));
+        geom.push_back(Point3(tip.x + w/2*cos(a), tip.y + h/2*sin(a), tip.z));
     }
 
     glEnableClientState(GL_VERTEX_ARRAY);

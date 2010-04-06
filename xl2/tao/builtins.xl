@@ -8,6 +8,10 @@ if false then TrueBody else FalseBody   -> do FalseBody
 if true then TrueBody                   -> do TrueBody
 if false then TrueBody                  -> false
 
+// Key management
+key "f" -> toggle_full_screen
+key X   -> debug X
+
 // Graphics stuff
 sphere x:real, y:real, z:real, r:real   -> sphere x,y,z,2*r,2*r,2*r,25,25
 sphere r:real                           ->
@@ -101,12 +105,14 @@ draw_selection_rectangle x, y, w, h ->
 
 draw_handle x, y, z ->
     handle_color
-    cube x, y, z, 8, 8, 8
+    cube x, y, z, 8,8,8
 
 draw_rotation_base x, y, z ->
     selection_outline_color
     selection_background_color
-    sphere x, y, z, 50, 50, 50, 8, 8
+    locally
+        rotatex 90
+        sphere x, y, z, 50, 50, 50, 16, 8
 draw_rotation_tip x, y, z -> draw_handle x, y, z
 
 draw_translation_base x, y, z ->

@@ -136,11 +136,13 @@ public:
     static Widget *Tao() { return current; }
 
     // Getting attributes
-    Integer *   pageWidth(Tree *self);
-    Integer *   pageHeight(Tree *self);
+    Real *      pageWidth(Tree *self);
+    Real *      pageHeight(Tree *self);
     Real *      frameWidth(Tree *self);
     Real *      frameHeight(Tree *self);
     Real *      frameDepth(Tree *self);
+    Real *      windowWidth(Tree *self);
+    Real *      windowHeight(Tree *self);
     Real *      time(Tree *self);
     Real *      pageTime(Tree *self);
 
@@ -165,6 +167,7 @@ public:
     Name *      depthTest(Tree *self, bool enable);
     Tree *      refresh(Tree *self, double delay);
     Name *      fullScreen(Tree *self, bool fs);
+    Name *      toggleFullScreen(Tree *self);
 
     // Graphic attributes
     Tree *      lineColor(Tree *self, double r, double g, double b, double a);
@@ -302,6 +305,7 @@ private:
     SpaceLayout *         space;
     Layout *              layout;
     GraphicPath *         path;
+    scale                 pageW, pageH;
     QGridLayout *         currentGridLayout;
     QButtonGroup *        currentGroup;
 

@@ -104,6 +104,7 @@ public:
     virtual QString     remotePullUrl(QString name)     = 0;
     virtual bool        addRemote(QString name, QString pullUrl) = 0;
     virtual bool        delRemote(QString name)         = 0;
+    virtual bool        renRemote(QString oldName, QString newName) = 0;
 
 public:
     static Repository * repository(const QString &path, bool create = false);

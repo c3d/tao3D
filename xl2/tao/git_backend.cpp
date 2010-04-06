@@ -355,4 +355,15 @@ bool GitRepository::delRemote(QString name)
     return cmd.done(&errors);
 }
 
+
+bool GitRepository::renRemote(QString oldName, QString newName)
+// ----------------------------------------------------------------------------
+//   Rename a remote
+// ----------------------------------------------------------------------------
+{
+    Process cmd(command(), QStringList("remote") << "rename"
+                << oldName << newName, path);
+    return cmd.done(&errors);
+}
+
 TAO_END

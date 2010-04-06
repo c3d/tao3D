@@ -64,6 +64,7 @@ public:
     virtual QString     remotePullUrl(QString name);
     virtual bool        addRemote(QString name, QString pullUrl);
     virtual bool        delRemote(QString name);
+    virtual bool        renRemote(QString oldName, QString newName);
 
     static  bool        checkGit();
 

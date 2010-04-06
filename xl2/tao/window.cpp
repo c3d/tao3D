@@ -361,6 +361,7 @@ void Window::createActions()
 
     fullScreenAct = new QAction(tr("Fullscreen"), this);
     fullScreenAct->setStatusTip(tr("Toggle full-screen mode"));
+    fullScreenAct->setCheckable(true);
     connect(fullScreenAct, SIGNAL(triggered()), this, SLOT(toggleFullScreen()));
 
     cutAct->setEnabled(false);

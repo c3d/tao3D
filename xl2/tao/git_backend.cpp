@@ -257,8 +257,9 @@ void GitRepository::asyncProcessFinished(int exitCode)
             if (errors.find("nothing added") != errors.npos)
                 ok = true;
         if (!ok)
-            std::cerr << +tr("Async command failed, exit status %1: %2")
-                             .arg((int)exitCode).arg(cmd->commandLine);
+            std::cerr << +tr("Async command failed, exit status %1: %2\n")
+                             .arg((int)exitCode).arg(cmd->commandLine)
+                      << +tr("Error output:\n") << errors;
     }
     if (ok && isCommit)
         state = RS_Clean;

@@ -259,8 +259,9 @@ void Repository::asyncProcessError(QProcess::ProcessError error)
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
-    std::cerr << +tr("Async command error %1: %2\n")
-                 .arg((int)error).arg(cmd->commandLine);
+    std::cerr << +tr("Async command error %1: %2\nError output:\n%3")
+                 .arg((int)error).arg(cmd->commandLine)
+                 .arg(QString(cmd->readAllStandardError()));
 }
 
 

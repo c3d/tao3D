@@ -91,6 +91,8 @@ PREFIX(DisableDepthTest, boolean, "disable_depth_test",,
 PREFIX(Refresh, tree, "refresh", PARM(delay, real), RTAO(refresh(self, delay)))
 PREFIX(FullScreen, boolean, "full_screen", PARM(fs, boolean),
        RTAO(fullScreen(self, fs)))
+PREFIX(ToggleFullScreen, boolean, "toggle_full_screen", ,
+       RTAO(toggleFullScreen(self)))
 
 
 

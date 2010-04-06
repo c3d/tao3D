@@ -166,6 +166,7 @@ public:
     Name *      depthTest(Tree *self, bool enable);
     Tree *      refresh(Tree *self, double delay);
     Name *      fullScreen(Tree *self, bool fs);
+    Name *      toggleFullScreen(Tree *self);
 
     // Graphic attributes
     Tree *      lineColor(Tree *self, double r, double g, double b, double a);

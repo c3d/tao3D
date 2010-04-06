@@ -8,6 +8,10 @@ if false then TrueBody else FalseBody   -> do FalseBody
 if true then TrueBody                   -> do TrueBody
 if false then TrueBody                  -> false
 
+// Key management
+key "f" -> toggle_full_screen
+key X   -> debug X
+
 // Graphics stuff
 sphere x:real, y:real, z:real, r:real   -> sphere x,y,z,2*r,2*r,2*r,25,25
 sphere r:real                           ->

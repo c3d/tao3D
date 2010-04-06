@@ -34,13 +34,11 @@
 #include "svg.h"
 #include "widget_surface.h"
 #include "window.h"
-#include "treeholder.h"
 #include "apply_changes.h"
 #include "activity.h"
 #include "selection.h"
 #include "drag.h"
 #include "manipulator.h"
-#include "treeholder.h"
 #include "menuinfo.h"
 #include "repository.h"
 #include "application.h"
@@ -150,11 +148,28 @@ void Widget::dawdle()
     XL::Main   *xlr            = XL::MAIN;
     bool        savedSomething = false;
 
+    // Check if we need to refresh something
+    double idleInterval = 0.001 * idleTimer.interval();
+    double remaining = pageRefresh - idleInterval;
+    if (remaining <= idleInterval &&
+        (!timer.isActive() || remaining <= timer.interval() * 0.001))
+    {
+        if (remaining <= 0)
+            remaining = 0.001;
+        timer.stop();
+        timer.setSingleShot(true);
+        timer.start(1000 * remaining);
+        remaining = 86400;
+    }
+    pageRefresh = remaining;
+
     if (xlProgram && xlProgram->changed)
     {
         text txt = *xlProgram->tree.tree;
         Window *window = (Window *) parentWidget();
         window->setText(+txt);
+        if (!repo)
+            xlProgram->changed = false;
     }
 
     // Check if there's something to save
@@ -173,6 +188,10 @@ void Widget::dawdle()
         // Record when we will save file again
         nextSave = tick + xlr->options.save_interval * 1000;
     }
+
+    // If things are saved on disk, no need to keep the window "dirty"
+    Window *window = (Window *) parentWidget();
+    window->markChanged(false);
 
     // Check if there's something to commit
     longlong commitDelay = longlong (nextCommit - tick);
@@ -268,6 +287,8 @@ void Widget::draw()
     // Setup the initial drawing environment
     double w = width(), h = height();
     setup(w, h);
+    pageW = (21.0 / 2.54) * logicalDpiX(); // REVISIT
+    pageH = (29.7 / 2.54) * logicalDpiY();
 
     // Clear the background
     glClearColor (1.0, 1.0, 1.0, 1.0);
@@ -439,8 +460,22 @@ void Widget::userMenu(QAction *p_action)
 
     markChanged(+("Menu '" + p_action->text() + "' selected"));
 
-    TreeHolder t = var.value<TreeHolder >();
+    XL::TreeRoot t = var.value<XL::TreeRoot >();
     xl_evaluate(t.tree);        // Typically will insert something...
+}
+
+
+bool Widget::refresh(double delay)
+// ----------------------------------------------------------------------------
+//   Refresh the screen after the given time interval
+// ----------------------------------------------------------------------------
+{
+    if (pageRefresh > delay)
+    {
+        pageRefresh = delay;
+        return true;
+    }
+    return false;
 }
 
 
@@ -536,6 +571,7 @@ void Widget::setupGL()
     glEnable(GL_POINT_SMOOTH);
     glEnable(GL_POLYGON_OFFSET_FILL);
     glEnable(GL_POLYGON_OFFSET_LINE);
+    glEnable(GL_POLYGON_OFFSET_POINT);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glLineWidth(1);
     glLineStipple(1, -1);
@@ -574,9 +610,8 @@ bool Widget::forwardEvent(QMouseEvent *event)
         int y = event->y();
         int w = focusWidget->width();
         int h = focusWidget->height();
-        int hh = height();
 
-        Point3 u = unproject(x, hh-y, 0);
+        Point3 u = unproject(x, y, 0);
         QMouseEvent local(event->type(), QPoint(u.x + w/2, h/2 - u.y),
                           event->button(), event->buttons(),
                           event->modifiers());
@@ -721,6 +756,17 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
+
+    // Create a selection if left click and nothing going on right now
+    uint    button      = (uint) event->button();
+    int     x           = event->x();
+    int     y           = event->y();
+    if (!activities && button == Qt::LeftButton)
+        new Selection(this);
+
+    // Send the click to all activities
+    for (Activity *a = activities; a; a = a->Click(button, true, x, y)) ;
+
     forwardEvent(event);
 }
 
@@ -834,10 +880,13 @@ void Widget::refreshProgram()
                 if (fname == xlProgram->name)
                 {
                     // Update source file view
-                    text txt = *xlProgram->tree.tree;
                     Window *window = (Window *) parentWidget();
-                    window->setText(+txt);
+                    window->loadFileIntoSourceFileView(+fname);
                 }
+
+                // If a file was modified, we need to refresh the screen
+                refresh();
+
             } // If file modified
         } // For all files
 
@@ -877,7 +926,7 @@ void Widget::markChanged(text reason)
             ImportedFilesChanged(prog, done, true);
         }
     }
-    refresh(NULL, 0);
+    refresh(0);
 }
 
 
@@ -952,12 +1001,18 @@ uint Widget::selected()
 }
 
 
-void Widget::select(uint count)
+void Widget::select(uint id, uint count)
 // ----------------------------------------------------------------------------
 //    Select the current shape if we are in selectable state
 // ----------------------------------------------------------------------------
 {
-    selection[id] = count;
+    if (id && id != ~0U)
+    {
+        if (count)
+            selection[id] = count;
+        else
+            selection.erase(id);
+    }
 }
 
 
@@ -979,8 +1034,9 @@ void Widget::requestFocus(QWidget *widget, coord x, coord y)
     if (!focusWidget)
     {
         GLMatrixKeeper saveGL;
+        Vector3 v = layout->Offset() + Vector3(x, y, 0);
         focusWidget = widget;
-        glTranslatef(x, y, 0);
+        glTranslatef(v.x, v.y, v.z);
         recordProjection();
         QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
         QObject *fin = focusWidget;
@@ -1005,6 +1061,9 @@ Point3 Widget::unproject (coord x, coord y, coord z)
 //   Convert mouse clicks into 3D planar coordinates for the focus object
 // ----------------------------------------------------------------------------
 {
+    // Adjust between mouse and OpenGL coordinate systems
+    y = height() - y;
+
     // Get 3D coordinates for the near plane based on window coordinates
     GLdouble x3dn, y3dn, z3dn;
     gluUnProject(x, y, 0.0,
@@ -1028,25 +1087,14 @@ Point3 Widget::unproject (coord x, coord y, coord z)
 }
 
 
-Vector3 Widget::dragDelta()
+Drag *Widget::drag()
 // ----------------------------------------------------------------------------
-//   Compute the drag delta based on the current Drag object if there is any
+//   Return the drag activity that we can use to unproject
 // ----------------------------------------------------------------------------
 {
-    Vector3 result;
-    recordProjection();
-    if (Drag *d = dynamic_cast<Drag *>(activities))
-    {
-        double x1 = d->x1;
-        double y1 = d->y1;
-        double x2 = d->x2;
-        double y2 = d->y2;
-        int hh = height();
-
-        Point3 u1 = unproject(x1, hh-y1, 0);
-        Point3 u2 = unproject(x2, hh-y2, 0);
-        result = u2 - u1;
-    }
+    Drag *result = dynamic_cast<Drag *>(activities);
+    if (result)
+        recordProjection();
     return result;
 }
 
@@ -1132,21 +1180,21 @@ void Widget::drawHandle(const Point3 &p, text handleName)
 Widget *Widget::current = NULL;
 typedef XL::Tree Tree;
 
-XL::Integer *Widget::pageWidth(Tree *self)
+XL::Real *Widget::pageWidth(Tree *self)
 // ----------------------------------------------------------------------------
 //   Return the width of the page
 // ----------------------------------------------------------------------------
 {
-    return new Integer(width());
+    return new Real(pageW);
 }
 
 
-XL::Integer *Widget::pageHeight(Tree *self)
+XL::Real *Widget::pageHeight(Tree *self)
 // ----------------------------------------------------------------------------
 //   Return the height of the page
 // ----------------------------------------------------------------------------
 {
-    return new Integer(height());
+    return new Real(pageH);
 }
 
 
@@ -1177,12 +1225,30 @@ XL::Real *Widget::frameDepth(Tree *self)
 }
 
 
+XL::Real *Widget::windowWidth(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return the width of the window in which we display
+// ----------------------------------------------------------------------------
+{
+    return new Real(width());
+}
+
+
+XL::Real *Widget::windowHeight(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return the height of window in which we display
+// ----------------------------------------------------------------------------
+{
+    return new Real(height());
+}
+
+
 XL::Real *Widget::time(Tree *self)
 // ----------------------------------------------------------------------------
 //   Return a fractional time, including milliseconds
 // ----------------------------------------------------------------------------
 {
-    refresh(NULL, 0.1);
+    refresh(0.1);
     return new XL::Real(CurrentTime());
 }
 
@@ -1192,7 +1258,7 @@ XL::Real *Widget::pageTime(Tree *self)
 //   Return a fractional time, including milliseconds
 // ----------------------------------------------------------------------------
 {
-    refresh(NULL, 0.1);
+    refresh(0.1);
     return new XL::Real(CurrentTime() - pageStartTime);
 }
 
@@ -1208,32 +1274,116 @@ Tree *Widget::locally(Tree *self, Tree *child)
 }
 
 
-Tree *Widget::rotate(Tree *self, double ra, double rx, double ry, double rz)
+static inline XL::Real &r(double x) { return *new XL::Real(x); }
+
+
+Tree *Widget::rotatex(Tree *self, real_r rx)
+// ----------------------------------------------------------------------------
+//   Rotate around X
+// ----------------------------------------------------------------------------
+{
+    return rotate(self, rx, r(1), r(0), r(0));
+}
+
+
+Tree *Widget::rotatey(Tree *self, real_r ry)
+// ----------------------------------------------------------------------------
+//   Rotate around Y
+// ----------------------------------------------------------------------------
+{
+    return rotate(self, ry, r(0), r(1), r(0));
+}
+
+
+Tree *Widget::rotatez(Tree *self, real_r rz)
+// ----------------------------------------------------------------------------
+//   Rotate around Z
+// ----------------------------------------------------------------------------
+{
+    return rotate(self, rz, r(0), r(0), r(1));
+}
+
+
+Tree *Widget::rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz)
 // ----------------------------------------------------------------------------
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Rotation(ra, rx, ry, rz));
+    layout->Add(new RotationManipulator(ra, rx, ry, rz));
     return XL::xl_true;
 }
 
 
-Tree *Widget::translate(Tree *self, double rx, double ry, double rz)
+Tree *Widget::translatex(Tree *self, real_r x)
+// ----------------------------------------------------------------------------
+//   Translate along X
+// ----------------------------------------------------------------------------
+{
+    return translate(self, x, r(0), r(0));
+}
+
+
+Tree *Widget::translatey(Tree *self, real_r y)
+// ----------------------------------------------------------------------------
+//   Translate along Y
+// ----------------------------------------------------------------------------
+{
+    return translate(self, r(0), y, r(0));
+}
+
+
+Tree *Widget::translatez(Tree *self, real_r z)
+// ----------------------------------------------------------------------------
+//   Translate along Z
+// ----------------------------------------------------------------------------
+{
+    return translate(self, r(0), r(0), z);
+}
+
+
+Tree *Widget::translate(Tree *self, real_r rx, real_r ry, real_r rz)
 // ----------------------------------------------------------------------------
 //     Translation along three axes
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Translation(rx, ry, rz));
+    layout->Add(new TranslationManipulator(rx, ry, rz));
     return XL::xl_true;
 }
 
 
-Tree *Widget::rescale(Tree *self, double sx, double sy, double sz)
+Tree *Widget::rescalex(Tree *self, real_r x)
+// ----------------------------------------------------------------------------
+//   Rescale along X
+// ----------------------------------------------------------------------------
+{
+    return rescale(self, x, r(1), r(1));
+}
+
+
+Tree *Widget::rescaley(Tree *self, real_r y)
+// ----------------------------------------------------------------------------
+//   Rescale along Y
+// ----------------------------------------------------------------------------
+{
+    return rescale(self, r(1), y, r(1));
+}
+
+
+Tree *Widget::rescalez(Tree *self, real_r z)
+// ----------------------------------------------------------------------------
+//   Rescale along Z
+// ----------------------------------------------------------------------------
+{
+    return rescale(self, r(1), r(1), z);
+}
+
+
+Tree *Widget::rescale(Tree *self, real_r sx, real_r sy, real_r sz)
 // ----------------------------------------------------------------------------
 //     Scaling along three axes
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Scale(sx, sy, sz));
+    layout->Add(new ScaleManipulator(sx, sy, sz));
     return XL::xl_true;
 }
 
@@ -1258,12 +1408,7 @@ Tree *Widget::refresh(Tree *self, double delay)
 //    Refresh after the given number of seconds
 // ----------------------------------------------------------------------------
 {
-    if (pageRefresh > delay)
-    {
-        pageRefresh = delay;
-        return XL::xl_true;
-    }
-    return XL::xl_false;
+    return refresh (delay) ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -1639,6 +1784,19 @@ Tree *Widget::cube(Tree *self,
 // ----------------------------------------------------------------------------
 {
     Cube *c = new Cube(Box3(x-w/2, y-h/2, z-d/2, w,h,d));
+    layout->Add(new ControlBox(x, y, z, w, h, d, c));
+    return XL::xl_true;
+}
+
+
+Tree *Widget::cone(Tree *self,
+                   real_r x, real_r y, real_r z,
+                   real_r w, real_r h, real_r d)
+// ----------------------------------------------------------------------------
+//    A simple cone
+// ----------------------------------------------------------------------------
+{
+    Cube *c = new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d));
     layout->Add(new ControlBox(x, y, z, w, h, d, c));
     return XL::xl_true;
 }
@@ -2215,9 +2373,7 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
     MenuInfo *menuInfo = self->GetInfo<MenuInfo>();
 
     // Store a copy of the tree in the QAction.
-    XL::TreeClone cloner;
-    XL::Tree *copy = t->Do(cloner);
-    QVariant var = QVariant::fromValue(TreeHolder(copy));
+    QVariant var = QVariant::fromValue(XL::TreeRoot(t));
 
     if (menuInfo)
     {
@@ -2253,6 +2409,7 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
 
     return XL::xl_true;
 }
+
 
 Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 // ----------------------------------------------------------------------------
@@ -2452,5 +2609,5 @@ void tao_widget_refresh(double delay)
 //    Refresh the current widget
 // ----------------------------------------------------------------------------
 {
-    TAO(refresh(NULL, delay));
+    TAO(refresh(delay));
 }

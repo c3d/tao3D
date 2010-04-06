@@ -54,6 +54,7 @@ public:
     bool openProject(QString path, QString filename, bool confirm = true);
     Repository * repository() { return repo.data(); }
     void switchToFullScreen(bool fs);
+    bool loadFileIntoSourceFileView(const QString &fileName);
 
     bool isUntitled;
 

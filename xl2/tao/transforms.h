@@ -32,6 +32,9 @@ struct Transform : Attribute
 // ----------------------------------------------------------------------------
 {
     Transform() : Attribute() {}
+    virtual void Draw(Layout *where);
+    virtual void DrawSelection(Layout *where);
+    virtual void Identify(Layout *where);
 };
 
 

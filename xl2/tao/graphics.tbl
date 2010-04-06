@@ -27,11 +27,13 @@
 //
 // ============================================================================
 
-PREFIX(PageWidth,   integer,  "page_width", ,   RTAO(pageWidth(self)))
-PREFIX(PageHeight,  integer,  "page_height", ,  RTAO(pageHeight(self)))
+PREFIX(PageWidth,   real,     "page_width", ,   RTAO(pageWidth(self)))
+PREFIX(PageHeight,  real,     "page_height", ,  RTAO(pageHeight(self)))
 PREFIX(FrameWidth,  real,     "frame_width", ,  RTAO(frameWidth(self)))
 PREFIX(FrameHeight, real,     "frame_height", , RTAO(frameHeight(self)))
 PREFIX(FrameDepth,  real,     "frame_depth", ,  RTAO(frameDepth(self)))
+PREFIX(WindowWidth, real,     "window_width", , RTAO(windowWidth(self)))
+PREFIX(WindowHeight,real,     "window_height", ,RTAO(windowHeight(self)))
 PREFIX(DaySeconds,  real,     "time", ,         RTAO(time(self)))
 PREFIX(PageSeconds, real,     "page_time", ,    RTAO(pageTime(self)))
 
@@ -53,23 +55,23 @@ PREFIX(Locally, tree, "locally", PARM(t, tree), RTAO(locally(self, &t)))
 //
 // ============================================================================
 
-PREFIX(RotateX, tree, "rotatex", PARM(rx, real), RTAO(rotate(self, rx,1,0,0)))
-PREFIX(RotateY, tree, "rotatey", PARM(ry, real), RTAO(rotate(self, ry,0,1,0)))
-PREFIX(RotateZ, tree, "rotatez", PARM(rz, real), RTAO(rotate(self, rz,0,0,1)))
+PREFIX(RotateX, tree, "rotatex", PARM(rx, real), RTAO(rotatex(self, rx)))
+PREFIX(RotateY, tree, "rotatey", PARM(ry, real), RTAO(rotatey(self, ry)))
+PREFIX(RotateZ, tree, "rotatez", PARM(rz, real), RTAO(rotatez(self, rz)))
 PREFIX(Rotate, tree, "rotate",
        PARM(ra, real) PARM(rx, real) PARM(ry, real) PARM(rz, real),
        RTAO(rotate(self, ra, rx, ry, rz)))
 
-PREFIX(TransX, tree, "translatex", PARM(x, real), RTAO(translate(self, x,0,0)))
-PREFIX(TransY, tree, "translatey", PARM(y, real), RTAO(translate(self, 0,y,0)))
-PREFIX(TransZ, tree, "translatez", PARM(z, real), RTAO(translate(self, 0,0,z)))
+PREFIX(TransX, tree, "translatex", PARM(x, real), RTAO(translatex(self, x)))
+PREFIX(TransY, tree, "translatey", PARM(y, real), RTAO(translatey(self, y)))
+PREFIX(TransZ, tree, "translatez", PARM(z, real), RTAO(translatez(self, z)))
 PREFIX(Translate, tree, "translate",
        PARM(x, real) PARM(y, real) PARM(z, real),
        RTAO(translate(self, x, y, z)))
 
-PREFIX(ScaleX, tree, "scalex", PARM(x, real), RTAO(rescale(self, x,1,1)))
-PREFIX(ScaleY, tree, "scaley", PARM(y, real), RTAO(rescale(self, 1,y,1)))
-PREFIX(ScaleZ, tree, "scalez", PARM(z, real), RTAO(rescale(self, 1,1,z)))
+PREFIX(ScaleX, tree, "scalex", PARM(x, real), RTAO(rescalex(self, x)))
+PREFIX(ScaleY, tree, "scaley", PARM(y, real), RTAO(rescaley(self, y)))
+PREFIX(ScaleZ, tree, "scalez", PARM(z, real), RTAO(rescalez(self, z)))
 PREFIX(Scale, tree, "scale",
        PARM(x, real) PARM(y, real) PARM(z, real),
        RTAO(rescale(self, x, y, z)))
@@ -190,6 +192,10 @@ PREFIX(Cube, tree, "cube",
        PARM(x, real) PARM(y, real) PARM(z, real)
        PARM(w, real) PARM(h, real) PARM(d, real),
        RTAO(cube(self, x, y, z, w, h, d)))
+PREFIX(Cone, tree, "cone",
+       PARM(x, real) PARM(y, real) PARM(z, real)
+       PARM(w, real) PARM(h, real) PARM(d, real),
+       RTAO(cone(self, x, y, z, w, h, d)))
 
 
 

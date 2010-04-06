@@ -66,9 +66,8 @@ Activity *Selection::Idle(void)
 //   Make the refresh rate shorter so that we animate the rectangle
 // ----------------------------------------------------------------------------
 {
-    if (!widget->timerIsActive())
-        widget->refresh(NULL, 0.005);
     widget->updateGL();
+    widget->refresh();
     return next;               // Keep doing other idle activities
 }
 
@@ -143,6 +142,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
                 selected = ptr[3];
                 if (size > 1)
                     manipulator = ptr[4];
+                depth = ptr[1];
             }
             ptr += 3 + size;
         }
@@ -172,6 +172,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
     if (doneWithSelection)
     {
         Widget *widget = this->widget; // Save before 'delete this'
+        Idle();
         delete this;
         if (selected)
             return new Drag(widget);

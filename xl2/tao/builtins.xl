@@ -101,14 +101,14 @@ draw_selection_rectangle x, y, w, h ->
 
 draw_handle x, y, z ->
     handle_color
-    cube x, y, z, 8, 8, 8
+    cube x, y, z, 8,8,8
 
 draw_rotation_base x, y, z ->
     selection_outline_color
     selection_background_color
     locally
         rotatex 90
-        sphere x, y, z, 50, 50, 50, 8, 8
+        sphere x, y, z, 50, 50, 50, 16, 8
 draw_rotation_tip x, y, z -> draw_handle x, y, z
 
 draw_translation_base x, y, z ->

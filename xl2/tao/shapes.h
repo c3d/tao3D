@@ -53,9 +53,29 @@ struct Rectangle : Shape
 // ----------------------------------------------------------------------------
 {
     Rectangle(const Box &b): Shape(), bounds(b) {}
-    virtual void        Draw(GraphicPath &where);
+    virtual void        Draw(GraphicPath &path);
     virtual Box3        Bounds()        { return bounds; }
     Box                 bounds;
+};
+
+
+struct IsoscelesTriangle : Rectangle
+// ----------------------------------------------------------------------------
+//    A isosceles triangle that can be placed in a layout
+// ----------------------------------------------------------------------------
+{
+    IsoscelesTriangle(const Box &b): Rectangle(b) {}
+    virtual void        Draw(GraphicPath &path);
+};
+
+
+struct RightTriangle : Rectangle
+// ----------------------------------------------------------------------------
+//    A right triangle that can be placed in a layout
+// ----------------------------------------------------------------------------
+{
+    RightTriangle(const Box &b): Rectangle(b) {}
+    virtual void        Draw(GraphicPath &path);
 };
 
 
@@ -104,6 +124,19 @@ struct StarPolygon : Rectangle
     int p,q;
 };
 
+
+struct Star : Rectangle
+// ----------------------------------------------------------------------------
+//   A star with arbitrary inner circle
+// ----------------------------------------------------------------------------
+{
+    Star(const Box &b, float rr, int p): Rectangle(b), rr(rr), p(p) {}
+    virtual void        Draw(Layout *where);
+    virtual void        Draw(GraphicPath &path);
+    float rr;
+    int p;
+};
+
 TAO_END
 
-#endif // SHAP
+#endif // SHAPES_H

@@ -1682,6 +1682,36 @@ Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 }
 
 
+Tree *Widget::isoscelesTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
+// ----------------------------------------------------------------------------
+//    Draw an isosceles triangle
+// ----------------------------------------------------------------------------
+{
+    IsoscelesTriangle shape(Box(x-w/2, y-h/2, w, h));
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlRectangle(x, y, w, h, new IsoscelesTriangle(shape)));
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::rightTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
+// ----------------------------------------------------------------------------
+//    Draw a right triangle
+// ----------------------------------------------------------------------------
+{
+    RightTriangle shape(Box(x-w/2, y-h/2, w, h));
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlRectangle(x, y, w, h, new RightTriangle(shape)));
+
+    return XL::xl_true;
+}
+
+
 Tree *Widget::ellipse(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //   Cairo circle centered around (cx,cy), radius r
@@ -1738,7 +1768,7 @@ Tree *Widget::starPolygon(Tree *self,
                           real_r cx, real_r cy, real_r w, real_r h,
                           integer_r p, integer_r q)
 // ----------------------------------------------------------------------------
-//     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
+//     GL regular p-side star polygon {p/q} centered around (cx,cy)
 // ----------------------------------------------------------------------------
 {
     if (p < 2 || q == 0 || q > (p-1)/2 || q < -(p-1)/2)
@@ -1750,6 +1780,28 @@ Tree *Widget::starPolygon(Tree *self,
     else
         layout->Add(new ControlRectangle(cx, cy, w, h,
                                          new StarPolygon(shape)));
+
+    return XL::xl_true;
+}
+
+
+
+Tree *Widget::star(Tree *self,
+                   real_r cx, real_r cy, real_r w, real_r h,
+                   real_r rr, integer_r p)
+// ----------------------------------------------------------------------------
+//     GL regular p-side star centered around (cx,cy), inner radius ratio r
+// ----------------------------------------------------------------------------
+{
+    if (p < 2 || rr < 0.0 || rr > 1.0 )
+        return ellipse(self, cx, cy, w, h); // Show something else in its place
+
+    Star shape(Box(cx-w/2, cy-h/2, w, h), rr, p);
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlRectangle(cx, cy, w, h,
+                                         new Star(shape)));
 
     return XL::xl_true;
 }

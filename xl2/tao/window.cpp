@@ -321,12 +321,12 @@ void Window::createActions()
     aboutAct->setStatusTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
-    aboutQtAct = new QAction(tr("About &Qt"), this);
-    aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
-    connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+    //aboutQtAct = new QAction(tr("About &Qt"), this);
+    //aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
+    //connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
-    fullScreenAct = new QAction(tr("Fullscreen"), this);
-    fullScreenAct->setStatusTip(tr("Toggle full-screen mode"));
+    fullScreenAct = new QAction(tr("Full Screen"), this);
+    fullScreenAct->setStatusTip(tr("Toggle full screen mode"));
     connect(fullScreenAct, SIGNAL(triggered()), this, SLOT(toggleFullScreen()));
 
     cutAct->setEnabled(false);

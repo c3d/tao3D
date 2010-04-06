@@ -159,6 +159,12 @@ PREFIX(ClosePath, tree, "close_path",, RTAO(closePath(self)))
 PREFIX(Rectangle, tree, "rectangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
        RTAO(rectangle(self, x, y, w, h)))
+PREFIX(Triangle, tree, "triangle",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
+       RTAO(isoscelesTriangle(self, x, y, w, h)))
+PREFIX(RightTriangle, tree, "right_triangle",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
+       RTAO(rightTriangle(self, x, y, w, h)))
 PREFIX(Ellipse, tree, "ellipse",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
        RTAO(ellipse(self, x, y, w, h)))
@@ -170,10 +176,14 @@ PREFIX(RoundedRectangle, tree, "rounded_rectangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(rx, real) PARM(ry, real),
        RTAO(roundedRectangle(self, x, y, w, h, rx, ry)))
-PREFIX(RegularStarPolygon, tree, "star_polygon",
+PREFIX(StarPolygon, tree, "star_polygon",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
        PARM(p, integer) PARM(q, integer),
        RTAO(starPolygon(self, x, y, w, h, p, q)))
+PREFIX(Star, tree, "star",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
+       PARM(r, real) PARM(p, integer),
+       RTAO(star(self, x, y, w, h, r, p)))
 
 
 

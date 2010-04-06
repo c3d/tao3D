@@ -194,6 +194,8 @@ public:
 
     // 2D primitive that can be in a path or standalone
     Tree *      rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
+    Tree *      isoscelesTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
+    Tree *      rightTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *      ellipse(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *      ellipseArc(Tree *self, real_r x, real_r y, real_r w, real_r h,
                            real_r start, real_r sweep);
@@ -203,6 +205,8 @@ public:
     Tree *      starPolygon(Tree *self,
                             real_r cx, real_r cy, real_r w, real_r h,
                             integer_r p, integer_r q);
+    Tree *      star(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
+                     real_r rr, integer_r p);
 
     // 3D primitives
     Tree *      sphere(Tree *self,

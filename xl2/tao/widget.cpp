@@ -1764,6 +1764,60 @@ Tree *Widget::roundedRectangle(Tree *self,
 
 
 
+Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
+                    real_r ax, real_r ay)
+// ----------------------------------------------------------------------------
+//   Arrow
+// ----------------------------------------------------------------------------
+{
+    if (ax > w) 
+        ax = w;
+    if (ax < 0.0) 
+        ax = 0.0;
+    if (ay > h/2) 
+        ay = h/2;
+    if (ay < 0.0) 
+        ay = 0.0;
+         
+    Arrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ay);
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlRectangle(cx, cy, w, h,
+                                         new Arrow(shape)));
+
+    return XL::xl_true;
+}
+
+
+
+Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
+                    real_r ax, real_r ay)
+// ----------------------------------------------------------------------------
+//   Double arrow
+// ----------------------------------------------------------------------------
+{
+    if (ax > w/2) 
+        ax = w/2;
+    if (ax < 0.0) 
+        ax = 0.0;
+    if (ay > h/2) 
+        ay = h/2;
+    if (ay < 0.0) 
+        ay = 0.0;
+         
+    DoubleArrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ay);
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlRectangle(cx, cy, w, h,
+                                         new DoubleArrow(shape)));
+
+    return XL::xl_true;
+}
+
+
+
 Tree *Widget::starPolygon(Tree *self,
                           real_r cx, real_r cy, real_r w, real_r h,
                           integer_r p, integer_r q)

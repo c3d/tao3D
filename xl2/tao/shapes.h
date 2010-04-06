@@ -113,6 +113,30 @@ struct EllipseArc : Ellipse
 };
 
 
+struct Arrow : Rectangle
+// ----------------------------------------------------------------------------
+//   An arrow
+// ----------------------------------------------------------------------------
+{
+    Arrow(const Box &b, coord ax, coord ay): Rectangle(b), a(ax, ay) {}
+    virtual void        Draw(Layout *where);
+    virtual void        Draw(GraphicPath &path);
+    Point a;
+};
+
+
+struct DoubleArrow : Rectangle
+// ----------------------------------------------------------------------------
+//   A double arrow
+// ----------------------------------------------------------------------------
+{
+    DoubleArrow(const Box &b, coord ax, coord ay): Rectangle(b), a(ax, ay) {}
+    virtual void        Draw(Layout *where);
+    virtual void        Draw(GraphicPath &path);
+    Point a;
+};
+
+
 struct StarPolygon : Rectangle
 // ----------------------------------------------------------------------------
 //   A star or a regular polygon

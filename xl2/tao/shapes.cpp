@@ -205,6 +205,94 @@ void EllipseArc::Draw(GraphicPath &path)
 }
 
 
+void Arrow::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    We need correct tesselation
+// ----------------------------------------------------------------------------
+{
+    GraphicPath path;
+    Draw(path);
+    setTexture(where);
+    if (setFillColor(where))
+        path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+    if (setLineColor(where))
+        // REVISIT: If lines is thick, use a QPainterPathStroker
+        path.Draw(where, GL_LINE_STRIP);
+}
+
+
+void Arrow::Draw(GraphicPath &path)
+// ----------------------------------------------------------------------------
+//   Draw an arrow
+// ----------------------------------------------------------------------------
+{
+    coord x0 = bounds.lower.x;
+    coord x1 = bounds.upper.x;
+    coord xa0 = x0 + a.x;
+
+    coord y0 = bounds.lower.y;
+    coord yc = (bounds.lower.y + bounds.upper.y)/2;
+    coord y1 = bounds.upper.y;
+    coord ya0 = y0 + a.y;
+    coord ya1 = y1 - a.y;
+
+    path.moveTo(Point3(x0,  ya0, 0));
+    path.lineTo(Point3(xa0, ya0, 0));
+    path.lineTo(Point3(xa0, y0,  0));
+    path.lineTo(Point3(x1,  yc,  0));
+    path.lineTo(Point3(xa0, y1,  0));
+    path.lineTo(Point3(xa0, ya1, 0));
+    path.lineTo(Point3(x0,  ya1, 0));
+    path.close();
+}
+
+
+void DoubleArrow::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    We need correct tesselation
+// ----------------------------------------------------------------------------
+{
+    GraphicPath path;
+    Draw(path);
+    setTexture(where);
+    if (setFillColor(where))
+        path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+    if (setLineColor(where))
+        // REVISIT: If lines is thick, use a QPainterPathStroker
+        path.Draw(where, GL_LINE_STRIP);
+}
+
+
+void DoubleArrow::Draw(GraphicPath &path)
+// ----------------------------------------------------------------------------
+//   Draw a double arrow
+// ----------------------------------------------------------------------------
+{
+    coord x0 = bounds.lower.x;
+    coord x1 = bounds.upper.x;
+    coord xa0 = x0 + a.x;
+    coord xa1 = x1 - a.x;
+
+    coord y0 = bounds.lower.y;
+    coord yc = (bounds.lower.y + bounds.upper.y)/2;
+    coord y1 = bounds.upper.y;
+    coord ya0 = y0 + a.y;
+    coord ya1 = y1 - a.y;
+
+    path.moveTo(Point3(x0,  yc,  0));
+    path.lineTo(Point3(xa0, y0,  0));
+    path.lineTo(Point3(xa0, ya0, 0));
+    path.lineTo(Point3(xa1, ya0, 0));
+    path.lineTo(Point3(xa1, y0,  0));
+    path.lineTo(Point3(x1,  yc,  0));
+    path.lineTo(Point3(xa1, y1,  0));
+    path.lineTo(Point3(xa1, ya1, 0));
+    path.lineTo(Point3(xa0, ya1, 0));
+    path.lineTo(Point3(xa0, y1,  0));
+    path.close();
+}
+
+
 void StarPolygon::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //    We need correct tesselation when q != 1

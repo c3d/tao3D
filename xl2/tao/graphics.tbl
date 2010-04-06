@@ -176,6 +176,14 @@ PREFIX(RoundedRectangle, tree, "rounded_rectangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(rx, real) PARM(ry, real),
        RTAO(roundedRectangle(self, x, y, w, h, rx, ry)))
+PREFIX(Arrow, tree, "arrow",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
+       PARM(ax, real) PARM(ay, real),
+       RTAO(arrow(self, x, y, w, h, ax, ay)))
+PREFIX(DoubleArrow, tree, "double_arrow",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
+       PARM(ax, real) PARM(ay, real),
+       RTAO(doubleArrow(self, x, y, w, h, ax, ay)))
 PREFIX(StarPolygon, tree, "star_polygon",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
        PARM(p, integer) PARM(q, integer),

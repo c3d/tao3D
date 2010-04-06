@@ -144,7 +144,9 @@ draw_scale_x x, y, z -> draw_handle x + 40, y, z
 draw_scale_y x, y, z -> draw_handle x, y + 40, z
 draw_scale_z x, y, z -> draw_handle x, y, z + 40
 
-theme_colors -> color 0.5, 0.5, 0.5, 1; line_color 0, 0, 0, 1
+theme_colors -> 
+    color 0.5, 0.5, 0.5, 1
+    line_color 0, 0, 0, 1
 
 menu_insert -> {
 menu    "Insert"

@@ -202,6 +202,11 @@ public:
     Tree *      roundedRectangle(Tree *self,
                                  real_r cx, real_r cy, real_r w, real_r h,
                                  real_r rx, real_r ry);
+    Tree *      arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
+                      real_r ax, real_r ay);
+    Tree *      doubleArrow(Tree *self,
+                            real_r cx, real_r cy, real_r w, real_r h,
+                            real_r ax, real_r ay);
     Tree *      starPolygon(Tree *self,
                             real_r cx, real_r cy, real_r w, real_r h,
                             integer_r p, integer_r q);

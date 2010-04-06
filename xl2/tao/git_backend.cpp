@@ -306,4 +306,53 @@ bool GitRepository::pull()
     return true;
 }
 
+
+QStringList GitRepository::remotes()
+// ----------------------------------------------------------------------------
+//   Return the names of all remotes configured in the repository
+// ----------------------------------------------------------------------------
+{
+    QStringList result;
+    text        output;
+    Process     cmd(command(), QStringList("remote"), path);
+    if (cmd.done(&errors, &output))
+    {
+        result = (+output).split("\n");
+        result.removeLast();            // Last string is always empty
+    }
+    return result;
+}
+
+QString GitRepository::remotePullUrl(QString name)
+// ----------------------------------------------------------------------------
+//   Return the pull URL for the specified remote
+// ----------------------------------------------------------------------------
+{
+    QStringList args;
+    args << "config" << "--get" << QString("remote.%1.url").arg(name);
+    text    output;
+    Process cmd(command(), args, path);
+    cmd.done(&errors, &output);
+    return (+output).trimmed();
+}
+
+
+bool GitRepository::addRemote(QString name, QString url)
+// ----------------------------------------------------------------------------
+//   Add a remote, giving its pull URL
+// ----------------------------------------------------------------------------
+{
+    Process cmd(command(), QStringList("remote") <<"add" <<name <<url, path);
+    return cmd.done(&errors);
+}
+
+bool GitRepository::delRemote(QString name)
+// ----------------------------------------------------------------------------
+//   Delete a remote
+// ----------------------------------------------------------------------------
+{
+    Process cmd(command(), QStringList("remote") << "rm" << name, path);
+    return cmd.done(&errors);
+}
+
 TAO_END

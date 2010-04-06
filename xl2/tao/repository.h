@@ -100,6 +100,10 @@ public:
     virtual bool        merge(text branch)              = 0;
     virtual bool        reset()                         = 0;
     virtual bool        pull()                          = 0;
+    virtual QStringList remotes()                       = 0;
+    virtual QString     remotePullUrl(QString name)     = 0;
+    virtual bool        addRemote(QString name, QString pullUrl) = 0;
+    virtual bool        delRemote(QString name)         = 0;
 
 public:
     static Repository * repository(const QString &path, bool create = false);

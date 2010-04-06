@@ -60,6 +60,10 @@ public:
     virtual bool        merge(text branch);
     virtual bool        reset();
     virtual bool        pull();
+    virtual QStringList remotes();
+    virtual QString     remotePullUrl(QString name);
+    virtual bool        addRemote(QString name, QString pullUrl);
+    virtual bool        delRemote(QString name);
 
     static  bool        checkGit();
 

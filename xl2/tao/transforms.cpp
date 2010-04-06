@@ -22,10 +22,45 @@
 
 #include "transforms.h"
 #include "layout.h"
+#include "shapes3d.h"
+#include "context.h"
 #include <GL/glew.h>
 
 
 TAO_BEGIN
+
+void Transform::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Default draws a cube
+// ----------------------------------------------------------------------------
+{
+    Color line(1.0, 0.0, 0.0, 0.5);
+    Color fill(0.0, 0.7, 1.0, 0.5);
+    XL::LocalSave<Color> saveLine(where->lineColor, line);
+    XL::LocalSave<Color> saveFill(where->fillColor, fill);
+    Box3 cubeBox(-25, -25, -25, 50, 50, 50);
+    Cube cube(cubeBox);
+    cube.Draw(where);
+}
+
+
+void Transform::DrawSelection(Layout *where)
+// ----------------------------------------------------------------------------
+//   Transforms don't have a selection, they just draw themselves
+// ----------------------------------------------------------------------------
+{
+    Draw(where);
+}
+
+
+void Transform::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   Transforms don't have their own identity, they just draw themselves
+// ----------------------------------------------------------------------------
+{
+    Draw(where);
+}
+
 
 void Rotation::Draw(Layout *where)
 // ----------------------------------------------------------------------------

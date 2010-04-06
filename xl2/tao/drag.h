@@ -39,10 +39,16 @@ struct Drag : Activity
     virtual Activity *  MouseMove(int x, int y, bool active);
     virtual Activity *  Display(void);
 
-    int                 x1;
-    int                 y1;
-    int                 x2;
-    int                 y2;
+    Point3              Origin(coord z = 0);
+    Point3              Previous(coord z = 0);
+    Point3              Current(coord z = 0);
+    Vector3             Delta();
+    Vector3             DeltaFromOrigin();
+
+public:
+    int                 x0, y0;
+    int                 x1, y1;
+    int                 x2, y2;
 };
 
 TAO_END

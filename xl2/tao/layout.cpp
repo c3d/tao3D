@@ -37,6 +37,7 @@ Layout::Layout(Widget *widget)
       lineColor(0,0,0,1),       // Black
       fillColor(0,0,0,0),       // Transparent black
       fillTexture(0),
+      lastRotation(0), lastTranslation(0), lastScale(0),
       items(),
       display(widget)
 {}
@@ -53,6 +54,9 @@ Layout::Layout(const Layout &o)
       lineColor(o.lineColor),
       fillColor(o.fillColor),
       fillTexture(o.fillTexture),
+      lastRotation(o.lastRotation),
+      lastTranslation(o.lastTranslation),
+      lastScale(o.lastScale),
       items(),
       display(o.display)
 {}

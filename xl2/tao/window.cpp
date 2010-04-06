@@ -450,6 +450,21 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         !openProject(QFileInfo(fileName).canonicalPath(),
                      QFileInfo(fileName).fileName()))
         return false;
+
+    if (!loadFileIntoSourceFileView(fileName))
+        return false;
+
+    setCurrentFile(fileName);
+    statusBar()->showMessage(tr("File loaded"), 2000);
+    updateProgram(fileName);
+    return true;
+}
+
+bool Window::loadFileIntoSourceFileView(const QString &fileName)
+// ----------------------------------------------------------------------------
+//    Update the source file view with the contents of a specific file
+// ----------------------------------------------------------------------------
+{
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text))
     {
@@ -459,19 +474,13 @@ bool Window::loadFile(const QString &fileName, bool openProj)
                              .arg(file.errorString()));
         return false;
     }
-    
+
     QTextStream in(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
     textEdit->setPlainText(in.readAll());
     QApplication::restoreOverrideCursor();
-
-    setCurrentFile(fileName);
-    statusBar()->showMessage(tr("File loaded"), 2000);
-    updateProgram(fileName);
-
     return true;
 }
-
 
 void Window::updateProgram(const QString &fileName)
 // ----------------------------------------------------------------------------

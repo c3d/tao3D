@@ -598,6 +598,7 @@ VideoPlayerSurface::VideoPlayerSurface(Widget *parent)
     : WidgetSurface(new Phonon::VideoPlayer(Phonon::VideoCategory, NULL)),
       fbo(NULL)
 {
+    (void) parent;              // REVISIT
     widget->setVisible(true);
     widget->setAttribute(Qt::WA_DontShowOnScreen);
 }

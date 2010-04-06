@@ -25,7 +25,6 @@
 
 #include "main.h"
 #include "tao.h"
-#include "treeholder.h"
 #include "coords3d.h"
 #include "opcodes.h"
 
@@ -48,6 +47,7 @@ struct Layout;
 struct SpaceLayout;
 struct GraphicPath;
 struct Repository;
+struct Drag;
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -66,6 +66,7 @@ public slots:
     void        runProgram();
     void        appFocusChanged(QWidget *prev, QWidget *next);
     void        userMenu(QAction *action);
+    bool        refresh(double delay = 0.0);
 
 public:
     // OpenGL
@@ -105,14 +106,15 @@ public:
     // Selection
     GLuint      newId()                 { return ++id; }
     GLuint      currentId()             { return id; }
+    GLuint      manipulatorId()         { return manipulator; }
     GLuint      selectionCapacity()     { return capacity; }
     uint        selected();
-    void        select(uint count);
+    void        select(uint id, uint count);
     void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);
     void        recordProjection();
     Point3      unproject (coord x, coord y, coord z = 0.0);
-    Vector3     dragDelta();
+    Drag *      drag();
     void        drawSelection(const Box3 &bounds, text name);
     void        drawHandle(const Point3 &point, text name);
 
@@ -145,9 +147,18 @@ public:
     Tree *      locally(Tree *self, Tree *t);
 
     // Transforms
-    Tree *      rotate(Tree *self, double ra, double rx, double ry, double rz);
-    Tree *      translate(Tree *self, double x, double y, double z);
-    Tree *      rescale(Tree *self, double x, double y, double z);
+    Tree *      rotatex(Tree *self, real_r rx);
+    Tree *      rotatey(Tree *self, real_r ry);
+    Tree *      rotatez(Tree *self, real_r rz);
+    Tree *      rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz);
+    Tree *      translatex(Tree *self, real_r x);
+    Tree *      translatey(Tree *self, real_r y);
+    Tree *      translatez(Tree *self, real_r z);
+    Tree *      translate(Tree *self, real_r x, real_r y, real_r z);
+    Tree *      rescalex(Tree *self, real_r x);
+    Tree *      rescaley(Tree *self, real_r y);
+    Tree *      rescalez(Tree *self, real_r z);
+    Tree *      rescale(Tree *self, real_r x, real_r y, real_r z);
 
     // Setting attributes
     Name *      depthTest(Tree *self, bool enable);
@@ -197,6 +208,8 @@ public:
                        real_r w, real_r, real_r d,
                        integer_r nslices, integer_r nstacks);
     Tree *      cube(Tree *self, real_r cx, real_r cy, real_r cz,
+                     real_r w, real_r h, real_r d);
+    Tree *      cone(Tree *self, real_r cx, real_r cy, real_r cz,
                      real_r w, real_r h, real_r d);
 
     // Text and font
@@ -369,7 +382,17 @@ inline double CurrentTime()
 #define TAO(x)  (Tao::Widget::Tao() ? Tao::Widget::Tao()->x : 0)
 #define RTAO(x) return TAO(x)
 
-
 } // namespace Tao
+
+
+
+// ============================================================================
+//
+//   Qt interface for XL types
+//
+// ============================================================================
+
+#define TREEROOT_TYPE 383 // (QVariant::UserType | 0x100)
+Q_DECLARE_METATYPE(XL::TreeRoot)
 
 #endif // TAO_WIDGET_H

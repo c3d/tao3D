@@ -131,4 +131,44 @@ void Sphere::Draw(Layout *where)
     gluDeleteQuadric(q);
 }
 
+
+void Cone::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw the cone
+// ----------------------------------------------------------------------------
+{
+    Point3 tip = bounds.Center() + where->Offset();
+    scale w = bounds.Width();
+    scale h = bounds.Height();
+    scale d = bounds.Depth();
+    std::vector<Point3> tex;
+    std::vector<Point3> geom;
+
+    tip.z -= d/2;
+    tex.push_back(Point3(0.5, 0.5, 0));
+    geom.push_back(Point3(tip.x, tip.y, tip.z));
+    tip.z += d;
+    for (double a = 0; a <= 2 * M_PI; a += M_PI / 10)
+    {
+        tex.push_back(Point3(0.5 + 0.5 * cos(a), 0.5 + 0.5 * sin(a), 1));
+        geom.push_back(Point3(tip.x + w * cos(a), tip.y + h * sin(a), tip.z));
+    }
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glVertexPointer(3, GL_DOUBLE, 0, &geom[0].x);
+    glTexCoordPointer(3, GL_DOUBLE, 0, &tex[0].x);
+
+    setTexture(where);
+    if (setFillColor(where))
+        glDrawArrays(GL_TRIANGLE_FAN, 0, geom.size());
+    if (setLineColor(where))
+        // REVISIT: Inefficient and incorrect with alpha
+        for (uint i = 3; i <= geom.size(); i++)
+            glDrawArrays(GL_LINE_LOOP, 0, i);
+            
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
 TAO_END

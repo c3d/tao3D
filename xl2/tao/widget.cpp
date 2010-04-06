@@ -880,6 +880,10 @@ void Widget::refreshProgram()
                     Window *window = (Window *) parentWidget();
                     window->loadFileIntoSourceFileView(+fname);
                 }
+
+                // If a file was modified, we need to refresh the screen
+                refresh();
+
             } // If file modified
         } // For all files
 

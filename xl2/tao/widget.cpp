@@ -753,6 +753,17 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
+
+    // Create a selection if left click and nothing going on right now
+    uint    button      = (uint) event->button();
+    int     x           = event->x();
+    int     y           = event->y();
+    if (!activities && button == Qt::LeftButton)
+        new Selection(this);
+
+    // Send the click to all activities
+    for (Activity *a = activities; a; a = a->Click(button, true, x, y)) ;
+
     forwardEvent(event);
 }
 

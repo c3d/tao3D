@@ -287,6 +287,9 @@ PREFIX(VideoPlayerTexture, tree, "video_player_texture",
        PARM(w,real) PARM(h,real) PARM(u,text),
        RTAO(videoPlayerTexture(self, w, h, &u)))
 
+PREFIX(ButtonGroup, tree, "button_group",
+       PARM(a, tree), RTAO(buttonGroup(self, &a)))
+
 PREFIX(GroupBox, tree, "groupbox",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(u, text) PARM(a, tree),

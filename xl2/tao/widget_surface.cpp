@@ -63,9 +63,9 @@ WidgetSurface::~WidgetSurface()
 //   When deleting the info, delete all renderers we have
 // ----------------------------------------------------------------------------
 {
-    Widget *parent = (Widget *) widget->parent();
-    parent->deleteFocus(widget);
-    delete widget;
+//    Widget *parent = (Widget *) widget->parent();
+//    parent->deleteFocus(widget);
+//    delete widget;
     glDeleteTextures(1, &textureId);
 }
 
@@ -93,6 +93,7 @@ GLuint WidgetSurface::bind ()
     {
         QImage image(widget->width(), widget->height(),
                      QImage::Format_ARGB32);
+        widget->setAutoFillBackground(false);
         widget->render(&image);
 
         // Generate the GL texture

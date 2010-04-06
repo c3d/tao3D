@@ -48,6 +48,7 @@ struct SpaceLayout;
 struct GraphicPath;
 struct Repository;
 struct Drag;
+struct WidgetSurface;
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -244,6 +245,7 @@ public:
     Tree *      pushButtonTexture(Tree *self,
                                   double w, double h,
                                   Text *lbl, Tree *act);
+    Tree *      buttonGroup(Tree *self, Tree *buttons, bool exclusive = true);
 
     Tree *      colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
                              Tree *action);
@@ -300,7 +302,8 @@ private:
     SpaceLayout *         space;
     Layout *              layout;
     GraphicPath *         path;
-    QGridLayout *         currentGroupLayout;
+    QGridLayout *         currentGridLayout;
+    QButtonGroup *        currentGroup;
 
     // Selection
     Activity *            activities;

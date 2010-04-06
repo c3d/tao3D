@@ -80,7 +80,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
       xlProgram(sf),
-      space(NULL), layout(NULL), path(NULL), currentGroupLayout(NULL),
+      space(NULL), layout(NULL), path(NULL), currentGroup(NULL),
       activities(NULL),
       id(0), capacity(0), manipulator(0),
       event(NULL), focusWidget(NULL),
@@ -2077,28 +2077,15 @@ Tree *Widget::pushButton(Tree *self,
     pushButtonTexture(self, w, h, lbl, act);
     PushButtonSurface *surface = lbl->GetInfo<PushButtonSurface>();
 
-    if (currentGroupLayout)
+    if (currentGroup)
+        currentGroup->addButton((QAbstractButton*)surface->widget);
+
+    if (currentGridLayout)
     {
-        currentGroupLayout->addWidget(surface->widget, y, x);
-
-        QRect rect = currentGroupLayout->cellRect(y, x);
-        if (rect.width() <= 1 || rect.height() <= 1)
-            return XL::xl_true;
-        Real x1(rect.x());
-        Real y1(rect.y() - rect.height());
-        Real w1(rect.width());
-        Real h1(rect.height());
-
-        layout->Add(new WidgetManipulator(x1, y1, w1, h1, surface));
-        IFTRACE(widgets)
-        {
-            std::cerr << lbl->value <<" currentGroupLayout " << currentGroupLayout
-                    <<" x="<<x1 << " y="<<y1 << " w="<<w1 << " h="<<h1<<"\n";
-        }
-
+        currentGridLayout->addWidget(surface->widget, y, x);
         return XL::xl_true;
-
     }
+
     layout->Add(new WidgetManipulator(x, y, w, h, surface));
     IFTRACE(widgets)
     {
@@ -2220,11 +2207,27 @@ Tree *Widget::fontChooserTexture(Tree *self, double w, double h,
 }
 
 
+Tree *Widget::buttonGroup(Tree *self, Tree *buttons, bool exclusive)
+{
+    GroupInfo *grpInfo = buttons->GetInfo<GroupInfo>();
+    if ( !grpInfo)
+    {
+        grpInfo = new GroupInfo(this);
+        grpInfo->setExclusive(exclusive);
+        buttons->SetInfo<GroupInfo>(grpInfo);
+    }
+    currentGroup = grpInfo;
+    xl_evaluate(buttons);
+    currentGroup = NULL;
+
+    return XL::xl_true;
+}
+
 Tree *Widget::groupBox(Tree *self,
                        real_r x, real_r y, real_r w, real_r h,
                        Text *lbl, Tree *buttons)
 // ----------------------------------------------------------------------------
-//   Draw a push button in the curent frame
+//   Draw a group box in the curent frame
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
@@ -2233,12 +2236,35 @@ Tree *Widget::groupBox(Tree *self,
 
     GroupBoxSurface *surface = lbl->GetInfo<GroupBoxSurface>();
     layout->Add(new WidgetManipulator(x, y, w, h, surface));
-    currentGroupLayout->setGeometry(QRect(x.value, y.value + h.value,
-                                          w.value, h.value));
+
     xl_evaluate(buttons);
+
+//    for (int i = 0; i< currentGroupLayout->count(); i++)
+//    {
+//        QWidget * wid = currentGroupLayout->itemAt(i)->widget();
+//        QRect rect = wid->geometry();
+//        if (rect.width() <= 1 || rect.height() <= 1)
+//            continue;
+//        Real x1(rect.center().x());
+//        Real y1(rect.center().y());
+//        Real w1(rect.width());
+//        Real h1(rect.height());
+//
+//        WidgetSurface *surf = groupSurfaces.value(wid);
+//        layout->Add(new WidgetManipulator(x1, y1, w1, h1, surf));
+//
+//        IFTRACE(widgets)
+//        {
+//            std::cerr << "x=" << x1 << " y=" << y1
+//                    << " w=" << w1 << " h="<< h1 << "\n";
+//        }
+//
+//    }
+
     surface->dirty = true;
     ((WidgetSurface*)surface)->bind();
-    currentGroupLayout = NULL;
+    currentGridLayout = NULL;
+//    groupSurfaces.clear();
 
     return XL::xl_true;
 }
@@ -2252,18 +2278,20 @@ Tree *Widget::groupBoxTexture(Tree *self, double w, double h, Text *lbl)
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
+
     // Get or build the current frame if we don't have one
     GroupBoxSurface *surface = lbl->GetInfo<GroupBoxSurface>();
     if (!surface)
     {
-        currentGroupLayout = new QGridLayout();
-        surface = new GroupBoxSurface(this, currentGroupLayout);
+        currentGridLayout = new QGridLayout(this);
+        surface = new GroupBoxSurface(this, currentGridLayout);
         lbl->SetInfo<GroupBoxSurface> (surface);
     }
     else
     {
-        currentGroupLayout = surface->grid;
+        currentGridLayout = surface->grid;
     }
+
     // Resize to requested size, and bind texture
     surface->resize(w,h);
     GLuint tex = surface->bind(lbl);
@@ -2596,9 +2624,9 @@ TAO_END
 
 
 // ============================================================================
-// 
+//
 //   Helper functions
-// 
+//
 // ============================================================================
 
 void tao_widget_refresh(double delay)

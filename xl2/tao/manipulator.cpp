@@ -64,9 +64,9 @@ void Manipulator::DrawSelection(Layout *layout)
     {
         // REVISIT: The values we give for 'count' are for debugging purpose
         sel = sel & 3;
-        widget->select(layout->lastRotation,    sel == 1 ? 0x1000 : 0);
-        widget->select(layout->lastTranslation, sel == 2 ? 0x2000 : 0);
-        widget->select(layout->lastScale,       sel == 3 ? 0x4000 : 0);
+        widget->select(layout->lastRotation,    sel == 2 ? 0x1000 : 0);
+        widget->select(layout->lastTranslation, sel == 3 ? 0x2000 : 0);
+        widget->select(layout->lastScale,       sel == 4 ? 0x4000 : 0);
 
         glPushName(0);
         DrawHandles(layout);

@@ -287,6 +287,8 @@ void Widget::draw()
     // Setup the initial drawing environment
     double w = width(), h = height();
     setup(w, h);
+    pageW = (21.0 / 2.54) * logicalDpiX(); // REVISIT
+    pageH = (29.7 / 2.54) * logicalDpiY();
 
     // Clear the background
     glClearColor (1.0, 1.0, 1.0, 1.0);
@@ -1177,21 +1179,21 @@ void Widget::drawHandle(const Point3 &p, text handleName)
 Widget *Widget::current = NULL;
 typedef XL::Tree Tree;
 
-XL::Integer *Widget::pageWidth(Tree *self)
+XL::Real *Widget::pageWidth(Tree *self)
 // ----------------------------------------------------------------------------
 //   Return the width of the page
 // ----------------------------------------------------------------------------
 {
-    return new Integer(width());
+    return new Real(pageW);
 }
 
 
-XL::Integer *Widget::pageHeight(Tree *self)
+XL::Real *Widget::pageHeight(Tree *self)
 // ----------------------------------------------------------------------------
 //   Return the height of the page
 // ----------------------------------------------------------------------------
 {
-    return new Integer(height());
+    return new Real(pageH);
 }
 
 
@@ -1219,6 +1221,24 @@ XL::Real *Widget::frameDepth(Tree *self)
 // ----------------------------------------------------------------------------
 {
     return new Real(layout->Bounds().Depth());
+}
+
+
+XL::Real *Widget::windowWidth(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return the width of the window in which we display
+// ----------------------------------------------------------------------------
+{
+    return new Real(width());
+}
+
+
+XL::Real *Widget::windowHeight(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return the height of window in which we display
+// ----------------------------------------------------------------------------
+{
+    return new Real(height());
 }
 
 
@@ -1307,7 +1327,7 @@ Tree *Widget::translatey(Tree *self, real_r y)
 //   Translate along Y
 // ----------------------------------------------------------------------------
 {
-    return translate(self, y, r(0), r(0));
+    return translate(self, r(0), y, r(0));
 }
 
 
@@ -1316,7 +1336,7 @@ Tree *Widget::translatez(Tree *self, real_r z)
 //   Translate along Z
 // ----------------------------------------------------------------------------
 {
-    return translate(self, z, r(0), r(0));
+    return translate(self, r(0), r(0), z);
 }
 
 
@@ -1335,7 +1355,7 @@ Tree *Widget::rescalex(Tree *self, real_r x)
 //   Rescale along X
 // ----------------------------------------------------------------------------
 {
-    return rescale(self, x, r(0), r(0));
+    return rescale(self, x, r(1), r(1));
 }
 
 
@@ -1344,7 +1364,7 @@ Tree *Widget::rescaley(Tree *self, real_r y)
 //   Rescale along Y
 // ----------------------------------------------------------------------------
 {
-    return rescale(self, y, r(0), r(0));
+    return rescale(self, r(1), y, r(1));
 }
 
 
@@ -1353,7 +1373,7 @@ Tree *Widget::rescalez(Tree *self, real_r z)
 //   Rescale along Z
 // ----------------------------------------------------------------------------
 {
-    return rescale(self, z, r(0), r(0));
+    return rescale(self, r(1), r(1), z);
 }
 
 

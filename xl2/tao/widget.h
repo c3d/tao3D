@@ -135,11 +135,13 @@ public:
     static Widget *Tao() { return current; }
 
     // Getting attributes
-    Integer *   pageWidth(Tree *self);
-    Integer *   pageHeight(Tree *self);
+    Real *      pageWidth(Tree *self);
+    Real *      pageHeight(Tree *self);
     Real *      frameWidth(Tree *self);
     Real *      frameHeight(Tree *self);
     Real *      frameDepth(Tree *self);
+    Real *      windowWidth(Tree *self);
+    Real *      windowHeight(Tree *self);
     Real *      time(Tree *self);
     Real *      pageTime(Tree *self);
 
@@ -300,6 +302,7 @@ private:
     SpaceLayout *         space;
     Layout *              layout;
     GraphicPath *         path;
+    scale                 pageW, pageH;
 
     // Selection
     Activity *            activities;

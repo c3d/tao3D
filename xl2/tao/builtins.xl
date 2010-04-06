@@ -106,7 +106,9 @@ draw_handle x, y, z ->
 draw_rotation_base x, y, z ->
     selection_outline_color
     selection_background_color
-    sphere x, y, z, 50, 50, 50, 8, 8
+    locally
+        rotatex 90
+        sphere x, y, z, 50, 50, 50, 8, 8
 draw_rotation_tip x, y, z -> draw_handle x, y, z
 
 draw_translation_base x, y, z ->

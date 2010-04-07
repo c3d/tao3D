@@ -291,7 +291,7 @@ bool GitRepository::pull()
 //   Pull from remote branch, if remote is set
 // ----------------------------------------------------------------------------
 {
-    if (pullUrl.isEmpty())
+    if (pullFrom.isEmpty())
         return true;
     QStringList args("pull");
     args << "-s" << "recursive";
@@ -301,7 +301,7 @@ bool GitRepository::pull()
     case CR_Theirs:  args << "-Xtheirs"; break;
     case CR_Unknown: std::cerr << "Unspecified conflict resolution mode\n";
     }
-    args << pullUrl << "master_tao_undo";  // TODO hardcoded branch!
+    args << pullFrom << "master_tao_undo";  // TODO hardcoded branch!
     dispatch(new Process(command(), args, path, false));
     return true;
 }
@@ -343,6 +343,16 @@ bool GitRepository::addRemote(QString name, QString url)
 // ----------------------------------------------------------------------------
 {
     Process cmd(command(), QStringList("remote") <<"add" <<name <<url, path);
+    return cmd.done(&errors);
+}
+
+bool GitRepository::setRemote(QString name, QString url)
+// ----------------------------------------------------------------------------
+//   Set a new pull URL for a remote
+// ----------------------------------------------------------------------------
+{
+    Process cmd(command(), QStringList("remote") <<"set-url" << name
+                << url, path);
     return cmd.done(&errors);
 }
 

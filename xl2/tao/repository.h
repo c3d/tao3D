@@ -103,6 +103,7 @@ public:
     virtual QStringList remotes()                       = 0;
     virtual QString     remotePullUrl(QString name)     = 0;
     virtual bool        addRemote(QString name, QString pullUrl) = 0;
+    virtual bool        setRemote(QString name, QString newPullUrl) = 0;
     virtual bool        delRemote(QString name)         = 0;
     virtual bool        renRemote(QString oldName, QString newName) = 0;
 
@@ -135,7 +136,7 @@ public:
     QString            path;
     text               task;
     text               errors;
-    QString            pullUrl;
+    QString            pullFrom;
     ConflictResolution conflictResolution;
     State              state;
 

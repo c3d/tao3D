@@ -95,7 +95,8 @@ HEADERS += widget.h \
     ../xlr/lcs.h \
     ../xlr/bfs.h \
     drag.h \
-    ui_pull_url_dialog.h
+    ui_pull_from_dialog.h \
+    pull_from_dialog.h
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \
@@ -143,7 +144,8 @@ SOURCES += tao_main.cpp \
     ../xlr/basics.cpp \
     ../xlr/diff.cpp \
     ../xlr/lcs.cpp \
-    drag.cpp
+    drag.cpp \
+    pull_from_dialog.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \
@@ -183,4 +185,4 @@ OTHER_FILES += xl.syntax \
 xlr_support.path = $${DESTDIR}/$${XLRDIR}
 xlr_support.files += $${OTHER_FILES}
 QMAKE_BUNDLE_DATA += xlr_support
-FORMS += pull_url_dialog.ui
+FORMS += pull_from_dialog.ui

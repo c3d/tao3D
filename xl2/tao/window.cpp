@@ -26,7 +26,7 @@
 #include "apply_changes.h"
 #include "git_backend.h"
 #include "application.h"
-#include "ui_pull_url_dialog.h"
+#include "pull_from_dialog.h"
 
 #include <iostream>
 #include <sstream>
@@ -250,18 +250,8 @@ void Window::setPullUrl()
         return;
     }
 
-    QDialog *dialog = new QDialog;
-    Ui::PullUrlDialog ui;
-    ui.setupUi(dialog);
-    if (dialog->exec())
-    {
-        repo->pullUrl = ui.url->toPlainText();
-        if (ui.ours->isChecked())
-            repo->conflictResolution = Repository::CR_Ours;
-        else
-            repo->conflictResolution = Repository::CR_Theirs;
-    }
- }
+    PullFromDialog(repo.data()).exec();
+}
 
 
 void Window::about()
@@ -345,7 +335,7 @@ void Window::createActions()
                               "selection"));
     connect(pasteAct, SIGNAL(triggered()), textEdit, SLOT(paste()));
 
-    setPullUrlAct = new QAction(tr("Set &pull URL..."), this);
+    setPullUrlAct = new QAction(tr("Synchronize..."), this);
     setPullUrlAct->setStatusTip(tr("Set the remote address to \"pull\" from "
                                    "when synchronizing the current "
                                    "document with a remote one"));

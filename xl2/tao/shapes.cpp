@@ -70,6 +70,7 @@ bool Shape::setFillColor(Layout *where)
         if (color.alpha > 0.0)
         {
             glColor4f(color.red, color.green, color.blue, color.alpha);
+            where->PolygonOffset();
             return true;
         }
     }
@@ -89,6 +90,7 @@ bool Shape::setLineColor(Layout *where)
         if (color.alpha > 0.0)
         {
             glColor4f(color.red, color.green, color.blue, color.alpha);
+            where->PolygonOffset();
             return true;
         }
     }

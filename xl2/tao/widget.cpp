@@ -293,6 +293,7 @@ void Widget::draw()
     // Clear the background
     glClearColor (1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    Layout::polygonOffset = 0;
 
     // Make sure we compile the selection the first time
     static bool first = true;

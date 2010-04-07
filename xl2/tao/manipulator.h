@@ -130,11 +130,38 @@ struct ControlArrow : ControlRectangle
 {
     ControlArrow(real_r x, real_r y, real_r w, real_r h, real_r ax, real_r ary,
                  Drawing *child);
-    //virtual void        DrawSelection(Layout *layout);
     virtual bool        DrawHandles(Layout *layout);
 
 protected:
     real_r              ax, ary;
+};
+
+
+struct ControlPolygon : ControlRectangle
+// ----------------------------------------------------------------------------
+//   Manipulators for a polygon object
+// ----------------------------------------------------------------------------
+{
+    ControlPolygon(real_r x, real_r y, real_r w, real_r h, integer_r p,
+                   Drawing *child);
+    virtual bool        DrawHandles(Layout *layout);
+
+protected:
+    integer_r           p;
+};
+
+
+struct ControlStar : ControlPolygon
+// ----------------------------------------------------------------------------
+//   Manipulators for a star object
+// ----------------------------------------------------------------------------
+{
+    ControlStar(real_r x, real_r y, real_r w, real_r h, integer_r p, real_r r,
+                Drawing *child);
+    virtual bool        DrawHandles(Layout *layout);
+
+protected:
+    real_r              r;
 };
 
 

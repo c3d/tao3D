@@ -1858,7 +1858,7 @@ Tree *Widget::starPolygon(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(cx, cy, w, h,
+        layout->Add(new ControlPolygon(cx, cy, w, h, p,
                                          new StarPolygon(shape)));
 
     return XL::xl_true;
@@ -1880,7 +1880,7 @@ Tree *Widget::star(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(cx, cy, w, h,
+        layout->Add(new ControlStar(cx, cy, w, h, p, r,
                                          new Star(shape)));
 
     return XL::xl_true;

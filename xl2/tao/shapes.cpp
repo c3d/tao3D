@@ -230,20 +230,20 @@ void Arrow::Draw(GraphicPath &path)
 {
     coord x0 = bounds.lower.x;
     coord x1 = bounds.upper.x;
-    coord xa0 = x0 + a.x;
+    coord xa1 = x1 - a.x;
 
     coord y0 = bounds.lower.y;
     coord yc = (bounds.lower.y + bounds.upper.y)/2;
     coord y1 = bounds.upper.y;
-    coord ya0 = y0 + a.y;
-    coord ya1 = y1 - a.y;
+    coord ya0 = yc - a.y/2;
+    coord ya1 = yc + a.y/2;
 
     path.moveTo(Point3(x0,  ya0, 0));
-    path.lineTo(Point3(xa0, ya0, 0));
-    path.lineTo(Point3(xa0, y0,  0));
+    path.lineTo(Point3(xa1, ya0, 0));
+    path.lineTo(Point3(xa1, y0,  0));
     path.lineTo(Point3(x1,  yc,  0));
-    path.lineTo(Point3(xa0, y1,  0));
-    path.lineTo(Point3(xa0, ya1, 0));
+    path.lineTo(Point3(xa1, y1,  0));
+    path.lineTo(Point3(xa1, ya1, 0));
     path.lineTo(Point3(x0,  ya1, 0));
     path.close();
 }
@@ -278,8 +278,8 @@ void DoubleArrow::Draw(GraphicPath &path)
     coord y0 = bounds.lower.y;
     coord yc = (bounds.lower.y + bounds.upper.y)/2;
     coord y1 = bounds.upper.y;
-    coord ya0 = y0 + a.y;
-    coord ya1 = y1 - a.y;
+    coord ya0 = yc - a.y/2;
+    coord ya1 = yc + a.y/2;
 
     path.moveTo(Point3(x0,  yc,  0));
     path.lineTo(Point3(xa0, y0,  0));
@@ -397,7 +397,7 @@ void Star::Draw(Layout *where)
 {
     GraphicPath path;
     Draw(path);
-    if (rr == 1.0)
+    if (r == 1.0)
     {
         // Regular polygon, no need to tesselate
         path.Draw(where);
@@ -425,8 +425,8 @@ void Star::Draw(GraphicPath &path)
     coord  cx     = center.x;
     coord  cy     = center.y;
 
-    scale  w2     = w1 * rr;
-    scale  h2     = h1 * rr;
+    scale  w2     = w1 * r;
+    scale  h2     = h1 * r;
     double a      = 0;
     double da     = M_PI/p;
 

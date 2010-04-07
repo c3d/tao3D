@@ -123,6 +123,21 @@ struct ControlRectangle : FrameManipulator
 };
 
 
+struct ControlArrow : ControlRectangle
+// ----------------------------------------------------------------------------
+//   Manipulators for a arrow object
+// ----------------------------------------------------------------------------
+{
+    ControlArrow(real_r x, real_r y, real_r w, real_r h, real_r ax, real_r ary,
+                 Drawing *child);
+    //virtual void        DrawSelection(Layout *layout);
+    virtual bool        DrawHandles(Layout *layout);
+
+protected:
+    real_r              ax, ary;
+};
+
+
 struct WidgetSurface;
 struct WidgetManipulator : FrameManipulator
 // ----------------------------------------------------------------------------

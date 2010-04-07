@@ -186,6 +186,19 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
                 }
             }
         }
+        if (XL::Postfix *postfix = (*ptr)->AsPostfix())
+        {
+            if (XL::Name *name = postfix->right->AsName())
+            {
+                if (name->value == "%")
+                {
+                    pptr = ptr;
+                    ptr = &postfix->left;
+                    more = true;
+                    scale /= 100;
+                }
+            }
+        }
     }
     if (scale == 0.0)
         scale = 1.0;
@@ -555,6 +568,60 @@ bool ControlRectangle::DrawHandles(Layout *layout)
                 changed = true;
             }
         }
+    }
+    return changed;
+}
+
+
+
+// ============================================================================
+//
+//   An arrow manipulator udpates x, y, w, h, the arrow handle a and allows 
+//   translation
+//
+// ============================================================================
+
+ControlArrow::ControlArrow(real_r x, real_r y, real_r w, real_r h, 
+                           real_r ax, real_r ary,
+                           Drawing *child)
+// ----------------------------------------------------------------------------
+//   A control arrow owns a given child and manipulates it
+// ----------------------------------------------------------------------------
+    : ControlRectangle(x, y, w, h, child), ax(ax), ary(ary)
+{}
+
+
+bool ControlArrow::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the handles for a rectangular object
+// ----------------------------------------------------------------------------
+{
+    bool changed;
+    if (DrawHandle(layout, Point3(x + w/2 - ax, y + h*ary/2, 0), 9))
+    {
+        Widget *widget = layout->Display();
+        Drag *drag = widget->drag();
+        if (drag)
+        {
+            Point3 p1 = drag->Previous();
+            Point3 p2 = drag->Current();
+            if (p1 != p2)
+            {
+                Point3 p0 = drag->Origin();
+                updateArg(widget, &ax, 
+                          x + w/2 - p0.x, x + w/2 - p1.x, x + w/2 - p2.x);
+                if (h != 0) {
+                    updateArg(widget, &ary, 
+                              2*(p0.y - y)/h, 2*(p1.y - y)/h, 2*(p2.y - y)/h);
+                }
+                widget->markChanged("Arrow Modified");
+                changed = true;
+            }
+        }
+    }
+    if (!changed)
+    {
+        changed = ControlRectangle::DrawHandles(layout);
     }
     return changed;
 }

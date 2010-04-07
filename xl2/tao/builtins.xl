@@ -14,10 +14,14 @@ sphere r:real                           ->
     sphere 0.0, 0.0, 0.0, 2*r, 2*r, 2*r, 25, 25
 
 //2D Shapes
+line x0:real, y0:real, x1:real, y1:real ->
+    path
+        move_to x0, y0, 0
+        line_to x1, y1, 0
+
 circle x:real, y:real, r:real           -> ellipse x, y, 2*r, 2*r
 circle r:real                           -> ellipse 0.0, 0.0, 2*r, 2*r
-oval x:real, y:real, w:real, h:real     -> ellipse x, y, w, h
-oval w:real, h:real                     -> ellipse 0.0, 0.0, w, h
+oval t                                  -> ellipse t
 
 circular_sector x:real, y:real, r:real, a:real, b:real ->
     ellipse_arc x, y, 2*r, 2*r, a, b
@@ -35,18 +39,14 @@ rounded_rectangle x:real, y:real, w:real, h:real, r:real ->
     rounded_rectangle x, y, w, h, r, r
 rounded_rectangle w:real, h:real, r:real-> rounded_rectangle 0.0, 0.0, w, h, r,r
 
-star_polygon x:real, y:real, r:real, p:integer, q:integer ->
-    star_polygon x, y, 2*r, 2*r, p, q
-polygram x:real, y:real, r:real, p:integer, q:integer ->
-    star_polygon x, y, 2*r, 2*r, p, q
-polygon x:real, y:real, r:real, p:integer ->
-    star_polygon x, y, 2*r, 2*r, p, 1
+polygram x:real, y:real, w:real, h:real, p:integer, q:integer ->
+    star_polygon x, y, w, h, p, q
+polygon x:real, y:real, w:real, h:real, p:integer ->
+    star_polygon x, y, w, h, p, 1
 
-schläfli t, {p:integer/q:integer}       -> star_polygon t, p, q
-schläfli t, {p:integer}                 -> polygon t, p
-
-triangle t                              -> polygon t, 3
+equilateral_triangle t                  -> polygon t, 3
 tetragon t                              -> polygon t, 4
+diamond t                               -> polygon t, 4
 pentagon t                              -> polygon t, 5
 hexagon t                               -> polygon t, 6
 heptagon t                              -> polygon t, 7
@@ -73,11 +73,8 @@ octagram t                              -> polygram t, 8, 3
 nonagram t                              -> polygram t, 9, 3
 decagram t                              -> polygram t, 10, 3
 
-star x:real, y:real, 0, R:real, p:integer ->
-    star x, y, 0, 0, 0, p
-
-star x:real, y:real, r:real, R:real, p:integer ->
-    star x, y, 2*r, 2*r, R/r, p
+schläfli t, {p:integer}                 -> polygon t, p
+schläfli t, {p:integer/q:integer}       -> polygram t, p, q
 
 x..y / t -> x + (y-x) * (1 + sin(time/t * 2*pi)) / 2
 
@@ -151,9 +148,12 @@ theme_colors ->
 menu_insert -> {
 menu    "Insert"
 submenu   "Shape"
-menu_item   "Line", insert { text "Line" }
-menu_item   "Line with Arrowhead", insert { text "Line with Arrowhead" }
-menu_item   "Line with Two Arrowheads", insert { text "Line with Two Arrowheads" }
+menu_item   "Line", insert
+    locally
+        theme_colors
+        line 50, -50, -50, 50
+//menu_item   "Line with Arrowhead", insert { text "Line with Arrowhead" }
+//menu_item   "Line with Two Arrowheads", insert { text "Line with Two Arrowheads" }
 menu_item   "Rectangle", insert
     locally
         theme_colors
@@ -177,23 +177,23 @@ menu_item   "Right Triangle", insert
 menu_item   "Arrow", insert
     locally
         theme_colors
-        arrow 0, 0, 100, 100, 56, 34
+        arrow 0, 0, 100, 100, 44, 32%
 menu_item   "Double Arrow", insert
     locally
         theme_colors
-        double_arrow 0, 0, 100, 100, 44, 34
+        double_arrow 0, 0, 100, 100, 44, 32%
 menu_item   "Diamond", insert
     locally
         theme_colors
-        tetragon 0, 0, 50
-menu_item   "Quote Bubble", insert { text "Quote Bubble" }
-menu_item   "Callout", insert { text "Callout" }
+        diamond 0, 0, 50
+//menu_item   "Quote Bubble", insert { text "Quote Bubble" }
+//menu_item   "Callout", insert { text "Callout" }
 menu_item   "Star", insert 
     locally
         theme_colors
-        star 0, 0, 50, 25, 5
+        star 0, 0, 100, 100, 5, 50%
 menu_item   "Polygon", insert 
     locally
         theme_colors
-        polygon 0, 0, 50, 5
+        polygon 0, 0, 100, 100, 5
 }

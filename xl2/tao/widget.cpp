@@ -1791,7 +1791,7 @@ Tree *Widget::roundedRectangle(Tree *self,
 
 
 Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
-                    real_r ax, real_r ay)
+                    real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
 //   Arrow
 // ----------------------------------------------------------------------------
@@ -1800,16 +1800,16 @@ Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
         ax = w;
     if (ax < 0.0) 
         ax = 0.0;
-    if (ay > h/2) 
-        ay = h/2;
-    if (ay < 0.0) 
-        ay = 0.0;
+    if (ary > 1.0) 
+        ary = 1.0;
+    if (ary < 0.0) 
+        ary = 0.0;
          
-    Arrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ay);
+    Arrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ary*h);
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(cx, cy, w, h,
+        layout->Add(new ControlArrow(cx, cy, w, h, ax, ary,
                                          new Arrow(shape)));
 
     return XL::xl_true;
@@ -1818,7 +1818,7 @@ Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
 
 
 Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
-                    real_r ax, real_r ay)
+                    real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
 //   Double arrow
 // ----------------------------------------------------------------------------
@@ -1827,16 +1827,16 @@ Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
         ax = w/2;
     if (ax < 0.0) 
         ax = 0.0;
-    if (ay > h/2) 
-        ay = h/2;
-    if (ay < 0.0) 
-        ay = 0.0;
+    if (ary > 1.0) 
+        ary = 1.0;
+    if (ary < 0.0) 
+        ary = 0.0;
          
-    DoubleArrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ay);
+    DoubleArrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ary*h);
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(cx, cy, w, h,
+        layout->Add(new ControlArrow(cx, cy, w, h, ax, ary,
                                          new DoubleArrow(shape)));
 
     return XL::xl_true;
@@ -1868,15 +1868,15 @@ Tree *Widget::starPolygon(Tree *self,
 
 Tree *Widget::star(Tree *self,
                    real_r cx, real_r cy, real_r w, real_r h,
-                   real_r rr, integer_r p)
+                   integer_r p, real_r r)
 // ----------------------------------------------------------------------------
 //     GL regular p-side star centered around (cx,cy), inner radius ratio r
 // ----------------------------------------------------------------------------
 {
-    if (p < 2 || rr < 0.0 || rr > 1.0 )
+    if (p < 2 || r < 0.0 || r > 1.0 )
         return ellipse(self, cx, cy, w, h); // Show something else in its place
 
-    Star shape(Box(cx-w/2, cy-h/2, w, h), rr, p);
+    Star shape(Box(cx-w/2, cy-h/2, w, h), p, r);
     if (path)
         shape.Draw(*path);
     else

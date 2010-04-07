@@ -190,8 +190,8 @@ PREFIX(StarPolygon, tree, "star_polygon",
        RTAO(starPolygon(self, x, y, w, h, p, q)))
 PREFIX(Star, tree, "star",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
-       PARM(r, real) PARM(p, integer),
-       RTAO(star(self, x, y, w, h, r, p)))
+       PARM(p, integer) PARM(r, real),
+       RTAO(star(self, x, y, w, h, p, r)))
 
 
 

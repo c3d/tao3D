@@ -154,11 +154,11 @@ struct Star : Rectangle
 //   A star with arbitrary inner circle
 // ----------------------------------------------------------------------------
 {
-    Star(const Box &b, float rr, int p): Rectangle(b), rr(rr), p(p) {}
+    Star(const Box &b, int p, float r): Rectangle(b), p(p), r(r) {}
     virtual void        Draw(Layout *where);
     virtual void        Draw(GraphicPath &path);
-    float rr;
     int p;
+    float r;
 };
 
 TAO_END

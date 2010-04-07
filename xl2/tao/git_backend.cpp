@@ -45,11 +45,17 @@ bool GitRepository::checkGit()
     QStringListIterator it(commands);
     while (it.hasNext())
     {
-        text errors;
+        text errors, output;
         gitCommand = it.next();
         Process cmd(gitCommand, QStringList("--version"));
-        if (cmd.done(&errors))
-            return true;
+        if (cmd.done(&errors, &output))
+        {
+            // Check version is at least 1.7.0
+            // (we need the merge -Xours / -Xtheirs feature)
+            QString ver = (+output).replace(QRegExp("[^\\d\\.]"), "");
+            if (versionGreaterOrEqual(ver, "1.7.0"))
+                return true;
+        }
     }
     return false;
 }

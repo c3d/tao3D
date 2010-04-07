@@ -194,6 +194,27 @@ bool Repository::available()
 }
 
 
+bool Repository::versionGreaterOrEqual(QString ver, QString ref)
+// ----------------------------------------------------------------------------
+//    Return true if ver >= ref. For instance, "1.7.0" >= "1.6.6.2"
+// ----------------------------------------------------------------------------
+{
+    QStringListIterator vit(ver.split("."));
+    QStringListIterator rit(ref.split("."));
+    while (vit.hasNext() && rit.hasNext())
+    {
+        int vi = vit.next().toInt();
+        int ri = rit.next().toInt();
+        if (vi > ri)
+            return true;
+        if (vi < ri)
+            return false;
+    }
+    while (rit.hasNext())
+        if (rit.next().toInt())
+            return false;
+    return true;
+}
 
 bool Repository::selectWorkBranch()
 // ----------------------------------------------------------------------------

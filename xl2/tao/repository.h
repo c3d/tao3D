@@ -26,20 +26,23 @@
 
 #include "tao.h"
 #include "tree.h"
+#include "process.h"
 #include <QString>
 #include <QProcess>
 #include <QtGlobal>
 #include <QMap>
 #include <iostream>
 
-TAO_BEGIN
+namespace Tao {
 
-struct Repository
+class Repository : public QObject
 // ----------------------------------------------------------------------------
 //   A repository storing the history of documents
 // ----------------------------------------------------------------------------
 {
+    Q_OBJECT
 
+public:
     // ------------------------------------------------------------------------
     //   The kind of SCM tool available to the application
     // ------------------------------------------------------------------------
@@ -50,7 +53,28 @@ struct Repository
         Git
     };
 
-    Repository(const QString &path): path(path), task("work") {}
+    // ------------------------------------------------------------------------
+    //   The behavior in case of merge conflict
+    // ------------------------------------------------------------------------
+    enum ConflictResolution
+    {
+        CR_Unknown,
+        CR_Ours,     // Keep local version
+        CR_Theirs,   // Take remote version
+    };
+
+    // ------------------------------------------------------------------------
+    //   Repository states
+    // ------------------------------------------------------------------------
+    enum State
+    {
+        RS_Clean,     // Work area reflects last commit
+        RS_NotClean,  // Work area has been modified since last commit
+    };
+
+public:
+    Repository(const QString &path): path(path), task("work"),
+                                     state(RS_Clean) {}
     virtual ~Repository() {}
 
 public:
@@ -59,6 +83,7 @@ public:
     virtual bool        setTask(text name);
     virtual bool        selectWorkBranch();
     virtual bool        selectUndoBranch();
+    virtual bool        idle();
 
 public:
     virtual QString     userVisibleName()               = 0;
@@ -74,7 +99,15 @@ public:
     virtual bool        asyncCommit(text msg, bool all=false) = 0;
     virtual bool        merge(text branch)              = 0;
     virtual bool        reset()                         = 0;
+    virtual bool        pull()                          = 0;
+    virtual QStringList remotes()                       = 0;
+    virtual QString     remotePullUrl(QString name)     = 0;
+    virtual bool        addRemote(QString name, QString pullUrl) = 0;
+    virtual bool        setRemote(QString name, QString newPullUrl) = 0;
+    virtual bool        delRemote(QString name)         = 0;
+    virtual bool        renRemote(QString oldName, QString newName) = 0;
 
+public:
     static Repository * repository(const QString &path, bool create = false);
     static bool         available();
 
@@ -84,12 +117,31 @@ protected:
     virtual text        fullName(text fileName);
     static Repository * newRepository(const QString &path,
                                       bool create = false);
+    void                dispatch(Process *cmd);
 
+protected slots:
+    virtual void        asyncProcessFinished(int exitCode);
+    virtual void        asyncProcessError(QProcess::ProcessError error);
+
+protected:
+    struct ProcQueueConsumer
+    {
+        ProcQueueConsumer(Repository &repo): repo(repo) {}
+        ~ProcQueueConsumer();
+
+        Repository &repo;
+    };
 
 public:
-    QString  path;
-    text     task;
-    text     errors;
+    QString            path;
+    text               task;
+    text               errors;
+    QString            pullFrom;
+    ConflictResolution conflictResolution;
+    State              state;
+
+protected:
+    QList<Process *> pQueue;
 
 protected:
     static QMap<QString, Repository *> cache;
@@ -98,6 +150,6 @@ protected:
 
 #define TAO_UNDO_SUFFIX "_tao_undo"
 
-TAO_END
+}
 
 #endif // REPOSITORY_H

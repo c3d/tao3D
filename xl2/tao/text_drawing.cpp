@@ -23,6 +23,7 @@
 #include "text_drawing.h"
 #include "path3d.h"
 #include "layout.h"
+#include "widget.h"
 #include <GL/glew.h>
 #include <QtOpenGL>
 #include <QPainterPath>
@@ -55,9 +56,50 @@ void TextSpan::Draw(Layout *where)
     path.addText(position.x, -position.y, font, str);
     position.x += fm.width(str);
 
+    Widget *widget = where->Display();
+    glLoadName(widget->newId());
     where->offset = Point3();
     GraphicPath::Draw(where, path, GLU_TESS_WINDING_ODD, -1);
     where->offset = position;
+    glLoadName(0);
+}
+
+
+void TextSpan::DrawSelection(Layout *where)
+// ----------------------------------------------------------------------------
+//   Move the offset without drawing the text
+// ----------------------------------------------------------------------------
+{
+    Point3 position = where->offset;
+    QString str = value;
+    QFontMetrics fm(font);
+
+    Shape::DrawSelection(where);
+
+    int index = str.indexOf(QChar('\n'));
+    while (index >= 0)
+    {
+        QString fragment = str.left(index);
+        position.x = 0;
+        position.y -= fm.height();
+        str = str.mid(index+1);
+        index = str.indexOf(QChar('\n'));
+    }
+
+    position.x += fm.width(str);
+    where->offset = position;
+
+    Widget *widget = where->Display();
+    widget->newId();
+}
+
+
+void TextSpan::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   For the moment, we simply draw
+// ----------------------------------------------------------------------------
+{
+    TextSpan::Draw(where);
 }
 
 
@@ -98,7 +140,7 @@ Box3 TextSpan::Bounds()
 {
     QFontMetrics fm(font);
     QRect rect = fm.tightBoundingRect(value);
-    return Box3(rect.x(), rect.y(), 0, rect.width(), rect.height(), 0);    
+    return Box3(rect.x(), rect.height()+rect.y(), 0, rect.width(), rect.height(), 0);    
 }
 
 
@@ -111,7 +153,7 @@ Box3 TextSpan::Space()
     int flags = Qt::AlignCenter;
     QRect openSpace(-10000, -10000, 20000, 20000);
     QRect rect = fm.boundingRect(openSpace, flags, value);
-    return Box3(rect.x(), rect.y(), 0, rect.width(), rect.height(), 0);    
+    return Box3(rect.x(), rect.height()+rect.y(), 0, rect.width(), rect.height(), 0);    
 }
 
 TAO_END

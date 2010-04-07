@@ -1,26 +1,30 @@
-locally
-    texture "earth.bmp"
-    rotatey 25 * page_time
-    sphere 0,0,0,250
+color 1, 1, 1, 1 
+locally 
+    texture "earth.bmp" 
+    rotatey 25 * page_time 
+    sphere 0, 0, 0, 250
 
-locally
-    texture "milkyway.jpg"
-    rotatey 0.8 * page_time + 90
-    scale 1,-1,1
-    sphere 0,0,0,1000
+locally 
+    texture "milkyway.jpg" 
+    rotatey 0.8 * page_time + 90 
+    scale 1, -1, 1 
+    sphere 0, 0, 0, 2000
 
-page_size 1200,300
-page
-    color 1,1,1,1
-    font "Arial Unicode MS"
-    font_size 32
-    kmoveto -380,-10
-    ktext "Hello World! or Καλημέρα κόσμε; or こんにちは 世界"
+frame_texture 1800, 600, do 
+    color 1, 1, 1, 1 
+    font "Arial Unicode MS" 
+    font_size 62 
+    move_to -900, -10, 0 
+    text "Hello World! or Καλημέρα κόσμε; or こんにちは 世界"
 
-rotatey -29*page_time + 270
-color 0%,0%,0%,40%
-sphere 0,0,0,260
-color 100%,90%,20%,90%
-sphere 0,0,0,270
+rotatey -29 * page_time + 270 
+color 0% ,0% ,0% ,40% 
+sphere 0, 0, 0, 260 
+if page_time mod 3 > 0.5 then 
+    color 100% ,90% ,20% ,90% 
+else 
+    color 0, 0, 1, 60% 
 
+move_to 0, 0, 0 
+sphere 0, 0, 0, 270 
 refresh 0.02

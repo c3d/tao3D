@@ -102,3 +102,27 @@ draw_handle x, y, z ->
     handle_color
     line_color 0,0,0,0
     cube x, y, z, 8, 8, 8
+
+draw_rotation_handle x, y, z ->
+    selection_outline_color
+    selection_background_color
+    sphere x, y, z, 60, 60, 60, 10, 10
+draw_rotation_x x, y, z -> draw_handle x, y, z
+draw_rotation_y x, y, z -> draw_handle x, y, z
+draw_rotation_z x, y, z -> draw_handle x, y, z
+
+draw_translation_handle x, y, z ->
+    selection_outline_color
+    selection_background_color
+    cube x, y, z, 16, 16, 16
+draw_translation_x x, y, z -> draw_handle x, y, z
+draw_translation_y x, y, z -> draw_handle x, y, z
+draw_translation_z x, y, z -> draw_handle x, y, z
+
+draw_scale_handle x, y, z ->
+    selection_outline_color
+    selection_background_color
+    cube x, y, z, 16, 16, 16, 10, 10
+draw_scale_x x, y, z -> draw_handle x, y, z
+draw_scale_y x, y, z -> draw_handle x, y, z
+draw_scale_z x, y, z -> draw_handle x, y, z

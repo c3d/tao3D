@@ -219,6 +219,7 @@ bool GitRepository::commit(text message, bool all)
     if (!result)
         if (errors.find("nothing added") != errors.npos)
             result = true;
+    state = RS_Clean;
     return result;
 }
 
@@ -246,45 +247,22 @@ void GitRepository::asyncProcessFinished(int exitCode)
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
+    bool isCommit = (cmd->args.first() == "commit");
+    bool ok       = true;
     if (exitCode)
     {
-        bool ok = false;
+        ok = false;
         cmd->done(&errors);
-        if (cmd->args.first() == "commit")
+        if (isCommit)
             if (errors.find("nothing added") != errors.npos)
                 ok = true;
         if (!ok)
-            std::cerr << +tr("Async command failed, exit status %1: %2")
-                             .arg((int)exitCode).arg(cmd->commandLine);
+            std::cerr << +tr("Async command failed, exit status %1: %2\n")
+                             .arg((int)exitCode).arg(cmd->commandLine)
+                      << +tr("Error output:\n") << errors;
     }
-}
-
-
-void  GitRepository::asyncProcessError(QProcess::ProcessError error)
-// ----------------------------------------------------------------------------
-//   An asynchronous subprocess has finished in error (e.g., crashed)
-// ----------------------------------------------------------------------------
-{
-    ProcQueueConsumer p(*this);
-    Process *cmd = (Process *)sender();
-    Q_ASSERT(cmd == pQueue.first());
-    std::cerr << +tr("Async command error %1: %2")
-                    .arg((int)error).arg(cmd->commandLine);
-}
-
-
-void GitRepository::dispatch(Process *cmd)
-// ----------------------------------------------------------------------------
-//   Insert process in run queue and start first process
-// ----------------------------------------------------------------------------
-{
-    connect(cmd,  SIGNAL(finished(int,QProcess::ExitStatus)),
-            this, SLOT  (asyncProcessFinished(int)));
-    connect(cmd,  SIGNAL(error(QProcess::ProcessError)),
-            this, SLOT  (asyncProcessError(QProcess::ProcessError)));
-    pQueue.append(cmd);
-    if (pQueue.count() == 1)
-        cmd->start();
+    if (ok && isCommit)
+        state = RS_Clean;
 }
 
 
@@ -308,14 +286,94 @@ bool GitRepository::reset()
 }
 
 
-GitRepository::ProcQueueConsumer::~ProcQueueConsumer()
+bool GitRepository::pull()
 // ----------------------------------------------------------------------------
-//   Pop the head process from process queue, delete it and start next one
+//   Pull from remote branch, if remote is set
 // ----------------------------------------------------------------------------
 {
-    delete repo.pQueue.takeFirst();
-    if (repo.pQueue.count())
-        repo.pQueue.first()->start();
+    if (pullFrom.isEmpty())
+        return true;
+    QStringList args("pull");
+    args << "-s" << "recursive";
+    switch (conflictResolution)
+    {
+    case CR_Ours:    args << "-Xours";   break;
+    case CR_Theirs:  args << "-Xtheirs"; break;
+    case CR_Unknown: std::cerr << "Unspecified conflict resolution mode\n";
+    }
+    args << pullFrom << "master_tao_undo";  // TODO hardcoded branch!
+    dispatch(new Process(command(), args, path, false));
+    return true;
+}
+
+
+QStringList GitRepository::remotes()
+// ----------------------------------------------------------------------------
+//   Return the names of all remotes configured in the repository
+// ----------------------------------------------------------------------------
+{
+    QStringList result;
+    text        output;
+    Process     cmd(command(), QStringList("remote"), path);
+    if (cmd.done(&errors, &output))
+    {
+        result = (+output).split("\n");
+        result.removeLast();            // Last string is always empty
+    }
+    return result;
+}
+
+QString GitRepository::remotePullUrl(QString name)
+// ----------------------------------------------------------------------------
+//   Return the pull URL for the specified remote
+// ----------------------------------------------------------------------------
+{
+    QStringList args;
+    args << "config" << "--get" << QString("remote.%1.url").arg(name);
+    text    output;
+    Process cmd(command(), args, path);
+    cmd.done(&errors, &output);
+    return (+output).trimmed();
+}
+
+
+bool GitRepository::addRemote(QString name, QString url)
+// ----------------------------------------------------------------------------
+//   Add a remote, giving its pull URL
+// ----------------------------------------------------------------------------
+{
+    Process cmd(command(), QStringList("remote") <<"add" <<name <<url, path);
+    return cmd.done(&errors);
+}
+
+bool GitRepository::setRemote(QString name, QString url)
+// ----------------------------------------------------------------------------
+//   Set a new pull URL for a remote
+// ----------------------------------------------------------------------------
+{
+    Process cmd(command(), QStringList("remote") <<"set-url" << name
+                << url, path);
+    return cmd.done(&errors);
+}
+
+bool GitRepository::delRemote(QString name)
+// ----------------------------------------------------------------------------
+//   Delete a remote
+// ----------------------------------------------------------------------------
+{
+    Process cmd(command(), QStringList("remote") << "rm" << name, path);
+    return cmd.done(&errors);
+}
+
+
+bool GitRepository::renRemote(QString oldName, QString newName)
+// ----------------------------------------------------------------------------
+//   Rename a remote
+// ----------------------------------------------------------------------------
+{
+    Process cmd(command(), QStringList("remote") << "rename"
+                << oldName << newName, path);
+    return cmd.done(&errors);
 }
 
 TAO_END

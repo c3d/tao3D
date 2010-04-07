@@ -79,6 +79,8 @@ bool Repository::write(text fileName, XL::Tree *tree)
     if (ok)
         ok = std::rename(copy.c_str(), full.c_str()) == 0;
 
+    state = RS_NotClean;
+
     return ok;
 }
 
@@ -208,6 +210,69 @@ bool Repository::selectUndoBranch()
 // ----------------------------------------------------------------------------
 {
     return checkout(task + TAO_UNDO_SUFFIX);
+}
+
+
+bool Repository::idle()
+// ----------------------------------------------------------------------------
+//    Return true if there is no pending command to execute
+// ----------------------------------------------------------------------------
+{
+    return pQueue.empty();
+}
+
+
+void Repository::dispatch(Process *cmd)
+// ----------------------------------------------------------------------------
+//   Insert process in run queue and start first process
+// ----------------------------------------------------------------------------
+{
+    connect(cmd,  SIGNAL(finished(int,QProcess::ExitStatus)),
+            this, SLOT  (asyncProcessFinished(int)));
+    connect(cmd,  SIGNAL(error(QProcess::ProcessError)),
+            this, SLOT  (asyncProcessError(QProcess::ProcessError)));
+    pQueue.append(cmd);
+    if (pQueue.count() == 1)
+        cmd->start();
+}
+
+
+void Repository::asyncProcessFinished(int exitCode)
+// ----------------------------------------------------------------------------
+//   Default action when an asynchronous subprocess has finished normally
+// ----------------------------------------------------------------------------
+{
+    ProcQueueConsumer p(*this);
+    Process *cmd = (Process *)sender();
+    Q_ASSERT(cmd == pQueue.first());
+    if (exitCode)
+        std::cerr << +tr("Async command failed, exit status %1: %2\n")
+                     .arg((int)exitCode).arg(cmd->commandLine);
+}
+
+
+void Repository::asyncProcessError(QProcess::ProcessError error)
+// ----------------------------------------------------------------------------
+//   Default action when an asynchronous subprocess has not finished normally
+// ----------------------------------------------------------------------------
+{
+    ProcQueueConsumer p(*this);
+    Process *cmd = (Process *)sender();
+    Q_ASSERT(cmd == pQueue.first());
+    std::cerr << +tr("Async command error %1: %2\nError output:\n%3")
+                 .arg((int)error).arg(cmd->commandLine)
+                 .arg(QString(cmd->readAllStandardError()));
+}
+
+
+Repository::ProcQueueConsumer::~ProcQueueConsumer()
+// ----------------------------------------------------------------------------
+//   Pop the head process from process queue, delete it and start next one
+// ----------------------------------------------------------------------------
+{
+    delete repo.pQueue.takeFirst();
+    if (repo.pQueue.count())
+        repo.pQueue.first()->start();
 }
 
 TAO_END

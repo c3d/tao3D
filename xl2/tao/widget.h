@@ -25,7 +25,6 @@
 
 #include "main.h"
 #include "tao.h"
-#include "treeholder.h"
 #include "coords3d.h"
 #include "opcodes.h"
 
@@ -66,6 +65,7 @@ public slots:
     void        runProgram();
     void        appFocusChanged(QWidget *prev, QWidget *next);
     void        userMenu(QAction *action);
+    bool        refresh(double delay = 0.0);
 
 public:
     // OpenGL
@@ -98,7 +98,8 @@ public:
 
     // Timing
     ulonglong   now();
-    ulonglong   elapsed(ulonglong since, bool stats = true, bool show=true);
+    ulonglong   elapsed(ulonglong since, ulonglong until,
+                        bool stats = true, bool show=true);
     bool        timerIsActive()         { return timer.isActive(); }
 
     // Selection
@@ -107,6 +108,7 @@ public:
     GLuint      selectionCapacity()     { return capacity; }
     uint        selected();
     void        select(uint count);
+    void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);
     void        recordProjection();
     Point3      unproject (coord x, coord y, coord z = 0.0);
@@ -143,14 +145,23 @@ public:
     Tree *      locally(Tree *self, Tree *t);
 
     // Transforms
-    Tree *      rotate(Tree *self, double ra, double rx, double ry, double rz);
-    Tree *      translate(Tree *self, double x, double y, double z);
-    Tree *      rescale(Tree *self, double x, double y, double z);
+    Tree *      rotatex(Tree *self, real_r rx);
+    Tree *      rotatey(Tree *self, real_r ry);
+    Tree *      rotatez(Tree *self, real_r rz);
+    Tree *      rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz);
+    Tree *      translatex(Tree *self, real_r x);
+    Tree *      translatey(Tree *self, real_r y);
+    Tree *      translatez(Tree *self, real_r z);
+    Tree *      translate(Tree *self, real_r x, real_r y, real_r z);
+    Tree *      rescalex(Tree *self, real_r x);
+    Tree *      rescaley(Tree *self, real_r y);
+    Tree *      rescalez(Tree *self, real_r z);
+    Tree *      rescale(Tree *self, real_r x, real_r y, real_r z);
 
     // Setting attributes
     Name *      depthTest(Tree *self, bool enable);
     Tree *      refresh(Tree *self, double delay);
-    Name *      selectorName(Tree *self, Text &name);
+    Name *      fullScreen(Tree *self, bool fs);
 
     // Graphic attributes
     Tree *      lineColor(Tree *self, double r, double g, double b, double a);
@@ -218,10 +229,39 @@ public:
     Tree *      urlPaint(Tree *self, real_r x, real_r y, real_r w, real_r h,
                          text_p s, integer_p p);
     Tree *      urlTexture(Tree *self, double x, double y, Text *s, Integer *p);
-    
+
     Tree *      lineEdit(Tree *self, real_r x,real_r y,
                          real_r w,real_r h, text_p s);
     Tree *      lineEditTexture(Tree *self, double x, double y, Text *s);
+
+    Tree *      pushButton(Tree *self,
+                           real_r x,real_r y, real_r w,real_r h,
+                           text_p lbl, Tree *act);
+    Tree *      pushButtonTexture(Tree *self,
+                                  double w, double h,
+                                  Text *lbl, Tree *act);
+
+    Tree *      colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
+                             Tree *action);
+    Tree *      colorChooserTexture(Tree *self,double w, double h,
+                                    Tree *action);
+
+    Tree *      fontChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
+                             Tree *action);
+    Tree *      fontChooserTexture(Tree *self,double w, double h,
+                                    Tree *action);
+
+    Tree *      groupBox(Tree *self,
+                         real_r x,real_r y, real_r w,real_r h,
+                         text_p lbl, Tree *buttons);
+    Tree *      groupBoxTexture(Tree *self,
+                                double w, double h,
+                                Text *lbl);
+
+    Tree *      videoPlayer(Tree *self,
+                            real_r x, real_r y, real_r w, real_r h, Text *url);
+
+    Tree *      videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url);
 
     // Menus
     Tree *      menuItem(Tree *self, text s, Tree *t);
@@ -244,6 +284,7 @@ private:
     friend class Selection;
     friend class Drag;
     friend class Manipulator;
+    friend class ControlPoint;
 
     typedef XL::LocalSave<QEvent *> EventSave;
     typedef std::map<GLuint, uint>  selection_map;
@@ -276,12 +317,12 @@ private:
 
     // Timing
     QTimer                timer, idleTimer;
-    double                pageStartTime;
+    double                pageStartTime, pageRefresh;
     ulonglong             tmin, tmax, tsum, tcount;
-    ulonglong             nextSave, nextCommit, nextSync;
+    ulonglong             nextSave, nextCommit, nextSync, nextPull;
 
-    static Widget    *current;
-    static double       zNear, zFar;
+    static Widget *       current;
+    static double         zNear, zFar;
 };
 
 
@@ -336,7 +377,17 @@ inline double CurrentTime()
 #define TAO(x)  (Tao::Widget::Tao() ? Tao::Widget::Tao()->x : 0)
 #define RTAO(x) return TAO(x)
 
-
 } // namespace Tao
+
+
+
+// ============================================================================
+//
+//   Qt interface for XL types
+//
+// ============================================================================
+
+#define TREEROOT_TYPE 383 // (QVariant::UserType | 0x100)
+Q_DECLARE_METATYPE(XL::TreeRoot)
 
 #endif // TAO_WIDGET_H

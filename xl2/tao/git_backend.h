@@ -34,7 +34,7 @@
 
 namespace Tao {
 
-class GitRepository : public QObject, public Repository
+class GitRepository : public Repository
 // ----------------------------------------------------------------------------
 //   A Git repository
 // ----------------------------------------------------------------------------
@@ -59,6 +59,13 @@ public:
     virtual bool        asyncCommit(text message, bool all=false);
     virtual bool        merge(text branch);
     virtual bool        reset();
+    virtual bool        pull();
+    virtual QStringList remotes();
+    virtual QString     remotePullUrl(QString name);
+    virtual bool        addRemote(QString name, QString pullUrl);
+    virtual bool        setRemote(QString name, QString newPullUrl);
+    virtual bool        delRemote(QString name);
+    virtual bool        renRemote(QString oldName, QString newName);
 
     static  bool        checkGit();
 
@@ -67,25 +74,13 @@ protected:
     virtual QString     userVisibleName();
     virtual text        styleSheet();
 
-protected:
-    struct ProcQueueConsumer
-    {
-        ProcQueueConsumer(GitRepository &repo): repo(repo) {}
-        ~ProcQueueConsumer();
-
-        GitRepository &repo;
-    };
+protected slots:
+    virtual void        asyncProcessFinished(int exitCode);
 
 private:
     bool                initialCommit();
-    void                dispatch(Process *cmd);
 
     static QString      gitCommand;
-    QList<Process *>    pQueue;
-
-private slots:
-    void                asyncProcessFinished(int exitCode);
-    void                asyncProcessError(QProcess::ProcessError error);
 };
 
 }

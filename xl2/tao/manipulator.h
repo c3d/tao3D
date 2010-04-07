@@ -47,7 +47,8 @@ struct Manipulator : Drawing
     virtual void        Draw(Layout *layout);
     virtual void        DrawSelection(Layout *layout);
     virtual void        Identify(Layout *layout);
-    virtual bool        DrawHandle(Layout *layout, Point3 p, uint id);
+    virtual bool        DrawHandle(Layout *layout, Point3 p, uint id,
+                                   text name = "handle");
     virtual bool        DrawHandles(Layout *layout) = 0;
 
 protected:
@@ -62,6 +63,9 @@ struct ControlPoint : Manipulator
 {
     ControlPoint(real_r x, real_r y, real_r z, uint id);
     virtual bool        DrawHandles(Layout *layout);
+    virtual void        Draw(Layout *layout);
+    virtual void        DrawSelection(Layout *layout);
+    virtual void        Identify(Layout *layout);
 
 protected:
     real_r              x, y, z;
@@ -155,6 +159,45 @@ struct ControlBox : BoxManipulator
     ControlBox(real_r x, real_r y, real_r z, real_r w, real_r h, real_r d,
                Drawing *child);
     virtual bool        DrawHandles(Layout *layout);
+};
+
+
+struct RotationManipulator : DrawingManipulator
+// ----------------------------------------------------------------------------
+//   Manipulation of a rotation axis and amount
+// ----------------------------------------------------------------------------
+{
+    RotationManipulator(real_r a, real_r x, real_r y, real_r z);
+    virtual bool        DrawHandles(Layout *layout);
+
+protected:
+    real_r              a, x, y, z;
+};
+
+
+struct TranslationManipulator : DrawingManipulator
+// ----------------------------------------------------------------------------
+//   Manipulation of translation along 3 axes
+// ----------------------------------------------------------------------------
+{
+    TranslationManipulator(real_r x, real_r y, real_r z);
+    virtual bool        DrawHandles(Layout *layout);
+
+protected:
+    real_r              x, y, z;
+};
+
+
+struct ScaleManipulator : DrawingManipulator
+// ----------------------------------------------------------------------------
+//   Manipulation of scale along 3 axes
+// ----------------------------------------------------------------------------
+{
+    ScaleManipulator(real_r x, real_r y, real_r z);
+    virtual bool        DrawHandles(Layout *layout);
+
+protected:
+    real_r              x, y, z;
 };
 
 TAO_END

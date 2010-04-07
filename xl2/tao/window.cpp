@@ -26,6 +26,7 @@
 #include "apply_changes.h"
 #include "git_backend.h"
 #include "application.h"
+#include "pull_from_dialog.h"
 
 #include <iostream>
 #include <sstream>
@@ -131,6 +132,15 @@ void Window::checkFiles()
 }
 
 
+void Window::toggleFullScreen()
+// ----------------------------------------------------------------------------
+//   Toggle between full-screen and normal mode
+// ----------------------------------------------------------------------------
+{
+    switchToFullScreen(!isFullScreen());
+}
+
+
 void Window::newFile()
 // ----------------------------------------------------------------------------
 //   Create a new window
@@ -227,6 +237,23 @@ bool Window::saveAs()
 }
 
 
+void Window::setPullUrl()
+// ----------------------------------------------------------------------------
+//    Prompt user for address of remote repository to pull from
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+    {
+        QMessageBox::warning(this, tr("No project"),
+                             tr("This feature is not available because the "
+                                "current document is not in a project."));
+        return;
+    }
+
+    PullFromDialog(repo.data()).exec();
+}
+
+
 void Window::about()
 // ----------------------------------------------------------------------------
 //    About Box
@@ -308,6 +335,12 @@ void Window::createActions()
                               "selection"));
     connect(pasteAct, SIGNAL(triggered()), textEdit, SLOT(paste()));
 
+    setPullUrlAct = new QAction(tr("Synchronize..."), this);
+    setPullUrlAct->setStatusTip(tr("Set the remote address to \"pull\" from "
+                                   "when synchronizing the current "
+                                   "document with a remote one"));
+    connect(setPullUrlAct, SIGNAL(triggered()), this, SLOT(setPullUrl()));
+
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setStatusTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
@@ -315,6 +348,11 @@ void Window::createActions()
     aboutQtAct = new QAction(tr("About &Qt"), this);
     aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
     connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+
+    fullScreenAct = new QAction(tr("Fullscreen"), this);
+    fullScreenAct->setStatusTip(tr("Toggle full-screen mode"));
+    fullScreenAct->setCheckable(true);
+    connect(fullScreenAct, SIGNAL(triggered()), this, SLOT(toggleFullScreen()));
 
     cutAct->setEnabled(false);
     copyAct->setEnabled(false);
@@ -344,8 +382,12 @@ void Window::createMenus()
     editMenu->addAction(copyAct);
     editMenu->addAction(pasteAct);
 
+    toolsMenu = menuBar()->addMenu(tr("&Tools"));
+    toolsMenu->addAction(setPullUrlAct);
+
     viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(dock->toggleViewAction());
+    viewMenu->addAction(fullScreenAct);
 
     menuBar()->addSeparator();
 
@@ -436,6 +478,21 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         !openProject(QFileInfo(fileName).canonicalPath(),
                      QFileInfo(fileName).fileName()))
         return false;
+
+    if (!loadFileIntoSourceFileView(fileName))
+        return false;
+
+    setCurrentFile(fileName);
+    statusBar()->showMessage(tr("File loaded"), 2000);
+    updateProgram(fileName);
+    return true;
+}
+
+bool Window::loadFileIntoSourceFileView(const QString &fileName)
+// ----------------------------------------------------------------------------
+//    Update the source file view with the contents of a specific file
+// ----------------------------------------------------------------------------
+{
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text))
     {
@@ -445,19 +502,13 @@ bool Window::loadFile(const QString &fileName, bool openProj)
                              .arg(file.errorString()));
         return false;
     }
-    
+
     QTextStream in(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
     textEdit->setPlainText(in.readAll());
     QApplication::restoreOverrideCursor();
-
-    setCurrentFile(fileName);
-    statusBar()->showMessage(tr("File loaded"), 2000);
-    updateProgram(fileName);
-
     return true;
 }
-
 
 void Window::updateProgram(const QString &fileName)
 // ----------------------------------------------------------------------------
@@ -485,6 +536,9 @@ bool Window::saveFile(const QString &fileName)
 // ----------------------------------------------------------------------------
 {
     QFile file(fileName);
+    QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
+    text fn = canonicalFilePath.toStdString();
+
     if (!file.open(QFile::WriteOnly | QFile::Text))
     {
         QMessageBox::warning(this, tr("Error saving file"),
@@ -503,21 +557,28 @@ bool Window::saveFile(const QString &fileName)
     } while (0); // Flush
 
     setCurrentFile(fileName);
+    xlRuntime->LoadFile(fn);
     statusBar()->showMessage(tr("File saved"), 2000);
     updateProgram(fileName);
 
     // Trigger immediate commit to repository
     taoWidget->markChanged("Manual save");
-    QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
-    text fn = canonicalFilePath.toStdString();
     XL::SourceFile &sf = xlRuntime->files[fn];
     if (taoWidget->writeIfChanged(sf))
         taoWidget->doCommit();
-
-    textEdit->document()->setModified(false);
-    setWindowModified(false);
     return true;
 }
+
+
+void Window::markChanged(bool changed)
+// ----------------------------------------------------------------------------
+//   Someone else tells us that the window is changed or not
+// ----------------------------------------------------------------------------
+{
+    textEdit->document()->setModified(changed);
+    setWindowModified(changed);
+}
+
 
 bool Window::openProject(QString path, QString fileName, bool confirm)
 // ----------------------------------------------------------------------------
@@ -536,143 +597,168 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
     if (!Repository::available())
         return true;
 
-    bool ok = true;
     bool created = false;
-
-    do
+    QSharedPointer<Repository> repo;
+    repo = QSharedPointer<Repository>(Repository::repository(path));
+    if (!repo)
     {
-        repo = Repository::repository(path);
-        if (!repo)
+        bool docreate = !confirm;
+        if (confirm)
         {
-            bool docreate = !confirm;
-            if (confirm)
-            {
-                QMessageBox box;
-                box.setWindowTitle("No Tao Project");
-                box.setText
-                        (tr("The file '%1' is not associated with a Tao project.")
-                         .arg(fileName));
-                box.setInformativeText
-                        (tr("Do you want to create a new project in %1, or skip "
-                            "and continue without a project (version control and "
-                            "sharing will be disabled)?").arg(path));
-                box.setIcon(QMessageBox::Question);
-                QPushButton *cancel = box.addButton(tr("Cancel"),
-                                                    QMessageBox::RejectRole);
-                QPushButton *skip = box.addButton(tr("Skip"),
-                                                  QMessageBox::RejectRole);
-                QPushButton *create = box.addButton(tr("Create"),
-                                                    QMessageBox::AcceptRole);
-                box.setDefaultButton(create);
-                int index = box.exec(); (void) index;
-                QAbstractButton *which = box.clickedButton();
+            QMessageBox box;
+            box.setWindowTitle("No Tao Project");
+            box.setText
+                    (tr("The file '%1' is not associated with a Tao project.")
+                     .arg(fileName));
+            box.setInformativeText
+                    (tr("Do you want to create a new project in %1, or skip "
+                        "and continue without a project (version control and "
+                        "sharing will be disabled)?").arg(path));
+            box.setIcon(QMessageBox::Question);
+            QPushButton *cancel = box.addButton(tr("Cancel"),
+                                                QMessageBox::RejectRole);
+            QPushButton *skip = box.addButton(tr("Skip"),
+                                              QMessageBox::RejectRole);
+            QPushButton *create = box.addButton(tr("Create"),
+                                                QMessageBox::AcceptRole);
+            box.setDefaultButton(create);
+            int index = box.exec(); (void) index;
+            QAbstractButton *which = box.clickedButton();
 
-                if (which == cancel)
-                {
-                    return false;
-                }
-                else if (which == create)
-                {
-                    docreate = true;
-                }
-                else if (which == skip)
-                {
-                    // Continue with repo == NULL
-                }
-                else
-                {
-                    QMessageBox::question(NULL, tr("Puzzled"),
-                                          tr("How did you do that?"),
-                                          QMessageBox::No);
-                }
-            }
-            if (docreate)
+            if (which == cancel)
             {
-                repo = Repository::repository(path, true);
-                created = (repo != NULL);
+                return false;
+            }
+            else if (which == create)
+            {
+                docreate = true;
+            }
+            else if (which == skip)
+            {
+                // Continue with repo == NULL
+            }
+            else
+            {
+                QMessageBox::question(NULL, tr("Puzzled"),
+                                      tr("How did you do that?"),
+                                      QMessageBox::No);
+            }
+        }
+        if (docreate)
+        {
+            repo = QSharedPointer<Repository>(Repository::repository(path));
+            created = (repo != NULL);
+        }
+    }
+
+    // Select the task branch, either current branch or without _tao_undo
+    if (repo && repo->valid())
+    {
+        text task = repo->branch();
+        size_t pos = task.rfind(TAO_UNDO_SUFFIX);
+        size_t len = task.length() - (sizeof(TAO_UNDO_SUFFIX) - 1);
+        text currentBranch = task;
+        bool onUndoBranch = pos != task.npos && pos == len;
+        if (onUndoBranch)
+        {
+            task = task.substr(0, len);
+        }
+        else if (!created)
+        {
+            QMessageBox box;
+            QString rep = repo->userVisibleName();
+            box.setIcon(QMessageBox::Question);
+            box.setWindowTitle
+                    (tr("Existing %1 repository").arg(rep));
+            box.setText
+                    (tr("The folder '%1' looks like a valid "
+                        "%2 repository, but is not currently used by Tao.")
+                     .arg(path).arg(rep));
+            box.setInformativeText
+                    (tr("This repository appears to not be currently "
+                        "used by Tao, because the current branch, "
+                        "'%1', is not a Tao working branch. "
+                        "Do you want to use this repository (Tao will "
+                        "use the '%2' branch and make it the active one) "
+                        "or skip and use '%3' without a project (version "
+                        "control and sharing will be disabled)?")
+                     .arg(+currentBranch)
+                     .arg(+currentBranch + TAO_UNDO_SUFFIX)
+                     .arg(fileName));
+            // REVISIT: this info text is not very well suited to the
+            // "Save as..." case.
+
+            QPushButton *cancel = box.addButton(tr("Cancel"),
+                                                QMessageBox::RejectRole);
+            QPushButton *skip = box.addButton(tr("Skip"),
+                                              QMessageBox::NoRole);
+            QPushButton *use = box.addButton(tr("Use"),
+                                             QMessageBox::YesRole);
+            box.setDefaultButton(use);
+            int index = box.exec(); (void) index;
+            QAbstractButton *which = box.clickedButton();
+
+            if (which == cancel)
+            {
+                return false;
+            }
+            else if (which == use)
+            {
+                // Continue with current repo
+            }
+            else if (which == skip)
+            {
+                repo.clear();  // Drop shared pointer reference -> repo == NULL
+            }
+            else
+            {
+                QMessageBox::question(NULL, tr("Coin?"),
+                                      tr("How did you do that?"),
+                                      QMessageBox::Discard);
             }
         }
 
-        // Select the task branch, either current branch or without _tao_undo
-        if (ok && repo && repo->valid())
-        {
-            text task = repo->branch();
-            size_t pos = task.rfind(TAO_UNDO_SUFFIX);
-            size_t len = task.length() - (sizeof(TAO_UNDO_SUFFIX) - 1);
-            text currentBranch = task;
-            bool onUndoBranch = pos != task.npos && pos == len;
-            bool setTask = true;
-            if (onUndoBranch)
-            {
-                task = task.substr(0, len);
-            }
-            else if (!created)
-            {
-                QMessageBox box;
-                QString rep = repo->userVisibleName();
-                box.setIcon(QMessageBox::Question);
-                box.setWindowTitle
-                    (tr("Existing %1 repository").arg(rep));
-                box.setText
-                        (tr("The folder '%1' looks like a valid "
-                            "%2 repository, but is not currently used by Tao.")
-                         .arg(path).arg(rep));
-                box.setInformativeText
-                        (tr("This repository appears to not be currently "
-                            "used by Tao, because the current branch, "
-                            "'%1', is not a Tao working branch. "
-                            "Do you want to use this repository (Tao will "
-                            "use the '%2' branch and make it the active one) "
-                            "or skip and use '%3' without a project (version "
-                            "control and sharing will be disabled)?")
-                         .arg(+currentBranch)
-                         .arg(+currentBranch + TAO_UNDO_SUFFIX)
-                         .arg(fileName));
-                // REVISIT: this info text is not very well suited to the
-                // "Save as..." case.
-
-                QPushButton *cancel = box.addButton(tr("Cancel"),
-                                                    QMessageBox::RejectRole);
-                QPushButton *skip = box.addButton(tr("Skip"),
-                                                  QMessageBox::NoRole);
-                QPushButton *use = box.addButton(tr("Use"),
-                                                 QMessageBox::YesRole);
-                box.setDefaultButton(use);
-                int index = box.exec(); (void) index;
-                QAbstractButton *which = box.clickedButton();
-
-                if (which == cancel)
-                {
-                    return false;
-                }
-                else if (which == use)
-                {
-                    setTask = true;
-                }
-                else if (which == skip)
-                {
-                    setTask = false;
-                }
-                else
-                {
-                    QMessageBox::question(NULL, tr("Coin?"),
-                                          tr("How did you do that?"),
-                                          QMessageBox::Discard);
-                }
-            }
-
-            if (setTask)
-                if (!repo->setTask(task))
-                    QMessageBox::information
+        if (repo)
+            if (!repo->setTask(task))
+                QMessageBox::information
                         (NULL, tr("Task selection"),
                          tr("An error occured setting the task:\n%1")
                          .arg(+repo->errors),
                          QMessageBox::Ok);
-        }
+            else
+                this->repo = repo;
+    }
 
-    } while (!ok);
+    return true;
+}
 
-    return ok;
+
+void Window::switchToFullScreen(bool fs)
+// ----------------------------------------------------------------------------
+//   Switch a window to full screen mode, hiding children
+// ----------------------------------------------------------------------------
+{
+    if (fs == isFullScreen())
+        return;
+
+    if (fs)
+    {
+        setUnifiedTitleAndToolBarOnMac(false);
+        removeToolBar(fileToolBar);
+        removeToolBar(editToolBar);
+        showFullScreen();
+        taoWidget->showFullScreen();
+    }
+    else
+    {
+        showNormal();
+        taoWidget->showNormal();
+        addToolBar(fileToolBar);
+        addToolBar(editToolBar);
+        fileToolBar->show();
+        editToolBar->show();
+        setUnifiedTitleAndToolBarOnMac(true);
+    }
 }
 
 
@@ -767,8 +853,7 @@ void Window::setCurrentFile(const QString &fileName)
 
     curFile = QFileInfo(name).absoluteFilePath();
 
-    textEdit->document()->setModified(false);
-    setWindowModified(false);
+    markChanged(false);
     setWindowFilePath(curFile);
 }
 

@@ -63,8 +63,12 @@ MenuInfo::~MenuInfo()
 
 
 XL::Tree * CleanMenuInfo::Do(XL::Tree *what)
+// ----------------------------------------------------------------------------
+//   Purge all menu infos
+// ----------------------------------------------------------------------------
 {
-    if (what) what->Purge<MenuInfo>();
+    if (what)
+        what->Purge<MenuInfo>();
     return what;
 }
 

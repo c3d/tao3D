@@ -89,7 +89,7 @@ private:
     QString strippedName(const QString &fullFileName);
     Window *findWindow(const QString &fileName);
     void updateProgram(const QString &filename);
-    void resetTaoMenus(XL::Tree *a_tree);
+    void resetTaoMenus();
     QString currentProjectFolderPath();
 
 private:

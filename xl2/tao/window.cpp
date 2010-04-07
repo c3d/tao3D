@@ -491,8 +491,7 @@ void Window::updateProgram(const QString &fileName)
     XL::SourceFile *sf = &xlRuntime->files[fn];
 
     // Clean menus and reload XL program
-    resetTaoMenus(sf->tree.tree);
-
+    resetTaoMenus();
     if (!sf->tree.tree)
         xlRuntime->LoadFile(fn);
 
@@ -744,7 +743,7 @@ QString Window::currentProjectFolderPath()
 }
 
 
-void Window::resetTaoMenus(XL::Tree * a_tree)
+void Window::resetTaoMenus()
 // ----------------------------------------------------------------------------
 //   Clean added menus (from menu bar and contextual menus)
 // ----------------------------------------------------------------------------
@@ -786,14 +785,9 @@ void Window::resetTaoMenus(XL::Tree * a_tree)
         delete menu;
     }
 
-    if (a_tree)
-    {
-        // Clean MenuInfo from tree
-        CleanMenuInfo cmi;
-        XL::BreadthFirstSearch bfs(cmi);
-        a_tree->Do(bfs);
-    }
-
+    // Cleanup all menus defined in the current file and all imports
+    CleanMenuInfo cmi;
+    taoWidget->applyAction(cmi);
 }
 
 

@@ -808,6 +808,31 @@ void Widget::updateProgram(XL::SourceFile *source)
 }
 
 
+void Widget::applyAction(XL::Action &action)
+// ----------------------------------------------------------------------------
+//   Applies an action on the tree and all the dependents
+// ----------------------------------------------------------------------------
+{
+    if (!xlProgram)
+        return;
+    Tree *prog = xlProgram->tree.tree;
+    if (!prog)
+        return;
+
+    // Lookup imported files
+    import_set iset;
+    ImportedFilesChanged(prog, iset, false);
+
+    import_set::iterator it;
+    for (it = iset.begin(); it != iset.end(); it++)
+    {
+        XL::SourceFile &sf = **it;
+        if (sf.tree.tree)
+            sf.tree.tree->Do(action);
+    }
+}
+
+
 void Widget::refreshProgram()
 // ----------------------------------------------------------------------------
 //   Check if any of the source files we depend on changed

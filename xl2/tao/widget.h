@@ -91,6 +91,7 @@ public:
 
     // XL program management
     void        updateProgram(XL::SourceFile *sf);
+    void        applyAction(XL::Action &action);
     void        refreshProgram();
     void        markChanged(text reason);
     bool        writeIfChanged(XL::SourceFile &sf);

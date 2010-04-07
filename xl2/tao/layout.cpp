@@ -37,6 +37,7 @@ Layout::Layout(Widget *widget)
       lineColor(0,0,0,1),       // Black
       fillColor(0,0,0,0),       // Transparent black
       fillTexture(0),
+      lastRotation(0), lastTranslation(0), lastScale(0),
       items(),
       display(widget)
 {}
@@ -53,6 +54,9 @@ Layout::Layout(const Layout &o)
       lineColor(o.lineColor),
       fillColor(o.fillColor),
       fillTexture(o.fillTexture),
+      lastRotation(o.lastRotation),
+      lastTranslation(o.lastTranslation),
+      lastScale(o.lastScale),
       items(),
       display(o.display)
 {}
@@ -98,6 +102,9 @@ void Layout::Clear()
 }
 
 
+#define XY_SCALE 5.0
+#define UNITS    10.0
+
 void Layout::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the elements in the layout
@@ -120,12 +127,13 @@ void Layout::Draw(Layout *where)
         fillColor   = where->fillColor;
         fillTexture = where->fillTexture;
     }
-        
+
+    // Display all items
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
-        glPolygonOffset (i - items.begin(), 2.0);
+        glPolygonOffset (XY_SCALE, UNITS * (items.end() - i));
         child->Draw(this);
     }
 }
@@ -160,7 +168,7 @@ void Layout::DrawSelection(Layout *where)
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
-        glPolygonOffset (i - items.begin(), 2.0);
+        glPolygonOffset (XY_SCALE, UNITS * (items.end() - i));
         child->DrawSelection(this);
     }
 }

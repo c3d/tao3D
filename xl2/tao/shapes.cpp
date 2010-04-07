@@ -44,6 +44,8 @@ bool Shape::setTexture(Layout *where)
     if (where->fillTexture)
     {
         glBindTexture(GL_TEXTURE_2D, where->fillTexture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glEnable(GL_TEXTURE_2D);
         glEnable(GL_MULTISAMPLE);
     }

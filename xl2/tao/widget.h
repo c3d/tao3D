@@ -47,6 +47,7 @@ struct Layout;
 struct SpaceLayout;
 struct GraphicPath;
 struct Repository;
+struct Drag;
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -105,14 +106,15 @@ public:
     // Selection
     GLuint      newId()                 { return ++id; }
     GLuint      currentId()             { return id; }
+    GLuint      manipulatorId()         { return manipulator; }
     GLuint      selectionCapacity()     { return capacity; }
     uint        selected();
-    void        select(uint count);
+    void        select(uint id, uint count);
     void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);
     void        recordProjection();
     Point3      unproject (coord x, coord y, coord z = 0.0);
-    Vector3     dragDelta();
+    Drag *      drag();
     void        drawSelection(const Box3 &bounds, text name);
     void        drawHandle(const Point3 &point, text name);
 
@@ -133,11 +135,13 @@ public:
     static Widget *Tao() { return current; }
 
     // Getting attributes
-    Integer *   pageWidth(Tree *self);
-    Integer *   pageHeight(Tree *self);
+    Real *      pageWidth(Tree *self);
+    Real *      pageHeight(Tree *self);
     Real *      frameWidth(Tree *self);
     Real *      frameHeight(Tree *self);
     Real *      frameDepth(Tree *self);
+    Real *      windowWidth(Tree *self);
+    Real *      windowHeight(Tree *self);
     Real *      time(Tree *self);
     Real *      pageTime(Tree *self);
 
@@ -162,6 +166,7 @@ public:
     Name *      depthTest(Tree *self, bool enable);
     Tree *      refresh(Tree *self, double delay);
     Name *      fullScreen(Tree *self, bool fs);
+    Name *      toggleFullScreen(Tree *self);
 
     // Graphic attributes
     Tree *      lineColor(Tree *self, double r, double g, double b, double a);
@@ -206,6 +211,8 @@ public:
                        real_r w, real_r, real_r d,
                        integer_r nslices, integer_r nstacks);
     Tree *      cube(Tree *self, real_r cx, real_r cy, real_r cz,
+                     real_r w, real_r h, real_r d);
+    Tree *      cone(Tree *self, real_r cx, real_r cy, real_r cz,
                      real_r w, real_r h, real_r d);
 
     // Text and font
@@ -296,6 +303,7 @@ private:
     SpaceLayout *         space;
     Layout *              layout;
     GraphicPath *         path;
+    scale                 pageW, pageH;
 
     // Selection
     Activity *            activities;

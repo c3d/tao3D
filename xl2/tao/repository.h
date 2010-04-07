@@ -110,6 +110,7 @@ public:
 public:
     static Repository * repository(const QString &path, bool create = false);
     static bool         available();
+    static bool         versionGreaterOrEqual(QString ver, QString ref);
 
 protected:
     virtual QString     command()                       = 0;

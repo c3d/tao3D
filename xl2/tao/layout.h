@@ -65,6 +65,7 @@ public:
     Color           lineColor;
     Color           fillColor;
     uint            fillTexture;
+    uint            lastRotation, lastTranslation, lastScale;
 
 protected:
     // List of drawing elements

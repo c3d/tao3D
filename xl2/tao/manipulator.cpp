@@ -60,8 +60,24 @@ void Manipulator::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    if (widget->selected())
+    if (uint sel = widget->selected())
     {
+        if (sel < 0x1000)
+        {
+            uint count = 1;
+            uint idR = 99, idT = 99, idS = 99;
+            if (layout->lastRotation)       idR = count++;
+            if (layout->lastTranslation)    idT = count++;
+            if (layout->lastScale)          idS = count++;
+
+            sel = (sel-1) % count;
+
+            widget->select(layout->lastRotation,    sel == idR ? 0x1000 : 0);
+            widget->select(layout->lastTranslation, sel == idT ? 0x2000 : 0);
+            widget->select(layout->lastScale,       sel == idS ? 0x4000 : 0);
+            widget->select(widget->currentId(),     sel+1);
+        }
+
         glPushName(0);
         DrawHandles(layout);
         glPopName();
@@ -93,14 +109,15 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id, text name)
 }
 
 
-double Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
+void Manipulator::updateArg(Widget *widget, tree_p arg,
+                            coord first, coord previous, coord current)
 // ----------------------------------------------------------------------------
 //   Update the given argument by the given offset
 // ----------------------------------------------------------------------------
 {
     // Defensive coding against bad callers...
-    if (!arg || delta == 0.0)
-        return delta;
+    if (!arg || previous == current)
+        return;
 
     Tree   *source   = xl_source(arg); // Find the source expression
     tree_p *ptr      = &source;
@@ -172,19 +189,18 @@ double Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
     }
     if (scale == 0.0)
         scale = 1.0;
-    delta /= scale;
 
     // Test the simple cases where the argument is directly an Integer or Real
     if (XL::Integer *ival = (*ptr)->AsInteger())
     {
-        delta = longlong(delta);
-        ival->value += delta;
+        ival->value -= longlong((previous - first) / scale);
+        ival->value += longlong((current - first) / scale);
         if (ppptr && ival->value < 0)
             widget->reloadProgram = true;
     }
     else if (XL::Real *rval = (*ptr)->AsReal())
     {
-        rval->value += delta;
+        rval->value += (current - previous) / scale;
         if (ppptr && rval->value < 0)
             widget->reloadProgram = true;
     }
@@ -193,12 +209,11 @@ double Manipulator::updateArg(Widget *widget, tree_p arg, coord delta)
         // Create an Infix + with the delta we add
         if (ptr != &arg)
         {
+            double delta = (current - previous) / scale;
             *ptr = new XL::Infix("+", new XL::Real(delta), *ptr);
             widget->reloadProgram = true;
         }
     }
-
-    return delta * scale;
 }
 
 
@@ -255,14 +270,20 @@ bool ControlPoint::DrawHandles(Layout *layout)
     if (DrawHandle(layout, Point3(x, y, z), id))
     {
         Widget *widget = layout->Display();
-        Vector3 v = widget->dragDelta();
-        if (v.x != 0 || v.y != 0)
+        Drag *drag = widget->drag();
+        if (drag)
         {
-            updateArg(widget, &x,  v.x);
-            updateArg(widget, &y,  v.y);
-            updateArg(widget, &z,  v.z);
-            widget->markChanged("Control point moved");
-            return true;
+            Point3 p1 = drag->Previous();
+            Point3 p2 = drag->Current();
+            if (p1 != p2)
+            {
+                Point3 p0 = drag->Origin();
+                updateArg(widget, &x,  p0.x, p1.x, p2.x);
+                updateArg(widget, &y,  p0.y, p1.y, p2.y);
+                updateArg(widget, &z,  p0.z, p1.z, p2.z);
+                widget->markChanged("Control point moved");
+                return true;
+            }
         }
     }
     return false;
@@ -303,7 +324,7 @@ void DrawingManipulator::Draw(Layout *layout)
     if (loadId)
         glLoadName(widget->newId());
     child->Draw(layout);
-    Manipulator::Draw(layout);
+    // Manipulator::Draw(layout); is a NOOP
     if (loadId)
         glLoadName(0);
 }
@@ -436,58 +457,45 @@ bool FrameManipulator::DrawHandles(Layout *layout)
 {
     Widget *widget = layout->Display();
     coord   xx = x, yy = y, ww = w, hh = h;
-    Vector3 v = widget->dragDelta();
-    bool    changed = v.x != 0 || v.y != 0;
+    Drag   *drag = widget->drag();
+    uint    handle = 0;
 
-    // Lower-left corner
-    if (DrawHandle(layout, Point3(xx - ww/2, yy - hh/2, 0), 1))
+    for (uint hn = 0; hn < 4; hn++)
     {
-        if (changed)
+        short  sw = (hn & 1) ? 1 : -1;
+        short  sh = (hn & 2) ? 1 : -1;
+
+        // Lower-left corner
+        if (DrawHandle(layout, Point3(xx + sw*ww/2, yy + sh*hh/2, 0), hn+1))
         {
-            updateArg(widget, &w, -2*updateArg(widget, &x,  v.x/2));
-            updateArg(widget, &h, -2*updateArg(widget, &y,  v.y/2));
-            widget->markChanged("Lower left corner moved");
-            changed = false;
+            if (!handle)
+            {
+                handle = hn+1;
+
+                // Update arguments if necessary
+                if (drag)
+                {
+                    Point3 p1 = drag->Previous();
+                    Point3 p2 = drag->Current();
+                    if (p1 != p2)
+                    {
+                        Point3 p0 = drag->Origin();
+                        text   t1 = sh < 0 ? "Lower " : "Upper ";
+                        text   t2 = sw < 0 ? "left " : "right ";
+
+                        updateArg(widget, &x, p0.x/2, p1.x/2, p2.x/2);
+                        updateArg(widget, &y, p0.y/2, p1.y/2, p2.y/2);
+                        updateArg(widget, &w, sw*p0.x, sw*p1.x, sw*p2.x);
+                        updateArg(widget, &h, sh*p0.y, sh*p1.y, sh*p2.y);
+
+                        widget->markChanged(t1 + t2 + " corner moved");
+                    }
+                }
+            }
         }
     }
 
-    // Lower-right corner
-    if (DrawHandle(layout, Point3(xx + ww/2, yy - hh/2, 0), 2))
-    {
-        if (changed)
-        {
-            updateArg(widget, &w,  2*updateArg(widget, &x,  v.x/2));
-            updateArg(widget, &h, -2*updateArg(widget, &y,  v.y/2));
-            widget->markChanged("Lower right corner moved");
-            changed = false;
-        }
-    }
-
-    // Upper-left corner
-    if (DrawHandle(layout, Point3(xx - ww/2, yy + hh/2, 0), 3))
-    {
-        if (changed)
-        {
-            updateArg(widget, &w, -2*updateArg(widget, &x,  v.x/2));
-            updateArg(widget, &h,  2*updateArg(widget, &y,  v.y/2));
-            widget->markChanged("Uppper left corner moved");
-            changed = false;
-        }
-    }
-
-    // Upper-right corner
-    if (DrawHandle(layout, Point3(xx + ww/2, yy + hh/2, 0), 4))
-    {
-        if (changed)
-        {
-            updateArg(widget, &w,  2*updateArg(widget, &x,  v.x/2));
-            updateArg(widget, &h,  2*updateArg(widget, &y,  v.y/2));
-            widget->markChanged("Upper right corner moved");
-            changed = false;
-        }
-    }
-
-    return changed;
+    return handle != 0;
 }
 
 
@@ -530,14 +538,23 @@ bool ControlRectangle::DrawHandles(Layout *layout)
 {
     // Check if we clicked anywhere else in the shape
     bool changed = FrameManipulator::DrawHandles(layout);
-    if (changed)
+    if (!changed)
     {
         Widget *widget = layout->Display();
-        Vector3 v = widget->dragDelta();
-        updateArg(widget, &x, v.x);
-        updateArg(widget, &y, v.y);
-        widget->markChanged("Shape moved");
-        changed = false;
+        Drag *drag = widget->drag();
+        if (drag && !widget->manipulatorId())
+        {
+            Point3 p1 = drag->Previous();
+            Point3 p2 = drag->Current();
+            if (p1 != p2)
+            {
+                Point3 p0 = drag->Origin();
+                updateArg(widget, &x, p0.x, p1.x, p2.x);
+                updateArg(widget, &y, p0.y, p1.y, p2.y);
+                widget->markChanged("Shape moved");
+                changed = true;
+            }
+        }
     }
     return changed;
 }
@@ -621,114 +638,55 @@ bool BoxManipulator::DrawHandles(Layout *layout)
 {
     Widget *widget = layout->Display();
     coord   xx = x, yy = y, zz = z, ww = w, hh = h, dd = d;
-    Vector3 v = widget->dragDelta();
-    bool    changed = v.x != 0 || v.y != 0 || v.z != 0;
+    Drag   *drag = widget->drag();
+    uint    handle = 0;
 
-    // Lower-left front corner
-    if (DrawHandle(layout, Point3(xx - ww/2, yy - hh/2, zz - dd/2), 1))
+    for (uint hn = 0; hn < 8; hn++)
     {
-        if (changed)
+        short  sw = (hn & 1) ? 1 : -1;
+        short  sh = (hn & 2) ? 1 : -1;
+        short  sd = (hn & 4) ? 1 : -1;
+
+        // Lower-left corner
+        if (DrawHandle(layout, Point3(xx+sw*ww/2,yy+sh*hh/2,zz+sd*dd/2), hn+1))
         {
-            updateArg(widget, &w, -2*updateArg(widget, &x,  v.x/2));
-            updateArg(widget, &h, -2*updateArg(widget, &y,  v.y/2));
-            updateArg(widget, &d, -2*updateArg(widget, &z,  v.z/2));
-            widget->markChanged("Lower left front corner moved");
-            changed = false;
+            if (!handle)
+            {
+                handle = hn+1;
+
+                // Update arguments if necessary
+                if (drag)
+                {
+                    Point3 p1 = drag->Previous();
+                    Point3 p2 = drag->Current();
+                    if (p1 != p2)
+                    {
+                        Point3 p0 = drag->Origin();
+                        text   t1 = sh < 0 ? "Lower " : "Upper ";
+                        text   t2 = sw < 0 ? "left " : "right ";
+                        text   t3 = sd < 0 ? "front " : "back ";
+
+                        if (hn < 4)
+                        {
+                            updateArg(widget, &x, p0.x/2, p1.x/2, p2.x/2);
+                            updateArg(widget, &w, sw*p0.x, sw*p1.x, sw*p2.x);
+                        }
+                        else
+                        {
+                            updateArg(widget, &z, p0.x/2, p1.x/2, p2.x/2);
+                            updateArg(widget, &d, sd*p0.x, sd*p1.x, sd*p2.x);
+                        }
+                        updateArg(widget, &y, p0.y/2, p1.y/2, p2.y/2);
+                        updateArg(widget, &h, sh*p0.y, sh*p1.y, sh*p2.y);
+
+                        widget->markChanged(t1 + t2 + t3 + " corner moved");
+                    }
+                }
+            }
         }
     }
 
-    // Lower-right front corner
-    if (DrawHandle(layout, Point3(xx + ww/2, yy - hh/2, zz - dd/2), 2))
-    {
-        if (changed)
-        {
-            updateArg(widget, &w,  2*updateArg(widget, &x,  v.x/2));
-            updateArg(widget, &h, -2*updateArg(widget, &y,  v.y/2));
-            updateArg(widget, &d, -2*updateArg(widget, &z,  v.z/2));
-            widget->markChanged("Lower right front corner moved");
-            changed = false;
-        }
-    }
-
-    // Upper-left front corner
-    if (DrawHandle(layout, Point3(xx - ww/2, yy + hh/2, zz - dd/2), 3))
-    {
-        if (changed)
-        {
-            updateArg(widget, &w, -2*updateArg(widget, &x,  v.x/2));
-            updateArg(widget, &h,  2*updateArg(widget, &y,  v.y/2));
-            updateArg(widget, &d, -2*updateArg(widget, &z,  v.z/2));
-            widget->markChanged("Uppper left front corner moved");
-            changed = false;
-        }
-    }
-
-    // Upper-right front corner
-    if (DrawHandle(layout, Point3(xx + ww/2, yy + hh/2, zz - dd/2), 4))
-    {
-        if (changed)
-        {
-            updateArg(widget, &w,  2*updateArg(widget, &x,  v.x/2));
-            updateArg(widget, &h,  2*updateArg(widget, &y,  v.y/2));
-            updateArg(widget, &d, -2*updateArg(widget, &z,  v.z/2));
-            widget->markChanged("Upper right front corner moved");
-            changed = false;
-        }
-    }
-
-    // Lower-left back corner
-    if (DrawHandle(layout, Point3(xx - ww/2, yy - hh/2, zz + dd/2), 5))
-    {
-        if (changed)
-        {
-            updateArg(widget, &w, -2*updateArg(widget, &x,  v.x/2));
-            updateArg(widget, &h, -2*updateArg(widget, &y,  v.y/2));
-            updateArg(widget, &d,  2*updateArg(widget, &z,  v.z/2));
-            widget->markChanged("Lower left back corner moved");
-            changed = false;
-        }
-    }
-
-    // Lower-right back corner
-    if (DrawHandle(layout, Point3(xx + ww/2, yy - hh/2, zz + dd/2), 6))
-    {
-        if (changed)
-        {
-            updateArg(widget, &w,  2*updateArg(widget, &x,  v.x/2));
-            updateArg(widget, &h, -2*updateArg(widget, &y,  v.y/2));
-            updateArg(widget, &d,  2*updateArg(widget, &z,  v.z/2));
-            widget->markChanged("Lower right back corner moved");
-            changed = false;
-        }
-    }
-
-    // Upper-left back corner
-    if (DrawHandle(layout, Point3(xx - ww/2, yy + hh/2, zz + dd/2), 7))
-    {
-        if (changed)
-        {
-            updateArg(widget, &w, -2*updateArg(widget, &x,  v.x/2));
-            updateArg(widget, &h,  2*updateArg(widget, &y,  v.y/2));
-            updateArg(widget, &d,  2*updateArg(widget, &z,  v.z/2));
-            widget->markChanged("Uppper left back corner moved");
-            changed = false;
-        }
-    }
-
-    // Upper-right back corner
-    if (DrawHandle(layout, Point3(xx + ww/2, yy + hh/2, zz + dd/2), 8))
-    {
-        if (changed)
-        {
-            updateArg(widget, &w,  2*updateArg(widget, &x,  v.x/2));
-            updateArg(widget, &h,  2*updateArg(widget, &y,  v.y/2));
-            updateArg(widget, &d,  2*updateArg(widget, &z,  v.z/2));
-            widget->markChanged("Upper right back corner moved");
-            changed = false;
-        }
-    }
-
-    return changed;
+    return handle != 0;
 }
 
 
@@ -756,18 +714,42 @@ bool ControlBox::DrawHandles(Layout *layout)
 {
     // Check if we clicked anywhere else in the shape
     bool changed = BoxManipulator::DrawHandles(layout);
-    if (changed)
+    if (!changed)
     {
         Widget *widget = layout->Display();
-        Vector3 v = widget->dragDelta();
-        updateArg(widget, &x, v.x);
-        updateArg(widget, &y, v.y);
-        updateArg(widget, &z, v.z);
-        widget->markChanged("3D shape moved");
-        changed = false;
+        Drag *drag = widget->drag();
+        if (drag && !widget->manipulatorId())
+        {
+            Point3 p1 = drag->Previous();
+            Point3 p2 = drag->Current();
+            if (p1 != p2)
+            {
+                Point3 p0 = drag->Origin();
+                updateArg(widget, &x, p0.x, p1.x, p2.x);
+                updateArg(widget, &y, p0.y, p1.y, p2.y);
+                updateArg(widget, &z, p0.z, p1.z, p2.z);
+                widget->markChanged("3D shape moved");
+                changed = true;
+            }
+        }
     }
     return changed;
 }
+
+
+
+// ============================================================================
+// 
+//   A TransformManipulator is used for rotation, translation, scale
+// 
+// ============================================================================
+
+TransformManipulator::TransformManipulator(Drawing *child)
+// ----------------------------------------------------------------------------
+//   Record the child we own
+// ----------------------------------------------------------------------------
+    : DrawingManipulator(child)
+{}
 
 
 
@@ -781,8 +763,20 @@ RotationManipulator::RotationManipulator(real_r a, real_r x,real_r y,real_r z)
 // ----------------------------------------------------------------------------
 //   Manipulation of a rotation
 // ----------------------------------------------------------------------------
-    : DrawingManipulator(new Rotation(a, x, y, z)), a(a), x(x), y(y), z(z)
+    : TransformManipulator(new Rotation(a, x, y, z)), a(a), x(x), y(y), z(z)
 {}
+
+
+void RotationManipulator::Identify(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Remember the last rotation for subsequent shapes
+// ----------------------------------------------------------------------------
+{
+    TransformManipulator::Identify(layout);
+    Widget *widget = layout->Display();
+    uint id = widget->currentId();
+    layout->lastRotation = id;
+}
 
 
 bool RotationManipulator::DrawHandles(Layout *layout)
@@ -790,54 +784,59 @@ bool RotationManipulator::DrawHandles(Layout *layout)
 //   Draw the selection for a rotation
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = layout->Display();
-    Vector3 offset = layout->Offset();
-    Vector3 v = widget->dragDelta();
-    bool    changed = v.x != 0 || v.y != 0 || v.z != 0;
+    Widget  *widget  = layout->Display();
+    Vector3  offset  = layout->Offset();
+    Drag    *drag    = widget->drag();
+    bool     changed = false;
+
+    // Vector around which we rotate (normalized)
+    Vector3 tip = Vector3(x, y, z);
+    tip.Normalize();
+    if (DrawHandle(layout, 50*tip + offset, 0x1001, "rotation_tip"))
+    {
+        if (drag)
+        {
+            // Compute the desired tip position
+            Point3 p1 = drag->Previous();
+            Point3 p2 = drag->Current();
+            if (p1 != p2)
+            {
+                Point3 p0 = drag->Origin();
+
+                updateArg(widget, &x, p0.x, p1.x, p2.x);
+                updateArg(widget, &y, p0.y, p1.y, p2.y);
+                updateArg(widget, &z, p0.z, p1.z, p2.z);                
+                widget->markChanged("Changed rotation direction");
+                changed = true;
+            }
+        }
+    }
 
     // Draw the sphere
-    if (DrawHandle(layout, Point3(0, 0, 0), 1, "rotation_handle"))
+    if (DrawHandle(layout, offset, 0x1002, "rotation_base"))
     {
-        if (changed)
+        if (drag && !changed)
         {
-            // REVISIT: Use trackball or something like that
-            updateArg(widget, &a,  v.x);
-            widget->markChanged("Rotation center");
-            changed = false;
-        }
-    }
+            // Compute the desired angle
+            Point3 p1 = drag->Previous();
+            Point3 p2 = drag->Current();
+            if (p1 != p2)
+            {
+                Point3 p0 = drag->Origin();
 
-    // Size of the X, Y, Z direction
-    if (DrawHandle(layout, Point3(25, 0, 0), 2, "rotation_x"))
-    {
-        if (changed)
-        {
-            // REVISIT: Use trackball or something like that
-            updateArg(widget, &x,  v.x);
-            widget->markChanged("Rotation along X");
-            changed = false;
-        }
-    }
+                Vector3 v0 = Vector3(p0) - offset;
+                double  a0 = atan2(v0.y, v0.x) * (180 / M_PI);
+                Vector3 v1 = Vector3(p1) - offset;
+                double  a1 = atan2(v1.y, v1.x) * (180 / M_PI);
+                Vector3 v2 = Vector3(p2) - offset;
+                double  a2 = atan2(v2.y, v2.x) * (180 / M_PI);
 
-    if (DrawHandle(layout, Point3(0, 25, 0), 3, "rotation_y"))
-    {
-        if (changed)
-        {
-            // REVISIT: Use trackball or something like that
-            updateArg(widget, &y,  v.y);
-            widget->markChanged("Rotation along Y");
-            changed = false;
-        }
-    }
-
-    if (DrawHandle(layout, Point3(0, 0, 25), 4, "rotation_z"))
-    {
-        if (changed)
-        {
-            // REVISIT: Use trackball or something like that
-            updateArg(widget, &z,  v.y);
-            widget->markChanged("Rotation along Z");
-            changed = false;
+                updateArg(widget, &a,  a0, a1, a2);
+                updateArg(widget, &a,  a0, a1, a2);
+                
+                widget->markChanged("Changed rotation amount");
+                changed = true;
+            }
         }
     }
 
@@ -856,8 +855,20 @@ TranslationManipulator::TranslationManipulator(real_r x, real_r y, real_r z)
 // ----------------------------------------------------------------------------
 //   Manipulation of a translation
 // ----------------------------------------------------------------------------
-    : DrawingManipulator(new Translation(x, y, z)), x(x), y(y), z(z)
+    : TransformManipulator(new Translation(x, y, z)), x(x), y(y), z(z)
 {}
+
+
+void TranslationManipulator::Identify(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Remember the last translation for subsequent shapes
+// ----------------------------------------------------------------------------
+{
+    TransformManipulator::Identify(layout);
+    Widget *widget = layout->Display();
+    uint id = widget->currentId();
+    layout->lastTranslation = id;
+}
 
 
 bool TranslationManipulator::DrawHandles(Layout *layout)
@@ -865,59 +876,59 @@ bool TranslationManipulator::DrawHandles(Layout *layout)
 //   Manipulate the translation
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = layout->Display();
-    Vector3 offset = layout->Offset();
-    Vector3 v = widget->dragDelta();
-    bool    changed = v.x != 0 || v.y != 0 || v.z != 0;
+    Widget  *widget = layout->Display();
+    Vector3  offset = layout->Offset();
+    Drag    *drag   = widget->drag();
+    uint     handle = 0;
 
-    // Draw the sphere
-    if (DrawHandle(layout, Point3(0, 0, 0), 1, "translation_handle"))
-    {
-        if (changed)
-        {
-            // REVISIT: Use trackball or something like that
-            updateArg(widget, &x,  v.x);
-            updateArg(widget, &y,  v.y);
-            widget->markChanged("Translation");
-            changed = false;
-        }
-    }
+    // Draw the translation base
+    if (DrawHandle(layout, offset, 0x2001, "translation_base"))
+        handle = 1;
 
     // Size of the X, Y, Z direction
-    if (DrawHandle(layout, Point3(25, 0, 0), 2, "translation_x"))
+    if (DrawHandle(layout, offset, 0x2002, "translation_x"))
+        handle = 2;
+
+    if (DrawHandle(layout, offset, 0x2003, "translation_y"))
+        handle = 3;
+
+    if (DrawHandle(layout, offset, 0x2004, "translation_z"))
+        handle = 4;
+
+    if (handle && drag)
     {
-        if (changed)
+        Point3 p1 = drag->Previous();
+        Point3 p2 = drag->Current();
+        if (p1 != p2)
         {
-            // REVISIT: Use trackball or something like that
-            updateArg(widget, &x,  v.x);
-            widget->markChanged("Translation X axis");
-            changed = false;
+            Point3 p0 = drag->Origin();
+
+            switch(handle)
+            {
+            case 1:
+                updateArg(widget, &x,  p0.x, p1.x, p2.x);
+                updateArg(widget, &y,  p0.y, p1.y, p2.y);
+                widget->markChanged("Updated translation");
+                break;
+            case 2:
+                updateArg(widget, &x,  p0.x, p1.x, p2.x);
+                widget->markChanged("Updated translation X axis");
+                break;
+            case 3:
+                updateArg(widget, &y,  p0.y, p1.y, p2.y);
+                widget->markChanged("Updated translation Y axis");
+                break;
+            case 4:
+                updateArg(widget, &z,  p0.x - p0.y, p1.x - p1.y, p2.x - p2.y);
+                widget->markChanged("Updated translation Z axis");
+                break;
+            }
+
+            return true;
         }
     }
 
-    if (DrawHandle(layout, Point3(0, 25, 0), 3, "translation_y"))
-    {
-        if (changed)
-        {
-            // REVISIT: Use trackball or something like that
-            updateArg(widget, &y,  v.y);
-            widget->markChanged("Translation Y axis");
-            changed = false;
-        }
-    }
-
-    if (DrawHandle(layout, Point3(0, 0, 25), 4, "translation_z"))
-    {
-        if (changed)
-        {
-            // REVISIT: Use trackball or something like that
-            updateArg(widget, &z,  v.y);
-            widget->markChanged("Translation Z axis");
-            changed = false;
-        }
-    }
-
-    return changed;
+    return false;
 };
 
 
@@ -933,8 +944,20 @@ ScaleManipulator::ScaleManipulator(real_r x, real_r y, real_r z)
 // ----------------------------------------------------------------------------
 //   Manipulation of a scale
 // ----------------------------------------------------------------------------
-    : DrawingManipulator(new Scale(x, y, z)), x(x), y(y), z(z)
+    : TransformManipulator(new Scale(x, y, z)), x(x), y(y), z(z)
 {}
+
+
+void ScaleManipulator::Identify(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Remember the last scaling for subsequent shapes
+// ----------------------------------------------------------------------------
+{
+    TransformManipulator::Identify(layout);
+    Widget *widget = layout->Display();
+    uint id = widget->currentId();
+    layout->lastScale = id;
+}
 
 
 bool ScaleManipulator::DrawHandles(Layout *layout)
@@ -942,59 +965,64 @@ bool ScaleManipulator::DrawHandles(Layout *layout)
 //   Manipulate the scale
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = layout->Display();
-    Vector3 offset = layout->Offset();
-    Vector3 v = widget->dragDelta();
-    bool    changed = v.x != 0 || v.y != 0 || v.z != 0;
+    Widget  *widget = layout->Display();
+    Vector3  offset = layout->Offset();
+    Drag    *drag   = widget->drag();
+    uint     handle = 0;
+    coord    s = 0.01;
 
-    // Draw the sphere
-    if (DrawHandle(layout, Point3(0, 0, 0), 1, "scale_handle"))
-    {
-        if (changed)
-        {
-            // REVISIT: Use trackball or something like that
-            updateArg(widget, &x,  v.x);
-            updateArg(widget, &y,  v.y);
-            widget->markChanged("Scale center");
-            changed = false;
-        }
-    }
+    // Draw the scale base
+    if (DrawHandle(layout, offset, 0x4001, "scale_base"))
+        handle = 1;
 
     // Size of the X, Y, Z direction
-    if (DrawHandle(layout, Point3(25, 0, 0), 2, "scale_x"))
+    if (DrawHandle(layout, offset, 0x4002, "scale_x"))
+        handle = 2;
+
+    if (DrawHandle(layout, offset, 0x4003, "scale_y"))
+        handle = 3;
+
+    if (DrawHandle(layout, offset, 0x4004, "scale_z"))
+        handle = 4;
+
+    if (handle && drag)
     {
-        if (changed)
+        Point3 p1 = drag->Previous();
+        Point3 p2 = drag->Current();
+        if (p1 != p2)
         {
-            // REVISIT: Use trackball or something like that
-            updateArg(widget, &x,  v.x);
-            widget->markChanged("Scale X axis");
-            changed = false;
+            Point3 p0 = drag->Origin();
+            coord  v0 = s * (p0.x + p0.y + p0.z);
+            coord  v1 = s * (p1.x + p1.y + p1.z);
+            coord  v2 = s * (p2.x + p2.y + p2.z);
+
+            switch(handle)
+            {
+            case 1:
+                updateArg(widget, &x, v0, v1, v2);
+                updateArg(widget, &y, v0, v1, v2);
+                updateArg(widget, &z, v0, v1, v2);
+                widget->markChanged("Updated scale");
+                break;
+            case 2:
+                updateArg(widget, &x,  s * p0.x, s * p1.x, s * p2.x);
+                widget->markChanged("Updated scale X axis");
+                break;
+            case 3:
+                updateArg(widget, &y,  s * p0.y, s * p1.y, s * p2.y);
+                widget->markChanged("Updated scale Y axis");
+                break;
+            case 4:
+                updateArg(widget, &z,  v0, v1, v2);
+                widget->markChanged("Updated scale Z axis");
+                break;
+            }
+
+            return true;
         }
     }
 
-    if (DrawHandle(layout, Point3(0, 25, 0), 3, "scale_y"))
-    {
-        if (changed)
-        {
-            // REVISIT: Use trackball or something like that
-            updateArg(widget, &y,  v.y);
-            widget->markChanged("Scale Y axis");
-            changed = false;
-        }
-    }
-
-    if (DrawHandle(layout, Point3(0, 0, 25), 4, "scale_z"))
-    {
-        if (changed)
-        {
-            // REVISIT: Use trackball or something like that
-            updateArg(widget, &z,  v.y);
-            widget->markChanged("Scale Z axis");
-            changed = false;
-        }
-    }
-
-    return changed;
+    return false;
 };
 
 TAO_END

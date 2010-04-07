@@ -52,7 +52,8 @@ struct Manipulator : Drawing
     virtual bool        DrawHandles(Layout *layout) = 0;
 
 protected:
-    double              updateArg(Widget *widget, tree_p param, coord delta);
+    void                updateArg(Widget *widget, tree_p param,
+                                  coord first, coord previous, coord current);
 };
 
 
@@ -162,12 +163,22 @@ struct ControlBox : BoxManipulator
 };
 
 
-struct RotationManipulator : DrawingManipulator
+struct TransformManipulator : DrawingManipulator
+// ----------------------------------------------------------------------------
+//   Manipulators for transform objects
+// ----------------------------------------------------------------------------
+{
+    TransformManipulator(Drawing *child);
+};
+
+
+struct RotationManipulator : TransformManipulator
 // ----------------------------------------------------------------------------
 //   Manipulation of a rotation axis and amount
 // ----------------------------------------------------------------------------
 {
     RotationManipulator(real_r a, real_r x, real_r y, real_r z);
+    virtual void        Identify(Layout *layout);
     virtual bool        DrawHandles(Layout *layout);
 
 protected:
@@ -175,12 +186,13 @@ protected:
 };
 
 
-struct TranslationManipulator : DrawingManipulator
+struct TranslationManipulator : TransformManipulator
 // ----------------------------------------------------------------------------
 //   Manipulation of translation along 3 axes
 // ----------------------------------------------------------------------------
 {
     TranslationManipulator(real_r x, real_r y, real_r z);
+    virtual void        Identify(Layout *layout);
     virtual bool        DrawHandles(Layout *layout);
 
 protected:
@@ -188,12 +200,13 @@ protected:
 };
 
 
-struct ScaleManipulator : DrawingManipulator
+struct ScaleManipulator : TransformManipulator
 // ----------------------------------------------------------------------------
 //   Manipulation of scale along 3 axes
 // ----------------------------------------------------------------------------
 {
     ScaleManipulator(real_r x, real_r y, real_r z);
+    virtual void        Identify(Layout *layout);
     virtual bool        DrawHandles(Layout *layout);
 
 protected:

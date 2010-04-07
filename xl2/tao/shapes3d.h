@@ -60,6 +60,16 @@ struct Sphere : Cube
 };
 
 
+struct Cone : Cube
+// ----------------------------------------------------------------------------
+//   Draw a cone
+// ----------------------------------------------------------------------------
+{
+    Cone(Box3 bounds) : Cube(bounds) {}
+    virtual void Draw(Layout *where);
+};
+
+
 TAO_END
 
 #endif // SHAPES3D_H

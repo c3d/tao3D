@@ -107,8 +107,8 @@ struct XLCall
     XLCall &operator, (Tree *tree) { args.push_back(tree); return *this; }
     XLCall &operator, (Tree &tree) { return *this, &tree; }
     XLCall &operator, (longlong v) { return *this, new Integer(v); }
-    XLCall &operator()(double  v)  { return *this, new Real(v); }
-    XLCall &operator()(text  v)    { return *this, new Text(v); }
+    XLCall &operator, (double  v)  { return *this, new Real(v); }
+    XLCall &operator, (text  v)    { return *this, new Text(v); }
 
     // Calling in a given symbol context
     Tree * operator() (Symbols *syms = NULL);

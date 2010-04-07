@@ -42,6 +42,10 @@ bool ImportedFilesChanged(XL::Tree *prog,
     symbols_set imported;
     bool more = true;
     bool result = false;
+
+    // Make sure we detect changes in builtins.xl
+    imported.insert(Symbols::symbols);
+
     while (more)
     {
         more = false;

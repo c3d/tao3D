@@ -110,7 +110,8 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id, text name)
 
 
 void Manipulator::updateArg(Widget *widget, tree_p arg,
-                            coord first, coord previous, coord current)
+                            double first, double previous, double current,
+                            bool has_min, double min, bool has_max, double max)
 // ----------------------------------------------------------------------------
 //   Update the given argument by the given offset
 // ----------------------------------------------------------------------------
@@ -200,6 +201,7 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
             }
         }
     }
+    // LIONEL: Really?
     if (scale == 0.0)
         scale = 1.0;
 
@@ -208,17 +210,26 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
     {
         ival->value -= longlong((previous - first) / scale);
         ival->value += longlong((current - first) / scale);
+        if (has_min && ival->value * scale < min)
+            ival->value = min / scale;
+        if (has_max && ival->value * scale > max)
+            ival->value = max / scale;
         if (ppptr && ival->value < 0)
             widget->reloadProgram = true;
     }
     else if (XL::Real *rval = (*ptr)->AsReal())
     {
         rval->value += (current - previous) / scale;
+        if (has_min && ival->value * scale < min)
+            ival->value = min / scale;
+        if (has_max && ival->value * scale > max)
+            ival->value = max / scale;
         if (ppptr && rval->value < 0)
             widget->reloadProgram = true;
     }
     else
     {
+        // LIONEL: When does that happen?
         // Create an Infix + with the delta we add
         if (ptr != &arg)
         {
@@ -576,18 +587,163 @@ bool ControlRectangle::DrawHandles(Layout *layout)
 
 // ============================================================================
 //
+//   An rounded rectangle manipulator udpates x, y, w, h, the radius of the
+//   corners and allows translation
+//
+// ============================================================================
+
+ControlRoundedRectangle::ControlRoundedRectangle(real_r x, real_r y, 
+                                                 real_r w, real_r h, 
+                                                 real_r r,
+                                                 Drawing *child)
+// ----------------------------------------------------------------------------
+//   A control arrow adds the radius of the corners to the control rectangle 
+// ----------------------------------------------------------------------------
+    : ControlRectangle(x, y, w, h, child), r(r)
+{}
+
+
+bool ControlRoundedRectangle::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the handles for the rounded rectangle (assuming rx = ry)
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
+    Widget *widget = layout->Display();
+    Drag   *drag = widget->drag();
+
+    if (h < w)
+    {
+        if (DrawHandle(layout, Point3((r < w/2? x - w/2 + r: double(x)), y + h/2, 0), 9))
+        {
+            if (drag)
+            {
+                Point3 p1 = drag->Previous();
+                Point3 p2 = drag->Current();
+                if (p1 != p2)
+                {
+                    Point3 p0 = drag->Origin();
+                    updateArg(widget, &r, 
+                              p0.x - x - w/2, p1.x - x - w/2, p2.x - x - w/2,
+                              true, 0.0, true, w/2);
+                    widget->markChanged("Rounded rectangle corner modified");
+                    changed = true;
+                }
+            }
+        }
+    } 
+    else
+    {
+        if (DrawHandle(layout, Point3(x - w/2,(r < h/2? y + h/2 - r: double(y)), 0), 9))
+        {
+            if (drag)
+            {
+                Point3 p1 = drag->Previous();
+                Point3 p2 = drag->Current();
+                if (p1 != p2)
+                {
+                    Point3 p0 = drag->Origin();
+                    updateArg(widget, &r, 
+                              y + h/2 - p0.y, y + h/2 - p1.y, y + h/2 - p2.y,
+                              true, 0.0, true, h/2);
+                    widget->markChanged("Rounded rectangle corner modified");
+                    changed = true;
+                }
+            }
+        }
+     }
+    if (!changed)
+    {
+        changed = ControlRectangle::DrawHandles(layout);
+    }
+    /*
+        coord   xx = x, yy = y, ww = w, hh = h;
+        uint    handle = 0;
+
+        for (uint hn = 0; hn < 4; hn++)
+        {
+            short  sw = (hn & 1) ? 1 : -1;
+            short  sh = (hn & 2) ? 1 : -1;
+
+            // Lower-left corner
+            if (DrawHandle(layout, Point3(xx + sw*ww/2, yy + sh*hh/2, 0), hn+1))
+            {
+                if (!handle)
+                {
+                    handle = hn+1;
+
+                    // Update arguments if necessary
+                    if (drag)
+                    {
+                        Point3 p1 = drag->Previous();
+                        Point3 p2 = drag->Current();
+                        if (p1 != p2)
+                        {
+                            Point3 p0 = drag->Origin();
+                            text   t1 = sh < 0 ? "Lower " : "Upper ";
+                            text   t2 = sw < 0 ? "left " : "right ";
+
+                            updateArg(widget, &x, p0.x/2, p1.x/2, p2.x/2);
+                            updateArg(widget, &y, p0.y/2, p1.y/2, p2.y/2);
+                            updateArg(widget, &w, sw*p0.x, sw*p1.x, sw*p2.x);
+                            updateArg(widget, &h, sh*p0.y, sh*p1.y, sh*p2.y);
+                            if (r > w/2 && r > h/2)
+                            {
+                                updateArg(widget, &r, r, r, (w > h? w: h)/2);
+                            }
+
+                            widget->markChanged(t1 + t2 + " corner moved");
+                            changed = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (!changed)
+    {
+        Widget *widget = layout->Display();
+        Drag *drag = widget->drag();
+        if (drag && !widget->manipulatorId())
+        {
+            Point3 p1 = drag->Previous();
+            Point3 p2 = drag->Current();
+            if (p1 != p2)
+            {
+                Point3 p0 = drag->Origin();
+                updateArg(widget, &x, p0.x, p1.x, p2.x);
+                updateArg(widget, &y, p0.y, p1.y, p2.y);
+                widget->markChanged("Shape moved");
+                changed = true;
+            }
+        }
+    }
+    */
+    return changed;
+}
+
+
+
+// ============================================================================
+//
 //   An arrow manipulator udpates x, y, w, h, the arrow handle a and allows 
 //   translation
 //
 // ============================================================================
 
 ControlArrow::ControlArrow(real_r x, real_r y, real_r w, real_r h, 
-                           real_r ax, real_r ary,
+                           real_r ax, real_r ary, bool is_double,
                            Drawing *child)
 // ----------------------------------------------------------------------------
 //   A control arrow adds the arrow hanfle to the control rectangle 
 // ----------------------------------------------------------------------------
-    : ControlRectangle(x, y, w, h, child), ax(ax), ary(ary)
+    : ControlRectangle(x, y, w, h, child), ax(ax), ary(ary), d(is_double)
+{}
+
+ControlArrow::ControlArrow(real_r x, real_r y, real_r w, real_r h, 
+                           real_r ax, real_r ary,
+                           Drawing *child)
+    : ControlRectangle(x, y, w, h, child), ax(ax), ary(ary), d(false)
 {}
 
 
@@ -609,12 +765,15 @@ bool ControlArrow::DrawHandles(Layout *layout)
             {
                 Point3 p0 = drag->Origin();
                 updateArg(widget, &ax, 
-                          x + w/2 - p0.x, x + w/2 - p1.x, x + w/2 - p2.x);
-                if (h != 0) {
+                          x + w/2 - p0.x, x + w/2 - p1.x, x + w/2 - p2.x,
+                          true, 0.0, d, w/2);
+                if (h != 0)
+                {
                     updateArg(widget, &ary, 
-                              2*(p0.y - y)/h, 2*(p1.y - y)/h, 2*(p2.y - y)/h);
+                              2*(p0.y - y)/h, 2*(p1.y - y)/h, 2*(p2.y - y)/h,
+                              true, 0.0, true, 1.0);
                 }
-                widget->markChanged("Arrow Modified");
+                widget->markChanged("Arrow modified");
                 changed = true;
             }
         }
@@ -659,14 +818,14 @@ bool ControlPolygon::DrawHandles(Layout *layout)
         {
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();
-            if (p1 != p2 && p2.x > (x - w/2 + w/30) && p2.x < (x + w/2 - w/30))
+            if (p1 != p2)
             {
                 Point3 p0 = drag->Origin();
                 coord p0x = 19*(p0.x - x)/w + 11.5;
                 coord p1x = 19*(p1.x - x)/w + 11.5;
                 coord p2x = 19*(p2.x - x)/w + 11.5;
-                updateArg(widget, &p, p0x, p1x, p2x);
-                widget->markChanged("Number of Points Changed");
+                updateArg(widget, &p, p0x, p1x, p2x, true, 3, true, 20);
+                widget->markChanged("Number of points changed");
                 changed = true;
             }
         }
@@ -718,8 +877,9 @@ bool ControlStar::DrawHandles(Layout *layout)
                 Point3 p0 = drag->Origin();
                 scale hp = sqrt(w*sp*w*sp + h*cp*h*cp) * cp/2;
                 updateArg(widget, &r, 
-                          (p0.y - y)/hp, (p1.y - y)/hp, (p2.y - y)/hp);
-                widget->markChanged("Star Inner Circle Changed");
+                          (p0.y - y)/hp, (p1.y - y)/hp, (p2.y - y)/hp,
+                          true, 0.0, true, 1.0);
+                widget->markChanged("Star inner circle changed");
                 changed = true;
             }
         }

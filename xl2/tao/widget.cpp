@@ -1775,14 +1775,14 @@ Tree *Widget::roundedRectangle(Tree *self,
                                real_r cx, real_r cy,
                                real_r w, real_r h, real_r rx, real_r ry)
 // ----------------------------------------------------------------------------
-//   Cairo rounded rectangle with radius r for the rounded corners
+//   Rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
 {
     RoundedRectangle shape(Box(cx-w/2, cy-h/2, w, h), rx, ry);
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(cx, cy, w, h,
+        layout->Add(new ControlRoundedRectangle(cx, cy, w, h, rx,
                                          new RoundedRectangle(shape)));
 
     return XL::xl_true;
@@ -1836,7 +1836,7 @@ Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlArrow(cx, cy, w, h, ax, ary,
+        layout->Add(new ControlArrow(cx, cy, w, h, ax, ary, true,
                                          new DoubleArrow(shape)));
 
     return XL::xl_true;

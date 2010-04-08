@@ -27,6 +27,7 @@
 #include "git_backend.h"
 #include "application.h"
 #include "pull_from_dialog.h"
+#include "publish_to_dialog.h"
 
 #include <iostream>
 #include <sstream>
@@ -254,6 +255,23 @@ void Window::setPullUrl()
 }
 
 
+void Window::publish()
+// ----------------------------------------------------------------------------
+//    Prompt user for address of remote repository to publish to
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+    {
+        QMessageBox::warning(this, tr("No project"),
+                             tr("This feature is not available because the "
+                                "current document is not in a project."));
+        return;
+    }
+
+    PublishToDialog(repo.data()).exec();
+}
+
+
 void Window::about()
 // ----------------------------------------------------------------------------
 //    About Box
@@ -341,6 +359,11 @@ void Window::createActions()
                                    "document with a remote one"));
     connect(setPullUrlAct, SIGNAL(triggered()), this, SLOT(setPullUrl()));
 
+    publishAct = new QAction(tr("Publish..."), this);
+    publishAct->setStatusTip(tr("Publish the current project to "
+                                "a specific path or URL"));
+    connect(publishAct, SIGNAL(triggered()), this, SLOT(publish()));
+
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setStatusTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
@@ -382,8 +405,9 @@ void Window::createMenus()
     editMenu->addAction(copyAct);
     editMenu->addAction(pasteAct);
 
-    toolsMenu = menuBar()->addMenu(tr("&Tools"));
-    toolsMenu->addAction(setPullUrlAct);
+    shareMenu = menuBar()->addMenu(tr("&Share"));
+    shareMenu->addAction(setPullUrlAct);
+    shareMenu->addAction(publishAct);
 
     viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(dock->toggleViewAction());

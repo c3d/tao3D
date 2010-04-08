@@ -96,7 +96,9 @@ HEADERS += widget.h \
     ../xlr/bfs.h \
     drag.h \
     ui_pull_from_dialog.h \
-    pull_from_dialog.h
+    pull_from_dialog.h \
+    remote_selection_frame.h \
+    publish_to_dialog.h
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \
@@ -145,7 +147,9 @@ SOURCES += tao_main.cpp \
     ../xlr/diff.cpp \
     ../xlr/lcs.cpp \
     drag.cpp \
-    pull_from_dialog.cpp
+    pull_from_dialog.cpp \
+    remote_selection_frame.cpp \
+    publish_to_dialog.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \
@@ -185,4 +189,6 @@ OTHER_FILES += xl.syntax \
 xlr_support.path = $${DESTDIR}/$${XLRDIR}
 xlr_support.files += $${OTHER_FILES}
 QMAKE_BUNDLE_DATA += xlr_support
-FORMS += pull_from_dialog.ui
+FORMS += pull_from_dialog.ui \
+    remote_selection_frame.ui \
+    publish_to_dialog.ui

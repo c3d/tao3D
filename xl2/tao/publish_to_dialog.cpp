@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  pull_from_dialog.cpp                                           Tao project
+//  publish_to_dialog.cpp                                          Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    The class to display the "Pull from" dialog box
+//    The class to display the "Publish to" dialog box
 //
 //
 //
@@ -21,14 +21,16 @@
 // ****************************************************************************
 
 #include "tao.h"
-#include "pull_from_dialog.h"
+#include "publish_to_dialog.h"
 #include "remote_selection_frame.h"
 #include "repository.h"
 #include <QInputDialog>
+#include <QDialogButtonBox>
+#include <QPushButton>
 
 namespace Tao {
 
-PullFromDialog::PullFromDialog(Repository *repo, QWidget *parent)
+PublishToDialog::PublishToDialog(Repository *repo, QWidget *parent)
 // ----------------------------------------------------------------------------
 //    Create a "remote" selection box for the given repository
 // ----------------------------------------------------------------------------
@@ -39,7 +41,7 @@ PullFromDialog::PullFromDialog(Repository *repo, QWidget *parent)
 }
 
 
-QString PullFromDialog::pullFrom()
+QString PublishToDialog::pushTo()
 // ----------------------------------------------------------------------------
 //    The name of the currently selected remote (empty string if "<None>")
 // ----------------------------------------------------------------------------
@@ -48,25 +50,30 @@ QString PullFromDialog::pullFrom()
 }
 
 
-Repository::ConflictResolution PullFromDialog::conflictResolution()
+void PublishToDialog::accept()
 // ----------------------------------------------------------------------------
-//    The currently selected conflict resolution mode
+//    Publish the current project to the previously chosen remote
 // ----------------------------------------------------------------------------
 {
-    if (ours->isChecked())
-        return Repository::CR_Ours;
-    return Repository::CR_Theirs;
+    repo->push(pushTo());
+    QDialog::accept();
+}
+
+void PublishToDialog::on_rsFrame_noneSelected()
+// ----------------------------------------------------------------------------
+//    Disable the OK button if remote is not set
+// ----------------------------------------------------------------------------
+{
+    buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 }
 
 
-void PullFromDialog::accept()
+void PublishToDialog::on_rsFrame_nameSelected()
 // ----------------------------------------------------------------------------
-//    Update the repository synchronization settings (URL, conflict mode)
+//    Disable the OK button if remote is not set
 // ----------------------------------------------------------------------------
 {
-    repo->pullFrom           = pullFrom();
-    repo->conflictResolution = conflictResolution();
-    QDialog::accept();
+    buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }
 
 }

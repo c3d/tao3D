@@ -1,12 +1,12 @@
-#ifndef PULL_FROM_DIALOG_H
-#define PULL_FROM_DIALOG_H
+#ifndef PUBLISH_TO_DIALOG_H
+#define PUBLISH_TO_DIALOG_H
 // ****************************************************************************
-//  pull_from_dialog.h                                             Tao project
+//  publish_to_dialog.h                                            Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    The class to display the "Pull from" dialog box
+//    The class to display the "Publish to" dialog box
 //
 //
 //
@@ -23,7 +23,7 @@
 // ****************************************************************************
 
 #include "remote_selection_frame.h"
-#include "ui_pull_from_dialog.h"
+#include "ui_publish_to_dialog.h"
 #include "repository.h"
 #include <QDialog>
 #include <QWidget>
@@ -32,24 +32,25 @@ namespace Tao {
 
 struct Repository;
 
-class PullFromDialog : public QDialog, private Ui::PullFromDialog
+class PublishToDialog : public QDialog, private Ui::PublishToDialog
 {
     Q_OBJECT
 
 public:
-    PullFromDialog(Repository *repo, QWidget *parent = 0);
+    PublishToDialog(Repository *repo, QWidget *parent = 0);
 
 public:
-    QString                        pullFrom();
-    Repository::ConflictResolution conflictResolution();
+    QString      pushTo();
 
 public slots:
     virtual void accept();
+    void         on_rsFrame_noneSelected();
+    void         on_rsFrame_nameSelected();
 
 private:
-    Repository           *repo;
+    Repository * repo;
 };
 
 }
 
-#endif // PULL_FROM_DIALOG_H
+#endif // PUBLISH_TO_DIALOG_H

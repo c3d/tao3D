@@ -59,6 +59,13 @@ public:
     virtual bool        asyncCommit(text message, bool all=false);
     virtual bool        merge(text branch);
     virtual bool        reset();
+    virtual bool        pull();
+    virtual QStringList remotes();
+    virtual QString     remotePullUrl(QString name);
+    virtual bool        addRemote(QString name, QString pullUrl);
+    virtual bool        setRemote(QString name, QString newPullUrl);
+    virtual bool        delRemote(QString name);
+    virtual bool        renRemote(QString oldName, QString newName);
 
     static  bool        checkGit();
 

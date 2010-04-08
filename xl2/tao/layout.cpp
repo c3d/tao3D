@@ -26,6 +26,9 @@
 
 TAO_BEGIN
 
+int Layout::polygonOffset = 0;
+
+
 Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
 //    Create an empty layout
@@ -102,9 +105,6 @@ void Layout::Clear()
 }
 
 
-#define XY_SCALE 5.0
-#define UNITS    10.0
-
 void Layout::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the elements in the layout
@@ -133,7 +133,6 @@ void Layout::Draw(Layout *where)
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
-        glPolygonOffset (XY_SCALE, UNITS * (items.end() - i));
         child->Draw(this);
     }
 }
@@ -168,7 +167,6 @@ void Layout::DrawSelection(Layout *where)
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
-        glPolygonOffset (XY_SCALE, UNITS * (items.end() - i));
         child->DrawSelection(this);
     }
 }
@@ -249,6 +247,17 @@ void Layout::Add(Drawing *d)
 // ----------------------------------------------------------------------------
 {
     items.push_back(d);
+}
+
+
+void Layout::PolygonOffset()
+// ----------------------------------------------------------------------------
+//   Compute a polygon offset for the next shape being drawn
+// ----------------------------------------------------------------------------
+{
+    const double XY_SCALE = 5.0; // Good enough for approx 45 degrees Y angle
+    const double UNITS = 2.0;
+    glPolygonOffset (XY_SCALE * polygonOffset++, UNITS);
 }
 
 TAO_END

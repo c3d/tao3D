@@ -91,6 +91,7 @@ public:
 
     // XL program management
     void        updateProgram(XL::SourceFile *sf);
+    void        applyAction(XL::Action &action);
     void        refreshProgram();
     void        markChanged(text reason);
     bool        writeIfChanged(XL::SourceFile &sf);
@@ -195,15 +196,24 @@ public:
 
     // 2D primitive that can be in a path or standalone
     Tree *      rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
+    Tree *      isoscelesTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
+    Tree *      rightTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *      ellipse(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *      ellipseArc(Tree *self, real_r x, real_r y, real_r w, real_r h,
                            real_r start, real_r sweep);
     Tree *      roundedRectangle(Tree *self,
                                  real_r cx, real_r cy, real_r w, real_r h,
                                  real_r rx, real_r ry);
+    Tree *      arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
+                      real_r ax, real_r ary);
+    Tree *      doubleArrow(Tree *self,
+                            real_r cx, real_r cy, real_r w, real_r h,
+                            real_r ax, real_r ary);
     Tree *      starPolygon(Tree *self,
                             real_r cx, real_r cy, real_r w, real_r h,
                             integer_r p, integer_r q);
+    Tree *      star(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
+                     integer_r p, real_r r);
 
     // 3D primitives
     Tree *      sphere(Tree *self,
@@ -327,7 +337,7 @@ private:
     QTimer                timer, idleTimer;
     double                pageStartTime, pageRefresh;
     ulonglong             tmin, tmax, tsum, tcount;
-    ulonglong             nextSave, nextCommit, nextSync;
+    ulonglong             nextSave, nextCommit, nextSync, nextPull;
 
     static Widget *       current;
     static double         zNear, zFar;

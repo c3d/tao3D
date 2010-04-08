@@ -186,6 +186,19 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
                 }
             }
         }
+        if (XL::Postfix *postfix = (*ptr)->AsPostfix())
+        {
+            if (XL::Name *name = postfix->right->AsName())
+            {
+                if (name->value == "%")
+                {
+                    pptr = ptr;
+                    ptr = &postfix->left;
+                    more = true;
+                    scale /= 100;
+                }
+            }
+        }
     }
     if (scale == 0.0)
         scale = 1.0;
@@ -555,6 +568,165 @@ bool ControlRectangle::DrawHandles(Layout *layout)
                 changed = true;
             }
         }
+    }
+    return changed;
+}
+
+
+
+// ============================================================================
+//
+//   An arrow manipulator udpates x, y, w, h, the arrow handle a and allows 
+//   translation
+//
+// ============================================================================
+
+ControlArrow::ControlArrow(real_r x, real_r y, real_r w, real_r h, 
+                           real_r ax, real_r ary,
+                           Drawing *child)
+// ----------------------------------------------------------------------------
+//   A control arrow adds the arrow hanfle to the control rectangle 
+// ----------------------------------------------------------------------------
+    : ControlRectangle(x, y, w, h, child), ax(ax), ary(ary)
+{}
+
+
+bool ControlArrow::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the handles for an arrow
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
+    if (DrawHandle(layout, Point3(x + w/2 - ax, y + h*ary/2, 0), 9))
+    {
+        Widget *widget = layout->Display();
+        Drag *drag = widget->drag();
+        if (drag)
+        {
+            Point3 p1 = drag->Previous();
+            Point3 p2 = drag->Current();
+            if (p1 != p2)
+            {
+                Point3 p0 = drag->Origin();
+                updateArg(widget, &ax, 
+                          x + w/2 - p0.x, x + w/2 - p1.x, x + w/2 - p2.x);
+                if (h != 0) {
+                    updateArg(widget, &ary, 
+                              2*(p0.y - y)/h, 2*(p1.y - y)/h, 2*(p2.y - y)/h);
+                }
+                widget->markChanged("Arrow Modified");
+                changed = true;
+            }
+        }
+    }
+    if (!changed)
+    {
+        changed = ControlRectangle::DrawHandles(layout);
+    }
+    return changed;
+}
+
+
+
+// ============================================================================
+//
+//   A polygon manipulator udpates x, y, w, h, he number of points for the 
+//   polygon and allows translation
+//
+// ============================================================================
+
+ControlPolygon::ControlPolygon(real_r x, real_r y, real_r w, real_r h, 
+                               integer_r p,
+                               Drawing *child)
+// ----------------------------------------------------------------------------
+//   A control star adds the number of points to the control rectangle 
+// ----------------------------------------------------------------------------
+    : ControlRectangle(x, y, w, h, child), p(p)
+{}
+
+
+bool ControlPolygon::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the handles for a polygon
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
+    if (!changed && DrawHandle(layout, Point3(x -w/2 + (p-2)*w/19, y - h/2, 0), 9))
+    {
+        Widget *widget = layout->Display();
+        Drag *drag = widget->drag();
+        if (drag)
+        {
+            Point3 p1 = drag->Previous();
+            Point3 p2 = drag->Current();
+            if (p1 != p2 && p2.x > (x - w/2 + w/30) && p2.x < (x + w/2 - w/30))
+            {
+                Point3 p0 = drag->Origin();
+                coord p0x = 19*(p0.x - x)/w + 11.5;
+                coord p1x = 19*(p1.x - x)/w + 11.5;
+                coord p2x = 19*(p2.x - x)/w + 11.5;
+                updateArg(widget, &p, p0x, p1x, p2x);
+                widget->markChanged("Number of Points Changed");
+                changed = true;
+            }
+        }
+    }
+    if (!changed)
+    {
+        changed = ControlRectangle::DrawHandles(layout);
+    }
+    return changed;
+}
+
+
+
+// ============================================================================
+//
+//   A star manipulator udpates x, y, w, h, the number of points, the inner
+//   circle ration and allows translation
+//
+// ============================================================================
+
+ControlStar::ControlStar(real_r x, real_r y, real_r w, real_r h, 
+                         integer_r p, real_r r,
+                         Drawing *child)
+// ----------------------------------------------------------------------------
+//   A control star adds inner circle ratio to the control polygon 
+// ----------------------------------------------------------------------------
+    : ControlPolygon(x, y, w, h, p, child), r(r)
+{}
+
+
+bool ControlStar::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the handles for a star
+// ----------------------------------------------------------------------------
+{
+    double cp = cos(M_PI/p);
+    double sp = sin(M_PI/p);
+    bool changed = false;
+    if (DrawHandle(layout, Point3(x + r*w/2*sp, y + r*h/2*cp, 0), 11))
+    {
+        Widget *widget = layout->Display();
+        Drag *drag = widget->drag();
+        if (drag)
+        {
+            Point3 p1 = drag->Previous();
+            Point3 p2 = drag->Current();
+            if (p1 != p2)
+            {
+                Point3 p0 = drag->Origin();
+                scale hp = sqrt(w*sp*w*sp + h*cp*h*cp) * cp/2;
+                updateArg(widget, &r, 
+                          (p0.y - y)/hp, (p1.y - y)/hp, (p2.y - y)/hp);
+                widget->markChanged("Star Inner Circle Changed");
+                changed = true;
+            }
+        }
+    }
+    if (!changed)
+    {
+        changed = ControlPolygon::DrawHandles(layout);
     }
     return changed;
 }

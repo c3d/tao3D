@@ -46,11 +46,17 @@ bool GitRepository::checkGit()
     QStringListIterator it(commands);
     while (it.hasNext())
     {
-        text errors;
+        text errors, output;
         gitCommand = it.next();
         Process cmd(gitCommand, QStringList("--version"));
-        if (cmd.done(&errors))
-            return true;
+        if (cmd.done(&errors, &output))
+        {
+            // Check version is at least 1.7.0
+            // (we need the merge -Xours / -Xtheirs feature)
+            QString ver = (+output).replace(QRegExp("[^\\d\\.]"), "");
+            if (versionGreaterOrEqual(ver, "1.7.0"))
+                return true;
+        }
     }
     return false;
 }
@@ -220,6 +226,7 @@ bool GitRepository::commit(text message, bool all)
     if (!result)
         if (errors.find("nothing added") != errors.npos)
             result = true;
+    state = RS_Clean;
     return result;
 }
 
@@ -247,17 +254,22 @@ void GitRepository::asyncProcessFinished(int exitCode)
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
+    bool isCommit = (cmd->args.first() == "commit");
+    bool ok       = true;
     if (exitCode)
     {
-        bool ok = false;
+        ok = false;
         cmd->done(&errors);
-        if (cmd->args.first() == "commit")
+        if (isCommit)
             if (errors.find("nothing added") != errors.npos)
                 ok = true;
         if (!ok)
-            std::cerr << +tr("Async command failed, exit status %1: %2")
-                             .arg((int)exitCode).arg(cmd->commandLine);
+            std::cerr << +tr("Async command failed, exit status %1: %2\n")
+                             .arg((int)exitCode).arg(cmd->commandLine)
+                      << +tr("Error output:\n") << errors;
     }
+    if (ok && isCommit)
+        state = RS_Clean;
 }
 
 
@@ -277,6 +289,97 @@ bool GitRepository::reset()
 // ----------------------------------------------------------------------------
 {
     Process cmd(command(), QStringList("reset") << "--hard", path);
+    return cmd.done(&errors);
+}
+
+
+bool GitRepository::pull()
+// ----------------------------------------------------------------------------
+//   Pull from remote branch, if remote is set
+// ----------------------------------------------------------------------------
+{
+    if (pullFrom.isEmpty())
+        return true;
+    QStringList args("pull");
+    args << "-s" << "recursive";
+    switch (conflictResolution)
+    {
+    case CR_Ours:    args << "-Xours";   break;
+    case CR_Theirs:  args << "-Xtheirs"; break;
+    case CR_Unknown: std::cerr << "Unspecified conflict resolution mode\n";
+    }
+    args << pullFrom << "master_tao_undo";  // TODO hardcoded branch!
+    dispatch(new Process(command(), args, path, false));
+    return true;
+}
+
+
+QStringList GitRepository::remotes()
+// ----------------------------------------------------------------------------
+//   Return the names of all remotes configured in the repository
+// ----------------------------------------------------------------------------
+{
+    QStringList result;
+    text        output;
+    Process     cmd(command(), QStringList("remote"), path);
+    if (cmd.done(&errors, &output))
+    {
+        result = (+output).split("\n");
+        result.removeLast();            // Last string is always empty
+    }
+    return result;
+}
+
+QString GitRepository::remotePullUrl(QString name)
+// ----------------------------------------------------------------------------
+//   Return the pull URL for the specified remote
+// ----------------------------------------------------------------------------
+{
+    QStringList args;
+    args << "config" << "--get" << QString("remote.%1.url").arg(name);
+    text    output;
+    Process cmd(command(), args, path);
+    cmd.done(&errors, &output);
+    return (+output).trimmed();
+}
+
+
+bool GitRepository::addRemote(QString name, QString url)
+// ----------------------------------------------------------------------------
+//   Add a remote, giving its pull URL
+// ----------------------------------------------------------------------------
+{
+    Process cmd(command(), QStringList("remote") <<"add" <<name <<url, path);
+    return cmd.done(&errors);
+}
+
+bool GitRepository::setRemote(QString name, QString url)
+// ----------------------------------------------------------------------------
+//   Set a new pull URL for a remote
+// ----------------------------------------------------------------------------
+{
+    Process cmd(command(), QStringList("remote") <<"set-url" << name
+                << url, path);
+    return cmd.done(&errors);
+}
+
+bool GitRepository::delRemote(QString name)
+// ----------------------------------------------------------------------------
+//   Delete a remote
+// ----------------------------------------------------------------------------
+{
+    Process cmd(command(), QStringList("remote") << "rm" << name, path);
+    return cmd.done(&errors);
+}
+
+
+bool GitRepository::renRemote(QString oldName, QString newName)
+// ----------------------------------------------------------------------------
+//   Rename a remote
+// ----------------------------------------------------------------------------
+{
+    Process cmd(command(), QStringList("remote") << "rename"
+                << oldName << newName, path);
     return cmd.done(&errors);
 }
 

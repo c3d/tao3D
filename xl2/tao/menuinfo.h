@@ -50,10 +50,13 @@ public:
 
 };
 
-struct CleanMenuInfo : XL::SimpleAction
+
+struct CleanMenuInfo : XL::Action
+// ----------------------------------------------------------------------------
+//   Remove the MenuInfo from all the trees
+// ----------------------------------------------------------------------------
 {
     XL::Tree * Do(XL::Tree *what);
-
 };
 
 TAO_END

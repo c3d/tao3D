@@ -50,7 +50,7 @@ struct Layout : Drawing
     virtual Box3        Space();
 
     // Layout interface
-    virtual Layout &    Add (Drawing *d);
+    virtual void        Add (Drawing *d);
     virtual Vector3     Offset();
     virtual Layout *    NewChild()       { return new Layout(*this); }
     virtual Layout *    AddChild();

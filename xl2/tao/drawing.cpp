@@ -83,21 +83,21 @@ Box3 Drawing::Space()
 }
 
 
-bool Drawing::IsWordBreak()
+Drawing *Drawing::WordBreak()
 // ----------------------------------------------------------------------------
-//   Tell if a shape is a word break
+//   Break a shape at the next word boundary if any
 // ----------------------------------------------------------------------------
 {
-    return false;
+    return NULL;
 }
 
 
-bool Drawing::IsLineBreak()
+Drawing *Drawing::LineBreak()
 // ----------------------------------------------------------------------------
-//    Tell if a shape is a line break
+//    Break a shape at the next line boundary, if any
 // ----------------------------------------------------------------------------
 {
-    return false;
+    return NULL;
 }
 
 

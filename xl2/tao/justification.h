@@ -56,46 +56,47 @@ struct Justifier
 // ----------------------------------------------------------------------------
 //    Object used to layout lines (vertically) or glyphs (horizontally)
 // ----------------------------------------------------------------------------
+//    An important invariant for memory management reasons is that items are
+//    either in items or in places but not both. Furthermore, if a drawing
+//    is broken up (e.g. by LineBreak), both elements are tracked in either
+//    items or places.
 {
-    Justifier(): target(0), total(0), justify(), items(), placed() {}
-    ~Justifier() {}
-
-    // Add elements to the layout
-    void        AddItem(coord size, Item item);
-    void        AddBreak(coord size);
+    typedef std::vector<Item>           Items;
+    typedef typename Items::iterator    ItemsIterator;
 
 public:
-    // Structure recording an item (NULL = break) and its size / position
-    struct JustifierItem
-    {
-        JustifierItem(coord size, Item item):
-            size(size), position(0), item(item) {}
-        bool    IsBreak()       { return item == 0; }
+    Justifier(): items(), places() {}
+    Justifier(const Justifier &): items(), places() {}
+    ~Justifier() { Clear(); }
 
-        coord   size;
+    // Position items in the layout
+    bool        Adjust(coord start, coord end, Justification &j);
+
+    // Build and clear the layout
+    void        Add(Item item);
+    void        Add(ItemsIterator first, ItemsIterator last);
+    void        Clear();
+
+    // Properties of the items in the layout
+    Item        Break(Item item);
+    coord       Size(Item item);
+
+    // Structure recording an item after we placed it
+    struct Place
+    {
+        Place(Item item, scale size = 0, coord pos = 0, bool solid=true)
+            : size(size), position(pos), item(item), solid(solid) {}
+        scale   size;
         coord   position;
         Item    item;
+        bool    solid;
     };
-    typedef std::vector<JustifierItem> JustifierItems;
-    typedef typename JustifierItems::iterator JustifierItemsIterator;
+    typedef std::vector<Place>          Places;
+    typedef typename Places::iterator   PlacesIterator;
 
 public:
-    // Compute the layout, return number of items
-    coord       TotalSize() { return total; }
-    JustifierItems &Compute();
-    JustifierItems &Compute(coord target, const Justification &justify)
-    {
-        this->target = target;
-        this->justify = justify;
-        return Compute();
-    }
-
-public:
-    coord          target;      // Target size for the layout
-    coord          total;       // Size of remaining elements
-    Justification  justify;     // Justification for the layout
-    JustifierItems items;       // Items remaining to layout
-    JustifierItems placed;      // Items placed by last Compute()
+    Items         items;        // Items remaining to be placed (e.g. broken)
+    Places        places;       // Items placed on the layout
 };
 
 
@@ -107,111 +108,134 @@ public:
 // ============================================================================
 
 template<class Item>
-void Justifier<Item>::AddItem(coord size, Item item)
+void Justifier<Item>::Add(Item item)
 // ----------------------------------------------------------------------------
-//    Add an item to the layout
+//   Add a single item to the justifier
 // ----------------------------------------------------------------------------
 {
-    items.push_back(JustifierItem(size, item));
-    total += size;
+    items.push_back(item);
 }
 
 
 template<class Item>
-void Justifier<Item>::AddBreak(coord size)
+void Justifier<Item>::Add(ItemsIterator first, ItemsIterator last)
 // ----------------------------------------------------------------------------
-//    Add a break to the layout (identified with NULL pointer)
+//   Add a range of items
 // ----------------------------------------------------------------------------
 {
-    items.push_back(JustifierItem(size, 0));
-    total += size;
+    items.insert(items.end(), first, last);
 }
 
 
 template<class Item>
-typename Justifier<Item>::JustifierItems &Justifier<Item>::Compute()
+void Justifier<Item>::Clear()
+// ----------------------------------------------------------------------------
+//   Delete the elements we have moved in places
+// ----------------------------------------------------------------------------
+{
+    // Delete items remaining to be placed
+    ItemsIterator i;
+    for (i = items.begin(); i != items.end(); i++)
+        delete (*i);
+    items.clear();
+
+    // Delete placed items
+    PlacesIterator p;
+    for (p = places.begin(); p != places.end(); p++)
+        delete (*p).item;
+    places.clear();
+}
+
+
+template<class Item>
+bool Justifier<Item>::Adjust(coord start, coord end, Justification &justify)
 // ----------------------------------------------------------------------------
 //    Place elements until we reach the target size
 // ----------------------------------------------------------------------------
 {
-    JustifierItemsIterator i;
-    JustifierItemsIterator lastBreak                   = items.begin();
-    coord                  size                        = 0.0;
-    coord                  sizeAtBreak                 = -1.0;
-    bool                   isBreak                     = false;
-    uint                   numBreaks                   = 0;
-    uint                   numNonBreaks                = 0;
-    uint                   numNonBreaksBeforeLastBreak = 0;
+    coord pos  = start;
+    bool  hasRoom = true;
+    uint  numBreaks = 0;
+    uint  numSolids = 0;
+    int   sign = start < end ? 1 : -1;
 
-    // Find last break before we reach target size
-    for (i = items.begin(); i != items.end(); i++)
+    // Place items until there's none left or we are beyond the max position
+    ItemsIterator i;
+    for (i = items.begin(); hasRoom && i != items.end(); i++)
     {
-        // Record the last break we encountered
-        isBreak = (*i).IsBreak();
-        if (isBreak)
+        // Get item and break it down into individual unbreakable units
+        Item  item = *i;
+        while (hasRoom && item)
         {
-            lastBreak = i;
-            sizeAtBreak = size;
-            numBreaks++;
-            numNonBreaksBeforeLastBreak = numNonBreaks;
-        }
-        else
-        {
-            numNonBreaks++;
-        }
+            // Cut item at the first break point
+            Item next = Break(item);
 
-        // Add size 
-        double next = size + (*i).size;
-        if (next >= target)
-            break;
-        size = next;
-    }
+            // Test the size of what remains
+            scale size = Size(item);
+            if (sign * (pos + size) > sign * end)
+            {
+                // It doesn't fit, we need to stop here.
+                // Erase what we already placed
+                items.erase(items.begin(), i);
 
-    // Compute the actual size of the items to place
-    if (sizeAtBreak < 0.0)
-    {
-        sizeAtBreak = size;
-        lastBreak = i;
-    }
-    if (!numBreaks)
-    {
-        numBreaks = 1;
-        numNonBreaksBeforeLastBreak = numNonBreaks;
-    }
-    numNonBreaks = numNonBreaksBeforeLastBreak;
-    if (!numNonBreaks)
-    {
-        numNonBreaks = 1;
+                // Insert the broken down items
+                if (next)
+                    items.insert(items.begin(), next);
+                items.insert(items.begin(), item);
+
+                hasRoom = false;
+            }
+            else
+            {
+                // It fits, place it
+                places.push_back(Place(item, size, pos, !item));
+                pos += size;
+                item = next;
+                if (item)
+                    numBreaks++;
+                else
+                    numSolids++;
+            }
+        }
     }
 
     // Compute the extra space that we can use for justification
-    coord extra = (target - sizeAtBreak) * justify.amount;
+    coord extra = (end - pos) * justify.amount;
 
     // Compute the offset we will use for centering
-    coord offset = (target - extra) * justify.centering;
+    coord width = end - start;
+    coord offset = (width - extra) * justify.centering;
+
+    // If we have placed all the items, don't justify
+    if (hasRoom)
+        extra = 0;
 
     // Allocate that extra space between breaks and non breaks
-    coord forNonBreaks = justify.spread * extra;
-    coord forBreaks = extra - forNonBreaks;
+    coord forSolids = justify.spread * extra;
+    coord forBreaks = extra - forSolids;
 
     // And allocate to individual items
-    coord atNonBreak = forNonBreaks / numNonBreaks;
+    if (!numSolids)
+        numSolids = 1;
+    if (!numBreaks)
+        numBreaks = 1;
+    coord atSolid = forSolids / numSolids;
     coord atBreak = forBreaks / numBreaks;
 
-    // Copy and place the individual elements
-    for (i = items.begin(); i != lastBreak; i++)
+    // Now perform the adjustment on individual positions
+    PlacesIterator p;
+    for (p = places.begin(); p != places.end(); p++)
     {
-        JustifierItem item = *i;
-        item.position = offset;
-        offset += size + (item.IsBreak() ? atBreak : atNonBreak);
-        placed.push_back(item);
+        Place &place = *p;
+        place.position += offset;
+        if (place.solid)
+            offset += atSolid;
+        else
+            offset += atBreak;
     }
 
-    // Remove elements from items.
-    items.erase(items.first(), lastBreak);
-
-    // Return the placed elements
-    return placed;
+    // Return true if we placed all the items
+    return hasRoom;
 }
 
 TAO_END

@@ -243,13 +243,12 @@ Box3 Layout::Space()
 }
 
 
-Layout &Layout::Add(Drawing *d)
+void Layout::Add(Drawing *d)
 // ----------------------------------------------------------------------------
-//   Add a drawing to the items - Override with layout computations
+//   Add a drawing to the items, return true if item fits in layout
 // ----------------------------------------------------------------------------
 {
     items.push_back(d);
-    return *this;
 }
 
 TAO_END

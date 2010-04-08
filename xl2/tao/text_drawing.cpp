@@ -140,7 +140,8 @@ Box3 TextSpan::Bounds()
 {
     QFontMetrics fm(font);
     QRect rect = fm.tightBoundingRect(value);
-    return Box3(rect.x(), rect.height()+rect.y(), 0, rect.width(), rect.height(), 0);    
+    return Box3(rect.x(), rect.height()+rect.y(), 0,
+                rect.width(), rect.height(), 0);    
 }
 
 
@@ -153,7 +154,57 @@ Box3 TextSpan::Space()
     int flags = Qt::AlignCenter;
     QRect openSpace(-10000, -10000, 20000, 20000);
     QRect rect = fm.boundingRect(openSpace, flags, value);
-    return Box3(rect.x(), rect.height()+rect.y(), 0, rect.width(), rect.height(), 0);    
+    return Box3(rect.x(), rect.height()+rect.y(), 0,
+                rect.width(), rect.height(), 0);    
+}
+
+
+TextSpan *TextSpan::WordBreak()
+// ----------------------------------------------------------------------------
+//   If the text span contains a word break, cut there
+// ----------------------------------------------------------------------------
+{
+    uint i, max = value.length();
+    for (i = 0; i < max; i++)
+    {
+        QChar c = value[i];
+        QChar::Category cat = c.category();
+        if (cat == QChar::Separator_Space)
+        {
+            // Create two text spans, none of which contains the space
+            QString remainder = value.mid(i+1);
+            TextSpan *result = new TextSpan(remainder, font);
+            value = value.left(i);
+            return result;
+        }
+        else if (cat == QChar::Separator_Line ||
+                 cat == QChar::Separator_Paragraph)
+        {
+            // Create two text spans, the first one containing the \n
+            QString remainder = value.mid(i+1);
+            TextSpan *result = new TextSpan(remainder, font);
+            value = value.left(i+1);
+            return result;
+        }
+    }
+    return NULL;
+}
+
+
+TextSpan *TextSpan::LineBreak()
+// ----------------------------------------------------------------------------
+//   If the text span contains a line break, cut there
+// ----------------------------------------------------------------------------
+{
+    int index = value.indexOf('\n');
+    if (index >= 0)
+    {
+        QString remainder = value.mid(index+1);
+        TextSpan *result = new TextSpan(remainder, font);
+        value = value.left(index);
+        return result;
+    }
+    return NULL;
 }
 
 TAO_END

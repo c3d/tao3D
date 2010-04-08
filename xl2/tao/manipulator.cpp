@@ -380,21 +380,21 @@ Box3 DrawingManipulator::Space()
 }
 
 
-bool DrawingManipulator::IsWordBreak()
+Drawing *DrawingManipulator::WordBreak()
 // ----------------------------------------------------------------------------
 //   Return the property of the child
 // ----------------------------------------------------------------------------
 {
-    return child->IsWordBreak();
+    return child->WordBreak();
 }
 
 
-bool DrawingManipulator::IsLineBreak()
+Drawing *DrawingManipulator::LineBreak()
 // ----------------------------------------------------------------------------
 //   Return the property of the child
 // ----------------------------------------------------------------------------
 {
-    return child->IsLineBreak();
+    return child->LineBreak();
 }
 
 

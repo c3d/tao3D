@@ -1796,16 +1796,7 @@ Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
 //   Arrow
 // ----------------------------------------------------------------------------
 {
-    if (ax > w) 
-        ax = w;
-    if (ax < 0.0) 
-        ax = 0.0;
-    if (ary > 1.0) 
-        ary = 1.0;
-    if (ary < 0.0) 
-        ary = 0.0;
-         
-    Arrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ary*h);
+    Arrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ary);
     if (path)
         shape.Draw(*path);
     else
@@ -1823,15 +1814,6 @@ Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
 //   Double arrow
 // ----------------------------------------------------------------------------
 {
-    if (ax > w/2) 
-        ax = w/2;
-    if (ax < 0.0) 
-        ax = 0.0;
-    if (ary > 1.0) 
-        ary = 1.0;
-    if (ary < 0.0) 
-        ary = 0.0;
-         
     DoubleArrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ary*h);
     if (path)
         shape.Draw(*path);

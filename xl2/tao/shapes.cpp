@@ -17,6 +17,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -228,15 +229,35 @@ void Arrow::Draw(GraphicPath &path)
 //   Draw an arrow
 // ----------------------------------------------------------------------------
 {
-    coord x0 = bounds.lower.x;
-    coord x1 = bounds.upper.x;
-    coord xa1 = x1 - a.x;
+    coord aax, aay;
+    int sw = bounds.Width() > 0? 1: -1;
+    int sh = bounds.Height() > 0? 1: -1;
 
-    coord y0 = bounds.lower.y;
-    coord yc = (bounds.lower.y + bounds.upper.y)/2;
-    coord y1 = bounds.upper.y;
-    coord ya0 = yc - a.y/2;
-    coord ya1 = yc + a.y/2;
+    if (ax > sw*bounds.Width()) 
+        aax = bounds.Width();
+    else
+        aax = sw*ax;
+    
+    if (ax < 0.0) 
+        aax = 0.0;
+
+    if (ary > 1.0) 
+        aay = bounds.Height();
+    else
+        aay = ary*bounds.Height();
+    
+    if (ary < 0.0) 
+        aay = 0.0;
+ 
+    coord x0 = bounds.Left();
+    coord x1 = bounds.Right();
+    coord xa1 = x1 - aax;
+
+    coord y0 = bounds.Bottom();
+    coord yc = (bounds.Bottom() + bounds.Top())/2;
+    coord y1 = bounds.Top();
+    coord ya0 = yc - aay/2;
+    coord ya1 = yc + aay/2;
 
     path.moveTo(Point3(x0,  ya0, 0));
     path.lineTo(Point3(xa1, ya0, 0));

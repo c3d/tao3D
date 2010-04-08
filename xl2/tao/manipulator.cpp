@@ -17,6 +17,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -201,7 +202,7 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
             }
         }
     }
-    // LIONEL: Really?
+    // REVISIT: Really?
     if (scale == 0.0)
         scale = 1.0;
 
@@ -233,7 +234,12 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
         // Create an Infix + with the delta we add
         if (ptr != &arg)
         {
-            double delta = (current - previous) / scale;
+            double value = current;
+            if (has_min && current < min)
+                value = min;
+            if (has_max && current > max)
+                value = max;
+            double delta = (value - previous) / scale;
             *ptr = new XL::Infix("+", new XL::Real(delta), *ptr);
             widget->reloadProgram = true;
         }
@@ -612,9 +618,14 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
     Widget *widget = layout->Display();
     Drag   *drag = widget->drag();
 
+    coord rr = r;
+    if (rr < 0)
+        rr = 0;
     if (h < w)
     {
-        if (DrawHandle(layout, Point3((r < w/2? x - w/2 + r: double(x)), y + h/2, 0), 9))
+        if (rr > w/2)
+            rr = w/2;
+        if (DrawHandle(layout, Point3(x - w/2 + rr, y + h/2, 0), 9))
         {
             if (drag)
             {
@@ -634,7 +645,9 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
     } 
     else
     {
-        if (DrawHandle(layout, Point3(x - w/2,(r < h/2? y + h/2 - r: double(y)), 0), 9))
+        if (rr > h/2)
+            rr = h/2;
+        if (DrawHandle(layout, Point3(x - w/2,y + h/2 - rr, 0), 9))
         {
             if (drag)
             {
@@ -656,69 +669,6 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
     {
         changed = ControlRectangle::DrawHandles(layout);
     }
-    /*
-        coord   xx = x, yy = y, ww = w, hh = h;
-        uint    handle = 0;
-
-        for (uint hn = 0; hn < 4; hn++)
-        {
-            short  sw = (hn & 1) ? 1 : -1;
-            short  sh = (hn & 2) ? 1 : -1;
-
-            // Lower-left corner
-            if (DrawHandle(layout, Point3(xx + sw*ww/2, yy + sh*hh/2, 0), hn+1))
-            {
-                if (!handle)
-                {
-                    handle = hn+1;
-
-                    // Update arguments if necessary
-                    if (drag)
-                    {
-                        Point3 p1 = drag->Previous();
-                        Point3 p2 = drag->Current();
-                        if (p1 != p2)
-                        {
-                            Point3 p0 = drag->Origin();
-                            text   t1 = sh < 0 ? "Lower " : "Upper ";
-                            text   t2 = sw < 0 ? "left " : "right ";
-
-                            updateArg(widget, &x, p0.x/2, p1.x/2, p2.x/2);
-                            updateArg(widget, &y, p0.y/2, p1.y/2, p2.y/2);
-                            updateArg(widget, &w, sw*p0.x, sw*p1.x, sw*p2.x);
-                            updateArg(widget, &h, sh*p0.y, sh*p1.y, sh*p2.y);
-                            if (r > w/2 && r > h/2)
-                            {
-                                updateArg(widget, &r, r, r, (w > h? w: h)/2);
-                            }
-
-                            widget->markChanged(t1 + t2 + " corner moved");
-                            changed = true;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    if (!changed)
-    {
-        Widget *widget = layout->Display();
-        Drag *drag = widget->drag();
-        if (drag && !widget->manipulatorId())
-        {
-            Point3 p1 = drag->Previous();
-            Point3 p2 = drag->Current();
-            if (p1 != p2)
-            {
-                Point3 p0 = drag->Origin();
-                updateArg(widget, &x, p0.x, p1.x, p2.x);
-                updateArg(widget, &y, p0.y, p1.y, p2.y);
-                widget->markChanged("Shape moved");
-                changed = true;
-            }
-        }
-    }
-    */
     return changed;
 }
 
@@ -753,7 +703,8 @@ bool ControlArrow::DrawHandles(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     bool changed = false;
-    if (DrawHandle(layout, Point3(x + w/2 - ax, y + h*ary/2, 0), 9))
+    if (DrawHandle(layout, 
+                   Point3((ax < w? x + w/2 - ax: x - w/2), y + h*ary/2, 0), 9))
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
@@ -766,7 +717,7 @@ bool ControlArrow::DrawHandles(Layout *layout)
                 Point3 p0 = drag->Origin();
                 updateArg(widget, &ax, 
                           x + w/2 - p0.x, x + w/2 - p1.x, x + w/2 - p2.x,
-                          true, 0.0, d, w/2);
+                          true, 0.0, true, w/(d?2:1));
                 if (h != 0)
                 {
                     updateArg(widget, &ary, 

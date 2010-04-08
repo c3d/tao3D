@@ -27,6 +27,7 @@
 #include "git_backend.h"
 #include "application.h"
 #include "tao_utf8.h"
+#include "pull_from_dialog.h"
 
 #include <iostream>
 #include <sstream>
@@ -237,6 +238,23 @@ bool Window::saveAs()
 }
 
 
+void Window::setPullUrl()
+// ----------------------------------------------------------------------------
+//    Prompt user for address of remote repository to pull from
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+    {
+        QMessageBox::warning(this, tr("No project"),
+                             tr("This feature is not available because the "
+                                "current document is not in a project."));
+        return;
+    }
+
+    PullFromDialog(repo.data()).exec();
+}
+
+
 void Window::about()
 // ----------------------------------------------------------------------------
 //    About Box
@@ -318,6 +336,12 @@ void Window::createActions()
                               "selection"));
     connect(pasteAct, SIGNAL(triggered()), textEdit, SLOT(paste()));
 
+    setPullUrlAct = new QAction(tr("Synchronize..."), this);
+    setPullUrlAct->setStatusTip(tr("Set the remote address to \"pull\" from "
+                                   "when synchronizing the current "
+                                   "document with a remote one"));
+    connect(setPullUrlAct, SIGNAL(triggered()), this, SLOT(setPullUrl()));
+
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setStatusTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
@@ -328,6 +352,7 @@ void Window::createActions()
 
     fullScreenAct = new QAction(tr("Fullscreen"), this);
     fullScreenAct->setStatusTip(tr("Toggle full-screen mode"));
+    fullScreenAct->setCheckable(true);
     connect(fullScreenAct, SIGNAL(triggered()), this, SLOT(toggleFullScreen()));
 
     cutAct->setEnabled(false);
@@ -357,6 +382,9 @@ void Window::createMenus()
     editMenu->addAction(cutAct);
     editMenu->addAction(copyAct);
     editMenu->addAction(pasteAct);
+
+    toolsMenu = menuBar()->addMenu(tr("&Tools"));
+    toolsMenu->addAction(setPullUrlAct);
 
     viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(dock->toggleViewAction());
@@ -826,8 +854,7 @@ void Window::setCurrentFile(const QString &fileName)
 
     curFile = QFileInfo(name).absoluteFilePath();
 
-    textEdit->document()->setModified(false);
-    setWindowModified(false);
+    markChanged(false);
     setWindowFilePath(curFile);
 }
 

@@ -96,7 +96,7 @@ Application::Application(int & argc, char ** argv)
                              tr("No supported version control software was "
                                 "found. Some functions will not be available. "
                                 "Consider re-installing the application, "
-                                "or installing Git."));
+                                "or installing Git v1.7.0 or later."));
     }
 
     // Create default folder for Tao documents

@@ -89,7 +89,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       timer(this), idleTimer(this),
       pageStartTime(CurrentTime()), pageRefresh(86400),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
-      nextSave(now()), nextCommit(nextSave), nextSync(nextSave)
+      nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
+      nextPull(nextSave)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -146,7 +147,6 @@ void Widget::dawdle()
     // We will only auto-save and commit if we have a valid repository
     Repository *repo           = repository();
     XL::Main   *xlr            = XL::MAIN;
-    bool        savedSomething = false;
 
     // Check if we need to refresh something
     double idleInterval = 0.001 * idleTimer.interval();
@@ -168,6 +168,7 @@ void Widget::dawdle()
         text txt = *xlProgram->tree.tree;
         Window *window = (Window *) parentWidget();
         window->setText(+txt);
+        window->markChanged(false);
         if (!repo)
             xlProgram->changed = false;
     }
@@ -175,14 +176,13 @@ void Widget::dawdle()
     // Check if there's something to save
     ulonglong tick = now();
     longlong saveDelay = longlong(nextSave - tick);
-    if (repo && saveDelay < 0)
+    if (repo && saveDelay < 0 && repo->idle())
     {
         XL::source_files::iterator it;
         for (it = xlr->files.begin(); it != xlr->files.end(); it++)
         {
             XL::SourceFile &sf = (*it).second;
-            if (writeIfChanged(sf))
-                savedSomething = true;
+            writeIfChanged(sf);
         }
 
         // Record when we will save file again
@@ -195,11 +195,18 @@ void Widget::dawdle()
 
     // Check if there's something to commit
     longlong commitDelay = longlong (nextCommit - tick);
-    if (savedSomething && commitDelay < 0)
+    if (repo && commitDelay < 0 && repo->state == Repository::RS_NotClean)
     {
-        // If we saved anything, then commit changes
-        if (doCommit())
-            savedSomething = false;
+        doCommit();
+    }
+
+    // Check if there's something to merge from the remote repository
+    // REVISIT: sync: what if several widgets share the same repository?
+    longlong pullDelay = longlong (nextPull - tick);
+    if (repo && pullDelay < 0 && repo->state == Repository::RS_Clean)
+    {
+        repo->pull();
+        nextPull = now() + xlr->options.pull_interval * 1000;
     }
 
     // Check if there's something to reload

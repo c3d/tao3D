@@ -80,6 +80,8 @@ bool Repository::write(text fileName, XL::Tree *tree)
     if (ok)
         ok = std::rename(copy.c_str(), full.c_str()) == 0;
 
+    state = RS_NotClean;
+
     return ok;
 }
 
@@ -193,6 +195,27 @@ bool Repository::available()
 }
 
 
+bool Repository::versionGreaterOrEqual(QString ver, QString ref)
+// ----------------------------------------------------------------------------
+//    Return true if ver >= ref. For instance, "1.7.0" >= "1.6.6.2"
+// ----------------------------------------------------------------------------
+{
+    QStringListIterator vit(ver.split("."));
+    QStringListIterator rit(ref.split("."));
+    while (vit.hasNext() && rit.hasNext())
+    {
+        int vi = vit.next().toInt();
+        int ri = rit.next().toInt();
+        if (vi > ri)
+            return true;
+        if (vi < ri)
+            return false;
+    }
+    while (rit.hasNext())
+        if (rit.next().toInt())
+            return false;
+    return true;
+}
 
 bool Repository::selectWorkBranch()
 // ----------------------------------------------------------------------------
@@ -209,6 +232,15 @@ bool Repository::selectUndoBranch()
 // ----------------------------------------------------------------------------
 {
     return checkout(task + TAO_UNDO_SUFFIX);
+}
+
+
+bool Repository::idle()
+// ----------------------------------------------------------------------------
+//    Return true if there is no pending command to execute
+// ----------------------------------------------------------------------------
+{
+    return pQueue.empty();
 }
 
 
@@ -236,7 +268,7 @@ void Repository::asyncProcessFinished(int exitCode)
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
     if (exitCode)
-        std::cerr << +tr("Async command failed, exit status %1: %2")
+        std::cerr << +tr("Async command failed, exit status %1: %2\n")
                      .arg((int)exitCode).arg(cmd->commandLine);
 }
 
@@ -249,8 +281,9 @@ void Repository::asyncProcessError(QProcess::ProcessError error)
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
-    std::cerr << +tr("Async command error %1: %2")
-                 .arg((int)error).arg(cmd->commandLine);
+    std::cerr << +tr("Async command error %1: %2\nError output:\n%3")
+                 .arg((int)error).arg(cmd->commandLine)
+                 .arg(QString(cmd->readAllStandardError()));
 }
 
 

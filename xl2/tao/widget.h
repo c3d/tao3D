@@ -327,7 +327,7 @@ private:
     QTimer                timer, idleTimer;
     double                pageStartTime, pageRefresh;
     ulonglong             tmin, tmax, tsum, tcount;
-    ulonglong             nextSave, nextCommit, nextSync;
+    ulonglong             nextSave, nextCommit, nextSync, nextPull;
 
     static Widget *       current;
     static double         zNear, zFar;

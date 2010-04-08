@@ -21,6 +21,7 @@
 // ****************************************************************************
 
 #include "process.h"
+#include "tao_utf8.h"
 #include "errors.h"
 #include "options.h"
 

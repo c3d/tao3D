@@ -76,6 +76,7 @@ HEADERS += widget.h \
     process.h \
     repository.h \
     git_backend.h \
+    tao_utf8.h \
     ../xlr/utf8.h \
     ../xlr/base.h \
     ../xlr/options.h \

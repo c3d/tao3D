@@ -26,6 +26,7 @@
 #include "apply_changes.h"
 #include "git_backend.h"
 #include "application.h"
+#include "tao_utf8.h"
 
 #include <iostream>
 #include <sstream>

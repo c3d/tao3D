@@ -25,6 +25,7 @@
 #include "parser.h"
 #include "main.h"
 #include "git_backend.h"
+#include "tao_utf8.h"
 
 #include <QDir>
 #include <QtGlobal>

@@ -64,23 +64,6 @@ public:
     QString     wd;
 };
 
-
-inline QString operator +(text s)
-// ----------------------------------------------------------------------------
-//   Quickly convert from text to QString
-// ----------------------------------------------------------------------------
-{
-    return QString::fromUtf8(s.data(), s.length());
-}
-
-inline text operator +(QString s)
-// ----------------------------------------------------------------------------
-//   Quickly convert from QString to text
-// ----------------------------------------------------------------------------
-{
-    return s.toStdString();
-}
-
 TAO_END
 
 #endif // PROCESS_H

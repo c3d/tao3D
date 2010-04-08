@@ -300,6 +300,7 @@ void Widget::draw()
     // Clear the background
     glClearColor (1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    Layout::polygonOffset = 0;
 
     // Make sure we compile the selection the first time
     static bool first = true;
@@ -1108,6 +1109,31 @@ void Widget::updateProgram(XL::SourceFile *source)
 {
     xlProgram = source;
     refreshProgram();
+}
+
+
+void Widget::applyAction(XL::Action &action)
+// ----------------------------------------------------------------------------
+//   Applies an action on the tree and all the dependents
+// ----------------------------------------------------------------------------
+{
+    if (!xlProgram)
+        return;
+    Tree *prog = xlProgram->tree.tree;
+    if (!prog)
+        return;
+
+    // Lookup imported files
+    import_set iset;
+    ImportedFilesChanged(prog, iset, false);
+
+    import_set::iterator it;
+    for (it = iset.begin(); it != iset.end(); it++)
+    {
+        XL::SourceFile &sf = **it;
+        if (sf.tree.tree)
+            sf.tree.tree->Do(action);
+    }
 }
 
 
@@ -1994,6 +2020,36 @@ Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 }
 
 
+Tree *Widget::isoscelesTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
+// ----------------------------------------------------------------------------
+//    Draw an isosceles triangle
+// ----------------------------------------------------------------------------
+{
+    IsoscelesTriangle shape(Box(x-w/2, y-h/2, w, h));
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlRectangle(x, y, w, h, new IsoscelesTriangle(shape)));
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::rightTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
+// ----------------------------------------------------------------------------
+//    Draw a right triangle
+// ----------------------------------------------------------------------------
+{
+    RightTriangle shape(Box(x-w/2, y-h/2, w, h));
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlRectangle(x, y, w, h, new RightTriangle(shape)));
+
+    return XL::xl_true;
+}
+
+
 Tree *Widget::ellipse(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //   Cairo circle centered around (cx,cy), radius r
@@ -2046,11 +2102,65 @@ Tree *Widget::roundedRectangle(Tree *self,
 
 
 
+Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
+                    real_r ax, real_r ary)
+// ----------------------------------------------------------------------------
+//   Arrow
+// ----------------------------------------------------------------------------
+{
+    if (ax > w) 
+        ax = w;
+    if (ax < 0.0) 
+        ax = 0.0;
+    if (ary > 1.0) 
+        ary = 1.0;
+    if (ary < 0.0) 
+        ary = 0.0;
+         
+    Arrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ary*h);
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlArrow(cx, cy, w, h, ax, ary,
+                                         new Arrow(shape)));
+
+    return XL::xl_true;
+}
+
+
+
+Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
+                    real_r ax, real_r ary)
+// ----------------------------------------------------------------------------
+//   Double arrow
+// ----------------------------------------------------------------------------
+{
+    if (ax > w/2) 
+        ax = w/2;
+    if (ax < 0.0) 
+        ax = 0.0;
+    if (ary > 1.0) 
+        ary = 1.0;
+    if (ary < 0.0) 
+        ary = 0.0;
+         
+    DoubleArrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ary*h);
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlArrow(cx, cy, w, h, ax, ary,
+                                         new DoubleArrow(shape)));
+
+    return XL::xl_true;
+}
+
+
+
 Tree *Widget::starPolygon(Tree *self,
                           real_r cx, real_r cy, real_r w, real_r h,
                           integer_r p, integer_r q)
 // ----------------------------------------------------------------------------
-//     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
+//     GL regular p-side star polygon {p/q} centered around (cx,cy)
 // ----------------------------------------------------------------------------
 {
     if (p < 2 || q == 0 || q > (p-1)/2 || q < -(p-1)/2)
@@ -2060,8 +2170,30 @@ Tree *Widget::starPolygon(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(cx, cy, w, h,
+        layout->Add(new ControlPolygon(cx, cy, w, h, p,
                                          new StarPolygon(shape)));
+
+    return XL::xl_true;
+}
+
+
+
+Tree *Widget::star(Tree *self,
+                   real_r cx, real_r cy, real_r w, real_r h,
+                   integer_r p, real_r r)
+// ----------------------------------------------------------------------------
+//     GL regular p-side star centered around (cx,cy), inner radius ratio r
+// ----------------------------------------------------------------------------
+{
+    if (p < 2 || r < 0.0 || r > 1.0 )
+        return ellipse(self, cx, cy, w, h); // Show something else in its place
+
+    Star shape(Box(cx-w/2, cy-h/2, w, h), p, r);
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlStar(cx, cy, w, h, p, r,
+                                         new Star(shape)));
 
     return XL::xl_true;
 }

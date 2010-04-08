@@ -70,6 +70,7 @@ bool Shape::setFillColor(Layout *where)
         if (color.alpha > 0.0)
         {
             glColor4f(color.red, color.green, color.blue, color.alpha);
+            where->PolygonOffset();
             return true;
         }
     }
@@ -89,6 +90,7 @@ bool Shape::setLineColor(Layout *where)
         if (color.alpha > 0.0)
         {
             glColor4f(color.red, color.green, color.blue, color.alpha);
+            where->PolygonOffset();
             return true;
         }
     }
@@ -131,6 +133,30 @@ void Rectangle::Draw(GraphicPath &path)
     path.moveTo(Point3(bounds.lower.x, bounds.lower.y, 0));
     path.lineTo(Point3(bounds.upper.x, bounds.lower.y, 0));
     path.lineTo(Point3(bounds.upper.x, bounds.upper.y, 0));
+    path.lineTo(Point3(bounds.lower.x, bounds.upper.y, 0));
+    path.close();
+}
+
+
+void IsoscelesTriangle::Draw(GraphicPath &path)
+// ----------------------------------------------------------------------------
+//   Draw an isosceles triangle
+// ----------------------------------------------------------------------------
+{
+    path.moveTo(Point3(bounds.lower.x, bounds.lower.y, 0));
+    path.lineTo(Point3(bounds.upper.x, bounds.lower.y, 0));
+    path.lineTo(Point3((bounds.upper.x + bounds.lower.x)/2, bounds.upper.y, 0));
+    path.close();
+}
+
+
+void RightTriangle::Draw(GraphicPath &path)
+// ----------------------------------------------------------------------------
+//   Draw a right triangle
+// ----------------------------------------------------------------------------
+{
+    path.moveTo(Point3(bounds.lower.x, bounds.lower.y, 0));
+    path.lineTo(Point3(bounds.upper.x, bounds.lower.y, 0));
     path.lineTo(Point3(bounds.lower.x, bounds.upper.y, 0));
     path.close();
 }
@@ -181,6 +207,94 @@ void EllipseArc::Draw(GraphicPath &path)
 }
 
 
+void Arrow::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    We need correct tesselation
+// ----------------------------------------------------------------------------
+{
+    GraphicPath path;
+    Draw(path);
+    setTexture(where);
+    if (setFillColor(where))
+        path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+    if (setLineColor(where))
+        // REVISIT: If lines is thick, use a QPainterPathStroker
+        path.Draw(where, GL_LINE_STRIP);
+}
+
+
+void Arrow::Draw(GraphicPath &path)
+// ----------------------------------------------------------------------------
+//   Draw an arrow
+// ----------------------------------------------------------------------------
+{
+    coord x0 = bounds.lower.x;
+    coord x1 = bounds.upper.x;
+    coord xa1 = x1 - a.x;
+
+    coord y0 = bounds.lower.y;
+    coord yc = (bounds.lower.y + bounds.upper.y)/2;
+    coord y1 = bounds.upper.y;
+    coord ya0 = yc - a.y/2;
+    coord ya1 = yc + a.y/2;
+
+    path.moveTo(Point3(x0,  ya0, 0));
+    path.lineTo(Point3(xa1, ya0, 0));
+    path.lineTo(Point3(xa1, y0,  0));
+    path.lineTo(Point3(x1,  yc,  0));
+    path.lineTo(Point3(xa1, y1,  0));
+    path.lineTo(Point3(xa1, ya1, 0));
+    path.lineTo(Point3(x0,  ya1, 0));
+    path.close();
+}
+
+
+void DoubleArrow::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    We need correct tesselation
+// ----------------------------------------------------------------------------
+{
+    GraphicPath path;
+    Draw(path);
+    setTexture(where);
+    if (setFillColor(where))
+        path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+    if (setLineColor(where))
+        // REVISIT: If lines is thick, use a QPainterPathStroker
+        path.Draw(where, GL_LINE_STRIP);
+}
+
+
+void DoubleArrow::Draw(GraphicPath &path)
+// ----------------------------------------------------------------------------
+//   Draw a double arrow
+// ----------------------------------------------------------------------------
+{
+    coord x0 = bounds.lower.x;
+    coord x1 = bounds.upper.x;
+    coord xa0 = x0 + a.x;
+    coord xa1 = x1 - a.x;
+
+    coord y0 = bounds.lower.y;
+    coord yc = (bounds.lower.y + bounds.upper.y)/2;
+    coord y1 = bounds.upper.y;
+    coord ya0 = yc - a.y/2;
+    coord ya1 = yc + a.y/2;
+
+    path.moveTo(Point3(x0,  yc,  0));
+    path.lineTo(Point3(xa0, y0,  0));
+    path.lineTo(Point3(xa0, ya0, 0));
+    path.lineTo(Point3(xa1, ya0, 0));
+    path.lineTo(Point3(xa1, y0,  0));
+    path.lineTo(Point3(x1,  yc,  0));
+    path.lineTo(Point3(xa1, y1,  0));
+    path.lineTo(Point3(xa1, ya1, 0));
+    path.lineTo(Point3(xa0, ya1, 0));
+    path.lineTo(Point3(xa0, y1,  0));
+    path.close();
+}
+
+
 void StarPolygon::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //    We need correct tesselation when q != 1
@@ -208,7 +322,7 @@ void StarPolygon::Draw(Layout *where)
 
 void StarPolygon::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
-//   Draw a regular polygon or star
+//   Draw a regular polygon or a star
 // ----------------------------------------------------------------------------
 {
     scale  w1     = bounds.Width()/2;
@@ -273,6 +387,67 @@ void StarPolygon::Draw(GraphicPath &path)
         }
         path.close();
     }
+}
+
+
+void Star::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    We need correct tesselation when radius ratio != 1
+// ----------------------------------------------------------------------------
+{
+    GraphicPath path;
+    Draw(path);
+    if (r == 1.0)
+    {
+        // Regular polygon, no need to tesselate
+        path.Draw(where);
+    }
+    else
+    {
+        setTexture(where);
+        if (setFillColor(where))
+            path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+        if (setLineColor(where))
+            // REVISIT: If lines is thick, use a QPainterPathStroker
+            path.Draw(where, GL_LINE_STRIP);
+    }
+}
+
+
+void Star::Draw(GraphicPath &path)
+// ----------------------------------------------------------------------------
+//   Draw a regular polygon or a star
+// ----------------------------------------------------------------------------
+{
+    scale  w1     = bounds.Width()/2;
+    scale  h1     = bounds.Height()/2;
+    Point3 center = bounds.Center();
+    coord  cx     = center.x;
+    coord  cy     = center.y;
+
+    scale  w2     = w1 * r;
+    scale  h2     = h1 * r;
+    double a      = 0;
+    double da     = M_PI/p;
+
+    for (int i = 0; i < p; i++)
+    {
+        double x1 = cx + w1 * sin(a);
+        double y1 = cy + h1 * cos(a);
+        a += da;
+        double x2 = cx + w2 * sin(a);
+        double y2 = cy + h2 * cos(a);
+        a += da;
+
+        if (i)
+            path.lineTo(Point3(x1, y1, 0));
+        else
+            path.moveTo(Point3(x1, y1, 0));
+        
+        path.lineTo(Point3(x2, y2, 0));
+
+    }
+    path.close();
 }
 
 

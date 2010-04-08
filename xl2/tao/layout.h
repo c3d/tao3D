@@ -56,6 +56,7 @@ struct Layout : Drawing
     virtual Layout *    AddChild();
     virtual void        Clear();
     virtual Widget *    Display()        { return display; }
+    virtual void        PolygonOffset();
 
 public:
     // Attributes that get propagated to children
@@ -66,6 +67,7 @@ public:
     Color           fillColor;
     uint            fillTexture;
     uint            lastRotation, lastTranslation, lastScale;
+    static int      polygonOffset;
 
 protected:
     // List of drawing elements

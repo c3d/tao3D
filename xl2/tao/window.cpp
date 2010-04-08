@@ -346,12 +346,12 @@ void Window::createActions()
     aboutAct->setStatusTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
-    aboutQtAct = new QAction(tr("About &Qt"), this);
-    aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
-    connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+    //aboutQtAct = new QAction(tr("About &Qt"), this);
+    //aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
+    //connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
-    fullScreenAct = new QAction(tr("Fullscreen"), this);
-    fullScreenAct->setStatusTip(tr("Toggle full-screen mode"));
+    fullScreenAct = new QAction(tr("Full Screen"), this);
+    fullScreenAct->setStatusTip(tr("Toggle full screen mode"));
     fullScreenAct->setCheckable(true);
     connect(fullScreenAct, SIGNAL(triggered()), this, SLOT(toggleFullScreen()));
 
@@ -394,7 +394,6 @@ void Window::createMenus()
 
     helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(aboutAct);
-    helpMenu->addAction(aboutQtAct);
 }
 
 
@@ -521,8 +520,7 @@ void Window::updateProgram(const QString &fileName)
     XL::SourceFile *sf = &xlRuntime->files[fn];
 
     // Clean menus and reload XL program
-    resetTaoMenus(sf->tree.tree);
-
+    resetTaoMenus();
     if (!sf->tree.tree)
         xlRuntime->LoadFile(fn);
 
@@ -774,7 +772,7 @@ QString Window::currentProjectFolderPath()
 }
 
 
-void Window::resetTaoMenus(XL::Tree * a_tree)
+void Window::resetTaoMenus()
 // ----------------------------------------------------------------------------
 //   Clean added menus (from menu bar and contextual menus)
 // ----------------------------------------------------------------------------
@@ -816,14 +814,9 @@ void Window::resetTaoMenus(XL::Tree * a_tree)
         delete menu;
     }
 
-    if (a_tree)
-    {
-        // Clean MenuInfo from tree
-        CleanMenuInfo cmi;
-        XL::BreadthFirstSearch bfs(cmi);
-        a_tree->Do(bfs);
-    }
-
+    // Cleanup all menus defined in the current file and all imports
+    CleanMenuInfo cmi;
+    taoWidget->applyAction(cmi);
 }
 
 

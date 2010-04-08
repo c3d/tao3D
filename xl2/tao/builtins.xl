@@ -12,61 +12,73 @@ if false then TrueBody                  -> false
 key "f" -> toggle_full_screen
 key X   -> debug X
 
-// Graphics stuff
+// 3D Shapes
 sphere x:real, y:real, z:real, r:real   -> sphere x,y,z,2*r,2*r,2*r,25,25
-sphere r:real                           ->
+sphere r:real                           -> 
     sphere 0.0, 0.0, 0.0, 2*r, 2*r, 2*r, 25, 25
+
+//2D Shapes
+line x0:real, y0:real, x1:real, y1:real ->
+    path
+        move_to x0, y0, 0
+        line_to x1, y1, 0
+
 circle x:real, y:real, r:real           -> ellipse x, y, 2*r, 2*r
 circle r:real                           -> ellipse 0.0, 0.0, 2*r, 2*r
+oval t                                  -> ellipse t
+
 circular_sector x:real, y:real, r:real, a:real, b:real ->
     ellipse_arc x, y, 2*r, 2*r, a, b
 circular_sector r:real, a:real, b:real  -> ellipse_arc 0.0, 0.0, 2*r,2*r, a, b
+
 rectangle w:real, h:real                -> rectangle 0.0, 0.0, w, h
-square x:real, y:real, c:real           -> rectangle x, y, c, c 
-square c:real                           -> rectangle 0.0, 0.0, c, c 
+
+square x:real, y:real, s:real           -> rectangle x, y, s, s 
+square s:real                           -> rectangle 0.0, 0.0, s, s 
+
+triangle w:real, h:real                 -> triangle 0.0, 0.0, w, h
+right_triangle w:real, h:real           -> right_triangle 0.0, 0.0, w, h
 
 rounded_rectangle x:real, y:real, w:real, h:real, r:real ->
     rounded_rectangle x, y, w, h, r, r
 rounded_rectangle w:real, h:real, r:real-> rounded_rectangle 0.0, 0.0, w, h, r,r
 
-regular_star_polygon x:real, y:real, r:real, p:integer, q:integer ->
-    star_polygon x, y, 2*r, 2*r, p, q
-regular_polygram x:real, y:real, r:real, p:integer, q:integer ->
-        star_polygon x, y, 2*r, 2*r, p, q
-regular_polygon x:real, y:real, r:real, p:integer ->
-        star_polygon x, y, 2*r, 2*r, p, 1
+polygram x:real, y:real, w:real, h:real, p:integer, q:integer ->
+    star_polygon x, y, w, h, p, q
+polygon x:real, y:real, w:real, h:real, p:integer ->
+    star_polygon x, y, w, h, p, 1
 
-schläfli t, {p:integer/q:integer}       -> regular_star_polygon t, p, q
-schläfli t, {p:integer}                 -> regular_polygon t, p
+equilateral_triangle t                  -> polygon t, 3
+tetragon t                              -> polygon t, 4
+diamond t                               -> polygon t, 4
+pentagon t                              -> polygon t, 5
+hexagon t                               -> polygon t, 6
+heptagon t                              -> polygon t, 7
+octagon t                               -> polygon t, 8
+nonagon t                               -> polygon t, 9
+decagon t                               -> polygon t, 10
+hendecagon t                            -> polygon t, 11
+dodecagon t                             -> polygon t, 12
+tridecagon t                            -> polygon t, 13
+tetradecagon t                          -> polygon t, 14
+pentadecagon t                          -> polygon t, 15
+hexadecagon t                           -> polygon t, 16
+heptadecagon t                          -> polygon t, 17
+octadecagon t                           -> polygon t, 18
+enneadecagon t                          -> polygon t, 19
+icosagon t                              -> polygon t, 20
 
-equilateral_triangle t                  -> regular_polygon t, 3
-regular_tetragon t                      -> regular_polygon t, 4
-regular_pentagon t                      -> regular_polygon t, 5
-regular_hexagon t                       -> regular_polygon t, 6
-regular_heptagon t                      -> regular_polygon t, 7
-regular_octagon t                       -> regular_polygon t, 8
-regular_nonagon t                       -> regular_polygon t, 9
-regular_decagon t                       -> regular_polygon t, 10
-regular_hendecagon t                    -> regular_polygon t, 11
-regular_dodecagon t                     -> regular_polygon t, 12
-regular_tridecagon t                    -> regular_polygon t, 13
-regular_tetradecagon t                  -> regular_polygon t, 14
-regular_pentadecagon t                  -> regular_polygon t, 15
-regular_hexadecagon t                   -> regular_polygon t, 16
-regular_heptadecagon t                  -> regular_polygon t, 17
-regular_octadecagon t                   -> regular_polygon t, 18
-regular_enneadecagon t                  -> regular_polygon t, 19
-regular_icosagon t                      -> regular_polygon t, 20
+pentagram t                             -> polygram t, 5, 2
+hexagram t                              -> polygram t, 6, 2
+star_of_david t                         -> polygram t, 6, 2
+heptagram t                             -> polygram t, 7, 2
+star_of_lakshmi t                       -> polygram t, 8, 2
+octagram t                              -> polygram t, 8, 3
+nonagram t                              -> polygram t, 9, 3
+decagram t                              -> polygram t, 10, 3
 
-regular_pentagram t                     -> regular_star_polygon t, 5, 2
-star t                                  -> regular_star_polygon t, 5, 2
-regular_hexagram t                      -> regular_star_polygon t, 6, 2
-star_of_david t                         -> regular_star_polygon t, 6, 2
-regular_heptagram t                     -> regular_star_polygon t, 7, 2
-star_of_lakshmi t                       -> regular_star_polygon t, 8, 2
-regular_octagram t                      -> regular_star_polygon t, 8, 3
-regular_nonagram t                      -> regular_star_polygon t, 9, 3
-regular_decagram t                      -> regular_star_polygon t, 10, 3
+schläfli t, {p:integer}                 -> polygon t, p
+schläfli t, {p:integer/q:integer}       -> polygram t, p, q
 
 x..y / t -> x + (y-x) * (1 + sin(time/t * 2*pi)) / 2
 
@@ -132,3 +144,60 @@ draw_scale_base x, y, z ->
 draw_scale_x x, y, z -> draw_handle x + 40, y, z
 draw_scale_y x, y, z -> draw_handle x, y + 40, z
 draw_scale_z x, y, z -> draw_handle x, y, z + 40
+
+theme_colors -> 
+    color 0.5, 0.5, 0.5, 1
+    line_color 0, 0, 0, 1
+
+menu_insert -> {
+menu    "Insert"
+submenu   "Shape"
+menu_item   "Line", insert
+    locally
+        theme_colors
+        line 50, -50, -50, 50
+//menu_item   "Line with Arrowhead", insert { text "Line with Arrowhead" }
+//menu_item   "Line with Two Arrowheads", insert { text "Line with Two Arrowheads" }
+menu_item   "Rectangle", insert
+    locally
+        theme_colors
+        rectangle 0, 0, 100, 100
+menu_item   "Rounded Rectangle", insert
+    locally
+        theme_colors
+        rounded_rectangle 0, 0, 100, 100, 15
+menu_item   "Oval", insert
+    locally
+        theme_colors
+        oval 0, 0, 100, 100
+menu_item   "Triangle", insert
+    locally
+        theme_colors
+        triangle 0, 0, 100, 100
+menu_item   "Right Triangle", insert
+    locally
+        theme_colors
+        right_triangle 0, 0, 100, 100
+menu_item   "Arrow", insert
+    locally
+        theme_colors
+        arrow 0, 0, 100, 100, 44, 32%
+menu_item   "Double Arrow", insert
+    locally
+        theme_colors
+        double_arrow 0, 0, 100, 100, 44, 32%
+menu_item   "Diamond", insert
+    locally
+        theme_colors
+        diamond 0, 0, 50
+//menu_item   "Quote Bubble", insert { text "Quote Bubble" }
+//menu_item   "Callout", insert { text "Callout" }
+menu_item   "Star", insert 
+    locally
+        theme_colors
+        star 0, 0, 100, 100, 5, 50%
+menu_item   "Polygon", insert 
+    locally
+        theme_colors
+        polygon 0, 0, 100, 100, 5
+}

@@ -118,6 +118,11 @@ bool RemoteSelectionFrame::populateNameComboAndSelect(QString sel)
         // Also update URL field
         urlEdit->setText(repo->remotePullUrl(sel));
         urlEdit->setEnabled(true);
+        emit nameSelected();
+    }
+    else if (kind == CIK_None)
+    {
+        emit noneSelected();
     }
 
     return true;
@@ -136,12 +141,10 @@ void RemoteSelectionFrame::on_nameCombo_activated(QString selected)
     {
     case CIK_None:
         populateNameComboAndSelect("");
-        emit noneSelected();
         break;
 
     case CIK_Name:
         populateNameComboAndSelect(selected);
-        emit nameSelected();
         break;
 
     case CIK_AddNew:

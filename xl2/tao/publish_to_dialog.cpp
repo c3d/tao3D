@@ -55,7 +55,7 @@ void PublishToDialog::accept()
 //    Publish the current project to the previously chosen remote
 // ----------------------------------------------------------------------------
 {
-    // TODO call Repository::push()
+    repo->push(pushTo());
     QDialog::accept();
 }
 
@@ -64,9 +64,7 @@ void PublishToDialog::on_rsFrame_noneSelected()
 //    Disable the OK button if remote is not set
 // ----------------------------------------------------------------------------
 {
-    QPushButton * ok = buttonBox->button(QDialogButtonBox::Ok);
-    if (ok)
-        ok->setEnabled(false);
+    buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 }
 
 
@@ -75,9 +73,7 @@ void PublishToDialog::on_rsFrame_nameSelected()
 //    Disable the OK button if remote is not set
 // ----------------------------------------------------------------------------
 {
-    QPushButton * ok = buttonBox->button(QDialogButtonBox::Ok);
-    if (ok)
-        ok->setEnabled(true);
+    buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }
 
 }

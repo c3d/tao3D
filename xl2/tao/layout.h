@@ -33,7 +33,29 @@ TAO_BEGIN
 
 struct Widget;
 
-struct Layout : Drawing
+struct LayoutState
+// ----------------------------------------------------------------------------
+//   The state we want to preserve in a layout
+// ----------------------------------------------------------------------------
+{
+                        LayoutState();
+                        LayoutState(const LayoutState &o);
+
+public:
+    void                Clear();
+
+public:
+    Vector3             offset;
+    QFont               font;
+    Justification       alongX, alongY, alongZ;
+    Color               lineColor;
+    Color               fillColor;
+    uint                fillTexture;
+    uint                lastRotation, lastTranslation, lastScale;
+};
+
+
+struct Layout : Drawing, LayoutState
 // ----------------------------------------------------------------------------
 //   A layout is responsible for laying out Drawing objects in 2D or 3D space
 // ----------------------------------------------------------------------------
@@ -58,15 +80,11 @@ struct Layout : Drawing
     virtual Widget *    Display()        { return display; }
     virtual void        PolygonOffset();
 
+    LayoutState &       operator=(const LayoutState &o);
+    void                Inherit(Layout *other);
+
 public:
     // Attributes that get propagated to children
-    Vector3         offset;
-    QFont           font;
-    Justification   alongX, alongY, alongZ;
-    Color           lineColor;
-    Color           fillColor;
-    uint            fillTexture;
-    uint            lastRotation, lastTranslation, lastScale;
     static int      polygonOffset;
 
 protected:

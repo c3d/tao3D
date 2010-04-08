@@ -62,10 +62,10 @@ void LayoutLine::Draw(Layout *where)
 //   Compute line layout and draw the placed elements
 // ----------------------------------------------------------------------------
 {
-    Compute(where);
+    // Save attributes that may be modified by Compute(), as well as offset
+    XL::LocalSave<LayoutState> save(*where, *where);
 
-    // Inherit offset from our parent layout if there is one
-    XL::LocalSave<Point3> save(where->offset, where->offset);
+    Compute(where);
 
     // Display all items
     LineJustifier::Places &places = line.places;
@@ -87,10 +87,10 @@ void LayoutLine::DrawSelection(Layout *where)
 //   REVISIT: There is a lot of copy-paste between Draw, DrawSelection, Identify
 //   Consider using a pointer-to-member (ugly) or some clever trick?
 {
-    Compute(where);
+    // Save attributes that may be modified by Compute(), as well as offset
+    XL::LocalSave<LayoutState> save(*where, *where);
 
-    // Inherit offset from our parent layout if there is one
-    XL::LocalSave<Point3> save(where->offset, where->offset);
+    Compute(where);
 
     // Display all items
     LineJustifier::Places &places = line.places;
@@ -110,10 +110,10 @@ void LayoutLine::Identify(Layout *where)
 //   Identify page elements for OpenGL
 // ----------------------------------------------------------------------------
 {
-    Compute(where);
+    // Save attributes that may be modified by Compute(), as well as offset
+    XL::LocalSave<LayoutState> save(*where, *where);
 
-    // Inherit offset from our parent layout if there is one
-    XL::LocalSave<Point3> save(where->offset, where->offset);
+    Compute(where);
 
     // Display all items
     LineJustifier::Places &places = line.places;
@@ -354,25 +354,13 @@ void PageLayout::Draw(Layout *where)
 //   and then only iterate on the items that were placed, not all items,
 //   taking the layout offset from the placed position
 {
+    // Save attributes that may be modified by Compute(), as well as offset
+    XL::LocalSave<LayoutState> save(*where, *where);
+
     Compute();
 
-    // Inherit offset from our parent layout if there is one
-    XL::LocalSave<Point3> save(offset, offset);
-    GLStateKeeper         glSave;
-    if (where)
-    {
-        // Add offset of parent to the one we have
-        offset += where->Offset();
-
-        // Inherit color and other parameters as initial values
-        font        = where->font;
-        alongX      = where->alongX;
-        alongY      = where->alongY;
-        alongZ      = where->alongZ;
-        lineColor   = where->lineColor;
-        fillColor   = where->fillColor;
-        fillTexture = where->fillTexture;
-    }
+    // Inherit state from our parent layout if there is one
+    Inherit(where);
 
     // Display all items
     PageJustifier::Places &places = page.places;
@@ -394,25 +382,13 @@ void PageLayout::DrawSelection(Layout *where)
 //   REVISIT: There is a lot of copy-paste between Draw, DrawSelection, Identify
 //   Consider using a pointer-to-member (ugly) or some clever trick?
 {
+    // Save attributes that may be modified by Compute(), as well as offset
+    XL::LocalSave<LayoutState> save(*where, *where);
+
     Compute();
 
-    // Inherit offset from our parent layout if there is one
-    XL::LocalSave<Point3> save(offset, offset);
-    GLStateKeeper         glSave;
-    if (where)
-    {
-        // Add offset of parent to the one we have
-        offset += where->Offset();
-
-        // Inherit color and other parameters as initial values
-        font        = where->font;
-        alongX      = where->alongX;
-        alongY      = where->alongY;
-        alongZ      = where->alongZ;
-        lineColor   = where->lineColor;
-        fillColor   = where->fillColor;
-        fillTexture = where->fillTexture;
-    }
+    // Inherit state from our parent layout if there is one
+    Inherit(where);
 
     // Display all items
     PageJustifier::Places &places = page.places;
@@ -432,25 +408,13 @@ void PageLayout::Identify(Layout *where)
 //   Identify page elements for OpenGL
 // ----------------------------------------------------------------------------
 {
+    // Save attributes that may be modified by Compute(), as well as offset
+    XL::LocalSave<LayoutState> save(*where, *where);
+
     Compute();
 
-    // Inherit offset from our parent layout if there is one
-    XL::LocalSave<Point3> save(offset, offset);
-    GLStateKeeper         glSave;
-    if (where)
-    {
-        // Add offset of parent to the one we have
-        offset += where->Offset();
-
-        // Inherit color and other parameters as initial values
-        font        = where->font;
-        alongX      = where->alongX;
-        alongY      = where->alongY;
-        alongZ      = where->alongZ;
-        lineColor   = where->lineColor;
-        fillColor   = where->fillColor;
-        fillTexture = where->fillTexture;
-    }
+    // Inherit state from our parent layout if there is one
+    Inherit(where);
 
     // Display all items
     PageJustifier::Places &places = page.places;

@@ -47,7 +47,7 @@ LayoutState::LayoutState(const LayoutState &o)
 // ----------------------------------------------------------------------------
 //   Copy state (may be used between layouts)
 // ----------------------------------------------------------------------------
-      : offset(),                 // Zero, because we take parent offset in Draw
+      : offset(o.offset),
         font(o.font),
         alongX(o.alongX), alongY(o.alongY), alongZ(o.alongZ),
         lineColor(o.lineColor),

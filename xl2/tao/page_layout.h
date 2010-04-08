@@ -92,62 +92,18 @@ public:
 };
 
 
-template<> inline Drawing *Justifier<Drawing *>::Break(Drawing *item)
-// ----------------------------------------------------------------------------
-//   For drawings, we break at word boundaries
-// ----------------------------------------------------------------------------
-{
-    return item->WordBreak();
-}
+// Specializations for Justifier computations
+typedef Drawing *       line_t;
+template<> line_t       Justifier<line_t>::Break(line_t);
+template<> scale        Justifier<line_t>::Size(line_t);
+template<> void         Justifier<line_t>::ApplyAttributes(line_t, Layout*);
+template<> scale        Justifier<line_t>::SpaceSize(Layout *);
 
-
-template<> inline scale Justifier<Drawing *>::Size(Drawing *item)
-// ----------------------------------------------------------------------------
-//   For drawings, we compute the horizontal size
-// ----------------------------------------------------------------------------
-{
-    return item->Space().Width();
-}
-
-
-template<> inline void Justifier<Drawing *>::
-ApplyAttributes(Drawing *item, Layout *layout)
-// ----------------------------------------------------------------------------
-//   For drawings, we compute the horizontal size
-// ----------------------------------------------------------------------------
-{
-    if (item->IsAttribute())
-        item->Draw(layout);
-}
-
-
-template<> inline LayoutLine *Justifier<LayoutLine *>::Break(LayoutLine *layout)
-// ----------------------------------------------------------------------------
-//   For lines, we break at line boundaries
-// ----------------------------------------------------------------------------
-{
-    return layout->LineBreak();
-}
-
-
-template<> inline scale Justifier<LayoutLine *>::Size(LayoutLine *item)
-// ----------------------------------------------------------------------------
-//   For lines, we compute the vertical size
-// ----------------------------------------------------------------------------
-{
-    return item->Space().Height();
-}
-
-
-template<> inline void Justifier<LayoutLine *>::
-ApplyAttributes(LayoutLine *item, Layout *layout)
-// ----------------------------------------------------------------------------
-//   For drawings, we compute the horizontal size
-// ----------------------------------------------------------------------------
-{
-    item->ApplyAttributes(layout);
-}
-
+typedef LayoutLine *    page_t;
+template<> page_t       Justifier<page_t>::Break(page_t);
+template<> scale        Justifier<page_t>::Size(page_t);
+template<> void         Justifier<page_t>::ApplyAttributes(page_t, Layout*);
+template<> scale        Justifier<page_t>::SpaceSize(Layout *);
 
 TAO_END
 

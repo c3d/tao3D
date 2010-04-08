@@ -23,8 +23,93 @@
 #include "page_layout.h"
 #include "attributes.h"
 #include "gl_keepers.h"
+#include <QFontMetrics>
+#include <QFont>
 
 TAO_BEGIN
+
+// ============================================================================
+// 
+//   Specializations for the Justifier computations
+// 
+// ============================================================================
+
+template<> inline line_t Justifier<line_t>::Break(line_t item)
+// ----------------------------------------------------------------------------
+//   For drawings, we break at word boundaries
+// ----------------------------------------------------------------------------
+{
+    return item->WordBreak();
+}
+
+
+template<> inline scale Justifier<line_t>::Size(line_t item)
+// ----------------------------------------------------------------------------
+//   For drawings, we compute the horizontal size
+// ----------------------------------------------------------------------------
+{
+    return item->Space().Width();
+}
+
+
+template<> inline void Justifier<line_t>::ApplyAttributes(line_t item,
+                                                          Layout *layout)
+// ----------------------------------------------------------------------------
+//   For drawings, we compute the horizontal size
+// ----------------------------------------------------------------------------
+{
+    if (item->IsAttribute())
+        item->Draw(layout);
+}
+
+
+template<> inline scale Justifier<line_t>::SpaceSize(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Return the size of a space for the layout
+// ----------------------------------------------------------------------------
+{
+    QFontMetrics fm(layout->font);
+    return fm.width(QChar(' '));
+}
+
+
+template<> inline page_t Justifier<page_t>::Break(page_t line)
+// ----------------------------------------------------------------------------
+//   For lines, we break at line boundaries
+// ----------------------------------------------------------------------------
+{
+    return line->LineBreak();
+}
+
+
+template<> inline scale Justifier<page_t>::Size(page_t line)
+// ----------------------------------------------------------------------------
+//   For lines, we compute the vertical size
+// ----------------------------------------------------------------------------
+{
+    return line->Space().Height();
+}
+
+
+template<> inline void Justifier<page_t>::ApplyAttributes(page_t line,
+                                                          Layout *layout)
+// ----------------------------------------------------------------------------
+//   For drawings, we compute the horizontal size
+// ----------------------------------------------------------------------------
+{
+    line->ApplyAttributes(layout);
+}
+
+
+template<> inline scale Justifier<page_t>::SpaceSize(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Return the size of a space for the layout
+// ----------------------------------------------------------------------------
+{
+    return 0;
+}
+
+
 
 // ============================================================================
 //
@@ -369,7 +454,7 @@ void PageLayout::Draw(Layout *where)
     {
         PageJustifier::Place &place = *p;
         LayoutLine *child = place.item;
-        offset.y = place.position;
+        offset.y = place.position - place.size;
         child->Draw(this);
     }
 }
@@ -456,20 +541,10 @@ Box3 PageLayout::Space()
 //   Return the space for the page layout
 // ----------------------------------------------------------------------------
 {
-    // Loop over all elements, offseting by their position
-    Box3 result;
-    PageJustifier::Places &places = page.places;
-    PageJustifier::PlacesIterator p;
-    for (p = places.begin(); p != places.end(); p++)
-    {
-        PageJustifier::Place &place = *p;
-        Drawing *child = place.item;
-        Box3 childSpace = child->Space();
-        childSpace += Vector3(0, place.position, 0); // Vertical offset
-        result |= childSpace;
-    }
-
-    return result;
+    Box3 result = space;
+    if (page.places.size())
+        result |= Bounds();
+    return space;
 }
 
 

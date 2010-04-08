@@ -24,6 +24,7 @@
 
 #include "coords3d.h"
 #include <vector>
+#include <iostream>
 
 TAO_BEGIN
 
@@ -81,8 +82,11 @@ public:
 
     // Properties of the items in the layout
     Item        Break(Item item);
-    coord       Size(Item item);
+    scale       Size(Item item);
+    scale       SpaceSize(Layout *l);
     void        ApplyAttributes(Item item, Layout *layout);
+
+    void        Dump(text msg);
 
     // Structure recording an item after we placed it
     struct Place
@@ -158,6 +162,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
 // ----------------------------------------------------------------------------
 {
     coord pos  = start;
+    scale lastSpace = 0;
     bool  hasRoom = true;
     uint  numBreaks = 0;
     uint  numSolids = 0;
@@ -177,11 +182,11 @@ bool Justifier<Item>::Adjust(coord start, coord end,
             // Test the size of what remains
             ApplyAttributes(item, layout);
             scale size = Size(item);
-            if (sign * (pos + size) > sign * end)
+            if (sign * pos + size > sign * end)
             {
                 // It doesn't fit, we need to stop here.
                 // Erase what we already placed
-                items.erase(items.begin(), i);
+                items.erase(items.begin(), i+1);
 
                 // Insert the broken down items
                 if (next)
@@ -193,19 +198,24 @@ bool Justifier<Item>::Adjust(coord start, coord end,
             else
             {
                 // It fits, place it
-                places.push_back(Place(item, size, pos, !item));
-                pos += size;
+                places.push_back(Place(item, size, pos, !next));
+                pos += sign * size;
                 item = next;
                 if (item)
+                {
                     numBreaks++;
+                    lastSpace = sign * SpaceSize(layout);
+                }
                 else
+                {
                     numSolids++;
+                }
             }
         }
     }
 
     // Compute the extra space that we can use for justification
-    coord extra = (end - pos) * justify.amount;
+    coord extra = (end - pos - lastSpace) * justify.amount;
 
     // Compute the offset we will use for centering
     coord width = end - start;
@@ -223,7 +233,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     coord forBreaks = extra - forSolids;
 
     // And allocate to individual items
-    if (!numSolids)
+    if (numSolids)
         numSolids = 1;
     if (!numBreaks)
         numBreaks = 1;
@@ -244,6 +254,36 @@ bool Justifier<Item>::Adjust(coord start, coord end,
 
     // Return true if we placed all the items
     return hasRoom;
+}
+
+
+template <class Item>
+void Justifier<Item>::Dump(text msg)
+// ----------------------------------------------------------------------------
+//   Dump the contents of a justifier for debugging purpose
+// ----------------------------------------------------------------------------
+{
+    std::cout << msg << "\n";
+
+    // Dump the items remaining
+    ItemsIterator i;
+    for (i = items.begin(); i != items.end(); i++)
+    {
+        Item item = *i;
+        std::cout << " I" << i - items.begin() << ": "
+                  << item << " (" << Size(item) << ")\n";
+    }
+
+    // Dump the places remaining
+    PlacesIterator p;
+    for (p = places.begin(); p != places.end(); p++)
+    {
+        Place &place = *p;
+        std::cout << " P" << p - places.begin() << ": "
+                  << place.item << " (" 
+                  << place.size << " @ " << place.position
+                  << (place.solid ? " solid" : " break") << ")\n";
+    }
 }
 
 TAO_END

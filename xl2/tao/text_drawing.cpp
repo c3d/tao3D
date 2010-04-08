@@ -168,19 +168,9 @@ TextSpan *TextSpan::WordBreak()
     for (i = 0; i < max; i++)
     {
         QChar c = value[i];
-        QChar::Category cat = c.category();
-        if (cat == QChar::Separator_Space)
+        if (c.isSpace())
         {
-            // Create two text spans, none of which contains the space
-            QString remainder = value.mid(i+1);
-            TextSpan *result = new TextSpan(remainder, font);
-            value = value.left(i);
-            return result;
-        }
-        else if (cat == QChar::Separator_Line ||
-                 cat == QChar::Separator_Paragraph)
-        {
-            // Create two text spans, the first one containing the \n
+            // Create two text spans, the first one containing the \n or space
             QString remainder = value.mid(i+1);
             TextSpan *result = new TextSpan(remainder, font);
             value = value.left(i+1);

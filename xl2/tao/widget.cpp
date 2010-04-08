@@ -1814,7 +1814,7 @@ Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
 //   Double arrow
 // ----------------------------------------------------------------------------
 {
-    DoubleArrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ary*h);
+    DoubleArrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ary);
     if (path)
         shape.Draw(*path);
     else

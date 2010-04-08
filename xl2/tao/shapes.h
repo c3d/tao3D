@@ -132,10 +132,11 @@ struct DoubleArrow : Rectangle
 //   A double arrow
 // ----------------------------------------------------------------------------
 {
-    DoubleArrow(const Box &b, coord ax, coord ay): Rectangle(b), a(ax, ay) {}
+    DoubleArrow(const Box &b, double ax, double ary)
+        : Rectangle(b), ax(ax), ary(ary) {}
     virtual void        Draw(Layout *where);
     virtual void        Draw(GraphicPath &path);
-    Point a;
+    double ax, ary;
 };
 
 

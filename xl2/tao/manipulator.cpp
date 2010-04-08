@@ -30,6 +30,8 @@
 #include "runtime.h"
 #include "transforms.h"
 
+#include <QtDebug>
+
 TAO_BEGIN
 
 // ============================================================================
@@ -703,8 +705,31 @@ bool ControlArrow::DrawHandles(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     bool changed = false;
+    coord aax, aay;
+    int sw = w > 0? 1: -1;
+    int sdw = d? sw: 1;
+    int swd = d? 1: sw;
+    int sh = h > 0? 1: -1;
+    int df = d? 2: 1;
+
+    if (ax > sw*w/df) 
+        aax = w/df;
+    else
+        aax = sw*ax;
+    
+    if (ax < 0.0) 
+        aax = 0.0;
+
+    if (ary > 1.0) 
+        aay = h;
+    else
+        aay = ary*h;
+    
+    if (ary < 0.0) 
+        aay = 0.0;
+ 
     if (DrawHandle(layout, 
-                   Point3((ax < w? x + w/2 - ax: x - w/2), y + h*ary/2, 0), 9))
+                   Point3(x+sdw*(w/2-aax), y+sh*aay/2, 0), 9))
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
@@ -715,13 +740,19 @@ bool ControlArrow::DrawHandles(Layout *layout)
             if (p1 != p2)
             {
                 Point3 p0 = drag->Origin();
+                qDebug() << "x:" << x;
+                qDebug() << "0:" << p0.x;
+                qDebug() << "1:" << p1.x;
+                qDebug() << "2:" << p2.x;
+                qDebug() << "s:" << sw;
+                qDebug() << "w:" << w;
                 updateArg(widget, &ax, 
-                          x + w/2 - p0.x, x + w/2 - p1.x, x + w/2 - p2.x,
-                          true, 0.0, true, w/(d?2:1));
+                          swd*(x-p0.x)+sw*w/2, swd*(x-p1.x)+sw*w/2, swd*(x-p2.x)+sw*w/2,
+                          true, 0.0, true, sw*w/df);
                 if (h != 0)
                 {
                     updateArg(widget, &ary, 
-                              2*(p0.y - y)/h, 2*(p1.y - y)/h, 2*(p2.y - y)/h,
+                              2*sh*(p0.y-y)/h, 2*sh*(p1.y-y)/h, 2*sh*(p2.y-y)/h,
                               true, 0.0, true, 1.0);
                 }
                 widget->markChanged("Arrow modified");

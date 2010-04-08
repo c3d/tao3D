@@ -226,6 +226,8 @@ public:
                      real_r w, real_r h, real_r d);
 
     // Text and font
+    Tree *      pageLayout(Tree *self,
+                           real_r x, real_r y, real_r w, real_r h, Tree *prog);
     Tree *      textSpan(Tree *self, text_r content);
     Tree *      font(Tree *self, text family);
     Tree *      fontSize(Tree *self, double size);
@@ -236,6 +238,10 @@ public:
     Tree *      fontOverline(Tree *self, scale amount = 1);
     Tree *      fontStrikeout(Tree *self, scale amount = 1);
     Tree *      fontStretch(Tree *self, scale amount = 1);
+    Tree *      justify(Tree *self, scale amount, uint axis);
+    Tree *      center(Tree *self, scale amount, uint axis);
+    Tree *      spread(Tree *self, scale amount, uint axis);
+    Tree *      spacing(Tree *self, scale amount, uint axis);
 
     // Frames and widgets
     Tree *      status(Tree *self, text t);

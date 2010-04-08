@@ -225,6 +225,9 @@ PREFIX(Cone, tree, "cone",
 //
 // ============================================================================
 
+PREFIX(PageLayout, tree, "page",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real) PARM(t, tree),
+       RTAO(pageLayout(self, x, y, w, h, &t)))
 PREFIX(TextSpan, tree,"text", PARM(t, text), RTAO(textSpan(self, t)))
 PREFIX(Font, tree, "font", PARM(f, text), RTAO(font(self, f)))
 PREFIX(FontSize, tree, "font_size", PARM(s, real), RTAO(fontSize(self, s)))
@@ -244,6 +247,22 @@ PREFIX(FontOverline, tree, "overline", PARM(a, real),
 PREFIX(FontStrikeout, tree, "strikeout", PARM(a, real),
        RTAO(fontStrikeout(self, a)))
 PREFIX(FontStretch, tree, "stretch", PARM(s,real),RTAO(fontStretch(self,s)))
+PREFIX(Justify, tree, "justify",
+       PARM(a, real), RTAO(justify(self, a, 0)))
+PREFIX(VJustify, tree, "vertical_justify",
+       PARM(a, real), RTAO(justify(self, a, 1)))
+PREFIX(Center, tree, "center",
+       PARM(a, real), RTAO(center(self, a, 0)))
+PREFIX(VCenter, tree, "vertical_center",
+       PARM(a, real), RTAO(center(self, a, 1)))
+PREFIX(Spread, tree, "spread",
+       PARM(a, real), RTAO(spread(self, a, 0)))
+PREFIX(VSpread, tree, "vertical_spread",
+       PARM(a, real), RTAO(spread(self, a, 1)))
+PREFIX(Spacing, tree, "spacing",
+       PARM(a, real), RTAO(spacing(self, a, 0)))
+PREFIX(VSpacing, tree, "vertical_spacing",
+       PARM(a, real), RTAO(spacing(self, a, 1)))
 
 
 

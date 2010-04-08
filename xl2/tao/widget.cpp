@@ -2253,6 +2253,18 @@ Tree *Widget::cone(Tree *self,
 //
 // ============================================================================
 
+Tree * Widget::pageLayout(Tree *self,
+                          real_r x, real_r y, real_r w, real_r h, Tree *prog)
+// ----------------------------------------------------------------------------
+//   Create a new page layout and render in it
+// ----------------------------------------------------------------------------
+{
+    XL::LocalSave<Layout *> save(layout, new PageLayout(this));
+    save.saved->Add(new ControlRectangle(x, y, w, h, layout));
+    return xl_evaluate(prog);
+}
+
+
 Tree *Widget::textSpan(Tree *self, text_r content)
 // ----------------------------------------------------------------------------
 //   Insert a block of text with the current definition of font, color, ...
@@ -2377,6 +2389,62 @@ Tree *Widget::fontStretch(Tree *self, scale amount)
     layout->font.setStretch(int(amount * 100));
     return XL::xl_true;
 }
+
+
+static inline JustificationChange::Axis jaxis(uint a)
+// ----------------------------------------------------------------------------
+//   Return the right justification axis
+// ----------------------------------------------------------------------------
+{
+    switch(a)
+    {
+    default:
+    case 0: return JustificationChange::AlongX;
+    case 1: return JustificationChange::AlongY;
+    case 2: return JustificationChange::AlongZ;
+    }
+}
+
+
+Tree *Widget::justify(Tree *self, scale amount, uint axis)
+// ----------------------------------------------------------------------------
+//   Change justification along the given axis
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new JustificationChange(amount, jaxis(axis)));
+    return XL::xl_true;
+}
+
+
+Tree *Widget::center(Tree *self, scale amount, uint axis)
+// ----------------------------------------------------------------------------
+//   Change centering along the given axis
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new CenteringChange(amount, jaxis(axis)));
+    return XL::xl_true;
+}
+
+
+Tree *Widget::spread(Tree *self, scale amount, uint axis)
+// ----------------------------------------------------------------------------
+//   Change the spread along the given axis
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new SpreadChange(amount, jaxis(axis)));
+    return XL::xl_true;
+}
+
+
+Tree *Widget::spacing(Tree *self, scale amount, uint axis)
+// ----------------------------------------------------------------------------
+//   Change the spacing along the given axis
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new SpacingChange(amount, jaxis(axis)));
+    return XL::xl_true;
+}
+
 
 
 

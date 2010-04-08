@@ -54,6 +54,7 @@ public:
     void                Add(Items::iterator first, Items::iterator last);
     void                Compute(Layout *where);
     LayoutLine *        Remaining();
+    void                ApplyAttributes(Layout *layout);
 
 public:
     LineJustifier       line;
@@ -109,6 +110,17 @@ template<> inline scale Justifier<Drawing *>::Size(Drawing *item)
 }
 
 
+template<> inline void Justifier<Drawing *>::
+ApplyAttributes(Drawing *item, Layout *layout)
+// ----------------------------------------------------------------------------
+//   For drawings, we compute the horizontal size
+// ----------------------------------------------------------------------------
+{
+    if (item->IsAttribute())
+        item->Draw(layout);
+}
+
+
 template<> inline LayoutLine *Justifier<LayoutLine *>::Break(LayoutLine *layout)
 // ----------------------------------------------------------------------------
 //   For lines, we break at line boundaries
@@ -124,6 +136,16 @@ template<> inline scale Justifier<LayoutLine *>::Size(LayoutLine *item)
 // ----------------------------------------------------------------------------
 {
     return item->Space().Height();
+}
+
+
+template<> inline void Justifier<LayoutLine *>::
+ApplyAttributes(LayoutLine *item, Layout *layout)
+// ----------------------------------------------------------------------------
+//   For drawings, we compute the horizontal size
+// ----------------------------------------------------------------------------
+{
+    item->ApplyAttributes(layout);
 }
 
 

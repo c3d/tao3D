@@ -249,7 +249,7 @@ void LayoutLine::Compute(Layout *layout)
 
     // Position one line of items
     Box3 space = layout->Space();
-    line.Adjust(space.Left(), space.Right(), layout->alongX);
+    line.Adjust(space.Left(), space.Right(), layout->alongX, layout);
 }
 
 
@@ -269,6 +269,23 @@ LayoutLine *LayoutLine::Remaining()
     items.clear();
 
     return result;
+}
+
+
+void LayoutLine::ApplyAttributes(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Apply the attributes we find in the line
+// ----------------------------------------------------------------------------
+{
+    LineJustifier::Places &places = line.places;
+    LineJustifier::PlacesIterator p;
+    for (p = places.begin(); p != places.end(); p++)
+    {
+        LineJustifier::Place &place = *p;
+        Drawing *child = place.item;
+        if (child->IsAttribute())
+            child->Draw(layout);
+    }
 }
 
 
@@ -520,7 +537,7 @@ void PageLayout::Compute()
     }
 
     // Now that we have all lines, do the vertical layout
-    page.Adjust(space.Top(), space.Bottom(), alongY);
+    page.Adjust(space.Top(), space.Bottom(), alongY, this);
 }
 
 TAO_END

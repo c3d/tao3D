@@ -27,6 +27,8 @@
 
 TAO_BEGIN
 
+struct Layout;
+
 struct Justification
 // ----------------------------------------------------------------------------
 //   Describes how elements are supposed to be justified
@@ -70,7 +72,7 @@ public:
     ~Justifier() { Clear(); }
 
     // Position items in the layout
-    bool        Adjust(coord start, coord end, Justification &j);
+    bool        Adjust(coord start, coord end, Justification &j, Layout *l);
 
     // Build and clear the layout
     void        Add(Item item);
@@ -80,6 +82,7 @@ public:
     // Properties of the items in the layout
     Item        Break(Item item);
     coord       Size(Item item);
+    void        ApplyAttributes(Item item, Layout *layout);
 
     // Structure recording an item after we placed it
     struct Place
@@ -148,7 +151,8 @@ void Justifier<Item>::Clear()
 
 
 template<class Item>
-bool Justifier<Item>::Adjust(coord start, coord end, Justification &justify)
+bool Justifier<Item>::Adjust(coord start, coord end,
+                             Justification &justify, Layout *layout)
 // ----------------------------------------------------------------------------
 //    Place elements until we reach the target size
 // ----------------------------------------------------------------------------
@@ -171,6 +175,7 @@ bool Justifier<Item>::Adjust(coord start, coord end, Justification &justify)
             Item next = Break(item);
 
             // Test the size of what remains
+            ApplyAttributes(item, layout);
             scale size = Size(item);
             if (sign * (pos + size) > sign * end)
             {

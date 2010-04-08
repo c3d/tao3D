@@ -270,6 +270,22 @@ PREFIX(PushButtonTexture, tree, "push_button_texture",
        PARM(w,real) PARM(h,real) PARM(u, text) PARM(a, tree),
        RTAO(pushButtonTexture(self, w, h, &u, &a)))
 
+PREFIX(RadioButton, tree, "radio_button",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
+       PARM(u, text) PARM(a, tree),
+       RTAO(radioButton(self, x, y, w, h, &u, &a)))
+PREFIX(RadioButtonTexture, tree, "radio_button_texture",
+       PARM(w,real) PARM(h,real) PARM(u, text) PARM(a, tree),
+       RTAO(radioButtonTexture(self, w, h, &u, &a)))
+
+PREFIX(CheckBoxButton, tree, "check_box_button",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
+       PARM(u, text) PARM(a, tree),
+       RTAO(checkBoxButton(self, x, y, w, h, &u, &a)))
+PREFIX(CheckBoxButtonTexture, tree, "check_box_button_texture",
+       PARM(w,real) PARM(h,real) PARM(u, text) PARM(a, tree),
+       RTAO(checkBoxButtonTexture(self, w, h, &u, &a)))
+
 PREFIX(ColorChooser, tree, "color_chooser",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,tree),
        RTAO(colorChooser(self, x, y, w, h, &t)))
@@ -294,7 +310,7 @@ PREFIX(VideoPlayerTexture, tree, "video_player_texture",
 PREFIX(ButtonGroup, tree, "button_group",
        PARM(a, tree), RTAO(buttonGroup(self, &a)))
 
-PREFIX(GroupBox, tree, "groupbox",
+PREFIX(GroupBox, tree, "group_box",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(u, text) PARM(a, tree),
        RTAO(groupBox(self, x, y, w, h, &u, &a)))

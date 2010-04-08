@@ -80,8 +80,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
       xlProgram(sf),
-      space(NULL), layout(NULL), path(NULL), currentGroup(NULL),
-      activities(NULL),
+      space(NULL), layout(NULL), path(NULL), currentGridLayout(NULL),
+      currentGroup(NULL), activities(NULL),
       id(0), capacity(0), manipulator(0),
       event(NULL), focusWidget(NULL),
       currentMenu(NULL), currentMenuBar(NULL),
@@ -2352,7 +2352,7 @@ Tree *Widget::urlTexture(Tree *self, double w, double h,
     WebViewSurface *surface = url->GetInfo<WebViewSurface>();
     if (!surface)
     {
-        surface = new WebViewSurface(this);
+        surface = new WebViewSurface(url, this);
         url->SetInfo<WebViewSurface> (surface);
     }
 
@@ -2393,7 +2393,7 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
     if (!surface)
     {
-        surface = new LineEditSurface(this);
+        surface = new LineEditSurface(txt, this);
         txt->SetInfo<LineEditSurface> (surface);
     }
 
@@ -2405,37 +2405,89 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
     return XL::xl_true;
 }
 
-
-Tree *Widget::pushButton(Tree *self,
-                         real_r x, real_r y, real_r w, real_r h,
-                         Text *lbl, Tree* act)
-// ----------------------------------------------------------------------------
-//   Draw a push button in the curent frame
-// ----------------------------------------------------------------------------
+Tree *Widget::radioButton(Tree *self,
+                       real_r x,real_r y, real_r w,real_r h,
+                       text_p lbl, Tree *act)
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
-    pushButtonTexture(self, w, h, lbl, act);
-    PushButtonSurface *surface = lbl->GetInfo<PushButtonSurface>();
+    radioButtonTexture(self, w, h, lbl, act);
+    return abstractButton(self, x, y, w, h, lbl, act);
+}
 
-    if (currentGroup)
-        currentGroup->addButton((QAbstractButton*)surface->widget);
+Tree *Widget::radioButtonTexture(Tree *self,
+                              double w, double h,
+                              Text *lbl, Tree *act)
+// ----------------------------------------------------------------------------
+//   Make a texture out of a given push button
+// ----------------------------------------------------------------------------
+{
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
 
-    if (currentGridLayout)
+    // Get or build the current frame if we don't have one
+    AbstractButtonSurface *surface = self->GetInfo<AbstractButtonSurface>();
+    if (!surface)
     {
-        currentGridLayout->addWidget(surface->widget, y, x);
-        return XL::xl_true;
+        surface = new RadioButtonSurface(self, this);
+        self->SetInfo<AbstractButtonSurface> (surface);
     }
 
-    layout->Add(new WidgetManipulator(x, y, w, h, surface));
-    IFTRACE(widgets)
-    {
-        std::cerr << lbl->value <<" NO currentGroupLayout \n";
-    }
+    // Resize to requested size, and bind texture
+    surface->resize(w,h);
+    GLuint tex = surface->bind(lbl, act);
+    layout->Add(new FillTexture(tex));
 
     return XL::xl_true;
 }
 
+
+Tree *Widget::checkBoxButton(Tree *self,
+                       real_r x,real_r y, real_r w,real_r h,
+                       text_p lbl, Tree *act)
+{
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+
+    checkBoxButtonTexture(self, w, h, lbl, act);
+    return abstractButton(self, x, y, w, h, lbl, act);
+}
+
+Tree *Widget::checkBoxButtonTexture(Tree *self,
+                              double w, double h,
+                              Text *lbl, Tree *act)
+// ----------------------------------------------------------------------------
+//   Make a texture out of a given push button
+// ----------------------------------------------------------------------------
+{
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
+    // Get or build the current frame if we don't have one
+    AbstractButtonSurface *surface = self->GetInfo<AbstractButtonSurface>();
+    if (!surface)
+    {
+        surface = new CheckBoxSurface(self, this);
+        self->SetInfo<AbstractButtonSurface> (surface);
+    }
+
+    // Resize to requested size, and bind texture
+    surface->resize(w,h);
+    GLuint tex = surface->bind(lbl, act);
+    layout->Add(new FillTexture(tex));
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::pushButton(Tree *self,
+                         real_r x, real_r y, real_r w, real_r h,
+                         Text *lbl, Tree* act)
+{
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+
+    pushButtonTexture(self, w, h, lbl, act);
+    return abstractButton(self, x, y, w, h, lbl, act);
+}
 
 Tree *Widget::pushButtonTexture(Tree *self,
                                 double w, double h,
@@ -2448,17 +2500,41 @@ Tree *Widget::pushButtonTexture(Tree *self,
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    PushButtonSurface *surface = lbl->GetInfo<PushButtonSurface>();
+    AbstractButtonSurface *surface = self->GetInfo<AbstractButtonSurface>();
     if (!surface)
     {
-        surface = new PushButtonSurface(this);
-        lbl->SetInfo<PushButtonSurface> (surface);
+        surface = new PushButtonSurface(self, this);
+        self->SetInfo<AbstractButtonSurface> (surface);
     }
 
     // Resize to requested size, and bind texture
     surface->resize(w,h);
     GLuint tex = surface->bind(lbl, act);
     layout->Add(new FillTexture(tex));
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::abstractButton(Tree *self,
+                         real_r x, real_r y, real_r w, real_r h,
+                         Text *lbl, Tree* act)
+// ----------------------------------------------------------------------------
+//   Draw a push button in the curent frame
+// ----------------------------------------------------------------------------
+{
+    AbstractButtonSurface *surface = self->GetInfo<AbstractButtonSurface>();
+
+    if (currentGroup)
+        currentGroup->addButton((QAbstractButton*)surface->widget);
+
+    if (currentGridLayout)
+    {
+        currentGridLayout->addWidget(surface->widget, y, x);
+        return XL::xl_true;
+    }
+
+    layout->Add(new WidgetManipulator(x, y, w, h, surface));
 
     return XL::xl_true;
 }
@@ -2474,7 +2550,7 @@ Tree *Widget::colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
 
     colorChooserTexture(self, w, h, action);
 
-    ColorChooserSurface *surface = action->GetInfo<ColorChooserSurface>();
+    ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
     layout->Add(new WidgetManipulator(x, y, w, h, surface));
     return XL::xl_true;
 }
@@ -2490,11 +2566,11 @@ Tree *Widget::colorChooserTexture(Tree *self, double w, double h,
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    ColorChooserSurface *surface = action->GetInfo<ColorChooserSurface>();
+    ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
     if (!surface)
     {
-        surface = new ColorChooserSurface(this, action);
-        action->SetInfo<ColorChooserSurface> (surface);
+        surface = new ColorChooserSurface(self, this, action);
+        self->SetInfo<ColorChooserSurface> (surface);
     }
 
     // Resize to requested size, and bind texture
@@ -2532,11 +2608,11 @@ Tree *Widget::fontChooserTexture(Tree *self, double w, double h,
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    FontChooserSurface *surface = action->GetInfo<FontChooserSurface>();
+    FontChooserSurface *surface = self->GetInfo<FontChooserSurface>();
     if (!surface)
     {
-        surface = new FontChooserSurface(this, action);
-        action->SetInfo<FontChooserSurface> (surface);
+        surface = new FontChooserSurface(self, this, action);
+        self->SetInfo<FontChooserSurface> (surface);
     }
 
     // Resize to requested size, and bind texture
@@ -2553,7 +2629,7 @@ Tree *Widget::buttonGroup(Tree *self, Tree *buttons, bool exclusive)
     GroupInfo *grpInfo = buttons->GetInfo<GroupInfo>();
     if ( !grpInfo)
     {
-        grpInfo = new GroupInfo(this);
+        grpInfo = new GroupInfo(buttons, this);
         grpInfo->setExclusive(exclusive);
         buttons->SetInfo<GroupInfo>(grpInfo);
     }
@@ -2575,7 +2651,7 @@ Tree *Widget::groupBox(Tree *self,
 
     groupBoxTexture(self, w, h, lbl);
 
-    GroupBoxSurface *surface = lbl->GetInfo<GroupBoxSurface>();
+    GroupBoxSurface *surface = self->GetInfo<GroupBoxSurface>();
     layout->Add(new WidgetManipulator(x, y, w, h, surface));
 
     xl_evaluate(buttons);
@@ -2621,12 +2697,13 @@ Tree *Widget::groupBoxTexture(Tree *self, double w, double h, Text *lbl)
 
 
     // Get or build the current frame if we don't have one
-    GroupBoxSurface *surface = lbl->GetInfo<GroupBoxSurface>();
+    GroupBoxSurface *surface = self->GetInfo<GroupBoxSurface>();
     if (!surface)
     {
-        currentGridLayout = new QGridLayout(this);
-        surface = new GroupBoxSurface(this, currentGridLayout);
-        lbl->SetInfo<GroupBoxSurface> (surface);
+        currentGridLayout = new QGridLayout();
+        currentGridLayout->setObjectName("groupBox layout");
+        surface = new GroupBoxSurface(self, this, currentGridLayout);
+        self->SetInfo<GroupBoxSurface> (surface);
     }
     else
     {
@@ -2672,7 +2749,7 @@ Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
     VideoPlayerSurface *surface = self->GetInfo<VideoPlayerSurface>();
     if (!surface)
     {
-        surface = new VideoPlayerSurface(this);
+        surface = new VideoPlayerSurface(self, this);
         self->SetInfo<VideoPlayerSurface> (surface);
     }
 

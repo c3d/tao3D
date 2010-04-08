@@ -85,10 +85,10 @@ struct RoundedRectangle : Rectangle
 //   A rectangle with rounded corners
 // ----------------------------------------------------------------------------
 {
-    RoundedRectangle(const Box &b, coord rx, coord ry)
-        : Rectangle(b), radiusX(rx), radiusY(ry) {}
+    RoundedRectangle(const Box &b, coord r)
+        : Rectangle(b), r(r) {}
     virtual void        Draw(GraphicPath &path);
-    coord radiusX, radiusY;
+    coord r;
 };    
 
 

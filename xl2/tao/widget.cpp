@@ -1773,16 +1773,16 @@ Tree *Widget::ellipseArc(Tree *self,
 
 Tree *Widget::roundedRectangle(Tree *self,
                                real_r cx, real_r cy,
-                               real_r w, real_r h, real_r rx, real_r ry)
+                               real_r w, real_r h, real_r r)
 // ----------------------------------------------------------------------------
 //   Rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
 {
-    RoundedRectangle shape(Box(cx-w/2, cy-h/2, w, h), rx, ry);
+    RoundedRectangle shape(Box(cx-w/2, cy-h/2, w, h), r);
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRoundedRectangle(cx, cy, w, h, rx,
+        layout->Add(new ControlRoundedRectangle(cx, cy, w, h, r,
                                          new RoundedRectangle(shape)));
 
     return XL::xl_true;

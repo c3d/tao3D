@@ -35,9 +35,7 @@ square s:real                           -> rectangle 0.0, 0.0, s, s
 triangle w:real, h:real                 -> triangle 0.0, 0.0, w, h
 right_triangle w:real, h:real           -> right_triangle 0.0, 0.0, w, h
 
-rounded_rectangle x:real, y:real, w:real, h:real, r:real ->
-    rounded_rectangle x, y, w, h, r, r
-rounded_rectangle w:real, h:real, r:real-> rounded_rectangle 0.0, 0.0, w, h, r,r
+rounded_rectangle w:real, h:real, r:real-> rounded_rectangle 0.0, 0.0, w, h, r
 
 polygram x:real, y:real, w:real, h:real, p:integer, q:integer ->
     star_polygon x, y, w, h, p, q

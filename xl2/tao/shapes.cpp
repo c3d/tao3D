@@ -169,13 +169,22 @@ void RoundedRectangle::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 {
     QPainterPath qt;
-    if (radiusX > bounds.Width() / 2)
-        radiusX = bounds.Width() / 2;
-    if (radiusY > bounds.Height() / 2)
-        radiusY = bounds.Height() / 2;
+    int sw = bounds.Width() > 0? 1: -1;
+    int sh = bounds.Height() > 0? 1: -1;
+    
+    if (sw * bounds.Width() < sh * bounds.Height())
+    {
+        if (r > sw * bounds.Width() / 2)
+            r = sw * bounds.Width() / 2;
+    }
+    else
+    {
+        if (r > sh * bounds.Height() / 2)
+            r = sh * bounds.Height() / 2;
+    }
     qt.addRoundedRect(bounds.lower.x, bounds.lower.y,
                       bounds.Width(), bounds.Height(),
-                      radiusX, radiusY);
+                      r, r);
     path.addQtPath(qt);
 }
 

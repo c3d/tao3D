@@ -202,7 +202,7 @@ public:
                            real_r start, real_r sweep);
     Tree *      roundedRectangle(Tree *self,
                                  real_r cx, real_r cy, real_r w, real_r h,
-                                 real_r rx, real_r ry);
+                                 real_r r);
     Tree *      arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
                       real_r ax, real_r ary);
     Tree *      doubleArrow(Tree *self,

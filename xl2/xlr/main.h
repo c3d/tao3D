@@ -81,6 +81,7 @@ public:
     Positions    positions;
     Errors       errors;
     Syntax       syntax;
+    text         builtins;
     Options      options;
     Compiler    &compiler;
     Context      context;

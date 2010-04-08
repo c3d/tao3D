@@ -2259,8 +2259,13 @@ Tree * Widget::pageLayout(Tree *self,
 //   Create a new page layout and render in it
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> save(layout, new PageLayout(this));
-    save.saved->Add(new ControlRectangle(x, y, w, h, layout));
+    PageLayout *page = new PageLayout(this);
+    page->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
+    layout->Add(new ControlRectangle(x, y, w, h, page));
+
+    XL::LocalSave<Layout *> save(layout, page);
+    XL::LocalSave<coord> savePageH(pageW, h);
+    XL::LocalSave<coord> savePageW(pageW, w);
     return xl_evaluate(prog);
 }
 

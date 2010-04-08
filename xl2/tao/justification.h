@@ -213,7 +213,10 @@ bool Justifier<Item>::Adjust(coord start, coord end,
 
     // If we have placed all the items, don't justify
     if (hasRoom)
+    {
         extra = 0;
+        items.clear();
+    }
 
     // Allocate that extra space between breaks and non breaks
     coord forSolids = justify.spread * extra;

@@ -46,7 +46,7 @@ void RemoteSelectionFrame::setRepository(Repository *repo)
 }
 
 
-QString RemoteSelectionFrame::pullFrom()
+QString RemoteSelectionFrame::remote()
 // ----------------------------------------------------------------------------
 //    The name of the currently selected remote (empty string if "<None>")
 // ----------------------------------------------------------------------------
@@ -94,6 +94,7 @@ bool RemoteSelectionFrame::populateNameComboAndSelect(QString sel)
     {
         urlEdit->clear();
         urlEdit->setEnabled(false);
+        emit noneSelected();
         return true;
     }
 
@@ -135,10 +136,12 @@ void RemoteSelectionFrame::on_nameCombo_activated(QString selected)
     {
     case CIK_None:
         populateNameComboAndSelect("");
+        emit noneSelected();
         break;
 
     case CIK_Name:
         populateNameComboAndSelect(selected);
+        emit nameSelected();
         break;
 
     case CIK_AddNew:

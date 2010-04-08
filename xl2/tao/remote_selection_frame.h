@@ -41,7 +41,11 @@ public:
 
 public:
     void    setRepository(Repository *repo);
-    QString pullFrom();
+    QString remote();
+
+signals:
+    void    noneSelected();
+    void    nameSelected();
 
 private slots:
     void    on_nameCombo_activated(QString selected);

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>442</width>
-    <height>208</height>
+    <width>444</width>
+    <height>221</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,8 +22,8 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>50</x>
-     <y>170</y>
+     <x>120</x>
+     <y>180</y>
      <width>311</width>
      <height>32</height>
     </rect>
@@ -48,120 +48,82 @@
     <string>Choose the remote project you want to synchronize with:</string>
    </property>
   </widget>
-  <widget class="QLabel" name="nameLabel">
+  <widget class="QRadioButton" name="theirs">
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>30</y>
-     <width>37</width>
+     <y>160</y>
+     <width>103</width>
      <height>20</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>Conflicting parts of the document will be resolved by favoring the remote version.</string>
+   </property>
    <property name="text">
-    <string>Name</string>
+    <string>Theirs</string>
    </property>
   </widget>
-  <widget class="QWidget" name="paramsWidget" native="true">
+  <widget class="QRadioButton" name="ours">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>140</y>
+     <width>91</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>Conflicting parts of the document will be resolved by favoring the local version.</string>
+   </property>
+   <property name="text">
+    <string>Ours</string>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="chooseConflictLabel">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>120</y>
+     <width>251</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Choose a conflict resolution mode:</string>
+   </property>
+  </widget>
+  <widget class="Tao::RemoteSelectionFrame" name="rsFrame">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>60</y>
-     <width>421</width>
-     <height>111</height>
-    </rect>
-   </property>
-   <widget class="QLineEdit" name="urlEdit">
-    <property name="geometry">
-     <rect>
-      <x>110</x>
-      <y>10</y>
-      <width>301</width>
-      <height>22</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="urlLabel">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>10</y>
-      <width>81</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Path or URL</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="chooseConflictLabel">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>50</y>
-      <width>251</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Choose a conflict resolution mode:</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="theirs">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>90</y>
-      <width>103</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string>Conflicting parts of the document will be resolved by favoring the remote version.</string>
-    </property>
-    <property name="text">
-     <string>Theirs</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="ours">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>70</y>
-      <width>91</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string>Conflicting parts of the document will be resolved by favoring the local version.</string>
-    </property>
-    <property name="text">
-     <string>Ours</string>
-    </property>
-    <property name="checked">
-     <bool>true</bool>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QComboBox" name="nameCombo">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
      <y>30</y>
-     <width>301</width>
-     <height>26</height>
+     <width>421</width>
+     <height>81</height>
     </rect>
    </property>
-   <property name="minimumSize">
-    <size>
-     <width>251</width>
-     <height>26</height>
-    </size>
+   <property name="frameShape">
+    <enum>QFrame::StyledPanel</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Raised</enum>
    </property>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Tao::RemoteSelectionFrame</class>
+   <extends>QFrame</extends>
+   <header>remote_selection_frame.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

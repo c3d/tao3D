@@ -22,6 +22,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include "remote_selection_frame.h"
 #include "ui_pull_from_dialog.h"
 #include "repository.h"
 #include <QDialog>
@@ -45,32 +46,8 @@ public:
 public slots:
     virtual void accept();
 
-private slots:
-    void on_nameCombo_activated(QString selected);
-    void on_urlEdit_editingFinished();
-
 private:
-    bool    populateNameCombo();
-    bool    populateNameComboAndSelect(QString sel);
-    QString addNewRemote();
-    QString renameRemote();
-
-private:
-    enum ComboItemKind
-    // ------------------------------------------------------------------------
-    //    Values to identify each entry of the name combo box
-    // ------------------------------------------------------------------------
-    {
-        CIK_None,   // The "<None>" item
-        CIK_Name,   // Any valid remote name
-        CIK_AddNew, // The "Add new..." item
-        CIK_Delete, // The "Delete <name>" item
-        CIK_Rename, // The "Rename <name>" item
-    };
-
-private:
-    Repository *repo;
-    QString     prevSelected;
+    Repository           *repo;
 };
 
 }

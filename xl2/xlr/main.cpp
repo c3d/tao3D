@@ -78,7 +78,7 @@ Main::Main(int inArgc, char **inArgv, Compiler &comp)
       positions(),
       errors(&positions),
       syntax("xl.syntax"),
-      builtins("builtins.xl"),
+      builtins(""),
       options(errors),
       compiler(comp),
       context(errors, &compiler),
@@ -130,6 +130,8 @@ int Main::LoadFiles()
     cmd = options.Parse(argc, argv);
     if (options.doDiff)
         options.parseOnly = true;
+    if (builtins.empty() || options.builtinsOverride)
+        builtins = options.builtinsFile;
     if (options.builtins)
         filelist.push_back(builtins);
     for (; cmd != end; cmd = options.ParseNext())

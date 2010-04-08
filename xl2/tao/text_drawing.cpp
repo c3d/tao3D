@@ -197,4 +197,22 @@ TextSpan *TextSpan::LineBreak()
     return NULL;
 }
 
+
+scale TextSpan::TrailingSpaceSize()
+// ----------------------------------------------------------------------------
+//   Return the size of all the spaces at the end of the value
+// ----------------------------------------------------------------------------
+{
+    QFontMetrics fm(font);
+    scale result = 0;
+    for (int i = value.length(); i > 0; i--)
+    {
+        QChar c = value[i-1];
+        if (!c.isSpace())
+            break;
+        result += fm.width(c);
+    }
+    return result;
+}
+
 TAO_END

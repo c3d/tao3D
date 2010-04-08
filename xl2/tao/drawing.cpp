@@ -101,6 +101,15 @@ Drawing *Drawing::LineBreak()
 }
 
 
+scale Drawing::TrailingSpaceSize()
+// ----------------------------------------------------------------------------
+//   By default, the trailing space is 0
+// ----------------------------------------------------------------------------
+{
+    return 0;
+}
+
+
 bool Drawing::IsAttribute()
 // ----------------------------------------------------------------------------
 //    Tell if a shape is an attribute (something that need not be drawn)

@@ -63,13 +63,12 @@ template<> inline void Justifier<line_t>::ApplyAttributes(line_t item,
 }
 
 
-template<> inline scale Justifier<line_t>::SpaceSize(Layout *layout)
+template<> inline scale Justifier<line_t>::SpaceSize(line_t item)
 // ----------------------------------------------------------------------------
-//   Return the size of a space for the layout
+//   Return the size of the spaces at the end of an item
 // ----------------------------------------------------------------------------
 {
-    QFontMetrics fm(layout->font);
-    return fm.width(QChar(' '));
+    return item->TrailingSpaceSize();
 }
 
 
@@ -101,11 +100,12 @@ template<> inline void Justifier<page_t>::ApplyAttributes(page_t line,
 }
 
 
-template<> inline scale Justifier<page_t>::SpaceSize(Layout *layout)
+template<> inline scale Justifier<page_t>::SpaceSize(page_t)
 // ----------------------------------------------------------------------------
 //   Return the size of a space for the layout
 // ----------------------------------------------------------------------------
 {
+    // REVIIST: Paragraph interspace
     return 0;
 }
 

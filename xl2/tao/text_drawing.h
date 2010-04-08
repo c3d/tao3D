@@ -44,6 +44,7 @@ struct TextSpan : Shape
     virtual Box3        Space();
     virtual TextSpan *  WordBreak();
     virtual TextSpan *  LineBreak();
+    virtual scale       TrailingSpaceSize();
 
 public:
     QString             value;

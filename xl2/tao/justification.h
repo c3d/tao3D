@@ -83,7 +83,7 @@ public:
     // Properties of the items in the layout
     Item        Break(Item item);
     scale       Size(Item item);
-    scale       SpaceSize(Layout *l);
+    scale       SpaceSize(Item item);
     void        ApplyAttributes(Item item, Layout *layout);
 
     void        Dump(text msg);
@@ -200,26 +200,18 @@ bool Justifier<Item>::Adjust(coord start, coord end,
                 // It fits, place it
                 places.push_back(Place(item, size, pos, !next));
                 pos += sign * size;
+                lastSpace = sign * SpaceSize(item);
                 item = next;
-                if (item)
-                {
+                if (next)
                     numBreaks++;
-                    lastSpace = sign * SpaceSize(layout);
-                }
                 else
-                {
                     numSolids++;
-                }
             }
         }
     }
 
     // Compute the extra space that we can use for justification
-    coord extra = (end - pos - lastSpace) * justify.amount;
-
-    // Compute the offset we will use for centering
-    coord width = end - start;
-    coord offset = (width - extra) * justify.centering;
+    coord extra = (end + lastSpace - pos) * justify.amount;
 
     // If we have placed all the items, don't justify
     if (hasRoom)
@@ -227,18 +219,21 @@ bool Justifier<Item>::Adjust(coord start, coord end,
         extra = 0;
         items.clear();
     }
+    if (lastSpace == 0)
+        numBreaks++;
+
+    // Compute the offset we will use for centering
+    coord width = end - start;
+    coord offset = (width - extra) * justify.centering;
+
 
     // Allocate that extra space between breaks and non breaks
     coord forSolids = justify.spread * extra;
     coord forBreaks = extra - forSolids;
 
     // And allocate to individual items
-    if (numSolids)
-        numSolids = 1;
-    if (!numBreaks)
-        numBreaks = 1;
-    coord atSolid = forSolids / numSolids;
-    coord atBreak = forBreaks / numBreaks;
+    coord atSolid = forSolids / (numSolids > 1 ? numSolids - 1 : 1);
+    coord atBreak = forBreaks / (numBreaks > 1 ? numBreaks - 1 : 1);
 
     // Now perform the adjustment on individual positions
     PlacesIterator p;

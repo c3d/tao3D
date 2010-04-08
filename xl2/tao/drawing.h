@@ -50,6 +50,7 @@ struct Drawing
 
     virtual Drawing *   WordBreak();
     virtual Drawing *   LineBreak();
+    virtual scale       TrailingSpaceSize();
     virtual bool        IsAttribute();
 };
 

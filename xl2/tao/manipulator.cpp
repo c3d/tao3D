@@ -789,7 +789,10 @@ bool ControlPolygon::DrawHandles(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     bool changed = false;
-    if (!changed && DrawHandle(layout, Point3(x -w/2 + (p-2)*w/19, y - h/2, 0), 9))
+    int sw = w > 0? 1: -1;
+    int sh = h > 0? 1: -1;
+
+    if (!changed && DrawHandle(layout, Point3(x-sw*w/2+sw*w*(p-2)/19, y-sh*h/2, 0), 9))
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
@@ -800,9 +803,9 @@ bool ControlPolygon::DrawHandles(Layout *layout)
             if (p1 != p2)
             {
                 Point3 p0 = drag->Origin();
-                coord p0x = 19*(p0.x - x)/w + 11.5;
-                coord p1x = 19*(p1.x - x)/w + 11.5;
-                coord p2x = 19*(p2.x - x)/w + 11.5;
+                coord p0x = 19*sw*(p0.x - x)/w + 11.5;
+                coord p1x = 19*sw*(p1.x - x)/w + 11.5;
+                coord p2x = 19*sw*(p2.x - x)/w + 11.5;
                 updateArg(widget, &p, p0x, p1x, p2x, true, 3, true, 20);
                 widget->markChanged("Number of points changed");
                 changed = true;

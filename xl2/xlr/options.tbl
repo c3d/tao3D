@@ -36,7 +36,7 @@
 // ============================================================================
 
 // Getting help on options
-OPTION(help, "List usage information", Usage(argv))
+OPTION(h, "List usage information and exit", Usage(argv); exit(0))
 
 // Rendering control
 OPTVAR(stylesheet, text, "xl")

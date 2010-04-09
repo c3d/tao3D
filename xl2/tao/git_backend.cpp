@@ -314,6 +314,16 @@ bool GitRepository::pull()
 }
 
 
+bool GitRepository::push(QString pushUrl)
+// ----------------------------------------------------------------------------
+//   Push to a remote
+// ----------------------------------------------------------------------------
+{
+    Process cmd(command(), QStringList("push") << pushUrl << +branch(), path);
+    return cmd.done(&errors);
+}
+
+
 QStringList GitRepository::remotes()
 // ----------------------------------------------------------------------------
 //   Return the names of all remotes configured in the repository

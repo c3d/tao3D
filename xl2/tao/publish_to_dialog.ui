@@ -1,30 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>PullFromDialog</class>
- <widget class="QDialog" name="PullFromDialog">
+ <class>PublishToDialog</class>
+ <widget class="QDialog" name="PublishToDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>444</width>
-    <height>221</height>
+    <width>443</width>
+    <height>182</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Synchronize</string>
-  </property>
-  <property name="autoFillBackground">
-   <bool>false</bool>
-  </property>
-  <property name="modal">
-   <bool>true</bool>
+   <string>Publish</string>
   </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>180</y>
-     <width>311</width>
+     <x>90</x>
+     <y>140</y>
+     <width>341</width>
      <height>32</height>
     </rect>
    </property>
@@ -39,61 +33,13 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>10</y>
+     <y>20</y>
      <width>401</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>Choose the remote project you want to synchronize with:</string>
-   </property>
-  </widget>
-  <widget class="QRadioButton" name="theirs">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>160</y>
-     <width>103</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string>Conflicting parts of the document will be resolved by favoring the remote version.</string>
-   </property>
-   <property name="text">
-    <string>Theirs</string>
-   </property>
-  </widget>
-  <widget class="QRadioButton" name="ours">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>140</y>
-     <width>91</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string>Conflicting parts of the document will be resolved by favoring the local version.</string>
-   </property>
-   <property name="text">
-    <string>Ours</string>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QLabel" name="chooseConflictLabel">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>120</y>
-     <width>251</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Choose a conflict resolution mode:</string>
+    <string>Choose the remote project you want to publish to:</string>
    </property>
   </widget>
   <widget class="Tao::RemoteSelectionFrame" name="rsFrame">
@@ -103,7 +49,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>30</y>
+     <y>50</y>
      <width>421</width>
      <height>81</height>
     </rect>
@@ -129,7 +75,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>PullFromDialog</receiver>
+   <receiver>PublishToDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -145,7 +91,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>PullFromDialog</receiver>
+   <receiver>PublishToDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -153,8 +99,8 @@
      <y>260</y>
     </hint>
     <hint type="destinationlabel">
-     <x>197</x>
-     <y>103</y>
+     <x>286</x>
+     <y>274</y>
     </hint>
    </hints>
   </connection>

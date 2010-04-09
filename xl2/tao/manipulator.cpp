@@ -537,7 +537,7 @@ void ControlRectangle::DrawSelection(Layout *layout)
     bool loadId = widget->currentId() != ~0U;
     if (loadId)
         glLoadName(widget->newId());
-    child->DrawSelection(layout);    // Don't draw it
+    child->DrawSelection(layout);
     Manipulator::DrawSelection(layout);
     if (loadId)
         glLoadName(0);

@@ -59,6 +59,17 @@ struct Rectangle : Shape
 };
 
 
+struct PlaceholderRectangle : Rectangle
+// ----------------------------------------------------------------------------
+//    A placeholder for empty items (e.g. empty layouts)
+// ----------------------------------------------------------------------------
+{
+    PlaceholderRectangle(const Box &b): Rectangle(b) {}
+    virtual void        Draw(Layout *where);
+    virtual void        Draw(GraphicPath &path);
+};
+
+
 struct IsoscelesTriangle : Rectangle
 // ----------------------------------------------------------------------------
 //    A isosceles triangle that can be placed in a layout

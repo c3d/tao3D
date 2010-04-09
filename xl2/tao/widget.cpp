@@ -296,6 +296,8 @@ void Widget::draw()
     setup(w, h);
     pageW = (21.0 / 2.54) * logicalDpiX(); // REVISIT
     pageH = (29.7 / 2.54) * logicalDpiY();
+    flowName = "";
+    flows.clear();
 
     // Clear the background
     glClearColor (1.0, 1.0, 1.0, 1.0);
@@ -2253,20 +2255,62 @@ Tree *Widget::cone(Tree *self,
 //
 // ============================================================================
 
-Tree * Widget::pageLayout(Tree *self,
-                          real_r x, real_r y, real_r w, real_r h, Tree *prog)
+Tree * Widget::textBox(Tree *self,
+                       real_r x, real_r y, real_r w, real_r h, Tree *prog)
 // ----------------------------------------------------------------------------
-//   Create a new page layout and render in it
+//   Create a new page layout and render text in it
 // ----------------------------------------------------------------------------
 {
-    PageLayout *page = new PageLayout(this);
-    page->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
-    layout->Add(new ControlRectangle(x, y, w, h, page));
+    PageLayout *tbox = new PageLayout(this);
+    tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
+    layout->Add(new ControlRectangle(x, y, w, h, tbox));
+    flows[flowName] = tbox;
 
-    XL::LocalSave<Layout *> save(layout, page);
+    XL::LocalSave<Layout *> save(layout, tbox);
     XL::LocalSave<coord> savePageH(pageW, h);
     XL::LocalSave<coord> savePageW(pageW, w);
     return xl_evaluate(prog);
+}
+
+
+Tree *Widget::textOverflow(Tree *self,
+                           real_r x, real_r y, real_r w, real_r h)
+// ----------------------------------------------------------------------------
+//   Overflow text box for the rest of the current text flow
+// ----------------------------------------------------------------------------
+{
+    // Retrieve the existing layout
+    PageLayout *tbox = flows[flowName];
+    if (tbox)
+    {
+        // Get remaining items from that layout
+        tbox->Compute();
+        tbox = tbox->Remaining();
+        if (tbox)
+            tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
+        flows[flowName] = tbox;
+    }
+
+    // If there is no text box, we put a placeholder rectangle
+    Drawing *child = tbox;
+    if (!child)
+        child = new PlaceholderRectangle(Box(x - w/2, y-h/2, w, h));
+
+    // Add the overflow data 
+    layout->Add(new ControlRectangle(x, y, w, h, child));
+
+    return XL::xl_true;
+}
+
+
+XL::Text *Widget::textFlow(Tree *self, text name)
+// ----------------------------------------------------------------------------
+//    Set the name of the current text flow
+// ----------------------------------------------------------------------------
+{
+    text oldName = flowName;
+    flowName = name;
+    return new XL::Text(oldName);
 }
 
 

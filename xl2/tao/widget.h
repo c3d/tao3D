@@ -44,6 +44,7 @@ struct Window;
 struct FrameInfo;
 struct Activity;
 struct Layout;
+struct PageLayout;
 struct SpaceLayout;
 struct GraphicPath;
 struct Repository;
@@ -226,8 +227,11 @@ public:
                      real_r w, real_r h, real_r d);
 
     // Text and font
-    Tree *      pageLayout(Tree *self,
-                           real_r x, real_r y, real_r w, real_r h, Tree *prog);
+    Tree *      textBox(Tree *self,
+                        real_r x, real_r y, real_r w, real_r h, Tree *prog);
+    Tree *      textOverflow(Tree *self,
+                             real_r x, real_r y, real_r w, real_r h);
+    Text *      textFlow(Tree *self, text name);
     Tree *      textSpan(Tree *self, text_r content);
     Tree *      font(Tree *self, text family);
     Tree *      fontSize(Tree *self, double size);
@@ -311,6 +315,7 @@ private:
 
     typedef XL::LocalSave<QEvent *> EventSave;
     typedef std::map<GLuint, uint>  selection_map;
+    typedef std::map<text, PageLayout*> flow_map;
 
     // XL Runtime
     XL::SourceFile       *xlProgram;
@@ -320,6 +325,8 @@ private:
     Layout *              layout;
     GraphicPath *         path;
     scale                 pageW, pageH;
+    text                  flowName;
+    flow_map              flows;
 
     // Selection
     Activity *            activities;

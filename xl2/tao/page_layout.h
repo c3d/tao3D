@@ -66,7 +66,8 @@ struct PageLayout : Layout
 //   A 2D layout specialized for placing text and 2D shapes on pages
 // ----------------------------------------------------------------------------
 {
-    typedef Justifier<LayoutLine *> PageJustifier;
+    typedef Justifier<LayoutLine *>     PageJustifier;
+    typedef std::vector<LayoutLine *>   Items;
 
 public:
                         PageLayout(Widget *widget);
@@ -78,10 +79,12 @@ public:
     virtual void        Identify(Layout *l);
 
     virtual void        Add(Drawing *child);
+    void                Add(Items::iterator first, Items::iterator last);
     virtual void        Clear();
     virtual Box3        Bounds();
     virtual Box3        Space();
     virtual PageLayout *NewChild()      { return new PageLayout(*this); }
+    virtual PageLayout *Remaining();
 
     void                Compute();
 

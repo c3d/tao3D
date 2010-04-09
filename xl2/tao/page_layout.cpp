@@ -447,6 +447,45 @@ void PageLayout::Add(Drawing *d)
 }
 
 
+void PageLayout::Add(Items::iterator first, Items::iterator last)
+// ----------------------------------------------------------------------------
+//   Copy a range of leftover lines into this layout
+// ----------------------------------------------------------------------------
+{
+    if (page.places.size())
+    {
+        // Adding elements after we computed a layout is messy at best
+        std::cerr << "WARNING: PageLayout gets new elements after layout\n";
+        page.Clear();
+    }
+
+    // Loop over all the lines, and extract their items, adding them back here
+    // We need to add them fresh here, because an overflow layout may not
+    // have the same dimensions as the original layout, so we need Compute()
+    Items::iterator l;
+    typedef Justifier<Drawing *> LineJustifier;
+    for (l = first; l != last; l++)
+    {
+        LayoutLine *lp = *l;
+        LineJustifier &line = lp->line;
+
+        // Add elements that were originally placed
+        LineJustifier::Places &places = line.places;
+        LineJustifier::PlacesIterator p;
+        for (p = places.begin(); p != places.end(); p++)
+        {
+            LineJustifier::Place &place = *p;
+            items.push_back(place.item);
+        }
+        places.clear();
+
+        // Then again with leftover if any (noramlly not that many that late)
+        items.insert(items.end(), line.items.begin(), line.items.end());
+        line.items.clear();
+    }
+}
+
+
 void PageLayout::Clear()
 // ----------------------------------------------------------------------------
 //   When we clear a page layout, we need to also clear placed items
@@ -605,6 +644,25 @@ void PageLayout::Compute()
     coord top = space.Top(), bottom = space.Bottom();
     if (top < bottom) std::swap(top, bottom);
     page.Adjust(top, bottom, alongY, this);
+}
+
+
+PageLayout *PageLayout::Remaining()
+// ----------------------------------------------------------------------------
+//   Build a layout with items that were not processed
+// ----------------------------------------------------------------------------
+{
+    // Check if we are done
+    Items &items = page.items;
+    if (items.size() == 0 || page.places.size() == 0)
+        return NULL;
+
+    // Transfer remaining items over to new line
+    PageLayout *result = new PageLayout(*this);
+    result->Add(items.begin(), items.end());
+    items.clear();
+
+    return result;
 }
 
 TAO_END

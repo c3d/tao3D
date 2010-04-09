@@ -225,9 +225,14 @@ PREFIX(Cone, tree, "cone",
 //
 // ============================================================================
 
-PREFIX(PageLayout, tree, "page",
+PREFIX(TextBox, tree, "text_box",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real) PARM(t, tree),
-       RTAO(pageLayout(self, x, y, w, h, &t)))
+       RTAO(textBox(self, x, y, w, h, &t)))
+PREFIX(TextOverflow, tree, "text_overflow",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real),
+       RTAO(textOverflow(self, x, y, w, h)))
+PREFIX(TextFlow, tree, "text_flow", PARM(n, text), RTAO(textFlow(self, n)))
+
 PREFIX(TextSpan, tree,"text", PARM(t, text), RTAO(textSpan(self, t)))
 PREFIX(Font, tree, "font", PARM(f, text), RTAO(font(self, f)))
 PREFIX(FontSize, tree, "font_size", PARM(s, real), RTAO(fontSize(self, s)))

@@ -30,8 +30,6 @@
 #include "runtime.h"
 #include "transforms.h"
 
-#include <QtDebug>
-
 TAO_BEGIN
 
 // ============================================================================
@@ -843,10 +841,13 @@ bool ControlStar::DrawHandles(Layout *layout)
 //   Draw the handles for a star
 // ----------------------------------------------------------------------------
 {
+    bool changed = false;
     double cp = cos(M_PI/p);
     double sp = sin(M_PI/p);
-    bool changed = false;
-    if (DrawHandle(layout, Point3(x + r*w/2*sp, y + r*h/2*cp, 0), 11))
+    int sw = w > 0? 1: -1;
+    int sh = h > 0? 1: -1;
+
+    if (DrawHandle(layout, Point3(x + r*sw*w/2*sp, y + r*h/2*cp, 0), 11))
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
@@ -857,7 +858,7 @@ bool ControlStar::DrawHandles(Layout *layout)
             if (p1 != p2)
             {
                 Point3 p0 = drag->Origin();
-                scale hp = sqrt(w*sp*w*sp + h*cp*h*cp) * cp/2;
+                scale hp = sqrt(w*sp*w*sp + h*cp*h*cp)*sh*cp/2;
                 updateArg(widget, &r, 
                           (p0.y - y)/hp, (p1.y - y)/hp, (p2.y - y)/hp,
                           true, 0.0, true, 1.0);

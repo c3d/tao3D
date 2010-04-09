@@ -163,6 +163,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
 {
     coord pos  = start;
     scale lastSpace = 0;
+    scale lastOversize = 0;
     bool  hasRoom = true;
     uint  numBreaks = 0;
     uint  numSolids = 0;
@@ -181,7 +182,8 @@ bool Justifier<Item>::Adjust(coord start, coord end,
 
             // Test the size of what remains
             ApplyAttributes(item, layout);
-            scale size = Size(item);
+            scale spacing = justify.spacing;
+            scale size = Size(item) * spacing;
             if (sign * pos + size > sign * end)
             {
                 // It doesn't fit, we need to stop here.
@@ -200,7 +202,8 @@ bool Justifier<Item>::Adjust(coord start, coord end,
                 // It fits, place it
                 places.push_back(Place(item, size, pos, !next));
                 pos += sign * size;
-                lastSpace = sign * SpaceSize(item);
+                lastSpace = SpaceSize(item) * spacing;
+                lastOversize = size * (spacing-1);
                 item = next;
                 if (next)
                     numBreaks++;
@@ -211,7 +214,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     }
 
     // Extra space that we can use for justification
-    coord extra = (end + lastSpace - pos);
+    coord extra = (end + sign*(lastSpace + lastOversize) - pos);
 
     // Amount of justification
     coord just = extra * justify.amount;

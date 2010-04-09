@@ -210,26 +210,28 @@ bool Justifier<Item>::Adjust(coord start, coord end,
         }
     }
 
-    // Compute the extra space that we can use for justification
-    coord extra = (end + lastSpace - pos) * justify.amount;
+    // Extra space that we can use for justification
+    coord extra = (end + lastSpace - pos);
+
+    // Amount of justification
+    coord just = extra * justify.amount;
 
     // If we have placed all the items, don't justify
     if (hasRoom)
     {
-        extra = 0;
+        just = 0;
         items.clear();
     }
     if (lastSpace == 0)
         numBreaks++;
 
-    // Compute the offset we will use for centering
-    coord width = end - start;
-    coord offset = (width - extra) * justify.centering;
+    // Offset we will use for centering
+    coord offset = (extra - just) * justify.centering;
 
 
     // Allocate that extra space between breaks and non breaks
-    coord forSolids = justify.spread * extra;
-    coord forBreaks = extra - forSolids;
+    coord forSolids = justify.spread * just;
+    coord forBreaks = just - forSolids;
 
     // And allocate to individual items
     coord atSolid = forSolids / (numSolids > 1 ? numSolids - 1 : 1);

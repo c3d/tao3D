@@ -442,10 +442,10 @@ void PageLayout::Draw(Layout *where)
     // Save attributes that may be modified by Compute(), as well as offset
     XL::LocalSave<LayoutState> save(*where, *where);
 
-    Compute();
-
     // Inherit state from our parent layout if there is one
     Inherit(where);
+
+    Compute();
 
     // Display all items
     PageJustifier::Places &places = page.places;
@@ -470,10 +470,10 @@ void PageLayout::DrawSelection(Layout *where)
     // Save attributes that may be modified by Compute(), as well as offset
     XL::LocalSave<LayoutState> save(*where, *where);
 
-    Compute();
-
     // Inherit state from our parent layout if there is one
     Inherit(where);
+
+    Compute();
 
     // Display all items
     PageJustifier::Places &places = page.places;
@@ -496,10 +496,10 @@ void PageLayout::Identify(Layout *where)
     // Save attributes that may be modified by Compute(), as well as offset
     XL::LocalSave<LayoutState> save(*where, *where);
 
-    Compute();
-
     // Inherit state from our parent layout if there is one
     Inherit(where);
+
+    Compute();
 
     // Display all items
     PageJustifier::Places &places = page.places;

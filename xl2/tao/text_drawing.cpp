@@ -40,7 +40,7 @@ void TextSpan::Draw(Layout *where)
     Point3 position = where->offset;
     QPainterPath path;
     QString str = value;
-    QFontMetrics fm(font);
+    QFontMetricsF fm(font);
 
     int index = str.indexOf(QChar('\n'));
     while (index >= 0)
@@ -72,7 +72,7 @@ void TextSpan::DrawSelection(Layout *where)
 {
     Point3 position = where->offset;
     QString str = value;
-    QFontMetrics fm(font);
+    QFontMetricsF fm(font);
 
     Shape::DrawSelection(where);
 
@@ -109,7 +109,7 @@ void TextSpan::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 {
     Point3 position = path.position;
-    QFontMetrics fm(font);
+    QFontMetricsF fm(font);
 
     QPainterPath qt;
 
@@ -138,8 +138,8 @@ Box3 TextSpan::Bounds()
 //   Return the smallest box that surrounds the text
 // ----------------------------------------------------------------------------
 {
-    QFontMetrics fm(font);
-    QRect rect = fm.tightBoundingRect(value);
+    QFontMetricsF fm(font);
+    QRectF rect = fm.tightBoundingRect(value);
     return Box3(rect.x(), rect.height()+rect.y(), 0,
                 rect.width(), rect.height(), 0);    
 }
@@ -150,15 +150,15 @@ Box3 TextSpan::Space()
 //   Return the box that surrounds the text, including leading
 // ----------------------------------------------------------------------------
 {
-    QFontMetrics fm(font);
-    int height = fm.height();
-    int descent = fm.descent();
-    int leading = fm.leading();
-    int width = fm.width(value);
-    int leftBearing = 0;
+    QFontMetricsF fm(font);
+    coord height = fm.height();
+    coord descent = fm.descent();
+    coord leading = fm.leading();
+    coord width = fm.width(value);
+    coord leftBearing = 0;
     if (value.length())
         leftBearing = fm.leftBearing(value[0]);
-    return Box3(-leftBearing, -descent-leading, 0, width, height+leading, 0);
+    return Box3(leftBearing, -descent-leading, 0, width, height+leading, 0);
 }
 
 
@@ -206,7 +206,7 @@ scale TextSpan::TrailingSpaceSize()
 //   Return the size of all the spaces at the end of the value
 // ----------------------------------------------------------------------------
 {
-    QFontMetrics fm(font);
+    QFontMetricsF fm(font);
     scale result = 0;
     for (int i = value.length(); i > 0; i--)
     {

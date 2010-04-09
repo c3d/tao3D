@@ -77,7 +77,7 @@ template<> inline coord Justifier<line_t>::ItemOffset(line_t item)
 //   Return the horizontal offset for placing items
 // ----------------------------------------------------------------------------
 //   Since the bounds are supposed drawn at coordinates (0,0,0),
-//   the offset is 0 - the left of the bounds
+//   the offset is the opposite of the left of the bounds
 {
     Box3 space = item->Space();
     return -space.Left();

@@ -205,13 +205,22 @@ void RoundedRectangle::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 {
     QPainterPath qt;
-    if (radiusX > bounds.Width() / 2)
-        radiusX = bounds.Width() / 2;
-    if (radiusY > bounds.Height() / 2)
-        radiusY = bounds.Height() / 2;
+    int sw = bounds.Width() > 0? 1: -1;
+    int sh = bounds.Height() > 0? 1: -1;
+    
+    if (sw * bounds.Width() < sh * bounds.Height())
+    {
+        if (r > sw * bounds.Width() / 2)
+            r = sw * bounds.Width() / 2;
+    }
+    else
+    {
+        if (r > sh * bounds.Height() / 2)
+            r = sh * bounds.Height() / 2;
+    }
     qt.addRoundedRect(bounds.lower.x, bounds.lower.y,
                       bounds.Width(), bounds.Height(),
-                      radiusX, radiusY);
+                      r, r);
     path.addQtPath(qt);
 }
 
@@ -265,15 +274,34 @@ void Arrow::Draw(GraphicPath &path)
 //   Draw an arrow
 // ----------------------------------------------------------------------------
 {
-    coord x0 = bounds.lower.x;
-    coord x1 = bounds.upper.x;
-    coord xa1 = x1 - a.x;
+    coord aax, aay;
+    int sw = bounds.Width() > 0? 1: -1;
 
-    coord y0 = bounds.lower.y;
-    coord yc = (bounds.lower.y + bounds.upper.y)/2;
-    coord y1 = bounds.upper.y;
-    coord ya0 = yc - a.y/2;
-    coord ya1 = yc + a.y/2;
+    if (ax > sw*bounds.Width()) 
+        aax = bounds.Width();
+    else
+        aax = sw*ax;
+    
+    if (ax < 0.0) 
+        aax = 0.0;
+
+    if (ary > 1.0) 
+        aay = bounds.Height();
+    else
+        aay = ary*bounds.Height();
+    
+    if (ary < 0.0) 
+        aay = 0.0;
+ 
+    coord x0 = bounds.Left();
+    coord x1 = bounds.Right();
+    coord xa1 = x1 - aax;
+
+    coord y0 = bounds.Bottom();
+    coord yc = (bounds.Bottom() + bounds.Top())/2;
+    coord y1 = bounds.Top();
+    coord ya0 = yc - aay/2;
+    coord ya1 = yc + aay/2;
 
     path.moveTo(Point3(x0,  ya0, 0));
     path.lineTo(Point3(xa1, ya0, 0));
@@ -307,16 +335,35 @@ void DoubleArrow::Draw(GraphicPath &path)
 //   Draw a double arrow
 // ----------------------------------------------------------------------------
 {
+    coord aax, aay;
+    int sw = bounds.Width() > 0? 1: -1;
+
+    if (ax > sw*bounds.Width()/2) 
+        aax = bounds.Width()/2;
+    else
+        aax = sw*ax;
+    
+    if (ax < 0.0) 
+        aax = 0.0;
+
+    if (ary > 1.0) 
+        aay = bounds.Height();
+    else
+        aay = ary*bounds.Height();
+    
+    if (ary < 0.0) 
+        aay = 0.0;
+ 
     coord x0 = bounds.lower.x;
     coord x1 = bounds.upper.x;
-    coord xa0 = x0 + a.x;
-    coord xa1 = x1 - a.x;
+    coord xa0 = x0 + aax;
+    coord xa1 = x1 - aax;
 
     coord y0 = bounds.lower.y;
     coord yc = (bounds.lower.y + bounds.upper.y)/2;
     coord y1 = bounds.upper.y;
-    coord ya0 = yc - a.y/2;
-    coord ya1 = yc + a.y/2;
+    coord ya0 = yc - aay/2;
+    coord ya1 = yc + aay/2;
 
     path.moveTo(Point3(x0,  yc,  0));
     path.lineTo(Point3(xa0, y0,  0));

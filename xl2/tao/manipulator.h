@@ -19,6 +19,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -52,8 +53,10 @@ struct Manipulator : Drawing
     virtual bool        DrawHandles(Layout *layout) = 0;
 
 protected:
-    void                updateArg(Widget *widget, tree_p param,
-                                  coord first, coord previous, coord current);
+    void                updateArg(Widget *widget, tree_p arg,
+                                  double first, double previous, double current,
+                                  bool has_min = false, double min = 0.0, 
+                                  bool has_max = false, double max = 0.0);
 };
 
 
@@ -123,6 +126,20 @@ struct ControlRectangle : FrameManipulator
 };
 
 
+struct ControlRoundedRectangle : ControlRectangle
+// ----------------------------------------------------------------------------
+//   Manipulators for a rectangle-bounded object
+// ----------------------------------------------------------------------------
+{
+    ControlRoundedRectangle(real_r x, real_r y, real_r w, real_r h, real_r r,
+                            Drawing *child);
+    virtual bool        DrawHandles(Layout *layout);
+
+    protected:
+    real_r              r;
+};
+
+
 struct ControlArrow : ControlRectangle
 // ----------------------------------------------------------------------------
 //   Manipulators for a arrow object
@@ -130,10 +147,13 @@ struct ControlArrow : ControlRectangle
 {
     ControlArrow(real_r x, real_r y, real_r w, real_r h, real_r ax, real_r ary,
                  Drawing *child);
+    ControlArrow(real_r x, real_r y, real_r w, real_r h, real_r ax, real_r ary,
+                 bool is_double, Drawing *child);
     virtual bool        DrawHandles(Layout *layout);
 
 protected:
     real_r              ax, ary;
+    bool                d;
 };
 
 

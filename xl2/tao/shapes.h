@@ -19,6 +19,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -95,10 +96,10 @@ struct RoundedRectangle : Rectangle
 //   A rectangle with rounded corners
 // ----------------------------------------------------------------------------
 {
-    RoundedRectangle(const Box &b, coord rx, coord ry)
-        : Rectangle(b), radiusX(rx), radiusY(ry) {}
+    RoundedRectangle(const Box &b, coord r)
+        : Rectangle(b), r(r) {}
     virtual void        Draw(GraphicPath &path);
-    coord radiusX, radiusY;
+    coord r;
 };    
 
 
@@ -129,10 +130,11 @@ struct Arrow : Rectangle
 //   An arrow
 // ----------------------------------------------------------------------------
 {
-    Arrow(const Box &b, coord ax, coord ay): Rectangle(b), a(ax, ay) {}
+    Arrow(const Box &b, double ax, double ary)
+        : Rectangle(b), ax(ax), ary(ary) {}
     virtual void        Draw(Layout *where);
     virtual void        Draw(GraphicPath &path);
-    Point a;
+    double ax, ary;
 };
 
 
@@ -141,10 +143,11 @@ struct DoubleArrow : Rectangle
 //   A double arrow
 // ----------------------------------------------------------------------------
 {
-    DoubleArrow(const Box &b, coord ax, coord ay): Rectangle(b), a(ax, ay) {}
+    DoubleArrow(const Box &b, double ax, double ary)
+        : Rectangle(b), ax(ax), ary(ary) {}
     virtual void        Draw(Layout *where);
     virtual void        Draw(GraphicPath &path);
-    Point a;
+    double ax, ary;
 };
 
 

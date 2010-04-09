@@ -2087,16 +2087,16 @@ Tree *Widget::ellipseArc(Tree *self,
 
 Tree *Widget::roundedRectangle(Tree *self,
                                real_r cx, real_r cy,
-                               real_r w, real_r h, real_r rx, real_r ry)
+                               real_r w, real_r h, real_r r)
 // ----------------------------------------------------------------------------
-//   Cairo rounded rectangle with radius r for the rounded corners
+//   Rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
 {
-    RoundedRectangle shape(Box(cx-w/2, cy-h/2, w, h), rx, ry);
+    RoundedRectangle shape(Box(cx-w/2, cy-h/2, w, h), r);
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(cx, cy, w, h,
+        layout->Add(new ControlRoundedRectangle(cx, cy, w, h, r,
                                          new RoundedRectangle(shape)));
 
     return XL::xl_true;
@@ -2110,16 +2110,7 @@ Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
 //   Arrow
 // ----------------------------------------------------------------------------
 {
-    if (ax > w) 
-        ax = w;
-    if (ax < 0.0) 
-        ax = 0.0;
-    if (ary > 1.0) 
-        ary = 1.0;
-    if (ary < 0.0) 
-        ary = 0.0;
-         
-    Arrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ary*h);
+    Arrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ary);
     if (path)
         shape.Draw(*path);
     else
@@ -2137,20 +2128,11 @@ Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
 //   Double arrow
 // ----------------------------------------------------------------------------
 {
-    if (ax > w/2) 
-        ax = w/2;
-    if (ax < 0.0) 
-        ax = 0.0;
-    if (ary > 1.0) 
-        ary = 1.0;
-    if (ary < 0.0) 
-        ary = 0.0;
-         
-    DoubleArrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ary*h);
+    DoubleArrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ary);
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlArrow(cx, cy, w, h, ax, ary,
+        layout->Add(new ControlArrow(cx, cy, w, h, ax, ary, true,
                                          new DoubleArrow(shape)));
 
     return XL::xl_true;

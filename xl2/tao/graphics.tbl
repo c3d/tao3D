@@ -176,8 +176,8 @@ PREFIX(EllipseArc, tree, "ellipse_arc",
        RTAO(ellipseArc(self, x, y, w, h, start, sweep)))
 PREFIX(RoundedRectangle, tree, "rounded_rectangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
-       PARM(rx, real) PARM(ry, real),
-       RTAO(roundedRectangle(self, x, y, w, h, rx, ry)))
+       PARM(r, real),
+       RTAO(roundedRectangle(self, x, y, w, h, r)))
 PREFIX(Arrow, tree, "arrow",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(ax, real) PARM(ay, real),

@@ -37,12 +37,15 @@ Repository::Kind            Repository::availableScm = Repository::Unknown;
 
 text Repository::fullName(text fileName)
 // ----------------------------------------------------------------------------
-//   Return the full name of an element in the repository
+//   Return the full name of an element in the repository or "" if outside
 // ----------------------------------------------------------------------------
 {
     QDir dir(path);
     QString file = QString::fromUtf8(fileName.data(), fileName.length());
     QString fullPath = dir.filePath(file);
+    QString cleanPath = QDir::cleanPath(fullPath);
+    if (!cleanPath.startsWith(path))
+        return "";
     return fullPath.toStdString();
 }
 
@@ -63,6 +66,9 @@ bool Repository::write(text fileName, XL::Tree *tree)
 {
     bool ok = false;
     text full = fullName(fileName);
+
+    if (full == "")
+        return false;
 
     // Write the file in a copy (avoid overwriting original)
     text copy = full + "~";

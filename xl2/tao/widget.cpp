@@ -228,7 +228,11 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
     if (sf.changed)
     {
         Repository *repo = repository();
-        if (repo && repo->write(fname, sf.tree.tree))
+
+        if (!repo)
+            return false;
+
+        if (repo->write(fname, sf.tree.tree))
         {
             // Mark the tree as no longer changed
             sf.changed = false;
@@ -245,6 +249,9 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
 
             return true;
         }
+
+        IFTRACE(filesync)
+                std::cerr << "Could not write " << fname << " to repository\n";
     }
     return false;
 }

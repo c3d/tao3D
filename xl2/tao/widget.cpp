@@ -649,6 +649,10 @@ void Widget::keyPressEvent(QKeyEvent *event)
     uint key = (uint) event->key();
     for (Activity *a = activities; a; a = a->Key(key, true)) ;
 
+    // Forward it down the regular event chain
+    if (forwardEvent(event))
+        return;
+
     // Try to find if there is a callback in the code for this key
     text name = +event->text();
     bool m = false;
@@ -944,9 +948,6 @@ void Widget::keyPressEvent(QKeyEvent *event)
         Window *window = (Window *) parentWidget();
         window->statusBar()->showMessage("Unknown error processing key");
     }
-
-    // Forward it down the regular event chain
-    forwardEvent(event);
 }
 
 
@@ -964,6 +965,7 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
     // Forward it down the regular event chain
     forwardEvent(event);
 }
+
 
 void Widget::mousePressEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
@@ -984,6 +986,11 @@ void Widget::mousePressEvent(QMouseEvent *event)
     // Send the click to all activities
     for (Activity *a = activities; a; a = a->Click(button, true, x, y)) ;
 
+    // Check if some widget is selected and wants that event
+    if (forwardEvent(event))
+        return;
+
+    // Otherwise create our local contextual menu
     if (button ==  Qt::RightButton)
     {
         switch (event->modifiers())
@@ -1019,10 +1026,6 @@ void Widget::mousePressEvent(QMouseEvent *event)
         if (contextMenu)
             contextMenu->exec(event->globalPos());
     }
-
-    // Pass the event down the event chain
-    if (!contextMenu)
-        forwardEvent(event);
 }
 
 

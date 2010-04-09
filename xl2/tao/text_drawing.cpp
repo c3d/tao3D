@@ -151,11 +151,14 @@ Box3 TextSpan::Space()
 // ----------------------------------------------------------------------------
 {
     QFontMetrics fm(font);
-    int flags = Qt::AlignCenter;
-    QRect openSpace(-10000, -10000, 20000, 20000);
-    QRect rect = fm.boundingRect(openSpace, flags, value);
-    return Box3(rect.x(), rect.height()+rect.y(), 0,
-                rect.width(), rect.height(), 0);    
+    int height = fm.height();
+    int descent = fm.descent();
+    int leading = fm.leading();
+    int width = fm.width(value);
+    int leftBearing = 0;
+    if (value.length())
+        leftBearing = fm.leftBearing(value[0]);
+    return Box3(-leftBearing, -descent-leading, 0, width, height+leading, 0);
 }
 
 

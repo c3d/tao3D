@@ -84,6 +84,7 @@ public:
     Item        Break(Item item);
     scale       Size(Item item);
     scale       SpaceSize(Item item);
+    coord       ItemOffset(Item item);
     void        ApplyAttributes(Item item, Layout *layout);
 
     void        Dump(text msg);
@@ -184,6 +185,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
             ApplyAttributes(item, layout);
             scale spacing = justify.spacing;
             scale size = Size(item) * spacing;
+            coord offset = ItemOffset(item);
             if (sign * pos + size > sign * end)
             {
                 // It doesn't fit, we need to stop here.
@@ -200,7 +202,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
             else
             {
                 // It fits, place it
-                places.push_back(Place(item, size, pos, !next));
+                places.push_back(Place(item, size, pos + sign*offset, !next));
                 pos += sign * size;
                 lastSpace = SpaceSize(item) * spacing;
                 lastOversize = size * (spacing-1);

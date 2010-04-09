@@ -72,6 +72,18 @@ template<> inline scale Justifier<line_t>::SpaceSize(line_t item)
 }
 
 
+template<> inline coord Justifier<line_t>::ItemOffset(line_t item)
+// ----------------------------------------------------------------------------
+//   Return the horizontal offset for placing items
+// ----------------------------------------------------------------------------
+//   Since the bounds are supposed drawn at coordinates (0,0,0),
+//   the offset is 0 - the left of the bounds
+{
+    Box3 space = item->Space();
+    return -space.Left();
+}
+
+
 template<> inline page_t Justifier<page_t>::Break(page_t line)
 // ----------------------------------------------------------------------------
 //   For lines, we break at line boundaries
@@ -105,8 +117,20 @@ template<> inline scale Justifier<page_t>::SpaceSize(page_t)
 //   Return the size of a space for the layout
 // ----------------------------------------------------------------------------
 {
-    // REVIIST: Paragraph interspace
+    // REVISIT: Paragraph interspace
     return 0;
+}
+
+
+template<> inline coord Justifier<page_t>::ItemOffset(page_t item)
+// ----------------------------------------------------------------------------
+//   Return the vertical offset for lines
+// ----------------------------------------------------------------------------
+//   Since the bounds are supposed to be computed at coordinates (0,0,0),
+//   the offset for the top is Top()
+{
+    Box3 space = item->Space();
+    return space.Top();
 }
 
 
@@ -334,7 +358,9 @@ void LayoutLine::Compute(Layout *layout)
 
     // Position one line of items
     Box3 space = layout->Space();
-    line.Adjust(space.Left(), space.Right(), layout->alongX, layout);
+    coord left = space.Left(), right = space.Right();
+    if (left > right) std::swap(left, right);
+    line.Adjust(left, right, layout->alongX, layout);
 }
 
 
@@ -345,7 +371,7 @@ LayoutLine *LayoutLine::Remaining()
 {
     // Check if we are done
     Items &items = line.items;
-    if (items.size() == 0)
+    if (items.size() == 0 || line.places.size() == 0)
         return NULL;
 
     // Transfer remaining items over to new line
@@ -454,7 +480,7 @@ void PageLayout::Draw(Layout *where)
     {
         PageJustifier::Place &place = *p;
         LayoutLine *child = place.item;
-        offset.y = place.position - place.size;
+        offset.y = place.position;
         child->Draw(this);
     }
 }
@@ -576,7 +602,9 @@ void PageLayout::Compute()
     }
 
     // Now that we have all lines, do the vertical layout
-    page.Adjust(space.Top(), space.Bottom(), alongY, this);
+    coord top = space.Top(), bottom = space.Bottom();
+    if (top < bottom) std::swap(top, bottom);
+    page.Adjust(top, bottom, alongY, this);
 }
 
 TAO_END

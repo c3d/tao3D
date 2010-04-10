@@ -27,6 +27,8 @@
 #include "tao.h"
 #include "coords3d.h"
 #include "opcodes.h"
+#include "drawing.h"
+
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -249,6 +251,7 @@ public:
     Tree *      center(Tree *self, scale amount, uint axis);
     Tree *      spread(Tree *self, scale amount, uint axis);
     Tree *      spacing(Tree *self, scale amount, uint axis);
+    Tree *      drawingBreak(Tree *self, Drawing::BreakOrder order);
 
     // Frames and widgets
     Tree *      status(Tree *self, text t);

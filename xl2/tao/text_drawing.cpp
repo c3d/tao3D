@@ -167,27 +167,30 @@ TextSpan *TextSpan::Break(BreakOrder &order)
 //   If the text span contains a word or line break, cut there
 // ----------------------------------------------------------------------------
 {
-    uint i, max = value.length();
-    for (i = 0; i < max; i++)
+    if (order <= LineBreak)
     {
-        QChar c = value[i];
-        BreakOrder charOrder = CharBreak;
-        if (c.isSpace())
+        uint i, max = value.length();
+        for (i = 0; i < max; i++)
         {
-            charOrder = WordBreak;
-            if (c == '\n')
-                charOrder = LineBreak;
-        }
-        if (order <= charOrder)
-        {
-            // Create two text spans, the first one containing the split
-            QString remainder = value.mid(i+1);
-            TextSpan *result = remainder.length()
-                ? new TextSpan(remainder, font)
-                : NULL;
-            value = value.left(i+1);
-            order = charOrder;
-            return result;
+            QChar c = value[i];
+            BreakOrder charOrder = CharBreak;
+            if (c.isSpace())
+            {
+                charOrder = WordBreak;
+                if (c == '\n')
+                    charOrder = LineBreak;
+            }
+            if (order <= charOrder)
+            {
+                // Create two text spans, the first one containing the split
+                QString remainder = value.mid(i+1);
+                TextSpan *result = remainder.length()
+                    ? new TextSpan(remainder, font)
+                    : NULL;
+                value = value.left(i+1);
+                order = charOrder;
+                return result;
+            }
         }
     }
     order = NoBreak;

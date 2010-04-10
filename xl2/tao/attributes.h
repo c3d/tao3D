@@ -39,6 +39,17 @@ struct Attribute : Drawing
 };
 
 
+struct DrawingBreak : Attribute
+// ----------------------------------------------------------------------------
+//   Break at the given level
+// ----------------------------------------------------------------------------
+{
+    DrawingBreak(BreakOrder order): order(order) {}
+    virtual Drawing *   Break(BreakOrder &order);
+    BreakOrder order;
+};
+
+
 struct ColorAttribute : Attribute
 // ----------------------------------------------------------------------------
 //    Record a color

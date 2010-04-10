@@ -288,19 +288,66 @@ Box3 LayoutLine::Space()
 
 LayoutLine *LayoutLine::Break(BreakOrder &order)
 // ----------------------------------------------------------------------------
-//   Cut a line layout at a line or paragraph boundary
+//   Cut a line layout at a line, paragraph or column boundary
 // ----------------------------------------------------------------------------
 {
-    Items::iterator i;
     Items &items = line.items;
+    Items::iterator i;
+    LineJustifier::Places &places = line.places;
+    LineJustifier::PlacesIterator p, pcopy;
+
+    // First loop over items already placed
+    if (order >= LineBreak)
+    {
+        for (p = places.begin(); p != places.end(); p++)
+        {
+            LineJustifier::Place &place = *p;
+            Drawing *item = place.item;
+            while (item)
+            {
+                BreakOrder itemOrder = LineBreak;
+                Drawing *next = item->Break(itemOrder);
+                if (next || order < itemOrder)
+                {
+                    order = itemOrder;
+                    
+                    // Append what remains after line break to the new layout
+                    LayoutLine *result = new LayoutLine(*this);
+                    if (next)
+                        result->Add(next);
+                    for (pcopy = p+1; pcopy != places.end(); pcopy++)
+                    {
+                        LineJustifier::Place &source = *pcopy;
+                        result->Add(source.item);
+                    }
+                    
+                    // Also transfers the leftover items
+                    result->Add(items.begin(), items.end());
+                    items.clear();
+                    
+                    // Erase what we transferred to the next line
+                    places.erase(p, places.end());
+                    
+                    // Return the new line
+                    return result;
+                } // if (next)
+                
+                item = next;
+            } // while(item)
+        } // for (all places)
+    } // if (high order)
+
+    // If not found in placed item, iterates again over leftover items
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *item = *i;
-        Drawing *next = item->Break(order);
-        if (next)
+        BreakOrder itemOrder = LineBreak;
+        Drawing *next = item->Break(itemOrder);
+        if (next || itemOrder > Drawing::LineBreak)
         {
             // Keep the current item in this layout
             i++;
+            order = itemOrder;
 
             // Append what remains after the line break to the new layout
             LayoutLine *result = new LayoutLine(*this);

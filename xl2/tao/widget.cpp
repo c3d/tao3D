@@ -2508,6 +2508,16 @@ Tree *Widget::spacing(Tree *self, scale amount, uint axis)
 }
 
 
+Tree *Widget::drawingBreak(Tree *self, Drawing::BreakOrder order)
+// ----------------------------------------------------------------------------
+//   Change the spacing along the given axis
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new DrawingBreak(order));
+    return XL::xl_true;
+}
+
+
 
 
 // ============================================================================

@@ -178,7 +178,7 @@ void LayoutLine::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // Compute layout
-    Compute(where);
+    SafeCompute(where);
 
     // Display all items
     LineJustifier::Places &places = line.places;
@@ -201,7 +201,7 @@ void LayoutLine::DrawSelection(Layout *where)
 //   Consider using a pointer-to-member (ugly) or some clever trick?
 {
     // Compute layout
-    Compute(where);
+    SafeCompute(where);
 
     // Display all items
     LineJustifier::Places &places = line.places;
@@ -221,7 +221,7 @@ void LayoutLine::Identify(Layout *where)
 //   Identify page elements for OpenGL
 // ----------------------------------------------------------------------------
 {
-    Compute(where);
+    SafeCompute(where);
 
     // Display all items
     LineJustifier::Places &places = line.places;
@@ -346,9 +346,9 @@ void LayoutLine::Add(Items::iterator first, Items::iterator last)
 }
 
 
-void LayoutLine::Compute(Layout *layout)
+void LayoutLine::SafeCompute(Layout *layout)
 // ----------------------------------------------------------------------------
-//   Compute the placement of items on the line
+//   Compute the placement of items on the line, preserving layout state
 // ----------------------------------------------------------------------------
 {
     // If we already computed the placement, re-use that
@@ -357,6 +357,18 @@ void LayoutLine::Compute(Layout *layout)
 
     // Save attributes that may be modified by Compute(), as well as offset
     XL::LocalSave<LayoutState> save(*layout, *layout);
+    Compute(layout);
+}
+
+
+void LayoutLine::Compute(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Compute the placement of items on the line
+// ----------------------------------------------------------------------------
+{
+    // If we already computed the placement, re-use that
+    if (line.places.size())
+        return;
 
     // Position one line of items
     Box3 space = layout->Space();
@@ -509,7 +521,7 @@ void PageLayout::Draw(Layout *where)
     // Inherit state from our parent layout if there is one
     Inherit(where);
 
-    Compute();
+    SafeCompute();
 
     // Display all items
     PageJustifier::Places &places = page.places;
@@ -534,7 +546,7 @@ void PageLayout::DrawSelection(Layout *where)
     // Inherit state from our parent layout if there is one
     Inherit(where);
 
-    Compute();
+    SafeCompute();
 
     // Display all items
     PageJustifier::Places &places = page.places;
@@ -557,7 +569,7 @@ void PageLayout::Identify(Layout *where)
     // Inherit state from our parent layout if there is one
     Inherit(where);
 
-    Compute();
+    SafeCompute();
 
     // Display all items
     PageJustifier::Places &places = page.places;
@@ -606,9 +618,9 @@ Box3 PageLayout::Space()
 }
 
 
-void PageLayout::Compute()
+void PageLayout::SafeCompute()
 // ----------------------------------------------------------------------------
-//   Layout all elements on the page in as many lines as necessary
+//   Layout all elements on the page, preserving layout state
 // ----------------------------------------------------------------------------
 {
     // If we already computed the layout, just reuse that
@@ -617,6 +629,18 @@ void PageLayout::Compute()
 
     // Save attributes that may be modified by Compute(), as well as offset
     XL::LocalSave<LayoutState> save(*this, *this);
+    Compute();
+}
+
+
+void PageLayout::Compute()
+// ----------------------------------------------------------------------------
+//   Layout all elements on the page in as many lines as necessary
+// ----------------------------------------------------------------------------
+{
+    // If we already computed the layout, just reuse that
+    if (page.places.size())
+        return;
 
     // Transfer all items into a single line
     LayoutLine *line = new LayoutLine();

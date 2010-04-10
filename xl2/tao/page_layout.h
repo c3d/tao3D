@@ -53,6 +53,7 @@ public:
     void                Add(Drawing *d);
     void                Add(Items::iterator first, Items::iterator last);
     void                Compute(Layout *where);
+    void                SafeCompute(Layout *where);
     LayoutLine *        Remaining();
     void                ApplyAttributes(Layout *layout);
 
@@ -87,6 +88,7 @@ public:
     virtual PageLayout *Remaining();
 
     void                Compute();
+    void                SafeCompute();
 
 public:
     // Space requested for the layout

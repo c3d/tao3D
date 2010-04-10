@@ -26,6 +26,8 @@
 #include "process.h"
 #include <QtWebKit>
 #include <phonon>
+#include <cstring>
+#include <string>
 
 TAO_BEGIN
 
@@ -331,22 +333,28 @@ void LineEditSurface::inputValidated()
 
 // ============================================================================
 //
-//   Push Button
+//   Abstract Button
 //
 // ============================================================================
-AbstractButtonSurface::AbstractButtonSurface(XL::Tree *t, QAbstractButton * button)
+AbstractButtonSurface::AbstractButtonSurface(XL::Tree *t,
+                                             QAbstractButton * button)
 // ----------------------------------------------------------------------------
 //    Create the Abstract Button surface
 // ----------------------------------------------------------------------------
-    : WidgetSurface(t, button), label(), action(XL::xl_false)
+    : WidgetSurface(t, button), label(), action(XL::xl_false), isMarked(NULL)
 {
+
     connect(button, SIGNAL(clicked(bool)),
             this,   SLOT(clicked(bool)));
+
+    connect(button, SIGNAL(toggled(bool)),
+            this,   SLOT(toggled(bool)));
+
     widget->setVisible(true);
 }
 
 
-GLuint AbstractButtonSurface::bind(XL::Text *lbl, XL::Tree *act)
+GLuint AbstractButtonSurface::bind(XL::Text *lbl, XL::Tree *act, XL::Text *sel)
 // ----------------------------------------------------------------------------
 //    If the label or associated action changes
 // ----------------------------------------------------------------------------
@@ -360,6 +368,12 @@ GLuint AbstractButtonSurface::bind(XL::Text *lbl, XL::Tree *act)
     dirty = true;
     action.tree = act;
 
+    if (sel && button->isCheckable() && sel != isMarked)
+    {
+        button->setChecked(strcasecmp(sel->value.c_str(), "true")==0);
+        isMarked = sel;
+    }
+
     return WidgetSurface::bind();
 }
 
@@ -372,11 +386,32 @@ void AbstractButtonSurface::clicked(bool checked)
     IFTRACE (widgets)
     {
         std::cerr << "button "<< label
-                  << " was clicked with checked=" << checked << "\n";
+                  << " was clicked with checked = " << checked << "\n";
     }
 
     if (action.tree)
         xl_evaluate(action);
+}
+
+void AbstractButtonSurface::toggled(bool checked)
+// ----------------------------------------------------------------------------
+//    The button was clicked. Evaluate the action.
+// ----------------------------------------------------------------------------
+{
+    IFTRACE (widgets)
+    {
+        std::cerr << "button "<< label
+                  << " has toggled to " << checked << "\n";
+    }
+
+    if (isMarked)
+    {
+        if (checked)
+            isMarked->value = "true";
+        else
+            isMarked->value = "false";
+    }
+
 }
 
 

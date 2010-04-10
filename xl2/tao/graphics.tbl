@@ -272,19 +272,21 @@ PREFIX(PushButtonTexture, tree, "push_button_texture",
 
 PREFIX(RadioButton, tree, "radio_button",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
-       PARM(u, text) PARM(a, tree),
-       RTAO(radioButton(self, x, y, w, h, &u, &a)))
+       PARM(u, text) PARM(m, text) PARM(a, tree),
+       RTAO(radioButton(self, x, y, w, h, &u, &m, &a)))
 PREFIX(RadioButtonTexture, tree, "radio_button_texture",
-       PARM(w,real) PARM(h,real) PARM(u, text) PARM(a, tree),
-       RTAO(radioButtonTexture(self, w, h, &u, &a)))
+       PARM(w,real) PARM(h,real) PARM(u, text)
+       PARM(m, text) PARM(a, tree),
+       RTAO(radioButtonTexture(self, w, h, &u, &m, &a)))
 
 PREFIX(CheckBoxButton, tree, "check_box_button",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
-       PARM(u, text) PARM(a, tree),
-       RTAO(checkBoxButton(self, x, y, w, h, &u, &a)))
+       PARM(u, text) PARM(m, text) PARM(a, tree),
+       RTAO(checkBoxButton(self, x, y, w, h, &u, &m, &a)))
 PREFIX(CheckBoxButtonTexture, tree, "check_box_button_texture",
-       PARM(w,real) PARM(h,real) PARM(u, text) PARM(a, tree),
-       RTAO(checkBoxButtonTexture(self, w, h, &u, &a)))
+       PARM(w,real) PARM(h,real) PARM(u, text)
+       PARM(m, text) PARM(a, tree),
+       RTAO(checkBoxButtonTexture(self, w, h, &u, &m, &a)))
 
 PREFIX(ColorChooser, tree, "color_chooser",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,tree),

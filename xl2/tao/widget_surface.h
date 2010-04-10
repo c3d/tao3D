@@ -113,15 +113,18 @@ struct AbstractButtonSurface : WidgetSurface
 public:
 //    typedef AbstractButtonSurface * data_t;
     AbstractButtonSurface(XL::Tree *t, QAbstractButton *button);
-    virtual GLuint bind(XL::Text *lbl, XL::Tree *action);
+    virtual GLuint bind(XL::Text *lbl, XL::Tree *action, XL::Text * sel);
     virtual operator data_t() { return this; }
 
 private:
     text         label;
     XL::TreeRoot action;
+    XL::Text *  isMarked;
+
 
 public slots:
     void clicked(bool checked);
+    void toggled(bool checked);
 
 };
 
@@ -134,7 +137,7 @@ struct PushButtonSurface : AbstractButtonSurface
 public:
     typedef PushButtonSurface * data_t;
     PushButtonSurface(XL::Tree *t, QWidget *parent):
-            AbstractButtonSurface(t,new QPushButton(parent)){};
+        AbstractButtonSurface(t,new QPushButton(parent)){};
     operator data_t() { return this; }
 };
 
@@ -147,7 +150,7 @@ struct RadioButtonSurface : AbstractButtonSurface
 public:
     typedef RadioButtonSurface * data_t;
     RadioButtonSurface(XL::Tree *t, QWidget *parent):
-            AbstractButtonSurface(t, new QRadioButton(parent)){};
+        AbstractButtonSurface(t, new QRadioButton(parent)){};
     operator data_t() { return this; }
 };
 
@@ -160,7 +163,7 @@ struct CheckBoxSurface : AbstractButtonSurface
 public:
     typedef CheckBoxSurface * data_t;
     CheckBoxSurface(XL::Tree *t, QWidget *parent):
-            AbstractButtonSurface(t, new QCheckBox(parent)){};
+        AbstractButtonSurface(t, new QCheckBox(parent)){};
     operator data_t() { return this; }
 };
 

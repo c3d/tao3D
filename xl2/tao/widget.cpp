@@ -2407,17 +2407,19 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
 
 Tree *Widget::radioButton(Tree *self,
                        real_r x,real_r y, real_r w,real_r h,
-                       text_p lbl, Tree *act)
+                       text_p lbl, Text* sel, Tree *act)
+// ----------------------------------------------------------------------------
+//   Make a radio button
+// ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
-    radioButtonTexture(self, w, h, lbl, act);
-    return abstractButton(self, x, y, w, h, lbl, act);
+    radioButtonTexture(self, w, h, lbl, sel, act);
+    return abstractButton(self, x, y, w, h);
 }
 
-Tree *Widget::radioButtonTexture(Tree *self,
-                              double w, double h,
-                              Text *lbl, Tree *act)
+Tree *Widget::radioButtonTexture(Tree *self, double w, double h, Text *lbl,
+                                 Text* sel, Tree *act)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given push button
 // ----------------------------------------------------------------------------
@@ -2435,26 +2437,24 @@ Tree *Widget::radioButtonTexture(Tree *self,
 
     // Resize to requested size, and bind texture
     surface->resize(w,h);
-    GLuint tex = surface->bind(lbl, act);
+    GLuint tex = surface->bind(lbl, act, sel);
     layout->Add(new FillTexture(tex));
 
     return XL::xl_true;
 }
 
 
-Tree *Widget::checkBoxButton(Tree *self,
-                       real_r x,real_r y, real_r w,real_r h,
-                       text_p lbl, Tree *act)
+Tree *Widget::checkBoxButton(Tree *self, real_r x,real_r y, real_r w, real_r h,
+                             text_p lbl, Text* sel, Tree *act)
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
-    checkBoxButtonTexture(self, w, h, lbl, act);
-    return abstractButton(self, x, y, w, h, lbl, act);
+    checkBoxButtonTexture(self, w, h, lbl, sel, act);
+    return abstractButton(self, x, y, w, h);
 }
 
-Tree *Widget::checkBoxButtonTexture(Tree *self,
-                              double w, double h,
-                              Text *lbl, Tree *act)
+Tree *Widget::checkBoxButtonTexture(Tree *self, double w, double h,  Text *lbl,
+                                    Text* sel, Tree *act)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given push button
 // ----------------------------------------------------------------------------
@@ -2472,26 +2472,24 @@ Tree *Widget::checkBoxButtonTexture(Tree *self,
 
     // Resize to requested size, and bind texture
     surface->resize(w,h);
-    GLuint tex = surface->bind(lbl, act);
+    GLuint tex = surface->bind(lbl, act, sel);
     layout->Add(new FillTexture(tex));
 
     return XL::xl_true;
 }
 
 
-Tree *Widget::pushButton(Tree *self,
-                         real_r x, real_r y, real_r w, real_r h,
+Tree *Widget::pushButton(Tree *self, real_r x, real_r y, real_r w, real_r h,
                          Text *lbl, Tree* act)
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
     pushButtonTexture(self, w, h, lbl, act);
-    return abstractButton(self, x, y, w, h, lbl, act);
+    return abstractButton(self, x, y, w, h);
 }
 
-Tree *Widget::pushButtonTexture(Tree *self,
-                                double w, double h,
-                                Text *lbl, Tree *act)
+Tree *Widget::pushButtonTexture(Tree *self, double w, double h, Text *lbl,
+                                Tree *act)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given push button
 // ----------------------------------------------------------------------------
@@ -2509,16 +2507,14 @@ Tree *Widget::pushButtonTexture(Tree *self,
 
     // Resize to requested size, and bind texture
     surface->resize(w,h);
-    GLuint tex = surface->bind(lbl, act);
+    GLuint tex = surface->bind(lbl, act, NULL);
     layout->Add(new FillTexture(tex));
 
     return XL::xl_true;
 }
 
 
-Tree *Widget::abstractButton(Tree *self,
-                         real_r x, real_r y, real_r w, real_r h,
-                         Text *lbl, Tree* act)
+Tree *Widget::abstractButton(Tree *self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //   Draw a push button in the curent frame
 // ----------------------------------------------------------------------------

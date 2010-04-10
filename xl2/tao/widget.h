@@ -243,26 +243,20 @@ public:
     Tree *      lineEditTexture(Tree *self, double x, double y, Text *s);
 
     Tree *      abstractButton(Tree *self,
-                           real_r x,real_r y, real_r w,real_r h,
+                               real_r x, real_r y, real_r w, real_r h);
+    Tree *      pushButton(Tree *self, real_r x, real_r y, real_r w, real_r h,
                            text_p lbl, Tree *act);
-    Tree *      pushButton(Tree *self,
-                           real_r x,real_r y, real_r w,real_r h,
-                           text_p lbl, Tree *act);
-    Tree *      pushButtonTexture(Tree *self,
-                                  double w, double h,
+    Tree *      pushButtonTexture(Tree *self, double w, double h,
                                   Text *lbl, Tree *act);
-    Tree *      radioButton(Tree *self,
-                           real_r x,real_r y, real_r w,real_r h,
-                           text_p lbl, Tree *act);
-    Tree *      radioButtonTexture(Tree *self,
-                                  double w, double h,
-                                  Text *lbl, Tree *act);
-    Tree *      checkBoxButton(Tree *self,
-                           real_r x,real_r y, real_r w,real_r h,
-                           text_p lbl, Tree *act);
-    Tree *      checkBoxButtonTexture(Tree *self,
-                                  double w, double h,
-                                  Text *lbl, Tree *act);
+    Tree *      radioButton(Tree *self, real_r x,real_r y, real_r w,real_r h,
+                           text_p lbl, Text *selected, Tree *act);
+    Tree *      radioButtonTexture(Tree *self, double w, double h,
+                                  Text *lbl, Text *selected, Tree *act);
+    Tree *      checkBoxButton(Tree *self, real_r x,real_r y, real_r w,real_r h,
+                               text_p lbl, Text* marked,
+                               Tree *act);
+    Tree *      checkBoxButtonTexture(Tree *self, double w, double h,
+                                      Text *lbl, Text* marked, Tree *act);
     Tree *      buttonGroup(Tree *self, Tree *buttons, bool exclusive = true);
 
     Tree *      colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
@@ -309,6 +303,7 @@ private:
     friend class Drag;
     friend class Manipulator;
     friend class ControlPoint;
+    friend class AbstractButtonSurface;
 
     typedef XL::LocalSave<QEvent *> EventSave;
     typedef std::map<GLuint, uint>  selection_map;

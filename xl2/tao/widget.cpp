@@ -2409,7 +2409,7 @@ Tree *Widget::radioButton(Tree *self,
                        real_r x,real_r y, real_r w,real_r h,
                        text_p lbl, Text* sel, Tree *act)
 // ----------------------------------------------------------------------------
-//   Make a radio button
+//   Draw a radio button in the curent frame
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
@@ -2421,7 +2421,7 @@ Tree *Widget::radioButton(Tree *self,
 Tree *Widget::radioButtonTexture(Tree *self, double w, double h, Text *lbl,
                                  Text* sel, Tree *act)
 // ----------------------------------------------------------------------------
-//   Make a texture out of a given push button
+//   Make a texture out of a given radio button
 // ----------------------------------------------------------------------------
 {
     if (w < 16) w = 16;
@@ -2446,6 +2446,9 @@ Tree *Widget::radioButtonTexture(Tree *self, double w, double h, Text *lbl,
 
 Tree *Widget::checkBoxButton(Tree *self, real_r x,real_r y, real_r w, real_r h,
                              text_p lbl, Text* sel, Tree *act)
+// ----------------------------------------------------------------------------
+//   Draw a check button in the curent frame
+// ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
@@ -2456,7 +2459,7 @@ Tree *Widget::checkBoxButton(Tree *self, real_r x,real_r y, real_r w, real_r h,
 Tree *Widget::checkBoxButtonTexture(Tree *self, double w, double h,  Text *lbl,
                                     Text* sel, Tree *act)
 // ----------------------------------------------------------------------------
-//   Make a texture out of a given push button
+//   Make a texture out of a given checkbox button
 // ----------------------------------------------------------------------------
 {
     if (w < 16) w = 16;
@@ -2481,6 +2484,9 @@ Tree *Widget::checkBoxButtonTexture(Tree *self, double w, double h,  Text *lbl,
 
 Tree *Widget::pushButton(Tree *self, real_r x, real_r y, real_r w, real_r h,
                          Text *lbl, Tree* act)
+// ----------------------------------------------------------------------------
+//   Draw a push button in the curent frame
+// ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
@@ -2516,7 +2522,7 @@ Tree *Widget::pushButtonTexture(Tree *self, double w, double h, Text *lbl,
 
 Tree *Widget::abstractButton(Tree *self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
-//   Draw a push button in the curent frame
+//   Draw any button in the curent frame
 // ----------------------------------------------------------------------------
 {
     AbstractButtonSurface *surface = self->GetInfo<AbstractButtonSurface>();

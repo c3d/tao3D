@@ -34,12 +34,15 @@ TAO_BEGIN
 // 
 // ============================================================================
 
-template<> inline line_t Justifier<line_t>::Break(line_t item)
+template<> inline line_t Justifier<line_t>::Break(line_t item, bool *done)
 // ----------------------------------------------------------------------------
 //   For drawings, we break at word boundaries
 // ----------------------------------------------------------------------------
 {
-    return item->WordBreak();
+    Drawing::BreakOrder order = Drawing::WordBreak;
+    line_t result = item->Break(order);
+    *done = order > Drawing::WordBreak;
+    return result;
 }
 
 
@@ -84,12 +87,15 @@ template<> inline coord Justifier<line_t>::ItemOffset(line_t item)
 }
 
 
-template<> inline page_t Justifier<page_t>::Break(page_t line)
+template<> inline page_t Justifier<page_t>::Break(page_t line, bool *done)
 // ----------------------------------------------------------------------------
 //   For lines, we break at line boundaries
 // ----------------------------------------------------------------------------
 {
-    return line->LineBreak();
+    Drawing::BreakOrder order = Drawing::LineBreak;
+    page_t result = line->Break(order);
+    *done = order > Drawing::LineBreak;
+    return result;
 }
 
 
@@ -281,7 +287,7 @@ Box3 LayoutLine::Space()
 }
 
 
-LayoutLine *LayoutLine::LineBreak()
+LayoutLine *LayoutLine::Break(BreakOrder &order)
 // ----------------------------------------------------------------------------
 //   Cut a line layout at a line or paragraph boundary
 // ----------------------------------------------------------------------------
@@ -291,7 +297,7 @@ LayoutLine *LayoutLine::LineBreak()
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *item = *i;
-        Drawing *next = item->LineBreak();
+        Drawing *next = item->Break(order);
         if (next)
         {
             // Keep the current item in this layout

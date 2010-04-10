@@ -81,7 +81,7 @@ public:
     void        Clear();
 
     // Properties of the items in the layout
-    Item        Break(Item item);
+    Item        Break(Item item, bool *done);
     scale       Size(Item item);
     scale       SpaceSize(Item item);
     coord       ItemOffset(Item item);
@@ -166,20 +166,21 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     scale lastSpace = 0;
     scale lastOversize = 0;
     bool  hasRoom = true;
+    bool  done = false; // e.g. line break in a line
     uint  numBreaks = 0;
     uint  numSolids = 0;
     int   sign = start < end ? 1 : -1;
 
     // Place items until there's none left or we are beyond the max position
     ItemsIterator i;
-    for (i = items.begin(); hasRoom && i != items.end(); i++)
+    for (i = items.begin(); hasRoom && !done && i != items.end(); i++)
     {
         // Get item and break it down into individual unbreakable units
         Item  item = *i;
-        while (hasRoom && item)
+        while (hasRoom && !done && item)
         {
             // Cut item at the first break point
-            Item next = Break(item);
+            Item next = Break(item, &done);
 
             // Test the size of what remains
             ApplyAttributes(item, layout);
@@ -211,6 +212,13 @@ bool Justifier<Item>::Adjust(coord start, coord end,
                     numBreaks++;
                 else
                     numSolids++;
+
+                if (done)
+                {
+                    items.erase(items.begin(), i+1);
+                    if (next)
+                        items.insert(items.begin(), next);
+                }
             }
         }
     }
@@ -225,7 +233,8 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     if (hasRoom)
     {
         just = 0;
-        items.clear();
+        if (!done)
+            items.clear();
     }
     if (lastSpace == 0)
         numBreaks++;

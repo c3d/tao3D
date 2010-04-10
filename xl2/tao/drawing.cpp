@@ -83,16 +83,7 @@ Box3 Drawing::Space()
 }
 
 
-Drawing *Drawing::WordBreak()
-// ----------------------------------------------------------------------------
-//   Break a shape at the next word boundary if any
-// ----------------------------------------------------------------------------
-{
-    return NULL;
-}
-
-
-Drawing *Drawing::LineBreak()
+Drawing *Drawing::Break(BreakOrder &)
 // ----------------------------------------------------------------------------
 //    Break a shape at the next line boundary, if any
 // ----------------------------------------------------------------------------

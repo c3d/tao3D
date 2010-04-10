@@ -410,21 +410,12 @@ Box3 DrawingManipulator::Space()
 }
 
 
-Drawing *DrawingManipulator::WordBreak()
+Drawing *DrawingManipulator::Break(BreakOrder &order)
 // ----------------------------------------------------------------------------
 //   Return the property of the child
 // ----------------------------------------------------------------------------
 {
-    return child->WordBreak();
-}
-
-
-Drawing *DrawingManipulator::LineBreak()
-// ----------------------------------------------------------------------------
-//   Return the property of the child
-// ----------------------------------------------------------------------------
-{
-    return child->LineBreak();
+    return child->Break(order);
 }
 
 

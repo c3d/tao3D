@@ -162,40 +162,31 @@ Box3 TextSpan::Space()
 }
 
 
-TextSpan *TextSpan::WordBreak()
+TextSpan *TextSpan::Break(BreakOrder &order)
 // ----------------------------------------------------------------------------
-//   If the text span contains a word break, cut there
+//   If the text span contains a word or line break, cut there
 // ----------------------------------------------------------------------------
 {
     uint i, max = value.length();
     for (i = 0; i < max; i++)
     {
         QChar c = value[i];
+        BreakOrder charOrder = CharBreak;
         if (c.isSpace())
         {
-            // Create two text spans, the first one containing the \n or space
+            charOrder = WordBreak;
+            if (c == '\n')
+                charOrder = LineBreak;
+        }
+        if (order <= charOrder)
+        {
+            // Create two text spans, the first one containing the split
             QString remainder = value.mid(i+1);
             TextSpan *result = new TextSpan(remainder, font);
             value = value.left(i+1);
+            order = charOrder;
             return result;
         }
-    }
-    return NULL;
-}
-
-
-TextSpan *TextSpan::LineBreak()
-// ----------------------------------------------------------------------------
-//   If the text span contains a line break, cut there
-// ----------------------------------------------------------------------------
-{
-    int index = value.indexOf('\n');
-    if (index >= 0)
-    {
-        QString remainder = value.mid(index+1);
-        TextSpan *result = new TextSpan(remainder, font);
-        value = value.left(index);
-        return result;
     }
     return NULL;
 }

@@ -91,8 +91,7 @@ struct DrawingManipulator : Manipulator
     virtual bool        DrawHandles(Layout *layout);
     virtual Box3        Bounds();
     virtual Box3        Space();
-    virtual Drawing *   WordBreak();
-    virtual Drawing *   LineBreak();
+    virtual Drawing *   Break(BreakOrder &order);
     virtual bool        IsAttribute();
 
 protected:

@@ -121,14 +121,14 @@ public:
 
 // Specializations for Justifier computations
 typedef Drawing *       line_t;
-template<> line_t       Justifier<line_t>::Break(line_t, bool*);
+template<> line_t       Justifier<line_t>::Break(line_t, bool*, bool*);
 template<> scale        Justifier<line_t>::Size(line_t);
 template<> void         Justifier<line_t>::ApplyAttributes(line_t, Layout*);
 template<> scale        Justifier<line_t>::SpaceSize(line_t);
 template<> coord        Justifier<line_t>::ItemOffset(line_t);
 
 typedef LayoutLine *    page_t;
-template<> page_t       Justifier<page_t>::Break(page_t, bool*);
+template<> page_t       Justifier<page_t>::Break(page_t, bool*, bool*);
 template<> scale        Justifier<page_t>::Size(page_t);
 template<> void         Justifier<page_t>::ApplyAttributes(page_t, Layout*);
 template<> scale        Justifier<page_t>::SpaceSize(page_t);

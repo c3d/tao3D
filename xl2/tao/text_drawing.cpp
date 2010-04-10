@@ -190,6 +190,7 @@ TextSpan *TextSpan::Break(BreakOrder &order)
             return result;
         }
     }
+    order = NoBreak;
     return NULL;
 }
 

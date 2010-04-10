@@ -81,7 +81,7 @@ public:
     void        Clear();
 
     // Properties of the items in the layout
-    Item        Break(Item item, bool *done);
+    Item        Break(Item item, bool *hadBreak, bool *done);
     scale       Size(Item item);
     scale       SpaceSize(Item item);
     coord       ItemOffset(Item item);
@@ -166,6 +166,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     scale lastSpace = 0;
     scale lastOversize = 0;
     bool  hasRoom = true;
+    bool  hadBreak = false;
     bool  done = false; // e.g. line break in a line
     uint  numBreaks = 0;
     uint  numSolids = 0;
@@ -180,7 +181,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
         while (hasRoom && !done && item)
         {
             // Cut item at the first break point
-            Item next = Break(item, &done);
+            Item next = Break(item, &hadBreak, &done);
 
             // Test the size of what remains
             ApplyAttributes(item, layout);
@@ -203,12 +204,13 @@ bool Justifier<Item>::Adjust(coord start, coord end,
             else
             {
                 // It fits, place it
-                places.push_back(Place(item, size, pos + sign*offset, !next));
+                hadBreak |= next != NULL;
+                places.push_back(Place(item, size, pos+sign*offset, !hadBreak));
                 pos += sign * size;
                 lastSpace = SpaceSize(item) * spacing;
                 lastOversize = size * (spacing-1);
                 item = next;
-                if (next)
+                if (hadBreak)
                     numBreaks++;
                 else
                     numSolids++;

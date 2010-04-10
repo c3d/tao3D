@@ -83,11 +83,12 @@ Box3 Drawing::Space()
 }
 
 
-Drawing *Drawing::Break(BreakOrder &)
+Drawing *Drawing::Break(BreakOrder &order)
 // ----------------------------------------------------------------------------
 //    Break a shape at the next line boundary, if any
 // ----------------------------------------------------------------------------
 {
+    order = NoBreak;
     return NULL;
 }
 

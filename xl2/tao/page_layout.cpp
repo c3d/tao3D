@@ -34,7 +34,9 @@ TAO_BEGIN
 // 
 // ============================================================================
 
-template<> inline line_t Justifier<line_t>::Break(line_t item, bool *done)
+template<> inline line_t Justifier<line_t>::Break(line_t item,
+                                                  bool *hadBreak,
+                                                  bool *done)
 // ----------------------------------------------------------------------------
 //   For drawings, we break at word boundaries
 // ----------------------------------------------------------------------------
@@ -42,6 +44,7 @@ template<> inline line_t Justifier<line_t>::Break(line_t item, bool *done)
     Drawing::BreakOrder order = Drawing::WordBreak;
     line_t result = item->Break(order);
     *done = order > Drawing::WordBreak;
+    *hadBreak = order != Drawing::NoBreak;
     return result;
 }
 
@@ -87,7 +90,9 @@ template<> inline coord Justifier<line_t>::ItemOffset(line_t item)
 }
 
 
-template<> inline page_t Justifier<page_t>::Break(page_t line, bool *done)
+template<> inline page_t Justifier<page_t>::Break(page_t line,
+                                                  bool *hadBreak,
+                                                  bool *done)
 // ----------------------------------------------------------------------------
 //   For lines, we break at line boundaries
 // ----------------------------------------------------------------------------
@@ -95,6 +100,7 @@ template<> inline page_t Justifier<page_t>::Break(page_t line, bool *done)
     Drawing::BreakOrder order = Drawing::LineBreak;
     page_t result = line->Break(order);
     *done = order > Drawing::LineBreak;
+    *hadBreak = order != Drawing::NoBreak;
     return result;
 }
 

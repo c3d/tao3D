@@ -712,7 +712,7 @@ PageLayoutOverflow::~PageLayoutOverflow()
 }
 
 
-bool PageLayoutOverflow::HasData()
+bool PageLayoutOverflow::HasData(Layout *where)
 // ----------------------------------------------------------------------------
 //    Check if the source has any data to give us
 // ----------------------------------------------------------------------------
@@ -723,13 +723,16 @@ bool PageLayoutOverflow::HasData()
         if (source)
         {
             child = source->Remaining();
-            if (child)
-            {
-                child->space = Box3(bounds.lower.x, bounds.lower.y, 0,
-                                    bounds.Width(), bounds.Height(), 0);
-                source = child;
-            }
+            source = child;
         }
+    }
+    if (child)
+    {
+        Vector3 offset = where->offset;
+        where->Inherit(child);
+        where->offset = offset;
+        child->space = Box3(bounds.lower.x, bounds.lower.y, 0,
+                            bounds.Width(), bounds.Height(), 0);
     }
     return child != NULL;
 }
@@ -740,7 +743,7 @@ void PageLayoutOverflow::Draw(Layout *where)
 //   Check if the original layout has remaining elements
 // ----------------------------------------------------------------------------
 {
-    if (HasData())
+    if (HasData(where))
         child->Draw(where);
     else
         PlaceholderRectangle::Draw(where);
@@ -752,7 +755,7 @@ void PageLayoutOverflow::DrawSelection(Layout *where)
 //   Draw the selection
 // ----------------------------------------------------------------------------
 {
-    if (HasData())
+    if (HasData(where))
         child->DrawSelection(where);
     else
         PlaceholderRectangle::Draw(where);
@@ -764,7 +767,7 @@ void PageLayoutOverflow::Identify(Layout *where)
 //   Identify elements of the layout
 // ----------------------------------------------------------------------------
 {
-    if (HasData())
+    if (HasData(where))
         child->Identify(where);
     else
         PlaceholderRectangle::Draw(where);

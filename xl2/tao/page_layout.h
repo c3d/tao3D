@@ -107,7 +107,7 @@ struct PageLayoutOverflow : PlaceholderRectangle
     ~PageLayoutOverflow();
 
 public:
-    bool                HasData();
+    bool                HasData(Layout *where);
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);

@@ -177,9 +177,7 @@ void LayoutLine::Draw(Layout *where)
 //   Compute line layout and draw the placed elements
 // ----------------------------------------------------------------------------
 {
-    // Save attributes that may be modified by Compute(), as well as offset
-    XL::LocalSave<LayoutState> save(*where, *where);
-
+    // Compute layout
     Compute(where);
 
     // Display all items
@@ -202,9 +200,7 @@ void LayoutLine::DrawSelection(Layout *where)
 //   REVISIT: There is a lot of copy-paste between Draw, DrawSelection, Identify
 //   Consider using a pointer-to-member (ugly) or some clever trick?
 {
-    // Save attributes that may be modified by Compute(), as well as offset
-    XL::LocalSave<LayoutState> save(*where, *where);
-
+    // Compute layout
     Compute(where);
 
     // Display all items
@@ -225,9 +221,6 @@ void LayoutLine::Identify(Layout *where)
 //   Identify page elements for OpenGL
 // ----------------------------------------------------------------------------
 {
-    // Save attributes that may be modified by Compute(), as well as offset
-    XL::LocalSave<LayoutState> save(*where, *where);
-
     Compute(where);
 
     // Display all items
@@ -361,6 +354,9 @@ void LayoutLine::Compute(Layout *layout)
     // If we already computed the placement, re-use that
     if (line.places.size())
         return;
+
+    // Save attributes that may be modified by Compute(), as well as offset
+    XL::LocalSave<LayoutState> save(*layout, *layout);
 
     // Position one line of items
     Box3 space = layout->Space();
@@ -510,9 +506,6 @@ void PageLayout::Draw(Layout *where)
 //   and then only iterate on the items that were placed, not all items,
 //   taking the layout offset from the placed position
 {
-    // Save attributes that may be modified by Compute(), as well as offset
-    XL::LocalSave<LayoutState> save(*where, *where);
-
     // Inherit state from our parent layout if there is one
     Inherit(where);
 
@@ -538,9 +531,6 @@ void PageLayout::DrawSelection(Layout *where)
 //   REVISIT: There is a lot of copy-paste between Draw, DrawSelection, Identify
 //   Consider using a pointer-to-member (ugly) or some clever trick?
 {
-    // Save attributes that may be modified by Compute(), as well as offset
-    XL::LocalSave<LayoutState> save(*where, *where);
-
     // Inherit state from our parent layout if there is one
     Inherit(where);
 
@@ -564,9 +554,6 @@ void PageLayout::Identify(Layout *where)
 //   Identify page elements for OpenGL
 // ----------------------------------------------------------------------------
 {
-    // Save attributes that may be modified by Compute(), as well as offset
-    XL::LocalSave<LayoutState> save(*where, *where);
-
     // Inherit state from our parent layout if there is one
     Inherit(where);
 
@@ -627,6 +614,9 @@ void PageLayout::Compute()
     // If we already computed the layout, just reuse that
     if (page.places.size())
         return;
+
+    // Save attributes that may be modified by Compute(), as well as offset
+    XL::LocalSave<LayoutState> save(*this, *this);
 
     // Transfer all items into a single line
     LayoutLine *line = new LayoutLine();

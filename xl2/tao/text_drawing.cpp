@@ -182,7 +182,9 @@ TextSpan *TextSpan::Break(BreakOrder &order)
         {
             // Create two text spans, the first one containing the split
             QString remainder = value.mid(i+1);
-            TextSpan *result = new TextSpan(remainder, font);
+            TextSpan *result = remainder.length()
+                ? new TextSpan(remainder, font)
+                : NULL;
             value = value.left(i+1);
             order = charOrder;
             return result;

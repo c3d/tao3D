@@ -2307,25 +2307,10 @@ Tree *Widget::textOverflow(Tree *self,
 //   Overflow text box for the rest of the current text flow
 // ----------------------------------------------------------------------------
 {
-    // Retrieve the existing layout
-    PageLayout *tbox = flows[flowName];
-    if (tbox)
-    {
-        // Get remaining items from that layout
-        tbox->Compute();
-        tbox = tbox->Remaining();
-        if (tbox)
-            tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
-        flows[flowName] = tbox;
-    }
-
-    // If there is no text box, we put a placeholder rectangle
-    Drawing *child = tbox;
-    if (!child)
-        child = new PlaceholderRectangle(Box(x - w/2, y-h/2, w, h));
-
-    // Add the overflow data 
-    layout->Add(new ControlRectangle(x, y, w, h, child));
+    // Add page layout overflow rectangle
+    PageLayoutOverflow *overflow =
+        new PageLayoutOverflow(Box(x - w/2, y-h/2, w, h), this, flowName);
+    layout->Add(new ControlRectangle(x, y, w, h, overflow));
 
     return XL::xl_true;
 }

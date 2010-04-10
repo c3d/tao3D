@@ -23,6 +23,7 @@
 // ****************************************************************************
 
 #include "layout.h"
+#include "shapes.h"
 #include "justification.h"
 
 TAO_BEGIN
@@ -94,6 +95,27 @@ public:
     // Space requested for the layout
     Box3                space;
     PageJustifier       page;
+};
+
+
+struct PageLayoutOverflow : PlaceholderRectangle
+// ----------------------------------------------------------------------------
+//    Draw what remains in a page layout
+// ----------------------------------------------------------------------------
+{
+    PageLayoutOverflow(const Box &bounds, Widget *widget, text flowName);
+    ~PageLayoutOverflow();
+
+public:
+    bool                HasData();
+    virtual void        Draw(Layout *where);
+    virtual void        DrawSelection(Layout *);
+    virtual void        Identify(Layout *l);
+
+public:
+    Widget *            widget;
+    text                flowName;
+    PageLayout *        child;
 };
 
 

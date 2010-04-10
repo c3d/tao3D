@@ -685,4 +685,89 @@ PageLayout *PageLayout::Remaining()
     return result;
 }
 
+
+
+// ============================================================================
+// 
+//    PageLayoutOverflow: Overflow for a page layout
+// 
+// ============================================================================
+
+PageLayoutOverflow::PageLayoutOverflow(const Box &bounds,
+                                       Widget *widget, text flowName)
+// ----------------------------------------------------------------------------
+//   Create a page layout overflow rectangle
+// ----------------------------------------------------------------------------
+    : PlaceholderRectangle(bounds),
+      widget(widget), flowName(flowName), child(NULL)
+{}
+
+    
+PageLayoutOverflow::~PageLayoutOverflow()
+// ----------------------------------------------------------------------------
+//    If we got a child, then we need to delete it
+// ----------------------------------------------------------------------------
+{
+    delete child;
+}
+
+
+bool PageLayoutOverflow::HasData()
+// ----------------------------------------------------------------------------
+//    Check if the source has any data to give us
+// ----------------------------------------------------------------------------
+{
+    if (!child)
+    {
+        PageLayout *&source = widget->pageLayoutFlow(flowName);
+        if (source)
+        {
+            child = source->Remaining();
+            if (child)
+            {
+                child->space = Box3(bounds.lower.x, bounds.lower.y, 0,
+                                    bounds.Width(), bounds.Height(), 0);
+                source = child;
+            }
+        }
+    }
+    return child != NULL;
+}
+
+
+void PageLayoutOverflow::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Check if the original layout has remaining elements
+// ----------------------------------------------------------------------------
+{
+    if (HasData())
+        child->Draw(where);
+    else
+        PlaceholderRectangle::Draw(where);
+}
+
+
+void PageLayoutOverflow::DrawSelection(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw the selection
+// ----------------------------------------------------------------------------
+{
+    if (HasData())
+        child->DrawSelection(where);
+    else
+        PlaceholderRectangle::Draw(where);
+}
+
+
+void PageLayoutOverflow::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   Identify elements of the layout
+// ----------------------------------------------------------------------------
+{
+    if (HasData())
+        child->Identify(where);
+    else
+        PlaceholderRectangle::Draw(where);
+}
+
 TAO_END

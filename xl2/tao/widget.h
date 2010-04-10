@@ -120,6 +120,9 @@ public:
     void        drawSelection(const Box3 &bounds, text name);
     void        drawHandle(const Point3 &point, text name);
 
+    // Text flows
+    PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
+
 public:
     typedef XL::Tree      Tree;
     typedef XL::Integer   Integer;

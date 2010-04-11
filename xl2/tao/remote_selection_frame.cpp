@@ -23,6 +23,7 @@
 #include "remote_selection_frame.h"
 #include "repository.h"
 #include <QInputDialog>
+#include <QMessageBox>
 
 namespace Tao {
 
@@ -178,9 +179,21 @@ QString RemoteSelectionFrame::addNewRemote()
 //    Prompt user for name of a new remote and create it with an empty URL
 // ----------------------------------------------------------------------------
 {
+    QString name;
+
+again:
     QString result = QInputDialog::getText(this, tr("New remote"),
                                            tr("Enter the name of the new "
-                                              "remote:"));
+                                              "remote:"), QLineEdit::Normal,
+                                           name);
+    name = result;
+    if (name.replace(" ", "") != result)
+    {
+        QMessageBox::warning(this, tr("Invalid name"),
+                             tr("Remote name cannot contain spaces"));
+        goto again;
+    }
+
     if (!result.isEmpty())
         repo->addRemote(result, "");
 

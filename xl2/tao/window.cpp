@@ -251,7 +251,9 @@ void Window::setPullUrl()
         return;
     }
 
-    PullFromDialog(repo.data()).exec();
+    PullFromDialog dialog(repo.data());
+    if (dialog.exec())
+        taoWidget->nextPull = taoWidget->now();
 }
 
 

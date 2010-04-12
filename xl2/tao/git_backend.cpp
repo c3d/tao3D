@@ -22,6 +22,7 @@
 #include "git_backend.h"
 #include "renderer.h"
 #include "options.h"
+#include "tao_utf8.h"
 #include <QDir>
 #include <QString>
 #include <QtGlobal>

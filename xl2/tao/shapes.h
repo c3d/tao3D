@@ -19,6 +19,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -53,9 +54,40 @@ struct Rectangle : Shape
 // ----------------------------------------------------------------------------
 {
     Rectangle(const Box &b): Shape(), bounds(b) {}
-    virtual void        Draw(GraphicPath &where);
+    virtual void        Draw(GraphicPath &path);
     virtual Box3        Bounds()        { return bounds; }
     Box                 bounds;
+};
+
+
+struct PlaceholderRectangle : Rectangle
+// ----------------------------------------------------------------------------
+//    A placeholder for empty items (e.g. empty layouts)
+// ----------------------------------------------------------------------------
+{
+    PlaceholderRectangle(const Box &b): Rectangle(b) {}
+    virtual void        Draw(Layout *where);
+    virtual void        Draw(GraphicPath &path);
+};
+
+
+struct IsoscelesTriangle : Rectangle
+// ----------------------------------------------------------------------------
+//    A isosceles triangle that can be placed in a layout
+// ----------------------------------------------------------------------------
+{
+    IsoscelesTriangle(const Box &b): Rectangle(b) {}
+    virtual void        Draw(GraphicPath &path);
+};
+
+
+struct RightTriangle : Rectangle
+// ----------------------------------------------------------------------------
+//    A right triangle that can be placed in a layout
+// ----------------------------------------------------------------------------
+{
+    RightTriangle(const Box &b): Rectangle(b) {}
+    virtual void        Draw(GraphicPath &path);
 };
 
 
@@ -64,10 +96,10 @@ struct RoundedRectangle : Rectangle
 //   A rectangle with rounded corners
 // ----------------------------------------------------------------------------
 {
-    RoundedRectangle(const Box &b, coord rx, coord ry)
-        : Rectangle(b), radiusX(rx), radiusY(ry) {}
+    RoundedRectangle(const Box &b, double r)
+        : Rectangle(b), r(r) {}
     virtual void        Draw(GraphicPath &path);
-    coord radiusX, radiusY;
+    coord r;
 };    
 
 
@@ -93,6 +125,32 @@ struct EllipseArc : Ellipse
 };
 
 
+struct Arrow : Rectangle
+// ----------------------------------------------------------------------------
+//   An arrow
+// ----------------------------------------------------------------------------
+{
+    Arrow(const Box &b, double ax, double ary)
+        : Rectangle(b), ax(ax), ary(ary) {}
+    virtual void        Draw(Layout *where);
+    virtual void        Draw(GraphicPath &path);
+    double ax, ary;
+};
+
+
+struct DoubleArrow : Rectangle
+// ----------------------------------------------------------------------------
+//   A double arrow
+// ----------------------------------------------------------------------------
+{
+    DoubleArrow(const Box &b, double ax, double ary)
+        : Rectangle(b), ax(ax), ary(ary) {}
+    virtual void        Draw(Layout *where);
+    virtual void        Draw(GraphicPath &path);
+    double ax, ary;
+};
+
+
 struct StarPolygon : Rectangle
 // ----------------------------------------------------------------------------
 //   A star or a regular polygon
@@ -104,6 +162,34 @@ struct StarPolygon : Rectangle
     int p,q;
 };
 
+
+struct Star : Rectangle
+// ----------------------------------------------------------------------------
+//   A star with arbitrary inner circle
+// ----------------------------------------------------------------------------
+{
+    Star(const Box &b, int p, float r): Rectangle(b), p(p), r(r) {}
+    virtual void        Draw(Layout *where);
+    virtual void        Draw(GraphicPath &path);
+    int p;
+    float r;
+};
+
+
+struct SpeechBalloon : Rectangle
+// ----------------------------------------------------------------------------
+//   A Speech ballon with rounded corners and a tail
+// ----------------------------------------------------------------------------
+{
+    SpeechBalloon(const Box &b, double r, coord ax, coord ay)
+        : Rectangle(b), r(r), a(ax, ay) {}
+    virtual void        Draw(Layout *where);
+    virtual void        Draw(GraphicPath &path);
+    double r;
+    Point a;
+};    
+
+
 TAO_END
 
-#endif // SHAP
+#endif // SHAPES_H

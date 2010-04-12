@@ -36,14 +36,18 @@ struct TextSpan : Shape
 {
     TextSpan(const QString &value, const QFont &font)
         : Shape(), value(value), font(font) {}
-    virtual void Draw(Layout *where);
-    virtual void DrawSelection(Layout *where);
-    virtual void Identify(Layout *where);
-    virtual void Draw(GraphicPath &path);
-    virtual Box3 Bounds();
-    virtual Box3 Space();
-    QString value;
-    QFont   font;
+    virtual void        Draw(Layout *where);
+    virtual void        DrawSelection(Layout *where);
+    virtual void        Identify(Layout *where);
+    virtual void        Draw(GraphicPath &path);
+    virtual Box3        Bounds();
+    virtual Box3        Space();
+    virtual TextSpan *  Break(BreakOrder &order);
+    virtual scale       TrailingSpaceSize();
+
+public:
+    QString             value;
+    QFont               font;
 };
 
 TAO_END

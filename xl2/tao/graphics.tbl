@@ -194,6 +194,10 @@ PREFIX(Star, tree, "star",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
        PARM(p, integer) PARM(r, real),
        RTAO(star(self, x, y, w, h, p, r)))
+PREFIX(SpeechBalloon, tree, "speech_balloon",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
+       PARM(r, real) PARM(ax, real) PARM(ay, real),
+       RTAO(speechBalloon(self, x, y, w, h, r, ax, ay)))
 
 
 
@@ -376,11 +380,11 @@ PREFIX(GroupBoxTexture, tree, "groupboxtexture",
 // ============================================================================
 
 PREFIX(MenuItem, tree, "menu_item", PARM(s, text) PARM(t, tree),
-       RTAO(menuItem(self, s, &t)))
-PREFIX(Menu, tree, "menu", PARM(s, text),
-      RTAO(menu(self, s, false)))
+       RTAO(menuItem(self, &s, &t)))
+PREFIX(Menu0, tree, "menu", PARM(s, text),
+       RTAO(menu(self, &s, false)))
 PREFIX(SubMenu, tree, "submenu", PARM(s, text),
-       RTAO(menu(self, s, true)))
+       RTAO(menu(self, &s, true)))
 
 
 

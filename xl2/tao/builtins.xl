@@ -188,9 +188,18 @@ menu_item   "Diamond", insert
     locally
         theme_colors
         diamond 0, 0, 50
+<<<<<<< HEAD
 //menu_item   "Quote Bubble", insert { text "Quote Bubble" }
 //menu_item   "Callout", insert { text "Callout" }
 menu_item   "Star", insert 
+=======
+menu_item_0   "Speech Balloon", insert
+    locally
+        theme_colors
+        speech_balloon 0, 20, 100, 50, 15, -50, -50
+menu_item_0   "Callout", insert { text "Callout" }
+menu_item_0   "Star", insert 
+>>>>>>> e6f28de... Phylactere moche
     locally
         theme_colors
         star 0, 0, 100, 100, 5, 50%

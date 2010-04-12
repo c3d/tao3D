@@ -2230,6 +2230,25 @@ Tree *Widget::star(Tree *self,
 
 
 
+Tree *Widget::speechBalloon(Tree *self,
+                            real_r cx, real_r cy, real_r w, real_r h, 
+                            real_r r, real_r ax, real_r ay)
+// ----------------------------------------------------------------------------
+//   Speech balloon with radius r for rounded corners, and point a for the tail 
+// ----------------------------------------------------------------------------
+{
+    SpeechBalloon shape(Box(cx-w/2, cy-h/2, w, h), r, ax, ay);
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlBalloon(cx, cy, w, h, r, ax, ay,
+                                         new SpeechBalloon(shape)));
+
+    return XL::xl_true;
+}
+
+
+
 // ============================================================================
 //
 //    3D primitives
@@ -3050,7 +3069,7 @@ Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
 //   invalidated and the new one is executed for the first time.
 // ============================================================================
 
-Tree *Widget::menuItem(Tree *self, text s, Tree *t)
+Tree *Widget::menuItem(Tree *self, Text *s, Tree *t)
 // ----------------------------------------------------------------------------
 //   Create a menu item
 // ----------------------------------------------------------------------------
@@ -3060,13 +3079,13 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
 
     QString fullName = currentMenu->objectName() +
                       "/" +
-                      QString::fromStdString(s);
+                      QString::fromStdString(s->value);
 
     if (parent()->findChild<QAction*>(fullName))
     {
         IFTRACE(menus)
         {
-            std::cout<< "MenuItem " << s
+            std::cout<< "MenuItem " << s->value
                      << " found in current MenuBar with fullname "
                      << fullName.toStdString() << "\n";
             std::cout.flush();
@@ -3075,7 +3094,7 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
     }
 
     // Get or build the current Menu if we don't have one
-    MenuInfo *menuInfo = self->GetInfo<MenuInfo>();
+    MenuInfo *menuInfo = s->GetInfo<MenuInfo>();
 
     // Store a copy of the tree in the QAction.
     QVariant var = QVariant::fromValue(XL::TreeRoot(t));
@@ -3090,7 +3109,7 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
                       << fullName.toStdString() << "\n";
             std::cout.flush();
         }
-        menuInfo->action->setText(QString::fromStdString(s));
+        menuInfo->action->setText(QString::fromStdString(s->value));
         menuInfo->action->setObjectName(fullName);
         menuInfo->action->setData(var);
         menuInfo->fullName = fullName.toStdString();
@@ -3098,7 +3117,7 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
     }
 
     menuInfo = new MenuInfo(currentMenu, fullName.toStdString());
-    self->SetInfo<MenuInfo> (menuInfo);
+    s->SetInfo<MenuInfo> (menuInfo);
 
     IFTRACE(menus)
     {
@@ -3107,7 +3126,7 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
         std::cout.flush();
     }
 
-    QAction * p_action = currentMenu->addAction(QString::fromStdString(s));
+    QAction * p_action = currentMenu->addAction(QString::fromStdString(s->value));
     menuInfo->action = p_action;
     p_action->setData(var);
     p_action->setObjectName(fullName);
@@ -3116,7 +3135,7 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
 }
 
 
-Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
+Tree *Widget::menu(Tree *self, Text *s, bool isSubMenu)
 // ----------------------------------------------------------------------------
 // Add the menu to the current menu bar or create the contextual menu
 // ----------------------------------------------------------------------------
@@ -3125,7 +3144,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 
     // Build the full name of the menu
     // Uses the current menu name, the given string and the isSubmenu.
-    QString fullname = QString::fromStdString(s);
+    QString fullname = QString::fromStdString(s->value);
     if (isSubMenu && currentMenu)
     {
         fullname.prepend(currentMenu->objectName() +'/');
@@ -3142,7 +3161,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
     }
 
     // Get or build the current Menu if we don't have one
-    MenuInfo *menuInfo = self->GetInfo<MenuInfo>();
+    MenuInfo *menuInfo = s->GetInfo<MenuInfo>();
 
 
     // If the menu is registered, no need to recreate it.
@@ -3155,7 +3174,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
             menuInfo = new MenuInfo(isContextMenu ? NULL : currentMenuBar,
                                     currentMenu,
                                     fullname.toStdString());
-            self->SetInfo<MenuInfo> (menuInfo);
+            s->SetInfo<MenuInfo> (menuInfo);
             menuInfo->action = currentMenu->menuAction();
 
         }
@@ -3169,7 +3188,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
     {
         // The menu exists : update its info
         currentMenu = menuInfo->menu;
-        menuInfo->action->setText(QString::fromStdString(s));
+        menuInfo->action->setText(QString::fromStdString(s->value));
         menuInfo->menu->setObjectName(fullname);
         menuInfo->fullName = fullname.toStdString();
         return XL::xl_true;
@@ -3184,16 +3203,16 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 
     }
     else if (isSubMenu)
-        currentMenu = currentMenu->addMenu(QString::fromStdString(s));
+        currentMenu = currentMenu->addMenu(QString::fromStdString(s->value));
     else
-        currentMenu = currentMenuBar->addMenu(QString::fromStdString(s));
+        currentMenu = currentMenuBar->addMenu(QString::fromStdString(s->value));
 
     currentMenu->setObjectName(fullname);
 
     menuInfo = new MenuInfo(isContextMenu ? NULL : currentMenuBar,
                             currentMenu,
                             fullname.toStdString());
-    self->SetInfo<MenuInfo> (menuInfo);
+    s->SetInfo<MenuInfo> (menuInfo);
     menuInfo->action = currentMenu->menuAction();
 
     return XL::xl_true;

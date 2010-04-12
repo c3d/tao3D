@@ -1790,6 +1790,25 @@ Tree *Widget::roundedRectangle(Tree *self,
 
 
 
+Tree *Widget::ellipticRectangle(Tree *self,
+                                real_r cx, real_r cy,
+                                real_r w, real_r h, real_r r)
+// ----------------------------------------------------------------------------
+//   Elliptic rectangle with ratio r for the elliptic sides
+// ----------------------------------------------------------------------------
+{
+    Rectangle shape(Box(cx-w/2, cy-h/2, w, h));
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlRectangle(cx, cy, w, h,
+                                         new Rectangle(shape)));
+
+    return XL::xl_true;
+}
+
+
+
 Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
                     real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
@@ -1875,6 +1894,25 @@ Tree *Widget::speechBalloon(Tree *self,
                             real_r r, real_r ax, real_r ay)
 // ----------------------------------------------------------------------------
 //   Speech balloon with radius r for rounded corners, and point a for the tail 
+// ----------------------------------------------------------------------------
+{
+    SpeechBalloon shape(Box(cx-w/2, cy-h/2, w, h), r, ax, ay);
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlBalloon(cx, cy, w, h, r, ax, ay,
+                                         new SpeechBalloon(shape)));
+
+    return XL::xl_true;
+}
+
+
+
+Tree *Widget::callout(Tree *self,
+                      real_r cx, real_r cy, real_r w, real_r h, 
+                      real_r r, real_r ax, real_r ay)
+// ----------------------------------------------------------------------------
+//   Callout with radius r for rounded corners, and point a for the tail 
 // ----------------------------------------------------------------------------
 {
     SpeechBalloon shape(Box(cx-w/2, cy-h/2, w, h), r, ax, ay);

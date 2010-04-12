@@ -150,8 +150,14 @@ menu_item   "Line", insert
     locally
         theme_colors
         line 50, -50, -50, 50
-//menu_item   "Line with Arrowhead", insert { text "Line with Arrowhead" }
-//menu_item   "Line with Two Arrowheads", insert { text "Line with Two Arrowheads" }
+menu_item   "Line with Arrowhead", insert
+    locally
+        theme_colors
+        line 50, -50, -50, 50
+menu_item   "Line with Two Arrowheads", insert
+    locally
+        theme_colors
+        line 50, -50, -50, 50
 menu_item   "Rectangle", insert
     locally
         theme_colors
@@ -183,19 +189,16 @@ menu_item   "Double Arrow", insert
 menu_item   "Diamond", insert
     locally
         theme_colors
-        diamond 0, 0, 50
-<<<<<<< HEAD
-//menu_item   "Quote Bubble", insert { text "Quote Bubble" }
-//menu_item   "Callout", insert { text "Callout" }
-menu_item   "Star", insert 
-=======
-menu_item_0   "Speech Balloon", insert
+        diamond 0, 0, 100, 100
+menu_item   "Speech Balloon", insert
     locally
         theme_colors
-        speech_balloon 0, 20, 100, 50, 15, -50, -50
-menu_item_0   "Callout", insert { text "Callout" }
-menu_item_0   "Star", insert 
->>>>>>> e6f28de... Phylactere moche
+        callout 16, 0, 68, 100, 15, -50, 0
+menu_item   "Callout", insert 
+    locally
+        theme_colors
+        speech_balloon 0, 16, 100, 68, 15, -50, -50
+menu_item   "Star", insert 
     locally
         theme_colors
         star 0, 0, 100, 100, 5, 50%

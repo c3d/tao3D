@@ -176,6 +176,10 @@ PREFIX(RoundedRectangle, tree, "rounded_rectangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(r, real),
        RTAO(roundedRectangle(self, x, y, w, h, r)))
+PREFIX(EllipticRectangle, tree, "elliptic_rectangle",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
+       PARM(r, real),
+       RTAO(ellipticRectangle(self, x, y, w, h, r)))
 PREFIX(Arrow, tree, "arrow",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(ax, real) PARM(ay, real),
@@ -196,6 +200,10 @@ PREFIX(SpeechBalloon, tree, "speech_balloon",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
        PARM(r, real) PARM(ax, real) PARM(ay, real),
        RTAO(speechBalloon(self, x, y, w, h, r, ax, ay)))
+PREFIX(Callout, tree, "callout",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
+       PARM(r, real) PARM(ax, real) PARM(ay, real),
+       RTAO(callout(self, x, y, w, h, r, ax, ay)))
 
 
 

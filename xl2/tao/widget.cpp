@@ -2077,7 +2077,8 @@ Tree *Widget::isoscelesTriangle(Tree *self, real_r x, real_r y, real_r w, real_r
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(x, y, w, h, new IsoscelesTriangle(shape)));
+        layout->Add(new ControlRectangle(x, y, w, h,
+                                         new IsoscelesTriangle(shape)));
 
     return XL::xl_true;
 }
@@ -2127,8 +2128,7 @@ Tree *Widget::ellipseArc(Tree *self,
         layout->Add(new ControlRectangle(cx, cy, w, h, new EllipseArc(shape)));
 
     return XL::xl_true;
- }
-
+}
 
 
 Tree *Widget::roundedRectangle(Tree *self,
@@ -2149,7 +2149,6 @@ Tree *Widget::roundedRectangle(Tree *self,
 }
 
 
-
 Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
                     real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
@@ -2167,7 +2166,6 @@ Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
 }
 
 
-
 Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
                     real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
@@ -2183,7 +2181,6 @@ Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
 
     return XL::xl_true;
 }
-
 
 
 Tree *Widget::starPolygon(Tree *self,
@@ -2207,7 +2204,6 @@ Tree *Widget::starPolygon(Tree *self,
 }
 
 
-
 Tree *Widget::star(Tree *self,
                    real_r cx, real_r cy, real_r w, real_r h,
                    integer_r p, real_r r)
@@ -2227,7 +2223,6 @@ Tree *Widget::star(Tree *self,
 
     return XL::xl_true;
 }
-
 
 
 Tree *Widget::speechBalloon(Tree *self,
@@ -2314,8 +2309,6 @@ Tree * Widget::textBox(Tree *self,
     flows[flowName] = tbox;
 
     XL::LocalSave<Layout *> save(layout, tbox);
-    XL::LocalSave<coord> savePageH(pageW, h);
-    XL::LocalSave<coord> savePageW(pageW, w);
     return xl_evaluate(prog);
 }
 

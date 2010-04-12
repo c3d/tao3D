@@ -26,6 +26,8 @@
 #include "tao_utf8.h"
 #include <QtWebKit>
 #include <phonon>
+#include <cstring>
+#include <string>
 
 TAO_BEGIN
 
@@ -47,12 +49,19 @@ typedef XL::Symbols     Symbols;
 //
 // ============================================================================
 
-WidgetSurface::WidgetSurface(QWidget *widget)
+WidgetSurface::WidgetSurface(XL::Tree *t, QWidget *widget)
 // ----------------------------------------------------------------------------
 //   Create a renderer with the right size
 // ----------------------------------------------------------------------------
-    : widget(widget), textureId(0), dirty(true)
+    : widget(widget), textureId(0), dirty(true), tree(t)
 {
+    IFTRACE(widgets)
+    {
+        std::cerr << "CONSTRUCTOR this : "<< this << " --- Widget : "
+                << widget << "  --- Widget class : \""<<
+                widget->metaObject()->className()<< "\"\n";
+    }
+
     widget->hide();
     glGenTextures(1, &textureId);
 }
@@ -63,9 +72,23 @@ WidgetSurface::~WidgetSurface()
 //   When deleting the info, delete all renderers we have
 // ----------------------------------------------------------------------------
 {
-    Widget *parent = (Widget *) widget->parent();
-    parent->deleteFocus(widget);
-    delete widget;
+    if (tree)
+    {
+        tree->Remove<WidgetSurface>(this);
+    }
+    if (widget)
+    {
+        IFTRACE(widgets)
+        {
+            std::cerr << "DESTRUCTOR this : "<< this << " --- Widget : "
+                    << widget << "\n";
+        }
+        Widget *parent = (Widget *) widget->parent();
+        if (parent)
+            parent->deleteFocus(widget);
+        delete widget;
+        widget = NULL;
+    }
     glDeleteTextures(1, &textureId);
 }
 
@@ -93,6 +116,7 @@ GLuint WidgetSurface::bind ()
     {
         QImage image(widget->width(), widget->height(),
                      QImage::Format_ARGB32);
+        widget->setAutoFillBackground(false);
         widget->render(&image);
 
         // Generate the GL texture
@@ -146,11 +170,11 @@ void WidgetSurface::repaint()
 //
 // ============================================================================
 
-WebViewSurface::WebViewSurface(Widget *parent)
+WebViewSurface::WebViewSurface(XL::Tree *self, Widget *parent)
 // ----------------------------------------------------------------------------
 //    Build the QWebView
 // ----------------------------------------------------------------------------
-    : WidgetSurface(new QWebView(parent)),
+    : WidgetSurface(self, new QWebView(parent)),
       urlTree(NULL), url(""), progress(0)
 {
     QWebView *webView = (QWebView *) widget;
@@ -219,11 +243,11 @@ void WebViewSurface::loadProgress(int progressPercent)
 //
 // ============================================================================
 
-LineEditSurface::LineEditSurface(Widget *parent, bool immed)
+LineEditSurface::LineEditSurface(XL::Tree *t, Widget *parent, bool immed)
 // ----------------------------------------------------------------------------
 //    Build the QLineEdit
 // ----------------------------------------------------------------------------
-    : WidgetSurface(new QLineEdit(parent)),
+    : WidgetSurface(t, new QLineEdit(parent)),
       contents(NULL), immediate(immed), locallyModified(false)
 {
     QLineEdit *lineEdit = (QLineEdit *) widget;
@@ -309,29 +333,33 @@ void LineEditSurface::inputValidated()
 
 // ============================================================================
 //
-//   Push Button
+//   Abstract Button
 //
 // ============================================================================
-
-PushButtonSurface::PushButtonSurface(Widget *parent)
+AbstractButtonSurface::AbstractButtonSurface(XL::Tree *t,
+                                             QAbstractButton * button)
 // ----------------------------------------------------------------------------
-//    Create the Push Button surface
+//    Create the Abstract Button surface
 // ----------------------------------------------------------------------------
-    : WidgetSurface(new QPushButton(parent)), label(), action(XL::xl_false)
+    : WidgetSurface(t, button), label(), action(XL::xl_false), isMarked(NULL)
 {
-    QPushButton *button = (QPushButton *) widget;
+
     connect(button, SIGNAL(clicked(bool)),
             this,   SLOT(clicked(bool)));
+
+    connect(button, SIGNAL(toggled(bool)),
+            this,   SLOT(toggled(bool)));
+
     widget->setVisible(true);
 }
 
 
-GLuint PushButtonSurface::bind(XL::Text *lbl, XL::Tree *act)
+GLuint AbstractButtonSurface::bind(XL::Text *lbl, XL::Tree *act, XL::Text *sel)
 // ----------------------------------------------------------------------------
 //    If the label or associated action changes
 // ----------------------------------------------------------------------------
 {
-    QPushButton *button = (QPushButton *) widget;
+    QAbstractButton *button = (QAbstractButton *) widget;
     if (lbl->value != label)
     {
         label = lbl->value;
@@ -340,11 +368,17 @@ GLuint PushButtonSurface::bind(XL::Text *lbl, XL::Tree *act)
     dirty = true;
     action.tree = act;
 
+    if (sel && button->isCheckable() && sel != isMarked)
+    {
+        button->setChecked(strcasecmp(sel->value.c_str(), "true")==0);
+        isMarked = sel;
+    }
+
     return WidgetSurface::bind();
 }
 
 
-void PushButtonSurface::clicked(bool checked)
+void AbstractButtonSurface::clicked(bool checked)
 // ----------------------------------------------------------------------------
 //    The button was clicked. Evaluate the action.
 // ----------------------------------------------------------------------------
@@ -352,13 +386,33 @@ void PushButtonSurface::clicked(bool checked)
     IFTRACE (widgets)
     {
         std::cerr << "button "<< label
-                  << " was clicked with checked=" << checked << "\n";
+                  << " was clicked with checked = " << checked << "\n";
     }
 
     if (action.tree)
         xl_evaluate(action);
 }
 
+void AbstractButtonSurface::toggled(bool checked)
+// ----------------------------------------------------------------------------
+//    The button was clicked. Evaluate the action.
+// ----------------------------------------------------------------------------
+{
+    IFTRACE (widgets)
+    {
+        std::cerr << "button "<< label
+                  << " has toggled to " << checked << "\n";
+    }
+
+    if (isMarked)
+    {
+        if (checked)
+            isMarked->value = "true";
+        else
+            isMarked->value = "false";
+    }
+
+}
 
 
 // ============================================================================
@@ -367,15 +421,15 @@ void PushButtonSurface::clicked(bool checked)
 //
 // ============================================================================
 
-ColorChooserSurface::ColorChooserSurface(Widget *parent, XL::Tree *act)
+ColorChooserSurface::ColorChooserSurface(XL::Tree *t, Widget *parent, XL::Tree *act)
 // ----------------------------------------------------------------------------
 //    Create the Color Chooser surface
 // ----------------------------------------------------------------------------
-    : WidgetSurface(new QColorDialog(parent)), action(act)
+    : WidgetSurface(t, new QColorDialog(parent)), action(act)
 {
     QColorDialog *diag = (QColorDialog *) widget;
     connect(diag, SIGNAL(colorSelected (const QColor&)),
-            this, SLOT(colorchosen(const QColor &)));
+            this, SLOT(colorChosen(const QColor &)));
     diag->setModal(false);
     diag->setOption(QColorDialog::ShowAlphaChannel, true);
 }
@@ -387,8 +441,13 @@ GLuint ColorChooserSurface::bind()
 // ----------------------------------------------------------------------------
 //    At least on MacOSX, the color chooser shows in its own window
 {
+//    QColorDialog *diag = (QColorDialog *) widget;
+//    diag->setOption(QColorDialog::DontUseNativeDialog, false);
+
     widget->setVisible(true);
+    dirty = true;
     return WidgetSurface::bind();
+
 }
 
 
@@ -440,30 +499,22 @@ void ColorChooserSurface::colorChosen(const QColor &col)
 }
 
 
-ColorChooserSurface::~ColorChooserSurface()
-// ----------------------------------------------------------------------------
-//   Delete the color chooser
-// ----------------------------------------------------------------------------
-{}
-
-
-
 // ============================================================================
 //
 //    Font Chooser
 //
 // ============================================================================
 
-FontChooserSurface::FontChooserSurface(Widget *parent,
+FontChooserSurface::FontChooserSurface(XL::Tree *t, Widget *parent,
                                        XL::Tree *act)
 // ----------------------------------------------------------------------------
 //    Create the Color Chooser surface
 // ----------------------------------------------------------------------------
-  : WidgetSurface(new QFontDialog(parent)), action(act)
+  : WidgetSurface(t, new QFontDialog(parent)), action(act)
 {
     QFontDialog *diag = (QFontDialog *) widget;
     connect(diag, SIGNAL(fontSelected (const QFont&)),
-            this, SLOT(fontchosen(const QFont&)));
+            this, SLOT(fontChosen(const QFont&)));
     diag->setModal(false);
 }
 
@@ -503,7 +554,12 @@ void FontChooserSurface::fontChosen(const QFont& ft)
             if (what->value == "weight")
                 return new XL::Integer(font.weight(), what->Position());
             if (what->value == "italic")
-                return new XL::Integer(font.italic(), what->Position());
+            {
+                return new XL::Name(font.italic() ?
+                                      XL::xl_true->value :
+                                      XL::xl_false->value,
+                                      what->Position());
+            }
 
             return new XL::Name(what->value, what->Position());
         }
@@ -525,28 +581,34 @@ void FontChooserSurface::fontChosen(const QFont& ft)
     widget->setVisible(false);
 }
 
-
-FontChooserSurface::~FontChooserSurface()
-// ----------------------------------------------------------------------------
-//    Delete the font chooser
-// ----------------------------------------------------------------------------
-{
-}
-
-
-
 // ============================================================================
 //
 //   Group Box
 //
 // ============================================================================
 
-GroupBoxSurface::GroupBoxSurface(Widget *parent)
+GroupBoxSurface::GroupBoxSurface(XL::Tree *t, Widget *parent, QGridLayout *l)
 // ----------------------------------------------------------------------------
 //    Create the Group Box surface
 // ----------------------------------------------------------------------------
-    : WidgetSurface(new QGroupBox(parent))
-{}
+    : WidgetSurface(t, new QGroupBox(parent)), grid(l)
+{
+    QGroupBox *gbox = (QGroupBox *) widget;
+    grid->setParent(gbox);
+    gbox->setLayout(grid);
+}
+
+GroupBoxSurface::~GroupBoxSurface()
+// ----------------------------------------------------------------------------
+//    delete the Group Box surface
+// ----------------------------------------------------------------------------
+{
+    QLayoutItem *child;
+    while ((child = grid->takeAt(0)) != 0) {
+        child->widget()->setParent(NULL);
+        delete child;
+    }
+}
 
 
 GLuint GroupBoxSurface::bind(XL::Text *lbl)
@@ -560,6 +622,11 @@ GLuint GroupBoxSurface::bind(XL::Text *lbl)
         QGroupBox *gbox = (QGroupBox *) widget;
         gbox->setTitle(+label);
         dirty = true;
+        IFTRACE(widgets)
+        {
+            QLayout *l = gbox->layout();
+            std::cerr << "Layout : "<<(l?l->objectName().toStdString():"No Layout")<<"\n";
+        }
     }
     return WidgetSurface::bind();
 }
@@ -572,11 +639,11 @@ GLuint GroupBoxSurface::bind(XL::Text *lbl)
 //
 // ============================================================================
 
-VideoPlayerSurface::VideoPlayerSurface(Widget *parent)
+VideoPlayerSurface::VideoPlayerSurface(XL::Tree *t, Widget *parent)
 // ----------------------------------------------------------------------------
 //   Create the video player
 // ----------------------------------------------------------------------------
-    : WidgetSurface(new Phonon::VideoPlayer(Phonon::VideoCategory, NULL)),
+    : WidgetSurface(t, new Phonon::VideoPlayer(Phonon::VideoCategory, NULL)),
       fbo(NULL)
 {
     (void) parent;              // REVISIT

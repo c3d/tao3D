@@ -742,6 +742,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         }
 
         if (repo)
+        {
             if (!repo->setTask(task))
                 QMessageBox::information
                         (NULL, tr("Task selection"),
@@ -750,6 +751,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
                          QMessageBox::Ok);
             else
                 this->repo = repo;
+        }
     }
 
     return true;

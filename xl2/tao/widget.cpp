@@ -1870,6 +1870,25 @@ Tree *Widget::star(Tree *self,
 
 
 
+Tree *Widget::speechBalloon(Tree *self,
+                            real_r cx, real_r cy, real_r w, real_r h, 
+                            real_r r, real_r ax, real_r ay)
+// ----------------------------------------------------------------------------
+//   Speech balloon with radius r for rounded corners, and point a for the tail 
+// ----------------------------------------------------------------------------
+{
+    SpeechBalloon shape(Box(cx-w/2, cy-h/2, w, h), r, ax, ay);
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlBalloon(cx, cy, w, h, r, ax, ay,
+                                         new SpeechBalloon(shape)));
+
+    return XL::xl_true;
+}
+
+
+
 // ============================================================================
 //
 //    3D primitives

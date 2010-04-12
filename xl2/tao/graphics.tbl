@@ -192,6 +192,10 @@ PREFIX(Star, tree, "star",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
        PARM(p, integer) PARM(r, real),
        RTAO(star(self, x, y, w, h, p, r)))
+PREFIX(SpeechBalloon, tree, "speech_balloon",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
+       PARM(r, real) PARM(ax, real) PARM(ay, real),
+       RTAO(speechBalloon(self, x, y, w, h, r, ax, ay)))
 
 
 

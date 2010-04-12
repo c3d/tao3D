@@ -499,4 +499,105 @@ void Star::Draw(GraphicPath &path)
 }
 
 
+void SpeechBalloon::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    We need correct tesselation
+// ----------------------------------------------------------------------------
+{
+    GraphicPath path;
+    Draw(path);
+    setTexture(where);
+    if (setFillColor(where))
+        path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+    if (setLineColor(where))
+        // REVISIT: If lines is thick, use a QPainterPathStroker
+        path.Draw(where, GL_LINE_STRIP);
+}
+
+
+void SpeechBalloon::Draw(GraphicPath &path)
+// ----------------------------------------------------------------------------
+//   Draw a speech ballon
+// ----------------------------------------------------------------------------
+{
+    QPainterPath qt;
+
+    int sw = bounds.Width() > 0? 1: -1;
+    int sh = bounds.Height() > 0? 1: -1;
+    double rx = r; 
+    double ry = r;
+    coord cx = bounds.Center().x;
+    coord cy = bounds.Center().y;
+    double c = 10.0;
+    double tx = a.x - cx;
+    double ty = a.y - cy;
+    double t = sqrt(tx*tx + ty*ty);
+    
+    if (r > sw * bounds.Width() / 2)
+        rx = sw * bounds.Width() / 2;
+    if (r > sh * bounds.Height() / 2)
+        ry = sh * bounds.Height() / 2;
+
+    qt.addRoundedRect(bounds.lower.x, bounds.lower.y,
+                      bounds.Width(), bounds.Height(),
+                      rx, ry);
+    if (4*tx*tx > ty*ty)
+    {
+        qt.moveTo(cx+c*ty/t, cy-c*tx/t);
+        qt.lineTo(cx+0.25*tx, cy+0.5*ty);
+        qt.lineTo(a.x, a.y);
+        qt.lineTo(cx+0.25*tx, cy+0.5*ty);
+        qt.lineTo(cx-c*ty/t, cy+c*tx/t);
+        //qt.quadTo(cx+0.25*tx, cy+0.5*ty, a.x, a.y);
+        //qt.quadTo(cx+0.25*tx, cy+0.5*ty, cx-c*ty/t, cy+c*tx/t);
+        //qt.closeSubpath();
+    }
+    else
+    {
+        qt.moveTo(cx+c*ty/t, cy-c*tx/t);
+        qt.lineTo(cx+0.25*tx, cy+0.5*ty);
+        qt.lineTo(a.x, a.y);
+        qt.lineTo(cx+0.25*tx, cy+0.5*ty);
+        qt.lineTo(cx-c*ty/t, cy+c*tx/t);
+        //qt.quadTo(cx+tx, cy+0.5*ty, a.x, a.y);
+        //qt.quadTo(cx+tx, cy+0.5*ty, cx-c*ty/t, cy+c*tx/t);
+        //qt.closeSubpath();
+    }
+    path.addQtPath(qt);
+
+/*
+x -> 3.14 / 4 * sin time 
+p -> 100 
+a -> 10 
+b -> a / 2 
+c -> p / 2 
+h1 -> 1.5 
+h2 -> 0.5 
+x1 -> -100 
+x2 -> -100 
+y1 -> 0 
+y2 -> 0 
+w -> 80 
+h -> 50 
+r -> 15 
+if cos time > 0 then 
+    rounded_rectangle x1, y1, w, h, r 
+    path 
+        move_to x1 + a * cos (x + 1.57), y1 + a * sin (x + 1.57), 0 
+        curve_to x1 + c * cos (h1 * x) + b * cos (x + 1.57), y1 + c * sin (h1 * x) + b * sin (x + 1.57), 0, x1 + p * cos (x), y1 + p * sin (x), 0 
+        curve_to x1 + c * cos (h1 * x) + b * cos (x - 1.57), y1 + c * sin (h1 * x) + b * sin (x - 1.57), 0, x1 + a * cos (x - 1.57), y1 + a * sin (x - 1.57), 0 
+        close_path
+    
+else 
+    rounded_rectangle x1, y2, w, h, r 
+    path 
+        move_to x2 + a * cos (-x), y2 + a * sin (-x), 0 
+        curve_to x2 + c * cos (-h2 * x - 1.57) + b * cos (-x), y2 + c * sin (-h2 * x - 1.57) + b * sin (-x), 0, x2 + p * cos (-1 * x - 1.57), y2 + p * sin (-1 * x - 1.57), 0 
+        curve_to x2 + c * cos (-h2 * x - 1.57) + b * cos (-x - 3.14), y2 + c * sin (-h2 * x - 1.57) + b * sin (-x - 3.14), 0, x2 + a * cos (-x - 3.14), y2 + a * sin (-x - 3.14), 0 
+        close_path
+ 
+*/       
+}
+
+
 TAO_END

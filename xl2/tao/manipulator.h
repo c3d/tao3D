@@ -185,6 +185,20 @@ protected:
 };
 
 
+struct ControlBalloon : ControlRoundedRectangle
+// ----------------------------------------------------------------------------
+//   Manipulators for a rectangle-bounded object
+// ----------------------------------------------------------------------------
+{
+    ControlBalloon(real_r x, real_r y, real_r w, real_r h, real_r r,
+                   real_r ax, real_r ay, Drawing *child);
+    virtual bool        DrawHandles(Layout *layout);
+
+    protected:
+    real_r              ax, ay;
+};
+
+
 struct WidgetSurface;
 struct WidgetManipulator : FrameManipulator
 // ----------------------------------------------------------------------------

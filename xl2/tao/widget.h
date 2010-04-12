@@ -213,6 +213,9 @@ public:
                             integer_r p, integer_r q);
     Tree *      star(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
                      integer_r p, real_r r);
+    Tree *      speechBalloon(Tree *self,
+                              real_r cx, real_r cy, real_r w, real_r h,
+                              real_r r, real_r ax, real_r ay);
 
     // 3D primitives
     Tree *      sphere(Tree *self,

@@ -877,6 +877,57 @@ bool ControlStar::DrawHandles(Layout *layout)
 
 
 // ============================================================================
+//
+//   A ballon manipulator udpates x, y, w, h, the radius r for the corners,
+//   the end of the tail a and allows translation
+//
+// ============================================================================
+
+ControlBalloon::ControlBalloon(real_r x, real_r y, real_r w, real_r h, 
+                               real_r r, real_r ax, real_r ay,
+                               Drawing *child)
+// ----------------------------------------------------------------------------
+//   A control star adds inner circle ratio to the control polygon 
+// ----------------------------------------------------------------------------
+    : ControlRoundedRectangle(x, y, w, h, r, child), ax(ax), ay(ay)
+{}
+
+
+bool ControlBalloon::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the handles for a balloon
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
+
+    if (DrawHandle(layout, Point3(ax, ay, 0), 11))
+    {
+        Widget *widget = layout->Display();
+        Drag *drag = widget->drag();
+        if (drag)
+        {
+            Point3 p1 = drag->Previous();
+            Point3 p2 = drag->Current();
+            if (p1 != p2)
+            {
+                Point3 p0 = drag->Origin();
+                updateArg(widget, &ax, p0.x, p1.x, p2.x);
+                updateArg(widget, &ay, p0.y, p1.y, p2.y);
+                widget->markChanged("Balloon tail changed");
+                changed = true;
+            }
+        }
+    }
+    if (!changed)
+    {
+        changed = ControlRoundedRectangle::DrawHandles(layout);
+    }
+    return changed;
+}
+
+
+
+// ============================================================================
 // 
 //   Manipulate a widget
 // 

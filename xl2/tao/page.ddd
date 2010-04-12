@@ -1,0 +1,36 @@
+justify 0.2 
+center 0.5 
+spacing 100% 
+vertical_center 0.3 
+vertical_spacing 1.0 
+mypage x, y, w, h, t -> 
+    locally 
+        color 1, 0, 0, 20% 
+        rectangle x, y, w, h
+    
+    text_box x, y, w, h, t
+
+myov x, y, w, h -> 
+    locally 
+        color 80% ,80% ,100% ,80% 
+        rectangle x, y, w, h
+    
+    text_overflow x, y, w, h
+
+mypage -93, 366, 256, 218, do 
+    font "Arial" 
+    font_size 20 
+    text <<Hello world,
+    this is a rather boring long text with plenty of blah blah blah in it that is just there to test the layout>> 
+    font_size 18 
+    font "Times New Roman" 
+    color 0, 0, 1, 1 
+    text "World Peace! World Peace über alles! "
+    color 0, 40% ,0, 90% 
+    center 0.5 
+    text <<Une Dosa (தோசை) est une sorte de crêpe, ça se böùffe avec du Sambar (சாம்பார்).
+    Maintenant, vous n'êtes pas obligés de me croire...
+    Dixit toto>>
+
+myov 55, 152, 175, 109 
+myov 19, -216, 331, 188

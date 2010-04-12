@@ -91,6 +91,8 @@ PREFIX(DisableDepthTest, boolean, "disable_depth_test",,
 PREFIX(Refresh, tree, "refresh", PARM(delay, real), RTAO(refresh(self, delay)))
 PREFIX(FullScreen, boolean, "full_screen", PARM(fs, boolean),
        RTAO(fullScreen(self, fs)))
+PREFIX(ToggleFullScreen, boolean, "toggle_full_screen", ,
+       RTAO(toggleFullScreen(self)))
 
 
 
@@ -235,6 +237,14 @@ PREFIX(Cone, tree, "cone",
 //
 // ============================================================================
 
+PREFIX(TextBox, tree, "text_box",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real) PARM(t, tree),
+       RTAO(textBox(self, x, y, w, h, &t)))
+PREFIX(TextOverflow, tree, "text_overflow",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real),
+       RTAO(textOverflow(self, x, y, w, h)))
+PREFIX(TextFlow, tree, "text_flow", PARM(n, text), RTAO(textFlow(self, n)))
+
 PREFIX(TextSpan, tree,"text", PARM(t, text), RTAO(textSpan(self, t)))
 PREFIX(Font, tree, "font", PARM(f, text), RTAO(font(self, f)))
 PREFIX(FontSize, tree, "font_size", PARM(s, real), RTAO(fontSize(self, s)))
@@ -254,6 +264,28 @@ PREFIX(FontOverline, tree, "overline", PARM(a, real),
 PREFIX(FontStrikeout, tree, "strikeout", PARM(a, real),
        RTAO(fontStrikeout(self, a)))
 PREFIX(FontStretch, tree, "stretch", PARM(s,real),RTAO(fontStretch(self,s)))
+PREFIX(Justify, tree, "justify",
+       PARM(a, real), RTAO(justify(self, a, 0)))
+PREFIX(VJustify, tree, "vertical_justify",
+       PARM(a, real), RTAO(justify(self, a, 1)))
+PREFIX(Center, tree, "center",
+       PARM(a, real), RTAO(center(self, a, 0)))
+PREFIX(VCenter, tree, "vertical_center",
+       PARM(a, real), RTAO(center(self, a, 1)))
+PREFIX(Spread, tree, "spread",
+       PARM(a, real), RTAO(spread(self, a, 0)))
+PREFIX(VSpread, tree, "vertical_spread",
+       PARM(a, real), RTAO(spread(self, a, 1)))
+PREFIX(Spacing, tree, "spacing",
+       PARM(a, real), RTAO(spacing(self, a, 0)))
+PREFIX(VSpacing, tree, "vertical_spacing",
+       PARM(a, real), RTAO(spacing(self, a, 1)))
+PREFIX(LineBreak, tree, "line_break",,
+       RTAO(drawingBreak(self, Tao::Drawing::LineBreak)))
+PREFIX(ColumnBreak, tree, "column_break",,
+       RTAO(drawingBreak(self, Tao::Drawing::ColumnBreak)))
+PREFIX(PageBreak, tree, "page_break",,
+       RTAO(drawingBreak(self, Tao::Drawing::PageBreak)))
 
 
 
@@ -298,6 +330,24 @@ PREFIX(PushButtonTexture, tree, "push_button_texture",
        PARM(w,real) PARM(h,real) PARM(u, text) PARM(a, tree),
        RTAO(pushButtonTexture(self, w, h, &u, &a)))
 
+PREFIX(RadioButton, tree, "radio_button",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
+       PARM(u, text) PARM(m, text) PARM(a, tree),
+       RTAO(radioButton(self, x, y, w, h, &u, &m, &a)))
+PREFIX(RadioButtonTexture, tree, "radio_button_texture",
+       PARM(w,real) PARM(h,real) PARM(u, text)
+       PARM(m, text) PARM(a, tree),
+       RTAO(radioButtonTexture(self, w, h, &u, &m, &a)))
+
+PREFIX(CheckBoxButton, tree, "check_box_button",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
+       PARM(u, text) PARM(m, text) PARM(a, tree),
+       RTAO(checkBoxButton(self, x, y, w, h, &u, &m, &a)))
+PREFIX(CheckBoxButtonTexture, tree, "check_box_button_texture",
+       PARM(w,real) PARM(h,real) PARM(u, text)
+       PARM(m, text) PARM(a, tree),
+       RTAO(checkBoxButtonTexture(self, w, h, &u, &m, &a)))
+
 PREFIX(ColorChooser, tree, "color_chooser",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,tree),
        RTAO(colorChooser(self, x, y, w, h, &t)))
@@ -318,6 +368,17 @@ PREFIX(VideoPlayer, tree, "video_player",
 PREFIX(VideoPlayerTexture, tree, "video_player_texture",
        PARM(w,real) PARM(h,real) PARM(u,text),
        RTAO(videoPlayerTexture(self, w, h, &u)))
+
+PREFIX(ButtonGroup, tree, "button_group",
+       PARM(a, tree), RTAO(buttonGroup(self, &a)))
+
+PREFIX(GroupBox, tree, "group_box",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
+       PARM(u, text) PARM(a, tree),
+       RTAO(groupBox(self, x, y, w, h, &u, &a)))
+PREFIX(GroupBoxTexture, tree, "groupboxtexture",
+       PARM(w,real) PARM(h,real) PARM(u, text),
+       RTAO(groupBoxTexture(self, w, h, &u)))
 
 
 // ============================================================================

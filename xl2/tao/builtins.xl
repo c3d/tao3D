@@ -8,6 +8,10 @@ if false then TrueBody else FalseBody   -> do FalseBody
 if true then TrueBody                   -> do TrueBody
 if false then TrueBody                  -> false
 
+// Key management
+key "f" -> toggle_full_screen
+key X   -> debug X
+
 // 3D Shapes
 sphere x:real, y:real, z:real, r:real   -> sphere x,y,z,2*r,2*r,2*r,25,25
 sphere r:real                           -> 
@@ -193,11 +197,11 @@ menu_item   "Diamond", insert
 menu_item   "Speech Balloon", insert
     locally
         theme_colors
-        callout 16, 0, 68, 100, 15, -50, 0
+        speech_balloon 0, 16, 100, 68, 50, -50, -50
 menu_item   "Callout", insert 
     locally
         theme_colors
-        speech_balloon 0, 16, 100, 68, 15, -50, -50
+        callout 16, 0, 68, 100, 15, -50, 0
 menu_item   "Star", insert 
     locally
         theme_colors

@@ -69,7 +69,7 @@ Box3 Drawing::Bounds()
 // ----------------------------------------------------------------------------
 {
     // By default, it is empty
-    return Box3();
+    return Box3(0,0,0,0,0,0);
 }
 
 
@@ -83,21 +83,22 @@ Box3 Drawing::Space()
 }
 
 
-bool Drawing::IsWordBreak()
+Drawing *Drawing::Break(BreakOrder &order)
 // ----------------------------------------------------------------------------
-//   Tell if a shape is a word break
+//    Break a shape at the next line boundary, if any
 // ----------------------------------------------------------------------------
 {
-    return false;
+    order = NoBreak;
+    return NULL;
 }
 
 
-bool Drawing::IsLineBreak()
+scale Drawing::TrailingSpaceSize()
 // ----------------------------------------------------------------------------
-//    Tell if a shape is a line break
+//   By default, the trailing space is 0
 // ----------------------------------------------------------------------------
 {
-    return false;
+    return 0;
 }
 
 

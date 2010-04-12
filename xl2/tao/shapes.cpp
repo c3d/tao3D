@@ -25,6 +25,7 @@
 #include "layout.h"
 #include "attributes.h"
 #include "path3d.h"
+#include "gl_keepers.h"
 #include <GL/glew.h>
 #include <QtOpenGL>
 #include <QPainterPath>
@@ -136,6 +137,41 @@ void Rectangle::Draw(GraphicPath &path)
     path.lineTo(Point3(bounds.upper.x, bounds.upper.y, 0));
     path.lineTo(Point3(bounds.lower.x, bounds.upper.y, 0));
     path.close();
+}
+
+
+void PlaceholderRectangle::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    Draw the shape using a path
+// ----------------------------------------------------------------------------
+{
+    GLAttribKeeper save(GL_LINE_BIT | GL_CURRENT_BIT | GL_POLYGON_STIPPLE_BIT);
+    GraphicPath path;
+    Draw(path);
+
+    glColor4f(0.3, 0.7, 0.9, 0.7);
+    glLineWidth(1);
+    glDisable(GL_LINE_STIPPLE);
+    
+    where->PolygonOffset();
+    path.Draw(where, GL_LINE_STRIP);
+}
+
+
+void PlaceholderRectangle::Draw(GraphicPath &path)
+// ----------------------------------------------------------------------------
+//   We draw a rectangle crossed out
+// ----------------------------------------------------------------------------
+{
+    path.moveTo(Point3(bounds.lower.x, bounds.lower.y, 0));
+    path.lineTo(Point3(bounds.upper.x, bounds.lower.y, 0));
+    path.lineTo(Point3(bounds.upper.x, bounds.upper.y, 0));
+    path.lineTo(Point3(bounds.lower.x, bounds.upper.y, 0));
+    path.lineTo(Point3(bounds.lower.x, bounds.lower.y, 0));
+
+    path.lineTo(Point3(bounds.upper.x, bounds.upper.y, 0));
+    path.moveTo(Point3(bounds.upper.x, bounds.lower.y, 0));
+    path.lineTo(Point3(bounds.lower.x, bounds.upper.y, 0));
 }
 
 

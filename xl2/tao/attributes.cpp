@@ -28,6 +28,16 @@
 
 TAO_BEGIN
 
+Drawing *DrawingBreak::Break(BreakOrder &order)
+// ----------------------------------------------------------------------------
+//   Perform a character, word, line, column or page break
+// ----------------------------------------------------------------------------
+{
+    order = this->order;
+    return NULL;
+}
+
+
 void LineColor::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Remember the color in the layout

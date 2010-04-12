@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  menuinfo.cpp                                                    Tao project
+//  pull_from_dialog.cpp                                           Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    Associate Qt menu data to XL trees
+//    The class to display the "Pull from" dialog box
 //
 //
 //
@@ -16,61 +16,57 @@
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
-//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Jerome Forissier <jerome@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
 #include "tao.h"
-#include "menuinfo.h"
-#include "options.h"
-#include <iostream>
+#include "pull_from_dialog.h"
+#include "remote_selection_frame.h"
+#include "repository.h"
+#include <QInputDialog>
 
-TAO_BEGIN
+namespace Tao {
 
-MenuInfo::MenuInfo(QMenu *menu, std::string name)
+PullFromDialog::PullFromDialog(Repository *repo, QWidget *parent)
 // ----------------------------------------------------------------------------
-//   Associated a menu entry to a tree
+//    Create a "remote" selection box for the given repository
 // ----------------------------------------------------------------------------
-    : fullName(name), menu(menu), menubar(NULL), action(NULL)
+    : QDialog(parent), repo(repo)
 {
-    IFTRACE(menus)
-        std::cout<<"MenuInfo : "<< name << " menuItem created, "
-                 << menu->children().size()
-                 << " children present in the menu\n";
+    setupUi(this);
+    rsFrame->setRepository(repo);
 }
 
 
-MenuInfo::MenuInfo(QMenuBar *menubar, QMenu *menu, std::string name)
+QString PullFromDialog::pullFrom()
 // ----------------------------------------------------------------------------
-//    Associate a menu bar entry to a tree
+//    The name of the currently selected remote (empty string if "<None>")
 // ----------------------------------------------------------------------------
-    : fullName(name), menu(menu), menubar(menubar), action(NULL)
 {
-    IFTRACE(menus)
-        std::cout<< "MenuInfo : " << name<< " menu created\n";
-
+    return rsFrame->remote();
 }
 
 
-MenuInfo::~MenuInfo()
+Repository::ConflictResolution PullFromDialog::conflictResolution()
 // ----------------------------------------------------------------------------
-//   Delete a menu entry
+//    The currently selected conflict resolution mode
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(menus)
-        std::cout << "Delete MenuInfo for " << fullName << "\n";
+    if (ours->isChecked())
+        return Repository::CR_Ours;
+    return Repository::CR_Theirs;
 }
 
 
-XL::Tree * CleanMenuInfo::Do(XL::Tree *what)
+void PullFromDialog::accept()
 // ----------------------------------------------------------------------------
-//   Purge all menu infos
+//    Update the repository synchronization settings (URL, conflict mode)
 // ----------------------------------------------------------------------------
 {
-    if (what)
-        what->Purge<MenuInfo>();
-    return what;
+    repo->pullFrom           = pullFrom();
+    repo->conflictResolution = conflictResolution();
+    QDialog::accept();
 }
 
-TAO_END
+}

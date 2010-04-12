@@ -30,6 +30,7 @@
 #include "options.h"
 #include "widget.h"
 #include "types.h"
+#include "drawing.h"
 #include <iostream>
 
 

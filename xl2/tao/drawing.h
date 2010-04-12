@@ -48,8 +48,14 @@ struct Drawing
     virtual Box3        Bounds();
     virtual Box3        Space();
 
-    virtual bool        IsWordBreak();
-    virtual bool        IsLineBreak();
+    enum BreakOrder
+    {
+        NoBreak,
+        CharBreak, WordBreak, LineBreak, ColumnBreak, PageBreak,
+        AnyBreak
+    };
+    virtual Drawing *   Break(BreakOrder &order);
+    virtual scale       TrailingSpaceSize();
     virtual bool        IsAttribute();
 };
 

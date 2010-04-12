@@ -410,21 +410,12 @@ Box3 DrawingManipulator::Space()
 }
 
 
-bool DrawingManipulator::IsWordBreak()
+Drawing *DrawingManipulator::Break(BreakOrder &order)
 // ----------------------------------------------------------------------------
 //   Return the property of the child
 // ----------------------------------------------------------------------------
 {
-    return child->IsWordBreak();
-}
-
-
-bool DrawingManipulator::IsLineBreak()
-// ----------------------------------------------------------------------------
-//   Return the property of the child
-// ----------------------------------------------------------------------------
-{
-    return child->IsLineBreak();
+    return child->Break(order);
 }
 
 
@@ -554,7 +545,7 @@ void ControlRectangle::DrawSelection(Layout *layout)
     bool loadId = widget->currentId() != ~0U;
     if (loadId)
         glLoadName(widget->newId());
-    child->DrawSelection(layout);    // Don't draw it
+    child->DrawSelection(layout);
     Manipulator::DrawSelection(layout);
     if (loadId)
         glLoadName(0);

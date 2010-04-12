@@ -50,14 +50,4 @@ Box3 SpaceLayout::Space()
     return result;
 }
 
-
-Layout &SpaceLayout::Add(Drawing *d)
-// ----------------------------------------------------------------------------
-//   Add items to the list at the right position
-// ----------------------------------------------------------------------------
-{
-    return Layout::Add(d);
-}
-
-
 TAO_END

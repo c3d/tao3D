@@ -1,12 +1,12 @@
-#ifndef SPACE_LAYOUT_H
-#define SPACE_LAYOUT_H
+#ifndef TAO_UTF8_H
+#define TAO_UTF8_H
 // ****************************************************************************
-//  space_layout.h                                                  Tao project
+//  tao_utf8.h                                                      Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Layout objects in 3D space (z-ordering, ...)
+//    Special management of UTF8 for Tao
 //
 //
 //
@@ -19,31 +19,34 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "layout.h"
-#include "justification.h"
+#include "tao.h"
+#include "utf8.h"
+#include <QString>
 
 TAO_BEGIN
 
-struct SpaceLayout : Layout
+inline QString operator +(text s)
 // ----------------------------------------------------------------------------
-//   Layout objects in 3D space
+//   Quickly convert from text to QString
 // ----------------------------------------------------------------------------
 {
-                        SpaceLayout(Widget *widget);
-                        ~SpaceLayout();
+    return QString::fromUtf8(s.data(), s.length());
+}
 
-    virtual Box3        Space();
-    virtual SpaceLayout*NewChild()      { return new SpaceLayout(*this); }
-
-public:
-    // Space requested for the layout
-    Box3                space;
-    Justification       alongX, alongY, alongZ;
-};
+inline text operator +(QString s)
+// ----------------------------------------------------------------------------
+//   Quickly convert from QString to text
+// ----------------------------------------------------------------------------
+{
+    return s.toStdString();
+}
 
 TAO_END
 
-#endif // SPACE_LAYOUT_H
+#endif // TAO_UTF8_H

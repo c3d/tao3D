@@ -24,6 +24,7 @@
 // ****************************************************************************
 
 #include <string>
+#include <QButtonGroup>
 #include <QMenu>
 #include <QMenuBar>
 #include <QAction>
@@ -57,6 +58,28 @@ struct CleanMenuInfo : XL::Action
 // ----------------------------------------------------------------------------
 {
     XL::Tree * Do(XL::Tree *what);
+};
+
+struct GroupInfo : QButtonGroup, XL::Info
+// ----------------------------------------------------------------------------
+// QGroupButton associated to an XL tree
+// ----------------------------------------------------------------------------
+{
+    typedef GroupInfo * data_t;
+
+public:
+    GroupInfo(XL::Tree *t, QWidget * parent) :
+            QButtonGroup(parent), XL::Info(), tree(t){}
+    ~GroupInfo()
+    {
+        if (tree)
+            tree->Remove(this);
+    }
+
+    operator data_t() { return this; }
+
+public:
+    XL::Tree *tree;
 };
 
 TAO_END

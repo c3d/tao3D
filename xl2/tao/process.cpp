@@ -21,6 +21,7 @@
 // ****************************************************************************
 
 #include "process.h"
+#include "tao_utf8.h"
 #include "errors.h"
 #include "options.h"
 
@@ -110,8 +111,9 @@ bool Process::done(text *errors, text *output)
 
     // Close QProcess
     closeWriteChannel();
-    if (!waitForFinished())
-        ok = false;
+    if (state() != NotRunning)
+        if (!waitForFinished())
+            ok = false;
 
     int rc = exitCode();
     IFTRACE(process)

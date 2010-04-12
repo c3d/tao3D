@@ -44,7 +44,7 @@ struct WidgetSurface : QObject, XL::Info
 public:
     typedef WidgetSurface * data_t;
 
-    WidgetSurface(QWidget *widget);
+    WidgetSurface(XL::Tree *t, QWidget *widget);
     virtual ~WidgetSurface();
 
     operator            data_t() { return this; }
@@ -55,6 +55,7 @@ public:
     QWidget *           widget;
     GLuint              textureId;
     bool                dirty;
+    XL::Tree *          tree;
 
 protected slots:
     void                repaint();
@@ -69,7 +70,7 @@ struct WebViewSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef WebViewSurface * data_t;
-    WebViewSurface(Widget *parent);
+    WebViewSurface(XL::Tree *t, Widget *parent);
     operator data_t() { return this; }
     virtual GLuint bind(XL::Text *url, XL::Integer *progress=NULL);
 
@@ -92,7 +93,7 @@ struct LineEditSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef LineEditSurface * data_t;
-    LineEditSurface(Widget *parent, bool immed=false);
+    LineEditSurface(XL::Tree *t, Widget *parent, bool immed=false);
     operator data_t() { return this; }
     virtual GLuint bind(XL::Text *contents);
 
@@ -106,8 +107,28 @@ public slots:
     void inputValidated();
 };
 
+struct AbstractButtonSurface : WidgetSurface
+{
+    Q_OBJECT;
+public:
+//    typedef AbstractButtonSurface * data_t;
+    AbstractButtonSurface(XL::Tree *t, QAbstractButton *button);
+    virtual GLuint bind(XL::Text *lbl, XL::Tree *action, XL::Text * sel);
+    virtual operator data_t() { return this; }
 
-struct PushButtonSurface : WidgetSurface
+private:
+    text         label;
+    XL::TreeRoot action;
+    XL::Text *  isMarked;
+
+
+public slots:
+    void clicked(bool checked);
+    void toggled(bool checked);
+
+};
+
+struct PushButtonSurface : AbstractButtonSurface
 // ----------------------------------------------------------------------------
 //    Hold information about a QPushButton
 // ----------------------------------------------------------------------------
@@ -115,16 +136,35 @@ struct PushButtonSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef PushButtonSurface * data_t;
-    PushButtonSurface(Widget *parent);
+    PushButtonSurface(XL::Tree *t, QWidget *parent):
+        AbstractButtonSurface(t,new QPushButton(parent)){};
     operator data_t() { return this; }
-    virtual GLuint bind(XL::Text *lbl, XL::Tree *action);
+};
 
-private:
-    text         label;
-    XL::TreeRoot action;
+struct RadioButtonSurface : AbstractButtonSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a QPushButton
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT;
+public:
+    typedef RadioButtonSurface * data_t;
+    RadioButtonSurface(XL::Tree *t, QWidget *parent):
+        AbstractButtonSurface(t, new QRadioButton(parent)){};
+    operator data_t() { return this; }
+};
 
-public slots:
-    void clicked(bool checked);
+struct CheckBoxSurface : AbstractButtonSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a QPushButton
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT;
+public:
+    typedef CheckBoxSurface * data_t;
+    CheckBoxSurface(XL::Tree *t, QWidget *parent):
+        AbstractButtonSurface(t, new QCheckBox(parent)){};
+    operator data_t() { return this; }
 };
 
 
@@ -136,12 +176,16 @@ struct GroupBoxSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef GroupBoxSurface * data_t;
-    GroupBoxSurface(Widget *parent);
+    GroupBoxSurface(XL::Tree *t, Widget *parent, QGridLayout *l);
+    virtual ~GroupBoxSurface();
+
     operator data_t() { return this; }
     virtual GLuint bind(XL::Text *lbl);
 
 private:
     text label;
+public:
+    QGridLayout *grid;
 };
 
 
@@ -153,8 +197,7 @@ struct ColorChooserSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef ColorChooserSurface * data_t;
-    ColorChooserSurface(Widget *parent, XL::Tree *action);
-    ~ColorChooserSurface();
+    ColorChooserSurface(XL::Tree *t, Widget *parent, XL::Tree *action);
     operator data_t() { return this; }
     virtual GLuint bind();
 
@@ -173,8 +216,7 @@ struct FontChooserSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef FontChooserSurface * data_t;
-    FontChooserSurface(Widget *parent, XL::Tree *action);
-    ~FontChooserSurface();
+    FontChooserSurface(XL::Tree *t, Widget *parent, XL::Tree *action);
     operator data_t() { return this; }
     virtual GLuint bind();
 
@@ -193,7 +235,7 @@ struct VideoPlayerSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef VideoPlayerSurface * data_t;
-    VideoPlayerSurface(Widget *parent);
+    VideoPlayerSurface(XL::Tree *t, Widget *parent);
     ~VideoPlayerSurface();
     operator data_t() { return this; }
     virtual GLuint bind(XL::Text *url);

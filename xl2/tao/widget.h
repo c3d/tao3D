@@ -27,6 +27,8 @@
 #include "tao.h"
 #include "coords3d.h"
 #include "opcodes.h"
+#include "drawing.h"
+
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -44,10 +46,12 @@ struct Window;
 struct FrameInfo;
 struct Activity;
 struct Layout;
+struct PageLayout;
 struct SpaceLayout;
 struct GraphicPath;
 struct Repository;
 struct Drag;
+struct WidgetSurface;
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -119,6 +123,9 @@ public:
     void        drawSelection(const Box3 &bounds, text name);
     void        drawHandle(const Point3 &point, text name);
 
+    // Text flows
+    PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
+
 public:
     typedef XL::Tree      Tree;
     typedef XL::Integer   Integer;
@@ -167,6 +174,7 @@ public:
     Name *      depthTest(Tree *self, bool enable);
     Tree *      refresh(Tree *self, double delay);
     Name *      fullScreen(Tree *self, bool fs);
+    Name *      toggleFullScreen(Tree *self);
 
     // Graphic attributes
     Tree *      lineColor(Tree *self, double r, double g, double b, double a);
@@ -235,6 +243,11 @@ public:
                      real_r w, real_r h, real_r d);
 
     // Text and font
+    Tree *      textBox(Tree *self,
+                        real_r x, real_r y, real_r w, real_r h, Tree *prog);
+    Tree *      textOverflow(Tree *self,
+                             real_r x, real_r y, real_r w, real_r h);
+    Text *      textFlow(Tree *self, text name);
     Tree *      textSpan(Tree *self, text_r content);
     Tree *      font(Tree *self, text family);
     Tree *      fontSize(Tree *self, double size);
@@ -245,6 +258,11 @@ public:
     Tree *      fontOverline(Tree *self, scale amount = 1);
     Tree *      fontStrikeout(Tree *self, scale amount = 1);
     Tree *      fontStretch(Tree *self, scale amount = 1);
+    Tree *      justify(Tree *self, scale amount, uint axis);
+    Tree *      center(Tree *self, scale amount, uint axis);
+    Tree *      spread(Tree *self, scale amount, uint axis);
+    Tree *      spacing(Tree *self, scale amount, uint axis);
+    Tree *      drawingBreak(Tree *self, Drawing::BreakOrder order);
 
     // Frames and widgets
     Tree *      status(Tree *self, text t);
@@ -260,12 +278,22 @@ public:
                          real_r w,real_r h, text_p s);
     Tree *      lineEditTexture(Tree *self, double x, double y, Text *s);
 
-    Tree *      pushButton(Tree *self,
-                           real_r x,real_r y, real_r w,real_r h,
+    Tree *      abstractButton(Tree *self,
+                               real_r x, real_r y, real_r w, real_r h);
+    Tree *      pushButton(Tree *self, real_r x, real_r y, real_r w, real_r h,
                            text_p lbl, Tree *act);
-    Tree *      pushButtonTexture(Tree *self,
-                                  double w, double h,
+    Tree *      pushButtonTexture(Tree *self, double w, double h,
                                   Text *lbl, Tree *act);
+    Tree *      radioButton(Tree *self, real_r x,real_r y, real_r w,real_r h,
+                           text_p lbl, Text *selected, Tree *act);
+    Tree *      radioButtonTexture(Tree *self, double w, double h,
+                                  Text *lbl, Text *selected, Tree *act);
+    Tree *      checkBoxButton(Tree *self, real_r x,real_r y, real_r w,real_r h,
+                               text_p lbl, Text* marked,
+                               Tree *act);
+    Tree *      checkBoxButtonTexture(Tree *self, double w, double h,
+                                      Text *lbl, Text* marked, Tree *act);
+    Tree *      buttonGroup(Tree *self, Tree *buttons, bool exclusive = true);
 
     Tree *      colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
                              Tree *action);
@@ -311,9 +339,11 @@ private:
     friend class Drag;
     friend class Manipulator;
     friend class ControlPoint;
+    friend class AbstractButtonSurface;
 
     typedef XL::LocalSave<QEvent *> EventSave;
     typedef std::map<GLuint, uint>  selection_map;
+    typedef std::map<text, PageLayout*> flow_map;
 
     // XL Runtime
     XL::SourceFile       *xlProgram;
@@ -323,6 +353,10 @@ private:
     Layout *              layout;
     GraphicPath *         path;
     scale                 pageW, pageH;
+    text                  flowName;
+    flow_map              flows;
+    QGridLayout *         currentGridLayout;
+    QButtonGroup *        currentGroup;
 
     // Selection
     Activity *            activities;
@@ -346,7 +380,7 @@ private:
     QTimer                timer, idleTimer;
     double                pageStartTime, pageRefresh;
     ulonglong             tmin, tmax, tsum, tcount;
-    ulonglong             nextSave, nextCommit, nextSync;
+    ulonglong             nextSave, nextCommit, nextSync, nextPull;
 
     static Widget *       current;
     static double         zNear, zFar;

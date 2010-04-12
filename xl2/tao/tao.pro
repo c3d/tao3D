@@ -31,21 +31,13 @@ CONFIG += debug \
 # Tell the XLR portion that we are building for Tao
 DEFINES += TAO \
     DEBUG
-
-macx {
+macx { 
     DEFINES += CONFIG_MACOSX
     XLRDIR = Contents/MacOS
     ICON = tao.icns
 }
-
-win32 {
-    DEFINES += CONFIG_MINGW
-}
-
-linux-g++ {
-    DEFINES += CONFIG_LINUX
-}
-
+win32:DEFINES += CONFIG_MINGW
+linux-g++:DEFINES += CONFIG_LINUX
 
 # Input
 HEADERS += widget.h \
@@ -77,6 +69,7 @@ HEADERS += widget.h \
     process.h \
     repository.h \
     git_backend.h \
+    tao_utf8.h \
     ../xlr/utf8.h \
     ../xlr/base.h \
     ../xlr/options.h \
@@ -103,7 +96,11 @@ HEADERS += widget.h \
     ../xlr/diff.h \
     ../xlr/lcs.h \
     ../xlr/bfs.h \
-    drag.h
+    drag.h \
+    ui_pull_from_dialog.h \
+    pull_from_dialog.h \
+    remote_selection_frame.h \
+    publish_to_dialog.h
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \
@@ -151,8 +148,11 @@ SOURCES += tao_main.cpp \
     ../xlr/basics.cpp \
     ../xlr/diff.cpp \
     ../xlr/lcs.cpp \
-    drag.cpp
-!win32 {
+    drag.cpp \
+    pull_from_dialog.cpp \
+    remote_selection_frame.cpp \
+    publish_to_dialog.cpp
+!win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \
         GL/wglew.h
@@ -191,4 +191,6 @@ OTHER_FILES += xl.syntax \
 xlr_support.path = $${DESTDIR}/$${XLRDIR}
 xlr_support.files += $${OTHER_FILES}
 QMAKE_BUNDLE_DATA += xlr_support
-FORMS +=
+FORMS += pull_from_dialog.ui \
+    remote_selection_frame.ui \
+    publish_to_dialog.ui

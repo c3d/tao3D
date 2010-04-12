@@ -243,6 +243,27 @@ public:
     text url;
     QGLFramebufferObject *fbo;
 };
+
+struct AbstractSliderSurface : WidgetSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a Slider
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT;
+public:
+    typedef AbstractSliderSurface * data_t;
+    AbstractSliderSurface(XL::Tree *t, QAbstractSlider *parent);
+    operator data_t() { return this; }
+//    virtual GLuint bind();
+
+private:
+    int min, max;
+    XL::Integer *value;
+public slots:
+    void valueChanged(int new_value);
+
+};
+
 } // namespace Tao
 
 #endif // WIDGET_SURFACE_H

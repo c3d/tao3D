@@ -26,20 +26,60 @@
 
 TAO_BEGIN
 
-Layout::Layout(Widget *widget)
+int Layout::polygonOffset = 0;
+
+
+LayoutState::LayoutState()
 // ----------------------------------------------------------------------------
-//    Create an empty layout
+//   Default state for all layouts
 // ----------------------------------------------------------------------------
-    : Drawing(),
-      offset(),
+    : offset(),
       font(qApp->font()),
       alongX(), alongY(), alongZ(),
       lineColor(0,0,0,1),       // Black
       fillColor(0,0,0,0),       // Transparent black
       fillTexture(0),
-      lastRotation(0), lastTranslation(0), lastScale(0),
-      items(),
-      display(widget)
+      lastRotation(0), lastTranslation(0), lastScale(0)
+{}
+
+
+LayoutState::LayoutState(const LayoutState &o)
+// ----------------------------------------------------------------------------
+//   Copy state (may be used between layouts)
+// ----------------------------------------------------------------------------
+      : offset(o.offset),
+        font(o.font),
+        alongX(o.alongX), alongY(o.alongY), alongZ(o.alongZ),
+        lineColor(o.lineColor),
+        fillColor(o.fillColor),
+        fillTexture(o.fillTexture),
+        lastRotation(o.lastRotation),
+        lastTranslation(o.lastTranslation),
+        lastScale(o.lastScale)
+{}
+
+
+
+void LayoutState::Clear()
+// ----------------------------------------------------------------------------
+//   Reset default state for a layout
+// ----------------------------------------------------------------------------
+{
+    offset.Set(0,0,0);
+    font = qApp->font();
+
+    alongX = alongY = alongZ = Justification();
+    lineColor.Set(0,0,0,0); // Transparent black
+    fillColor.Set(0,0,0,1); // Black
+    fillTexture = 0;
+}
+
+
+Layout::Layout(Widget *widget)
+// ----------------------------------------------------------------------------
+//    Create an empty layout
+// ----------------------------------------------------------------------------
+    : Drawing(), LayoutState(), items(), display(widget)
 {}
 
 
@@ -47,18 +87,7 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
 //   Copy constructor
 // ----------------------------------------------------------------------------
-    : Drawing(o),
-      offset(),                 // Zero, because we take parent offset in Draw
-      font(o.font),
-      alongX(o.alongX), alongY(o.alongY), alongZ(o.alongZ),
-      lineColor(o.lineColor),
-      fillColor(o.fillColor),
-      fillTexture(o.fillTexture),
-      lastRotation(o.lastRotation),
-      lastTranslation(o.lastTranslation),
-      lastScale(o.lastScale),
-      items(),
-      display(o.display)
+    : Drawing(o), LayoutState(o), items(), display(o.display)
 {}
 
 
@@ -92,18 +121,9 @@ void Layout::Clear()
         delete *i;
     items.clear();
 
-    offset.Set(0,0,0);
-    font = qApp->font();
-
-    alongX = alongY = alongZ = Justification();
-    lineColor.Set(0,0,0,0); // Transparent black
-    fillColor.Set(0,0,0,1); // Black
-    fillTexture = 0;
+    LayoutState::Clear();
 }
 
-
-#define XY_SCALE 5.0
-#define UNITS    10.0
 
 void Layout::Draw(Layout *where)
 // ----------------------------------------------------------------------------
@@ -113,27 +133,13 @@ void Layout::Draw(Layout *where)
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
     GLStateKeeper         glSave;
-    if (where)
-    {
-        // Add offset of parent to the one we have
-        offset += where->Offset();
-
-        // Inherit color and other parameters as initial values
-        font        = where->font;
-        alongX      = where->alongX;
-        alongY      = where->alongY;
-        alongZ      = where->alongZ;
-        lineColor   = where->lineColor;
-        fillColor   = where->fillColor;
-        fillTexture = where->fillTexture;
-    }
+    Inherit(where);
 
     // Display all items
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
-        glPolygonOffset (XY_SCALE, UNITS * (items.end() - i));
         child->Draw(this);
     }
 }
@@ -147,28 +153,12 @@ void Layout::DrawSelection(Layout *where)
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
     GLStateKeeper         glSave;
-    if (where)
-    {
-        // Add offset of parent to the one we have
-        offset += where->Offset();
+    Inherit(where);
 
-        // Inherit color and other parameters as initial values
-        // These parameters may impact the rendering of the selection,
-        // e.g. transparent colors may cause children not to be drawn
-        font        = where->font;
-        alongX      = where->alongX;
-        alongY      = where->alongY;
-        alongZ      = where->alongZ;
-        lineColor   = where->lineColor;
-        fillColor   = where->fillColor;
-        fillTexture = where->fillTexture;
-    }
-        
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
-        glPolygonOffset (XY_SCALE, UNITS * (items.end() - i));
         child->DrawSelection(this);
     }
 }
@@ -182,22 +172,7 @@ void Layout::Identify(Layout *where)
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
     GLStateKeeper         glSave;
-    if (where)
-    {
-        // Add offset of parent to the one we have
-        offset += where->Offset();
-
-        // Inherit color and other parameters as initial values
-        // These parameters may impact the rendering of the selection,
-        // e.g. transparent colors may cause children not to be drawn
-        font        = where->font;
-        alongX      = where->alongX;
-        alongY      = where->alongY;
-        alongZ      = where->alongZ;
-        lineColor   = where->lineColor;
-        fillColor   = where->fillColor;
-        fillTexture = where->fillTexture;
-    }
+    Inherit(where);
         
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
@@ -243,13 +218,57 @@ Box3 Layout::Space()
 }
 
 
-Layout &Layout::Add(Drawing *d)
+void Layout::Add(Drawing *d)
 // ----------------------------------------------------------------------------
-//   Add a drawing to the items - Override with layout computations
+//   Add a drawing to the items, return true if item fits in layout
 // ----------------------------------------------------------------------------
 {
     items.push_back(d);
+}
+
+
+void Layout::PolygonOffset()
+// ----------------------------------------------------------------------------
+//   Compute a polygon offset for the next shape being drawn
+// ----------------------------------------------------------------------------
+{
+    const double XY_SCALE = 5.0; // Good enough for approx 45 degrees Y angle
+    const double UNITS = 2.0;
+    glPolygonOffset (XY_SCALE * polygonOffset++, UNITS);
+}
+
+
+LayoutState & Layout::operator=(const LayoutState &o)
+// ----------------------------------------------------------------------------
+//   Restore a previously saved state
+// ----------------------------------------------------------------------------
+{
+    *((LayoutState *) this) = o;
     return *this;
+}
+
+
+void Layout::Inherit(Layout *where)
+// ----------------------------------------------------------------------------
+//   Inherit state from some other layout
+// ----------------------------------------------------------------------------
+{
+    if (!where)
+        return;
+
+    // Add offset of parent to the one we have
+    offset += where->Offset();
+
+    // Inherit color and other parameters as initial values
+    // Note that these may really impact what gets rendered,
+    // e.g. transparent colors may cause shapes to be drawn or not
+    font        = where->font;
+    alongX      = where->alongX;
+    alongY      = where->alongY;
+    alongZ      = where->alongZ;
+    lineColor   = where->lineColor;
+    fillColor   = where->fillColor;
+    fillTexture = where->fillTexture;
 }
 
 TAO_END

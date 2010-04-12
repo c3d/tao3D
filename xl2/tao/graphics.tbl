@@ -161,6 +161,12 @@ PREFIX(ClosePath, tree, "close_path",, RTAO(closePath(self)))
 PREFIX(Rectangle, tree, "rectangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
        RTAO(rectangle(self, x, y, w, h)))
+PREFIX(Triangle, tree, "triangle",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
+       RTAO(isoscelesTriangle(self, x, y, w, h)))
+PREFIX(RightTriangle, tree, "right_triangle",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
+       RTAO(rightTriangle(self, x, y, w, h)))
 PREFIX(Ellipse, tree, "ellipse",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
        RTAO(ellipse(self, x, y, w, h)))
@@ -170,12 +176,28 @@ PREFIX(EllipseArc, tree, "ellipse_arc",
        RTAO(ellipseArc(self, x, y, w, h, start, sweep)))
 PREFIX(RoundedRectangle, tree, "rounded_rectangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
-       PARM(rx, real) PARM(ry, real),
-       RTAO(roundedRectangle(self, x, y, w, h, rx, ry)))
-PREFIX(RegularStarPolygon, tree, "star_polygon",
+       PARM(r, real),
+       RTAO(roundedRectangle(self, x, y, w, h, r)))
+PREFIX(Arrow, tree, "arrow",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
+       PARM(ax, real) PARM(ay, real),
+       RTAO(arrow(self, x, y, w, h, ax, ay)))
+PREFIX(DoubleArrow, tree, "double_arrow",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
+       PARM(ax, real) PARM(ay, real),
+       RTAO(doubleArrow(self, x, y, w, h, ax, ay)))
+PREFIX(StarPolygon, tree, "star_polygon",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
        PARM(p, integer) PARM(q, integer),
        RTAO(starPolygon(self, x, y, w, h, p, q)))
+PREFIX(Star, tree, "star",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
+       PARM(p, integer) PARM(r, real),
+       RTAO(star(self, x, y, w, h, p, r)))
+PREFIX(SpeechBalloon, tree, "speech_balloon",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
+       PARM(r, real) PARM(ax, real) PARM(ay, real),
+       RTAO(speechBalloon(self, x, y, w, h, r, ax, ay)))
 
 
 
@@ -207,6 +229,14 @@ PREFIX(Cone, tree, "cone",
 //
 // ============================================================================
 
+PREFIX(TextBox, tree, "text_box",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real) PARM(t, tree),
+       RTAO(textBox(self, x, y, w, h, &t)))
+PREFIX(TextOverflow, tree, "text_overflow",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real),
+       RTAO(textOverflow(self, x, y, w, h)))
+PREFIX(TextFlow, tree, "text_flow", PARM(n, text), RTAO(textFlow(self, n)))
+
 PREFIX(TextSpan, tree,"text", PARM(t, text), RTAO(textSpan(self, t)))
 PREFIX(Font, tree, "font", PARM(f, text), RTAO(font(self, f)))
 PREFIX(FontSize, tree, "font_size", PARM(s, real), RTAO(fontSize(self, s)))
@@ -226,6 +256,28 @@ PREFIX(FontOverline, tree, "overline", PARM(a, real),
 PREFIX(FontStrikeout, tree, "strikeout", PARM(a, real),
        RTAO(fontStrikeout(self, a)))
 PREFIX(FontStretch, tree, "stretch", PARM(s,real),RTAO(fontStretch(self,s)))
+PREFIX(Justify, tree, "justify",
+       PARM(a, real), RTAO(justify(self, a, 0)))
+PREFIX(VJustify, tree, "vertical_justify",
+       PARM(a, real), RTAO(justify(self, a, 1)))
+PREFIX(Center, tree, "center",
+       PARM(a, real), RTAO(center(self, a, 0)))
+PREFIX(VCenter, tree, "vertical_center",
+       PARM(a, real), RTAO(center(self, a, 1)))
+PREFIX(Spread, tree, "spread",
+       PARM(a, real), RTAO(spread(self, a, 0)))
+PREFIX(VSpread, tree, "vertical_spread",
+       PARM(a, real), RTAO(spread(self, a, 1)))
+PREFIX(Spacing, tree, "spacing",
+       PARM(a, real), RTAO(spacing(self, a, 0)))
+PREFIX(VSpacing, tree, "vertical_spacing",
+       PARM(a, real), RTAO(spacing(self, a, 1)))
+PREFIX(LineBreak, tree, "line_break",,
+       RTAO(drawingBreak(self, Tao::Drawing::LineBreak)))
+PREFIX(ColumnBreak, tree, "column_break",,
+       RTAO(drawingBreak(self, Tao::Drawing::ColumnBreak)))
+PREFIX(PageBreak, tree, "page_break",,
+       RTAO(drawingBreak(self, Tao::Drawing::PageBreak)))
 
 
 
@@ -328,11 +380,11 @@ PREFIX(GroupBoxTexture, tree, "groupboxtexture",
 // ============================================================================
 
 PREFIX(MenuItem, tree, "menu_item", PARM(s, text) PARM(t, tree),
-       RTAO(menuItem(self, s, &t)))
-PREFIX(Menu, tree, "menu", PARM(s, text),
-      RTAO(menu(self, s, false)))
+       RTAO(menuItem(self, &s, &t)))
+PREFIX(Menu0, tree, "menu", PARM(s, text),
+       RTAO(menu(self, &s, false)))
 PREFIX(SubMenu, tree, "submenu", PARM(s, text),
-       RTAO(menu(self, s, true)))
+       RTAO(menu(self, &s, true)))
 
 
 

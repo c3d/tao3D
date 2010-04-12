@@ -27,6 +27,8 @@
 #include "tao.h"
 #include "coords3d.h"
 #include "opcodes.h"
+#include "drawing.h"
+
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -44,6 +46,7 @@ struct Window;
 struct FrameInfo;
 struct Activity;
 struct Layout;
+struct PageLayout;
 struct SpaceLayout;
 struct GraphicPath;
 struct Repository;
@@ -92,6 +95,7 @@ public:
 
     // XL program management
     void        updateProgram(XL::SourceFile *sf);
+    void        applyAction(XL::Action &action);
     void        refreshProgram();
     void        markChanged(text reason);
     bool        writeIfChanged(XL::SourceFile &sf);
@@ -118,6 +122,9 @@ public:
     Drag *      drag();
     void        drawSelection(const Box3 &bounds, text name);
     void        drawHandle(const Point3 &point, text name);
+
+    // Text flows
+    PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
 
 public:
     typedef XL::Tree      Tree;
@@ -196,15 +203,27 @@ public:
 
     // 2D primitive that can be in a path or standalone
     Tree *      rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
+    Tree *      isoscelesTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
+    Tree *      rightTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *      ellipse(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *      ellipseArc(Tree *self, real_r x, real_r y, real_r w, real_r h,
                            real_r start, real_r sweep);
     Tree *      roundedRectangle(Tree *self,
                                  real_r cx, real_r cy, real_r w, real_r h,
-                                 real_r rx, real_r ry);
+                                 real_r r);
+    Tree *      arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
+                      real_r ax, real_r ary);
+    Tree *      doubleArrow(Tree *self,
+                            real_r cx, real_r cy, real_r w, real_r h,
+                            real_r ax, real_r ary);
     Tree *      starPolygon(Tree *self,
                             real_r cx, real_r cy, real_r w, real_r h,
                             integer_r p, integer_r q);
+    Tree *      star(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
+                     integer_r p, real_r r);
+    Tree *      speechBalloon(Tree *self,
+                              real_r cx, real_r cy, real_r w, real_r h,
+                              real_r r, real_r ax, real_r ay);
 
     // 3D primitives
     Tree *      sphere(Tree *self,
@@ -217,6 +236,11 @@ public:
                      real_r w, real_r h, real_r d);
 
     // Text and font
+    Tree *      textBox(Tree *self,
+                        real_r x, real_r y, real_r w, real_r h, Tree *prog);
+    Tree *      textOverflow(Tree *self,
+                             real_r x, real_r y, real_r w, real_r h);
+    Text *      textFlow(Tree *self, text name);
     Tree *      textSpan(Tree *self, text_r content);
     Tree *      font(Tree *self, text family);
     Tree *      fontSize(Tree *self, double size);
@@ -227,6 +251,11 @@ public:
     Tree *      fontOverline(Tree *self, scale amount = 1);
     Tree *      fontStrikeout(Tree *self, scale amount = 1);
     Tree *      fontStretch(Tree *self, scale amount = 1);
+    Tree *      justify(Tree *self, scale amount, uint axis);
+    Tree *      center(Tree *self, scale amount, uint axis);
+    Tree *      spread(Tree *self, scale amount, uint axis);
+    Tree *      spacing(Tree *self, scale amount, uint axis);
+    Tree *      drawingBreak(Tree *self, Drawing::BreakOrder order);
 
     // Frames and widgets
     Tree *      status(Tree *self, text t);
@@ -282,8 +311,8 @@ public:
     Tree *      videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url);
 
     // Menus
-    Tree *      menuItem(Tree *self, text s, Tree *t);
-    Tree *      menu(Tree *self, text s, bool=false);
+    Tree *      menuItem(Tree *self, Text *s, Tree *t);
+    Tree *      menu(Tree *self, Text *s, bool=false);
 
     // Tree management
     Name *      insert(Tree *self, Tree *toInsert);
@@ -307,6 +336,7 @@ private:
 
     typedef XL::LocalSave<QEvent *> EventSave;
     typedef std::map<GLuint, uint>  selection_map;
+    typedef std::map<text, PageLayout*> flow_map;
 
     // XL Runtime
     XL::SourceFile       *xlProgram;
@@ -316,6 +346,8 @@ private:
     Layout *              layout;
     GraphicPath *         path;
     scale                 pageW, pageH;
+    text                  flowName;
+    flow_map              flows;
     QGridLayout *         currentGridLayout;
     QButtonGroup *        currentGroup;
 
@@ -341,7 +373,7 @@ private:
     QTimer                timer, idleTimer;
     double                pageStartTime, pageRefresh;
     ulonglong             tmin, tmax, tsum, tcount;
-    ulonglong             nextSave, nextCommit, nextSync;
+    ulonglong             nextSave, nextCommit, nextSync, nextPull;
 
     static Widget *       current;
     static double         zNear, zFar;

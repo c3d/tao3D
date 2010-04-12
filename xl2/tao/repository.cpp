@@ -25,6 +25,7 @@
 #include "parser.h"
 #include "main.h"
 #include "git_backend.h"
+#include "tao_utf8.h"
 
 #include <QDir>
 #include <QtGlobal>
@@ -37,12 +38,15 @@ Repository::Kind            Repository::availableScm = Repository::Unknown;
 
 text Repository::fullName(text fileName)
 // ----------------------------------------------------------------------------
-//   Return the full name of an element in the repository
+//   Return the full name of an element in the repository or "" if outside
 // ----------------------------------------------------------------------------
 {
     QDir dir(path);
     QString file = QString::fromUtf8(fileName.data(), fileName.length());
     QString fullPath = dir.filePath(file);
+    QString cleanPath = QDir::cleanPath(fullPath);
+    if (!cleanPath.startsWith(path))
+        return "";
     return fullPath.toStdString();
 }
 
@@ -64,6 +68,9 @@ bool Repository::write(text fileName, XL::Tree *tree)
     bool ok = false;
     text full = fullName(fileName);
 
+    if (full == "")
+        return false;
+
     // Write the file in a copy (avoid overwriting original)
     text copy = full + "~";
     {
@@ -78,6 +85,8 @@ bool Repository::write(text fileName, XL::Tree *tree)
     // If we were successful writing, rename to new file
     if (ok)
         ok = std::rename(copy.c_str(), full.c_str()) == 0;
+
+    state = RS_NotClean;
 
     return ok;
 }
@@ -192,6 +201,27 @@ bool Repository::available()
 }
 
 
+bool Repository::versionGreaterOrEqual(QString ver, QString ref)
+// ----------------------------------------------------------------------------
+//    Return true if ver >= ref. For instance, "1.7.0" >= "1.6.6.2"
+// ----------------------------------------------------------------------------
+{
+    QStringListIterator vit(ver.split("."));
+    QStringListIterator rit(ref.split("."));
+    while (vit.hasNext() && rit.hasNext())
+    {
+        int vi = vit.next().toInt();
+        int ri = rit.next().toInt();
+        if (vi > ri)
+            return true;
+        if (vi < ri)
+            return false;
+    }
+    while (rit.hasNext())
+        if (rit.next().toInt())
+            return false;
+    return true;
+}
 
 bool Repository::selectWorkBranch()
 // ----------------------------------------------------------------------------
@@ -208,6 +238,15 @@ bool Repository::selectUndoBranch()
 // ----------------------------------------------------------------------------
 {
     return checkout(task + TAO_UNDO_SUFFIX);
+}
+
+
+bool Repository::idle()
+// ----------------------------------------------------------------------------
+//    Return true if there is no pending command to execute
+// ----------------------------------------------------------------------------
+{
+    return pQueue.empty();
 }
 
 
@@ -235,7 +274,7 @@ void Repository::asyncProcessFinished(int exitCode)
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
     if (exitCode)
-        std::cerr << +tr("Async command failed, exit status %1: %2")
+        std::cerr << +tr("Async command failed, exit status %1: %2\n")
                      .arg((int)exitCode).arg(cmd->commandLine);
 }
 
@@ -248,8 +287,9 @@ void Repository::asyncProcessError(QProcess::ProcessError error)
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
-    std::cerr << +tr("Async command error %1: %2")
-                 .arg((int)error).arg(cmd->commandLine);
+    std::cerr << +tr("Async command error %1: %2\nError output:\n%3")
+                 .arg((int)error).arg(cmd->commandLine)
+                 .arg(QString(cmd->readAllStandardError()));
 }
 
 

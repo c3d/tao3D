@@ -51,10 +51,13 @@ public:
 
 };
 
-struct CleanMenuInfo : XL::SimpleAction
+
+struct CleanMenuInfo : XL::Action
+// ----------------------------------------------------------------------------
+//   Remove the MenuInfo from all the trees
+// ----------------------------------------------------------------------------
 {
     XL::Tree * Do(XL::Tree *what);
-
 };
 
 struct GroupInfo : QButtonGroup, XL::Info
@@ -62,10 +65,9 @@ struct GroupInfo : QButtonGroup, XL::Info
 // QGroupButton associated to an XL tree
 // ----------------------------------------------------------------------------
 {
-
-public:
     typedef GroupInfo * data_t;
 
+public:
     GroupInfo(XL::Tree *t, QWidget * parent) :
             QButtonGroup(parent), XL::Info(), tree(t){}
     ~GroupInfo()

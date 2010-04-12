@@ -26,6 +26,9 @@
 #include "apply_changes.h"
 #include "git_backend.h"
 #include "application.h"
+#include "tao_utf8.h"
+#include "pull_from_dialog.h"
+#include "publish_to_dialog.h"
 
 #include <iostream>
 #include <sstream>
@@ -236,6 +239,40 @@ bool Window::saveAs()
 }
 
 
+void Window::setPullUrl()
+// ----------------------------------------------------------------------------
+//    Prompt user for address of remote repository to pull from
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+    {
+        QMessageBox::warning(this, tr("No project"),
+                             tr("This feature is not available because the "
+                                "current document is not in a project."));
+        return;
+    }
+
+    PullFromDialog(repo.data()).exec();
+}
+
+
+void Window::publish()
+// ----------------------------------------------------------------------------
+//    Prompt user for address of remote repository to publish to
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+    {
+        QMessageBox::warning(this, tr("No project"),
+                             tr("This feature is not available because the "
+                                "current document is not in a project."));
+        return;
+    }
+
+    PublishToDialog(repo.data()).exec();
+}
+
+
 void Window::about()
 // ----------------------------------------------------------------------------
 //    About Box
@@ -317,16 +354,28 @@ void Window::createActions()
                               "selection"));
     connect(pasteAct, SIGNAL(triggered()), textEdit, SLOT(paste()));
 
+    setPullUrlAct = new QAction(tr("Synchronize..."), this);
+    setPullUrlAct->setStatusTip(tr("Set the remote address to \"pull\" from "
+                                   "when synchronizing the current "
+                                   "document with a remote one"));
+    connect(setPullUrlAct, SIGNAL(triggered()), this, SLOT(setPullUrl()));
+
+    publishAct = new QAction(tr("Publish..."), this);
+    publishAct->setStatusTip(tr("Publish the current project to "
+                                "a specific path or URL"));
+    connect(publishAct, SIGNAL(triggered()), this, SLOT(publish()));
+
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setStatusTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
-    aboutQtAct = new QAction(tr("About &Qt"), this);
-    aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
-    connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+    //aboutQtAct = new QAction(tr("About &Qt"), this);
+    //aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
+    //connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
-    fullScreenAct = new QAction(tr("Fullscreen"), this);
-    fullScreenAct->setStatusTip(tr("Toggle full-screen mode"));
+    fullScreenAct = new QAction(tr("Full Screen"), this);
+    fullScreenAct->setStatusTip(tr("Toggle full screen mode"));
+    fullScreenAct->setCheckable(true);
     connect(fullScreenAct, SIGNAL(triggered()), this, SLOT(toggleFullScreen()));
 
     cutAct->setEnabled(false);
@@ -357,6 +406,10 @@ void Window::createMenus()
     editMenu->addAction(copyAct);
     editMenu->addAction(pasteAct);
 
+    shareMenu = menuBar()->addMenu(tr("&Share"));
+    shareMenu->addAction(setPullUrlAct);
+    shareMenu->addAction(publishAct);
+
     viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(dock->toggleViewAction());
     viewMenu->addAction(fullScreenAct);
@@ -365,7 +418,6 @@ void Window::createMenus()
 
     helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(aboutAct);
-    helpMenu->addAction(aboutQtAct);
 }
 
 
@@ -492,8 +544,7 @@ void Window::updateProgram(const QString &fileName)
     XL::SourceFile *sf = &xlRuntime->files[fn];
 
     // Clean menus and reload XL program
-    resetTaoMenus(sf->tree.tree);
-
+    resetTaoMenus();
     if (!sf->tree.tree)
         xlRuntime->LoadFile(fn);
 
@@ -747,7 +798,7 @@ QString Window::currentProjectFolderPath()
 }
 
 
-void Window::resetTaoMenus(XL::Tree * a_tree)
+void Window::resetTaoMenus()
 // ----------------------------------------------------------------------------
 //   Clean added menus (from menu bar and contextual menus)
 // ----------------------------------------------------------------------------
@@ -789,14 +840,9 @@ void Window::resetTaoMenus(XL::Tree * a_tree)
         delete menu;
     }
 
-    if (a_tree)
-    {
-        // Clean MenuInfo from tree
-        CleanMenuInfo cmi;
-        XL::BreadthFirstSearch bfs(cmi);
-        a_tree->Do(bfs);
-    }
-
+    // Cleanup all menus defined in the current file and all imports
+    CleanMenuInfo cmi;
+    taoWidget->applyAction(cmi);
 }
 
 
@@ -827,8 +873,7 @@ void Window::setCurrentFile(const QString &fileName)
 
     curFile = QFileInfo(name).absoluteFilePath();
 
-    textEdit->document()->setModified(false);
-    setWindowModified(false);
+    markChanged(false);
     setWindowFilePath(curFile);
 }
 

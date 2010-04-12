@@ -30,7 +30,7 @@
 #include "window.h"
 #include "main.h"
 #include "graphics.h"
-#include "process.h"
+#include "tao_utf8.h"
 
 #include <QtGui>
 #include <QtGui/QApplication>
@@ -50,15 +50,16 @@ int main(int argc, char **argv)
         if (text(argv[a]) == "-gl")
             QGL::setPreferredPaintEngine(QPaintEngine::OpenGL);
 
+    // Initialize the Tao application
+    Tao::Application tao(argc, argv);
+
     // Setup the XL runtime environment
     XL::Compiler compiler("xl_tao");
     XL::Main *xlr = new XL::Main(argc, argv, compiler);
     XL::MAIN = xlr;
+    xlr->builtins = tao.applicationDirPath().toStdString() + "/builtins.xl";
     EnterGraphics(&xlr->context);
     xlr->LoadFiles();
-
-    // Initialize the Tao application
-    Tao::Application tao(argc, argv);
 
     // Create the windows for each file on the command line
     XL::source_names::iterator it;

@@ -69,6 +69,8 @@ private slots:
     void open();
     bool save();
     bool saveAs();
+    void setPullUrl();
+    void publish();
     void about();
     void documentWasModified();
     void checkFiles();
@@ -89,7 +91,7 @@ private:
     QString strippedName(const QString &fullFileName);
     Window *findWindow(const QString &fileName);
     void updateProgram(const QString &filename);
-    void resetTaoMenus(XL::Tree *a_tree);
+    void resetTaoMenus();
     QString currentProjectFolderPath();
 
 private:
@@ -104,6 +106,7 @@ private:
     QTimer            fileCheckTimer;
     QMenu            *fileMenu;
     QMenu            *editMenu;
+    QMenu            *shareMenu;
     QMenu            *viewMenu;
     QMenu            *helpMenu;
     QToolBar         *fileToolBar;
@@ -117,6 +120,8 @@ private:
     QAction          *cutAct;
     QAction          *copyAct;
     QAction          *pasteAct;
+    QAction          *setPullUrlAct;
+    QAction          *publishAct;
     QAction          *aboutAct;
     QAction          *aboutQtAct;
     QAction          *fullScreenAct;

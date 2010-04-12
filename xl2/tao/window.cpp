@@ -623,8 +623,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         return true;
 
     bool created = false;
-    QSharedPointer<Repository> repo;
-    repo = QSharedPointer<Repository>(Repository::repository(path));
+    QSharedPointer<Repository> repo = Repository::repository(path);
     if (!repo)
     {
         bool docreate = !confirm;
@@ -671,8 +670,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         }
         if (docreate)
         {
-            repo = QSharedPointer<Repository>(Repository::repository(path,
-                                                                     true));
+            repo = Repository::repository(path,true);
             created = (repo != NULL);
         }
     }

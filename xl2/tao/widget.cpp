@@ -2906,9 +2906,12 @@ Tree *Widget::fontChooserTexture(Tree *self, double w, double h,
 
 
 Tree *Widget::buttonGroup(Tree *self, Tree *buttons, bool exclusive)
+// ----------------------------------------------------------------------------
+//   Create a button group for radio buttons
+// ----------------------------------------------------------------------------
 {
     GroupInfo *grpInfo = buttons->GetInfo<GroupInfo>();
-    if ( !grpInfo)
+    if (!grpInfo)
     {
         grpInfo = new GroupInfo(buttons, this);
         grpInfo->setExclusive(exclusive);
@@ -2920,6 +2923,7 @@ Tree *Widget::buttonGroup(Tree *self, Tree *buttons, bool exclusive)
 
     return XL::xl_true;
 }
+
 
 Tree *Widget::groupBox(Tree *self,
                        real_r x, real_r y, real_r w, real_r h,
@@ -2937,32 +2941,9 @@ Tree *Widget::groupBox(Tree *self,
 
     xl_evaluate(buttons);
 
-//    for (int i = 0; i< currentGroupLayout->count(); i++)
-//    {
-//        QWidget * wid = currentGroupLayout->itemAt(i)->widget();
-//        QRect rect = wid->geometry();
-//        if (rect.width() <= 1 || rect.height() <= 1)
-//            continue;
-//        Real x1(rect.center().x());
-//        Real y1(rect.center().y());
-//        Real w1(rect.width());
-//        Real h1(rect.height());
-//
-//        WidgetSurface *surf = groupSurfaces.value(wid);
-//        layout->Add(new WidgetManipulator(x1, y1, w1, h1, surf));
-//
-//        IFTRACE(widgets)
-//        {
-//            std::cerr << "x=" << x1 << " y=" << y1
-//                    << " w=" << w1 << " h="<< h1 << "\n";
-//        }
-//
-//    }
-
     surface->dirty = true;
     ((WidgetSurface*)surface)->bind();
     currentGridLayout = NULL;
-//    groupSurfaces.clear();
 
     return XL::xl_true;
 }

@@ -40,6 +40,7 @@ MenuInfo::MenuInfo(QMenu *menu, std::string name)
                  << " children present in the menu\n";
 }
 
+
 MenuInfo::MenuInfo(QMenuBar *menubar, QMenu *menu, std::string name)
 // ----------------------------------------------------------------------------
 //    Associate a menu bar entry to a tree

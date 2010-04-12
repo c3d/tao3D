@@ -280,8 +280,8 @@ public:
     Tree *      videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url);
 
     // Menus
-    Tree *      menuItem(Tree *self, text s, Tree *t);
-    Tree *      menu(Tree *self, text s, bool=false);
+    Tree *      menuItem(Tree *self, Text *s, Tree *t);
+    Tree *      menu(Tree *self, Text *s, bool=false);
 
     // Tree management
     Name *      insert(Tree *self, Tree *toInsert);

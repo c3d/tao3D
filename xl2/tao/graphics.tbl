@@ -315,11 +315,11 @@ PREFIX(VideoPlayerTexture, tree, "video_player_texture",
 // ============================================================================
 
 PREFIX(MenuItem, tree, "menu_item", PARM(s, text) PARM(t, tree),
-       RTAO(menuItem(self, s, &t)))
-PREFIX(Menu, tree, "menu", PARM(s, text),
-      RTAO(menu(self, s, false)))
+       RTAO(menuItem(self, &s, &t)))
+PREFIX(Menu0, tree, "menu", PARM(s, text),
+       RTAO(menu(self, &s, false)))
 PREFIX(SubMenu, tree, "submenu", PARM(s, text),
-       RTAO(menu(self, s, true)))
+       RTAO(menu(self, &s, true)))
 
 
 

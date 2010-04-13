@@ -389,7 +389,7 @@ void Widget::runProgram()
         xlProgram = NULL;
         QMessageBox::warning(this, tr("Runtime error"),
                              tr("Error executing the program:\n%1")
-                             .arg(QString::fromStdString(e.Message())));
+                             .arg(+e.Message()));
     }
     catch(...)
     {
@@ -2611,7 +2611,7 @@ Tree *Widget::status(Tree *self, text caption)
 // ----------------------------------------------------------------------------
 {
     Window *window = (Window *) parentWidget();
-    window->statusBar()->showMessage(QString::fromStdString(caption));
+    window->statusBar()->showMessage(+caption);
     return XL::xl_true;
 }
 
@@ -3137,9 +3137,7 @@ Tree *Widget::menuItem(Tree *self, Text *s, Tree *t)
     if (!currentMenu)
         return XL::xl_false;
 
-    QString fullName = currentMenu->objectName() +
-                      "/" +
-                      QString::fromStdString(s->value);
+    QString fullName = currentMenu->objectName() + "/" + +s->value;
 
     if (parent()->findChild<QAction*>(fullName))
     {
@@ -3169,7 +3167,7 @@ Tree *Widget::menuItem(Tree *self, Text *s, Tree *t)
                       << fullName.toStdString() << "\n";
             std::cout.flush();
         }
-        menuInfo->action->setText(QString::fromStdString(s->value));
+        menuInfo->action->setText(+s->value);
         menuInfo->action->setObjectName(fullName);
         menuInfo->action->setData(var);
         menuInfo->fullName = fullName.toStdString();
@@ -3186,7 +3184,7 @@ Tree *Widget::menuItem(Tree *self, Text *s, Tree *t)
         std::cout.flush();
     }
 
-    QAction * p_action = currentMenu->addAction(QString::fromStdString(s->value));
+    QAction * p_action = currentMenu->addAction(+s->value);
     menuInfo->action = p_action;
     p_action->setData(var);
     p_action->setObjectName(fullName);
@@ -3204,7 +3202,7 @@ Tree *Widget::menu(Tree *self, Text *s, bool isSubMenu)
 
     // Build the full name of the menu
     // Uses the current menu name, the given string and the isSubmenu.
-    QString fullname = QString::fromStdString(s->value);
+    QString fullname = +s->value;
     if (isSubMenu && currentMenu)
     {
         fullname.prepend(currentMenu->objectName() +'/');
@@ -3248,7 +3246,7 @@ Tree *Widget::menu(Tree *self, Text *s, bool isSubMenu)
     {
         // The menu exists : update its info
         currentMenu = menuInfo->menu;
-        menuInfo->action->setText(QString::fromStdString(s->value));
+        menuInfo->action->setText(+s->value);
         menuInfo->menu->setObjectName(fullname);
         menuInfo->fullName = fullname.toStdString();
         return XL::xl_true;
@@ -3263,9 +3261,9 @@ Tree *Widget::menu(Tree *self, Text *s, bool isSubMenu)
 
     }
     else if (isSubMenu)
-        currentMenu = currentMenu->addMenu(QString::fromStdString(s->value));
+        currentMenu = currentMenu->addMenu(+s->value);
     else
-        currentMenu = currentMenuBar->addMenu(QString::fromStdString(s->value));
+        currentMenu = currentMenuBar->addMenu(+s->value);
 
     currentMenu->setObjectName(fullname);
 

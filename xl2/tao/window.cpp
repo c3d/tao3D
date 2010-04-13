@@ -77,7 +77,7 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
     bool loaded = false;
     if (sf)
     {
-        QString fileName(QString::fromStdString(sf->name));
+        QString fileName(+sf->name);
         if (loadFile(fileName, true))
             loaded = true;
     }
@@ -128,7 +128,7 @@ void Window::checkFiles()
         {
             import_set done;
             if (ImportedFilesChanged(prog->tree.tree, done, false))
-                loadFile(QString::fromStdString(prog->name));
+                loadFile(+prog->name);
         }
     }
 }

@@ -24,6 +24,7 @@
 
 #include "attributes.h"
 #include "shapes.h"
+#include "activity.h"
 #include <QFont>
 
 
@@ -49,6 +50,23 @@ public:
     QString             value;
     QFont               font;
 };
+
+
+struct TextSelect : Activity
+// ----------------------------------------------------------------------------
+//   A text selection (contiguous range of characters)
+// ----------------------------------------------------------------------------
+{
+    TextSelect(Widget *w);
+
+    virtual Activity *  Display(void);
+    virtual Activity *  Idle(void);
+    virtual Activity *  Click(uint button, bool down, int x, int y);
+    virtual Activity *  MouseMove(int x, int y, bool active);
+
+    uint                start, end;
+};
+
 
 TAO_END
 

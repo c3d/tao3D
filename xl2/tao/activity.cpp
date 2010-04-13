@@ -22,6 +22,7 @@
 
 #include "activity.h"
 #include "widget.h"
+#include <iostream>
 
 
 TAO_BEGIN

@@ -240,7 +240,7 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
             // Record that we need to commit it sometime soon
             repo->change(fname);
             IFTRACE(filesync)
-                    std::cerr << "Changed " << fname << "\n";
+                std::cerr << "Changed " << fname << "\n";
 
             // Record time when file was changed
             struct stat st;
@@ -251,7 +251,7 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
         }
 
         IFTRACE(filesync)
-                std::cerr << "Could not write " << fname << " to repository\n";
+            std::cerr << "Could not write " << fname << " to repository\n";
     }
     return false;
 }
@@ -1470,6 +1470,39 @@ Drag *Widget::drag()
 // ----------------------------------------------------------------------------
 {
     Drag *result = dynamic_cast<Drag *>(activities);
+    if (result)
+        recordProjection();
+    return result;
+}
+
+
+TextSelect *Widget::textSelection(bool create)
+// ----------------------------------------------------------------------------
+//   Return text selection if appropriate, possibly creating it from a Drag
+// ----------------------------------------------------------------------------
+{
+    TextSelect *result = dynamic_cast<TextSelect *>(activities);
+    if (!result && create)
+    {
+        if (Drag *d = dynamic_cast<Drag *>(activities))
+        {
+            delete d;
+
+            result = new TextSelect(this);
+            recordProjection();
+            selection_map::iterator i, end = selection.end();
+            for (i = selection.end(); i != end; i++)
+            {
+                uint id = (*i).first;
+                if (!result->start)
+                    result->start = result->end = id;
+                else if (result->start > id)
+                    result->start = id;
+                else if (result->end < id)
+                    result->end = id;
+            }
+        }
+    }
     if (result)
         recordProjection();
     return result;

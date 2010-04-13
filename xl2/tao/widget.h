@@ -80,6 +80,7 @@ public:
     void        setup(double w, double h, Box *picking = NULL);
     void        setupGL();
     void        identifySelection();
+    void        updateSelection();
 
     // Events
     bool        forwardEvent(QEvent *event);

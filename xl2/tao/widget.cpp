@@ -425,6 +425,15 @@ void Widget::identifySelection()
 }
 
 
+void Widget::updateSelection()
+// ----------------------------------------------------------------------------
+//   Redraw selection in order to perform text editing operations
+// ----------------------------------------------------------------------------
+{
+    id = 0;
+    space->DrawSelection(NULL);
+}
+
 
 static void printWidget(QWidget *w)
 // ----------------------------------------------------------------------------

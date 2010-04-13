@@ -123,7 +123,16 @@ void TextSpan::DrawSelection(Layout *where)
         }
 
         if (charSelected && sel)
+        {
+            if (sel->replace)
+            {
+                text rpl = sel->replacement;
+                uint eot = XL::Utf8Next(rpl, 0);
+                source->value.replace(start, 1, rpl.substr(0, eot));
+                sel->replacement.erase(0, eot);
+            }
             sel->selBox |= Box3(xx,yy,z, 1, hh, 0);
+        }
 
         if (qc == '\n')
         {
@@ -389,11 +398,23 @@ Activity *TextSelect::Key(text key)
         replace = true;
         if (!hasSelection())
             point = (key == "Delete") ? point+1 : point-1;
+        widget->markChanged("Deleted text");
     }
     else if (key.length() == 1)
     {
         replacement = key;
         replace = true;
+        if (hasSelection())
+            widget->markChanged("Replaced text");
+        else
+            widget->markChanged("Inserted text");
+    }
+
+    if (replace)
+    {
+        widget->updateSelection();
+        mark = point;
+        replace = false;
     }
 
     updateSelection();

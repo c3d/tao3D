@@ -225,6 +225,62 @@ void RoundedRectangle::Draw(GraphicPath &path)
 }
 
 
+void EllipticalRectangle::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    We need correct tesselation
+// ----------------------------------------------------------------------------
+{
+    GraphicPath path;
+    Draw(path);
+    setTexture(where);
+    if (setFillColor(where))
+        path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+    if (setLineColor(where))
+        // REVISIT: If lines is thick, use a QPainterPathStroker
+        path.Draw(where, GL_LINE_STRIP);
+}
+
+
+void EllipticalRectangle::Draw(GraphicPath &path)
+// ----------------------------------------------------------------------------
+//   Draw an elliptical rectangle
+// ----------------------------------------------------------------------------
+{
+    Point c = bounds.Center();
+    coord w = bounds.Width();
+    coord h = bounds.Height();
+    int sw = w > 0? 1: -1;
+    int sh = h > 0? 1: -1;
+    double pw = sw*w;
+    double ph = sh*h;
+    double rr = M_SQRT1_2+(1-M_SQRT1_2)*r;
+    double alpha_r = acos(rr);
+    double alpha_d = alpha_r * 180 / M_PI;
+    double ratio = (1-cos(alpha_r))/(1-sin(alpha_r));
+
+    QPainterPath rect;
+
+    rect.moveTo(c.x+rr*pw/2, c.y+rr*ph/2);
+    rect.arcTo(c.x+pw/2-ratio*pw, c.y-ph/2,
+               ratio*pw, ph,
+               270+alpha_d, 180-2*alpha_d);
+
+    rect.arcTo(c.x-pw/2, c.y-ph/2,
+               pw, ratio*ph,
+               alpha_d, 180-2*alpha_d);
+
+    rect.arcTo(c.x-pw/2, c.y-ph/2,
+               ratio*pw, ph,
+               90+alpha_d, 180-2*alpha_d);
+
+    rect.arcTo(c.x-pw/2, c.y+ph/2-ratio*ph,
+               pw, ratio*ph,
+               180+alpha_d, 180-2*alpha_d);
+
+    path.addQtPath(rect);
+}
+
+
 void Ellipse::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 //   Draw an ellipse inside the bounds

@@ -2150,19 +2150,19 @@ Tree *Widget::roundedRectangle(Tree *self,
 
 
 
-Tree *Widget::ellipticRectangle(Tree *self,
-                                real_r cx, real_r cy,
-                                real_r w, real_r h, real_r r)
+Tree *Widget::ellipticalRectangle(Tree *self,
+                                  real_r cx, real_r cy,
+                                  real_r w, real_r h, real_r r)
 // ----------------------------------------------------------------------------
-//   Elliptic rectangle with ratio r for the elliptic sides
+//   Elliptical rectangle with ratio r for the elliptic sides
 // ----------------------------------------------------------------------------
 {
-    Rectangle shape(Box(cx-w/2, cy-h/2, w, h));
+    EllipticalRectangle shape(Box(cx-w/2, cy-h/2, w, h), r);
     if (path)
         shape.Draw(*path);
     else
         layout->Add(new ControlRectangle(cx, cy, w, h,
-                                         new Rectangle(shape)));
+                                         new EllipticalRectangle(shape)));
 
     return XL::xl_true;
 }

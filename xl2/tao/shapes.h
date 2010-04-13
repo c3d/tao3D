@@ -96,10 +96,23 @@ struct RoundedRectangle : Rectangle
 //   A rectangle with rounded corners
 // ----------------------------------------------------------------------------
 {
-    RoundedRectangle(const Box &b, double r)
+    RoundedRectangle(const Box &b, coord r)
         : Rectangle(b), r(r) {}
     virtual void        Draw(GraphicPath &path);
     coord r;
+};    
+
+
+struct EllipticalRectangle : Rectangle
+// ----------------------------------------------------------------------------
+//   A rectangle with elliptical sides
+// ----------------------------------------------------------------------------
+{
+    EllipticalRectangle(const Box &b, double r)
+        : Rectangle(b), r(r) {}
+    virtual void        Draw(Layout *where);
+    virtual void        Draw(GraphicPath &path);
+    double r;
 };    
 
 

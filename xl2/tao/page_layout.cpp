@@ -211,9 +211,14 @@ void LayoutLine::DrawSelection(Layout *where)
     // Compute layout
     SafeCompute(where);
 
+    // Get widget and text selection
+    Widget *widget = where->Display();
+    TextSelect *sel = widget->textSelection(false);
+
     // Display all items
     LineJustifier::Places &places = line.places;
     LineJustifier::PlacesIterator p;
+    uint startId = widget->currentId();
     for (p = places.begin(); p != places.end(); p++)
     {
         LineJustifier::Place &place = *p;
@@ -221,12 +226,21 @@ void LayoutLine::DrawSelection(Layout *where)
         where->offset.x = place.position;
         child->DrawSelection(where);
     }
+    uint endId = widget->currentId();
 
-    Widget *widget = where->Display();
-    if (TextSelect *sel = widget->textSelection(false))
+    if (sel)
     {
         if (sel->selBox.Width() > 0 && sel->selBox.Height() > 0)
         {
+            if (PageLayout *pl = dynamic_cast<PageLayout *> (where))
+            {
+                coord y = where->offset.y;
+                if (sel->start <= startId && sel->end >= startId)
+                    sel->selBox |= Point3(pl->space.Left(), y, 0);
+                if (sel->end >= endId && sel->start <= endId)
+                    sel->selBox |= Point3(pl->space.Right(), y, 0);
+            }
+
             glBlendFunc(GL_DST_COLOR, GL_ZERO);
             widget->drawSelection(sel->selBox, "text_selection");
             sel->selBox.Empty();

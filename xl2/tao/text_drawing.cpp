@@ -23,7 +23,6 @@
 #include "text_drawing.h"
 #include "path3d.h"
 #include "layout.h"
-#include "page_layout.h"
 #include "widget.h"
 #include "utf8.h"
 #include "tao_utf8.h"
@@ -131,12 +130,7 @@ void TextSpan::DrawSelection(Layout *where)
         }
 
         if (charSelected && sel)
-        {
             sel->selBox |= Box3(xx,yy,z, 1, hh, 0);
-            if (qc == '\n')
-                if (PageLayout *pl = dynamic_cast<PageLayout *>(where))
-                    sel->selBox |= Point3(pl->space.Right(), y, z);
-        }
 
         if (qc == '\n')
         {

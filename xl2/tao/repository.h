@@ -31,6 +31,8 @@
 #include <QProcess>
 #include <QtGlobal>
 #include <QMap>
+#include <QWeakPointer>
+#include <QSharedPointer>
 #include <iostream>
 
 namespace Tao {
@@ -109,7 +111,8 @@ public:
     virtual bool        renRemote(QString oldName, QString newName) = 0;
 
 public:
-    static Repository * repository(const QString &path, bool create = false);
+    static QSharedPointer<Repository>
+                        repository(const QString &path, bool create = false);
     static bool         available();
     static bool         versionGreaterOrEqual(QString ver, QString ref);
 
@@ -146,8 +149,8 @@ protected:
     QList<Process *> pQueue;
 
 protected:
-    static QMap<QString, Repository *> cache;
-    static Kind                        availableScm;
+    static QMap<QString, QWeakPointer <Repository > > cache;
+    static Kind                                       availableScm;
 };
 
 #define TAO_UNDO_SUFFIX "_tao_undo"

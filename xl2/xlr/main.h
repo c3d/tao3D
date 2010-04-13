@@ -56,6 +56,7 @@ struct SourceFile
     Symbols *   symbols;
     time_t      modified;
     bool        changed;
+    text        hash;
 };
 typedef std::map<text, SourceFile> source_files;
 typedef std::vector<text> source_names;

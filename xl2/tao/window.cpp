@@ -252,7 +252,9 @@ void Window::setPullUrl()
         return;
     }
 
-    PullFromDialog(repo.data()).exec();
+    PullFromDialog dialog(repo.data());
+    if (dialog.exec())
+        taoWidget->nextPull = taoWidget->now();
 }
 
 
@@ -621,8 +623,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         return true;
 
     bool created = false;
-    QSharedPointer<Repository> repo;
-    repo = QSharedPointer<Repository>(Repository::repository(path));
+    QSharedPointer<Repository> repo = Repository::repository(path);
     if (!repo)
     {
         bool docreate = !confirm;
@@ -669,7 +670,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         }
         if (docreate)
         {
-            repo = QSharedPointer<Repository>(Repository::repository(path));
+            repo = Repository::repository(path,true);
             created = (repo != NULL);
         }
     }

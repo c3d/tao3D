@@ -24,6 +24,7 @@
 #include "attributes.h"
 #include "text_drawing.h"
 #include "gl_keepers.h"
+#include "window.h"
 #include <QFontMetrics>
 #include <QFont>
 
@@ -226,8 +227,10 @@ void LayoutLine::DrawSelection(Layout *where)
     {
         if (sel->selBox.Width() > 0 && sel->selBox.Height() > 0)
         {
+            glBlendFunc(GL_DST_COLOR, GL_ZERO);
             widget->drawSelection(sel->selBox, "text_selection");
             sel->selBox.Empty();
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
     }
 }
@@ -630,17 +633,8 @@ void PageLayout::DrawSelection(Layout *where)
     // Assign an ID for the page layout itself
     GLuint layoutId = widget->newId();
     if (TextSelect *sel = widget->textSelection(false))
-    {
         if (sel->start <= layoutId && sel->end >= startId)
-        {
             widget->select(layoutId, 1);
-            if (sel->selBox.Width() > 0 && sel->selBox.Height() > 0)
-            {
-                widget->drawSelection(sel->selBox, "text_selection");
-                sel->selBox.Empty();
-            }
-        }
-    }
 }
 
 

@@ -85,8 +85,8 @@ selection_color ->
     line_color 0.8, 0.6, 0.3..0.7 / 3.0, 0.8
 
 text_selection_color ->
-    color 90%,70%,20%,70%
-    line_color 1,0,0,1
+    color 70%,90%,100%,50%
+    line_color 1,0,0,0
 
 handle_color ->
     color 0.0..0.4 / 3.0, 0.0, 0.0, 0.6

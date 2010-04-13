@@ -108,20 +108,6 @@ void TextSpan::DrawSelection(Layout *where)
         TextSelect *sel = NULL;
         if (charSelected)
         {
-            coord array[4][3] =
-            {
-                { xx,      yy,      z },
-                { xx + ww, yy,      z },
-                { xx + ww, yy + hh, z },
-                { xx,      yy + hh, z }
-            };
-            
-            glVertexPointer(3, GL_DOUBLE, 0, array);
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glColor4f(0.0, 0.9, 1.0, 0.4);
-            glDrawArrays(GL_QUADS, 0, 4);
-            glDisableClientState(GL_VERTEX_ARRAY);
- 
             sel = widget->textSelection(true);
             if (sel)
             {

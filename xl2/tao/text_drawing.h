@@ -61,11 +61,22 @@ struct TextSelect : Activity
 
     virtual Activity *  Display(void);
     virtual Activity *  Idle(void);
+    virtual Activity *  Key(text key);
     virtual Activity *  Click(uint button, bool down, int x, int y);
     virtual Activity *  MouseMove(int x, int y, bool active);
 
-    uint                anchor, start, end;
+    // Mark and point have roughly the same meaning as in GNU Emacs
+    void                moveTo(uint pos)        { mark = point = pos; }
+    void                select(uint mk, uint pt){ mark = mk; point = pt; }
+    uint                start() { return mark < point ? mark : point; }
+    uint                end()   { return mark < point ? point : mark; }
+    bool                hasSelection()          { return mark != point; }
+    void                updateSelection();
+
+    uint                mark, point;
     Box3                selBox;
+    text                replacement;
+    bool                replace;
 };
 
 

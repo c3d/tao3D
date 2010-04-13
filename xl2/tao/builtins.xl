@@ -9,8 +9,9 @@ if true then TrueBody                   -> do TrueBody
 if false then TrueBody                  -> false
 
 // Key management
-key "f" -> toggle_full_screen
-key X   -> debug X
+key X   ->
+    debug X
+    text_edit_key X
 
 // 3D Shapes
 sphere x:real, y:real, z:real, r:real   -> sphere x,y,z,2*r,2*r,2*r,25,25
@@ -88,6 +89,10 @@ text_selection_color ->
     color 70%,90%,100%,50%
     line_color 1,0,0,0
 
+text_cursor_color ->
+    color 1..0/2, 0, 0..1/2, 50%
+    line_color 1,0,0,0
+
 handle_color ->
     color 0.0..0.4 / 3.0, 0.0, 0.0, 0.6
     line_color 0,0,0,0
@@ -97,8 +102,13 @@ draw_selection x,y,z,w,h,d ->
     cube x-w/2, y-h/2, z-d/2, w, h, d
 
 draw_text_selection x,y,w,h ->
-    text_selection_color
-    rectangle x, y, w, h
+    if w > 1 then
+        text_selection_color
+        rectangle x, y, w, h
+    else
+        text_cursor_color
+        rectangle x, y, w, h
+
 
 draw_3D_selection x,y,z,w,h,d ->
     selection_color

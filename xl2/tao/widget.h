@@ -266,6 +266,7 @@ public:
     Tree *      spread(Tree *self, scale amount, uint axis);
     Tree *      spacing(Tree *self, scale amount, uint axis);
     Tree *      drawingBreak(Tree *self, Drawing::BreakOrder order);
+    Tree *      textEditKey(Tree *self, text key);
 
     // Frames and widgets
     Tree *      status(Tree *self, text t);

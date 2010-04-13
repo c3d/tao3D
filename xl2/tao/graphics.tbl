@@ -286,6 +286,8 @@ PREFIX(ColumnBreak, tree, "column_break",,
        RTAO(drawingBreak(self, Tao::Drawing::ColumnBreak)))
 PREFIX(PageBreak, tree, "page_break",,
        RTAO(drawingBreak(self, Tao::Drawing::PageBreak)))
+PREFIX(TextEditKey, tree, "text_edit_key", PARM(k, text),
+       RTAO(textEditKey(self, k)))
 
 
 

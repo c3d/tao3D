@@ -108,20 +108,13 @@ void TextSpan::DrawSelection(Layout *where)
         if (charSelected)
         {
             sel = widget->textSelection(true);
-            if (sel)
-            {
-                if (!sel->start || sel->start > charId)
-                    sel->start = charId;
-                if (sel->end < charId)
-                    sel->end = charId;
-            }
         }
         else
         {
             sel = widget->textSelection(false);
             if (sel)
             {
-                if (charId >= sel->start && charId <= sel->end)
+                if (charId >= sel->start() && charId <= sel->end())
                 {
                     charSelected = true;
                     widget->select(charId, 1);
@@ -328,18 +321,17 @@ TextSelect::TextSelect(Widget *w)
 // ----------------------------------------------------------------------------
 //   Constructor initializes an empty text range
 // ----------------------------------------------------------------------------
-    : Activity("Text selection", w), anchor(0), start(0), end(0)
+    : Activity("Text selection", w),
+      mark(0), point(0), replacement(""), replace(false)
 {
     Widget::selection_map::iterator i, last = w->selection.end();
     for (i = w->selection.begin(); i != last; i++)
     {
         uint id = (*i).first;
-        if (!start)
-            start = end = anchor = id;
-        else if (start > id)
-            start = id;
-        else if (end < id)
-            end = id;
+        if (!mark)
+            mark = point = id;
+        else
+            point = id;
     }
 }
 
@@ -358,6 +350,45 @@ Activity *TextSelect::Idle()
 //   Idle activity
 // ----------------------------------------------------------------------------
 {
+    return next;
+}
+
+
+Activity *TextSelect::Key(text key)
+// ----------------------------------------------------------------------------
+//    Perform activities on the text selection
+// ----------------------------------------------------------------------------
+{
+    if (key == "Left")
+    {
+        moveTo(start() - !hasSelection());
+    }
+    else if (key == "Right")
+    {
+        moveTo(end() + !hasSelection());
+    }
+    else if (key == "Shift-Left")
+    {
+        point--;
+    }
+    else if (key == "Shift-Right")
+    {
+        point++;
+    }
+    else if (key == "Delete" || key == "Backspace")
+    {
+        replacement = "";
+        replace = true;
+        if (!hasSelection())
+            point = (key == "Delete") ? point+1 : point-1;
+    }
+    else if (key.length() == 1)
+    {
+        replacement = key;
+        replace = true;
+    }
+
+    updateSelection();
     return next;
 }
 
@@ -417,24 +448,15 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
             selected = ptr[3];
             if (selected)
             {
-                if (selected < anchor)
-                {
-                    start = selected;
-                    end = anchor;
-                }
+                if (mark)
+                    point = selected;
                 else
-                {
-                    start = anchor;
-                    end = selected;
-                }
+                    mark = selected;
                 break;
             }
             ptr += 3 + size;
         }
-
-        widget->selection.clear();
-        for (uint i = start; i <= end; i++)
-            widget->selection[i] = 1;
+        updateSelection();
     }
     delete[] buffer;
 
@@ -443,6 +465,18 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
 
     // Let a possible selection do its own stuff
     return next;
+}
+
+
+void TextSelect::updateSelection()
+// ----------------------------------------------------------------------------
+//   Update the selection of the widget based on mark and point
+// ----------------------------------------------------------------------------
+{
+    widget->selection.clear();
+    uint s = start(), e = end();
+    for (uint i = s; i < e; i++)
+        widget->selection[i] = 1;
 }
 
 TAO_END

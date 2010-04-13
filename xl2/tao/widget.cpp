@@ -941,10 +941,6 @@ void Widget::keyPressEvent(QKeyEvent *event)
 {
     EventSave save(this->event, event);
 
-    // Check if there is an activity that deals with it
-    uint key = (uint) event->key();
-    for (Activity *a = activities; a; a = a->Key(key, true)) ;
-
     // Forward it down the regular event chain
     if (forwardEvent(event))
         return;
@@ -975,10 +971,6 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
-
-    // Check if there is an activity that deals with it
-    uint key = (uint) event->key();
-    for (Activity *a = activities; a; a = a->Key(key, false)) ;
 
     // Forward it down the regular event chain
     if (forwardEvent(event))
@@ -2595,6 +2587,17 @@ Tree *Widget::drawingBreak(Tree *self, Drawing::BreakOrder order)
     layout->Add(new DrawingBreak(order));
     return XL::xl_true;
 }
+
+
+Tree *Widget::textEditKey(Tree *self, text key)
+// ----------------------------------------------------------------------------
+//   Send a key to the activities
+// ----------------------------------------------------------------------------
+{
+    for (Activity *a = activities; a; a = a->Key(key)) ;
+    return XL::xl_true;
+}
+
 
 
 

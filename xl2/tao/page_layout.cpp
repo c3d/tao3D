@@ -235,9 +235,9 @@ void LayoutLine::DrawSelection(Layout *where)
             if (PageLayout *pl = dynamic_cast<PageLayout *> (where))
             {
                 coord y = where->offset.y;
-                if (sel->start <= startId && sel->end >= startId)
+                if (sel->start() <= startId && sel->end() >= startId)
                     sel->selBox |= Point3(pl->space.Left(), y, 0);
-                if (sel->end >= endId && sel->start <= endId)
+                if (sel->end() >= endId && sel->start() <= endId)
                     sel->selBox |= Point3(pl->space.Right(), y, 0);
             }
 
@@ -647,7 +647,7 @@ void PageLayout::DrawSelection(Layout *where)
     // Assign an ID for the page layout itself
     GLuint layoutId = widget->newId();
     if (TextSelect *sel = widget->textSelection(false))
-        if (sel->start <= layoutId && sel->end >= startId)
+        if (sel->start() <= layoutId && sel->end() >= startId)
             widget->select(layoutId, 1);
 }
 

@@ -97,7 +97,6 @@ HEADERS += widget.h \
     ../xlr/lcs.h \
     ../xlr/bfs.h \
     drag.h \
-    ui_pull_from_dialog.h \
     pull_from_dialog.h \
     remote_selection_frame.h \
     publish_to_dialog.h \

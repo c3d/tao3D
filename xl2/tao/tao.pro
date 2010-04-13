@@ -100,7 +100,8 @@ HEADERS += widget.h \
     ui_pull_from_dialog.h \
     pull_from_dialog.h \
     remote_selection_frame.h \
-    publish_to_dialog.h
+    publish_to_dialog.h \
+    undo.h
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \

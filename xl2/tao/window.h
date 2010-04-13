@@ -25,6 +25,8 @@
 #include <QMainWindow>
 #include <QTimer>
 #include <QSharedPointer>
+#include <QUndoStack>
+#include <QUndoView>
 #include "main.h"
 #include "tao.h"
 #include "repository.h"
@@ -81,6 +83,7 @@ private:
     void createMenus();
     void createToolBars();
     void createStatusBar();
+    void createUndoView();
 
     void readSettings();
     void writeSettings();
@@ -125,6 +128,10 @@ private:
     QAction          *aboutAct;
     QAction          *aboutQtAct;
     QAction          *fullScreenAct;
+    QUndoStack       *undoStack;
+    QUndoView        *undoView;
+    QAction          *undoAction;
+    QAction          *redoAction;
 };
 
 // Prefixes for the created menus and sub menus

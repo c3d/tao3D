@@ -62,6 +62,10 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
     taoWidget = new Widget(this, sf);
     setCentralWidget(taoWidget);
 
+    // Undo/redo management
+    undoStack = new QUndoStack();
+    createUndoView();
+
     // Create menus, actions, stuff
     createActions();
     createMenus();
@@ -386,6 +390,12 @@ void Window::createActions()
             cutAct, SLOT(setEnabled(bool)));
     connect(textEdit, SIGNAL(copyAvailable(bool)),
             copyAct, SLOT(setEnabled(bool)));
+
+    undoAction = undoStack->createUndoAction(this, tr("&Undo"));
+    undoAction->setShortcuts(QKeySequence::Undo);
+
+    redoAction = undoStack->createRedoAction(this, tr("&Redo"));
+    redoAction->setShortcuts(QKeySequence::Redo);
 }
 
 
@@ -404,6 +414,9 @@ void Window::createMenus()
     fileMenu->addAction(exitAct);
 
     editMenu = menuBar()->addMenu(tr("&Edit"));
+    editMenu->addAction(undoAction);
+    editMenu->addAction(redoAction);
+    editMenu->addSeparator();
     editMenu->addAction(cutAct);
     editMenu->addAction(copyAct);
     editMenu->addAction(pasteAct);
@@ -446,6 +459,22 @@ void Window::createStatusBar()
 // ----------------------------------------------------------------------------
 {
     statusBar()->showMessage(tr("Ready"));
+}
+
+
+void Window::createUndoView()
+// ----------------------------------------------------------------------------
+//    Create the 'undo view' widget
+// ----------------------------------------------------------------------------
+{
+    undoView = NULL;
+    IFTRACE(undo)
+    {
+        undoView = new QUndoView(undoStack);
+        undoView->setWindowTitle(tr("Change History"));
+        undoView->show();  // TODO: add "Change history" to "View" menu
+        undoView->setAttribute(Qt::WA_QuitOnClose, false);
+    }
 }
 
 

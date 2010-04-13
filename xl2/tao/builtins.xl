@@ -9,9 +9,7 @@ if true then TrueBody                   -> do TrueBody
 if false then TrueBody                  -> false
 
 // Key management
-key X   ->
-    debug X
-    text_edit_key X
+key X                                   -> text_edit_key X
 
 // 3D Shapes
 sphere x:real, y:real, z:real, r:real   -> sphere x,y,z,2*r,2*r,2*r,25,25

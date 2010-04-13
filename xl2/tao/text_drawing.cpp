@@ -127,9 +127,12 @@ void TextSpan::DrawSelection(Layout *where)
             if (sel->replace)
             {
                 text rpl = sel->replacement;
-                uint eot = XL::Utf8Next(rpl, 0);
-                source->value.replace(start, 1, rpl.substr(0, eot));
-                sel->replacement.erase(0, eot);
+                uint eos = i;
+                if (sel->point != sel->mark)
+                    eos = XL::Utf8Next(source->value, i);
+                source->value.replace(i, eos-i, rpl);
+                sel->replacement = "";
+                sel->moveTo(sel->point + XL::Utf8Length(rpl));
             }
             sel->selBox |= Box3(xx,yy,z, 1, hh, 0);
         }
@@ -376,6 +379,10 @@ Activity *TextSelect::Key(text key)
 //    Perform activities on the text selection
 // ----------------------------------------------------------------------------
 {
+    if (key == "Space")                 key = " ";
+    else if (key == "Return")           key = "\n";
+    else if (key == "Enter")            key = "\n";
+
     if (key == "Left")
     {
         moveTo(start() - !hasSelection());

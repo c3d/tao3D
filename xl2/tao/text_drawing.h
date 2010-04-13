@@ -26,6 +26,7 @@
 #include "shapes.h"
 #include "activity.h"
 #include "coords3d.h"
+#include "tree.h"
 #include <QFont>
 
 TAO_BEGIN
@@ -35,8 +36,8 @@ struct TextSpan : Shape
 //    A contiguous run of glyphs
 // ----------------------------------------------------------------------------
 {
-    TextSpan(const QString &value, const QFont &font)
-        : Shape(), value(value), font(font) {}
+    TextSpan(XL::Text *source, const QFont &font, uint start = 0, uint end = ~0)
+        : Shape(), source(source), font(font), start(start), end(end) {}
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *where);
     virtual void        Identify(Layout *where);
@@ -47,8 +48,9 @@ struct TextSpan : Shape
     virtual scale       TrailingSpaceSize();
 
 public:
-    QString             value;
+    XL::Text *          source;
     QFont               font;
+    uint                start, end;
 };
 
 

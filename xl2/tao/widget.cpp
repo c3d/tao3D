@@ -2403,7 +2403,7 @@ Tree *Widget::textSpan(Tree *self, text_r content)
 //   Insert a block of text with the current definition of font, color, ...
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new TextSpan(+content, layout->font));
+    layout->Add(new TextSpan(&content, layout->font));
     return XL::xl_true;
 }
 

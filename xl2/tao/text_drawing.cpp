@@ -47,7 +47,7 @@ void TextSpan::Draw(Layout *where)
 {
     Point3 position = where->offset;
     QPainterPath path;
-    QString str = value;
+    QString str = +source->value.substr(start, end - start);
     QFontMetricsF fm(font);
 
     int index = str.indexOf(QChar('\n'));
@@ -80,7 +80,7 @@ void TextSpan::DrawSelection(Layout *where)
 {
     Widget *widget = where->Display();
     Point3 pos = where->offset;
-    text str = +value;
+    text str = source->value;
     QFontMetricsF fm(font);
     scale h = fm.height();
     coord x = pos.x;
@@ -92,7 +92,7 @@ void TextSpan::DrawSelection(Layout *where)
 
     // Loop over all characters in the text span
     uint i, max = str.length();
-    for (i = 0; i < max; i = XL::Utf8Next(str, i))
+    for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
     {
         QChar qc = QChar(XL::Utf8Code(str, i));
         float w = qc == '\n' ? 3 : fm.width(qc);
@@ -147,7 +147,7 @@ void TextSpan::Identify(Layout *where)
 {
     Widget *widget = where->Display();
     Point3 pos = where->offset;
-    text str = +value;
+    text str = source->value;
     QFontMetricsF fm(font);
     scale h = fm.height();
     coord x = pos.x;
@@ -158,7 +158,7 @@ void TextSpan::Identify(Layout *where)
 
     // Loop over all characters in the text span
     uint i, max = str.length();
-    for (i = 0; i < max; i = XL::Utf8Next(str, i))
+    for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
     {
         QChar qc = QChar(XL::Utf8Code(str, i));
         float w = qc == '\n' ? 3 : fm.width(qc);
@@ -207,7 +207,7 @@ void TextSpan::Draw(GraphicPath &path)
 
     QPainterPath qt;
 
-    QString str = value;
+    QString str = +source->value.substr(start, end - start);
     int index = str.indexOf(QChar('\n'));
     while (index >= 0)
     {
@@ -233,7 +233,8 @@ Box3 TextSpan::Bounds()
 // ----------------------------------------------------------------------------
 {
     QFontMetricsF fm(font);
-    QRectF rect = fm.tightBoundingRect(value);
+    QString       str = +source->value.substr(start, end - start);
+    QRectF        rect = fm.tightBoundingRect(str);
     return Box3(rect.x(), rect.height()+rect.y(), 0,
                 rect.width(), rect.height(), 0);
 }
@@ -245,13 +246,14 @@ Box3 TextSpan::Space()
 // ----------------------------------------------------------------------------
 {
     QFontMetricsF fm(font);
-    coord height = fm.height();
-    coord descent = fm.descent();
-    coord leading = fm.leading();
-    coord width = fm.width(value);
-    coord leftBearing = 0;
-    if (value.length())
-        leftBearing = fm.leftBearing(value[0]);
+    QString       str = +source->value.substr(start, end - start);
+    coord         height      = fm.height();
+    coord         descent     = fm.descent();
+    coord         leading     = fm.leading();
+    coord         width       = fm.width(str);
+    coord         leftBearing = 0;
+    if (str.length())
+        leftBearing = fm.leftBearing(str[0]);
     return Box3(leftBearing, -descent-leading, 0, width, height+leading, 0);
 }
 
@@ -263,10 +265,11 @@ TextSpan *TextSpan::Break(BreakOrder &order)
 {
     if (order <= LineBreak)
     {
-        uint i, max = value.length();
-        for (i = 0; i < max; i++)
+        text str = source->value;
+        uint i, max = str.length();
+        for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
         {
-            QChar c = value[i];
+            QChar c = QChar(XL::Utf8Code(str, i));
             BreakOrder charOrder = CharBreak;
             if (c.isSpace())
             {
@@ -277,12 +280,12 @@ TextSpan *TextSpan::Break(BreakOrder &order)
             if (order <= charOrder)
             {
                 // Create two text spans, the first one containing the split
-                QString remainder = value.mid(i+1);
-                TextSpan *result = remainder.length()
-                    ? new TextSpan(remainder, font)
+                uint next = XL::Utf8Next(str, i);
+                TextSpan *result = (next < max && next < end)
+                    ? new TextSpan(source, font, next, end)
                     : NULL;
-                value = value.left(i+1);
                 order = charOrder;
+                end = next;
                 return result;
             }
         }
@@ -299,9 +302,14 @@ scale TextSpan::TrailingSpaceSize()
 {
     QFontMetricsF fm(font);
     scale result = 0;
-    for (int i = value.length(); i > 0; i--)
+    text str = source->value;
+    uint pos = str.length();
+    if (pos > end)
+        pos = end;
+    while (pos > start)
     {
-        QChar c = value[i-1];
+        pos = XL::Utf8Previous(str, pos);
+        QChar c = QChar(XL::Utf8Code(str, pos));
         if (!c.isSpace())
             break;
         result += fm.width(c);

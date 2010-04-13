@@ -509,7 +509,7 @@ bool FrameManipulator::DrawHandles(Layout *layout)
                         updateArg(widget, &w, sw*p0.x, sw*p1.x, sw*p2.x);
                         updateArg(widget, &h, sh*p0.y, sh*p1.y, sh*p2.y);
 
-                        widget->markChanged(t1 + t2 + " corner moved");
+                        widget->markChanged(t1 + t2 + "corner moved");
                     }
                 }
             }
@@ -1036,7 +1036,7 @@ bool BoxManipulator::DrawHandles(Layout *layout)
                         updateArg(widget, &y, p0.y/2, p1.y/2, p2.y/2);
                         updateArg(widget, &h, sh*p0.y, sh*p1.y, sh*p2.y);
 
-                        widget->markChanged(t1 + t2 + t3 + " corner moved");
+                        widget->markChanged(t1 + t2 + t3 + "corner moved");
                     }
                 }
             }

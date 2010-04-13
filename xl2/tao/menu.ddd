@@ -1,0 +1,64 @@
+menu_insert 
+locally 
+    theme_colors 
+    line -350, 250, -250, 350
+
+locally 
+    theme_colors 
+    line_color 1, 0, 0, 1 
+    line -200, 250, -100, 350
+
+locally 
+    theme_colors 
+    line_color 1, 0, 0, 1 
+    line -50, 250, 50, 350
+
+locally 
+    theme_colors 
+    rectangle 150, 300, 100, 100
+
+locally 
+    theme_colors 
+    rounded_rectangle 300, 300, 100, 100, 15
+
+locally 
+    theme_colors 
+    oval -300, 150, 100, 100
+
+locally 
+    theme_colors 
+    triangle -150, 150, 100, 100
+
+locally 
+    theme_colors 
+    right_triangle 0, 150, 100, 100
+
+locally 
+    theme_colors 
+    arrow 150, 150, 100, 100, 44, 32% 
+
+locally 
+    theme_colors 
+    double_arrow 300, 150, 100, 100, 44, 32% 
+
+locally 
+    theme_colors 
+    diamond -300, 0, 100, 100
+
+locally 
+    theme_colors 
+    speech_balloon -150, 16, 100, 68, 50, -200, -50
+
+locally 
+    theme_colors 
+    color 1, 0, 0, 1 
+    line_color 1, 0, 0, 1 
+    callout 16, 0, 68, 100, 15, -50, 0
+
+locally 
+    theme_colors 
+    star 150, 0, 100, 100, 5, 50% 
+
+locally 
+    theme_colors 
+    polygon 300, 0, 100, 100, 5

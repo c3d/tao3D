@@ -617,7 +617,7 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
         if (r > sw*w/2)
             rr = sw*w/2;
 
-        if (DrawHandle(layout, Point3(x - sw*w/2 + rr, y + sh*h/2, 0), 9))
+        if (DrawHandle(layout, Point3(x + sw*w/2 - rr, y + sh*h/2, 0), 9))
         {
             if (drag)
             {
@@ -627,7 +627,7 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
                 {
                     Point3 p0 = drag->Origin();
                     updateArg(widget, &r, 
-                              p0.x-x+sw*w/2, p1.x-x+sw*w/2, p2.x-x+sw*w/2,
+                              x+sw*w/2-p0.x, x+sw*w/2-p1.x, x+sw*w/2-p2.x,
                               true, 0.0, true, sw*w/2);
                     widget->markChanged("Rounded rectangle corner modified");
                     changed = true;
@@ -640,7 +640,7 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
         if (r > sh*h/2)
             rr = sh*h/2;
 
-        if (DrawHandle(layout, Point3(x - sw*w/2,y + sh*h/2 - rr, 0), 9))
+        if (DrawHandle(layout, Point3(x + sw*w/2,y + sh*h/2 - rr, 0), 9))
         {
             if (drag)
             {

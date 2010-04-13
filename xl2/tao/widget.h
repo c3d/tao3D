@@ -28,7 +28,7 @@
 #include "coords3d.h"
 #include "opcodes.h"
 #include "drawing.h"
-
+#include "activity.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -44,7 +44,6 @@ namespace Tao {
 
 struct Window;
 struct FrameInfo;
-struct Activity;
 struct Layout;
 struct PageLayout;
 struct SpaceLayout;
@@ -124,6 +123,8 @@ public:
     TextSelect *textSelection(bool create);
     void        drawSelection(const Box3 &bounds, text name);
     void        drawHandle(const Point3 &point, text name);
+    template<class Activity>
+    Activity *  active();
 
     // Text flows
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
@@ -332,6 +333,7 @@ private:
     friend class Activity;
     friend class Selection;
     friend class Drag;
+    friend class TextSelect;
     friend class Manipulator;
     friend class ControlPoint;
     friend class AbstractButtonSurface;
@@ -380,6 +382,19 @@ private:
     static Widget *       current;
     static double         zNear, zFar;
 };
+
+
+template<class ActivityClass>
+inline ActivityClass *Widget::active()
+// ----------------------------------------------------------------------------
+//   Return an activity of the given type
+// ----------------------------------------------------------------------------
+{
+    for (Activity *a = activities; a; a = a->next)
+        if (ActivityClass *result = dynamic_cast<ActivityClass *> (a))
+            return result;
+    return NULL;
+}
 
 
 

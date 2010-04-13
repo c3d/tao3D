@@ -1016,8 +1016,12 @@ void Widget::mousePressEvent(QMouseEvent *event)
     int     y           = event->y();
 
     // Create a selection if left click and nothing going on right now
-    if (!activities && button == Qt::LeftButton)
+    if (button == Qt::LeftButton)
+    {
+        if (TextSelect *sel = textSelection(false))
+            delete sel;
         new Selection(this);
+    }
 
     // Send the click to all activities
     for (Activity *a = activities; a; a = a->Click(button, true, x, y)) ;
@@ -1113,7 +1117,7 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
     uint    button      = (uint) event->button();
     int     x           = event->x();
     int     y           = event->y();
-    if (!activities && button == Qt::LeftButton)
+    if (button == Qt::LeftButton)
         new Selection(this);
 
     // Send the click to all activities
@@ -1469,7 +1473,7 @@ Drag *Widget::drag()
 //   Return the drag activity that we can use to unproject
 // ----------------------------------------------------------------------------
 {
-    Drag *result = dynamic_cast<Drag *>(activities);
+    Drag *result = active<Drag>();
     if (result)
         recordProjection();
     return result;
@@ -1481,26 +1485,16 @@ TextSelect *Widget::textSelection(bool create)
 //   Return text selection if appropriate, possibly creating it from a Drag
 // ----------------------------------------------------------------------------
 {
-    TextSelect *result = dynamic_cast<TextSelect *>(activities);
+    TextSelect *result = active<TextSelect>();
     if (!result && create)
     {
-        if (Drag *d = dynamic_cast<Drag *>(activities))
+        Drag *d = active<Drag>();
+        Selection *s = active<Selection>();
+        if (d || s)
         {
             delete d;
-
             result = new TextSelect(this);
             recordProjection();
-            selection_map::iterator i, end = selection.end();
-            for (i = selection.end(); i != end; i++)
-            {
-                uint id = (*i).first;
-                if (!result->start)
-                    result->start = result->end = id;
-                else if (result->start > id)
-                    result->start = id;
-                else if (result->end < id)
-                    result->end = id;
-            }
         }
     }
     if (result)

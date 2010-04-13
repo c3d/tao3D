@@ -23,6 +23,7 @@
 #include "text_drawing.h"
 #include "path3d.h"
 #include "layout.h"
+#include "page_layout.h"
 #include "widget.h"
 #include "utf8.h"
 #include "tao_utf8.h"
@@ -89,8 +90,6 @@ void TextSpan::DrawSelection(Layout *where)
     coord xx, yy, ww, hh;
     coord descent = fm.descent();
     coord leading = fm.leading();
-    bool inSelection = widget->selected();
-    Box3 selBox;
 
     // Loop over all characters in the text span
     uint i, max = str.length();
@@ -106,11 +105,27 @@ void TextSpan::DrawSelection(Layout *where)
 
         GLuint charId = widget->newId();
         bool charSelected = widget->selected();
+        TextSelect *sel = NULL;
         if (charSelected)
         {
-            if (TextSelect *sel = widget->textSelection(true))
+            coord array[4][3] =
             {
-                if (sel->start > charId)
+                { xx,      yy,      z },
+                { xx + ww, yy,      z },
+                { xx + ww, yy + hh, z },
+                { xx,      yy + hh, z }
+            };
+            
+            glVertexPointer(3, GL_DOUBLE, 0, array);
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glColor4f(0.0, 0.9, 1.0, 0.4);
+            glDrawArrays(GL_QUADS, 0, 4);
+            glDisableClientState(GL_VERTEX_ARRAY);
+ 
+            sel = widget->textSelection(true);
+            if (sel)
+            {
+                if (!sel->start || sel->start > charId)
                     sel->start = charId;
                 if (sel->end < charId)
                     sel->end = charId;
@@ -118,7 +133,8 @@ void TextSpan::DrawSelection(Layout *where)
         }
         else
         {
-            if (TextSelect *sel = widget->textSelection(false))
+            sel = widget->textSelection(false);
+            if (sel)
             {
                 if (charId >= sel->start && charId <= sel->end)
                 {
@@ -128,37 +144,23 @@ void TextSpan::DrawSelection(Layout *where)
             }
         }
 
-        if (charSelected != inSelection || qc == '\n' || i == 0)
+        if (charSelected && sel)
         {
-            if (!inSelection || i == 0)
-            {
-                // Select first point of selection
-                selBox.lower = Point3(xx, yy, z);
-            }
-            else
-            {
-                selBox.upper = Point3(xx+ww, yy+hh, z);
-                widget->drawSelection(selBox, "text_selection");
-            }
-            inSelection = charSelected;
+            sel->selBox |= Box3(xx,yy,z, 1, hh, 0);
+            if (qc == '\n')
+                if (PageLayout *pl = dynamic_cast<PageLayout *>(where))
+                    sel->selBox |= Point3(pl->space.Right(), y, z);
         }
 
         if (qc == '\n')
         {
             x = 0;
             y -= h;
-            selBox.lower = Point3(xx, yy, z);
         }
         else
         {
             x += w;
         }
-    }
-
-    if (inSelection)
-    {
-        selBox.upper = Point3(xx+ww, yy+hh, z);
-        widget->drawSelection(selBox, "text_selection");
     }
 
     where->offset = Point3(x, y, z);
@@ -346,8 +348,20 @@ TextSelect::TextSelect(Widget *w)
 // ----------------------------------------------------------------------------
 //   Constructor initializes an empty text range
 // ----------------------------------------------------------------------------
-    : Activity("Text selection", w), start(0), end(0)
-{}
+    : Activity("Text selection", w), anchor(0), start(0), end(0)
+{
+    Widget::selection_map::iterator i, last = w->selection.end();
+    for (i = w->selection.begin(); i != last; i++)
+    {
+        uint id = (*i).first;
+        if (!start)
+            start = end = anchor = id;
+        else if (start > id)
+            start = id;
+        else if (end < id)
+            end = id;
+    }
+}
 
 
 Activity *TextSelect::Display()
@@ -373,18 +387,8 @@ Activity *TextSelect::Click(uint button, bool down, int x, int y)
 //   Selection of text
 // ----------------------------------------------------------------------------
 {
-    bool shiftModifier = qApp->keyboardModifiers() & Qt::ShiftModifier;
-    y = widget->height() - y;
     if (button & Qt::LeftButton)
-    {
-        if (down)
-        {
-            return next;
-        }
-    }
-
-    Activity *next = this->next;
-    delete this;
+        return MouseMove(x, y, down);
     return next;
 }
 
@@ -394,6 +398,70 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
 //   Move text selection
 // ----------------------------------------------------------------------------
 {
+    if (!active)
+        return next;
+
+    y = widget->height() - y;
+    Box rectangle(x, y, 1, 1);
+
+    // Create the select buffer and switch to select mode
+    GLuint *buffer = new GLuint[4 * widget->capacity];
+    glSelectBuffer(4 * widget->capacity, buffer);
+    glRenderMode(GL_SELECT);
+
+    // Adjust viewport for rendering
+    widget->setup(widget->width(), widget->height(), &rectangle);
+
+    // Initialize names
+    glInitNames();
+    glPushName(0);
+
+    // Run the programs, which detects selected items
+    widget->identifySelection();
+
+    // Get number of hits and extract selection
+    // Each record is as follows:
+    // [0]: Depth of the name stack
+    // [1]: Minimum depth
+    // [2]: Maximum depth
+    // [3..3+[0]-1]: List of names
+    widget->selection = widget->savedSelection;
+    int hits = glRenderMode(GL_RENDER);
+    GLuint selected = 0;
+    if (hits > 0)
+    {
+        GLuint *ptr = buffer;
+        for (int i = 0; i < hits; i++)
+        {
+            uint size = ptr[0];
+            selected = ptr[3];
+            if (selected)
+            {
+                if (selected < anchor)
+                {
+                    start = selected;
+                    end = anchor;
+                }
+                else
+                {
+                    start = anchor;
+                    end = selected;
+                }
+                break;
+            }
+            ptr += 3 + size;
+        }
+
+        widget->selection.clear();
+        for (uint i = start; i <= end; i++)
+            widget->selection[i] = 1;
+    }
+    delete[] buffer;
+
+    // Need a refresh
+    widget->refresh();
+
+    // Let a possible selection do its own stuff
     return next;
 }
 

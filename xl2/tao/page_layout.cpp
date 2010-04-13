@@ -220,6 +220,16 @@ void LayoutLine::DrawSelection(Layout *where)
         where->offset.x = place.position;
         child->DrawSelection(where);
     }
+
+    Widget *widget = where->Display();
+    if (TextSelect *sel = widget->textSelection(false))
+    {
+        if (sel->selBox.Width() > 0 && sel->selBox.Height() > 0)
+        {
+            widget->drawSelection(sel->selBox, "text_selection");
+            sel->selBox.Empty();
+        }
+    }
 }
 
 
@@ -620,8 +630,17 @@ void PageLayout::DrawSelection(Layout *where)
     // Assign an ID for the page layout itself
     GLuint layoutId = widget->newId();
     if (TextSelect *sel = widget->textSelection(false))
+    {
         if (sel->start <= layoutId && sel->end >= startId)
+        {
             widget->select(layoutId, 1);
+            if (sel->selBox.Width() > 0 && sel->selBox.Height() > 0)
+            {
+                widget->drawSelection(sel->selBox, "text_selection");
+                sel->selBox.Empty();
+            }
+        }
+    }
 }
 
 

@@ -6,8 +6,8 @@
 //
 //   File Description:
 //
-//     The command manipulated by the undo stack.
-//
+//     The command manipulated by the undo stack. Represents a commit in the
+//     repository.
 //
 //
 //
@@ -21,6 +21,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include "repository.h"
 #include <QUndoCommand>
 
 namespace Tao {
@@ -32,15 +33,18 @@ class UndoCommand : public QUndoCommand
 {
 
 public:
-    UndoCommand(QString &commitId): QUndoCommand(), commitId(commitId) {}
+    UndoCommand(Repository *repo, QString commitId, QString msg = "");
     virtual ~UndoCommand() {}
 
 public:
-//    void    undo();
-//    void    redo();
+    virtual void undo();
+    virtual void redo();
 
 private:
-    QString commitId;
+    Repository *repo;
+    QString     id;         // commit ID
+    QString     msg;        // commit message
+    bool        firstRedo;
 };
 
 }

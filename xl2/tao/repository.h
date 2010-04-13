@@ -76,7 +76,7 @@ public:
 
 public:
     Repository(const QString &path): path(path), task("work"),
-                                     state(RS_Clean) {}
+                                     state(RS_Clean), whatsNew("") {}
     virtual ~Repository() {}
 
 public:
@@ -86,6 +86,7 @@ public:
     virtual bool        selectWorkBranch();
     virtual bool        selectUndoBranch();
     virtual bool        idle();
+    virtual bool        markChanged(text reason);
 
 public:
     virtual QString     userVisibleName()               = 0;
@@ -97,8 +98,10 @@ public:
     virtual bool        add(text name)                  = 0;
     virtual bool        change(text name)               = 0;
     virtual bool        rename(text from, text to)      = 0;
-    virtual bool        commit(text msg,bool all=false) = 0;
-    virtual bool        asyncCommit(text msg, bool all=false) = 0;
+    virtual bool        commit(text msg = "",bool all=false) = 0;
+    virtual bool        asyncCommit(text msg = "", bool all=false) = 0;
+    virtual bool        asyncRevert(text id)            = 0;
+    virtual bool        asyncCherryPick(text id)        = 0;
     virtual bool        merge(text branch)              = 0;
     virtual bool        reset()                         = 0;
     virtual bool        pull()                          = 0;
@@ -117,7 +120,7 @@ public:
     static bool         versionGreaterOrEqual(QString ver, QString ref);
 
 signals:
-    void                asyncCommitSuccess();
+    void                asyncCommitSuccess(QString commitId, QString msg);
 
 protected:
     virtual QString     command()                       = 0;
@@ -147,6 +150,7 @@ public:
     QString            pullFrom;
     ConflictResolution conflictResolution;
     State              state;
+    text               whatsNew;
 
 protected:
     QList<Process *> pQueue;

@@ -151,7 +151,8 @@ SOURCES += tao_main.cpp \
     drag.cpp \
     pull_from_dialog.cpp \
     remote_selection_frame.cpp \
-    publish_to_dialog.cpp
+    publish_to_dialog.cpp \
+    undo.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \

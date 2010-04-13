@@ -60,6 +60,9 @@ public:
 
     bool isUntitled;
 
+public:
+    QUndoStack *undoStack;
+
 public slots:
     void markChanged(bool changed = true);
 
@@ -128,7 +131,6 @@ private:
     QAction          *aboutAct;
     QAction          *aboutQtAct;
     QAction          *fullScreenAct;
-    QUndoStack       *undoStack;
     QUndoView        *undoView;
     QAction          *undoAction;
     QAction          *redoAction;

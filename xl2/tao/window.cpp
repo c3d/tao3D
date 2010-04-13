@@ -472,7 +472,7 @@ void Window::createUndoView()
     {
         undoView = new QUndoView(undoStack);
         undoView->setWindowTitle(tr("Change History"));
-        undoView->show();  // TODO: add "Change history" to "View" menu
+        undoView->show();  // REVISIT: add "Change history" to "View" menu?
         undoView->setAttribute(Qt::WA_QuitOnClose, false);
     }
 }
@@ -787,8 +787,8 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
 
                 // For undo/redo: widget has to be notifiedwhen document
                 // is succesfully committed into repository
-                connect(repo.data(), SIGNAL(asyncCommitSuccess()),
-                        taoWidget,   SLOT(commitSuccess()));
+                connect(repo.data(), SIGNAL(asyncCommitSuccess(QString, QString)),
+                        taoWidget,   SLOT(commitSuccess(QString, QString)));
             }
         }
     }

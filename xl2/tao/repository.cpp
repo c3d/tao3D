@@ -250,6 +250,20 @@ bool Repository::idle()
 }
 
 
+bool Repository::markChanged(text reason)
+// ----------------------------------------------------------------------------
+//    Record a change, reason text will be used in next commit message
+// ----------------------------------------------------------------------------
+{
+    if (whatsNew.find(reason) == whatsNew.npos)
+    {
+        if (whatsNew.length())
+            whatsNew += "\n";
+        whatsNew += reason;
+    }
+}
+
+
 void Repository::dispatch(Process *cmd)
 // ----------------------------------------------------------------------------
 //   Insert process in run queue and start first process

@@ -477,6 +477,7 @@ void Widget::userMenu(QAction *p_action)
 
     markChanged(+("Menu '" + p_action->text() + "' selected"));
 
+    current = this;
     XL::TreeRoot t = var.value<XL::TreeRoot >();
     xl_evaluate(t.tree);        // Typically will insert something...
 }

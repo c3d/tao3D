@@ -71,6 +71,7 @@ public slots:
     void        appFocusChanged(QWidget *prev, QWidget *next);
     void        userMenu(QAction *action);
     bool        refresh(double delay = 0.0);
+    void        commitSuccess();
 
 public:
     // OpenGL

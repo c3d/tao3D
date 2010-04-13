@@ -269,7 +269,10 @@ void GitRepository::asyncProcessFinished(int exitCode)
                       << +tr("Error output:\n") << errors;
     }
     if (ok && isCommit)
+    {
         state = RS_Clean;
+        emit asyncCommitSuccess();
+    }
 }
 
 

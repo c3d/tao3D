@@ -116,6 +116,9 @@ public:
     static bool         available();
     static bool         versionGreaterOrEqual(QString ver, QString ref);
 
+signals:
+    void                asyncCommitSuccess();
+
 protected:
     virtual QString     command()                       = 0;
     virtual text        styleSheet();

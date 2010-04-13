@@ -745,13 +745,22 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         if (repo)
         {
             if (!repo->setTask(task))
+            {
                 QMessageBox::information
                         (NULL, tr("Task selection"),
                          tr("An error occured setting the task:\n%1")
                          .arg(+repo->errors),
                          QMessageBox::Ok);
+            }
             else
+            {
                 this->repo = repo;
+
+                // For undo/redo: widget has to be notifiedwhen document
+                // is succesfully committed into repository
+                connect(repo.data(), SIGNAL(asyncCommitSuccess()),
+                        taoWidget,   SLOT(commitSuccess()));
+            }
         }
     }
 

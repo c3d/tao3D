@@ -22,6 +22,7 @@
 
 #include "page_layout.h"
 #include "attributes.h"
+#include "text_drawing.h"
 #include "gl_keepers.h"
 #include <QFontMetrics>
 #include <QFont>
@@ -218,6 +219,16 @@ void LayoutLine::DrawSelection(Layout *where)
         Drawing *child = place.item;
         where->offset.x = place.position;
         child->DrawSelection(where);
+    }
+
+    Widget *widget = where->Display();
+    if (TextSelect *sel = widget->textSelection(false))
+    {
+        if (sel->selBox.Width() > 0 && sel->selBox.Height() > 0)
+        {
+            widget->drawSelection(sel->selBox, "text_selection");
+            sel->selBox.Empty();
+        }
     }
 }
 
@@ -596,6 +607,10 @@ void PageLayout::DrawSelection(Layout *where)
 //   REVISIT: There is a lot of copy-paste between Draw, DrawSelection, Identify
 //   Consider using a pointer-to-member (ugly) or some clever trick?
 {
+    // Remember the initial selection ID
+    Widget *widget = where->Display();
+    GLuint startId = widget->currentId();
+
     // Inherit state from our parent layout if there is one
     Inherit(where);
 
@@ -610,6 +625,21 @@ void PageLayout::DrawSelection(Layout *where)
         LayoutLine *child = place.item;
         offset.y = place.position;
         child->DrawSelection(this);
+    }
+
+    // Assign an ID for the page layout itself
+    GLuint layoutId = widget->newId();
+    if (TextSelect *sel = widget->textSelection(false))
+    {
+        if (sel->start <= layoutId && sel->end >= startId)
+        {
+            widget->select(layoutId, 1);
+            if (sel->selBox.Width() > 0 && sel->selBox.Height() > 0)
+            {
+                widget->drawSelection(sel->selBox, "text_selection");
+                sel->selBox.Empty();
+            }
+        }
     }
 }
 

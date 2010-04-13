@@ -66,7 +66,6 @@ Activity *Selection::Idle(void)
 //   Make the refresh rate shorter so that we animate the rectangle
 // ----------------------------------------------------------------------------
 {
-    widget->updateGL();
     widget->refresh();
     return next;               // Keep doing other idle activities
 }

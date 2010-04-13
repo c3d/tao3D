@@ -584,8 +584,7 @@ bool ControlRectangle::DrawHandles(Layout *layout)
 
 // ============================================================================
 //
-//   An rounded rectangle manipulator udpates x, y, w, h, the radius of the
-//   corners and allows translation
+//   A rounded rectangle manipulator udpates x, y, w, h and corner radius
 //
 // ============================================================================
 
@@ -671,8 +670,7 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
 
 // ============================================================================
 //
-//   An arrow manipulator udpates x, y, w, h, the arrow handle a and allows 
-//   translation
+//   An arrow manipulator udpates x, y, w, h, and the arrow handle a
 //
 // ============================================================================
 
@@ -734,7 +732,8 @@ bool ControlArrow::DrawHandles(Layout *layout)
             {
                 Point3 p0 = drag->Origin();
                 updateArg(widget, &ax, 
-                          swd*(x-p0.x)+sw*w/2, swd*(x-p1.x)+sw*w/2, swd*(x-p2.x)+sw*w/2,
+                          swd*(x-p0.x)+sw*w/2, swd*(x-p1.x)+sw*w/2,
+                          swd*(x-p2.x)+sw*w/2,
                           true, 0.0, true, sw*w/df);
                 if (h != 0)
                 {
@@ -758,8 +757,7 @@ bool ControlArrow::DrawHandles(Layout *layout)
 
 // ============================================================================
 //
-//   A polygon manipulator udpates x, y, w, h, he number of points for the 
-//   polygon and allows translation
+//   A polygon manipulator udpates x, y, w, h, and the number of points
 //
 // ============================================================================
 
@@ -782,7 +780,8 @@ bool ControlPolygon::DrawHandles(Layout *layout)
     int sw = w > 0? 1: -1;
     int sh = h > 0? 1: -1;
 
-    if (!changed && DrawHandle(layout, Point3(x-sw*w/2+sw*w*(p-2)/19, y-sh*h/2, 0), 9))
+    if (!changed && DrawHandle(layout,
+                               Point3(x-sw*w/2+sw*w*(p-2)/19, y-sh*h/2, 0), 9))
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
@@ -813,8 +812,7 @@ bool ControlPolygon::DrawHandles(Layout *layout)
 
 // ============================================================================
 //
-//   A star manipulator udpates x, y, w, h, the number of points, the inner
-//   circle ration and allows translation
+//   A star manipulator udpates x, y, w, h, number of points and inner radius
 //
 // ============================================================================
 
@@ -870,8 +868,7 @@ bool ControlStar::DrawHandles(Layout *layout)
 
 // ============================================================================
 //
-//   A ballon manipulator udpates x, y, w, h, the radius r for the corners,
-//   the end of the tail a and allows translation
+//   A ballon manipulator udpates x, y, w, h, radius r and end of tail a
 //
 // ============================================================================
 

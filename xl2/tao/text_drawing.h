@@ -24,8 +24,9 @@
 
 #include "attributes.h"
 #include "shapes.h"
+#include "activity.h"
+#include "coords3d.h"
 #include <QFont>
-
 
 TAO_BEGIN
 
@@ -49,6 +50,24 @@ public:
     QString             value;
     QFont               font;
 };
+
+
+struct TextSelect : Activity
+// ----------------------------------------------------------------------------
+//   A text selection (contiguous range of characters)
+// ----------------------------------------------------------------------------
+{
+    TextSelect(Widget *w);
+
+    virtual Activity *  Display(void);
+    virtual Activity *  Idle(void);
+    virtual Activity *  Click(uint button, bool down, int x, int y);
+    virtual Activity *  MouseMove(int x, int y, bool active);
+
+    uint                anchor, start, end;
+    Box3                selBox;
+};
+
 
 TAO_END
 

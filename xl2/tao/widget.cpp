@@ -240,7 +240,7 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
             // Record that we need to commit it sometime soon
             repo->change(fname);
             IFTRACE(filesync)
-                    std::cerr << "Changed " << fname << "\n";
+                std::cerr << "Changed " << fname << "\n";
 
             // Record time when file was changed
             struct stat st;
@@ -251,7 +251,7 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
         }
 
         IFTRACE(filesync)
-                std::cerr << "Could not write " << fname << " to repository\n";
+            std::cerr << "Could not write " << fname << " to repository\n";
     }
     return false;
 }
@@ -477,6 +477,7 @@ void Widget::userMenu(QAction *p_action)
 
     markChanged(+("Menu '" + p_action->text() + "' selected"));
 
+    current = this;
     XL::TreeRoot t = var.value<XL::TreeRoot >();
     xl_evaluate(t.tree);        // Typically will insert something...
 }
@@ -1016,8 +1017,12 @@ void Widget::mousePressEvent(QMouseEvent *event)
     int     y           = event->y();
 
     // Create a selection if left click and nothing going on right now
-    if (!activities && button == Qt::LeftButton)
+    if (button == Qt::LeftButton)
+    {
+        if (TextSelect *sel = textSelection(false))
+            delete sel;
         new Selection(this);
+    }
 
     // Send the click to all activities
     for (Activity *a = activities; a; a = a->Click(button, true, x, y)) ;
@@ -1113,7 +1118,7 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
     uint    button      = (uint) event->button();
     int     x           = event->x();
     int     y           = event->y();
-    if (!activities && button == Qt::LeftButton)
+    if (button == Qt::LeftButton)
         new Selection(this);
 
     // Send the click to all activities
@@ -1469,7 +1474,30 @@ Drag *Widget::drag()
 //   Return the drag activity that we can use to unproject
 // ----------------------------------------------------------------------------
 {
-    Drag *result = dynamic_cast<Drag *>(activities);
+    Drag *result = active<Drag>();
+    if (result)
+        recordProjection();
+    return result;
+}
+
+
+TextSelect *Widget::textSelection(bool create)
+// ----------------------------------------------------------------------------
+//   Return text selection if appropriate, possibly creating it from a Drag
+// ----------------------------------------------------------------------------
+{
+    TextSelect *result = active<TextSelect>();
+    if (!result && create)
+    {
+        Drag *d = active<Drag>();
+        Selection *s = active<Selection>();
+        if (d || s)
+        {
+            delete d;
+            result = new TextSelect(this);
+            recordProjection();
+        }
+    }
     if (result)
         recordProjection();
     return result;

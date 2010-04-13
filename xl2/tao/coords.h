@@ -319,8 +319,8 @@ struct Box
 
     Box &Empty()
     {
-        lower = Point();
-        upper = Point();
+        lower = Point( inf,  inf);
+        upper = Point(-inf, -inf);
         return *this;
     }
 

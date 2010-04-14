@@ -55,8 +55,10 @@ public:
     virtual bool        add(text name);
     virtual bool        change(text name);
     virtual bool        rename(text from, text to);
-    virtual bool        commit(text message, bool all=false);
-    virtual bool        asyncCommit(text message, bool all=false);
+    virtual bool        commit(text message = "", bool all=false);
+    virtual bool        asyncCommit(text message = "", bool all=false);
+    virtual bool        asyncRevert(text id);
+    virtual bool        asyncCherryPick(text id);
     virtual bool        merge(text branch);
     virtual bool        reset();
     virtual bool        pull();
@@ -67,6 +69,7 @@ public:
     virtual bool        setRemote(QString name, QString newPullUrl);
     virtual bool        delRemote(QString name);
     virtual bool        renRemote(QString oldName, QString newName);
+    virtual QList<Commit> history(int max = 20);
 
     static  bool        checkGit();
 
@@ -80,6 +83,8 @@ protected slots:
 
 private:
     bool                initialCommit();
+    bool                parseCommitOutput(text output, QString &id,
+                                          QString &msg);
 
     static QString      gitCommand;
 };

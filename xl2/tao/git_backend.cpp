@@ -27,6 +27,7 @@
 #include <QString>
 #include <QtGlobal>
 #include <QApplication>
+#include <QRegexp>
 #include <iostream>
 
 TAO_BEGIN
@@ -216,6 +217,11 @@ bool GitRepository::commit(text message, bool all)
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
+    if (message == "")
+    {
+        message = whatsNew;
+        whatsNew = "";
+    }
     QStringList args("commit");
     if (all)
         args << "-a";
@@ -236,11 +242,54 @@ bool GitRepository::asyncCommit(text message, bool all)
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
+    if (message == "")
+    {
+        message = whatsNew;
+        whatsNew = "";
+    }
     QStringList args("commit");
     if (all)
         args << "-a";
     args << "--allow-empty"    // Don't fail if working directory is clean
          << "-m" << +message;
+    dispatch(new Process(command(), args, path, false));
+    return true;
+}
+
+
+bool GitRepository::asyncRevert(text id)
+// ----------------------------------------------------------------------------
+//   Rename a file in the repository
+// ----------------------------------------------------------------------------
+{
+    if (state != RS_Clean)
+    {
+        asyncCommit();
+        state = RS_Clean;    // Avoid recursion
+        asyncRevert("HEAD");
+    }
+
+    QStringList args("revert");
+    args << "--no-edit" << +id;
+    dispatch(new Process(command(), args, path, false));
+    return true;
+}
+
+
+bool GitRepository::asyncCherryPick(text id)
+// ----------------------------------------------------------------------------
+//   Rename a file in the repository
+// ----------------------------------------------------------------------------
+{
+    if (state != RS_Clean)
+    {
+        asyncCommit();
+        state = RS_Clean;    // Avoid recursion
+        asyncRevert("HEAD");
+    }
+
+    QStringList args("cherry-pick");
+    args << "-x" << +id;
     dispatch(new Process(command(), args, path, false));
     return true;
 }
@@ -254,22 +303,50 @@ void GitRepository::asyncProcessFinished(int exitCode)
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
-    bool isCommit = (cmd->args.first() == "commit");
+    QString op = cmd->args.first();
+    bool isCommit = (op == "commit");
+    bool newHead  = (isCommit ||
+                     op == "revert" ||
+                     op == "cherry-pick");
     bool ok       = true;
+    text output;
+    cmd->done(&errors, &output);
     if (exitCode)
     {
         ok = false;
-        cmd->done(&errors);
-        if (isCommit)
-            if (errors.find("nothing added") != errors.npos)
+        if (isCommit && errors.find("nothing added") != errors.npos)
                 ok = true;
         if (!ok)
             std::cerr << +tr("Async command failed, exit status %1: %2\n")
                              .arg((int)exitCode).arg(cmd->commandLine)
                       << +tr("Error output:\n") << errors;
     }
-    if (ok && isCommit)
+    if (ok && newHead)
         state = RS_Clean;
+    if (ok && isCommit)
+    {
+        QString commitId, commitMsg;
+        if (parseCommitOutput(output, commitId, commitMsg))
+            emit asyncCommitSuccess(commitId, commitMsg);
+    }
+}
+
+
+bool GitRepository::parseCommitOutput(text output, QString &id, QString &msg)
+// ----------------------------------------------------------------------------
+//   Extract the commit ID and the commit message from "git commit" output
+// ----------------------------------------------------------------------------
+{
+    // Commit output is like:
+    // [master_tao_undo 35a1376] Shape moved
+    //  1 files changed, 1 insertions(+), 1 deletions(-)
+    QRegExp rx("\\[[^ ]+ ([0-9a-f]+)\\] ([^\r\n]+)");
+
+    if (rx.indexIn(+output) == -1)
+        return false;
+    id  = rx.cap(1);
+    msg = rx.cap(2);
+    return true;
 }
 
 
@@ -391,6 +468,31 @@ bool GitRepository::renRemote(QString oldName, QString newName)
     Process cmd(command(), QStringList("remote") << "rename"
                 << oldName << newName, path);
     return cmd.done(&errors);
+}
+
+
+QList<GitRepository::Commit> GitRepository::history(int max)
+// ----------------------------------------------------------------------------
+//   Return the last commits on the current branch in chronological order
+// ----------------------------------------------------------------------------
+{
+    QStringList args;
+    args << "log" << "--pretty=format:%h:%s";
+    args << "-n" << QString("%1").arg(max);
+    text    output;
+    Process cmd(command(), args, path);
+    cmd.done(&errors, &output);
+
+    QList<Commit>       result;
+    QStringList         log = (+output).split("\n");
+    QStringListIterator it(log);
+    QRegExp             rx("([^:]+):(.*)");
+
+    while (it.hasNext())
+        if (rx.indexIn(it.next()) != -1)
+            result.prepend(Repository::Commit(rx.cap(1), rx.cap(2)));
+
+    return result;
 }
 
 TAO_END

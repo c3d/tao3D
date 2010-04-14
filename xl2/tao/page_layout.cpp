@@ -650,8 +650,14 @@ void PageLayout::DrawSelection(Layout *where)
     // Assign an ID for the page layout itself
     GLuint layoutId = widget->newId();
     if (TextSelect *sel = widget->textSelection(false))
+    {
         if (sel->start() <= layoutId && sel->end() >= startId)
             widget->select(layoutId, 1);
+        if (sel->mark == layoutId || sel->mark == startId)
+            sel->mark += sel->direction;;
+        if (sel->point == layoutId || sel->point == startId)
+            sel->point += sel->direction;;
+    }
 }
 
 

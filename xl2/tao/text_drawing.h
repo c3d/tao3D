@@ -76,6 +76,7 @@ struct TextSelect : Activity
     void                updateSelection();
 
     uint                mark, point;
+    int                 direction;
     Box3                selBox;
     text                replacement;
     bool                replace;

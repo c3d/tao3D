@@ -346,7 +346,7 @@ TextSelect::TextSelect(Widget *w)
 //   Constructor initializes an empty text range
 // ----------------------------------------------------------------------------
     : Activity("Text selection", w),
-      mark(0), point(0), replacement(""), replace(false)
+      mark(0), point(0), direction(0), replacement(""), replace(false)
 {
     Widget::selection_map::iterator i, last = w->selection.end();
     for (i = w->selection.begin(); i != last; i++)
@@ -390,18 +390,22 @@ Activity *TextSelect::Key(text key)
     if (key == "Left")
     {
         moveTo(start() - !hasSelection());
+        direction = -1;
     }
     else if (key == "Right")
     {
         moveTo(end() + !hasSelection());
+        direction = 1;
     }
     else if (key == "Shift-Left")
     {
         point--;
+        direction = -1;
     }
     else if (key == "Shift-Right")
     {
         point++;
+        direction = 1;
     }
     else if (key == "Delete" || key == "Backspace")
     {
@@ -410,6 +414,7 @@ Activity *TextSelect::Key(text key)
         if (!hasSelection())
             point = (key == "Delete") ? point+1 : point-1;
         widget->markChanged("Deleted text");
+        direction = 0;
     }
     else if (key.length() == 1)
     {
@@ -419,6 +424,7 @@ Activity *TextSelect::Key(text key)
             widget->markChanged("Replaced text");
         else
             widget->markChanged("Inserted text");
+        direction = 0;
     }
 
     if (replace)

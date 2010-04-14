@@ -652,13 +652,9 @@ void PageLayout::DrawSelection(Layout *where)
     GLuint endId = widget->currentCharId();
     GLuint layoutId = widget->newId();
     if (!widget->drag())
-    {
         if (TextSelect *sel = widget->textSelection())
-        {
             if (sel->start() <= endId && sel->end() >= startId)
                 widget->select(layoutId, 1);
-        }
-    }
 }
 
 

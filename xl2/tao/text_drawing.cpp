@@ -418,7 +418,7 @@ Activity *TextSelect::Key(text key)
         widget->markChanged("Deleted text");
         direction = 0;
     }
-    else if (key.length() == 1)
+    else if (XL::Utf8Length(key) == 1)
     {
         replacement = key;
         replace = true;

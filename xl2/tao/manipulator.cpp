@@ -504,10 +504,20 @@ bool FrameManipulator::DrawHandles(Layout *layout)
                         text   t1 = sh < 0 ? "Lower " : "Upper ";
                         text   t2 = sw < 0 ? "left " : "right ";
 
-                        updateArg(widget, &x, p0.x/2, p1.x/2, p2.x/2);
-                        updateArg(widget, &y, p0.y/2, p1.y/2, p2.y/2);
-                        updateArg(widget, &w, sw*p0.x, sw*p1.x, sw*p2.x);
-                        updateArg(widget, &h, sh*p0.y, sh*p1.y, sh*p2.y);
+                        switch (CurrentEditMode())
+                        {
+                        case LockCenter:
+                            updateArg(widget, &w, 2*sw*p0.x, 2*sw*p1.x, 2*sw*p2.x);
+                            updateArg(widget, &h, 2*sh*p0.y, 2*sh*p1.y, 2*sh*p2.y);
+                            break;
+
+                        default:
+                            updateArg(widget, &x, p0.x/2, p1.x/2, p2.x/2);
+                            updateArg(widget, &y, p0.y/2, p1.y/2, p2.y/2);
+                            updateArg(widget, &w, sw*p0.x, sw*p1.x, sw*p2.x);
+                            updateArg(widget, &h, sh*p0.y, sh*p1.y, sh*p2.y);
+                            break;
+                        }
 
                         widget->markChanged(t1 + t2 + "corner moved");
                     }
@@ -517,6 +527,22 @@ bool FrameManipulator::DrawHandles(Layout *layout)
     }
 
     return handle != 0;
+}
+
+
+Manipulator::EditMode Manipulator::CurrentEditMode()
+// ----------------------------------------------------------------------------
+//   Define editing constraints depending on current keyboard modifier keys
+// ----------------------------------------------------------------------------
+{
+    int m = (int)QApplication::keyboardModifiers();
+    switch (m & (Qt::AltModifier + Qt::ShiftModifier))
+    {
+    case (Qt::AltModifier + Qt::ShiftModifier): return LockCenterAndAspectRatio;
+    case (Qt::AltModifier):                     return LockCenter;
+    case (Qt::ShiftModifier):                   return LockAspectRatio;
+    default:                                    return LockNothing;
+    }
 }
 
 

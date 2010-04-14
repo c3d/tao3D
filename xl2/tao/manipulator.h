@@ -36,12 +36,20 @@ TAO_BEGIN
 
 struct Manipulator : Drawing
 // ----------------------------------------------------------------------------
-//   Structure used to manipulate XL coordinates using the mouse
+//   Structure used to manipulate XL coordinates using the mouse and keyboard
 // ----------------------------------------------------------------------------
 {
     typedef XL::Tree     Tree, *tree_p;
     typedef XL::Real&    real_r;
     typedef XL::Integer& integer_r;
+
+    enum EditMode
+    {
+        LockNothing,
+        LockCenter,
+        LockAspectRatio,
+        LockCenterAndAspectRatio
+    };
 
     Manipulator();
 
@@ -51,6 +59,7 @@ struct Manipulator : Drawing
     virtual bool        DrawHandle(Layout *layout, Point3 p, uint id,
                                    text name = "handle");
     virtual bool        DrawHandles(Layout *layout) = 0;
+    virtual EditMode    CurrentEditMode();
 
 protected:
     void                updateArg(Widget *widget, tree_p arg,

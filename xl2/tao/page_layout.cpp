@@ -213,7 +213,7 @@ void LayoutLine::DrawSelection(Layout *where)
 
     // Get widget and text selection
     Widget *widget = where->Display();
-    TextSelect *sel = widget->textSelection(false);
+    TextSelect *sel = widget->textSelection();
 
     // Display all items
     LineJustifier::Places &places = line.places;
@@ -245,7 +245,8 @@ void LayoutLine::DrawSelection(Layout *where)
             }
 
             glBlendFunc(GL_DST_COLOR, GL_ZERO);
-            widget->drawSelection(sel->selBox, "text_selection");
+            text mode = sel->textMode ? "text_selection" : "text_highlight";
+            widget->drawSelection(sel->selBox, mode);
             sel->selBox.Empty();
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
@@ -649,7 +650,7 @@ void PageLayout::DrawSelection(Layout *where)
 
     // Assign an ID for the page layout itself and draw a rectangle in it
     GLuint layoutId = widget->newId();
-    if (TextSelect *sel = widget->textSelection(false))
+    if (TextSelect *sel = widget->textSelection())
     {
         if (sel->start() <= layoutId && sel->end() >= startId)
             widget->select(layoutId, 1);

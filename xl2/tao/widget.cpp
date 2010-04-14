@@ -1022,7 +1022,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
         new Selection(this);
 
     // Send the click to all activities
-    for (Activity *a = activities; a; a = a->Click(button, true, x, y)) ;
+    for (Activity *a = activities; a; a = a->Click(button, 1, x, y)) ;
 
     // Check if some widget is selected and wants that event
     if (forwardEvent(event))
@@ -1079,7 +1079,7 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
     int y = event->y();
 
     // Check if there is an activity that deals with it
-    for (Activity *a = activities; a; a = a->Click(button, false, x, y)) ;
+    for (Activity *a = activities; a; a = a->Click(button, 0, x, y)) ;
 
     // Pass the event down the event chain
     forwardEvent(event);
@@ -1119,7 +1119,7 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
         new Selection(this);
 
     // Send the click to all activities
-    for (Activity *a = activities; a; a = a->Click(button, true, x, y)) ;
+    for (Activity *a = activities; a; a = a->Click(button, 2, x, y)) ;
 
     forwardEvent(event);
 }
@@ -1478,23 +1478,12 @@ Drag *Widget::drag()
 }
 
 
-TextSelect *Widget::textSelection(bool create)
+TextSelect *Widget::textSelection()
 // ----------------------------------------------------------------------------
 //   Return text selection if appropriate, possibly creating it from a Drag
 // ----------------------------------------------------------------------------
 {
     TextSelect *result = active<TextSelect>();
-    if (!result && create)
-    {
-        Drag *d = active<Drag>();
-        Selection *s = active<Selection>();
-        if (d || s)
-        {
-            delete d;
-            result = new TextSelect(this);
-            recordProjection();
-        }
-    }
     if (result)
         recordProjection();
     return result;

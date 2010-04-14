@@ -35,14 +35,14 @@ Drag::Drag(Widget *w)
 {}
 
 
-Activity *Drag::Click(uint button, bool down, int x, int y)
+Activity *Drag::Click(uint button, uint count, int x, int y)
 // ----------------------------------------------------------------------------
 //   Initial and final click when dragging an object
 // ----------------------------------------------------------------------------
 {
     if (button & Qt::LeftButton)
     {
-        if (down)
+        if (count)
         {
             x0 = x1 = x2 = x;
             y0 = y1 = y2 = y;

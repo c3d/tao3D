@@ -97,22 +97,14 @@ void TextSpan::DrawSelection(Layout *where)
     {
         GLuint charId = widget->newId();
         bool charSelected = widget->selected();
-        TextSelect *sel = NULL;
+        TextSelect *sel = widget->textSelection();
         next = XL::Utf8Next(str, i);
-        if (charSelected)
+        if (!charSelected && sel)
         {
-            sel = widget->textSelection(true);
-        }
-        else
-        {
-            sel = widget->textSelection(false);
-            if (sel)
+            if (charId >= sel->start() && charId <= sel->end())
             {
-                if (charId >= sel->start() && charId <= sel->end())
-                {
-                    charSelected = true;
-                    widget->select(charId, 1);
-                }
+                charSelected = true;
+                widget->select(charId, 1);
             }
         }
 
@@ -347,8 +339,8 @@ TextSelect::TextSelect(Widget *w)
 //   Constructor initializes an empty text range
 // ----------------------------------------------------------------------------
     : Activity("Text selection", w),
-      mark(0), point(0), direction(0), manipulator(0),
-      replacement(""), replace(false)
+      mark(0), point(0), direction(0),
+      replacement(""), replace(false), textMode(false)
 {
     Widget::selection_map::iterator i, last = w->selection.end();
     for (i = w->selection.begin(); i != last; i++)
@@ -441,19 +433,20 @@ Activity *TextSelect::Key(text key)
 }
 
 
-Activity *TextSelect::Click(uint button, bool down, int x, int y)
+Activity *TextSelect::Click(uint button, uint count, int x, int y)
 // ----------------------------------------------------------------------------
 //   Selection of text
 // ----------------------------------------------------------------------------
 {
     if (button & Qt::LeftButton)
     {
-        if (down)
+        if (count)
         {
             mark = point = 0;
-            manipulator = 0;
+            if (count == 2)
+                textMode = true;
+            return MouseMove(x, y, true);
         }
-        return MouseMove(x, y, down);
     }
     return next;
 }
@@ -494,6 +487,7 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
     widget->selection = widget->savedSelection;
     int hits = glRenderMode(GL_RENDER);
     GLuint selected = 0;
+    GLuint manipulator = 0;
     if (hits > 0)
     {
         GLuint *ptr = buffer;
@@ -507,21 +501,24 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
             ptr += 3 + size;
         }
 
-        if (selected && !manipulator)
+        if (manipulator)
+        {
+            textMode = false;
+        }
+        else if (selected && textMode)
         {
             if (mark)
                 point = selected;
             else
                 mark = point = selected;
+            updateSelection();
         }
-
-        updateSelection();
     }
     delete[] buffer;
 
-    if (!manipulator)
+    // If selecting a range of text, prevent the drag from moving us around
+    if (textMode)
     {
-        // Prevent the drag from moving us around
         if (Drag *drag = widget->drag())
         {
             drag->x1 = drag->x2 = x;

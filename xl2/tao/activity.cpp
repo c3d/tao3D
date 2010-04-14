@@ -87,7 +87,7 @@ Activity *Activity::Key(text key)
 }
 
 
-Activity *Activity::Click(uint button, bool down, int x, int y)
+Activity *Activity::Click(uint button, uint count, int x, int y)
 // ----------------------------------------------------------------------------
 //   The default is to not deal with clicks, leave it to the next activity
 // ----------------------------------------------------------------------------

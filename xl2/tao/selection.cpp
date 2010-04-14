@@ -23,6 +23,7 @@
 #include "drag.h"
 #include "selection.h"
 #include "widget.h"
+#include "text_drawing.h"
 #include "gl_keepers.h"
 #include <GL/glew.h>
 #include <QtGui>
@@ -71,7 +72,7 @@ Activity *Selection::Idle(void)
 }
 
 
-Activity *Selection::Click(uint button, bool down, int x, int y)
+Activity *Selection::Click(uint button, uint count, int x, int y)
 // ----------------------------------------------------------------------------
 //   Initial and final click in a selection rectangle
 // ----------------------------------------------------------------------------
@@ -84,7 +85,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
 
     if (button & Qt::LeftButton)
     {
-        if (down)
+        if (count)
         {
             firstClick = true;
             rectangle.lower.Set(x, y);
@@ -174,7 +175,16 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
         Idle();
         delete this;
         if (selected)
+        {
+            if (count == 2)
+                new TextSelect(widget);
             return new Drag(widget);
+        }
+    }
+    else
+    {
+        if (TextSelect *sel = widget->textSelection())
+            delete sel;
     }
 
     return NULL;                // We dealt with the event

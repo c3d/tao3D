@@ -921,7 +921,7 @@ static text keyName(QKeyEvent *event)
     {
         if (ctrl == "")
         {
-            if (modifiers & Qt::ShiftModifier)
+            if (name.length() != 1 && (modifiers & Qt::ShiftModifier))
                 name = "Shift-" + name;
             ctrl = name;
         }

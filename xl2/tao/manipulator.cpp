@@ -612,7 +612,30 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
     int sw = w > 0? 1: -1;
     int sh = h > 0? 1: -1;
 
-    if (sh*h < sw*w)
+    if (sw*w < sh*h)
+    {
+        if (r > sh*h/2)
+            rr = sh*h/2;
+
+        if (DrawHandle(layout, Point3(x + sw*w/2,y + sh*h/2 - rr, 0), 9))
+        {
+            if (drag)
+            {
+                Point3 p1 = drag->Previous();
+                Point3 p2 = drag->Current();
+                if (p1 != p2)
+                {
+                    Point3 p0 = drag->Origin();
+                    updateArg(widget, &r, 
+                              y+sh*h/2-p0.y, y+sh*h/2-p1.y, y+sh*h/2-p2.y,
+                              true, 0.0, true, sh*h/2);
+                    widget->markChanged("Rounded rectangle corner modified");
+                    changed = true;
+                }
+            }
+        }
+    }
+    else
     {
         if (r > sw*w/2)
             rr = sw*w/2;
@@ -635,29 +658,7 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
             }
         }
     } 
-    else
-    {
-        if (r > sh*h/2)
-            rr = sh*h/2;
 
-        if (DrawHandle(layout, Point3(x + sw*w/2,y + sh*h/2 - rr, 0), 9))
-        {
-            if (drag)
-            {
-                Point3 p1 = drag->Previous();
-                Point3 p2 = drag->Current();
-                if (p1 != p2)
-                {
-                    Point3 p0 = drag->Origin();
-                    updateArg(widget, &r, 
-                              y+sh*h/2-p0.y, y+sh*h/2-p1.y, y+sh*h/2-p2.y,
-                              true, 0.0, true, sh*h/2);
-                    widget->markChanged("Rounded rectangle corner modified");
-                    changed = true;
-                }
-            }
-        }
-     }
     if (!changed)
     {
         changed = ControlRectangle::DrawHandles(layout);
@@ -778,9 +779,16 @@ bool ControlPolygon::DrawHandles(Layout *layout)
     bool changed = false;
     int sw = w > 0? 1: -1;
     int sh = h > 0? 1: -1;
+    int p_min = 3;
+    int p_max = 20;
+    int pp = p;
+    if (p < p_min)
+        pp = p_min;
+    if (p > p_max)
+        pp = p_max;
 
     if (!changed && DrawHandle(layout,
-                               Point3(x-sw*w/2+sw*w*(p-2)/19, y-sh*h/2, 0), 9))
+                               Point3(x-sw*w/2+sw*w*(pp-2)/19, y-sh*h/2, 0), 9))
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
@@ -794,7 +802,7 @@ bool ControlPolygon::DrawHandles(Layout *layout)
                 coord p0x = 19*sw*(p0.x - x)/w + 11.5;
                 coord p1x = 19*sw*(p1.x - x)/w + 11.5;
                 coord p2x = 19*sw*(p2.x - x)/w + 11.5;
-                updateArg(widget, &p, p0x, p1x, p2x, true, 3, true, 20);
+                updateArg(widget, &p, p0x, p1x, p2x, true, p_min, true, p_max);
                 widget->markChanged("Number of points changed");
                 changed = true;
             }
@@ -835,8 +843,15 @@ bool ControlStar::DrawHandles(Layout *layout)
     double sp = sin(M_PI/p);
     int sw = w > 0? 1: -1;
     int sh = h > 0? 1: -1;
+    int r_min = 0.0;
+    int r_max = 1.0;
+    double rr = r;
+    if (r < r_min)
+        rr = r_min;
+    if (r > r_max)
+        rr = r_max;
 
-    if (DrawHandle(layout, Point3(x + r*sw*w/2*sp, y + r*h/2*cp, 0), 11))
+    if (DrawHandle(layout, Point3(x + rr*sw*w/2*sp, y + rr*h/2*cp, 0), 11))
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
@@ -850,7 +865,7 @@ bool ControlStar::DrawHandles(Layout *layout)
                 scale hp = sqrt(w*sp*w*sp + h*cp*h*cp)*sh*cp/2;
                 updateArg(widget, &r, 
                           (p0.y - y)/hp, (p1.y - y)/hp, (p2.y - y)/hp,
-                          true, 0.0, true, 1.0);
+                          true, r_min, true, r_max);
                 widget->markChanged("Star inner circle changed");
                 changed = true;
             }
@@ -875,7 +890,7 @@ ControlBalloon::ControlBalloon(real_r x, real_r y, real_r w, real_r h,
                                real_r r, real_r ax, real_r ay,
                                Drawing *child)
 // ----------------------------------------------------------------------------
-//   A control star adds inner circle ratio to the control polygon 
+//   A control balloon adds a tail to the control rounded rectangle 
 // ----------------------------------------------------------------------------
     : ControlRoundedRectangle(x, y, w, h, r, child), ax(ax), ay(ay)
 {}
@@ -909,6 +924,55 @@ bool ControlBalloon::DrawHandles(Layout *layout)
     if (!changed)
     {
         changed = ControlRoundedRectangle::DrawHandles(layout);
+    }
+    return changed;
+}
+
+
+
+// ============================================================================
+//
+//   A callout manipulator udpates x, y, w, h, radius r, end and width of tail
+//
+// ============================================================================
+
+ControlCallout::ControlCallout(real_r x, real_r y, real_r w, real_r h, 
+                               real_r r, real_r ax, real_r ay, real_r d,
+                               Drawing *child)
+// ----------------------------------------------------------------------------
+//   A control callout adds a width to the tail to the control balloon
+// ----------------------------------------------------------------------------
+    : ControlBalloon(x, y, w, h, r, ax, ay, child), d(d)
+{}
+
+
+bool ControlCallout::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the handles for a balloon
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
+
+    if (DrawHandle(layout, Point3(x+d/2, y, 0), 13))
+    {
+        Widget *widget = layout->Display();
+        Drag *drag = widget->drag();
+        if (drag)
+        {
+            Point3 p1 = drag->Previous();
+            Point3 p2 = drag->Current();
+            if (p1 != p2)
+            {
+                Point3 p0 = drag->Origin();
+                updateArg(widget, &d, 2*p0.x, 2*p1.x, 2*p2.x);
+                widget->markChanged("Callout tail width changed");
+                changed = true;
+            }
+        }
+    }
+    if (!changed)
+    {
+        changed = ControlBalloon::DrawHandles(layout);
     }
     return changed;
 }

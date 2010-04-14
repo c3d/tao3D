@@ -209,7 +209,7 @@ menu_item   "Speech Balloon", insert
 menu_item   "Callout", insert 
     locally
         theme_colors
-        callout 16, 0, 68, 100, 15, -50, 0
+        callout 16, 0, 68, 100, 15, -50, 0, 60
 menu_item   "Star", insert 
     locally
         theme_colors

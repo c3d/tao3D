@@ -2175,19 +2175,19 @@ Tree *Widget::roundedRectangle(Tree *self,
 
 
 
-Tree *Widget::ellipticRectangle(Tree *self,
-                                real_r cx, real_r cy,
-                                real_r w, real_r h, real_r r)
+Tree *Widget::ellipticalRectangle(Tree *self,
+                                  real_r cx, real_r cy,
+                                  real_r w, real_r h, real_r r)
 // ----------------------------------------------------------------------------
-//   Elliptic rectangle with ratio r for the elliptic sides
+//   Elliptical rectangle with ratio r for the elliptic sides
 // ----------------------------------------------------------------------------
 {
-    Rectangle shape(Box(cx-w/2, cy-h/2, w, h));
+    EllipticalRectangle shape(Box(cx-w/2, cy-h/2, w, h), r);
     if (path)
         shape.Draw(*path);
     else
         layout->Add(new ControlRectangle(cx, cy, w, h,
-                                         new Rectangle(shape)));
+                                         new EllipticalRectangle(shape)));
 
     return XL::xl_true;
 }
@@ -2235,9 +2235,6 @@ Tree *Widget::starPolygon(Tree *self,
 //     GL regular p-side star polygon {p/q} centered around (cx,cy)
 // ----------------------------------------------------------------------------
 {
-    if (p < 2 || q == 0 || q > (p-1)/2 || q < -(p-1)/2)
-        return ellipse(self, cx, cy, w, h); // Show something else in its place
-
     StarPolygon shape(Box(cx-w/2, cy-h/2, w, h), p, q);
     if (path)
         shape.Draw(*path);
@@ -2256,9 +2253,6 @@ Tree *Widget::star(Tree *self,
 //     GL regular p-side star centered around (cx,cy), inner radius ratio r
 // ----------------------------------------------------------------------------
 {
-    if (p < 2 || r < 0.0 || r > 1.0 )
-        return ellipse(self, cx, cy, w, h); // Show something else in its place
-
     Star shape(Box(cx-w/2, cy-h/2, w, h), p, r);
     if (path)
         shape.Draw(*path);
@@ -2291,17 +2285,17 @@ Tree *Widget::speechBalloon(Tree *self,
 
 Tree *Widget::callout(Tree *self,
                       real_r cx, real_r cy, real_r w, real_r h, 
-                      real_r r, real_r ax, real_r ay)
+                      real_r r, real_r ax, real_r ay, real_r d)
 // ----------------------------------------------------------------------------
-//   Callout with radius r for rounded corners, and point a for the tail 
+//   Callout with radius r for corners, and point a, width b for the tail 
 // ----------------------------------------------------------------------------
 {
-    SpeechBalloon shape(Box(cx-w/2, cy-h/2, w, h), r, ax, ay);
+    Callout shape(Box(cx-w/2, cy-h/2, w, h), r, ax, ay, d);
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlBalloon(cx, cy, w, h, r, ax, ay,
-                                         new SpeechBalloon(shape)));
+        layout->Add(new ControlCallout(cx, cy, w, h, r, ax, ay, d,
+                                         new Callout(shape)));
 
     return XL::xl_true;
 }

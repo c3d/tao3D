@@ -48,7 +48,7 @@ struct Vector;                  // 2D vector
 
 struct Point
 // ----------------------------------------------------------------------------
-//    A 2D dimensional point
+//    A two-dimensional point
 // ----------------------------------------------------------------------------
 {
     Point(coord X = 0, coord Y = 0): x(X), y(Y) {}
@@ -86,7 +86,7 @@ public:
 
 struct Vector : Point
 // ----------------------------------------------------------------------------
-//    A three-dimensional vector
+//    A two-dimensional vector
 // ----------------------------------------------------------------------------
 {
     Vector(coord x = 0.0, coord y = 0.0): Point(x,y) {}

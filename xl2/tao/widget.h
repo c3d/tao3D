@@ -215,9 +215,9 @@ public:
     Tree *      roundedRectangle(Tree *self,
                                  real_r cx, real_r cy, real_r w, real_r h,
                                  real_r r);
-    Tree *      ellipticRectangle(Tree *self,
-                                  real_r cx, real_r cy, real_r w, real_r h,
-                                  real_r r);
+    Tree *      ellipticalRectangle(Tree *self,
+                                    real_r cx, real_r cy, real_r w, real_r h,
+                                    real_r r);
     Tree *      arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
                       real_r ax, real_r ary);
     Tree *      doubleArrow(Tree *self,
@@ -233,7 +233,7 @@ public:
                               real_r r, real_r ax, real_r ay);
     Tree *      callout(Tree *self,
                         real_r cx, real_r cy, real_r w, real_r h,
-                        real_r r, real_r ax, real_r ay);
+                        real_r r, real_r ax, real_r ay, real_r d);
 
 
     // 3D primitives

@@ -208,7 +208,7 @@ protected:
 
 struct ControlBalloon : ControlRoundedRectangle
 // ----------------------------------------------------------------------------
-//   Manipulators for a rectangle-bounded object
+//   Manipulators for a Balloon object
 // ----------------------------------------------------------------------------
 {
     ControlBalloon(real_r x, real_r y, real_r w, real_r h, real_r r,
@@ -217,6 +217,20 @@ struct ControlBalloon : ControlRoundedRectangle
 
     protected:
     real_r              ax, ay;
+};
+
+
+struct ControlCallout : ControlBalloon
+// ----------------------------------------------------------------------------
+//   Manipulators for a Callout object
+// ----------------------------------------------------------------------------
+{
+    ControlCallout(real_r x, real_r y, real_r w, real_r h, real_r r,
+                   real_r ax, real_r ay, real_r d, Drawing *child);
+    virtual bool        DrawHandles(Layout *layout);
+
+    protected:
+    real_r              d;
 };
 
 

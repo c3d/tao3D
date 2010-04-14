@@ -82,7 +82,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       xlProgram(sf),
       space(NULL), layout(NULL), path(NULL), currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
-      id(0), capacity(0), manipulator(0),
+      id(0), charId(0), capacity(0), manipulator(0),
       event(NULL), focusWidget(NULL),
       currentMenu(NULL), currentMenuBar(NULL),
       whatsNew(""), reloadProgram(false),
@@ -399,18 +399,18 @@ void Widget::runProgram()
     }
 
     // After we are done, draw the space with all the drawings in it
-    id = 0;
+    id = charId = 0;
     space->Draw(NULL);
-    id = 0;
+    id = charId = 0;
     space->DrawSelection(NULL);
 
     // Once we are done, do a garbage collection
     XL::Context::context->CollectGarbage();
 
     // Remember how many elements are drawn on the page, plus arbitrary buffer
-    if (id > capacity)
-        capacity = id + 100;
-    else if (id + 50 < capacity / 2)
+    if (id + charId > capacity)
+        capacity = id + charId + 100;
+    else if (id + charId + 50 < capacity / 2)
         capacity = capacity / 2;
 }
 
@@ -420,7 +420,7 @@ void Widget::identifySelection()
 //   Draw the elements in global space for selection purpose
 // ----------------------------------------------------------------------------
 {
-    id = 0;
+    id = charId = 0;
     space->Identify(NULL);
 }
 
@@ -430,7 +430,7 @@ void Widget::updateSelection()
 //   Redraw selection in order to perform text editing operations
 // ----------------------------------------------------------------------------
 {
-    id = 0;
+    id = charId = 0;
     space->DrawSelection(NULL);
 }
 

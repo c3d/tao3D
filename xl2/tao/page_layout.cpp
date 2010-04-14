@@ -218,7 +218,7 @@ void LayoutLine::DrawSelection(Layout *where)
     // Display all items
     LineJustifier::Places &places = line.places;
     LineJustifier::PlacesIterator p;
-    uint startId = widget->currentId();
+    uint startId = widget->currentCharId();
     for (p = places.begin(); p != places.end(); p++)
     {
         LineJustifier::Place &place = *p;
@@ -226,7 +226,7 @@ void LayoutLine::DrawSelection(Layout *where)
         where->offset.x = place.position;
         child->DrawSelection(where);
     }
-    uint endId = widget->currentId();
+    uint endId = widget->currentCharId();
 
     if (sel)
     {
@@ -630,7 +630,7 @@ void PageLayout::DrawSelection(Layout *where)
 {
     // Remember the initial selection ID
     Widget *widget = where->Display();
-    GLuint startId = widget->currentId();
+    GLuint startId = widget->currentCharId();
 
     // Inherit state from our parent layout if there is one
     Inherit(where);
@@ -649,15 +649,12 @@ void PageLayout::DrawSelection(Layout *where)
     }
 
     // Assign an ID for the page layout itself and draw a rectangle in it
+    GLuint endId = widget->currentCharId();
     GLuint layoutId = widget->newId();
     if (TextSelect *sel = widget->textSelection())
     {
-        if (sel->start() <= layoutId && sel->end() >= startId)
+        if (sel->start() <= endId && sel->end() >= startId)
             widget->select(layoutId, 1);
-        if (sel->mark == layoutId || sel->mark == startId)
-            sel->mark += sel->direction;;
-        if (sel->point == layoutId || sel->point == startId)
-            sel->point += sel->direction;;
     }
 }
 

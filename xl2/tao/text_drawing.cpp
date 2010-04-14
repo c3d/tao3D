@@ -50,6 +50,8 @@ void TextSpan::Draw(Layout *where)
     QPainterPath path;
     QString str = +source->value.substr(start, end - start);
     QFontMetricsF fm(font);
+    Widget *widget = where->Display();
+    widget->newCharId(str.length());
 
     int index = str.indexOf(QChar('\n'));
     while (index >= 0)
@@ -92,7 +94,7 @@ void TextSpan::DrawSelection(Layout *where)
     uint i, next, max = str.length();
     for (i = start; i < max && i < end; i = next)
     {
-        GLuint charId = widget->newId();
+        GLuint charId = widget->newCharId();
         bool charSelected = widget->charSelected();
         TextSelect *sel = widget->textSelection();
         next = XL::Utf8Next(str, i);
@@ -186,7 +188,7 @@ void TextSpan::Identify(Layout *where)
             { xx,      yy + hh, z }
         };
 
-        glLoadName(widget->newCharId());
+        glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
         glVertexPointer(3, GL_DOUBLE, 0, array);
         glEnableClientState(GL_VERTEX_ARRAY);
         glDrawArrays(GL_QUADS, 0, 4);
@@ -519,19 +521,17 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
         else if ((selected & Widget::CHAR_ID_BIT))
         {
             selected &= Widget::CHAR_ID_MASK;
-            Drag *drag = widget->drag();
-            if (drag)
-            {
-                if (!mark)
-                    mark = point = selected;
-            }
-            else
+            if (textMode)
             {
                 if (mark)
                     point = selected;
                 else
                     mark = point = selected;
                 updateSelection();
+            }
+            else if (!mark)
+            {
+                mark = point = selected;
             }
         }
     }

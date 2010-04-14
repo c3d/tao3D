@@ -116,9 +116,10 @@ public:
     GLuint      manipulatorId()         { return manipulator; }
     GLuint      selectionCapacity()     { return capacity; }
     uint        selected()              { return selected(id); }
+    GLuint      newCharId(uint ids = 1) { return charId += ids; }
+    GLuint      currentCharId()         { return charId; }
     uint        charSelected(uint i)    { return selected(i | CHAR_ID_BIT); }
-    uint        charSelected()          { return charSelected(id); }
-    GLuint      newCharId()             { return ++id | CHAR_ID_BIT; }
+    uint        charSelected()          { return charSelected(charId); }
     void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
     uint        selected(uint i);
     void        select(uint id, uint count);
@@ -372,7 +373,7 @@ private:
 
     // Selection
     Activity *            activities;
-    GLuint                id, capacity, manipulator;
+    GLuint                id, charId, capacity, manipulator;
     selection_map         selection, savedSelection;
     std::set<XL::Tree *>  selectionTrees;
     QEvent *              event;

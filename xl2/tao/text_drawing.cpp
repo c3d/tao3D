@@ -82,26 +82,18 @@ void TextSpan::DrawSelection(Layout *where)
     Point3 pos = where->offset;
     text str = source->value;
     QFontMetricsF fm(font);
-    scale h = fm.height();
+    coord descent = fm.descent();
+    coord leading = fm.leading();
+    scale h = fm.height() + leading;
     coord x = pos.x;
     coord y = pos.y;
     coord z = pos.z;
-    coord xx, yy, ww, hh;
-    coord descent = fm.descent();
-    coord leading = fm.leading();
+    uint  first = start;
 
     // Loop over all characters in the text span
     uint i, max = str.length();
     for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
     {
-        QChar qc = QChar(XL::Utf8Code(str, i));
-        float w = qc == '\n' ? 3 : fm.width(qc);
-
-        xx = x + fm.leftBearing(qc);
-        yy = y - descent - leading;
-        ww = w;
-        hh = h + leading;
-
         GLuint charId = widget->newId();
         bool charSelected = widget->selected();
         TextSelect *sel = NULL;
@@ -124,6 +116,10 @@ void TextSpan::DrawSelection(Layout *where)
 
         if (charSelected && sel)
         {
+            float sw = fm.width(+str.substr(first, i-first));
+            coord xx = x + sw;
+            coord yy = y - descent - leading;
+
             if (sel->replace)
             {
                 text rpl = sel->replacement;
@@ -134,17 +130,14 @@ void TextSpan::DrawSelection(Layout *where)
                 sel->replacement = "";
                 sel->moveTo(sel->point + XL::Utf8Length(rpl));
             }
-            sel->selBox |= Box3(xx,yy,z, 1, hh, 0);
+            sel->selBox |= Box3(xx,yy,z, 1, h, 0);
         }
 
-        if (qc == '\n')
+        if (str[i] == '\n')
         {
             x = 0;
             y -= h;
-        }
-        else
-        {
-            x += w;
+            first = i;
         }
     }
 

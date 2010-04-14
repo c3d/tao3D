@@ -91,12 +91,13 @@ void TextSpan::DrawSelection(Layout *where)
     uint  first = start;
 
     // Loop over all characters in the text span
-    uint i, max = str.length();
-    for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
+    uint i, next, max = str.length();
+    for (i = start; i < max && i < end; i = next)
     {
         GLuint charId = widget->newId();
         bool charSelected = widget->selected();
         TextSelect *sel = NULL;
+        next = XL::Utf8Next(str, i);
         if (charSelected)
         {
             sel = widget->textSelection(true);
@@ -125,10 +126,20 @@ void TextSpan::DrawSelection(Layout *where)
                 text rpl = sel->replacement;
                 uint eos = i;
                 if (sel->point != sel->mark)
-                    eos = XL::Utf8Next(source->value, i);
+                {
+                    eos = next;
+                    if (sel->point > sel->mark)
+                        sel->point--;
+                    else
+                        sel->mark--;
+                }
                 source->value.replace(i, eos-i, rpl);
                 sel->replacement = "";
-                sel->moveTo(sel->point + XL::Utf8Length(rpl));
+                uint length = XL::Utf8Length(rpl);
+                sel->point += length;
+                sel->mark += length;
+                if (!length)
+                    next = i;
             }
             sel->selBox |= Box3(xx,yy,z, 1, h, 0);
         }

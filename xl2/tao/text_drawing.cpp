@@ -158,9 +158,9 @@ void TextSpan::DrawSelection(Layout *where)
     if (sel && sel->replace && max <= end)
     {
         charId++;
-        if (charId >= sel->start() && charId <= sel->end())
+        text rpl = sel->replacement;
+        if (charId >= sel->start() && charId <= sel->end() && rpl.length())
         {
-            text rpl = sel->replacement;
             uint eos = i;
             if (sel->point != sel->mark)
             {

@@ -157,7 +157,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     // If this is the first click, then update selection
     if (firstClick)
     {
-        if (shiftModifier || widget->selection.count(selected))
+        if (shiftModifier || widget->selection.count(selected) || manipulator)
             widget->savedSelection = widget->selection;
         else
             widget->savedSelection.clear();

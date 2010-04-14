@@ -683,7 +683,7 @@ void PageLayout::Identify(Layout *where)
         child->Identify(this);
     }
 
-    widget->newId();
+    glLoadName(widget->newId());
     coord x = space.Left(),  y = space.Bottom();
     coord w = space.Width(), h = space.Height();
     coord z = (space.Front() + space.Back()) / 2;
@@ -700,7 +700,6 @@ void PageLayout::Identify(Layout *where)
     glEnableClientState(GL_VERTEX_ARRAY);
     glDrawArrays(GL_QUADS, 0, 4);
     glDisableClientState(GL_VERTEX_ARRAY);
-
 }
 
 

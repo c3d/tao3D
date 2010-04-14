@@ -494,7 +494,6 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
     // [1]: Minimum depth
     // [2]: Maximum depth
     // [3..3+[0]-1]: List of names
-    widget->selection = widget->savedSelection;
     int hits = glRenderMode(GL_RENDER);
     GLuint selected = 0;
     GLuint manipulator = 0;

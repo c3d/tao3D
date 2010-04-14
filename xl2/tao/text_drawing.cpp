@@ -92,7 +92,7 @@ void TextSpan::DrawSelection(Layout *where)
     uint i, next, max = str.length();
     for (i = start; i < max && i < end; i = next)
     {
-        GLuint charId = widget->newCharId();
+        GLuint charId = widget->newId();
         bool charSelected = widget->charSelected();
         TextSelect *sel = widget->textSelection();
         next = XL::Utf8Next(str, i);

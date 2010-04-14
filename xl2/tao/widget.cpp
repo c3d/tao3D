@@ -1019,11 +1019,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
 
     // Create a selection if left click and nothing going on right now
     if (button == Qt::LeftButton)
-    {
-        if (TextSelect *sel = textSelection(false))
-            delete sel;
         new Selection(this);
-    }
 
     // Send the click to all activities
     for (Activity *a = activities; a; a = a->Click(button, true, x, y)) ;

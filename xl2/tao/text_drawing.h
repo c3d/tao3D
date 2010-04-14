@@ -77,6 +77,7 @@ struct TextSelect : Activity
 
     uint                mark, point;
     int                 direction;
+    uint                manipulator;
     Box3                selBox;
     text                replacement;
     bool                replace;

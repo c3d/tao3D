@@ -24,8 +24,9 @@
 #include "path3d.h"
 #include "layout.h"
 #include "widget.h"
-#include "utf8.h"
 #include "tao_utf8.h"
+#include "drag.h"
+
 #include <GL/glew.h>
 #include <QtOpenGL>
 #include <QPainterPath>
@@ -346,7 +347,8 @@ TextSelect::TextSelect(Widget *w)
 //   Constructor initializes an empty text range
 // ----------------------------------------------------------------------------
     : Activity("Text selection", w),
-      mark(0), point(0), direction(0), replacement(""), replace(false)
+      mark(0), point(0), direction(0), manipulator(0),
+      replacement(""), replace(false)
 {
     Widget::selection_map::iterator i, last = w->selection.end();
     for (i = w->selection.begin(); i != last; i++)
@@ -445,7 +447,11 @@ Activity *TextSelect::Click(uint button, bool down, int x, int y)
 // ----------------------------------------------------------------------------
 {
     if (button & Qt::LeftButton)
+    {
+        mark = point = 0;
+        manipulator = 0;
         return MouseMove(x, y, down);
+    }
     return next;
 }
 
@@ -491,20 +497,34 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
         for (int i = 0; i < hits; i++)
         {
             uint size = ptr[0];
-            selected = ptr[3];
-            if (selected)
-            {
-                if (mark)
-                    point = selected;
-                else
-                    mark = selected;
-                break;
-            }
+            if (size > 1)
+                manipulator = ptr[4];
+            else if (!selected)
+                selected = ptr[3];
             ptr += 3 + size;
         }
+
+        if (selected && !manipulator)
+        {
+            if (mark)
+                point = selected;
+            else
+                mark = point = selected;
+        }
+
         updateSelection();
     }
     delete[] buffer;
+
+    if (!manipulator)
+    {
+        // Prevent the drag from moving us around
+        if (Drag *drag = widget->drag())
+        {
+            drag->x1 = drag->x2 = x;
+            drag->y1 = drag->y2 = widget->height() - y;
+        }
+    }
 
     // Need a refresh
     widget->refresh();

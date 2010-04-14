@@ -35,6 +35,7 @@ macx {
     DEFINES += CONFIG_MACOSX
     XLRDIR = Contents/MacOS
     ICON = tao.icns
+    QMAKE_INFO_PLIST = Info.plist
 }
 win32:DEFINES += CONFIG_MINGW
 linux-g++:DEFINES += CONFIG_LINUX

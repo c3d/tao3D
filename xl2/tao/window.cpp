@@ -591,8 +591,8 @@ bool Window::saveFile(const QString &fileName)
 // ----------------------------------------------------------------------------
 {
     QFile file(fileName);
-    QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
-    text fn = canonicalFilePath.toStdString();
+    text fn = +fileName;
+
 
     if (!file.open(QFile::WriteOnly | QFile::Text))
     {
@@ -617,10 +617,13 @@ bool Window::saveFile(const QString &fileName)
     updateProgram(fileName);
 
     // Trigger immediate commit to repository
-    taoWidget->markChanged("Manual save");
     XL::SourceFile &sf = xlRuntime->files[fn];
+
     if (taoWidget->writeIfChanged(sf))
+    {
+        taoWidget->markChanged("Manual save");
         taoWidget->doCommit();
+    }
     return true;
 }
 
@@ -957,7 +960,8 @@ bool Window::populateUndoStack()
     while (it.hasNext())
     {
         Repository::Commit c = it.next();
-        undoStack->push(new UndoCommand(repo.data(), c.id, c.msg));
+        if (!c.msg.contains("Automatic"))
+                undoStack->push(new UndoCommand(repo.data(), c.id, c.msg));
     }
     return true;
 }

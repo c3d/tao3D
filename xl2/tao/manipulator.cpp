@@ -953,7 +953,63 @@ bool ControlCallout::DrawHandles(Layout *layout)
 {
     bool changed = false;
 
-    if (DrawHandle(layout, Point3(x+d/2, y, 0), 13))
+    int sw = w > 0? 1: -1;
+    int sh = h > 0? 1: -1;
+    double pw = sw*w;
+    double ph = sh*h;
+    double rr = r;
+    if (pw < ph)
+    {
+        if (r > pw/2)
+            rr = pw/2;
+    }
+    else
+    {
+        if (r > ph/2)
+            rr = ph/2;
+    }
+    double dd = d;
+    if (d < 0)
+        dd = 0;
+    dd = dd < w? dd: double(w);
+    dd = dd < h? dd: double(h);
+    double mrd = dd > 2*rr? dd: 2*rr;
+    double tx = ax - x;
+    double ty = ay - y;
+    int stx = tx > 0? 1: -1;
+    int sty = ty > 0? 1: -1;
+    double ptx = stx*tx;
+    double pty = sty*ty;
+
+    Point cd;
+    if (pty <= (ph-mrd)/2)
+    {
+        // Horizontal tail
+        cd.x = x + stx*(pw-mrd)/2; 
+        cd.y = y + sty*(pty < (ph-mrd)/2? pty: (ph-mrd)/2);
+    }
+    else if (ptx <= (pw-mrd)/2)
+    {
+        // Vertical tail
+        cd.x = x + stx*(ptx < (pw-mrd)/2? ptx: (pw-mrd)/2);
+        cd.y = y + sty*(ph-mrd)/2; 
+    }
+    else 
+    {
+        // Tail with an angle
+        cd.x = x + stx*(pw-mrd)/2;
+        cd.y = y + sty*(ph-mrd)/2;
+    }    
+            
+    Vector td = Point(ax, ay) - cd;
+    td.Normalize();
+    double beta = sty*acos(td.x);
+        
+    POint dcp;
+    dcp.x = ax + dd/4*cos(beta+M_PI_2) - 15*td.x;
+    dcp.y = ay + dd/4*sin(beta+M_PI_2) - 15*td.y;
+
+    if (DrawHandle(layout, Point3(dcp.x, dcp.y, 0), 13))
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
@@ -964,7 +1020,16 @@ bool ControlCallout::DrawHandles(Layout *layout)
             if (p1 != p2)
             {
                 Point3 p0 = drag->Origin();
-                updateArg(widget, &d, 2*p0.x, 2*p1.x, 2*p2.x);
+                if (cos(beta+M_PI_2) > sin(beta+M_PI_2))
+                {
+                    updateArg(widget, &d, 4*p0.x, 4*p1.x, 4*p2.x,
+                              true, 0, true, w<h? w: h );
+                }
+                else
+                {
+                    updateArg(widget, &d, 4*p0.y, 4*p1.y, 4*p2.y,
+                              true, 0, true, w<h? w: h );
+                }
                 widget->markChanged("Callout tail width changed");
                 changed = true;
             }

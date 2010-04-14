@@ -51,9 +51,7 @@ locally
 
 locally 
     theme_colors 
-    color 1, 0, 0, 1 
-    line_color 1, 0, 0, 1 
-    callout 16, 0, 68, 100, 15, -50, 0
+    callout 16, 0, 68, 100, 15, -50, 0, 68
 
 locally 
     theme_colors 

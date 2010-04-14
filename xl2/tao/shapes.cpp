@@ -256,31 +256,44 @@ void EllipticalRectangle::Draw(GraphicPath &path)
     int sh = h > 0? 1: -1;
     double pw = sw*w;
     double ph = sh*h;
-    double rr = M_SQRT1_2+(1-M_SQRT1_2)*r;
-    double alpha_r = acos(rr);
-    double alpha_d = alpha_r * 180 / M_PI;
-    double ratio = (1-cos(alpha_r))/(1-sin(alpha_r));
+    if (r < 0.0)
+    {
+        QPainterPath ellipse;
+        ellipse.addEllipse(bounds.lower.x, bounds.lower.y,
+                           bounds.Width(), bounds.Height());
+        path.addQtPath(ellipse);
+    } 
+    else if (r > 1.0)
+    {
+        path.moveTo(Point3(bounds.lower.x, bounds.lower.y, 0));
+        path.lineTo(Point3(bounds.upper.x, bounds.lower.y, 0));
+        path.lineTo(Point3(bounds.upper.x, bounds.upper.y, 0));
+        path.lineTo(Point3(bounds.lower.x, bounds.upper.y, 0));
+        path.close();
+    }
+    else
+    {
+        double rr = M_SQRT1_2+(1-M_SQRT1_2)*r;
+        double alpha_r = acos(rr);
+        double alpha_d = alpha_r * 180 / M_PI;
+        double ratio = (1-cos(alpha_r))/(1-sin(alpha_r));
 
-    QPainterPath rect;
-
-    rect.moveTo(c.x+rr*pw/2, c.y+rr*ph/2);
-    rect.arcTo(c.x+pw/2-ratio*pw, c.y-ph/2,
-               ratio*pw, ph,
-               270+alpha_d, 180-2*alpha_d);
-
-    rect.arcTo(c.x-pw/2, c.y-ph/2,
-               pw, ratio*ph,
-               alpha_d, 180-2*alpha_d);
-
-    rect.arcTo(c.x-pw/2, c.y-ph/2,
-               ratio*pw, ph,
-               90+alpha_d, 180-2*alpha_d);
-
-    rect.arcTo(c.x-pw/2, c.y+ph/2-ratio*ph,
-               pw, ratio*ph,
-               180+alpha_d, 180-2*alpha_d);
-
-    path.addQtPath(rect);
+        QPainterPath rect;
+        rect.moveTo(c.x+rr*pw/2, c.y+rr*ph/2);
+        rect.arcTo(c.x+pw/2-ratio*pw, c.y-ph/2,
+                   ratio*pw, ph,
+                   270+alpha_d, 180-2*alpha_d);
+        rect.arcTo(c.x-pw/2, c.y-ph/2,
+                   pw, ratio*ph,
+                   alpha_d, 180-2*alpha_d);
+        rect.arcTo(c.x-pw/2, c.y-ph/2,
+                   ratio*pw, ph,
+                   90+alpha_d, 180-2*alpha_d);
+        rect.arcTo(c.x-pw/2, c.y+ph/2-ratio*ph,
+                   pw, ratio*ph,
+                   180+alpha_d, 180-2*alpha_d);
+        path.addQtPath(rect);
+    }
 }
 
 
@@ -729,19 +742,13 @@ void Callout::Draw(GraphicPath &path)
     int sty = ty > 0? 1: -1;
     double ptx = stx*tx;
     double pty = sty*ty;
-
-    if (d < 0)
-        d = 0;
-    d = d < w/2? d: w/2;
-    d = d < h/2? d: h/2;
-
-    Point d0, d1, d2, cc;
+    Point d0, cr;
     double alpha;
+    Vector tr;
     bool inside = false;
 
     if (pty <= ph/2-r)
     {
-        // Horizontal tail
         if (ptx <= pw/2)
         {
             inside = true;
@@ -750,77 +757,10 @@ void Callout::Draw(GraphicPath &path)
         {
             d0.x = c.x + stx*pw/2;
             d0.y = c.y + ty;
-
-            /*
-            double l1 = ph/2-r-pty;
-            double s1 = l1 + M_PI_2*r;
-            bool tangent1 = false;
-
-            if (d <= l1)
-            {
-                d1.x = d0.x;
-                d1.y = d0.y + sty*d;
-            } 
-            else if (d <= s1)
-            {
-                // Consider tangent
-                // FIXME: Really consider tangent
-                tangent1 = true;
-            }
-            else
-            {
-                // Tangent
-                tangent1 = true;
-            }
-            if (tangent1)
-            {
-                cc.x = c.x + stx*(pw/2-r);
-                cc.y = c.y + sty*(ph/2-r);
-                double xa = stx*(a.x - cc.x);
-                double ya = l1;
-                double aa = sqrt(xa*xa + ya*ya);
-                double theta = M_PI_2 - asin(r/aa) - asin(ya/aa);
-                d1.x = cc.x + stx*r*cos(theta);
-                d1.y = cc.y + sty*r*sin(theta);
-            }
-        
-            double l2 = ph/2-r+pty;
-            double s2 = l2 + M_PI_2*r;
-            bool tangent2 = false;
-
-            if (d <= l2)
-            {
-                d2.x = d0.x;
-                d2.y = d0.y - sty*d;
-            } 
-            else if (d <= s2)
-            {
-                // Consider tangent
-                // FIXME: Really consider tangent
-                tangent2 = true;
-            }
-            else
-            {
-                // Tangent
-                tangent2 = true;
-            }
-            if (tangent2)
-            {
-                cc.x = c.x + stx*(pw/2-r);
-                cc.y = c.y - sty*(ph/2-r);
-                double xa = stx*(a.x - cc.x);
-                double ya = l2;
-                double aa = sqrt(xa*xa + ya*ya);
-                double theta = M_PI_2 - asin(r/aa) - asin(ya/aa);
-                d2.x = cc.x + stx*r*cos(theta);
-                d2.y = cc.y - sty*r*sin(theta);
-            }
-            */
         }
     }
-    else if (ptx <= pw/2-r)
+    else if(ptx <= pw/2-r)
     {
-        // Vertical tail
         if (pty <= ph/2)
         {
             inside = true;
@@ -828,166 +768,103 @@ void Callout::Draw(GraphicPath &path)
         else
         {
             d0.x = c.x + tx;
-            d0.y = c.y + sty*h/2;
-
-            /*
-            double l1 = pw/2-r-ptx;
-            double s1 = l1 + M_PI_2*r;
-            bool tangent1 = false;
-
-            if (d <= l1)
-            {
-                d1.x = d0.x + stx*d;
-                d1.y = d0.y;
-            } 
-            else if (d <= s1)
-            {
-                // Consider tangent
-                // FIXME: Really consider tangent
-                tangent1 = true;
-            }
-            else
-            {
-                // Tangent
-                tangent1 = true;
-            }
-            if (tangent1)
-            {
-                cc.x = c.x + stx*(pw/2-r);
-                cc.y = c.y + sty*(ph/2-r);
-                double xa = l1;
-                double ya = sty*(a.y - cc.y);
-                double aa = sqrt(xa*xa + ya*ya);
-                double theta = M_PI_2 - asin(r/aa) - asin(xa/aa);
-                d1.x = cc.x + stx*r*sin(theta);
-                d1.y = cc.y + sty*r*cos(theta);
-            }
-        
-            double l2 = pw/2-r+ptx;
-            double s2 = l2 + M_PI_2*r;
-            bool tangent2 = false;
-
-            if (d <= l2)
-            {
-                d2.x = d0.x - stx*d;
-                d2.y = d0.y;
-            } 
-            else if (d <= s2)
-            {
-                // Consider tangent
-                // FIXME: Really consider tangent
-                tangent2 = true;
-            }
-            else
-            {
-                // Tangent
-                tangent2 = true;
-            }
-            if (tangent2)
-            {
-                cc.x = c.x - stx*(pw/2-r);
-                cc.y = c.y + sty*(ph/2-r);
-                double xa = l2;
-                double ya = sty*(a.y - cc.y);
-                double aa = sqrt(xa*xa + ya*ya);
-                double theta = M_PI_2 - asin(r/aa) - asin(xa/aa);
-                d2.x = cc.x - stx*r*sin(theta);
-                d2.y = cc.y + sty*r*cos(theta);
-            }
-            */
+            d0.y = c.y + sty*ph/2;
         }
     }
     else
     {
-        // Tail with an angle
-        cc.x = c.x + stx*(pw/2-r);
-        cc.y = c.y + sty*(ph/2-r);
-        Vector v = a - cc;
-
-        if (v.Length() <= r)
+        cr.x = c.x + stx*(pw/2-r);
+        cr.y = c.y + sty*(ph/2-r);
+        Vector tr = a - cr;
+        if (tr.Length() <= r) 
         {
             inside = true;
         }
         else
         {
-            v.Normalize();
-            alpha = sty*acos(v.x);
-            d0.x = cc.x + r*cos(alpha);
-            d0.y = cc.y + r*sin(alpha);
-
-            /*
-            double s1,s2;
-            double l1,l2;
-            bool tangent1 = false;
-            bool tangent2 = false;
-
-            if (v.x > 0 && v.y > 0)
-            {
-                s1 = r*alpha;
-                l1 = s1 + (ph-2*r);
-
-                if (d <= s1)
-                {
-                    d1.x = cc.x + r*cos(alpha-d/r);
-                    d1.y = cc.y + r*sin(alpha-d/r);
-                } 
-                else if (d <= l1)
-                {
-                    d1.x = c.x + pw/2;
-                    d1.y = c.y + (ph/2-r) - (d-s1);
-                }
-                else if ()
-                {
-                }
-                else
-                {
-                    d1.x = c.x + pw/2;
-                    d1.y = c.y - (ph/2-r);
-                }
-
-                s2 = r*(M_PI_2 - alpha);
-
-                if (d <= s2)
-                {
-                    d2.x = cc.x + r*cos(alpha+d/r);
-                    d2.y = cc.y + r*sin(alpha+d/r);
-                }
-                else if (d <= s2 + (pw-2*r))
-                {
-                    d2.x = c.x + (pw/2-r) - (d-s2);
-                    d2.y = c.y + ph/2;
-                }
-                else
-                {
-                    d2.x = c.x - (pw/2-r);
-                    d2.y = c.y + ph/2;
-                }
-            }
-            */           
+            tr.Normalize();
+            alpha = sty*acos(tr.x);
+            d0.x = cr.x + r*cos(alpha);
+            d0.y = cr.y + r*sin(alpha);
         }
     }
 
+    Point d1, d2, cd;
+    double beta, theta;
+    Vector td;
+    if (d < 0)
+        d = 0;
+    d = d < w? d: w;
+    d = d < h? d: h;
+    double mrd = d > 2*r? d: 2*r;
+
     if (!inside)
     {
-        /*
+        if (pty <= (ph-mrd)/2)
+        {
+            // Horizontal tail
+            cd.x = c.x + stx*(pw-mrd)/2; 
+            cd.y = c.y + sty*(pty < (ph-mrd)/2? pty: (ph-mrd)/2);
+
+            td = a - cd;
+            theta = asin(d/2/td.Length());
+
+            d1.x = cd.x + stx*d/2*sin(theta);
+            d1.y = cd.y + d/2*cos(theta);
+ 
+            d2.x = cd.x + stx*d/2*sin(theta);
+            d2.y = cd.y - d/2*cos(theta);
+        }
+        else if (ptx <= (pw-mrd)/2)
+        {
+            // Vertical tail
+            cd.x = c.x + stx*(ptx < (pw-mrd)/2? ptx: (pw-mrd)/2);
+            cd.y = c.y + sty*(ph-mrd)/2; 
+            
+            td = a - cd;
+            theta = asin(d/2/td.Length());
+
+            d1.x = cd.x + d/2*cos(theta);
+            d1.y = cd.y + sty*d/2*sin(theta);
+ 
+            d2.x = cd.x - d/2*cos(theta);
+            d2.y = cd.y + sty*d/2*sin(theta);
+        }
+        else 
+        {
+            // Tail with an angle
+            cd.x = c.x + stx*(pw-mrd)/2;
+            cd.y = c.y + sty*(ph-mrd)/2;
+            
+            td = a - cd;
+            theta = asin(d/2/td.Length());
+            
+            td.Normalize();
+            beta = sty*acos(td.x);
+
+            d1.x = cd.x + d/2*cos(beta+(M_PI_2-theta));
+            d1.y = cd.y + d/2*sin(beta+(M_PI_2-theta));
+ 
+            d2.x = cd.x + d/2*cos(beta-(M_PI_2-theta));
+            d2.y = cd.y + d/2*sin(beta-(M_PI_2-theta));
+        }
+
+
         if (d == 0)
         {
-        */
             rect.moveTo(d0.x, d0.y);
             rect.lineTo(a.x, a.y);
-        /*
         }
         else
         {
             QPainterPath tail;
-            tail.moveTo(c.x, c.y);
+            tail.moveTo(cd.x, cd.y);
             tail.lineTo(d1.x, d1.y);
             tail.lineTo(a.x, a.y);
             tail.lineTo(d2.x, d2.y);
             tail.closeSubpath();
             rect += tail;
         }
-        */
     }
     path.addQtPath(rect);
 }

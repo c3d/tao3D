@@ -647,7 +647,7 @@ void PageLayout::DrawSelection(Layout *where)
         child->DrawSelection(this);
     }
 
-    // Assign an ID for the page layout itself
+    // Assign an ID for the page layout itself and draw a rectangle in it
     GLuint layoutId = widget->newId();
     if (TextSelect *sel = widget->textSelection(false))
     {
@@ -666,6 +666,9 @@ void PageLayout::Identify(Layout *where)
 //   Identify page elements for OpenGL
 // ----------------------------------------------------------------------------
 {
+    // Remember the initial selection ID
+    Widget *widget = where->Display();
+
     // Inherit state from our parent layout if there is one
     Inherit(where);
 
@@ -681,6 +684,25 @@ void PageLayout::Identify(Layout *where)
         offset.y = place.position;
         child->Identify(this);
     }
+
+    widget->newId();
+    coord x = space.Left(),  y = space.Bottom();
+    coord w = space.Width(), h = space.Height();
+    coord z = (space.Front() + space.Back()) / 2;
+    coord array[4][3] =
+    {
+        { x,     y,     z },
+        { x + w, y,     z },
+        { x + w, y + h, z },
+        { x,     y + h, z }
+    };
+
+    glColor4f(0.2,0.6,1.0,0.1);
+    glVertexPointer(3, GL_DOUBLE, 0, array);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glDrawArrays(GL_QUADS, 0, 4);
+    glDisableClientState(GL_VERTEX_ARRAY);
+
 }
 
 

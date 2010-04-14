@@ -506,7 +506,7 @@ void GraphicPath::DrawSelection(Layout *where)
     Widget *widget = where->Display();
     if (widget->selected())
     {
-        glPushName(0);
+        glPushName(widget->currentId());
         control_points::iterator i;
         for (i = controls.begin(); i != controls.end(); i++)
         {
@@ -527,7 +527,7 @@ void GraphicPath::Identify(Layout *where)
     Widget *widget = where->Display();
     if (widget->selected())
     {
-        glPushName(0);
+        glPushName(widget->currentId());
         control_points::iterator i;
         for (i = controls.begin(); i != controls.end(); i++)
         {

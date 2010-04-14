@@ -110,11 +110,17 @@ public:
     bool        timerIsActive()         { return timer.isActive(); }
 
     // Selection
+    enum { CHAR_ID_BIT = 1U<<31, CHAR_ID_MASK = ~CHAR_ID_BIT };
     GLuint      newId()                 { return ++id; }
     GLuint      currentId()             { return id; }
     GLuint      manipulatorId()         { return manipulator; }
     GLuint      selectionCapacity()     { return capacity; }
-    uint        selected();
+    uint        selected()              { return selected(id); }
+    uint        charSelected(uint i)    { return selected(i | CHAR_ID_BIT); }
+    uint        charSelected()          { return charSelected(id); }
+    GLuint      newCharId()             { return ++id | CHAR_ID_BIT; }
+    void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
+    uint        selected(uint i);
     void        select(uint id, uint count);
     void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);

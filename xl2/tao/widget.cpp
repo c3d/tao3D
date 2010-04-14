@@ -1371,12 +1371,12 @@ ulonglong Widget::elapsed(ulonglong since, ulonglong until,
 //
 // ============================================================================
 
-uint Widget::selected()
+uint Widget::selected(uint i)
 // ----------------------------------------------------------------------------
 //   Test if the current shape is selected
 // ----------------------------------------------------------------------------
 {
-    return id && selection.count(id) > 0 ? selection[id] : 0;
+    return i && selection.count(i) > 0 ? selection[i] : 0;
 }
 
 

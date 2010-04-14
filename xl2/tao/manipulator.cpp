@@ -79,7 +79,7 @@ void Manipulator::DrawSelection(Layout *layout)
             widget->select(widget->currentId(),     sel+1);
         }
 
-        glPushName(0);
+        glPushName(widget->currentId());
         DrawHandles(layout);
         glPopName();
     }

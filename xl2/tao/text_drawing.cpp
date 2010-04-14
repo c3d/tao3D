@@ -65,12 +65,9 @@ void TextSpan::Draw(Layout *where)
     path.addText(position.x, -position.y, font, str);
     position.x += fm.width(str);
 
-    Widget *widget = where->Display();
-    glLoadName(widget->newId());
     where->offset = Point3();
     GraphicPath::Draw(where, path, GLU_TESS_WINDING_ODD, -1);
     where->offset = position;
-    glLoadName(0);
 }
 
 
@@ -95,16 +92,20 @@ void TextSpan::DrawSelection(Layout *where)
     uint i, next, max = str.length();
     for (i = start; i < max && i < end; i = next)
     {
-        GLuint charId = widget->newId();
-        bool charSelected = widget->selected();
+        GLuint charId = widget->newCharId();
+        bool charSelected = widget->charSelected();
         TextSelect *sel = widget->textSelection();
         next = XL::Utf8Next(str, i);
+
+        if (charSelected && !sel)
+            sel = new TextSelect(widget);
+
         if (!charSelected && sel)
         {
             if (charId >= sel->start() && charId <= sel->end())
             {
                 charSelected = true;
-                widget->select(charId, 1);
+                widget->selectChar(charId, 1);
             }
         }
 
@@ -185,7 +186,7 @@ void TextSpan::Identify(Layout *where)
             { xx,      yy + hh, z }
         };
 
-        glLoadName(widget->newId());
+        glLoadName(widget->newCharId());
         glVertexPointer(3, GL_DOUBLE, 0, array);
         glEnableClientState(GL_VERTEX_ARRAY);
         glDrawArrays(GL_QUADS, 0, 4);
@@ -346,10 +347,14 @@ TextSelect::TextSelect(Widget *w)
     for (i = w->selection.begin(); i != last; i++)
     {
         uint id = (*i).first;
-        if (!mark)
-            mark = point = id;
-        else
-            point = id;
+        if (id & Widget::CHAR_ID_BIT)
+        {
+            id &= Widget::CHAR_ID_MASK;
+            if (!mark)
+                mark = point = id;
+            else
+                point = id;
+        }
     }
 }
 
@@ -377,6 +382,9 @@ Activity *TextSelect::Key(text key)
 //    Perform activities on the text selection
 // ----------------------------------------------------------------------------
 {
+    if (!textMode)
+        return next;
+
     if (key == "Space")                 key = " ";
     else if (key == "Return")           key = "\n";
     else if (key == "Enter")            key = "\n";
@@ -495,7 +503,10 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
         {
             uint size = ptr[0];
             if (size > 1)
+            {
                 manipulator = ptr[4];
+                selected = ptr[3];
+            }
             else if (!selected)
                 selected = ptr[3];
             ptr += 3 + size;
@@ -505,13 +516,23 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
         {
             textMode = false;
         }
-        else if (selected && textMode)
+        else if ((selected & Widget::CHAR_ID_BIT))
         {
-            if (mark)
-                point = selected;
+            selected &= Widget::CHAR_ID_MASK;
+            Drag *drag = widget->drag();
+            if (drag)
+            {
+                if (!mark)
+                    mark = point = selected;
+            }
             else
-                mark = point = selected;
-            updateSelection();
+            {
+                if (mark)
+                    point = selected;
+                else
+                    mark = point = selected;
+                updateSelection();
+            }
         }
     }
     delete[] buffer;
@@ -542,7 +563,7 @@ void TextSelect::updateSelection()
     widget->selection.clear();
     uint s = start(), e = end();
     for (uint i = s; i < e; i++)
-        widget->selection[i] = 1;
+        widget->selection[i | Widget::CHAR_ID_BIT] = 1;
 }
 
 TAO_END

@@ -104,7 +104,6 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         return next;
     }
 
-
     // Create the select buffer and switch to select mode
     GLuint capacity = widget->selectionCapacity();
     GLuint *buffer = new GLuint[4 * capacity];
@@ -130,6 +129,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     int hits = glRenderMode(GL_RENDER);
     GLuint selected = 0;
     GLuint manipulator = 0;
+    bool charSelected = false;
     if (hits > 0)
     {
         GLuint depth = ~0U;
@@ -143,6 +143,8 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
                 if (size > 1)
                     manipulator = ptr[4];
                 depth = ptr[1];
+                if (selected & Widget::CHAR_ID_BIT)
+                    charSelected = true;
             }
             ptr += 3 + size;
         }
@@ -168,6 +170,10 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     // In all cases, we want a screen refresh
     Idle();
 
+    // Delete a text selection if we didn't click in it
+    if (count == 1 && !charSelected)
+        delete widget->textSelection();
+
     // If we are done with the selection, remove it and shift to a Drag
     if (doneWithSelection)
     {
@@ -175,16 +181,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         Idle();
         delete this;
         if (selected)
-        {
-            if (count == 2)
-                new TextSelect(widget);
             return new Drag(widget);
-        }
-    }
-    else
-    {
-        if (TextSelect *sel = widget->textSelection())
-            delete sel;
     }
 
     return NULL;                // We dealt with the event

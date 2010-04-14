@@ -204,24 +204,27 @@ void RoundedRectangle::Draw(GraphicPath &path)
 //   Draw a rounded rectangle
 // ----------------------------------------------------------------------------
 {
-    QPainterPath qt;
-    int sw = bounds.Width() > 0? 1: -1;
-    int sh = bounds.Height() > 0? 1: -1;
+    QPainterPath rect;
+    coord w = bounds.Width();
+    coord h = bounds.Height();
+    int sw = w > 0? 1: -1;
+    int sh = h > 0? 1: -1;
+    double pw = sw*w;
+    double ph = sh*h;
     
-    if (sw * bounds.Width() < sh * bounds.Height())
+    if (pw < ph)
     {
-        if (r > sw * bounds.Width() / 2)
-            r = sw * bounds.Width() / 2;
+        if (r > pw / 2)
+            r = pw / 2;
     }
     else
     {
-        if (r > sh * bounds.Height() / 2)
-            r = sh * bounds.Height() / 2;
+        if (r > ph / 2)
+            r = ph / 2;
     }
-    qt.addRoundedRect(bounds.lower.x, bounds.lower.y,
-                      bounds.Width(), bounds.Height(),
-                      r, r);
-    path.addQtPath(qt);
+    rect.addRoundedRect(bounds.lower.x, bounds.lower.y,
+                        w, h, r, r);
+    path.addQtPath(rect);
 }
 
 
@@ -437,12 +440,12 @@ void DoubleArrow::Draw(GraphicPath &path)
 
 void StarPolygon::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//    We need correct tesselation when q != 1
+//    We need correct tesselation when q > 1
 // ----------------------------------------------------------------------------
 {
     GraphicPath path;
     Draw(path);
-    if (q == 1)
+    if (q <= 1)
     {
         // Regular polygon, no need to tesselate
         path.Draw(where);
@@ -451,8 +454,7 @@ void StarPolygon::Draw(Layout *where)
     {
         setTexture(where);
         if (setFillColor(where))
-            path.Draw(where, GL_POLYGON,
-                      q > 0 ? GLU_TESS_WINDING_POSITIVE : GLU_TESS_WINDING_ODD);
+            path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
         if (setLineColor(where))
             // REVISIT: If lines is thick, use a QPainterPathStroker
             path.Draw(where, GL_LINE_STRIP);
@@ -465,6 +467,13 @@ void StarPolygon::Draw(GraphicPath &path)
 //   Draw a regular polygon or a star
 // ----------------------------------------------------------------------------
 {
+    if (p < 3)
+        p = 3;
+    if (q < 1)
+        q = 1;
+    if (q > (p-1)/2)
+        q = (p-1)/2;
+
     scale  w1     = bounds.Width()/2;
     scale  h1     = bounds.Height()/2;
     Point3 center = bounds.Center();
@@ -537,7 +546,7 @@ void Star::Draw(Layout *where)
 {
     GraphicPath path;
     Draw(path);
-    if (r == 1.0)
+    if (r >= 1.0)
     {
         // Regular polygon, no need to tesselate
         path.Draw(where);
@@ -559,11 +568,16 @@ void Star::Draw(GraphicPath &path)
 //   Draw a regular polygon or a star
 // ----------------------------------------------------------------------------
 {
+    if (r < 0.0) 
+        r = 0.0;
+    if (r > 1.0) 
+        r = 1.0;
+    if (p < 3)
+        p = 3;
+
     scale  w1     = bounds.Width()/2;
     scale  h1     = bounds.Height()/2;
-    Point3 center = bounds.Center();
-    coord  cx     = center.x;
-    coord  cy     = center.y;
+    Point  c      = bounds.Center();
 
     scale  w2     = w1 * r;
     scale  h2     = h1 * r;
@@ -572,11 +586,11 @@ void Star::Draw(GraphicPath &path)
 
     for (int i = 0; i < p; i++)
     {
-        double x1 = cx + w1 * sin(a);
-        double y1 = cy + h1 * cos(a);
+        double x1 = c.x + w1 * sin(a);
+        double y1 = c.y + h1 * cos(a);
         a += da;
-        double x2 = cx + w2 * sin(a);
-        double y2 = cy + h2 * cos(a);
+        double x2 = c.x + w2 * sin(a);
+        double y2 = c.y + h2 * cos(a);
         a += da;
 
         if (i)
@@ -613,8 +627,7 @@ void SpeechBalloon::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 {
 
-    coord cx = bounds.Center().x;
-    coord cy = bounds.Center().y;
+    Point c = bounds.Center();
     coord w =  bounds.Width();
     coord h = bounds.Height();
     int sw = w > 0? 1: -1;
@@ -629,8 +642,8 @@ void SpeechBalloon::Draw(GraphicPath &path)
     QPainterPath balloon;
     balloon.addRoundedRect(bounds.lower.x, bounds.lower.y, w, h, rx, ry);
  
-    double tx = a.x - cx;
-    double ty = a.y - cy;
+    double tx = a.x - c.x;
+    double ty = a.y - c.y;
     int stx = tx > 0? 1: -1;
     int sty = ty > 0? 1: -1;
     double th = sqrt(tx*tx + ty*ty);
@@ -653,17 +666,330 @@ void SpeechBalloon::Draw(GraphicPath &path)
     }
 
     QPainterPath tail;
-    tail.moveTo( cx+stx*tw*cos(theta+M_PI_2), cy+sty*tw*sin(theta+M_PI_2));
-    tail.quadTo( cx+stx*0.5*(th*cos(s*theta+o)+tw*cos(theta+M_PI_2))
-               , cy+sty*0.5*(th*sin(s*theta+o)+tw*sin(theta+M_PI_2))
+    tail.moveTo( c.x+stx*tw*cos(theta+M_PI_2), c.y+sty*tw*sin(theta+M_PI_2));
+    tail.quadTo( c.x+stx*0.5*(th*cos(s*theta+o)+tw*cos(theta+M_PI_2))
+               , c.y+sty*0.5*(th*sin(s*theta+o)+tw*sin(theta+M_PI_2))
                , a.x, a.y);
-    tail.quadTo( cx+stx*0.5*(th*cos(s*theta+o)+tw*cos(theta-M_PI_2))
-               , cy+sty*0.5*(th*sin(s*theta+o)+tw*sin(theta-M_PI_2))
-               , cx+stx*tw*cos(theta-M_PI_2), cy+sty*tw*sin(theta-M_PI_2));
-    tail.moveTo(cx+stx*tw*cos(theta+M_PI_2), cy+sty*tw*sin(theta+M_PI_2));
-    tail.lineTo(cx+stx*tw*cos(theta-M_PI_2), cy+sty*tw*sin(theta-M_PI_2));
+    tail.quadTo( c.x+stx*0.5*(th*cos(s*theta+o)+tw*cos(theta-M_PI_2))
+               , c.y+sty*0.5*(th*sin(s*theta+o)+tw*sin(theta-M_PI_2))
+               , c.x+stx*tw*cos(theta-M_PI_2), c.y+sty*tw*sin(theta-M_PI_2));
 
     path.addQtPath(balloon+=tail);
+}
+
+
+void Callout::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    We need correct tesselation
+// ----------------------------------------------------------------------------
+{
+    GraphicPath path;
+    Draw(path);
+    setTexture(where);
+    if (setFillColor(where))
+        path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+    if (setLineColor(where))
+        // REVISIT: If lines is thick, use a QPainterPathStroker
+        path.Draw(where, GL_LINE_STRIP);
+}
+
+
+void Callout::Draw(GraphicPath &path)
+// ----------------------------------------------------------------------------
+//   Draw a callout
+// ----------------------------------------------------------------------------
+{
+
+    Point c = bounds.Center();
+    coord w = bounds.Width();
+    coord h = bounds.Height();
+    int sw = w > 0? 1: -1;
+    int sh = h > 0? 1: -1;
+    double pw = sw*w;
+    double ph = sh*h;
+    
+    if (pw < ph)
+    {
+        if (r > pw/2)
+            r = pw/2;
+    }
+    else
+    {
+        if (r > ph/2)
+            r = ph/2;
+    }
+
+    QPainterPath rect;
+    rect.addRoundedRect(bounds.lower.x, bounds.lower.y,
+                        w, h, r, r);
+    
+    double tx = a.x - c.x;
+    double ty = a.y - c.y;
+    int stx = tx > 0? 1: -1;
+    int sty = ty > 0? 1: -1;
+    double ptx = stx*tx;
+    double pty = sty*ty;
+
+    if (d < 0)
+        d = 0;
+    d = d < w/2? d: w/2;
+    d = d < h/2? d: h/2;
+
+    Point d0, d1, d2, cc;
+    double alpha;
+    bool inside = false;
+
+    if (pty <= ph/2-r)
+    {
+        // Horizontal tail
+        if (ptx <= pw/2)
+        {
+            inside = true;
+        }
+        else
+        {
+            d0.x = c.x + stx*pw/2;
+            d0.y = c.y + ty;
+
+            /*
+            double l1 = ph/2-r-pty;
+            double s1 = l1 + M_PI_2*r;
+            bool tangent1 = false;
+
+            if (d <= l1)
+            {
+                d1.x = d0.x;
+                d1.y = d0.y + sty*d;
+            } 
+            else if (d <= s1)
+            {
+                // Consider tangent
+                // FIXME: Really consider tangent
+                tangent1 = true;
+            }
+            else
+            {
+                // Tangent
+                tangent1 = true;
+            }
+            if (tangent1)
+            {
+                cc.x = c.x + stx*(pw/2-r);
+                cc.y = c.y + sty*(ph/2-r);
+                double xa = stx*(a.x - cc.x);
+                double ya = l1;
+                double aa = sqrt(xa*xa + ya*ya);
+                double theta = M_PI_2 - asin(r/aa) - asin(ya/aa);
+                d1.x = cc.x + stx*r*cos(theta);
+                d1.y = cc.y + sty*r*sin(theta);
+            }
+        
+            double l2 = ph/2-r+pty;
+            double s2 = l2 + M_PI_2*r;
+            bool tangent2 = false;
+
+            if (d <= l2)
+            {
+                d2.x = d0.x;
+                d2.y = d0.y - sty*d;
+            } 
+            else if (d <= s2)
+            {
+                // Consider tangent
+                // FIXME: Really consider tangent
+                tangent2 = true;
+            }
+            else
+            {
+                // Tangent
+                tangent2 = true;
+            }
+            if (tangent2)
+            {
+                cc.x = c.x + stx*(pw/2-r);
+                cc.y = c.y - sty*(ph/2-r);
+                double xa = stx*(a.x - cc.x);
+                double ya = l2;
+                double aa = sqrt(xa*xa + ya*ya);
+                double theta = M_PI_2 - asin(r/aa) - asin(ya/aa);
+                d2.x = cc.x + stx*r*cos(theta);
+                d2.y = cc.y - sty*r*sin(theta);
+            }
+            */
+        }
+    }
+    else if (ptx <= pw/2-r)
+    {
+        // Vertical tail
+        if (pty <= ph/2)
+        {
+            inside = true;
+        }
+        else
+        {
+            d0.x = c.x + tx;
+            d0.y = c.y + sty*h/2;
+
+            /*
+            double l1 = pw/2-r-ptx;
+            double s1 = l1 + M_PI_2*r;
+            bool tangent1 = false;
+
+            if (d <= l1)
+            {
+                d1.x = d0.x + stx*d;
+                d1.y = d0.y;
+            } 
+            else if (d <= s1)
+            {
+                // Consider tangent
+                // FIXME: Really consider tangent
+                tangent1 = true;
+            }
+            else
+            {
+                // Tangent
+                tangent1 = true;
+            }
+            if (tangent1)
+            {
+                cc.x = c.x + stx*(pw/2-r);
+                cc.y = c.y + sty*(ph/2-r);
+                double xa = l1;
+                double ya = sty*(a.y - cc.y);
+                double aa = sqrt(xa*xa + ya*ya);
+                double theta = M_PI_2 - asin(r/aa) - asin(xa/aa);
+                d1.x = cc.x + stx*r*sin(theta);
+                d1.y = cc.y + sty*r*cos(theta);
+            }
+        
+            double l2 = pw/2-r+ptx;
+            double s2 = l2 + M_PI_2*r;
+            bool tangent2 = false;
+
+            if (d <= l2)
+            {
+                d2.x = d0.x - stx*d;
+                d2.y = d0.y;
+            } 
+            else if (d <= s2)
+            {
+                // Consider tangent
+                // FIXME: Really consider tangent
+                tangent2 = true;
+            }
+            else
+            {
+                // Tangent
+                tangent2 = true;
+            }
+            if (tangent2)
+            {
+                cc.x = c.x - stx*(pw/2-r);
+                cc.y = c.y + sty*(ph/2-r);
+                double xa = l2;
+                double ya = sty*(a.y - cc.y);
+                double aa = sqrt(xa*xa + ya*ya);
+                double theta = M_PI_2 - asin(r/aa) - asin(xa/aa);
+                d2.x = cc.x - stx*r*sin(theta);
+                d2.y = cc.y + sty*r*cos(theta);
+            }
+            */
+        }
+    }
+    else
+    {
+        // Tail with an angle
+        cc.x = c.x + stx*(pw/2-r);
+        cc.y = c.y + sty*(ph/2-r);
+        Vector v = a - cc;
+
+        if (v.Length() <= r)
+        {
+            inside = true;
+        }
+        else
+        {
+            v.Normalize();
+            alpha = sty*acos(v.x);
+            d0.x = cc.x + r*cos(alpha);
+            d0.y = cc.y + r*sin(alpha);
+
+            /*
+            double s1,s2;
+            double l1,l2;
+            bool tangent1 = false;
+            bool tangent2 = false;
+
+            if (v.x > 0 && v.y > 0)
+            {
+                s1 = r*alpha;
+                l1 = s1 + (ph-2*r);
+
+                if (d <= s1)
+                {
+                    d1.x = cc.x + r*cos(alpha-d/r);
+                    d1.y = cc.y + r*sin(alpha-d/r);
+                } 
+                else if (d <= l1)
+                {
+                    d1.x = c.x + pw/2;
+                    d1.y = c.y + (ph/2-r) - (d-s1);
+                }
+                else if ()
+                {
+                }
+                else
+                {
+                    d1.x = c.x + pw/2;
+                    d1.y = c.y - (ph/2-r);
+                }
+
+                s2 = r*(M_PI_2 - alpha);
+
+                if (d <= s2)
+                {
+                    d2.x = cc.x + r*cos(alpha+d/r);
+                    d2.y = cc.y + r*sin(alpha+d/r);
+                }
+                else if (d <= s2 + (pw-2*r))
+                {
+                    d2.x = c.x + (pw/2-r) - (d-s2);
+                    d2.y = c.y + ph/2;
+                }
+                else
+                {
+                    d2.x = c.x - (pw/2-r);
+                    d2.y = c.y + ph/2;
+                }
+            }
+            */           
+        }
+    }
+
+    if (!inside)
+    {
+        /*
+        if (d == 0)
+        {
+        */
+            rect.moveTo(d0.x, d0.y);
+            rect.lineTo(a.x, a.y);
+        /*
+        }
+        else
+        {
+            QPainterPath tail;
+            tail.moveTo(c.x, c.y);
+            tail.lineTo(d1.x, d1.y);
+            tail.lineTo(a.x, a.y);
+            tail.lineTo(d2.x, d2.y);
+            tail.closeSubpath();
+            rect += tail;
+        }
+        */
+    }
+    path.addQtPath(rect);
 }
 
 

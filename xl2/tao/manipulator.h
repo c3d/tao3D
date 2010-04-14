@@ -34,14 +34,36 @@
 
 TAO_BEGIN
 
+struct RealRef : XL::TreeRoot
+// ----------------------------------------------------------------------------
+//   Looks and behaves like a real_r, but keeps the value around
+// ----------------------------------------------------------------------------
+{
+    RealRef(XL::Real &r): XL::TreeRoot(&r) {}
+    XL::Real *operator&()       { return (XL::Real *) tree; }
+    operator double()           { return ((XL::Real *) tree)->value; }
+};
+
+
+struct IntegerRef : XL::TreeRoot
+// ----------------------------------------------------------------------------
+//   Looks and behaves like a real_r, but keeps the value around
+// ----------------------------------------------------------------------------
+{
+    IntegerRef(XL::Integer &r): XL::TreeRoot(&r) {}
+    XL::Integer *operator&()    { return (XL::Integer *) tree; }
+    operator longlong()         { return ((XL::Integer *) tree)->value; }
+};
+
+
 struct Manipulator : Drawing
 // ----------------------------------------------------------------------------
 //   Structure used to manipulate XL coordinates using the mouse
 // ----------------------------------------------------------------------------
 {
     typedef XL::Tree     Tree, *tree_p;
-    typedef XL::Real&    real_r;
-    typedef XL::Integer& integer_r;
+    typedef RealRef      real_r;
+    typedef IntegerRef   integer_r;
 
     Manipulator();
 

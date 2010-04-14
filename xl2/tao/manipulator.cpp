@@ -608,7 +608,7 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
     Widget *widget = layout->Display();
     Drag   *drag = widget->drag();
 
-    coord rr = (r < 0? 0: 1)*r;
+    coord rr = ((double) r < 0 ? 0 : 1) * r;
     int sw = w > 0? 1: -1;
     int sh = h > 0? 1: -1;
 

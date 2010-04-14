@@ -448,8 +448,11 @@ Activity *TextSelect::Click(uint button, bool down, int x, int y)
 {
     if (button & Qt::LeftButton)
     {
-        mark = point = 0;
-        manipulator = 0;
+        if (down)
+        {
+            mark = point = 0;
+            manipulator = 0;
+        }
         return MouseMove(x, y, down);
     }
     return next;

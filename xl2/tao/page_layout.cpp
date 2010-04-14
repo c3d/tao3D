@@ -234,11 +234,14 @@ void LayoutLine::DrawSelection(Layout *where)
         {
             if (PageLayout *pl = dynamic_cast<PageLayout *> (where))
             {
-                coord y = where->offset.y;
-                if (sel->start() <= startId && sel->end() >= startId)
-                    sel->selBox |= Point3(pl->space.Left(), y, 0);
-                if (sel->end() >= endId && sel->start() <= endId)
-                    sel->selBox |= Point3(pl->space.Right(), y, 0);
+                if (sel->point != sel->mark)
+                {
+                    coord y = where->offset.y;
+                    if (sel->start() <= startId && sel->end() >= startId)
+                        sel->selBox |= Point3(pl->space.Left(), y, 0);
+                    if (sel->end() >= endId && sel->start() <= endId)
+                        sel->selBox |= Point3(pl->space.Right(), y, 0);
+                }
             }
 
             glBlendFunc(GL_DST_COLOR, GL_ZERO);

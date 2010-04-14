@@ -470,4 +470,29 @@ bool GitRepository::renRemote(QString oldName, QString newName)
     return cmd.done(&errors);
 }
 
+
+QList<GitRepository::Commit> GitRepository::history(int max)
+// ----------------------------------------------------------------------------
+//   Return the last commits on the current branch in chronological order
+// ----------------------------------------------------------------------------
+{
+    QStringList args;
+    args << "log" << "--pretty=format:%h:%s";
+    args << "-n" << QString("%1").arg(max);
+    text    output;
+    Process cmd(command(), args, path);
+    cmd.done(&errors, &output);
+
+    QList<Commit>       result;
+    QStringList         log = (+output).split("\n");
+    QStringListIterator it(log);
+    QRegExp             rx("([^:]+):(.*)");
+
+    while (it.hasNext())
+        if (rx.indexIn(it.next()) != -1)
+            result.prepend(Repository::Commit(rx.cap(1), rx.cap(2)));
+
+    return result;
+}
+
 TAO_END

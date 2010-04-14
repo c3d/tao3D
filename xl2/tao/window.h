@@ -99,6 +99,7 @@ private:
     void updateProgram(const QString &filename);
     void resetTaoMenus();
     QString currentProjectFolderPath();
+    bool populateUndoStack();
 
 private:
     XL::Main *        xlRuntime;

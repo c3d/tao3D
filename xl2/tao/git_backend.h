@@ -69,6 +69,7 @@ public:
     virtual bool        setRemote(QString name, QString newPullUrl);
     virtual bool        delRemote(QString name);
     virtual bool        renRemote(QString oldName, QString newName);
+    virtual QList<Commit> history(int max = 20);
 
     static  bool        checkGit();
 

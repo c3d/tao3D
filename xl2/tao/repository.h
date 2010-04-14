@@ -33,6 +33,7 @@
 #include <QMap>
 #include <QWeakPointer>
 #include <QSharedPointer>
+#include <QList>
 #include <iostream>
 
 namespace Tao {
@@ -74,6 +75,18 @@ public:
         RS_NotClean,  // Work area has been modified since last commit
     };
 
+
+    // ------------------------------------------------------------------------
+    //   Commit information
+    // ------------------------------------------------------------------------
+    struct Commit
+    {
+        Commit(QString id, QString msg): id(id), msg(msg) {}
+
+        QString id;
+        QString msg;
+    };
+
 public:
     Repository(const QString &path): path(path), task("work"),
                                      state(RS_Clean), whatsNew("") {}
@@ -86,7 +99,7 @@ public:
     virtual bool        selectWorkBranch();
     virtual bool        selectUndoBranch();
     virtual bool        idle();
-    virtual bool        markChanged(text reason);
+    virtual void        markChanged(text reason);
 
 public:
     virtual QString     userVisibleName()               = 0;
@@ -112,6 +125,7 @@ public:
     virtual bool        setRemote(QString name, QString newPullUrl) = 0;
     virtual bool        delRemote(QString name)         = 0;
     virtual bool        renRemote(QString oldName, QString newName) = 0;
+    virtual QList<Commit> history(int max = 100)        = 0;
 
 public:
     static QSharedPointer<Repository>

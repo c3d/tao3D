@@ -29,6 +29,7 @@
 #include "tao_utf8.h"
 #include "pull_from_dialog.h"
 #include "publish_to_dialog.h"
+#include "undo.h"
 
 #include <iostream>
 #include <sstream>
@@ -785,10 +786,11 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
             {
                 this->repo = repo;
 
-                // For undo/redo: widget has to be notifiedwhen document
+                // For undo/redo: widget has to be notified when document
                 // is succesfully committed into repository
                 connect(repo.data(), SIGNAL(asyncCommitSuccess(QString, QString)),
                         taoWidget,   SLOT(commitSuccess(QString, QString)));
+                populateUndoStack();
             }
         }
     }
@@ -939,6 +941,25 @@ Window *Window::findWindow(const QString &fileName)
             return mainWin;
     }
     return NULL;
+}
+
+
+bool Window::populateUndoStack()
+// ----------------------------------------------------------------------------
+//    Fill the undo stack with the latest commits from the project
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+        return false;
+
+    QList<Repository::Commit>         commits = repo->history();
+    QListIterator<Repository::Commit> it(commits);
+    while (it.hasNext())
+    {
+        Repository::Commit c = it.next();
+        undoStack->push(new UndoCommand(repo.data(), c.id, c.msg));
+    }
+    return true;
 }
 
 TAO_END

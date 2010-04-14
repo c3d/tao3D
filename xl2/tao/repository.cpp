@@ -250,7 +250,7 @@ bool Repository::idle()
 }
 
 
-bool Repository::markChanged(text reason)
+void Repository::markChanged(text reason)
 // ----------------------------------------------------------------------------
 //    Record a change, reason text will be used in next commit message
 // ----------------------------------------------------------------------------

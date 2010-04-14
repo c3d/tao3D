@@ -135,7 +135,12 @@ void TextSpan::DrawSelection(Layout *where)
                 sel->point += length;
                 sel->mark += length;
                 if (!length)
+                {
                     next = i;
+                    max--;
+                }
+                if (sel->point == sel->mark)
+                    sel->replace = false;
             }
             sel->selBox |= Box3(xx,yy,z, 1, h, 0);
         }

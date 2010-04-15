@@ -654,7 +654,10 @@ void TextSelect::newLine()
     {
         if (charId < start())
         {
-            pickingUpDown = true;
+            if (pickingUpDown)
+                previous = charId; // We are at right of previous line
+            else
+                pickingUpDown = true;
         }
     }
 }

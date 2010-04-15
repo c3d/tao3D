@@ -106,10 +106,14 @@ struct FrameManipulator : DrawingManipulator
 {
     enum TransformMode
     {
-        TM_FreeResize,                     // Free resizing
-        TM_ResizeLockCenter,               // Resize object wrt. its center
-        TM_ResizeLockAspectRatio,          // Keep width/height aspect ratio
+        TM_FreeResize,                  // Free resizing
+        TM_ResizeLockCenter,            // Resize object wrt. its center
+        TM_ResizeLockAspectRatio,       // Keep width/height aspect ratio
         TM_ResizeLockCenterAndAspectRatio,
+        TM_FreeCenteredRotate,          // Free rotation around center    
+        TM_FreeOppositeRotate,          // Free rotation aound opposite handle
+        TM_SteppedCenteredRotate,       // 45˚-step rotation
+        TM_SteppedOppositeRotate,
     };
 
     FrameManipulator(real_r x, real_r y, real_r w, real_r h, Drawing *child);

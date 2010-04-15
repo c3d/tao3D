@@ -28,8 +28,8 @@
 #include "coords3d.h"
 #include "opcodes.h"
 #include "drawing.h"
+#include "activity.h"
 #include "menuinfo.h"
-
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -45,13 +45,13 @@ namespace Tao {
 
 struct Window;
 struct FrameInfo;
-struct Activity;
 struct Layout;
 struct PageLayout;
 struct SpaceLayout;
 struct GraphicPath;
 struct Repository;
 struct Drag;
+struct TextSelect;
 struct WidgetSurface;
 
 class Widget : public QGLWidget
@@ -72,6 +72,7 @@ public slots:
     void        appFocusChanged(QWidget *prev, QWidget *next);
     void        userMenu(QAction *action);
     bool        refresh(double delay = 0.0);
+    void        commitSuccess(QString id, QString msg);
 
 public:
     // OpenGL
@@ -81,6 +82,7 @@ public:
     void        setup(double w, double h, Box *picking = NULL);
     void        setupGL();
     void        identifySelection();
+    void        updateSelection();
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -110,19 +112,29 @@ public:
     bool        timerIsActive()         { return timer.isActive(); }
 
     // Selection
+    enum { CHAR_ID_BIT = 1U<<31, CHAR_ID_MASK = ~CHAR_ID_BIT };
     GLuint      newId()                 { return ++id; }
     GLuint      currentId()             { return id; }
     GLuint      manipulatorId()         { return manipulator; }
     GLuint      selectionCapacity()     { return capacity; }
-    uint        selected();
+    uint        selected()              { return selected(id); }
+    GLuint      newCharId(uint ids = 1) { return charId += ids; }
+    GLuint      currentCharId()         { return charId; }
+    uint        charSelected(uint i)    { return selected(i | CHAR_ID_BIT); }
+    uint        charSelected()          { return charSelected(charId); }
+    void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
+    uint        selected(uint i);
     void        select(uint id, uint count);
     void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);
     void        recordProjection();
     Point3      unproject (coord x, coord y, coord z = 0.0);
     Drag *      drag();
+    TextSelect *textSelection();
     void        drawSelection(const Box3 &bounds, text name);
     void        drawHandle(const Point3 &point, text name);
+    template<class Activity>
+    Activity *  active();
 
     // Text flows
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
@@ -212,6 +224,9 @@ public:
     Tree *      roundedRectangle(Tree *self,
                                  real_r cx, real_r cy, real_r w, real_r h,
                                  real_r r);
+    Tree *      ellipticalRectangle(Tree *self,
+                                    real_r cx, real_r cy, real_r w, real_r h,
+                                    real_r r);
     Tree *      arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
                       real_r ax, real_r ary);
     Tree *      doubleArrow(Tree *self,
@@ -225,6 +240,10 @@ public:
     Tree *      speechBalloon(Tree *self,
                               real_r cx, real_r cy, real_r w, real_r h,
                               real_r r, real_r ax, real_r ay);
+    Tree *      callout(Tree *self,
+                        real_r cx, real_r cy, real_r w, real_r h,
+                        real_r r, real_r ax, real_r ay, real_r d);
+
 
     // 3D primitives
     Tree *      sphere(Tree *self,
@@ -257,6 +276,7 @@ public:
     Tree *      spread(Tree *self, scale amount, uint axis);
     Tree *      spacing(Tree *self, scale amount, uint axis);
     Tree *      drawingBreak(Tree *self, Drawing::BreakOrder order);
+    Tree *      textEditKey(Tree *self, text key);
 
     // Frames and widgets
     Tree *      status(Tree *self, text t);
@@ -336,6 +356,7 @@ private:
     friend class Activity;
     friend class Selection;
     friend class Drag;
+    friend class TextSelect;
     friend class Manipulator;
     friend class ControlPoint;
 
@@ -358,7 +379,7 @@ private:
 
     // Selection
     Activity *            activities;
-    GLuint                id, capacity, manipulator;
+    GLuint                id, charId, capacity, manipulator;
     selection_map         selection, savedSelection;
     std::set<XL::Tree *>  selectionTrees;
     QEvent *              event;
@@ -374,7 +395,6 @@ private:
     int                   order;
 
     // Program changes
-    text                  whatsNew;
     bool                  reloadProgram;
 
     // Timing
@@ -386,6 +406,19 @@ private:
     static Widget *       current;
     static double         zNear, zFar;
 };
+
+
+template<class ActivityClass>
+inline ActivityClass *Widget::active()
+// ----------------------------------------------------------------------------
+//   Return an activity of the given type
+// ----------------------------------------------------------------------------
+{
+    for (Activity *a = activities; a; a = a->next)
+        if (ActivityClass *result = dynamic_cast<ActivityClass *> (a))
+            return result;
+    return NULL;
+}
 
 
 

@@ -315,31 +315,28 @@ TextSpan *TextSpan::Break(BreakOrder &order)
 //   If the text span contains a word or line break, cut there
 // ----------------------------------------------------------------------------
 {
-    if (order <= LineBreak)
+    text str = source->value;
+    uint i, max = str.length();
+    for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
     {
-        text str = source->value;
-        uint i, max = str.length();
-        for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
+        QChar c = QChar(XL::Utf8Code(str, i));
+        BreakOrder charOrder = CharBreak;
+        if (c.isSpace())
         {
-            QChar c = QChar(XL::Utf8Code(str, i));
-            BreakOrder charOrder = CharBreak;
-            if (c.isSpace())
-            {
-                charOrder = WordBreak;
-                if (c == '\n')
-                    charOrder = LineBreak;
-            }
-            if (order <= charOrder)
-            {
-                // Create two text spans, the first one containing the split
-                uint next = XL::Utf8Next(str, i);
-                TextSpan *result = (next < max && next < end)
-                    ? new TextSpan(source, font, next, end)
-                    : NULL;
-                order = charOrder;
-                end = next;
-                return result;
-            }
+            charOrder = WordBreak;
+            if (c == '\n')
+                charOrder = LineBreak;
+        }
+        if (order <= charOrder)
+        {
+            // Create two text spans, the first one containing the split
+            uint next = XL::Utf8Next(str, i);
+            TextSpan *result = (next < max && next < end)
+                ? new TextSpan(source, font, next, end)
+                : NULL;
+            order = charOrder;
+            end = next;
+            return result;
         }
     }
     order = NoBreak;

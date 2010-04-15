@@ -101,51 +101,59 @@ void TextSpan::DrawSelection(Layout *where)
         charSelected = widget->charSelected();
         next = XL::Utf8Next(str, i);
 
+        // Create a text selection if we need one
         if (charSelected && !sel)
             sel = new TextSelect(widget);
 
-        if (!charSelected && sel)
+        if (sel)
         {
-            if (charId >= sel->start() && charId <= sel->end())
+            // Mark characters in selection range
+            if (!charSelected && charId >= sel->start() && charId <= sel->end())
             {
                 charSelected = true;
                 widget->selectChar(charId, 1);
             }
-        }
 
-        if (sel && charSelected)
-        {
-            float sw = fm.width(+str.substr(first, i-first));
-            coord xx = x + sw;
-            coord yy = y - descent - leading;
-
-            if (sel->replace)
+            // Check up and down keys
+            if (charSelected || sel->needsPositions())
             {
-                text rpl = sel->replacement;
-                uint eos = i;
-                if (sel->point != sel->mark)
+                scale sw = fm.width(+str.substr(first, i-first));
+                coord charX = x + sw;
+                coord lineY = y - descent - leading;
+                sel->newChar(charX, charSelected);
+
+                if (charSelected)
                 {
-                    eos = next;
-                    if (sel->point > sel->mark)
-                        sel->point--;
-                    else
-                        sel->mark--;
-                }
-                source->value.replace(i, eos-i, rpl);
-                sel->replacement = "";
-                uint length = XL::Utf8Length(rpl);
-                sel->point += length;
-                sel->mark += length;
-                if (!length)
-                {
-                    next = i;
-                    max--;
-                }
-                if (sel->point == sel->mark)
-                    sel->replace = false;
-            }
-            sel->selBox |= Box3(xx,yy,z, 1, h, 0);
-        }
+                    // Edit text in place if we have an editing request
+                    if (sel->replace)
+                    {
+                        text rpl = sel->replacement;
+                        uint eos = i;
+                        if (sel->point != sel->mark)
+                        {
+                            eos = next;
+                            if (sel->point > sel->mark)
+                                sel->point--;
+                            else
+                                sel->mark--;
+                        }
+                        source->value.replace(i, eos-i, rpl);
+                        sel->replacement = "";
+                        uint length = XL::Utf8Length(rpl);
+                        sel->point += length;
+                        sel->mark += length;
+                        if (!length)
+                        {
+                            next = i;
+                            max--;
+                        }
+                        if (sel->point == sel->mark)
+                            sel->replace = false;
+                    }
+                    sel->selBox |= Box3(charX,lineY,z, 1, h, 0);
+                } // if(charSelected)
+            } // if (charSelected || upDown)
+        } // if(sel)
 
         if (str[i] == '\n')
         {
@@ -207,17 +215,17 @@ void TextSpan::Identify(Layout *where)
         QChar qc = QChar(XL::Utf8Code(str, i));
         float w = qc == '\n' ? 3 : fm.width(qc);
 
-        coord xx = x + fm.leftBearing(qc);
-        coord yy = y - descent - leading;
+        coord charX = x + fm.leftBearing(qc);
+        coord lineY = y - descent - leading;
         coord ww = w;
         coord hh = h + leading;
 
         coord array[4][3] =
         {
-            { xx,      yy,      z },
-            { xx + ww, yy,      z },
-            { xx + ww, yy + hh, z },
-            { xx,      yy + hh, z }
+            { charX,      lineY,      z },
+            { charX + ww, lineY,      z },
+            { charX + ww, lineY + hh, z },
+            { charX,      lineY + hh, z }
         };
 
         glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
@@ -374,8 +382,8 @@ TextSelect::TextSelect(Widget *w)
 //   Constructor initializes an empty text range
 // ----------------------------------------------------------------------------
     : Activity("Text selection", w),
-      mark(0), point(0), direction(0),
-      replacement(""), replace(false), textMode(false)
+      mark(0), point(0), direction(None), targetX(0),
+      replacement(""), replace(false), textMode(false), pickingUpDown(false)
 {
     Widget::selection_map::iterator i, last = w->selection.end();
     for (i = w->selection.begin(); i != last; i++)
@@ -426,22 +434,30 @@ Activity *TextSelect::Key(text key)
     if (key == "Left")
     {
         moveTo(start() - !hasSelection());
-        direction = -1;
+        direction = Left;
     }
     else if (key == "Right")
     {
         moveTo(end() + !hasSelection());
-        direction = 1;
+        direction = Right;
     }
     else if (key == "Shift-Left")
     {
         point--;
-        direction = -1;
+        direction = Left;
     }
     else if (key == "Shift-Right")
     {
         point++;
-        direction = 1;
+        direction = Right;
+    }
+    else if (key == "Up")
+    {
+        direction = Up;
+    }
+    else if (key == "Down")
+    {
+        direction = Down;
     }
     else if (key == "Delete" || key == "Backspace")
     {
@@ -450,7 +466,7 @@ Activity *TextSelect::Key(text key)
         if (!hasSelection())
             point = (key == "Delete") ? point+1 : point-1;
         widget->markChanged("Deleted text");
-        direction = 0;
+        direction = None;
     }
     else if (XL::Utf8Length(key) == 1)
     {
@@ -460,7 +476,7 @@ Activity *TextSelect::Key(text key)
             widget->markChanged("Replaced text");
         else
             widget->markChanged("Inserted text");
-        direction = 0;
+        direction = None;
     }
 
     if (replace)
@@ -487,6 +503,7 @@ Activity *TextSelect::Click(uint button, uint count, int x, int y)
             mark = point = 0;
             if (count == 2)
                 textMode = true;
+            direction = Mark;
             return MouseMove(x, y, true);
         }
     }
@@ -595,6 +612,97 @@ void TextSelect::updateSelection()
     uint s = start(), e = end();
     for (uint i = s; i < e; i++)
         widget->selection[i | Widget::CHAR_ID_BIT] = 1;
+}
+
+
+void TextSelect::newLine()
+// ----------------------------------------------------------------------------
+//   Mark the beginning of a new drawing line for Up/Down keys
+// ----------------------------------------------------------------------------
+{
+    bool up = direction == Up;
+    bool down = direction == Down;
+    if (!up && !down)
+        return;
+
+    uint charId = widget->currentCharId();
+    if (down)
+    {
+        // Current best position
+        if (charId >= end())
+        {
+            if (pickingUpDown)
+            {
+                // What we had was the best position
+                mark = point = charId;
+                direction = None;
+                pickingUpDown = false;
+                updateSelection();
+            }
+            else
+            {
+                // Best default position is start of line
+                pickingUpDown = true;
+            }
+        }
+        else
+        {
+            pickingUpDown = false;
+        }
+    }
+    else // Up
+    {
+        if (charId < start())
+        {
+            pickingUpDown = true;
+        }
+    }
+}
+
+
+void TextSelect::newChar(coord x, bool selected)
+// ----------------------------------------------------------------------------
+//   Record a new character and deal with Up/Down keys
+// ----------------------------------------------------------------------------
+{
+    bool up = direction == Up;
+    bool down = direction == Down;
+    if (!up && !down)
+    {
+        if (selected && direction != None)
+            targetX = x;
+        return;
+    }
+
+    uint charId = widget->currentCharId();
+    if (down)
+    {
+        if (pickingUpDown && x >= targetX)
+        {
+            // We found the best position candidate: stop here
+            mark = point = charId;
+            direction = None;
+            pickingUpDown = false;
+            updateSelection();
+        }
+    }
+    else // Up
+    {
+        if (pickingUpDown && charId < start() && x >= targetX)
+        {
+            // We found the best position candidate
+            previous = charId;
+            pickingUpDown = false;
+        }
+        else if (charId >= start())
+        {
+            // The last position we had was the right one
+            mark = point = previous;
+            pickingUpDown = false;
+            direction = None;
+            updateSelection();
+        }
+    }
 }
 
 TAO_END

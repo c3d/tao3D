@@ -214,6 +214,8 @@ void LayoutLine::DrawSelection(Layout *where)
     // Get widget and text selection
     Widget *widget = where->Display();
     TextSelect *sel = widget->textSelection();
+    if (sel)
+        sel->newLine();
 
     // Display all items
     LineJustifier::Places &places = line.places;

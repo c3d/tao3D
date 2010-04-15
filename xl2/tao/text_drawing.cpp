@@ -479,7 +479,7 @@ Activity *TextSelect::Key(text key)
         if (!hasSelection())
             point = (key == "Delete") ? point+1 : point-1;
         widget->markChanged("Deleted text");
-        direction = None;
+        direction = Mark;
     }
     else if (XL::Utf8Length(key) == 1)
     {
@@ -489,7 +489,7 @@ Activity *TextSelect::Key(text key)
             widget->markChanged("Replaced text");
         else
             widget->markChanged("Inserted text");
-        direction = None;
+        direction = Mark;
     }
 
     if (replace)

@@ -96,7 +96,7 @@ text_cursor_color ->
     line_color 1,0,0,0
 
 text_cursor_highlight ->
-    color 0, 0..1/2, 0, 90%
+    color 0.6, 0.6..1.0/2, 0.6, 40%
     line_color 1,0,0,0
 
 handle_color ->

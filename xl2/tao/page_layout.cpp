@@ -238,7 +238,7 @@ void LayoutLine::DrawSelection(Layout *where)
             {
                 if (sel->point != sel->mark)
                 {
-                    coord y = where->offset.y;
+                    coord y = sel->selBox.Bottom();
                     if (sel->start() <= startId && sel->end() >= startId)
                         sel->selBox |= Point3(pl->space.Left(), y, 0);
                     if (sel->end() >= endId && sel->start() <= endId)

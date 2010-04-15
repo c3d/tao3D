@@ -455,11 +455,13 @@ Activity *TextSelect::Key(text key)
     }
     else if (key == "Up")
     {
+        mark = point = start();
         direction = Up;
         movePointOnly = false;
     }
     else if (key == "Down")
     {
+        mark = point = end();
         direction = Down;
         movePointOnly = false;
     }

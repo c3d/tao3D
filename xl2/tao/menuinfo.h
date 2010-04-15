@@ -26,28 +26,36 @@
 #include <string>
 #include <QButtonGroup>
 #include <QMenu>
-#include <QMenuBar>
+#include <QToolBar>
 #include <QAction>
+#include <QMainWindow>
 #include "tree.h"
 
-TAO_BEGIN
 
-struct MenuInfo : public XL::Info
+namespace Tao {
+
+struct MenuInfo : QObject
 // ----------------------------------------------------------------------------
-//  Qt menu data associated to an XL tree
+//  Qt menu data.
+//  This objects holds either a menu/submenu/menuitem using p_parent and
+//    p_action or a toolbar using p_window and p_toolbar.
 // ----------------------------------------------------------------------------
 {
+    Q_OBJECT;
 public:
-    MenuInfo(QMenu *menu, std::string name);
-    MenuInfo(QMenuBar *menubar, QMenu *menu, std::string name);
+    MenuInfo(QString name, QWidget *wid, QAction *act);
+    MenuInfo(QString name, QMainWindow *win, QToolBar *bar);
     ~MenuInfo();
 
 public:
-    // Represent the name of the menu with its path separated with '|'
-    std::string    fullName;
-    QMenu        * menu; // This is the menu
-    QMenuBar     * menubar;// This is the menubar
-    QAction      * action;
+    QString        fullname; // the widget full name.
+    QWidget      * p_parent; //  the parent hosting the menu, menuItem
+    QAction      * p_action; // The action associated with the widget
+    QMainWindow  * p_window; // the window hosting the toolbar (if any)
+    QToolBar     * p_toolbar; // The toolbar
+
+public slots:
+    void actionDestroyed(QObject * obj);
 
 };
 
@@ -82,6 +90,6 @@ public:
     XL::Tree *tree;
 };
 
-TAO_END
+}
 
 #endif // MENUINFO_H

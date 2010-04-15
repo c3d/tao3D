@@ -631,6 +631,13 @@ GLuint GroupBoxSurface::bind(XL::Text *lbl)
     return WidgetSurface::bind();
 }
 
+//void GroupBoxSurface::clicked(bool checked)
+//{
+//    IFTRACE(widgets)
+//    {
+//        std::cerr<< "GroupBox clicked\n";
+//    }
+//}
 
 
 // ============================================================================
@@ -690,6 +697,22 @@ GLuint VideoPlayerSurface::bind(XL::Text *urlTree)
     fbo->release();
 
     return fbo->texture();
+}
+
+// ============================================================================
+//
+//   Slider TO BE DONE
+//
+// ============================================================================
+AbstractSliderSurface::AbstractSliderSurface(XL::Tree *t, QAbstractSlider *slide) :
+        WidgetSurface(t, slide), min(0), max(0), value(NULL)
+{
+
+}
+
+void AbstractSliderSurface::valueChanged(int new_value)
+{
+
 }
 
 TAO_END

@@ -383,7 +383,9 @@ TextSelect::TextSelect(Widget *w)
 // ----------------------------------------------------------------------------
     : Activity("Text selection", w),
       mark(0), point(0), direction(None), targetX(0),
-      replacement(""), replace(false), textMode(false), pickingUpDown(false)
+      replacement(""), replace(false),
+      textMode(false),
+      pickingUpDown(false), movePointOnly(false)
 {
     Widget::selection_map::iterator i, last = w->selection.end();
     for (i = w->selection.begin(); i != last; i++)
@@ -454,10 +456,22 @@ Activity *TextSelect::Key(text key)
     else if (key == "Up")
     {
         direction = Up;
+        movePointOnly = false;
     }
     else if (key == "Down")
     {
         direction = Down;
+        movePointOnly = false;
+    }
+    else if (key == "Shift-Up")
+    {
+        direction = Up;
+        movePointOnly = true;
+    }
+    else if (key == "Shift-Down")
+    {
+        direction = Down;
+        movePointOnly = true;
     }
     else if (key == "Delete" || key == "Backspace")
     {
@@ -629,12 +643,14 @@ void TextSelect::newLine()
     if (down)
     {
         // Current best position
-        if (charId >= end())
+        if (charId >= point)
         {
             if (pickingUpDown)
             {
                 // What we had was the best position
-                mark = point = charId;
+                point = charId;
+                if (!movePointOnly)
+                    mark = point;
                 direction = None;
                 pickingUpDown = false;
                 updateSelection();
@@ -652,7 +668,7 @@ void TextSelect::newLine()
     }
     else // Up
     {
-        if (charId < start())
+        if (charId < point)
         {
             if (pickingUpDown)
                 previous = charId; // We are at right of previous line
@@ -683,7 +699,9 @@ void TextSelect::newChar(coord x, bool selected)
         if (pickingUpDown && x >= targetX)
         {
             // We found the best position candidate: stop here
-            mark = point = charId;
+            point = charId;
+            if (!movePointOnly)
+                mark = point;
             direction = None;
             pickingUpDown = false;
             updateSelection();
@@ -691,16 +709,18 @@ void TextSelect::newChar(coord x, bool selected)
     }
     else // Up
     {
-        if (pickingUpDown && charId < start() && x >= targetX)
+        if (pickingUpDown && charId < point && x >= targetX)
         {
             // We found the best position candidate
             previous = charId;
             pickingUpDown = false;
         }
-        else if (charId >= start())
+        else if (charId >= point)
         {
             // The last position we had was the right one
-            mark = point = previous;
+            point = previous;
+            if (!movePointOnly)
+                mark = point;
             pickingUpDown = false;
             direction = None;
             updateSelection();

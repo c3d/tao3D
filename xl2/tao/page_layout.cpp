@@ -633,6 +633,8 @@ void PageLayout::DrawSelection(Layout *where)
     // Remember the initial selection ID
     Widget *widget = where->Display();
     GLuint startId = widget->currentCharId();
+    TextSelect *oldSel = widget->textSelection();
+    bool firstClick = !oldSel || oldSel->direction == TextSelect::Mark;
 
     // Inherit state from our parent layout if there is one
     Inherit(where);
@@ -653,8 +655,8 @@ void PageLayout::DrawSelection(Layout *where)
     // Assign an ID for the page layout itself and draw a rectangle in it
     GLuint endId = widget->currentCharId();
     GLuint layoutId = widget->newId();
-    if (!widget->drag())
-        if (TextSelect *sel = widget->textSelection())
+    if (TextSelect *sel = widget->textSelection())
+        if (!widget->drag() || firstClick)
             if (sel->start() <= endId && sel->end() >= startId)
                 widget->select(layoutId, 1);
 }

@@ -28,6 +28,7 @@
 #include "coords3d.h"
 #include "opcodes.h"
 #include "drawing.h"
+#include "menuinfo.h"
 
 
 #include <GL/glew.h>
@@ -311,8 +312,13 @@ public:
     Tree *      videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url);
 
     // Menus
-    Tree *      menuItem(Tree *self, Text *s, Tree *t);
-    Tree *      menu(Tree *self, Text *s, bool=false);
+    Tree *      menuItem(Tree *self, text name, text lbl, text iconFileName,
+                         bool isCheckable, Text *isChecked, Tree *t);
+    Tree *      menu(Tree *self, text name, text lbl, text iconFileName,
+                     bool isSubmenu=false);
+    Tree *      toolBar(Tree *self, text name, text title, bool isFloatable);
+    Tree *      menuBar(Tree *self);
+    Tree *      separator(Tree *self);
 
     // Tree management
     Name *      insert(Tree *self, Tree *toInsert);
@@ -332,7 +338,6 @@ private:
     friend class Drag;
     friend class Manipulator;
     friend class ControlPoint;
-    friend class AbstractButtonSurface;
 
     typedef XL::LocalSave<QEvent *> EventSave;
     typedef std::map<GLuint, uint>  selection_map;
@@ -364,6 +369,9 @@ private:
     // Menus
     QMenu                *currentMenu;
     QMenuBar             *currentMenuBar;
+    QToolBar             *currentToolBar;
+    QVector<MenuInfo*>    orderedMenuElements;
+    int                   order;
 
     // Program changes
     text                  whatsNew;

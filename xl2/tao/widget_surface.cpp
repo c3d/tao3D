@@ -631,6 +631,13 @@ GLuint GroupBoxSurface::bind(XL::Text *lbl)
     return WidgetSurface::bind();
 }
 
+//void GroupBoxSurface::clicked(bool checked)
+//{
+//    IFTRACE(widgets)
+//    {
+//        std::cerr<< "GroupBox clicked\n";
+//    }
+//}
 
 
 // ============================================================================

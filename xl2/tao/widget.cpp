@@ -84,7 +84,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentGroup(NULL), activities(NULL),
       id(0), capacity(0), manipulator(0),
       event(NULL), focusWidget(NULL),
-      currentMenu(NULL), currentMenuBar(NULL),
+      currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
+      orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
       whatsNew(""), reloadProgram(false),
       timer(this), idleTimer(this),
       pageStartTime(CurrentTime()), pageRefresh(86400),
@@ -381,6 +382,20 @@ void Widget::runProgram()
                     reloadProgram = false;
                 }
                 xl_evaluate(prog);
+
+                // clean the end of the menu
+                while (++order < orderedMenuElements.count())
+                {
+                    if (orderedMenuElements[order])
+                    {
+                        delete orderedMenuElements[order];
+                        orderedMenuElements[order] = NULL;
+                    }
+                }
+                // reset the order value.
+                order = 0;
+                currentToolBar = NULL;
+                currentMenuBar = ((Window*)parent())->menuBar();
             }
         }
     }
@@ -412,6 +427,7 @@ void Widget::runProgram()
         capacity = id + 100;
     else if (id + 50 < capacity / 2)
         capacity = capacity / 2;
+
 }
 
 
@@ -2150,7 +2166,7 @@ Tree *Widget::roundedRectangle(Tree *self,
 
 
 
-Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
+Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
                     real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
 //   Arrow
@@ -2168,7 +2184,7 @@ Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
 
 
 
-Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
+Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
                     real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
 //   Double arrow
@@ -2231,10 +2247,10 @@ Tree *Widget::star(Tree *self,
 
 
 Tree *Widget::speechBalloon(Tree *self,
-                            real_r cx, real_r cy, real_r w, real_r h, 
+                            real_r cx, real_r cy, real_r w, real_r h,
                             real_r r, real_r ax, real_r ay)
 // ----------------------------------------------------------------------------
-//   Speech balloon with radius r for rounded corners, and point a for the tail 
+//   Speech balloon with radius r for rounded corners, and point a for the tail
 // ----------------------------------------------------------------------------
 {
     SpeechBalloon shape(Box(cx-w/2, cy-h/2, w, h), r, ax, ay);
@@ -3069,73 +3085,111 @@ Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
 //   invalidated and the new one is executed for the first time.
 // ============================================================================
 
-Tree *Widget::menuItem(Tree *self, Text *s, Tree *t)
+Tree *Widget::menuItem(Tree *self, text name, text lbl, text iconFileName,
+                       bool isCheckable, Text *isChecked, Tree *t)
 // ----------------------------------------------------------------------------
 //   Create a menu item
 // ----------------------------------------------------------------------------
 {
-    if (!currentMenu)
+    if (!currentMenu && !currentToolBar)
         return XL::xl_false;
 
-    QString fullName = currentMenu->objectName() +
-                      "/" +
-                      QString::fromStdString(s->value);
+    QString fullName = +name;
 
-    if (parent()->findChild<QAction*>(fullName))
+    if (QAction* act = parent()->findChild<QAction*>(fullName))
     {
-        IFTRACE(menus)
+        // MenuItem found, update label, icon, checkmark if the order is OK.
+        if (order < orderedMenuElements.size() &&
+            orderedMenuElements[order] != NULL &&
+            orderedMenuElements[order]->fullname == fullName)
         {
-            std::cout<< "MenuItem " << s->value
-                     << " found in current MenuBar with fullname "
-                     << fullName.toStdString() << "\n";
-            std::cout.flush();
+//            IFTRACE(menus)
+//            {
+//                std::cerr<< "MenuItem " << lbl
+//                         << " found in current window with fullname "
+//                         << fullName.toStdString()
+//                         << " and order " << order <<"\n";
+//                std::cerr.flush();
+//            }
+            act->setText(+lbl);
+            if (iconFileName != "")
+                act->setIcon(QIcon(+iconFileName));
+            else
+                act->setIcon(QIcon());
+            act->setChecked(strcasecmp(isChecked->value.c_str(), "true") == 0);
+
+            order++;
+            return XL::xl_true;
         }
-        return XL::xl_true;
+
+        // The name exist but it is not in the good order so
+        // remove the widget from its parent.
+//        act->parentWidget()->removeAction(act);
+        delete act;
+//        act = NULL;
     }
 
-    // Get or build the current Menu if we don't have one
-    MenuInfo *menuInfo = s->GetInfo<MenuInfo>();
-
-    // Store a copy of the tree in the QAction.
+    // Store the tree in the QAction.
     QVariant var = QVariant::fromValue(XL::TreeRoot(t));
-
-    if (menuInfo)
-    {
-        // The name of the menuItem has changed.
-        IFTRACE(menus)
-        {
-            std::cout << "menuInfo found, old name is "
-                      << menuInfo->fullName << " new name is "
-                      << fullName.toStdString() << "\n";
-            std::cout.flush();
-        }
-        menuInfo->action->setText(QString::fromStdString(s->value));
-        menuInfo->action->setObjectName(fullName);
-        menuInfo->action->setData(var);
-        menuInfo->fullName = fullName.toStdString();
-        return XL::xl_true;
-    }
-
-    menuInfo = new MenuInfo(currentMenu, fullName.toStdString());
-    s->SetInfo<MenuInfo> (menuInfo);
 
     IFTRACE(menus)
     {
-        std::cout << "menuItem creation with name "
-                  << fullName.toStdString() << "\n";
-        std::cout.flush();
+        std::cerr << "menuItem CREATION with name "
+                  << fullName.toStdString() << " and order " << order << "\n";
+        std::cerr.flush();
     }
 
-    QAction * p_action = currentMenu->addAction(QString::fromStdString(s->value));
-    menuInfo->action = p_action;
+    QAction * p_action;
+    QWidget * par;
+    if (currentMenu)
+        par =  currentMenu;
+    else
+        par = currentToolBar;
+    p_action = new QAction(+lbl, par);
+
     p_action->setData(var);
+
+    if (iconFileName != "")
+        p_action->setIcon(QIcon(+iconFileName));
+    else
+        p_action->setIcon(QIcon());
+
+    p_action->setCheckable(isCheckable);
+    p_action->setChecked(strcasecmp(isChecked->value.c_str(), "true") == 0);
     p_action->setObjectName(fullName);
+
+    if (order >= orderedMenuElements.size())
+        orderedMenuElements.resize(order+10);
+
+    if (orderedMenuElements[order])
+    {
+        QAction*before = orderedMenuElements[order]->p_action;
+        if (currentMenu)
+            currentMenu->insertAction(before, p_action);
+        else
+            currentToolBar->insertAction(before, p_action);
+
+        delete orderedMenuElements[order];
+    }
+    else
+    {
+        if (currentMenu)
+            currentMenu->addAction(p_action);
+        else
+            currentToolBar->addAction(p_action);
+    }
+
+    orderedMenuElements[order] = new MenuInfo(fullName,
+                                              par,
+                                              p_action);
+    order++;
 
     return XL::xl_true;
 }
 
 
-Tree *Widget::menu(Tree *self, Text *s, bool isSubMenu)
+Tree *Widget::menu(Tree *self, text name, text lbl,
+                   text iconFileName, bool isSubMenu)
 // ----------------------------------------------------------------------------
 // Add the menu to the current menu bar or create the contextual menu
 // ----------------------------------------------------------------------------
@@ -3144,81 +3198,239 @@ Tree *Widget::menu(Tree *self, Text *s, bool isSubMenu)
 
     // Build the full name of the menu
     // Uses the current menu name, the given string and the isSubmenu.
-    QString fullname = QString::fromStdString(s->value);
-    if (isSubMenu && currentMenu)
-    {
-        fullname.prepend(currentMenu->objectName() +'/');
-        fullname.replace(TOPMENU, SUBMENU);
-
-    }
-    else if (fullname.startsWith(CONTEXT_MENU))
+    QString fullname = +name;
+    if (fullname.startsWith(CONTEXT_MENU))
     {
         isContextMenu = true;
     }
-    else
-    {
-        fullname.prepend( TOPMENU );
-    }
 
-    // Get or build the current Menu if we don't have one
-    MenuInfo *menuInfo = s->GetInfo<MenuInfo>();
-
-
-    // If the menu is registered, no need to recreate it.
-    // This is used at reload time, recreate the MenuInfo if required.
+    // If the menu is registered, no need to recreate it if the order is exact.
+    // This is used at reload time.
     if (QMenu *tmp = parent()->findChild<QMenu*>(fullname))
     {
-        currentMenu = tmp;
-        if (!menuInfo)
+        if (lbl == "" && iconFileName == "")
         {
-            menuInfo = new MenuInfo(isContextMenu ? NULL : currentMenuBar,
-                                    currentMenu,
-                                    fullname.toStdString());
-            s->SetInfo<MenuInfo> (menuInfo);
-            menuInfo->action = currentMenu->menuAction();
-
+            // Just set the current menu to the requested one
+            currentMenu = tmp;
+            return XL::xl_true;
         }
-        return XL::xl_true;
+
+        if (order < orderedMenuElements.size() &&
+            orderedMenuElements[order] != NULL &&
+            orderedMenuElements[order]->fullname == fullname)
+        {
+            // Set the currentMenu and update the label and icon.
+            currentMenu = tmp;
+            currentMenu->setTitle(+lbl);
+            if (iconFileName != "")
+                currentMenu->setIcon(QIcon(+iconFileName));
+            else
+                currentMenu->setIcon(QIcon());
+
+//            IFTRACE(menus)
+//            {
+//                std::cerr << "menu found with name "
+//                          << fullname.toStdString() << " and order " << order << "\n";
+//                std::cerr.flush();
+//            }
+
+            order++;
+            return XL::xl_true;
+        }
+        // The name exist but it is not in the good order so
+        // remove the widget from its parent. This will clean all the children.
+        delete tmp;//tmp->parentWidget()->removeAction(tmp->menuAction());
+//        tmp = NULL;
+
     }
 
-    // The menu is not yet registered.
-    // The name may have change but not the content
-    // (in the loop of the XL program execution).
-    if (menuInfo)
-    {
-        // The menu exists : update its info
-        currentMenu = menuInfo->menu;
-        menuInfo->action->setText(QString::fromStdString(s->value));
-        menuInfo->menu->setObjectName(fullname);
-        menuInfo->fullName = fullname.toStdString();
-        return XL::xl_true;
-    }
-
-    // The menu is not existing. Creating it.
+    QWidget *par = NULL;
+    // The menu is not yet registered. Create it and set the currentMenu.
     if (isContextMenu)
     {
         currentMenu = new QMenu((Window*)parent());
         connect(currentMenu, SIGNAL(triggered(QAction*)),
                 this,        SLOT(userMenu(QAction*)));
-
     }
-    else if (isSubMenu)
-        currentMenu = currentMenu->addMenu(QString::fromStdString(s->value));
     else
-        currentMenu = currentMenuBar->addMenu(QString::fromStdString(s->value));
+    {
+        if (isSubMenu)
+            par = currentMenu;
+        else if (currentMenuBar)
+            par = currentMenuBar;
+        else if (currentToolBar)
+            par = currentToolBar;
+
+        currentMenu = new QMenu(+lbl, par);
+    }
 
     currentMenu->setObjectName(fullname);
 
-    menuInfo = new MenuInfo(isContextMenu ? NULL : currentMenuBar,
-                            currentMenu,
-                            fullname.toStdString());
-    s->SetInfo<MenuInfo> (menuInfo);
-    menuInfo->action = currentMenu->menuAction();
+    if (iconFileName != "")
+        currentMenu->setIcon(QIcon(+iconFileName));
+
+    if (order >= orderedMenuElements.size())
+        orderedMenuElements.resize(order+10);
+
+    if (orderedMenuElements[order])
+    {
+        if (par)
+        {
+            QAction *before = orderedMenuElements[order]->p_action;
+            par->insertAction(before, currentMenu->menuAction());
+        }
+        delete orderedMenuElements[order];
+    }
+    else
+    {
+        if (par)
+            par->addAction(currentMenu->menuAction());
+    }
+    orderedMenuElements[order] = new MenuInfo(fullname,
+                                              par ? par : (Window*)parent(),
+                                              currentMenu->menuAction());
+    IFTRACE(menus)
+    {
+        std::cerr << "menu CREATION with name "
+                  << fullname.toStdString() << " and order " << order << "\n";
+        std::cerr.flush();
+    }
+
+    order++;
 
     return XL::xl_true;
 }
 
+Tree * Widget::menuBar(Tree *self)
+// ----------------------------------------------------------------------------
+// Set the currentManueBar to the default menuBar.
+// ----------------------------------------------------------------------------
+{
+    currentMenuBar = ((Window *)parent())->menuBar();
+    currentToolBar = NULL;
+    currentMenu = NULL;
+    return XL::xl_true;
+}
 
+Tree * Widget::toolBar(Tree *self, text name, text title, bool isFloatable)
+// ----------------------------------------------------------------------------
+// Add the toolBar to the current widget
+// ----------------------------------------------------------------------------
+{
+    QString fullname = +name;
+    Window *win = (Window *)parent();
+    if (QToolBar *tmp = win->findChild<QToolBar*>(fullname))
+    {
+        if (order < orderedMenuElements.size() &&
+            orderedMenuElements[order] != NULL &&
+            orderedMenuElements[order]->fullname == fullname)
+        {
+            // Set the currentMenu and update the label and icon.
+            currentToolBar = tmp;
+            order++;
+            currentMenuBar = NULL;
+            currentMenu = NULL;
+            return XL::xl_true;
+        }
+        // The name exist but it is not in the good order so
+        // remove the widget from its parent. This will clean all the children.
+//        win->removeToolBar(tmp);
+        delete tmp;
+//        tmp = NULL;
+    }
+
+    currentToolBar = win->addToolBar(+title);
+    currentToolBar->setObjectName(fullname);
+    currentToolBar->setFloatable(isFloatable);
+
+    IFTRACE(menus)
+    {
+        std::cerr << "toolbar CREATION with name "
+                  << fullname.toStdString() << " and order " << order << "\n";
+        std::cerr.flush();
+    }
+
+    if (order >= orderedMenuElements.size())
+        orderedMenuElements.resize(order+10);
+
+    if (orderedMenuElements[order])
+        delete orderedMenuElements[order];
+
+    orderedMenuElements[order] = new MenuInfo(fullname, win, currentToolBar);
+
+    order++;
+    currentMenuBar = NULL;
+    currentMenu = NULL;
+
+    return XL::xl_true;
+}
+
+Tree * Widget::separator(Tree *self)
+        // ----------------------------------------------------------------------------
+        // Add the separator to the current widget
+        // ----------------------------------------------------------------------------
+{
+
+    QString fullname = QString("SEPARATOR_%1").arg(order);
+
+    if (QAction *tmp = parent()->findChild<QAction*>(fullname))
+    {
+        if (order < orderedMenuElements.size() &&
+            orderedMenuElements[order] != NULL &&
+            orderedMenuElements[order]->fullname == fullname)
+        {
+//            IFTRACE(menus)
+//            {
+//                std::cerr << "separator found with name "
+//                          << fullname.toStdString() << " and order " << order << "\n";
+//                std::cerr.flush();
+//            }
+            order++;
+            return XL::xl_true;
+        }
+//        tmp->parentWidget()->removeAction(tmp);
+        delete tmp;
+//        tmp = NULL;
+    }
+    QWidget *par = NULL;
+    if (currentMenu)
+        par = currentMenu;
+    else if (currentMenuBar)
+        par = currentMenuBar;
+    else if (currentToolBar)
+        par = currentToolBar;
+
+    QAction *act = new QAction(par);
+    act->setSeparator(true);
+    act->setObjectName(fullname);
+
+    IFTRACE(menus)
+    {
+        std::cerr << "separator CREATION with name "
+                  << fullname.toStdString() << " and order " << order << "\n";
+        std::cerr.flush();
+    }
+    if (order >= orderedMenuElements.size())
+        orderedMenuElements.resize(order+10);
+
+    if (orderedMenuElements[order])
+    {
+        if (par)
+        {
+            QAction *before = orderedMenuElements[order]->p_action;
+            par->insertAction(before, act);
+        }
+        delete orderedMenuElements[order];
+    }
+    else
+    {
+        if (par)
+            par->addAction(act);
+    }
+    orderedMenuElements[order] = new MenuInfo(fullname, par, act);
+    order++;
+    return XL::xl_true;
+}
 
 // ============================================================================
 //

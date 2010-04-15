@@ -186,6 +186,8 @@ private:
     text label;
 public:
     QGridLayout *grid;
+//public slots:
+//    void clicked(bool checked);
 };
 
 

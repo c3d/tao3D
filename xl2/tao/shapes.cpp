@@ -204,24 +204,96 @@ void RoundedRectangle::Draw(GraphicPath &path)
 //   Draw a rounded rectangle
 // ----------------------------------------------------------------------------
 {
-    QPainterPath qt;
-    int sw = bounds.Width() > 0? 1: -1;
-    int sh = bounds.Height() > 0? 1: -1;
+    QPainterPath rect;
+    coord w = bounds.Width();
+    coord h = bounds.Height();
+    int sw = w > 0? 1: -1;
+    int sh = h > 0? 1: -1;
+    double pw = sw*w;
+    double ph = sh*h;
     
-    if (sw * bounds.Width() < sh * bounds.Height())
+    if (pw < ph)
     {
-        if (r > sw * bounds.Width() / 2)
-            r = sw * bounds.Width() / 2;
+        if (r > pw / 2)
+            r = pw / 2;
     }
     else
     {
-        if (r > sh * bounds.Height() / 2)
-            r = sh * bounds.Height() / 2;
+        if (r > ph / 2)
+            r = ph / 2;
     }
-    qt.addRoundedRect(bounds.lower.x, bounds.lower.y,
-                      bounds.Width(), bounds.Height(),
-                      r, r);
-    path.addQtPath(qt);
+    rect.addRoundedRect(bounds.lower.x, bounds.lower.y,
+                        w, h, r, r);
+    path.addQtPath(rect);
+}
+
+
+void EllipticalRectangle::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    We need correct tesselation
+// ----------------------------------------------------------------------------
+{
+    GraphicPath path;
+    Draw(path);
+    setTexture(where);
+    if (setFillColor(where))
+        path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+    if (setLineColor(where))
+        // REVISIT: If lines is thick, use a QPainterPathStroker
+        path.Draw(where, GL_LINE_STRIP);
+}
+
+
+void EllipticalRectangle::Draw(GraphicPath &path)
+// ----------------------------------------------------------------------------
+//   Draw an elliptical rectangle
+// ----------------------------------------------------------------------------
+{
+    Point c = bounds.Center();
+    coord w = bounds.Width();
+    coord h = bounds.Height();
+    int sw = w > 0? 1: -1;
+    int sh = h > 0? 1: -1;
+    double pw = sw*w;
+    double ph = sh*h;
+    if (r < 0.0)
+    {
+        QPainterPath ellipse;
+        ellipse.addEllipse(bounds.lower.x, bounds.lower.y,
+                           bounds.Width(), bounds.Height());
+        path.addQtPath(ellipse);
+    } 
+    else if (r > 1.0)
+    {
+        path.moveTo(Point3(bounds.lower.x, bounds.lower.y, 0));
+        path.lineTo(Point3(bounds.upper.x, bounds.lower.y, 0));
+        path.lineTo(Point3(bounds.upper.x, bounds.upper.y, 0));
+        path.lineTo(Point3(bounds.lower.x, bounds.upper.y, 0));
+        path.close();
+    }
+    else
+    {
+        double rr = M_SQRT1_2+(1-M_SQRT1_2)*r;
+        double alpha_r = acos(rr);
+        double alpha_d = alpha_r * 180 / M_PI;
+        double ratio = (1-cos(alpha_r))/(1-sin(alpha_r));
+
+        QPainterPath rect;
+        rect.moveTo(c.x+rr*pw/2, c.y+rr*ph/2);
+        rect.arcTo(c.x+pw/2-ratio*pw, c.y-ph/2,
+                   ratio*pw, ph,
+                   270+alpha_d, 180-2*alpha_d);
+        rect.arcTo(c.x-pw/2, c.y-ph/2,
+                   pw, ratio*ph,
+                   alpha_d, 180-2*alpha_d);
+        rect.arcTo(c.x-pw/2, c.y-ph/2,
+                   ratio*pw, ph,
+                   90+alpha_d, 180-2*alpha_d);
+        rect.arcTo(c.x-pw/2, c.y+ph/2-ratio*ph,
+                   pw, ratio*ph,
+                   180+alpha_d, 180-2*alpha_d);
+        path.addQtPath(rect);
+    }
 }
 
 
@@ -381,12 +453,12 @@ void DoubleArrow::Draw(GraphicPath &path)
 
 void StarPolygon::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//    We need correct tesselation when q != 1
+//    We need correct tesselation when q > 1
 // ----------------------------------------------------------------------------
 {
     GraphicPath path;
     Draw(path);
-    if (q == 1)
+    if (q <= 1)
     {
         // Regular polygon, no need to tesselate
         path.Draw(where);
@@ -395,8 +467,7 @@ void StarPolygon::Draw(Layout *where)
     {
         setTexture(where);
         if (setFillColor(where))
-            path.Draw(where, GL_POLYGON,
-                      q > 0 ? GLU_TESS_WINDING_POSITIVE : GLU_TESS_WINDING_ODD);
+            path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
         if (setLineColor(where))
             // REVISIT: If lines is thick, use a QPainterPathStroker
             path.Draw(where, GL_LINE_STRIP);
@@ -409,6 +480,13 @@ void StarPolygon::Draw(GraphicPath &path)
 //   Draw a regular polygon or a star
 // ----------------------------------------------------------------------------
 {
+    if (p < 3)
+        p = 3;
+    if (q < 1)
+        q = 1;
+    if (q > (p-1)/2)
+        q = (p-1)/2;
+
     scale  w1     = bounds.Width()/2;
     scale  h1     = bounds.Height()/2;
     Point3 center = bounds.Center();
@@ -481,7 +559,7 @@ void Star::Draw(Layout *where)
 {
     GraphicPath path;
     Draw(path);
-    if (r == 1.0)
+    if (r >= 1.0)
     {
         // Regular polygon, no need to tesselate
         path.Draw(where);
@@ -503,11 +581,16 @@ void Star::Draw(GraphicPath &path)
 //   Draw a regular polygon or a star
 // ----------------------------------------------------------------------------
 {
+    if (r < 0.0) 
+        r = 0.0;
+    if (r > 1.0) 
+        r = 1.0;
+    if (p < 3)
+        p = 3;
+
     scale  w1     = bounds.Width()/2;
     scale  h1     = bounds.Height()/2;
-    Point3 center = bounds.Center();
-    coord  cx     = center.x;
-    coord  cy     = center.y;
+    Point  c      = bounds.Center();
 
     scale  w2     = w1 * r;
     scale  h2     = h1 * r;
@@ -516,11 +599,11 @@ void Star::Draw(GraphicPath &path)
 
     for (int i = 0; i < p; i++)
     {
-        double x1 = cx + w1 * sin(a);
-        double y1 = cy + h1 * cos(a);
+        double x1 = c.x + w1 * sin(a);
+        double y1 = c.y + h1 * cos(a);
         a += da;
-        double x2 = cx + w2 * sin(a);
-        double y2 = cy + h2 * cos(a);
+        double x2 = c.x + w2 * sin(a);
+        double y2 = c.y + h2 * cos(a);
         a += da;
 
         if (i)
@@ -556,83 +639,234 @@ void SpeechBalloon::Draw(GraphicPath &path)
 //   Draw a speech ballon
 // ----------------------------------------------------------------------------
 {
-    QPainterPath qt;
 
-    int sw = bounds.Width() > 0? 1: -1;
-    int sh = bounds.Height() > 0? 1: -1;
+    Point c = bounds.Center();
+    coord w =  bounds.Width();
+    coord h = bounds.Height();
+    int sw = w > 0? 1: -1;
+    int sh = h > 0? 1: -1;
     double rx = r; 
     double ry = r;
-    coord cx = bounds.Center().x;
-    coord cy = bounds.Center().y;
-    double c = 10.0;
-    double tx = a.x - cx;
-    double ty = a.y - cy;
-    double t = sqrt(tx*tx + ty*ty);
-    
-    if (r > sw * bounds.Width() / 2)
-        rx = sw * bounds.Width() / 2;
-    if (r > sh * bounds.Height() / 2)
-        ry = sh * bounds.Height() / 2;
+    if (r > sw * w/2)
+        rx = sw * w/2;
+    if (r > sh * h/2)
+        ry = sh * h/2;
 
-    qt.addRoundedRect(bounds.lower.x, bounds.lower.y,
-                      bounds.Width(), bounds.Height(),
-                      rx, ry);
-    if (4*tx*tx > ty*ty)
+    QPainterPath balloon;
+    balloon.addRoundedRect(bounds.lower.x, bounds.lower.y, w, h, rx, ry);
+ 
+    double tx = a.x - c.x;
+    double ty = a.y - c.y;
+    int stx = tx > 0? 1: -1;
+    int sty = ty > 0? 1: -1;
+    double th = sqrt(tx*tx + ty*ty);
+    double tw = th/7;
+    tw = tw < w/7? tw: w/7;
+    tw = tw < h/5? tw: h/5;
+
+    double theta, s, o;
+    if (stx*tx > sty*ty)
     {
-        qt.moveTo(cx+c*ty/t, cy-c*tx/t);
-        qt.lineTo(cx+0.25*tx, cy+0.5*ty);
-        qt.lineTo(a.x, a.y);
-        qt.lineTo(cx+0.25*tx, cy+0.5*ty);
-        qt.lineTo(cx-c*ty/t, cy+c*tx/t);
-        //qt.quadTo(cx+0.25*tx, cy+0.5*ty, a.x, a.y);
-        //qt.quadTo(cx+0.25*tx, cy+0.5*ty, cx-c*ty/t, cy+c*tx/t);
-        //qt.closeSubpath();
+        theta = asin(sty*ty/th);
+        s = 1.5;
+        o = 0;
     }
     else
     {
-        qt.moveTo(cx+c*ty/t, cy-c*tx/t);
-        qt.lineTo(cx+0.25*tx, cy+0.5*ty);
-        qt.lineTo(a.x, a.y);
-        qt.lineTo(cx+0.25*tx, cy+0.5*ty);
-        qt.lineTo(cx-c*ty/t, cy+c*tx/t);
-        //qt.quadTo(cx+tx, cy+0.5*ty, a.x, a.y);
-        //qt.quadTo(cx+tx, cy+0.5*ty, cx-c*ty/t, cy+c*tx/t);
-        //qt.closeSubpath();
+        theta = acos(stx*tx/th);
+        s = 0.5;
+        o = M_PI_4;
     }
-    path.addQtPath(qt);
 
-/*
-x -> 3.14 / 4 * sin time 
-p -> 100 
-a -> 10 
-b -> a / 2 
-c -> p / 2 
-h1 -> 1.5 
-h2 -> 0.5 
-x1 -> -100 
-x2 -> -100 
-y1 -> 0 
-y2 -> 0 
-w -> 80 
-h -> 50 
-r -> 15 
-if cos time > 0 then 
-    rounded_rectangle x1, y1, w, h, r 
-    path 
-        move_to x1 + a * cos (x + 1.57), y1 + a * sin (x + 1.57), 0 
-        curve_to x1 + c * cos (h1 * x) + b * cos (x + 1.57), y1 + c * sin (h1 * x) + b * sin (x + 1.57), 0, x1 + p * cos (x), y1 + p * sin (x), 0 
-        curve_to x1 + c * cos (h1 * x) + b * cos (x - 1.57), y1 + c * sin (h1 * x) + b * sin (x - 1.57), 0, x1 + a * cos (x - 1.57), y1 + a * sin (x - 1.57), 0 
-        close_path
+    QPainterPath tail;
+    tail.moveTo( c.x+stx*tw*cos(theta+M_PI_2), c.y+sty*tw*sin(theta+M_PI_2));
+    tail.quadTo( c.x+stx*0.5*(th*cos(s*theta+o)+tw*cos(theta+M_PI_2))
+               , c.y+sty*0.5*(th*sin(s*theta+o)+tw*sin(theta+M_PI_2))
+               , a.x, a.y);
+    tail.quadTo( c.x+stx*0.5*(th*cos(s*theta+o)+tw*cos(theta-M_PI_2))
+               , c.y+sty*0.5*(th*sin(s*theta+o)+tw*sin(theta-M_PI_2))
+               , c.x+stx*tw*cos(theta-M_PI_2), c.y+sty*tw*sin(theta-M_PI_2));
+
+    path.addQtPath(balloon+=tail);
+}
+
+
+void Callout::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    We need correct tesselation
+// ----------------------------------------------------------------------------
+{
+    GraphicPath path;
+    Draw(path);
+    setTexture(where);
+    if (setFillColor(where))
+        path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+    if (setLineColor(where))
+        // REVISIT: If lines is thick, use a QPainterPathStroker
+        path.Draw(where, GL_LINE_STRIP);
+}
+
+
+void Callout::Draw(GraphicPath &path)
+// ----------------------------------------------------------------------------
+//   Draw a callout
+// ----------------------------------------------------------------------------
+{
+
+    Point c = bounds.Center();
+    coord w = bounds.Width();
+    coord h = bounds.Height();
+    int sw = w > 0? 1: -1;
+    int sh = h > 0? 1: -1;
+    double pw = sw*w;
+    double ph = sh*h;
     
-else 
-    rounded_rectangle x1, y2, w, h, r 
-    path 
-        move_to x2 + a * cos (-x), y2 + a * sin (-x), 0 
-        curve_to x2 + c * cos (-h2 * x - 1.57) + b * cos (-x), y2 + c * sin (-h2 * x - 1.57) + b * sin (-x), 0, x2 + p * cos (-1 * x - 1.57), y2 + p * sin (-1 * x - 1.57), 0 
-        curve_to x2 + c * cos (-h2 * x - 1.57) + b * cos (-x - 3.14), y2 + c * sin (-h2 * x - 1.57) + b * sin (-x - 3.14), 0, x2 + a * cos (-x - 3.14), y2 + a * sin (-x - 3.14), 0 
-        close_path
+    if (pw < ph)
+    {
+        if (r > pw/2)
+            r = pw/2;
+    }
+    else
+    {
+        if (r > ph/2)
+            r = ph/2;
+    }
+
+    QPainterPath rect;
+    rect.addRoundedRect(bounds.lower.x, bounds.lower.y,
+                        w, h, r, r);
+    
+    double tx = a.x - c.x;
+    double ty = a.y - c.y;
+    int stx = tx > 0? 1: -1;
+    int sty = ty > 0? 1: -1;
+    double ptx = stx*tx;
+    double pty = sty*ty;
+    Point d0, cr;
+    double alpha;
+    Vector tr;
+    bool inside = false;
+
+    if (pty <= ph/2-r)
+    {
+        if (ptx <= pw/2)
+        {
+            inside = true;
+        }
+        else
+        {
+            d0.x = c.x + stx*pw/2;
+            d0.y = c.y + ty;
+        }
+    }
+    else if(ptx <= pw/2-r)
+    {
+        if (pty <= ph/2)
+        {
+            inside = true;
+        }
+        else
+        {
+            d0.x = c.x + tx;
+            d0.y = c.y + sty*ph/2;
+        }
+    }
+    else
+    {
+        cr.x = c.x + stx*(pw/2-r);
+        cr.y = c.y + sty*(ph/2-r);
+        Vector tr = a - cr;
+        if (tr.Length() <= r) 
+        {
+            inside = true;
+        }
+        else
+        {
+            tr.Normalize();
+            alpha = sty*acos(tr.x);
+            d0.x = cr.x + r*cos(alpha);
+            d0.y = cr.y + r*sin(alpha);
+        }
+    }
+
+    Point d1, d2, cd;
+    double beta, theta;
+    Vector td;
+    if (d < 0)
+        d = 0;
+    d = d < w? d: w;
+    d = d < h? d: h;
+    double mrd = d > 2*r? d: 2*r;
+
+    if (!inside)
+    {
+        if (pty <= (ph-mrd)/2)
+        {
+            // Horizontal tail
+            cd.x = c.x + stx*(pw-mrd)/2; 
+            cd.y = c.y + sty*(pty < (ph-mrd)/2? pty: (ph-mrd)/2);
+
+            td = a - cd;
+            theta = asin(d/2/td.Length());
+
+            d1.x = cd.x + stx*d/2*sin(theta);
+            d1.y = cd.y + d/2*cos(theta);
  
-*/       
+            d2.x = cd.x + stx*d/2*sin(theta);
+            d2.y = cd.y - d/2*cos(theta);
+        }
+        else if (ptx <= (pw-mrd)/2)
+        {
+            // Vertical tail
+            cd.x = c.x + stx*(ptx < (pw-mrd)/2? ptx: (pw-mrd)/2);
+            cd.y = c.y + sty*(ph-mrd)/2; 
+            
+            td = a - cd;
+            theta = asin(d/2/td.Length());
+
+            d1.x = cd.x + d/2*cos(theta);
+            d1.y = cd.y + sty*d/2*sin(theta);
+ 
+            d2.x = cd.x - d/2*cos(theta);
+            d2.y = cd.y + sty*d/2*sin(theta);
+        }
+        else 
+        {
+            // Tail with an angle
+            cd.x = c.x + stx*(pw-mrd)/2;
+            cd.y = c.y + sty*(ph-mrd)/2;
+            
+            td = a - cd;
+            theta = asin(d/2/td.Length());
+            
+            td.Normalize();
+            beta = sty*acos(td.x);
+
+            d1.x = cd.x + d/2*cos(beta+(M_PI_2-theta));
+            d1.y = cd.y + d/2*sin(beta+(M_PI_2-theta));
+ 
+            d2.x = cd.x + d/2*cos(beta-(M_PI_2-theta));
+            d2.y = cd.y + d/2*sin(beta-(M_PI_2-theta));
+        }
+
+
+        if (d == 0)
+        {
+            rect.moveTo(d0.x, d0.y);
+            rect.lineTo(a.x, a.y);
+        }
+        else
+        {
+            QPainterPath tail;
+            tail.moveTo(cd.x, cd.y);
+            tail.lineTo(d1.x, d1.y);
+            tail.lineTo(a.x, a.y);
+            tail.lineTo(d2.x, d2.y);
+            tail.closeSubpath();
+            rect += tail;
+        }
+    }
+    path.addQtPath(rect);
 }
 
 

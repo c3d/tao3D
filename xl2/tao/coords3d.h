@@ -365,8 +365,8 @@ struct Box3
 
     Box3 &Empty()
     {
-        lower = Point3();
-        upper = Point3();
+        lower = Point3( inf,  inf,  inf);
+        upper = Point3(-inf, -inf, -inf);
         return *this;
     }
 

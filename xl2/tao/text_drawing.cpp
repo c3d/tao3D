@@ -24,6 +24,9 @@
 #include "path3d.h"
 #include "layout.h"
 #include "widget.h"
+#include "tao_utf8.h"
+#include "drag.h"
+
 #include <GL/glew.h>
 #include <QtOpenGL>
 #include <QPainterPath>
@@ -32,6 +35,12 @@
 
 TAO_BEGIN
 
+// ============================================================================
+//
+//   A text span is a contiguous string of characters with similar formatting
+//
+// ============================================================================
+
 void TextSpan::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Render a portion of text and advance by the width of the text
@@ -39,8 +48,10 @@ void TextSpan::Draw(Layout *where)
 {
     Point3 position = where->offset;
     QPainterPath path;
-    QString str = value;
+    QString str = +source->value.substr(start, end - start);
     QFontMetricsF fm(font);
+    Widget *widget = where->Display();
+    widget->newCharId(str.length());
 
     int index = str.indexOf(QChar('\n'));
     while (index >= 0)
@@ -56,50 +67,177 @@ void TextSpan::Draw(Layout *where)
     path.addText(position.x, -position.y, font, str);
     position.x += fm.width(str);
 
-    Widget *widget = where->Display();
-    glLoadName(widget->newId());
     where->offset = Point3();
     GraphicPath::Draw(where, path, GLU_TESS_WINDING_ODD, -1);
     where->offset = position;
-    glLoadName(0);
 }
 
 
 void TextSpan::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
-//   Move the offset without drawing the text
+//   Draw the selection for any selected character
 // ----------------------------------------------------------------------------
 {
-    Point3 position = where->offset;
-    QString str = value;
+    Widget *widget = where->Display();
+    Point3 pos = where->offset;
+    text str = source->value;
     QFontMetricsF fm(font);
+    coord descent = fm.descent();
+    coord leading = fm.leading();
+    scale h = fm.height() + leading;
+    coord x = pos.x;
+    coord y = pos.y;
+    coord z = pos.z;
+    uint  first = start;
 
-    Shape::DrawSelection(where);
-
-    int index = str.indexOf(QChar('\n'));
-    while (index >= 0)
+    // Loop over all characters in the text span
+    TextSelect *sel = widget->textSelection();
+    GLuint charId = 0;
+    bool charSelected = false;
+    uint i, next, max = str.length();
+    for (i = start; i < max && i < end; i = next)
     {
-        QString fragment = str.left(index);
-        position.x = 0;
-        position.y -= fm.height();
-        str = str.mid(index+1);
-        index = str.indexOf(QChar('\n'));
+        charId = widget->newCharId();
+        charSelected = widget->charSelected();
+        next = XL::Utf8Next(str, i);
+
+        if (charSelected && !sel)
+            sel = new TextSelect(widget);
+
+        if (!charSelected && sel)
+        {
+            if (charId >= sel->start() && charId <= sel->end())
+            {
+                charSelected = true;
+                widget->selectChar(charId, 1);
+            }
+        }
+
+        if (sel && charSelected)
+        {
+            float sw = fm.width(+str.substr(first, i-first));
+            coord xx = x + sw;
+            coord yy = y - descent - leading;
+
+            if (sel->replace)
+            {
+                text rpl = sel->replacement;
+                uint eos = i;
+                if (sel->point != sel->mark)
+                {
+                    eos = next;
+                    if (sel->point > sel->mark)
+                        sel->point--;
+                    else
+                        sel->mark--;
+                }
+                source->value.replace(i, eos-i, rpl);
+                sel->replacement = "";
+                uint length = XL::Utf8Length(rpl);
+                sel->point += length;
+                sel->mark += length;
+                if (!length)
+                {
+                    next = i;
+                    max--;
+                }
+                if (sel->point == sel->mark)
+                    sel->replace = false;
+            }
+            sel->selBox |= Box3(xx,yy,z, 1, h, 0);
+        }
+
+        if (str[i] == '\n')
+        {
+            x = 0;
+            y -= h;
+            first = i;
+        }
     }
 
-    position.x += fm.width(str);
-    where->offset = position;
+    if (sel && sel->replace && max <= end)
+    {
+        charId++;
+        text rpl = sel->replacement;
+        if (charId >= sel->start() && charId <= sel->end() && rpl.length())
+        {
+            uint eos = i;
+            if (sel->point != sel->mark)
+            {
+                eos = next;
+                if (sel->point > sel->mark)
+                    sel->point--;
+                else
+                    sel->mark--;
+            }
+            source->value.replace(i, eos-i, rpl);
+            sel->replacement = "";
+            uint length = XL::Utf8Length(rpl);
+            sel->point += length;
+            sel->mark += length;
+            if (sel->point == sel->mark)
+                sel->replace = false;
+        }
+    }
 
-    Widget *widget = where->Display();
-    widget->newId();
+    where->offset = Point3(x, y, z);
 }
 
 
 void TextSpan::Identify(Layout *where)
 // ----------------------------------------------------------------------------
-//   For the moment, we simply draw
+//   Draw and identify the bounding boxes for the various characters
 // ----------------------------------------------------------------------------
 {
-    TextSpan::Draw(where);
+    Widget *widget = where->Display();
+    Point3 pos = where->offset;
+    text str = source->value;
+    QFontMetricsF fm(font);
+    scale h = fm.height();
+    coord x = pos.x;
+    coord y = pos.y;
+    coord z = pos.z;
+    coord descent = fm.descent();
+    coord leading = fm.leading();
+
+    // Loop over all characters in the text span
+    uint i, max = str.length();
+    for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
+    {
+        QChar qc = QChar(XL::Utf8Code(str, i));
+        float w = qc == '\n' ? 3 : fm.width(qc);
+
+        coord xx = x + fm.leftBearing(qc);
+        coord yy = y - descent - leading;
+        coord ww = w;
+        coord hh = h + leading;
+
+        coord array[4][3] =
+        {
+            { xx,      yy,      z },
+            { xx + ww, yy,      z },
+            { xx + ww, yy + hh, z },
+            { xx,      yy + hh, z }
+        };
+
+        glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
+        glVertexPointer(3, GL_DOUBLE, 0, array);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glDrawArrays(GL_QUADS, 0, 4);
+        glDisableClientState(GL_VERTEX_ARRAY);
+
+        if (qc == '\n')
+        {
+            x = 0;
+            y -= h;
+        }
+        else
+        {
+            x += w;
+        }
+    }
+
+    where->offset = Point3(x, y, z);
 }
 
 
@@ -113,7 +251,7 @@ void TextSpan::Draw(GraphicPath &path)
 
     QPainterPath qt;
 
-    QString str = value;
+    QString str = +source->value.substr(start, end - start);
     int index = str.indexOf(QChar('\n'));
     while (index >= 0)
     {
@@ -139,9 +277,10 @@ Box3 TextSpan::Bounds()
 // ----------------------------------------------------------------------------
 {
     QFontMetricsF fm(font);
-    QRectF rect = fm.tightBoundingRect(value);
+    QString       str = +source->value.substr(start, end - start);
+    QRectF        rect = fm.tightBoundingRect(str);
     return Box3(rect.x(), rect.height()+rect.y(), 0,
-                rect.width(), rect.height(), 0);    
+                rect.width(), rect.height(), 0);
 }
 
 
@@ -151,13 +290,14 @@ Box3 TextSpan::Space()
 // ----------------------------------------------------------------------------
 {
     QFontMetricsF fm(font);
-    coord height = fm.height();
-    coord descent = fm.descent();
-    coord leading = fm.leading();
-    coord width = fm.width(value);
-    coord leftBearing = 0;
-    if (value.length())
-        leftBearing = fm.leftBearing(value[0]);
+    QString       str = +source->value.substr(start, end - start);
+    coord         height      = fm.height();
+    coord         descent     = fm.descent();
+    coord         leading     = fm.leading();
+    coord         width       = fm.width(str);
+    coord         leftBearing = 0;
+    if (str.length())
+        leftBearing = fm.leftBearing(str[0]);
     return Box3(leftBearing, -descent-leading, 0, width, height+leading, 0);
 }
 
@@ -169,10 +309,11 @@ TextSpan *TextSpan::Break(BreakOrder &order)
 {
     if (order <= LineBreak)
     {
-        uint i, max = value.length();
-        for (i = 0; i < max; i++)
+        text str = source->value;
+        uint i, max = str.length();
+        for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
         {
-            QChar c = value[i];
+            QChar c = QChar(XL::Utf8Code(str, i));
             BreakOrder charOrder = CharBreak;
             if (c.isSpace())
             {
@@ -183,12 +324,12 @@ TextSpan *TextSpan::Break(BreakOrder &order)
             if (order <= charOrder)
             {
                 // Create two text spans, the first one containing the split
-                QString remainder = value.mid(i+1);
-                TextSpan *result = remainder.length()
-                    ? new TextSpan(remainder, font)
+                uint next = XL::Utf8Next(str, i);
+                TextSpan *result = (next < max && next < end)
+                    ? new TextSpan(source, font, next, end)
                     : NULL;
-                value = value.left(i+1);
                 order = charOrder;
+                end = next;
                 return result;
             }
         }
@@ -205,14 +346,255 @@ scale TextSpan::TrailingSpaceSize()
 {
     QFontMetricsF fm(font);
     scale result = 0;
-    for (int i = value.length(); i > 0; i--)
+    text str = source->value;
+    uint pos = str.length();
+    if (pos > end)
+        pos = end;
+    while (pos > start)
     {
-        QChar c = value[i-1];
+        pos = XL::Utf8Previous(str, pos);
+        QChar c = QChar(XL::Utf8Code(str, pos));
         if (!c.isSpace())
             break;
         result += fm.width(c);
     }
     return result;
+}
+
+
+
+// ============================================================================
+//
+//   A text selection identifies a range of text being edited
+//
+// ============================================================================
+
+TextSelect::TextSelect(Widget *w)
+// ----------------------------------------------------------------------------
+//   Constructor initializes an empty text range
+// ----------------------------------------------------------------------------
+    : Activity("Text selection", w),
+      mark(0), point(0), direction(0),
+      replacement(""), replace(false), textMode(false)
+{
+    Widget::selection_map::iterator i, last = w->selection.end();
+    for (i = w->selection.begin(); i != last; i++)
+    {
+        uint id = (*i).first;
+        if (id & Widget::CHAR_ID_BIT)
+        {
+            id &= Widget::CHAR_ID_MASK;
+            if (!mark)
+                mark = point = id;
+            else
+                point = id;
+        }
+    }
+}
+
+
+Activity *TextSelect::Display()
+// ----------------------------------------------------------------------------
+//   Display the text selection
+// ----------------------------------------------------------------------------
+{
+    return next;
+}
+
+
+Activity *TextSelect::Idle()
+// ----------------------------------------------------------------------------
+//   Idle activity
+// ----------------------------------------------------------------------------
+{
+    return next;
+}
+
+
+Activity *TextSelect::Key(text key)
+// ----------------------------------------------------------------------------
+//    Perform activities on the text selection
+// ----------------------------------------------------------------------------
+{
+    if (!textMode)
+        return next;
+
+    if (key == "Space")                 key = " ";
+    else if (key == "Return")           key = "\n";
+    else if (key == "Enter")            key = "\n";
+
+    if (key == "Left")
+    {
+        moveTo(start() - !hasSelection());
+        direction = -1;
+    }
+    else if (key == "Right")
+    {
+        moveTo(end() + !hasSelection());
+        direction = 1;
+    }
+    else if (key == "Shift-Left")
+    {
+        point--;
+        direction = -1;
+    }
+    else if (key == "Shift-Right")
+    {
+        point++;
+        direction = 1;
+    }
+    else if (key == "Delete" || key == "Backspace")
+    {
+        replacement = "";
+        replace = true;
+        if (!hasSelection())
+            point = (key == "Delete") ? point+1 : point-1;
+        widget->markChanged("Deleted text");
+        direction = 0;
+    }
+    else if (XL::Utf8Length(key) == 1)
+    {
+        replacement = key;
+        replace = true;
+        if (hasSelection())
+            widget->markChanged("Replaced text");
+        else
+            widget->markChanged("Inserted text");
+        direction = 0;
+    }
+
+    if (replace)
+    {
+        widget->updateSelection();
+        mark = point;
+        replace = false;
+    }
+
+    updateSelection();
+    return next;
+}
+
+
+Activity *TextSelect::Click(uint button, uint count, int x, int y)
+// ----------------------------------------------------------------------------
+//   Selection of text
+// ----------------------------------------------------------------------------
+{
+    if (button & Qt::LeftButton)
+    {
+        if (count)
+        {
+            mark = point = 0;
+            if (count == 2)
+                textMode = true;
+            return MouseMove(x, y, true);
+        }
+    }
+    return next;
+}
+
+
+Activity *TextSelect::MouseMove(int x, int y, bool active)
+// ----------------------------------------------------------------------------
+//   Move text selection
+// ----------------------------------------------------------------------------
+{
+    if (!active)
+        return next;
+
+    y = widget->height() - y;
+    Box rectangle(x, y, 1, 1);
+
+    // Create the select buffer and switch to select mode
+    GLuint *buffer = new GLuint[4 * widget->capacity];
+    glSelectBuffer(4 * widget->capacity, buffer);
+    glRenderMode(GL_SELECT);
+
+    // Adjust viewport for rendering
+    widget->setup(widget->width(), widget->height(), &rectangle);
+
+    // Initialize names
+    glInitNames();
+    glPushName(0);
+
+    // Run the programs, which detects selected items
+    widget->identifySelection();
+
+    // Get number of hits and extract selection
+    // Each record is as follows:
+    // [0]: Depth of the name stack
+    // [1]: Minimum depth
+    // [2]: Maximum depth
+    // [3..3+[0]-1]: List of names
+    int hits = glRenderMode(GL_RENDER);
+    GLuint selected = 0;
+    GLuint manipulator = 0;
+    if (hits > 0)
+    {
+        GLuint *ptr = buffer;
+        for (int i = 0; i < hits; i++)
+        {
+            uint size = ptr[0];
+            if (size > 1)
+            {
+                manipulator = ptr[4];
+                selected = ptr[3];
+            }
+            else if (!selected)
+                selected = ptr[3];
+            ptr += 3 + size;
+        }
+
+        if (manipulator)
+        {
+            textMode = false;
+        }
+        else if ((selected & Widget::CHAR_ID_BIT))
+        {
+            selected &= Widget::CHAR_ID_MASK;
+            if (textMode)
+            {
+                if (mark)
+                    point = selected;
+                else
+                    mark = point = selected;
+                updateSelection();
+            }
+            else if (!mark)
+            {
+                mark = point = selected;
+            }
+        }
+    }
+    delete[] buffer;
+
+    // If selecting a range of text, prevent the drag from moving us around
+    if (textMode)
+    {
+        if (Drag *drag = widget->drag())
+        {
+            drag->x1 = drag->x2 = x;
+            drag->y1 = drag->y2 = widget->height() - y;
+        }
+    }
+
+    // Need a refresh
+    widget->refresh();
+
+    // Let a possible selection do its own stuff
+    return next;
+}
+
+
+void TextSelect::updateSelection()
+// ----------------------------------------------------------------------------
+//   Update the selection of the widget based on mark and point
+// ----------------------------------------------------------------------------
+{
+    widget->selection.clear();
+    uint s = start(), e = end();
+    for (uint i = s; i < e; i++)
+        widget->selection[i | Widget::CHAR_ID_BIT] = 1;
 }
 
 TAO_END

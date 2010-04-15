@@ -23,6 +23,7 @@
 #include "drag.h"
 #include "selection.h"
 #include "widget.h"
+#include "text_drawing.h"
 #include "gl_keepers.h"
 #include <GL/glew.h>
 #include <QtGui>
@@ -66,13 +67,12 @@ Activity *Selection::Idle(void)
 //   Make the refresh rate shorter so that we animate the rectangle
 // ----------------------------------------------------------------------------
 {
-    widget->updateGL();
     widget->refresh();
     return next;               // Keep doing other idle activities
 }
 
 
-Activity *Selection::Click(uint button, bool down, int x, int y)
+Activity *Selection::Click(uint button, uint count, int x, int y)
 // ----------------------------------------------------------------------------
 //   Initial and final click in a selection rectangle
 // ----------------------------------------------------------------------------
@@ -85,7 +85,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
 
     if (button & Qt::LeftButton)
     {
-        if (down)
+        if (count)
         {
             firstClick = true;
             rectangle.lower.Set(x, y);
@@ -103,7 +103,6 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
         delete this;
         return next;
     }
-
 
     // Create the select buffer and switch to select mode
     GLuint capacity = widget->selectionCapacity();
@@ -130,6 +129,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
     int hits = glRenderMode(GL_RENDER);
     GLuint selected = 0;
     GLuint manipulator = 0;
+    bool charSelected = false;
     if (hits > 0)
     {
         GLuint depth = ~0U;
@@ -143,6 +143,8 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
                 if (size > 1)
                     manipulator = ptr[4];
                 depth = ptr[1];
+                if (selected & Widget::CHAR_ID_BIT)
+                    charSelected = true;
             }
             ptr += 3 + size;
         }
@@ -155,7 +157,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
     // If this is the first click, then update selection
     if (firstClick)
     {
-        if (shiftModifier || widget->selection.count(selected))
+        if (shiftModifier || widget->selection.count(selected) || manipulator)
             widget->savedSelection = widget->selection;
         else
             widget->savedSelection.clear();
@@ -167,6 +169,10 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
 
     // In all cases, we want a screen refresh
     Idle();
+
+    // Delete a text selection if we didn't click in it
+    if (count == 1 && !charSelected)
+        delete widget->textSelection();
 
     // If we are done with the selection, remove it and shift to a Drag
     if (doneWithSelection)

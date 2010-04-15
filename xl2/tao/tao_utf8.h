@@ -44,7 +44,7 @@ inline text operator +(QString s)
 //   Quickly convert from QString to text
 // ----------------------------------------------------------------------------
 {
-    return s.toStdString();
+    return text(s.toUtf8().constData());
 }
 
 TAO_END

@@ -33,8 +33,8 @@
 
 TAO_BEGIN
 
-QMap<QString, Repository *> Repository::cache;
-Repository::Kind            Repository::availableScm = Repository::Unknown;
+QMap<QString, QWeakPointer<Repository> > Repository::cache;
+Repository::Kind  Repository::availableScm = Repository::Unknown;
 
 text Repository::fullName(text fileName)
 // ----------------------------------------------------------------------------
@@ -148,23 +148,23 @@ bool Repository::setTask(text name)
 }
 
 
-Repository *Repository::repository(const QString &path, bool create)
+QSharedPointer <Repository> Repository::repository(const QString &path, bool create)
 // ----------------------------------------------------------------------------
 //    Factory returning the right repository kind for a directory
 // ----------------------------------------------------------------------------
 {
     // Do we know this guy already?
     if (cache.contains(path))
-        return cache.value(path);
-    Repository *rep = newRepository(path, create);
+        return QSharedPointer<Repository>(cache.value(path));
+    QSharedPointer <Repository> rep(newRepository(path, create));
     if (rep)
-        cache.insert(path, rep);
+        cache.insert(path, QWeakPointer<Repository>(rep));
 
     return rep;
 }
 
 
-Repository *Repository::newRepository(const QString &path, bool create)
+Repository * Repository::newRepository(const QString &path, bool create)
 // ----------------------------------------------------------------------------
 //    Create the right repository object kind for a directory
 // ----------------------------------------------------------------------------
@@ -247,6 +247,20 @@ bool Repository::idle()
 // ----------------------------------------------------------------------------
 {
     return pQueue.empty();
+}
+
+
+void Repository::markChanged(text reason)
+// ----------------------------------------------------------------------------
+//    Record a change, reason text will be used in next commit message
+// ----------------------------------------------------------------------------
+{
+    if (whatsNew.find(reason) == whatsNew.npos)
+    {
+        if (whatsNew.length())
+            whatsNew += "\n";
+        whatsNew += reason;
+    }
 }
 
 

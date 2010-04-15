@@ -34,14 +34,44 @@
 
 TAO_BEGIN
 
+struct RealRef : XL::TreeRoot
+// ----------------------------------------------------------------------------
+//   Looks and behaves like a real_r, but keeps the value around
+// ----------------------------------------------------------------------------
+{
+    RealRef(XL::Real &r): XL::TreeRoot(&r) {}
+    XL::Real *operator&()       { return (XL::Real *) tree; }
+    operator double()           { return ((XL::Real *) tree)->value; }
+};
+
+
+struct IntegerRef : XL::TreeRoot
+// ----------------------------------------------------------------------------
+//   Looks and behaves like a real_r, but keeps the value around
+// ----------------------------------------------------------------------------
+{
+    IntegerRef(XL::Integer &r): XL::TreeRoot(&r) {}
+    XL::Integer *operator&()    { return (XL::Integer *) tree; }
+    operator longlong()         { return ((XL::Integer *) tree)->value; }
+};
+
+
 struct Manipulator : Drawing
 // ----------------------------------------------------------------------------
-//   Structure used to manipulate XL coordinates using the mouse
+//   Structure used to manipulate XL coordinates using the mouse and keyboard
 // ----------------------------------------------------------------------------
 {
     typedef XL::Tree     Tree, *tree_p;
-    typedef XL::Real&    real_r;
-    typedef XL::Integer& integer_r;
+    typedef RealRef      real_r;
+    typedef IntegerRef   integer_r;
+
+    enum EditMode
+    {
+        LockNothing,
+        LockCenter,
+        LockAspectRatio,
+        LockCenterAndAspectRatio
+    };
 
     Manipulator();
 
@@ -51,6 +81,7 @@ struct Manipulator : Drawing
     virtual bool        DrawHandle(Layout *layout, Point3 p, uint id,
                                    text name = "handle");
     virtual bool        DrawHandles(Layout *layout) = 0;
+    virtual EditMode    CurrentEditMode();
 
 protected:
     void                updateArg(Widget *widget, tree_p arg,
@@ -186,7 +217,7 @@ protected:
 
 struct ControlBalloon : ControlRoundedRectangle
 // ----------------------------------------------------------------------------
-//   Manipulators for a rectangle-bounded object
+//   Manipulators for a Balloon object
 // ----------------------------------------------------------------------------
 {
     ControlBalloon(real_r x, real_r y, real_r w, real_r h, real_r r,
@@ -195,6 +226,20 @@ struct ControlBalloon : ControlRoundedRectangle
 
     protected:
     real_r              ax, ay;
+};
+
+
+struct ControlCallout : ControlBalloon
+// ----------------------------------------------------------------------------
+//   Manipulators for a Callout object
+// ----------------------------------------------------------------------------
+{
+    ControlCallout(real_r x, real_r y, real_r w, real_r h, real_r r,
+                   real_r ax, real_r ay, real_r d, Drawing *child);
+    virtual bool        DrawHandles(Layout *layout);
+
+    protected:
+    real_r              d;
 };
 
 

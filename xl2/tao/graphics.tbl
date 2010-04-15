@@ -178,6 +178,10 @@ PREFIX(RoundedRectangle, tree, "rounded_rectangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(r, real),
        RTAO(roundedRectangle(self, x, y, w, h, r)))
+PREFIX(EllipticalRectangle, tree, "elliptical_rectangle",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
+       PARM(r, real),
+       RTAO(ellipticalRectangle(self, x, y, w, h, r)))
 PREFIX(Arrow, tree, "arrow",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(ax, real) PARM(ay, real),
@@ -198,6 +202,10 @@ PREFIX(SpeechBalloon, tree, "speech_balloon",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
        PARM(r, real) PARM(ax, real) PARM(ay, real),
        RTAO(speechBalloon(self, x, y, w, h, r, ax, ay)))
+PREFIX(Callout, tree, "callout",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
+       PARM(r, real) PARM(ax, real) PARM(ay, real) PARM(d, real),
+       RTAO(callout(self, x, y, w, h, r, ax, ay, d)))
 
 
 
@@ -278,6 +286,8 @@ PREFIX(ColumnBreak, tree, "column_break",,
        RTAO(drawingBreak(self, Tao::Drawing::ColumnBreak)))
 PREFIX(PageBreak, tree, "page_break",,
        RTAO(drawingBreak(self, Tao::Drawing::PageBreak)))
+PREFIX(TextEditKey, tree, "text_edit_key", PARM(k, text),
+       RTAO(textEditKey(self, k)))
 
 
 

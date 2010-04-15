@@ -52,6 +52,7 @@
 #include "path3d.h"
 #include "attributes.h"
 #include "transforms.h"
+#include "undo.h"
 
 #include <QtGui/QImage>
 #include <cmath>
@@ -82,11 +83,11 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       xlProgram(sf),
       space(NULL), layout(NULL), path(NULL), currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
-      id(0), capacity(0), manipulator(0),
+      id(0), charId(0), capacity(0), manipulator(0),
       event(NULL), focusWidget(NULL),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
-      whatsNew(""), reloadProgram(false),
+      reloadProgram(false),
       timer(this), idleTimer(this),
       pageStartTime(CurrentTime()), pageRefresh(86400),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
@@ -241,7 +242,7 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
             // Record that we need to commit it sometime soon
             repo->change(fname);
             IFTRACE(filesync)
-                    std::cerr << "Changed " << fname << "\n";
+                std::cerr << "Changed " << fname << "\n";
 
             // Record time when file was changed
             struct stat st;
@@ -252,7 +253,7 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
         }
 
         IFTRACE(filesync)
-                std::cerr << "Could not write " << fname << " to repository\n";
+            std::cerr << "Could not write " << fname << " to repository\n";
     }
     return false;
 }
@@ -264,11 +265,10 @@ bool Widget::doCommit()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(filesync)
-            std::cerr << "Commit: " << whatsNew << "\n";
-    if (repository()->asyncCommit(whatsNew))
+            std::cerr << "Commit: " << repository()->whatsNew << "\n";
+    if (repository()->asyncCommit())
     {
         XL::Main *xlr = XL::MAIN;
-        whatsNew = "";
         nextCommit = now() + xlr->options.commit_interval * 1000;
 
         Window *window = (Window *) parentWidget();
@@ -404,7 +404,7 @@ void Widget::runProgram()
         xlProgram = NULL;
         QMessageBox::warning(this, tr("Runtime error"),
                              tr("Error executing the program:\n%1")
-                             .arg(QString::fromStdString(e.Message())));
+                             .arg(+e.Message()));
     }
     catch(...)
     {
@@ -414,18 +414,18 @@ void Widget::runProgram()
     }
 
     // After we are done, draw the space with all the drawings in it
-    id = 0;
+    id = charId = 0;
     space->Draw(NULL);
-    id = 0;
+    id = charId = 0;
     space->DrawSelection(NULL);
 
     // Once we are done, do a garbage collection
     XL::Context::context->CollectGarbage();
 
     // Remember how many elements are drawn on the page, plus arbitrary buffer
-    if (id > capacity)
-        capacity = id + 100;
-    else if (id + 50 < capacity / 2)
+    if (id + charId > capacity)
+        capacity = id + charId + 100;
+    else if (id + charId + 50 < capacity / 2)
         capacity = capacity / 2;
 
 }
@@ -436,10 +436,19 @@ void Widget::identifySelection()
 //   Draw the elements in global space for selection purpose
 // ----------------------------------------------------------------------------
 {
-    id = 0;
+    id = charId = 0;
     space->Identify(NULL);
 }
 
+
+void Widget::updateSelection()
+// ----------------------------------------------------------------------------
+//   Redraw selection in order to perform text editing operations
+// ----------------------------------------------------------------------------
+{
+    id = charId = 0;
+    space->DrawSelection(NULL);
+}
 
 
 static void printWidget(QWidget *w)
@@ -493,6 +502,7 @@ void Widget::userMenu(QAction *p_action)
 
     markChanged(+("Menu '" + p_action->text() + "' selected"));
 
+    current = this;
     XL::TreeRoot t = var.value<XL::TreeRoot >();
     xl_evaluate(t.tree);        // Typically will insert something...
 }
@@ -509,6 +519,16 @@ bool Widget::refresh(double delay)
         return true;
     }
     return false;
+}
+
+
+void Widget::commitSuccess(QString id, QString msg)
+// ----------------------------------------------------------------------------
+//   Document was succesfully committed to repository (see doCommit())
+// ----------------------------------------------------------------------------
+{
+    Window *window = (Window *) parentWidget();
+    window->undoStack->push(new UndoCommand(repository(), id, msg));
 }
 
 
@@ -927,7 +947,7 @@ static text keyName(QKeyEvent *event)
     {
         if (ctrl == "")
         {
-            if (modifiers & Qt::ShiftModifier)
+            if (name.length() != 1 && (modifiers & Qt::ShiftModifier))
                 name = "Shift-" + name;
             ctrl = name;
         }
@@ -955,10 +975,6 @@ void Widget::keyPressEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
-
-    // Check if there is an activity that deals with it
-    uint key = (uint) event->key();
-    for (Activity *a = activities; a; a = a->Key(key, true)) ;
 
     // Forward it down the regular event chain
     if (forwardEvent(event))
@@ -990,10 +1006,6 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
-
-    // Check if there is an activity that deals with it
-    uint key = (uint) event->key();
-    for (Activity *a = activities; a; a = a->Key(key, false)) ;
 
     // Forward it down the regular event chain
     if (forwardEvent(event))
@@ -1032,11 +1044,11 @@ void Widget::mousePressEvent(QMouseEvent *event)
     int     y           = event->y();
 
     // Create a selection if left click and nothing going on right now
-    if (!activities && button == Qt::LeftButton)
+    if (button == Qt::LeftButton)
         new Selection(this);
 
     // Send the click to all activities
-    for (Activity *a = activities; a; a = a->Click(button, true, x, y)) ;
+    for (Activity *a = activities; a; a = a->Click(button, 1, x, y)) ;
 
     // Check if some widget is selected and wants that event
     if (forwardEvent(event))
@@ -1093,7 +1105,7 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
     int y = event->y();
 
     // Check if there is an activity that deals with it
-    for (Activity *a = activities; a; a = a->Click(button, false, x, y)) ;
+    for (Activity *a = activities; a; a = a->Click(button, 0, x, y)) ;
 
     // Pass the event down the event chain
     forwardEvent(event);
@@ -1129,11 +1141,11 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
     uint    button      = (uint) event->button();
     int     x           = event->x();
     int     y           = event->y();
-    if (!activities && button == Qt::LeftButton)
+    if (button == Qt::LeftButton)
         new Selection(this);
 
     // Send the click to all activities
-    for (Activity *a = activities; a; a = a->Click(button, true, x, y)) ;
+    for (Activity *a = activities; a; a = a->Click(button, 2, x, y)) ;
 
     forwardEvent(event);
 }
@@ -1305,12 +1317,9 @@ void Widget::markChanged(text reason)
 //    Record that the program changed
 // ----------------------------------------------------------------------------
 {
-    if (whatsNew.find(reason) == whatsNew.npos)
-    {
-        if (whatsNew.length())
-            whatsNew += "\n";
-        whatsNew += reason;
-    }
+    Repository *repo = repository();
+    if (repo)
+        repo->markChanged(reason);
     if (xlProgram)
     {
         if (Tree *prog = xlProgram->tree.tree)
@@ -1385,12 +1394,12 @@ ulonglong Widget::elapsed(ulonglong since, ulonglong until,
 //
 // ============================================================================
 
-uint Widget::selected()
+uint Widget::selected(uint i)
 // ----------------------------------------------------------------------------
 //   Test if the current shape is selected
 // ----------------------------------------------------------------------------
 {
-    return id && selection.count(id) > 0 ? selection[id] : 0;
+    return i && selection.count(i) > 0 ? selection[i] : 0;
 }
 
 
@@ -1485,7 +1494,19 @@ Drag *Widget::drag()
 //   Return the drag activity that we can use to unproject
 // ----------------------------------------------------------------------------
 {
-    Drag *result = dynamic_cast<Drag *>(activities);
+    Drag *result = active<Drag>();
+    if (result)
+        recordProjection();
+    return result;
+}
+
+
+TextSelect *Widget::textSelection()
+// ----------------------------------------------------------------------------
+//   Return text selection if appropriate, possibly creating it from a Drag
+// ----------------------------------------------------------------------------
+{
+    TextSelect *result = active<TextSelect>();
     if (result)
         recordProjection();
     return result;
@@ -2093,7 +2114,8 @@ Tree *Widget::isoscelesTriangle(Tree *self, real_r x, real_r y, real_r w, real_r
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(x, y, w, h, new IsoscelesTriangle(shape)));
+        layout->Add(new ControlRectangle(x, y, w, h,
+                                         new IsoscelesTriangle(shape)));
 
     return XL::xl_true;
 }
@@ -2143,8 +2165,7 @@ Tree *Widget::ellipseArc(Tree *self,
         layout->Add(new ControlRectangle(cx, cy, w, h, new EllipseArc(shape)));
 
     return XL::xl_true;
- }
-
+}
 
 
 Tree *Widget::roundedRectangle(Tree *self,
@@ -2166,7 +2187,26 @@ Tree *Widget::roundedRectangle(Tree *self,
 
 
 
-Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
+Tree *Widget::ellipticalRectangle(Tree *self,
+                                  real_r cx, real_r cy,
+                                  real_r w, real_r h, real_r r)
+// ----------------------------------------------------------------------------
+//   Elliptical rectangle with ratio r for the elliptic sides
+// ----------------------------------------------------------------------------
+{
+    EllipticalRectangle shape(Box(cx-w/2, cy-h/2, w, h), r);
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlRectangle(cx, cy, w, h,
+                                         new EllipticalRectangle(shape)));
+
+    return XL::xl_true;
+}
+
+
+
+Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
                     real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
 //   Arrow
@@ -2183,8 +2223,7 @@ Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
 }
 
 
-
-Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
+Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
                     real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
 //   Double arrow
@@ -2201,7 +2240,6 @@ Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
 }
 
 
-
 Tree *Widget::starPolygon(Tree *self,
                           real_r cx, real_r cy, real_r w, real_r h,
                           integer_r p, integer_r q)
@@ -2209,9 +2247,6 @@ Tree *Widget::starPolygon(Tree *self,
 //     GL regular p-side star polygon {p/q} centered around (cx,cy)
 // ----------------------------------------------------------------------------
 {
-    if (p < 2 || q == 0 || q > (p-1)/2 || q < -(p-1)/2)
-        return ellipse(self, cx, cy, w, h); // Show something else in its place
-
     StarPolygon shape(Box(cx-w/2, cy-h/2, w, h), p, q);
     if (path)
         shape.Draw(*path);
@@ -2223,7 +2258,6 @@ Tree *Widget::starPolygon(Tree *self,
 }
 
 
-
 Tree *Widget::star(Tree *self,
                    real_r cx, real_r cy, real_r w, real_r h,
                    integer_r p, real_r r)
@@ -2231,9 +2265,6 @@ Tree *Widget::star(Tree *self,
 //     GL regular p-side star centered around (cx,cy), inner radius ratio r
 // ----------------------------------------------------------------------------
 {
-    if (p < 2 || r < 0.0 || r > 1.0 )
-        return ellipse(self, cx, cy, w, h); // Show something else in its place
-
     Star shape(Box(cx-w/2, cy-h/2, w, h), p, r);
     if (path)
         shape.Draw(*path);
@@ -2243,7 +2274,6 @@ Tree *Widget::star(Tree *self,
 
     return XL::xl_true;
 }
-
 
 
 Tree *Widget::speechBalloon(Tree *self,
@@ -2259,6 +2289,25 @@ Tree *Widget::speechBalloon(Tree *self,
     else
         layout->Add(new ControlBalloon(cx, cy, w, h, r, ax, ay,
                                          new SpeechBalloon(shape)));
+
+    return XL::xl_true;
+}
+
+
+
+Tree *Widget::callout(Tree *self,
+                      real_r cx, real_r cy, real_r w, real_r h, 
+                      real_r r, real_r ax, real_r ay, real_r d)
+// ----------------------------------------------------------------------------
+//   Callout with radius r for corners, and point a, width b for the tail 
+// ----------------------------------------------------------------------------
+{
+    Callout shape(Box(cx-w/2, cy-h/2, w, h), r, ax, ay, d);
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlCallout(cx, cy, w, h, r, ax, ay, d,
+                                         new Callout(shape)));
 
     return XL::xl_true;
 }
@@ -2330,8 +2379,6 @@ Tree * Widget::textBox(Tree *self,
     flows[flowName] = tbox;
 
     XL::LocalSave<Layout *> save(layout, tbox);
-    XL::LocalSave<coord> savePageH(pageW, h);
-    XL::LocalSave<coord> savePageW(pageW, w);
     return xl_evaluate(prog);
 }
 
@@ -2367,7 +2414,7 @@ Tree *Widget::textSpan(Tree *self, text_r content)
 //   Insert a block of text with the current definition of font, color, ...
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new TextSpan(+content, layout->font));
+    layout->Add(new TextSpan(&content, layout->font));
     return XL::xl_true;
 }
 
@@ -2553,6 +2600,17 @@ Tree *Widget::drawingBreak(Tree *self, Drawing::BreakOrder order)
 }
 
 
+Tree *Widget::textEditKey(Tree *self, text key)
+// ----------------------------------------------------------------------------
+//   Send a key to the activities
+// ----------------------------------------------------------------------------
+{
+    for (Activity *a = activities; a; a = a->Key(key)) ;
+    return XL::xl_true;
+}
+
+
+
 
 
 // ============================================================================
@@ -2567,7 +2625,7 @@ Tree *Widget::status(Tree *self, text caption)
 // ----------------------------------------------------------------------------
 {
     Window *window = (Window *) parentWidget();
-    window->statusBar()->showMessage(QString::fromStdString(caption));
+    window->statusBar()->showMessage(+caption);
     return XL::xl_true;
 }
 
@@ -3122,11 +3180,8 @@ Tree *Widget::menuItem(Tree *self, text name, text lbl, text iconFileName,
             return XL::xl_true;
         }
 
-        // The name exist but it is not in the good order so
-        // remove the widget from its parent.
-//        act->parentWidget()->removeAction(act);
+        // The name exist but it is not in the good order so clean it.
         delete act;
-//        act = NULL;
     }
 
     // Store the tree in the QAction.
@@ -3237,11 +3292,8 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
             order++;
             return XL::xl_true;
         }
-        // The name exist but it is not in the good order so
-        // remove the widget from its parent. This will clean all the children.
-        delete tmp;//tmp->parentWidget()->removeAction(tmp->menuAction());
-//        tmp = NULL;
-
+        // The name exist but it is not in the good order so clean it
+        delete tmp;
     }
 
     QWidget *par = NULL;
@@ -3332,11 +3384,9 @@ Tree * Widget::toolBar(Tree *self, text name, text title, bool isFloatable)
             currentMenu = NULL;
             return XL::xl_true;
         }
-        // The name exist but it is not in the good order so
-        // remove the widget from its parent. This will clean all the children.
-//        win->removeToolBar(tmp);
+
+        // The name exist but it is not in the good order so remove it.
         delete tmp;
-//        tmp = NULL;
     }
 
     currentToolBar = win->addToolBar(+title);
@@ -3388,10 +3438,10 @@ Tree * Widget::separator(Tree *self)
             order++;
             return XL::xl_true;
         }
-//        tmp->parentWidget()->removeAction(tmp);
+
         delete tmp;
-//        tmp = NULL;
     }
+
     QWidget *par = NULL;
     if (currentMenu)
         par = currentMenu;

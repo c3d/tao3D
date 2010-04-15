@@ -96,10 +96,23 @@ struct RoundedRectangle : Rectangle
 //   A rectangle with rounded corners
 // ----------------------------------------------------------------------------
 {
-    RoundedRectangle(const Box &b, double r)
+    RoundedRectangle(const Box &b, coord r)
         : Rectangle(b), r(r) {}
     virtual void        Draw(GraphicPath &path);
     coord r;
+};    
+
+
+struct EllipticalRectangle : Rectangle
+// ----------------------------------------------------------------------------
+//   A rectangle with elliptical sides
+// ----------------------------------------------------------------------------
+{
+    EllipticalRectangle(const Box &b, double r)
+        : Rectangle(b), r(r) {}
+    virtual void        Draw(Layout *where);
+    virtual void        Draw(GraphicPath &path);
+    double r;
 };    
 
 
@@ -181,12 +194,27 @@ struct SpeechBalloon : Rectangle
 //   A Speech ballon with rounded corners and a tail
 // ----------------------------------------------------------------------------
 {
-    SpeechBalloon(const Box &b, double r, coord ax, coord ay)
+    SpeechBalloon(const Box &b, coord r, coord ax, coord ay)
         : Rectangle(b), r(r), a(ax, ay) {}
     virtual void        Draw(Layout *where);
     virtual void        Draw(GraphicPath &path);
     double r;
     Point a;
+};    
+
+
+struct Callout : Rectangle
+// ----------------------------------------------------------------------------
+//   A callout with rounded corners and a tail
+// ----------------------------------------------------------------------------
+{
+    Callout(const Box &b, coord r, coord ax, coord ay, coord d)
+        : Rectangle(b), r(r), a(ax, ay), d(d) {}
+    virtual void        Draw(Layout *where);
+    virtual void        Draw(GraphicPath &path);
+    coord r;
+    Point a;
+    coord d;
 };    
 
 

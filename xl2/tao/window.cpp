@@ -29,6 +29,7 @@
 #include "tao_utf8.h"
 #include "pull_from_dialog.h"
 #include "publish_to_dialog.h"
+#include "undo.h"
 
 #include <iostream>
 #include <sstream>
@@ -62,6 +63,10 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
     taoWidget = new Widget(this, sf);
     setCentralWidget(taoWidget);
 
+    // Undo/redo management
+    undoStack = new QUndoStack();
+    createUndoView();
+
     // Create menus, actions, stuff
     createActions();
     createMenus();
@@ -77,7 +82,7 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
     bool loaded = false;
     if (sf)
     {
-        QString fileName(QString::fromStdString(sf->name));
+        QString fileName(+sf->name);
         if (loadFile(fileName, true))
             loaded = true;
     }
@@ -128,7 +133,7 @@ void Window::checkFiles()
         {
             import_set done;
             if (ImportedFilesChanged(prog->tree.tree, done, false))
-                loadFile(QString::fromStdString(prog->name));
+                loadFile(+prog->name);
         }
     }
 }
@@ -252,7 +257,9 @@ void Window::setPullUrl()
         return;
     }
 
-    PullFromDialog(repo.data()).exec();
+    PullFromDialog dialog(repo.data());
+    if (dialog.exec())
+        taoWidget->nextPull = taoWidget->now();
 }
 
 
@@ -384,6 +391,12 @@ void Window::createActions()
             cutAct, SLOT(setEnabled(bool)));
     connect(textEdit, SIGNAL(copyAvailable(bool)),
             copyAct, SLOT(setEnabled(bool)));
+
+    undoAction = undoStack->createUndoAction(this, tr("&Undo"));
+    undoAction->setShortcuts(QKeySequence::Undo);
+
+    redoAction = undoStack->createRedoAction(this, tr("&Redo"));
+    redoAction->setShortcuts(QKeySequence::Redo);
 }
 
 
@@ -402,6 +415,9 @@ void Window::createMenus()
     fileMenu->addAction(exitAct);
 
     editMenu = menuBar()->addMenu(tr("&Edit"));
+    editMenu->addAction(undoAction);
+    editMenu->addAction(redoAction);
+    editMenu->addSeparator();
     editMenu->addAction(cutAct);
     editMenu->addAction(copyAct);
     editMenu->addAction(pasteAct);
@@ -444,6 +460,22 @@ void Window::createStatusBar()
 // ----------------------------------------------------------------------------
 {
     statusBar()->showMessage(tr("Ready"));
+}
+
+
+void Window::createUndoView()
+// ----------------------------------------------------------------------------
+//    Create the 'undo view' widget
+// ----------------------------------------------------------------------------
+{
+    undoView = NULL;
+    IFTRACE(undo)
+    {
+        undoView = new QUndoView(undoStack);
+        undoView->setWindowTitle(tr("Change History"));
+        undoView->show();  // REVISIT: add "Change history" to "View" menu?
+        undoView->setAttribute(Qt::WA_QuitOnClose, false);
+    }
 }
 
 
@@ -559,8 +591,8 @@ bool Window::saveFile(const QString &fileName)
 // ----------------------------------------------------------------------------
 {
     QFile file(fileName);
-    QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
-    text fn = canonicalFilePath.toStdString();
+    text fn = +fileName;
+
 
     if (!file.open(QFile::WriteOnly | QFile::Text))
     {
@@ -585,10 +617,13 @@ bool Window::saveFile(const QString &fileName)
     updateProgram(fileName);
 
     // Trigger immediate commit to repository
-    taoWidget->markChanged("Manual save");
     XL::SourceFile &sf = xlRuntime->files[fn];
+
     if (taoWidget->writeIfChanged(sf))
+    {
+        taoWidget->markChanged("Manual save");
         taoWidget->doCommit();
+    }
     return true;
 }
 
@@ -621,8 +656,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         return true;
 
     bool created = false;
-    QSharedPointer<Repository> repo;
-    repo = QSharedPointer<Repository>(Repository::repository(path));
+    QSharedPointer<Repository> repo = Repository::repository(path);
     if (!repo)
     {
         bool docreate = !confirm;
@@ -669,7 +703,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         }
         if (docreate)
         {
-            repo = QSharedPointer<Repository>(Repository::repository(path));
+            repo = Repository::repository(path,true);
             created = (repo != NULL);
         }
     }
@@ -744,13 +778,23 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         if (repo)
         {
             if (!repo->setTask(task))
+            {
                 QMessageBox::information
                         (NULL, tr("Task selection"),
                          tr("An error occured setting the task:\n%1")
                          .arg(+repo->errors),
                          QMessageBox::Ok);
+            }
             else
+            {
                 this->repo = repo;
+
+                // For undo/redo: widget has to be notified when document
+                // is succesfully committed into repository
+                connect(repo.data(), SIGNAL(asyncCommitSuccess(QString, QString)),
+                        taoWidget,   SLOT(commitSuccess(QString, QString)));
+                populateUndoStack();
+            }
         }
     }
 
@@ -900,6 +944,26 @@ Window *Window::findWindow(const QString &fileName)
             return mainWin;
     }
     return NULL;
+}
+
+
+bool Window::populateUndoStack()
+// ----------------------------------------------------------------------------
+//    Fill the undo stack with the latest commits from the project
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+        return false;
+
+    QList<Repository::Commit>         commits = repo->history();
+    QListIterator<Repository::Commit> it(commits);
+    while (it.hasNext())
+    {
+        Repository::Commit c = it.next();
+        if (!c.msg.contains("Automatic"))
+                undoStack->push(new UndoCommand(repo.data(), c.id, c.msg));
+    }
+    return true;
 }
 
 TAO_END

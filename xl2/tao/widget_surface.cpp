@@ -200,7 +200,7 @@ GLuint WebViewSurface::bind(XL::Text *urlTree, XL::Integer *progressTree)
         QWebView *webView = (QWebView *) widget;
         url = urlTree->value;
         this->urlTree = urlTree;
-        webView->load(QUrl(QString::fromStdString(url)));
+        webView->load(QUrl(+url));
         loadProgress(0);
     }
 
@@ -277,7 +277,7 @@ GLuint LineEditSurface::bind(XL::Text *textTree)
         (!locallyModified && textTree->value != lineEdit->text().toStdString()))
     {
         contents = NULL;
-        lineEdit->setText(QString::fromStdString(textTree->value));
+        lineEdit->setText(+textTree->value);
         contents = textTree;
 
         // Record the change

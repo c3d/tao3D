@@ -3364,6 +3364,7 @@ Tree * Widget::menuBar(Tree *self)
     return XL::xl_true;
 }
 
+
 Tree * Widget::toolBar(Tree *self, text name, text title, bool isFloatable)
 // ----------------------------------------------------------------------------
 // Add the toolBar to the current widget
@@ -3415,10 +3416,11 @@ Tree * Widget::toolBar(Tree *self, text name, text title, bool isFloatable)
     return XL::xl_true;
 }
 
+
 Tree * Widget::separator(Tree *self)
-        // ----------------------------------------------------------------------------
-        // Add the separator to the current widget
-        // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+//   Add the separator to the current widget
+// ----------------------------------------------------------------------------
 {
 
     QString fullname = QString("SEPARATOR_%1").arg(order);
@@ -3481,6 +3483,8 @@ Tree * Widget::separator(Tree *self)
     order++;
     return XL::xl_true;
 }
+
+
 
 // ============================================================================
 //

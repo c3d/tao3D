@@ -486,37 +486,71 @@ bool FrameManipulator::DrawHandles(Layout *layout)
         short  sw = (hn & 1) ? 1 : -1;
         short  sh = (hn & 2) ? 1 : -1;
 
-        // Lower-left corner
-        if (DrawHandle(layout, Point3(xx + sw*ww/2, yy + sh*hh/2, 0), hn+1))
+        if (!DrawHandle(layout, Point3(xx + sw*ww/2, yy + sh*hh/2, 0), hn+1))
+            continue;
+        handle = hn+1;
+
+        // Update arguments if necessary
+        if (!drag)
+            continue;
+
+        Point3 p1 = drag->Previous();
+        Point3 p2 = drag->Current();
+        if (p1 == p2)
+            continue;
+
+        Point3 p0 = drag->Origin();
+        text   t1 = sh < 0 ? "Lower " : "Upper ";
+        text   t2 = sw < 0 ? "left " : "right ";
+
+        switch (CurrentTransformMode())
         {
-            if (!handle)
-            {
-                handle = hn+1;
+        case TM_ResizeLockCenter:
+            updateArg(widget, &w, 2*sw*p0.x, 2*sw*p1.x, 2*sw*p2.x);
+            updateArg(widget, &h, 2*sh*p0.y, 2*sh*p1.y, 2*sh*p2.y);
+            break;
 
-                // Update arguments if necessary
-                if (drag)
-                {
-                    Point3 p1 = drag->Previous();
-                    Point3 p2 = drag->Current();
-                    if (p1 != p2)
-                    {
-                        Point3 p0 = drag->Origin();
-                        text   t1 = sh < 0 ? "Lower " : "Upper ";
-                        text   t2 = sw < 0 ? "left " : "right ";
+        case TM_ResizeLockAspectRatio:
+            // TODO
 
-                        updateArg(widget, &x, p0.x/2, p1.x/2, p2.x/2);
-                        updateArg(widget, &y, p0.y/2, p1.y/2, p2.y/2);
-                        updateArg(widget, &w, sw*p0.x, sw*p1.x, sw*p2.x);
-                        updateArg(widget, &h, sh*p0.y, sh*p1.y, sh*p2.y);
+        case TM_ResizeLockCenterAndAspectRatio:
+            // TODO
 
-                        widget->markChanged(t1 + t2 + " corner moved");
-                    }
-                }
-            }
+        case TM_FreeResize:
+        default:
+            updateArg(widget, &x, p0.x/2, p1.x/2, p2.x/2);
+            updateArg(widget, &y, p0.y/2, p1.y/2, p2.y/2);
+            updateArg(widget, &w, sw*p0.x, sw*p1.x, sw*p2.x);
+            updateArg(widget, &h, sh*p0.y, sh*p1.y, sh*p2.y);
+            break;
         }
+
+        widget->markChanged(t1 + t2 + "corner moved");
     }
 
     return handle != 0;
+}
+
+
+FrameManipulator::TransformMode FrameManipulator::CurrentTransformMode()
+// ----------------------------------------------------------------------------
+//   Define editing constraints depending on current keyboard modifier keys
+// ----------------------------------------------------------------------------
+{
+    int m = (int)QApplication::keyboardModifiers();
+    switch (m & (Qt::AltModifier + Qt::ShiftModifier))
+    {
+    case (Qt::AltModifier + Qt::ShiftModifier):
+        return TM_ResizeLockCenterAndAspectRatio;
+    case (Qt::AltModifier):
+        return TM_ResizeLockCenter;
+    case (Qt::ShiftModifier):
+        return TM_ResizeLockAspectRatio;
+    default:
+        break;
+    }
+
+    return TM_FreeResize;
 }
 
 
@@ -1162,7 +1196,7 @@ bool BoxManipulator::DrawHandles(Layout *layout)
                         updateArg(widget, &y, p0.y/2, p1.y/2, p2.y/2);
                         updateArg(widget, &h, sh*p0.y, sh*p1.y, sh*p2.y);
 
-                        widget->markChanged(t1 + t2 + t3 + " corner moved");
+                        widget->markChanged(t1 + t2 + t3 + "corner moved");
                     }
                 }
             }

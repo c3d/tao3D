@@ -4,3 +4,5 @@
 /Tao.app/
 tao.pro.user
 ui_pull_from_dialog.h
+ui_publish_to_dialog.h
+ui_remote_selection_frame.h

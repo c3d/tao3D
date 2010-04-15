@@ -71,6 +71,7 @@ public slots:
     void        appFocusChanged(QWidget *prev, QWidget *next);
     void        userMenu(QAction *action);
     bool        refresh(double delay = 0.0);
+    void        commitSuccess(QString id, QString msg);
 
 public:
     // OpenGL
@@ -377,7 +378,6 @@ private:
     QMenuBar             *currentMenuBar;
 
     // Program changes
-    text                  whatsNew;
     bool                  reloadProgram;
 
     // Timing

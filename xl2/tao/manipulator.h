@@ -36,7 +36,7 @@ TAO_BEGIN
 
 struct Manipulator : Drawing
 // ----------------------------------------------------------------------------
-//   Structure used to manipulate XL coordinates using the mouse
+//   Structure used to manipulate XL coordinates using the mouse and keyboard
 // ----------------------------------------------------------------------------
 {
     typedef XL::Tree     Tree, *tree_p;
@@ -104,9 +104,18 @@ struct FrameManipulator : DrawingManipulator
 //   Dispays 4 handles in the corner, but clicks in the surface pass through
 // ----------------------------------------------------------------------------
 {
+    enum TransformMode
+    {
+        TM_FreeResize,                     // Free resizing
+        TM_ResizeLockCenter,               // Resize object wrt. its center
+        TM_ResizeLockAspectRatio,          // Keep width/height aspect ratio
+        TM_ResizeLockCenterAndAspectRatio,
+    };
+
     FrameManipulator(real_r x, real_r y, real_r w, real_r h, Drawing *child);
     virtual void        DrawSelection(Layout *layout);
     virtual bool        DrawHandles(Layout *layout);
+    virtual TransformMode CurrentTransformMode();
 
 protected:
     real_r              x, y, w, h;

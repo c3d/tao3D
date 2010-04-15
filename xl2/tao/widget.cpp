@@ -52,6 +52,7 @@
 #include "path3d.h"
 #include "attributes.h"
 #include "transforms.h"
+#include "undo.h"
 
 #include <QtGui/QImage>
 #include <cmath>
@@ -85,7 +86,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       id(0), capacity(0), manipulator(0),
       event(NULL), focusWidget(NULL),
       currentMenu(NULL), currentMenuBar(NULL),
-      whatsNew(""), reloadProgram(false),
+      reloadProgram(false),
       timer(this), idleTimer(this),
       pageStartTime(CurrentTime()), pageRefresh(86400),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
@@ -263,11 +264,10 @@ bool Widget::doCommit()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(filesync)
-            std::cerr << "Commit: " << whatsNew << "\n";
-    if (repository()->asyncCommit(whatsNew))
+            std::cerr << "Commit: " << repository()->whatsNew << "\n";
+    if (repository()->asyncCommit())
     {
         XL::Main *xlr = XL::MAIN;
-        whatsNew = "";
         nextCommit = now() + xlr->options.commit_interval * 1000;
 
         Window *window = (Window *) parentWidget();
@@ -494,6 +494,16 @@ bool Widget::refresh(double delay)
         return true;
     }
     return false;
+}
+
+
+void Widget::commitSuccess(QString id, QString msg)
+// ----------------------------------------------------------------------------
+//   Document was succesfully committed to repository (see doCommit())
+// ----------------------------------------------------------------------------
+{
+    Window *window = (Window *) parentWidget();
+    window->undoStack->push(new UndoCommand(repository(), id, msg));
 }
 
 
@@ -1294,12 +1304,9 @@ void Widget::markChanged(text reason)
 //    Record that the program changed
 // ----------------------------------------------------------------------------
 {
-    if (whatsNew.find(reason) == whatsNew.npos)
-    {
-        if (whatsNew.length())
-            whatsNew += "\n";
-        whatsNew += reason;
-    }
+    Repository *repo = repository();
+    if (repo)
+        repo->markChanged(reason);
     if (xlProgram)
     {
         if (Tree *prog = xlProgram->tree.tree)

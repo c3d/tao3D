@@ -9,6 +9,7 @@ if true then TrueBody                   -> do TrueBody
 if false then TrueBody                  -> false
 
 // Key management
+key "Control-F"                         -> toggle_full_screen
 key X                                   -> text_edit_key X
 
 // 3D Shapes

@@ -65,14 +65,6 @@ struct Manipulator : Drawing
     typedef RealRef      real_r;
     typedef IntegerRef   integer_r;
 
-    enum EditMode
-    {
-        LockNothing,
-        LockCenter,
-        LockAspectRatio,
-        LockCenterAndAspectRatio
-    };
-
     Manipulator();
 
     virtual void        Draw(Layout *layout);
@@ -81,7 +73,6 @@ struct Manipulator : Drawing
     virtual bool        DrawHandle(Layout *layout, Point3 p, uint id,
                                    text name = "handle");
     virtual bool        DrawHandles(Layout *layout) = 0;
-    virtual EditMode    CurrentEditMode();
 
 protected:
     void                updateArg(Widget *widget, tree_p arg,
@@ -135,9 +126,18 @@ struct FrameManipulator : DrawingManipulator
 //   Dispays 4 handles in the corner, but clicks in the surface pass through
 // ----------------------------------------------------------------------------
 {
+    enum TransformMode
+    {
+        TM_FreeResize,                     // Free resizing
+        TM_ResizeLockCenter,               // Resize object wrt. its center
+        TM_ResizeLockAspectRatio,          // Keep width/height aspect ratio
+        TM_ResizeLockCenterAndAspectRatio,
+    };
+
     FrameManipulator(real_r x, real_r y, real_r w, real_r h, Drawing *child);
     virtual void        DrawSelection(Layout *layout);
     virtual bool        DrawHandles(Layout *layout);
+    virtual TransformMode CurrentTransformMode();
 
 protected:
     real_r              x, y, w, h;

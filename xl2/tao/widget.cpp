@@ -3546,6 +3546,7 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
     if (XL::Block *block = toInsert->AsBlock())
         toInsert = block->child;
 
+    bool preInsert = false;
     while (true)
     {
         XL::Infix *infix = program->AsInfix();
@@ -3553,14 +3554,18 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
             break;
         if (infix->name != ";" && infix->name != "\n")
             break;
-        if (selectionTrees.count(infix->left))
+        preInsert = selectionTrees.count(infix->left);
+        if (preInsert)
             break;
         parent = infix;
         program = infix->right;
     }
 
     XL::Tree * &what = parent ? parent->right : xlProgram->tree.tree;
-    what = new XL::Infix("\n", what, toInsert);
+    if (preInsert)
+        what = new XL::Infix("\n", toInsert, what);
+    else
+        what = new XL::Infix("\n", what, toInsert);
     reloadProgram();
     markChanged("Inserted tree");
 

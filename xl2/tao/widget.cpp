@@ -3545,6 +3545,8 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
             break;
         if (infix->name != ";" && infix->name != "\n")
             break;
+        if (selectionTrees.count(infix->left))
+            break;
         parent = infix;
         program = infix->right;
     }

@@ -38,12 +38,12 @@ TAO_BEGIN
 //
 // ============================================================================
 
-Manipulator::Manipulator()
+Manipulator::Manipulator(XL::Tree *self)
 // ----------------------------------------------------------------------------
 //   Record the GL name for a given tree
 // ----------------------------------------------------------------------------
-{
-}
+    :self(self)
+{}
 
 
 void Manipulator::Draw(Layout *layout)
@@ -63,6 +63,7 @@ void Manipulator::DrawSelection(Layout *layout)
     Widget *widget = layout->Display();
     if (uint sel = widget->selected())
     {
+        widget->selectionTrees.insert(self);
         if (sel < 0x1000)
         {
             uint count = 1;
@@ -92,6 +93,15 @@ void Manipulator::Identify(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Manipulator::DrawSelection(layout);
+}
+
+
+XL::Tree *Manipulator::Source()
+// ----------------------------------------------------------------------------
+//   Return the source tree for this manipulator
+// ----------------------------------------------------------------------------
+{
+    return self;
 }
 
 
@@ -254,11 +264,11 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
 //
 // ============================================================================
 
-ControlPoint::ControlPoint(real_r x, real_r y, real_r z, uint id)
+ControlPoint::ControlPoint(tree_p self, real_r x, real_r y, real_r z, uint id)
 // ----------------------------------------------------------------------------
 //   Record where we want to draw
 // ----------------------------------------------------------------------------
-    : Manipulator(), x(x), y(y), z(z), id(id)
+    : Manipulator(self), x(x), y(y), z(z), id(id)
 {}
 
 
@@ -279,7 +289,10 @@ void ControlPoint::DrawSelection(Layout *layout)
     // We don't need to glPushName, as the parent should have done it for us
     Widget *widget = layout->Display();
     if (widget->selected())
+    {
+        widget->selectionTrees.insert(self);
         DrawHandles(layout);
+    }
 }
 
 
@@ -327,11 +340,11 @@ bool ControlPoint::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-DrawingManipulator::DrawingManipulator(Drawing *child)
+DrawingManipulator::DrawingManipulator(tree_p self, Drawing *child)
 // ----------------------------------------------------------------------------
 //   Record the child we own
 // ----------------------------------------------------------------------------
-    : child(child)
+    : Manipulator(self), child(child)
 {}
 
 
@@ -446,12 +459,13 @@ bool DrawingManipulator::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-FrameManipulator::FrameManipulator(real_r x, real_r y, real_r w, real_r h,
-                             Drawing *child)
+FrameManipulator::FrameManipulator(tree_p self,
+                                   real_r x, real_r y, real_r w, real_r h,
+                                   Drawing *child)
 // ----------------------------------------------------------------------------
 //   A control rectangle owns a given child and manipulates it
 // ----------------------------------------------------------------------------
-    : DrawingManipulator(child), x(x), y(y), w(w), h(h)
+    : DrawingManipulator(self, child), x(x), y(y), w(w), h(h)
 {}
 
 
@@ -561,12 +575,13 @@ FrameManipulator::TransformMode FrameManipulator::CurrentTransformMode()
 //
 // ============================================================================
 
-ControlRectangle::ControlRectangle(real_r x, real_r y, real_r w, real_r h,
+ControlRectangle::ControlRectangle(tree_p self,
+                                   real_r x, real_r y, real_r w, real_r h,
                                    Drawing *child)
 // ----------------------------------------------------------------------------
 //   A control rectangle owns a given child and manipulates it
 // ----------------------------------------------------------------------------
-    : FrameManipulator(x, y, w, h, child)
+    : FrameManipulator(self, x, y, w, h, child)
 {}
 
 
@@ -622,14 +637,15 @@ bool ControlRectangle::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlRoundedRectangle::ControlRoundedRectangle(real_r x, real_r y,
+ControlRoundedRectangle::ControlRoundedRectangle(tree_p self,
+                                                 real_r x, real_r y,
                                                  real_r w, real_r h,
                                                  real_r r,
                                                  Drawing *child)
 // ----------------------------------------------------------------------------
 //   A control arrow adds the radius of the corners to the control rectangle
 // ----------------------------------------------------------------------------
-    : ControlRectangle(x, y, w, h, child), r(r)
+    : ControlRectangle(self, x, y, w, h, child), r(r)
 {}
 
 
@@ -708,19 +724,26 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlArrow::ControlArrow(real_r x, real_r y, real_r w, real_r h,
+ControlArrow::ControlArrow(tree_p self,
+                           real_r x, real_r y, real_r w, real_r h,
                            real_r ax, real_r ary, bool is_double,
                            Drawing *child)
 // ----------------------------------------------------------------------------
-//   A control arrow adds the arrow hanfle to the control rectangle
+//   A control arrow adds the arrow handle to the control rectangle
 // ----------------------------------------------------------------------------
-    : ControlRectangle(x, y, w, h, child), ax(ax), ary(ary), d(is_double)
+    : ControlRectangle(self, x, y, w, h, child),
+      ax(ax), ary(ary), d(is_double)
 {}
 
-ControlArrow::ControlArrow(real_r x, real_r y, real_r w, real_r h,
+
+ControlArrow::ControlArrow(tree_p self,
+                           real_r x, real_r y, real_r w, real_r h,
                            real_r ax, real_r ary,
                            Drawing *child)
-    : ControlRectangle(x, y, w, h, child), ax(ax), ary(ary), d(false)
+// ----------------------------------------------------------------------------
+//   Same as above setting is_double to false
+// ----------------------------------------------------------------------------
+    : ControlRectangle(self, x, y, w, h, child), ax(ax), ary(ary), d(false)
 {}
 
 
@@ -795,13 +818,14 @@ bool ControlArrow::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlPolygon::ControlPolygon(real_r x, real_r y, real_r w, real_r h,
+ControlPolygon::ControlPolygon(tree_p self,
+                               real_r x, real_r y, real_r w, real_r h,
                                integer_r p,
                                Drawing *child)
 // ----------------------------------------------------------------------------
 //   A control star adds the number of points to the control rectangle
 // ----------------------------------------------------------------------------
-    : ControlRectangle(x, y, w, h, child), p(p)
+    : ControlRectangle(self, x, y, w, h, child), p(p)
 {}
 
 
@@ -857,13 +881,14 @@ bool ControlPolygon::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlStar::ControlStar(real_r x, real_r y, real_r w, real_r h,
+ControlStar::ControlStar(tree_p self,
+                         real_r x, real_r y, real_r w, real_r h,
                          integer_r p, real_r r,
                          Drawing *child)
 // ----------------------------------------------------------------------------
 //   A control star adds inner circle ratio to the control polygon
 // ----------------------------------------------------------------------------
-    : ControlPolygon(x, y, w, h, p, child), r(r)
+    : ControlPolygon(self, x, y, w, h, p, child), r(r)
 {}
 
 
@@ -920,13 +945,14 @@ bool ControlStar::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlBalloon::ControlBalloon(real_r x, real_r y, real_r w, real_r h,
+ControlBalloon::ControlBalloon(tree_p self,
+                               real_r x, real_r y, real_r w, real_r h,
                                real_r r, real_r ax, real_r ay,
                                Drawing *child)
 // ----------------------------------------------------------------------------
 //   A control balloon adds a tail to the control rounded rectangle
 // ----------------------------------------------------------------------------
-    : ControlRoundedRectangle(x, y, w, h, r, child), ax(ax), ay(ay)
+    : ControlRoundedRectangle(self, x, y, w, h, r, child), ax(ax), ay(ay)
 {}
 
 
@@ -970,13 +996,14 @@ bool ControlBalloon::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlCallout::ControlCallout(real_r x, real_r y, real_r w, real_r h,
+ControlCallout::ControlCallout(tree_p self,
+                               real_r x, real_r y, real_r w, real_r h,
                                real_r r, real_r ax, real_r ay, real_r d,
                                Drawing *child)
 // ----------------------------------------------------------------------------
 //   A control callout adds a width to the tail to the control balloon
 // ----------------------------------------------------------------------------
-    : ControlBalloon(x, y, w, h, r, ax, ay, child), d(d)
+    : ControlBalloon(self, x, y, w, h, r, ax, ay, child), d(d)
 {}
 
 
@@ -1084,12 +1111,14 @@ bool ControlCallout::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-WidgetManipulator::WidgetManipulator(real_r x, real_r y, real_r w, real_r h,
+WidgetManipulator::WidgetManipulator(tree_p self,
+                                     real_r x, real_r y, real_r w, real_r h,
                                      WidgetSurface *s)
 // ----------------------------------------------------------------------------
 //    Create a widget manipulator within the given rectangle
 // ----------------------------------------------------------------------------
-    : FrameManipulator(x, y, w, h, new Rectangle(Box(x-w/2, y-h/2, w, h))),
+    : FrameManipulator(self, x, y, w, h,
+                       new Rectangle(Box(x-w/2, y-h/2, w, h))),
       surface(s)
 {}
 
@@ -1122,13 +1151,14 @@ void WidgetManipulator::DrawSelection(Layout *layout)
 //
 // ============================================================================
 
-BoxManipulator::BoxManipulator(real_r x, real_r y, real_r z,
+BoxManipulator::BoxManipulator(tree_p self,
+                               real_r x, real_r y, real_r z,
                                real_r w, real_r h, real_r d,
                                Drawing *child)
 // ----------------------------------------------------------------------------
 //   A control rectangle owns a given child and manipulates it
 // ----------------------------------------------------------------------------
-    : DrawingManipulator(child), x(x), y(y), z(z), w(w), h(h), d(d)
+    : DrawingManipulator(self, child), x(x), y(y), z(z), w(w), h(h), d(d)
 {}
 
 
@@ -1214,13 +1244,14 @@ bool BoxManipulator::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlBox::ControlBox(real_r x, real_r y, real_r z,
+ControlBox::ControlBox(tree_p self,
+                       real_r x, real_r y, real_r z,
                        real_r w, real_r h, real_r d,
                        Drawing *child)
 // ----------------------------------------------------------------------------
 //   A control rectangle owns a given child and manipulates it
 // ----------------------------------------------------------------------------
-    : BoxManipulator(x, y, z, w, h, d, child)
+    : BoxManipulator(self, x, y, z, w, h, d, child)
 {}
 
 
@@ -1261,11 +1292,11 @@ bool ControlBox::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-TransformManipulator::TransformManipulator(Drawing *child)
+TransformManipulator::TransformManipulator(tree_p self, Drawing *child)
 // ----------------------------------------------------------------------------
 //   Record the child we own
 // ----------------------------------------------------------------------------
-    : DrawingManipulator(child)
+    : DrawingManipulator(self, child)
 {}
 
 
@@ -1276,11 +1307,13 @@ TransformManipulator::TransformManipulator(Drawing *child)
 //
 // ============================================================================
 
-RotationManipulator::RotationManipulator(real_r a, real_r x,real_r y,real_r z)
+RotationManipulator::RotationManipulator(tree_p self,
+                                         real_r a, real_r x,real_r y,real_r z)
 // ----------------------------------------------------------------------------
 //   Manipulation of a rotation
 // ----------------------------------------------------------------------------
-    : TransformManipulator(new Rotation(a, x, y, z)), a(a), x(x), y(y), z(z)
+    : TransformManipulator(self, new Rotation(a, x, y, z)),
+      a(a), x(x), y(y), z(z)
 {}
 
 
@@ -1368,11 +1401,12 @@ bool RotationManipulator::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-TranslationManipulator::TranslationManipulator(real_r x, real_r y, real_r z)
+TranslationManipulator::TranslationManipulator(tree_p self,
+                                               real_r x, real_r y, real_r z)
 // ----------------------------------------------------------------------------
 //   Manipulation of a translation
 // ----------------------------------------------------------------------------
-    : TransformManipulator(new Translation(x, y, z)), x(x), y(y), z(z)
+    : TransformManipulator(self, new Translation(x, y, z)), x(x), y(y), z(z)
 {}
 
 
@@ -1457,11 +1491,11 @@ bool TranslationManipulator::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ScaleManipulator::ScaleManipulator(real_r x, real_r y, real_r z)
+ScaleManipulator::ScaleManipulator(tree_p self, real_r x, real_r y, real_r z)
 // ----------------------------------------------------------------------------
 //   Manipulation of a scale
 // ----------------------------------------------------------------------------
-    : TransformManipulator(new Scale(x, y, z)), x(x), y(y), z(z)
+    : TransformManipulator(self, new Scale(x, y, z)), x(x), y(y), z(z)
 {}
 
 

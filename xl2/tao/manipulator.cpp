@@ -513,31 +513,33 @@ bool FrameManipulator::DrawHandles(Layout *layout)
         case TM_ResizeLockAspectRatio:
             {
                 coord X  = p2.x - x,     Y = p2.y - y;
-                coord dx = p2.x - p1.x, dy = p2.y - p1.y;
                 coord ux, uy, uw, uh;
                 if (X < 0) X = -X;
                 if (Y < 0) Y = -Y;
                 if ((Y/h) > (X/w))
                 {
                     scale r = w/h;
-                    ux = r*sh*sw*dy/2;
-                    uy = dy/2;
-                    uw = r*sh*dy;
-                    uh = sh*dy;
+                    ux = r*sh*sw/2;
+                    uy = 0.5;
+                    uw = r*sh;
+                    uh = sh;
+                    updateArg(widget, &x, ux*p0.y, ux*p1.y, ux*p2.y);
+                    updateArg(widget, &y, uy*p0.y, uy*p1.y, uy*p2.y);
+                    updateArg(widget, &w, uw*p0.y, uw*p1.y, uw*p2.y);
+                    updateArg(widget, &h, uh*p0.y, uh*p1.y, uh*p2.y);
                 }
                 else
                 {
                     scale r = h/w;
-                    ux = dx/2;
-                    uy = r*sh*sw*dx/2;
-                    uw = sw*dx;
-                    uh = r*sw*dx;
-
+                    ux = 0.5;
+                    uy = r*sh*sw/2;
+                    uw = sw;
+                    uh = r*sw;
+                    updateArg(widget, &x, ux*p0.x, ux*p1.x, ux*p2.x);
+                    updateArg(widget, &y, uy*p0.x, uy*p1.x, uy*p2.x);
+                    updateArg(widget, &w, uw*p0.x, uw*p1.x, uw*p2.x);
+                    updateArg(widget, &h, uh*p0.x, uh*p1.x, uh*p2.x);
                 }
-                updateArg(widget, &x, 0, 0, ux);
-                updateArg(widget, &y, 0, 0, uy);
-                updateArg(widget, &w, 0, 0, uw);
-                updateArg(widget, &h, 0, 0, uh);
                 break;
             }
 

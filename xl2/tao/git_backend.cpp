@@ -27,7 +27,7 @@
 #include <QString>
 #include <QtGlobal>
 #include <QApplication>
-#include <QRegexp>
+#include <QRegExp>
 #include <iostream>
 
 TAO_BEGIN

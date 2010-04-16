@@ -3,6 +3,7 @@
 /qrc_tao.cpp
 /Tao.app/
 tao.pro.user
+*.o
 ui_pull_from_dialog.h
 ui_publish_to_dialog.h
 ui_remote_selection_frame.h

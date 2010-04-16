@@ -188,7 +188,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
             scale spacing = justify.spacing;
             scale size = Size(item) * spacing;
             coord offset = ItemOffset(item);
-            if (sign * pos + size > sign * end)
+            if (sign * pos + size > sign * end && sign * pos > sign * start)
             {
                 // It doesn't fit, we need to stop here.
                 // Erase what we already placed

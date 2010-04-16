@@ -21,6 +21,7 @@
 // ****************************************************************************
 
 #include "texture.h"
+#include "tao_utf8.h"
 
 
 TAO_BEGIN
@@ -58,7 +59,7 @@ GLuint ImageTextureInfo::bind(text file)
             textures.erase(textures.begin());
 
         // Read the image file and convert to proper GL image format
-        QString imgFile(QString::fromStdString(file));
+        QString imgFile(+file);
         QImage original(imgFile);
         if (!original.isNull())
         {

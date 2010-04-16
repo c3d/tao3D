@@ -85,7 +85,7 @@ struct Layout : Drawing, LayoutState
 
 public:
     // Attributes that get propagated to children
-    static int      polygonOffset;
+    static int          polygonOffset;
 
 protected:
     // List of drawing elements

@@ -524,6 +524,18 @@ bool FrameManipulator::DrawHandles(Layout *layout)
             updateArg(widget, &h, 2*sh*p0.y, 2*sh*p1.y, 2*sh*p2.y);
             break;
 
+        case TM_FreeCenteredRotate:
+            // TODO
+
+        case TM_SteppedCenteredRotate:
+            // TODO
+
+        case TM_FreeOppositeRotate:
+            // TODO
+
+        case TM_SteppedOppositeRotate:
+            // TODO
+
         case TM_ResizeLockAspectRatio:
             // TODO
 
@@ -552,7 +564,7 @@ FrameManipulator::TransformMode FrameManipulator::CurrentTransformMode()
 // ----------------------------------------------------------------------------
 {
     int m = (int)QApplication::keyboardModifiers();
-    switch (m & (Qt::AltModifier + Qt::ShiftModifier))
+    switch (m & (Qt::AltModifier + Qt::ShiftModifier + Qt::ControlModifier))
     {
     case (Qt::AltModifier + Qt::ShiftModifier):
         return TM_ResizeLockCenterAndAspectRatio;
@@ -560,6 +572,14 @@ FrameManipulator::TransformMode FrameManipulator::CurrentTransformMode()
         return TM_ResizeLockCenter;
     case (Qt::ShiftModifier):
         return TM_ResizeLockAspectRatio;
+    case (Qt::ControlModifier + Qt::AltModifier + Qt::ShiftModifier):
+        return TM_SteppedOppositeRotate;
+    case (Qt::ControlModifier + Qt::AltModifier):
+        return TM_FreeOppositeRotate;
+    case (Qt::ControlModifier + Qt::ShiftModifier):
+        return TM_SteppedCenteredRotate;
+    case (Qt::ControlModifier):
+        return TM_FreeCenteredRotate;
     default:
         break;
     }
@@ -1032,8 +1052,8 @@ bool ControlCallout::DrawHandles(Layout *layout)
     double dd = d;
     if (dd < 0)
         dd = 0;
-    dd = dd < w? dd: double(w);
-    dd = dd < h? dd: double(h);
+    dd = dd < pw? dd: double(pw);
+    dd = dd < ph? dd: double(ph);
     double mrd = dd > 2*rr? dd: 2*rr;
     double tx = double(ax) - double(x);
     double ty = double(ay) - double(y);
@@ -1081,15 +1101,15 @@ bool ControlCallout::DrawHandles(Layout *layout)
             if (p1 != p2)
             {
                 Point3 p0 = drag->Origin();
-                if (cos(beta+M_PI_2) > sin(beta+M_PI_2))
+                if (-sty*cos(beta+M_PI_2) > stx*sin(beta+M_PI_2))
                 {
-                    updateArg(widget, &d, 4*p0.x, 4*p1.x, 4*p2.x,
-                              true, 0, true, w<h? w: h );
+                    updateArg(widget, &d, -sty*4*p0.x, -sty*4*p1.x, -sty*4*p2.x,
+                              true, 0, true, pw<ph? pw: ph );
                 }
                 else
                 {
-                    updateArg(widget, &d, 4*p0.y, 4*p1.y, 4*p2.y,
-                              true, 0, true, w<h? w: h );
+                    updateArg(widget, &d, stx*4*p0.y, stx*4*p1.y, stx*4*p2.y,
+                              true, 0, true, pw<ph? pw: ph );
                 }
                 widget->markChanged("Callout tail width changed");
                 changed = true;

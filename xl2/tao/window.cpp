@@ -1,18 +1,18 @@
 // ****************************************************************************
 //  window.cpp                                                     Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     The main Tao output window
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -510,7 +510,7 @@ bool Window::maybeSave()
 {
     if (textEdit->document()->isModified())
     {
-	QMessageBox::StandardButton ret;
+        QMessageBox::StandardButton ret;
         ret = QMessageBox::warning
             (this, tr("Save changes?"),
              tr("The document has been modified.\n"
@@ -848,30 +848,32 @@ void Window::resetTaoMenus()
 // ----------------------------------------------------------------------------
 {
     // Removes top menu from the menu bar
-    QRegExp reg("^"+ QString(TOPMENU) +".*", Qt::CaseSensitive);
-    QList<QMenu *> menu_list = menuBar()->findChildren<QMenu *>(reg);
-    QList<QMenu *>::iterator it;
-    for(it = menu_list.begin(); it!=menu_list.end(); ++it)
-    {
-        QMenu *menu = *it;
-        IFTRACE(menus)
-        {
-            std::cout << menu->objectName().toStdString()
-                    << " removed from menu bar \n";
-            std::cout.flush();
-        }
-
-        menuBar()->removeAction(menu->menuAction());
-        delete menu;
-    }
+//    QRegExp reg("^"+ QString(TOPMENU) +".*", Qt::CaseSensitive);
+//    QList<QMenu *> menu_list = menuBar()->findChildren<QMenu *>(reg);
+//    QList<QMenu *>::iterator it;
+//    for(it = menu_list.begin(); it!=menu_list.end(); ++it)
+//    {
+//        QMenu *menu = *it;
+//        IFTRACE(menus)
+//        {
+//            std::cout << menu->objectName().toStdString()
+//                    << " removed from menu bar \n";
+//            std::cout.flush();
+//        }
+//
+//        menuBar()->removeAction(menu->menuAction());
+//        delete menu;
+//    }
 
     // Reset currentMenu and currentMenuBar
     taoWidget->currentMenu = NULL;
     taoWidget->currentMenuBar = this->menuBar();
+    taoWidget->currentToolBar = NULL;
 
     // Removes contextual menus
-    reg.setPattern("^"+QString(CONTEXT_MENU)+".*");
-    menu_list = taoWidget->findChildren<QMenu *>(reg);
+    QRegExp reg("^"+QString(CONTEXT_MENU)+".*", Qt::CaseSensitive);
+    QList<QMenu *> menu_list = taoWidget->findChildren<QMenu *>(reg);
+    QList<QMenu *>::iterator it;
     for(it = menu_list.begin(); it!=menu_list.end(); ++it)
     {
         QMenu *menu = *it;
@@ -885,8 +887,8 @@ void Window::resetTaoMenus()
     }
 
     // Cleanup all menus defined in the current file and all imports
-    CleanMenuInfo cmi;
-    taoWidget->applyAction(cmi);
+//    CleanMenuInfo cmi;
+//    taoWidget->applyAction(cmi);
 }
 
 

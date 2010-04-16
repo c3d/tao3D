@@ -19,6 +19,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -108,11 +109,14 @@ public slots:
 };
 
 struct AbstractButtonSurface : WidgetSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a Button
+// ----------------------------------------------------------------------------
 {
     Q_OBJECT;
 public:
 //    typedef AbstractButtonSurface * data_t;
-    AbstractButtonSurface(XL::Tree *t, QAbstractButton *button);
+    AbstractButtonSurface(XL::Tree *t, QAbstractButton *button, QString name);
     virtual GLuint bind(XL::Text *lbl, XL::Tree *action, XL::Text * sel);
     virtual operator data_t() { return this; }
 
@@ -136,8 +140,12 @@ struct PushButtonSurface : AbstractButtonSurface
     Q_OBJECT;
 public:
     typedef PushButtonSurface * data_t;
-    PushButtonSurface(XL::Tree *t, QWidget *parent):
-        AbstractButtonSurface(t,new QPushButton(parent)){};
+    PushButtonSurface(XL::Tree *t, QWidget *parent, QString name):
+        AbstractButtonSurface(t,new QPushButton(parent), name)
+    {
+        connect((QPushButton*)widget, SIGNAL(clicked(bool)),
+                this,                 SLOT(clicked(bool)));
+    };
     operator data_t() { return this; }
 };
 
@@ -149,8 +157,8 @@ struct RadioButtonSurface : AbstractButtonSurface
     Q_OBJECT;
 public:
     typedef RadioButtonSurface * data_t;
-    RadioButtonSurface(XL::Tree *t, QWidget *parent):
-        AbstractButtonSurface(t, new QRadioButton(parent)){};
+    RadioButtonSurface(XL::Tree *t, QWidget *parent, QString name):
+        AbstractButtonSurface(t, new QRadioButton(parent), name){};
     operator data_t() { return this; }
 };
 
@@ -162,8 +170,8 @@ struct CheckBoxSurface : AbstractButtonSurface
     Q_OBJECT;
 public:
     typedef CheckBoxSurface * data_t;
-    CheckBoxSurface(XL::Tree *t, QWidget *parent):
-        AbstractButtonSurface(t, new QCheckBox(parent)){};
+    CheckBoxSurface(XL::Tree *t, QWidget *parent, QString name):
+        AbstractButtonSurface(t, new QCheckBox(parent), name){};
     operator data_t() { return this; }
 };
 

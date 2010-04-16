@@ -185,8 +185,6 @@ radio_button x:real, y:real, w:real, h:real, l:text, m:text, a:tree ->
 check_box_button x:real, y:real, w:real, h:real, l:text, m:text, a:tree ->
       check_box_button  x, y, w, h, l, l, m, a
 
-button_group b:tree  -> button_group b, true, null
-
 theme_colors ->
     texture ""
     color 0.6, 0.6, 0.6, 1

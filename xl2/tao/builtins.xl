@@ -10,6 +10,8 @@ if false then TrueBody                  -> false
 
 // Key management
 key "Control-F"                         -> toggle_full_screen
+key "Delete"                            -> delete_selection "Delete"
+key "Backspace"                         -> delete_selection "Backspace"
 key X                                   -> text_edit_key X
 
 // 3D Shapes

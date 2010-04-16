@@ -99,6 +99,8 @@ public:
     // XL program management
     void        updateProgram(XL::SourceFile *sf);
     void        applyAction(XL::Action &action);
+    void        reloadProgram(XL::Tree *newProg = NULL);
+    void        renormalizeProgram();
     void        refreshProgram();
     void        markChanged(text reason);
     bool        writeIfChanged(XL::SourceFile &sf);
@@ -124,6 +126,7 @@ public:
     uint        charSelected()          { return charSelected(charId); }
     void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
     uint        selected(uint i);
+    uint        selected(XL::Tree *tree) { return selectionTrees.count(tree); }
     void        select(uint id, uint count);
     void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);
@@ -276,7 +279,7 @@ public:
     Tree *      spread(Tree *self, scale amount, uint axis);
     Tree *      spacing(Tree *self, scale amount, uint axis);
     Tree *      drawingBreak(Tree *self, Drawing::BreakOrder order);
-    Tree *      textEditKey(Tree *self, text key);
+    Name *      textEditKey(Tree *self, text key);
 
     // Frames and widgets
     Tree *      status(Tree *self, text t);
@@ -342,7 +345,7 @@ public:
 
     // Tree management
     Name *      insert(Tree *self, Tree *toInsert);
-    Name *      deleteSelection(Tree *self);
+    Name *      deleteSelection(Tree *self, text key);
 
     // Unit conversions
     Real *      fromCm(Tree *self, double cm);
@@ -393,9 +396,6 @@ private:
     QToolBar             *currentToolBar;
     QVector<MenuInfo*>    orderedMenuElements;
     int                   order;
-
-    // Program changes
-    bool                  reloadProgram;
 
     // Timing
     QTimer                timer, idleTimer;
@@ -471,6 +471,34 @@ inline double CurrentTime()
 #undef TAO // From the command line
 #define TAO(x)  (Tao::Widget::Tao() ? Tao::Widget::Tao()->x : 0)
 #define RTAO(x) return TAO(x)
+
+
+
+// ============================================================================
+//
+//   Action that returns a tree where all the selected trees are removed
+//
+// ============================================================================
+
+struct DeleteSelectionAction : XL::TreeClone
+// ----------------------------------------------------------------------------
+//    A specialized clone action that doesn't copy selected trees
+// ----------------------------------------------------------------------------
+{
+    DeleteSelectionAction(Widget *widget): widget(widget) {}
+    XL::Tree *DoInfix(XL::Infix *what)
+    {
+        if (what->name == "\n" || what->name == ";")
+        {
+            if (widget->selected(what->left))
+                return what->right->Do(this);
+            if (widget->selected(what->right))
+                return what->left->Do(this);
+        }
+        return XL::TreeClone::DoInfix(what);
+    }
+    Widget *widget;
+};
 
 } // namespace Tao
 

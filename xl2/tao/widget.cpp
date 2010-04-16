@@ -87,7 +87,6 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       event(NULL), focusWidget(NULL),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
-      reloadProgram(false),
       timer(this), idleTimer(this),
       pageStartTime(CurrentTime()), pageRefresh(86400),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
@@ -372,15 +371,6 @@ void Widget::runProgram()
         {
             if (Tree *prog = xlProgram->tree.tree)
             {
-                if (reloadProgram)
-                {
-                    XL::NormalizedClone cloneAction;
-                    Tree *copy = prog->Do(cloneAction);
-                    copy->Set<XL::SymbolsInfo>(prog->Get<XL::SymbolsInfo>());
-                    xlProgram->tree.tree = copy;
-                    prog = copy;
-                    reloadProgram = false;
-                }
                 xl_evaluate(prog);
 
                 // Clean the end of the menu
@@ -1213,6 +1203,44 @@ void Widget::applyAction(XL::Action &action)
 }
 
 
+void Widget::reloadProgram(XL::Tree *newProg)
+// ----------------------------------------------------------------------------
+//   Set the program to reload
+// ----------------------------------------------------------------------------
+{
+    Tree *prog = xlProgram->tree.tree;
+    if (newProg)
+    {
+        // Check if we can simply change some parameters in the tree
+        ApplyChanges changes(newProg);
+        if (!prog->Do(changes))
+        {
+            // Need a big hammer, i.e. reload the complete program
+            newProg->Set<XL::SymbolsInfo>(prog->Get<XL::SymbolsInfo>());
+            xlProgram->tree.tree = newProg;
+            prog = newProg;
+        }
+    }
+
+    // Now update the window
+    text txt = *prog;
+    Window *window = (Window *) parentWidget();
+    window->setText(+txt);
+}
+
+
+void Widget::renormalizeProgram()
+// ----------------------------------------------------------------------------
+//   Remove elements in the program that make it look not good, e.g. -(-x))
+// ----------------------------------------------------------------------------
+{
+    XL::NormalizedClone norm;
+    Tree *prog = xlProgram->tree.tree;
+    prog = prog->Do(norm);
+    reloadProgram(prog);
+}
+
+
 void Widget::refreshProgram()
 // ----------------------------------------------------------------------------
 //   Check if any of the source files we depend on changed
@@ -1328,6 +1356,7 @@ void Widget::markChanged(text reason)
             ImportedFilesChanged(prog, done, true);
         }
     }
+    reloadProgram();
     refresh(0);
 }
 
@@ -2604,7 +2633,7 @@ Tree *Widget::drawingBreak(Tree *self, Drawing::BreakOrder order)
 }
 
 
-Tree *Widget::textEditKey(Tree *self, text key)
+XL::Name *Widget::textEditKey(Tree *self, text key)
 // ----------------------------------------------------------------------------
 //   Send a key to the activities
 // ----------------------------------------------------------------------------
@@ -3522,18 +3551,28 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
 
     XL::Tree * &what = parent ? parent->right : xlProgram->tree.tree;
     what = new XL::Infix("\n", what, toInsert);
-    reloadProgram = true;
     markChanged("Inserted tree");
 
     return XL::xl_true;
 }
 
 
-XL::Name *Widget::deleteSelection(Tree *self)
+XL::Name *Widget::deleteSelection(Tree *self, text key)
 // ----------------------------------------------------------------------------
 //    Delete the selection
 // ----------------------------------------------------------------------------
 {
+    if (textSelection())
+        return textEditKey(self, key);
+
+    DeleteSelectionAction del(this);
+    XL::Tree *what = xlProgram->tree.tree;
+    what = what->Do(del);
+    reloadProgram(what);
+    markChanged("Deleted selection");
+    selection.clear();
+    selectionTrees.clear();
+    
     return XL::xl_true;
 }
 

@@ -226,7 +226,7 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
         if (has_max && ival->value * scale > max)
             ival->value = max / scale;
         if (ppptr && ival->value < 0)
-            widget->reloadProgram = true;
+            widget->renormalizeProgram();
     }
     else if (XL::Real *rval = (*ptr)->AsReal())
     {
@@ -236,7 +236,7 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
         if (has_max && ival->value * scale > max)
             ival->value = max / scale;
         if (ppptr && rval->value < 0)
-            widget->reloadProgram = true;
+            widget->renormalizeProgram();
     }
     else
     {
@@ -251,7 +251,7 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
                 value = max;
             double delta = (value - previous) / scale;
             *ptr = new XL::Infix("+", new XL::Real(delta), *ptr);
-            widget->reloadProgram = true;
+            widget->renormalizeProgram();
         }
     }
 }

@@ -82,7 +82,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
       xlProgram(sf),
       space(NULL), layout(NULL), path(NULL),
-      pageName(""), pageId(0), pageTotal(0),
+      pageName(""), pageId(0), pageTotal(0), pageTree(NULL),
       currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
       id(0), charId(0), capacity(0), manipulator(0),
@@ -308,6 +308,8 @@ void Widget::draw()
     flowName = "";
     flows.clear();
     pageId = 0;
+    pageTree = NULL;
+    lastPageName = "";
 
     // Clear the background
     glClearColor (1.0, 1.0, 1.0, 1.0);
@@ -1657,6 +1659,7 @@ XL::Text *Widget::page(Tree *self, text name, Tree *body)
         pageLinks.clear();
         if (pageId > 1)
             pageLinks["PageUp"] = lastPageName;
+        pageTree = body;
         xl_evaluate(body);
     }
     else if (pageName == lastPageName)
@@ -2729,6 +2732,10 @@ XL::Name *Widget::textEditKey(Tree *self, text key)
     if (pageLinks.count(key))
     {
         pageName = pageLinks[key];
+        selection.clear();
+        selectionTrees.clear();
+        delete textSelection();
+        delete drag();
         return XL::xl_true;
     }
 
@@ -3627,32 +3634,50 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
     if (!xlProgram)
         return XL::xl_false;
 
-    Tree  *program = xlProgram->tree.tree;
-    XL::Infix *parent  = NULL;
+    Tree *program = xlProgram->tree.tree;
     if (XL::Block *block = toInsert->AsBlock())
         toInsert = block->child;
 
-    bool preInsert = false;
-    while (true)
-    {
-        XL::Infix *infix = program->AsInfix();
-        if (!infix)
-            break;
-        if (infix->name != ";" && infix->name != "\n")
-            break;
-        preInsert = selectionTrees.count(infix->left);
-        if (preInsert)
-            break;
-        parent = infix;
-        program = infix->right;
-    }
+    InsertAtSelectionAction insert(this, toInsert, pageTree);
+    Tree *afterInsert = program->Do(insert);
 
-    XL::Tree * &what = parent ? parent->right : xlProgram->tree.tree;
-    if (preInsert)
-        what = new XL::Infix("\n", toInsert, what);
-    else
+    // If we never hit the selection during the insert, append
+    if (insert.toInsert)
+    {
+        Tree *top = xlProgram->tree.tree;
+        XL::Infix *parent  = NULL;
+        if (pageTree)
+        {
+            if (XL::Prefix *prefix = pageTree->AsPrefix())
+                if (XL::Name *left = prefix->left->AsName())
+                    if (left->value == "do")
+                        pageTree = prefix->right;
+            if (XL::Block *block = pageTree->AsBlock())
+                pageTree = block->child;
+
+            top = pageTree;
+        }
+
+        program = top;
+        while (true)
+        {
+            XL::Infix *infix = program->AsInfix();
+            if (!infix)
+                break;
+            if (infix->name != ";" && infix->name != "\n")
+                break;
+            parent = infix;
+            program = infix->right;
+        }
+ 
+        Tree * &what = parent ? parent->right : top;
         what = new XL::Infix("\n", what, toInsert);
-    reloadProgram();
+        reloadProgram();
+    }
+    else
+    {
+        reloadProgram(afterInsert);
+    }
     markChanged("Inserted tree");
 
     return XL::xl_true;

@@ -2136,7 +2136,7 @@ Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, x, y, w, h, 
+        layout->Add(new ControlRectangle(self, x, y, w, h,
                                          new Rectangle(shape)));
 
     return XL::xl_true;
@@ -2828,7 +2828,7 @@ Tree *Widget::radioButton(Tree *self,
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
     radioButtonTexture(self, w, h, name, lbl, sel, act);
-    return abstractButton(name, x, y, w, h);
+    return abstractButton(self, name, x, y, w, h);
 }
 
 
@@ -2867,7 +2867,7 @@ Tree *Widget::checkBoxButton(Tree *self, real_r x,real_r y, real_r w, real_r h,
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
     checkBoxButtonTexture(self, w, h, name, lbl, sel, act);
-    return abstractButton(name, x, y, w, h);
+    return abstractButton(self, name, x, y, w, h);
 }
 
 
@@ -2906,7 +2906,7 @@ Tree *Widget::pushButton(Tree *self, real_r x, real_r y, real_r w, real_r h,
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
     pushButtonTexture(self, w, h, name, lbl, act);
-    return abstractButton(name, x, y, w, h);
+    return abstractButton(self, name, x, y, w, h);
 }
 
 
@@ -2936,7 +2936,7 @@ Tree *Widget::pushButtonTexture(Tree *self, double w, double h, Text *name,
 }
 
 
-Tree *Widget::abstractButton(Tree *name, real_r x, real_r y, real_r w, real_r h)
+Tree *Widget::abstractButton(Tree *self, Text *name, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //   Draw any button in the curent frame
 // ----------------------------------------------------------------------------
@@ -3608,7 +3608,7 @@ XL::Name *Widget::deleteSelection(Tree *self, text key)
     markChanged("Deleted selection");
     selection.clear();
     selectionTrees.clear();
-    
+
     return XL::xl_true;
 }
 

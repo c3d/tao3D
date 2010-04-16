@@ -296,7 +296,7 @@ public:
                          real_r w,real_r h, text_p s);
     Tree *      lineEditTexture(Tree *self, double x, double y, Text *s);
 
-    Tree *      abstractButton(Tree *self,
+    Tree *      abstractButton(Tree *self, Text *name,
                                real_r x, real_r y, real_r w, real_r h);
     Tree *      pushButton(Tree *self, real_r x, real_r y, real_r w, real_r h,
                            text_p name, text_p lbl, Tree *act);

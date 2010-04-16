@@ -100,6 +100,7 @@ Activity *Selection::Click(uint button, bool down, int x, int y)
     else
     {
         Idle();
+        Activity *next = this->next;
         delete this;
         return next;
     }

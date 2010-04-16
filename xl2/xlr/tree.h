@@ -60,9 +60,9 @@ typedef Tree *(*eval_fn) (Tree *);              // Compiled evaluation code
 
 
 // ============================================================================
-// 
+//
 //    The Tree class
-// 
+//
 // ============================================================================
 
 enum kind
@@ -138,6 +138,11 @@ struct Tree
     bool                Exists();
     template <class I>
     bool                Purge();
+    template <class I>
+    I*                  Remove();
+    template <class I>
+    I*                  Remove(I *);
+
 
     // Safe cast to an appropriate subclass
     Integer *           AsInteger();
@@ -294,6 +299,48 @@ template <class I> inline bool Tree::Purge()
         last->next = NULL;
     return purged;
 }
+
+
+template <class I> inline I* Tree::Remove()
+// ----------------------------------------------------------------------------
+//   Find if we have an information of the right type in 'info' and remove it from the list
+// ----------------------------------------------------------------------------
+{
+    Info *prev = info;
+    for (Info *i = info; i; i = i->next)
+    {
+        if (I *ic = dynamic_cast<I *> (i))
+        {
+            prev->next = i->next;
+            return ic;
+        }
+        prev = i;
+    }
+    return NULL;
+}
+
+template <class I> inline I* Tree::Remove(I *an_info)
+// ----------------------------------------------------------------------------
+//   Find if we have an information of the right type in 'info' and remove it from the list
+// ----------------------------------------------------------------------------
+{
+    Info *prev = info;
+    for (Info *i = info; i; i = i->next)
+    {
+        I *ic = dynamic_cast<I *> (i);
+        if ( ic == an_info)
+        {
+            if (prev == info)
+                info = info->next;
+            else
+                prev->next = i->next;
+            return ic;
+        }
+        prev = i;
+    }
+    return NULL;
+}
+
 
 
 struct TreeRoot
@@ -537,9 +584,9 @@ inline Postfix *Tree::AsPostfix()
 
 
 // ============================================================================
-// 
+//
 //    Tree cloning
-// 
+//
 // ============================================================================
 
 struct DeepCopyCloneMode;       // Child nodes are cloned too (default)
@@ -788,9 +835,9 @@ template <CopyMode mode> struct TreeCopyTemplate : Action
 
 
 // ============================================================================
-// 
+//
 //    Tree shape equality comparison
-// 
+//
 // ============================================================================
 
 enum TreeMatchMode
@@ -1070,16 +1117,16 @@ struct SetNodeIdAction : SimpleAction
 //   Set an integer node ID to each node.
 // ------------------------------------------------------------------------
 {
-	SetNodeIdAction(node_id from_id = 1, node_id step = 1)
-	: id(from_id), step(step) {}
-	virtual Tree *Do(Tree *what)
-	{
-		what->Set<NodeIdInfo>(id);
-		id += step;
-		return NULL;
-	}
-	node_id id;
-	node_id step;
+        SetNodeIdAction(node_id from_id = 1, node_id step = 1)
+        : id(from_id), step(step) {}
+        virtual Tree *Do(Tree *what)
+        {
+                what->Set<NodeIdInfo>(id);
+                id += step;
+                return NULL;
+        }
+        node_id id;
+        node_id step;
 };
 
 XL_END

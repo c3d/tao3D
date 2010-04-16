@@ -25,6 +25,8 @@
 #include <QMainWindow>
 #include <QTimer>
 #include <QSharedPointer>
+#include <QUndoStack>
+#include <QUndoView>
 #include "main.h"
 #include "tao.h"
 #include "repository.h"
@@ -58,6 +60,9 @@ public:
 
     bool isUntitled;
 
+public:
+    QUndoStack *undoStack;
+
 public slots:
     void markChanged(bool changed = true);
 
@@ -81,6 +86,7 @@ private:
     void createMenus();
     void createToolBars();
     void createStatusBar();
+    void createUndoView();
 
     void readSettings();
     void writeSettings();
@@ -91,8 +97,9 @@ private:
     QString strippedName(const QString &fullFileName);
     Window *findWindow(const QString &fileName);
     void updateProgram(const QString &filename);
-    void resetTaoMenus(XL::Tree *a_tree);
+    void resetTaoMenus();
     QString currentProjectFolderPath();
+    bool populateUndoStack();
 
 private:
     XL::Main *        xlRuntime;
@@ -125,6 +132,9 @@ private:
     QAction          *aboutAct;
     QAction          *aboutQtAct;
     QAction          *fullScreenAct;
+    QUndoView        *undoView;
+    QAction          *undoAction;
+    QAction          *redoAction;
 };
 
 // Prefixes for the created menus and sub menus

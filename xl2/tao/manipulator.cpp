@@ -17,6 +17,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -110,7 +111,8 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id, text name)
 
 
 void Manipulator::updateArg(Widget *widget, tree_p arg,
-                            coord first, coord previous, coord current)
+                            double first, double previous, double current,
+                            bool has_min, double min, bool has_max, double max)
 // ----------------------------------------------------------------------------
 //   Update the given argument by the given offset
 // ----------------------------------------------------------------------------
@@ -186,7 +188,21 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
                 }
             }
         }
+        if (XL::Postfix *postfix = (*ptr)->AsPostfix())
+        {
+            if (XL::Name *name = postfix->right->AsName())
+            {
+                if (name->value == "%")
+                {
+                    pptr = ptr;
+                    ptr = &postfix->left;
+                    more = true;
+                    scale /= 100;
+                }
+            }
+        }
     }
+    // REVISIT: Really?
     if (scale == 0.0)
         scale = 1.0;
 
@@ -195,21 +211,35 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
     {
         ival->value -= longlong((previous - first) / scale);
         ival->value += longlong((current - first) / scale);
+        if (has_min && ival->value * scale < min)
+            ival->value = min / scale;
+        if (has_max && ival->value * scale > max)
+            ival->value = max / scale;
         if (ppptr && ival->value < 0)
             widget->reloadProgram = true;
     }
     else if (XL::Real *rval = (*ptr)->AsReal())
     {
         rval->value += (current - previous) / scale;
+        if (has_min && ival->value * scale < min)
+            ival->value = min / scale;
+        if (has_max && ival->value * scale > max)
+            ival->value = max / scale;
         if (ppptr && rval->value < 0)
             widget->reloadProgram = true;
     }
     else
     {
+        // LIONEL: When does that happen?
         // Create an Infix + with the delta we add
         if (ptr != &arg)
         {
-            double delta = (current - previous) / scale;
+            double value = current;
+            if (has_min && current < min)
+                value = min;
+            if (has_max && current > max)
+                value = max;
+            double delta = (value - previous) / scale;
             *ptr = new XL::Infix("+", new XL::Real(delta), *ptr);
             widget->reloadProgram = true;
         }
@@ -380,21 +410,12 @@ Box3 DrawingManipulator::Space()
 }
 
 
-bool DrawingManipulator::IsWordBreak()
+Drawing *DrawingManipulator::Break(BreakOrder &order)
 // ----------------------------------------------------------------------------
 //   Return the property of the child
 // ----------------------------------------------------------------------------
 {
-    return child->IsWordBreak();
-}
-
-
-bool DrawingManipulator::IsLineBreak()
-// ----------------------------------------------------------------------------
-//   Return the property of the child
-// ----------------------------------------------------------------------------
-{
-    return child->IsLineBreak();
+    return child->Break(order);
 }
 
 
@@ -465,37 +486,101 @@ bool FrameManipulator::DrawHandles(Layout *layout)
         short  sw = (hn & 1) ? 1 : -1;
         short  sh = (hn & 2) ? 1 : -1;
 
-        // Lower-left corner
-        if (DrawHandle(layout, Point3(xx + sw*ww/2, yy + sh*hh/2, 0), hn+1))
+        if (!DrawHandle(layout, Point3(xx + sw*ww/2, yy + sh*hh/2, 0), hn+1))
+            continue;
+        handle = hn+1;
+
+        // Update arguments if necessary
+        if (!drag)
+            continue;
+
+        Point3 p1 = drag->Previous();
+        Point3 p2 = drag->Current();
+        if (p1 == p2)
+            continue;
+
+        Point3 p0 = drag->Origin();
+        text   t1 = sh < 0 ? "Lower " : "Upper ";
+        text   t2 = sw < 0 ? "left " : "right ";
+
+        switch (CurrentTransformMode())
         {
-            if (!handle)
+        case TM_ResizeLockCenter:
+            updateArg(widget, &w, 2*sw*p0.x, 2*sw*p1.x, 2*sw*p2.x);
+            updateArg(widget, &h, 2*sh*p0.y, 2*sh*p1.y, 2*sh*p2.y);
+            break;
+
+        case TM_ResizeLockAspectRatio:
             {
-                handle = hn+1;
-
-                // Update arguments if necessary
-                if (drag)
+                coord X  = p2.x - x,     Y = p2.y - y;
+                coord ux, uy, uw, uh;
+                if (X < 0) X = -X;
+                if (Y < 0) Y = -Y;
+                if ((Y/h) > (X/w))
                 {
-                    Point3 p1 = drag->Previous();
-                    Point3 p2 = drag->Current();
-                    if (p1 != p2)
-                    {
-                        Point3 p0 = drag->Origin();
-                        text   t1 = sh < 0 ? "Lower " : "Upper ";
-                        text   t2 = sw < 0 ? "left " : "right ";
-
-                        updateArg(widget, &x, p0.x/2, p1.x/2, p2.x/2);
-                        updateArg(widget, &y, p0.y/2, p1.y/2, p2.y/2);
-                        updateArg(widget, &w, sw*p0.x, sw*p1.x, sw*p2.x);
-                        updateArg(widget, &h, sh*p0.y, sh*p1.y, sh*p2.y);
-
-                        widget->markChanged(t1 + t2 + " corner moved");
-                    }
+                    scale r = w/h;
+                    ux = r*sh*sw/2;
+                    uy = 0.5;
+                    uw = r*sh;
+                    uh = sh;
+                    updateArg(widget, &x, ux*p0.y, ux*p1.y, ux*p2.y);
+                    updateArg(widget, &y, uy*p0.y, uy*p1.y, uy*p2.y);
+                    updateArg(widget, &w, uw*p0.y, uw*p1.y, uw*p2.y);
+                    updateArg(widget, &h, uh*p0.y, uh*p1.y, uh*p2.y);
                 }
+                else
+                {
+                    scale r = h/w;
+                    ux = 0.5;
+                    uy = r*sh*sw/2;
+                    uw = sw;
+                    uh = r*sw;
+                    updateArg(widget, &x, ux*p0.x, ux*p1.x, ux*p2.x);
+                    updateArg(widget, &y, uy*p0.x, uy*p1.x, uy*p2.x);
+                    updateArg(widget, &w, uw*p0.x, uw*p1.x, uw*p2.x);
+                    updateArg(widget, &h, uh*p0.x, uh*p1.x, uh*p2.x);
+                }
+                break;
             }
+
+        case TM_ResizeLockCenterAndAspectRatio:
+            // TODO
+
+        case TM_FreeResize:
+        default:
+            updateArg(widget, &x, p0.x/2, p1.x/2, p2.x/2);
+            updateArg(widget, &y, p0.y/2, p1.y/2, p2.y/2);
+            updateArg(widget, &w, sw*p0.x, sw*p1.x, sw*p2.x);
+            updateArg(widget, &h, sh*p0.y, sh*p1.y, sh*p2.y);
+            break;
         }
+
+        widget->markChanged(t1 + t2 + "corner moved");
     }
 
     return handle != 0;
+}
+
+
+FrameManipulator::TransformMode FrameManipulator::CurrentTransformMode()
+// ----------------------------------------------------------------------------
+//   Define editing constraints depending on current keyboard modifier keys
+// ----------------------------------------------------------------------------
+{
+    int m = (int)QApplication::keyboardModifiers();
+    switch (m & (Qt::AltModifier + Qt::ShiftModifier))
+    {
+    case (Qt::AltModifier + Qt::ShiftModifier):
+        return TM_ResizeLockCenterAndAspectRatio;
+    case (Qt::AltModifier):
+        return TM_ResizeLockCenter;
+    case (Qt::ShiftModifier):
+        return TM_ResizeLockAspectRatio;
+    default:
+        break;
+    }
+
+    return TM_FreeResize;
 }
 
 
@@ -524,7 +609,7 @@ void ControlRectangle::DrawSelection(Layout *layout)
     bool loadId = widget->currentId() != ~0U;
     if (loadId)
         glLoadName(widget->newId());
-    child->DrawSelection(layout);    // Don't draw it
+    child->DrawSelection(layout);
     Manipulator::DrawSelection(layout);
     if (loadId)
         glLoadName(0);
@@ -555,6 +640,342 @@ bool ControlRectangle::DrawHandles(Layout *layout)
                 changed = true;
             }
         }
+    }
+    return changed;
+}
+
+
+
+// ============================================================================
+//
+//   An rounded rectangle manipulator udpates x, y, w, h, the radius of the
+//   corners and allows translation
+//
+// ============================================================================
+
+ControlRoundedRectangle::ControlRoundedRectangle(real_r x, real_r y, 
+                                                 real_r w, real_r h, 
+                                                 real_r r,
+                                                 Drawing *child)
+// ----------------------------------------------------------------------------
+//   A control arrow adds the radius of the corners to the control rectangle 
+// ----------------------------------------------------------------------------
+    : ControlRectangle(x, y, w, h, child), r(r)
+{}
+
+
+bool ControlRoundedRectangle::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the handles for the rounded rectangle (assuming rx = ry)
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
+    Widget *widget = layout->Display();
+    Drag   *drag = widget->drag();
+
+    coord rr = (r < 0? 0: 1)*r;
+    int sw = w > 0? 1: -1;
+    int sh = h > 0? 1: -1;
+
+    if (sh*h < sw*w)
+    {
+        if (r > sw*w/2)
+            rr = sw*w/2;
+
+        if (DrawHandle(layout, Point3(x - sw*w/2 + rr, y + sh*h/2, 0), 9))
+        {
+            if (drag)
+            {
+                Point3 p1 = drag->Previous();
+                Point3 p2 = drag->Current();
+                if (p1 != p2)
+                {
+                    Point3 p0 = drag->Origin();
+                    updateArg(widget, &r, 
+                              p0.x-x+sw*w/2, p1.x-x+sw*w/2, p2.x-x+sw*w/2,
+                              true, 0.0, true, sw*w/2);
+                    widget->markChanged("Rounded rectangle corner modified");
+                    changed = true;
+                }
+            }
+        }
+    } 
+    else
+    {
+        if (r > sh*h/2)
+            rr = sh*h/2;
+
+        if (DrawHandle(layout, Point3(x - sw*w/2,y + sh*h/2 - rr, 0), 9))
+        {
+            if (drag)
+            {
+                Point3 p1 = drag->Previous();
+                Point3 p2 = drag->Current();
+                if (p1 != p2)
+                {
+                    Point3 p0 = drag->Origin();
+                    updateArg(widget, &r, 
+                              y+sh*h/2-p0.y, y+sh*h/2-p1.y, y+sh*h/2-p2.y,
+                              true, 0.0, true, sh*h/2);
+                    widget->markChanged("Rounded rectangle corner modified");
+                    changed = true;
+                }
+            }
+        }
+     }
+    if (!changed)
+    {
+        changed = ControlRectangle::DrawHandles(layout);
+    }
+    return changed;
+}
+
+
+
+// ============================================================================
+//
+//   An arrow manipulator udpates x, y, w, h, the arrow handle a and allows 
+//   translation
+//
+// ============================================================================
+
+ControlArrow::ControlArrow(real_r x, real_r y, real_r w, real_r h, 
+                           real_r ax, real_r ary, bool is_double,
+                           Drawing *child)
+// ----------------------------------------------------------------------------
+//   A control arrow adds the arrow hanfle to the control rectangle 
+// ----------------------------------------------------------------------------
+    : ControlRectangle(x, y, w, h, child), ax(ax), ary(ary), d(is_double)
+{}
+
+ControlArrow::ControlArrow(real_r x, real_r y, real_r w, real_r h, 
+                           real_r ax, real_r ary,
+                           Drawing *child)
+    : ControlRectangle(x, y, w, h, child), ax(ax), ary(ary), d(false)
+{}
+
+
+bool ControlArrow::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the handles for an arrow
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
+    coord aax, aay;
+    int sw = w > 0? 1: -1;
+    int sdw = d? sw: 1;
+    int swd = d? 1: sw;
+    int sh = h > 0? 1: -1;
+    int df = d? 2: 1;
+
+    if (ax > sw*w/df) 
+        aax = w/df;
+    else
+        aax = sw*ax;
+    
+    if (ax < 0.0) 
+        aax = 0.0;
+
+    if (ary > 1.0) 
+        aay = h;
+    else
+        aay = ary*h;
+    
+    if (ary < 0.0) 
+        aay = 0.0;
+ 
+    if (DrawHandle(layout, 
+                   Point3(x+sdw*(w/2-aax), y+sh*aay/2, 0), 9))
+    {
+        Widget *widget = layout->Display();
+        Drag *drag = widget->drag();
+        if (drag)
+        {
+            Point3 p1 = drag->Previous();
+            Point3 p2 = drag->Current();
+            if (p1 != p2)
+            {
+                Point3 p0 = drag->Origin();
+                updateArg(widget, &ax, 
+                          swd*(x-p0.x)+sw*w/2, swd*(x-p1.x)+sw*w/2, swd*(x-p2.x)+sw*w/2,
+                          true, 0.0, true, sw*w/df);
+                if (h != 0)
+                {
+                    updateArg(widget, &ary, 
+                              2*sh*(p0.y-y)/h, 2*sh*(p1.y-y)/h, 2*sh*(p2.y-y)/h,
+                              true, 0.0, true, 1.0);
+                }
+                widget->markChanged("Arrow modified");
+                changed = true;
+            }
+        }
+    }
+    if (!changed)
+    {
+        changed = ControlRectangle::DrawHandles(layout);
+    }
+    return changed;
+}
+
+
+
+// ============================================================================
+//
+//   A polygon manipulator udpates x, y, w, h, he number of points for the 
+//   polygon and allows translation
+//
+// ============================================================================
+
+ControlPolygon::ControlPolygon(real_r x, real_r y, real_r w, real_r h, 
+                               integer_r p,
+                               Drawing *child)
+// ----------------------------------------------------------------------------
+//   A control star adds the number of points to the control rectangle 
+// ----------------------------------------------------------------------------
+    : ControlRectangle(x, y, w, h, child), p(p)
+{}
+
+
+bool ControlPolygon::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the handles for a polygon
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
+    int sw = w > 0? 1: -1;
+    int sh = h > 0? 1: -1;
+
+    if (!changed && DrawHandle(layout, Point3(x-sw*w/2+sw*w*(p-2)/19, y-sh*h/2, 0), 9))
+    {
+        Widget *widget = layout->Display();
+        Drag *drag = widget->drag();
+        if (drag)
+        {
+            Point3 p1 = drag->Previous();
+            Point3 p2 = drag->Current();
+            if (p1 != p2)
+            {
+                Point3 p0 = drag->Origin();
+                coord p0x = 19*sw*(p0.x - x)/w + 11.5;
+                coord p1x = 19*sw*(p1.x - x)/w + 11.5;
+                coord p2x = 19*sw*(p2.x - x)/w + 11.5;
+                updateArg(widget, &p, p0x, p1x, p2x, true, 3, true, 20);
+                widget->markChanged("Number of points changed");
+                changed = true;
+            }
+        }
+    }
+    if (!changed)
+    {
+        changed = ControlRectangle::DrawHandles(layout);
+    }
+    return changed;
+}
+
+
+
+// ============================================================================
+//
+//   A star manipulator udpates x, y, w, h, the number of points, the inner
+//   circle ration and allows translation
+//
+// ============================================================================
+
+ControlStar::ControlStar(real_r x, real_r y, real_r w, real_r h, 
+                         integer_r p, real_r r,
+                         Drawing *child)
+// ----------------------------------------------------------------------------
+//   A control star adds inner circle ratio to the control polygon 
+// ----------------------------------------------------------------------------
+    : ControlPolygon(x, y, w, h, p, child), r(r)
+{}
+
+
+bool ControlStar::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the handles for a star
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
+    double cp = cos(M_PI/p);
+    double sp = sin(M_PI/p);
+    int sw = w > 0? 1: -1;
+    int sh = h > 0? 1: -1;
+
+    if (DrawHandle(layout, Point3(x + r*sw*w/2*sp, y + r*h/2*cp, 0), 11))
+    {
+        Widget *widget = layout->Display();
+        Drag *drag = widget->drag();
+        if (drag)
+        {
+            Point3 p1 = drag->Previous();
+            Point3 p2 = drag->Current();
+            if (p1 != p2)
+            {
+                Point3 p0 = drag->Origin();
+                scale hp = sqrt(w*sp*w*sp + h*cp*h*cp)*sh*cp/2;
+                updateArg(widget, &r, 
+                          (p0.y - y)/hp, (p1.y - y)/hp, (p2.y - y)/hp,
+                          true, 0.0, true, 1.0);
+                widget->markChanged("Star inner circle changed");
+                changed = true;
+            }
+        }
+    }
+    if (!changed)
+    {
+        changed = ControlPolygon::DrawHandles(layout);
+    }
+    return changed;
+}
+
+
+
+// ============================================================================
+//
+//   A ballon manipulator udpates x, y, w, h, the radius r for the corners,
+//   the end of the tail a and allows translation
+//
+// ============================================================================
+
+ControlBalloon::ControlBalloon(real_r x, real_r y, real_r w, real_r h, 
+                               real_r r, real_r ax, real_r ay,
+                               Drawing *child)
+// ----------------------------------------------------------------------------
+//   A control star adds inner circle ratio to the control polygon 
+// ----------------------------------------------------------------------------
+    : ControlRoundedRectangle(x, y, w, h, r, child), ax(ax), ay(ay)
+{}
+
+
+bool ControlBalloon::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the handles for a balloon
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
+
+    if (DrawHandle(layout, Point3(ax, ay, 0), 11))
+    {
+        Widget *widget = layout->Display();
+        Drag *drag = widget->drag();
+        if (drag)
+        {
+            Point3 p1 = drag->Previous();
+            Point3 p2 = drag->Current();
+            if (p1 != p2)
+            {
+                Point3 p0 = drag->Origin();
+                updateArg(widget, &ax, p0.x, p1.x, p2.x);
+                updateArg(widget, &ay, p0.y, p1.y, p2.y);
+                widget->markChanged("Balloon tail changed");
+                changed = true;
+            }
+        }
+    }
+    if (!changed)
+    {
+        changed = ControlRoundedRectangle::DrawHandles(layout);
     }
     return changed;
 }
@@ -679,7 +1100,7 @@ bool BoxManipulator::DrawHandles(Layout *layout)
                         updateArg(widget, &y, p0.y/2, p1.y/2, p2.y/2);
                         updateArg(widget, &h, sh*p0.y, sh*p1.y, sh*p2.y);
 
-                        widget->markChanged(t1 + t2 + t3 + " corner moved");
+                        widget->markChanged(t1 + t2 + t3 + "corner moved");
                     }
                 }
             }

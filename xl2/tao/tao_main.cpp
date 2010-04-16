@@ -30,7 +30,7 @@
 #include "window.h"
 #include "main.h"
 #include "graphics.h"
-#include "process.h"
+#include "tao_utf8.h"
 
 #include <QtGui>
 #include <QtGui/QApplication>

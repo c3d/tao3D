@@ -19,6 +19,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -35,7 +36,7 @@ TAO_BEGIN
 
 struct Manipulator : Drawing
 // ----------------------------------------------------------------------------
-//   Structure used to manipulate XL coordinates using the mouse
+//   Structure used to manipulate XL coordinates using the mouse and keyboard
 // ----------------------------------------------------------------------------
 {
     typedef XL::Tree     Tree, *tree_p;
@@ -52,8 +53,10 @@ struct Manipulator : Drawing
     virtual bool        DrawHandles(Layout *layout) = 0;
 
 protected:
-    void                updateArg(Widget *widget, tree_p param,
-                                  coord first, coord previous, coord current);
+    void                updateArg(Widget *widget, tree_p arg,
+                                  double first, double previous, double current,
+                                  bool has_min = false, double min = 0.0, 
+                                  bool has_max = false, double max = 0.0);
 };
 
 
@@ -88,8 +91,7 @@ struct DrawingManipulator : Manipulator
     virtual bool        DrawHandles(Layout *layout);
     virtual Box3        Bounds();
     virtual Box3        Space();
-    virtual bool        IsWordBreak();
-    virtual bool        IsLineBreak();
+    virtual Drawing *   Break(BreakOrder &order);
     virtual bool        IsAttribute();
 
 protected:
@@ -102,9 +104,18 @@ struct FrameManipulator : DrawingManipulator
 //   Dispays 4 handles in the corner, but clicks in the surface pass through
 // ----------------------------------------------------------------------------
 {
+    enum TransformMode
+    {
+        TM_FreeResize,                     // Free resizing
+        TM_ResizeLockCenter,               // Resize object wrt. its center
+        TM_ResizeLockAspectRatio,          // Keep width/height aspect ratio
+        TM_ResizeLockCenterAndAspectRatio,
+    };
+
     FrameManipulator(real_r x, real_r y, real_r w, real_r h, Drawing *child);
     virtual void        DrawSelection(Layout *layout);
     virtual bool        DrawHandles(Layout *layout);
+    virtual TransformMode CurrentTransformMode();
 
 protected:
     real_r              x, y, w, h;
@@ -120,6 +131,79 @@ struct ControlRectangle : FrameManipulator
                      Drawing *child);
     virtual void        DrawSelection(Layout *layout);
     virtual bool        DrawHandles(Layout *layout);
+};
+
+
+struct ControlRoundedRectangle : ControlRectangle
+// ----------------------------------------------------------------------------
+//   Manipulators for a rectangle-bounded object
+// ----------------------------------------------------------------------------
+{
+    ControlRoundedRectangle(real_r x, real_r y, real_r w, real_r h, real_r r,
+                            Drawing *child);
+    virtual bool        DrawHandles(Layout *layout);
+
+    protected:
+    real_r              r;
+};
+
+
+struct ControlArrow : ControlRectangle
+// ----------------------------------------------------------------------------
+//   Manipulators for a arrow object
+// ----------------------------------------------------------------------------
+{
+    ControlArrow(real_r x, real_r y, real_r w, real_r h, real_r ax, real_r ary,
+                 Drawing *child);
+    ControlArrow(real_r x, real_r y, real_r w, real_r h, real_r ax, real_r ary,
+                 bool is_double, Drawing *child);
+    virtual bool        DrawHandles(Layout *layout);
+
+protected:
+    real_r              ax, ary;
+    bool                d;
+};
+
+
+struct ControlPolygon : ControlRectangle
+// ----------------------------------------------------------------------------
+//   Manipulators for a polygon object
+// ----------------------------------------------------------------------------
+{
+    ControlPolygon(real_r x, real_r y, real_r w, real_r h, integer_r p,
+                   Drawing *child);
+    virtual bool        DrawHandles(Layout *layout);
+
+protected:
+    integer_r           p;
+};
+
+
+struct ControlStar : ControlPolygon
+// ----------------------------------------------------------------------------
+//   Manipulators for a star object
+// ----------------------------------------------------------------------------
+{
+    ControlStar(real_r x, real_r y, real_r w, real_r h, integer_r p, real_r r,
+                Drawing *child);
+    virtual bool        DrawHandles(Layout *layout);
+
+protected:
+    real_r              r;
+};
+
+
+struct ControlBalloon : ControlRoundedRectangle
+// ----------------------------------------------------------------------------
+//   Manipulators for a rectangle-bounded object
+// ----------------------------------------------------------------------------
+{
+    ControlBalloon(real_r x, real_r y, real_r w, real_r h, real_r r,
+                   real_r ax, real_r ay, Drawing *child);
+    virtual bool        DrawHandles(Layout *layout);
+
+    protected:
+    real_r              ax, ay;
 };
 
 

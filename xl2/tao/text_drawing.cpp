@@ -40,7 +40,7 @@ void TextSpan::Draw(Layout *where)
     Point3 position = where->offset;
     QPainterPath path;
     QString str = value;
-    QFontMetrics fm(font);
+    QFontMetricsF fm(font);
 
     int index = str.indexOf(QChar('\n'));
     while (index >= 0)
@@ -72,7 +72,7 @@ void TextSpan::DrawSelection(Layout *where)
 {
     Point3 position = where->offset;
     QString str = value;
-    QFontMetrics fm(font);
+    QFontMetricsF fm(font);
 
     Shape::DrawSelection(where);
 
@@ -109,7 +109,7 @@ void TextSpan::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 {
     Point3 position = path.position;
-    QFontMetrics fm(font);
+    QFontMetricsF fm(font);
 
     QPainterPath qt;
 
@@ -138,9 +138,10 @@ Box3 TextSpan::Bounds()
 //   Return the smallest box that surrounds the text
 // ----------------------------------------------------------------------------
 {
-    QFontMetrics fm(font);
-    QRect rect = fm.tightBoundingRect(value);
-    return Box3(rect.x(), rect.height()+rect.y(), 0, rect.width(), rect.height(), 0);    
+    QFontMetricsF fm(font);
+    QRectF rect = fm.tightBoundingRect(value);
+    return Box3(rect.x(), rect.height()+rect.y(), 0,
+                rect.width(), rect.height(), 0);    
 }
 
 
@@ -149,11 +150,69 @@ Box3 TextSpan::Space()
 //   Return the box that surrounds the text, including leading
 // ----------------------------------------------------------------------------
 {
-    QFontMetrics fm(font);
-    int flags = Qt::AlignCenter;
-    QRect openSpace(-10000, -10000, 20000, 20000);
-    QRect rect = fm.boundingRect(openSpace, flags, value);
-    return Box3(rect.x(), rect.height()+rect.y(), 0, rect.width(), rect.height(), 0);    
+    QFontMetricsF fm(font);
+    coord height = fm.height();
+    coord descent = fm.descent();
+    coord leading = fm.leading();
+    coord width = fm.width(value);
+    coord leftBearing = 0;
+    if (value.length())
+        leftBearing = fm.leftBearing(value[0]);
+    return Box3(leftBearing, -descent-leading, 0, width, height+leading, 0);
+}
+
+
+TextSpan *TextSpan::Break(BreakOrder &order)
+// ----------------------------------------------------------------------------
+//   If the text span contains a word or line break, cut there
+// ----------------------------------------------------------------------------
+{
+    if (order <= LineBreak)
+    {
+        uint i, max = value.length();
+        for (i = 0; i < max; i++)
+        {
+            QChar c = value[i];
+            BreakOrder charOrder = CharBreak;
+            if (c.isSpace())
+            {
+                charOrder = WordBreak;
+                if (c == '\n')
+                    charOrder = LineBreak;
+            }
+            if (order <= charOrder)
+            {
+                // Create two text spans, the first one containing the split
+                QString remainder = value.mid(i+1);
+                TextSpan *result = remainder.length()
+                    ? new TextSpan(remainder, font)
+                    : NULL;
+                value = value.left(i+1);
+                order = charOrder;
+                return result;
+            }
+        }
+    }
+    order = NoBreak;
+    return NULL;
+}
+
+
+scale TextSpan::TrailingSpaceSize()
+// ----------------------------------------------------------------------------
+//   Return the size of all the spaces at the end of the value
+// ----------------------------------------------------------------------------
+{
+    QFontMetricsF fm(font);
+    scale result = 0;
+    for (int i = value.length(); i > 0; i--)
+    {
+        QChar c = value[i-1];
+        if (!c.isSpace())
+            break;
+        result += fm.width(c);
+    }
+    return result;
 }
 
 TAO_END

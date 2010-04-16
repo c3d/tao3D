@@ -42,7 +42,7 @@
 #include "menuinfo.h"
 #include "repository.h"
 #include "application.h"
-#include "process.h"
+#include "tao_utf8.h"
 #include "layout.h"
 #include "page_layout.h"
 #include "space_layout.h"
@@ -52,6 +52,7 @@
 #include "path3d.h"
 #include "attributes.h"
 #include "transforms.h"
+#include "undo.h"
 
 #include <QtGui/QImage>
 #include <cmath>
@@ -80,12 +81,12 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
       xlProgram(sf),
-      space(NULL), layout(NULL), path(NULL),
-      activities(NULL),
+      space(NULL), layout(NULL), path(NULL), currentGridLayout(NULL),
+      currentGroup(NULL), activities(NULL),
       id(0), capacity(0), manipulator(0),
       event(NULL), focusWidget(NULL),
       currentMenu(NULL), currentMenuBar(NULL),
-      whatsNew(""), reloadProgram(false),
+      reloadProgram(false),
       timer(this), idleTimer(this),
       pageStartTime(CurrentTime()), pageRefresh(86400),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
@@ -228,7 +229,11 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
     if (sf.changed)
     {
         Repository *repo = repository();
-        if (repo && repo->write(fname, sf.tree.tree))
+
+        if (!repo)
+            return false;
+
+        if (repo->write(fname, sf.tree.tree))
         {
             // Mark the tree as no longer changed
             sf.changed = false;
@@ -245,6 +250,9 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
 
             return true;
         }
+
+        IFTRACE(filesync)
+                std::cerr << "Could not write " << fname << " to repository\n";
     }
     return false;
 }
@@ -256,11 +264,10 @@ bool Widget::doCommit()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(filesync)
-            std::cerr << "Commit: " << whatsNew << "\n";
-    if (repository()->asyncCommit(whatsNew))
+            std::cerr << "Commit: " << repository()->whatsNew << "\n";
+    if (repository()->asyncCommit())
     {
         XL::Main *xlr = XL::MAIN;
-        whatsNew = "";
         nextCommit = now() + xlr->options.commit_interval * 1000;
 
         Window *window = (Window *) parentWidget();
@@ -296,10 +303,13 @@ void Widget::draw()
     setup(w, h);
     pageW = (21.0 / 2.54) * logicalDpiX(); // REVISIT
     pageH = (29.7 / 2.54) * logicalDpiY();
+    flowName = "";
+    flows.clear();
 
     // Clear the background
     glClearColor (1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    Layout::polygonOffset = 0;
 
     // Make sure we compile the selection the first time
     static bool first = true;
@@ -486,6 +496,16 @@ bool Widget::refresh(double delay)
 }
 
 
+void Widget::commitSuccess(QString id, QString msg)
+// ----------------------------------------------------------------------------
+//   Document was succesfully committed to repository (see doCommit())
+// ----------------------------------------------------------------------------
+{
+    Window *window = (Window *) parentWidget();
+    window->undoStack->push(new UndoCommand(repository(), id, msg));
+}
+
+
 
 // ============================================================================
 //
@@ -628,6 +648,301 @@ bool Widget::forwardEvent(QMouseEvent *event)
 }
 
 
+static text keyName(QKeyEvent *event)
+// ----------------------------------------------------------------------------
+//   Return the properly formatted key name for a key event
+// ----------------------------------------------------------------------------
+{
+    // Try to find if there is a callback in the code for this key
+    text name = +event->text();
+    text ctrl = "";             // Name for Control, Meta and Alt
+
+    uint key = (uint) event->key();
+    switch(key)
+    {
+    case Qt::Key_Space:                 name = "Space"; break;
+    case Qt::Key_A:                     ctrl = "A"; break;
+    case Qt::Key_B:                     ctrl = "B"; break;
+    case Qt::Key_C:                     ctrl = "C"; break;
+    case Qt::Key_D:                     ctrl = "D"; break;
+    case Qt::Key_E:                     ctrl = "E"; break;
+    case Qt::Key_F:                     ctrl = "F"; break;
+    case Qt::Key_G:                     ctrl = "G"; break;
+    case Qt::Key_H:                     ctrl = "H"; break;
+    case Qt::Key_I:                     ctrl = "I"; break;
+    case Qt::Key_J:                     ctrl = "J"; break;
+    case Qt::Key_K:                     ctrl = "K"; break;
+    case Qt::Key_L:                     ctrl = "L"; break;
+    case Qt::Key_M:                     ctrl = "M"; break;
+    case Qt::Key_N:                     ctrl = "N"; break;
+    case Qt::Key_O:                     ctrl = "O"; break;
+    case Qt::Key_P:                     ctrl = "P"; break;
+    case Qt::Key_Q:                     ctrl = "Q"; break;
+    case Qt::Key_R:                     ctrl = "R"; break;
+    case Qt::Key_S:                     ctrl = "S"; break;
+    case Qt::Key_T:                     ctrl = "T"; break;
+    case Qt::Key_U:                     ctrl = "U"; break;
+    case Qt::Key_V:                     ctrl = "V"; break;
+    case Qt::Key_W:                     ctrl = "W"; break;
+    case Qt::Key_X:                     ctrl = "X"; break;
+    case Qt::Key_Y:                     ctrl = "Y"; break;
+    case Qt::Key_Z:                     ctrl = "Z"; break;
+    case Qt::Key_BracketLeft:           ctrl = "["; break;
+    case Qt::Key_Backslash:             ctrl = "\\"; break;
+    case Qt::Key_BracketRight:          ctrl = "]"; break;
+    case Qt::Key_AsciiCircum:           ctrl = "^"; break;
+    case Qt::Key_Underscore:            ctrl = "_"; break;
+    case Qt::Key_QuoteLeft:             ctrl = "`"; break;
+    case Qt::Key_BraceLeft:             ctrl = "{"; break;
+    case Qt::Key_Bar:                   ctrl = "|"; break;
+    case Qt::Key_BraceRight:            ctrl = "}"; break;
+    case Qt::Key_AsciiTilde:            ctrl = "~"; break;
+    case Qt::Key_Escape:                name = "Escape"; break;
+    case Qt::Key_Tab:                   name = "Tab"; break;
+    case Qt::Key_Backtab:               name = "Backtab"; break;
+    case Qt::Key_Backspace:             name = "Backspace"; break;
+    case Qt::Key_Return:                name = "Return"; break;
+    case Qt::Key_Enter:                 name = "Enter"; break;
+    case Qt::Key_Insert:                name = "Insert"; break;
+    case Qt::Key_Delete:                name = "Delete"; break;
+    case Qt::Key_Pause:                 name = "Pause"; break;
+    case Qt::Key_Print:                 name = "Print"; break;
+    case Qt::Key_SysReq:                name = "SysReq"; break;
+    case Qt::Key_Clear:                 name = "Clear"; break;
+    case Qt::Key_Home:                  name = "Home"; break;
+    case Qt::Key_End:                   name = "End"; break;
+    case Qt::Key_Left:                  name = "Left"; break;
+    case Qt::Key_Up:                    name = "Up"; break;
+    case Qt::Key_Right:                 name = "Right"; break;
+    case Qt::Key_Down:                  name = "Down"; break;
+    case Qt::Key_PageUp:                name = "PageUp"; break;
+    case Qt::Key_PageDown:              name = "PageDown"; break;
+    case Qt::Key_Shift:                 name = ""; break;
+    case Qt::Key_Control:               name = ""; break;
+    case Qt::Key_Meta:                  name = ""; break;
+    case Qt::Key_Alt:                   name = ""; break;
+    case Qt::Key_AltGr:                 name = "AltGr"; break;
+    case Qt::Key_CapsLock:              name = "CapsLock"; break;
+    case Qt::Key_NumLock:               name = "NumLock"; break;
+    case Qt::Key_ScrollLock:            name = "ScrollLock"; break;
+    case Qt::Key_F1:                    name = "F1"; break;
+    case Qt::Key_F2:                    name = "F2"; break;
+    case Qt::Key_F3:                    name = "F3"; break;
+    case Qt::Key_F4:                    name = "F4"; break;
+    case Qt::Key_F5:                    name = "F5"; break;
+    case Qt::Key_F6:                    name = "F6"; break;
+    case Qt::Key_F7:                    name = "F7"; break;
+    case Qt::Key_F8:                    name = "F8"; break;
+    case Qt::Key_F9:                    name = "F9"; break;
+    case Qt::Key_F10:                   name = "F10"; break;
+    case Qt::Key_F11:                   name = "F11"; break;
+    case Qt::Key_F12:                   name = "F12"; break;
+    case Qt::Key_F13:                   name = "F13"; break;
+    case Qt::Key_F14:                   name = "F14"; break;
+    case Qt::Key_F15:                   name = "F15"; break;
+    case Qt::Key_F16:                   name = "F16"; break;
+    case Qt::Key_F17:                   name = "F17"; break;
+    case Qt::Key_F18:                   name = "F18"; break;
+    case Qt::Key_F19:                   name = "F19"; break;
+    case Qt::Key_F20:                   name = "F20"; break;
+    case Qt::Key_F21:                   name = "F21"; break;
+    case Qt::Key_F22:                   name = "F22"; break;
+    case Qt::Key_F23:                   name = "F23"; break;
+    case Qt::Key_F24:                   name = "F24"; break;
+    case Qt::Key_F25:                   name = "F25"; break;
+    case Qt::Key_F26:                   name = "F26"; break;
+    case Qt::Key_F27:                   name = "F27"; break;
+    case Qt::Key_F28:                   name = "F28"; break;
+    case Qt::Key_F29:                   name = "F29"; break;
+    case Qt::Key_F30:                   name = "F30"; break;
+    case Qt::Key_F31:                   name = "F31"; break;
+    case Qt::Key_F32:                   name = "F32"; break;
+    case Qt::Key_F33:                   name = "F33"; break;
+    case Qt::Key_F34:                   name = "F34"; break;
+    case Qt::Key_F35:                   name = "F35"; break;
+    case Qt::Key_Menu:                  name = "Menu"; break;
+    case Qt::Key_Help:                  name = "Help"; break;
+    case Qt::Key_Back:                  name = "Back"; break;
+    case Qt::Key_Forward:               name = "Forward"; break;
+    case Qt::Key_Stop:                  name = "Stop"; break;
+    case Qt::Key_Refresh:               name = "Refresh"; break;
+    case Qt::Key_VolumeDown:            name = "VolumeDown"; break;
+    case Qt::Key_VolumeMute:            name = "VolumeMute"; break;
+    case Qt::Key_VolumeUp:              name = "VolumeUp"; break;
+    case Qt::Key_BassBoost:             name = "BassBoost"; break;
+    case Qt::Key_BassUp:                name = "BassUp"; break;
+    case Qt::Key_BassDown:              name = "BassDown"; break;
+    case Qt::Key_TrebleUp:              name = "TrebleUp"; break;
+    case Qt::Key_TrebleDown:            name = "TrebleDown"; break;
+    case Qt::Key_MediaPlay:             name = "MediaPlay"; break;
+    case Qt::Key_MediaStop:             name = "MediaStop"; break;
+    case Qt::Key_MediaPrevious:         name = "MediaPrevious"; break;
+    case Qt::Key_MediaNext:             name = "MediaNext"; break;
+    case Qt::Key_MediaRecord:           name = "MediaRecord"; break;
+    case Qt::Key_HomePage:              name = "HomePage"; break;
+    case Qt::Key_Favorites:             name = "Favorites"; break;
+    case Qt::Key_Search:                name = "Search"; break;
+    case Qt::Key_Standby:               name = "Standby"; break;
+    case Qt::Key_OpenUrl:               name = "OpenUrl"; break;
+    case Qt::Key_LaunchMail:            name = "LaunchMail"; break;
+    case Qt::Key_LaunchMedia:           name = "LaunchMedia"; break;
+    case Qt::Key_Launch0:               name = "Launch0"; break;
+    case Qt::Key_Launch1:               name = "Launch1"; break;
+    case Qt::Key_Launch2:               name = "Launch2"; break;
+    case Qt::Key_Launch3:               name = "Launch3"; break;
+    case Qt::Key_Launch4:               name = "Launch4"; break;
+    case Qt::Key_Launch5:               name = "Launch5"; break;
+    case Qt::Key_Launch6:               name = "Launch6"; break;
+    case Qt::Key_Launch7:               name = "Launch7"; break;
+    case Qt::Key_Launch8:               name = "Launch8"; break;
+    case Qt::Key_Launch9:               name = "Launch9"; break;
+    case Qt::Key_LaunchA:               name = "LaunchA"; break;
+    case Qt::Key_LaunchB:               name = "LaunchB"; break;
+    case Qt::Key_LaunchC:               name = "LaunchC"; break;
+    case Qt::Key_LaunchD:               name = "LaunchD"; break;
+    case Qt::Key_LaunchE:               name = "LaunchE"; break;
+    case Qt::Key_LaunchF:               name = "LaunchF"; break;
+    case Qt::Key_MonBrightnessUp:       name = "MonBrightnessUp"; break;
+    case Qt::Key_MonBrightnessDown:     name = "MonBrightnessDown"; break;
+    case Qt::Key_KeyboardLightOnOff:    name = "KeyboardLightOnOff"; break;
+    case Qt::Key_KeyboardBrightnessUp:  name = "KeyboardBrightnessUp"; break;
+    case Qt::Key_KeyboardBrightnessDown:name = "KeyboardBrightnessDown"; break;
+    case Qt::Key_PowerOff:              name = "PowerOff"; break;
+    case Qt::Key_WakeUp:                name = "WakeUp"; break;
+    case Qt::Key_Eject:                 name = "Eject"; break;
+    case Qt::Key_ScreenSaver:           name = "ScreenSaver"; break;
+    case Qt::Key_WWW:                   name = "WWW"; break;
+    case Qt::Key_Memo:                  name = "Memo"; break;
+    case Qt::Key_LightBulb:             name = "LightBulb"; break;
+    case Qt::Key_Shop:                  name = "Shop"; break;
+    case Qt::Key_History:               name = "History"; break;
+    case Qt::Key_AddFavorite:           name = "AddFavorite"; break;
+    case Qt::Key_HotLinks:              name = "HotLinks"; break;
+    case Qt::Key_BrightnessAdjust:      name = "BrightnessAdjust"; break;
+    case Qt::Key_Finance:               name = "Finance"; break;
+    case Qt::Key_Community:             name = "Community"; break;
+    case Qt::Key_AudioRewind:           name = "AudioRewind"; break;
+    case Qt::Key_BackForward:           name = "BackForward"; break;
+    case Qt::Key_ApplicationLeft:       name = "ApplicationLeft"; break;
+    case Qt::Key_ApplicationRight:      name = "ApplicationRight"; break;
+    case Qt::Key_Book:                  name = "Book"; break;
+    case Qt::Key_CD:                    name = "CD"; break;
+    case Qt::Key_Calculator:            name = "Calculator"; break;
+    case Qt::Key_ToDoList:              name = "ToDoList"; break;
+    case Qt::Key_ClearGrab:             name = "ClearGrab"; break;
+    case Qt::Key_Close:                 name = "Close"; break;
+    case Qt::Key_Copy:                  name = "Copy"; break;
+    case Qt::Key_Cut:                   name = "Cut"; break;
+    case Qt::Key_Display:               name = "Display"; break;
+    case Qt::Key_DOS:                   name = "DOS"; break;
+    case Qt::Key_Documents:             name = "Documents"; break;
+    case Qt::Key_Excel:                 name = "Excel"; break;
+    case Qt::Key_Explorer:              name = "Explorer"; break;
+    case Qt::Key_Game:                  name = "Game"; break;
+    case Qt::Key_Go:                    name = "Go"; break;
+    case Qt::Key_iTouch:                name = "iTouch"; break;
+    case Qt::Key_LogOff:                name = "LogOff"; break;
+    case Qt::Key_Market:                name = "Market"; break;
+    case Qt::Key_Meeting:               name = "Meeting"; break;
+    case Qt::Key_MenuKB:                name = "MenuKB"; break;
+    case Qt::Key_MenuPB:                name = "MenuPB"; break;
+    case Qt::Key_MySites:               name = "MySites"; break;
+    case Qt::Key_News:                  name = "News"; break;
+    case Qt::Key_OfficeHome:            name = "OfficeHome"; break;
+    case Qt::Key_Option:                name = "Option"; break;
+    case Qt::Key_Paste:                 name = "Paste"; break;
+    case Qt::Key_Phone:                 name = "Phone"; break;
+    case Qt::Key_Calendar:              name = "Calendar"; break;
+    case Qt::Key_Reply:                 name = "Reply"; break;
+    case Qt::Key_Reload:                name = "Reload"; break;
+    case Qt::Key_RotateWindows:         name = "RotateWindows"; break;
+    case Qt::Key_RotationPB:            name = "RotationPB"; break;
+    case Qt::Key_RotationKB:            name = "RotationKB"; break;
+    case Qt::Key_Save:                  name = "Save"; break;
+    case Qt::Key_Send:                  name = "Send"; break;
+    case Qt::Key_Spell:                 name = "Spell"; break;
+    case Qt::Key_SplitScreen:           name = "SplitScreen"; break;
+    case Qt::Key_Support:               name = "Support"; break;
+    case Qt::Key_TaskPane:              name = "TaskPane"; break;
+    case Qt::Key_Terminal:              name = "Terminal"; break;
+    case Qt::Key_Tools:                 name = "Tools"; break;
+    case Qt::Key_Travel:                name = "Travel"; break;
+    case Qt::Key_Video:                 name = "Video"; break;
+    case Qt::Key_Word:                  name = "Word"; break;
+    case Qt::Key_Xfer:                  name = "Xfer"; break;
+    case Qt::Key_ZoomIn:                name = "ZoomIn"; break;
+    case Qt::Key_ZoomOut:               name = "ZoomOut"; break;
+    case Qt::Key_Away:                  name = "Away"; break;
+    case Qt::Key_Messenger:             name = "Messenger"; break;
+    case Qt::Key_WebCam:                name = "WebCam"; break;
+    case Qt::Key_MailForward:           name = "MailForward"; break;
+    case Qt::Key_Pictures:              name = "Pictures"; break;
+    case Qt::Key_Music:                 name = "Music"; break;
+    case Qt::Key_Battery:               name = "Battery"; break;
+    case Qt::Key_Bluetooth:             name = "Bluetooth"; break;
+    case Qt::Key_WLAN:                  name = "WLAN"; break;
+    case Qt::Key_UWB:                   name = "UWB"; break;
+    case Qt::Key_AudioForward:          name = "AudioForward"; break;
+    case Qt::Key_AudioRepeat:           name = "AudioRepeat"; break;
+    case Qt::Key_AudioRandomPlay:       name = "AudioRandomPlay"; break;
+    case Qt::Key_Subtitle:              name = "Subtitle"; break;
+    case Qt::Key_AudioCycleTrack:       name = "AudioCycleTrack"; break;
+    case Qt::Key_Time:                  name = "Time"; break;
+    case Qt::Key_Hibernate:             name = "Hibernate"; break;
+    case Qt::Key_View:                  name = "View"; break;
+    case Qt::Key_TopMenu:               name = "TopMenu"; break;
+    case Qt::Key_PowerDown:             name = "PowerDown"; break;
+    case Qt::Key_Suspend:               name = "Suspend"; break;
+    case Qt::Key_ContrastAdjust:        name = "ContrastAdjust"; break;
+    case Qt::Key_MediaLast:             name = "MediaLast"; break;
+    case Qt::Key_Call:                  name = "Call"; break;
+    case Qt::Key_Context1:              name = "Context1"; break;
+    case Qt::Key_Context2:              name = "Context2"; break;
+    case Qt::Key_Context3:              name = "Context3"; break;
+    case Qt::Key_Context4:              name = "Context4"; break;
+    case Qt::Key_Flip:                  name = "Flip"; break;
+    case Qt::Key_Hangup:                name = "Hangup"; break;
+    case Qt::Key_No:                    name = "No"; break;
+    case Qt::Key_Select:                name = "Select"; break;
+    case Qt::Key_Yes:                   name = "Yes"; break;
+    case Qt::Key_Execute:               name = "Execute"; break;
+    case Qt::Key_Printer:               name = "Printer"; break;
+    case Qt::Key_Play:                  name = "Play"; break;
+    case Qt::Key_Sleep:                 name = "Sleep"; break;
+    case Qt::Key_Zoom:                  name = "Zoom"; break;
+    case Qt::Key_Cancel:                name = "Cancel"; break;
+    }
+
+    // Add modifiers to the name if we have them
+    static Qt::KeyboardModifiers modifiers = 0;
+    if (event->type() == QEvent::KeyPress)
+        modifiers = event->modifiers();
+    if (modifiers)
+    {
+        if (ctrl == "")
+        {
+            if (modifiers & Qt::ShiftModifier)
+                name = "Shift-" + name;
+            ctrl = name;
+        }
+        else
+        {
+            int shift = modifiers & Qt::ShiftModifier;
+            if (shift && shift != modifiers)
+                name = ctrl = "Shift-" + ctrl;
+        }
+        if (modifiers & Qt::ControlModifier)
+            name = ctrl = "Control-" + ctrl;
+        if (modifiers & Qt::AltModifier)
+            name = ctrl = "Alt-" + ctrl;
+        if (modifiers & Qt::MetaModifier)
+            name = ctrl = "Meta-" + ctrl;
+    }
+
+    return name;
+}
+
+
 void Widget::keyPressEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 //   A key is pressed
@@ -639,286 +954,12 @@ void Widget::keyPressEvent(QKeyEvent *event)
     uint key = (uint) event->key();
     for (Activity *a = activities; a; a = a->Key(key, true)) ;
 
-    // Try to find if there is a callback in the code for this key
-    text name = +event->text();
-    bool m = false;
-    if (name == "")
-    {
-        switch(key)
-        {
-        case Qt::Key_Space:                 name = "Space"; break;
-        case Qt::Key_A:                     name = "A"; break;
-        case Qt::Key_B:                     name = "B"; break;
-        case Qt::Key_C:                     name = "C"; break;
-        case Qt::Key_D:                     name = "D"; break;
-        case Qt::Key_E:                     name = "E"; break;
-        case Qt::Key_F:                     name = "F"; break;
-        case Qt::Key_G:                     name = "G"; break;
-        case Qt::Key_H:                     name = "H"; break;
-        case Qt::Key_I:                     name = "I"; break;
-        case Qt::Key_J:                     name = "J"; break;
-        case Qt::Key_K:                     name = "K"; break;
-        case Qt::Key_L:                     name = "L"; break;
-        case Qt::Key_M:                     name = "M"; break;
-        case Qt::Key_N:                     name = "N"; break;
-        case Qt::Key_O:                     name = "O"; break;
-        case Qt::Key_P:                     name = "P"; break;
-        case Qt::Key_Q:                     name = "Q"; break;
-        case Qt::Key_R:                     name = "R"; break;
-        case Qt::Key_S:                     name = "S"; break;
-        case Qt::Key_T:                     name = "T"; break;
-        case Qt::Key_U:                     name = "U"; break;
-        case Qt::Key_V:                     name = "V"; break;
-        case Qt::Key_W:                     name = "W"; break;
-        case Qt::Key_X:                     name = "X"; break;
-        case Qt::Key_Y:                     name = "Y"; break;
-        case Qt::Key_Z:                     name = "Z"; break;
-        case Qt::Key_BracketLeft:           name = "["; break;
-        case Qt::Key_Backslash:             name = "\\"; break;
-        case Qt::Key_BracketRight:          name = "]"; break;
-        case Qt::Key_AsciiCircum:           name = "^"; break;
-        case Qt::Key_Underscore:            name = "_"; break;
-        case Qt::Key_QuoteLeft:             name = "`"; break;
-        case Qt::Key_BraceLeft:             name = "{"; break;
-        case Qt::Key_Bar:                   name = "|"; break;
-        case Qt::Key_BraceRight:            name = "}"; break;
-        case Qt::Key_AsciiTilde:            name = "~"; break;
-        case Qt::Key_Escape:                name = "Escape"; break;
-        case Qt::Key_Tab:                   name = "Tab"; break;
-        case Qt::Key_Backtab:               name = "Backtab"; break;
-        case Qt::Key_Backspace:             name = "Backspace"; break;
-        case Qt::Key_Return:                name = "Return"; break;
-        case Qt::Key_Enter:                 name = "Enter"; break;
-        case Qt::Key_Insert:                name = "Insert"; break;
-        case Qt::Key_Delete:                name = "Delete"; break;
-        case Qt::Key_Pause:                 name = "Pause"; break;
-        case Qt::Key_Print:                 name = "Print"; break;
-        case Qt::Key_SysReq:                name = "SysReq"; break;
-        case Qt::Key_Clear:                 name = "Clear"; break;
-        case Qt::Key_Home:                  name = "Home"; break;
-        case Qt::Key_End:                   name = "End"; break;
-        case Qt::Key_Left:                  name = "Left"; break;
-        case Qt::Key_Up:                    name = "Up"; break;
-        case Qt::Key_Right:                 name = "Right"; break;
-        case Qt::Key_Down:                  name = "Down"; break;
-        case Qt::Key_PageUp:                name = "PageUp"; break;
-        case Qt::Key_PageDown:              name = "PageDown"; break;
-        case Qt::Key_Shift:                 name = "Shift"; m = 1; break;
-        case Qt::Key_Control:               name = "Control"; m = 1; break;
-        case Qt::Key_Meta:                  name = "Meta"; m = 1; break;
-        case Qt::Key_Alt:                   name = "Alt"; m = 1; break;
-        case Qt::Key_AltGr:                 name = "AltGr"; m = 1; break;
-        case Qt::Key_CapsLock:              name = "CapsLock"; break;
-        case Qt::Key_NumLock:               name = "NumLock"; break;
-        case Qt::Key_ScrollLock:            name = "ScrollLock"; break;
-        case Qt::Key_F1:                    name = "F1"; break;
-        case Qt::Key_F2:                    name = "F2"; break;
-        case Qt::Key_F3:                    name = "F3"; break;
-        case Qt::Key_F4:                    name = "F4"; break;
-        case Qt::Key_F5:                    name = "F5"; break;
-        case Qt::Key_F6:                    name = "F6"; break;
-        case Qt::Key_F7:                    name = "F7"; break;
-        case Qt::Key_F8:                    name = "F8"; break;
-        case Qt::Key_F9:                    name = "F9"; break;
-        case Qt::Key_F10:                   name = "F10"; break;
-        case Qt::Key_F11:                   name = "F11"; break;
-        case Qt::Key_F12:                   name = "F12"; break;
-        case Qt::Key_F13:                   name = "F13"; break;
-        case Qt::Key_F14:                   name = "F14"; break;
-        case Qt::Key_F15:                   name = "F15"; break;
-        case Qt::Key_F16:                   name = "F16"; break;
-        case Qt::Key_F17:                   name = "F17"; break;
-        case Qt::Key_F18:                   name = "F18"; break;
-        case Qt::Key_F19:                   name = "F19"; break;
-        case Qt::Key_F20:                   name = "F20"; break;
-        case Qt::Key_F21:                   name = "F21"; break;
-        case Qt::Key_F22:                   name = "F22"; break;
-        case Qt::Key_F23:                   name = "F23"; break;
-        case Qt::Key_F24:                   name = "F24"; break;
-        case Qt::Key_F25:                   name = "F25"; break;
-        case Qt::Key_F26:                   name = "F26"; break;
-        case Qt::Key_F27:                   name = "F27"; break;
-        case Qt::Key_F28:                   name = "F28"; break;
-        case Qt::Key_F29:                   name = "F29"; break;
-        case Qt::Key_F30:                   name = "F30"; break;
-        case Qt::Key_F31:                   name = "F31"; break;
-        case Qt::Key_F32:                   name = "F32"; break;
-        case Qt::Key_F33:                   name = "F33"; break;
-        case Qt::Key_F34:                   name = "F34"; break;
-        case Qt::Key_F35:                   name = "F35"; break;
-        case Qt::Key_Menu:                  name = "Menu"; break;
-        case Qt::Key_Help:                  name = "Help"; break;
-        case Qt::Key_Back:                  name = "Back"; break;
-        case Qt::Key_Forward:               name = "Forward"; break;
-        case Qt::Key_Stop:                  name = "Stop"; break;
-        case Qt::Key_Refresh:               name = "Refresh"; break;
-        case Qt::Key_VolumeDown:            name = "VolumeDown"; break;
-        case Qt::Key_VolumeMute:            name = "VolumeMute"; break;
-        case Qt::Key_VolumeUp:              name = "VolumeUp"; break;
-        case Qt::Key_BassBoost:             name = "BassBoost"; break;
-        case Qt::Key_BassUp:                name = "BassUp"; break;
-        case Qt::Key_BassDown:              name = "BassDown"; break;
-        case Qt::Key_TrebleUp:              name = "TrebleUp"; break;
-        case Qt::Key_TrebleDown:            name = "TrebleDown"; break;
-        case Qt::Key_MediaPlay:             name = "MediaPlay"; break;
-        case Qt::Key_MediaStop:             name = "MediaStop"; break;
-        case Qt::Key_MediaPrevious:         name = "MediaPrevious"; break;
-        case Qt::Key_MediaNext:             name = "MediaNext"; break;
-        case Qt::Key_MediaRecord:           name = "MediaRecord"; break;
-        case Qt::Key_HomePage:              name = "HomePage"; break;
-        case Qt::Key_Favorites:             name = "Favorites"; break;
-        case Qt::Key_Search:                name = "Search"; break;
-        case Qt::Key_Standby:               name = "Standby"; break;
-        case Qt::Key_OpenUrl:               name = "OpenUrl"; break;
-        case Qt::Key_LaunchMail:            name = "LaunchMail"; break;
-        case Qt::Key_LaunchMedia:           name = "LaunchMedia"; break;
-        case Qt::Key_Launch0:               name = "Launch0"; break;
-        case Qt::Key_Launch1:               name = "Launch1"; break;
-        case Qt::Key_Launch2:               name = "Launch2"; break;
-        case Qt::Key_Launch3:               name = "Launch3"; break;
-        case Qt::Key_Launch4:               name = "Launch4"; break;
-        case Qt::Key_Launch5:               name = "Launch5"; break;
-        case Qt::Key_Launch6:               name = "Launch6"; break;
-        case Qt::Key_Launch7:               name = "Launch7"; break;
-        case Qt::Key_Launch8:               name = "Launch8"; break;
-        case Qt::Key_Launch9:               name = "Launch9"; break;
-        case Qt::Key_LaunchA:               name = "LaunchA"; break;
-        case Qt::Key_LaunchB:               name = "LaunchB"; break;
-        case Qt::Key_LaunchC:               name = "LaunchC"; break;
-        case Qt::Key_LaunchD:               name = "LaunchD"; break;
-        case Qt::Key_LaunchE:               name = "LaunchE"; break;
-        case Qt::Key_LaunchF:               name = "LaunchF"; break;
-        case Qt::Key_MonBrightnessUp:       name = "MonBrightnessUp"; break;
-        case Qt::Key_MonBrightnessDown:     name = "MonBrightnessDown"; break;
-        case Qt::Key_KeyboardLightOnOff:    name = "KeyboardLightOnOff"; break;
-        case Qt::Key_KeyboardBrightnessUp:  name = "KeyboardBrightnessUp";
-                                            break;
-        case Qt::Key_KeyboardBrightnessDown:name = "KeyboardBrightnessDown";
-                                            break;
-        case Qt::Key_PowerOff:              name = "PowerOff"; break;
-        case Qt::Key_WakeUp:                name = "WakeUp"; break;
-        case Qt::Key_Eject:                 name = "Eject"; break;
-        case Qt::Key_ScreenSaver:           name = "ScreenSaver"; break;
-        case Qt::Key_WWW:                   name = "WWW"; break;
-        case Qt::Key_Memo:                  name = "Memo"; break;
-        case Qt::Key_LightBulb:             name = "LightBulb"; break;
-        case Qt::Key_Shop:                  name = "Shop"; break;
-        case Qt::Key_History:               name = "History"; break;
-        case Qt::Key_AddFavorite:           name = "AddFavorite"; break;
-        case Qt::Key_HotLinks:              name = "HotLinks"; break;
-        case Qt::Key_BrightnessAdjust:      name = "BrightnessAdjust"; break;
-        case Qt::Key_Finance:               name = "Finance"; break;
-        case Qt::Key_Community:             name = "Community"; break;
-        case Qt::Key_AudioRewind:           name = "AudioRewind"; break;
-        case Qt::Key_BackForward:           name = "BackForward"; break;
-        case Qt::Key_ApplicationLeft:       name = "ApplicationLeft"; break;
-        case Qt::Key_ApplicationRight:      name = "ApplicationRight"; break;
-        case Qt::Key_Book:                  name = "Book"; break;
-        case Qt::Key_CD:                    name = "CD"; break;
-        case Qt::Key_Calculator:            name = "Calculator"; break;
-        case Qt::Key_ToDoList:              name = "ToDoList"; break;
-        case Qt::Key_ClearGrab:             name = "ClearGrab"; break;
-        case Qt::Key_Close:                 name = "Close"; break;
-        case Qt::Key_Copy:                  name = "Copy"; break;
-        case Qt::Key_Cut:                   name = "Cut"; break;
-        case Qt::Key_Display:               name = "Display"; break;
-        case Qt::Key_DOS:                   name = "DOS"; break;
-        case Qt::Key_Documents:             name = "Documents"; break;
-        case Qt::Key_Excel:                 name = "Excel"; break;
-        case Qt::Key_Explorer:              name = "Explorer"; break;
-        case Qt::Key_Game:                  name = "Game"; break;
-        case Qt::Key_Go:                    name = "Go"; break;
-        case Qt::Key_iTouch:                name = "iTouch"; break;
-        case Qt::Key_LogOff:                name = "LogOff"; break;
-        case Qt::Key_Market:                name = "Market"; break;
-        case Qt::Key_Meeting:               name = "Meeting"; break;
-        case Qt::Key_MenuKB:                name = "MenuKB"; break;
-        case Qt::Key_MenuPB:                name = "MenuPB"; break;
-        case Qt::Key_MySites:               name = "MySites"; break;
-        case Qt::Key_News:                  name = "News"; break;
-        case Qt::Key_OfficeHome:            name = "OfficeHome"; break;
-        case Qt::Key_Option:                name = "Option"; break;
-        case Qt::Key_Paste:                 name = "Paste"; break;
-        case Qt::Key_Phone:                 name = "Phone"; break;
-        case Qt::Key_Calendar:              name = "Calendar"; break;
-        case Qt::Key_Reply:                 name = "Reply"; break;
-        case Qt::Key_Reload:                name = "Reload"; break;
-        case Qt::Key_RotateWindows:         name = "RotateWindows"; break;
-        case Qt::Key_RotationPB:            name = "RotationPB"; break;
-        case Qt::Key_RotationKB:            name = "RotationKB"; break;
-        case Qt::Key_Save:                  name = "Save"; break;
-        case Qt::Key_Send:                  name = "Send"; break;
-        case Qt::Key_Spell:                 name = "Spell"; break;
-        case Qt::Key_SplitScreen:           name = "SplitScreen"; break;
-        case Qt::Key_Support:               name = "Support"; break;
-        case Qt::Key_TaskPane:              name = "TaskPane"; break;
-        case Qt::Key_Terminal:              name = "Terminal"; break;
-        case Qt::Key_Tools:                 name = "Tools"; break;
-        case Qt::Key_Travel:                name = "Travel"; break;
-        case Qt::Key_Video:                 name = "Video"; break;
-        case Qt::Key_Word:                  name = "Word"; break;
-        case Qt::Key_Xfer:                  name = "Xfer"; break;
-        case Qt::Key_ZoomIn:                name = "ZoomIn"; break;
-        case Qt::Key_ZoomOut:               name = "ZoomOut"; break;
-        case Qt::Key_Away:                  name = "Away"; break;
-        case Qt::Key_Messenger:             name = "Messenger"; break;
-        case Qt::Key_WebCam:                name = "WebCam"; break;
-        case Qt::Key_MailForward:           name = "MailForward"; break;
-        case Qt::Key_Pictures:              name = "Pictures"; break;
-        case Qt::Key_Music:                 name = "Music"; break;
-        case Qt::Key_Battery:               name = "Battery"; break;
-        case Qt::Key_Bluetooth:             name = "Bluetooth"; break;
-        case Qt::Key_WLAN:                  name = "WLAN"; break;
-        case Qt::Key_UWB:                   name = "UWB"; break;
-        case Qt::Key_AudioForward:          name = "AudioForward"; break;
-        case Qt::Key_AudioRepeat:           name = "AudioRepeat"; break;
-        case Qt::Key_AudioRandomPlay:       name = "AudioRandomPlay"; break;
-        case Qt::Key_Subtitle:              name = "Subtitle"; break;
-        case Qt::Key_AudioCycleTrack:       name = "AudioCycleTrack"; break;
-        case Qt::Key_Time:                  name = "Time"; break;
-        case Qt::Key_Hibernate:             name = "Hibernate"; break;
-        case Qt::Key_View:                  name = "View"; break;
-        case Qt::Key_TopMenu:               name = "TopMenu"; break;
-        case Qt::Key_PowerDown:             name = "PowerDown"; break;
-        case Qt::Key_Suspend:               name = "Suspend"; break;
-        case Qt::Key_ContrastAdjust:        name = "ContrastAdjust"; break;
-        case Qt::Key_MediaLast:             name = "MediaLast"; break;
-        case Qt::Key_Call:                  name = "Call"; break;
-        case Qt::Key_Context1:              name = "Context1"; break;
-        case Qt::Key_Context2:              name = "Context2"; break;
-        case Qt::Key_Context3:              name = "Context3"; break;
-        case Qt::Key_Context4:              name = "Context4"; break;
-        case Qt::Key_Flip:                  name = "Flip"; break;
-        case Qt::Key_Hangup:                name = "Hangup"; break;
-        case Qt::Key_No:                    name = "No"; break;
-        case Qt::Key_Select:                name = "Select"; break;
-        case Qt::Key_Yes:                   name = "Yes"; break;
-        case Qt::Key_Execute:               name = "Execute"; break;
-        case Qt::Key_Printer:               name = "Printer"; break;
-        case Qt::Key_Play:                  name = "Play"; break;
-        case Qt::Key_Sleep:                 name = "Sleep"; break;
-        case Qt::Key_Zoom:                  name = "Zoom"; break;
-        case Qt::Key_Cancel:                name = "Cancel"; break;
-        }
-
-        // Add modifiers to the name if we have them
-        if (Qt::KeyboardModifiers modifiers = event->modifiers())
-        {
-            if (!m)
-            {
-                if (modifiers & Qt::ShiftModifier)
-                    name = "Shift-" + name;
-                if (modifiers & Qt::ControlModifier)
-                    name = "Control-" + name;
-                if (modifiers & Qt::AltModifier)
-                    name = "Alt-" + name;
-                if (modifiers & Qt::MetaModifier)
-                    name = "Meta-" + name;
-            }
-        }
-    }
+    // Forward it down the regular event chain
+    if (forwardEvent(event))
+        return;
 
     // Now call "key" in the current context
+    text name = keyName(event);
     XL::Symbols *syms = xlProgram ? xlProgram->symbols : XL::Symbols::symbols;
     try
     {
@@ -934,9 +975,6 @@ void Widget::keyPressEvent(QKeyEvent *event)
         Window *window = (Window *) parentWidget();
         window->statusBar()->showMessage("Unknown error processing key");
     }
-
-    // Forward it down the regular event chain
-    forwardEvent(event);
 }
 
 
@@ -952,8 +990,28 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
     for (Activity *a = activities; a; a = a->Key(key, false)) ;
 
     // Forward it down the regular event chain
-    forwardEvent(event);
+    if (forwardEvent(event))
+        return;
+
+    // Now call "key" in the current context with the ~ prefix
+    text name = "~" + keyName(event);
+    XL::Symbols *syms = xlProgram ? xlProgram->symbols : XL::Symbols::symbols;
+    try
+    {
+        (XL::XLCall ("key"), name) (syms);
+    }
+    catch(XL::Error e)
+    {
+        Window *window = (Window *) parentWidget();
+        window->statusBar()->showMessage(+e.Message());
+    }
+    catch (...)
+    {
+        Window *window = (Window *) parentWidget();
+        window->statusBar()->showMessage("Unknown error processing key");
+    }
 }
+
 
 void Widget::mousePressEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
@@ -974,6 +1032,11 @@ void Widget::mousePressEvent(QMouseEvent *event)
     // Send the click to all activities
     for (Activity *a = activities; a; a = a->Click(button, true, x, y)) ;
 
+    // Check if some widget is selected and wants that event
+    if (forwardEvent(event))
+        return;
+
+    // Otherwise create our local contextual menu
     if (button ==  Qt::RightButton)
     {
         switch (event->modifiers())
@@ -1009,10 +1072,6 @@ void Widget::mousePressEvent(QMouseEvent *event)
         if (contextMenu)
             contextMenu->exec(event->globalPos());
     }
-
-    // Pass the event down the event chain
-    if (!contextMenu)
-        forwardEvent(event);
 }
 
 
@@ -1108,6 +1167,31 @@ void Widget::updateProgram(XL::SourceFile *source)
 {
     xlProgram = source;
     refreshProgram();
+}
+
+
+void Widget::applyAction(XL::Action &action)
+// ----------------------------------------------------------------------------
+//   Applies an action on the tree and all the dependents
+// ----------------------------------------------------------------------------
+{
+    if (!xlProgram)
+        return;
+    Tree *prog = xlProgram->tree.tree;
+    if (!prog)
+        return;
+
+    // Lookup imported files
+    import_set iset;
+    ImportedFilesChanged(prog, iset, false);
+
+    import_set::iterator it;
+    for (it = iset.begin(); it != iset.end(); it++)
+    {
+        XL::SourceFile &sf = **it;
+        if (sf.tree.tree)
+            sf.tree.tree->Do(action);
+    }
 }
 
 
@@ -1215,12 +1299,9 @@ void Widget::markChanged(text reason)
 //    Record that the program changed
 // ----------------------------------------------------------------------------
 {
-    if (whatsNew.find(reason) == whatsNew.npos)
-    {
-        if (whatsNew.length())
-            whatsNew += "\n";
-        whatsNew += reason;
-    }
+    Repository *repo = repository();
+    if (repo)
+        repo->markChanged(reason);
     if (xlProgram)
     {
         if (Tree *prog = xlProgram->tree.tree)
@@ -1994,6 +2075,36 @@ Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 }
 
 
+Tree *Widget::isoscelesTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
+// ----------------------------------------------------------------------------
+//    Draw an isosceles triangle
+// ----------------------------------------------------------------------------
+{
+    IsoscelesTriangle shape(Box(x-w/2, y-h/2, w, h));
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlRectangle(x, y, w, h, new IsoscelesTriangle(shape)));
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::rightTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
+// ----------------------------------------------------------------------------
+//    Draw a right triangle
+// ----------------------------------------------------------------------------
+{
+    RightTriangle shape(Box(x-w/2, y-h/2, w, h));
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlRectangle(x, y, w, h, new RightTriangle(shape)));
+
+    return XL::xl_true;
+}
+
+
 Tree *Widget::ellipse(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //   Cairo circle centered around (cx,cy), radius r
@@ -2029,17 +2140,53 @@ Tree *Widget::ellipseArc(Tree *self,
 
 Tree *Widget::roundedRectangle(Tree *self,
                                real_r cx, real_r cy,
-                               real_r w, real_r h, real_r rx, real_r ry)
+                               real_r w, real_r h, real_r r)
 // ----------------------------------------------------------------------------
-//   Cairo rounded rectangle with radius r for the rounded corners
+//   Rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
 {
-    RoundedRectangle shape(Box(cx-w/2, cy-h/2, w, h), rx, ry);
+    RoundedRectangle shape(Box(cx-w/2, cy-h/2, w, h), r);
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(cx, cy, w, h,
+        layout->Add(new ControlRoundedRectangle(cx, cy, w, h, r,
                                          new RoundedRectangle(shape)));
+
+    return XL::xl_true;
+}
+
+
+
+Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
+                    real_r ax, real_r ary)
+// ----------------------------------------------------------------------------
+//   Arrow
+// ----------------------------------------------------------------------------
+{
+    Arrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ary);
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlArrow(cx, cy, w, h, ax, ary,
+                                         new Arrow(shape)));
+
+    return XL::xl_true;
+}
+
+
+
+Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
+                    real_r ax, real_r ary)
+// ----------------------------------------------------------------------------
+//   Double arrow
+// ----------------------------------------------------------------------------
+{
+    DoubleArrow shape(Box(cx-w/2, cy-h/2, w, h), ax, ary);
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlArrow(cx, cy, w, h, ax, ary, true,
+                                         new DoubleArrow(shape)));
 
     return XL::xl_true;
 }
@@ -2050,7 +2197,7 @@ Tree *Widget::starPolygon(Tree *self,
                           real_r cx, real_r cy, real_r w, real_r h,
                           integer_r p, integer_r q)
 // ----------------------------------------------------------------------------
-//     GL regular p-side star polygon {p/q} centered around (cx,cy), radius r
+//     GL regular p-side star polygon {p/q} centered around (cx,cy)
 // ----------------------------------------------------------------------------
 {
     if (p < 2 || q == 0 || q > (p-1)/2 || q < -(p-1)/2)
@@ -2060,8 +2207,49 @@ Tree *Widget::starPolygon(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(cx, cy, w, h,
+        layout->Add(new ControlPolygon(cx, cy, w, h, p,
                                          new StarPolygon(shape)));
+
+    return XL::xl_true;
+}
+
+
+
+Tree *Widget::star(Tree *self,
+                   real_r cx, real_r cy, real_r w, real_r h,
+                   integer_r p, real_r r)
+// ----------------------------------------------------------------------------
+//     GL regular p-side star centered around (cx,cy), inner radius ratio r
+// ----------------------------------------------------------------------------
+{
+    if (p < 2 || r < 0.0 || r > 1.0 )
+        return ellipse(self, cx, cy, w, h); // Show something else in its place
+
+    Star shape(Box(cx-w/2, cy-h/2, w, h), p, r);
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlStar(cx, cy, w, h, p, r,
+                                         new Star(shape)));
+
+    return XL::xl_true;
+}
+
+
+
+Tree *Widget::speechBalloon(Tree *self,
+                            real_r cx, real_r cy, real_r w, real_r h, 
+                            real_r r, real_r ax, real_r ay)
+// ----------------------------------------------------------------------------
+//   Speech balloon with radius r for rounded corners, and point a for the tail 
+// ----------------------------------------------------------------------------
+{
+    SpeechBalloon shape(Box(cx-w/2, cy-h/2, w, h), r, ax, ay);
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new ControlBalloon(cx, cy, w, h, r, ax, ay,
+                                         new SpeechBalloon(shape)));
 
     return XL::xl_true;
 }
@@ -2120,6 +2308,50 @@ Tree *Widget::cone(Tree *self,
 //    Text and font
 //
 // ============================================================================
+
+Tree * Widget::textBox(Tree *self,
+                       real_r x, real_r y, real_r w, real_r h, Tree *prog)
+// ----------------------------------------------------------------------------
+//   Create a new page layout and render text in it
+// ----------------------------------------------------------------------------
+{
+    PageLayout *tbox = new PageLayout(this);
+    tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
+    layout->Add(new ControlRectangle(x, y, w, h, tbox));
+    flows[flowName] = tbox;
+
+    XL::LocalSave<Layout *> save(layout, tbox);
+    XL::LocalSave<coord> savePageH(pageW, h);
+    XL::LocalSave<coord> savePageW(pageW, w);
+    return xl_evaluate(prog);
+}
+
+
+Tree *Widget::textOverflow(Tree *self,
+                           real_r x, real_r y, real_r w, real_r h)
+// ----------------------------------------------------------------------------
+//   Overflow text box for the rest of the current text flow
+// ----------------------------------------------------------------------------
+{
+    // Add page layout overflow rectangle
+    PageLayoutOverflow *overflow =
+        new PageLayoutOverflow(Box(x - w/2, y-h/2, w, h), this, flowName);
+    layout->Add(new ControlRectangle(x, y, w, h, overflow));
+
+    return XL::xl_true;
+}
+
+
+XL::Text *Widget::textFlow(Tree *self, text name)
+// ----------------------------------------------------------------------------
+//    Set the name of the current text flow
+// ----------------------------------------------------------------------------
+{
+    text oldName = flowName;
+    flowName = name;
+    return new XL::Text(oldName);
+}
+
 
 Tree *Widget::textSpan(Tree *self, text_r content)
 // ----------------------------------------------------------------------------
@@ -2247,6 +2479,72 @@ Tree *Widget::fontStretch(Tree *self, scale amount)
 }
 
 
+static inline JustificationChange::Axis jaxis(uint a)
+// ----------------------------------------------------------------------------
+//   Return the right justification axis
+// ----------------------------------------------------------------------------
+{
+    switch(a)
+    {
+    default:
+    case 0: return JustificationChange::AlongX;
+    case 1: return JustificationChange::AlongY;
+    case 2: return JustificationChange::AlongZ;
+    }
+}
+
+
+Tree *Widget::justify(Tree *self, scale amount, uint axis)
+// ----------------------------------------------------------------------------
+//   Change justification along the given axis
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new JustificationChange(amount, jaxis(axis)));
+    return XL::xl_true;
+}
+
+
+Tree *Widget::center(Tree *self, scale amount, uint axis)
+// ----------------------------------------------------------------------------
+//   Change centering along the given axis
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new CenteringChange(amount, jaxis(axis)));
+    return XL::xl_true;
+}
+
+
+Tree *Widget::spread(Tree *self, scale amount, uint axis)
+// ----------------------------------------------------------------------------
+//   Change the spread along the given axis
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new SpreadChange(amount, jaxis(axis)));
+    return XL::xl_true;
+}
+
+
+Tree *Widget::spacing(Tree *self, scale amount, uint axis)
+// ----------------------------------------------------------------------------
+//   Change the spacing along the given axis
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new SpacingChange(amount, jaxis(axis)));
+    return XL::xl_true;
+}
+
+
+Tree *Widget::drawingBreak(Tree *self, Drawing::BreakOrder order)
+// ----------------------------------------------------------------------------
+//   Change the spacing along the given axis
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new DrawingBreak(order));
+    return XL::xl_true;
+}
+
+
+
 
 // ============================================================================
 //
@@ -2359,7 +2657,7 @@ Tree *Widget::urlTexture(Tree *self, double w, double h,
     WebViewSurface *surface = url->GetInfo<WebViewSurface>();
     if (!surface)
     {
-        surface = new WebViewSurface(this);
+        surface = new WebViewSurface(url, this);
         url->SetInfo<WebViewSurface> (surface);
     }
 
@@ -2400,7 +2698,7 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
     if (!surface)
     {
-        surface = new LineEditSurface(this);
+        surface = new LineEditSurface(txt, this);
         txt->SetInfo<LineEditSurface> (surface);
     }
 
@@ -2412,9 +2710,84 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
     return XL::xl_true;
 }
 
+Tree *Widget::radioButton(Tree *self,
+                       real_r x,real_r y, real_r w,real_r h,
+                       text_p lbl, Text* sel, Tree *act)
+// ----------------------------------------------------------------------------
+//   Draw a radio button in the curent frame
+// ----------------------------------------------------------------------------
+{
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
-Tree *Widget::pushButton(Tree *self,
-                         real_r x, real_r y, real_r w, real_r h,
+    radioButtonTexture(self, w, h, lbl, sel, act);
+    return abstractButton(self, x, y, w, h);
+}
+
+Tree *Widget::radioButtonTexture(Tree *self, double w, double h, Text *lbl,
+                                 Text* sel, Tree *act)
+// ----------------------------------------------------------------------------
+//   Make a texture out of a given radio button
+// ----------------------------------------------------------------------------
+{
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
+    // Get or build the current frame if we don't have one
+    AbstractButtonSurface *surface = self->GetInfo<AbstractButtonSurface>();
+    if (!surface)
+    {
+        surface = new RadioButtonSurface(self, this);
+        self->SetInfo<AbstractButtonSurface> (surface);
+    }
+
+    // Resize to requested size, and bind texture
+    surface->resize(w,h);
+    GLuint tex = surface->bind(lbl, act, sel);
+    layout->Add(new FillTexture(tex));
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::checkBoxButton(Tree *self, real_r x,real_r y, real_r w, real_r h,
+                             text_p lbl, Text* sel, Tree *act)
+// ----------------------------------------------------------------------------
+//   Draw a check button in the curent frame
+// ----------------------------------------------------------------------------
+{
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+
+    checkBoxButtonTexture(self, w, h, lbl, sel, act);
+    return abstractButton(self, x, y, w, h);
+}
+
+Tree *Widget::checkBoxButtonTexture(Tree *self, double w, double h,  Text *lbl,
+                                    Text* sel, Tree *act)
+// ----------------------------------------------------------------------------
+//   Make a texture out of a given checkbox button
+// ----------------------------------------------------------------------------
+{
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
+    // Get or build the current frame if we don't have one
+    AbstractButtonSurface *surface = self->GetInfo<AbstractButtonSurface>();
+    if (!surface)
+    {
+        surface = new CheckBoxSurface(self, this);
+        self->SetInfo<AbstractButtonSurface> (surface);
+    }
+
+    // Resize to requested size, and bind texture
+    surface->resize(w,h);
+    GLuint tex = surface->bind(lbl, act, sel);
+    layout->Add(new FillTexture(tex));
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::pushButton(Tree *self, real_r x, real_r y, real_r w, real_r h,
                          Text *lbl, Tree* act)
 // ----------------------------------------------------------------------------
 //   Draw a push button in the curent frame
@@ -2423,17 +2796,11 @@ Tree *Widget::pushButton(Tree *self,
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
     pushButtonTexture(self, w, h, lbl, act);
-
-    PushButtonSurface *surface = lbl->GetInfo<PushButtonSurface>();
-    layout->Add(new WidgetManipulator(x, y, w, h, surface));
-
-    return XL::xl_true;
+    return abstractButton(self, x, y, w, h);
 }
 
-
-Tree *Widget::pushButtonTexture(Tree *self,
-                                double w, double h,
-                                Text *lbl, Tree *act)
+Tree *Widget::pushButtonTexture(Tree *self, double w, double h, Text *lbl,
+                                Tree *act)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given push button
 // ----------------------------------------------------------------------------
@@ -2442,17 +2809,39 @@ Tree *Widget::pushButtonTexture(Tree *self,
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    PushButtonSurface *surface = lbl->GetInfo<PushButtonSurface>();
+    AbstractButtonSurface *surface = self->GetInfo<AbstractButtonSurface>();
     if (!surface)
     {
-        surface = new PushButtonSurface(this);
-        lbl->SetInfo<PushButtonSurface> (surface);
+        surface = new PushButtonSurface(self, this);
+        self->SetInfo<AbstractButtonSurface> (surface);
     }
 
     // Resize to requested size, and bind texture
     surface->resize(w,h);
-    GLuint tex = surface->bind(lbl, act);
+    GLuint tex = surface->bind(lbl, act, NULL);
     layout->Add(new FillTexture(tex));
+
+    return XL::xl_true;
+}
+
+
+Tree *Widget::abstractButton(Tree *self, real_r x, real_r y, real_r w, real_r h)
+// ----------------------------------------------------------------------------
+//   Draw any button in the curent frame
+// ----------------------------------------------------------------------------
+{
+    AbstractButtonSurface *surface = self->GetInfo<AbstractButtonSurface>();
+
+    if (currentGroup)
+        currentGroup->addButton((QAbstractButton*)surface->widget);
+
+    if (currentGridLayout)
+    {
+        currentGridLayout->addWidget(surface->widget, y, x);
+        return XL::xl_true;
+    }
+
+    layout->Add(new WidgetManipulator(x, y, w, h, surface));
 
     return XL::xl_true;
 }
@@ -2484,11 +2873,11 @@ Tree *Widget::colorChooserTexture(Tree *self, double w, double h,
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    ColorChooserSurface *surface = action->GetInfo<ColorChooserSurface>();
+    ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
     if (!surface)
     {
-        surface = new ColorChooserSurface(this, action);
-        action->SetInfo<ColorChooserSurface> (surface);
+        surface = new ColorChooserSurface(self, this, action);
+        self->SetInfo<ColorChooserSurface> (surface);
     }
 
     // Resize to requested size, and bind texture
@@ -2526,11 +2915,11 @@ Tree *Widget::fontChooserTexture(Tree *self, double w, double h,
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    FontChooserSurface *surface = action->GetInfo<FontChooserSurface>();
+    FontChooserSurface *surface = self->GetInfo<FontChooserSurface>();
     if (!surface)
     {
-        surface = new FontChooserSurface(this, action);
-        action->SetInfo<FontChooserSurface> (surface);
+        surface = new FontChooserSurface(self, this, action);
+        self->SetInfo<FontChooserSurface> (surface);
     }
 
     // Resize to requested size, and bind texture
@@ -2542,21 +2931,45 @@ Tree *Widget::fontChooserTexture(Tree *self, double w, double h,
 }
 
 
+Tree *Widget::buttonGroup(Tree *self, Tree *buttons, bool exclusive)
+// ----------------------------------------------------------------------------
+//   Create a button group for radio buttons
+// ----------------------------------------------------------------------------
+{
+    GroupInfo *grpInfo = buttons->GetInfo<GroupInfo>();
+    if (!grpInfo)
+    {
+        grpInfo = new GroupInfo(buttons, this);
+        grpInfo->setExclusive(exclusive);
+        buttons->SetInfo<GroupInfo>(grpInfo);
+    }
+    currentGroup = grpInfo;
+    xl_evaluate(buttons);
+    currentGroup = NULL;
+
+    return XL::xl_true;
+}
+
+
 Tree *Widget::groupBox(Tree *self,
                        real_r x, real_r y, real_r w, real_r h,
                        Text *lbl, Tree *buttons)
 // ----------------------------------------------------------------------------
-//   Draw a push button in the curent frame
+//   Draw a group box in the curent frame
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
     groupBoxTexture(self, w, h, lbl);
 
-    GroupBoxSurface *surface = lbl->GetInfo<GroupBoxSurface>();
+    GroupBoxSurface *surface = self->GetInfo<GroupBoxSurface>();
     layout->Add(new WidgetManipulator(x, y, w, h, surface));
 
     xl_evaluate(buttons);
+
+    surface->dirty = true;
+    ((WidgetSurface*)surface)->bind();
+    currentGridLayout = NULL;
 
     return XL::xl_true;
 }
@@ -2565,17 +2978,24 @@ Tree *Widget::groupBox(Tree *self,
 Tree *Widget::groupBoxTexture(Tree *self, double w, double h, Text *lbl)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given push button
- // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
+
     // Get or build the current frame if we don't have one
-    GroupBoxSurface *surface = lbl->GetInfo<GroupBoxSurface>();
+    GroupBoxSurface *surface = self->GetInfo<GroupBoxSurface>();
     if (!surface)
     {
-        surface = new GroupBoxSurface(this);
-        lbl->SetInfo<GroupBoxSurface> (surface);
+        currentGridLayout = new QGridLayout();
+        currentGridLayout->setObjectName("groupBox layout");
+        surface = new GroupBoxSurface(self, this, currentGridLayout);
+        self->SetInfo<GroupBoxSurface> (surface);
+    }
+    else
+    {
+        currentGridLayout = surface->grid;
     }
 
     // Resize to requested size, and bind texture
@@ -2590,15 +3010,14 @@ Tree *Widget::groupBoxTexture(Tree *self, double w, double h, Text *lbl)
 Tree *Widget::videoPlayer(Tree *self,
                           real_r x, real_r y, real_r w, real_r h, Text *url)
 // ----------------------------------------------------------------------------
-//   Create a new video player
+//   Make a video player
 // ----------------------------------------------------------------------------
-
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
     videoPlayerTexture(self, w, h, url);
 
-    VideoPlayerSurface *surface = url->GetInfo<VideoPlayerSurface>();
+    VideoPlayerSurface *surface = self->GetInfo<VideoPlayerSurface>();
     layout->Add(new WidgetManipulator(x, y, w, h, surface));
 
     return XL::xl_true;
@@ -2608,18 +3027,18 @@ Tree *Widget::videoPlayer(Tree *self,
 
 Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
 // ----------------------------------------------------------------------------
-//   Create a video player texture
+//   Make a video player texture
 // ----------------------------------------------------------------------------
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    VideoPlayerSurface *surface = url->GetInfo<VideoPlayerSurface>();
+    VideoPlayerSurface *surface = self->GetInfo<VideoPlayerSurface>();
     if (!surface)
     {
-        surface = new VideoPlayerSurface(this);
-        url->SetInfo<VideoPlayerSurface> (surface);
+        surface = new VideoPlayerSurface(self, this);
+        self->SetInfo<VideoPlayerSurface> (surface);
     }
 
     // Resize to requested size, and bind texture
@@ -2657,7 +3076,7 @@ Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
 //   invalidated and the new one is executed for the first time.
 // ============================================================================
 
-Tree *Widget::menuItem(Tree *self, text s, Tree *t)
+Tree *Widget::menuItem(Tree *self, Text *s, Tree *t)
 // ----------------------------------------------------------------------------
 //   Create a menu item
 // ----------------------------------------------------------------------------
@@ -2667,13 +3086,13 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
 
     QString fullName = currentMenu->objectName() +
                       "/" +
-                      QString::fromStdString(s);
+                      QString::fromStdString(s->value);
 
     if (parent()->findChild<QAction*>(fullName))
     {
         IFTRACE(menus)
         {
-            std::cout<< "MenuItem " << s
+            std::cout<< "MenuItem " << s->value
                      << " found in current MenuBar with fullname "
                      << fullName.toStdString() << "\n";
             std::cout.flush();
@@ -2682,7 +3101,7 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
     }
 
     // Get or build the current Menu if we don't have one
-    MenuInfo *menuInfo = self->GetInfo<MenuInfo>();
+    MenuInfo *menuInfo = s->GetInfo<MenuInfo>();
 
     // Store a copy of the tree in the QAction.
     QVariant var = QVariant::fromValue(XL::TreeRoot(t));
@@ -2697,7 +3116,7 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
                       << fullName.toStdString() << "\n";
             std::cout.flush();
         }
-        menuInfo->action->setText(QString::fromStdString(s));
+        menuInfo->action->setText(QString::fromStdString(s->value));
         menuInfo->action->setObjectName(fullName);
         menuInfo->action->setData(var);
         menuInfo->fullName = fullName.toStdString();
@@ -2705,7 +3124,7 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
     }
 
     menuInfo = new MenuInfo(currentMenu, fullName.toStdString());
-    self->SetInfo<MenuInfo> (menuInfo);
+    s->SetInfo<MenuInfo> (menuInfo);
 
     IFTRACE(menus)
     {
@@ -2714,7 +3133,7 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
         std::cout.flush();
     }
 
-    QAction * p_action = currentMenu->addAction(QString::fromStdString(s));
+    QAction * p_action = currentMenu->addAction(QString::fromStdString(s->value));
     menuInfo->action = p_action;
     p_action->setData(var);
     p_action->setObjectName(fullName);
@@ -2723,7 +3142,7 @@ Tree *Widget::menuItem(Tree *self, text s, Tree *t)
 }
 
 
-Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
+Tree *Widget::menu(Tree *self, Text *s, bool isSubMenu)
 // ----------------------------------------------------------------------------
 // Add the menu to the current menu bar or create the contextual menu
 // ----------------------------------------------------------------------------
@@ -2732,7 +3151,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 
     // Build the full name of the menu
     // Uses the current menu name, the given string and the isSubmenu.
-    QString fullname = QString::fromStdString(s);
+    QString fullname = QString::fromStdString(s->value);
     if (isSubMenu && currentMenu)
     {
         fullname.prepend(currentMenu->objectName() +'/');
@@ -2749,7 +3168,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
     }
 
     // Get or build the current Menu if we don't have one
-    MenuInfo *menuInfo = self->GetInfo<MenuInfo>();
+    MenuInfo *menuInfo = s->GetInfo<MenuInfo>();
 
 
     // If the menu is registered, no need to recreate it.
@@ -2762,7 +3181,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
             menuInfo = new MenuInfo(isContextMenu ? NULL : currentMenuBar,
                                     currentMenu,
                                     fullname.toStdString());
-            self->SetInfo<MenuInfo> (menuInfo);
+            s->SetInfo<MenuInfo> (menuInfo);
             menuInfo->action = currentMenu->menuAction();
 
         }
@@ -2776,7 +3195,7 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
     {
         // The menu exists : update its info
         currentMenu = menuInfo->menu;
-        menuInfo->action->setText(QString::fromStdString(s));
+        menuInfo->action->setText(QString::fromStdString(s->value));
         menuInfo->menu->setObjectName(fullname);
         menuInfo->fullName = fullname.toStdString();
         return XL::xl_true;
@@ -2791,16 +3210,16 @@ Tree *Widget::menu(Tree *self, text s, bool isSubMenu)
 
     }
     else if (isSubMenu)
-        currentMenu = currentMenu->addMenu(QString::fromStdString(s));
+        currentMenu = currentMenu->addMenu(QString::fromStdString(s->value));
     else
-        currentMenu = currentMenuBar->addMenu(QString::fromStdString(s));
+        currentMenu = currentMenuBar->addMenu(QString::fromStdString(s->value));
 
     currentMenu->setObjectName(fullname);
 
     menuInfo = new MenuInfo(isContextMenu ? NULL : currentMenuBar,
                             currentMenu,
                             fullname.toStdString());
-    self->SetInfo<MenuInfo> (menuInfo);
+    s->SetInfo<MenuInfo> (menuInfo);
     menuInfo->action = currentMenu->menuAction();
 
     return XL::xl_true;
@@ -2911,9 +3330,9 @@ TAO_END
 
 
 // ============================================================================
-// 
+//
 //   Helper functions
-// 
+//
 // ============================================================================
 
 void tao_widget_refresh(double delay)

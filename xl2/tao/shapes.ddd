@@ -8,24 +8,24 @@ rectangle 0.0,300.0,160,120
 circular_sector 200,300,80,270,180
 rounded_rectangle 400,300,160,120,40
 
-equilateral_triangle -400,100,80
-regular_tetragon -200,100,80
-regular_pentagon 0,100,80
-regular_hexagon 200,100,80
-regular_heptagon 400,100,80
+equilateral_triangle -400,100,80,80
+tetragon -200,100,80,80
+pentagon 0,100,80,80
+hexagon 200,100,80,80
+heptagon 400,100,80,80
 
-regular_octagon -400,-100,80
-regular_polygon -200,-100,80,9
-regular_polygon 0,-100,80,10
-regular_polygon 200,-100,80,11
-regular_polygon 400,-100,80,12
+octagon -400,-100,80,80
+polygon -200,-100,80,80,9
+polygon 0,-100,80,80,10
+polygon 200,-100,80,80,11
+polygon 400,-100,80,80,12
 
-star -400,-300,80
-star_of_david -200,-300,80
-regular_heptagram 0,-300,80
-regular_polygram 200,-300,80,7,3
+star -400,-300,80,80,5,2
+star_of_david -200,-300,80,80
+heptagram 0,-300,80,80
+polygram 200,-300,80,80,7,3
 //regular_star_polygon 400,-300,80, 17, 6
-schläfli 400, -300, 80, {17/6}
+schläfli 400, -300, 80, 80, {17/6}
 
 sphere 0,0,0,50
 

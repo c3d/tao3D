@@ -13,6 +13,7 @@
 # ******************************************************************************
 TEMPLATE = app
 TARGET = Tao
+VERSION = "1.0 Alpha"
 DEPENDPATH += . \
     ../xlr
 INCLUDEPATH += . \
@@ -34,6 +35,7 @@ macx {
     DEFINES += CONFIG_MACOSX
     XLRDIR = Contents/MacOS
     ICON = tao.icns
+    QMAKE_INFO_PLIST = Info.plist
 }
 win32:DEFINES += CONFIG_MINGW
 linux-g++:DEFINES += CONFIG_LINUX
@@ -68,6 +70,7 @@ HEADERS += widget.h \
     process.h \
     repository.h \
     git_backend.h \
+    tao_utf8.h \
     ../xlr/utf8.h \
     ../xlr/base.h \
     ../xlr/options.h \
@@ -95,10 +98,10 @@ HEADERS += widget.h \
     ../xlr/lcs.h \
     ../xlr/bfs.h \
     drag.h \
-    ui_pull_from_dialog.h \
     pull_from_dialog.h \
     remote_selection_frame.h \
-    publish_to_dialog.h
+    publish_to_dialog.h \
+    undo.h
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \
@@ -149,7 +152,8 @@ SOURCES += tao_main.cpp \
     drag.cpp \
     pull_from_dialog.cpp \
     remote_selection_frame.cpp \
-    publish_to_dialog.cpp
+    publish_to_dialog.cpp \
+    undo.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \

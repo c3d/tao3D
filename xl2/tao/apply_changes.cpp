@@ -23,8 +23,11 @@
 #include "apply_changes.h"
 #include "main.h"
 #include "widget_surface.h"
+#include "hash.h"
+#include "sha1_ostream.h"
 #include <sys/stat.h>
 #include <iostream>
+#include <sstream>
 
 TAO_BEGIN
 
@@ -58,7 +61,17 @@ bool ImportedFilesChanged(XL::Tree *prog,
                 {
                     done.insert(&sf);
                     if (markChanged)
-                        sf.changed = true;
+                    {
+                        text prev_hash = sf.hash;
+                        TreeHashAction<> hash(XL::TreeHashAction<>::Force);
+                        sf.tree.tree->Do(hash);
+                        std::ostringstream os;
+                        os << sf.tree.tree->Get< HashInfo<> > ();
+                        sf.hash = os.str();
+
+                        if (!prev_hash.empty() && sf.hash != prev_hash)
+                            sf.changed = true;
+                    }
                     struct stat st;
                     stat (sf.name.c_str(), &st);
                     if (st.st_mtime > sf.modified)

@@ -87,7 +87,6 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       event(NULL), focusWidget(NULL),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
-      reloadProgram(false),
       timer(this), idleTimer(this),
       pageStartTime(CurrentTime()), pageRefresh(86400),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
@@ -372,18 +371,9 @@ void Widget::runProgram()
         {
             if (Tree *prog = xlProgram->tree.tree)
             {
-                if (reloadProgram)
-                {
-                    XL::NormalizedClone cloneAction;
-                    Tree *copy = prog->Do(cloneAction);
-                    copy->Set<XL::SymbolsInfo>(prog->Get<XL::SymbolsInfo>());
-                    xlProgram->tree.tree = copy;
-                    prog = copy;
-                    reloadProgram = false;
-                }
                 xl_evaluate(prog);
 
-                // clean the end of the menu
+                // Clean the end of the menu
                 while (++order < orderedMenuElements.count())
                 {
                     if (orderedMenuElements[order])
@@ -392,7 +382,7 @@ void Widget::runProgram()
                         orderedMenuElements[order] = NULL;
                     }
                 }
-                // reset the order value.
+                // Reset the order value.
                 order = 0;
                 currentToolBar = NULL;
                 currentMenuBar = ((Window*)parent())->menuBar();
@@ -1213,6 +1203,53 @@ void Widget::applyAction(XL::Action &action)
 }
 
 
+void Widget::reloadProgram(XL::Tree *newProg)
+// ----------------------------------------------------------------------------
+//   Set the program to reload
+// ----------------------------------------------------------------------------
+{
+    Tree *prog = xlProgram->tree.tree;
+    if (newProg)
+    {
+        // Check if we can simply change some parameters in the tree
+        ApplyChanges changes(newProg);
+        if (!prog->Do(changes))
+        {
+            // Need a big hammer, i.e. reload the complete program
+            newProg->Set<XL::SymbolsInfo>(prog->Get<XL::SymbolsInfo>());
+            xlProgram->tree.tree = newProg;
+            prog = newProg;
+        }
+    }
+    else
+    {
+        // We want to force a clone so that we recompile everything
+        XL::NormalizedClone clone;
+        newProg = prog->Do(clone);
+        newProg->Set<XL::SymbolsInfo>(prog->Get<XL::SymbolsInfo>());
+        xlProgram->tree.tree = newProg;
+        prog = newProg;
+    }
+
+    // Now update the window
+    text txt = *prog;
+    Window *window = (Window *) parentWidget();
+    window->setText(+txt);
+}
+
+
+void Widget::renormalizeProgram()
+// ----------------------------------------------------------------------------
+//   Remove elements in the program that make it look not good, e.g. -(-x))
+// ----------------------------------------------------------------------------
+{
+    XL::NormalizedClone norm;
+    Tree *prog = xlProgram->tree.tree;
+    prog = prog->Do(norm);
+    reloadProgram(prog);
+}
+
+
 void Widget::refreshProgram()
 // ----------------------------------------------------------------------------
 //   Check if any of the source files we depend on changed
@@ -1723,7 +1760,7 @@ Tree *Widget::rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz)
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new RotationManipulator(ra, rx, ry, rz));
+    layout->Add(new RotationManipulator(self, ra, rx, ry, rz));
     return XL::xl_true;
 }
 
@@ -1760,7 +1797,7 @@ Tree *Widget::translate(Tree *self, real_r rx, real_r ry, real_r rz)
 //     Translation along three axes
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new TranslationManipulator(rx, ry, rz));
+    layout->Add(new TranslationManipulator(self, rx, ry, rz));
     return XL::xl_true;
 }
 
@@ -1797,7 +1834,7 @@ Tree *Widget::rescale(Tree *self, real_r sx, real_r sy, real_r sz)
 //     Scaling along three axes
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new ScaleManipulator(sx, sy, sz));
+    layout->Add(new ScaleManipulator(self, sx, sy, sz));
     return XL::xl_true;
 }
 
@@ -1951,7 +1988,7 @@ Tree *Widget::newPath(Tree *self, Tree *child)
     TesselatedPath *localPath = new TesselatedPath(GLU_TESS_WINDING_ODD);
     XL::LocalSave<GraphicPath *> save(path, localPath);
     Tree *result = xl_evaluate(child);
-    layout->Add(new DrawingManipulator(path));
+    layout->Add(new DrawingManipulator(self, path));
 
     return result;
 }
@@ -1965,7 +2002,7 @@ Tree *Widget::moveTo(Tree *self, real_r x, real_r y, real_r z)
     if (path)
     {
         path->moveTo(Point3(x,y,z));
-        path->AddControl(x, y, z);
+        path->AddControl(self, x, y, z);
     }
     else
     {
@@ -1983,7 +2020,7 @@ Tree *Widget::lineTo(Tree *self, real_r x, real_r y, real_r z)
     if (!path)
         return Ooops("No path for '$1'", self);
     path->lineTo(Point3(x,y,z));
-    path->AddControl(x, y, z);
+    path->AddControl(self, x, y, z);
     return XL::xl_true;
 }
 
@@ -1998,8 +2035,8 @@ Tree *Widget::curveTo(Tree *self,
     if (!path)
         return Ooops("No path for '$1'", self);
     path->curveTo(Point3(cx, cy, cz), Point3(x,y,z));
-    path->AddControl(x, y, z);
-    path->AddControl(cx, cy, cz);
+    path->AddControl(self, x, y, z);
+    path->AddControl(self, cx, cy, cz);
     return XL::xl_true;
 }
 
@@ -2015,9 +2052,9 @@ Tree *Widget::curveTo(Tree *self,
     if (!path)
         return Ooops("No path for '$1'", self);
     path->curveTo(Point3(c1x, c1y, c1z), Point3(c2x, c2y, c2z), Point3(x,y,z));
-    path->AddControl(x, y, z);
-    path->AddControl(c1x, c1y, c1z);
-    path->AddControl(c2x, c2y, c2z);
+    path->AddControl(self, x, y, z);
+    path->AddControl(self, c1x, c1y, c1z);
+    path->AddControl(self, c2x, c2y, c2z);
     return XL::xl_true;
 }
 
@@ -2030,7 +2067,7 @@ Tree *Widget::moveToRel(Tree *self, real_r x, real_r y, real_r z)
     if (path)
     {
         path->moveTo(Vector3(x,y,z));
-        path->AddControl(x, y, z);
+        path->AddControl(self, x, y, z);
     }
     else
     {
@@ -2048,7 +2085,7 @@ Tree *Widget::lineToRel(Tree *self, real_r x, real_r y, real_r z)
     if (!path)
         return Ooops("No path for '$1'", self);
     path->lineTo(Vector3(x,y,z));
-    path->AddControl(x, y, z);
+    path->AddControl(self, x, y, z);
     return XL::xl_true;
 }
 
@@ -2099,7 +2136,8 @@ Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(x, y, w, h, new Rectangle(shape)));
+        layout->Add(new ControlRectangle(self, x, y, w, h, 
+                                         new Rectangle(shape)));
 
     return XL::xl_true;
 }
@@ -2114,7 +2152,7 @@ Tree *Widget::isoscelesTriangle(Tree *self, real_r x, real_r y, real_r w, real_r
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(x, y, w, h,
+        layout->Add(new ControlRectangle(self, x, y, w, h,
                                          new IsoscelesTriangle(shape)));
 
     return XL::xl_true;
@@ -2130,7 +2168,8 @@ Tree *Widget::rightTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(x, y, w, h, new RightTriangle(shape)));
+        layout->Add(new ControlRectangle(self, x, y, w, h,
+                                         new RightTriangle(shape)));
 
     return XL::xl_true;
 }
@@ -2145,7 +2184,8 @@ Tree *Widget::ellipse(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(cx, cy, w, h, new Ellipse(shape)));
+        layout->Add(new ControlRectangle(self, cx, cy, w, h,
+                                         new Ellipse(shape)));
 
     return XL::xl_true;
 }
@@ -2162,7 +2202,8 @@ Tree *Widget::ellipseArc(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(cx, cy, w, h, new EllipseArc(shape)));
+        layout->Add(new ControlRectangle(self, cx, cy, w, h,
+                                         new EllipseArc(shape)));
 
     return XL::xl_true;
 }
@@ -2179,8 +2220,8 @@ Tree *Widget::roundedRectangle(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRoundedRectangle(cx, cy, w, h, r,
-                                         new RoundedRectangle(shape)));
+        layout->Add(new ControlRoundedRectangle(self, cx, cy, w, h, r,
+                                                new RoundedRectangle(shape)));
 
     return XL::xl_true;
 }
@@ -2198,7 +2239,7 @@ Tree *Widget::ellipticalRectangle(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(cx, cy, w, h,
+        layout->Add(new ControlRectangle(self, cx, cy, w, h,
                                          new EllipticalRectangle(shape)));
 
     return XL::xl_true;
@@ -2216,8 +2257,8 @@ Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlArrow(cx, cy, w, h, ax, ary,
-                                         new Arrow(shape)));
+        layout->Add(new ControlArrow(self, cx, cy, w, h, ax, ary,
+                                     new Arrow(shape)));
 
     return XL::xl_true;
 }
@@ -2233,8 +2274,8 @@ Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlArrow(cx, cy, w, h, ax, ary, true,
-                                         new DoubleArrow(shape)));
+        layout->Add(new ControlArrow(self, cx, cy, w, h, ax, ary, true,
+                                     new DoubleArrow(shape)));
 
     return XL::xl_true;
 }
@@ -2251,8 +2292,8 @@ Tree *Widget::starPolygon(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlPolygon(cx, cy, w, h, p,
-                                         new StarPolygon(shape)));
+        layout->Add(new ControlPolygon(self, cx, cy, w, h, p,
+                                       new StarPolygon(shape)));
 
     return XL::xl_true;
 }
@@ -2269,8 +2310,8 @@ Tree *Widget::star(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlStar(cx, cy, w, h, p, r,
-                                         new Star(shape)));
+        layout->Add(new ControlStar(self, cx, cy, w, h, p, r,
+                                    new Star(shape)));
 
     return XL::xl_true;
 }
@@ -2287,8 +2328,8 @@ Tree *Widget::speechBalloon(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlBalloon(cx, cy, w, h, r, ax, ay,
-                                         new SpeechBalloon(shape)));
+        layout->Add(new ControlBalloon(self, cx, cy, w, h, r, ax, ay,
+                                       new SpeechBalloon(shape)));
 
     return XL::xl_true;
 }
@@ -2306,8 +2347,8 @@ Tree *Widget::callout(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlCallout(cx, cy, w, h, r, ax, ay, d,
-                                         new Callout(shape)));
+        layout->Add(new ControlCallout(self, cx, cy, w, h, r, ax, ay, d,
+                                       new Callout(shape)));
 
     return XL::xl_true;
 }
@@ -2329,7 +2370,7 @@ Tree *Widget::sphere(Tree *self,
 // ----------------------------------------------------------------------------
 {
     Sphere *s = new Sphere(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks);
-    layout->Add (new ControlBox(x, y, z, w, h, d, s));
+    layout->Add (new ControlBox(self, x, y, z, w, h, d, s));
     return XL::xl_true;
 }
 
@@ -2342,7 +2383,7 @@ Tree *Widget::cube(Tree *self,
 // ----------------------------------------------------------------------------
 {
     Cube *c = new Cube(Box3(x-w/2, y-h/2, z-d/2, w,h,d));
-    layout->Add(new ControlBox(x, y, z, w, h, d, c));
+    layout->Add(new ControlBox(self, x, y, z, w, h, d, c));
     return XL::xl_true;
 }
 
@@ -2355,7 +2396,7 @@ Tree *Widget::cone(Tree *self,
 // ----------------------------------------------------------------------------
 {
     Cube *c = new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d));
-    layout->Add(new ControlBox(x, y, z, w, h, d, c));
+    layout->Add(new ControlBox(self, x, y, z, w, h, d, c));
     return XL::xl_true;
 }
 
@@ -2375,7 +2416,7 @@ Tree * Widget::textBox(Tree *self,
 {
     PageLayout *tbox = new PageLayout(this);
     tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
-    layout->Add(new ControlRectangle(x, y, w, h, tbox));
+    layout->Add(new ControlRectangle(self, x, y, w, h, tbox));
     flows[flowName] = tbox;
 
     XL::LocalSave<Layout *> save(layout, tbox);
@@ -2392,7 +2433,7 @@ Tree *Widget::textOverflow(Tree *self,
     // Add page layout overflow rectangle
     PageLayoutOverflow *overflow =
         new PageLayoutOverflow(Box(x - w/2, y-h/2, w, h), this, flowName);
-    layout->Add(new ControlRectangle(x, y, w, h, overflow));
+    layout->Add(new ControlRectangle(self, x, y, w, h, overflow));
 
     return XL::xl_true;
 }
@@ -2600,7 +2641,7 @@ Tree *Widget::drawingBreak(Tree *self, Drawing::BreakOrder order)
 }
 
 
-Tree *Widget::textEditKey(Tree *self, text key)
+XL::Name *Widget::textEditKey(Tree *self, text key)
 // ----------------------------------------------------------------------------
 //   Send a key to the activities
 // ----------------------------------------------------------------------------
@@ -2641,7 +2682,7 @@ Tree *Widget::framePaint(Tree *self,
     Tree *result = frameTexture(self, w, h, prog);
 
     // Draw a rectangle with the resulting texture
-    layout->Add(new FrameManipulator(x, y, w, h,
+    layout->Add(new FrameManipulator(self, x, y, w, h,
                                      new Rectangle(Box(x-w/2, y-h/2, w, h))));
     return result;
 }
@@ -2706,7 +2747,7 @@ Tree *Widget::urlPaint(Tree *self,
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
     urlTexture(self, w, h, url, progress);
     WebViewSurface *surface = url->GetInfo<WebViewSurface>();
-    layout->Add(new WidgetManipulator(x, y, w, h, surface));
+    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
     return XL::xl_true;
 }
 
@@ -2748,7 +2789,7 @@ Tree *Widget::lineEdit(Tree *self,
 
     lineEditTexture(self, w, h, txt);
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
-    layout->Add(new WidgetManipulator(x, y, w, h, surface));
+    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
     return XL::xl_true;
 }
 
@@ -2914,7 +2955,7 @@ Tree *Widget::abstractButton(Tree *name, real_r x, real_r y, real_r w, real_r h)
         return XL::xl_true;
     }
 
-    layout->Add(new WidgetManipulator(x, y, w, h, surface));
+    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
 
     return XL::xl_true;
 }
@@ -2931,7 +2972,7 @@ Tree *Widget::colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
     colorChooserTexture(self, w, h, action);
 
     ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
-    layout->Add(new WidgetManipulator(x, y, w, h, surface));
+    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
     return XL::xl_true;
 }
 
@@ -2973,7 +3014,7 @@ Tree *Widget::fontChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
     fontChooserTexture(self, w, h, action);
 
     FontChooserSurface *surface = self->GetInfo<FontChooserSurface>();
-    layout->Add(new WidgetManipulator(x, y, w, h, surface));
+    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
     return XL::xl_true;
 }
 
@@ -3050,7 +3091,7 @@ Tree *Widget::groupBox(Tree *self,
     groupBoxTexture(self, w, h, lbl);
 
     GroupBoxSurface *surface = self->GetInfo<GroupBoxSurface>();
-    layout->Add(new WidgetManipulator(x, y, w, h, surface));
+    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
 
     xl_evaluate(buttons);
 
@@ -3105,7 +3146,7 @@ Tree *Widget::videoPlayer(Tree *self,
     videoPlayerTexture(self, w, h, url);
 
     VideoPlayerSurface *surface = self->GetInfo<VideoPlayerSurface>();
-    layout->Add(new WidgetManipulator(x, y, w, h, surface));
+    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
 
     return XL::xl_true;
 
@@ -3383,6 +3424,7 @@ Tree * Widget::menuBar(Tree *self)
     return XL::xl_true;
 }
 
+
 Tree * Widget::toolBar(Tree *self, text name, text title, bool isFloatable)
 // ----------------------------------------------------------------------------
 // Add the toolBar to the current widget
@@ -3434,9 +3476,10 @@ Tree * Widget::toolBar(Tree *self, text name, text title, bool isFloatable)
     return XL::xl_true;
 }
 
+
 Tree * Widget::separator(Tree *self)
 // ----------------------------------------------------------------------------
-// Add the separator to the current widget
+//   Add the separator to the current widget
 // ----------------------------------------------------------------------------
 {
 
@@ -3502,6 +3545,8 @@ Tree * Widget::separator(Tree *self)
     return XL::xl_true;
 }
 
+
+
 // ============================================================================
 //
 //    Tree selection management
@@ -3521,6 +3566,7 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
     if (XL::Block *block = toInsert->AsBlock())
         toInsert = block->child;
 
+    bool preInsert = false;
     while (true)
     {
         XL::Infix *infix = program->AsInfix();
@@ -3528,24 +3574,41 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
             break;
         if (infix->name != ";" && infix->name != "\n")
             break;
+        preInsert = selectionTrees.count(infix->left);
+        if (preInsert)
+            break;
         parent = infix;
         program = infix->right;
     }
 
     XL::Tree * &what = parent ? parent->right : xlProgram->tree.tree;
-    what = new XL::Infix("\n", what, toInsert);
-    reloadProgram = true;
+    if (preInsert)
+        what = new XL::Infix("\n", toInsert, what);
+    else
+        what = new XL::Infix("\n", what, toInsert);
+    reloadProgram();
     markChanged("Inserted tree");
 
     return XL::xl_true;
 }
 
 
-XL::Name *Widget::deleteSelection(Tree *self)
+XL::Name *Widget::deleteSelection(Tree *self, text key)
 // ----------------------------------------------------------------------------
 //    Delete the selection
 // ----------------------------------------------------------------------------
 {
+    if (textSelection())
+        return textEditKey(self, key);
+
+    DeleteSelectionAction del(this);
+    XL::Tree *what = xlProgram->tree.tree;
+    what = what->Do(del);
+    reloadProgram(what);
+    markChanged("Deleted selection");
+    selection.clear();
+    selectionTrees.clear();
+    
     return XL::xl_true;
 }
 

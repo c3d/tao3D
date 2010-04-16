@@ -286,7 +286,7 @@ PREFIX(ColumnBreak, tree, "column_break",,
        RTAO(drawingBreak(self, Tao::Drawing::ColumnBreak)))
 PREFIX(PageBreak, tree, "page_break",,
        RTAO(drawingBreak(self, Tao::Drawing::PageBreak)))
-PREFIX(TextEditKey, tree, "text_edit_key", PARM(k, text),
+PREFIX(TextEditKey, boolean, "text_edit_key", PARM(k, text),
        RTAO(textEditKey(self, k)))
 
 
@@ -419,7 +419,8 @@ PREFIX(Separator, tree, "separator", ,
 // ============================================================================
 
 PREFIX(Insert, boolean, "insert", PARM(t, tree), RTAO(insert(self, &t)))
-PREFIX(Delete, boolean, "delete", , RTAO(deleteSelection(self)))
+PREFIX(Delete, boolean, "delete_selection", PARM(k, text),
+       RTAO(deleteSelection(self, k)))
 
 
 

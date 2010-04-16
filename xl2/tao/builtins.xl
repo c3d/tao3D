@@ -9,6 +9,9 @@ if true then TrueBody                   -> do TrueBody
 if false then TrueBody                  -> false
 
 // Key management
+key "Control-F"                         -> toggle_full_screen
+key "Delete"                            -> delete_selection "Delete"
+key "Backspace"                         -> delete_selection "Backspace"
 key X                                   -> text_edit_key X
 
 // 3D Shapes
@@ -96,7 +99,7 @@ text_cursor_color ->
     line_color 1,0,0,0
 
 text_cursor_highlight ->
-    color 0, 0..1/2, 0, 90%
+    color 0.6, 0.6..1.0/2, 0.6, 40%
     line_color 1,0,0,0
 
 handle_color ->
@@ -134,6 +137,7 @@ draw_widget_selection x,y,w,h ->
 
 draw_selection x,y,w,h ->
     selection_color
+    svg "bubbles.svg"
     rectangle x, y, w+4, h+4
 
 draw_selection_rectangle x, y, w, h ->
@@ -194,63 +198,33 @@ menu_insert -> {
 menu      "insert", "Insert"
 submenu   "insert > shape", "Shape"
 menu_item "insert > shape > line ---", "Line", insert
-    locally
-        theme_colors
-        line 50, -50, -50, 50
+    line 50, -50, -50, 50
 menu_item "insert > shape > line -->", "Line with Arrowhead", insert
-    locally
-        theme_colors
-        line 50, -50, -50, 50
+    line 50, -50, -50, 50
 menu_item "insert > shape > line <->", "Line with Two Arrowheads", insert
-    locally
-        theme_colors
-        line 50, -50, -50, 50
+    line 50, -50, -50, 50
 menu_item "insert > shape > rectangle", "Rectangle", insert
-    locally
-        theme_colors
-        rectangle 0, 0, 100, 100
+    rectangle 0, 0, 100, 100
 menu_item "insert > shape > rounded rectangle", "Rounded Rectangle", insert
-    locally
-        theme_colors
-        rounded_rectangle 0, 0, 100, 100, 15
+    rounded_rectangle 0, 0, 100, 100, 15
 menu_item "insert > shape > oval", "Oval", insert
-    locally
-        theme_colors
-        oval 0, 0, 100, 100
+    oval 0, 0, 100, 100
 menu_item "insert > shape > triangle", "Triangle", insert
-    locally
-        theme_colors
-        triangle 0, 0, 100, 100
+    triangle 0, 0, 100, 100
 menu_item "insert > shape > right triangle", "Right Triangle", insert
-    locally
-        theme_colors
-        right_triangle 0, 0, 100, 100
+    right_triangle 0, 0, 100, 100
 menu_item "insert > shape > arrow", "Arrow", insert
-    locally
-        theme_colors
-        arrow 0, 0, 100, 100, 44, 32%
+    arrow 0, 0, 100, 100, 44, 32%
 menu_item "insert > shape > double arrow", "Double Arrow", insert
-    locally
-        theme_colors
-        double_arrow 0, 0, 100, 100, 44, 32%
+    double_arrow 0, 0, 100, 100, 44, 32%
 menu_item "insert > shape > diamond", "Diamond", insert
-    locally
-        theme_colors
-        diamond 0, 0, 100, 100
+    diamond 0, 0, 100, 100
 menu_item "insert > shape > speech ballon", "Speech Balloon", insert
-    locally
-        theme_colors
-        speech_balloon 0, 16, 100, 68, 50, -50, -50
+    speech_balloon 0, 16, 100, 68, 50, -50, -50
 menu_item "insert > shape > callout", "Callout", insert
-    locally
-        theme_colors
-        callout 16, 0, 68, 100, 15, -50, 0, 60
+    callout 16, 0, 68, 100, 15, -50, 0, 60
 menu_item "insert > shape > star", "Star", insert
-    locally
-        theme_colors
-        star 0, 0, 100, 100, 5, 50%
+    star 0, 0, 100, 100, 5, 50%
 menu_item "insert > shape > polygon", "Polygon", insert
-    locally
-        theme_colors
-        polygon 0, 0, 100, 100, 5
+    polygon 0, 0, 100, 100, 5
 }

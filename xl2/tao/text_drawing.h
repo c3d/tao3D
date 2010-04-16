@@ -74,13 +74,21 @@ struct TextSelect : Activity
     uint                end()   { return mark < point ? point : mark; }
     bool                hasSelection()          { return mark != point; }
     void                updateSelection();
+    bool                needsPositions()        { return direction >= Up; }
+    void                newLine();
+    void                newChar(coord x, bool selected);
 
-    uint                mark, point;
-    int                 direction;
+
+    enum Direction      { None, Mark, Left, Right, Up, Down };
+    uint                mark, point, previous;
+    Direction           direction;
+    coord               targetX;
     Box3                selBox;
     text                replacement;
     bool                replace;
     bool                textMode;
+    bool                pickingUpDown;
+    bool                movePointOnly;
 };
 
 

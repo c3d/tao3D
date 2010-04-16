@@ -28,7 +28,8 @@
 #include "coords3d.h"
 #include "opcodes.h"
 #include "drawing.h"
-
+#include "activity.h"
+#include "menuinfo.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -44,13 +45,13 @@ namespace Tao {
 
 struct Window;
 struct FrameInfo;
-struct Activity;
 struct Layout;
 struct PageLayout;
 struct SpaceLayout;
 struct GraphicPath;
 struct Repository;
 struct Drag;
+struct TextSelect;
 struct WidgetSurface;
 
 class Widget : public QGLWidget
@@ -81,6 +82,7 @@ public:
     void        setup(double w, double h, Box *picking = NULL);
     void        setupGL();
     void        identifySelection();
+    void        updateSelection();
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -97,6 +99,8 @@ public:
     // XL program management
     void        updateProgram(XL::SourceFile *sf);
     void        applyAction(XL::Action &action);
+    void        reloadProgram(XL::Tree *newProg = NULL);
+    void        renormalizeProgram();
     void        refreshProgram();
     void        markChanged(text reason);
     bool        writeIfChanged(XL::SourceFile &sf);
@@ -110,19 +114,30 @@ public:
     bool        timerIsActive()         { return timer.isActive(); }
 
     // Selection
+    enum { CHAR_ID_BIT = 1U<<31, CHAR_ID_MASK = ~CHAR_ID_BIT };
     GLuint      newId()                 { return ++id; }
     GLuint      currentId()             { return id; }
     GLuint      manipulatorId()         { return manipulator; }
     GLuint      selectionCapacity()     { return capacity; }
-    uint        selected();
+    uint        selected()              { return selected(id); }
+    GLuint      newCharId(uint ids = 1) { return charId += ids; }
+    GLuint      currentCharId()         { return charId; }
+    uint        charSelected(uint i)    { return selected(i | CHAR_ID_BIT); }
+    uint        charSelected()          { return charSelected(charId); }
+    void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
+    uint        selected(uint i);
+    uint        selected(XL::Tree *tree) { return selectionTrees.count(tree); }
     void        select(uint id, uint count);
     void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);
     void        recordProjection();
     Point3      unproject (coord x, coord y, coord z = 0.0);
     Drag *      drag();
+    TextSelect *textSelection();
     void        drawSelection(const Box3 &bounds, text name);
     void        drawHandle(const Point3 &point, text name);
+    template<class Activity>
+    Activity *  active();
 
     // Text flows
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
@@ -212,6 +227,9 @@ public:
     Tree *      roundedRectangle(Tree *self,
                                  real_r cx, real_r cy, real_r w, real_r h,
                                  real_r r);
+    Tree *      ellipticalRectangle(Tree *self,
+                                    real_r cx, real_r cy, real_r w, real_r h,
+                                    real_r r);
     Tree *      arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
                       real_r ax, real_r ary);
     Tree *      doubleArrow(Tree *self,
@@ -225,6 +243,10 @@ public:
     Tree *      speechBalloon(Tree *self,
                               real_r cx, real_r cy, real_r w, real_r h,
                               real_r r, real_r ax, real_r ay);
+    Tree *      callout(Tree *self,
+                        real_r cx, real_r cy, real_r w, real_r h,
+                        real_r r, real_r ax, real_r ay, real_r d);
+
 
     // 3D primitives
     Tree *      sphere(Tree *self,
@@ -257,6 +279,7 @@ public:
     Tree *      spread(Tree *self, scale amount, uint axis);
     Tree *      spacing(Tree *self, scale amount, uint axis);
     Tree *      drawingBreak(Tree *self, Drawing::BreakOrder order);
+    Name *      textEditKey(Tree *self, text key);
 
     // Frames and widgets
     Tree *      status(Tree *self, text t);
@@ -312,12 +335,17 @@ public:
     Tree *      videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url);
 
     // Menus
-    Tree *      menuItem(Tree *self, Text *s, Tree *t);
-    Tree *      menu(Tree *self, Text *s, bool=false);
+    Tree *      menuItem(Tree *self, text name, text lbl, text iconFileName,
+                         bool isCheckable, Text *isChecked, Tree *t);
+    Tree *      menu(Tree *self, text name, text lbl, text iconFileName,
+                     bool isSubmenu=false);
+    Tree *      toolBar(Tree *self, text name, text title, bool isFloatable);
+    Tree *      menuBar(Tree *self);
+    Tree *      separator(Tree *self);
 
     // Tree management
     Name *      insert(Tree *self, Tree *toInsert);
-    Name *      deleteSelection(Tree *self);
+    Name *      deleteSelection(Tree *self, text key);
 
     // Unit conversions
     Real *      fromCm(Tree *self, double cm);
@@ -331,9 +359,9 @@ private:
     friend class Activity;
     friend class Selection;
     friend class Drag;
+    friend class TextSelect;
     friend class Manipulator;
     friend class ControlPoint;
-    friend class AbstractButtonSurface;
 
     typedef XL::LocalSave<QEvent *> EventSave;
     typedef std::map<GLuint, uint>  selection_map;
@@ -354,7 +382,7 @@ private:
 
     // Selection
     Activity *            activities;
-    GLuint                id, capacity, manipulator;
+    GLuint                id, charId, capacity, manipulator;
     selection_map         selection, savedSelection;
     std::set<XL::Tree *>  selectionTrees;
     QEvent *              event;
@@ -365,9 +393,9 @@ private:
     // Menus
     QMenu                *currentMenu;
     QMenuBar             *currentMenuBar;
-
-    // Program changes
-    bool                  reloadProgram;
+    QToolBar             *currentToolBar;
+    QVector<MenuInfo*>    orderedMenuElements;
+    int                   order;
 
     // Timing
     QTimer                timer, idleTimer;
@@ -378,6 +406,19 @@ private:
     static Widget *       current;
     static double         zNear, zFar;
 };
+
+
+template<class ActivityClass>
+inline ActivityClass *Widget::active()
+// ----------------------------------------------------------------------------
+//   Return an activity of the given type
+// ----------------------------------------------------------------------------
+{
+    for (Activity *a = activities; a; a = a->next)
+        if (ActivityClass *result = dynamic_cast<ActivityClass *> (a))
+            return result;
+    return NULL;
+}
 
 
 
@@ -430,6 +471,34 @@ inline double CurrentTime()
 #undef TAO // From the command line
 #define TAO(x)  (Tao::Widget::Tao() ? Tao::Widget::Tao()->x : 0)
 #define RTAO(x) return TAO(x)
+
+
+
+// ============================================================================
+//
+//   Action that returns a tree where all the selected trees are removed
+//
+// ============================================================================
+
+struct DeleteSelectionAction : XL::TreeClone
+// ----------------------------------------------------------------------------
+//    A specialized clone action that doesn't copy selected trees
+// ----------------------------------------------------------------------------
+{
+    DeleteSelectionAction(Widget *widget): widget(widget) {}
+    XL::Tree *DoInfix(XL::Infix *what)
+    {
+        if (what->name == "\n" || what->name == ";")
+        {
+            if (widget->selected(what->left))
+                return what->right->Do(this);
+            if (widget->selected(what->right))
+                return what->left->Do(this);
+        }
+        return XL::TreeClone::DoInfix(what);
+    }
+    Widget *widget;
+};
 
 } // namespace Tao
 

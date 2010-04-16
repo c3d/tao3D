@@ -24,8 +24,10 @@
 
 #include "attributes.h"
 #include "shapes.h"
+#include "activity.h"
+#include "coords3d.h"
+#include "tree.h"
 #include <QFont>
-
 
 TAO_BEGIN
 
@@ -34,8 +36,8 @@ struct TextSpan : Shape
 //    A contiguous run of glyphs
 // ----------------------------------------------------------------------------
 {
-    TextSpan(const QString &value, const QFont &font)
-        : Shape(), value(value), font(font) {}
+    TextSpan(XL::Text *source, const QFont &font, uint start = 0, uint end = ~0)
+        : Shape(), source(source), font(font), start(start), end(end) {}
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *where);
     virtual void        Identify(Layout *where);
@@ -46,9 +48,49 @@ struct TextSpan : Shape
     virtual scale       TrailingSpaceSize();
 
 public:
-    QString             value;
+    XL::Text *          source;
     QFont               font;
+    uint                start, end;
 };
+
+
+struct TextSelect : Activity
+// ----------------------------------------------------------------------------
+//   A text selection (contiguous range of characters)
+// ----------------------------------------------------------------------------
+{
+    TextSelect(Widget *w);
+
+    virtual Activity *  Display(void);
+    virtual Activity *  Idle(void);
+    virtual Activity *  Key(text key);
+    virtual Activity *  Click(uint button, uint count, int x, int y);
+    virtual Activity *  MouseMove(int x, int y, bool active);
+
+    // Mark and point have roughly the same meaning as in GNU Emacs
+    void                moveTo(uint pos)        { mark = point = pos; }
+    void                select(uint mk, uint pt){ mark = mk; point = pt; }
+    uint                start() { return mark < point ? mark : point; }
+    uint                end()   { return mark < point ? point : mark; }
+    bool                hasSelection()          { return mark != point; }
+    void                updateSelection();
+    bool                needsPositions()        { return direction >= Up; }
+    void                newLine();
+    void                newChar(coord x, bool selected);
+
+
+    enum Direction      { None, Mark, Left, Right, Up, Down };
+    uint                mark, point, previous;
+    Direction           direction;
+    coord               targetX;
+    Box3                selBox;
+    text                replacement;
+    bool                replace;
+    bool                textMode;
+    bool                pickingUpDown;
+    bool                movePointOnly;
+};
+
 
 TAO_END
 

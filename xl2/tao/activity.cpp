@@ -22,6 +22,7 @@
 
 #include "activity.h"
 #include "widget.h"
+#include <iostream>
 
 
 TAO_BEGIN
@@ -77,7 +78,7 @@ Activity * Activity::Idle(void)
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-Activity *Activity::Key(uint key, bool down)
+Activity *Activity::Key(text key)
 // ----------------------------------------------------------------------------
 //   The default is to not process keys, leave it to the next activity
 // ----------------------------------------------------------------------------
@@ -86,7 +87,7 @@ Activity *Activity::Key(uint key, bool down)
 }
 
 
-Activity *Activity::Click(uint button, bool down, int x, int y)
+Activity *Activity::Click(uint button, uint count, int x, int y)
 // ----------------------------------------------------------------------------
 //   The default is to not deal with clicks, leave it to the next activity
 // ----------------------------------------------------------------------------

@@ -36,7 +36,7 @@ struct Selection : Activity
 
     virtual Activity *  Display(void);
     virtual Activity *  Idle(void);
-    virtual Activity *  Click(uint button, bool down, int x, int y);
+    virtual Activity *  Click(uint button, uint count, int x, int y);
     virtual Activity *  MouseMove(int x, int y, bool active);
 
     Box                 rectangle;

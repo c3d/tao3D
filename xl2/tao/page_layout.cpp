@@ -22,7 +22,9 @@
 
 #include "page_layout.h"
 #include "attributes.h"
+#include "text_drawing.h"
 #include "gl_keepers.h"
+#include "window.h"
 #include <QFontMetrics>
 #include <QFont>
 
@@ -209,15 +211,47 @@ void LayoutLine::DrawSelection(Layout *where)
     // Compute layout
     SafeCompute(where);
 
+    // Get widget and text selection
+    Widget *widget = where->Display();
+    TextSelect *sel = widget->textSelection();
+    if (sel)
+        sel->newLine();
+
     // Display all items
     LineJustifier::Places &places = line.places;
     LineJustifier::PlacesIterator p;
+    uint startId = widget->currentCharId();
     for (p = places.begin(); p != places.end(); p++)
     {
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
         where->offset.x = place.position;
         child->DrawSelection(where);
+    }
+    uint endId = widget->currentCharId();
+
+    if (sel)
+    {
+        if (sel->selBox.Width() > 0 && sel->selBox.Height() > 0)
+        {
+            if (PageLayout *pl = dynamic_cast<PageLayout *> (where))
+            {
+                if (sel->point != sel->mark)
+                {
+                    coord y = sel->selBox.Bottom();
+                    if (sel->start() <= startId && sel->end() >= startId)
+                        sel->selBox |= Point3(pl->space.Left(), y, 0);
+                    if (sel->end() >= endId && sel->start() <= endId)
+                        sel->selBox |= Point3(pl->space.Right(), y, 0);
+                }
+            }
+
+            glBlendFunc(GL_DST_COLOR, GL_ZERO);
+            text mode = sel->textMode ? "text_selection" : "text_highlight";
+            widget->drawSelection(sel->selBox, mode);
+            sel->selBox.Empty();
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
     }
 }
 
@@ -596,6 +630,12 @@ void PageLayout::DrawSelection(Layout *where)
 //   REVISIT: There is a lot of copy-paste between Draw, DrawSelection, Identify
 //   Consider using a pointer-to-member (ugly) or some clever trick?
 {
+    // Remember the initial selection ID
+    Widget *widget = where->Display();
+    GLuint startId = widget->currentCharId();
+    TextSelect *oldSel = widget->textSelection();
+    bool firstClick = !oldSel || oldSel->direction == TextSelect::Mark;
+
     // Inherit state from our parent layout if there is one
     Inherit(where);
 
@@ -611,6 +651,14 @@ void PageLayout::DrawSelection(Layout *where)
         offset.y = place.position;
         child->DrawSelection(this);
     }
+
+    // Assign an ID for the page layout itself and draw a rectangle in it
+    GLuint endId = widget->currentCharId();
+    GLuint layoutId = widget->newId();
+    if (TextSelect *sel = widget->textSelection())
+        if (!widget->drag() || firstClick)
+            if (sel->start() <= endId && sel->end() >= startId)
+                widget->select(layoutId, 1);
 }
 
 
@@ -619,6 +667,9 @@ void PageLayout::Identify(Layout *where)
 //   Identify page elements for OpenGL
 // ----------------------------------------------------------------------------
 {
+    // Remember the initial selection ID
+    Widget *widget = where->Display();
+
     // Inherit state from our parent layout if there is one
     Inherit(where);
 
@@ -634,6 +685,24 @@ void PageLayout::Identify(Layout *where)
         offset.y = place.position;
         child->Identify(this);
     }
+
+    glLoadName(widget->newId());
+    coord x = space.Left(),  y = space.Bottom();
+    coord w = space.Width(), h = space.Height();
+    coord z = (space.Front() + space.Back()) / 2;
+    coord array[4][3] =
+    {
+        { x,     y,     z },
+        { x + w, y,     z },
+        { x + w, y + h, z },
+        { x,     y + h, z }
+    };
+
+    glColor4f(0.2,0.6,1.0,0.1);
+    glVertexPointer(3, GL_DOUBLE, 0, array);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glDrawArrays(GL_QUADS, 0, 4);
+    glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 

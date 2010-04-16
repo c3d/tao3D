@@ -9,12 +9,14 @@ if true then TrueBody                   -> do TrueBody
 if false then TrueBody                  -> false
 
 // Key management
-key "f" -> toggle_full_screen
-key X   -> debug X
+key "Control-F"                         -> toggle_full_screen
+key "Delete"                            -> delete_selection "Delete"
+key "Backspace"                         -> delete_selection "Backspace"
+key X                                   -> text_edit_key X
 
 // 3D Shapes
 sphere x:real, y:real, z:real, r:real   -> sphere x,y,z,2*r,2*r,2*r,25,25
-sphere r:real                           -> 
+sphere r:real                           ->
     sphere 0.0, 0.0, 0.0, 2*r, 2*r, 2*r, 25, 25
 
 //2D Shapes
@@ -33,8 +35,8 @@ circular_sector r:real, a:real, b:real  -> ellipse_arc 0.0, 0.0, 2*r,2*r, a, b
 
 rectangle w:real, h:real                -> rectangle 0.0, 0.0, w, h
 
-square x:real, y:real, s:real           -> rectangle x, y, s, s 
-square s:real                           -> rectangle 0.0, 0.0, s, s 
+square x:real, y:real, s:real           -> rectangle x, y, s, s
+square s:real                           -> rectangle 0.0, 0.0, s, s
 
 triangle w:real, h:real                 -> triangle 0.0, 0.0, w, h
 right_triangle w:real, h:real           -> right_triangle 0.0, 0.0, w, h
@@ -80,34 +82,62 @@ schläfli t, {p:integer/q:integer}       -> polygram t, p, q
 
 x..y / t -> x + (y-x) * (1 + sin(time/t * 2*pi)) / 2
 
-selection_background_color ->
+selection_color ->
     color 0.7..1.0 / 5.0, 0.8..1.0 / 9.0, 0.9..1.0 / 6.0, 0.4
-
-selection_outline_color ->
     line_color 0.8, 0.6, 0.3..0.7 / 3.0, 0.8
+
+text_selection_color ->
+    color 70%,90%,100%,50%
+    line_color 1,0,0,0
+
+text_highlight_color ->
+    color 70%,70%,70%,50%
+    line_color 1,0,0,0
+
+text_cursor_color ->
+    color 1..0/2, 0, 0..1/2, 90%
+    line_color 1,0,0,0
+
+text_cursor_highlight ->
+    color 0.6, 0.6..1.0/2, 0.6, 40%
+    line_color 1,0,0,0
 
 handle_color ->
     color 0.0..0.4 / 3.0, 0.0, 0.0, 0.6
     line_color 0,0,0,0
 
 draw_selection x,y,z,w,h,d ->
-    selection_background_color
-    selection_outline_color
+    selection_color
     cube x-w/2, y-h/2, z-d/2, w, h, d
 
+draw_text_selection x,y,w,h ->
+    if w > 1 then
+        text_selection_color
+        rectangle x, y, w, h
+    else
+        text_cursor_color
+        rectangle x, y, w, h
+
+draw_text_highlight x,y,w,h ->
+    if w > 1 then
+        text_highlight_color
+        rectangle x, y, w, h
+    else
+        text_cursor_highlight
+        rectangle x, y, w, h
+
 draw_3D_selection x,y,z,w,h,d ->
-    selection_background_color
-    selection_outline_color
+    selection_color
     cube x, y, z, w, h, d
 
 draw_widget_selection x,y,w,h ->
-    selection_outline_color
+    selection_color
     color 0,0,0,0
     rectangle x, y, w, h
 
 draw_selection x,y,w,h ->
-    selection_background_color
-    selection_outline_color
+    selection_color
+    svg "bubbles.svg"
     rectangle x, y, w+4, h+4
 
 draw_selection_rectangle x, y, w, h ->
@@ -118,24 +148,21 @@ draw_handle x, y, z ->
     cube x, y, z, 8,8,8
 
 draw_rotation_base x, y, z ->
-    selection_outline_color
-    selection_background_color
+    selection_color
     locally
         rotatex 90
         sphere x, y, z, 50, 50, 50, 16, 8
 draw_rotation_tip x, y, z -> draw_handle x, y, z
 
 draw_translation_base x, y, z ->
-    selection_outline_color
-    selection_background_color
+    selection_color
     cube x, y, z, 50, 50, 50
 draw_translation_x x, y, z -> draw_handle x + 40, y, z
 draw_translation_y x, y, z -> draw_handle x, y + 40, z
 draw_translation_z x, y, z -> draw_handle x, y, z + 40
 
 draw_scale_base x, y, z ->
-    selection_outline_color
-    selection_background_color
+    selection_color
     cube x, y, z, 50, 20, 20
     cube x, y, z, 20, 50, 20
     cube x, y, z, 20, 20, 50
@@ -143,64 +170,63 @@ draw_scale_x x, y, z -> draw_handle x + 40, y, z
 draw_scale_y x, y, z -> draw_handle x, y + 40, z
 draw_scale_z x, y, z -> draw_handle x, y, z + 40
 
-theme_colors -> 
-    color 0.5, 0.5, 0.5, 1
+toolbar n:text                          -> toolbar n, ""
+
+menu n:text                             -> menu n, "", ""
+menu n:text, l:text                     -> menu n, l, ""
+
+submenu n:text                          -> submenu n, "", ""
+submenu n:text, l:text                  -> submenu n, l, ""
+
+menu_item n:text, l:text, t             -> menu_item n, l, "", false, "false", t
+menu_item n:text, l:text, i:text, t      -> menu_item n, l, i, false, "false", t
+menu_item n:text, l:text, cb:boolean, ck:text, t-> menu_item n, l, "", cb, ck, t
+
+push_button x:real, y:real, w:real, h:real, l:text, a:tree ->
+      push_button x, y, w, h, l, l, a
+radio_button x:real, y:real, w:real, h:real, l:text, m:text, a:tree ->
+      radio_button x, y, w, h, l, l, m, a
+check_box_button x:real, y:real, w:real, h:real, l:text, m:text, a:tree ->
+      check_box_button  x, y, w, h, l, l, m, a
+
+button_group b:tree  -> button_group b, true, null
+
+theme_colors ->
+    texture ""
+    color 0.6, 0.6, 0.6, 1
     line_color 0, 0, 0, 1
 
 menu_insert -> {
-menu    "Insert"
-submenu   "Shape"
-menu_item   "Line", insert
-    locally
-        theme_colors
-        line 50, -50, -50, 50
-//menu_item   "Line with Arrowhead", insert { text "Line with Arrowhead" }
-//menu_item   "Line with Two Arrowheads", insert { text "Line with Two Arrowheads" }
-menu_item   "Rectangle", insert
-    locally
-        theme_colors
-        rectangle 0, 0, 100, 100
-menu_item   "Rounded Rectangle", insert
-    locally
-        theme_colors
-        rounded_rectangle 0, 0, 100, 100, 15
-menu_item   "Oval", insert
-    locally
-        theme_colors
-        oval 0, 0, 100, 100
-menu_item   "Triangle", insert
-    locally
-        theme_colors
-        triangle 0, 0, 100, 100
-menu_item   "Right Triangle", insert
-    locally
-        theme_colors
-        right_triangle 0, 0, 100, 100
-menu_item   "Arrow", insert
-    locally
-        theme_colors
-        arrow 0, 0, 100, 100, 44, 32%
-menu_item   "Double Arrow", insert
-    locally
-        theme_colors
-        double_arrow 0, 0, 100, 100, 44, 32%
-menu_item   "Diamond", insert
-    locally
-        theme_colors
-        diamond 0, 0, 50
-
-menu_item_0   "Speech Balloon", insert
-    locally
-        theme_colors
-        speech_balloon 0, 20, 100, 50, 15, -50, -50
-menu_item_0   "Callout", insert { text "Callout" }
-menu_item_0   "Star", insert 
-
-    locally
-        theme_colors
-        star 0, 0, 100, 100, 5, 50%
-menu_item   "Polygon", insert 
-    locally
-        theme_colors
-        polygon 0, 0, 100, 100, 5
+menu      "insert", "Insert"
+submenu   "insert > shape", "Shape"
+menu_item "insert > shape > line ---", "Line", insert
+    line 50, -50, -50, 50
+menu_item "insert > shape > line -->", "Line with Arrowhead", insert
+    line 50, -50, -50, 50
+menu_item "insert > shape > line <->", "Line with Two Arrowheads", insert
+    line 50, -50, -50, 50
+menu_item "insert > shape > rectangle", "Rectangle", insert
+    rectangle 0, 0, 100, 100
+menu_item "insert > shape > rounded rectangle", "Rounded Rectangle", insert
+    rounded_rectangle 0, 0, 100, 100, 15
+menu_item "insert > shape > oval", "Oval", insert
+    oval 0, 0, 100, 100
+menu_item "insert > shape > triangle", "Triangle", insert
+    triangle 0, 0, 100, 100
+menu_item "insert > shape > right triangle", "Right Triangle", insert
+    right_triangle 0, 0, 100, 100
+menu_item "insert > shape > arrow", "Arrow", insert
+    arrow 0, 0, 100, 100, 44, 32%
+menu_item "insert > shape > double arrow", "Double Arrow", insert
+    double_arrow 0, 0, 100, 100, 44, 32%
+menu_item "insert > shape > diamond", "Diamond", insert
+    diamond 0, 0, 100, 100
+menu_item "insert > shape > speech ballon", "Speech Balloon", insert
+    speech_balloon 0, 16, 100, 68, 50, -50, -50
+menu_item "insert > shape > callout", "Callout", insert
+    callout 16, 0, 68, 100, 15, -50, 0, 60
+menu_item "insert > shape > star", "Star", insert
+    star 0, 0, 100, 100, 5, 50%
+menu_item "insert > shape > polygon", "Polygon", insert
+    polygon 0, 0, 100, 100, 5
 }

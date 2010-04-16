@@ -178,6 +178,10 @@ PREFIX(RoundedRectangle, tree, "rounded_rectangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(r, real),
        RTAO(roundedRectangle(self, x, y, w, h, r)))
+PREFIX(EllipticalRectangle, tree, "elliptical_rectangle",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
+       PARM(r, real),
+       RTAO(ellipticalRectangle(self, x, y, w, h, r)))
 PREFIX(Arrow, tree, "arrow",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(ax, real) PARM(ay, real),
@@ -198,6 +202,10 @@ PREFIX(SpeechBalloon, tree, "speech_balloon",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
        PARM(r, real) PARM(ax, real) PARM(ay, real),
        RTAO(speechBalloon(self, x, y, w, h, r, ax, ay)))
+PREFIX(Callout, tree, "callout",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
+       PARM(r, real) PARM(ax, real) PARM(ay, real) PARM(d, real),
+       RTAO(callout(self, x, y, w, h, r, ax, ay, d)))
 
 
 
@@ -278,6 +286,8 @@ PREFIX(ColumnBreak, tree, "column_break",,
        RTAO(drawingBreak(self, Tao::Drawing::ColumnBreak)))
 PREFIX(PageBreak, tree, "page_break",,
        RTAO(drawingBreak(self, Tao::Drawing::PageBreak)))
+PREFIX(TextEditKey, boolean, "text_edit_key", PARM(k, text),
+       RTAO(textEditKey(self, k)))
 
 
 
@@ -379,13 +389,30 @@ PREFIX(GroupBoxTexture, tree, "groupboxtexture",
 //
 // ============================================================================
 
-PREFIX(MenuItem, tree, "menu_item", PARM(s, text) PARM(t, tree),
-       RTAO(menuItem(self, &s, &t)))
-PREFIX(Menu0, tree, "menu", PARM(s, text),
-       RTAO(menu(self, &s, false)))
-PREFIX(SubMenu, tree, "submenu", PARM(s, text),
-       RTAO(menu(self, &s, true)))
+PREFIX(MenuItem, tree, "menu_item",
+       PARM(n, text) PARM(lbl, text) PARM(icon, text) PARM(cable, boolean)
+       PARM(isc, text)  PARM(t, tree),
+       RTAO(menuItem(self, n, lbl, icon, cable, &isc, &t)))
 
+PREFIX(Menu, tree, "menu", PARM(n, text) PARM(lbl, text) PARM(icon, text),
+       RTAO(menu(self, n, lbl, icon, false)))
+
+//PREFIX(Menu, tree, "menu", PARM(name, text),
+//       RTAO(menu(self, name, "", "", false)))
+
+PREFIX(SubMenu, tree, "submenu",
+       PARM(name, text) PARM(lbl, text) PARM(icon, text),
+       RTAO(menu(self, name, lbl, icon, true)))
+
+//PREFIX(SubMenu, tree, "submenu",
+//       PARM(name, text),
+//       RTAO(menu(self, name, "", "", true)))
+
+PREFIX(ToolBar, tree, "toolbar", PARM(name, text) PARM(lbl, text),
+       RTAO(toolBar(self, name, lbl, true)))
+
+PREFIX(Separator, tree, "separator", ,
+       RTAO(separator(self)))
 
 
 // ============================================================================
@@ -395,7 +422,8 @@ PREFIX(SubMenu, tree, "submenu", PARM(s, text),
 // ============================================================================
 
 PREFIX(Insert, boolean, "insert", PARM(t, tree), RTAO(insert(self, &t)))
-PREFIX(Delete, boolean, "delete", , RTAO(deleteSelection(self)))
+PREFIX(Delete, boolean, "delete_selection", PARM(k, text),
+       RTAO(deleteSelection(self, k)))
 
 
 

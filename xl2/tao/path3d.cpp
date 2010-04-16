@@ -489,12 +489,12 @@ void GraphicPath::clear()
 }
 
 
-void GraphicPath::AddControl(real_r x, real_r y, real_r z)
+void GraphicPath::AddControl(XL::Tree *self, real_r x, real_r y, real_r z)
 // ----------------------------------------------------------------------------
 //   Add a control point to a path
 // ----------------------------------------------------------------------------
 {
-    controls.push_back(new ControlPoint(x, y, z, controls.size() + 1));
+    controls.push_back(new ControlPoint(self, x, y, z, controls.size() + 1));
 }
 
 
@@ -506,7 +506,7 @@ void GraphicPath::DrawSelection(Layout *where)
     Widget *widget = where->Display();
     if (widget->selected())
     {
-        glPushName(0);
+        glPushName(widget->currentId());
         control_points::iterator i;
         for (i = controls.begin(); i != controls.end(); i++)
         {
@@ -527,7 +527,7 @@ void GraphicPath::Identify(Layout *where)
     Widget *widget = where->Display();
     if (widget->selected())
     {
-        glPushName(0);
+        glPushName(widget->currentId());
         control_points::iterator i;
         for (i = controls.begin(); i != controls.end(); i++)
         {

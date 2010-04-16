@@ -21,6 +21,7 @@
 // ****************************************************************************
 
 #include "svg.h"
+#include "tao_utf8.h"
 
 
 TAO_BEGIN
@@ -60,7 +61,7 @@ GLuint SvgRendererInfo::bind (text file)
             renderers.erase(first);
         }
 
-        QString svgFile(QString::fromStdString(file));
+        QString svgFile(+file);
         QFileInfo svgInfo(svgFile);
         if (svgInfo.exists())
         {

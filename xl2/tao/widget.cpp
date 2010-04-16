@@ -1221,6 +1221,15 @@ void Widget::reloadProgram(XL::Tree *newProg)
             prog = newProg;
         }
     }
+    else
+    {
+        // We want to force a clone so that we recompile everything
+        XL::NormalizedClone clone;
+        newProg = prog->Do(clone);
+        newProg->Set<XL::SymbolsInfo>(prog->Get<XL::SymbolsInfo>());
+        xlProgram->tree.tree = newProg;
+        prog = newProg;
+    }
 
     // Now update the window
     text txt = *prog;
@@ -1356,7 +1365,6 @@ void Widget::markChanged(text reason)
             ImportedFilesChanged(prog, done, true);
         }
     }
-    reloadProgram();
     refresh(0);
 }
 
@@ -3553,6 +3561,7 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
 
     XL::Tree * &what = parent ? parent->right : xlProgram->tree.tree;
     what = new XL::Infix("\n", what, toInsert);
+    reloadProgram();
     markChanged("Inserted tree");
 
     return XL::xl_true;

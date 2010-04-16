@@ -164,7 +164,12 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
             widget->savedSelection.clear();
         widget->selection = widget->savedSelection;
         if (selected)
-            widget->selection[selected]++;
+        {
+            if (shiftModifier && widget->selection[selected])
+                widget->selection[selected] = 0;
+            else
+                widget->selection[selected]++;
+        }
         widget->manipulator = manipulator;
     }
 

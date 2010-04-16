@@ -159,6 +159,11 @@ public:
     static Widget *Tao() { return current; }
 
     // Getting attributes
+    Text *      page(Tree *self, text name, Tree *body);
+    Text *      pageLink(Tree *self, text key, text name);
+    Text *      pageLabel(Tree *self);
+    Integer *   pageNumber(Tree *self);
+    Integer *   pageCount(Tree *self);
     Real *      pageWidth(Tree *self);
     Real *      pageHeight(Tree *self);
     Real *      frameWidth(Tree *self);
@@ -363,9 +368,10 @@ private:
     friend class Manipulator;
     friend class ControlPoint;
 
-    typedef XL::LocalSave<QEvent *> EventSave;
-    typedef std::map<GLuint, uint>  selection_map;
-    typedef std::map<text, PageLayout*> flow_map;
+    typedef XL::LocalSave<QEvent *>             EventSave;
+    typedef std::map<GLuint, uint>              selection_map;
+    typedef std::map<text, PageLayout*>         flow_map;
+    typedef std::map<text, text>                page_map;
 
     // XL Runtime
     XL::SourceFile       *xlProgram;
@@ -377,6 +383,9 @@ private:
     scale                 pageW, pageH;
     text                  flowName;
     flow_map              flows;
+    text                  pageName, lastPageName;
+    page_map              pageLinks;
+    uint                  pageId, pageShown, pageTotal;
     QGridLayout *         currentGridLayout;
     QButtonGroup *        currentGroup;
 

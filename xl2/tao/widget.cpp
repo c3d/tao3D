@@ -81,7 +81,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
       xlProgram(sf),
-      space(NULL), layout(NULL), path(NULL), currentGridLayout(NULL),
+      space(NULL), layout(NULL), path(NULL),
+      pageName(""), pageId(0), pageTotal(0),
+      currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
       id(0), charId(0), capacity(0), manipulator(0),
       event(NULL), focusWidget(NULL),
@@ -305,6 +307,7 @@ void Widget::draw()
     pageH = (29.7 / 2.54) * logicalDpiY();
     flowName = "";
     flows.clear();
+    pageId = 0;
 
     // Clear the background
     glClearColor (1.0, 1.0, 1.0, 1.0);
@@ -347,6 +350,9 @@ void Widget::draw()
     glDisable(GL_DEPTH_TEST);
     for (Activity *a = activities; a; a = a->Display()) ;
     selectionSpace.Draw(NULL);
+
+    // Update page count for next run
+    pageTotal = pageId;
 }
 
 
@@ -1631,6 +1637,79 @@ void Widget::drawHandle(const Point3 &p, text handleName)
 Widget *Widget::current = NULL;
 typedef XL::Tree Tree;
 
+XL::Text *Widget::page(Tree *self, text name, Tree *body)
+// ----------------------------------------------------------------------------
+//   Start a new page, returns the previously named page
+// ----------------------------------------------------------------------------
+{
+    // We start with first page if we had no page set
+    if (pageName == "")
+        pageName = name;
+
+    // Increment pageId
+    pageId++;
+
+    // If the page is set, then we display it
+    if (pageName == name)
+    {
+        // Initialize back-link 
+        pageShown = pageId;
+        pageLinks.clear();
+        if (pageId > 1)
+            pageLinks["PageUp"] = lastPageName;
+        xl_evaluate(body);
+    }
+    else if (pageName == lastPageName)
+    {
+        // We are executing the page following the current one:
+        // Check if PageDown is set, otherwise set current page as default
+        if (pageLinks.count("PageDown") == 0)
+            pageLinks["PageDown"] = name;
+    }
+
+    lastPageName = name;
+    return new Text(pageName);
+}
+
+
+XL::Text *Widget::pageLink(Tree *self, text key, text name)
+// ----------------------------------------------------------------------------
+//   Indicate the chaining of pages, returns previous information
+// ----------------------------------------------------------------------------
+{
+    text old = pageLinks[key];
+    pageLinks[key] = name;
+    return new Text(old);
+}
+
+
+XL::Text *Widget::pageLabel(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return the label of the current page
+// ----------------------------------------------------------------------------
+{
+    return new Text(pageName);
+}
+
+
+XL::Integer *Widget::pageNumber(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return the number of the current page
+// ----------------------------------------------------------------------------
+{
+    return new Integer(pageShown);
+}
+
+
+XL::Integer *Widget::pageCount(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return the number of pages in the current document
+// ----------------------------------------------------------------------------
+{
+    return new Integer(pageTotal);
+}
+
+
 XL::Real *Widget::pageWidth(Tree *self)
 // ----------------------------------------------------------------------------
 //   Return the width of the page
@@ -2646,6 +2725,13 @@ XL::Name *Widget::textEditKey(Tree *self, text key)
 //   Send a key to the activities
 // ----------------------------------------------------------------------------
 {
+    // Check if we are changing pages here...
+    if (pageLinks.count(key))
+    {
+        pageName = pageLinks[key];
+        return XL::xl_true;
+    }
+
     for (Activity *a = activities; a; a = a->Key(key)) ;
     return XL::xl_true;
 }

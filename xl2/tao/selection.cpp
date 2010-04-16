@@ -235,7 +235,8 @@ Activity *Selection::MouseMove(int x, int y, bool active)
             uint size = ptr[0];
             selected = ptr[3];
             if (selected)
-                widget->selection[selected] = 1;
+                widget->selection[selected] =
+                        widget->savedSelection[selected] ^ 1;
             ptr += 3 + size;
         }
     }

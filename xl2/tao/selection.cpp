@@ -165,7 +165,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         widget->selection = widget->savedSelection;
         if (selected)
         {
-            if (shiftModifier && widget->selection[selected])
+            if (shiftModifier && widget->selection[selected] && !manipulator)
                 widget->selection[selected] = 0;
             else
                 widget->selection[selected]++;

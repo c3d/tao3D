@@ -511,7 +511,35 @@ bool FrameManipulator::DrawHandles(Layout *layout)
             break;
 
         case TM_ResizeLockAspectRatio:
-            // TODO
+            {
+                coord X  = p2.x - x,     Y = p2.y - y;
+                coord dx = p2.x - p1.x, dy = p2.y - p1.y;
+                coord ux, uy, uw, uh;
+                if (X < 0) X = -X;
+                if (Y < 0) Y = -Y;
+                if ((Y/h) > (X/w))
+                {
+                    scale r = w/h;
+                    ux = r*sh*sw*dy/2;
+                    uy = dy/2;
+                    uw = r*sh*dy;
+                    uh = sh*dy;
+                }
+                else
+                {
+                    scale r = h/w;
+                    ux = dx/2;
+                    uy = r*sh*sw*dx/2;
+                    uw = sw*dx;
+                    uh = r*sw*dx;
+
+                }
+                updateArg(widget, &x, 0, 0, ux);
+                updateArg(widget, &y, 0, 0, uy);
+                updateArg(widget, &w, 0, 0, uw);
+                updateArg(widget, &h, 0, 0, uh);
+                break;
+            }
 
         case TM_ResizeLockCenterAndAspectRatio:
             // TODO

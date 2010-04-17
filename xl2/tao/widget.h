@@ -127,6 +127,7 @@ public:
     void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
     uint        selected(uint i);
     uint        selected(XL::Tree *tree) { return selectionTrees.count(tree); }
+    void        deselect(XL::Tree *tree) { selectionTrees.erase(tree); }
     void        select(uint id, uint count);
     void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);
@@ -159,6 +160,11 @@ public:
     static Widget *Tao() { return current; }
 
     // Getting attributes
+    Text *      page(Tree *self, text name, Tree *body);
+    Text *      pageLink(Tree *self, text key, text name);
+    Text *      pageLabel(Tree *self);
+    Integer *   pageNumber(Tree *self);
+    Integer *   pageCount(Tree *self);
     Real *      pageWidth(Tree *self);
     Real *      pageHeight(Tree *self);
     Real *      frameWidth(Tree *self);
@@ -363,9 +369,10 @@ private:
     friend class Manipulator;
     friend class ControlPoint;
 
-    typedef XL::LocalSave<QEvent *> EventSave;
-    typedef std::map<GLuint, uint>  selection_map;
-    typedef std::map<text, PageLayout*> flow_map;
+    typedef XL::LocalSave<QEvent *>             EventSave;
+    typedef std::map<GLuint, uint>              selection_map;
+    typedef std::map<text, PageLayout*>         flow_map;
+    typedef std::map<text, text>                page_map;
 
     // XL Runtime
     XL::SourceFile       *xlProgram;
@@ -377,6 +384,10 @@ private:
     scale                 pageW, pageH;
     text                  flowName;
     flow_map              flows;
+    text                  pageName, lastPageName;
+    page_map              pageLinks;
+    uint                  pageId, pageShown, pageTotal;
+    Tree *                pageTree;
     QGridLayout *         currentGridLayout;
     QButtonGroup *        currentGroup;
 
@@ -498,6 +509,70 @@ struct DeleteSelectionAction : XL::TreeClone
         return XL::TreeClone::DoInfix(what);
     }
     Widget *widget;
+};
+
+
+struct InsertAtSelectionAction : XL::TreeClone
+// ----------------------------------------------------------------------------
+//    A specialized clone action that inserts an input
+// ----------------------------------------------------------------------------
+{
+    InsertAtSelectionAction(Widget *widget,
+                            XL::Tree *toInsert, XL::Tree *parent)
+        : widget(widget), toInsert(toInsert), parent(parent) {}
+
+    
+    XL::Tree *DoName(XL::Name *what)
+    {
+        if (what == parent)
+            parent = NULL;
+        return XL::TreeClone::DoName(what);
+    }
+
+    XL::Tree *DoPrefix(XL::Prefix *what)
+    {
+        if (what == parent)
+            parent = NULL;
+        return XL::TreeClone::DoPrefix(what);
+    }
+
+    XL::Tree *DoPostfix(XL::Postfix *what)
+    {
+        if (what == parent)
+            parent = NULL;
+        return XL::TreeClone::DoPostfix(what);
+    }
+
+    XL::Tree *DoBlock(XL::Block *what)
+    {
+        if (what == parent)
+            parent = NULL;
+        return XL::TreeClone::DoBlock(what);
+    }
+
+    XL::Tree *DoInfix(XL::Infix *what)
+    {
+        if (what == parent)
+            parent = NULL;
+
+        if (!parent)
+        {
+            if (what->name == "\n" || what->name == ";")
+            {
+                // Check if we hit the selection. If so, insert
+                if (toInsert && widget->selected(what->left))
+                {
+                    XL::Tree *ins = toInsert;
+                    toInsert = NULL;
+                    return new XL::Infix("\n", ins, what->Do(this));
+                }
+            }
+        }
+        return XL::TreeClone::DoInfix(what);
+    }
+    Widget   *widget;
+    XL::Tree *toInsert;
+    XL::Tree *parent;
 };
 
 } // namespace Tao

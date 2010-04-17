@@ -27,6 +27,13 @@
 //
 // ============================================================================
 
+PREFIX(Page, text, "page", PARM(n, text) PARM(b, tree), RTAO(page(self,n,&b)))
+PREFIX(PageLink, text, "page_link", PARM(k, text) PARM(n, text),
+       RTAO(pageLink(self, k, n)))
+
+PREFIX(PageLabel,   text,     "page_label", ,   RTAO(pageLabel(self)))
+PREFIX(PageId,      integer,  "page_number", ,  RTAO(pageNumber(self)))
+PREFIX(PageCount,   integer,  "page_count", ,   RTAO(pageCount(self)))
 PREFIX(PageWidth,   real,     "page_width", ,   RTAO(pageWidth(self)))
 PREFIX(PageHeight,  real,     "page_height", ,  RTAO(pageHeight(self)))
 PREFIX(FrameWidth,  real,     "frame_width", ,  RTAO(frameWidth(self)))

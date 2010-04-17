@@ -538,34 +538,42 @@ bool FrameManipulator::DrawHandles(Layout *layout)
 
         case TM_ResizeLockAspectRatio:
             {
-                coord X  = p2.x - x,     Y = p2.y - y;
+                int id = widget->currentId();
+                scale &r = drag->aspect[id];
+                if (!r)
+                {
+                    // Starting drag action: save aspect ratio
+                    if (!h || !w)
+                        break;
+                    r = w/h;
+                }
                 coord ux, uy, uw, uh;
+                coord a, b, c;
+                coord h0 = h, w0 = r*h;
+                coord X = p2.x - x, Y = p2.y - y;
                 if (X < 0) X = -X;
                 if (Y < 0) Y = -Y;
-                if ((Y/h) > (X/w))
+                if ((Y/h0) > (X/w0))
                 {
-                    scale r = w/h;
                     ux = r*sh*sw/2;
                     uy = 0.5;
                     uw = r*sh;
                     uh = sh;
-                    updateArg(widget, &x, ux*p0.y, ux*p1.y, ux*p2.y);
-                    updateArg(widget, &y, uy*p0.y, uy*p1.y, uy*p2.y);
-                    updateArg(widget, &w, uw*p0.y, uw*p1.y, uw*p2.y);
-                    updateArg(widget, &h, uh*p0.y, uh*p1.y, uh*p2.y);
+                    a = p0.y; b = p1.y ; c = p2.y;
                 }
                 else
                 {
-                    scale r = h/w;
+                    scale ir = 1/r;
                     ux = 0.5;
-                    uy = r*sh*sw/2;
+                    uy = ir*sh*sw/2;
                     uw = sw;
-                    uh = r*sw;
-                    updateArg(widget, &x, ux*p0.x, ux*p1.x, ux*p2.x);
-                    updateArg(widget, &y, uy*p0.x, uy*p1.x, uy*p2.x);
-                    updateArg(widget, &w, uw*p0.x, uw*p1.x, uw*p2.x);
-                    updateArg(widget, &h, uh*p0.x, uh*p1.x, uh*p2.x);
+                    uh = ir*sw;
+                    a = p0.x; b = p1.x ; c = p2.x;
                 }
+                updateArg(widget, &x, ux*a, ux*b, ux*c);
+                updateArg(widget, &y, uy*a, uy*b, uy*c);
+                updateArg(widget, &w, uw*a, uw*b, uw*c);
+                updateArg(widget, &h, uh*a, uh*b, uh*c);
                 break;
             }
 

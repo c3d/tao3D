@@ -51,7 +51,7 @@ public:
     int                 x0, y0;
     int                 x1, y1;
     int                 x2, y2;
-    QMap<GLuint, scale> aspect;  // w/h aspect ratio of shapes being resized
+    QMap<GLuint, coord> w0, h0;  // Width/height of shapes being resized
 };
 
 TAO_END

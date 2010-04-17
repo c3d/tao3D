@@ -527,7 +527,7 @@ bool Window::maybeSave()
 
 bool Window::loadFile(const QString &fileName, bool openProj)
 // ----------------------------------------------------------------------------
-//    Load a specific file
+//    Load a specific file (and optionally, open project repository)
 // ----------------------------------------------------------------------------
 {
     if ( openProj &&
@@ -535,7 +535,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
                      QFileInfo(fileName).fileName()))
         return false;
 
-    if (!loadFileIntoSourceFileView(fileName))
+    if (!loadFileIntoSourceFileView(fileName, openProj))
         return false;
 
     setCurrentFile(fileName);
@@ -544,7 +544,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     return true;
 }
 
-bool Window::loadFileIntoSourceFileView(const QString &fileName)
+bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 // ----------------------------------------------------------------------------
 //    Update the source file view with the contents of a specific file
 // ----------------------------------------------------------------------------
@@ -552,10 +552,12 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName)
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text))
     {
-        QMessageBox::warning(this, tr("Cannot read file"),
-                             tr("Cannot read file %1:\n%2.")
-                             .arg(fileName)
-                             .arg(file.errorString()));
+        if (box)
+            QMessageBox::warning(this, tr("Cannot read file"),
+                                 tr("Cannot read file %1:\n%2.")
+                                 .arg(fileName)
+                                 .arg(file.errorString()));
+        textEdit->clear();
         return false;
     }
 

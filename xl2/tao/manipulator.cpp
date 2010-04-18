@@ -498,8 +498,8 @@ bool FrameManipulator::DrawHandles(Layout *layout)
 
     for (uint hn = 0; hn < 4; hn++)
     {
-        short  sw = (hn & 1) ? 1 : -1;
-        short  sh = (hn & 2) ? 1 : -1;
+        short  sw = (hn & 1) ? 1 : -1;  // sh < 0 ? lower : upper
+        short  sh = (hn & 2) ? 1 : -1;  // sw < 0 ? left : right
 
         if (!DrawHandle(layout, Point3(xx + sw*ww/2, yy + sh*hh/2, 0), hn+1))
             continue;
@@ -515,10 +515,9 @@ bool FrameManipulator::DrawHandles(Layout *layout)
             continue;
 
         Point3 p0 = drag->Origin();
-        text   t1 = sh < 0 ? "Lower " : "Upper ";
-        text   t2 = sw < 0 ? "left " : "right ";
 
-        switch (CurrentTransformMode())
+        int mode = CurrentTransformMode();
+        switch (mode)
         {
         case TM_ResizeLockCenter:
             updateArg(widget, &w, 2*sw*p0.x, 2*sw*p1.x, 2*sw*p2.x);
@@ -611,7 +610,8 @@ bool FrameManipulator::DrawHandles(Layout *layout)
             break;
         }
 
-        widget->markChanged(t1 + t2 + "corner moved");
+        text change = (mode & TM_ROTATE_BIT) ? "rotate" : "resize";
+        widget->markChanged("Shape " + change);
     }
 
     return handle != 0;

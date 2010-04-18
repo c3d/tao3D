@@ -527,15 +527,19 @@ bool FrameManipulator::DrawHandles(Layout *layout)
 
         case TM_FreeCenteredRotate:
             // TODO
+            goto freeresize;
 
         case TM_SteppedCenteredRotate:
             // TODO
+            goto freeresize;
 
         case TM_FreeOppositeRotate:
             // TODO
+            goto freeresize;
 
         case TM_SteppedOppositeRotate:
             // TODO
+            goto freeresize;
 
         case TM_ResizeLockAspectRatio:
             {
@@ -599,6 +603,7 @@ bool FrameManipulator::DrawHandles(Layout *layout)
 
         case TM_FreeResize:
         default:
+        freeresize:
             updateArg(widget, &x, p0.x/2, p1.x/2, p2.x/2);
             updateArg(widget, &y, p0.y/2, p1.y/2, p2.y/2);
             updateArg(widget, &w, sw*p0.x, sw*p1.x, sw*p2.x);

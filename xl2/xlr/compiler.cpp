@@ -511,8 +511,16 @@ void Compiler::FreeResources(Tree *tree)
     if (functions.count(tree) > 0)
     {
         Function *f = functions[tree];
-        f->deleteBody();
-        runtime->freeMachineCodeForFunction(f);
+        bool inUse = !f->use_empty();
+
+        IFTRACE(llvmgc)
+            std::cerr << "Tree'" << tree << "' is "
+                      << (inUse ? "in use\n" : "unused\n");
+        if (!inUse)
+        {
+            f->deleteBody();
+            runtime->freeMachineCodeForFunction(f);
+        }
     }
     deleted.insert(tree);
 }
@@ -540,6 +548,8 @@ void Compiler::FreeResources(GCAction &gc)
             else
             {
                 // Mark the tree back in XLR so that we keep it around
+                IFTRACE(llvmgc)
+                    std::cerr << "Keeping function " << tree << " for LLVM\n";
                 tree->Do(gc);
             }
         }
@@ -554,6 +564,9 @@ void Compiler::FreeResources(GCAction &gc)
             }
             else
             {
+                IFTRACE(llvmgc)
+                    std::cerr << "Keeping global " << tree << " for LLVM\n";
+
                 // Mark the tree back in XLR so that we keep it around
                 tree->Do(gc);
             }

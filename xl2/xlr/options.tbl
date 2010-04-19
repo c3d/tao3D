@@ -147,6 +147,8 @@ TRACE(labels)
 TRACE(builtins)
 TRACE(closure)
 TRACE(diff)
+TRACE(llvmgc)
+TRACE(calls2xl)
 
 // Undefine for next use...
 #undef OPTVAR

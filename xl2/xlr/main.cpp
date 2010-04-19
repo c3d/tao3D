@@ -177,13 +177,10 @@ int Main::LoadFile(text file)
     {
         if (!reader)
             reader = new Deserializer(std::cin);
-        try
+        tree = reader->ReadTree();
+        if (!reader->IsValid())
         {
-            tree = reader->ReadTree();
-        }
-        catch (Deserializer::Error &e)
-        {
-            std::cerr << "Error in input stream, tag=" << e.tag << '\n';
+            std::cerr << "Error in input stream '" << file << "'\n";
             hadError = true;
             return hadError;
         }
@@ -191,13 +188,10 @@ int Main::LoadFile(text file)
     else
     {
         std::string nt = "";
-        try
-        {
-            std::ifstream ifs(file.c_str(), std::ifstream::in);
-            Deserializer ds(ifs);
-            tree = ds.ReadTree();
-        }
-        catch (Deserializer::Error &e)
+        std::ifstream ifs(file.c_str(), std::ifstream::in);
+        Deserializer ds(ifs);
+        tree = ds.ReadTree();
+        if (!ds.IsValid())
         {
             // File is not in serialized format, try to parse it as XL source
             nt = "not ";

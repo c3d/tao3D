@@ -583,22 +583,19 @@ Tree * Symbols::Error(text message, Tree *arg1, Tree *arg2, Tree *arg3)
 // ----------------------------------------------------------------------------
 {
     Tree *handler = ErrorHandler();
-    if (handler)
-    {
-        Tree *arg0 = new Text (message);
-        Tree *info = arg3;
-        if (arg2)
-            info = info ? new Infix(",", arg2, info) : arg2;
-        if (arg1)
-            info = info ? new Infix(",", arg1, info) : arg1;
-        info = info ? new Infix(",", arg0, info) : arg0;
+    if (!handler)
+        handler = new Name("error");
 
-        Prefix *errorCall = new Prefix(handler, info);
-        return Run(errorCall);
-    }
+    Tree *arg0 = new Text (message);
+    Tree *info = arg3;
+    if (arg2)
+        info = info ? new Infix(",", arg2, info) : arg2;
+    if (arg1)
+        info = info ? new Infix(",", arg1, info) : arg1;
+    info = info ? new Infix(",", arg0, info) : arg0;
 
-    // No handler: throw the error as en exception
-    throw XL::Error(message, arg1, arg2, arg3);
+    Prefix *errorCall = new Prefix(handler, info);
+    return Run(errorCall);
 }
 
 

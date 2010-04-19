@@ -80,7 +80,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf),
+      xlProgram(sf), inError(false),
       space(NULL), layout(NULL), path(NULL),
       pageName(""), pageId(0), pageTotal(0), pageTree(NULL),
       currentGridLayout(NULL),
@@ -363,6 +363,10 @@ void Widget::runProgram()
 //   Run the current XL program
 // ----------------------------------------------------------------------------
 {
+    // Don't run anything if we detected errors running previously
+    if (inError)
+        return;
+
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
 
@@ -1141,6 +1145,7 @@ void Widget::updateProgram(XL::SourceFile *source)
 {
     xlProgram = source;
     refreshProgram();
+    inError = false;
 }
 
 
@@ -1186,6 +1191,7 @@ void Widget::reloadProgram(XL::Tree *newProg)
             xlProgram->tree.tree = newProg;
             prog = newProg;
         }
+        inError = false;
     }
     else
     {
@@ -1316,6 +1322,7 @@ void Widget::refreshProgram()
                     XL::SourceFile &sf = **it;
                     text fname = sf.name;
                     XL::MAIN->LoadFile(fname);
+                    inError = false;
                 }
             }
         }
@@ -3241,12 +3248,13 @@ Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
 //   invalidated and the new one is executed for the first time.
 // ============================================================================
 
-Tree *Widget::runtimeError(Tree *self, text msg, Tree *s)
+Tree *Widget::runtimeError(Tree *self, text msg, Tree *arg)
 // ----------------------------------------------------------------------------
 //   Display an error message from the input
 // ----------------------------------------------------------------------------
 {
-    XL::Error err(msg, s, NULL, NULL);
+    inError = true;             // Stop refreshing
+    XL::Error err(msg, arg, NULL, NULL);
     QMessageBox::warning(this, tr("Runtime error"),
                          tr("Error executing the program:\n%1")
                          .arg(+err.Message()));

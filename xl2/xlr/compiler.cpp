@@ -575,6 +575,11 @@ void Compiler::FreeResources(GCAction &gc)
                 delete f;
                 functions.erase(tree);
             }
+            else
+            {
+                // Probably redundant, but better safe than sorry...
+                tree->Do(gc);
+            }
         }
 
         // This tree has been analyzed

@@ -379,6 +379,7 @@ private:
 
     // XL Runtime
     XL::SourceFile       *xlProgram;
+    bool                  inError;
 
     // Rendering
     SpaceLayout *         space;

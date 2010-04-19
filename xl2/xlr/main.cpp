@@ -252,14 +252,7 @@ int Main::LoadFile(text file)
     {
         if (options.optimize_level)
         {
-            try
-            {
-                tree = syms->CompileAll(tree);
-            }
-            catch (Error &e)
-            {
-                e.Display();
-            }
+            tree = syms->CompileAll(tree);
         }
         if (!tree)
             hadError = true;

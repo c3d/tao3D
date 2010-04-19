@@ -195,7 +195,9 @@ Tree *Symbols::Compile(Tree *source, CompiledUnit &unit,
 }
 
 
-Tree *Symbols::CompileAll(Tree *source, bool keepAlternatives)
+Tree *Symbols::CompileAll(Tree *source,
+                          bool nullIfBad,
+                          bool keepAlternatives)
 // ----------------------------------------------------------------------------
 //   Compile a top-level tree
 // ----------------------------------------------------------------------------
@@ -214,7 +216,7 @@ Tree *Symbols::CompileAll(Tree *source, bool keepAlternatives)
     if (unit.IsForwardCall())
         return source;
 
-    Tree *result = Compile(source, unit, false, keepAlternatives);
+    Tree *result = Compile(source, unit, nullIfBad, keepAlternatives);
     if (!result)
         return result;
 
@@ -224,71 +226,76 @@ Tree *Symbols::CompileAll(Tree *source, bool keepAlternatives)
 }
 
 
-Tree *Symbols::CompileCall(text callee, tree_list &arglist)
+Tree *Symbols::CompileCall(text callee, tree_list &arglist,
+                           bool nullIfBad, bool cached)
 // ----------------------------------------------------------------------------
 //   Compile a top-level call, reusing calls if possible
 // ----------------------------------------------------------------------------
 {
-    // Build key for this call
     uint arity = arglist.size();
-    const char keychars[] = "IRTN.[]|";
-    std::ostringstream keyBuilder;
-    keyBuilder << callee << ":";
-    for (uint i = 0; i < arity; i++)
-        keyBuilder << keychars[arglist[i]->Kind()];
-    text key = keyBuilder.str();
-
-    // Check if we already have a call compiled
-    if (Tree *previous = calls[key])
+    text key = "";
+    if (cached)
     {
-        if (arity)
+        // Build key for this call
+        const char keychars[] = "IRTN.[]|";
+        std::ostringstream keyBuilder;
+        keyBuilder << callee << ":";
+        for (uint i = 0; i < arity; i++)
+            keyBuilder << keychars[arglist[i]->Kind()];
+        key = keyBuilder.str();
+
+        // Check if we already have a call compiled
+        if (Tree *previous = calls[key])
         {
-            // Replace arguments in place if necessary
-            Prefix *pfx = previous->AsPrefix();
-            Tree **args = &pfx->right;
-            while (*args && arity--)
+            if (arity)
             {
-                Tree *value = arglist[arity];
-                Tree *existing = *args;
-                if (arity)
+                // Replace arguments in place if necessary
+                Prefix *pfx = previous->AsPrefix();
+                Tree **args = &pfx->right;
+                while (*args && arity--)
                 {
-                    Infix *infix = existing->AsInfix();
-                    args = &infix->left;
-                    existing = infix->right;
-                }
-                if (Real *rs = value->AsReal())
-                {
-                    if (Real *rt = existing->AsReal())
-                        rt->value = rs->value;
+                    Tree *value = arglist[arity];
+                    Tree *existing = *args;
+                    if (arity)
+                    {
+                        Infix *infix = existing->AsInfix();
+                        args = &infix->left;
+                        existing = infix->right;
+                    }
+                    if (Real *rs = value->AsReal())
+                    {
+                        if (Real *rt = existing->AsReal())
+                            rt->value = rs->value;
+                        else
+                            Error("Real '$1' cannot replace non-real '$2'",
+                                  value, existing);
+                    }
+                    else if (Integer *is = value->AsInteger())
+                    {
+                        if (Integer *it = existing->AsInteger())
+                            it->value = is->value;
+                        else
+                            Error("Integer '$1' cannot replace "
+                                  "non-integer '$2'", value, existing);
+                    }
+                    else if (Text *ts = value->AsText())
+                    {
+                        if (Text *tt = existing->AsText())
+                            tt->value = ts->value;
+                        else
+                            Error("Text '$1' cannot replace non-text '$2'",
+                                  value, existing);
+                    }
                     else
-                        Error("Real '$1' cannot replace non-real '$2'",
-                              value, existing);
-                }
-                else if (Integer *is = value->AsInteger())
-                {
-                    if (Integer *it = existing->AsInteger())
-                        it->value = is->value;
-                    else
-                        Error("Integer '$1' cannot replace non-integer '$2'",
-                              value, existing);
-                }
-                else if (Text *ts = value->AsText())
-                {
-                    if (Text *tt = existing->AsText())
-                        tt->value = ts->value;
-                    else
-                        Error("Text '$1' cannot replace non-text '$2'",
-                              value, existing);
-                }
-                else
-                {
-                    Error("Call has unsupported type for '$1'", value);
+                    {
+                        Error("Call has unsupported type for '$1'", value);
+                    }
                 }
             }
-        }
 
-        // Call the previously compiled code
-        return previous;
+            // Call the previously compiled code
+            return previous;
+        }
     }
 
     Tree *call = new Name(callee);
@@ -299,8 +306,9 @@ Tree *Symbols::CompileCall(text callee, tree_list &arglist)
             args = new Infix(",", args, arglist[a]);
         call = new Prefix(call, args);
     }
-    call = CompileAll(call, true);
-    calls[key] = call;
+    call = CompileAll(call, nullIfBad, true);
+    if (cached)
+        calls[key] = call;
     return call;
 }
 
@@ -582,29 +590,24 @@ Tree * Symbols::Error(text message, Tree *arg1, Tree *arg2, Tree *arg3)
 //   Execute the innermost error handler
 // ----------------------------------------------------------------------------
 {
-    Tree *handler = ErrorHandler();
-    if (!handler)
-        handler = new Name("error");
-
-    Tree *arg0 = new Text (message);
-    Tree *info = arg3;
-    if (arg2)
-        info = info ? new Infix(",", arg2, info) : arg2;
+    XLCall call("error");
+    call, message;
     if (arg1)
-        info = info ? new Infix(",", arg1, info) : arg1;
-    info = info ? new Infix(",", arg0, info) : arg0;
+        call, arg1;
+    if (arg2)
+        call, arg2;
+    if (arg3)
+        call, arg3;
 
-    Prefix *errorCall = new Prefix(handler, info);
-    return Run(errorCall);
-}
-
-
-Tree *Symbols::ErrorHandler()
-// ----------------------------------------------------------------------------
-//    Return the innermost error handler
-// ----------------------------------------------------------------------------
-{
-    return error_handler;
+    Tree *result = call(this, true, false);
+    if (!result)
+    {
+        // Fallback to displaying error on std::err
+        XL::Error err(message, arg1, arg2, arg3);
+        err.Display();
+        return XL::xl_false;
+    }
+    return result;
 }
 
 

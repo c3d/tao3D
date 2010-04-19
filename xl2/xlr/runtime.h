@@ -111,7 +111,8 @@ struct XLCall
     XLCall &operator, (text  v)    { return *this, new Text(v); }
 
     // Calling in a given symbol context
-    Tree * operator() (Symbols *syms = NULL);
+    Tree * operator() (Symbols *syms = NULL,
+                       bool nullIfBad = false, bool cached = true);
     Tree * build(Symbols *syms = NULL);
 
 public:

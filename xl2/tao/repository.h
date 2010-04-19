@@ -27,6 +27,7 @@
 #include "tao.h"
 #include "tree.h"
 #include "process.h"
+#include "main.h"
 #include <QString>
 #include <QProcess>
 #include <QtGlobal>
@@ -89,6 +90,8 @@ public:
 
 public:
     Repository(const QString &path): path(path), task("work"),
+                                     pullInterval(XL::MAIN->options
+                                                  .pull_interval),
                                      state(RS_Clean), whatsNew("") {}
     virtual ~Repository() {}
 
@@ -162,6 +165,7 @@ public:
     text               task;
     text               errors;
     QString            pullFrom;
+    int                pullInterval;        // ms
     ConflictResolution conflictResolution;
     State              state;
     text               whatsNew;

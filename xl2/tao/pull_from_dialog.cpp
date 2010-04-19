@@ -24,7 +24,6 @@
 #include "pull_from_dialog.h"
 #include "remote_selection_frame.h"
 #include "repository.h"
-#include "main.h"
 #include <QInputDialog>
 
 namespace Tao {
@@ -35,11 +34,10 @@ PullFromDialog::PullFromDialog(Repository *repo, QWidget *parent)
 // ----------------------------------------------------------------------------
     : QDialog(parent), repo(repo)
 {
-    XL::Main *xlr = XL::MAIN;
     setupUi(this);
     rsFrame->setRepository(repo, repo->pullFrom);
-    QString i = QString("%1").arg(xlr->options.pull_interval/1000);
-    updateInterval->setText(i);
+    QString interval = QString("%1").arg(repo->pullInterval/1000);
+    updateInterval->setText(interval);
 }
 
 
@@ -63,7 +61,7 @@ Repository::ConflictResolution PullFromDialog::conflictResolution()
 }
 
 
-int PullFromDialog::syncInterval()
+int PullFromDialog::pullInterval()
 // ----------------------------------------------------------------------------
 //    The interval (in seconds) between each synchronization
 // ----------------------------------------------------------------------------
@@ -77,10 +75,9 @@ void PullFromDialog::accept()
 //    Update the repository synchronization settings (URL, conflict mode)
 // ----------------------------------------------------------------------------
 {
-    XL::Main *xlr = XL::MAIN;
     repo->pullFrom           = pullFrom();
     repo->conflictResolution = conflictResolution();
-    xlr->options.pull_interval = syncInterval() * 1000;
+    repo->pullInterval       = pullInterval() * 1000;
     QDialog::accept();
 }
 

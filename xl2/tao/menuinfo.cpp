@@ -26,23 +26,30 @@
 #include "options.h"
 #include "context.h"
 #include "runtime.h"
+#include "tao_utf8.h"
 #include <iostream>
 
 TAO_BEGIN
 
-MenuInfo::MenuInfo(QString name, QAction *act) :
-        fullname(name), p_action(act), p_toolbar(NULL)
+MenuInfo::MenuInfo(QString name, QAction *act)
+// ----------------------------------------------------------------------------
+//   Constructor taking an action, e.g. when creating a menu
+// ----------------------------------------------------------------------------
+    : fullname(name), p_action(act), p_toolbar(NULL)
 {
     connect(p_action, SIGNAL(destroyed(QObject *)),
-            this, SLOT(actionDestroyed(QObject*)));
+            this, SLOT(actionDestroyed()));
 }
 
 
-MenuInfo::MenuInfo(QString name, QToolBar *bar) :
-        fullname(name), p_action(NULL), p_toolbar(bar)
+MenuInfo::MenuInfo(QString name, QToolBar *bar)
+// ----------------------------------------------------------------------------
+//   Constructor taking a toolbar, e.g. when adding items in a toolbar
+// ----------------------------------------------------------------------------
+    : fullname(name), p_action(NULL), p_toolbar(bar)
 {
     connect(p_toolbar, SIGNAL(destroyed(QObject *)),
-            this, SLOT(actionDestroyed(QObject*)));
+            this, SLOT(actionDestroyed()));
 }
 
 
@@ -86,9 +93,9 @@ void MenuInfo::actionDestroyed()
 void GroupInfo::bClicked(QAbstractButton *button)
 // ----------------------------------------------------------------------------
 // Slot invoked when a button from the group is selected.
+// ----------------------------------------------------------------------------
 // The Name "button_name" is replaced by a Text containing the name
 //   of the clicked button.
-// ----------------------------------------------------------------------------
 {
     if (!action)
         return;
@@ -106,7 +113,7 @@ void GroupInfo::bClicked(QAbstractButton *button)
             return new XL::Name(what->value, what->Position());
         }
         text name;
-    } replacer(button->objectName().toStdString());
+    } replacer(+button->objectName());
 
 
     // The tree to be evaluated needs its own symbol table before evaluation
@@ -120,7 +127,6 @@ void GroupInfo::bClicked(QAbstractButton *button)
 
     // Evaluate the input tree
     xl_evaluate(toBeEvaluated);
-
 }
 
 TAO_END

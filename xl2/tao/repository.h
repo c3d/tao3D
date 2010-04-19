@@ -165,6 +165,7 @@ public:
     ConflictResolution conflictResolution;
     State              state;
     text               whatsNew;
+    QString            lastPublishTo;
 
 protected:
     QList<Process *> pQueue;

@@ -964,8 +964,7 @@ bool Window::populateUndoStack()
     while (it.hasNext())
     {
         Repository::Commit c = it.next();
-        if (!c.msg.contains("Automatic"))
-                undoStack->push(new UndoCommand(repo.data(), c.id, c.msg));
+        undoStack->push(new UndoCommand(repo.data(), c.id, c.msg));
     }
     return true;
 }

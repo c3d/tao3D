@@ -100,6 +100,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     else
     {
         Idle();
+        Activity *next = this->next;
         delete this;
         return next;
     }
@@ -163,7 +164,12 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
             widget->savedSelection.clear();
         widget->selection = widget->savedSelection;
         if (selected)
-            widget->selection[selected]++;
+        {
+            if (shiftModifier && widget->selection[selected] && !manipulator)
+                widget->selection[selected] = 0;
+            else
+                widget->selection[selected]++;
+        }
         widget->manipulator = manipulator;
     }
 
@@ -234,7 +240,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
             uint size = ptr[0];
             selected = ptr[3];
             if (selected)
-                widget->selection[selected] = 1;
+                widget->selection[selected] = !widget->savedSelection[selected];
             ptr += 3 + size;
         }
     }

@@ -35,7 +35,7 @@ PullFromDialog::PullFromDialog(Repository *repo, QWidget *parent)
     : QDialog(parent), repo(repo)
 {
     setupUi(this);
-    rsFrame->setRepository(repo);
+    rsFrame->setRepository(repo, repo->pullFrom);
 }
 
 

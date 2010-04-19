@@ -130,13 +130,14 @@ struct FrameManipulator : DrawingManipulator
 //   Dispays 4 handles in the corner, but clicks in the surface pass through
 // ----------------------------------------------------------------------------
 {
+    enum { TM_ROTATE_BIT = 0x10 };
     enum TransformMode
     {
         TM_FreeResize,                  // Free resizing
         TM_ResizeLockCenter,            // Resize object wrt. its center
         TM_ResizeLockAspectRatio,       // Keep width/height aspect ratio
         TM_ResizeLockCenterAndAspectRatio,
-        TM_FreeCenteredRotate,          // Free rotation around center    
+        TM_FreeCenteredRotate = TM_ROTATE_BIT,  // Free rotation around center
         TM_FreeOppositeRotate,          // Free rotation aound opposite handle
         TM_SteppedCenteredRotate,       // 45˚-step rotation
         TM_SteppedOppositeRotate,

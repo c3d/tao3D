@@ -40,7 +40,7 @@ public:
     RemoteSelectionFrame(QWidget *parent = 0);
 
 public:
-    void    setRepository(Repository *repo);
+    void    setRepository(Repository *repo, QString preferredRemote = "");
     QString remote();
 
 signals:

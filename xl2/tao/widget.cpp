@@ -1277,6 +1277,7 @@ void Widget::refreshProgram()
     {
         import_set::iterator it;
         bool needBigHammer = false;
+        bool loadError     = false;
         for (it = iset.begin(); it != iset.end(); it++)
         {
             XL::SourceFile &sf = **it;
@@ -1331,7 +1332,14 @@ void Widget::refreshProgram()
                 {
                     // Update source file view
                     Window *window = (Window *) parentWidget();
-                    window->loadFileIntoSourceFileView(+fname);
+                    loadError = !window->loadFileIntoSourceFileView(+fname);
+                    if (loadError)
+                    {
+                        IFTRACE(filesync)
+                            std::cerr << "Main program file could not be read\n";
+                        // FIXME: now source file view is cleared, but drawing is
+                        // still there -> how to delete main tree?
+                    }
                 }
 
                 // If a file was modified, we need to refresh the screen
@@ -1343,11 +1351,14 @@ void Widget::refreshProgram()
         // If we were not successful with simple changes, reload everything...
         if (needBigHammer)
         {
-            for (it = iset.begin(); it != iset.end(); it++)
+            if (!loadError)
             {
-                XL::SourceFile &sf = **it;
-                text fname = sf.name;
-                XL::MAIN->LoadFile(fname);
+                for (it = iset.begin(); it != iset.end(); it++)
+                {
+                    XL::SourceFile &sf = **it;
+                    text fname = sf.name;
+                    XL::MAIN->LoadFile(fname);
+                }
             }
         }
     }

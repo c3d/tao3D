@@ -29,6 +29,7 @@
 #include "gl_keepers.h"
 #include "runtime.h"
 #include "transforms.h"
+#include <cmath>
 
 TAO_BEGIN
 
@@ -497,8 +498,8 @@ bool FrameManipulator::DrawHandles(Layout *layout)
 
     for (uint hn = 0; hn < 4; hn++)
     {
-        short  sw = (hn & 1) ? 1 : -1;
-        short  sh = (hn & 2) ? 1 : -1;
+        short  sw = (hn & 1) ? 1 : -1;  // sh < 0 ? lower : upper
+        short  sh = (hn & 2) ? 1 : -1;  // sw < 0 ? left : right
 
         if (!DrawHandle(layout, Point3(xx + sw*ww/2, yy + sh*hh/2, 0), hn+1))
             continue;
@@ -514,10 +515,9 @@ bool FrameManipulator::DrawHandles(Layout *layout)
             continue;
 
         Point3 p0 = drag->Origin();
-        text   t1 = sh < 0 ? "Lower " : "Upper ";
-        text   t2 = sw < 0 ? "left " : "right ";
 
-        switch (CurrentTransformMode())
+        int mode = CurrentTransformMode();
+        switch (mode)
         {
         case TM_ResizeLockCenter:
             updateArg(widget, &w, 2*sw*p0.x, 2*sw*p1.x, 2*sw*p2.x);
@@ -526,24 +526,83 @@ bool FrameManipulator::DrawHandles(Layout *layout)
 
         case TM_FreeCenteredRotate:
             // TODO
+            goto freeresize;
 
         case TM_SteppedCenteredRotate:
             // TODO
+            goto freeresize;
 
         case TM_FreeOppositeRotate:
             // TODO
+            goto freeresize;
 
         case TM_SteppedOppositeRotate:
             // TODO
+            goto freeresize;
 
         case TM_ResizeLockAspectRatio:
-            // TODO
+            {
+                int id = widget->currentId();
+                coord &h0 = drag->h0[id];
+                coord &w0 = drag->w0[id];
+                if (!h0 && !w0)
+                {
+                    // Starting drag action: save shape size
+                    if (!h || !w)
+                        break;
+                    h0 = h; w0 = w;
+                }
+
+                scale r = w0/h0;
+                coord ux, uy, uw, uh;
+                coord a, b, c;
+                bool condY1, condY2;
+                condY1 = (fabs(p1.y - y)/h0 > fabs(p1.x - x)/w0);
+                condY2 = (fabs(p2.y - y)/h0 > fabs(p2.x - x)/w0);
+                if (condY1 != condY2)
+                {
+                    // Pointer crossed diagonal
+                    // Set params back to p0 state to avoid accumulation of
+                    // rounding errors
+                    if (condY1)
+                    {
+                        ux = r*sh*sw/2; uy = 0.5; uw = r*sh; uh = sh;
+                        a = p0.y; b = p1.y ; c = p0.y;
+                    }
+                    else
+                    {
+                        ux = 0.5; uy = (1/r)*sh*sw/2; uw = sw; uh = (1/r)*sw;
+                        a = p0.x; b = p1.x ; c = p0.x;
+                    }
+                    updateArg(widget, &x, ux*a, ux*b, ux*c);
+                    updateArg(widget, &y, uy*a, uy*b, uy*c);
+                    updateArg(widget, &w, uw*a, uw*b, uw*c);
+                    updateArg(widget, &h, uh*a, uh*b, uh*c);
+                    p1 = p0;
+                }
+                if (condY2)
+                {
+                    ux = r*sh*sw/2; uy = 0.5; uw = r*sh; uh = sh;
+                    a = p0.y; b = p1.y ; c = p2.y;
+                }
+                else
+                {
+                    ux = 0.5; uy = (1/r)*sh*sw/2; uw = sw; uh = (1/r)*sw;
+                    a = p0.x; b = p1.x ; c = p2.x;
+                }
+                updateArg(widget, &x, ux*a, ux*b, ux*c);
+                updateArg(widget, &y, uy*a, uy*b, uy*c);
+                updateArg(widget, &w, uw*a, uw*b, uw*c);
+                updateArg(widget, &h, uh*a, uh*b, uh*c);
+                break;
+            }
 
         case TM_ResizeLockCenterAndAspectRatio:
             // TODO
 
         case TM_FreeResize:
         default:
+        freeresize:
             updateArg(widget, &x, p0.x/2, p1.x/2, p2.x/2);
             updateArg(widget, &y, p0.y/2, p1.y/2, p2.y/2);
             updateArg(widget, &w, sw*p0.x, sw*p1.x, sw*p2.x);
@@ -551,7 +610,8 @@ bool FrameManipulator::DrawHandles(Layout *layout)
             break;
         }
 
-        widget->markChanged(t1 + t2 + "corner moved");
+        text change = (mode & TM_ROTATE_BIT) ? "rotate" : "resize";
+        widget->markChanged("Shape " + change);
     }
 
     return handle != 0;

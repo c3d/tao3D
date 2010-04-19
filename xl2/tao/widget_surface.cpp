@@ -393,9 +393,11 @@ void AbstractButtonSurface::clicked(bool checked)
 
 void AbstractButtonSurface::toggled(bool checked)
 // ----------------------------------------------------------------------------
-//    The button has toggled. Evaluate the action with the "isChecked"
-//        replaced by XL::xl_true or XL::xl_false.
+//    The button has toggled. Evaluate the action, setting 'checked'
 // ----------------------------------------------------------------------------
+//    Like for the color chooser and other trees, we replace the 'checked'
+//    keyword with the value we got from the user. In this case, this is
+//    either true (XL::xl_true) or false (XL::xl_false)
 {
     IFTRACE (widgets)
     {
@@ -413,13 +415,13 @@ void AbstractButtonSurface::toggled(bool checked)
 
     if ( ! action.tree ) return;
 
-    // We override name "isChecked" in the input tree
+    // We override name "checked" in the input tree
     struct ToggleTreeClone : XL::TreeClone
     {
         ToggleTreeClone(bool c) : checked(c){}
         XL::Tree *DoName(XL::Name *what)
         {
-            if (what->value == "isChecked")
+            if (what->value == "checked")
             {
                 if (checked)
                     return XL::xl_true;

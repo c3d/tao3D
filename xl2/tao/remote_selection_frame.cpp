@@ -37,13 +37,13 @@ RemoteSelectionFrame::RemoteSelectionFrame(QWidget *parent)
 }
 
 
-void RemoteSelectionFrame::setRepository(Repository *repo)
+void RemoteSelectionFrame::setRepository(Repository *repo, QString sel)
 // ----------------------------------------------------------------------------
 //    Associate a repository to the frame and update the UI accordingly
 // ----------------------------------------------------------------------------
 {
     this->repo = repo;
-    populateNameComboAndSelect(repo->pullFrom);
+    populateNameComboAndSelect(sel);
 }
 
 

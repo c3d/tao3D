@@ -721,7 +721,7 @@ void Context::CollectGarbage ()
         {
             for (a = active.begin(); a != active.end(); a++)
                 if (!gc.alive.count(*a))
-                    compiler->FreeResources(*a);
+                    compiler->FreeResources(*a, gc);
             compiler->FreeResources(gc);
         }
 

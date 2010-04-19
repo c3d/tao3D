@@ -2229,7 +2229,7 @@ Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, x, y, w, h, 
+        layout->Add(new ControlRectangle(self, x, y, w, h,
                                          new Rectangle(shape)));
 
     return XL::xl_true;
@@ -2340,7 +2340,7 @@ Tree *Widget::ellipticalRectangle(Tree *self,
 
 
 
-Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
+Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
                     real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
 //   Arrow
@@ -2357,7 +2357,7 @@ Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
 }
 
 
-Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
+Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
                     real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
 //   Double arrow
@@ -2430,10 +2430,10 @@ Tree *Widget::speechBalloon(Tree *self,
 
 
 Tree *Widget::callout(Tree *self,
-                      real_r cx, real_r cy, real_r w, real_r h, 
+                      real_r cx, real_r cy, real_r w, real_r h,
                       real_r r, real_r ax, real_r ay, real_r d)
 // ----------------------------------------------------------------------------
-//   Callout with radius r for corners, and point a, width b for the tail 
+//   Callout with radius r for corners, and point a, width b for the tail
 // ----------------------------------------------------------------------------
 {
     Callout shape(Box(cx-w/2, cy-h/2, w, h), r, ax, ay, d);
@@ -2923,20 +2923,21 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
 }
 
 Tree *Widget::radioButton(Tree *self,
-                       real_r x,real_r y, real_r w,real_r h,
-                       text_p lbl, Text* sel, Tree *act)
+                          real_r x,real_r y, real_r w,real_r h,
+                          Text *name, text_p lbl, Text* sel, Tree *act)
 // ----------------------------------------------------------------------------
 //   Draw a radio button in the curent frame
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
-    radioButtonTexture(self, w, h, lbl, sel, act);
-    return abstractButton(self, x, y, w, h);
+    radioButtonTexture(self, w, h, name, lbl, sel, act);
+    return abstractButton(self, name, x, y, w, h);
 }
 
-Tree *Widget::radioButtonTexture(Tree *self, double w, double h, Text *lbl,
-                                 Text* sel, Tree *act)
+
+Tree *Widget::radioButtonTexture(Tree *self, double w, double h, Text *name,
+                                 Text *lbl, Text* sel, Tree *act)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given radio button
 // ----------------------------------------------------------------------------
@@ -2945,11 +2946,11 @@ Tree *Widget::radioButtonTexture(Tree *self, double w, double h, Text *lbl,
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    AbstractButtonSurface *surface = self->GetInfo<AbstractButtonSurface>();
+    AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
     if (!surface)
     {
-        surface = new RadioButtonSurface(self, this);
-        self->SetInfo<AbstractButtonSurface> (surface);
+        surface = new RadioButtonSurface(name, this, +name->value);
+        name->SetInfo<AbstractButtonSurface> (surface);
     }
 
     // Resize to requested size, and bind texture
@@ -2962,19 +2963,20 @@ Tree *Widget::radioButtonTexture(Tree *self, double w, double h, Text *lbl,
 
 
 Tree *Widget::checkBoxButton(Tree *self, real_r x,real_r y, real_r w, real_r h,
-                             text_p lbl, Text* sel, Tree *act)
+                             Text *name, text_p lbl, Text* sel, Tree *act)
 // ----------------------------------------------------------------------------
 //   Draw a check button in the curent frame
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
-    checkBoxButtonTexture(self, w, h, lbl, sel, act);
-    return abstractButton(self, x, y, w, h);
+    checkBoxButtonTexture(self, w, h, name, lbl, sel, act);
+    return abstractButton(self, name, x, y, w, h);
 }
 
-Tree *Widget::checkBoxButtonTexture(Tree *self, double w, double h,  Text *lbl,
-                                    Text* sel, Tree *act)
+
+Tree *Widget::checkBoxButtonTexture(Tree *self, double w, double h, Text *name,
+                                    Text *lbl, Text* sel, Tree *act)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given checkbox button
 // ----------------------------------------------------------------------------
@@ -2983,11 +2985,11 @@ Tree *Widget::checkBoxButtonTexture(Tree *self, double w, double h,  Text *lbl,
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    AbstractButtonSurface *surface = self->GetInfo<AbstractButtonSurface>();
+    AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
     if (!surface)
     {
-        surface = new CheckBoxSurface(self, this);
-        self->SetInfo<AbstractButtonSurface> (surface);
+        surface = new CheckBoxSurface(name, this, +name->value);
+        name->SetInfo<AbstractButtonSurface> (surface);
     }
 
     // Resize to requested size, and bind texture
@@ -3000,19 +3002,20 @@ Tree *Widget::checkBoxButtonTexture(Tree *self, double w, double h,  Text *lbl,
 
 
 Tree *Widget::pushButton(Tree *self, real_r x, real_r y, real_r w, real_r h,
-                         Text *lbl, Tree* act)
+                         Text *name, Text *lbl, Tree* act)
 // ----------------------------------------------------------------------------
 //   Draw a push button in the curent frame
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
-    pushButtonTexture(self, w, h, lbl, act);
-    return abstractButton(self, x, y, w, h);
+    pushButtonTexture(self, w, h, name, lbl, act);
+    return abstractButton(self, name, x, y, w, h);
 }
 
-Tree *Widget::pushButtonTexture(Tree *self, double w, double h, Text *lbl,
-                                Tree *act)
+
+Tree *Widget::pushButtonTexture(Tree *self, double w, double h, Text *name,
+                                Text *lbl, Tree *act)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given push button
 // ----------------------------------------------------------------------------
@@ -3021,11 +3024,11 @@ Tree *Widget::pushButtonTexture(Tree *self, double w, double h, Text *lbl,
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    AbstractButtonSurface *surface = self->GetInfo<AbstractButtonSurface>();
+    AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
     if (!surface)
     {
-        surface = new PushButtonSurface(self, this);
-        self->SetInfo<AbstractButtonSurface> (surface);
+        surface = new PushButtonSurface(name, this, +name->value);
+        name->SetInfo<AbstractButtonSurface> (surface);
     }
 
     // Resize to requested size, and bind texture
@@ -3037,15 +3040,18 @@ Tree *Widget::pushButtonTexture(Tree *self, double w, double h, Text *lbl,
 }
 
 
-Tree *Widget::abstractButton(Tree *self, real_r x, real_r y, real_r w, real_r h)
+Tree *Widget::abstractButton(Tree *self, Text *name, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //   Draw any button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    AbstractButtonSurface *surface = self->GetInfo<AbstractButtonSurface>();
+    AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
 
-    if (currentGroup)
+    if (currentGroup &&
+        ! currentGroup->buttons().contains((QAbstractButton*)surface->widget))
+    {
         currentGroup->addButton((QAbstractButton*)surface->widget);
+    }
 
     if (currentGridLayout)
     {
@@ -3143,7 +3149,7 @@ Tree *Widget::fontChooserTexture(Tree *self, double w, double h,
 }
 
 
-Tree *Widget::buttonGroup(Tree *self, Tree *buttons, bool exclusive)
+Tree *Widget::buttonGroup(Tree *self, bool exclusive, Tree *buttons)
 // ----------------------------------------------------------------------------
 //   Create a button group for radio buttons
 // ----------------------------------------------------------------------------
@@ -3158,6 +3164,20 @@ Tree *Widget::buttonGroup(Tree *self, Tree *buttons, bool exclusive)
     currentGroup = grpInfo;
     xl_evaluate(buttons);
     currentGroup = NULL;
+
+    return XL::xl_true;
+}
+
+
+Tree*Widget::setAction(Tree *self, Tree *action)
+// ----------------------------------------------------------------------------
+//   Set the action to be executed by the current buttonGroup if any.
+// ----------------------------------------------------------------------------
+{
+    if (currentGroup && currentGroup->action == NULL)
+    {
+        currentGroup->action = new XL::TreeRoot(action);
+    }
 
     return XL::xl_true;
 }
@@ -3380,7 +3400,6 @@ Tree *Widget::menuItem(Tree *self, text name, text lbl, text iconFileName,
     }
 
     orderedMenuElements[order] = new MenuInfo(fullName,
-                                              par,
                                               p_action);
     order++;
 
@@ -3430,7 +3449,8 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
 //            IFTRACE(menus)
 //            {
 //                std::cerr << "menu found with name "
-//                          << fullname.toStdString() << " and order " << order << "\n";
+//                          << fullname.toStdString() << " and order "
+//                          << order << "\n";
 //                std::cerr.flush();
 //            }
 
@@ -3484,7 +3504,6 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
             par->addAction(currentMenu->menuAction());
     }
     orderedMenuElements[order] = new MenuInfo(fullname,
-                                              par ? par : (Window*)parent(),
                                               currentMenu->menuAction());
     IFTRACE(menus)
     {
@@ -3552,7 +3571,7 @@ Tree * Widget::toolBar(Tree *self, text name, text title, bool isFloatable)
     if (orderedMenuElements[order])
         delete orderedMenuElements[order];
 
-    orderedMenuElements[order] = new MenuInfo(fullname, win, currentToolBar);
+    orderedMenuElements[order] = new MenuInfo(fullname, currentToolBar);
 
     order++;
     currentMenuBar = NULL;
@@ -3579,7 +3598,8 @@ Tree * Widget::separator(Tree *self)
 //            IFTRACE(menus)
 //            {
 //                std::cerr << "separator found with name "
-//                          << fullname.toStdString() << " and order " << order << "\n";
+//                          << fullname.toStdString() << " and order "
+//                          << order << "\n";
 //                std::cerr.flush();
 //            }
             order++;
@@ -3624,7 +3644,7 @@ Tree * Widget::separator(Tree *self)
         if (par)
             par->addAction(act);
     }
-    orderedMenuElements[order] = new MenuInfo(fullname, par, act);
+    orderedMenuElements[order] = new MenuInfo(fullname, act);
     order++;
     return XL::xl_true;
 }
@@ -3710,7 +3730,7 @@ XL::Name *Widget::deleteSelection(Tree *self, text key)
     markChanged("Deleted selection");
     selection.clear();
     selectionTrees.clear();
-    
+
     return XL::xl_true;
 }
 

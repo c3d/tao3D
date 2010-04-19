@@ -23,6 +23,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include <QAbstractButton>
 #include <string>
 #include <QButtonGroup>
 #include <QMenu>
@@ -43,41 +44,37 @@ struct MenuInfo : QObject
 {
     Q_OBJECT;
 public:
-    MenuInfo(QString name, QWidget *wid, QAction *act);
-    MenuInfo(QString name, QMainWindow *win, QToolBar *bar);
+    MenuInfo(QString name, QAction *act);
+    MenuInfo(QString name, QToolBar *bar);
     ~MenuInfo();
 
 public:
     QString        fullname; // the widget full name.
-    QWidget      * p_parent; //  the parent hosting the menu, menuItem
     QAction      * p_action; // The action associated with the widget
-    QMainWindow  * p_window; // the window hosting the toolbar (if any)
     QToolBar     * p_toolbar; // The toolbar
 
 public slots:
-    void actionDestroyed(QObject * obj);
+    void actionDestroyed();
 
 };
 
-
-struct CleanMenuInfo : XL::Action
-// ----------------------------------------------------------------------------
-//   Remove the MenuInfo from all the trees
-// ----------------------------------------------------------------------------
-{
-    XL::Tree * Do(XL::Tree *what);
-};
 
 struct GroupInfo : QButtonGroup, XL::Info
 // ----------------------------------------------------------------------------
 // QGroupButton associated to an XL tree
 // ----------------------------------------------------------------------------
 {
-    typedef GroupInfo * data_t;
+    Q_OBJECT;
 
 public:
+    typedef GroupInfo * data_t;
+
     GroupInfo(XL::Tree *t, QWidget * parent) :
-            QButtonGroup(parent), XL::Info(), tree(t){}
+            QButtonGroup(parent), XL::Info(), tree(t), action(NULL)
+    {
+        connect(this, SIGNAL(buttonClicked(QAbstractButton*)),
+                this, SLOT(bClicked(QAbstractButton*)));
+    }
     ~GroupInfo()
     {
         if (tree)
@@ -86,8 +83,12 @@ public:
 
     operator data_t() { return this; }
 
+public slots:
+    void bClicked(QAbstractButton* button);
+
 public:
     XL::Tree *tree;
+    XL::TreeRoot *action;
 };
 
 }

@@ -20,6 +20,7 @@
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -301,22 +302,23 @@ public:
                          real_r w,real_r h, text_p s);
     Tree *      lineEditTexture(Tree *self, double x, double y, Text *s);
 
-    Tree *      abstractButton(Tree *self,
+    Tree *      abstractButton(Tree *self, Text *name,
                                real_r x, real_r y, real_r w, real_r h);
     Tree *      pushButton(Tree *self, real_r x, real_r y, real_r w, real_r h,
-                           text_p lbl, Tree *act);
+                           text_p name, text_p lbl, Tree *act);
     Tree *      pushButtonTexture(Tree *self, double w, double h,
-                                  Text *lbl, Tree *act);
+                                  text_p name, Text *lbl, Tree *act);
     Tree *      radioButton(Tree *self, real_r x,real_r y, real_r w,real_r h,
-                           text_p lbl, Text *selected, Tree *act);
+                           text_p name, text_p lbl, Text *selected, Tree *act);
     Tree *      radioButtonTexture(Tree *self, double w, double h,
-                                  Text *lbl, Text *selected, Tree *act);
+                                  text_p name, Text *lbl, Text *selected, Tree *act);
     Tree *      checkBoxButton(Tree *self, real_r x,real_r y, real_r w,real_r h,
-                               text_p lbl, Text* marked,
+                               text_p name, text_p lbl, Text* marked,
                                Tree *act);
     Tree *      checkBoxButtonTexture(Tree *self, double w, double h,
-                                      Text *lbl, Text* marked, Tree *act);
-    Tree *      buttonGroup(Tree *self, Tree *buttons, bool exclusive = true);
+                                      text_p name, Text *lbl, Text* marked, Tree *act);
+    Tree *      buttonGroup(Tree *self, bool exclusive, Tree *buttons);
+    Tree *      setAction(Tree *self, Tree *action);
 
     Tree *      colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
                              Tree *action);
@@ -389,7 +391,7 @@ private:
     uint                  pageId, pageShown, pageTotal;
     Tree *                pageTree;
     QGridLayout *         currentGridLayout;
-    QButtonGroup *        currentGroup;
+    GroupInfo   *         currentGroup;
 
     // Selection
     Activity *            activities;

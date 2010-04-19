@@ -182,7 +182,7 @@ externc void xl_assert_failed(kstring msg, kstring file, uint line);
 
 #ifdef XL_DEBUG
 #  define IFTRACE(x)    if XLTRACE(x)
-#  define XLTRACE(x)    (XL::Options::options->traces.x)
+#  define XLTRACE(x)    (XL::Options::options && XL::Options::options->traces.x)
 #else
 #  define IFTRACE(x)    if(0)
 #  define XLTRACE(x)    0

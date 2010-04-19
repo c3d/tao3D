@@ -1347,8 +1347,15 @@ void Widget::markChanged(text reason)
         {
             import_set done;
             ImportedFilesChanged(prog, done, true);
+
+            // Now update the window
+            text txt = *prog;
+            Window *window = (Window *) parentWidget();
+            window->setText(+txt);
         }
     }
+
+
     refresh(0);
 }
 

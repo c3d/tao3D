@@ -81,7 +81,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
       xlProgram(sf),
-      space(NULL), layout(NULL), path(NULL), currentGridLayout(NULL),
+      space(NULL), layout(NULL), path(NULL),
+      pageName(""), pageId(0), pageTotal(0), pageTree(NULL),
+      currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
       id(0), charId(0), capacity(0), manipulator(0),
       event(NULL), focusWidget(NULL),
@@ -305,6 +307,9 @@ void Widget::draw()
     pageH = (29.7 / 2.54) * logicalDpiY();
     flowName = "";
     flows.clear();
+    pageId = 0;
+    pageTree = NULL;
+    lastPageName = "";
 
     // Clear the background
     glClearColor (1.0, 1.0, 1.0, 1.0);
@@ -347,6 +352,9 @@ void Widget::draw()
     glDisable(GL_DEPTH_TEST);
     for (Activity *a = activities; a; a = a->Display()) ;
     selectionSpace.Draw(NULL);
+
+    // Update page count for next run
+    pageTotal = pageId;
 }
 
 
@@ -1631,6 +1639,80 @@ void Widget::drawHandle(const Point3 &p, text handleName)
 Widget *Widget::current = NULL;
 typedef XL::Tree Tree;
 
+XL::Text *Widget::page(Tree *self, text name, Tree *body)
+// ----------------------------------------------------------------------------
+//   Start a new page, returns the previously named page
+// ----------------------------------------------------------------------------
+{
+    // We start with first page if we had no page set
+    if (pageName == "")
+        pageName = name;
+
+    // Increment pageId
+    pageId++;
+
+    // If the page is set, then we display it
+    if (pageName == name)
+    {
+        // Initialize back-link 
+        pageShown = pageId;
+        pageLinks.clear();
+        if (pageId > 1)
+            pageLinks["PageUp"] = lastPageName;
+        pageTree = body;
+        xl_evaluate(body);
+    }
+    else if (pageName == lastPageName)
+    {
+        // We are executing the page following the current one:
+        // Check if PageDown is set, otherwise set current page as default
+        if (pageLinks.count("PageDown") == 0)
+            pageLinks["PageDown"] = name;
+    }
+
+    lastPageName = name;
+    return new Text(pageName);
+}
+
+
+XL::Text *Widget::pageLink(Tree *self, text key, text name)
+// ----------------------------------------------------------------------------
+//   Indicate the chaining of pages, returns previous information
+// ----------------------------------------------------------------------------
+{
+    text old = pageLinks[key];
+    pageLinks[key] = name;
+    return new Text(old);
+}
+
+
+XL::Text *Widget::pageLabel(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return the label of the current page
+// ----------------------------------------------------------------------------
+{
+    return new Text(pageName);
+}
+
+
+XL::Integer *Widget::pageNumber(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return the number of the current page
+// ----------------------------------------------------------------------------
+{
+    return new Integer(pageShown);
+}
+
+
+XL::Integer *Widget::pageCount(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return the number of pages in the current document
+// ----------------------------------------------------------------------------
+{
+    return new Integer(pageTotal);
+}
+
+
 XL::Real *Widget::pageWidth(Tree *self)
 // ----------------------------------------------------------------------------
 //   Return the width of the page
@@ -2646,6 +2728,17 @@ XL::Name *Widget::textEditKey(Tree *self, text key)
 //   Send a key to the activities
 // ----------------------------------------------------------------------------
 {
+    // Check if we are changing pages here...
+    if (pageLinks.count(key))
+    {
+        pageName = pageLinks[key];
+        selection.clear();
+        selectionTrees.clear();
+        delete textSelection();
+        delete drag();
+        return XL::xl_true;
+    }
+
     for (Activity *a = activities; a; a = a->Key(key)) ;
     return XL::xl_true;
 }
@@ -3561,32 +3654,50 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
     if (!xlProgram)
         return XL::xl_false;
 
-    Tree  *program = xlProgram->tree.tree;
-    XL::Infix *parent  = NULL;
+    Tree *program = xlProgram->tree.tree;
     if (XL::Block *block = toInsert->AsBlock())
         toInsert = block->child;
 
-    bool preInsert = false;
-    while (true)
-    {
-        XL::Infix *infix = program->AsInfix();
-        if (!infix)
-            break;
-        if (infix->name != ";" && infix->name != "\n")
-            break;
-        preInsert = selectionTrees.count(infix->left);
-        if (preInsert)
-            break;
-        parent = infix;
-        program = infix->right;
-    }
+    InsertAtSelectionAction insert(this, toInsert, pageTree);
+    Tree *afterInsert = program->Do(insert);
 
-    XL::Tree * &what = parent ? parent->right : xlProgram->tree.tree;
-    if (preInsert)
-        what = new XL::Infix("\n", toInsert, what);
-    else
+    // If we never hit the selection during the insert, append
+    if (insert.toInsert)
+    {
+        Tree *top = xlProgram->tree.tree;
+        XL::Infix *parent  = NULL;
+        if (pageTree)
+        {
+            if (XL::Prefix *prefix = pageTree->AsPrefix())
+                if (XL::Name *left = prefix->left->AsName())
+                    if (left->value == "do")
+                        pageTree = prefix->right;
+            if (XL::Block *block = pageTree->AsBlock())
+                pageTree = block->child;
+
+            top = pageTree;
+        }
+
+        program = top;
+        while (true)
+        {
+            XL::Infix *infix = program->AsInfix();
+            if (!infix)
+                break;
+            if (infix->name != ";" && infix->name != "\n")
+                break;
+            parent = infix;
+            program = infix->right;
+        }
+ 
+        Tree * &what = parent ? parent->right : top;
         what = new XL::Infix("\n", what, toInsert);
-    reloadProgram();
+        reloadProgram();
+    }
+    else
+    {
+        reloadProgram(afterInsert);
+    }
     markChanged("Inserted tree");
 
     return XL::xl_true;

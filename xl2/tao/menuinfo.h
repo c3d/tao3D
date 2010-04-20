@@ -23,53 +23,58 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include <QAbstractButton>
 #include <string>
 #include <QButtonGroup>
 #include <QMenu>
-#include <QMenuBar>
+#include <QToolBar>
 #include <QAction>
+#include <QMainWindow>
 #include "tree.h"
 
-TAO_BEGIN
 
-struct MenuInfo : public XL::Info
+namespace Tao {
+
+struct MenuInfo : QObject
 // ----------------------------------------------------------------------------
-//  Qt menu data associated to an XL tree
+//  Qt menu data.
+//  This objects holds either a menu/submenu/menuitem using p_parent and
+//    p_action or a toolbar using p_window and p_toolbar.
 // ----------------------------------------------------------------------------
 {
+    Q_OBJECT;
 public:
-    MenuInfo(QMenu *menu, std::string name);
-    MenuInfo(QMenuBar *menubar, QMenu *menu, std::string name);
+    MenuInfo(QString name, QAction *act);
+    MenuInfo(QString name, QToolBar *bar);
     ~MenuInfo();
 
 public:
-    // Represent the name of the menu with its path separated with '|'
-    std::string    fullName;
-    QMenu        * menu; // This is the menu
-    QMenuBar     * menubar;// This is the menubar
-    QAction      * action;
+    QString        fullname; // the widget full name.
+    QAction      * p_action; // The action associated with the widget
+    QToolBar     * p_toolbar; // The toolbar
+
+public slots:
+    void actionDestroyed();
 
 };
 
-
-struct CleanMenuInfo : XL::Action
-// ----------------------------------------------------------------------------
-//   Remove the MenuInfo from all the trees
-// ----------------------------------------------------------------------------
-{
-    XL::Tree * Do(XL::Tree *what);
-};
 
 struct GroupInfo : QButtonGroup, XL::Info
 // ----------------------------------------------------------------------------
 // QGroupButton associated to an XL tree
 // ----------------------------------------------------------------------------
 {
-    typedef GroupInfo * data_t;
+    Q_OBJECT;
 
 public:
+    typedef GroupInfo * data_t;
+
     GroupInfo(XL::Tree *t, QWidget * parent) :
-            QButtonGroup(parent), XL::Info(), tree(t){}
+            QButtonGroup(parent), XL::Info(), tree(t), action(NULL)
+    {
+        connect(this, SIGNAL(buttonClicked(QAbstractButton*)),
+                this, SLOT(bClicked(QAbstractButton*)));
+    }
     ~GroupInfo()
     {
         if (tree)
@@ -78,10 +83,14 @@ public:
 
     operator data_t() { return this; }
 
+public slots:
+    void bClicked(QAbstractButton* button);
+
 public:
     XL::Tree *tree;
+    XL::TreeRoot *action;
 };
 
-TAO_END
+}
 
 #endif // MENUINFO_H

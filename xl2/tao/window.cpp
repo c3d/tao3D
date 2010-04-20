@@ -1,18 +1,18 @@
 // ****************************************************************************
 //  window.cpp                                                     Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     The main Tao output window
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -406,6 +406,7 @@ void Window::createMenus()
 // ----------------------------------------------------------------------------
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
+    fileMenu->setObjectName(FILE_MENU_NAME);
     fileMenu->addAction(newAct);
     fileMenu->addAction(openAct);
     fileMenu->addAction(saveAct);
@@ -415,6 +416,7 @@ void Window::createMenus()
     fileMenu->addAction(exitAct);
 
     editMenu = menuBar()->addMenu(tr("&Edit"));
+    editMenu->setObjectName(EDIT_MENU_NAME);
     editMenu->addAction(undoAction);
     editMenu->addAction(redoAction);
     editMenu->addSeparator();
@@ -423,16 +425,19 @@ void Window::createMenus()
     editMenu->addAction(pasteAct);
 
     shareMenu = menuBar()->addMenu(tr("&Share"));
+    shareMenu->setObjectName(SHARE_MENU_NAME);
     shareMenu->addAction(setPullUrlAct);
     shareMenu->addAction(publishAct);
 
     viewMenu = menuBar()->addMenu(tr("&View"));
+    viewMenu->setObjectName(VIEW_MENU_NAME);
     viewMenu->addAction(dock->toggleViewAction());
     viewMenu->addAction(fullScreenAct);
 
     menuBar()->addSeparator();
 
     helpMenu = menuBar()->addMenu(tr("&Help"));
+    helpMenu->setObjectName(HELP_MENU_NAME);
     helpMenu->addAction(aboutAct);
 }
 
@@ -442,15 +447,20 @@ void Window::createToolBars()
 //   Create the application tool bars
 // ----------------------------------------------------------------------------
 {
+    QMenu *view = findChild<QMenu*>(VIEW_MENU_NAME);
     fileToolBar = addToolBar(tr("File"));
     fileToolBar->addAction(newAct);
     fileToolBar->addAction(openAct);
     fileToolBar->addAction(saveAct);
+    if (view)
+        view->addAction(fileToolBar->toggleViewAction());
 
     editToolBar = addToolBar(tr("Edit"));
     editToolBar->addAction(cutAct);
     editToolBar->addAction(copyAct);
     editToolBar->addAction(pasteAct);
+    if (view)
+        view->addAction(editToolBar->toggleViewAction());
 }
 
 
@@ -510,7 +520,7 @@ bool Window::maybeSave()
 {
     if (textEdit->document()->isModified())
     {
-	QMessageBox::StandardButton ret;
+        QMessageBox::StandardButton ret;
         ret = QMessageBox::warning
             (this, tr("Save changes?"),
              tr("The document has been modified.\n"
@@ -527,7 +537,7 @@ bool Window::maybeSave()
 
 bool Window::loadFile(const QString &fileName, bool openProj)
 // ----------------------------------------------------------------------------
-//    Load a specific file
+//    Load a specific file (and optionally, open project repository)
 // ----------------------------------------------------------------------------
 {
     if ( openProj &&
@@ -535,7 +545,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
                      QFileInfo(fileName).fileName()))
         return false;
 
-    if (!loadFileIntoSourceFileView(fileName))
+    if (!loadFileIntoSourceFileView(fileName, openProj))
         return false;
 
     setCurrentFile(fileName);
@@ -544,7 +554,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     return true;
 }
 
-bool Window::loadFileIntoSourceFileView(const QString &fileName)
+bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 // ----------------------------------------------------------------------------
 //    Update the source file view with the contents of a specific file
 // ----------------------------------------------------------------------------
@@ -552,10 +562,12 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName)
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text))
     {
-        QMessageBox::warning(this, tr("Cannot read file"),
-                             tr("Cannot read file %1:\n%2.")
-                             .arg(fileName)
-                             .arg(file.errorString()));
+        if (box)
+            QMessageBox::warning(this, tr("Cannot read file"),
+                                 tr("Cannot read file %1:\n%2.")
+                                 .arg(fileName)
+                                 .arg(file.errorString()));
+        textEdit->clear();
         return false;
     }
 
@@ -592,7 +604,6 @@ bool Window::saveFile(const QString &fileName)
 {
     QFile file(fileName);
     text fn = +fileName;
-
 
     if (!file.open(QFile::WriteOnly | QFile::Text))
     {
@@ -848,30 +859,32 @@ void Window::resetTaoMenus()
 // ----------------------------------------------------------------------------
 {
     // Removes top menu from the menu bar
-    QRegExp reg("^"+ QString(TOPMENU) +".*", Qt::CaseSensitive);
-    QList<QMenu *> menu_list = menuBar()->findChildren<QMenu *>(reg);
-    QList<QMenu *>::iterator it;
-    for(it = menu_list.begin(); it!=menu_list.end(); ++it)
-    {
-        QMenu *menu = *it;
-        IFTRACE(menus)
-        {
-            std::cout << menu->objectName().toStdString()
-                    << " removed from menu bar \n";
-            std::cout.flush();
-        }
-
-        menuBar()->removeAction(menu->menuAction());
-        delete menu;
-    }
+//    QRegExp reg("^"+ QString(TOPMENU) +".*", Qt::CaseSensitive);
+//    QList<QMenu *> menu_list = menuBar()->findChildren<QMenu *>(reg);
+//    QList<QMenu *>::iterator it;
+//    for(it = menu_list.begin(); it!=menu_list.end(); ++it)
+//    {
+//        QMenu *menu = *it;
+//        IFTRACE(menus)
+//        {
+//            std::cout << menu->objectName().toStdString()
+//                    << " removed from menu bar \n";
+//            std::cout.flush();
+//        }
+//
+//        menuBar()->removeAction(menu->menuAction());
+//        delete menu;
+//    }
 
     // Reset currentMenu and currentMenuBar
     taoWidget->currentMenu = NULL;
     taoWidget->currentMenuBar = this->menuBar();
+    taoWidget->currentToolBar = NULL;
 
     // Removes contextual menus
-    reg.setPattern("^"+QString(CONTEXT_MENU)+".*");
-    menu_list = taoWidget->findChildren<QMenu *>(reg);
+    QRegExp reg("^"+QString(CONTEXT_MENU)+".*", Qt::CaseSensitive);
+    QList<QMenu *> menu_list = taoWidget->findChildren<QMenu *>(reg);
+    QList<QMenu *>::iterator it;
     for(it = menu_list.begin(); it!=menu_list.end(); ++it)
     {
         QMenu *menu = *it;
@@ -885,8 +898,8 @@ void Window::resetTaoMenus()
     }
 
     // Cleanup all menus defined in the current file and all imports
-    CleanMenuInfo cmi;
-    taoWidget->applyAction(cmi);
+//    CleanMenuInfo cmi;
+//    taoWidget->applyAction(cmi);
 }
 
 
@@ -960,8 +973,7 @@ bool Window::populateUndoStack()
     while (it.hasNext())
     {
         Repository::Commit c = it.next();
-        if (!c.msg.contains("Automatic"))
-                undoStack->push(new UndoCommand(repo.data(), c.id, c.msg));
+        undoStack->push(new UndoCommand(repo.data(), c.id, c.msg));
     }
     return true;
 }

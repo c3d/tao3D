@@ -31,6 +31,17 @@
 
 TAO_BEGIN
 
+struct TextRef : XL::TreeRoot
+// ----------------------------------------------------------------------------
+//   Looks and behaves like a text_r, but keeps the value around
+// ----------------------------------------------------------------------------
+{
+    TextRef(XL::Text *t): XL::TreeRoot(t) {}
+    XL::Text *Text()          { return (XL::Text *) tree; }
+    text &    Value()         { return ((XL::Text *) tree)->value; }
+};
+
+
 struct TextSpan : Shape
 // ----------------------------------------------------------------------------
 //    A contiguous run of glyphs
@@ -48,7 +59,7 @@ struct TextSpan : Shape
     virtual scale       TrailingSpaceSize();
 
 public:
-    XL::Text *          source;
+    TextRef             source;
     QFont               font;
     uint                start, end;
 };

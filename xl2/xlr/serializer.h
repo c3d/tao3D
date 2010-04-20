@@ -73,6 +73,8 @@ struct Serializer : Action
     Tree *DoChild(Tree *child);
     Tree *Do(Tree *what);
 
+    bool        IsValid()       { return out.good(); }
+
 protected:
     // Writing data (low level)
     void        WriteSigned(longlong);
@@ -95,17 +97,9 @@ struct Deserializer
     Deserializer(std::istream &in, tree_position pos = Tree::NOWHERE);
     ~Deserializer();
 
-    // Deserialize a tree from the input and return it
+    // Deserialize a tree from the input and return it, or return NULL
     Tree *      ReadTree();
-
-    // Exception thrown in case a value doesn't fit
-    struct Error
-    {
-        Error(Deserializer *ds, SerializationTag tag):
-            deserializer(ds), tag(tag) {}
-        Deserializer *    deserializer;
-        SerializationTag  tag;
-    };
+    bool        IsValid()       { return in.good(); }
 
 protected:
     // Reading low-level data

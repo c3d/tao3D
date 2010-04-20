@@ -199,7 +199,7 @@ text Options::ParseNext()
 #if XL_DEBUG
 #define TRACE(name)                                 \
             if (OptionMatches(argval, "t" #name))   \
-                xl_traces |= 1 << XL::TRACE_##name; \
+                traces.name = true;                 \
             else
 #else
 #define TRACE(name)

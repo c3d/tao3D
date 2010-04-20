@@ -499,7 +499,7 @@ Value *Compiler::Known(Tree *tree)
 }
 
 
-void Compiler::FreeResources(Tree *tree)
+void Compiler::FreeResources(Tree *tree, GCAction &gc)
 // ----------------------------------------------------------------------------
 //   Free the LLVM resources associated to the tree, if any
 // ----------------------------------------------------------------------------
@@ -511,10 +511,48 @@ void Compiler::FreeResources(Tree *tree)
     if (functions.count(tree) > 0)
     {
         Function *f = functions[tree];
-        f->deleteBody();
-        runtime->freeMachineCodeForFunction(f);
+        bool inUse = !f->use_empty();
+
+        IFTRACE(llvmgc)
+            std::cerr << "Tree'" << tree << "' is "
+                      << (inUse ? "in use\n" : "unused\n");
+        if (inUse)
+        {
+                // Mark the tree back in XLR so that we keep it around
+                IFTRACE(llvmgc)
+                    std::cerr << "Keeping function " << tree << " for LLVM\n";
+                tree->Do(gc);
+        }
+        else
+        {
+            f->deleteBody();
+            runtime->freeMachineCodeForFunction(f);
+        }
+
+        // Mark the function for deletion
+        deleted.insert(tree);
     }
-    deleted.insert(tree);
+
+    if (globals.count(tree) > 0)
+    {
+        Value *v = globals[tree];
+        bool inUse = !v->use_empty();
+
+        if (inUse)
+        {
+            IFTRACE(llvmgc)
+                std::cerr << "Keeping global " << tree << " for LLVM\n";
+            
+            // Mark the tree back in XLR so that we keep it around
+            tree->Do(gc);
+        }
+        else
+        {
+            // Delete the LLVM value now that it's safe to do
+            delete v;
+            globals.erase(tree);
+        }
+    }
 }
 
 
@@ -522,7 +560,7 @@ void Compiler::FreeResources(GCAction &gc)
 // ----------------------------------------------------------------------------
 //   Delete LLVM functions for all trees we want to erase
 // ----------------------------------------------------------------------------
-//   At this stage, we have deleted all the bodies
+//   At this stage, we have deleted all the bodies we could
 {
     while (!deleted.empty())
     {
@@ -539,22 +577,7 @@ void Compiler::FreeResources(GCAction &gc)
             }
             else
             {
-                // Mark the tree back in XLR so that we keep it around
-                tree->Do(gc);
-            }
-        }
-        if (globals.count(tree) > 0)
-        {
-            Value *v = globals[tree];
-            if (v->use_empty())
-            {
-                // Delete the LLVM function now that it's safe to do
-                delete v;
-                globals.erase(tree);
-            }
-            else
-            {
-                // Mark the tree back in XLR so that we keep it around
+                // Probably redundant, but better safe than sorry...
                 tree->Do(gc);
             }
         }

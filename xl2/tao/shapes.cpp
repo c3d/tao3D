@@ -794,8 +794,8 @@ void Callout::Draw(GraphicPath &path)
     Vector td;
     if (d < 0)
         d = 0;
-    d = d < w? d: w;
-    d = d < h? d: h;
+    d = d < pw? d: pw;
+    d = d < ph? d: ph;
     double mrd = d > 2*r? d: 2*r;
 
     if (!inside)

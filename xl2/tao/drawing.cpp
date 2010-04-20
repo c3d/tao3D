@@ -83,6 +83,15 @@ Box3 Drawing::Space()
 }
 
 
+XL::Tree *Drawing::Source()
+// ----------------------------------------------------------------------------
+//   Return the source tree for this drawing
+// ----------------------------------------------------------------------------
+{
+    return NULL;
+}
+
+
 Drawing *Drawing::Break(BreakOrder &order)
 // ----------------------------------------------------------------------------
 //    Break a shape at the next line boundary, if any

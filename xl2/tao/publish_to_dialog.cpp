@@ -37,7 +37,7 @@ PublishToDialog::PublishToDialog(Repository *repo, QWidget *parent)
     : QDialog(parent), repo(repo)
 {
     setupUi(this);
-    rsFrame->setRepository(repo);
+    rsFrame->setRepository(repo, repo->lastPublishTo);
 }
 
 
@@ -55,7 +55,7 @@ void PublishToDialog::accept()
 //    Publish the current project to the previously chosen remote
 // ----------------------------------------------------------------------------
 {
-    repo->push(pushTo());
+    repo->push(repo->lastPublishTo = pushTo());
     QDialog::accept();
 }
 

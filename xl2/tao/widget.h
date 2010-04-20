@@ -188,57 +188,57 @@ public:
 
     // Preserving attributes
     Tree *      locally(Tree *self, Tree *t);
-     Tree *      shape(Tree *self, Tree *t);
+    Tree *      shape(Tree *self, Tree *t);
 
-     // Transforms
-     Tree *      rotatex(Tree *self, real_r rx);
-     Tree *      rotatey(Tree *self, real_r ry);
-     Tree *      rotatez(Tree *self, real_r rz);
-     Tree *      rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz);
-     Tree *      translatex(Tree *self, real_r x);
-     Tree *      translatey(Tree *self, real_r y);
-     Tree *      translatez(Tree *self, real_r z);
-     Tree *      translate(Tree *self, real_r x, real_r y, real_r z);
-     Tree *      rescalex(Tree *self, real_r x);
-     Tree *      rescaley(Tree *self, real_r y);
-     Tree *      rescalez(Tree *self, real_r z);
-     Tree *      rescale(Tree *self, real_r x, real_r y, real_r z);
-
-     // Setting attributes
-     Name *      depthTest(Tree *self, bool enable);
-     Tree *      refresh(Tree *self, double delay);
-     Name *      fullScreen(Tree *self, bool fs);
-     Name *      toggleFullScreen(Tree *self);
-
-     // Graphic attributes
-     Tree *      lineColor(Tree *self, double r, double g, double b, double a);
-     Tree *      lineWidth(Tree *self, double lw);
-     Tree *      lineStipple(Tree *self, uint16 pattern, uint16 scale);
-     Tree *      fillColor(Tree *self, double r, double g, double b, double a);
-     Tree *      fillTexture(Tree *self, text fileName);
-     Tree *      fillTextureFromSVG(Tree *self, text svg);
-
-     // Generating a path
-     Tree *      newPath(Tree *self, Tree *t);
-     Tree *      moveTo(Tree *self, real_r x, real_r y, real_r z);
-     Tree *      lineTo(Tree *self, real_r x, real_r y, real_r z);
-     Tree *      curveTo(Tree *self,
-                         real_r cx, real_r cy, real_r cz,
-                         real_r x, real_r y, real_r z);
-     Tree *      curveTo(Tree *self,
-                         real_r c1x, real_r c1y, real_r c1z,
-                         real_r c2x, real_r c2y, real_r c2z,
-                         real_r x, real_r y, real_r z);
-     Tree *      moveToRel(Tree *self, real_r x, real_r y, real_r z);
-     Tree *      lineToRel(Tree *self, real_r x, real_r y, real_r z);
-     Tree *      pathTextureCoord(Tree *self, real_r x, real_r y, real_r r);
-     Tree *      pathColor(Tree *self, real_r r, real_r g, real_r b, real_r a);
-     Tree *      closePath(Tree *self);
-
-     // 2D primitive that can be in a path or standalone
-     Tree *      rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
-     Tree *      isoscelesTriangle(Tree *self,
-                                   real_r x, real_r y, real_r w, real_r h);
+    // Transforms
+    Tree *      rotatex(Tree *self, real_r rx);
+    Tree *      rotatey(Tree *self, real_r ry);
+    Tree *      rotatez(Tree *self, real_r rz);
+    Tree *      rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz);
+    Tree *      translatex(Tree *self, real_r x);
+    Tree *      translatey(Tree *self, real_r y);
+    Tree *      translatez(Tree *self, real_r z);
+    Tree *      translate(Tree *self, real_r x, real_r y, real_r z);
+    Tree *      rescalex(Tree *self, real_r x);
+    Tree *      rescaley(Tree *self, real_r y);
+    Tree *      rescalez(Tree *self, real_r z);
+    Tree *      rescale(Tree *self, real_r x, real_r y, real_r z);
+    
+    // Setting attributes
+    Name *      depthTest(Tree *self, bool enable);
+    Tree *      refresh(Tree *self, double delay);
+    Name *      fullScreen(Tree *self, bool fs);
+    Name *      toggleFullScreen(Tree *self);
+    
+    // Graphic attributes
+    Tree *      lineColor(Tree *self, double r, double g, double b, double a);
+    Tree *      lineWidth(Tree *self, double lw);
+    Tree *      lineStipple(Tree *self, uint16 pattern, uint16 scale);
+    Tree *      fillColor(Tree *self, double r, double g, double b, double a);
+    Tree *      fillTexture(Tree *self, text fileName);
+    Tree *      fillTextureFromSVG(Tree *self, text svg);
+    
+    // Generating a path
+    Tree *      newPath(Tree *self, Tree *t);
+    Tree *      moveTo(Tree *self, real_r x, real_r y, real_r z);
+    Tree *      lineTo(Tree *self, real_r x, real_r y, real_r z);
+    Tree *      curveTo(Tree *self,
+                        real_r cx, real_r cy, real_r cz,
+                        real_r x, real_r y, real_r z);
+    Tree *      curveTo(Tree *self,
+                        real_r c1x, real_r c1y, real_r c1z,
+                        real_r c2x, real_r c2y, real_r c2z,
+                        real_r x, real_r y, real_r z);
+    Tree *      moveToRel(Tree *self, real_r x, real_r y, real_r z);
+    Tree *      lineToRel(Tree *self, real_r x, real_r y, real_r z);
+    Tree *      pathTextureCoord(Tree *self, real_r x, real_r y, real_r r);
+    Tree *      pathColor(Tree *self, real_r r, real_r g, real_r b, real_r a);
+    Tree *      closePath(Tree *self);
+    
+    // 2D primitive that can be in a path or standalone
+    Tree *      rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
+    Tree *      isoscelesTriangle(Tree *self,
+                                  real_r x, real_r y, real_r w, real_r h);
     Tree *      rightTriangle(Tree *self,
                               real_r x, real_r y, real_r w, real_r h);
     Tree *      ellipse(Tree *self, real_r x, real_r y, real_r w, real_r h);
@@ -309,7 +309,9 @@ public:
 
     Tree *      urlPaint(Tree *self, real_r x, real_r y, real_r w, real_r h,
                          text_p s, integer_p p);
-    Tree *      urlTexture(Tree *self, double x, double y, Text *s, Integer *p);
+    Tree *      urlTexture(Tree *self,
+                           double x, double y,
+                           Text *s, Integer *p);
 
     Tree *      lineEdit(Tree *self, real_r x,real_r y,
                          real_r w,real_r h, text_p s);
@@ -322,9 +324,11 @@ public:
     Tree *      pushButtonTexture(Tree *self, double w, double h,
                                   text_p name, Text *lbl, Tree *act);
     Tree *      radioButton(Tree *self, real_r x,real_r y, real_r w,real_r h,
-                           text_p name, text_p lbl, Text *selected, Tree *act);
+                            text_p name, text_p lbl,
+                            Text *selected, Tree *act);
     Tree *      radioButtonTexture(Tree *self, double w, double h,
-                                  text_p name, Text *lbl, Text *selected, Tree *act);
+                                   text_p name, Text *lbl,
+                                   Text *selected, Tree *act);
     Tree *      checkBoxButton(Tree *self,
                                real_r x,real_r y, real_r w, real_r h,
                                text_p name, text_p lbl, Text* marked,
@@ -344,9 +348,9 @@ public:
 
     Tree *      fontChooser(Tree *self,
                             real_r x, real_r y, real_r w, real_r h,
-                             Tree *action);
+                            Tree *action);
     Tree *      fontChooserTexture(Tree *self,double w, double h,
-                                    Tree *action);
+                                   Tree *action);
     Tree *      groupBox(Tree *self,
                          real_r x,real_r y, real_r w,real_r h,
                          text_p lbl, Tree *buttons);

@@ -54,6 +54,7 @@
 #include "transforms.h"
 #include "undo.h"
 
+#include <QToolButton>
 #include <QtGui/QImage>
 #include <cmath>
 #include <QFont>
@@ -3490,20 +3491,28 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
     if (order >= orderedMenuElements.size())
         orderedMenuElements.resize(order+10);
 
-    if (orderedMenuElements[order])
+    if (par)
     {
-        if (par)
+        if (orderedMenuElements[order])
         {
             QAction *before = orderedMenuElements[order]->p_action;
             par->insertAction(before, currentMenu->menuAction());
         }
-        delete orderedMenuElements[order];
-    }
-    else
-    {
-        if (par)
+        else
+        {
             par->addAction(currentMenu->menuAction());
+        }
+
+        QToolButton* button = NULL;
+        if (par == currentToolBar &&
+            (button = dynamic_cast<QToolButton*>
+             (currentToolBar-> widgetForAction(currentMenu->menuAction()))))
+            button->setPopupMode(QToolButton::InstantPopup);
     }
+
+    if (orderedMenuElements[order])
+        delete orderedMenuElements[order];
+
     orderedMenuElements[order] = new MenuInfo(fullname,
                                               currentMenu->menuAction());
     IFTRACE(menus)

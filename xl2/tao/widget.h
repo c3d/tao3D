@@ -352,7 +352,8 @@ public:
 
     Tree *      videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url);
 
-    // Menus
+    // Menus and widgets
+    Tree *      runtimeError(Tree *self, text msg, Tree *src);
     Tree *      menuItem(Tree *self, text name, text lbl, text iconFileName,
                          bool isCheckable, Text *isChecked, Tree *t);
     Tree *      menu(Tree *self, text name, text lbl, text iconFileName,
@@ -392,6 +393,7 @@ private:
 
     // XL Runtime
     XL::SourceFile       *xlProgram;
+    bool                  inError;
 
     // Rendering
     SpaceLayout *         space;

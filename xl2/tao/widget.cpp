@@ -81,7 +81,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf),
+      xlProgram(sf), inError(false),
       space(NULL), layout(NULL), path(NULL),
       pageName(""), pageId(0), pageTotal(0), pageTree(NULL),
       currentGridLayout(NULL),
@@ -364,6 +364,10 @@ void Widget::runProgram()
 //   Run the current XL program
 // ----------------------------------------------------------------------------
 {
+    // Don't run anything if we detected errors running previously
+    if (inError)
+        return;
+
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
 
@@ -374,43 +378,25 @@ void Widget::runProgram()
     XL::LocalSave<Layout *> saveLayout(layout, space);
     selectionTrees.clear();
 
-    try
+    if (xlProgram)
     {
-        if (xlProgram)
+        if (Tree *prog = xlProgram->tree.tree)
         {
-            if (Tree *prog = xlProgram->tree.tree)
+            xl_evaluate(prog);
+            
+            // Clean the end of the old menu list.
+            for  ( ; order < orderedMenuElements.count(); order++)
             {
-                xl_evaluate(prog);
-
-                // Clean the end of the old menu list.
-                for  ( ; order < orderedMenuElements.count(); order++)
-                {
-                    if (orderedMenuElements[order])
-                    {
-                        delete orderedMenuElements[order];
-                        orderedMenuElements[order] = NULL;
-                    }
-                }
-                // Reset the order value.
-                order          = 0;
-                currentMenu    = NULL;
-                currentToolBar = NULL;
-                currentMenuBar = ((Window*)parent())->menuBar();
+                delete orderedMenuElements[order];
+                orderedMenuElements[order] = NULL;
             }
+
+            // Reset the order value.
+            order          = 0;
+            currentMenu    = NULL;
+            currentToolBar = NULL;
+            currentMenuBar = ((Window*)parent())->menuBar();
         }
-    }
-    catch (XL::Error &e)
-    {
-        xlProgram = NULL;
-        QMessageBox::warning(this, tr("Runtime error"),
-                             tr("Error executing the program:\n%1")
-                             .arg(+e.Message()));
-    }
-    catch(...)
-    {
-        xlProgram = NULL;
-        QMessageBox::warning(this, tr("Runtime error"),
-                             tr("Unknown error executing the program"));
     }
 
     // After we are done, draw the space with all the drawings in it
@@ -983,20 +969,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
     // Now call "key" in the current context
     text name = keyName(event);
     XL::Symbols *syms = xlProgram ? xlProgram->symbols : XL::Symbols::symbols;
-    try
-    {
-        (XL::XLCall ("key"), name) (syms);
-    }
-    catch(XL::Error e)
-    {
-        Window *window = (Window *) parentWidget();
-        window->statusBar()->showMessage(+e.Message());
-    }
-    catch (...)
-    {
-        Window *window = (Window *) parentWidget();
-        window->statusBar()->showMessage("Unknown error processing key");
-    }
+    (XL::XLCall ("key"), name) (syms);
 }
 
 
@@ -1014,20 +987,7 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
     // Now call "key" in the current context with the ~ prefix
     text name = "~" + keyName(event);
     XL::Symbols *syms = xlProgram ? xlProgram->symbols : XL::Symbols::symbols;
-    try
-    {
-        (XL::XLCall ("key"), name) (syms);
-    }
-    catch(XL::Error e)
-    {
-        Window *window = (Window *) parentWidget();
-        window->statusBar()->showMessage(+e.Message());
-    }
-    catch (...)
-    {
-        Window *window = (Window *) parentWidget();
-        window->statusBar()->showMessage("Unknown error processing key");
-    }
+    (XL::XLCall ("key"), name) (syms);
 }
 
 
@@ -1185,6 +1145,7 @@ void Widget::updateProgram(XL::SourceFile *source)
 {
     xlProgram = source;
     refreshProgram();
+    inError = false;
 }
 
 
@@ -1230,6 +1191,7 @@ void Widget::reloadProgram(XL::Tree *newProg)
             xlProgram->tree.tree = newProg;
             prog = newProg;
         }
+        inError = false;
     }
     else
     {
@@ -1360,6 +1322,7 @@ void Widget::refreshProgram()
                     XL::SourceFile &sf = **it;
                     text fname = sf.name;
                     XL::MAIN->LoadFile(fname);
+                    inError = false;
                 }
             }
         }
@@ -1384,8 +1347,15 @@ void Widget::markChanged(text reason)
         {
             import_set done;
             ImportedFilesChanged(prog, done, true);
+
+            // Now update the window
+            text txt = *prog;
+            Window *window = (Window *) parentWidget();
+            window->setText(+txt);
         }
     }
+
+
     refresh(0);
 }
 
@@ -1590,24 +1560,15 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
     Point3 c  = bounds.Center();
     SpaceLayout selectionSpace(this);
 
-    try
-    {
-        XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-        XL::LocalSave<GLuint>   saveId(id, ~0);
-        GLAttribKeeper          saveGL;
-        glDisable(GL_DEPTH_TEST);
-        if (bounds.Depth() > 0)
-            (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
-        else
-            (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (symbols);
-        selectionSpace.Draw(NULL);
-    }
-    catch(XL::Error &e)
-    {
-    }
-    catch(...)
-    {
-    }
+    XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
+    XL::LocalSave<GLuint>   saveId(id, ~0);
+    GLAttribKeeper          saveGL;
+    glDisable(GL_DEPTH_TEST);
+    if (bounds.Depth() > 0)
+        (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
+    else
+        (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (symbols);
+    selectionSpace.Draw(NULL);
 }
 
 
@@ -1622,21 +1583,12 @@ void Widget::drawHandle(const Point3 &p, text handleName)
         symbols = xlProgram->symbols;
 
     SpaceLayout selectionSpace(this);
-    try
-    {
-        XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-        XL::LocalSave<GLuint>   saveId(id, ~0U);
-        GLAttribKeeper          saveGL;
-        glDisable(GL_DEPTH_TEST);
-        (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
-        selectionSpace.Draw(NULL);
-    }
-    catch(XL::Error &e)
-    {
-    }
-    catch(...)
-    {
-    }
+    XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
+    XL::LocalSave<GLuint>   saveId(id, ~0U);
+    GLAttribKeeper          saveGL;
+    glDisable(GL_DEPTH_TEST);
+    (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
+    selectionSpace.Draw(NULL);
 }
 
 
@@ -2821,14 +2773,7 @@ Tree *Widget::frameTexture(Tree *self, double w, double h, Tree *prog)
         {
            // Clear the background and setup initial state
             setup(w, h);
-            try
-            {
-                result = xl_evaluate(prog);
-            }
-            catch(...)
-            {
-                std::cerr << "Error evaluating frame program\n";
-            }
+            result = xl_evaluate(prog);
         }
         layout->Draw(NULL);
 
@@ -3309,6 +3254,20 @@ Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
 //   program is invalidated.  At save time, the old xl program is
 //   invalidated and the new one is executed for the first time.
 // ============================================================================
+
+Tree *Widget::runtimeError(Tree *self, text msg, Tree *arg)
+// ----------------------------------------------------------------------------
+//   Display an error message from the input
+// ----------------------------------------------------------------------------
+{
+    inError = true;             // Stop refreshing
+    XL::Error err(msg, arg, NULL, NULL);
+    QMessageBox::warning(this, tr("Runtime error"),
+                         tr("Error executing the program:\n%1")
+                         .arg(+err.Message()));
+    return XL::xl_false;
+}
+
 
 Tree *Widget::menuItem(Tree *self, text name, text lbl, text iconFileName,
                        bool isCheckable, Text *isChecked, Tree *t)

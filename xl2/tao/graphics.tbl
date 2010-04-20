@@ -400,6 +400,10 @@ PREFIX(GroupBoxTexture, tree, "groupboxtexture",
 //
 // ============================================================================
 
+PREFIX(ErrorMessage, tree, "error", PARM(m, text) PARM(s, tree),
+       RTAO(runtimeError(self, m, &s)))
+PREFIX(ErrorMessage0, tree, "error", PARM(m, text),
+       RTAO(runtimeError(self, m, NULL)))
 PREFIX(MenuItem, tree, "menu_item",
        PARM(n, text) PARM(lbl, text) PARM(icon, text) PARM(cable, boolean)
        PARM(isc, text)  PARM(t, tree),

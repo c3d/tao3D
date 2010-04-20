@@ -605,7 +605,6 @@ bool Window::saveFile(const QString &fileName)
     QFile file(fileName);
     text fn = +fileName;
 
-
     if (!file.open(QFile::WriteOnly | QFile::Text))
     {
         QMessageBox::warning(this, tr("Error saving file"),

@@ -83,7 +83,7 @@ struct Compiler
     bool                      IsKnown(Tree *value);
     llvm::Value *             Known(Tree *value);
 
-    void                      FreeResources(Tree *tree);
+    void                      FreeResources(Tree *tree, GCAction &gc);
     void                      FreeResources(GCAction &gc);
 
     void                      Reset();

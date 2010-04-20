@@ -480,14 +480,14 @@ Tree *xl_block_cast(Tree *source, Tree *value)
 //
 // ============================================================================
 
-Tree *XLCall::operator() (Symbols *syms)
+Tree *XLCall::operator() (Symbols *syms, bool nullIfBad, bool cached)
 // ----------------------------------------------------------------------------
 //    Perform the given call in the given context
 // ----------------------------------------------------------------------------
 {
     if (!syms)
         syms = Symbols::symbols;
-    Tree *callee = syms->CompileCall(name, args);
+    Tree *callee = syms->CompileCall(name, args, nullIfBad, cached);
     if (callee && callee->code)
         callee = callee->code(callee);
     return callee;

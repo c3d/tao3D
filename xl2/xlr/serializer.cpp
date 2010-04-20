@@ -296,10 +296,12 @@ Deserializer::Deserializer(std::istream &in, tree_position pos)
 // ----------------------------------------------------------------------------
     : in(in), pos(pos)
 {
-    if (ReadUnsigned() != serialMAGIC)
-        throw Error (this, serialMAGIC);
-    if (ReadUnsigned() != serialVERSION)
-        throw Error (this, serialVERSION);
+    if (ReadUnsigned() != serialMAGIC || 
+        ReadUnsigned() != serialVERSION)
+    {
+        // Error on input: close the stream
+        in.setstate(in.failbit);
+    }
 }
 
 
@@ -315,6 +317,10 @@ Tree *Deserializer::ReadTree()
 //   Read back data from input stream and build tree from it
 // ----------------------------------------------------------------------------
 {
+    // If it's bad to start with, stop reading further...
+    if (!in.good())
+        return NULL;
+
     SerializationTag tag = SerializationTag(ReadUnsigned());
     text             tvalue, opening, closing;
     longlong         ivalue;
@@ -373,7 +379,7 @@ Tree *Deserializer::ReadTree()
         break;
 
     default:
-        throw Error(this, tag);
+        in.setstate(in.failbit);
     }
 
     return result;
@@ -385,6 +391,9 @@ longlong Deserializer::ReadSigned()
 //   Read values from input stream, checking that it fits local longlong
 // ----------------------------------------------------------------------------
 {
+    if (!in.good())
+        return 0;
+
     byte     b;
     longlong value = 0;
     longlong shifted = 0;
@@ -395,10 +404,10 @@ longlong Deserializer::ReadSigned()
         shifted = longlong(b & 0x7f) << shift;
         value |= shifted;
         if ((shifted >> shift) != (b & 0x7f))
-            throw Error(this, serialINTEGER);
+            in.setstate(in.failbit);
         shift += 7;
     }
-    while (b & 0x80);
+    while (in.good() && (b & 0x80));
 
     if (b & 0x40)
         value |= ~0ULL << shift;
@@ -412,6 +421,9 @@ ulonglong Deserializer::ReadUnsigned()
 //   Read unsigned values from input stream, checking that it fits local ull
 // ----------------------------------------------------------------------------
 {
+    if (!in.good())
+        return 0;
+
     byte      b;
     ulonglong value   = 0;
     ulonglong shifted = 0;
@@ -422,10 +434,10 @@ ulonglong Deserializer::ReadUnsigned()
         shifted = ulonglong(b & 0x7f) << shift;
         value |= shifted;
         if ((shifted >> shift) != (b & 0x7f))
-            throw Error (this, serialINTEGER);
+            in.setstate(in.failbit);
         shift += 7;
     }
-    while (b & 0x80);
+    while (in.good() && (b & 0x80));
 
     return value;
 }
@@ -436,6 +448,9 @@ double Deserializer::ReadReal()
 //   Read a real number from the input stream
 // ----------------------------------------------------------------------------
 {
+    if (!in.good())
+        return 0;
+
     ieee754_double cvt;
     longlong  exponent = ReadSigned();
     ulonglong mantissa = ReadUnsigned();
@@ -461,8 +476,11 @@ text Deserializer::ReadText()
 //   Read a text from the input stream
 // ----------------------------------------------------------------------------
 {
-    longlong  length = ReadSigned();
+    if (!in.good())
+        return "";
+
     text      result;
+    longlong  length = ReadSigned();
 
     if (length < 0)
     {

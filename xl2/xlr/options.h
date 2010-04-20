@@ -32,17 +32,22 @@ XL_BEGIN
 
 class Errors;
 
-enum Trace
+struct Traces
 // ----------------------------------------------------------------------------
 //   List the traces known to the compiler
 // ----------------------------------------------------------------------------
 {
-    TRACE_none = 0,
 #define OPTVAR(name, type, value)
 #define OPTION(name, descr, code)
-#define TRACE(name)     TRACE_##name,
+#define TRACE(name)     bool name : 1;
 #include "options.tbl"
-    TRACE_last
+
+    Traces() {
+#define OPTVAR(name, type, value)
+#define OPTION(name, descr, code)
+#define TRACE(name)     name = false;
+#include "options.tbl"
+    }
 };
 
 
@@ -66,6 +71,7 @@ class Options
 #undef OPTION
 #undef TRACE
 
+    Traces              traces;
     int                 arg;
     int                 argc;
     char **             argv;

@@ -400,6 +400,10 @@ PREFIX(GroupBoxTexture, tree, "groupboxtexture",
 //
 // ============================================================================
 
+PREFIX(ErrorMessage, tree, "error", PARM(m, text) PARM(s, tree),
+       RTAO(runtimeError(self, m, &s)))
+PREFIX(ErrorMessage0, tree, "error", PARM(m, text),
+       RTAO(runtimeError(self, m, NULL)))
 PREFIX(MenuItem, tree, "menu_item",
        PARM(n, text) PARM(lbl, text) PARM(icon, text) PARM(cable, boolean)
        PARM(isc, text)  PARM(t, tree),
@@ -412,8 +416,9 @@ PREFIX(SubMenu, tree, "submenu",
        PARM(name, text) PARM(lbl, text) PARM(icon, text),
        RTAO(menu(self, name, lbl, icon, true)))
 
-PREFIX(ToolBar, tree, "toolbar", PARM(name, text) PARM(lbl, text),
-       RTAO(toolBar(self, name, lbl, true)))
+PREFIX(ToolBar, tree, "toolbar",
+       PARM(name, text) PARM(lbl, text) PARM(loc, text),
+       RTAO(toolBar(self, name, lbl, true, loc)))
 
 PREFIX(Separator, tree, "separator", ,
        RTAO(separator(self)))

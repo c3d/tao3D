@@ -195,15 +195,17 @@ struct Symbols
 
     // Compiling and evaluating a tree in scope defined by these symbols
     Tree *              Compile(Tree *s, CompiledUnit &,
-                                bool nullIfBad = false, bool keepAlt = false);
-    Tree *              CompileAll(Tree *s, bool keepOtherConstants = false);
-    Tree *              CompileCall(text callee, tree_list &args);
+                                bool nullIfBad = false,
+                                bool keepOtherConstants = false);
+    Tree *              CompileAll(Tree *s,
+                                   bool nullIfBad = false,
+                                   bool keepOtherConstants = false);
+    Tree *              CompileCall(text callee, tree_list &args,
+                                    bool nullIfBad=false, bool cached = true);
     Infix *             CompileTypeTest(Tree *type);
     Tree *              Run(Tree *t);
 
     // Error handling
-    Tree *              ErrorHandler();
-    void                SetErrorHandler(Tree *e){ error_handler = e; }
     Tree *              Error (text message,
                                Tree *a1=NULL, Tree *a2=NULL, Tree *a3=NULL);
 

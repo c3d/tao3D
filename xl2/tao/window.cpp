@@ -406,6 +406,7 @@ void Window::createMenus()
 // ----------------------------------------------------------------------------
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
+    fileMenu->setObjectName(FILE_MENU_NAME);
     fileMenu->addAction(newAct);
     fileMenu->addAction(openAct);
     fileMenu->addAction(saveAct);
@@ -415,6 +416,7 @@ void Window::createMenus()
     fileMenu->addAction(exitAct);
 
     editMenu = menuBar()->addMenu(tr("&Edit"));
+    editMenu->setObjectName(EDIT_MENU_NAME);
     editMenu->addAction(undoAction);
     editMenu->addAction(redoAction);
     editMenu->addSeparator();
@@ -423,16 +425,19 @@ void Window::createMenus()
     editMenu->addAction(pasteAct);
 
     shareMenu = menuBar()->addMenu(tr("&Share"));
+    shareMenu->setObjectName(SHARE_MENU_NAME);
     shareMenu->addAction(setPullUrlAct);
     shareMenu->addAction(publishAct);
 
     viewMenu = menuBar()->addMenu(tr("&View"));
+    viewMenu->setObjectName(VIEW_MENU_NAME);
     viewMenu->addAction(dock->toggleViewAction());
     viewMenu->addAction(fullScreenAct);
 
     menuBar()->addSeparator();
 
     helpMenu = menuBar()->addMenu(tr("&Help"));
+    helpMenu->setObjectName(HELP_MENU_NAME);
     helpMenu->addAction(aboutAct);
 }
 
@@ -442,15 +447,20 @@ void Window::createToolBars()
 //   Create the application tool bars
 // ----------------------------------------------------------------------------
 {
+    QMenu *view = findChild<QMenu*>(VIEW_MENU_NAME);
     fileToolBar = addToolBar(tr("File"));
     fileToolBar->addAction(newAct);
     fileToolBar->addAction(openAct);
     fileToolBar->addAction(saveAct);
+    if (view)
+        view->addAction(fileToolBar->toggleViewAction());
 
     editToolBar = addToolBar(tr("Edit"));
     editToolBar->addAction(cutAct);
     editToolBar->addAction(copyAct);
     editToolBar->addAction(pasteAct);
+    if (view)
+        view->addAction(editToolBar->toggleViewAction());
 }
 
 

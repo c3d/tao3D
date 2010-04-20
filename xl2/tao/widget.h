@@ -55,6 +55,16 @@ struct Drag;
 struct TextSelect;
 struct WidgetSurface;
 
+// ----------------------------------------------------------------------------
+// Name of fixed menu. Menus then may be retrieved by
+//   QMenu * view = window->findChild<QMenu*>(VIEW_MENU_NAME)
+// ----------------------------------------------------------------------------
+#define FILE_MENU_NAME  "TAO_FILE_MENU"
+#define EDIT_MENU_NAME  "TAO_EDIT_MENU"
+#define SHARE_MENU_NAME "TAO_SHARE_MENU"
+#define VIEW_MENU_NAME  "TAO_VIEW_MENU"
+#define HELP_MENU_NAME  "TAO_HELP_MENU"
+
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
 //   This is the widget we use to display XL programs output
@@ -348,7 +358,11 @@ public:
                          bool isCheckable, Text *isChecked, Tree *t);
     Tree *      menu(Tree *self, text name, text lbl, text iconFileName,
                      bool isSubmenu=false);
-    Tree *      toolBar(Tree *self, text name, text title, bool isFloatable);
+    // The location is the prefered location for the toolbar.
+    // The supported values are North, East, South, West or N, E, S, W
+    Tree *      toolBar(Tree *self, text name, text title, bool isFloatable,
+                        text location);
+
     Tree *      menuBar(Tree *self);
     Tree *      separator(Tree *self);
 
@@ -525,7 +539,7 @@ struct InsertAtSelectionAction : XL::TreeClone
                             XL::Tree *toInsert, XL::Tree *parent)
         : widget(widget), toInsert(toInsert), parent(parent) {}
 
-    
+
     XL::Tree *DoName(XL::Name *what)
     {
         if (what == parent)

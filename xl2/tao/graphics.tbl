@@ -416,8 +416,9 @@ PREFIX(SubMenu, tree, "submenu",
        PARM(name, text) PARM(lbl, text) PARM(icon, text),
        RTAO(menu(self, name, lbl, icon, true)))
 
-PREFIX(ToolBar, tree, "toolbar", PARM(name, text) PARM(lbl, text),
-       RTAO(toolBar(self, name, lbl, true)))
+PREFIX(ToolBar, tree, "toolbar",
+       PARM(name, text) PARM(lbl, text) PARM(loc, text),
+       RTAO(toolBar(self, name, lbl, true, loc)))
 
 PREFIX(Separator, tree, "separator", ,
        RTAO(separator(self)))

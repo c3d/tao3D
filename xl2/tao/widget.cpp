@@ -1021,30 +1021,20 @@ void Widget::mousePressEvent(QMouseEvent *event)
         {
         default :
         case Qt::NoModifier :
-            {
-                contextMenu = parent()->findChild<QMenu*>(CONTEXT_MENU);
-                break;
-            }
+            contextMenu = parent()->findChild<QMenu*>(CONTEXT_MENU);
+            break;
         case Qt::ShiftModifier :
-            {
-                contextMenu = parent()->findChild<QMenu*>(SHIFT_CONTEXT_MENU);
-                break;
-            }
+            contextMenu = parent()->findChild<QMenu*>(SHIFT_CONTEXT_MENU);
+            break;
         case Qt::ControlModifier :
-            {
-                contextMenu = parent()->findChild<QMenu*>(CONTROL_CONTEXT_MENU);
-                break;
-            }
+            contextMenu = parent()->findChild<QMenu*>(CONTROL_CONTEXT_MENU);
+            break;
         case Qt::AltModifier :
-            {
-                contextMenu = parent()->findChild<QMenu*>(ALT_CONTEXT_MENU);
-                break;
-            }
+            contextMenu = parent()->findChild<QMenu*>(ALT_CONTEXT_MENU);
+            break;
         case Qt::MetaModifier :
-            {
-                contextMenu = parent()->findChild<QMenu*>(META_CONTEXT_MENU);
-                break;
-            }
+            contextMenu = parent()->findChild<QMenu*>(META_CONTEXT_MENU);
+            break;
         }
 
         if (contextMenu)

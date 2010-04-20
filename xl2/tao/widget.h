@@ -188,56 +188,59 @@ public:
 
     // Preserving attributes
     Tree *      locally(Tree *self, Tree *t);
+     Tree *      shape(Tree *self, Tree *t);
 
-    // Transforms
-    Tree *      rotatex(Tree *self, real_r rx);
-    Tree *      rotatey(Tree *self, real_r ry);
-    Tree *      rotatez(Tree *self, real_r rz);
-    Tree *      rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz);
-    Tree *      translatex(Tree *self, real_r x);
-    Tree *      translatey(Tree *self, real_r y);
-    Tree *      translatez(Tree *self, real_r z);
-    Tree *      translate(Tree *self, real_r x, real_r y, real_r z);
-    Tree *      rescalex(Tree *self, real_r x);
-    Tree *      rescaley(Tree *self, real_r y);
-    Tree *      rescalez(Tree *self, real_r z);
-    Tree *      rescale(Tree *self, real_r x, real_r y, real_r z);
+     // Transforms
+     Tree *      rotatex(Tree *self, real_r rx);
+     Tree *      rotatey(Tree *self, real_r ry);
+     Tree *      rotatez(Tree *self, real_r rz);
+     Tree *      rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz);
+     Tree *      translatex(Tree *self, real_r x);
+     Tree *      translatey(Tree *self, real_r y);
+     Tree *      translatez(Tree *self, real_r z);
+     Tree *      translate(Tree *self, real_r x, real_r y, real_r z);
+     Tree *      rescalex(Tree *self, real_r x);
+     Tree *      rescaley(Tree *self, real_r y);
+     Tree *      rescalez(Tree *self, real_r z);
+     Tree *      rescale(Tree *self, real_r x, real_r y, real_r z);
 
-    // Setting attributes
-    Name *      depthTest(Tree *self, bool enable);
-    Tree *      refresh(Tree *self, double delay);
-    Name *      fullScreen(Tree *self, bool fs);
-    Name *      toggleFullScreen(Tree *self);
+     // Setting attributes
+     Name *      depthTest(Tree *self, bool enable);
+     Tree *      refresh(Tree *self, double delay);
+     Name *      fullScreen(Tree *self, bool fs);
+     Name *      toggleFullScreen(Tree *self);
 
-    // Graphic attributes
-    Tree *      lineColor(Tree *self, double r, double g, double b, double a);
-    Tree *      lineWidth(Tree *self, double lw);
-    Tree *      lineStipple(Tree *self, uint16 pattern, uint16 scale);
-    Tree *      fillColor(Tree *self, double r, double g, double b, double a);
-    Tree *      fillTexture(Tree *self, text fileName);
-    Tree *      fillTextureFromSVG(Tree *self, text svg);
+     // Graphic attributes
+     Tree *      lineColor(Tree *self, double r, double g, double b, double a);
+     Tree *      lineWidth(Tree *self, double lw);
+     Tree *      lineStipple(Tree *self, uint16 pattern, uint16 scale);
+     Tree *      fillColor(Tree *self, double r, double g, double b, double a);
+     Tree *      fillTexture(Tree *self, text fileName);
+     Tree *      fillTextureFromSVG(Tree *self, text svg);
 
-    // Generating a path
-    Tree *      newPath(Tree *self, Tree *t);
-    Tree *      moveTo(Tree *self, real_r x, real_r y, real_r z);
-    Tree *      lineTo(Tree *self, real_r x, real_r y, real_r z);
-    Tree *      curveTo(Tree *self,
-                        real_r cx, real_r cy, real_r cz,
-                        real_r x, real_r y, real_r z);
-    Tree *      curveTo(Tree *self,
-                        real_r c1x, real_r c1y, real_r c1z,
-                        real_r c2x, real_r c2y, real_r c2z,
-                        real_r x, real_r y, real_r z);
-    Tree *      moveToRel(Tree *self, real_r x, real_r y, real_r z);
-    Tree *      lineToRel(Tree *self, real_r x, real_r y, real_r z);
-    Tree *      pathTextureCoord(Tree *self, real_r x, real_r y, real_r r);
-    Tree *      pathColor(Tree *self, real_r r, real_r g, real_r b, real_r a);
-    Tree *      closePath(Tree *self);
+     // Generating a path
+     Tree *      newPath(Tree *self, Tree *t);
+     Tree *      moveTo(Tree *self, real_r x, real_r y, real_r z);
+     Tree *      lineTo(Tree *self, real_r x, real_r y, real_r z);
+     Tree *      curveTo(Tree *self,
+                         real_r cx, real_r cy, real_r cz,
+                         real_r x, real_r y, real_r z);
+     Tree *      curveTo(Tree *self,
+                         real_r c1x, real_r c1y, real_r c1z,
+                         real_r c2x, real_r c2y, real_r c2z,
+                         real_r x, real_r y, real_r z);
+     Tree *      moveToRel(Tree *self, real_r x, real_r y, real_r z);
+     Tree *      lineToRel(Tree *self, real_r x, real_r y, real_r z);
+     Tree *      pathTextureCoord(Tree *self, real_r x, real_r y, real_r r);
+     Tree *      pathColor(Tree *self, real_r r, real_r g, real_r b, real_r a);
+     Tree *      closePath(Tree *self);
 
-    // 2D primitive that can be in a path or standalone
-    Tree *      rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
-    Tree *      isoscelesTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
-    Tree *      rightTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
+     // 2D primitive that can be in a path or standalone
+     Tree *      rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
+     Tree *      isoscelesTriangle(Tree *self,
+                                   real_r x, real_r y, real_r w, real_r h);
+    Tree *      rightTriangle(Tree *self,
+                              real_r x, real_r y, real_r w, real_r h);
     Tree *      ellipse(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *      ellipseArc(Tree *self, real_r x, real_r y, real_r w, real_r h,
                            real_r start, real_r sweep);
@@ -322,24 +325,28 @@ public:
                            text_p name, text_p lbl, Text *selected, Tree *act);
     Tree *      radioButtonTexture(Tree *self, double w, double h,
                                   text_p name, Text *lbl, Text *selected, Tree *act);
-    Tree *      checkBoxButton(Tree *self, real_r x,real_r y, real_r w,real_r h,
+    Tree *      checkBoxButton(Tree *self,
+                               real_r x,real_r y, real_r w, real_r h,
                                text_p name, text_p lbl, Text* marked,
                                Tree *act);
-    Tree *      checkBoxButtonTexture(Tree *self, double w, double h,
-                                      text_p name, Text *lbl, Text* marked, Tree *act);
+    Tree *      checkBoxButtonTexture(Tree *self,
+                                      double w, double h,
+                                      text_p name, Text *lbl,
+                                      Text* marked, Tree *act);
     Tree *      buttonGroup(Tree *self, bool exclusive, Tree *buttons);
     Tree *      setAction(Tree *self, Tree *action);
 
-    Tree *      colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
+    Tree *      colorChooser(Tree *self,
+                             real_r x, real_r y, real_r w, real_r h,
                              Tree *action);
     Tree *      colorChooserTexture(Tree *self,double w, double h,
                                     Tree *action);
 
-    Tree *      fontChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
+    Tree *      fontChooser(Tree *self,
+                            real_r x, real_r y, real_r w, real_r h,
                              Tree *action);
     Tree *      fontChooserTexture(Tree *self,double w, double h,
                                     Tree *action);
-
     Tree *      groupBox(Tree *self,
                          real_r x,real_r y, real_r w,real_r h,
                          text_p lbl, Tree *buttons);
@@ -358,6 +365,7 @@ public:
                          bool isCheckable, Text *isChecked, Tree *t);
     Tree *      menu(Tree *self, text name, text lbl, text iconFileName,
                      bool isSubmenu=false);
+
     // The location is the prefered location for the toolbar.
     // The supported values are North, East, South, West or N, E, S, W
     Tree *      toolBar(Tree *self, text name, text title, bool isFloatable,
@@ -406,6 +414,7 @@ private:
     page_map              pageLinks;
     uint                  pageId, pageShown, pageTotal;
     Tree *                pageTree;
+    Tree *                currentShape;
     QGridLayout *         currentGridLayout;
     GroupInfo   *         currentGroup;
 

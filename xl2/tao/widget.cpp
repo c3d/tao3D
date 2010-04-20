@@ -83,6 +83,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       xlProgram(sf), inError(false),
       space(NULL), layout(NULL), path(NULL),
       pageName(""), pageId(0), pageTotal(0), pageTree(NULL),
+      currentShape(NULL),
       currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
       id(0), charId(0), capacity(0), manipulator(0),
@@ -1762,10 +1763,23 @@ XL::Real *Widget::pageTime(Tree *self)
 
 Tree *Widget::locally(Tree *self, Tree *child)
 // ----------------------------------------------------------------------------
-//   Evaluate the child tree while preserving the OpenGL context
+//   Evaluate the child tree while preserving the current state
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> save(layout, layout->AddChild());
+    Tree *result = xl_evaluate(child);
+    return result;
+}
+
+
+Tree *Widget::shape(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child and mark the current shape
+// ----------------------------------------------------------------------------
+{
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+    XL::LocalSave<Tree *>   saveShape (currentShape, child);
+    layout->id = newId();
     Tree *result = xl_evaluate(child);
     return result;
 }
@@ -2175,7 +2189,7 @@ Tree *Widget::closePath(Tree *self)
 
 Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
-//    Draw a rectangle using Cairo
+//    Draw a rectangle
 // ----------------------------------------------------------------------------
 {
     Rectangle shape(Box(x-w/2, y-h/2, w, h));
@@ -2223,7 +2237,7 @@ Tree *Widget::rightTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 
 Tree *Widget::ellipse(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
 // ----------------------------------------------------------------------------
-//   Cairo circle centered around (cx,cy), radius r
+//   Circle centered around (cx,cy), size w * h
 // ----------------------------------------------------------------------------
 {
     Ellipse shape(Box(cx-w/2, cy-h/2, w, h));

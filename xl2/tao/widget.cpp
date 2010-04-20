@@ -381,8 +381,8 @@ void Widget::runProgram()
             {
                 xl_evaluate(prog);
 
-                // Clean the end of the menu
-                while (++order < orderedMenuElements.count())
+                // Clean the end of the old menu list.
+                for  ( ; order < orderedMenuElements.count(); order++)
                 {
                     if (orderedMenuElements[order])
                     {
@@ -391,7 +391,8 @@ void Widget::runProgram()
                     }
                 }
                 // Reset the order value.
-                order = 0;
+                order          = 0;
+                currentMenu    = NULL;
                 currentToolBar = NULL;
                 currentMenuBar = ((Window*)parent())->menuBar();
             }
@@ -1665,7 +1666,7 @@ XL::Text *Widget::page(Tree *self, text name, Tree *body)
     // If the page is set, then we display it
     if (pageName == name)
     {
-        // Initialize back-link 
+        // Initialize back-link
         pageShown = pageId;
         pageLinks.clear();
         if (pageId > 1)
@@ -3471,7 +3472,7 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
     }
     else
     {
-        if (isSubMenu)
+        if (isSubMenu && currentMenu)
             par = currentMenu;
         else if (currentMenuBar)
             par = currentMenuBar;
@@ -3529,10 +3530,13 @@ Tree * Widget::menuBar(Tree *self)
 }
 
 
-Tree * Widget::toolBar(Tree *self, text name, text title, bool isFloatable)
+Tree * Widget::toolBar(Tree *self, text name, text title, bool isFloatable,
+                       text location)
 // ----------------------------------------------------------------------------
 // Add the toolBar to the current widget
 // ----------------------------------------------------------------------------
+// The location is the prefered location for the toolbar.
+// The supported values are [n|N]*, [e|E]*, [s|S]*, West or N, E, S, W, O
 {
     QString fullname = +name;
     Window *win = (Window *)parent();
@@ -3557,6 +3561,36 @@ Tree * Widget::toolBar(Tree *self, text name, text title, bool isFloatable)
     currentToolBar = win->addToolBar(+title);
     currentToolBar->setObjectName(fullname);
     currentToolBar->setFloatable(isFloatable);
+
+    switch (location[0]) {
+    case 'n':
+    case 'N':
+        win->addToolBarBreak(Qt::TopToolBarArea);
+        win->addToolBar(Qt::TopToolBarArea, currentToolBar);
+        break;
+    case 'e':
+    case 'E':
+        win->addToolBarBreak(Qt::RightToolBarArea);
+        win->addToolBar(Qt::RightToolBarArea, currentToolBar);
+        break;
+    case 's':
+    case 'S':
+        win->addToolBarBreak(Qt::BottomToolBarArea);
+        win->addToolBar(Qt::BottomToolBarArea, currentToolBar);
+        break;
+    case 'w':
+    case 'W':
+    case 'o':
+    case 'O':
+        win->addToolBarBreak(Qt::LeftToolBarArea);
+        win->addToolBar(Qt::LeftToolBarArea, currentToolBar);break;
+    }
+
+    if (QMenu* view = win->findChild<QMenu*>(VIEW_MENU_NAME))
+        view->addAction(currentToolBar->toggleViewAction());
+
+    connect(currentToolBar, SIGNAL(actionTriggered(QAction*)),
+            this, SLOT(userMenu(QAction*)));
 
     IFTRACE(menus)
     {
@@ -3700,7 +3734,7 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
             parent = infix;
             program = infix->right;
         }
- 
+
         Tree * &what = parent ? parent->right : top;
         what = new XL::Infix("\n", what, toInsert);
         reloadProgram();

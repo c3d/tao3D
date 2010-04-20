@@ -72,6 +72,19 @@ class Widget : public QGLWidget
 {
     Q_OBJECT
 public:
+    typedef XL::Tree      Tree;
+    typedef XL::Integer   Integer;
+    typedef XL::Real      Real;
+    typedef XL::Text      Text;
+    typedef XL::Name      Name;
+    typedef XL::real_r    real_r;
+    typedef XL::integer_r integer_r;
+    typedef XL::text_r    text_r;
+    typedef XL::real_p    real_p;
+    typedef XL::integer_p integer_p;
+    typedef XL::text_p    text_p;
+
+public:
     Widget(Window *parent, XL::SourceFile *sf = NULL);
     ~Widget();
 
@@ -117,6 +130,10 @@ public:
     bool        writeIfChanged(XL::SourceFile &sf);
     bool        doCommit();
     Repository *repository();
+    Tree *      get(text name, text topName = "shape");
+    bool        set(text name, Tree *value, text topName = "shape");
+    bool        get(text name, XL::tree_list &args, text topName = "shape");
+    bool        set(text name, XL::tree_list &args, text topName = "shape");
 
     // Timing
     ulonglong   now();
@@ -137,8 +154,8 @@ public:
     uint        charSelected()          { return charSelected(charId); }
     void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
     uint        selected(uint i);
-    uint        selected(XL::Tree *tree) { return selectionTrees.count(tree); }
-    void        deselect(XL::Tree *tree) { selectionTrees.erase(tree); }
+    uint        selected(Tree *tree)    { return selectionTrees.count(tree); }
+    void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
     void        select(uint id, uint count);
     void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);
@@ -155,18 +172,6 @@ public:
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
 
 public:
-    typedef XL::Tree      Tree;
-    typedef XL::Integer   Integer;
-    typedef XL::Real      Real;
-    typedef XL::Text      Text;
-    typedef XL::Name      Name;
-    typedef XL::real_r    real_r;
-    typedef XL::integer_r integer_r;
-    typedef XL::text_r    text_r;
-    typedef XL::real_p    real_p;
-    typedef XL::integer_p integer_p;
-    typedef XL::text_p    text_p;
-
     // XLR entry points
     static Widget *Tao() { return current; }
 
@@ -426,7 +431,7 @@ private:
     Activity *            activities;
     GLuint                id, charId, capacity, manipulator;
     selection_map         selection, savedSelection;
-    std::set<XL::Tree *>  selectionTrees;
+    std::set<Tree *>      selectionTrees;
     QEvent *              event;
     QWidget *             focusWidget;
     GLdouble              focusProjection[16], focusModel[16];

@@ -223,75 +223,6 @@ void Widget::dawdle()
 }
 
 
-bool Widget::writeIfChanged(XL::SourceFile &sf)
-// ----------------------------------------------------------------------------
-//   Write file to repository if marked 'changed' and reset change attributes
-// ----------------------------------------------------------------------------
-{
-    text fname = sf.name;
-    if (sf.changed)
-    {
-        Repository *repo = repository();
-
-        if (!repo)
-            return false;
-
-        if (repo->write(fname, sf.tree.tree))
-        {
-            // Mark the tree as no longer changed
-            sf.changed = false;
-
-            // Record that we need to commit it sometime soon
-            repo->change(fname);
-            IFTRACE(filesync)
-                std::cerr << "Changed " << fname << "\n";
-
-            // Record time when file was changed
-            struct stat st;
-            stat (fname.c_str(), &st);
-            sf.modified = st.st_mtime;
-
-            return true;
-        }
-
-        IFTRACE(filesync)
-            std::cerr << "Could not write " << fname << " to repository\n";
-    }
-    return false;
-}
-
-
-bool Widget::doCommit()
-// ----------------------------------------------------------------------------
-//   Commit files previously written to repository and reset next commit time
-// ----------------------------------------------------------------------------
-{
-    IFTRACE(filesync)
-            std::cerr << "Commit: " << repository()->whatsNew << "\n";
-    if (repository()->asyncCommit())
-    {
-        XL::Main *xlr = XL::MAIN;
-        nextCommit = now() + xlr->options.commit_interval * 1000;
-
-        Window *window = (Window *) parentWidget();
-        window->markChanged(false);
-
-        return true;
-    }
-    return false;
-}
-
-
-Repository * Widget::repository()
-// ----------------------------------------------------------------------------
-//   Return the repository associated with the current document (may be NULL)
-// ----------------------------------------------------------------------------
-{
-    Window * win = (Window *)parentWidget();
-    return win->repository();
-}
-
-
 void Widget::draw()
 // ----------------------------------------------------------------------------
 //    Redraw the widget
@@ -1347,6 +1278,264 @@ void Widget::markChanged(text reason)
 
 
     refresh(0);
+}
+
+
+bool Widget::writeIfChanged(XL::SourceFile &sf)
+// ----------------------------------------------------------------------------
+//   Write file to repository if marked 'changed' and reset change attributes
+// ----------------------------------------------------------------------------
+{
+    text fname = sf.name;
+    if (sf.changed)
+    {
+        Repository *repo = repository();
+
+        if (!repo)
+            return false;
+
+        if (repo->write(fname, sf.tree.tree))
+        {
+            // Mark the tree as no longer changed
+            sf.changed = false;
+
+            // Record that we need to commit it sometime soon
+            repo->change(fname);
+            IFTRACE(filesync)
+                std::cerr << "Changed " << fname << "\n";
+
+            // Record time when file was changed
+            struct stat st;
+            stat (fname.c_str(), &st);
+            sf.modified = st.st_mtime;
+
+            return true;
+        }
+
+        IFTRACE(filesync)
+            std::cerr << "Could not write " << fname << " to repository\n";
+    }
+    return false;
+}
+
+
+bool Widget::doCommit()
+// ----------------------------------------------------------------------------
+//   Commit files previously written to repository and reset next commit time
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(filesync)
+            std::cerr << "Commit: " << repository()->whatsNew << "\n";
+    if (repository()->asyncCommit())
+    {
+        XL::Main *xlr = XL::MAIN;
+        nextCommit = now() + xlr->options.commit_interval * 1000;
+
+        Window *window = (Window *) parentWidget();
+        window->markChanged(false);
+
+        return true;
+    }
+    return false;
+}
+
+
+Repository * Widget::repository()
+// ----------------------------------------------------------------------------
+//   Return the repository associated with the current document (may be NULL)
+// ----------------------------------------------------------------------------
+{
+    Window * win = (Window *)parentWidget();
+    return win->repository();
+}
+
+
+XL::Tree *Widget::get(text name, text topName)
+// ----------------------------------------------------------------------------
+//   Find an attribute in the current shape or returns NULL
+// ----------------------------------------------------------------------------
+{
+    // Can't get attributes without a current shape
+    if (!currentShape)
+        return NULL;
+
+    // The current shape has to be a 'shape' prefix
+    XL::Prefix *shapePrefix = currentShape->AsPrefix();
+    if (!shapePrefix)
+        return NULL;
+    Name *shapeName = shapePrefix->left->AsName();
+    if (!shapeName || shapeName->value != topName)
+        return NULL;
+
+    // Take the right child. If it's a block, extract the block
+    Tree *child = shapePrefix->right;
+    if (XL::Block *block = child->AsBlock())
+        child = block->child;
+
+    // Now loop on all statements, looking for the given name
+    while (child)
+    {
+        Tree *what = child;
+
+        // Check if we have \n or ; infix
+        XL::Infix *infix = child->AsInfix();
+        if (infix && (infix->name == "\n" || infix->name == ";"))
+        {
+            what = infix->left;
+            child = infix->right;
+        }
+        else
+        {
+            child = NULL;
+        }
+
+        // Analyze what we got here: is it in the form 'funcname args' ?
+        if (XL::Prefix *prefix = what->AsPrefix())
+            if (Name *prefixName = prefix->left->AsName())
+                if (prefixName->value == name)
+                    return prefix;
+
+        // Is it a name
+        if (Name *singleName = what->AsName())
+            if (singleName->value == name)
+                return singleName;
+    }
+
+    return NULL;
+}
+
+
+bool Widget::set(text name, Tree *value, text topName)
+// ----------------------------------------------------------------------------
+//   Set an attribute in the current shape, return true if successful
+// ----------------------------------------------------------------------------
+{
+    // Can't get attributes without a current shape
+    if (!currentShape)
+        return false;
+
+    // The current shape has to be a 'shape' prefix
+    XL::Prefix *shapePrefix = currentShape->AsPrefix();
+    if (!shapePrefix)
+        return false;
+    Name *shapeName = shapePrefix->left->AsName();
+    if (!shapeName || shapeName->value != topName)
+        return false;
+
+    // Take the right child. If it's a block, extract the block
+    Tree **addr = &shapePrefix->right;
+    Tree *child = *addr;
+    if (XL::Block *block = child->AsBlock())
+    {
+        addr = &block->child;
+        child = *addr;
+    }
+    Tree **topAddr = addr;
+
+    // Now loop on all statements, looking for the given name
+    while (child)
+    {
+        Tree *what = child;
+
+        // Check if we have \n or ; infix
+        XL::Infix *infix = child->AsInfix();
+        if (infix && (infix->name == "\n" || infix->name == ";"))
+        {
+            addr = &infix->left;
+            what = *addr;
+            child = infix->right;
+        }
+        else
+        {
+            child = NULL;
+        }
+
+        // Analyze what we got here: is it in the form 'funcname args' ?
+        if (value->AsPrefix())
+        {
+            if (XL::Prefix *prefix = what->AsPrefix())
+            {
+                if (Name *prefixName = prefix->left->AsName())
+                {
+                    if (prefixName->value == name)
+                    {
+                        *addr = value;
+                        return true;
+                    }
+                }
+            }
+        }
+        else if (value->AsName())
+        {
+            if (Name *stmtName = what->AsName())
+            {
+                if (stmtName->value == name)
+                {
+                    *addr = value;
+                    return true;
+                }
+            }
+        }
+        
+    } // Loop on all items
+
+    // We didn't find the name: set the top level item
+    *topAddr = value;
+    return true;
+}
+
+
+bool Widget::get(text name, XL::tree_list &args, text topName)
+// ----------------------------------------------------------------------------
+//   Get the arguments, decomposing args in a comma-separated list
+// ----------------------------------------------------------------------------
+{
+    // Check if we can get the tree
+    Tree *attrib = get(name, topName);
+    if (!attrib)
+        return false;
+
+    // Check if we expect a single name or a prefix
+    args.clear();
+    if (attrib->AsName())
+        return true;
+    
+    // Check that we have a prefix
+    XL::Prefix *prefix = attrib->AsPrefix();
+    if (!prefix)
+        return false;           // ??? This shouldn't happen
+
+    // Get attribute arguments and decompose them into 'args'
+    Tree *argsTree = prefix->right;
+    while (XL::Infix *infix = argsTree->AsInfix())
+    {
+        if (infix->name != ",")
+            break;
+        args.push_back(infix->left);
+        argsTree = infix->right;
+    }
+    args.push_back(argsTree);
+
+    // Success
+    return true;
+}
+
+
+bool Widget::set(text name, XL::tree_list &args, text topName)
+// ----------------------------------------------------------------------------
+//   Set the arguments, building the comma-separated list
+// ----------------------------------------------------------------------------
+{
+    Tree *call = new XL::Name(name);
+    if (uint arity = args.size())
+    {
+        Tree *argsTree = args[0];
+        for (uint a = 1; a < arity; a++)
+            argsTree = new XL::Infix(",", argsTree, args[a]);
+        call = new XL::Prefix(call, argsTree);
+    }
+
+    return set(name, call, topName);
 }
 
 

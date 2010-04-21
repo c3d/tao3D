@@ -2007,8 +2007,8 @@ Tree *Widget::rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz)
 {
     layout->Add(new RotationManipulator(self, ra, rx, ry, rz));
     layout->hasMatrix = true;
-    double amod360 = fmod(ra, 360.0);
-    if (amod360 < -0.01 || amod360 > 0.01)
+    double amod90 = fmod(ra, 90.0);
+    if (amod90 < -0.01 || amod90 > 0.01)
         layout->hasPixelBlur = true;
     return XL::xl_true;
 }

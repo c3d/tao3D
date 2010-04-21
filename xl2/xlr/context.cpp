@@ -658,7 +658,7 @@ bool Symbols::Mark(GCAction &gc)
 // ============================================================================
 //   This is just a rather simple mark and sweep garbage collector.
 
-ulong Context::gc_increment = 100;
+ulong Context::gc_increment = 5;
 ulong Context::gc_growth_percent = 100;
 Context *Context::context = NULL;
 

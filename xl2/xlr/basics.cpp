@@ -53,6 +53,30 @@ XL_BEGIN
 // 
 // ============================================================================
 
+static inline longlong xl_text2int(text_r t)
+// ----------------------------------------------------------------------------
+//   Converts text to a numerical value
+// ----------------------------------------------------------------------------
+{
+    std::istringstream stream(t.value);
+    longlong result;
+    stream >> result;
+    return result;
+}
+
+
+static inline double xl_text2real(text_r t)
+// ----------------------------------------------------------------------------
+//   Converts text to a numerical value
+// ----------------------------------------------------------------------------
+{
+    std::istringstream stream(t.value);
+    double result;
+    stream >> result;
+    return result;
+}
+
+
 static inline integer_t xl_mod(integer_r xr, integer_r yr)
 // ----------------------------------------------------------------------------
 //   Compute a mathematical 'mod' from the C99 % operator

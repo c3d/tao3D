@@ -28,6 +28,7 @@
 #include "tree.h"
 #include "process.h"
 #include "main.h"
+#include "ansi_textedit.h"
 #include <QString>
 #include <QProcess>
 #include <QtGlobal>
@@ -129,6 +130,8 @@ public:
     virtual bool        delRemote(QString name)         = 0;
     virtual bool        renRemote(QString oldName, QString newName) = 0;
     virtual QList<Commit> history(int max = 100)        = 0;
+    virtual bool        clone(QString cloneUrl, QString path,
+                              AnsiTextEdit *out = NULL, void *id = NULL) = 0;
 
 public:
     static QSharedPointer<Repository>
@@ -138,6 +141,7 @@ public:
 
 signals:
     void                asyncCommitSuccess(QString commitId, QString msg);
+    void                asyncProcessComplete(void *id);
 
 protected:
     virtual QString     command()                       = 0;
@@ -145,11 +149,13 @@ protected:
     virtual text        fullName(text fileName);
     static Repository * newRepository(const QString &path,
                                       bool create = false);
-    void                dispatch(Process *cmd);
+    void                dispatch(Process *cmd, AnsiTextEdit *err = NULL,
+                                 AnsiTextEdit *out = NULL, void *id = NULL);
 
 protected slots:
     virtual void        asyncProcessFinished(int exitCode);
     virtual void        asyncProcessError(QProcess::ProcessError error);
+
 
 protected:
     struct ProcQueueConsumer

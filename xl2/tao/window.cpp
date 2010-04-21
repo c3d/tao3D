@@ -29,6 +29,7 @@
 #include "tao_utf8.h"
 #include "pull_from_dialog.h"
 #include "publish_to_dialog.h"
+#include "clone_dialog.h"
 #include "undo.h"
 
 #include <iostream>
@@ -244,18 +245,23 @@ bool Window::saveAs()
 }
 
 
+void Window::warnNoRepo()
+// ----------------------------------------------------------------------------
+//    Display a warning box
+// ----------------------------------------------------------------------------
+{
+    QMessageBox::warning(this, tr("No project"),
+                         tr("This feature is not available because the "
+                            "current document is not in a project."));
+}
+
 void Window::setPullUrl()
 // ----------------------------------------------------------------------------
 //    Prompt user for address of remote repository to pull from
 // ----------------------------------------------------------------------------
 {
     if (!repo)
-    {
-        QMessageBox::warning(this, tr("No project"),
-                             tr("This feature is not available because the "
-                                "current document is not in a project."));
-        return;
-    }
+        warnNoRepo();
 
     PullFromDialog dialog(repo.data());
     if (dialog.exec())
@@ -269,14 +275,24 @@ void Window::publish()
 // ----------------------------------------------------------------------------
 {
     if (!repo)
-    {
-        QMessageBox::warning(this, tr("No project"),
-                             tr("This feature is not available because the "
-                                "current document is not in a project."));
-        return;
-    }
+        return warnNoRepo();
 
     PublishToDialog(repo.data()).exec();
+}
+
+
+void Window::clone()
+// ----------------------------------------------------------------------------
+//    Prompt user for address of remote repository and clone it locally
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+        return warnNoRepo();  // FIXME we would like to clone even in this case
+
+    CloneDialog *dialog = new CloneDialog(repo.data(), this);
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
 }
 
 
@@ -372,6 +388,11 @@ void Window::createActions()
                                 "a specific path or URL"));
     connect(publishAct, SIGNAL(triggered()), this, SLOT(publish()));
 
+    cloneAct = new QAction(tr("Clone..."), this);
+    cloneAct->setStatusTip(tr("Clone (download) a Tao project "
+                              "and make a local copy"));
+    connect(cloneAct, SIGNAL(triggered()), this, SLOT(clone()));
+
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setStatusTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
@@ -426,6 +447,7 @@ void Window::createMenus()
 
     shareMenu = menuBar()->addMenu(tr("&Share"));
     shareMenu->setObjectName(SHARE_MENU_NAME);
+    shareMenu->addAction(cloneAct);
     shareMenu->addAction(setPullUrlAct);
     shareMenu->addAction(publishAct);
 

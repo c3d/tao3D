@@ -264,15 +264,29 @@ void Repository::markChanged(text reason)
 }
 
 
-void Repository::dispatch(Process *cmd)
+void Repository::dispatch(Process *cmd, AnsiTextEdit *err, AnsiTextEdit *out,
+                          void *id)
 // ----------------------------------------------------------------------------
 //   Insert process in run queue and start first process
 // ----------------------------------------------------------------------------
 {
+    cmd->id = id;
     connect(cmd,  SIGNAL(finished(int,QProcess::ExitStatus)),
             this, SLOT  (asyncProcessFinished(int)));
     connect(cmd,  SIGNAL(error(QProcess::ProcessError)),
             this, SLOT  (asyncProcessError(QProcess::ProcessError)));
+    if (err)
+    {
+        cmd->errTextEdit = err;
+        connect(cmd, SIGNAL(readyReadStandardError()),
+                cmd, SLOT(sendStandardErrorToTextEdit()));
+    }
+    if (out)
+    {
+        cmd->outTextEdit = out;
+        connect(cmd, SIGNAL(readyReadStandardOutput()),
+                cmd, SLOT(sendStandardOutputToTextEdit()));
+    }
     pQueue.append(cmd);
     if (pQueue.count() == 1)
         cmd->start();
@@ -290,6 +304,8 @@ void Repository::asyncProcessFinished(int exitCode)
     if (exitCode)
         std::cerr << +tr("Async command failed, exit status %1: %2\n")
                      .arg((int)exitCode).arg(cmd->commandLine);
+    cmd->sendStandardOutputToTextEdit();
+    emit asyncProcessComplete(cmd->id);
 }
 
 
@@ -304,6 +320,8 @@ void Repository::asyncProcessError(QProcess::ProcessError error)
     std::cerr << +tr("Async command error %1: %2\nError output:\n%3")
                  .arg((int)error).arg(cmd->commandLine)
                  .arg(QString(cmd->readAllStandardError()));
+    cmd->sendStandardErrorToTextEdit();
+    emit asyncProcessComplete(cmd->id);
 }
 
 

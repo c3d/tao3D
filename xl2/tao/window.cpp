@@ -171,44 +171,45 @@ void Window::open()
          tr("Tao documents (*.ddd);;XL programs (*.xl);;"
             "Headers (*.dds *.xs);;All files (*.*)"));
 
-    if (!fileName.isEmpty())
+    if (fileName.isEmpty())
+        return;
+
+    Window *existing = findWindow(fileName);
+    if (existing)
     {
-        Window *existing = findWindow(fileName);
-        if (existing)
+        existing->show();
+        existing->raise();
+        existing->activateWindow();
+        return;
+    }
+
+    if (isUntitled &&
+        textEdit->document()->isEmpty() &&
+        !isWindowModified())
+    {
+        if (!loadFile(fileName, true))
+            return;
+    }
+    else
+    {
+        QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
+        text fn = canonicalFilePath.toStdString();
+        xlRuntime->LoadFile(fn);
+        XL::SourceFile &sf = xlRuntime->files[fn];
+        Window *other = new Window(xlRuntime, &sf);
+        if (other->isUntitled ||
+            !other->openProject(QFileInfo(+sf.name).canonicalPath(),
+                                QFileInfo(+sf.name).fileName()))
         {
-            existing->show();
-            existing->raise();
-            existing->activateWindow();
+            delete other;
             return;
         }
 
-        if (isUntitled &&
-            textEdit->document()->isEmpty() &&
-            !isWindowModified())
-        {
-            if (!loadFile(fileName, true))
-                return;
-        }
-        else
-        {
-            QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
-            text fn = canonicalFilePath.toStdString();
-            xlRuntime->LoadFile(fn);
-            XL::SourceFile &sf = xlRuntime->files[fn];
-            Window *other = new Window(xlRuntime, &sf);
-            if (other->isUntitled ||
-                !other->openProject(QFileInfo(+sf.name).canonicalPath(),
-                                    QFileInfo(+sf.name).fileName()))
-            {
-                delete other;
-                return;
-            }
 
-
-            other->move(x() + 40, y() + 40);
-            other->show();
-        }
+        other->move(x() + 40, y() + 40);
+        other->show();
     }
+
 }
 
 

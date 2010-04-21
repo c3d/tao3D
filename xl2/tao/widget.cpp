@@ -383,7 +383,7 @@ void Widget::runProgram()
         if (Tree *prog = xlProgram->tree.tree)
         {
             xl_evaluate(prog);
-            
+
             // Clean the end of the old menu list.
             for  ( ; order < orderedMenuElements.count(); order++)
             {
@@ -3237,22 +3237,21 @@ Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
 // ============================================================================
 // * Menu name philosophy :
 // * The full name is used to register menus and menu items against
-//   the menubar.  Those names are not displayed.
+//   the menubar.  Those names are not displayed and must be unique.
 // * Menu created by the XL programmer must be differentiated from the
 //   originals ones because they have to be recreated or modified at
 //   each loop of XL.  When top menus are deleted they recursively
 //   delete their children (sub menus and menu items), so we have to
 //   take care of sub menu at deletion time.
-//   Regarding those constraints, main menus are prefixed with _TOP_MENU_,
-//   sub menus are prefixed by _SUB_MENU_. Then each menu item and sub menu are
-//   prefixed by the "current menu" name (this current menu may itself be a
-//   submenu). Each part of the name are separated by a /.
+//
 //
 // * Menu and menu items lifecycle : Menus are created when the xl
 //   program is executed the first time.  Menus display text can be
-//   modified at each execution.  Menus are destroyed when the xl
-//   program is invalidated.  At save time, the old xl program is
-//   invalidated and the new one is executed for the first time.
+//   modified at each execution. At each loop, for each element (menu,
+//   menu_item, toolbar,...) there name is looked for as a main window children,
+//   if found, the order is checked against the registered value in
+//   orderedMenuElements. If the order is OK, the label, etc are updated; if not
+//   or not found at all a new element is created and registered.
 // ============================================================================
 
 Tree *Widget::runtimeError(Tree *self, text msg, Tree *arg)
@@ -3287,14 +3286,6 @@ Tree *Widget::menuItem(Tree *self, text name, text lbl, text iconFileName,
             orderedMenuElements[order] != NULL &&
             orderedMenuElements[order]->fullname == fullName)
         {
-//            IFTRACE(menus)
-//            {
-//                std::cerr<< "MenuItem " << lbl
-//                         << " found in current window with fullname "
-//                         << fullName.toStdString()
-//                         << " and order " << order <<"\n";
-//                std::cerr.flush();
-//            }
             act->setText(+lbl);
             if (iconFileName != "")
                 act->setIcon(QIcon(+iconFileName));
@@ -3406,14 +3397,6 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
                 currentMenu->setIcon(QIcon(+iconFileName));
             else
                 currentMenu->setIcon(QIcon());
-
-//            IFTRACE(menus)
-//            {
-//                std::cerr << "menu found with name "
-//                          << fullname.toStdString() << " and order "
-//                          << order << "\n";
-//                std::cerr.flush();
-//            }
 
             order++;
             return XL::xl_true;

@@ -1,18 +1,18 @@
 // ****************************************************************************
 //  main.cpp                                                        XLR project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //    Main entry point of the XL runtime and compiler
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -59,7 +59,7 @@ SourceFile::SourceFile(text n, Tree *t, Symbols *s)
     stat (n.c_str(), &st);
     modified = st.st_mtime;
 }
- 
+
 
 SourceFile::SourceFile()
 // ----------------------------------------------------------------------------
@@ -92,6 +92,29 @@ Main::Main(int inArgc, char **inArgv, Compiler &comp)
     Syntax::syntax = &syntax;
 }
 
+Main::Main(int inArgc, char **inArgv, Compiler &comp,
+           const char* builtinsPath, const char* syntaxPath,
+           const char* stylesheetPath)
+// ----------------------------------------------------------------------------
+//   Initialization of the globals
+// ----------------------------------------------------------------------------
+    : argc(inArgc), argv(inArgv),
+      positions(),
+      errors(&positions),
+      syntax(syntaxPath),
+      builtins(builtinsPath),
+      options(errors),
+      compiler(comp),
+      context(errors, &compiler),
+      renderer(std::cout, stylesheetPath, syntax),
+      reader(NULL), writer(NULL)
+{
+    Options::options = &options;
+    Context::context = &context;
+    Symbols::symbols = &context;
+    Renderer::renderer = &renderer;
+    Syntax::syntax = &syntax;
+}
 
 Main::~Main()
 // ----------------------------------------------------------------------------

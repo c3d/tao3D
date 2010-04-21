@@ -29,7 +29,7 @@ namespace Tao {
 
 CloneDialog::CloneDialog(Repository *repo, QWidget *parent)
 // ----------------------------------------------------------------------------
-//    Create a "remote" selection box for the given repository
+//    Create a "clone" dialog
 // ----------------------------------------------------------------------------
     : QDialog(parent), repo(repo), success(false)
 {
@@ -41,7 +41,7 @@ CloneDialog::CloneDialog(Repository *repo, QWidget *parent)
 
 void CloneDialog::accept()
 // ----------------------------------------------------------------------------
-//    Publish the current project to the previously chosen remote
+//    Ok/dismiss button was clicked
 // ----------------------------------------------------------------------------
 {
     if (success)

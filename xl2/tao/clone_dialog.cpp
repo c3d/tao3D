@@ -25,6 +25,7 @@
 #include "application.h"
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QCompleter>
 
 namespace Tao {
 
@@ -38,6 +39,10 @@ CloneDialog::CloneDialog(QWidget *parent)
     okButton = buttonBox->button(QDialogButtonBox::Ok);
     cancelButton = buttonBox->button(QDialogButtonBox::Cancel);
     folderEdit->setText(Application::defaultProjectFolderPath());
+    QCompleter *pathCompleter = new QCompleter(TaoApp->pathCompletions, this);
+    QCompleter *urlCompleter = new QCompleter(TaoApp->urlCompletions, this);
+    folderEdit->setCompleter(pathCompleter);
+    urlEdit->setCompleter(urlCompleter);
 }
 
 
@@ -53,6 +58,8 @@ void CloneDialog::accept()
     QString folder = folderEdit->text();
     if (url.isEmpty() || folder.isEmpty())
         return;
+    TaoApp->urlCompletions.append(url);
+    TaoApp->pathCompletions.append(folder);
     repo = RepositoryFactory::repository(folder, RepositoryFactory::Clone);
     if (!repo)
     {

@@ -35,7 +35,9 @@ PullFromDialog::PullFromDialog(Repository *repo, QWidget *parent)
     : QDialog(parent), repo(repo)
 {
     setupUi(this);
-    rsFrame->setRepository(repo);
+    rsFrame->setRepository(repo, repo->pullFrom);
+    QString interval = QString("%1").arg(repo->pullInterval/1000);
+    updateInterval->setText(interval);
 }
 
 
@@ -59,6 +61,15 @@ Repository::ConflictResolution PullFromDialog::conflictResolution()
 }
 
 
+int PullFromDialog::pullInterval()
+// ----------------------------------------------------------------------------
+//    The interval (in seconds) between each synchronization
+// ----------------------------------------------------------------------------
+{
+    return updateInterval->text().toInt();
+}
+
+
 void PullFromDialog::accept()
 // ----------------------------------------------------------------------------
 //    Update the repository synchronization settings (URL, conflict mode)
@@ -66,6 +77,7 @@ void PullFromDialog::accept()
 {
     repo->pullFrom           = pullFrom();
     repo->conflictResolution = conflictResolution();
+    repo->pullInterval       = pullInterval() * 1000;
     QDialog::accept();
 }
 

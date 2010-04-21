@@ -56,7 +56,7 @@ public:
     bool openProject(QString path, QString filename, bool confirm = true);
     Repository * repository() { return repo.data(); }
     void switchToFullScreen(bool fs);
-    bool loadFileIntoSourceFileView(const QString &fileName);
+    bool loadFileIntoSourceFileView(const QString &fileName, bool box=false);
 
     bool isUntitled;
 
@@ -76,6 +76,7 @@ private slots:
     bool saveAs();
     void setPullUrl();
     void publish();
+    void clone();
     void about();
     void documentWasModified();
     void checkFiles();
@@ -100,6 +101,7 @@ private:
     void resetTaoMenus();
     QString currentProjectFolderPath();
     bool populateUndoStack();
+    void warnNoRepo();
 
 private:
     XL::Main *        xlRuntime;
@@ -129,6 +131,7 @@ private:
     QAction          *pasteAct;
     QAction          *setPullUrlAct;
     QAction          *publishAct;
+    QAction          *cloneAct;
     QAction          *aboutAct;
     QAction          *aboutQtAct;
     QAction          *fullScreenAct;

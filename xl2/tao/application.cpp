@@ -90,7 +90,7 @@ Application::Application(int & argc, char ** argv)
                                     " Performance may not be optimal."
                                     " Consider updating the OpenGL drivers."));
     }
-    if (!Repository::available())
+    if (!RepositoryFactory::available())
     {
         QMessageBox::warning(NULL, tr("Version control software"),
                              tr("No supported version control software was "

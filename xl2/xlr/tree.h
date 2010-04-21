@@ -312,6 +312,7 @@ template <class I> inline I* Tree::Remove()
         if (I *ic = dynamic_cast<I *> (i))
         {
             prev->next = i->next;
+            ic->next = NULL;
             return ic;
         }
         prev = i;
@@ -334,6 +335,7 @@ template <class I> inline I* Tree::Remove(I *an_info)
                 info = info->next;
             else
                 prev->next = i->next;
+            ic->next = NULL;
             return ic;
         }
         prev = i;

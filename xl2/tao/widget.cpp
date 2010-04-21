@@ -80,8 +80,10 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf),
-      space(NULL), layout(NULL), path(NULL), currentGridLayout(NULL),
+      xlProgram(sf), inError(false),
+      space(NULL), layout(NULL), path(NULL),
+      pageName(""), pageId(0), pageTotal(0), pageTree(NULL),
+      currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
       id(0), charId(0), capacity(0), manipulator(0),
       event(NULL), focusWidget(NULL),
@@ -207,7 +209,7 @@ void Widget::dawdle()
     if (repo && pullDelay < 0 && repo->state == Repository::RS_Clean)
     {
         repo->pull();
-        nextPull = now() + xlr->options.pull_interval * 1000;
+        nextPull = now() + repo->pullInterval * 1000;
     }
 
     // Check if there's something to reload
@@ -305,6 +307,9 @@ void Widget::draw()
     pageH = (29.7 / 2.54) * logicalDpiY();
     flowName = "";
     flows.clear();
+    pageId = 0;
+    pageTree = NULL;
+    lastPageName = "";
 
     // Clear the background
     glClearColor (1.0, 1.0, 1.0, 1.0);
@@ -347,6 +352,9 @@ void Widget::draw()
     glDisable(GL_DEPTH_TEST);
     for (Activity *a = activities; a; a = a->Display()) ;
     selectionSpace.Draw(NULL);
+
+    // Update page count for next run
+    pageTotal = pageId;
 }
 
 
@@ -355,6 +363,10 @@ void Widget::runProgram()
 //   Run the current XL program
 // ----------------------------------------------------------------------------
 {
+    // Don't run anything if we detected errors running previously
+    if (inError)
+        return;
+
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
 
@@ -365,42 +377,25 @@ void Widget::runProgram()
     XL::LocalSave<Layout *> saveLayout(layout, space);
     selectionTrees.clear();
 
-    try
+    if (xlProgram)
     {
-        if (xlProgram)
+        if (Tree *prog = xlProgram->tree.tree)
         {
-            if (Tree *prog = xlProgram->tree.tree)
+            xl_evaluate(prog);
+            
+            // Clean the end of the old menu list.
+            for  ( ; order < orderedMenuElements.count(); order++)
             {
-                xl_evaluate(prog);
-
-                // Clean the end of the menu
-                while (++order < orderedMenuElements.count())
-                {
-                    if (orderedMenuElements[order])
-                    {
-                        delete orderedMenuElements[order];
-                        orderedMenuElements[order] = NULL;
-                    }
-                }
-                // Reset the order value.
-                order = 0;
-                currentToolBar = NULL;
-                currentMenuBar = ((Window*)parent())->menuBar();
+                delete orderedMenuElements[order];
+                orderedMenuElements[order] = NULL;
             }
+
+            // Reset the order value.
+            order          = 0;
+            currentMenu    = NULL;
+            currentToolBar = NULL;
+            currentMenuBar = ((Window*)parent())->menuBar();
         }
-    }
-    catch (XL::Error &e)
-    {
-        xlProgram = NULL;
-        QMessageBox::warning(this, tr("Runtime error"),
-                             tr("Error executing the program:\n%1")
-                             .arg(+e.Message()));
-    }
-    catch(...)
-    {
-        xlProgram = NULL;
-        QMessageBox::warning(this, tr("Runtime error"),
-                             tr("Unknown error executing the program"));
     }
 
     // After we are done, draw the space with all the drawings in it
@@ -973,20 +968,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
     // Now call "key" in the current context
     text name = keyName(event);
     XL::Symbols *syms = xlProgram ? xlProgram->symbols : XL::Symbols::symbols;
-    try
-    {
-        (XL::XLCall ("key"), name) (syms);
-    }
-    catch(XL::Error e)
-    {
-        Window *window = (Window *) parentWidget();
-        window->statusBar()->showMessage(+e.Message());
-    }
-    catch (...)
-    {
-        Window *window = (Window *) parentWidget();
-        window->statusBar()->showMessage("Unknown error processing key");
-    }
+    (XL::XLCall ("key"), name) (syms);
 }
 
 
@@ -1004,20 +986,7 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
     // Now call "key" in the current context with the ~ prefix
     text name = "~" + keyName(event);
     XL::Symbols *syms = xlProgram ? xlProgram->symbols : XL::Symbols::symbols;
-    try
-    {
-        (XL::XLCall ("key"), name) (syms);
-    }
-    catch(XL::Error e)
-    {
-        Window *window = (Window *) parentWidget();
-        window->statusBar()->showMessage(+e.Message());
-    }
-    catch (...)
-    {
-        Window *window = (Window *) parentWidget();
-        window->statusBar()->showMessage("Unknown error processing key");
-    }
+    (XL::XLCall ("key"), name) (syms);
 }
 
 
@@ -1175,6 +1144,7 @@ void Widget::updateProgram(XL::SourceFile *source)
 {
     xlProgram = source;
     refreshProgram();
+    inError = false;
 }
 
 
@@ -1220,6 +1190,7 @@ void Widget::reloadProgram(XL::Tree *newProg)
             xlProgram->tree.tree = newProg;
             prog = newProg;
         }
+        inError = false;
     }
     else
     {
@@ -1269,6 +1240,7 @@ void Widget::refreshProgram()
     {
         import_set::iterator it;
         bool needBigHammer = false;
+        bool loadError     = false;
         for (it = iset.begin(); it != iset.end(); it++)
         {
             XL::SourceFile &sf = **it;
@@ -1323,7 +1295,14 @@ void Widget::refreshProgram()
                 {
                     // Update source file view
                     Window *window = (Window *) parentWidget();
-                    window->loadFileIntoSourceFileView(+fname);
+                    loadError = !window->loadFileIntoSourceFileView(+fname);
+                    if (loadError)
+                    {
+                        IFTRACE(filesync)
+                            std::cerr << "Main program file could not be read\n";
+                        // FIXME: now source file view is cleared, but drawing is
+                        // still there -> how to delete main tree?
+                    }
                 }
 
                 // If a file was modified, we need to refresh the screen
@@ -1335,11 +1314,15 @@ void Widget::refreshProgram()
         // If we were not successful with simple changes, reload everything...
         if (needBigHammer)
         {
-            for (it = iset.begin(); it != iset.end(); it++)
+            if (!loadError)
             {
-                XL::SourceFile &sf = **it;
-                text fname = sf.name;
-                XL::MAIN->LoadFile(fname);
+                for (it = iset.begin(); it != iset.end(); it++)
+                {
+                    XL::SourceFile &sf = **it;
+                    text fname = sf.name;
+                    XL::MAIN->LoadFile(fname);
+                    inError = false;
+                }
             }
         }
     }
@@ -1363,8 +1346,15 @@ void Widget::markChanged(text reason)
         {
             import_set done;
             ImportedFilesChanged(prog, done, true);
+
+            // Now update the window
+            text txt = *prog;
+            Window *window = (Window *) parentWidget();
+            window->setText(+txt);
         }
     }
+
+
     refresh(0);
 }
 
@@ -1569,24 +1559,15 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
     Point3 c  = bounds.Center();
     SpaceLayout selectionSpace(this);
 
-    try
-    {
-        XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-        XL::LocalSave<GLuint>   saveId(id, ~0);
-        GLAttribKeeper          saveGL;
-        glDisable(GL_DEPTH_TEST);
-        if (bounds.Depth() > 0)
-            (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
-        else
-            (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (symbols);
-        selectionSpace.Draw(NULL);
-    }
-    catch(XL::Error &e)
-    {
-    }
-    catch(...)
-    {
-    }
+    XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
+    XL::LocalSave<GLuint>   saveId(id, ~0);
+    GLAttribKeeper          saveGL;
+    glDisable(GL_DEPTH_TEST);
+    if (bounds.Depth() > 0)
+        (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
+    else
+        (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (symbols);
+    selectionSpace.Draw(NULL);
 }
 
 
@@ -1601,21 +1582,12 @@ void Widget::drawHandle(const Point3 &p, text handleName)
         symbols = xlProgram->symbols;
 
     SpaceLayout selectionSpace(this);
-    try
-    {
-        XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-        XL::LocalSave<GLuint>   saveId(id, ~0U);
-        GLAttribKeeper          saveGL;
-        glDisable(GL_DEPTH_TEST);
-        (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
-        selectionSpace.Draw(NULL);
-    }
-    catch(XL::Error &e)
-    {
-    }
-    catch(...)
-    {
-    }
+    XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
+    XL::LocalSave<GLuint>   saveId(id, ~0U);
+    GLAttribKeeper          saveGL;
+    glDisable(GL_DEPTH_TEST);
+    (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
+    selectionSpace.Draw(NULL);
 }
 
 
@@ -1630,6 +1602,80 @@ void Widget::drawHandle(const Point3 &p, text handleName)
 
 Widget *Widget::current = NULL;
 typedef XL::Tree Tree;
+
+XL::Text *Widget::page(Tree *self, text name, Tree *body)
+// ----------------------------------------------------------------------------
+//   Start a new page, returns the previously named page
+// ----------------------------------------------------------------------------
+{
+    // We start with first page if we had no page set
+    if (pageName == "")
+        pageName = name;
+
+    // Increment pageId
+    pageId++;
+
+    // If the page is set, then we display it
+    if (pageName == name)
+    {
+        // Initialize back-link
+        pageShown = pageId;
+        pageLinks.clear();
+        if (pageId > 1)
+            pageLinks["PageUp"] = lastPageName;
+        pageTree = body;
+        xl_evaluate(body);
+    }
+    else if (pageName == lastPageName)
+    {
+        // We are executing the page following the current one:
+        // Check if PageDown is set, otherwise set current page as default
+        if (pageLinks.count("PageDown") == 0)
+            pageLinks["PageDown"] = name;
+    }
+
+    lastPageName = name;
+    return new Text(pageName);
+}
+
+
+XL::Text *Widget::pageLink(Tree *self, text key, text name)
+// ----------------------------------------------------------------------------
+//   Indicate the chaining of pages, returns previous information
+// ----------------------------------------------------------------------------
+{
+    text old = pageLinks[key];
+    pageLinks[key] = name;
+    return new Text(old);
+}
+
+
+XL::Text *Widget::pageLabel(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return the label of the current page
+// ----------------------------------------------------------------------------
+{
+    return new Text(pageName);
+}
+
+
+XL::Integer *Widget::pageNumber(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return the number of the current page
+// ----------------------------------------------------------------------------
+{
+    return new Integer(pageShown);
+}
+
+
+XL::Integer *Widget::pageCount(Tree *self)
+// ----------------------------------------------------------------------------
+//   Return the number of pages in the current document
+// ----------------------------------------------------------------------------
+{
+    return new Integer(pageTotal);
+}
+
 
 XL::Real *Widget::pageWidth(Tree *self)
 // ----------------------------------------------------------------------------
@@ -2136,7 +2182,7 @@ Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, x, y, w, h, 
+        layout->Add(new ControlRectangle(self, x, y, w, h,
                                          new Rectangle(shape)));
 
     return XL::xl_true;
@@ -2247,7 +2293,7 @@ Tree *Widget::ellipticalRectangle(Tree *self,
 
 
 
-Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
+Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
                     real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
 //   Arrow
@@ -2264,7 +2310,7 @@ Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
 }
 
 
-Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h, 
+Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
                     real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
 //   Double arrow
@@ -2337,10 +2383,10 @@ Tree *Widget::speechBalloon(Tree *self,
 
 
 Tree *Widget::callout(Tree *self,
-                      real_r cx, real_r cy, real_r w, real_r h, 
+                      real_r cx, real_r cy, real_r w, real_r h,
                       real_r r, real_r ax, real_r ay, real_r d)
 // ----------------------------------------------------------------------------
-//   Callout with radius r for corners, and point a, width b for the tail 
+//   Callout with radius r for corners, and point a, width b for the tail
 // ----------------------------------------------------------------------------
 {
     Callout shape(Box(cx-w/2, cy-h/2, w, h), r, ax, ay, d);
@@ -2646,6 +2692,17 @@ XL::Name *Widget::textEditKey(Tree *self, text key)
 //   Send a key to the activities
 // ----------------------------------------------------------------------------
 {
+    // Check if we are changing pages here...
+    if (pageLinks.count(key))
+    {
+        pageName = pageLinks[key];
+        selection.clear();
+        selectionTrees.clear();
+        delete textSelection();
+        delete drag();
+        return XL::xl_true;
+    }
+
     for (Activity *a = activities; a; a = a->Key(key)) ;
     return XL::xl_true;
 }
@@ -2715,14 +2772,7 @@ Tree *Widget::frameTexture(Tree *self, double w, double h, Tree *prog)
         {
            // Clear the background and setup initial state
             setup(w, h);
-            try
-            {
-                result = xl_evaluate(prog);
-            }
-            catch(...)
-            {
-                std::cerr << "Error evaluating frame program\n";
-            }
+            result = xl_evaluate(prog);
         }
         layout->Draw(NULL);
 
@@ -2819,20 +2869,21 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
 }
 
 Tree *Widget::radioButton(Tree *self,
-                       real_r x,real_r y, real_r w,real_r h,
-                       text_p lbl, Text* sel, Tree *act)
+                          real_r x,real_r y, real_r w,real_r h,
+                          Text *name, text_p lbl, Text* sel, Tree *act)
 // ----------------------------------------------------------------------------
 //   Draw a radio button in the curent frame
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
-    radioButtonTexture(self, w, h, lbl, sel, act);
-    return abstractButton(self, x, y, w, h);
+    radioButtonTexture(self, w, h, name, lbl, sel, act);
+    return abstractButton(self, name, x, y, w, h);
 }
 
-Tree *Widget::radioButtonTexture(Tree *self, double w, double h, Text *lbl,
-                                 Text* sel, Tree *act)
+
+Tree *Widget::radioButtonTexture(Tree *self, double w, double h, Text *name,
+                                 Text *lbl, Text* sel, Tree *act)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given radio button
 // ----------------------------------------------------------------------------
@@ -2841,11 +2892,11 @@ Tree *Widget::radioButtonTexture(Tree *self, double w, double h, Text *lbl,
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    AbstractButtonSurface *surface = self->GetInfo<AbstractButtonSurface>();
+    AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
     if (!surface)
     {
-        surface = new RadioButtonSurface(self, this);
-        self->SetInfo<AbstractButtonSurface> (surface);
+        surface = new RadioButtonSurface(name, this, +name->value);
+        name->SetInfo<AbstractButtonSurface> (surface);
     }
 
     // Resize to requested size, and bind texture
@@ -2858,19 +2909,20 @@ Tree *Widget::radioButtonTexture(Tree *self, double w, double h, Text *lbl,
 
 
 Tree *Widget::checkBoxButton(Tree *self, real_r x,real_r y, real_r w, real_r h,
-                             text_p lbl, Text* sel, Tree *act)
+                             Text *name, text_p lbl, Text* sel, Tree *act)
 // ----------------------------------------------------------------------------
 //   Draw a check button in the curent frame
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
-    checkBoxButtonTexture(self, w, h, lbl, sel, act);
-    return abstractButton(self, x, y, w, h);
+    checkBoxButtonTexture(self, w, h, name, lbl, sel, act);
+    return abstractButton(self, name, x, y, w, h);
 }
 
-Tree *Widget::checkBoxButtonTexture(Tree *self, double w, double h,  Text *lbl,
-                                    Text* sel, Tree *act)
+
+Tree *Widget::checkBoxButtonTexture(Tree *self, double w, double h, Text *name,
+                                    Text *lbl, Text* sel, Tree *act)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given checkbox button
 // ----------------------------------------------------------------------------
@@ -2879,11 +2931,11 @@ Tree *Widget::checkBoxButtonTexture(Tree *self, double w, double h,  Text *lbl,
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    AbstractButtonSurface *surface = self->GetInfo<AbstractButtonSurface>();
+    AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
     if (!surface)
     {
-        surface = new CheckBoxSurface(self, this);
-        self->SetInfo<AbstractButtonSurface> (surface);
+        surface = new CheckBoxSurface(name, this, +name->value);
+        name->SetInfo<AbstractButtonSurface> (surface);
     }
 
     // Resize to requested size, and bind texture
@@ -2896,19 +2948,20 @@ Tree *Widget::checkBoxButtonTexture(Tree *self, double w, double h,  Text *lbl,
 
 
 Tree *Widget::pushButton(Tree *self, real_r x, real_r y, real_r w, real_r h,
-                         Text *lbl, Tree* act)
+                         Text *name, Text *lbl, Tree* act)
 // ----------------------------------------------------------------------------
 //   Draw a push button in the curent frame
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
 
-    pushButtonTexture(self, w, h, lbl, act);
-    return abstractButton(self, x, y, w, h);
+    pushButtonTexture(self, w, h, name, lbl, act);
+    return abstractButton(self, name, x, y, w, h);
 }
 
-Tree *Widget::pushButtonTexture(Tree *self, double w, double h, Text *lbl,
-                                Tree *act)
+
+Tree *Widget::pushButtonTexture(Tree *self, double w, double h, Text *name,
+                                Text *lbl, Tree *act)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given push button
 // ----------------------------------------------------------------------------
@@ -2917,11 +2970,11 @@ Tree *Widget::pushButtonTexture(Tree *self, double w, double h, Text *lbl,
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    AbstractButtonSurface *surface = self->GetInfo<AbstractButtonSurface>();
+    AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
     if (!surface)
     {
-        surface = new PushButtonSurface(self, this);
-        self->SetInfo<AbstractButtonSurface> (surface);
+        surface = new PushButtonSurface(name, this, +name->value);
+        name->SetInfo<AbstractButtonSurface> (surface);
     }
 
     // Resize to requested size, and bind texture
@@ -2933,15 +2986,18 @@ Tree *Widget::pushButtonTexture(Tree *self, double w, double h, Text *lbl,
 }
 
 
-Tree *Widget::abstractButton(Tree *self, real_r x, real_r y, real_r w, real_r h)
+Tree *Widget::abstractButton(Tree *self, Text *name, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //   Draw any button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    AbstractButtonSurface *surface = self->GetInfo<AbstractButtonSurface>();
+    AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
 
-    if (currentGroup)
+    if (currentGroup &&
+        ! currentGroup->buttons().contains((QAbstractButton*)surface->widget))
+    {
         currentGroup->addButton((QAbstractButton*)surface->widget);
+    }
 
     if (currentGridLayout)
     {
@@ -3039,7 +3095,7 @@ Tree *Widget::fontChooserTexture(Tree *self, double w, double h,
 }
 
 
-Tree *Widget::buttonGroup(Tree *self, Tree *buttons, bool exclusive)
+Tree *Widget::buttonGroup(Tree *self, bool exclusive, Tree *buttons)
 // ----------------------------------------------------------------------------
 //   Create a button group for radio buttons
 // ----------------------------------------------------------------------------
@@ -3054,6 +3110,20 @@ Tree *Widget::buttonGroup(Tree *self, Tree *buttons, bool exclusive)
     currentGroup = grpInfo;
     xl_evaluate(buttons);
     currentGroup = NULL;
+
+    return XL::xl_true;
+}
+
+
+Tree*Widget::setAction(Tree *self, Tree *action)
+// ----------------------------------------------------------------------------
+//   Set the action to be executed by the current buttonGroup if any.
+// ----------------------------------------------------------------------------
+{
+    if (currentGroup && currentGroup->action == NULL)
+    {
+        currentGroup->action = new XL::TreeRoot(action);
+    }
 
     return XL::xl_true;
 }
@@ -3184,6 +3254,20 @@ Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
 //   invalidated and the new one is executed for the first time.
 // ============================================================================
 
+Tree *Widget::runtimeError(Tree *self, text msg, Tree *arg)
+// ----------------------------------------------------------------------------
+//   Display an error message from the input
+// ----------------------------------------------------------------------------
+{
+    inError = true;             // Stop refreshing
+    XL::Error err(msg, arg, NULL, NULL);
+    QMessageBox::warning(this, tr("Runtime error"),
+                         tr("Error executing the program:\n%1")
+                         .arg(+err.Message()));
+    return XL::xl_false;
+}
+
+
 Tree *Widget::menuItem(Tree *self, text name, text lbl, text iconFileName,
                        bool isCheckable, Text *isChecked, Tree *t)
 // ----------------------------------------------------------------------------
@@ -3276,7 +3360,6 @@ Tree *Widget::menuItem(Tree *self, text name, text lbl, text iconFileName,
     }
 
     orderedMenuElements[order] = new MenuInfo(fullName,
-                                              par,
                                               p_action);
     order++;
 
@@ -3326,7 +3409,8 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
 //            IFTRACE(menus)
 //            {
 //                std::cerr << "menu found with name "
-//                          << fullname.toStdString() << " and order " << order << "\n";
+//                          << fullname.toStdString() << " and order "
+//                          << order << "\n";
 //                std::cerr.flush();
 //            }
 
@@ -3347,7 +3431,7 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
     }
     else
     {
-        if (isSubMenu)
+        if (isSubMenu && currentMenu)
             par = currentMenu;
         else if (currentMenuBar)
             par = currentMenuBar;
@@ -3380,7 +3464,6 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
             par->addAction(currentMenu->menuAction());
     }
     orderedMenuElements[order] = new MenuInfo(fullname,
-                                              par ? par : (Window*)parent(),
                                               currentMenu->menuAction());
     IFTRACE(menus)
     {
@@ -3406,10 +3489,13 @@ Tree * Widget::menuBar(Tree *self)
 }
 
 
-Tree * Widget::toolBar(Tree *self, text name, text title, bool isFloatable)
+Tree * Widget::toolBar(Tree *self, text name, text title, bool isFloatable,
+                       text location)
 // ----------------------------------------------------------------------------
 // Add the toolBar to the current widget
 // ----------------------------------------------------------------------------
+// The location is the prefered location for the toolbar.
+// The supported values are [n|N]*, [e|E]*, [s|S]*, West or N, E, S, W, O
 {
     QString fullname = +name;
     Window *win = (Window *)parent();
@@ -3435,6 +3521,36 @@ Tree * Widget::toolBar(Tree *self, text name, text title, bool isFloatable)
     currentToolBar->setObjectName(fullname);
     currentToolBar->setFloatable(isFloatable);
 
+    switch (location[0]) {
+    case 'n':
+    case 'N':
+        win->addToolBarBreak(Qt::TopToolBarArea);
+        win->addToolBar(Qt::TopToolBarArea, currentToolBar);
+        break;
+    case 'e':
+    case 'E':
+        win->addToolBarBreak(Qt::RightToolBarArea);
+        win->addToolBar(Qt::RightToolBarArea, currentToolBar);
+        break;
+    case 's':
+    case 'S':
+        win->addToolBarBreak(Qt::BottomToolBarArea);
+        win->addToolBar(Qt::BottomToolBarArea, currentToolBar);
+        break;
+    case 'w':
+    case 'W':
+    case 'o':
+    case 'O':
+        win->addToolBarBreak(Qt::LeftToolBarArea);
+        win->addToolBar(Qt::LeftToolBarArea, currentToolBar);break;
+    }
+
+    if (QMenu* view = win->findChild<QMenu*>(VIEW_MENU_NAME))
+        view->addAction(currentToolBar->toggleViewAction());
+
+    connect(currentToolBar, SIGNAL(actionTriggered(QAction*)),
+            this, SLOT(userMenu(QAction*)));
+
     IFTRACE(menus)
     {
         std::cerr << "toolbar CREATION with name "
@@ -3448,7 +3564,7 @@ Tree * Widget::toolBar(Tree *self, text name, text title, bool isFloatable)
     if (orderedMenuElements[order])
         delete orderedMenuElements[order];
 
-    orderedMenuElements[order] = new MenuInfo(fullname, win, currentToolBar);
+    orderedMenuElements[order] = new MenuInfo(fullname, currentToolBar);
 
     order++;
     currentMenuBar = NULL;
@@ -3475,7 +3591,8 @@ Tree * Widget::separator(Tree *self)
 //            IFTRACE(menus)
 //            {
 //                std::cerr << "separator found with name "
-//                          << fullname.toStdString() << " and order " << order << "\n";
+//                          << fullname.toStdString() << " and order "
+//                          << order << "\n";
 //                std::cerr.flush();
 //            }
             order++;
@@ -3520,7 +3637,7 @@ Tree * Widget::separator(Tree *self)
         if (par)
             par->addAction(act);
     }
-    orderedMenuElements[order] = new MenuInfo(fullname, par, act);
+    orderedMenuElements[order] = new MenuInfo(fullname, act);
     order++;
     return XL::xl_true;
 }
@@ -3541,32 +3658,50 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
     if (!xlProgram)
         return XL::xl_false;
 
-    Tree  *program = xlProgram->tree.tree;
-    XL::Infix *parent  = NULL;
+    Tree *program = xlProgram->tree.tree;
     if (XL::Block *block = toInsert->AsBlock())
         toInsert = block->child;
 
-    bool preInsert = false;
-    while (true)
-    {
-        XL::Infix *infix = program->AsInfix();
-        if (!infix)
-            break;
-        if (infix->name != ";" && infix->name != "\n")
-            break;
-        preInsert = selectionTrees.count(infix->left);
-        if (preInsert)
-            break;
-        parent = infix;
-        program = infix->right;
-    }
+    InsertAtSelectionAction insert(this, toInsert, pageTree);
+    Tree *afterInsert = program->Do(insert);
 
-    XL::Tree * &what = parent ? parent->right : xlProgram->tree.tree;
-    if (preInsert)
-        what = new XL::Infix("\n", toInsert, what);
-    else
+    // If we never hit the selection during the insert, append
+    if (insert.toInsert)
+    {
+        Tree *top = xlProgram->tree.tree;
+        XL::Infix *parent  = NULL;
+        if (pageTree)
+        {
+            if (XL::Prefix *prefix = pageTree->AsPrefix())
+                if (XL::Name *left = prefix->left->AsName())
+                    if (left->value == "do")
+                        pageTree = prefix->right;
+            if (XL::Block *block = pageTree->AsBlock())
+                pageTree = block->child;
+
+            top = pageTree;
+        }
+
+        program = top;
+        while (true)
+        {
+            XL::Infix *infix = program->AsInfix();
+            if (!infix)
+                break;
+            if (infix->name != ";" && infix->name != "\n")
+                break;
+            parent = infix;
+            program = infix->right;
+        }
+
+        Tree * &what = parent ? parent->right : top;
         what = new XL::Infix("\n", what, toInsert);
-    reloadProgram();
+        reloadProgram();
+    }
+    else
+    {
+        reloadProgram(afterInsert);
+    }
     markChanged("Inserted tree");
 
     return XL::xl_true;
@@ -3588,7 +3723,7 @@ XL::Name *Widget::deleteSelection(Tree *self, text key)
     markChanged("Deleted selection");
     selection.clear();
     selectionTrees.clear();
-    
+
     return XL::xl_true;
 }
 

@@ -1,12 +1,12 @@
-#ifndef PULL_FROM_DIALOG_H
-#define PULL_FROM_DIALOG_H
+#ifndef CLONE_DIALOG_H
+#define CLONE_DIALOG_H
 // ****************************************************************************
-//  pull_from_dialog.h                                             Tao project
+//  clone_dialog.h                                                 Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    The class to display the "Pull from" dialog box
+//    The class to display the "Clone" dialog box
 //
 //
 //
@@ -22,35 +22,35 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "remote_selection_frame.h"
-#include "ui_pull_from_dialog.h"
+#include "ui_clone_dialog.h"
 #include "repository.h"
 #include <QDialog>
-#include <QWidget>
+#include <QPushButton>
 
 namespace Tao {
 
 struct Repository;
 
-class PullFromDialog : public QDialog, private Ui::PullFromDialog
+class CloneDialog : public QDialog, private Ui::CloneDialog
 {
     Q_OBJECT
 
 public:
-    PullFromDialog(Repository *repo, QWidget *parent = 0);
-
-public:
-    QString                        pullFrom();
-    Repository::ConflictResolution conflictResolution();
-    int                            pullInterval();
+    CloneDialog(QWidget *parent = 0);
 
 public slots:
     virtual void accept();
+    virtual void reject();
+    virtual void on_browseButton_clicked();
+    virtual void endClone(void *id);
 
 private:
-    Repository           *repo;
+    repository_ptr repo;
+    bool           done;
+    QPushButton   *okButton, *cancelButton;
+    Process       *proc;
 };
 
 }
 
-#endif // PULL_FROM_DIALOG_H
+#endif // CLONE_DIALOG_H

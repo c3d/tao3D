@@ -24,25 +24,34 @@
 #include "tao.h"
 #include "menuinfo.h"
 #include "options.h"
+#include "context.h"
+#include "runtime.h"
+#include "tao_utf8.h"
 #include <iostream>
 
 TAO_BEGIN
 
-MenuInfo::MenuInfo(QString name, QWidget *wid, QAction *act) :
-        fullname(name), p_parent(wid), p_action(act),
-        p_window(NULL), p_toolbar(NULL)
+MenuInfo::MenuInfo(QString name, QAction *act)
+// ----------------------------------------------------------------------------
+//   Constructor taking an action, e.g. when creating a menu
+// ----------------------------------------------------------------------------
+    : fullname(name), p_action(act), p_toolbar(NULL)
 {
     connect(p_action, SIGNAL(destroyed(QObject *)),
-            this, SLOT(actionDestroyed(QObject*)));
+            this, SLOT(actionDestroyed()));
 }
 
-MenuInfo::MenuInfo(QString name, QMainWindow *win, QToolBar *bar) :
-        fullname(name), p_parent(NULL), p_action(NULL),
-        p_window(win), p_toolbar(bar)
+
+MenuInfo::MenuInfo(QString name, QToolBar *bar)
+// ----------------------------------------------------------------------------
+//   Constructor taking a toolbar, e.g. when adding items in a toolbar
+// ----------------------------------------------------------------------------
+    : fullname(name), p_action(NULL), p_toolbar(bar)
 {
     connect(p_toolbar, SIGNAL(destroyed(QObject *)),
-            this, SLOT(actionDestroyed(QObject*)));
+            this, SLOT(actionDestroyed()));
 }
+
 
 MenuInfo::~MenuInfo()
 // ----------------------------------------------------------------------------
@@ -50,64 +59,74 @@ MenuInfo::~MenuInfo()
 // ----------------------------------------------------------------------------
 {
 
-    QObject *tmp_par = NULL;
     if (p_action)
     {
- //       p_parent->removeAction(p_action);
         delete p_action;
         p_action = NULL;
-        tmp_par = p_parent;
     }
     if (p_toolbar)
     {
-//        p_window->removeToolBar(p_toolbar);
         delete p_toolbar;
         p_toolbar = NULL;
-        tmp_par = p_window;
     }
 
-    IFTRACE(menus)
-    {
-        std::cerr << fullname.toStdString() << " deleted";
-        if (tmp_par)
-        {
-            if (tmp_par->findChild<QObject*>(fullname))
-                std::cerr << " still registered \n";
-            else
-                std::cerr << " well removed from parent \n";
-        }
-        else
-        {
-            std::cerr << "No more action nor toolbar \n";
-        }
-
-    }
-
-    actionDestroyed(NULL);
+    actionDestroyed();
     fullname = "";
 }
 
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-void MenuInfo::actionDestroyed(QObject *obj)
+
+void MenuInfo::actionDestroyed()
+// ----------------------------------------------------------------------------
+//   Set to NULL all the information because the action or
+//     the tool bar will be deleted.
+// ----------------------------------------------------------------------------
 {
     IFTRACE(menus)
     {
         std::cerr << fullname.toStdString() << " actionDestroyed \n";
     }
     p_action   = NULL;
-    p_parent   = NULL;
-    p_window   = NULL;
     p_toolbar  = NULL;
 }
 
-XL::Tree * CleanMenuInfo::Do(XL::Tree *what)
+
+void GroupInfo::bClicked(QAbstractButton *button)
 // ----------------------------------------------------------------------------
-//   Purge all menu infos
+// Slot invoked when a button from the group is selected.
 // ----------------------------------------------------------------------------
+// The Name "button_name" is replaced by a Text containing the name
+//   of the clicked button.
 {
-    if (what)
-        what->Purge<MenuInfo>();
-    return what;
+    if (!action)
+        return;
+
+    // We override name "isChecked" in the input tree
+    struct ClickTreeClone : XL::TreeClone
+    {
+        ClickTreeClone(text c) : name(c){}
+        XL::Tree *DoName(XL::Name *what)
+        {
+            if (what->value == "button_name")
+            {
+                return new XL::Text(name);
+            }
+            return new XL::Name(what->value, what->Position());
+        }
+        text name;
+    } replacer(+button->objectName());
+
+
+    // The tree to be evaluated needs its own symbol table before evaluation
+    XL::Tree *toBeEvaluated = action->tree;
+    XL::Symbols *syms = toBeEvaluated->Get<XL::SymbolsInfo>();
+    if (!syms)
+        syms = XL::Symbols::symbols;
+    syms = new XL::Symbols(syms);
+    toBeEvaluated = toBeEvaluated->Do(replacer);
+    toBeEvaluated->Set<XL::SymbolsInfo>(syms);
+
+    // Evaluate the input tree
+    xl_evaluate(toBeEvaluated);
 }
 
 TAO_END

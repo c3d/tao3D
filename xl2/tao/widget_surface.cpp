@@ -17,6 +17,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -53,7 +54,7 @@ WidgetSurface::WidgetSurface(XL::Tree *t, QWidget *widget)
 // ----------------------------------------------------------------------------
 //   Create a renderer with the right size
 // ----------------------------------------------------------------------------
-    : widget(widget), textureId(0), dirty(true), tree(t)
+            : widget(widget), textureId(0), dirty(true), tree(t)
 {
     IFTRACE(widgets)
     {
@@ -72,10 +73,6 @@ WidgetSurface::~WidgetSurface()
 //   When deleting the info, delete all renderers we have
 // ----------------------------------------------------------------------------
 {
-    if (tree)
-    {
-        tree->Remove<WidgetSurface>(this);
-    }
     if (widget)
     {
         IFTRACE(widgets)
@@ -83,7 +80,8 @@ WidgetSurface::~WidgetSurface()
             std::cerr << "DESTRUCTOR this : "<< this << " --- Widget : "
                     << widget << "\n";
         }
-        Widget *parent = (Widget *) widget->parent();
+
+        Widget *parent = dynamic_cast<Widget *>(widget->parent());
         if (parent)
             parent->deleteFocus(widget);
         delete widget;
@@ -337,16 +335,14 @@ void LineEditSurface::inputValidated()
 //
 // ============================================================================
 AbstractButtonSurface::AbstractButtonSurface(XL::Tree *t,
-                                             QAbstractButton * button)
+                                             QAbstractButton * button,
+                                             QString name)
 // ----------------------------------------------------------------------------
 //    Create the Abstract Button surface
 // ----------------------------------------------------------------------------
     : WidgetSurface(t, button), label(), action(XL::xl_false), isMarked(NULL)
 {
-
-    connect(button, SIGNAL(clicked(bool)),
-            this,   SLOT(clicked(bool)));
-
+    button->setObjectName(name);
     connect(button, SIGNAL(toggled(bool)),
             this,   SLOT(toggled(bool)));
 
@@ -368,7 +364,9 @@ GLuint AbstractButtonSurface::bind(XL::Text *lbl, XL::Tree *act, XL::Text *sel)
     dirty = true;
     action.tree = act;
 
-    if (sel && button->isCheckable() && sel != isMarked)
+    if (sel && button->isCheckable() &&
+        strcasecmp(sel->value.c_str(),
+                   isMarked ? isMarked->value.c_str():"") != 0)
     {
         button->setChecked(strcasecmp(sel->value.c_str(), "true")==0);
         isMarked = sel;
@@ -395,8 +393,11 @@ void AbstractButtonSurface::clicked(bool checked)
 
 void AbstractButtonSurface::toggled(bool checked)
 // ----------------------------------------------------------------------------
-//    The button was clicked. Evaluate the action.
+//    The button has toggled. Evaluate the action, setting 'checked'
 // ----------------------------------------------------------------------------
+//    Like for the color chooser and other trees, we replace the 'checked'
+//    keyword with the value we got from the user. In this case, this is
+//    either true (XL::xl_true) or false (XL::xl_false)
 {
     IFTRACE (widgets)
     {
@@ -411,6 +412,38 @@ void AbstractButtonSurface::toggled(bool checked)
         else
             isMarked->value = "false";
     }
+
+    if ( ! action.tree ) return;
+
+    // We override name "checked" in the input tree
+    struct ToggleTreeClone : XL::TreeClone
+    {
+        ToggleTreeClone(bool c) : checked(c){}
+        XL::Tree *DoName(XL::Name *what)
+        {
+            if (what->value == "checked")
+            {
+                if (checked)
+                    return XL::xl_true;
+                else
+                    return XL::xl_false;
+            }
+            return new XL::Name(what->value, what->Position());
+        }
+        bool checked;
+    } replacer(checked);
+
+    // The tree to be evaluated needs its own symbol table before evaluation
+    XL::Tree *toBeEvaluated = action.tree;
+    XL::Symbols *syms = toBeEvaluated->Get<SymbolsInfo>();
+    if (!syms)
+        syms = XL::Symbols::symbols;
+    syms = new Symbols(syms);
+    toBeEvaluated = toBeEvaluated->Do(replacer);
+    toBeEvaluated->Set<SymbolsInfo>(syms);
+
+    // Evaluate the input tree
+    xl_evaluate(toBeEvaluated);
 
 }
 

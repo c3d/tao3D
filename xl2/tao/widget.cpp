@@ -305,7 +305,11 @@ void Widget::runProgram()
     // Run the XL program associated with this widget
     current = this;
     QTextOption alignCenter(Qt::AlignCenter);
+    IFTRACE(memory)
+        std::cerr << "Run, Drawing::count = " << space->count << ", ";
     space->Clear();
+    IFTRACE(memory)
+        std::cerr << "cleared, count = " << space->count << ", ";
     XL::LocalSave<Layout *> saveLayout(layout, space);
     selectionTrees.clear();
 
@@ -333,6 +337,8 @@ void Widget::runProgram()
     // After we are done, draw the space with all the drawings in it
     id = charId = 0;
     space->Draw(NULL);
+    IFTRACE(memory)
+        std::cerr << "Draw, count = " << space->count << "\n";
     id = charId = 0;
     space->DrawSelection(NULL);
 
@@ -2967,16 +2973,19 @@ Tree *Widget::frameTexture(Tree *self, double w, double h, Tree *prog)
         GLAllStateKeeper saveGL;
         XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
 
+        // Clear the background and setup initial state
         frame->resize(w,h);
-        {
-           // Clear the background and setup initial state
-            setup(w, h);
-            result = xl_evaluate(prog);
-        }
+        setup(w, h);
+        result = xl_evaluate(prog);
+
+        // Draw the layout in the frame context
         frame->begin();
         layout->Draw(NULL);
-
         frame->end();
+
+        // Delete the layout (it's not a child of the outer layout)
+        delete layout;
+        layout = NULL;
     } while (0); // State keeper and layout
 
     // Bind the resulting texture

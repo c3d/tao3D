@@ -118,4 +118,35 @@ void CloneDialog::on_browseButton_clicked()
         folderEdit->setText(folder);
 }
 
+
+void CloneDialog::on_folderEdit_textEdited()
+// ----------------------------------------------------------------------------
+//    The folder path was changed
+// ----------------------------------------------------------------------------
+{
+    enableOkCancel();
+}
+
+
+void CloneDialog::on_urlEdit_textEdited()
+// ----------------------------------------------------------------------------
+//    The URL was changed
+// ----------------------------------------------------------------------------
+{
+    enableOkCancel();
+}
+
+void CloneDialog::enableOkCancel()
+// ----------------------------------------------------------------------------
+//    Re-enable OK/Cancel after user has changed some parameter (to try again)
+// ----------------------------------------------------------------------------
+{
+    if (!done)
+        return;
+
+    okButton->setText(tr("OK"));
+    cancelButton->setEnabled(true);
+    done = false;
+}
+
 }

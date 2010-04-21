@@ -64,6 +64,7 @@ void CloneDialog::accept()
     }
     okButton->setEnabled(false);
     cloneOutput->append(tr("Starting...\n"));
+    setCursor(Qt::BusyCursor);
     connect(repo.data(), SIGNAL(asyncProcessComplete(void *)),
             this, SLOT(endClone(void *)));
     proc = repo->asyncClone(url, folder, cloneOutput, this);
@@ -92,6 +93,7 @@ void CloneDialog::endClone(void *id)
 {
     if (id != this)
         return;
+    setCursor(Qt::ArrowCursor);
     QString text;
     if (proc)
         text = tr("Done.\n");

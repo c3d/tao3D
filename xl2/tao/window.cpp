@@ -431,9 +431,10 @@ void Window::createMenus()
     shareMenu->addAction(publishAct);
 
     viewMenu = menuBar()->addMenu(tr("&View"));
-    viewMenu->setObjectName(VIEW_MENU_NAME);
+//    viewMenu->setObjectName(VIEW_MENU_NAME);
     viewMenu->addAction(dock->toggleViewAction());
     viewMenu->addAction(fullScreenAct);
+    viewMenu->addMenu(tr("&Toolbars"))->setObjectName(VIEW_MENU_NAME);
 
     menuBar()->addSeparator();
 

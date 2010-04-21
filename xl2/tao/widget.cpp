@@ -2968,12 +2968,12 @@ Tree *Widget::frameTexture(Tree *self, double w, double h, Tree *prog)
         XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
 
         frame->resize(w,h);
-        frame->begin();
         {
            // Clear the background and setup initial state
             setup(w, h);
             result = xl_evaluate(prog);
         }
+        frame->begin();
         layout->Draw(NULL);
 
         frame->end();

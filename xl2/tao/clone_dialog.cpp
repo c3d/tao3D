@@ -32,7 +32,7 @@ CloneDialog::CloneDialog(QWidget *parent)
 // ----------------------------------------------------------------------------
 //    Create a "clone" dialog
 // ----------------------------------------------------------------------------
-    : QDialog(parent), repo(NULL), done(false), proc(NULL)
+    : QDialog(parent), repo(NULL), okToDismiss(false), proc(NULL)
 {
     setupUi(this);
     okButton = buttonBox->button(QDialogButtonBox::Ok);
@@ -46,7 +46,7 @@ void CloneDialog::accept()
 //    Ok/dismiss button was clicked
 // ----------------------------------------------------------------------------
 {
-    if (done)
+    if (okToDismiss)
         return QDialog::accept();
 
     QString url = urlEdit->text();
@@ -76,7 +76,7 @@ void CloneDialog::reject()
 //    Cancel button was clicked
 // ----------------------------------------------------------------------------
 {
-    if (done)
+    if (!proc)
         return QDialog::reject();
 
     Process *p = proc;
@@ -100,7 +100,7 @@ void CloneDialog::endClone(void *id)
     else
         text = tr("Canceled.\n");
     cloneOutput->append(text);
-    done = true;
+    okToDismiss = true;
     okButton->setText(tr("Dismiss"));
     okButton->setEnabled(true);
     cancelButton->setEnabled(false);
@@ -141,12 +141,12 @@ void CloneDialog::enableOkCancel()
 //    Re-enable OK/Cancel after user has changed some parameter (to try again)
 // ----------------------------------------------------------------------------
 {
-    if (!done)
+    if (!okToDismiss)
         return;
 
     okButton->setText(tr("OK"));
     cancelButton->setEnabled(true);
-    done = false;
+    okToDismiss = false;
 }
 
 }

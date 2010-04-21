@@ -51,7 +51,7 @@ private:
 
 private:
     repository_ptr repo;
-    bool           done;
+    bool           okToDismiss;
     QPushButton   *okButton, *cancelButton;
     Process       *proc;
 };

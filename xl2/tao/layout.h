@@ -88,11 +88,16 @@ public:
     // Attributes that get propagated to children
     static int          polygonOffset;
 
+    // For optimized drawing, we keep track of what changes
+    bool                hasMatrix       : 1;
+    bool                hasAttributes   : 1;
+
 protected:
     // List of drawing elements
     typedef std::vector<Drawing *>      layout_items;
     layout_items        items;
     Widget *            display;
+
 };
 
 TAO_END

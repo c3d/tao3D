@@ -2000,6 +2000,7 @@ Tree *Widget::rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz)
 // ----------------------------------------------------------------------------
 {
     layout->Add(new RotationManipulator(self, ra, rx, ry, rz));
+    layout->hasMatrix = true;
     return XL::xl_true;
 }
 
@@ -2037,6 +2038,7 @@ Tree *Widget::translate(Tree *self, real_r rx, real_r ry, real_r rz)
 // ----------------------------------------------------------------------------
 {
     layout->Add(new TranslationManipulator(self, rx, ry, rz));
+    layout->hasMatrix = true;
     return XL::xl_true;
 }
 
@@ -2074,6 +2076,7 @@ Tree *Widget::rescale(Tree *self, real_r sx, real_r sy, real_r sz)
 // ----------------------------------------------------------------------------
 {
     layout->Add(new ScaleManipulator(self, sx, sy, sz));
+    layout->hasMatrix = true;
     return XL::xl_true;
 }
 
@@ -2139,6 +2142,7 @@ Tree *Widget::lineWidth(Tree *self, double lw)
 // ----------------------------------------------------------------------------
 {
     layout->Add(new LineWidth(lw));
+    layout->hasAttributes = true;
     return XL::xl_true;
 }
 
@@ -2149,6 +2153,7 @@ Tree *Widget::lineStipple(Tree *self, uint16 pattern, uint16 scale)
 // ----------------------------------------------------------------------------
 {
     layout->Add(new LineStipple(pattern, scale));
+    layout->hasAttributes = true;
     return XL::xl_true;
 }
 
@@ -2182,6 +2187,7 @@ Tree *Widget::fillTexture(Tree *self, text img)
     }
 
     layout->Add(new FillTexture(texId));
+    layout->hasAttributes = true;
     return XL::xl_true;
 }
 
@@ -2205,6 +2211,7 @@ Tree *Widget::fillTextureFromSVG(Tree *self, text img)
         texId = rinfo->bind(img);
     }
     layout->Add(new FillTexture(texId));
+    layout->hasAttributes = true;
     return XL::xl_true;
 }
 
@@ -2975,6 +2982,7 @@ Tree *Widget::frameTexture(Tree *self, double w, double h, Tree *prog)
     // Bind the resulting texture
     GLuint tex = frame->bind();
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return result;
 }
@@ -3016,6 +3024,7 @@ Tree *Widget::urlTexture(Tree *self, double w, double h,
     surface->resize(w,h);
     GLuint tex = surface->bind(url, progress);
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return XL::xl_true;
 }
@@ -3057,6 +3066,7 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
     surface->resize(w,h);
     GLuint tex = surface->bind(txt);
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return XL::xl_true;
 }
@@ -3096,6 +3106,7 @@ Tree *Widget::radioButtonTexture(Tree *self, double w, double h, Text *name,
     surface->resize(w,h);
     GLuint tex = surface->bind(lbl, act, sel);
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return XL::xl_true;
 }
@@ -3135,6 +3146,7 @@ Tree *Widget::checkBoxButtonTexture(Tree *self, double w, double h, Text *name,
     surface->resize(w,h);
     GLuint tex = surface->bind(lbl, act, sel);
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return XL::xl_true;
 }
@@ -3174,6 +3186,7 @@ Tree *Widget::pushButtonTexture(Tree *self, double w, double h, Text *name,
     surface->resize(w,h);
     GLuint tex = surface->bind(lbl, act, NULL);
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return XL::xl_true;
 }
@@ -3241,6 +3254,7 @@ Tree *Widget::colorChooserTexture(Tree *self, double w, double h,
     surface->resize(w,h);
     GLuint tex = surface->bind();
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return XL::xl_true;
 }
@@ -3283,6 +3297,7 @@ Tree *Widget::fontChooserTexture(Tree *self, double w, double h,
     surface->resize(w,h);
     GLuint tex = surface->bind();
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return XL::xl_true;
 }
@@ -3373,6 +3388,7 @@ Tree *Widget::groupBoxTexture(Tree *self, double w, double h, Text *lbl)
     surface->resize(w,h);
     GLuint tex = surface->bind(lbl);
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return XL::xl_true;
 }
@@ -3416,6 +3432,7 @@ Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
     surface->resize(w,h);
     GLuint tex = surface->bind(url);
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return XL::xl_true;
 }

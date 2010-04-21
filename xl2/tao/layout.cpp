@@ -80,7 +80,9 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
 //    Create an empty layout
 // ----------------------------------------------------------------------------
-    : Drawing(), LayoutState(), items(), display(widget)
+    : Drawing(), LayoutState(),
+      hasMatrix(false), hasAttributes(false),
+      items(), display(widget)
 {}
 
 
@@ -88,7 +90,9 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
 //   Copy constructor
 // ----------------------------------------------------------------------------
-    : Drawing(o), LayoutState(o), items(), display(o.display)
+    : Drawing(o), LayoutState(o),
+      hasMatrix(false), hasAttributes(false),
+      items(), display(o.display)
 {}
 
 
@@ -126,6 +130,10 @@ void Layout::Clear()
 }
 
 
+// The bit values we save for a layout
+static const GLbitfield GL_LAYOUT_BITS = GL_LINE_BIT | GL_TEXTURE_BIT;
+
+
 void Layout::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the elements in the layout
@@ -133,7 +141,7 @@ void Layout::Draw(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
-    GLStateKeeper         glSave;
+    GLStateKeeper         glSave(hasAttributes?GL_LAYOUT_BITS:0, hasMatrix);
     Inherit(where);
 
     // Display all items
@@ -153,7 +161,7 @@ void Layout::DrawSelection(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
-    GLStateKeeper         glSave;
+    GLStateKeeper         glSave(hasAttributes?GL_LAYOUT_BITS:0, hasMatrix);
     Inherit(where);
 
     layout_items::iterator i;
@@ -172,7 +180,7 @@ void Layout::Identify(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
-    GLStateKeeper         glSave;
+    GLStateKeeper         glSave(hasAttributes?GL_LAYOUT_BITS:0, hasMatrix);
     Inherit(where);
         
     layout_items::iterator i;
@@ -254,7 +262,7 @@ void Layout::Inherit(Layout *where)
 //   Inherit state from some other layout
 // ----------------------------------------------------------------------------
 {
-    glLoadName(id);
+    // glLoadName(id);
     if (!where)
         return;
 

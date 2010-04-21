@@ -44,5 +44,7 @@ indents = "    "
 "prefix -" = separator "-" separator right separator
 "text "" """ = """" self """"
 "text << >>" = "<<" self ">>"
+<<text // 
+>> = "//" self
 "longtext "" """ = "<<" self ">>"
 "longtext << >>" = "<<" self ">>"

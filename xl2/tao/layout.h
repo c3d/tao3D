@@ -51,7 +51,7 @@ public:
     Color               lineColor;
     Color               fillColor;
     uint                fillTexture;
-    uint                lastRotation, lastTranslation, lastScale;
+    uint                rotationId, translationId, scaleId;
     uint                id;
 };
 

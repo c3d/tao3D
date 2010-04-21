@@ -42,11 +42,16 @@ public slots:
     virtual void accept();
     virtual void reject();
     virtual void on_browseButton_clicked();
+    virtual void on_folderEdit_textEdited();
+    virtual void on_urlEdit_textEdited();
     virtual void endClone(void *id);
 
 private:
+    void         enableOkCancel();
+
+private:
     repository_ptr repo;
-    bool           done;
+    bool           okToDismiss;
     QPushButton   *okButton, *cancelButton;
     Process       *proc;
 };

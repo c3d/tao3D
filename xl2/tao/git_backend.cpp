@@ -149,7 +149,7 @@ text GitRepository::branch()
         QStringList branches = (+output).split("\n");
         QRegExp re("^[*].*");
         int index = branches.indexOf(re);
-        if (index > 0)
+        if (index >= 0)
             result = +branches[index].mid(2);
         else
             result = "master";  // May happen on a totally empty repository

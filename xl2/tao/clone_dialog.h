@@ -36,7 +36,7 @@ class CloneDialog : public QDialog, private Ui::CloneDialog
     Q_OBJECT
 
 public:
-    CloneDialog(Repository *repo, QWidget *parent = 0);
+    CloneDialog(QWidget *parent = 0);
 
 public slots:
     virtual void accept();
@@ -45,10 +45,10 @@ public slots:
     virtual void endClone(void *id);
 
 private:
-    Repository  *repo;
-    bool         done;
-    QPushButton *okButton, *cancelButton;
-    Process     *proc;
+    repository_ptr repo;
+    bool           done;
+    QPushButton   *okButton, *cancelButton;
+    Process       *proc;
 };
 
 }

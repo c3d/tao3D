@@ -24,14 +24,15 @@
 #include "repository.h"
 #include "application.h"
 #include <QFileDialog>
+#include <QMessageBox>
 
 namespace Tao {
 
-CloneDialog::CloneDialog(Repository *repo, QWidget *parent)
+CloneDialog::CloneDialog(QWidget *parent)
 // ----------------------------------------------------------------------------
 //    Create a "clone" dialog
 // ----------------------------------------------------------------------------
-    : QDialog(parent), repo(repo), done(false), proc(NULL)
+    : QDialog(parent), repo(NULL), done(false), proc(NULL)
 {
     setupUi(this);
     okButton = buttonBox->button(QDialogButtonBox::Ok);
@@ -52,9 +53,18 @@ void CloneDialog::accept()
     QString folder = folderEdit->text();
     if (url.isEmpty() || folder.isEmpty())
         return;
+    repo = RepositoryFactory::repository(folder, RepositoryFactory::Clone);
+    if (!repo)
+    {
+        QMessageBox::warning(this, tr("Invalid folder"),
+                             tr("You can't clone into a folder that is "
+                                "already under a valid Tao project.<br>"
+                                "Please select a different folder."));
+        return;
+    }
     okButton->setEnabled(false);
     cloneOutput->append(tr("Starting...\n"));
-    connect(repo, SIGNAL(asyncProcessComplete(void *)),
+    connect(repo.data(), SIGNAL(asyncProcessComplete(void *)),
             this, SLOT(endClone(void *)));
     proc = repo->asyncClone(url, folder, cloneOutput, this);
 }

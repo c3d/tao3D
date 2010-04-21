@@ -286,10 +286,7 @@ void Window::clone()
 //    Prompt user for address of remote repository and clone it locally
 // ----------------------------------------------------------------------------
 {
-    if (!repo)
-        return warnNoRepo();  // FIXME we would like to clone even in this case
-
-    CloneDialog *dialog = new CloneDialog(repo.data(), this);
+    CloneDialog *dialog = new CloneDialog(this);
     dialog->show();
     dialog->raise();
     dialog->activateWindow();
@@ -685,11 +682,11 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
     //        no repository management tool is available;
     // - false if user cancelled.
 
-    if (!Repository::available())
+    if (!RepositoryFactory::available())
         return true;
 
     bool created = false;
-    QSharedPointer<Repository> repo = Repository::repository(path);
+    repository_ptr repo = RepositoryFactory::repository(path);
     if (!repo)
     {
         bool docreate = !confirm;
@@ -736,7 +733,8 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         }
         if (docreate)
         {
-            repo = Repository::repository(path,true);
+            repo = RepositoryFactory::repository(path,
+                                                 RepositoryFactory::Create);
             created = (repo != NULL);
         }
     }

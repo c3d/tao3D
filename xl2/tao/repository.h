@@ -135,9 +135,6 @@ public:
                               AnsiTextEdit *out = NULL, void *id = NULL) = 0;
 
 public:
-    static QSharedPointer<Repository>
-                        repository(const QString &path, bool create = false);
-    static bool         available();
     static bool         versionGreaterOrEqual(QString ver, QString ref);
 
 signals:
@@ -148,8 +145,6 @@ protected:
     virtual QString     command()                       = 0;
     virtual text        styleSheet();
     virtual text        fullName(text fileName);
-    static Repository * newRepository(const QString &path,
-                                      bool create = false);
     Process *           dispatch(Process *cmd, AnsiTextEdit *err = NULL,
                                  AnsiTextEdit *out = NULL, void *id = NULL);
 
@@ -180,13 +175,54 @@ public:
 
 protected:
     QList<Process *> pQueue;
-
-protected:
-    static QMap<QString, QWeakPointer <Repository > > cache;
-    static Kind                                       availableScm;
 };
 
 #define TAO_UNDO_SUFFIX "_tao_undo"
+
+
+
+// ============================================================================
+//
+//   Repository factory
+//
+// ============================================================================
+
+typedef QSharedPointer<Repository> repository_ptr;
+
+class RepositoryFactory
+// ----------------------------------------------------------------------------
+//   Create and cache repository instances
+// ----------------------------------------------------------------------------
+{
+
+public:
+    enum Mode
+    // ------------------------------------------------------------------------
+    //   How to open a local repository
+    // ------------------------------------------------------------------------
+    {
+        OpenExisting, // Fail if path is not a valid repository
+        Create,       // Don't fail if path is not a valid repository
+        Clone,        // Return a Repository instance for a given path that
+                      // must NOT contain a valid repository -- caller will
+                      // later invoke Repository::clone()
+    };
+
+public:
+    RepositoryFactory() {}
+    ~RepositoryFactory() {}
+
+public:
+    static bool             available();
+    static repository_ptr   repository(QString path, Mode mode = OpenExisting);
+
+protected:
+    static Repository *     newRepository(QString path, Mode mode);
+
+protected:
+    static QMap<QString, QWeakPointer <Repository > > cache;
+    static Repository::Kind                           availableScm;
+};
 
 }
 

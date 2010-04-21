@@ -542,7 +542,7 @@ Tree *xl_load(text name)
     Parser parser(name.c_str(), MAIN->syntax, MAIN->positions, MAIN->errors);
     Tree *tree = parser.Parse();
     if (!tree)
-        return NULL;
+        return Ooops("Unable to load file '$1'", new Text(name));
 
     Symbols *old = Symbols::symbols;
     Symbols *syms = new Symbols(Context::context);
@@ -642,7 +642,7 @@ Tree *xl_load_csv(text name)
     }
     fclose(f);
     if (!tree)
-        return NULL;
+        return Ooops("Unable to load CSV file '$1'", new Text(name));
 
     // Store that we use the file
     struct stat st;
@@ -753,7 +753,7 @@ Tree *xl_load_tsv(text name)
     }
     fclose(f);
     if (!tree)
-        return NULL;
+        return Ooops("Unable to load TSV file '$1'", new Text(name));
 
     // Store that we use the file
     struct stat st;

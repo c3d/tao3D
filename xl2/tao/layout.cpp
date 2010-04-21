@@ -81,7 +81,7 @@ Layout::Layout(Widget *widget)
 //    Create an empty layout
 // ----------------------------------------------------------------------------
     : Drawing(), LayoutState(),
-      hasMatrix(false), hasAttributes(false),
+      hasPixelBlur(false), hasMatrix(false), hasAttributes(false),
       items(), display(widget)
 {}
 
@@ -91,7 +91,7 @@ Layout::Layout(const Layout &o)
 //   Copy constructor
 // ----------------------------------------------------------------------------
     : Drawing(o), LayoutState(o),
-      hasMatrix(false), hasAttributes(false),
+      hasPixelBlur(o.hasPixelBlur), hasMatrix(false), hasAttributes(false),
       items(), display(o.display)
 {}
 
@@ -125,6 +125,11 @@ void Layout::Clear()
     for (i = items.begin(); i != items.end(); i++)
         delete *i;
     items.clear();
+
+    // Initial state has no rotation or attribute changes
+    hasPixelBlur = false;
+    hasMatrix = false;
+    hasAttributes = false;
 
     LayoutState::Clear();
 }

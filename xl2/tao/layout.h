@@ -89,6 +89,7 @@ public:
     static int          polygonOffset;
 
     // For optimized drawing, we keep track of what changes
+    bool                hasPixelBlur    : 1; // Pixels not aligning naturally
     bool                hasMatrix       : 1;
     bool                hasAttributes   : 1;
 

@@ -264,10 +264,11 @@ void Repository::markChanged(text reason)
 }
 
 
-void Repository::dispatch(Process *cmd, AnsiTextEdit *err, AnsiTextEdit *out,
-                          void *id)
+Process * Repository::dispatch(Process *cmd,
+                               AnsiTextEdit *err, AnsiTextEdit *out,
+                               void *id)
 // ----------------------------------------------------------------------------
-//   Insert process in run queue and start first process
+//   Insert process in run queue and start first process. Return cmd.
 // ----------------------------------------------------------------------------
 {
     cmd->id = id;
@@ -290,20 +291,44 @@ void Repository::dispatch(Process *cmd, AnsiTextEdit *err, AnsiTextEdit *out,
     pQueue.append(cmd);
     if (pQueue.count() == 1)
         cmd->start();
+    return cmd;
 }
 
 
+void Repository::abort(Process *proc)
+// ----------------------------------------------------------------------------
+//   Abort an asynchronous process returned by dispatch()
+// ----------------------------------------------------------------------------
+{
+    if (pQueue.first() == proc)
+    {
+        proc->aborted = true;
+        proc->close();
+        delete pQueue.takeFirst();
+        if (pQueue.count())
+            pQueue.first()->start();
+    }
+    else
+    {
+        pQueue.removeOne(proc);
+        delete proc;
+    }
+}
+
 void Repository::asyncProcessFinished(int exitCode)
 // ----------------------------------------------------------------------------
-//   Default action when an asynchronous subprocess has finished normally
+//   Default action when an asynchronous subprocess has finished
 // ----------------------------------------------------------------------------
 {
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
     if (exitCode)
-        std::cerr << +tr("Async command failed, exit status %1: %2\n")
-                     .arg((int)exitCode).arg(cmd->commandLine);
+    {
+        IFTRACE(process)
+            std::cerr << +tr("Async command failed, exit status %1: %2\n")
+                         .arg((int)exitCode).arg(cmd->commandLine);
+    }
     cmd->sendStandardOutputToTextEdit();
     emit asyncProcessComplete(cmd->id);
 }
@@ -311,17 +336,17 @@ void Repository::asyncProcessFinished(int exitCode)
 
 void Repository::asyncProcessError(QProcess::ProcessError error)
 // ----------------------------------------------------------------------------
-//   Default action when an asynchronous subprocess has not finished normally
+//   Default action when an asynchronous subprocess has an error
 // ----------------------------------------------------------------------------
 {
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
-    std::cerr << +tr("Async command error %1: %2\nError output:\n%3")
-                 .arg((int)error).arg(cmd->commandLine)
-                 .arg(QString(cmd->readAllStandardError()));
+    IFTRACE(process)
+        std::cerr << +tr("Async command error %1: %2\nError output:\n%3")
+                     .arg((int)error).arg(cmd->commandLine)
+                     .arg(QString(cmd->readAllStandardError()));
     cmd->sendStandardErrorToTextEdit();
-    emit asyncProcessComplete(cmd->id);
 }
 
 
@@ -330,6 +355,11 @@ Repository::ProcQueueConsumer::~ProcQueueConsumer()
 //   Pop the head process from process queue, delete it and start next one
 // ----------------------------------------------------------------------------
 {
+    if (repo.pQueue.first()->aborted)
+    {
+        // We're here as a result of Repository::abort(). Let him clean up.
+        return;
+    }
     delete repo.pQueue.takeFirst();
     if (repo.pQueue.count())
         repo.pQueue.first()->start();

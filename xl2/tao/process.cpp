@@ -37,7 +37,8 @@ Process::Process(size_t bufSize)
 // ----------------------------------------------------------------------------
 //   Create a QProcess without starting it yet
 // ----------------------------------------------------------------------------
-    : commandLine(""), outTextEdit(NULL), errTextEdit(NULL), id(NULL)
+    : commandLine(""), outTextEdit(NULL), errTextEdit(NULL), id(NULL),
+      aborted(false)
 {
     initialize(bufSize);
 }
@@ -52,7 +53,7 @@ Process::Process(const QString &cmd,
 //   Create a QProcess
 // ----------------------------------------------------------------------------
     : commandLine(""), cmd(cmd), args(args), wd(wd),
-      outTextEdit(NULL), errTextEdit(NULL), id(NULL)
+      outTextEdit(NULL), errTextEdit(NULL), id(NULL), aborted(false)
 {
     setWorkingDirectory(wd);
     initialize(bufSize);

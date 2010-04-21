@@ -31,10 +31,11 @@ CloneDialog::CloneDialog(Repository *repo, QWidget *parent)
 // ----------------------------------------------------------------------------
 //    Create a "clone" dialog
 // ----------------------------------------------------------------------------
-    : QDialog(parent), repo(repo), success(false)
+    : QDialog(parent), repo(repo), done(false), proc(NULL)
 {
     setupUi(this);
     okButton = buttonBox->button(QDialogButtonBox::Ok);
+    cancelButton = buttonBox->button(QDialogButtonBox::Cancel);
     folderEdit->setText(Application::defaultProjectFolderPath());
 }
 
@@ -44,7 +45,7 @@ void CloneDialog::accept()
 //    Ok/dismiss button was clicked
 // ----------------------------------------------------------------------------
 {
-    if (success)
+    if (done)
         return QDialog::accept();
 
     QString url = urlEdit->text();
@@ -55,21 +56,42 @@ void CloneDialog::accept()
     cloneOutput->append(tr("Starting...\n"));
     connect(repo, SIGNAL(asyncProcessComplete(void *)),
             this, SLOT(endClone(void *)));
-    repo->clone(url, folder, cloneOutput, this);
+    proc = repo->asyncClone(url, folder, cloneOutput, this);
+}
+
+
+void CloneDialog::reject()
+// ----------------------------------------------------------------------------
+//    Cancel button was clicked
+// ----------------------------------------------------------------------------
+{
+    if (done)
+        return QDialog::reject();
+
+    Process *p = proc;
+    proc = NULL;
+    if (p)
+        repo->abort(p);
 }
 
 
 void CloneDialog::endClone(void *id)
 // ----------------------------------------------------------------------------
-//    The clone operation has completed
+//    The clone operation has completed or has been canceled
 // ----------------------------------------------------------------------------
 {
     if (id != this)
         return;
-    cloneOutput->append(tr("Done.\n"));
-    success = true;
+    QString text;
+    if (proc)
+        text = tr("Done.\n");
+    else
+        text = tr("Canceled.\n");
+    cloneOutput->append(text);
+    done = true;
     okButton->setText(tr("Dismiss"));
     okButton->setEnabled(true);
+    cancelButton->setEnabled(false);
 }
 
 void CloneDialog::on_browseButton_clicked()

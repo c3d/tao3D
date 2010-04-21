@@ -104,6 +104,7 @@ public:
     virtual bool        selectUndoBranch();
     virtual bool        idle();
     virtual void        markChanged(text reason);
+    virtual void        abort(Process *proc);
 
 public:
     virtual QString     userVisibleName()               = 0;
@@ -130,7 +131,7 @@ public:
     virtual bool        delRemote(QString name)         = 0;
     virtual bool        renRemote(QString oldName, QString newName) = 0;
     virtual QList<Commit> history(int max = 100)        = 0;
-    virtual bool        clone(QString cloneUrl, QString path,
+    virtual Process *   asyncClone(QString cloneUrl, QString path,
                               AnsiTextEdit *out = NULL, void *id = NULL) = 0;
 
 public:
@@ -149,7 +150,7 @@ protected:
     virtual text        fullName(text fileName);
     static Repository * newRepository(const QString &path,
                                       bool create = false);
-    void                dispatch(Process *cmd, AnsiTextEdit *err = NULL,
+    Process *           dispatch(Process *cmd, AnsiTextEdit *err = NULL,
                                  AnsiTextEdit *out = NULL, void *id = NULL);
 
 protected slots:

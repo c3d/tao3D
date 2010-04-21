@@ -297,7 +297,7 @@ bool GitRepository::asyncCherryPick(text id)
 
 void GitRepository::asyncProcessFinished(int exitCode)
 // ----------------------------------------------------------------------------
-//   An asynchronous subprocess has finished normally
+//   An asynchronous subprocess has finished
 // ----------------------------------------------------------------------------
 {
     ProcQueueConsumer p(*this);
@@ -497,8 +497,8 @@ QList<GitRepository::Commit> GitRepository::history(int max)
     return result;
 }
 
-bool GitRepository::clone(QString cloneUrl, QString path, AnsiTextEdit * out,
-                          void *id)
+Process * GitRepository::asyncClone(QString cloneUrl, QString path,
+                                    AnsiTextEdit * out, void *id)
 // ----------------------------------------------------------------------------
 //   Make a local copy of a remote project
 // ----------------------------------------------------------------------------
@@ -507,8 +507,7 @@ bool GitRepository::clone(QString cloneUrl, QString path, AnsiTextEdit * out,
     // has been open yet
     QStringList args;
     args << "clone" << "--progress" << cloneUrl;
-    dispatch(new Process(command(), args, path, false), out, out, id);
-    return true;
+    return dispatch(new Process(command(), args, path, false), out, out, id);
 }
 
 TAO_END

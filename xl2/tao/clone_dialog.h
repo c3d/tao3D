@@ -40,13 +40,15 @@ public:
 
 public slots:
     virtual void accept();
+    virtual void reject();
     virtual void on_browseButton_clicked();
     virtual void endClone(void *id);
 
 private:
     Repository  *repo;
-    bool         success;
-    QPushButton *okButton;
+    bool         done;
+    QPushButton *okButton, *cancelButton;
+    Process     *proc;
 };
 
 }

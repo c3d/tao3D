@@ -147,15 +147,15 @@ public:
     GLuint      currentId()             { return id; }
     GLuint      manipulatorId()         { return manipulator; }
     GLuint      selectionCapacity()     { return capacity; }
-    uint        selected()              { return selected(id); }
     GLuint      newCharId(uint ids = 1) { return charId += ids; }
     GLuint      currentCharId()         { return charId; }
     uint        charSelected(uint i)    { return selected(i | CHAR_ID_BIT); }
     uint        charSelected()          { return charSelected(charId); }
     void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
-    uint        selected(uint i);
     uint        selected(Tree *tree)    { return selectionTrees.count(tree); }
     void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
+    uint        selected(uint i);
+    uint        selected(Layout *);
     void        select(uint id, uint count);
     void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);

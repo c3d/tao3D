@@ -33,7 +33,7 @@ void Shape3::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    if (widget->selected())
+    if (widget->selected(layout))
     {
         Color line(1.0, 0.0, 0.0, 0.5);
         Color fill(0.0, 0.7, 1.0, 0.1);

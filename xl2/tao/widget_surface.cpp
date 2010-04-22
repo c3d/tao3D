@@ -140,14 +140,14 @@ GLuint WidgetSurface::bind ()
 }
 
 
-void WidgetSurface::requestFocus(coord x, coord y)
+void WidgetSurface::requestFocus(Layout *layout, coord x, coord y)
 // ----------------------------------------------------------------------------
 //    If the widget is selected, request focus
 // ----------------------------------------------------------------------------
 {
     // Request focus for this widget
     Widget *parent = (Widget *) widget->parent();
-    if (parent->selected())
+    if (parent->selected(layout))
         parent->requestFocus(widget, x, y);
 }
 

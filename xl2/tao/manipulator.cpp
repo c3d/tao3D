@@ -62,7 +62,7 @@ void Manipulator::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    if (uint sel = widget->selected())
+    if (uint sel = widget->selected(layout))
     {
         widget->selectionTrees.insert(self);
         if (sel < 0x1000)
@@ -289,7 +289,7 @@ void ControlPoint::DrawSelection(Layout *layout)
 {
     // We don't need to glPushName, as the parent should have done it for us
     Widget *widget = layout->Display();
-    if (widget->selected())
+    if (widget->selected(layout))
     {
         widget->selectionTrees.insert(self);
         DrawHandles(layout);
@@ -1179,12 +1179,12 @@ void WidgetManipulator::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    bool selected = widget->selected();
+    bool selected = widget->selected(layout);
     child->Identify(layout);
     Manipulator::DrawSelection(layout);
     if (selected)
     {
-        surface->requestFocus(x, y);
+        surface->requestFocus(layout, x, y);
         widget->drawSelection(Bounds(layout) + layout->Offset(),
                               "widget_selection");
     }

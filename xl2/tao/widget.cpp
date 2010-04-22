@@ -1625,6 +1625,15 @@ uint Widget::selected(uint i)
 }
 
 
+uint Widget::selected(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Test if the current shape is selected
+// ----------------------------------------------------------------------------
+{
+    return selected(layout->id);
+}
+
+
 void Widget::select(uint id, uint count)
 // ----------------------------------------------------------------------------
 //    Select the current shape if we are in selectable state

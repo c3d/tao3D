@@ -22,8 +22,10 @@
 
 #include "remote_selection_frame.h"
 #include "repository.h"
+#include "application.h"
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QCompleter>
 
 namespace Tao {
 
@@ -34,6 +36,7 @@ RemoteSelectionFrame::RemoteSelectionFrame(QWidget *parent)
     : QFrame(parent), repo(NULL)
 {
     setupUi(this);
+    urlEdit->setCompleter(new QCompleter(TaoApp->urlCompletions, this));
 }
 
 
@@ -170,7 +173,9 @@ void RemoteSelectionFrame::on_urlEdit_editingFinished()
 //    Update the remote URL in the repository to reflect the URL field.
 // ----------------------------------------------------------------------------
 {
-    repo->setRemote(nameCombo->currentText(), urlEdit->text());
+    QString url = urlEdit->text();
+    repo->setRemote(nameCombo->currentText(), url);
+    TaoApp->urlCompletions.append(url);
 }
 
 

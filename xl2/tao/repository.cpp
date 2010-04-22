@@ -33,8 +33,8 @@
 
 TAO_BEGIN
 
-QMap<QString, QWeakPointer<Repository> > Repository::cache;
-Repository::Kind  Repository::availableScm = Repository::Unknown;
+QMap<QString, QWeakPointer<Repository> > RepositoryFactory::cache;
+Repository::Kind  RepositoryFactory::availableScm = Repository::Unknown;
 
 text Repository::fullName(text fileName)
 // ----------------------------------------------------------------------------
@@ -148,81 +148,6 @@ bool Repository::setTask(text name)
 }
 
 
-QSharedPointer <Repository> Repository::repository(const QString &path, bool create)
-// ----------------------------------------------------------------------------
-//    Factory returning the right repository kind for a directory
-// ----------------------------------------------------------------------------
-{
-    // Do we know this guy already?
-    if (cache.contains(path))
-        return QSharedPointer<Repository>(cache.value(path));
-    QSharedPointer <Repository> rep(newRepository(path, create));
-    if (rep)
-        cache.insert(path, QWeakPointer<Repository>(rep));
-
-    return rep;
-}
-
-
-Repository * Repository::newRepository(const QString &path, bool create)
-// ----------------------------------------------------------------------------
-//    Create the right repository object kind for a directory
-// ----------------------------------------------------------------------------
-{
-    // Try a Git repository first
-    Repository *git = new GitRepository(path);
-    if (git->valid())
-        return git;
-    if (create)
-    {
-        git->initialize();
-        if (git->valid())
-            return git;
-    }
-    delete git;
-
-    // Didn't work, fail
-    return NULL;
-}
-
-
-bool Repository::available()
-// ----------------------------------------------------------------------------
-//    Test if Repository features are available
-// ----------------------------------------------------------------------------
-{
-    if (availableScm == Unknown)
-    {
-        availableScm = None;
-        if (GitRepository::checkGit())
-            availableScm = Git;
-    }
-    return (availableScm != None);
-}
-
-
-bool Repository::versionGreaterOrEqual(QString ver, QString ref)
-// ----------------------------------------------------------------------------
-//    Return true if ver >= ref. For instance, "1.7.0" >= "1.6.6.2"
-// ----------------------------------------------------------------------------
-{
-    QStringListIterator vit(ver.split("."));
-    QStringListIterator rit(ref.split("."));
-    while (vit.hasNext() && rit.hasNext())
-    {
-        int vi = vit.next().toInt();
-        int ri = rit.next().toInt();
-        if (vi > ri)
-            return true;
-        if (vi < ri)
-            return false;
-    }
-    while (rit.hasNext())
-        if (rit.next().toInt())
-            return false;
-    return true;
-}
-
 bool Repository::selectWorkBranch()
 // ----------------------------------------------------------------------------
 //    Select the work branch
@@ -264,46 +189,112 @@ void Repository::markChanged(text reason)
 }
 
 
-void Repository::dispatch(Process *cmd)
+Process * Repository::dispatch(Process *cmd,
+                               AnsiTextEdit *err, AnsiTextEdit *out,
+                               void *id)
 // ----------------------------------------------------------------------------
-//   Insert process in run queue and start first process
+//   Insert process in run queue and start first process. Return cmd.
 // ----------------------------------------------------------------------------
 {
+    cmd->id = id;
     connect(cmd,  SIGNAL(finished(int,QProcess::ExitStatus)),
             this, SLOT  (asyncProcessFinished(int)));
     connect(cmd,  SIGNAL(error(QProcess::ProcessError)),
             this, SLOT  (asyncProcessError(QProcess::ProcessError)));
+    if (err)
+    {
+        cmd->errTextEdit = err;
+        connect(cmd, SIGNAL(readyReadStandardError()),
+                cmd, SLOT(sendStandardErrorToTextEdit()));
+    }
+    if (out)
+    {
+        cmd->outTextEdit = out;
+        connect(cmd, SIGNAL(readyReadStandardOutput()),
+                cmd, SLOT(sendStandardOutputToTextEdit()));
+    }
     pQueue.append(cmd);
     if (pQueue.count() == 1)
         cmd->start();
+    return cmd;
 }
 
 
+void Repository::abort(Process *proc)
+// ----------------------------------------------------------------------------
+//   Abort an asynchronous process returned by dispatch()
+// ----------------------------------------------------------------------------
+{
+    if (pQueue.first() == proc)
+    {
+        proc->aborted = true;
+        proc->close();
+        delete pQueue.takeFirst();
+        if (pQueue.count())
+            pQueue.first()->start();
+    }
+    else
+    {
+        pQueue.removeOne(proc);
+        delete proc;
+    }
+}
+
 void Repository::asyncProcessFinished(int exitCode)
 // ----------------------------------------------------------------------------
-//   Default action when an asynchronous subprocess has finished normally
+//   Default action when an asynchronous subprocess has finished
 // ----------------------------------------------------------------------------
 {
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
     if (exitCode)
-        std::cerr << +tr("Async command failed, exit status %1: %2\n")
-                     .arg((int)exitCode).arg(cmd->commandLine);
+    {
+        IFTRACE(process)
+            std::cerr << +tr("Async command failed, exit status %1: %2\n")
+                         .arg((int)exitCode).arg(cmd->commandLine);
+    }
+    cmd->sendStandardOutputToTextEdit();
+    emit asyncProcessComplete(cmd->id);
 }
 
 
 void Repository::asyncProcessError(QProcess::ProcessError error)
 // ----------------------------------------------------------------------------
-//   Default action when an asynchronous subprocess has not finished normally
+//   Default action when an asynchronous subprocess has an error
 // ----------------------------------------------------------------------------
 {
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
-    std::cerr << +tr("Async command error %1: %2\nError output:\n%3")
-                 .arg((int)error).arg(cmd->commandLine)
-                 .arg(QString(cmd->readAllStandardError()));
+    IFTRACE(process)
+        std::cerr << +tr("Async command error %1: %2\nError output:\n%3")
+                     .arg((int)error).arg(cmd->commandLine)
+                     .arg(QString(cmd->readAllStandardError()));
+    cmd->sendStandardErrorToTextEdit();
+}
+
+
+bool Repository::versionGreaterOrEqual(QString ver, QString ref)
+// ----------------------------------------------------------------------------
+//    Return true if ver >= ref. For instance, "1.7.0" >= "1.6.6.2"
+// ----------------------------------------------------------------------------
+{
+    QStringListIterator vit(ver.split("."));
+    QStringListIterator rit(ref.split("."));
+    while (vit.hasNext() && rit.hasNext())
+    {
+        int vi = vit.next().toInt();
+        int ri = rit.next().toInt();
+        if (vi > ri)
+            return true;
+        if (vi < ri)
+            return false;
+    }
+    while (rit.hasNext())
+        if (rit.next().toInt())
+            return false;
+    return true;
 }
 
 
@@ -312,9 +303,96 @@ Repository::ProcQueueConsumer::~ProcQueueConsumer()
 //   Pop the head process from process queue, delete it and start next one
 // ----------------------------------------------------------------------------
 {
+    if (repo.pQueue.first()->aborted)
+    {
+        // We're here as a result of Repository::abort(). Let him clean up.
+        return;
+    }
     delete repo.pQueue.takeFirst();
     if (repo.pQueue.count())
         repo.pQueue.first()->start();
+}
+
+
+
+// ============================================================================
+//
+//   Repository factory
+//
+// ============================================================================
+
+repository_ptr
+RepositoryFactory::repository(QString path, RepositoryFactory::Mode mode)
+// ----------------------------------------------------------------------------
+//    Factory returning the right repository kind for a directory (wth cache)
+// ----------------------------------------------------------------------------
+{
+    // Do we know this guy already?
+    if (cache.contains(path))
+    {
+        if (mode == Clone)
+            return repository_ptr(NULL);  // Can't clone into existing repo
+        return repository_ptr(cache.value(path));
+    }
+
+    // Open (and optionally, create) a repository in 'path'
+    // Do not cache 'Clone' repositories because the path when cloning is NOT
+    // the project path (clone creates a subdirectory)
+    repository_ptr rep(newRepository(path, mode));
+    if (rep && mode != Clone)
+        cache.insert(path, QWeakPointer<Repository>(rep));
+
+    return rep;
+}
+
+
+Repository *
+RepositoryFactory::newRepository(QString path, RepositoryFactory::Mode mode)
+// ----------------------------------------------------------------------------
+//    Create the right repository object kind for a directory
+// ----------------------------------------------------------------------------
+{
+    // Try a Git repository first
+    Repository *git = new GitRepository(path);
+    if (git->valid())
+    {
+        if (mode == Clone)
+        {
+            // Can't clone into an existing repository
+            delete git;
+            return NULL;
+        }
+        return git;
+    }
+    // path is not a valid repository
+    if (mode == Create)
+    {
+        git->initialize();
+        if (git->valid())
+            return git;
+    }
+    if (mode == Clone)
+    {
+        // Caller will call Repository::clone()
+        return git;
+    }
+    delete git;
+    return NULL;
+}
+
+
+bool RepositoryFactory::available()
+// ----------------------------------------------------------------------------
+//    Test if Repository features are available
+// ----------------------------------------------------------------------------
+{
+    if (availableScm == Repository::Unknown)
+    {
+        availableScm = Repository::None;
+        if (GitRepository::checkGit())
+            availableScm = Repository::Git;
+    }
+    return (availableScm != Repository::None);
 }
 
 TAO_END

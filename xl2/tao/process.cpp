@@ -17,6 +17,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jerome Forissier <jerome@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -27,6 +28,7 @@
 
 #include <cassert>
 #include <QMessageBox>
+#include <QApplication>
 
 
 TAO_BEGIN
@@ -35,7 +37,8 @@ Process::Process(size_t bufSize)
 // ----------------------------------------------------------------------------
 //   Create a QProcess without starting it yet
 // ----------------------------------------------------------------------------
-    : commandLine("")
+    : commandLine(""), outTextEdit(NULL), errTextEdit(NULL), id(NULL),
+      aborted(false)
 {
     initialize(bufSize);
 }
@@ -49,7 +52,8 @@ Process::Process(const QString &cmd,
 // ----------------------------------------------------------------------------
 //   Create a QProcess
 // ----------------------------------------------------------------------------
-    : commandLine(""), cmd(cmd), args(args), wd(wd)
+    : commandLine(""), cmd(cmd), args(args), wd(wd),
+      outTextEdit(NULL), errTextEdit(NULL), id(NULL), aborted(false)
 {
     setWorkingDirectory(wd);
     initialize(bufSize);
@@ -121,7 +125,8 @@ bool Process::done(text *errors, text *output)
     if (rc)
         ok = false;
 
-    QString err, out;
+    err.clear();
+    out.clear();
     bool tracing = XLTRACE(process);
     if (!ok)
     {
@@ -195,6 +200,34 @@ int Process::sync()
         setp(pbase(), epptr());
     }
     return 0;
+}
+
+
+void Process::sendStandardOutputToTextEdit()
+// ------------------------------------------------------------------------
+//   Read+save stdout and send text to previously registered QTextEdit
+// ------------------------------------------------------------------------
+{
+    if (!outTextEdit)
+        return;
+    QByteArray out = readAllStandardOutput();
+    IFTRACE(process)
+        std::cerr << +QString(out);
+    outTextEdit->insertAnsiText(out);
+}
+
+
+void Process::sendStandardErrorToTextEdit()
+// ------------------------------------------------------------------------
+//   Read+save stderr and send text to previously registered QTextEdit
+// ------------------------------------------------------------------------
+{
+    if (!errTextEdit)
+        return;
+    QByteArray err = readAllStandardError();
+    IFTRACE(process)
+        std::cerr << +QString(err);
+    errTextEdit->insertAnsiText(err);
 }
 
 TAO_END

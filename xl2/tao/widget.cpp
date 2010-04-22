@@ -210,7 +210,7 @@ void Widget::dawdle()
     if (repo && pullDelay < 0 && repo->state == Repository::RS_Clean)
     {
         repo->pull();
-        nextPull = now() + xlr->options.pull_interval * 1000;
+        nextPull = now() + repo->pullInterval * 1000;
     }
 
     // Check if there's something to reload

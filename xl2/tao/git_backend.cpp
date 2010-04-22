@@ -149,7 +149,7 @@ text GitRepository::branch()
         QStringList branches = (+output).split("\n");
         QRegExp re("^[*].*");
         int index = branches.indexOf(re);
-        if (index > 0)
+        if (index >= 0)
             result = +branches[index].mid(2);
         else
             result = "master";  // May happen on a totally empty repository
@@ -297,7 +297,7 @@ bool GitRepository::asyncCherryPick(text id)
 
 void GitRepository::asyncProcessFinished(int exitCode)
 // ----------------------------------------------------------------------------
-//   An asynchronous subprocess has finished normally
+//   An asynchronous subprocess has finished
 // ----------------------------------------------------------------------------
 {
     ProcQueueConsumer p(*this);
@@ -329,6 +329,8 @@ void GitRepository::asyncProcessFinished(int exitCode)
         if (parseCommitOutput(output, commitId, commitMsg))
             emit asyncCommitSuccess(commitId, commitMsg);
     }
+    cmd->sendStandardOutputToTextEdit();
+    emit asyncProcessComplete(cmd->id);
 }
 
 
@@ -493,6 +495,19 @@ QList<GitRepository::Commit> GitRepository::history(int max)
             result.prepend(Repository::Commit(rx.cap(1), rx.cap(2)));
 
     return result;
+}
+
+Process * GitRepository::asyncClone(QString cloneUrl, QString path,
+                                    AnsiTextEdit * out, void *id)
+// ----------------------------------------------------------------------------
+//   Make a local copy of a remote project
+// ----------------------------------------------------------------------------
+{
+    // Note: path is an argument because we do not assume a valid repository
+    // has been open yet
+    QStringList args;
+    args << "clone" << "--progress" << cloneUrl;
+    return dispatch(new Process(command(), args, path, false), out, out, id);
 }
 
 TAO_END

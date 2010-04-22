@@ -90,7 +90,7 @@ Application::Application(int & argc, char ** argv)
                                     " Performance may not be optimal."
                                     " Consider updating the OpenGL drivers."));
     }
-    if (!Repository::available())
+    if (!RepositoryFactory::available())
     {
         QMessageBox::warning(NULL, tr("Version control software"),
                              tr("No supported version control software was "
@@ -102,8 +102,15 @@ Application::Application(int & argc, char ** argv)
     // Create default folder for Tao documents
     // ("Save as..." box will land there)
     createDefaultProjectFolder();
+
+    loadSettings();
 }
 
+
+Application::~Application()
+{
+    saveSettings();
+}
 
 QString Application::defaultDocumentsFolderPath()
 // ----------------------------------------------------------------------------
@@ -246,6 +253,26 @@ bool Application::recursiveDelete(QString path)
             err = true;
     }
     return err;
+}
+
+
+void Application::saveSettings()
+// ----------------------------------------------------------------------------
+//    Save application settings so they are avaible on next start
+// ----------------------------------------------------------------------------
+{
+    QSettings().setValue("UrlCompletions", QVariant(urlCompletions));
+    QSettings().setValue("PathCompletions", QVariant(pathCompletions));
+}
+
+
+void Application::loadSettings()
+// ----------------------------------------------------------------------------
+//    Load application settings
+// ----------------------------------------------------------------------------
+{
+    urlCompletions = QSettings().value("UrlCompletions").toStringList();
+    pathCompletions = QSettings().value("PathCompletions").toStringList();
 }
 
 TAO_END

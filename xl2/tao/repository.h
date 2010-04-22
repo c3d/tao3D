@@ -27,6 +27,8 @@
 #include "tao.h"
 #include "tree.h"
 #include "process.h"
+#include "main.h"
+#include "ansi_textedit.h"
 #include <QString>
 #include <QProcess>
 #include <QtGlobal>
@@ -89,6 +91,8 @@ public:
 
 public:
     Repository(const QString &path): path(path), task("work"),
+                                     pullInterval(XL::MAIN->options
+                                                  .pull_interval),
                                      state(RS_Clean), whatsNew("") {}
     virtual ~Repository() {}
 
@@ -100,6 +104,7 @@ public:
     virtual bool        selectUndoBranch();
     virtual bool        idle();
     virtual void        markChanged(text reason);
+    virtual void        abort(Process *proc);
 
 public:
     virtual QString     userVisibleName()               = 0;
@@ -126,27 +131,27 @@ public:
     virtual bool        delRemote(QString name)         = 0;
     virtual bool        renRemote(QString oldName, QString newName) = 0;
     virtual QList<Commit> history(int max = 100)        = 0;
+    virtual Process *   asyncClone(QString cloneUrl, QString path,
+                              AnsiTextEdit *out = NULL, void *id = NULL) = 0;
 
 public:
-    static QSharedPointer<Repository>
-                        repository(const QString &path, bool create = false);
-    static bool         available();
     static bool         versionGreaterOrEqual(QString ver, QString ref);
 
 signals:
     void                asyncCommitSuccess(QString commitId, QString msg);
+    void                asyncProcessComplete(void *id);
 
 protected:
     virtual QString     command()                       = 0;
     virtual text        styleSheet();
     virtual text        fullName(text fileName);
-    static Repository * newRepository(const QString &path,
-                                      bool create = false);
-    void                dispatch(Process *cmd);
+    Process *           dispatch(Process *cmd, AnsiTextEdit *err = NULL,
+                                 AnsiTextEdit *out = NULL, void *id = NULL);
 
 protected slots:
     virtual void        asyncProcessFinished(int exitCode);
     virtual void        asyncProcessError(QProcess::ProcessError error);
+
 
 protected:
     struct ProcQueueConsumer
@@ -162,6 +167,7 @@ public:
     text               task;
     text               errors;
     QString            pullFrom;
+    int                pullInterval;        // ms
     ConflictResolution conflictResolution;
     State              state;
     text               whatsNew;
@@ -169,13 +175,54 @@ public:
 
 protected:
     QList<Process *> pQueue;
-
-protected:
-    static QMap<QString, QWeakPointer <Repository > > cache;
-    static Kind                                       availableScm;
 };
 
 #define TAO_UNDO_SUFFIX "_tao_undo"
+
+
+
+// ============================================================================
+//
+//   Repository factory
+//
+// ============================================================================
+
+typedef QSharedPointer<Repository> repository_ptr;
+
+class RepositoryFactory
+// ----------------------------------------------------------------------------
+//   Create and cache repository instances
+// ----------------------------------------------------------------------------
+{
+
+public:
+    enum Mode
+    // ------------------------------------------------------------------------
+    //   How to open a local repository
+    // ------------------------------------------------------------------------
+    {
+        OpenExisting, // Fail if path is not a valid repository
+        Create,       // Don't fail if path is not a valid repository
+        Clone,        // Return a Repository instance for a given path that
+                      // must NOT contain a valid repository -- caller will
+                      // later invoke Repository::clone()
+    };
+
+public:
+    RepositoryFactory() {}
+    ~RepositoryFactory() {}
+
+public:
+    static bool             available();
+    static repository_ptr   repository(QString path, Mode mode = OpenExisting);
+
+protected:
+    static Repository *     newRepository(QString path, Mode mode);
+
+protected:
+    static QMap<QString, QWeakPointer <Repository > > cache;
+    static Repository::Kind                           availableScm;
+};
 
 }
 

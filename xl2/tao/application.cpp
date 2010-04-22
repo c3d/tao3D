@@ -115,20 +115,18 @@ QString Application::defaultUserDocumentsFolderPath()
     QSettings settings(
             "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",
             QSettings::NativeFormat);
+
     // For Windows Vista/7
-    QString path = settings.value("User Shell Folders\\Personal").toString();
-    if (!path.isNull())
-    {
-        // Typically C:\Users\username\Documents
-        return path;
-    }
+    // Typically C:\Users\username\Documents
     // For Windows XP
-    path = settings.value("User Shell Folders\\Personal").toString();
+    // Typically C:\Documents and Settings\username\My Documents
+    QString path = settings.value("User Shell Folders\\Personal").toString();
+
     if (!path.isNull())
     {
-        // Typically C:\Documents and Settings\username\My Documents
         return path;
     }
+
 #endif // QT_WS_WIN
 
     // Trying to ding a home sub-directory ending with "Documents"
@@ -166,18 +164,13 @@ QString Application::defaultPreferencesFolderPath()
             "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",
             QSettings::NativeFormat);
     // For Windows Vista/7
+    // Typically C:\Users\username\???
+    // For Windows XP
+    // Typically C:\Documents and Settings\username\Local Settings\Application Data
     QString path = settings.value("User Shell Folders\\Local AppData")
                    .toString();
     if (!path.isNull())
     {
-        // Typically C:\Users\username\???
-        return path;
-    }
-    // For Windows XP
-    path = settings.value("User Shell Folders\\Local AppData").toString();
-    if (!path.isNull())
-    {
-        // Typically C:\Documents and Settings\username\Local Settings\Application Data
         return path;
     }
 #endif // QT_WS_WIN
@@ -227,18 +220,13 @@ QString Application::defaultUserImagesFolderPath()
             "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",
             QSettings::NativeFormat);
     // For Windows Vista/7
+    // Typically C:\Users\username\Documents\Pictures???
+    // For Windows XP
+    // Typically C:\Documents and Settings\username\My Documents\My Pictures
     QString path = settings.value("User Shell Folders\\My Pictures")
                    .toString();
     if (!path.isNull())
     {
-        // Typically C:\Users\username\Documents\Pictures???
-        return path;
-    }
-    // For Windows XP
-    path = settings.value("User Shell Folders\\My Pictures").toString();
-    if (!path.isNull())
-    {
-        // Typically C:\Documents and Settings\username\My Documents\My Pictures
         return path;
     }
 #endif // QT_WS_WIN

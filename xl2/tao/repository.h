@@ -94,7 +94,7 @@ public:
                                      pullInterval(XL::MAIN->options
                                                   .pull_interval),
                                      state(RS_Clean), whatsNew("") {}
-    virtual ~Repository() {}
+    virtual ~Repository();
 
 public:
     virtual bool        write(text fileName, XL::Tree *tree);
@@ -140,6 +140,7 @@ public:
 signals:
     void                asyncCommitSuccess(QString commitId, QString msg);
     void                asyncCloneComplete(void *id, QString projPath);
+    void                deleted();
 
 protected:
     virtual QString     command()                       = 0;
@@ -194,6 +195,7 @@ class RepositoryFactory
 //   Create and cache repository instances
 // ----------------------------------------------------------------------------
 {
+    friend class Repository;
 
 public:
     enum Mode
@@ -218,6 +220,7 @@ public:
 
 protected:
     static Repository *     newRepository(QString path, Mode mode);
+    static void             removeFromCache(QString path);
 
 protected:
     static QMap<QString, QWeakPointer <Repository > > cache;

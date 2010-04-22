@@ -497,14 +497,12 @@ QList<GitRepository::Commit> GitRepository::history(int max)
     return result;
 }
 
-Process * GitRepository::asyncClone(QString cloneUrl, QString path,
+Process * GitRepository::asyncClone(QString cloneUrl,
                                     AnsiTextEdit * out, void *id)
 // ----------------------------------------------------------------------------
 //   Make a local copy of a remote project
 // ----------------------------------------------------------------------------
 {
-    // Note: path is an argument because we do not assume a valid repository
-    // has been open yet
     QStringList args;
     args << "clone" << "--progress" << cloneUrl;
     return dispatch(new Process(command(), args, path, false), out, out, id);

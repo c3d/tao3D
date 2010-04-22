@@ -74,7 +74,7 @@ void CloneDialog::accept()
     setCursor(Qt::BusyCursor);
     connect(repo.data(), SIGNAL(asyncProcessComplete(void *)),
             this, SLOT(endClone(void *)));
-    proc = repo->asyncClone(url, folder, cloneOutput, this);
+    proc = repo->asyncClone(url, cloneOutput, this);
 }
 
 

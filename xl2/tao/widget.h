@@ -214,7 +214,9 @@ public:
     Tree *      refresh(Tree *self, double delay);
     Name *      fullScreen(Tree *self, bool fs);
     Name *      toggleFullScreen(Tree *self);
-    
+    Integer *   polygonOffset(Tree *self,
+                              double f0, double f1, double u0, double u1);
+
     // Graphic attributes
     Tree *      lineColor(Tree *self, double r, double g, double b, double a);
     Tree *      lineWidth(Tree *self, double lw);

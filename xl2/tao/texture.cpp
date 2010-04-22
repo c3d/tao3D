@@ -68,7 +68,7 @@ GLuint ImageTextureInfo::bind(text file)
             // Generate the GL texture
             glGenTextures(1, &textureId);
             glBindTexture(GL_TEXTURE_2D, textureId);
-            glTexImage2D(GL_TEXTURE_2D, 0, 3,
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                          texture.width(), texture.height(), 0, GL_RGBA,
                          GL_UNSIGNED_BYTE, texture.bits());
 

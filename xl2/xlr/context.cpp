@@ -658,8 +658,8 @@ bool Symbols::Mark(GCAction &gc)
 // ============================================================================
 //   This is just a rather simple mark and sweep garbage collector.
 
-ulong Context::gc_increment = 200;
-ulong Context::gc_growth_percent = 200;
+ulong Context::gc_increment = 5;
+ulong Context::gc_growth_percent = 100;
 Context *Context::context = NULL;
 
 
@@ -746,8 +746,13 @@ void Context::CollectGarbage ()
         active = gc.alive;
         active_symbols = gc.alive_symbols;
 
+        // The new threshold is computed as the sum of the currently active
+        // trees (scaled by growth_percent) and the trees we just deleted
+        // (scaled by gc_increment)
+        gc_threshold = active.size() * gc_growth_percent / 100 +
+            deletedCount * gc_increment / 100;
+
         // Update statistics
-        gc_threshold = active.size() * gc_growth_percent / 100 + gc_increment;
         IFTRACE(memory)
             std::cerr << "done: Purged " << deletedCount
                       << " trees out of " << activeCount

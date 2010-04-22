@@ -69,16 +69,16 @@ void Manipulator::DrawSelection(Layout *layout)
         {
             uint count = 1;
             uint idR = 99, idT = 99, idS = 99;
-            if (layout->lastRotation)       idR = count++;
-            if (layout->lastTranslation)    idT = count++;
-            if (layout->lastScale)          idS = count++;
+            if (layout->rotationId)       idR = count++;
+            if (layout->translationId)    idT = count++;
+            if (layout->scaleId)          idS = count++;
 
             sel = (sel-1) % count;
 
-            widget->select(layout->lastRotation,    sel == idR ? 0x1000 : 0);
-            widget->select(layout->lastTranslation, sel == idT ? 0x2000 : 0);
-            widget->select(layout->lastScale,       sel == idS ? 0x4000 : 0);
-            widget->select(widget->currentId(),     sel+1);
+            widget->select(layout->rotationId,    sel == idR ? 0x1000 : 0);
+            widget->select(layout->translationId, sel == idT ? 0x2000 : 0);
+            widget->select(layout->scaleId,       sel == idS ? 0x4000 : 0);
+            widget->select(widget->currentId(),   sel+1);
         }
 
         glPushName(widget->currentId());
@@ -1405,7 +1405,7 @@ void RotationManipulator::Identify(Layout *layout)
     TransformManipulator::Identify(layout);
     Widget *widget = layout->Display();
     uint id = widget->currentId();
-    layout->lastRotation = id;
+    layout->rotationId = id;
 }
 
 
@@ -1498,7 +1498,7 @@ void TranslationManipulator::Identify(Layout *layout)
     TransformManipulator::Identify(layout);
     Widget *widget = layout->Display();
     uint id = widget->currentId();
-    layout->lastTranslation = id;
+    layout->translationId = id;
 }
 
 
@@ -1587,7 +1587,7 @@ void ScaleManipulator::Identify(Layout *layout)
     TransformManipulator::Identify(layout);
     Widget *widget = layout->Display();
     uint id = widget->currentId();
-    layout->lastScale = id;
+    layout->translationId = id;
 }
 
 

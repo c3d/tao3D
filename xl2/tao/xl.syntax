@@ -45,8 +45,5 @@ BLOCK
 
 TEXT
         "<<" ">>"
-                
-COMMENT
         "//" NEWLINE
         "/*" "*/"
-

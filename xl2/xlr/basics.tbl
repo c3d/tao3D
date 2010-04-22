@@ -96,8 +96,10 @@ INFIX(EQText, boolean, text, "=", text, XL_RBOOL(XL_TEXT(l) == XL_TEXT(r)))
 
 
 // Conversions
-PREFIX(IntToReal, real, "real", PARM(x, integer), XL_RREAL((real_t) x))
+PREFIX(IntToReal,  real, "real", PARM(x, integer), XL_RREAL((real_t) x))
+PREFIX(TextToReal, real, "real", PARM(x, text), XL_RREAL(xl_text2real(x)))
 PREFIX(RealToInt, integer, "integer", PARM(x, real), XL_RINT((integer_t) x))
+PREFIX(TextToInt, integer, "integer", PARM(x, text), XL_RINT(xl_text2int(x)))
 PREFIX(IntToText, text, "text", PARM(x, integer), XL_RTEXT((text) x))
 PREFIX(RealToText, text, "text", PARM(x, real), XL_RTEXT((text) x))
 

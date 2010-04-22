@@ -345,22 +345,6 @@ template <class I> inline I* Tree::Remove(I *an_info)
 
 
 
-struct TreeRoot
-// ----------------------------------------------------------------------------
-//    A tree that shouldn't be garbage collected until the root dies
-// ----------------------------------------------------------------------------
-{
-    TreeRoot(Tree *t = NULL);
-    TreeRoot(const TreeRoot &o);
-    ~TreeRoot();
-    operator Tree *(void) { return tree; }
-    bool operator< (const TreeRoot &o) const { return tree < o.tree; }
-public:
-    Tree *      tree;
-};
-
-
-
 // ============================================================================
 //
 //   Leaf nodes (integer, real, name, text)
@@ -582,6 +566,61 @@ inline Postfix *Tree::AsPostfix()
         return (Postfix *) this;
     return NULL;
 }
+
+
+
+// ============================================================================
+//
+//    Garbage collection roots
+//
+// ============================================================================
+
+struct TreeRoot
+// ----------------------------------------------------------------------------
+//    A tree that shouldn't be garbage collected until the root dies
+// ----------------------------------------------------------------------------
+{
+    TreeRoot(Tree *t = NULL);
+    TreeRoot(const TreeRoot &o);
+    ~TreeRoot();
+    operator Tree *(void) { return tree; }
+    bool operator< (const TreeRoot &o) const { return tree < o.tree; }
+public:
+    Tree *      tree;
+};
+
+
+struct IntegerRoot : TreeRoot
+// ----------------------------------------------------------------------------
+//   Looks and behaves like a real_r, but keeps the value around
+// ----------------------------------------------------------------------------
+{
+    IntegerRoot(Integer &r): TreeRoot(&r) {}
+    Integer *operator&()        { return (Integer *) tree; }
+    operator longlong()         { return ((Integer *) tree)->value; }
+};
+
+
+struct RealRoot : TreeRoot
+// ----------------------------------------------------------------------------
+//   Looks and behaves like a real_r, but keeps the value around
+// ----------------------------------------------------------------------------
+{
+    RealRoot(Real &r): TreeRoot(&r) {}
+    Real *operator&()           { return (Real *) tree; }
+    operator double()           { return ((Real *) tree)->value; }
+};
+
+
+struct TextRoot : TreeRoot
+// ----------------------------------------------------------------------------
+//   Looks and behaves like a text_p, but keeps the value around
+// ----------------------------------------------------------------------------
+{
+    TextRoot(Text *t): TreeRoot(t) {}
+    operator Text *()           { return (Text *) tree; }
+    text &      Value()         { return ((Text *) tree)->value; }
+};
 
 
 

@@ -1,4 +1,7 @@
 color 1, 1, 1, 1 
+
+HelloWorldMessage -> "Hello World! or Καλημέρα κόσμε; or こんにちは 世界"
+
 locally 
     texture "earth.bmp" 
     rotatey 25 * page_time 
@@ -15,7 +18,7 @@ frame_texture 1800, 600, do
     font "Arial Unicode MS" 
     font_size 62 
     move_to -900, -10, 0 
-    text "Hello World! or Καλημέρα κόσμε; or こんにちは 世界"
+    text HelloWorldMessage
 
 rotatey -29 * page_time + 270 
 color 0% ,0% ,0% ,40% 

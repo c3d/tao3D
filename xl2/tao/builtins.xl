@@ -205,7 +205,7 @@ submenu_insert_shape "toolbar"
 }
 
 submenu_insert_shape p -> {
-submenu   p&"insert > shape", "Shape"
+submenu   p&"insert > shape", "Shape", "images/tao.png"
 menu_item p&"insert > shape > line ---", "Line", insert
     line 50, -50, -50, 50
 menu_item p&"insert > shape > line -->", "Line with Arrowhead", insert

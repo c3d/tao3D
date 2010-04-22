@@ -54,6 +54,7 @@
 #include "transforms.h"
 #include "undo.h"
 
+#include <QToolButton>
 #include <QtGui/QImage>
 #include <cmath>
 #include <QFont>
@@ -83,6 +84,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       xlProgram(sf), inError(false),
       space(NULL), layout(NULL), path(NULL),
       pageName(""), pageId(0), pageTotal(0), pageTree(NULL),
+      currentShape(NULL),
       currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
       id(0), charId(0), capacity(0), manipulator(0),
@@ -222,75 +224,6 @@ void Widget::dawdle()
 }
 
 
-bool Widget::writeIfChanged(XL::SourceFile &sf)
-// ----------------------------------------------------------------------------
-//   Write file to repository if marked 'changed' and reset change attributes
-// ----------------------------------------------------------------------------
-{
-    text fname = sf.name;
-    if (sf.changed)
-    {
-        Repository *repo = repository();
-
-        if (!repo)
-            return false;
-
-        if (repo->write(fname, sf.tree.tree))
-        {
-            // Mark the tree as no longer changed
-            sf.changed = false;
-
-            // Record that we need to commit it sometime soon
-            repo->change(fname);
-            IFTRACE(filesync)
-                std::cerr << "Changed " << fname << "\n";
-
-            // Record time when file was changed
-            struct stat st;
-            stat (fname.c_str(), &st);
-            sf.modified = st.st_mtime;
-
-            return true;
-        }
-
-        IFTRACE(filesync)
-            std::cerr << "Could not write " << fname << " to repository\n";
-    }
-    return false;
-}
-
-
-bool Widget::doCommit()
-// ----------------------------------------------------------------------------
-//   Commit files previously written to repository and reset next commit time
-// ----------------------------------------------------------------------------
-{
-    IFTRACE(filesync)
-            std::cerr << "Commit: " << repository()->whatsNew << "\n";
-    if (repository()->asyncCommit())
-    {
-        XL::Main *xlr = XL::MAIN;
-        nextCommit = now() + xlr->options.commit_interval * 1000;
-
-        Window *window = (Window *) parentWidget();
-        window->markChanged(false);
-
-        return true;
-    }
-    return false;
-}
-
-
-Repository * Widget::repository()
-// ----------------------------------------------------------------------------
-//   Return the repository associated with the current document (may be NULL)
-// ----------------------------------------------------------------------------
-{
-    Window * win = (Window *)parentWidget();
-    return win->repository();
-}
-
-
 void Widget::draw()
 // ----------------------------------------------------------------------------
 //    Redraw the widget
@@ -373,7 +306,11 @@ void Widget::runProgram()
     // Run the XL program associated with this widget
     current = this;
     QTextOption alignCenter(Qt::AlignCenter);
+    IFTRACE(memory)
+        std::cerr << "Run, Drawing::count = " << space->count << ", ";
     space->Clear();
+    IFTRACE(memory)
+        std::cerr << "cleared, count = " << space->count << ", ";
     XL::LocalSave<Layout *> saveLayout(layout, space);
     selectionTrees.clear();
 
@@ -382,7 +319,7 @@ void Widget::runProgram()
         if (Tree *prog = xlProgram->tree.tree)
         {
             xl_evaluate(prog);
-            
+
             // Clean the end of the old menu list.
             for  ( ; order < orderedMenuElements.count(); order++)
             {
@@ -401,6 +338,8 @@ void Widget::runProgram()
     // After we are done, draw the space with all the drawings in it
     id = charId = 0;
     space->Draw(NULL);
+    IFTRACE(memory)
+        std::cerr << "Draw, count = " << space->count << "\n";
     id = charId = 0;
     space->DrawSelection(NULL);
 
@@ -1020,30 +959,20 @@ void Widget::mousePressEvent(QMouseEvent *event)
         {
         default :
         case Qt::NoModifier :
-            {
-                contextMenu = parent()->findChild<QMenu*>(CONTEXT_MENU);
-                break;
-            }
+            contextMenu = parent()->findChild<QMenu*>(CONTEXT_MENU);
+            break;
         case Qt::ShiftModifier :
-            {
-                contextMenu = parent()->findChild<QMenu*>(SHIFT_CONTEXT_MENU);
-                break;
-            }
+            contextMenu = parent()->findChild<QMenu*>(SHIFT_CONTEXT_MENU);
+            break;
         case Qt::ControlModifier :
-            {
-                contextMenu = parent()->findChild<QMenu*>(CONTROL_CONTEXT_MENU);
-                break;
-            }
+            contextMenu = parent()->findChild<QMenu*>(CONTROL_CONTEXT_MENU);
+            break;
         case Qt::AltModifier :
-            {
-                contextMenu = parent()->findChild<QMenu*>(ALT_CONTEXT_MENU);
-                break;
-            }
+            contextMenu = parent()->findChild<QMenu*>(ALT_CONTEXT_MENU);
+            break;
         case Qt::MetaModifier :
-            {
-                contextMenu = parent()->findChild<QMenu*>(META_CONTEXT_MENU);
-                break;
-            }
+            contextMenu = parent()->findChild<QMenu*>(META_CONTEXT_MENU);
+            break;
         }
 
         if (contextMenu)
@@ -1347,6 +1276,14 @@ void Widget::markChanged(text reason)
             import_set done;
             ImportedFilesChanged(prog, done, true);
 
+            import_set::iterator f;
+            for (f = done.begin(); f != done.end(); f++)
+            {
+                XL::SourceFile &sf = **f;
+                if (&sf != xlProgram && sf.changed)
+                    writeIfChanged(sf);
+            }
+
             // Now update the window
             text txt = *prog;
             Window *window = (Window *) parentWidget();
@@ -1356,6 +1293,264 @@ void Widget::markChanged(text reason)
 
 
     refresh(0);
+}
+
+
+bool Widget::writeIfChanged(XL::SourceFile &sf)
+// ----------------------------------------------------------------------------
+//   Write file to repository if marked 'changed' and reset change attributes
+// ----------------------------------------------------------------------------
+{
+    text fname = sf.name;
+    if (sf.changed)
+    {
+        Repository *repo = repository();
+
+        if (!repo)
+            return false;
+
+        if (repo->write(fname, sf.tree.tree))
+        {
+            // Mark the tree as no longer changed
+            sf.changed = false;
+
+            // Record that we need to commit it sometime soon
+            repo->change(fname);
+            IFTRACE(filesync)
+                std::cerr << "Changed " << fname << "\n";
+
+            // Record time when file was changed
+            struct stat st;
+            stat (fname.c_str(), &st);
+            sf.modified = st.st_mtime;
+
+            return true;
+        }
+
+        IFTRACE(filesync)
+            std::cerr << "Could not write " << fname << " to repository\n";
+    }
+    return false;
+}
+
+
+bool Widget::doCommit()
+// ----------------------------------------------------------------------------
+//   Commit files previously written to repository and reset next commit time
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(filesync)
+            std::cerr << "Commit: " << repository()->whatsNew << "\n";
+    if (repository()->asyncCommit())
+    {
+        XL::Main *xlr = XL::MAIN;
+        nextCommit = now() + xlr->options.commit_interval * 1000;
+
+        Window *window = (Window *) parentWidget();
+        window->markChanged(false);
+
+        return true;
+    }
+    return false;
+}
+
+
+Repository * Widget::repository()
+// ----------------------------------------------------------------------------
+//   Return the repository associated with the current document (may be NULL)
+// ----------------------------------------------------------------------------
+{
+    Window * win = (Window *)parentWidget();
+    return win->repository();
+}
+
+
+XL::Tree *Widget::get(text name, text topName)
+// ----------------------------------------------------------------------------
+//   Find an attribute in the current shape or returns NULL
+// ----------------------------------------------------------------------------
+{
+    // Can't get attributes without a current shape
+    if (!currentShape)
+        return NULL;
+
+    // The current shape has to be a 'shape' prefix
+    XL::Prefix *shapePrefix = currentShape->AsPrefix();
+    if (!shapePrefix)
+        return NULL;
+    Name *shapeName = shapePrefix->left->AsName();
+    if (!shapeName || shapeName->value != topName)
+        return NULL;
+
+    // Take the right child. If it's a block, extract the block
+    Tree *child = shapePrefix->right;
+    if (XL::Block *block = child->AsBlock())
+        child = block->child;
+
+    // Now loop on all statements, looking for the given name
+    while (child)
+    {
+        Tree *what = child;
+
+        // Check if we have \n or ; infix
+        XL::Infix *infix = child->AsInfix();
+        if (infix && (infix->name == "\n" || infix->name == ";"))
+        {
+            what = infix->left;
+            child = infix->right;
+        }
+        else
+        {
+            child = NULL;
+        }
+
+        // Analyze what we got here: is it in the form 'funcname args' ?
+        if (XL::Prefix *prefix = what->AsPrefix())
+            if (Name *prefixName = prefix->left->AsName())
+                if (prefixName->value == name)
+                    return prefix;
+
+        // Is it a name
+        if (Name *singleName = what->AsName())
+            if (singleName->value == name)
+                return singleName;
+    }
+
+    return NULL;
+}
+
+
+bool Widget::set(text name, Tree *value, text topName)
+// ----------------------------------------------------------------------------
+//   Set an attribute in the current shape, return true if successful
+// ----------------------------------------------------------------------------
+{
+    // Can't get attributes without a current shape
+    if (!currentShape)
+        return false;
+
+    // The current shape has to be a 'shape' prefix
+    XL::Prefix *shapePrefix = currentShape->AsPrefix();
+    if (!shapePrefix)
+        return false;
+    Name *shapeName = shapePrefix->left->AsName();
+    if (!shapeName || shapeName->value != topName)
+        return false;
+
+    // Take the right child. If it's a block, extract the block
+    Tree **addr = &shapePrefix->right;
+    Tree *child = *addr;
+    if (XL::Block *block = child->AsBlock())
+    {
+        addr = &block->child;
+        child = *addr;
+    }
+    Tree **topAddr = addr;
+
+    // Now loop on all statements, looking for the given name
+    while (child)
+    {
+        Tree *what = child;
+
+        // Check if we have \n or ; infix
+        XL::Infix *infix = child->AsInfix();
+        if (infix && (infix->name == "\n" || infix->name == ";"))
+        {
+            addr = &infix->left;
+            what = *addr;
+            child = infix->right;
+        }
+        else
+        {
+            child = NULL;
+        }
+
+        // Analyze what we got here: is it in the form 'funcname args' ?
+        if (value->AsPrefix())
+        {
+            if (XL::Prefix *prefix = what->AsPrefix())
+            {
+                if (Name *prefixName = prefix->left->AsName())
+                {
+                    if (prefixName->value == name)
+                    {
+                        *addr = value;
+                        return true;
+                    }
+                }
+            }
+        }
+        else if (value->AsName())
+        {
+            if (Name *stmtName = what->AsName())
+            {
+                if (stmtName->value == name)
+                {
+                    *addr = value;
+                    return true;
+                }
+            }
+        }
+        
+    } // Loop on all items
+
+    // We didn't find the name: set the top level item
+    *topAddr = value;
+    return true;
+}
+
+
+bool Widget::get(text name, XL::tree_list &args, text topName)
+// ----------------------------------------------------------------------------
+//   Get the arguments, decomposing args in a comma-separated list
+// ----------------------------------------------------------------------------
+{
+    // Check if we can get the tree
+    Tree *attrib = get(name, topName);
+    if (!attrib)
+        return false;
+
+    // Check if we expect a single name or a prefix
+    args.clear();
+    if (attrib->AsName())
+        return true;
+    
+    // Check that we have a prefix
+    XL::Prefix *prefix = attrib->AsPrefix();
+    if (!prefix)
+        return false;           // ??? This shouldn't happen
+
+    // Get attribute arguments and decompose them into 'args'
+    Tree *argsTree = prefix->right;
+    while (XL::Infix *infix = argsTree->AsInfix())
+    {
+        if (infix->name != ",")
+            break;
+        args.push_back(infix->left);
+        argsTree = infix->right;
+    }
+    args.push_back(argsTree);
+
+    // Success
+    return true;
+}
+
+
+bool Widget::set(text name, XL::tree_list &args, text topName)
+// ----------------------------------------------------------------------------
+//   Set the arguments, building the comma-separated list
+// ----------------------------------------------------------------------------
+{
+    Tree *call = new XL::Name(name);
+    if (uint arity = args.size())
+    {
+        Tree *argsTree = args[0];
+        for (uint a = 1; a < arity; a++)
+            argsTree = new XL::Infix(",", argsTree, args[a]);
+        call = new XL::Prefix(call, argsTree);
+    }
+
+    return set(name, call, topName);
 }
 
 
@@ -1762,10 +1957,23 @@ XL::Real *Widget::pageTime(Tree *self)
 
 Tree *Widget::locally(Tree *self, Tree *child)
 // ----------------------------------------------------------------------------
-//   Evaluate the child tree while preserving the OpenGL context
+//   Evaluate the child tree while preserving the current state
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> save(layout, layout->AddChild());
+    Tree *result = xl_evaluate(child);
+    return result;
+}
+
+
+Tree *Widget::shape(Tree *self, Tree *child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child and mark the current shape
+// ----------------------------------------------------------------------------
+{
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+    XL::LocalSave<Tree *>   saveShape (currentShape, child);
+    layout->id = newId();
     Tree *result = xl_evaluate(child);
     return result;
 }
@@ -1807,6 +2015,10 @@ Tree *Widget::rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz)
 // ----------------------------------------------------------------------------
 {
     layout->Add(new RotationManipulator(self, ra, rx, ry, rz));
+    layout->hasMatrix = true;
+    double amod90 = fmod(ra, 90.0);
+    if (amod90 < -0.01 || amod90 > 0.01)
+        layout->hasPixelBlur = true;
     return XL::xl_true;
 }
 
@@ -1838,12 +2050,15 @@ Tree *Widget::translatez(Tree *self, real_r z)
 }
 
 
-Tree *Widget::translate(Tree *self, real_r rx, real_r ry, real_r rz)
+Tree *Widget::translate(Tree *self, real_r tx, real_r ty, real_r tz)
 // ----------------------------------------------------------------------------
 //     Translation along three axes
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new TranslationManipulator(self, rx, ry, rz));
+    layout->Add(new TranslationManipulator(self, tx, ty, tz));
+    layout->hasMatrix = true;
+    if (tz != 0.0)
+        layout->hasPixelBlur = true;
     return XL::xl_true;
 }
 
@@ -1881,6 +2096,9 @@ Tree *Widget::rescale(Tree *self, real_r sx, real_r sy, real_r sz)
 // ----------------------------------------------------------------------------
 {
     layout->Add(new ScaleManipulator(self, sx, sy, sz));
+    layout->hasMatrix = true;
+    if (sx != 1.0 || sy != 1.0)
+        layout->hasPixelBlur = true;
     return XL::xl_true;
 }
 
@@ -1946,6 +2164,7 @@ Tree *Widget::lineWidth(Tree *self, double lw)
 // ----------------------------------------------------------------------------
 {
     layout->Add(new LineWidth(lw));
+    layout->hasAttributes = true;
     return XL::xl_true;
 }
 
@@ -1956,6 +2175,7 @@ Tree *Widget::lineStipple(Tree *self, uint16 pattern, uint16 scale)
 // ----------------------------------------------------------------------------
 {
     layout->Add(new LineStipple(pattern, scale));
+    layout->hasAttributes = true;
     return XL::xl_true;
 }
 
@@ -1989,6 +2209,7 @@ Tree *Widget::fillTexture(Tree *self, text img)
     }
 
     layout->Add(new FillTexture(texId));
+    layout->hasAttributes = true;
     return XL::xl_true;
 }
 
@@ -2012,6 +2233,7 @@ Tree *Widget::fillTextureFromSVG(Tree *self, text img)
         texId = rinfo->bind(img);
     }
     layout->Add(new FillTexture(texId));
+    layout->hasAttributes = true;
     return XL::xl_true;
 }
 
@@ -2175,7 +2397,7 @@ Tree *Widget::closePath(Tree *self)
 
 Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
-//    Draw a rectangle using Cairo
+//    Draw a rectangle
 // ----------------------------------------------------------------------------
 {
     Rectangle shape(Box(x-w/2, y-h/2, w, h));
@@ -2223,7 +2445,7 @@ Tree *Widget::rightTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 
 Tree *Widget::ellipse(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
 // ----------------------------------------------------------------------------
-//   Cairo circle centered around (cx,cy), radius r
+//   Circle centered around (cx,cy), size w * h
 // ----------------------------------------------------------------------------
 {
     Ellipse shape(Box(cx-w/2, cy-h/2, w, h));
@@ -2767,21 +2989,25 @@ Tree *Widget::frameTexture(Tree *self, double w, double h, Tree *prog)
         GLAllStateKeeper saveGL;
         XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
 
+        // Clear the background and setup initial state
         frame->resize(w,h);
-        frame->begin();
-        {
-           // Clear the background and setup initial state
-            setup(w, h);
-            result = xl_evaluate(prog);
-        }
-        layout->Draw(NULL);
+        setup(w, h);
+        result = xl_evaluate(prog);
 
+        // Draw the layout in the frame context
+        frame->begin();
+        layout->Draw(NULL);
         frame->end();
+
+        // Delete the layout (it's not a child of the outer layout)
+        delete layout;
+        layout = NULL;
     } while (0); // State keeper and layout
 
     // Bind the resulting texture
     GLuint tex = frame->bind();
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return result;
 }
@@ -2823,6 +3049,7 @@ Tree *Widget::urlTexture(Tree *self, double w, double h,
     surface->resize(w,h);
     GLuint tex = surface->bind(url, progress);
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return XL::xl_true;
 }
@@ -2864,6 +3091,7 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
     surface->resize(w,h);
     GLuint tex = surface->bind(txt);
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return XL::xl_true;
 }
@@ -2903,6 +3131,7 @@ Tree *Widget::radioButtonTexture(Tree *self, double w, double h, Text *name,
     surface->resize(w,h);
     GLuint tex = surface->bind(lbl, act, sel);
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return XL::xl_true;
 }
@@ -2942,6 +3171,7 @@ Tree *Widget::checkBoxButtonTexture(Tree *self, double w, double h, Text *name,
     surface->resize(w,h);
     GLuint tex = surface->bind(lbl, act, sel);
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return XL::xl_true;
 }
@@ -2981,6 +3211,7 @@ Tree *Widget::pushButtonTexture(Tree *self, double w, double h, Text *name,
     surface->resize(w,h);
     GLuint tex = surface->bind(lbl, act, NULL);
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return XL::xl_true;
 }
@@ -3048,6 +3279,7 @@ Tree *Widget::colorChooserTexture(Tree *self, double w, double h,
     surface->resize(w,h);
     GLuint tex = surface->bind();
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return XL::xl_true;
 }
@@ -3090,6 +3322,7 @@ Tree *Widget::fontChooserTexture(Tree *self, double w, double h,
     surface->resize(w,h);
     GLuint tex = surface->bind();
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return XL::xl_true;
 }
@@ -3180,6 +3413,7 @@ Tree *Widget::groupBoxTexture(Tree *self, double w, double h, Text *lbl)
     surface->resize(w,h);
     GLuint tex = surface->bind(lbl);
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return XL::xl_true;
 }
@@ -3223,6 +3457,7 @@ Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
     surface->resize(w,h);
     GLuint tex = surface->bind(url);
     layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
 
     return XL::xl_true;
 }
@@ -3236,22 +3471,21 @@ Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
 // ============================================================================
 // * Menu name philosophy :
 // * The full name is used to register menus and menu items against
-//   the menubar.  Those names are not displayed.
+//   the menubar.  Those names are not displayed and must be unique.
 // * Menu created by the XL programmer must be differentiated from the
 //   originals ones because they have to be recreated or modified at
 //   each loop of XL.  When top menus are deleted they recursively
 //   delete their children (sub menus and menu items), so we have to
 //   take care of sub menu at deletion time.
-//   Regarding those constraints, main menus are prefixed with _TOP_MENU_,
-//   sub menus are prefixed by _SUB_MENU_. Then each menu item and sub menu are
-//   prefixed by the "current menu" name (this current menu may itself be a
-//   submenu). Each part of the name are separated by a /.
+//
 //
 // * Menu and menu items lifecycle : Menus are created when the xl
 //   program is executed the first time.  Menus display text can be
-//   modified at each execution.  Menus are destroyed when the xl
-//   program is invalidated.  At save time, the old xl program is
-//   invalidated and the new one is executed for the first time.
+//   modified at each execution. At each loop, for each element (menu,
+//   menu_item, toolbar,...) there name is looked for as a main window children,
+//   if found, the order is checked against the registered value in
+//   orderedMenuElements. If the order is OK, the label, etc are updated; if not
+//   or not found at all a new element is created and registered.
 // ============================================================================
 
 Tree *Widget::runtimeError(Tree *self, text msg, Tree *arg)
@@ -3286,14 +3520,6 @@ Tree *Widget::menuItem(Tree *self, text name, text lbl, text iconFileName,
             orderedMenuElements[order] != NULL &&
             orderedMenuElements[order]->fullname == fullName)
         {
-//            IFTRACE(menus)
-//            {
-//                std::cerr<< "MenuItem " << lbl
-//                         << " found in current window with fullname "
-//                         << fullName.toStdString()
-//                         << " and order " << order <<"\n";
-//                std::cerr.flush();
-//            }
             act->setText(+lbl);
             if (iconFileName != "")
                 act->setIcon(QIcon(+iconFileName));
@@ -3406,14 +3632,6 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
             else
                 currentMenu->setIcon(QIcon());
 
-//            IFTRACE(menus)
-//            {
-//                std::cerr << "menu found with name "
-//                          << fullname.toStdString() << " and order "
-//                          << order << "\n";
-//                std::cerr.flush();
-//            }
-
             order++;
             return XL::xl_true;
         }
@@ -3449,20 +3667,28 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
     if (order >= orderedMenuElements.size())
         orderedMenuElements.resize(order+10);
 
-    if (orderedMenuElements[order])
+    if (par)
     {
-        if (par)
+        if (orderedMenuElements[order])
         {
             QAction *before = orderedMenuElements[order]->p_action;
             par->insertAction(before, currentMenu->menuAction());
         }
-        delete orderedMenuElements[order];
-    }
-    else
-    {
-        if (par)
+        else
+        {
             par->addAction(currentMenu->menuAction());
+        }
+
+        QToolButton* button = NULL;
+        if (par == currentToolBar &&
+            (button = dynamic_cast<QToolButton*>
+             (currentToolBar-> widgetForAction(currentMenu->menuAction()))))
+            button->setPopupMode(QToolButton::InstantPopup);
     }
+
+    if (orderedMenuElements[order])
+        delete orderedMenuElements[order];
+
     orderedMenuElements[order] = new MenuInfo(fullname,
                                               currentMenu->menuAction());
     IFTRACE(menus)

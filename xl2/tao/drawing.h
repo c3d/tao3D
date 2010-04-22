@@ -41,8 +41,9 @@ struct Drawing
 //   Space() returns the untransformed space desired around object
 //   For instance, for text, Space() considers font line height, not Bounds()
 {
-                        Drawing()               {}
-    virtual             ~Drawing()              {}
+                        Drawing()                { count++; }
+                        Drawing(const Drawing &) { count++; }
+    virtual             ~Drawing()               { count--; }
 
     virtual void        Draw(Layout *);
     virtual void        DrawSelection(Layout *);
@@ -60,6 +61,8 @@ struct Drawing
     virtual Drawing *   Break(BreakOrder &order);
     virtual scale       TrailingSpaceSize();
     virtual bool        IsAttribute();
+
+    static uint count;
 };
 
 TAO_END

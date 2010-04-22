@@ -81,29 +81,7 @@ protected:
 };
 
 
-struct DrawingManipulator : Manipulator
-// ----------------------------------------------------------------------------
-//   Manipulators for objects that have a child
-// ----------------------------------------------------------------------------
-{
-    DrawingManipulator(tree_p self, Drawing *child);
-    ~DrawingManipulator();
-
-    virtual void        Draw(Layout *layout);
-    virtual void        DrawSelection(Layout *layout);
-    virtual void        Identify(Layout *layout);
-    virtual bool        DrawHandles(Layout *layout);
-    virtual Box3        Bounds(Layout *layout);
-    virtual Box3        Space(Layout *layout);
-    virtual Drawing *   Break(BreakOrder &order);
-    virtual bool        IsAttribute();
-
-protected:
-    Drawing *           child;
-};
-
-
-struct FrameManipulator : DrawingManipulator
+struct FrameManipulator : Manipulator
 // ----------------------------------------------------------------------------
 //   Dispays 4 handles in the corner, but clicks in the surface pass through
 // ----------------------------------------------------------------------------
@@ -122,8 +100,7 @@ struct FrameManipulator : DrawingManipulator
     };
 
     FrameManipulator(tree_p self,
-                     real_r x, real_r y, real_r w, real_r h, Drawing *child);
-    virtual void        DrawSelection(Layout *layout);
+                     real_r x, real_r y, real_r w, real_r h);
     virtual bool        DrawHandles(Layout *layout);
     virtual TransformMode CurrentTransformMode();
 
@@ -137,9 +114,7 @@ struct ControlRectangle : FrameManipulator
 //   Manipulators for a rectangle-bounded object
 // ----------------------------------------------------------------------------
 {
-    ControlRectangle(tree_p self, real_r x, real_r y, real_r w, real_r h,
-                     Drawing *child);
-    virtual void        DrawSelection(Layout *layout);
+    ControlRectangle(tree_p self, real_r x, real_r y, real_r w, real_r h);
     virtual bool        DrawHandles(Layout *layout);
 };
 
@@ -150,8 +125,8 @@ struct ControlRoundedRectangle : ControlRectangle
 // ----------------------------------------------------------------------------
 {
     ControlRoundedRectangle(tree_p self,
-                            real_r x, real_r y, real_r w, real_r h, real_r r,
-                            Drawing *child);
+                            real_r x, real_r y, real_r w, real_r h,
+                            real_r r);
     virtual bool        DrawHandles(Layout *layout);
 
     protected:
@@ -165,11 +140,11 @@ struct ControlArrow : ControlRectangle
 // ----------------------------------------------------------------------------
 {
     ControlArrow(tree_p self,
-                 real_r x, real_r y, real_r w, real_r h, real_r ax, real_r ary,
-                 Drawing *child);
+                 real_r x, real_r y, real_r w, real_r h,
+                 real_r ax, real_r ary);
     ControlArrow(tree_p self,
-                 real_r x, real_r y, real_r w, real_r h, real_r ax, real_r ary,
-                 bool is_double, Drawing *child);
+                 real_r x, real_r y, real_r w, real_r h,
+                 real_r ax, real_r ary, bool is_double);
     virtual bool        DrawHandles(Layout *layout);
 
 protected:
@@ -184,8 +159,7 @@ struct ControlPolygon : ControlRectangle
 // ----------------------------------------------------------------------------
 {
     ControlPolygon(tree_p self,
-                   real_r x, real_r y, real_r w, real_r h, integer_r p,
-                   Drawing *child);
+                   real_r x, real_r y, real_r w, real_r h, integer_r p);
     virtual bool        DrawHandles(Layout *layout);
 
 protected:
@@ -199,8 +173,7 @@ struct ControlStar : ControlPolygon
 // ----------------------------------------------------------------------------
 {
     ControlStar(tree_p self,
-                real_r x, real_r y, real_r w, real_r h, integer_r p, real_r r,
-                Drawing *child);
+                real_r x, real_r y, real_r w, real_r h, integer_r p, real_r r);
     virtual bool        DrawHandles(Layout *layout);
 
 protected:
@@ -215,10 +188,10 @@ struct ControlBalloon : ControlRoundedRectangle
 {
     ControlBalloon(tree_p self,
                    real_r x, real_r y, real_r w, real_r h, real_r r,
-                   real_r ax, real_r ay, Drawing *child);
+                   real_r ax, real_r ay);
     virtual bool        DrawHandles(Layout *layout);
 
-    protected:
+protected:
     real_r              ax, ay;
 };
 
@@ -230,10 +203,10 @@ struct ControlCallout : ControlBalloon
 {
     ControlCallout(tree_p self,
                    real_r x, real_r y, real_r w, real_r h, real_r r,
-                   real_r ax, real_r ay, real_r d, Drawing *child);
+                   real_r ax, real_r ay, real_r d);
     virtual bool        DrawHandles(Layout *layout);
 
-    protected:
+protected:
     real_r              d;
 };
 
@@ -245,7 +218,8 @@ struct WidgetManipulator : FrameManipulator
 // ----------------------------------------------------------------------------
 {
     WidgetManipulator(tree_p self,
-                      real_r x, real_r y, real_r w, real_r h, WidgetSurface *s);
+                      real_r x, real_r y, real_r w, real_r h,
+                      WidgetSurface *s);
     virtual void        DrawSelection(Layout *layout);
 
 protected:
@@ -253,15 +227,13 @@ protected:
 };
 
 
-struct BoxManipulator : DrawingManipulator
+struct BoxManipulator : Manipulator
 // ----------------------------------------------------------------------------
 //   Dispays 8 handles in the corner, but clicks in the volume pass through
 // ----------------------------------------------------------------------------
 {
     BoxManipulator(tree_p self,
-                   real_r x, real_r y, real_r z, real_r w, real_r h, real_r d,
-                   Drawing *child);
-    virtual void        DrawSelection(Layout *layout);
+                   real_r x, real_r y, real_r z, real_r w, real_r h, real_r d);
     virtual bool        DrawHandles(Layout *layout);
 
 protected:
@@ -275,18 +247,17 @@ struct ControlBox : BoxManipulator
 // ----------------------------------------------------------------------------
 {
     ControlBox(tree_p self,
-               real_r x, real_r y, real_r z, real_r w, real_r h, real_r d,
-               Drawing *child);
+               real_r x, real_r y, real_r z, real_r w, real_r h, real_r d);
     virtual bool        DrawHandles(Layout *layout);
 };
 
 
-struct TransformManipulator : DrawingManipulator
+struct TransformManipulator : Manipulator
 // ----------------------------------------------------------------------------
 //   Manipulators for transform objects
 // ----------------------------------------------------------------------------
 {
-    TransformManipulator(tree_p self, Drawing *child);
+    TransformManipulator(tree_p self);
 };
 
 

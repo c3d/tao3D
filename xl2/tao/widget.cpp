@@ -2282,8 +2282,6 @@ Tree *Widget::newPath(Tree *self, Tree *child)
     TesselatedPath *localPath = new TesselatedPath(GLU_TESS_WINDING_ODD);
     XL::LocalSave<GraphicPath *> save(path, localPath);
     Tree *result = xl_evaluate(child);
-    layout->Add(new DrawingManipulator(self, path));
-
     return result;
 }
 
@@ -2430,14 +2428,17 @@ Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, x, y, w, h,
-                                         new Rectangle(shape)));
+        layout->Add(new Rectangle(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
 
     return XL::xl_true;
 }
 
 
-Tree *Widget::isoscelesTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
+Tree *Widget::isoscelesTriangle(Tree *self,
+                                real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //    Draw an isosceles triangle
 // ----------------------------------------------------------------------------
@@ -2446,8 +2447,10 @@ Tree *Widget::isoscelesTriangle(Tree *self, real_r x, real_r y, real_r w, real_r
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, x, y, w, h,
-                                         new IsoscelesTriangle(shape)));
+        layout->Add(new IsoscelesTriangle(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
 
     return XL::xl_true;
 }
@@ -2462,8 +2465,10 @@ Tree *Widget::rightTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, x, y, w, h,
-                                         new RightTriangle(shape)));
+        layout->Add(new RightTriangle(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
 
     return XL::xl_true;
 }
@@ -2478,8 +2483,10 @@ Tree *Widget::ellipse(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, cx, cy, w, h,
-                                         new Ellipse(shape)));
+        layout->Add(new Ellipse(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, cx, cy, w, h));
 
     return XL::xl_true;
 }
@@ -2496,8 +2503,10 @@ Tree *Widget::ellipseArc(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, cx, cy, w, h,
-                                         new EllipseArc(shape)));
+        layout->Add(new EllipseArc(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, cx, cy, w, h));
 
     return XL::xl_true;
 }
@@ -2514,12 +2523,14 @@ Tree *Widget::roundedRectangle(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRoundedRectangle(self, cx, cy, w, h, r,
-                                                new RoundedRectangle(shape)));
+        layout->Add(new RoundedRectangle(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRoundedRectangle(currentShape, cx,cy,w,h, r));
+
 
     return XL::xl_true;
 }
-
 
 
 Tree *Widget::ellipticalRectangle(Tree *self,
@@ -2533,15 +2544,18 @@ Tree *Widget::ellipticalRectangle(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, cx, cy, w, h,
-                                         new EllipticalRectangle(shape)));
+        layout->Add(new EllipticalRectangle(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRoundedRectangle(currentShape,
+                                                cx, cy, w, h, r));
 
     return XL::xl_true;
 }
 
 
-
-Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
+Tree *Widget::arrow(Tree *self,
+                    real_r cx, real_r cy, real_r w, real_r h,
                     real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
 //   Arrow
@@ -2551,15 +2565,18 @@ Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlArrow(self, cx, cy, w, h, ax, ary,
-                                     new Arrow(shape)));
+        layout->Add(new Arrow(shape));
 
+    if (currentShape)
+        layout->Add(new ControlArrow(currentShape, cx, cy, w, h, ax, ary));
+                                     
     return XL::xl_true;
 }
 
 
-Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
-                    real_r ax, real_r ary)
+Tree *Widget::doubleArrow(Tree *self,
+                          real_r cx, real_r cy, real_r w, real_r h,
+                          real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
 //   Double arrow
 // ----------------------------------------------------------------------------
@@ -2568,8 +2585,10 @@ Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlArrow(self, cx, cy, w, h, ax, ary, true,
-                                     new DoubleArrow(shape)));
+        layout->Add(new DoubleArrow(shape));
+
+    if (currentShape)
+        layout->Add(new ControlArrow(currentShape, cx,cy,w,h, ax,ary, true));
 
     return XL::xl_true;
 }
@@ -2586,8 +2605,10 @@ Tree *Widget::starPolygon(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlPolygon(self, cx, cy, w, h, p,
-                                       new StarPolygon(shape)));
+        layout->Add(new StarPolygon(shape));
+
+    if (currentShape)
+        layout->Add(new ControlPolygon(currentShape, cx, cy, w, h, p));
 
     return XL::xl_true;
 }
@@ -2604,8 +2625,10 @@ Tree *Widget::star(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlStar(self, cx, cy, w, h, p, r,
-                                    new Star(shape)));
+        layout->Add(new Star(shape));
+
+    if (currentShape)
+        layout->Add(new ControlStar(currentShape, cx, cy, w, h, p, r));
 
     return XL::xl_true;
 }
@@ -2622,12 +2645,13 @@ Tree *Widget::speechBalloon(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlBalloon(self, cx, cy, w, h, r, ax, ay,
-                                       new SpeechBalloon(shape)));
+        layout->Add(new SpeechBalloon(shape));
 
+    if (currentShape)
+        layout->Add(new ControlBalloon(currentShape, cx, cy, w, h, r, ax, ay));
+                                       
     return XL::xl_true;
 }
-
 
 
 Tree *Widget::callout(Tree *self,
@@ -2641,8 +2665,12 @@ Tree *Widget::callout(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlCallout(self, cx, cy, w, h, r, ax, ay, d,
-                                       new Callout(shape)));
+        layout->Add(new Callout(shape));
+
+    if (currentShape)
+        layout->Add(new ControlCallout(currentShape,
+                                       cx, cy, w, h,
+                                       r, ax, ay, d));
 
     return XL::xl_true;
 }
@@ -2663,8 +2691,9 @@ Tree *Widget::sphere(Tree *self,
 //     GL sphere
 // ----------------------------------------------------------------------------
 {
-    Sphere *s = new Sphere(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks);
-    layout->Add (new ControlBox(self, x, y, z, w, h, d, s));
+    layout->Add(new Sphere(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks));
+    if (currentShape)
+        layout->Add (new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
 }
 
@@ -2676,8 +2705,9 @@ Tree *Widget::cube(Tree *self,
 //    A simple cubic box
 // ----------------------------------------------------------------------------
 {
-    Cube *c = new Cube(Box3(x-w/2, y-h/2, z-d/2, w,h,d));
-    layout->Add(new ControlBox(self, x, y, z, w, h, d, c));
+    layout->Add(new Cube(Box3(x-w/2, y-h/2, z-d/2, w,h,d)));
+    if (currentShape)
+        layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
 }
 
@@ -2689,8 +2719,9 @@ Tree *Widget::cone(Tree *self,
 //    A simple cone
 // ----------------------------------------------------------------------------
 {
-    Cube *c = new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d));
-    layout->Add(new ControlBox(self, x, y, z, w, h, d, c));
+    layout->Add(new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d)));
+    if (currentShape)
+        layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
 }
 
@@ -2711,7 +2742,8 @@ Tree * Widget::textBox(Tree *self,
     PageLayout *tbox = new PageLayout(this);
     tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
     tbox->id = newId();
-    layout->Add(new ControlRectangle(self, x, y, w, h, tbox));
+    layout->Add(tbox);
+    layout->Add(new ControlRectangle(self, x, y, w, h));
     flows[flowName] = tbox;
 
     XL::LocalSave<Layout *> save(layout, tbox);
@@ -2728,7 +2760,8 @@ Tree *Widget::textOverflow(Tree *self,
     // Add page layout overflow rectangle
     PageLayoutOverflow *overflow =
         new PageLayoutOverflow(Box(x - w/2, y-h/2, w, h), this, flowName);
-    layout->Add(new ControlRectangle(self, x, y, w, h, overflow));
+    layout->Add(overflow);
+    layout->Add(new ControlRectangle(self, x, y, w, h));
 
     return XL::xl_true;
 }
@@ -3000,8 +3033,9 @@ Tree *Widget::framePaint(Tree *self,
     Tree *result = frameTexture(self, w, h, prog);
 
     // Draw a rectangle with the resulting texture
-    layout->Add(new FrameManipulator(self, x, y, w, h,
-                                     new Rectangle(Box(x-w/2, y-h/2, w, h))));
+    layout->Add(new Rectangle(Box(x-w/2, y-h/2, w, h)));
+    if (currentShape)
+        layout->Add(new FrameManipulator(currentShape, x, y, w, h));
     return result;
 }
 

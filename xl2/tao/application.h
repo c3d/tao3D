@@ -47,6 +47,12 @@ public:
     void           internalCleanEverythingAsIfTaoWereNeverRun();
     static QString defaultProjectFolderPath();
 
+public:
+    QStringList    pathCompletions();
+    QStringList    urlCompletions();
+    void           addPathCompletion(QString path);
+    void           addUrlCompletion(QString url);
+
 protected:
     void           saveSettings();
     void           loadSettings();
@@ -56,9 +62,9 @@ protected:
     static QString defaultDocumentsFolderPath();
     static bool    createDefaultProjectFolder();
 
-public:
-    QStringList  pathCompletions;
-    QStringList  urlCompletions;
+private:
+    QStringList  pathList;
+    QStringList  urlList;
 };
 
 #define TaoApp  ((Application *) qApp)

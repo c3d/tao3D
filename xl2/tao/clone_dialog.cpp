@@ -39,10 +39,10 @@ CloneDialog::CloneDialog(QWidget *parent)
     okButton = buttonBox->button(QDialogButtonBox::Ok);
     cancelButton = buttonBox->button(QDialogButtonBox::Cancel);
     folderEdit->setText(Application::defaultProjectFolderPath());
-    QCompleter *pathCompleter = new QCompleter(TaoApp->pathCompletions, this);
-    QCompleter *urlCompleter = new QCompleter(TaoApp->urlCompletions, this);
-    folderEdit->setCompleter(pathCompleter);
-    urlEdit->setCompleter(urlCompleter);
+    QCompleter *pc = new QCompleter(TaoApp->pathCompletions(), this);
+    QCompleter *uc = new QCompleter(TaoApp->urlCompletions(), this);
+    folderEdit->setCompleter(pc);
+    urlEdit->setCompleter(uc);
 }
 
 
@@ -58,8 +58,8 @@ void CloneDialog::accept()
     QString folder = folderEdit->text();
     if (url.isEmpty() || folder.isEmpty())
         return;
-    TaoApp->urlCompletions.append(url);
-    TaoApp->pathCompletions.append(folder);
+    TaoApp->addUrlCompletion(url);
+    TaoApp->addPathCompletion(folder);
     repo = RepositoryFactory::repository(folder, RepositoryFactory::Clone);
     if (!repo)
     {

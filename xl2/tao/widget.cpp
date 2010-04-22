@@ -87,7 +87,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentShape(NULL),
       currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
-      id(0), charId(0), capacity(0), manipulator(0),
+      id(0), charId(0), capacity(1), manipulator(0),
       event(NULL), focusWidget(NULL),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),

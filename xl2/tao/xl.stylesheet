@@ -32,7 +32,7 @@ cr     = newline indents
 indent = indent cr
 unindent = unindent cr
 indents = "    "
-"block I+ I-" = indent cr child unindent cr
+"block I+ I-" = indent cr child unindent
 "block  ( ) " = "(" child ")"
 "?wildcard?" = "'" self "'"
 "infix ," = separator left "," space right separator
@@ -44,5 +44,7 @@ indents = "    "
 "prefix -" = separator "-" separator right separator
 "text "" """ = """" self """"
 "text << >>" = "<<" self ">>"
+<<text // 
+>> = "//" self
 "longtext "" """ = "<<" self ">>"
 "longtext << >>" = "<<" self ">>"

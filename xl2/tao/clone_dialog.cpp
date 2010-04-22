@@ -39,10 +39,10 @@ CloneDialog::CloneDialog(QWidget *parent)
     okButton = buttonBox->button(QDialogButtonBox::Ok);
     cancelButton = buttonBox->button(QDialogButtonBox::Cancel);
     folderEdit->setText(Application::defaultProjectFolderPath());
-    QCompleter *pathCompleter = new QCompleter(TaoApp->pathCompletions, this);
-    QCompleter *urlCompleter = new QCompleter(TaoApp->urlCompletions, this);
-    folderEdit->setCompleter(pathCompleter);
-    urlEdit->setCompleter(urlCompleter);
+    QCompleter *pc = new QCompleter(TaoApp->pathCompletions(), this);
+    QCompleter *uc = new QCompleter(TaoApp->urlCompletions(), this);
+    folderEdit->setCompleter(pc);
+    urlEdit->setCompleter(uc);
 }
 
 
@@ -58,8 +58,8 @@ void CloneDialog::accept()
     QString folder = folderEdit->text();
     if (url.isEmpty() || folder.isEmpty())
         return;
-    TaoApp->urlCompletions.append(url);
-    TaoApp->pathCompletions.append(folder);
+    TaoApp->addUrlCompletion(url);
+    TaoApp->addPathCompletion(folder);
     repo = RepositoryFactory::repository(folder, RepositoryFactory::Clone);
     if (!repo)
     {
@@ -72,9 +72,9 @@ void CloneDialog::accept()
     okButton->setEnabled(false);
     cloneOutput->append(tr("Starting...\n"));
     setCursor(Qt::BusyCursor);
-    connect(repo.data(), SIGNAL(asyncProcessComplete(void *)),
-            this, SLOT(endClone(void *)));
-    proc = repo->asyncClone(url, folder, cloneOutput, this);
+    connect(repo.data(), SIGNAL(asyncCloneComplete(void *, QString)),
+            this, SLOT(endClone(void *, QString)));
+    proc = repo->asyncClone(url, cloneOutput, this);
 }
 
 
@@ -93,7 +93,7 @@ void CloneDialog::reject()
 }
 
 
-void CloneDialog::endClone(void *id)
+void CloneDialog::endClone(void *id, QString projPath)
 // ----------------------------------------------------------------------------
 //    The clone operation has completed or has been canceled
 // ----------------------------------------------------------------------------
@@ -111,6 +111,14 @@ void CloneDialog::endClone(void *id)
     okButton->setText(tr("Dismiss"));
     okButton->setEnabled(true);
     cancelButton->setEnabled(false);
+    if (!projPath.isEmpty())
+    {
+        repository_ptr repo;
+        repo = RepositoryFactory::repository(projPath,
+                                             RepositoryFactory::OpenExisting);
+        if (repo)
+            repo->checkout("master_tao_undo");
+    }
 }
 
 void CloneDialog::on_browseButton_clicked()

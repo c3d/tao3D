@@ -53,6 +53,7 @@ PREFIX(PageSeconds, real,     "page_time", ,    RTAO(pageTime(self)))
 // ============================================================================
 
 PREFIX(Locally, tree, "locally", PARM(t, tree), RTAO(locally(self, &t)))
+PREFIX(Shape,   tree, "shape",   PARM(t, tree), RTAO(shape(self, &t)))
 
 
 

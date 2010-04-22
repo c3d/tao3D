@@ -39,7 +39,7 @@ LayoutState::LayoutState()
       lineColor(0,0,0,1),       // Black
       fillColor(0,0,0,0),       // Transparent black
       fillTexture(0),
-      lastRotation(0), lastTranslation(0), lastScale(0)
+      rotationId(0), translationId(0), scaleId(0), id(0)
 {}
 
 
@@ -53,9 +53,10 @@ LayoutState::LayoutState(const LayoutState &o)
         lineColor(o.lineColor),
         fillColor(o.fillColor),
         fillTexture(o.fillTexture),
-        lastRotation(o.lastRotation),
-        lastTranslation(o.lastTranslation),
-        lastScale(o.lastScale)
+        rotationId(o.rotationId),
+        translationId(o.translationId),
+        scaleId(o.scaleId),
+        id(o.id)
 {}
 
 
@@ -79,7 +80,9 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
 //    Create an empty layout
 // ----------------------------------------------------------------------------
-    : Drawing(), LayoutState(), items(), display(widget)
+    : Drawing(), LayoutState(),
+      hasPixelBlur(false), hasMatrix(false), hasAttributes(false),
+      items(), display(widget)
 {}
 
 
@@ -87,7 +90,9 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
 //   Copy constructor
 // ----------------------------------------------------------------------------
-    : Drawing(o), LayoutState(o), items(), display(o.display)
+    : Drawing(o), LayoutState(o),
+      hasPixelBlur(o.hasPixelBlur), hasMatrix(false), hasAttributes(false),
+      items(), display(o.display)
 {}
 
 
@@ -121,8 +126,17 @@ void Layout::Clear()
         delete *i;
     items.clear();
 
+    // Initial state has no rotation or attribute changes
+    hasPixelBlur = false;
+    hasMatrix = false;
+    hasAttributes = false;
+
     LayoutState::Clear();
 }
+
+
+// The bit values we save for a layout
+static const GLbitfield GL_LAYOUT_BITS = GL_LINE_BIT | GL_TEXTURE_BIT;
 
 
 void Layout::Draw(Layout *where)
@@ -132,7 +146,7 @@ void Layout::Draw(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
-    GLStateKeeper         glSave;
+    GLStateKeeper         glSave(hasAttributes?GL_LAYOUT_BITS:0, hasMatrix);
     Inherit(where);
 
     // Display all items
@@ -152,7 +166,7 @@ void Layout::DrawSelection(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
-    GLStateKeeper         glSave;
+    GLStateKeeper         glSave(hasAttributes?GL_LAYOUT_BITS:0, hasMatrix);
     Inherit(where);
 
     layout_items::iterator i;
@@ -171,7 +185,7 @@ void Layout::Identify(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
-    GLStateKeeper         glSave;
+    GLStateKeeper         glSave(hasAttributes?GL_LAYOUT_BITS:0, hasMatrix);
     Inherit(where);
         
     layout_items::iterator i;
@@ -253,6 +267,7 @@ void Layout::Inherit(Layout *where)
 //   Inherit state from some other layout
 // ----------------------------------------------------------------------------
 {
+    // glLoadName(id);
     if (!where)
         return;
 

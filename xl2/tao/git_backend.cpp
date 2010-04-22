@@ -308,6 +308,7 @@ void GitRepository::asyncProcessFinished(int exitCode)
     bool newHead  = (isCommit ||
                      op == "revert" ||
                      op == "cherry-pick");
+    bool isClone  = (op == "clone");
     bool ok       = true;
     text output;
     cmd->done(&errors, &output);
@@ -329,9 +330,15 @@ void GitRepository::asyncProcessFinished(int exitCode)
         if (parseCommitOutput(output, commitId, commitMsg))
             emit asyncCommitSuccess(commitId, commitMsg);
     }
-    cmd->sendStandardOutputToTextEdit();
-    emit asyncProcessComplete(cmd->id);
+    if (isClone)
+    {
+        cmd->sendStandardOutputToTextEdit();
+        QString projPath;
+        projPath = parseCloneOutput(cmd->out);
+        emit asyncCloneComplete(cmd->id, projPath);
+    }
 }
+
 
 
 bool GitRepository::parseCommitOutput(text output, QString &id, QString &msg)
@@ -349,6 +356,24 @@ bool GitRepository::parseCommitOutput(text output, QString &id, QString &msg)
     id  = rx.cap(1);
     msg = rx.cap(2);
     return true;
+}
+
+
+
+QString GitRepository::parseCloneOutput(QString output)
+// ----------------------------------------------------------------------------
+//   Extract the project path from "git clone" standard output
+// ----------------------------------------------------------------------------
+{
+    // Clone output is like:
+    // Initialized empty Git repository in /Some/Path/Project/.git/
+    QString path;
+    output.replace("/.git/", "");
+    int i;
+    i = output.indexOf("/");
+    if (i != -1)
+        path = output.remove(0, i);
+    return path.trimmed();
 }
 
 
@@ -497,14 +522,12 @@ QList<GitRepository::Commit> GitRepository::history(int max)
     return result;
 }
 
-Process * GitRepository::asyncClone(QString cloneUrl, QString path,
+Process * GitRepository::asyncClone(QString cloneUrl,
                                     AnsiTextEdit * out, void *id)
 // ----------------------------------------------------------------------------
 //   Make a local copy of a remote project
 // ----------------------------------------------------------------------------
 {
-    // Note: path is an argument because we do not assume a valid repository
-    // has been open yet
     QStringList args;
     args << "clone" << "--progress" << cloneUrl;
     return dispatch(new Process(command(), args, path, false), out, out, id);

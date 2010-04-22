@@ -737,13 +737,15 @@ GLuint VideoPlayerSurface::bind(XL::Text *urlTree)
 //   Slider TO BE DONE
 //
 // ============================================================================
-AbstractSliderSurface::AbstractSliderSurface(XL::Tree *t, QAbstractSlider *slide) :
+
+AbstractSliderSurface::AbstractSliderSurface(XL::Tree *t,
+                                             QAbstractSlider *slide) :
         WidgetSurface(t, slide), min(0), max(0), value(NULL)
 {
 
 }
 
-void AbstractSliderSurface::valueChanged(int new_value)
+void AbstractSliderSurface::valueChanged(int /* new_value */)
 {
 
 }

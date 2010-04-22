@@ -72,6 +72,19 @@ class Widget : public QGLWidget
 {
     Q_OBJECT
 public:
+    typedef XL::Tree      Tree;
+    typedef XL::Integer   Integer;
+    typedef XL::Real      Real;
+    typedef XL::Text      Text;
+    typedef XL::Name      Name;
+    typedef XL::real_r    real_r;
+    typedef XL::integer_r integer_r;
+    typedef XL::text_r    text_r;
+    typedef XL::real_p    real_p;
+    typedef XL::integer_p integer_p;
+    typedef XL::text_p    text_p;
+
+public:
     Widget(Window *parent, XL::SourceFile *sf = NULL);
     ~Widget();
 
@@ -117,6 +130,10 @@ public:
     bool        writeIfChanged(XL::SourceFile &sf);
     bool        doCommit();
     Repository *repository();
+    Tree *      get(text name, text topName = "shape");
+    bool        set(text name, Tree *value, text topName = "shape");
+    bool        get(text name, XL::tree_list &args, text topName = "shape");
+    bool        set(text name, XL::tree_list &args, text topName = "shape");
 
     // Timing
     ulonglong   now();
@@ -137,8 +154,8 @@ public:
     uint        charSelected()          { return charSelected(charId); }
     void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
     uint        selected(uint i);
-    uint        selected(XL::Tree *tree) { return selectionTrees.count(tree); }
-    void        deselect(XL::Tree *tree) { selectionTrees.erase(tree); }
+    uint        selected(Tree *tree)    { return selectionTrees.count(tree); }
+    void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
     void        select(uint id, uint count);
     void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);
@@ -155,18 +172,6 @@ public:
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
 
 public:
-    typedef XL::Tree      Tree;
-    typedef XL::Integer   Integer;
-    typedef XL::Real      Real;
-    typedef XL::Text      Text;
-    typedef XL::Name      Name;
-    typedef XL::real_r    real_r;
-    typedef XL::integer_r integer_r;
-    typedef XL::text_r    text_r;
-    typedef XL::real_p    real_p;
-    typedef XL::integer_p integer_p;
-    typedef XL::text_p    text_p;
-
     // XLR entry points
     static Widget *Tao() { return current; }
 
@@ -188,6 +193,7 @@ public:
 
     // Preserving attributes
     Tree *      locally(Tree *self, Tree *t);
+    Tree *      shape(Tree *self, Tree *t);
 
     // Transforms
     Tree *      rotatex(Tree *self, real_r rx);
@@ -202,13 +208,13 @@ public:
     Tree *      rescaley(Tree *self, real_r y);
     Tree *      rescalez(Tree *self, real_r z);
     Tree *      rescale(Tree *self, real_r x, real_r y, real_r z);
-
+    
     // Setting attributes
     Name *      depthTest(Tree *self, bool enable);
     Tree *      refresh(Tree *self, double delay);
     Name *      fullScreen(Tree *self, bool fs);
     Name *      toggleFullScreen(Tree *self);
-
+    
     // Graphic attributes
     Tree *      lineColor(Tree *self, double r, double g, double b, double a);
     Tree *      lineWidth(Tree *self, double lw);
@@ -216,7 +222,7 @@ public:
     Tree *      fillColor(Tree *self, double r, double g, double b, double a);
     Tree *      fillTexture(Tree *self, text fileName);
     Tree *      fillTextureFromSVG(Tree *self, text svg);
-
+    
     // Generating a path
     Tree *      newPath(Tree *self, Tree *t);
     Tree *      moveTo(Tree *self, real_r x, real_r y, real_r z);
@@ -233,11 +239,13 @@ public:
     Tree *      pathTextureCoord(Tree *self, real_r x, real_r y, real_r r);
     Tree *      pathColor(Tree *self, real_r r, real_r g, real_r b, real_r a);
     Tree *      closePath(Tree *self);
-
+    
     // 2D primitive that can be in a path or standalone
     Tree *      rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
-    Tree *      isoscelesTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
-    Tree *      rightTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
+    Tree *      isoscelesTriangle(Tree *self,
+                                  real_r x, real_r y, real_r w, real_r h);
+    Tree *      rightTriangle(Tree *self,
+                              real_r x, real_r y, real_r w, real_r h);
     Tree *      ellipse(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *      ellipseArc(Tree *self, real_r x, real_r y, real_r w, real_r h,
                            real_r start, real_r sweep);
@@ -306,7 +314,9 @@ public:
 
     Tree *      urlPaint(Tree *self, real_r x, real_r y, real_r w, real_r h,
                          text_p s, integer_p p);
-    Tree *      urlTexture(Tree *self, double x, double y, Text *s, Integer *p);
+    Tree *      urlTexture(Tree *self,
+                           double x, double y,
+                           Text *s, Integer *p);
 
     Tree *      lineEdit(Tree *self, real_r x,real_r y,
                          real_r w,real_r h, text_p s);
@@ -319,27 +329,33 @@ public:
     Tree *      pushButtonTexture(Tree *self, double w, double h,
                                   text_p name, Text *lbl, Tree *act);
     Tree *      radioButton(Tree *self, real_r x,real_r y, real_r w,real_r h,
-                           text_p name, text_p lbl, Text *selected, Tree *act);
+                            text_p name, text_p lbl,
+                            Text *selected, Tree *act);
     Tree *      radioButtonTexture(Tree *self, double w, double h,
-                                  text_p name, Text *lbl, Text *selected, Tree *act);
-    Tree *      checkBoxButton(Tree *self, real_r x,real_r y, real_r w,real_r h,
+                                   text_p name, Text *lbl,
+                                   Text *selected, Tree *act);
+    Tree *      checkBoxButton(Tree *self,
+                               real_r x,real_r y, real_r w, real_r h,
                                text_p name, text_p lbl, Text* marked,
                                Tree *act);
-    Tree *      checkBoxButtonTexture(Tree *self, double w, double h,
-                                      text_p name, Text *lbl, Text* marked, Tree *act);
+    Tree *      checkBoxButtonTexture(Tree *self,
+                                      double w, double h,
+                                      text_p name, Text *lbl,
+                                      Text* marked, Tree *act);
     Tree *      buttonGroup(Tree *self, bool exclusive, Tree *buttons);
     Tree *      setAction(Tree *self, Tree *action);
 
-    Tree *      colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
+    Tree *      colorChooser(Tree *self,
+                             real_r x, real_r y, real_r w, real_r h,
                              Tree *action);
     Tree *      colorChooserTexture(Tree *self,double w, double h,
                                     Tree *action);
 
-    Tree *      fontChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
-                             Tree *action);
+    Tree *      fontChooser(Tree *self,
+                            real_r x, real_r y, real_r w, real_r h,
+                            Tree *action);
     Tree *      fontChooserTexture(Tree *self,double w, double h,
-                                    Tree *action);
-
+                                   Tree *action);
     Tree *      groupBox(Tree *self,
                          real_r x,real_r y, real_r w,real_r h,
                          text_p lbl, Tree *buttons);
@@ -358,6 +374,7 @@ public:
                          bool isCheckable, Text *isChecked, Tree *t);
     Tree *      menu(Tree *self, text name, text lbl, text iconFileName,
                      bool isSubmenu=false);
+
     // The location is the prefered location for the toolbar.
     // The supported values are North, East, South, West or N, E, S, W
     Tree *      toolBar(Tree *self, text name, text title, bool isFloatable,
@@ -406,6 +423,7 @@ private:
     page_map              pageLinks;
     uint                  pageId, pageShown, pageTotal;
     Tree *                pageTree;
+    Tree *                currentShape;
     QGridLayout *         currentGridLayout;
     GroupInfo   *         currentGroup;
 
@@ -413,7 +431,7 @@ private:
     Activity *            activities;
     GLuint                id, charId, capacity, manipulator;
     selection_map         selection, savedSelection;
-    std::set<XL::Tree *>  selectionTrees;
+    std::set<Tree *>      selectionTrees;
     QEvent *              event;
     QWidget *             focusWidget;
     GLdouble              focusProjection[16], focusModel[16];

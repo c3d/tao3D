@@ -332,7 +332,7 @@ TextSpan *TextSpan::Break(BreakOrder &order)
             // Create two text spans, the first one containing the split
             uint next = XL::Utf8Next(str, i);
             TextSpan *result = (next < max && next < end)
-                ? new TextSpan(source.Text(), font, next, end)
+                ? new TextSpan(source, font, next, end)
                 : NULL;
             order = charOrder;
             end = next;

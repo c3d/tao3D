@@ -29,6 +29,8 @@
 
 TAO_BEGIN
 
+uint Drawing::count = 0;
+
 void Drawing::Draw(Layout *)
 // ----------------------------------------------------------------------------
 //   Draw a shape for rendering purpose

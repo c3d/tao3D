@@ -195,6 +195,7 @@ theme_colors ->
     line_color 0, 0, 0, 1
 
 menu_insert -> {
+menubar
 menu      "insert", "Insert"
 submenu_insert_shape "menu"
 }

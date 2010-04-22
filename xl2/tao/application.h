@@ -64,6 +64,7 @@ protected:
 public:
     QStringList  pathCompletions;
     QStringList  urlCompletions;
+    QString      currentProjectFolder;
     static bool    createDefaultTaoPrefFolder();
 };
 

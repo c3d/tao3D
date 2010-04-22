@@ -27,6 +27,7 @@
 #include "repository.h"
 #include "git_backend.h"
 #include "tao.h"
+#include "tao_utf8.h"
 
 #include <QString>
 #include <QSettings>
@@ -59,6 +60,18 @@ Application::Application(int & argc, char ** argv)
         internalCleanEverythingAsIfTaoWereNeverRun();
         std::exit(0);
     }
+
+    // Parse command line options
+    XL::Errors errors(new XL::Positions());
+    XL::Options options(errors);
+    // Get the first file name and guess its location to initialize
+    // the project folder. If there is no filename, or it is not found the
+    // currentProjectFolder will be initialized to "".
+    currentProjectFolder = QFileInfo(+options.Parse(argc, argv)).canonicalPath();
+
+//    text cmd = options.Parse(argc, argv);
+//    QFileInfo info(cmd);
+//    currentProjectFolder = info.canonicalPath();
 
     // Web settings
     QWebSettings *gs = QWebSettings::globalSettings();
@@ -124,7 +137,8 @@ QString Application::defaultUserDocumentsFolderPath()
 #ifdef QT_WS_WIN
     // Looking at the Windows registry
     QSettings settings(
-            "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",
+            "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows"
+            "\\CurrentVersion\\Explorer",
             QSettings::NativeFormat);
 
     // For Windows Vista/7
@@ -141,7 +155,8 @@ QString Application::defaultUserDocumentsFolderPath()
 #endif // QT_WS_WIN
 
     // Trying to ding a home sub-directory ending with "Documents"
-    QFileInfoList list = QDir::home().entryInfoList(QDir::NoDotAndDotDot | QDir::Dirs );
+    QFileInfoList list = QDir::home().entryInfoList(
+            QDir::NoDotAndDotDot | QDir::Dirs );
     for (int i = 0; i < list.size(); i++)
     {
         QFileInfo info = list[i];
@@ -172,7 +187,8 @@ QString Application::defaultPreferencesFolderPath()
 #ifdef QT_WS_WIN
     // Looking at the Windows registry
     QSettings settings(
-            "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",
+            "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows"
+            "\\CurrentVersion\\Explorer",
             QSettings::NativeFormat);
     // For Windows Vista/7
     // Typically C:\Users\username\???
@@ -187,7 +203,8 @@ QString Application::defaultPreferencesFolderPath()
 #endif // QT_WS_WIN
 
     // Trying to ding a home sub-directory ending with "Documents"
-    QFileInfoList list = QDir::home().entryInfoList(QDir::NoDotAndDotDot | QDir::Dirs );
+    QFileInfoList list = QDir::home().entryInfoList(
+            QDir::NoDotAndDotDot | QDir::Dirs );
     for (int i = 0; i < list.size(); i++)
     {
         QFileInfo info = list[i];
@@ -228,10 +245,11 @@ QString Application::defaultUserImagesFolderPath()
 #ifdef QT_WS_WIN
     // Looking at the Windows registry
     QSettings settings(
-            "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",
+            "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows"
+            "\\CurrentVersion\\Explorer",
             QSettings::NativeFormat);
     // For Windows Vista/7
-    // Typically C:\Users\username\Documents\Pictures???
+    // Typically C:\Users\username\Documents\Pictures
     // For Windows XP
     // Typically C:\Documents and Settings\username\My Documents\My Pictures
     QString path = settings.value("User Shell Folders\\My Pictures")
@@ -243,7 +261,8 @@ QString Application::defaultUserImagesFolderPath()
 #endif // QT_WS_WIN
 
     // Trying to ding a home sub-directory ending with "images" or "pictures"
-    QFileInfoList list = QDir::home().entryInfoList(QDir::NoDotAndDotDot | QDir::Dirs );
+    QFileInfoList list = QDir::home().entryInfoList(
+            QDir::NoDotAndDotDot | QDir::Dirs );
     for (int i = 0; i < list.size(); i++)
     {
         QFileInfo info = list[i];

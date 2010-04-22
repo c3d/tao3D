@@ -56,12 +56,9 @@ int main(int argc, char **argv)
     // Initialize the Tao application
     Tao::Application tao(argc, argv);
 
-    // This name is present in the argument list if ever.
-    QString project_name = "";
-
     // Initialize dir search path for XL files
     QStringList xl_dir_list;
-    xl_dir_list << tao.defaultProjectFolderPath() + project_name
+    xl_dir_list << tao.currentProjectFolder
                 << tao.defaultTaoPreferencesFolderPath()
                 << tao.defaultTaoApplicationFolderPath();
     QDir::setSearchPaths("xl", xl_dir_list);

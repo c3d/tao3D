@@ -1275,6 +1275,14 @@ void Widget::markChanged(text reason)
             import_set done;
             ImportedFilesChanged(prog, done, true);
 
+            import_set::iterator f;
+            for (f = done.begin(); f != done.end(); f++)
+            {
+                XL::SourceFile &sf = **f;
+                if (&sf != xlProgram && sf.changed)
+                    writeIfChanged(sf);
+            }
+
             // Now update the window
             text txt = *prog;
             Window *window = (Window *) parentWidget();

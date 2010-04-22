@@ -81,7 +81,7 @@ void Manipulator::DrawSelection(Layout *layout)
             widget->select(widget->currentId(),   sel+1);
         }
 
-        glPushName(widget->currentId());
+        glPushName(layout->id);
         DrawHandles(layout);
         glPopName();
     }
@@ -363,14 +363,8 @@ void DrawingManipulator::Draw(Layout *layout)
 //   Draw the child and then the manipulator
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = layout->Display();
-    bool loadId = widget->currentId() != ~0U;
-    if (loadId)
-        glLoadName(widget->newId());
     child->Draw(layout);
     // Manipulator::Draw(layout); is a NOOP
-    if (loadId)
-        glLoadName(0);
 }
 
 
@@ -379,14 +373,8 @@ void DrawingManipulator::DrawSelection(Layout *layout)
 //   Draw the selection for the child, and then for this
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = layout->Display();
-    bool loadId = widget->currentId() != ~0U;
-    if (loadId)
-        glLoadName(widget->newId());
     child->DrawSelection(layout);
     Manipulator::DrawSelection(layout);
-    if (loadId)
-        glLoadName(0);
 }
 
 
@@ -395,14 +383,8 @@ void DrawingManipulator::Identify(Layout *layout)
 //   Identify the child
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = layout->Display();
-    bool loadId = widget->currentId() != ~0U;
-    if (loadId)
-        glLoadName(widget->newId());
     child->Identify(layout);
     Manipulator::Identify(layout);
-    if (loadId)
-        glLoadName(0);
 }
 
 
@@ -475,14 +457,8 @@ void FrameManipulator::DrawSelection(Layout *layout)
 //   Avoid drawing the selection for the child
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = layout->Display();
-    bool loadId = widget->currentId() != ~0U;
-    if (loadId)
-        glLoadName(widget->newId());
     child->Identify(layout);    // Don't draw it
     Manipulator::DrawSelection(layout);
-    if (loadId)
-        glLoadName(0);
 }
 
 
@@ -670,14 +646,8 @@ void ControlRectangle::DrawSelection(Layout *layout)
 //   Avoid drawing the selection for the child
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = layout->Display();
-    bool loadId = widget->currentId() != ~0U;
-    if (loadId)
-        glLoadName(widget->newId());
     child->DrawSelection(layout);
     Manipulator::DrawSelection(layout);
-    if (loadId)
-        glLoadName(0);
 }
 
 
@@ -1209,18 +1179,14 @@ void WidgetManipulator::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    bool loadId = widget->currentId() != ~0U;
-    if (loadId)
-        glLoadName(widget->newId());
     bool selected = widget->selected();
     child->Identify(layout);
     Manipulator::DrawSelection(layout);
     if (selected)
+    {
         surface->requestFocus(x, y);
-    if (loadId)
-        glLoadName(0);
-    if (selected)
         widget->drawSelection(Bounds() + layout->Offset(), "widget_selection");
+    }
 }
 
 
@@ -1247,14 +1213,8 @@ void BoxManipulator::DrawSelection(Layout *layout)
 //   Avoid drawing the selection for the child
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = layout->Display();
-    bool loadId = widget->currentId() != ~0U;
-    if (loadId)
-        glLoadName(widget->newId());
     child->DrawSelection(layout);    // Don't draw the child, only identify it
     Manipulator::DrawSelection(layout);
-    if (loadId)
-        glLoadName(0);
 }
 
 

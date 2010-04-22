@@ -271,7 +271,7 @@ void Layout::Inherit(Layout *where)
 //   Inherit state from some other layout
 // ----------------------------------------------------------------------------
 {
-    // glLoadName(id);
+    glLoadName(id);
     if (!where)
         return;
 

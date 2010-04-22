@@ -1960,7 +1960,9 @@ Tree *Widget::locally(Tree *self, Tree *child)
 //   Evaluate the child tree while preserving the current state
 // ----------------------------------------------------------------------------
 {
+    uint id = layout->id;
     XL::LocalSave<Layout *> save(layout, layout->AddChild());
+    layout->id = id;
     Tree *result = xl_evaluate(child);
     return result;
 }

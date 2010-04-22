@@ -654,11 +654,10 @@ void PageLayout::DrawSelection(Layout *where)
 
     // Assign an ID for the page layout itself and draw a rectangle in it
     GLuint endId = widget->currentCharId();
-    GLuint layoutId = widget->newId();
     if (TextSelect *sel = widget->textSelection())
         if (!widget->drag() || firstClick)
             if (sel->start() <= endId && sel->end() >= startId)
-                widget->select(layoutId, 1);
+                widget->select(where->id, 1);
 }
 
 

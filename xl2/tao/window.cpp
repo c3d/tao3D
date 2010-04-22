@@ -379,11 +379,13 @@ void Window::createActions()
     setPullUrlAct->setStatusTip(tr("Set the remote address to \"pull\" from "
                                    "when synchronizing the current "
                                    "document with a remote one"));
+    setPullUrlAct->setEnabled(false);
     connect(setPullUrlAct, SIGNAL(triggered()), this, SLOT(setPullUrl()));
 
     publishAct = new QAction(tr("Publish..."), this);
     publishAct->setStatusTip(tr("Publish the current project to "
                                 "a specific path or URL"));
+    publishAct->setEnabled(false);
     connect(publishAct, SIGNAL(triggered()), this, SLOT(publish()));
 
     cloneAct = new QAction(tr("Clone..."), this);
@@ -670,6 +672,12 @@ void Window::markChanged(bool changed)
 }
 
 
+void Window::enableProjectSharingMenus()
+{
+    setPullUrlAct->setEnabled(true);
+    publishAct->setEnabled(true);
+}
+
 bool Window::openProject(QString path, QString fileName, bool confirm)
 // ----------------------------------------------------------------------------
 //   Find and open a project (= SCM repository)
@@ -827,6 +835,8 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
                 connect(repo.data(), SIGNAL(asyncCommitSuccess(QString, QString)),
                         taoWidget,   SLOT(commitSuccess(QString, QString)));
                 populateUndoStack();
+
+                enableProjectSharingMenus();
             }
         }
     }

@@ -69,8 +69,7 @@ struct Main
 {
     Main(int argc, char **argv, Compiler &comp);
     Main(int inArgc, char **inArgv, Compiler &comp,
-         const char* builtinsPath, const char* syntaxPath,
-         const char* stylesheetPath);
+         text builtinsPath, text syntaxPath, text stylesheetPath);
     ~Main();
 
     int LoadFiles();

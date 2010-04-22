@@ -43,6 +43,8 @@ int main(int argc, char **argv)
 //    Main entry point of the graphical front-end
 // ----------------------------------------------------------------------------
 {
+    using namespace Tao;
+
     Q_INIT_RESOURCE(tao);
 
     // We need to brute-force option parsing here, the OpenGL choice must
@@ -54,7 +56,8 @@ int main(int argc, char **argv)
     // Initialize the Tao application
     Tao::Application tao(argc, argv);
 
-    QString project_name = ""; // This name is present is the argument list if ever.
+    // This name is present in the argument list if ever.
+    QString project_name = "";
 
     // Initialize dir search path for XL files
     QStringList xl_dir_list;
@@ -69,11 +72,10 @@ int main(int argc, char **argv)
     // Setup the XL runtime environment
     XL::Compiler compiler("xl_tao");
     XL::Main *xlr = new XL::Main(argc, argv, compiler,
-                                 builtins.canonicalFilePath().toStdString().c_str(),
-                                 syntax.canonicalFilePath().toStdString().c_str(),
-                                 stylesheet.canonicalFilePath().toStdString().c_str());
+                                 +builtins.canonicalFilePath(),
+                                 +syntax.canonicalFilePath(),
+                                 +stylesheet.canonicalFilePath());
     XL::MAIN = xlr;
-//    xlr->builtins = tao.applicationDirPath().toStdString() + "/builtins.xl";
     EnterGraphics(&xlr->context);
     xlr->LoadFiles();
 

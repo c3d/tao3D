@@ -270,7 +270,8 @@ void Layout::Inherit(Layout *where)
 //   Inherit state from some other layout
 // ----------------------------------------------------------------------------
 {
-    glLoadName(id);
+    if (id != ~0U)
+        glLoadName(id);
     if (!where)
         return;
 

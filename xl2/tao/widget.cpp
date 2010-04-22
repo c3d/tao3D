@@ -1787,9 +1787,9 @@ void Widget::drawHandle(const Point3 &p, text handleName)
 
     SpaceLayout selectionSpace(this);
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-    XL::LocalSave<GLuint>   saveId(id, ~0U);
     GLAttribKeeper          saveGL;
     glDisable(GL_DEPTH_TEST);
+    selectionSpace.id = ~0U;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
     selectionSpace.Draw(NULL);
 }

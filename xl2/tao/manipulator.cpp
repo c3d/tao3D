@@ -78,7 +78,7 @@ void Manipulator::DrawSelection(Layout *layout)
             widget->select(layout->rotationId,    sel == idR ? 0x1000 : 0);
             widget->select(layout->translationId, sel == idT ? 0x2000 : 0);
             widget->select(layout->scaleId,       sel == idS ? 0x4000 : 0);
-            widget->select(widget->currentId(),   sel+1);
+            widget->select(layout->id,            sel+1);
         }
 
         glPushName(layout->id);

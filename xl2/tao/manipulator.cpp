@@ -388,21 +388,21 @@ void DrawingManipulator::Identify(Layout *layout)
 }
 
 
-Box3 DrawingManipulator::Bounds()
+Box3 DrawingManipulator::Bounds(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Return the bounds of the child
 // ----------------------------------------------------------------------------
 {
-    return child->Bounds();
+    return child->Bounds(layout);
 }
 
 
-Box3 DrawingManipulator::Space()
+Box3 DrawingManipulator::Space(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Return the space of the child
 // ----------------------------------------------------------------------------
 {
-    return child->Space();
+    return child->Space(layout);
 }
 
 
@@ -1185,7 +1185,8 @@ void WidgetManipulator::DrawSelection(Layout *layout)
     if (selected)
     {
         surface->requestFocus(x, y);
-        widget->drawSelection(Bounds() + layout->Offset(), "widget_selection");
+        widget->drawSelection(Bounds(layout) + layout->Offset(),
+                              "widget_selection");
     }
 }
 

@@ -51,12 +51,12 @@ template<> inline line_t Justifier<line_t>::Break(line_t item,
 }
 
 
-template<> inline scale Justifier<line_t>::Size(line_t item)
+template<> inline scale Justifier<line_t>::Size(line_t item, Layout *layout)
 // ----------------------------------------------------------------------------
 //   For drawings, we compute the horizontal size
 // ----------------------------------------------------------------------------
 {
-    return item->Space().Width();
+    return item->Space(layout).Width();
 }
 
 
@@ -71,23 +71,23 @@ template<> inline void Justifier<line_t>::ApplyAttributes(line_t item,
 }
 
 
-template<> inline scale Justifier<line_t>::SpaceSize(line_t item)
+template<> inline scale Justifier<line_t>::SpaceSize(line_t item, Layout * l)
 // ----------------------------------------------------------------------------
 //   Return the size of the spaces at the end of an item
 // ----------------------------------------------------------------------------
 {
-    return item->TrailingSpaceSize();
+    return item->TrailingSpaceSize(l);
 }
 
 
-template<> inline coord Justifier<line_t>::ItemOffset(line_t item)
+template<> inline coord Justifier<line_t>::ItemOffset(line_t item, Layout *l)
 // ----------------------------------------------------------------------------
 //   Return the horizontal offset for placing items
 // ----------------------------------------------------------------------------
 //   Since the bounds are supposed drawn at coordinates (0,0,0),
 //   the offset is the opposite of the left of the bounds
 {
-    Box3 space = item->Space();
+    Box3 space = item->Space(l);
     return -space.Left();
 }
 
@@ -107,12 +107,12 @@ template<> inline page_t Justifier<page_t>::Break(page_t line,
 }
 
 
-template<> inline scale Justifier<page_t>::Size(page_t line)
+template<> inline scale Justifier<page_t>::Size(page_t line, Layout *l)
 // ----------------------------------------------------------------------------
 //   For lines, we compute the vertical size
 // ----------------------------------------------------------------------------
 {
-    return line->Space().Height();
+    return line->Space(l).Height();
 }
 
 
@@ -126,7 +126,7 @@ template<> inline void Justifier<page_t>::ApplyAttributes(page_t line,
 }
 
 
-template<> inline scale Justifier<page_t>::SpaceSize(page_t)
+template<> inline scale Justifier<page_t>::SpaceSize(page_t, Layout *)
 // ----------------------------------------------------------------------------
 //   Return the size of a space for the layout
 // ----------------------------------------------------------------------------
@@ -136,14 +136,14 @@ template<> inline scale Justifier<page_t>::SpaceSize(page_t)
 }
 
 
-template<> inline coord Justifier<page_t>::ItemOffset(page_t item)
+template<> inline coord Justifier<page_t>::ItemOffset(page_t item, Layout *l)
 // ----------------------------------------------------------------------------
 //   Return the vertical offset for lines
 // ----------------------------------------------------------------------------
 //   Since the bounds are supposed to be computed at coordinates (0,0,0),
 //   the offset for the top is Top()
 {
-    Box3 space = item->Space();
+    Box3 space = item->Space(l);
     return space.Top();
 }
 
@@ -276,7 +276,7 @@ void LayoutLine::Identify(Layout *where)
 }
 
 
-Box3 LayoutLine::Bounds()
+Box3 LayoutLine::Bounds(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Return the bounds for the box
 // ----------------------------------------------------------------------------
@@ -289,7 +289,7 @@ Box3 LayoutLine::Bounds()
     {
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
-        Box3 childBounds = child->Bounds();
+        Box3 childBounds = child->Bounds(layout);
         childBounds += Vector3(place.position, 0, 0); // Horizontal offset
         result |= childBounds;
     }
@@ -298,7 +298,7 @@ Box3 LayoutLine::Bounds()
 }
 
 
-Box3 LayoutLine::Space()
+Box3 LayoutLine::Space(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Return the space for the box
 // ----------------------------------------------------------------------------
@@ -311,7 +311,7 @@ Box3 LayoutLine::Space()
     {
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
-        Box3 childSpace = child->Space();
+        Box3 childSpace = child->Space(layout);
         childSpace += Vector3(place.position, 0, 0); // Horizontal offset
         result |= childSpace;
     }
@@ -458,7 +458,7 @@ void LayoutLine::Compute(Layout *layout)
         return;
 
     // Position one line of items
-    Box3 space = layout->Space();
+    Box3 space = layout->Space(layout);
     coord left = space.Left(), right = space.Right();
     if (left > right) std::swap(left, right);
     line.Adjust(left, right, layout->alongX, layout);
@@ -706,7 +706,7 @@ void PageLayout::Identify(Layout *where)
 }
 
 
-Box3 PageLayout::Bounds()
+Box3 PageLayout::Bounds(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Return the bounds for the page layout
 // ----------------------------------------------------------------------------
@@ -719,7 +719,7 @@ Box3 PageLayout::Bounds()
     {
         PageJustifier::Place &place = *p;
         Drawing *child = place.item;
-        Box3 childBounds = child->Bounds();
+        Box3 childBounds = child->Bounds(layout);
         childBounds += Vector3(0, place.position, 0); // Vertical offset
         result |= childBounds;
     }
@@ -728,14 +728,14 @@ Box3 PageLayout::Bounds()
 }
 
 
-Box3 PageLayout::Space()
+Box3 PageLayout::Space(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Return the space for the page layout
 // ----------------------------------------------------------------------------
 {
     Box3 result = space;
     if (page.places.size())
-        result |= Bounds();
+        result |= Bounds(layout);
     return space;
 }
 

@@ -49,6 +49,7 @@ void TextSpan::Draw(Layout *where)
     Point3 position = where->offset;
     QPainterPath path;
     QString str = +source.Value().substr(start, end - start);
+    QFont &font = where->font;
     QFontMetricsF fm(font);
     Widget *widget = where->Display();
     widget->newCharId(str.length());
@@ -81,6 +82,7 @@ void TextSpan::DrawSelection(Layout *where)
     Widget *widget = where->Display();
     Point3 pos = where->offset;
     text str = source.Value();
+    QFont &font = where->font;
     QFontMetricsF fm(font);
     coord descent = fm.descent();
     coord leading = fm.leading();
@@ -200,6 +202,7 @@ void TextSpan::Identify(Layout *where)
     Widget *widget = where->Display();
     Point3 pos = where->offset;
     text str = source.Value();
+    QFont &font = where->font;
     QFontMetricsF fm(font);
     scale h = fm.height();
     coord x = pos.x;
@@ -249,14 +252,14 @@ void TextSpan::Identify(Layout *where)
 }
 
 
-void TextSpan::Draw(GraphicPath &path)
+void TextSpan::Draw(GraphicPath &path, Layout *where)
 // ----------------------------------------------------------------------------
 //   Render a portion of text and advance by the width of the text
 // ----------------------------------------------------------------------------
 {
     Point3 position = path.position;
+    QFont &font = where->font;
     QFontMetricsF fm(font);
-
     QPainterPath qt;
 
     QString str = +source.Value().substr(start, end - start);
@@ -279,12 +282,12 @@ void TextSpan::Draw(GraphicPath &path)
 }
 
 
-Box3 TextSpan::Bounds()
+Box3 TextSpan::Bounds(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Return the smallest box that surrounds the text
 // ----------------------------------------------------------------------------
 {
-    QFontMetricsF fm(font);
+    QFontMetricsF fm(layout->font);
     QString       str = +source.Value().substr(start, end - start);
     QRectF        rect = fm.tightBoundingRect(str);
     return Box3(rect.x(), rect.height()+rect.y(), 0,
@@ -292,11 +295,12 @@ Box3 TextSpan::Bounds()
 }
 
 
-Box3 TextSpan::Space()
+Box3 TextSpan::Space(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the box that surrounds the text, including leading
 // ----------------------------------------------------------------------------
 {
+    QFont &       font = where->font;
     QFontMetricsF fm(font);
     QString       str = +source.Value().substr(start, end - start);
     coord         height      = fm.height();
@@ -332,7 +336,7 @@ TextSpan *TextSpan::Break(BreakOrder &order)
             // Create two text spans, the first one containing the split
             uint next = XL::Utf8Next(str, i);
             TextSpan *result = (next < max && next < end)
-                ? new TextSpan(source, font, next, end)
+                ? new TextSpan(source, next, end)
                 : NULL;
             order = charOrder;
             end = next;
@@ -344,11 +348,12 @@ TextSpan *TextSpan::Break(BreakOrder &order)
 }
 
 
-scale TextSpan::TrailingSpaceSize()
+scale TextSpan::TrailingSpaceSize(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the size of all the spaces at the end of the value
 // ----------------------------------------------------------------------------
 {
+    QFont &font = where->font;
     QFontMetricsF fm(font);
     scale result = 0;
     text str = source.Value();

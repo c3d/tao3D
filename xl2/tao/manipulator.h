@@ -93,8 +93,8 @@ struct DrawingManipulator : Manipulator
     virtual void        DrawSelection(Layout *layout);
     virtual void        Identify(Layout *layout);
     virtual bool        DrawHandles(Layout *layout);
-    virtual Box3        Bounds();
-    virtual Box3        Space();
+    virtual Box3        Bounds(Layout *layout);
+    virtual Box3        Space(Layout *layout);
     virtual Drawing *   Break(BreakOrder &order);
     virtual bool        IsAttribute();
 

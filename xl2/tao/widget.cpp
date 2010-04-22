@@ -1895,7 +1895,7 @@ XL::Real *Widget::frameWidth(Tree *self)
 //   Return the width of the current layout frame
 // ----------------------------------------------------------------------------
 {
-    return new Real(layout->Bounds().Width());
+    return new Real(layout->Bounds(layout).Width());
 }
 
 
@@ -1904,7 +1904,7 @@ XL::Real *Widget::frameHeight(Tree *self)
 //   Return the height of the current layout frame
 // ----------------------------------------------------------------------------
 {
-    return new Real(layout->Bounds().Height());
+    return new Real(layout->Bounds(layout).Height());
 }
 
 
@@ -1913,7 +1913,7 @@ XL::Real *Widget::frameDepth(Tree *self)
 //   Return the depth of the current layout frame
 // ----------------------------------------------------------------------------
 {
-    return new Real(layout->Bounds().Depth());
+    return new Real(layout->Bounds(layout).Depth());
 }
 
 
@@ -2736,12 +2736,15 @@ XL::Text *Widget::textFlow(Tree *self, text name)
 }
 
 
-Tree *Widget::textSpan(Tree *self, text_r content)
+Tree *Widget::textSpan(Tree *self, text_r contents)
 // ----------------------------------------------------------------------------
 //   Insert a block of text with the current definition of font, color, ...
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new TextSpan(&content, layout->font));
+    if (path)
+        TextSpan(&contents).Draw(*path, layout);
+    else
+        layout->Add(new TextSpan(&contents));
     return XL::xl_true;
 }
 
@@ -2752,6 +2755,7 @@ Tree *Widget::font(Tree *self, text description)
 // ----------------------------------------------------------------------------
 {
     layout->font.fromString(+description);
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2762,6 +2766,7 @@ Tree *Widget::fontSize(Tree *self, double size)
 // ----------------------------------------------------------------------------
 {
     layout->font.setPointSizeF(size);
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2778,6 +2783,7 @@ Tree *Widget::fontPlain(Tree *self)
     font.setUnderline(false);
     font.setStrikeOut(false);
     font.setOverline(false);
+    layout->Add(new FontChange(font));
     return XL::xl_true;
 }
 
@@ -2801,6 +2807,7 @@ Tree *Widget::fontItalic(Tree *self, scale amount)
 {
     amount = clamp(amount, 0, 2);
     layout->font.setStyle(QFont::Style(amount));
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2813,6 +2820,7 @@ Tree *Widget::fontBold(Tree *self, scale amount)
 {
     amount = clamp(amount, 0, 99);
     layout->font.setWeight(QFont::Weight(amount));
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2824,6 +2832,7 @@ Tree *Widget::fontUnderline(Tree *self, scale amount)
 //    Qt doesn't support setting the size of the underline, it's on or off
 {
     layout->font.setUnderline(bool(amount));
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2835,6 +2844,7 @@ Tree *Widget::fontOverline(Tree *self, scale amount)
 //    Qt doesn't support setting the size of the overline, it's on or off
 {
     layout->font.setOverline(bool(amount));
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2846,6 +2856,7 @@ Tree *Widget::fontStrikeout(Tree *self, scale amount)
 //    Qt doesn't support setting the size of the strikeout, it's on or off
 {
     layout->font.setStrikeOut(bool(amount));
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2858,6 +2869,7 @@ Tree *Widget::fontStretch(Tree *self, scale amount)
 {
     amount = clamp(amount, 0, 40);
     layout->font.setStretch(int(amount * 100));
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 

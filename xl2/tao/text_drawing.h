@@ -36,21 +36,19 @@ struct TextSpan : Shape
 //    A contiguous run of glyphs
 // ----------------------------------------------------------------------------
 {
-    TextSpan(XL::Text *source, const QFont &font,
-             uint start = 0, uint end = ~0)
-        : Shape(), source(source), font(font), start(start), end(end) {}
+    TextSpan(XL::Text *source, uint start = 0, uint end = ~0)
+        : Shape(), source(source), start(start), end(end) {}
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *where);
     virtual void        Identify(Layout *where);
-    virtual void        Draw(GraphicPath &path);
-    virtual Box3        Bounds();
-    virtual Box3        Space();
+    virtual Box3        Bounds(Layout *where);
+    virtual Box3        Space(Layout *where);
     virtual TextSpan *  Break(BreakOrder &order);
-    virtual scale       TrailingSpaceSize();
+    virtual scale       TrailingSpaceSize(Layout *where);
+    virtual void        Draw(GraphicPath &path, Layout *where);
 
 public:
     XL::TextRoot        source;
-    QFont               font;
     uint                start, end;
 };
 

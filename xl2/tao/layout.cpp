@@ -209,7 +209,7 @@ Vector3 Layout::Offset()
 }
 
 
-Box3 Layout::Bounds()
+Box3 Layout::Bounds(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Compute the bounding box as the union of all item bounds
 // ----------------------------------------------------------------------------
@@ -217,12 +217,12 @@ Box3 Layout::Bounds()
     Box3 result;
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
-        result |= (*i)->Bounds();
+        result |= (*i)->Bounds(layout);
     return result;
 }
 
 
-Box3 Layout::Space()
+Box3 Layout::Space(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Compute the required space as the union of all item bounds
 // ----------------------------------------------------------------------------
@@ -230,7 +230,7 @@ Box3 Layout::Space()
     Box3 result;
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
-        result |= (*i)->Space();
+        result |= (*i)->Space(layout);
     return result;
 }
 

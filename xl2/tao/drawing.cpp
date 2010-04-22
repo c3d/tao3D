@@ -50,7 +50,7 @@ void Drawing::DrawSelection(Layout *layout)
         Color fill(0.0, 0.7, 1.0, 0.1);
         XL::LocalSave<Color> saveLine(layout->lineColor, line);
         XL::LocalSave<Color> saveFill(layout->fillColor, fill);
-        widget->drawSelection(Bounds() + layout->Offset(), "selection");
+        widget->drawSelection(Bounds(layout) + layout->Offset(), "selection");
     }
 }
 
@@ -65,7 +65,7 @@ void Drawing::Identify(Layout *l)
 }
 
 
-Box3 Drawing::Bounds()
+Box3 Drawing::Bounds(Layout *)
 // ----------------------------------------------------------------------------
 //   Return the bounding box for the shape
 // ----------------------------------------------------------------------------
@@ -75,13 +75,13 @@ Box3 Drawing::Bounds()
 }
 
 
-Box3 Drawing::Space()
+Box3 Drawing::Space(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the space required around a shape
 // ----------------------------------------------------------------------------
 {
     // The default for the space is to be identical to the bounds
-    return Bounds();
+    return Bounds(where);
 }
 
 
@@ -104,7 +104,7 @@ Drawing *Drawing::Break(BreakOrder &order)
 }
 
 
-scale Drawing::TrailingSpaceSize()
+scale Drawing::TrailingSpaceSize(Layout *)
 // ----------------------------------------------------------------------------
 //   By default, the trailing space is 0
 // ----------------------------------------------------------------------------

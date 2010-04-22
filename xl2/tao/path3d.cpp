@@ -463,7 +463,7 @@ void GraphicPath::Draw(Layout *where, QPainterPath &qtPath,
 }
 
 
-Box3 GraphicPath::Bounds()
+Box3 GraphicPath::Bounds(Layout *)
 // ----------------------------------------------------------------------------
 //   Return the bounding box, computed from all path elements
 // ----------------------------------------------------------------------------

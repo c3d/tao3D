@@ -242,8 +242,11 @@ text Block::unindent = "I-";
 text Text::textQuote = "\"";
 text Text::charQuote = "'";
 
+XL_END
 
 #include "sha1_ostream.h"
+
+XL_BEGIN
 
 text sha1(Tree *t)
 // ----------------------------------------------------------------------------

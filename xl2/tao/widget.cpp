@@ -2741,7 +2741,8 @@ Tree * Widget::textBox(Tree *self,
 {
     PageLayout *tbox = new PageLayout(this);
     tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
-    tbox->id = newId();
+    if (currentShape)
+        tbox->id = newId();
     layout->Add(tbox);
     layout->Add(new ControlRectangle(self, x, y, w, h));
     flows[flowName] = tbox;

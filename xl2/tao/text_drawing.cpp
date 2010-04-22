@@ -104,13 +104,14 @@ void TextSpan::DrawSelection(Layout *where)
         next = XL::Utf8Next(str, i);
 
         // Create a text selection if we need one
-        if (charSelected && !sel)
+        if (charSelected && !sel && where->id)
             sel = new TextSelect(widget);
 
         if (sel)
         {
             // Mark characters in selection range
-            if (!charSelected && charId >= sel->start() && charId <= sel->end())
+            if (!charSelected &&
+                charId >= sel->start() && charId <= sel->end())
             {
                 charSelected = true;
                 widget->selectChar(charId, 1);

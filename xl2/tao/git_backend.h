@@ -88,6 +88,7 @@ private:
     bool                initialCommit();
     bool                parseCommitOutput(text output, QString &id,
                                           QString &msg);
+    QString             parseCloneOutput(QString out);
 
     static QString      gitCommand;
 };

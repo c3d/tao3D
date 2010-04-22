@@ -72,8 +72,8 @@ void CloneDialog::accept()
     okButton->setEnabled(false);
     cloneOutput->append(tr("Starting...\n"));
     setCursor(Qt::BusyCursor);
-    connect(repo.data(), SIGNAL(asyncProcessComplete(void *)),
-            this, SLOT(endClone(void *)));
+    connect(repo.data(), SIGNAL(asyncCloneComplete(void *, QString)),
+            this, SLOT(endClone(void *, QString)));
     proc = repo->asyncClone(url, cloneOutput, this);
 }
 
@@ -93,7 +93,7 @@ void CloneDialog::reject()
 }
 
 
-void CloneDialog::endClone(void *id)
+void CloneDialog::endClone(void *id, QString projPath)
 // ----------------------------------------------------------------------------
 //    The clone operation has completed or has been canceled
 // ----------------------------------------------------------------------------
@@ -111,6 +111,14 @@ void CloneDialog::endClone(void *id)
     okButton->setText(tr("Dismiss"));
     okButton->setEnabled(true);
     cancelButton->setEnabled(false);
+    if (!projPath.isEmpty())
+    {
+        repository_ptr repo;
+        repo = RepositoryFactory::repository(projPath,
+                                             RepositoryFactory::OpenExisting);
+        if (repo)
+            repo->checkout("master_tao_undo");
+    }
 }
 
 void CloneDialog::on_browseButton_clicked()

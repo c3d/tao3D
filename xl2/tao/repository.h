@@ -139,7 +139,7 @@ public:
 
 signals:
     void                asyncCommitSuccess(QString commitId, QString msg);
-    void                asyncProcessComplete(void *id);
+    void                asyncCloneComplete(void *id, QString projPath);
 
 protected:
     virtual QString     command()                       = 0;

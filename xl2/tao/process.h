@@ -75,8 +75,6 @@ public:
     AnsiTextEdit  *outTextEdit, *errTextEdit;
     void       *id;
     bool        aborted;
-
-private:
     QString     err, out;
 };
 

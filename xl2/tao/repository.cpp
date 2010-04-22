@@ -254,8 +254,6 @@ void Repository::asyncProcessFinished(int exitCode)
             std::cerr << +tr("Async command failed, exit status %1: %2\n")
                          .arg((int)exitCode).arg(cmd->commandLine);
     }
-    cmd->sendStandardOutputToTextEdit();
-    emit asyncProcessComplete(cmd->id);
 }
 
 
@@ -264,7 +262,9 @@ void Repository::asyncProcessError(QProcess::ProcessError error)
 //   Default action when an asynchronous subprocess has an error
 // ----------------------------------------------------------------------------
 {
-    ProcQueueConsumer p(*this);
+    // Note: do not pop current process from run queue here!
+    // This slot is called *in addition to* asyncProcessFinished, which
+    // will do the cleanup.
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
     IFTRACE(process)

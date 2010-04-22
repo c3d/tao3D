@@ -26,7 +26,11 @@
 
 TAO_BEGIN
 
-int Layout::polygonOffset = 0;
+int   Layout::polygonOffset   = 0;
+scale Layout::factorBase      = 0;
+scale Layout::factorIncrement = -1;
+scale Layout::unitBase        = 0;
+scale Layout::unitIncrement   = 0;
 
 
 LayoutState::LayoutState()
@@ -246,9 +250,9 @@ void Layout::PolygonOffset()
 //   Compute a polygon offset for the next shape being drawn
 // ----------------------------------------------------------------------------
 {
-    const double XY_SCALE = 5.0; // Good enough for approx 45 degrees Y angle
-    const double UNITS = 2.0;
-    glPolygonOffset (XY_SCALE * polygonOffset++, UNITS);
+    int offset = polygonOffset++;
+    glPolygonOffset (factorBase + offset * factorIncrement,
+                     unitBase + offset * unitIncrement);
 }
 
 

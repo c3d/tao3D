@@ -2148,6 +2148,21 @@ XL::Name *Widget::toggleFullScreen(XL::Tree *self)
 }
 
 
+XL::Integer * Widget::polygonOffset(Tree *self,
+                                    double f0, double f1,
+                                    double u0, double u1)
+// ----------------------------------------------------------------------------
+//   Set the polygon offset factors
+// ----------------------------------------------------------------------------
+{
+    Layout::factorBase = f0;
+    Layout::factorIncrement = f1;
+    Layout::unitBase = u0;
+    Layout::unitIncrement = u1;
+    return new Integer(Layout::polygonOffset);
+}
+
+
 Tree *Widget::lineColor(Tree *self, double r, double g, double b, double a)
 // ----------------------------------------------------------------------------
 //    Set the RGBA color for lines

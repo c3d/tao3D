@@ -87,6 +87,8 @@ struct Layout : Drawing, LayoutState
 public:
     // Attributes that get propagated to children
     static int          polygonOffset;
+    static scale        factorBase, factorIncrement;
+    static scale        unitBase, unitIncrement;
 
     // For optimized drawing, we keep track of what changes
     bool                hasPixelBlur    : 1; // Pixels not aligning naturally

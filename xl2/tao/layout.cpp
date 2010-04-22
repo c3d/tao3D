@@ -43,7 +43,7 @@ LayoutState::LayoutState()
       lineColor(0,0,0,1),       // Black
       fillColor(0,0,0,0),       // Transparent black
       fillTexture(0),
-      rotationId(0), translationId(0), scaleId(0), id(0)
+      rotationId(0), translationId(0), scaleId(0)
 {}
 
 
@@ -59,8 +59,7 @@ LayoutState::LayoutState(const LayoutState &o)
         fillTexture(o.fillTexture),
         rotationId(o.rotationId),
         translationId(o.translationId),
-        scaleId(o.scaleId),
-        id(o.id)
+        scaleId(o.scaleId)
 {}
 
 
@@ -84,7 +83,7 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
 //    Create an empty layout
 // ----------------------------------------------------------------------------
-    : Drawing(), LayoutState(),
+    : Drawing(), LayoutState(), id(0),
       hasPixelBlur(false), hasMatrix(false), hasAttributes(false),
       items(), display(widget)
 {}
@@ -94,7 +93,7 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
 //   Copy constructor
 // ----------------------------------------------------------------------------
-    : Drawing(o), LayoutState(o),
+    : Drawing(o), LayoutState(o), id(0),
       hasPixelBlur(o.hasPixelBlur), hasMatrix(false), hasAttributes(false),
       items(), display(o.display)
 {}

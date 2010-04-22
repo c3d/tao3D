@@ -52,7 +52,6 @@ public:
     Color               fillColor;
     uint                fillTexture;
     uint                rotationId, translationId, scaleId;
-    uint                id;
 };
 
 
@@ -85,10 +84,8 @@ struct Layout : Drawing, LayoutState
     void                Inherit(Layout *other);
 
 public:
-    // Attributes that get propagated to children
-    static int          polygonOffset;
-    static scale        factorBase, factorIncrement;
-    static scale        unitBase, unitIncrement;
+    // OpenGL identification for that shape
+    uint                id;
 
     // For optimized drawing, we keep track of what changes
     bool                hasPixelBlur    : 1; // Pixels not aligning naturally
@@ -101,6 +98,11 @@ protected:
     layout_items        items;
     Widget *            display;
 
+public:
+    // Static attributes for polygon offset computation
+    static int          polygonOffset;
+    static scale        factorBase, factorIncrement;
+    static scale        unitBase, unitIncrement;
 };
 
 TAO_END

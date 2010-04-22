@@ -93,20 +93,19 @@ Main::Main(int inArgc, char **inArgv, Compiler &comp)
 }
 
 Main::Main(int inArgc, char **inArgv, Compiler &comp,
-           const char* builtinsPath, const char* syntaxPath,
-           const char* stylesheetPath)
+           text builtinsPath, text syntaxPath, text stylesheetPath)
 // ----------------------------------------------------------------------------
 //   Initialization of the globals
 // ----------------------------------------------------------------------------
     : argc(inArgc), argv(inArgv),
       positions(),
       errors(&positions),
-      syntax(syntaxPath),
-      builtins(builtinsPath),
+      syntax(syntaxPath.c_str()),
+      builtins(builtinsPath.c_str()),
       options(errors),
       compiler(comp),
       context(errors, &compiler),
-      renderer(std::cout, stylesheetPath, syntax),
+      renderer(std::cout, stylesheetPath.c_str(), syntax),
       reader(NULL), writer(NULL)
 {
     Options::options = &options;

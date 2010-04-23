@@ -75,7 +75,7 @@ struct Layout : Drawing, LayoutState
     virtual void        Add (Drawing *d);
     virtual Vector3     Offset();
     virtual Layout *    NewChild()       { return new Layout(*this); }
-    virtual Layout *    AddChild();
+    virtual Layout *    AddChild(uint id = 0);
     virtual void        Clear();
     virtual Widget *    Display()        { return display; }
     virtual void        PolygonOffset();

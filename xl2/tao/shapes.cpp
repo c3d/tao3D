@@ -183,6 +183,13 @@ void PlaceholderRectangle::Draw(GraphicPath &path)
 }
 
 
+void ClickThroughRectangle::DrawSelection (Layout *)
+// ----------------------------------------------------------------------------
+//   This is where we draw nothing
+// ----------------------------------------------------------------------------
+{}   
+
+
 void IsoscelesTriangle::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 //   Draw an isosceles triangle

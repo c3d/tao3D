@@ -108,13 +108,14 @@ Layout::~Layout()
 }
 
 
-Layout *Layout::AddChild()
+Layout *Layout::AddChild(uint childId)
 // ----------------------------------------------------------------------------
 //   Add a new layout as a child of this one
 // ----------------------------------------------------------------------------
 {
     Layout *result = NewChild();
     Add(result);
+    result->id = childId;
     return result;
 }
 

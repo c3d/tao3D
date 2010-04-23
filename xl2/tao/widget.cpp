@@ -1970,9 +1970,7 @@ Tree *Widget::locally(Tree *self, Tree *child)
 //   Evaluate the child tree while preserving the current state
 // ----------------------------------------------------------------------------
 {
-    uint id = layout->id;
-    XL::LocalSave<Layout *> save(layout, layout->AddChild());
-    layout->id = id;
+    XL::LocalSave<Layout *> save(layout, layout->AddChild(layout->id));
     Tree *result = xl_evaluate(child);
     return result;
 }
@@ -1983,9 +1981,8 @@ Tree *Widget::shape(Tree *self, Tree *child)
 //   Evaluate the child and mark the current shape
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(newId()));
     XL::LocalSave<Tree *>   saveShape (currentShape, self);
-    layout->id = newId();
     Tree *result = xl_evaluate(child);
     return result;
 }
@@ -3100,10 +3097,12 @@ Tree *Widget::urlPaint(Tree *self,
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     urlTexture(self, w, h, url, progress);
     WebViewSurface *surface = url->GetInfo<WebViewSurface>();
-    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    if (currentShape)
+        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
 }
 
@@ -3142,11 +3141,12 @@ Tree *Widget::lineEdit(Tree *self,
 //   Draw a line editor in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
-
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     lineEditTexture(self, w, h, txt);
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
-    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    if (currentShape)
+        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
 }
 
@@ -3183,8 +3183,7 @@ Tree *Widget::radioButton(Tree *self,
 //   Draw a radio button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
-
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     radioButtonTexture(self, w, h, name, lbl, sel, act);
     return abstractButton(self, name, x, y, w, h);
 }
@@ -3223,8 +3222,7 @@ Tree *Widget::checkBoxButton(Tree *self, real_r x,real_r y, real_r w, real_r h,
 //   Draw a check button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
-
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     checkBoxButtonTexture(self, w, h, name, lbl, sel, act);
     return abstractButton(self, name, x, y, w, h);
 }
@@ -3263,8 +3261,7 @@ Tree *Widget::pushButton(Tree *self, real_r x, real_r y, real_r w, real_r h,
 //   Draw a push button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
-
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     pushButtonTexture(self, w, h, name, lbl, act);
     return abstractButton(self, name, x, y, w, h);
 }
@@ -3297,7 +3294,8 @@ Tree *Widget::pushButtonTexture(Tree *self, double w, double h, Text *name,
 }
 
 
-Tree *Widget::abstractButton(Tree *self, Text *name, real_r x, real_r y, real_r w, real_r h)
+Tree *Widget::abstractButton(Tree *self, Text *name,
+                             real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //   Draw any button in the curent frame
 // ----------------------------------------------------------------------------
@@ -3316,7 +3314,9 @@ Tree *Widget::abstractButton(Tree *self, Text *name, real_r x, real_r y, real_r 
         return XL::xl_true;
     }
 
-    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    if (currentShape)
+        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
 
     return XL::xl_true;
 }
@@ -3328,12 +3328,14 @@ Tree *Widget::colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
 //   Draw a color chooser
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
 
     colorChooserTexture(self, w, h, action);
 
     ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
-    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    if (currentShape)
+        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
 }
 
@@ -3371,12 +3373,14 @@ Tree *Widget::fontChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
 //   Draw a color chooser
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
 
     fontChooserTexture(self, w, h, action);
 
     FontChooserSurface *surface = self->GetInfo<FontChooserSurface>();
-    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    if (currentShape)
+        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
 }
 
@@ -3449,12 +3453,14 @@ Tree *Widget::groupBox(Tree *self,
 //   Draw a group box in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
 
     groupBoxTexture(self, w, h, lbl);
 
     GroupBoxSurface *surface = self->GetInfo<GroupBoxSurface>();
-    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    if (currentShape)
+        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
 
     xl_evaluate(buttons);
 
@@ -3505,12 +3511,12 @@ Tree *Widget::videoPlayer(Tree *self,
 //   Make a video player
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
-
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     videoPlayerTexture(self, w, h, url);
-
     VideoPlayerSurface *surface = self->GetInfo<VideoPlayerSurface>();
-    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    if (currentShape)
+        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
 
     return XL::xl_true;
 

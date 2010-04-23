@@ -71,6 +71,16 @@ struct PlaceholderRectangle : Rectangle
 };
 
 
+struct ClickThroughRectangle : Rectangle
+// ----------------------------------------------------------------------------
+//    A rectangle that cannot be clicked into
+// ----------------------------------------------------------------------------
+{
+    ClickThroughRectangle(const Box &b): Rectangle(b) {}
+    virtual void        DrawSelection(Layout *where);
+};
+
+
 struct IsoscelesTriangle : Rectangle
 // ----------------------------------------------------------------------------
 //    A isosceles triangle that can be placed in a layout

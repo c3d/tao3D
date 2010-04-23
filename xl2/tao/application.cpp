@@ -64,14 +64,12 @@ Application::Application(int & argc, char ** argv)
     // Parse command line options
     XL::Errors errors(new XL::Positions());
     XL::Options options(errors);
+
     // Get the first file name and guess its location to initialize
     // the project folder. If there is no filename, or it is not found the
     // currentProjectFolder will be initialized to "".
-    currentProjectFolder = QFileInfo(+options.Parse(argc, argv)).canonicalPath();
-
-//    text cmd = options.Parse(argc, argv);
-//    QFileInfo info(cmd);
-//    currentProjectFolder = info.canonicalPath();
+    text project = options.Parse(argc, argv);
+    currentProjectFolder = QFileInfo(+project).canonicalPath();
 
     // Web settings
     QWebSettings *gs = QWebSettings::globalSettings();
@@ -190,10 +188,10 @@ QString Application::defaultPreferencesFolderPath()
             "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows"
             "\\CurrentVersion\\Explorer",
             QSettings::NativeFormat);
-    // For Windows Vista/7
-    // Typically C:\Users\username\???
-    // For Windows XP
-    // Typically C:\Documents and Settings\username\Local Settings\Application Data
+    // For Windows Vista/7, typically
+    // C:\Users\username\???
+    // For Windows XP, typically
+    // C:\Documents and Settings\username\Local Settings\Application Data
     QString path = settings.value("User Shell Folders\\Local AppData")
                    .toString();
     if (!path.isNull())

@@ -2026,7 +2026,7 @@ Tree *Widget::rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz)
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new RotationManipulator(self, ra, rx, ry, rz));
+    layout->Add(new Rotation(ra, rx, ry, rz));
     layout->hasMatrix = true;
     double amod90 = fmod(ra, 90.0);
     if (amod90 < -0.01 || amod90 > 0.01)
@@ -2067,7 +2067,7 @@ Tree *Widget::translate(Tree *self, real_r tx, real_r ty, real_r tz)
 //     Translation along three axes
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new TranslationManipulator(self, tx, ty, tz));
+    layout->Add(new Translation(tx, ty, tz));
     layout->hasMatrix = true;
     if (tz != 0.0)
         layout->hasPixelBlur = true;
@@ -2107,7 +2107,7 @@ Tree *Widget::rescale(Tree *self, real_r sx, real_r sy, real_r sz)
 //     Scaling along three axes
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new ScaleManipulator(self, sx, sy, sz));
+    layout->Add(new Scale(sx, sy, sz));
     layout->hasMatrix = true;
     if (sx != 1.0 || sy != 1.0)
         layout->hasPixelBlur = true;

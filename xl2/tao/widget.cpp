@@ -1366,17 +1366,17 @@ Repository * Widget::repository()
 }
 
 
-XL::Tree *Widget::get(text name, text topName)
+XL::Tree *Widget::get(Tree *shape, text name, text topName)
 // ----------------------------------------------------------------------------
 //   Find an attribute in the current shape or returns NULL
 // ----------------------------------------------------------------------------
 {
     // Can't get attributes without a current shape
-    if (!currentShape)
+    if (!shape)
         return NULL;
 
     // The current shape has to be a 'shape' prefix
-    XL::Prefix *shapePrefix = currentShape->AsPrefix();
+    XL::Prefix *shapePrefix = shape->AsPrefix();
     if (!shapePrefix)
         return NULL;
     Name *shapeName = shapePrefix->left->AsName();
@@ -1421,17 +1421,17 @@ XL::Tree *Widget::get(text name, text topName)
 }
 
 
-bool Widget::set(text name, Tree *value, text topName)
+bool Widget::set(Tree *shape, text name, Tree *value, text topName)
 // ----------------------------------------------------------------------------
 //   Set an attribute in the current shape, return true if successful
 // ----------------------------------------------------------------------------
 {
     // Can't get attributes without a current shape
-    if (!currentShape)
+    if (!shape)
         return false;
 
     // The current shape has to be a 'shape' prefix
-    XL::Prefix *shapePrefix = currentShape->AsPrefix();
+    XL::Prefix *shapePrefix = shape->AsPrefix();
     if (!shapePrefix)
         return false;
     Name *shapeName = shapePrefix->left->AsName();
@@ -1496,18 +1496,18 @@ bool Widget::set(text name, Tree *value, text topName)
     } // Loop on all items
 
     // We didn't find the name: set the top level item
-    *topAddr = value;
+    *topAddr = new XL::Infix("\n", value, *topAddr);
     return true;
 }
 
 
-bool Widget::get(text name, XL::tree_list &args, text topName)
+bool Widget::get(Tree *shape, text name, XL::tree_list &args, text topName)
 // ----------------------------------------------------------------------------
 //   Get the arguments, decomposing args in a comma-separated list
 // ----------------------------------------------------------------------------
 {
     // Check if we can get the tree
-    Tree *attrib = get(name, topName);
+    Tree *attrib = get(shape, name, topName);
     if (!attrib)
         return false;
 
@@ -1537,7 +1537,7 @@ bool Widget::get(text name, XL::tree_list &args, text topName)
 }
 
 
-bool Widget::set(text name, XL::tree_list &args, text topName)
+bool Widget::set(Tree *shape, text name, XL::tree_list &args, text topName)
 // ----------------------------------------------------------------------------
 //   Set the arguments, building the comma-separated list
 // ----------------------------------------------------------------------------
@@ -1551,7 +1551,7 @@ bool Widget::set(text name, XL::tree_list &args, text topName)
         call = new XL::Prefix(call, argsTree);
     }
 
-    return set(name, call, topName);
+    return set(shape, name, call, topName);
 }
 
 
@@ -4028,6 +4028,29 @@ XL::Name *Widget::deleteSelection(Tree *self, text key)
     markChanged("Deleted selection");
     selection.clear();
     selectionTrees.clear();
+
+    return XL::xl_true;
+}
+
+
+XL::Name *Widget::setAttribute(Tree *self,
+                               text name, Tree *attribute,
+                               text shape)
+// ----------------------------------------------------------------------------
+//    Insert the tree in all shapes in the selection
+// ----------------------------------------------------------------------------
+{
+    if (!xlProgram)
+        return XL::xl_false;
+
+    Tree *program = xlProgram->tree.tree;
+    if (XL::Block *block = attribute->AsBlock())
+        attribute = block->child;
+
+    SetAttributeAction setAttrib(name, attribute, this, shape);
+    program->Do(setAttrib);
+    reloadProgram();
+    markChanged("Updated " + name + " attribute");
 
     return XL::xl_true;
 }

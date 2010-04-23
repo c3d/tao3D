@@ -128,7 +128,7 @@ public:
     void        refreshProgram();
     void        markChanged(text reason);
     bool        writeIfChanged(XL::SourceFile &sf);
-    bool        doCommit();
+    bool        doCommit(bool immediate = false);
     Repository *repository();
     Tree *      get(text name, text topName = "shape");
     bool        set(text name, Tree *value, text topName = "shape");

@@ -173,9 +173,6 @@ void Widget::dawdle()
         text txt = *xlProgram->tree.tree;
         Window *window = (Window *) parentWidget();
         window->setText(+txt);
-        window->markChanged(false);
-        if (!repo)
-            xlProgram->changed = false;
     }
 
     // Check if there's something to save
@@ -193,10 +190,6 @@ void Widget::dawdle()
         // Record when we will save file again
         nextSave = tick + xlr->options.save_interval * 1000;
     }
-
-    // If things are saved on disk, no need to keep the window "dirty"
-    Window *window = (Window *) parentWidget();
-    window->markChanged(false);
 
     // Check if there's something to commit
     longlong commitDelay = longlong (nextCommit - tick);
@@ -1334,14 +1327,16 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
 }
 
 
-bool Widget::doCommit()
+bool Widget::doCommit(bool immediate)
 // ----------------------------------------------------------------------------
 //   Commit files previously written to repository and reset next commit time
 // ----------------------------------------------------------------------------
 {
     IFTRACE(filesync)
             std::cerr << "Commit: " << repository()->whatsNew << "\n";
-    if (repository()->asyncCommit())
+    bool done;
+    done = immediate ? repository()->commit() : repository()->asyncCommit();
+    if (done)
     {
         XL::Main *xlr = XL::MAIN;
         nextCommit = now() + xlr->options.commit_interval * 1000;

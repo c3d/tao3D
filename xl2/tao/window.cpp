@@ -598,6 +598,7 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
     QApplication::setOverrideCursor(Qt::WaitCursor);
     textEdit->setPlainText(in.readAll());
     QApplication::restoreOverrideCursor();
+    markChanged(false);
     return true;
 }
 
@@ -650,14 +651,16 @@ bool Window::saveFile(const QString &fileName)
     statusBar()->showMessage(tr("File saved"), 2000);
     updateProgram(fileName);
 
-    // Trigger immediate commit to repository
-    XL::SourceFile &sf = xlRuntime->files[fn];
-
-    if (taoWidget->writeIfChanged(sf))
+    if (repo)
     {
+        // Trigger immediate commit to repository
+        XL::SourceFile &sf = xlRuntime->files[fn];
+        sf.changed = true;
         taoWidget->markChanged("Manual save");
-        taoWidget->doCommit();
+        taoWidget->doCommit(true);
+        sf.changed = false;
     }
+
     return true;
 }
 

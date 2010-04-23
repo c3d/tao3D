@@ -205,8 +205,6 @@ void LayoutLine::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Recompute layout if necessary and draw selection for all children
 // ----------------------------------------------------------------------------
-//   REVISIT: There is a lot of copy-paste between Draw, DrawSelection, Identify
-//   Consider using a pointer-to-member (ugly) or some clever trick?
 {
     // Compute layout
     SafeCompute(where);
@@ -627,8 +625,6 @@ void PageLayout::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Recompute layout if necessary and draw selection for all children
 // ----------------------------------------------------------------------------
-//   REVISIT: There is a lot of copy-paste between Draw, DrawSelection, Identify
-//   Consider using a pointer-to-member (ugly) or some clever trick?
 {
     // Remember the initial selection ID
     Widget *widget = where->Display();
@@ -666,9 +662,6 @@ void PageLayout::Identify(Layout *where)
 //   Identify page elements for OpenGL
 // ----------------------------------------------------------------------------
 {
-    // Remember the initial selection ID
-    Widget *widget = where->Display();
-
     // Inherit state from our parent layout if there is one
     Inherit(where);
 
@@ -685,7 +678,6 @@ void PageLayout::Identify(Layout *where)
         child->Identify(this);
     }
 
-    glLoadName(widget->newId());
     coord x = space.Left(),  y = space.Bottom();
     coord w = space.Width(), h = space.Height();
     coord z = (space.Front() + space.Back()) / 2;

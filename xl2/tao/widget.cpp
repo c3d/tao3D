@@ -2742,11 +2742,14 @@ Tree * Widget::textBox(Tree *self,
 {
     PageLayout *tbox = new PageLayout(this);
     tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
-    if (currentShape)
-        tbox->id = newId();
     layout->Add(tbox);
-    layout->Add(new ControlRectangle(self, x, y, w, h));
     flows[flowName] = tbox;
+
+    if (currentShape)
+    {
+        tbox->id = layout->id;
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
+    }
 
     XL::LocalSave<Layout *> save(layout, tbox);
     return xl_evaluate(prog);
@@ -2763,7 +2766,8 @@ Tree *Widget::textOverflow(Tree *self,
     PageLayoutOverflow *overflow =
         new PageLayoutOverflow(Box(x - w/2, y-h/2, w, h), this, flowName);
     layout->Add(overflow);
-    layout->Add(new ControlRectangle(self, x, y, w, h));
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
 
     return XL::xl_true;
 }

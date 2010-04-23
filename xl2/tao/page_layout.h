@@ -88,6 +88,7 @@ public:
     virtual PageLayout *NewChild()      { return new PageLayout(*this); }
     virtual PageLayout *Remaining();
 
+    void                Inherit(Layout *other);
     void                Compute();
     void                SafeCompute();
 

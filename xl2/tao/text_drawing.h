@@ -88,6 +88,7 @@ struct TextSelect : Activity
     bool                textMode;
     bool                pickingUpDown;
     bool                movePointOnly;
+    bool                findingLayout;
 };
 
 

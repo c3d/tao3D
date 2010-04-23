@@ -387,8 +387,8 @@ TextSelect::TextSelect(Widget *w)
     : Activity("Text selection", w),
       mark(0), point(0), direction(None), targetX(0),
       replacement(""), replace(false),
-      textMode(false),
-      pickingUpDown(false), movePointOnly(false)
+      textMode(false), pickingUpDown(false), movePointOnly(false),
+      findingLayout(true)
 {
     Widget::selection_map::iterator i, last = w->selection.end();
     for (i = w->selection.begin(); i != last; i++)
@@ -411,6 +411,7 @@ Activity *TextSelect::Display()
 //   Display the text selection
 // ----------------------------------------------------------------------------
 {
+    findingLayout = false;
     return next;
 }
 
@@ -581,6 +582,7 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
             ptr += 3 + size;
         }
 
+        findingLayout = true;
         if (manipulator)
         {
             textMode = false;
@@ -631,6 +633,7 @@ void TextSelect::updateSelection()
     uint s = start(), e = end();
     for (uint i = s; i < e; i++)
         widget->selection[i | Widget::CHAR_ID_BIT] = 1;
+    findingLayout = true;
 }
 
 

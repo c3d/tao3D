@@ -67,11 +67,7 @@ Application::Application(int & argc, char ** argv)
     // Get the first file name and guess its location to initialize
     // the project folder. If there is no filename, or it is not found the
     // currentProjectFolder will be initialized to "".
-    currentProjectFolder = QFileInfo(+options.Parse(argc, argv)).canonicalPath();
-
-//    text cmd = options.Parse(argc, argv);
-//    QFileInfo info(cmd);
-//    currentProjectFolder = info.canonicalPath();
+    currentProjectFolder = QFileInfo(+options.Parse(argc,argv)).canonicalPath();
 
     // Web settings
     QWebSettings *gs = QWebSettings::globalSettings();

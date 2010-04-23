@@ -201,7 +201,7 @@ submenu_insert_shape "menu"
 }
 
 toolbar_insert -> {
-toolbar "insert", "insert", "W"
+toolbar "insert", "insert", "N"
 submenu_insert_shape "toolbar"
 }
 

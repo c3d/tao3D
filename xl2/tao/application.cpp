@@ -64,10 +64,12 @@ Application::Application(int & argc, char ** argv)
     // Parse command line options
     XL::Errors errors(new XL::Positions());
     XL::Options options(errors);
+
     // Get the first file name and guess its location to initialize
     // the project folder. If there is no filename, or it is not found the
     // currentProjectFolder will be initialized to "".
-    currentProjectFolder = QFileInfo(+options.Parse(argc,argv)).canonicalPath();
+    text project = options.Parse(argc, argv);
+    currentProjectFolder = QFileInfo(+project).canonicalPath();
 
     // Web settings
     QWebSettings *gs = QWebSettings::globalSettings();
@@ -186,10 +188,10 @@ QString Application::defaultPreferencesFolderPath()
             "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows"
             "\\CurrentVersion\\Explorer",
             QSettings::NativeFormat);
-    // For Windows Vista/7
-    // Typically C:\Users\username\???
-    // For Windows XP
-    // Typically C:\Documents and Settings\username\Local Settings\Application Data
+    // For Windows Vista/7, typically
+    // C:\Users\username\???
+    // For Windows XP, typically
+    // C:\Documents and Settings\username\Local Settings\Application Data
     QString path = settings.value("User Shell Folders\\Local AppData")
                    .toString();
     if (!path.isNull())
@@ -383,8 +385,8 @@ void Application::saveSettings()
 //    Save application settings so they are avaible on next start
 // ----------------------------------------------------------------------------
 {
-    QSettings().setValue("UrlCompletions", QVariant(urlCompletions));
-    QSettings().setValue("PathCompletions", QVariant(pathCompletions));
+    QSettings().setValue("UrlCompletions", QVariant(urlList));
+    QSettings().setValue("PathCompletions", QVariant(pathList));
 }
 
 
@@ -393,8 +395,51 @@ void Application::loadSettings()
 //    Load application settings
 // ----------------------------------------------------------------------------
 {
-    urlCompletions = QSettings().value("UrlCompletions").toStringList();
-    pathCompletions = QSettings().value("PathCompletions").toStringList();
+    urlList = QSettings().value("UrlCompletions").toStringList();
+    pathList = QSettings().value("PathCompletions").toStringList();
+    // Normally not required, but initial implementation of completion used to
+    // create duplicates :(
+    urlList.removeDuplicates();
+    pathList.removeDuplicates();
 }
+
+
+QStringList Application::pathCompletions()
+// ----------------------------------------------------------------------------
+//    Return paths the user previously entered in miscellaneous dialog boxes
+// ----------------------------------------------------------------------------
+{
+    return pathList;
+}
+
+
+QStringList Application::urlCompletions()
+// ----------------------------------------------------------------------------
+//    Return urls the user previously entered in miscellaneous dialog boxes
+// ----------------------------------------------------------------------------
+{
+    return urlList;
+}
+
+
+void Application::addPathCompletion(QString path)
+// ----------------------------------------------------------------------------
+//    Append a path to paths completions if not already present
+// ----------------------------------------------------------------------------
+{
+    if (!pathList.contains(path))
+        pathList.append(path);
+}
+
+
+void Application::addUrlCompletion(QString url)
+// ----------------------------------------------------------------------------
+//    Append an URL to URL completions if not already present
+// ----------------------------------------------------------------------------
+{
+    if (!urlList.contains(url))
+        urlList.append(url);
+}
+
 
 TAO_END

@@ -87,7 +87,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentShape(NULL),
       currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
-      id(0), charId(0), capacity(0), manipulator(0),
+      id(0), charId(0), capacity(1), manipulator(0),
       event(NULL), focusWidget(NULL),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
@@ -313,6 +313,7 @@ void Widget::runProgram()
         std::cerr << "cleared, count = " << space->count << ", ";
     XL::LocalSave<Layout *> saveLayout(layout, space);
     selectionTrees.clear();
+    id = charId = 0;
 
     if (xlProgram)
     {
@@ -1365,17 +1366,17 @@ Repository * Widget::repository()
 }
 
 
-XL::Tree *Widget::get(text name, text topName)
+XL::Tree *Widget::get(Tree *shape, text name, text topName)
 // ----------------------------------------------------------------------------
 //   Find an attribute in the current shape or returns NULL
 // ----------------------------------------------------------------------------
 {
     // Can't get attributes without a current shape
-    if (!currentShape)
+    if (!shape)
         return NULL;
 
     // The current shape has to be a 'shape' prefix
-    XL::Prefix *shapePrefix = currentShape->AsPrefix();
+    XL::Prefix *shapePrefix = shape->AsPrefix();
     if (!shapePrefix)
         return NULL;
     Name *shapeName = shapePrefix->left->AsName();
@@ -1420,17 +1421,17 @@ XL::Tree *Widget::get(text name, text topName)
 }
 
 
-bool Widget::set(text name, Tree *value, text topName)
+bool Widget::set(Tree *shape, text name, Tree *value, text topName)
 // ----------------------------------------------------------------------------
 //   Set an attribute in the current shape, return true if successful
 // ----------------------------------------------------------------------------
 {
     // Can't get attributes without a current shape
-    if (!currentShape)
+    if (!shape)
         return false;
 
     // The current shape has to be a 'shape' prefix
-    XL::Prefix *shapePrefix = currentShape->AsPrefix();
+    XL::Prefix *shapePrefix = shape->AsPrefix();
     if (!shapePrefix)
         return false;
     Name *shapeName = shapePrefix->left->AsName();
@@ -1495,18 +1496,18 @@ bool Widget::set(text name, Tree *value, text topName)
     } // Loop on all items
 
     // We didn't find the name: set the top level item
-    *topAddr = value;
+    *topAddr = new XL::Infix("\n", value, *topAddr);
     return true;
 }
 
 
-bool Widget::get(text name, XL::tree_list &args, text topName)
+bool Widget::get(Tree *shape, text name, XL::tree_list &args, text topName)
 // ----------------------------------------------------------------------------
 //   Get the arguments, decomposing args in a comma-separated list
 // ----------------------------------------------------------------------------
 {
     // Check if we can get the tree
-    Tree *attrib = get(name, topName);
+    Tree *attrib = get(shape, name, topName);
     if (!attrib)
         return false;
 
@@ -1536,7 +1537,7 @@ bool Widget::get(text name, XL::tree_list &args, text topName)
 }
 
 
-bool Widget::set(text name, XL::tree_list &args, text topName)
+bool Widget::set(Tree *shape, text name, XL::tree_list &args, text topName)
 // ----------------------------------------------------------------------------
 //   Set the arguments, building the comma-separated list
 // ----------------------------------------------------------------------------
@@ -1550,7 +1551,7 @@ bool Widget::set(text name, XL::tree_list &args, text topName)
         call = new XL::Prefix(call, argsTree);
     }
 
-    return set(name, call, topName);
+    return set(shape, name, call, topName);
 }
 
 
@@ -1622,6 +1623,15 @@ uint Widget::selected(uint i)
 // ----------------------------------------------------------------------------
 {
     return i && selection.count(i) > 0 ? selection[i] : 0;
+}
+
+
+uint Widget::selected(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Test if the current shape is selected
+// ----------------------------------------------------------------------------
+{
+    return selected(layout->id);
 }
 
 
@@ -1778,9 +1788,9 @@ void Widget::drawHandle(const Point3 &p, text handleName)
 
     SpaceLayout selectionSpace(this);
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-    XL::LocalSave<GLuint>   saveId(id, ~0U);
     GLAttribKeeper          saveGL;
     glDisable(GL_DEPTH_TEST);
+    selectionSpace.id = ~0U;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
     selectionSpace.Draw(NULL);
 }
@@ -1895,7 +1905,7 @@ XL::Real *Widget::frameWidth(Tree *self)
 //   Return the width of the current layout frame
 // ----------------------------------------------------------------------------
 {
-    return new Real(layout->Bounds().Width());
+    return new Real(layout->Bounds(layout).Width());
 }
 
 
@@ -1904,7 +1914,7 @@ XL::Real *Widget::frameHeight(Tree *self)
 //   Return the height of the current layout frame
 // ----------------------------------------------------------------------------
 {
-    return new Real(layout->Bounds().Height());
+    return new Real(layout->Bounds(layout).Height());
 }
 
 
@@ -1913,7 +1923,7 @@ XL::Real *Widget::frameDepth(Tree *self)
 //   Return the depth of the current layout frame
 // ----------------------------------------------------------------------------
 {
-    return new Real(layout->Bounds().Depth());
+    return new Real(layout->Bounds(layout).Depth());
 }
 
 
@@ -1960,7 +1970,9 @@ Tree *Widget::locally(Tree *self, Tree *child)
 //   Evaluate the child tree while preserving the current state
 // ----------------------------------------------------------------------------
 {
+    uint id = layout->id;
     XL::LocalSave<Layout *> save(layout, layout->AddChild());
+    layout->id = id;
     Tree *result = xl_evaluate(child);
     return result;
 }
@@ -1972,7 +1984,7 @@ Tree *Widget::shape(Tree *self, Tree *child)
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
-    XL::LocalSave<Tree *>   saveShape (currentShape, child);
+    XL::LocalSave<Tree *>   saveShape (currentShape, self);
     layout->id = newId();
     Tree *result = xl_evaluate(child);
     return result;
@@ -2014,7 +2026,7 @@ Tree *Widget::rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz)
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new RotationManipulator(self, ra, rx, ry, rz));
+    layout->Add(new Rotation(ra, rx, ry, rz));
     layout->hasMatrix = true;
     double amod90 = fmod(ra, 90.0);
     if (amod90 < -0.01 || amod90 > 0.01)
@@ -2055,7 +2067,7 @@ Tree *Widget::translate(Tree *self, real_r tx, real_r ty, real_r tz)
 //     Translation along three axes
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new TranslationManipulator(self, tx, ty, tz));
+    layout->Add(new Translation(tx, ty, tz));
     layout->hasMatrix = true;
     if (tz != 0.0)
         layout->hasPixelBlur = true;
@@ -2095,7 +2107,7 @@ Tree *Widget::rescale(Tree *self, real_r sx, real_r sy, real_r sz)
 //     Scaling along three axes
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new ScaleManipulator(self, sx, sy, sz));
+    layout->Add(new Scale(sx, sy, sz));
     layout->hasMatrix = true;
     if (sx != 1.0 || sy != 1.0)
         layout->hasPixelBlur = true;
@@ -2271,8 +2283,6 @@ Tree *Widget::newPath(Tree *self, Tree *child)
     TesselatedPath *localPath = new TesselatedPath(GLU_TESS_WINDING_ODD);
     XL::LocalSave<GraphicPath *> save(path, localPath);
     Tree *result = xl_evaluate(child);
-    layout->Add(new DrawingManipulator(self, path));
-
     return result;
 }
 
@@ -2419,14 +2429,17 @@ Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, x, y, w, h,
-                                         new Rectangle(shape)));
+        layout->Add(new Rectangle(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
 
     return XL::xl_true;
 }
 
 
-Tree *Widget::isoscelesTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
+Tree *Widget::isoscelesTriangle(Tree *self,
+                                real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //    Draw an isosceles triangle
 // ----------------------------------------------------------------------------
@@ -2435,8 +2448,10 @@ Tree *Widget::isoscelesTriangle(Tree *self, real_r x, real_r y, real_r w, real_r
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, x, y, w, h,
-                                         new IsoscelesTriangle(shape)));
+        layout->Add(new IsoscelesTriangle(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
 
     return XL::xl_true;
 }
@@ -2451,8 +2466,10 @@ Tree *Widget::rightTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, x, y, w, h,
-                                         new RightTriangle(shape)));
+        layout->Add(new RightTriangle(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
 
     return XL::xl_true;
 }
@@ -2467,8 +2484,10 @@ Tree *Widget::ellipse(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, cx, cy, w, h,
-                                         new Ellipse(shape)));
+        layout->Add(new Ellipse(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, cx, cy, w, h));
 
     return XL::xl_true;
 }
@@ -2485,8 +2504,10 @@ Tree *Widget::ellipseArc(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, cx, cy, w, h,
-                                         new EllipseArc(shape)));
+        layout->Add(new EllipseArc(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, cx, cy, w, h));
 
     return XL::xl_true;
 }
@@ -2503,12 +2524,14 @@ Tree *Widget::roundedRectangle(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRoundedRectangle(self, cx, cy, w, h, r,
-                                                new RoundedRectangle(shape)));
+        layout->Add(new RoundedRectangle(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRoundedRectangle(currentShape, cx,cy,w,h, r));
+
 
     return XL::xl_true;
 }
-
 
 
 Tree *Widget::ellipticalRectangle(Tree *self,
@@ -2522,15 +2545,18 @@ Tree *Widget::ellipticalRectangle(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, cx, cy, w, h,
-                                         new EllipticalRectangle(shape)));
+        layout->Add(new EllipticalRectangle(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRoundedRectangle(currentShape,
+                                                cx, cy, w, h, r));
 
     return XL::xl_true;
 }
 
 
-
-Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
+Tree *Widget::arrow(Tree *self,
+                    real_r cx, real_r cy, real_r w, real_r h,
                     real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
 //   Arrow
@@ -2540,15 +2566,18 @@ Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlArrow(self, cx, cy, w, h, ax, ary,
-                                     new Arrow(shape)));
+        layout->Add(new Arrow(shape));
 
+    if (currentShape)
+        layout->Add(new ControlArrow(currentShape, cx, cy, w, h, ax, ary));
+                                     
     return XL::xl_true;
 }
 
 
-Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
-                    real_r ax, real_r ary)
+Tree *Widget::doubleArrow(Tree *self,
+                          real_r cx, real_r cy, real_r w, real_r h,
+                          real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
 //   Double arrow
 // ----------------------------------------------------------------------------
@@ -2557,8 +2586,10 @@ Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlArrow(self, cx, cy, w, h, ax, ary, true,
-                                     new DoubleArrow(shape)));
+        layout->Add(new DoubleArrow(shape));
+
+    if (currentShape)
+        layout->Add(new ControlArrow(currentShape, cx,cy,w,h, ax,ary, true));
 
     return XL::xl_true;
 }
@@ -2575,8 +2606,10 @@ Tree *Widget::starPolygon(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlPolygon(self, cx, cy, w, h, p,
-                                       new StarPolygon(shape)));
+        layout->Add(new StarPolygon(shape));
+
+    if (currentShape)
+        layout->Add(new ControlPolygon(currentShape, cx, cy, w, h, p));
 
     return XL::xl_true;
 }
@@ -2593,8 +2626,10 @@ Tree *Widget::star(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlStar(self, cx, cy, w, h, p, r,
-                                    new Star(shape)));
+        layout->Add(new Star(shape));
+
+    if (currentShape)
+        layout->Add(new ControlStar(currentShape, cx, cy, w, h, p, r));
 
     return XL::xl_true;
 }
@@ -2611,12 +2646,13 @@ Tree *Widget::speechBalloon(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlBalloon(self, cx, cy, w, h, r, ax, ay,
-                                       new SpeechBalloon(shape)));
+        layout->Add(new SpeechBalloon(shape));
 
+    if (currentShape)
+        layout->Add(new ControlBalloon(currentShape, cx, cy, w, h, r, ax, ay));
+                                       
     return XL::xl_true;
 }
-
 
 
 Tree *Widget::callout(Tree *self,
@@ -2630,8 +2666,12 @@ Tree *Widget::callout(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlCallout(self, cx, cy, w, h, r, ax, ay, d,
-                                       new Callout(shape)));
+        layout->Add(new Callout(shape));
+
+    if (currentShape)
+        layout->Add(new ControlCallout(currentShape,
+                                       cx, cy, w, h,
+                                       r, ax, ay, d));
 
     return XL::xl_true;
 }
@@ -2652,8 +2692,9 @@ Tree *Widget::sphere(Tree *self,
 //     GL sphere
 // ----------------------------------------------------------------------------
 {
-    Sphere *s = new Sphere(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks);
-    layout->Add (new ControlBox(self, x, y, z, w, h, d, s));
+    layout->Add(new Sphere(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks));
+    if (currentShape)
+        layout->Add (new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
 }
 
@@ -2665,8 +2706,9 @@ Tree *Widget::cube(Tree *self,
 //    A simple cubic box
 // ----------------------------------------------------------------------------
 {
-    Cube *c = new Cube(Box3(x-w/2, y-h/2, z-d/2, w,h,d));
-    layout->Add(new ControlBox(self, x, y, z, w, h, d, c));
+    layout->Add(new Cube(Box3(x-w/2, y-h/2, z-d/2, w,h,d)));
+    if (currentShape)
+        layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
 }
 
@@ -2678,8 +2720,9 @@ Tree *Widget::cone(Tree *self,
 //    A simple cone
 // ----------------------------------------------------------------------------
 {
-    Cube *c = new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d));
-    layout->Add(new ControlBox(self, x, y, z, w, h, d, c));
+    layout->Add(new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d)));
+    if (currentShape)
+        layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
 }
 
@@ -2699,8 +2742,14 @@ Tree * Widget::textBox(Tree *self,
 {
     PageLayout *tbox = new PageLayout(this);
     tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
-    layout->Add(new ControlRectangle(self, x, y, w, h, tbox));
+    layout->Add(tbox);
     flows[flowName] = tbox;
+
+    if (currentShape)
+    {
+        tbox->id = layout->id;
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
+    }
 
     XL::LocalSave<Layout *> save(layout, tbox);
     return xl_evaluate(prog);
@@ -2716,7 +2765,9 @@ Tree *Widget::textOverflow(Tree *self,
     // Add page layout overflow rectangle
     PageLayoutOverflow *overflow =
         new PageLayoutOverflow(Box(x - w/2, y-h/2, w, h), this, flowName);
-    layout->Add(new ControlRectangle(self, x, y, w, h, overflow));
+    layout->Add(overflow);
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
 
     return XL::xl_true;
 }
@@ -2733,12 +2784,15 @@ XL::Text *Widget::textFlow(Tree *self, text name)
 }
 
 
-Tree *Widget::textSpan(Tree *self, text_r content)
+Tree *Widget::textSpan(Tree *self, text_r contents)
 // ----------------------------------------------------------------------------
 //   Insert a block of text with the current definition of font, color, ...
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new TextSpan(&content, layout->font));
+    if (path)
+        TextSpan(&contents).Draw(*path, layout);
+    else
+        layout->Add(new TextSpan(&contents));
     return XL::xl_true;
 }
 
@@ -2749,6 +2803,7 @@ Tree *Widget::font(Tree *self, text description)
 // ----------------------------------------------------------------------------
 {
     layout->font.fromString(+description);
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2759,6 +2814,7 @@ Tree *Widget::fontSize(Tree *self, double size)
 // ----------------------------------------------------------------------------
 {
     layout->font.setPointSizeF(size);
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2775,6 +2831,7 @@ Tree *Widget::fontPlain(Tree *self)
     font.setUnderline(false);
     font.setStrikeOut(false);
     font.setOverline(false);
+    layout->Add(new FontChange(font));
     return XL::xl_true;
 }
 
@@ -2798,6 +2855,7 @@ Tree *Widget::fontItalic(Tree *self, scale amount)
 {
     amount = clamp(amount, 0, 2);
     layout->font.setStyle(QFont::Style(amount));
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2810,6 +2868,7 @@ Tree *Widget::fontBold(Tree *self, scale amount)
 {
     amount = clamp(amount, 0, 99);
     layout->font.setWeight(QFont::Weight(amount));
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2821,6 +2880,7 @@ Tree *Widget::fontUnderline(Tree *self, scale amount)
 //    Qt doesn't support setting the size of the underline, it's on or off
 {
     layout->font.setUnderline(bool(amount));
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2832,6 +2892,7 @@ Tree *Widget::fontOverline(Tree *self, scale amount)
 //    Qt doesn't support setting the size of the overline, it's on or off
 {
     layout->font.setOverline(bool(amount));
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2843,6 +2904,7 @@ Tree *Widget::fontStrikeout(Tree *self, scale amount)
 //    Qt doesn't support setting the size of the strikeout, it's on or off
 {
     layout->font.setStrikeOut(bool(amount));
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2855,6 +2917,7 @@ Tree *Widget::fontStretch(Tree *self, scale amount)
 {
     amount = clamp(amount, 0, 40);
     layout->font.setStretch(int(amount * 100));
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2976,8 +3039,9 @@ Tree *Widget::framePaint(Tree *self,
     Tree *result = frameTexture(self, w, h, prog);
 
     // Draw a rectangle with the resulting texture
-    layout->Add(new FrameManipulator(self, x, y, w, h,
-                                     new Rectangle(Box(x-w/2, y-h/2, w, h))));
+    layout->Add(new Rectangle(Box(x-w/2, y-h/2, w, h)));
+    if (currentShape)
+        layout->Add(new FrameManipulator(currentShape, x, y, w, h));
     return result;
 }
 
@@ -3969,6 +4033,29 @@ XL::Name *Widget::deleteSelection(Tree *self, text key)
     markChanged("Deleted selection");
     selection.clear();
     selectionTrees.clear();
+
+    return XL::xl_true;
+}
+
+
+XL::Name *Widget::setAttribute(Tree *self,
+                               text name, Tree *attribute,
+                               text shape)
+// ----------------------------------------------------------------------------
+//    Insert the tree in all shapes in the selection
+// ----------------------------------------------------------------------------
+{
+    if (!xlProgram)
+        return XL::xl_false;
+
+    Tree *program = xlProgram->tree.tree;
+    if (XL::Block *block = attribute->AsBlock())
+        attribute = block->child;
+
+    SetAttributeAction setAttrib(name, attribute, this, shape);
+    program->Do(setAttrib);
+    reloadProgram();
+    markChanged("Updated " + name + " attribute");
 
     return XL::xl_true;
 }

@@ -40,12 +40,12 @@ SpaceLayout::~SpaceLayout()
 {}
 
 
-Box3 SpaceLayout::Space()
+Box3 SpaceLayout::Space(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Return the space for the layout
 // ----------------------------------------------------------------------------
 {
-    Box3 result = Bounds();
+    Box3 result = Bounds(layout);
     result |= space;
     return result;
 }

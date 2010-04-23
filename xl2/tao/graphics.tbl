@@ -445,7 +445,9 @@ PREFIX(ErrorMessage0, tree, "error", PARM(m, text),
 PREFIX(Insert, boolean, "insert", PARM(t, tree), RTAO(insert(self, &t)))
 PREFIX(Delete, boolean, "delete_selection", PARM(k, text),
        RTAO(deleteSelection(self, k)))
-
+PREFIX(SetAttribute, boolean, "set_attribute",
+       PARM(n, text) PARM(t, tree),
+       RTAO(setAttribute(self, n, &t, "shape")))
 
 
 // ============================================================================

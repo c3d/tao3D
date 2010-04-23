@@ -55,7 +55,7 @@ struct Rectangle : Shape
 {
     Rectangle(const Box &b): Shape(), bounds(b) {}
     virtual void        Draw(GraphicPath &path);
-    virtual Box3        Bounds()        { return bounds; }
+    virtual Box3        Bounds(Layout *)        { return bounds; }
     Box                 bounds;
 };
 

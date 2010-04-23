@@ -130,10 +130,10 @@ public:
     bool        writeIfChanged(XL::SourceFile &sf);
     bool        doCommit();
     Repository *repository();
-    Tree *      get(text name, text topName = "shape");
-    bool        set(text name, Tree *value, text topName = "shape");
-    bool        get(text name, XL::tree_list &args, text topName = "shape");
-    bool        set(text name, XL::tree_list &args, text topName = "shape");
+    Tree *      get(Tree *shape, text name, text sh = "shape");
+    bool        set(Tree *shape, text n, Tree *value, text sh = "shape");
+    bool        get(Tree *shape, text n, XL::tree_list &a, text sh = "shape");
+    bool        set(Tree *shape, text n, XL::tree_list &a, text sh = "shape");
 
     // Timing
     ulonglong   now();
@@ -147,15 +147,15 @@ public:
     GLuint      currentId()             { return id; }
     GLuint      manipulatorId()         { return manipulator; }
     GLuint      selectionCapacity()     { return capacity; }
-    uint        selected()              { return selected(id); }
     GLuint      newCharId(uint ids = 1) { return charId += ids; }
     GLuint      currentCharId()         { return charId; }
     uint        charSelected(uint i)    { return selected(i | CHAR_ID_BIT); }
     uint        charSelected()          { return charSelected(charId); }
     void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
-    uint        selected(uint i);
     uint        selected(Tree *tree)    { return selectionTrees.count(tree); }
     void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
+    uint        selected(uint i);
+    uint        selected(Layout *);
     void        select(uint id, uint count);
     void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);
@@ -388,8 +388,9 @@ public:
     // Tree management
     Name *      insert(Tree *self, Tree *toInsert);
     Name *      deleteSelection(Tree *self, text key);
+    Name *      setAttribute(Tree *self, text name, Tree *attribute, text sh);
 
-    // Unit conversions
+    // Unit conversionsxo
     Real *      fromCm(Tree *self, double cm);
     Real *      fromMm(Tree *self, double mm);
     Real *      fromIn(Tree *self, double in);
@@ -611,6 +612,29 @@ struct InsertAtSelectionAction : XL::TreeClone
     Widget   *widget;
     XL::Tree *toInsert;
     XL::Tree *parent;
+};
+
+
+struct SetAttributeAction : XL::Action
+// ----------------------------------------------------------------------------
+//    Copy the inserted item as attribute in all selected items
+// ----------------------------------------------------------------------------
+{
+    SetAttributeAction(text name, XL::Tree *attribute,
+                       Widget *widget, text shape = "shape")
+        : name(name), attribute(attribute), widget(widget), shape(shape) {}
+
+    XL::Tree *Do(XL::Tree *what)
+    {
+        if (widget->selected(what))
+            widget->set(what, name, attribute, shape);
+        return what;
+    }
+
+    text      name;
+    XL::Tree *attribute;
+    Widget   *widget;
+    text      shape;
 };
 
 } // namespace Tao

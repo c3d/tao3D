@@ -36,7 +36,7 @@ RemoteSelectionFrame::RemoteSelectionFrame(QWidget *parent)
     : QFrame(parent), repo(NULL)
 {
     setupUi(this);
-    urlEdit->setCompleter(new QCompleter(TaoApp->urlCompletions, this));
+    urlEdit->setCompleter(new QCompleter(TaoApp->urlCompletions(), this));
 }
 
 
@@ -175,7 +175,7 @@ void RemoteSelectionFrame::on_urlEdit_editingFinished()
 {
     QString url = urlEdit->text();
     repo->setRemote(nameCombo->currentText(), url);
-    TaoApp->urlCompletions.append(url);
+    TaoApp->addUrlCompletion(url);
 }
 
 

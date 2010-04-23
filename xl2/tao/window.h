@@ -102,6 +102,7 @@ private:
     QString currentProjectFolderPath();
     bool populateUndoStack();
     void warnNoRepo();
+    void enableProjectSharingMenus();
 
 private:
     XL::Main *        xlRuntime;

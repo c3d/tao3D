@@ -46,9 +46,9 @@
 // paired together.
 //#define EXACT_STRING_MATCH 1
 
-XL_BEGIN
+#include "sha1_ostream.h"
 
-#include "sha1_ostream.h" // Won't work outside of XL namespace
+XL_BEGIN
 
 struct MatchedInfo : Info
 // ----------------------------------------------------------------------------

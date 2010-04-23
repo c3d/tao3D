@@ -125,8 +125,6 @@ bool Process::done(text *errors, text *output)
     if (rc)
         ok = false;
 
-    err.clear();
-    out.clear();
     bool tracing = XLTRACE(process);
     if (!ok)
     {
@@ -210,10 +208,11 @@ void Process::sendStandardOutputToTextEdit()
 {
     if (!outTextEdit)
         return;
-    QByteArray out = readAllStandardOutput();
+    QByteArray outB = readAllStandardOutput();
     IFTRACE(process)
-        std::cerr << +QString(out);
-    outTextEdit->insertAnsiText(out);
+        std::cerr << +QString(outB);
+    outTextEdit->insertAnsiText(outB);
+    out.append(outB);
 }
 
 
@@ -224,10 +223,11 @@ void Process::sendStandardErrorToTextEdit()
 {
     if (!errTextEdit)
         return;
-    QByteArray err = readAllStandardError();
+    QByteArray errB = readAllStandardError();
     IFTRACE(process)
-        std::cerr << +QString(err);
-    errTextEdit->insertAnsiText(err);
+        std::cerr << +QString(errB);
+    errTextEdit->insertAnsiText(errB);
+    err.append(errB);
 }
 
 TAO_END

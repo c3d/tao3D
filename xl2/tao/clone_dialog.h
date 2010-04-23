@@ -44,7 +44,7 @@ public slots:
     virtual void on_browseButton_clicked();
     virtual void on_folderEdit_textEdited();
     virtual void on_urlEdit_textEdited();
-    virtual void endClone(void *id);
+    virtual void endClone(void *id, QString projPath);
 
 private:
     void         enableOkCancel();

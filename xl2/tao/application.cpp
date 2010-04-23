@@ -387,8 +387,8 @@ void Application::saveSettings()
 //    Save application settings so they are avaible on next start
 // ----------------------------------------------------------------------------
 {
-    QSettings().setValue("UrlCompletions", QVariant(urlCompletions));
-    QSettings().setValue("PathCompletions", QVariant(pathCompletions));
+    QSettings().setValue("UrlCompletions", QVariant(urlList));
+    QSettings().setValue("PathCompletions", QVariant(pathList));
 }
 
 
@@ -397,8 +397,51 @@ void Application::loadSettings()
 //    Load application settings
 // ----------------------------------------------------------------------------
 {
-    urlCompletions = QSettings().value("UrlCompletions").toStringList();
-    pathCompletions = QSettings().value("PathCompletions").toStringList();
+    urlList = QSettings().value("UrlCompletions").toStringList();
+    pathList = QSettings().value("PathCompletions").toStringList();
+    // Normally not required, but initial implementation of completion used to
+    // create duplicates :(
+    urlList.removeDuplicates();
+    pathList.removeDuplicates();
 }
+
+
+QStringList Application::pathCompletions()
+// ----------------------------------------------------------------------------
+//    Return paths the user previously entered in miscellaneous dialog boxes
+// ----------------------------------------------------------------------------
+{
+    return pathList;
+}
+
+
+QStringList Application::urlCompletions()
+// ----------------------------------------------------------------------------
+//    Return urls the user previously entered in miscellaneous dialog boxes
+// ----------------------------------------------------------------------------
+{
+    return urlList;
+}
+
+
+void Application::addPathCompletion(QString path)
+// ----------------------------------------------------------------------------
+//    Append a path to paths completions if not already present
+// ----------------------------------------------------------------------------
+{
+    if (!pathList.contains(path))
+        pathList.append(path);
+}
+
+
+void Application::addUrlCompletion(QString url)
+// ----------------------------------------------------------------------------
+//    Append an URL to URL completions if not already present
+// ----------------------------------------------------------------------------
+{
+    if (!urlList.contains(url))
+        urlList.append(url);
+}
+
 
 TAO_END

@@ -36,6 +36,14 @@ TAO_BEGIN
 QMap<QString, QWeakPointer<Repository> > RepositoryFactory::cache;
 Repository::Kind  RepositoryFactory::availableScm = Repository::Unknown;
 
+Repository::~Repository()
+// ----------------------------------------------------------------------------
+//   Remove self from cache (if present)
+// ----------------------------------------------------------------------------
+{
+    RepositoryFactory::removeFromCache(path);
+}
+
 text Repository::fullName(text fileName)
 // ----------------------------------------------------------------------------
 //   Return the full name of an element in the repository or "" if outside
@@ -254,8 +262,6 @@ void Repository::asyncProcessFinished(int exitCode)
             std::cerr << +tr("Async command failed, exit status %1: %2\n")
                          .arg((int)exitCode).arg(cmd->commandLine);
     }
-    cmd->sendStandardOutputToTextEdit();
-    emit asyncProcessComplete(cmd->id);
 }
 
 
@@ -264,7 +270,9 @@ void Repository::asyncProcessError(QProcess::ProcessError error)
 //   Default action when an asynchronous subprocess has an error
 // ----------------------------------------------------------------------------
 {
-    ProcQueueConsumer p(*this);
+    // Note: do not pop current process from run queue here!
+    // This slot is called *in addition to* asyncProcessFinished, which
+    // will do the cleanup.
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
     IFTRACE(process)
@@ -324,22 +332,20 @@ Repository::ProcQueueConsumer::~ProcQueueConsumer()
 repository_ptr
 RepositoryFactory::repository(QString path, RepositoryFactory::Mode mode)
 // ----------------------------------------------------------------------------
-//    Factory returning the right repository kind for a directory (wth cache)
+//    Factory returning the right repository kind for a directory (with cache)
 // ----------------------------------------------------------------------------
 {
     // Do we know this guy already?
     if (cache.contains(path))
     {
-        if (mode == Clone)
-            return repository_ptr(NULL);  // Can't clone into existing repo
+//        if (mode == RepositoryFactory::Clone)
+//            return repository_ptr(NULL);  // Can't clone into existing repo
         return repository_ptr(cache.value(path));
     }
 
     // Open (and optionally, create) a repository in 'path'
-    // Do not cache 'Clone' repositories because the path when cloning is NOT
-    // the project path (clone creates a subdirectory)
     repository_ptr rep(newRepository(path, mode));
-    if (rep && mode != Clone)
+    if (rep)
         cache.insert(path, QWeakPointer<Repository>(rep));
 
     return rep;
@@ -378,6 +384,18 @@ RepositoryFactory::newRepository(QString path, RepositoryFactory::Mode mode)
     }
     delete git;
     return NULL;
+}
+
+
+void RepositoryFactory::removeFromCache(QString path)
+// ----------------------------------------------------------------------------
+//    Called by Repository destructor to remove self
+// ----------------------------------------------------------------------------
+{
+    // It is possible for a Repository object to be created, then deleted
+    // without being cached (see newRepository()), hence the following test
+    if (cache.contains(path))
+        cache.remove(path);
 }
 
 

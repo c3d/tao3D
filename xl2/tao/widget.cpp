@@ -91,6 +91,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       event(NULL), focusWidget(NULL),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
+      colorAction(NULL), fontAction(NULL),
       timer(this), idleTimer(this),
       pageStartTime(CurrentTime()), pageRefresh(86400),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
@@ -3322,6 +3323,160 @@ Tree *Widget::abstractButton(Tree *self, Text *name,
 }
 
 
+QColorDialog *Widget::colorDialog = NULL;
+Tree *Widget::colorChooser(Tree *self, Tree *action)
+// ----------------------------------------------------------------------------
+//   Draw a color chooser
+// ----------------------------------------------------------------------------
+{
+    if (colorDialog)
+    {
+        delete colorDialog;
+        colorDialog = NULL;
+    }
+
+    colorDialog = new QColorDialog(this);
+    connect(colorDialog, SIGNAL(colorSelected (const QColor&)),
+            this, SLOT(colorChosen(const QColor &)));
+    connect(colorDialog, SIGNAL(currentColorChanged (const QColor&)),
+            this, SLOT(colorChosen(const QColor &)));
+    
+    colorDialog->setModal(false);
+    colorDialog->setOption(QColorDialog::ShowAlphaChannel, true);
+    colorDialog->setOption(QColorDialog::DontUseNativeDialog, false);
+    colorDialog->show();
+
+    colorAction.tree = action;
+
+    return XL::xl_true;
+}
+
+
+void Widget::colorChosen(const QColor & col)
+// ----------------------------------------------------------------------------
+//   Slot called by the color widget when a color is selected
+// ----------------------------------------------------------------------------
+{
+    if (!colorAction.tree)
+        return;
+
+    IFTRACE (widgets)
+    {
+        std::cerr << "Color "<< col.name().toStdString()
+                  << "was chosen for reference "<< colorAction.tree << "\n";
+    }
+
+    // We override names 'red', 'green', 'blue' and 'alpha' in the input tree
+    struct ColorTreeClone : XL::TreeClone
+    {
+        ColorTreeClone(const QColor &c) : color(c){}
+        XL::Tree *DoName(XL::Name *what)
+        {
+            if (what->value == "red")
+                return new XL::Real(color.redF(), what->Position());
+            if (what->value == "green")
+                return new XL::Real(color.greenF(), what->Position());
+            if (what->value == "blue")
+                return new XL::Real(color.blueF(), what->Position());
+            if (what->value == "alpha")
+                return new XL::Real(color.alphaF(), what->Position());
+
+            return new XL::Name(what->value, what->Position());
+        }
+        QColor color;
+    } replacer(col);
+
+    // The tree to be evaluated needs its own symbol table before evaluation
+    XL::Tree *toBeEvaluated = colorAction.tree;
+    XL::Symbols *syms = toBeEvaluated->Get<XL::SymbolsInfo>();
+    if (!syms)
+        syms = XL::Symbols::symbols;
+    syms = new XL::Symbols(syms);
+    toBeEvaluated = toBeEvaluated->Do(replacer);
+    toBeEvaluated->Set<XL::SymbolsInfo>(syms);
+
+    // Evaluate the input tree
+    xl_evaluate(toBeEvaluated);
+}
+
+
+QFontDialog *Widget::fontDialog = NULL;
+Tree *Widget::fontChooser(Tree *self, Tree *action)
+// ----------------------------------------------------------------------------
+//   Draw a font chooser
+// ----------------------------------------------------------------------------
+{
+    if (fontDialog)
+    {
+        delete fontDialog;
+        fontDialog = NULL;
+    }
+
+    fontDialog = new QFontDialog(this);
+    connect(fontDialog, SIGNAL(fontSelected (const QFont&)),
+            this, SLOT(fontChosen(const QFont &)));
+    
+    fontDialog->setModal(false);
+    fontDialog->show();
+    fontAction.tree = action;
+
+    return XL::xl_true;
+}
+
+
+void Widget::fontChosen(const QFont& ft)
+// ----------------------------------------------------------------------------
+//    A font was selected. Evaluate the action.
+// ----------------------------------------------------------------------------
+{
+    if (!fontAction.tree)
+        return;
+
+    IFTRACE (widgets)
+    {
+        std::cerr << "Font "<< ft.toString().toStdString()
+                  << "was chosen for reference "<< fontAction.tree << "\n";
+    }
+
+    struct FontTreeClone : XL::TreeClone
+    {
+        FontTreeClone(const QFont &f) : font(f){}
+        XL::Tree *DoName(XL::Name *what)
+        {
+            if (what->value == "family")
+                return new XL::Text(font.family().toStdString(),
+                                    "\"" ,"\"",what->Position());
+            if (what->value == "pointSize")
+                return new XL::Integer(font.pointSize(), what->Position());
+            if (what->value == "weight")
+                return new XL::Integer(font.weight(), what->Position());
+            if (what->value == "italic")
+            {
+                return new XL::Name(font.italic() ?
+                                      XL::xl_true->value :
+                                      XL::xl_false->value,
+                                      what->Position());
+            }
+
+            return new XL::Name(what->value, what->Position());
+        }
+        QFont font;
+    } replacer(ft);
+
+    // The tree to be evaluated needs its own symbol table before evaluation
+    XL::Tree *toBeEvaluated = fontAction.tree;
+    XL::Symbols *syms = toBeEvaluated->Get<XL::SymbolsInfo>();
+    if (!syms)
+        syms = XL::Symbols::symbols;
+    syms = new XL::Symbols(syms);
+    toBeEvaluated = toBeEvaluated->Do(replacer);
+    toBeEvaluated->Set<XL::SymbolsInfo>(syms);
+
+    // Evaluate the input tree
+    xl_evaluate(toBeEvaluated);
+}
+
+
 Tree *Widget::colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
                            Tree *action)
 // ----------------------------------------------------------------------------
@@ -3340,8 +3495,7 @@ Tree *Widget::colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
 }
 
 
-Tree *Widget::colorChooserTexture(Tree *self, double w, double h,
-                                  Tree *action)
+Tree *Widget::colorChooserTexture(Tree *self, double w, double h, Tree *action)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given color chooser
 // ----------------------------------------------------------------------------

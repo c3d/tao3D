@@ -104,20 +104,14 @@ void CloneDialog::endClone(void *id, QString projPath)
     setCursor(Qt::ArrowCursor);
     QString text;
     if (proc)
-    {
-        proc = NULL;
-        okToDismiss = true;
-        okButton->setText("Close");
-        okButton->setEnabled(true);
-        cancelButton->setEnabled(false);
         text = tr("Done.\n");
-    }
     else
-    {
-        cancelButton->setText("Cancel");
-        okButton->setEnabled(true);
         text = tr("Aborted.\n");
-    }
+    proc = NULL;
+    okToDismiss = true;
+    okButton->setText("Close");
+    okButton->setEnabled(true);
+    cancelButton->setEnabled(false);
     cloneOutput->append(text);
     if (!projPath.isEmpty())
     {

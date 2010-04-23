@@ -313,6 +313,7 @@ void Widget::runProgram()
         std::cerr << "cleared, count = " << space->count << ", ";
     XL::LocalSave<Layout *> saveLayout(layout, space);
     selectionTrees.clear();
+    id = charId = 0;
 
     if (xlProgram)
     {

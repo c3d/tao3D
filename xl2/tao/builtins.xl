@@ -206,8 +206,6 @@ menu_item "shape > color", "Color...", do
 menu_item "shape > line color", "Line color...", do
     color_chooser 0,0,300,200, do
         set_attribute "line_color", {line_color red, green, blue, alpha}
-menu_item "shape > wave", "Anne Effect...", do
-   set_attribute "rotatez", {rotatez 5 * sin time}
 }
 
 toolbar_insert -> {

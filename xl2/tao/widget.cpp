@@ -2282,6 +2282,7 @@ Tree *Widget::newPath(Tree *self, Tree *child)
 
     TesselatedPath *localPath = new TesselatedPath(GLU_TESS_WINDING_ODD);
     XL::LocalSave<GraphicPath *> save(path, localPath);
+    layout->Add(localPath);
     Tree *result = xl_evaluate(child);
     return result;
 }

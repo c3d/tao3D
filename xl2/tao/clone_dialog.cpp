@@ -112,15 +112,24 @@ void CloneDialog::endClone(void *id, QString projPath)
     okButton->setText("Close");
     okButton->setEnabled(true);
     cancelButton->setEnabled(false);
-    cloneOutput->append(text);
+    cloneOutput->insertPlainText(text);
     if (!projPath.isEmpty())
     {
         repository_ptr repo;
         repo = RepositoryFactory::repository(projPath,
                                              RepositoryFactory::OpenExisting);
         if (repo)
-            repo->checkout("master_tao_undo");
+        {
+            bool ok;
+            cloneOutput->insertPlainText(tr("Checking out files...\n"));
+            ok = repo->checkout("master_tao_undo");
+            if (ok)
+                cloneOutput->insertPlainText(tr("Done\n"));
+            else
+                cloneOutput->insertPlainText(tr("Failed.\n"));
+        }
     }
+    cloneOutput->moveCursor(QTextCursor::End);
 }
 
 void CloneDialog::on_browseButton_clicked()

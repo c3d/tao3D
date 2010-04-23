@@ -91,9 +91,7 @@ void AnsiTextEdit::flush()
         return;
     insertPlainText(str);
     str.clear();
-    QTextCursor c = textCursor();
-    c.movePosition(QTextCursor::End);
-    setTextCursor(c);
+    moveCursor(QTextCursor::End);
     update();
     QApplication::processEvents();
 }

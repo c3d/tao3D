@@ -1983,7 +1983,7 @@ Tree *Widget::shape(Tree *self, Tree *child)
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
-    XL::LocalSave<Tree *>   saveShape (currentShape, child);
+    XL::LocalSave<Tree *>   saveShape (currentShape, self);
     layout->id = newId();
     Tree *result = xl_evaluate(child);
     return result;

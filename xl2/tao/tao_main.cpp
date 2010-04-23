@@ -62,9 +62,11 @@ int main(int argc, char **argv)
                 << tao.defaultTaoPreferencesFolderPath()
                 << tao.defaultTaoApplicationFolderPath();
     QDir::setSearchPaths("xl", xl_dir_list);
-    QFileInfo builtins  ("xl:builtins");
+    QFileInfo builtins  ("xl:builtins.xl");
     QFileInfo syntax    ("xl:xl.syntax");
     QFileInfo stylesheet("xl:xl.stylesheet");
+    QFileInfo user      ("xl:user.xl");
+    QFileInfo theme     ("xl:theme.xl");
 
     // Setup the XL runtime environment
     XL::Compiler compiler("xl_tao");
@@ -74,6 +76,10 @@ int main(int argc, char **argv)
                                  +stylesheet.canonicalFilePath());
     XL::MAIN = xlr;
     EnterGraphics(&xlr->context);
+    if (user.exists())
+        xlr->file_names.push_back(+user.canonicalFilePath());
+    if (theme.exists())
+        xlr->file_names.push_back(+theme.canonicalFilePath());
     xlr->LoadFiles();
 
     // Create the windows for each file on the command line

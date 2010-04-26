@@ -167,7 +167,7 @@ void Window::open(QString fileName)
 {
     if (fileName.isEmpty())
     {
-        QString fileName = QFileDialog::getOpenFileName
+        fileName = QFileDialog::getOpenFileName
                            (this,
                             tr("Open Tao Document"),
                             currentProjectFolderPath(),

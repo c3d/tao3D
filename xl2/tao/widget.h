@@ -85,6 +85,7 @@ public:
     typedef XL::real_p    real_p;
     typedef XL::integer_p integer_p;
     typedef XL::text_p    text_p;
+    typedef std::vector<double>   attribute_args;
 
 public:
     Widget(Window *parent, XL::SourceFile *sf = NULL);
@@ -141,6 +142,8 @@ public:
     bool        set(Tree *shape, text n, Tree *value, text sh = "shape");
     bool        get(Tree *shape, text n, XL::tree_list &a, text sh = "shape");
     bool        set(Tree *shape, text n, XL::tree_list &a, text sh = "shape");
+    bool        get(Tree *shape, text n, attribute_args &a, text sh = "shape");
+    bool        set(Tree *shape, text n, attribute_args &a, text sh = "shape");
 
     // Timing
     ulonglong   now();

@@ -59,6 +59,7 @@
 #include <cmath>
 #include <QFont>
 #include <iostream>
+#include <algorithm>
 #include <QVariant>
 #include <QtWebKit>
 #include <sys/time.h>
@@ -81,7 +82,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf), inError(false),
+      xlProgram(sf), inError(false), mustUpdateDialogs(false),
       space(NULL), layout(NULL), path(NULL),
       pageName(""), pageId(0), pageTotal(0), pageTree(NULL),
       currentShape(NULL),
@@ -91,6 +92,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       event(NULL), focusWidget(NULL),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
+      colorAction(NULL), fontAction(NULL),
       timer(this), idleTimer(this),
       pageStartTime(CurrentTime()), pageRefresh(86400),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
@@ -281,6 +283,16 @@ void Widget::draw()
 
     // Update page count for next run
     pageTotal = pageId;
+
+    // If we must update dialogs, do it now
+    if (mustUpdateDialogs)
+    {
+        mustUpdateDialogs = false;
+        if (colorDialog)
+            updateColorDialog();
+        if (fontDialog)
+            updateFontDialog();
+    }
 }
 
 
@@ -306,6 +318,7 @@ void Widget::runProgram()
         std::cerr << "cleared, count = " << space->count << ", ";
     XL::LocalSave<Layout *> saveLayout(layout, space);
     selectionTrees.clear();
+    id = charId = 0;
 
     if (xlProgram)
     {
@@ -344,7 +357,6 @@ void Widget::runProgram()
         capacity = id + charId + 100;
     else if (id + charId + 50 < capacity / 2)
         capacity = capacity / 2;
-
 }
 
 
@@ -1360,17 +1372,17 @@ Repository * Widget::repository()
 }
 
 
-XL::Tree *Widget::get(text name, text topName)
+XL::Tree *Widget::get(Tree *shape, text name, text topName)
 // ----------------------------------------------------------------------------
 //   Find an attribute in the current shape or returns NULL
 // ----------------------------------------------------------------------------
 {
     // Can't get attributes without a current shape
-    if (!currentShape)
+    if (!shape)
         return NULL;
 
     // The current shape has to be a 'shape' prefix
-    XL::Prefix *shapePrefix = currentShape->AsPrefix();
+    XL::Prefix *shapePrefix = shape->AsPrefix();
     if (!shapePrefix)
         return NULL;
     Name *shapeName = shapePrefix->left->AsName();
@@ -1415,17 +1427,17 @@ XL::Tree *Widget::get(text name, text topName)
 }
 
 
-bool Widget::set(text name, Tree *value, text topName)
+bool Widget::set(Tree *shape, text name, Tree *value, text topName)
 // ----------------------------------------------------------------------------
 //   Set an attribute in the current shape, return true if successful
 // ----------------------------------------------------------------------------
 {
     // Can't get attributes without a current shape
-    if (!currentShape)
+    if (!shape)
         return false;
 
     // The current shape has to be a 'shape' prefix
-    XL::Prefix *shapePrefix = currentShape->AsPrefix();
+    XL::Prefix *shapePrefix = shape->AsPrefix();
     if (!shapePrefix)
         return false;
     Name *shapeName = shapePrefix->left->AsName();
@@ -1486,22 +1498,22 @@ bool Widget::set(text name, Tree *value, text topName)
                 }
             }
         }
-        
+
     } // Loop on all items
 
     // We didn't find the name: set the top level item
-    *topAddr = value;
+    *topAddr = new XL::Infix("\n", value, *topAddr);
     return true;
 }
 
 
-bool Widget::get(text name, XL::tree_list &args, text topName)
+bool Widget::get(Tree *shape, text name, XL::tree_list &args, text topName)
 // ----------------------------------------------------------------------------
 //   Get the arguments, decomposing args in a comma-separated list
 // ----------------------------------------------------------------------------
 {
     // Check if we can get the tree
-    Tree *attrib = get(name, topName);
+    Tree *attrib = get(shape, name, topName);
     if (!attrib)
         return false;
 
@@ -1509,7 +1521,7 @@ bool Widget::get(text name, XL::tree_list &args, text topName)
     args.clear();
     if (attrib->AsName())
         return true;
-    
+
     // Check that we have a prefix
     XL::Prefix *prefix = attrib->AsPrefix();
     if (!prefix)
@@ -1521,17 +1533,18 @@ bool Widget::get(text name, XL::tree_list &args, text topName)
     {
         if (infix->name != ",")
             break;
-        args.push_back(infix->left);
-        argsTree = infix->right;
+        args.push_back(infix->right);
+        argsTree = infix->left;
     }
     args.push_back(argsTree);
+    std::reverse(args.begin(), args.end());
 
     // Success
     return true;
 }
 
 
-bool Widget::set(text name, XL::tree_list &args, text topName)
+bool Widget::set(Tree *shape, text name, XL::tree_list &args, text topName)
 // ----------------------------------------------------------------------------
 //   Set the arguments, building the comma-separated list
 // ----------------------------------------------------------------------------
@@ -1545,7 +1558,7 @@ bool Widget::set(text name, XL::tree_list &args, text topName)
         call = new XL::Prefix(call, argsTree);
     }
 
-    return set(name, call, topName);
+    return set(shape, name, call, topName);
 }
 
 
@@ -1617,6 +1630,15 @@ uint Widget::selected(uint i)
 // ----------------------------------------------------------------------------
 {
     return i && selection.count(i) > 0 ? selection[i] : 0;
+}
+
+
+uint Widget::selected(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Test if the current shape is selected
+// ----------------------------------------------------------------------------
+{
+    return selected(layout->id);
 }
 
 
@@ -1773,9 +1795,9 @@ void Widget::drawHandle(const Point3 &p, text handleName)
 
     SpaceLayout selectionSpace(this);
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-    XL::LocalSave<GLuint>   saveId(id, ~0U);
     GLAttribKeeper          saveGL;
     glDisable(GL_DEPTH_TEST);
+    selectionSpace.id = ~0U;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
     selectionSpace.Draw(NULL);
 }
@@ -1890,7 +1912,7 @@ XL::Real *Widget::frameWidth(Tree *self)
 //   Return the width of the current layout frame
 // ----------------------------------------------------------------------------
 {
-    return new Real(layout->Bounds().Width());
+    return new Real(layout->Bounds(layout).Width());
 }
 
 
@@ -1899,7 +1921,7 @@ XL::Real *Widget::frameHeight(Tree *self)
 //   Return the height of the current layout frame
 // ----------------------------------------------------------------------------
 {
-    return new Real(layout->Bounds().Height());
+    return new Real(layout->Bounds(layout).Height());
 }
 
 
@@ -1908,7 +1930,7 @@ XL::Real *Widget::frameDepth(Tree *self)
 //   Return the depth of the current layout frame
 // ----------------------------------------------------------------------------
 {
-    return new Real(layout->Bounds().Depth());
+    return new Real(layout->Bounds(layout).Depth());
 }
 
 
@@ -1955,7 +1977,7 @@ Tree *Widget::locally(Tree *self, Tree *child)
 //   Evaluate the child tree while preserving the current state
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> save(layout, layout->AddChild());
+    XL::LocalSave<Layout *> save(layout, layout->AddChild(layout->id));
     Tree *result = xl_evaluate(child);
     return result;
 }
@@ -1966,9 +1988,8 @@ Tree *Widget::shape(Tree *self, Tree *child)
 //   Evaluate the child and mark the current shape
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
-    XL::LocalSave<Tree *>   saveShape (currentShape, child);
-    layout->id = newId();
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(newId()));
+    XL::LocalSave<Tree *>   saveShape (currentShape, self);
     Tree *result = xl_evaluate(child);
     return result;
 }
@@ -2009,7 +2030,7 @@ Tree *Widget::rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz)
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new RotationManipulator(self, ra, rx, ry, rz));
+    layout->Add(new Rotation(ra, rx, ry, rz));
     layout->hasMatrix = true;
     double amod90 = fmod(ra, 90.0);
     if (amod90 < -0.01 || amod90 > 0.01)
@@ -2050,7 +2071,7 @@ Tree *Widget::translate(Tree *self, real_r tx, real_r ty, real_r tz)
 //     Translation along three axes
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new TranslationManipulator(self, tx, ty, tz));
+    layout->Add(new Translation(tx, ty, tz));
     layout->hasMatrix = true;
     if (tz != 0.0)
         layout->hasPixelBlur = true;
@@ -2090,7 +2111,7 @@ Tree *Widget::rescale(Tree *self, real_r sx, real_r sy, real_r sz)
 //     Scaling along three axes
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new ScaleManipulator(self, sx, sy, sz));
+    layout->Add(new Scale(sx, sy, sz));
     layout->hasMatrix = true;
     if (sx != 1.0 || sy != 1.0)
         layout->hasPixelBlur = true;
@@ -2140,6 +2161,21 @@ XL::Name *Widget::toggleFullScreen(XL::Tree *self)
 // ----------------------------------------------------------------------------
 {
     return fullScreen(self, !isFullScreen());
+}
+
+
+XL::Integer * Widget::polygonOffset(Tree *self,
+                                    double f0, double f1,
+                                    double u0, double u1)
+// ----------------------------------------------------------------------------
+//   Set the polygon offset factors
+// ----------------------------------------------------------------------------
+{
+    Layout::factorBase = f0;
+    Layout::factorIncrement = f1;
+    Layout::unitBase = u0;
+    Layout::unitIncrement = u1;
+    return new Integer(Layout::polygonOffset);
 }
 
 
@@ -2250,9 +2286,8 @@ Tree *Widget::newPath(Tree *self, Tree *child)
 
     TesselatedPath *localPath = new TesselatedPath(GLU_TESS_WINDING_ODD);
     XL::LocalSave<GraphicPath *> save(path, localPath);
+    layout->Add(localPath);
     Tree *result = xl_evaluate(child);
-    layout->Add(new DrawingManipulator(self, path));
-
     return result;
 }
 
@@ -2399,14 +2434,17 @@ Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, x, y, w, h,
-                                         new Rectangle(shape)));
+        layout->Add(new Rectangle(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
 
     return XL::xl_true;
 }
 
 
-Tree *Widget::isoscelesTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
+Tree *Widget::isoscelesTriangle(Tree *self,
+                                real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //    Draw an isosceles triangle
 // ----------------------------------------------------------------------------
@@ -2415,8 +2453,10 @@ Tree *Widget::isoscelesTriangle(Tree *self, real_r x, real_r y, real_r w, real_r
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, x, y, w, h,
-                                         new IsoscelesTriangle(shape)));
+        layout->Add(new IsoscelesTriangle(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
 
     return XL::xl_true;
 }
@@ -2431,8 +2471,10 @@ Tree *Widget::rightTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, x, y, w, h,
-                                         new RightTriangle(shape)));
+        layout->Add(new RightTriangle(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
 
     return XL::xl_true;
 }
@@ -2447,8 +2489,10 @@ Tree *Widget::ellipse(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, cx, cy, w, h,
-                                         new Ellipse(shape)));
+        layout->Add(new Ellipse(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, cx, cy, w, h));
 
     return XL::xl_true;
 }
@@ -2465,8 +2509,10 @@ Tree *Widget::ellipseArc(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, cx, cy, w, h,
-                                         new EllipseArc(shape)));
+        layout->Add(new EllipseArc(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, cx, cy, w, h));
 
     return XL::xl_true;
 }
@@ -2483,12 +2529,14 @@ Tree *Widget::roundedRectangle(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRoundedRectangle(self, cx, cy, w, h, r,
-                                                new RoundedRectangle(shape)));
+        layout->Add(new RoundedRectangle(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRoundedRectangle(currentShape, cx,cy,w,h, r));
+
 
     return XL::xl_true;
 }
-
 
 
 Tree *Widget::ellipticalRectangle(Tree *self,
@@ -2502,15 +2550,18 @@ Tree *Widget::ellipticalRectangle(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlRectangle(self, cx, cy, w, h,
-                                         new EllipticalRectangle(shape)));
+        layout->Add(new EllipticalRectangle(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRoundedRectangle(currentShape,
+                                                cx, cy, w, h, r));
 
     return XL::xl_true;
 }
 
 
-
-Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
+Tree *Widget::arrow(Tree *self,
+                    real_r cx, real_r cy, real_r w, real_r h,
                     real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
 //   Arrow
@@ -2520,15 +2571,18 @@ Tree *Widget::arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlArrow(self, cx, cy, w, h, ax, ary,
-                                     new Arrow(shape)));
+        layout->Add(new Arrow(shape));
 
+    if (currentShape)
+        layout->Add(new ControlArrow(currentShape, cx, cy, w, h, ax, ary));
+                                     
     return XL::xl_true;
 }
 
 
-Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
-                    real_r ax, real_r ary)
+Tree *Widget::doubleArrow(Tree *self,
+                          real_r cx, real_r cy, real_r w, real_r h,
+                          real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
 //   Double arrow
 // ----------------------------------------------------------------------------
@@ -2537,8 +2591,10 @@ Tree *Widget::doubleArrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlArrow(self, cx, cy, w, h, ax, ary, true,
-                                     new DoubleArrow(shape)));
+        layout->Add(new DoubleArrow(shape));
+
+    if (currentShape)
+        layout->Add(new ControlArrow(currentShape, cx,cy,w,h, ax,ary, true));
 
     return XL::xl_true;
 }
@@ -2555,8 +2611,10 @@ Tree *Widget::starPolygon(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlPolygon(self, cx, cy, w, h, p,
-                                       new StarPolygon(shape)));
+        layout->Add(new StarPolygon(shape));
+
+    if (currentShape)
+        layout->Add(new ControlPolygon(currentShape, cx, cy, w, h, p));
 
     return XL::xl_true;
 }
@@ -2573,8 +2631,10 @@ Tree *Widget::star(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlStar(self, cx, cy, w, h, p, r,
-                                    new Star(shape)));
+        layout->Add(new Star(shape));
+
+    if (currentShape)
+        layout->Add(new ControlStar(currentShape, cx, cy, w, h, p, r));
 
     return XL::xl_true;
 }
@@ -2591,12 +2651,13 @@ Tree *Widget::speechBalloon(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlBalloon(self, cx, cy, w, h, r, ax, ay,
-                                       new SpeechBalloon(shape)));
+        layout->Add(new SpeechBalloon(shape));
 
+    if (currentShape)
+        layout->Add(new ControlBalloon(currentShape, cx, cy, w, h, r, ax, ay));
+                                       
     return XL::xl_true;
 }
-
 
 
 Tree *Widget::callout(Tree *self,
@@ -2610,8 +2671,12 @@ Tree *Widget::callout(Tree *self,
     if (path)
         shape.Draw(*path);
     else
-        layout->Add(new ControlCallout(self, cx, cy, w, h, r, ax, ay, d,
-                                       new Callout(shape)));
+        layout->Add(new Callout(shape));
+
+    if (currentShape)
+        layout->Add(new ControlCallout(currentShape,
+                                       cx, cy, w, h,
+                                       r, ax, ay, d));
 
     return XL::xl_true;
 }
@@ -2632,8 +2697,9 @@ Tree *Widget::sphere(Tree *self,
 //     GL sphere
 // ----------------------------------------------------------------------------
 {
-    Sphere *s = new Sphere(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks);
-    layout->Add (new ControlBox(self, x, y, z, w, h, d, s));
+    layout->Add(new Sphere(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks));
+    if (currentShape)
+        layout->Add (new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
 }
 
@@ -2645,8 +2711,9 @@ Tree *Widget::cube(Tree *self,
 //    A simple cubic box
 // ----------------------------------------------------------------------------
 {
-    Cube *c = new Cube(Box3(x-w/2, y-h/2, z-d/2, w,h,d));
-    layout->Add(new ControlBox(self, x, y, z, w, h, d, c));
+    layout->Add(new Cube(Box3(x-w/2, y-h/2, z-d/2, w,h,d)));
+    if (currentShape)
+        layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
 }
 
@@ -2658,8 +2725,9 @@ Tree *Widget::cone(Tree *self,
 //    A simple cone
 // ----------------------------------------------------------------------------
 {
-    Cube *c = new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d));
-    layout->Add(new ControlBox(self, x, y, z, w, h, d, c));
+    layout->Add(new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d)));
+    if (currentShape)
+        layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
 }
 
@@ -2679,8 +2747,14 @@ Tree * Widget::textBox(Tree *self,
 {
     PageLayout *tbox = new PageLayout(this);
     tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
-    layout->Add(new ControlRectangle(self, x, y, w, h, tbox));
+    layout->Add(tbox);
     flows[flowName] = tbox;
+
+    if (currentShape)
+    {
+        tbox->id = layout->id;
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
+    }
 
     XL::LocalSave<Layout *> save(layout, tbox);
     return xl_evaluate(prog);
@@ -2696,7 +2770,9 @@ Tree *Widget::textOverflow(Tree *self,
     // Add page layout overflow rectangle
     PageLayoutOverflow *overflow =
         new PageLayoutOverflow(Box(x - w/2, y-h/2, w, h), this, flowName);
-    layout->Add(new ControlRectangle(self, x, y, w, h, overflow));
+    layout->Add(overflow);
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
 
     return XL::xl_true;
 }
@@ -2713,12 +2789,15 @@ XL::Text *Widget::textFlow(Tree *self, text name)
 }
 
 
-Tree *Widget::textSpan(Tree *self, text_r content)
+Tree *Widget::textSpan(Tree *self, text_r contents)
 // ----------------------------------------------------------------------------
 //   Insert a block of text with the current definition of font, color, ...
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new TextSpan(&content, layout->font));
+    if (path)
+        TextSpan(&contents).Draw(*path, layout);
+    else
+        layout->Add(new TextSpan(&contents));
     return XL::xl_true;
 }
 
@@ -2729,6 +2808,7 @@ Tree *Widget::font(Tree *self, text description)
 // ----------------------------------------------------------------------------
 {
     layout->font.fromString(+description);
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2739,6 +2819,7 @@ Tree *Widget::fontSize(Tree *self, double size)
 // ----------------------------------------------------------------------------
 {
     layout->font.setPointSizeF(size);
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2755,6 +2836,7 @@ Tree *Widget::fontPlain(Tree *self)
     font.setUnderline(false);
     font.setStrikeOut(false);
     font.setOverline(false);
+    layout->Add(new FontChange(font));
     return XL::xl_true;
 }
 
@@ -2778,6 +2860,7 @@ Tree *Widget::fontItalic(Tree *self, scale amount)
 {
     amount = clamp(amount, 0, 2);
     layout->font.setStyle(QFont::Style(amount));
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2790,6 +2873,7 @@ Tree *Widget::fontBold(Tree *self, scale amount)
 {
     amount = clamp(amount, 0, 99);
     layout->font.setWeight(QFont::Weight(amount));
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2801,6 +2885,7 @@ Tree *Widget::fontUnderline(Tree *self, scale amount)
 //    Qt doesn't support setting the size of the underline, it's on or off
 {
     layout->font.setUnderline(bool(amount));
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2812,6 +2897,7 @@ Tree *Widget::fontOverline(Tree *self, scale amount)
 //    Qt doesn't support setting the size of the overline, it's on or off
 {
     layout->font.setOverline(bool(amount));
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2823,6 +2909,7 @@ Tree *Widget::fontStrikeout(Tree *self, scale amount)
 //    Qt doesn't support setting the size of the strikeout, it's on or off
 {
     layout->font.setStrikeOut(bool(amount));
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2835,6 +2922,7 @@ Tree *Widget::fontStretch(Tree *self, scale amount)
 {
     amount = clamp(amount, 0, 40);
     layout->font.setStretch(int(amount * 100));
+    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -2956,8 +3044,9 @@ Tree *Widget::framePaint(Tree *self,
     Tree *result = frameTexture(self, w, h, prog);
 
     // Draw a rectangle with the resulting texture
-    layout->Add(new FrameManipulator(self, x, y, w, h,
-                                     new Rectangle(Box(x-w/2, y-h/2, w, h))));
+    layout->Add(new Rectangle(Box(x-w/2, y-h/2, w, h)));
+    if (currentShape)
+        layout->Add(new FrameManipulator(currentShape, x, y, w, h));
     return result;
 }
 
@@ -3015,10 +3104,12 @@ Tree *Widget::urlPaint(Tree *self,
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     urlTexture(self, w, h, url, progress);
     WebViewSurface *surface = url->GetInfo<WebViewSurface>();
-    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    if (currentShape)
+        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
 }
 
@@ -3057,11 +3148,12 @@ Tree *Widget::lineEdit(Tree *self,
 //   Draw a line editor in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
-
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     lineEditTexture(self, w, h, txt);
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
-    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    if (currentShape)
+        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
 }
 
@@ -3098,8 +3190,7 @@ Tree *Widget::radioButton(Tree *self,
 //   Draw a radio button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
-
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     radioButtonTexture(self, w, h, name, lbl, sel, act);
     return abstractButton(self, name, x, y, w, h);
 }
@@ -3138,8 +3229,7 @@ Tree *Widget::checkBoxButton(Tree *self, real_r x,real_r y, real_r w, real_r h,
 //   Draw a check button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
-
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     checkBoxButtonTexture(self, w, h, name, lbl, sel, act);
     return abstractButton(self, name, x, y, w, h);
 }
@@ -3178,8 +3268,7 @@ Tree *Widget::pushButton(Tree *self, real_r x, real_r y, real_r w, real_r h,
 //   Draw a push button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
-
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     pushButtonTexture(self, w, h, name, lbl, act);
     return abstractButton(self, name, x, y, w, h);
 }
@@ -3212,7 +3301,8 @@ Tree *Widget::pushButtonTexture(Tree *self, double w, double h, Text *name,
 }
 
 
-Tree *Widget::abstractButton(Tree *self, Text *name, real_r x, real_r y, real_r w, real_r h)
+Tree *Widget::abstractButton(Tree *self, Text *name,
+                             real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //   Draw any button in the curent frame
 // ----------------------------------------------------------------------------
@@ -3231,9 +3321,234 @@ Tree *Widget::abstractButton(Tree *self, Text *name, real_r x, real_r y, real_r 
         return XL::xl_true;
     }
 
-    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    if (currentShape)
+        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
 
     return XL::xl_true;
+}
+
+
+QColorDialog *Widget::colorDialog = NULL;
+Tree *Widget::colorChooser(Tree *self, text treeName, Tree *action)
+// ----------------------------------------------------------------------------
+//   Draw a color chooser
+// ----------------------------------------------------------------------------
+{
+    if (colorDialog)
+    {
+        delete colorDialog;
+        colorDialog = NULL;
+    }
+
+    colorAction.tree = action;
+    colorName = treeName;
+
+    // Setup the color dialog
+    colorDialog = new QColorDialog(this);
+    colorDialog->setOption(QColorDialog::ShowAlphaChannel, true);
+    colorDialog->setModal(false);
+    colorDialog->setOption(QColorDialog::DontUseNativeDialog, false);
+    updateColorDialog();
+
+    // Connect the dialog and show it
+    connect(colorDialog, SIGNAL(colorSelected (const QColor&)),
+            this, SLOT(colorChosen(const QColor &)));
+    connect(colorDialog, SIGNAL(currentColorChanged (const QColor&)),
+            this, SLOT(colorChosen(const QColor &)));
+    colorDialog->show();
+
+
+    return XL::xl_true;
+}
+
+
+void Widget::colorChosen(const QColor & col)
+// ----------------------------------------------------------------------------
+//   Slot called by the color widget when a color is selected
+// ----------------------------------------------------------------------------
+{
+    if (!colorAction.tree)
+        return;
+
+    IFTRACE (widgets)
+    {
+        std::cerr << "Color "<< col.name().toStdString()
+                  << "was chosen for reference "<< colorAction.tree << "\n";
+    }
+
+    // We override names 'red', 'green', 'blue' and 'alpha' in the input tree
+    struct ColorTreeClone : XL::TreeClone
+    {
+        ColorTreeClone(const QColor &c) : color(c){}
+        XL::Tree *DoName(XL::Name *what)
+        {
+            if (what->value == "red")
+                return new XL::Real(color.redF(), what->Position());
+            if (what->value == "green")
+                return new XL::Real(color.greenF(), what->Position());
+            if (what->value == "blue")
+                return new XL::Real(color.blueF(), what->Position());
+            if (what->value == "alpha")
+                return new XL::Real(color.alphaF(), what->Position());
+
+            return new XL::Name(what->value, what->Position());
+        }
+        QColor color;
+    } replacer(col);
+
+    // The tree to be evaluated needs its own symbol table before evaluation
+    XL::Tree *toBeEvaluated = colorAction.tree;
+    XL::Symbols *syms = toBeEvaluated->Get<XL::SymbolsInfo>();
+    if (!syms)
+        syms = XL::Symbols::symbols;
+    syms = new XL::Symbols(syms);
+    toBeEvaluated = toBeEvaluated->Do(replacer);
+    toBeEvaluated->Set<XL::SymbolsInfo>(syms);
+
+    // Evaluate the input tree
+    xl_evaluate(toBeEvaluated);
+}
+
+
+void Widget::updateColorDialog()
+// ----------------------------------------------------------------------------
+//   Pick colors from the selection
+// ----------------------------------------------------------------------------
+{
+    if (!colorDialog)
+        return;
+
+    // Get the default color from the first selected shape
+    for (std::set<Tree *>::iterator i = selectionTrees.begin();
+         i != selectionTrees.end();
+         i++)
+    {
+        XL::tree_list color;
+        if (get(*i, colorName, color) && color.size() == 4)
+        {
+            XL::Real *red   = color[0]->AsReal();
+            XL::Real *green = color[1]->AsReal();
+            XL::Real *blue  = color[2]->AsReal();
+            XL::Real *alpha = color[3]->AsReal();
+            if (red && green && blue && alpha)
+            {
+                QColor qc;
+                qc.setRgbF(red->value, green->value, blue->value, alpha->value);
+                colorDialog->setCurrentColor(qc);
+                break;
+            }
+        }
+    }
+}
+
+
+QFontDialog *Widget::fontDialog = NULL;
+Tree *Widget::fontChooser(Tree *self, Tree *action)
+// ----------------------------------------------------------------------------
+//   Draw a font chooser
+// ----------------------------------------------------------------------------
+{
+    if (fontDialog)
+    {
+        delete fontDialog;
+        fontDialog = NULL;
+    }
+
+    fontDialog = new QFontDialog(this);
+    connect(fontDialog, SIGNAL(fontSelected (const QFont&)),
+            this, SLOT(fontChosen(const QFont &)));
+    
+    fontDialog->setModal(false);
+    fontDialog->show();
+    fontAction.tree = action;
+
+    return XL::xl_true;
+}
+
+
+void Widget::fontChosen(const QFont& ft)
+// ----------------------------------------------------------------------------
+//    A font was selected. Evaluate the action.
+// ----------------------------------------------------------------------------
+{
+    if (!fontAction.tree)
+        return;
+
+    IFTRACE (widgets)
+    {
+        std::cerr << "Font "<< ft.toString().toStdString()
+                  << "was chosen for reference "<< fontAction.tree << "\n";
+    }
+
+    struct FontTreeClone : XL::TreeClone
+    {
+        FontTreeClone(const QFont &f) : font(f){}
+        XL::Tree *DoName(XL::Name *what)
+        {
+            if (what->value == "family")
+                return new XL::Text(font.family().toStdString(),
+                                    "\"" ,"\"",what->Position());
+            if (what->value == "pointSize")
+                return new XL::Integer(font.pointSize(), what->Position());
+            if (what->value == "weight")
+                return new XL::Integer(font.weight(), what->Position());
+            if (what->value == "italic")
+            {
+                return new XL::Name(font.italic() ?
+                                      XL::xl_true->value :
+                                      XL::xl_false->value,
+                                      what->Position());
+            }
+
+            return new XL::Name(what->value, what->Position());
+        }
+        QFont font;
+    } replacer(ft);
+
+    // The tree to be evaluated needs its own symbol table before evaluation
+    XL::Tree *toBeEvaluated = fontAction.tree;
+    XL::Symbols *syms = toBeEvaluated->Get<XL::SymbolsInfo>();
+    if (!syms)
+        syms = XL::Symbols::symbols;
+    syms = new XL::Symbols(syms);
+    toBeEvaluated = toBeEvaluated->Do(replacer);
+    toBeEvaluated->Set<XL::SymbolsInfo>(syms);
+
+    // Evaluate the input tree
+    xl_evaluate(toBeEvaluated);
+}
+
+
+void Widget::updateFontDialog()
+// ----------------------------------------------------------------------------
+//   Pick font information from the selection
+// ----------------------------------------------------------------------------
+{
+    if (!fontDialog)
+        return;
+
+    // Get the default color from the first selected shape
+    for (std::set<Tree *>::iterator i = selectionTrees.begin();
+         i != selectionTrees.end();
+         i++)
+    {
+        XL::tree_list color;
+        if (get(*i, colorName, color) && color.size() == 4)
+        {
+            XL::Real *red   = color[0]->AsReal();
+            XL::Real *green = color[1]->AsReal();
+            XL::Real *blue  = color[2]->AsReal();
+            XL::Real *alpha = color[3]->AsReal();
+            if (red && green && blue && alpha)
+            {
+                QColor qc;
+                qc.setRgbF(red->value, green->value, blue->value, alpha->value);
+                colorDialog->setCurrentColor(qc);
+                break;
+            }
+        }
+    }
 }
 
 
@@ -3243,18 +3558,19 @@ Tree *Widget::colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
 //   Draw a color chooser
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
 
     colorChooserTexture(self, w, h, action);
 
     ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
-    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    if (currentShape)
+        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
 }
 
 
-Tree *Widget::colorChooserTexture(Tree *self, double w, double h,
-                                  Tree *action)
+Tree *Widget::colorChooserTexture(Tree *self, double w, double h, Tree *action)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given color chooser
 // ----------------------------------------------------------------------------
@@ -3286,12 +3602,14 @@ Tree *Widget::fontChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
 //   Draw a color chooser
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
 
     fontChooserTexture(self, w, h, action);
 
     FontChooserSurface *surface = self->GetInfo<FontChooserSurface>();
-    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    if (currentShape)
+        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
 }
 
@@ -3364,12 +3682,14 @@ Tree *Widget::groupBox(Tree *self,
 //   Draw a group box in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
 
     groupBoxTexture(self, w, h, lbl);
 
     GroupBoxSurface *surface = self->GetInfo<GroupBoxSurface>();
-    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    if (currentShape)
+        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
 
     xl_evaluate(buttons);
 
@@ -3420,12 +3740,12 @@ Tree *Widget::videoPlayer(Tree *self,
 //   Make a video player
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
-
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     videoPlayerTexture(self, w, h, url);
-
     VideoPlayerSurface *surface = self->GetInfo<VideoPlayerSurface>();
-    layout->Add(new WidgetManipulator(self, x, y, w, h, surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    if (currentShape)
+        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
 
     return XL::xl_true;
 
@@ -3458,6 +3778,24 @@ Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
 }
 
 
+// ============================================================================
+//
+//    Error management
+//
+// ============================================================================
+Tree *Widget::runtimeError(Tree *self, text msg, Tree *arg)
+// ----------------------------------------------------------------------------
+//   Display an error message from the input
+// ----------------------------------------------------------------------------
+{
+    inError = true;             // Stop refreshing
+    XL::Error err(msg, arg, NULL, NULL);
+    QMessageBox::warning(this, tr("Runtime error"),
+                         tr("Error executing the program:\n%1")
+                         .arg(+err.Message()));
+    return XL::xl_false;
+}
+
 
 // ============================================================================
 //
@@ -3482,20 +3820,6 @@ Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
 //   orderedMenuElements. If the order is OK, the label, etc are updated; if not
 //   or not found at all a new element is created and registered.
 // ============================================================================
-
-Tree *Widget::runtimeError(Tree *self, text msg, Tree *arg)
-// ----------------------------------------------------------------------------
-//   Display an error message from the input
-// ----------------------------------------------------------------------------
-{
-    inError = true;             // Stop refreshing
-    XL::Error err(msg, arg, NULL, NULL);
-    QMessageBox::warning(this, tr("Runtime error"),
-                         tr("Error executing the program:\n%1")
-                         .arg(+err.Message()));
-    return XL::xl_false;
-}
-
 
 Tree *Widget::menuItem(Tree *self, text name, text lbl, text iconFileName,
                        bool isCheckable, Text *isChecked, Tree *t)
@@ -3763,7 +4087,8 @@ Tree * Widget::toolBar(Tree *self, text name, text title, bool isFloatable,
     case 'o':
     case 'O':
         win->addToolBarBreak(Qt::LeftToolBarArea);
-        win->addToolBar(Qt::LeftToolBarArea, currentToolBar);break;
+        win->addToolBar(Qt::LeftToolBarArea, currentToolBar);
+        break;
     }
 
     if (QMenu* view = win->findChild<QMenu*>(VIEW_MENU_NAME))
@@ -3944,6 +4269,29 @@ XL::Name *Widget::deleteSelection(Tree *self, text key)
     markChanged("Deleted selection");
     selection.clear();
     selectionTrees.clear();
+
+    return XL::xl_true;
+}
+
+
+XL::Name *Widget::setAttribute(Tree *self,
+                               text name, Tree *attribute,
+                               text shape)
+// ----------------------------------------------------------------------------
+//    Insert the tree in all shapes in the selection
+// ----------------------------------------------------------------------------
+{
+    if (!xlProgram)
+        return XL::xl_false;
+
+    Tree *program = xlProgram->tree.tree;
+    if (XL::Block *block = attribute->AsBlock())
+        attribute = block->child;
+
+    SetAttributeAction setAttrib(name, attribute, this, shape);
+    program->Do(setAttrib);
+    reloadProgram();
+    markChanged("Updated " + name + " attribute");
 
     return XL::xl_true;
 }

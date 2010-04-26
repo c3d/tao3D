@@ -44,6 +44,7 @@ Repository::~Repository()
     RepositoryFactory::removeFromCache(path);
 }
 
+
 text Repository::fullName(text fileName)
 // ----------------------------------------------------------------------------
 //   Return the full name of an element in the repository or "" if outside
@@ -247,6 +248,7 @@ void Repository::abort(Process *proc)
         delete proc;
     }
 }
+
 
 void Repository::asyncProcessFinished(int exitCode)
 // ----------------------------------------------------------------------------

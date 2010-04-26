@@ -55,7 +55,7 @@ struct Rectangle : Shape
 {
     Rectangle(const Box &b): Shape(), bounds(b) {}
     virtual void        Draw(GraphicPath &path);
-    virtual Box3        Bounds()        { return bounds; }
+    virtual Box3        Bounds(Layout *)        { return bounds; }
     Box                 bounds;
 };
 
@@ -68,6 +68,16 @@ struct PlaceholderRectangle : Rectangle
     PlaceholderRectangle(const Box &b): Rectangle(b) {}
     virtual void        Draw(Layout *where);
     virtual void        Draw(GraphicPath &path);
+};
+
+
+struct ClickThroughRectangle : Rectangle
+// ----------------------------------------------------------------------------
+//    A rectangle that cannot be clicked into
+// ----------------------------------------------------------------------------
+{
+    ClickThroughRectangle(const Box &b): Rectangle(b) {}
+    virtual void        DrawSelection(Layout *where);
 };
 
 

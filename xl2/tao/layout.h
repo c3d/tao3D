@@ -52,7 +52,6 @@ public:
     Color               fillColor;
     uint                fillTexture;
     uint                rotationId, translationId, scaleId;
-    uint                id;
 };
 
 
@@ -68,15 +67,15 @@ struct Layout : Drawing, LayoutState
     // Drawing interface
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *);
-    virtual void        Identify(Layout *l);
-    virtual Box3        Bounds();
-    virtual Box3        Space();
+    virtual void        Identify(Layout *);
+    virtual Box3        Bounds(Layout *);
+    virtual Box3        Space(Layout *);
 
     // Layout interface
     virtual void        Add (Drawing *d);
     virtual Vector3     Offset();
     virtual Layout *    NewChild()       { return new Layout(*this); }
-    virtual Layout *    AddChild();
+    virtual Layout *    AddChild(uint id = 0);
     virtual void        Clear();
     virtual Widget *    Display()        { return display; }
     virtual void        PolygonOffset();
@@ -85,8 +84,8 @@ struct Layout : Drawing, LayoutState
     void                Inherit(Layout *other);
 
 public:
-    // Attributes that get propagated to children
-    static int          polygonOffset;
+    // OpenGL identification for that shape
+    uint                id;
 
     // For optimized drawing, we keep track of what changes
     bool                hasPixelBlur    : 1; // Pixels not aligning naturally
@@ -99,6 +98,11 @@ protected:
     layout_items        items;
     Widget *            display;
 
+public:
+    // Static attributes for polygon offset computation
+    static int          polygonOffset;
+    static scale        factorBase, factorIncrement;
+    static scale        unitBase, unitIncrement;
 };
 
 TAO_END

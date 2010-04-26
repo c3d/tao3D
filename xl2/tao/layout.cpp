@@ -26,7 +26,11 @@
 
 TAO_BEGIN
 
-int Layout::polygonOffset = 0;
+int   Layout::polygonOffset   = 0;
+scale Layout::factorBase      = 0;
+scale Layout::factorIncrement = -1;
+scale Layout::unitBase        = 0;
+scale Layout::unitIncrement   = 0;
 
 
 LayoutState::LayoutState()
@@ -39,7 +43,7 @@ LayoutState::LayoutState()
       lineColor(0,0,0,1),       // Black
       fillColor(0,0,0,0),       // Transparent black
       fillTexture(0),
-      rotationId(0), translationId(0), scaleId(0), id(0)
+      rotationId(0), translationId(0), scaleId(0)
 {}
 
 
@@ -55,8 +59,7 @@ LayoutState::LayoutState(const LayoutState &o)
         fillTexture(o.fillTexture),
         rotationId(o.rotationId),
         translationId(o.translationId),
-        scaleId(o.scaleId),
-        id(o.id)
+        scaleId(o.scaleId)
 {}
 
 
@@ -80,7 +83,7 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
 //    Create an empty layout
 // ----------------------------------------------------------------------------
-    : Drawing(), LayoutState(),
+    : Drawing(), LayoutState(), id(0),
       hasPixelBlur(false), hasMatrix(false), hasAttributes(false),
       items(), display(widget)
 {}
@@ -90,7 +93,7 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
 //   Copy constructor
 // ----------------------------------------------------------------------------
-    : Drawing(o), LayoutState(o),
+    : Drawing(o), LayoutState(o), id(0),
       hasPixelBlur(o.hasPixelBlur), hasMatrix(false), hasAttributes(false),
       items(), display(o.display)
 {}
@@ -105,13 +108,14 @@ Layout::~Layout()
 }
 
 
-Layout *Layout::AddChild()
+Layout *Layout::AddChild(uint childId)
 // ----------------------------------------------------------------------------
 //   Add a new layout as a child of this one
 // ----------------------------------------------------------------------------
 {
     Layout *result = NewChild();
     Add(result);
+    result->id = childId;
     return result;
 }
 
@@ -206,7 +210,7 @@ Vector3 Layout::Offset()
 }
 
 
-Box3 Layout::Bounds()
+Box3 Layout::Bounds(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Compute the bounding box as the union of all item bounds
 // ----------------------------------------------------------------------------
@@ -214,12 +218,12 @@ Box3 Layout::Bounds()
     Box3 result;
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
-        result |= (*i)->Bounds();
+        result |= (*i)->Bounds(layout);
     return result;
 }
 
 
-Box3 Layout::Space()
+Box3 Layout::Space(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Compute the required space as the union of all item bounds
 // ----------------------------------------------------------------------------
@@ -227,7 +231,7 @@ Box3 Layout::Space()
     Box3 result;
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
-        result |= (*i)->Space();
+        result |= (*i)->Space(layout);
     return result;
 }
 
@@ -246,9 +250,9 @@ void Layout::PolygonOffset()
 //   Compute a polygon offset for the next shape being drawn
 // ----------------------------------------------------------------------------
 {
-    const double XY_SCALE = 5.0; // Good enough for approx 45 degrees Y angle
-    const double UNITS = 2.0;
-    glPolygonOffset (XY_SCALE * polygonOffset++, UNITS);
+    int offset = polygonOffset++;
+    glPolygonOffset (factorBase + offset * factorIncrement,
+                     unitBase + offset * unitIncrement);
 }
 
 
@@ -267,7 +271,8 @@ void Layout::Inherit(Layout *where)
 //   Inherit state from some other layout
 // ----------------------------------------------------------------------------
 {
-    // glLoadName(id);
+    if (id != ~0U)
+        glLoadName(id);
     if (!where)
         return;
 

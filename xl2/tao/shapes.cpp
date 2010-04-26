@@ -183,6 +183,13 @@ void PlaceholderRectangle::Draw(GraphicPath &path)
 }
 
 
+void ClickThroughRectangle::DrawSelection (Layout *)
+// ----------------------------------------------------------------------------
+//   This is where we draw nothing
+// ----------------------------------------------------------------------------
+{}   
+
+
 void IsoscelesTriangle::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 //   Draw an isosceles triangle
@@ -190,7 +197,7 @@ void IsoscelesTriangle::Draw(GraphicPath &path)
 {
     path.moveTo(Point3(bounds.lower.x, bounds.lower.y, 0));
     path.lineTo(Point3(bounds.upper.x, bounds.lower.y, 0));
-    path.lineTo(Point3((bounds.upper.x + bounds.lower.x)/2, bounds.upper.y, 0));
+    path.lineTo(Point3((bounds.upper.x+bounds.lower.x)/2, bounds.upper.y, 0));
     path.close();
 }
 

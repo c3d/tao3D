@@ -241,10 +241,10 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
     }
     else
     {
+        // Create an Infix + with the delta we add
         // LIONEL: When does that happen?
         // CHRISTOPHE: The first time we hit an expression which is not
         // a linear operation on the argument
-        // Create an Infix + with the delta we add
         if (ptr != &arg)
         {
             double value = current;
@@ -267,18 +267,47 @@ void Manipulator::rotate(Widget *widget, Tree *shape, kPoint3 center,
 // ----------------------------------------------------------------------------
 //   We create the necessary rotatez and translate statements
 {
-    Widget::attribute_args args;
-    double current = 0.0;
-    if (widget->get(shape, "rotatez", args) && args.size() == 1)
-        current = args[0];
+    Widget::attribute_args rArgs, tArgs;
+    double a1 = 0.0, tx = 0.0, ty = 0.0, tz = 0.0;
+    double cx = center.x, cy = center.y;
 
+    // Get current rotation and translation
+    if (widget->get(shape, "translate", tArgs) && tArgs.size() == 3)
+    {
+        tx = tArgs[0];
+        ty = tArgs[1];
+        tz = tArgs[2];
+    }
+    if (widget->get(shape, "rotatez", rArgs) && rArgs.size() == 1)
+        a1 = rArgs[0];
+
+    // Compute new rotation angle
     (void) p0;
-    double a1 = atan2(p1.y - center.y, p1.x - center.x) * (180 / M_PI);
-    double a2 = atan2(p2.y - center.y, p2.x - center.x) * (180 / M_PI);
+    double da1 = atan2(p1.y - center.y, p1.x - center.x) * (180 / M_PI);
+    double da2 = atan2(p2.y - center.y, p2.x - center.x) * (180 / M_PI);
+    double a2 = fmod(a1 - da1 + da2, 360);
 
-    args.resize(1);
-    args[0] = fmod(current - a1 + a2, 360);
-    widget->set(shape, "rotatez", args);
+    // If c is the rotation center and s the shape position
+    //   x' = tx + cx * cos a - cy * sin a
+    //   y' = ty + cx * sin a + cy * cos a
+    // We compute tx and ty so that we preserve cx and cy when a changes:
+    //   tx1 + cx * cos a1 - cy * sin a1
+    // = tx2 + cx * cos a2 + cy * sin a2
+    double ca1 = cos(a1 * (M_PI/180)), sa1 = sin(a1 * (M_PI/180));
+    double ca2 = cos(a2 * (M_PI/180)), sa2 = sin(a2 * (M_PI/180));
+    tx -= cx*(ca2-ca1) - cy*(sa2-sa1);
+    ty -= cx*(sa2-sa1) + cy*(ca2-ca1);
+
+    // Update translation and rotation
+    tArgs.resize(3);
+    tArgs[0] = tx;
+    tArgs[1] = ty;
+    tArgs[2] = tz;
+    widget->set(shape, "translate", tArgs);
+
+    rArgs.resize(1);
+    rArgs[0] = a2;
+    widget->set(shape, "rotatez", rArgs);
 }
 
 

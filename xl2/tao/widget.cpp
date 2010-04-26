@@ -3939,20 +3939,31 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
             return XL::xl_true;
         }
 
-        if (order < orderedMenuElements.size() &&
-            orderedMenuElements[order] != NULL &&
-            orderedMenuElements[order]->fullname == fullname)
+        if (order < orderedMenuElements.size())
         {
-            // Set the currentMenu and update the label and icon.
-            currentMenu = tmp;
-            currentMenu->setTitle(+lbl);
-            if (iconFileName != "")
-                currentMenu->setIcon(QIcon(+iconFileName));
-            else
-                currentMenu->setIcon(QIcon());
-
-            order++;
-            return XL::xl_true;
+            if (MenuInfo *menuInfo = orderedMenuElements[order])
+            {
+                if (menuInfo->fullname == fullname)
+                {
+                    // Set the currentMenu and update the label and icon.
+                    currentMenu = tmp;
+                    if (lbl != menuInfo->title)
+                    {
+                        currentMenu->setTitle(+lbl);
+                        menuInfo->title = lbl;
+                    }
+                    if (iconFileName != menuInfo->icon)
+                    {
+                        if (iconFileName != "")
+                            currentMenu->setIcon(QIcon(+iconFileName));
+                        else
+                            currentMenu->setIcon(QIcon());
+                        menuInfo->icon = iconFileName;
+                    }
+                    order++;
+                    return XL::xl_true;
+                }
+            }
         }
         // The name exist but it is not in the good order so clean it
         delete tmp;
@@ -4010,6 +4021,9 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
 
     orderedMenuElements[order] = new MenuInfo(fullname,
                                               currentMenu->menuAction());
+    orderedMenuElements[order]->title = lbl;
+    orderedMenuElements[order]->icon = iconFileName;
+
     IFTRACE(menus)
     {
         std::cerr << "menu CREATION with name "
@@ -4021,6 +4035,7 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
 
     return XL::xl_true;
 }
+
 
 Tree * Widget::menuBar(Tree *self)
 // ----------------------------------------------------------------------------

@@ -3527,28 +3527,6 @@ void Widget::updateFontDialog()
 {
     if (!fontDialog)
         return;
-
-    // Get the default color from the first selected shape
-    for (std::set<Tree *>::iterator i = selectionTrees.begin();
-         i != selectionTrees.end();
-         i++)
-    {
-        XL::tree_list color;
-        if (get(*i, colorName, color) && color.size() == 4)
-        {
-            XL::Real *red   = color[0]->AsReal();
-            XL::Real *green = color[1]->AsReal();
-            XL::Real *blue  = color[2]->AsReal();
-            XL::Real *alpha = color[3]->AsReal();
-            if (red && green && blue && alpha)
-            {
-                QColor qc;
-                qc.setRgbF(red->value, green->value, blue->value, alpha->value);
-                colorDialog->setCurrentColor(qc);
-                break;
-            }
-        }
-    }
 }
 
 

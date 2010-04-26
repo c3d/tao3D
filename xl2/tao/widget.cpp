@@ -347,7 +347,6 @@ void Widget::runProgram()
         capacity = id + charId + 100;
     else if (id + charId + 50 < capacity / 2)
         capacity = capacity / 2;
-
 }
 
 
@@ -3321,7 +3320,7 @@ Tree *Widget::abstractButton(Tree *self, Text *name,
 
 
 QColorDialog *Widget::colorDialog = NULL;
-Tree *Widget::colorChooser(Tree *self, text colorName, Tree *action)
+Tree *Widget::colorChooser(Tree *self, text treeName, Tree *action)
 // ----------------------------------------------------------------------------
 //   Draw a color chooser
 // ----------------------------------------------------------------------------
@@ -3333,41 +3332,22 @@ Tree *Widget::colorChooser(Tree *self, text colorName, Tree *action)
     }
 
     colorAction.tree = action;
+    colorName = treeName;
 
+    // Setup the color dialog
     colorDialog = new QColorDialog(this);
+    colorDialog->setOption(QColorDialog::ShowAlphaChannel, true);
+    colorDialog->setModal(false);
+    colorDialog->setOption(QColorDialog::DontUseNativeDialog, false);
+    updateColorDialog();
+
+    // Connect the dialog and show it
     connect(colorDialog, SIGNAL(colorSelected (const QColor&)),
             this, SLOT(colorChosen(const QColor &)));
     connect(colorDialog, SIGNAL(currentColorChanged (const QColor&)),
             this, SLOT(colorChosen(const QColor &)));
-
-    // Setup the color dialog
-    colorDialog->setModal(false);
-    colorDialog->setOption(QColorDialog::ShowAlphaChannel, true);
-    colorDialog->setOption(QColorDialog::DontUseNativeDialog, false);
-
-    // Get the default color from the first selected shape
-    for (std::set<Tree *>::iterator i = selectionTrees.begin();
-         i != selectionTrees.end();
-         i++)
-    {
-        XL::tree_list color;
-        if (get(*i, colorName, color) && color.size() == 4)
-        {
-            XL::Real *red   = color[0]->AsReal();
-            XL::Real *green = color[1]->AsReal();
-            XL::Real *blue  = color[2]->AsReal();
-            XL::Real *alpha = color[3]->AsReal();
-            if (red && green && blue && alpha)
-            {
-                QColor qc;
-                qc.setRgbF(red->value, green->value, blue->value, alpha->value);
-                colorDialog->setCurrentColor(qc);
-                break;
-            }
-        }
-    }
-
     colorDialog->show();
+
 
     return XL::xl_true;
 }
@@ -3418,6 +3398,38 @@ void Widget::colorChosen(const QColor & col)
 
     // Evaluate the input tree
     xl_evaluate(toBeEvaluated);
+}
+
+
+void Widget::updateColorDialog()
+// ----------------------------------------------------------------------------
+//   Pick colors from the selection
+// ----------------------------------------------------------------------------
+{
+    if (!colorDialog)
+        return;
+
+    // Get the default color from the first selected shape
+    for (std::set<Tree *>::iterator i = selectionTrees.begin();
+         i != selectionTrees.end();
+         i++)
+    {
+        XL::tree_list color;
+        if (get(*i, colorName, color) && color.size() == 4)
+        {
+            XL::Real *red   = color[0]->AsReal();
+            XL::Real *green = color[1]->AsReal();
+            XL::Real *blue  = color[2]->AsReal();
+            XL::Real *alpha = color[3]->AsReal();
+            if (red && green && blue && alpha)
+            {
+                QColor qc;
+                qc.setRgbF(red->value, green->value, blue->value, alpha->value);
+                colorDialog->setCurrentColor(qc);
+                break;
+            }
+        }
+    }
 }
 
 

@@ -100,6 +100,7 @@ public slots:
     bool        refresh(double delay = 0.0);
     void        commitSuccess(QString id, QString msg);
     void        colorChosen(const QColor &);
+    void        updateColorDialog();
     void        fontChosen(const QFont &);
 
 public:
@@ -456,6 +457,7 @@ private:
     QVector<MenuInfo*>    orderedMenuElements;
     int                   order;
     XL::TreeRoot          colorAction, fontAction;
+    text                  colorName;
 
     // Timing
     QTimer                timer, idleTimer;

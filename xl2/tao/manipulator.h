@@ -57,8 +57,7 @@ struct Manipulator : Drawing
 protected:
     void                updateArg(Widget *widget, tree_p arg,
                                   double first, double previous, double current,
-                                  bool has_min = false, double min = 0.0, 
-                                  bool has_max = false, double max = 0.0);
+                                  double min = -1e10, double max = 1e10);
 
     XL::TreeRoot        self;
 };

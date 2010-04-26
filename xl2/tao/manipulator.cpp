@@ -123,7 +123,7 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id, text name)
 
 void Manipulator::updateArg(Widget *widget, tree_p arg,
                             double first, double previous, double current,
-                            bool has_min, double min, bool has_max, double max)
+                            double min, double max)
 // ----------------------------------------------------------------------------
 //   Update the given argument by the given offset
 // ----------------------------------------------------------------------------
@@ -222,9 +222,9 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
     {
         ival->value -= longlong((previous - first) / scale);
         ival->value += longlong((current - first) / scale);
-        if (has_min && ival->value * scale < min)
+        if (ival->value * scale < min)
             ival->value = min / scale;
-        if (has_max && ival->value * scale > max)
+        if (ival->value * scale > max)
             ival->value = max / scale;
         if (ppptr && ival->value < 0)
             widget->renormalizeProgram();
@@ -232,9 +232,9 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
     else if (XL::Real *rval = (*ptr)->AsReal())
     {
         rval->value += (current - previous) / scale;
-        if (has_min && ival->value * scale < min)
+        if (ival->value * scale < min)
             ival->value = min / scale;
-        if (has_max && ival->value * scale > max)
+        if (ival->value * scale > max)
             ival->value = max / scale;
         if (ppptr && rval->value < 0)
             widget->renormalizeProgram();
@@ -246,9 +246,9 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
         if (ptr != &arg)
         {
             double value = current;
-            if (has_min && current < min)
+            if (current < min)
                 value = min;
-            if (has_max && current > max)
+            if (current > max)
                 value = max;
             double delta = (value - previous) / scale;
             *ptr = new XL::Infix("+", new XL::Real(delta), *ptr);
@@ -604,7 +604,7 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
                     Point3 p0 = drag->Origin();
                     updateArg(widget, &r,
                               y+sh*h/2-p0.y, y+sh*h/2-p1.y, y+sh*h/2-p2.y,
-                              true, 0.0, true, sh*h/2);
+                              0.0, sh*h/2);
                     widget->markChanged("Rounded rectangle corner modified");
                     changed = true;
                 }
@@ -627,7 +627,7 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
                     Point3 p0 = drag->Origin();
                     updateArg(widget, &r,
                               x+sw*w/2-p0.x, x+sw*w/2-p1.x, x+sw*w/2-p2.x,
-                              true, 0.0, true, sw*w/2);
+                              0.0, sw*w/2);
                     widget->markChanged("Rounded rectangle corner modified");
                     changed = true;
                 }
@@ -715,12 +715,12 @@ bool ControlArrow::DrawHandles(Layout *layout)
                 updateArg(widget, &ax,
                           swd*(x-p0.x)+sw*w/2, swd*(x-p1.x)+sw*w/2,
                           swd*(x-p2.x)+sw*w/2,
-                          true, 0.0, true, sw*w/df);
+                          0.0, sw*w/df);
                 if (h != 0)
                 {
                     updateArg(widget, &ary,
                               2*sh*(p0.y-y)/h, 2*sh*(p1.y-y)/h, 2*sh*(p2.y-y)/h,
-                              true, 0.0, true, 1.0);
+                              0.0, 1.0);
                 }
                 widget->markChanged("Arrow modified");
                 changed = true;
@@ -783,7 +783,7 @@ bool ControlPolygon::DrawHandles(Layout *layout)
                 coord p0x = 19*sw*(p0.x - x)/w + 11.5;
                 coord p1x = 19*sw*(p1.x - x)/w + 11.5;
                 coord p2x = 19*sw*(p2.x - x)/w + 11.5;
-                updateArg(widget, &p, p0x, p1x, p2x, true, p_min, true, p_max);
+                updateArg(widget, &p, p0x, p1x, p2x, p_min, p_max);
                 widget->markChanged("Number of points changed");
                 changed = true;
             }
@@ -846,7 +846,7 @@ bool ControlStar::DrawHandles(Layout *layout)
                 scale hp = sqrt(w*sp*w*sp + h*cp*h*cp)*sh*cp/2;
                 updateArg(widget, &r,
                           (p0.y - y)/hp, (p1.y - y)/hp, (p2.y - y)/hp,
-                          true, r_min, true, r_max);
+                          r_min, r_max);
                 widget->markChanged("Star inner circle changed");
                 changed = true;
             }
@@ -1004,12 +1004,12 @@ bool ControlCallout::DrawHandles(Layout *layout)
                 if (-sty*cos(beta+M_PI_2) > stx*sin(beta+M_PI_2))
                 {
                     updateArg(widget, &d, -sty*4*p0.x, -sty*4*p1.x, -sty*4*p2.x,
-                              true, 0, true, pw<ph? pw: ph );
+                              0, pw<ph? pw: ph );
                 }
                 else
                 {
                     updateArg(widget, &d, stx*4*p0.y, stx*4*p1.y, stx*4*p2.y,
-                              true, 0, true, pw<ph? pw: ph );
+                              0, pw<ph? pw: ph );
                 }
                 widget->markChanged("Callout tail width changed");
                 changed = true;

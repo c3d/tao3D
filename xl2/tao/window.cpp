@@ -355,16 +355,19 @@ void Window::createActions()
     newAct = new QAction(QIcon(":/images/new.png"), tr("&New"), this);
     newAct->setShortcuts(QKeySequence::New);
     newAct->setStatusTip(tr("Create a new file"));
+    newAct->setIconVisibleInMenu(false);
     connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
 
     openAct = new QAction(QIcon(":/images/open.png"), tr("&Open..."), this);
     openAct->setShortcuts(QKeySequence::Open);
     openAct->setStatusTip(tr("Open an existing file"));
+    openAct->setIconVisibleInMenu(false);
     connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
 
     saveAct = new QAction(QIcon(":/images/save.png"), tr("&Save"), this);
     saveAct->setShortcuts(QKeySequence::Save);
     saveAct->setStatusTip(tr("Save the document to disk"));
+    saveAct->setIconVisibleInMenu(false);
     connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
 
     saveAsAct = new QAction(tr("Save &As..."), this);
@@ -397,18 +400,21 @@ void Window::createActions()
     cutAct->setShortcuts(QKeySequence::Cut);
     cutAct->setStatusTip(tr("Cut the current selection's contents to the "
                             "clipboard"));
+    cutAct->setIconVisibleInMenu(false);
     connect(cutAct, SIGNAL(triggered()), textEdit, SLOT(cut()));
 
     copyAct = new QAction(QIcon(":/images/copy.png"), tr("&Copy"), this);
     copyAct->setShortcuts(QKeySequence::Copy);
     copyAct->setStatusTip(tr("Copy the current selection's contents to the "
                              "clipboard"));
+    copyAct->setIconVisibleInMenu(false);
     connect(copyAct, SIGNAL(triggered()), textEdit, SLOT(copy()));
 
     pasteAct = new QAction(QIcon(":/images/paste.png"), tr("&Paste"), this);
     pasteAct->setShortcuts(QKeySequence::Paste);
     pasteAct->setStatusTip(tr("Paste the clipboard's contents into the current "
                               "selection"));
+    pasteAct->setIconVisibleInMenu(false);
     connect(pasteAct, SIGNAL(triggered()), textEdit, SLOT(paste()));
 
     setPullUrlAct = new QAction(tr("Synchronize..."), this);

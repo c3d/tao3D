@@ -39,6 +39,8 @@
 #include <QTimer>
 #include <QSvgRenderer>
 #include <QList>
+#include <QColorDialog>
+#include <QFontDialog>
 #include <iostream>
 #include <map>
 
@@ -97,6 +99,8 @@ public slots:
     void        userMenu(QAction *action);
     bool        refresh(double delay = 0.0);
     void        commitSuccess(QString id, QString msg);
+    void        colorChosen(const QColor &);
+    void        fontChosen(const QFont &);
 
 public:
     // OpenGL
@@ -347,17 +351,22 @@ public:
     Tree *      buttonGroup(Tree *self, bool exclusive, Tree *buttons);
     Tree *      setAction(Tree *self, Tree *action);
 
+    Tree *      colorChooser(Tree *self, Tree *action);
     Tree *      colorChooser(Tree *self,
                              real_r x, real_r y, real_r w, real_r h,
                              Tree *action);
-    Tree *      colorChooserTexture(Tree *self,double w, double h,
+    Tree *      colorChooserTexture(Tree *self,
+                                    double w, double h,
                                     Tree *action);
 
+    Tree *      fontChooser(Tree *self, Tree *action);
     Tree *      fontChooser(Tree *self,
                             real_r x, real_r y, real_r w, real_r h,
                             Tree *action);
-    Tree *      fontChooserTexture(Tree *self,double w, double h,
+    Tree *      fontChooserTexture(Tree *self,
+                                   double w, double h,
                                    Tree *action);
+
     Tree *      groupBox(Tree *self,
                          real_r x,real_r y, real_r w,real_r h,
                          text_p lbl, Tree *buttons);
@@ -440,12 +449,13 @@ private:
     GLdouble              focusProjection[16], focusModel[16];
     GLint                 focusViewport[4];
 
-    // Menus
+    // Menus and widgets
     QMenu                *currentMenu;
     QMenuBar             *currentMenuBar;
     QToolBar             *currentToolBar;
     QVector<MenuInfo*>    orderedMenuElements;
     int                   order;
+    XL::TreeRoot          colorAction, fontAction;
 
     // Timing
     QTimer                timer, idleTimer;
@@ -454,6 +464,8 @@ private:
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
 
     static Widget *       current;
+    static QColorDialog * colorDialog;
+    static QFontDialog *  fontDialog;
     static double         zNear, zFar;
 };
 

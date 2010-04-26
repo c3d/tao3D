@@ -225,7 +225,7 @@ void WebViewSurface::loadProgress(int progressPercent)
         QWebView *webView = (QWebView *) widget;
         if (webView->url().isValid() && progressPercent >= 20)
         {
-            url = webView->url().toString().toStdString();
+            url = +webView->url().toString();
             urlTree->value = url;
         }
     }
@@ -272,7 +272,7 @@ GLuint LineEditSurface::bind(XL::Text *textTree)
 {
     QLineEdit *lineEdit = (QLineEdit *) widget;
     if (contents != textTree ||
-        (!locallyModified && textTree->value != lineEdit->text().toStdString()))
+        (!locallyModified && textTree->value != +lineEdit->text()))
     {
         contents = NULL;
         lineEdit->setText(+textTree->value);
@@ -296,7 +296,7 @@ void LineEditSurface::textChanged(const QString &text)
     {
         if (immediate)
         {
-            contents->value = text.toStdString();
+            contents->value = +text;
             locallyModified = false;
         }
         else
@@ -321,7 +321,7 @@ void LineEditSurface::inputValidated()
     if (contents)
     {
         QLineEdit *lineEdit = (QLineEdit *) widget;
-        contents->value = lineEdit->text().toStdString();
+        contents->value = +lineEdit->text();
         locallyModified = false;
     }
     repaint();
@@ -334,6 +334,7 @@ void LineEditSurface::inputValidated()
 //   Abstract Button
 //
 // ============================================================================
+
 AbstractButtonSurface::AbstractButtonSurface(XL::Tree *t,
                                              QAbstractButton * button,
                                              QString name)
@@ -454,7 +455,8 @@ void AbstractButtonSurface::toggled(bool checked)
 //
 // ============================================================================
 
-ColorChooserSurface::ColorChooserSurface(XL::Tree *t, Widget *parent, XL::Tree *act)
+ColorChooserSurface::ColorChooserSurface(XL::Tree *t,
+                                         Widget *parent, XL::Tree *act)
 // ----------------------------------------------------------------------------
 //    Create the Color Chooser surface
 // ----------------------------------------------------------------------------
@@ -491,7 +493,7 @@ void ColorChooserSurface::colorChosen(const QColor &col)
 {
     IFTRACE (widgets)
     {
-        std::cerr << "Color "<< col.name().toStdString()
+        std::cerr << "Color "<< +col.name()
                   << "was chosen for reference "<< action.tree
                   <<"\nand action " << action << "\n";
     }
@@ -569,7 +571,7 @@ void FontChooserSurface::fontChosen(const QFont& ft)
 {
     IFTRACE (widgets)
     {
-        std::cerr << "Font "<< ft.toString().toStdString()
+        std::cerr << "Font "<< +ft.toString()
                   << "was chosen for reference "<< action.tree
                   <<"\nand action " << action << "\n";
     }
@@ -580,7 +582,7 @@ void FontChooserSurface::fontChosen(const QFont& ft)
         XL::Tree *DoName(XL::Name *what)
         {
             if (what->value == "family")
-                return new XL::Text(font.family().toStdString(),
+                return new XL::Text(+font.family(),
                                     "\"" ,"\"",what->Position());
             if (what->value == "pointSize")
                 return new XL::Integer(font.pointSize(), what->Position());
@@ -658,19 +660,14 @@ GLuint GroupBoxSurface::bind(XL::Text *lbl)
         IFTRACE(widgets)
         {
             QLayout *l = gbox->layout();
-            std::cerr << "Layout : "<<(l?l->objectName().toStdString():"No Layout")<<"\n";
+            std::cerr << "Layout : "
+                      << (l ? +l->objectName() : "No Layout")
+                      <<"\n";
         }
     }
     return WidgetSurface::bind();
 }
 
-//void GroupBoxSurface::clicked(bool checked)
-//{
-//    IFTRACE(widgets)
-//    {
-//        std::cerr<< "GroupBox clicked\n";
-//    }
-//}
 
 
 // ============================================================================

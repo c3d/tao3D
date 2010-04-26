@@ -201,10 +201,10 @@ submenu  "shape > insert", "Insert", "images/tao.png"
 submenu_insert_shape "menu"
 menu      "Shape"
 menu_item "shape > color", "Color...", do
-    color_chooser 0,0,300,200, do
+    color_chooser
         set_attribute "color", {color red, green, blue, alpha}
 menu_item "shape > line color", "Line color...", do
-    color_chooser 0,0,300,200, do
+    color_chooser
         set_attribute "line_color", {line_color red, green, blue, alpha}
 }
 

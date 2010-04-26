@@ -80,7 +80,8 @@ decagram t                              -> polygram t, 10, 3
 schläfli t, {p:integer}                 -> polygon t, p
 schläfli t, {p:integer/q:integer}       -> polygram t, p, q
 
-x..y / t -> x + (y-x) * (1 + sin(time/t * 2*pi)) / 2
+// x..y / t -> x + (y-x) * (1 + sin(time/t * 2*pi)) / 2
+x..y / t -> x
 
 selection_color ->
     color 0.7..1.0 / 5.0, 0.8..1.0 / 9.0, 0.9..1.0 / 6.0, 0.4
@@ -137,7 +138,7 @@ draw_widget_selection x,y,w,h ->
 
 draw_selection x,y,w,h ->
     selection_color
-    svg "bubbles.svg"
+    // svg "bubbles.svg"
     rectangle x, y, w+4, h+4
 
 draw_selection_rectangle x, y, w, h ->
@@ -201,10 +202,10 @@ submenu  "shape > insert", "Insert", "images/tao.png"
 submenu_insert_shape "menu"
 menu      "Shape"
 menu_item "shape > color", "Color...", do
-    color_chooser
+    color_chooser "color", do
         set_attribute "color", {color red, green, blue, alpha}
 menu_item "shape > line color", "Line color...", do
-    color_chooser
+    color_chooser "line_color", do
         set_attribute "line_color", {line_color red, green, blue, alpha}
 }
 

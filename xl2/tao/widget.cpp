@@ -59,6 +59,7 @@
 #include <cmath>
 #include <QFont>
 #include <iostream>
+#include <algorithm>
 #include <QVariant>
 #include <QtWebKit>
 #include <sys/time.h>
@@ -1523,10 +1524,11 @@ bool Widget::get(Tree *shape, text name, XL::tree_list &args, text topName)
     {
         if (infix->name != ",")
             break;
-        args.push_back(infix->left);
-        argsTree = infix->right;
+        args.push_back(infix->right);
+        argsTree = infix->left;
     }
     args.push_back(argsTree);
+    std::reverse(args.begin(), args.end());
 
     // Success
     return true;
@@ -3319,7 +3321,7 @@ Tree *Widget::abstractButton(Tree *self, Text *name,
 
 
 QColorDialog *Widget::colorDialog = NULL;
-Tree *Widget::colorChooser(Tree *self, Tree *action)
+Tree *Widget::colorChooser(Tree *self, text colorName, Tree *action)
 // ----------------------------------------------------------------------------
 //   Draw a color chooser
 // ----------------------------------------------------------------------------
@@ -3335,7 +3337,29 @@ Tree *Widget::colorChooser(Tree *self, Tree *action)
             this, SLOT(colorChosen(const QColor &)));
     connect(colorDialog, SIGNAL(currentColorChanged (const QColor&)),
             this, SLOT(colorChosen(const QColor &)));
-    
+
+    // Get the default color from the first selected shape
+    for (std::set<Tree *>::iterator i = selectionTrees.begin();
+         i != selectionTrees.end();
+         i++)
+    {
+        XL::tree_list color;
+        if (get(*i, colorName, color) && color.size() == 4)
+        {
+            XL::Real *red   = color[0]->AsReal();
+            XL::Real *green = color[1]->AsReal();
+            XL::Real *blue  = color[2]->AsReal();
+            XL::Real *alpha = color[3]->AsReal();
+            if (red && green && blue && alpha)
+            {
+                QColor qc;
+                qc.setRgbF(red->value, green->value, blue->value, alpha->value);
+                colorDialog->setCurrentColor(qc);
+                break;
+            }
+        }
+    }
+
     colorDialog->setModal(false);
     colorDialog->setOption(QColorDialog::ShowAlphaChannel, true);
     colorDialog->setOption(QColorDialog::DontUseNativeDialog, false);

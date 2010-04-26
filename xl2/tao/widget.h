@@ -351,7 +351,7 @@ public:
     Tree *      buttonGroup(Tree *self, bool exclusive, Tree *buttons);
     Tree *      setAction(Tree *self, Tree *action);
 
-    Tree *      colorChooser(Tree *self, Tree *action);
+    Tree *      colorChooser(Tree *self, text name, Tree *action);
     Tree *      colorChooser(Tree *self,
                              real_r x, real_r y, real_r w, real_r h,
                              Tree *action);

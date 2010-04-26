@@ -366,8 +366,8 @@ PREFIX(ColorChooser, tree, "color_chooser",
 PREFIX(ColorChooserTexture, tree, "color_chooser_texture",
        PARM(w,real) PARM(h,real) PARM(t,tree),
        RTAO(colorChooserTexture(self, w, h, &t)))
-PREFIX(ColorChooserNow, tree, "color_chooser", PARM(t,tree),
-       RTAO(colorChooser(self, &t)))
+PREFIX(ColorChooserNow, tree, "color_chooser", PARM(n, text) PARM(t,tree),
+       RTAO(colorChooser(self, n, &t)))
 
 PREFIX(FontChooser, tree, "font_chooser",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,tree),

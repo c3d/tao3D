@@ -242,6 +242,8 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
     else
     {
         // LIONEL: When does that happen?
+        // CHRISTOPHE: The first time we hit an expression which is not
+        // a linear operation on the argument
         // Create an Infix + with the delta we add
         if (ptr != &arg)
         {
@@ -255,6 +257,28 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
             widget->renormalizeProgram();
         }
     }
+}
+
+
+void Manipulator::rotate(Widget *widget, Tree *shape, kPoint3 center,
+                         kPoint3 p0, kPoint3 p1, kPoint3 p2)
+// ----------------------------------------------------------------------------
+//   Rotate the shape around the given center, given 3 drag points
+// ----------------------------------------------------------------------------
+//   We create the necessary rotatez and translate statements
+{
+    Widget::attribute_args args;
+    double current = 0.0;
+    if (widget->get(shape, "rotatez", args) && args.size() == 1)
+        current = args[0];
+
+    (void) p0;
+    double a1 = atan2(p1.y - center.y, p1.x - center.x) * (180 / M_PI);
+    double a2 = atan2(p2.y - center.y, p2.x - center.x) * (180 / M_PI);
+
+    args.resize(1);
+    args[0] = fmod(current - a1 + a2, 360);
+    widget->set(shape, "rotatez", args);
 }
 
 
@@ -389,8 +413,8 @@ bool FrameManipulator::DrawHandles(Layout *layout)
             break;
 
         case TM_FreeCenteredRotate:
-            // TODO
-            goto freeresize;
+            rotate(widget, self.tree, Point3(xx, yy, 0), p0, p1, p2);
+            break;
 
         case TM_SteppedCenteredRotate:
             // TODO

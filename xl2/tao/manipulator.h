@@ -42,6 +42,7 @@ struct Manipulator : Drawing
     typedef XL::Tree            Tree, *tree_p;
     typedef XL::RealRoot        real_r;
     typedef XL::IntegerRoot     integer_r;
+    typedef const Point3 &      kPoint3;
 
     Manipulator(tree_p self);
 
@@ -58,6 +59,8 @@ protected:
     void                updateArg(Widget *widget, tree_p arg,
                                   double first, double previous, double current,
                                   double min = -1e10, double max = 1e10);
+    void                rotate(Widget *widget, Tree *shape, kPoint3 center,
+                               kPoint3 p0, kPoint3 p1, kPoint3 p2);
 
     XL::TreeRoot        self;
 };

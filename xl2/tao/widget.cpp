@@ -3332,11 +3332,18 @@ Tree *Widget::colorChooser(Tree *self, text colorName, Tree *action)
         colorDialog = NULL;
     }
 
+    colorAction.tree = action;
+
     colorDialog = new QColorDialog(this);
     connect(colorDialog, SIGNAL(colorSelected (const QColor&)),
             this, SLOT(colorChosen(const QColor &)));
     connect(colorDialog, SIGNAL(currentColorChanged (const QColor&)),
             this, SLOT(colorChosen(const QColor &)));
+
+    // Setup the color dialog
+    colorDialog->setModal(false);
+    colorDialog->setOption(QColorDialog::ShowAlphaChannel, true);
+    colorDialog->setOption(QColorDialog::DontUseNativeDialog, false);
 
     // Get the default color from the first selected shape
     for (std::set<Tree *>::iterator i = selectionTrees.begin();
@@ -3360,12 +3367,7 @@ Tree *Widget::colorChooser(Tree *self, text colorName, Tree *action)
         }
     }
 
-    colorDialog->setModal(false);
-    colorDialog->setOption(QColorDialog::ShowAlphaChannel, true);
-    colorDialog->setOption(QColorDialog::DontUseNativeDialog, false);
     colorDialog->show();
-
-    colorAction.tree = action;
 
     return XL::xl_true;
 }

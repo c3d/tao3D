@@ -82,7 +82,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf), inError(false),
+      xlProgram(sf), inError(false), mustUpdateDialogs(false),
       space(NULL), layout(NULL), path(NULL),
       pageName(""), pageId(0), pageTotal(0), pageTree(NULL),
       currentShape(NULL),
@@ -283,6 +283,16 @@ void Widget::draw()
 
     // Update page count for next run
     pageTotal = pageId;
+
+    // If we must update dialogs, do it now
+    if (mustUpdateDialogs)
+    {
+        mustUpdateDialogs = false;
+        if (colorDialog)
+            updateColorDialog();
+        if (fontDialog)
+            updateFontDialog();
+    }
 }
 
 
@@ -3507,6 +3517,38 @@ void Widget::fontChosen(const QFont& ft)
 
     // Evaluate the input tree
     xl_evaluate(toBeEvaluated);
+}
+
+
+void Widget::updateFontDialog()
+// ----------------------------------------------------------------------------
+//   Pick font information from the selection
+// ----------------------------------------------------------------------------
+{
+    if (!fontDialog)
+        return;
+
+    // Get the default color from the first selected shape
+    for (std::set<Tree *>::iterator i = selectionTrees.begin();
+         i != selectionTrees.end();
+         i++)
+    {
+        XL::tree_list color;
+        if (get(*i, colorName, color) && color.size() == 4)
+        {
+            XL::Real *red   = color[0]->AsReal();
+            XL::Real *green = color[1]->AsReal();
+            XL::Real *blue  = color[2]->AsReal();
+            XL::Real *alpha = color[3]->AsReal();
+            if (red && green && blue && alpha)
+            {
+                QColor qc;
+                qc.setRgbF(red->value, green->value, blue->value, alpha->value);
+                colorDialog->setCurrentColor(qc);
+                break;
+            }
+        }
+    }
 }
 
 

@@ -102,6 +102,8 @@ public slots:
     void        colorChosen(const QColor &);
     void        updateColorDialog();
     void        fontChosen(const QFont &);
+    void        updateFontDialog();
+    void        updateDialogs()                { mustUpdateDialogs = true; }
 
 public:
     // OpenGL
@@ -424,6 +426,7 @@ private:
     // XL Runtime
     XL::SourceFile       *xlProgram;
     bool                  inError;
+    bool                  mustUpdateDialogs;
 
     // Rendering
     SpaceLayout *         space;

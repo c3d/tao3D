@@ -1488,7 +1488,7 @@ bool Widget::set(Tree *shape, text name, Tree *value, text topName)
                 }
             }
         }
-        
+
     } // Loop on all items
 
     // We didn't find the name: set the top level item
@@ -1511,7 +1511,7 @@ bool Widget::get(Tree *shape, text name, XL::tree_list &args, text topName)
     args.clear();
     if (attrib->AsName())
         return true;
-    
+
     // Check that we have a prefix
     XL::Prefix *prefix = attrib->AsPrefix();
     if (!prefix)
@@ -3698,6 +3698,24 @@ Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
 }
 
 
+// ============================================================================
+//
+//    Error management
+//
+// ============================================================================
+Tree *Widget::runtimeError(Tree *self, text msg, Tree *arg)
+// ----------------------------------------------------------------------------
+//   Display an error message from the input
+// ----------------------------------------------------------------------------
+{
+    inError = true;             // Stop refreshing
+    XL::Error err(msg, arg, NULL, NULL);
+    QMessageBox::warning(this, tr("Runtime error"),
+                         tr("Error executing the program:\n%1")
+                         .arg(+err.Message()));
+    return XL::xl_false;
+}
+
 
 // ============================================================================
 //
@@ -3722,20 +3740,6 @@ Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
 //   orderedMenuElements. If the order is OK, the label, etc are updated; if not
 //   or not found at all a new element is created and registered.
 // ============================================================================
-
-Tree *Widget::runtimeError(Tree *self, text msg, Tree *arg)
-// ----------------------------------------------------------------------------
-//   Display an error message from the input
-// ----------------------------------------------------------------------------
-{
-    inError = true;             // Stop refreshing
-    XL::Error err(msg, arg, NULL, NULL);
-    QMessageBox::warning(this, tr("Runtime error"),
-                         tr("Error executing the program:\n%1")
-                         .arg(+err.Message()));
-    return XL::xl_false;
-}
-
 
 Tree *Widget::menuItem(Tree *self, text name, text lbl, text iconFileName,
                        bool isCheckable, Text *isChecked, Tree *t)
@@ -4003,7 +4007,8 @@ Tree * Widget::toolBar(Tree *self, text name, text title, bool isFloatable,
     case 'o':
     case 'O':
         win->addToolBarBreak(Qt::LeftToolBarArea);
-        win->addToolBar(Qt::LeftToolBarArea, currentToolBar);break;
+        win->addToolBar(Qt::LeftToolBarArea, currentToolBar);
+        break;
     }
 
     if (QMenu* view = win->findChild<QMenu*>(VIEW_MENU_NAME))

@@ -1589,6 +1589,8 @@ bool Widget::get(Tree *shape, text name, attribute_args &args, text topName)
     for (i = treeArgs.begin(); i != treeArgs.end(); i++)
     {
         Tree *arg = *i;
+        if (!arg->IsConstant())
+            arg = xl_evaluate(arg);
         if (XL::Real *asReal = arg->AsReal())
             args.push_back(asReal->value);
         else if (XL::Integer *asInteger = arg->AsInteger())

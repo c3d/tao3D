@@ -34,6 +34,7 @@ class QWidget;
 namespace Tao {
 
 struct Widget;
+struct Layout;
 
 
 struct WidgetSurface : QObject, XL::Info
@@ -51,7 +52,7 @@ public:
     operator            data_t() { return this; }
     void                resize(uint width, uint height);
     virtual GLuint      bind();
-    virtual void        requestFocus(coord x, coord y);
+    virtual void        requestFocus(Layout *l, coord x, coord y);
 
     QWidget *           widget;
     GLuint              textureId;

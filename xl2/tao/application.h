@@ -64,10 +64,10 @@ protected:
     static bool    recursiveDelete(QString path);
     static QString defaultUserDocumentsFolderPath();
     static QString defaultPreferencesFolderPath();
-//    static QString defaultApplicationFolderPath();
     static bool    createDefaultProjectFolder();
 
 public:
+    QString      currentProjectFolder;
     static bool  createDefaultTaoPrefFolder();
 
 private:

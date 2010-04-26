@@ -24,6 +24,7 @@
 
 #include "drawing.h"
 #include "color.h"
+#include <QFont>
 
 TAO_BEGIN
 
@@ -115,6 +116,17 @@ struct LineStipple : Attribute
     virtual void Draw(Layout *where);
     uint16 scale;
     uint16 pattern;
+};
+
+
+struct FontChange : Attribute
+// ----------------------------------------------------------------------------
+//   Change a font attribute
+// ----------------------------------------------------------------------------
+{
+    FontChange(QFont font): Attribute(), font(font) {}
+    virtual void Draw(Layout *where);
+    QFont font;
 };
 
 

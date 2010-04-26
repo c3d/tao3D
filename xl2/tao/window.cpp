@@ -160,20 +160,23 @@ void Window::newFile()
 }
 
 
-void Window::open()
+void Window::open(QString fileName)
 // ----------------------------------------------------------------------------
 //   Openg a file
 // ----------------------------------------------------------------------------
 {
-    QString fileName = QFileDialog::getOpenFileName
-        (this,
-         tr("Open Tao Document"),
-         currentProjectFolderPath(),
-         tr("Tao documents (*.ddd);;XL programs (*.xl);;"
-            "Headers (*.dds *.xs);;All files (*.*)"));
-
     if (fileName.isEmpty())
-        return;
+    {
+        QString fileName = QFileDialog::getOpenFileName
+                           (this,
+                            tr("Open Tao Document"),
+                            currentProjectFolderPath(),
+                            tr("Tao documents (*.ddd);;XL programs (*.xl);;"
+                               "Headers (*.dds *.xs);;All files (*.*)"));
+
+        if (fileName.isEmpty())
+            return;
+    }
 
     Window *existing = findWindow(fileName);
     if (existing)
@@ -243,6 +246,28 @@ bool Window::saveAs()
         return false;
 
     return saveFile(fileName);
+}
+
+
+void Window::openRecentFile()
+// ----------------------------------------------------------------------------
+//    Open a file from the recent file list
+// ----------------------------------------------------------------------------
+{
+    QAction *action = qobject_cast<QAction *>(sender());
+    if (action)
+        open(action->data().toString());
+}
+
+
+void Window::clearRecentFileList()
+// ----------------------------------------------------------------------------
+//    Clear the list of recently opened files
+// ----------------------------------------------------------------------------
+{
+    QSettings settings;
+    settings.setValue("recentFileList", QStringList());
+    updateRecentFileActions();
 }
 
 
@@ -330,22 +355,36 @@ void Window::createActions()
     newAct = new QAction(QIcon(":/images/new.png"), tr("&New"), this);
     newAct->setShortcuts(QKeySequence::New);
     newAct->setStatusTip(tr("Create a new file"));
+    newAct->setIconVisibleInMenu(false);
     connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
 
     openAct = new QAction(QIcon(":/images/open.png"), tr("&Open..."), this);
     openAct->setShortcuts(QKeySequence::Open);
     openAct->setStatusTip(tr("Open an existing file"));
+    openAct->setIconVisibleInMenu(false);
     connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
 
     saveAct = new QAction(QIcon(":/images/save.png"), tr("&Save"), this);
     saveAct->setShortcuts(QKeySequence::Save);
     saveAct->setStatusTip(tr("Save the document to disk"));
+    saveAct->setIconVisibleInMenu(false);
     connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
 
     saveAsAct = new QAction(tr("Save &As..."), this);
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
     saveAsAct->setStatusTip(tr("Save the document under a new name"));
     connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
+
+    clearRecentAct = new QAction(tr("Clear list"), this);
+    connect(clearRecentAct, SIGNAL(triggered()),
+            this, SLOT(clearRecentFileList()));
+    for (int i = 0; i < MaxRecentFiles; ++i)
+    {
+        recentFileActs[i] = new QAction(this);
+        recentFileActs[i]->setVisible(false);
+        connect(recentFileActs[i], SIGNAL(triggered()),
+                this, SLOT(openRecentFile()));
+    }
 
     closeAct = new QAction(tr("&Close"), this);
     closeAct->setShortcut(tr("Ctrl+W"));
@@ -361,18 +400,21 @@ void Window::createActions()
     cutAct->setShortcuts(QKeySequence::Cut);
     cutAct->setStatusTip(tr("Cut the current selection's contents to the "
                             "clipboard"));
+    cutAct->setIconVisibleInMenu(false);
     connect(cutAct, SIGNAL(triggered()), textEdit, SLOT(cut()));
 
     copyAct = new QAction(QIcon(":/images/copy.png"), tr("&Copy"), this);
     copyAct->setShortcuts(QKeySequence::Copy);
     copyAct->setStatusTip(tr("Copy the current selection's contents to the "
                              "clipboard"));
+    copyAct->setIconVisibleInMenu(false);
     connect(copyAct, SIGNAL(triggered()), textEdit, SLOT(copy()));
 
     pasteAct = new QAction(QIcon(":/images/paste.png"), tr("&Paste"), this);
     pasteAct->setShortcuts(QKeySequence::Paste);
     pasteAct->setStatusTip(tr("Paste the clipboard's contents into the current "
                               "selection"));
+    pasteAct->setIconVisibleInMenu(false);
     connect(pasteAct, SIGNAL(triggered()), textEdit, SLOT(paste()));
 
     setPullUrlAct = new QAction(tr("Synchronize..."), this);
@@ -430,11 +472,18 @@ void Window::createMenus()
     fileMenu->setObjectName(FILE_MENU_NAME);
     fileMenu->addAction(newAct);
     fileMenu->addAction(openAct);
+    openRecentMenu = fileMenu->addMenu(tr("Open Recent"));
     fileMenu->addAction(saveAct);
     fileMenu->addAction(saveAsAct);
     fileMenu->addSeparator();
     fileMenu->addAction(closeAct);
     fileMenu->addAction(exitAct);
+    for (int i = 0; i < MaxRecentFiles; ++i)
+        openRecentMenu->addAction(recentFileActs[i]);
+    openRecentMenu->addSeparator();
+    openRecentMenu->addAction(clearRecentAct);
+    clearRecentAct->setEnabled(false);
+    updateRecentFileActions();
 
     editMenu = menuBar()->addMenu(tr("&Edit"));
     editMenu->setObjectName(EDIT_MENU_NAME);
@@ -967,6 +1016,47 @@ void Window::setCurrentFile(const QString &fileName)
 
     markChanged(false);
     setWindowFilePath(curFile);
+
+    // Update the recent file list
+    QSettings settings;
+    QStringList files = settings.value("recentFileList").toStringList();
+    files.removeAll(fileName);
+    files.prepend(fileName);
+    while (files.size() > MaxRecentFiles)
+        files.removeLast();
+
+    settings.setValue("recentFileList", files);
+
+    foreach (QWidget *widget, QApplication::topLevelWidgets()) {
+        Window *mainWin = qobject_cast<Window *>(widget);
+        if (mainWin)
+            mainWin->updateRecentFileActions();
+    }
+}
+
+
+void Window::updateRecentFileActions()
+// ----------------------------------------------------------------------------
+//   Update the recent files menu (file names are read from settings)
+// ----------------------------------------------------------------------------
+{
+    QSettings settings;
+    QStringList files = settings.value("recentFileList").toStringList();
+
+    files.removeAll("");
+    int numRecentFiles = qMin(files.size(), (int)MaxRecentFiles);
+
+    for (int i = 0; i < numRecentFiles; ++i) {
+        QString text = tr("&%1 %2").arg(i + 1).arg(strippedName(files[i]));
+        recentFileActs[i]->setText(text);
+        recentFileActs[i]->setData(files[i]);
+        recentFileActs[i]->setToolTip(files[i]);
+        recentFileActs[i]->setVisible(true);
+    }
+    for (int j = numRecentFiles; j < MaxRecentFiles; ++j)
+        recentFileActs[j]->setVisible(false);
+
+    clearRecentAct->setEnabled(numRecentFiles > 0);
 }
 
 

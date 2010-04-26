@@ -47,8 +47,8 @@ public:
     virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
 
-    virtual Box3        Bounds();
-    virtual Box3        Space();
+    virtual Box3        Bounds(Layout *layout);
+    virtual Box3        Space(Layout *layout);
     virtual LayoutLine *Break(BreakOrder &order);
 
     void                Add(Drawing *d);
@@ -83,11 +83,12 @@ public:
     virtual void        Add(Drawing *child);
     void                Add(Items::iterator first, Items::iterator last);
     virtual void        Clear();
-    virtual Box3        Bounds();
-    virtual Box3        Space();
+    virtual Box3        Bounds(Layout *layout);
+    virtual Box3        Space(Layout *layout);
     virtual PageLayout *NewChild()      { return new PageLayout(*this); }
     virtual PageLayout *Remaining();
 
+    void                Inherit(Layout *other);
     void                Compute();
     void                SafeCompute();
 
@@ -122,17 +123,17 @@ public:
 // Specializations for Justifier computations
 typedef Drawing *       line_t;
 template<> line_t       Justifier<line_t>::Break(line_t, bool*, bool*);
-template<> scale        Justifier<line_t>::Size(line_t);
+template<> scale        Justifier<line_t>::Size(line_t, Layout *);
 template<> void         Justifier<line_t>::ApplyAttributes(line_t, Layout*);
-template<> scale        Justifier<line_t>::SpaceSize(line_t);
-template<> coord        Justifier<line_t>::ItemOffset(line_t);
+template<> scale        Justifier<line_t>::SpaceSize(line_t, Layout *);
+template<> coord        Justifier<line_t>::ItemOffset(line_t, Layout *);
 
 typedef LayoutLine *    page_t;
 template<> page_t       Justifier<page_t>::Break(page_t, bool*, bool*);
-template<> scale        Justifier<page_t>::Size(page_t);
+template<> scale        Justifier<page_t>::Size(page_t, Layout *);
 template<> void         Justifier<page_t>::ApplyAttributes(page_t, Layout*);
-template<> scale        Justifier<page_t>::SpaceSize(page_t);
-template<> coord        Justifier<page_t>::ItemOffset(page_t);
+template<> scale        Justifier<page_t>::SpaceSize(page_t, Layout *);
+template<> coord        Justifier<page_t>::ItemOffset(page_t, Layout *);
 
 TAO_END
 

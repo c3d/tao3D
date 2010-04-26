@@ -33,18 +33,19 @@ void Shape3::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    if (widget->selected())
+    if (widget->selected(layout))
     {
         Color line(1.0, 0.0, 0.0, 0.5);
         Color fill(0.0, 0.7, 1.0, 0.1);
         XL::LocalSave<Color> saveLine(layout->lineColor, line);
         XL::LocalSave<Color> saveFill(layout->fillColor, fill);
-        widget->drawSelection(Bounds() + layout->Offset(), "3D_selection");
+        widget->drawSelection(Bounds(layout) + layout->Offset(),
+                              "3D_selection");
     }
 }
 
     
-Box3 Cube::Bounds()
+Box3 Cube::Bounds(Layout *)
 // ----------------------------------------------------------------------------
 //   Return the bounding box for a 3D shape
 // ----------------------------------------------------------------------------

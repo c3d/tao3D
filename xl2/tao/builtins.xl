@@ -80,7 +80,8 @@ decagram t                              -> polygram t, 10, 3
 schläfli t, {p:integer}                 -> polygon t, p
 schläfli t, {p:integer/q:integer}       -> polygram t, p, q
 
-x..y / t -> x + (y-x) * (1 + sin(time/t * 2*pi)) / 2
+// x..y / t -> x + (y-x) * (1 + sin(time/t * 2*pi)) / 2
+x..y / t -> x
 
 selection_color ->
     color 0.7..1.0 / 5.0, 0.8..1.0 / 9.0, 0.9..1.0 / 6.0, 0.4
@@ -137,7 +138,7 @@ draw_widget_selection x,y,w,h ->
 
 draw_selection x,y,w,h ->
     selection_color
-    svg "bubbles.svg"
+    // svg "bubbles.svg"
     rectangle x, y, w+4, h+4
 
 draw_selection_rectangle x, y, w, h ->
@@ -195,45 +196,76 @@ theme_colors ->
     line_color 0, 0, 0, 1
 
 menu_insert -> {
-menu      "insert", "Insert"
+menubar
+menu      "Shape", "Shape"
+submenu  "shape > insert", "Insert", "images/tao.png"
 submenu_insert_shape "menu"
+menu      "Shape"
+menu_item "shape > color", "Color...", do
+    color_chooser "color", do
+        set_attribute "color", {color red, green, blue, alpha}
+menu_item "shape > line color", "Line color...", do
+    color_chooser "line_color", do
+        set_attribute "line_color", {line_color red, green, blue, alpha}
 }
 
 toolbar_insert -> {
 toolbar "insert", "insert", "W"
+submenu  "toolbar shape > insert", "Shape", "images/tao.png"
 submenu_insert_shape "toolbar"
 }
 
 submenu_insert_shape p -> {
-submenu   p&"insert > shape", "Shape", "images/tao.png"
-menu_item p&"insert > shape > line ---", "Line", insert
-    line 50, -50, -50, 50
-menu_item p&"insert > shape > line -->", "Line with Arrowhead", insert
-    line 50, -50, -50, 50
-menu_item p&"insert > shape > line <->", "Line with Two Arrowheads", insert
-    line 50, -50, -50, 50
-menu_item p&"insert > shape > rectangle", "Rectangle", insert
-    rectangle 0, 0, 100, 100
-menu_item p&"insert > shape > rounded rectangle", "Rounded Rectangle", insert
-    rounded_rectangle 0, 0, 100, 100, 15
-menu_item p&"insert > shape > oval", "Oval", insert
-    oval 0, 0, 100, 100
-menu_item p&"insert > shape > triangle", "Triangle", insert
-    triangle 0, 0, 100, 100
-menu_item p&"insert > shape > right triangle", "Right Triangle", insert
-    right_triangle 0, 0, 100, 100
-menu_item p&"insert > shape > arrow", "Arrow", insert
-    arrow 0, 0, 100, 100, 44, 32%
-menu_item p&"insert > shape > double arrow", "Double Arrow", insert
-    double_arrow 0, 0, 100, 100, 44, 32%
-menu_item p&"insert > shape > diamond", "Diamond", insert
-    diamond 0, 0, 100, 100
-menu_item p&"insert > shape > speech ballon", "Speech Balloon", insert
-    speech_balloon 0, 16, 100, 68, 50, -50, -50
-menu_item p&"insert > shape > callout", "Callout", insert
-    callout 16, 0, 68, 100, 15, -50, 0, 60
-menu_item p&"insert > shape > star", "Star", insert
-    star 0, 0, 100, 100, 5, 50%
-menu_item p&"insert > shape > polygon", "Polygon", insert
-    polygon 0, 0, 100, 100, 5
+menu_item p&"shape > insert > line ---", "Line", insert
+    shape
+        line 50, -50, -50, 50
+menu_item p&"shape > insert > line -->", "Line with Arrowhead", insert
+    shape
+        line 50, -50, -50, 50
+menu_item p&"shape > insert > line <->", "Line with Two Arrowheads", insert
+    shape
+        line 50, -50, -50, 50
+menu_item p&"shape > insert > rectangle", "Rectangle", insert
+    shape
+        rectangle 0, 0, 100, 100
+menu_item p&"shape > insert > rounded rectangle", "Rounded Rectangle", insert
+    shape
+        rounded_rectangle 0, 0, 100, 100, 15
+menu_item p&"shape > insert > oval", "Oval", insert
+    shape
+        oval 0, 0, 100, 100
+menu_item p&"shape > insert > triangle", "Triangle", insert
+    shape
+        triangle 0, 0, 100, 100
+menu_item p&"shape > insert > right triangle", "Right Triangle", insert
+    shape
+        right_triangle 0, 0, 100, 100
+menu_item p&"shape > insert > arrow", "Arrow", insert
+    shape
+        arrow 0, 0, 100, 100, 44, 32%
+menu_item p&"shape > insert > double arrow", "Double Arrow", insert
+    shape
+        double_arrow 0, 0, 100, 100, 44, 32%
+menu_item p&"shape > insert > diamond", "Diamond", insert
+    shape
+        diamond 0, 0, 100, 100
+menu_item p&"shape > insert > speech ballon", "Speech Balloon", insert
+    shape
+        speech_balloon 0, 16, 100, 68, 50, -50, -50
+menu_item p&"shape > insert > callout", "Callout", insert
+    shape
+        callout 16, 0, 68, 100, 15, -50, 0, 60
+menu_item p&"shape > insert > star", "Star", insert
+    shape
+        star 0, 0, 100, 100, 5, 50%
+menu_item p&"shape > insert > polygon", "Polygon", insert
+    shape
+        polygon 0, 0, 100, 100, 5
+menu_item p&"shape > insert > text", "Text", insert
+    shape
+        text_box 0,0,100,50, do
+            text "Text"
+menu_item p&"shape > insert > overflow", "Text overflow", insert
+    shape
+        text_overflow 0,0,100,50
 }

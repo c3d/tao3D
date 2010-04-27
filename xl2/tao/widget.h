@@ -85,6 +85,7 @@ public:
     typedef XL::real_p    real_p;
     typedef XL::integer_p integer_p;
     typedef XL::text_p    text_p;
+    typedef std::vector<double>   attribute_args;
 
 public:
     Widget(Window *parent, XL::SourceFile *sf = NULL);
@@ -100,7 +101,10 @@ public slots:
     bool        refresh(double delay = 0.0);
     void        commitSuccess(QString id, QString msg);
     void        colorChosen(const QColor &);
+    void        updateColorDialog();
     void        fontChosen(const QFont &);
+    void        updateFontDialog();
+    void        updateDialogs()                { mustUpdateDialogs = true; }
 
 public:
     // OpenGL
@@ -132,12 +136,14 @@ public:
     void        refreshProgram();
     void        markChanged(text reason);
     bool        writeIfChanged(XL::SourceFile &sf);
-    bool        doCommit();
+    bool        doCommit(bool immediate = false);
     Repository *repository();
     Tree *      get(Tree *shape, text name, text sh = "shape");
     bool        set(Tree *shape, text n, Tree *value, text sh = "shape");
     bool        get(Tree *shape, text n, XL::tree_list &a, text sh = "shape");
     bool        set(Tree *shape, text n, XL::tree_list &a, text sh = "shape");
+    bool        get(Tree *shape, text n, attribute_args &a, text sh = "shape");
+    bool        set(Tree *shape, text n, attribute_args &a, text sh = "shape");
 
     // Timing
     ulonglong   now();
@@ -351,7 +357,7 @@ public:
     Tree *      buttonGroup(Tree *self, bool exclusive, Tree *buttons);
     Tree *      setAction(Tree *self, Tree *action);
 
-    Tree *      colorChooser(Tree *self, Tree *action);
+    Tree *      colorChooser(Tree *self, text name, Tree *action);
     Tree *      colorChooser(Tree *self,
                              real_r x, real_r y, real_r w, real_r h,
                              Tree *action);
@@ -423,6 +429,7 @@ private:
     // XL Runtime
     XL::SourceFile       *xlProgram;
     bool                  inError;
+    bool                  mustUpdateDialogs;
 
     // Rendering
     SpaceLayout *         space;
@@ -456,6 +463,7 @@ private:
     QVector<MenuInfo*>    orderedMenuElements;
     int                   order;
     XL::TreeRoot          colorAction, fontAction;
+    text                  colorName;
 
     // Timing
     QTimer                timer, idleTimer;

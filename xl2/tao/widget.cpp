@@ -59,6 +59,7 @@
 #include <cmath>
 #include <QFont>
 #include <iostream>
+#include <algorithm>
 #include <QVariant>
 #include <QtWebKit>
 #include <sys/time.h>
@@ -81,7 +82,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf), inError(false),
+      xlProgram(sf), inError(false), mustUpdateDialogs(false),
       space(NULL), layout(NULL), path(NULL),
       pageName(""), pageId(0), pageTotal(0), pageTree(NULL),
       currentShape(NULL),
@@ -174,9 +175,6 @@ void Widget::dawdle()
         text txt = *xlProgram->tree.tree;
         Window *window = (Window *) parentWidget();
         window->setText(+txt);
-        window->markChanged(false);
-        if (!repo)
-            xlProgram->changed = false;
     }
 
     // Check if there's something to save
@@ -194,10 +192,6 @@ void Widget::dawdle()
         // Record when we will save file again
         nextSave = tick + xlr->options.save_interval * 1000;
     }
-
-    // If things are saved on disk, no need to keep the window "dirty"
-    Window *window = (Window *) parentWidget();
-    window->markChanged(false);
 
     // Check if there's something to commit
     longlong commitDelay = longlong (nextCommit - tick);
@@ -289,6 +283,16 @@ void Widget::draw()
 
     // Update page count for next run
     pageTotal = pageId;
+
+    // If we must update dialogs, do it now
+    if (mustUpdateDialogs)
+    {
+        mustUpdateDialogs = false;
+        if (colorDialog)
+            updateColorDialog();
+        if (fontDialog)
+            updateFontDialog();
+    }
 }
 
 
@@ -337,6 +341,12 @@ void Widget::runProgram()
         }
     }
 
+    // Remember how many elements are drawn on the page, plus arbitrary buffer
+    if (id + charId > capacity)
+        capacity = id + charId + 100;
+    else if (id + charId + 50 < capacity / 2)
+        capacity = capacity / 2;
+
     // After we are done, draw the space with all the drawings in it
     id = charId = 0;
     space->Draw(NULL);
@@ -347,13 +357,6 @@ void Widget::runProgram()
 
     // Once we are done, do a garbage collection
     XL::Context::context->CollectGarbage();
-
-    // Remember how many elements are drawn on the page, plus arbitrary buffer
-    if (id + charId > capacity)
-        capacity = id + charId + 100;
-    else if (id + charId + 50 < capacity / 2)
-        capacity = capacity / 2;
-
 }
 
 
@@ -1293,7 +1296,7 @@ void Widget::markChanged(text reason)
         }
     }
 
-
+    // Cause the screen to redraw
     refresh(0);
 }
 
@@ -1336,14 +1339,16 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
 }
 
 
-bool Widget::doCommit()
+bool Widget::doCommit(bool immediate)
 // ----------------------------------------------------------------------------
 //   Commit files previously written to repository and reset next commit time
 // ----------------------------------------------------------------------------
 {
     IFTRACE(filesync)
             std::cerr << "Commit: " << repository()->whatsNew << "\n";
-    if (repository()->asyncCommit())
+    bool done;
+    done = immediate ? repository()->commit() : repository()->asyncCommit();
+    if (done)
     {
         XL::Main *xlr = XL::MAIN;
         nextCommit = now() + xlr->options.commit_interval * 1000;
@@ -1476,19 +1481,30 @@ bool Widget::set(Tree *shape, text name, Tree *value, text topName)
                 {
                     if (prefixName->value == name)
                     {
-                        *addr = value;
+                        ApplyChanges changes(value);
+                        if (!(*addr)->Do(changes))
+                        {
+                            // Need big hammer here, reload everything
+                            *addr = value;
+                            reloadProgram();
+                        }
                         return true;
                     }
                 }
             }
         }
-        else if (value->AsName())
+        else if (Name *newName = value->AsName())
         {
             if (Name *stmtName = what->AsName())
             {
                 if (stmtName->value == name)
                 {
-                    *addr = value;
+                    // If the name is different, need to update
+                    if (newName->value != name)
+                    {
+                        *addr = value;
+                        reloadProgram();
+                    }
                     return true;
                 }
             }
@@ -1498,6 +1514,7 @@ bool Widget::set(Tree *shape, text name, Tree *value, text topName)
 
     // We didn't find the name: set the top level item
     *topAddr = new XL::Infix("\n", value, *topAddr);
+    reloadProgram();
     return true;
 }
 
@@ -1528,10 +1545,11 @@ bool Widget::get(Tree *shape, text name, XL::tree_list &args, text topName)
     {
         if (infix->name != ",")
             break;
-        args.push_back(infix->left);
-        argsTree = infix->right;
+        args.push_back(infix->right);
+        argsTree = infix->left;
     }
     args.push_back(argsTree);
+    std::reverse(args.begin(), args.end());
 
     // Success
     return true;
@@ -1549,6 +1567,52 @@ bool Widget::set(Tree *shape, text name, XL::tree_list &args, text topName)
         Tree *argsTree = args[0];
         for (uint a = 1; a < arity; a++)
             argsTree = new XL::Infix(",", argsTree, args[a]);
+        call = new XL::Prefix(call, argsTree);
+    }
+
+    return set(shape, name, call, topName);
+}
+
+
+bool Widget::get(Tree *shape, text name, attribute_args &args, text topName)
+// ----------------------------------------------------------------------------
+//   Get the arguments, decomposing args in a comma-separated list
+// ----------------------------------------------------------------------------
+{
+    // Get the trees
+    XL::tree_list treeArgs;
+    if (!get(shape, name, treeArgs, topName))
+        return false;
+
+    // Convert from integer or tree values
+    XL::tree_list::iterator i;
+    for (i = treeArgs.begin(); i != treeArgs.end(); i++)
+    {
+        Tree *arg = *i;
+        if (!arg->IsConstant())
+            arg = xl_evaluate(arg);
+        if (XL::Real *asReal = arg->AsReal())
+            args.push_back(asReal->value);
+        else if (XL::Integer *asInteger = arg->AsInteger())
+            args.push_back(asInteger->value);
+        else return false;
+    }
+
+    return true;
+}
+
+
+bool Widget::set(Tree *shape, text name, attribute_args &args, text topName)
+// ----------------------------------------------------------------------------
+//   Set the arguments, building the comma-separated list
+// ----------------------------------------------------------------------------
+{
+    Tree *call = new XL::Name(name);
+    if (uint arity = args.size())
+    {
+        Tree *argsTree = new XL::Real(args[0]);
+        for (uint a = 1; a < arity; a++)
+            argsTree = new XL::Infix(",", argsTree, new XL::Real(args[a]));
         call = new XL::Prefix(call, argsTree);
     }
 
@@ -3324,7 +3388,7 @@ Tree *Widget::abstractButton(Tree *self, Text *name,
 
 
 QColorDialog *Widget::colorDialog = NULL;
-Tree *Widget::colorChooser(Tree *self, Tree *action)
+Tree *Widget::colorChooser(Tree *self, text treeName, Tree *action)
 // ----------------------------------------------------------------------------
 //   Draw a color chooser
 // ----------------------------------------------------------------------------
@@ -3335,18 +3399,23 @@ Tree *Widget::colorChooser(Tree *self, Tree *action)
         colorDialog = NULL;
     }
 
+    colorAction.tree = action;
+    colorName = treeName;
+
+    // Setup the color dialog
     colorDialog = new QColorDialog(this);
+    colorDialog->setOption(QColorDialog::ShowAlphaChannel, true);
+    colorDialog->setModal(false);
+    colorDialog->setOption(QColorDialog::DontUseNativeDialog, false);
+    updateColorDialog();
+
+    // Connect the dialog and show it
     connect(colorDialog, SIGNAL(colorSelected (const QColor&)),
             this, SLOT(colorChosen(const QColor &)));
     connect(colorDialog, SIGNAL(currentColorChanged (const QColor&)),
             this, SLOT(colorChosen(const QColor &)));
-    
-    colorDialog->setModal(false);
-    colorDialog->setOption(QColorDialog::ShowAlphaChannel, true);
-    colorDialog->setOption(QColorDialog::DontUseNativeDialog, false);
     colorDialog->show();
 
-    colorAction.tree = action;
 
     return XL::xl_true;
 }
@@ -3397,6 +3466,31 @@ void Widget::colorChosen(const QColor & col)
 
     // Evaluate the input tree
     xl_evaluate(toBeEvaluated);
+}
+
+
+void Widget::updateColorDialog()
+// ----------------------------------------------------------------------------
+//   Pick colors from the selection
+// ----------------------------------------------------------------------------
+{
+    if (!colorDialog)
+        return;
+
+    // Get the default color from the first selected shape
+    for (std::set<Tree *>::iterator i = selectionTrees.begin();
+         i != selectionTrees.end();
+         i++)
+    {
+        attribute_args color;
+        if (get(*i, colorName, color) && color.size() == 4)
+        {
+            QColor qc;
+            qc.setRgbF(color[0], color[1], color[2], color[3]);
+            colorDialog->setCurrentColor(qc);
+            break;
+        }
+    }
 }
 
 
@@ -3474,6 +3568,16 @@ void Widget::fontChosen(const QFont& ft)
 
     // Evaluate the input tree
     xl_evaluate(toBeEvaluated);
+}
+
+
+void Widget::updateFontDialog()
+// ----------------------------------------------------------------------------
+//   Pick font information from the selection
+// ----------------------------------------------------------------------------
+{
+    if (!fontDialog)
+        return;
 }
 
 
@@ -3864,20 +3968,31 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
             return XL::xl_true;
         }
 
-        if (order < orderedMenuElements.size() &&
-            orderedMenuElements[order] != NULL &&
-            orderedMenuElements[order]->fullname == fullname)
+        if (order < orderedMenuElements.size())
         {
-            // Set the currentMenu and update the label and icon.
-            currentMenu = tmp;
-            currentMenu->setTitle(+lbl);
-            if (iconFileName != "")
-                currentMenu->setIcon(QIcon(+iconFileName));
-            else
-                currentMenu->setIcon(QIcon());
-
-            order++;
-            return XL::xl_true;
+            if (MenuInfo *menuInfo = orderedMenuElements[order])
+            {
+                if (menuInfo->fullname == fullname)
+                {
+                    // Set the currentMenu and update the label and icon.
+                    currentMenu = tmp;
+                    if (lbl != menuInfo->title)
+                    {
+                        currentMenu->setTitle(+lbl);
+                        menuInfo->title = lbl;
+                    }
+                    if (iconFileName != menuInfo->icon)
+                    {
+                        if (iconFileName != "")
+                            currentMenu->setIcon(QIcon(+iconFileName));
+                        else
+                            currentMenu->setIcon(QIcon());
+                        menuInfo->icon = iconFileName;
+                    }
+                    order++;
+                    return XL::xl_true;
+                }
+            }
         }
         // The name exist but it is not in the good order so clean it
         delete tmp;
@@ -3935,6 +4050,9 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
 
     orderedMenuElements[order] = new MenuInfo(fullname,
                                               currentMenu->menuAction());
+    orderedMenuElements[order]->title = lbl;
+    orderedMenuElements[order]->icon = iconFileName;
+
     IFTRACE(menus)
     {
         std::cerr << "menu CREATION with name "
@@ -3946,6 +4064,7 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
 
     return XL::xl_true;
 }
+
 
 Tree * Widget::menuBar(Tree *self)
 // ----------------------------------------------------------------------------

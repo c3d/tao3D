@@ -70,6 +70,7 @@ void CloneDialog::accept()
         return;
     }
     okButton->setEnabled(false);
+    cancelButton->setText("Abort");
     cloneOutput->append(tr("Starting...\n"));
     setCursor(Qt::BusyCursor);
     connect(repo.data(), SIGNAL(asyncCloneComplete(void *, QString)),
@@ -105,20 +106,30 @@ void CloneDialog::endClone(void *id, QString projPath)
     if (proc)
         text = tr("Done.\n");
     else
-        text = tr("Canceled.\n");
-    cloneOutput->append(text);
+        text = tr("Aborted.\n");
+    proc = NULL;
     okToDismiss = true;
-    okButton->setText(tr("Dismiss"));
+    okButton->setText("Close");
     okButton->setEnabled(true);
     cancelButton->setEnabled(false);
+    cloneOutput->insertPlainText(text);
     if (!projPath.isEmpty())
     {
         repository_ptr repo;
         repo = RepositoryFactory::repository(projPath,
                                              RepositoryFactory::OpenExisting);
         if (repo)
-            repo->checkout("master_tao_undo");
+        {
+            bool ok;
+            cloneOutput->insertPlainText(tr("Checking out files...\n"));
+            ok = repo->checkout("master_tao_undo");
+            if (ok)
+                cloneOutput->insertPlainText(tr("Done\n"));
+            else
+                cloneOutput->insertPlainText(tr("Failed.\n"));
+        }
     }
+    cloneOutput->moveCursor(QTextCursor::End);
 }
 
 void CloneDialog::on_browseButton_clicked()
@@ -160,6 +171,7 @@ void CloneDialog::enableOkCancel()
         return;
 
     okButton->setText(tr("OK"));
+    cancelButton->setText("Cancel");
     cancelButton->setEnabled(true);
     okToDismiss = false;
 }

@@ -52,6 +52,8 @@ public:
     QString        fullname; // the widget full name.
     QAction      * p_action; // The action associated with the widget
     QToolBar     * p_toolbar; // The toolbar
+    text           title;
+    text           icon;
 
 public slots:
     void actionDestroyed();

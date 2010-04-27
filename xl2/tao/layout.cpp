@@ -40,6 +40,7 @@ LayoutState::LayoutState()
     : offset(),
       font(qApp->font()),
       alongX(), alongY(), alongZ(),
+      lineWidth(1.0),
       lineColor(0,0,0,1),       // Black
       fillColor(0,0,0,0),       // Transparent black
       fillTexture(0),
@@ -286,6 +287,7 @@ void Layout::Inherit(Layout *where)
     alongX      = where->alongX;
     alongY      = where->alongY;
     alongZ      = where->alongZ;
+    lineWidth   = where->lineWidth;
     lineColor   = where->lineColor;
     fillColor   = where->fillColor;
     fillTexture = where->fillTexture;

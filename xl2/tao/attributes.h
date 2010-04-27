@@ -100,7 +100,7 @@ struct LineWidth : Attribute
 //    Record the line width when drawing elements
 // ----------------------------------------------------------------------------
 {
-    LineWidth(float w) : Attribute(), width(w) {}
+    LineWidth(float w) : Attribute(), width(w < 0.1? 0.1: w) {}
     virtual void Draw(Layout *where);
     float width;
 };

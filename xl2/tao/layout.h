@@ -48,6 +48,7 @@ public:
     Vector3             offset;
     QFont               font;
     Justification       alongX, alongY, alongZ;
+    scale               lineWidth;
     Color               lineColor;
     Color               fillColor;
     uint                fillTexture;

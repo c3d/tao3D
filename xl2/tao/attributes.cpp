@@ -70,7 +70,7 @@ void LineWidth::Draw(Layout *where)
 //   Replay a line width change
 // ----------------------------------------------------------------------------
 {
-    (void) where;
+    where->lineWidth = width;
     glLineWidth(width);
 }
 

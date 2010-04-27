@@ -162,7 +162,7 @@ void PlaceholderRectangle::Draw(Layout *where)
     glDisable(GL_LINE_STIPPLE);
     
     where->PolygonOffset();
-    path.Draw(where, GL_LINE_STRIP);
+    path.Draw(where, GL_LINE_STRIP, 0);
 }
 
 
@@ -250,12 +250,7 @@ void EllipticalRectangle::Draw(Layout *where)
 {
     GraphicPath path;
     Draw(path);
-    setTexture(where);
-    if (setFillColor(where))
-        path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
-    if (setLineColor(where))
-        // REVISIT: If lines is thick, use a QPainterPathStroker
-        path.Draw(where, GL_LINE_STRIP);
+    path.Drawi(where, GLU_TESS_WINDING_POSITIVE);
 }
 
 
@@ -347,12 +342,7 @@ void Arrow::Draw(Layout *where)
 {
     GraphicPath path;
     Draw(path);
-    setTexture(where);
-    if (setFillColor(where))
-        path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
-    if (setLineColor(where))
-        // REVISIT: If lines is thick, use a QPainterPathStroker
-        path.Draw(where, GL_LINE_STRIP);
+    path.Drawi(where, GLU_TESS_WINDING_POSITIVE);
 }
 
 
@@ -408,12 +398,7 @@ void DoubleArrow::Draw(Layout *where)
 {
     GraphicPath path;
     Draw(path);
-    setTexture(where);
-    if (setFillColor(where))
-        path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
-    if (setLineColor(where))
-        // REVISIT: If lines is thick, use a QPainterPathStroker
-        path.Draw(where, GL_LINE_STRIP);
+    path.Drawi(where, GLU_TESS_WINDING_POSITIVE);
 }
 
 
@@ -480,12 +465,7 @@ void StarPolygon::Draw(Layout *where)
     }
     else
     {
-        setTexture(where);
-        if (setFillColor(where))
-            path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
-        if (setLineColor(where))
-            // REVISIT: If lines is thick, use a QPainterPathStroker
-            path.Draw(where, GL_LINE_STRIP);
+        path.Drawi(where, GLU_TESS_WINDING_POSITIVE);
     }
 }
 
@@ -581,12 +561,7 @@ void Star::Draw(Layout *where)
     }
     else
     {
-        setTexture(where);
-        if (setFillColor(where))
-            path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
-        if (setLineColor(where))
-            // REVISIT: If lines is thick, use a QPainterPathStroker
-            path.Draw(where, GL_LINE_STRIP);
+        path.Drawi(where, GLU_TESS_WINDING_POSITIVE);
     }
 }
 
@@ -640,12 +615,7 @@ void SpeechBalloon::Draw(Layout *where)
 {
     GraphicPath path;
     Draw(path);
-    setTexture(where);
-    if (setFillColor(where))
-        path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
-    if (setLineColor(where))
-        // REVISIT: If lines is thick, use a QPainterPathStroker
-        path.Draw(where, GL_LINE_STRIP);
+    path.Drawi(where, GLU_TESS_WINDING_POSITIVE);
 }
 
 
@@ -713,12 +683,7 @@ void Callout::Draw(Layout *where)
 {
     GraphicPath path;
     Draw(path);
-    setTexture(where);
-    if (setFillColor(where))
-        path.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
-    if (setLineColor(where))
-        // REVISIT: If lines is thick, use a QPainterPathStroker
-        path.Draw(where, GL_LINE_STRIP);
+    path.Drawi(where, GLU_TESS_WINDING_POSITIVE);
 }
 
 

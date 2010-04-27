@@ -45,7 +45,8 @@ struct GraphicPath : Shape
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *where);
     virtual void        Identify(Layout *where);
-    virtual void        Draw(Layout *where, GLenum mode, GLenum tessel=0);
+    virtual void        Drawi(Layout *where, GLenum tessel);
+    virtual void        Draw(Layout *where, GLenum mode, GLenum tessel);
     virtual Box3        Bounds(Layout *layout);
 
     // Absolute coordinates
@@ -61,8 +62,9 @@ struct GraphicPath : Shape
 
     // Qt path conversion
     GraphicPath&        addQtPath(QPainterPath &path, scale sy = 1);
+    bool                extractQtPath(QPainterPath &path);
     static void         Draw(Layout *where, QPainterPath &path,
-                             GLenum tess = 0, scale sy = 1);
+                             GLenum tessel = 0, scale sy = 1);
 
     // Other operations
     void                clear();

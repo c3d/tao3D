@@ -232,10 +232,10 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
     else if (XL::Real *rval = (*ptr)->AsReal())
     {
         rval->value += (current - previous) / scale;
-        if (ival->value * scale < min)
-            ival->value = min / scale;
-        if (ival->value * scale > max)
-            ival->value = max / scale;
+        if (rval->value * scale < min)
+            rval->value = min / scale;
+        if (rval->value * scale > max)
+            rval->value = max / scale;
         if (ppptr && rval->value < 0)
             widget->renormalizeProgram();
     }
@@ -282,12 +282,22 @@ void Manipulator::rotate(Widget *widget, Tree *shape, kPoint3 center,
         a1 = rArgs[0];
 
     // Compute new rotation angle
-    (void) p0;
     double da1 = atan2(p1.y - center.y, p1.x - center.x) * (180 / M_PI);
     double da2 = atan2(p2.y - center.y, p2.x - center.x) * (180 / M_PI);
-    double a2 = fmod(a1 - da1 + da2, 360);
+    double a2 = fmod(a1 - da1 + da2 + 360, 360);
     if (stepped)
-        a2 = 45 * (int(a2/45) + int(da2/45));
+    {
+        double da0 = atan2(p0.y - center.y, p0.x - center.x) * (180 / M_PI);
+
+        int n1 = (da1 - da0 + (2*360 - 22.5)) / 45;
+        int n2 = (da2 - da0 + (2*360 - 22.5)) / 45;
+
+        a2 = 45 * int(a1/45);
+        if (n2 > n1)
+            a2 += 45;
+        else if (n2 < n1)
+            a2 -= 45;
+    }
 
     // If c is the rotation center and s the shape position
     //   x' = tx + cx * cos a - cy * sin a

@@ -53,17 +53,21 @@
 #include "attributes.h"
 #include "transforms.h"
 #include "undo.h"
+#include "serializer.h"
 
 #include <QToolButton>
 #include <QtGui/QImage>
 #include <cmath>
 #include <QFont>
 #include <iostream>
+#include <sstream>
 #include <algorithm>
 #include <QVariant>
 #include <QtWebKit>
 #include <sys/time.h>
 #include <sys/stat.h>
+
+#define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
 
 TAO_BEGIN
 
@@ -89,6 +93,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
       id(0), charId(0), capacity(1), manipulator(0),
+      wasSelected(false),
       event(NULL), focusWidget(NULL),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
@@ -351,6 +356,9 @@ void Widget::runProgram()
     id = charId = 0;
     space->DrawSelection(NULL);
 
+    // Clipboard management
+    checkCopyAvailable();
+
     // Once we are done, do a garbage collection
     XL::Context::context->CollectGarbage();
 
@@ -412,6 +420,115 @@ void Widget::appFocusChanged(QWidget *prev, QWidget *next)
         }
         printf("\n");
     }
+}
+
+
+
+void Widget::checkCopyAvailable()
+// ----------------------------------------------------------------------------
+//   Emit a signal when clipboard can copy or cut something (or cannot anymore)
+// ----------------------------------------------------------------------------
+{
+    bool isSelected = selected();
+    if (wasSelected != isSelected)
+    {
+        emit copyAvailable(isSelected);
+        wasSelected = isSelected;
+    }
+}
+
+
+bool Widget::canPaste()
+// ----------------------------------------------------------------------------
+//   Is current clibpoard data in a suitable format to be pasted?
+// ----------------------------------------------------------------------------
+{
+    const QMimeData *mimeData = QApplication::clipboard()->mimeData();
+    return (mimeData->hasFormat(TAO_CLIPBOARD_MIME_TYPE));
+}
+
+
+void Widget::cut()
+// ----------------------------------------------------------------------------
+//   Cut current selection into clipboard
+// ----------------------------------------------------------------------------
+{
+    copy();
+    // TODO: delete selection
+}
+
+
+void Widget::copy()
+// ----------------------------------------------------------------------------
+//   Copy current selection into clipboard
+// ----------------------------------------------------------------------------
+{
+    if (!hasSelection())
+        return;
+
+    // Build a single tree from all the selected sub-trees
+    XL::Tree *tree = NULL;
+    std::set<Tree *>::iterator i;
+    for (i = selectionTrees.begin(); i != selectionTrees.end(); i++)
+    {
+        XL::Tree *t = (*i);
+        if (tree)
+            tree = new XL::Infix("\n", tree, t);
+        else
+            tree = t;
+    }
+
+    // Serialize the tree
+    std::string ser;
+    std::ostringstream ostr;
+    XL::Serializer serializer(ostr);
+    tree->Do(serializer);
+    ser += ostr.str();
+
+    // Encapsulate serialized tree as MIME data
+    QByteArray binData;
+    binData.append(ser.data(), ser.length());
+    QMimeData *mimeData = new QMimeData;
+    mimeData->setData(TAO_CLIPBOARD_MIME_TYPE, binData);
+
+    // Transfer into clipboard
+    QClipboard *clipboard = QApplication::clipboard();
+    clipboard->setMimeData(mimeData);
+}
+
+
+void Widget::paste()
+// ----------------------------------------------------------------------------
+//   Paste the clipboard content at the current selection
+// ----------------------------------------------------------------------------
+{
+    // Does clipboard contain Tao stuff?)
+    if (!canPaste())
+        return;
+
+    // Read clipboard content
+    const QMimeData *mimeData = QApplication::clipboard()->mimeData();
+
+    // Extract serialized tree
+    QByteArray binData = mimeData->data(TAO_CLIPBOARD_MIME_TYPE);
+    std::string ser(binData.data(), binData.length());
+
+    // De-serialize
+    std::istringstream istr(ser);
+    XL::Deserializer deserializer(istr);
+    XL::Tree *tree = deserializer.ReadTree();
+    if (!deserializer.IsValid())
+        return;
+
+    // Insert tree at current selection, or at end of current page
+    // TODO: paste with an offset to avoid exactly overlapping objects
+    insert(NULL, tree);
+
+    // Deselect previous selection
+    selection.clear();
+    selectionTrees.clear();
+
+    // TODO: select the new objects
 }
 
 

@@ -341,6 +341,12 @@ void Widget::runProgram()
         }
     }
 
+    // Remember how many elements are drawn on the page, plus arbitrary buffer
+    if (id + charId > capacity)
+        capacity = id + charId + 100;
+    else if (id + charId + 50 < capacity / 2)
+        capacity = capacity / 2;
+
     // After we are done, draw the space with all the drawings in it
     id = charId = 0;
     space->Draw(NULL);
@@ -351,12 +357,6 @@ void Widget::runProgram()
 
     // Once we are done, do a garbage collection
     XL::Context::context->CollectGarbage();
-
-    // Remember how many elements are drawn on the page, plus arbitrary buffer
-    if (id + charId > capacity)
-        capacity = id + charId + 100;
-    else if (id + charId + 50 < capacity / 2)
-        capacity = capacity / 2;
 }
 
 

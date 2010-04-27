@@ -30,8 +30,25 @@ ImageTextureInfo::ImageTextureInfo(Widget *w)
 // ----------------------------------------------------------------------------
 //   Prepare to record texture IDs for the various images
 // ----------------------------------------------------------------------------
-    : textures(), widget(w)
-{}
+    : textures(), widget(w), defaultTextureId(0)
+{
+    QString file(":/images/defaultImage.svg");
+    QImage defOrig(file);
+    if (defOrig.isNull())
+        return;
+
+    QImage texture = QGLWidget::convertToGLFormat(defOrig);
+
+    // Generate the GL texture
+    glGenTextures(1, &defaultTextureId);
+    glBindTexture(GL_TEXTURE_2D, defaultTextureId);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                 texture.width(), texture.height(), 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, texture.bits());
+
+    // Remember the texture for next time
+    textures[+file] = defaultTextureId;
+}
 
 
 ImageTextureInfo::~ImageTextureInfo()
@@ -59,8 +76,7 @@ GLuint ImageTextureInfo::bind(text file)
             textures.erase(textures.begin());
 
         // Read the image file and convert to proper GL image format
-        QString imgFile(+file);
-        QImage original(imgFile);
+        QImage original(+file);
         if (!original.isNull())
         {
             QImage texture = QGLWidget::convertToGLFormat(original);
@@ -74,6 +90,10 @@ GLuint ImageTextureInfo::bind(text file)
 
             // Remember the texture for next time
             textures[file] = textureId;
+        }
+        else
+        {
+            textureId = defaultTextureId;
         }
     }
 

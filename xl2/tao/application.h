@@ -68,6 +68,7 @@ protected:
 
 public:
     QString      currentProjectFolder;
+    void         updateSearchPathes();
     static bool  createDefaultTaoPrefFolder();
 
 private:

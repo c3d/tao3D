@@ -209,7 +209,7 @@ menu_item "shape > line color", "Line color...", do
 }
 
 toolbar_insert -> {
-toolbar "insert", "insert", "W"
+toolbar "insert", "insert", "N"
 submenu  "toolbar shape > insert", "Shape", "images/tao.png"
 submenu_insert_shape "toolbar"
 }

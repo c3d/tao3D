@@ -216,6 +216,9 @@ void Widget::dawdle()
         refreshProgram();
         syncDelay = tick + xlr->options.sync_interval * 1000;
     }
+
+    // Once we are done, do a garbage collection
+    XL::Context::context->CollectGarbage();
 }
 
 
@@ -354,9 +357,6 @@ void Widget::runProgram()
         std::cerr << "Draw, count = " << space->count << "\n";
     id = charId = 0;
     space->DrawSelection(NULL);
-
-    // Once we are done, do a garbage collection
-    XL::Context::context->CollectGarbage();
 }
 
 
@@ -1260,9 +1260,6 @@ void Widget::refreshProgram()
             }
         }
     }
-
-    // Perform a good old garbage collection to clean things up
-    XL::Context::context->CollectGarbage();
 }
 
 

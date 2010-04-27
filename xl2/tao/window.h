@@ -79,6 +79,11 @@ private slots:
     bool saveAs();
     void openRecentFile();
     void clearRecentFileList();
+    void cut();
+    void copy();
+    void paste();
+    void onFocusWidgetChanged(QWidget *old, QWidget *now);
+    void checkClipboard();
 
     void setPullUrl();
     void publish();

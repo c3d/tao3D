@@ -53,17 +53,21 @@
 #include "attributes.h"
 #include "transforms.h"
 #include "undo.h"
+#include "serializer.h"
 
 #include <QToolButton>
 #include <QtGui/QImage>
 #include <cmath>
 #include <QFont>
 #include <iostream>
+#include <sstream>
 #include <algorithm>
 #include <QVariant>
 #include <QtWebKit>
 #include <sys/time.h>
 #include <sys/stat.h>
+
+#define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
 
 TAO_BEGIN
 
@@ -89,6 +93,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
       id(0), charId(0), capacity(1), manipulator(0),
+      wasSelected(false),
       event(NULL), focusWidget(NULL),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
@@ -175,6 +180,8 @@ void Widget::dawdle()
         text txt = *xlProgram->tree.tree;
         Window *window = (Window *) parentWidget();
         window->setText(+txt);
+        if (!repo)
+            xlProgram->changed = false;
     }
 
     // Check if there's something to save
@@ -216,6 +223,9 @@ void Widget::dawdle()
         refreshProgram();
         syncDelay = tick + xlr->options.sync_interval * 1000;
     }
+
+    // Once we are done, do a garbage collection
+    XL::Context::context->CollectGarbage();
 }
 
 
@@ -341,6 +351,12 @@ void Widget::runProgram()
         }
     }
 
+    // Remember how many elements are drawn on the page, plus arbitrary buffer
+    if (id + charId > capacity)
+        capacity = id + charId + 100;
+    else if (id + charId + 50 < capacity / 2)
+        capacity = capacity / 2;
+
     // After we are done, draw the space with all the drawings in it
     id = charId = 0;
     space->Draw(NULL);
@@ -349,14 +365,8 @@ void Widget::runProgram()
     id = charId = 0;
     space->DrawSelection(NULL);
 
-    // Once we are done, do a garbage collection
-    XL::Context::context->CollectGarbage();
-
-    // Remember how many elements are drawn on the page, plus arbitrary buffer
-    if (id + charId > capacity)
-        capacity = id + charId + 100;
-    else if (id + charId + 50 < capacity / 2)
-        capacity = capacity / 2;
+    // Clipboard management
+    checkCopyAvailable();
 }
 
 
@@ -410,6 +420,115 @@ void Widget::appFocusChanged(QWidget *prev, QWidget *next)
         }
         printf("\n");
     }
+}
+
+
+
+void Widget::checkCopyAvailable()
+// ----------------------------------------------------------------------------
+//   Emit a signal when clipboard can copy or cut something (or cannot anymore)
+// ----------------------------------------------------------------------------
+{
+    bool isSelected = selected();
+    if (wasSelected != isSelected)
+    {
+        emit copyAvailable(isSelected);
+        wasSelected = isSelected;
+    }
+}
+
+
+bool Widget::canPaste()
+// ----------------------------------------------------------------------------
+//   Is current clibpoard data in a suitable format to be pasted?
+// ----------------------------------------------------------------------------
+{
+    const QMimeData *mimeData = QApplication::clipboard()->mimeData();
+    return (mimeData->hasFormat(TAO_CLIPBOARD_MIME_TYPE));
+}
+
+
+void Widget::cut()
+// ----------------------------------------------------------------------------
+//   Cut current selection into clipboard
+// ----------------------------------------------------------------------------
+{
+    copy();
+    // TODO: delete selection
+}
+
+
+void Widget::copy()
+// ----------------------------------------------------------------------------
+//   Copy current selection into clipboard
+// ----------------------------------------------------------------------------
+{
+    if (!hasSelection())
+        return;
+
+    // Build a single tree from all the selected sub-trees
+    XL::Tree *tree = NULL;
+    std::set<Tree *>::iterator i;
+    for (i = selectionTrees.begin(); i != selectionTrees.end(); i++)
+    {
+        XL::Tree *t = (*i);
+        if (tree)
+            tree = new XL::Infix("\n", tree, t);
+        else
+            tree = t;
+    }
+
+    // Serialize the tree
+    std::string ser;
+    std::ostringstream ostr;
+    XL::Serializer serializer(ostr);
+    tree->Do(serializer);
+    ser += ostr.str();
+
+    // Encapsulate serialized tree as MIME data
+    QByteArray binData;
+    binData.append(ser.data(), ser.length());
+    QMimeData *mimeData = new QMimeData;
+    mimeData->setData(TAO_CLIPBOARD_MIME_TYPE, binData);
+
+    // Transfer into clipboard
+    QClipboard *clipboard = QApplication::clipboard();
+    clipboard->setMimeData(mimeData);
+}
+
+
+void Widget::paste()
+// ----------------------------------------------------------------------------
+//   Paste the clipboard content at the current selection
+// ----------------------------------------------------------------------------
+{
+    // Does clipboard contain Tao stuff?)
+    if (!canPaste())
+        return;
+
+    // Read clipboard content
+    const QMimeData *mimeData = QApplication::clipboard()->mimeData();
+
+    // Extract serialized tree
+    QByteArray binData = mimeData->data(TAO_CLIPBOARD_MIME_TYPE);
+    std::string ser(binData.data(), binData.length());
+
+    // De-serialize
+    std::istringstream istr(ser);
+    XL::Deserializer deserializer(istr);
+    XL::Tree *tree = deserializer.ReadTree();
+    if (!deserializer.IsValid())
+        return;
+
+    // Insert tree at current selection, or at end of current page
+    // TODO: paste with an offset to avoid exactly overlapping objects
+    insert(NULL, tree);
+
+    // Deselect previous selection
+    selection.clear();
+    selectionTrees.clear();
+
+    // TODO: select the new objects
 }
 
 
@@ -1260,9 +1379,6 @@ void Widget::refreshProgram()
             }
         }
     }
-
-    // Perform a good old garbage collection to clean things up
-    XL::Context::context->CollectGarbage();
 }
 
 
@@ -1296,7 +1412,7 @@ void Widget::markChanged(text reason)
         }
     }
 
-
+    // Cause the screen to redraw
     refresh(0);
 }
 
@@ -1481,19 +1597,30 @@ bool Widget::set(Tree *shape, text name, Tree *value, text topName)
                 {
                     if (prefixName->value == name)
                     {
-                        *addr = value;
+                        ApplyChanges changes(value);
+                        if (!(*addr)->Do(changes))
+                        {
+                            // Need big hammer here, reload everything
+                            *addr = value;
+                            reloadProgram();
+                        }
                         return true;
                     }
                 }
             }
         }
-        else if (value->AsName())
+        else if (Name *newName = value->AsName())
         {
             if (Name *stmtName = what->AsName())
             {
                 if (stmtName->value == name)
                 {
-                    *addr = value;
+                    // If the name is different, need to update
+                    if (newName->value != name)
+                    {
+                        *addr = value;
+                        reloadProgram();
+                    }
                     return true;
                 }
             }
@@ -1503,6 +1630,7 @@ bool Widget::set(Tree *shape, text name, Tree *value, text topName)
 
     // We didn't find the name: set the top level item
     *topAddr = new XL::Infix("\n", value, *topAddr);
+    reloadProgram();
     return true;
 }
 
@@ -1555,6 +1683,52 @@ bool Widget::set(Tree *shape, text name, XL::tree_list &args, text topName)
         Tree *argsTree = args[0];
         for (uint a = 1; a < arity; a++)
             argsTree = new XL::Infix(",", argsTree, args[a]);
+        call = new XL::Prefix(call, argsTree);
+    }
+
+    return set(shape, name, call, topName);
+}
+
+
+bool Widget::get(Tree *shape, text name, attribute_args &args, text topName)
+// ----------------------------------------------------------------------------
+//   Get the arguments, decomposing args in a comma-separated list
+// ----------------------------------------------------------------------------
+{
+    // Get the trees
+    XL::tree_list treeArgs;
+    if (!get(shape, name, treeArgs, topName))
+        return false;
+
+    // Convert from integer or tree values
+    XL::tree_list::iterator i;
+    for (i = treeArgs.begin(); i != treeArgs.end(); i++)
+    {
+        Tree *arg = *i;
+        if (!arg->IsConstant())
+            arg = xl_evaluate(arg);
+        if (XL::Real *asReal = arg->AsReal())
+            args.push_back(asReal->value);
+        else if (XL::Integer *asInteger = arg->AsInteger())
+            args.push_back(asInteger->value);
+        else return false;
+    }
+
+    return true;
+}
+
+
+bool Widget::set(Tree *shape, text name, attribute_args &args, text topName)
+// ----------------------------------------------------------------------------
+//   Set the arguments, building the comma-separated list
+// ----------------------------------------------------------------------------
+{
+    Tree *call = new XL::Name(name);
+    if (uint arity = args.size())
+    {
+        Tree *argsTree = new XL::Real(args[0]);
+        for (uint a = 1; a < arity; a++)
+            argsTree = new XL::Infix(",", argsTree, new XL::Real(args[a]));
         call = new XL::Prefix(call, argsTree);
     }
 
@@ -3424,20 +3598,13 @@ void Widget::updateColorDialog()
          i != selectionTrees.end();
          i++)
     {
-        XL::tree_list color;
+        attribute_args color;
         if (get(*i, colorName, color) && color.size() == 4)
         {
-            XL::Real *red   = color[0]->AsReal();
-            XL::Real *green = color[1]->AsReal();
-            XL::Real *blue  = color[2]->AsReal();
-            XL::Real *alpha = color[3]->AsReal();
-            if (red && green && blue && alpha)
-            {
-                QColor qc;
-                qc.setRgbF(red->value, green->value, blue->value, alpha->value);
-                colorDialog->setCurrentColor(qc);
-                break;
-            }
+            QColor qc;
+            qc.setRgbF(color[0], color[1], color[2], color[3]);
+            colorDialog->setCurrentColor(qc);
+            break;
         }
     }
 }
@@ -3527,28 +3694,6 @@ void Widget::updateFontDialog()
 {
     if (!fontDialog)
         return;
-
-    // Get the default color from the first selected shape
-    for (std::set<Tree *>::iterator i = selectionTrees.begin();
-         i != selectionTrees.end();
-         i++)
-    {
-        XL::tree_list color;
-        if (get(*i, colorName, color) && color.size() == 4)
-        {
-            XL::Real *red   = color[0]->AsReal();
-            XL::Real *green = color[1]->AsReal();
-            XL::Real *blue  = color[2]->AsReal();
-            XL::Real *alpha = color[3]->AsReal();
-            if (red && green && blue && alpha)
-            {
-                QColor qc;
-                qc.setRgbF(red->value, green->value, blue->value, alpha->value);
-                colorDialog->setCurrentColor(qc);
-                break;
-            }
-        }
-    }
 }
 
 
@@ -3939,20 +4084,31 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
             return XL::xl_true;
         }
 
-        if (order < orderedMenuElements.size() &&
-            orderedMenuElements[order] != NULL &&
-            orderedMenuElements[order]->fullname == fullname)
+        if (order < orderedMenuElements.size())
         {
-            // Set the currentMenu and update the label and icon.
-            currentMenu = tmp;
-            currentMenu->setTitle(+lbl);
-            if (iconFileName != "")
-                currentMenu->setIcon(QIcon(+iconFileName));
-            else
-                currentMenu->setIcon(QIcon());
-
-            order++;
-            return XL::xl_true;
+            if (MenuInfo *menuInfo = orderedMenuElements[order])
+            {
+                if (menuInfo->fullname == fullname)
+                {
+                    // Set the currentMenu and update the label and icon.
+                    currentMenu = tmp;
+                    if (lbl != menuInfo->title)
+                    {
+                        currentMenu->setTitle(+lbl);
+                        menuInfo->title = lbl;
+                    }
+                    if (iconFileName != menuInfo->icon)
+                    {
+                        if (iconFileName != "")
+                            currentMenu->setIcon(QIcon(+iconFileName));
+                        else
+                            currentMenu->setIcon(QIcon());
+                        menuInfo->icon = iconFileName;
+                    }
+                    order++;
+                    return XL::xl_true;
+                }
+            }
         }
         // The name exist but it is not in the good order so clean it
         delete tmp;
@@ -4010,6 +4166,9 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
 
     orderedMenuElements[order] = new MenuInfo(fullname,
                                               currentMenu->menuAction());
+    orderedMenuElements[order]->title = lbl;
+    orderedMenuElements[order]->icon = iconFileName;
+
     IFTRACE(menus)
     {
         std::cerr << "menu CREATION with name "
@@ -4021,6 +4180,7 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
 
     return XL::xl_true;
 }
+
 
 Tree * Widget::menuBar(Tree *self)
 // ----------------------------------------------------------------------------

@@ -85,6 +85,7 @@ public:
     typedef XL::real_p    real_p;
     typedef XL::integer_p integer_p;
     typedef XL::text_p    text_p;
+    typedef std::vector<double>   attribute_args;
 
 public:
     Widget(Window *parent, XL::SourceFile *sf = NULL);
@@ -104,6 +105,13 @@ public slots:
     void        fontChosen(const QFont &);
     void        updateFontDialog();
     void        updateDialogs()                { mustUpdateDialogs = true; }
+    void        copy();
+    void        cut();
+    void        paste();
+
+signals:
+    // Signals
+    void        copyAvailable(bool yes = true);
 
 public:
     // OpenGL
@@ -141,6 +149,8 @@ public:
     bool        set(Tree *shape, text n, Tree *value, text sh = "shape");
     bool        get(Tree *shape, text n, XL::tree_list &a, text sh = "shape");
     bool        set(Tree *shape, text n, XL::tree_list &a, text sh = "shape");
+    bool        get(Tree *shape, text n, attribute_args &a, text sh = "shape");
+    bool        set(Tree *shape, text n, attribute_args &a, text sh = "shape");
 
     // Timing
     ulonglong   now();
@@ -160,6 +170,8 @@ public:
     uint        charSelected()          { return charSelected(charId); }
     void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
     uint        selected(Tree *tree)    { return selectionTrees.count(tree); }
+    bool        selected()              { return !selectionTrees.empty(); }
+    bool        hasSelection()          { return selected(); }
     void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
     uint        selected(uint i);
     uint        selected(Layout *);
@@ -174,6 +186,8 @@ public:
     void        drawHandle(const Point3 &point, text name);
     template<class Activity>
     Activity *  active();
+    void        checkCopyAvailable();
+    bool        canPaste();
 
     // Text flows
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
@@ -448,6 +462,7 @@ private:
     GLuint                id, charId, capacity, manipulator;
     selection_map         selection, savedSelection;
     std::set<Tree *>      selectionTrees;
+    bool                  wasSelected;
     QEvent *              event;
     QWidget *             focusWidget;
     GLdouble              focusProjection[16], focusModel[16];

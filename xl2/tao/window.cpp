@@ -93,6 +93,13 @@ Window::Window(XL::Main *xlr, XL::SourceFile *sf)
     // Fire a timer to check if files changed
     fileCheckTimer.start(500);
     connect(&fileCheckTimer, SIGNAL(timeout()), this, SLOT(checkFiles()));
+
+    // Cut/Copy/Paste actions management
+    connect(qApp, SIGNAL(focusChanged(QWidget*,QWidget*)),
+            this, SLOT(onFocusWidgetChanged(QWidget*,QWidget*)));
+    connect(qApp->clipboard(), SIGNAL(dataChanged()),
+            this, SLOT(checkClipboard()));
+    checkClipboard();
 }
 
 
@@ -271,6 +278,85 @@ void Window::clearRecentFileList()
 }
 
 
+void Window::cut()
+// ----------------------------------------------------------------------------
+//    Cut the current selection into the clipboard
+// ----------------------------------------------------------------------------
+{
+    if (textEdit->hasFocus())
+        return textEdit->cut();
+
+    if (taoWidget->hasFocus())
+        return taoWidget->cut();
+}
+
+
+void Window::copy()
+// ----------------------------------------------------------------------------
+//    Copy the current selection to the clipboard
+// ----------------------------------------------------------------------------
+{
+    if (textEdit->hasFocus())
+        return textEdit->copy();
+
+    if (taoWidget->hasFocus())
+        return taoWidget->copy();
+}
+
+
+void Window::paste()
+// ----------------------------------------------------------------------------
+//    Paste the clipboard content into the current document or source
+// ----------------------------------------------------------------------------
+{
+    if (textEdit->hasFocus())
+        return textEdit->paste();
+
+    if (taoWidget->hasFocus())
+        return taoWidget->paste();
+}
+
+
+void Window::onFocusWidgetChanged(QWidget *old, QWidget *now)
+// ----------------------------------------------------------------------------
+//    Enable or disable copy/cut/paste actions when current widget changes
+// ----------------------------------------------------------------------------
+{
+    (void)old;    // Silence warning
+
+    bool enable;
+    if (now == textEdit)
+        enable = textEdit->textCursor().hasSelection();
+    else if (now == taoWidget)
+        enable = taoWidget->hasSelection();
+    else
+        return;
+
+    copyAct->setEnabled(enable);
+    cutAct->setEnabled(enable);
+
+    checkClipboard();
+}
+
+
+void Window::checkClipboard()
+// ----------------------------------------------------------------------------
+//    Enable/disable Paste action if paste is possible
+// ----------------------------------------------------------------------------
+{
+    QWidget *now = QApplication::focusWidget();
+    bool enable;
+    if (now == textEdit)
+        enable = textEdit->canPaste();
+    else if (now == taoWidget)
+        enable = taoWidget->canPaste();
+    else
+        return;
+
+    pasteAct->setEnabled(enable);
+}
+
+
 void Window::warnNoRepo()
 // ----------------------------------------------------------------------------
 //    Display a warning box
@@ -401,21 +487,21 @@ void Window::createActions()
     cutAct->setStatusTip(tr("Cut the current selection's contents to the "
                             "clipboard"));
     cutAct->setIconVisibleInMenu(false);
-    connect(cutAct, SIGNAL(triggered()), textEdit, SLOT(cut()));
+    connect(cutAct, SIGNAL(triggered()), this, SLOT(cut()));
 
     copyAct = new QAction(QIcon(":/images/copy.png"), tr("&Copy"), this);
     copyAct->setShortcuts(QKeySequence::Copy);
     copyAct->setStatusTip(tr("Copy the current selection's contents to the "
                              "clipboard"));
     copyAct->setIconVisibleInMenu(false);
-    connect(copyAct, SIGNAL(triggered()), textEdit, SLOT(copy()));
+    connect(copyAct, SIGNAL(triggered()), this, SLOT(copy()));
 
     pasteAct = new QAction(QIcon(":/images/paste.png"), tr("&Paste"), this);
     pasteAct->setShortcuts(QKeySequence::Paste);
     pasteAct->setStatusTip(tr("Paste the clipboard's contents into the current "
                               "selection"));
     pasteAct->setIconVisibleInMenu(false);
-    connect(pasteAct, SIGNAL(triggered()), textEdit, SLOT(paste()));
+    connect(pasteAct, SIGNAL(triggered()), this, SLOT(paste()));
 
     setPullUrlAct = new QAction(tr("Synchronize..."), this);
     setPullUrlAct->setStatusTip(tr("Set the remote address to \"pull\" from "
@@ -453,6 +539,10 @@ void Window::createActions()
     connect(textEdit, SIGNAL(copyAvailable(bool)),
             cutAct, SLOT(setEnabled(bool)));
     connect(textEdit, SIGNAL(copyAvailable(bool)),
+            copyAct, SLOT(setEnabled(bool)));
+    connect(taoWidget, SIGNAL(copyAvailable(bool)),
+            cutAct, SLOT(setEnabled(bool)));
+    connect(taoWidget, SIGNAL(copyAvailable(bool)),
             copyAct, SLOT(setEnabled(bool)));
 
     undoAction = undoStack->createUndoAction(this, tr("&Undo"));

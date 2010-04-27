@@ -150,7 +150,10 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
             ptr += 3 + size;
         }
         if (selected)
+        {
             doneWithSelection = true;
+            widget->updateDialogs();
+        }
     }
 
     delete[] buffer;

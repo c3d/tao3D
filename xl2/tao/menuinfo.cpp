@@ -35,7 +35,7 @@ MenuInfo::MenuInfo(QString name, QAction *act)
 // ----------------------------------------------------------------------------
 //   Constructor taking an action, e.g. when creating a menu
 // ----------------------------------------------------------------------------
-    : fullname(name), p_action(act), p_toolbar(NULL)
+    : fullname(name), p_action(act), p_toolbar(NULL), title(""), icon("")
 {
     connect(p_action, SIGNAL(destroyed(QObject *)),
             this, SLOT(actionDestroyed()));
@@ -46,7 +46,7 @@ MenuInfo::MenuInfo(QString name, QToolBar *bar)
 // ----------------------------------------------------------------------------
 //   Constructor taking a toolbar, e.g. when adding items in a toolbar
 // ----------------------------------------------------------------------------
-    : fullname(name), p_action(NULL), p_toolbar(bar)
+    : fullname(name), p_action(NULL), p_toolbar(bar), title(""), icon("")
 {
     connect(p_toolbar, SIGNAL(destroyed(QObject *)),
             this, SLOT(actionDestroyed()));
@@ -58,7 +58,6 @@ MenuInfo::~MenuInfo()
 //   Delete a menu entry
 // ----------------------------------------------------------------------------
 {
-
     if (p_action)
     {
         delete p_action;
@@ -77,8 +76,7 @@ MenuInfo::~MenuInfo()
 
 void MenuInfo::actionDestroyed()
 // ----------------------------------------------------------------------------
-//   Set to NULL all the information because the action or
-//     the tool bar will be deleted.
+//   Action or toolbar going away: clear everything
 // ----------------------------------------------------------------------------
 {
     IFTRACE(menus)
@@ -87,6 +85,8 @@ void MenuInfo::actionDestroyed()
     }
     p_action   = NULL;
     p_toolbar  = NULL;
+    title = "";
+    icon = "";
 }
 
 

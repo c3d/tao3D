@@ -39,6 +39,8 @@
 #include <QTimer>
 #include <QSvgRenderer>
 #include <QList>
+#include <QColorDialog>
+#include <QFontDialog>
 #include <iostream>
 #include <map>
 
@@ -83,6 +85,7 @@ public:
     typedef XL::real_p    real_p;
     typedef XL::integer_p integer_p;
     typedef XL::text_p    text_p;
+    typedef std::vector<double>   attribute_args;
 
 public:
     Widget(Window *parent, XL::SourceFile *sf = NULL);
@@ -97,6 +100,11 @@ public slots:
     void        userMenu(QAction *action);
     bool        refresh(double delay = 0.0);
     void        commitSuccess(QString id, QString msg);
+    void        colorChosen(const QColor &);
+    void        updateColorDialog();
+    void        fontChosen(const QFont &);
+    void        updateFontDialog();
+    void        updateDialogs()                { mustUpdateDialogs = true; }
 
 public:
     // OpenGL
@@ -128,12 +136,14 @@ public:
     void        refreshProgram();
     void        markChanged(text reason);
     bool        writeIfChanged(XL::SourceFile &sf);
-    bool        doCommit();
+    bool        doCommit(bool immediate = false);
     Repository *repository();
-    Tree *      get(text name, text topName = "shape");
-    bool        set(text name, Tree *value, text topName = "shape");
-    bool        get(text name, XL::tree_list &args, text topName = "shape");
-    bool        set(text name, XL::tree_list &args, text topName = "shape");
+    Tree *      get(Tree *shape, text name, text sh = "shape");
+    bool        set(Tree *shape, text n, Tree *value, text sh = "shape");
+    bool        get(Tree *shape, text n, XL::tree_list &a, text sh = "shape");
+    bool        set(Tree *shape, text n, XL::tree_list &a, text sh = "shape");
+    bool        get(Tree *shape, text n, attribute_args &a, text sh = "shape");
+    bool        set(Tree *shape, text n, attribute_args &a, text sh = "shape");
 
     // Timing
     ulonglong   now();
@@ -147,15 +157,15 @@ public:
     GLuint      currentId()             { return id; }
     GLuint      manipulatorId()         { return manipulator; }
     GLuint      selectionCapacity()     { return capacity; }
-    uint        selected()              { return selected(id); }
     GLuint      newCharId(uint ids = 1) { return charId += ids; }
     GLuint      currentCharId()         { return charId; }
     uint        charSelected(uint i)    { return selected(i | CHAR_ID_BIT); }
     uint        charSelected()          { return charSelected(charId); }
     void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
-    uint        selected(uint i);
     uint        selected(Tree *tree)    { return selectionTrees.count(tree); }
     void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
+    uint        selected(uint i);
+    uint        selected(Layout *);
     void        select(uint id, uint count);
     void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);
@@ -347,17 +357,22 @@ public:
     Tree *      buttonGroup(Tree *self, bool exclusive, Tree *buttons);
     Tree *      setAction(Tree *self, Tree *action);
 
+    Tree *      colorChooser(Tree *self, text name, Tree *action);
     Tree *      colorChooser(Tree *self,
                              real_r x, real_r y, real_r w, real_r h,
                              Tree *action);
-    Tree *      colorChooserTexture(Tree *self,double w, double h,
+    Tree *      colorChooserTexture(Tree *self,
+                                    double w, double h,
                                     Tree *action);
 
+    Tree *      fontChooser(Tree *self, Tree *action);
     Tree *      fontChooser(Tree *self,
                             real_r x, real_r y, real_r w, real_r h,
                             Tree *action);
-    Tree *      fontChooserTexture(Tree *self,double w, double h,
+    Tree *      fontChooserTexture(Tree *self,
+                                   double w, double h,
                                    Tree *action);
+
     Tree *      groupBox(Tree *self,
                          real_r x,real_r y, real_r w,real_r h,
                          text_p lbl, Tree *buttons);
@@ -388,8 +403,9 @@ public:
     // Tree management
     Name *      insert(Tree *self, Tree *toInsert);
     Name *      deleteSelection(Tree *self, text key);
+    Name *      setAttribute(Tree *self, text name, Tree *attribute, text sh);
 
-    // Unit conversions
+    // Unit conversionsxo
     Real *      fromCm(Tree *self, double cm);
     Real *      fromMm(Tree *self, double mm);
     Real *      fromIn(Tree *self, double in);
@@ -413,6 +429,7 @@ private:
     // XL Runtime
     XL::SourceFile       *xlProgram;
     bool                  inError;
+    bool                  mustUpdateDialogs;
 
     // Rendering
     SpaceLayout *         space;
@@ -439,12 +456,14 @@ private:
     GLdouble              focusProjection[16], focusModel[16];
     GLint                 focusViewport[4];
 
-    // Menus
+    // Menus and widgets
     QMenu                *currentMenu;
     QMenuBar             *currentMenuBar;
     QToolBar             *currentToolBar;
     QVector<MenuInfo*>    orderedMenuElements;
     int                   order;
+    XL::TreeRoot          colorAction, fontAction;
+    text                  colorName;
 
     // Timing
     QTimer                timer, idleTimer;
@@ -453,6 +472,8 @@ private:
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
 
     static Widget *       current;
+    static QColorDialog * colorDialog;
+    static QFontDialog *  fontDialog;
     static double         zNear, zFar;
 };
 
@@ -611,6 +632,29 @@ struct InsertAtSelectionAction : XL::TreeClone
     Widget   *widget;
     XL::Tree *toInsert;
     XL::Tree *parent;
+};
+
+
+struct SetAttributeAction : XL::Action
+// ----------------------------------------------------------------------------
+//    Copy the inserted item as attribute in all selected items
+// ----------------------------------------------------------------------------
+{
+    SetAttributeAction(text name, XL::Tree *attribute,
+                       Widget *widget, text shape = "shape")
+        : name(name), attribute(attribute), widget(widget), shape(shape) {}
+
+    XL::Tree *Do(XL::Tree *what)
+    {
+        if (widget->selected(what))
+            widget->set(what, name, attribute, shape);
+        return what;
+    }
+
+    text      name;
+    XL::Tree *attribute;
+    Widget   *widget;
+    text      shape;
 };
 
 } // namespace Tao

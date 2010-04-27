@@ -51,12 +51,12 @@ template<> inline line_t Justifier<line_t>::Break(line_t item,
 }
 
 
-template<> inline scale Justifier<line_t>::Size(line_t item)
+template<> inline scale Justifier<line_t>::Size(line_t item, Layout *layout)
 // ----------------------------------------------------------------------------
 //   For drawings, we compute the horizontal size
 // ----------------------------------------------------------------------------
 {
-    return item->Space().Width();
+    return item->Space(layout).Width();
 }
 
 
@@ -71,23 +71,23 @@ template<> inline void Justifier<line_t>::ApplyAttributes(line_t item,
 }
 
 
-template<> inline scale Justifier<line_t>::SpaceSize(line_t item)
+template<> inline scale Justifier<line_t>::SpaceSize(line_t item, Layout * l)
 // ----------------------------------------------------------------------------
 //   Return the size of the spaces at the end of an item
 // ----------------------------------------------------------------------------
 {
-    return item->TrailingSpaceSize();
+    return item->TrailingSpaceSize(l);
 }
 
 
-template<> inline coord Justifier<line_t>::ItemOffset(line_t item)
+template<> inline coord Justifier<line_t>::ItemOffset(line_t item, Layout *l)
 // ----------------------------------------------------------------------------
 //   Return the horizontal offset for placing items
 // ----------------------------------------------------------------------------
 //   Since the bounds are supposed drawn at coordinates (0,0,0),
 //   the offset is the opposite of the left of the bounds
 {
-    Box3 space = item->Space();
+    Box3 space = item->Space(l);
     return -space.Left();
 }
 
@@ -107,12 +107,12 @@ template<> inline page_t Justifier<page_t>::Break(page_t line,
 }
 
 
-template<> inline scale Justifier<page_t>::Size(page_t line)
+template<> inline scale Justifier<page_t>::Size(page_t line, Layout *l)
 // ----------------------------------------------------------------------------
 //   For lines, we compute the vertical size
 // ----------------------------------------------------------------------------
 {
-    return line->Space().Height();
+    return line->Space(l).Height();
 }
 
 
@@ -126,7 +126,7 @@ template<> inline void Justifier<page_t>::ApplyAttributes(page_t line,
 }
 
 
-template<> inline scale Justifier<page_t>::SpaceSize(page_t)
+template<> inline scale Justifier<page_t>::SpaceSize(page_t, Layout *)
 // ----------------------------------------------------------------------------
 //   Return the size of a space for the layout
 // ----------------------------------------------------------------------------
@@ -136,14 +136,14 @@ template<> inline scale Justifier<page_t>::SpaceSize(page_t)
 }
 
 
-template<> inline coord Justifier<page_t>::ItemOffset(page_t item)
+template<> inline coord Justifier<page_t>::ItemOffset(page_t item, Layout *l)
 // ----------------------------------------------------------------------------
 //   Return the vertical offset for lines
 // ----------------------------------------------------------------------------
 //   Since the bounds are supposed to be computed at coordinates (0,0,0),
 //   the offset for the top is Top()
 {
-    Box3 space = item->Space();
+    Box3 space = item->Space(l);
     return space.Top();
 }
 
@@ -205,8 +205,6 @@ void LayoutLine::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Recompute layout if necessary and draw selection for all children
 // ----------------------------------------------------------------------------
-//   REVISIT: There is a lot of copy-paste between Draw, DrawSelection, Identify
-//   Consider using a pointer-to-member (ugly) or some clever trick?
 {
     // Compute layout
     SafeCompute(where);
@@ -276,7 +274,7 @@ void LayoutLine::Identify(Layout *where)
 }
 
 
-Box3 LayoutLine::Bounds()
+Box3 LayoutLine::Bounds(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Return the bounds for the box
 // ----------------------------------------------------------------------------
@@ -289,7 +287,7 @@ Box3 LayoutLine::Bounds()
     {
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
-        Box3 childBounds = child->Bounds();
+        Box3 childBounds = child->Bounds(layout);
         childBounds += Vector3(place.position, 0, 0); // Horizontal offset
         result |= childBounds;
     }
@@ -298,7 +296,7 @@ Box3 LayoutLine::Bounds()
 }
 
 
-Box3 LayoutLine::Space()
+Box3 LayoutLine::Space(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Return the space for the box
 // ----------------------------------------------------------------------------
@@ -311,7 +309,7 @@ Box3 LayoutLine::Space()
     {
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
-        Box3 childSpace = child->Space();
+        Box3 childSpace = child->Space(layout);
         childSpace += Vector3(place.position, 0, 0); // Horizontal offset
         result |= childSpace;
     }
@@ -458,7 +456,7 @@ void LayoutLine::Compute(Layout *layout)
         return;
 
     // Position one line of items
-    Box3 space = layout->Space();
+    Box3 space = layout->Space(layout);
     coord left = space.Left(), right = space.Right();
     if (left > right) std::swap(left, right);
     line.Adjust(left, right, layout->alongX, layout);
@@ -627,14 +625,10 @@ void PageLayout::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Recompute layout if necessary and draw selection for all children
 // ----------------------------------------------------------------------------
-//   REVISIT: There is a lot of copy-paste between Draw, DrawSelection, Identify
-//   Consider using a pointer-to-member (ugly) or some clever trick?
 {
     // Remember the initial selection ID
     Widget *widget = where->Display();
     GLuint startId = widget->currentCharId();
-    TextSelect *oldSel = widget->textSelection();
-    bool firstClick = !oldSel || oldSel->direction == TextSelect::Mark;
 
     // Inherit state from our parent layout if there is one
     Inherit(where);
@@ -654,11 +648,10 @@ void PageLayout::DrawSelection(Layout *where)
 
     // Assign an ID for the page layout itself and draw a rectangle in it
     GLuint endId = widget->currentCharId();
-    GLuint layoutId = widget->newId();
     if (TextSelect *sel = widget->textSelection())
-        if (!widget->drag() || firstClick)
+        if (sel->findingLayout)
             if (sel->start() <= endId && sel->end() >= startId)
-                widget->select(layoutId, 1);
+                widget->select(where->id, 1);
 }
 
 
@@ -667,9 +660,6 @@ void PageLayout::Identify(Layout *where)
 //   Identify page elements for OpenGL
 // ----------------------------------------------------------------------------
 {
-    // Remember the initial selection ID
-    Widget *widget = where->Display();
-
     // Inherit state from our parent layout if there is one
     Inherit(where);
 
@@ -686,7 +676,6 @@ void PageLayout::Identify(Layout *where)
         child->Identify(this);
     }
 
-    glLoadName(widget->newId());
     coord x = space.Left(),  y = space.Bottom();
     coord w = space.Width(), h = space.Height();
     coord z = (space.Front() + space.Back()) / 2;
@@ -706,7 +695,7 @@ void PageLayout::Identify(Layout *where)
 }
 
 
-Box3 PageLayout::Bounds()
+Box3 PageLayout::Bounds(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Return the bounds for the page layout
 // ----------------------------------------------------------------------------
@@ -719,7 +708,7 @@ Box3 PageLayout::Bounds()
     {
         PageJustifier::Place &place = *p;
         Drawing *child = place.item;
-        Box3 childBounds = child->Bounds();
+        Box3 childBounds = child->Bounds(layout);
         childBounds += Vector3(0, place.position, 0); // Vertical offset
         result |= childBounds;
     }
@@ -728,14 +717,14 @@ Box3 PageLayout::Bounds()
 }
 
 
-Box3 PageLayout::Space()
+Box3 PageLayout::Space(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Return the space for the page layout
 // ----------------------------------------------------------------------------
 {
     Box3 result = space;
     if (page.places.size())
-        result |= Bounds();
+        result |= Bounds(layout);
     return space;
 }
 
@@ -752,6 +741,16 @@ void PageLayout::SafeCompute()
     // Save attributes that may be modified by Compute(), as well as offset
     XL::LocalSave<LayoutState> save(*this, *this);
     Compute();
+}
+
+
+void PageLayout::Inherit(Layout *other)
+// ----------------------------------------------------------------------------
+//    Make sure we also inherit the surrounding layout's ID
+// ----------------------------------------------------------------------------
+{
+    id = other->id;
+    Layout::Inherit(other);
 }
 
 

@@ -50,6 +50,12 @@ public:
     static QString defaultTaoApplicationFolderPath();
     static QString defaultUserImagesFolderPath();
 
+public:
+    QStringList    pathCompletions();
+    QStringList    urlCompletions();
+    void           addPathCompletion(QString path);
+    void           addUrlCompletion(QString url);
+
 protected:
     void           saveSettings();
     void           loadSettings();
@@ -58,13 +64,15 @@ protected:
     static bool    recursiveDelete(QString path);
     static QString defaultUserDocumentsFolderPath();
     static QString defaultPreferencesFolderPath();
-//    static QString defaultApplicationFolderPath();
     static bool    createDefaultProjectFolder();
 
 public:
-    QStringList  pathCompletions;
-    QStringList  urlCompletions;
-    static bool    createDefaultTaoPrefFolder();
+    QString      currentProjectFolder;
+    static bool  createDefaultTaoPrefFolder();
+
+private:
+    QStringList  pathList;
+    QStringList  urlList;
 };
 
 #define TaoApp  ((Application *) qApp)

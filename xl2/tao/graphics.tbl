@@ -366,6 +366,8 @@ PREFIX(ColorChooser, tree, "color_chooser",
 PREFIX(ColorChooserTexture, tree, "color_chooser_texture",
        PARM(w,real) PARM(h,real) PARM(t,tree),
        RTAO(colorChooserTexture(self, w, h, &t)))
+PREFIX(ColorChooserNow, tree, "color_chooser", PARM(n, text) PARM(t,tree),
+       RTAO(colorChooser(self, n, &t)))
 
 PREFIX(FontChooser, tree, "font_chooser",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,tree),
@@ -373,6 +375,8 @@ PREFIX(FontChooser, tree, "font_chooser",
 PREFIX(FontChooserTexture, tree, "font_chooser_texture",
        PARM(w,real) PARM(h,real) PARM(t,tree),
        RTAO(fontChooserTexture(self, w, h, &t)))
+PREFIX(FontChooserNow, tree, "font_chooser", PARM(t,tree),
+       RTAO(fontChooser(self, &t)))
 
 PREFIX(VideoPlayer, tree, "video_player",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(u,text),
@@ -403,10 +407,6 @@ PREFIX(GroupBoxTexture, tree, "groupboxtexture",
 //
 // ============================================================================
 
-PREFIX(ErrorMessage, tree, "error", PARM(m, text) PARM(s, tree),
-       RTAO(runtimeError(self, m, &s)))
-PREFIX(ErrorMessage0, tree, "error", PARM(m, text),
-       RTAO(runtimeError(self, m, NULL)))
 PREFIX(MenuItem, tree, "menu_item",
        PARM(n, text) PARM(lbl, text) PARM(icon, text) PARM(cable, boolean)
        PARM(isc, text)  PARM(t, tree),
@@ -423,9 +423,22 @@ PREFIX(ToolBar, tree, "toolbar",
        PARM(name, text) PARM(lbl, text) PARM(loc, text),
        RTAO(toolBar(self, name, lbl, true, loc)))
 
+PREFIX(MenuBar, tree, "menubar", , RTAO(menuBar(self)))
+
 PREFIX(Separator, tree, "separator", ,
        RTAO(separator(self)))
 
+
+// ============================================================================
+//
+//   Error management
+//
+// ============================================================================
+
+PREFIX(ErrorMessage, tree, "error", PARM(m, text) PARM(s, tree),
+       RTAO(runtimeError(self, m, &s)))
+PREFIX(ErrorMessage0, tree, "error", PARM(m, text),
+       RTAO(runtimeError(self, m, NULL)))
 
 // ============================================================================
 //
@@ -436,7 +449,9 @@ PREFIX(Separator, tree, "separator", ,
 PREFIX(Insert, boolean, "insert", PARM(t, tree), RTAO(insert(self, &t)))
 PREFIX(Delete, boolean, "delete_selection", PARM(k, text),
        RTAO(deleteSelection(self, k)))
-
+PREFIX(SetAttribute, boolean, "set_attribute",
+       PARM(n, text) PARM(t, tree),
+       RTAO(setAttribute(self, n, &t, "shape")))
 
 
 // ============================================================================

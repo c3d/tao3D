@@ -25,8 +25,8 @@ QT += webkit \
     phonon
 
 # CONFIG += release
-CONFIG += debug \
-    console
+CONFIG += console
+QMAKE_CXXFLAGS_RELEASE += -g
 
 # Tell the XLR portion that we are building for Tao
 DEFINES += TAO \

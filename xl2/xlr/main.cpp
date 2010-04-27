@@ -131,7 +131,6 @@ int Main::LoadFiles()
 // ----------------------------------------------------------------------------
 {
     text                         cmd, end = "";
-    std::vector<text>            filelist;
     std::vector<text>::iterator  file;
     bool                         hadError = false;
     int                          filenum = 0;
@@ -155,7 +154,8 @@ int Main::LoadFiles()
     if (builtins.empty() || options.builtinsOverride)
         builtins = options.builtinsFile;
     if (options.builtins)
-        filelist.push_back(builtins);
+        LoadFile(builtins);
+
     for (; cmd != end; cmd = options.ParseNext())
     {
         if (options.doDiff && ++filenum > 2)
@@ -164,12 +164,11 @@ int Main::LoadFiles()
           hadError = true;
           return hadError;
         }
-        filelist.push_back(cmd);
         file_names.push_back(cmd);
     }
 
     // Loop over files we will process
-    for (file = filelist.begin(); file != filelist.end(); file++)
+    for (file = file_names.begin(); file != file_names.end(); file++)
         hadError |= LoadFile(*file);
 
     return hadError;

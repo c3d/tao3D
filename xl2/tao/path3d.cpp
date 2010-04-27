@@ -251,7 +251,7 @@ void GraphicPath::Draw(Layout *where, GLenum mode, GLenum tesselation)
                 Vector3& t1 = control[1].texture;
                 Vector3& t2 = control[2].texture;
                 Vector3& t3 = control[3].texture;
-                
+
                 // Compute a good number of points for approximating the curve
                 scale length = (v2-v0).Length() + 1;
                 scale order = log(length);
@@ -463,7 +463,7 @@ void GraphicPath::Draw(Layout *where, QPainterPath &qtPath,
 }
 
 
-Box3 GraphicPath::Bounds()
+Box3 GraphicPath::Bounds(Layout *)
 // ----------------------------------------------------------------------------
 //   Return the bounding box, computed from all path elements
 // ----------------------------------------------------------------------------
@@ -498,41 +498,41 @@ void GraphicPath::AddControl(XL::Tree *self, real_r x, real_r y, real_r z)
 }
 
 
-void GraphicPath::DrawSelection(Layout *where)
+void GraphicPath::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Draw the control points
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = where->Display();
-    if (widget->selected())
+    Widget *widget = layout->Display();
+    if (widget->selected(layout))
     {
-        glPushName(widget->currentId());
+        glPushName(layout->id);
         control_points::iterator i;
         for (i = controls.begin(); i != controls.end(); i++)
         {
             ControlPoint *child = *i;
-            child->DrawSelection(where);
+            child->DrawSelection(layout);
         }
         glPopName();
     }
 }
 
 
-void GraphicPath::Identify(Layout *where)
+void GraphicPath::Identify(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Identify the control points
 // ----------------------------------------------------------------------------
 {
-    Draw(where);
-    Widget *widget = where->Display();
-    if (widget->selected())
+    Draw(layout);
+    Widget *widget = layout->Display();
+    if (widget->selected(layout))
     {
-        glPushName(widget->currentId());
+        glPushName(layout->id);
         control_points::iterator i;
         for (i = controls.begin(); i != controls.end(); i++)
         {
             ControlPoint *child = *i;
-            child->Identify(where);
+            child->Identify(layout);
         }
         glPopName();
     }

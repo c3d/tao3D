@@ -43,7 +43,7 @@ struct Cube : Shape3
 {
     Cube(const Box3 &bounds): Shape3(), bounds(bounds) {}
     virtual void        Draw(Layout *where);
-    virtual Box3        Bounds();
+    virtual Box3        Bounds(Layout *);
     Box3 bounds;
 };
 

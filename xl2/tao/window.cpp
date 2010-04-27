@@ -379,11 +379,13 @@ void Window::createActions()
     setPullUrlAct->setStatusTip(tr("Set the remote address to \"pull\" from "
                                    "when synchronizing the current "
                                    "document with a remote one"));
+    setPullUrlAct->setEnabled(false);
     connect(setPullUrlAct, SIGNAL(triggered()), this, SLOT(setPullUrl()));
 
     publishAct = new QAction(tr("Publish..."), this);
     publishAct->setStatusTip(tr("Publish the current project to "
                                 "a specific path or URL"));
+    publishAct->setEnabled(false);
     connect(publishAct, SIGNAL(triggered()), this, SLOT(publish()));
 
     cloneAct = new QAction(tr("Clone..."), this);
@@ -596,6 +598,7 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
     QApplication::setOverrideCursor(Qt::WaitCursor);
     textEdit->setPlainText(in.readAll());
     QApplication::restoreOverrideCursor();
+    markChanged(false);
     return true;
 }
 
@@ -648,14 +651,16 @@ bool Window::saveFile(const QString &fileName)
     statusBar()->showMessage(tr("File saved"), 2000);
     updateProgram(fileName);
 
-    // Trigger immediate commit to repository
-    XL::SourceFile &sf = xlRuntime->files[fn];
-
-    if (taoWidget->writeIfChanged(sf))
+    if (repo)
     {
+        // Trigger immediate commit to repository
+        XL::SourceFile &sf = xlRuntime->files[fn];
+        sf.changed = true;
         taoWidget->markChanged("Manual save");
-        taoWidget->doCommit();
+        taoWidget->doCommit(true);
+        sf.changed = false;
     }
+
     return true;
 }
 
@@ -669,6 +674,12 @@ void Window::markChanged(bool changed)
     setWindowModified(changed);
 }
 
+
+void Window::enableProjectSharingMenus()
+{
+    setPullUrlAct->setEnabled(true);
+    publishAct->setEnabled(true);
+}
 
 bool Window::openProject(QString path, QString fileName, bool confirm)
 // ----------------------------------------------------------------------------
@@ -827,6 +838,8 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
                 connect(repo.data(), SIGNAL(asyncCommitSuccess(QString, QString)),
                         taoWidget,   SLOT(commitSuccess(QString, QString)));
                 populateUndoStack();
+
+                enableProjectSharingMenus();
             }
         }
     }

@@ -93,6 +93,15 @@ void LineStipple::Draw(Layout *where)
 }
 
 
+void FontChange::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Replay a font change
+// ----------------------------------------------------------------------------
+{
+    where->font = font;
+}
+
+
 static inline Justification &layoutJustification(Layout *where,
                                                  JustificationChange::Axis a)
 // ----------------------------------------------------------------------------

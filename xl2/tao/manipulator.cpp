@@ -232,10 +232,10 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
     else if (XL::Real *rval = (*ptr)->AsReal())
     {
         rval->value += (current - previous) / scale;
-        if (ival->value * scale < min)
-            ival->value = min / scale;
-        if (ival->value * scale > max)
-            ival->value = max / scale;
+        if (rval->value * scale < min)
+            rval->value = min / scale;
+        if (rval->value * scale > max)
+            rval->value = max / scale;
         if (ppptr && rval->value < 0)
             widget->renormalizeProgram();
     }
@@ -261,7 +261,7 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
 
 
 void Manipulator::rotate(Widget *widget, Tree *shape, kPoint3 center,
-                         kPoint3 p0, kPoint3 p1, kPoint3 p2)
+                         kPoint3 p0, kPoint3 p1, kPoint3 p2, bool stepped)
 // ----------------------------------------------------------------------------
 //   Rotate the shape around the given center, given 3 drag points
 // ----------------------------------------------------------------------------
@@ -282,10 +282,22 @@ void Manipulator::rotate(Widget *widget, Tree *shape, kPoint3 center,
         a1 = rArgs[0];
 
     // Compute new rotation angle
-    (void) p0;
     double da1 = atan2(p1.y - center.y, p1.x - center.x) * (180 / M_PI);
     double da2 = atan2(p2.y - center.y, p2.x - center.x) * (180 / M_PI);
-    double a2 = fmod(a1 - da1 + da2, 360);
+    double a2 = fmod(a1 - da1 + da2 + 360, 360);
+    if (stepped)
+    {
+        double da0 = atan2(p0.y - center.y, p0.x - center.x) * (180 / M_PI);
+
+        int n1 = (da1 - da0 + (2*360 - 22.5)) / 45;
+        int n2 = (da2 - da0 + (2*360 - 22.5)) / 45;
+
+        a2 = 45 * int(a1/45);
+        if (n2 > n1)
+            a2 += 45;
+        else if (n2 < n1)
+            a2 -= 45;
+    }
 
     // If c is the rotation center and s the shape position
     //   x' = tx + cx * cos a - cy * sin a
@@ -442,20 +454,17 @@ bool FrameManipulator::DrawHandles(Layout *layout)
             break;
 
         case TM_FreeCenteredRotate:
-            rotate(widget, self.tree, Point3(xx, yy, 0), p0, p1, p2);
+        case TM_SteppedCenteredRotate:
+            rotate(widget, self.tree, Point3(xx, yy, 0), p0, p1, p2,
+                   mode == TM_SteppedCenteredRotate);
             break;
 
-        case TM_SteppedCenteredRotate:
-            // TODO
-            goto freeresize;
-
         case TM_FreeOppositeRotate:
-            // TODO
-            goto freeresize;
-
         case TM_SteppedOppositeRotate:
-            // TODO
-            goto freeresize;
+            rotate(widget, self.tree,
+                   Point3(xx-sw*w/2, yy-sh*h/2, 0),
+                   p0, p1, p2, mode == TM_SteppedOppositeRotate);
+            break;
 
         case TM_ResizeLockAspectRatio:
             {
@@ -519,7 +528,6 @@ bool FrameManipulator::DrawHandles(Layout *layout)
 
         case TM_FreeResize:
         default:
-        freeresize:
             updateArg(widget, &x, p0.x/2, p1.x/2, p2.x/2);
             updateArg(widget, &y, p0.y/2, p1.y/2, p2.y/2);
             updateArg(widget, &w, sw*p0.x, sw*p1.x, sw*p2.x);

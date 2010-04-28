@@ -528,7 +528,12 @@ void Widget::paste()
     selection.clear();
     selectionTrees.clear();
 
-    // TODO: select the new objects
+    // Make sure the new objects appear selected next time they're drawn
+    XL::Infix *i;
+    XL::Tree  *t = tree;
+    for (i = tree->AsInfix(); i ; t = i->right, i = i->right->AsInfix())
+        selectNextTime.insert(i->left);
+    selectNextTime.insert(t);
 }
 
 
@@ -2164,6 +2169,11 @@ Tree *Widget::shape(Tree *self, Tree *child)
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(newId()));
     XL::LocalSave<Tree *>   saveShape (currentShape, self);
+    if (selectNextTime.count(self))
+    {
+        selection[id]++;
+        selectNextTime.erase(self);
+    }
     Tree *result = xl_evaluate(child);
     return result;
 }

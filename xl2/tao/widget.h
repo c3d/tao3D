@@ -461,7 +461,7 @@ private:
     Activity *            activities;
     GLuint                id, charId, capacity, manipulator;
     selection_map         selection, savedSelection;
-    std::set<Tree *>      selectionTrees;
+    std::set<Tree *>      selectionTrees, selectNextTime;
     bool                  wasSelected;
     QEvent *              event;
     QWidget *             focusWidget;

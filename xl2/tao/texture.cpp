@@ -17,6 +17,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -30,7 +31,7 @@ ImageTextureInfo::ImageTextureInfo(Widget *w)
 // ----------------------------------------------------------------------------
 //   Prepare to record texture IDs for the various images
 // ----------------------------------------------------------------------------
-    : textures(), widget(w), defaultTextureId(0)
+    : textures(), widget(w), defaultTextureId(0), width(0.0), height(0.0)
 {
     QString file(":/images/defaultImage.svg");
     QImage defOrig(file);
@@ -79,6 +80,8 @@ GLuint ImageTextureInfo::bind(text file)
         QImage original(+file);
         if (!original.isNull())
         {
+            width = original.width();
+            height = original.height();
             QImage texture = QGLWidget::convertToGLFormat(original);
 
             // Generate the GL texture

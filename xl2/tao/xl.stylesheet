@@ -38,6 +38,7 @@ indents = "    "
 "infix ," = separator left "," space right separator
 "infix ;" = separator left ";" space right separator
 "infix :" = separator left ":" right separator
+"infix else" = separator left cr self right separator
 "postfix %" = separator left "%" space separator
 "postfix !" = separator left "!" space separator
 "prefix +" = separator "+" separator right separator

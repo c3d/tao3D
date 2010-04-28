@@ -518,10 +518,10 @@ void Compiler::FreeResources(Tree *tree, GCAction &gc)
                       << (inUse ? "in use\n" : "unused\n");
         if (inUse)
         {
-                // Mark the tree back in XLR so that we keep it around
-                IFTRACE(llvmgc)
-                    std::cerr << "Keeping function " << tree << " for LLVM\n";
-                tree->Do(gc);
+            // Mark the tree back in XLR so that we keep it around
+            IFTRACE(llvmgc)
+                std::cerr << "Keeping function " << tree << " for LLVM\n";
+            tree->Do(gc);
         }
         else
         {

@@ -17,6 +17,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -71,7 +72,8 @@ void LineWidth::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     where->lineWidth = width;
-    glLineWidth(width);
+    if (width > 0.0)
+        glLineWidth(width);
 }
 
 

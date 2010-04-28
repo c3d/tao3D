@@ -130,11 +130,11 @@ void GraphicPath::Draw(Layout *where)
 //   Draw the graphic path using the current texture, fill and line color
 // ----------------------------------------------------------------------------
 {
-    Drawi(where, 0);
+    Draw(where, 0);
 }
 
 
-void GraphicPath::Drawi(Layout *where, GLenum tessel)
+void GraphicPath::Draw(Layout *where, GLenum tessel)
 // ----------------------------------------------------------------------------
 //   Draw the graphic path using the current texture, fill and line color
 // ----------------------------------------------------------------------------
@@ -549,7 +549,7 @@ void GraphicPath::Draw(Layout *where, QPainterPath &qtPath,
 {
     GraphicPath path;
     path.addQtPath(qtPath, sy);
-    path.Drawi(where, tessel);
+    path.Draw(where, tessel);
 }
 
 
@@ -634,7 +634,7 @@ void TesselatedPath::Draw(Layout *where)
 //   Draw the graphic path using the current texture, fill and line color
 // ----------------------------------------------------------------------------
 {
-    Drawi(where, tesselation);
+    GraphicPath::Draw(where, tesselation);
 }
 
 TAO_END

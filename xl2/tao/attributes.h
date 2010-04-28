@@ -19,6 +19,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -100,7 +101,7 @@ struct LineWidth : Attribute
 //    Record the line width when drawing elements
 // ----------------------------------------------------------------------------
 {
-    LineWidth(float w) : Attribute(), width(w < 0.1? 0.1: w) {}
+    LineWidth(float w) : Attribute(), width(w) {}
     virtual void Draw(Layout *where);
     float width;
 };

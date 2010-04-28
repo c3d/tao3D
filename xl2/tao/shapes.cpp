@@ -97,7 +97,8 @@ bool Shape::setLineColor(Layout *where)
     if (where)
     {
         Color &color = where->lineColor;
-        if (color.alpha > 0.0)
+        scale width = where->lineWidth;
+        if (color.alpha > 0.0 && width > 0.0)
         {
             glColor4f(color.red, color.green, color.blue, color.alpha);
             where->PolygonOffset();
@@ -250,7 +251,7 @@ void EllipticalRectangle::Draw(Layout *where)
 {
     GraphicPath path;
     Draw(path);
-    path.Drawi(where, GLU_TESS_WINDING_POSITIVE);
+    path.Draw(where, GLU_TESS_WINDING_POSITIVE);
 }
 
 
@@ -342,7 +343,7 @@ void Arrow::Draw(Layout *where)
 {
     GraphicPath path;
     Draw(path);
-    path.Drawi(where, GLU_TESS_WINDING_POSITIVE);
+    path.Draw(where, GLU_TESS_WINDING_POSITIVE);
 }
 
 
@@ -398,7 +399,7 @@ void DoubleArrow::Draw(Layout *where)
 {
     GraphicPath path;
     Draw(path);
-    path.Drawi(where, GLU_TESS_WINDING_POSITIVE);
+    path.Draw(where, GLU_TESS_WINDING_POSITIVE);
 }
 
 
@@ -465,7 +466,7 @@ void StarPolygon::Draw(Layout *where)
     }
     else
     {
-        path.Drawi(where, GLU_TESS_WINDING_POSITIVE);
+        path.Draw(where, GLU_TESS_WINDING_POSITIVE);
     }
 }
 
@@ -561,7 +562,7 @@ void Star::Draw(Layout *where)
     }
     else
     {
-        path.Drawi(where, GLU_TESS_WINDING_POSITIVE);
+        path.Draw(where, GLU_TESS_WINDING_POSITIVE);
     }
 }
 
@@ -615,7 +616,7 @@ void SpeechBalloon::Draw(Layout *where)
 {
     GraphicPath path;
     Draw(path);
-    path.Drawi(where, GLU_TESS_WINDING_POSITIVE);
+    path.Draw(where, GLU_TESS_WINDING_POSITIVE);
 }
 
 
@@ -683,7 +684,7 @@ void Callout::Draw(Layout *where)
 {
     GraphicPath path;
     Draw(path);
-    path.Drawi(where, GLU_TESS_WINDING_POSITIVE);
+    path.Draw(where, GLU_TESS_WINDING_POSITIVE);
 }
 
 

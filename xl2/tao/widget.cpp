@@ -454,7 +454,7 @@ void Widget::cut()
 // ----------------------------------------------------------------------------
 {
     copy();
-    // TODO: delete selection
+    deleteSelection();
 }
 
 
@@ -4420,12 +4420,23 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
 
 XL::Name *Widget::deleteSelection(Tree *self, text key)
 // ----------------------------------------------------------------------------
-//    Delete the selection
+//    Delete the selection (with text support)
 // ----------------------------------------------------------------------------
 {
     if (textSelection())
         return textEditKey(self, key);
 
+    deleteSelection();
+
+    return XL::xl_true;
+}
+
+
+void Widget::deleteSelection()
+// ----------------------------------------------------------------------------
+//    Delete the selection (when selection is not text)
+// ----------------------------------------------------------------------------
+{
     DeleteSelectionAction del(this);
     XL::Tree *what = xlProgram->tree.tree;
     what = what->Do(del);
@@ -4433,8 +4444,6 @@ XL::Name *Widget::deleteSelection(Tree *self, text key)
     markChanged("Deleted selection");
     selection.clear();
     selectionTrees.clear();
-
-    return XL::xl_true;
 }
 
 

@@ -413,6 +413,7 @@ public:
 
     // Tree management
     Name *      insert(Tree *self, Tree *toInsert);
+    void        deleteSelection();
     Name *      deleteSelection(Tree *self, text key);
     Name *      setAttribute(Tree *self, text name, Tree *attribute, text sh);
 

@@ -467,16 +467,10 @@ void Widget::copy()
         return;
 
     // Build a single tree from all the selected sub-trees
-    XL::Tree *tree = NULL;
-    std::set<Tree *>::iterator i;
-    for (i = selectionTrees.begin(); i != selectionTrees.end(); i++)
-    {
-        XL::Tree *t = (*i);
-        if (tree)
-            tree = new XL::Infix("\n", tree, t);
-        else
-            tree = t;
-    }
+    std::set<Tree *>::reverse_iterator i = selectionTrees.rbegin();
+    XL::Tree *tree = (*i++);
+    for ( ; i != selectionTrees.rend(); i++)
+        tree = new XL::Infix("\n", (*i), tree);
 
     // Serialize the tree
     std::string ser;

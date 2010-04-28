@@ -311,15 +311,14 @@ void Manipulator::rotate(Widget *widget, Tree *shape, kPoint3 center,
     ty -= cx*(sa2-sa1) + cy*(ca2-ca1);
 
     // Update translation and rotation
+    rArgs.resize(1);
+    rArgs[0] = a2;
+    widget->set(shape, "rotatez", rArgs);
     tArgs.resize(3);
     tArgs[0] = tx;
     tArgs[1] = ty;
     tArgs[2] = tz;
     widget->set(shape, "translate", tArgs);
-
-    rArgs.resize(1);
-    rArgs[0] = a2;
-    widget->set(shape, "rotatez", rArgs);
 }
 
 

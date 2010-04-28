@@ -28,9 +28,9 @@ TAO_BEGIN
 
 int   Layout::polygonOffset   = 0;
 scale Layout::factorBase      = 0;
-scale Layout::factorIncrement = -1;
+scale Layout::factorIncrement = -0.005; // Experimental value
 scale Layout::unitBase        = 0;
-scale Layout::unitIncrement   = 0;
+scale Layout::unitIncrement   = -1;
 
 
 LayoutState::LayoutState()

@@ -33,6 +33,10 @@ struct Shape3 : Shape
 {
     Shape3(): Shape() {}
     virtual void        DrawSelection(Layout *layout);
+
+protected:
+    bool                setFillColor(Layout *where);
+    bool                setLineColor(Layout *where);
 };
 
 

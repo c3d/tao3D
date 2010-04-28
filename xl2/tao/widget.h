@@ -31,6 +31,7 @@
 #include "drawing.h"
 #include "activity.h"
 #include "menuinfo.h"
+#include "glyph_cache.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -170,6 +171,7 @@ public:
     void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);
     void        recordProjection();
+    uint        lastModifiers()         { return keyboardModifiers; }
     Point3      unproject (coord x, coord y, coord z = 0.0);
     Drag *      drag();
     TextSelect *textSelection();
@@ -178,8 +180,9 @@ public:
     template<class Activity>
     Activity *  active();
 
-    // Text flows
+    // Text flows and text managemen
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
+    GlyphCache &glyphs()    { return glyphCache; }
 
 public:
     // XLR entry points
@@ -445,6 +448,7 @@ private:
     Tree *                currentShape;
     QGridLayout *         currentGridLayout;
     GroupInfo   *         currentGroup;
+    GlyphCache            glyphCache;
 
     // Selection
     Activity *            activities;
@@ -455,6 +459,7 @@ private:
     QWidget *             focusWidget;
     GLdouble              focusProjection[16], focusModel[16];
     GLint                 focusViewport[4];
+    uint                  keyboardModifiers;
 
     // Menus and widgets
     QMenu                *currentMenu;

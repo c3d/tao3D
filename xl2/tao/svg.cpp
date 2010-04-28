@@ -74,9 +74,7 @@ GLuint SvgRendererInfo::bind (text file)
     if (r)
     {
         glDisable(GL_TEXTURE_2D);
-#ifdef GL_MULTISAMPLE   // Not supported on Windows
         glDisable(GL_MULTISAMPLE);
-#endif
         FramePainter painter(this);
         r->render(&painter);
     }

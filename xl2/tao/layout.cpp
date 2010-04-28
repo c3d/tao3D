@@ -282,13 +282,14 @@ void Layout::Inherit(Layout *where)
     // Inherit color and other parameters as initial values
     // Note that these may really impact what gets rendered,
     // e.g. transparent colors may cause shapes to be drawn or not
-    font        = where->font;
-    alongX      = where->alongX;
-    alongY      = where->alongY;
-    alongZ      = where->alongZ;
-    lineColor   = where->lineColor;
-    fillColor   = where->fillColor;
-    fillTexture = where->fillTexture;
+    font         = where->font;
+    alongX       = where->alongX;
+    alongY       = where->alongY;
+    alongZ       = where->alongZ;
+    lineColor    = where->lineColor;
+    fillColor    = where->fillColor;
+    fillTexture  = where->fillTexture;
+    hasPixelBlur |= where->hasPixelBlur;
 }
 
 TAO_END

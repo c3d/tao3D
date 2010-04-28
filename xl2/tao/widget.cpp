@@ -89,7 +89,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
       id(0), charId(0), capacity(1), manipulator(0),
-      event(NULL), focusWidget(NULL),
+      event(NULL), focusWidget(NULL), keyboardModifiers(0),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
       colorAction(NULL), fontAction(NULL),
@@ -283,6 +283,7 @@ void Widget::draw()
     glDisable(GL_DEPTH_TEST);
     for (Activity *a = activities; a; a = a->Display()) ;
     selectionSpace.Draw(NULL);
+    glEnable(GL_DEPTH_TEST);
 
     // Update page count for next run
     pageTotal = pageId;
@@ -904,6 +905,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
+    keyboardModifiers = event->modifiers();
 
     // Forward it down the regular event chain
     if (forwardEvent(event))
@@ -922,6 +924,7 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
+    keyboardModifiers = event->modifiers();
 
     // Forward it down the regular event chain
     if (forwardEvent(event))
@@ -940,6 +943,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
+    keyboardModifiers = event->modifiers();
 
     QMenu * contextMenu = NULL;
     uint    button      = (uint) event->button();
@@ -992,6 +996,7 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
+    keyboardModifiers = event->modifiers();
 
     uint button = (uint) event->button();
     int x = event->x();
@@ -1011,6 +1016,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
+    keyboardModifiers = event->modifiers();
     bool active = event->buttons() != Qt::NoButton;
     int x = event->x();
     int y = event->y();
@@ -1029,6 +1035,7 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
+    keyboardModifiers = event->modifiers();
 
     // Create a selection if left click and nothing going on right now
     uint    button      = (uint) event->button();
@@ -1050,6 +1057,7 @@ void Widget::wheelEvent(QWheelEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
+    keyboardModifiers = event->modifiers();
     forwardEvent(event);
 }
 
@@ -1655,7 +1663,7 @@ ulonglong Widget::elapsed(ulonglong since, ulonglong until,
         tcount++;
     }
 
-    if (show && (tcount & 0xff) == 0)
+    if (show && (tcount & 15) == 0)
     {
         char buffer[80];
         snprintf(buffer, sizeof(buffer),
@@ -1835,6 +1843,7 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
     else
         (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (symbols);
     selectionSpace.Draw(NULL);
+    glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -1855,6 +1864,7 @@ void Widget::drawHandle(const Point3 &p, text handleName)
     selectionSpace.id = ~0U;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
     selectionSpace.Draw(NULL);
+    glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -2087,9 +2097,6 @@ Tree *Widget::rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz)
 {
     layout->Add(new Rotation(ra, rx, ry, rz));
     layout->hasMatrix = true;
-    double amod90 = fmod(ra, 90.0);
-    if (amod90 < -0.01 || amod90 > 0.01)
-        layout->hasPixelBlur = true;
     return XL::xl_true;
 }
 
@@ -2128,8 +2135,6 @@ Tree *Widget::translate(Tree *self, real_r tx, real_r ty, real_r tz)
 {
     layout->Add(new Translation(tx, ty, tz));
     layout->hasMatrix = true;
-    if (tz != 0.0)
-        layout->hasPixelBlur = true;
     return XL::xl_true;
 }
 
@@ -2168,8 +2173,6 @@ Tree *Widget::rescale(Tree *self, real_r sx, real_r sy, real_r sz)
 {
     layout->Add(new Scale(sx, sy, sz));
     layout->hasMatrix = true;
-    if (sx != 1.0 || sy != 1.0)
-        layout->hasPixelBlur = true;
     return XL::xl_true;
 }
 

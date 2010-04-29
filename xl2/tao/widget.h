@@ -105,6 +105,7 @@ public slots:
     void        fontChosen(const QFont &);
     void        updateFontDialog();
     void        updateDialogs()                { mustUpdateDialogs = true; }
+    void        fileChosen(const QString & filename);
 
 public:
     // OpenGL
@@ -355,7 +356,7 @@ public:
                                       text_p name, Text *lbl,
                                       Text* marked, Tree *act);
     Tree *      buttonGroup(Tree *self, bool exclusive, Tree *buttons);
-    Tree *      setAction(Tree *self, Tree *action);
+    Tree *      setButtonGroupAction(Tree *self, Tree *action);
 
     Tree *      colorChooser(Tree *self, text name, Tree *action);
     Tree *      colorChooser(Tree *self,
@@ -372,6 +373,18 @@ public:
     Tree *      fontChooserTexture(Tree *self,
                                    double w, double h,
                                    Tree *action);
+
+    Tree *      fileChooser(Tree *self, Tree *action);
+    Tree *      fileChooser(Tree *self,
+                            real_r x, real_r y, real_r w, real_r h,
+                            Tree *action);
+    Tree *      fileChooserTexture(Tree *self,
+                                    double w, double h,
+                                    Tree *action);
+    Tree *      setFileDialogAction(Tree *self, Tree *action);
+    Tree *      setFileDialogDirectory(Tree *self, text dirname);
+    Tree *      setFileDialogFilter(Tree *self, text filters);
+    Tree *      setFileDialogLabel(Tree *self, text label, text value);
 
     Tree *      groupBox(Tree *self,
                          real_r x,real_r y, real_r w,real_r h,
@@ -477,7 +490,14 @@ private:
     static Widget *       current;
     static QColorDialog * colorDialog;
     static QFontDialog *  fontDialog;
+    static QFileDialog *  fileDialog;
+           QFileDialog *  currentFileDialog;
     static double         zNear, zFar;
+
+    std::map<text, QFileDialog::DialogLabel> toDialogLabel;
+private:
+    void        updateFileDialog(Tree *properties);
+
 };
 
 
@@ -659,6 +679,37 @@ struct SetAttributeAction : XL::Action
     Widget   *widget;
     text      shape;
 };
+
+
+
+struct N2NReplacerTreeClone : XL::TreeClone
+// ----------------------------------------------------------------------------
+//    Replace a name with a Name
+// ----------------------------------------------------------------------------
+{
+    N2NReplacerTreeClone(std::map<text, text> *c) :
+             concordance(c){};
+    XL::Tree* DoName(XL::Name *what);
+    XL::Tree* replace(XL::Tree *original);
+    std::map<text, text> *concordance;
+
+};
+struct N2TReplacerTreeClone : XL::TreeClone
+// ----------------------------------------------------------------------------
+//    Replace a name with a Text
+// ----------------------------------------------------------------------------
+{
+    N2TReplacerTreeClone(std::map<text, text> *c) :
+             concordance(c){};
+    XL::Tree* DoName(XL::Name *what);
+
+    XL::Tree* replace(XL::Tree *original);
+
+    std::map<text, text> *concordance;
+
+};
+
+
 
 } // namespace Tao
 

@@ -454,6 +454,8 @@ void Widget::cut()
 // ----------------------------------------------------------------------------
 {
     copy();
+    IFTRACE(clipboard)
+        std::cerr << "Clipboard: deleting selection\n";
     deleteSelection();
 }
 
@@ -471,6 +473,14 @@ void Widget::copy()
     XL::Tree *tree = (*i++);
     for ( ; i != selectionTrees.rend(); i++)
         tree = new XL::Infix("\n", (*i), tree);
+
+    IFTRACE(clipboard)
+    {
+        std::cerr << "Clipboard: copying:\n";
+        XL::Renderer render(std::cerr);
+        render.SelectStyleSheet("debug.stylesheet");
+        render.Render(tree);
+    }
 
     // Serialize the tree
     std::string ser;
@@ -513,6 +523,14 @@ void Widget::paste()
     XL::Tree *tree = deserializer.ReadTree();
     if (!deserializer.IsValid())
         return;
+
+    IFTRACE(clipboard)
+    {
+        std::cerr << "Clipboard: pasting:\n";
+        XL::Renderer render(std::cerr);
+        render.SelectStyleSheet("debug.stylesheet");
+        render.Render(tree);
+    }
 
     // Insert tree at current selection, or at end of current page
     // TODO: paste with an offset to avoid exactly overlapping objects

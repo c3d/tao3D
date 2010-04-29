@@ -454,7 +454,9 @@ void Widget::cut()
 // ----------------------------------------------------------------------------
 {
     copy();
-    // TODO: delete selection
+    IFTRACE(clipboard)
+        std::cerr << "Clipboard: deleting selection\n";
+    deleteSelection();
 }
 
 
@@ -467,15 +469,17 @@ void Widget::copy()
         return;
 
     // Build a single tree from all the selected sub-trees
-    XL::Tree *tree = NULL;
-    std::set<Tree *>::iterator i;
-    for (i = selectionTrees.begin(); i != selectionTrees.end(); i++)
+    std::set<Tree *>::reverse_iterator i = selectionTrees.rbegin();
+    XL::Tree *tree = (*i++);
+    for ( ; i != selectionTrees.rend(); i++)
+        tree = new XL::Infix("\n", (*i), tree);
+
+    IFTRACE(clipboard)
     {
-        XL::Tree *t = (*i);
-        if (tree)
-            tree = new XL::Infix("\n", tree, t);
-        else
-            tree = t;
+        std::cerr << "Clipboard: copying:\n";
+        XL::Renderer render(std::cerr);
+        render.SelectStyleSheet("debug.stylesheet");
+        render.Render(tree);
     }
 
     // Serialize the tree
@@ -520,6 +524,14 @@ void Widget::paste()
     if (!deserializer.IsValid())
         return;
 
+    IFTRACE(clipboard)
+    {
+        std::cerr << "Clipboard: pasting:\n";
+        XL::Renderer render(std::cerr);
+        render.SelectStyleSheet("debug.stylesheet");
+        render.Render(tree);
+    }
+
     // Insert tree at current selection, or at end of current page
     // TODO: paste with an offset to avoid exactly overlapping objects
     insert(NULL, tree);
@@ -528,7 +540,13 @@ void Widget::paste()
     selection.clear();
     selectionTrees.clear();
 
-    // TODO: select the new objects
+    // Make sure the new objects appear selected next time they're drawn
+    XL::Infix *i;
+    XL::Tree  *t = tree;
+    selectNextTime.clear();
+    for (i = tree->AsInfix(); i ; t = i->right, i = i->right->AsInfix())
+        selectNextTime.insert(i->left);
+    selectNextTime.insert(t);
 }
 
 
@@ -2164,6 +2182,11 @@ Tree *Widget::shape(Tree *self, Tree *child)
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(newId()));
     XL::LocalSave<Tree *>   saveShape (currentShape, self);
+    if (selectNextTime.count(self))
+    {
+        selection[id]++;
+        selectNextTime.erase(self);
+    }
     Tree *result = xl_evaluate(child);
     return result;
 }
@@ -4374,7 +4397,7 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
     // If we never hit the selection during the insert, append
     if (insert.toInsert)
     {
-        Tree *top = xlProgram->tree.tree;
+        Tree **top = &afterInsert;
         XL::Infix *parent  = NULL;
         if (pageTree)
         {
@@ -4385,10 +4408,10 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
             if (XL::Block *block = pageTree->AsBlock())
                 pageTree = block->child;
 
-            top = pageTree;
+            top = &pageTree;
         }
 
-        program = top;
+        program = *top;
         while (true)
         {
             XL::Infix *infix = program->AsInfix();
@@ -4398,16 +4421,13 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
                 break;
             parent = infix;
             program = infix->right;
-        }
+         }
 
-        Tree * &what = parent ? parent->right : top;
-        what = new XL::Infix("\n", what, toInsert);
-        reloadProgram();
+        Tree **what = parent ? &parent->right : top;
+        *what = new XL::Infix("\n", *what, toInsert);
     }
-    else
-    {
-        reloadProgram(afterInsert);
-    }
+
+    reloadProgram(afterInsert);
     markChanged("Inserted tree");
 
     return XL::xl_true;
@@ -4416,12 +4436,23 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
 
 XL::Name *Widget::deleteSelection(Tree *self, text key)
 // ----------------------------------------------------------------------------
-//    Delete the selection
+//    Delete the selection (with text support)
 // ----------------------------------------------------------------------------
 {
     if (textSelection())
         return textEditKey(self, key);
 
+    deleteSelection();
+
+    return XL::xl_true;
+}
+
+
+void Widget::deleteSelection()
+// ----------------------------------------------------------------------------
+//    Delete the selection (when selection is not text)
+// ----------------------------------------------------------------------------
+{
     DeleteSelectionAction del(this);
     XL::Tree *what = xlProgram->tree.tree;
     what = what->Do(del);
@@ -4429,8 +4460,6 @@ XL::Name *Widget::deleteSelection(Tree *self, text key)
     markChanged("Deleted selection");
     selection.clear();
     selectionTrees.clear();
-
-    return XL::xl_true;
 }
 
 

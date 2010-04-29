@@ -413,6 +413,7 @@ public:
 
     // Tree management
     Name *      insert(Tree *self, Tree *toInsert);
+    void        deleteSelection();
     Name *      deleteSelection(Tree *self, text key);
     Name *      setAttribute(Tree *self, text name, Tree *attribute, text sh);
 
@@ -461,7 +462,7 @@ private:
     Activity *            activities;
     GLuint                id, charId, capacity, manipulator;
     selection_map         selection, savedSelection;
-    std::set<Tree *>      selectionTrees;
+    std::set<Tree *>      selectionTrees, selectNextTime;
     bool                  wasSelected;
     QEvent *              event;
     QWidget *             focusWidget;
@@ -573,11 +574,21 @@ struct DeleteSelectionAction : XL::TreeClone
         if (what->name == "\n" || what->name == ";")
         {
             if (widget->selected(what->left))
+            {
+                if (widget->selected(what->right))
+                    return NULL;
                 return what->right->Do(this);
+            }
             if (widget->selected(what->right))
                 return what->left->Do(this);
         }
-        return XL::TreeClone::DoInfix(what);
+        XL::Tree *left = what->left->Do(this);
+        XL::Tree *right = what->right->Do(this);
+        if (left && right)
+            return new XL::Infix(what->name, left, right, what->Position());
+        else if (left)
+            return left;
+        return right;
     }
     Widget *widget;
 };

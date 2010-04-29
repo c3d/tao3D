@@ -50,7 +50,7 @@ void TextSpan::Draw(Layout *where)
 {
     Widget *widget = where->Display();
     bool hasLine = setLineColor(where);
-    if (!hasLine && widget->lastModifiers() & Qt::ShiftModifier)
+    if (!hasLine && ~widget->lastModifiers() & Qt::ShiftModifier)
         DrawCached(where);
     else
         DrawDirect(where);
@@ -92,6 +92,7 @@ void TextSpan::DrawCached(Layout *where)
         QChar qc       = QChar(unicode);
         bool  newLine  = qc == '\n';
         float w        = newLine ? 3 : fm.width(qc);
+        QRectF charSize = fm.boundingRect(qc);
         bool  mustDraw = !newLine && hasFillColor;
 
         // Check texture in the texture cache
@@ -108,7 +109,7 @@ void TextSpan::DrawCached(Layout *where)
                     uint hh = h + 0.9;
                     QImage image(QSize(ww, hh), QImage::Format_ARGB32);
                     image.fill(0);
-                    
+
                     QPainter painter(&image);
                     painter.setFont(font);
                     painter.setBrush(Qt::transparent);
@@ -129,7 +130,7 @@ void TextSpan::DrawCached(Layout *where)
                 }
 
                 // Draw the rectangle with a texture in it
-                coord charX = x + fm.leftBearing(qc);
+                coord charX = x + fm.leftBearing(qc) - charSize.left();
                 coord lineY = y - descent;
 
                 coord array[4][3] =
@@ -143,7 +144,7 @@ void TextSpan::DrawCached(Layout *where)
                 {
                     { 0, 0 }, { 1, 0 }, { 1, 1 }, { 0, 1 }
                 };
-                
+
                 // Bind the glyph texture
                 glBindTexture(GL_TEXTURE_2D, texture);
                 GLenum blur = where->hasPixelBlur ? GL_LINEAR : GL_NEAREST;

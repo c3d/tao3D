@@ -346,7 +346,7 @@ void Widget::runProgram()
     }
 
     // Remember how many elements are drawn on the page, plus arbitrary buffer
-    if (id + charId > capacity)
+    if (id + charId + 100 > capacity)
         capacity = id + charId + 100;
     else if (id + charId + 50 < capacity / 2)
         capacity = capacity / 2;

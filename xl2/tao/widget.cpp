@@ -543,6 +543,7 @@ void Widget::paste()
     // Make sure the new objects appear selected next time they're drawn
     XL::Infix *i;
     XL::Tree  *t = tree;
+    selectNextTime.clear();
     for (i = tree->AsInfix(); i ; t = i->right, i = i->right->AsInfix())
         selectNextTime.insert(i->left);
     selectNextTime.insert(t);
@@ -4396,7 +4397,7 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
     // If we never hit the selection during the insert, append
     if (insert.toInsert)
     {
-        Tree *top = xlProgram->tree.tree;
+        Tree **top = &afterInsert;
         XL::Infix *parent  = NULL;
         if (pageTree)
         {
@@ -4407,10 +4408,10 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
             if (XL::Block *block = pageTree->AsBlock())
                 pageTree = block->child;
 
-            top = pageTree;
+            top = &pageTree;
         }
 
-        program = top;
+        program = *top;
         while (true)
         {
             XL::Infix *infix = program->AsInfix();
@@ -4420,16 +4421,13 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
                 break;
             parent = infix;
             program = infix->right;
-        }
+         }
 
-        Tree * &what = parent ? parent->right : top;
-        what = new XL::Infix("\n", what, toInsert);
-        reloadProgram();
+        Tree **what = parent ? &parent->right : top;
+        *what = new XL::Infix("\n", *what, toInsert);
     }
-    else
-    {
-        reloadProgram(afterInsert);
-    }
+
+    reloadProgram(afterInsert);
     markChanged("Inserted tree");
 
     return XL::xl_true;

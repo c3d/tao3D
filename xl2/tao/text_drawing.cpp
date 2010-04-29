@@ -26,6 +26,8 @@
 #include "widget.h"
 #include "tao_utf8.h"
 #include "drag.h"
+#include "glyph_cache.h"
+#include "frame.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -46,6 +48,162 @@ void TextSpan::Draw(Layout *where)
 //   Render a portion of text and advance by the width of the text
 // ----------------------------------------------------------------------------
 {
+    Widget *widget = where->Display();
+    bool hasLine = setLineColor(where);
+    if (!hasLine && ~widget->lastModifiers() & Qt::ShiftModifier)
+        DrawCached(where);
+    else
+        DrawDirect(where);
+}
+
+
+void TextSpan::DrawCached(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw text span using cached textures
+// ----------------------------------------------------------------------------
+{
+    // If we have a texture, we need to draw "slowly" (polygons)
+    bool hasTexture = setTexture(where);
+    bool hasFillColor = setFillColor(where);
+    if (hasTexture)
+        DrawDirect(where);
+
+    Widget *widget = where->Display();
+    GlyphCache &glyphs = widget->glyphs();
+    Point3 pos = where->offset;
+    text str = source.Value();
+    QFont &font = where->font;
+    QFontMetricsF fm(font);
+    scale h = fm.height();
+    coord x = pos.x;
+    coord y = pos.y;
+    coord z = pos.z;
+    scale ascent = fm.ascent();
+    scale descent = fm.descent();
+    scale spacing = h + fm.leading();
+    uint  lastCode = 0;
+    scale lastW = 0;
+
+    // Loop over all characters in the text span
+    uint i, max = str.length();
+    for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
+    {
+        uint  unicode  = XL::Utf8Code(str, i);
+        QChar qc       = QChar(unicode);
+        bool  newLine  = qc == '\n';
+        float w        = newLine ? 3 : fm.width(qc);
+        QRectF charSize = fm.boundingRect(qc);
+        bool  mustDraw = !newLine && hasFillColor;
+
+        // Check texture in the texture cache
+        if (mustDraw)
+        {
+            if (font.pointSize() < GlyphCache::maxFontSize)
+            {
+                // Lookup texture in glyph cache
+                uint texture = glyphs.texture(font, unicode);
+                if (!texture)
+                {
+                    // Draw the glyph in a QImage
+                    uint ww = w + 0.9;
+                    uint hh = h + 0.9;
+                    QImage image(QSize(ww, hh), QImage::Format_ARGB32);
+                    image.fill(0);
+
+                    QPainter painter(&image);
+                    painter.setFont(font);
+                    painter.setBrush(Qt::transparent);
+                    painter.setPen(Qt::white);
+                    painter.drawText(0, ascent+1, QString(qc));
+                    painter.end();
+
+                    // Convert to a texture
+                    QImage texImg = QGLWidget::convertToGLFormat(image);
+                    glGenTextures(1, &texture);
+                    glBindTexture(GL_TEXTURE_2D, texture);
+                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                                 texImg.width(), texImg.height(), 0, GL_RGBA,
+                                 GL_UNSIGNED_BYTE, texImg.bits());
+
+                    // Save the texture in the glyph cache
+                    glyphs.enter(font, unicode, texture);
+                }
+
+                // Draw the rectangle with a texture in it
+                coord charX = x + fm.leftBearing(qc) - charSize.left();
+                coord lineY = y - descent;
+
+                coord array[4][3] =
+                {
+                    { charX,      lineY,      z },
+                    { charX + w,  lineY,      z },
+                    { charX + w,  lineY + h,  z },
+                    { charX,      lineY + h,  z }
+                };
+                static GLint txCoords[4][2] =
+                {
+                    { 0, 0 }, { 1, 0 }, { 1, 1 }, { 0, 1 }
+                };
+
+                // Bind the glyph texture
+                glBindTexture(GL_TEXTURE_2D, texture);
+                GLenum blur = where->hasPixelBlur ? GL_LINEAR : GL_NEAREST;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, blur);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, blur);
+                glEnable(GL_TEXTURE_2D);
+                glEnable(GL_MULTISAMPLE);
+
+                // Draw a rectangle with the texture
+                glVertexPointer(3, GL_DOUBLE, 0, array);
+                glTexCoordPointer(2, GL_INT, 0, txCoords);
+                glEnableClientState(GL_VERTEX_ARRAY);
+                glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                glDrawArrays(GL_QUADS, 0, 4);
+                glDisableClientState(GL_VERTEX_ARRAY);
+                glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+            }
+            else
+            {
+                // Too big, draw directly
+                QPainterPath path;
+                path.addText(x, -y, font, QString(qc));
+                GraphicPath::Draw(where, path, GLU_TESS_WINDING_ODD, -1);
+            }
+        } // mustDraw
+
+        if (qc == '\n')
+        {
+            x = 0;
+            lastW = 0;
+            lastCode = 0;
+            y -= spacing;
+        }
+        else
+        {
+            if (lastCode)
+            {
+                QString twoChars = QString(QChar(lastCode)) + QChar(unicode);
+                scale twoWidth = fm.width(twoChars);
+                x += twoWidth - lastW;
+            }
+            else
+            {
+                x += w;
+            }
+            lastCode = unicode;
+            lastW = w;
+        }
+    }
+
+    where->offset = Point3(x, y, z);
+}
+
+
+void TextSpan::DrawDirect(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw the given text directly using Qt paths
+// ----------------------------------------------------------------------------
+{
     Point3 position = where->offset;
     QPainterPath path;
     QString str = +source.Value().substr(start, end - start);
@@ -53,6 +211,9 @@ void TextSpan::Draw(Layout *where)
     QFontMetricsF fm(font);
     Widget *widget = where->Display();
     widget->newCharId(str.length());
+    scale leading = fm.leading();
+    scale height = fm.height();
+    scale spacing = leading + height;
 
     int index = str.indexOf(QChar('\n'));
     while (index >= 0)
@@ -60,7 +221,7 @@ void TextSpan::Draw(Layout *where)
         QString fragment = str.left(index);
         path.addText(position.x, -position.y, font, fragment);
         position.x = 0;
-        position.y -= fm.height();
+        position.y -= spacing;
         str = str.mid(index+1);
         index = str.indexOf(QChar('\n'));
     }
@@ -78,6 +239,9 @@ void TextSpan::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the selection for any selected character
 // ----------------------------------------------------------------------------
+//   Note that when drawing the rectangles, we don't include leading
+//   (space between lines) in the rectangle being drawn.
+//   For selection purpose we do include it to make it easier to click
 {
     Widget *widget = where->Display();
     Point3 pos = where->offset;
@@ -634,6 +798,7 @@ void TextSelect::updateSelection()
     for (uint i = s; i < e; i++)
         widget->selection[i | Widget::CHAR_ID_BIT] = 1;
     findingLayout = true;
+    widget->refresh();
 }
 
 

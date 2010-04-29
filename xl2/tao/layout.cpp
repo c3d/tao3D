@@ -17,6 +17,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -40,6 +41,7 @@ LayoutState::LayoutState()
     : offset(),
       font(qApp->font()),
       alongX(), alongY(), alongZ(),
+      lineWidth(1.0),
       lineColor(0,0,0,1),       // Black
       fillColor(0,0,0,0),       // Transparent black
       fillTexture(0),
@@ -54,6 +56,7 @@ LayoutState::LayoutState(const LayoutState &o)
       : offset(o.offset),
         font(o.font),
         alongX(o.alongX), alongY(o.alongY), alongZ(o.alongZ),
+        lineWidth(o.lineWidth),
         lineColor(o.lineColor),
         fillColor(o.fillColor),
         fillTexture(o.fillTexture),
@@ -282,13 +285,15 @@ void Layout::Inherit(Layout *where)
     // Inherit color and other parameters as initial values
     // Note that these may really impact what gets rendered,
     // e.g. transparent colors may cause shapes to be drawn or not
-    font        = where->font;
-    alongX      = where->alongX;
-    alongY      = where->alongY;
-    alongZ      = where->alongZ;
-    lineColor   = where->lineColor;
-    fillColor   = where->fillColor;
-    fillTexture = where->fillTexture;
+    font         = where->font;
+    alongX       = where->alongX;
+    alongY       = where->alongY;
+    alongZ       = where->alongZ;
+    lineWidth   = where->lineWidth;
+    lineColor    = where->lineColor;
+    fillColor    = where->fillColor;
+    fillTexture  = where->fillTexture;
+    hasPixelBlur |= where->hasPixelBlur;
 }
 
 TAO_END

@@ -53,17 +53,21 @@
 #include "attributes.h"
 #include "transforms.h"
 #include "undo.h"
+#include "serializer.h"
 
 #include <QToolButton>
 #include <QtGui/QImage>
 #include <cmath>
 #include <QFont>
 #include <iostream>
+#include <sstream>
 #include <algorithm>
 #include <QVariant>
 #include <QtWebKit>
 #include <sys/time.h>
 #include <sys/stat.h>
+
+#define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
 
 TAO_BEGIN
 
@@ -89,7 +93,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
       id(0), charId(0), capacity(1), manipulator(0),
-      event(NULL), focusWidget(NULL),
+      wasSelected(false),
+      event(NULL), focusWidget(NULL), keyboardModifiers(0),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
       colorAction(NULL), fontAction(NULL),
@@ -182,6 +187,8 @@ void Widget::dawdle()
         text txt = *xlProgram->tree.tree;
         Window *window = (Window *) parentWidget();
         window->setText(+txt);
+        if (!repo)
+            xlProgram->changed = false;
     }
 
     // Check if there's something to save
@@ -290,6 +297,7 @@ void Widget::draw()
     glDisable(GL_DEPTH_TEST);
     for (Activity *a = activities; a; a = a->Display()) ;
     selectionSpace.Draw(NULL);
+    glEnable(GL_DEPTH_TEST);
 
     // Update page count for next run
     pageTotal = pageId;
@@ -352,7 +360,7 @@ void Widget::runProgram()
     }
 
     // Remember how many elements are drawn on the page, plus arbitrary buffer
-    if (id + charId > capacity)
+    if (id + charId + 100 > capacity)
         capacity = id + charId + 100;
     else if (id + charId + 50 < capacity / 2)
         capacity = capacity / 2;
@@ -364,6 +372,9 @@ void Widget::runProgram()
         std::cerr << "Draw, count = " << space->count << "\n";
     id = charId = 0;
     space->DrawSelection(NULL);
+
+    // Clipboard management
+    checkCopyAvailable();
 }
 
 
@@ -417,6 +428,133 @@ void Widget::appFocusChanged(QWidget *prev, QWidget *next)
         }
         printf("\n");
     }
+}
+
+
+
+void Widget::checkCopyAvailable()
+// ----------------------------------------------------------------------------
+//   Emit a signal when clipboard can copy or cut something (or cannot anymore)
+// ----------------------------------------------------------------------------
+{
+    bool isSelected = selected();
+    if (wasSelected != isSelected)
+    {
+        emit copyAvailable(isSelected);
+        wasSelected = isSelected;
+    }
+}
+
+
+bool Widget::canPaste()
+// ----------------------------------------------------------------------------
+//   Is current clibpoard data in a suitable format to be pasted?
+// ----------------------------------------------------------------------------
+{
+    const QMimeData *mimeData = QApplication::clipboard()->mimeData();
+    return (mimeData->hasFormat(TAO_CLIPBOARD_MIME_TYPE));
+}
+
+
+void Widget::cut()
+// ----------------------------------------------------------------------------
+//   Cut current selection into clipboard
+// ----------------------------------------------------------------------------
+{
+    copy();
+    IFTRACE(clipboard)
+        std::cerr << "Clipboard: deleting selection\n";
+    deleteSelection();
+}
+
+
+void Widget::copy()
+// ----------------------------------------------------------------------------
+//   Copy current selection into clipboard
+// ----------------------------------------------------------------------------
+{
+    if (!hasSelection())
+        return;
+
+    // Build a single tree from all the selected sub-trees
+    std::set<Tree *>::reverse_iterator i = selectionTrees.rbegin();
+    XL::Tree *tree = (*i++);
+    for ( ; i != selectionTrees.rend(); i++)
+        tree = new XL::Infix("\n", (*i), tree);
+
+    IFTRACE(clipboard)
+    {
+        std::cerr << "Clipboard: copying:\n";
+        XL::Renderer render(std::cerr);
+        render.SelectStyleSheet("debug.stylesheet");
+        render.Render(tree);
+    }
+
+    // Serialize the tree
+    std::string ser;
+    std::ostringstream ostr;
+    XL::Serializer serializer(ostr);
+    tree->Do(serializer);
+    ser += ostr.str();
+
+    // Encapsulate serialized tree as MIME data
+    QByteArray binData;
+    binData.append(ser.data(), ser.length());
+    QMimeData *mimeData = new QMimeData;
+    mimeData->setData(TAO_CLIPBOARD_MIME_TYPE, binData);
+
+    // Transfer into clipboard
+    QClipboard *clipboard = QApplication::clipboard();
+    clipboard->setMimeData(mimeData);
+}
+
+
+void Widget::paste()
+// ----------------------------------------------------------------------------
+//   Paste the clipboard content at the current selection
+// ----------------------------------------------------------------------------
+{
+    // Does clipboard contain Tao stuff?)
+    if (!canPaste())
+        return;
+
+    // Read clipboard content
+    const QMimeData *mimeData = QApplication::clipboard()->mimeData();
+
+    // Extract serialized tree
+    QByteArray binData = mimeData->data(TAO_CLIPBOARD_MIME_TYPE);
+    std::string ser(binData.data(), binData.length());
+
+    // De-serialize
+    std::istringstream istr(ser);
+    XL::Deserializer deserializer(istr);
+    XL::Tree *tree = deserializer.ReadTree();
+    if (!deserializer.IsValid())
+        return;
+
+    IFTRACE(clipboard)
+    {
+        std::cerr << "Clipboard: pasting:\n";
+        XL::Renderer render(std::cerr);
+        render.SelectStyleSheet("debug.stylesheet");
+        render.Render(tree);
+    }
+
+    // Insert tree at current selection, or at end of current page
+    // TODO: paste with an offset to avoid exactly overlapping objects
+    insert(NULL, tree);
+
+    // Deselect previous selection
+    selection.clear();
+    selectionTrees.clear();
+
+    // Make sure the new objects appear selected next time they're drawn
+    XL::Infix *i;
+    XL::Tree  *t = tree;
+    selectNextTime.clear();
+    for (i = tree->AsInfix(); i ; t = i->right, i = i->right->AsInfix())
+        selectNextTime.insert(i->left);
+    selectNextTime.insert(t);
 }
 
 
@@ -911,6 +1049,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
+    keyboardModifiers = event->modifiers();
 
     // Forward it down the regular event chain
     if (forwardEvent(event))
@@ -929,6 +1068,7 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
+    keyboardModifiers = event->modifiers();
 
     // Forward it down the regular event chain
     if (forwardEvent(event))
@@ -947,6 +1087,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
+    keyboardModifiers = event->modifiers();
 
     QMenu * contextMenu = NULL;
     uint    button      = (uint) event->button();
@@ -999,6 +1140,7 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
+    keyboardModifiers = event->modifiers();
 
     uint button = (uint) event->button();
     int x = event->x();
@@ -1018,6 +1160,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
+    keyboardModifiers = event->modifiers();
     bool active = event->buttons() != Qt::NoButton;
     int x = event->x();
     int y = event->y();
@@ -1036,6 +1179,7 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
+    keyboardModifiers = event->modifiers();
 
     // Create a selection if left click and nothing going on right now
     uint    button      = (uint) event->button();
@@ -1057,6 +1201,7 @@ void Widget::wheelEvent(QWheelEvent *event)
 // ----------------------------------------------------------------------------
 {
     EventSave save(this->event, event);
+    keyboardModifiers = event->modifiers();
     forwardEvent(event);
 }
 
@@ -1662,7 +1807,7 @@ ulonglong Widget::elapsed(ulonglong since, ulonglong until,
         tcount++;
     }
 
-    if (show && (tcount & 0xff) == 0)
+    if (show && (tcount & 15) == 0)
     {
         char buffer[80];
         snprintf(buffer, sizeof(buffer),
@@ -1842,6 +1987,7 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
     else
         (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (symbols);
     selectionSpace.Draw(NULL);
+    glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -1862,6 +2008,7 @@ void Widget::drawHandle(const Point3 &p, text handleName)
     selectionSpace.id = ~0U;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
     selectionSpace.Draw(NULL);
+    glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -2052,6 +2199,11 @@ Tree *Widget::shape(Tree *self, Tree *child)
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(newId()));
     XL::LocalSave<Tree *>   saveShape (currentShape, self);
+    if (selectNextTime.count(self))
+    {
+        selection[id]++;
+        selectNextTime.erase(self);
+    }
     Tree *result = xl_evaluate(child);
     return result;
 }
@@ -2094,9 +2246,6 @@ Tree *Widget::rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz)
 {
     layout->Add(new Rotation(ra, rx, ry, rz));
     layout->hasMatrix = true;
-    double amod90 = fmod(ra, 90.0);
-    if (amod90 < -0.01 || amod90 > 0.01)
-        layout->hasPixelBlur = true;
     return XL::xl_true;
 }
 
@@ -2135,8 +2284,6 @@ Tree *Widget::translate(Tree *self, real_r tx, real_r ty, real_r tz)
 {
     layout->Add(new Translation(tx, ty, tz));
     layout->hasMatrix = true;
-    if (tz != 0.0)
-        layout->hasPixelBlur = true;
     return XL::xl_true;
 }
 
@@ -2175,8 +2322,6 @@ Tree *Widget::rescale(Tree *self, real_r sx, real_r sy, real_r sz)
 {
     layout->Add(new Scale(sx, sy, sz));
     layout->hasMatrix = true;
-    if (sx != 1.0 || sy != 1.0)
-        layout->hasPixelBlur = true;
     return XL::xl_true;
 }
 
@@ -2364,6 +2509,7 @@ Tree *Widget::image(Tree *self, real_r x, real_r y, real_r w, real_r h,
 
     return XL::xl_true;
 }
+
 
 
 // ============================================================================
@@ -4506,7 +4652,7 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
     // If we never hit the selection during the insert, append
     if (insert.toInsert)
     {
-        Tree *top = xlProgram->tree.tree;
+        Tree **top = &afterInsert;
         XL::Infix *parent  = NULL;
         if (pageTree)
         {
@@ -4517,10 +4663,10 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
             if (XL::Block *block = pageTree->AsBlock())
                 pageTree = block->child;
 
-            top = pageTree;
+            top = &pageTree;
         }
 
-        program = top;
+        program = *top;
         while (true)
         {
             XL::Infix *infix = program->AsInfix();
@@ -4530,16 +4676,13 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
                 break;
             parent = infix;
             program = infix->right;
-        }
+         }
 
-        Tree * &what = parent ? parent->right : top;
-        what = new XL::Infix("\n", what, toInsert);
-        reloadProgram();
+        Tree **what = parent ? &parent->right : top;
+        *what = new XL::Infix("\n", *what, toInsert);
     }
-    else
-    {
-        reloadProgram(afterInsert);
-    }
+
+    reloadProgram(afterInsert);
     markChanged("Inserted tree");
 
     return XL::xl_true;
@@ -4548,12 +4691,23 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
 
 XL::Name *Widget::deleteSelection(Tree *self, text key)
 // ----------------------------------------------------------------------------
-//    Delete the selection
+//    Delete the selection (with text support)
 // ----------------------------------------------------------------------------
 {
     if (textSelection())
         return textEditKey(self, key);
 
+    deleteSelection();
+
+    return XL::xl_true;
+}
+
+
+void Widget::deleteSelection()
+// ----------------------------------------------------------------------------
+//    Delete the selection (when selection is not text)
+// ----------------------------------------------------------------------------
+{
     DeleteSelectionAction del(this);
     XL::Tree *what = xlProgram->tree.tree;
     what = what->Do(del);
@@ -4561,8 +4715,6 @@ XL::Name *Widget::deleteSelection(Tree *self, text key)
     markChanged("Deleted selection");
     selection.clear();
     selectionTrees.clear();
-
-    return XL::xl_true;
 }
 
 

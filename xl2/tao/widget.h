@@ -31,6 +31,7 @@
 #include "drawing.h"
 #include "activity.h"
 #include "menuinfo.h"
+#include "glyph_cache.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -106,6 +107,13 @@ public slots:
     void        updateFontDialog();
     void        updateDialogs()                { mustUpdateDialogs = true; }
     void        fileChosen(const QString & filename);
+    void        copy();
+    void        cut();
+    void        paste();
+
+signals:
+    // Signals
+    void        copyAvailable(bool yes = true);
 
 public:
     // OpenGL
@@ -164,6 +172,8 @@ public:
     uint        charSelected()          { return charSelected(charId); }
     void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
     uint        selected(Tree *tree)    { return selectionTrees.count(tree); }
+    bool        selected()              { return !selectionTrees.empty(); }
+    bool        hasSelection()          { return selected(); }
     void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
     uint        selected(uint i);
     uint        selected(Layout *);
@@ -171,6 +181,7 @@ public:
     void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);
     void        recordProjection();
+    uint        lastModifiers()         { return keyboardModifiers; }
     Point3      unproject (coord x, coord y, coord z = 0.0);
     Drag *      drag();
     TextSelect *textSelection();
@@ -178,9 +189,12 @@ public:
     void        drawHandle(const Point3 &point, text name);
     template<class Activity>
     Activity *  active();
+    void        checkCopyAvailable();
+    bool        canPaste();
 
-    // Text flows
+    // Text flows and text managemen
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
+    GlyphCache &glyphs()    { return glyphCache; }
 
 public:
     // XLR entry points
@@ -418,6 +432,7 @@ public:
 
     // Tree management
     Name *      insert(Tree *self, Tree *toInsert);
+    void        deleteSelection();
     Name *      deleteSelection(Tree *self, text key);
     Name *      setAttribute(Tree *self, text name, Tree *attribute, text sh);
 
@@ -461,16 +476,19 @@ private:
     Tree *                currentShape;
     QGridLayout *         currentGridLayout;
     GroupInfo   *         currentGroup;
+    GlyphCache            glyphCache;
 
     // Selection
     Activity *            activities;
     GLuint                id, charId, capacity, manipulator;
     selection_map         selection, savedSelection;
-    std::set<Tree *>      selectionTrees;
+    std::set<Tree *>      selectionTrees, selectNextTime;
+    bool                  wasSelected;
     QEvent *              event;
     QWidget *             focusWidget;
     GLdouble              focusProjection[16], focusModel[16];
     GLint                 focusViewport[4];
+    uint                  keyboardModifiers;
 
     // Menus and widgets
     QMenu                *currentMenu;
@@ -584,11 +602,21 @@ struct DeleteSelectionAction : XL::TreeClone
         if (what->name == "\n" || what->name == ";")
         {
             if (widget->selected(what->left))
+            {
+                if (widget->selected(what->right))
+                    return NULL;
                 return what->right->Do(this);
+            }
             if (widget->selected(what->right))
                 return what->left->Do(this);
         }
-        return XL::TreeClone::DoInfix(what);
+        XL::Tree *left = what->left->Do(this);
+        XL::Tree *right = what->right->Do(this);
+        if (left && right)
+            return new XL::Infix(what->name, left, right, what->Position());
+        else if (left)
+            return left;
+        return right;
     }
     Widget *widget;
 };

@@ -189,7 +189,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         Widget *widget = this->widget; // Save before 'delete this'
         Idle();
         delete this;
-        if (selected)
+        if (selected && count == 1)
             return new Drag(widget);
     }
 

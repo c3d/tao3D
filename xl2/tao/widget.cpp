@@ -2504,6 +2504,7 @@ Tree *Widget::image(Tree *self, real_r x, real_r y, real_r w, real_r h,
 }
 
 
+
 // ============================================================================
 //
 //    Path management

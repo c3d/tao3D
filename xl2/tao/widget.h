@@ -574,11 +574,21 @@ struct DeleteSelectionAction : XL::TreeClone
         if (what->name == "\n" || what->name == ";")
         {
             if (widget->selected(what->left))
+            {
+                if (widget->selected(what->right))
+                    return NULL;
                 return what->right->Do(this);
+            }
             if (widget->selected(what->right))
                 return what->left->Do(this);
         }
-        return XL::TreeClone::DoInfix(what);
+        XL::Tree *left = what->left->Do(this);
+        XL::Tree *right = what->right->Do(this);
+        if (left && right)
+            return new XL::Infix(what->name, left, right, what->Position());
+        else if (left)
+            return left;
+        return right;
     }
     Widget *widget;
 };

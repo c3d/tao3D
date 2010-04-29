@@ -30,8 +30,11 @@ SvgRendererInfo::SvgRendererInfo(Widget *w, uint width, uint height)
 // ----------------------------------------------------------------------------
 //   Create a renderer with the right size
 // ----------------------------------------------------------------------------
-    : FrameInfo(width, height), widget(w)
-{}
+    : FrameInfo(width, height), widget(w), defaultImageRenderer(NULL)
+{
+    defaultImageRenderer = new QSvgRenderer(QString(":/images/defaultImage.svg"),
+                                            widget);
+}
 
 
 SvgRendererInfo::~SvgRendererInfo()
@@ -43,6 +46,12 @@ SvgRendererInfo::~SvgRendererInfo()
     glDisable(GL_TEXTURE_2D);
     for (i = renderers.begin(); i != renderers.end(); i++)
         delete (*i).second;
+
+    if (defaultImageRenderer)
+    {
+        delete defaultImageRenderer;
+        defaultImageRenderer = NULL;
+    }
 }
 
 
@@ -62,12 +71,16 @@ GLuint SvgRendererInfo::bind (text file)
         }
 
         QString svgFile(+file);
-        QFileInfo svgInfo(svgFile);
-        if (svgInfo.exists())
+        r = new QSvgRenderer(svgFile, widget);
+        if (r->isValid())
         {
-            r = new QSvgRenderer(svgFile, widget);
             r->connect(r, SIGNAL(repaintNeeded()), widget, SLOT(updateGL()));
             renderers[file] = r;
+        }
+        else
+        {
+            delete r;
+            r = defaultImageRenderer;
         }
     }
 

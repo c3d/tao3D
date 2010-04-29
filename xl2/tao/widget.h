@@ -221,7 +221,7 @@ public:
     Tree *      rescaley(Tree *self, real_r y);
     Tree *      rescalez(Tree *self, real_r z);
     Tree *      rescale(Tree *self, real_r x, real_r y, real_r z);
-    
+
     // Setting attributes
     Name *      depthTest(Tree *self, bool enable);
     Tree *      refresh(Tree *self, double delay);
@@ -237,7 +237,7 @@ public:
     Tree *      fillColor(Tree *self, double r, double g, double b, double a);
     Tree *      fillTexture(Tree *self, text fileName);
     Tree *      fillTextureFromSVG(Tree *self, text svg);
-    
+
     // Generating a path
     Tree *      newPath(Tree *self, Tree *t);
     Tree *      moveTo(Tree *self, real_r x, real_r y, real_r z);
@@ -254,7 +254,7 @@ public:
     Tree *      pathTextureCoord(Tree *self, real_r x, real_r y, real_r r);
     Tree *      pathColor(Tree *self, real_r r, real_r g, real_r b, real_r a);
     Tree *      closePath(Tree *self);
-    
+
     // 2D primitive that can be in a path or standalone
     Tree *      rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
     Tree *      isoscelesTriangle(Tree *self,
@@ -387,6 +387,9 @@ public:
                             real_r x, real_r y, real_r w, real_r h, Text *url);
 
     Tree *      videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url);
+
+    Tree *      image(Tree *self, real_r x, real_r y, real_r w, real_r h,
+                      text filename);
 
     // Menus and widgets
     Tree *      runtimeError(Tree *self, text msg, Tree *src);

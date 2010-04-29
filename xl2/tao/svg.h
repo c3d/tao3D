@@ -3,18 +3,18 @@
 // ****************************************************************************
 //  svg.h                                                           Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     Rendering of an SVG file in an off-screen buffer
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -42,6 +42,7 @@ struct SvgRendererInfo : FrameInfo
 
     Widget *            widget;
     renderer_map        renderers;
+    QSvgRenderer *      defaultImageRenderer;
 };
 
 TAO_END

@@ -126,6 +126,9 @@ PREFIX(FillTexture, tree, "texture", PARM(n, text),
        RTAO(fillTexture(self, n)))
 PREFIX(FillTextureSVG, tree,"svg", PARM(img, text),
        RTAO(fillTextureFromSVG(self, img)))
+PREFIX(Image, tree,"image",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real) PARM(img, text),
+       RTAO(image(self, x, y, w, h, img)))
 
 
 

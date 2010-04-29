@@ -696,7 +696,11 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
     // - false if user cancelled.
 
     if (!RepositoryFactory::available())
+    {
+        TaoApp->currentProjectFolder = path;
+        TaoApp->updateSearchPathes();
         return true;
+    }
 
     bool created = false;
     repository_ptr repo = RepositoryFactory::repository(path);
@@ -843,6 +847,9 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
             }
         }
     }
+
+    TaoApp->currentProjectFolder = path;
+    TaoApp->updateSearchPathes();
 
     return true;
 }

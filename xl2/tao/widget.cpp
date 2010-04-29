@@ -2327,6 +2327,40 @@ Tree *Widget::fillTextureFromSVG(Tree *self, text img)
 }
 
 
+Tree *Widget::image(Tree *self, real_r x, real_r y, real_r w, real_r h,
+                    text filename)
+//----------------------------------------------------------------------------
+//  Make an image
+//----------------------------------------------------------------------------
+//  If w or h is 0 then the image width or height is used and assigned to it.
+{
+    GLuint texId = 0;
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+
+    ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
+    if (!rinfo)
+    {
+        rinfo = new ImageTextureInfo(this);
+        self->SetInfo<ImageTextureInfo>(rinfo);
+    }
+    texId = rinfo->bind(filename);
+    if (w.value <= 0)
+        w.value = rinfo->width;
+    if (h.value <= 0)
+        h.value = rinfo->height;
+
+    layout->Add(new FillTexture(texId));
+    layout->hasAttributes = true;
+
+    Rectangle shape(Box(x-w/2, y-h/2, w, h));
+    layout->Add(new Rectangle(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
+
+    return XL::xl_true;
+}
+
 
 // ============================================================================
 //
@@ -2633,7 +2667,7 @@ Tree *Widget::arrow(Tree *self,
 
     if (currentShape)
         layout->Add(new ControlArrow(currentShape, cx, cy, w, h, ax, ary));
-                                     
+
     return XL::xl_true;
 }
 
@@ -2713,7 +2747,7 @@ Tree *Widget::speechBalloon(Tree *self,
 
     if (currentShape)
         layout->Add(new ControlBalloon(currentShape, cx, cy, w, h, r, ax, ay));
-                                       
+
     return XL::xl_true;
 }
 
@@ -3509,7 +3543,7 @@ Tree *Widget::fontChooser(Tree *self, Tree *action)
     fontDialog = new QFontDialog(this);
     connect(fontDialog, SIGNAL(fontSelected (const QFont&)),
             this, SLOT(fontChosen(const QFont &)));
-    
+
     fontDialog->setModal(false);
     fontDialog->show();
     fontAction.tree = action;

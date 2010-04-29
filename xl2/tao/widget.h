@@ -106,6 +106,13 @@ public slots:
     void        fontChosen(const QFont &);
     void        updateFontDialog();
     void        updateDialogs()                { mustUpdateDialogs = true; }
+    void        copy();
+    void        cut();
+    void        paste();
+
+signals:
+    // Signals
+    void        copyAvailable(bool yes = true);
 
 public:
     // OpenGL
@@ -164,6 +171,8 @@ public:
     uint        charSelected()          { return charSelected(charId); }
     void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
     uint        selected(Tree *tree)    { return selectionTrees.count(tree); }
+    bool        selected()              { return !selectionTrees.empty(); }
+    bool        hasSelection()          { return selected(); }
     void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
     uint        selected(uint i);
     uint        selected(Layout *);
@@ -179,6 +188,8 @@ public:
     void        drawHandle(const Point3 &point, text name);
     template<class Activity>
     Activity *  active();
+    void        checkCopyAvailable();
+    bool        canPaste();
 
     // Text flows and text managemen
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
@@ -408,6 +419,7 @@ public:
 
     // Tree management
     Name *      insert(Tree *self, Tree *toInsert);
+    void        deleteSelection();
     Name *      deleteSelection(Tree *self, text key);
     Name *      setAttribute(Tree *self, text name, Tree *attribute, text sh);
 
@@ -457,7 +469,8 @@ private:
     Activity *            activities;
     GLuint                id, charId, capacity, manipulator;
     selection_map         selection, savedSelection;
-    std::set<Tree *>      selectionTrees;
+    std::set<Tree *>      selectionTrees, selectNextTime;
+    bool                  wasSelected;
     QEvent *              event;
     QWidget *             focusWidget;
     GLdouble              focusProjection[16], focusModel[16];
@@ -569,11 +582,21 @@ struct DeleteSelectionAction : XL::TreeClone
         if (what->name == "\n" || what->name == ";")
         {
             if (widget->selected(what->left))
+            {
+                if (widget->selected(what->right))
+                    return NULL;
                 return what->right->Do(this);
+            }
             if (widget->selected(what->right))
                 return what->left->Do(this);
         }
-        return XL::TreeClone::DoInfix(what);
+        XL::Tree *left = what->left->Do(this);
+        XL::Tree *right = what->right->Do(this);
+        if (left && right)
+            return new XL::Infix(what->name, left, right, what->Position());
+        else if (left)
+            return left;
+        return right;
     }
     Widget *widget;
 };

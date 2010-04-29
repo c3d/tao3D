@@ -49,6 +49,9 @@ class Window : public QMainWindow
 {
     Q_OBJECT
 
+    // Number of items to show in the "File/Open Recent" list
+    enum { MaxRecentFiles = 5 };
+
 public:
     Window(XL::Main *xlr, XL::SourceFile *sf = NULL);
 
@@ -71,9 +74,17 @@ protected:
 
 private slots:
     void newFile();
-    void open();
+    void open(QString fileName = "");
     bool save();
     bool saveAs();
+    void openRecentFile();
+    void clearRecentFileList();
+    void cut();
+    void copy();
+    void paste();
+    void onFocusWidgetChanged(QWidget *old, QWidget *now);
+    void checkClipboard();
+
     void setPullUrl();
     void publish();
     void clone();
@@ -103,6 +114,7 @@ private:
     bool populateUndoStack();
     void warnNoRepo();
     void enableProjectSharingMenus();
+    void updateRecentFileActions();
 
 private:
     XL::Main *        xlRuntime;
@@ -115,6 +127,7 @@ private:
 
     QTimer            fileCheckTimer;
     QMenu            *fileMenu;
+    QMenu            *openRecentMenu;
     QMenu            *editMenu;
     QMenu            *shareMenu;
     QMenu            *viewMenu;
@@ -139,6 +152,8 @@ private:
     QUndoView        *undoView;
     QAction          *undoAction;
     QAction          *redoAction;
+    QAction          *recentFileActs[MaxRecentFiles];
+    QAction          *clearRecentAct;
 };
 
 // Prefixes for the created menus and sub menus

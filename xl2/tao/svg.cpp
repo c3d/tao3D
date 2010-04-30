@@ -30,10 +30,8 @@ SvgRendererInfo::SvgRendererInfo(Widget *w, uint width, uint height)
 // ----------------------------------------------------------------------------
 //   Create a renderer with the right size
 // ----------------------------------------------------------------------------
-    : FrameInfo(width, height), widget(w), defaultImageRenderer(NULL)
+    : FrameInfo(width, height), widget(w)
 {
-    defaultImageRenderer = new QSvgRenderer(QString(":/images/defaultImage.svg"),
-                                            widget);
 }
 
 
@@ -47,11 +45,13 @@ SvgRendererInfo::~SvgRendererInfo()
     for (i = renderers.begin(); i != renderers.end(); i++)
         delete (*i).second;
 
-    if (defaultImageRenderer)
-    {
-        delete defaultImageRenderer;
-        defaultImageRenderer = NULL;
-    }
+}
+
+QSvgRenderer * SvgRendererInfo::defaultImageRenderer()
+{
+    static  QSvgRenderer * defSvg =
+            new QSvgRenderer(QString(":/images/defaultImage.svg"));
+    return defSvg;
 }
 
 
@@ -80,7 +80,7 @@ GLuint SvgRendererInfo::bind (text file)
         else
         {
             delete r;
-            r = defaultImageRenderer;
+            r = defaultImageRenderer();
         }
     }
 

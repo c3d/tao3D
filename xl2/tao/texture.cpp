@@ -31,24 +31,8 @@ ImageTextureInfo::ImageTextureInfo(Widget *w)
 // ----------------------------------------------------------------------------
 //   Prepare to record texture IDs for the various images
 // ----------------------------------------------------------------------------
-    : textures(), widget(w), defaultTextureId(0), width(0.0), height(0.0)
+    : textures(), widget(w), width(0.0), height(0.0)
 {
-    QString file(":/images/defaultImage.svg");
-    QImage defOrig(file);
-    if (defOrig.isNull())
-        return;
-
-    QImage texture = QGLWidget::convertToGLFormat(defOrig);
-
-    // Generate the GL texture
-    glGenTextures(1, &defaultTextureId);
-    glBindTexture(GL_TEXTURE_2D, defaultTextureId);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                 texture.width(), texture.height(), 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, texture.bits());
-
-    // Remember the texture for next time
-    textures[+file] = defaultTextureId;
 }
 
 
@@ -63,6 +47,30 @@ ImageTextureInfo::~ImageTextureInfo()
         glDeleteTextures(1, &(*i).second);
 }
 
+GLuint computeDefTextId()
+{
+    GLuint txtId;
+    QString file(":/images/defaultImage.svg");
+    QImage defOrig(file);
+    if (defOrig.isNull())
+        return 0;
+
+    QImage texture = QGLWidget::convertToGLFormat(defOrig);
+
+    // Generate the GL texture
+    glGenTextures(1, &txtId);
+    glBindTexture(GL_TEXTURE_2D, txtId);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                 texture.width(), texture.height(), 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, texture.bits());
+    return txtId;
+}
+
+GLuint ImageTextureInfo::defaultTextureId()
+{
+    static GLuint defTextureId = computeDefTextId();
+    return defTextureId;
+}
 
 GLuint ImageTextureInfo::bind(text file)
 // ----------------------------------------------------------------------------
@@ -96,7 +104,7 @@ GLuint ImageTextureInfo::bind(text file)
         }
         else
         {
-            textureId = defaultTextureId;
+            textureId = defaultTextureId();
         }
     }
 

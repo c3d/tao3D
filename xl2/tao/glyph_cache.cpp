@@ -129,7 +129,7 @@ void PerFontGlyphCache::Insert(text word, const GlyphEntry &entry)
 int GlyphCache::maxFontSize = 64;
 uint GlyphCache::defaultSize = 128;
 uint GlyphCache::antiAliasMargin = 2;
-scale GlyphCache::fontScaling = 2.0;
+scale GlyphCache::fontScaling = 4.0;
 PerFontGlyphCache *GlyphCache::lastFont = NULL;
 
 GlyphCache::GlyphCache()
@@ -237,16 +237,6 @@ bool GlyphCache::Find(const QFont &font,
     QPainter painter(&image);
     painter.setFont(scaled);
     painter.setBrush(Qt::transparent);
-    if (0)
-    {
-        static Qt::GlobalColor debugColors[4] =
-            { Qt::darkGreen, Qt::darkCyan, Qt::darkRed, Qt::darkYellow };
-        painter.fillRect(rect.x1, rect.y1, rect.x2 - rect.x1, rect.y2 - rect.y1,
-                         debugColors[code & 3]);
-        painter.fillRect(rect.x1+aam, rect.y1+aam,
-                         rect.x2-rect.x1-2*aam, rect.y2-rect.y1-2*aam,
-                         debugColors[(code+1) & 3]);
-    }
     painter.setPen(Qt::white);
     painter.drawText(QPointF(x, y), QString(qc));
     painter.end();
@@ -287,8 +277,8 @@ bool GlyphCache::Find(const QFont &font,
     QFontMetricsF fm(scaled);
     QString qs(+word);
     QRectF bounds = fm.boundingRect(qs);
-    uint width = bounds.width();
-    uint height = bounds.height();
+    uint width = ceil(bounds.width());
+    uint height = ceil(bounds.height());
 
     // Allocate a rectangle where we will put the texture (may resize us)
     BinPacker::Rect rect;
@@ -298,17 +288,16 @@ bool GlyphCache::Find(const QFont &font,
     // Record glyph information in the entry
     entry.bounds = Box(bounds.x()/fontScaling, bounds.y()/fontScaling,
                        bounds.width()/fontScaling, bounds.height()/fontScaling);
-    entry.texture = Box(Point(rect.x1+aam, rect.y1+aam),
-                        Point(rect.x2-aam, rect.y2-aam));
+    entry.texture = Box(Point(rect.x1+aam, rect.y2-aam - bounds.height()),
+                        Point(rect.x1+aam + bounds.width(), rect.y2-aam));
     entry.advance = fm.width(qs) / fontScaling;
 
     // Store the new entry
     perFont->Insert(word, entry);
 
     // Draw the texture portion for the desired word
-    scale leftBearing = qs.length() ? fm.leftBearing(qs[0]) : 0;
-    qreal x = rect.x1 - bounds.x() + aam - leftBearing;
-    qreal y = rect.y1 - bounds.y() + aam;
+    qreal x = rect.x1 + aam - bounds.x(); // + (lb < 0 ? lb : 0);
+    qreal y = rect.y2 - aam - bounds.bottom();
     QPainter painter(&image);
     painter.setFont(scaled);
     painter.setBrush(Qt::transparent);

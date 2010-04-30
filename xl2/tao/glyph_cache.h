@@ -27,25 +27,89 @@
 
 #include "tao.h"
 #include "layout.h"
+#include "coords.h"
+#include "binpack.h"
+
 #include <QFont>
+#include <QImage>
 #include <map>
 
 TAO_BEGIN
 
+struct GlyphCache;
+
+struct PerFontGlyphCache
+// ----------------------------------------------------------------------------
+//    Cache storing glyph information for a specific font
+// ----------------------------------------------------------------------------
+{
+    PerFontGlyphCache(const QFont &font);
+    ~PerFontGlyphCache();
+
+public:
+    struct GlyphEntry
+    {
+        Box             bounds;
+        Box             texture;
+        coord           advance;
+    };
+
+public:
+    bool Find(uint code, GlyphEntry &entry);
+    bool Find(text word, GlyphEntry &entry);
+    void Insert(uint code, const GlyphEntry &entry);
+    void Insert(text word, const GlyphEntry &entry);
+
+protected:
+    typedef std::map<uint, GlyphEntry>  CodeMap;
+    typedef std::map<text, GlyphEntry>  TextMap;
+
+protected:
+    friend class GlyphCache;
+    QFont       font;
+    CodeMap     codes;
+    TextMap     texts;
+    qreal       ascent, descent, leading;
+    qreal       baseSize;
+};
+
+
 struct GlyphCache
 // ----------------------------------------------------------------------------
-//    Cache turning glyhs into textures
+//   Cache storing glyph information irrespective of font
 // ----------------------------------------------------------------------------
 {
     GlyphCache();
     ~GlyphCache();
 
+public:
+    typedef     PerFontGlyphCache::GlyphEntry   GlyphEntry;
+    typedef     PerFontGlyphCache               PerFont;
+    typedef     BinPacker::Rect                 Rect;
+
+    uint        Width()        { return packer.Width(); }
+    uint        Height()       { return packer.Height(); }
+    uint        Texture() { return texture; }
+
+    PerFont *   FindFont(const QFont &font, bool create = false);
+
+    bool        Find(const QFont &font, uint code, GlyphEntry&, bool crt=false);
+    bool        Find(const QFont &font, text word, GlyphEntry&, bool ctt=false);
+    void        Allocate(uint width, uint height, Rect &rect);
+
+    void        GenerateTexture();
+    qreal       Ascent(const QFont &font);
+    qreal       Descent(const QFont &font);
+    qreal       Leading(const QFont &font);
+    void        ScaleDown(GlyphEntry &entry, scale fontScale);
+
 protected:
+    // We have a special key that distinguish fonts visually
+    // Two fonts with slightly differing size are considered equivalent
     struct Key
     {
-        Key(const QFont &font, uint code): font(font), code(code) {}
+        Key(const QFont &font): font(font) {}
         QFont font;
-        uint code;
 
         uint fontSizeOrder(const QFont &font) const
         {
@@ -86,31 +150,25 @@ protected:
 
         bool operator==(const Key &o) const
         {
-            return code == o.code && compare(font, o.font) == 0;
+            return compare(font, o.font) == 0;
         }
         bool operator<(const Key &o) const
         {
-            return code <  o.code ||
-                  (code == o.code && compare(font, o.font) < 0);
+            return compare(font, o.font) < 0;
         }
     };
-    std::map<Key, uint> cache;
+
+protected:
+    typedef std::map<Key, PerFont *> FontMap;
+    FontMap   cache;
+    BinPacker packer;
+    uint      texture;
+    QImage    image;
 
 public:
-    uint texture(const QFont &font, uint code)
-    {
-        Key k(font, code);
-        return cache.count(k) ? cache[k] : 0;
-    }
-
-    void enter(const QFont &font, uint code, uint texId)
-    {
-        Key k(font, code);
-        cache[k] = texId;
-    }
-
-public:
-    static int          maxFontSize;
+    static int       maxFontSize;
+    static uint      defaultSize;
+    static PerFont * lastFont;
 };
 
 TAO_END

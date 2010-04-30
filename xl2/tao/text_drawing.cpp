@@ -50,7 +50,10 @@ void TextSpan::Draw(Layout *where)
 {
     Widget *widget = where->Display();
     bool hasLine = setLineColor(where);
-    if (!hasLine && ~widget->lastModifiers() & Qt::ShiftModifier)
+    bool hasTexture = setTexture(where);
+    bool tooBig = where->font.pointSize() > GlyphCache::maxFontSize;
+    bool debugForceDirect = widget->lastModifiers() & Qt::ShiftModifier;
+    if (!hasLine && !hasTexture && !tooBig && !debugForceDirect)
         DrawCached(where);
     else
         DrawDirect(where);
@@ -63,136 +66,90 @@ void TextSpan::DrawCached(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // If we have a texture, we need to draw "slowly" (polygons)
-    bool hasTexture = setTexture(where);
-    bool hasFillColor = setFillColor(where);
-    if (hasTexture)
-        DrawDirect(where);
-
-    Widget *widget = where->Display();
-    GlyphCache &glyphs = widget->glyphs();
-    Point3 pos = where->offset;
-    text str = source.Value();
-    QFont &font = where->font;
-    QFontMetricsF fm(font);
-    scale h = fm.height();
-    coord x = pos.x;
-    coord y = pos.y;
-    coord z = pos.z;
-    scale ascent = fm.ascent();
-    scale descent = fm.descent();
-    scale spacing = h + fm.leading();
-    uint  lastCode = 0;
-    scale lastW = 0;
+    bool                    hasFillColor = setFillColor(where);
+    Widget                 *widget       = where->Display();
+    GlyphCache             &glyphs       = widget->glyphs();
+    Point3                  pos          = where->offset;
+    text                    str          = source.Value();
+    QFont                  &font         = where->font;
+    coord                   x            = pos.x;
+    coord                   y            = pos.y;
+    coord                   z            = pos.z;
+    GlyphCache::GlyphEntry  glyph;
+    std::vector<Point3>     quads;
+    std::vector<Point>      texCoords;
 
     // Loop over all characters in the text span
     uint i, max = str.length();
     for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
     {
         uint  unicode  = XL::Utf8Code(str, i);
-        QChar qc       = QChar(unicode);
-        bool  newLine  = qc == '\n';
-        float w        = newLine ? 3 : fm.width(qc);
-        QRectF charSize = fm.boundingRect(qc);
+        bool  newLine  = unicode == '\n';
         bool  mustDraw = !newLine && hasFillColor;
 
-        // Check texture in the texture cache
+        // Find the glyph in the glyph cache
+        if (!glyphs.Find(font, unicode, glyph, false))
+        {
+            // Try to create the glyph
+            if (!glyphs.Find(font, unicode, glyph, true))
+                continue;
+        }
+
         if (mustDraw)
         {
-            if (font.pointSize() < GlyphCache::maxFontSize)
-            {
-                // Lookup texture in glyph cache
-                uint texture = glyphs.texture(font, unicode);
-                if (!texture)
-                {
-                    // Draw the glyph in a QImage
-                    uint ww = w + 0.9;
-                    uint hh = h + 0.9;
-                    QImage image(QSize(ww, hh), QImage::Format_ARGB32);
-                    image.fill(0);
+            // Enter the geometry coordinates
+            coord charX1 = x + glyph.bounds.lower.x;
+            coord charX2 = x + glyph.bounds.upper.x;
+            coord charY1 = y + glyph.bounds.lower.y;
+            coord charY2 = y + glyph.bounds.upper.y;
+            quads.push_back(Point3(charX1, charY1, z));
+            quads.push_back(Point3(charX2, charY1, z));
+            quads.push_back(Point3(charX2, charY2, z));
+            quads.push_back(Point3(charX1, charY2, z));
 
-                    QPainter painter(&image);
-                    painter.setFont(font);
-                    painter.setBrush(Qt::transparent);
-                    painter.setPen(Qt::white);
-                    painter.drawText(0, ascent+1, QString(qc));
-                    painter.end();
+            // Enter the texture coordinates
+            Point &texL = glyph.texture.lower;
+            Point &texU = glyph.texture.upper;
+            texCoords.push_back(Point(texL.x, texL.y));
+            texCoords.push_back(Point(texU.x, texL.y));
+            texCoords.push_back(Point(texU.x, texU.y));
+            texCoords.push_back(Point(texL.x, texU.y));
+        }
 
-                    // Convert to a texture
-                    QImage texImg = QGLWidget::convertToGLFormat(image);
-                    glGenTextures(1, &texture);
-                    glBindTexture(GL_TEXTURE_2D, texture);
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                                 texImg.width(), texImg.height(), 0, GL_RGBA,
-                                 GL_UNSIGNED_BYTE, texImg.bits());
-
-                    // Save the texture in the glyph cache
-                    glyphs.enter(font, unicode, texture);
-                }
-
-                // Draw the rectangle with a texture in it
-                coord charX = x + fm.leftBearing(qc) - charSize.left();
-                coord lineY = y - descent;
-
-                coord array[4][3] =
-                {
-                    { charX,      lineY,      z },
-                    { charX + w,  lineY,      z },
-                    { charX + w,  lineY + h,  z },
-                    { charX,      lineY + h,  z }
-                };
-                static GLint txCoords[4][2] =
-                {
-                    { 0, 0 }, { 1, 0 }, { 1, 1 }, { 0, 1 }
-                };
-
-                // Bind the glyph texture
-                glBindTexture(GL_TEXTURE_2D, texture);
-                GLenum blur = where->hasPixelBlur ? GL_LINEAR : GL_NEAREST;
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, blur);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, blur);
-                glEnable(GL_TEXTURE_2D);
-                glEnable(GL_MULTISAMPLE);
-
-                // Draw a rectangle with the texture
-                glVertexPointer(3, GL_DOUBLE, 0, array);
-                glTexCoordPointer(2, GL_INT, 0, txCoords);
-                glEnableClientState(GL_VERTEX_ARRAY);
-                glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                glDrawArrays(GL_QUADS, 0, 4);
-                glDisableClientState(GL_VERTEX_ARRAY);
-                glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-            }
-            else
-            {
-                // Too big, draw directly
-                QPainterPath path;
-                path.addText(x, -y, font, QString(qc));
-                GraphicPath::Draw(where, path, GLU_TESS_WINDING_ODD, -1);
-            }
-        } // mustDraw
-
-        if (qc == '\n')
+        // Advance to next character
+        if (newLine)
         {
+            scale height = glyphs.Ascent(font) + glyphs.Descent(font) + 1;
+            scale spacing = height + glyphs.Leading(font);
             x = 0;
-            lastW = 0;
-            lastCode = 0;
             y -= spacing;
         }
         else
         {
-            if (lastCode)
-            {
-                QString twoChars = QString(QChar(lastCode)) + QChar(unicode);
-                scale twoWidth = fm.width(twoChars);
-                x += twoWidth - lastW;
-            }
-            else
-            {
-                x += w;
-            }
-            lastCode = unicode;
-            lastW = w;
+            x += glyph.advance;
         }
+    }
+
+    // Check if there's anything to draw
+    uint count = quads.size();
+    if (count)
+    {
+        // Bind the glyph texture
+        glBindTexture(GL_TEXTURE_2D, glyphs.Texture());
+        GLenum blur = where->hasPixelBlur ? GL_LINEAR : GL_NEAREST;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, blur);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, blur);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_MULTISAMPLE);
+
+        // Draw a list of rectangles with the textures
+        glVertexPointer(3, GL_DOUBLE, 0, &quads[0].x);
+        glTexCoordPointer(2, GL_DOUBLE, 0, &texCoords[0].x);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        glDrawArrays(GL_QUADS, 0, count);
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     }
 
     where->offset = Point3(x, y, z);

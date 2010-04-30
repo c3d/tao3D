@@ -201,6 +201,9 @@ void Layout::Identify(Layout *where)
         Drawing *child = *i;
         child->Identify(this);
     }
+
+    if (id != ~0)
+        glLoadName(0);
 }
 
 
@@ -276,6 +279,9 @@ void Layout::Inherit(Layout *where)
 {
     if (id != ~0U)
         glLoadName(id);
+    else
+        glLoadName(0);
+
     if (!where)
         return;
 

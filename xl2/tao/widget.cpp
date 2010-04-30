@@ -54,6 +54,7 @@
 #include "transforms.h"
 #include "undo.h"
 #include "serializer.h"
+#include "binpack.h"
 
 #include <QToolButton>
 #include <QtGui/QImage>
@@ -2914,6 +2915,53 @@ Tree *Widget::callout(Tree *self,
                                        r, ax, ay, d));
 
     return XL::xl_true;
+}
+
+
+XL::Tree *Widget::debugBinPacker(Tree *self, uint w, uint h, Tree *t)
+// ----------------------------------------------------------------------------
+//   Debug the bin packer
+// ----------------------------------------------------------------------------
+{
+    BinPacker binpack(w, h);
+    GraphicPath *path = new GraphicPath;
+
+    struct BinPackerTest : XL::Action
+    {
+        BinPackerTest(GraphicPath *path, BinPacker &bp)
+            : path(path), bp(bp), w(0) {}
+
+        virtual Tree *Do (Tree *what) { return what; }
+        XL::Integer *DoInteger (XL::Integer *what)
+        {
+            if (!w)
+            {
+                w = what->value;
+            }
+            else
+            {
+                BinPacker::Rect rect;
+                if (bp.Allocate(w, what->value, rect))
+                {
+                    path->moveTo(Point3(rect.x1, rect.y1, 0));
+                    path->lineTo(Point3(rect.x1, rect.y2, 0));
+                    path->lineTo(Point3(rect.x2, rect.y2, 0));
+                    path->lineTo(Point3(rect.x2, rect.y1, 0));
+                    path->close();
+                }
+                w = 0;
+            }
+            return what;
+        }
+        GraphicPath *path;
+        BinPacker   &bp;
+        uint         w;
+    } binPackerTest(path, binpack);
+
+    t->Do(binPackerTest);
+    layout->Add(path);
+
+    return XL::xl_false;
 }
 
 

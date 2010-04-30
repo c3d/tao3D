@@ -220,6 +220,10 @@ PREFIX(Callout, tree, "callout",
        PARM(r, real) PARM(ax, real) PARM(ay, real) PARM(d, real),
        RTAO(callout(self, x, y, w, h, r, ax, ay, d)))
 
+PREFIX(DebugBinPacker, tree, "binpacker",
+       PARM(w, integer) PARM(h, integer) PARM(t, tree),
+       RTAO(debugBinPacker(self, w, h, &t)))
+
 
 
 // ============================================================================

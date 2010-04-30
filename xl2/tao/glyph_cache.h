@@ -37,7 +37,7 @@ struct GlyphCache
 //    Cache turning glyhs into textures
 // ----------------------------------------------------------------------------
 {
-    GlyphCache() : cache() {}
+    GlyphCache();
     ~GlyphCache();
 
 protected:

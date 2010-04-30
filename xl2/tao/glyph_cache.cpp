@@ -12,7 +12,6 @@
 //
 //
 //
-//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -31,13 +30,20 @@ TAO_BEGIN
 int GlyphCache::maxFontSize = 64;
 
 
+GlyphCache::GlyphCache()
+// ----------------------------------------------------------------------------
+//   Default constructor creates an empty glyph cache
+// ----------------------------------------------------------------------------
+    : cache() {}
+
+
 GlyphCache::~GlyphCache()
 // ----------------------------------------------------------------------------
 //   Release all the textures
 // ----------------------------------------------------------------------------
 {
     for (std::map<Key, uint>::iterator i = cache.begin(); i != cache.end(); i++)
-        glDeleteTextures(1, &(*i).second);    
+        glDeleteTextures(1, &(*i).second);
 }
 
 TAO_END

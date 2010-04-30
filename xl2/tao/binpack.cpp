@@ -200,9 +200,10 @@ void BinPacker::Resize(uint w, uint h)
         if (top)
         {
             uint area = top->area;
-            top = new Node(width, true, (w - width) * h, NULL,
-                           new Node(height, false, (h - height) * width + area,
-                                    top, NULL));
+            uint areaH = (h - height) * width + area;
+            uint areaW = (w - width) * h + areaH;
+            top = new Node(width, true, areaW,
+                           new Node(height, false, areaH, top));
         }
         width = w;
         height = h;                                    

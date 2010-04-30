@@ -2932,6 +2932,24 @@ XL::Tree *Widget::debugBinPacker(Tree *self, uint w, uint h, Tree *t)
             : path(path), bp(bp), w(0) {}
 
         virtual Tree *Do (Tree *what) { return what; }
+        void Allocate(uint w, uint h)
+        {
+            BinPacker::Rect rect;
+            while (!bp.Allocate(w, h, rect))
+            {
+                uint ww = bp.Width();
+                uint hh = bp.Height();
+                do { ww <<= 1; } while (ww < w);
+                do { hh <<= 1; } while (hh < h);
+                bp.Resize(ww, hh);
+            }
+
+            path->moveTo(Point3(rect.x1, rect.y1, 0));
+            path->lineTo(Point3(rect.x1, rect.y2, 0));
+            path->lineTo(Point3(rect.x2, rect.y2, 0));
+            path->lineTo(Point3(rect.x2, rect.y1, 0));
+            path->close();
+        }
         XL::Integer *DoInteger (XL::Integer *what)
         {
             if (!w)
@@ -2940,16 +2958,20 @@ XL::Tree *Widget::debugBinPacker(Tree *self, uint w, uint h, Tree *t)
             }
             else
             {
-                BinPacker::Rect rect;
-                if (bp.Allocate(w, what->value, rect))
-                {
-                    path->moveTo(Point3(rect.x1, rect.y1, 0));
-                    path->lineTo(Point3(rect.x1, rect.y2, 0));
-                    path->lineTo(Point3(rect.x2, rect.y2, 0));
-                    path->lineTo(Point3(rect.x2, rect.y1, 0));
-                    path->close();
-                }
+                Allocate(w, what->value);
                 w = 0;
+            }
+            return what;
+        }
+        XL::Text *DoText(XL::Text *what)
+        {
+            QFont font(+what->value, w ? w : -1);
+            QFontMetrics fm(font);
+            for (uint i = 32; i < 256; i++)
+            {
+                QChar qc(i);
+                QRect bounds(fm.boundingRect(qc));
+                Allocate(bounds.width(), bounds.height());
             }
             return what;
         }

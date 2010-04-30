@@ -66,7 +66,6 @@ void TextSpan::DrawCached(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // If we have a texture, we need to draw "slowly" (polygons)
-    bool                    hasFillColor = setFillColor(where);
     Widget                 *widget       = where->Display();
     GlyphCache             &glyphs       = widget->glyphs();
     Point3                  pos          = where->offset;
@@ -85,7 +84,6 @@ void TextSpan::DrawCached(Layout *where)
     {
         uint  unicode  = XL::Utf8Code(str, i);
         bool  newLine  = unicode == '\n';
-        bool  mustDraw = !newLine && hasFillColor;
 
         // Find the glyph in the glyph cache
         if (!glyphs.Find(font, unicode, glyph, false))
@@ -95,13 +93,13 @@ void TextSpan::DrawCached(Layout *where)
                 continue;
         }
 
-        if (mustDraw)
+        if (!newLine)
         {
             // Enter the geometry coordinates
             coord charX1 = x + glyph.bounds.lower.x;
             coord charX2 = x + glyph.bounds.upper.x;
-            coord charY1 = y + glyph.bounds.lower.y;
-            coord charY2 = y + glyph.bounds.upper.y;
+            coord charY1 = y - glyph.bounds.lower.y;
+            coord charY2 = y - glyph.bounds.upper.y;
             quads.push_back(Point3(charX1, charY1, z));
             quads.push_back(Point3(charX2, charY1, z));
             quads.push_back(Point3(charX2, charY2, z));
@@ -132,7 +130,7 @@ void TextSpan::DrawCached(Layout *where)
 
     // Check if there's anything to draw
     uint count = quads.size();
-    if (count)
+    if (count && setFillColor(where))
     {
         // Bind the glyph texture
         glBindTexture(GL_TEXTURE_2D, glyphs.Texture());

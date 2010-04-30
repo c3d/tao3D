@@ -2987,6 +2987,22 @@ XL::Tree *Widget::debugBinPacker(Tree *self, uint w, uint h, Tree *t)
 }
 
 
+double debugX = 0, debugY = 0, debugW = 0, debugH = 0;
+XL::Tree *Widget::debugParameters(Tree *self,
+                                  double x, double y,
+                                  double w, double h)
+// ----------------------------------------------------------------------------
+//   Set debug parameters for fine-tuning stuff
+// ----------------------------------------------------------------------------
+{
+    debugX = x;
+    debugY = y;
+    debugW = w;
+    debugH = h;
+    return XL::xl_false;
+}
+
+
 
 // ============================================================================
 //

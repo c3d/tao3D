@@ -299,7 +299,9 @@ public:
                         real_r r, real_r ax, real_r ay, real_r d);
 
     Tree *      debugBinPacker(Tree *self, uint w, uint h, Tree *t);
-
+    Tree *      debugParameters(Tree *self,
+                                double x, double y,
+                                double w, double h);
 
     // 3D primitives
     Tree *      sphere(Tree *self,

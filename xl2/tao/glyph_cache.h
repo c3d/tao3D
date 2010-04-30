@@ -168,6 +168,8 @@ protected:
 public:
     static int       maxFontSize;
     static uint      defaultSize;
+    static uint      antiAliasMargin;
+    static scale     fontScaling;
     static PerFont * lastFont;
 };
 

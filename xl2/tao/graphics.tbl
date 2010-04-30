@@ -223,6 +223,9 @@ PREFIX(Callout, tree, "callout",
 PREFIX(DebugBinPacker, tree, "binpacker",
        PARM(w, integer) PARM(h, integer) PARM(t, tree),
        RTAO(debugBinPacker(self, w, h, &t)))
+PREFIX(DebugParamters, tree, "debug_parameters",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real),
+       RTAO(debugParameters(self, x, y, w, h)))
 
 
 

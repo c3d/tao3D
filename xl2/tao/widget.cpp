@@ -3172,15 +3172,17 @@ Tree *Widget::fontSize(Tree *self, double size)
 }
 
 
-Tree *Widget::fontScaling(Tree *self, double scale)
+Tree *Widget::fontScaling(Tree *self, double scaling, double minAASize)
 // ----------------------------------------------------------------------------
 //   Change the font scaling factor
 // ----------------------------------------------------------------------------
 {
-    if (glyphCache.fontScaling != scale)
+    if (glyphCache.fontScaling != scaling ||
+        glyphCache.minFontSizeForAntialiasing != minAASize)
     {
         glyphCache.Clear();
-        glyphCache.fontScaling = scale;
+        glyphCache.fontScaling = scaling;
+        glyphCache.minFontSizeForAntialiasing = minAASize;
     }
     return XL::xl_true;
 }

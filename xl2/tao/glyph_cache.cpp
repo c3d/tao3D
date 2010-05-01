@@ -135,10 +135,10 @@ GlyphCache::GlyphCache()
       texture(0),
       image(defaultSize, defaultSize, QImage::Format_ARGB32),
       dirty(false),
-      minFontSizeForAntialiasing(12),
+      minFontSizeForAntialiasing(9),
       maxFontSize(64),
       antiAliasMargin(1),
-      fontScaling(4.0),
+      fontScaling(2.0),
       lastFont(NULL)
 {
     glGenTextures(1, &texture);
@@ -219,11 +219,19 @@ bool GlyphCache::Find(const QFont &font,
 
     // Apply a font with scaling
     scale fs = fontScaling;
-    if (font.pointSizeF() < minFontSizeForAntialiasing)
+    uint aam = antiAliasMargin;
+    if (font.pointSizeF() <= minFontSizeForAntialiasing)
+    {
         fs = 1;
+        aam = 0;
+    }
     QFont scaled(font);
     scaled.setPointSizeF(font.pointSizeF() * fs);
-    scaled.setStyleStrategy(QFont::NoAntialias);
+    if (!aam)
+    {
+        scaled.setStyleStrategy(QFont::NoAntialias);
+        aam = 1;
+    }
 
     // We need to create a new entry
     QFontMetricsF fm(scaled);
@@ -234,7 +242,6 @@ bool GlyphCache::Find(const QFont &font,
 
     // Allocate a rectangle where we will put the texture (may resize us)
     BinPacker::Rect rect;
-    uint aam = antiAliasMargin;
     Allocate(width + 2*aam, height + 2*aam, rect);
 
     // Record glyph information in the entry
@@ -286,9 +293,19 @@ bool GlyphCache::Find(const QFont &font,
 
     // Apply a font with scaling
     scale fs = fontScaling;
+    uint aam = antiAliasMargin;
+    if (font.pointSizeF() <= minFontSizeForAntialiasing)
+    {
+        fs = 1;
+        aam = 0;
+    }
     QFont scaled(font);
     scaled.setPointSizeF(font.pointSizeF() * fs);
-    scaled.setStyleStrategy(QFont::NoAntialias);
+    if (!aam)
+    {
+        scaled.setStyleStrategy(QFont::NoAntialias);
+        aam = 1;
+    }
 
     // We need to create a new entry
     QFontMetricsF fm(scaled);
@@ -299,7 +316,6 @@ bool GlyphCache::Find(const QFont &font,
 
     // Allocate a rectangle where we will put the texture (may resize us)
     BinPacker::Rect rect;
-    uint aam = antiAliasMargin;
     Allocate(width + 2*aam, height + 2*aam, rect);
 
     // Record glyph information in the entry

@@ -170,7 +170,7 @@ protected:
 
 public:
     static uint defaultSize;
-    uint        minFontSizeForAntialiasing;
+    scale       minFontSizeForAntialiasing;
     uint        maxFontSize;
     uint        antiAliasMargin;
     scale       fontScaling;

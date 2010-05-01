@@ -138,7 +138,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         for (int i = 0; i < hits; i++)
         {
             uint size = ptr[0];
-            if (ptr[3] && ptr[1] < depth)
+            if (ptr[3] && ptr[1] <= depth)
             {
                 selected = ptr[3];
                 if (size > 1)

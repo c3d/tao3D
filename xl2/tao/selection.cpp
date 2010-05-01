@@ -179,7 +179,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     // In all cases, we want a screen refresh
     Idle();
 
-    // Delete a text selection if we didn't click in it
+    // Delete any text selection we might have if we didn't click in it
     if (count == 1 && !charSelected)
         delete widget->textSelection();
 

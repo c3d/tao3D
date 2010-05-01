@@ -1189,7 +1189,7 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
     uint    button      = (uint) event->button();
     int     x           = event->x();
     int     y           = event->y();
-    if (button == Qt::LeftButton)
+    if (button == Qt::LeftButton && !activities)
         new Selection(this);
 
     // Send the click to all activities

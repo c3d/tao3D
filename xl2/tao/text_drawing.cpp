@@ -138,12 +138,13 @@ void TextSpan::DrawCached(Layout *where, bool identify)
             // Draw a list of rectangles with the textures
             glVertexPointer(3, GL_DOUBLE, 0, &quads[0].x);
             glEnableClientState(GL_VERTEX_ARRAY);
-            for (uint i = 0; i < count; i++)
+            for (uint i = 0; i < count; i += 4)
             {
                 glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
-                glDrawArrays(GL_QUADS, 0, count);
+                glDrawArrays(GL_QUADS, i, 4);
             }
             glDisableClientState(GL_VERTEX_ARRAY);
+            glLoadName(0);
         }
         else if (setFillColor(where))
         {

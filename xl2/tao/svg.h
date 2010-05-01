@@ -42,7 +42,7 @@ struct SvgRendererInfo : FrameInfo
 
     Widget *            widget;
     renderer_map        renderers;
-    QSvgRenderer *      defaultImageRenderer;
+    static QSvgRenderer * defaultImageRenderer();
 };
 
 TAO_END

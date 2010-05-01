@@ -103,7 +103,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       pageStartTime(CurrentTime()),pageRefresh(86400),frozenTime(pageStartTime),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
-      nextPull(nextSave), animated(true)
+      nextPull(nextSave), animated(true),
+      currentFileDialog(NULL)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -129,6 +130,13 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     currentMenuBar = parent->menuBar();
     connect(parent->menuBar(),  SIGNAL(triggered(QAction*)),
             this,               SLOT(userMenu(QAction*)));
+
+    toDialogLabel["LookIn"]   = (QFileDialog::DialogLabel)QFileDialog::LookIn;
+    toDialogLabel["FileName"] = (QFileDialog::DialogLabel)QFileDialog::FileName;
+    toDialogLabel["FileType"] = (QFileDialog::DialogLabel)QFileDialog::FileType;
+    toDialogLabel["Accept"]   = (QFileDialog::DialogLabel)QFileDialog::Accept;
+    toDialogLabel["Reject"]   = (QFileDialog::DialogLabel)QFileDialog::Reject;
+
 }
 
 
@@ -4004,6 +4012,208 @@ Tree *Widget::fontChooserTexture(Tree *self, double w, double h,
     return XL::xl_true;
 }
 
+QFileDialog *Widget::fileDialog = NULL;
+Tree *Widget::fileChooser(Tree *self, Tree *properties)
+// ----------------------------------------------------------------------------
+//   Draw a file chooser
+// ----------------------------------------------------------------------------
+{
+    if (fileDialog)
+    {
+        delete fileDialog;
+        fileDialog = NULL;
+    }
+
+    // Setup the color dialog
+    fileDialog = new QFileDialog(this);
+    currentFileDialog = fileDialog;
+    fileDialog->setModal(false);
+
+    updateFileDialog(properties);
+
+    // Connect the dialog and show it
+    connect(fileDialog, SIGNAL(fileSelected (const QString&)),
+            this, SLOT(fileChosen(const QString &)));
+    fileDialog->show();
+
+    return XL::xl_true;
+}
+
+void Widget::updateFileDialog(Tree *properties)
+// ----------------------------------------------------------------------------
+//   It updates the child tree to add the local information i.e. file_chooser
+//  in front of the names and then executes this new code.
+// ----------------------------------------------------------------------------
+{
+    std::map<text, text> amap;
+    amap["action"]    = "file_chooser_action";
+    amap["directory"] = "file_chooser_directory";
+    amap["label"]     = "file_chooser_label";
+    amap["filter"]    = "file_chooser_filter";
+    N2NReplacerTreeClone replacer(&amap);
+
+    XL::Tree *toBeEvaluated = replacer.replace(properties);
+    xl_evaluate(toBeEvaluated);
+
+}
+
+Tree *Widget::setFileDialogAction(Tree *self, Tree *action)
+// ----------------------------------------------------------------------------
+//   set the action that will be execute when OK is pressed.
+// ----------------------------------------------------------------------------
+{
+    IFTRACE (widgets)
+    {
+        std::cerr << "setFileDialogAction "  << std::endl;
+    }
+
+    if (currentFileDialog)
+    {
+        XL::TreeRoot root(action);
+        currentFileDialog->setProperty("TAO_ACTION", QVariant::fromValue(root));
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
+Tree *Widget::setFileDialogDirectory(Tree *self, text dirname)
+// ----------------------------------------------------------------------------
+//   set the directory to be open fisrt.
+// ----------------------------------------------------------------------------
+{
+    IFTRACE (widgets)
+    {
+        std::cerr << "setFileDialogDirectory " << dirname << std::endl;
+    }
+
+    if (currentFileDialog)
+    {
+        currentFileDialog->setDirectory(+dirname);
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
+Tree *Widget::setFileDialogFilter(Tree *self, text filters)
+// ----------------------------------------------------------------------------
+//   set the filters.
+// ----------------------------------------------------------------------------
+{
+    IFTRACE (widgets)
+    {
+        std::cerr << "setFileDialogFilter " << filters << std::endl;
+    }
+
+    if (currentFileDialog)
+    {
+        currentFileDialog->setNameFilter(+filters);
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
+
+Tree *Widget::setFileDialogLabel(Tree *self, text label, text value)
+// ----------------------------------------------------------------------------
+//   set labels.
+// ----------------------------------------------------------------------------
+// 5 labels may be setted : LookIn, FileName, FileType, Accept, Reject
+{
+    IFTRACE (widgets)
+    {
+        std::cerr << "setFileDialogLabel " << label << " to " << value<<std::endl;
+    }
+
+    if (currentFileDialog)
+    {
+        currentFileDialog->setLabelText(toDialogLabel[label], +value);
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
+
+void Widget::fileChosen(const QString & filename)
+// ----------------------------------------------------------------------------
+//   Slot called by the filechooser widget when a file is selected
+// ----------------------------------------------------------------------------
+{
+    if(!currentFileDialog)
+        return;
+
+    XL::TreeRoot fileAction = currentFileDialog->property("TAO_ACTION").
+                              value<XL::TreeRoot>();
+    if (!fileAction.tree)
+        return;
+
+    IFTRACE (widgets)
+    {
+        std::cerr << "File "<< filename.toStdString()
+                  << "was chosen for reference "<< fileAction.tree << "\n";
+    }
+
+    // We override names 'filename', 'filepath', 'filepathname'
+    QFileInfo file(filename);
+    std::map<text, text> amap;
+    amap["filename"] = +file.fileName();
+    amap["filepath"] = +file.canonicalPath();
+    amap["filepathname"] = +file.canonicalFilePath();
+
+    N2TReplacerTreeClone replacer(&amap);
+
+    XL::Tree *toBeEvaluated = replacer.replace(fileAction.tree);
+
+    // Evaluate the input tree
+    xl_evaluate(toBeEvaluated);
+}
+
+
+Tree *Widget::fileChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
+                           Tree *properties)
+// ----------------------------------------------------------------------------
+//   Draw a color chooser
+// ----------------------------------------------------------------------------
+{
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+
+    fileChooserTexture(self, w, h, properties);
+
+    FileChooserSurface *surface = self->GetInfo<FileChooserSurface>();
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    if (currentShape)
+        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
+    return XL::xl_true;
+}
+
+
+Tree *Widget::fileChooserTexture(Tree *self, double w, double h,
+                                  Tree *properties)
+// ----------------------------------------------------------------------------
+//   Make a texture out of a given file chooser
+// ----------------------------------------------------------------------------
+{
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
+    // Get or build the current frame if we don't have one
+    FileChooserSurface *surface = self->GetInfo<FileChooserSurface>();
+    if (!surface)
+    {
+        surface = new FileChooserSurface(self, this);
+        self->SetInfo<FileChooserSurface> (surface);
+    }
+    currentFileDialog = (QFileDialog *)surface->widget;
+
+    updateFileDialog(properties);
+
+    // Resize to requested size, and bind texture
+    surface->resize(w,h);
+    GLuint tex = surface->bind();
+    layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
+
+    return XL::xl_true;
+}
 
 Tree *Widget::buttonGroup(Tree *self, bool exclusive, Tree *buttons)
 // ----------------------------------------------------------------------------
@@ -4018,14 +4228,22 @@ Tree *Widget::buttonGroup(Tree *self, bool exclusive, Tree *buttons)
         buttons->SetInfo<GroupInfo>(grpInfo);
     }
     currentGroup = grpInfo;
-    xl_evaluate(buttons);
+    std::map<text, text> amap;
+    amap["action"] = "button_group_action";
+    N2NReplacerTreeClone replacer(&amap);
+
+    // The tree to be evaluated needs its own symbol table before evaluation
+    XL::Tree *toBeEvaluated = replacer.replace(buttons);
+
+    // Evaluate the input tree
+    xl_evaluate(toBeEvaluated);
     currentGroup = NULL;
 
     return XL::xl_true;
 }
 
 
-Tree*Widget::setAction(Tree *self, Tree *action)
+Tree*Widget::setButtonGroupAction(Tree *self, Tree *action)
 // ----------------------------------------------------------------------------
 //   Set the action to be executed by the current buttonGroup if any.
 // ----------------------------------------------------------------------------
@@ -4732,6 +4950,56 @@ XL::Real *Widget::fromPx(Tree *self, double px)
 {
     XL_RREAL(px);
 }
+
+// ============================================================================
+//
+//   Tree replacer helpers
+//
+// ============================================================================
+XL::Tree *N2NReplacerTreeClone::DoName(XL::Name *what)
+{
+    text newName =(*concordance)[what->value];
+    if (!newName.empty())
+        return new XL::Name(newName, what->Position());
+
+    return new XL::Name(what->value, what->Position());
+}
+
+XL::Tree* N2NReplacerTreeClone::replace(XL::Tree *original)
+{
+    XL::Tree *toBeEvaluated = original;
+    // The tree to be evaluated needs its own symbol table before evaluation
+    XL::Symbols *syms = original->Get<XL::SymbolsInfo>();
+    if (!syms)
+        syms = XL::Symbols::symbols;
+    syms = new XL::Symbols(syms);
+    toBeEvaluated = original->Do(*this);
+    toBeEvaluated->Set<XL::SymbolsInfo>(syms);
+    return toBeEvaluated;
+}
+XL::Tree *N2TReplacerTreeClone::DoName(XL::Name *what)
+{
+    text newName =(*concordance)[what->value];
+    if (!newName.empty())
+        return new XL::Text(newName, "\"", "\"",
+                            what->Position());
+
+    return new XL::Name(what->value, what->Position());
+};
+
+XL::Tree* N2TReplacerTreeClone::replace(XL::Tree *original)
+{
+    XL::Tree *toBeEvaluated = original;
+    // The tree to be evaluated needs its own symbol table before evaluation
+    XL::Symbols *syms = original->Get<XL::SymbolsInfo>();
+    if (!syms)
+        syms = XL::Symbols::symbols;
+    syms = new XL::Symbols(syms);
+    toBeEvaluated = original->Do(*this);
+    toBeEvaluated->Set<XL::SymbolsInfo>(syms);
+    return toBeEvaluated;
+};
+
 
 TAO_END
 

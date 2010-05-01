@@ -392,6 +392,25 @@ PREFIX(FontChooserTexture, tree, "font_chooser_texture",
 PREFIX(FontChooserNow, tree, "font_chooser", PARM(t,tree),
        RTAO(fontChooser(self, &t)))
 
+PREFIX(FileChooser, tree, "file_chooser",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,tree),
+       RTAO(fileChooser(self, x, y, w, h, &t)))
+PREFIX(FileChooserTexture, tree, "file_chooser_texture",
+       PARM(w,real) PARM(h,real) PARM(t,tree),
+       RTAO(fileChooserTexture(self, w, h, &t)))
+PREFIX(FileChooserNow, tree, "file_chooser", PARM(t,tree),
+       RTAO(fileChooser(self, &t)))
+PREFIX(SetFileDialogAction, tree, "file_chooser_action", PARM(t, tree),
+       RTAO(setFileDialogAction(self, &t)))
+PREFIX(SetFileDialogDirectory, tree, "file_chooser_directory", PARM(d, text),
+       RTAO(setFileDialogDirectory(self, d)))
+PREFIX(SetFileDialogFilter, tree, "file_chooser_filter", PARM(d, text),
+       RTAO(setFileDialogFilter(self, d)))
+PREFIX(SetFileDialogLabel, tree, "file_chooser_label",
+       PARM(lbl, text) PARM(v, text),
+       RTAO(setFileDialogLabel(self, lbl, v)))
+
+
 PREFIX(VideoPlayer, tree, "video_player",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(u,text),
        RTAO(videoPlayer(self, x, y, w, h, &u)))
@@ -399,8 +418,8 @@ PREFIX(VideoPlayerTexture, tree, "video_player_texture",
        PARM(w,real) PARM(h,real) PARM(u,text),
        RTAO(videoPlayerTexture(self, w, h, &u)))
 
-PREFIX(Action, tree, "action", PARM(act, tree),
-       RTAO(setAction(self, &act)))
+PREFIX(Action, tree, "button_group_action", PARM(act, tree),
+       RTAO(setButtonGroupAction(self, &act)))
 
 PREFIX(ButtonGroup, tree, "button_group",
        PARM(ex, boolean) PARM(b, tree),

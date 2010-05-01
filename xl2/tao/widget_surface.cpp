@@ -543,7 +543,7 @@ void ColorChooserSurface::colorChosen(const QColor &col)
 FontChooserSurface::FontChooserSurface(XL::Tree *t, Widget *parent,
                                        XL::Tree *act)
 // ----------------------------------------------------------------------------
-//    Create the Color Chooser surface
+//    Create the Font Chooser surface
 // ----------------------------------------------------------------------------
   : WidgetSurface(t, new QFontDialog(parent)), action(act)
 {
@@ -614,6 +614,45 @@ void FontChooserSurface::fontChosen(const QFont& ft)
     xl_evaluate(toBeEvaluated);
 
     widget->setVisible(false);
+}
+
+// ============================================================================
+//
+//    File Chooser
+//
+// ============================================================================
+
+FileChooserSurface::FileChooserSurface(XL::Tree *t, Widget *parent)
+// ----------------------------------------------------------------------------
+//    Create the File Chooser surface
+// ----------------------------------------------------------------------------
+  : WidgetSurface(t, new QFileDialog(parent))
+{
+    QFileDialog *diag = (QFileDialog *) widget;
+    connect(diag, SIGNAL(fileSelected (const QString&)),
+            parent, SLOT(fileChosen(const QString&)));
+    connect(diag, SIGNAL(fileSelected (const QString&)),
+            this, SLOT(hideWidget()));
+    diag->setModal(false);
+}
+
+
+GLuint FileChooserSurface::bind()
+// ----------------------------------------------------------------------------
+//   Display the file chooser
+// ----------------------------------------------------------------------------
+{
+    widget->setVisible(true);
+    return WidgetSurface::bind();
+}
+
+
+void FileChooserSurface::hideWidget()
+// ----------------------------------------------------------------------------
+//    A file was selected. Evaluate the action.
+// ----------------------------------------------------------------------------
+{
+     widget->setVisible(false);
 }
 
 // ============================================================================

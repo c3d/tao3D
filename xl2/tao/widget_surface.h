@@ -238,6 +238,23 @@ public slots:
 };
 
 
+struct FileChooserSurface : WidgetSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a QFontChooser
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT;
+public:
+    typedef FileChooserSurface * data_t;
+    FileChooserSurface(XL::Tree *t, Widget *parent);
+    operator data_t() { return this; }
+    virtual GLuint bind();
+
+public slots:
+    void hideWidget();
+};
+
+
 struct VideoPlayerSurface : WidgetSurface
 // ----------------------------------------------------------------------------
 //    Hold information about a Phonon::VideoPlayer

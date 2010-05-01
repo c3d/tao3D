@@ -476,7 +476,7 @@ Box3 TextSpan::Space(Layout *where)
             result |= Point3(charX1, charY1, z);
             result |= Point3(charX2, charY2, z);
             result |= Point3(charX1, y + ascent, z);
-            result |= Point3(charX2, y - descent - leading, z);
+            result |= Point3(charX1 + glyph.advance, y - descent - leading, z);
         }
 
         // Advance to next character

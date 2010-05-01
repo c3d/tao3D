@@ -134,6 +134,7 @@ GlyphCache::GlyphCache()
       packer(defaultSize, defaultSize),
       texture(0),
       image(defaultSize, defaultSize, QImage::Format_ARGB32),
+      dirty(false),
       minFontSizeForAntialiasing(12),
       maxFontSize(64),
       antiAliasMargin(1),
@@ -257,7 +258,7 @@ bool GlyphCache::Find(const QFont &font,
     painter.end();
 
     // Update the texture
-    GenerateTexture();
+    dirty = true;
 
     // Scale down what we pass back to the caller
     ScaleDown(entry, font.pointSizeF() / perFont->baseSize);
@@ -322,7 +323,7 @@ bool GlyphCache::Find(const QFont &font,
     painter.end();
 
     // Update the texture
-    GenerateTexture();
+    dirty = true;
 
     // Scale down what we pass back to the caller
     ScaleDown(entry, font.pointSizeF() / perFont->baseSize);
@@ -344,7 +345,7 @@ void GlyphCache::Allocate(uint width, uint height, Rect &rect)
 
         // Resize the image and copy in the texture
         image = image.copy(0,0,w,h);
-        GenerateTexture();
+        dirty = true;
 
         // Resize the rectangle from which we do the texture allocation
         packer.Resize(w, h);
@@ -357,13 +358,13 @@ void GlyphCache::GenerateTexture()
 //   Copy the current image into our GL texture
 // ----------------------------------------------------------------------------
 {
-    image.save("/tmp/glop.png");
-
     QImage texImg = QGLWidget::convertToGLFormat(image);
     glBindTexture(GL_TEXTURE_2D, texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                  texImg.width(), texImg.height(), 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, texImg.bits());
+
+    dirty = false;
 }
 
 

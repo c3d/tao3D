@@ -91,7 +91,7 @@ public:
 
     uint        Width()        { return packer.Width(); }
     uint        Height()       { return packer.Height(); }
-    uint        Texture() { return texture; }
+    uint        Texture()      { if (dirty) GenerateTexture(); return texture; }
 
     PerFont *   FindFont(const QFont &font, bool create = false);
 
@@ -162,10 +162,11 @@ protected:
 
 protected:
     typedef std::map<Key, PerFont *> FontMap;
-    FontMap   cache;
-    BinPacker packer;
-    uint      texture;
-    QImage    image;
+    FontMap     cache;
+    BinPacker   packer;
+    uint        texture;
+    QImage      image;
+    bool        dirty;
 
 public:
     static uint defaultSize;

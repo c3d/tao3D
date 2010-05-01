@@ -3718,7 +3718,7 @@ Tree *Widget::colorChooser(Tree *self, text treeName, Tree *action)
     connect(colorDialog, SIGNAL(colorSelected (const QColor&)),
             this, SLOT(colorChosen(const QColor &)));
     connect(colorDialog, SIGNAL(currentColorChanged (const QColor&)),
-            this, SLOT(colorChosen(const QColor &)));
+            this, SLOT(colorChanged(const QColor &)));
     colorDialog->show();
 
 
@@ -3727,6 +3727,17 @@ Tree *Widget::colorChooser(Tree *self, text treeName, Tree *action)
 
 
 void Widget::colorChosen(const QColor & col)
+// ----------------------------------------------------------------------------
+//   Slot called by the color widget a color is chosen and dialog is closed
+// ----------------------------------------------------------------------------
+{
+    colorChanged(col);
+    delete colorDialog;
+    colorDialog = NULL;
+}
+
+
+void Widget::colorChanged(const QColor & col)
 // ----------------------------------------------------------------------------
 //   Slot called by the color widget when a color is selected
 // ----------------------------------------------------------------------------
@@ -3782,6 +3793,9 @@ void Widget::updateColorDialog()
     if (!colorDialog)
         return;
 
+    // Make sure we don't update the trees, only get their colors
+    XL::LocalSave<Tree *> action(colorAction.tree, NULL);
+
     // Get the default color from the first selected shape
     for (std::set<Tree *>::iterator i = selectionTrees.begin();
          i != selectionTrees.end();
@@ -3824,6 +3838,17 @@ Tree *Widget::fontChooser(Tree *self, Tree *action)
 
 
 void Widget::fontChosen(const QFont& ft)
+// ----------------------------------------------------------------------------
+//    A font was selected. Evaluate the action.
+// ----------------------------------------------------------------------------
+{
+    fontChanged(ft);
+    delete fontDialog;
+    fontDialog = NULL;
+}
+
+
+void Widget::fontChanged(const QFont& ft)
 // ----------------------------------------------------------------------------
 //    A font was selected. Evaluate the action.
 // ----------------------------------------------------------------------------
@@ -3883,6 +3908,9 @@ void Widget::updateFontDialog()
 {
     if (!fontDialog)
         return;
+
+    // Make sure we don't update the trees, only get their colors
+    XL::LocalSave<Tree *> action(fontAction.tree, NULL);
 }
 
 

@@ -102,8 +102,10 @@ public slots:
     bool        refresh(double delay = 0.0);
     void        commitSuccess(QString id, QString msg);
     void        colorChosen(const QColor &);
+    void        colorChanged(const QColor &);
     void        updateColorDialog();
     void        fontChosen(const QFont &);
+    void        fontChanged(const QFont &);
     void        updateFontDialog();
     void        updateDialogs()                { mustUpdateDialogs = true; }
     void        copy();

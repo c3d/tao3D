@@ -3145,6 +3145,20 @@ Tree *Widget::fontSize(Tree *self, double size)
 }
 
 
+Tree *Widget::fontScaling(Tree *self, double scale)
+// ----------------------------------------------------------------------------
+//   Change the font scaling factor
+// ----------------------------------------------------------------------------
+{
+    if (glyphCache.fontScaling != scale)
+    {
+        glyphCache.Clear();
+        glyphCache.fontScaling = scale;
+    }
+    return XL::xl_true;
+}
+
+
 Tree *Widget::fontPlain(Tree *self)
 // ----------------------------------------------------------------------------
 //   Select whether this is italic or not

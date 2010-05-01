@@ -66,8 +66,6 @@ PerFontGlyphCache::~PerFontGlyphCache()
 //   Clear the per-font glyph cache
 // ----------------------------------------------------------------------------
 {
-    if (GlyphCache::lastFont == this)
-        GlyphCache::lastFont = NULL;
 }
 
 
@@ -126,11 +124,7 @@ void PerFontGlyphCache::Insert(text word, const GlyphEntry &entry)
 //
 // ============================================================================
 
-int GlyphCache::maxFontSize = 64;
 uint GlyphCache::defaultSize = 128;
-uint GlyphCache::antiAliasMargin = 2;
-scale GlyphCache::fontScaling = 4.0;
-PerFontGlyphCache *GlyphCache::lastFont = NULL;
 
 GlyphCache::GlyphCache()
 // ----------------------------------------------------------------------------
@@ -139,7 +133,12 @@ GlyphCache::GlyphCache()
     : cache(),
       packer(defaultSize, defaultSize),
       texture(0),
-      image(defaultSize, defaultSize, QImage::Format_ARGB32)
+      image(defaultSize, defaultSize, QImage::Format_ARGB32),
+      minFontSizeForAntialiasing(12),
+      maxFontSize(64),
+      antiAliasMargin(1),
+      fontScaling(4.0),
+      lastFont(NULL)
 {
     glGenTextures(1, &texture);
     image.fill(0);
@@ -154,6 +153,19 @@ GlyphCache::~GlyphCache()
     glDeleteTextures(1, &texture);
     for (FontMap::iterator it = cache.begin(); it != cache.end(); it++)
         delete (*it).second;
+}
+
+
+void GlyphCache::Clear()
+// ----------------------------------------------------------------------------
+//   Clear the glyph cache entirely
+// ----------------------------------------------------------------------------
+{
+    for (FontMap::iterator it = cache.begin(); it != cache.end(); it++)
+        delete (*it).second;
+    cache.clear();
+    image.fill(0);
+    lastFont = NULL;
 }
 
 
@@ -205,8 +217,11 @@ bool GlyphCache::Find(const QFont &font,
         return false;
 
     // Apply a font with scaling
+    scale fs = fontScaling;
+    if (font.pointSizeF() < minFontSizeForAntialiasing)
+        fs = 1;
     QFont scaled(font);
-    scaled.setPointSizeF(font.pointSizeF() * fontScaling);
+    scaled.setPointSizeF(font.pointSizeF() * fs);
     scaled.setStyleStrategy(QFont::NoAntialias);
 
     // We need to create a new entry
@@ -222,11 +237,11 @@ bool GlyphCache::Find(const QFont &font,
     Allocate(width + 2*aam, height + 2*aam, rect);
 
     // Record glyph information in the entry
-    entry.bounds = Box(bounds.x()/fontScaling, bounds.y()/fontScaling,
-                       bounds.width()/fontScaling, bounds.height()/fontScaling);
+    entry.bounds = Box(bounds.x()/fs, bounds.y()/fs,
+                       bounds.width()/fs, bounds.height()/fs);
     entry.texture = Box(Point(rect.x1+aam, rect.y2-aam - bounds.height()),
                         Point(rect.x1+aam + bounds.width(), rect.y2-aam));
-    entry.advance = fm.width(qc) / fontScaling;
+    entry.advance = fm.width(qc) / fs;
 
     // Store the new entry
     perFont->Insert(code, entry);
@@ -269,8 +284,9 @@ bool GlyphCache::Find(const QFont &font,
         return false;
 
     // Apply a font with scaling
+    scale fs = fontScaling;
     QFont scaled(font);
-    scaled.setPointSizeF(font.pointSizeF() * fontScaling);
+    scaled.setPointSizeF(font.pointSizeF() * fs);
     scaled.setStyleStrategy(QFont::NoAntialias);
 
     // We need to create a new entry
@@ -286,11 +302,11 @@ bool GlyphCache::Find(const QFont &font,
     Allocate(width + 2*aam, height + 2*aam, rect);
 
     // Record glyph information in the entry
-    entry.bounds = Box(bounds.x()/fontScaling, bounds.y()/fontScaling,
-                       bounds.width()/fontScaling, bounds.height()/fontScaling);
+    entry.bounds = Box(bounds.x()/fs, bounds.y()/fs,
+                       bounds.width()/fs, bounds.height()/fs);
     entry.texture = Box(Point(rect.x1+aam, rect.y2-aam - bounds.height()),
                         Point(rect.x1+aam + bounds.width(), rect.y2-aam));
-    entry.advance = fm.width(qs) / fontScaling;
+    entry.advance = fm.width(qs) / fs;
 
     // Store the new entry
     perFont->Insert(word, entry);

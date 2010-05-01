@@ -322,6 +322,7 @@ public:
     Tree *      textSpan(Tree *self, text_r content);
     Tree *      font(Tree *self, text family);
     Tree *      fontSize(Tree *self, double size);
+    Tree *      fontScaling(Tree *self, double scale);
     Tree *      fontPlain(Tree *self);
     Tree *      fontItalic(Tree *self, scale amount = 1);
     Tree *      fontBold(Tree *self, scale amount = 1);

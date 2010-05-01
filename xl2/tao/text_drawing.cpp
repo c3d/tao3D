@@ -51,7 +51,8 @@ void TextSpan::Draw(Layout *where)
     Widget *widget = where->Display();
     bool hasLine = setLineColor(where);
     bool hasTexture = setTexture(where);
-    bool tooBig = where->font.pointSize() > GlyphCache::maxFontSize;
+    GlyphCache &glyphs = widget->glyphs();
+    bool tooBig = where->font.pointSize() > (int) glyphs.maxFontSize;
     bool debugForceDirect = widget->lastModifiers() & Qt::ShiftModifier;
     if (!hasLine && !hasTexture && !tooBig && !debugForceDirect)
         DrawCached(where, false);
@@ -148,7 +149,10 @@ void TextSpan::DrawCached(Layout *where, bool identify)
         {
             // Bind the glyph texture
             glBindTexture(GL_TEXTURE_2D, glyphs.Texture());
-            GLenum blur = where->hasPixelBlur ? GL_LINEAR : GL_LINEAR;
+            GLenum blur = GL_LINEAR;
+            if (!where->hasPixelBlur &&
+                font.pointSizeF() < glyphs.minFontSizeForAntialiasing)
+                blur = GL_NEAREST;
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, blur);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, blur);
             glEnable(GL_TEXTURE_2D);

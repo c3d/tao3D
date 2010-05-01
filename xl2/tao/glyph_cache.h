@@ -87,6 +87,8 @@ public:
     typedef     PerFontGlyphCache               PerFont;
     typedef     BinPacker::Rect                 Rect;
 
+    void        Clear();
+
     uint        Width()        { return packer.Width(); }
     uint        Height()       { return packer.Height(); }
     uint        Texture() { return texture; }
@@ -166,11 +168,12 @@ protected:
     QImage    image;
 
 public:
-    static int       maxFontSize;
-    static uint      defaultSize;
-    static uint      antiAliasMargin;
-    static scale     fontScaling;
-    static PerFont * lastFont;
+    static uint defaultSize;
+    uint        minFontSizeForAntialiasing;
+    uint        maxFontSize;
+    uint        antiAliasMargin;
+    scale       fontScaling;
+    PerFont *   lastFont;
 };
 
 TAO_END

@@ -109,6 +109,7 @@ public slots:
     void        copy();
     void        cut();
     void        paste();
+    void        enableAnimations(bool animate);
 
 signals:
     // Signals
@@ -158,6 +159,8 @@ public:
     ulonglong   elapsed(ulonglong since, ulonglong until,
                         bool stats = true, bool show=true);
     bool        timerIsActive()         { return timer.isActive(); }
+    bool        hasAnimations(void)     { return animated; }
+
 
     // Selection
     enum { CHAR_ID_BIT = 1U<<31, CHAR_ID_MASK = ~CHAR_ID_BIT };
@@ -237,6 +240,7 @@ public:
     Name *      depthTest(Tree *self, bool enable);
     Tree *      refresh(Tree *self, double delay);
     Name *      fullScreen(Tree *self, bool fs);
+    Name *      enableAnimations(Tree *self, bool fs);
     Name *      toggleFullScreen(Tree *self);
     Integer *   polygonOffset(Tree *self,
                               double f0, double f1, double u0, double u1);
@@ -493,9 +497,10 @@ private:
 
     // Timing
     QTimer                timer, idleTimer;
-    double                pageStartTime, pageRefresh;
+    double                pageStartTime, pageRefresh, frozenTime;
     ulonglong             tmin, tmax, tsum, tcount;
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
+    bool                  animated;
 
     static Widget *       current;
     static QColorDialog * colorDialog;

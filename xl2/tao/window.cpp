@@ -156,6 +156,15 @@ void Window::toggleFullScreen()
 }
 
 
+void Window::toggleAnimations()
+// ----------------------------------------------------------------------------
+//   Toggle between full-screen and normal mode
+// ----------------------------------------------------------------------------
+{
+    taoWidget->enableAnimations(!taoWidget->hasAnimations());
+}
+
+
 void Window::newFile()
 // ----------------------------------------------------------------------------
 //   Create a new window
@@ -534,6 +543,13 @@ void Window::createActions()
     fullScreenAct->setCheckable(true);
     connect(fullScreenAct, SIGNAL(triggered()), this, SLOT(toggleFullScreen()));
 
+    viewAnimationsAct = new QAction(tr("Animations"), this);
+    viewAnimationsAct->setStatusTip(tr("Switch animations on or off"));
+    viewAnimationsAct->setCheckable(true);
+    viewAnimationsAct->setChecked(taoWidget->hasAnimations());
+    connect(viewAnimationsAct, SIGNAL(triggered()),
+            this, SLOT(toggleAnimations()));
+
     cutAct->setEnabled(false);
     copyAct->setEnabled(false);
     connect(textEdit, SIGNAL(copyAvailable(bool)),
@@ -594,6 +610,7 @@ void Window::createMenus()
 //    viewMenu->setObjectName(VIEW_MENU_NAME);
     viewMenu->addAction(dock->toggleViewAction());
     viewMenu->addAction(fullScreenAct);
+    viewMenu->addAction(viewAnimationsAct);
     viewMenu->addMenu(tr("&Toolbars"))->setObjectName(VIEW_MENU_NAME);
 
     menuBar()->addSeparator();
@@ -978,8 +995,8 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
 
                 // For undo/redo: widget has to be notified when document
                 // is succesfully committed into repository
-                connect(repo.data(), SIGNAL(asyncCommitSuccess(QString, QString)),
-                        taoWidget,   SLOT(commitSuccess(QString, QString)));
+                connect(repo.data(),SIGNAL(asyncCommitSuccess(QString,QString)),
+                        taoWidget,  SLOT(commitSuccess(QString, QString)));
                 populateUndoStack();
 
                 enableProjectSharingMenus();

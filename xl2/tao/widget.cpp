@@ -100,10 +100,10 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
       colorAction(NULL), fontAction(NULL),
       timer(this), idleTimer(this),
-      pageStartTime(CurrentTime()), pageRefresh(86400),
+      pageStartTime(CurrentTime()),pageRefresh(86400),frozenTime(pageStartTime),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
-      nextPull(nextSave)
+      nextPull(nextSave), animated(true)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -549,6 +549,16 @@ void Widget::paste()
     for (i = tree->AsInfix(); i ; t = i->right, i = i->right->AsInfix())
         selectNextTime.insert(i->left);
     selectNextTime.insert(t);
+}
+
+
+void Widget::enableAnimations(bool enable)
+// ----------------------------------------------------------------------------
+//   Enable or disable animations on the page
+// ----------------------------------------------------------------------------
+{
+    animated = enable;
+    frozenTime = CurrentTime();
 }
 
 
@@ -2160,8 +2170,10 @@ XL::Real *Widget::time(Tree *self)
 //   Return a fractional time, including milliseconds
 // ----------------------------------------------------------------------------
 {
-    refresh(0.1);
-    return new XL::Real(CurrentTime());
+    refresh(0.04);
+    if (animated)
+        frozenTime = CurrentTime();
+    return new XL::Real(frozenTime);
 }
 
 
@@ -2170,8 +2182,10 @@ XL::Real *Widget::pageTime(Tree *self)
 //   Return a fractional time, including milliseconds
 // ----------------------------------------------------------------------------
 {
-    refresh(0.1);
-    return new XL::Real(CurrentTime() - pageStartTime);
+    refresh(0.04);
+    if (animated)
+        frozenTime = CurrentTime();
+    return new XL::Real(frozenTime - pageStartTime);
 }
 
 
@@ -2352,6 +2366,19 @@ XL::Name *Widget::fullScreen(XL::Tree *self, bool fs)
     bool oldFs = isFullScreen();
     Window *window = (Window *) parentWidget();
     window->switchToFullScreen(fs);
+    return oldFs ? XL::xl_true : XL::xl_false;
+}
+
+
+XL::Name *Widget::enableAnimations(XL::Tree *self, bool fs)
+// ----------------------------------------------------------------------------
+//   Enable or disable animations
+// ----------------------------------------------------------------------------
+{
+    bool oldFs = hasAnimations();
+    Window *window = (Window *) parentWidget();
+    if (oldFs != fs)
+        window->toggleAnimations();
     return oldFs ? XL::xl_true : XL::xl_false;
 }
 
@@ -3340,6 +3367,7 @@ XL::Name *Widget::textEditKey(Tree *self, text key)
         selectionTrees.clear();
         delete textSelection();
         delete drag();
+        pageStartTime = frozenTime;
         return XL::xl_true;
     }
 

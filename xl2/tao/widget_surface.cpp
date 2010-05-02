@@ -50,7 +50,7 @@ typedef XL::Symbols     Symbols;
 //
 // ============================================================================
 
-WidgetSurface::WidgetSurface(XL::Tree *t, QWidget *widget)
+WidgetSurface::WidgetSurface(XL::Tree_p t, QWidget *widget)
 // ----------------------------------------------------------------------------
 //   Create a renderer with the right size
 // ----------------------------------------------------------------------------
@@ -168,7 +168,7 @@ void WidgetSurface::repaint()
 //
 // ============================================================================
 
-WebViewSurface::WebViewSurface(XL::Tree *self, Widget *parent)
+WebViewSurface::WebViewSurface(XL::Tree_p self, Widget *parent)
 // ----------------------------------------------------------------------------
 //    Build the QWebView
 // ----------------------------------------------------------------------------
@@ -185,7 +185,7 @@ WebViewSurface::WebViewSurface(XL::Tree *self, Widget *parent)
 }
 
 
-GLuint WebViewSurface::bind(XL::Text *urlTree, XL::Integer *progressTree)
+GLuint WebViewSurface::bind(XL::Text_p urlTree, XL::Integer_p progressTree)
 // ----------------------------------------------------------------------------
 //    Update depending on URL changes, then bind texture
 // ----------------------------------------------------------------------------
@@ -241,7 +241,7 @@ void WebViewSurface::loadProgress(int progressPercent)
 //
 // ============================================================================
 
-LineEditSurface::LineEditSurface(XL::Tree *t, Widget *parent, bool immed)
+LineEditSurface::LineEditSurface(XL::Tree_p t, Widget *parent, bool immed)
 // ----------------------------------------------------------------------------
 //    Build the QLineEdit
 // ----------------------------------------------------------------------------
@@ -265,7 +265,7 @@ LineEditSurface::LineEditSurface(XL::Tree *t, Widget *parent, bool immed)
 }
 
 
-GLuint LineEditSurface::bind(XL::Text *textTree)
+GLuint LineEditSurface::bind(XL::Text_p textTree)
 // ----------------------------------------------------------------------------
 //    Update text based on text changes
 // ----------------------------------------------------------------------------
@@ -335,7 +335,7 @@ void LineEditSurface::inputValidated()
 //
 // ============================================================================
 
-AbstractButtonSurface::AbstractButtonSurface(XL::Tree *t,
+AbstractButtonSurface::AbstractButtonSurface(XL::Tree_p t,
                                              QAbstractButton * button,
                                              QString name)
 // ----------------------------------------------------------------------------
@@ -351,7 +351,7 @@ AbstractButtonSurface::AbstractButtonSurface(XL::Tree *t,
 }
 
 
-GLuint AbstractButtonSurface::bind(XL::Text *lbl, XL::Tree *act, XL::Text *sel)
+GLuint AbstractButtonSurface::bind(XL::Text_p lbl, XL::Tree_p act, XL::Text_p sel)
 // ----------------------------------------------------------------------------
 //    If the label or associated action changes
 // ----------------------------------------------------------------------------
@@ -420,7 +420,7 @@ void AbstractButtonSurface::toggled(bool checked)
     struct ToggleTreeClone : XL::TreeClone
     {
         ToggleTreeClone(bool c) : checked(c){}
-        XL::Tree *DoName(XL::Name *what)
+        XL::Tree_p DoName(XL::Name_p what)
         {
             if (what->value == "checked")
             {
@@ -435,7 +435,7 @@ void AbstractButtonSurface::toggled(bool checked)
     } replacer(checked);
 
     // The tree to be evaluated needs its own symbol table before evaluation
-    XL::Tree *toBeEvaluated = action.tree;
+    XL::Tree_p toBeEvaluated = action.tree;
     XL::Symbols *syms = toBeEvaluated->Get<SymbolsInfo>();
     if (!syms)
         syms = XL::Symbols::symbols;
@@ -455,8 +455,8 @@ void AbstractButtonSurface::toggled(bool checked)
 //
 // ============================================================================
 
-ColorChooserSurface::ColorChooserSurface(XL::Tree *t,
-                                         Widget *parent, XL::Tree *act)
+ColorChooserSurface::ColorChooserSurface(XL::Tree_p t,
+                                         Widget *parent, XL::Tree_p act)
 // ----------------------------------------------------------------------------
 //    Create the Color Chooser surface
 // ----------------------------------------------------------------------------
@@ -502,7 +502,7 @@ void ColorChooserSurface::colorChosen(const QColor &col)
     struct ColorTreeClone : XL::TreeClone
     {
         ColorTreeClone(const QColor &c) : color(c){}
-        XL::Tree *DoName(XL::Name *what)
+        XL::Tree_p DoName(XL::Name_p what)
         {
             if (what->value == "red")
                 return new XL::Real(color.redF(), what->Position());
@@ -519,7 +519,7 @@ void ColorChooserSurface::colorChosen(const QColor &col)
     } replacer(col);
 
     // The tree to be evaluated needs its own symbol table before evaluation
-    XL::Tree *toBeEvaluated = action.tree;
+    XL::Tree_p toBeEvaluated = action.tree;
     XL::Symbols *syms = toBeEvaluated->Get<SymbolsInfo>();
     if (!syms)
         syms = XL::Symbols::symbols;
@@ -540,8 +540,8 @@ void ColorChooserSurface::colorChosen(const QColor &col)
 //
 // ============================================================================
 
-FontChooserSurface::FontChooserSurface(XL::Tree *t, Widget *parent,
-                                       XL::Tree *act)
+FontChooserSurface::FontChooserSurface(XL::Tree_p t, Widget *parent,
+                                       XL::Tree_p act)
 // ----------------------------------------------------------------------------
 //    Create the Font Chooser surface
 // ----------------------------------------------------------------------------
@@ -579,7 +579,7 @@ void FontChooserSurface::fontChosen(const QFont& ft)
     struct FontTreeClone : XL::TreeClone
     {
         FontTreeClone(const QFont &f) : font(f){}
-        XL::Tree *DoName(XL::Name *what)
+        XL::Tree_p DoName(XL::Name_p what)
         {
             if (what->value == "family")
                 return new XL::Text(+font.family(),
@@ -602,7 +602,7 @@ void FontChooserSurface::fontChosen(const QFont& ft)
     } replacer(ft);
 
     // The tree to be evaluated needs its own symbol table before evaluation
-    XL::Tree *toBeEvaluated = action.tree;
+    XL::Tree_p toBeEvaluated = action.tree;
     XL::Symbols *syms = toBeEvaluated->Get<SymbolsInfo>();
     if (!syms)
         syms = XL::Symbols::symbols;
@@ -622,7 +622,7 @@ void FontChooserSurface::fontChosen(const QFont& ft)
 //
 // ============================================================================
 
-FileChooserSurface::FileChooserSurface(XL::Tree *t, Widget *parent)
+FileChooserSurface::FileChooserSurface(XL::Tree_p t, Widget *parent)
 // ----------------------------------------------------------------------------
 //    Create the File Chooser surface
 // ----------------------------------------------------------------------------
@@ -661,7 +661,7 @@ void FileChooserSurface::hideWidget()
 //
 // ============================================================================
 
-GroupBoxSurface::GroupBoxSurface(XL::Tree *t, Widget *parent, QGridLayout *l)
+GroupBoxSurface::GroupBoxSurface(XL::Tree_p t, Widget *parent, QGridLayout *l)
 // ----------------------------------------------------------------------------
 //    Create the Group Box surface
 // ----------------------------------------------------------------------------
@@ -685,7 +685,7 @@ GroupBoxSurface::~GroupBoxSurface()
 }
 
 
-GLuint GroupBoxSurface::bind(XL::Text *lbl)
+GLuint GroupBoxSurface::bind(XL::Text_p lbl)
 // ----------------------------------------------------------------------------
 //   Display the group box
 // ----------------------------------------------------------------------------
@@ -715,7 +715,7 @@ GLuint GroupBoxSurface::bind(XL::Text *lbl)
 //
 // ============================================================================
 
-VideoPlayerSurface::VideoPlayerSurface(XL::Tree *t, Widget *parent)
+VideoPlayerSurface::VideoPlayerSurface(XL::Tree_p t, Widget *parent)
 // ----------------------------------------------------------------------------
 //   Create the video player
 // ----------------------------------------------------------------------------
@@ -739,7 +739,7 @@ VideoPlayerSurface::~VideoPlayerSurface()
 }
 
 
-GLuint VideoPlayerSurface::bind(XL::Text *urlTree)
+GLuint VideoPlayerSurface::bind(XL::Text_p urlTree)
 // ----------------------------------------------------------------------------
 //    Bind the surface to the texture
 // ----------------------------------------------------------------------------
@@ -774,7 +774,7 @@ GLuint VideoPlayerSurface::bind(XL::Text *urlTree)
 //
 // ============================================================================
 
-AbstractSliderSurface::AbstractSliderSurface(XL::Tree *t,
+AbstractSliderSurface::AbstractSliderSurface(XL::Tree_p t,
                                              QAbstractSlider *slide) :
         WidgetSurface(t, slide), min(0), max(0), value(NULL)
 {

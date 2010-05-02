@@ -342,7 +342,7 @@ void Widget::runProgram()
 
     if (xlProgram)
     {
-        if (Tree *prog = xlProgram->tree.tree)
+        if (Tree_p prog = xlProgram->tree.tree)
         {
             xl_evaluate(prog);
 
@@ -479,8 +479,8 @@ void Widget::copy()
         return;
 
     // Build a single tree from all the selected sub-trees
-    std::set<Tree *>::reverse_iterator i = selectionTrees.rbegin();
-    XL::Tree *tree = (*i++);
+    std::set<Tree_p >::reverse_iterator i = selectionTrees.rbegin();
+    XL::Tree_p tree = (*i++);
     for ( ; i != selectionTrees.rend(); i++)
         tree = new XL::Infix("\n", (*i), tree);
 
@@ -530,7 +530,7 @@ void Widget::paste()
     // De-serialize
     std::istringstream istr(ser);
     XL::Deserializer deserializer(istr);
-    XL::Tree *tree = deserializer.ReadTree();
+    XL::Tree_p tree = deserializer.ReadTree();
     if (!deserializer.IsValid())
         return;
 
@@ -551,8 +551,8 @@ void Widget::paste()
     selectionTrees.clear();
 
     // Make sure the new objects appear selected next time they're drawn
-    XL::Infix *i;
-    XL::Tree  *t = tree;
+    XL::Infix_p i;
+    XL::Tree_p t = tree;
     selectNextTime.clear();
     for (i = tree->AsInfix(); i ; t = i->right, i = i->right->AsInfix())
         selectNextTime.insert(i->left);
@@ -1253,7 +1253,7 @@ void Widget::applyAction(XL::Action &action)
 {
     if (!xlProgram)
         return;
-    Tree *prog = xlProgram->tree.tree;
+    Tree_p prog = xlProgram->tree.tree;
     if (!prog)
         return;
 
@@ -1271,12 +1271,12 @@ void Widget::applyAction(XL::Action &action)
 }
 
 
-void Widget::reloadProgram(XL::Tree *newProg)
+void Widget::reloadProgram(XL::Tree_p newProg)
 // ----------------------------------------------------------------------------
 //   Set the program to reload
 // ----------------------------------------------------------------------------
 {
-    Tree *prog = xlProgram->tree.tree;
+    Tree_p prog = xlProgram->tree.tree;
     if (newProg)
     {
         // Check if we can simply change some parameters in the tree
@@ -1313,7 +1313,7 @@ void Widget::renormalizeProgram()
 // ----------------------------------------------------------------------------
 {
     XL::NormalizedClone norm;
-    Tree *prog = xlProgram->tree.tree;
+    Tree_p prog = xlProgram->tree.tree;
     prog = prog->Do(norm);
     reloadProgram(prog);
 }
@@ -1328,7 +1328,7 @@ void Widget::refreshProgram()
         return;
 
     Repository *repo = repository();
-    Tree *prog = xlProgram->tree.tree;
+    Tree_p prog = xlProgram->tree.tree;
     if (!prog)
         return;
 
@@ -1351,7 +1351,7 @@ void Widget::refreshProgram()
                 IFTRACE(filesync)
                     std::cerr << "File " << fname << " changed\n";
 
-                Tree *replacement = NULL;
+                Tree_p replacement = NULL;
                 if (repo)
                 {
                     replacement = repo->read(fname);
@@ -1439,7 +1439,7 @@ void Widget::markChanged(text reason)
         repo->markChanged(reason);
     if (xlProgram)
     {
-        if (Tree *prog = xlProgram->tree.tree)
+        if (Tree_p prog = xlProgram->tree.tree)
         {
             import_set done;
             ImportedFilesChanged(prog, done, true);
@@ -1535,7 +1535,7 @@ Repository * Widget::repository()
 }
 
 
-XL::Tree *Widget::get(Tree *shape, text name, text topName)
+XL::Tree_p Widget::get(Tree_p shape, text name, text topName)
 // ----------------------------------------------------------------------------
 //   Find an attribute in the current shape or returns NULL
 // ----------------------------------------------------------------------------
@@ -1545,25 +1545,25 @@ XL::Tree *Widget::get(Tree *shape, text name, text topName)
         return NULL;
 
     // The current shape has to be a 'shape' prefix
-    XL::Prefix *shapePrefix = shape->AsPrefix();
+    XL::Prefix_p shapePrefix = shape->AsPrefix();
     if (!shapePrefix)
         return NULL;
-    Name *shapeName = shapePrefix->left->AsName();
+    Name_p shapeName = shapePrefix->left->AsName();
     if (!shapeName || shapeName->value != topName)
         return NULL;
 
     // Take the right child. If it's a block, extract the block
-    Tree *child = shapePrefix->right;
-    if (XL::Block *block = child->AsBlock())
+    Tree_p child = shapePrefix->right;
+    if (XL::Block_p block = child->AsBlock())
         child = block->child;
 
     // Now loop on all statements, looking for the given name
     while (child)
     {
-        Tree *what = child;
+        Tree_p what = child;
 
         // Check if we have \n or ; infix
-        XL::Infix *infix = child->AsInfix();
+        XL::Infix_p infix = child->AsInfix();
         if (infix && (infix->name == "\n" || infix->name == ";"))
         {
             what = infix->left;
@@ -1575,13 +1575,13 @@ XL::Tree *Widget::get(Tree *shape, text name, text topName)
         }
 
         // Analyze what we got here: is it in the form 'funcname args' ?
-        if (XL::Prefix *prefix = what->AsPrefix())
-            if (Name *prefixName = prefix->left->AsName())
+        if (XL::Prefix_p prefix = what->AsPrefix())
+            if (Name_p prefixName = prefix->left->AsName())
                 if (prefixName->value == name)
                     return prefix;
 
         // Is it a name
-        if (Name *singleName = what->AsName())
+        if (Name_p singleName = what->AsName())
             if (singleName->value == name)
                 return singleName;
     }
@@ -1590,7 +1590,7 @@ XL::Tree *Widget::get(Tree *shape, text name, text topName)
 }
 
 
-bool Widget::set(Tree *shape, text name, Tree *value, text topName)
+bool Widget::set(Tree_p shape, text name, Tree_p value, text topName)
 // ----------------------------------------------------------------------------
 //   Set an attribute in the current shape, return true if successful
 // ----------------------------------------------------------------------------
@@ -1600,30 +1600,30 @@ bool Widget::set(Tree *shape, text name, Tree *value, text topName)
         return false;
 
     // The current shape has to be a 'shape' prefix
-    XL::Prefix *shapePrefix = shape->AsPrefix();
+    XL::Prefix_p shapePrefix = shape->AsPrefix();
     if (!shapePrefix)
         return false;
-    Name *shapeName = shapePrefix->left->AsName();
+    Name_p shapeName = shapePrefix->left->AsName();
     if (!shapeName || shapeName->value != topName)
         return false;
 
     // Take the right child. If it's a block, extract the block
-    Tree **addr = &shapePrefix->right;
-    Tree *child = *addr;
-    if (XL::Block *block = child->AsBlock())
+    Tree_p *addr = &shapePrefix->right;
+    Tree_p child = *addr;
+    if (XL::Block_p block = child->AsBlock())
     {
         addr = &block->child;
         child = *addr;
     }
-    Tree **topAddr = addr;
+    Tree_p *topAddr = addr;
 
     // Now loop on all statements, looking for the given name
     while (child)
     {
-        Tree *what = child;
+        Tree_p what = child;
 
         // Check if we have \n or ; infix
-        XL::Infix *infix = child->AsInfix();
+        XL::Infix_p infix = child->AsInfix();
         if (infix && (infix->name == "\n" || infix->name == ";"))
         {
             addr = &infix->left;
@@ -1638,9 +1638,9 @@ bool Widget::set(Tree *shape, text name, Tree *value, text topName)
         // Analyze what we got here: is it in the form 'funcname args' ?
         if (value->AsPrefix())
         {
-            if (XL::Prefix *prefix = what->AsPrefix())
+            if (XL::Prefix_p prefix = what->AsPrefix())
             {
-                if (Name *prefixName = prefix->left->AsName())
+                if (Name_p prefixName = prefix->left->AsName())
                 {
                     if (prefixName->value == name)
                     {
@@ -1656,9 +1656,9 @@ bool Widget::set(Tree *shape, text name, Tree *value, text topName)
                 }
             }
         }
-        else if (Name *newName = value->AsName())
+        else if (Name_p newName = value->AsName())
         {
-            if (Name *stmtName = what->AsName())
+            if (Name_p stmtName = what->AsName())
             {
                 if (stmtName->value == name)
                 {
@@ -1682,13 +1682,13 @@ bool Widget::set(Tree *shape, text name, Tree *value, text topName)
 }
 
 
-bool Widget::get(Tree *shape, text name, XL::tree_list &args, text topName)
+bool Widget::get(Tree_p shape, text name, XL::TreeList &args, text topName)
 // ----------------------------------------------------------------------------
 //   Get the arguments, decomposing args in a comma-separated list
 // ----------------------------------------------------------------------------
 {
     // Check if we can get the tree
-    Tree *attrib = get(shape, name, topName);
+    Tree_p attrib = get(shape, name, topName);
     if (!attrib)
         return false;
 
@@ -1698,13 +1698,13 @@ bool Widget::get(Tree *shape, text name, XL::tree_list &args, text topName)
         return true;
 
     // Check that we have a prefix
-    XL::Prefix *prefix = attrib->AsPrefix();
+    XL::Prefix_p prefix = attrib->AsPrefix();
     if (!prefix)
         return false;           // ??? This shouldn't happen
 
     // Get attribute arguments and decompose them into 'args'
-    Tree *argsTree = prefix->right;
-    while (XL::Infix *infix = argsTree->AsInfix())
+    Tree_p argsTree = prefix->right;
+    while (XL::Infix_p infix = argsTree->AsInfix())
     {
         if (infix->name != ",")
             break;
@@ -1719,15 +1719,15 @@ bool Widget::get(Tree *shape, text name, XL::tree_list &args, text topName)
 }
 
 
-bool Widget::set(Tree *shape, text name, XL::tree_list &args, text topName)
+bool Widget::set(Tree_p shape, text name, XL::TreeList &args, text topName)
 // ----------------------------------------------------------------------------
 //   Set the arguments, building the comma-separated list
 // ----------------------------------------------------------------------------
 {
-    Tree *call = new XL::Name(name);
+    Tree_p call = new XL::Name(name);
     if (uint arity = args.size())
     {
-        Tree *argsTree = args[0];
+        Tree_p argsTree = args[0];
         for (uint a = 1; a < arity; a++)
             argsTree = new XL::Infix(",", argsTree, args[a]);
         call = new XL::Prefix(call, argsTree);
@@ -1737,26 +1737,26 @@ bool Widget::set(Tree *shape, text name, XL::tree_list &args, text topName)
 }
 
 
-bool Widget::get(Tree *shape, text name, attribute_args &args, text topName)
+bool Widget::get(Tree_p shape, text name, attribute_args &args, text topName)
 // ----------------------------------------------------------------------------
 //   Get the arguments, decomposing args in a comma-separated list
 // ----------------------------------------------------------------------------
 {
     // Get the trees
-    XL::tree_list treeArgs;
+    XL::TreeList treeArgs;
     if (!get(shape, name, treeArgs, topName))
         return false;
 
     // Convert from integer or tree values
-    XL::tree_list::iterator i;
+    XL::TreeList::iterator i;
     for (i = treeArgs.begin(); i != treeArgs.end(); i++)
     {
-        Tree *arg = *i;
+        Tree_p arg = *i;
         if (!arg->IsConstant())
             arg = xl_evaluate(arg);
-        if (XL::Real *asReal = arg->AsReal())
+        if (XL::Real_p asReal = arg->AsReal())
             args.push_back(asReal->value);
-        else if (XL::Integer *asInteger = arg->AsInteger())
+        else if (XL::Integer_p asInteger = arg->AsInteger())
             args.push_back(asInteger->value);
         else return false;
     }
@@ -1765,15 +1765,15 @@ bool Widget::get(Tree *shape, text name, attribute_args &args, text topName)
 }
 
 
-bool Widget::set(Tree *shape, text name, attribute_args &args, text topName)
+bool Widget::set(Tree_p shape, text name, attribute_args &args, text topName)
 // ----------------------------------------------------------------------------
 //   Set the arguments, building the comma-separated list
 // ----------------------------------------------------------------------------
 {
-    Tree *call = new XL::Name(name);
+    Tree_p call = new XL::Name(name);
     if (uint arity = args.size())
     {
-        Tree *argsTree = new XL::Real(args[0]);
+        Tree_p argsTree = new XL::Real(args[0]);
         for (uint a = 1; a < arity; a++)
             argsTree = new XL::Infix(",", argsTree, new XL::Real(args[a]));
         call = new XL::Prefix(call, argsTree);
@@ -2038,7 +2038,7 @@ void Widget::drawHandle(const Point3 &p, text handleName)
 Widget *Widget::current = NULL;
 typedef XL::Tree Tree;
 
-XL::Text *Widget::page(Tree *self, text name, Tree *body)
+XL::Text_p Widget::page(Tree_p self, text name, Tree_p body)
 // ----------------------------------------------------------------------------
 //   Start a new page, returns the previously named page
 // ----------------------------------------------------------------------------
@@ -2074,7 +2074,7 @@ XL::Text *Widget::page(Tree *self, text name, Tree *body)
 }
 
 
-XL::Text *Widget::pageLink(Tree *self, text key, text name)
+XL::Text_p Widget::pageLink(Tree_p self, text key, text name)
 // ----------------------------------------------------------------------------
 //   Indicate the chaining of pages, returns previous information
 // ----------------------------------------------------------------------------
@@ -2085,7 +2085,7 @@ XL::Text *Widget::pageLink(Tree *self, text key, text name)
 }
 
 
-XL::Text *Widget::pageLabel(Tree *self)
+XL::Text_p Widget::pageLabel(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the label of the current page
 // ----------------------------------------------------------------------------
@@ -2094,7 +2094,7 @@ XL::Text *Widget::pageLabel(Tree *self)
 }
 
 
-XL::Integer *Widget::pageNumber(Tree *self)
+XL::Integer_p Widget::pageNumber(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the number of the current page
 // ----------------------------------------------------------------------------
@@ -2103,7 +2103,7 @@ XL::Integer *Widget::pageNumber(Tree *self)
 }
 
 
-XL::Integer *Widget::pageCount(Tree *self)
+XL::Integer_p Widget::pageCount(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the number of pages in the current document
 // ----------------------------------------------------------------------------
@@ -2112,7 +2112,7 @@ XL::Integer *Widget::pageCount(Tree *self)
 }
 
 
-XL::Real *Widget::pageWidth(Tree *self)
+XL::Real_p Widget::pageWidth(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the width of the page
 // ----------------------------------------------------------------------------
@@ -2121,7 +2121,7 @@ XL::Real *Widget::pageWidth(Tree *self)
 }
 
 
-XL::Real *Widget::pageHeight(Tree *self)
+XL::Real_p Widget::pageHeight(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the height of the page
 // ----------------------------------------------------------------------------
@@ -2130,7 +2130,7 @@ XL::Real *Widget::pageHeight(Tree *self)
 }
 
 
-XL::Real *Widget::frameWidth(Tree *self)
+XL::Real_p Widget::frameWidth(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the width of the current layout frame
 // ----------------------------------------------------------------------------
@@ -2139,7 +2139,7 @@ XL::Real *Widget::frameWidth(Tree *self)
 }
 
 
-XL::Real *Widget::frameHeight(Tree *self)
+XL::Real_p Widget::frameHeight(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the height of the current layout frame
 // ----------------------------------------------------------------------------
@@ -2148,7 +2148,7 @@ XL::Real *Widget::frameHeight(Tree *self)
 }
 
 
-XL::Real *Widget::frameDepth(Tree *self)
+XL::Real_p Widget::frameDepth(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the depth of the current layout frame
 // ----------------------------------------------------------------------------
@@ -2157,7 +2157,7 @@ XL::Real *Widget::frameDepth(Tree *self)
 }
 
 
-XL::Real *Widget::windowWidth(Tree *self)
+XL::Real_p Widget::windowWidth(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the width of the window in which we display
 // ----------------------------------------------------------------------------
@@ -2166,7 +2166,7 @@ XL::Real *Widget::windowWidth(Tree *self)
 }
 
 
-XL::Real *Widget::windowHeight(Tree *self)
+XL::Real_p Widget::windowHeight(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the height of window in which we display
 // ----------------------------------------------------------------------------
@@ -2175,7 +2175,7 @@ XL::Real *Widget::windowHeight(Tree *self)
 }
 
 
-XL::Real *Widget::time(Tree *self)
+XL::Real_p Widget::time(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return a fractional time, including milliseconds
 // ----------------------------------------------------------------------------
@@ -2187,7 +2187,7 @@ XL::Real *Widget::time(Tree *self)
 }
 
 
-XL::Real *Widget::pageTime(Tree *self)
+XL::Real_p Widget::pageTime(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return a fractional time, including milliseconds
 // ----------------------------------------------------------------------------
@@ -2199,30 +2199,30 @@ XL::Real *Widget::pageTime(Tree *self)
 }
 
 
-Tree *Widget::locally(Tree *self, Tree *child)
+Tree_p Widget::locally(Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree while preserving the current state
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> save(layout, layout->AddChild(layout->id));
-    Tree *result = xl_evaluate(child);
+    Tree_p result = xl_evaluate(child);
     return result;
 }
 
 
-Tree *Widget::shape(Tree *self, Tree *child)
+Tree_p Widget::shape(Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child and mark the current shape
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(newId()));
-    XL::LocalSave<Tree *>   saveShape (currentShape, self);
+    XL::LocalSave<Tree_p >   saveShape (currentShape, self);
     if (selectNextTime.count(self))
     {
         selection[id]++;
         selectNextTime.erase(self);
     }
-    Tree *result = xl_evaluate(child);
+    Tree_p result = xl_evaluate(child);
     return result;
 }
 
@@ -2230,7 +2230,7 @@ Tree *Widget::shape(Tree *self, Tree *child)
 static inline XL::Real &r(double x) { return *new XL::Real(x); }
 
 
-Tree *Widget::rotatex(Tree *self, real_r rx)
+Tree_p Widget::rotatex(Tree_p self, real_r rx)
 // ----------------------------------------------------------------------------
 //   Rotate around X
 // ----------------------------------------------------------------------------
@@ -2239,7 +2239,7 @@ Tree *Widget::rotatex(Tree *self, real_r rx)
 }
 
 
-Tree *Widget::rotatey(Tree *self, real_r ry)
+Tree_p Widget::rotatey(Tree_p self, real_r ry)
 // ----------------------------------------------------------------------------
 //   Rotate around Y
 // ----------------------------------------------------------------------------
@@ -2248,7 +2248,7 @@ Tree *Widget::rotatey(Tree *self, real_r ry)
 }
 
 
-Tree *Widget::rotatez(Tree *self, real_r rz)
+Tree_p Widget::rotatez(Tree_p self, real_r rz)
 // ----------------------------------------------------------------------------
 //   Rotate around Z
 // ----------------------------------------------------------------------------
@@ -2257,7 +2257,7 @@ Tree *Widget::rotatez(Tree *self, real_r rz)
 }
 
 
-Tree *Widget::rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz)
+Tree_p Widget::rotate(Tree_p self, real_r ra, real_r rx, real_r ry, real_r rz)
 // ----------------------------------------------------------------------------
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
@@ -2268,7 +2268,7 @@ Tree *Widget::rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz)
 }
 
 
-Tree *Widget::translatex(Tree *self, real_r x)
+Tree_p Widget::translatex(Tree_p self, real_r x)
 // ----------------------------------------------------------------------------
 //   Translate along X
 // ----------------------------------------------------------------------------
@@ -2277,7 +2277,7 @@ Tree *Widget::translatex(Tree *self, real_r x)
 }
 
 
-Tree *Widget::translatey(Tree *self, real_r y)
+Tree_p Widget::translatey(Tree_p self, real_r y)
 // ----------------------------------------------------------------------------
 //   Translate along Y
 // ----------------------------------------------------------------------------
@@ -2286,7 +2286,7 @@ Tree *Widget::translatey(Tree *self, real_r y)
 }
 
 
-Tree *Widget::translatez(Tree *self, real_r z)
+Tree_p Widget::translatez(Tree_p self, real_r z)
 // ----------------------------------------------------------------------------
 //   Translate along Z
 // ----------------------------------------------------------------------------
@@ -2295,7 +2295,7 @@ Tree *Widget::translatez(Tree *self, real_r z)
 }
 
 
-Tree *Widget::translate(Tree *self, real_r tx, real_r ty, real_r tz)
+Tree_p Widget::translate(Tree_p self, real_r tx, real_r ty, real_r tz)
 // ----------------------------------------------------------------------------
 //     Translation along three axes
 // ----------------------------------------------------------------------------
@@ -2306,7 +2306,7 @@ Tree *Widget::translate(Tree *self, real_r tx, real_r ty, real_r tz)
 }
 
 
-Tree *Widget::rescalex(Tree *self, real_r x)
+Tree_p Widget::rescalex(Tree_p self, real_r x)
 // ----------------------------------------------------------------------------
 //   Rescale along X
 // ----------------------------------------------------------------------------
@@ -2315,7 +2315,7 @@ Tree *Widget::rescalex(Tree *self, real_r x)
 }
 
 
-Tree *Widget::rescaley(Tree *self, real_r y)
+Tree_p Widget::rescaley(Tree_p self, real_r y)
 // ----------------------------------------------------------------------------
 //   Rescale along Y
 // ----------------------------------------------------------------------------
@@ -2324,7 +2324,7 @@ Tree *Widget::rescaley(Tree *self, real_r y)
 }
 
 
-Tree *Widget::rescalez(Tree *self, real_r z)
+Tree_p Widget::rescalez(Tree_p self, real_r z)
 // ----------------------------------------------------------------------------
 //   Rescale along Z
 // ----------------------------------------------------------------------------
@@ -2333,7 +2333,7 @@ Tree *Widget::rescalez(Tree *self, real_r z)
 }
 
 
-Tree *Widget::rescale(Tree *self, real_r sx, real_r sy, real_r sz)
+Tree_p Widget::rescale(Tree_p self, real_r sx, real_r sy, real_r sz)
 // ----------------------------------------------------------------------------
 //     Scaling along three axes
 // ----------------------------------------------------------------------------
@@ -2344,7 +2344,7 @@ Tree *Widget::rescale(Tree *self, real_r sx, real_r sy, real_r sz)
 }
 
 
-XL::Name *Widget::depthTest(XL::Tree *self, bool enable)
+XL::Name_p Widget::depthTest(XL::Tree_p self, bool enable)
 // ----------------------------------------------------------------------------
 //   Change the delta we use for the depth
 // ----------------------------------------------------------------------------
@@ -2359,7 +2359,7 @@ XL::Name *Widget::depthTest(XL::Tree *self, bool enable)
 }
 
 
-Tree *Widget::refresh(Tree *self, double delay)
+Tree_p Widget::refresh(Tree_p self, double delay)
 // ----------------------------------------------------------------------------
 //    Refresh after the given number of seconds
 // ----------------------------------------------------------------------------
@@ -2368,7 +2368,7 @@ Tree *Widget::refresh(Tree *self, double delay)
 }
 
 
-XL::Name *Widget::fullScreen(XL::Tree *self, bool fs)
+XL::Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
 // ----------------------------------------------------------------------------
 //   Switch to full screen
 // ----------------------------------------------------------------------------
@@ -2380,7 +2380,7 @@ XL::Name *Widget::fullScreen(XL::Tree *self, bool fs)
 }
 
 
-XL::Name *Widget::enableAnimations(XL::Tree *self, bool fs)
+XL::Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
 // ----------------------------------------------------------------------------
 //   Enable or disable animations
 // ----------------------------------------------------------------------------
@@ -2393,7 +2393,7 @@ XL::Name *Widget::enableAnimations(XL::Tree *self, bool fs)
 }
 
 
-XL::Name *Widget::toggleFullScreen(XL::Tree *self)
+XL::Name_p Widget::toggleFullScreen(XL::Tree_p self)
 // ----------------------------------------------------------------------------
 //   Switch to full screen
 // ----------------------------------------------------------------------------
@@ -2402,7 +2402,7 @@ XL::Name *Widget::toggleFullScreen(XL::Tree *self)
 }
 
 
-XL::Integer * Widget::polygonOffset(Tree *self,
+XL::Integer_p  Widget::polygonOffset(Tree_p self,
                                     double f0, double f1,
                                     double u0, double u1)
 // ----------------------------------------------------------------------------
@@ -2417,7 +2417,7 @@ XL::Integer * Widget::polygonOffset(Tree *self,
 }
 
 
-Tree *Widget::lineColor(Tree *self, double r, double g, double b, double a)
+Tree_p Widget::lineColor(Tree_p self, double r, double g, double b, double a)
 // ----------------------------------------------------------------------------
 //    Set the RGBA color for lines
 // ----------------------------------------------------------------------------
@@ -2427,7 +2427,7 @@ Tree *Widget::lineColor(Tree *self, double r, double g, double b, double a)
 }
 
 
-Tree *Widget::lineWidth(Tree *self, double lw)
+Tree_p Widget::lineWidth(Tree_p self, double lw)
 // ----------------------------------------------------------------------------
 //    Select the line width for OpenGL
 // ----------------------------------------------------------------------------
@@ -2438,7 +2438,7 @@ Tree *Widget::lineWidth(Tree *self, double lw)
 }
 
 
-Tree *Widget::lineStipple(Tree *self, uint16 pattern, uint16 scale)
+Tree_p Widget::lineStipple(Tree_p self, uint16 pattern, uint16 scale)
 // ----------------------------------------------------------------------------
 //    Select the line stipple pattern for OpenGL
 // ----------------------------------------------------------------------------
@@ -2449,7 +2449,7 @@ Tree *Widget::lineStipple(Tree *self, uint16 pattern, uint16 scale)
 }
 
 
-Tree *Widget::fillColor(Tree *self, double r, double g, double b, double a)
+Tree_p Widget::fillColor(Tree_p self, double r, double g, double b, double a)
 // ----------------------------------------------------------------------------
 //    Set the RGBA color for fill
 // ----------------------------------------------------------------------------
@@ -2459,7 +2459,7 @@ Tree *Widget::fillColor(Tree *self, double r, double g, double b, double a)
 }
 
 
-Tree *Widget::fillTexture(Tree *self, text img)
+Tree_p Widget::fillTexture(Tree_p self, text img)
 // ----------------------------------------------------------------------------
 //     Build a GL texture out of an image file
 // ----------------------------------------------------------------------------
@@ -2483,7 +2483,7 @@ Tree *Widget::fillTexture(Tree *self, text img)
 }
 
 
-Tree *Widget::fillTextureFromSVG(Tree *self, text img)
+Tree_p Widget::fillTextureFromSVG(Tree_p self, text img)
 // ----------------------------------------------------------------------------
 //    Draw an image in SVG format
 // ----------------------------------------------------------------------------
@@ -2507,7 +2507,7 @@ Tree *Widget::fillTextureFromSVG(Tree *self, text img)
 }
 
 
-Tree *Widget::image(Tree *self, real_r x, real_r y, real_r w, real_r h,
+Tree_p Widget::image(Tree_p self, real_r x, real_r y, real_r w, real_r h,
                     text filename)
 //----------------------------------------------------------------------------
 //  Make an image
@@ -2549,7 +2549,7 @@ Tree *Widget::image(Tree *self, real_r x, real_r y, real_r w, real_r h,
 //
 // ============================================================================
 
-Tree *Widget::newPath(Tree *self, Tree *child)
+Tree_p Widget::newPath(Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree within a polygon
 // ----------------------------------------------------------------------------
@@ -2560,12 +2560,12 @@ Tree *Widget::newPath(Tree *self, Tree *child)
     TesselatedPath *localPath = new TesselatedPath(GLU_TESS_WINDING_ODD);
     XL::LocalSave<GraphicPath *> save(path, localPath);
     layout->Add(localPath);
-    Tree *result = xl_evaluate(child);
+    Tree_p result = xl_evaluate(child);
     return result;
 }
 
 
-Tree *Widget::moveTo(Tree *self, real_r x, real_r y, real_r z)
+Tree_p Widget::moveTo(Tree_p self, real_r x, real_r y, real_r z)
 // ----------------------------------------------------------------------------
 //    Add a 'moveTo' to the current path
 // ----------------------------------------------------------------------------
@@ -2583,7 +2583,7 @@ Tree *Widget::moveTo(Tree *self, real_r x, real_r y, real_r z)
 }
 
 
-Tree *Widget::lineTo(Tree *self, real_r x, real_r y, real_r z)
+Tree_p Widget::lineTo(Tree_p self, real_r x, real_r y, real_r z)
 // ----------------------------------------------------------------------------
 //    Add a 'lineTo' to the current path
 // ----------------------------------------------------------------------------
@@ -2596,7 +2596,7 @@ Tree *Widget::lineTo(Tree *self, real_r x, real_r y, real_r z)
 }
 
 
-Tree *Widget::curveTo(Tree *self,
+Tree_p Widget::curveTo(Tree_p self,
                       real_r cx, real_r cy, real_r cz,
                       real_r x, real_r y, real_r z)
 // ----------------------------------------------------------------------------
@@ -2612,7 +2612,7 @@ Tree *Widget::curveTo(Tree *self,
 }
 
 
-Tree *Widget::curveTo(Tree *self,
+Tree_p Widget::curveTo(Tree_p self,
                       real_r c1x, real_r c1y, real_r c1z,
                       real_r c2x, real_r c2y, real_r c2z,
                       real_r x, real_r y, real_r z)
@@ -2630,7 +2630,7 @@ Tree *Widget::curveTo(Tree *self,
 }
 
 
-Tree *Widget::moveToRel(Tree *self, real_r x, real_r y, real_r z)
+Tree_p Widget::moveToRel(Tree_p self, real_r x, real_r y, real_r z)
 // ----------------------------------------------------------------------------
 //    Add a relative moveTo
 // ----------------------------------------------------------------------------
@@ -2648,7 +2648,7 @@ Tree *Widget::moveToRel(Tree *self, real_r x, real_r y, real_r z)
 }
 
 
-Tree *Widget::lineToRel(Tree *self, real_r x, real_r y, real_r z)
+Tree_p Widget::lineToRel(Tree_p self, real_r x, real_r y, real_r z)
 // ----------------------------------------------------------------------------
 //    Add a 'lineTo' to the current path
 // ----------------------------------------------------------------------------
@@ -2661,7 +2661,7 @@ Tree *Widget::lineToRel(Tree *self, real_r x, real_r y, real_r z)
 }
 
 
-Tree *Widget::pathTextureCoord(Tree *self, real_r x, real_r y, real_r r)
+Tree_p Widget::pathTextureCoord(Tree_p self, real_r x, real_r y, real_r r)
 // ----------------------------------------------------------------------------
 //    Add a texture coordinate to the path
 // ----------------------------------------------------------------------------
@@ -2670,7 +2670,7 @@ Tree *Widget::pathTextureCoord(Tree *self, real_r x, real_r y, real_r r)
 }
 
 
-Tree *Widget::pathColor(Tree *self, real_r r, real_r g, real_r b, real_r a)
+Tree_p Widget::pathColor(Tree_p self, real_r r, real_r g, real_r b, real_r a)
 // ----------------------------------------------------------------------------
 //   Add a color element to the path
 // ----------------------------------------------------------------------------
@@ -2679,7 +2679,7 @@ Tree *Widget::pathColor(Tree *self, real_r r, real_r g, real_r b, real_r a)
 }
 
 
-Tree *Widget::closePath(Tree *self)
+Tree_p Widget::closePath(Tree_p self)
 // ----------------------------------------------------------------------------
 //    Close the path back to its origin
 // ----------------------------------------------------------------------------
@@ -2698,7 +2698,7 @@ Tree *Widget::closePath(Tree *self)
 //
 // ============================================================================
 
-Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
+Tree_p Widget::rectangle(Tree_p self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //    Draw a rectangle
 // ----------------------------------------------------------------------------
@@ -2716,7 +2716,7 @@ Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 }
 
 
-Tree *Widget::isoscelesTriangle(Tree *self,
+Tree_p Widget::isoscelesTriangle(Tree_p self,
                                 real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //    Draw an isosceles triangle
@@ -2735,7 +2735,7 @@ Tree *Widget::isoscelesTriangle(Tree *self,
 }
 
 
-Tree *Widget::rightTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
+Tree_p Widget::rightTriangle(Tree_p self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //    Draw a right triangle
 // ----------------------------------------------------------------------------
@@ -2753,7 +2753,7 @@ Tree *Widget::rightTriangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 }
 
 
-Tree *Widget::ellipse(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
+Tree_p Widget::ellipse(Tree_p self, real_r cx, real_r cy, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //   Circle centered around (cx,cy), size w * h
 // ----------------------------------------------------------------------------
@@ -2771,7 +2771,7 @@ Tree *Widget::ellipse(Tree *self, real_r cx, real_r cy, real_r w, real_r h)
 }
 
 
-Tree *Widget::ellipseArc(Tree *self,
+Tree_p Widget::ellipseArc(Tree_p self,
                          real_r cx, real_r cy, real_r w, real_r h,
                          real_r start, real_r sweep)
 // ----------------------------------------------------------------------------
@@ -2791,7 +2791,7 @@ Tree *Widget::ellipseArc(Tree *self,
 }
 
 
-Tree *Widget::roundedRectangle(Tree *self,
+Tree_p Widget::roundedRectangle(Tree_p self,
                                real_r cx, real_r cy,
                                real_r w, real_r h, real_r r)
 // ----------------------------------------------------------------------------
@@ -2812,7 +2812,7 @@ Tree *Widget::roundedRectangle(Tree *self,
 }
 
 
-Tree *Widget::ellipticalRectangle(Tree *self,
+Tree_p Widget::ellipticalRectangle(Tree_p self,
                                   real_r cx, real_r cy,
                                   real_r w, real_r h, real_r r)
 // ----------------------------------------------------------------------------
@@ -2833,7 +2833,7 @@ Tree *Widget::ellipticalRectangle(Tree *self,
 }
 
 
-Tree *Widget::arrow(Tree *self,
+Tree_p Widget::arrow(Tree_p self,
                     real_r cx, real_r cy, real_r w, real_r h,
                     real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
@@ -2853,7 +2853,7 @@ Tree *Widget::arrow(Tree *self,
 }
 
 
-Tree *Widget::doubleArrow(Tree *self,
+Tree_p Widget::doubleArrow(Tree_p self,
                           real_r cx, real_r cy, real_r w, real_r h,
                           real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
@@ -2873,7 +2873,7 @@ Tree *Widget::doubleArrow(Tree *self,
 }
 
 
-Tree *Widget::starPolygon(Tree *self,
+Tree_p Widget::starPolygon(Tree_p self,
                           real_r cx, real_r cy, real_r w, real_r h,
                           integer_r p, integer_r q)
 // ----------------------------------------------------------------------------
@@ -2893,7 +2893,7 @@ Tree *Widget::starPolygon(Tree *self,
 }
 
 
-Tree *Widget::star(Tree *self,
+Tree_p Widget::star(Tree_p self,
                    real_r cx, real_r cy, real_r w, real_r h,
                    integer_r p, real_r r)
 // ----------------------------------------------------------------------------
@@ -2913,7 +2913,7 @@ Tree *Widget::star(Tree *self,
 }
 
 
-Tree *Widget::speechBalloon(Tree *self,
+Tree_p Widget::speechBalloon(Tree_p self,
                             real_r cx, real_r cy, real_r w, real_r h,
                             real_r r, real_r ax, real_r ay)
 // ----------------------------------------------------------------------------
@@ -2933,7 +2933,7 @@ Tree *Widget::speechBalloon(Tree *self,
 }
 
 
-Tree *Widget::callout(Tree *self,
+Tree_p Widget::callout(Tree_p self,
                       real_r cx, real_r cy, real_r w, real_r h,
                       real_r r, real_r ax, real_r ay, real_r d)
 // ----------------------------------------------------------------------------
@@ -2955,7 +2955,7 @@ Tree *Widget::callout(Tree *self,
 }
 
 
-XL::Tree *Widget::debugBinPacker(Tree *self, uint w, uint h, Tree *t)
+XL::Tree_p Widget::debugBinPacker(Tree_p self, uint w, uint h, Tree_p t)
 // ----------------------------------------------------------------------------
 //   Debug the bin packer
 // ----------------------------------------------------------------------------
@@ -2968,7 +2968,7 @@ XL::Tree *Widget::debugBinPacker(Tree *self, uint w, uint h, Tree *t)
         BinPackerTest(GraphicPath *path, BinPacker &bp)
             : path(path), bp(bp), w(0) {}
 
-        virtual Tree *Do (Tree *what) { return what; }
+        virtual Tree_p Do (Tree_p what) { return what; }
         void Allocate(uint w, uint h)
         {
             BinPacker::Rect rect;
@@ -2987,7 +2987,7 @@ XL::Tree *Widget::debugBinPacker(Tree *self, uint w, uint h, Tree *t)
             path->lineTo(Point3(rect.x2, rect.y1, 0));
             path->close();
         }
-        XL::Integer *DoInteger (XL::Integer *what)
+        XL::Integer_p DoInteger (XL::Integer_p what)
         {
             if (!w)
             {
@@ -3000,7 +3000,7 @@ XL::Tree *Widget::debugBinPacker(Tree *self, uint w, uint h, Tree *t)
             }
             return what;
         }
-        XL::Text *DoText(XL::Text *what)
+        XL::Text_p DoText(XL::Text_p what)
         {
             QFont font(+what->value, w ? w : -1);
             QFontMetrics fm(font);
@@ -3025,7 +3025,7 @@ XL::Tree *Widget::debugBinPacker(Tree *self, uint w, uint h, Tree *t)
 
 
 double debugX = 0, debugY = 0, debugW = 0, debugH = 0;
-XL::Tree *Widget::debugParameters(Tree *self,
+XL::Tree_p Widget::debugParameters(Tree_p self,
                                   double x, double y,
                                   double w, double h)
 // ----------------------------------------------------------------------------
@@ -3047,7 +3047,7 @@ XL::Tree *Widget::debugParameters(Tree *self,
 //
 // ============================================================================
 
-Tree *Widget::sphere(Tree *self,
+Tree_p Widget::sphere(Tree_p self,
                      real_r x, real_r y, real_r z,
                      real_r w, real_r h, real_r d,
                      integer_r slices, integer_r stacks)
@@ -3062,7 +3062,7 @@ Tree *Widget::sphere(Tree *self,
 }
 
 
-Tree *Widget::cube(Tree *self,
+Tree_p Widget::cube(Tree_p self,
                    real_r x, real_r y, real_r z,
                    real_r w, real_r h, real_r d)
 // ----------------------------------------------------------------------------
@@ -3076,7 +3076,7 @@ Tree *Widget::cube(Tree *self,
 }
 
 
-Tree *Widget::cone(Tree *self,
+Tree_p Widget::cone(Tree_p self,
                    real_r x, real_r y, real_r z,
                    real_r w, real_r h, real_r d)
 // ----------------------------------------------------------------------------
@@ -3097,8 +3097,8 @@ Tree *Widget::cone(Tree *self,
 //
 // ============================================================================
 
-Tree * Widget::textBox(Tree *self,
-                       real_r x, real_r y, real_r w, real_r h, Tree *prog)
+Tree_p  Widget::textBox(Tree_p self,
+                       real_r x, real_r y, real_r w, real_r h, Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Create a new page layout and render text in it
 // ----------------------------------------------------------------------------
@@ -3119,7 +3119,7 @@ Tree * Widget::textBox(Tree *self,
 }
 
 
-Tree *Widget::textOverflow(Tree *self,
+Tree_p Widget::textOverflow(Tree_p self,
                            real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //   Overflow text box for the rest of the current text flow
@@ -3136,7 +3136,7 @@ Tree *Widget::textOverflow(Tree *self,
 }
 
 
-XL::Text *Widget::textFlow(Tree *self, text name)
+XL::Text_p Widget::textFlow(Tree_p self, text name)
 // ----------------------------------------------------------------------------
 //    Set the name of the current text flow
 // ----------------------------------------------------------------------------
@@ -3147,7 +3147,7 @@ XL::Text *Widget::textFlow(Tree *self, text name)
 }
 
 
-Tree *Widget::textSpan(Tree *self, text_r contents)
+Tree_p Widget::textSpan(Tree_p self, text_r contents)
 // ----------------------------------------------------------------------------
 //   Insert a block of text with the current definition of font, color, ...
 // ----------------------------------------------------------------------------
@@ -3160,7 +3160,7 @@ Tree *Widget::textSpan(Tree *self, text_r contents)
 }
 
 
-Tree *Widget::font(Tree *self, text description)
+Tree_p Widget::font(Tree_p self, text description)
 // ----------------------------------------------------------------------------
 //   Select a font family
 // ----------------------------------------------------------------------------
@@ -3171,7 +3171,7 @@ Tree *Widget::font(Tree *self, text description)
 }
 
 
-Tree *Widget::fontSize(Tree *self, double size)
+Tree_p Widget::fontSize(Tree_p self, double size)
 // ----------------------------------------------------------------------------
 //   Select a font size
 // ----------------------------------------------------------------------------
@@ -3182,7 +3182,7 @@ Tree *Widget::fontSize(Tree *self, double size)
 }
 
 
-Tree *Widget::fontScaling(Tree *self, double scaling, double minAASize)
+Tree_p Widget::fontScaling(Tree_p self, double scaling, double minAASize)
 // ----------------------------------------------------------------------------
 //   Change the font scaling factor
 // ----------------------------------------------------------------------------
@@ -3198,7 +3198,7 @@ Tree *Widget::fontScaling(Tree *self, double scaling, double minAASize)
 }
 
 
-Tree *Widget::fontPlain(Tree *self)
+Tree_p Widget::fontPlain(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Select whether this is italic or not
 // ----------------------------------------------------------------------------
@@ -3226,7 +3226,7 @@ static inline scale clamp(scale value, scale min, scale max)
 }
 
 
-Tree *Widget::fontItalic(Tree *self, scale amount)
+Tree_p Widget::fontItalic(Tree_p self, scale amount)
 // ----------------------------------------------------------------------------
 //   Select whether this is italic or not
 // ----------------------------------------------------------------------------
@@ -3239,7 +3239,7 @@ Tree *Widget::fontItalic(Tree *self, scale amount)
 }
 
 
-Tree *Widget::fontBold(Tree *self, scale amount)
+Tree_p Widget::fontBold(Tree_p self, scale amount)
 // ----------------------------------------------------------------------------
 //   Select whether the font is bold or not
 // ----------------------------------------------------------------------------
@@ -3252,7 +3252,7 @@ Tree *Widget::fontBold(Tree *self, scale amount)
 }
 
 
-Tree *Widget::fontUnderline(Tree *self, scale amount)
+Tree_p Widget::fontUnderline(Tree_p self, scale amount)
 // ----------------------------------------------------------------------------
 //    Select whether we underline a font
 // ----------------------------------------------------------------------------
@@ -3264,7 +3264,7 @@ Tree *Widget::fontUnderline(Tree *self, scale amount)
 }
 
 
-Tree *Widget::fontOverline(Tree *self, scale amount)
+Tree_p Widget::fontOverline(Tree_p self, scale amount)
 // ----------------------------------------------------------------------------
 //    Select whether we draw an overline
 // ----------------------------------------------------------------------------
@@ -3276,7 +3276,7 @@ Tree *Widget::fontOverline(Tree *self, scale amount)
 }
 
 
-Tree *Widget::fontStrikeout(Tree *self, scale amount)
+Tree_p Widget::fontStrikeout(Tree_p self, scale amount)
 // ----------------------------------------------------------------------------
 //    Select whether we strikeout a font
 // ----------------------------------------------------------------------------
@@ -3288,7 +3288,7 @@ Tree *Widget::fontStrikeout(Tree *self, scale amount)
 }
 
 
-Tree *Widget::fontStretch(Tree *self, scale amount)
+Tree_p Widget::fontStretch(Tree_p self, scale amount)
 // ----------------------------------------------------------------------------
 //    Set font stretching factor
 // ----------------------------------------------------------------------------
@@ -3316,7 +3316,7 @@ static inline JustificationChange::Axis jaxis(uint a)
 }
 
 
-Tree *Widget::justify(Tree *self, scale amount, uint axis)
+Tree_p Widget::justify(Tree_p self, scale amount, uint axis)
 // ----------------------------------------------------------------------------
 //   Change justification along the given axis
 // ----------------------------------------------------------------------------
@@ -3326,7 +3326,7 @@ Tree *Widget::justify(Tree *self, scale amount, uint axis)
 }
 
 
-Tree *Widget::center(Tree *self, scale amount, uint axis)
+Tree_p Widget::center(Tree_p self, scale amount, uint axis)
 // ----------------------------------------------------------------------------
 //   Change centering along the given axis
 // ----------------------------------------------------------------------------
@@ -3336,7 +3336,7 @@ Tree *Widget::center(Tree *self, scale amount, uint axis)
 }
 
 
-Tree *Widget::spread(Tree *self, scale amount, uint axis)
+Tree_p Widget::spread(Tree_p self, scale amount, uint axis)
 // ----------------------------------------------------------------------------
 //   Change the spread along the given axis
 // ----------------------------------------------------------------------------
@@ -3346,7 +3346,7 @@ Tree *Widget::spread(Tree *self, scale amount, uint axis)
 }
 
 
-Tree *Widget::spacing(Tree *self, scale amount, uint axis)
+Tree_p Widget::spacing(Tree_p self, scale amount, uint axis)
 // ----------------------------------------------------------------------------
 //   Change the spacing along the given axis
 // ----------------------------------------------------------------------------
@@ -3356,7 +3356,7 @@ Tree *Widget::spacing(Tree *self, scale amount, uint axis)
 }
 
 
-Tree *Widget::drawingBreak(Tree *self, Drawing::BreakOrder order)
+Tree_p Widget::drawingBreak(Tree_p self, Drawing::BreakOrder order)
 // ----------------------------------------------------------------------------
 //   Change the spacing along the given axis
 // ----------------------------------------------------------------------------
@@ -3366,7 +3366,7 @@ Tree *Widget::drawingBreak(Tree *self, Drawing::BreakOrder order)
 }
 
 
-XL::Name *Widget::textEditKey(Tree *self, text key)
+XL::Name_p Widget::textEditKey(Tree_p self, text key)
 // ----------------------------------------------------------------------------
 //   Send a key to the activities
 // ----------------------------------------------------------------------------
@@ -3397,7 +3397,7 @@ XL::Name *Widget::textEditKey(Tree *self, text key)
 //
 // ============================================================================
 
-Tree *Widget::status(Tree *self, text caption)
+Tree_p Widget::status(Tree_p self, text caption)
 // ----------------------------------------------------------------------------
 //   Set the status line of the window
 // ----------------------------------------------------------------------------
@@ -3408,15 +3408,15 @@ Tree *Widget::status(Tree *self, text caption)
 }
 
 
-Tree *Widget::framePaint(Tree *self,
+Tree_p Widget::framePaint(Tree_p self,
                          real_r x, real_r y, real_r w, real_r h,
-                         Tree *prog)
+                         Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
-    Tree *result = frameTexture(self, w, h, prog);
+    Tree_p result = frameTexture(self, w, h, prog);
 
     // Draw a rectangle with the resulting texture
     layout->Add(new Rectangle(Box(x-w/2, y-h/2, w, h)));
@@ -3426,7 +3426,7 @@ Tree *Widget::framePaint(Tree *self,
 }
 
 
-Tree *Widget::frameTexture(Tree *self, double w, double h, Tree *prog)
+Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
@@ -3436,7 +3436,7 @@ Tree *Widget::frameTexture(Tree *self, double w, double h, Tree *prog)
 
     // Get or build the current frame if we don't have one
     FrameInfo *frame = self->GetInfo<FrameInfo>();
-    Tree *result = XL::xl_false;
+    Tree_p result = XL::xl_false;
     if (!frame)
     {
         frame = new FrameInfo(w,h);
@@ -3472,9 +3472,9 @@ Tree *Widget::frameTexture(Tree *self, double w, double h, Tree *prog)
 }
 
 
-Tree *Widget::urlPaint(Tree *self,
+Tree_p Widget::urlPaint(Tree_p self,
                        real_r x, real_r y, real_r w, real_r h,
-                       Text *url, Integer *progress)
+                       Text_p url, Integer_p progress)
 // ----------------------------------------------------------------------------
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
@@ -3489,8 +3489,8 @@ Tree *Widget::urlPaint(Tree *self,
 }
 
 
-Tree *Widget::urlTexture(Tree *self, double w, double h,
-                         Text *url, Integer *progress)
+Tree_p Widget::urlTexture(Tree_p self, double w, double h,
+                         Text_p url, Integer_p progress)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given URL
 // ----------------------------------------------------------------------------
@@ -3516,9 +3516,9 @@ Tree *Widget::urlTexture(Tree *self, double w, double h,
 }
 
 
-Tree *Widget::lineEdit(Tree *self,
+Tree_p Widget::lineEdit(Tree_p self,
                        real_r x, real_r y, real_r w, real_r h,
-                       Text *txt)
+                       Text_p txt)
 // ----------------------------------------------------------------------------
 //   Draw a line editor in the curent frame
 // ----------------------------------------------------------------------------
@@ -3533,7 +3533,7 @@ Tree *Widget::lineEdit(Tree *self,
 }
 
 
-Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
+Tree_p Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given line editor
 // ----------------------------------------------------------------------------
@@ -3558,9 +3558,9 @@ Tree *Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
     return XL::xl_true;
 }
 
-Tree *Widget::radioButton(Tree *self,
+Tree_p Widget::radioButton(Tree_p self,
                           real_r x,real_r y, real_r w,real_r h,
-                          Text *name, text_p lbl, Text* sel, Tree *act)
+                          Text_p name, text_p lbl, Text_p  sel, Tree_p act)
 // ----------------------------------------------------------------------------
 //   Draw a radio button in the curent frame
 // ----------------------------------------------------------------------------
@@ -3571,8 +3571,8 @@ Tree *Widget::radioButton(Tree *self,
 }
 
 
-Tree *Widget::radioButtonTexture(Tree *self, double w, double h, Text *name,
-                                 Text *lbl, Text* sel, Tree *act)
+Tree_p Widget::radioButtonTexture(Tree_p self, double w, double h, Text_p name,
+                                 Text_p lbl, Text_p  sel, Tree_p act)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given radio button
 // ----------------------------------------------------------------------------
@@ -3598,8 +3598,8 @@ Tree *Widget::radioButtonTexture(Tree *self, double w, double h, Text *name,
 }
 
 
-Tree *Widget::checkBoxButton(Tree *self, real_r x,real_r y, real_r w, real_r h,
-                             Text *name, text_p lbl, Text* sel, Tree *act)
+Tree_p Widget::checkBoxButton(Tree_p self, real_r x,real_r y, real_r w, real_r h,
+                             Text_p name, text_p lbl, Text_p  sel, Tree_p act)
 // ----------------------------------------------------------------------------
 //   Draw a check button in the curent frame
 // ----------------------------------------------------------------------------
@@ -3610,8 +3610,8 @@ Tree *Widget::checkBoxButton(Tree *self, real_r x,real_r y, real_r w, real_r h,
 }
 
 
-Tree *Widget::checkBoxButtonTexture(Tree *self, double w, double h, Text *name,
-                                    Text *lbl, Text* sel, Tree *act)
+Tree_p Widget::checkBoxButtonTexture(Tree_p self, double w, double h, Text_p name,
+                                    Text_p lbl, Text_p  sel, Tree_p act)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given checkbox button
 // ----------------------------------------------------------------------------
@@ -3637,8 +3637,8 @@ Tree *Widget::checkBoxButtonTexture(Tree *self, double w, double h, Text *name,
 }
 
 
-Tree *Widget::pushButton(Tree *self, real_r x, real_r y, real_r w, real_r h,
-                         Text *name, Text *lbl, Tree* act)
+Tree_p Widget::pushButton(Tree_p self, real_r x, real_r y, real_r w, real_r h,
+                         Text_p name, Text_p lbl, Tree_p  act)
 // ----------------------------------------------------------------------------
 //   Draw a push button in the curent frame
 // ----------------------------------------------------------------------------
@@ -3649,8 +3649,8 @@ Tree *Widget::pushButton(Tree *self, real_r x, real_r y, real_r w, real_r h,
 }
 
 
-Tree *Widget::pushButtonTexture(Tree *self, double w, double h, Text *name,
-                                Text *lbl, Tree *act)
+Tree_p Widget::pushButtonTexture(Tree_p self, double w, double h, Text_p name,
+                                Text_p lbl, Tree_p act)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given push button
 // ----------------------------------------------------------------------------
@@ -3676,7 +3676,7 @@ Tree *Widget::pushButtonTexture(Tree *self, double w, double h, Text *name,
 }
 
 
-Tree *Widget::abstractButton(Tree *self, Text *name,
+Tree_p Widget::abstractButton(Tree_p self, Text_p name,
                              real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //   Draw any button in the curent frame
@@ -3705,7 +3705,7 @@ Tree *Widget::abstractButton(Tree *self, Text *name,
 
 
 QColorDialog *Widget::colorDialog = NULL;
-Tree *Widget::colorChooser(Tree *self, text treeName, Tree *action)
+Tree_p Widget::colorChooser(Tree_p self, text treeName, Tree_p action)
 // ----------------------------------------------------------------------------
 //   Draw a color chooser
 // ----------------------------------------------------------------------------
@@ -3767,7 +3767,7 @@ void Widget::colorChanged(const QColor & col)
     struct ColorTreeClone : XL::TreeClone
     {
         ColorTreeClone(const QColor &c) : color(c){}
-        XL::Tree *DoName(XL::Name *what)
+        XL::Tree_p DoName(XL::Name_p what)
         {
             if (what->value == "red")
                 return new XL::Real(color.redF(), what->Position());
@@ -3784,7 +3784,7 @@ void Widget::colorChanged(const QColor & col)
     } replacer(col);
 
     // The tree to be evaluated needs its own symbol table before evaluation
-    XL::Tree *toBeEvaluated = colorAction.tree;
+    XL::Tree_p toBeEvaluated = colorAction.tree;
     XL::Symbols *syms = toBeEvaluated->Get<XL::SymbolsInfo>();
     if (!syms)
         syms = XL::Symbols::symbols;
@@ -3806,10 +3806,10 @@ void Widget::updateColorDialog()
         return;
 
     // Make sure we don't update the trees, only get their colors
-    XL::LocalSave<Tree *> action(colorAction.tree, NULL);
+    XL::LocalSave<Tree_p > action(colorAction.tree, NULL);
 
     // Get the default color from the first selected shape
-    for (std::set<Tree *>::iterator i = selectionTrees.begin();
+    for (std::set<Tree_p >::iterator i = selectionTrees.begin();
          i != selectionTrees.end();
          i++)
     {
@@ -3826,7 +3826,7 @@ void Widget::updateColorDialog()
 
 
 QFontDialog *Widget::fontDialog = NULL;
-Tree *Widget::fontChooser(Tree *self, Tree *action)
+Tree_p Widget::fontChooser(Tree_p self, Tree_p action)
 // ----------------------------------------------------------------------------
 //   Draw a font chooser
 // ----------------------------------------------------------------------------
@@ -3877,7 +3877,7 @@ void Widget::fontChanged(const QFont& ft)
     struct FontTreeClone : XL::TreeClone
     {
         FontTreeClone(const QFont &f) : font(f){}
-        XL::Tree *DoName(XL::Name *what)
+        XL::Tree_p DoName(XL::Name_p what)
         {
             if (what->value == "family")
                 return new XL::Text(font.family().toStdString(),
@@ -3900,7 +3900,7 @@ void Widget::fontChanged(const QFont& ft)
     } replacer(ft);
 
     // The tree to be evaluated needs its own symbol table before evaluation
-    XL::Tree *toBeEvaluated = fontAction.tree;
+    XL::Tree_p toBeEvaluated = fontAction.tree;
     XL::Symbols *syms = toBeEvaluated->Get<XL::SymbolsInfo>();
     if (!syms)
         syms = XL::Symbols::symbols;
@@ -3922,12 +3922,12 @@ void Widget::updateFontDialog()
         return;
 
     // Make sure we don't update the trees, only get their colors
-    XL::LocalSave<Tree *> action(fontAction.tree, NULL);
+    XL::LocalSave<Tree_p > action(fontAction.tree, NULL);
 }
 
 
-Tree *Widget::colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
-                           Tree *action)
+Tree_p Widget::colorChooser(Tree_p self, real_r x, real_r y, real_r w, real_r h,
+                           Tree_p action)
 // ----------------------------------------------------------------------------
 //   Draw a color chooser
 // ----------------------------------------------------------------------------
@@ -3944,7 +3944,7 @@ Tree *Widget::colorChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
 }
 
 
-Tree *Widget::colorChooserTexture(Tree *self, double w, double h, Tree *action)
+Tree_p Widget::colorChooserTexture(Tree_p self, double w, double h, Tree_p action)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given color chooser
 // ----------------------------------------------------------------------------
@@ -3970,8 +3970,8 @@ Tree *Widget::colorChooserTexture(Tree *self, double w, double h, Tree *action)
 }
 
 
-Tree *Widget::fontChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
-                           Tree *action)
+Tree_p Widget::fontChooser(Tree_p self, real_r x, real_r y, real_r w, real_r h,
+                           Tree_p action)
 // ----------------------------------------------------------------------------
 //   Draw a color chooser
 // ----------------------------------------------------------------------------
@@ -3988,8 +3988,8 @@ Tree *Widget::fontChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
 }
 
 
-Tree *Widget::fontChooserTexture(Tree *self, double w, double h,
-                                  Tree *action)
+Tree_p Widget::fontChooserTexture(Tree_p self, double w, double h,
+                                  Tree_p action)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given color chooser
 // ----------------------------------------------------------------------------
@@ -4016,7 +4016,7 @@ Tree *Widget::fontChooserTexture(Tree *self, double w, double h,
 
 
 QFileDialog *Widget::fileDialog = NULL;
-Tree *Widget::fileChooser(Tree *self, Tree *properties)
+Tree_p Widget::fileChooser(Tree_p self, Tree_p properties)
 // ----------------------------------------------------------------------------
 //   Draw a file chooser
 // ----------------------------------------------------------------------------
@@ -4043,7 +4043,7 @@ Tree *Widget::fileChooser(Tree *self, Tree *properties)
 }
 
 
-void Widget::updateFileDialog(Tree *properties)
+void Widget::updateFileDialog(Tree_p properties)
 // ----------------------------------------------------------------------------
 //   Execute code for a file dialog
 // ----------------------------------------------------------------------------
@@ -4059,13 +4059,13 @@ void Widget::updateFileDialog(Tree *properties)
     map["label"]     = "file_chooser_label";
     map["filter"]    = "file_chooser_filter";
 
-    XL::Tree *toBeEvaluated = map.Replace(properties);
+    XL::Tree_p toBeEvaluated = map.Replace(properties);
     xl_evaluate(toBeEvaluated);
 
 }
 
 
-Tree *Widget::setFileDialogAction(Tree *self, Tree *action)
+Tree_p Widget::setFileDialogAction(Tree_p self, Tree_p action)
 // ----------------------------------------------------------------------------
 //   Set the action that will be execute when OK is pressed.
 // ----------------------------------------------------------------------------
@@ -4085,7 +4085,7 @@ Tree *Widget::setFileDialogAction(Tree *self, Tree *action)
 }
 
 
-Tree *Widget::setFileDialogDirectory(Tree *self, text dirname)
+Tree_p Widget::setFileDialogDirectory(Tree_p self, text dirname)
 // ----------------------------------------------------------------------------
 //   Set the directory to open first
 // ----------------------------------------------------------------------------
@@ -4104,7 +4104,7 @@ Tree *Widget::setFileDialogDirectory(Tree *self, text dirname)
 }
 
 
-Tree *Widget::setFileDialogFilter(Tree *self, text filters)
+Tree_p Widget::setFileDialogFilter(Tree_p self, text filters)
 // ----------------------------------------------------------------------------
 //   Set the file filters (file pattern, e.g. *.img)
 // ----------------------------------------------------------------------------
@@ -4123,7 +4123,7 @@ Tree *Widget::setFileDialogFilter(Tree *self, text filters)
 }
 
 
-Tree *Widget::setFileDialogLabel(Tree *self, text label, text value)
+Tree_p Widget::setFileDialogLabel(Tree_p self, text label, text value)
 // ----------------------------------------------------------------------------
 //   Set labels on a file dialog
 // ----------------------------------------------------------------------------
@@ -4171,15 +4171,15 @@ void Widget::fileChosen(const QString & filename)
     map["file_directory"] = +file.canonicalPath();
     map["file_path"] = +file.canonicalFilePath();
 
-    XL::Tree *toBeEvaluated = map.Replace(fileAction.tree);
+    XL::Tree_p toBeEvaluated = map.Replace(fileAction.tree);
 
     // Evaluate the input tree
     xl_evaluate(toBeEvaluated);
 }
 
 
-Tree *Widget::fileChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
-                           Tree *properties)
+Tree_p Widget::fileChooser(Tree_p self, real_r x, real_r y, real_r w, real_r h,
+                           Tree_p properties)
 // ----------------------------------------------------------------------------
 //   Draw a file chooser in the GL widget
 // ----------------------------------------------------------------------------
@@ -4196,8 +4196,8 @@ Tree *Widget::fileChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
 }
 
 
-Tree *Widget::fileChooserTexture(Tree *self, double w, double h,
-                                  Tree *properties)
+Tree_p Widget::fileChooserTexture(Tree_p self, double w, double h,
+                                  Tree_p properties)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given file chooser
 // ----------------------------------------------------------------------------
@@ -4226,7 +4226,7 @@ Tree *Widget::fileChooserTexture(Tree *self, double w, double h,
 }
 
 
-Tree *Widget::buttonGroup(Tree *self, bool exclusive, Tree *buttons)
+Tree_p Widget::buttonGroup(Tree_p self, bool exclusive, Tree_p buttons)
 // ----------------------------------------------------------------------------
 //   Create a button group for radio buttons
 // ----------------------------------------------------------------------------
@@ -4242,7 +4242,7 @@ Tree *Widget::buttonGroup(Tree *self, bool exclusive, Tree *buttons)
 
     NameToNameReplacement map;
     map["action"] = "button_group_action";
-    XL::Tree *toBeEvaluated = map.Replace(buttons);
+    XL::Tree_p toBeEvaluated = map.Replace(buttons);
 
     // Evaluate the input tree
     xl_evaluate(toBeEvaluated);
@@ -4252,7 +4252,7 @@ Tree *Widget::buttonGroup(Tree *self, bool exclusive, Tree *buttons)
 }
 
 
-Tree*Widget::setButtonGroupAction(Tree *self, Tree *action)
+Tree_p Widget::setButtonGroupAction(Tree_p self, Tree_p action)
 // ----------------------------------------------------------------------------
 //   Set the action to be executed by the current buttonGroup if any.
 // ----------------------------------------------------------------------------
@@ -4266,9 +4266,9 @@ Tree*Widget::setButtonGroupAction(Tree *self, Tree *action)
 }
 
 
-Tree *Widget::groupBox(Tree *self,
+Tree_p Widget::groupBox(Tree_p self,
                        real_r x, real_r y, real_r w, real_r h,
-                       Text *lbl, Tree *buttons)
+                       Text_p lbl, Tree_p buttons)
 // ----------------------------------------------------------------------------
 //   Draw a group box in the curent frame
 // ----------------------------------------------------------------------------
@@ -4292,7 +4292,7 @@ Tree *Widget::groupBox(Tree *self,
 }
 
 
-Tree *Widget::groupBoxTexture(Tree *self, double w, double h, Text *lbl)
+Tree_p Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given push button
 // ----------------------------------------------------------------------------
@@ -4325,8 +4325,8 @@ Tree *Widget::groupBoxTexture(Tree *self, double w, double h, Text *lbl)
 }
 
 
-Tree *Widget::videoPlayer(Tree *self,
-                          real_r x, real_r y, real_r w, real_r h, Text *url)
+Tree_p Widget::videoPlayer(Tree_p self,
+                          real_r x, real_r y, real_r w, real_r h, Text_p url)
 // ----------------------------------------------------------------------------
 //   Make a video player
 // ----------------------------------------------------------------------------
@@ -4343,7 +4343,7 @@ Tree *Widget::videoPlayer(Tree *self,
 }
 
 
-Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
+Tree_p Widget::videoPlayerTexture(Tree_p self, real_r w, real_r h, Text_p url)
 // ----------------------------------------------------------------------------
 //   Make a video player texture
 // ----------------------------------------------------------------------------
@@ -4374,7 +4374,7 @@ Tree *Widget::videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url)
 //    Error management
 //
 // ============================================================================
-Tree *Widget::runtimeError(Tree *self, text msg, Tree *arg)
+Tree_p Widget::runtimeError(Tree_p self, text msg, Tree_p arg)
 // ----------------------------------------------------------------------------
 //   Display an error message from the input
 // ----------------------------------------------------------------------------
@@ -4412,8 +4412,8 @@ Tree *Widget::runtimeError(Tree *self, text msg, Tree *arg)
 //   or not found at all a new element is created and registered.
 // ============================================================================
 
-Tree *Widget::menuItem(Tree *self, text name, text lbl, text iconFileName,
-                       bool isCheckable, Text *isChecked, Tree *t)
+Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
+                       bool isCheckable, Text_p isChecked, Tree_p t)
 // ----------------------------------------------------------------------------
 //   Create a menu item
 // ----------------------------------------------------------------------------
@@ -4503,7 +4503,7 @@ Tree *Widget::menuItem(Tree *self, text name, text lbl, text iconFileName,
 }
 
 
-Tree *Widget::menu(Tree *self, text name, text lbl,
+Tree_p Widget::menu(Tree_p self, text name, text lbl,
                    text iconFileName, bool isSubMenu)
 // ----------------------------------------------------------------------------
 // Add the menu to the current menu bar or create the contextual menu
@@ -4628,7 +4628,7 @@ Tree *Widget::menu(Tree *self, text name, text lbl,
 }
 
 
-Tree * Widget::menuBar(Tree *self)
+Tree_p  Widget::menuBar(Tree_p self)
 // ----------------------------------------------------------------------------
 // Set the currentManueBar to the default menuBar.
 // ----------------------------------------------------------------------------
@@ -4640,7 +4640,7 @@ Tree * Widget::menuBar(Tree *self)
 }
 
 
-Tree * Widget::toolBar(Tree *self, text name, text title, bool isFloatable,
+Tree_p  Widget::toolBar(Tree_p self, text name, text title, bool isFloatable,
                        text location)
 // ----------------------------------------------------------------------------
 // Add the toolBar to the current widget
@@ -4726,7 +4726,7 @@ Tree * Widget::toolBar(Tree *self, text name, text title, bool isFloatable,
 }
 
 
-Tree * Widget::separator(Tree *self)
+Tree_p  Widget::separator(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Add the separator to the current widget
 // ----------------------------------------------------------------------------
@@ -4802,7 +4802,7 @@ Tree * Widget::separator(Tree *self)
 //
 // ============================================================================
 
-XL::Name *Widget::insert(Tree *self, Tree *toInsert)
+XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert)
 // ----------------------------------------------------------------------------
 //    Insert the tree after the selection, assuming there is only one
 // ----------------------------------------------------------------------------
@@ -4810,25 +4810,25 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
     if (!xlProgram)
         return XL::xl_false;
 
-    Tree *program = xlProgram->tree.tree;
-    if (XL::Block *block = toInsert->AsBlock())
+    Tree_p program = xlProgram->tree.tree;
+    if (XL::Block_p block = toInsert->AsBlock())
         toInsert = block->child;
 
     InsertAtSelectionAction insert(this, toInsert, pageTree);
-    Tree *afterInsert = program->Do(insert);
+    Tree_p afterInsert = program->Do(insert);
 
     // If we never hit the selection during the insert, append
     if (insert.toInsert)
     {
-        Tree **top = &afterInsert;
-        XL::Infix *parent  = NULL;
+        Tree_p *top = &afterInsert;
+        XL::Infix_p parent  = NULL;
         if (pageTree)
         {
-            if (XL::Prefix *prefix = pageTree->AsPrefix())
-                if (XL::Name *left = prefix->left->AsName())
+            if (XL::Prefix_p prefix = pageTree->AsPrefix())
+                if (XL::Name_p left = prefix->left->AsName())
                     if (left->value == "do")
                         pageTree = prefix->right;
-            if (XL::Block *block = pageTree->AsBlock())
+            if (XL::Block_p block = pageTree->AsBlock())
                 pageTree = block->child;
 
             top = &pageTree;
@@ -4837,7 +4837,7 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
         program = *top;
         while (true)
         {
-            XL::Infix *infix = program->AsInfix();
+            XL::Infix_p infix = program->AsInfix();
             if (!infix)
                 break;
             if (infix->name != ";" && infix->name != "\n")
@@ -4846,7 +4846,7 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
             program = infix->right;
          }
 
-        Tree **what = parent ? &parent->right : top;
+        Tree_p *what = parent ? &parent->right : top;
         *what = new XL::Infix("\n", *what, toInsert);
     }
 
@@ -4857,7 +4857,7 @@ XL::Name *Widget::insert(Tree *self, Tree *toInsert)
 }
 
 
-XL::Name *Widget::deleteSelection(Tree *self, text key)
+XL::Name_p Widget::deleteSelection(Tree_p self, text key)
 // ----------------------------------------------------------------------------
 //    Delete the selection (with text support)
 // ----------------------------------------------------------------------------
@@ -4877,7 +4877,7 @@ void Widget::deleteSelection()
 // ----------------------------------------------------------------------------
 {
     DeleteSelectionAction del(this);
-    XL::Tree *what = xlProgram->tree.tree;
+    XL::Tree_p what = xlProgram->tree.tree;
     what = what->Do(del);
     reloadProgram(what);
     markChanged("Deleted selection");
@@ -4886,8 +4886,8 @@ void Widget::deleteSelection()
 }
 
 
-XL::Name *Widget::setAttribute(Tree *self,
-                               text name, Tree *attribute,
+XL::Name_p Widget::setAttribute(Tree_p self,
+                               text name, Tree_p attribute,
                                text shape)
 // ----------------------------------------------------------------------------
 //    Insert the tree in all shapes in the selection
@@ -4896,8 +4896,8 @@ XL::Name *Widget::setAttribute(Tree *self,
     if (!xlProgram)
         return XL::xl_false;
 
-    Tree *program = xlProgram->tree.tree;
-    if (XL::Block *block = attribute->AsBlock())
+    Tree_p program = xlProgram->tree.tree;
+    if (XL::Block_p block = attribute->AsBlock())
         attribute = block->child;
 
     SetAttributeAction setAttrib(name, attribute, this, shape);
@@ -4916,7 +4916,7 @@ XL::Name *Widget::setAttribute(Tree *self,
 //
 // ============================================================================
 
-XL::Real *Widget::fromCm(Tree *self, double cm)
+XL::Real_p Widget::fromCm(Tree_p self, double cm)
 // ----------------------------------------------------------------------------
 //   Convert from cm to pixels
 // ----------------------------------------------------------------------------
@@ -4925,7 +4925,7 @@ XL::Real *Widget::fromCm(Tree *self, double cm)
 }
 
 
-XL::Real *Widget::fromMm(Tree *self, double mm)
+XL::Real_p Widget::fromMm(Tree_p self, double mm)
 // ----------------------------------------------------------------------------
 //   Convert from mm to pixels
 // ----------------------------------------------------------------------------
@@ -4934,7 +4934,7 @@ XL::Real *Widget::fromMm(Tree *self, double mm)
 }
 
 
-XL::Real *Widget::fromIn(Tree *self, double in)
+XL::Real_p Widget::fromIn(Tree_p self, double in)
 // ----------------------------------------------------------------------------
 //   Convert from inch to pixels
 // ----------------------------------------------------------------------------
@@ -4943,7 +4943,7 @@ XL::Real *Widget::fromIn(Tree *self, double in)
 }
 
 
-XL::Real *Widget::fromPt(Tree *self, double pt)
+XL::Real_p Widget::fromPt(Tree_p self, double pt)
 // ----------------------------------------------------------------------------
 //   Convert from pt to pixels
 // ----------------------------------------------------------------------------
@@ -4952,7 +4952,7 @@ XL::Real *Widget::fromPt(Tree *self, double pt)
 }
 
 
-XL::Real *Widget::fromPx(Tree *self, double px)
+XL::Real_p Widget::fromPx(Tree_p self, double px)
 // ----------------------------------------------------------------------------
 //   Convert from pixel to pixels (trivial)
 // ----------------------------------------------------------------------------
@@ -4968,7 +4968,7 @@ XL::Real *Widget::fromPx(Tree *self, double px)
 //
 // ============================================================================
 
-XL::Tree *NameToNameReplacement::DoName(XL::Name *what)
+XL::Tree_p NameToNameReplacement::DoName(XL::Name_p what)
 // ----------------------------------------------------------------------------
 //   Replace a name with another name
 // ----------------------------------------------------------------------------
@@ -4980,12 +4980,12 @@ XL::Tree *NameToNameReplacement::DoName(XL::Name *what)
 }
 
 
-XL::Tree* NameToNameReplacement::Replace(XL::Tree *original)
+XL::Tree_p  NameToNameReplacement::Replace(XL::Tree_p original)
 // ----------------------------------------------------------------------------
 //   Perform name replacement and give the result its own symbol table
 // ----------------------------------------------------------------------------
 {
-    XL::Tree *copy = original;
+    XL::Tree_p copy = original;
     XL::Symbols *syms = original->Get<XL::SymbolsInfo>();
     if (!syms)
         syms = XL::Symbols::symbols;
@@ -4996,7 +4996,7 @@ XL::Tree* NameToNameReplacement::Replace(XL::Tree *original)
 }
 
 
-XL::Tree *NameToTextReplacement::DoName(XL::Name *what)
+XL::Tree_p NameToTextReplacement::DoName(XL::Name_p what)
 // ----------------------------------------------------------------------------
 //   Replace a name with a text
 // ----------------------------------------------------------------------------

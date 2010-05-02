@@ -55,7 +55,7 @@ struct TreeDiff
 //   All you need to compare and patch parse trees
 // ----------------------------------------------------------------------------
 {
-    TreeDiff (Tree *t1, Tree *t2);
+    TreeDiff (Tree_p t1, Tree_p t2);
     virtual ~TreeDiff();
 
     bool Diff();
@@ -68,8 +68,8 @@ protected:
     unsigned FindPos(node_id x);
     void     DoEditScript();
 
-    Tree *       t1;
-    Tree *       t2;
+    Tree_p        t1;
+    Tree_p        t2;
     NodeTable &  nodes1;
     NodeTable &  nodes2;
     Matching &   matching;
@@ -121,13 +121,13 @@ struct EditOperation::Insert : EditOperation::Base
 //   The operation of inserting a new leaf node into a tree.
 // ----------------------------------------------------------------------------
 {
-    Insert(Tree *leaf, node_id parent, unsigned pos):
+    Insert(Tree_p leaf, node_id parent, unsigned pos):
         leaf(leaf), parent(parent), pos(pos) { assert(leaf); }
     virtual ~Insert() {}
 
     virtual void Apply(NodeTable &table);
 
-    Tree *   leaf;
+    Tree_p    leaf;
     node_id  parent;
     unsigned pos;
 };
@@ -150,14 +150,14 @@ struct EditOperation::Update : EditOperation::Base
 //   The operation of inserting a new leaf node into a tree.
 // ----------------------------------------------------------------------------
 {
-    Update(node_id leaf, Tree *value): leaf(leaf), value(value)
+    Update(node_id leaf, Tree_p value): leaf(leaf), value(value)
         { assert(value); }
     virtual ~Update() {}
 
     virtual void Apply(NodeTable &table);
 
     node_id leaf;
-    Tree *  value;
+    Tree_p   value;
 };
 
 struct EditOperation::Move : EditOperation::Base
@@ -186,7 +186,7 @@ struct EditScript : EditScriptBase
     EditScript() {}
     virtual ~EditScript() {}
 
-    Tree * Apply(Tree *tree);
+    Tree_p  Apply(Tree_p tree);
 };
 
 

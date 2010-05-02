@@ -93,7 +93,7 @@ public:
         hadSpaceBefore(false), hadSpaceAfter(false) {}
 
 public:
-    Tree *              Parse(text closing_paren = "");
+    Tree_p              Parse(text closing_paren = "");
     Scanner *           ParserScanner() { return &scanner; }
     token_t             NextToken();
 

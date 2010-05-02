@@ -52,7 +52,7 @@ struct TreeHashPruneAction : Action
 // ----------------------------------------------------------------------------
 {
     TreeHashPruneAction () {}
-    Tree *Do(Tree *what)
+    Tree_p Do(Tree_p what)
     {
         what->Purge < HashInfo<Hash> >();
         return what;
@@ -82,7 +82,7 @@ public:
 
     void reset() { compute.reset(); }
 
-    bool NeedHash(Tree *t)
+    bool NeedHash(Tree_p t)
     // ------------------------------------------------------------------------
     //   Decide if we need to hash for that tree
     // ------------------------------------------------------------------------
@@ -93,7 +93,7 @@ public:
     }
 
 
-    void Allocate(Tree *t)
+    void Allocate(Tree_p t)
     // ------------------------------------------------------------------------
     //    Create an info entry for the given tree
     // ------------------------------------------------------------------------
@@ -138,7 +138,7 @@ public:
     }
 
 
-    void SubTree(Tree *sub)
+    void SubTree(Tree_p sub)
     // ------------------------------------------------------------------------
     //   Compute the hash for a sub-tree, reusing existing hash if possible
     // ------------------------------------------------------------------------
@@ -168,7 +168,7 @@ public:
     }
 
 
-    Tree *Do(Tree *what)
+    Tree_p Do(Tree_p what)
     // ------------------------------------------------------------------------
     //   Part that is common between all trees
     // ------------------------------------------------------------------------
@@ -182,7 +182,7 @@ public:
 
     }
 
-    Tree *DoInteger(Integer *what)
+    Tree_p DoInteger(Integer_p what)
     // ------------------------------------------------------------------------
     //    Hash integer values
     // ------------------------------------------------------------------------
@@ -193,7 +193,7 @@ public:
     }
 
 
-    Tree *DoReal(Real *what)
+    Tree_p DoReal(Real_p what)
     // ------------------------------------------------------------------------
     //   Hash rwal values
     // ------------------------------------------------------------------------
@@ -204,7 +204,7 @@ public:
     }
 
 
-    Tree *DoText(Text *what)
+    Tree_p DoText(Text_p what)
     // ------------------------------------------------------------------------
     //   Hash text values
     // ------------------------------------------------------------------------
@@ -219,7 +219,7 @@ public:
     }
 
 
-    Tree *DoName(Name *what)
+    Tree_p DoName(Name_p what)
     // ------------------------------------------------------------------------
     //   Compute the hash for a name
     // ------------------------------------------------------------------------
@@ -230,7 +230,7 @@ public:
     }
 
 
-    Tree *DoBlock(Block *what)
+    Tree_p DoBlock(Block_p what)
     // ------------------------------------------------------------------------
     //   Compute the hash for a block
     // ------------------------------------------------------------------------
@@ -245,7 +245,7 @@ public:
     }
 
 
-    Tree *DoInfix(Infix *what)
+    Tree_p DoInfix(Infix_p what)
     // ------------------------------------------------------------------------
     //    Compute the hash for an infix tree
     // ------------------------------------------------------------------------
@@ -260,7 +260,7 @@ public:
     }
 
 
-    Tree *DoPrefix(Prefix *what)
+    Tree_p DoPrefix(Prefix_p what)
     // ------------------------------------------------------------------------
     //    Compute the hash for a prefix tree
     // ------------------------------------------------------------------------
@@ -274,7 +274,7 @@ public:
     }
 
 
-    Tree *DoPostfix(Postfix *what)
+    Tree_p DoPostfix(Postfix_p what)
     // ------------------------------------------------------------------------
     //    Compute the hash for a postfix tree
     // ------------------------------------------------------------------------

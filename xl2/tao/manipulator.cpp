@@ -39,7 +39,7 @@ TAO_BEGIN
 //
 // ============================================================================
 
-Manipulator::Manipulator(XL::Tree *self)
+Manipulator::Manipulator(XL::Tree_p self)
 // ----------------------------------------------------------------------------
 //   Record the GL name for a given tree
 // ----------------------------------------------------------------------------
@@ -97,7 +97,7 @@ void Manipulator::Identify(Layout *layout)
 }
 
 
-XL::Tree *Manipulator::Source()
+XL::Tree_p Manipulator::Source()
 // ----------------------------------------------------------------------------
 //   Return the source tree for this manipulator
 // ----------------------------------------------------------------------------
@@ -121,7 +121,7 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id, text name)
 }
 
 
-void Manipulator::updateArg(Widget *widget, tree_p arg,
+void Manipulator::updateArg(Widget *widget, Tree_p arg,
                             double first, double previous, double current,
                             double min, double max)
 // ----------------------------------------------------------------------------
@@ -132,11 +132,11 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
     if (!arg || previous == current)
         return;
 
-    Tree   *source   = xl_source(arg); // Find the source expression
-    tree_p *ptr      = &source;
+    Tree_p source   = xl_source(arg); // Find the source expression
+    Tree_p *ptr      = &source;
     bool    more     = true;
-    tree_p *pptr     = NULL;
-    tree_p *ppptr    = NULL;
+    Tree_p *pptr     = NULL;
+    Tree_p *ppptr    = NULL;
     double  scale    = 1.0;
 
     // Check if we have an Infix +, if so walk down the left side
@@ -146,7 +146,7 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
         more = false;
         ppptr = pptr;
         pptr = NULL;
-        if (XL::Infix *infix = (*ptr)->AsInfix())
+        if (XL::Infix_p infix = (*ptr)->AsInfix())
         {
             if (infix->name == "-")
             {
@@ -160,25 +160,25 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
             }
             else if (infix->name == "*")
             {
-                if (XL::Real *lr = infix->left->AsReal())
+                if (XL::Real_p lr = infix->left->AsReal())
                 {
                     scale *= lr->value;
                     ptr = &infix->right;
                     more = true;
                 }
-                else if (XL::Real *rr = infix->right->AsReal())
+                else if (XL::Real_p rr = infix->right->AsReal())
                 {
                     scale *= rr->value;
                     ptr = &infix->left;
                     more = true;
                 }
-                else if (XL::Integer *li = infix->left->AsInteger())
+                else if (XL::Integer_p li = infix->left->AsInteger())
                 {
                     scale *= li->value;
                     ptr = &infix->right;
                     more = true;
                 }
-                else if (XL::Integer *ri = infix->right->AsInteger())
+                else if (XL::Integer_p ri = infix->right->AsInteger())
                 {
                     scale *= ri->value;
                     ptr = &infix->left;
@@ -186,9 +186,9 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
                 }
             }
         }
-        if (XL::Prefix *prefix = (*ptr)->AsPrefix())
+        if (XL::Prefix_p prefix = (*ptr)->AsPrefix())
         {
-            if (XL::Name *name = prefix->left->AsName())
+            if (XL::Name_p name = prefix->left->AsName())
             {
                 if (name->value == "-")
                 {
@@ -199,9 +199,9 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
                 }
             }
         }
-        if (XL::Postfix *postfix = (*ptr)->AsPostfix())
+        if (XL::Postfix_p postfix = (*ptr)->AsPostfix())
         {
-            if (XL::Name *name = postfix->right->AsName())
+            if (XL::Name_p name = postfix->right->AsName())
             {
                 if (name->value == "%")
                 {
@@ -218,7 +218,7 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
         scale = 1.0;
 
     // Test the simple cases where the argument is directly an Integer or Real
-    if (XL::Integer *ival = (*ptr)->AsInteger())
+    if (XL::Integer_p ival = (*ptr)->AsInteger())
     {
         ival->value -= longlong((previous - first) / scale);
         ival->value += longlong((current - first) / scale);
@@ -229,7 +229,7 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
         if (ppptr && ival->value < 0)
             widget->renormalizeProgram();
     }
-    else if (XL::Real *rval = (*ptr)->AsReal())
+    else if (XL::Real_p rval = (*ptr)->AsReal())
     {
         rval->value += (current - previous) / scale;
         if (rval->value * scale < min)
@@ -260,7 +260,7 @@ void Manipulator::updateArg(Widget *widget, tree_p arg,
 }
 
 
-void Manipulator::rotate(Widget *widget, Tree *shape, kPoint3 center,
+void Manipulator::rotate(Widget *widget, Tree_p shape, kPoint3 center,
                          kPoint3 p0, kPoint3 p1, kPoint3 p2, bool stepped)
 // ----------------------------------------------------------------------------
 //   Rotate the shape around the given center, given 3 drag points
@@ -329,7 +329,7 @@ void Manipulator::rotate(Widget *widget, Tree *shape, kPoint3 center,
 //
 // ============================================================================
 
-ControlPoint::ControlPoint(tree_p self, real_r x, real_r y, real_r z, uint id)
+ControlPoint::ControlPoint(Tree_p self, real_r x, real_r y, real_r z, uint id)
 // ----------------------------------------------------------------------------
 //   Record where we want to draw
 // ----------------------------------------------------------------------------
@@ -405,7 +405,7 @@ bool ControlPoint::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-FrameManipulator::FrameManipulator(tree_p self,
+FrameManipulator::FrameManipulator(Tree_p self,
                                    real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //   A control rectangle owns a given child and manipulates it
@@ -579,7 +579,7 @@ FrameManipulator::TransformMode FrameManipulator::CurrentTransformMode()
 //
 // ============================================================================
 
-ControlRectangle::ControlRectangle(tree_p self,
+ControlRectangle::ControlRectangle(Tree_p self,
                                    real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //   A control rectangle owns a given child and manipulates it
@@ -624,7 +624,7 @@ bool ControlRectangle::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlRoundedRectangle::ControlRoundedRectangle(tree_p self,
+ControlRoundedRectangle::ControlRoundedRectangle(Tree_p self,
                                                  real_r x, real_r y,
                                                  real_r w, real_r h,
                                                  real_r r)
@@ -710,7 +710,7 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlArrow::ControlArrow(tree_p self,
+ControlArrow::ControlArrow(Tree_p self,
                            real_r x, real_r y, real_r w, real_r h,
                            real_r ax, real_r ary)
 // ----------------------------------------------------------------------------
@@ -720,7 +720,7 @@ ControlArrow::ControlArrow(tree_p self,
 {}
 
 
-ControlArrow::ControlArrow(tree_p self,
+ControlArrow::ControlArrow(Tree_p self,
                            real_r x, real_r y, real_r w, real_r h,
                            real_r ax, real_r ary, bool is_double)
 // ----------------------------------------------------------------------------
@@ -802,7 +802,7 @@ bool ControlArrow::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlPolygon::ControlPolygon(tree_p self,
+ControlPolygon::ControlPolygon(Tree_p self,
                                real_r x, real_r y, real_r w, real_r h,
                                integer_r p)
 // ----------------------------------------------------------------------------
@@ -864,7 +864,7 @@ bool ControlPolygon::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlStar::ControlStar(tree_p self,
+ControlStar::ControlStar(Tree_p self,
                          real_r x, real_r y, real_r w, real_r h,
                          integer_r p, real_r r)
 // ----------------------------------------------------------------------------
@@ -927,7 +927,7 @@ bool ControlStar::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlBalloon::ControlBalloon(tree_p self,
+ControlBalloon::ControlBalloon(Tree_p self,
                                real_r x, real_r y, real_r w, real_r h,
                                real_r r, real_r ax, real_r ay)
 // ----------------------------------------------------------------------------
@@ -977,7 +977,7 @@ bool ControlBalloon::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlCallout::ControlCallout(tree_p self,
+ControlCallout::ControlCallout(Tree_p self,
                                real_r x, real_r y, real_r w, real_r h,
                                real_r r, real_r ax, real_r ay, real_r d)
 // ----------------------------------------------------------------------------
@@ -1091,7 +1091,7 @@ bool ControlCallout::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-WidgetManipulator::WidgetManipulator(tree_p self,
+WidgetManipulator::WidgetManipulator(Tree_p self,
                                      real_r x, real_r y, real_r w, real_r h,
                                      WidgetSurface *s)
 // ----------------------------------------------------------------------------
@@ -1125,7 +1125,7 @@ void WidgetManipulator::DrawSelection(Layout *layout)
 //
 // ============================================================================
 
-BoxManipulator::BoxManipulator(tree_p self,
+BoxManipulator::BoxManipulator(Tree_p self,
                                real_r x, real_r y, real_r z,
                                real_r w, real_r h, real_r d)
 // ----------------------------------------------------------------------------
@@ -1201,7 +1201,7 @@ bool BoxManipulator::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlBox::ControlBox(tree_p self,
+ControlBox::ControlBox(Tree_p self,
                        real_r x, real_r y, real_r z,
                        real_r w, real_r h, real_r d)
 // ----------------------------------------------------------------------------
@@ -1248,7 +1248,7 @@ bool ControlBox::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-TransformManipulator::TransformManipulator(tree_p self)
+TransformManipulator::TransformManipulator(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Record the child we own
 // ----------------------------------------------------------------------------
@@ -1263,7 +1263,7 @@ TransformManipulator::TransformManipulator(tree_p self)
 //
 // ============================================================================
 
-RotationManipulator::RotationManipulator(tree_p self,
+RotationManipulator::RotationManipulator(Tree_p self,
                                          real_r a, real_r x,real_r y,real_r z)
 // ----------------------------------------------------------------------------
 //   Manipulation of a rotation
@@ -1354,7 +1354,7 @@ bool RotationManipulator::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-TranslationManipulator::TranslationManipulator(tree_p self,
+TranslationManipulator::TranslationManipulator(Tree_p self,
                                                real_r x, real_r y, real_r z)
 // ----------------------------------------------------------------------------
 //   Manipulation of a translation
@@ -1442,7 +1442,7 @@ bool TranslationManipulator::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ScaleManipulator::ScaleManipulator(tree_p self, real_r x, real_r y, real_r z)
+ScaleManipulator::ScaleManipulator(Tree_p self, real_r x, real_r y, real_r z)
 // ----------------------------------------------------------------------------
 //   Manipulation of a scale
 // ----------------------------------------------------------------------------

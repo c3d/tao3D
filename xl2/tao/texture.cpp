@@ -47,7 +47,11 @@ ImageTextureInfo::~ImageTextureInfo()
         glDeleteTextures(1, &(*i).second);
 }
 
-GLuint computeDefTextId()
+
+static inline GLuint computeDefaultTexture()
+// ----------------------------------------------------------------------------
+//   A texture that we use when the given source image is invalid
+// ----------------------------------------------------------------------------
 {
     GLuint txtId;
     QString file(":/images/defaultImage.svg");
@@ -66,11 +70,16 @@ GLuint computeDefTextId()
     return txtId;
 }
 
+
 GLuint ImageTextureInfo::defaultTextureId()
+// ----------------------------------------------------------------------------
+//   Build a singleton texture ID used when source image is invalid
+// ----------------------------------------------------------------------------
 {
-    static GLuint defTextureId = computeDefTextId();
+    static GLuint defTextureId = computeDefaultTexture();
     return defTextureId;
 }
+
 
 GLuint ImageTextureInfo::bind(text file)
 // ----------------------------------------------------------------------------

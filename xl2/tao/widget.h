@@ -721,35 +721,29 @@ struct SetAttributeAction : XL::Action
 };
 
 
-
-struct N2NReplacerTreeClone : XL::TreeClone
+struct NameToNameReplacement : XL::TreeClone
 // ----------------------------------------------------------------------------
-//    Replace a name with a Name
-// ----------------------------------------------------------------------------
-{
-    N2NReplacerTreeClone(std::map<text, text> *c) :
-             concordance(c){};
-    XL::Tree* DoName(XL::Name *what);
-    XL::Tree* replace(XL::Tree *original);
-    std::map<text, text> *concordance;
-
-};
-struct N2TReplacerTreeClone : XL::TreeClone
-// ----------------------------------------------------------------------------
-//    Replace a name with a Text
+//    Replace specific names with names (e.g. alternate spellings)
 // ----------------------------------------------------------------------------
 {
-    N2TReplacerTreeClone(std::map<text, text> *c) :
-             concordance(c){};
-    XL::Tree* DoName(XL::Name *what);
+    NameToNameReplacement(){}
 
-    XL::Tree* replace(XL::Tree *original);
+    XL::Tree*   DoName(XL::Name *what);
+    XL::Tree*   Replace(XL::Tree *original);
+    text &      operator[] (text index)         { return map[index]; }
 
-    std::map<text, text> *concordance;
-
+    std::map<text, text> map;
 };
 
 
+struct NameToTextReplacement : NameToNameReplacement
+// ----------------------------------------------------------------------------
+//    Replace specific names with a text
+// ----------------------------------------------------------------------------
+{
+    NameToTextReplacement(): NameToNameReplacement() {}
+    XL::Tree* DoName(XL::Name *what);
+};
 
 } // namespace Tao
 

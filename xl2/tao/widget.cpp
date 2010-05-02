@@ -1397,9 +1397,11 @@ void Widget::refreshProgram()
                     if (loadError)
                     {
                         IFTRACE(filesync)
-                            std::cerr << "Main program file could not be read\n";
-                        // FIXME: now source file view is cleared, but drawing is
-                        // still there -> how to delete main tree?
+                            std::cerr << "Main program could not be read\n";
+
+                        // Source file is cleared, delete tree
+                        sf.tree.tree = new XL::Text("Program could not be read",
+                                                    "//", "\n");
                     }
                 }
 
@@ -4012,6 +4014,7 @@ Tree *Widget::fontChooserTexture(Tree *self, double w, double h,
     return XL::xl_true;
 }
 
+
 QFileDialog *Widget::fileDialog = NULL;
 Tree *Widget::fileChooser(Tree *self, Tree *properties)
 // ----------------------------------------------------------------------------
@@ -4039,27 +4042,32 @@ Tree *Widget::fileChooser(Tree *self, Tree *properties)
     return XL::xl_true;
 }
 
+
 void Widget::updateFileDialog(Tree *properties)
 // ----------------------------------------------------------------------------
-//   It updates the child tree to add the local information i.e. file_chooser
-//  in front of the names and then executes this new code.
+//   Execute code for a file dialog
 // ----------------------------------------------------------------------------
+//   The action for a file dialog contains names that can be shortcuts
+//   to the actual PREFIX name in graphics.tbl. For instance, action in
+//   a file dialog is a shortcut for file_chooser_action.
+//   This function performs the replacement
 {
-    std::map<text, text> amap;
-    amap["action"]    = "file_chooser_action";
-    amap["directory"] = "file_chooser_directory";
-    amap["label"]     = "file_chooser_label";
-    amap["filter"]    = "file_chooser_filter";
-    N2NReplacerTreeClone replacer(&amap);
+    NameToNameReplacement map;
 
-    XL::Tree *toBeEvaluated = replacer.replace(properties);
+    map["action"]    = "file_chooser_action";
+    map["directory"] = "file_chooser_directory";
+    map["label"]     = "file_chooser_label";
+    map["filter"]    = "file_chooser_filter";
+
+    XL::Tree *toBeEvaluated = map.Replace(properties);
     xl_evaluate(toBeEvaluated);
 
 }
 
+
 Tree *Widget::setFileDialogAction(Tree *self, Tree *action)
 // ----------------------------------------------------------------------------
-//   set the action that will be execute when OK is pressed.
+//   Set the action that will be execute when OK is pressed.
 // ----------------------------------------------------------------------------
 {
     IFTRACE (widgets)
@@ -4076,9 +4084,10 @@ Tree *Widget::setFileDialogAction(Tree *self, Tree *action)
     return XL::xl_false;
 }
 
+
 Tree *Widget::setFileDialogDirectory(Tree *self, text dirname)
 // ----------------------------------------------------------------------------
-//   set the directory to be open fisrt.
+//   Set the directory to open first
 // ----------------------------------------------------------------------------
 {
     IFTRACE (widgets)
@@ -4094,9 +4103,10 @@ Tree *Widget::setFileDialogDirectory(Tree *self, text dirname)
     return XL::xl_false;
 }
 
+
 Tree *Widget::setFileDialogFilter(Tree *self, text filters)
 // ----------------------------------------------------------------------------
-//   set the filters.
+//   Set the file filters (file pattern, e.g. *.img)
 // ----------------------------------------------------------------------------
 {
     IFTRACE (widgets)
@@ -4115,13 +4125,14 @@ Tree *Widget::setFileDialogFilter(Tree *self, text filters)
 
 Tree *Widget::setFileDialogLabel(Tree *self, text label, text value)
 // ----------------------------------------------------------------------------
-//   set labels.
+//   Set labels on a file dialog
 // ----------------------------------------------------------------------------
-// 5 labels may be setted : LookIn, FileName, FileType, Accept, Reject
+// 5 labels may be set : LookIn, FileName, FileType, Accept, Reject
 {
     IFTRACE (widgets)
     {
-        std::cerr << "setFileDialogLabel " << label << " to " << value<<std::endl;
+        std::cerr << "setFileDialogLabel " << label
+                  << " to " << value << std::endl;
     }
 
     if (currentFileDialog)
@@ -4154,14 +4165,13 @@ void Widget::fileChosen(const QString & filename)
 
     // We override names 'filename', 'filepath', 'filepathname'
     QFileInfo file(filename);
-    std::map<text, text> amap;
-    amap["filename"] = +file.fileName();
-    amap["filepath"] = +file.canonicalPath();
-    amap["filepathname"] = +file.canonicalFilePath();
+    NameToTextReplacement map;
 
-    N2TReplacerTreeClone replacer(&amap);
+    map["file_name"] = +file.fileName();
+    map["file_directory"] = +file.canonicalPath();
+    map["file_path"] = +file.canonicalFilePath();
 
-    XL::Tree *toBeEvaluated = replacer.replace(fileAction.tree);
+    XL::Tree *toBeEvaluated = map.Replace(fileAction.tree);
 
     // Evaluate the input tree
     xl_evaluate(toBeEvaluated);
@@ -4171,7 +4181,7 @@ void Widget::fileChosen(const QString & filename)
 Tree *Widget::fileChooser(Tree *self, real_r x, real_r y, real_r w, real_r h,
                            Tree *properties)
 // ----------------------------------------------------------------------------
-//   Draw a color chooser
+//   Draw a file chooser in the GL widget
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
@@ -4215,6 +4225,7 @@ Tree *Widget::fileChooserTexture(Tree *self, double w, double h,
     return XL::xl_true;
 }
 
+
 Tree *Widget::buttonGroup(Tree *self, bool exclusive, Tree *buttons)
 // ----------------------------------------------------------------------------
 //   Create a button group for radio buttons
@@ -4228,12 +4239,10 @@ Tree *Widget::buttonGroup(Tree *self, bool exclusive, Tree *buttons)
         buttons->SetInfo<GroupInfo>(grpInfo);
     }
     currentGroup = grpInfo;
-    std::map<text, text> amap;
-    amap["action"] = "button_group_action";
-    N2NReplacerTreeClone replacer(&amap);
 
-    // The tree to be evaluated needs its own symbol table before evaluation
-    XL::Tree *toBeEvaluated = replacer.replace(buttons);
+    NameToNameReplacement map;
+    map["action"] = "button_group_action";
+    XL::Tree *toBeEvaluated = map.Replace(buttons);
 
     // Evaluate the input tree
     xl_evaluate(toBeEvaluated);
@@ -4951,55 +4960,52 @@ XL::Real *Widget::fromPx(Tree *self, double px)
     XL_RREAL(px);
 }
 
-// ============================================================================
-//
-//   Tree replacer helpers
-//
-// ============================================================================
-XL::Tree *N2NReplacerTreeClone::DoName(XL::Name *what)
-{
-    text newName =(*concordance)[what->value];
-    if (!newName.empty())
-        return new XL::Name(newName, what->Position());
 
+
+// ============================================================================
+//
+//   Tree substitution / replacement helpers
+//
+// ============================================================================
+
+XL::Tree *NameToNameReplacement::DoName(XL::Name *what)
+// ----------------------------------------------------------------------------
+//   Replace a name with another name
+// ----------------------------------------------------------------------------
+{
+    std::map<text, text>::iterator found = map.find(what->value);
+    if (found != map.end())
+        return new XL::Name((*found).second, what->Position());
     return new XL::Name(what->value, what->Position());
 }
 
-XL::Tree* N2NReplacerTreeClone::replace(XL::Tree *original)
+
+XL::Tree* NameToNameReplacement::Replace(XL::Tree *original)
+// ----------------------------------------------------------------------------
+//   Perform name replacement and give the result its own symbol table
+// ----------------------------------------------------------------------------
 {
-    XL::Tree *toBeEvaluated = original;
-    // The tree to be evaluated needs its own symbol table before evaluation
+    XL::Tree *copy = original;
     XL::Symbols *syms = original->Get<XL::SymbolsInfo>();
     if (!syms)
         syms = XL::Symbols::symbols;
     syms = new XL::Symbols(syms);
-    toBeEvaluated = original->Do(*this);
-    toBeEvaluated->Set<XL::SymbolsInfo>(syms);
-    return toBeEvaluated;
+    copy = original->Do(*this);
+    copy->Set<XL::SymbolsInfo>(syms);
+    return copy;
 }
-XL::Tree *N2TReplacerTreeClone::DoName(XL::Name *what)
-{
-    text newName =(*concordance)[what->value];
-    if (!newName.empty())
-        return new XL::Text(newName, "\"", "\"",
-                            what->Position());
 
+
+XL::Tree *NameToTextReplacement::DoName(XL::Name *what)
+// ----------------------------------------------------------------------------
+//   Replace a name with a text
+// ----------------------------------------------------------------------------
+{
+    std::map<text, text>::iterator found = map.find(what->value);
+    if (found != map.end())
+        return new XL::Text((*found).second, "\"", "\"", what->Position());
     return new XL::Name(what->value, what->Position());
-};
-
-XL::Tree* N2TReplacerTreeClone::replace(XL::Tree *original)
-{
-    XL::Tree *toBeEvaluated = original;
-    // The tree to be evaluated needs its own symbol table before evaluation
-    XL::Symbols *syms = original->Get<XL::SymbolsInfo>();
-    if (!syms)
-        syms = XL::Symbols::symbols;
-    syms = new XL::Symbols(syms);
-    toBeEvaluated = original->Do(*this);
-    toBeEvaluated->Set<XL::SymbolsInfo>(syms);
-    return toBeEvaluated;
-};
-
+}
 
 TAO_END
 

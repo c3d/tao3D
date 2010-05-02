@@ -891,6 +891,7 @@ enum TreeMatchMode
     TM_NODE_ONLY       // Compare one node only
 };
 
+
 template <TreeMatchMode mode> struct TreeMatchTemplate : Action
 // ----------------------------------------------------------------------------
 //   Check if two trees match in structure
@@ -1159,16 +1160,16 @@ struct SetNodeIdAction : SimpleAction
 //   Set an integer node ID to each node.
 // ------------------------------------------------------------------------
 {
-        SetNodeIdAction(node_id from_id = 1, node_id step = 1)
+    SetNodeIdAction(node_id from_id = 1, node_id step = 1)
         : id(from_id), step(step) {}
-        virtual Tree *Do(Tree *what)
-        {
-                what->Set<NodeIdInfo>(id);
-                id += step;
-                return NULL;
-        }
-        node_id id;
-        node_id step;
+    virtual Tree *Do(Tree *what)
+    {
+        what->Set<NodeIdInfo>(id);
+        id += step;
+        return NULL;
+    }
+    node_id id;
+    node_id step;
 };
 
 XL_END

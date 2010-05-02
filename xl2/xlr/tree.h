@@ -303,7 +303,7 @@ template <class I> inline bool Tree::Purge()
 
 template <class I> inline I* Tree::Remove()
 // ----------------------------------------------------------------------------
-//   Find if we have an information of the right type in 'info' and remove it from the list
+//   Find information and remove it if it exists
 // ----------------------------------------------------------------------------
 {
     Info *prev = info;
@@ -322,7 +322,7 @@ template <class I> inline I* Tree::Remove()
 
 template <class I> inline I* Tree::Remove(I *an_info)
 // ----------------------------------------------------------------------------
-//   Find if we have an information of the right type in 'info' and remove it from the list
+//   Find information matching input and remove it if it exists
 // ----------------------------------------------------------------------------
 {
     Info *prev = info;

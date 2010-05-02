@@ -84,6 +84,7 @@ struct Layout : Drawing, LayoutState
 
     LayoutState &       operator=(const LayoutState &o);
     void                Inherit(Layout *other);
+    void                LoadName();
 
 public:
     // OpenGL identification for that shape

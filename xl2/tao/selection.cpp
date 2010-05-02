@@ -135,7 +135,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     {
         GLuint depth = ~0U;
         GLuint *ptr = buffer;
-        for (int i = 0; i < hits; i++)
+        for (int i = 0; !charSelected && i < hits; i++)
         {
             uint size = ptr[0];
             if (ptr[3] && ptr[1] <= depth)

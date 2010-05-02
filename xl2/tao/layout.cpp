@@ -201,9 +201,6 @@ void Layout::Identify(Layout *where)
         Drawing *child = *i;
         child->Identify(this);
     }
-
-    if (id != ~0)
-        glLoadName(0);
 }
 
 
@@ -277,11 +274,7 @@ void Layout::Inherit(Layout *where)
 //   Inherit state from some other layout
 // ----------------------------------------------------------------------------
 {
-    if (id != ~0U)
-        glLoadName(id);
-    else
-        glLoadName(0);
-
+    LoadName();
     if (!where)
         return;
 
@@ -300,6 +293,16 @@ void Layout::Inherit(Layout *where)
     fillColor    = where->fillColor;
     fillTexture  = where->fillTexture;
     hasPixelBlur |= where->hasPixelBlur;
+}
+
+
+void Layout::LoadName()
+// ----------------------------------------------------------------------------
+//   Load the GL name for the given layout
+// ----------------------------------------------------------------------------
+{
+    if (id != ~0U)
+        glLoadName(id);
 }
 
 TAO_END

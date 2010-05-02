@@ -144,7 +144,8 @@ void TextSpan::DrawCached(Layout *where, bool identify)
                 glDrawArrays(GL_QUADS, i, 4);
             }
             glDisableClientState(GL_VERTEX_ARRAY);
-            glLoadName(0);
+            if (where->id != ~0U)
+                glLoadName(where->id);
         }
         else if (setFillColor(where))
         {

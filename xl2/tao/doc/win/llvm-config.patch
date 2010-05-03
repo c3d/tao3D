@@ -1,0 +1,24 @@
+--- llvm-config.orig	Fri Apr 30 11:14:15 2010
++++ llvm-config	Fri Apr 30 11:48:05 2010
+@@ -18,7 +18,6 @@
+ use 5.006;
+ use strict;
+ use warnings;
+-use Cwd 'abs_path';
+ 
+ #---- begin autoconf values ----
+ my $PACKAGE_NAME        = q{llvm};
+@@ -52,7 +51,12 @@
+ # locations of some files.
+ 
+ # Convert the current executable name into its directory (e.g. ".").
+-my ($RUN_DIR) = ($0 =~ /^(.*)\/.*$/);
++# JeF Hardcode path because Qt (gcc) needs a format like: /llvm/bin,
++# not /c/llvm/bin. And I could not get bash to mount C:\llvm as /llvm :(
++my $RUN_DIR = q(/llvm/bin); 
++sub abs_path {
++    return $_[0];
++}
+ 
+ # Turn the directory into an absolute directory on the file system, also pop up
+ # from "bin" into the build or prefix dir.

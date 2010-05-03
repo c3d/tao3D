@@ -17,6 +17,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -33,18 +34,60 @@ void Shape3::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    if (widget->selected())
+    if (widget->selected(layout))
     {
         Color line(1.0, 0.0, 0.0, 0.5);
         Color fill(0.0, 0.7, 1.0, 0.1);
         XL::LocalSave<Color> saveLine(layout->lineColor, line);
         XL::LocalSave<Color> saveFill(layout->fillColor, fill);
-        widget->drawSelection(Bounds() + layout->Offset(), "3D_selection");
+        widget->drawSelection(Bounds(layout) + layout->Offset(),
+                              "3D_selection");
     }
 }
 
     
-Box3 Cube::Bounds()
+bool Shape3::setFillColor(Layout *where)
+// ----------------------------------------------------------------------------
+//    Set the fill color and texture according to the layout attributes
+// ----------------------------------------------------------------------------
+//    This is like in Shape, except that we don't increment polygon offset
+{
+    // Check if we have a non-transparent fill color
+    if (where)
+    {
+        Color &color = where->fillColor;
+        if (color.alpha > 0.0)
+        {
+            glColor4f(color.red, color.green, color.blue, color.alpha);
+            return true;
+        }
+    }
+    return false;
+}
+
+
+bool Shape3::setLineColor(Layout *where)
+// ----------------------------------------------------------------------------
+//    Set the outline color according to the layout attributes
+// ----------------------------------------------------------------------------
+//    This is like in Shape, except that we don't increment polygon offset
+{
+    // Check if we have a non-transparent outline color
+    if (where)
+    {
+        Color &color = where->lineColor;
+        scale width = where->lineWidth;
+        if (color.alpha > 0.0 && width > 0.0)
+        {
+            glColor4f(color.red, color.green, color.blue, color.alpha);
+            return true;
+        }
+    }
+    return false;
+}
+
+
+Box3 Cube::Bounds(Layout *)
 // ----------------------------------------------------------------------------
 //   Return the bounding box for a 3D shape
 // ----------------------------------------------------------------------------

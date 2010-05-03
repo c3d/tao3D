@@ -35,7 +35,7 @@ MenuInfo::MenuInfo(QString name, QAction *act)
 // ----------------------------------------------------------------------------
 //   Constructor taking an action, e.g. when creating a menu
 // ----------------------------------------------------------------------------
-    : fullname(name), p_action(act), p_toolbar(NULL)
+    : fullname(name), p_action(act), p_toolbar(NULL), title(""), icon("")
 {
     connect(p_action, SIGNAL(destroyed(QObject *)),
             this, SLOT(actionDestroyed()));
@@ -46,7 +46,7 @@ MenuInfo::MenuInfo(QString name, QToolBar *bar)
 // ----------------------------------------------------------------------------
 //   Constructor taking a toolbar, e.g. when adding items in a toolbar
 // ----------------------------------------------------------------------------
-    : fullname(name), p_action(NULL), p_toolbar(bar)
+    : fullname(name), p_action(NULL), p_toolbar(bar), title(""), icon("")
 {
     connect(p_toolbar, SIGNAL(destroyed(QObject *)),
             this, SLOT(actionDestroyed()));
@@ -58,7 +58,6 @@ MenuInfo::~MenuInfo()
 //   Delete a menu entry
 // ----------------------------------------------------------------------------
 {
-
     if (p_action)
     {
         delete p_action;
@@ -77,8 +76,7 @@ MenuInfo::~MenuInfo()
 
 void MenuInfo::actionDestroyed()
 // ----------------------------------------------------------------------------
-//   Set to NULL all the information because the action or
-//     the tool bar will be deleted.
+//   Action or toolbar going away: clear everything
 // ----------------------------------------------------------------------------
 {
     IFTRACE(menus)
@@ -87,6 +85,8 @@ void MenuInfo::actionDestroyed()
     }
     p_action   = NULL;
     p_toolbar  = NULL;
+    title = "";
+    icon = "";
 }
 
 
@@ -104,7 +104,7 @@ void GroupInfo::bClicked(QAbstractButton *button)
     struct ClickTreeClone : XL::TreeClone
     {
         ClickTreeClone(text c) : name(c){}
-        XL::Tree *DoName(XL::Name *what)
+        XL::Tree_p DoName(XL::Name_p what)
         {
             if (what->value == "button_name")
             {
@@ -117,7 +117,7 @@ void GroupInfo::bClicked(QAbstractButton *button)
 
 
     // The tree to be evaluated needs its own symbol table before evaluation
-    XL::Tree *toBeEvaluated = action->tree;
+    XL::Tree_p  toBeEvaluated = action->tree;
     XL::Symbols *syms = toBeEvaluated->Get<XL::SymbolsInfo>();
     if (!syms)
         syms = XL::Symbols::symbols;

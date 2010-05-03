@@ -31,7 +31,7 @@
 
 TAO_BEGIN
 
-bool ImportedFilesChanged(XL::Tree *prog,
+bool ImportedFilesChanged(XL::Tree_p prog,
                           import_set &done,
                           bool markChanged)
 // ----------------------------------------------------------------------------
@@ -96,7 +96,7 @@ bool ImportedFilesChanged(XL::Tree *prog,
 }
 
 
-XL::Tree *PruneInfo::Do(XL::Tree *what)
+XL::Tree_p PruneInfo::Do(XL::Tree_p what)
 // ----------------------------------------------------------------------------
 //   Prune info that we don't want to preserve when the tree changes
 // ----------------------------------------------------------------------------

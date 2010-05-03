@@ -26,6 +26,7 @@
 #include "tree.h"
 #include "repository.h"
 #include "process.h"
+#include "ansi_textedit.h"
 
 #include <QString>
 #include <QProcess>
@@ -70,6 +71,8 @@ public:
     virtual bool        delRemote(QString name);
     virtual bool        renRemote(QString oldName, QString newName);
     virtual QList<Commit> history(int max = 20);
+    virtual Process *   asyncClone(QString cloneUrl,
+                                   AnsiTextEdit *out = NULL, void *id = NULL);
 
     static  bool        checkGit();
 
@@ -85,6 +88,7 @@ private:
     bool                initialCommit();
     bool                parseCommitOutput(text output, QString &id,
                                           QString &msg);
+    QString             parseCloneOutput(QString out);
 
     static QString      gitCommand;
 };

@@ -19,23 +19,29 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jerome Forissier <jerome@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
 #include "tao.h"
 #include "base.h"
+#include "ansi_textedit.h"
 
 #include <QString>
 #include <QProcess>
+#include <QTextEdit>
 #include <iostream>
 
-TAO_BEGIN
+namespace Tao {
 
 struct Process : QProcess, std::streambuf
 // ----------------------------------------------------------------------------
 //   Process used to run an SCM command
 // ----------------------------------------------------------------------------
 {
+    Q_OBJECT
+
+public:
     Process(size_t bufSize = 1024);
     Process(const QString &cmd,
             const QStringList &args = QStringList(),
@@ -48,6 +54,10 @@ struct Process : QProcess, std::streambuf
                        const QString &wd = "");
     virtual void start();
     virtual bool done(text *errors = NULL, text *output = NULL);
+
+public slots:
+    void         sendStandardOutputToTextEdit();
+    void         sendStandardErrorToTextEdit();
 
 protected:
     virtual void initialize(size_t bufSize);
@@ -62,8 +72,12 @@ public:
     QString     cmd;
     QStringList args;
     QString     wd;
+    AnsiTextEdit  *outTextEdit, *errTextEdit;
+    void       *id;
+    bool        aborted;
+    QString     err, out;
 };
 
-TAO_END
+}
 
 #endif // PROCESS_H

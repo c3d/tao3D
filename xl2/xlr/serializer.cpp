@@ -94,7 +94,7 @@ Serializer::Serializer(std::ostream &out)
 }
 
 
-Tree *Serializer::Do(Tree *what)
+Tree_p Serializer::Do(Tree_p what)
 // ----------------------------------------------------------------------------
 //   The default is to write an invalid tree, we should not be here
 // ----------------------------------------------------------------------------
@@ -105,7 +105,7 @@ Tree *Serializer::Do(Tree *what)
 }
 
 
-Tree *Serializer::DoInteger(Integer *what)
+Tree_p Serializer::DoInteger(Integer_p what)
 // ----------------------------------------------------------------------------
 //   Serialize an integer leaf
 // ----------------------------------------------------------------------------
@@ -116,7 +116,7 @@ Tree *Serializer::DoInteger(Integer *what)
 }
 
 
-Tree *Serializer::DoReal(Real *what)
+Tree_p Serializer::DoReal(Real_p what)
 // ----------------------------------------------------------------------------
 //   Serialize a real leaf
 // ----------------------------------------------------------------------------
@@ -127,7 +127,7 @@ Tree *Serializer::DoReal(Real *what)
 }
 
 
-Tree *Serializer::DoText(Text *what)
+Tree_p Serializer::DoText(Text_p what)
 // ----------------------------------------------------------------------------
 //   Serialize a text leaf
 // ----------------------------------------------------------------------------
@@ -140,7 +140,7 @@ Tree *Serializer::DoText(Text *what)
 }
 
 
-Tree *Serializer::DoName(Name *what)
+Tree_p Serializer::DoName(Name_p what)
 // ----------------------------------------------------------------------------
 //   Serialize a name/symbol leaf
 // ----------------------------------------------------------------------------
@@ -151,7 +151,7 @@ Tree *Serializer::DoName(Name *what)
 }
 
 
-Tree *Serializer::DoPrefix(Prefix *what)
+Tree_p Serializer::DoPrefix(Prefix_p what)
 // ----------------------------------------------------------------------------
 //   Serialize a prefix tree
 // ----------------------------------------------------------------------------
@@ -163,7 +163,7 @@ Tree *Serializer::DoPrefix(Prefix *what)
 }
 
 
-Tree *Serializer::DoPostfix(Postfix *what)
+Tree_p Serializer::DoPostfix(Postfix_p what)
 // ----------------------------------------------------------------------------
 //   Serialize a postfix tree
 // ----------------------------------------------------------------------------
@@ -175,7 +175,7 @@ Tree *Serializer::DoPostfix(Postfix *what)
 }
 
 
-Tree *Serializer::DoInfix(Infix *what)
+Tree_p Serializer::DoInfix(Infix_p what)
 // ----------------------------------------------------------------------------
 //   Serialize an infix tree
 // ----------------------------------------------------------------------------
@@ -188,7 +188,7 @@ Tree *Serializer::DoInfix(Infix *what)
 }
 
 
-Tree *Serializer::DoBlock(Block *what)
+Tree_p Serializer::DoBlock(Block_p what)
 // ----------------------------------------------------------------------------
 //   Serialize a block tree
 // ----------------------------------------------------------------------------
@@ -271,7 +271,7 @@ void Serializer::WriteText(text value)
 }
 
 
-void Serializer::WriteChild(Tree *child)
+void Serializer::WriteChild(Tree_p child)
 // ----------------------------------------------------------------------------
 //   Serialie a child, either NULL or actual child
 // ----------------------------------------------------------------------------
@@ -312,7 +312,7 @@ Deserializer::~Deserializer()
 {}
 
 
-Tree *Deserializer::ReadTree()
+Tree_p Deserializer::ReadTree()
 // ----------------------------------------------------------------------------
 //   Read back data from input stream and build tree from it
 // ----------------------------------------------------------------------------
@@ -325,10 +325,10 @@ Tree *Deserializer::ReadTree()
     text             tvalue, opening, closing;
     longlong         ivalue;
     double           rvalue;
-    Tree *           left;
-    Tree *           right;
-    Tree *           child;
-    Tree *           result = NULL;
+    Tree_p           left;
+    Tree_p           right;
+    Tree_p           child;
+    Tree_p           result = NULL;
 
     switch(tag)
     {

@@ -9,7 +9,7 @@
 //     Ostream operations on a SHA-1 class
 // 
 //     The only reasons they are not in sha1.h is because putthing them
-//     at that spot apparently 'disables' another operator<< (os&, Tree *)
+//     at that spot apparently 'disables' another operator<< (os&, Tree_p)
 //     I have not spent enough time to know if it's a GCC bug or a C++ feature
 // 
 // 
@@ -30,6 +30,8 @@
 #include <stdio.h>
 #include "sha1.h"
 
+XL_BEGIN
+
 inline std::ostream &operator <<(std::ostream &out, const XL::Sha1 &sha)
 // ----------------------------------------------------------------------------
 //    Display a hex digest for the given input
@@ -42,5 +44,7 @@ inline std::ostream &operator <<(std::ostream &out, const XL::Sha1 &sha)
     out << buffer;
     return out;
 }
+
+XL_END
 
 #endif // SHA1_OSTREAM_H

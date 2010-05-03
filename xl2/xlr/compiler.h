@@ -52,14 +52,14 @@ XL_BEGIN
 struct CompiledUnit;
 struct Options;
 struct GCAction;
-typedef std::map<text, llvm::Function *>   builtins_map;
-typedef std::map<Tree *, llvm::Value *>    value_map;
-typedef std::map<Tree *, llvm::Function *> function_map;
-typedef std::map<uint, eval_fn>            closure_map;
-typedef std::set<Tree *>                   closure_set;
-typedef std::set<Tree *>                   data_set;
-typedef std::set<Tree *>                   deleted_set;
-typedef Tree *(*adapter_fn) (eval_fn callee, Tree *src, Tree **args);
+typedef std::map<text, llvm::Function *>    builtins_map;
+typedef std::map<Tree_p , llvm::Value *>    value_map;
+typedef std::map<Tree_p , llvm::Function *> function_map;
+typedef std::map<uint, eval_fn>             closure_map;
+typedef std::set<Tree_p>                    closure_set;
+typedef std::set<Tree_p>                    data_set;
+typedef std::set<Tree_p>                    deleted_set;
+typedef Tree_p (*adapter_fn) (eval_fn callee, Tree_p src, Tree_p *args);
 
 
 struct Compiler
@@ -71,19 +71,19 @@ struct Compiler
     ~Compiler();
 
     llvm::Function *          EnterBuiltin(text name,
-                                           Tree *to,
-                                           tree_list parms,
+                                           Tree_p to,
+                                           TreeList parms,
                                            eval_fn code);
     llvm::Function *          ExternFunction(kstring name, void *address,
                                              const llvm::Type *retType,
                                              int parmCount, ...);
     adapter_fn                EnterArrayToArgsAdapter(uint numtrees);
-    llvm::Value *             EnterGlobal(Name *name, Name **address);
-    llvm::Value *             EnterConstant(Tree *constant);
-    bool                      IsKnown(Tree *value);
-    llvm::Value *             Known(Tree *value);
+    llvm::Value *             EnterGlobal(Name_p name, Name_p *address);
+    llvm::Value *             EnterConstant(Tree_p constant);
+    bool                      IsKnown(Tree_p value);
+    llvm::Value *             Known(Tree_p value);
 
-    void                      FreeResources(Tree *tree, GCAction &gc);
+    void                      FreeResources(Tree_p tree, GCAction &gc);
     void                      FreeResources(GCAction &gc);
 
     void                      Reset();
@@ -136,7 +136,7 @@ struct CompiledUnit
 //  A compilation unit, which typically corresponds to an expression
 // ----------------------------------------------------------------------------
 {
-    CompiledUnit(Compiler *comp, Tree *source, tree_list parms);
+    CompiledUnit(Compiler *comp, Tree_p source, TreeList parms);
     ~CompiledUnit();
 
     bool                IsForwardCall()         { return entrybb == NULL; }
@@ -144,46 +144,46 @@ struct CompiledUnit
 
     enum { knowAll = -1, knowGlobals = 1, knowLocals = 2, knowValues = 4 };
 
-    llvm::Value *       NeedStorage(Tree *tree);
-    bool                IsKnown(Tree *tree, uint which = knowAll);
-    llvm::Value *       Known(Tree *tree, uint which = knowAll );
+    llvm::Value *       NeedStorage(Tree_p tree);
+    bool                IsKnown(Tree_p tree, uint which = knowAll);
+    llvm::Value *       Known(Tree_p tree, uint which = knowAll );
 
-    llvm::Value *       ConstantInteger(Integer *what);
-    llvm::Value *       ConstantReal(Real *what);
-    llvm::Value *       ConstantText(Text *what);
-    llvm::Value *       ConstantTree(Tree *what);
+    llvm::Value *       ConstantInteger(Integer_p what);
+    llvm::Value *       ConstantReal(Real_p what);
+    llvm::Value *       ConstantText(Text_p what);
+    llvm::Value *       ConstantTree(Tree_p what);
 
-    llvm::Value *       NeedLazy(Tree *subexpr);
-    llvm::Value *       MarkComputed(Tree *subexpr, llvm::Value *value);
-    llvm::BasicBlock *  BeginLazy(Tree *subexpr);
-    void                EndLazy(Tree *subexpr, llvm::BasicBlock *skip);
+    llvm::Value *       NeedLazy(Tree_p subexpr);
+    llvm::Value *       MarkComputed(Tree_p subexpr, llvm::Value *value);
+    llvm::BasicBlock *  BeginLazy(Tree_p subexpr);
+    void                EndLazy(Tree_p subexpr, llvm::BasicBlock *skip);
 
     llvm::BasicBlock *  NeedTest();
-    llvm::Value *       Left(Tree *);
-    llvm::Value *       Right(Tree *);
-    llvm::Value *       Copy(Tree *src, Tree *dst, bool markDone=true);
-    llvm::Value *       Invoke(Tree *subexpr, Tree *callee, tree_list args);
-    llvm::Value *       CallEvaluate(Tree *);
-    llvm::Value *       CallNewBlock(Block *);
-    llvm::Value *       CallNewPrefix(Prefix *);
-    llvm::Value *       CallNewPostfix(Postfix *);
-    llvm::Value *       CallNewInfix(Infix *);
-    llvm::Value *       CreateClosure(Tree *callee, tree_list &args);
-    llvm::Value *       CallClosure(Tree *callee, uint ntrees);
-    llvm::Value *       CallTypeError(Tree *what);
+    llvm::Value *       Left(Tree_p);
+    llvm::Value *       Right(Tree_p);
+    llvm::Value *       Copy(Tree_p src, Tree_p dst, bool markDone=true);
+    llvm::Value *       Invoke(Tree_p subexpr, Tree_p callee, TreeList args);
+    llvm::Value *       CallEvaluate(Tree_p);
+    llvm::Value *       CallNewBlock(Block_p);
+    llvm::Value *       CallNewPrefix(Prefix_p);
+    llvm::Value *       CallNewPostfix(Postfix_p);
+    llvm::Value *       CallNewInfix(Infix_p);
+    llvm::Value *       CreateClosure(Tree_p callee, TreeList &args);
+    llvm::Value *       CallClosure(Tree_p callee, uint ntrees);
+    llvm::Value *       CallTypeError(Tree_p what);
 
-    llvm::BasicBlock *  TagTest(Tree *code, ulong tag);
-    llvm::BasicBlock *  IntegerTest(Tree *code, longlong value);
-    llvm::BasicBlock *  RealTest(Tree *code, double value);
-    llvm::BasicBlock *  TextTest(Tree *code, text value);
-    llvm::BasicBlock *  ShapeTest(Tree *code, Tree *other);
-    llvm::BasicBlock *  InfixMatchTest(Tree *code, Infix *ref);
-    llvm::BasicBlock *  TypeTest(Tree *code, Tree *type);
+    llvm::BasicBlock *  TagTest(Tree_p code, ulong tag);
+    llvm::BasicBlock *  IntegerTest(Tree_p code, longlong value);
+    llvm::BasicBlock *  RealTest(Tree_p code, double value);
+    llvm::BasicBlock *  TextTest(Tree_p code, text value);
+    llvm::BasicBlock *  ShapeTest(Tree_p code, Tree_p other);
+    llvm::BasicBlock *  InfixMatchTest(Tree_p code, Infix_p ref);
+    llvm::BasicBlock *  TypeTest(Tree_p code, Tree_p type);
 
 public:
     Compiler *          compiler;       // The compiler environment we use
     llvm::LLVMContext * context;        // The context we got from compiler
-    Tree *              source;         // The original source we compile
+    Tree_p              source;         // The original source we compile
 
     llvm::IRBuilder<> * code;           // Instruction builder for code
     llvm::IRBuilder<> * data;           // Instruction builder for data
@@ -206,7 +206,7 @@ struct ExpressionReduction
 //   Record compilation state around a specific expression reduction
 // ----------------------------------------------------------------------------
 {
-    ExpressionReduction(CompiledUnit &unit, Tree *source);
+    ExpressionReduction(CompiledUnit &unit, Tree_p source);
     ~ExpressionReduction();
 
     void                NewForm();
@@ -215,7 +215,7 @@ struct ExpressionReduction
 
 public:
     CompiledUnit &      unit;           // Compilation unit we use
-    Tree *              source;         // Tree we build (mostly for debugging)
+    Tree_p              source;         // Tree we build (mostly for debugging)
     llvm::LLVMContext * context;        // Inherited context
 
     llvm::Value *       storage;        // Storage for expression value

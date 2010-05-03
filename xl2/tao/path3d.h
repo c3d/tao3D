@@ -25,6 +25,7 @@
 #include "coords3d.h"
 #include "shapes.h"
 #include "tree.h"
+#include "tao_tree.h"
 #include <GL/glew.h>
 
 struct QPainterPath;
@@ -37,16 +38,15 @@ struct GraphicPath : Shape
 //    An arbitrary graphic path
 // ----------------------------------------------------------------------------
 {
-    typedef XL::Real &real_r;
-
     GraphicPath();
     ~GraphicPath();
 
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *where);
     virtual void        Identify(Layout *where);
-    virtual void        Draw(Layout *where, GLenum mode, GLenum tessel=0);
-    virtual Box3        Bounds();
+    virtual void        Draw(Layout *where, GLenum tessel);
+    virtual void        Draw(const Vector3 &offset, GLenum mode, GLenum tessel);
+    virtual Box3        Bounds(Layout *layout);
 
     // Absolute coordinates
     GraphicPath&        moveTo(Point3 dst);
@@ -61,15 +61,17 @@ struct GraphicPath : Shape
 
     // Qt path conversion
     GraphicPath&        addQtPath(QPainterPath &path, scale sy = 1);
+    bool                extractQtPath(QPainterPath &path);
     static void         Draw(Layout *where, QPainterPath &path,
-                             GLenum tess = 0, scale sy = 1);
+                             GLenum tessel = 0, scale sy = 1);
 
     // Other operations
     void                clear();
-    void                AddControl(XL::Tree *self, real_r x,real_r y,real_r z);
+    void                AddControl(XL::Tree_p self, real_r x,real_r y,real_r z);
 
 public:
     enum Kind { MOVE_TO, LINE_TO, CURVE_TO, CURVE_CONTROL };
+    enum EndpointStyle { NONE, TRIANGLE };
     struct Element
     {
         Element(Kind k, const Point3 &p): kind(k), position(p) {}
@@ -99,6 +101,7 @@ public:
     control_points      controls;
     Point3              start, position;
     Box3                bounds;
+    EndpointStyle       startStyle, endStyle;
     static scale        default_steps;
 };
 

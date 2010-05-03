@@ -26,6 +26,7 @@
 
 #include <QApplication>
 #include <QDir>
+#include <QStringList>
 
 
 TAO_BEGIN
@@ -41,14 +42,38 @@ class Application : public QApplication
 
 public:
     Application(int & argc, char ** argv);
+    virtual ~Application();
 
     void           internalCleanEverythingAsIfTaoWereNeverRun();
     static QString defaultProjectFolderPath();
+    static QString defaultTaoPreferencesFolderPath();
+    static QString defaultTaoApplicationFolderPath();
+    static QString defaultUserImagesFolderPath();
+
+public:
+    QStringList    pathCompletions();
+    QStringList    urlCompletions();
+    void           addPathCompletion(QString path);
+    void           addUrlCompletion(QString url);
+
+protected:
+    void           saveSettings();
+    void           loadSettings();
 
 protected:
     static bool    recursiveDelete(QString path);
-    static QString defaultDocumentsFolderPath();
+    static QString defaultUserDocumentsFolderPath();
+    static QString defaultPreferencesFolderPath();
     static bool    createDefaultProjectFolder();
+
+public:
+    QString      currentProjectFolder;
+    void         updateSearchPathes();
+    static bool  createDefaultTaoPrefFolder();
+
+private:
+    QStringList  pathList;
+    QStringList  urlList;
 };
 
 #define TaoApp  ((Application *) qApp)

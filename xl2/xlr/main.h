@@ -1,21 +1,21 @@
 #ifndef MAIN_H
 #define MAIN_H
 // ****************************************************************************
-//  main.h                          (C) 1992-2009 Christophe de Dinechin (ddd) 
-//                                                                 XL2 project 
+//  main.h                          (C) 1992-2009 Christophe de Dinechin (ddd)
+//                                                                 XL2 project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     The global variables defined in main.cpp
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -49,7 +49,7 @@ struct SourceFile
 //    A source file and associated data
 // ----------------------------------------------------------------------------
 {
-    SourceFile(text n, Tree *t, Symbols *s);
+    SourceFile(text n, Tree_p t, Symbols *s);
     SourceFile();
     text        name;
     TreeRoot    tree;
@@ -68,6 +68,8 @@ struct Main
 // ----------------------------------------------------------------------------
 {
     Main(int argc, char **argv, Compiler &comp);
+    Main(int inArgc, char **inArgv, Compiler &comp,
+         text builtinsPath, text syntaxPath, text stylesheetPath);
     ~Main();
 
     int LoadFiles();

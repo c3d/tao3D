@@ -46,6 +46,9 @@ struct ImageTextureInfo : XL::Info
 
     texture_map textures;
     Widget *    widget;
+    double width, height;
+
+    static GLuint defaultTextureId();
 };
 
 TAO_END

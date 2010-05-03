@@ -1,19 +1,19 @@
 // ****************************************************************************
 //  tao_main.cpp                                                    Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     Main entry point for Tao invoking XL
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -32,6 +32,7 @@
 #include "graphics.h"
 #include "tao_utf8.h"
 
+#include <QDir>
 #include <QtGui>
 #include <QtGui/QApplication>
 #include <QtGui/QMessageBox>
@@ -42,6 +43,8 @@ int main(int argc, char **argv)
 //    Main entry point of the graphical front-end
 // ----------------------------------------------------------------------------
 {
+    using namespace Tao;
+
     Q_INIT_RESOURCE(tao);
 
     // We need to brute-force option parsing here, the OpenGL choice must
@@ -52,13 +55,27 @@ int main(int argc, char **argv)
 
     // Initialize the Tao application
     Tao::Application tao(argc, argv);
+    tao.updateSearchPathes();
+
+    // Fetch info for XL files
+    QFileInfo builtins  ("xl:builtins.xl");
+    QFileInfo syntax    ("xl:xl.syntax");
+    QFileInfo stylesheet("xl:xl.stylesheet");
+    QFileInfo user      ("xl:user.xl");
+    QFileInfo theme     ("xl:theme.xl");
 
     // Setup the XL runtime environment
     XL::Compiler compiler("xl_tao");
-    XL::Main *xlr = new XL::Main(argc, argv, compiler);
+    XL::Main *xlr = new XL::Main(argc, argv, compiler,
+                                 +builtins.canonicalFilePath(),
+                                 +syntax.canonicalFilePath(),
+                                 +stylesheet.canonicalFilePath());
     XL::MAIN = xlr;
-    xlr->builtins = tao.applicationDirPath().toStdString() + "/builtins.xl";
     EnterGraphics(&xlr->context);
+    if (user.exists())
+        xlr->file_names.push_back(+user.canonicalFilePath());
+    if (theme.exists())
+        xlr->file_names.push_back(+theme.canonicalFilePath());
     xlr->LoadFiles();
 
     // Create the windows for each file on the command line

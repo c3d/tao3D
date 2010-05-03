@@ -68,6 +68,9 @@ void Rotation::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     glRotatef(amount, xaxis, yaxis, zaxis);
+    double amod90 = fmod(amount, 90.0);
+    if (amod90 < -0.01 || amod90 > 0.01)
+        where->hasPixelBlur = true;
     where->offset = Point3();
 }
 
@@ -78,6 +81,8 @@ void Translation::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     glTranslatef(xaxis, yaxis, zaxis);
+    if (zaxis != 0.0)
+        where->hasPixelBlur = true;
     where->offset = Point3();
 }
 
@@ -88,6 +93,8 @@ void Scale::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     glScalef(xaxis, yaxis, zaxis);
+    if (xaxis != 1.0 || yaxis != 1.0)
+        where->hasPixelBlur = true;
     where->offset = Point3();
 }
 

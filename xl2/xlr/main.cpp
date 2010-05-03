@@ -1,18 +1,18 @@
 // ****************************************************************************
 //  main.cpp                                                        XLR project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //    Main entry point of the XL runtime and compiler
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -48,7 +48,7 @@ XL_BEGIN
 
 Main *MAIN = NULL;
 
-SourceFile::SourceFile(text n, Tree *t, Symbols *s)
+SourceFile::SourceFile(text n, Tree_p t, Symbols *s)
 // ----------------------------------------------------------------------------
 //   Construct a source file given a name
 // ----------------------------------------------------------------------------
@@ -59,7 +59,7 @@ SourceFile::SourceFile(text n, Tree *t, Symbols *s)
     stat (n.c_str(), &st);
     modified = st.st_mtime;
 }
- 
+
 
 SourceFile::SourceFile()
 // ----------------------------------------------------------------------------
@@ -92,6 +92,28 @@ Main::Main(int inArgc, char **inArgv, Compiler &comp)
     Syntax::syntax = &syntax;
 }
 
+Main::Main(int inArgc, char **inArgv, Compiler &comp,
+           text builtinsPath, text syntaxPath, text stylesheetPath)
+// ----------------------------------------------------------------------------
+//   Initialization of the globals
+// ----------------------------------------------------------------------------
+    : argc(inArgc), argv(inArgv),
+      positions(),
+      errors(&positions),
+      syntax(syntaxPath.c_str()),
+      builtins(builtinsPath.c_str()),
+      options(errors),
+      compiler(comp),
+      context(errors, &compiler),
+      renderer(std::cout, stylesheetPath.c_str(), syntax),
+      reader(NULL), writer(NULL)
+{
+    Options::options = &options;
+    Context::context = &context;
+    Symbols::symbols = &context;
+    Renderer::renderer = &renderer;
+    Syntax::syntax = &syntax;
+}
 
 Main::~Main()
 // ----------------------------------------------------------------------------
@@ -109,7 +131,6 @@ int Main::LoadFiles()
 // ----------------------------------------------------------------------------
 {
     text                         cmd, end = "";
-    std::vector<text>            filelist;
     std::vector<text>::iterator  file;
     bool                         hadError = false;
     int                          filenum = 0;
@@ -133,7 +154,8 @@ int Main::LoadFiles()
     if (builtins.empty() || options.builtinsOverride)
         builtins = options.builtinsFile;
     if (options.builtins)
-        filelist.push_back(builtins);
+        LoadFile(builtins);
+
     for (; cmd != end; cmd = options.ParseNext())
     {
         if (options.doDiff && ++filenum > 2)
@@ -142,12 +164,11 @@ int Main::LoadFiles()
           hadError = true;
           return hadError;
         }
-        filelist.push_back(cmd);
         file_names.push_back(cmd);
     }
 
     // Loop over files we will process
-    for (file = filelist.begin(); file != filelist.end(); file++)
+    for (file = file_names.begin(); file != file_names.end(); file++)
         hadError |= LoadFile(*file);
 
     return hadError;
@@ -159,7 +180,7 @@ int Main::LoadFile(text file)
 //   Load an individual file
 // ----------------------------------------------------------------------------
 {
-    Tree *tree = NULL;
+    Tree_p tree = NULL;
     bool hadError = false;
     FILE *f;
 
@@ -289,7 +310,7 @@ int Main::Run()
         Symbols::symbols = sf.symbols;
 
         // Evaluate the given tree
-        Tree *result = sf.tree.tree;
+        Tree_p result = sf.tree.tree;
         try
         {
             result = sf.symbols->Run(sf.tree.tree);
@@ -337,8 +358,8 @@ int Main::Diff()
     file++;
     SourceFile &sf2 = files[*file];
 
-    Tree *t1 = sf1.tree.tree;
-    Tree *t2 = sf2.tree.tree;
+    Tree_p t1 = sf1.tree.tree;
+    Tree_p t2 = sf2.tree.tree;
 
     TreeDiff d(t1, t2);
     return d.Diff(std::cout);

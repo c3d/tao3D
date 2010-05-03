@@ -38,6 +38,7 @@ struct FrameInfo : XL::Info
 //    at each and every evaluation of the tree
 {
     typedef FrameInfo *data_t;
+    typedef std::map<const QGLContext *, QGLFramebufferObject *> fbo_map;
 
     FrameInfo(uint width = 512, uint height = 512);
     ~FrameInfo();
@@ -46,9 +47,14 @@ struct FrameInfo : XL::Info
     void begin();
     void end();
     GLuint bind();
+    void checkGLContext();
 
-    QGLFramebufferObject *render_fbo;
-    QGLFramebufferObject *texture_fbo;
+    uint    w, h;
+    fbo_map render_fbos;
+    fbo_map texture_fbos;
+
+#define render_fbo  render_fbos[QGLContext::currentContext()]
+#define texture_fbo texture_fbos[QGLContext::currentContext()]
 };
 
 

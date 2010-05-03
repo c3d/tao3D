@@ -50,7 +50,7 @@ typedef XL::Symbols     Symbols;
 //
 // ============================================================================
 
-WidgetSurface::WidgetSurface(XL::Tree *t, QWidget *widget)
+WidgetSurface::WidgetSurface(XL::Tree_p t, QWidget *widget)
 // ----------------------------------------------------------------------------
 //   Create a renderer with the right size
 // ----------------------------------------------------------------------------
@@ -140,14 +140,14 @@ GLuint WidgetSurface::bind ()
 }
 
 
-void WidgetSurface::requestFocus(coord x, coord y)
+void WidgetSurface::requestFocus(Layout *layout, coord x, coord y)
 // ----------------------------------------------------------------------------
 //    If the widget is selected, request focus
 // ----------------------------------------------------------------------------
 {
     // Request focus for this widget
     Widget *parent = (Widget *) widget->parent();
-    if (parent->selected())
+    if (parent->selected(layout))
         parent->requestFocus(widget, x, y);
 }
 
@@ -168,7 +168,7 @@ void WidgetSurface::repaint()
 //
 // ============================================================================
 
-WebViewSurface::WebViewSurface(XL::Tree *self, Widget *parent)
+WebViewSurface::WebViewSurface(XL::Tree_p self, Widget *parent)
 // ----------------------------------------------------------------------------
 //    Build the QWebView
 // ----------------------------------------------------------------------------
@@ -185,7 +185,7 @@ WebViewSurface::WebViewSurface(XL::Tree *self, Widget *parent)
 }
 
 
-GLuint WebViewSurface::bind(XL::Text *urlTree, XL::Integer *progressTree)
+GLuint WebViewSurface::bind(XL::Text_p urlTree, XL::Integer_p progressTree)
 // ----------------------------------------------------------------------------
 //    Update depending on URL changes, then bind texture
 // ----------------------------------------------------------------------------
@@ -225,7 +225,7 @@ void WebViewSurface::loadProgress(int progressPercent)
         QWebView *webView = (QWebView *) widget;
         if (webView->url().isValid() && progressPercent >= 20)
         {
-            url = webView->url().toString().toStdString();
+            url = +webView->url().toString();
             urlTree->value = url;
         }
     }
@@ -241,7 +241,7 @@ void WebViewSurface::loadProgress(int progressPercent)
 //
 // ============================================================================
 
-LineEditSurface::LineEditSurface(XL::Tree *t, Widget *parent, bool immed)
+LineEditSurface::LineEditSurface(XL::Tree_p t, Widget *parent, bool immed)
 // ----------------------------------------------------------------------------
 //    Build the QLineEdit
 // ----------------------------------------------------------------------------
@@ -265,14 +265,14 @@ LineEditSurface::LineEditSurface(XL::Tree *t, Widget *parent, bool immed)
 }
 
 
-GLuint LineEditSurface::bind(XL::Text *textTree)
+GLuint LineEditSurface::bind(XL::Text_p textTree)
 // ----------------------------------------------------------------------------
 //    Update text based on text changes
 // ----------------------------------------------------------------------------
 {
     QLineEdit *lineEdit = (QLineEdit *) widget;
     if (contents != textTree ||
-        (!locallyModified && textTree->value != lineEdit->text().toStdString()))
+        (!locallyModified && textTree->value != +lineEdit->text()))
     {
         contents = NULL;
         lineEdit->setText(+textTree->value);
@@ -296,7 +296,7 @@ void LineEditSurface::textChanged(const QString &text)
     {
         if (immediate)
         {
-            contents->value = text.toStdString();
+            contents->value = +text;
             locallyModified = false;
         }
         else
@@ -321,7 +321,7 @@ void LineEditSurface::inputValidated()
     if (contents)
     {
         QLineEdit *lineEdit = (QLineEdit *) widget;
-        contents->value = lineEdit->text().toStdString();
+        contents->value = +lineEdit->text();
         locallyModified = false;
     }
     repaint();
@@ -334,7 +334,8 @@ void LineEditSurface::inputValidated()
 //   Abstract Button
 //
 // ============================================================================
-AbstractButtonSurface::AbstractButtonSurface(XL::Tree *t,
+
+AbstractButtonSurface::AbstractButtonSurface(XL::Tree_p t,
                                              QAbstractButton * button,
                                              QString name)
 // ----------------------------------------------------------------------------
@@ -350,7 +351,7 @@ AbstractButtonSurface::AbstractButtonSurface(XL::Tree *t,
 }
 
 
-GLuint AbstractButtonSurface::bind(XL::Text *lbl, XL::Tree *act, XL::Text *sel)
+GLuint AbstractButtonSurface::bind(XL::Text_p lbl, XL::Tree_p act, XL::Text_p sel)
 // ----------------------------------------------------------------------------
 //    If the label or associated action changes
 // ----------------------------------------------------------------------------
@@ -419,7 +420,7 @@ void AbstractButtonSurface::toggled(bool checked)
     struct ToggleTreeClone : XL::TreeClone
     {
         ToggleTreeClone(bool c) : checked(c){}
-        XL::Tree *DoName(XL::Name *what)
+        XL::Tree_p DoName(XL::Name_p what)
         {
             if (what->value == "checked")
             {
@@ -434,7 +435,7 @@ void AbstractButtonSurface::toggled(bool checked)
     } replacer(checked);
 
     // The tree to be evaluated needs its own symbol table before evaluation
-    XL::Tree *toBeEvaluated = action.tree;
+    XL::Tree_p toBeEvaluated = action.tree;
     XL::Symbols *syms = toBeEvaluated->Get<SymbolsInfo>();
     if (!syms)
         syms = XL::Symbols::symbols;
@@ -454,7 +455,8 @@ void AbstractButtonSurface::toggled(bool checked)
 //
 // ============================================================================
 
-ColorChooserSurface::ColorChooserSurface(XL::Tree *t, Widget *parent, XL::Tree *act)
+ColorChooserSurface::ColorChooserSurface(XL::Tree_p t,
+                                         Widget *parent, XL::Tree_p act)
 // ----------------------------------------------------------------------------
 //    Create the Color Chooser surface
 // ----------------------------------------------------------------------------
@@ -491,7 +493,7 @@ void ColorChooserSurface::colorChosen(const QColor &col)
 {
     IFTRACE (widgets)
     {
-        std::cerr << "Color "<< col.name().toStdString()
+        std::cerr << "Color "<< +col.name()
                   << "was chosen for reference "<< action.tree
                   <<"\nand action " << action << "\n";
     }
@@ -500,7 +502,7 @@ void ColorChooserSurface::colorChosen(const QColor &col)
     struct ColorTreeClone : XL::TreeClone
     {
         ColorTreeClone(const QColor &c) : color(c){}
-        XL::Tree *DoName(XL::Name *what)
+        XL::Tree_p DoName(XL::Name_p what)
         {
             if (what->value == "red")
                 return new XL::Real(color.redF(), what->Position());
@@ -517,7 +519,7 @@ void ColorChooserSurface::colorChosen(const QColor &col)
     } replacer(col);
 
     // The tree to be evaluated needs its own symbol table before evaluation
-    XL::Tree *toBeEvaluated = action.tree;
+    XL::Tree_p toBeEvaluated = action.tree;
     XL::Symbols *syms = toBeEvaluated->Get<SymbolsInfo>();
     if (!syms)
         syms = XL::Symbols::symbols;
@@ -538,10 +540,10 @@ void ColorChooserSurface::colorChosen(const QColor &col)
 //
 // ============================================================================
 
-FontChooserSurface::FontChooserSurface(XL::Tree *t, Widget *parent,
-                                       XL::Tree *act)
+FontChooserSurface::FontChooserSurface(XL::Tree_p t, Widget *parent,
+                                       XL::Tree_p act)
 // ----------------------------------------------------------------------------
-//    Create the Color Chooser surface
+//    Create the Font Chooser surface
 // ----------------------------------------------------------------------------
   : WidgetSurface(t, new QFontDialog(parent)), action(act)
 {
@@ -569,7 +571,7 @@ void FontChooserSurface::fontChosen(const QFont& ft)
 {
     IFTRACE (widgets)
     {
-        std::cerr << "Font "<< ft.toString().toStdString()
+        std::cerr << "Font "<< +ft.toString()
                   << "was chosen for reference "<< action.tree
                   <<"\nand action " << action << "\n";
     }
@@ -577,10 +579,10 @@ void FontChooserSurface::fontChosen(const QFont& ft)
     struct FontTreeClone : XL::TreeClone
     {
         FontTreeClone(const QFont &f) : font(f){}
-        XL::Tree *DoName(XL::Name *what)
+        XL::Tree_p DoName(XL::Name_p what)
         {
             if (what->value == "family")
-                return new XL::Text(font.family().toStdString(),
+                return new XL::Text(+font.family(),
                                     "\"" ,"\"",what->Position());
             if (what->value == "pointSize")
                 return new XL::Integer(font.pointSize(), what->Position());
@@ -600,7 +602,7 @@ void FontChooserSurface::fontChosen(const QFont& ft)
     } replacer(ft);
 
     // The tree to be evaluated needs its own symbol table before evaluation
-    XL::Tree *toBeEvaluated = action.tree;
+    XL::Tree_p toBeEvaluated = action.tree;
     XL::Symbols *syms = toBeEvaluated->Get<SymbolsInfo>();
     if (!syms)
         syms = XL::Symbols::symbols;
@@ -616,11 +618,50 @@ void FontChooserSurface::fontChosen(const QFont& ft)
 
 // ============================================================================
 //
+//    File Chooser
+//
+// ============================================================================
+
+FileChooserSurface::FileChooserSurface(XL::Tree_p t, Widget *parent)
+// ----------------------------------------------------------------------------
+//    Create the File Chooser surface
+// ----------------------------------------------------------------------------
+  : WidgetSurface(t, new QFileDialog(parent))
+{
+    QFileDialog *diag = (QFileDialog *) widget;
+    connect(diag, SIGNAL(fileSelected (const QString&)),
+            parent, SLOT(fileChosen(const QString&)));
+    connect(diag, SIGNAL(fileSelected (const QString&)),
+            this, SLOT(hideWidget()));
+    diag->setModal(false);
+}
+
+
+GLuint FileChooserSurface::bind()
+// ----------------------------------------------------------------------------
+//   Display the file chooser
+// ----------------------------------------------------------------------------
+{
+    widget->setVisible(true);
+    return WidgetSurface::bind();
+}
+
+
+void FileChooserSurface::hideWidget()
+// ----------------------------------------------------------------------------
+//    A file was selected. Evaluate the action.
+// ----------------------------------------------------------------------------
+{
+     widget->setVisible(false);
+}
+
+// ============================================================================
+//
 //   Group Box
 //
 // ============================================================================
 
-GroupBoxSurface::GroupBoxSurface(XL::Tree *t, Widget *parent, QGridLayout *l)
+GroupBoxSurface::GroupBoxSurface(XL::Tree_p t, Widget *parent, QGridLayout *l)
 // ----------------------------------------------------------------------------
 //    Create the Group Box surface
 // ----------------------------------------------------------------------------
@@ -644,7 +685,7 @@ GroupBoxSurface::~GroupBoxSurface()
 }
 
 
-GLuint GroupBoxSurface::bind(XL::Text *lbl)
+GLuint GroupBoxSurface::bind(XL::Text_p lbl)
 // ----------------------------------------------------------------------------
 //   Display the group box
 // ----------------------------------------------------------------------------
@@ -658,19 +699,14 @@ GLuint GroupBoxSurface::bind(XL::Text *lbl)
         IFTRACE(widgets)
         {
             QLayout *l = gbox->layout();
-            std::cerr << "Layout : "<<(l?l->objectName().toStdString():"No Layout")<<"\n";
+            std::cerr << "Layout : "
+                      << (l ? +l->objectName() : "No Layout")
+                      <<"\n";
         }
     }
     return WidgetSurface::bind();
 }
 
-//void GroupBoxSurface::clicked(bool checked)
-//{
-//    IFTRACE(widgets)
-//    {
-//        std::cerr<< "GroupBox clicked\n";
-//    }
-//}
 
 
 // ============================================================================
@@ -679,7 +715,7 @@ GLuint GroupBoxSurface::bind(XL::Text *lbl)
 //
 // ============================================================================
 
-VideoPlayerSurface::VideoPlayerSurface(XL::Tree *t, Widget *parent)
+VideoPlayerSurface::VideoPlayerSurface(XL::Tree_p t, Widget *parent)
 // ----------------------------------------------------------------------------
 //   Create the video player
 // ----------------------------------------------------------------------------
@@ -703,7 +739,7 @@ VideoPlayerSurface::~VideoPlayerSurface()
 }
 
 
-GLuint VideoPlayerSurface::bind(XL::Text *urlTree)
+GLuint VideoPlayerSurface::bind(XL::Text_p urlTree)
 // ----------------------------------------------------------------------------
 //    Bind the surface to the texture
 // ----------------------------------------------------------------------------
@@ -737,13 +773,15 @@ GLuint VideoPlayerSurface::bind(XL::Text *urlTree)
 //   Slider TO BE DONE
 //
 // ============================================================================
-AbstractSliderSurface::AbstractSliderSurface(XL::Tree *t, QAbstractSlider *slide) :
+
+AbstractSliderSurface::AbstractSliderSurface(XL::Tree_p t,
+                                             QAbstractSlider *slide) :
         WidgetSurface(t, slide), min(0), max(0), value(NULL)
 {
 
 }
 
-void AbstractSliderSurface::valueChanged(int new_value)
+void AbstractSliderSurface::valueChanged(int /* new_value */)
 {
 
 }

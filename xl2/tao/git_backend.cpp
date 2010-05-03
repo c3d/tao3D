@@ -149,7 +149,7 @@ text GitRepository::branch()
         QStringList branches = (+output).split("\n");
         QRegExp re("^[*].*");
         int index = branches.indexOf(re);
-        if (index > 0)
+        if (index >= 0)
             result = +branches[index].mid(2);
         else
             result = "master";  // May happen on a totally empty repository
@@ -297,7 +297,7 @@ bool GitRepository::asyncCherryPick(text id)
 
 void GitRepository::asyncProcessFinished(int exitCode)
 // ----------------------------------------------------------------------------
-//   An asynchronous subprocess has finished normally
+//   An asynchronous subprocess has finished
 // ----------------------------------------------------------------------------
 {
     ProcQueueConsumer p(*this);
@@ -308,6 +308,7 @@ void GitRepository::asyncProcessFinished(int exitCode)
     bool newHead  = (isCommit ||
                      op == "revert" ||
                      op == "cherry-pick");
+    bool isClone  = (op == "clone");
     bool ok       = true;
     text output;
     cmd->done(&errors, &output);
@@ -329,7 +330,15 @@ void GitRepository::asyncProcessFinished(int exitCode)
         if (parseCommitOutput(output, commitId, commitMsg))
             emit asyncCommitSuccess(commitId, commitMsg);
     }
+    if (isClone)
+    {
+        cmd->sendStandardOutputToTextEdit();
+        QString projPath;
+        projPath = parseCloneOutput(cmd->out);
+        emit asyncCloneComplete(cmd->id, projPath);
+    }
 }
+
 
 
 bool GitRepository::parseCommitOutput(text output, QString &id, QString &msg)
@@ -347,6 +356,24 @@ bool GitRepository::parseCommitOutput(text output, QString &id, QString &msg)
     id  = rx.cap(1);
     msg = rx.cap(2);
     return true;
+}
+
+
+
+QString GitRepository::parseCloneOutput(QString output)
+// ----------------------------------------------------------------------------
+//   Extract the project path from "git clone" standard output
+// ----------------------------------------------------------------------------
+{
+    // Clone output is like:
+    // Initialized empty Git repository in /Some/Path/Project/.git/
+    QString path;
+    output.replace("/.git/", "");
+    int i;
+    i = output.indexOf("/");
+    if (i != -1)
+        path = output.remove(0, i);
+    return path.trimmed();
 }
 
 
@@ -493,6 +520,17 @@ QList<GitRepository::Commit> GitRepository::history(int max)
             result.prepend(Repository::Commit(rx.cap(1), rx.cap(2)));
 
     return result;
+}
+
+Process * GitRepository::asyncClone(QString cloneUrl,
+                                    AnsiTextEdit * out, void *id)
+// ----------------------------------------------------------------------------
+//   Make a local copy of a remote project
+// ----------------------------------------------------------------------------
+{
+    QStringList args;
+    args << "clone" << "--progress" << cloneUrl;
+    return dispatch(new Process(command(), args, path, false), out, out, id);
 }
 
 TAO_END

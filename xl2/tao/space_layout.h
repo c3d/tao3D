@@ -35,7 +35,7 @@ struct SpaceLayout : Layout
                         SpaceLayout(Widget *widget);
                         ~SpaceLayout();
 
-    virtual Box3        Space();
+    virtual Box3        Space(Layout *layout);
     virtual SpaceLayout*NewChild()      { return new SpaceLayout(*this); }
 
 public:

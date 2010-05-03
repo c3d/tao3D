@@ -25,8 +25,8 @@ QT += webkit \
     phonon
 
 # CONFIG += release
-CONFIG += debug \
-    console
+CONFIG += console
+QMAKE_CXXFLAGS_RELEASE += -g
 
 # Tell the XLR portion that we are building for Tao
 DEFINES += TAO \
@@ -56,6 +56,8 @@ HEADERS += widget.h \
     text_drawing.h \
     shapes3d.h \
     path3d.h \
+    binpack.h \
+    glyph_cache.h \
     attributes.h \
     transforms.h \
     layout.h \
@@ -71,6 +73,7 @@ HEADERS += widget.h \
     repository.h \
     git_backend.h \
     tao_utf8.h \
+    tao_tree.h \
     ../xlr/utf8.h \
     ../xlr/base.h \
     ../xlr/options.h \
@@ -101,7 +104,9 @@ HEADERS += widget.h \
     pull_from_dialog.h \
     remote_selection_frame.h \
     publish_to_dialog.h \
-    undo.h
+    undo.h \
+    clone_dialog.h \
+    ansi_textedit.h
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \
@@ -117,6 +122,8 @@ SOURCES += tao_main.cpp \
     text_drawing.cpp \
     shapes3d.cpp \
     path3d.cpp \
+    binpack.cpp \
+    glyph_cache.cpp \
     attributes.cpp \
     transforms.cpp \
     layout.cpp \
@@ -153,7 +160,9 @@ SOURCES += tao_main.cpp \
     pull_from_dialog.cpp \
     remote_selection_frame.cpp \
     publish_to_dialog.cpp \
-    undo.cpp
+    undo.cpp \
+    clone_dialog.cpp \
+    ansi_textedit.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \
@@ -195,4 +204,5 @@ xlr_support.files += $${OTHER_FILES}
 QMAKE_BUNDLE_DATA += xlr_support
 FORMS += pull_from_dialog.ui \
     remote_selection_frame.ui \
-    publish_to_dialog.ui
+    publish_to_dialog.ui \
+    clone_dialog.ui

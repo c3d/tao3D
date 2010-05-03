@@ -31,7 +31,7 @@ FrameInfo::FrameInfo(uint w, uint h)
 // ----------------------------------------------------------------------------
 //   Create the required frame buffer objects
 // ----------------------------------------------------------------------------
-    : render_fbo(NULL), texture_fbo(NULL)
+    : w(w), h(h)
 {
     resize(w, h);
 }
@@ -39,12 +39,19 @@ FrameInfo::FrameInfo(uint w, uint h)
 
 FrameInfo::~FrameInfo()
 // ----------------------------------------------------------------------------
-//   Delete the frame buffer object and GL tile
+//   Delete the frame buffer objects and GL tiles
 // ----------------------------------------------------------------------------
 {
-    delete texture_fbo;
-    if (render_fbo != texture_fbo)
-        delete render_fbo;
+    fbo_map::iterator i;
+    for (i = render_fbos.begin(); i != render_fbos.end(); i++)
+    {
+        fbo_map::key_type    k  = (*i).first;
+        fbo_map::mapped_type rv = (*i).second;
+        fbo_map::mapped_type tv = texture_fbos[k];
+        delete rv;
+        if (rv != tv)
+            delete tv;
+    }
 }
 
 
@@ -106,9 +113,7 @@ void FrameInfo::begin()
     glLoadIdentity();
 
     glDisable(GL_TEXTURE_2D);
-#ifdef GL_MULTISAMPLE   // Not supported on Windows
     glDisable(GL_MULTISAMPLE);
-#endif
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -140,17 +145,25 @@ GLuint FrameInfo::bind()
 //   Bind the GL texture associated to the off-screen buffer
 // ----------------------------------------------------------------------------
 {
+    checkGLContext();
     GLuint texId = texture_fbo->texture();
     glBindTexture(GL_TEXTURE_2D, texId);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glEnable(GL_TEXTURE_2D);
-#ifdef GL_MULTISAMPLE   // Not supported on Windows
     glEnable(GL_MULTISAMPLE);
-#endif
     return texId;
 }
 
+
+void FrameInfo::checkGLContext()
+// ----------------------------------------------------------------------------
+//   Make sure FBOs have been allocated for the current GL context
+// ----------------------------------------------------------------------------
+{
+    if (!render_fbos.count(QGLContext::currentContext()))
+        resize(w, h);
+}
 
 
 // ============================================================================
@@ -169,6 +182,7 @@ FramePainter::FramePainter(FrameInfo *info)
     glLoadIdentity();
 
     // Clear the render FBO
+    info->checkGLContext();
     info->render_fbo->bind();
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

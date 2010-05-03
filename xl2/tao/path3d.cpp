@@ -17,6 +17,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -27,6 +28,7 @@
 #include <GL/glew.h>
 #include <QtOpenGL>
 #include <QPainterPath>
+#include <QPainterPathStroker>
 #include <iostream>
 
 TAO_BEGIN
@@ -46,7 +48,7 @@ GraphicPath::GraphicPath()
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
-    : Shape()
+    : Shape(), startStyle(NONE), endStyle(NONE)
 {}
 
 
@@ -129,21 +131,69 @@ void GraphicPath::Draw(Layout *where)
 //   Draw the graphic path using the current texture, fill and line color
 // ----------------------------------------------------------------------------
 {
-    setTexture(where);
-    if (setFillColor(where))
-        Draw(where, GL_POLYGON);
-    if (setLineColor(where))
-        // REVISIT: If lines is thick, use a QPainterPathStroker
-        Draw(where, GL_LINE_STRIP);
+    Draw(where, 0);
 }
 
 
-void GraphicPath::Draw(Layout *where, GLenum mode, GLenum tesselation)
+void GraphicPath::Draw(Layout *where, GLenum tessel)
+// ----------------------------------------------------------------------------
+//   Draw the graphic path using the current texture, fill and line color
+// ----------------------------------------------------------------------------
+{
+    setTexture(where);
+    if (setFillColor(where))
+    {
+        Draw(where->Offset(), GL_POLYGON, tessel);
+    }
+    if (setLineColor(where)) 
+    {
+        // If the path is flat, use a QPainterPathStroker
+        QPainterPath path;
+        if ( extractQtPath(path) )
+        {
+            QPainterPathStroker stroker;
+            stroker.setWidth(where->lineWidth);
+            stroker.setCapStyle(Qt::FlatCap);
+            stroker.setJoinStyle(Qt::RoundJoin);
+            stroker.setDashPattern(Qt::SolidLine);
+            QPainterPath stroke = stroker.createStroke(path);
+            scale s = 2*where->lineWidth;
+            switch (startStyle)
+            {
+                case TRIANGLE:
+                    stroke.addEllipse(start.x-s, start.y-s, 2*s, 2*s);
+                    break;
+                case NONE:
+                default:
+                    ;
+            }
+            switch (endStyle)
+            {
+                case TRIANGLE:
+                    stroke.addEllipse(position.x-s, position.y-s, 2*s, 2*s);
+                    break;
+                case NONE:
+                default:
+                    ;
+            }
+
+            GraphicPath outline;
+            outline.addQtPath(stroke);
+            outline.Draw(where->Offset(), GL_POLYGON,GLU_TESS_WINDING_POSITIVE);
+        }
+        else
+        {
+            Draw(where->Offset(), tessel ? GL_LINE_LOOP : GL_LINE_STRIP, 0);
+        }
+    }
+}
+
+
+void GraphicPath::Draw(const Vector3 &offset, GLenum mode, GLenum tesselation)
 // ----------------------------------------------------------------------------
 //   Draw the graphic path using curves with the given mode and tesselation
 // ----------------------------------------------------------------------------
 {
-    Vector3 offset = where->Offset();
     PolygonData polygon;        // Polygon information
     Vertices &data = polygon.vertices;
     Vertices control;           // Control points
@@ -251,7 +301,7 @@ void GraphicPath::Draw(Layout *where, GLenum mode, GLenum tesselation)
                 Vector3& t1 = control[1].texture;
                 Vector3& t2 = control[2].texture;
                 Vector3& t3 = control[3].texture;
-                
+
                 // Compute a good number of points for approximating the curve
                 scale length = (v2-v0).Length() + 1;
                 scale order = log(length);
@@ -446,6 +496,71 @@ GraphicPath& GraphicPath::addQtPath(QPainterPath &qt, scale sy)
 }
 
 
+bool GraphicPath::extractQtPath(QPainterPath &qt)
+// ----------------------------------------------------------------------------
+//   Extract a QT path from the graphic path. Returns true if path was flat
+// ----------------------------------------------------------------------------
+{
+    QPainterPath path;
+    bool flat = true;
+
+    // Check that Kind and QPainterPath::ElementType numerical values match
+    XL_CASSERT (int(QPainterPath::MoveToElement) == int(MOVE_TO) &&
+                int(QPainterPath::LineToElement) == int(LINE_TO) &&
+                int(QPainterPath::CurveToElement) == int(CURVE_TO) &&
+                int(QPainterPath::CurveToDataElement) == int(CURVE_CONTROL));
+
+    // Loop on the Graphic Path and insert elements in the QT Path
+    // Qt paths place CURVE_TO before control points, we place it last
+    uint i, max = elements.size();
+    Kind kind;
+    Point3 p, c1, c2;
+    uint control = 0;
+    for (i = 0; i < max; i++)
+    {
+        const GraphicPath::Element &e = elements[i];
+        kind = e.kind;
+        p = e.position;
+        switch(kind)
+        {
+        case MOVE_TO:
+            path.moveTo(p.x, p.y);
+            if (p.z != 0.0)
+                flat = false;
+            break;
+        case LINE_TO:
+            path.lineTo(p.x, p.y);
+            if (p.z != 0.0)
+                flat = false;
+            break;
+        case CURVE_TO:
+            if (control == 1)
+                path.quadTo(c1.x, c1.y, p.x, p.y);
+            else if (control == 2)
+                path.cubicTo(c1.x, c1.y, c2.x, c2.y, p.x, p.y);
+            else
+                assert(!"Curve should not exceed a cubic form");
+            control = 0;
+            if (p.z != 0.0)
+                flat = false;
+            break;
+        case CURVE_CONTROL:
+            control++;
+            if (control == 1)
+                c1 = p;
+            else if (control == 2)
+                c2 = p;
+            else
+                assert(!"Curve should not exceed a cubic form");
+            break;
+        }
+    }
+
+    qt = path;
+    return flat;
+}
+
+
 void GraphicPath::Draw(Layout *where, QPainterPath &qtPath,
                        GLenum tessel, scale sy)
 // ----------------------------------------------------------------------------
@@ -454,16 +569,11 @@ void GraphicPath::Draw(Layout *where, QPainterPath &qtPath,
 {
     GraphicPath path;
     path.addQtPath(qtPath, sy);
-
-    path.setTexture(where);
-    if (path.setFillColor(where))
-        path.Draw(where, GL_POLYGON, tessel);
-    if (path.setLineColor(where))
-        path.Draw(where, tessel ? GL_LINE_LOOP : GL_LINE_STRIP);
+    path.Draw(where, tessel);
 }
 
 
-Box3 GraphicPath::Bounds()
+Box3 GraphicPath::Bounds(Layout *)
 // ----------------------------------------------------------------------------
 //   Return the bounding box, computed from all path elements
 // ----------------------------------------------------------------------------
@@ -489,7 +599,7 @@ void GraphicPath::clear()
 }
 
 
-void GraphicPath::AddControl(XL::Tree *self, real_r x, real_r y, real_r z)
+void GraphicPath::AddControl(XL::Tree_p self, real_r x, real_r y, real_r z)
 // ----------------------------------------------------------------------------
 //   Add a control point to a path
 // ----------------------------------------------------------------------------
@@ -498,41 +608,41 @@ void GraphicPath::AddControl(XL::Tree *self, real_r x, real_r y, real_r z)
 }
 
 
-void GraphicPath::DrawSelection(Layout *where)
+void GraphicPath::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Draw the control points
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = where->Display();
-    if (widget->selected())
+    Widget *widget = layout->Display();
+    if (widget->selected(layout))
     {
-        glPushName(widget->currentId());
+        glPushName(layout->id);
         control_points::iterator i;
         for (i = controls.begin(); i != controls.end(); i++)
         {
             ControlPoint *child = *i;
-            child->DrawSelection(where);
+            child->DrawSelection(layout);
         }
         glPopName();
     }
 }
 
 
-void GraphicPath::Identify(Layout *where)
+void GraphicPath::Identify(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Identify the control points
 // ----------------------------------------------------------------------------
 {
-    Draw(where);
-    Widget *widget = where->Display();
-    if (widget->selected())
+    Draw(layout);
+    Widget *widget = layout->Display();
+    if (widget->selected(layout))
     {
-        glPushName(widget->currentId());
+        glPushName(layout->id);
         control_points::iterator i;
         for (i = controls.begin(); i != controls.end(); i++)
         {
             ControlPoint *child = *i;
-            child->Identify(where);
+            child->Identify(layout);
         }
         glPopName();
     }
@@ -544,12 +654,7 @@ void TesselatedPath::Draw(Layout *where)
 //   Draw the graphic path using the current texture, fill and line color
 // ----------------------------------------------------------------------------
 {
-    setTexture(where);
-    if (setFillColor(where))
-        GraphicPath::Draw(where, GL_POLYGON, tesselation);
-    if (setLineColor(where))
-        // REVISIT: If lines is thick, use a QPainterPathStroker
-        GraphicPath::Draw(where, GL_LINE_STRIP);
+    GraphicPath::Draw(where, tesselation);
 }
 
 TAO_END

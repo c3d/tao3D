@@ -52,6 +52,8 @@ public:
     QString        fullname; // the widget full name.
     QAction      * p_action; // The action associated with the widget
     QToolBar     * p_toolbar; // The toolbar
+    text           title;
+    text           icon;
 
 public slots:
     void actionDestroyed();
@@ -69,7 +71,7 @@ struct GroupInfo : QButtonGroup, XL::Info
 public:
     typedef GroupInfo * data_t;
 
-    GroupInfo(XL::Tree *t, QWidget * parent) :
+    GroupInfo(XL::Tree_p t, QWidget * parent) :
             QButtonGroup(parent), XL::Info(), tree(t), action(NULL)
     {
         connect(this, SIGNAL(buttonClicked(QAbstractButton*)),
@@ -87,7 +89,7 @@ public slots:
     void bClicked(QAbstractButton* button);
 
 public:
-    XL::Tree *tree;
+    XL::Tree_p tree;
     XL::TreeRoot *action;
 };
 

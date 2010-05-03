@@ -42,6 +42,7 @@ public:
 public:
     QString                        pullFrom();
     Repository::ConflictResolution conflictResolution();
+    int                            pullInterval();
 
 public slots:
     virtual void accept();

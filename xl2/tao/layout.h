@@ -19,6 +19,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -48,10 +49,11 @@ public:
     Vector3             offset;
     QFont               font;
     Justification       alongX, alongY, alongZ;
+    scale               lineWidth;
     Color               lineColor;
     Color               fillColor;
     uint                fillTexture;
-    uint                lastRotation, lastTranslation, lastScale;
+    uint                rotationId, translationId, scaleId;
 };
 
 
@@ -67,31 +69,43 @@ struct Layout : Drawing, LayoutState
     // Drawing interface
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *);
-    virtual void        Identify(Layout *l);
-    virtual Box3        Bounds();
-    virtual Box3        Space();
+    virtual void        Identify(Layout *);
+    virtual Box3        Bounds(Layout *);
+    virtual Box3        Space(Layout *);
 
     // Layout interface
     virtual void        Add (Drawing *d);
     virtual Vector3     Offset();
     virtual Layout *    NewChild()       { return new Layout(*this); }
-    virtual Layout *    AddChild();
+    virtual Layout *    AddChild(uint id = 0);
     virtual void        Clear();
     virtual Widget *    Display()        { return display; }
     virtual void        PolygonOffset();
 
     LayoutState &       operator=(const LayoutState &o);
     void                Inherit(Layout *other);
+    void                LoadName();
 
 public:
-    // Attributes that get propagated to children
-    static int          polygonOffset;
+    // OpenGL identification for that shape
+    uint                id;
+
+    // For optimized drawing, we keep track of what changes
+    bool                hasPixelBlur    : 1; // Pixels not aligning naturally
+    bool                hasMatrix       : 1;
+    bool                hasAttributes   : 1;
 
 protected:
     // List of drawing elements
     typedef std::vector<Drawing *>      layout_items;
     layout_items        items;
     Widget *            display;
+
+public:
+    // Static attributes for polygon offset computation
+    static int          polygonOffset;
+    static scale        factorBase, factorIncrement;
+    static scale        unitBase, unitIncrement;
 };
 
 TAO_END

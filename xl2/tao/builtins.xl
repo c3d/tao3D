@@ -248,7 +248,7 @@ menu_item "menu:insert > shape > polygon", "Polygon", insert
 menu      "menu:insert", ""
 submenu   "menu:insert > object", "Object"
 menu_item "menu:insert > object > image", "Image ...", file_chooser
-    action insert {shape {image 0, 0, 0, 0, file_path} }
+    action insert {shape {color 1,1,1,1; image 0, 0, 0, 0, file_path} }
 
 }
 

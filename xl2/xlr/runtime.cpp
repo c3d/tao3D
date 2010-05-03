@@ -298,7 +298,7 @@ Tree_p xl_new_closure(Tree_p expr, uint ntrees, ...)
     va_start(va, ntrees);
     for (uint i = 0; i < ntrees; i++)
     {
-        Tree_p arg = va_arg(va, Tree_p);
+        Tree_p arg = va_arg(va, Tree *);
         IFTRACE(closure)
             std::cerr << "  ARG: " << arg << '\n';
         Prefix_p item = new Prefix(arg, NULL);
@@ -536,7 +536,7 @@ Tree_p xl_load(text name)
     {
         SourceFile &sf = MAIN->files[name];
         Symbols::symbols->Import(sf.symbols);
-        return sf.tree.tree;
+        return sf.tree;
     }
 
     Parser parser(name.c_str(), MAIN->syntax, MAIN->positions, MAIN->errors);
@@ -567,7 +567,7 @@ Tree_p xl_load_csv(text name)
     {
         SourceFile &sf = MAIN->files[name];
         Symbols::symbols->Import(sf.symbols);
-        return sf.tree.tree;
+        return sf.tree;
     }
 
     Tree_p tree = NULL;
@@ -671,7 +671,7 @@ Tree_p xl_load_tsv(text name)
     {
         SourceFile &sf = MAIN->files[name];
         Symbols::symbols->Import(sf.symbols);
-        return sf.tree.tree;
+        return sf.tree;
     }
 
     Tree_p tree = NULL;

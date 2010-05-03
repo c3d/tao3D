@@ -117,7 +117,7 @@ void GroupInfo::bClicked(QAbstractButton *button)
 
 
     // The tree to be evaluated needs its own symbol table before evaluation
-    XL::Tree_p  toBeEvaluated = action->tree;
+    XL::Tree_p  toBeEvaluated = action;
     XL::Symbols *syms = toBeEvaluated->Get<XL::SymbolsInfo>();
     if (!syms)
         syms = XL::Symbols::symbols;

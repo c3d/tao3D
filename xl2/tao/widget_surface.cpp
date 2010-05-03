@@ -50,7 +50,7 @@ typedef XL::Symbols     Symbols;
 //
 // ============================================================================
 
-WidgetSurface::WidgetSurface(XL::Tree_p t, QWidget *widget)
+WidgetSurface::WidgetSurface(Tree_p t, QWidget *widget)
 // ----------------------------------------------------------------------------
 //   Create a renderer with the right size
 // ----------------------------------------------------------------------------
@@ -335,7 +335,7 @@ void LineEditSurface::inputValidated()
 //
 // ============================================================================
 
-AbstractButtonSurface::AbstractButtonSurface(XL::Tree_p t,
+AbstractButtonSurface::AbstractButtonSurface(Tree_p t,
                                              QAbstractButton * button,
                                              QString name)
 // ----------------------------------------------------------------------------
@@ -363,7 +363,7 @@ GLuint AbstractButtonSurface::bind(XL::Text_p lbl, XL::Tree_p act, XL::Text_p se
         button->setText(+label);
     }
     dirty = true;
-    action.tree = act;
+    action = act;
 
     if (sel && button->isCheckable() &&
         strcasecmp(sel->value.c_str(),
@@ -388,7 +388,7 @@ void AbstractButtonSurface::clicked(bool checked)
                   << " was clicked with checked = " << checked << "\n";
     }
 
-    if (action.tree)
+    if (action)
         xl_evaluate(action);
 }
 
@@ -414,7 +414,8 @@ void AbstractButtonSurface::toggled(bool checked)
             isMarked->value = "false";
     }
 
-    if ( ! action.tree ) return;
+    if (!action)
+        return;
 
     // We override name "checked" in the input tree
     struct ToggleTreeClone : XL::TreeClone
@@ -435,7 +436,7 @@ void AbstractButtonSurface::toggled(bool checked)
     } replacer(checked);
 
     // The tree to be evaluated needs its own symbol table before evaluation
-    XL::Tree_p toBeEvaluated = action.tree;
+    Tree_p toBeEvaluated = action;
     XL::Symbols *syms = toBeEvaluated->Get<SymbolsInfo>();
     if (!syms)
         syms = XL::Symbols::symbols;
@@ -494,7 +495,7 @@ void ColorChooserSurface::colorChosen(const QColor &col)
     IFTRACE (widgets)
     {
         std::cerr << "Color "<< +col.name()
-                  << "was chosen for reference "<< action.tree
+                  << "was chosen for reference "<< action
                   <<"\nand action " << action << "\n";
     }
 
@@ -519,7 +520,7 @@ void ColorChooserSurface::colorChosen(const QColor &col)
     } replacer(col);
 
     // The tree to be evaluated needs its own symbol table before evaluation
-    XL::Tree_p toBeEvaluated = action.tree;
+    Tree_p toBeEvaluated = action;
     XL::Symbols *syms = toBeEvaluated->Get<SymbolsInfo>();
     if (!syms)
         syms = XL::Symbols::symbols;
@@ -572,7 +573,7 @@ void FontChooserSurface::fontChosen(const QFont& ft)
     IFTRACE (widgets)
     {
         std::cerr << "Font "<< +ft.toString()
-                  << "was chosen for reference "<< action.tree
+                  << "was chosen for reference "<< action
                   <<"\nand action " << action << "\n";
     }
 
@@ -602,7 +603,7 @@ void FontChooserSurface::fontChosen(const QFont& ft)
     } replacer(ft);
 
     // The tree to be evaluated needs its own symbol table before evaluation
-    XL::Tree_p toBeEvaluated = action.tree;
+    Tree_p toBeEvaluated = action;
     XL::Symbols *syms = toBeEvaluated->Get<SymbolsInfo>();
     if (!syms)
         syms = XL::Symbols::symbols;

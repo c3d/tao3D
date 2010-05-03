@@ -255,7 +255,6 @@ int Main::LoadFile(text file)
         std::cout << "Loading: " << file << "\n";
 
     files[file] = SourceFile (file, tree, syms);
-    context.CollectGarbage();
 
     if (options.showGV)
     {
@@ -278,7 +277,7 @@ int Main::LoadFile(text file)
         if (!tree)
             hadError = true;
         else
-            files[file].tree.tree = tree;
+            files[file].tree = tree;
     }
 
     if (options.verbose)
@@ -310,10 +309,10 @@ int Main::Run()
         Symbols::symbols = sf.symbols;
 
         // Evaluate the given tree
-        Tree_p result = sf.tree.tree;
+        Tree_p result = sf.tree;
         try
         {
-            result = sf.symbols->Run(sf.tree.tree);
+            result = sf.symbols->Run(sf.tree);
         }
         catch (XL::Error &e)
         {
@@ -358,8 +357,8 @@ int Main::Diff()
     file++;
     SourceFile &sf2 = files[*file];
 
-    Tree_p t1 = sf1.tree.tree;
-    Tree_p t2 = sf2.tree.tree;
+    Tree_p t1 = sf1.tree;
+    Tree_p t2 = sf2.tree;
 
     TreeDiff d(t1, t2);
     return d.Diff(std::cout);

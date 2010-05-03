@@ -497,7 +497,7 @@ private:
     QToolBar             *currentToolBar;
     QVector<MenuInfo*>    orderedMenuElements;
     int                   order;
-    XL::TreeRoot          colorAction, fontAction;
+    XL::Tree_p            colorAction, fontAction;
     text                  colorName;
 
     // Timing
@@ -745,7 +745,7 @@ struct NameToTextReplacement : NameToNameReplacement
 //
 // ============================================================================
 
-#define TREEROOT_TYPE 383 // (QVariant::UserType | 0x100)
-Q_DECLARE_METATYPE(XL::TreeRoot)
+#define TREEPOINTER_TYPE 383 // (QVariant::UserType | 0x100)
+Q_DECLARE_METATYPE(XL::Tree_p)
 
 #endif // TAO_WIDGET_H

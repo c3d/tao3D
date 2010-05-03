@@ -454,13 +454,13 @@ bool FrameManipulator::DrawHandles(Layout *layout)
 
         case TM_FreeCenteredRotate:
         case TM_SteppedCenteredRotate:
-            rotate(widget, self.tree, Point3(xx, yy, 0), p0, p1, p2,
+            rotate(widget, self, Point3(xx, yy, 0), p0, p1, p2,
                    mode == TM_SteppedCenteredRotate);
             break;
 
         case TM_FreeOppositeRotate:
         case TM_SteppedOppositeRotate:
-            rotate(widget, self.tree,
+            rotate(widget, self,
                    Point3(xx-sw*w/2, yy-sh*h/2, 0),
                    p0, p1, p2, mode == TM_SteppedOppositeRotate);
             break;

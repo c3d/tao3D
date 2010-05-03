@@ -186,7 +186,7 @@ void Widget::dawdle()
 
     if (xlProgram && xlProgram->changed)
     {
-        text txt = *xlProgram->tree.tree;
+        text txt = *xlProgram->tree;
         Window *window = (Window *) parentWidget();
         window->setText(+txt);
         if (!repo)
@@ -232,9 +232,6 @@ void Widget::dawdle()
         refreshProgram();
         syncDelay = tick + xlr->options.sync_interval * 1000;
     }
-
-    // Once we are done, do a garbage collection
-    XL::Context::context->CollectGarbage();
 }
 
 
@@ -342,7 +339,7 @@ void Widget::runProgram()
 
     if (xlProgram)
     {
-        if (Tree_p prog = xlProgram->tree.tree)
+        if (Tree_p prog = xlProgram->tree)
         {
             xl_evaluate(prog);
 
@@ -589,8 +586,8 @@ void Widget::userMenu(QAction *p_action)
     markChanged(+("Menu '" + p_action->text() + "' selected"));
 
     current = this;
-    XL::TreeRoot t = var.value<XL::TreeRoot >();
-    xl_evaluate(t.tree);        // Typically will insert something...
+    XL::Tree_p t = var.value<XL::Tree_p>();
+    xl_evaluate(t);        // Typically will insert something...
 }
 
 
@@ -1253,7 +1250,7 @@ void Widget::applyAction(XL::Action &action)
 {
     if (!xlProgram)
         return;
-    Tree_p prog = xlProgram->tree.tree;
+    Tree_p prog = xlProgram->tree;
     if (!prog)
         return;
 
@@ -1265,8 +1262,8 @@ void Widget::applyAction(XL::Action &action)
     for (it = iset.begin(); it != iset.end(); it++)
     {
         XL::SourceFile &sf = **it;
-        if (sf.tree.tree)
-            sf.tree.tree->Do(action);
+        if (sf.tree)
+            sf.tree->Do(action);
     }
 }
 
@@ -1276,7 +1273,7 @@ void Widget::reloadProgram(XL::Tree_p newProg)
 //   Set the program to reload
 // ----------------------------------------------------------------------------
 {
-    Tree_p prog = xlProgram->tree.tree;
+    Tree_p prog = xlProgram->tree;
     if (newProg)
     {
         // Check if we can simply change some parameters in the tree
@@ -1285,7 +1282,7 @@ void Widget::reloadProgram(XL::Tree_p newProg)
         {
             // Need a big hammer, i.e. reload the complete program
             newProg->Set<XL::SymbolsInfo>(prog->Get<XL::SymbolsInfo>());
-            xlProgram->tree.tree = newProg;
+            xlProgram->tree = newProg;
             prog = newProg;
         }
         inError = false;
@@ -1296,7 +1293,7 @@ void Widget::reloadProgram(XL::Tree_p newProg)
         XL::NormalizedClone clone;
         newProg = prog->Do(clone);
         newProg->Set<XL::SymbolsInfo>(prog->Get<XL::SymbolsInfo>());
-        xlProgram->tree.tree = newProg;
+        xlProgram->tree = newProg;
         prog = newProg;
     }
 
@@ -1313,7 +1310,7 @@ void Widget::renormalizeProgram()
 // ----------------------------------------------------------------------------
 {
     XL::NormalizedClone norm;
-    Tree_p prog = xlProgram->tree.tree;
+    Tree_p prog = xlProgram->tree;
     prog = prog->Do(norm);
     reloadProgram(prog);
 }
@@ -1328,7 +1325,7 @@ void Widget::refreshProgram()
         return;
 
     Repository *repo = repository();
-    Tree_p prog = xlProgram->tree.tree;
+    Tree_p prog = xlProgram->tree;
     if (!prog)
         return;
 
@@ -1374,7 +1371,7 @@ void Widget::refreshProgram()
                 {
                     // Check if we can simply change some parameters in file
                     ApplyChanges changes(replacement);
-                    if (!sf.tree.tree->Do(changes))
+                    if (!sf.tree->Do(changes))
                         needBigHammer = true;
 
                     // Record new modification time
@@ -1400,8 +1397,8 @@ void Widget::refreshProgram()
                             std::cerr << "Main program could not be read\n";
 
                         // Source file is cleared, delete tree
-                        sf.tree.tree = new XL::Text("Program could not be read",
-                                                    "//", "\n");
+                        sf.tree = new XL::Text("Program could not be read",
+                                               "//", "\n");
                     }
                 }
 
@@ -1439,7 +1436,7 @@ void Widget::markChanged(text reason)
         repo->markChanged(reason);
     if (xlProgram)
     {
-        if (Tree_p prog = xlProgram->tree.tree)
+        if (Tree_p prog = xlProgram->tree)
         {
             import_set done;
             ImportedFilesChanged(prog, done, true);
@@ -1477,7 +1474,7 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
         if (!repo)
             return false;
 
-        if (repo->write(fname, sf.tree.tree))
+        if (repo->write(fname, sf.tree))
         {
             // Mark the tree as no longer changed
             sf.changed = false;
@@ -2987,7 +2984,7 @@ XL::Tree_p Widget::debugBinPacker(Tree_p self, uint w, uint h, Tree_p t)
             path->lineTo(Point3(rect.x2, rect.y1, 0));
             path->close();
         }
-        XL::Integer_p DoInteger (XL::Integer_p what)
+        Tree_p DoInteger (Integer_p what)
         {
             if (!w)
             {
@@ -3000,7 +2997,7 @@ XL::Tree_p Widget::debugBinPacker(Tree_p self, uint w, uint h, Tree_p t)
             }
             return what;
         }
-        XL::Text_p DoText(XL::Text_p what)
+        Tree_p DoText(Text_p what)
         {
             QFont font(+what->value, w ? w : -1);
             QFontMetrics fm(font);
@@ -3716,7 +3713,7 @@ Tree_p Widget::colorChooser(Tree_p self, text treeName, Tree_p action)
         colorDialog = NULL;
     }
 
-    colorAction.tree = action;
+    colorAction = action;
     colorName = treeName;
 
     // Setup the color dialog
@@ -3754,13 +3751,13 @@ void Widget::colorChanged(const QColor & col)
 //   Slot called by the color widget when a color is selected
 // ----------------------------------------------------------------------------
 {
-    if (!colorAction.tree)
+    if (!colorAction)
         return;
 
     IFTRACE (widgets)
     {
         std::cerr << "Color "<< col.name().toStdString()
-                  << "was chosen for reference "<< colorAction.tree << "\n";
+                  << "was chosen for reference "<< colorAction << "\n";
     }
 
     // We override names 'red', 'green', 'blue' and 'alpha' in the input tree
@@ -3784,7 +3781,7 @@ void Widget::colorChanged(const QColor & col)
     } replacer(col);
 
     // The tree to be evaluated needs its own symbol table before evaluation
-    XL::Tree_p toBeEvaluated = colorAction.tree;
+    XL::Tree_p toBeEvaluated = colorAction;
     XL::Symbols *syms = toBeEvaluated->Get<XL::SymbolsInfo>();
     if (!syms)
         syms = XL::Symbols::symbols;
@@ -3806,7 +3803,7 @@ void Widget::updateColorDialog()
         return;
 
     // Make sure we don't update the trees, only get their colors
-    XL::LocalSave<Tree_p > action(colorAction.tree, NULL);
+    XL::LocalSave<Tree_p > action(colorAction, NULL);
 
     // Get the default color from the first selected shape
     for (std::set<Tree_p >::iterator i = selectionTrees.begin();
@@ -3843,7 +3840,7 @@ Tree_p Widget::fontChooser(Tree_p self, Tree_p action)
 
     fontDialog->setModal(false);
     fontDialog->show();
-    fontAction.tree = action;
+    fontAction = action;
 
     return XL::xl_true;
 }
@@ -3865,13 +3862,13 @@ void Widget::fontChanged(const QFont& ft)
 //    A font was selected. Evaluate the action.
 // ----------------------------------------------------------------------------
 {
-    if (!fontAction.tree)
+    if (!fontAction)
         return;
 
     IFTRACE (widgets)
     {
         std::cerr << "Font "<< ft.toString().toStdString()
-                  << "was chosen for reference "<< fontAction.tree << "\n";
+                  << "was chosen for reference "<< fontAction << "\n";
     }
 
     struct FontTreeClone : XL::TreeClone
@@ -3900,7 +3897,7 @@ void Widget::fontChanged(const QFont& ft)
     } replacer(ft);
 
     // The tree to be evaluated needs its own symbol table before evaluation
-    XL::Tree_p toBeEvaluated = fontAction.tree;
+    XL::Tree_p toBeEvaluated = fontAction;
     XL::Symbols *syms = toBeEvaluated->Get<XL::SymbolsInfo>();
     if (!syms)
         syms = XL::Symbols::symbols;
@@ -3922,7 +3919,7 @@ void Widget::updateFontDialog()
         return;
 
     // Make sure we don't update the trees, only get their colors
-    XL::LocalSave<Tree_p > action(fontAction.tree, NULL);
+    XL::LocalSave<Tree_p > action(fontAction, NULL);
 }
 
 
@@ -4077,7 +4074,7 @@ Tree_p Widget::setFileDialogAction(Tree_p self, Tree_p action)
 
     if (currentFileDialog)
     {
-        XL::TreeRoot root(action);
+        XL::Tree_p root(action);
         currentFileDialog->setProperty("TAO_ACTION", QVariant::fromValue(root));
         return XL::xl_true;
     }
@@ -4152,15 +4149,15 @@ void Widget::fileChosen(const QString & filename)
     if(!currentFileDialog)
         return;
 
-    XL::TreeRoot fileAction = currentFileDialog->property("TAO_ACTION").
-                              value<XL::TreeRoot>();
-    if (!fileAction.tree)
+    XL::Tree_p fileAction =
+        currentFileDialog->property("TAO_ACTION").value<XL::Tree_p>();
+    if (!fileAction)
         return;
 
     IFTRACE (widgets)
     {
         std::cerr << "File "<< filename.toStdString()
-                  << "was chosen for reference "<< fileAction.tree << "\n";
+                  << "was chosen for reference "<< fileAction << "\n";
     }
 
     // We override names 'filename', 'filepath', 'filepathname'
@@ -4171,7 +4168,7 @@ void Widget::fileChosen(const QString & filename)
     map["file_directory"] = +file.canonicalPath();
     map["file_path"] = +file.canonicalFilePath();
 
-    XL::Tree_p toBeEvaluated = map.Replace(fileAction.tree);
+    XL::Tree_p toBeEvaluated = map.Replace(fileAction);
 
     // Evaluate the input tree
     xl_evaluate(toBeEvaluated);
@@ -4259,7 +4256,7 @@ Tree_p Widget::setButtonGroupAction(Tree_p self, Tree_p action)
 {
     if (currentGroup && currentGroup->action == NULL)
     {
-        currentGroup->action = new XL::TreeRoot(action);
+        currentGroup->action = action;
     }
 
     return XL::xl_true;
@@ -4446,7 +4443,7 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
     }
 
     // Store the tree in the QAction.
-    QVariant var = QVariant::fromValue(XL::TreeRoot(t));
+    QVariant var = QVariant::fromValue(XL::Tree_p(t));
 
     IFTRACE(menus)
     {
@@ -4810,7 +4807,7 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert)
     if (!xlProgram)
         return XL::xl_false;
 
-    Tree_p program = xlProgram->tree.tree;
+    Tree_p program = xlProgram->tree;
     if (XL::Block_p block = toInsert->AsBlock())
         toInsert = block->child;
 
@@ -4877,7 +4874,7 @@ void Widget::deleteSelection()
 // ----------------------------------------------------------------------------
 {
     DeleteSelectionAction del(this);
-    XL::Tree_p what = xlProgram->tree.tree;
+    XL::Tree_p what = xlProgram->tree;
     what = what->Do(del);
     reloadProgram(what);
     markChanged("Deleted selection");
@@ -4896,7 +4893,7 @@ XL::Name_p Widget::setAttribute(Tree_p self,
     if (!xlProgram)
         return XL::xl_false;
 
-    Tree_p program = xlProgram->tree.tree;
+    Tree_p program = xlProgram->tree;
     if (XL::Block_p block = attribute->AsBlock())
         attribute = block->child;
 

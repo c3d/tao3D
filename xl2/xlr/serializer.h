@@ -94,7 +94,7 @@ struct Deserializer
 //   Reconstruct a tree from its serialized form
 // ----------------------------------------------------------------------------
 {
-    Deserializer(std::istream &in, tree_position pos = Tree::NOWHERE);
+    Deserializer(std::istream &in, TreePosition pos = Tree::NOWHERE);
     ~Deserializer();
 
     // Deserialize a tree from the input and return it, or return NULL
@@ -110,7 +110,7 @@ protected:
 
 protected:
     std::istream &      in;
-    tree_position       pos;
+    TreePosition        pos;
     text_ids            texts;
 };
 

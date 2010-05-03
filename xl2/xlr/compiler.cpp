@@ -162,9 +162,11 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     // systems which do not allow the program to dlopen itself.
     runtime->InstallLazyFunctionCreator(unresolved_external);
 
-    // Create the Symbol pointer type
+    // Create the Info and Symbol pointer types
     PATypeHolder structInfoTy = OpaqueType::get(*context); // struct Info
     infoPtrTy = PointerType::get(structInfoTy, 0);         // Info *
+    PATypeHolder structSymTy = OpaqueType::get(*context);  // struct Symbols
+    symbolPtrTy = PointerType::get(structSymTy, 0);       // Symbols *
 
     // Create the eval_fn type
     PATypeHolder structTreeTy = OpaqueType::get(*context); // struct Tree
@@ -180,27 +182,33 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     {
         LocalTree (const Tree &o) :
             tag(o.tag), code(o.code), info(o.info) {}
+        ulong    references;
         ulong    tag;
         eval_fn  code;
+        Symbols *symbols;
         Info    *info;
-        Tree_p    source;
+        Tree_p   source;
     };
     // If this assert fails, you changed struct tree and need to modify here
     XL_CASSERT(sizeof(LocalTree) == sizeof(Tree));
                
     // Create the Tree type
     std::vector<const Type *> treeElements;
+    treeElements.push_back(LLVM_INTTYPE(ulong));           // references
     treeElements.push_back(LLVM_INTTYPE(ulong));           // tag
     treeElements.push_back(evalFnTy);                      // code
+    treeElements.push_back(symbolPtrTy);                   // symbols
     treeElements.push_back(infoPtrTy);                     // symbols
     treeElements.push_back(treePtrTy);                     // source
     treeTy = StructType::get(*context, treeElements);      // struct Tree {}
     cast<OpaqueType>(structTreeTy.get())->refineAbstractTypeTo(treeTy);
     treeTy = cast<StructType> (structTreeTy.get());
-#define TAG_INDEX       0
-#define CODE_INDEX      1
-#define INFO_INDEX      2
-#define SOURCE_INDEX    3
+#define REFCOUNT_INDEX  0
+#define TAG_INDEX       1
+#define CODE_INDEX      2
+#define SYMBOLS_INDEX   3
+#define INFO_INDEX      4
+#define SOURCE_INDEX    5
 
 
     // Create the Integer type
@@ -208,14 +216,14 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     integerElements.push_back(LLVM_INTTYPE(longlong));  // value
     integerTreeTy = StructType::get(*context, integerElements);   // struct Integer{}
     integerTreePtrTy = PointerType::get(integerTreeTy,0); // Integer *
-#define INTEGER_VALUE_INDEX     4
+#define INTEGER_VALUE_INDEX     6
 
     // Create the Real type
     std::vector<const Type *> realElements = treeElements;
     realElements.push_back(Type::getDoubleTy(*context));  // value
     realTreeTy = StructType::get(*context, realElements); // struct Real{}
     realTreePtrTy = PointerType::get(realTreeTy, 0);      // Real *
-#define REAL_VALUE_INDEX        4
+#define REAL_VALUE_INDEX        6
 
     // Create the Prefix type (which we also use for Infix and Block)
     std::vector<const Type *> prefixElements = treeElements;
@@ -223,8 +231,8 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     prefixElements.push_back(treePtrTy);                // Tree *
     prefixTreeTy = StructType::get(*context, prefixElements); // struct Prefix
     prefixTreePtrTy = PointerType::get(prefixTreeTy, 0);// Prefix *
-#define LEFT_VALUE_INDEX        4
-#define RIGHT_VALUE_INDEX       5
+#define LEFT_VALUE_INDEX        6
+#define RIGHT_VALUE_INDEX       7
 
     // Record the type names
     module->addTypeName("tree", treeTy);
@@ -499,7 +507,7 @@ Value *Compiler::Known(Tree_p tree)
 }
 
 
-void Compiler::FreeResources(Tree_p tree, GCAction &gc)
+void Compiler::FreeResources(Tree_p tree)
 // ----------------------------------------------------------------------------
 //   Free the LLVM resources associated to the tree, if any
 // ----------------------------------------------------------------------------
@@ -521,7 +529,7 @@ void Compiler::FreeResources(Tree_p tree, GCAction &gc)
             // Mark the tree back in XLR so that we keep it around
             IFTRACE(llvmgc)
                 std::cerr << "Keeping function " << tree << " for LLVM\n";
-            tree->Do(gc);
+            tree->Acquire();
         }
         else
         {
@@ -544,7 +552,7 @@ void Compiler::FreeResources(Tree_p tree, GCAction &gc)
                 std::cerr << "Keeping global " << tree << " for LLVM\n";
             
             // Mark the tree back in XLR so that we keep it around
-            tree->Do(gc);
+            tree->Acquire();
         }
         else
         {
@@ -556,7 +564,7 @@ void Compiler::FreeResources(Tree_p tree, GCAction &gc)
 }
 
 
-void Compiler::FreeResources(GCAction &gc)
+void Compiler::FreeResources()
 // ----------------------------------------------------------------------------
 //   Delete LLVM functions for all trees we want to erase
 // ----------------------------------------------------------------------------
@@ -578,7 +586,7 @@ void Compiler::FreeResources(GCAction &gc)
             else
             {
                 // Probably redundant, but better safe than sorry...
-                tree->Do(gc);
+                tree->Acquire();
             }
         }
 

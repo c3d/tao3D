@@ -52,7 +52,7 @@ struct SourceFile
     SourceFile(text n, Tree_p t, Symbols *s);
     SourceFile();
     text        name;
-    TreeRoot    tree;
+    Tree_p      tree;
     Symbols *   symbols;
     time_t      modified;
     bool        changed;

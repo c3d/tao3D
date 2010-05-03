@@ -69,7 +69,7 @@ void TextSpan::DrawCached(Layout *where, bool identify)
     Widget     *widget = where->Display();
     GlyphCache &glyphs = widget->glyphs();
     Point3      pos    = where->offset;
-    text        str    = source.Value();
+    text        str    = source->value;
     QFont      &font   = where->font;
     coord       x      = pos.x;
     coord       y      = pos.y;
@@ -182,7 +182,7 @@ void TextSpan::DrawDirect(Layout *where)
 {
     Point3 position = where->offset;
     QPainterPath path;
-    QString str = +source.Value().substr(start, end - start);
+    QString str = +source->value.substr(start, end - start);
     QFont &font = where->font;
     QFontMetricsF fm(font);
     Widget *widget = where->Display();
@@ -222,7 +222,7 @@ void TextSpan::DrawSelection(Layout *where)
     Widget     *widget       = where->Display();
     GlyphCache &glyphs       = widget->glyphs();
     Point3      pos          = where->offset;
-    text        str          = source.Value();
+    text        str          = source->value;
     QFont      &font         = where->font;
     coord       x            = pos.x;
     coord       y            = pos.y;
@@ -284,7 +284,7 @@ void TextSpan::DrawSelection(Layout *where)
                             else
                                 sel->mark--;
                         }
-                        source.Value().replace(i, eos-i, rpl);
+                        source->value.replace(i, eos-i, rpl);
                         sel->replacement = "";
                         uint length = XL::Utf8Length(rpl);
                         sel->point += length;
@@ -333,7 +333,7 @@ void TextSpan::DrawSelection(Layout *where)
                 else
                     sel->mark--;
             }
-            source.Value().replace(i, eos-i, rpl);
+            source->value.replace(i, eos-i, rpl);
             sel->replacement = "";
             uint length = XL::Utf8Length(rpl);
             sel->point += length;
@@ -366,7 +366,7 @@ void TextSpan::Draw(GraphicPath &path, Layout *where)
     QFontMetricsF fm(font);
     QPainterPath qt;
 
-    QString str = +source.Value().substr(start, end - start);
+    QString str = +source->value.substr(start, end - start);
     int index = str.indexOf(QChar('\n'));
     while (index >= 0)
     {
@@ -393,7 +393,7 @@ Box3 TextSpan::Bounds(Layout *where)
 {
     Widget     *widget = where->Display();
     GlyphCache &glyphs = widget->glyphs();
-    text        str    = source.Value();
+    text        str    = source->value;
     QFont      &font   = where->font;
     Box3        result;
     coord       x      = 0;
@@ -449,7 +449,7 @@ Box3 TextSpan::Space(Layout *where)
 {
     Widget     *widget  = where->Display();
     GlyphCache &glyphs  = widget->glyphs();
-    text        str     = source.Value();
+    text        str     = source->value;
     QFont      &font    = where->font;
     Box3        result;
     scale       ascent  = glyphs.Ascent(font);
@@ -506,7 +506,7 @@ TextSpan *TextSpan::Break(BreakOrder &order)
 //   If the text span contains a word or line break, cut there
 // ----------------------------------------------------------------------------
 {
-    text str = source.Value();
+    text str = source->value;
     uint i, max = str.length();
     for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
     {
@@ -544,7 +544,7 @@ scale TextSpan::TrailingSpaceSize(Layout *where)
     GlyphCache &glyphs = widget->glyphs();
     QFont      &font   = where->font;
     scale       result = 0;
-    text        str    = source.Value();
+    text        str    = source->value;
     uint        pos    = str.length();
     if (pos > end)
         pos = end;

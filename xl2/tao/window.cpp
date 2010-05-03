@@ -137,10 +137,10 @@ void Window::checkFiles()
     if (taoWidget)
     {
         XL::SourceFile *prog = taoWidget->xlProgram;
-        if (prog && prog->tree.tree)
+        if (prog && prog->tree)
         {
             import_set done;
-            if (ImportedFilesChanged(prog->tree.tree, done, false))
+            if (ImportedFilesChanged(prog->tree, done, false))
                 loadFile(+prog->name);
         }
     }
@@ -769,7 +769,7 @@ void Window::updateProgram(const QString &fileName)
 
     // Clean menus and reload XL program
     resetTaoMenus();
-    if (!sf->tree.tree)
+    if (!sf->tree)
         xlRuntime->LoadFile(fn);
 
     taoWidget->updateProgram(sf);

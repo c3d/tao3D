@@ -41,8 +41,8 @@ struct Manipulator : Drawing
 {
     typedef XL::Tree            Tree;
     typedef XL::Tree_p          Tree_p;
-    typedef XL::RealRoot        real_r;
-    typedef XL::IntegerRoot     integer_r;
+    typedef XL::Real_r          real_r;
+    typedef XL::Integer_r       integer_r;
     typedef const Point3 &      kPoint3;
 
     Manipulator(Tree_p self);
@@ -54,7 +54,7 @@ struct Manipulator : Drawing
                                    text name = "handle");
     virtual bool        DrawHandles(Layout *layout) = 0;
 
-    virtual XL::Tree *  Source();
+    virtual Tree_p      Source();
 
 protected:
     void                updateArg(Widget *widget, Tree_p arg,
@@ -63,7 +63,7 @@ protected:
     void                rotate(Widget *widget, Tree_p shape, kPoint3 center,
                                kPoint3 p0, kPoint3 p1, kPoint3 p2, bool stepped);
 
-    XL::TreeRoot        self;
+    XL::Tree_p         self;
 };
 
 

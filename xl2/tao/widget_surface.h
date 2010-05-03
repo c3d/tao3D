@@ -24,7 +24,7 @@
 // ****************************************************************************
 
 #include "tao.h"
-#include "tree.h"
+#include "tao_tree.h"
 #include "coords.h"
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -46,7 +46,7 @@ struct WidgetSurface : QObject, XL::Info
 public:
     typedef WidgetSurface * data_t;
 
-    WidgetSurface(XL::Tree *t, QWidget *widget);
+    WidgetSurface(Tree_p t, QWidget *widget);
     virtual ~WidgetSurface();
 
     operator            data_t() { return this; }
@@ -109,6 +109,7 @@ public slots:
     void inputValidated();
 };
 
+
 struct AbstractButtonSurface : WidgetSurface
 // ----------------------------------------------------------------------------
 //    Hold information about a Button
@@ -122,16 +123,16 @@ public:
     virtual operator data_t() { return this; }
 
 private:
-    text         label;
-    XL::TreeRoot action;
-    XL::Text_p   isMarked;
-
+    text       label;
+    XL::Tree_p action;
+    XL::Text_p isMarked;
 
 public slots:
     void clicked(bool checked);
     void toggled(bool checked);
 
 };
+
 
 struct PushButtonSurface : AbstractButtonSurface
 // ----------------------------------------------------------------------------
@@ -150,6 +151,7 @@ public:
     operator data_t() { return this; }
 };
 
+
 struct RadioButtonSurface : AbstractButtonSurface
 // ----------------------------------------------------------------------------
 //    Hold information about a QPushButton
@@ -162,6 +164,7 @@ public:
         AbstractButtonSurface(t, new QRadioButton(parent), name){};
     operator data_t() { return this; }
 };
+
 
 struct CheckBoxSurface : AbstractButtonSurface
 // ----------------------------------------------------------------------------
@@ -213,7 +216,7 @@ public:
     virtual GLuint bind();
 
 private:
-    XL::TreeRoot action;
+    XL::Tree_p action;
 public slots:
     void colorChosen(const QColor &color);
 };
@@ -232,7 +235,7 @@ public:
     virtual GLuint bind();
 
 private:
-    XL::TreeRoot action;
+    XL::Tree_p action;
 public slots:
     void fontChosen(const QFont &font);
 };
@@ -271,6 +274,7 @@ public:
     text url;
     QGLFramebufferObject *fbo;
 };
+
 
 struct AbstractSliderSurface : WidgetSurface
 // ----------------------------------------------------------------------------

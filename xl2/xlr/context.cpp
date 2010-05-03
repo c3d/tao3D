@@ -611,57 +611,14 @@ Tree_p  Symbols::Error(text message, Tree_p arg1, Tree_p arg2, Tree_p arg3)
 }
 
 
-bool Symbols::Mark(GCAction &gc)
-// ----------------------------------------------------------------------------
-//    Mark all elements in a symbol table that we must keep around
-// ----------------------------------------------------------------------------
-{
-    // Don't do this twice, it's expensive
-    typedef std::pair<symbols_set::iterator, bool> inserted;
-    inserted result = gc.alive_symbols.insert(this);
-    if (result.second)
-    {
-        // Mark all the trees we reference
-        for (symbol_iter y = names.begin(); y != names.end(); y++)
-            if (Tree_p named = (*y).second)
-                named->Do(gc);
-        for (symbol_iter call = calls.begin(); call != calls.end(); call++)
-            if (Tree_p named = (*call).second)
-                named->Do(gc);
-        for (value_iter tt = type_tests.begin(); tt != type_tests.end(); tt++)
-            if (Tree_p typecheck = (*tt).second)
-                typecheck->Do(gc);
-        if (rewrites)
-            rewrites->Do(gc);
-
-        // Mark all imported symbol tables
-        symbols_set::iterator is;
-        for (is = imported.begin(); is != imported.end(); is++)
-        {
-            Symbols *syms = *is;
-            syms->Mark(gc);
-        }
-
-        // Mark parent if it exists
-        if (parent)
-            parent->Mark(gc);
-    }
-    return result.second;
-}
-
-
 
 // ============================================================================
 //
-//   Garbage collection
+//   Context
 //
 // ============================================================================
-//   This is just a rather simple mark and sweep garbage collector.
 
-ulong Context::gc_increment = 5;
-ulong Context::gc_growth_percent = 100;
 Context *Context::context = NULL;
-
 
 Context::~Context()
 // ----------------------------------------------------------------------------
@@ -678,86 +635,8 @@ Tree_p *Context::AddGlobal(Tree_p value)
 //   Create a global, immutable address for LLVM
 // ----------------------------------------------------------------------------
 {
-    Tree_p *ptr = new Tree_p ;
-    *ptr = value;
+    Tree_p *ptr = new Tree_p(value);
     return ptr;
-}
-
-
-
-void Context::CollectGarbage ()
-// ----------------------------------------------------------------------------
-//   Mark all active trees
-// ----------------------------------------------------------------------------
-{
-    if (active.size() > gc_threshold)
-    {
-        GCAction gc;
-        ulong deletedCount = 0, activeCount = 0;
-
-        IFTRACE(memory)
-            std::cerr << "Garbage collecting...";
-
-        // Mark roots
-        for (root_set::iterator a = roots.begin(); a != roots.end(); a++)
-            if ((*a)->tree)
-                (*a)->tree->Do(gc);
-
-        // Mark root symbol tables
-        Symbols::Mark(gc);
-        if (Symbols::symbols && Symbols::symbols != this)
-            Symbols::symbols->Mark(gc);
-
-        // Mark renderer formats
-        formats_table::iterator f;
-        formats_table &formats = Renderer::renderer->formats;
-        for (f = formats.begin(); f != formats.end(); f++)
-            (*f).second->Do(gc);
-
-        // Mark all resources in the LLVM generated code that want to free
-        // (this may mark some trees as not eligible for deletion)
-        active_set::iterator a;
-        if (compiler)
-        {
-            for (a = active.begin(); a != active.end(); a++)
-                if (!gc.alive.count(*a))
-                    compiler->FreeResources(*a, gc);
-            compiler->FreeResources(gc);
-        }
-
-        // Then delete all trees in active set that are no longer referenced
-        for (a = active.begin(); a != active.end(); a++)
-        {
-            activeCount++;
-            if (!gc.alive.count(*a))
-            {
-                deletedCount++;
-                delete *a;
-            }
-        }
-
-        // Same with the symbol tables
-        symbols_set::iterator as;
-        for (as = active_symbols.begin(); as != active_symbols.end(); as++)
-            if (!gc.alive_symbols.count(*as))
-                delete *as;
-
-        // Record new state
-        active = gc.alive;
-        active_symbols = gc.alive_symbols;
-
-        // The new threshold is computed as the sum of the currently active
-        // trees (scaled by growth_percent) and the trees we just deleted
-        // (scaled by gc_increment)
-        gc_threshold = active.size() * gc_growth_percent / 100 +
-            deletedCount * gc_increment / 100;
-
-        // Update statistics
-        IFTRACE(memory)
-            std::cerr << "done: Purged " << deletedCount
-                      << " trees out of " << activeCount
-                      << " threshold " << gc_threshold << "\n";
-    }
 }
 
 
@@ -1935,7 +1814,8 @@ void DeclarationAction::EnterRewrite(Tree_p defined, Tree_p definition)
 {
     if (Name_p name = defined->AsName())
     {
-        symbols->EnterName(name->value, definition ? definition : name);
+        symbols->EnterName(name->value,
+                           definition ? (Tree *) definition : (Tree *) name);
     }
     else
     {

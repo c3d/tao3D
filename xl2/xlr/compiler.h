@@ -51,7 +51,6 @@ XL_BEGIN
 
 struct CompiledUnit;
 struct Options;
-struct GCAction;
 typedef std::map<text, llvm::Function *>    builtins_map;
 typedef std::map<Tree_p , llvm::Value *>    value_map;
 typedef std::map<Tree_p , llvm::Function *> function_map;
@@ -83,8 +82,8 @@ struct Compiler
     bool                      IsKnown(Tree_p value);
     llvm::Value *             Known(Tree_p value);
 
-    void                      FreeResources(Tree_p tree, GCAction &gc);
-    void                      FreeResources(GCAction &gc);
+    void                      FreeResources(Tree_p tree);
+    void                      FreeResources();
 
     void                      Reset();
 
@@ -104,6 +103,7 @@ public:
     llvm::PointerType         *prefixTreePtrTy;
     llvm::FunctionType        *evalTy;
     llvm::PointerType         *evalFnTy;
+    llvm::PointerType         *symbolPtrTy;
     llvm::PointerType         *infoPtrTy;
     llvm::PointerType         *charPtrTy;
     llvm::Function            *xl_evaluate;

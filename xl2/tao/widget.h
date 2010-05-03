@@ -26,11 +26,13 @@
 
 #include "main.h"
 #include "tao.h"
+#include "tao_tree.h"
 #include "coords3d.h"
 #include "opcodes.h"
 #include "drawing.h"
 #include "activity.h"
 #include "menuinfo.h"
+#include "glyph_cache.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -74,17 +76,6 @@ class Widget : public QGLWidget
 {
     Q_OBJECT
 public:
-    typedef XL::Tree      Tree;
-    typedef XL::Integer   Integer;
-    typedef XL::Real      Real;
-    typedef XL::Text      Text;
-    typedef XL::Name      Name;
-    typedef XL::real_r    real_r;
-    typedef XL::integer_r integer_r;
-    typedef XL::text_r    text_r;
-    typedef XL::real_p    real_p;
-    typedef XL::integer_p integer_p;
-    typedef XL::text_p    text_p;
     typedef std::vector<double>   attribute_args;
 
 public:
@@ -101,13 +92,17 @@ public slots:
     bool        refresh(double delay = 0.0);
     void        commitSuccess(QString id, QString msg);
     void        colorChosen(const QColor &);
+    void        colorChanged(const QColor &);
     void        updateColorDialog();
     void        fontChosen(const QFont &);
+    void        fontChanged(const QFont &);
     void        updateFontDialog();
     void        updateDialogs()                { mustUpdateDialogs = true; }
+    void        fileChosen(const QString & filename);
     void        copy();
     void        cut();
     void        paste();
+    void        enableAnimations(bool animate);
 
 signals:
     // Signals
@@ -138,25 +133,27 @@ public:
     // XL program management
     void        updateProgram(XL::SourceFile *sf);
     void        applyAction(XL::Action &action);
-    void        reloadProgram(XL::Tree *newProg = NULL);
+    void        reloadProgram(XL::Tree_p newProg = NULL);
     void        renormalizeProgram();
     void        refreshProgram();
     void        markChanged(text reason);
     bool        writeIfChanged(XL::SourceFile &sf);
     bool        doCommit(bool immediate = false);
     Repository *repository();
-    Tree *      get(Tree *shape, text name, text sh = "shape");
-    bool        set(Tree *shape, text n, Tree *value, text sh = "shape");
-    bool        get(Tree *shape, text n, XL::tree_list &a, text sh = "shape");
-    bool        set(Tree *shape, text n, XL::tree_list &a, text sh = "shape");
-    bool        get(Tree *shape, text n, attribute_args &a, text sh = "shape");
-    bool        set(Tree *shape, text n, attribute_args &a, text sh = "shape");
+    Tree_p      get(Tree_p shape, text name, text sh = "shape");
+    bool        set(Tree_p shape, text n, Tree_p value, text sh = "shape");
+    bool        get(Tree_p shape, text n, XL::TreeList &a, text sh = "shape");
+    bool        set(Tree_p shape, text n, XL::TreeList &a, text sh = "shape");
+    bool        get(Tree_p shape, text n, attribute_args &a, text sh = "shape");
+    bool        set(Tree_p shape, text n, attribute_args &a, text sh = "shape");
 
     // Timing
     ulonglong   now();
     ulonglong   elapsed(ulonglong since, ulonglong until,
                         bool stats = true, bool show=true);
     bool        timerIsActive()         { return timer.isActive(); }
+    bool        hasAnimations(void)     { return animated; }
+
 
     // Selection
     enum { CHAR_ID_BIT = 1U<<31, CHAR_ID_MASK = ~CHAR_ID_BIT };
@@ -169,16 +166,17 @@ public:
     uint        charSelected(uint i)    { return selected(i | CHAR_ID_BIT); }
     uint        charSelected()          { return charSelected(charId); }
     void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
-    uint        selected(Tree *tree)    { return selectionTrees.count(tree); }
+    uint        selected(Tree_p tree)   { return selectionTrees.count(tree); }
     bool        selected()              { return !selectionTrees.empty(); }
     bool        hasSelection()          { return selected(); }
-    void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
+    void        deselect(Tree_p tree)   { selectionTrees.erase(tree); }
     uint        selected(uint i);
     uint        selected(Layout *);
     void        select(uint id, uint count);
     void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);
     void        recordProjection();
+    uint        lastModifiers()         { return keyboardModifiers; }
     Point3      unproject (coord x, coord y, coord z = 0.0);
     Drag *      drag();
     TextSelect *textSelection();
@@ -189,240 +187,262 @@ public:
     void        checkCopyAvailable();
     bool        canPaste();
 
-    // Text flows
+    // Text flows and text managemen
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
+    GlyphCache &glyphs()    { return glyphCache; }
 
 public:
     // XLR entry points
     static Widget *Tao() { return current; }
 
     // Getting attributes
-    Text *      page(Tree *self, text name, Tree *body);
-    Text *      pageLink(Tree *self, text key, text name);
-    Text *      pageLabel(Tree *self);
-    Integer *   pageNumber(Tree *self);
-    Integer *   pageCount(Tree *self);
-    Real *      pageWidth(Tree *self);
-    Real *      pageHeight(Tree *self);
-    Real *      frameWidth(Tree *self);
-    Real *      frameHeight(Tree *self);
-    Real *      frameDepth(Tree *self);
-    Real *      windowWidth(Tree *self);
-    Real *      windowHeight(Tree *self);
-    Real *      time(Tree *self);
-    Real *      pageTime(Tree *self);
+    Text_p       page(Tree_p self, text name, Tree_p body);
+    Text_p       pageLink(Tree_p self, text key, text name);
+    Text_p       pageLabel(Tree_p self);
+    Integer_p    pageNumber(Tree_p self);
+    Integer_p    pageCount(Tree_p self);
+    Real_p       pageWidth(Tree_p self);
+    Real_p       pageHeight(Tree_p self);
+    Real_p       frameWidth(Tree_p self);
+    Real_p       frameHeight(Tree_p self);
+    Real_p       frameDepth(Tree_p self);
+    Real_p       windowWidth(Tree_p self);
+    Real_p       windowHeight(Tree_p self);
+    Real_p       time(Tree_p self);
+    Real_p       pageTime(Tree_p self);
 
     // Preserving attributes
-    Tree *      locally(Tree *self, Tree *t);
-    Tree *      shape(Tree *self, Tree *t);
+    Tree_p       locally(Tree_p self, Tree_p t);
+    Tree_p       shape(Tree_p self, Tree_p t);
 
     // Transforms
-    Tree *      rotatex(Tree *self, real_r rx);
-    Tree *      rotatey(Tree *self, real_r ry);
-    Tree *      rotatez(Tree *self, real_r rz);
-    Tree *      rotate(Tree *self, real_r ra, real_r rx, real_r ry, real_r rz);
-    Tree *      translatex(Tree *self, real_r x);
-    Tree *      translatey(Tree *self, real_r y);
-    Tree *      translatez(Tree *self, real_r z);
-    Tree *      translate(Tree *self, real_r x, real_r y, real_r z);
-    Tree *      rescalex(Tree *self, real_r x);
-    Tree *      rescaley(Tree *self, real_r y);
-    Tree *      rescalez(Tree *self, real_r z);
-    Tree *      rescale(Tree *self, real_r x, real_r y, real_r z);
-    
+    Tree_p       rotatex(Tree_p self, real_r rx);
+    Tree_p       rotatey(Tree_p self, real_r ry);
+    Tree_p       rotatez(Tree_p self, real_r rz);
+    Tree_p       rotate(Tree_p self, real_r ra, real_r rx, real_r ry, real_r rz);
+    Tree_p       translatex(Tree_p self, real_r x);
+    Tree_p       translatey(Tree_p self, real_r y);
+    Tree_p       translatez(Tree_p self, real_r z);
+    Tree_p       translate(Tree_p self, real_r x, real_r y, real_r z);
+    Tree_p       rescalex(Tree_p self, real_r x);
+    Tree_p       rescaley(Tree_p self, real_r y);
+    Tree_p       rescalez(Tree_p self, real_r z);
+    Tree_p       rescale(Tree_p self, real_r x, real_r y, real_r z);
+
     // Setting attributes
-    Name *      depthTest(Tree *self, bool enable);
-    Tree *      refresh(Tree *self, double delay);
-    Name *      fullScreen(Tree *self, bool fs);
-    Name *      toggleFullScreen(Tree *self);
-    Integer *   polygonOffset(Tree *self,
+    Name_p       depthTest(Tree_p self, bool enable);
+    Tree_p       refresh(Tree_p self, double delay);
+    Name_p       fullScreen(Tree_p self, bool fs);
+    Name_p       enableAnimations(Tree_p self, bool fs);
+    Name_p       toggleFullScreen(Tree_p self);
+    Integer_p    polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
 
     // Graphic attributes
-    Tree *      lineColor(Tree *self, double r, double g, double b, double a);
-    Tree *      lineWidth(Tree *self, double lw);
-    Tree *      lineStipple(Tree *self, uint16 pattern, uint16 scale);
-    Tree *      fillColor(Tree *self, double r, double g, double b, double a);
-    Tree *      fillTexture(Tree *self, text fileName);
-    Tree *      fillTextureFromSVG(Tree *self, text svg);
-    
+    Tree_p       lineColor(Tree_p self, double r, double g, double b, double a);
+    Tree_p       lineWidth(Tree_p self, double lw);
+    Tree_p       lineStipple(Tree_p self, uint16 pattern, uint16 scale);
+    Tree_p       fillColor(Tree_p self, double r, double g, double b, double a);
+    Tree_p       fillTexture(Tree_p self, text fileName);
+    Tree_p       fillTextureFromSVG(Tree_p self, text svg);
+
     // Generating a path
-    Tree *      newPath(Tree *self, Tree *t);
-    Tree *      moveTo(Tree *self, real_r x, real_r y, real_r z);
-    Tree *      lineTo(Tree *self, real_r x, real_r y, real_r z);
-    Tree *      curveTo(Tree *self,
+    Tree_p       newPath(Tree_p self, Tree_p t);
+    Tree_p       moveTo(Tree_p self, real_r x, real_r y, real_r z);
+    Tree_p       lineTo(Tree_p self, real_r x, real_r y, real_r z);
+    Tree_p       curveTo(Tree_p self,
                         real_r cx, real_r cy, real_r cz,
                         real_r x, real_r y, real_r z);
-    Tree *      curveTo(Tree *self,
+    Tree_p       curveTo(Tree_p self,
                         real_r c1x, real_r c1y, real_r c1z,
                         real_r c2x, real_r c2y, real_r c2z,
                         real_r x, real_r y, real_r z);
-    Tree *      moveToRel(Tree *self, real_r x, real_r y, real_r z);
-    Tree *      lineToRel(Tree *self, real_r x, real_r y, real_r z);
-    Tree *      pathTextureCoord(Tree *self, real_r x, real_r y, real_r r);
-    Tree *      pathColor(Tree *self, real_r r, real_r g, real_r b, real_r a);
-    Tree *      closePath(Tree *self);
-    
+    Tree_p       moveToRel(Tree_p self, real_r x, real_r y, real_r z);
+    Tree_p       lineToRel(Tree_p self, real_r x, real_r y, real_r z);
+    Tree_p       pathTextureCoord(Tree_p self, real_r x, real_r y, real_r r);
+    Tree_p       pathColor(Tree_p self, real_r r, real_r g, real_r b, real_r a);
+    Tree_p       closePath(Tree_p self);
+
     // 2D primitive that can be in a path or standalone
-    Tree *      rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);
-    Tree *      isoscelesTriangle(Tree *self,
+    Tree_p       rectangle(Tree_p self, real_r x, real_r y, real_r w, real_r h);
+    Tree_p       isoscelesTriangle(Tree_p self,
                                   real_r x, real_r y, real_r w, real_r h);
-    Tree *      rightTriangle(Tree *self,
+    Tree_p       rightTriangle(Tree_p self,
                               real_r x, real_r y, real_r w, real_r h);
-    Tree *      ellipse(Tree *self, real_r x, real_r y, real_r w, real_r h);
-    Tree *      ellipseArc(Tree *self, real_r x, real_r y, real_r w, real_r h,
+    Tree_p       ellipse(Tree_p self, real_r x, real_r y, real_r w, real_r h);
+    Tree_p       ellipseArc(Tree_p self, real_r x, real_r y, real_r w, real_r h,
                            real_r start, real_r sweep);
-    Tree *      roundedRectangle(Tree *self,
+    Tree_p       roundedRectangle(Tree_p self,
                                  real_r cx, real_r cy, real_r w, real_r h,
                                  real_r r);
-    Tree *      ellipticalRectangle(Tree *self,
+    Tree_p       ellipticalRectangle(Tree_p self,
                                     real_r cx, real_r cy, real_r w, real_r h,
                                     real_r r);
-    Tree *      arrow(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
+    Tree_p       arrow(Tree_p self, real_r cx, real_r cy, real_r w, real_r h,
                       real_r ax, real_r ary);
-    Tree *      doubleArrow(Tree *self,
+    Tree_p       doubleArrow(Tree_p self,
                             real_r cx, real_r cy, real_r w, real_r h,
                             real_r ax, real_r ary);
-    Tree *      starPolygon(Tree *self,
+    Tree_p       starPolygon(Tree_p self,
                             real_r cx, real_r cy, real_r w, real_r h,
                             integer_r p, integer_r q);
-    Tree *      star(Tree *self, real_r cx, real_r cy, real_r w, real_r h,
+    Tree_p       star(Tree_p self, real_r cx, real_r cy, real_r w, real_r h,
                      integer_r p, real_r r);
-    Tree *      speechBalloon(Tree *self,
+    Tree_p       speechBalloon(Tree_p self,
                               real_r cx, real_r cy, real_r w, real_r h,
                               real_r r, real_r ax, real_r ay);
-    Tree *      callout(Tree *self,
+    Tree_p       callout(Tree_p self,
                         real_r cx, real_r cy, real_r w, real_r h,
                         real_r r, real_r ax, real_r ay, real_r d);
 
+    Tree_p       debugBinPacker(Tree_p self, uint w, uint h, Tree_p t);
+    Tree_p       debugParameters(Tree_p self,
+                                double x, double y,
+                                double w, double h);
 
     // 3D primitives
-    Tree *      sphere(Tree *self,
+    Tree_p       sphere(Tree_p self,
                        real_r cx, real_r cy, real_r cz,
                        real_r w, real_r, real_r d,
                        integer_r nslices, integer_r nstacks);
-    Tree *      cube(Tree *self, real_r cx, real_r cy, real_r cz,
+    Tree_p       cube(Tree_p self, real_r cx, real_r cy, real_r cz,
                      real_r w, real_r h, real_r d);
-    Tree *      cone(Tree *self, real_r cx, real_r cy, real_r cz,
+    Tree_p       cone(Tree_p self, real_r cx, real_r cy, real_r cz,
                      real_r w, real_r h, real_r d);
 
     // Text and font
-    Tree *      textBox(Tree *self,
-                        real_r x, real_r y, real_r w, real_r h, Tree *prog);
-    Tree *      textOverflow(Tree *self,
+    Tree_p       textBox(Tree_p self,
+                        real_r x, real_r y, real_r w, real_r h, Tree_p prog);
+    Tree_p       textOverflow(Tree_p self,
                              real_r x, real_r y, real_r w, real_r h);
-    Text *      textFlow(Tree *self, text name);
-    Tree *      textSpan(Tree *self, text_r content);
-    Tree *      font(Tree *self, text family);
-    Tree *      fontSize(Tree *self, double size);
-    Tree *      fontPlain(Tree *self);
-    Tree *      fontItalic(Tree *self, scale amount = 1);
-    Tree *      fontBold(Tree *self, scale amount = 1);
-    Tree *      fontUnderline(Tree *self, scale amount = 1);
-    Tree *      fontOverline(Tree *self, scale amount = 1);
-    Tree *      fontStrikeout(Tree *self, scale amount = 1);
-    Tree *      fontStretch(Tree *self, scale amount = 1);
-    Tree *      justify(Tree *self, scale amount, uint axis);
-    Tree *      center(Tree *self, scale amount, uint axis);
-    Tree *      spread(Tree *self, scale amount, uint axis);
-    Tree *      spacing(Tree *self, scale amount, uint axis);
-    Tree *      drawingBreak(Tree *self, Drawing::BreakOrder order);
-    Name *      textEditKey(Tree *self, text key);
+    Text_p       textFlow(Tree_p self, text name);
+    Tree_p       textSpan(Tree_p self, text_r content);
+    Tree_p       font(Tree_p self, text family);
+    Tree_p       fontSize(Tree_p self, double size);
+    Tree_p       fontScaling(Tree_p self, double scaling, double minSize);
+    Tree_p       fontPlain(Tree_p self);
+    Tree_p       fontItalic(Tree_p self, scale amount = 1);
+    Tree_p       fontBold(Tree_p self, scale amount = 1);
+    Tree_p       fontUnderline(Tree_p self, scale amount = 1);
+    Tree_p       fontOverline(Tree_p self, scale amount = 1);
+    Tree_p       fontStrikeout(Tree_p self, scale amount = 1);
+    Tree_p       fontStretch(Tree_p self, scale amount = 1);
+    Tree_p       justify(Tree_p self, scale amount, uint axis);
+    Tree_p       center(Tree_p self, scale amount, uint axis);
+    Tree_p       spread(Tree_p self, scale amount, uint axis);
+    Tree_p       spacing(Tree_p self, scale amount, uint axis);
+    Tree_p       drawingBreak(Tree_p self, Drawing::BreakOrder order);
+    Name_p       textEditKey(Tree_p self, text key);
 
     // Frames and widgets
-    Tree *      status(Tree *self, text t);
-    Tree *      framePaint(Tree *self, real_r x, real_r y, real_r w, real_r h,
-                           Tree *prog);
-    Tree *      frameTexture(Tree *self, double w, double h, Tree *prog);
+    Tree_p       status(Tree_p self, text t);
+    Tree_p       framePaint(Tree_p self, real_r x, real_r y, real_r w, real_r h,
+                           Tree_p prog);
+    Tree_p       frameTexture(Tree_p self, double w, double h, Tree_p prog);
 
-    Tree *      urlPaint(Tree *self, real_r x, real_r y, real_r w, real_r h,
+    Tree_p       urlPaint(Tree_p self, real_r x, real_r y, real_r w, real_r h,
                          text_p s, integer_p p);
-    Tree *      urlTexture(Tree *self,
+    Tree_p       urlTexture(Tree_p self,
                            double x, double y,
-                           Text *s, Integer *p);
+                           Text_p s, Integer_p p);
 
-    Tree *      lineEdit(Tree *self, real_r x,real_r y,
+    Tree_p       lineEdit(Tree_p self, real_r x,real_r y,
                          real_r w,real_r h, text_p s);
-    Tree *      lineEditTexture(Tree *self, double x, double y, Text *s);
+    Tree_p       lineEditTexture(Tree_p self, double x, double y, Text_p s);
 
-    Tree *      abstractButton(Tree *self, Text *name,
+    Tree_p       abstractButton(Tree_p self, Text_p name,
                                real_r x, real_r y, real_r w, real_r h);
-    Tree *      pushButton(Tree *self, real_r x, real_r y, real_r w, real_r h,
-                           text_p name, text_p lbl, Tree *act);
-    Tree *      pushButtonTexture(Tree *self, double w, double h,
-                                  text_p name, Text *lbl, Tree *act);
-    Tree *      radioButton(Tree *self, real_r x,real_r y, real_r w,real_r h,
+    Tree_p       pushButton(Tree_p self, real_r x, real_r y, real_r w, real_r h,
+                           text_p name, text_p lbl, Tree_p act);
+    Tree_p       pushButtonTexture(Tree_p self, double w, double h,
+                                  text_p name, Text_p lbl, Tree_p act);
+    Tree_p       radioButton(Tree_p self, real_r x,real_r y, real_r w,real_r h,
                             text_p name, text_p lbl,
-                            Text *selected, Tree *act);
-    Tree *      radioButtonTexture(Tree *self, double w, double h,
-                                   text_p name, Text *lbl,
-                                   Text *selected, Tree *act);
-    Tree *      checkBoxButton(Tree *self,
+                            Text_p selected, Tree_p act);
+    Tree_p       radioButtonTexture(Tree_p self, double w, double h,
+                                   text_p name, Text_p lbl,
+                                   Text_p selected, Tree_p act);
+    Tree_p       checkBoxButton(Tree_p self,
                                real_r x,real_r y, real_r w, real_r h,
-                               text_p name, text_p lbl, Text* marked,
-                               Tree *act);
-    Tree *      checkBoxButtonTexture(Tree *self,
+                               text_p name, text_p lbl, Text_p  marked,
+                               Tree_p act);
+    Tree_p       checkBoxButtonTexture(Tree_p self,
                                       double w, double h,
-                                      text_p name, Text *lbl,
-                                      Text* marked, Tree *act);
-    Tree *      buttonGroup(Tree *self, bool exclusive, Tree *buttons);
-    Tree *      setAction(Tree *self, Tree *action);
+                                      text_p name, Text_p lbl,
+                                      Text_p  marked, Tree_p act);
+    Tree_p       buttonGroup(Tree_p self, bool exclusive, Tree_p buttons);
+    Tree_p       setButtonGroupAction(Tree_p self, Tree_p action);
 
-    Tree *      colorChooser(Tree *self, text name, Tree *action);
-    Tree *      colorChooser(Tree *self,
+    Tree_p       colorChooser(Tree_p self, text name, Tree_p action);
+    Tree_p       colorChooser(Tree_p self,
                              real_r x, real_r y, real_r w, real_r h,
-                             Tree *action);
-    Tree *      colorChooserTexture(Tree *self,
+                             Tree_p action);
+    Tree_p       colorChooserTexture(Tree_p self,
                                     double w, double h,
-                                    Tree *action);
+                                    Tree_p action);
 
-    Tree *      fontChooser(Tree *self, Tree *action);
-    Tree *      fontChooser(Tree *self,
+    Tree_p       fontChooser(Tree_p self, Tree_p action);
+    Tree_p       fontChooser(Tree_p self,
                             real_r x, real_r y, real_r w, real_r h,
-                            Tree *action);
-    Tree *      fontChooserTexture(Tree *self,
+                            Tree_p action);
+    Tree_p       fontChooserTexture(Tree_p self,
                                    double w, double h,
-                                   Tree *action);
+                                   Tree_p action);
 
-    Tree *      groupBox(Tree *self,
+    Tree_p       fileChooser(Tree_p self, Tree_p action);
+    Tree_p       fileChooser(Tree_p self,
+                            real_r x, real_r y, real_r w, real_r h,
+                            Tree_p action);
+    Tree_p       fileChooserTexture(Tree_p self,
+                                    double w, double h,
+                                    Tree_p action);
+    Tree_p       setFileDialogAction(Tree_p self, Tree_p action);
+    Tree_p       setFileDialogDirectory(Tree_p self, text dirname);
+    Tree_p       setFileDialogFilter(Tree_p self, text filters);
+    Tree_p       setFileDialogLabel(Tree_p self, text label, text value);
+
+    Tree_p       groupBox(Tree_p self,
                          real_r x,real_r y, real_r w,real_r h,
-                         text_p lbl, Tree *buttons);
-    Tree *      groupBoxTexture(Tree *self,
+                         text_p lbl, Tree_p buttons);
+    Tree_p       groupBoxTexture(Tree_p self,
                                 double w, double h,
-                                Text *lbl);
+                                Text_p lbl);
 
-    Tree *      videoPlayer(Tree *self,
-                            real_r x, real_r y, real_r w, real_r h, Text *url);
+    Tree_p       videoPlayer(Tree_p self,
+                            real_r x, real_r y, real_r w, real_r h, Text_p url);
 
-    Tree *      videoPlayerTexture(Tree *self, real_r w, real_r h, Text *url);
+    Tree_p       videoPlayerTexture(Tree_p self, real_r w, real_r h, Text_p url);
+
+    Tree_p       image(Tree_p self, real_r x, real_r y, real_r w, real_r h,
+                      text filename);
 
     // Menus and widgets
-    Tree *      runtimeError(Tree *self, text msg, Tree *src);
-    Tree *      menuItem(Tree *self, text name, text lbl, text iconFileName,
-                         bool isCheckable, Text *isChecked, Tree *t);
-    Tree *      menu(Tree *self, text name, text lbl, text iconFileName,
+    Tree_p       runtimeError(Tree_p self, text msg, Tree_p src);
+    Tree_p       menuItem(Tree_p self, text name, text lbl, text iconFileName,
+                         bool isCheckable, Text_p isChecked, Tree_p t);
+    Tree_p       menu(Tree_p self, text name, text lbl, text iconFileName,
                      bool isSubmenu=false);
 
     // The location is the prefered location for the toolbar.
     // The supported values are North, East, South, West or N, E, S, W
-    Tree *      toolBar(Tree *self, text name, text title, bool isFloatable,
+    Tree_p       toolBar(Tree_p self, text name, text title, bool isFloatable,
                         text location);
 
-    Tree *      menuBar(Tree *self);
-    Tree *      separator(Tree *self);
+    Tree_p       menuBar(Tree_p self);
+    Tree_p       separator(Tree_p self);
 
     // Tree management
-    Name *      insert(Tree *self, Tree *toInsert);
+    Name_p       insert(Tree_p self, Tree_p toInsert);
     void        deleteSelection();
-    Name *      deleteSelection(Tree *self, text key);
-    Name *      setAttribute(Tree *self, text name, Tree *attribute, text sh);
+    Name_p       deleteSelection(Tree_p self, text key);
+    Name_p       setAttribute(Tree_p self, text name, Tree_p attribute, text sh);
 
     // Unit conversionsxo
-    Real *      fromCm(Tree *self, double cm);
-    Real *      fromMm(Tree *self, double mm);
-    Real *      fromIn(Tree *self, double in);
-    Real *      fromPt(Tree *self, double pt);
-    Real *      fromPx(Tree *self, double px);
+    Real_p       fromCm(Tree_p self, double cm);
+    Real_p       fromMm(Tree_p self, double mm);
+    Real_p       fromIn(Tree_p self, double in);
+    Real_p       fromPt(Tree_p self, double pt);
+    Real_p       fromPx(Tree_p self, double px);
 
 private:
     friend class Window;
@@ -453,21 +473,23 @@ private:
     text                  pageName, lastPageName;
     page_map              pageLinks;
     uint                  pageId, pageShown, pageTotal;
-    Tree *                pageTree;
-    Tree *                currentShape;
+    Tree_p                 pageTree;
+    Tree_p                 currentShape;
     QGridLayout *         currentGridLayout;
     GroupInfo   *         currentGroup;
+    GlyphCache            glyphCache;
 
     // Selection
     Activity *            activities;
     GLuint                id, charId, capacity, manipulator;
     selection_map         selection, savedSelection;
-    std::set<Tree *>      selectionTrees, selectNextTime;
+    std::set<Tree_p >      selectionTrees, selectNextTime;
     bool                  wasSelected;
     QEvent *              event;
     QWidget *             focusWidget;
     GLdouble              focusProjection[16], focusModel[16];
     GLint                 focusViewport[4];
+    uint                  keyboardModifiers;
 
     // Menus and widgets
     QMenu                *currentMenu;
@@ -480,14 +502,22 @@ private:
 
     // Timing
     QTimer                timer, idleTimer;
-    double                pageStartTime, pageRefresh;
+    double                pageStartTime, pageRefresh, frozenTime;
     ulonglong             tmin, tmax, tsum, tcount;
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
+    bool                  animated;
 
     static Widget *       current;
     static QColorDialog * colorDialog;
     static QFontDialog *  fontDialog;
+    static QFileDialog *  fileDialog;
+           QFileDialog *  currentFileDialog;
     static double         zNear, zFar;
+
+    std::map<text, QFileDialog::DialogLabel> toDialogLabel;
+private:
+    void        updateFileDialog(Tree_p properties);
+
 };
 
 
@@ -569,7 +599,7 @@ struct DeleteSelectionAction : XL::TreeClone
 // ----------------------------------------------------------------------------
 {
     DeleteSelectionAction(Widget *widget): widget(widget) {}
-    XL::Tree *DoInfix(XL::Infix *what)
+    XL::Tree_p DoInfix(XL::Infix_p what)
     {
         if (what->name == "\n" || what->name == ";")
         {
@@ -582,8 +612,8 @@ struct DeleteSelectionAction : XL::TreeClone
             if (widget->selected(what->right))
                 return what->left->Do(this);
         }
-        XL::Tree *left = what->left->Do(this);
-        XL::Tree *right = what->right->Do(this);
+        XL::Tree_p left = what->left->Do(this);
+        XL::Tree_p right = what->right->Do(this);
         if (left && right)
             return new XL::Infix(what->name, left, right, what->Position());
         else if (left)
@@ -600,39 +630,39 @@ struct InsertAtSelectionAction : XL::TreeClone
 // ----------------------------------------------------------------------------
 {
     InsertAtSelectionAction(Widget *widget,
-                            XL::Tree *toInsert, XL::Tree *parent)
+                            XL::Tree_p toInsert, XL::Tree_p parent)
         : widget(widget), toInsert(toInsert), parent(parent) {}
 
 
-    XL::Tree *DoName(XL::Name *what)
+    XL::Tree_p DoName(XL::Name_p what)
     {
         if (what == parent)
             parent = NULL;
         return XL::TreeClone::DoName(what);
     }
 
-    XL::Tree *DoPrefix(XL::Prefix *what)
+    XL::Tree_p DoPrefix(XL::Prefix_p what)
     {
         if (what == parent)
             parent = NULL;
         return XL::TreeClone::DoPrefix(what);
     }
 
-    XL::Tree *DoPostfix(XL::Postfix *what)
+    XL::Tree_p DoPostfix(XL::Postfix_p what)
     {
         if (what == parent)
             parent = NULL;
         return XL::TreeClone::DoPostfix(what);
     }
 
-    XL::Tree *DoBlock(XL::Block *what)
+    XL::Tree_p DoBlock(XL::Block_p what)
     {
         if (what == parent)
             parent = NULL;
         return XL::TreeClone::DoBlock(what);
     }
 
-    XL::Tree *DoInfix(XL::Infix *what)
+    XL::Tree_p DoInfix(XL::Infix_p what)
     {
         if (what == parent)
             parent = NULL;
@@ -644,7 +674,7 @@ struct InsertAtSelectionAction : XL::TreeClone
                 // Check if we hit the selection. If so, insert
                 if (toInsert && widget->selected(what->left))
                 {
-                    XL::Tree *ins = toInsert;
+                    XL::Tree_p ins = toInsert;
                     toInsert = NULL;
                     return new XL::Infix("\n", ins, what->Do(this));
                 }
@@ -653,8 +683,8 @@ struct InsertAtSelectionAction : XL::TreeClone
         return XL::TreeClone::DoInfix(what);
     }
     Widget   *widget;
-    XL::Tree *toInsert;
-    XL::Tree *parent;
+    XL::Tree_p toInsert;
+    XL::Tree_p parent;
 };
 
 
@@ -663,11 +693,11 @@ struct SetAttributeAction : XL::Action
 //    Copy the inserted item as attribute in all selected items
 // ----------------------------------------------------------------------------
 {
-    SetAttributeAction(text name, XL::Tree *attribute,
+    SetAttributeAction(text name, XL::Tree_p attribute,
                        Widget *widget, text shape = "shape")
         : name(name), attribute(attribute), widget(widget), shape(shape) {}
 
-    XL::Tree *Do(XL::Tree *what)
+    XL::Tree_p Do(XL::Tree_p what)
     {
         if (widget->selected(what))
             widget->set(what, name, attribute, shape);
@@ -675,9 +705,34 @@ struct SetAttributeAction : XL::Action
     }
 
     text      name;
-    XL::Tree *attribute;
+    XL::Tree_p attribute;
     Widget   *widget;
     text      shape;
+};
+
+
+struct NameToNameReplacement : XL::TreeClone
+// ----------------------------------------------------------------------------
+//    Replace specific names with names (e.g. alternate spellings)
+// ----------------------------------------------------------------------------
+{
+    NameToNameReplacement(){}
+
+    XL::Tree_p    DoName(XL::Name_p what);
+    XL::Tree_p    Replace(XL::Tree_p original);
+    text &      operator[] (text index)         { return map[index]; }
+
+    std::map<text, text> map;
+};
+
+
+struct NameToTextReplacement : NameToNameReplacement
+// ----------------------------------------------------------------------------
+//    Replace specific names with a text
+// ----------------------------------------------------------------------------
+{
+    NameToTextReplacement(): NameToNameReplacement() {}
+    XL::Tree_p  DoName(XL::Name_p what);
 };
 
 } // namespace Tao

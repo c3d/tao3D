@@ -72,14 +72,18 @@ struct InOrderInfo : Info
     data_t inorder;
 };
 
-// FIXME
+
 struct TreeDiffInfo : Info
+// ----------------------------------------------------------------------------
+// FIXME
+// ----------------------------------------------------------------------------
 {
     typedef TreeDiff * data_t;
     TreeDiffInfo(TreeDiff *td): td(td) {}
     operator data_t() { return td; }
     data_t td;
 };
+
 
 struct LeafCountInfo : Info
 // ----------------------------------------------------------------------------
@@ -92,28 +96,31 @@ struct LeafCountInfo : Info
     data_t n;
 };
 
+
 // FIXME: should be in Tree?
 struct ParentInfo : Info
 // ----------------------------------------------------------------------------
 //   A pointer to the parent of a node
 // ----------------------------------------------------------------------------
 {
-    typedef Tree * data_t;
+    typedef Tree_p  data_t;
     ParentInfo(data_t p): p(p) {}
     operator data_t() { return p; }
     data_t p;
 };
+
 
 struct ChildVectorInfo : Info
 // ----------------------------------------------------------------------------
 //   A pointer to a child vector
 // ----------------------------------------------------------------------------
 {
-    typedef std::vector<Tree *> * data_t;
+    typedef std::vector<Tree_p> * data_t;
     ChildVectorInfo(data_t p): p(p) {}
     operator data_t() { return p; }
     data_t p;
 };
+
 
 struct CommonLeavesInfo : Info
 // ----------------------------------------------------------------------------
@@ -129,6 +136,7 @@ struct CommonLeavesInfo : Info
     operator data_t() { return p; }
     data_t p;
 };
+
 
 struct Words
 // ----------------------------------------------------------------------------
@@ -148,18 +156,19 @@ struct Words
     std::vector<std::string> words;
 };
 
+
 struct Node
 // ------------------------------------------------------------------------
-//   Holder class for Tree *, that defines a custom operator ==.
+//   Holder class for Tree_p , that defines a custom operator ==.
 // ------------------------------------------------------------------------
 {
     Node(): t(NULL), m(NULL) {}
-    Node(Tree *t): t(t), m(NULL) {}
+    Node(Tree_p t): t(t), m(NULL) {}
     virtual ~Node() {}
 
-    Tree * GetTree() const { return t; }
-    // Tree * operator ->() { return t; }
-    const Node & operator = (Tree *t) { this->t = t; return *this; }
+    Tree_p  GetTree() const { return t; }
+    // Tree_p  operator ->() { return t; }
+    const Node & operator = (Tree_p t) { this->t = t; return *this; }
     Node & operator = (const Node &n) { t = n.t; return *this; }
     bool operator == (const Node &n);
     node_id Id() const
@@ -186,7 +195,7 @@ struct Node
             return 0;
         return t->Get<LeafCountInfo>();
     }
-    Tree * Parent()
+    Tree_p  Parent()
     {
         if (!t || !t->Exists<ParentInfo>())
             return NULL;
@@ -195,14 +204,14 @@ struct Node
 
 protected:
 
-    Tree *     t;
+    Tree_p      t;
     Matching * m;
 };
 
 struct NodeTable : public std::map<node_id, Node>
-//
+// ----------------------------------------------------------------------------
 // FIXME comment
-//
+// ----------------------------------------------------------------------------
 {
     NodeTable() {}
     virtual ~NodeTable() {}
@@ -240,7 +249,7 @@ struct NodeForAlign : Node
 //
 {
     NodeForAlign(Matching &m): Node(), m(m) {}
-    NodeForAlign(Matching &m, Tree *t): Node(t), m(m) {}
+    NodeForAlign(Matching &m, Tree_p t): Node(t), m(m) {}
     bool operator == (const NodeForAlign &n);
     void SetInOrder(bool b = true)
     {
@@ -269,35 +278,35 @@ struct PrintNode : Action
     PrintNode(std::ostream &out, bool showInfos = false):
         out(out), showInfos(showInfos) {}
 
-    Tree *DoInteger(Integer *what)
+    Tree_p DoInteger(Integer_p what)
     {
         if (showInfos)
             ShowInfos(what);
         out << "[Integer] " << what->value;
         return NULL;
     }
-    Tree *DoReal(Real *what)
+    Tree_p DoReal(Real_p what)
     {
         if (showInfos)
             ShowInfos(what);
         out << "[Real] " << what->value;
         return NULL;
     }
-    Tree *DoText(Text *what)
+    Tree_p DoText(Text_p what)
     {
         if (showInfos)
             ShowInfos(what);
         out << "[Text] " << what->value;
         return NULL;
     }
-    Tree *DoName(Name *what)
+    Tree_p DoName(Name_p what)
     {
         if (showInfos)
             ShowInfos(what);
         out << "[Name] " << what->value;
         return NULL;
     }
-    Tree *DoBlock(Block *what)
+    Tree_p DoBlock(Block_p what)
     {
         if (showInfos)
             ShowInfos(what);
@@ -305,7 +314,7 @@ struct PrintNode : Action
                          << " " << what->closing;
         return NULL;
     }
-    Tree *DoInfix(Infix *what)
+    Tree_p DoInfix(Infix_p what)
     {
         if (showInfos)
             ShowInfos(what);
@@ -313,28 +322,28 @@ struct PrintNode : Action
         out << "[Infix] " << name;
         return NULL;
     }
-    Tree *DoPrefix(Prefix *what)
+    Tree_p DoPrefix(Prefix_p what)
     {
         if (showInfos)
             ShowInfos(what);
         out << "[Prefix] ";
         return NULL;
     }
-    Tree *DoPostfix(Postfix *what)
+    Tree_p DoPostfix(Postfix_p what)
     {
         if (showInfos)
             ShowInfos(what);
         out << "[Postfix] ";
         return NULL;
     }
-    Tree *Do(Tree *)
+    Tree_p Do(Tree_p)
     {
         return NULL;
     }
 
 protected:
 
-    void ShowInfos(Tree *what)
+    void ShowInfos(Tree_p what)
     {
         if (what->Exists<NodeIdInfo>())
             out << "ID: " << what->Get<NodeIdInfo>() << " ";
@@ -371,47 +380,47 @@ struct SetParentInfo : Action
     SetParentInfo() {}
     virtual ~SetParentInfo() {}
 
-    Tree *DoInteger(Integer *)
+    Tree_p DoInteger(Integer_p)
     {
         return NULL;
     }
-    Tree *DoReal(Real *)
+    Tree_p DoReal(Real_p)
     {
         return NULL;
     }
-    Tree *DoText(Text *)
+    Tree_p DoText(Text_p)
     {
         return NULL;
     }
-    Tree *DoName(Name *)
+    Tree_p DoName(Name_p)
     {
         return NULL;
     }
-    Tree *DoBlock(Block *what)
+    Tree_p DoBlock(Block_p what)
     {
         if (what->child)
             what->child->Set2<ParentInfo>(what);
         return NULL;
     }
-    Tree *DoInfix(Infix *what)
+    Tree_p DoInfix(Infix_p what)
     {
         what->left->Set2<ParentInfo>(what);
         what->right->Set2<ParentInfo>(what);
         return NULL;
     }
-    Tree *DoPrefix(Prefix *what)
+    Tree_p DoPrefix(Prefix_p what)
     {
         what->left->Set2<ParentInfo>(what);
         what->right->Set2<ParentInfo>(what);
         return NULL;
     }
-    Tree *DoPostfix(Postfix *what)
+    Tree_p DoPostfix(Postfix_p what)
     {
         what->left->Set2<ParentInfo>(what);
         what->right->Set2<ParentInfo>(what);
         return NULL;
     }
-    Tree *Do(Tree *)
+    Tree_p Do(Tree_p)
     {
         return NULL;
     }
@@ -425,33 +434,33 @@ struct SetChildVectorInfo : Action
     SetChildVectorInfo() {}
     virtual ~SetChildVectorInfo() {}
 
-    Tree *DoInteger(Integer *)
+    Tree_p DoInteger(Integer_p)
     {
         return NULL;
     }
-    Tree *DoReal(Real *)
+    Tree_p DoReal(Real_p)
     {
         return NULL;
     }
-    Tree *DoText(Text *)
+    Tree_p DoText(Text_p)
     {
         return NULL;
     }
-    Tree *DoName(Name *)
+    Tree_p DoName(Name_p)
     {
         return NULL;
     }
-    Tree *DoBlock(Block *what)
+    Tree_p DoBlock(Block_p what)
     {
-        std::vector<Tree *> *v = new std::vector<Tree *>;
+        std::vector<Tree_p> *v = new std::vector<Tree_p>;
         if (what->child)
             v->push_back(what->child);
         what->Set2<ChildVectorInfo>(v);
         return NULL;
     }
-    Tree *DoInfix(Infix *what)
+    Tree_p DoInfix(Infix_p what)
     {
-        std::vector<Tree *> *v = new std::vector<Tree *>;
+        std::vector<Tree_p> *v = new std::vector<Tree_p>;
         if (what->left)
             v->push_back(what->left);
         if (what->right)
@@ -459,9 +468,9 @@ struct SetChildVectorInfo : Action
         what->Set2<ChildVectorInfo>(v);
         return NULL;
     }
-    Tree *DoPrefix(Prefix *what)
+    Tree_p DoPrefix(Prefix_p what)
     {
-        std::vector<Tree *> *v = new std::vector<Tree *>;
+        std::vector<Tree_p> *v = new std::vector<Tree_p>;
         if (what->left)
             v->push_back(what->left);
         if (what->right)
@@ -469,9 +478,9 @@ struct SetChildVectorInfo : Action
         what->Set2<ChildVectorInfo>(v);
         return NULL;
     }
-    Tree *DoPostfix(Postfix *what)
+    Tree_p DoPostfix(Postfix_p what)
     {
-        std::vector<Tree *> *v = new std::vector<Tree *>;
+        std::vector<Tree_p> *v = new std::vector<Tree_p>;
         if (what->left)
             v->push_back(what->left);
         if (what->right)
@@ -479,7 +488,7 @@ struct SetChildVectorInfo : Action
         what->Set2<ChildVectorInfo>(v);
         return NULL;
     }
-    Tree *Do(Tree *)
+    Tree_p Do(Tree_p)
     {
         return NULL;
     }
@@ -493,33 +502,33 @@ struct SyncWithChildVectorInfo : Action
     SyncWithChildVectorInfo() {}
     virtual ~SyncWithChildVectorInfo() {}
 
-    Tree *DoInteger(Integer *)
+    Tree_p DoInteger(Integer_p)
     {
         return NULL;
     }
-    Tree *DoReal(Real *)
+    Tree_p DoReal(Real_p)
     {
         return NULL;
     }
-    Tree *DoText(Text *)
+    Tree_p DoText(Text_p)
     {
         return NULL;
     }
-    Tree *DoName(Name *)
+    Tree_p DoName(Name_p)
     {
         return NULL;
     }
-    Tree *DoBlock(Block *what)
+    Tree_p DoBlock(Block_p what)
     {
-        std::vector<Tree *> *v = what->Get<ChildVectorInfo>();
+        std::vector<Tree_p> *v = what->Get<ChildVectorInfo>();
         what->child = (*v)[0];
         assert(v->size() == 1);
         what->child->Do(this);
         return NULL;
     }
-    Tree *DoInfix(Infix *what)
+    Tree_p DoInfix(Infix_p what)
     {
-        std::vector<Tree *> *v = what->Get<ChildVectorInfo>();
+        std::vector<Tree_p> *v = what->Get<ChildVectorInfo>();
         what->left = (*v)[0];
         what->right = (*v)[1];
         assert(v->size() == 2);
@@ -527,9 +536,9 @@ struct SyncWithChildVectorInfo : Action
         what->right->Do(this);
         return NULL;
     }
-    Tree *DoPrefix(Prefix *what)
+    Tree_p DoPrefix(Prefix_p what)
     {
-        std::vector<Tree *> *v = what->Get<ChildVectorInfo>();
+        std::vector<Tree_p> *v = what->Get<ChildVectorInfo>();
         what->left = (*v)[0];
         what->right = (*v)[1];
         assert(v->size() == 2);
@@ -537,9 +546,9 @@ struct SyncWithChildVectorInfo : Action
         what->right->Do(this);
         return NULL;
     }
-    Tree *DoPostfix(Postfix *what)
+    Tree_p DoPostfix(Postfix_p what)
     {
-        std::vector<Tree *> *v = what->Get<ChildVectorInfo>();
+        std::vector<Tree_p> *v = what->Get<ChildVectorInfo>();
         what->left = (*v)[0];
         what->right = (*v)[1];
         assert(v->size() == 2);
@@ -547,7 +556,7 @@ struct SyncWithChildVectorInfo : Action
         what->right->Do(this);
         return NULL;
     }
-    Tree *Do(Tree *)
+    Tree_p Do(Tree_p)
     {
         return NULL;
     }
@@ -558,27 +567,27 @@ struct CountLeaves : Action
 //   Recursively count and store the number of leaves under a node
 // ------------------------------------------------------------------------
 {
-    Tree *DoInteger(Integer *what)
+    Tree_p DoInteger(Integer_p what)
     {
         what->Set2<LeafCountInfo>(1);
         return NULL;
     }
-    Tree *DoReal(Real *what)
+    Tree_p DoReal(Real_p what)
     {
         what->Set2<LeafCountInfo>(1);
         return NULL;
     }
-    Tree *DoText(Text *what)
+    Tree_p DoText(Text_p what)
     {
         what->Set2<LeafCountInfo>(1);
         return NULL;
     }
-    Tree *DoName(Name *what)
+    Tree_p DoName(Name_p what)
     {
         what->Set2<LeafCountInfo>(1);
         return NULL;
     }
-    Tree *DoBlock(Block *what)
+    Tree_p DoBlock(Block_p what)
     {
         unsigned cc = 0;
         if (what->child)
@@ -589,7 +598,7 @@ struct CountLeaves : Action
         what->Set2<LeafCountInfo>(cc);
         return NULL;
     }
-    Tree *DoInfix(Infix *what)
+    Tree_p DoInfix(Infix_p what)
     {
         what->left->Do(this);
         what->right->Do(this);
@@ -598,7 +607,7 @@ struct CountLeaves : Action
         what->Set2<LeafCountInfo>(lc + rc);
         return NULL;
     }
-    Tree *DoPrefix(Prefix *what)
+    Tree_p DoPrefix(Prefix_p what)
     {
         what->left->Do(this);
         what->right->Do(this);
@@ -607,7 +616,7 @@ struct CountLeaves : Action
         what->Set2<LeafCountInfo>(lc + rc);
         return NULL;
     }
-    Tree *DoPostfix(Postfix *what)
+    Tree_p DoPostfix(Postfix_p what)
     {
         what->left->Do(this);
         what->right->Do(this);
@@ -616,7 +625,7 @@ struct CountLeaves : Action
         what->Set2<LeafCountInfo>(lc + rc);
         return NULL;
     }
-    Tree *Do(Tree *)
+    Tree_p Do(Tree_p)
     {
         return NULL;
     }
@@ -629,7 +638,7 @@ struct AssignNodeIds : SimpleAction
 {
     AssignNodeIds(NodeTable &tab, node_id from_id = 1, node_id step = 1)
       : tab(tab), id(from_id), step(step) {}
-    virtual Tree *Do(Tree *what)
+    virtual Tree_p Do(Tree_p what)
     {
         what->Set2<NodeIdInfo>(id);
         tab[id] = what;
@@ -647,7 +656,7 @@ struct StoreNodeIntoChainArray : SimpleAction
 // ------------------------------------------------------------------------
 {
     StoreNodeIntoChainArray(node_vector *chains): chains(chains) {}
-    virtual Tree *Do(Tree *what)
+    virtual Tree_p Do(Tree_p what)
     {
         chains[what->Kind()].push_back(what);
         return NULL;
@@ -663,7 +672,7 @@ struct AddPtr : SimpleAction
 // ------------------------------------------------------------------------
 {
     AddPtr(I &container): container(container) {}
-    virtual Tree *Do(Tree *what)
+    virtual Tree_p Do(Tree_p what)
     {
         container.push_back(what);
         return NULL;
@@ -677,7 +686,7 @@ struct PurgeDiffInfos : SimpleAction
 // ------------------------------------------------------------------------
 {
     PurgeDiffInfos() {}
-    virtual Tree *Do(Tree *what)
+    virtual Tree_p Do(Tree_p what)
     {
         what->Purge<NodeIdInfo>();
         what->Purge<MatchedInfo>();
@@ -690,7 +699,7 @@ struct PurgeDiffInfos : SimpleAction
     }
 };
 
-TreeDiff::TreeDiff(Tree *t1, Tree *t2) :
+TreeDiff::TreeDiff(Tree_p t1, Tree_p t2) :
   t1(NULL), t2(t2), nodes1(*new NodeTable), nodes2(*new NodeTable),
   matching(*new Matching), escript(NULL)
 {
@@ -820,7 +829,7 @@ void TreeDiff::FastMatch()
     for (mit = matching.begin(); mit != matching.end(); mit++)
     {
         node_id a = (*mit).first, b = (*mit).second;
-        for (Tree *x = nodes1[a].Parent(); x; x = x->Get<ParentInfo>())
+        for (Tree_p x = nodes1[a].Parent(); x; x = x->Get<ParentInfo>())
         {
             std::map<node_id, unsigned int> * c;
             CommonLeavesInfo *i = x->GetInfo<CommonLeavesInfo>();
@@ -833,7 +842,7 @@ void TreeDiff::FastMatch()
             else
               c = (CommonLeavesInfo::data_t) *i;
 
-            for (Tree *y = nodes2[b].Parent(); y; y = y->Get<ParentInfo>())
+            for (Tree_p y = nodes2[b].Parent(); y; y = y->Get<ParentInfo>())
                 (*c)[y->Get<NodeIdInfo>()]++;
         }
     }
@@ -914,7 +923,7 @@ static float Similarity(std::string s1, std::string s2)
 }
 
 // FIXME rewrite as an Action?
-static bool LeafEqual(Tree *t1, Tree *t2)
+static bool LeafEqual(Tree_p t1, Tree_p t2)
 // ----------------------------------------------------------------------------
 //    Test if two leaves should be considered equal (matching phase)
 // ----------------------------------------------------------------------------
@@ -960,7 +969,7 @@ static bool LeafEqual(Tree *t1, Tree *t2)
 }
 
 // FIXME rewrite as an Action?
-static bool NonLeafEqual(Tree *t1, Tree *t2)
+static bool NonLeafEqual(Tree_p t1, Tree_p t2)
 // ----------------------------------------------------------------------------
 //    Test if two internal nodes should be considered equal (matching phase)
 // ----------------------------------------------------------------------------
@@ -982,16 +991,16 @@ static bool NonLeafEqual(Tree *t1, Tree *t2)
     if (t1->Kind() != t2->Kind())
         return false;
 
-    // CHECK THIS
-    // We consider that two infix nodes cannot be considered equal if they do not
-    // bear the same value
+    // CHECK THIS We consider that two infix nodes cannot be
+    // considered equal if they do not bear the same value
     if (t1->Kind() == INFIX)
-        if (((Infix *)t1)->name.compare(((Infix *)t2)->name))
+        if (((Infix_p)t1)->name.compare(((Infix_p)t2)->name))
             return false;
-    // Similarly, two blocks cannot be equal if they don't use the same delimiters
+    // Similarly, two blocks cannot be equal if they don't use the
+    // same delimiters
     if (t1->Kind() == BLOCK)
     {
-        Block *b1 = (Block *)t1, *b2 = (Block *)t2;
+        Block_p b1 = (Block_p)t1, b2 = (Block_p)t2;
         if (b1->opening.compare(b2->opening))
             return false;
         if (b1->closing.compare(b2->closing))
@@ -1042,9 +1051,9 @@ void TreeDiff::DoEditScript()
     {
         // (a) Let x be the current node in the breadth-first search of T2
         node_id x = (*rit).second.Id();
-        Tree * xptr = nodes2[x].GetTree();
+        Tree_p  xptr = nodes2[x].GetTree();
         assert(xptr);
-        Tree * px_ptr = xptr->Get<ParentInfo>();
+        Tree_p  px_ptr = xptr->Get<ParentInfo>();
         node_id y = 0;
         if (px_ptr)
             y = px_ptr->Get<NodeIdInfo>();
@@ -1057,7 +1066,7 @@ void TreeDiff::DoEditScript()
             unsigned k = FindPos(x);
 
             NodeOnlyTreeClone clone;
-            Tree *t = xptr->Do(clone);
+            Tree_p t = xptr->Do(clone);
             EditOperation::Insert *ins;
             ins = new EditOperation::Insert(t, z, k);
 
@@ -1085,9 +1094,9 @@ void TreeDiff::DoEditScript()
                 // (c) x is not the root
 				//  i. Let w be the partner of x in M' and let v = p(w)
 				//     in T1 [p(x) is the parent of x]
-                Tree * wptr = nodes1[w].GetTree();
+                Tree_p  wptr = nodes1[w].GetTree();
                 assert(wptr);
-                Tree * vptr = wptr->Get<ParentInfo>();
+                Tree_p  vptr = wptr->Get<ParentInfo>();
                 assert(vptr);
                 node_id v = vptr->Get<NodeIdInfo>();
 
@@ -1097,7 +1106,7 @@ void TreeDiff::DoEditScript()
                     // ii. If v(w) != v(x)
                     
                     NodeOnlyTreeClone clone;
-                    Tree *t = xptr->Do(clone);
+                    Tree_p t = xptr->Do(clone);
                     EditOperation::Update *upd;
                     upd = new EditOperation::Update(w, t);
 
@@ -1138,11 +1147,11 @@ void TreeDiff::DoEditScript()
     }
     
     // 3. Do a post-order traversal of T1
-    std::list<Tree *> list;
-    AddPtr< std::list<Tree *> > act(list);
+    std::list<Tree_p> list;
+    AddPtr< std::list<Tree_p> > act(list);
     PostOrderTraversal pot(act);
     t1->Do(pot);
-    std::list<Tree *>::iterator it;
+    std::list<Tree_p>::iterator it;
     for (it = list.begin(); it != list.end(); it++)
     {
         // (a) Let w be the current node in the post-order traversal of T1.
@@ -1166,7 +1175,7 @@ void TreeDiff::DoEditScript()
         t1->Do(action);
     }
     else
-        ((Block *)t1)->child = NULL;
+        ((Block_p)t1)->child = NULL;
 
     IFTRACE(diff)
        std::cout << "DoEditScript done\n";
@@ -1175,16 +1184,16 @@ void TreeDiff::DoEditScript()
 unsigned TreeDiff::FindPos(node_id x)
 {
     // 1. Let y = p(x) in T2 and let w be the partner of x
-    Tree *yptr = nodes2[x].Parent();
+    Tree_p yptr = nodes2[x].Parent();
     assert(yptr);
 
     // 2. If x is the leftmost child of y that is marked "in order", return 1
-    std::vector<Tree *> *cv = yptr->Get<ChildVectorInfo>();
+    std::vector<Tree_p> *cv = yptr->Get<ChildVectorInfo>();
     assert(cv);
     bool in_order_found = false;
     for (unsigned i = 0; i < cv->size(); i++)
     {
-        Tree *cur = (*cv)[i];
+        Tree_p cur = (*cv)[i];
         if (cur->Get<InOrderInfo>() == true)
         {
             if (cur->Get<NodeIdInfo>() == x)
@@ -1201,11 +1210,11 @@ unsigned TreeDiff::FindPos(node_id x)
 
     // 3. Find v in T2 where v is the rightmost sibling of x that is to the left
     //    of x and is marked "in order"
-    Tree *vptr = NULL;
+    Tree_p vptr = NULL;
     bool found_x = false;
     for (unsigned i = cv->size() - 1; ; i--)
     {
-        Tree *cur = (*cv)[i];
+        Tree_p cur = (*cv)[i];
         if (found_x && cur->Get<InOrderInfo>() == true)
         {
             vptr = cur;
@@ -1225,13 +1234,13 @@ unsigned TreeDiff::FindPos(node_id x)
 
     // 5. Suppose u is the ith child of its parent that is marked "in order."
     //    Return i+1.
-    Tree *pu_ptr = nodes1[u].Parent();
+    Tree_p pu_ptr = nodes1[u].Parent();
     assert (pu_ptr);
     cv = pu_ptr->Get<ChildVectorInfo>();
     unsigned count = 0;
     for (unsigned i = 0; i < cv->size(); i++)
     {
-        Tree *cur = (*cv)[i];
+        Tree_p cur = (*cv)[i];
         if (cur->Get<InOrderInfo>())
             count++;
         if (cur->Get<NodeIdInfo>() == u)
@@ -1257,18 +1266,18 @@ void TreeDiff::AlignChildren(node_id w, node_id x)
 //    Generate Move operations if children of w and x are mis-aligned
 // ----------------------------------------------------------------------------
 {
-    Tree * wptr = nodes1[w].GetTree();
+    Tree_p  wptr = nodes1[w].GetTree();
     assert(wptr);
     if (wptr->IsLeaf())
         return;
-    Tree * xptr = nodes2[x].GetTree();
+    Tree_p  xptr = nodes2[x].GetTree();
     assert(xptr);
 
     IFTRACE(diff)
        std::cout << " Entering AlignChildren(" << w << ", " << x << ")\n";
 
-    std::vector<Tree *> *cv;
-    std::vector<Tree *>::iterator it;
+    std::vector<Tree_p> *cv;
+    std::vector<Tree_p>::iterator it;
 
     // 1. Mark all children of w and all children of x "out of order"
     // (Nothing to do, it's the default state)
@@ -1457,8 +1466,8 @@ bool TreeDiff::Diff(std::ostream &os)
 
 bool Node::operator ==(const Node &n)
 {
-    Tree *t1 = t;
-    Tree *t2 = n.GetTree();
+    Tree_p t1 = t;
+    Tree_p t2 = n.GetTree();
 
     if (t1->Kind() != t2->Kind())
         return false;
@@ -1481,7 +1490,7 @@ void EditOperation::Insert::Apply(NodeTable &table)
 //    Apply an Insert operation on a node table and the underlying tree
 // ----------------------------------------------------------------------------
 {
-    Tree *pp = table[parent].GetTree();
+    Tree_p pp = table[parent].GetTree();
     node_id new_id = table.NewId();
 
     table[new_id] = leaf;
@@ -1489,7 +1498,7 @@ void EditOperation::Insert::Apply(NodeTable &table)
     leaf->Set2<NodeIdInfo>(new_id);
     SetChildVectorInfo scvi;
     leaf->Do(scvi);
-    std::vector<Tree *> *v = pp->Get<ChildVectorInfo>();
+    std::vector<Tree_p> *v = pp->Get<ChildVectorInfo>();
     v->insert(v->begin() + pos - 1, leaf);
 }
 
@@ -1498,16 +1507,14 @@ void EditOperation::Delete::Apply(NodeTable &table)
 //    Apply a Delete operation on a node table and the underlying tree
 // ----------------------------------------------------------------------------
 {
-    Tree *lp = table[leaf].GetTree(), *pp = lp->Get<ParentInfo>();
-    std::vector<Tree *> *v = pp->Get<ChildVectorInfo>();
-    std::vector<Tree *>::iterator it;
+    Tree_p lp = table[leaf].GetTree(), pp = lp->Get<ParentInfo>();
+    std::vector<Tree_p> *v = pp->Get<ChildVectorInfo>();
+    std::vector<Tree_p>::iterator it;
 
     for (it = v->begin(); it != v->end(); it++)
         if ((*it) == lp)
-        {
             break;
-        }
-    std::vector<Tree *> *vl = lp->Get<ChildVectorInfo>();
+    std::vector<Tree_p> *vl = lp->Get<ChildVectorInfo>();
     if (vl && vl->size() != 0)
     {
         // If deleted node had ONE child, replace deleted node by child
@@ -1538,18 +1545,18 @@ void EditOperation::Move::Apply(NodeTable &table)
 //    Apply a Move operation on a node table and the underlying tree
 // ----------------------------------------------------------------------------
 {
-    Tree *sp  = table[subtree].GetTree();
-    Tree *pp  = table[parent].GetTree();
-    Tree *psp = sp->Get<ParentInfo>();
+    Tree_p sp  = table[subtree].GetTree();
+    Tree_p pp  = table[parent].GetTree();
+    Tree_p psp = sp->Get<ParentInfo>();
 
     sp->Set2<ParentInfo>(pp);
 
-    std::vector<Tree *> *v;
+    std::vector<Tree_p> *v;
     v = pp->Get<ChildVectorInfo>();
     v->insert(v->begin() + pos - 1, sp);
 
     v = psp->Get<ChildVectorInfo>();
-    std::vector<Tree *>::iterator it;
+    std::vector<Tree_p>::iterator it;
     for (it = v->begin(); it != v->end(); it++)
         if ((*it) == sp)
         {
@@ -1558,7 +1565,7 @@ void EditOperation::Move::Apply(NodeTable &table)
         }
 }
 
-Tree * EditScript::Apply(Tree *)
+Tree_p  EditScript::Apply(Tree_p)
 // ----------------------------------------------------------------------------
 //    Apply an Edit Script to a tree
 // ----------------------------------------------------------------------------

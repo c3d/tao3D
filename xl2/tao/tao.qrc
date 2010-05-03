@@ -10,5 +10,6 @@
         <file>images/open.png</file>
         <file>images/paste.png</file>
         <file>images/save.png</file>
+        <file>images/defaultImage.svg</file>
     </qresource>
 </RCC>

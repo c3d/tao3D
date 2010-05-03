@@ -126,6 +126,28 @@ Application::~Application()
     saveSettings();
 }
 
+void Application::updateSearchPathes()
+// ----------------------------------------------------------------------------
+//   Set the current project folder and all the dependant pathes.
+// ----------------------------------------------------------------------------
+{
+    // Initialize dir search path for XL files
+    QStringList xl_dir_list;
+    xl_dir_list << currentProjectFolder
+                << defaultTaoPreferencesFolderPath()
+                << defaultTaoApplicationFolderPath();
+    QDir::setSearchPaths("xl", xl_dir_list);
+
+    // Setup search path for images
+    QStringList images_dir_list;
+    images_dir_list << currentProjectFolder + "/images"
+            << currentProjectFolder;
+
+    QDir::setSearchPaths("image", images_dir_list);
+    QDir::setSearchPaths("texture", images_dir_list);
+    QDir::setSearchPaths("icon", images_dir_list);
+
+}
 
 QString Application::defaultUserDocumentsFolderPath()
 // ----------------------------------------------------------------------------

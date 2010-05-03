@@ -40,29 +40,29 @@ struct BreadthFirstSearch : Action
 {
     BreadthFirstSearch (Action &action, bool fullScan = true):
         action(action), fullScan(fullScan) {}
-    Tree *DoBlock(Block *what)
+    Tree_p DoBlock(Block_p what)
     {
         return Do(what);
     }
-    Tree *DoInfix(Infix *what)
+    Tree_p DoInfix(Infix_p what)
     {
         return Do(what);
     }
-    Tree *DoPrefix(Prefix *what)
+    Tree_p DoPrefix(Prefix_p what)
     {
         return Do(what);
     }
-    Tree *DoPostfix(Postfix *what)
+    Tree_p DoPostfix(Postfix_p what)
     {
         return Do(what);
     }
-    Tree *Do(Tree *what)
+    Tree_p Do(Tree_p what)
     {
         nodes.push(what);
         do
         {
-            Block * bl; Infix * in; Prefix * pr; Postfix  * po;
-            Tree * curr, * res;
+            Block_p  bl; Infix_p  in; Prefix_p  pr; Postfix_p  po;
+            Tree_p  curr, res;
 
             curr = nodes.front();
             if (!curr)
@@ -100,7 +100,7 @@ struct BreadthFirstSearch : Action
 
     Action & action;
     bool fullScan;
-    std::queue<Tree *> nodes;
+    std::queue<Tree_p> nodes;
 };
 
 XL_END

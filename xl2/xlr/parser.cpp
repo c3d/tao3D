@@ -27,10 +27,10 @@
 #include <vector>
 #include <stdio.h>
 #include <iostream>
-#include "parser.h"
 #include "scanner.h"
 #include "errors.h"
 #include "tree.h"
+#include "parser.h"
 
 
 XL_BEGIN
@@ -45,10 +45,10 @@ struct Pending
 //   Pending expression while parsing
 // ----------------------------------------------------------------------------
 {
-    Pending(text o, Tree *a, int p, ulong pos):
+    Pending(text o, Tree_p a, int p, ulong pos):
         opcode(o), argument(a), priority(p), position(pos) {}
     text   opcode;
-    Tree  *argument;
+    Tree_p argument;
     int    priority;
     ulong  position;
 };
@@ -169,7 +169,7 @@ token_t Parser::NextToken()
 }
 
 
-Tree *Parser::Parse(text closing)
+Tree_p Parser::Parse(text closing)
 // ----------------------------------------------------------------------------
 //   Parse input
 // ----------------------------------------------------------------------------
@@ -188,9 +188,9 @@ Tree *Parser::Parse(text closing)
        We hope that semantic will catch such a case later and let us know...
  */
 {
-    Tree *               result             = NULL;
-    Tree *               left               = NULL;
-    Tree *               right              = NULL;
+    Tree_p               result             = NULL;
+    Tree_p               left               = NULL;
+    Tree_p               right              = NULL;
     text                 prefix             = "";
     bool                 done               = false;
     int                  default_priority   = syntax.default_priority;

@@ -45,7 +45,8 @@ struct GraphicPath : Shape
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *where);
     virtual void        Identify(Layout *where);
-    virtual void        Draw(Layout *where, GLenum mode, GLenum tessel=0);
+    virtual void        Draw(Layout *where, GLenum tessel);
+    virtual void        Draw(Layout *where, GLenum mode, GLenum tessel);
     virtual Box3        Bounds(Layout *layout);
 
     // Absolute coordinates
@@ -61,12 +62,13 @@ struct GraphicPath : Shape
 
     // Qt path conversion
     GraphicPath&        addQtPath(QPainterPath &path, scale sy = 1);
+    bool                extractQtPath(QPainterPath &path);
     static void         Draw(Layout *where, QPainterPath &path,
-                             GLenum tess = 0, scale sy = 1);
+                             GLenum tessel = 0, scale sy = 1);
 
     // Other operations
     void                clear();
-    void                AddControl(XL::Tree *self, real_r x,real_r y,real_r z);
+    void                AddControl(XL::Tree_p self, real_r x,real_r y,real_r z);
 
 public:
     enum Kind { MOVE_TO, LINE_TO, CURVE_TO, CURVE_CONTROL };

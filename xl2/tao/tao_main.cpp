@@ -55,13 +55,9 @@ int main(int argc, char **argv)
 
     // Initialize the Tao application
     Tao::Application tao(argc, argv);
+    tao.updateSearchPathes();
 
-    // Initialize dir search path for XL files
-    QStringList xl_dir_list;
-    xl_dir_list << tao.currentProjectFolder
-                << tao.defaultTaoPreferencesFolderPath()
-                << tao.defaultTaoApplicationFolderPath();
-    QDir::setSearchPaths("xl", xl_dir_list);
+    // Fetch info for XL files
     QFileInfo builtins  ("xl:builtins.xl");
     QFileInfo syntax    ("xl:xl.syntax");
     QFileInfo stylesheet("xl:xl.stylesheet");

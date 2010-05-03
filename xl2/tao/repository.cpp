@@ -69,7 +69,7 @@ text Repository::styleSheet()
 }
 
 
-bool Repository::write(text fileName, XL::Tree *tree)
+bool Repository::write(text fileName, XL::Tree_p tree)
 // ----------------------------------------------------------------------------
 //   Write the text into a repository, ready to commit, return true if OK
 // ----------------------------------------------------------------------------
@@ -101,13 +101,13 @@ bool Repository::write(text fileName, XL::Tree *tree)
 }
 
 
-XL::Tree * Repository::read(text fileName)
+XL::Tree_p  Repository::read(text fileName)
 // ----------------------------------------------------------------------------
 //   Read a tree from a given file in the repository
 // ----------------------------------------------------------------------------
 {
-    XL::Tree      *result    = NULL;
-    text           full      = fullName(fileName);
+    XL::Tree_p result = NULL;
+    text       full   = fullName(fileName);
 
     // Create the parser, with a local copy of the syntax (per-file syntax)
     XL::Syntax     syntax (XL::MAIN->syntax);

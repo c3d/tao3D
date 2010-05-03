@@ -68,6 +68,7 @@ public:
 
 public slots:
     void markChanged(bool changed = true);
+    void toggleAnimations();
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -149,6 +150,7 @@ private:
     QAction          *aboutAct;
     QAction          *aboutQtAct;
     QAction          *fullScreenAct;
+    QAction          *viewAnimationsAct;
     QUndoView        *undoView;
     QAction          *undoAction;
     QAction          *redoAction;

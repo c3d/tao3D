@@ -542,8 +542,7 @@ Tree_p Symbols::Run(Tree_p code)
                                 Tree_p argValue = args.Named(name->value);
                                 argsList.push_back(argValue);
                             }
-                            result = xl_invoke(toCall, code,
-                                               argsList.size(), &argsList[0]);
+                            result = xl_invoke(toCall, code, argsList);
                         }
                         else
                         {

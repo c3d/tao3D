@@ -75,7 +75,7 @@ typedef ReferenceCountPointer<Block>   Block_p;
 
 typedef ulong TreePosition;                     // Position in context
 typedef std::vector<Tree_p> TreeList;           // A list of trees
-typedef Tree_p (*eval_fn) (Tree_p);             // Compiled evaluation code
+typedef Tree *(*eval_fn) (Tree *);              // Compiled evaluation code
 
 
 

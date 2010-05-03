@@ -58,7 +58,7 @@ typedef std::map<uint, eval_fn>             closure_map;
 typedef std::set<Tree_p>                    closure_set;
 typedef std::set<Tree_p>                    data_set;
 typedef std::set<Tree_p>                    deleted_set;
-typedef Tree_p (*adapter_fn) (eval_fn callee, Tree_p src, Tree_p *args);
+typedef Tree * (*adapter_fn) (eval_fn callee, Tree *src, Tree **args);
 
 
 struct Compiler

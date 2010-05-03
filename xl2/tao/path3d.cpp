@@ -143,7 +143,7 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
     setTexture(where);
     if (setFillColor(where))
     {
-        Draw(where, GL_POLYGON, tessel);
+        Draw(where->Offset(), GL_POLYGON, tessel);
     }
     if (setLineColor(where)) 
     {
@@ -179,22 +179,21 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
 
             GraphicPath outline;
             outline.addQtPath(stroke);
-            outline.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+            outline.Draw(where->Offset(), GL_POLYGON,GLU_TESS_WINDING_POSITIVE);
         }
         else
         {
-            Draw(where, tessel ? GL_LINE_LOOP : GL_LINE_STRIP, 0);
+            Draw(where->Offset(), tessel ? GL_LINE_LOOP : GL_LINE_STRIP, 0);
         }
     }
 }
 
 
-void GraphicPath::Draw(Layout *where, GLenum mode, GLenum tesselation)
+void GraphicPath::Draw(const Vector3 &offset, GLenum mode, GLenum tesselation)
 // ----------------------------------------------------------------------------
 //   Draw the graphic path using curves with the given mode and tesselation
 // ----------------------------------------------------------------------------
 {
-    Vector3 offset = where->Offset();
     PolygonData polygon;        // Polygon information
     Vertices &data = polygon.vertices;
     Vertices control;           // Control points

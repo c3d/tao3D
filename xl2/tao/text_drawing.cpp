@@ -53,7 +53,8 @@ void TextSpan::Draw(Layout *where)
     bool hasTexture = setTexture(where);
     GlyphCache &glyphs = widget->glyphs();
     bool tooBig = where->font.pointSize() > (int) glyphs.maxFontSize;
-    bool debugForceDirect = widget->lastModifiers() & Qt::ShiftModifier;
+    bool debugForceDirect = widget->lastModifiers() &
+        (Qt::ShiftModifier | Qt::ControlModifier | Qt::AltModifier);
     if (!hasLine && !hasTexture && !tooBig && !debugForceDirect)
         DrawCached(where, false);
     else
@@ -94,26 +95,23 @@ void TextSpan::DrawCached(Layout *where, bool identify)
                 continue;
         }
 
-        if (!newLine)
-        {
-            // Enter the geometry coordinates
-            coord charX1 = x + glyph.bounds.lower.x;
-            coord charX2 = x + glyph.bounds.upper.x;
-            coord charY1 = y - glyph.bounds.lower.y;
-            coord charY2 = y - glyph.bounds.upper.y;
-            quads.push_back(Point3(charX1, charY1, z));
-            quads.push_back(Point3(charX2, charY1, z));
-            quads.push_back(Point3(charX2, charY2, z));
-            quads.push_back(Point3(charX1, charY2, z));
+        // Enter the geometry coordinates
+        coord charX1 = x + glyph.bounds.lower.x;
+        coord charX2 = x + glyph.bounds.upper.x;
+        coord charY1 = y - glyph.bounds.lower.y;
+        coord charY2 = y - glyph.bounds.upper.y;
+        quads.push_back(Point3(charX1, charY1, z));
+        quads.push_back(Point3(charX2, charY1, z));
+        quads.push_back(Point3(charX2, charY2, z));
+        quads.push_back(Point3(charX1, charY2, z));
 
-            // Enter the texture coordinates
-            Point &texL = glyph.texture.lower;
-            Point &texU = glyph.texture.upper;
-            texCoords.push_back(Point(texL.x, texL.y));
-            texCoords.push_back(Point(texU.x, texL.y));
-            texCoords.push_back(Point(texU.x, texU.y));
-            texCoords.push_back(Point(texL.x, texU.y));
-        }
+        // Enter the texture coordinates
+        Point &texL = glyph.texture.lower;
+        Point &texU = glyph.texture.upper;
+        texCoords.push_back(Point(texL.x, texL.y));
+        texCoords.push_back(Point(texU.x, texL.y));
+        texCoords.push_back(Point(texU.x, texU.y));
+        texCoords.push_back(Point(texL.x, texU.y));
 
         // Advance to next character
         if (newLine)
@@ -180,6 +178,58 @@ void TextSpan::DrawDirect(Layout *where)
 //   Draw the given text directly using Qt paths
 // ----------------------------------------------------------------------------
 {
+    Widget     *widget = where->Display();
+    GlyphCache &glyphs = widget->glyphs();
+    Point3      pos    = where->offset;
+    text        str    = source.Value();
+    QFont      &font   = where->font;
+    coord       x      = pos.x;
+    coord       y      = pos.y;
+    coord       z      = pos.z;
+    scale       lw     = where->lineWidth;
+
+    GlyphCache::GlyphEntry  glyph;
+    std::vector<Point3>     quads;
+    std::vector<Point>      texCoords;
+
+    // Loop over all characters in the text span
+    uint i, max = str.length();
+    for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
+    {
+        uint  unicode  = XL::Utf8Code(str, i);
+        bool  newLine  = unicode == '\n';
+
+        // Find the glyph in the glyph cache
+        if (!glyphs.Find(font, unicode, glyph, true, true, lw))
+            continue;
+
+        glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
+        GLMatrixKeeper save;
+        glTranslatef(x, y, z);
+
+        setTexture(where);
+        if (setFillColor(where))
+            glCallList(glyph.interior);
+        if (setLineColor(where))
+            glCallList(glyph.outline);
+
+        // Advance to next character
+        if (newLine)
+        {
+            scale height = glyphs.Ascent(font) + glyphs.Descent(font) + 1;
+            scale spacing = height + glyphs.Leading(font);
+            x = 0;
+            y -= spacing;
+        }
+        else
+        {
+            x += glyph.advance;
+        }
+    }
+
+    where->offset = Point3(x, y, z);
+
+#if 0
     Point3 position = where->offset;
     QPainterPath path;
     QString str = +source.Value().substr(start, end - start);
@@ -208,6 +258,7 @@ void TextSpan::DrawDirect(Layout *where)
     where->offset = Point3();
     GraphicPath::Draw(where, path, GLU_TESS_WINDING_ODD, -1);
     where->offset = position;
+#endif
 }
 
 

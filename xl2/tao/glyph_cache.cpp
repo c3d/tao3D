@@ -290,10 +290,15 @@ bool GlyphCache::Find(const QFont &font,
     if ((interior && !entry.interior) ||
         (lineWidth > 0 && (!entry.outline || lineWidth != entry.lineWidth)))
     {
+        // Reset font to original size
+        QFont scaled(font);
+        scaled.setPointSizeF(perFont->baseSize);
+
         // Draw glyph into a path
         QPainterPath qtPath;
         GraphicPath path;
-        qtPath.addText(0, 0, font, QString(QChar(code)));
+
+        qtPath.addText(0, 0, scaled, QString(QChar(code)));
         path.addQtPath(qtPath, -1);
         
         if (interior)
@@ -485,6 +490,8 @@ void GlyphCache::ScaleDown(GlyphEntry &entry, scale fontScale)
 {
     // Scale the geometry
     entry.bounds *= fontScale;
+    entry.advance *= fontScale;
+    entry.scalingFactor = fontScale;
 
     // Adjust texture coordinates
     uint width = packer.Width();

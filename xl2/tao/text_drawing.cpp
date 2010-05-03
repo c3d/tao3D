@@ -206,6 +206,8 @@ void TextSpan::DrawDirect(Layout *where)
         glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
         GLMatrixKeeper save;
         glTranslatef(x, y, z);
+        scale gscale = glyph.scalingFactor;
+        glScalef(gscale, gscale, gscale);
 
         setTexture(where);
         if (setFillColor(where))
@@ -283,7 +285,9 @@ void TextSpan::DrawSelection(Layout *where)
     TextSelect *sel          = widget->textSelection();
     GLuint      charId       = 0;
     bool        charSelected = false;
-    scale       height       = glyphs.Ascent(font) + glyphs.Descent(font) + 1;
+    scale       ascent       = glyphs.Ascent(font);
+    scale       descent      = glyphs.Descent(font);
+    scale       height       = ascent + descent + 1;
     GlyphCache::GlyphEntry  glyph;
 
     // Loop over all characters in the text span
@@ -317,7 +321,7 @@ void TextSpan::DrawSelection(Layout *where)
             if (charSelected || sel->needsPositions())
             {
                 coord charX = x + glyph.bounds.lower.x;
-                coord charY = y - glyph.bounds.upper.y;
+                coord charY = y;
                 sel->newChar(charX, charSelected);
 
                 if (charSelected)
@@ -348,7 +352,7 @@ void TextSpan::DrawSelection(Layout *where)
                         if (sel->point == sel->mark)
                             sel->replace = false;
                     }
-                    sel->selBox |= Box3(charX,charY,z, 1, height, 0);
+                    sel->selBox |= Box3(charX,charY - descent,z, 1, height, 0);
                 } // if(charSelected)
             } // if (charSelected || upDown)
         } // if(sel)

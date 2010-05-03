@@ -67,6 +67,7 @@
 #include <QtWebKit>
 #include <sys/time.h>
 #include <sys/stat.h>
+#include <algorithm>
 
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
 
@@ -2687,6 +2688,43 @@ Tree_p Widget::closePath(Tree_p self)
     return XL::xl_true;
 }
 
+
+static GraphicPath::EndpointStyle endpointStyle(symbolicname_r n)
+// ----------------------------------------------------------------------------
+//   Translates XL name into endpoint style enum
+// ----------------------------------------------------------------------------
+{
+    text name = n.value;
+    std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+
+    if (name == "TRIANGLE")
+    {
+        return GraphicPath::TRIANGLE;
+    }
+    else if (name == "NONE")
+    {
+        return GraphicPath::NONE;
+    }
+    else
+    {
+        // Others...
+        return GraphicPath::NONE;
+    }
+}
+
+Tree_p Widget::endpointsStyle(Tree_p self, symbolicname_r s, symbolicname_r e)
+// ----------------------------------------------------------------------------
+//   Specify the style of the path endpoints
+// ----------------------------------------------------------------------------
+{
+    if (!path)
+        return Ooops("No path for '$1'", self);
+   
+    path->startStyle = endpointStyle(s); 
+    path->endStyle   = endpointStyle(e);
+
+    return XL::xl_true;
+}
 
 
 // ============================================================================

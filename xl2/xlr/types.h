@@ -52,10 +52,10 @@ struct TypeInfo : Info
 //    Information recording the type of a given tree
 // ----------------------------------------------------------------------------
 {
-    typedef Tree *      data_t;
-    TypeInfo(Tree *type): type(type) {}
+    typedef Tree_p       data_t;
+    TypeInfo(Tree_p type): type(type) {}
     operator            data_t()  { return type; }
-    Tree *              type;
+    Tree_p               type;
 };
 
 
@@ -66,15 +66,15 @@ struct InferTypes : Action
 {
     InferTypes(Symbols *s): Action(), symbols(s) {}
 
-    Tree *Do (Tree *what);
-    Tree *DoInteger(Integer *what);
-    Tree *DoReal(Real *what);
-    Tree *DoText(Text *what);
-    Tree *DoName(Name *what);
-    Tree *DoPrefix(Prefix *what);
-    Tree *DoPostfix(Postfix *what);
-    Tree *DoInfix(Infix *what);
-    Tree *DoBlock(Block *what);
+    Tree_p Do (Tree_p what);
+    Tree_p DoInteger(Integer_p what);
+    Tree_p DoReal(Real_p what);
+    Tree_p DoText(Text_p what);
+    Tree_p DoName(Name_p what);
+    Tree_p DoPrefix(Prefix_p what);
+    Tree_p DoPostfix(Postfix_p what);
+    Tree_p DoInfix(Infix_p what);
+    Tree_p DoBlock(Block_p what);
 
     Symbols *   symbols;
 };
@@ -85,25 +85,25 @@ struct MatchType : Action
 //   An action that checks if a value matches a type
 // ----------------------------------------------------------------------------
 {
-    MatchType(Symbols *s, Tree *t): symbols(s), type(t) {}
+    MatchType(Symbols *s, Tree_p t): symbols(s), type(t) {}
 
-    Tree *Do(Tree *what);
-    Tree *DoInteger(Integer *what);
-    Tree *DoReal(Real *what);
-    Tree *DoText(Text *what);
-    Tree *DoName(Name *what);
-    Tree *DoPrefix(Prefix *what);
-    Tree *DoPostfix(Postfix *what);
-    Tree *DoInfix(Infix *what);
-    Tree *DoBlock(Block *what);
+    Tree_p Do(Tree_p what);
+    Tree_p DoInteger(Integer_p what);
+    Tree_p DoReal(Real_p what);
+    Tree_p DoText(Text_p what);
+    Tree_p DoName(Name_p what);
+    Tree_p DoPrefix(Prefix_p what);
+    Tree_p DoPostfix(Postfix_p what);
+    Tree_p DoInfix(Infix_p what);
+    Tree_p DoBlock(Block_p what);
 
-    Tree *MatchStructuredType(Tree *what, Tree *kind = NULL);
-    Tree *Rewrites(Tree *what);
-    Tree *Normalize();
-    Tree *NameMatch(Tree *what);
+    Tree_p MatchStructuredType(Tree_p what, Tree_p kind = NULL);
+    Tree_p Rewrites(Tree_p what);
+    Tree_p Normalize();
+    Tree_p NameMatch(Tree_p what);
 
     Symbols *symbols;
-    Tree    *type;
+    Tree_p type;
 };
 
 
@@ -112,27 +112,27 @@ struct ArgumentTypeMatch : Action
 //   Check if a tree matches the form of the left of a rewrite
 // ----------------------------------------------------------------------------
 {
-    ArgumentTypeMatch (Tree *t,
+    ArgumentTypeMatch (Tree_p t,
                        Symbols *s, Symbols *l, Symbols *r) :
         symbols(s), locals(l), rewrite(r), test(t), defined(NULL) {}
 
     // Action callbacks
-    virtual Tree *Do(Tree *what);
-    virtual Tree *DoInteger(Integer *what);
-    virtual Tree *DoReal(Real *what);
-    virtual Tree *DoText(Text *what);
-    virtual Tree *DoName(Name *what);
-    virtual Tree *DoPrefix(Prefix *what);
-    virtual Tree *DoPostfix(Postfix *what);
-    virtual Tree *DoInfix(Infix *what);
-    virtual Tree *DoBlock(Block *what);
+    virtual Tree_p Do(Tree_p what);
+    virtual Tree_p DoInteger(Integer_p what);
+    virtual Tree_p DoReal(Real_p what);
+    virtual Tree_p DoText(Text_p what);
+    virtual Tree_p DoName(Name_p what);
+    virtual Tree_p DoPrefix(Prefix_p what);
+    virtual Tree_p DoPostfix(Postfix_p what);
+    virtual Tree_p DoInfix(Infix_p what);
+    virtual Tree_p DoBlock(Block_p what);
 
 public:
     Symbols *      symbols;     // Context in which we evaluate values
     Symbols *      locals;      // Symbols where we declare arguments
     Symbols *      rewrite;     // Symbols in which the rewrite was declared
-    Tree *         test;        // Tree we test
-    Tree *         defined;     // Tree we define
+    Tree_p          test;        // Tree we test
+    Tree_p          defined;     // Tree we define
 };
 
 
@@ -159,7 +159,7 @@ public:
 #define POSTFIX(name, rtype, parms, symbol, code)
 #define BLOCK(name, rtype, open, type, close, code)
 #define NAME(symbol)
-#define TYPE(symbol)    extern Name *symbol##_type;
+#define TYPE(symbol)    extern Name_p symbol##_type;
 #include "basics.tbl"
 
 XL_END

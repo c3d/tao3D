@@ -274,8 +274,7 @@ void Layout::Inherit(Layout *where)
 //   Inherit state from some other layout
 // ----------------------------------------------------------------------------
 {
-    if (id != ~0U)
-        glLoadName(id);
+    LoadName();
     if (!where)
         return;
 
@@ -285,14 +284,25 @@ void Layout::Inherit(Layout *where)
     // Inherit color and other parameters as initial values
     // Note that these may really impact what gets rendered,
     // e.g. transparent colors may cause shapes to be drawn or not
-    font        = where->font;
-    alongX      = where->alongX;
-    alongY      = where->alongY;
-    alongZ      = where->alongZ;
+    font         = where->font;
+    alongX       = where->alongX;
+    alongY       = where->alongY;
+    alongZ       = where->alongZ;
     lineWidth   = where->lineWidth;
-    lineColor   = where->lineColor;
-    fillColor   = where->fillColor;
-    fillTexture = where->fillTexture;
+    lineColor    = where->lineColor;
+    fillColor    = where->fillColor;
+    fillTexture  = where->fillTexture;
+    hasPixelBlur |= where->hasPixelBlur;
+}
+
+
+void Layout::LoadName()
+// ----------------------------------------------------------------------------
+//   Load the GL name for the given layout
+// ----------------------------------------------------------------------------
+{
+    if (id != ~0U)
+        glLoadName(id);
 }
 
 TAO_END

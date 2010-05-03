@@ -35,36 +35,36 @@ XL_BEGIN
 // 
 // ============================================================================
 
-longlong xl_integer_arg(Tree *value)
+longlong xl_integer_arg(Tree_p value)
 // ----------------------------------------------------------------------------
 //    Return an integer value 
 // ----------------------------------------------------------------------------
 {
-    if (Integer *ival = value->AsInteger())
+    if (Integer_p ival = value->AsInteger())
         return ival->value;
     Ooops("Value '$1' is not an integer", value);
     return 0;
 }
 
 
-double xl_real_arg(Tree *value)
+double xl_real_arg(Tree_p value)
 // ----------------------------------------------------------------------------
 //    Return a real value 
 // ----------------------------------------------------------------------------
 {
-    if (Real *rval = value->AsReal())
+    if (Real_p rval = value->AsReal())
         return rval->value;
     Ooops("Value '$1' is not a real", value);
     return 0.0;
 }
 
 
-text xl_text_arg(Tree *value)
+text xl_text_arg(Tree_p value)
 // ----------------------------------------------------------------------------
 //    Return a text value 
 // ----------------------------------------------------------------------------
 {
-    if (Text *tval = value->AsText())
+    if (Text_p tval = value->AsText())
         if (tval->opening != "'")
             return tval->value;
     Ooops("Value '$1' is not a text", value);
@@ -72,12 +72,12 @@ text xl_text_arg(Tree *value)
 }
 
 
-int xl_character_arg(Tree *value)
+int xl_character_arg(Tree_p value)
 // ----------------------------------------------------------------------------
 //    Return a character value 
 // ----------------------------------------------------------------------------
 {
-    if (Text *tval = value->AsText())
+    if (Text_p tval = value->AsText())
         if (tval->opening == "'" && tval->value.length() == 1)
             return tval->value[0];
     Ooops("Value '$1' is not a character", value);
@@ -85,7 +85,7 @@ int xl_character_arg(Tree *value)
 }
 
 
-bool xl_boolean_arg(Tree *value)
+bool xl_boolean_arg(Tree_p value)
 // ----------------------------------------------------------------------------
 //    Return a boolean truth value 
 // ----------------------------------------------------------------------------
@@ -99,16 +99,16 @@ bool xl_boolean_arg(Tree *value)
 }
 
 
-Tree *ParametersTree(tree_list parameters)
+Tree_p ParametersTree(TreeList parameters)
 // ----------------------------------------------------------------------------
 //   Create a comma-separated parameter list
 // ----------------------------------------------------------------------------
 {
     ulong i, max = parameters.size();
-    Tree *result = NULL;
+    Tree_p result = NULL;
     for (i = 0; i < max; i++)
     {
-        Tree *parm = parameters[i];
+        Tree_p parm = parameters[i];
         if (result)
             result = new Infix(",", result, parm);
         else

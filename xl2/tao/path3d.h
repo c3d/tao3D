@@ -25,6 +25,7 @@
 #include "coords3d.h"
 #include "shapes.h"
 #include "tree.h"
+#include "tao_tree.h"
 #include <GL/glew.h>
 
 struct QPainterPath;
@@ -37,9 +38,6 @@ struct GraphicPath : Shape
 //    An arbitrary graphic path
 // ----------------------------------------------------------------------------
 {
-    typedef XL::Real   &real_r;
-    typedef XL::Name   &name_r;
-
     GraphicPath();
     ~GraphicPath();
 
@@ -69,7 +67,7 @@ struct GraphicPath : Shape
 
     // Other operations
     void                clear();
-    void                AddControl(XL::Tree *self, real_r x,real_r y,real_r z);
+    void                AddControl(XL::Tree_p self, real_r x,real_r y,real_r z);
 
 public:
     enum Kind { MOVE_TO, LINE_TO, CURVE_TO, CURVE_CONTROL };

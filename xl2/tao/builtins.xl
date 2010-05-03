@@ -263,6 +263,12 @@ menu_item "menu:insert > shape > star", "Star", insert
 menu_item "menu:insert > shape > polygon", "Polygon", insert
     shape
         polygon 0, 0, 100, 100, 5
+
+menu      "menu:insert", ""
+submenu   "menu:insert > object", "Object"
+menu_item "menu:insert > object > image", "Image ...", file_chooser
+    action insert {shape {image 0, 0, 0, 0, file_path} }
+
 }
 
 toolbar_insert -> {
@@ -335,4 +341,5 @@ menu_item "menu:colors > line color", "Line Color...", do
     color_chooser "line_color", do
         set_attribute "line_color", {line_color red, green, blue, alpha}
 }
+
 

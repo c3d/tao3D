@@ -135,10 +135,10 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     {
         GLuint depth = ~0U;
         GLuint *ptr = buffer;
-        for (int i = 0; i < hits; i++)
+        for (int i = 0; !charSelected && i < hits; i++)
         {
             uint size = ptr[0];
-            if (ptr[3] && ptr[1] < depth)
+            if (ptr[3] && ptr[1] <= depth)
             {
                 selected = ptr[3];
                 if (size > 1)
@@ -179,7 +179,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     // In all cases, we want a screen refresh
     Idle();
 
-    // Delete a text selection if we didn't click in it
+    // Delete any text selection we might have if we didn't click in it
     if (count == 1 && !charSelected)
         delete widget->textSelection();
 
@@ -189,7 +189,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         Widget *widget = this->widget; // Save before 'delete this'
         Idle();
         delete this;
-        if (selected)
+        if (selected && count == 1)
             return new Drag(widget);
     }
 

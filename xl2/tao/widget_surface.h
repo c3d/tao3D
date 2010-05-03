@@ -57,7 +57,7 @@ public:
     QWidget *           widget;
     GLuint              textureId;
     bool                dirty;
-    XL::Tree *          tree;
+    XL::Tree_p          tree;
 
 protected slots:
     void                repaint();
@@ -72,14 +72,14 @@ struct WebViewSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef WebViewSurface * data_t;
-    WebViewSurface(XL::Tree *t, Widget *parent);
+    WebViewSurface(XL::Tree_p t, Widget *parent);
     operator data_t() { return this; }
-    virtual GLuint bind(XL::Text *url, XL::Integer *progress=NULL);
+    virtual GLuint bind(XL::Text_p url, XL::Integer_p progress=NULL);
 
 private:
-    XL::Text    *urlTree;
-    text         url;
-    XL::Integer *progress;
+    XL::Text_p    urlTree;
+    text          url;
+    XL::Integer_p progress;
 
 protected slots:
     void        finishedLoading(bool loadedOK);
@@ -95,12 +95,12 @@ struct LineEditSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef LineEditSurface * data_t;
-    LineEditSurface(XL::Tree *t, Widget *parent, bool immed=false);
+    LineEditSurface(XL::Tree_p t, Widget *parent, bool immed=false);
     operator data_t() { return this; }
-    virtual GLuint bind(XL::Text *contents);
+    virtual GLuint bind(XL::Text_p contents);
 
 private:
-    XL::Text *contents;
+    XL::Text_p contents;
     bool      immediate;
     bool      locallyModified;
 
@@ -117,14 +117,14 @@ struct AbstractButtonSurface : WidgetSurface
     Q_OBJECT;
 public:
 //    typedef AbstractButtonSurface * data_t;
-    AbstractButtonSurface(XL::Tree *t, QAbstractButton *button, QString name);
-    virtual GLuint bind(XL::Text *lbl, XL::Tree *action, XL::Text * sel);
+    AbstractButtonSurface(XL::Tree_p t, QAbstractButton *button, QString name);
+    virtual GLuint bind(XL::Text_p lbl, XL::Tree_p action, XL::Text_p  sel);
     virtual operator data_t() { return this; }
 
 private:
     text         label;
     XL::TreeRoot action;
-    XL::Text *  isMarked;
+    XL::Text_p   isMarked;
 
 
 public slots:
@@ -141,7 +141,7 @@ struct PushButtonSurface : AbstractButtonSurface
     Q_OBJECT;
 public:
     typedef PushButtonSurface * data_t;
-    PushButtonSurface(XL::Tree *t, QWidget *parent, QString name):
+    PushButtonSurface(XL::Tree_p t, QWidget *parent, QString name):
         AbstractButtonSurface(t,new QPushButton(parent), name)
     {
         connect((QPushButton*)widget, SIGNAL(clicked(bool)),
@@ -158,7 +158,7 @@ struct RadioButtonSurface : AbstractButtonSurface
     Q_OBJECT;
 public:
     typedef RadioButtonSurface * data_t;
-    RadioButtonSurface(XL::Tree *t, QWidget *parent, QString name):
+    RadioButtonSurface(XL::Tree_p t, QWidget *parent, QString name):
         AbstractButtonSurface(t, new QRadioButton(parent), name){};
     operator data_t() { return this; }
 };
@@ -171,7 +171,7 @@ struct CheckBoxSurface : AbstractButtonSurface
     Q_OBJECT;
 public:
     typedef CheckBoxSurface * data_t;
-    CheckBoxSurface(XL::Tree *t, QWidget *parent, QString name):
+    CheckBoxSurface(XL::Tree_p t, QWidget *parent, QString name):
         AbstractButtonSurface(t, new QCheckBox(parent), name){};
     operator data_t() { return this; }
 };
@@ -185,11 +185,11 @@ struct GroupBoxSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef GroupBoxSurface * data_t;
-    GroupBoxSurface(XL::Tree *t, Widget *parent, QGridLayout *l);
+    GroupBoxSurface(XL::Tree_p t, Widget *parent, QGridLayout *l);
     virtual ~GroupBoxSurface();
 
     operator data_t() { return this; }
-    virtual GLuint bind(XL::Text *lbl);
+    virtual GLuint bind(XL::Text_p lbl);
 
 private:
     text label;
@@ -208,7 +208,7 @@ struct ColorChooserSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef ColorChooserSurface * data_t;
-    ColorChooserSurface(XL::Tree *t, Widget *parent, XL::Tree *action);
+    ColorChooserSurface(XL::Tree_p t, Widget *parent, XL::Tree_p action);
     operator data_t() { return this; }
     virtual GLuint bind();
 
@@ -227,7 +227,7 @@ struct FontChooserSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef FontChooserSurface * data_t;
-    FontChooserSurface(XL::Tree *t, Widget *parent, XL::Tree *action);
+    FontChooserSurface(XL::Tree_p t, Widget *parent, XL::Tree_p action);
     operator data_t() { return this; }
     virtual GLuint bind();
 
@@ -235,6 +235,23 @@ private:
     XL::TreeRoot action;
 public slots:
     void fontChosen(const QFont &font);
+};
+
+
+struct FileChooserSurface : WidgetSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a QFontChooser
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT;
+public:
+    typedef FileChooserSurface * data_t;
+    FileChooserSurface(XL::Tree_p t, Widget *parent);
+    operator data_t() { return this; }
+    virtual GLuint bind();
+
+public slots:
+    void hideWidget();
 };
 
 
@@ -246,10 +263,10 @@ struct VideoPlayerSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef VideoPlayerSurface * data_t;
-    VideoPlayerSurface(XL::Tree *t, Widget *parent);
+    VideoPlayerSurface(XL::Tree_p t, Widget *parent);
     ~VideoPlayerSurface();
     operator data_t() { return this; }
-    virtual GLuint bind(XL::Text *url);
+    virtual GLuint bind(XL::Text_p url);
 public:
     text url;
     QGLFramebufferObject *fbo;
@@ -263,13 +280,13 @@ struct AbstractSliderSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef AbstractSliderSurface * data_t;
-    AbstractSliderSurface(XL::Tree *t, QAbstractSlider *parent);
+    AbstractSliderSurface(XL::Tree_p t, QAbstractSlider *parent);
     operator data_t() { return this; }
 //    virtual GLuint bind();
 
 private:
     int min, max;
-    XL::Integer *value;
+    XL::Integer_p value;
 public slots:
     void valueChanged(int new_value);
 

@@ -85,6 +85,7 @@ public:
     typedef XL::real_p    real_p;
     typedef XL::integer_p integer_p;
     typedef XL::text_p    text_p;
+    typedef XL::symbolicname_r    name_r;
     typedef std::vector<double>   attribute_args;
 
 public:
@@ -251,6 +252,7 @@ public:
     Tree *      pathTextureCoord(Tree *self, real_r x, real_r y, real_r r);
     Tree *      pathColor(Tree *self, real_r r, real_r g, real_r b, real_r a);
     Tree *      closePath(Tree *self);
+    Tree *      endpointsStyle(Tree *self, name_r s, name_r e);
     
     // 2D primitive that can be in a path or standalone
     Tree *      rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h);

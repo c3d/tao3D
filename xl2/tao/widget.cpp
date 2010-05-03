@@ -64,6 +64,7 @@
 #include <QtWebKit>
 #include <sys/time.h>
 #include <sys/stat.h>
+#include <algorithm>
 
 TAO_BEGIN
 
@@ -2473,12 +2474,51 @@ Tree *Widget::closePath(Tree *self)
 }
 
 
+static GraphicPath::EndpointStyle endpointStyle(XL::symbolicname_r n)
+// ----------------------------------------------------------------------------
+//   Translates XL name into endpoint style enum
+// ----------------------------------------------------------------------------
+{
+    text name = n.value;
+    std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+
+    if (name == "TRIANGLE")
+    {
+        return GraphicPath::TRIANGLE;
+    }
+    else if (name == "NONE")
+    {
+        return GraphicPath::NONE;
+    }
+    else
+    {
+        // Others...
+        return GraphicPath::NONE;
+    }
+}
+
+Tree *Widget::endpointsStyle(Tree *self, name_r s, name_r e)
+// ----------------------------------------------------------------------------
+//   Specify the style of the path endpoints
+// ----------------------------------------------------------------------------
+{
+    if (!path)
+        return Ooops("No path for '$1'", self);
+   
+    path->startStyle = endpointStyle(s); 
+    path->endStyle   = endpointStyle(e);
+
+    return XL::xl_true;
+}
+
 
 // ============================================================================
 //
 //    2D primitives that can be in a path or standalone
 //
 // ============================================================================
+
+
 
 Tree *Widget::rectangle(Tree *self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------

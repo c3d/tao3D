@@ -37,7 +37,8 @@ struct GraphicPath : Shape
 //    An arbitrary graphic path
 // ----------------------------------------------------------------------------
 {
-    typedef XL::Real &real_r;
+    typedef XL::Real   &real_r;
+    typedef XL::Name   &name_r;
 
     GraphicPath();
     ~GraphicPath();
@@ -72,6 +73,7 @@ struct GraphicPath : Shape
 
 public:
     enum Kind { MOVE_TO, LINE_TO, CURVE_TO, CURVE_CONTROL };
+    enum EndpointStyle { NONE, TRIANGLE };
     struct Element
     {
         Element(Kind k, const Point3 &p): kind(k), position(p) {}
@@ -101,6 +103,7 @@ public:
     control_points      controls;
     Point3              start, position;
     Box3                bounds;
+    EndpointStyle       startStyle, endStyle;
     static scale        default_steps;
 };
 

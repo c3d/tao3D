@@ -159,7 +159,9 @@ PREFIX(PathColor, tree, "path_color",
        PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
        RTAO(pathColor(self, r,g,b, a)))
 PREFIX(ClosePath, tree, "close_path",, RTAO(closePath(self)))
-
+PREFIX(EndpointsStyle, tree, "endpoints_style", 
+       PARM(s, symbolicname) PARM(e, symbolicname),
+       RTAO(endpointsStyle(self, s, e)))
 
 
 // ============================================================================

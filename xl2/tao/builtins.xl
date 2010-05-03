@@ -20,10 +20,19 @@ sphere r:real                           ->
     sphere 0.0, 0.0, 0.0, 2*r, 2*r, 2*r, 25, 25
 
 //2D Shapes
+move_to x:real, y:real                  -> move_to x, y, 0
+line_to x:real, y:real                  -> line_to x, y, 0
+
 line x0:real, y0:real, x1:real, y1:real ->
     path
-        move_to x0, y0, 0
-        line_to x1, y1, 0
+        move_to x0, y0
+        line_to x1, y1
+
+//line_arrow x0:real, y0:real, s0:symbolicname, x1:real, y1:real, s1:symbolicname ->
+//    path
+//        move_to x0, y0
+//        line_to x1, y1
+//        endpoints_style s0, s1
 
 circle x:real, y:real, r:real           -> ellipse x, y, 2*r, 2*r
 circle r:real                           -> ellipse 0.0, 0.0, 2*r, 2*r
@@ -202,12 +211,22 @@ submenu   "menu:insert > shape", "Shape"
 menu_item "menu:insert > shape > line ---", "Line", insert
     shape
         line 50, -50, -50, 50
-menu_item "menu:insert > shape > line -->", "Line with Arrowhead", insert
+menu_item "menu:insert > shape > line <--", "Line with Arrowhead", insert
     shape
-        line 50, -50, -50, 50
+        //line_arrow 50, -50, triangle, -50, 50, none
+        path
+            move_to x0, y0
+            line_to x1, y1
+            endpoints_style triangle, none
+ 
 menu_item "menu:insert > shape > line <->", "Line with Two Arrowheads", insert
     shape
-        line 50, -50, -50, 50
+        //line_arrow 50, -50, triangle, -50, 50, triangle
+        path
+            move_to 50, -50
+            line_to -50, 50
+            endpoints_style triangle, triangle
+
 menu_item "menu:insert > shape > rectangle", "Rectangle", insert
     shape
         rectangle 0, 0, 100, 100
@@ -252,12 +271,22 @@ submenu   "toolbar:insert > shape", "Shape", "images/tb_shapes.png"
 menu_item "toolbar:insert > shape > line ---", "", "images/tb_shape_line.png", insert
     shape
         line 50, -50, -50, 50
-menu_item "toolbar:insert > shape > line -->", "", "images/tb_shape_line_w_arrowhead.png", insert
+menu_item "toolbar:insert > shape > line <--", "", "images/tb_shape_line_w_arrowhead.png", insert
     shape
-        line 50, -50, -50, 50
+        //line_arrow 50, -50, triangle, -50, 50, none
+        path
+            move_to x0, y0
+            line_to x1, y1
+            endpoints_style triangle, none
+
 menu_item "toolbar:insert > shape > line <->", "", "images/tb_shape_line_w_two_arrowheads.png", insert
     shape
-        line 50, -50, -50, 50
+        //line_arrow 50, -50, triangle, -50, 50, triangle
+        path
+            move_to 50, -50
+            line_to -50, 50
+            endpoints_style triangle, triangle
+
 menu_item "toolbar:insert > shape > rectangle", "", "images/tb_shape_rectangle.png", insert
     shape
         rectangle 0, 0, 100, 100

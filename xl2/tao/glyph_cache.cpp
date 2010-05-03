@@ -286,6 +286,9 @@ bool GlyphCache::Find(const QFont &font,
         dirty = true;
     }
 
+    // Line width should remain identical even if we scale the font
+    lineWidth /= font.pointSizeF() / perFont->baseSize;
+
     // Check if we want OpenGL display lists
     if ((interior && !entry.interior) ||
         (lineWidth > 0 && (!entry.outline || lineWidth != entry.lineWidth)))

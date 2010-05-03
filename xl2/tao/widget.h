@@ -434,7 +434,7 @@ public:
 
     // Tree management
     Name_p       insert(Tree_p self, Tree_p toInsert);
-    void        deleteSelection();
+    void         deleteSelection();
     Name_p       deleteSelection(Tree_p self, text key);
     Name_p       setAttribute(Tree_p self, text name, Tree_p attribute, text sh);
 

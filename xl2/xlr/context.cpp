@@ -169,7 +169,7 @@ SymbolsInfo *SymbolsInfo::Copy()
 // ============================================================================
 
 Tree_p Symbols::Compile(Tree_p source, CompiledUnit &unit,
-                       bool nullIfBad, bool keepAlternatives)
+                        bool nullIfBad, bool keepAlternatives)
 // ----------------------------------------------------------------------------
 //    Return an optimized version of the source tree, ready to run
 // ----------------------------------------------------------------------------

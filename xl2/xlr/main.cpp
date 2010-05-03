@@ -43,6 +43,7 @@
 #include "diff.h"
 #include "bfs.h"
 #include "gv.h"
+#include "runtime.h"
 
 XL_BEGIN
 
@@ -92,6 +93,7 @@ Main::Main(int inArgc, char **inArgv, Compiler &comp)
     Syntax::syntax = &syntax;
 }
 
+
 Main::Main(int inArgc, char **inArgv, Compiler &comp,
            text builtinsPath, text syntaxPath, text stylesheetPath)
 // ----------------------------------------------------------------------------
@@ -125,14 +127,12 @@ Main::~Main()
 }
 
 
-int Main::LoadFiles()
+int Main::ParseOptions()
 // ----------------------------------------------------------------------------
 //   Load all files given on the command line and compile them
 // ----------------------------------------------------------------------------
 {
     text                         cmd, end = "";
-    std::vector<text>::iterator  file;
-    bool                         hadError = false;
     int                          filenum = 0;
 
     // Make sure debug function is linked in...
@@ -154,19 +154,28 @@ int Main::LoadFiles()
     if (builtins.empty() || options.builtinsOverride)
         builtins = options.builtinsFile;
     if (options.builtins)
-        LoadFile(builtins);
+        context_file_names.push_back(builtins);
 
     for (; cmd != end; cmd = options.ParseNext())
     {
         if (options.doDiff && ++filenum > 2)
         {
           std::cerr << "Error: -diff option needs exactly 2 files" << std::endl;
-          hadError = true;
-          return hadError;
+          return true;
         }
         file_names.push_back(cmd);
     }
+    return false;
+}
 
+
+int Main::LoadFiles()
+// ----------------------------------------------------------------------------
+//   Load all files given on the command line and compile them
+// ----------------------------------------------------------------------------
+{
+    std::vector<text>::iterator  file;
+    bool                         hadError = false;
     // Loop over files we will process
     for (file = file_names.begin(); file != file_names.end(); file++)
         hadError |= LoadFile(*file);
@@ -175,7 +184,44 @@ int Main::LoadFiles()
 }
 
 
-int Main::LoadFile(text file)
+int Main::LoadContextFiles()
+// ----------------------------------------------------------------------------
+//   Load all files given on the command line and compile them
+// ----------------------------------------------------------------------------
+{
+    std::vector<text>::iterator  file;
+    bool                         hadError = false;
+    // Loop over files we will process
+    for (file = context_file_names.begin();
+         file != context_file_names.end(); file++)
+    {
+        hadError |= LoadFile(*file, true);
+    }
+    return hadError;
+}
+
+
+void Main::EvalContextFiles()
+// ----------------------------------------------------------------------------
+//   Evaluate the context files
+// ----------------------------------------------------------------------------
+{
+    // Evaluate context
+    std::vector<text>::iterator  file;
+
+    Tree_p context_file = NULL;
+    SourceFile filename;
+    for (file = context_file_names.begin();
+         file != context_file_names.end(); file++)
+    {
+        if ( (context_file = files[*file].tree.tree) )
+            xl_evaluate(context_file);
+    }
+
+}
+
+
+int Main::LoadFile(text file, bool updateContext)
 // ----------------------------------------------------------------------------
 //   Load an individual file
 // ----------------------------------------------------------------------------
@@ -245,9 +291,17 @@ int Main::LoadFile(text file)
         }
         return hadError;
     }
-    Symbols *syms = &context;
-    if (file != builtins)
+
+    Symbols *syms = Symbols::symbols;
+    Symbols *savedSyms = syms;
+    if (file == builtins)
+    {
+        syms = &context;
+    }
+    else
+    {
         syms = new Symbols(syms);
+    }
     Symbols::symbols = syms;
     tree->Set<SymbolsInfo>(syms);
 
@@ -284,7 +338,8 @@ int Main::LoadFile(text file)
     if (options.verbose)
         debugp(tree);
 
-    Symbols::symbols = Context::context;
+    // Decide if we update symbols for next run
+    Symbols::symbols = updateContext ? syms : savedSyms;
 
     return hadError;
 }
@@ -382,7 +437,13 @@ int main(int argc, char **argv)
     using namespace XL;
     Compiler compiler("xl_tao");
     MAIN = new Main(argc, argv, compiler);
-    int rc = MAIN->LoadFiles();
+    int rc = 0;
+    if ( !(rc=MAIN->ParseOptions()) || !(rc=MAIN->LoadContextFiles()))
+    {
+        delete MAIN;
+        return rc;
+    }
+    rc = MAIN->LoadFiles();
     if (!rc && Options::options->doDiff)
         rc = MAIN->Diff();
     else

@@ -61,6 +61,7 @@ struct GraphicPath : Shape
 
     // Qt path conversion
     GraphicPath&        addQtPath(QPainterPath &path, scale sy = 1);
+    static bool         extractQtPath(GraphicPath &in, QPainterPath &out);
     bool                extractQtPath(QPainterPath &path);
     static void         Draw(Layout *where, QPainterPath &path,
                              GLenum tessel = 0, scale sy = 1);

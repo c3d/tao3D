@@ -5,7 +5,7 @@ How to setup a Tao build environment on Windows
 - Install the Qt SDK
 - Install msysgit
 - Start msysgit's bash. cd $HOME. Create $HOME/.profile:
-  export PATH=/c/Qt/2010.02.1/mingw/bin:/c/Qt/2010.02.1/qt/bin:$PATH
+  export PATH=/c/llvm/bin:/c/Qt/2010.02.1/mingw/bin:/c/Qt/2010.02.1/qt/bin:$PATH
   (this is needed to use Qt's gcc rather than msysgit's ; and to have the Qt
   DLLs in the path to be able to run Tao)
 - Git clone llvm

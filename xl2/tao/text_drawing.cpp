@@ -455,6 +455,9 @@ Box3 TextSpan::Bounds(Layout *where)
     text        str    = source.Value();
     QFont      &font   = where->font;
     Box3        result;
+    scale       ascent  = glyphs.Ascent(font);
+    scale       descent = glyphs.Descent(font);
+    scale       leading = glyphs.Leading(font);
     coord       x      = 0;
     coord       y      = 0;
     coord       z      = 0;
@@ -472,20 +475,22 @@ Box3 TextSpan::Bounds(Layout *where)
         if (!glyphs.Find(font, unicode, glyph, true))
             continue;
 
-        if (!newLine)
-        {
-            // Enter the geometry coordinates
-            coord charX1 = x + glyph.bounds.lower.x;
-            coord charX2 = x + glyph.bounds.upper.x;
-            coord charY1 = y - glyph.bounds.lower.y;
-            coord charY2 = y - glyph.bounds.upper.y;
-            result |= Point3(charX1, charY1, z);
-            result |= Point3(charX2, charY2, z);
-        }
+        scale sa = ascent * glyph.scalingFactor;
+        scale sd = descent * glyph.scalingFactor;
+        scale sl = leading * glyph.scalingFactor;
+
+        // Enter the geometry coordinates
+        coord charX1 = x + glyph.bounds.lower.x;
+        coord charX2 = x + glyph.bounds.upper.x;
+        coord charY1 = y - glyph.bounds.lower.y;
+        coord charY2 = y - glyph.bounds.upper.y;
 
         // Advance to next character
         if (newLine)
         {
+            result |= Point3(charX1, y + sa, z);
+            result |= Point3(charX1, y - sd - sl, z);
+
             scale height = glyphs.Ascent(font) + glyphs.Descent(font);
             scale spacing = height + glyphs.Leading(font);
             x = 0;
@@ -493,6 +498,9 @@ Box3 TextSpan::Bounds(Layout *where)
         }
         else
         {
+            result |= Point3(charX1, charY1, z);
+            result |= Point3(charX2, charY2, z);
+
             x += glyph.advance;
         }
     }
@@ -534,27 +542,27 @@ Box3 TextSpan::Space(Layout *where)
         scale sa = ascent * glyph.scalingFactor;
         scale sd = descent * glyph.scalingFactor;
         scale sl = leading * glyph.scalingFactor;
-        if (!newLine)
-        {
-            // Enter the geometry coordinates
-            coord charX1 = x + glyph.bounds.lower.x;
-            coord charX2 = x + glyph.bounds.upper.x;
-            coord charY1 = y - glyph.bounds.lower.y;
-            coord charY2 = y - glyph.bounds.upper.y;
-            result |= Point3(charX1, charY1, z);
-            result |= Point3(charX2, charY2, z);
-            result |= Point3(charX1, y + sa, z);
-            result |= Point3(charX1 + glyph.advance, y - sd - sl, z);
-        }
+
+        // Enter the geometry coordinates
+        coord charX1 = x + glyph.bounds.lower.x;
+        coord charX2 = x + glyph.bounds.upper.x;
+        coord charY1 = y - glyph.bounds.lower.y;
+        coord charY2 = y - glyph.bounds.upper.y;
+
+        result |= Point3(charX1, charY1, z);
+        result |= Point3(charX2, charY2, z);
+        result |= Point3(charX1, y + sa, z);
 
         // Advance to next character
         if (newLine)
         {
+            result |= Point3(charX1, y - sd - sl, z);
             x = 0;
             y -= sa + sd + sl;
         }
         else
         {
+            result |= Point3(charX1 + glyph.advance, y - sd - sl, z);
             x += glyph.advance;
         }
     }

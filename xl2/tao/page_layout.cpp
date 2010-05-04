@@ -56,7 +56,11 @@ template<> inline scale Justifier<line_t>::Size(line_t item, Layout *layout)
 //   For drawings, we compute the horizontal size
 // ----------------------------------------------------------------------------
 {
-    return item->Space(layout).Width();
+    Box3 space = item->Space(layout);
+    scale result = space.Width();
+    if (result < 0)
+        result = 0;
+    return result;
 }
 
 
@@ -112,7 +116,11 @@ template<> inline scale Justifier<page_t>::Size(page_t line, Layout *l)
 //   For lines, we compute the vertical size
 // ----------------------------------------------------------------------------
 {
-    return line->Space(l).Height();
+    Box3 space = line->Space(l);
+    scale result = space.Height();
+    if (result < 0)
+        result = 0;
+    return result;
 }
 
 

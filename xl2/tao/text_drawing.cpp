@@ -232,37 +232,6 @@ void TextSpan::DrawDirect(Layout *where)
     }
 
     where->offset = Point3(x, y, z);
-
-#if 0
-    Point3 position = where->offset;
-    QPainterPath path;
-    QString str = +source.Value().substr(start, end - start);
-    QFont &font = where->font;
-    QFontMetricsF fm(font);
-    Widget *widget = where->Display();
-    widget->newCharId(str.length());
-    scale leading = fm.leading();
-    scale height = fm.height();
-    scale spacing = leading + height;
-
-    int index = str.indexOf(QChar('\n'));
-    while (index >= 0)
-    {
-        QString fragment = str.left(index);
-        path.addText(position.x, -position.y, font, fragment);
-        position.x = 0;
-        position.y -= spacing;
-        str = str.mid(index+1);
-        index = str.indexOf(QChar('\n'));
-    }
-
-    path.addText(position.x, -position.y, font, str);
-    position.x += fm.width(str);
-
-    where->offset = Point3();
-    GraphicPath::Draw(where, path, GLU_TESS_WINDING_ODD, -1);
-    where->offset = position;
-#endif
 }
 
 

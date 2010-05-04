@@ -1,20 +1,21 @@
-# Makefile to build a Windows installation package (tao.msi)
+# Makefile to build a Windows installation package (taosetup.exe)
 #
 # Usage:
 #   make debug      # Build a debug package
 #   make release    # Build a release package
 #   make            # Same as make release
 
+# Path to the Nullsoft Scriptable Install System (NSIS) compiler
+MAKENSIS = "/c/Program Files/NSIS/makensis"
 RM_RF = rm -rf
-AI = "/c/Program Files/Caphyon/Advanced Installer 7.6.1/bin/x86/AdvancedInstaller.com"
 
 debug:
 	./pkg.sh debug
-	$(AI) //build tao.aip
+	$(MAKENSIS) tao.nsi
 
 release:
 	./pkg.sh release
-	$(AI) //build tao.aip
+	$(MAKENSIS) tao.nsi 
 
 clean:
 	$(RM_RF) tao-cache/ buildroot/ output/

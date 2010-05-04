@@ -88,8 +88,8 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         if (count)
         {
             firstClick = true;
-            rectangle.lower.Set(x, y);
-            rectangle.upper = rectangle.lower;
+            rectangle.lower.Set(x-4, y-4);
+            rectangle.upper.Set(x+4, y+4);
         }
         else
         {

@@ -1230,6 +1230,7 @@ Value *CompiledUnit::CallTypeError(Tree_p what)
     Value *ptr = ConstantTree(what); assert(what);
     Value *callVal = code->CreateCall(compiler->xl_type_error, ptr);
     MarkComputed(what, callVal);
+    code->CreateBr(exitbb);
     return callVal;
 }
 

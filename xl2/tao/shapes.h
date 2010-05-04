@@ -235,6 +235,7 @@ struct FixedSizePoint : Shape
 {
     FixedSizePoint(Point3 c, scale r): Shape(), center(c), radius(r) {}
     virtual void        Draw(Layout *where);
+    virtual void        DrawSelection(Layout *where) { Draw(where); }
     Point3 center;
     scale  radius;
 };

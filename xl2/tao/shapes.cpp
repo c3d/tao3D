@@ -693,7 +693,6 @@ void Callout::Draw(GraphicPath &path)
 //   Draw a callout
 // ----------------------------------------------------------------------------
 {
-
     Point c = bounds.Center();
     coord w = bounds.Width();
     coord h = bounds.Height();

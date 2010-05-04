@@ -155,7 +155,7 @@ draw_selection_rectangle x, y, w, h ->
 
 draw_handle x, y, z ->
     handle_color
-    point x, y, z, 8
+    point x, y, z, 12
 
 draw_rotation_base x, y, z ->
     selection_color

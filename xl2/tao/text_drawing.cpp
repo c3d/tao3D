@@ -70,7 +70,9 @@ void TextSpan::DrawCached(Layout *where, bool identify)
     Widget     *widget = where->Display();
     GlyphCache &glyphs = widget->glyphs();
     Point3      pos    = where->offset;
-    text        str    = source.Value();
+    Text_p      ttree  = source;
+    text        str    = ttree->value;
+    bool        canSel = ttree->Position() != XL::Tree::NOWHERE;
     QFont      &font   = where->font;
     coord       x      = pos.x;
     coord       y      = pos.y;
@@ -138,7 +140,8 @@ void TextSpan::DrawCached(Layout *where, bool identify)
             glEnableClientState(GL_VERTEX_ARRAY);
             for (uint i = 0; i < count; i += 4)
             {
-                glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
+                if (canSel)
+                    glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
                 glDrawArrays(GL_QUADS, i, 4);
             }
             glDisableClientState(GL_VERTEX_ARRAY);
@@ -181,7 +184,9 @@ void TextSpan::DrawDirect(Layout *where)
     Widget     *widget = where->Display();
     GlyphCache &glyphs = widget->glyphs();
     Point3      pos    = where->offset;
-    text        str    = source.Value();
+    Text_p      ttree  = source;
+    text        str    = ttree->value;
+    bool        canSel = ttree->Position() != XL::Tree::NOWHERE;
     QFont      &font   = where->font;
     coord       x      = pos.x;
     coord       y      = pos.y;
@@ -205,7 +210,8 @@ void TextSpan::DrawDirect(Layout *where)
         if (!glyphs.Find(font, unicode, glyph, true, true, lw))
             continue;
 
-        glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
+        if (canSel)
+            glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
         GLMatrixKeeper save;
         glTranslatef(x, y, z);
         scale gscale = glyph.scalingFactor;
@@ -246,7 +252,9 @@ void TextSpan::DrawSelection(Layout *where)
     Widget     *widget       = where->Display();
     GlyphCache &glyphs       = widget->glyphs();
     Point3      pos          = where->offset;
-    text        str          = source.Value();
+    Text_p      ttree        = source;
+    text        str          = ttree->value;
+    bool        canSel       = ttree->Position() != XL::Tree::NOWHERE;
     QFont      &font         = where->font;
     coord       x            = pos.x;
     coord       y            = pos.y;
@@ -266,8 +274,11 @@ void TextSpan::DrawSelection(Layout *where)
     for (i = start; i < max && i < end; i = next)
     {
         uint unicode = XL::Utf8Code(str, i);
-        charId = widget->newCharId();
-        charSelected = widget->charSelected();
+        if (canSel)
+        {
+            charId = widget->newCharId();
+            charSelected = widget->charSelected();
+        }
         next = XL::Utf8Next(str, i);
 
         // Create a text selection if we need one

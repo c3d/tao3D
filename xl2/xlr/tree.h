@@ -118,8 +118,8 @@ struct Tree
 //   The base class for all XL trees
 // ----------------------------------------------------------------------------
 {
-    enum { NOWHERE = ~0UL };
     enum { KINDBITS = 3, KINDMASK=7 };
+    enum { NOWHERE = ~0UL };
 
     // Constructor and destructor
     Tree (kind k, tree_position pos = NOWHERE):
@@ -138,7 +138,7 @@ struct Tree
 
     // Attributes
     kind                Kind()                { return kind(tag & KINDMASK); }
-    tree_position       Position()            { return tag>>KINDBITS; }
+    tree_position       Position()            { return (long) tag>>KINDBITS; }
     bool                IsLeaf()              { return Kind() <= NAME; }
     bool                IsConstant()          { return Kind() <= TEXT; }
 

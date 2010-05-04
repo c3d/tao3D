@@ -238,12 +238,14 @@ bool Justifier<Item>::Adjust(coord start, coord end,
         if (!done)
             items.clear();
     }
+    // If there is no place where we can justify, center instead
+    if (numSolids + numBreaks <= 1)
+        just = 0;
     if (lastSpace == 0)
         numBreaks++;
 
     // Offset we will use for centering
     coord offset = (extra - just) * justify.centering;
-
 
     // Allocate that extra space between breaks and non breaks
     coord forSolids = justify.spread * just;

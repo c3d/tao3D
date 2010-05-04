@@ -36,7 +36,8 @@ macx {
     QMAKE_INFO_PLIST = Info.plist
 }
 win32:DEFINES += CONFIG_MINGW
-win32:debug:CONFIG += console
+# For debug
+# win32:CONFIG += console
 linux-g++:DEFINES += CONFIG_LINUX
 
 # Input

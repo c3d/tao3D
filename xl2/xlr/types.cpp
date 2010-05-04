@@ -261,7 +261,7 @@ Tree_p MatchType::DoPostfix(Postfix_p what)
     // Check if we match a postfix with the same shape
     if (Postfix_p postfixType = type->AsPostfix())
     {
-        LoalSave<Tree_p> saveType = type;
+        LocalSave<Tree_p> saveType = type;
 
         type = postfixType->right;
         Tree_p rightValue = NameMatch(what->right);

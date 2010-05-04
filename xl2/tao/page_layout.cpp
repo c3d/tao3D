@@ -658,7 +658,7 @@ void PageLayout::DrawSelection(Layout *where)
     GLuint endId = widget->currentCharId();
     if (TextSelect *sel = widget->textSelection())
         if (sel->findingLayout)
-            if (sel->start() <= endId && sel->end() >= startId)
+            if (sel->start() <= endId+1 && sel->end() >= startId)
                 widget->select(where->id, 1);
 }
 

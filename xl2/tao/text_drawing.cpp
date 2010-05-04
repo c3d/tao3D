@@ -377,28 +377,37 @@ void TextSpan::DrawSelection(Layout *where)
         }
     }
 
-    if (sel && sel->replace && max <= end)
+    if (sel && max <= end)
     {
         charId++;
-        text rpl = sel->replacement;
-        if (charId >= sel->start() && charId <= sel->end() && rpl.length())
+        if (charId >= sel->start() && charId <= sel->end())
         {
-            uint eos = i;
-            if (sel->point != sel->mark)
+            if (sel->replace)
             {
-                eos = next;
-                if (sel->point > sel->mark)
-                    sel->point--;
-                else
-                    sel->mark--;
+                text rpl = sel->replacement;
+                if (rpl.length())
+                {
+                    uint eos = i;
+                    if (sel->point != sel->mark)
+                    {
+                        eos = next;
+                        if (sel->point > sel->mark)
+                            sel->point--;
+                        else
+                            sel->mark--;
+                    }
+                    source.Value().replace(i, eos-i, rpl);
+                    sel->replacement = "";
+                    uint length = XL::Utf8Length(rpl);
+                    sel->point += length;
+                    sel->mark += length;
+                    if (sel->point == sel->mark)
+                        sel->replace = false;
+                }
             }
-            source.Value().replace(i, eos-i, rpl);
-            sel->replacement = "";
-            uint length = XL::Utf8Length(rpl);
-            sel->point += length;
-            sel->mark += length;
-            if (sel->point == sel->mark)
-                sel->replace = false;
+            scale sd = glyph.scalingFactor * descent;
+            scale sh = glyph.scalingFactor * height;
+            sel->selBox |= Box3(x,y - sd,z, 1, sh, 0);
         }
     }
 

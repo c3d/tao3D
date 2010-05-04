@@ -425,6 +425,9 @@ Tree_p xl_symbolicname_cast(Tree_p source, Tree_p value)
 {
     if (Name_p nt = value->AsName())
         return nt;
+    value = xl_evaluate(value);
+    if (Name_p afterEval = value->AsName())
+        return afterEval;
     return NULL;
 }
 

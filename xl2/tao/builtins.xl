@@ -112,8 +112,11 @@ text_cursor_highlight ->
     color 0.6, 0.6..1.0/2, 0.6, 40%
     line_color 1,0,0,0
 
-handle_color ->
-    color 0.0..0.4 / 3.0, 0.0, 0.0, 0.6
+handle_outer_color ->
+    color 0.0..0.4 / 3.0, 0.0, 0.0, 0.9
+    line_color 0,0,0,0
+handle_inner_color ->
+    color 1.0..0.4 / 3.0, 0.0, 0.0, 0.9
     line_color 0,0,0,0
 
 draw_selection x,y,z,w,h,d ->
@@ -154,8 +157,10 @@ draw_selection_rectangle x, y, w, h ->
     draw_selection x,y,w,h
 
 draw_handle x, y, z ->
-    handle_color
-    cube x, y, z, 8,8,8
+    handle_outer_color
+    point x, y, z, 12
+    handle_inner_color
+    point x, y, z, 8
 
 draw_rotation_base x, y, z ->
     selection_color

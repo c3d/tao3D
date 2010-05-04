@@ -492,7 +492,10 @@ void GlyphCache::ScaleDown(GlyphEntry &entry, scale fontScale)
 // ----------------------------------------------------------------------------
 {
     // Scale the geometry
-    entry.bounds *= fontScale;
+    entry.bounds.lower.x *= fontScale;
+    entry.bounds.upper.x *= fontScale;
+    entry.bounds.lower.y *= fontScale;
+    entry.bounds.upper.x *= fontScale;
     entry.advance *= fontScale;
     entry.scalingFactor = fontScale;
 

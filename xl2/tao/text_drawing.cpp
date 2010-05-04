@@ -116,10 +116,10 @@ void TextSpan::DrawCached(Layout *where, bool identify)
         // Advance to next character
         if (newLine)
         {
-            scale height = glyphs.Ascent(font) + glyphs.Descent(font) + 1;
+            scale height = glyphs.Ascent(font) + glyphs.Descent(font);
             scale spacing = height + glyphs.Leading(font);
             x = 0;
-            y -= spacing;
+            y -= spacing * glyph.scalingFactor;
         }
         else
         {
@@ -187,6 +187,8 @@ void TextSpan::DrawDirect(Layout *where)
     coord       y      = pos.y;
     coord       z      = pos.z;
     scale       lw     = where->lineWidth;
+    if (where->lineColor.alpha <= 0)
+        lw = 0;
 
     GlyphCache::GlyphEntry  glyph;
     std::vector<Point3>     quads;
@@ -218,10 +220,10 @@ void TextSpan::DrawDirect(Layout *where)
         // Advance to next character
         if (newLine)
         {
-            scale height = glyphs.Ascent(font) + glyphs.Descent(font) + 1;
+            scale height = glyphs.Ascent(font) + glyphs.Descent(font);
             scale spacing = height + glyphs.Leading(font);
             x = 0;
-            y -= spacing;
+            y -= spacing * glyph.scalingFactor;
         }
         else
         {
@@ -287,7 +289,7 @@ void TextSpan::DrawSelection(Layout *where)
     bool        charSelected = false;
     scale       ascent       = glyphs.Ascent(font);
     scale       descent      = glyphs.Descent(font);
-    scale       height       = ascent + descent + 1;
+    scale       height       = ascent + descent;
     GlyphCache::GlyphEntry  glyph;
 
     // Loop over all characters in the text span
@@ -352,7 +354,9 @@ void TextSpan::DrawSelection(Layout *where)
                         if (sel->point == sel->mark)
                             sel->replace = false;
                     }
-                    sel->selBox |= Box3(charX,charY - descent,z, 1, height, 0);
+                    scale sd = glyph.scalingFactor * descent;
+                    scale sh = glyph.scalingFactor * height;
+                    sel->selBox |= Box3(charX,charY - sd,z, 1, sh, 0);
                 } // if(charSelected)
             } // if (charSelected || upDown)
         } // if(sel)
@@ -482,10 +486,10 @@ Box3 TextSpan::Bounds(Layout *where)
         // Advance to next character
         if (newLine)
         {
-            scale height = glyphs.Ascent(font) + glyphs.Descent(font) + 1;
+            scale height = glyphs.Ascent(font) + glyphs.Descent(font);
             scale spacing = height + glyphs.Leading(font);
             x = 0;
-            y -= spacing;
+            y -= spacing * glyph.scalingFactor;
         }
         else
         {
@@ -527,6 +531,9 @@ Box3 TextSpan::Space(Layout *where)
         if (!glyphs.Find(font, unicode, glyph, true))
             continue;
 
+        scale sa = ascent * glyph.scalingFactor;
+        scale sd = descent * glyph.scalingFactor;
+        scale sl = leading * glyph.scalingFactor;
         if (!newLine)
         {
             // Enter the geometry coordinates
@@ -536,15 +543,15 @@ Box3 TextSpan::Space(Layout *where)
             coord charY2 = y - glyph.bounds.upper.y;
             result |= Point3(charX1, charY1, z);
             result |= Point3(charX2, charY2, z);
-            result |= Point3(charX1, y + ascent, z);
-            result |= Point3(charX1 + glyph.advance, y - descent - leading, z);
+            result |= Point3(charX1, y + sa, z);
+            result |= Point3(charX1 + glyph.advance, y - sd - sl, z);
         }
 
         // Advance to next character
         if (newLine)
         {
             x = 0;
-            y -= ascent + descent + leading + 1;
+            y -= sa + sd + sl;
         }
         else
         {
@@ -598,9 +605,10 @@ scale TextSpan::TrailingSpaceSize(Layout *where)
     Widget     *widget = where->Display();
     GlyphCache &glyphs = widget->glyphs();
     QFont      &font   = where->font;
-    scale       result = 0;
     text        str    = source.Value();
     uint        pos    = str.length();
+    Box3        box;
+
     if (pos > end)
         pos = end;
     while (pos > start)
@@ -616,8 +624,19 @@ scale TextSpan::TrailingSpaceSize(Layout *where)
         if (!glyphs.Find(font, unicode, glyph, true))
             continue;
 
-        result += glyph.advance;
+        // Enter the geometry coordinates
+        coord charX1 = glyph.bounds.lower.x;
+        coord charX2 = glyph.bounds.upper.x;
+        coord charY1 = glyph.bounds.lower.y;
+        coord charY2 = glyph.bounds.upper.y;
+        box |= Point3(charX1, charY1, 0);
+        box |= Point3(charX2, charY2, 0);
+        box |= Point3(charX1 + glyph.advance, charY1, 0);
     }
+
+    scale result = box.Width();
+    if (result < 0)
+        result = 0;
     return result;
 }
 

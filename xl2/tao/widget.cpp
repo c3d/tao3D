@@ -286,7 +286,7 @@ void Widget::draw()
     // Check if we want to refresh something
     ulonglong after = now();
     double remaining = pageRefresh - 1e-6 * (after - before) - 0.001;
-    if (remaining <= 0)
+    if (remaining <= 0.001)
         remaining = 0.001;
     timer.setSingleShot(true);
     timer.start(1000 * remaining);
@@ -4438,6 +4438,7 @@ Tree_p Widget::videoPlayerTexture(Tree_p self, real_r w, real_r h, Text_p url)
 //    Error management
 //
 // ============================================================================
+
 Tree_p Widget::runtimeError(Tree_p self, text msg, Tree_p arg)
 // ----------------------------------------------------------------------------
 //   Display an error message from the input

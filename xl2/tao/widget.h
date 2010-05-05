@@ -169,6 +169,7 @@ public:
     uint        selected(Tree_p tree)   { return selectionTrees.count(tree); }
     bool        selected()              { return !selectionTrees.empty(); }
     bool        hasSelection()          { return selected(); }
+    void        select(Tree_p tree)     { selectionTrees.insert(tree); }
     void        deselect(Tree_p tree)   { selectionTrees.erase(tree); }
     uint        selected(uint i);
     uint        selected(Layout *);
@@ -486,7 +487,7 @@ private:
     Activity *            activities;
     GLuint                id, charId, capacity, manipulator;
     selection_map         selection, savedSelection;
-    std::set<Tree_p >      selectionTrees, selectNextTime;
+    std::set<Tree_p >     selectionTrees, selectNextTime;
     bool                  wasSelected;
     QEvent *              event;
     QWidget *             focusWidget;

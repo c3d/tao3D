@@ -55,8 +55,9 @@ void TextSpan::Draw(Layout *where)
     bool hasTexture = setTexture(where);
     GlyphCache &glyphs = widget->glyphs();
     bool tooBig = where->font.pointSize() > (int) glyphs.maxFontSize;
-    bool debugForceDirect = widget->lastModifiers() &
-        (Qt::ShiftModifier | Qt::ControlModifier | Qt::AltModifier);
+    uint dbgMod = (Qt::ShiftModifier|Qt::ControlModifier|Qt::AltModifier);
+    bool debugForceDirect = (widget->lastModifiers() & dbgMod) == dbgMod;
+
     if (!hasLine && !hasTexture && !tooBig && !debugForceDirect)
         DrawCached(where, false);
     else
@@ -679,39 +680,39 @@ void TextFormula::DrawSelection(Layout *where)
 //   Detect if we edit a formula, if so create its FormulEditInfo
 // ----------------------------------------------------------------------------
 {
-    Widget              *widget  = where->Display();
-    TextSelect          *sel     = widget->textSelection();
-    XL::Prefix_p         prefix  = self.tree->AsPrefix();
-    XL::Tree_p           value   = prefix->right;
-    TextFormulaEditInfo *info    = value->GetInfo<TextFormulaEditInfo>();
-    uint                 startId = widget->currentCharId();
+    Widget              *widget = where->Display();
+    TextSelect          *sel    = widget->textSelection();
+    XL::Prefix_p         prefix = self.tree->AsPrefix();
+    XL::Tree_p           value  = prefix->right;
+    TextFormulaEditInfo *info   = value->GetInfo<TextFormulaEditInfo>();
+    uint                 selId  = widget->currentCharId() + 1;
 
     // Check if formula is selected and we are not editing it
     if (sel && sel->textMode)
     {
-        if (!info && widget->charSelected(startId+1))
+        if (!info && widget->charSelected(selId))
         {
             // No info: create one
             text edited = text(" ") + text(*value) + " ";
             Text_p editor = new Text(edited, "\"", "\"", value->Position());
             info = new TextFormulaEditInfo(editor);
             value->SetInfo<TextFormulaEditInfo>(info);
-
+            
             // Update mark and point
             XL::Text_p source = info->source;
             uint length = source->value.length();
-            sel->point = startId + 1;
-            sel->mark = startId + 1 + length;
-
+            sel->point = selId;
+            sel->mark = selId + length;
+            
             widget->refresh();
         }
+    }
 
-        // Indicate how many characters we want to display as "formula"
-        else if (info)
-        {
-            XL::Text_p source = info->source;
-            sel->formulaMode = source->value.length() + 1;
-        }        
+    // Indicate how many characters we want to display as "formula"
+    if (info && sel)
+    {
+        XL::Text_p source = info->source;
+        sel->formulaMode = source->value.length() + 1;
     }
 
     TextSpan::DrawSelection(where);
@@ -721,17 +722,22 @@ void TextFormula::DrawSelection(Layout *where)
     {
         XL::Text_p source = info->source;
         uint length = source->value.length();
-        if (sel->point < startId || sel->point > startId + 1 + length)
+        if (sel->point < selId || sel->point > selId + length)
         {
             if (Validate(info->source, widget))
             {
-                if (sel->point > startId + 1 + length)
+                if (sel->point > selId + length)
                 {
                     sel->point -= length;
                     sel->mark -= length;
                 }
             }
         }
+    }
+    else if (!info && sel && selId >= sel->start() && selId <= sel->end())
+    {
+        // First run, make sure we return here to create the editor
+        widget->refresh();
     }
 }
 

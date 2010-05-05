@@ -3209,6 +3209,21 @@ Tree_p Widget::textSpan(Tree_p self, text_r contents)
 }
 
 
+Tree_p Widget::textFormula(Tree_p self, Tree_p value)
+// ----------------------------------------------------------------------------
+//   Insert a block of text corresponding to the given formula
+// ----------------------------------------------------------------------------
+{
+    XL::Prefix_p prefix = self->AsPrefix();
+    assert(prefix);
+    if (path)
+        TextFormula(prefix).Draw(*path, layout);
+    else
+        layout->Add(new TextFormula(prefix));
+    return value;
+}
+
+
 Tree_p Widget::font(Tree_p self, text description)
 // ----------------------------------------------------------------------------
 //   Select a font family

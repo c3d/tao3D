@@ -57,6 +57,33 @@ public:
 };
 
 
+struct TextFormulaEditInfo : XL::Info
+// ----------------------------------------------------------------------------
+//    Record the text format for a text formula while editing it
+// ----------------------------------------------------------------------------
+{
+    TextFormulaEditInfo(XL::Text_p source): source(source) {}
+    XL::TextRoot        source;
+};
+
+
+struct TextFormula : TextSpan
+// ----------------------------------------------------------------------------
+//   Like a text span, but for an evaluated value
+// ----------------------------------------------------------------------------
+{
+    TextFormula(XL::Prefix_p self, uint start = 0, uint end = ~0)
+        : TextSpan(Format(self), start, end), self(self) {}
+    XL::Text_p          Format(XL::Prefix_p value);
+    bool                Validate(XL::Text_p source, Widget *widget);
+
+    virtual void        DrawSelection(Layout *where);
+
+public:
+    XL::TreeRoot        self;
+};
+
+
 struct TextSelect : Activity
 // ----------------------------------------------------------------------------
 //   A text selection (contiguous range of characters)
@@ -90,6 +117,7 @@ struct TextSelect : Activity
     text                replacement;
     bool                replace;
     bool                textMode;
+    bool                formulaMode;
     bool                pickingUpDown;
     bool                movePointOnly;
     bool                findingLayout;

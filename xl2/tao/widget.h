@@ -319,6 +319,7 @@ public:
                              real_r x, real_r y, real_r w, real_r h);
     Text_p       textFlow(Tree_p self, text name);
     Tree_p       textSpan(Tree_p self, text_r content);
+    Tree_p       textFormula(Tree_p self, Tree_p value);
     Tree_p       font(Tree_p self, text family);
     Tree_p       fontSize(Tree_p self, double size);
     Tree_p       fontScaling(Tree_p self, double scaling, double minSize);

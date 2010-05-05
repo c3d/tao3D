@@ -27,13 +27,15 @@
 #include "tao_utf8.h"
 #include "drag.h"
 #include "glyph_cache.h"
-#include "frame.h"
+#include "gl_keepers.h"
+#include "runtime.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
 #include <QPainterPath>
 #include <QFont>
 #include <QFontMetrics>
+#include <sstream>
 
 TAO_BEGIN
 
@@ -262,7 +264,7 @@ void TextSpan::DrawSelection(Layout *where)
     uint        first        = start;
     scale       textWidth    = 0;
     TextSelect *sel          = widget->textSelection();
-    GLuint      charId       = 0;
+    GLuint      charId       = ~0;
     bool        charSelected = false;
     scale       ascent       = glyphs.Ascent(font);
     scale       descent      = glyphs.Descent(font);
@@ -362,7 +364,7 @@ void TextSpan::DrawSelection(Layout *where)
         charId++;
         if (charId >= sel->start() && charId <= sel->end())
         {
-            if (sel->replace)
+            if (sel->replace && !sel->formulaMode)
             {
                 text rpl = sel->replacement;
                 if (rpl.length())
@@ -640,6 +642,104 @@ scale TextSpan::TrailingSpaceSize(Layout *where)
 
 
 // ============================================================================
+// 
+//    A text formula is used to display numerical / evaluated values
+// 
+// ============================================================================
+
+XL::Text_p TextFormula::Format(XL::Prefix_p self)
+// ----------------------------------------------------------------------------
+//   Return a formatted value for the given value
+// ----------------------------------------------------------------------------
+{
+    Tree_p value = self->right;
+    TextFormulaEditInfo *info = value->GetInfo<TextFormulaEditInfo>();
+    if (info)
+        return info->source;
+    Tree_p computed = xl_evaluate(self->right);
+    return new XL::Text(*computed);
+}
+
+
+void TextFormula::DrawSelection(Layout *where)
+// ----------------------------------------------------------------------------
+//   Detect if we edit a formula, if so create its FormulEditInfo
+// ----------------------------------------------------------------------------
+{
+    Widget              *widget  = where->Display();
+    TextSelect          *sel     = widget->textSelection();
+    XL::Prefix_p         prefix  = self.tree->AsPrefix();
+    XL::Tree_p           value   = prefix->right;
+    TextFormulaEditInfo *info    = value->GetInfo<TextFormulaEditInfo>();
+    uint                 startId = widget->currentCharId();
+
+    // Check if formula is selected and we are not editing it
+    if (sel && !info && widget->charSelected(startId+1))
+    {
+        // We want to get the \n instead of appending it to previous text
+        sel->formulaMode = true;
+
+        // No info: create one
+        text edited = text(" ") + text(*value) + " ";
+        Text_p editor = new Text(edited, "\"", "\"", value->Position());
+        info = new TextFormulaEditInfo(editor);
+        value->SetInfo<TextFormulaEditInfo>(info);
+
+        // Update mark and point
+        XL::Text_p source = info->source;
+        uint length = source->value.length();
+        sel->point = startId + 1;
+        sel->mark = startId + 1 + length;
+
+        widget->refresh();
+    }
+
+    TextSpan::DrawSelection(where);
+
+    // Check if the cursor moves out of the selection - If so, validate
+    if (info && sel && sel->mark == sel->point)
+    {
+        XL::Text_p source = info->source;
+        uint length = source->value.length();
+        if (sel->point < startId || sel->point > startId + 1 + length)
+        {
+            if (Validate(info->source, widget))
+            {
+                if (sel->point > startId + 1 + length)
+                {
+                    sel->point -= length;
+                    sel->mark -= length;
+                }
+            }
+        }
+    }
+}
+
+
+bool TextFormula::Validate(XL::Text_p source, Widget *widget)
+// ----------------------------------------------------------------------------
+//   Check if we can parse the input. If so, update self
+// ----------------------------------------------------------------------------
+{
+    std::istringstream  input(source->value);
+    XL::Syntax          syntax (XL::MAIN->syntax);
+    XL::Positions      &positions = XL::MAIN->positions;
+    XL::Errors         &errors    = XL::MAIN->errors;
+    XL::Parser          parser(input, syntax,positions,errors);
+    Tree_p              newTree = parser.Parse();
+    if (newTree)
+    {
+        XL::Prefix_p prefix = self.tree->AsPrefix();
+        prefix->right = newTree;
+        widget->reloadProgram();
+        widget->markChanged("Replaced formula");
+        return true;
+    }
+    return false;
+}
+
+
+// ============================================================================
 //
 //   A text selection identifies a range of text being edited
 //
@@ -652,7 +752,8 @@ TextSelect::TextSelect(Widget *w)
     : Activity("Text selection", w),
       mark(0), point(0), direction(None), targetX(0),
       replacement(""), replace(false),
-      textMode(false), pickingUpDown(false), movePointOnly(false),
+      textMode(false), formulaMode(false),
+      pickingUpDown(false), movePointOnly(false),
       findingLayout(true)
 {
     Widget::selection_map::iterator i, last = w->selection.end();
@@ -899,6 +1000,7 @@ void TextSelect::updateSelection()
     for (uint i = s; i < e; i++)
         widget->selection[i | Widget::CHAR_ID_BIT] = 1;
     findingLayout = true;
+    formulaMode = false;
     widget->refresh();
 }
 

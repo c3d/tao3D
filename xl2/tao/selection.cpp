@@ -171,7 +171,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
             if (shiftModifier && widget->selection[selected] && !manipulator)
                 widget->selection[selected] = 0;
             else
-                widget->selection[selected]++;
+                widget->selection[selected] = count;
         }
         widget->manipulator = manipulator;
     }

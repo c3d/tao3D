@@ -273,6 +273,7 @@ PREFIX(TextOverflow, tree, "text_overflow",
 PREFIX(TextFlow, tree, "text_flow", PARM(n, text), RTAO(textFlow(self, n)))
 
 PREFIX(TextSpan, tree,"text", PARM(t, text), RTAO(textSpan(self, t)))
+PREFIX(TextFormula, tree,"formula", PARM(t, tree), RTAO(textFormula(self, &t)))
 PREFIX(Font, tree, "font", PARM(f, text), RTAO(font(self, f)))
 PREFIX(FontSize, tree, "font_size", PARM(s, real), RTAO(fontSize(self, s)))
 PREFIX(FontScaling, tree, "font_scaling", PARM(s,real) PARM(ms,real),

@@ -150,7 +150,7 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
         GraphicPath outline;
 
         bool first = true;
-        bool penultimate = true;
+        //bool penultimate = true;
         bool last = true;
         Kind startKind = MOVE_TO;
         Kind endKind = MOVE_TO;
@@ -159,6 +159,7 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
         Point3* endPointPtr;
         Vector3 startHeading;
         Vector3 endHeading;
+        scale length;
         scale shortenBy;
 
         for ( path_elements::iterator i=elements.begin(); 
@@ -171,71 +172,119 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
                 {
                     case TRIANGLE:
                         shortenBy = 2*where->lineWidth;
-                        switch ((*i).kind)
-                        {
-                            case MOVE_TO:
-                                startPoint = (*i).position;
-                                break;
-                            case LINE_TO:
-                            case CURVE_TO:
-                                // First Line
-                                startKind = LINE_TO;
-                                startHeading = (*i).position - startPoint;
-                                startHeading.Normalize();
-                                startHeading *= shortenBy;
-                                outline.moveTo(startPoint + startHeading);
-                                first = false;
-                                break;
-                            case CURVE_CONTROL:
-                                // First curve
-                                startKind = CURVE_TO;
-                                startHeading = (*i).position - startPoint;
-                                startHeading.Normalize();
-                                startHeading *= shortenBy;
-                                startPoint -= startHeading;
-                                first = false;
-                                break;
-                        }
                         break;
                     case NONE:
                     default:
-                        ;
+                        shortenBy = 0;
                 }
+                switch ((*i).kind)
+                {
+                    case MOVE_TO:
+                        startKind = MOVE_TO;
+                        startPoint = (*i).position;
+                        break;
+                    case LINE_TO:
+                    case CURVE_TO:
+                        // First Line
+                        startKind = LINE_TO;
+                        startHeading = (*i).position - startPoint;
+                        length = startHeading.Length();
+                        if (length == 0)
+                        {
+                            startKind = MOVE_TO;
+                            startPoint = (*i).position;
+                        }
+                        else
+                        {
+                            startHeading.Normalize();
+                            startHeading *= shortenBy;
+                            if(length > shortenBy)
+                                outline.moveTo(startPoint + startHeading);
+                            else
+                                startPoint -= startHeading;
+                            first = false;
+                        }
+                        break;
+                    case CURVE_CONTROL:
+                        // First curve
+                        startKind = CURVE_TO;
+                        startHeading = (*i).position - startPoint;
+                        length = startHeading.Length();
+                        if (length == 0)
+                        {
+                            startKind = MOVE_TO;
+                            startPoint = (*i).position;
+                        }
+                        else
+                        {
+                            startHeading.Normalize();
+                            startHeading *= shortenBy;
+                            startPoint -= startHeading;
+                            first = false;
+                        }
+                        break;
+                }
+
             }
             outline.elements.push_back(*i);
         }
 
-        for ( path_elements::reverse_iterator i=outline.elements.rbegin(); 
-              i < outline.elements.rend(); 
-              ++i )
+        for ( path_elements::reverse_iterator j, i=outline.elements.rbegin(); 
+              i < outline.elements.rend(); ++i )
         {
+            j = i+1;
             if (last)
             {
                 switch (endStyle)
                 {
                     case TRIANGLE:
-                        switch ((*i).kind)
-                        {
-                            case LINE_TO:
-                                // Last Line
-                                endKind = LINE_TO;
-                                break;
-                            case CURVE_TO:
-                                // Last curve
-                                endKind = CURVE_TO;
-                                break;
-                            default:
-                                ;
-                        }
-                        endPoint = (*i).position;
-                        endPointPtr = &(*i).position;
-                        last = false;
+                        shortenBy = 2*where->lineWidth;
                         break;
                     case NONE:
                     default:
-                        ;
+                        shortenBy = 0;
                 }
+                switch ((*i).kind)
+                {
+                    case LINE_TO:
+                        // Last Line
+                        endKind = LINE_TO;
+                        break;
+                    case CURVE_TO:
+                        // Last curve
+                        endKind = CURVE_TO;
+                        break;
+                    case CURVE_CONTROL:
+                        if ((*j).kind == CURVE_CONTROL)
+                            endKind = CURVE_TO;
+                        else
+                            endKind = LINE_TO;
+                        break;
+                    case MOVE_TO:
+                        endKind = MOVE_TO;
+                        break;
+                }
+                endPoint = (*i).position;
+                endPointPtr = &(*i).position;
+                endHeading = (*j).position - (*i).position;
+                length = endHeading.Length();
+                if (length == 0)
+                {
+                    endKind = MOVE_TO;                            
+                }
+                else
+                {
+                    endHeading.Normalize();
+                    endHeading *= shortenBy;
+                    if (endKind == LINE_TO && length > shortenBy)
+                        *endPointPtr += endHeading;
+                    else
+                        endPoint -= endHeading;
+                }
+                if (endKind != MOVE_TO)
+                    last = false;
             }
+            /*
             else if (penultimate)
             {
                 switch (endStyle)
@@ -243,23 +292,26 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
                     case TRIANGLE:
                         shortenBy = 2*where->lineWidth;
                         endHeading = (*i).position - endPoint;
-                        endHeading.Normalize();
-                        endHeading *= shortenBy;
-                        if (endKind == LINE_TO)
+                        length = endHeading.Length();
+                        if (length == 0)
                         {
-                            *endPointPtr += endHeading;
                         }
                         else
                         {
-                            endPoint -= endHeading;
+                            endHeading.Normalize();
+                            endHeading *= shortenBy;
+                            if (endKind == LINE_TO && length > shortenBy)
+                                *endPointPtr += endHeading;
+                            else
+                                endPoint -= endHeading;
+                            penultimate = false;
                         }
-                        penultimate = false;
                         break;
                     case NONE:
                     default:
                         ;
                 }
-            }
+            }*/
         }
 
         // Create the shorthened stroke
@@ -278,45 +330,51 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
             }
 
         // Draw the endpoints
-        switch (startStyle)
+        if (!first)
         {
-            case TRIANGLE:
-                {
-                    Point3 p2 = startPoint + 2 * startHeading;
-                    Point3 p3 = p2;
-                    p2.x += startHeading.y;
-                    p2.y -= startHeading.x;
-                    p3.x -= startHeading.y;
-                    p3.y += startHeading.x;
-                    outline.moveTo(startPoint);
-                    outline.lineTo(p2);
-                    outline.lineTo(p3);
-                    outline.lineTo(startPoint);
-                }
-                break;
-            case NONE:
-            default:
-                ;
+            switch (startStyle)
+            {
+                case TRIANGLE:
+                    {
+                        Point3 p2 = startPoint + 2 * startHeading;
+                        Point3 p3 = p2;
+                        p2.x += startHeading.y;
+                        p2.y -= startHeading.x;
+                        p3.x -= startHeading.y;
+                        p3.y += startHeading.x;
+                        outline.moveTo(startPoint);
+                        outline.lineTo(p2);
+                        outline.lineTo(p3);
+                        outline.lineTo(startPoint);
+                    }
+                    break;
+                case NONE:
+                default:
+                    ;
+            }
         }
-        switch (endStyle)
+        if (!last)
         {
-            case TRIANGLE:
-                {
-                    Point3 p2 = endPoint + 2 * endHeading;
-                    Point3 p3 = p2;
-                    p2.x += endHeading.y;
-                    p2.y -= endHeading.x;
-                    p3.x -= endHeading.y;
-                    p3.y += endHeading.x;
-                    outline.moveTo(endPoint);
-                    outline.lineTo(p2);
-                    outline.lineTo(p3);
-                    outline.lineTo(endPoint);
-                }
-                break;
-            case NONE:
-            default:
-                ;
+            switch (endStyle)
+            {
+                case TRIANGLE:
+                    {
+                        Point3 p2 = endPoint + 2 * endHeading;
+                        Point3 p3 = p2;
+                        p2.x += endHeading.y;
+                        p2.y -= endHeading.x;
+                        p3.x -= endHeading.y;
+                        p3.y += endHeading.x;
+                        outline.moveTo(endPoint);
+                        outline.lineTo(p2);
+                        outline.lineTo(p3);
+                        outline.lineTo(endPoint);
+                    }
+                    break;
+                case NONE:
+                default:
+                    ;
+            }
         }
         outline.Draw(where->offset, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
     }

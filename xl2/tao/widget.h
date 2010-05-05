@@ -262,8 +262,10 @@ public:
     Tree_p       pathTextureCoord(Tree_p self, real_r x, real_r y, real_r r);
     Tree_p       pathColor(Tree_p self, real_r r, real_r g, real_r b, real_r a);
     Tree_p       closePath(Tree_p self);
+    Tree_p       endpointsStyle(Tree_p self,symbolicname_r s,symbolicname_r e);
 
     // 2D primitive that can be in a path or standalone
+    Tree_p       fixedSizePoint(Tree_p self, coord x,coord y,coord z, coord s);
     Tree_p       rectangle(Tree_p self, real_r x, real_r y, real_r w, real_r h);
     Tree_p       isoscelesTriangle(Tree_p self,
                                   real_r x, real_r y, real_r w, real_r h);
@@ -433,7 +435,7 @@ public:
 
     // Tree management
     Name_p       insert(Tree_p self, Tree_p toInsert);
-    void        deleteSelection();
+    void         deleteSelection();
     Name_p       deleteSelection(Tree_p self, text key);
     Name_p       setAttribute(Tree_p self, text name, Tree_p attribute, text sh);
 

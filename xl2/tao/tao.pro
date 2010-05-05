@@ -13,7 +13,7 @@
 # ******************************************************************************
 TEMPLATE = app
 TARGET = Tao
-VERSION = "0.1"
+VERSION = "0.0.3"
 DEPENDPATH += . \
     ../xlr
 INCLUDEPATH += . \

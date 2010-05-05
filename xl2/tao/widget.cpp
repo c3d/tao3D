@@ -67,6 +67,7 @@
 #include <QtWebKit>
 #include <sys/time.h>
 #include <sys/stat.h>
+#include <algorithm>
 
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
 
@@ -1825,8 +1826,8 @@ ulonglong Widget::elapsed(ulonglong since, ulonglong until,
     {
         char buffer[80];
         snprintf(buffer, sizeof(buffer),
-                 "Duration=%llu-%llu (~%f) %5.2f-%5.2f FPS (~%5.2f)",
-                 tmin, tmax, double(tsum )/ tcount,
+                 "Duration=%lu-%lu (~%f) %5.2f-%5.2f FPS (~%5.2f)",
+                 (ulong) tmin, (ulong) tmax, double(tsum )/ tcount,
                  (100000000ULL / tmax)*0.01,
                  (100000000ULL / tmin)*0.01,
                  (100000000ULL * tcount / tsum) * 0.01);
@@ -2691,12 +2692,59 @@ Tree_p Widget::closePath(Tree_p self)
 }
 
 
+static GraphicPath::EndpointStyle endpointStyle(symbolicname_r n)
+// ----------------------------------------------------------------------------
+//   Translates XL name into endpoint style enum
+// ----------------------------------------------------------------------------
+{
+    text name = n.value;
+    std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+
+    if (name == "TRIANGLE")
+    {
+        return GraphicPath::TRIANGLE;
+    }
+    else if (name == "NONE")
+    {
+        return GraphicPath::NONE;
+    }
+    else
+    {
+        // Others...
+        return GraphicPath::NONE;
+    }
+}
+
+Tree_p Widget::endpointsStyle(Tree_p self, symbolicname_r s, symbolicname_r e)
+// ----------------------------------------------------------------------------
+//   Specify the style of the path endpoints
+// ----------------------------------------------------------------------------
+{
+    if (!path)
+        return Ooops("No path for '$1'", self);
+   
+    path->startStyle = endpointStyle(s); 
+    path->endStyle   = endpointStyle(e);
+
+    return XL::xl_true;
+}
+
 
 // ============================================================================
 //
 //    2D primitives that can be in a path or standalone
 //
 // ============================================================================
+
+Tree_p Widget::fixedSizePoint(Tree_p self, coord x,coord y,coord z, coord s)
+// ----------------------------------------------------------------------------
+//   Draw a point with the given size
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new FixedSizePoint(Point3(x, y, z), s));
+    return XL::xl_true;
+}
+
 
 Tree_p Widget::rectangle(Tree_p self, real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
@@ -2735,7 +2783,8 @@ Tree_p Widget::isoscelesTriangle(Tree_p self,
 }
 
 
-Tree_p Widget::rightTriangle(Tree_p self, real_r x, real_r y, real_r w, real_r h)
+Tree_p Widget::rightTriangle(Tree_p self,
+                             real_r x, real_r y, real_r w, real_r h)
 // ----------------------------------------------------------------------------
 //    Draw a right triangle
 // ----------------------------------------------------------------------------
@@ -4954,7 +5003,7 @@ XL::Real_p Widget::fromPt(Tree_p self, double pt)
 
 XL::Real_p Widget::fromPx(Tree_p self, double px)
 // ----------------------------------------------------------------------------
-//   Convert from pixel to pixels (trivial)
+//   Convert from pixel (currently 1-1 mapping, could be based on scaling?)
 // ----------------------------------------------------------------------------
 {
     XL_RREAL(px);

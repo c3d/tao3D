@@ -17,6 +17,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -47,7 +48,7 @@ GraphicPath::GraphicPath()
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
-    : Shape()
+    : Shape(), startStyle(NONE), endStyle(NONE)
 {}
 
 
@@ -142,7 +143,7 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
     setTexture(where);
     if (setFillColor(where))
     {
-        Draw(where, GL_POLYGON, tessel);
+        Draw(where->Offset(), GL_POLYGON, tessel);
     }
     if (setLineColor(where)) 
     {
@@ -153,27 +154,46 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
             QPainterPathStroker stroker;
             stroker.setWidth(where->lineWidth);
             stroker.setCapStyle(Qt::FlatCap);
-            stroker.setJoinStyle(Qt::MiterJoin);
+            stroker.setJoinStyle(Qt::RoundJoin);
             stroker.setDashPattern(Qt::SolidLine);
-            QPainterPath qtLine = stroker.createStroke(path);
-            GraphicPath line;
-            line.addQtPath(qtLine);
-            line.Draw(where, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+            QPainterPath stroke = stroker.createStroke(path);
+            scale s = 2*where->lineWidth;
+            switch (startStyle)
+            {
+                case TRIANGLE:
+                    stroke.addEllipse(start.x-s, start.y-s, 2*s, 2*s);
+                    break;
+                case NONE:
+                default:
+                    ;
+            }
+            switch (endStyle)
+            {
+                case TRIANGLE:
+                    stroke.addEllipse(position.x-s, position.y-s, 2*s, 2*s);
+                    break;
+                case NONE:
+                default:
+                    ;
+            }
+
+            GraphicPath outline;
+            outline.addQtPath(stroke);
+            outline.Draw(where->Offset(), GL_POLYGON,GLU_TESS_WINDING_POSITIVE);
         }
         else
         {
-            Draw(where, tessel ? GL_LINE_LOOP : GL_LINE_STRIP, 0);
+            Draw(where->Offset(), tessel ? GL_LINE_LOOP : GL_LINE_STRIP, 0);
         }
     }
 }
 
 
-void GraphicPath::Draw(Layout *where, GLenum mode, GLenum tesselation)
+void GraphicPath::Draw(const Vector3 &offset, GLenum mode, GLenum tesselation)
 // ----------------------------------------------------------------------------
 //   Draw the graphic path using curves with the given mode and tesselation
 // ----------------------------------------------------------------------------
 {
-    Vector3 offset = where->Offset();
     PolygonData polygon;        // Polygon information
     Vertices &data = polygon.vertices;
     Vertices control;           // Control points

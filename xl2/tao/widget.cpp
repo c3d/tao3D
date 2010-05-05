@@ -67,7 +67,6 @@
 #include <QtWebKit>
 #include <sys/time.h>
 #include <sys/stat.h>
-#include <algorithm>
 
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
 
@@ -1826,8 +1825,9 @@ ulonglong Widget::elapsed(ulonglong since, ulonglong until,
     {
         char buffer[80];
         snprintf(buffer, sizeof(buffer),
-                 "Duration=%lu-%lu (~%f) %5.2f-%5.2f FPS (~%5.2f)",
-                 (ulong) tmin, (ulong) tmax, double(tsum )/ tcount,
+                 "Duration=" CONFIG_UHUGE_FORMAT "-" CONFIG_UHUGE_FORMAT
+                 " (~%f) %5.2f-%5.2f FPS (~%5.2f)",
+                 tmin, tmax, double(tsum )/ tcount,
                  (100000000ULL / tmax)*0.01,
                  (100000000ULL / tmin)*0.01,
                  (100000000ULL * tcount / tsum) * 0.01);

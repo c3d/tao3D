@@ -62,8 +62,9 @@ struct TextFormulaEditInfo : XL::Info
 //    Record the text format for a text formula while editing it
 // ----------------------------------------------------------------------------
 {
-    TextFormulaEditInfo(XL::Text_p s): source(s) {}
+    TextFormulaEditInfo(XL::Text_p s, uint id): source(s), order(id) {}
     XL::TextRoot        source;
+    uint                order;
 };
 
 
@@ -82,6 +83,7 @@ struct TextFormula : TextSpan
 
 public:
     XL::TreeRoot        self;
+    static uint         formulas, shows;
 };
 
 

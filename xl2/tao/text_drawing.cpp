@@ -354,6 +354,14 @@ void TextSpan::DrawSelection(Layout *where)
                 scale sh = glyph.scalingFactor * height;
                 sel->formulaBox |= Box3(charX,charY - sd,z, 1, sh, 0);
                 sel->formulaMode--;
+                if (!sel->formulaMode)
+                {
+                    glBlendFunc(GL_DST_COLOR, GL_ZERO);
+                    text mode = "formula_highlight";
+                    widget->drawSelection(sel->formulaBox, mode);
+                    sel->formulaBox.Empty();
+                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                }
             }
         } // if(sel)
 
@@ -661,6 +669,9 @@ scale TextSpan::TrailingSpaceSize(Layout *where)
 // 
 // ============================================================================
 
+uint TextFormula::formulas = 0;
+uint TextFormula::shows = 0;
+
 XL::Text_p TextFormula::Format(XL::Prefix_p self)
 // ----------------------------------------------------------------------------
 //   Return a formatted value for the given value
@@ -668,7 +679,9 @@ XL::Text_p TextFormula::Format(XL::Prefix_p self)
 {
     Tree_p value = self->right;
     TextFormulaEditInfo *info = value->GetInfo<TextFormulaEditInfo>();
-    if (info)
+    formulas++;
+    shows = 0;
+    if (info && info->order == formulas)
         return info->source;
     Tree_p computed = xl_evaluate(self->right);
     return new XL::Text(*computed);
@@ -687,6 +700,10 @@ void TextFormula::DrawSelection(Layout *where)
     TextFormulaEditInfo *info   = value->GetInfo<TextFormulaEditInfo>();
     uint                 selId  = widget->currentCharId() + 1;
 
+    // Count formulas to identify them uniquely
+    shows++;
+    formulas = 0;
+
     // Check if formula is selected and we are not editing it
     if (sel && sel->textMode)
     {
@@ -695,7 +712,7 @@ void TextFormula::DrawSelection(Layout *where)
             // No info: create one
             text edited = text(" ") + text(*value) + " ";
             Text_p editor = new Text(edited, "\"", "\"", value->Position());
-            info = new TextFormulaEditInfo(editor);
+            info = new TextFormulaEditInfo(editor, shows);
             value->SetInfo<TextFormulaEditInfo>(info);
             
             // Update mark and point
@@ -711,14 +728,22 @@ void TextFormula::DrawSelection(Layout *where)
     // Indicate how many characters we want to display as "formula"
     if (info && sel)
     {
-        XL::Text_p source = info->source;
-        sel->formulaMode = source->value.length() + 1;
+        if (shows == info->order)
+        {
+            XL::Text_p source = info->source;
+            sel->formulaMode = source->value.length() + 1;
+        }
+        else
+        {
+            XL::Text_p source = this->source;
+            sel->formulaMode = source->value.length() + 1;
+        }
     }
 
     TextSpan::DrawSelection(where);
 
     // Check if the cursor moves out of the selection - If so, validate
-    if (info && sel && sel->mark == sel->point)
+    if (info && sel && info->order == shows && sel->mark == sel->point)
     {
         XL::Text_p source = info->source;
         uint length = source->value.length();

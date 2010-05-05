@@ -1,5 +1,5 @@
---- llvm-config.orig	Fri Apr 30 11:14:15 2010
-+++ llvm-config	Fri Apr 30 11:48:05 2010
+--- llvm-config.orig	Fri Apr 30 22:39:09 2010
++++ llvm-config	Wed May  5 16:12:29 2010
 @@ -18,7 +18,6 @@
  use 5.006;
  use strict;
@@ -13,9 +13,9 @@
  
  # Convert the current executable name into its directory (e.g. ".").
 -my ($RUN_DIR) = ($0 =~ /^(.*)\/.*$/);
-+# JeF Hardcode path because Qt (gcc) needs a format like: /llvm/bin,
-+# not /c/llvm/bin. And I could not get bash to mount C:\llvm as /llvm :(
-+my $RUN_DIR = q(/llvm/bin); 
++# JeF Hardcode path as c:/llvm/bin because it is the only form that works
++# both inside Qt creator and in a bash window.
++my $RUN_DIR = q(c:/llvm/bin); 
 +sub abs_path {
 +    return $_[0];
 +}

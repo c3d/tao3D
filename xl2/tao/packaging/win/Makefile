@@ -1,4 +1,4 @@
-# Makefile to build a Windows installation package (taosetup.exe)
+# Makefile to build a Windows installer (taosetup.exe)
 #
 # Usage:
 #   make debug      # Build a debug package

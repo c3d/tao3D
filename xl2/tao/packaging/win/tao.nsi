@@ -42,8 +42,8 @@ Section "Tao (required)"
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
   
-  ; Put file there
-  File "buildroot\*.*"
+  ; Files to package
+  File /r "buildroot\*.*"
   
   ; Write the installation path into the registry
   WriteRegStr HKLM SOFTWARE\Tao "Install_Dir" "$INSTDIR"

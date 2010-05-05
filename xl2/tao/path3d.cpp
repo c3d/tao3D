@@ -746,13 +746,17 @@ bool GraphicPath::extractQtPath(GraphicPath &in, QPainterPath &out)
                 flat = false;
             break;
         case GraphicPath::CURVE_CONTROL:
-            control++;
-            if (control == 1)
-                c1 = p;
-            else if (control == 2)
-                c2 = p;
-            else
-                assert(!"Curve should not exceed a cubic form");
+            switch (++control)
+            {
+                case 1:
+                    c1 = p;
+                    break;
+                case 2:
+                    c2 = p;
+                    break;
+                default:
+                    assert(!"Curve should not exceed a cubic form");
+            }
             break;
         }
     }

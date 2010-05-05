@@ -743,15 +743,17 @@ void TextFormula::DrawSelection(Layout *where)
     TextSpan::DrawSelection(where);
 
     // Check if the cursor moves out of the selection - If so, validate
-    if (info && sel && info->order == shows && sel->mark == sel->point)
+    if (info &&info->order == shows)
     {
         XL::Text_p source = info->source;
         uint length = source->value.length();
-        if (sel->point < selId || sel->point > selId + length)
+
+        if (!sel || (sel->mark == sel->point &&
+                     (sel->point < selId || sel->point > selId + length)))
         {
             if (Validate(info->source, widget))
             {
-                if (sel->point > selId + length)
+                if (sel && sel->point > selId + length)
                 {
                     sel->point -= length;
                     sel->mark -= length;

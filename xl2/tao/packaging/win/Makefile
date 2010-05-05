@@ -18,5 +18,5 @@ release:
 	$(MAKENSIS) tao.nsi 
 
 clean:
-	$(RM_RF) tao-cache/ buildroot/ output/
+	$(RM_RF) buildroot/ taosetup.exe
 

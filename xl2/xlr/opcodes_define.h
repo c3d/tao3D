@@ -32,6 +32,10 @@
 #undef TYPE
 #undef PARM
 
+#ifndef XL_SCOPE
+#define XL_SCOPE "xl_"
+#endif // XL_SCOPE
+
 
 #define INFIX(name, rtype, t1, symbol, t2, _code)                       \
     do                                                                  \
@@ -45,7 +49,7 @@
         to->code = fn;                                                  \
         to->Set<SymbolsInfo>(c);                                        \
         to->Set<TypeInfo> (rtype##_type);                               \
-        compiler->EnterBuiltin("xl_" #name,                             \
+        compiler->EnterBuiltin(XL_SCOPE #name,                          \
                                to, rw->parameters, fn);                 \
     } while(0);
 
@@ -80,7 +84,7 @@
             to->code = fn;                                              \
             to->Set<SymbolsInfo> (c);                                   \
             to->Set<TypeInfo> (rtype##_type);                           \
-            compiler->EnterBuiltin("xl_" #name,                         \
+            compiler->EnterBuiltin(XL_SCOPE #name,                      \
                                    to, rw->parameters, fn);             \
         }                                                               \
         else                                                            \
@@ -91,7 +95,7 @@
             n ->Set<TypeInfo> (rtype##_type);                           \
             c->EnterName(symbol, n);                                    \
             TreeList noparms;                                           \
-            compiler->EnterBuiltin("xl_" #name, n, noparms, fn);        \
+            compiler->EnterBuiltin(XL_SCOPE #name, n, noparms, fn);     \
         }                                                               \
     } while(0);
 
@@ -109,7 +113,7 @@
         to->code = fn;                                                  \
         to->Set<SymbolsInfo> (c);                                       \
         to->Set<TypeInfo> (rtype##_type);                               \
-        compiler->EnterBuiltin("xl_" #name,                             \
+        compiler->EnterBuiltin(XL_SCOPE #name,                          \
                                to, rw->parameters, to->code);           \
     } while(0);
 
@@ -125,7 +129,7 @@
         to->code = fn;                                                  \
         to->Set<SymbolsInfo> (c);                                       \
         to->Set<TypeInfo> (rtype##_type);                               \
-        compiler->EnterBuiltin("xl_" #name, to,                         \
+        compiler->EnterBuiltin(XL_SCOPE #name, to,                      \
                                rw->parameters, to->code);               \
     } while (0);
 
@@ -162,7 +166,7 @@
         eval_fn typeTestFn = (eval_fn) xl_##symbol##_cast;              \
         to->code = typeTestFn;                                          \
         to->Set<SymbolsInfo> (c);                                       \
-        compiler->EnterBuiltin("xl_" #symbol,                           \
+        compiler->EnterBuiltin(XL_SCOPE #symbol,                        \
                                to, rw->parameters, typeTestFn);         \
                                                                         \
     } while(0);

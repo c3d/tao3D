@@ -159,6 +159,12 @@ PREFIX(RandomNumber2i, integer, "random", PARM(low,integer) PARM(high,integer),
 NAME(true);
 NAME(false);
 
+TYPE(boolean);
+TYPE(integer);
+TYPE(real);
+TYPE(text);
+TYPE(character);
+
 
 // ============================================================================
 // 
@@ -187,9 +193,15 @@ PREFIX(PageSeconds, real,     "page_time", ,    RTAO(pageTime(self)))
 // ============================================================================
 
 PREFIX(ErrorMessage, tree, "error", PARM(m, text) PARM(s, tree),
-       RTAO(runtimeError(self, m, &s)))
+       RTAO(formulaRuntimeError(self, m, &s)))
 PREFIX(ErrorMessage0, tree, "error", PARM(m, text),
+       RTAO(formulaRuntimeError(self, m, NULL)))
+
+PREFIX(ErrorMessageM, tree, "error_message_box", PARM(m, text) PARM(s, tree),
+       RTAO(runtimeError(self, m, &s)))
+PREFIX(ErrorMessageM0, tree, "error_message_box", PARM(m, text),
        RTAO(runtimeError(self, m, NULL)))
+
 
 
 // ============================================================================

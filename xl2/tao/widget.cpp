@@ -89,7 +89,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf), symbolTableForFormulas(new XL::Symbols(NULL)),
+      xlProgram(sf),
+      symbolTableForFormulas(new XL::Symbols(NULL)),
+      symbolTableRoot(new XL::Name("formula_symbol_table")),
       inError(false), mustUpdateDialogs(false),
       space(NULL), layout(NULL), path(NULL),
       pageName(""), pageId(0), pageTotal(0), pageTree(NULL),
@@ -141,6 +143,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     toDialogLabel["Accept"]   = (QFileDialog::DialogLabel)QFileDialog::Accept;
     toDialogLabel["Reject"]   = (QFileDialog::DialogLabel)QFileDialog::Reject;
 
+    // Connect the symbol table for formulas
+    symbolTableRoot.tree->Set<XL::SymbolsInfo>(symbolTableForFormulas);
     TaoFormulas::EnterFormulas(symbolTableForFormulas);
 }
 
@@ -3223,7 +3227,12 @@ Tree_p Widget::textFormula(Tree_p self, Tree_p value)
     assert(prefix);
 
     // Make sure we evaluate that in the formulas symbol table
-    prefix->right->Set<XL::SymbolsInfo>(formulaSymbols());
+    if (prefix->right->Get<XL::SymbolsInfo>() != formulaSymbols())
+    {
+        XL::TreeClone clone;
+        prefix->right = prefix->right->Do(clone);
+        prefix->right->Set<XL::SymbolsInfo>(formulaSymbols());
+    }
 
     if (path)
         TextFormula(prefix).Draw(*path, layout);
@@ -4460,6 +4469,23 @@ Tree_p Widget::runtimeError(Tree_p self, text msg, Tree_p arg)
                          .arg(+err.Message()));
     return XL::xl_false;
 }
+
+
+Tree_p Widget::formulaRuntimeError(Tree_p self, text msg, Tree_p arg)
+// ----------------------------------------------------------------------------
+//   Display a runtime error while executing a formula
+// ----------------------------------------------------------------------------
+{
+    XL::Error err(msg, arg, NULL, NULL);
+    msg = err.Message();
+    Tree_p result = new XL::Prefix(new XL::Name("error"),
+                                   new XL::Text(msg));
+    result->code = XL::xl_identity;
+    Window *window = (Window *) parentWidget();
+    window->statusBar()->showMessage(+msg);
+    return result;
+}
+
 
 
 // ============================================================================

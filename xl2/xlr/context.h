@@ -272,8 +272,8 @@ struct Rewrite
     ~Rewrite();
 
     Rewrite *           Add (Rewrite *rewrite);
-    Tree_p               Do(Action &a);
-    Tree_p               Compile(void);
+    Tree_p              Do(Action &a);
+    Tree_p              Compile(void);
 
 public:
     Symbols *           symbols;
@@ -613,7 +613,10 @@ inline Tree_p Ooops (text msg, Tree_p a1=NULL, Tree_p a2=NULL, Tree_p a3=NULL)
 //   Error using the global context
 // ----------------------------------------------------------------------------
 {
-    return Context::context->Error(msg, a1, a2, a3);
+    Symbols *syms = Symbols::symbols;
+    if (!syms)
+        syms = Context::context;
+    return syms->Error(msg, a1, a2, a3);
 }
 
 

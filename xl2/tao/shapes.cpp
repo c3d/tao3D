@@ -163,7 +163,7 @@ void PlaceholderRectangle::Draw(Layout *where)
     glDisable(GL_LINE_STIPPLE);
     
     where->PolygonOffset();
-    path.Draw(where, GL_LINE_STRIP, 0);
+    path.Draw(where->Offset(), GL_LINE_STRIP, 0);
 }
 
 
@@ -693,7 +693,6 @@ void Callout::Draw(GraphicPath &path)
 //   Draw a callout
 // ----------------------------------------------------------------------------
 {
-
     Point c = bounds.Center();
     coord w = bounds.Width();
     coord h = bounds.Height();
@@ -850,5 +849,20 @@ void Callout::Draw(GraphicPath &path)
     path.addQtPath(rect);
 }
 
+
+void FixedSizePoint::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw a point at the given location
+// ----------------------------------------------------------------------------
+{
+    setTexture(where);
+    if (setFillColor(where))
+    {
+        glPointSize(radius);
+        glBegin(GL_POINTS);
+        glVertex3f(center.x, center.y, center.z);
+        glEnd();
+    }
+}
 
 TAO_END

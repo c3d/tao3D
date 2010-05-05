@@ -53,10 +53,12 @@ typedef XL::Block_p   Block_p;
 typedef XL::real_r    real_r;
 typedef XL::integer_r integer_r;
 typedef XL::text_r    text_r;
+typedef XL::symbolicname_r symbolicname_r;
 
 typedef XL::real_p    real_p;
 typedef XL::integer_p integer_p;
 typedef XL::text_p    text_p;
+typedef XL::symbolicname_p symbolicname_p;
 
 TAO_END
 

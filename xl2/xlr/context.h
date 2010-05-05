@@ -219,7 +219,7 @@ public:
     symbol_table        calls;
     value_table         type_tests;
     symbols_set         imported;
-    Tree_p               error_handler;
+    Tree_p              error_handler;
     bool                has_rewrites_for_constants;
 
     static Symbols *    symbols;

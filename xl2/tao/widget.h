@@ -195,6 +195,7 @@ public:
 public:
     // XLR entry points
     static Widget *Tao() { return current; }
+    XL::Symbols *formulaSymbols()       { return symbolTableForFormulas; }
 
     // Getting attributes
     Text_p       page(Tree_p self, text name, Tree_p body);
@@ -464,6 +465,7 @@ private:
 
     // XL Runtime
     XL::SourceFile       *xlProgram;
+    XL::Symbols          *symbolTableForFormulas;
     bool                  inError;
     bool                  mustUpdateDialogs;
 
@@ -477,8 +479,8 @@ private:
     text                  pageName, lastPageName;
     page_map              pageLinks;
     uint                  pageId, pageShown, pageTotal;
-    Tree_p                 pageTree;
-    Tree_p                 currentShape;
+    Tree_p                pageTree;
+    Tree_p                currentShape;
     QGridLayout *         currentGridLayout;
     GroupInfo   *         currentGroup;
     GlyphCache            glyphCache;

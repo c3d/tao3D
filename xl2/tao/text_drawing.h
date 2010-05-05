@@ -78,6 +78,7 @@ struct TextFormula : TextSpan
     bool                Validate(XL::Text_p source, Widget *widget);
 
     virtual void        DrawSelection(Layout *where);
+    virtual void        Identify(Layout *where);
 
 public:
     XL::TreeRoot        self;

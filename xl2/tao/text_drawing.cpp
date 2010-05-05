@@ -687,7 +687,7 @@ void TextFormula::DrawSelection(Layout *where)
     uint                 startId = widget->currentCharId();
 
     // Check if formula is selected and we are not editing it
-    if (sel)
+    if (sel && sel->textMode)
     {
         if (!info && widget->charSelected(startId+1))
         {
@@ -733,6 +733,24 @@ void TextFormula::DrawSelection(Layout *where)
             }
         }
     }
+}
+
+
+void TextFormula::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   Give one ID to the whole formula so that we can click on it
+// ----------------------------------------------------------------------------
+{
+    XL::Prefix_p         prefix  = self.tree->AsPrefix();
+    XL::Tree_p           value   = prefix->right;
+    TextFormulaEditInfo *info    = value->GetInfo<TextFormulaEditInfo>();
+    if (!info)
+    {
+        Widget *widget  = where->Display();
+        uint    selId = widget->currentCharId() + 1;
+        glLoadName(selId | Widget::CHAR_ID_BIT);
+    }
+    TextSpan::Identify(where);
 }
 
 

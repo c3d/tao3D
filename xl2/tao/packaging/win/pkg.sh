@@ -28,7 +28,7 @@ SFILES="builtins.xl xl.syntax xl.stylesheet git.stylesheet"
 for f in $SFILES ; do
     doo cp $SRCDIR/$f buildroot/
 done
-for f in `ldd buildroot/Tao.exe | grep -v -i 'windows/system' | grep -v -i 'ntdll.dll' | grep -v -i 'comctl' | sed 's/^.*=> \\(.*\\)(0x.*)$/\\1/' | sed 's@/cygdrive@@'` ; 
+for f in `bin/ldd buildroot/Tao.exe | grep -v -i 'windows/system' | grep -v -i 'ntdll.dll' | grep -v -i 'comctl' | sed 's/^.*=> \\(.*\\)(0x.*)$/\\1/' | sed 's@/cygdrive@@'` ; 
 do 
     doo cp $f buildroot/
 done

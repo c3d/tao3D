@@ -76,13 +76,16 @@ Section "Uninstall"
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao"
   DeleteRegKey HKLM SOFTWARE\Tao
 
-  ; Remove files and uninstaller
+  ; Remove application files and uninstaller
   Delete $INSTDIR\*.*
 
-  ; Remove shortcuts, if any
+  ; Recursively remove Git files
+  RMDir /r $INSTDIR\git
+
+  ; Remove shortcuts
   Delete "$SMPROGRAMS\Tao\*.*"
 
-  ; Remove directories used
+  ; Remove directories used (if empty)
   RMDir "$SMPROGRAMS\Tao"
   RMDir "$INSTDIR"
 

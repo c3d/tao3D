@@ -306,6 +306,7 @@ void TextSpan::DrawSelection(Layout *where)
             {
                 coord charX = x + glyph.bounds.lower.x;
                 coord charY = y;
+
                 sel->newChar(charX, charSelected);
 
                 if (charSelected)
@@ -340,7 +341,19 @@ void TextSpan::DrawSelection(Layout *where)
                     scale sh = glyph.scalingFactor * height;
                     sel->selBox |= Box3(charX,charY - sd,z, 1, sh, 0);
                 } // if(charSelected)
+
             } // if (charSelected || upDown)
+
+            // Check if we are in a formula, if so display formula box
+            if (sel->formulaMode)
+            {
+                coord charX = x + glyph.bounds.lower.x;
+                coord charY = y;
+                scale sd = glyph.scalingFactor * descent;
+                scale sh = glyph.scalingFactor * height;
+                sel->formulaBox |= Box3(charX,charY - sd,z, 1, sh, 0);
+                sel->formulaMode--;
+            }
         } // if(sel)
 
         // Advance to next character
@@ -364,7 +377,7 @@ void TextSpan::DrawSelection(Layout *where)
         charId++;
         if (charId >= sel->start() && charId <= sel->end())
         {
-            if (sel->replace && !sel->formulaMode)
+            if (sel->replace)
             {
                 text rpl = sel->replacement;
                 if (rpl.length())
@@ -674,24 +687,31 @@ void TextFormula::DrawSelection(Layout *where)
     uint                 startId = widget->currentCharId();
 
     // Check if formula is selected and we are not editing it
-    if (sel && !info && widget->charSelected(startId+1))
+    if (sel)
     {
-        // We want to get the \n instead of appending it to previous text
-        sel->formulaMode = true;
+        if (!info && widget->charSelected(startId+1))
+        {
+            // No info: create one
+            text edited = text(" ") + text(*value) + " ";
+            Text_p editor = new Text(edited, "\"", "\"", value->Position());
+            info = new TextFormulaEditInfo(editor);
+            value->SetInfo<TextFormulaEditInfo>(info);
 
-        // No info: create one
-        text edited = text(" ") + text(*value) + " ";
-        Text_p editor = new Text(edited, "\"", "\"", value->Position());
-        info = new TextFormulaEditInfo(editor);
-        value->SetInfo<TextFormulaEditInfo>(info);
+            // Update mark and point
+            XL::Text_p source = info->source;
+            uint length = source->value.length();
+            sel->point = startId + 1;
+            sel->mark = startId + 1 + length;
 
-        // Update mark and point
-        XL::Text_p source = info->source;
-        uint length = source->value.length();
-        sel->point = startId + 1;
-        sel->mark = startId + 1 + length;
+            widget->refresh();
+        }
 
-        widget->refresh();
+        // Indicate how many characters we want to display as "formula"
+        else if (info)
+        {
+            XL::Text_p source = info->source;
+            sel->formulaMode = source->value.length() + 1;
+        }        
     }
 
     TextSpan::DrawSelection(where);
@@ -752,8 +772,9 @@ TextSelect::TextSelect(Widget *w)
     : Activity("Text selection", w),
       mark(0), point(0), direction(None), targetX(0),
       replacement(""), replace(false),
-      textMode(false), formulaMode(false),
+      textMode(false),
       pickingUpDown(false), movePointOnly(false),
+      formulaMode(false),
       findingLayout(true)
 {
     Widget::selection_map::iterator i, last = w->selection.end();

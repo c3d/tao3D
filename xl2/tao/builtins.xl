@@ -104,6 +104,10 @@ text_highlight_color ->
     color 70%,70%,70%,50%
     line_color 1,0,0,0
 
+formula_highlight_color ->
+    color 100%,950%,90%,20%
+    line_color 1,0,0,100%
+
 text_cursor_color ->
     color 1..0/2, 0, 0..1/2, 90%
     line_color 1,0,0,0
@@ -138,6 +142,10 @@ draw_text_highlight x,y,w,h ->
     else
         text_cursor_highlight
         rectangle x, y, w, h
+
+draw_formula_highlight x,y,w,h ->
+    formula_highlight_color
+    rectangle x, y, w, h
 
 draw_3D_selection x,y,z,w,h,d ->
     selection_color

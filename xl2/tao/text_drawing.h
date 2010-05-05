@@ -114,12 +114,13 @@ struct TextSelect : Activity
     Direction           direction;
     coord               targetX;
     Box3                selBox;
+    Box3                formulaBox;
     text                replacement;
     bool                replace;
     bool                textMode;
-    bool                formulaMode;
     bool                pickingUpDown;
     bool                movePointOnly;
+    uint                formulaMode;
     bool                findingLayout;
 };
 

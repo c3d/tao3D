@@ -1825,7 +1825,8 @@ ulonglong Widget::elapsed(ulonglong since, ulonglong until,
     {
         char buffer[80];
         snprintf(buffer, sizeof(buffer),
-                 "Duration=%llu-%llu (~%f) %5.2f-%5.2f FPS (~%5.2f)",
+                 "Duration=" CONFIG_UHUGE_FORMAT "-" CONFIG_UHUGE_FORMAT
+                 " (~%f) %5.2f-%5.2f FPS (~%5.2f)",
                  tmin, tmax, double(tsum )/ tcount,
                  (100000000ULL / tmax)*0.01,
                  (100000000ULL / tmin)*0.01,

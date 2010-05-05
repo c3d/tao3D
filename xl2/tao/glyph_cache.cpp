@@ -286,6 +286,9 @@ bool GlyphCache::Find(const QFont &font,
         dirty = true;
     }
 
+    // Line width should remain identical even if we scale the font
+    lineWidth /= font.pointSizeF() / perFont->baseSize;
+
     // Check if we want OpenGL display lists
     if ((interior && !entry.interior) ||
         (lineWidth > 0 && (!entry.outline || lineWidth != entry.lineWidth)))
@@ -300,7 +303,7 @@ bool GlyphCache::Find(const QFont &font,
 
         qtPath.addText(0, 0, scaled, QString(QChar(code)));
         path.addQtPath(qtPath, -1);
-        
+
         if (interior)
         {
             // Create an OpenGL display list for the glyph
@@ -310,13 +313,13 @@ bool GlyphCache::Find(const QFont &font,
             path.Draw(Vector3(0,0,0), GL_POLYGON, GLU_TESS_WINDING_ODD);
             glEndList();
         }
-        
+
         if (!entry.outline || entry.lineWidth != lineWidth)
         {
             if (!entry.outline)
                 entry.outline = glGenLists(1);
             entry.lineWidth = lineWidth;
-            
+
             // Render outline in a GL list
             QPainterPathStroker stroker;
             stroker.setWidth(lineWidth);
@@ -343,7 +346,7 @@ bool GlyphCache::Find(const QFont &font,
 
 
 bool GlyphCache::Find(const QFont &font,
-                      text word, GlyphEntry &entry,
+                      text code, GlyphEntry &entry,
                       bool create, bool interior, scale lineWidth)
 // ----------------------------------------------------------------------------
 //   Find or create a word entry in the cache
@@ -352,66 +355,118 @@ bool GlyphCache::Find(const QFont &font,
     PerFont *perFont = FindFont(font, create);
     if (!perFont)
         return false;
-    if (perFont->Find(word, entry))
-    {
-        ScaleDown(entry, font.pointSizeF() / perFont->baseSize);
-        return true;
-    }
-    if (!create)
+    bool found = perFont->Find(code, entry);
+    if (!found && !create)
         return false;
 
-    // Apply a font with scaling
-    scale fs = fontScaling;
-    uint aam = antiAliasMargin;
-    if (font.pointSizeF() <= minFontSizeForAntialiasing)
+    if (!found)
     {
-        fs = 1;
-        aam = 0;
+        // Apply a font with scaling
+        scale fs = fontScaling;
+        uint aam = antiAliasMargin;
+        if (font.pointSizeF() <= minFontSizeForAntialiasing)
+        {
+            fs = 1;
+            aam = 0;
+        }
+        QFont scaled(font);
+        scaled.setPointSizeF(font.pointSizeF() * fs);
+        if (!aam)
+        {
+            scaled.setStyleStrategy(QFont::NoAntialias);
+            aam = 1;
+        }
+
+        // We need to create a new entry
+        QFontMetricsF fm(scaled);
+        QString qs(+code);
+        QRectF bounds = fm.boundingRect(qs);
+        uint width = ceil(bounds.width());
+        uint height = ceil(bounds.height());
+
+        // Allocate a rectangle where we will put the texture (may resize us)
+        BinPacker::Rect rect;
+        Allocate(width + 2*aam, height + 2*aam, rect);
+
+        // Record glyph information in the entry
+        entry.bounds = Box(bounds.x()/fs, bounds.y()/fs,
+                           bounds.width()/fs, bounds.height()/fs);
+        entry.texture = Box(Point(rect.x1+aam, rect.y2-aam - bounds.height()),
+                            Point(rect.x1+aam + bounds.width(), rect.y2-aam));
+        entry.advance = fm.width(qs) / fs;
+        entry.lineWidth = 0;
+        entry.interior = 0;
+        entry.outline = 0;
+
+        // Store the new entry
+        perFont->Insert(code, entry);
+
+        // Draw the texture portion for the desired word
+        qreal x = rect.x1 + aam - bounds.x(); // + (lb < 0 ? lb : 0);
+        qreal y = rect.y2 - aam - bounds.bottom();
+        QPainter painter(&image);
+        painter.setFont(scaled);
+        painter.setBrush(Qt::transparent);
+        painter.setPen(Qt::white);
+        painter.drawText(QPointF(x, y), qs);
+        painter.end();
+
+        // We will need to update the texture
+        dirty = true;
     }
-    QFont scaled(font);
-    scaled.setPointSizeF(font.pointSizeF() * fs);
-    if (!aam)
+
+    // Line width should remain identical even if we scale the font
+    lineWidth /= font.pointSizeF() / perFont->baseSize;
+
+    // Check if we want OpenGL display lists
+    if ((interior && !entry.interior) ||
+        (lineWidth > 0 && (!entry.outline || lineWidth != entry.lineWidth)))
     {
-        scaled.setStyleStrategy(QFont::NoAntialias);
-        aam = 1;
+        // Reset font to original size
+        QFont scaled(font);
+        scaled.setPointSizeF(perFont->baseSize);
+
+        // Draw glyph into a path
+        QPainterPath qtPath;
+        GraphicPath path;
+
+        qtPath.addText(0, 0, scaled, QString(+code));
+        path.addQtPath(qtPath, -1);
+
+        if (interior)
+        {
+            // Create an OpenGL display list for the glyph
+            if (!entry.interior)
+                entry.interior = glGenLists(1);
+            glNewList(entry.interior, GL_COMPILE);
+            path.Draw(Vector3(0,0,0), GL_POLYGON, GLU_TESS_WINDING_ODD);
+            glEndList();
+        }
+
+        if (!entry.outline || entry.lineWidth != lineWidth)
+        {
+            if (!entry.outline)
+                entry.outline = glGenLists(1);
+            entry.lineWidth = lineWidth;
+
+            // Render outline in a GL list
+            QPainterPathStroker stroker;
+            stroker.setWidth(lineWidth);
+            stroker.setCapStyle(Qt::FlatCap);
+            stroker.setJoinStyle(Qt::RoundJoin);
+            stroker.setDashPattern(Qt::SolidLine);
+            QPainterPath stroke = stroker.createStroke(qtPath);
+            GraphicPath strokePath;
+            strokePath.addQtPath(stroke, -1);
+            glNewList(entry.outline, GL_COMPILE);
+            strokePath.Draw(Vector3(0,0,0), GL_POLYGON,
+                            GLU_TESS_WINDING_POSITIVE);
+            glEndList();
+        }
+
+        // Store the new or updated entry
+        perFont->Insert(code, entry);
     }
-
-    // We need to create a new entry
-    QFontMetricsF fm(scaled);
-    QString qs(+word);
-    QRectF bounds = fm.boundingRect(qs);
-    uint width = ceil(bounds.width());
-    uint height = ceil(bounds.height());
-
-    // Allocate a rectangle where we will put the texture (may resize us)
-    BinPacker::Rect rect;
-    Allocate(width + 2*aam, height + 2*aam, rect);
-
-    // Record glyph information in the entry
-    entry.bounds = Box(bounds.x()/fs, bounds.y()/fs,
-                       bounds.width()/fs, bounds.height()/fs);
-    entry.texture = Box(Point(rect.x1+aam, rect.y2-aam - bounds.height()),
-                        Point(rect.x1+aam + bounds.width(), rect.y2-aam));
-    entry.advance = fm.width(qs) / fs;
-    entry.lineWidth = 0;
-    entry.interior = 0;
-    entry.outline = 0;
-
-    // Store the new entry
-    perFont->Insert(word, entry);
-
-    // Draw the texture portion for the desired word
-    qreal x = rect.x1 + aam - bounds.x(); // + (lb < 0 ? lb : 0);
-    qreal y = rect.y2 - aam - bounds.bottom();
-    QPainter painter(&image);
-    painter.setFont(scaled);
-    painter.setBrush(Qt::transparent);
-    painter.setPen(Qt::white);
-    painter.drawText(QPointF(x, y), qs);
-    painter.end();
-
-    // Update the texture
-    dirty = true;
 
     // Scale down what we pass back to the caller
     ScaleDown(entry, font.pointSizeF() / perFont->baseSize);
@@ -489,7 +544,10 @@ void GlyphCache::ScaleDown(GlyphEntry &entry, scale fontScale)
 // ----------------------------------------------------------------------------
 {
     // Scale the geometry
-    entry.bounds *= fontScale;
+    entry.bounds.lower.x *= fontScale;
+    entry.bounds.upper.x *= fontScale;
+    entry.bounds.lower.y *= fontScale;
+    entry.bounds.upper.x *= fontScale;
     entry.advance *= fontScale;
     entry.scalingFactor = fontScale;
 

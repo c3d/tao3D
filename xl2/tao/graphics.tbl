@@ -175,6 +175,9 @@ PREFIX(EndpointsStyle, tree, "endpoints_style",
 //
 // ============================================================================
 
+PREFIX(Point, tree, "point",
+       PARM(x,real) PARM(y,real) PARM(z,real) PARM(s,real),
+       RTAO(fixedSizePoint(self, x, y, z, s)))
 PREFIX(Rectangle, tree, "rectangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
        RTAO(rectangle(self, x, y, w, h)))

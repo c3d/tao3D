@@ -1545,7 +1545,7 @@ Tree_p ArgumentMatch::DoInfix(Infix_p what)
             return NULL;
 
         // Compile what we are testing against
-        Tree_p compiled = CompileValue(test);
+        Tree_p compiled = Compile(test);
         if (!compiled)
             return NULL;
 

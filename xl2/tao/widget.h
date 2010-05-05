@@ -265,6 +265,7 @@ public:
     Tree_p       endpointsStyle(Tree_p self,symbolicname_r s,symbolicname_r e);
 
     // 2D primitive that can be in a path or standalone
+    Tree_p       fixedSizePoint(Tree_p self, coord x,coord y,coord z, coord s);
     Tree_p       rectangle(Tree_p self, real_r x, real_r y, real_r w, real_r h);
     Tree_p       isoscelesTriangle(Tree_p self,
                                   real_r x, real_r y, real_r w, real_r h);

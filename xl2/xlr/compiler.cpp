@@ -85,7 +85,8 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
       integerTreeTy(NULL), integerTreePtrTy(NULL),
       realTreeTy(NULL), realTreePtrTy(NULL),
       prefixTreeTy(NULL), prefixTreePtrTy(NULL),
-      evalTy(NULL), evalFnTy(NULL), infoPtrTy(NULL), charPtrTy(NULL),
+      evalTy(NULL), evalFnTy(NULL),
+      infoPtrTy(NULL), symbolsPtrTy(NULL), charPtrTy(NULL),
       xl_evaluate(NULL), xl_same_text(NULL), xl_same_shape(NULL),
       xl_infix_match_check(NULL), xl_type_check(NULL), xl_type_error(NULL),
       xl_new_integer(NULL), xl_new_real(NULL), xl_new_character(NULL),
@@ -165,6 +166,8 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     // Create the Symbol pointer type
     PATypeHolder structInfoTy = OpaqueType::get(*context); // struct Info
     infoPtrTy = PointerType::get(structInfoTy, 0);         // Info *
+    PATypeHolder structSymTy = OpaqueType::get(*context);  // struct Symbols
+    symbolsPtrTy = PointerType::get(structSymTy, 0);       // Symbols *
 
     // Create the eval_fn type
     PATypeHolder structTreeTy = OpaqueType::get(*context); // struct Tree
@@ -182,6 +185,7 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
             tag(o.tag), code(o.code), info(o.info) {}
         ulong    tag;
         eval_fn  code;
+        Symbols *symbols;
         Info    *info;
         Tree_p    source;
     };
@@ -193,14 +197,16 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     treeElements.push_back(LLVM_INTTYPE(ulong));           // tag
     treeElements.push_back(evalFnTy);                      // code
     treeElements.push_back(infoPtrTy);                     // symbols
+    treeElements.push_back(infoPtrTy);                     // info
     treeElements.push_back(treePtrTy);                     // source
     treeTy = StructType::get(*context, treeElements);      // struct Tree {}
     cast<OpaqueType>(structTreeTy.get())->refineAbstractTypeTo(treeTy);
     treeTy = cast<StructType> (structTreeTy.get());
 #define TAG_INDEX       0
 #define CODE_INDEX      1
-#define INFO_INDEX      2
-#define SOURCE_INDEX    3
+#define SYMBOLS_INDEX   2
+#define INFO_INDEX      3
+#define SOURCE_INDEX    4
 
 
     // Create the Integer type
@@ -215,7 +221,7 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     realElements.push_back(Type::getDoubleTy(*context));  // value
     realTreeTy = StructType::get(*context, realElements); // struct Real{}
     realTreePtrTy = PointerType::get(realTreeTy, 0);      // Real *
-#define REAL_VALUE_INDEX        4
+#define REAL_VALUE_INDEX        5
 
     // Create the Prefix type (which we also use for Infix and Block)
     std::vector<const Type *> prefixElements = treeElements;
@@ -223,8 +229,8 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     prefixElements.push_back(treePtrTy);                // Tree *
     prefixTreeTy = StructType::get(*context, prefixElements); // struct Prefix
     prefixTreePtrTy = PointerType::get(prefixTreeTy, 0);// Prefix *
-#define LEFT_VALUE_INDEX        4
-#define RIGHT_VALUE_INDEX       5
+#define LEFT_VALUE_INDEX        5
+#define RIGHT_VALUE_INDEX       6
 
     // Record the type names
     module->addTypeName("tree", treeTy);

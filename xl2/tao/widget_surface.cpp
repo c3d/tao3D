@@ -39,7 +39,6 @@ TAO_BEGIN
 //
 // ============================================================================
 
-typedef XL::SymbolsInfo SymbolsInfo;
 typedef XL::Symbols     Symbols;
 
 
@@ -436,12 +435,12 @@ void AbstractButtonSurface::toggled(bool checked)
 
     // The tree to be evaluated needs its own symbol table before evaluation
     XL::Tree_p toBeEvaluated = action.tree;
-    XL::Symbols *syms = toBeEvaluated->Get<SymbolsInfo>();
+    XL::Symbols *syms = toBeEvaluated->Symbols();
     if (!syms)
         syms = XL::Symbols::symbols;
     syms = new Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
-    toBeEvaluated->Set<SymbolsInfo>(syms);
+    toBeEvaluated->SetSymbols(syms);
 
     // Evaluate the input tree
     xl_evaluate(toBeEvaluated);
@@ -520,12 +519,12 @@ void ColorChooserSurface::colorChosen(const QColor &col)
 
     // The tree to be evaluated needs its own symbol table before evaluation
     XL::Tree_p toBeEvaluated = action.tree;
-    XL::Symbols *syms = toBeEvaluated->Get<SymbolsInfo>();
+    XL::Symbols *syms = toBeEvaluated->Symbols();
     if (!syms)
         syms = XL::Symbols::symbols;
     syms = new Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
-    toBeEvaluated->Set<SymbolsInfo>(syms);
+    toBeEvaluated->SetSymbols(syms);
 
     // Evaluate the input tree
     xl_evaluate(toBeEvaluated);
@@ -603,12 +602,12 @@ void FontChooserSurface::fontChosen(const QFont& ft)
 
     // The tree to be evaluated needs its own symbol table before evaluation
     XL::Tree_p toBeEvaluated = action.tree;
-    XL::Symbols *syms = toBeEvaluated->Get<SymbolsInfo>();
+    XL::Symbols *syms = toBeEvaluated->Symbols();
     if (!syms)
         syms = XL::Symbols::symbols;
     syms = new Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
-    toBeEvaluated->Set<SymbolsInfo>(syms);
+    toBeEvaluated->SetSymbols(syms);
 
     // Evaluate the input tree
     xl_evaluate(toBeEvaluated);

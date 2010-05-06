@@ -288,26 +288,6 @@ public:
 
 // ============================================================================
 // 
-//    Symbol information associated with a tree
-// 
-// ============================================================================
-
-struct SymbolsInfo : Info
-// ----------------------------------------------------------------------------
-//    Record the symbol associated with a tree
-// ----------------------------------------------------------------------------
-{
-    SymbolsInfo(Symbols *syms) : symbols(syms) {}
-    typedef Symbols *   data_t;
-    operator            data_t()  { return symbols; }
-    SymbolsInfo *       Copy();
-    Symbols *           symbols;
-};
-
-
-
-// ============================================================================
-// 
 //    Actions used in interpretation
 // 
 // ============================================================================
@@ -530,7 +510,7 @@ struct GCAction : Action
         inserted ins = alive.insert(what);
         if (ins.second)
         {
-            if (Symbols *syms = what->Get<SymbolsInfo> ())
+            if (Symbols *syms = what->Symbols())
                 syms->Mark(*this);
             if (what->source && what->source != what)
                 what->source->Do(this);

@@ -242,6 +242,7 @@ struct Context : Symbols
 
     // Garbage collection
     void                Mark(Tree_p t)           { active.insert(t); }
+    void                Purge(Tree_p t)          { active.erase(t); }
     void                CollectGarbage();
 
     // Helpers for compilation of trees

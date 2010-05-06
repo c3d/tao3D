@@ -169,6 +169,7 @@ public:
     uint        selected(Tree_p tree)   { return selectionTrees.count(tree); }
     bool        selected()              { return !selectionTrees.empty(); }
     bool        hasSelection()          { return selected(); }
+    void        select(Tree_p tree)     { selectionTrees.insert(tree); }
     void        deselect(Tree_p tree)   { selectionTrees.erase(tree); }
     uint        selected(uint i);
     uint        selected(Layout *);
@@ -194,6 +195,7 @@ public:
 public:
     // XLR entry points
     static Widget *Tao() { return current; }
+    XL::Symbols *formulaSymbols()       { return symbolTableForFormulas; }
 
     // Getting attributes
     Text_p       page(Tree_p self, text name, Tree_p body);
@@ -319,6 +321,7 @@ public:
                              real_r x, real_r y, real_r w, real_r h);
     Text_p       textFlow(Tree_p self, text name);
     Tree_p       textSpan(Tree_p self, text_r content);
+    Tree_p       textFormula(Tree_p self, Tree_p value);
     Tree_p       font(Tree_p self, text family);
     Tree_p       fontSize(Tree_p self, double size);
     Tree_p       fontScaling(Tree_p self, double scaling, double minSize);
@@ -420,6 +423,7 @@ public:
 
     // Menus and widgets
     Tree_p       runtimeError(Tree_p self, text msg, Tree_p src);
+    Tree_p       formulaRuntimeError(Tree_p self, text msg, Tree_p src);
     Tree_p       menuItem(Tree_p self, text name, text lbl, text iconFileName,
                          bool isCheckable, Text_p isChecked, Tree_p t);
     Tree_p       menu(Tree_p self, text name, text lbl, text iconFileName,
@@ -462,6 +466,8 @@ private:
 
     // XL Runtime
     XL::SourceFile       *xlProgram;
+    XL::Symbols          *symbolTableForFormulas;
+    XL::TreeRoot          symbolTableRoot;
     bool                  inError;
     bool                  mustUpdateDialogs;
 
@@ -475,8 +481,8 @@ private:
     text                  pageName, lastPageName;
     page_map              pageLinks;
     uint                  pageId, pageShown, pageTotal;
-    Tree_p                 pageTree;
-    Tree_p                 currentShape;
+    Tree_p                pageTree;
+    Tree_p                currentShape;
     QGridLayout *         currentGridLayout;
     GroupInfo   *         currentGroup;
     GlyphCache            glyphCache;
@@ -485,7 +491,7 @@ private:
     Activity *            activities;
     GLuint                id, charId, capacity, manipulator;
     selection_map         selection, savedSelection;
-    std::set<Tree_p >      selectionTrees, selectNextTime;
+    std::set<Tree_p >     selectionTrees, selectNextTime;
     bool                  wasSelected;
     QEvent *              event;
     QWidget *             focusWidget;

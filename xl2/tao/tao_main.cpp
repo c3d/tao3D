@@ -72,10 +72,14 @@ int main(int argc, char **argv)
                                  +stylesheet.canonicalFilePath());
     XL::MAIN = xlr;
     EnterGraphics(&xlr->context);
+    xlr->ParseOptions();
     if (user.exists())
-        xlr->file_names.push_back(+user.canonicalFilePath());
+        xlr->context_file_names.push_back(+user.canonicalFilePath());
     if (theme.exists())
-        xlr->file_names.push_back(+theme.canonicalFilePath());
+        xlr->context_file_names.push_back(+theme.canonicalFilePath());
+
+    xlr->LoadContextFiles();
+
     xlr->LoadFiles();
 
     // Create the windows for each file on the command line

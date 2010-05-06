@@ -48,7 +48,7 @@ XL_BEGIN
 
 Main *MAIN = NULL;
 
-SourceFile::SourceFile(text n, Tree *t, Symbols *s)
+SourceFile::SourceFile(text n, Tree_p t, Symbols *s)
 // ----------------------------------------------------------------------------
 //   Construct a source file given a name
 // ----------------------------------------------------------------------------
@@ -180,7 +180,7 @@ int Main::LoadFile(text file)
 //   Load an individual file
 // ----------------------------------------------------------------------------
 {
-    Tree *tree = NULL;
+    Tree_p tree = NULL;
     bool hadError = false;
     FILE *f;
 
@@ -310,7 +310,7 @@ int Main::Run()
         Symbols::symbols = sf.symbols;
 
         // Evaluate the given tree
-        Tree *result = sf.tree.tree;
+        Tree_p result = sf.tree.tree;
         try
         {
             result = sf.symbols->Run(sf.tree.tree);
@@ -358,8 +358,8 @@ int Main::Diff()
     file++;
     SourceFile &sf2 = files[*file];
 
-    Tree *t1 = sf1.tree.tree;
-    Tree *t2 = sf2.tree.tree;
+    Tree_p t1 = sf1.tree.tree;
+    Tree_p t2 = sf2.tree.tree;
 
     TreeDiff d(t1, t2);
     return d.Diff(std::cout);

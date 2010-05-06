@@ -183,7 +183,7 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
         ulong    tag;
         eval_fn  code;
         Info    *info;
-        Tree *   source;
+        Tree_p    source;
     };
     // If this assert fails, you changed struct tree and need to modify here
     XL_CASSERT(sizeof(LocalTree) == sizeof(Tree));
@@ -296,8 +296,8 @@ void Compiler::Reset()
 
 
 Function *Compiler::EnterBuiltin(text name,
-                                 Tree *to,
-                                 tree_list parms,
+                                 Tree_p to,
+                                 TreeList parms,
                                  eval_fn code)
 // ----------------------------------------------------------------------------
 //   Declare a built-in function
@@ -315,7 +315,7 @@ Function *Compiler::EnterBuiltin(text name,
         // Create the LLVM function
         std::vector<const Type *> parmTypes;
         parmTypes.push_back(treePtrTy); // First arg is self
-        for (tree_list::iterator p = parms.begin(); p != parms.end(); p++)
+        for (TreeList::iterator p = parms.begin(); p != parms.end(); p++)
             parmTypes.push_back(treePtrTy);
         FunctionType *fnTy = FunctionType::get(treePtrTy, parmTypes, false);
         result = Function::Create(fnTy, Function::ExternalLinkage,
@@ -436,7 +436,7 @@ Function *Compiler::ExternFunction(kstring name, void *address,
 }
 
 
-Value *Compiler::EnterGlobal(Name *name, Name **address)
+Value *Compiler::EnterGlobal(Name_p name, Name_p *address)
 // ----------------------------------------------------------------------------
 //   Enter a global variable in the symbol table
 // ----------------------------------------------------------------------------
@@ -452,7 +452,7 @@ Value *Compiler::EnterGlobal(Name *name, Name **address)
 }
 
 
-Value *Compiler::EnterConstant(Tree *constant)
+Value *Compiler::EnterConstant(Tree_p constant)
 // ----------------------------------------------------------------------------
 //   Enter a constant (i.e. an Integer, Real or Text) into global map
 // ----------------------------------------------------------------------------
@@ -471,14 +471,14 @@ Value *Compiler::EnterConstant(Tree *constant)
     GlobalValue *result = new GlobalVariable (*module, treePtrTy, isConstant,
                                               GlobalVariable::InternalLinkage,
                                               NULL, name);
-    Tree **address = Context::context->AddGlobal(constant);
+    Tree_p *address = Context::context->AddGlobal(constant);
     runtime->addGlobalMapping(result, address);
     globals[constant] = result;
     return result;
 }
 
 
-bool Compiler::IsKnown(Tree *tree)
+bool Compiler::IsKnown(Tree_p tree)
 // ----------------------------------------------------------------------------
 //    Test if global is known
 // ----------------------------------------------------------------------------
@@ -487,7 +487,7 @@ bool Compiler::IsKnown(Tree *tree)
 }
 
 
-Value *Compiler::Known(Tree *tree)
+Value *Compiler::Known(Tree_p tree)
 // ----------------------------------------------------------------------------
 //    Return the known global value of the tree if it exists
 // ----------------------------------------------------------------------------
@@ -499,7 +499,7 @@ Value *Compiler::Known(Tree *tree)
 }
 
 
-void Compiler::FreeResources(Tree *tree, GCAction &gc)
+void Compiler::FreeResources(Tree_p tree, GCAction &gc)
 // ----------------------------------------------------------------------------
 //   Free the LLVM resources associated to the tree, if any
 // ----------------------------------------------------------------------------
@@ -565,7 +565,7 @@ void Compiler::FreeResources(GCAction &gc)
     while (!deleted.empty())
     {
         deleted_set::iterator i = deleted.begin();
-        Tree *tree = *i;
+        Tree_p tree = *i;
         if (functions.count(tree) > 0)
         {
             Function *f = functions[tree];
@@ -595,7 +595,7 @@ void Compiler::FreeResources(GCAction &gc)
 // 
 // ============================================================================
 
-CompiledUnit::CompiledUnit(Compiler *comp, Tree *src, tree_list parms)
+CompiledUnit::CompiledUnit(Compiler *comp, Tree_p src, TreeList parms)
 // ----------------------------------------------------------------------------
 //   CompiledUnit constructor
 // ----------------------------------------------------------------------------
@@ -638,7 +638,7 @@ CompiledUnit::CompiledUnit(Compiler *comp, Tree *src, tree_list parms)
     storage[src] = result_storage;
 
     // Associate the value for the additional arguments (read-only, no alloca)
-    tree_list::iterator parm;
+    TreeList::iterator parm;
     ulong parmsCount = 0;
     for (parm = parms.begin(); parm != parms.end(); parm++)
     {
@@ -695,7 +695,7 @@ eval_fn CompiledUnit::Finalize()
 }
 
 
-Value *CompiledUnit::NeedStorage(Tree *tree)
+Value *CompiledUnit::NeedStorage(Tree_p tree)
 // ----------------------------------------------------------------------------
 //    Allocate storage for a given tree
 // ----------------------------------------------------------------------------
@@ -720,7 +720,7 @@ Value *CompiledUnit::NeedStorage(Tree *tree)
 }
 
 
-bool CompiledUnit::IsKnown(Tree *tree, uint which)
+bool CompiledUnit::IsKnown(Tree_p tree, uint which)
 // ----------------------------------------------------------------------------
 //   Check if the tree has a known local or global value
 // ----------------------------------------------------------------------------
@@ -736,7 +736,7 @@ bool CompiledUnit::IsKnown(Tree *tree, uint which)
 }
 
 
-Value *CompiledUnit::Known(Tree *tree, uint which)
+Value *CompiledUnit::Known(Tree_p tree, uint which)
 // ----------------------------------------------------------------------------
 //   Return the known local or global value if any
 // ----------------------------------------------------------------------------
@@ -768,7 +768,7 @@ Value *CompiledUnit::Known(Tree *tree, uint which)
 }
 
 
-Value *CompiledUnit::ConstantInteger(Integer *what)
+Value *CompiledUnit::ConstantInteger(Integer_p what)
 // ----------------------------------------------------------------------------
 //    Generate an Integer tree
 // ----------------------------------------------------------------------------
@@ -785,7 +785,7 @@ Value *CompiledUnit::ConstantInteger(Integer *what)
 }
 
 
-Value *CompiledUnit::ConstantReal(Real *what)
+Value *CompiledUnit::ConstantReal(Real_p what)
 // ----------------------------------------------------------------------------
 //    Generate a Real tree 
 // ----------------------------------------------------------------------------
@@ -802,7 +802,7 @@ Value *CompiledUnit::ConstantReal(Real *what)
 }
 
 
-Value *CompiledUnit::ConstantText(Text *what)
+Value *CompiledUnit::ConstantText(Text_p what)
 // ----------------------------------------------------------------------------
 //    Generate a Text tree
 // ----------------------------------------------------------------------------
@@ -819,7 +819,7 @@ Value *CompiledUnit::ConstantText(Text *what)
 }
 
 
-Value *CompiledUnit::ConstantTree(Tree *what)
+Value *CompiledUnit::ConstantTree(Tree_p what)
 // ----------------------------------------------------------------------------
 //    Generate a constant tree
 // ----------------------------------------------------------------------------
@@ -836,7 +836,7 @@ Value *CompiledUnit::ConstantTree(Tree *what)
 }
 
 
-Value *CompiledUnit::NeedLazy(Tree *subexpr)
+Value *CompiledUnit::NeedLazy(Tree_p subexpr)
 // ----------------------------------------------------------------------------
 //   Record that we need a 'computed' flag for lazy evaluation of the subexpr
 // ----------------------------------------------------------------------------
@@ -857,7 +857,7 @@ Value *CompiledUnit::NeedLazy(Tree *subexpr)
 }
 
 
-llvm::Value *CompiledUnit::MarkComputed(Tree *subexpr, Value *val)
+llvm::Value *CompiledUnit::MarkComputed(Tree_p subexpr, Value *val)
 // ----------------------------------------------------------------------------
 //   Record that we computed that particular subexpression
 // ----------------------------------------------------------------------------
@@ -879,7 +879,7 @@ llvm::Value *CompiledUnit::MarkComputed(Tree *subexpr, Value *val)
 }
 
 
-BasicBlock *CompiledUnit::BeginLazy(Tree *subexpr)
+BasicBlock *CompiledUnit::BeginLazy(Tree_p subexpr)
 // ----------------------------------------------------------------------------
 //    Begin lazy evaluation of a block of code
 // ----------------------------------------------------------------------------
@@ -906,7 +906,7 @@ BasicBlock *CompiledUnit::BeginLazy(Tree *subexpr)
 }
 
 
-void CompiledUnit::EndLazy(Tree *subexpr,
+void CompiledUnit::EndLazy(Tree_p subexpr,
                            llvm::BasicBlock *skip)
 // ----------------------------------------------------------------------------
 //   Finish lazy evaluation of a block of code
@@ -918,7 +918,7 @@ void CompiledUnit::EndLazy(Tree *subexpr,
 }
 
 
-llvm::Value *CompiledUnit::Invoke(Tree *subexpr, Tree *callee, tree_list args)
+llvm::Value *CompiledUnit::Invoke(Tree_p subexpr, Tree_p callee, TreeList args)
 // ----------------------------------------------------------------------------
 //    Generate a call with the given arguments
 // ----------------------------------------------------------------------------
@@ -944,10 +944,10 @@ llvm::Value *CompiledUnit::Invoke(Tree *subexpr, Tree *callee, tree_list args)
     Value *defaultVal = ConstantTree(subexpr);
     argV.push_back(defaultVal);
 
-    tree_list::iterator a;
+    TreeList::iterator a;
     for (a = args.begin(); a != args.end(); a++)
     {
-        Tree *arg = *a;
+        Tree_p arg = *a;
         Value *value = Known(arg);
         if (!value)
             value = ConstantTree(arg);
@@ -974,7 +974,7 @@ BasicBlock *CompiledUnit::NeedTest()
 }
 
 
-Value *CompiledUnit::Left(Tree *tree)
+Value *CompiledUnit::Left(Tree_p tree)
 // ----------------------------------------------------------------------------
 //    Return the value for the left of the current tree
 // ----------------------------------------------------------------------------
@@ -983,7 +983,7 @@ Value *CompiledUnit::Left(Tree *tree)
     assert (tree->Kind() >= BLOCK);
 
     // Check if we already know the result, if so just return it
-    Prefix *prefix = (Prefix *) tree;
+    Prefix_p prefix = (Prefix_p) tree;
     Value *result = Known(prefix->left);
     if (result)
         return result;
@@ -1011,7 +1011,7 @@ Value *CompiledUnit::Left(Tree *tree)
 }
 
 
-Value *CompiledUnit::Right(Tree *tree)
+Value *CompiledUnit::Right(Tree_p tree)
 // ----------------------------------------------------------------------------
 //    Return the value for the right of the current tree
 // ----------------------------------------------------------------------------
@@ -1020,7 +1020,7 @@ Value *CompiledUnit::Right(Tree *tree)
     assert(tree->Kind() > BLOCK);
 
     // Check if we already known the result, if so just return it
-    Prefix *prefix = (Prefix *) tree;
+    Prefix_p prefix = (Prefix_p) tree;
     Value *result = Known(prefix->right);
     if (result)
         return result;
@@ -1047,7 +1047,7 @@ Value *CompiledUnit::Right(Tree *tree)
 }
 
 
-Value *CompiledUnit::Copy(Tree *source, Tree *dest, bool markDone)
+Value *CompiledUnit::Copy(Tree_p source, Tree_p dest, bool markDone)
 // ----------------------------------------------------------------------------
 //    Copy data from source to destination
 // ----------------------------------------------------------------------------
@@ -1067,7 +1067,7 @@ Value *CompiledUnit::Copy(Tree *source, Tree *dest, bool markDone)
 }
 
 
-Value *CompiledUnit::CallEvaluate(Tree *tree)
+Value *CompiledUnit::CallEvaluate(Tree_p tree)
 // ----------------------------------------------------------------------------
 //   Call the evaluate function for the given tree
 // ----------------------------------------------------------------------------
@@ -1082,7 +1082,7 @@ Value *CompiledUnit::CallEvaluate(Tree *tree)
 }
 
 
-Value *CompiledUnit::CallNewBlock(Block *block)
+Value *CompiledUnit::CallNewBlock(Block_p block)
 // ----------------------------------------------------------------------------
 //    Compile code generating the children of the block
 // ----------------------------------------------------------------------------
@@ -1096,7 +1096,7 @@ Value *CompiledUnit::CallNewBlock(Block *block)
 }
 
 
-Value *CompiledUnit::CallNewPrefix(Prefix *prefix)
+Value *CompiledUnit::CallNewPrefix(Prefix_p prefix)
 // ----------------------------------------------------------------------------
 //    Compile code generating the children of a prefix
 // ----------------------------------------------------------------------------
@@ -1111,7 +1111,7 @@ Value *CompiledUnit::CallNewPrefix(Prefix *prefix)
 }
 
 
-Value *CompiledUnit::CallNewPostfix(Postfix *postfix)
+Value *CompiledUnit::CallNewPostfix(Postfix_p postfix)
 // ----------------------------------------------------------------------------
 //    Compile code generating the children of a postfix
 // ----------------------------------------------------------------------------
@@ -1126,7 +1126,7 @@ Value *CompiledUnit::CallNewPostfix(Postfix *postfix)
 }
 
 
-Value *CompiledUnit::CallNewInfix(Infix *infix)
+Value *CompiledUnit::CallNewInfix(Infix_p infix)
 // ----------------------------------------------------------------------------
 //    Compile code generating the children of an infix
 // ----------------------------------------------------------------------------
@@ -1141,21 +1141,23 @@ Value *CompiledUnit::CallNewInfix(Infix *infix)
 }
 
 
-Value *CompiledUnit::CreateClosure(Tree *callee, tree_list &args)
+Value *CompiledUnit::CreateClosure(Tree_p callee, TreeList &args)
 // ----------------------------------------------------------------------------
 //   Create a closure for an expression we want to evaluate later
 // ----------------------------------------------------------------------------
 {
     std::vector<Value *> argV;
-    Value *calleeVal = Known(callee); assert(calleeVal);
+    Value *calleeVal = Known(callee);
+    if (!calleeVal)
+        return NULL;
     Value *countVal = ConstantInt::get(LLVM_INTTYPE(uint), args.size());
-    tree_list::iterator a;
+    TreeList::iterator a;
 
     argV.push_back(calleeVal);
     argV.push_back(countVal);
     for (a = args.begin(); a != args.end(); a++)
     {
-        Tree *value = *a;
+        Tree_p value = *a;
         Value *llvmValue = Known(value); assert(llvmValue);
         argV.push_back(llvmValue);
     }
@@ -1172,7 +1174,7 @@ Value *CompiledUnit::CreateClosure(Tree *callee, tree_list &args)
 }
 
 
-Value *CompiledUnit::CallClosure(Tree *callee, uint ntrees)
+Value *CompiledUnit::CallClosure(Tree_p callee, uint ntrees)
 // ----------------------------------------------------------------------------
 //   Call a closure function with the given n trees
 // ----------------------------------------------------------------------------
@@ -1220,7 +1222,7 @@ Value *CompiledUnit::CallClosure(Tree *callee, uint ntrees)
 }
 
 
-Value *CompiledUnit::CallTypeError(Tree *what)
+Value *CompiledUnit::CallTypeError(Tree_p what)
 // ----------------------------------------------------------------------------
 //   Report a type error trying to evaluate some argument
 // ----------------------------------------------------------------------------
@@ -1232,7 +1234,7 @@ Value *CompiledUnit::CallTypeError(Tree *what)
 }
 
 
-BasicBlock *CompiledUnit::TagTest(Tree *tree, ulong tagValue)
+BasicBlock *CompiledUnit::TagTest(Tree_p tree, ulong tagValue)
 // ----------------------------------------------------------------------------
 //   Test if the input tree is an integer tree with the given value
 // ----------------------------------------------------------------------------
@@ -1262,7 +1264,7 @@ BasicBlock *CompiledUnit::TagTest(Tree *tree, ulong tagValue)
 }
 
 
-BasicBlock *CompiledUnit::IntegerTest(Tree *tree, longlong value)
+BasicBlock *CompiledUnit::IntegerTest(Tree_p tree, longlong value)
 // ----------------------------------------------------------------------------
 //   Test if the input tree is an integer tree with the given value
 // ----------------------------------------------------------------------------
@@ -1294,7 +1296,7 @@ BasicBlock *CompiledUnit::IntegerTest(Tree *tree, longlong value)
 }
 
 
-BasicBlock *CompiledUnit::RealTest(Tree *tree, double value)
+BasicBlock *CompiledUnit::RealTest(Tree_p tree, double value)
 // ----------------------------------------------------------------------------
 //   Test if the input tree is a real tree with the given value
 // ----------------------------------------------------------------------------
@@ -1326,7 +1328,7 @@ BasicBlock *CompiledUnit::RealTest(Tree *tree, double value)
 }
 
 
-BasicBlock *CompiledUnit::TextTest(Tree *tree, text value)
+BasicBlock *CompiledUnit::TextTest(Tree_p tree, text value)
 // ----------------------------------------------------------------------------
 //   Test if the input tree is a text tree with the given value
 // ----------------------------------------------------------------------------
@@ -1359,7 +1361,7 @@ BasicBlock *CompiledUnit::TextTest(Tree *tree, text value)
 }
 
 
-BasicBlock *CompiledUnit::ShapeTest(Tree *left, Tree *right)
+BasicBlock *CompiledUnit::ShapeTest(Tree_p left, Tree_p right)
 // ----------------------------------------------------------------------------
 //   Test if the two given trees have the same shape
 // ----------------------------------------------------------------------------
@@ -1384,7 +1386,7 @@ BasicBlock *CompiledUnit::ShapeTest(Tree *left, Tree *right)
 }
 
 
-BasicBlock *CompiledUnit::InfixMatchTest(Tree *actual, Infix *reference)
+BasicBlock *CompiledUnit::InfixMatchTest(Tree_p actual, Infix_p reference)
 // ----------------------------------------------------------------------------
 //   Test if the actual tree has the same shape as the given infix
 // ----------------------------------------------------------------------------
@@ -1418,7 +1420,7 @@ BasicBlock *CompiledUnit::InfixMatchTest(Tree *actual, Infix *reference)
 }
 
 
-BasicBlock *CompiledUnit::TypeTest(Tree *value, Tree *type)
+BasicBlock *CompiledUnit::TypeTest(Tree_p value, Tree_p type)
 // ----------------------------------------------------------------------------
 //   Test if the given value has the given type
 // ----------------------------------------------------------------------------
@@ -1457,7 +1459,7 @@ BasicBlock *CompiledUnit::TypeTest(Tree *value, Tree *type)
 //   and decide at the end to connect it or not. Let LLVM optimize branches
 //   and dead code away...
 
-ExpressionReduction::ExpressionReduction(CompiledUnit &u, Tree *src)
+ExpressionReduction::ExpressionReduction(CompiledUnit &u, Tree_p src)
 // ----------------------------------------------------------------------------
 //    Snapshot current basic blocks in the compiled unit
 // ----------------------------------------------------------------------------

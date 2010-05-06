@@ -13,7 +13,7 @@
 # ******************************************************************************
 TEMPLATE = app
 TARGET = Tao
-VERSION = "0.1"
+VERSION = "0.0.3"
 DEPENDPATH += . \
     ../xlr
 INCLUDEPATH += . \
@@ -24,8 +24,6 @@ QT += webkit \
     svg \
     phonon
 
-# CONFIG += release
-CONFIG += console
 QMAKE_CXXFLAGS_RELEASE += -g
 
 # Tell the XLR portion that we are building for Tao
@@ -38,6 +36,8 @@ macx {
     QMAKE_INFO_PLIST = Info.plist
 }
 win32:DEFINES += CONFIG_MINGW
+# For debug
+# win32:CONFIG += console
 linux-g++:DEFINES += CONFIG_LINUX
 
 # Input
@@ -56,6 +56,8 @@ HEADERS += widget.h \
     text_drawing.h \
     shapes3d.h \
     path3d.h \
+    binpack.h \
+    glyph_cache.h \
     attributes.h \
     transforms.h \
     layout.h \
@@ -71,6 +73,7 @@ HEADERS += widget.h \
     repository.h \
     git_backend.h \
     tao_utf8.h \
+    tao_tree.h \
     ../xlr/utf8.h \
     ../xlr/base.h \
     ../xlr/options.h \
@@ -119,6 +122,8 @@ SOURCES += tao_main.cpp \
     text_drawing.cpp \
     shapes3d.cpp \
     path3d.cpp \
+    binpack.cpp \
+    glyph_cache.cpp \
     attributes.cpp \
     transforms.cpp \
     layout.cpp \

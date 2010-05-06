@@ -53,10 +53,28 @@ struct Action;                                  // Action on trees
 struct Info;                                    // Information in trees
 struct Symbols;                                 // Symbol table
 struct Sha1;                                    // Hash used for id-ing trees
-typedef ulong tree_position;                    // Position in context
-typedef std::vector<Tree *> tree_list;          // A list of trees
-typedef Tree *(*eval_fn) (Tree *);              // Compiled evaluation code
 
+
+
+// ============================================================================
+// 
+//    Pointer and structure types
+// 
+// ============================================================================
+
+typedef Tree            *Tree_p;
+typedef Integer         *Integer_p;
+typedef Real            *Real_p;
+typedef Text            *Text_p;
+typedef Name            *Name_p;
+typedef Prefix          *Prefix_p;
+typedef Postfix         *Postfix_p;
+typedef Infix           *Infix_p;
+typedef Block           *Block_p;
+
+typedef ulong tree_position;                    // Position in context
+typedef std::vector<Tree_p> TreeList;           // A list of trees
+typedef Tree_p (*eval_fn) (Tree_p);             // Compiled evaluation code
 
 
 // ============================================================================
@@ -70,14 +88,15 @@ enum kind
 //   The kinds of tree that compose an XL parse tree
 // ----------------------------------------------------------------------------
 {
-    KIND_FIRST,
-    INTEGER = KIND_FIRST, REAL, TEXT, NAME,     // Leaf nodes
-    KIND_LEAF_FIRST = INTEGER,
-    KIND_LEAF_LAST = NAME,
+    INTEGER, REAL, TEXT, NAME,                  // Leaf nodes
     BLOCK, PREFIX, POSTFIX, INFIX,              // Non-leaf nodes
-    KIND_NLEAF_FIRST = BLOCK,
-    KIND_NLEAF_LAST = INFIX,
-    KIND_LAST = KIND_NLEAF_LAST
+
+    KIND_FIRST          = INTEGER,
+    KIND_LAST           = INFIX,
+    KIND_LEAF_FIRST     = INTEGER,
+    KIND_LEAF_LAST      = NAME,
+    KIND_NLEAF_FIRST    = BLOCK,
+    KIND_NLEAF_LAST     = INFIX
 };
 
 
@@ -99,13 +118,13 @@ struct Tree
 //   The base class for all XL trees
 // ----------------------------------------------------------------------------
 {
-    enum { NOWHERE = ~0UL };
     enum { KINDBITS = 3, KINDMASK=7 };
+    enum { NOWHERE = ~0UL };
 
     // Constructor and destructor
     Tree (kind k, tree_position pos = NOWHERE):
         tag((pos<<KINDBITS) | k), code(NULL), info(NULL), source(NULL) {}
-    Tree(kind k, Tree *from):
+    Tree(kind k, Tree_p from):
         tag(from->tag), code(from->code),
         info(from->info ? from->info->Copy() : NULL), source(from)
     {
@@ -114,12 +133,12 @@ struct Tree
     ~Tree();
 
     // Perform recursive actions on a tree
-    Tree *              Do(Action *action);
-    Tree *              Do(Action &action)    { return Do(&action); }
+    Tree_p               Do(Action *action);
+    Tree_p               Do(Action &action)    { return Do(&action); }
 
     // Attributes
     kind                Kind()                { return kind(tag & KINDMASK); }
-    tree_position       Position()            { return tag>>KINDBITS; }
+    tree_position       Position()            { return (long) tag>>KINDBITS; }
     bool                IsLeaf()              { return Kind() <= NAME; }
     bool                IsConstant()          { return Kind() <= TEXT; }
 
@@ -145,14 +164,14 @@ struct Tree
 
 
     // Safe cast to an appropriate subclass
-    Integer *           AsInteger();
-    Real *              AsReal();
-    Text *              AsText();
-    Name *              AsName();
-    Block *             AsBlock();
-    Infix *             AsInfix();
-    Prefix *            AsPrefix();
-    Postfix *           AsPostfix();
+    Integer_p           AsInteger();
+    Real_p              AsReal();
+    Text_p              AsText();
+    Name_p              AsName();
+    Block_p             AsBlock();
+    Infix_p             AsInfix();
+    Prefix_p            AsPrefix();
+    Postfix_p           AsPostfix();
 
     // Conversion to text
                         operator text();
@@ -164,7 +183,7 @@ public:
     ulong       tag;                            // Position + kind
     eval_fn     code;                           // Compiled code
     Info *      info;                           // Information for tree
-    Tree *      source;                         // Source for the tree
+    Tree_p      source;                         // Source for the tree
 
 private:
     Tree (const Tree &o):
@@ -179,17 +198,17 @@ struct Action
 {
     Action () {}
     virtual ~Action() {}
-    virtual Tree *Do (Tree *what) = 0;
+    virtual Tree_p Do (Tree_p what) = 0;
 
     // Specialization for the canonical nodes, default is to run them
-    virtual Tree *DoInteger(Integer *what);
-    virtual Tree *DoReal(Real *what);
-    virtual Tree *DoText(Text *what);
-    virtual Tree *DoName(Name *what);
-    virtual Tree *DoPrefix(Prefix *what);
-    virtual Tree *DoPostfix(Postfix *what);
-    virtual Tree *DoInfix(Infix *what);
-    virtual Tree *DoBlock(Block *what);
+    virtual Tree_p DoInteger(Integer_p what);
+    virtual Tree_p DoReal(Real_p what);
+    virtual Tree_p DoText(Text_p what);
+    virtual Tree_p DoName(Name_p what);
+    virtual Tree_p DoPrefix(Prefix_p what);
+    virtual Tree_p DoPostfix(Postfix_p what);
+    virtual Tree_p DoInfix(Infix_p what);
+    virtual Tree_p DoBlock(Block_p what);
 };
 
 
@@ -303,7 +322,7 @@ template <class I> inline bool Tree::Purge()
 
 template <class I> inline I* Tree::Remove()
 // ----------------------------------------------------------------------------
-//   Find if we have an information of the right type in 'info' and remove it from the list
+//   Find information and remove it if it exists
 // ----------------------------------------------------------------------------
 {
     Info *prev = info;
@@ -320,16 +339,16 @@ template <class I> inline I* Tree::Remove()
     return NULL;
 }
 
-template <class I> inline I* Tree::Remove(I *an_info)
+template <class I> inline I* Tree::Remove(I *toFind)
 // ----------------------------------------------------------------------------
-//   Find if we have an information of the right type in 'info' and remove it from the list
+//   Find information matching input and remove it if it exists
 // ----------------------------------------------------------------------------
 {
     Info *prev = info;
     for (Info *i = info; i; i = i->next)
     {
         I *ic = dynamic_cast<I *> (i);
-        if ( ic == an_info)
+        if (ic == toFind)
         {
             if (prev == info)
                 info = info->next;
@@ -358,7 +377,7 @@ struct Integer : Tree
 {
     Integer(longlong i = 0, tree_position pos = NOWHERE):
         Tree(INTEGER, pos), value(i) {}
-    Integer(Integer *i): Tree(INTEGER, i), value(i->value) {}
+    Integer(Integer_p i): Tree(INTEGER, i), value(i->value) {}
     longlong            value;
     operator longlong()         { return value; }
 };
@@ -371,7 +390,7 @@ struct Real : Tree
 {
     Real(double d = 0.0, tree_position pos = NOWHERE):
         Tree(REAL, pos), value(d) {}
-    Real(Real *r): Tree(REAL, r), value(r->value) {}
+    Real(Real_p r): Tree(REAL, r), value(r->value) {}
     double              value;
     operator double()           { return value; }
 };
@@ -384,7 +403,7 @@ struct Text : Tree
 {
     Text(text t, text open="\"", text close="\"", tree_position pos=NOWHERE):
         Tree(TEXT, pos), value(t), opening(open), closing(close) {}
-    Text(Text *t):
+    Text(Text_p t):
         Tree(TEXT, t),
         value(t->value), opening(t->opening), closing(t->closing) {}
     text                value;
@@ -401,7 +420,7 @@ struct Name : Tree
 {
     Name(text n, tree_position pos = NOWHERE):
         Tree(NAME, pos), value(n) {}
-    Name(Name *n):
+    Name(Name_p n):
         Tree(NAME, n), value(n->value) {}
     text                value;
     operator bool();
@@ -420,11 +439,11 @@ struct Block : Tree
 //   A block, such as (X), {X}, [X] or indented block
 // ----------------------------------------------------------------------------
 {
-    Block(Tree *c, text open, text close, tree_position pos = NOWHERE):
+    Block(Tree_p c, text open, text close, tree_position pos = NOWHERE):
         Tree(BLOCK, pos), child(c), opening(open), closing(close) {}
-    Block(Block *b, Tree *ch):
+    Block(Block_p b, Tree_p ch):
         Tree(BLOCK, b), child(ch), opening(b->opening), closing(b->closing) {}
-    Tree *              child;
+    Tree_p              child;
     text                opening, closing;
     static text         indent, unindent;
 };
@@ -435,12 +454,12 @@ struct Prefix : Tree
 //   A prefix operator, e.g. sin X, +3
 // ----------------------------------------------------------------------------
 {
-    Prefix(Tree *l, Tree *r, tree_position pos = NOWHERE):
+    Prefix(Tree_p l, Tree_p r, tree_position pos = NOWHERE):
         Tree(PREFIX, pos), left(l), right(r) {}
-    Prefix(Prefix *p, Tree *l, Tree *r):
+    Prefix(Prefix_p p, Tree_p l, Tree_p r):
         Tree(PREFIX, p), left(l), right(r) {}
-    Tree *              left;
-    Tree *              right;
+    Tree_p               left;
+    Tree_p               right;
 };
 
 
@@ -449,12 +468,12 @@ struct Postfix : Tree
 //   A postfix operator, e.g. 3!
 // ----------------------------------------------------------------------------
 {
-    Postfix(Tree *l, Tree *r, tree_position pos = NOWHERE):
+    Postfix(Tree_p l, Tree_p r, tree_position pos = NOWHERE):
         Tree(POSTFIX, pos), left(l), right(r) {}
-    Postfix(Postfix *p, Tree *l, Tree *r):
+    Postfix(Postfix_p p, Tree_p l, Tree_p r):
         Tree(POSTFIX, p), left(l), right(r) {}
-    Tree *              left;
-    Tree *              right;
+    Tree_p              left;
+    Tree_p              right;
 };
 
 
@@ -463,12 +482,12 @@ struct Infix : Tree
 //   Infix operators, e.g. A+B, A and B, A,B,C,D,E
 // ----------------------------------------------------------------------------
 {
-    Infix(text n, Tree *l, Tree *r, tree_position pos = NOWHERE):
+    Infix(text n, Tree_p l, Tree_p r, tree_position pos = NOWHERE):
         Tree(INFIX, pos), left(l), right(r), name(n) {}
-    Infix(Infix *i, Tree *l, Tree *r):
+    Infix(Infix_p i, Tree_p l, Tree_p r):
         Tree(INFIX, i), left(l), right(r), name(i->name) {}
-    Tree *              left;
-    Tree *              right;
+    Tree_p              left;
+    Tree_p              right;
     text                name;
 };
 
@@ -480,90 +499,90 @@ struct Infix : Tree
 //
 // ============================================================================
 
-inline Integer *Tree::AsInteger()
+inline Integer_p Tree::AsInteger()
 // ----------------------------------------------------------------------------
 //    Return a pointer to an Integer or NULL
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == INTEGER)
-        return (Integer *) this;
+        return (Integer_p) this;
     return NULL;
 }
 
 
-inline Real *Tree::AsReal()
+inline Real_p Tree::AsReal()
 // ----------------------------------------------------------------------------
 //    Return a pointer to an Real or NULL
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == REAL)
-        return (Real *) this;
+        return (Real_p) this;
     return NULL;
 }
 
 
-inline Text *Tree::AsText()
+inline Text_p Tree::AsText()
 // ----------------------------------------------------------------------------
 //    Return a pointer to an Text or NULL
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == TEXT)
-        return (Text *) this;
+        return (Text_p) this;
     return NULL;
 }
 
 
-inline Name *Tree::AsName()
+inline Name_p Tree::AsName()
 // ----------------------------------------------------------------------------
 //    Return a pointer to an Name or NULL
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == NAME)
-        return (Name *) this;
+        return (Name_p) this;
     return NULL;
 }
 
 
-inline Block *Tree::AsBlock()
+inline Block_p Tree::AsBlock()
 // ----------------------------------------------------------------------------
 //    Return a pointer to an Block or NULL
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == BLOCK)
-        return (Block *) this;
+        return (Block_p) this;
     return NULL;
 }
 
 
-inline Infix *Tree::AsInfix()
+inline Infix_p Tree::AsInfix()
 // ----------------------------------------------------------------------------
 //    Return a pointer to an Infix or NULL
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == INFIX)
-        return (Infix *) this;
+        return (Infix_p) this;
     return NULL;
 }
 
 
-inline Prefix *Tree::AsPrefix()
+inline Prefix_p Tree::AsPrefix()
 // ----------------------------------------------------------------------------
 //    Return a pointer to an Prefix or NULL
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == PREFIX)
-        return (Prefix *) this;
+        return (Prefix_p) this;
     return NULL;
 }
 
 
-inline Postfix *Tree::AsPostfix()
+inline Postfix_p Tree::AsPostfix()
 // ----------------------------------------------------------------------------
 //    Return a pointer to an Postfix or NULL
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == POSTFIX)
-        return (Postfix *) this;
+        return (Postfix_p) this;
     return NULL;
 }
 
@@ -580,13 +599,13 @@ struct TreeRoot
 //    A tree that shouldn't be garbage collected until the root dies
 // ----------------------------------------------------------------------------
 {
-    TreeRoot(Tree *t = NULL);
+    TreeRoot(Tree_p t = NULL);
     TreeRoot(const TreeRoot &o);
     ~TreeRoot();
-    operator Tree *(void) { return tree; }
+    operator Tree_p (void) { return tree; }
     bool operator< (const TreeRoot &o) const { return tree < o.tree; }
 public:
-    Tree *      tree;
+    Tree_p       tree;
 };
 
 
@@ -596,8 +615,8 @@ struct IntegerRoot : TreeRoot
 // ----------------------------------------------------------------------------
 {
     IntegerRoot(Integer &r): TreeRoot(&r) {}
-    Integer *operator&()        { return (Integer *) tree; }
-    operator longlong()         { return ((Integer *) tree)->value; }
+    Integer_p operator&()       { return (Integer_p) tree; }
+    operator longlong()         { return ((Integer_p) tree)->value; }
 };
 
 
@@ -607,8 +626,8 @@ struct RealRoot : TreeRoot
 // ----------------------------------------------------------------------------
 {
     RealRoot(Real &r): TreeRoot(&r) {}
-    Real *operator&()           { return (Real *) tree; }
-    operator double()           { return ((Real *) tree)->value; }
+    Real_p operator&()          { return (Real_p) tree; }
+    operator double()           { return ((Real_p) tree)->value; }
 };
 
 
@@ -617,9 +636,9 @@ struct TextRoot : TreeRoot
 //   Looks and behaves like a text_p, but keeps the value around
 // ----------------------------------------------------------------------------
 {
-    TextRoot(Text *t): TreeRoot(t) {}
-    operator Text *()           { return (Text *) tree; }
-    text &      Value()         { return ((Text *) tree)->value; }
+    TextRoot(Text_p t): TreeRoot(t) {}
+    operator Text_p ()          { return (Text_p) tree; }
+    text &      Value()         { return ((Text_p) tree)->value; }
 };
 
 
@@ -643,56 +662,57 @@ template <typename mode> struct TreeCloneTemplate : Action
     TreeCloneTemplate() {}
     virtual ~TreeCloneTemplate() {}
 
-    Tree *DoInteger(Integer *what)
+    Tree_p DoInteger(Integer_p what)
     {
         return new Integer(what->value, what->Position());
     }
-    Tree *DoReal(Real *what)
+    Tree_p DoReal(Real_p what)
     {
         return new Real(what->value, what->Position());
 
     }
-    Tree *DoText(Text *what)
+    Tree_p DoText(Text_p what)
     {
         return new Text(what->value, what->opening, what->closing,
                         what->Position());
     }
-    Tree *DoName(Name *what)
+    Tree_p DoName(Name_p what)
     {
         return new Name(what->value, what->Position());
     }
 
-    Tree *DoBlock(Block *what)
+    Tree_p DoBlock(Block_p what)
     {
         return new Block(Clone(what->child), what->opening, what->closing,
                          what->Position());
     }
-    Tree *DoInfix(Infix *what)
+    Tree_p DoInfix(Infix_p what)
     {
         return new Infix (what->name, Clone(what->left), Clone(what->right),
                           what->Position());
     }
-    Tree *DoPrefix(Prefix *what)
+    Tree_p DoPrefix(Prefix_p what)
     {
         return new Prefix(Clone(what->left), Clone(what->right),
                           what->Position());
     }
-    Tree *DoPostfix(Postfix *what)
+    Tree_p DoPostfix(Postfix_p what)
     {
         return new Postfix(Clone(what->left), Clone(what->right),
                            what->Position());
     }
-    Tree *Do(Tree *what)
+    Tree_p Do(Tree_p what)
     {
         return what;            // ??? Should not happen
     }
 protected:
     // Default is to do a deep copy
-    Tree * Clone(Tree *t) { return t->Do(this); }
+    Tree_p  Clone(Tree_p t) { return t->Do(this); }
 };
 
 
-template<> inline Tree *TreeCloneTemplate<ShallowCopyCloneMode>::Clone(Tree *t)
+template<> inline
+Tree_p TreeCloneTemplate<ShallowCopyCloneMode>::Clone(Tree_p t)
 // ----------------------------------------------------------------------------
 //   Specialization for the shallow copy clone
 // ----------------------------------------------------------------------------
@@ -701,7 +721,8 @@ template<> inline Tree *TreeCloneTemplate<ShallowCopyCloneMode>::Clone(Tree *t)
 }
 
 
-template<> inline Tree *TreeCloneTemplate<NodeOnlyCloneMode>::Clone(Tree *)
+template<> inline
+Tree_p TreeCloneTemplate<NodeOnlyCloneMode>::Clone(Tree_p)
 // ----------------------------------------------------------------------------
 //   Specialization for the node-only clone
 // ----------------------------------------------------------------------------
@@ -737,12 +758,12 @@ template <CopyMode mode> struct TreeCopyTemplate : Action
 //   Copy a tree into another tree. Node values are copied, infos are not.
 // ----------------------------------------------------------------------------
 {
-    TreeCopyTemplate(Tree *dest): dest(dest) {}
+    TreeCopyTemplate(Tree_p dest): dest(dest) {}
     virtual ~TreeCopyTemplate() {}
 
-    Tree *DoInteger(Integer *what)
+    Tree_p DoInteger(Integer_p what)
     {
-        if (Integer *it = dest->AsInteger())
+        if (Integer_p it = dest->AsInteger())
         {
             it->value = what->value;
             it->tag = ((what->Position()<<Tree::KINDBITS) | it->Kind());
@@ -750,9 +771,9 @@ template <CopyMode mode> struct TreeCopyTemplate : Action
         }
         return NULL;
     }
-    Tree *DoReal(Real *what)
+    Tree_p DoReal(Real_p what)
     {
-        if (Real *rt = dest->AsReal())
+        if (Real_p rt = dest->AsReal())
         {
             rt->value = what->value;
             rt->tag = ((what->Position()<<Tree::KINDBITS) | rt->Kind());
@@ -760,9 +781,9 @@ template <CopyMode mode> struct TreeCopyTemplate : Action
         }
         return NULL;
     }
-    Tree *DoText(Text *what)
+    Tree_p DoText(Text_p what)
     {
-        if (Text *tt = dest->AsText())
+        if (Text_p tt = dest->AsText())
         {
             tt->value = what->value;
             tt->tag = ((what->Position()<<Tree::KINDBITS) | tt->Kind());
@@ -770,9 +791,9 @@ template <CopyMode mode> struct TreeCopyTemplate : Action
         }
         return NULL;
     }
-    Tree *DoName(Name *what)
+    Tree_p DoName(Name_p what)
     {
-        if (Name *nt = dest->AsName())
+        if (Name_p nt = dest->AsName())
         {
             nt->value = what->value;
             nt->tag = ((what->Position()<<Tree::KINDBITS) | nt->Kind());
@@ -781,9 +802,9 @@ template <CopyMode mode> struct TreeCopyTemplate : Action
         return NULL;
     }
 
-    Tree *DoBlock(Block *what)
+    Tree_p DoBlock(Block_p what)
     {
-        if (Block *bt = dest->AsBlock())
+        if (Block_p bt = dest->AsBlock())
         {
             bt->opening = what->opening;
             bt->closing = what->closing;
@@ -791,7 +812,7 @@ template <CopyMode mode> struct TreeCopyTemplate : Action
             if (mode == CM_RECURSIVE)
             {
                 dest = bt->child;
-                Tree * br = what->child->Do(this);
+                Tree_p  br = what->child->Do(this);
                 dest = bt;
                 return br;
             }
@@ -799,21 +820,21 @@ template <CopyMode mode> struct TreeCopyTemplate : Action
         }
         return NULL;
     }
-    Tree *DoInfix(Infix *what)
+    Tree_p DoInfix(Infix_p what)
     {
-        if (Infix *it = dest->AsInfix())
+        if (Infix_p it = dest->AsInfix())
         {
             it->name = what->name;
             it->tag = ((what->Position()<<Tree::KINDBITS) | it->Kind());
             if (mode == CM_RECURSIVE)
             {
                 dest = it->left;
-                Tree *lr = what->left->Do(this);
+                Tree_p lr = what->left->Do(this);
                 dest = it;
                 if (!lr)
                     return NULL;
                 dest = it->right;
-                Tree *rr = what->right->Do(this);
+                Tree_p rr = what->right->Do(this);
                 dest = it;
                 if (!rr)
                     return NULL;
@@ -822,20 +843,20 @@ template <CopyMode mode> struct TreeCopyTemplate : Action
         }
         return NULL;
     }
-    Tree *DoPrefix(Prefix *what)
+    Tree_p DoPrefix(Prefix_p what)
     {
-        if (Prefix *pt = dest->AsPrefix())
+        if (Prefix_p pt = dest->AsPrefix())
         {
             pt->tag = ((what->Position()<<Tree::KINDBITS) | pt->Kind());
             if (mode == CM_RECURSIVE)
             {
                 dest = pt->left;
-                Tree *lr = what->left->Do(this);
+                Tree_p lr = what->left->Do(this);
                 dest = pt;
                 if (!lr)
                     return NULL;
                 dest = pt->right;
-                Tree *rr = what->right->Do(this);
+                Tree_p rr = what->right->Do(this);
                 dest = pt;
                 if (!rr)
                     return NULL;
@@ -844,20 +865,20 @@ template <CopyMode mode> struct TreeCopyTemplate : Action
         }
         return NULL;
     }
-    Tree *DoPostfix(Postfix *what)
+    Tree_p DoPostfix(Postfix_p what)
     {
-        if (Postfix *pt = dest->AsPostfix())
+        if (Postfix_p pt = dest->AsPostfix())
         {
             pt->tag = ((what->Position()<<Tree::KINDBITS) | pt->Kind());
             if (mode == CM_RECURSIVE)
             {
                 dest = pt->left;
-                Tree *lr = what->left->Do(this);
+                Tree_p lr = what->left->Do(this);
                 dest = pt;
                 if (!lr)
                     return NULL;
                 dest = pt->right;
-                Tree *rr = what->right->Do(this);
+                Tree_p rr = what->right->Do(this);
                 dest = pt;
                 if (!rr)
                     return NULL;
@@ -866,11 +887,11 @@ template <CopyMode mode> struct TreeCopyTemplate : Action
         }
         return NULL;
     }
-    Tree *Do(Tree *what)
+    Tree_p Do(Tree_p what)
     {
         return what;            // ??? Should not happen
     }
-    Tree *dest;
+    Tree_p dest;
 };
 
 
@@ -890,45 +911,46 @@ enum TreeMatchMode
     TM_NODE_ONLY       // Compare one node only
 };
 
+
 template <TreeMatchMode mode> struct TreeMatchTemplate : Action
 // ----------------------------------------------------------------------------
 //   Check if two trees match in structure
 // ----------------------------------------------------------------------------
 {
-    TreeMatchTemplate (Tree *t): test(t) {}
-    Tree *DoInteger(Integer *what)
+    TreeMatchTemplate (Tree_p t): test(t) {}
+    Tree_p DoInteger(Integer_p what)
     {
-        if (Integer *it = test->AsInteger())
+        if (Integer_p it = test->AsInteger())
             if (it->value == what->value)
                 return what;
         return NULL;
     }
-    Tree *DoReal(Real *what)
+    Tree_p DoReal(Real_p what)
     {
-        if (Real *rt = test->AsReal())
+        if (Real_p rt = test->AsReal())
             if (rt->value == what->value)
                 return what;
         return NULL;
     }
-    Tree *DoText(Text *what)
+    Tree_p DoText(Text_p what)
     {
-        if (Text *tt = test->AsText())
+        if (Text_p tt = test->AsText())
             if (tt->value == what->value)
                 return what;
         return NULL;
     }
-    Tree *DoName(Name *what)
+    Tree_p DoName(Name_p what)
     {
-        if (Name *nt = test->AsName())
+        if (Name_p nt = test->AsName())
             if (nt->value == what->value)
                 return what;
         return NULL;
     }
 
-    Tree *DoBlock(Block *what)
+    Tree_p DoBlock(Block_p what)
     {
         // Test if we exactly match the block, i.e. the reference is a block
-        if (Block *bt = test->AsBlock())
+        if (Block_p bt = test->AsBlock())
         {
             if (bt->opening == what->opening &&
                 bt->closing == what->closing)
@@ -936,7 +958,7 @@ template <TreeMatchMode mode> struct TreeMatchTemplate : Action
                 if (mode == TM_NODE_ONLY)
                     return what;
                 test = bt->child;
-                Tree *br = what->child->Do(this);
+                Tree_p br = what->child->Do(this);
                 test = bt;
                 if (br)
                     return br;
@@ -944,9 +966,9 @@ template <TreeMatchMode mode> struct TreeMatchTemplate : Action
         }
         return NULL;
     }
-    Tree *DoInfix(Infix *what)
+    Tree_p DoInfix(Infix_p what)
     {
-        if (Infix *it = test->AsInfix())
+        if (Infix_p it = test->AsInfix())
         {
             // Check if we match the tree, e.g. A+B vs 2+3
             if (it->name == what->name)
@@ -954,12 +976,12 @@ template <TreeMatchMode mode> struct TreeMatchTemplate : Action
                 if (mode == TM_NODE_ONLY)
                     return what;
                 test = it->left;
-                Tree *lr = what->left->Do(this);
+                Tree_p lr = what->left->Do(this);
                 test = it;
                 if (!lr)
                     return NULL;
                 test = it->right;
-                Tree *rr = what->right->Do(this);
+                Tree_p rr = what->right->Do(this);
                 test = it;
                 if (!rr)
                     return NULL;
@@ -968,20 +990,20 @@ template <TreeMatchMode mode> struct TreeMatchTemplate : Action
         }
         return NULL;
     }
-    Tree *DoPrefix(Prefix *what)
+    Tree_p DoPrefix(Prefix_p what)
     {
-        if (Prefix *pt = test->AsPrefix())
+        if (Prefix_p pt = test->AsPrefix())
         {
             if (mode == TM_NODE_ONLY)
                 return what;
             // Check if we match the tree, e.g. f(A) vs. f(2)
             test = pt->left;
-            Tree *lr = what->left->Do(this);
+            Tree_p lr = what->left->Do(this);
             test = pt;
             if (!lr)
                 return NULL;
             test = pt->right;
-            Tree *rr = what->right->Do(this);
+            Tree_p rr = what->right->Do(this);
             test = pt;
             if (!rr)
                 return NULL;
@@ -989,20 +1011,20 @@ template <TreeMatchMode mode> struct TreeMatchTemplate : Action
         }
         return NULL;
     }
-    Tree *DoPostfix(Postfix *what)
+    Tree_p DoPostfix(Postfix_p what)
     {
-        if (Postfix *pt = test->AsPostfix())
+        if (Postfix_p pt = test->AsPostfix())
         {
             if (mode == TM_NODE_ONLY)
                 return what;
             // Check if we match the tree, e.g. A! vs 2!
             test = pt->right;
-            Tree *rr = what->right->Do(this);
+            Tree_p rr = what->right->Do(this);
             test = pt;
             if (!rr)
                 return NULL;
             test = pt->left;
-            Tree *lr = what->left->Do(this);
+            Tree_p lr = what->left->Do(this);
             test = pt;
             if (!lr)
                 return NULL;
@@ -1010,12 +1032,12 @@ template <TreeMatchMode mode> struct TreeMatchTemplate : Action
         }
         return NULL;
     }
-    Tree *Do(Tree *)
+    Tree_p Do(Tree_p)
     {
         return NULL;
     }
 
-    Tree *      test;
+    Tree_p       test;
 };
 
 typedef struct TreeMatchTemplate<TM_RECURSIVE> TreeMatch;
@@ -1050,52 +1072,52 @@ struct RewriteKey : Action
         return id | (value << 3);
     }
 
-    Tree *DoInteger(Integer *what)
+    Tree_p DoInteger(Integer_p what)
     {
         key = (key << 3) ^ Hash(0, what->value);
         return what;
     }
-    Tree *DoReal(Real *what)
+    Tree_p DoReal(Real_p what)
     {
         key = (key << 3) ^ Hash(1, *((ulong *) &what->value));
         return what;
     }
-    Tree *DoText(Text *what)
+    Tree_p DoText(Text_p what)
     {
         key = (key << 3) ^ Hash(2, what->value);
         return what;
     }
-    Tree *DoName(Name *what)
+    Tree_p DoName(Name_p what)
     {
         key = (key << 3) ^ Hash(3, what->value);
         return what;
     }
 
-    Tree *DoBlock(Block *what)
+    Tree_p DoBlock(Block_p what)
     {
         key = (key << 3) ^ Hash(4, what->opening + what->closing);
         return what;
     }
-    Tree *DoInfix(Infix *what)
+    Tree_p DoInfix(Infix_p what)
     {
         key = (key << 3) ^ Hash(5, what->name);
         return what;
     }
-    Tree *DoPrefix(Prefix *what)
+    Tree_p DoPrefix(Prefix_p what)
     {
         ulong old = key;
         key = 0; what->left->Do(this);
         key = (old << 3) ^ Hash(6, key);
         return what;
     }
-    Tree *DoPostfix(Postfix *what)
+    Tree_p DoPostfix(Postfix_p what)
     {
         ulong old = key;
         key = 0; what->right->Do(this);
         key = (old << 3) ^ Hash(7, key);
         return what;
     }
-    Tree *Do(Tree *what)
+    Tree_p Do(Tree_p what)
     {
         key = (key << 3) ^ Hash(1, (ulong) what);
         return what;
@@ -1105,9 +1127,9 @@ struct RewriteKey : Action
 };
 
 
-extern text sha1(Tree *t);
-extern Name *   xl_true;
-extern Name *   xl_false;
+extern text     sha1(Tree_p t);
+extern Name_p   xl_true;
+extern Name_p   xl_false;
 
 
 typedef long node_id;              // A node identifier
@@ -1133,23 +1155,23 @@ struct SimpleAction : Action
 {
     SimpleAction() {}
     virtual ~SimpleAction() {}
-    Tree *DoBlock(Block *what)
+    Tree_p DoBlock(Block_p what)
     {
         return Do(what);
     }
-    Tree *DoInfix(Infix *what)
+    Tree_p DoInfix(Infix_p what)
     {
         return Do(what);
     }
-    Tree *DoPrefix(Prefix *what)
+    Tree_p DoPrefix(Prefix_p what)
     {
         return Do(what);
     }
-    Tree *DoPostfix(Postfix *what)
+    Tree_p DoPostfix(Postfix_p what)
     {
         return Do(what);
     }
-    virtual Tree * Do(Tree *what) = 0;
+    virtual Tree_p  Do(Tree_p what) = 0;
 };
 
 
@@ -1158,16 +1180,16 @@ struct SetNodeIdAction : SimpleAction
 //   Set an integer node ID to each node.
 // ------------------------------------------------------------------------
 {
-        SetNodeIdAction(node_id from_id = 1, node_id step = 1)
+    SetNodeIdAction(node_id from_id = 1, node_id step = 1)
         : id(from_id), step(step) {}
-        virtual Tree *Do(Tree *what)
-        {
-                what->Set<NodeIdInfo>(id);
-                id += step;
-                return NULL;
-        }
-        node_id id;
-        node_id step;
+    virtual Tree_p Do(Tree_p what)
+    {
+        what->Set<NodeIdInfo>(id);
+        id += step;
+        return NULL;
+    }
+    node_id id;
+    node_id step;
 };
 
 XL_END

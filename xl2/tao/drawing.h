@@ -24,8 +24,7 @@
 
 #include "coords3d.h"
 #include "tao.h"
-
-namespace XL { struct Tree; }
+#include "tao_tree.h"
 
 
 TAO_BEGIN
@@ -50,7 +49,7 @@ struct Drawing
     virtual void        Identify(Layout *);
     virtual Box3        Bounds(Layout *);
     virtual Box3        Space(Layout *);
-    virtual XL::Tree *  Source();
+    virtual Tree_p      Source();
 
     enum BreakOrder
     {

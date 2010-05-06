@@ -46,7 +46,7 @@ struct GvOutput : Action
     //   Utility class to format a graph node name
     // ------------------------------------------------------------------------
     {
-        GvNodeName(XL::Tree *t) : t(t) {}
+        GvNodeName(XL::Tree_p t) : t(t) {}
         std::ostream &operator()(std::ostream &out) const
         {
             char buf[10];
@@ -54,7 +54,7 @@ struct GvOutput : Action
             out << buf;
             return out;
         };
-        XL::Tree * t;
+        XL::Tree_p  t;
     };
 
 
@@ -63,7 +63,7 @@ struct GvOutput : Action
     //   Utility class to format a node ID
     // ------------------------------------------------------------------------
     {
-        Id(XL::Tree *t) : t(t) {}
+        Id(XL::Tree_p t) : t(t) {}
         std::ostream &operator()(std::ostream &out) const
         {
             bool present = t->Exists<NodeIdInfo>();
@@ -71,18 +71,18 @@ struct GvOutput : Action
                 out << t->Get<NodeIdInfo>() << "\\n";
             return out;
         };
-        XL::Tree * t;
+        XL::Tree_p  t;
     };
 
-    Tree *DoInteger(Integer *what);
-    Tree *DoReal(Real *what);
-    Tree *DoText(Text *what);
-    Tree *DoName(Name *what);
-    Tree *DoBlock(Block *what);
-    Tree *DoInfix(Infix *what);
-    Tree *DoPrefix(Prefix *what);
-    Tree *DoPostfix(Postfix *what);
-    Tree *Do(Tree *) { return NULL; }
+    Tree_p DoInteger(Integer_p what);
+    Tree_p DoReal(Real_p what);
+    Tree_p DoText(Text_p what);
+    Tree_p DoName(Name_p what);
+    Tree_p DoBlock(Block_p what);
+    Tree_p DoInfix(Infix_p what);
+    Tree_p DoPrefix(Prefix_p what);
+    Tree_p DoPostfix(Postfix_p what);
+    Tree_p Do(Tree_p) { return NULL; }
 
     std::ostream &out;
 };
@@ -98,7 +98,7 @@ std::ostream &operator<<(std::ostream &out, XL::GvOutput::Id id)
     return id(out);
 }
 
-Tree *GvOutput::DoInteger(Integer *what)
+Tree_p GvOutput::DoInteger(Integer_p what)
 {
 	out << GvNodeName(what) << "\n"
 	    << GvNodeName(what) << " [color=orange, label=\""
@@ -106,7 +106,7 @@ Tree *GvOutput::DoInteger(Integer *what)
 	return NULL;
 }
 
-Tree *GvOutput::DoReal(Real *what)
+Tree_p GvOutput::DoReal(Real_p what)
 {
 	out << GvNodeName(what) << "\n"
 	    << GvNodeName(what) << " [color=lightblue, label=\""
@@ -114,7 +114,7 @@ Tree *GvOutput::DoReal(Real *what)
 	return NULL;
 }
 
-Tree *GvOutput::DoText(Text *what)
+Tree_p GvOutput::DoText(Text_p what)
 {
 	out << GvNodeName(what) << "\n"
 	    << GvNodeName(what) << " [color=darkorange1, label=\""
@@ -122,7 +122,7 @@ Tree *GvOutput::DoText(Text *what)
 	return NULL;
 }
 
-Tree *GvOutput::DoName(Name *what)
+Tree_p GvOutput::DoName(Name_p what)
 {
 	out << GvNodeName(what) << "\n"
 	    << GvNodeName(what) << " [color=gold1, label=\""
@@ -130,7 +130,7 @@ Tree *GvOutput::DoName(Name *what)
 	return NULL;
 }
 
-Tree *GvOutput::DoBlock(Block *what)
+Tree_p GvOutput::DoBlock(Block_p what)
 {
 	out << GvNodeName(what) << "\n"
 	    << GvNodeName(what) << " [color=darkolivegreen3, label=\""
@@ -141,7 +141,7 @@ Tree *GvOutput::DoBlock(Block *what)
 	return NULL;
 }
 
-Tree *GvOutput::DoInfix(Infix *what)
+Tree_p GvOutput::DoInfix(Infix_p what)
 {
 	std::string name = (!what->name.compare("\n")) ?  "<CR>" : what->name;
 	out << GvNodeName(what) << "\n"
@@ -154,7 +154,7 @@ Tree *GvOutput::DoInfix(Infix *what)
 	return NULL;
 }
 
-Tree *GvOutput::DoPrefix(Prefix *what)
+Tree_p GvOutput::DoPrefix(Prefix_p what)
 {
 	out << GvNodeName(what) << "\n"
 	    << GvNodeName(what) << " [color=greenyellow, label=\""
@@ -166,7 +166,7 @@ Tree *GvOutput::DoPrefix(Prefix *what)
 	return NULL;
 }
 
-Tree *GvOutput::DoPostfix(Postfix *what)
+Tree_p GvOutput::DoPostfix(Postfix_p what)
 {
 	out << GvNodeName(what) << "\n"
 	    << GvNodeName(what) << " [color=aquamarine2, label=\""

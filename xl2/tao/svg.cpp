@@ -31,7 +31,8 @@ SvgRendererInfo::SvgRendererInfo(Widget *w, uint width, uint height)
 //   Create a renderer with the right size
 // ----------------------------------------------------------------------------
     : FrameInfo(width, height), widget(w)
-{}
+{
+}
 
 
 SvgRendererInfo::~SvgRendererInfo()
@@ -43,6 +44,18 @@ SvgRendererInfo::~SvgRendererInfo()
     glDisable(GL_TEXTURE_2D);
     for (i = renderers.begin(); i != renderers.end(); i++)
         delete (*i).second;
+
+}
+
+
+QSvgRenderer * SvgRendererInfo::defaultImageRenderer()
+// ----------------------------------------------------------------------------
+//   Return an image to use when the source file is invalid
+// ----------------------------------------------------------------------------
+{
+    static  QSvgRenderer * defSvg =
+            new QSvgRenderer(QString(":/images/defaultImage.svg"));
+    return defSvg;
 }
 
 
@@ -62,21 +75,23 @@ GLuint SvgRendererInfo::bind (text file)
         }
 
         QString svgFile(+file);
-        QFileInfo svgInfo(svgFile);
-        if (svgInfo.exists())
+        r = new QSvgRenderer(svgFile, widget);
+        if (r->isValid())
         {
-            r = new QSvgRenderer(svgFile, widget);
             r->connect(r, SIGNAL(repaintNeeded()), widget, SLOT(updateGL()));
             renderers[file] = r;
+        }
+        else
+        {
+            delete r;
+            r = defaultImageRenderer();
         }
     }
 
     if (r)
     {
         glDisable(GL_TEXTURE_2D);
-#ifdef GL_MULTISAMPLE   // Not supported on Windows
         glDisable(GL_MULTISAMPLE);
-#endif
         FramePainter painter(this);
         r->render(&painter);
     }

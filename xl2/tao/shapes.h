@@ -110,7 +110,7 @@ struct RoundedRectangle : Rectangle
         : Rectangle(b), r(r) {}
     virtual void        Draw(GraphicPath &path);
     coord r;
-};    
+};
 
 
 struct EllipticalRectangle : Rectangle
@@ -123,7 +123,7 @@ struct EllipticalRectangle : Rectangle
     virtual void        Draw(Layout *where);
     virtual void        Draw(GraphicPath &path);
     double r;
-};    
+};
 
 
 struct Ellipse : Rectangle
@@ -210,7 +210,7 @@ struct SpeechBalloon : Rectangle
     virtual void        Draw(GraphicPath &path);
     double r;
     Point a;
-};    
+};
 
 
 struct Callout : Rectangle
@@ -225,8 +225,20 @@ struct Callout : Rectangle
     coord r;
     Point a;
     coord d;
-};    
+};
 
+
+struct FixedSizePoint : Shape
+// ----------------------------------------------------------------------------
+//    An OpenGL point
+// ----------------------------------------------------------------------------
+{
+    FixedSizePoint(Point3 c, scale r): Shape(), center(c), radius(r) {}
+    virtual void        Draw(Layout *where);
+    virtual void        DrawSelection(Layout *where) { Draw(where); }
+    Point3 center;
+    scale  radius;
+};
 
 TAO_END
 

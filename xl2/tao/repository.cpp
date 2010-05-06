@@ -69,7 +69,7 @@ text Repository::styleSheet()
 }
 
 
-bool Repository::write(text fileName, XL::Tree *tree)
+bool Repository::write(text fileName, XL::Tree_p tree)
 // ----------------------------------------------------------------------------
 //   Write the text into a repository, ready to commit, return true if OK
 // ----------------------------------------------------------------------------
@@ -88,12 +88,19 @@ bool Repository::write(text fileName, XL::Tree *tree)
         renderer.SelectStyleSheet(styleSheet());
         renderer.Render(tree);
         output.flush();
-        ok = output.good()  && !output.fail() && !output.bad();
+        ok = output.good();
     }
 
     // If we were successful writing, rename to new file
+    // Note: on Windows, std::rename (or QDir::rename) fail if
+    // destination exists, hence the rename/rename/remove
+    text backup = full + ".bak";
     if (ok)
+        ok = std::rename(full.c_str(), backup.c_str()) == 0;
+    if (ok)        
         ok = std::rename(copy.c_str(), full.c_str()) == 0;
+    if (ok)
+        ok = std::remove(backup.c_str()) == 0;
 
     state = RS_NotClean;
 
@@ -101,13 +108,13 @@ bool Repository::write(text fileName, XL::Tree *tree)
 }
 
 
-XL::Tree * Repository::read(text fileName)
+XL::Tree_p  Repository::read(text fileName)
 // ----------------------------------------------------------------------------
 //   Read a tree from a given file in the repository
 // ----------------------------------------------------------------------------
 {
-    XL::Tree      *result    = NULL;
-    text           full      = fullName(fileName);
+    XL::Tree_p result = NULL;
+    text       full   = fullName(fileName);
 
     // Create the parser, with a local copy of the syntax (per-file syntax)
     XL::Syntax     syntax (XL::MAIN->syntax);

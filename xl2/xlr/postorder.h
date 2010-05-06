@@ -39,18 +39,18 @@ struct PostOrderTraversal : Action
 {
     PostOrderTraversal (Action &action, bool fullScan = true):
         action(action), fullScan(fullScan) {}
-    Tree *DoBlock(Block *what)
+    Tree_p DoBlock(Block_p what)
     {
-        Tree * ret = NULL;
+        Tree_p  ret = NULL;
         if (what->child)
             ret = Do(what->child);
         if (!fullScan && ret)
             return ret;
         return what->Do(action);
     }
-    Tree *DoInfix(Infix *what)
+    Tree_p DoInfix(Infix_p what)
     {
-        Tree * ret;
+        Tree_p  ret;
         ret = Do(what->left);
         if (!fullScan && ret)
             return ret;
@@ -59,9 +59,9 @@ struct PostOrderTraversal : Action
             return ret;
         return what->Do(action);
     }
-    Tree *DoPrefix(Prefix *what)
+    Tree_p DoPrefix(Prefix_p what)
     {
-        Tree * ret;
+        Tree_p  ret;
         ret = Do(what->left);
         if (!fullScan && ret)
             return ret;
@@ -70,9 +70,9 @@ struct PostOrderTraversal : Action
             return ret;
         return what->Do(action);
     }
-    Tree *DoPostfix(Postfix *what)
+    Tree_p DoPostfix(Postfix_p what)
     {
-        Tree * ret;
+        Tree_p  ret;
         ret = Do(what->left);
         if (!fullScan && ret)
             return ret;
@@ -81,7 +81,7 @@ struct PostOrderTraversal : Action
             return ret;
         return what->Do(action);
     }
-    Tree *Do(Tree *what)
+    Tree_p Do(Tree_p what)
     {
         switch(what->Kind())
         {
@@ -89,10 +89,10 @@ struct PostOrderTraversal : Action
         case REAL:
         case TEXT:
         case NAME:          return what->Do(action);
-        case BLOCK:         return DoBlock((Block *) what);
-        case PREFIX:        return DoPrefix((Prefix *) what);
-        case POSTFIX:       return DoPostfix((Postfix *) what);
-        case INFIX:         return DoInfix((Infix *) what);
+        case BLOCK:         return DoBlock((Block_p) what);
+        case PREFIX:        return DoPrefix((Prefix_p) what);
+        case POSTFIX:       return DoPostfix((Postfix_p) what);
+        case INFIX:         return DoInfix((Infix_p) what);
         default:            assert(!"Unexpected tree kind");
         }
         return NULL;

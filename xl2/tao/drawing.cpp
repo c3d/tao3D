@@ -85,7 +85,7 @@ Box3 Drawing::Space(Layout *where)
 }
 
 
-XL::Tree *Drawing::Source()
+Tree_p Drawing::Source()
 // ----------------------------------------------------------------------------
 //   Return the source tree for this drawing
 // ----------------------------------------------------------------------------

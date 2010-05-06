@@ -41,9 +41,9 @@ bool GitRepository::checkGit()
 //   Return true if Git is functional, and set the git command accordingly
 // ----------------------------------------------------------------------------
 {
-    // Look for "git" in $PATH, then in application's directory
+    // Look for "git" in $PATH, then in <application's directory>/git/bin
     QStringList commands;
-    commands << "git" << qApp->applicationDirPath() + "/git";
+    commands << "git" << qApp->applicationDirPath() + "/git/bin/git";
     QStringListIterator it(commands);
     while (it.hasNext())
     {
@@ -242,6 +242,12 @@ bool GitRepository::asyncCommit(text message, bool all)
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
+    if (state == RS_Clean)
+    {
+        // May happen if a commit was already in progress when this process was
+        // enqueued
+        return true;
+    }
     if (message == "")
     {
         message = whatsNew;

@@ -26,6 +26,8 @@
 #include "widget.h"
 #include "tao_utf8.h"
 #include "drag.h"
+#include "glyph_cache.h"
+#include "frame.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -46,31 +48,196 @@ void TextSpan::Draw(Layout *where)
 //   Render a portion of text and advance by the width of the text
 // ----------------------------------------------------------------------------
 {
-    Point3 position = where->offset;
-    QPainterPath path;
-    QString str = +source.Value().substr(start, end - start);
-    QFont &font = where->font;
-    QFontMetricsF fm(font);
     Widget *widget = where->Display();
-    widget->newCharId(str.length());
+    bool hasLine = setLineColor(where);
+    bool hasTexture = setTexture(where);
+    GlyphCache &glyphs = widget->glyphs();
+    bool tooBig = where->font.pointSize() > (int) glyphs.maxFontSize;
+    bool debugForceDirect = widget->lastModifiers() &
+        (Qt::ShiftModifier | Qt::ControlModifier | Qt::AltModifier);
+    if (!hasLine && !hasTexture && !tooBig && !debugForceDirect)
+        DrawCached(where, false);
+    else
+        DrawDirect(where);
+}
 
-    int index = str.indexOf(QChar('\n'));
-    while (index >= 0)
+
+void TextSpan::DrawCached(Layout *where, bool identify)
+// ----------------------------------------------------------------------------
+//   Draw text span using cached textures
+// ----------------------------------------------------------------------------
+{
+    Widget     *widget = where->Display();
+    GlyphCache &glyphs = widget->glyphs();
+    Point3      pos    = where->offset;
+    Text_p      ttree  = source;
+    text        str    = ttree->value;
+    bool        canSel = ttree->Position() != XL::Tree::NOWHERE;
+    QFont      &font   = where->font;
+    coord       x      = pos.x;
+    coord       y      = pos.y;
+    coord       z      = pos.z;
+
+    GlyphCache::GlyphEntry  glyph;
+    std::vector<Point3>     quads;
+    std::vector<Point>      texCoords;
+
+    // Loop over all characters in the text span
+    uint i, max = str.length();
+    for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
     {
-        QString fragment = str.left(index);
-        path.addText(position.x, -position.y, font, fragment);
-        position.x = 0;
-        position.y -= fm.height();
-        str = str.mid(index+1);
-        index = str.indexOf(QChar('\n'));
+        uint  unicode  = XL::Utf8Code(str, i);
+        bool  newLine  = unicode == '\n';
+
+        // Find the glyph in the glyph cache
+        if (!glyphs.Find(font, unicode, glyph, false))
+        {
+            // Try to create the glyph
+            if (!glyphs.Find(font, unicode, glyph, true))
+                continue;
+        }
+
+        // Enter the geometry coordinates
+        coord charX1 = x + glyph.bounds.lower.x;
+        coord charX2 = x + glyph.bounds.upper.x;
+        coord charY1 = y - glyph.bounds.lower.y;
+        coord charY2 = y - glyph.bounds.upper.y;
+        quads.push_back(Point3(charX1, charY1, z));
+        quads.push_back(Point3(charX2, charY1, z));
+        quads.push_back(Point3(charX2, charY2, z));
+        quads.push_back(Point3(charX1, charY2, z));
+
+        // Enter the texture coordinates
+        Point &texL = glyph.texture.lower;
+        Point &texU = glyph.texture.upper;
+        texCoords.push_back(Point(texL.x, texL.y));
+        texCoords.push_back(Point(texU.x, texL.y));
+        texCoords.push_back(Point(texU.x, texU.y));
+        texCoords.push_back(Point(texL.x, texU.y));
+
+        // Advance to next character
+        if (newLine)
+        {
+            scale height = glyphs.Ascent(font) + glyphs.Descent(font);
+            scale spacing = height + glyphs.Leading(font);
+            x = 0;
+            y -= spacing * glyph.scalingFactor;
+        }
+        else
+        {
+            x += glyph.advance;
+        }
     }
 
-    path.addText(position.x, -position.y, font, str);
-    position.x += fm.width(str);
+    // Check if there's anything to draw
+    uint count = quads.size();
+    if (count)
+    {
+        if (identify)
+        {
+            // Draw a list of rectangles with the textures
+            glVertexPointer(3, GL_DOUBLE, 0, &quads[0].x);
+            glEnableClientState(GL_VERTEX_ARRAY);
+            for (uint i = 0; i < count; i += 4)
+            {
+                if (canSel)
+                    glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
+                glDrawArrays(GL_QUADS, i, 4);
+            }
+            glDisableClientState(GL_VERTEX_ARRAY);
+            if (where->id != ~0U)
+                glLoadName(where->id);
+        }
+        else if (setFillColor(where))
+        {
+            // Bind the glyph texture
+            glBindTexture(GL_TEXTURE_2D, glyphs.Texture());
+            GLenum blur = GL_LINEAR;
+            if (!where->hasPixelBlur &&
+                font.pointSizeF() < glyphs.minFontSizeForAntialiasing)
+                blur = GL_NEAREST;
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, blur);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, blur);
+            glEnable(GL_TEXTURE_2D);
+            glEnable(GL_MULTISAMPLE);
 
-    where->offset = Point3();
-    GraphicPath::Draw(where, path, GLU_TESS_WINDING_ODD, -1);
-    where->offset = position;
+            // Draw a list of rectangles with the textures
+            glVertexPointer(3, GL_DOUBLE, 0, &quads[0].x);
+            glTexCoordPointer(2, GL_DOUBLE, 0, &texCoords[0].x);
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            glDrawArrays(GL_QUADS, 0, count);
+            glDisableClientState(GL_VERTEX_ARRAY);
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        }
+    }
+
+    where->offset = Point3(x, y, z);
+}
+
+
+void TextSpan::DrawDirect(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw the given text directly using Qt paths
+// ----------------------------------------------------------------------------
+{
+    Widget     *widget = where->Display();
+    GlyphCache &glyphs = widget->glyphs();
+    Point3      pos    = where->offset;
+    Text_p      ttree  = source;
+    text        str    = ttree->value;
+    bool        canSel = ttree->Position() != XL::Tree::NOWHERE;
+    QFont      &font   = where->font;
+    coord       x      = pos.x;
+    coord       y      = pos.y;
+    coord       z      = pos.z;
+    scale       lw     = where->lineWidth;
+    if (where->lineColor.alpha <= 0)
+        lw = 0;
+
+    GlyphCache::GlyphEntry  glyph;
+    std::vector<Point3>     quads;
+    std::vector<Point>      texCoords;
+
+    // Loop over all characters in the text span
+    uint i, max = str.length();
+    for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
+    {
+        uint  unicode  = XL::Utf8Code(str, i);
+        bool  newLine  = unicode == '\n';
+
+        // Find the glyph in the glyph cache
+        if (!glyphs.Find(font, unicode, glyph, true, true, lw))
+            continue;
+
+        if (canSel)
+            glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
+        GLMatrixKeeper save;
+        glTranslatef(x, y, z);
+        scale gscale = glyph.scalingFactor;
+        glScalef(gscale, gscale, gscale);
+
+        setTexture(where);
+        if (setFillColor(where))
+            glCallList(glyph.interior);
+        if (setLineColor(where))
+            glCallList(glyph.outline);
+
+        // Advance to next character
+        if (newLine)
+        {
+            scale height = glyphs.Ascent(font) + glyphs.Descent(font);
+            scale spacing = height + glyphs.Leading(font);
+            x = 0;
+            y -= spacing * glyph.scalingFactor;
+        }
+        else
+        {
+            x += glyph.advance;
+        }
+    }
+
+    where->offset = Point3(x, y, z);
 }
 
 
@@ -78,34 +245,49 @@ void TextSpan::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the selection for any selected character
 // ----------------------------------------------------------------------------
+//   Note that when drawing the rectangles, we don't include leading
+//   (space between lines) in the rectangle being drawn.
+//   For selection purpose we do include it to make it easier to click
 {
-    Widget *widget = where->Display();
-    Point3 pos = where->offset;
-    text str = source.Value();
-    QFont &font = where->font;
-    QFontMetricsF fm(font);
-    coord descent = fm.descent();
-    coord leading = fm.leading();
-    scale h = fm.height() + leading;
-    coord x = pos.x;
-    coord y = pos.y;
-    coord z = pos.z;
-    uint  first = start;
+    Widget     *widget       = where->Display();
+    GlyphCache &glyphs       = widget->glyphs();
+    Point3      pos          = where->offset;
+    Text_p      ttree        = source;
+    text        str          = ttree->value;
+    bool        canSel       = ttree->Position() != XL::Tree::NOWHERE;
+    QFont      &font         = where->font;
+    coord       x            = pos.x;
+    coord       y            = pos.y;
+    coord       z            = pos.z;
+    uint        first        = start;
+    scale       textWidth    = 0;
+    TextSelect *sel          = widget->textSelection();
+    GLuint      charId       = 0;
+    bool        charSelected = false;
+    scale       ascent       = glyphs.Ascent(font);
+    scale       descent      = glyphs.Descent(font);
+    scale       height       = ascent + descent;
+    GlyphCache::GlyphEntry  glyph;
 
     // Loop over all characters in the text span
-    TextSelect *sel = widget->textSelection();
-    GLuint charId = 0;
-    bool charSelected = false;
     uint i, next, max = str.length();
     for (i = start; i < max && i < end; i = next)
     {
-        charId = widget->newCharId();
-        charSelected = widget->charSelected();
+        uint unicode = XL::Utf8Code(str, i);
+        if (canSel)
+        {
+            charId = widget->newCharId();
+            charSelected = widget->charSelected();
+        }
         next = XL::Utf8Next(str, i);
 
         // Create a text selection if we need one
         if (charSelected && !sel && where->id)
             sel = new TextSelect(widget);
+
+        // Fetch data about that glyph
+        if (!glyphs.Find(font, unicode, glyph, false))
+            continue;
 
         if (sel)
         {
@@ -120,9 +302,8 @@ void TextSpan::DrawSelection(Layout *where)
             // Check up and down keys
             if (charSelected || sel->needsPositions())
             {
-                scale sw = fm.width(+str.substr(first, i-first));
-                coord charX = x + sw;
-                coord lineY = y - descent - leading;
+                coord charX = x + glyph.bounds.lower.x;
+                coord charY = y;
                 sel->newChar(charX, charSelected);
 
                 if (charSelected)
@@ -153,41 +334,60 @@ void TextSpan::DrawSelection(Layout *where)
                         if (sel->point == sel->mark)
                             sel->replace = false;
                     }
-                    sel->selBox |= Box3(charX,lineY,z, 1, h, 0);
+                    scale sd = glyph.scalingFactor * descent;
+                    scale sh = glyph.scalingFactor * height;
+                    sel->selBox |= Box3(charX,charY - sd,z, 1, sh, 0);
                 } // if(charSelected)
             } // if (charSelected || upDown)
         } // if(sel)
 
-        if (str[i] == '\n')
+        // Advance to next character
+        if (unicode == '\n')
         {
+            scale spacing = height + glyphs.Leading(font);
             x = 0;
-            y -= h;
+            y -= spacing;
+            textWidth = 0;
             first = i;
+        }
+        else
+        {
+            x += glyph.advance;
+            textWidth += glyph.advance;
         }
     }
 
-    if (sel && sel->replace && max <= end)
+    if (sel && max <= end)
     {
         charId++;
-        text rpl = sel->replacement;
-        if (charId >= sel->start() && charId <= sel->end() && rpl.length())
+        if (charId >= sel->start() && charId <= sel->end())
         {
-            uint eos = i;
-            if (sel->point != sel->mark)
+            if (sel->replace)
             {
-                eos = next;
-                if (sel->point > sel->mark)
-                    sel->point--;
-                else
-                    sel->mark--;
+                text rpl = sel->replacement;
+                if (rpl.length())
+                {
+                    uint eos = i;
+                    if (sel->point != sel->mark)
+                    {
+                        eos = next;
+                        if (sel->point > sel->mark)
+                            sel->point--;
+                        else
+                            sel->mark--;
+                    }
+                    source.Value().replace(i, eos-i, rpl);
+                    sel->replacement = "";
+                    uint length = XL::Utf8Length(rpl);
+                    sel->point += length;
+                    sel->mark += length;
+                    if (sel->point == sel->mark)
+                        sel->replace = false;
+                }
             }
-            source.Value().replace(i, eos-i, rpl);
-            sel->replacement = "";
-            uint length = XL::Utf8Length(rpl);
-            sel->point += length;
-            sel->mark += length;
-            if (sel->point == sel->mark)
-                sel->replace = false;
+            scale sd = glyph.scalingFactor * descent;
+            scale sh = glyph.scalingFactor * height;
+            sel->selBox |= Box3(x,y - sd,z, 1, sh, 0);
         }
     }
 
@@ -200,56 +400,7 @@ void TextSpan::Identify(Layout *where)
 //   Draw and identify the bounding boxes for the various characters
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = where->Display();
-    Point3 pos = where->offset;
-    text str = source.Value();
-    QFont &font = where->font;
-    QFontMetricsF fm(font);
-    scale h = fm.height();
-    coord x = pos.x;
-    coord y = pos.y;
-    coord z = pos.z;
-    coord descent = fm.descent();
-    coord leading = fm.leading();
-
-    // Loop over all characters in the text span
-    uint i, max = str.length();
-    for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
-    {
-        QChar qc = QChar(XL::Utf8Code(str, i));
-        float w = qc == '\n' ? 3 : fm.width(qc);
-
-        coord charX = x + fm.leftBearing(qc);
-        coord lineY = y - descent - leading;
-        coord ww = w;
-        coord hh = h + leading;
-
-        coord array[4][3] =
-        {
-            { charX,      lineY,      z },
-            { charX + ww, lineY,      z },
-            { charX + ww, lineY + hh, z },
-            { charX,      lineY + hh, z }
-        };
-
-        glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
-        glVertexPointer(3, GL_DOUBLE, 0, array);
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glDrawArrays(GL_QUADS, 0, 4);
-        glDisableClientState(GL_VERTEX_ARRAY);
-
-        if (qc == '\n')
-        {
-            x = 0;
-            y -= h;
-        }
-        else
-        {
-            x += w;
-        }
-    }
-
-    where->offset = Point3(x, y, z);
+    DrawCached(where, true);
 }
 
 
@@ -283,16 +434,67 @@ void TextSpan::Draw(GraphicPath &path, Layout *where)
 }
 
 
-Box3 TextSpan::Bounds(Layout *layout)
+Box3 TextSpan::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the smallest box that surrounds the text
 // ----------------------------------------------------------------------------
 {
-    QFontMetricsF fm(layout->font);
-    QString       str = +source.Value().substr(start, end - start);
-    QRectF        rect = fm.tightBoundingRect(str);
-    return Box3(rect.x(), rect.height()+rect.y(), 0,
-                rect.width(), rect.height(), 0);
+    Widget     *widget = where->Display();
+    GlyphCache &glyphs = widget->glyphs();
+    text        str    = source.Value();
+    QFont      &font   = where->font;
+    Box3        result;
+    scale       ascent  = glyphs.Ascent(font);
+    scale       descent = glyphs.Descent(font);
+    scale       leading = glyphs.Leading(font);
+    coord       x      = 0;
+    coord       y      = 0;
+    coord       z      = 0;
+
+    GlyphCache::GlyphEntry  glyph;
+
+    // Loop over all characters in the text span
+    uint i, max = str.length();
+    for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
+    {
+        uint  unicode  = XL::Utf8Code(str, i);
+        bool  newLine  = unicode == '\n';
+
+        // Find the glyph in the glyph cache
+        if (!glyphs.Find(font, unicode, glyph, true))
+            continue;
+
+        scale sa = ascent * glyph.scalingFactor;
+        scale sd = descent * glyph.scalingFactor;
+        scale sl = leading * glyph.scalingFactor;
+
+        // Enter the geometry coordinates
+        coord charX1 = x + glyph.bounds.lower.x;
+        coord charX2 = x + glyph.bounds.upper.x;
+        coord charY1 = y - glyph.bounds.lower.y;
+        coord charY2 = y - glyph.bounds.upper.y;
+
+        // Advance to next character
+        if (newLine)
+        {
+            result |= Point3(charX1, y + sa, z);
+            result |= Point3(charX1, y - sd - sl, z);
+
+            scale height = glyphs.Ascent(font) + glyphs.Descent(font);
+            scale spacing = height + glyphs.Leading(font);
+            x = 0;
+            y -= spacing * glyph.scalingFactor;
+        }
+        else
+        {
+            result |= Point3(charX1, charY1, z);
+            result |= Point3(charX2, charY2, z);
+
+            x += glyph.advance;
+        }
+    }
+
+    return result;
 }
 
 
@@ -301,17 +503,60 @@ Box3 TextSpan::Space(Layout *where)
 //   Return the box that surrounds the text, including leading
 // ----------------------------------------------------------------------------
 {
-    QFont &       font = where->font;
-    QFontMetricsF fm(font);
-    QString       str = +source.Value().substr(start, end - start);
-    coord         height      = fm.height();
-    coord         descent     = fm.descent();
-    coord         leading     = fm.leading();
-    coord         width       = fm.width(str);
-    coord         leftBearing = 0;
-    if (str.length())
-        leftBearing = fm.leftBearing(str[0]);
-    return Box3(leftBearing, -descent-leading, 0, width, height+leading, 0);
+    Widget     *widget  = where->Display();
+    GlyphCache &glyphs  = widget->glyphs();
+    text        str     = source.Value();
+    QFont      &font    = where->font;
+    Box3        result;
+    scale       ascent  = glyphs.Ascent(font);
+    scale       descent = glyphs.Descent(font);
+    scale       leading = glyphs.Leading(font);
+    coord       x      = 0;
+    coord       y      = 0;
+    coord       z      = 0;
+
+    GlyphCache::GlyphEntry  glyph;
+
+    // Loop over all characters in the text span
+    uint i, max = str.length();
+    for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
+    {
+        uint  unicode  = XL::Utf8Code(str, i);
+        bool  newLine  = unicode == '\n';
+
+        // Find the glyph in the glyph cache
+        if (!glyphs.Find(font, unicode, glyph, true))
+            continue;
+
+        scale sa = ascent * glyph.scalingFactor;
+        scale sd = descent * glyph.scalingFactor;
+        scale sl = leading * glyph.scalingFactor;
+
+        // Enter the geometry coordinates
+        coord charX1 = x + glyph.bounds.lower.x;
+        coord charX2 = x + glyph.bounds.upper.x;
+        coord charY1 = y - glyph.bounds.lower.y;
+        coord charY2 = y - glyph.bounds.upper.y;
+
+        result |= Point3(charX1, charY1, z);
+        result |= Point3(charX2, charY2, z);
+        result |= Point3(charX1, y + sa, z);
+
+        // Advance to next character
+        if (newLine)
+        {
+            result |= Point3(charX1, y - sd - sl, z);
+            x = 0;
+            y -= sa + sd + sl;
+        }
+        else
+        {
+            result |= Point3(charX1 + glyph.advance, y - sd - sl, z);
+            x += glyph.advance;
+        }
+    }
+
+    return result;
 }
 
 
@@ -354,11 +599,13 @@ scale TextSpan::TrailingSpaceSize(Layout *where)
 //   Return the size of all the spaces at the end of the value
 // ----------------------------------------------------------------------------
 {
-    QFont &font = where->font;
-    QFontMetricsF fm(font);
-    scale result = 0;
-    text str = source.Value();
-    uint pos = str.length();
+    Widget     *widget = where->Display();
+    GlyphCache &glyphs = widget->glyphs();
+    QFont      &font   = where->font;
+    text        str    = source.Value();
+    uint        pos    = str.length();
+    Box3        box;
+
     if (pos > end)
         pos = end;
     while (pos > start)
@@ -367,8 +614,26 @@ scale TextSpan::TrailingSpaceSize(Layout *where)
         QChar c = QChar(XL::Utf8Code(str, pos));
         if (!c.isSpace())
             break;
-        result += fm.width(c);
+
+        // Find the glyph in the glyph cache
+        GlyphCache::GlyphEntry  glyph;
+        uint  unicode  = XL::Utf8Code(str, pos);
+        if (!glyphs.Find(font, unicode, glyph, true))
+            continue;
+
+        // Enter the geometry coordinates
+        coord charX1 = glyph.bounds.lower.x;
+        coord charX2 = glyph.bounds.upper.x;
+        coord charY1 = glyph.bounds.lower.y;
+        coord charY2 = glyph.bounds.upper.y;
+        box |= Point3(charX1, charY1, 0);
+        box |= Point3(charX2, charY2, 0);
+        box |= Point3(charX1 + glyph.advance, charY1, 0);
     }
+
+    scale result = box.Width();
+    if (result < 0)
+        result = 0;
     return result;
 }
 
@@ -634,6 +899,7 @@ void TextSelect::updateSelection()
     for (uint i = s; i < e; i++)
         widget->selection[i | Widget::CHAR_ID_BIT] = 1;
     findingLayout = true;
+    widget->refresh();
 }
 
 

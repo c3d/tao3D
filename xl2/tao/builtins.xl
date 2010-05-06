@@ -218,10 +218,10 @@ menu_item "menu:insert > shape > line ---", "Line", insert
         line 50, -50, -50, 50
 menu_item "menu:insert > shape > line -->", "Line with Arrowhead", insert
     shape
-        line_arrow 50, -50, false, -50, 50, triangle
+        line_arrow 50, -50, none, -50, 50, arrowhead
 menu_item "menu:insert > shape > line <->", "Line with Two Arrowheads", insert
     shape
-        line_arrow 50, -50, triangle, -50, 50, triangle
+        line_arrow 50, -50, arrowhead, -50, 50, arrowhead
 menu_item "menu:insert > shape > rectangle", "Rectangle", insert
     shape
         rectangle 0, 0, 100, 100
@@ -274,10 +274,10 @@ menu_item "toolbar:insert > shape > line ---", "", "images/tb_shape_line.png", i
         line 50, -50, -50, 50
 menu_item "toolbar:insert > shape > line -->", "", "images/tb_shape_line_w_arrowhead.png", insert
     shape
-        line_arrow 50, -50, false, -50, 50, triangle
+        line_arrow 50, -50, none, -50, 50, arrowhead 
 menu_item "toolbar:insert > shape > line <->", "", "images/tb_shape_line_w_two_arrowheads.png", insert
     shape
-        line_arrow 50, -50, triangle, -50, 50, triangle
+        line_arrow 50, -50, arrowhead, -50, 50, arrowhead
 menu_item "toolbar:insert > shape > rectangle", "", "images/tb_shape_rectangle.png", insert
     shape
         rectangle 0, 0, 100, 100

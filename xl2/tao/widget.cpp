@@ -2700,13 +2700,53 @@ static GraphicPath::EndpointStyle endpointStyle(symbolicname_r n)
     text name = n.value;
     std::transform(name.begin(), name.end(), name.begin(), ::toupper);
 
-    if (name == "TRIANGLE")
+    if (name == "NONE")
+    {
+        return GraphicPath::NONE;
+    }
+    else if (name == "ARROWHEAD")
+    {
+        return GraphicPath::ARROWHEAD;
+    }
+    else if (name == "TRIANGLE")
     {
         return GraphicPath::TRIANGLE;
     }
-    else if (name == "NONE")
+    else if (name == "POINTER")
     {
-        return GraphicPath::NONE;
+        return GraphicPath::POINTER;
+    }
+    else if (name == "DIAMOND")
+    {
+        return GraphicPath::DIAMOND;
+    }
+    else if (name == "CIRCLE")
+    {
+        return GraphicPath::CIRCLE;
+    }
+    else if (name == "SQUARE")
+    {
+        return GraphicPath::SQUARE;
+    }
+    else if (name == "BAR")
+    {
+        return GraphicPath::BAR;
+    }
+    else if (name == "CUP")
+    {
+        return GraphicPath::CUP;
+    }
+    else if (name == "FLETCHING")
+    {
+        return GraphicPath::FLETCHING;
+    }
+    else if (name == "HOLLOW_CIRCLE")
+    {
+        return GraphicPath::HOLLOW_CIRCLE;
+    }
+    else if (name == "HOLLOW_SQUARE")
+    {
+        return GraphicPath::HOLLOW_SQUARE;
     }
     else
     {

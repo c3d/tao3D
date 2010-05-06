@@ -113,6 +113,7 @@ SOURCES += tao_main.cpp \
     graphics.cpp \
     widget.cpp \
     window.cpp \
+    formulas.cpp \
     frame.cpp \
     svg.cpp \
     widget_surface.cpp \
@@ -196,6 +197,7 @@ OTHER_FILES += xl.syntax \
     bytecode.stylesheet \
     builtins.xl \
     graphics.tbl \
+    formulas.tbl \
     git.stylesheet
 
 # Copy the support files to the target directory

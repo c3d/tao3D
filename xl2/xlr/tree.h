@@ -178,6 +178,7 @@ struct Tree
 
     // Operator new to record the tree in the garbage collector
     void *              operator new(size_t sz);
+    void                operator delete(void *);
 
 public:
     ulong       tag;                            // Position + kind

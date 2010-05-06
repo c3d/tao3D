@@ -70,6 +70,7 @@
 #include <algorithm>
 
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
+namespace TaoFormulas { void EnterFormulas(XL::Symbols *syms); }
 
 TAO_BEGIN
 
@@ -88,7 +89,10 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf), inError(false), mustUpdateDialogs(false),
+      xlProgram(sf),
+      symbolTableForFormulas(new XL::Symbols(NULL)),
+      symbolTableRoot(new XL::Name("formula_symbol_table")),
+      inError(false), mustUpdateDialogs(false),
       space(NULL), layout(NULL), path(NULL),
       pageName(""), pageId(0), pageTotal(0), pageTree(NULL),
       currentShape(NULL),
@@ -101,7 +105,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
       colorAction(NULL), fontAction(NULL),
       timer(this), idleTimer(this),
-      pageStartTime(CurrentTime()),pageRefresh(86400),frozenTime(pageStartTime),
+      pageStartTime(CurrentTime()), pageRefresh(86400),
+      frozenTime(pageStartTime),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
       nextPull(nextSave), animated(true),
@@ -138,6 +143,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     toDialogLabel["Accept"]   = (QFileDialog::DialogLabel)QFileDialog::Accept;
     toDialogLabel["Reject"]   = (QFileDialog::DialogLabel)QFileDialog::Reject;
 
+    // Connect the symbol table for formulas
+    symbolTableRoot.tree->Set<XL::SymbolsInfo>(symbolTableForFormulas);
+    TaoFormulas::EnterFormulas(symbolTableForFormulas);
 }
 
 
@@ -146,6 +154,7 @@ Widget::~Widget()
 //   Destroy the widget
 // ----------------------------------------------------------------------------
 {
+    delete symbolTableForFormulas;
     delete space;
     delete path;
 }
@@ -286,7 +295,7 @@ void Widget::draw()
     // Check if we want to refresh something
     ulonglong after = now();
     double remaining = pageRefresh - 1e-6 * (after - before) - 0.001;
-    if (remaining <= 0)
+    if (remaining <= 0.001)
         remaining = 0.001;
     timer.setSingleShot(true);
     timer.start(1000 * remaining);
@@ -3249,6 +3258,30 @@ Tree_p Widget::textSpan(Tree_p self, text_r contents)
 }
 
 
+Tree_p Widget::textFormula(Tree_p self, Tree_p value)
+// ----------------------------------------------------------------------------
+//   Insert a block of text corresponding to the given formula
+// ----------------------------------------------------------------------------
+{
+    XL::Prefix_p prefix = self->AsPrefix();
+    assert(prefix);
+
+    // Make sure we evaluate that in the formulas symbol table
+    if (prefix->right->Get<XL::SymbolsInfo>() != formulaSymbols())
+    {
+        XL::TreeClone clone;
+        prefix->right = prefix->right->Do(clone);
+        prefix->right->Set<XL::SymbolsInfo>(formulaSymbols());
+    }
+
+    if (path)
+        TextFormula(prefix).Draw(*path, layout);
+    else
+        layout->Add(new TextFormula(prefix));
+    return value;
+}
+
+
 Tree_p Widget::font(Tree_p self, text description)
 // ----------------------------------------------------------------------------
 //   Select a font family
@@ -4463,6 +4496,7 @@ Tree_p Widget::videoPlayerTexture(Tree_p self, real_r w, real_r h, Text_p url)
 //    Error management
 //
 // ============================================================================
+
 Tree_p Widget::runtimeError(Tree_p self, text msg, Tree_p arg)
 // ----------------------------------------------------------------------------
 //   Display an error message from the input
@@ -4475,6 +4509,23 @@ Tree_p Widget::runtimeError(Tree_p self, text msg, Tree_p arg)
                          .arg(+err.Message()));
     return XL::xl_false;
 }
+
+
+Tree_p Widget::formulaRuntimeError(Tree_p self, text msg, Tree_p arg)
+// ----------------------------------------------------------------------------
+//   Display a runtime error while executing a formula
+// ----------------------------------------------------------------------------
+{
+    XL::Error err(msg, arg, NULL, NULL);
+    msg = err.Message();
+    Tree_p result = new XL::Prefix(new XL::Name("error"),
+                                   new XL::Text(msg));
+    result->code = XL::xl_identity;
+    Window *window = (Window *) parentWidget();
+    window->statusBar()->showMessage(+msg);
+    return result;
+}
+
 
 
 // ============================================================================
@@ -5105,10 +5156,13 @@ TAO_END
 //
 // ============================================================================
 
+namespace XL
+{
 void tao_widget_refresh(double delay)
 // ----------------------------------------------------------------------------
 //    Refresh the current widget
 // ----------------------------------------------------------------------------
 {
     TAO(refresh(delay));
+}
 }

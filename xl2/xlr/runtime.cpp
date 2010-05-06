@@ -332,6 +332,10 @@ Tree_p xl_type_error(Tree_p what)
 //   Display message if we have a type error
 // ----------------------------------------------------------------------------
 {
+    Symbols *syms = what->Get<SymbolsInfo>();
+    if (!syms)
+        syms = Symbols::symbols;
+    LocalSave<Symbols *> saveSyms(Symbols::symbols, syms);
     return Ooops("No form matches '$1'", what);
 }
 

@@ -4463,10 +4463,11 @@ Tree_p Widget::runtimeError(Tree_p self, text msg, Tree_p arg)
 // ----------------------------------------------------------------------------
 {
     inError = true;             // Stop refreshing
+    if (!arg)
+        arg = new Name("#ERROR", self->Position());
     XL::Error err(msg, arg, NULL, NULL);
-    QMessageBox::warning(this, tr("Runtime error"),
-                         tr("Error executing the program:\n%1")
-                         .arg(+err.Message()));
+    Window *window = (Window *) parentWidget();
+    window->addError(+err.Message());
     return XL::xl_false;
 }
 
@@ -4476,13 +4477,14 @@ Tree_p Widget::formulaRuntimeError(Tree_p self, text msg, Tree_p arg)
 //   Display a runtime error while executing a formula
 // ----------------------------------------------------------------------------
 {
+    if (!arg)
+        arg = new Name("#ERROR", self->Position());
     XL::Error err(msg, arg, NULL, NULL);
     msg = err.Message();
-    Tree_p result = new XL::Prefix(new XL::Name("error"),
-                                   new XL::Text(msg));
+    Tree_p result = new XL::Name("#ERROR");
     result->code = XL::xl_identity;
     Window *window = (Window *) parentWidget();
-    window->statusBar()->showMessage(+msg);
+    window->addError(+err.Message());
     return result;
 }
 

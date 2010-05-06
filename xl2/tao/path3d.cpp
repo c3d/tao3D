@@ -37,6 +37,8 @@ typedef GraphicPath::VertexData         VertexData;
 typedef GraphicPath::PolygonData        PolygonData;
 typedef GraphicPath::Vertices           Vertices;
 typedef GraphicPath::DynamicVertices    DynamicVertices;
+typedef GraphicPath::EndpointStyle      EndpointStyle;
+
 scale GraphicPath::default_steps = 5;
 
 #ifndef CALLBACK // Needed for Windows
@@ -135,6 +137,271 @@ void GraphicPath::Draw(Layout *where)
 }
 
 
+static scale getShortenByStyle(EndpointStyle style, scale lw) 
+// ----------------------------------------------------------------------------
+//   Returns the length to remove to a path for a particular endpoint style
+// ----------------------------------------------------------------------------
+{
+    switch (style)
+    {
+        case GraphicPath::HOLLOW_CIRCLE:
+        case GraphicPath::HOLLOW_SQUARE:
+            return 3.5 * lw;
+        case GraphicPath::FLETCHING:
+            return 3.0 * lw;
+        case GraphicPath::ARROWHEAD:
+        case GraphicPath::TRIANGLE:
+        case GraphicPath::POINTER:
+        case GraphicPath::DIAMOND:
+            return 2.0 * lw;
+        case GraphicPath::CIRCLE:
+        case GraphicPath::SQUARE:
+            return 1.5 * lw;
+        case GraphicPath::CUP:
+            return 1.0 * lw;
+        case GraphicPath::BAR:
+            return 0.5 * lw;
+        case GraphicPath::NONE:
+        default:
+            return 0.0;
+    }
+}
+
+
+static void addEndpointToPath(EndpointStyle style,
+                              Point3 endpoint, Vector3 heading,
+                              GraphicPath &outline) 
+// ----------------------------------------------------------------------------
+//   Adds the slyle decoration to the outline path
+// ----------------------------------------------------------------------------
+{
+    switch (style)
+    {
+        case GraphicPath::ARROWHEAD:
+            {
+                Point3 p2 = endpoint + 2.0 * heading;
+                Point3 p3 = endpoint + 1.5 * heading;
+                Point3 p4 = p2;
+                p2.x += heading.y;
+                p2.y -= heading.x;
+                p4.x -= heading.y;
+                p4.y += heading.x;
+                outline.moveTo(endpoint);
+                outline.lineTo(p2);
+                outline.lineTo(p3);
+                outline.lineTo(p4);
+                outline.lineTo(endpoint);
+            }
+            break;
+        case GraphicPath::TRIANGLE:
+            {
+                Point3 p2 = endpoint + 2.0 * heading;
+                Point3 p3 = p2;
+                p2.x += heading.y;
+                p2.y -= heading.x;
+                p3.x -= heading.y;
+                p3.y += heading.x;
+                outline.moveTo(endpoint);
+                outline.lineTo(p2);
+                outline.lineTo(p3);
+                outline.lineTo(endpoint);
+            }
+            break;
+        case GraphicPath::POINTER:
+            {
+                Point3 p1 = endpoint + heading / 4.0;
+                Point3 p2 = endpoint + 7.0 / 4.0 * heading;
+                Point3 p3 = p2;
+                Point3 p4 = endpoint + heading;
+                p2.x += 3.0 / 4.0 * heading.y;
+                p2.y -= 3.0 / 4.0 * heading.x;
+                p3.x -= 3.0 / 4.0 * heading.y;
+                p3.y += 3.0 / 4.0 * heading.x;
+
+                QPainterPath pointer;
+                pointer.moveTo(p1.x, p1.y);
+                pointer.lineTo(p4.x, p4.y);
+                pointer.moveTo(p2.x, p2.y);
+                pointer.lineTo(p1.x, p1.y);
+                pointer.lineTo(p3.x, p3.y);
+
+                QPainterPathStroker stroker;
+                stroker.setWidth(heading.Length() / 2.0);
+                stroker.setCapStyle(Qt::FlatCap);
+                stroker.setJoinStyle(Qt::RoundJoin);
+                stroker.setDashPattern(Qt::SolidLine);
+
+                QPainterPath path = stroker.createStroke(pointer);
+                outline.addQtPath(path);
+            }
+            break;
+        case GraphicPath::DIAMOND:
+            {
+                Point3 p2 = endpoint + 1.0 * heading;
+                Point3 p3 = endpoint + 2.0 * heading;
+                Point3 p4 = p2;
+                p2.x += heading.y;
+                p2.y -= heading.x;
+                p4.x -= heading.y;
+                p4.y += heading.x;
+                outline.moveTo(endpoint);
+                outline.lineTo(p2);
+                outline.lineTo(p3);
+                outline.lineTo(p4);
+                outline.lineTo(endpoint);
+            }
+            break;
+        case GraphicPath::CIRCLE:
+            {
+                Point3 c = endpoint + heading;
+                scale r = heading.Length();
+                QPainterPath circle;
+                circle.addEllipse(c.x-r, c.y-r, 2*r, 2*r);
+                outline.addQtPath(circle);
+            }
+            break;
+        case GraphicPath::SQUARE:
+            {
+                Point3 p1 = endpoint;
+                Point3 p2 = p1;
+                Point3 p3 = endpoint + 2.0 * heading;
+                Point3 p4 = p3;
+                p2.x += heading.y;
+                p2.y -= heading.x;
+                p1.x -= heading.y;
+                p1.y += heading.x;
+                p3.x += heading.y;
+                p3.y -= heading.x;
+                p4.x -= heading.y;
+                p4.y += heading.x;
+                outline.moveTo(endpoint);
+                outline.lineTo(p2);
+                outline.lineTo(p3);
+                outline.lineTo(p4);
+                outline.lineTo(p1);
+                outline.lineTo(endpoint);
+            }
+            break;
+        case GraphicPath::BAR:
+            {
+                Point3 p1 = endpoint;
+                Point3 p2 = p1;
+                Point3 p3 = endpoint + 2.0 * heading;
+                Point3 p4 = p3;
+                p2.x += 4.0 * heading.y;
+                p2.y -= 4.0 * heading.x;
+                p1.x -= 4.0 * heading.y;
+                p1.y += 4.0 * heading.x;
+                p3.x += 4.0 * heading.y;
+                p3.y -= 4.0 * heading.x;
+                p4.x -= 4.0 * heading.y;
+                p4.y += 4.0 * heading.x;
+                outline.moveTo(endpoint);
+                outline.lineTo(p2);
+                outline.lineTo(p3);
+                outline.lineTo(p4);
+                outline.lineTo(p1);
+                outline.lineTo(endpoint);
+            }
+            break;
+        case GraphicPath::CUP:
+            {
+                Point3 p2 = endpoint;
+                Point3 p3 = endpoint + 2.0 * heading;
+                Point3 p4 = p2;
+                p2.x += 2.0 * heading.y;
+                p2.y -= 2.0 * heading.x;
+                p4.x -= 2.0 * heading.y;
+                p4.y += 2.0 * heading.x;
+                outline.moveTo(endpoint);
+                outline.lineTo(p2);
+                outline.lineTo(p3);
+                outline.lineTo(p4);
+                outline.lineTo(endpoint);
+            }
+            break;
+        case GraphicPath::FLETCHING:
+            {
+                Point3 p1 = endpoint + heading / 3.0;
+                Point3 p2 = endpoint;
+                Point3 p3 = endpoint + 4.0 / 3.0 * heading;
+                Point3 p4 = endpoint + 2.0 * heading;
+                Point3 p5 = p3;
+                Point3 p6 = p2;
+                p2.x += 2.0 / 3.0 * heading.y;
+                p2.y -= 2.0 / 3.0 * heading.x;
+                p3.x += 1.0 / 2.0 * heading.y;
+                p3.y -= 1.0 / 2.0 * heading.x;
+                p5.x -= 1.0 / 2.0 * heading.y;
+                p5.y += 1.0 / 2.0 * heading.x;
+                p6.x -= 2.0 / 3.0 * heading.y;
+                p6.y += 2.0 / 3.0 * heading.x;
+                outline.moveTo(p1);
+                outline.lineTo(p2);
+                outline.lineTo(p3);
+                outline.lineTo(p4);
+                outline.lineTo(p5);
+                outline.lineTo(p6);
+                outline.lineTo(p1);
+            }
+            break;
+        case GraphicPath::HOLLOW_CIRCLE:
+            {
+                Point3 c = endpoint + 4.0 / 7.0 * heading;
+                scale r = 3.0 / 7.0 * heading.Length();
+                
+                QPainterPath circle;
+                circle.addEllipse(c.x-r, c.y-r, 2*r, 2*r);
+                
+                QPainterPathStroker stroker;
+                stroker.setWidth(2.0 / 7.0 * heading.Length());
+                stroker.setCapStyle(Qt::FlatCap);
+                stroker.setJoinStyle(Qt::RoundJoin);
+                stroker.setDashPattern(Qt::SolidLine);
+
+                QPainterPath path = stroker.createStroke(circle);
+                outline.addQtPath(path);
+            }
+            break;
+        case GraphicPath::HOLLOW_SQUARE:
+            {
+                Point3 p1 = endpoint +  1.0 / 7.0 * heading;
+                Point3 p2 = p1;
+                Point3 p3 = endpoint + heading;
+                Point3 p4 = p3;
+                p2.x += 3.0 / 7.0 * heading.y;
+                p2.y -= 3.0 / 7.0 * heading.x;
+                p1.x -= 3.0 / 7.0 * heading.y;
+                p1.y += 3.0 / 7.0 * heading.x;
+                p3.x += 3.0 / 7.0 * heading.y;
+                p3.y -= 3.0 / 7.0 * heading.x;
+                p4.x -= 3.0 / 7.0 * heading.y;
+                p4.y += 3.0 / 7.0 * heading.x;
+                
+                QPainterPath square;
+                square.moveTo(p1.x, p1.y);
+                square.lineTo(p2.x, p2.y);
+                square.lineTo(p3.x, p3.y);
+                square.lineTo(p4.x, p4.y);
+                square.lineTo(p1.x, p1.y);
+
+                QPainterPathStroker stroker;
+                stroker.setWidth(2.0 / 7.0 * heading.Length());
+                stroker.setCapStyle(Qt::FlatCap);
+                stroker.setJoinStyle(Qt::RoundJoin);
+                stroker.setDashPattern(Qt::SolidLine);
+
+                QPainterPath path = stroker.createStroke(square);
+                outline.addQtPath(path);
+            }
+            break;
+        case GraphicPath::NONE:
+        default:
+            ;
+    }
+}
+
+
 void GraphicPath::Draw(Layout *where, GLenum tessel)
 // ----------------------------------------------------------------------------
 //   Draw the graphic path using the current texture, fill and line color
@@ -143,48 +410,195 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
     setTexture(where);
     if (setFillColor(where))
     {
-        Draw(where->Offset(), GL_POLYGON, tessel);
+        Draw(where->offset, GL_POLYGON, tessel);
     }
     if (setLineColor(where)) 
     {
+        GraphicPath outline;
+
+        bool first = true;
+        //bool penultimate = true;
+        bool last = true;
+        Kind startKind = MOVE_TO;
+        Kind endKind = MOVE_TO;
+        Point3 startPoint;
+        Point3 endPoint;
+        Point3* endPointPtr;
+        Vector3 startHeading;
+        Vector3 endHeading;
+        scale length;
+        scale shortenBy;
+
+        path_elements::iterator p;
+        for ( path_elements::iterator i=elements.begin(); 
+              i < elements.end(); 
+              i++ )
+        {
+            if (first)
+            {
+                shortenBy = getShortenByStyle(startStyle, where->lineWidth);
+
+                switch ((*i).kind)
+                {
+                    case MOVE_TO:
+                        startKind = MOVE_TO;
+                        startPoint = (*i).position;
+                        break;
+                    case LINE_TO:
+                    case CURVE_TO:
+                        // First line
+                        startKind = LINE_TO;
+                        startHeading = (*i).position - startPoint;
+                        length = startHeading.Length();
+                        if (length == 0)
+                        {
+                            startKind = MOVE_TO;
+                            startPoint = (*i).position;
+                        }
+                        else
+                        {
+                            startHeading.Normalize();
+                            startHeading *= shortenBy;
+                            if(length > shortenBy)
+                            {
+                                outline.moveTo(startPoint + startHeading);
+                            }
+                            else
+                            {
+                                outline.moveTo(startPoint);
+                                startPoint -= startHeading;
+                            }
+                            p=i;
+                            first = false;
+                        }
+                        break;
+                    case CURVE_CONTROL:
+                        // First curve
+                        startKind = CURVE_TO;
+                        startHeading = (*i).position - startPoint;
+                        length = startHeading.Length();
+                        if (length == 0)
+                        {
+                            startKind = MOVE_TO;
+                            startPoint = (*i).position;
+                        }
+                        else
+                        {
+                            startHeading.Normalize();
+                            startHeading *= shortenBy;
+                            outline.moveTo(startPoint);
+                            startPoint -= startHeading;
+                            p=i;
+                            first = false;
+                        }
+                        break;
+                }
+
+            }
+            else
+            {
+                if ((*p).position == (*i).position)
+                {
+                    if ((*i).kind == CURVE_TO)
+                    {
+                        p=i;
+                    }
+                }
+                else
+                {
+                    outline.elements.push_back(*p);
+                    p=i;
+                }
+            }
+        }
+        if (!first)
+        {
+            outline.elements.push_back(*p);
+        }
+
+        for ( path_elements::reverse_iterator j, i=outline.elements.rbegin(); 
+              i < outline.elements.rend(); ++i )
+        {
+            j = i+1;
+            if (last)
+            {
+                shortenBy = getShortenByStyle(endStyle, where->lineWidth);
+                
+                switch ((*i).kind)
+                {
+                    case LINE_TO:
+                        // Last line
+                        endKind = LINE_TO;
+                        break;
+                    case CURVE_TO:
+                    case CURVE_CONTROL:
+                        // Last curve or line
+                        if ((*j).kind == CURVE_CONTROL)
+                            endKind = CURVE_TO;
+                        else
+                            endKind = LINE_TO;
+                        break;
+                    case MOVE_TO:
+                        endKind = MOVE_TO;
+                        break;
+                }
+                endPoint = (*i).position;
+                endPointPtr = &(*i).position;
+                endHeading = (*j).position - (*i).position;
+                length = endHeading.Length();
+                if (length == 0)
+                {
+                    endKind = MOVE_TO;                            
+                }
+                else
+                {
+                    endHeading.Normalize();
+                    endHeading *= shortenBy;
+                    if (endKind == LINE_TO && length > shortenBy)
+                    {
+                        *endPointPtr += endHeading;
+                    }
+                    else
+                    {
+                        endPoint -= endHeading;
+                    }
+                }
+                if (endKind != MOVE_TO)
+                {
+                    last = false;
+                }
+            }
+        }
+
+        // Create the shorthened stroke
         // If the path is flat, use a QPainterPathStroker
         QPainterPath path;
-        if ( extractQtPath(path) )
-        {
-            QPainterPathStroker stroker;
-            stroker.setWidth(where->lineWidth);
-            stroker.setCapStyle(Qt::FlatCap);
-            stroker.setJoinStyle(Qt::RoundJoin);
-            stroker.setDashPattern(Qt::SolidLine);
-            QPainterPath stroke = stroker.createStroke(path);
-            scale s = 2*where->lineWidth;
-            switch (startStyle)
+        if ( extractQtPath(outline, path) )
             {
-                case TRIANGLE:
-                    stroke.addEllipse(start.x-s, start.y-s, 2*s, 2*s);
-                    break;
-                case NONE:
-                default:
-                    ;
-            }
-            switch (endStyle)
-            {
-                case TRIANGLE:
-                    stroke.addEllipse(position.x-s, position.y-s, 2*s, 2*s);
-                    break;
-                case NONE:
-                default:
-                    ;
+                QPainterPathStroker stroker;
+                stroker.setWidth(where->lineWidth);
+                stroker.setCapStyle(Qt::FlatCap);
+                stroker.setJoinStyle(Qt::RoundJoin);
+                stroker.setDashPattern(Qt::SolidLine);
+                QPainterPath stroke = stroker.createStroke(path);
+                outline.clear();
+                outline.addQtPath(stroke);
             }
 
-            GraphicPath outline;
-            outline.addQtPath(stroke);
-            outline.Draw(where->Offset(), GL_POLYGON,GLU_TESS_WINDING_POSITIVE);
-        }
-        else
+        // Draw the endpoints
+        if (!first)
         {
-            Draw(where->Offset(), tessel ? GL_LINE_LOOP : GL_LINE_STRIP, 0);
+            addEndpointToPath(startStyle, startPoint, startHeading, outline);
         }
+        if (!last)
+        {
+            addEndpointToPath(endStyle, endPoint, endHeading, outline);
+        }
+        outline.Draw(where->offset, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+    }
+    else
+    {
+        Draw(where->offset, tessel ? GL_LINE_LOOP : GL_LINE_STRIP, 0);
     }
 }
 
@@ -496,68 +910,86 @@ GraphicPath& GraphicPath::addQtPath(QPainterPath &qt, scale sy)
 }
 
 
-bool GraphicPath::extractQtPath(QPainterPath &qt)
+bool GraphicPath::extractQtPath(GraphicPath &in, QPainterPath &out)
 // ----------------------------------------------------------------------------
-//   Extract a QT path from the graphic path. Returns true if path was flat
+//   Extract a QT path from a graphic path. Returns true if path was flat
 // ----------------------------------------------------------------------------
 {
     QPainterPath path;
     bool flat = true;
 
     // Check that Kind and QPainterPath::ElementType numerical values match
-    XL_CASSERT (int(QPainterPath::MoveToElement) == int(MOVE_TO) &&
-                int(QPainterPath::LineToElement) == int(LINE_TO) &&
-                int(QPainterPath::CurveToElement) == int(CURVE_TO) &&
-                int(QPainterPath::CurveToDataElement) == int(CURVE_CONTROL));
+    XL_CASSERT (int(QPainterPath::MoveToElement) == int(GraphicPath::MOVE_TO) &&
+                int(QPainterPath::LineToElement) == int(GraphicPath::LINE_TO) &&
+                int(QPainterPath::CurveToElement) == int(GraphicPath::CURVE_TO) &&
+                int(QPainterPath::CurveToDataElement) == int(GraphicPath::CURVE_CONTROL));
 
     // Loop on the Graphic Path and insert elements in the QT Path
     // Qt paths place CURVE_TO before control points, we place it last
-    uint i, max = elements.size();
-    Kind kind;
+    uint i, max = in.elements.size();
     Point3 p, c1, c2;
     uint control = 0;
     for (i = 0; i < max; i++)
     {
-        const GraphicPath::Element &e = elements[i];
-        kind = e.kind;
+        const GraphicPath::Element &e = in.elements[i];
         p = e.position;
-        switch(kind)
+        switch(e.kind)
         {
-        case MOVE_TO:
+        case GraphicPath::MOVE_TO:
             path.moveTo(p.x, p.y);
             if (p.z != 0.0)
                 flat = false;
             break;
-        case LINE_TO:
+        case GraphicPath::LINE_TO:
             path.lineTo(p.x, p.y);
             if (p.z != 0.0)
                 flat = false;
             break;
-        case CURVE_TO:
-            if (control == 1)
-                path.quadTo(c1.x, c1.y, p.x, p.y);
-            else if (control == 2)
-                path.cubicTo(c1.x, c1.y, c2.x, c2.y, p.x, p.y);
-            else
-                assert(!"Curve should not exceed a cubic form");
+        case GraphicPath::CURVE_TO:
+            switch (control)
+            {
+                case 0:
+                    path.lineTo(p.x, p.y);
+                    break;
+                case 1:
+                    path.quadTo(c1.x, c1.y, p.x, p.y);
+                    break;
+                case 2:
+                default:
+                    path.cubicTo(c1.x, c1.y, c2.x, c2.y, p.x, p.y);
+                    break;
+            }
             control = 0;
             if (p.z != 0.0)
                 flat = false;
             break;
-        case CURVE_CONTROL:
-            control++;
-            if (control == 1)
-                c1 = p;
-            else if (control == 2)
-                c2 = p;
-            else
-                assert(!"Curve should not exceed a cubic form");
+        case GraphicPath::CURVE_CONTROL:
+            switch (++control)
+            {
+                case 1:
+                    c1 = p;
+                    break;
+                case 2:
+                    c2 = p;
+                    break;
+                default:
+                    assert(!"Curve should not exceed a cubic form");
+            }
             break;
         }
     }
 
-    qt = path;
+    out = path;
     return flat;
+}
+
+
+bool GraphicPath::extractQtPath(QPainterPath &out)
+// ----------------------------------------------------------------------------
+//   Extract a QT path from the graphic path. Returns true if path was flat
+// ----------------------------------------------------------------------------
+{
+    return extractQtPath(*this, out);
 }
 
 

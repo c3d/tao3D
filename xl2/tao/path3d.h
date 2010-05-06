@@ -61,6 +61,7 @@ struct GraphicPath : Shape
 
     // Qt path conversion
     GraphicPath&        addQtPath(QPainterPath &path, scale sy = 1);
+    static bool         extractQtPath(GraphicPath &in, QPainterPath &out);
     bool                extractQtPath(QPainterPath &path);
     static void         Draw(Layout *where, QPainterPath &path,
                              GLenum tessel = 0, scale sy = 1);
@@ -71,7 +72,9 @@ struct GraphicPath : Shape
 
 public:
     enum Kind { MOVE_TO, LINE_TO, CURVE_TO, CURVE_CONTROL };
-    enum EndpointStyle { NONE, TRIANGLE };
+    enum EndpointStyle { NONE, 
+                         ARROWHEAD, TRIANGLE, POINTER, DIAMOND, CIRCLE, SQUARE, 
+                         BAR, CUP, FLETCHING, HOLLOW_CIRCLE, HOLLOW_SQUARE };
     struct Element
     {
         Element(Kind k, const Point3 &p): kind(k), position(p) {}

@@ -69,6 +69,7 @@
 #include <sys/stat.h>
 
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
+namespace TaoFormulas { void EnterFormulas(XL::Symbols *syms); }
 
 TAO_BEGIN
 
@@ -87,7 +88,10 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
-      xlProgram(sf), inError(false), mustUpdateDialogs(false),
+      xlProgram(sf),
+      symbolTableForFormulas(new XL::Symbols(NULL)),
+      symbolTableRoot(new XL::Name("formula_symbol_table")),
+      inError(false), mustUpdateDialogs(false),
       space(NULL), layout(NULL), path(NULL),
       pageName(""), pageId(0), pageTotal(0), pageTree(NULL),
       currentShape(NULL),
@@ -100,7 +104,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
       colorAction(NULL), fontAction(NULL),
       timer(this), idleTimer(this),
-      pageStartTime(CurrentTime()),pageRefresh(86400),frozenTime(pageStartTime),
+      pageStartTime(CurrentTime()), pageRefresh(86400),
+      frozenTime(pageStartTime),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
       nextPull(nextSave), animated(true),
@@ -137,6 +142,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     toDialogLabel["Accept"]   = (QFileDialog::DialogLabel)QFileDialog::Accept;
     toDialogLabel["Reject"]   = (QFileDialog::DialogLabel)QFileDialog::Reject;
 
+    // Connect the symbol table for formulas
+    symbolTableRoot.tree->Set<XL::SymbolsInfo>(symbolTableForFormulas);
+    TaoFormulas::EnterFormulas(symbolTableForFormulas);
 }
 
 
@@ -145,6 +153,7 @@ Widget::~Widget()
 //   Destroy the widget
 // ----------------------------------------------------------------------------
 {
+    delete symbolTableForFormulas;
     delete space;
     delete path;
 }
@@ -285,7 +294,7 @@ void Widget::draw()
     // Check if we want to refresh something
     ulonglong after = now();
     double remaining = pageRefresh - 1e-6 * (after - before) - 0.001;
-    if (remaining <= 0)
+    if (remaining <= 0.001)
         remaining = 0.001;
     timer.setSingleShot(true);
     timer.start(1000 * remaining);
@@ -344,6 +353,9 @@ void Widget::runProgram()
     {
         if (Tree_p prog = xlProgram->tree.tree)
         {
+            XL::Main   *xlr = XL::MAIN;
+            xlr->EvalContextFiles();
+            // Evaluate the program
             xl_evaluate(prog);
 
             // Clean the end of the old menu list.
@@ -2700,13 +2712,53 @@ static GraphicPath::EndpointStyle endpointStyle(symbolicname_r n)
     text name = n.value;
     std::transform(name.begin(), name.end(), name.begin(), ::toupper);
 
-    if (name == "TRIANGLE")
+    if (name == "NONE")
+    {
+        return GraphicPath::NONE;
+    }
+    else if (name == "ARROWHEAD")
+    {
+        return GraphicPath::ARROWHEAD;
+    }
+    else if (name == "TRIANGLE")
     {
         return GraphicPath::TRIANGLE;
     }
-    else if (name == "NONE")
+    else if (name == "POINTER")
     {
-        return GraphicPath::NONE;
+        return GraphicPath::POINTER;
+    }
+    else if (name == "DIAMOND")
+    {
+        return GraphicPath::DIAMOND;
+    }
+    else if (name == "CIRCLE")
+    {
+        return GraphicPath::CIRCLE;
+    }
+    else if (name == "SQUARE")
+    {
+        return GraphicPath::SQUARE;
+    }
+    else if (name == "BAR")
+    {
+        return GraphicPath::BAR;
+    }
+    else if (name == "CUP")
+    {
+        return GraphicPath::CUP;
+    }
+    else if (name == "FLETCHING")
+    {
+        return GraphicPath::FLETCHING;
+    }
+    else if (name == "HOLLOW_CIRCLE")
+    {
+        return GraphicPath::HOLLOW_CIRCLE;
+    }
+    else if (name == "HOLLOW_SQUARE")
+    {
+        return GraphicPath::HOLLOW_SQUARE;
     }
     else
     {
@@ -3206,6 +3258,30 @@ Tree_p Widget::textSpan(Tree_p self, text_r contents)
     else
         layout->Add(new TextSpan(&contents));
     return XL::xl_true;
+}
+
+
+Tree_p Widget::textFormula(Tree_p self, Tree_p value)
+// ----------------------------------------------------------------------------
+//   Insert a block of text corresponding to the given formula
+// ----------------------------------------------------------------------------
+{
+    XL::Prefix_p prefix = self->AsPrefix();
+    assert(prefix);
+
+    // Make sure we evaluate that in the formulas symbol table
+    if (prefix->right->Get<XL::SymbolsInfo>() != formulaSymbols())
+    {
+        XL::TreeClone clone;
+        prefix->right = prefix->right->Do(clone);
+        prefix->right->Set<XL::SymbolsInfo>(formulaSymbols());
+    }
+
+    if (path)
+        TextFormula(prefix).Draw(*path, layout);
+    else
+        layout->Add(new TextFormula(prefix));
+    return value;
 }
 
 
@@ -4423,18 +4499,38 @@ Tree_p Widget::videoPlayerTexture(Tree_p self, real_r w, real_r h, Text_p url)
 //    Error management
 //
 // ============================================================================
+
 Tree_p Widget::runtimeError(Tree_p self, text msg, Tree_p arg)
 // ----------------------------------------------------------------------------
 //   Display an error message from the input
 // ----------------------------------------------------------------------------
 {
     inError = true;             // Stop refreshing
+    if (!arg)
+        arg = new Name("#ERROR", self->Position());
     XL::Error err(msg, arg, NULL, NULL);
-    QMessageBox::warning(this, tr("Runtime error"),
-                         tr("Error executing the program:\n%1")
-                         .arg(+err.Message()));
+    Window *window = (Window *) parentWidget();
+    window->addError(+err.Message());
     return XL::xl_false;
 }
+
+
+Tree_p Widget::formulaRuntimeError(Tree_p self, text msg, Tree_p arg)
+// ----------------------------------------------------------------------------
+//   Display a runtime error while executing a formula
+// ----------------------------------------------------------------------------
+{
+    if (!arg)
+        arg = new Name("#ERROR", self->Position());
+    XL::Error err(msg, arg, NULL, NULL);
+    msg = err.Message();
+    Tree_p result = new XL::Name("#ERROR");
+    result->code = XL::xl_identity;
+    Window *window = (Window *) parentWidget();
+    window->addError(+err.Message());
+    return result;
+}
+
 
 
 // ============================================================================
@@ -5065,10 +5161,13 @@ TAO_END
 //
 // ============================================================================
 
+namespace XL
+{
 void tao_widget_refresh(double delay)
 // ----------------------------------------------------------------------------
 //    Refresh the current widget
 // ----------------------------------------------------------------------------
 {
     TAO(refresh(delay));
+}
 }

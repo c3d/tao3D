@@ -169,11 +169,14 @@ SymbolsInfo *SymbolsInfo::Copy()
 // ============================================================================
 
 Tree_p Symbols::Compile(Tree_p source, CompiledUnit &unit,
-                       bool nullIfBad, bool keepAlternatives)
+                        bool nullIfBad, bool keepAlternatives)
 // ----------------------------------------------------------------------------
 //    Return an optimized version of the source tree, ready to run
 // ----------------------------------------------------------------------------
 {
+    // Make sure that errors are shown in the proper context
+    LocalSave<Symbols *> saveSyms(symbols, this);
+
     // Record rewrites and data declarations in the current context
     DeclarationAction declare(this);
     Tree_p result = source->Do(declare);

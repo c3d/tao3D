@@ -72,8 +72,11 @@ struct Main
          text builtinsPath, text syntaxPath, text stylesheetPath);
     ~Main();
 
+    int ParseOptions();
+    int LoadContextFiles();
+    void EvalContextFiles();
     int LoadFiles();
-    int LoadFile (text file);
+    int LoadFile(text file, bool updateContext = false);
     int Run();
     int Diff();
 
@@ -91,6 +94,7 @@ public:
     Renderer     renderer;
     source_files files;
     source_names file_names;
+    source_names context_file_names;
     Deserializer *reader;
     Serializer   *writer;
 

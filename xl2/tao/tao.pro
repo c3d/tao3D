@@ -13,7 +13,7 @@
 # ******************************************************************************
 TEMPLATE = app
 TARGET = Tao
-VERSION = "0.1"
+VERSION = "0.0.3"
 DEPENDPATH += . \
     ../xlr
 INCLUDEPATH += . \
@@ -24,8 +24,6 @@ QT += webkit \
     svg \
     phonon
 
-# CONFIG += release
-CONFIG += console
 QMAKE_CXXFLAGS_RELEASE += -g
 
 # Tell the XLR portion that we are building for Tao
@@ -38,6 +36,8 @@ macx {
     QMAKE_INFO_PLIST = Info.plist
 }
 win32:DEFINES += CONFIG_MINGW
+# For debug
+# win32:CONFIG += console
 linux-g++:DEFINES += CONFIG_LINUX
 
 # Input
@@ -113,6 +113,7 @@ SOURCES += tao_main.cpp \
     graphics.cpp \
     widget.cpp \
     window.cpp \
+    formulas.cpp \
     frame.cpp \
     svg.cpp \
     widget_surface.cpp \
@@ -196,6 +197,7 @@ OTHER_FILES += xl.syntax \
     bytecode.stylesheet \
     builtins.xl \
     graphics.tbl \
+    formulas.tbl \
     git.stylesheet
 
 # Copy the support files to the target directory

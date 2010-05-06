@@ -1155,7 +1155,9 @@ Value *CompiledUnit::CreateClosure(Tree_p callee, TreeList &args)
 // ----------------------------------------------------------------------------
 {
     std::vector<Value *> argV;
-    Value *calleeVal = Known(callee); assert(calleeVal);
+    Value *calleeVal = Known(callee);
+    if (!calleeVal)
+        return NULL;
     Value *countVal = ConstantInt::get(LLVM_INTTYPE(uint), args.size());
     TreeList::iterator a;
 

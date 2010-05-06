@@ -175,6 +175,9 @@ PREFIX(EndpointsStyle, tree, "endpoints_style",
 //
 // ============================================================================
 
+PREFIX(Point, tree, "point",
+       PARM(x,real) PARM(y,real) PARM(z,real) PARM(s,real),
+       RTAO(fixedSizePoint(self, x, y, z, s)))
 PREFIX(Rectangle, tree, "rectangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
        RTAO(rectangle(self, x, y, w, h)))
@@ -270,6 +273,7 @@ PREFIX(TextOverflow, tree, "text_overflow",
 PREFIX(TextFlow, tree, "text_flow", PARM(n, text), RTAO(textFlow(self, n)))
 
 PREFIX(TextSpan, tree,"text", PARM(t, text), RTAO(textSpan(self, t)))
+PREFIX(TextFormula, tree,"formula", PARM(t, tree), RTAO(textFormula(self, &t)))
 PREFIX(Font, tree, "font", PARM(f, text), RTAO(font(self, f)))
 PREFIX(FontSize, tree, "font_size", PARM(s, real), RTAO(fontSize(self, s)))
 PREFIX(FontScaling, tree, "font_scaling", PARM(s,real) PARM(ms,real),
@@ -474,6 +478,8 @@ PREFIX(ErrorMessage, tree, "error", PARM(m, text) PARM(s, tree),
        RTAO(runtimeError(self, m, &s)))
 PREFIX(ErrorMessage0, tree, "error", PARM(m, text),
        RTAO(runtimeError(self, m, NULL)))
+
+
 
 // ============================================================================
 //

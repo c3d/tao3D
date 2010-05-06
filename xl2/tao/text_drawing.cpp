@@ -27,13 +27,15 @@
 #include "tao_utf8.h"
 #include "drag.h"
 #include "glyph_cache.h"
-#include "frame.h"
+#include "gl_keepers.h"
+#include "runtime.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
 #include <QPainterPath>
 #include <QFont>
 #include <QFontMetrics>
+#include <sstream>
 
 TAO_BEGIN
 
@@ -53,7 +55,9 @@ void TextSpan::Draw(Layout *where)
     bool hasTexture = setTexture(where);
     GlyphCache &glyphs = widget->glyphs();
     bool tooBig = where->font.pointSize() > (int) glyphs.maxFontSize;
-    bool debugForceDirect = widget->lastModifiers() & Qt::ShiftModifier;
+    uint dbgMod = (Qt::ShiftModifier|Qt::ControlModifier|Qt::AltModifier);
+    bool debugForceDirect = (widget->lastModifiers() & dbgMod) == dbgMod;
+
     if (!hasLine && !hasTexture && !tooBig && !debugForceDirect)
         DrawCached(where, false);
     else
@@ -69,7 +73,9 @@ void TextSpan::DrawCached(Layout *where, bool identify)
     Widget     *widget = where->Display();
     GlyphCache &glyphs = widget->glyphs();
     Point3      pos    = where->offset;
-    text        str    = source->value;
+    Text_p      ttree  = source;
+    text        str    = ttree->value;
+    bool        canSel = ttree->Position() != XL::Tree::NOWHERE;
     QFont      &font   = where->font;
     coord       x      = pos.x;
     coord       y      = pos.y;
@@ -94,34 +100,31 @@ void TextSpan::DrawCached(Layout *where, bool identify)
                 continue;
         }
 
-        if (!newLine)
-        {
-            // Enter the geometry coordinates
-            coord charX1 = x + glyph.bounds.lower.x;
-            coord charX2 = x + glyph.bounds.upper.x;
-            coord charY1 = y - glyph.bounds.lower.y;
-            coord charY2 = y - glyph.bounds.upper.y;
-            quads.push_back(Point3(charX1, charY1, z));
-            quads.push_back(Point3(charX2, charY1, z));
-            quads.push_back(Point3(charX2, charY2, z));
-            quads.push_back(Point3(charX1, charY2, z));
+        // Enter the geometry coordinates
+        coord charX1 = x + glyph.bounds.lower.x;
+        coord charX2 = x + glyph.bounds.upper.x;
+        coord charY1 = y - glyph.bounds.lower.y;
+        coord charY2 = y - glyph.bounds.upper.y;
+        quads.push_back(Point3(charX1, charY1, z));
+        quads.push_back(Point3(charX2, charY1, z));
+        quads.push_back(Point3(charX2, charY2, z));
+        quads.push_back(Point3(charX1, charY2, z));
 
-            // Enter the texture coordinates
-            Point &texL = glyph.texture.lower;
-            Point &texU = glyph.texture.upper;
-            texCoords.push_back(Point(texL.x, texL.y));
-            texCoords.push_back(Point(texU.x, texL.y));
-            texCoords.push_back(Point(texU.x, texU.y));
-            texCoords.push_back(Point(texL.x, texU.y));
-        }
+        // Enter the texture coordinates
+        Point &texL = glyph.texture.lower;
+        Point &texU = glyph.texture.upper;
+        texCoords.push_back(Point(texL.x, texL.y));
+        texCoords.push_back(Point(texU.x, texL.y));
+        texCoords.push_back(Point(texU.x, texU.y));
+        texCoords.push_back(Point(texL.x, texU.y));
 
         // Advance to next character
         if (newLine)
         {
-            scale height = glyphs.Ascent(font) + glyphs.Descent(font) + 1;
+            scale height = glyphs.Ascent(font) + glyphs.Descent(font);
             scale spacing = height + glyphs.Leading(font);
             x = 0;
-            y -= spacing;
+            y -= spacing * glyph.scalingFactor;
         }
         else
         {
@@ -140,7 +143,8 @@ void TextSpan::DrawCached(Layout *where, bool identify)
             glEnableClientState(GL_VERTEX_ARRAY);
             for (uint i = 0; i < count; i += 4)
             {
-                glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
+                if (canSel)
+                    glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
                 glDrawArrays(GL_QUADS, i, 4);
             }
             glDisableClientState(GL_VERTEX_ARRAY);
@@ -180,34 +184,63 @@ void TextSpan::DrawDirect(Layout *where)
 //   Draw the given text directly using Qt paths
 // ----------------------------------------------------------------------------
 {
-    Point3 position = where->offset;
-    QPainterPath path;
-    QString str = +source->value.substr(start, end - start);
-    QFont &font = where->font;
-    QFontMetricsF fm(font);
-    Widget *widget = where->Display();
-    widget->newCharId(str.length());
-    scale leading = fm.leading();
-    scale height = fm.height();
-    scale spacing = leading + height;
+    Widget     *widget = where->Display();
+    GlyphCache &glyphs = widget->glyphs();
+    Point3      pos    = where->offset;
+    Text_p      ttree  = source;
+    text        str    = ttree->value;
+    bool        canSel = ttree->Position() != XL::Tree::NOWHERE;
+    QFont      &font   = where->font;
+    coord       x      = pos.x;
+    coord       y      = pos.y;
+    coord       z      = pos.z;
+    scale       lw     = where->lineWidth;
+    if (where->lineColor.alpha <= 0)
+        lw = 0;
 
-    int index = str.indexOf(QChar('\n'));
-    while (index >= 0)
+    GlyphCache::GlyphEntry  glyph;
+    std::vector<Point3>     quads;
+    std::vector<Point>      texCoords;
+
+    // Loop over all characters in the text span
+    uint i, max = str.length();
+    for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
     {
-        QString fragment = str.left(index);
-        path.addText(position.x, -position.y, font, fragment);
-        position.x = 0;
-        position.y -= spacing;
-        str = str.mid(index+1);
-        index = str.indexOf(QChar('\n'));
+        uint  unicode  = XL::Utf8Code(str, i);
+        bool  newLine  = unicode == '\n';
+
+        // Find the glyph in the glyph cache
+        if (!glyphs.Find(font, unicode, glyph, true, true, lw))
+            continue;
+
+        if (canSel)
+            glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
+        GLMatrixKeeper save;
+        glTranslatef(x, y, z);
+        scale gscale = glyph.scalingFactor;
+        glScalef(gscale, gscale, gscale);
+
+        setTexture(where);
+        if (setFillColor(where))
+            glCallList(glyph.interior);
+        if (setLineColor(where))
+            glCallList(glyph.outline);
+
+        // Advance to next character
+        if (newLine)
+        {
+            scale height = glyphs.Ascent(font) + glyphs.Descent(font);
+            scale spacing = height + glyphs.Leading(font);
+            x = 0;
+            y -= spacing * glyph.scalingFactor;
+        }
+        else
+        {
+            x += glyph.advance;
+        }
     }
 
-    path.addText(position.x, -position.y, font, str);
-    position.x += fm.width(str);
-
-    where->offset = Point3();
-    GraphicPath::Draw(where, path, GLU_TESS_WINDING_ODD, -1);
-    where->offset = position;
+    where->offset = Point3(x, y, z);
 }
 
 
@@ -222,7 +255,9 @@ void TextSpan::DrawSelection(Layout *where)
     Widget     *widget       = where->Display();
     GlyphCache &glyphs       = widget->glyphs();
     Point3      pos          = where->offset;
-    text        str          = source->value;
+    Text_p      ttree        = source;
+    text        str          = ttree->value;
+    bool        canSel       = ttree->Position() != XL::Tree::NOWHERE;
     QFont      &font         = where->font;
     coord       x            = pos.x;
     coord       y            = pos.y;
@@ -230,9 +265,11 @@ void TextSpan::DrawSelection(Layout *where)
     uint        first        = start;
     scale       textWidth    = 0;
     TextSelect *sel          = widget->textSelection();
-    GLuint      charId       = 0;
+    GLuint      charId       = ~0;
     bool        charSelected = false;
-    scale       height       = glyphs.Ascent(font) + glyphs.Descent(font) + 1;
+    scale       ascent       = glyphs.Ascent(font);
+    scale       descent      = glyphs.Descent(font);
+    scale       height       = ascent + descent;
     GlyphCache::GlyphEntry  glyph;
 
     // Loop over all characters in the text span
@@ -240,8 +277,11 @@ void TextSpan::DrawSelection(Layout *where)
     for (i = start; i < max && i < end; i = next)
     {
         uint unicode = XL::Utf8Code(str, i);
-        charId = widget->newCharId();
-        charSelected = widget->charSelected();
+        if (canSel)
+        {
+            charId = widget->newCharId();
+            charSelected = widget->charSelected();
+        }
         next = XL::Utf8Next(str, i);
 
         // Create a text selection if we need one
@@ -266,7 +306,8 @@ void TextSpan::DrawSelection(Layout *where)
             if (charSelected || sel->needsPositions())
             {
                 coord charX = x + glyph.bounds.lower.x;
-                coord charY = y - glyph.bounds.upper.y;
+                coord charY = y;
+
                 sel->newChar(charX, charSelected);
 
                 if (charSelected)
@@ -297,9 +338,31 @@ void TextSpan::DrawSelection(Layout *where)
                         if (sel->point == sel->mark)
                             sel->replace = false;
                     }
-                    sel->selBox |= Box3(charX,charY,z, 1, height, 0);
+                    scale sd = glyph.scalingFactor * descent;
+                    scale sh = glyph.scalingFactor * height;
+                    sel->selBox |= Box3(charX,charY - sd,z, 1, sh, 0);
                 } // if(charSelected)
+
             } // if (charSelected || upDown)
+
+            // Check if we are in a formula, if so display formula box
+            if (sel->formulaMode)
+            {
+                coord charX = x + glyph.bounds.lower.x;
+                coord charY = y;
+                scale sd = glyph.scalingFactor * descent;
+                scale sh = glyph.scalingFactor * height;
+                sel->formulaBox |= Box3(charX,charY - sd,z, 1, sh, 0);
+                sel->formulaMode--;
+                if (!sel->formulaMode)
+                {
+                    glBlendFunc(GL_DST_COLOR, GL_ZERO);
+                    text mode = "formula_highlight";
+                    widget->drawSelection(sel->formulaBox, mode);
+                    sel->formulaBox.Empty();
+                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                }
+            }
         } // if(sel)
 
         // Advance to next character
@@ -318,28 +381,37 @@ void TextSpan::DrawSelection(Layout *where)
         }
     }
 
-    if (sel && sel->replace && max <= end)
+    if (sel && max <= end)
     {
         charId++;
-        text rpl = sel->replacement;
-        if (charId >= sel->start() && charId <= sel->end() && rpl.length())
+        if (charId >= sel->start() && charId <= sel->end())
         {
-            uint eos = i;
-            if (sel->point != sel->mark)
+            if (sel->replace)
             {
-                eos = next;
-                if (sel->point > sel->mark)
-                    sel->point--;
-                else
-                    sel->mark--;
+                text rpl = sel->replacement;
+                if (rpl.length())
+                {
+                    uint eos = i;
+                    if (sel->point != sel->mark)
+                    {
+                        eos = next;
+                        if (sel->point > sel->mark)
+                            sel->point--;
+                        else
+                            sel->mark--;
+                    }
+                    source->value.replace(i, eos-i, rpl);
+                    sel->replacement = "";
+                    uint length = XL::Utf8Length(rpl);
+                    sel->point += length;
+                    sel->mark += length;
+                    if (sel->point == sel->mark)
+                        sel->replace = false;
+                }
             }
-            source->value.replace(i, eos-i, rpl);
-            sel->replacement = "";
-            uint length = XL::Utf8Length(rpl);
-            sel->point += length;
-            sel->mark += length;
-            if (sel->point == sel->mark)
-                sel->replace = false;
+            scale sd = glyph.scalingFactor * descent;
+            scale sh = glyph.scalingFactor * height;
+            sel->selBox |= Box3(x,y - sd,z, 1, sh, 0);
         }
     }
 
@@ -396,6 +468,9 @@ Box3 TextSpan::Bounds(Layout *where)
     text        str    = source->value;
     QFont      &font   = where->font;
     Box3        result;
+    scale       ascent  = glyphs.Ascent(font);
+    scale       descent = glyphs.Descent(font);
+    scale       leading = glyphs.Leading(font);
     coord       x      = 0;
     coord       y      = 0;
     coord       z      = 0;
@@ -413,27 +488,32 @@ Box3 TextSpan::Bounds(Layout *where)
         if (!glyphs.Find(font, unicode, glyph, true))
             continue;
 
-        if (!newLine)
-        {
-            // Enter the geometry coordinates
-            coord charX1 = x + glyph.bounds.lower.x;
-            coord charX2 = x + glyph.bounds.upper.x;
-            coord charY1 = y - glyph.bounds.lower.y;
-            coord charY2 = y - glyph.bounds.upper.y;
-            result |= Point3(charX1, charY1, z);
-            result |= Point3(charX2, charY2, z);
-        }
+        scale sa = ascent * glyph.scalingFactor;
+        scale sd = descent * glyph.scalingFactor;
+        scale sl = leading * glyph.scalingFactor;
+
+        // Enter the geometry coordinates
+        coord charX1 = x + glyph.bounds.lower.x;
+        coord charX2 = x + glyph.bounds.upper.x;
+        coord charY1 = y - glyph.bounds.lower.y;
+        coord charY2 = y - glyph.bounds.upper.y;
 
         // Advance to next character
         if (newLine)
         {
-            scale height = glyphs.Ascent(font) + glyphs.Descent(font) + 1;
+            result |= Point3(charX1, y + sa, z);
+            result |= Point3(charX1, y - sd - sl, z);
+
+            scale height = glyphs.Ascent(font) + glyphs.Descent(font);
             scale spacing = height + glyphs.Leading(font);
             x = 0;
-            y -= spacing;
+            y -= spacing * glyph.scalingFactor;
         }
         else
         {
+            result |= Point3(charX1, charY1, z);
+            result |= Point3(charX2, charY2, z);
+
             x += glyph.advance;
         }
     }
@@ -472,27 +552,30 @@ Box3 TextSpan::Space(Layout *where)
         if (!glyphs.Find(font, unicode, glyph, true))
             continue;
 
-        if (!newLine)
-        {
-            // Enter the geometry coordinates
-            coord charX1 = x + glyph.bounds.lower.x;
-            coord charX2 = x + glyph.bounds.upper.x;
-            coord charY1 = y - glyph.bounds.lower.y;
-            coord charY2 = y - glyph.bounds.upper.y;
-            result |= Point3(charX1, charY1, z);
-            result |= Point3(charX2, charY2, z);
-            result |= Point3(charX1, y + ascent, z);
-            result |= Point3(charX1 + glyph.advance, y - descent - leading, z);
-        }
+        scale sa = ascent * glyph.scalingFactor;
+        scale sd = descent * glyph.scalingFactor;
+        scale sl = leading * glyph.scalingFactor;
+
+        // Enter the geometry coordinates
+        coord charX1 = x + glyph.bounds.lower.x;
+        coord charX2 = x + glyph.bounds.upper.x;
+        coord charY1 = y - glyph.bounds.lower.y;
+        coord charY2 = y - glyph.bounds.upper.y;
+
+        result |= Point3(charX1, charY1, z);
+        result |= Point3(charX2, charY2, z);
+        result |= Point3(charX1, y + sa, z);
 
         // Advance to next character
         if (newLine)
         {
+            result |= Point3(charX1, y - sd - sl, z);
             x = 0;
-            y -= ascent + descent + leading + 1;
+            y -= sa + sd + sl;
         }
         else
         {
+            result |= Point3(charX1 + glyph.advance, y - sd - sl, z);
             x += glyph.advance;
         }
     }
@@ -543,9 +626,10 @@ scale TextSpan::TrailingSpaceSize(Layout *where)
     Widget     *widget = where->Display();
     GlyphCache &glyphs = widget->glyphs();
     QFont      &font   = where->font;
-    scale       result = 0;
     text        str    = source->value;
     uint        pos    = str.length();
+    Box3        box;
+
     if (pos > end)
         pos = end;
     while (pos > start)
@@ -561,11 +645,169 @@ scale TextSpan::TrailingSpaceSize(Layout *where)
         if (!glyphs.Find(font, unicode, glyph, true))
             continue;
 
-        result += glyph.advance;
+        // Enter the geometry coordinates
+        coord charX1 = glyph.bounds.lower.x;
+        coord charX2 = glyph.bounds.upper.x;
+        coord charY1 = glyph.bounds.lower.y;
+        coord charY2 = glyph.bounds.upper.y;
+        box |= Point3(charX1, charY1, 0);
+        box |= Point3(charX2, charY2, 0);
+        box |= Point3(charX1 + glyph.advance, charY1, 0);
     }
+
+    scale result = box.Width();
+    if (result < 0)
+        result = 0;
     return result;
 }
 
+
+
+// ============================================================================
+// 
+//    A text formula is used to display numerical / evaluated values
+// 
+// ============================================================================
+
+uint TextFormula::formulas = 0;
+uint TextFormula::shows = 0;
+
+XL::Text_p TextFormula::Format(XL::Prefix_p self)
+// ----------------------------------------------------------------------------
+//   Return a formatted value for the given value
+// ----------------------------------------------------------------------------
+{
+    Tree_p value = self->right;
+    TextFormulaEditInfo *info = value->GetInfo<TextFormulaEditInfo>();
+    formulas++;
+    shows = 0;
+    if (info && info->order == formulas)
+        return info->source;
+    Tree_p computed = xl_evaluate(self->right);
+    return new XL::Text(*computed);
+}
+
+
+void TextFormula::DrawSelection(Layout *where)
+// ----------------------------------------------------------------------------
+//   Detect if we edit a formula, if so create its FormulEditInfo
+// ----------------------------------------------------------------------------
+{
+    Widget              *widget = where->Display();
+    TextSelect          *sel    = widget->textSelection();
+    XL::Prefix_p         prefix = self->AsPrefix();
+    XL::Tree_p           value  = prefix->right;
+    TextFormulaEditInfo *info   = value->GetInfo<TextFormulaEditInfo>();
+    uint                 selId  = widget->currentCharId() + 1;
+
+    // Count formulas to identify them uniquely
+    shows++;
+    formulas = 0;
+
+    // Check if formula is selected and we are not editing it
+    if (sel && sel->textMode)
+    {
+        if (!info && widget->charSelected(selId))
+        {
+            // No info: create one
+            text edited = text(" ") + text(*value) + " ";
+            Text_p editor = new Text(edited, "\"", "\"", value->Position());
+            info = new TextFormulaEditInfo(editor, shows);
+            value->SetInfo<TextFormulaEditInfo>(info);
+            
+            // Update mark and point
+            XL::Text_p source = info->source;
+            uint length = source->value.length();
+            sel->point = selId;
+            sel->mark = selId + length;
+            
+            widget->refresh();
+        }
+    }
+
+    // Indicate how many characters we want to display as "formula"
+    if (info && sel)
+    {
+        if (shows == info->order)
+        {
+            XL::Text_p source = info->source;
+            sel->formulaMode = source->value.length() + 1;
+        }
+        else
+        {
+            XL::Text_p source = this->source;
+            sel->formulaMode = source->value.length() + 1;
+        }
+    }
+
+    TextSpan::DrawSelection(where);
+
+    // Check if the cursor moves out of the selection - If so, validate
+    if (info &&info->order == shows)
+    {
+        XL::Text_p source = info->source;
+        uint length = source->value.length();
+
+        if (!sel || (sel->mark == sel->point &&
+                     (sel->point < selId || sel->point > selId + length)))
+        {
+            if (Validate(info->source, widget))
+            {
+                if (sel && sel->point > selId + length)
+                {
+                    sel->point -= length;
+                    sel->mark -= length;
+                }
+            }
+        }
+    }
+    else if (!info && sel && selId >= sel->start() && selId <= sel->end())
+    {
+        // First run, make sure we return here to create the editor
+        widget->refresh();
+    }
+}
+
+
+void TextFormula::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   Give one ID to the whole formula so that we can click on it
+// ----------------------------------------------------------------------------
+{
+    XL::Prefix_p         prefix  = self->AsPrefix();
+    XL::Tree_p           value   = prefix->right;
+    TextFormulaEditInfo *info    = value->GetInfo<TextFormulaEditInfo>();
+    if (!info)
+    {
+        Widget *widget  = where->Display();
+        uint    selId = widget->currentCharId() + 1;
+        glLoadName(selId | Widget::CHAR_ID_BIT);
+    }
+    TextSpan::Identify(where);
+}
+
+
+bool TextFormula::Validate(XL::Text_p source, Widget *widget)
+// ----------------------------------------------------------------------------
+//   Check if we can parse the input. If so, update self
+// ----------------------------------------------------------------------------
+{
+    std::istringstream  input(source->value);
+    XL::Syntax          syntax (XL::MAIN->syntax);
+    XL::Positions      &positions = XL::MAIN->positions;
+    XL::Errors         &errors    = XL::MAIN->errors;
+    XL::Parser          parser(input, syntax,positions,errors);
+    Tree_p              newTree = parser.Parse();
+    if (newTree)
+    {
+        XL::Prefix_p prefix = self->AsPrefix();
+        prefix->right = newTree;
+        widget->reloadProgram();
+        widget->markChanged("Replaced formula");
+        return true;
+    }
+    return false;
+}
 
 
 // ============================================================================
@@ -581,7 +823,9 @@ TextSelect::TextSelect(Widget *w)
     : Activity("Text selection", w),
       mark(0), point(0), direction(None), targetX(0),
       replacement(""), replace(false),
-      textMode(false), pickingUpDown(false), movePointOnly(false),
+      textMode(false),
+      pickingUpDown(false), movePointOnly(false),
+      formulaMode(false),
       findingLayout(true)
 {
     Widget::selection_map::iterator i, last = w->selection.end();
@@ -828,6 +1072,7 @@ void TextSelect::updateSelection()
     for (uint i = s; i < e; i++)
         widget->selection[i | Widget::CHAR_ID_BIT] = 1;
     findingLayout = true;
+    formulaMode = false;
     widget->refresh();
 }
 

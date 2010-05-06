@@ -211,7 +211,7 @@ public:
     symbol_table        calls;
     value_table         type_tests;
     symbols_set         imported;
-    Tree_p               error_handler;
+    Tree_p              error_handler;
     bool                has_rewrites_for_constants;
 
     static Symbols *    symbols;
@@ -532,7 +532,10 @@ inline Tree_p Ooops (text msg, Tree_p a1=NULL, Tree_p a2=NULL, Tree_p a3=NULL)
 //   Error using the global context
 // ----------------------------------------------------------------------------
 {
-    return Context::context->Error(msg, a1, a2, a3);
+    Symbols *syms = Symbols::symbols;
+    if (!syms)
+        syms = Context::context;
+    return syms->Error(msg, a1, a2, a3);
 }
 
 

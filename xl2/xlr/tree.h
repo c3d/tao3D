@@ -127,8 +127,8 @@ struct Tree
 //   The base class for all XL trees
 // ----------------------------------------------------------------------------
 {
-    enum { NOWHERE = ~0UL };
     enum { KINDBITS = 3, KINDMASK=7 };
+    enum { NOWHERE = ~0UL };
 
     // Constructor and destructor
     Tree (kind k, TreePosition pos = NOWHERE):

@@ -88,8 +88,8 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         if (count)
         {
             firstClick = true;
-            rectangle.lower.Set(x, y);
-            rectangle.upper = rectangle.lower;
+            rectangle.lower.Set(x-4, y-4);
+            rectangle.upper.Set(x+4, y+4);
         }
         else
         {
@@ -171,7 +171,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
             if (shiftModifier && widget->selection[selected] && !manipulator)
                 widget->selection[selected] = 0;
             else
-                widget->selection[selected]++;
+                widget->selection[selected] = count;
         }
         widget->manipulator = manipulator;
     }

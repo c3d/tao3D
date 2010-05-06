@@ -56,7 +56,11 @@ template<> inline scale Justifier<line_t>::Size(line_t item, Layout *layout)
 //   For drawings, we compute the horizontal size
 // ----------------------------------------------------------------------------
 {
-    return item->Space(layout).Width();
+    Box3 space = item->Space(layout);
+    scale result = space.Width();
+    if (result < 0)
+        result = 0;
+    return result;
 }
 
 
@@ -112,7 +116,11 @@ template<> inline scale Justifier<page_t>::Size(page_t line, Layout *l)
 //   For lines, we compute the vertical size
 // ----------------------------------------------------------------------------
 {
-    return line->Space(l).Height();
+    Box3 space = line->Space(l);
+    scale result = space.Height();
+    if (result < 0)
+        result = 0;
+    return result;
 }
 
 
@@ -248,6 +256,15 @@ void LayoutLine::DrawSelection(Layout *where)
             text mode = sel->textMode ? "text_selection" : "text_highlight";
             widget->drawSelection(sel->selBox, mode);
             sel->selBox.Empty();
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
+
+        if (sel->formulaBox.Width() > 0 && sel->formulaBox.Height() > 0)
+        {
+            glBlendFunc(GL_DST_COLOR, GL_ZERO);
+            text mode = "formula_highlight";
+            widget->drawSelection(sel->formulaBox, mode);
+            sel->formulaBox.Empty();
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
     }
@@ -650,7 +667,7 @@ void PageLayout::DrawSelection(Layout *where)
     GLuint endId = widget->currentCharId();
     if (TextSelect *sel = widget->textSelection())
         if (sel->findingLayout)
-            if (sel->start() <= endId && sel->end() >= startId)
+            if (sel->start() <= endId+1 && sel->end() >= startId)
                 widget->select(where->id, 1);
 }
 

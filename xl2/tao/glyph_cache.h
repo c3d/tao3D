@@ -52,6 +52,9 @@ public:
         Box             bounds;
         Box             texture;
         coord           advance;
+        scale           lineWidth;
+        scale           scalingFactor;
+        uint            interior, outline;
     };
 
 public:
@@ -95,8 +98,10 @@ public:
 
     PerFont *   FindFont(const QFont &font, bool create = false);
 
-    bool        Find(const QFont &font, uint code, GlyphEntry&, bool crt=false);
-    bool        Find(const QFont &font, text word, GlyphEntry&, bool ctt=false);
+    bool        Find(const QFont &font, uint code, GlyphEntry&,
+                     bool create=false, bool interior=false, scale lineWidth=0);
+    bool        Find(const QFont &font, text word, GlyphEntry&,
+                     bool create=false, bool interior=false, scale lineWidth=0);
     void        Allocate(uint width, uint height, Rect &rect);
 
     void        GenerateTexture();
@@ -119,10 +124,14 @@ protected:
             if (ptSize < 0)
                 ptSize = font.pixelSize();
             uint result = ptSize;
-            if (ptSize < 0 || ptSize >= 32)
-                result = 64;
-            else if (ptSize >= 16)
-                result |= 3;
+            uint mask = 0;
+            // Keep only 4 significant bits
+            while (ptSize > 16)
+            {
+                ptSize >>= 1;
+                mask = (mask << 1) | 1;
+            }
+            result |= mask;
             return result;
         }
 

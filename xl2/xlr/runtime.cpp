@@ -332,6 +332,10 @@ Tree *xl_type_error(Tree *what)
 //   Display message if we have a type error
 // ----------------------------------------------------------------------------
 {
+    Symbols *syms = what->Get<SymbolsInfo>();
+    if (!syms)
+        syms = Symbols::symbols;
+    LocalSave<Symbols *> saveSyms(Symbols::symbols, syms);
     return Ooops("No form matches '$1'", what);
 }
 
@@ -425,6 +429,9 @@ Tree *xl_symbolicname_cast(Tree *source, Tree *value)
 {
     if (Name_p nt = value->AsName())
         return nt;
+    value = xl_evaluate(value);
+    if (Name_p afterEval = value->AsName())
+        return afterEval;
     return NULL;
 }
 

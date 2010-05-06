@@ -41,9 +41,9 @@ bool GitRepository::checkGit()
 //   Return true if Git is functional, and set the git command accordingly
 // ----------------------------------------------------------------------------
 {
-    // Look for "git" in $PATH, then in application's directory
+    // Look for "git" in $PATH, then in <application's directory>/git/bin
     QStringList commands;
-    commands << "git" << qApp->applicationDirPath() + "/git";
+    commands << "git" << qApp->applicationDirPath() + "/git/bin/git";
     QStringListIterator it(commands);
     while (it.hasNext())
     {

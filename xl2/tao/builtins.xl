@@ -274,7 +274,6 @@ menu_item "menu:insert > object > image", "Image ...", file_chooser
     shape
         color 1,1,1,1
         image 0, 0, 0, 0, file_path}
-
 }
 
 toolbar_insert -> {
@@ -339,3 +338,5 @@ menu_item "menu:colors > line color", "Line Color...", do
 }
 
 
+menu_insert
+menu_colors

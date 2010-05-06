@@ -24,8 +24,6 @@ QT += webkit \
     svg \
     phonon
 
-# CONFIG += release
-CONFIG += console
 QMAKE_CXXFLAGS_RELEASE += -g
 
 # Tell the XLR portion that we are building for Tao
@@ -38,6 +36,8 @@ macx {
     QMAKE_INFO_PLIST = Info.plist
 }
 win32:DEFINES += CONFIG_MINGW
+# For debug
+# win32:CONFIG += console
 linux-g++:DEFINES += CONFIG_LINUX
 
 # Input

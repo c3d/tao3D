@@ -554,10 +554,27 @@ inline void glShowErrors()
 //   Display pending GL errors
 // ----------------------------------------------------------------------------
 {
+    static GLenum last = GL_NO_ERROR;
+    static unsigned int count = 0;
     GLenum err = glGetError();
     while (err != GL_NO_ERROR)
     {
-        std::cerr << "GL Error: " << (char *) gluErrorString(err) << "\n";
+        if (!count)
+        {
+            std::cerr << "GL Error: " << (char *) gluErrorString(err)
+                      << " [error code: " << err << "] \n";
+            last = err;
+        }
+        if (err != last || count == 100)
+        {
+            std::cerr << "GL Error: error " << last << " repeated "
+                      << count << " times\n";
+            count = 0;
+        }
+        else
+        {
+            count++;
+        }
         err = glGetError();
     }
 }

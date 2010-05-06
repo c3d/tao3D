@@ -28,6 +28,7 @@
 #include "context.h"
 #include "opcodes.h"
 #include <cmath>
+#include <cstdlib>
 #include <sstream>
 
 XL_BEGIN

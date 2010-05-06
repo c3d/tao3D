@@ -354,6 +354,9 @@ void Widget::runProgram()
     {
         if (Tree_p prog = xlProgram->tree.tree)
         {
+            XL::Main   *xlr = XL::MAIN;
+            xlr->EvalContextFiles();
+            // Evaluate the program
             xl_evaluate(prog);
 
             // Clean the end of the old menu list.

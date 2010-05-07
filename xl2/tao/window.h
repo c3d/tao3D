@@ -3,18 +3,18 @@
 // ****************************************************************************
 //  window.h                                                       Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //    The main Tao window
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -53,7 +53,7 @@ class Window : public QMainWindow
     enum { MaxRecentFiles = 5 };
 
 public:
-    Window(XL::Main *xlr, XL::SourceFile *sf = NULL);
+    Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf = NULL);
 
     void setText(QString txt);
     bool openProject(QString path, QString filename, bool confirm = true);
@@ -64,7 +64,8 @@ public:
     bool isUntitled;
 
 public:
-    QUndoStack *undoStack;
+    QUndoStack       * undoStack;
+    XL::source_names   contextFileNames; // Extra context file names
 
 public slots:
     void markChanged(bool changed = true);
@@ -116,6 +117,7 @@ private:
     void warnNoRepo();
     void enableProjectSharingMenus();
     void updateRecentFileActions();
+    void updateContext(QString docPath);
 
 private:
     XL::Main *        xlRuntime;

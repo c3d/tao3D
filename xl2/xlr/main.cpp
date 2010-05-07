@@ -94,29 +94,6 @@ Main::Main(int inArgc, char **inArgv, Compiler &comp)
 }
 
 
-Main::Main(int inArgc, char **inArgv, Compiler &comp,
-           text builtinsPath, text syntaxPath, text stylesheetPath)
-// ----------------------------------------------------------------------------
-//   Initialization of the globals
-// ----------------------------------------------------------------------------
-    : argc(inArgc), argv(inArgv),
-      positions(),
-      errors(&positions),
-      syntax(syntaxPath.c_str()),
-      builtins(builtinsPath.c_str()),
-      options(errors),
-      compiler(comp),
-      context(errors, &compiler),
-      renderer(std::cout, stylesheetPath.c_str(), syntax),
-      reader(NULL), writer(NULL)
-{
-    Options::options = &options;
-    Context::context = &context;
-    Symbols::symbols = &context;
-    Renderer::renderer = &renderer;
-    Syntax::syntax = &syntax;
-}
-
 Main::~Main()
 // ----------------------------------------------------------------------------
 //   Destructor
@@ -151,10 +128,14 @@ int Main::ParseOptions()
     cmd = options.Parse(argc, argv);
     if (options.doDiff)
         options.parseOnly = true;
-    if (builtins.empty() || options.builtinsOverride)
-        builtins = options.builtinsFile;
     if (options.builtins)
-        context_file_names.push_back(builtins);
+    {
+        if (builtins.empty() || options.builtinsOverride)
+            builtins = options.builtinsFile;
+    }else
+    {
+        builtins = "";
+    }
 
     for (; cmd != end; cmd = options.ParseNext())
     {
@@ -184,13 +165,20 @@ int Main::LoadFiles()
 }
 
 
-int Main::LoadContextFiles()
+int Main::LoadContextFiles( source_names context_file_names)
 // ----------------------------------------------------------------------------
 //   Load all files given on the command line and compile them
 // ----------------------------------------------------------------------------
 {
     std::vector<text>::iterator  file;
     bool                         hadError = false;
+
+    // clear previous context
+
+    // load builtins
+    if (!builtins.empty() )
+        hadError |= LoadFile(builtins, true);
+
     // Loop over files we will process
     for (file = context_file_names.begin();
          file != context_file_names.end(); file++)
@@ -201,16 +189,21 @@ int Main::LoadContextFiles()
 }
 
 
-void Main::EvalContextFiles()
+void Main::EvalContextFiles(source_names context_file_names)
 // ----------------------------------------------------------------------------
 //   Evaluate the context files
 // ----------------------------------------------------------------------------
 {
     // Evaluate context
     std::vector<text>::iterator  file;
-
     Tree_p context_file = NULL;
-    SourceFile filename;
+
+    if ( ! builtins.empty() )
+    {
+        if ( (context_file = files[builtins].tree.tree) )
+            xl_evaluate(context_file);
+    }
+
     for (file = context_file_names.begin();
          file != context_file_names.end(); file++)
     {
@@ -435,10 +428,12 @@ int main(int argc, char **argv)
 #endif
 
     using namespace XL;
+    source_names noSpecificContext;
     Compiler compiler("xl_tao");
     MAIN = new Main(argc, argv, compiler);
     int rc = 0;
-    if ( !(rc=MAIN->ParseOptions()) || !(rc=MAIN->LoadContextFiles()))
+    if ( !(rc=MAIN->ParseOptions()) ||
+         !(rc=MAIN->LoadContextFiles(noSpecificContext)))
     {
         delete MAIN;
         return rc;

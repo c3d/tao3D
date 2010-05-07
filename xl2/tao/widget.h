@@ -117,6 +117,7 @@ public:
     void        setupGL();
     void        identifySelection();
     void        updateSelection();
+    uint        showGlErrors();
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -549,47 +550,16 @@ inline ActivityClass *Widget::active()
 //
 // ============================================================================
 
+#undef TAO // From the command line
+#define TAO(x)  (Tao::Widget::Tao() ? Tao::Widget::Tao()->x : 0)
+#define RTAO(x) return TAO(x)
+
 inline void glShowErrors()
 // ----------------------------------------------------------------------------
 //   Display pending GL errors
 // ----------------------------------------------------------------------------
 {
-    static GLenum last = GL_NO_ERROR;
-    static unsigned int count = 0;
-    GLenum err = glGetError();
-    while (err != GL_NO_ERROR)
-    {
-        if (!count)
-        {
-            std::cerr << "GL Error: " << (char *) gluErrorString(err)
-                      << " [error code: " << err << "] \n";
-            last = err;
-        }
-        if (err != last || count == 100)
-        {
-            std::cerr << "GL Error: error " << last << " repeated "
-                      << count << " times\n";
-            count = 0;
-        }
-        else
-        {
-            count++;
-        }
-        err = glGetError();
-    }
-}
-
-
-inline QString Utf8(text utf8, uint index = 0)
-// ----------------------------------------------------------------------------
-//    Convert our internal UTF-8 encoded strings to QString format
-// ----------------------------------------------------------------------------
-{
-    kstring data = utf8.data();
-    uint len = utf8.length();
-    len = len > index ? len - index : 0;
-    index = index < len ? index : 0;
-    return QString::fromUtf8(data + index, len);
+    TAO(showGlErrors());
 }
 
 
@@ -605,10 +575,6 @@ inline double CurrentTime()
                 +  0.001 * t.msec());
     return d;
 }
-
-#undef TAO // From the command line
-#define TAO(x)  (Tao::Widget::Tao() ? Tao::Widget::Tao()->x : 0)
-#define RTAO(x) return TAO(x)
 
 
 

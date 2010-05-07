@@ -143,7 +143,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     toDialogLabel["Reject"]   = (QFileDialog::DialogLabel)QFileDialog::Reject;
 
     // Connect the symbol table for formulas
-    symbolTableRoot.tree->Set<XL::SymbolsInfo>(symbolTableForFormulas);
+    symbolTableRoot.tree->SetSymbols(symbolTableForFormulas);
     TaoFormulas::EnterFormulas(symbolTableForFormulas);
 }
 
@@ -1296,7 +1296,7 @@ void Widget::reloadProgram(XL::Tree_p newProg)
         if (!prog->Do(changes))
         {
             // Need a big hammer, i.e. reload the complete program
-            newProg->Set<XL::SymbolsInfo>(prog->Get<XL::SymbolsInfo>());
+            newProg->SetSymbols(prog->Symbols());
             xlProgram->tree.tree = newProg;
             prog = newProg;
         }
@@ -1307,7 +1307,7 @@ void Widget::reloadProgram(XL::Tree_p newProg)
         // We want to force a clone so that we recompile everything
         XL::NormalizedClone clone;
         newProg = prog->Do(clone);
-        newProg->Set<XL::SymbolsInfo>(prog->Get<XL::SymbolsInfo>());
+        newProg->SetSymbols(prog->Symbols());
         xlProgram->tree.tree = newProg;
         prog = newProg;
     }
@@ -3270,11 +3270,11 @@ Tree_p Widget::textFormula(Tree_p self, Tree_p value)
     assert(prefix);
 
     // Make sure we evaluate that in the formulas symbol table
-    if (prefix->right->Get<XL::SymbolsInfo>() != formulaSymbols())
+    if (prefix->right->Symbols() != formulaSymbols())
     {
         XL::TreeClone clone;
         prefix->right = prefix->right->Do(clone);
-        prefix->right->Set<XL::SymbolsInfo>(formulaSymbols());
+        prefix->right->SetSymbols(formulaSymbols());
     }
 
     if (path)
@@ -3910,12 +3910,12 @@ void Widget::colorChanged(const QColor & col)
 
     // The tree to be evaluated needs its own symbol table before evaluation
     XL::Tree_p toBeEvaluated = colorAction.tree;
-    XL::Symbols *syms = toBeEvaluated->Get<XL::SymbolsInfo>();
+    XL::Symbols *syms = toBeEvaluated->Symbols();
     if (!syms)
         syms = XL::Symbols::symbols;
     syms = new XL::Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
-    toBeEvaluated->Set<XL::SymbolsInfo>(syms);
+    toBeEvaluated->SetSymbols(syms);
 
     // Evaluate the input tree
     xl_evaluate(toBeEvaluated);
@@ -4026,12 +4026,12 @@ void Widget::fontChanged(const QFont& ft)
 
     // The tree to be evaluated needs its own symbol table before evaluation
     XL::Tree_p toBeEvaluated = fontAction.tree;
-    XL::Symbols *syms = toBeEvaluated->Get<XL::SymbolsInfo>();
+    XL::Symbols *syms = toBeEvaluated->Symbols();
     if (!syms)
         syms = XL::Symbols::symbols;
     syms = new XL::Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
-    toBeEvaluated->Set<XL::SymbolsInfo>(syms);
+    toBeEvaluated->SetSymbols(syms);
 
     // Evaluate the input tree
     xl_evaluate(toBeEvaluated);
@@ -5131,12 +5131,12 @@ XL::Tree_p  NameToNameReplacement::Replace(XL::Tree_p original)
 // ----------------------------------------------------------------------------
 {
     XL::Tree_p copy = original;
-    XL::Symbols *syms = original->Get<XL::SymbolsInfo>();
+    XL::Symbols *syms = original->Symbols();
     if (!syms)
         syms = XL::Symbols::symbols;
     syms = new XL::Symbols(syms);
     copy = original->Do(*this);
-    copy->Set<XL::SymbolsInfo>(syms);
+    copy->SetSymbols(syms);
     return copy;
 }
 

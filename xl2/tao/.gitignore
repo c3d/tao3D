@@ -1,9 +1,17 @@
 /Makefile
+/Makefile.Debug
+/Makefile.Release
 /moc_*.cpp
 /qrc_tao.cpp
 /Tao.app/
+/debug/
+/release/
 tao.pro.user
 *.o
 ui_pull_from_dialog.h
 ui_publish_to_dialog.h
 ui_remote_selection_frame.h
+ui_clone_dialog.h
+/object_script.*.Release
+/object_script.*.Debug
+/Tao_resource.rc

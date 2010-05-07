@@ -102,7 +102,7 @@ Rewrite *Symbols::EnterRewrite(Rewrite *rw)
 
     // Create symbol table for this rewrite
     Symbols *locals = new Symbols(this);
-    rw->from->Set<SymbolsInfo>(locals);
+    rw->from->SetSymbols(locals);
 
     // Enter parameters in the symbol table
     ParameterMatch parms(locals);
@@ -150,17 +150,6 @@ void Symbols::Clear()
 }
 
 
-SymbolsInfo *SymbolsInfo::Copy()
-// ----------------------------------------------------------------------------
-//   Symbol information is copied when a tree is copied
-// ----------------------------------------------------------------------------
-{
-    SymbolsInfo *copy = new SymbolsInfo(symbols);
-    copy->next = next ? next->Copy() : NULL;
-    return copy;
-}
-
-
 
 // ============================================================================
 //
@@ -174,6 +163,9 @@ Tree_p Symbols::Compile(Tree_p source, CompiledUnit &unit,
 //    Return an optimized version of the source tree, ready to run
 // ----------------------------------------------------------------------------
 {
+    // Make sure that errors are shown in the proper context
+    LocalSave<Symbols *> saveSyms(symbols, this);
+
     // Record rewrites and data declarations in the current context
     DeclarationAction declare(this);
     Tree_p result = source->Do(declare);
@@ -387,7 +379,7 @@ Tree_p Symbols::Run(Tree_p code)
         {
             if (!result->code)
             {
-                Symbols *symbols = result->Get<SymbolsInfo> ();
+                Symbols *symbols = result->Symbols();
                 if (!symbols)
                 {
                     std::cerr << "WARNING: Tree '" << code
@@ -502,7 +494,7 @@ Tree_p Symbols::Run(Tree_p code)
                     else
                     {
                         // We should have same number of args and parms
-                        Symbols &parms = *candidate->from->Get<SymbolsInfo>();
+                        Symbols &parms = *candidate->from->Symbols();
                         ulong parmCount = parms.names.size();
                         if (args.names.size() != parmCount)
                         {
@@ -946,7 +938,7 @@ Tree_p InterpretedArgumentMatch::DoInfix(Infix_p what)
         // Check if the type matches the value
         Infix_p typeTest = new Infix(":", test, typeExpr,
                                     what->right->Position());
-        typeTest->Set<SymbolsInfo> (symbols);
+        typeTest->SetSymbols (symbols);
         Tree_p afterCast = xl_evaluate(typeTest);
         if (!afterCast)
             return NULL;
@@ -1218,8 +1210,8 @@ Tree_p ArgumentMatch::CompileValue(Tree_p source)
         {
             llvm::BasicBlock * bb = unit.BeginLazy(name);
             unit.NeedStorage(name);
-            if (!name->Exists<SymbolsInfo>())
-                name->Set<SymbolsInfo>(symbols);
+            if (!name->Symbols())
+                name->SetSymbols(symbols);
             unit.CallEvaluate(name);
             unit.EndLazy(name, bb);
         }
@@ -2011,8 +2003,8 @@ Tree_p CompileAction::DoName(Name_p what)
         if (!result->AsName())
         {
             Rewrite rw(symbols, what, result);
-            if (!what->Exists<SymbolsInfo>())
-                what->Set<SymbolsInfo>(symbols);
+            if (!what->Symbols())
+                what->SetSymbols(symbols);
             result = rw.Compile();
         }
 
@@ -2038,8 +2030,8 @@ Tree_p CompileAction::DoName(Name_p what)
             // Return the name itself by default
             unit.ConstantTree(result);
             unit.Copy(result, what);
-            if (!result->Exists<SymbolsInfo>())
-                result->Set<SymbolsInfo>(symbols);
+            if (!result->Symbols())
+                result->SetSymbols(symbols);
         }
 
         return result;
@@ -2069,8 +2061,8 @@ Tree_p CompileAction::DoBlock(Block_p what)
             return NULL;
         if (unit.IsKnown(what->child))
         {
-            if (!what->child->Exists<SymbolsInfo>())
-                what->child->Set<SymbolsInfo>(symbols);
+            if (!what->child->Symbols())
+                what->child->SetSymbols(symbols);
         }
         unit.Copy(result, what);
         return what;
@@ -2094,15 +2086,15 @@ Tree_p CompileAction::DoInfix(Infix_p what)
             return NULL;
         if (unit.IsKnown(what->left))
         {
-            if (!what->left->Exists<SymbolsInfo>())
-                what->left->Set<SymbolsInfo>(symbols);
+            if (!what->left->Symbols())
+                what->left->SetSymbols(symbols);
         }
         if (!what->right->Do(this))
             return NULL;
         if (unit.IsKnown(what->right))
         {
-            if (!what->right->Exists<SymbolsInfo>())
-                what->right->Set<SymbolsInfo>(symbols);
+            if (!what->right->Symbols())
+                what->right->SetSymbols(symbols);
             unit.Copy(what->right, what);
         }
         else if (unit.IsKnown(what->left))
@@ -2224,7 +2216,7 @@ Tree_p  CompileAction::Rewrites(Tree_p what)
                     else
                     {
                         // We should have same number of args and parms
-                        Symbols &parms = *candidate->from->Get<SymbolsInfo>();
+                        Symbols &parms = *candidate->from->Symbols();
                         ulong parmCount = parms.names.size();
                         if (args.names.size() != parmCount)
                         {
@@ -2309,8 +2301,8 @@ Tree_p  CompileAction::Rewrites(Tree_p what)
     }
 
     // Set the symbols for the result
-    if (!what->Exists<SymbolsInfo>())
-        what->Set<SymbolsInfo>(symbols);
+    if (!what->Symbols())
+        what->SetSymbols(symbols);
 
     return what;
 }
@@ -2405,11 +2397,11 @@ Tree_p Rewrite::Compile(void)
     }
 
     // Check that we had symbols defined for the 'from' tree
-    if (!from->Exists<SymbolsInfo>())
+    if (!from->Symbols())
         return Ooops("Internal: No symbols for '$1'", from);
 
     // Create local symbols
-    Symbols *locals = new Symbols (from->Get<SymbolsInfo>());
+    Symbols *locals = new Symbols (from->Symbols());
 
     // Record rewrites and data declarations in the current context
     DeclarationAction declare(locals);

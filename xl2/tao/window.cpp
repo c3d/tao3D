@@ -48,19 +48,30 @@ Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
 //    Create a Tao window with default parameters
 // ----------------------------------------------------------------------------
     : isUntitled(sf == NULL), contextFileNames(context), xlRuntime(xlr),
-    repo(NULL), textEdit(NULL), taoWidget(NULL), curFile(),
-    fileCheckTimer(this)
+      repo(NULL), textEdit(NULL), errorMessages(NULL),
+      dock(NULL), errorDock(NULL),
+      taoWidget(NULL), curFile(),
+      fileCheckTimer(this)
 {
     // Define the icon
     setWindowIcon(QIcon(":/images/tao.png"));
 
-    // Create the widgets
+    // Create the text edit widget
     dock = new QDockWidget(tr("Source"));
-    dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    dock->setAllowedAreas(Qt::AllDockWidgetAreas);
     textEdit = new QTextEdit(dock);
     dock->setWidget(textEdit);
     addDockWidget(Qt::RightDockWidgetArea, dock);
 
+    // Create the error reporting widget
+    errorDock = new QDockWidget(tr("Errors"));
+    errorDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    errorMessages = new QTextEdit(errorDock);
+    errorDock->setWidget(errorMessages);
+    errorDock->hide();
+    addDockWidget(Qt::BottomDockWidgetArea, errorDock);
+
+    // Create the main widget for displaying Tao stuff
     taoWidget = new Widget(this, sf);
     setCentralWidget(taoWidget);
 
@@ -109,6 +120,19 @@ void Window::setText(QString txt)
 // ----------------------------------------------------------------------------
 {
     textEdit->document()->setPlainText(txt);
+}
+
+
+void Window::addError(QString txt)
+// ----------------------------------------------------------------------------
+//   Update the text edit widget with updates we made
+// ----------------------------------------------------------------------------
+{
+    QTextCursor cursor = errorMessages->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    cursor.insertText(txt + "\n");
+    errorDock->show();
+    statusBar()->showMessage(txt);
 }
 
 
@@ -610,6 +634,7 @@ void Window::createMenus()
     viewMenu = menuBar()->addMenu(tr("&View"));
 //    viewMenu->setObjectName(VIEW_MENU_NAME);
     viewMenu->addAction(dock->toggleViewAction());
+    viewMenu->addAction(errorDock->toggleViewAction());
     viewMenu->addAction(fullScreenAct);
     viewMenu->addAction(viewAnimationsAct);
     viewMenu->addMenu(tr("&Toolbars"))->setObjectName(VIEW_MENU_NAME);

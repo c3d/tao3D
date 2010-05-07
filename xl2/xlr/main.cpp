@@ -296,7 +296,7 @@ int Main::LoadFile(text file, bool updateContext)
         syms = new Symbols(syms);
     }
     Symbols::symbols = syms;
-    tree->Set<SymbolsInfo>(syms);
+    tree->SetSymbols(syms);
 
     if (options.fileLoad)
         std::cout << "Loading: " << file << "\n";

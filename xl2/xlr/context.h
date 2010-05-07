@@ -219,7 +219,7 @@ public:
     symbol_table        calls;
     value_table         type_tests;
     symbols_set         imported;
-    Tree_p               error_handler;
+    Tree_p              error_handler;
     bool                has_rewrites_for_constants;
 
     static Symbols *    symbols;
@@ -242,6 +242,7 @@ struct Context : Symbols
 
     // Garbage collection
     void                Mark(Tree_p t)           { active.insert(t); }
+    void                Purge(Tree_p t)          { active.erase(t); }
     void                CollectGarbage();
 
     // Helpers for compilation of trees
@@ -272,8 +273,8 @@ struct Rewrite
     ~Rewrite();
 
     Rewrite *           Add (Rewrite *rewrite);
-    Tree_p               Do(Action &a);
-    Tree_p               Compile(void);
+    Tree_p              Do(Action &a);
+    Tree_p              Compile(void);
 
 public:
     Symbols *           symbols;
@@ -281,26 +282,6 @@ public:
     Tree_p              to;
     rewrite_table       hash;
     TreeList            parameters;
-};
-
-
-
-// ============================================================================
-// 
-//    Symbol information associated with a tree
-// 
-// ============================================================================
-
-struct SymbolsInfo : Info
-// ----------------------------------------------------------------------------
-//    Record the symbol associated with a tree
-// ----------------------------------------------------------------------------
-{
-    SymbolsInfo(Symbols *syms) : symbols(syms) {}
-    typedef Symbols *   data_t;
-    operator            data_t()  { return symbols; }
-    SymbolsInfo *       Copy();
-    Symbols *           symbols;
 };
 
 
@@ -529,7 +510,7 @@ struct GCAction : Action
         inserted ins = alive.insert(what);
         if (ins.second)
         {
-            if (Symbols *syms = what->Get<SymbolsInfo> ())
+            if (Symbols *syms = what->Symbols())
                 syms->Mark(*this);
             if (what->source && what->source != what)
                 what->source->Do(this);
@@ -613,7 +594,10 @@ inline Tree_p Ooops (text msg, Tree_p a1=NULL, Tree_p a2=NULL, Tree_p a3=NULL)
 //   Error using the global context
 // ----------------------------------------------------------------------------
 {
-    return Context::context->Error(msg, a1, a2, a3);
+    Symbols *syms = Symbols::symbols;
+    if (!syms)
+        syms = Context::context;
+    return syms->Error(msg, a1, a2, a3);
 }
 
 

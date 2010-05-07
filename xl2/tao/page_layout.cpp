@@ -258,6 +258,15 @@ void LayoutLine::DrawSelection(Layout *where)
             sel->selBox.Empty();
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
+
+        if (sel->formulaBox.Width() > 0 && sel->formulaBox.Height() > 0)
+        {
+            glBlendFunc(GL_DST_COLOR, GL_ZERO);
+            text mode = "formula_highlight";
+            widget->drawSelection(sel->formulaBox, mode);
+            sel->formulaBox.Empty();
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
     }
 }
 

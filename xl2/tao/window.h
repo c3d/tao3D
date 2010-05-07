@@ -56,6 +56,7 @@ public:
     Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf = NULL);
 
     void setText(QString txt);
+    void addError(QString txt);
     bool openProject(QString path, QString filename, bool confirm = true);
     Repository * repository() { return repo.data(); }
     void switchToFullScreen(bool fs);
@@ -124,7 +125,9 @@ private:
     QSharedPointer<Repository> repo;
 
     QTextEdit        *textEdit;
+    QTextEdit        *errorMessages;
     QDockWidget      *dock;
+    QDockWidget      *errorDock;
     Widget           *taoWidget;
     QString           curFile;
 

@@ -68,6 +68,17 @@ void *Tree::operator new(size_t sz)
 }
 
 
+void Tree::operator delete(void *what)
+// ----------------------------------------------------------------------------
+//    Record the tree in the garbage collector
+// ----------------------------------------------------------------------------
+{
+    ::operator delete(what);
+    if (Context::context)
+        Context::context->Purge((Tree_p) what);
+}
+
+
 Tree::operator text()
 // ----------------------------------------------------------------------------
 //   Conversion of a tree to text

@@ -505,7 +505,7 @@ Value *Compiler::Known(Tree_p tree)
 }
 
 
-void Compiler::FreeResources(Tree_p tree, GCAction &gc)
+bool Compiler::FreeResources(Tree_p tree, GCAction &gc)
 // ----------------------------------------------------------------------------
 //   Free the LLVM resources associated to the tree, if any
 // ----------------------------------------------------------------------------
@@ -514,6 +514,7 @@ void Compiler::FreeResources(Tree_p tree, GCAction &gc)
 //   calling foo(), we will get an LLVM assert deleting one while the
 //   other's body still makes a reference.
 {
+    bool result = false;
     if (functions.count(tree) > 0)
     {
         Function *f = functions[tree];
@@ -528,6 +529,7 @@ void Compiler::FreeResources(Tree_p tree, GCAction &gc)
             IFTRACE(llvmgc)
                 std::cerr << "Keeping function " << tree << " for LLVM\n";
             tree->Do(gc);
+            result = true;
         }
         else
         {
@@ -551,6 +553,7 @@ void Compiler::FreeResources(Tree_p tree, GCAction &gc)
             
             // Mark the tree back in XLR so that we keep it around
             tree->Do(gc);
+            result = true;
         }
         else
         {
@@ -559,15 +562,17 @@ void Compiler::FreeResources(Tree_p tree, GCAction &gc)
             globals.erase(tree);
         }
     }
+    return result;
 }
 
 
-void Compiler::FreeResources(GCAction &gc)
+bool Compiler::FreeResources(GCAction &gc)
 // ----------------------------------------------------------------------------
 //   Delete LLVM functions for all trees we want to erase
 // ----------------------------------------------------------------------------
 //   At this stage, we have deleted all the bodies we could
 {
+    bool result = false;
     while (!deleted.empty())
     {
         deleted_set::iterator i = deleted.begin();
@@ -585,12 +590,14 @@ void Compiler::FreeResources(GCAction &gc)
             {
                 // Probably redundant, but better safe than sorry...
                 tree->Do(gc);
+                result = true;
             }
         }
 
         // This tree has been analyzed
         deleted.erase(tree);
     }
+    return result;
 }
 
 

@@ -711,9 +711,16 @@ void Context::CollectGarbage ()
         active_set::iterator a;
         if (compiler)
         {
-            for (a = active.begin(); a != active.end(); a++)
-                if (!gc.alive.count(*a))
-                    compiler->FreeResources(*a, gc);
+            bool retry;
+            do
+            {
+                retry = false;
+                for (a = active.begin(); !retry && a != active.end(); a++)
+                    if (!gc.alive.count(*a))
+                        if (compiler->FreeResources(*a, gc))
+                            retry = true;
+            }
+            while (retry);
             compiler->FreeResources(gc);
         }
 

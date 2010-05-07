@@ -662,7 +662,7 @@ void Widget::paintGL()
 // ----------------------------------------------------------------------------
 {
     draw();
-    glShowErrors();
+    showGlErrors();
 }
 
 
@@ -729,6 +729,48 @@ void Widget::setupGL()
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);
+}
+
+
+uint Widget::showGlErrors()
+// ----------------------------------------------------------------------------
+//   Display all OpenGL errors in the error window
+// ----------------------------------------------------------------------------
+{
+    static GLenum last = GL_NO_ERROR;
+    static unsigned int count = 0;
+    GLenum err = glGetError();
+    uint errorsFound = 0;
+    while (err != GL_NO_ERROR)
+    {
+        std::ostringstream cerr;
+        errorsFound++;
+        if (!count)
+        {
+            cerr << "GL Error: " << (char *) gluErrorString(err)
+                 << " [error code: " << err << "]";
+            last = err;
+        }
+        if (err != last || count == 100)
+        {
+            cerr << "GL Error: error " << last << " repeated "
+                 << count << " times";
+            count = 0;
+        }
+        else
+        {
+            count++;
+        }
+        text msg = cerr.str();
+        if (msg.length())
+        {
+            Window *window = (Window *) parentWidget();
+            window->addError(+msg);
+        }
+        err = glGetError();
+    }
+
+    return errorsFound;
 }
 
 

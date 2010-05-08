@@ -129,10 +129,13 @@ struct GCPtr
 
 public:
     GCPtr(): pointer(0)                         { }
-    GCPtr(Object *ptr): pointer(ptr)            { Acquire(ptr); }
-    GCPtr(Object &ptr): pointer(&ptr)           { Acquire(&ptr); }
+    GCPtr(Object *ptr): pointer(ptr)            { Acquire(pointer); }
+    GCPtr(Object &ptr): pointer(&ptr)           { Acquire(pointer); }
+    GCPtr(const GCPtr &ptr)
+        : pointer((Object*) ptr.ConstPointer()) { Acquire(pointer); }
     template<class U, typename V>
-    GCPtr(const GCPtr<U,V> &p): pointer((U*) (const U*) p) { Acquire(pointer); }
+    GCPtr(const GCPtr<U,V> &p)
+        : pointer((U*) p.ConstPointer())        { Acquire(pointer); }
     ~GCPtr()                                    { Release(pointer); }
 
     operator Object* ()                         { return pointer; }
@@ -146,13 +149,24 @@ public:
     bool operator!()                            { return !pointer; }
     operator Value()                            { return pointer != 0; }
 
+    GCPtr &operator= (const GCPtr &o)
+    {
+        if (o.ConstPointer() != pointer)
+        {
+            Release(pointer);
+            pointer = (Object *) o.ConstPointer();
+            Acquire(pointer);
+        }
+        return *this;
+    }
+
     template<class U, typename V>
     GCPtr& operator=(const GCPtr<U,V> &o)
     {
-        if ((const U*) o != pointer)
+        if (o.ConstPointer() != pointer)
         {
             Release(pointer);
-            pointer = (U *) (const U *) o;
+            pointer = (U *) o.ConstPointer();
             Acquire(pointer);
         }
         return *this;
@@ -162,7 +176,7 @@ public:
     template<class U, typename V>               \
     bool operator CMP(const GCPtr<U,V> &o)      \
     {                                           \
-        return pointer CMP (const U*) o;        \
+        return pointer CMP o.ConstPointer();    \
     }                                           
 
     DEFINE_CMP(==)
@@ -270,10 +284,7 @@ Allocator<Object>::Allocator(GarbageCollector *gc)
 //   Create an allocator for the given size
 // ----------------------------------------------------------------------------
     : AllocatorBase(typeid(Object).name(), sizeof (Object), MarkObject, gc)
-{
-    if (!gc)
-        gc = GarbageCollector::Singleton();
-}
+{}
 
 
 template<class Object> inline
@@ -389,7 +400,7 @@ void GCPtr<Object, Value>::Release(Object *ptr)
 //   Decrement the reference counter for the given pointer
 // ----------------------------------------------------------------------------
 {
-    if (pointer)
+    if (ptr)
     {
         Base::Chunk *chunk = ((Base::Chunk *) ptr) - 1;
         uint count = chunk->bits & Alloc::USE_MASK;

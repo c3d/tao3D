@@ -267,7 +267,9 @@ inline AllocatorBase *AllocatorBase::ValidPointer(AllocatorBase *ptr)
 //   Return a valid pointer from a possibly marked pointer
 // ----------------------------------------------------------------------------
 {
-    return (AllocatorBase *) (((uintptr_t) ptr) & ~PTR_MASK);
+    AllocatorBase *result = (AllocatorBase *) (((uintptr_t) ptr) & ~PTR_MASK);
+    assert(result && result->gc == GarbageCollector::Singleton());
+    return result;
 }
 
 

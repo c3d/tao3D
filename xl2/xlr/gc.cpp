@@ -39,9 +39,6 @@ AllocatorBase::AllocatorBase(kstring tn, uint os, mark_fn mark,
     : typeName(tn), gc(gc), chunks(), mark(mark), freeList(NULL),
       chunkSize(1022), objectSize(os), alignedSize(os), available(0)
 {
-    // Make sure that we have the correct alignment
-    assert(this == ValidPointer(this));
-
     // Make sure that our allocator generates properly aligned addresses
     uint size = PTR_MASK + 1;
     while (os + sizeof(Chunk) > size)
@@ -50,6 +47,9 @@ AllocatorBase::AllocatorBase(kstring tn, uint os, mark_fn mark,
 
     if (!gc)
         this->gc = GarbageCollector::Singleton();
+
+    // Make sure that we have the correct alignment
+    assert(this == ValidPointer(this));
 }
 
 

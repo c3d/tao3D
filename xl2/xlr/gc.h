@@ -25,6 +25,7 @@
 #include "base.h"
 #include <vector>
 #include <map>
+#include <set>
 #include <cassert>
 #include <stdint.h>
 #include <typeinfo>
@@ -36,6 +37,8 @@ XL_BEGIN
 //   Class declarations
 //
 // ============================================================================
+
+struct GarbageCollector;
 
 struct AllocatorBase
 // ----------------------------------------------------------------------------
@@ -51,7 +54,8 @@ struct AllocatorBase
     typedef void (*mark_fn)(void *object);
 
 public:
-    AllocatorBase(kstring name, uint objectSize, mark_fn mark);
+    AllocatorBase(kstring name, uint objectSize, mark_fn mark,
+                  GarbageCollector *gc);
     virtual ~AllocatorBase();
 
     void *              Allocate();
@@ -78,6 +82,7 @@ public:
 
 protected:
     kstring             typeName;
+    GarbageCollector *  gc;
     std::vector<Chunk*> chunks;
     mark_fn             mark;
     std::map<void*,uint>roots;
@@ -102,7 +107,7 @@ struct Allocator : AllocatorBase
     typedef Object *ptr_t;
 
 public:
-    Allocator();
+    Allocator(GarbageCollector *gc = NULL);
 
     static Allocator *  Singleton();
     static Object *     Allocate(size_t size);
@@ -193,8 +198,18 @@ struct GarbageCollector
     static void                 Collect(bool force=false);
     static void                 CollectionNeeded() { Singleton()->MustRun(); }
 
+    struct Listener
+    {
+        virtual void BeginCollection()          {}
+        virtual bool CanDelete(void *)          { return true; }
+        virtual void EndCollection()            {}
+    };
+    void AddListener(Listener *l) { listeners.insert(l); }
+    bool CanDelete(void *object);
+
 protected:
     std::vector<AllocatorBase *> allocators;
+    std::set<Listener *>         listeners;
     bool mustRun;
 };
 
@@ -250,12 +265,15 @@ inline AllocatorBase *AllocatorBase::ValidPointer(AllocatorBase *ptr)
 // ============================================================================
 
 template<class Object> inline
-Allocator<Object>::Allocator()
+Allocator<Object>::Allocator(GarbageCollector *gc)
 // ----------------------------------------------------------------------------
 //   Create an allocator for the given size
 // ----------------------------------------------------------------------------
-    : AllocatorBase(typeid(Object).name(), sizeof (Object), MarkObject)
-{}
+    : AllocatorBase(typeid(Object).name(), sizeof (Object), MarkObject, gc)
+{
+    if (!gc)
+        gc = GarbageCollector::Singleton();
+}
 
 
 template<class Object> inline
@@ -304,8 +322,11 @@ void Allocator<Object>::Finalize(void *obj)
 //   Make sure that we properly call the destructor for the object
 // ----------------------------------------------------------------------------
 {
-    Object *object = (Object *) obj;
-    delete object;
+    if (gc->CanDelete(obj))
+    {
+        Object *object = (Object *) obj;
+        delete object;
+    }
 }
 
 

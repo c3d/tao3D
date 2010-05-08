@@ -94,6 +94,10 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
       xl_new_prefix(NULL), xl_new_postfix(NULL), xl_new_infix(NULL),
       functions()
 {
+    // Register a listener with the garbage collector
+    GarbageCollector *gc = GarbageCollector::Singleton();
+    gc->AddListener(new CompilerGarbageCollectionListener(this));
+
     // Initialize native target (new features)
     InitializeNativeTarget();
 
@@ -197,8 +201,7 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     treeElements.push_back(LLVM_INTTYPE(ulong));           // references
     treeElements.push_back(LLVM_INTTYPE(ulong));           // tag
     treeElements.push_back(evalFnTy);                      // code
-    treeElements.push_back(symbolPtrTy);                   // symbols
-    treeElements.push_back(infoPtrTy);                     // symbols
+    treeElements.push_back(symbolsPtrTy);                  // symbols
     treeElements.push_back(infoPtrTy);                     // info
     treeElements.push_back(treePtrTy);                     // source
     treeTy = StructType::get(*context, treeElements);      // struct Tree {}
@@ -507,7 +510,7 @@ Value *Compiler::Known(Tree_p tree)
 }
 
 
-void Compiler::FreeResources(Tree_p tree)
+void Compiler::FreeResources(Tree *tree)
 // ----------------------------------------------------------------------------
 //   Free the LLVM resources associated to the tree, if any
 // ----------------------------------------------------------------------------
@@ -524,14 +527,24 @@ void Compiler::FreeResources(Tree_p tree)
         IFTRACE(llvmgc)
             std::cerr << "Tree'" << tree << "' is "
                       << (inUse ? "in use\n" : "unused\n");
-        if (!inUse)
+
+        if (inUse)
         {
+            // Free body to remove all references made by it
             f->deleteBody();
             runtime->freeMachineCodeForFunction(f);
+
+            // Mark the function for complete deletion later
+            deleted.insert(f);
+        }
+        else
+        {
+            // Not in use, we can delete it directly
+            delete f;
         }
 
-        // Mark the function for deletion
-        deleted.insert(tree);
+        // We can no longer reference this address as an LLVM function
+        functions.erase(tree);
     }
 
     if (globals.count(tree) > 0)
@@ -539,12 +552,16 @@ void Compiler::FreeResources(Tree_p tree)
         Value *v = globals[tree];
         bool inUse = !v->use_empty();
 
-        if (!inUse)
+        if (inUse)
         {
-            // Delete the LLVM value now that it's safe to do
-            delete v;
-            globals.erase(tree);
+            deleted.insert(v);
         }
+        else
+        {
+            // Delete the LLVM value immediately if it's safe to do it.
+            delete v;
+        }
+        globals.erase(tree);
     }
 }
 
@@ -554,24 +571,15 @@ void Compiler::FreeResources()
 //   Delete LLVM functions for all trees we want to erase
 // ----------------------------------------------------------------------------
 //   At this stage, we have deleted all the bodies we could
+//   Normally, none of the elements should be used anymore
 {
-    while (!deleted.empty())
+    deleted_set::iterator i;
+    while ((i = deleted.begin()) != deleted.end())
     {
-        deleted_set::iterator i = deleted.begin();
-        Tree_p tree = *i;
-        if (functions.count(tree) > 0)
-        {
-            Function *f = functions[tree];
-            if (f->use_empty())
-            {
-                // Delete the LLVM function now that it's safe to do
-                delete f;
-                functions.erase(tree);
-            }
-        }
-
-        // This tree has been analyzed
-        deleted.erase(tree);
+        Value *v = *i;
+        assert(v->use_empty());
+        delete v;
+        deleted.erase(i);
     }
 }
 
@@ -1558,6 +1566,39 @@ void ExpressionReduction::Failed()
     u.code->SetInsertPoint(savedbb);
 }
 
+
+// ============================================================================
+// 
+//   Compiler and garbage collection
+// 
+// ============================================================================
+
+void CompilerGarbageCollectionListener::BeginCollection()
+// ----------------------------------------------------------------------------
+//   Nothing to do here?
+// ----------------------------------------------------------------------------
+{
+}
+
+
+void CompilerGarbageCollectionListener::EndCollection()
+// ----------------------------------------------------------------------------
+//   Finalize the collection
+// ----------------------------------------------------------------------------
+{
+    compiler->FreeResources();
+}
+
+
+bool CompilerGarbageCollectionListener::CanDelete(void *obj)
+// ----------------------------------------------------------------------------
+//   Tell the compiler to free the resources associated with the tree
+// ----------------------------------------------------------------------------
+{
+    Tree *tree = (Tree *) obj;
+    compiler->FreeResources(tree);
+    return true;
+}
 
 XL_END
 

@@ -31,11 +31,12 @@ XL_BEGIN
 //
 // ============================================================================
 
-AllocatorBase::AllocatorBase(kstring tn, uint os, mark_fn mark)
+AllocatorBase::AllocatorBase(kstring tn, uint os, mark_fn mark,
+                             GarbageCollector *gc)
 // ----------------------------------------------------------------------------
 //    Setup an empty allocator
 // ----------------------------------------------------------------------------
-    : typeName(tn), chunks(), mark(mark), freeList(NULL),
+    : typeName(tn), gc(gc), chunks(), mark(mark), freeList(NULL),
       chunkSize(1022), objectSize(os), alignedSize(os), available(0)
 {
     // Make sure that our allocator generates properly aligned addresses
@@ -238,7 +239,12 @@ void GarbageCollector::RunCollection(bool force)
     if (mustRun || force)
     {
         std::vector<AllocatorBase *>::iterator i;
+        std::set<Listener *>::iterator l;
         mustRun = false;
+
+        // Notify all the listeners that we begin a collection
+        for (l = listeners.begin(); l != listeners.end(); l++)
+            (*l)->BeginCollection();
 
         // Mark roots in all the allocators
         for (i = allocators.begin(); i != allocators.end(); i++)
@@ -247,6 +253,10 @@ void GarbageCollector::RunCollection(bool force)
         // Then sweep whatever was not referenced
         for (i = allocators.begin(); i != allocators.end(); i++)
             (*i)->Sweep();
+
+        // Notify all the listeners that we completed the collection
+        for (l = listeners.begin(); l != listeners.end(); l++)
+            (*l)->EndCollection();
     }
 }
 
@@ -269,6 +279,20 @@ void GarbageCollector::Collect(bool force)
 // ----------------------------------------------------------------------------
 {
     Singleton()->RunCollection(force);
+}
+
+
+bool GarbageCollector::CanDelete(void *obj)
+// ----------------------------------------------------------------------------
+//   Ask all the listeners if it's OK to delete the object
+// ----------------------------------------------------------------------------
+{
+    bool result = true;
+    std::set<Listener *>::iterator i;
+    for (i = listeners.begin(); i != listeners.end(); i++)
+        if (! (*i)->CanDelete(obj))
+            result = false;
+    return result;
 }
 
 XL_END

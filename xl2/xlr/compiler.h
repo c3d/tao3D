@@ -52,12 +52,12 @@ XL_BEGIN
 struct CompiledUnit;
 struct Options;
 typedef std::map<text, llvm::Function *>    builtins_map;
-typedef std::map<Tree_p , llvm::Value *>    value_map;
-typedef std::map<Tree_p , llvm::Function *> function_map;
+typedef std::map<Tree * , llvm::Value *>    value_map;
+typedef std::map<Tree * , llvm::Function *> function_map;
 typedef std::map<uint, eval_fn>             closure_map;
-typedef std::set<Tree_p>                    closure_set;
-typedef std::set<Tree_p>                    data_set;
-typedef std::set<Tree_p>                    deleted_set;
+typedef std::set<Tree *>                    closure_set;
+typedef std::set<Tree *>                    data_set;
+typedef std::set<llvm::Value *>             deleted_set;
 typedef Tree * (*adapter_fn) (eval_fn callee, Tree *src, Tree **args);
 
 
@@ -82,7 +82,7 @@ struct Compiler
     bool                      IsKnown(Tree_p value);
     llvm::Value *             Known(Tree_p value);
 
-    void                      FreeResources(Tree_p tree);
+    void                      FreeResources(Tree *tree);
     void                      FreeResources();
 
     void                      Reset();
@@ -103,7 +103,6 @@ public:
     llvm::PointerType         *prefixTreePtrTy;
     llvm::FunctionType        *evalTy;
     llvm::PointerType         *evalFnTy;
-    llvm::PointerType         *symbolPtrTy;
     llvm::PointerType         *infoPtrTy;
     llvm::PointerType         *symbolsPtrTy;
     llvm::PointerType         *charPtrTy;
@@ -232,10 +231,25 @@ public:
 };
 
 
+struct CompilerGarbageCollectionListener : GarbageCollector::Listener
+// ----------------------------------------------------------------------------
+//   Listen to the garbage collection to put away LLVM data structures
+// ----------------------------------------------------------------------------
+{
+    CompilerGarbageCollectionListener(Compiler *compiler)
+        : compiler(compiler) {}
+
+    virtual void BeginCollection();
+    virtual bool CanDelete (void *obj);
+    virtual void EndCollection();
+
+    Compiler *compiler;
+};
+
+
 #define LLVM_INTTYPE(t)         llvm::IntegerType::get(*context, sizeof(t) * 8)
 #define LLVM_BOOLTYPE           llvm::Type::getInt1Ty(*context)
 
 XL_END
 
 #endif // COMPILER_H
-

@@ -979,7 +979,9 @@ Value *CompiledUnit::Left(Tree_p tree)
     assert (tree->Kind() >= BLOCK);
 
     // Check if we already know the result, if so just return it
-    Prefix_p prefix = tree->AsPrefix();
+    // HACK: The following code assumes Prefix, Infix and Postfix have the
+    // same layout for their pointers.
+    Prefix_p prefix = (Prefix *) tree.Pointer();
     Value *result = Known(prefix->left);
     if (result)
         return result;
@@ -1016,7 +1018,9 @@ Value *CompiledUnit::Right(Tree_p tree)
     assert(tree->Kind() > BLOCK);
 
     // Check if we already known the result, if so just return it
-    Prefix_p prefix = tree->AsPrefix();
+    // HACK: The following code assumes Prefix, Infix and Postfix have the
+    // same layout for their pointers.
+    Prefix_p prefix = (Prefix *) tree.Pointer();
     Value *result = Known(prefix->right);
     if (result)
         return result;

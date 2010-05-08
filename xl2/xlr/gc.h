@@ -188,6 +188,8 @@ public:
         return pointer < o.operator U*();
     }
 
+    void        MarkInUse();
+
 private:
     void        Acquire(Object *ptr);
     void        Release(Object *ptr);
@@ -340,6 +342,20 @@ void Allocator<Object>::Finalize(void *obj)
 //     GCPtr inline functions
 //
 // ============================================================================
+
+template<class Object> inline
+void GCPtr<Object>::MarkInUse()
+// ----------------------------------------------------------------------------
+//   Mark the current pointer as in use, to preserve in next GC cycle
+// ----------------------------------------------------------------------------
+{
+    if (pointer)
+    {
+        Base::Chunk *chunk = ((Base::Chunk *) pointer) - 1;
+        chunk->bits |= Alloc::IN_USE;
+    }
+}
+
 
 template<class Object> inline
 void GCPtr<Object>::Acquire(Object *ptr)

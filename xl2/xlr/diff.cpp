@@ -203,7 +203,6 @@ struct Node
     }
 
 protected:
-
     Tree_p      t;
     Matching * m;
 };
@@ -266,6 +265,7 @@ struct NodeForAlign : Node
     NodeForAlign &operator =(const NodeForAlign &n) { m=n.m; t=n.t; return *this; }
     Matching &m;
 };
+
 
 // FIXME typedef std::vector<NodeForAlign> node_vector_align;
 struct node_vector_align : std::vector<NodeForAlign> {};
@@ -359,6 +359,7 @@ protected:
     bool          showInfos;
 };
 
+
 std::ostream&
 operator <<(std::ostream &out, node_vector &m)
 // ----------------------------------------------------------------------------
@@ -371,6 +372,7 @@ operator <<(std::ostream &out, node_vector &m)
 
     return out;
 }
+
 
 struct SetParentInfo : Action
 // ----------------------------------------------------------------------------
@@ -425,6 +427,7 @@ struct SetParentInfo : Action
         return NULL;
     }
 };
+
 
 struct SetChildVectorInfo : Action
 // ----------------------------------------------------------------------------
@@ -494,6 +497,7 @@ struct SetChildVectorInfo : Action
     }
 };
 
+
 struct SyncWithChildVectorInfo : Action
 // ----------------------------------------------------------------------------
 //   Update the child pointers with values from ChildVectorInfo, and recurse
@@ -561,6 +565,7 @@ struct SyncWithChildVectorInfo : Action
         return NULL;
     }
 };
+
 
 struct CountLeaves : Action
 // ------------------------------------------------------------------------
@@ -631,6 +636,7 @@ struct CountLeaves : Action
     }
 };
 
+
 struct AssignNodeIds : SimpleAction
 // ------------------------------------------------------------------------
 //   Set an integer node ID to each node. Append node to a table.
@@ -649,6 +655,7 @@ struct AssignNodeIds : SimpleAction
     node_id id;
     node_id step;
 };
+
 
 struct StoreNodeIntoChainArray : SimpleAction
 // ------------------------------------------------------------------------
@@ -680,6 +687,7 @@ struct AddPtr : SimpleAction
     I &container;
 };
 
+
 struct PurgeDiffInfos : SimpleAction
 // ------------------------------------------------------------------------
 //   Purge all Info pointers that may have been added to T2 by TreeDiff
@@ -699,6 +707,7 @@ struct PurgeDiffInfos : SimpleAction
     }
 };
 
+
 TreeDiff::TreeDiff(Tree_p t1, Tree_p t2) :
   t1(NULL), t2(t2), nodes1(*new NodeTable), nodes2(*new NodeTable),
   matching(*new Matching), escript(NULL)
@@ -713,9 +722,6 @@ TreeDiff::TreeDiff(Tree_p t1, Tree_p t2) :
 
 TreeDiff::~TreeDiff()
 {
-    // t1 is a clone of the first tree passed to CTOR -> delete it
-    delete t1;
-
     // t2 is the second tree passed to CTOR -> clean it
     PurgeDiffInfos purge;
     InOrderTraversal iot(purge);
@@ -737,7 +743,8 @@ static void MatchOneKind(Matching &M, node_vector &S1, node_vector &S2)
         return;
 
     IFTRACE(diff)
-        std::cout << "  Matching (kind = " << S1.front().GetTree()->Kind() << ")\n";
+        std::cout << "  Matching (kind = " 
+                  << S1.front().GetTree()->Kind() << ")\n";
 
     // Compute the Longest Common Subsequence in the node chains of
     // both trees...
@@ -870,6 +877,7 @@ void TreeDiff::FastMatch()
                   << (float)matching.size()*100/nodes1.size() << "%) matched.\n";
 }
 
+
 static float Similarity(std::string s1, std::string s2)
 // ----------------------------------------------------------------------------
 //    Return a similarity score bewteen 0 and 1 (1 means strings are equal).
@@ -968,6 +976,7 @@ static bool LeafEqual(Tree_p t1, Tree_p t2)
     return true;
 }
 
+
 // FIXME rewrite as an Action?
 static bool NonLeafEqual(Tree_p t1, Tree_p t2)
 // ----------------------------------------------------------------------------
@@ -1024,6 +1033,7 @@ static bool NonLeafEqual(Tree_p t1, Tree_p t2)
 
     return (percent > 0.5);
 }
+
 
 void TreeDiff::DoEditScript()
 // ----------------------------------------------------------------------------
@@ -1092,8 +1102,8 @@ void TreeDiff::DoEditScript()
             if (px_ptr)
             {
                 // (c) x is not the root
-				//  i. Let w be the partner of x in M' and let v = p(w)
-				//     in T1 [p(x) is the parent of x]
+                //  i. Let w be the partner of x in M' and let v = p(w)
+                //     in T1 [p(x) is the parent of x]
                 Tree_p  wptr = nodes1[w].GetTree();
                 assert(wptr);
                 Tree_p  vptr = wptr->Get<ParentInfo>();
@@ -1181,7 +1191,11 @@ void TreeDiff::DoEditScript()
        std::cout << "DoEditScript done\n";
 }
 
+
 unsigned TreeDiff::FindPos(node_id x)
+// ----------------------------------------------------------------------------
+//    Find position of the given node
+// ----------------------------------------------------------------------------
 {
     // 1. Let y = p(x) in T2 and let w be the partner of x
     Tree_p yptr = nodes2[x].Parent();
@@ -1249,6 +1263,7 @@ unsigned TreeDiff::FindPos(node_id x)
     return count + 1;
 }
 
+
 static bool FindPair(node_id a, node_id b,
                      node_vector_align &s1, node_vector_align &s2)
 // ----------------------------------------------------------------------------
@@ -1260,6 +1275,7 @@ static bool FindPair(node_id a, node_id b,
            return true;
    return false;
 }
+
 
 void TreeDiff::AlignChildren(node_id w, node_id x)
 // ----------------------------------------------------------------------------
@@ -1368,6 +1384,7 @@ void TreeDiff::AlignChildren(node_id w, node_id x)
        std::cout << " AlignChildren done.\n";
 }
 
+
 bool TreeDiff::Diff()
 // ----------------------------------------------------------------------------
 //    Compute the difference between the two trees (Edit Script)
@@ -1454,6 +1471,7 @@ bool TreeDiff::Diff()
     return false;
 }
 
+
 bool TreeDiff::Diff(std::ostream &os)
 // ----------------------------------------------------------------------------
 //    Compute tree diff and display it to os. Return true if error.
@@ -1464,7 +1482,11 @@ bool TreeDiff::Diff(std::ostream &os)
     return hadError;
 }
 
+
 bool Node::operator ==(const Node &n)
+// ----------------------------------------------------------------------------
+//    Compare two nodes for equality
+// ----------------------------------------------------------------------------
 {
     Tree_p t1 = t;
     Tree_p t2 = n.GetTree();
@@ -1478,12 +1500,17 @@ bool Node::operator ==(const Node &n)
         return NonLeafEqual(t1, t2);
 }
 
+
 bool NodeForAlign::operator ==(const NodeForAlign &n)
+// ----------------------------------------------------------------------------
+//   Compare two nodes for equality
+// ----------------------------------------------------------------------------
 {
     if (!IsMatched())
         return false;
     return (m.to[Id()] == n.Id());
 }
+
 
 void EditOperation::Insert::Apply(NodeTable &table)
 // ----------------------------------------------------------------------------
@@ -1501,6 +1528,7 @@ void EditOperation::Insert::Apply(NodeTable &table)
     std::vector<Tree_p> *v = pp->Get<ChildVectorInfo>();
     v->insert(v->begin() + pos - 1, leaf);
 }
+
 
 void EditOperation::Delete::Apply(NodeTable &table)
 // ----------------------------------------------------------------------------
@@ -1527,9 +1555,9 @@ void EditOperation::Delete::Apply(NodeTable &table)
     {
       v->erase(it);
     }
-    delete lp;
     table.erase(leaf);
 }
+
 
 void EditOperation::Update::Apply(NodeTable &table)
 // ----------------------------------------------------------------------------
@@ -1539,6 +1567,7 @@ void EditOperation::Update::Apply(NodeTable &table)
     TreeCopyTemplate<CM_NODE_ONLY> copy(table[leaf].GetTree());
     value->Do(copy);
 }
+
 
 void EditOperation::Move::Apply(NodeTable &table)
 // ----------------------------------------------------------------------------
@@ -1565,6 +1594,7 @@ void EditOperation::Move::Apply(NodeTable &table)
         }
 }
 
+
 Tree_p  EditScript::Apply(Tree_p)
 // ----------------------------------------------------------------------------
 //    Apply an Edit Script to a tree
@@ -1573,6 +1603,7 @@ Tree_p  EditScript::Apply(Tree_p)
     // TODO
     return NULL;
 }
+
 
 std::ostream&
 operator <<(std::ostream &out, XL::NodeTable &m)
@@ -1604,6 +1635,7 @@ operator <<(std::ostream &out, XL::NodeTable &m)
     return out;
 }
 
+
 std::ostream&
 operator <<(std::ostream &out, Matching &m)
 // ----------------------------------------------------------------------------
@@ -1617,11 +1649,12 @@ operator <<(std::ostream &out, Matching &m)
     return out;
 }
 
+
 std::ostream&
+operator <<(std::ostream &out, EditOperation::Insert &op)
 // ----------------------------------------------------------------------------
 //    Display an insert operation
 // ----------------------------------------------------------------------------
-operator <<(std::ostream &out, EditOperation::Insert &op)
 {
     XL::PrintNode pn(out);
     out << "INS((" << op.leaf->Get<NodeIdInfo>() << ", ";
@@ -1630,21 +1663,23 @@ operator <<(std::ostream &out, EditOperation::Insert &op)
     return out;
 }
 
+
 std::ostream&
+operator <<(std::ostream &out, EditOperation::Delete &op)
 // ----------------------------------------------------------------------------
 //    Display a delete operation
 // ----------------------------------------------------------------------------
-operator <<(std::ostream &out, EditOperation::Delete &op)
 {
     out << "DEL(" << op.leaf << ")";
     return out;
 }
 
+
 std::ostream&
+operator <<(std::ostream &out, EditOperation::Update &op)
 // ----------------------------------------------------------------------------
 //    Display an update operation
 // ----------------------------------------------------------------------------
-operator <<(std::ostream &out, EditOperation::Update &op)
 {
     XL::PrintNode pn(out);
     out << "UPD(" << op.leaf << ", ";
@@ -1653,11 +1688,12 @@ operator <<(std::ostream &out, EditOperation::Update &op)
     return out;
 }
 
+
 std::ostream&
+operator <<(std::ostream &out, EditOperation::Move &op)
 // ----------------------------------------------------------------------------
 //    Display a move operation
 // ----------------------------------------------------------------------------
-operator <<(std::ostream &out, EditOperation::Move &op)
 {
     out << "MOV(" << op.subtree
         << ", "   << op.parent
@@ -1665,11 +1701,12 @@ operator <<(std::ostream &out, EditOperation::Move &op)
     return out;
 }
 
+
 std::ostream&
+operator <<(std::ostream &out, EditScript &s)
 // ----------------------------------------------------------------------------
 //    Display an edit script
 // ----------------------------------------------------------------------------
-operator <<(std::ostream &out, EditScript &s)
 {
     std::list<XL::EditOperation::Base *>::iterator it;
 

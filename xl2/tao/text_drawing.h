@@ -36,7 +36,7 @@ struct TextSpan : Shape
 //    A contiguous run of glyphs
 // ----------------------------------------------------------------------------
 {
-    TextSpan(XL::Text_p source, uint start = 0, uint end = ~0)
+    TextSpan(Text_p source, uint start = 0, uint end = ~0)
         : Shape(), source(source), start(start), end(end) {}
     virtual void        Draw(Layout *where);
     virtual void        DrawCached(Layout *where, bool identify);
@@ -52,7 +52,7 @@ protected:
     void                DrawSelection(Layout *where);
 
 public:
-    XL::TextRoot        source;
+    Text_p              source;
     uint                start, end;
 };
 
@@ -63,7 +63,7 @@ struct TextFormulaEditInfo : XL::Info
 // ----------------------------------------------------------------------------
 {
     TextFormulaEditInfo(XL::Text_p s, uint id): source(s), order(id) {}
-    XL::TextRoot        source;
+    Text_p              source;
     uint                order;
 };
 
@@ -82,7 +82,7 @@ struct TextFormula : TextSpan
     virtual void        Identify(Layout *where);
 
 public:
-    XL::TreeRoot        self;
+    XL::Prefix_p        self;
     static uint         formulas, shows;
 };
 

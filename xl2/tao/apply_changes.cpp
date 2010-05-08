@@ -57,16 +57,16 @@ bool ImportedFilesChanged(XL::Tree_p prog,
             SourceFile &sf = (*it).second;
             if (!done.count(&sf))
             {
-                if (sf.tree.tree == prog || imported.count(sf.symbols))
+                if (sf.tree == prog || imported.count(sf.symbols))
                 {
                     done.insert(&sf);
                     if (markChanged)
                     {
                         text prev_hash = sf.hash;
                         TreeHashAction<> hash(XL::TreeHashAction<>::Force);
-                        sf.tree.tree->Do(hash);
+                        sf.tree->Do(hash);
                         std::ostringstream os;
-                        os << sf.tree.tree->Get< HashInfo<> > ();
+                        os << sf.tree->Get< HashInfo<> > ();
                         sf.hash = os.str();
 
                         if (!prev_hash.empty() && sf.hash != prev_hash)

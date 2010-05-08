@@ -163,7 +163,7 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     // systems which do not allow the program to dlopen itself.
     runtime->InstallLazyFunctionCreator(unresolved_external);
 
-    // Create the Symbol pointer type
+    // Create the Info and Symbol pointer types
     PATypeHolder structInfoTy = OpaqueType::get(*context); // struct Info
     infoPtrTy = PointerType::get(structInfoTy, 0);         // Info *
     PATypeHolder structSymTy = OpaqueType::get(*context);  // struct Symbols
@@ -183,19 +183,22 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     {
         LocalTree (const Tree &o) :
             tag(o.tag), code(o.code), info(o.info) {}
+        ulong    references;
         ulong    tag;
         eval_fn  code;
         Symbols *symbols;
         Info    *info;
-        Tree_p    source;
+        Tree_p   source;
     };
     // If this assert fails, you changed struct tree and need to modify here
     XL_CASSERT(sizeof(LocalTree) == sizeof(Tree));
                
     // Create the Tree type
     std::vector<const Type *> treeElements;
+    treeElements.push_back(LLVM_INTTYPE(ulong));           // references
     treeElements.push_back(LLVM_INTTYPE(ulong));           // tag
     treeElements.push_back(evalFnTy);                      // code
+    treeElements.push_back(symbolPtrTy);                   // symbols
     treeElements.push_back(infoPtrTy);                     // symbols
     treeElements.push_back(infoPtrTy);                     // info
     treeElements.push_back(treePtrTy);                     // source
@@ -214,7 +217,7 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     integerElements.push_back(LLVM_INTTYPE(longlong));  // value
     integerTreeTy = StructType::get(*context, integerElements);   // struct Integer{}
     integerTreePtrTy = PointerType::get(integerTreeTy,0); // Integer *
-#define INTEGER_VALUE_INDEX     4
+#define INTEGER_VALUE_INDEX     6
 
     // Create the Real type
     std::vector<const Type *> realElements = treeElements;
@@ -505,7 +508,7 @@ Value *Compiler::Known(Tree_p tree)
 }
 
 
-bool Compiler::FreeResources(Tree_p tree, GCAction &gc)
+void Compiler::FreeResources(Tree_p tree)
 // ----------------------------------------------------------------------------
 //   Free the LLVM resources associated to the tree, if any
 // ----------------------------------------------------------------------------
@@ -514,7 +517,6 @@ bool Compiler::FreeResources(Tree_p tree, GCAction &gc)
 //   calling foo(), we will get an LLVM assert deleting one while the
 //   other's body still makes a reference.
 {
-    bool result = false;
     if (functions.count(tree) > 0)
     {
         Function *f = functions[tree];
@@ -523,15 +525,7 @@ bool Compiler::FreeResources(Tree_p tree, GCAction &gc)
         IFTRACE(llvmgc)
             std::cerr << "Tree'" << tree << "' is "
                       << (inUse ? "in use\n" : "unused\n");
-        if (inUse)
-        {
-            // Mark the tree back in XLR so that we keep it around
-            IFTRACE(llvmgc)
-                std::cerr << "Keeping function " << tree << " for LLVM\n";
-            tree->Do(gc);
-            result = true;
-        }
-        else
+        if (!inUse)
         {
             f->deleteBody();
             runtime->freeMachineCodeForFunction(f);
@@ -546,33 +540,22 @@ bool Compiler::FreeResources(Tree_p tree, GCAction &gc)
         Value *v = globals[tree];
         bool inUse = !v->use_empty();
 
-        if (inUse)
-        {
-            IFTRACE(llvmgc)
-                std::cerr << "Keeping global " << tree << " for LLVM\n";
-            
-            // Mark the tree back in XLR so that we keep it around
-            tree->Do(gc);
-            result = true;
-        }
-        else
+        if (!inUse)
         {
             // Delete the LLVM value now that it's safe to do
             delete v;
             globals.erase(tree);
         }
     }
-    return result;
 }
 
 
-bool Compiler::FreeResources(GCAction &gc)
+void Compiler::FreeResources()
 // ----------------------------------------------------------------------------
 //   Delete LLVM functions for all trees we want to erase
 // ----------------------------------------------------------------------------
 //   At this stage, we have deleted all the bodies we could
 {
-    bool result = false;
     while (!deleted.empty())
     {
         deleted_set::iterator i = deleted.begin();
@@ -586,18 +569,11 @@ bool Compiler::FreeResources(GCAction &gc)
                 delete f;
                 functions.erase(tree);
             }
-            else
-            {
-                // Probably redundant, but better safe than sorry...
-                tree->Do(gc);
-                result = true;
-            }
         }
 
         // This tree has been analyzed
         deleted.erase(tree);
     }
-    return result;
 }
 
 

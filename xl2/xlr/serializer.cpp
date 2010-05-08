@@ -290,7 +290,7 @@ void Serializer::WriteChild(Tree_p child)
 //
 // ============================================================================
 
-Deserializer::Deserializer(std::istream &in, tree_position pos)
+Deserializer::Deserializer(std::istream &in, TreePosition pos)
 // ----------------------------------------------------------------------------
 //   Read a few bytes from the stream, check version and magic value
 // ----------------------------------------------------------------------------

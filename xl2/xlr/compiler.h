@@ -51,7 +51,6 @@ XL_BEGIN
 
 struct CompiledUnit;
 struct Options;
-struct GCAction;
 typedef std::map<text, llvm::Function *>    builtins_map;
 typedef std::map<Tree_p , llvm::Value *>    value_map;
 typedef std::map<Tree_p , llvm::Function *> function_map;
@@ -59,7 +58,7 @@ typedef std::map<uint, eval_fn>             closure_map;
 typedef std::set<Tree_p>                    closure_set;
 typedef std::set<Tree_p>                    data_set;
 typedef std::set<Tree_p>                    deleted_set;
-typedef Tree_p (*adapter_fn) (eval_fn callee, Tree_p src, Tree_p *args);
+typedef Tree * (*adapter_fn) (eval_fn callee, Tree *src, Tree **args);
 
 
 struct Compiler
@@ -83,8 +82,8 @@ struct Compiler
     bool                      IsKnown(Tree_p value);
     llvm::Value *             Known(Tree_p value);
 
-    bool                      FreeResources(Tree_p tree, GCAction &gc);
-    bool                      FreeResources(GCAction &gc);
+    void                      FreeResources(Tree_p tree);
+    void                      FreeResources();
 
     void                      Reset();
 
@@ -104,6 +103,7 @@ public:
     llvm::PointerType         *prefixTreePtrTy;
     llvm::FunctionType        *evalTy;
     llvm::PointerType         *evalFnTy;
+    llvm::PointerType         *symbolPtrTy;
     llvm::PointerType         *infoPtrTy;
     llvm::PointerType         *symbolsPtrTy;
     llvm::PointerType         *charPtrTy;

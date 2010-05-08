@@ -325,7 +325,7 @@ void TextSpan::DrawSelection(Layout *where)
                             else
                                 sel->mark--;
                         }
-                        source.Value().replace(i, eos-i, rpl);
+                        source->value.replace(i, eos-i, rpl);
                         sel->replacement = "";
                         uint length = XL::Utf8Length(rpl);
                         sel->point += length;
@@ -400,7 +400,7 @@ void TextSpan::DrawSelection(Layout *where)
                         else
                             sel->mark--;
                     }
-                    source.Value().replace(i, eos-i, rpl);
+                    source->value.replace(i, eos-i, rpl);
                     sel->replacement = "";
                     uint length = XL::Utf8Length(rpl);
                     sel->point += length;
@@ -438,7 +438,7 @@ void TextSpan::Draw(GraphicPath &path, Layout *where)
     QFontMetricsF fm(font);
     QPainterPath qt;
 
-    QString str = +source.Value().substr(start, end - start);
+    QString str = +source->value.substr(start, end - start);
     int index = str.indexOf(QChar('\n'));
     while (index >= 0)
     {
@@ -465,7 +465,7 @@ Box3 TextSpan::Bounds(Layout *where)
 {
     Widget     *widget = where->Display();
     GlyphCache &glyphs = widget->glyphs();
-    text        str    = source.Value();
+    text        str    = source->value;
     QFont      &font   = where->font;
     Box3        result;
     scale       ascent  = glyphs.Ascent(font);
@@ -529,7 +529,7 @@ Box3 TextSpan::Space(Layout *where)
 {
     Widget     *widget  = where->Display();
     GlyphCache &glyphs  = widget->glyphs();
-    text        str     = source.Value();
+    text        str     = source->value;
     QFont      &font    = where->font;
     Box3        result;
     scale       ascent  = glyphs.Ascent(font);
@@ -589,7 +589,7 @@ TextSpan *TextSpan::Break(BreakOrder &order)
 //   If the text span contains a word or line break, cut there
 // ----------------------------------------------------------------------------
 {
-    text str = source.Value();
+    text str = source->value;
     uint i, max = str.length();
     for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
     {
@@ -626,7 +626,7 @@ scale TextSpan::TrailingSpaceSize(Layout *where)
     Widget     *widget = where->Display();
     GlyphCache &glyphs = widget->glyphs();
     QFont      &font   = where->font;
-    text        str    = source.Value();
+    text        str    = source->value;
     uint        pos    = str.length();
     Box3        box;
 
@@ -695,7 +695,7 @@ void TextFormula::DrawSelection(Layout *where)
 {
     Widget              *widget = where->Display();
     TextSelect          *sel    = widget->textSelection();
-    XL::Prefix_p         prefix = self.tree->AsPrefix();
+    XL::Prefix_p         prefix = self->AsPrefix();
     XL::Tree_p           value  = prefix->right;
     TextFormulaEditInfo *info   = value->GetInfo<TextFormulaEditInfo>();
     uint                 selId  = widget->currentCharId() + 1;
@@ -774,7 +774,7 @@ void TextFormula::Identify(Layout *where)
 //   Give one ID to the whole formula so that we can click on it
 // ----------------------------------------------------------------------------
 {
-    XL::Prefix_p         prefix  = self.tree->AsPrefix();
+    XL::Prefix_p         prefix  = self->AsPrefix();
     XL::Tree_p           value   = prefix->right;
     TextFormulaEditInfo *info    = value->GetInfo<TextFormulaEditInfo>();
     if (!info)
@@ -800,7 +800,7 @@ bool TextFormula::Validate(XL::Text_p source, Widget *widget)
     Tree_p              newTree = parser.Parse();
     if (newTree)
     {
-        XL::Prefix_p prefix = self.tree->AsPrefix();
+        XL::Prefix_p prefix = self->AsPrefix();
         prefix->right = newTree;
         widget->reloadProgram();
         widget->markChanged("Replaced formula");

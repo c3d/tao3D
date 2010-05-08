@@ -21,6 +21,7 @@
 // ****************************************************************************
 
 #include "gc.h"
+#include <iostream>
 
 XL_BEGIN
 
@@ -121,6 +122,7 @@ void AllocatorBase::Finalize(void *ptr)
 //   We should never reach this one
 // ----------------------------------------------------------------------------
 {
+    std::cerr << "No finalizer installed for " << ptr << "\n";
     assert(!"No finalizer installed");
 }
 

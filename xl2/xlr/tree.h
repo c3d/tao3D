@@ -27,6 +27,7 @@
 // ****************************************************************************
 
 #include "base.h"
+#include "refcount.h"
 #include <map>
 #include <vector>
 #include <cassert>
@@ -62,19 +63,40 @@ struct Sha1;                                    // Hash used for id-ing trees
 // 
 // ============================================================================
 
-typedef Tree            *Tree_p;
-typedef Integer         *Integer_p;
-typedef Real            *Real_p;
-typedef Text            *Text_p;
-typedef Name            *Name_p;
-typedef Prefix          *Prefix_p;
-typedef Postfix         *Postfix_p;
-typedef Infix           *Infix_p;
-typedef Block           *Block_p;
+typedef ReferenceCountPointer<Tree>    Tree_p;
+typedef ReferenceCountPointer<Integer> Integer_p;
+typedef ReferenceCountPointer<Real>    Real_p;
+typedef ReferenceCountPointer<Text>    Text_p;
+typedef ReferenceCountPointer<Name>    Name_p;
+typedef ReferenceCountPointer<Prefix>  Prefix_p;
+typedef ReferenceCountPointer<Postfix> Postfix_p;
+typedef ReferenceCountPointer<Infix>   Infix_p;
+typedef ReferenceCountPointer<Block>   Block_p;
 
-typedef ulong tree_position;                    // Position in context
+typedef ulong TreePosition;                     // Position in context
 typedef std::vector<Tree_p> TreeList;           // A list of trees
-typedef Tree_p (*eval_fn) (Tree_p);             // Compiled evaluation code
+typedef Tree *(*eval_fn) (Tree *);              // Compiled evaluation code
+
+
+
+// ============================================================================
+// 
+//    Info class: data that can be associated to trees
+// 
+// ============================================================================
+
+struct Info
+// ----------------------------------------------------------------------------
+//   Information associated with a tree
+// ----------------------------------------------------------------------------
+{
+                        Info(): next(NULL) {}
+                        Info(const Info &) : next(NULL) {}
+    virtual             ~Info() {}
+    virtual Info *      Copy() { return next ? next->Copy() : NULL; }
+    Info *next;
+};
+
 
 
 // ============================================================================
@@ -100,19 +122,6 @@ enum kind
 };
 
 
-struct Info
-// ----------------------------------------------------------------------------
-//   Information associated with a tree
-// ----------------------------------------------------------------------------
-{
-                        Info(): next(NULL) {}
-                        Info(const Info &) : next(NULL) {}
-    virtual             ~Info() {}
-    virtual Info *      Copy() { return next ? next->Copy() : NULL; }
-    Info *next;
-};
-
-
 struct Tree
 // ----------------------------------------------------------------------------
 //   The base class for all XL trees
@@ -122,16 +131,21 @@ struct Tree
     enum { NOWHERE = ~0UL };
 
     // Constructor and destructor
-    Tree (kind k, tree_position pos = NOWHERE):
-        tag((pos<<KINDBITS) | k), code(NULL),
-        symbols(NULL), info(NULL), source(NULL) {}
-    Tree(kind k, Tree_p from):
-        tag(from->tag), code(from->code), symbols(from->symbols),
+    Tree (kind k, TreePosition pos = NOWHERE):
+        references(0), tag((pos<<KINDBITS) | k),
+        code(NULL), symbols(NULL), info(NULL), source(NULL) {}
+    Tree(kind k, Tree *from):
+        references(0), tag(from->tag),
+        code(from->code), symbols(from->symbols),
         info(from->info ? from->info->Copy() : NULL), source(from)
     {
         assert(k == Kind());
     }
     ~Tree();
+
+    // Reference counting for garbage collection
+    void                Acquire()       { references++; }
+    void                Release()       { if (!--references) delete this; }
 
     // Perform recursive actions on a tree
     Tree_p              Do(Action *action);
@@ -139,7 +153,7 @@ struct Tree
 
     // Attributes
     kind                Kind()                { return kind(tag & KINDMASK); }
-    tree_position       Position()            { return (long) tag>>KINDBITS; }
+    TreePosition        Position()            { return (long) tag>>KINDBITS; }
     bool                IsLeaf()              { return Kind() <= NAME; }
     bool                IsConstant()          { return Kind() <= TEXT; }
     XL::Symbols *       Symbols()             { return symbols; }
@@ -147,17 +161,17 @@ struct Tree
 
     // Info
     template<class I>
-    typename I::data_t  Get();
+    typename I::data_t  Get() const;
     template<class I>
     void                Set(typename I::data_t data);
     template<class I>
     void                Set2(typename I::data_t data);
     template<class I>
-    I*                  GetInfo();
+    I*                  GetInfo() const;
     template<class I>
     void                SetInfo(I *);
     template<class I>
-    bool                Exists();
+    bool                Exists() const;
     template <class I>
     bool                Purge();
     template <class I>
@@ -179,14 +193,11 @@ struct Tree
     // Conversion to text
                         operator text();
 
-    // Operator new to record the tree in the garbage collector
-    void *              operator new(size_t sz);
-    void                operator delete(void *);
-
 public:
+    ulong       references;                     // Number of references
     ulong       tag;                            // Position + kind
     eval_fn     code;                           // Compiled code
-    XL::Symbols*symbols;                        // Symbols
+    XL::Symbols*symbols;                        // Symbol table for evaluation
     Info *      info;                           // Information for tree
     Tree_p      source;                         // Source for the tree
 
@@ -217,7 +228,7 @@ struct Action
 };
 
 
-template <class I> inline typename I::data_t Tree::Get()
+template <class I> inline typename I::data_t Tree::Get() const
 // ----------------------------------------------------------------------------
 //   Find if we have an information of the right type in 'info'
 // ----------------------------------------------------------------------------
@@ -240,7 +251,7 @@ template <class I> inline void Tree::Set(typename I::data_t data)
 }
 
 
-template <class I> inline I* Tree::GetInfo()
+template <class I> inline I* Tree::GetInfo() const
 // ----------------------------------------------------------------------------
 //   Find if we have an information of the right type in 'info'
 // ----------------------------------------------------------------------------
@@ -282,7 +293,7 @@ template <class I> inline void Tree::SetInfo(I *i)
 }
 
 
-template <class I> inline bool Tree::Exists()
+template <class I> inline bool Tree::Exists() const
 // ----------------------------------------------------------------------------
 //   Verifies if the tree already has information of the given type
 // ----------------------------------------------------------------------------
@@ -380,7 +391,7 @@ struct Integer : Tree
 //   Integer constants
 // ----------------------------------------------------------------------------
 {
-    Integer(longlong i = 0, tree_position pos = NOWHERE):
+    Integer(longlong i = 0, TreePosition pos = NOWHERE):
         Tree(INTEGER, pos), value(i) {}
     Integer(Integer_p i): Tree(INTEGER, i), value(i->value) {}
     longlong            value;
@@ -393,7 +404,7 @@ struct Real : Tree
 //   Real numbers
 // ----------------------------------------------------------------------------
 {
-    Real(double d = 0.0, tree_position pos = NOWHERE):
+    Real(double d = 0.0, TreePosition pos = NOWHERE):
         Tree(REAL, pos), value(d) {}
     Real(Real_p r): Tree(REAL, r), value(r->value) {}
     double              value;
@@ -406,7 +417,7 @@ struct Text : Tree
 //   Text, e.g. "Hello World"
 // ----------------------------------------------------------------------------
 {
-    Text(text t, text open="\"", text close="\"", tree_position pos=NOWHERE):
+    Text(text t, text open="\"", text close="\"", TreePosition pos=NOWHERE):
         Tree(TEXT, pos), value(t), opening(open), closing(close) {}
     Text(Text_p t):
         Tree(TEXT, t),
@@ -423,7 +434,7 @@ struct Name : Tree
 //   A node representing a name or symbol
 // ----------------------------------------------------------------------------
 {
-    Name(text n, tree_position pos = NOWHERE):
+    Name(text n, TreePosition pos = NOWHERE):
         Tree(NAME, pos), value(n) {}
     Name(Name_p n):
         Tree(NAME, n), value(n->value) {}
@@ -444,7 +455,7 @@ struct Block : Tree
 //   A block, such as (X), {X}, [X] or indented block
 // ----------------------------------------------------------------------------
 {
-    Block(Tree_p c, text open, text close, tree_position pos = NOWHERE):
+    Block(Tree_p c, text open, text close, TreePosition pos = NOWHERE):
         Tree(BLOCK, pos), child(c), opening(open), closing(close) {}
     Block(Block_p b, Tree_p ch):
         Tree(BLOCK, b), child(ch), opening(b->opening), closing(b->closing) {}
@@ -459,7 +470,7 @@ struct Prefix : Tree
 //   A prefix operator, e.g. sin X, +3
 // ----------------------------------------------------------------------------
 {
-    Prefix(Tree_p l, Tree_p r, tree_position pos = NOWHERE):
+    Prefix(Tree_p l, Tree_p r, TreePosition pos = NOWHERE):
         Tree(PREFIX, pos), left(l), right(r) {}
     Prefix(Prefix_p p, Tree_p l, Tree_p r):
         Tree(PREFIX, p), left(l), right(r) {}
@@ -473,7 +484,7 @@ struct Postfix : Tree
 //   A postfix operator, e.g. 3!
 // ----------------------------------------------------------------------------
 {
-    Postfix(Tree_p l, Tree_p r, tree_position pos = NOWHERE):
+    Postfix(Tree_p l, Tree_p r, TreePosition pos = NOWHERE):
         Tree(POSTFIX, pos), left(l), right(r) {}
     Postfix(Postfix_p p, Tree_p l, Tree_p r):
         Tree(POSTFIX, p), left(l), right(r) {}
@@ -487,7 +498,7 @@ struct Infix : Tree
 //   Infix operators, e.g. A+B, A and B, A,B,C,D,E
 // ----------------------------------------------------------------------------
 {
-    Infix(text n, Tree_p l, Tree_p r, tree_position pos = NOWHERE):
+    Infix(text n, Tree_p l, Tree_p r, TreePosition pos = NOWHERE):
         Tree(INFIX, pos), left(l), right(r), name(n) {}
     Infix(Infix_p i, Tree_p l, Tree_p r):
         Tree(INFIX, i), left(l), right(r), name(i->name) {}
@@ -510,7 +521,7 @@ inline Integer_p Tree::AsInteger()
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == INTEGER)
-        return (Integer_p) this;
+        return Integer_p((Integer *) this);
     return NULL;
 }
 
@@ -521,7 +532,7 @@ inline Real_p Tree::AsReal()
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == REAL)
-        return (Real_p) this;
+        return Real_p((Real *) this);
     return NULL;
 }
 
@@ -532,7 +543,7 @@ inline Text_p Tree::AsText()
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == TEXT)
-        return (Text_p) this;
+        return Text_p((Text *) this);
     return NULL;
 }
 
@@ -543,7 +554,7 @@ inline Name_p Tree::AsName()
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == NAME)
-        return (Name_p) this;
+        return Name_p((Name *) this);
     return NULL;
 }
 
@@ -554,7 +565,7 @@ inline Block_p Tree::AsBlock()
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == BLOCK)
-        return (Block_p) this;
+        return Block_p((Block *) this);
     return NULL;
 }
 
@@ -565,7 +576,7 @@ inline Infix_p Tree::AsInfix()
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == INFIX)
-        return (Infix_p) this;
+        return Infix_p((Infix *) this);
     return NULL;
 }
 
@@ -576,7 +587,7 @@ inline Prefix_p Tree::AsPrefix()
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == PREFIX)
-        return (Prefix_p) this;
+        return Prefix_p((Prefix *) this);
     return NULL;
 }
 
@@ -587,7 +598,7 @@ inline Postfix_p Tree::AsPostfix()
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == POSTFIX)
-        return (Postfix_p) this;
+        return Postfix_p((Postfix *) this);
     return NULL;
 }
 
@@ -595,55 +606,47 @@ inline Postfix_p Tree::AsPostfix()
 
 // ============================================================================
 //
-//    Garbage collection roots
+//   Reference types
 //
 // ============================================================================
 
-struct TreeRoot
+typedef ReferenceCountReference<Tree>    Tree_r;
+typedef ReferenceCountReference<Name>    Name_r;
+typedef ReferenceCountReference<Prefix>  Prefix_r;
+typedef ReferenceCountReference<Postfix> Postfix_r;
+typedef ReferenceCountReference<Infix>   Infix_r;
+typedef ReferenceCountReference<Block>   Block_r;
+
+struct Integer_r : ReferenceCountReference<Integer>
 // ----------------------------------------------------------------------------
-//    A tree that shouldn't be garbage collected until the root dies
+//   Like a refcounted reference, plus implicit integer value
 // ----------------------------------------------------------------------------
 {
-    TreeRoot(Tree_p t = NULL);
-    TreeRoot(const TreeRoot &o);
-    ~TreeRoot();
-    operator Tree_p (void) { return tree; }
-    bool operator< (const TreeRoot &o) const { return tree < o.tree; }
-public:
-    Tree_p       tree;
+    Integer_r(Integer &i): ReferenceCountReference<Integer>(i) {}
+    operator Integer&() { return target; }
+    operator longlong() { return (longlong) target; }
 };
 
 
-struct IntegerRoot : TreeRoot
+struct Real_r : ReferenceCountReference<Real>
 // ----------------------------------------------------------------------------
-//   Looks and behaves like a real_r, but keeps the value around
+//   Like a refcounted reference, plus implicit real value
 // ----------------------------------------------------------------------------
 {
-    IntegerRoot(Integer &r): TreeRoot(&r) {}
-    Integer_p operator&()       { return (Integer_p) tree; }
-    operator longlong()         { return ((Integer_p) tree)->value; }
+    Real_r(Real &i): ReferenceCountReference<Real>(i) {}
+    operator Real&() { return target; }
+    operator double() { return (double) target; }
 };
 
 
-struct RealRoot : TreeRoot
+struct Text_r : ReferenceCountReference<Text>
 // ----------------------------------------------------------------------------
-//   Looks and behaves like a real_r, but keeps the value around
-// ----------------------------------------------------------------------------
-{
-    RealRoot(Real &r): TreeRoot(&r) {}
-    Real_p operator&()          { return (Real_p) tree; }
-    operator double()           { return ((Real_p) tree)->value; }
-};
-
-
-struct TextRoot : TreeRoot
-// ----------------------------------------------------------------------------
-//   Looks and behaves like a text_p, but keeps the value around
+//   Like a refcounted reference, plus implicit text value
 // ----------------------------------------------------------------------------
 {
-    TextRoot(Text_p t): TreeRoot(t) {}
-    operator Text_p ()          { return (Text_p) tree; }
-    text &      Value()         { return ((Text_p) tree)->value; }
+    Text_r(Text &i): ReferenceCountReference<Text>(i) {}
+    operator Text&() { return target; }
+    operator text() { return (text) target; }
 };
 
 
@@ -1124,7 +1127,7 @@ struct RewriteKey : Action
     }
     Tree_p Do(Tree_p what)
     {
-        key = (key << 3) ^ Hash(1, (ulong) what);
+        key = (key << 3) ^ Hash(1, (ulong) (Tree *) what);
         return what;
     }
 

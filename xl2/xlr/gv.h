@@ -50,7 +50,7 @@ struct GvOutput : Action
         std::ostream &operator()(std::ostream &out) const
         {
             char buf[10];
-            snprintf(buf, 10, "n%lx", (long)t);
+            snprintf(buf, 10, "n%lx", (long)(const Tree *) t);
             out << buf;
             return out;
         };

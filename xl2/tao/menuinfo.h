@@ -90,7 +90,7 @@ public slots:
 
 public:
     XL::Tree_p tree;
-    XL::TreeRoot *action;
+    XL::Tree_p action;
 };
 
 }

@@ -654,7 +654,7 @@ std::ostream& operator<< (std::ostream &out, XL::Tree_p t)
 XL_END
 
 
-void debug(XL::Tree_p tree)
+void debug(XL::Tree *tree)
 // ----------------------------------------------------------------------------
 //    Emit for debugging purpose
 // ----------------------------------------------------------------------------
@@ -667,7 +667,7 @@ void debug(XL::Tree_p tree)
 
 #include "sha1_ostream.h"
 
-void debugp(XL::Tree_p tree)
+void debugp(XL::Tree *tree)
 // ----------------------------------------------------------------------------
 //    Emit for debugging purpose
 // ----------------------------------------------------------------------------

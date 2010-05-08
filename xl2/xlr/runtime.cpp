@@ -59,7 +59,7 @@ Tree_p xl_evaluate(Tree_p what)
 {
     if (!what)
         return what;
-    Symbols *symbols = what->Get<SymbolsInfo>();
+    Symbols *symbols = what->Symbols();
     if (!symbols)
         symbols = Symbols::symbols;
     Tree_p result = symbols->Run(what);
@@ -76,7 +76,7 @@ Tree_p xl_repeat(Tree_p self, Tree_p what, longlong count)
 {
     if (!what)
         return what;
-    Symbols *symbols = self->Get<SymbolsInfo>();
+    Symbols *symbols = self->Symbols();
     if (!symbols)
         symbols = Symbols::symbols;
     Tree_p result = what;
@@ -332,7 +332,7 @@ Tree_p xl_type_error(Tree_p what)
 //   Display message if we have a type error
 // ----------------------------------------------------------------------------
 {
-    Symbols *syms = what->Get<SymbolsInfo>();
+    Symbols *syms = what->Symbols();
     if (!syms)
         syms = Symbols::symbols;
     LocalSave<Symbols *> saveSyms(Symbols::symbols, syms);
@@ -555,7 +555,7 @@ Tree_p xl_load(text name)
     Symbols *syms = new Symbols(Context::context);
     MAIN->files[name] = SourceFile(name, tree, syms);
     Symbols::symbols = syms;
-    tree->Set<SymbolsInfo>(syms);
+    tree->SetSymbols(syms);
     tree = syms->CompileAll(tree);
     Symbols::symbols = old;
     old->Import(syms);
@@ -658,7 +658,7 @@ Tree_p xl_load_csv(text name)
     Symbols *syms = new Symbols(Context::context);
     MAIN->files[name] = SourceFile(name, tree, syms);
     Symbols::symbols = syms;
-    tree->Set<SymbolsInfo>(syms);
+    tree->SetSymbols(syms);
     tree = syms->CompileAll(tree);
     Symbols::symbols = old;
     old->Import(syms);
@@ -769,7 +769,7 @@ Tree_p xl_load_tsv(text name)
     Symbols *syms = new Symbols(Context::context);
     MAIN->files[name] = SourceFile(name, tree, syms);
     Symbols::symbols = syms;
-    tree->Set<SymbolsInfo>(syms);
+    tree->SetSymbols(syms);
     tree = syms->CompileAll(tree);
     Symbols::symbols = old;
     old->Import(syms);

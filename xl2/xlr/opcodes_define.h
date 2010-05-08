@@ -47,7 +47,7 @@
         eval_fn fn = (eval_fn) xl_##name;                               \
         Rewrite *rw = c->EnterRewrite(from, to);                        \
         to->code = fn;                                                  \
-        to->Set<SymbolsInfo>(c);                                        \
+        to->SetSymbols(c);                                              \
         to->Set<TypeInfo> (rtype##_type);                               \
         compiler->EnterBuiltin(XL_SCOPE #name,                          \
                                to, rw->parameters, fn);                 \
@@ -82,7 +82,7 @@
             Name_p to = new Name(symbol);                               \
             Rewrite *rw = c->EnterRewrite(from, to);                    \
             to->code = fn;                                              \
-            to->Set<SymbolsInfo> (c);                                   \
+            to->SetSymbols(c);                                          \
             to->Set<TypeInfo> (rtype##_type);                           \
             compiler->EnterBuiltin(XL_SCOPE #name,                      \
                                    to, rw->parameters, fn);             \
@@ -91,7 +91,7 @@
         {                                                               \
             Name_p n  = new Name(symbol);                               \
             n->code = fn;                                               \
-            n->Set<SymbolsInfo> (c);                                    \
+            n->SetSymbols (c);                                    \
             n ->Set<TypeInfo> (rtype##_type);                           \
             c->EnterName(symbol, n);                                    \
             TreeList noparms;                                           \
@@ -111,7 +111,7 @@
         eval_fn fn = (eval_fn) xl_##name;                               \
         Rewrite *rw = c->EnterRewrite(from, to);                        \
         to->code = fn;                                                  \
-        to->Set<SymbolsInfo> (c);                                       \
+        to->SetSymbols(c);                                              \
         to->Set<TypeInfo> (rtype##_type);                               \
         compiler->EnterBuiltin(XL_SCOPE #name,                          \
                                to, rw->parameters, to->code);           \
@@ -127,7 +127,7 @@
         eval_fn fn = (eval_fn) xl_##name;                               \
         Rewrite *rw = c->EnterRewrite(from, to);                        \
         to->code = fn;                                                  \
-        to->Set<SymbolsInfo> (c);                                       \
+        to->SetSymbols(c);                                              \
         to->Set<TypeInfo> (rtype##_type);                               \
         compiler->EnterBuiltin(XL_SCOPE #name, to,                      \
                                rw->parameters, to->code);               \
@@ -140,7 +140,7 @@
     {                                           \
         Name_p n = new Name(#symbol);           \
         n->code = xl_identity;                  \
-        n->Set<SymbolsInfo> (c);                \
+        n->SetSymbols(c);                       \
         c->EnterName(#symbol, n);               \
         xl_##symbol = n;                        \
         compiler->EnterGlobal(n, &xl_##symbol); \
@@ -154,7 +154,7 @@
         Name_p n = new Name(#symbol);                                   \
         eval_fn fn = (eval_fn) xl_identity;                             \
         n->code = fn;                                                   \
-        n->Set<SymbolsInfo> (c);                                        \
+        n->SetSymbols(c);                                               \
         c->EnterName(#symbol, n);                                       \
         symbol##_type = n;                                              \
         compiler->EnterGlobal(n, &symbol##_type);                       \
@@ -165,7 +165,7 @@
         Rewrite *rw = c->EnterRewrite(from, to);                        \
         eval_fn typeTestFn = (eval_fn) xl_##symbol##_cast;              \
         to->code = typeTestFn;                                          \
-        to->Set<SymbolsInfo> (c);                                       \
+        to->SetSymbols(c);                                              \
         compiler->EnterBuiltin(XL_SCOPE #symbol,                        \
                                to, rw->parameters, typeTestFn);         \
                                                                         \

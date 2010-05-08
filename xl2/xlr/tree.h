@@ -123,9 +123,10 @@ struct Tree
 
     // Constructor and destructor
     Tree (kind k, tree_position pos = NOWHERE):
-        tag((pos<<KINDBITS) | k), code(NULL), info(NULL), source(NULL) {}
+        tag((pos<<KINDBITS) | k), code(NULL),
+        symbols(NULL), info(NULL), source(NULL) {}
     Tree(kind k, Tree_p from):
-        tag(from->tag), code(from->code),
+        tag(from->tag), code(from->code), symbols(from->symbols),
         info(from->info ? from->info->Copy() : NULL), source(from)
     {
         assert(k == Kind());
@@ -133,14 +134,16 @@ struct Tree
     ~Tree();
 
     // Perform recursive actions on a tree
-    Tree_p               Do(Action *action);
-    Tree_p               Do(Action &action)    { return Do(&action); }
+    Tree_p              Do(Action *action);
+    Tree_p              Do(Action &action)    { return Do(&action); }
 
     // Attributes
     kind                Kind()                { return kind(tag & KINDMASK); }
     tree_position       Position()            { return (long) tag>>KINDBITS; }
     bool                IsLeaf()              { return Kind() <= NAME; }
     bool                IsConstant()          { return Kind() <= TEXT; }
+    XL::Symbols *       Symbols()             { return symbols; }
+    void                SetSymbols(XL::Symbols *s) { symbols = s; }
 
     // Info
     template<class I>
@@ -183,6 +186,7 @@ struct Tree
 public:
     ulong       tag;                            // Position + kind
     eval_fn     code;                           // Compiled code
+    XL::Symbols*symbols;                        // Symbols
     Info *      info;                           // Information for tree
     Tree_p      source;                         // Source for the tree
 

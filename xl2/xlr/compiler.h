@@ -105,6 +105,7 @@ public:
     llvm::FunctionType        *evalTy;
     llvm::PointerType         *evalFnTy;
     llvm::PointerType         *infoPtrTy;
+    llvm::PointerType         *symbolsPtrTy;
     llvm::PointerType         *charPtrTy;
     llvm::Function            *xl_evaluate;
     llvm::Function            *xl_same_text;

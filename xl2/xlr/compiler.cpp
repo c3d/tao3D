@@ -183,12 +183,11 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     {
         LocalTree (const Tree &o) :
             tag(o.tag), code(o.code), info(o.info) {}
-        ulong    references;
         ulong    tag;
         eval_fn  code;
-        Symbols *symbols;
-        Info    *info;
-        Tree_p   source;
+        Symbols *symbols;       // The original definitions have _p
+        Info    *info;          // We check that the size is the same
+        Tree    *source;
     };
     // If this assert fails, you changed struct tree and need to modify here
     XL_CASSERT(sizeof(LocalTree) == sizeof(Tree));
@@ -972,7 +971,7 @@ Value *CompiledUnit::Left(Tree_p tree)
     assert (tree->Kind() >= BLOCK);
 
     // Check if we already know the result, if so just return it
-    Prefix_p prefix = (Prefix_p) tree;
+    Prefix_p prefix = tree->AsPrefix();
     Value *result = Known(prefix->left);
     if (result)
         return result;
@@ -1009,7 +1008,7 @@ Value *CompiledUnit::Right(Tree_p tree)
     assert(tree->Kind() > BLOCK);
 
     // Check if we already known the result, if so just return it
-    Prefix_p prefix = (Prefix_p) tree;
+    Prefix_p prefix = tree->AsPrefix();
     Value *result = Known(prefix->right);
     if (result)
         return result;

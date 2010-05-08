@@ -27,7 +27,7 @@
 // ****************************************************************************
 
 #include "base.h"
-#include "refcount.h"
+#include "gc.h"
 #include <map>
 #include <vector>
 #include <cassert>
@@ -63,15 +63,16 @@ struct Sha1;                                    // Hash used for id-ing trees
 // 
 // ============================================================================
 
-typedef ReferenceCountPointer<Tree>    Tree_p;
-typedef ReferenceCountPointer<Integer> Integer_p;
-typedef ReferenceCountPointer<Real>    Real_p;
-typedef ReferenceCountPointer<Text>    Text_p;
-typedef ReferenceCountPointer<Name>    Name_p;
-typedef ReferenceCountPointer<Prefix>  Prefix_p;
-typedef ReferenceCountPointer<Postfix> Postfix_p;
-typedef ReferenceCountPointer<Infix>   Infix_p;
-typedef ReferenceCountPointer<Block>   Block_p;
+typedef GCPtr<Tree>                     Tree_p;
+typedef GCPtr<Integer, longlong>        Integer_p;
+typedef GCPtr<Real, double>             Real_p;
+typedef GCPtr<Text, text>               Text_p;
+typedef GCPtr<Name>                     Name_p;
+typedef GCPtr<Prefix>                   Prefix_p;
+typedef GCPtr<Postfix>                  Postfix_p;
+typedef GCPtr<Infix>                    Infix_p;
+typedef GCPtr<Block>                    Block_p;
+typedef GCPtr<Symbols>                  Symbols_p;
 
 typedef ulong TreePosition;                     // Position in context
 typedef std::vector<Tree_p> TreeList;           // A list of trees
@@ -132,20 +133,16 @@ struct Tree
 
     // Constructor and destructor
     Tree (kind k, TreePosition pos = NOWHERE):
-        references(0), tag((pos<<KINDBITS) | k),
+        tag((pos<<KINDBITS) | k),
         code(NULL), symbols(NULL), info(NULL), source(NULL) {}
     Tree(kind k, Tree *from):
-        references(0), tag(from->tag),
+        tag(from->tag),
         code(from->code), symbols(from->symbols),
         info(from->info ? from->info->Copy() : NULL), source(from)
     {
         assert(k == Kind());
     }
     ~Tree();
-
-    // Reference counting for garbage collection
-    void                Acquire()       { references++; }
-    void                Release()       { if (!--references) delete this; }
 
     // Perform recursive actions on a tree
     Tree_p              Do(Action *action);
@@ -181,29 +178,29 @@ struct Tree
 
 
     // Safe cast to an appropriate subclass
-    Integer_p           AsInteger();
-    Real_p              AsReal();
-    Text_p              AsText();
-    Name_p              AsName();
-    Block_p             AsBlock();
-    Infix_p             AsInfix();
-    Prefix_p            AsPrefix();
-    Postfix_p           AsPostfix();
+    Integer *           AsInteger();
+    Real *              AsReal();
+    Text *              AsText();
+    Name *              AsName();
+    Block *             AsBlock();
+    Infix *             AsInfix();
+    Prefix *            AsPrefix();
+    Postfix *           AsPostfix();
 
     // Conversion to text
                         operator text();
 
 public:
-    ulong       references;                     // Number of references
     ulong       tag;                            // Position + kind
     eval_fn     code;                           // Compiled code
     XL::Symbols*symbols;                        // Symbol table for evaluation
     Info *      info;                           // Information for tree
     Tree_p      source;                         // Source for the tree
 
+    GARBAGE_COLLECT(Tree);
+
 private:
-    Tree (const Tree &o):
-        tag(o.tag), code(NULL), info(NULL) {}
+    Tree (const Tree &) {}
 };
 
 
@@ -393,10 +390,13 @@ struct Integer : Tree
 {
     Integer(longlong i = 0, TreePosition pos = NOWHERE):
         Tree(INTEGER, pos), value(i) {}
-    Integer(Integer_p i): Tree(INTEGER, i), value(i->value) {}
+    Integer(Integer_p i): Tree(INTEGER, i.Pointer()), value(i->value) {}
     longlong            value;
     operator longlong()         { return value; }
+
+    GARBAGE_COLLECT(Integer);
 };
+template<> inline Integer_p::operator longlong()   { return pointer->value; }
 
 
 struct Real : Tree
@@ -406,10 +406,12 @@ struct Real : Tree
 {
     Real(double d = 0.0, TreePosition pos = NOWHERE):
         Tree(REAL, pos), value(d) {}
-    Real(Real_p r): Tree(REAL, r), value(r->value) {}
+    Real(Real_p r): Tree(REAL, r.Pointer()), value(r->value) {}
     double              value;
     operator double()           { return value; }
+    GARBAGE_COLLECT(Real);
 };
+template<> inline Real_p::operator double()   { return pointer->value; }
 
 
 struct Text : Tree
@@ -426,7 +428,9 @@ struct Text : Tree
     text                opening, closing;
     static text         textQuote, charQuote;
     operator text()             { return value; }
+    GARBAGE_COLLECT(Text);
 };
+template<> inline Text_p::operator text()   { return pointer->value; }
 
 
 struct Name : Tree
@@ -437,9 +441,10 @@ struct Name : Tree
     Name(text n, TreePosition pos = NOWHERE):
         Tree(NAME, pos), value(n) {}
     Name(Name_p n):
-        Tree(NAME, n), value(n->value) {}
+        Tree(NAME, n.Pointer()), value(n->value) {}
     text                value;
     operator bool();
+    GARBAGE_COLLECT(Name);
 };
 
 
@@ -458,10 +463,12 @@ struct Block : Tree
     Block(Tree_p c, text open, text close, TreePosition pos = NOWHERE):
         Tree(BLOCK, pos), child(c), opening(open), closing(close) {}
     Block(Block_p b, Tree_p ch):
-        Tree(BLOCK, b), child(ch), opening(b->opening), closing(b->closing) {}
+        Tree(BLOCK, b.Pointer()),
+        child(ch), opening(b->opening), closing(b->closing) {}
     Tree_p              child;
     text                opening, closing;
     static text         indent, unindent;
+    GARBAGE_COLLECT(Block);
 };
 
 
@@ -473,9 +480,10 @@ struct Prefix : Tree
     Prefix(Tree_p l, Tree_p r, TreePosition pos = NOWHERE):
         Tree(PREFIX, pos), left(l), right(r) {}
     Prefix(Prefix_p p, Tree_p l, Tree_p r):
-        Tree(PREFIX, p), left(l), right(r) {}
+        Tree(PREFIX, p.Pointer()), left(l), right(r) {}
     Tree_p               left;
     Tree_p               right;
+    GARBAGE_COLLECT(Prefix);
 };
 
 
@@ -487,9 +495,10 @@ struct Postfix : Tree
     Postfix(Tree_p l, Tree_p r, TreePosition pos = NOWHERE):
         Tree(POSTFIX, pos), left(l), right(r) {}
     Postfix(Postfix_p p, Tree_p l, Tree_p r):
-        Tree(POSTFIX, p), left(l), right(r) {}
+        Tree(POSTFIX, p.Pointer()), left(l), right(r) {}
     Tree_p              left;
     Tree_p              right;
+    GARBAGE_COLLECT(Postfix);
 };
 
 
@@ -501,10 +510,11 @@ struct Infix : Tree
     Infix(text n, Tree_p l, Tree_p r, TreePosition pos = NOWHERE):
         Tree(INFIX, pos), left(l), right(r), name(n) {}
     Infix(Infix_p i, Tree_p l, Tree_p r):
-        Tree(INFIX, i), left(l), right(r), name(i->name) {}
+        Tree(INFIX, i.Pointer()), left(l), right(r), name(i->name) {}
     Tree_p              left;
     Tree_p              right;
     text                name;
+    GARBAGE_COLLECT(Infix);
 };
 
 
@@ -515,139 +525,92 @@ struct Infix : Tree
 //
 // ============================================================================
 
-inline Integer_p Tree::AsInteger()
+inline Integer * Tree::AsInteger()
 // ----------------------------------------------------------------------------
 //    Return a pointer to an Integer or NULL
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == INTEGER)
-        return Integer_p((Integer *) this);
+        return (Integer *) this;
     return NULL;
 }
 
 
-inline Real_p Tree::AsReal()
+inline Real *Tree::AsReal()
 // ----------------------------------------------------------------------------
 //    Return a pointer to an Real or NULL
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == REAL)
-        return Real_p((Real *) this);
+        return (Real *) this;
     return NULL;
 }
 
 
-inline Text_p Tree::AsText()
+inline Text *Tree::AsText()
 // ----------------------------------------------------------------------------
 //    Return a pointer to an Text or NULL
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == TEXT)
-        return Text_p((Text *) this);
+        return (Text *) this;
     return NULL;
 }
 
 
-inline Name_p Tree::AsName()
+inline Name *Tree::AsName()
 // ----------------------------------------------------------------------------
 //    Return a pointer to an Name or NULL
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == NAME)
-        return Name_p((Name *) this);
+        return (Name *) this;
     return NULL;
 }
 
 
-inline Block_p Tree::AsBlock()
+inline Block *Tree::AsBlock()
 // ----------------------------------------------------------------------------
 //    Return a pointer to an Block or NULL
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == BLOCK)
-        return Block_p((Block *) this);
+        return (Block *) this;
     return NULL;
 }
 
 
-inline Infix_p Tree::AsInfix()
+inline Infix *Tree::AsInfix()
 // ----------------------------------------------------------------------------
 //    Return a pointer to an Infix or NULL
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == INFIX)
-        return Infix_p((Infix *) this);
+        return (Infix *) this;
     return NULL;
 }
 
 
-inline Prefix_p Tree::AsPrefix()
+inline Prefix *Tree::AsPrefix()
 // ----------------------------------------------------------------------------
 //    Return a pointer to an Prefix or NULL
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == PREFIX)
-        return Prefix_p((Prefix *) this);
+        return (Prefix *) this;
     return NULL;
 }
 
 
-inline Postfix_p Tree::AsPostfix()
+inline Postfix *Tree::AsPostfix()
 // ----------------------------------------------------------------------------
 //    Return a pointer to an Postfix or NULL
 // ----------------------------------------------------------------------------
 {
     if (this && Kind() == POSTFIX)
-        return Postfix_p((Postfix *) this);
+        return (Postfix *) this;
     return NULL;
 }
-
-
-
-// ============================================================================
-//
-//   Reference types
-//
-// ============================================================================
-
-typedef ReferenceCountReference<Tree>    Tree_r;
-typedef ReferenceCountReference<Name>    Name_r;
-typedef ReferenceCountReference<Prefix>  Prefix_r;
-typedef ReferenceCountReference<Postfix> Postfix_r;
-typedef ReferenceCountReference<Infix>   Infix_r;
-typedef ReferenceCountReference<Block>   Block_r;
-
-struct Integer_r : ReferenceCountReference<Integer>
-// ----------------------------------------------------------------------------
-//   Like a refcounted reference, plus implicit integer value
-// ----------------------------------------------------------------------------
-{
-    Integer_r(Integer &i): ReferenceCountReference<Integer>(i) {}
-    operator Integer&() { return target; }
-    operator longlong() { return (longlong) target; }
-};
-
-
-struct Real_r : ReferenceCountReference<Real>
-// ----------------------------------------------------------------------------
-//   Like a refcounted reference, plus implicit real value
-// ----------------------------------------------------------------------------
-{
-    Real_r(Real &i): ReferenceCountReference<Real>(i) {}
-    operator Real&() { return target; }
-    operator double() { return (double) target; }
-};
-
-
-struct Text_r : ReferenceCountReference<Text>
-// ----------------------------------------------------------------------------
-//   Like a refcounted reference, plus implicit text value
-// ----------------------------------------------------------------------------
-{
-    Text_r(Text &i): ReferenceCountReference<Text>(i) {}
-    operator Text&() { return target; }
-    operator text() { return (text) target; }
-};
 
 
 

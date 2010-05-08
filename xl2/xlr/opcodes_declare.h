@@ -37,7 +37,7 @@
 #define DS(n) IFTRACE(builtins) std::cerr << "Builtin " #n ": " << self << '\n';
 
 #define INFIX(name, rtype, t1, symbol, t2, code)                   \
-    rtype##_nkp xl_##name(Tree *self, t1##_r l, t2##_r r) { DS(symbol) code; }
+    rtype##_nkp xl_##name(Tree *self,t1##_r l,t2##_r r) { DS(symbol) code; }
 
 #define PARM(symbol, type)      , type##_r symbol
 

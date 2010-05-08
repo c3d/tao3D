@@ -27,6 +27,7 @@
 #include <map>
 #include <cassert>
 #include <stdint.h>
+#include <typeinfo>
 
 XL_BEGIN
 
@@ -47,9 +48,10 @@ struct AllocatorBase
         AllocatorBase * allocator;      // Allocator for this object
         uintptr_t       bits;           // Allocation bits
     };
+    typedef void (*mark_fn)(void *object);
 
 public:
-    AllocatorBase(uint objectSize);
+    AllocatorBase(kstring name, uint objectSize, mark_fn mark);
     virtual ~AllocatorBase();
 
     void *              Allocate();
@@ -57,7 +59,7 @@ public:
     virtual void        Finalize(void *);
 
     void                MarkRoots();
-    void                Mark(Chunk *inUse);
+    void                Mark(void *inUse);
     void                Sweep();
 
     static AllocatorBase *ValidPointer(AllocatorBase *ptr);
@@ -75,8 +77,9 @@ public:
     };
 
 protected:
+    kstring             typeName;
     std::vector<Chunk*> chunks;
-    std::vector<uint>   offsets; // Offset for pointers
+    mark_fn             mark;
     std::map<void*,uint>roots;
     Chunk *             freeList;
     uint                chunkSize;
@@ -86,7 +89,7 @@ protected:
 };
 
 
-template <class Object> struct GCPtr;
+template <class Object, typename Value=bool> struct GCPtr;
 
 
 template <class Object>
@@ -106,47 +109,11 @@ public:
     static void         Delete(Object *);
     virtual void        Finalize(void *object);
     void                RegisterPointers();
-
-public:
-    struct PointerRegistry
-    {
-        PointerRegistry(Object *obj, Allocator *alloc)
-            : object(obj), allocator(alloc) {}
-        Object    *object;
-        Allocator *allocator;
-
-        template<class Ptr>
-        PointerRegistry &operator+=(Ptr *&ptr)
-        {
-            allocator->offsets.push_back((char *) &ptr - (char *) object);
-            return *this;
-        }
-
-        template<class Ptr>
-        PointerRegistry &operator,(Ptr *&ptr)
-        {
-            allocator->offsets.push_back((char *) &ptr - (char *) object);
-            return *this;
-        }
-
-        template<class O>
-        PointerRegistry &operator+=(GCPtr<O> &ptr)
-        {
-            allocator->offsets.push_back((char *) &ptr - (char *) object);
-            return *this;
-        }
-
-        template<class O>
-        PointerRegistry &operator,(GCPtr<O> &ptr)
-        {
-            allocator->offsets.push_back((char *) &ptr - (char *) object);
-            return *this;
-        }
-    };
+    static void         MarkObject(void *object);
 };
 
 
-template<class Object>
+template<class Object, typename Value>
 struct GCPtr
 // ----------------------------------------------------------------------------
 //   A root pointer to an object in a garbage-collected pool
@@ -156,41 +123,53 @@ struct GCPtr
     typedef Allocator<Object>   Alloc;
 
 public:
+    GCPtr(): pointer(0)                         { }
     GCPtr(Object *ptr): pointer(ptr)            { Acquire(ptr); }
-    template<class U>
-    GCPtr(GCPtr<U> *ptr): pointer(ptr->pointer) { Acquire(pointer); }
+    GCPtr(Object &ptr): pointer(&ptr)           { Acquire(&ptr); }
+    template<class U, typename V>
+    GCPtr(const GCPtr<U,V> &p): pointer((U*) (const U*) p) { Acquire(pointer); }
     ~GCPtr()                                    { Release(pointer); }
 
     operator Object* ()                         { return pointer; }
+    operator const Object* () const             { return pointer; }
+    const Object *ConstPointer() const          { return pointer; }
+    Object *Pointer()                           { return pointer; }
     Object *operator->()                        { return pointer; }
+    const Object *operator->() const            { return pointer; }
+    Object& operator*()                         { return *pointer; }
+    const Object& operator*() const             { return *pointer; }
+    bool operator!()                            { return !pointer; }
+    operator Value()                            { return pointer != 0; }
 
-    template<class U>
-    GCPtr& operator=(const GCPtr<U> &o)
+    template<class U, typename V>
+    GCPtr& operator=(const GCPtr<U,V> &o)
     {
-        if (o.pointer != pointer)
+        if ((const U*) o != pointer)
         {
             Release(pointer);
-            pointer = o.operator U*();
+            pointer = (U *) (const U *) o;
             Acquire(pointer);
         }
         return *this;
     }
 
-    template<class U>
-    bool operator==(const GCPtr<U> &o)
-    {
-        return pointer == o.operator U*();
-    }
+#define DEFINE_CMP(CMP)                         \
+    template<class U, typename V>               \
+    bool operator CMP(const GCPtr<U,V> &o)      \
+    {                                           \
+        return pointer CMP (const U*) o;        \
+    }                                           
 
-    template<class U>
-    bool operator<(const GCPtr<U> &o)
-    {
-        return pointer < o.operator U*();
-    }
+    DEFINE_CMP(==)
+    DEFINE_CMP(!=)
+    DEFINE_CMP(<)
+    DEFINE_CMP(<=)
+    DEFINE_CMP(>)
+    DEFINE_CMP(>=)
 
     void        MarkInUse();
 
-private:
+protected:
     void        Acquire(Object *ptr);
     void        Release(Object *ptr);
 
@@ -207,20 +186,17 @@ struct GarbageCollector
     ~GarbageCollector();
 
     void        Register(AllocatorBase *a);
-    void        RunCollection();
+    void        RunCollection(bool force=false);
     void        MustRun()    { mustRun = true; }
 
     static GarbageCollector *   Singleton();
-    static void                 Collect();
+    static void                 Collect(bool force=false);
     static void                 CollectionNeeded() { Singleton()->MustRun(); }
 
 protected:
     std::vector<AllocatorBase *> allocators;
     bool mustRun;
 };
-
-
-inline void GC() { GarbageCollector::Singleton()->Collect(); }
 
 
 
@@ -231,9 +207,9 @@ inline void GC() { GarbageCollector::Singleton()->Collect(); }
 // ============================================================================
 
 // Define a garbage collected tree
-// Intended usage : GARBAGE_COLLECTED(Tree) { pointers = x, y, z; }
+// Intended usage : GARBAGE_COLLECT(Tree) { /* code to mark pointers */ }
 
-#define GARBAGE_COLLECTED(type)                                         \
+#define GARBAGE_COLLECT_MARK(type)                                      \
     void *operator new(size_t size)                                     \
     {                                                                   \
         return XL::Allocator<type>::Allocate(size);                     \
@@ -244,8 +220,10 @@ inline void GC() { GarbageCollector::Singleton()->Collect(); }
         XL::Allocator<type>::Delete((type *) ptr);                      \
     }                                                                   \
                                                                         \
-    void RegisterPointers(XL::Allocator<type>::PointerRegistry &pointers)
+    void Mark(XL::Allocator<type> &alloc)
 
+#define GARBAGE_COLLECT(type)                           \
+        GARBAGE_COLLECT_MARK(type) { (void) alloc; }
 
 
 
@@ -276,7 +254,7 @@ Allocator<Object>::Allocator()
 // ----------------------------------------------------------------------------
 //   Create an allocator for the given size
 // ----------------------------------------------------------------------------
-    : AllocatorBase(sizeof (Object))
+    : AllocatorBase(typeid(Object).name(), sizeof (Object), MarkObject)
 {}
 
 
@@ -291,11 +269,6 @@ Allocator<Object> * Allocator<Object>::Singleton()
     {
         // Create the singleton
         allocator = new Allocator;
-
-        // Register all pointer offsets
-        Object *nullObj = NULL;
-        PointerRegistry registry(nullObj, allocator);
-        nullObj->RegisterPointers(registry);
 
         // Register the allocator with the garbage collector
         GarbageCollector::Singleton()->Register(allocator);
@@ -336,6 +309,17 @@ void Allocator<Object>::Finalize(void *obj)
 }
 
 
+template<class Object> inline
+void Allocator<Object>::MarkObject(void *object)
+// ----------------------------------------------------------------------------
+//   Make sure that we properly call the destructor for the object
+// ----------------------------------------------------------------------------
+{
+    if (object)
+        ((Object *) object)->Mark(*Singleton());
+}
+
+
 
 // ============================================================================
 // 
@@ -343,8 +327,8 @@ void Allocator<Object>::Finalize(void *obj)
 //
 // ============================================================================
 
-template<class Object> inline
-void GCPtr<Object>::MarkInUse()
+template<class Object, typename Value> inline
+void GCPtr<Object,Value>::MarkInUse()
 // ----------------------------------------------------------------------------
 //   Mark the current pointer as in use, to preserve in next GC cycle
 // ----------------------------------------------------------------------------
@@ -357,8 +341,8 @@ void GCPtr<Object>::MarkInUse()
 }
 
 
-template<class Object> inline
-void GCPtr<Object>::Acquire(Object *ptr)
+template<class Object, typename Value> inline
+void GCPtr<Object, Value>::Acquire(Object *ptr)
 // ----------------------------------------------------------------------------
 //   Increment the reference counter for the given pointer
 // ----------------------------------------------------------------------------
@@ -378,8 +362,8 @@ void GCPtr<Object>::Acquire(Object *ptr)
 }
 
 
-template<class Object> inline
-void GCPtr<Object>::Release(Object *ptr)
+template<class Object, typename Value> inline
+void GCPtr<Object, Value>::Release(Object *ptr)
 // ----------------------------------------------------------------------------
 //   Decrement the reference counter for the given pointer
 // ----------------------------------------------------------------------------

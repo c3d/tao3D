@@ -49,11 +49,11 @@ struct SourceFile
 //    A source file and associated data
 // ----------------------------------------------------------------------------
 {
-    SourceFile(text n, Tree_p t, Symbols *s);
+    SourceFile(text n, Tree * t, Symbols *s);
     SourceFile();
     text        name;
     Tree_p      tree;
-    Symbols *   symbols;
+    Symbols_p   symbols;
     time_t      modified;
     bool        changed;
     text        hash;

@@ -76,7 +76,7 @@ struct InferTypes : Action
     Tree_p DoInfix(Infix_p what);
     Tree_p DoBlock(Block_p what);
 
-    Symbols *   symbols;
+    Symbols_p   symbols;
 };
 
 
@@ -102,8 +102,8 @@ struct MatchType : Action
     Tree_p Normalize();
     Tree_p NameMatch(Tree_p what);
 
-    Symbols *symbols;
-    Tree_p type;
+    Symbols_p symbols;
+    Tree_p    type;
 };
 
 
@@ -128,11 +128,11 @@ struct ArgumentTypeMatch : Action
     virtual Tree_p DoBlock(Block_p what);
 
 public:
-    Symbols *      symbols;     // Context in which we evaluate values
-    Symbols *      locals;      // Symbols where we declare arguments
-    Symbols *      rewrite;     // Symbols in which the rewrite was declared
-    Tree_p          test;        // Tree we test
-    Tree_p          defined;     // Tree we define
+    Symbols_p      symbols;     // Context in which we evaluate values
+    Symbols_p      locals;      // Symbols where we declare arguments
+    Symbols_p      rewrite;     // Symbols in which the rewrite was declared
+    Tree_p         test;        // Tree we test
+    Tree_p         defined;     // Tree we define
 };
 
 

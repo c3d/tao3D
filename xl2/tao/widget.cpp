@@ -2282,7 +2282,7 @@ Tree_p Widget::shape(Tree_p self, Tree_p child)
 static inline XL::Real &r(double x) { return *new XL::Real(x); }
 
 
-Tree_p Widget::rotatex(Tree_p self, real_r rx)
+Tree_p Widget::rotatex(Tree_p self, Real_p rx)
 // ----------------------------------------------------------------------------
 //   Rotate around X
 // ----------------------------------------------------------------------------
@@ -2291,7 +2291,7 @@ Tree_p Widget::rotatex(Tree_p self, real_r rx)
 }
 
 
-Tree_p Widget::rotatey(Tree_p self, real_r ry)
+Tree_p Widget::rotatey(Tree_p self, Real_p ry)
 // ----------------------------------------------------------------------------
 //   Rotate around Y
 // ----------------------------------------------------------------------------
@@ -2300,7 +2300,7 @@ Tree_p Widget::rotatey(Tree_p self, real_r ry)
 }
 
 
-Tree_p Widget::rotatez(Tree_p self, real_r rz)
+Tree_p Widget::rotatez(Tree_p self, Real_p rz)
 // ----------------------------------------------------------------------------
 //   Rotate around Z
 // ----------------------------------------------------------------------------
@@ -2309,7 +2309,7 @@ Tree_p Widget::rotatez(Tree_p self, real_r rz)
 }
 
 
-Tree_p Widget::rotate(Tree_p self, real_r ra, real_r rx, real_r ry, real_r rz)
+Tree_p Widget::rotate(Tree_p self, Real_p ra, Real_p rx, Real_p ry, Real_p rz)
 // ----------------------------------------------------------------------------
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
@@ -2320,7 +2320,7 @@ Tree_p Widget::rotate(Tree_p self, real_r ra, real_r rx, real_r ry, real_r rz)
 }
 
 
-Tree_p Widget::translatex(Tree_p self, real_r x)
+Tree_p Widget::translatex(Tree_p self, Real_p x)
 // ----------------------------------------------------------------------------
 //   Translate along X
 // ----------------------------------------------------------------------------
@@ -2329,7 +2329,7 @@ Tree_p Widget::translatex(Tree_p self, real_r x)
 }
 
 
-Tree_p Widget::translatey(Tree_p self, real_r y)
+Tree_p Widget::translatey(Tree_p self, Real_p y)
 // ----------------------------------------------------------------------------
 //   Translate along Y
 // ----------------------------------------------------------------------------
@@ -2338,7 +2338,7 @@ Tree_p Widget::translatey(Tree_p self, real_r y)
 }
 
 
-Tree_p Widget::translatez(Tree_p self, real_r z)
+Tree_p Widget::translatez(Tree_p self, Real_p z)
 // ----------------------------------------------------------------------------
 //   Translate along Z
 // ----------------------------------------------------------------------------
@@ -2347,7 +2347,7 @@ Tree_p Widget::translatez(Tree_p self, real_r z)
 }
 
 
-Tree_p Widget::translate(Tree_p self, real_r tx, real_r ty, real_r tz)
+Tree_p Widget::translate(Tree_p self, Real_p tx, Real_p ty, Real_p tz)
 // ----------------------------------------------------------------------------
 //     Translation along three axes
 // ----------------------------------------------------------------------------
@@ -2358,7 +2358,7 @@ Tree_p Widget::translate(Tree_p self, real_r tx, real_r ty, real_r tz)
 }
 
 
-Tree_p Widget::rescalex(Tree_p self, real_r x)
+Tree_p Widget::rescalex(Tree_p self, Real_p x)
 // ----------------------------------------------------------------------------
 //   Rescale along X
 // ----------------------------------------------------------------------------
@@ -2367,7 +2367,7 @@ Tree_p Widget::rescalex(Tree_p self, real_r x)
 }
 
 
-Tree_p Widget::rescaley(Tree_p self, real_r y)
+Tree_p Widget::rescaley(Tree_p self, Real_p y)
 // ----------------------------------------------------------------------------
 //   Rescale along Y
 // ----------------------------------------------------------------------------
@@ -2376,7 +2376,7 @@ Tree_p Widget::rescaley(Tree_p self, real_r y)
 }
 
 
-Tree_p Widget::rescalez(Tree_p self, real_r z)
+Tree_p Widget::rescalez(Tree_p self, Real_p z)
 // ----------------------------------------------------------------------------
 //   Rescale along Z
 // ----------------------------------------------------------------------------
@@ -2385,7 +2385,7 @@ Tree_p Widget::rescalez(Tree_p self, real_r z)
 }
 
 
-Tree_p Widget::rescale(Tree_p self, real_r sx, real_r sy, real_r sz)
+Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
 // ----------------------------------------------------------------------------
 //     Scaling along three axes
 // ----------------------------------------------------------------------------
@@ -2559,7 +2559,7 @@ Tree_p Widget::fillTextureFromSVG(Tree_p self, text img)
 }
 
 
-Tree_p Widget::image(Tree_p self, real_r x, real_r y, real_r w, real_r h,
+Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                     text filename)
 //----------------------------------------------------------------------------
 //  Make an image
@@ -2576,10 +2576,20 @@ Tree_p Widget::image(Tree_p self, real_r x, real_r y, real_r w, real_r h,
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
     texId = rinfo->bind(filename);
-    if (w.value <= 0)
-        w.value = rinfo->width;
-    if (h.value <= 0)
-        h.value = rinfo->height;
+    if (w->value <= 0)
+    {
+        if (Tree_p source = xl_source(w))
+            if (Integer_p asInt = source->AsInteger())
+                asInt->value = rinfo->width;
+        w->value = rinfo->width;
+    }
+    if (h->value <= 0)
+    {
+        if (Tree_p source = xl_source(h))
+            if (Integer_p asInt = source->AsInteger())
+                asInt->value = rinfo->height;
+        h->value = rinfo->height;
+    }
 
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
@@ -2617,7 +2627,7 @@ Tree_p Widget::newPath(Tree_p self, Tree_p child)
 }
 
 
-Tree_p Widget::moveTo(Tree_p self, real_r x, real_r y, real_r z)
+Tree_p Widget::moveTo(Tree_p self, Real_p x, Real_p y, Real_p z)
 // ----------------------------------------------------------------------------
 //    Add a 'moveTo' to the current path
 // ----------------------------------------------------------------------------
@@ -2635,7 +2645,7 @@ Tree_p Widget::moveTo(Tree_p self, real_r x, real_r y, real_r z)
 }
 
 
-Tree_p Widget::lineTo(Tree_p self, real_r x, real_r y, real_r z)
+Tree_p Widget::lineTo(Tree_p self, Real_p x, Real_p y, Real_p z)
 // ----------------------------------------------------------------------------
 //    Add a 'lineTo' to the current path
 // ----------------------------------------------------------------------------
@@ -2649,8 +2659,8 @@ Tree_p Widget::lineTo(Tree_p self, real_r x, real_r y, real_r z)
 
 
 Tree_p Widget::curveTo(Tree_p self,
-                      real_r cx, real_r cy, real_r cz,
-                      real_r x, real_r y, real_r z)
+                      Real_p cx, Real_p cy, Real_p cz,
+                      Real_p x, Real_p y, Real_p z)
 // ----------------------------------------------------------------------------
 //    Add a quadric curveTo to the current path
 // ----------------------------------------------------------------------------
@@ -2665,9 +2675,9 @@ Tree_p Widget::curveTo(Tree_p self,
 
 
 Tree_p Widget::curveTo(Tree_p self,
-                      real_r c1x, real_r c1y, real_r c1z,
-                      real_r c2x, real_r c2y, real_r c2z,
-                      real_r x, real_r y, real_r z)
+                      Real_p c1x, Real_p c1y, Real_p c1z,
+                      Real_p c2x, Real_p c2y, Real_p c2z,
+                      Real_p x, Real_p y, Real_p z)
 // ----------------------------------------------------------------------------
 //    Add a cubic curveTo to the current path
 // ----------------------------------------------------------------------------
@@ -2682,7 +2692,7 @@ Tree_p Widget::curveTo(Tree_p self,
 }
 
 
-Tree_p Widget::moveToRel(Tree_p self, real_r x, real_r y, real_r z)
+Tree_p Widget::moveToRel(Tree_p self, Real_p x, Real_p y, Real_p z)
 // ----------------------------------------------------------------------------
 //    Add a relative moveTo
 // ----------------------------------------------------------------------------
@@ -2700,7 +2710,7 @@ Tree_p Widget::moveToRel(Tree_p self, real_r x, real_r y, real_r z)
 }
 
 
-Tree_p Widget::lineToRel(Tree_p self, real_r x, real_r y, real_r z)
+Tree_p Widget::lineToRel(Tree_p self, Real_p x, Real_p y, Real_p z)
 // ----------------------------------------------------------------------------
 //    Add a 'lineTo' to the current path
 // ----------------------------------------------------------------------------
@@ -2713,7 +2723,7 @@ Tree_p Widget::lineToRel(Tree_p self, real_r x, real_r y, real_r z)
 }
 
 
-Tree_p Widget::pathTextureCoord(Tree_p self, real_r x, real_r y, real_r r)
+Tree_p Widget::pathTextureCoord(Tree_p self, Real_p x, Real_p y, Real_p r)
 // ----------------------------------------------------------------------------
 //    Add a texture coordinate to the path
 // ----------------------------------------------------------------------------
@@ -2722,7 +2732,7 @@ Tree_p Widget::pathTextureCoord(Tree_p self, real_r x, real_r y, real_r r)
 }
 
 
-Tree_p Widget::pathColor(Tree_p self, real_r r, real_r g, real_r b, real_r a)
+Tree_p Widget::pathColor(Tree_p self, Real_p r, Real_p g, Real_p b, Real_p a)
 // ----------------------------------------------------------------------------
 //   Add a color element to the path
 // ----------------------------------------------------------------------------
@@ -2837,7 +2847,7 @@ Tree_p Widget::fixedSizePoint(Tree_p self, coord x,coord y,coord z, coord s)
 }
 
 
-Tree_p Widget::rectangle(Tree_p self, real_r x, real_r y, real_r w, real_r h)
+Tree_p Widget::rectangle(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h)
 // ----------------------------------------------------------------------------
 //    Draw a rectangle
 // ----------------------------------------------------------------------------
@@ -2856,7 +2866,7 @@ Tree_p Widget::rectangle(Tree_p self, real_r x, real_r y, real_r w, real_r h)
 
 
 Tree_p Widget::isoscelesTriangle(Tree_p self,
-                                real_r x, real_r y, real_r w, real_r h)
+                                Real_p x, Real_p y, Real_p w, Real_p h)
 // ----------------------------------------------------------------------------
 //    Draw an isosceles triangle
 // ----------------------------------------------------------------------------
@@ -2875,7 +2885,7 @@ Tree_p Widget::isoscelesTriangle(Tree_p self,
 
 
 Tree_p Widget::rightTriangle(Tree_p self,
-                             real_r x, real_r y, real_r w, real_r h)
+                             Real_p x, Real_p y, Real_p w, Real_p h)
 // ----------------------------------------------------------------------------
 //    Draw a right triangle
 // ----------------------------------------------------------------------------
@@ -2893,7 +2903,7 @@ Tree_p Widget::rightTriangle(Tree_p self,
 }
 
 
-Tree_p Widget::ellipse(Tree_p self, real_r cx, real_r cy, real_r w, real_r h)
+Tree_p Widget::ellipse(Tree_p self, Real_p cx, Real_p cy, Real_p w, Real_p h)
 // ----------------------------------------------------------------------------
 //   Circle centered around (cx,cy), size w * h
 // ----------------------------------------------------------------------------
@@ -2912,8 +2922,8 @@ Tree_p Widget::ellipse(Tree_p self, real_r cx, real_r cy, real_r w, real_r h)
 
 
 Tree_p Widget::ellipseArc(Tree_p self,
-                         real_r cx, real_r cy, real_r w, real_r h,
-                         real_r start, real_r sweep)
+                         Real_p cx, Real_p cy, Real_p w, Real_p h,
+                         Real_p start, Real_p sweep)
 // ----------------------------------------------------------------------------
 //   Circular sector centered around (cx,cy)
 // ----------------------------------------------------------------------------
@@ -2932,8 +2942,8 @@ Tree_p Widget::ellipseArc(Tree_p self,
 
 
 Tree_p Widget::roundedRectangle(Tree_p self,
-                               real_r cx, real_r cy,
-                               real_r w, real_r h, real_r r)
+                               Real_p cx, Real_p cy,
+                               Real_p w, Real_p h, Real_p r)
 // ----------------------------------------------------------------------------
 //   Rounded rectangle with radius r for the rounded corners
 // ----------------------------------------------------------------------------
@@ -2953,8 +2963,8 @@ Tree_p Widget::roundedRectangle(Tree_p self,
 
 
 Tree_p Widget::ellipticalRectangle(Tree_p self,
-                                  real_r cx, real_r cy,
-                                  real_r w, real_r h, real_r r)
+                                  Real_p cx, Real_p cy,
+                                  Real_p w, Real_p h, Real_p r)
 // ----------------------------------------------------------------------------
 //   Elliptical rectangle with ratio r for the elliptic sides
 // ----------------------------------------------------------------------------
@@ -2974,8 +2984,8 @@ Tree_p Widget::ellipticalRectangle(Tree_p self,
 
 
 Tree_p Widget::arrow(Tree_p self,
-                    real_r cx, real_r cy, real_r w, real_r h,
-                    real_r ax, real_r ary)
+                    Real_p cx, Real_p cy, Real_p w, Real_p h,
+                    Real_p ax, Real_p ary)
 // ----------------------------------------------------------------------------
 //   Arrow
 // ----------------------------------------------------------------------------
@@ -2994,8 +3004,8 @@ Tree_p Widget::arrow(Tree_p self,
 
 
 Tree_p Widget::doubleArrow(Tree_p self,
-                          real_r cx, real_r cy, real_r w, real_r h,
-                          real_r ax, real_r ary)
+                          Real_p cx, Real_p cy, Real_p w, Real_p h,
+                          Real_p ax, Real_p ary)
 // ----------------------------------------------------------------------------
 //   Double arrow
 // ----------------------------------------------------------------------------
@@ -3014,8 +3024,8 @@ Tree_p Widget::doubleArrow(Tree_p self,
 
 
 Tree_p Widget::starPolygon(Tree_p self,
-                          real_r cx, real_r cy, real_r w, real_r h,
-                          integer_r p, integer_r q)
+                          Real_p cx, Real_p cy, Real_p w, Real_p h,
+                          Integer_p p, Integer_p q)
 // ----------------------------------------------------------------------------
 //     GL regular p-side star polygon {p/q} centered around (cx,cy)
 // ----------------------------------------------------------------------------
@@ -3034,8 +3044,8 @@ Tree_p Widget::starPolygon(Tree_p self,
 
 
 Tree_p Widget::star(Tree_p self,
-                   real_r cx, real_r cy, real_r w, real_r h,
-                   integer_r p, real_r r)
+                   Real_p cx, Real_p cy, Real_p w, Real_p h,
+                   Integer_p p, Real_p r)
 // ----------------------------------------------------------------------------
 //     GL regular p-side star centered around (cx,cy), inner radius ratio r
 // ----------------------------------------------------------------------------
@@ -3054,8 +3064,8 @@ Tree_p Widget::star(Tree_p self,
 
 
 Tree_p Widget::speechBalloon(Tree_p self,
-                            real_r cx, real_r cy, real_r w, real_r h,
-                            real_r r, real_r ax, real_r ay)
+                            Real_p cx, Real_p cy, Real_p w, Real_p h,
+                            Real_p r, Real_p ax, Real_p ay)
 // ----------------------------------------------------------------------------
 //   Speech balloon with radius r for rounded corners, and point a for the tail
 // ----------------------------------------------------------------------------
@@ -3074,8 +3084,8 @@ Tree_p Widget::speechBalloon(Tree_p self,
 
 
 Tree_p Widget::callout(Tree_p self,
-                      real_r cx, real_r cy, real_r w, real_r h,
-                      real_r r, real_r ax, real_r ay, real_r d)
+                      Real_p cx, Real_p cy, Real_p w, Real_p h,
+                      Real_p r, Real_p ax, Real_p ay, Real_p d)
 // ----------------------------------------------------------------------------
 //   Callout with radius r for corners, and point a, width b for the tail
 // ----------------------------------------------------------------------------
@@ -3188,9 +3198,9 @@ XL::Tree_p Widget::debugParameters(Tree_p self,
 // ============================================================================
 
 Tree_p Widget::sphere(Tree_p self,
-                     real_r x, real_r y, real_r z,
-                     real_r w, real_r h, real_r d,
-                     integer_r slices, integer_r stacks)
+                     Real_p x, Real_p y, Real_p z,
+                     Real_p w, Real_p h, Real_p d,
+                     Integer_p slices, Integer_p stacks)
 // ----------------------------------------------------------------------------
 //     GL sphere
 // ----------------------------------------------------------------------------
@@ -3203,8 +3213,8 @@ Tree_p Widget::sphere(Tree_p self,
 
 
 Tree_p Widget::cube(Tree_p self,
-                   real_r x, real_r y, real_r z,
-                   real_r w, real_r h, real_r d)
+                   Real_p x, Real_p y, Real_p z,
+                   Real_p w, Real_p h, Real_p d)
 // ----------------------------------------------------------------------------
 //    A simple cubic box
 // ----------------------------------------------------------------------------
@@ -3217,8 +3227,8 @@ Tree_p Widget::cube(Tree_p self,
 
 
 Tree_p Widget::cone(Tree_p self,
-                   real_r x, real_r y, real_r z,
-                   real_r w, real_r h, real_r d)
+                   Real_p x, Real_p y, Real_p z,
+                   Real_p w, Real_p h, Real_p d)
 // ----------------------------------------------------------------------------
 //    A simple cone
 // ----------------------------------------------------------------------------
@@ -3238,7 +3248,7 @@ Tree_p Widget::cone(Tree_p self,
 // ============================================================================
 
 Tree_p  Widget::textBox(Tree_p self,
-                       real_r x, real_r y, real_r w, real_r h, Tree_p prog)
+                       Real_p x, Real_p y, Real_p w, Real_p h, Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Create a new page layout and render text in it
 // ----------------------------------------------------------------------------
@@ -3260,7 +3270,7 @@ Tree_p  Widget::textBox(Tree_p self,
 
 
 Tree_p Widget::textOverflow(Tree_p self,
-                           real_r x, real_r y, real_r w, real_r h)
+                           Real_p x, Real_p y, Real_p w, Real_p h)
 // ----------------------------------------------------------------------------
 //   Overflow text box for the rest of the current text flow
 // ----------------------------------------------------------------------------
@@ -3287,15 +3297,15 @@ XL::Text_p Widget::textFlow(Tree_p self, text name)
 }
 
 
-Tree_p Widget::textSpan(Tree_p self, text_r contents)
+Tree_p Widget::textSpan(Tree_p self, Text_p contents)
 // ----------------------------------------------------------------------------
 //   Insert a block of text with the current definition of font, color, ...
 // ----------------------------------------------------------------------------
 {
     if (path)
-        TextSpan(&contents).Draw(*path, layout);
+        TextSpan(contents).Draw(*path, layout);
     else
-        layout->Add(new TextSpan(&contents));
+        layout->Add(new TextSpan(contents));
     return XL::xl_true;
 }
 
@@ -3573,7 +3583,7 @@ Tree_p Widget::status(Tree_p self, text caption)
 
 
 Tree_p Widget::framePaint(Tree_p self,
-                         real_r x, real_r y, real_r w, real_r h,
+                         Real_p x, Real_p y, Real_p w, Real_p h,
                          Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Draw a frame with the current text flow
@@ -3637,7 +3647,7 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
 
 
 Tree_p Widget::urlPaint(Tree_p self,
-                       real_r x, real_r y, real_r w, real_r h,
+                       Real_p x, Real_p y, Real_p w, Real_p h,
                        Text_p url, Integer_p progress)
 // ----------------------------------------------------------------------------
 //   Draw a URL in the curent frame
@@ -3681,7 +3691,7 @@ Tree_p Widget::urlTexture(Tree_p self, double w, double h,
 
 
 Tree_p Widget::lineEdit(Tree_p self,
-                       real_r x, real_r y, real_r w, real_r h,
+                       Real_p x, Real_p y, Real_p w, Real_p h,
                        Text_p txt)
 // ----------------------------------------------------------------------------
 //   Draw a line editor in the curent frame
@@ -3723,7 +3733,7 @@ Tree_p Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
 }
 
 Tree_p Widget::radioButton(Tree_p self,
-                          real_r x,real_r y, real_r w,real_r h,
+                          Real_p x,Real_p y, Real_p w,Real_p h,
                           Text_p name, text_p lbl, Text_p  sel, Tree_p act)
 // ----------------------------------------------------------------------------
 //   Draw a radio button in the curent frame
@@ -3762,7 +3772,7 @@ Tree_p Widget::radioButtonTexture(Tree_p self, double w, double h, Text_p name,
 }
 
 
-Tree_p Widget::checkBoxButton(Tree_p self, real_r x,real_r y, real_r w, real_r h,
+Tree_p Widget::checkBoxButton(Tree_p self, Real_p x,Real_p y, Real_p w, Real_p h,
                              Text_p name, text_p lbl, Text_p  sel, Tree_p act)
 // ----------------------------------------------------------------------------
 //   Draw a check button in the curent frame
@@ -3801,7 +3811,7 @@ Tree_p Widget::checkBoxButtonTexture(Tree_p self, double w, double h, Text_p nam
 }
 
 
-Tree_p Widget::pushButton(Tree_p self, real_r x, real_r y, real_r w, real_r h,
+Tree_p Widget::pushButton(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                          Text_p name, Text_p lbl, Tree_p  act)
 // ----------------------------------------------------------------------------
 //   Draw a push button in the curent frame
@@ -3841,7 +3851,7 @@ Tree_p Widget::pushButtonTexture(Tree_p self, double w, double h, Text_p name,
 
 
 Tree_p Widget::abstractButton(Tree_p self, Text_p name,
-                             real_r x, real_r y, real_r w, real_r h)
+                             Real_p x, Real_p y, Real_p w, Real_p h)
 // ----------------------------------------------------------------------------
 //   Draw any button in the curent frame
 // ----------------------------------------------------------------------------
@@ -4090,7 +4100,7 @@ void Widget::updateFontDialog()
 }
 
 
-Tree_p Widget::colorChooser(Tree_p self, real_r x, real_r y, real_r w, real_r h,
+Tree_p Widget::colorChooser(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                            Tree_p action)
 // ----------------------------------------------------------------------------
 //   Draw a color chooser
@@ -4134,7 +4144,7 @@ Tree_p Widget::colorChooserTexture(Tree_p self, double w, double h, Tree_p actio
 }
 
 
-Tree_p Widget::fontChooser(Tree_p self, real_r x, real_r y, real_r w, real_r h,
+Tree_p Widget::fontChooser(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                            Tree_p action)
 // ----------------------------------------------------------------------------
 //   Draw a color chooser
@@ -4342,7 +4352,7 @@ void Widget::fileChosen(const QString & filename)
 }
 
 
-Tree_p Widget::fileChooser(Tree_p self, real_r x, real_r y, real_r w, real_r h,
+Tree_p Widget::fileChooser(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                            Tree_p properties)
 // ----------------------------------------------------------------------------
 //   Draw a file chooser in the GL widget
@@ -4421,7 +4431,7 @@ Tree_p Widget::setButtonGroupAction(Tree_p self, Tree_p action)
 //   Set the action to be executed by the current buttonGroup if any.
 // ----------------------------------------------------------------------------
 {
-    if (currentGroup && currentGroup->action == NULL)
+    if (currentGroup && currentGroup->action)
     {
         currentGroup->action = action;
     }
@@ -4431,7 +4441,7 @@ Tree_p Widget::setButtonGroupAction(Tree_p self, Tree_p action)
 
 
 Tree_p Widget::groupBox(Tree_p self,
-                       real_r x, real_r y, real_r w, real_r h,
+                       Real_p x, Real_p y, Real_p w, Real_p h,
                        Text_p lbl, Tree_p buttons)
 // ----------------------------------------------------------------------------
 //   Draw a group box in the curent frame
@@ -4490,7 +4500,7 @@ Tree_p Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 
 
 Tree_p Widget::videoPlayer(Tree_p self,
-                          real_r x, real_r y, real_r w, real_r h, Text_p url)
+                          Real_p x, Real_p y, Real_p w, Real_p h, Text_p url)
 // ----------------------------------------------------------------------------
 //   Make a video player
 // ----------------------------------------------------------------------------
@@ -4507,11 +4517,12 @@ Tree_p Widget::videoPlayer(Tree_p self,
 }
 
 
-Tree_p Widget::videoPlayerTexture(Tree_p self, real_r w, real_r h, Text_p url)
+Tree_p Widget::videoPlayerTexture(Tree_p self, Real_p wt, Real_p ht, Text_p url)
 // ----------------------------------------------------------------------------
 //   Make a video player texture
 // ----------------------------------------------------------------------------
 {
+    double w = wt, h = ht;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 

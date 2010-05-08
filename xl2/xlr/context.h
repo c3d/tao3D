@@ -133,9 +133,6 @@ XL_BEGIN
 // 
 // ============================================================================
 
-struct Tree;                                    // Abstract syntax tree
-struct Name;                                    // Name node, e.g. ABC or +
-struct Action;                                  // Action on trees
 struct Context;                                 // Compile-time context
 struct Rewrite;                                 // Tree rewrite data
 struct Runtime;                                 // Runtime context
@@ -143,13 +140,15 @@ struct Errors;                                  // Error handlers
 struct Compiler;                                // JIT compiler
 struct CompiledUnit;                            // Compilation unit
 
+typedef GCPtr<Rewrite>             Rewrite_p;
+
 typedef std::map<text, Tree_p>     symbol_table; // Symbol table in context
 typedef std::set<Tree_p>           active_set;   // Not to be garbage collected
-typedef std::set<Symbols *>        symbols_set;  // Set of symbol tables
-typedef std::vector<Symbols *>     symbols_list; // List of symbols table
-typedef std::map<ulong, Rewrite*>  rewrite_table;// Hashing of rewrites
+typedef std::set<Symbols_p>        symbols_set;  // Set of symbol tables
+typedef std::vector<Symbols_p>     symbols_list; // List of symbols table
+typedef std::map<ulong, Rewrite_p> rewrite_table;// Hashing of rewrites
 typedef symbol_table::iterator     symbol_iter;  // Iterator over sym table
-typedef std::map<Tree_p, Symbols*> capture_table;// Symbol capture table
+typedef std::map<Tree_p, Symbols_p>capture_table;// Symbol capture table
 typedef std::map<Tree_p, Tree_p>   value_table;  // Used for value caching
 typedef value_table::iterator      value_iter;   // Used to iterate over values
 typedef Tree_p (*typecheck_fn) (Tree_p src, Tree_p value);
@@ -205,7 +204,7 @@ struct Symbols
                                Tree_p a1=NULL, Tree_p a2=NULL, Tree_p a3=NULL);
 
 public:
-    Symbols *           parent;
+    Symbols_p           parent;
     symbol_table        names;
     Rewrite *           rewrites;
     symbol_table        calls;
@@ -214,7 +213,9 @@ public:
     Tree_p              error_handler;
     bool                has_rewrites_for_constants;
 
-    static Symbols *    symbols;
+    static Symbols_p    symbols;
+
+    GARBAGE_COLLECT(Symbols);
 };
 
 
@@ -238,6 +239,8 @@ public:
     static Context *    context;
     Errors &            errors;
     Compiler *          compiler;
+
+    GARBAGE_COLLECT(Context);
 };
 
 
@@ -256,11 +259,13 @@ struct Rewrite
     Tree_p              Compile(void);
 
 public:
-    Symbols *           symbols;
+    Symbols_p           symbols;
     Tree_p              from;
     Tree_p              to;
     rewrite_table       hash;
     TreeList            parameters;
+
+    GARBAGE_COLLECT(Rewrite);
 };
 
 
@@ -293,9 +298,9 @@ struct InterpretedArgumentMatch : Action
     virtual Tree_p DoBlock(Block_p what);
 
 public:
-    Symbols *     symbols;      // Context in which we evaluate values
-    Symbols *     locals;       // Symbols where we declare arguments
-    Symbols *     rewrite;      // Symbols in which the rewrite was declared
+    Symbols_p     symbols;      // Context in which we evaluate values
+    Symbols_p     locals;       // Symbols where we declare arguments
+    Symbols_p     rewrite;      // Symbols in which the rewrite was declared
     Tree_p         test;         // Tree we test
     Tree_p         defined;      // Tree beind defined, e.g. 'sin' in 'sin X'
 };
@@ -327,7 +332,7 @@ struct DeclarationAction : Action
 
     void        EnterRewrite(Tree_p defined, Tree_p definition);
 
-    Symbols *symbols;
+    Symbols_p symbols;
 };
 
 
@@ -351,7 +356,7 @@ struct CompileAction : Action
     // Build code selecting among rewrites in current context
     Tree_p         Rewrites(Tree_p what);
 
-    Symbols *     symbols;
+    Symbols_p     symbols;
     CompiledUnit &unit;
     bool          nullIfBad;
     bool          keepAlternatives;
@@ -376,7 +381,7 @@ struct ParameterMatch : Action
     virtual Tree_p DoInfix(Infix_p what);
     virtual Tree_p DoBlock(Block_p what);
 
-    Symbols * symbols;          // Symbols in which we test
+    Symbols_p symbols;          // Symbols in which we test
     Tree_p    defined;          // Tree beind defined, e.g. 'sin' in 'sin X'
     TreeList  order;            // Record order of parameters
 };
@@ -410,11 +415,11 @@ struct ArgumentMatch : Action
     Tree_p         CompileClosure(Tree_p source);
 
 public:
-    Symbols *      symbols;     // Context in which we evaluate values
-    Symbols *      locals;      // Symbols where we declare arguments
-    Symbols *      rewrite;     // Symbols in which the rewrite was declared
-    Tree_p          test;        // Tree we test
-    Tree_p          defined;     // Tree beind defined, e.g. 'sin' in 'sin X'
+    Symbols_p      symbols;     // Context in which we evaluate values
+    Symbols_p      locals;      // Symbols where we declare arguments
+    Symbols_p      rewrite;     // Symbols in which the rewrite was declared
+    Tree_p         test;        // Tree we test
+    Tree_p         defined;     // Tree beind defined, e.g. 'sin' in 'sin X'
     CompileAction *compile;     // Action in which we are compiling
     CompiledUnit  &unit;        // JIT compiler compilation unit
 };
@@ -438,7 +443,7 @@ struct EnvironmentScan : Action
     virtual Tree_p DoBlock(Block_p what);
 
 public:
-    Symbols *           symbols;        // Symbols in which we test
+    Symbols_p           symbols;        // Symbols in which we test
     capture_table       captured;       // Captured symbols
 };
 

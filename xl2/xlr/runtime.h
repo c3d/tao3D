@@ -103,7 +103,7 @@ struct XLCall
     XLCall(text name): name(name), args() {}
 
     // Adding arguments
-    XLCall &operator, (Tree *tree) { args.push_back(tree); return *this; }
+    XLCall &operator, (Tree_p tree){ args.push_back(tree); return *this; }
     XLCall &operator, (Tree &tree) { return *this, &tree; }
     XLCall &operator, (longlong v) { return *this, new Integer(v); }
     XLCall &operator, (double  v)  { return *this, new Real(v); }

@@ -433,12 +433,12 @@ void Renderer::RenderOne(Tree_p what)
     else switch (what->Kind())
     {
     case INTEGER:
-        toText << ((Integer_p) what)->value;
+        toText << what->AsInteger()->value;
         t = toText.str();
         RenderFormat (t, t, "integer ");
         break;
     case REAL:
-        toText << ((Real_p) what)->value;
+        toText << what->AsReal()->value;
         t = toText.str();
         if (t.find(".") == t.npos)
         {
@@ -451,7 +451,7 @@ void Renderer::RenderOne(Tree_p what)
         RenderFormat (t, t, "real ");
         break;
     case TEXT: {
-        Text_p w = (Text_p) what;
+        Text_p w = what->AsText();
         t = w->value;
         text q0 = t.find("\n") != t.npos ? "longtext " : "text ";
         text q1 = q0 + w->opening;
@@ -482,11 +482,11 @@ void Renderer::RenderOne(Tree_p what)
         this->current_quote = saveq;
     }   break;
     case NAME:
-        t = ((Name_p) what)->value;
+        t = what->AsName()->value;
         RenderFormat (t, t, "name ");
         break;
     case PREFIX: {
-        Prefix_p w = (Prefix_p) what;
+        Prefix_p w = what->AsPrefix();
         Tree_p l = w->left;
         Tree_p r = w->right;
 
@@ -524,7 +524,7 @@ void Renderer::RenderOne(Tree_p what)
         }
     }   break;
     case POSTFIX: {
-        Postfix_p w = (Postfix_p) what;
+        Postfix_p w = what->AsPostfix();
         Tree_p l = w->left;
         Tree_p r = w->right;
 
@@ -562,7 +562,7 @@ void Renderer::RenderOne(Tree_p what)
         }
     }   break;
     case INFIX: {
-        Infix_p w = (Infix_p) what;
+        Infix_p w = what->AsInfix();
         text n0 = "infix ";
         text n = n0 + w->name;
         Tree_p l = w->left;
@@ -597,7 +597,7 @@ void Renderer::RenderOne(Tree_p what)
         }
     }   break;
     case BLOCK: {
-        Block_p w  = (Block_p) what;
+        Block_p w  = what->AsBlock();
         text   n0 = "block ";
         text   n  = n0 + w->opening + " " + w->closing;
         Tree_p l  = w->child;

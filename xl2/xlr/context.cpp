@@ -44,21 +44,25 @@ XL_BEGIN
 //
 // ============================================================================
 
-Symbols *Symbols::symbols = NULL;
+Symbols_p Symbols::symbols;
 
 Tree_p Symbols::Named(text name, bool deep)
 // ----------------------------------------------------------------------------
 //   Find the name in the current context
 // ----------------------------------------------------------------------------
 {
-    for (Symbols *s = this; s; s = deep ? s->parent : NULL)
+    for (Symbols *s = this; s; s = deep ? s->parent.Pointer() : NULL)
     {
         if (s->names.count(name) > 0)
             return s->names[name];
         symbols_set::iterator it;
         for (it = s->imported.begin(); it != s->imported.end(); it++)
-            if ((*it)->names.count(name) > 0)
-                return (*it)->names[name];
+        {
+            Symbols *syms = (Symbols *) (*it).ConstPointer();
+            symbol_table::iterator found = syms->names.find(name);
+            if (found != syms->names.end())
+                return (*found).second;
+        }
     }
     return NULL;
 }
@@ -101,7 +105,7 @@ Rewrite *Symbols::EnterRewrite(Rewrite *rw)
         has_rewrites_for_constants = true;
 
     // Create symbol table for this rewrite
-    Symbols *locals = new Symbols(this);
+    Symbols_p locals = new Symbols(this);
     rw->from->SetSymbols(locals);
 
     // Enter parameters in the symbol table
@@ -164,7 +168,7 @@ Tree_p Symbols::Compile(Tree_p source, CompiledUnit &unit,
 // ----------------------------------------------------------------------------
 {
     // Make sure that errors are shown in the proper context
-    LocalSave<Symbols *> saveSyms(symbols, this);
+    LocalSave<Symbols_p> saveSyms(symbols, this);
 
     // Record rewrites and data declarations in the current context
     DeclarationAction declare(this);
@@ -330,7 +334,7 @@ Infix_p Symbols::CompileTypeTest(Tree_p type)
         return call;
 
     // Create local symbols
-    Symbols *locals = new Symbols (Symbols::symbols);
+    Symbols_p locals = new Symbols (Symbols::symbols);
 
     // Record rewrites and data declarations in the current context
     DeclarationAction declare(locals);
@@ -379,7 +383,7 @@ Tree_p Symbols::Run(Tree_p code)
         {
             if (!result->code)
             {
-                Symbols *symbols = result->Symbols();
+                Symbols_p symbols = result->Symbols();
                 if (!symbols)
                 {
                     std::cerr << "WARNING: Tree '" << code
@@ -540,7 +544,7 @@ Tree_p Symbols::Run(Tree_p code)
                         {
                             // Simply evaluate the target with the args set
                             // We will lookup symbols in local symbol table
-                            LocalSave<Symbols *> save(Symbols::symbols, &args);
+                            LocalSave<Symbols_p> save(Symbols::symbols, &args);
                             result = args.Run(candidate->to);
                         }
 
@@ -2198,11 +2202,7 @@ Rewrite::~Rewrite()
 // ----------------------------------------------------------------------------
 //   Deletes all children rewrite if any
 // ----------------------------------------------------------------------------
-{
-    rewrite_table::iterator it;
-    for (it = hash.begin(); it != hash.end(); it++)
-        delete ((*it).second);
-}
+{}
 
 
 Rewrite *Rewrite::Add (Rewrite *rewrite)
@@ -2280,7 +2280,7 @@ Tree_p Rewrite::Compile(void)
         return Ooops("Internal: No symbols for '$1'", from);
 
     // Create local symbols
-    Symbols *locals = new Symbols (from->Symbols());
+    Symbols_p locals = new Symbols (from->Symbols());
 
     // Record rewrites and data declarations in the current context
     DeclarationAction declare(locals);

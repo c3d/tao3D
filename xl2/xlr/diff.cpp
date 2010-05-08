@@ -1002,14 +1002,14 @@ static bool NonLeafEqual(Tree_p t1, Tree_p t2)
 
     // CHECK THIS We consider that two infix nodes cannot be
     // considered equal if they do not bear the same value
-    if (t1->Kind() == INFIX)
-        if (((Infix_p)t1)->name.compare(((Infix_p)t2)->name))
+    if (Infix_p infix = t1->AsInfix())
+        if (infix->name.compare(t2->AsInfix()->name))
             return false;
     // Similarly, two blocks cannot be equal if they don't use the
     // same delimiters
     if (t1->Kind() == BLOCK)
     {
-        Block_p b1 = (Block_p)t1, b2 = (Block_p)t2;
+        Block_p b1 = t1->AsBlock(), b2 = t2->AsBlock();
         if (b1->opening.compare(b2->opening))
             return false;
         if (b1->closing.compare(b2->closing))
@@ -1185,7 +1185,7 @@ void TreeDiff::DoEditScript()
         t1->Do(action);
     }
     else
-        ((Block_p)t1)->child = NULL;
+        t1->AsBlock()->child = NULL;
 
     IFTRACE(diff)
        std::cout << "DoEditScript done\n";

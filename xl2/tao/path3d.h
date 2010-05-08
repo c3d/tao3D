@@ -68,7 +68,7 @@ struct GraphicPath : Shape
 
     // Other operations
     void                clear();
-    void                AddControl(XL::Tree_p self, real_r x,real_r y,real_r z);
+    void                AddControl(XL::Tree_p self, Real_p x,Real_p y,Real_p z);
 
 public:
     enum Kind { MOVE_TO, LINE_TO, CURVE_TO, CURVE_CONTROL };

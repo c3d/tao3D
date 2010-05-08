@@ -74,21 +74,21 @@ struct BreadthFirstSearch : Action
             if (!fullScan && res)
                 return res;
             nodes.pop();
-            if ((bl = curr->AsBlock()) != NULL)
+            if ((bl = curr->AsBlock()))
             {
               nodes.push(bl->child);
             }
-            if ((in = curr->AsInfix()) != NULL)
+            if ((in = curr->AsInfix()))
             {
               nodes.push(in->left);
               nodes.push(in->right);
             }
-            if ((pr = curr->AsPrefix()) != NULL)
+            if ((pr = curr->AsPrefix()))
             {
               nodes.push(pr->left);
               nodes.push(pr->right);
             }
-            if ((po = curr->AsPostfix()) != NULL)
+            if ((po = curr->AsPostfix()))
             {
               nodes.push(po->left);
               nodes.push(po->right);

@@ -335,7 +335,7 @@ Tree *xl_type_error(Tree *what)
     Symbols *syms = what->Symbols();
     if (!syms)
         syms = Symbols::symbols;
-    LocalSave<Symbols *> saveSyms(Symbols::symbols, syms);
+    LocalSave<Symbols_p> saveSyms(Symbols::symbols, syms);
     return Ooops("No form matches '$1'", what);
 }
 
@@ -554,8 +554,8 @@ Tree *xl_load(text name)
     if (!tree)
         return Ooops("Unable to load file '$1'", new Text(name));
 
-    Symbols *old = Symbols::symbols;
-    Symbols *syms = new Symbols(Context::context);
+    Symbols_p old = Symbols::symbols;
+    Symbols_p syms = new Symbols(Context::context);
     MAIN->files[name] = SourceFile(name, tree, syms);
     Symbols::symbols = syms;
     tree->SetSymbols(syms);
@@ -657,8 +657,8 @@ Tree *xl_load_csv(text name)
     // Store that we use the file
     struct stat st;
     stat(name.c_str(), &st);
-    Symbols *old = Symbols::symbols;
-    Symbols *syms = new Symbols(Context::context);
+    Symbols_p old = Symbols::symbols;
+    Symbols_p syms = new Symbols(Context::context);
     MAIN->files[name] = SourceFile(name, tree, syms);
     Symbols::symbols = syms;
     tree->SetSymbols(syms);
@@ -768,8 +768,8 @@ Tree *xl_load_tsv(text name)
     // Store that we use the file
     struct stat st;
     stat(name.c_str(), &st);
-    Symbols *old = Symbols::symbols;
-    Symbols *syms = new Symbols(Context::context);
+    Symbols_p old = Symbols::symbols;
+    Symbols_p syms = new Symbols(Context::context);
     MAIN->files[name] = SourceFile(name, tree, syms);
     Symbols::symbols = syms;
     tree->SetSymbols(syms);

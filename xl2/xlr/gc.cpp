@@ -31,11 +31,11 @@ XL_BEGIN
 //
 // ============================================================================
 
-AllocatorBase::AllocatorBase(uint os)
+AllocatorBase::AllocatorBase(kstring tn, uint os, mark_fn mark)
 // ----------------------------------------------------------------------------
 //    Setup an empty allocator
 // ----------------------------------------------------------------------------
-    : chunks(), offsets(), freeList(NULL),
+    : typeName(tn), chunks(), mark(mark), freeList(NULL),
       chunkSize(1022), objectSize(os), alignedSize(os), available(0)
 {
     // Make sure that our allocator generates properly aligned addresses
@@ -104,15 +104,10 @@ void AllocatorBase::Delete(void *ptr)
 
 #if 1
     // Scrub all the pointers
-    char *base = (char *) ptr;
-    std::vector<uint>::iterator i;
-    for (i = offsets.begin(); i != offsets.end(); i++)
-    {
-        size_t offset = *i;
-        assert (offset < objectSize);
-        void **ptrptr = (void **) (base + offset);
-        *ptrptr = (void *) 0xDeadC0deBadBeef;
-    }
+    uint32 *base = (uint32 *) ptr;
+    uint32 *last = (uint32 *) (((char *) ptr) + alignedSize);
+    for (uint *p = base; p < last; p++)
+        *p = 0xDeadBeef;
 #endif
 }
 
@@ -143,17 +138,23 @@ void AllocatorBase::MarkRoots()
             if (ValidPointer(ptr->allocator) == this)
                 if ((ptr->bits & IN_USE) == 0)
                     if ((ptr->bits & USE_MASK) > 0)
-                        Mark(ptr);
+                        Mark(ptr+1);
         }
     }
 }
 
 
-void AllocatorBase::Mark(Chunk *inUse)
+void AllocatorBase::Mark(void *data)
 // ----------------------------------------------------------------------------
 //   Loop on all allocated items and mark which ones are in use
 // ----------------------------------------------------------------------------
 {
+    if (!data)
+        return;
+
+    // Find chunk pointer
+    Chunk *inUse = ((Chunk *) data) - 1;
+
     // We should only look at allocated items, otherwise oops...
     if (inUse->bits & IN_USE)
         return;
@@ -164,28 +165,8 @@ void AllocatorBase::Mark(Chunk *inUse)
     // We had not marked that one yet, mark it now
     inUse->bits |= IN_USE;
 
-    // Loop over all pointers in this item
-    char *base = (char *) (inUse + 1);
-    std::vector<uint>::iterator i;
-    for (i = offsets.begin(); i != offsets.end(); i++)
-    {
-        size_t offset = *i;
-        assert (offset < objectSize);
-        Chunk **ptrptr = (Chunk **) (base + offset);
-        Chunk *ptr = *ptrptr;
-        if (ptr)
-        {
-            // Allocator precedes the allocated object
-            Chunk *chunk = ptr - 1;
-
-            // If the object is not marked as used, mark recursively
-            if ((chunk->bits & IN_USE) == 0)
-            {
-                AllocatorBase *allocator = ValidPointer(chunk->allocator);
-                allocator->Mark(ptr);
-            }
-        }
-    }
+    // Mark all pointers in this item
+    mark(data);
 }
 
 
@@ -206,7 +187,7 @@ void AllocatorBase::Sweep()
             {
                 if (ptr->bits & IN_USE)
                     ptr->bits &= ~IN_USE;
-                else
+                else if ((ptr->bits & USE_MASK) == 0)
                     Finalize(ptr+1);
             }
         }
@@ -249,12 +230,12 @@ void GarbageCollector::Register(AllocatorBase *allocator)
 }
 
 
-void GarbageCollector::RunCollection()
+void GarbageCollector::RunCollection(bool force)
 // ----------------------------------------------------------------------------
 //   Run garbage collection on all the allocators we own
 // ----------------------------------------------------------------------------
 {
-    if (mustRun)
+    if (mustRun || force)
     {
         std::vector<AllocatorBase *>::iterator i;
         mustRun = false;
@@ -282,12 +263,12 @@ GarbageCollector *GarbageCollector::Singleton()
 }
 
 
-void GarbageCollector::Collect()
+void GarbageCollector::Collect(bool force)
 // ----------------------------------------------------------------------------
 //   Collect garbage in this garbage collector
 // ----------------------------------------------------------------------------
 {
-    Singleton()->RunCollection();
+    Singleton()->RunCollection(force);
 }
 
 XL_END

@@ -49,7 +49,7 @@ XL_BEGIN
 
 Main *MAIN = NULL;
 
-SourceFile::SourceFile(text n, Tree_p t, Symbols *s)
+SourceFile::SourceFile(text n, Tree *t, Symbols *s)
 // ----------------------------------------------------------------------------
 //   Construct a source file given a name
 // ----------------------------------------------------------------------------

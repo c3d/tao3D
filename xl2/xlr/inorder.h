@@ -89,10 +89,10 @@ struct InOrderTraversal : Action
         case REAL:
         case TEXT:
         case NAME:          return what->Do(action);
-        case BLOCK:         return DoBlock((Block_p) what);
-        case PREFIX:        return DoPrefix((Prefix_p) what);
-        case POSTFIX:       return DoPostfix((Postfix_p) what);
-        case INFIX:         return DoInfix((Infix_p) what);
+        case BLOCK:         return DoBlock(what->AsBlock());
+        case PREFIX:        return DoPrefix(what->AsPrefix());
+        case POSTFIX:       return DoPostfix(what->AsPostfix());
+        case INFIX:         return DoInfix(what->AsInfix());
         default:            assert(!"Unexpected tree kind");
         }
         return NULL;

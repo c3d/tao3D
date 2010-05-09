@@ -302,8 +302,8 @@ public:
     Symbols_p     symbols;      // Context in which we evaluate values
     Symbols_p     locals;       // Symbols where we declare arguments
     Symbols_p     rewrite;      // Symbols in which the rewrite was declared
-    Tree_p         test;         // Tree we test
-    Tree_p         defined;      // Tree beind defined, e.g. 'sin' in 'sin X'
+    Tree_p        test;         // Tree we test
+    Tree_p        defined;      // Tree beind defined, e.g. 'sin' in 'sin X'
 };
 
 

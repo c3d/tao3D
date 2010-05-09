@@ -487,6 +487,7 @@ Value *Compiler::EnterConstant(Tree *constant)
     // Create a constant address for that tree
     Tree **address = new Tree*;
     addresses[constant] = address;
+    *address = constant;
     runtime->addGlobalMapping(result, address);
 
     return result;

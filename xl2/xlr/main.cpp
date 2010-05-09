@@ -82,13 +82,13 @@ Main::Main(int inArgc, char **inArgv, Compiler &comp)
       builtins(""),
       options(errors),
       compiler(comp),
-      context(errors, &compiler),
+      context(new Context(errors, &compiler)),
       renderer(std::cout, "xl.stylesheet", syntax),
       reader(NULL), writer(NULL)
 {
     Options::options = &options;
-    Context::context = &context;
-    Symbols::symbols = &context;
+    Context::context = context;
+    Symbols::symbols = context;
     Renderer::renderer = &renderer;
     Syntax::syntax = &syntax;
 }
@@ -106,13 +106,13 @@ Main::Main(int inArgc, char **inArgv, Compiler &comp,
       builtins(builtinsPath.c_str()),
       options(errors),
       compiler(comp),
-      context(errors, &compiler),
+      context(new Context(errors, &compiler)),
       renderer(std::cout, stylesheetPath.c_str(), syntax),
       reader(NULL), writer(NULL)
 {
     Options::options = &options;
-    Context::context = &context;
-    Symbols::symbols = &context;
+    Context::context = context;
+    Symbols::symbols = context;
     Renderer::renderer = &renderer;
     Syntax::syntax = &syntax;
 }
@@ -145,7 +145,7 @@ int Main::ParseOptions()
                   << "         Check LANG, LC_CTYPE, LC_ALL.\n";
 
     // Initialize basics
-    EnterBasics(&context);
+    EnterBasics(context);
 
     // Scan options and build list of files we need to process
     cmd = options.Parse(argc, argv);
@@ -296,7 +296,7 @@ int Main::LoadFile(text file, bool updateContext)
     Symbols *savedSyms = syms;
     if (file == builtins)
     {
-        syms = &context;
+        syms = context;
     }
     else
     {

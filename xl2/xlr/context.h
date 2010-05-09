@@ -141,6 +141,7 @@ struct Compiler;                                // JIT compiler
 struct CompiledUnit;                            // Compilation unit
 
 typedef GCPtr<Rewrite>             Rewrite_p;
+typedef GCPtr<Context>             Context_p;
 
 typedef std::map<text, Tree_p>     symbol_table; // Symbol table in context
 typedef std::set<Tree_p>           active_set;   // Not to be garbage collected

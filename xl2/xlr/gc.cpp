@@ -31,6 +31,9 @@ XL_BEGIN
 //
 // ============================================================================
 
+void *AllocatorBase::lowestAddress = (void *) ~0;
+void *AllocatorBase::highestAddress = (void *) 0;
+
 AllocatorBase::AllocatorBase(kstring tn, uint os, mark_fn mark,
                              GarbageCollector *gc)
 // ----------------------------------------------------------------------------
@@ -85,6 +88,12 @@ void *AllocatorBase::Allocate()
         }
         freeList = result;
         available += chunkSize;
+
+        if (lowestAddress > allocated)
+            lowestAddress = allocated;
+        char *highMark = (char *) allocated + (chunkSize+1) * itemSize;
+        if (highestAddress < (void *) highMark)
+            highestAddress = highMark;
     }
 
     // REVISIT: Atomic operations here

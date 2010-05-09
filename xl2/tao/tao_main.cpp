@@ -71,7 +71,7 @@ int main(int argc, char **argv)
                                  +syntax.canonicalFilePath(),
                                  +stylesheet.canonicalFilePath());
     XL::MAIN = xlr;
-    EnterGraphics(&xlr->context);
+    EnterGraphics(xlr->context);
     xlr->ParseOptions();
     if (user.exists())
         xlr->context_file_names.push_back(+user.canonicalFilePath());

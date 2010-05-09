@@ -90,7 +90,7 @@ public:
     text         builtins;
     Options      options;
     Compiler    &compiler;
-    Context      context;
+    Context_p    context;
     Renderer     renderer;
     source_files files;
     source_names file_names;

@@ -91,6 +91,10 @@ protected:
     uint                objectSize;
     uint                alignedSize;
     uint                available;
+
+public:
+    static void *       lowestAddress;
+    static void *       highestAddress;
 };
 
 
@@ -361,14 +365,25 @@ void Allocator<Object>::MarkObject(void *object)
 //
 // ============================================================================
 
+inline bool IsAllocated(void *ptr)
+// ----------------------------------------------------------------------------
+//   Tell if a pointer is allocated
+// ----------------------------------------------------------------------------
+{
+    return (ptr >= AllocatorBase::lowestAddress &&
+            ptr <= AllocatorBase::highestAddress);
+}
+
+
 template<class Object, typename Value> inline
 void GCPtr<Object,Value>::MarkInUse()
 // ----------------------------------------------------------------------------
 //   Mark the current pointer as in use, to preserve in next GC cycle
 // ----------------------------------------------------------------------------
 {
-    if (pointer)
+    if (IsAllocated(pointer))
     {
+        assert (((intptr_t) pointer & Alloc::PTR_MASK) == 0);
         Base::Chunk *chunk = ((Base::Chunk *) pointer) - 1;
         chunk->bits |= Alloc::IN_USE;
     }
@@ -381,8 +396,9 @@ void GCPtr<Object, Value>::Acquire(Object *ptr)
 //   Increment the reference counter for the given pointer
 // ----------------------------------------------------------------------------
 {
-    if (ptr)
+    if (IsAllocated(ptr))
     {
+        assert (((intptr_t) ptr & Alloc::PTR_MASK) == 0);
         Base::Chunk *chunk = ((Base::Chunk *) ptr) - 1;
         uint count = chunk->bits & Alloc::USE_MASK;
         if (count < Alloc::LOCKED_ROOT)
@@ -402,8 +418,9 @@ void GCPtr<Object, Value>::Release(Object *ptr)
 //   Decrement the reference counter for the given pointer
 // ----------------------------------------------------------------------------
 {
-    if (ptr)
+    if (IsAllocated(ptr))
     {
+        assert (((intptr_t) ptr & Alloc::PTR_MASK) == 0);
         Base::Chunk *chunk = ((Base::Chunk *) ptr) - 1;
         uint count = chunk->bits & Alloc::USE_MASK;
         Base *allocator = Base::ValidPointer(chunk->allocator);

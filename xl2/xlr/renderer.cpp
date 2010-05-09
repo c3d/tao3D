@@ -50,12 +50,12 @@ struct EnterFormatsAction : Action
 {
     EnterFormatsAction (formats_table &fmt): formats(fmt) {}
 
-    Tree_p Do (Tree_p what)                       { return what; }
-    Tree_p DoInfix(Infix_p what)
+    Tree *Do (Tree *what)                       { return what; }
+    Tree *DoInfix(Infix *what)
     {
         if (what->name == "=")
         {
-            if (Name_p nmt = what->left->AsName())
+            if (Name *nmt = what->left->AsName())
             {
                 text N = nmt->value;
                 if (N == "cr")                  N = "\n";
@@ -67,7 +67,7 @@ struct EnterFormatsAction : Action
                 formats[N] = what->right;
                 return what;
             }
-            else if (Text_p txt = what->left->AsText())
+            else if (Text *txt = what->left->AsText())
             {
                 formats[txt->value] = what->right;
                 return what;
@@ -123,7 +123,7 @@ void Renderer::SelectStyleSheet(text styleFile)
     formats[Block::indent]   = new Name("indent");
     formats[Block::unindent] = new Name("unindent");
 
-    Tree_p fmts = p.Parse();
+    Tree *fmts = p.Parse();
     if (fmts)
     {
         EnterFormatsAction action(formats);
@@ -185,19 +185,19 @@ void Renderer::RenderText(text format)
 }
 
 
-void Renderer::RenderFormat(Tree_p format)
+void Renderer::RenderFormat(Tree *format)
 // ----------------------------------------------------------------------------
 //   Render a format read from the style sheet
 // ----------------------------------------------------------------------------
 {
-    if (Text_p tf = format->AsText())
+    if (Text *tf = format->AsText())
     {
         if (tf->opening == Text::textQuote)
             output << tf->value;                // As is, no formatting
         else
             RenderText(tf->value);              // Format contents
     }
-    else if (Name_p nf = format->AsName())
+    else if (Name *nf = format->AsName())
     {
         text n = nf->value;
         text m = n + " ";
@@ -217,7 +217,7 @@ void Renderer::RenderFormat(Tree_p format)
             text k0 = "indents ";
             if (formats.count(k0) > 0)
             {
-                Tree_p fmt = formats[k0];
+                Tree *fmt = formats[k0];
                 for (uint i = 0; i < indent; i++)
                     RenderFormat(fmt);
             }
@@ -241,13 +241,13 @@ void Renderer::RenderFormat(Tree_p format)
         }
         else if (n == "opening")
         {
-            Block_p b = right->AsBlock();
+            Block *b = right->AsBlock();
             if (b)
                 RenderText(b->opening);
         }
         else if (n == "closing")
         {
-            Block_p b = right->AsBlock();
+            Block *b = right->AsBlock();
             if (b)
                 RenderText(b->closing);
         }
@@ -274,7 +274,7 @@ void Renderer::RenderFormat(Tree_p format)
             output << "** Undeclared format directive " << n << "**\n";
         }
     }
-    else if (Prefix_p pf = format->AsPrefix())
+    else if (Prefix *pf = format->AsPrefix())
     {
         RenderFormat (pf->left);
         RenderFormat (pf->right);
@@ -333,7 +333,7 @@ void Renderer::RenderFormat(text self, text format,
 }
 
 
-Tree_p Renderer::ImplicitBlock(Tree_p t)
+Tree *Renderer::ImplicitBlock(Tree *t)
 // ----------------------------------------------------------------------------
 //   Return an implicit block when precedence requires it
 // ----------------------------------------------------------------------------
@@ -343,21 +343,21 @@ Tree_p Renderer::ImplicitBlock(Tree_p t)
 }
 
 
-bool Renderer::IsAmbiguousPrefix(Tree_p test, bool testL, bool testR)
+bool Renderer::IsAmbiguousPrefix(Tree *test, bool testL, bool testR)
 // ----------------------------------------------------------------------------
 //   Return true if tree might be seen as infix despite being a prefix
 // ----------------------------------------------------------------------------
 {
-    if (Prefix_p t = test->AsPrefix())
+    if (Prefix *t = test->AsPrefix())
     {
-        Tree_p l = t->left;
-        Tree_p r = t->right;
+        Tree *l = t->left;
+        Tree *r = t->right;
         if (testL)
-            if (Name_p n = l->AsName())
+            if (Name *n = l->AsName())
                 if (syntax.infix_priority.count(n->value) > 0)
                     return true;
         if (testR)
-            if (Name_p n = r->AsName())
+            if (Name *n = r->AsName())
                 if (syntax.infix_priority.count(n->value) > 0)
                     return true;
     }
@@ -365,12 +365,12 @@ bool Renderer::IsAmbiguousPrefix(Tree_p test, bool testL, bool testR)
 }
 
 
-bool Renderer::IsSubFunctionInfix(Tree_p test)
+bool Renderer::IsSubFunctionInfix(Tree *test)
 // ----------------------------------------------------------------------------
 //    Return true if tree is an infix with priority below function
 // ----------------------------------------------------------------------------
 {
-    if (Infix_p it = test->AsInfix())
+    if (Infix *it = test->AsInfix())
     {
         if (syntax.infix_priority.count(it->name) <= 0)
             return true;
@@ -381,7 +381,7 @@ bool Renderer::IsSubFunctionInfix(Tree_p test)
 }
 
 
-int Renderer::InfixPriority(Tree_p test)
+int Renderer::InfixPriority(Tree *test)
 // ----------------------------------------------------------------------------
 //    Return infix priority for infix trees, "infinity" otherwise
 // ----------------------------------------------------------------------------
@@ -393,7 +393,7 @@ int Renderer::InfixPriority(Tree_p test)
 }
 
 
-void Renderer::RenderOne(Tree_p what)
+void Renderer::RenderOne(Tree *what)
 // ----------------------------------------------------------------------------
 //   Render to given stream
 // ----------------------------------------------------------------------------
@@ -420,8 +420,8 @@ void Renderer::RenderOne(Tree_p what)
 //     valid infix. Example: "A [+ B]"
 {
     text  old_self     = this->self;
-    Tree_p old_left     = this->left;
-    Tree_p old_right    = this->right;
+    Tree *old_left     = this->left;
+    Tree *old_right    = this->right;
     int   old_priority = this->priority;
     text  t;
     std::ostringstream toText;
@@ -451,7 +451,7 @@ void Renderer::RenderOne(Tree_p what)
         RenderFormat (t, t, "real ");
         break;
     case TEXT: {
-        Text_p w = what->AsText();
+        Text *w = what->AsText();
         t = w->value;
         text q0 = t.find("\n") != t.npos ? "longtext " : "text ";
         text q1 = q0 + w->opening;
@@ -486,9 +486,9 @@ void Renderer::RenderOne(Tree_p what)
         RenderFormat (t, t, "name ");
         break;
     case PREFIX: {
-        Prefix_p w = what->AsPrefix();
-        Tree_p l = w->left;
-        Tree_p r = w->right;
+        Prefix *w = what->AsPrefix();
+        Tree *l = w->left;
+        Tree *r = w->right;
 
         // Create blocks for implicit parentheses
         if (IsAmbiguousPrefix(l, false, true) || IsSubFunctionInfix(l))
@@ -500,7 +500,7 @@ void Renderer::RenderOne(Tree_p what)
         right = r;
 
         text n0 = "prefix ";
-        if (Name_p lf = left->AsName())
+        if (Name *lf = left->AsName())
         {
             text n = n0 + lf->value;
             if (formats.count(n) > 0)
@@ -524,9 +524,9 @@ void Renderer::RenderOne(Tree_p what)
         }
     }   break;
     case POSTFIX: {
-        Postfix_p w = what->AsPostfix();
-        Tree_p l = w->left;
-        Tree_p r = w->right;
+        Postfix *w = what->AsPostfix();
+        Tree *l = w->left;
+        Tree *r = w->right;
 
         // Create blocks for implicit parentheses
         if (priority > syntax.statement_priority)
@@ -538,7 +538,7 @@ void Renderer::RenderOne(Tree_p what)
         right = r;
 
         text n0 = "postfix ";
-        if (Name_p rf = right->AsName())
+        if (Name *rf = right->AsName())
         {
             text n = n0 + rf->value;
             if (formats.count(n) > 0)
@@ -562,11 +562,11 @@ void Renderer::RenderOne(Tree_p what)
         }
     }   break;
     case INFIX: {
-        Infix_p w = what->AsInfix();
+        Infix *w = what->AsInfix();
         text n0 = "infix ";
         text n = n0 + w->name;
-        Tree_p l = w->left;
-        Tree_p r = w->right;
+        Tree *l = w->left;
+        Tree *r = w->right;
 
         // Create blocks for implicit parentheses, dealing with assoc.
         int  p0 = InfixPriority(w);
@@ -597,10 +597,10 @@ void Renderer::RenderOne(Tree_p what)
         }
     }   break;
     case BLOCK: {
-        Block_p w  = what->AsBlock();
+        Block *w  = what->AsBlock();
         text   n0 = "block ";
         text   n  = n0 + w->opening + " " + w->closing;
-        Tree_p l  = w->child;
+        Tree *l  = w->child;
         this->left = l;
         this->right = w;
         this->self = w->opening + w->closing;
@@ -625,7 +625,7 @@ void Renderer::RenderOne(Tree_p what)
 }
 
 
-void Renderer::Render(Tree_p what)
+void Renderer::Render(Tree *what)
 // ----------------------------------------------------------------------------
 //   Output the tree, including begin and end formats if any
 // ----------------------------------------------------------------------------
@@ -641,7 +641,7 @@ void Renderer::Render(Tree_p what)
 }
 
 
-std::ostream& operator<< (std::ostream &out, XL::Tree_p t)
+std::ostream& operator<< (std::ostream &out, XL::Tree *t)
 // ----------------------------------------------------------------------------
 //   Just in case you want to emit a tree using normal ostream interface
 // ----------------------------------------------------------------------------

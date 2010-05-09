@@ -98,7 +98,7 @@ public:
 };
 
 
-template <class Object, typename Value=bool> struct GCPtr;
+template <class Object, typename ValueType=void> struct GCPtr;
 
 
 template <class Object>
@@ -122,7 +122,7 @@ public:
 };
 
 
-template<class Object, typename Value>
+template<class Object, typename ValueType>
 struct GCPtr
 // ----------------------------------------------------------------------------
 //   A root pointer to an object in a garbage-collected pool
@@ -133,33 +133,29 @@ struct GCPtr
 
 public:
     GCPtr(): pointer(0)                         { }
-    GCPtr(Object *ptr): pointer(ptr)            { Acquire(pointer); }
-    GCPtr(Object &ptr): pointer(&ptr)           { Acquire(pointer); }
+    GCPtr(Object *ptr): pointer(ptr)            { Acquire(); }
+    GCPtr(Object &ptr): pointer(&ptr)           { Acquire(); }
     GCPtr(const GCPtr &ptr)
-        : pointer((Object*) ptr.ConstPointer()) { Acquire(pointer); }
+        : pointer(ptr.Pointer())                { Acquire(); }
     template<class U, typename V>
     GCPtr(const GCPtr<U,V> &p)
-        : pointer((U*) p.ConstPointer())        { Acquire(pointer); }
-    ~GCPtr()                                    { Release(pointer); }
+        : pointer((U*) p.Pointer())             { Acquire(); }
+    ~GCPtr()                                    { Release(); }
 
-    operator Object* ()                         { return pointer; }
-    operator const Object* () const             { return pointer; }
-    const Object *ConstPointer() const          { return pointer; }
-    Object *Pointer()                           { return pointer; }
-    Object *operator->()                        { return pointer; }
-    const Object *operator->() const            { return pointer; }
-    Object& operator*()                         { return *pointer; }
-    const Object& operator*() const             { return *pointer; }
-    bool operator!()                            { return !pointer; }
-    operator Value()                            { return pointer != 0; }
+    operator Object* () const                   { InUse(); return pointer; }
+    const Object *ConstPointer() const          { InUse(); return pointer; }
+    Object *Pointer() const                     { InUse(); return pointer; }
+    Object *operator->() const                  { InUse(); return pointer; }
+    Object& operator*() const                   { InUse(); return *pointer; }
+    operator ValueType() const                  { return pointer; }
 
     GCPtr &operator= (const GCPtr &o)
     {
         if (o.ConstPointer() != pointer)
         {
-            Release(pointer);
+            Release();
             pointer = (Object *) o.ConstPointer();
-            Acquire(pointer);
+            Acquire();
         }
         return *this;
     }
@@ -169,18 +165,18 @@ public:
     {
         if (o.ConstPointer() != pointer)
         {
-            Release(pointer);
+            Release();
             pointer = (U *) o.ConstPointer();
-            Acquire(pointer);
+            Acquire();
         }
         return *this;
     }
 
-#define DEFINE_CMP(CMP)                         \
-    template<class U, typename V>               \
-    bool operator CMP(const GCPtr<U,V> &o)      \
-    {                                           \
-        return pointer CMP o.ConstPointer();    \
+#define DEFINE_CMP(CMP)                                 \
+    template<class U, typename V>                       \
+    bool operator CMP(const GCPtr<U,V> &o) const        \
+    {                                                   \
+        return pointer CMP o.ConstPointer();            \
     }                                           
 
     DEFINE_CMP(==)
@@ -190,11 +186,11 @@ public:
     DEFINE_CMP(>)
     DEFINE_CMP(>=)
 
-    void        MarkInUse();
+    void        InUse() const;
 
 protected:
-    void        Acquire(Object *ptr);
-    void        Release(Object *ptr);
+    void        Acquire() const;
+    void        Release() const;
 
     Object *    pointer;
 };
@@ -376,7 +372,7 @@ inline bool IsAllocated(void *ptr)
 
 
 template<class Object, typename Value> inline
-void GCPtr<Object,Value>::MarkInUse()
+void GCPtr<Object,Value>::InUse() const
 // ----------------------------------------------------------------------------
 //   Mark the current pointer as in use, to preserve in next GC cycle
 // ----------------------------------------------------------------------------
@@ -391,46 +387,46 @@ void GCPtr<Object,Value>::MarkInUse()
 
 
 template<class Object, typename Value> inline
-void GCPtr<Object, Value>::Acquire(Object *ptr)
+void GCPtr<Object, Value>::Acquire() const
 // ----------------------------------------------------------------------------
 //   Increment the reference counter for the given pointer
 // ----------------------------------------------------------------------------
 {
-    if (IsAllocated(ptr))
+    if (IsAllocated(pointer))
     {
-        assert (((intptr_t) ptr & Alloc::PTR_MASK) == 0);
-        Base::Chunk *chunk = ((Base::Chunk *) ptr) - 1;
+        assert (((intptr_t) pointer & Alloc::PTR_MASK) == 0);
+        Base::Chunk *chunk = ((Base::Chunk *) pointer) - 1;
         uint count = chunk->bits & Alloc::USE_MASK;
         if (count < Alloc::LOCKED_ROOT)
             chunk->bits = (chunk->bits & ~Alloc::USE_MASK) | ++count;
         if (count >= Alloc::LOCKED_ROOT)
         {
             Base *allocator = Base::ValidPointer(chunk->allocator);
-            count = Alloc::LOCKED_ROOT + allocator->Roots(ptr)++;
+            count = Alloc::LOCKED_ROOT + allocator->Roots(pointer)++;
         }
     }
 }
 
 
 template<class Object, typename Value> inline
-void GCPtr<Object, Value>::Release(Object *ptr)
+void GCPtr<Object, Value>::Release() const
 // ----------------------------------------------------------------------------
 //   Decrement the reference counter for the given pointer
 // ----------------------------------------------------------------------------
 {
-    if (IsAllocated(ptr))
+    if (IsAllocated(pointer))
     {
-        assert (((intptr_t) ptr & Alloc::PTR_MASK) == 0);
-        Base::Chunk *chunk = ((Base::Chunk *) ptr) - 1;
+        assert (((intptr_t) pointer & Alloc::PTR_MASK) == 0);
+        Base::Chunk *chunk = ((Base::Chunk *) pointer) - 1;
         uint count = chunk->bits & Alloc::USE_MASK;
         Base *allocator = Base::ValidPointer(chunk->allocator);
         if (count < Alloc::LOCKED_ROOT)
         {
             chunk->bits = (chunk->bits & ~Alloc::USE_MASK) | --count;
-            if (!count)
-                allocator->Finalize(ptr);
+            if (!count && !(chunk->bits & Alloc::IN_USE))
+                allocator->Finalize(pointer);
         }
-        else if (--allocator->Roots(ptr) == 0)
+        else if (--allocator->Roots(pointer) == 0)
         {
             chunk->bits = (chunk->bits & ~Alloc::USE_MASK) | --count;
         }

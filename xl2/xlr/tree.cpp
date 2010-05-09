@@ -88,7 +88,7 @@ Name::operator bool()
 // 
 // ============================================================================
 
-Tree_p Tree::Do(Action *action)
+Tree *Tree::Do(Action *action)
 // ----------------------------------------------------------------------------
 //   Perform an action on the tree 
 // ----------------------------------------------------------------------------
@@ -109,7 +109,7 @@ Tree_p Tree::Do(Action *action)
 }
 
 
-Tree_p Action::DoInteger(Integer_p what)
+Tree *Action::DoInteger(Integer *what)
 // ----------------------------------------------------------------------------
 //   Default is simply to invoke 'Do'
 // ----------------------------------------------------------------------------
@@ -118,7 +118,7 @@ Tree_p Action::DoInteger(Integer_p what)
 }
 
 
-Tree_p Action::DoReal(Real_p what)
+Tree *Action::DoReal(Real *what)
 // ----------------------------------------------------------------------------
 //   Default is simply to invoke 'Do'
 // ----------------------------------------------------------------------------
@@ -127,7 +127,7 @@ Tree_p Action::DoReal(Real_p what)
 }
 
 
-Tree_p Action::DoText(Text_p what)
+Tree *Action::DoText(Text *what)
 // ----------------------------------------------------------------------------
 //   Default is simply to invoke 'Do'
 // ----------------------------------------------------------------------------
@@ -136,7 +136,7 @@ Tree_p Action::DoText(Text_p what)
 }
 
 
-Tree_p Action::DoName(Name_p what)
+Tree *Action::DoName(Name *what)
 // ----------------------------------------------------------------------------
 //   Default is simply to invoke 'Do'
 // ----------------------------------------------------------------------------
@@ -145,7 +145,7 @@ Tree_p Action::DoName(Name_p what)
 }
 
 
-Tree_p Action::DoBlock(Block_p what)
+Tree *Action::DoBlock(Block *what)
 // ----------------------------------------------------------------------------
 //    Default is to firm perform action on block's child, then on self
 // ----------------------------------------------------------------------------
@@ -155,7 +155,7 @@ Tree_p Action::DoBlock(Block_p what)
 }
 
 
-Tree_p Action::DoPrefix(Prefix_p what)
+Tree *Action::DoPrefix(Prefix *what)
 // ----------------------------------------------------------------------------
 //   Default is to run the action on the left, then on right
 // ----------------------------------------------------------------------------
@@ -166,7 +166,7 @@ Tree_p Action::DoPrefix(Prefix_p what)
 }
 
 
-Tree_p Action::DoPostfix(Postfix_p what)
+Tree *Action::DoPostfix(Postfix *what)
 // ----------------------------------------------------------------------------
 //   Default is to run the action on the right, then on the left
 // ----------------------------------------------------------------------------
@@ -177,7 +177,7 @@ Tree_p Action::DoPostfix(Postfix_p what)
 }
 
 
-Tree_p Action::DoInfix(Infix_p what)
+Tree *Action::DoInfix(Infix *what)
 // ----------------------------------------------------------------------------
 //   Default is to run the action on children first
 // ----------------------------------------------------------------------------
@@ -199,7 +199,7 @@ XL_END
 
 XL_BEGIN
 
-text sha1(Tree_p t)
+text sha1(Tree *t)
 // ----------------------------------------------------------------------------
 //    Compute the SHA-1 for a tree and return it
 // ----------------------------------------------------------------------------

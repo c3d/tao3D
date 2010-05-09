@@ -49,7 +49,7 @@ struct Drawing
     virtual void        Identify(Layout *);
     virtual Box3        Bounds(Layout *);
     virtual Box3        Space(Layout *);
-    virtual Tree_p      Source();
+    virtual Tree *      Source();
 
     enum BreakOrder
     {

@@ -39,18 +39,18 @@ struct PostOrderTraversal : Action
 {
     PostOrderTraversal (Action &action, bool fullScan = true):
         action(action), fullScan(fullScan) {}
-    Tree_p DoBlock(Block_p what)
+    Tree *DoBlock(Block *what)
     {
-        Tree_p  ret = NULL;
+        Tree *ret = NULL;
         if (what->child)
             ret = Do(what->child);
         if (!fullScan && ret)
             return ret;
         return what->Do(action);
     }
-    Tree_p DoInfix(Infix_p what)
+    Tree *DoInfix(Infix *what)
     {
-        Tree_p  ret;
+        Tree *  ret;
         ret = Do(what->left);
         if (!fullScan && ret)
             return ret;
@@ -59,9 +59,9 @@ struct PostOrderTraversal : Action
             return ret;
         return what->Do(action);
     }
-    Tree_p DoPrefix(Prefix_p what)
+    Tree *DoPrefix(Prefix *what)
     {
-        Tree_p  ret;
+        Tree *  ret;
         ret = Do(what->left);
         if (!fullScan && ret)
             return ret;
@@ -70,9 +70,9 @@ struct PostOrderTraversal : Action
             return ret;
         return what->Do(action);
     }
-    Tree_p DoPostfix(Postfix_p what)
+    Tree *DoPostfix(Postfix *what)
     {
-        Tree_p  ret;
+        Tree *  ret;
         ret = Do(what->left);
         if (!fullScan && ret)
             return ret;
@@ -81,7 +81,7 @@ struct PostOrderTraversal : Action
             return ret;
         return what->Do(action);
     }
-    Tree_p Do(Tree_p what)
+    Tree *Do(Tree *what)
     {
         switch(what->Kind())
         {

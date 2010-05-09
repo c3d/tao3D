@@ -116,7 +116,7 @@ text Errors::Error(text err, ulong pos, text arg1, text arg2, text arg3)
 }
 
 
-text Errors::Error(text err, Tree_p arg1)
+text Errors::Error(text err, Tree *arg1)
 // ----------------------------------------------------------------------------
 //   Emit an error at a tree position
 // ----------------------------------------------------------------------------
@@ -125,7 +125,7 @@ text Errors::Error(text err, Tree_p arg1)
 }
 
 
-text Errors::Error(text err, Tree_p arg1, Tree_p arg2)
+text Errors::Error(text err, Tree *arg1, Tree *arg2)
 // ----------------------------------------------------------------------------
 //   Emit an error at a tree position
 // ----------------------------------------------------------------------------
@@ -134,7 +134,7 @@ text Errors::Error(text err, Tree_p arg1, Tree_p arg2)
 }
 
 
-text Errors::Error(text err, Tree_p arg1, Tree_p arg2, Tree_p arg3)
+text Errors::Error(text err, Tree *arg1, Tree *arg2, Tree *arg3)
 // ----------------------------------------------------------------------------
 //   Emit an error at a tree position
 // ----------------------------------------------------------------------------

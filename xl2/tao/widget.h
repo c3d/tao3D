@@ -133,20 +133,20 @@ public:
 
     // XL program management
     void        updateProgram(XL::SourceFile *sf);
-    void        applyAction(XL::Action &action);
-    void        reloadProgram(XL::Tree_p newProg = NULL);
+    void        applyAction(Action &action);
+    void        reloadProgram(Tree *newProg = NULL);
     void        renormalizeProgram();
     void        refreshProgram();
     void        markChanged(text reason);
     bool        writeIfChanged(XL::SourceFile &sf);
     bool        doCommit(bool immediate = false);
     Repository *repository();
-    Tree_p      get(Tree_p shape, text name, text sh = "shape");
-    bool        set(Tree_p shape, text n, Tree_p value, text sh = "shape");
-    bool        get(Tree_p shape, text n, XL::TreeList &a, text sh = "shape");
-    bool        set(Tree_p shape, text n, XL::TreeList &a, text sh = "shape");
-    bool        get(Tree_p shape, text n, attribute_args &a, text sh = "shape");
-    bool        set(Tree_p shape, text n, attribute_args &a, text sh = "shape");
+    Tree *      get(Tree *shape, text name, text sh = "shape");
+    bool        set(Tree *shape, text n, Tree *value, text sh = "shape");
+    bool        get(Tree *shape, text n, TreeList &a, text sh = "shape");
+    bool        set(Tree *shape, text n, TreeList &a, text sh = "shape");
+    bool        get(Tree *shape, text n, attribute_args &a, text sh = "shape");
+    bool        set(Tree *shape, text n, attribute_args &a, text sh = "shape");
 
     // Timing
     ulonglong   now();
@@ -170,8 +170,8 @@ public:
     uint        selected(Tree_p tree)   { return selectionTrees.count(tree); }
     bool        selected()              { return !selectionTrees.empty(); }
     bool        hasSelection()          { return selected(); }
-    void        select(Tree_p tree)     { selectionTrees.insert(tree); }
-    void        deselect(Tree_p tree)   { selectionTrees.erase(tree); }
+    void        select(Tree *tree)      { selectionTrees.insert(tree); }
+    void        deselect(Tree *tree)   { selectionTrees.erase(tree); }
     uint        selected(uint i);
     uint        selected(Layout *);
     void        select(uint id, uint count);
@@ -507,7 +507,7 @@ private:
     QToolBar             *currentToolBar;
     QVector<MenuInfo*>    orderedMenuElements;
     int                   order;
-    XL::Tree_p            colorAction, fontAction;
+    Tree_p                colorAction, fontAction;
     text                  colorName;
 
     // Timing
@@ -526,7 +526,7 @@ private:
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:
-    void        updateFileDialog(Tree_p properties);
+    void        updateFileDialog(Tree *properties);
 
 };
 
@@ -591,7 +591,7 @@ struct DeleteSelectionAction : XL::TreeClone
 // ----------------------------------------------------------------------------
 {
     DeleteSelectionAction(Widget *widget): widget(widget) {}
-    XL::Tree_p DoInfix(XL::Infix_p what)
+    Tree *DoInfix(XL::Infix *what)
     {
         if (what->name == "\n" || what->name == ";")
         {
@@ -604,8 +604,8 @@ struct DeleteSelectionAction : XL::TreeClone
             if (widget->selected(what->right))
                 return what->left->Do(this);
         }
-        XL::Tree_p left = what->left->Do(this);
-        XL::Tree_p right = what->right->Do(this);
+        Tree *left = what->left->Do(this);
+        Tree *right = what->right->Do(this);
         if (left && right)
             return new XL::Infix(what->name, left, right, what->Position());
         else if (left)
@@ -622,39 +622,39 @@ struct InsertAtSelectionAction : XL::TreeClone
 // ----------------------------------------------------------------------------
 {
     InsertAtSelectionAction(Widget *widget,
-                            XL::Tree_p toInsert, XL::Tree_p parent)
+                            Tree *toInsert, Tree *parent)
         : widget(widget), toInsert(toInsert), parent(parent) {}
 
 
-    XL::Tree_p DoName(XL::Name_p what)
+    Tree *DoName(XL::Name *what)
     {
         if (what == parent)
             parent = NULL;
         return XL::TreeClone::DoName(what);
     }
 
-    XL::Tree_p DoPrefix(XL::Prefix_p what)
+    Tree *DoPrefix(XL::Prefix *what)
     {
         if (what == parent)
             parent = NULL;
         return XL::TreeClone::DoPrefix(what);
     }
 
-    XL::Tree_p DoPostfix(XL::Postfix_p what)
+    Tree *DoPostfix(XL::Postfix *what)
     {
         if (what == parent)
             parent = NULL;
         return XL::TreeClone::DoPostfix(what);
     }
 
-    XL::Tree_p DoBlock(XL::Block_p what)
+    Tree *DoBlock(XL::Block *what)
     {
         if (what == parent)
             parent = NULL;
         return XL::TreeClone::DoBlock(what);
     }
 
-    XL::Tree_p DoInfix(XL::Infix_p what)
+    Tree *DoInfix(XL::Infix *what)
     {
         if (what == parent)
             parent = NULL;
@@ -666,7 +666,7 @@ struct InsertAtSelectionAction : XL::TreeClone
                 // Check if we hit the selection. If so, insert
                 if (toInsert && widget->selected(what->left))
                 {
-                    XL::Tree_p ins = toInsert;
+                    Tree *ins = toInsert;
                     toInsert = NULL;
                     return new XL::Infix(what->name, ins, what->Do(this));
                 }
@@ -675,8 +675,8 @@ struct InsertAtSelectionAction : XL::TreeClone
         return XL::TreeClone::DoInfix(what);
     }
     Widget   *widget;
-    XL::Tree_p toInsert;
-    XL::Tree_p parent;
+    Tree_p toInsert;
+    Tree_p parent;
 };
 
 
@@ -685,11 +685,11 @@ struct SetAttributeAction : XL::Action
 //    Copy the inserted item as attribute in all selected items
 // ----------------------------------------------------------------------------
 {
-    SetAttributeAction(text name, XL::Tree_p attribute,
+    SetAttributeAction(text name, Tree *attribute,
                        Widget *widget, text shape = "shape")
         : name(name), attribute(attribute), widget(widget), shape(shape) {}
 
-    XL::Tree_p Do(XL::Tree_p what)
+    Tree *Do(Tree *what)
     {
         if (widget->selected(what))
             widget->set(what, name, attribute, shape);
@@ -697,7 +697,7 @@ struct SetAttributeAction : XL::Action
     }
 
     text      name;
-    XL::Tree_p attribute;
+    Tree_p    attribute;
     Widget   *widget;
     text      shape;
 };
@@ -710,8 +710,8 @@ struct NameToNameReplacement : XL::TreeClone
 {
     NameToNameReplacement(){}
 
-    XL::Tree_p  DoName(XL::Name_p what);
-    XL::Tree_p  Replace(XL::Tree_p original);
+    Tree *  DoName(XL::Name *what);
+    Tree *  Replace(Tree *original);
     text &      operator[] (text index)         { return map[index]; }
 
     std::map<text, text> map;
@@ -724,7 +724,7 @@ struct NameToTextReplacement : NameToNameReplacement
 // ----------------------------------------------------------------------------
 {
     NameToTextReplacement(): NameToNameReplacement() {}
-    XL::Tree_p  DoName(XL::Name_p what);
+    Tree *  DoName(XL::Name *what);
 };
 
 } // namespace Tao

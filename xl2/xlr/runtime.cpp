@@ -94,7 +94,7 @@ bool xl_same_text(Tree *what, const char *ref)
 //   Compile the tree if necessary, then evaluate it
 // ----------------------------------------------------------------------------
 {
-    Text_p tval = what->AsText(); assert(tval);
+    Text *tval = what->AsText(); assert(tval);
     return tval->value == text(ref);
 }
 
@@ -114,15 +114,15 @@ bool xl_same_shape(Tree *left, Tree *right)
 }
 
 
-Tree *xl_infix_match_check(Tree *value, Infix_p ref)
+Tree *xl_infix_match_check(Tree *value, Infix *ref)
 // ----------------------------------------------------------------------------
 //   Check if the value is matching the given infix
 // ----------------------------------------------------------------------------
 {
-    while (Block_p block = value->AsBlock())
+    while (Block *block = value->AsBlock())
         if (block->opening == "(" && block->closing == ")")
             value = block->child;
-    if (Infix_p infix = value->AsInfix())
+    if (Infix *infix = value->AsInfix())
         if (infix->name == ref->name)
             return infix;
     return NULL;
@@ -148,7 +148,7 @@ Tree *xl_type_check(Tree *value, Tree *type)
     if (!value->IsConstant() && value->code)
         value = value->code(value);
 
-    Infix_p typeExpr = Symbols::symbols->CompileTypeTest(type);
+    Infix *typeExpr = Symbols::symbols->CompileTypeTest(type);
     typecheck_fn typecheck = (typecheck_fn) typeExpr->code;
     Tree *afterTypeCast = typecheck(typeExpr, value);
     if (afterTypeCast && afterTypeCast != original)
@@ -226,7 +226,7 @@ Tree *xl_new_xtext(kstring value, kstring open, kstring close)
 }
 
 
-Tree *xl_new_block(Block_p source, Tree *child)
+Tree *xl_new_block(Block *source, Tree *child)
 // ----------------------------------------------------------------------------
 //    Called by generated code to build a new block
 // ----------------------------------------------------------------------------
@@ -237,7 +237,7 @@ Tree *xl_new_block(Block_p source, Tree *child)
 }
 
 
-Tree *xl_new_prefix(Prefix_p source, Tree *left, Tree *right)
+Tree *xl_new_prefix(Prefix *source, Tree *left, Tree *right)
 // ----------------------------------------------------------------------------
 //    Called by generated code to build a new Prefix
 // ----------------------------------------------------------------------------
@@ -248,7 +248,7 @@ Tree *xl_new_prefix(Prefix_p source, Tree *left, Tree *right)
 }
 
 
-Tree *xl_new_postfix(Postfix_p source, Tree *left, Tree *right)
+Tree *xl_new_postfix(Postfix *source, Tree *left, Tree *right)
 // ----------------------------------------------------------------------------
 //    Called by generated code to build a new Postfix
 // ----------------------------------------------------------------------------
@@ -259,7 +259,7 @@ Tree *xl_new_postfix(Postfix_p source, Tree *left, Tree *right)
 }
 
 
-Tree *xl_new_infix(Infix_p source, Tree *left, Tree *right)
+Tree *xl_new_infix(Infix *source, Tree *left, Tree *right)
 // ----------------------------------------------------------------------------
 //    Called by generated code to build a new Infix
 // ----------------------------------------------------------------------------
@@ -292,8 +292,8 @@ Tree *xl_new_closure(Tree *expr, uint ntrees, ...)
                   << " [" << expr << "]\n";
 
     // Build the prefix with all the arguments
-    Prefix_p result = new Prefix(expr, NULL);
-    Prefix_p parent = result;
+    Prefix *result = new Prefix(expr, NULL);
+    Prefix *parent = result;
     va_list va;
     va_start(va, ntrees);
     for (uint i = 0; i < ntrees; i++)
@@ -301,7 +301,7 @@ Tree *xl_new_closure(Tree *expr, uint ntrees, ...)
         Tree *arg = va_arg(va, Tree *);
         IFTRACE(closure)
             std::cerr << "  ARG: " << arg << '\n';
-        Prefix_p item = new Prefix(arg, NULL);
+        Prefix *item = new Prefix(arg, NULL);
         parent->right = item;
         parent = item;
     }
@@ -367,7 +367,7 @@ Tree *xl_integer_cast(Tree *source, Tree *value)
 // ----------------------------------------------------------------------------
 {
     value = xl_evaluate(value);
-    if (Integer_p it = value->AsInteger())
+    if (Integer *it = value->AsInteger())
         return it;
     return NULL;
 }
@@ -379,9 +379,9 @@ Tree *xl_real_cast(Tree *source, Tree *value)
 // ----------------------------------------------------------------------------
 {
     value = xl_evaluate(value);
-    if (Real_p rt = value->AsReal())
+    if (Real *rt = value->AsReal())
         return rt;
-    if (Integer_p it = value->AsInteger())
+    if (Integer *it = value->AsInteger())
         return new Real(it->value);
     return NULL;
 }
@@ -393,7 +393,7 @@ Tree *xl_text_cast(Tree *source, Tree *value)
 // ----------------------------------------------------------------------------
 {
     value = xl_evaluate(value);
-    if (Text_p tt = value->AsText())
+    if (Text *tt = value->AsText())
         if (tt->opening != "'")
             return tt;
     return NULL;
@@ -406,7 +406,7 @@ Tree *xl_character_cast(Tree *source, Tree *value)
 // ----------------------------------------------------------------------------
 {
     value = xl_evaluate(value);
-    if (Text_p tt = value->AsText())
+    if (Text *tt = value->AsText())
         if (tt->opening == "'")
             return tt;
     return NULL;
@@ -427,10 +427,10 @@ Tree *xl_symbolicname_cast(Tree *source, Tree *value)
 //   Check if argument can be evaluated as a name
 // ----------------------------------------------------------------------------
 {
-    if (Name_p nt = value->AsName())
+    if (Name *nt = value->AsName())
         return nt;
     value = xl_evaluate(value);
-    if (Name_p afterEval = value->AsName())
+    if (Name *afterEval = value->AsName())
         return afterEval;
     return NULL;
 }
@@ -441,7 +441,7 @@ Tree *xl_infix_cast(Tree *source, Tree *value)
 //   Check if argument can be evaluated as an infix
 // ----------------------------------------------------------------------------
 {
-    if (Infix_p it = value->AsInfix())
+    if (Infix *it = value->AsInfix())
         return it;
     return NULL;
 }
@@ -452,7 +452,7 @@ Tree *xl_prefix_cast(Tree *source, Tree *value)
 //   Check if argument can be evaluated as a prefix
 // ----------------------------------------------------------------------------
 {
-    if (Prefix_p it = value->AsPrefix())
+    if (Prefix *it = value->AsPrefix())
         return it;
     return NULL;
 }
@@ -463,7 +463,7 @@ Tree *xl_postfix_cast(Tree *source, Tree *value)
 //   Check if argument can be evaluated as a postfix
 // ----------------------------------------------------------------------------
 {
-    if (Postfix_p it = value->AsPostfix())
+    if (Postfix *it = value->AsPostfix())
         return it;
     return NULL;
 }
@@ -474,7 +474,7 @@ Tree *xl_block_cast(Tree *source, Tree *value)
 //   Check if argument can be evaluated as a block
 // ----------------------------------------------------------------------------
 {
-    if (Block_p it = value->AsBlock())
+    if (Block *it = value->AsBlock())
         return it;
     return NULL;
 }
@@ -513,7 +513,7 @@ Tree *XLCall::build(Symbols *syms)
 }
 
 
-Tree *xl_invoke(eval_fn toCall, Tree_p src, TreeList &args)
+Tree *xl_invoke(eval_fn toCall, Tree *src, TreeList &args)
 // ----------------------------------------------------------------------------
 //   Invoke a callback with the right number of arguments
 // ----------------------------------------------------------------------------

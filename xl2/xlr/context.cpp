@@ -46,7 +46,7 @@ XL_BEGIN
 
 Symbols_p Symbols::symbols;
 
-Tree_p Symbols::Named(text name, bool deep)
+Tree *Symbols::Named(text name, bool deep)
 // ----------------------------------------------------------------------------
 //   Find the name in the current context
 // ----------------------------------------------------------------------------
@@ -68,7 +68,7 @@ Tree_p Symbols::Named(text name, bool deep)
 }
 
 
-void Symbols::EnterName(text name, Tree_p value)
+void Symbols::EnterName(text name, Tree *value)
 // ----------------------------------------------------------------------------
 //   Enter a value in the namespace
 // ----------------------------------------------------------------------------
@@ -77,14 +77,14 @@ void Symbols::EnterName(text name, Tree_p value)
 }
 
 
-Name_p Symbols::Allocate(Name_p n)
+Name *Symbols::Allocate(Name *n)
 // ----------------------------------------------------------------------------
 //   Enter a value in the namespace
 // ----------------------------------------------------------------------------
 {
-    if (Tree_p existing = names[n->value])
+    if (Tree *existing = names[n->value])
     {
-        if (Name_p name = existing->AsName())
+        if (Name *name = existing->AsName())
             if (name->value == n->value)
                 return name;
         existing = Error("Redefining '$1' as data, was '$2'", n, existing);
@@ -105,18 +105,18 @@ Rewrite *Symbols::EnterRewrite(Rewrite *rw)
         has_rewrites_for_constants = true;
 
     // Create symbol table for this rewrite
-    Symbols_p locals = new Symbols(this);
+    Symbols *locals = new Symbols(this);
     rw->from->SetSymbols(locals);
 
     // Enter parameters in the symbol table
     ParameterMatch parms(locals);
-    Tree_p check = rw->from->Do(parms);
+    Tree *check = rw->from->Do(parms);
     if (!check)
         Error("Parameter error for '$1'", rw->from);
     rw->parameters = parms.order;
 
     // If we are defining a name, store the definition in the symbols
-    if (Name_p name = parms.defined->AsName())
+    if (Name *name = parms.defined->AsName())
         Allocate(name);
 
     if (rewrites)
@@ -129,7 +129,7 @@ Rewrite *Symbols::EnterRewrite(Rewrite *rw)
 }
 
 
-Rewrite *Symbols::EnterRewrite(Tree_p from, Tree_p to)
+Rewrite *Symbols::EnterRewrite(Tree *from, Tree *to)
 // ----------------------------------------------------------------------------
 //   Create a rewrite for the current context and enter it
 // ----------------------------------------------------------------------------
@@ -147,10 +147,7 @@ void Symbols::Clear()
     symbol_table empty;
     names = empty;
     if (rewrites)
-    {
-        delete rewrites;
-        rewrites = NULL;
-    }
+        rewrites = NULL;        // Decrease reference count
 }
 
 
@@ -161,7 +158,7 @@ void Symbols::Clear()
 //
 // ============================================================================
 
-Tree_p Symbols::Compile(Tree_p source, CompiledUnit &unit,
+Tree *Symbols::Compile(Tree *source, CompiledUnit &unit,
                         bool nullIfBad, bool keepAlternatives)
 // ----------------------------------------------------------------------------
 //    Return an optimized version of the source tree, ready to run
@@ -172,7 +169,7 @@ Tree_p Symbols::Compile(Tree_p source, CompiledUnit &unit,
 
     // Record rewrites and data declarations in the current context
     DeclarationAction declare(this);
-    Tree_p result = source->Do(declare);
+    Tree *result = source->Do(declare);
 
     // Compile code for that tree
     CompileAction compile(this, unit, nullIfBad, keepAlternatives);
@@ -191,7 +188,7 @@ Tree_p Symbols::Compile(Tree_p source, CompiledUnit &unit,
 }
 
 
-Tree_p Symbols::CompileAll(Tree_p source,
+Tree *Symbols::CompileAll(Tree *source,
                           bool nullIfBad,
                           bool keepAlternatives)
 // ----------------------------------------------------------------------------
@@ -212,7 +209,7 @@ Tree_p Symbols::CompileAll(Tree_p source,
     if (unit.IsForwardCall())
         return source;
 
-    Tree_p result = Compile(source, unit, nullIfBad, keepAlternatives);
+    Tree *result = Compile(source, unit, nullIfBad, keepAlternatives);
     if (!result)
         return result;
 
@@ -222,7 +219,7 @@ Tree_p Symbols::CompileAll(Tree_p source,
 }
 
 
-Tree_p Symbols::CompileCall(text callee, TreeList &arglist,
+Tree *Symbols::CompileCall(text callee, TreeList &arglist,
                            bool nullIfBad, bool cached)
 // ----------------------------------------------------------------------------
 //   Compile a top-level call, reusing calls if possible
@@ -241,42 +238,42 @@ Tree_p Symbols::CompileCall(text callee, TreeList &arglist,
         key = keyBuilder.str();
 
         // Check if we already have a call compiled
-        if (Tree_p previous = calls[key])
+        if (Tree *previous = calls[key])
         {
             if (arity)
             {
                 // Replace arguments in place if necessary
-                Prefix_p pfx = previous->AsPrefix();
+                Prefix *pfx = previous->AsPrefix();
                 Tree_p *args = &pfx->right;
                 while (*args && arity--)
                 {
-                    Tree_p value = arglist[arity];
-                    Tree_p existing = *args;
+                    Tree *value = arglist[arity];
+                    Tree *existing = *args;
                     if (arity)
                     {
-                        Infix_p infix = existing->AsInfix();
+                        Infix *infix = existing->AsInfix();
                         args = &infix->left;
                         existing = infix->right;
                     }
-                    if (Real_p rs = value->AsReal())
+                    if (Real *rs = value->AsReal())
                     {
-                        if (Real_p rt = existing->AsReal())
+                        if (Real *rt = existing->AsReal())
                             rt->value = rs->value;
                         else
                             Error("Real '$1' cannot replace non-real '$2'",
                                   value, existing);
                     }
-                    else if (Integer_p is = value->AsInteger())
+                    else if (Integer *is = value->AsInteger())
                     {
-                        if (Integer_p it = existing->AsInteger())
+                        if (Integer *it = existing->AsInteger())
                             it->value = is->value;
                         else
                             Error("Integer '$1' cannot replace "
                                   "non-integer '$2'", value, existing);
                     }
-                    else if (Text_p ts = value->AsText())
+                    else if (Text *ts = value->AsText())
                     {
-                        if (Text_p tt = existing->AsText())
+                        if (Text *tt = existing->AsText())
                             tt->value = ts->value;
                         else
                             Error("Text '$1' cannot replace non-text '$2'",
@@ -294,10 +291,10 @@ Tree_p Symbols::CompileCall(text callee, TreeList &arglist,
         }
     }
 
-    Tree_p call = new Name(callee);
+    Tree *call = new Name(callee);
     if (arity)
     {
-        Tree_p args = arglist[0];
+        Tree *args = arglist[0];
         for (uint a = 1; a < arity; a++)
             args = new Infix(",", args, arglist[a]);
         call = new Prefix(call, args);
@@ -309,20 +306,20 @@ Tree_p Symbols::CompileCall(text callee, TreeList &arglist,
 }
 
 
-Infix_p Symbols::CompileTypeTest(Tree_p type)
+Infix *Symbols::CompileTypeTest(Tree *type)
 // ----------------------------------------------------------------------------
 //   Compile a top-level infix, reusing code if possible
 // ----------------------------------------------------------------------------
 {
     // Check if we already have a call compiled for that type
-    if (Tree_p previous = type_tests[type])
-        if (Infix_p infix = previous->AsInfix())
+    if (Tree *previous = type_tests[type])
+        if (Infix *infix = previous->AsInfix())
             if (infix->code)
                 return infix;
 
     // Create an infix node with two parameters for left and right
-    Name_p valueParm = new Name("xl_value_to_typecheck");
-    Infix_p call = new Infix(":", valueParm, type);
+    Name *valueParm = new Name("xl_value_to_typecheck");
+    Infix *call = new Infix(":", valueParm, type);
     TreeList parameters;
     parameters.push_back(valueParm);
     type_tests[type] = call;
@@ -334,17 +331,17 @@ Infix_p Symbols::CompileTypeTest(Tree_p type)
         return call;
 
     // Create local symbols
-    Symbols_p locals = new Symbols (Symbols::symbols);
+    Symbols *locals = new Symbols (Symbols::symbols);
 
     // Record rewrites and data declarations in the current context
     DeclarationAction declare(locals);
-    Tree_p callDecls = call->Do(declare);
+    Tree *callDecls = call->Do(declare);
     if (!callDecls)
         Error("Internal: Declaration error for call '$1'", callDecls);
 
     // Compile the body of the rewrite, keep all alternatives open
     CompileAction compile(locals, unit, false, false);
-    Tree_p result = callDecls->Do(compile);
+    Tree *result = callDecls->Do(compile);
     if (!result)
         Error("Unable to compile '$1'", callDecls);
 
@@ -356,7 +353,7 @@ Infix_p Symbols::CompileTypeTest(Tree_p type)
 }
 
 
-Tree_p Symbols::Run(Tree_p code)
+Tree *Symbols::Run(Tree *code)
 // ----------------------------------------------------------------------------
 //   Execute a tree by applying the rewrites in the current context
 // ----------------------------------------------------------------------------
@@ -364,7 +361,7 @@ Tree_p Symbols::Run(Tree_p code)
     static uint index = 0;
 
     // Trace what we are doing
-    Tree_p result = code;
+    Tree *result = code;
     IFTRACE(eval)
         std::cerr << "EVAL" << ++index << ": " << code << '\n';
     uint opt = Options::options->optimize_level;
@@ -383,7 +380,7 @@ Tree_p Symbols::Run(Tree_p code)
         {
             if (!result->code)
             {
-                Symbols_p symbols = result->Symbols();
+                Symbols *symbols = result->Symbols();
                 if (!symbols)
                 {
                     std::cerr << "WARNING: Tree '" << code
@@ -450,14 +447,14 @@ Tree_p Symbols::Run(Tree_p code)
 
     // Lookup all the symbol tables for the appropriate rewrite
     symbols_list::iterator li;
-    Name_p name = code->AsName();
+    Name *name = code->AsName();
     for (li = lookups.begin(); !found && li != lookups.end(); li++)
     {
         Symbols *s = *li;
 
         if (name)
         {
-            Tree_p named = s->Named(name->value, false);
+            Tree *named = s->Named(name->value, false);
             if (named)
             {
                 if (named->code)
@@ -484,7 +481,7 @@ Tree_p Symbols::Run(Tree_p code)
                 Symbols args(symbols);
                 InterpretedArgumentMatch matchArgs(code, symbols,
                                                    &args, candidate->symbols);
-                Tree_p argsTest = candidate->from->Do(matchArgs);
+                Tree *argsTest = candidate->from->Do(matchArgs);
                 if (argsTest)
                 {
                     // Record that we found something
@@ -510,7 +507,7 @@ Tree_p Symbols::Run(Tree_p code)
                                  p++)
                             {
                                 text name = (*p).first;
-                                Tree_p parm = parms.Named(name);
+                                Tree *parm = parms.Named(name);
                                 std::cerr << "   " << name
                                           << " = " << parm << "\n";
                             }
@@ -520,7 +517,7 @@ Tree_p Symbols::Run(Tree_p code)
                                  a++)
                             {
                                 text name = (*a).first;
-                                Tree_p arg = args.Named(name);
+                                Tree *arg = args.Named(name);
                                 std::cerr << "   " << name
                                           << " = " << arg << "\n";
                             }
@@ -534,8 +531,8 @@ Tree_p Symbols::Run(Tree_p code)
                             TreeList &order = candidate->parameters;
                             for (p = order.begin(); p != order.end(); p++)
                             {
-                                Name_p name = (*p)->AsName();
-                                Tree_p argValue = args.Named(name->value);
+                                Name *name = (*p)->AsName();
+                                Tree *argValue = args.Named(name->value);
                                 argsList.push_back(argValue);
                             }
                             result = xl_invoke(toCall, code, argsList);
@@ -580,7 +577,7 @@ Tree_p Symbols::Run(Tree_p code)
 //
 // ============================================================================
 
-Tree_p  Symbols::Error(text message, Tree_p arg1, Tree_p arg2, Tree_p arg3)
+Tree *  Symbols::Error(text message, Tree *arg1, Tree *arg2, Tree *arg3)
 // ----------------------------------------------------------------------------
 //   Execute the innermost error handler
 // ----------------------------------------------------------------------------
@@ -594,7 +591,7 @@ Tree_p  Symbols::Error(text message, Tree_p arg1, Tree_p arg2, Tree_p arg3)
     if (arg3)
         call, arg3;
 
-    Tree_p result = call(this, true, false);
+    Tree *result = call(this, true, false);
     if (!result)
     {
         // Fallback to displaying error on std::err
@@ -625,16 +622,6 @@ Context::~Context()
 }
 
 
-Tree_p *Context::AddGlobal(Tree_p value)
-// ----------------------------------------------------------------------------
-//   Create a global, immutable address for LLVM
-// ----------------------------------------------------------------------------
-{
-    Tree_p *ptr = new Tree_p(value);
-    return ptr;
-}
-
-
 
 // ============================================================================
 //
@@ -642,7 +629,7 @@ Tree_p *Context::AddGlobal(Tree_p value)
 //
 // ============================================================================
 
-Tree_p InterpretedArgumentMatch::Do(Tree_p)
+Tree *InterpretedArgumentMatch::Do(Tree *)
 // ----------------------------------------------------------------------------
 //   Default is to return failure
 // ----------------------------------------------------------------------------
@@ -651,16 +638,16 @@ Tree_p InterpretedArgumentMatch::Do(Tree_p)
 }
 
 
-Tree_p InterpretedArgumentMatch::DoInteger(Integer_p what)
+Tree *InterpretedArgumentMatch::DoInteger(Integer *what)
 // ----------------------------------------------------------------------------
 //   An integer argument matches the exact value
 // ----------------------------------------------------------------------------
 {
     // Evaluate the test value
-    Tree_p value = xl_evaluate(test);
+    Tree *value = xl_evaluate(test);
 
     // If this is an integer, compare the values
-    Integer_p it = value->AsInteger();
+    Integer *it = value->AsInteger();
     if (!it)
         return NULL;
     if (it->value == what->value)
@@ -670,16 +657,16 @@ Tree_p InterpretedArgumentMatch::DoInteger(Integer_p what)
 }
 
 
-Tree_p InterpretedArgumentMatch::DoReal(Real_p what)
+Tree *InterpretedArgumentMatch::DoReal(Real *what)
 // ----------------------------------------------------------------------------
 //   A real matches the exact value
 // ----------------------------------------------------------------------------
 {
     // Evaluate the test value
-    Tree_p value = xl_evaluate(test);
+    Tree *value = xl_evaluate(test);
 
     // If this is an integer, compare the values
-    Real_p rt = value->AsReal();
+    Real *rt = value->AsReal();
     if (!rt)
         return NULL;
     if (rt->value == what->value)
@@ -689,16 +676,16 @@ Tree_p InterpretedArgumentMatch::DoReal(Real_p what)
 }
 
 
-Tree_p InterpretedArgumentMatch::DoText(Text_p what)
+Tree *InterpretedArgumentMatch::DoText(Text *what)
 // ----------------------------------------------------------------------------
 //   A text matches the exact value
 // ----------------------------------------------------------------------------
 {
     // Evaluate the test value
-    Tree_p value = xl_evaluate(test);
+    Tree *value = xl_evaluate(test);
 
     // If this is an integer, compare the values
-    Text_p tt = value->AsText();
+    Text *tt = value->AsText();
     if (!tt)
         return NULL;
     if (tt->value == what->value)
@@ -708,7 +695,7 @@ Tree_p InterpretedArgumentMatch::DoText(Text_p what)
 }
 
 
-Tree_p InterpretedArgumentMatch::DoName(Name_p what)
+Tree *InterpretedArgumentMatch::DoName(Name *what)
 // ----------------------------------------------------------------------------
 //    Bind arguments to parameters being defined in the shape
 // ----------------------------------------------------------------------------
@@ -717,7 +704,7 @@ Tree_p InterpretedArgumentMatch::DoName(Name_p what)
     {
         // The first name we see must match exactly, e.g. 'sin' in 'sin X'
         defined = what;
-        if (Name_p nt = test->AsName())
+        if (Name *nt = test->AsName())
             if (nt->value == what->value)
                 return what;
         return NULL;
@@ -726,7 +713,7 @@ Tree_p InterpretedArgumentMatch::DoName(Name_p what)
     {
         // Check if the name already exists, e.g. 'false' or 'A+A'
         // If it does, verify equality with the one that already exists
-        if (Tree_p existing = rewrite->Named(what->value))
+        if (Tree *existing = rewrite->Named(what->value))
         {
             TreeMatch match(test);
             if (existing->Do(match))
@@ -741,19 +728,19 @@ Tree_p InterpretedArgumentMatch::DoName(Name_p what)
 }
 
 
-Tree_p InterpretedArgumentMatch::DoBlock(Block_p what)
+Tree *InterpretedArgumentMatch::DoBlock(Block *what)
 // ----------------------------------------------------------------------------
 //   Check if we match a block
 // ----------------------------------------------------------------------------
 {
     // Test if we exactly match the block, i.e. the reference is a block
-    if (Block_p bt = test->AsBlock())
+    if (Block *bt = test->AsBlock())
     {
         if (bt->opening == what->opening &&
             bt->closing == what->closing)
         {
             test = bt->child;
-            Tree_p br = what->child->Do(this);
+            Tree *br = what->child->Do(this);
             test = bt;
             if (br)
                 return br;
@@ -772,12 +759,12 @@ Tree_p InterpretedArgumentMatch::DoBlock(Block_p what)
 }
 
 
-Tree_p InterpretedArgumentMatch::DoInfix(Infix_p what)
+Tree *InterpretedArgumentMatch::DoInfix(Infix *what)
 // ----------------------------------------------------------------------------
 //   Check if we match an infix operator
 // ----------------------------------------------------------------------------
 {
-    if (Infix_p it = test->AsInfix())
+    if (Infix *it = test->AsInfix())
     {
         // Check if we match the tree, e.g. A+B vs 2+3
         if (it->name == what->name)
@@ -785,12 +772,12 @@ Tree_p InterpretedArgumentMatch::DoInfix(Infix_p what)
             if (!defined)
                 defined = what;
             test = it->left;
-            Tree_p lr = what->left->Do(this);
+            Tree *lr = what->left->Do(this);
             test = it;
             if (!lr)
                 return NULL;
             test = it->right;
-            Tree_p rr = what->right->Do(this);
+            Tree *rr = what->right->Do(this);
             test = it;
             if (!rr)
                 return NULL;
@@ -802,26 +789,26 @@ Tree_p InterpretedArgumentMatch::DoInfix(Infix_p what)
     if (what->name == ":")
     {
         // Check the variable name, e.g. K in example above
-        Name_p varName = what->left->AsName();
+        Name *varName = what->left->AsName();
         if (!varName)
             return Ooops("Expected a name, got '$1' ", what->left);
 
         // Check if the name already exists
-        if (Tree_p existing = rewrite->Named(varName->value))
+        if (Tree *existing = rewrite->Named(varName->value))
             return Ooops("Name '$1' already exists as '$2'",
                          what->left, existing);
 
         // Evaluate type expression, e.g. 'integer' in example above
-        Tree_p typeExpr = xl_evaluate(what->right);
+        Tree *typeExpr = xl_evaluate(what->right);
         if (!typeExpr)
             return NULL;
 
         // REVISIT: Very slow and leaking memory
         // Check if the type matches the value
-        Infix_p typeTest = new Infix(":", test, typeExpr,
+        Infix *typeTest = new Infix(":", test, typeExpr,
                                     what->right->Position());
         typeTest->SetSymbols (symbols);
-        Tree_p afterCast = xl_evaluate(typeTest);
+        Tree *afterCast = xl_evaluate(typeTest);
         if (!afterCast)
             return NULL;
 
@@ -836,26 +823,26 @@ Tree_p InterpretedArgumentMatch::DoInfix(Infix_p what)
 }
 
 
-Tree_p InterpretedArgumentMatch::DoPrefix(Prefix_p what)
+Tree *InterpretedArgumentMatch::DoPrefix(Prefix *what)
 // ----------------------------------------------------------------------------
 //   For prefix expressions, simply test left then right
 // ----------------------------------------------------------------------------
 {
-    if (Prefix_p pt = test->AsPrefix())
+    if (Prefix *pt = test->AsPrefix())
     {
         // Check if we match the tree, e.g. f(A) vs. f(2)
         // Note that we must test left first to define 'f' in above case
-        Infix_p defined_infix = defined->AsInfix();
+        Infix *defined_infix = defined->AsInfix();
         if (defined_infix)
             defined = NULL;
 
         test = pt->left;
-        Tree_p lr = what->left->Do(this);
+        Tree *lr = what->left->Do(this);
         test = pt;
         if (!lr)
             return NULL;
         test = pt->right;
-        Tree_p rr = what->right->Do(this);
+        Tree *rr = what->right->Do(this);
         test = pt;
         if (!rr)
             return NULL;
@@ -867,23 +854,23 @@ Tree_p InterpretedArgumentMatch::DoPrefix(Prefix_p what)
 }
 
 
-Tree_p InterpretedArgumentMatch::DoPostfix(Postfix_p what)
+Tree *InterpretedArgumentMatch::DoPostfix(Postfix *what)
 // ----------------------------------------------------------------------------
 //    For postfix expressions, simply test right, then left
 // ----------------------------------------------------------------------------
 {
-    if (Postfix_p pt = test->AsPostfix())
+    if (Postfix *pt = test->AsPostfix())
     {
         // Check if we match the tree, e.g. A! vs 2!
         // Note that ordering is reverse compared to prefix, so that
         // the 'defined' names is set correctly
         test = pt->right;
-        Tree_p rr = what->right->Do(this);
+        Tree *rr = what->right->Do(this);
         test = pt;
         if (!rr)
             return NULL;
         test = pt->left;
-        Tree_p lr = what->left->Do(this);
+        Tree *lr = what->left->Do(this);
         test = pt;
         if (!lr)
             return NULL;
@@ -900,7 +887,7 @@ Tree_p InterpretedArgumentMatch::DoPostfix(Postfix_p what)
 //
 // ============================================================================
 
-Tree_p ParameterMatch::Do(Tree_p what)
+Tree *ParameterMatch::Do(Tree *what)
 // ----------------------------------------------------------------------------
 //   Nothing to do for leaves
 // ----------------------------------------------------------------------------
@@ -909,7 +896,7 @@ Tree_p ParameterMatch::Do(Tree_p what)
 }
 
 
-Tree_p ParameterMatch::DoInteger(Integer_p what)
+Tree *ParameterMatch::DoInteger(Integer *what)
 // ----------------------------------------------------------------------------
 //   Nothing to do for leaves
 // ----------------------------------------------------------------------------
@@ -918,7 +905,7 @@ Tree_p ParameterMatch::DoInteger(Integer_p what)
 }
 
 
-Tree_p ParameterMatch::DoReal(Real_p what)
+Tree *ParameterMatch::DoReal(Real *what)
 // ----------------------------------------------------------------------------
 //   Nothing to do for leaves
 // ----------------------------------------------------------------------------
@@ -927,7 +914,7 @@ Tree_p ParameterMatch::DoReal(Real_p what)
 }
 
 
-Tree_p ParameterMatch::DoText(Text_p what)
+Tree *ParameterMatch::DoText(Text *what)
 // ----------------------------------------------------------------------------
 //   Nothing to do for leaves
 // ----------------------------------------------------------------------------
@@ -936,7 +923,7 @@ Tree_p ParameterMatch::DoText(Text_p what)
 }
 
 
-Tree_p ParameterMatch::DoName(Name_p what)
+Tree *ParameterMatch::DoName(Name *what)
 // ----------------------------------------------------------------------------
 //    Identify the parameters being defined in the shape
 // ----------------------------------------------------------------------------
@@ -950,18 +937,18 @@ Tree_p ParameterMatch::DoName(Name_p what)
     else
     {
         // Check if the name already exists, e.g. 'false' or 'A+A'
-        if (Tree_p existing = symbols->Named(what->value))
+        if (Tree *existing = symbols->Named(what->value))
             return existing;
 
         // If first occurence of the name, enter it in symbol table
-        Tree_p result = symbols->Allocate(what);
+        Tree *result = symbols->Allocate(what);
         order.push_back(result);
         return result;
     }
 }
 
 
-Tree_p ParameterMatch::DoBlock(Block_p what)
+Tree *ParameterMatch::DoBlock(Block *what)
 // ----------------------------------------------------------------------------
 //   Parameters in a block belong to the child
 // ----------------------------------------------------------------------------
@@ -970,7 +957,7 @@ Tree_p ParameterMatch::DoBlock(Block_p what)
 }
 
 
-Tree_p ParameterMatch::DoInfix(Infix_p what)
+Tree *ParameterMatch::DoInfix(Infix *what)
 // ----------------------------------------------------------------------------
 //   Check if we match an infix operator
 // ----------------------------------------------------------------------------
@@ -979,17 +966,17 @@ Tree_p ParameterMatch::DoInfix(Infix_p what)
     if (what->name == ":")
     {
         // Check the variable name, e.g. K in example above
-        Name_p varName = what->left->AsName();
+        Name *varName = what->left->AsName();
         if (!varName)
             return Ooops("Expected a name, got '$1' ", what->left);
 
         // Check if the name already exists
-        if (Tree_p existing = symbols->Named(varName->value))
+        if (Tree *existing = symbols->Named(varName->value))
             return Ooops("Typed name '$1' already exists as '$2'",
                          what->left, existing);
 
         // Enter the name in symbol table
-        Tree_p result = symbols->Allocate(varName);
+        Tree *result = symbols->Allocate(varName);
         order.push_back(result);
         return result;
     }
@@ -999,29 +986,29 @@ Tree_p ParameterMatch::DoInfix(Infix_p what)
         defined = what;
 
     // Otherwise, test left and right
-    Tree_p lr = what->left->Do(this);
+    Tree *lr = what->left->Do(this);
     if (!lr)
         return NULL;
-    Tree_p rr = what->right->Do(this);
+    Tree *rr = what->right->Do(this);
     if (!rr)
         return NULL;
     return what;
 }
 
 
-Tree_p ParameterMatch::DoPrefix(Prefix_p what)
+Tree *ParameterMatch::DoPrefix(Prefix *what)
 // ----------------------------------------------------------------------------
 //   For prefix expressions, simply test left then right
 // ----------------------------------------------------------------------------
 {
-    Infix_p defined_infix = defined->AsInfix();
+    Infix *defined_infix = defined->AsInfix();
     if (defined_infix)
         defined = NULL;
 
-    Tree_p lr = what->left->Do(this);
+    Tree *lr = what->left->Do(this);
     if (!lr)
         return NULL;
-    Tree_p rr = what->right->Do(this);
+    Tree *rr = what->right->Do(this);
     if (!rr)
         return NULL;
 
@@ -1032,17 +1019,17 @@ Tree_p ParameterMatch::DoPrefix(Prefix_p what)
 }
 
 
-Tree_p ParameterMatch::DoPostfix(Postfix_p what)
+Tree *ParameterMatch::DoPostfix(Postfix *what)
 // ----------------------------------------------------------------------------
 //    For postfix expressions, simply test right, then left
 // ----------------------------------------------------------------------------
 {
     // Note that ordering is reverse compared to prefix, so that
     // the 'defined' names is set correctly
-    Tree_p rr = what->right->Do(this);
+    Tree *rr = what->right->Do(this);
     if (!rr)
         return NULL;
-    Tree_p lr = what->left->Do(this);
+    Tree *lr = what->left->Do(this);
     if (!lr)
         return NULL;
     return what;
@@ -1056,7 +1043,7 @@ Tree_p ParameterMatch::DoPostfix(Postfix_p what)
 //
 // ============================================================================
 
-Tree_p ArgumentMatch::Compile(Tree_p source)
+Tree *ArgumentMatch::Compile(Tree *source)
 // ----------------------------------------------------------------------------
 //    Compile the source tree, and record we use the value in expr cache
 // ----------------------------------------------------------------------------
@@ -1079,18 +1066,18 @@ Tree_p ArgumentMatch::Compile(Tree_p source)
 }
 
 
-Tree_p ArgumentMatch::CompileValue(Tree_p source)
+Tree *ArgumentMatch::CompileValue(Tree *source)
 // ----------------------------------------------------------------------------
 //   Compile the source and make sure we evaluate it
 // ----------------------------------------------------------------------------
 {
-    Tree_p result = Compile(source);
+    Tree *result = Compile(source);
 
     if (result)
     {
-        if (Name_p name = result->AsName())
+        if (Name *name = result->AsName())
         {
-            llvm::BasicBlock * bb = unit.BeginLazy(name);
+            llvm::BasicBlock *bb = unit.BeginLazy(name);
             unit.NeedStorage(name);
             if (!name->Symbols())
                 name->SetSymbols(symbols);
@@ -1102,7 +1089,7 @@ Tree_p ArgumentMatch::CompileValue(Tree_p source)
 }
 
 
-Tree_p ArgumentMatch::CompileClosure(Tree_p source)
+Tree *ArgumentMatch::CompileClosure(Tree *source)
 // ----------------------------------------------------------------------------
 //    Compile the source tree for lazy evaluation, i.e. wrap in code
 // ----------------------------------------------------------------------------
@@ -1118,7 +1105,7 @@ Tree_p ArgumentMatch::CompileClosure(Tree_p source)
     Context *context = Context::context;
     Compiler *compiler = context->compiler;
     EnvironmentScan env(symbols);
-    Tree_p envOK = source->Do(env);
+    Tree *envOK = source->Do(env);
     if (!envOK)
         return Ooops("Internal: what environment in '$1'?", source);
 
@@ -1127,7 +1114,7 @@ Tree_p ArgumentMatch::CompileClosure(Tree_p source)
     capture_table::iterator c;
     for (c = env.captured.begin(); c != env.captured.end(); c++)
     {
-        Tree_p name = (*c).first;
+        Tree *name = (*c).first;
         Symbols *where = (*c).second;
         if (where == context || where == Symbols::symbols)
         {
@@ -1151,7 +1138,7 @@ Tree_p ArgumentMatch::CompileClosure(Tree_p source)
     CompiledUnit subUnit(compiler, source, parms);
     if (!subUnit.IsForwardCall())
     {
-        Tree_p result = symbols->Compile(source, subUnit, true);
+        Tree *result = symbols->Compile(source, subUnit, true);
         if (!result)
             unit.ConstantTree(source);
 
@@ -1166,7 +1153,7 @@ Tree_p ArgumentMatch::CompileClosure(Tree_p source)
 }
 
 
-Tree_p ArgumentMatch::Do(Tree_p)
+Tree *ArgumentMatch::Do(Tree *)
 // ----------------------------------------------------------------------------
 //   Default is to return failure
 // ----------------------------------------------------------------------------
@@ -1175,7 +1162,7 @@ Tree_p ArgumentMatch::Do(Tree_p)
 }
 
 
-Tree_p ArgumentMatch::DoInteger(Integer_p what)
+Tree *ArgumentMatch::DoInteger(Integer *what)
 // ----------------------------------------------------------------------------
 //   An integer argument matches the exact value
 // ----------------------------------------------------------------------------
@@ -1183,7 +1170,7 @@ Tree_p ArgumentMatch::DoInteger(Integer_p what)
     // If the tested tree is a constant, it must be an integer with same value
     if (test->IsConstant())
     {
-        Integer_p it = test->AsInteger();
+        Integer *it = test->AsInteger();
         if (!it)
             return NULL;
         if (!compile->keepAlternatives)
@@ -1195,7 +1182,7 @@ Tree_p ArgumentMatch::DoInteger(Integer_p what)
     }
 
     // Compile the test tree
-    Tree_p compiled = CompileValue(test);
+    Tree *compiled = CompileValue(test);
     if (!compiled)
         return NULL;
 
@@ -1205,7 +1192,7 @@ Tree_p ArgumentMatch::DoInteger(Integer_p what)
 }
 
 
-Tree_p ArgumentMatch::DoReal(Real_p what)
+Tree *ArgumentMatch::DoReal(Real *what)
 // ----------------------------------------------------------------------------
 //   A real matches the exact value
 // ----------------------------------------------------------------------------
@@ -1213,7 +1200,7 @@ Tree_p ArgumentMatch::DoReal(Real_p what)
     // If the tested tree is a constant, it must be an integer with same value
     if (test->IsConstant())
     {
-        Real_p rt = test->AsReal();
+        Real *rt = test->AsReal();
         if (!rt)
             return NULL;
         if (!compile->keepAlternatives)
@@ -1225,7 +1212,7 @@ Tree_p ArgumentMatch::DoReal(Real_p what)
     }
 
     // Compile the test tree
-    Tree_p compiled = CompileValue(test);
+    Tree *compiled = CompileValue(test);
     if (!compiled)
         return NULL;
 
@@ -1235,7 +1222,7 @@ Tree_p ArgumentMatch::DoReal(Real_p what)
 }
 
 
-Tree_p ArgumentMatch::DoText(Text_p what)
+Tree *ArgumentMatch::DoText(Text *what)
 // ----------------------------------------------------------------------------
 //   A text matches the exact value
 // ----------------------------------------------------------------------------
@@ -1243,7 +1230,7 @@ Tree_p ArgumentMatch::DoText(Text_p what)
     // If the tested tree is a constant, it must be an integer with same value
     if (test->IsConstant())
     {
-        Text_p tt = test->AsText();
+        Text *tt = test->AsText();
         if (!tt)
             return NULL;
         if (!compile->keepAlternatives)
@@ -1255,7 +1242,7 @@ Tree_p ArgumentMatch::DoText(Text_p what)
     }
 
     // Compile the test tree
-    Tree_p compiled = CompileValue(test);
+    Tree *compiled = CompileValue(test);
     if (!compiled)
         return NULL;
 
@@ -1265,7 +1252,7 @@ Tree_p ArgumentMatch::DoText(Text_p what)
 }
 
 
-Tree_p ArgumentMatch::DoName(Name_p what)
+Tree *ArgumentMatch::DoName(Name *what)
 // ----------------------------------------------------------------------------
 //    Bind arguments to parameters being defined in the shape
 // ----------------------------------------------------------------------------
@@ -1274,7 +1261,7 @@ Tree_p ArgumentMatch::DoName(Name_p what)
     {
         // The first name we see must match exactly, e.g. 'sin' in 'sin X'
         defined = what;
-        if (Name_p nt = test->AsName())
+        if (Name *nt = test->AsName())
             if (nt->value == what->value)
                 return what;
         return NULL;
@@ -1283,10 +1270,10 @@ Tree_p ArgumentMatch::DoName(Name_p what)
     {
         // Check if the name already exists, e.g. 'false' or 'A+A'
         // If it does, we generate a run-time check to verify equality
-        if (Tree_p existing = rewrite->Named(what->value))
+        if (Tree *existing = rewrite->Named(what->value))
         {
             // Check if the test is an identity
-            if (Name_p nt = test->AsName())
+            if (Name *nt = test->AsName())
             {
                 if (nt->code == xl_identity)
                 {
@@ -1297,10 +1284,10 @@ Tree_p ArgumentMatch::DoName(Name_p what)
             }
 
             // Insert a dynamic tree comparison test
-            Tree_p testCode = Compile(test);
+            Tree *testCode = Compile(test);
             if (!testCode)
                 return NULL;
-            Tree_p thisCode = Compile(existing);
+            Tree *thisCode = Compile(existing);
             if (!thisCode)
                 return NULL;
             unit.ShapeTest(testCode, thisCode);
@@ -1310,7 +1297,7 @@ Tree_p ArgumentMatch::DoName(Name_p what)
         }
 
         // If first occurence of the name, enter it in symbol table
-        Tree_p compiled = CompileClosure(test);
+        Tree *compiled = CompileClosure(test);
         if (!compiled)
             return NULL;
 
@@ -1320,19 +1307,19 @@ Tree_p ArgumentMatch::DoName(Name_p what)
 }
 
 
-Tree_p ArgumentMatch::DoBlock(Block_p what)
+Tree *ArgumentMatch::DoBlock(Block *what)
 // ----------------------------------------------------------------------------
 //   Check if we match a block
 // ----------------------------------------------------------------------------
 {
     // Test if we exactly match the block, i.e. the reference is a block
-    if (Block_p bt = test->AsBlock())
+    if (Block *bt = test->AsBlock())
     {
         if (bt->opening == what->opening &&
             bt->closing == what->closing)
         {
             test = bt->child;
-            Tree_p br = what->child->Do(this);
+            Tree *br = what->child->Do(this);
             test = bt;
             if (br)
                 return br;
@@ -1351,7 +1338,7 @@ Tree_p ArgumentMatch::DoBlock(Block_p what)
 }
 
 
-Tree_p ArgumentMatch::DoInfix(Infix_p what)
+Tree *ArgumentMatch::DoInfix(Infix *what)
 // ----------------------------------------------------------------------------
 //   Check if we match an infix operator
 // ----------------------------------------------------------------------------
@@ -1359,17 +1346,17 @@ Tree_p ArgumentMatch::DoInfix(Infix_p what)
     // Check if we match an infix tree like 'x,y' with a name like 'A'
     if (what->name != ":")
     {
-        if (Name_p name = test->AsName())
+        if (Name *name = test->AsName())
         {
             // Evaluate 'A' to see if we will get something like x,y
-            Tree_p compiled = CompileValue(name);
+            Tree *compiled = CompileValue(name);
             if (!compiled)
                 return NULL;
 
             // Build an infix tree corresponding to what we extract
-            Name_p left = new Name("left");
-            Name_p right = new Name("right");
-            Infix_p extracted = new Infix(what->name, left, right);
+            Name *left = new Name("left");
+            Name *right = new Name("right");
+            Infix *extracted = new Infix(what->name, left, right);
 
             // Extract the infix parameters from actual value
             unit.InfixMatchTest(compiled, extracted);
@@ -1379,7 +1366,7 @@ Tree_p ArgumentMatch::DoInfix(Infix_p what)
         }
     }
 
-    if (Infix_p it = test->AsInfix())
+    if (Infix *it = test->AsInfix())
     {
         // Check if we match the tree, e.g. A+B vs 2+3
         if (it->name == what->name)
@@ -1387,12 +1374,12 @@ Tree_p ArgumentMatch::DoInfix(Infix_p what)
             if (!defined)
                 defined = what;
             test = it->left;
-            Tree_p lr = what->left->Do(this);
+            Tree *lr = what->left->Do(this);
             test = it;
             if (!lr)
                 return NULL;
             test = it->right;
-            Tree_p rr = what->right->Do(this);
+            Tree *rr = what->right->Do(this);
             test = it;
             if (!rr)
                 return NULL;
@@ -1404,22 +1391,22 @@ Tree_p ArgumentMatch::DoInfix(Infix_p what)
     if (what->name == ":")
     {
         // Check the variable name, e.g. K in example above
-        Name_p varName = what->left->AsName();
+        Name *varName = what->left->AsName();
         if (!varName)
             return Ooops("Expected a name, got '$1' ", what->left);
 
         // Check if the name already exists
-        if (Tree_p existing = rewrite->Named(varName->value))
+        if (Tree *existing = rewrite->Named(varName->value))
             return Ooops("Name '$1' already exists as '$2'",
                          what->left, existing);
 
         // Evaluate type expression, e.g. 'integer' in example above
-        Tree_p typeExpr = Compile(what->right);
+        Tree *typeExpr = Compile(what->right);
         if (!typeExpr)
             return NULL;
 
         // Compile what we are testing against
-        Tree_p compiled = Compile(test);
+        Tree *compiled = Compile(test);
         if (!compiled)
             return NULL;
 
@@ -1437,26 +1424,26 @@ Tree_p ArgumentMatch::DoInfix(Infix_p what)
 }
 
 
-Tree_p ArgumentMatch::DoPrefix(Prefix_p what)
+Tree *ArgumentMatch::DoPrefix(Prefix *what)
 // ----------------------------------------------------------------------------
 //   For prefix expressions, simply test left then right
 // ----------------------------------------------------------------------------
 {
-    if (Prefix_p pt = test->AsPrefix())
+    if (Prefix *pt = test->AsPrefix())
     {
         // Check if we match the tree, e.g. f(A) vs. f(2)
         // Note that we must test left first to define 'f' in above case
-        Infix_p defined_infix = defined->AsInfix();
+        Infix *defined_infix = defined->AsInfix();
         if (defined_infix)
             defined = NULL;
 
         test = pt->left;
-        Tree_p lr = what->left->Do(this);
+        Tree *lr = what->left->Do(this);
         test = pt;
         if (!lr)
             return NULL;
         test = pt->right;
-        Tree_p rr = what->right->Do(this);
+        Tree *rr = what->right->Do(this);
         test = pt;
         if (!rr)
             return NULL;
@@ -1468,23 +1455,23 @@ Tree_p ArgumentMatch::DoPrefix(Prefix_p what)
 }
 
 
-Tree_p ArgumentMatch::DoPostfix(Postfix_p what)
+Tree *ArgumentMatch::DoPostfix(Postfix *what)
 // ----------------------------------------------------------------------------
 //    For postfix expressions, simply test right, then left
 // ----------------------------------------------------------------------------
 {
-    if (Postfix_p pt = test->AsPostfix())
+    if (Postfix *pt = test->AsPostfix())
     {
         // Check if we match the tree, e.g. A! vs 2!
         // Note that ordering is reverse compared to prefix, so that
         // the 'defined' names is set correctly
         test = pt->right;
-        Tree_p rr = what->right->Do(this);
+        Tree *rr = what->right->Do(this);
         test = pt;
         if (!rr)
             return NULL;
         test = pt->left;
-        Tree_p lr = what->left->Do(this);
+        Tree *lr = what->left->Do(this);
         test = pt;
         if (!lr)
             return NULL;
@@ -1501,7 +1488,7 @@ Tree_p ArgumentMatch::DoPostfix(Postfix_p what)
 //
 // ============================================================================
 
-Tree_p EnvironmentScan::Do(Tree_p what)
+Tree *EnvironmentScan::Do(Tree *what)
 // ----------------------------------------------------------------------------
 //   Nothing to do for leaves
 // ----------------------------------------------------------------------------
@@ -1510,7 +1497,7 @@ Tree_p EnvironmentScan::Do(Tree_p what)
 }
 
 
-Tree_p EnvironmentScan::DoInteger(Integer_p what)
+Tree *EnvironmentScan::DoInteger(Integer *what)
 // ----------------------------------------------------------------------------
 //   Nothing to do for leaves
 // ----------------------------------------------------------------------------
@@ -1519,7 +1506,7 @@ Tree_p EnvironmentScan::DoInteger(Integer_p what)
 }
 
 
-Tree_p EnvironmentScan::DoReal(Real_p what)
+Tree *EnvironmentScan::DoReal(Real *what)
 // ----------------------------------------------------------------------------
 //   Nothing to do for leaves
 // ----------------------------------------------------------------------------
@@ -1528,7 +1515,7 @@ Tree_p EnvironmentScan::DoReal(Real_p what)
 }
 
 
-Tree_p EnvironmentScan::DoText(Text_p what)
+Tree *EnvironmentScan::DoText(Text *what)
 // ----------------------------------------------------------------------------
 //   Nothing to do for leaves
 // ----------------------------------------------------------------------------
@@ -1537,14 +1524,14 @@ Tree_p EnvironmentScan::DoText(Text_p what)
 }
 
 
-Tree_p EnvironmentScan::DoName(Name_p what)
+Tree *EnvironmentScan::DoName(Name *what)
 // ----------------------------------------------------------------------------
 //    Check if name is found in context, if so record where we took it from
 // ----------------------------------------------------------------------------
 {
     for (Symbols *s = symbols; s; s = s->Parent())
     {
-        if (Tree_p existing = s->Named(what->value, false))
+        if (Tree *existing = s->Named(what->value, false))
         {
             // Found the symbol in the given symbol table
             if (!captured.count(existing))
@@ -1556,7 +1543,7 @@ Tree_p EnvironmentScan::DoName(Name_p what)
 }
 
 
-Tree_p EnvironmentScan::DoBlock(Block_p what)
+Tree *EnvironmentScan::DoBlock(Block *what)
 // ----------------------------------------------------------------------------
 //   Parameters in a block are in its child
 // ----------------------------------------------------------------------------
@@ -1565,7 +1552,7 @@ Tree_p EnvironmentScan::DoBlock(Block_p what)
 }
 
 
-Tree_p EnvironmentScan::DoInfix(Infix_p what)
+Tree *EnvironmentScan::DoInfix(Infix *what)
 // ----------------------------------------------------------------------------
 //   Check if we match an infix operator
 // ----------------------------------------------------------------------------
@@ -1577,7 +1564,7 @@ Tree_p EnvironmentScan::DoInfix(Infix_p what)
 }
 
 
-Tree_p EnvironmentScan::DoPrefix(Prefix_p what)
+Tree *EnvironmentScan::DoPrefix(Prefix *what)
 // ----------------------------------------------------------------------------
 //   For prefix expressions, simply test left then right
 // ----------------------------------------------------------------------------
@@ -1588,7 +1575,7 @@ Tree_p EnvironmentScan::DoPrefix(Prefix_p what)
 }
 
 
-Tree_p EnvironmentScan::DoPostfix(Postfix_p what)
+Tree *EnvironmentScan::DoPostfix(Postfix *what)
 // ----------------------------------------------------------------------------
 //    For postfix expressions, simply test right, then left
 // ----------------------------------------------------------------------------
@@ -1626,7 +1613,7 @@ BuildChildren::~BuildChildren()
 }
 
 
-Tree_p BuildChildren::DoPrefix(Prefix_p what)
+Tree *BuildChildren::DoPrefix(Prefix *what)
 // ----------------------------------------------------------------------------
 //   Evaluate children, then build a prefix
 // ----------------------------------------------------------------------------
@@ -1640,7 +1627,7 @@ Tree_p BuildChildren::DoPrefix(Prefix_p what)
 }
 
 
-Tree_p BuildChildren::DoPostfix(Postfix_p what)
+Tree *BuildChildren::DoPostfix(Postfix *what)
 // ----------------------------------------------------------------------------
 //   Evaluate children, then build a postfix
 // ----------------------------------------------------------------------------
@@ -1654,7 +1641,7 @@ Tree_p BuildChildren::DoPostfix(Postfix_p what)
 }
 
 
-Tree_p BuildChildren::DoInfix(Infix_p what)
+Tree *BuildChildren::DoInfix(Infix *what)
 // ----------------------------------------------------------------------------
 //   Evaluate children, then build an infix
 // ----------------------------------------------------------------------------
@@ -1668,7 +1655,7 @@ Tree_p BuildChildren::DoInfix(Infix_p what)
 }
 
 
-Tree_p BuildChildren::DoBlock(Block_p what)
+Tree *BuildChildren::DoBlock(Block *what)
 // ----------------------------------------------------------------------------
 //   Evaluate children, then build a new block
 // ----------------------------------------------------------------------------
@@ -1686,7 +1673,7 @@ Tree_p BuildChildren::DoBlock(Block_p what)
 //
 // ============================================================================
 
-Tree_p DeclarationAction::Do(Tree_p what)
+Tree *DeclarationAction::Do(Tree *what)
 // ----------------------------------------------------------------------------
 //   Default is to leave trees alone (for native trees)
 // ----------------------------------------------------------------------------
@@ -1695,7 +1682,7 @@ Tree_p DeclarationAction::Do(Tree_p what)
 }
 
 
-Tree_p DeclarationAction::DoInteger(Integer_p what)
+Tree *DeclarationAction::DoInteger(Integer *what)
 // ----------------------------------------------------------------------------
 //   Integers evaluate directly
 // ----------------------------------------------------------------------------
@@ -1704,7 +1691,7 @@ Tree_p DeclarationAction::DoInteger(Integer_p what)
 }
 
 
-Tree_p DeclarationAction::DoReal(Real_p what)
+Tree *DeclarationAction::DoReal(Real *what)
 // ----------------------------------------------------------------------------
 //   Reals evaluate directly
 // ----------------------------------------------------------------------------
@@ -1713,7 +1700,7 @@ Tree_p DeclarationAction::DoReal(Real_p what)
 }
 
 
-Tree_p DeclarationAction::DoText(Text_p what)
+Tree *DeclarationAction::DoText(Text *what)
 // ----------------------------------------------------------------------------
 //   Text evaluates directly
 // ----------------------------------------------------------------------------
@@ -1722,7 +1709,7 @@ Tree_p DeclarationAction::DoText(Text_p what)
 }
 
 
-Tree_p DeclarationAction::DoName(Name_p what)
+Tree *DeclarationAction::DoName(Name *what)
 // ----------------------------------------------------------------------------
 //   Build a unique reference in the context for the entity
 // ----------------------------------------------------------------------------
@@ -1731,7 +1718,7 @@ Tree_p DeclarationAction::DoName(Name_p what)
 }
 
 
-Tree_p DeclarationAction::DoBlock(Block_p what)
+Tree *DeclarationAction::DoBlock(Block *what)
 // ----------------------------------------------------------------------------
 //   Declarations in a block belong to the child, not to us
 // ----------------------------------------------------------------------------
@@ -1740,7 +1727,7 @@ Tree_p DeclarationAction::DoBlock(Block_p what)
 }
 
 
-Tree_p DeclarationAction::DoInfix(Infix_p what)
+Tree *DeclarationAction::DoInfix(Infix *what)
 // ----------------------------------------------------------------------------
 //   Compile built-in operators: \n ; -> and :
 // ----------------------------------------------------------------------------
@@ -1766,13 +1753,13 @@ Tree_p DeclarationAction::DoInfix(Infix_p what)
 }
 
 
-Tree_p DeclarationAction::DoPrefix(Prefix_p what)
+Tree *DeclarationAction::DoPrefix(Prefix *what)
 // ----------------------------------------------------------------------------
 //    All prefix operations translate into a rewrite
 // ----------------------------------------------------------------------------
 {
     // Deal with 'data' declarations and 'load' statements
-    if (Name_p name = what->left->AsName())
+    if (Name *name = what->left->AsName())
     {
         if (name->value == "data")
         {
@@ -1781,7 +1768,7 @@ Tree_p DeclarationAction::DoPrefix(Prefix_p what)
         }
         if (name->value == "load")
         {
-            Text_p file = what->right->AsText();
+            Text *file = what->right->AsText();
             if (!file)
                 return Ooops("Argument '$1' to 'load' is not a text",
                              what->right);
@@ -1793,7 +1780,7 @@ Tree_p DeclarationAction::DoPrefix(Prefix_p what)
 }
 
 
-Tree_p DeclarationAction::DoPostfix(Postfix_p what)
+Tree *DeclarationAction::DoPostfix(Postfix *what)
 // ----------------------------------------------------------------------------
 //    All postfix operations translate into a rewrite
 // ----------------------------------------------------------------------------
@@ -1802,12 +1789,12 @@ Tree_p DeclarationAction::DoPostfix(Postfix_p what)
 }
 
 
-void DeclarationAction::EnterRewrite(Tree_p defined, Tree_p definition)
+void DeclarationAction::EnterRewrite(Tree *defined, Tree *definition)
 // ----------------------------------------------------------------------------
 //   Add a definition in the current context
 // ----------------------------------------------------------------------------
 {
-    if (Name_p name = defined->AsName())
+    if (Name *name = defined->AsName())
     {
         symbols->EnterName(name->value,
                            definition ? (Tree *) definition : (Tree *) name);
@@ -1835,7 +1822,7 @@ CompileAction::CompileAction(Symbols *s, CompiledUnit &u, bool nib, bool ka)
 {}
 
 
-Tree_p CompileAction::Do(Tree_p what)
+Tree *CompileAction::Do(Tree *what)
 // ----------------------------------------------------------------------------
 //   Default is to leave trees alone (for native trees)
 // ----------------------------------------------------------------------------
@@ -1844,7 +1831,7 @@ Tree_p CompileAction::Do(Tree_p what)
 }
 
 
-Tree_p CompileAction::DoInteger(Integer_p what)
+Tree *CompileAction::DoInteger(Integer *what)
 // ----------------------------------------------------------------------------
 //   Integers evaluate directly
 // ----------------------------------------------------------------------------
@@ -1854,7 +1841,7 @@ Tree_p CompileAction::DoInteger(Integer_p what)
 }
 
 
-Tree_p CompileAction::DoReal(Real_p what)
+Tree *CompileAction::DoReal(Real *what)
 // ----------------------------------------------------------------------------
 //   Reals evaluate directly
 // ----------------------------------------------------------------------------
@@ -1864,7 +1851,7 @@ Tree_p CompileAction::DoReal(Real_p what)
 }
 
 
-Tree_p CompileAction::DoText(Text_p what)
+Tree *CompileAction::DoText(Text *what)
 // ----------------------------------------------------------------------------
 //   Text evaluates directly
 // ----------------------------------------------------------------------------
@@ -1874,13 +1861,13 @@ Tree_p CompileAction::DoText(Text_p what)
 }
 
 
-Tree_p CompileAction::DoName(Name_p what)
+Tree *CompileAction::DoName(Name *what)
 // ----------------------------------------------------------------------------
 //   Build a unique reference in the context for the entity
 // ----------------------------------------------------------------------------
 {
     // Normally, the name should have been declared in ParameterMatch
-    if (Tree_p result = symbols->Named(what->value))
+    if (Tree *result = symbols->Named(what->value))
     {
         // Try to compile the definition of the name
         if (!result->AsName())
@@ -1928,7 +1915,7 @@ Tree_p CompileAction::DoName(Name_p what)
 }
 
 
-Tree_p CompileAction::DoBlock(Block_p what)
+Tree *CompileAction::DoBlock(Block *what)
 // ----------------------------------------------------------------------------
 //   Optimize away indent or parenthese blocks, evaluate others
 // ----------------------------------------------------------------------------
@@ -1939,7 +1926,7 @@ Tree_p CompileAction::DoBlock(Block_p what)
     {
         if (unit.IsKnown(what))
             unit.Copy(what, what->child, false);
-        Tree_p result = what->child->Do(this);
+        Tree *result = what->child->Do(this);
         if (!result)
             return NULL;
         if (unit.IsKnown(what->child))
@@ -1956,7 +1943,7 @@ Tree_p CompileAction::DoBlock(Block_p what)
 }
 
 
-Tree_p CompileAction::DoInfix(Infix_p what)
+Tree *CompileAction::DoInfix(Infix *what)
 // ----------------------------------------------------------------------------
 //   Compile built-in operators: \n ; -> and :
 // ----------------------------------------------------------------------------
@@ -1999,12 +1986,12 @@ Tree_p CompileAction::DoInfix(Infix_p what)
 }
 
 
-Tree_p CompileAction::DoPrefix(Prefix_p what)
+Tree *CompileAction::DoPrefix(Prefix *what)
 // ----------------------------------------------------------------------------
 //    Deal with data declarations, otherwise translate as a rewrite
 // ----------------------------------------------------------------------------
 {
-    if (Name_p name = what->left->AsName())
+    if (Name *name = what->left->AsName())
     {
         if (name->value == "data")
             return what;
@@ -2013,7 +2000,7 @@ Tree_p CompileAction::DoPrefix(Prefix_p what)
 }
 
 
-Tree_p CompileAction::DoPostfix(Postfix_p what)
+Tree *CompileAction::DoPostfix(Postfix *what)
 // ----------------------------------------------------------------------------
 //    All postfix operations translate into a rewrite
 // ----------------------------------------------------------------------------
@@ -2022,7 +2009,7 @@ Tree_p CompileAction::DoPostfix(Postfix_p what)
 }
 
 
-Tree_p  CompileAction::Rewrites(Tree_p what)
+Tree *  CompileAction::Rewrites(Tree *what)
 // ----------------------------------------------------------------------------
 //   Build code selecting among rewrites in current context
 // ----------------------------------------------------------------------------
@@ -2080,7 +2067,7 @@ Tree_p  CompileAction::Rewrites(Tree_p what)
                 ArgumentMatch matchArgs(what,
                                         symbols, &args, candidate->symbols,
                                         this);
-                Tree_p argsTest = candidate->from->Do(matchArgs);
+                Tree *argsTest = candidate->from->Do(matchArgs);
                 if (argsTest)
                 {
                     // Record that we found something
@@ -2111,7 +2098,7 @@ Tree_p  CompileAction::Rewrites(Tree_p what)
                                  p++)
                             {
                                 text name = (*p).first;
-                                Tree_p parm = parms.Named(name);
+                                Tree *parm = parms.Named(name);
                                 std::cerr << "   " << name
                                           << " = " << parm << "\n";
                             }
@@ -2121,7 +2108,7 @@ Tree_p  CompileAction::Rewrites(Tree_p what)
                                  a++)
                             {
                                 text name = (*a).first;
-                                Tree_p arg = args.Named(name);
+                                Tree *arg = args.Named(name);
                                 std::cerr << "   " << name
                                           << " = " << arg << "\n";
                             }
@@ -2133,13 +2120,13 @@ Tree_p  CompileAction::Rewrites(Tree_p what)
                         TreeList &order = candidate->parameters;
                         for (p = order.begin(); p != order.end(); p++)
                         {
-                            Name_p name = (*p)->AsName();
-                            Tree_p argValue = args.Named(name->value);
+                            Name *name = (*p)->AsName();
+                            Tree *argValue = args.Named(name->value);
                             argsList.push_back(argValue);
                         }
 
                         // Compile the candidate
-                        Tree_p code = candidate->Compile();
+                        Tree *code = candidate->Compile();
 
                         // Invoke the candidate
                         unit.Invoke(what, code, argsList);
@@ -2237,12 +2224,12 @@ Rewrite *Rewrite::Add (Rewrite *rewrite)
 }
 
 
-Tree_p Rewrite::Do(Action &a)
+Tree *Rewrite::Do(Action &a)
 // ----------------------------------------------------------------------------
 //   Apply an action to the 'from' and 'to' fields and all referenced trees
 // ----------------------------------------------------------------------------
 {
-    Tree_p result = from->Do(a);
+    Tree *result = from->Do(a);
     if (to)
         result = to->Do(a);
     for (rewrite_table::iterator i = hash.begin(); i != hash.end(); i++)
@@ -2253,12 +2240,12 @@ Tree_p Rewrite::Do(Action &a)
 }
 
 
-Tree_p Rewrite::Compile(void)
+Tree *Rewrite::Compile(void)
 // ----------------------------------------------------------------------------
 //   Compile code for the 'to' form
 // ----------------------------------------------------------------------------
 //   This is similar to Context::Compile, except that it may generate a
-//   function with more parameters, i.e. Tree_p f(Tree_p , Tree_p , ...),
+//   function with more parameters, i.e. Tree *f(Tree * , Tree * , ...),
 //   where there is one input arg per variable in the 'from' tree
 {
     assert (to || !"Rewrite::Compile called for data rewrite?");
@@ -2284,13 +2271,13 @@ Tree_p Rewrite::Compile(void)
 
     // Record rewrites and data declarations in the current context
     DeclarationAction declare(locals);
-    Tree_p toDecl = to->Do(declare);
+    Tree *toDecl = to->Do(declare);
     if (!toDecl)
         return Ooops("Internal: Declaration error for '$1'", to);
 
     // Compile the body of the rewrite
     CompileAction compile(locals, unit, false, false);
-    Tree_p result = to->Do(compile);
+    Tree *result = to->Do(compile);
     if (!result)
         return Ooops("Unable to compile '$1'", to);
 

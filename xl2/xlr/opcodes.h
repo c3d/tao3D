@@ -30,12 +30,12 @@
 
 XL_BEGIN
 
-longlong        xl_integer_arg(Tree_p arg);
-double          xl_real_arg(Tree_p arg);
-text            xl_text_arg(Tree_p arg);
-int             xl_character_arg(Tree_p arg);
-bool            xl_boolean_arg(Tree_p arg);
-Tree_p          ParametersTree(TreeList parameters);
+longlong        xl_integer_arg(Tree *arg);
+double          xl_real_arg(Tree *arg);
+text            xl_text_arg(Tree *arg);
+int             xl_character_arg(Tree *arg);
+bool            xl_boolean_arg(Tree *arg);
+Tree *          ParametersTree(TreeList parameters);
 
 #define XL_TREE(v)      (v)
 #define XL_INT(v)       ((integer_t) (v))

@@ -40,10 +40,10 @@
 #define INFIX(name, rtype, t1, symbol, t2, _code)                       \
     do                                                                  \
     {                                                                   \
-        Infix_p ldecl = new Infix(":", new Name("l"), new Name(#t1));   \
-        Infix_p rdecl = new Infix(":", new Name("r"), new Name(#t2));   \
-        Infix_p from = new Infix(symbol, ldecl, rdecl);                 \
-        Name_p to = new Name(symbol);                                   \
+        Infix *ldecl = new Infix(":", new Name("l"), new Name(#t1));    \
+        Infix *rdecl = new Infix(":", new Name("r"), new Name(#t2));    \
+        Infix *from = new Infix(symbol, ldecl, rdecl);                  \
+        Name *to = new Name(symbol);                                    \
         eval_fn fn = (eval_fn) xl_##name;                               \
         Rewrite *rw = c->EnterRewrite(from, to);                        \
         to->code = fn;                                                  \
@@ -57,12 +57,12 @@
 #define PARM(symbol, type)                                      \
         if (text(#type) == "tree")                              \
         {                                                       \
-            Name_p symbol##_decl = new Name(#symbol);           \
+            Name *symbol##_decl = new Name(#symbol);            \
             parameters.push_back(symbol##_decl);                \
         }                                                       \
         else                                                    \
         {                                                       \
-            Infix_p symbol##_decl = new Infix(":",              \
+            Infix *symbol##_decl = new Infix(":",               \
                                              new Name(#symbol), \
                                              new Name(#type));  \
             parameters.push_back(symbol##_decl);                \
@@ -77,9 +77,9 @@
         eval_fn fn = (eval_fn) xl_##name;                               \
         if (parameters.size())                                          \
         {                                                               \
-            Tree_p parmtree = ParametersTree(parameters);               \
-            Prefix_p from = new Prefix(new Name(symbol), parmtree);     \
-            Name_p to = new Name(symbol);                               \
+            Tree *parmtree = ParametersTree(parameters);                \
+            Prefix *from = new Prefix(new Name(symbol), parmtree);      \
+            Name *to = new Name(symbol);                                \
             Rewrite *rw = c->EnterRewrite(from, to);                    \
             to->code = fn;                                              \
             to->SetSymbols(c);                                          \
@@ -89,9 +89,9 @@
         }                                                               \
         else                                                            \
         {                                                               \
-            Name_p n  = new Name(symbol);                               \
+            Name *n  = new Name(symbol);                                \
             n->code = fn;                                               \
-            n->SetSymbols (c);                                    \
+            n->SetSymbols (c);                                          \
             n ->Set<TypeInfo> (rtype##_type);                           \
             c->EnterName(symbol, n);                                    \
             TreeList noparms;                                           \
@@ -105,9 +105,9 @@
     {                                                                   \
         TreeList  parameters;                                           \
         parms;                                                          \
-        Tree_p parmtree = ParametersTree(parameters);                   \
-        Postfix_p from = new Postfix(parmtree, new Name(symbol));       \
-        Name_p to = new Name(symbol);                                   \
+        Tree *parmtree = ParametersTree(parameters);                    \
+        Postfix *from = new Postfix(parmtree, new Name(symbol));        \
+        Name *to = new Name(symbol);                                    \
         eval_fn fn = (eval_fn) xl_##name;                               \
         Rewrite *rw = c->EnterRewrite(from, to);                        \
         to->code = fn;                                                  \
@@ -121,9 +121,9 @@
 #define BLOCK(name, rtype, open, type, close, _code)                    \
     do                                                                  \
     {                                                                   \
-        Infix_p parms = new Infix(":", new Name("V"), new Name(#type)); \
-        Block_p from = new Block(parms, open, close);                   \
-        Name_p to = new Name(#name);                                    \
+        Infix *parms = new Infix(":", new Name("V"), new Name(#type));  \
+        Block *from = new Block(parms, open, close);                    \
+        Name *to = new Name(#name);                                     \
         eval_fn fn = (eval_fn) xl_##name;                               \
         Rewrite *rw = c->EnterRewrite(from, to);                        \
         to->code = fn;                                                  \
@@ -138,7 +138,7 @@
 #define NAME(symbol)                            \
     do                                          \
     {                                           \
-        Name_p n = new Name(#symbol);           \
+        Name *n = new Name(#symbol);            \
         n->code = xl_identity;                  \
         n->SetSymbols(c);                       \
         c->EnterName(#symbol, n);               \
@@ -151,7 +151,7 @@
     do                                                                  \
     {                                                                   \
         /* Type alone evaluates as self */                              \
-        Name_p n = new Name(#symbol);                                   \
+        Name *n = new Name(#symbol);                                   \
         eval_fn fn = (eval_fn) xl_identity;                             \
         n->code = fn;                                                   \
         n->SetSymbols(c);                                               \
@@ -160,9 +160,9 @@
         compiler->EnterGlobal(n, &symbol##_type);                       \
                                                                         \
         /* Type as infix : evaluates to type check, e.g. 0 : integer */ \
-        Infix_p from = new Infix(":", new Name("V"), new Name(#symbol)); \
-        Name_p to = new Name(#symbol);                                  \
-        Rewrite *rw = c->EnterRewrite(from, to);                        \
+        Infix *from = new Infix(":", new Name("V"), new Name(#symbol)); \
+        Name *to = new Name(#symbol);                                  \
+        Rewrite *rw = c->EnterRewrite(from, to);                       \
         eval_fn typeTestFn = (eval_fn) xl_##symbol##_cast;              \
         to->code = typeTestFn;                                          \
         to->SetSymbols(c);                                              \

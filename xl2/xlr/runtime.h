@@ -9,9 +9,8 @@
 //
 //     Functions required for proper run-time execution of XL programs
 //
-//     While most of the XL code uses Tree_p (ref-counting pointer),
-//     this code uses Tree * to make it easier to call from generated code.
-//     It is responsible for proper reference counting if necessary
+//
+//
 //
 //
 //
@@ -57,7 +56,7 @@ Tree *xl_source(Tree *);
 Tree *xl_set_source(Tree *val, Tree *src);
 bool  xl_same_text(Tree * , const char *);
 bool  xl_same_shape(Tree *t1, Tree *t2);
-Tree *  xl_infix_match_check(Tree *value, Infix_p ref);
+Tree *xl_infix_match_check(Tree *value, Infix *ref);
 Tree *xl_type_check(Tree *value, Tree *type);
 
 Tree *xl_new_integer(longlong value);
@@ -65,10 +64,10 @@ Tree *xl_new_real(double value);
 Tree *xl_new_character(kstring value);
 Tree *xl_new_text(kstring value);
 Tree *xl_new_xtext(kstring value, kstring open, kstring close);
-Tree *xl_new_block(Block_p source, Tree *child);
-Tree *xl_new_prefix(Prefix_p source, Tree *left, Tree *right);
-Tree *xl_new_postfix(Postfix_p source, Tree *left, Tree *right);
-Tree *xl_new_infix(Infix_p source, Tree *left, Tree *right);
+Tree *xl_new_block(Block *source, Tree *child);
+Tree *xl_new_prefix(Prefix *source, Tree *left, Tree *right);
+Tree *xl_new_postfix(Postfix *source, Tree *left, Tree *right);
+Tree *xl_new_infix(Infix *source, Tree *left, Tree *right);
 
 Tree *xl_new_closure(Tree *expr, uint ntrees, ...);
 Tree *xl_type_error(Tree *tree);
@@ -93,7 +92,7 @@ Tree *xl_block_cast(Tree *source, Tree *value);
 //
 // ============================================================================
 
-Tree *xl_invoke(eval_fn toCall, Tree_p source, TreeList &args);
+Tree *xl_invoke(eval_fn toCall, Tree *source, TreeList &args);
 
 struct XLCall
 // ----------------------------------------------------------------------------
@@ -103,7 +102,7 @@ struct XLCall
     XLCall(text name): name(name), args() {}
 
     // Adding arguments
-    XLCall &operator, (Tree_p tree){ args.push_back(tree); return *this; }
+    XLCall &operator, (Tree *tree) { args.push_back(tree); return *this; }
     XLCall &operator, (Tree &tree) { return *this, &tree; }
     XLCall &operator, (longlong v) { return *this, new Integer(v); }
     XLCall &operator, (double  v)  { return *this, new Real(v); }

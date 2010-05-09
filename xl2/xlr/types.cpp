@@ -32,7 +32,7 @@ XL_BEGIN
 //
 // ============================================================================
 
-Tree_p InferTypes::Do (Tree_p what)
+Tree *InferTypes::Do (Tree *what)
 // ----------------------------------------------------------------------------
 //   Infer the type of some arbitrary tree
 // ----------------------------------------------------------------------------
@@ -42,7 +42,7 @@ Tree_p InferTypes::Do (Tree_p what)
 }
 
 
-Tree_p InferTypes::DoInteger(Integer_p what)
+Tree *InferTypes::DoInteger(Integer *what)
 // ----------------------------------------------------------------------------
 //   Return the integer type
 // ----------------------------------------------------------------------------
@@ -52,7 +52,7 @@ Tree_p InferTypes::DoInteger(Integer_p what)
 }
 
 
-Tree_p InferTypes::DoReal(Real_p what)
+Tree *InferTypes::DoReal(Real *what)
 // ----------------------------------------------------------------------------
 //   Return the real type
 // ----------------------------------------------------------------------------
@@ -62,25 +62,25 @@ Tree_p InferTypes::DoReal(Real_p what)
 }
 
 
-Tree_p InferTypes::DoText(Text_p what)
+Tree *InferTypes::DoText(Text *what)
 // ----------------------------------------------------------------------------
 //   Return text or character type
 // ----------------------------------------------------------------------------
 {
-    Tree_p type = what->opening == "'" ? character_type : text_type;
+    Tree *type = what->opening == "'" ? character_type : text_type;
     what->Set<TypeInfo> (type);
     return type;
 }
 
 
-Tree_p InferTypes::DoName(Name_p what)
+Tree *InferTypes::DoName(Name *what)
 // ----------------------------------------------------------------------------
 //   Return the type of the value of the name
 // ----------------------------------------------------------------------------
 {
-    if (Tree_p value = symbols->Named(what->value))
+    if (Tree *value = symbols->Named(what->value))
     {
-        if (Tree_p type = value->Get<TypeInfo>())
+        if (Tree *type = value->Get<TypeInfo>())
             return type;
         return Ooops("Unknown type for '$1'", what);
     }
@@ -88,7 +88,7 @@ Tree_p InferTypes::DoName(Name_p what)
 }
 
 
-Tree_p InferTypes::DoPrefix(Prefix_p what)
+Tree *InferTypes::DoPrefix(Prefix *what)
 // ----------------------------------------------------------------------------
 //   Infer all the possible types for a prefix expression
 // ----------------------------------------------------------------------------
@@ -97,7 +97,7 @@ Tree_p InferTypes::DoPrefix(Prefix_p what)
 }
 
 
-Tree_p InferTypes::DoPostfix(Postfix_p what)
+Tree *InferTypes::DoPostfix(Postfix *what)
 // ----------------------------------------------------------------------------
 //
 // ----------------------------------------------------------------------------
@@ -106,7 +106,7 @@ Tree_p InferTypes::DoPostfix(Postfix_p what)
 }
 
 
-Tree_p InferTypes::DoInfix(Infix_p what)
+Tree *InferTypes::DoInfix(Infix *what)
 // ----------------------------------------------------------------------------
 //
 // ----------------------------------------------------------------------------
@@ -115,7 +115,7 @@ Tree_p InferTypes::DoInfix(Infix_p what)
 }
 
 
-Tree_p InferTypes::DoBlock(Block_p what)
+Tree *InferTypes::DoBlock(Block *what)
 // ----------------------------------------------------------------------------
 //
 // ----------------------------------------------------------------------------
@@ -131,7 +131,7 @@ Tree_p InferTypes::DoBlock(Block_p what)
 //
 // ============================================================================
 
-Tree_p MatchType::Do (Tree_p what)
+Tree *MatchType::Do (Tree *what)
 // ----------------------------------------------------------------------------
 //   If we get there, this is not a type match
 // ----------------------------------------------------------------------------
@@ -140,13 +140,13 @@ Tree_p MatchType::Do (Tree_p what)
 }
 
 
-Tree_p MatchType::DoInteger(Integer_p what)
+Tree *MatchType::DoInteger(Integer *what)
 // ----------------------------------------------------------------------------
 //   An integer values matches the same value, the integer or real types
 // ----------------------------------------------------------------------------
 {
     // If the type is itself an integer, the value must be the same
-    if (Integer_p it = what->AsInteger())
+    if (Integer *it = what->AsInteger())
         return it->value == what->value ? what : NULL;
 
     // An integer value directly matches with integer type
@@ -163,13 +163,13 @@ Tree_p MatchType::DoInteger(Integer_p what)
 }
 
 
-Tree_p MatchType::DoReal(Real_p what)
+Tree *MatchType::DoReal(Real *what)
 // ----------------------------------------------------------------------------
 //   A real value matches the same value or real types
 // ----------------------------------------------------------------------------
 {
     // If the type is itself a real, the value must be the same
-    if (Real_p rt = what->AsReal())
+    if (Real *rt = what->AsReal())
         return rt->value == what->value ? what : NULL;
 
     // A real value matches with the real type
@@ -182,13 +182,13 @@ Tree_p MatchType::DoReal(Real_p what)
 }
 
 
-Tree_p MatchType::DoText(Text_p what)
+Tree *MatchType::DoText(Text *what)
 // ----------------------------------------------------------------------------
 //   Text values match text or character type
 // ----------------------------------------------------------------------------
 {
     // If the type is itself a text litteral, we must match value exactly
-    if (Text_p tt = what->AsText())
+    if (Text *tt = what->AsText())
         return (tt->value == what->value     &&
                 tt->opening == what->opening &&
                 tt->closing == what->closing
@@ -196,7 +196,7 @@ Tree_p MatchType::DoText(Text_p what)
                 : NULL);
 
     // A text value matches either the text or character type
-    Tree_p textType = (what->opening == "'" && what->closing == "'"
+    Tree *textType = (what->opening == "'" && what->closing == "'"
                       ? character_type
                       : text_type);
     Normalize();
@@ -208,7 +208,7 @@ Tree_p MatchType::DoText(Text_p what)
 }
 
 
-Tree_p MatchType::DoName(Name_p what)
+Tree *MatchType::DoName(Name *what)
 // ----------------------------------------------------------------------------
 //   A name matches if the value matches or if we expect a symbol
 // ----------------------------------------------------------------------------
@@ -216,28 +216,28 @@ Tree_p MatchType::DoName(Name_p what)
     Normalize();
     if (type == symbolicname_type)
         return what;
-    if (Tree_p value = symbols->Named(what->value))
+    if (Tree *value = symbols->Named(what->value))
         return value->Do(this);
     return NULL;
 }
 
 
-Tree_p MatchType::DoPrefix(Prefix_p what)
+Tree *MatchType::DoPrefix(Prefix *what)
 // ----------------------------------------------------------------------------
 //   Check if we have a similar form, or if this matches rewrites
 // ----------------------------------------------------------------------------
 {
     // Check if we match a prefix with the same shape
-    if (Prefix_p prefixType = type->AsPrefix())
+    if (Prefix *prefixType = type->AsPrefix())
     {
-        LocalSave<Tree_p> saveType = type;
+        LocalSave<Tree *> saveType(type);
 
         type = prefixType->left;
-        Tree_p leftValue = NameMatch(what->left);
+        Tree *leftValue = NameMatch(what->left);
         if (leftValue)
         {
             type = prefixType->right;
-            Tree_p rightValue = what->right->Do(this);
+            Tree *rightValue = what->right->Do(this);
             if (rightValue)
                 return what;
         }
@@ -253,22 +253,22 @@ Tree_p MatchType::DoPrefix(Prefix_p what)
 }
 
 
-Tree_p MatchType::DoPostfix(Postfix_p what)
+Tree *MatchType::DoPostfix(Postfix *what)
 // ----------------------------------------------------------------------------
 //   Check if we have a similar form, or if this matches rewrites
 // ----------------------------------------------------------------------------
 {
     // Check if we match a postfix with the same shape
-    if (Postfix_p postfixType = type->AsPostfix())
+    if (Postfix *postfixType = type->AsPostfix())
     {
-        LocalSave<Tree_p> saveType = type;
+        LocalSave<Tree *> saveType(type);
 
         type = postfixType->right;
         Tree_p rightValue = NameMatch(what->right);
         if (rightValue)
         {
             type = postfixType->left;
-            Tree_p leftValue = what->left->Do(this);
+            Tree *leftValue = what->left->Do(this);
             if (leftValue)
                 return what;
         }
@@ -284,24 +284,24 @@ Tree_p MatchType::DoPostfix(Postfix_p what)
 }
 
 
-Tree_p MatchType::DoInfix(Infix_p what)
+Tree *MatchType::DoInfix(Infix *what)
 // ----------------------------------------------------------------------------
 //   Check if we have a similar form, or if it matches rewrites
 // ----------------------------------------------------------------------------
 {
     // Check if we match an infix with the same shape
-    if (Infix_p infixType = type->AsInfix())
+    if (Infix *infixType = type->AsInfix())
     {
         if (infixType->name == what->name)
         {
-            LocalSave<Tree_p> saveType = type;
+            LocalSave<Tree *> saveType(type);
 
             type = infixType->left;
-            Tree_p leftValue = what->left->Do(this);
+            Tree *leftValue = what->left->Do(this);
             if (leftValue)
             {
                 type = infixType->right;
-                Tree_p rightValue = what->right->Do(this);
+                Tree *rightValue = what->right->Do(this);
                 if (rightValue)
                     return what;
             }
@@ -318,21 +318,21 @@ Tree_p MatchType::DoInfix(Infix_p what)
 }
 
 
-Tree_p MatchType::DoBlock(Block_p what)
+Tree *MatchType::DoBlock(Block *what)
 // ----------------------------------------------------------------------------
 //   Check if the evaluated value matches, otherwise check rewrites
 // ----------------------------------------------------------------------------
 {
     // Check if we match a block with the same shape
-    if (Block_p blockType = type->AsBlock())
+    if (Block *blockType = type->AsBlock())
     {
         if (blockType->opening == what->opening &&
             blockType->closing == what->closing)
         {
-            LocalSave<Tree_p> saveType = type;
+            LocalSave<Tree *> saveType(type);
 
             type = blockType->child;
-            Tree_p childValue = what->child->Do(this);
+            Tree *childValue = what->child->Do(this);
             if (childValue)
                 return what;
         }
@@ -345,7 +345,7 @@ Tree_p MatchType::DoBlock(Block_p what)
 
     // Check if the value is (X), in which case we test X
     if (what->opening == "(" && what->closing == ")")
-        if (Tree_p childValue = what->child->Do(this))
+        if (Tree *childValue = what->child->Do(this))
             return childValue;
 
     // Otherwise check rewrites
@@ -353,45 +353,45 @@ Tree_p MatchType::DoBlock(Block_p what)
 }
 
 
-Tree_p MatchType::MatchStructuredType(Tree_p what, Tree_p kind)
+Tree *MatchType::MatchStructuredType(Tree *what, Tree *kind)
 // ----------------------------------------------------------------------------
 //   Check structured types like T1|T2 or (T)
 // ----------------------------------------------------------------------------
 {
     // If this is some union type, i.e. T1 | T2 matches T1 values or T2 values
-    if (Infix_p infixType = type->AsInfix())
+    if (Infix *infixType = type->AsInfix())
     {
         if (infixType->name == "|")
         {
-            LocalSave<Tree_p> saveType = type;
+            LocalSave<Tree_p> saveType(type);
 
             type = infixType->left;
-            Tree_p leftValue = what->Do(this);
+            Tree *leftValue = what->Do(this);
             if (leftValue)
                 return leftValue;
 
             type = infixType->right;
-            Tree_p rightValue = what->Do(this);
+            Tree *rightValue = what->Do(this);
             if (rightValue)
                 return rightValue;
         }
     }
 
     // If this is a block, type (T) matches the same as T
-    else if (Block_p blockType = type->AsBlock())
+    else if (Block *blockType = type->AsBlock())
     {
         if (blockType->opening == "(" && blockType->closing == ")")
         {
-            LocalSave<Tree_p> saveType = type;
+            LocalSave<Tree *> saveType(type);
             type = blockType->child;
-            Tree_p childValue = what->Do(this);
+            Tree *childValue = what->Do(this);
             if (childValue)
                 return childValue;
         }
     }
 
     // Check if the type is 'tree' or a given structure type
-    else if (Name_p namedType = type->AsName())
+    else if (Name *namedType = type->AsName())
     {
         if (namedType->value == "tree" || namedType == kind)
             return what;
@@ -401,7 +401,7 @@ Tree_p MatchType::MatchStructuredType(Tree_p what, Tree_p kind)
 }
 
 
-Tree_p  MatchType::Rewrites(Tree_p what)
+Tree *  MatchType::Rewrites(Tree *what)
 // ----------------------------------------------------------------------------
 //   Check the various rewrites and see if there is one where types match
 // ----------------------------------------------------------------------------
@@ -454,7 +454,7 @@ Tree_p  MatchType::Rewrites(Tree_p what)
                 Symbols args(symbols);
                 ArgumentTypeMatch matchArgs(what, symbols,
                                             &args, candidate->symbols);
-                Tree_p argsTest = candidate->from->Do(matchArgs);
+                Tree *argsTest = candidate->from->Do(matchArgs);
 
                 // If we found something, type matched
                 if (argsTest)
@@ -473,17 +473,17 @@ Tree_p  MatchType::Rewrites(Tree_p what)
 }
 
 
-Tree_p MatchType::Normalize()
+Tree *MatchType::Normalize()
 // ----------------------------------------------------------------------------
 //    Find the normalized type for built-ins, e.g. integer->integer_type
 // ----------------------------------------------------------------------------
 {
-    if (Name_p named = type->AsName())
+    if (Name *named = type->AsName())
     {
         text name = named->value;
 
         // Look it up in the symbol table (takes precedence over builtins)
-        if (Tree_p value = symbols->Named(name))
+        if (Tree *value = symbols->Named(name))
         {
             type = value;
         }
@@ -517,14 +517,14 @@ Tree_p MatchType::Normalize()
 }
 
 
-Tree_p MatchType::NameMatch(Tree_p what)
+Tree *MatchType::NameMatch(Tree *what)
 // ----------------------------------------------------------------------------
 //    Check if either we have a matching name, or a regular match
 // ----------------------------------------------------------------------------
 {
-    if (Name_p name = what->AsName())
+    if (Name *name = what->AsName())
     {
-        if (Name_p typedName = type->AsName())
+        if (Name *typedName = type->AsName())
         {
             if (typedName->value == name->value)
                 return what;
@@ -543,7 +543,7 @@ Tree_p MatchType::NameMatch(Tree_p what)
 //
 // ============================================================================
 
-Tree_p ArgumentTypeMatch::Do(Tree_p what)
+Tree *ArgumentTypeMatch::Do(Tree *what)
 // ----------------------------------------------------------------------------
 //   Default is to return failure
 // ----------------------------------------------------------------------------
@@ -552,7 +552,7 @@ Tree_p ArgumentTypeMatch::Do(Tree_p what)
 }
 
 
-Tree_p ArgumentTypeMatch::DoInteger(Integer_p what)
+Tree *ArgumentTypeMatch::DoInteger(Integer *what)
 // ----------------------------------------------------------------------------
 //   An integer argument matches the exact value
 // ----------------------------------------------------------------------------
@@ -560,7 +560,7 @@ Tree_p ArgumentTypeMatch::DoInteger(Integer_p what)
     // If the tested tree is a constant, it must be an integer with same value
     if (test->IsConstant())
     {
-        Integer_p it = test->AsInteger();
+        Integer *it = test->AsInteger();
         if (!it)
             return NULL;
         if (it->value == what->value)
@@ -571,7 +571,7 @@ Tree_p ArgumentTypeMatch::DoInteger(Integer_p what)
 }
 
 
-Tree_p ArgumentTypeMatch::DoReal(Real_p what)
+Tree *ArgumentTypeMatch::DoReal(Real *what)
 // ----------------------------------------------------------------------------
 //   A real matches the exact value
 // ----------------------------------------------------------------------------
@@ -579,7 +579,7 @@ Tree_p ArgumentTypeMatch::DoReal(Real_p what)
     // If the tested tree is a constant, it must be an integer with same value
     if (test->IsConstant())
     {
-        Real_p rt = test->AsReal();
+        Real *rt = test->AsReal();
         if (!rt)
             return NULL;
         if (rt->value == what->value)
@@ -590,7 +590,7 @@ Tree_p ArgumentTypeMatch::DoReal(Real_p what)
 }
 
 
-Tree_p ArgumentTypeMatch::DoText(Text_p what)
+Tree *ArgumentTypeMatch::DoText(Text *what)
 // ----------------------------------------------------------------------------
 //   A text matches the exact value
 // ----------------------------------------------------------------------------
@@ -598,7 +598,7 @@ Tree_p ArgumentTypeMatch::DoText(Text_p what)
     // If the tested tree is a constant, it must be an integer with same value
     if (test->IsConstant())
     {
-        Text_p tt = test->AsText();
+        Text *tt = test->AsText();
         if (!tt)
             return NULL;
         if (tt->value == what->value)
@@ -609,7 +609,7 @@ Tree_p ArgumentTypeMatch::DoText(Text_p what)
 }
 
 
-Tree_p ArgumentTypeMatch::DoName(Name_p what)
+Tree *ArgumentTypeMatch::DoName(Name *what)
 // ----------------------------------------------------------------------------
 //    Bind arguments to parameters being defined in the shape
 // ----------------------------------------------------------------------------
@@ -618,7 +618,7 @@ Tree_p ArgumentTypeMatch::DoName(Name_p what)
     {
         // The first name we see must match exactly, e.g. 'sin' in 'sin X'
         defined = what;
-        if (Name_p nt = test->AsName())
+        if (Name *nt = test->AsName())
             if (nt->value == what->value)
                 return what;
         return NULL;
@@ -627,16 +627,16 @@ Tree_p ArgumentTypeMatch::DoName(Name_p what)
     {
         // Check if the name already exists, e.g. 'false' or 'A+A'
         // If it does, we generate a run-time check to verify equality
-        if (Tree_p existing = rewrite->Named(what->value))
+        if (Tree *existing = rewrite->Named(what->value))
         {
             // Check if the test is an identity
-            if (Name_p nt = test->AsName())
+            if (Name *nt = test->AsName())
             {
                 if (nt->code == xl_identity)
                 {
                     if (nt->value == what->value)
                         return what;
-                    if (Name_p existingName = existing->AsName())
+                    if (Name *existingName = existing->AsName())
                         if (existingName->value == nt->value)
                             return what;
                     return NULL;
@@ -649,19 +649,19 @@ Tree_p ArgumentTypeMatch::DoName(Name_p what)
 }
 
 
-Tree_p ArgumentTypeMatch::DoBlock(Block_p what)
+Tree *ArgumentTypeMatch::DoBlock(Block *what)
 // ----------------------------------------------------------------------------
 //   Check if we match a block
 // ----------------------------------------------------------------------------
 {
     // Test if we exactly match the block, i.e. the reference is a block
-    if (Block_p bt = test->AsBlock())
+    if (Block *bt = test->AsBlock())
     {
         if (bt->opening == what->opening &&
             bt->closing == what->closing)
         {
             test = bt->child;
-            Tree_p br = what->child->Do(this);
+            Tree *br = what->child->Do(this);
             test = bt;
             if (br)
                 return br;
@@ -679,7 +679,7 @@ Tree_p ArgumentTypeMatch::DoBlock(Block_p what)
 }
 
 
-Tree_p ArgumentTypeMatch::DoInfix(Infix_p what)
+Tree *ArgumentTypeMatch::DoInfix(Infix *what)
 // ----------------------------------------------------------------------------
 //   Check if we match an infix operator
 // ----------------------------------------------------------------------------
@@ -687,13 +687,13 @@ Tree_p ArgumentTypeMatch::DoInfix(Infix_p what)
     // Check if we match an infix tree like 'x,y' with a name like 'A'
     if (what->name != ":")
     {
-        if (Name_p name = test->AsName())
+        if (Name *name = test->AsName())
         {
             name = name;
         }
     }
 
-    if (Infix_p it = test->AsInfix())
+    if (Infix *it = test->AsInfix())
     {
         // Check if we match the tree, e.g. A+B vs 2+3
         if (it->name == what->name)
@@ -701,12 +701,12 @@ Tree_p ArgumentTypeMatch::DoInfix(Infix_p what)
             if (!defined)
                 defined = what;
             test = it->left;
-            Tree_p lr = what->left->Do(this);
+            Tree *lr = what->left->Do(this);
             test = it;
             if (!lr)
                 return NULL;
             test = it->right;
-            Tree_p rr = what->right->Do(this);
+            Tree *rr = what->right->Do(this);
             test = it;
             if (!rr)
                 return NULL;
@@ -718,12 +718,12 @@ Tree_p ArgumentTypeMatch::DoInfix(Infix_p what)
     if (what->name == ":")
     {
         // Check the variable name, e.g. K in example above
-        Name_p varName = what->left->AsName();
+        Name *varName = what->left->AsName();
         if (!varName)
             return Ooops("Expected a name, got '$1' ", what->left);
 
         // Check if the name already exists
-        if (Tree_p existing = rewrite->Named(varName->value))
+        if (Tree *existing = rewrite->Named(varName->value))
             return Ooops("Name '$1' already exists as '$2'",
                          what->left, existing);
 
@@ -735,26 +735,26 @@ Tree_p ArgumentTypeMatch::DoInfix(Infix_p what)
 }
 
 
-Tree_p ArgumentTypeMatch::DoPrefix(Prefix_p what)
+Tree *ArgumentTypeMatch::DoPrefix(Prefix *what)
 // ----------------------------------------------------------------------------
 //   For prefix expressions, simply test left then right
 // ----------------------------------------------------------------------------
 {
-    if (Prefix_p pt = test->AsPrefix())
+    if (Prefix *pt = test->AsPrefix())
     {
         // Check if we match the tree, e.g. f(A) vs. f(2)
         // Note that we must test left first to define 'f' in above case
-        Infix_p defined_infix = defined->AsInfix();
+        Infix *defined_infix = defined->AsInfix();
         if (defined_infix)
             defined = NULL;
 
         test = pt->left;
-        Tree_p lr = what->left->Do(this);
+        Tree *lr = what->left->Do(this);
         test = pt;
         if (!lr)
             return NULL;
         test = pt->right;
-        Tree_p rr = what->right->Do(this);
+        Tree *rr = what->right->Do(this);
         test = pt;
         if (!rr)
             return NULL;
@@ -766,23 +766,23 @@ Tree_p ArgumentTypeMatch::DoPrefix(Prefix_p what)
 }
 
 
-Tree_p ArgumentTypeMatch::DoPostfix(Postfix_p what)
+Tree *ArgumentTypeMatch::DoPostfix(Postfix *what)
 // ----------------------------------------------------------------------------
 //    For postfix expressions, simply test right, then left
 // ----------------------------------------------------------------------------
 {
-    if (Postfix_p pt = test->AsPostfix())
+    if (Postfix *pt = test->AsPostfix())
     {
         // Check if we match the tree, e.g. A! vs 2!
         // Note that ordering is reverse compared to prefix, so that
         // the 'defined' names is set correctly
         test = pt->right;
-        Tree_p rr = what->right->Do(this);
+        Tree *rr = what->right->Do(this);
         test = pt;
         if (!rr)
             return NULL;
         test = pt->left;
-        Tree_p lr = what->left->Do(this);
+        Tree *lr = what->left->Do(this);
         test = pt;
         if (!lr)
             return NULL;

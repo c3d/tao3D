@@ -93,7 +93,7 @@
   facilitate the interaction with other code.
 
   At top-level, the compiler generates only functions with the same
-  prototype as eval_fn, i.e. Tree_p (Tree_p). The code is being
+  prototype as eval_fn, i.e. Tree * (Tree *). The code is being
   generated on invokation of a form, and helps rewriting it, although
   attempts are made to leverage existing rewrites. This is implemented
   in Context::CompileAll.
@@ -152,7 +152,7 @@ typedef symbol_table::iterator     symbol_iter;  // Iterator over sym table
 typedef std::map<Tree_p, Symbols_p>capture_table;// Symbol capture table
 typedef std::map<Tree_p, Tree_p>   value_table;  // Used for value caching
 typedef value_table::iterator      value_iter;   // Used to iterate over values
-typedef Tree_p (*typecheck_fn) (Tree_p src, Tree_p value);
+typedef Tree * (*typecheck_fn) (Tree *src, Tree *value);
 
 
 
@@ -176,38 +176,38 @@ struct Symbols
     void                Import (Symbols *other) { imported.insert(other); }
 
     // Symbol management
-    Tree_p              Named (text name, bool deep = true);
+    Tree *              Named (text name, bool deep = true);
     Rewrite *           Rewrites()              { return rewrites; }
 
     // Entering symbols in the symbol table
-    void                EnterName (text name, Tree_p value);
+    void                EnterName (text name, Tree *value);
     Rewrite *           EnterRewrite(Rewrite *r);
-    Rewrite *           EnterRewrite(Tree_p from, Tree_p to);
-    Name_p              Allocate(Name_p varName);
+    Rewrite *           EnterRewrite(Tree *from, Tree *to);
+    Name *              Allocate(Name *varName);
 
     // Clearing symbol tables
     void                Clear();
 
     // Compiling and evaluating a tree in scope defined by these symbols
-    Tree_p               Compile(Tree_p s, CompiledUnit &,
+    Tree *              Compile(Tree *s, CompiledUnit &,
                                 bool nullIfBad = false,
                                 bool keepOtherConstants = false);
-    Tree_p               CompileAll(Tree_p s,
+    Tree *              CompileAll(Tree *s,
                                    bool nullIfBad = false,
                                    bool keepOtherConstants = false);
-    Tree_p               CompileCall(text callee, TreeList &args,
-                                    bool nullIfBad=false, bool cached = true);
-    Infix_p              CompileTypeTest(Tree_p type);
-    Tree_p               Run(Tree_p t);
+    Tree *               CompileCall(text callee, TreeList &args,
+                                     bool nullIfBad=false, bool cached = true);
+    Infix *              CompileTypeTest(Tree *type);
+    Tree *               Run(Tree *t);
 
     // Error handling
-    Tree_p               Error (text message,
-                               Tree_p a1=NULL, Tree_p a2=NULL, Tree_p a3=NULL);
+    Tree *               Error (text message,
+                                Tree *a1=NULL, Tree *a2=NULL, Tree *a3=NULL);
 
 public:
     Symbols_p           parent;
     symbol_table        names;
-    Rewrite *           rewrites;
+    Rewrite_p           rewrites;
     symbol_table        calls;
     value_table         type_tests;
     symbols_set         imported;
@@ -233,9 +233,6 @@ struct Context : Symbols
     {}
     ~Context();
 
-    // Helpers for compilation of trees
-    Tree_p *             AddGlobal(Tree_p value);
-
 public:
     static Context *    context;
     Errors &            errors;
@@ -251,13 +248,13 @@ struct Rewrite
 // ----------------------------------------------------------------------------
 //   Note that a rewrite with 'to' = NULL is used for 'data' statements
 {
-    Rewrite (Symbols *s, Tree_p f, Tree_p t):
+    Rewrite (Symbols *s, Tree *f, Tree *t):
         symbols(s), from(f), to(t), hash(), parameters() {}
     ~Rewrite();
 
     Rewrite *           Add (Rewrite *rewrite);
-    Tree_p              Do(Action &a);
-    Tree_p              Compile(void);
+    Tree *              Do(Action &a);
+    Tree *              Compile(void);
 
 public:
     Symbols_p           symbols;
@@ -282,21 +279,21 @@ struct InterpretedArgumentMatch : Action
 //   Check if a tree matches the form of the left of a rewrite
 // ----------------------------------------------------------------------------
 {
-    InterpretedArgumentMatch (Tree_p t,
+    InterpretedArgumentMatch (Tree *t,
                               Symbols *s, Symbols *l, Symbols *r) :
         symbols(s), locals(l), rewrite(r),
         test(t), defined(NULL) {}
 
     // Action callbacks
-    virtual Tree_p Do(Tree_p what);
-    virtual Tree_p DoInteger(Integer_p what);
-    virtual Tree_p DoReal(Real_p what);
-    virtual Tree_p DoText(Text_p what);
-    virtual Tree_p DoName(Name_p what);
-    virtual Tree_p DoPrefix(Prefix_p what);
-    virtual Tree_p DoPostfix(Postfix_p what);
-    virtual Tree_p DoInfix(Infix_p what);
-    virtual Tree_p DoBlock(Block_p what);
+    virtual Tree *Do(Tree *what);
+    virtual Tree *DoInteger(Integer *what);
+    virtual Tree *DoReal(Real *what);
+    virtual Tree *DoText(Text *what);
+    virtual Tree *DoName(Name *what);
+    virtual Tree *DoPrefix(Prefix *what);
+    virtual Tree *DoPostfix(Postfix *what);
+    virtual Tree *DoInfix(Infix *what);
+    virtual Tree *DoBlock(Block *what);
 
 public:
     Symbols_p     symbols;      // Context in which we evaluate values
@@ -321,17 +318,17 @@ struct DeclarationAction : Action
 {
     DeclarationAction (Symbols *c): symbols(c) {}
 
-    virtual Tree_p Do(Tree_p what);
-    virtual Tree_p DoInteger(Integer_p what);
-    virtual Tree_p DoReal(Real_p what);
-    virtual Tree_p DoText(Text_p what);
-    virtual Tree_p DoName(Name_p what);
-    virtual Tree_p DoPrefix(Prefix_p what);
-    virtual Tree_p DoPostfix(Postfix_p what);
-    virtual Tree_p DoInfix(Infix_p what);
-    virtual Tree_p DoBlock(Block_p what);
+    virtual Tree *Do(Tree *what);
+    virtual Tree *DoInteger(Integer *what);
+    virtual Tree *DoReal(Real *what);
+    virtual Tree *DoText(Text *what);
+    virtual Tree *DoName(Name *what);
+    virtual Tree *DoPrefix(Prefix *what);
+    virtual Tree *DoPostfix(Postfix *what);
+    virtual Tree *DoInfix(Infix *what);
+    virtual Tree *DoBlock(Block *what);
 
-    void        EnterRewrite(Tree_p defined, Tree_p definition);
+    void        EnterRewrite(Tree *defined, Tree *definition);
 
     Symbols_p symbols;
 };
@@ -344,18 +341,18 @@ struct CompileAction : Action
 {
     CompileAction (Symbols *s, CompiledUnit &, bool nullIfBad, bool keepAlt);
 
-    virtual Tree_p Do(Tree_p what);
-    virtual Tree_p DoInteger(Integer_p what);
-    virtual Tree_p DoReal(Real_p what);
-    virtual Tree_p DoText(Text_p what);
-    virtual Tree_p DoName(Name_p what);
-    virtual Tree_p DoPrefix(Prefix_p what);
-    virtual Tree_p DoPostfix(Postfix_p what);
-    virtual Tree_p DoInfix(Infix_p what);
-    virtual Tree_p DoBlock(Block_p what);
+    virtual Tree *Do(Tree *what);
+    virtual Tree *DoInteger(Integer *what);
+    virtual Tree *DoReal(Real *what);
+    virtual Tree *DoText(Text *what);
+    virtual Tree *DoName(Name *what);
+    virtual Tree *DoPrefix(Prefix *what);
+    virtual Tree *DoPostfix(Postfix *what);
+    virtual Tree *DoInfix(Infix *what);
+    virtual Tree *DoBlock(Block *what);
 
     // Build code selecting among rewrites in current context
-    Tree_p         Rewrites(Tree_p what);
+    Tree *         Rewrites(Tree *what);
 
     Symbols_p     symbols;
     CompiledUnit &unit;
@@ -372,15 +369,15 @@ struct ParameterMatch : Action
     ParameterMatch (Symbols *s)
         : symbols(s), defined(NULL) {}
 
-    virtual Tree_p Do(Tree_p what);
-    virtual Tree_p DoInteger(Integer_p what);
-    virtual Tree_p DoReal(Real_p what);
-    virtual Tree_p DoText(Text_p what);
-    virtual Tree_p DoName(Name_p what);
-    virtual Tree_p DoPrefix(Prefix_p what);
-    virtual Tree_p DoPostfix(Postfix_p what);
-    virtual Tree_p DoInfix(Infix_p what);
-    virtual Tree_p DoBlock(Block_p what);
+    virtual Tree *Do(Tree *what);
+    virtual Tree *DoInteger(Integer *what);
+    virtual Tree *DoReal(Real *what);
+    virtual Tree *DoText(Text *what);
+    virtual Tree *DoName(Name *what);
+    virtual Tree *DoPrefix(Prefix *what);
+    virtual Tree *DoPostfix(Postfix *what);
+    virtual Tree *DoInfix(Infix *what);
+    virtual Tree *DoBlock(Block *what);
 
     Symbols_p symbols;          // Symbols in which we test
     Tree_p    defined;          // Tree beind defined, e.g. 'sin' in 'sin X'
@@ -393,27 +390,27 @@ struct ArgumentMatch : Action
 //   Check if a tree matches the form of the left of a rewrite
 // ----------------------------------------------------------------------------
 {
-    ArgumentMatch (Tree_p t,
+    ArgumentMatch (Tree *t,
                    Symbols *s, Symbols *l, Symbols *r,
                    CompileAction *comp):
         symbols(s), locals(l), rewrite(r),
         test(t), defined(NULL), compile(comp), unit(comp->unit) {}
 
     // Action callbacks
-    virtual Tree_p Do(Tree_p what);
-    virtual Tree_p DoInteger(Integer_p what);
-    virtual Tree_p DoReal(Real_p what);
-    virtual Tree_p DoText(Text_p what);
-    virtual Tree_p DoName(Name_p what);
-    virtual Tree_p DoPrefix(Prefix_p what);
-    virtual Tree_p DoPostfix(Postfix_p what);
-    virtual Tree_p DoInfix(Infix_p what);
-    virtual Tree_p DoBlock(Block_p what);
+    virtual Tree *Do(Tree *what);
+    virtual Tree *DoInteger(Integer *what);
+    virtual Tree *DoReal(Real *what);
+    virtual Tree *DoText(Text *what);
+    virtual Tree *DoName(Name *what);
+    virtual Tree *DoPrefix(Prefix *what);
+    virtual Tree *DoPostfix(Postfix *what);
+    virtual Tree *DoInfix(Infix *what);
+    virtual Tree *DoBlock(Block *what);
 
     // Compile a tree
-    Tree_p         Compile(Tree_p source);
-    Tree_p         CompileValue(Tree_p source);
-    Tree_p         CompileClosure(Tree_p source);
+    Tree *         Compile(Tree *source);
+    Tree *         CompileValue(Tree *source);
+    Tree *         CompileClosure(Tree *source);
 
 public:
     Symbols_p      symbols;     // Context in which we evaluate values
@@ -433,15 +430,15 @@ struct EnvironmentScan : Action
 {
     EnvironmentScan (Symbols *s): symbols(s) {}
 
-    virtual Tree_p Do(Tree_p what);
-    virtual Tree_p DoInteger(Integer_p what);
-    virtual Tree_p DoReal(Real_p what);
-    virtual Tree_p DoText(Text_p what);
-    virtual Tree_p DoName(Name_p what);
-    virtual Tree_p DoPrefix(Prefix_p what);
-    virtual Tree_p DoPostfix(Postfix_p what);
-    virtual Tree_p DoInfix(Infix_p what);
-    virtual Tree_p DoBlock(Block_p what);
+    virtual Tree *Do(Tree *what);
+    virtual Tree *DoInteger(Integer *what);
+    virtual Tree *DoReal(Real *what);
+    virtual Tree *DoText(Text *what);
+    virtual Tree *DoName(Name *what);
+    virtual Tree *DoPrefix(Prefix *what);
+    virtual Tree *DoPostfix(Postfix *what);
+    virtual Tree *DoInfix(Infix *what);
+    virtual Tree *DoBlock(Block *what);
 
 public:
     Symbols_p           symbols;        // Symbols in which we test
@@ -457,15 +454,15 @@ struct BuildChildren : Action
     BuildChildren(CompileAction *comp);
     ~BuildChildren();
 
-    virtual Tree_p Do(Tree_p what)                { return what; }
-    virtual Tree_p DoInteger(Integer_p what)      { return what; }
-    virtual Tree_p DoReal(Real_p what)            { return what; }
-    virtual Tree_p DoText(Text_p what)            { return what; }
-    virtual Tree_p DoName(Name_p what)            { return what; }
-    virtual Tree_p DoPrefix(Prefix_p what);
-    virtual Tree_p DoPostfix(Postfix_p what);
-    virtual Tree_p DoInfix(Infix_p what);
-    virtual Tree_p DoBlock(Block_p what);
+    virtual Tree *Do(Tree *what)                { return what; }
+    virtual Tree *DoInteger(Integer *what)      { return what; }
+    virtual Tree *DoReal(Real *what)            { return what; }
+    virtual Tree *DoText(Text *what)            { return what; }
+    virtual Tree *DoName(Name *what)            { return what; }
+    virtual Tree *DoPrefix(Prefix *what);
+    virtual Tree *DoPostfix(Postfix *what);
+    virtual Tree *DoInfix(Infix *what);
+    virtual Tree *DoBlock(Block *what);
  
 public:
     CompileAction *compile;             // Compilation in progress
@@ -513,7 +510,7 @@ struct LocalSave
 // 
 // ============================================================================
 
-inline Tree_p Ooops (text msg, Tree_p a1=NULL, Tree_p a2=NULL, Tree_p a3=NULL)
+inline Tree *Ooops (text msg, Tree *a1=NULL, Tree *a2=NULL, Tree *a3=NULL)
 // ----------------------------------------------------------------------------
 //   Error using the global context
 // ----------------------------------------------------------------------------
@@ -545,10 +542,7 @@ inline Symbols::~Symbols()
 // ----------------------------------------------------------------------------
 //   Delete all included rewrites if necessary and unlink from context
 // ----------------------------------------------------------------------------
-{
-    if (rewrites)
-        delete rewrites;
- }
+{}
 
 
 inline ulong Symbols::Depth()

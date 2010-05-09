@@ -1031,7 +1031,7 @@ void GraphicPath::clear()
 }
 
 
-void GraphicPath::AddControl(XL::Tree_p self, Real_p x, Real_p y, Real_p z)
+void GraphicPath::AddControl(XL::Tree *self, Real *x, Real *y, Real *z)
 // ----------------------------------------------------------------------------
 //   Add a control point to a path
 // ----------------------------------------------------------------------------

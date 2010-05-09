@@ -73,7 +73,7 @@ void TextSpan::DrawCached(Layout *where, bool identify)
     Widget     *widget = where->Display();
     GlyphCache &glyphs = widget->glyphs();
     Point3      pos    = where->offset;
-    Text_p      ttree  = source;
+    Text *      ttree  = source;
     text        str    = ttree->value;
     bool        canSel = ttree->Position() != XL::Tree::NOWHERE;
     QFont      &font   = where->font;
@@ -187,7 +187,7 @@ void TextSpan::DrawDirect(Layout *where)
     Widget     *widget = where->Display();
     GlyphCache &glyphs = widget->glyphs();
     Point3      pos    = where->offset;
-    Text_p      ttree  = source;
+    Text *      ttree  = source;
     text        str    = ttree->value;
     bool        canSel = ttree->Position() != XL::Tree::NOWHERE;
     QFont      &font   = where->font;
@@ -255,7 +255,7 @@ void TextSpan::DrawSelection(Layout *where)
     Widget     *widget       = where->Display();
     GlyphCache &glyphs       = widget->glyphs();
     Point3      pos          = where->offset;
-    Text_p      ttree        = source;
+    Text *      ttree        = source;
     text        str          = ttree->value;
     bool        canSel       = ttree->Position() != XL::Tree::NOWHERE;
     QFont      &font         = where->font;
@@ -672,18 +672,18 @@ scale TextSpan::TrailingSpaceSize(Layout *where)
 uint TextFormula::formulas = 0;
 uint TextFormula::shows = 0;
 
-XL::Text_p TextFormula::Format(XL::Prefix_p self)
+XL::Text *TextFormula::Format(XL::Prefix *self)
 // ----------------------------------------------------------------------------
 //   Return a formatted value for the given value
 // ----------------------------------------------------------------------------
 {
-    Tree_p value = self->right;
+    Tree *value = self->right;
     TextFormulaEditInfo *info = value->GetInfo<TextFormulaEditInfo>();
     formulas++;
     shows = 0;
     if (info && info->order == formulas)
         return info->source;
-    Tree_p computed = xl_evaluate(self->right);
+    Tree *computed = xl_evaluate(self->right);
     return new XL::Text(*computed);
 }
 
@@ -695,8 +695,8 @@ void TextFormula::DrawSelection(Layout *where)
 {
     Widget              *widget = where->Display();
     TextSelect          *sel    = widget->textSelection();
-    XL::Prefix_p         prefix = self->AsPrefix();
-    XL::Tree_p           value  = prefix->right;
+    XL::Prefix *         prefix = self->AsPrefix();
+    XL::Tree *           value  = prefix->right;
     TextFormulaEditInfo *info   = value->GetInfo<TextFormulaEditInfo>();
     uint                 selId  = widget->currentCharId() + 1;
 
@@ -711,12 +711,12 @@ void TextFormula::DrawSelection(Layout *where)
         {
             // No info: create one
             text edited = text(" ") + text(*value) + " ";
-            Text_p editor = new Text(edited, "\"", "\"", value->Position());
+            Text *editor = new Text(edited, "\"", "\"", value->Position());
             info = new TextFormulaEditInfo(editor, shows);
             value->SetInfo<TextFormulaEditInfo>(info);
             
             // Update mark and point
-            XL::Text_p source = info->source;
+            XL::Text *source = info->source;
             uint length = source->value.length();
             sel->point = selId;
             sel->mark = selId + length;
@@ -730,12 +730,12 @@ void TextFormula::DrawSelection(Layout *where)
     {
         if (shows == info->order)
         {
-            XL::Text_p source = info->source;
+            XL::Text *source = info->source;
             sel->formulaMode = source->value.length() + 1;
         }
         else
         {
-            XL::Text_p source = this->source;
+            XL::Text *source = this->source;
             sel->formulaMode = source->value.length() + 1;
         }
     }
@@ -745,7 +745,7 @@ void TextFormula::DrawSelection(Layout *where)
     // Check if the cursor moves out of the selection - If so, validate
     if (info &&info->order == shows)
     {
-        XL::Text_p source = info->source;
+        XL::Text *source = info->source;
         uint length = source->value.length();
 
         if (!sel || (sel->mark == sel->point &&
@@ -774,8 +774,8 @@ void TextFormula::Identify(Layout *where)
 //   Give one ID to the whole formula so that we can click on it
 // ----------------------------------------------------------------------------
 {
-    XL::Prefix_p         prefix  = self->AsPrefix();
-    XL::Tree_p           value   = prefix->right;
+    XL::Prefix *         prefix  = self->AsPrefix();
+    XL::Tree *           value   = prefix->right;
     TextFormulaEditInfo *info    = value->GetInfo<TextFormulaEditInfo>();
     if (!info)
     {
@@ -787,7 +787,7 @@ void TextFormula::Identify(Layout *where)
 }
 
 
-bool TextFormula::Validate(XL::Text_p source, Widget *widget)
+bool TextFormula::Validate(XL::Text *source, Widget *widget)
 // ----------------------------------------------------------------------------
 //   Check if we can parse the input. If so, update self
 // ----------------------------------------------------------------------------
@@ -797,10 +797,10 @@ bool TextFormula::Validate(XL::Text_p source, Widget *widget)
     XL::Positions      &positions = XL::MAIN->positions;
     XL::Errors         &errors    = XL::MAIN->errors;
     XL::Parser          parser(input, syntax,positions,errors);
-    Tree_p              newTree = parser.Parse();
+    Tree *              newTree = parser.Parse();
     if (newTree)
     {
-        XL::Prefix_p prefix = self->AsPrefix();
+        XL::Prefix *prefix = self->AsPrefix();
         prefix->right = newTree;
         widget->reloadProgram();
         widget->markChanged("Replaced formula");

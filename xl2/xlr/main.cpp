@@ -209,12 +209,12 @@ void Main::EvalContextFiles()
     // Evaluate context
     std::vector<text>::iterator  file;
 
-    Tree_p context_file = NULL;
     SourceFile filename;
     for (file = context_file_names.begin();
-         file != context_file_names.end(); file++)
+         file != context_file_names.end();
+         file++)
     {
-        if ( (context_file = files[*file].tree) )
+        if (Tree *context_file = files[*file].tree)
             xl_evaluate(context_file);
     }
 

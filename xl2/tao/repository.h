@@ -26,6 +26,7 @@
 
 #include "tao.h"
 #include "tree.h"
+#include "tao_tree.h"
 #include "process.h"
 #include "main.h"
 #include "ansi_textedit.h"
@@ -97,8 +98,8 @@ public:
     virtual ~Repository();
 
 public:
-    virtual bool        write(text fileName, XL::Tree_p tree);
-    virtual XL::Tree_p  read(text fileName);
+    virtual bool        write(text fileName, Tree *tree);
+    virtual XL::Tree *  read(text fileName);
     virtual bool        setTask(text name);
     virtual bool        selectWorkBranch();
     virtual bool        selectUndoBranch();

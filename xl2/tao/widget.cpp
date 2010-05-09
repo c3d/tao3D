@@ -327,6 +327,8 @@ void Widget::runProgram()
 //   Run the current XL program
 // ----------------------------------------------------------------------------
 {
+    XL::GarbageCollector::Collect();
+
     // Don't run anything if we detected errors running previously
     if (inError)
         return;

@@ -589,12 +589,15 @@ void Compiler::FreeResources()
 //   Normally, none of the elements should be used anymore
 {
     deleted_set::iterator i;
-    while ((i = deleted.begin()) != deleted.end())
+    for (i = deleted.begin(); i != deleted.end(); i++)
     {
         Value *v = *i;
-        assert(v->use_empty());
-        delete v;
-        deleted.erase(i);
+        if (v->use_empty())
+        {
+            delete v;
+            deleted.erase(i);
+            i = deleted.begin();
+        }
     }
 }
 

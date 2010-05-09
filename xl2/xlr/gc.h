@@ -67,6 +67,7 @@ public:
     void                Sweep();
 
     static AllocatorBase *ValidPointer(AllocatorBase *ptr);
+    static AllocatorBase *AllocatorPointer(AllocatorBase *ptr);
 
     uint &              Roots(void *ptr) { return roots[ptr]; }
 
@@ -269,6 +270,16 @@ inline AllocatorBase *AllocatorBase::ValidPointer(AllocatorBase *ptr)
 {
     AllocatorBase *result = (AllocatorBase *) (((uintptr_t) ptr) & ~PTR_MASK);
     assert(result && result->gc == GarbageCollector::Singleton());
+    return result;
+}
+
+
+inline AllocatorBase *AllocatorBase::AllocatorPointer(AllocatorBase *ptr)
+// ----------------------------------------------------------------------------
+//   Return a valid pointer from a possibly marked pointer
+// ----------------------------------------------------------------------------
+{
+    AllocatorBase *result = (AllocatorBase *) (((uintptr_t) ptr) & ~PTR_MASK);
     return result;
 }
 

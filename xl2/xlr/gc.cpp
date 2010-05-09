@@ -151,7 +151,7 @@ void AllocatorBase::MarkRoots()
         for (uint i = 0; i < chunkSize; i++)
         {
             Chunk *ptr = (Chunk *) (chunkBase + i * itemSize);
-            if (ValidPointer(ptr->allocator) == this)
+            if (AllocatorPointer(ptr->allocator) == this)
                 if ((ptr->bits & IN_USE) == 0)
                     if ((ptr->bits & USE_MASK) > 0)
                         Mark(ptr+1);
@@ -199,7 +199,7 @@ void AllocatorBase::Sweep()
         for (uint i = 0; i < chunkSize; i++)
         {
             Chunk *ptr = (Chunk *) (chunkBase + i * itemSize);
-            if (ValidPointer(ptr->allocator) == this)
+            if (AllocatorPointer(ptr->allocator) == this)
             {
                 if (ptr->bits & IN_USE)
                     ptr->bits &= ~IN_USE;

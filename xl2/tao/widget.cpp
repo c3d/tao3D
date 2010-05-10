@@ -2578,9 +2578,9 @@ Tree_p Widget::image(Tree_p self, real_r x, real_r y, real_r w, real_r h,
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
     texId = rinfo->bind(filename);
-    if (w.value <= 0)
+    if (w.value <= 0.0)
         w.value = rinfo->width;
-    if (h.value <= 0)
+    if (h.value <= 0.0)
         h.value = rinfo->height;
 
     layout->Add(new FillTexture(texId));
@@ -3910,8 +3910,6 @@ void Widget::colorChosen(const QColor & col)
 // ----------------------------------------------------------------------------
 {
     colorChanged(col);
-    delete colorDialog;
-    colorDialog = NULL;
 }
 
 

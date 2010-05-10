@@ -4019,8 +4019,6 @@ void Widget::fontChosen(const QFont& ft)
 // ----------------------------------------------------------------------------
 {
     fontChanged(ft);
-    delete fontDialog;
-    fontDialog = NULL;
 }
 
 

@@ -255,7 +255,7 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     xl_same_shape = ExternFunction(FN(xl_same_shape),
                                    boolTy, 2, treePtrTy, treePtrTy);
     xl_infix_match_check = ExternFunction(FN(xl_infix_match_check),
-                                          treePtrTy, 2, treePtrTy, treePtrTy);
+                                          treePtrTy, 2, treePtrTy, charPtrTy);
     xl_type_check = ExternFunction(FN(xl_type_check),
                                    treePtrTy, 2, treePtrTy, treePtrTy);
     xl_type_error = ExternFunction(FN(xl_type_error),
@@ -458,6 +458,9 @@ Value *Compiler::EnterGlobal(Name *name, Name_p *address)
                                               null, name->value);
     runtime->addGlobalMapping(result, address);
     globals[name] = result;
+    IFTRACE(llvmgc)
+        std::cerr << "Address for global '" << name << "' ("
+                  << (void *) name << ") is " << (void *) address << '\n';
     return result;
 }
 
@@ -488,6 +491,10 @@ Value *Compiler::EnterConstant(Tree *constant)
     addresses[constant] = address;
     *address = constant;
     runtime->addGlobalMapping(result, address);
+    IFTRACE(llvmgc)
+        std::cerr << "Address for '" << constant << "' ("
+                  << (void *) constant << ") is " << (void *) address << '\n';
+
 
     return result;
 }
@@ -541,6 +548,9 @@ void Compiler::FreeResources(Tree *tree)
 
             // Mark the function for complete deletion later
             deleted.insert(f);
+            IFTRACE(llvmgc)
+                std::cerr << "Function " << f << " for tree "
+                          << (void *) tree << " in use\n";
         }
         else
         {
@@ -561,6 +571,9 @@ void Compiler::FreeResources(Tree *tree)
         if (inUse)
         {
             deleted.insert(v);
+            IFTRACE(llvmgc)
+                std::cerr << "Global " << v << " for tree "
+                          << (void *) tree << " in use\n";
         }
         else
         {
@@ -574,8 +587,10 @@ void Compiler::FreeResources(Tree *tree)
     if (addresses.count(tree) > 0)
     {
         Tree **address = addresses[tree];
-        delete address;
         addresses.erase(tree);
+        IFTRACE(llvmgc)
+            std::cerr << "Deleting addres " << address << "\n";
+        delete address;
     }
 }
 
@@ -596,6 +611,12 @@ void Compiler::FreeResources()
             delete v;
             deleted.erase(i);
             i = deleted.begin();
+        }
+        else
+        {
+            IFTRACE(llvmgc)
+                std::cerr << "Dropping reference to used value "
+                          << v << ":\n";
         }
     }
 }
@@ -1411,12 +1432,19 @@ BasicBlock *CompiledUnit::InfixMatchTest(Tree *actual, Infix *reference)
     // Check that we know how to evaluate both 
     Value *actualVal = Known(actual);           assert(actualVal);
     Value *refVal = NeedStorage(reference);     assert (refVal);
-    Value *refCst = ConstantTree(reference);    assert(refCst);
+
+    // Extract the name of the reference
+    Constant *refNameVal = ConstantArray::get(*context, reference->name);
+    const Type *refNameTy = refNameVal->getType();
+    GlobalVariable *gvar = new GlobalVariable(*compiler->module,refNameTy,true,
+                                              GlobalValue::InternalLinkage,
+                                              refNameVal, "infix_name");
+    Value *refNamePtr = code->CreateConstGEP2_32(gvar, 0, 0);
 
     // Where we go if the tests fail
     BasicBlock *notGood = NeedTest();
     Value *afterExtract = code->CreateCall2(compiler->xl_infix_match_check,
-                                            actualVal, refCst);
+                                            actualVal, refNamePtr);
     Constant *null = ConstantPointerNull::get(compiler->treePtrTy);
     Value *isGood = code->CreateICmpNE(afterExtract, null, "isGoodInfix");
     BasicBlock *isGoodBB = BasicBlock::Create(*context, "isGood", function);

@@ -254,4 +254,6 @@ struct CompilerGarbageCollectionListener : GarbageCollector::Listener
 
 XL_END
 
+extern void debugv(void *);
+
 #endif // COMPILER_H

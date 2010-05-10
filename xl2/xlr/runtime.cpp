@@ -114,7 +114,7 @@ bool xl_same_shape(Tree *left, Tree *right)
 }
 
 
-Tree *xl_infix_match_check(Tree *value, Infix *ref)
+Tree *xl_infix_match_check(Tree *value, kstring name)
 // ----------------------------------------------------------------------------
 //   Check if the value is matching the given infix
 // ----------------------------------------------------------------------------
@@ -123,7 +123,7 @@ Tree *xl_infix_match_check(Tree *value, Infix *ref)
         if (block->opening == "(" && block->closing == ")")
             value = block->child;
     if (Infix *infix = value->AsInfix())
-        if (infix->name == ref->name)
+        if (infix->name == name)
             return infix;
     return NULL;
 }

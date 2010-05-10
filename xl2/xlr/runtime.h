@@ -56,7 +56,7 @@ Tree *xl_source(Tree *);
 Tree *xl_set_source(Tree *val, Tree *src);
 bool  xl_same_text(Tree * , const char *);
 bool  xl_same_shape(Tree *t1, Tree *t2);
-Tree *xl_infix_match_check(Tree *value, Infix *ref);
+Tree *xl_infix_match_check(Tree *value, kstring name);
 Tree *xl_type_check(Tree *value, Tree *type);
 
 Tree *xl_new_integer(longlong value);

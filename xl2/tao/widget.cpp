@@ -3555,6 +3555,7 @@ XL::Name_p Widget::textEditKey(Tree_p self, text key)
         delete textSelection();
         delete drag();
         pageStartTime = frozenTime;
+        refresh(0);
         return XL::xl_true;
     }
 

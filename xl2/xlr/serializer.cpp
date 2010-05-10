@@ -54,22 +54,22 @@ union ieee754_double
     struct
     {
 #if	BYTE_ORDER == BIG_ENDIAN
-	unsigned int negative:1;
-	unsigned int exponent:11;
-	unsigned int mantissa0:20;
-	unsigned int mantissa1:32;
+        unsigned int negative:1;
+        unsigned int exponent:11;
+        unsigned int mantissa0:20;
+        unsigned int mantissa1:32;
 #endif  /* Big endian.  */
 #if	BYTE_ORDER == LITTLE_ENDIAN
 # if	FLOAT_WORD_ORDER == BIG_ENDIAN
-	unsigned int mantissa0:20;
-	unsigned int exponent:11;
-	unsigned int negative:1;
-	unsigned int mantissa1:32;
+        unsigned int mantissa0:20;
+        unsigned int exponent:11;
+        unsigned int negative:1;
+        unsigned int mantissa1:32;
 # else
-	unsigned int mantissa1:32;
-	unsigned int mantissa0:20;
-	unsigned int exponent:11;
-	unsigned int negative:1;
+        unsigned int mantissa1:32;
+        unsigned int mantissa0:20;
+        unsigned int exponent:11;
+        unsigned int negative:1;
 # endif
 #endif  /* Little endian.  */
     } ieee;
@@ -257,6 +257,8 @@ void Serializer::WriteText(text value)
 //   Write the length followed by data bytes
 // ----------------------------------------------------------------------------
 {
+    // texts[value] is created with value 0 if not existing,
+    // and then it increases texts.size by 1.
     longlong exists = texts[value];
     if (exists)
     {
@@ -264,7 +266,7 @@ void Serializer::WriteText(text value)
     }
     else
     {
-        WriteUnsigned(value.length());
+        WriteSigned(value.length());
         out.write(value.data(), value.length());
         texts[value] = texts.size();
     }
@@ -296,7 +298,7 @@ Deserializer::Deserializer(std::istream &in, tree_position pos)
 // ----------------------------------------------------------------------------
     : in(in), pos(pos)
 {
-    if (ReadUnsigned() != serialMAGIC || 
+    if (ReadUnsigned() != serialMAGIC ||
         ReadUnsigned() != serialVERSION)
     {
         // Error on input: close the stream

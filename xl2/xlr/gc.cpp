@@ -21,7 +21,9 @@
 // ****************************************************************************
 
 #include "gc.h"
+#include "options.h"
 #include <iostream>
+#include <cstdio>
 
 XL_BEGIN
 
@@ -42,7 +44,8 @@ TypeAllocator::TypeAllocator(kstring tn, uint os, mark_fn mark)
 //    Setup an empty allocator
 // ----------------------------------------------------------------------------
     : gc(NULL), name(tn), chunks(), mark(mark), freeList(NULL),
-      chunkSize(1022), objectSize(os), alignedSize(os), available(0)
+      chunkSize(1022), objectSize(os), alignedSize(os), available(0),
+      allocatedCount(0), freedCount(0), totalCount(0)
 {
     // Make sure we align everything on Chunk boundaries
     if (os < sizeof(Chunk))
@@ -158,6 +161,7 @@ void TypeAllocator::MarkRoots()
 // ----------------------------------------------------------------------------
 {
     std::vector<Chunk *>::iterator chunk;
+    allocatedCount = freedCount = totalCount = 0;
     for (chunk = chunks.begin(); chunk != chunks.end(); chunk++)
     {
         char *chunkBase = (char *) *chunk + alignedSize;
@@ -165,10 +169,14 @@ void TypeAllocator::MarkRoots()
         for (uint i = 0; i < chunkSize; i++)
         {
             Chunk *ptr = (Chunk *) (chunkBase + i * itemSize);
+            totalCount++;
             if (AllocatorPointer(ptr->allocator) == this)
+            {
+                allocatedCount++;
                 if ((ptr->bits & IN_USE) == 0)
                     if ((ptr->bits & USE_MASK) > 0)
                         Mark(ptr+1);
+            }
         }
     }
 }
@@ -216,9 +224,14 @@ void TypeAllocator::Sweep()
             if (AllocatorPointer(ptr->allocator) == this)
             {
                 if (ptr->bits & IN_USE)
+                {
                     ptr->bits &= ~IN_USE;
+                }
                 else if ((ptr->bits & USE_MASK) == 0)
+                {
                     Finalize(ptr+1);
+                    freedCount++;
+                }
             }
         }
     }
@@ -286,6 +299,25 @@ void GarbageCollector::RunCollection(bool force)
         // Notify all the listeners that we completed the collection
         for (l = listeners.begin(); l != listeners.end(); l++)
             (*l)->EndCollection();
+
+        IFTRACE(memory)
+        {
+            uint tot = 0, alloc = 0, freed = 0;
+            printf("%15s %8s %8s %8s\n", "NAME", "TOTAL", "ALLOC", "FREED");
+            for (a = allocators.begin(); a != allocators.end(); a++)
+            {
+                TypeAllocator *ta = *a;
+                printf("%15s %8u %8u %8u\n",
+                       ta->name, ta->totalCount,
+                       ta->allocatedCount, ta->freedCount);
+                tot   += ta->totalCount     * ta->alignedSize;
+                alloc += ta->allocatedCount * ta->alignedSize;
+                freed += ta->freedCount     * ta->alignedSize;
+            }
+            printf("%15s %8s %8s %8s\n", "=====", "=====", "=====", "=====");
+            printf("%15s %7uK %7uK %7uK\n",
+                   "Kilobytes", tot >> 10, alloc >> 10, freed >> 10);
+        }
     }
 }
 

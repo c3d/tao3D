@@ -98,8 +98,12 @@ protected:
     uint                objectSize;
     uint                alignedSize;
     uint                available;
+    uint                allocatedCount;
+    uint                freedCount;
+    uint                totalCount;
 
     friend void ::debuggc(void *ptr);
+    friend class GarbageCollector;
 
 public:
     static void *       lowestAddress;

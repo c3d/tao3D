@@ -31,10 +31,13 @@ XL_BEGIN
 //
 // ============================================================================
 
-void *AllocatorBase::lowestAddress = (void *) ~0;
-void *AllocatorBase::highestAddress = (void *) 0;
+void *TypeAllocator::lowestAddress = (void *) ~0;
+void *TypeAllocator::highestAddress = (void *) 0;
+void *TypeAllocator::lowestAllocatorAddress = (void *) ~0;
+void *TypeAllocator::highestAllocatorAddress = (void *) 0;
 
-AllocatorBase::AllocatorBase(kstring tn, uint os, mark_fn mark)
+
+TypeAllocator::TypeAllocator(kstring tn, uint os, mark_fn mark)
 // ----------------------------------------------------------------------------
 //    Setup an empty allocator
 // ----------------------------------------------------------------------------
@@ -50,10 +53,17 @@ AllocatorBase::AllocatorBase(kstring tn, uint os, mark_fn mark)
 
     // Make sure that we have the correct alignment
     assert(this == ValidPointer(this));
+
+    // Update allocator addresses
+    if (lowestAddress > this)
+        lowestAddress = (void *) this;
+    char *highMark = (char *) this + sizeof(TypeAllocator);
+    if (highestAddress < (void *) highMark)
+        highestAddress = (void *) highMark;
 }
 
 
-AllocatorBase::~AllocatorBase()
+TypeAllocator::~TypeAllocator()
 // ----------------------------------------------------------------------------
 //   Delete all the chunks we allocated
 // ----------------------------------------------------------------------------
@@ -64,7 +74,7 @@ AllocatorBase::~AllocatorBase()
 }
 
 
-void *AllocatorBase::Allocate()
+void *TypeAllocator::Allocate()
 // ----------------------------------------------------------------------------
 //   Allocate a chunk of the given size
 // ----------------------------------------------------------------------------
@@ -104,14 +114,20 @@ void *AllocatorBase::Allocate()
 }
 
 
-void AllocatorBase::Delete(void *ptr)
+void TypeAllocator::Delete(void *ptr)
 // ----------------------------------------------------------------------------
 //   Free a chunk of the given size
 // ----------------------------------------------------------------------------
 {
+    if (!ptr)
+        return;
+
     Chunk *chunk = (Chunk *) ptr - 1;
-    assert(ValidPointer(chunk->allocator) == this ||
-           !"Deleting an object that was not allocated");
+    assert(IsGarbageCollected(ptr) || !"Deleted pointer is not managed by GC");
+    assert(IsAllocated(ptr) || !"Deleted GC pointer that wa already freed");
+    assert(!(chunk->bits & USE_MASK) || !"Deleted pointer has live references");
+
+    // Put the pointer back on the free list
     chunk->next = freeList;
     freeList = chunk;
     available++;
@@ -126,7 +142,7 @@ void AllocatorBase::Delete(void *ptr)
 }
 
 
-void AllocatorBase::Finalize(void *ptr)
+void TypeAllocator::Finalize(void *ptr)
 // ----------------------------------------------------------------------------
 //   We should never reach this one
 // ----------------------------------------------------------------------------
@@ -136,7 +152,7 @@ void AllocatorBase::Finalize(void *ptr)
 }
 
 
-void AllocatorBase::MarkRoots()
+void TypeAllocator::MarkRoots()
 // ----------------------------------------------------------------------------
 //    Loop on all objects that have a reference count above 1
 // ----------------------------------------------------------------------------
@@ -158,7 +174,7 @@ void AllocatorBase::MarkRoots()
 }
 
 
-void AllocatorBase::Mark(void *data)
+void TypeAllocator::Mark(void *data)
 // ----------------------------------------------------------------------------
 //   Loop on all allocated items and mark which ones are in use
 // ----------------------------------------------------------------------------
@@ -184,7 +200,7 @@ void AllocatorBase::Mark(void *data)
 }
 
 
-void AllocatorBase::Sweep()
+void TypeAllocator::Sweep()
 // ----------------------------------------------------------------------------
 //   Once we have marked everything, sweep what is not in use
 // ----------------------------------------------------------------------------
@@ -229,13 +245,13 @@ GarbageCollector::~GarbageCollector()
 //    Destroy the garbage collector
 // ----------------------------------------------------------------------------
 {
-    std::vector<AllocatorBase *>::iterator i;
+    std::vector<TypeAllocator *>::iterator i;
     for (i = allocators.begin(); i != allocators.end(); i++)
         delete *i;
 }
 
 
-void GarbageCollector::Register(AllocatorBase *allocator)
+void GarbageCollector::Register(TypeAllocator *allocator)
 // ----------------------------------------------------------------------------
 //    Record each individual allocator
 // ----------------------------------------------------------------------------
@@ -251,7 +267,7 @@ void GarbageCollector::RunCollection(bool force)
 {
     if (mustRun || force)
     {
-        std::vector<AllocatorBase *>::iterator a;
+        std::vector<TypeAllocator *>::iterator a;
         std::set<Listener *>::iterator l;
         mustRun = false;
 
@@ -317,25 +333,25 @@ void debuggc(void *ptr)
 // ----------------------------------------------------------------------------
 {
     using namespace XL;
-    if (IsAllocated(ptr))
+    if (TypeAllocator::IsGarbageCollected(ptr))
     {
-        typedef AllocatorBase::Chunk Chunk;
-        typedef AllocatorBase AB;
+        typedef TypeAllocator::Chunk Chunk;
+        typedef TypeAllocator TA;
 
         Chunk *chunk = (Chunk *) ptr - 1;
-        if ((uintptr_t) chunk & AB::CHUNKALIGN_MASK)
+        if ((uintptr_t) chunk & TA::CHUNKALIGN_MASK)
         {
             std::cerr << "WARNING: Pointer " << ptr << " is not aligned\n";
-            chunk = (Chunk *) (((uintptr_t) chunk) & ~AB::CHUNKALIGN_MASK);
+            chunk = (Chunk *) (((uintptr_t) chunk) & ~TA::CHUNKALIGN_MASK);
             std::cerr << "         Using " << chunk << " as chunk\n";
         }
         uintptr_t bits = chunk->bits;
-        uintptr_t aligned = bits & ~AB::PTR_MASK;
+        uintptr_t aligned = bits & ~TA::PTR_MASK;
         std::cerr << "Allocator bits: " << std::hex << bits << "\n";
 
         GarbageCollector *gc = GarbageCollector::Singleton();
 
-        AB *alloc = (AB *) aligned;
+        TA *alloc = (TA *) aligned;
         bool allocated = alloc->gc == gc;
         if (allocated)
         {
@@ -350,11 +366,11 @@ void debuggc(void *ptr)
         }
 
         // Need to walk the GC to see where we belong
-        std::vector<AB *>::iterator a;
+        std::vector<TA *>::iterator a;
         uint found = 0;
         for (a = gc->allocators.begin(); a != gc->allocators.end(); a++)
         {
-            std::vector<AB::Chunk *>::iterator c;
+            std::vector<TA::Chunk *>::iterator c;
             alloc = *a;
             uint itemBytes = alloc->alignedSize + sizeof(Chunk);
             uint chunkBytes = alloc->chunkSize * itemBytes;

@@ -42,7 +42,7 @@ XL_BEGIN
 
 struct GarbageCollector;
 
-struct AllocatorBase
+struct TypeAllocator
 // ----------------------------------------------------------------------------
 //   Structure allocating data for a single data type
 // ----------------------------------------------------------------------------
@@ -50,14 +50,14 @@ struct AllocatorBase
     union Chunk
     {
         Chunk *         next;           // Next in free list
-        AllocatorBase * allocator;      // Allocator for this object
+        TypeAllocator * allocator;      // Allocator for this object
         uintptr_t       bits;           // Allocation bits
     };
     typedef void (*mark_fn)(void *object);
 
 public:
-    AllocatorBase(kstring name, uint objectSize, mark_fn mark);
-    virtual ~AllocatorBase();
+    TypeAllocator(kstring name, uint objectSize, mark_fn mark);
+    virtual ~TypeAllocator();
 
     void *              Allocate();
     void                Delete(void *);
@@ -67,10 +67,14 @@ public:
     void                Mark(void *inUse);
     void                Sweep();
 
-    static AllocatorBase *ValidPointer(AllocatorBase *ptr);
-    static AllocatorBase *AllocatorPointer(AllocatorBase *ptr);
+    static TypeAllocator *ValidPointer(TypeAllocator *ptr);
+    static TypeAllocator *AllocatorPointer(TypeAllocator *ptr);
 
-    uint &              Roots(void *ptr) { return roots[ptr]; }
+    static uint         Acquire(void *ptr);
+    static uint         Release(void *ptr);
+    static bool         IsGarbageCollected(void *ptr);
+    static bool         IsAllocated(void *ptr);
+    static bool         InUse(void *ptr);
 
 public:
     enum ChunkBits
@@ -100,6 +104,8 @@ protected:
 public:
     static void *       lowestAddress;
     static void *       highestAddress;
+    static void *       lowestAllocatorAddress;
+    static void *       highestAllocatorAddress;
 };
 
 
@@ -107,7 +113,7 @@ template <class Object, typename ValueType=void> struct GCPtr;
 
 
 template <class Object>
-struct Allocator : AllocatorBase
+struct Allocator : TypeAllocator
 // ----------------------------------------------------------------------------
 //    Allocate objects for a given object type
 // ----------------------------------------------------------------------------
@@ -133,10 +139,6 @@ struct GCPtr
 //   A root pointer to an object in a garbage-collected pool
 // ----------------------------------------------------------------------------
 {
-    typedef AllocatorBase       Base;
-    typedef Allocator<Object>   Alloc;
-
-public:
     GCPtr(): pointer(0)                         { }
     GCPtr(Object *ptr): pointer(ptr)            { Acquire(); }
     GCPtr(Object &ptr): pointer(&ptr)           { Acquire(); }
@@ -191,11 +193,11 @@ public:
     DEFINE_CMP(>)
     DEFINE_CMP(>=)
 
-    void        InUse() const;
+    bool        InUse() const   { return TypeAllocator::InUse(pointer); }
 
 protected:
-    void        Acquire() const;
-    void        Release() const;
+    uint        Acquire() const { return TypeAllocator::Acquire(pointer); }
+    uint        Release() const { return TypeAllocator::Release(pointer); }
 
     Object *    pointer;
 };
@@ -209,7 +211,7 @@ struct GarbageCollector
     GarbageCollector();
     ~GarbageCollector();
 
-    void        Register(AllocatorBase *a);
+    void        Register(TypeAllocator *a);
     void        RunCollection(bool force=false);
     void        MustRun()    { mustRun = true; }
 
@@ -227,7 +229,7 @@ struct GarbageCollector
     bool CanDelete(void *object);
 
 protected:
-    std::vector<AllocatorBase *> allocators;
+    std::vector<TypeAllocator *> allocators;
     std::set<Listener *>         listeners;
     bool mustRun;
 
@@ -269,23 +271,127 @@ protected:
 //
 // ============================================================================
 
-inline AllocatorBase *AllocatorBase::ValidPointer(AllocatorBase *ptr)
+inline TypeAllocator *TypeAllocator::ValidPointer(TypeAllocator *ptr)
 // ----------------------------------------------------------------------------
 //   Return a valid pointer from a possibly marked pointer
 // ----------------------------------------------------------------------------
 {
-    AllocatorBase *result = (AllocatorBase *) (((uintptr_t) ptr) & ~PTR_MASK);
+    TypeAllocator *result = (TypeAllocator *) (((uintptr_t) ptr) & ~PTR_MASK);
     assert(result && result->gc == GarbageCollector::Singleton());
     return result;
 }
 
 
-inline AllocatorBase *AllocatorBase::AllocatorPointer(AllocatorBase *ptr)
+inline TypeAllocator *TypeAllocator::AllocatorPointer(TypeAllocator *ptr)
 // ----------------------------------------------------------------------------
 //   Return a valid pointer from a possibly marked pointer
 // ----------------------------------------------------------------------------
 {
-    AllocatorBase *result = (AllocatorBase *) (((uintptr_t) ptr) & ~PTR_MASK);
+    TypeAllocator *result = (TypeAllocator *) (((uintptr_t) ptr) & ~PTR_MASK);
+    return result;
+}
+
+
+inline bool TypeAllocator::IsGarbageCollected(void *ptr)
+// ----------------------------------------------------------------------------
+//   Tell if a pointer is managed by the garbage collector
+// ----------------------------------------------------------------------------
+{
+    return ptr >= lowestAddress && ptr <= highestAddress;
+}
+
+
+inline bool TypeAllocator::IsAllocated(void *ptr)
+// ----------------------------------------------------------------------------
+//   Tell if a pointer is allocated by the garbage collector (not free)
+// ----------------------------------------------------------------------------
+{
+    if (IsGarbageCollected(ptr))
+    {
+        if ((uintptr_t) ptr & CHUNKALIGN_MASK)
+            return false;
+
+        Chunk *chunk = (Chunk *) ptr - 1;
+        TypeAllocator *alloc = AllocatorPointer(chunk->allocator);
+        if (alloc >= lowestAllocatorAddress && alloc <= highestAllocatorAddress)
+            if (alloc->gc == GarbageCollector::Singleton())
+                return true;
+    }
+    return false;
+}
+
+
+inline uint TypeAllocator::Acquire(void *pointer)
+// ----------------------------------------------------------------------------
+//   Increase reference count for pointer and return it
+// ----------------------------------------------------------------------------
+{
+    uint count = 0;
+    if (IsGarbageCollected(pointer))
+    {
+        assert (((intptr_t) pointer & CHUNKALIGN_MASK) == 0);
+        assert (IsAllocated(pointer));
+
+        Chunk *chunk = ((Chunk *) pointer) - 1;
+        count = chunk->bits & USE_MASK;
+        if (count < LOCKED_ROOT)
+        {
+            chunk->bits = (chunk->bits & ~USE_MASK) | ++count;
+        }
+        if (count >= LOCKED_ROOT)
+        {
+            TypeAllocator *allocator = ValidPointer(chunk->allocator);
+            count = LOCKED_ROOT + allocator->roots[pointer]++;
+        }
+    }
+    return count;
+}
+
+
+inline uint TypeAllocator::Release(void *pointer)
+// ----------------------------------------------------------------------------
+//   Increase reference count for pointer and return it
+// ----------------------------------------------------------------------------
+{
+    uint count = 0;
+    if (IsGarbageCollected(pointer))
+    {
+        assert (((intptr_t) pointer & CHUNKALIGN_MASK) == 0);
+        assert (IsAllocated(pointer));
+
+        Chunk *chunk = ((Chunk *) pointer) - 1;
+        TypeAllocator *allocator = ValidPointer(chunk->allocator);
+        count = chunk->bits & USE_MASK;
+        if (count < LOCKED_ROOT)
+        {
+            chunk->bits = (chunk->bits & ~USE_MASK) | --count;
+            if (!count && !(chunk->bits & IN_USE))
+                allocator->Finalize(pointer);
+        }
+        else
+        {
+            count = LOCKED_ROOT + --allocator->roots[pointer];
+            if (count == LOCKED_ROOT)
+                chunk->bits = (chunk->bits & ~USE_MASK) | --count;
+        }
+    }
+    return count;
+}
+
+
+inline bool TypeAllocator::InUse(void *pointer)
+// ----------------------------------------------------------------------------
+//   Mark the current pointer as in use, to preserve in next GC cycle
+// ----------------------------------------------------------------------------
+{
+    bool result = false;
+    if (IsGarbageCollected(pointer))
+    {
+        assert (((intptr_t) pointer & CHUNKALIGN_MASK) == 0);
+        Chunk *chunk = ((Chunk *) pointer) - 1;
+        result = (chunk->bits & IN_USE) != 0;
+        chunk->bits |= IN_USE;
+    }
     return result;
 }
 
@@ -302,7 +408,7 @@ Allocator<Object>::Allocator()
 // ----------------------------------------------------------------------------
 //   Create an allocator for the given size
 // ----------------------------------------------------------------------------
-    : AllocatorBase(typeid(Object).name(), sizeof (Object), MarkObject)
+    : TypeAllocator(typeid(Object).name(), sizeof (Object), MarkObject)
 {}
 
 
@@ -331,8 +437,8 @@ Object *Allocator<Object>::Allocate(size_t size)
 //   Allocate an object (invoked by operator new)
 // ----------------------------------------------------------------------------
 {
-    assert(size == Singleton()->AllocatorBase::objectSize);
-    return (Object *) Singleton()->AllocatorBase::Allocate();
+    assert(size == Singleton()->TypeAllocator::objectSize);
+    return (Object *) Singleton()->TypeAllocator::Allocate();
 }
 
 
@@ -342,7 +448,7 @@ void Allocator<Object>::Delete(Object *obj)
 //   Allocate an object (invoked by operator new)
 // ----------------------------------------------------------------------------
 {
-    Singleton()->AllocatorBase::Delete(obj);
+    Singleton()->TypeAllocator::Delete(obj);
 }
 
 
@@ -368,86 +474,6 @@ void Allocator<Object>::MarkObject(void *object)
 {
     if (object)
         ((Object *) object)->Mark(*Singleton());
-}
-
-
-
-// ============================================================================
-// 
-//     GCPtr inline functions
-//
-// ============================================================================
-
-inline bool IsAllocated(void *ptr)
-// ----------------------------------------------------------------------------
-//   Tell if a pointer is allocated
-// ----------------------------------------------------------------------------
-{
-    return (ptr >= AllocatorBase::lowestAddress &&
-            ptr <= AllocatorBase::highestAddress);
-}
-
-
-template<class Object, typename Value> inline
-void GCPtr<Object,Value>::InUse() const
-// ----------------------------------------------------------------------------
-//   Mark the current pointer as in use, to preserve in next GC cycle
-// ----------------------------------------------------------------------------
-{
-    if (IsAllocated(pointer))
-    {
-        assert (((intptr_t) pointer & Alloc::CHUNKALIGN_MASK) == 0);
-        Base::Chunk *chunk = ((Base::Chunk *) pointer) - 1;
-        chunk->bits |= Alloc::IN_USE;
-    }
-}
-
-
-template<class Object, typename Value> inline
-void GCPtr<Object, Value>::Acquire() const
-// ----------------------------------------------------------------------------
-//   Increment the reference counter for the given pointer
-// ----------------------------------------------------------------------------
-{
-    if (IsAllocated(pointer))
-    {
-        assert (((intptr_t) pointer & Alloc::CHUNKALIGN_MASK) == 0);
-        Base::Chunk *chunk = ((Base::Chunk *) pointer) - 1;
-        uint count = chunk->bits & Alloc::USE_MASK;
-        if (count < Alloc::LOCKED_ROOT)
-            chunk->bits = (chunk->bits & ~Alloc::USE_MASK) | ++count;
-        if (count >= Alloc::LOCKED_ROOT)
-        {
-            Base *allocator = Base::ValidPointer(chunk->allocator);
-            count = Alloc::LOCKED_ROOT + allocator->Roots(pointer)++;
-        }
-    }
-}
-
-
-template<class Object, typename Value> inline
-void GCPtr<Object, Value>::Release() const
-// ----------------------------------------------------------------------------
-//   Decrement the reference counter for the given pointer
-// ----------------------------------------------------------------------------
-{
-    if (IsAllocated(pointer))
-    {
-        assert (((intptr_t) pointer & Alloc::CHUNKALIGN_MASK) == 0);
-        Base::Chunk *chunk = ((Base::Chunk *) pointer) - 1;
-        uint count = chunk->bits & Alloc::USE_MASK;
-        Base *allocator = Base::ValidPointer(chunk->allocator);
-        if (count < Alloc::LOCKED_ROOT)
-        {
-            chunk->bits = (chunk->bits & ~Alloc::USE_MASK) | --count;
-            if (!count && !(chunk->bits & Alloc::IN_USE))
-                allocator->Finalize(pointer);
-        }
-        else if (--allocator->Roots(pointer) == 0)
-        {
-            chunk->bits = (chunk->bits & ~Alloc::USE_MASK) | --count;
-        }
-    }
 }
 
 XL_END

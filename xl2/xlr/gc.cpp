@@ -55,11 +55,11 @@ TypeAllocator::TypeAllocator(kstring tn, uint os, mark_fn mark)
     assert(this == ValidPointer(this));
 
     // Update allocator addresses
-    if (lowestAddress > this)
-        lowestAddress = (void *) this;
+    if (lowestAllocatorAddress > this)
+        lowestAllocatorAddress = (void *) this;
     char *highMark = (char *) this + sizeof(TypeAllocator);
-    if (highestAddress < (void *) highMark)
-        highestAddress = (void *) highMark;
+    if (highestAllocatorAddress < (void *) highMark)
+        highestAllocatorAddress = (void *) highMark;
 }
 
 

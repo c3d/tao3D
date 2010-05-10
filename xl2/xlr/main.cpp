@@ -132,7 +132,8 @@ int Main::ParseOptions()
     {
         if (builtins.empty() || options.builtinsOverride)
             builtins = options.builtinsFile;
-    }else
+    }
+    else
     {
         builtins = "";
     }

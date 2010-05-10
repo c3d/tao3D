@@ -38,7 +38,7 @@ AllocatorBase::AllocatorBase(kstring tn, uint os, mark_fn mark)
 // ----------------------------------------------------------------------------
 //    Setup an empty allocator
 // ----------------------------------------------------------------------------
-    : name(tn), gc(NULL), chunks(), mark(mark), freeList(NULL),
+    : gc(NULL), name(tn), chunks(), mark(mark), freeList(NULL),
       chunkSize(1022), objectSize(os), alignedSize(os), available(0)
 {
     // Make sure we align everything on Chunk boundaries

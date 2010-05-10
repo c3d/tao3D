@@ -84,8 +84,8 @@ public:
     };
 
 protected:
-    kstring             name;
     GarbageCollector *  gc;
+    kstring             name;
     std::vector<Chunk*> chunks;
     mark_fn             mark;
     std::map<void*,uint>roots;

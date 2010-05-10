@@ -602,21 +602,22 @@ void Compiler::FreeResources()
 //   At this stage, we have deleted all the bodies we could
 //   Normally, none of the elements should be used anymore
 {
-    deleted_set::iterator i;
-    for (i = deleted.begin(); i != deleted.end(); i++)
+    deleted_set::iterator i, next;
+    for (i = deleted.begin(); i != deleted.end(); i = next)
     {
         Value *v = *i;
         if (v->use_empty())
         {
             delete v;
             deleted.erase(i);
-            i = deleted.begin();
+            next = deleted.begin();
         }
         else
         {
             IFTRACE(llvmgc)
                 std::cerr << "Dropping reference to used value "
                           << v << ":\n";
+            next = ++i;
         }
     }
 }

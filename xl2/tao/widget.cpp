@@ -3319,18 +3319,10 @@ Tree_p Widget::textFormula(Tree_p self, Tree_p value)
     XL::Prefix_p prefix = self->AsPrefix();
     assert(prefix);
 
-    // Make sure we evaluate that in the formulas symbol table
-    if (prefix->right->Symbols() != formulaSymbols())
-    {
-        XL::TreeClone clone;
-        prefix->right = prefix->right->Do(clone);
-        prefix->right->SetSymbols(formulaSymbols());
-    }
-
     if (path)
-        TextFormula(prefix).Draw(*path, layout);
+        TextFormula(prefix, this).Draw(*path, layout);
     else
-        layout->Add(new TextFormula(prefix));
+        layout->Add(new TextFormula(prefix, this));
     return value;
 }
 

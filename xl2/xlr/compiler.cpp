@@ -292,7 +292,7 @@ Compiler::~Compiler()
     // Delete all tree addresses we have generated
     address_map::iterator a;
     for (a = addresses.begin(); a != addresses.end(); a++)
-        delete (*a).seconds;
+        delete (*a).second;
     addresses.clear();
 
     delete context;

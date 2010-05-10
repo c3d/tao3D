@@ -60,7 +60,7 @@ Tree *Symbols::Named(text name, bool deep)
         symbols_set::iterator it;
         for (it = s->imported.begin(); it != s->imported.end(); it++)
         {
-            Symbols *syms = (Symbols *) (*it).ConstPointer();
+            Symbols *syms = (*it);
             found = syms->names.find(name);
             if (found != syms->names.end())
                 return (*found).second;
@@ -70,12 +70,38 @@ Tree *Symbols::Named(text name, bool deep)
 }
 
 
-void Symbols::EnterName(text name, Tree *value)
+Tree *Symbols::Defined(text name, bool deep)
+// ----------------------------------------------------------------------------
+//   Find the definition for the name in the current context
+// ----------------------------------------------------------------------------
+{
+    for (Symbols *s = this; s; s = deep ? s->parent.Pointer() : NULL)
+    {
+        symbol_table::iterator found = s->definitions.find(name);
+        if (found != s->definitions.end())
+            return (*found).second;
+
+        symbols_set::iterator it;
+        for (it = s->imported.begin(); it != s->imported.end(); it++)
+        {
+            Symbols *syms = (*it);
+            found = syms->definitions.find(name);
+            if (found != syms->definitions.end())
+                return (*found).second;
+        }
+    }
+    return NULL;
+}
+
+
+void Symbols::EnterName(text name, Tree *value, Tree *def)
 // ----------------------------------------------------------------------------
 //   Enter a value in the namespace
 // ----------------------------------------------------------------------------
 {
     names[name] = value;
+    if (def)
+        definitions[name] = def;
 }
 
 
@@ -1750,7 +1776,7 @@ Tree *DeclarationAction::DoInfix(Infix *what)
     if (what->name == "->")
     {
         // Enter the rewrite
-        EnterRewrite(what->left, what->right);
+        EnterRewrite(what->left, what->right, what);
         return what;
     }
 
@@ -1768,7 +1794,7 @@ Tree *DeclarationAction::DoPrefix(Prefix *what)
     {
         if (name->value == "data")
         {
-            EnterRewrite(what->right, NULL);
+            EnterRewrite(what->right, NULL, NULL);
             return what;
         }
         if (name->value == "load")
@@ -1794,7 +1820,9 @@ Tree *DeclarationAction::DoPostfix(Postfix *what)
 }
 
 
-void DeclarationAction::EnterRewrite(Tree *defined, Tree *definition)
+void DeclarationAction::EnterRewrite(Tree *defined,
+                                     Tree *definition,
+                                     Tree *where)
 // ----------------------------------------------------------------------------
 //   Add a definition in the current context
 // ----------------------------------------------------------------------------
@@ -1802,7 +1830,8 @@ void DeclarationAction::EnterRewrite(Tree *defined, Tree *definition)
     if (Name *name = defined->AsName())
     {
         symbols->EnterName(name->value,
-                           definition ? (Tree *) definition : (Tree *) name);
+                           definition ? (Tree *) definition : (Tree *) name,
+                           where);
     }
     else
     {

@@ -177,10 +177,11 @@ struct Symbols
 
     // Symbol management
     Tree *              Named (text name, bool deep = true);
+    Tree *              Defined (text name, bool deep = true);
     Rewrite *           Rewrites()              { return rewrites; }
 
     // Entering symbols in the symbol table
-    void                EnterName (text name, Tree *value);
+    void                EnterName (text name, Tree *value, Tree *def = NULL);
     Rewrite *           EnterRewrite(Rewrite *r);
     Rewrite *           EnterRewrite(Tree *from, Tree *to);
     Name *              Allocate(Name *varName);
@@ -207,6 +208,7 @@ struct Symbols
 public:
     Symbols_p           parent;
     symbol_table        names;
+    symbol_table        definitions;
     Rewrite_p           rewrites;
     symbol_table        calls;
     value_table         type_tests;
@@ -328,7 +330,7 @@ struct DeclarationAction : Action
     virtual Tree *DoInfix(Infix *what);
     virtual Tree *DoBlock(Block *what);
 
-    void        EnterRewrite(Tree *defined, Tree *definition);
+    void        EnterRewrite(Tree *defined, Tree *definition, Tree *where);
 
     Symbols_p symbols;
 };

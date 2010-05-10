@@ -73,8 +73,11 @@ struct TextFormula : TextSpan
 //   Like a text span, but for an evaluated value
 // ----------------------------------------------------------------------------
 {
-    TextFormula(XL::Prefix *self, uint start = 0, uint end = ~0)
-        : TextSpan(Format(self), start, end), self(self) {}
+    TextFormula(XL::Prefix *self, Widget *wid, uint start = 0, uint end = ~0)
+        : TextSpan(NULL, start, end), self(self), widget(wid)
+    {
+        source = Format(self);
+    }
     Text *              Format(Prefix *value);
     bool                Validate(Text *source, Widget *widget);
 
@@ -83,6 +86,7 @@ struct TextFormula : TextSpan
 
 public:
     Prefix_p            self;
+    Widget *            widget;
     static uint         formulas, shows;
 };
 

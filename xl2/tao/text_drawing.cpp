@@ -664,9 +664,9 @@ scale TextSpan::TrailingSpaceSize(Layout *where)
 
 
 // ============================================================================
-// 
+//
 //    A text formula is used to display numerical / evaluated values
-// 
+//
 // ============================================================================
 
 uint TextFormula::formulas = 0;
@@ -681,9 +681,39 @@ XL::Text *TextFormula::Format(XL::Prefix *self)
     TextFormulaEditInfo *info = value->GetInfo<TextFormulaEditInfo>();
     formulas++;
     shows = 0;
+
+    // Check if this formula is currently being edited, if so return its text
     if (info && info->order == formulas)
         return info->source;
-    Tree *computed = xl_evaluate(self->right);
+
+    // If the value is a name, we evaluate it in its normal symbol table
+    Name *name = value->AsName();
+    Symbols *symbols = value->Symbols();
+    if (name)
+        if (Tree *named = symbols->Named(name->value, true))
+            value = named;
+
+    // Make sure we evaluate that in the formulas symbol table
+    if (symbols != widget->formulaSymbols())
+    {
+        XL::TreeClone clone;
+        value = value->Do(clone);
+        value->SetSymbols(widget->formulaSymbols());
+        if (name)
+        {
+            Tree *definition = symbols->Defined(name->value);
+            if (definition)
+                if (Infix *infix = definition->AsInfix())
+                    infix->right = value;
+        }
+        else
+        {
+            self->right = value;
+        }
+    }
+
+    // Evaluate the tree and turn it into a tree
+    Tree *computed = xl_evaluate(value);
     return new XL::Text(*computed);
 }
 
@@ -695,7 +725,7 @@ void TextFormula::DrawSelection(Layout *where)
 {
     Widget              *widget = where->Display();
     TextSelect          *sel    = widget->textSelection();
-    XL::Prefix *         prefix = self->AsPrefix();
+    XL::Prefix *         prefix = self;
     XL::Tree *           value  = prefix->right;
     TextFormulaEditInfo *info   = value->GetInfo<TextFormulaEditInfo>();
     uint                 selId  = widget->currentCharId() + 1;
@@ -710,17 +740,25 @@ void TextFormula::DrawSelection(Layout *where)
         if (!info && widget->charSelected(selId))
         {
             // No info: create one
+
+            // If the value is a name, we evaluate it in its normal symbol table
+            Name *name = value->AsName();
+            Symbols *symbols = value->Symbols();
+            if (name)
+                if (Tree *named = symbols->Named(name->value, true))
+                    value = named;
+            
             text edited = text(" ") + text(*value) + " ";
             Text *editor = new Text(edited, "\"", "\"", value->Position());
             info = new TextFormulaEditInfo(editor, shows);
-            value->SetInfo<TextFormulaEditInfo>(info);
-            
+            prefix->right->SetInfo<TextFormulaEditInfo>(info);
+
             // Update mark and point
             XL::Text *source = info->source;
             uint length = source->value.length();
             sel->point = selId;
             sel->mark = selId + length;
-            
+
             widget->refresh();
         }
     }
@@ -800,8 +838,21 @@ bool TextFormula::Validate(XL::Text *source, Widget *widget)
     Tree *              newTree = parser.Parse();
     if (newTree)
     {
-        XL::Prefix *prefix = self->AsPrefix();
-        prefix->right = newTree;
+        newTree->SetSymbols(widget->formulaSymbols());
+
+        XL::Prefix *prefix = self;
+        XL::Name *name = prefix->right->AsName();
+        if (name)
+        {
+            XL::Symbols *symbols = self->Symbols();
+            Tree *definition = symbols->Defined(name->value);
+            if (Infix *infix = definition->AsInfix())
+                infix->right = newTree;
+        }
+        else
+        {
+            prefix->right = newTree;
+        }
         widget->reloadProgram();
         widget->markChanged("Replaced formula");
         return true;

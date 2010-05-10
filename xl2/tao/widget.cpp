@@ -153,7 +153,6 @@ Widget::~Widget()
 //   Destroy the widget
 // ----------------------------------------------------------------------------
 {
-    delete symbolTableForFormulas;
     delete space;
     delete path;
 }

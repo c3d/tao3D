@@ -193,7 +193,7 @@ struct Tree
 public:
     ulong       tag;                            // Position + kind
     eval_fn     code;                           // Compiled code
-    XL::Symbols*symbols;                        // Symbol table for evaluation
+    Symbols_p   symbols;                        // Symbol table for evaluation
     Info *      info;                           // Information for tree
     Tree_p      source;                         // Source for the tree
 

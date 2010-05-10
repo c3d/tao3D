@@ -34,22 +34,19 @@ XL_BEGIN
 void *AllocatorBase::lowestAddress = (void *) ~0;
 void *AllocatorBase::highestAddress = (void *) 0;
 
-AllocatorBase::AllocatorBase(kstring tn, uint os, mark_fn mark,
-                             GarbageCollector *gc)
+AllocatorBase::AllocatorBase(kstring tn, uint os, mark_fn mark)
 // ----------------------------------------------------------------------------
 //    Setup an empty allocator
 // ----------------------------------------------------------------------------
-    : typeName(tn), gc(gc), chunks(), mark(mark), freeList(NULL),
+    : name(tn), gc(NULL), chunks(), mark(mark), freeList(NULL),
       chunkSize(1022), objectSize(os), alignedSize(os), available(0)
 {
-    // Make sure that our allocator generates properly aligned addresses
-    uint size = PTR_MASK + 1;
-    while (os + sizeof(Chunk) > size)
-        size <<= 1;
-    alignedSize = size - sizeof(Chunk);
+    // Make sure we align everything on Chunk boundaries
+    if (os < sizeof(Chunk))
+        alignedSize = sizeof(Chunk);
 
-    if (!gc)
-        this->gc = GarbageCollector::Singleton();
+    // Use the address of the garbage collector as signature
+    gc = GarbageCollector::Singleton();
 
     // Make sure that we have the correct alignment
     assert(this == ValidPointer(this));
@@ -113,7 +110,8 @@ void AllocatorBase::Delete(void *ptr)
 // ----------------------------------------------------------------------------
 {
     Chunk *chunk = (Chunk *) ptr - 1;
-    assert(ValidPointer(chunk->allocator) == this);
+    assert(ValidPointer(chunk->allocator) == this ||
+           !"Deleting an object that was not allocated");
     chunk->next = freeList;
     freeList = chunk;
     available++;
@@ -253,7 +251,7 @@ void GarbageCollector::RunCollection(bool force)
 {
     if (mustRun || force)
     {
-        std::vector<AllocatorBase *>::iterator i;
+        std::vector<AllocatorBase *>::iterator a;
         std::set<Listener *>::iterator l;
         mustRun = false;
 
@@ -262,12 +260,12 @@ void GarbageCollector::RunCollection(bool force)
             (*l)->BeginCollection();
 
         // Mark roots in all the allocators
-        for (i = allocators.begin(); i != allocators.end(); i++)
-            (*i)->MarkRoots();
+        for (a = allocators.begin(); a != allocators.end(); a++)
+            (*a)->MarkRoots();
 
         // Then sweep whatever was not referenced
-        for (i = allocators.begin(); i != allocators.end(); i++)
-            (*i)->Sweep();
+        for (a = allocators.begin(); a != allocators.end(); a++)
+            (*a)->Sweep();
 
         // Notify all the listeners that we completed the collection
         for (l = listeners.begin(); l != listeners.end(); l++)
@@ -311,3 +309,105 @@ bool GarbageCollector::CanDelete(void *obj)
 }
 
 XL_END
+
+
+void debuggc(void *ptr)
+// ----------------------------------------------------------------------------
+//   Show allocation information about the given pointer
+// ----------------------------------------------------------------------------
+{
+    using namespace XL;
+    if (IsAllocated(ptr))
+    {
+        typedef AllocatorBase::Chunk Chunk;
+        typedef AllocatorBase AB;
+
+        Chunk *chunk = (Chunk *) ptr - 1;
+        if ((uintptr_t) chunk & AB::CHUNKALIGN_MASK)
+        {
+            std::cerr << "WARNING: Pointer " << ptr << " is not aligned\n";
+            chunk = (Chunk *) (((uintptr_t) chunk) & ~AB::CHUNKALIGN_MASK);
+            std::cerr << "         Using " << chunk << " as chunk\n";
+        }
+        uintptr_t bits = chunk->bits;
+        uintptr_t aligned = bits & ~AB::PTR_MASK;
+        std::cerr << "Allocator bits: " << std::hex << bits << "\n";
+
+        GarbageCollector *gc = GarbageCollector::Singleton();
+
+        AB *alloc = (AB *) aligned;
+        bool allocated = alloc->gc == gc;
+        if (allocated)
+        {
+            std::cerr << "Allocated in " << alloc
+                      << " (" << alloc->name << ")"
+                      << " free=" << alloc->available
+                      << " chunks=" << alloc->chunks.size()
+                      << " size=" << alloc->chunkSize
+                      << " item=" << alloc->objectSize
+                      << " (" << alloc->alignedSize << ")"
+                      << "\n";
+        }
+
+        // Need to walk the GC to see where we belong
+        std::vector<AB *>::iterator a;
+        uint found = 0;
+        for (a = gc->allocators.begin(); a != gc->allocators.end(); a++)
+        {
+            std::vector<AB::Chunk *>::iterator c;
+            alloc = *a;
+            uint itemBytes = alloc->alignedSize + sizeof(Chunk);
+            uint chunkBytes = alloc->chunkSize * itemBytes;
+            uint chunkIndex = 0;
+            for (c = alloc->chunks.begin(); c != alloc->chunks.end(); c++)
+            {
+                char *start = (char *) *c;
+                char *end = start + chunkBytes;
+                chunkIndex++;
+                if (ptr >= start && ptr <= end)
+                {
+                    if (!allocated)
+                        std::cerr << "Free item in "
+                                  << alloc << " (" << alloc->name << ") "
+                                  << "chunk #" << chunkIndex << " at position ";
+                    uint freeIndex = 0;
+                    Chunk *prev = NULL;
+                    for (Chunk *f = alloc->freeList; f; f = f->next)
+                    {
+                        freeIndex++;
+                        if (f == chunk)
+                        {
+                            std::cerr << "#" << freeIndex
+                                      << " after " << prev << " ";
+                            found++;
+                        }
+                        prev = f;
+                    }
+
+                    if (!allocated || found)
+                        std::cerr << "in free list\n";
+                }
+            }
+        }
+        
+        // Check how many times we found the item
+        if (allocated)
+        {
+            if (found)
+                std::cerr << "*** Allocated item found " << found
+                          << " time(s) in free list (DOUBLE PLUS UNGOOD)\n";
+        }
+        else if (found != 1)
+        {
+            if (!found)
+                std::cerr << "*** Pointer probably not allocated by us\n";
+            else
+                std::cerr << "*** Damaged free list, item found " << found
+                          << " times (MOSTLY UNFORTUNATE)\n";
+        }
+    }
+    else
+    {
+        std::cerr << "Pointer " << ptr << " is not dynamically allocated\n";
+    }
+}

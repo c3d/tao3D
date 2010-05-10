@@ -30,6 +30,8 @@
 #include <stdint.h>
 #include <typeinfo>
 
+extern void debuggc(void *);
+
 XL_BEGIN
 
 // ============================================================================
@@ -54,8 +56,7 @@ struct AllocatorBase
     typedef void (*mark_fn)(void *object);
 
 public:
-    AllocatorBase(kstring name, uint objectSize, mark_fn mark,
-                  GarbageCollector *gc);
+    AllocatorBase(kstring name, uint objectSize, mark_fn mark);
     virtual ~AllocatorBase();
 
     void *              Allocate();
@@ -76,13 +77,14 @@ public:
     {
         PTR_MASK        = 15,           // Special bits we take out of the ptr
         USE_MASK        = 7,            // Bits used as reference counter
+        CHUNKALIGN_MASK = 7,            // Alignment for chunks
         ALLOCATED       = 0,            // Just allocated
         LOCKED_ROOT     = 7,            // Too many references to fit in mask
         IN_USE          = 8             // Set if already marked this time
     };
 
 protected:
-    kstring             typeName;
+    kstring             name;
     GarbageCollector *  gc;
     std::vector<Chunk*> chunks;
     mark_fn             mark;
@@ -92,6 +94,8 @@ protected:
     uint                objectSize;
     uint                alignedSize;
     uint                available;
+
+    friend void ::debuggc(void *ptr);
 
 public:
     static void *       lowestAddress;
@@ -112,7 +116,7 @@ struct Allocator : AllocatorBase
     typedef Object *ptr_t;
 
 public:
-    Allocator(GarbageCollector *gc = NULL);
+    Allocator();
 
     static Allocator *  Singleton();
     static Object *     Allocate(size_t size);
@@ -226,6 +230,8 @@ protected:
     std::vector<AllocatorBase *> allocators;
     std::set<Listener *>         listeners;
     bool mustRun;
+
+    friend void ::debuggc(void *ptr);
 };
 
 
@@ -292,11 +298,11 @@ inline AllocatorBase *AllocatorBase::AllocatorPointer(AllocatorBase *ptr)
 // ============================================================================
 
 template<class Object> inline
-Allocator<Object>::Allocator(GarbageCollector *gc)
+Allocator<Object>::Allocator()
 // ----------------------------------------------------------------------------
 //   Create an allocator for the given size
 // ----------------------------------------------------------------------------
-    : AllocatorBase(typeid(Object).name(), sizeof (Object), MarkObject, gc)
+    : AllocatorBase(typeid(Object).name(), sizeof (Object), MarkObject)
 {}
 
 
@@ -390,7 +396,7 @@ void GCPtr<Object,Value>::InUse() const
 {
     if (IsAllocated(pointer))
     {
-        assert (((intptr_t) pointer & Alloc::PTR_MASK) == 0);
+        assert (((intptr_t) pointer & Alloc::CHUNKALIGN_MASK) == 0);
         Base::Chunk *chunk = ((Base::Chunk *) pointer) - 1;
         chunk->bits |= Alloc::IN_USE;
     }
@@ -405,7 +411,7 @@ void GCPtr<Object, Value>::Acquire() const
 {
     if (IsAllocated(pointer))
     {
-        assert (((intptr_t) pointer & Alloc::PTR_MASK) == 0);
+        assert (((intptr_t) pointer & Alloc::CHUNKALIGN_MASK) == 0);
         Base::Chunk *chunk = ((Base::Chunk *) pointer) - 1;
         uint count = chunk->bits & Alloc::USE_MASK;
         if (count < Alloc::LOCKED_ROOT)
@@ -427,7 +433,7 @@ void GCPtr<Object, Value>::Release() const
 {
     if (IsAllocated(pointer))
     {
-        assert (((intptr_t) pointer & Alloc::PTR_MASK) == 0);
+        assert (((intptr_t) pointer & Alloc::CHUNKALIGN_MASK) == 0);
         Base::Chunk *chunk = ((Base::Chunk *) pointer) - 1;
         uint count = chunk->bits & Alloc::USE_MASK;
         Base *allocator = Base::ValidPointer(chunk->allocator);

@@ -147,7 +147,10 @@ void Symbols::Clear()
     symbol_table empty;
     names = empty;
     if (rewrites)
+    {
+        delete rewrites;
         rewrites = NULL;        // Decrease reference count
+    }
 }
 
 
@@ -2189,7 +2192,8 @@ Rewrite::~Rewrite()
 // ----------------------------------------------------------------------------
 //   Deletes all children rewrite if any
 // ----------------------------------------------------------------------------
-{}
+{
+}
 
 
 Rewrite *Rewrite::Add (Rewrite *rewrite)

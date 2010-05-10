@@ -86,7 +86,7 @@ INFIX(NEReal, boolean, real, "<>", real, XL_RBOOL(XL_REAL(l) != XL_REAL(r)))
 INFIX(EQReal, boolean, real, "=", real, XL_RBOOL(XL_REAL(l) == XL_REAL(r)))
 
 PREFIX(Negate, real, "-", PARM(r, real), XL_RREAL(-r))
-// PREFIX(Sin, real, "sin", PARM(x, real), XL_RREAL(sin(x)))
+PREFIX(Sin, real, "sin", PARM(x, real), XL_RREAL(sin(x)))
 PREFIX(Cos, real, "cos", PARM(x, real), XL_RREAL(cos(x)))
 PREFIX(Tan, real, "tan", PARM(x, real), XL_RREAL(tan(x)))
 PREFIX(ArcSin, real, "asin", PARM(x, real), XL_RREAL(asin(x)))

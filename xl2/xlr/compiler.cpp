@@ -198,7 +198,6 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
                
     // Create the Tree type
     std::vector<const Type *> treeElements;
-    treeElements.push_back(LLVM_INTTYPE(ulong));           // references
     treeElements.push_back(LLVM_INTTYPE(ulong));           // tag
     treeElements.push_back(evalFnTy);                      // code
     treeElements.push_back(symbolsPtrTy);                  // symbols

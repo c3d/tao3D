@@ -53,13 +53,15 @@ Tree *Symbols::Named(text name, bool deep)
 {
     for (Symbols *s = this; s; s = deep ? s->parent.Pointer() : NULL)
     {
-        if (s->names.count(name) > 0)
-            return s->names[name];
+        symbol_table::iterator found = s->names.find(name);
+        if (found != s->names.end())
+            return (*found).second;
+
         symbols_set::iterator it;
         for (it = s->imported.begin(); it != s->imported.end(); it++)
         {
             Symbols *syms = (Symbols *) (*it).ConstPointer();
-            symbol_table::iterator found = syms->names.find(name);
+            found = syms->names.find(name);
             if (found != syms->names.end())
                 return (*found).second;
         }

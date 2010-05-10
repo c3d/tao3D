@@ -68,13 +68,11 @@ struct Main
 // ----------------------------------------------------------------------------
 {
     Main(int argc, char **argv, Compiler &comp);
-    Main(int inArgc, char **inArgv, Compiler &comp,
-         text builtinsPath, text syntaxPath, text stylesheetPath);
     ~Main();
 
     int ParseOptions();
-    int LoadContextFiles();
-    void EvalContextFiles();
+    int LoadContextFiles(source_names context_file_names);
+    void EvalContextFiles(source_names context_file_names);
     int LoadFiles();
     int LoadFile(text file, bool updateContext = false);
     int Run();
@@ -94,7 +92,6 @@ public:
     Renderer     renderer;
     source_files files;
     source_names file_names;
-    source_names context_file_names;
     Deserializer *reader;
     Serializer   *writer;
 

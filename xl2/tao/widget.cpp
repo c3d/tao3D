@@ -351,8 +351,7 @@ void Widget::runProgram()
     {
         if (Tree *prog = xlProgram->tree)
         {
-            XL::Main   *xlr = XL::MAIN;
-            xlr->EvalContextFiles();
+            XL::MAIN->EvalContextFiles(((Window*)parent())->contextFileNames);
             // Evaluate the program
             xl_evaluate(prog);
 
@@ -2577,6 +2576,7 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
     texId = rinfo->bind(filename);
+
     if (w->value <= 0)
     {
         if (Tree *source = xl_source(w))
@@ -2824,8 +2824,8 @@ Tree_p Widget::endpointsStyle(Tree_p self, symbolicname_r s, symbolicname_r e)
 {
     if (!path)
         return Ooops("No path for '$1'", self);
-   
-    path->startStyle = endpointStyle(s); 
+
+    path->startStyle = endpointStyle(s);
     path->endStyle   = endpointStyle(e);
 
     return XL::xl_true;
@@ -3924,8 +3924,6 @@ void Widget::colorChosen(const QColor & col)
 // ----------------------------------------------------------------------------
 {
     colorChanged(col);
-    delete colorDialog;
-    colorDialog = NULL;
 }
 
 
@@ -4035,8 +4033,6 @@ void Widget::fontChosen(const QFont& ft)
 // ----------------------------------------------------------------------------
 {
     fontChanged(ft);
-    delete fontDialog;
-    fontDialog = NULL;
 }
 
 

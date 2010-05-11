@@ -157,6 +157,10 @@ void WidgetSurface::repaint()
 // ----------------------------------------------------------------------------
 {
     dirty = true;
+
+    if (widget)
+        if (Widget *parent = dynamic_cast<Widget *>(widget->parent()))
+            parent->refresh();
 }
 
 
@@ -619,6 +623,8 @@ void FontChooserSurface::fontChosen(const QFont& ft)
     widget->setVisible(false);
 }
 
+
+
 // ============================================================================
 //
 //    File Chooser
@@ -770,6 +776,8 @@ GLuint VideoPlayerSurface::bind(XL::Text *urlTree)
 
     return fbo->texture();
 }
+
+
 
 // ============================================================================
 //

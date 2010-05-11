@@ -85,6 +85,9 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
 
     if (button & Qt::LeftButton)
     {
+        // count == 0: MB up
+        // count == 1: single click
+        // count == 2: double click
         if (count)
         {
             firstClick = true;
@@ -169,9 +172,9 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         if (selected)
         {
             if (shiftModifier && widget->selection[selected] && !manipulator)
-                widget->selection[selected] = 0;
+                widget->select(selected, 0);
             else
-                widget->selection[selected] = count;
+                widget->select(selected, count);
         }
         widget->manipulator = manipulator;
     }

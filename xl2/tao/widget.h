@@ -174,6 +174,8 @@ public:
     void        deselect(Tree_p tree)   { selectionTrees.erase(tree); }
     uint        selected(uint i);
     uint        selected(Layout *);
+#define         DOUBLE_CLICKS(select_val)  (select_val >> 16)
+#define         SINGLE_CLICKS(select_val)  (select_val & 0xFFFF)
     void        select(uint id, uint count);
     void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);

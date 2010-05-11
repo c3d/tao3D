@@ -218,7 +218,7 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     integerElements.push_back(LLVM_INTTYPE(longlong));  // value
     integerTreeTy = StructType::get(*context, integerElements);   // struct Integer{}
     integerTreePtrTy = PointerType::get(integerTreeTy,0); // Integer *
-#define INTEGER_VALUE_INDEX     6
+#define INTEGER_VALUE_INDEX     5
 
     // Create the Real type
     std::vector<const Type *> realElements = treeElements;

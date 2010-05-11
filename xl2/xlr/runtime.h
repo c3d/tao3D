@@ -120,6 +120,44 @@ public:
 
 
 // ============================================================================
+// 
+//   Stack depth management
+// 
+// ============================================================================
+
+struct StackDepthCheck
+// ----------------------------------------------------------------------------
+//   Verify that we don't go too deep into the stack
+// ----------------------------------------------------------------------------
+{
+    StackDepthCheck(Tree *what)
+    {
+        stack_depth++;
+        if (stack_depth > max_stack_depth)
+            StackOverflow(what);
+    }
+    ~StackDepthCheck()
+    {
+        stack_depth--;
+        if (stack_depth == 0 && !in_error_handler)
+            in_error = false;
+    }
+    operator bool()
+    {
+        return in_error && !in_error_handler;
+    }
+    void StackOverflow(Tree *what);
+
+protected:
+    static uint         stack_depth;
+    static uint         max_stack_depth;
+    static bool         in_error_handler;
+    static bool         in_error;
+};
+
+
+
+// ============================================================================
 //
 //    Loading trees from external files
 //

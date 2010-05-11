@@ -94,13 +94,20 @@ OPTVAR(verbose,bool,false)
 OPTION(verbose, "Select more verbose error messages.", verbose = true)
 OPTION(v, "Short form for -verbose.", verbose = true)
 
+// Stack depth
+OPTVAR(stack_depth, uint, 1000)
+OPTION(stack, "Select the evaluation stack depth",
+       stack_depth = INTEGER(50,25000)) // Experimentally, 52K max on MacOSX
+
 // Output file
 OPTVAR(output_file, std::string, "")
 OPTION(o, "Select output file", output_file = STRING)
 
 // Debug controlling options
 OPTVAR(doDiff, bool, false)
-OPTION(diff, "Compute difference of two parse trees (you must give exactly two input files)", doDiff=true)
+OPTION(diff,
+       "Compute difference of two parse trees "
+       "(you must give exactly two input files)", doDiff=true)
 
 
 #ifdef TAO

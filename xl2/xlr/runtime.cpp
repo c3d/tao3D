@@ -62,6 +62,11 @@ Tree *xl_evaluate(Tree *what)
     Symbols *symbols = what->Symbols();
     if (!symbols)
         symbols = Symbols::symbols;
+    
+    StackDepthCheck depthCheck(what);
+    if (depthCheck)
+        return what;
+
     Tree *result = symbols->Run(what);
     if (result != what)
         result->source = xl_source(what);
@@ -140,11 +145,15 @@ Tree *xl_type_check(Tree *value, Tree *type)
     {
         IFTRACE(typecheck)
             std::cerr << "Failed (no value / no code)\n";
-        return false;
+        return NULL;
     }
 
     // Check if this is a closure or something we want to evaluate
     Tree *original = value;
+    StackDepthCheck typeDepthCheck(value);
+    if (typeDepthCheck)
+        return NULL;
+
     if (!value->IsConstant() && value->code)
         value = value->code(value);
 
@@ -778,6 +787,44 @@ Tree *xl_load_tsv(text name)
     old->Import(syms);
 
     return tree;
+}
+
+
+// ============================================================================
+// 
+//   Stack depth check
+// 
+// ============================================================================
+
+uint StackDepthCheck::stack_depth      = 0;
+uint StackDepthCheck::max_stack_depth  = 0;
+bool StackDepthCheck::in_error_handler = false;
+bool StackDepthCheck::in_error         = false;
+
+
+void StackDepthCheck::StackOverflow(Tree *what)
+// ----------------------------------------------------------------------------
+//   We have a stack overflow, bummer
+// ----------------------------------------------------------------------------
+{
+    if (!max_stack_depth)
+    {
+        max_stack_depth = Options::options->stack_depth;
+        if (stack_depth <= max_stack_depth)
+            return;
+    }
+    if (in_error_handler)
+    {
+        Error("Double stack overflow in '$1'", what, NULL, NULL).Display();
+        in_error_handler = false;
+    }
+    else
+    {
+        in_error = true;
+        LocalSave<bool> overflow(in_error_handler, true);
+        LocalSave<uint> depth(stack_depth, 1);
+        Ooops("Stack overflow evaluating '$1'", what);
+    }
 }
 
 XL_END

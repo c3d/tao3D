@@ -682,6 +682,7 @@ void Context::CollectGarbage ()
 //   Mark all active trees
 // ----------------------------------------------------------------------------
 {
+return;
     if (active.size() > gc_threshold)
     {
         GCAction gc;

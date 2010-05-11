@@ -1046,7 +1046,9 @@ void GraphicPath::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    if (widget->selected(layout))
+    uint sel = widget->selected(layout);
+
+    if (DOUBLE_CLICKS(sel))
     {
         glPushName(layout->id);
         control_points::iterator i;
@@ -1077,6 +1079,21 @@ void GraphicPath::Identify(Layout *layout)
             child->Identify(layout);
         }
         glPopName();
+    }
+}
+
+
+GraphicPathInfo::GraphicPathInfo(GraphicPath *path)
+// ----------------------------------------------------------------------------
+//   Store information about a GraphicPath
+// ----------------------------------------------------------------------------
+{
+    b0 = path->bounds;
+    GraphicPath::control_points::iterator i;
+    for (i = path->controls.begin(); i != path->controls.end(); i++)
+    {
+        ControlPoint *child = *i;
+        controls.push_back(Point3(child->x, child->y, child->z));
     }
 }
 

@@ -120,6 +120,13 @@ handle_outer_color ->
     color 0.0..0.4 / 3.0, 0.0, 0.0, 0.9
     line_color 0,0,0,0
 handle_inner_color ->
+    color 1.0, 1.0, 1.0, 1.0
+    line_color 0,0,0,0
+
+control_point_handle_outer_color ->
+    color 0.0..0.4 / 3.0, 0.0, 0.0, 0.9
+    line_color 0,0,0,0
+control_point_handle_inner_color ->
     color 1.0..0.4 / 3.0, 0.0, 0.0, 0.9
     line_color 0,0,0,0
 
@@ -168,6 +175,12 @@ draw_handle x, y, z ->
     handle_outer_color
     point x, y, z, 12
     handle_inner_color
+    point x, y, z, 8
+
+draw_control_point_handle x, y, z ->
+    control_point_handle_outer_color
+    point x, y, z, 12
+    control_point_handle_inner_color
     point x, y, z, 8
 
 draw_rotation_base x, y, z ->

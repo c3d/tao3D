@@ -36,6 +36,7 @@ using namespace XL;
 
 namespace TaoFormulas
 {
+#define XL_SCOPE "xl_formulas_"
 #include "opcodes_declare.h"
 #include "formulas.tbl"
 
@@ -46,7 +47,6 @@ void EnterFormulas(XL::Symbols *c)
 // ----------------------------------------------------------------------------
 {
     XL::Compiler *compiler = XL::Context::context->compiler;
-#define XL_SCOPE "xl_formulas_"
 #include "opcodes_define.h"
 #include "formulas.tbl"
 }

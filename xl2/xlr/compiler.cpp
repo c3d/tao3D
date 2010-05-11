@@ -536,10 +536,14 @@ void Compiler::FreeResources(Tree *tree)
 //   calling foo(), we will get an LLVM assert deleting one while the
 //   other's body still makes a reference.
 {
+    if (!tree->code || tree->code == xl_identity)
+        return;
+
     // Drop any function reference
-    if (functions.count(tree) > 0)
+    function_map::iterator fun = functions.find(tree);
+    if (fun != functions.end())
     {
-        Function *f = functions[tree];
+        Function *f = (*fun).second;
         bool inUse = !f->use_empty();
 
         IFTRACE(llvmgc)
@@ -565,13 +569,14 @@ void Compiler::FreeResources(Tree *tree)
         }
 
         // We can no longer reference this address as an LLVM function
-        functions.erase(tree);
+        functions.erase(fun);
     }
 
     // Drop any global reference
-    if (globals.count(tree) > 0)
+    value_map::iterator glob = globals.find(tree);
+    if (glob != globals.end())
     {
-        Value *v = globals[tree];
+        Value *v = (*glob).second;
         bool inUse = !v->use_empty();
 
         if (inUse)
@@ -586,14 +591,15 @@ void Compiler::FreeResources(Tree *tree)
             // Delete the LLVM value immediately if it's safe to do it.
             delete v;
         }
-        globals.erase(tree);
+        globals.erase(glob);
     }
 
     // Drop any address we may have generated for that tree
-    if (addresses.count(tree) > 0)
+    address_map::iterator addr = addresses.find(tree);
+    if (addr != addresses.end())
     {
-        Tree **address = addresses[tree];
-        addresses.erase(tree);
+        Tree **address = (*addr).second;
+        addresses.erase(addr);
         IFTRACE(llvmgc)
             std::cerr << "Deleting addres " << address << "\n";
         delete address;

@@ -193,9 +193,9 @@ PREFIX(PageSeconds, real,     "page_time", ,    RTAO(pageTime(self)))
 // ============================================================================
 
 PREFIX(ErrorMessage, tree, "error", PARM(m, text) PARM(s, tree),
-       RTAO(formulaRuntimeError(self, m, &s)))
+       return Tao::Widget::formulaRuntimeError(self, m, &s))
 PREFIX(ErrorMessage0, tree, "error", PARM(m, text),
-       RTAO(formulaRuntimeError(self, m, NULL)))
+       return Tao::Widget::formulaRuntimeError(self, m, NULL))
 
 PREFIX(ErrorMessageM, tree, "error_message_box", PARM(m, text) PARM(s, tree),
        RTAO(runtimeError(self, m, &s)))

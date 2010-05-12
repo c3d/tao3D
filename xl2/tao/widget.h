@@ -424,8 +424,8 @@ public:
                       text filename);
 
     // Menus and widgets
-    Tree_p      runtimeError(Tree_p self, text msg, Tree_p src);
-    Tree_p      formulaRuntimeError(Tree_p self, text msg, Tree_p src);
+    static Tree_p runtimeError(Tree_p self, text msg, Tree_p src);
+    static Tree_p formulaRuntimeError(Tree_p self, text msg, Tree_p src);
     Tree_p      menuItem(Tree_p self, text name, text lbl, text iconFileName,
                          bool isCheckable, Text_p isChecked, Tree_p t);
     Tree_p      menu(Tree_p self, text name, text lbl, text iconFileName,

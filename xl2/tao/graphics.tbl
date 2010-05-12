@@ -475,9 +475,9 @@ PREFIX(Separator, tree, "separator", ,
 // ============================================================================
 
 PREFIX(ErrorMessage, tree, "error", PARM(m, text) PARM(s, tree),
-       RTAO(runtimeError(self, m, s)))
+       return Tao::Widget::runtimeError(self, m, s))
 PREFIX(ErrorMessage0, tree, "error", PARM(m, text),
-       RTAO(runtimeError(self, m, NULL)))
+       return Tao::Widget::runtimeError(self, m, NULL))
 
 
 

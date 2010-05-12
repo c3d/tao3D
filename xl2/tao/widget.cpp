@@ -4552,13 +4552,9 @@ Tree_p Widget::runtimeError(Tree_p self, text msg, Tree_p arg)
 //   Display an error message from the input
 // ----------------------------------------------------------------------------
 {
-    inError = true;             // Stop refreshing
-    if (!arg)
-        arg = new Name("#ERROR", self->Position());
-    XL::Error err(msg, arg, NULL, NULL);
-    Window *window = (Window *) parentWidget();
-    window->addError(+err.Message());
-    return XL::xl_false;
+    if (current)
+        current->inError = true;             // Stop refreshing
+    return formulaRuntimeError(self, msg, arg);
 }
 
 
@@ -4567,14 +4563,20 @@ Tree_p Widget::formulaRuntimeError(Tree_p self, text msg, Tree_p arg)
 //   Display a runtime error while executing a formula
 // ----------------------------------------------------------------------------
 {
-    if (!arg)
-        arg = new Name("#ERROR", self->Position());
     XL::Error err(msg, arg, NULL, NULL);
-    msg = err.Message();
+
+    if (current)
+    {
+        Window *window = (Window *) current->parentWidget();
+        window->addError(+err.Message());
+    }
+    else
+    {
+        err.Display();
+    }
+
     Tree_p result = new XL::Name("#ERROR");
     result->code = XL::xl_identity;
-    Window *window = (Window *) parentWidget();
-    window->addError(+err.Message());
     return result;
 }
 

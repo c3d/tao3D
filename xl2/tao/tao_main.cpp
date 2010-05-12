@@ -60,10 +60,16 @@ int main(int argc, char **argv)
     // Fetch info for XL files
     QFileInfo user      ("xl:user.xl");
     QFileInfo theme     ("xl:theme.xl");
+    QFileInfo syntax    ("system:xl.syntax");
+    QFileInfo stylesheet("system:xl.stylesheet");
+    QFileInfo builtins  ("system:builtins.xl");
 
     // Setup the XL runtime environment
     XL::Compiler compiler("xl_tao");
-    XL::Main *xlr = new XL::Main(argc, argv, compiler);
+    XL::Main *xlr = new XL::Main(argc, argv, compiler,
+                                 +syntax.canonicalFilePath(),
+                                 +stylesheet.canonicalFilePath(),
+                                 +builtins.canonicalFilePath());
     XL::MAIN = xlr;
     XL::source_names contextFileNames;
     EnterGraphics(xlr->context);
@@ -110,3 +116,19 @@ int main(int argc, char **argv)
 
     return tao.exec();
 }
+
+
+XL_BEGIN
+text Main::SearchFile(text file)
+// ----------------------------------------------------------------------------
+//   Find the file in the application path
+// ----------------------------------------------------------------------------
+{
+    using namespace Tao;
+    text header = "xl:";
+    header += file;
+
+    QFileInfo fileInfo(header.c_str());
+    return +fileInfo.canonicalFilePath();
+}
+XL_END

@@ -67,16 +67,20 @@ struct Main
 //    The main entry point and associated data
 // ----------------------------------------------------------------------------
 {
-    Main(int argc, char **argv, Compiler &comp);
+    Main(int argc, char **argv, Compiler &comp,
+         text syntax = "xl.syntax",
+         text style = "xl.stylesheet",
+         text builtins = "xl.builtins");
     ~Main();
 
-    int ParseOptions();
-    int LoadContextFiles(source_names context_file_names);
+    int  ParseOptions();
+    int  LoadContextFiles(source_names context_file_names);
     void EvalContextFiles(source_names context_file_names);
-    int LoadFiles();
-    int LoadFile(text file, bool updateContext = false);
-    int Run();
-    int Diff();
+    int  LoadFiles();
+    int  LoadFile(text file, bool updateContext = false);
+    text SearchFile(text input);
+    int  Run();
+    int  Diff();
 
 public:
     int          argc;
@@ -85,7 +89,6 @@ public:
     Positions    positions;
     Errors       errors;
     Syntax       syntax;
-    text         builtins;
     Options      options;
     Compiler    &compiler;
     Context_p    context;

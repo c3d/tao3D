@@ -71,19 +71,19 @@ SourceFile::SourceFile()
 {}
 
 
-Main::Main(int inArgc, char **inArgv, Compiler &comp)
+Main::Main(int inArgc, char **inArgv, Compiler &comp,
+           text syntaxName, text styleSheetName, text builtinsName)
 // ----------------------------------------------------------------------------
 //   Initialization of the globals
 // ----------------------------------------------------------------------------
     : argc(inArgc), argv(inArgv),
       positions(),
       errors(&positions),
-      syntax("xl.syntax"),
-      builtins(""),
+      syntax(syntaxName.c_str()),
       options(errors),
       compiler(comp),
       context(new Context(errors, &compiler)),
-      renderer(std::cout, "xl.stylesheet", syntax),
+      renderer(std::cout, styleSheetName, syntax),
       reader(NULL), writer(NULL)
 {
     Options::options = &options;
@@ -91,6 +91,7 @@ Main::Main(int inArgc, char **inArgv, Compiler &comp)
     Symbols::symbols = context;
     Renderer::renderer = &renderer;
     Syntax::syntax = &syntax;
+    options.builtins = builtinsName;
 }
 
 
@@ -128,15 +129,6 @@ int Main::ParseOptions()
     cmd = options.Parse(argc, argv);
     if (options.doDiff)
         options.parseOnly = true;
-    if (options.builtins)
-    {
-        if (builtins.empty() || options.builtinsOverride)
-            builtins = options.builtinsFile;
-    }
-    else
-    {
-        builtins = "";
-    }
 
     for (; cmd != end; cmd = options.ParseNext())
     {
@@ -177,8 +169,8 @@ int Main::LoadContextFiles( source_names context_file_names)
     // clear previous context
 
     // load builtins
-    if (!builtins.empty() )
-        hadError |= LoadFile(builtins, true);
+    if (!options.builtins.empty())
+        hadError |= LoadFile(options.builtins, true);
 
     // Loop over files we will process
     for (file = context_file_names.begin();
@@ -198,8 +190,8 @@ void Main::EvalContextFiles(source_names context_file_names)
     std::vector<text>::iterator  file;
 
     // Execute xl.builtins file first
-    if (!builtins.empty())
-        if (Tree *builtins_file = files[builtins].tree)
+    if (!options.builtins.empty())
+        if (Tree *builtins_file = files[options.builtins].tree)
             xl_evaluate(builtins_file);
 
     // Execute other context files (user.xl, theme.xl)
@@ -209,6 +201,17 @@ void Main::EvalContextFiles(source_names context_file_names)
         if (Tree *context_file = files[*file].tree)
             xl_evaluate(context_file);
 }
+
+
+#ifndef TAO
+text Main::SearchFile(text file)
+// ----------------------------------------------------------------------------
+//   Default is to use the file name directly
+// ----------------------------------------------------------------------------
+{
+    return file;
+}
+#endif // TAO
 
 
 int Main::LoadFile(text file, bool updateContext)
@@ -284,7 +287,7 @@ int Main::LoadFile(text file, bool updateContext)
 
     Symbols *syms = Symbols::symbols;
     Symbols *savedSyms = syms;
-    if (file == builtins)
+    if (file == options.builtins)
     {
         syms = context;
     }
@@ -389,6 +392,7 @@ int Main::Run()
 
     return hadError;
 }
+
 
 int Main::Diff()
 // ----------------------------------------------------------------------------

@@ -549,6 +549,8 @@ Tree *xl_load(text name)
 //    Load a file from disk
 // ----------------------------------------------------------------------------
 {
+    name = MAIN->SearchFile(name);
+
     // Check if the file has already been loaded somehwere.
     // If so, return the loaded file
     if (MAIN->files.count(name) > 0)
@@ -575,11 +577,14 @@ Tree *xl_load(text name)
     return tree;
 }
 
+
 Tree *xl_load_csv(text name)
 // ----------------------------------------------------------------------------
 //    Load a comma-separated file from disk
 // ----------------------------------------------------------------------------
 {
+    name = MAIN->SearchFile(name);
+
     // Check if the file has already been loaded somehwere.
     // If so, return the loaded file
     if (MAIN->files.count(name) > 0)
@@ -684,6 +689,8 @@ Tree *xl_load_tsv(text name)
 //    Load a tab-separated file from disk
 // ----------------------------------------------------------------------------
 {
+    name = MAIN->SearchFile(name);
+
     // Check if the file has already been loaded somehwere.
     // If so, return the loaded file
     if (MAIN->files.count(name) > 0)

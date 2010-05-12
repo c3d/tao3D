@@ -24,6 +24,7 @@
 #include "options.h"
 #include <iostream>
 #include <cstdio>
+#include <cstdlib>
 
 XL_BEGIN
 

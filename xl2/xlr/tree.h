@@ -1050,7 +1050,8 @@ struct RewriteKey : Action
     }
     Tree *DoReal(Real *what)
     {
-        key = (key << 3) ^ Hash(1, *((ulong *) &what->value));
+        ulong *value = (ulong*)&what->value;
+        key = (key << 3) ^ Hash(1, *value);
         return what;
     }
     Tree *DoText(Text *what)

@@ -4784,15 +4784,19 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
 
     if (par)
     {
+        QAction *before = NULL;
         if (orderedMenuElements[order])
         {
-            QAction *before = orderedMenuElements[order]->p_action;
-            par->insertAction(before, currentMenu->menuAction());
+            before = orderedMenuElements[order]->p_action;
         }
         else
         {
-            par->addAction(currentMenu->menuAction());
+            if (par == currentMenuBar)
+                before = ((Window*)parent())->shareMenu->menuAction();
+
+//            par->addAction(currentMenu->menuAction());
         }
+        par->insertAction(before, currentMenu->menuAction());
 
         QToolButton* button = NULL;
         if (par == currentToolBar &&

@@ -536,8 +536,9 @@ PageLayout::PageLayout(const PageLayout &o)
 // ----------------------------------------------------------------------------
 //   Copy a layout from another layout
 // ----------------------------------------------------------------------------
-    : Layout(o), space(o.space)
+    : Layout(o), space(), page()
 {
+    space |= Point3(0,0,0);
 }
 
 
@@ -727,6 +728,7 @@ Box3 PageLayout::Bounds(Layout *layout)
         Drawing *child = place.item;
         Box3 childBounds = child->Bounds(layout);
         childBounds += Vector3(0, place.position, 0); // Vertical offset
+        childBounds &= space;
         result |= childBounds;
     }
 

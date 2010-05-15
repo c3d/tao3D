@@ -242,6 +242,12 @@ bool GitRepository::asyncCommit(text message, bool all)
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
+    if (state == RS_Clean)
+    {
+        // May happen if a commit was already in progress when this process was
+        // enqueued
+        return true;
+    }
     if (message == "")
     {
         message = whatsNew;

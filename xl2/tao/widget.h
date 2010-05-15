@@ -171,9 +171,11 @@ public:
     bool        selected()              { return !selectionTrees.empty(); }
     bool        hasSelection()          { return selected(); }
     void        select(Tree *tree)      { selectionTrees.insert(tree); }
-    void        deselect(Tree *tree)   { selectionTrees.erase(tree); }
+    void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
     uint        selected(uint i);
     uint        selected(Layout *);
+    static uint singleClicks(uint sel)  { return sel & 0xFFFF; }
+    static uint doubleClicks(uint sel)  { return sel >> 16; }
     void        select(uint id, uint count);
     void        deleteFocus(QWidget *widget);
     void        requestFocus(QWidget *widget, coord x, coord y);

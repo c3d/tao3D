@@ -280,6 +280,7 @@ void Widget::draw()
         (XL::XLCall("draw_widget_selection"), x,x,x,x,x,x).build(s);
         (XL::XLCall("draw_3D_selection"), x,x,x,x,x,x).build(s);
         (XL::XLCall("draw_handle"), x, x, x).build(s);
+        (XL::XLCall("draw_control_point_handle"), x, x, x).build(s);
         first = false;
     }
 
@@ -1923,7 +1924,7 @@ void Widget::select(uint id, uint count)
     if (id && id != ~0U)
     {
         if (count)
-            selection[id] = count;
+            selection[id] += (count == 1) ? 1 : (1 << 16);
         else
             selection.erase(id);
     }
@@ -2623,6 +2624,8 @@ Tree_p Widget::newPath(Tree_p self, Tree_p child)
     TesselatedPath *localPath = new TesselatedPath(GLU_TESS_WINDING_ODD);
     XL::LocalSave<GraphicPath *> save(path, localPath);
     layout->Add(localPath);
+    if (currentShape)
+        layout->Add(new GraphicPathManipulator(currentShape, localPath, self));
     Tree_p result = xl_evaluate(child);
     return result;
 }

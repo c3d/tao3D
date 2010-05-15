@@ -75,7 +75,6 @@ struct ControlPoint : Manipulator
     virtual void        DrawSelection(Layout *layout);
     virtual void        Identify(Layout *layout);
 
-protected:
     Real_p              x, y, z;
     uint                id;
 };
@@ -101,6 +100,7 @@ struct FrameManipulator : Manipulator
 
     FrameManipulator(Tree *self,
                      Real *x, Real *y, Real *w, Real *h);
+    virtual void        DrawSelection(Layout *layout);
     virtual bool        DrawHandles(Layout *layout);
     virtual TransformMode CurrentTransformMode();
 
@@ -224,6 +224,21 @@ struct WidgetManipulator : FrameManipulator
 
 protected:
     WidgetSurface *     surface;
+};
+
+
+struct GraphicPath;
+struct GraphicPathManipulator : FrameManipulator
+// ----------------------------------------------------------------------------
+//   Manipulator for GraphicPath
+// ----------------------------------------------------------------------------
+{
+    GraphicPathManipulator(Tree_p self, GraphicPath *path, Tree_p path_tree);
+    virtual bool        DrawHandles(Layout *layout);
+
+protected:
+    GraphicPath       * path;
+    Tree_p              path_tree;
 };
 
 

@@ -33,6 +33,7 @@ struct QPainterPath;
 TAO_BEGIN
 
 struct ControlPoint;
+struct FrameManipulator;
 struct GraphicPath : Shape
 // ----------------------------------------------------------------------------
 //    An arbitrary graphic path
@@ -106,6 +107,20 @@ public:
     Box3                bounds;
     EndpointStyle       startStyle, endStyle;
     static scale        default_steps;
+};
+
+
+struct GraphicPathInfo : XL::Info
+// ----------------------------------------------------------------------------
+//    Information about a given GraphicPath
+// ----------------------------------------------------------------------------
+{
+    typedef GraphicPathInfo *data_t;
+
+    GraphicPathInfo(GraphicPath *path);
+
+    std::vector<Point3> controls;
+    Box3                b0;
 };
 
 

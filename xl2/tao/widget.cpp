@@ -55,6 +55,7 @@
 #include "undo.h"
 #include "serializer.h"
 #include "binpack.h"
+#include "normalize.h"
 
 #include <QToolButton>
 #include <QtGui/QImage>
@@ -1292,7 +1293,10 @@ void Widget::updateProgram(XL::SourceFile *source)
 //   Change the XL program, clean up stuff along the way
 // ----------------------------------------------------------------------------
 {
+    Renormalize renorm;
     xlProgram = source;
+    if (Tree *prog = xlProgram->tree)
+        xlProgram->tree = prog->Do(renorm);
     refreshProgram();
     inError = false;
 }
@@ -1345,8 +1349,8 @@ void Widget::reloadProgram(XL::Tree *newProg)
     else
     {
         // We want to force a clone so that we recompile everything
-        XL::NormalizedClone clone;
-        newProg = prog->Do(clone);
+        Renormalize renorm;
+        newProg = prog->Do(renorm);
         newProg->SetSymbols(prog->Symbols());
         xlProgram->tree = newProg;
         prog = newProg;
@@ -1356,18 +1360,6 @@ void Widget::reloadProgram(XL::Tree *newProg)
     text txt = *prog;
     Window *window = (Window *) parentWidget();
     window->setText(+txt);
-}
-
-
-void Widget::renormalizeProgram()
-// ----------------------------------------------------------------------------
-//   Remove elements in the program that make it look not good, e.g. -(-x))
-// ----------------------------------------------------------------------------
-{
-    XL::NormalizedClone norm;
-    Tree *prog = xlProgram->tree;
-    prog = prog->Do(norm);
-    reloadProgram(prog);
 }
 
 

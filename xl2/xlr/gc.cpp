@@ -22,10 +22,14 @@
 
 #include "gc.h"
 #include "options.h"
-#include <malloc.h>
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
+
+#ifdef CONFIG_MINGW // Windows: When getting in the way becomes an art form...
+#include <malloc.h>
+#endif // CONFIG_MINGW
+
 
 XL_BEGIN
 

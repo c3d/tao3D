@@ -135,7 +135,6 @@ public:
     void        updateProgram(XL::SourceFile *sf);
     void        applyAction(Action &action);
     void        reloadProgram(Tree *newProg = NULL);
-    void        renormalizeProgram();
     void        refreshProgram();
     void        markChanged(text reason);
     bool        writeIfChanged(XL::SourceFile &sf);

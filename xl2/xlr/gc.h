@@ -110,7 +110,7 @@ public:
     static void *       highestAddress;
     static void *       lowestAllocatorAddress;
     static void *       highestAllocatorAddress;
-};
+} __attribute__((aligned(16)));
 
 
 template <class Object, typename ValueType=void> struct GCPtr;
@@ -422,16 +422,8 @@ Allocator<Object> * Allocator<Object>::Singleton()
 //    Return a singleton for the allocation class
 // ----------------------------------------------------------------------------
 {
-    static Allocator *allocator = NULL;
-    if (!allocator)
-    {
-        // Create the singleton
-        allocator = new Allocator;
-
-        // Register the allocator with the garbage collector
-        GarbageCollector::Singleton()->Register(allocator);
-    }
-    return allocator;
+    static Allocator allocator;
+    return &allocator;
 }
 
 

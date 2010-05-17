@@ -49,11 +49,19 @@ TypeAllocator::TypeAllocator(kstring tn, uint os, mark_fn mark)
       allocatedCount(0), freedCount(0), totalCount(0)
 {
     // Make sure we align everything on Chunk boundaries
-    if (os < sizeof(Chunk))
-        alignedSize = sizeof(Chunk);
+    if ((alignedSize + sizeof (Chunk)) & CHUNKALIGN_MASK)
+    {
+        // Align total size up to 8-bytes boundaries
+        uint totalSize = alignedSize + sizeof(Chunk);
+        totalSize = (totalSize + CHUNKALIGN_MASK) & ~CHUNKALIGN_MASK;
+        alignedSize = totalSize - sizeof(Chunk);
+    }
 
     // Use the address of the garbage collector as signature
     gc = GarbageCollector::Singleton();
+
+    // Register the allocator with the garbage collector
+    gc->Register(this);
 
     // Make sure that we have the correct alignment
     assert(this == ValidPointer(this));

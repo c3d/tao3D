@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>571</width>
-    <height>375</height>
+    <height>412</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
    <property name="geometry">
     <rect>
      <x>210</x>
-     <y>340</y>
+     <y>370</y>
      <width>341</width>
      <height>32</height>
     </rect>
@@ -114,7 +114,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>140</y>
+     <y>170</y>
      <width>531</width>
      <height>191</height>
     </rect>
@@ -133,6 +133,45 @@
    </property>
    <property name="acceptRichText">
     <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="newFolderLabel">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>130</y>
+     <width>81</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>New folder</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="newFolderEdit">
+   <property name="geometry">
+    <rect>
+     <x>110</x>
+     <y>130</y>
+     <width>141</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="newFolderLabel2">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>130</y>
+     <width>291</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>(leave empty to keep original name)</string>
    </property>
   </widget>
  </widget>

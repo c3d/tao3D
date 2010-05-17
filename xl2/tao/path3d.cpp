@@ -1031,7 +1031,7 @@ void GraphicPath::clear()
 }
 
 
-void GraphicPath::AddControl(XL::Tree_p self, real_r x, real_r y, real_r z)
+void GraphicPath::AddControl(XL::Tree *self, Real *x, Real *y, Real *z)
 // ----------------------------------------------------------------------------
 //   Add a control point to a path
 // ----------------------------------------------------------------------------
@@ -1048,7 +1048,7 @@ void GraphicPath::DrawSelection(Layout *layout)
     Widget *widget = layout->Display();
     uint sel = widget->selected(layout);
 
-    if (DOUBLE_CLICKS(sel))
+    if (Widget::doubleClicks(sel))
     {
         glPushName(layout->id);
         control_points::iterator i;

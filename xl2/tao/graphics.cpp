@@ -24,7 +24,6 @@
 // * Date       : $Date$
 // ****************************************************************************
 
-
 #include "graphics.h"
 #include "opcodes.h"
 #include "options.h"

@@ -49,11 +49,11 @@ struct SourceFile
 //    A source file and associated data
 // ----------------------------------------------------------------------------
 {
-    SourceFile(text n, Tree_p t, Symbols *s);
+    SourceFile(text n, Tree *t, Symbols *s);
     SourceFile();
     text        name;
-    TreeRoot    tree;
-    Symbols *   symbols;
+    Tree_p      tree;
+    Symbols_p   symbols;
     time_t      modified;
     bool        changed;
     text        hash;
@@ -67,18 +67,20 @@ struct Main
 //    The main entry point and associated data
 // ----------------------------------------------------------------------------
 {
-    Main(int argc, char **argv, Compiler &comp);
-    Main(int inArgc, char **inArgv, Compiler &comp,
-         text builtinsPath, text syntaxPath, text stylesheetPath);
+    Main(int argc, char **argv, Compiler &comp,
+         text syntax = "xl.syntax",
+         text style = "xl.stylesheet",
+         text builtins = "xl.builtins");
     ~Main();
 
-    int ParseOptions();
-    int LoadContextFiles();
-    void EvalContextFiles();
-    int LoadFiles();
-    int LoadFile(text file, bool updateContext = false);
-    int Run();
-    int Diff();
+    int  ParseOptions();
+    int  LoadContextFiles(source_names context_file_names);
+    void EvalContextFiles(source_names context_file_names);
+    int  LoadFiles();
+    int  LoadFile(text file, bool updateContext = false);
+    text SearchFile(text input);
+    int  Run();
+    int  Diff();
 
 public:
     int          argc;
@@ -87,14 +89,12 @@ public:
     Positions    positions;
     Errors       errors;
     Syntax       syntax;
-    text         builtins;
     Options      options;
     Compiler    &compiler;
-    Context      context;
+    Context_p    context;
     Renderer     renderer;
     source_files files;
     source_names file_names;
-    source_names context_file_names;
     Deserializer *reader;
     Serializer   *writer;
 

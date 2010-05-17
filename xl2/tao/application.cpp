@@ -138,10 +138,16 @@ void Application::updateSearchPathes()
                 << defaultTaoApplicationFolderPath();
     QDir::setSearchPaths("xl", xl_dir_list);
 
+    // Initialize dir search path for XL system files
+    QStringList xl_sys_list;
+    xl_sys_list << defaultTaoApplicationFolderPath();
+    QDir::setSearchPaths("system", xl_sys_list);
+
     // Setup search path for images
     QStringList images_dir_list;
-    images_dir_list << currentProjectFolder + "/images"
-            << currentProjectFolder;
+    images_dir_list
+        << currentProjectFolder + "/images"
+        << currentProjectFolder;
 
     QDir::setSearchPaths("image", images_dir_list);
     QDir::setSearchPaths("texture", images_dir_list);

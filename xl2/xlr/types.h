@@ -53,7 +53,7 @@ struct TypeInfo : Info
 // ----------------------------------------------------------------------------
 {
     typedef Tree_p       data_t;
-    TypeInfo(Tree_p type): type(type) {}
+    TypeInfo(Tree *type): type(type) {}
     operator            data_t()  { return type; }
     Tree_p               type;
 };
@@ -66,17 +66,17 @@ struct InferTypes : Action
 {
     InferTypes(Symbols *s): Action(), symbols(s) {}
 
-    Tree_p Do (Tree_p what);
-    Tree_p DoInteger(Integer_p what);
-    Tree_p DoReal(Real_p what);
-    Tree_p DoText(Text_p what);
-    Tree_p DoName(Name_p what);
-    Tree_p DoPrefix(Prefix_p what);
-    Tree_p DoPostfix(Postfix_p what);
-    Tree_p DoInfix(Infix_p what);
-    Tree_p DoBlock(Block_p what);
+    Tree *Do (Tree *what);
+    Tree *DoInteger(Integer *what);
+    Tree *DoReal(Real *what);
+    Tree *DoText(Text *what);
+    Tree *DoName(Name *what);
+    Tree *DoPrefix(Prefix *what);
+    Tree *DoPostfix(Postfix *what);
+    Tree *DoInfix(Infix *what);
+    Tree *DoBlock(Block *what);
 
-    Symbols *   symbols;
+    Symbols_p   symbols;
 };
 
 
@@ -85,25 +85,25 @@ struct MatchType : Action
 //   An action that checks if a value matches a type
 // ----------------------------------------------------------------------------
 {
-    MatchType(Symbols *s, Tree_p t): symbols(s), type(t) {}
+    MatchType(Symbols *s, Tree *t): symbols(s), type(t) {}
 
-    Tree_p Do(Tree_p what);
-    Tree_p DoInteger(Integer_p what);
-    Tree_p DoReal(Real_p what);
-    Tree_p DoText(Text_p what);
-    Tree_p DoName(Name_p what);
-    Tree_p DoPrefix(Prefix_p what);
-    Tree_p DoPostfix(Postfix_p what);
-    Tree_p DoInfix(Infix_p what);
-    Tree_p DoBlock(Block_p what);
+    Tree *Do(Tree *what);
+    Tree *DoInteger(Integer *what);
+    Tree *DoReal(Real *what);
+    Tree *DoText(Text *what);
+    Tree *DoName(Name *what);
+    Tree *DoPrefix(Prefix *what);
+    Tree *DoPostfix(Postfix *what);
+    Tree *DoInfix(Infix *what);
+    Tree *DoBlock(Block *what);
 
-    Tree_p MatchStructuredType(Tree_p what, Tree_p kind = NULL);
-    Tree_p Rewrites(Tree_p what);
-    Tree_p Normalize();
-    Tree_p NameMatch(Tree_p what);
+    Tree *MatchStructuredType(Tree *what, Tree *kind = NULL);
+    Tree *Rewrites(Tree *what);
+    Tree *Normalize();
+    Tree *NameMatch(Tree *what);
 
-    Symbols *symbols;
-    Tree_p type;
+    Symbols_p symbols;
+    Tree_p    type;
 };
 
 
@@ -112,27 +112,27 @@ struct ArgumentTypeMatch : Action
 //   Check if a tree matches the form of the left of a rewrite
 // ----------------------------------------------------------------------------
 {
-    ArgumentTypeMatch (Tree_p t,
+    ArgumentTypeMatch (Tree *t,
                        Symbols *s, Symbols *l, Symbols *r) :
         symbols(s), locals(l), rewrite(r), test(t), defined(NULL) {}
 
     // Action callbacks
-    virtual Tree_p Do(Tree_p what);
-    virtual Tree_p DoInteger(Integer_p what);
-    virtual Tree_p DoReal(Real_p what);
-    virtual Tree_p DoText(Text_p what);
-    virtual Tree_p DoName(Name_p what);
-    virtual Tree_p DoPrefix(Prefix_p what);
-    virtual Tree_p DoPostfix(Postfix_p what);
-    virtual Tree_p DoInfix(Infix_p what);
-    virtual Tree_p DoBlock(Block_p what);
+    virtual Tree *Do(Tree *what);
+    virtual Tree *DoInteger(Integer *what);
+    virtual Tree *DoReal(Real *what);
+    virtual Tree *DoText(Text *what);
+    virtual Tree *DoName(Name *what);
+    virtual Tree *DoPrefix(Prefix *what);
+    virtual Tree *DoPostfix(Postfix *what);
+    virtual Tree *DoInfix(Infix *what);
+    virtual Tree *DoBlock(Block *what);
 
 public:
-    Symbols *      symbols;     // Context in which we evaluate values
-    Symbols *      locals;      // Symbols where we declare arguments
-    Symbols *      rewrite;     // Symbols in which the rewrite was declared
-    Tree_p          test;        // Tree we test
-    Tree_p          defined;     // Tree we define
+    Symbols_p      symbols;     // Context in which we evaluate values
+    Symbols_p      locals;      // Symbols where we declare arguments
+    Symbols_p      rewrite;     // Symbols in which the rewrite was declared
+    Tree_p         test;        // Tree we test
+    Tree_p         defined;     // Tree we define
 };
 
 

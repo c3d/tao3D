@@ -95,6 +95,7 @@ HEADERS += widget.h \
     ../xlr/syntax.h \
     ../xlr/opcodes_declare.h \
     ../xlr/tree.h \
+    ../xlr/gc.h \
     ../xlr/opcodes_define.h \
     ../xlr/types.h \
     ../xlr/diff.h \
@@ -141,6 +142,7 @@ SOURCES += tao_main.cpp \
     git_backend.cpp \
     application.cpp \
     ../xlr/tree.cpp \
+    ../xlr/gc.cpp \
     ../xlr/sha1.cpp \
     ../xlr/serializer.cpp \
     ../xlr/syntax.cpp \

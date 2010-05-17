@@ -40,29 +40,33 @@ struct BreadthFirstSearch : Action
 {
     BreadthFirstSearch (Action &action, bool fullScan = true):
         action(action), fullScan(fullScan) {}
-    Tree_p DoBlock(Block_p what)
+    Tree *DoBlock(Block *what)
     {
         return Do(what);
     }
-    Tree_p DoInfix(Infix_p what)
+    Tree *DoInfix(Infix *what)
     {
         return Do(what);
     }
-    Tree_p DoPrefix(Prefix_p what)
+    Tree *DoPrefix(Prefix *what)
     {
         return Do(what);
     }
-    Tree_p DoPostfix(Postfix_p what)
+    Tree *DoPostfix(Postfix *what)
     {
         return Do(what);
     }
-    Tree_p Do(Tree_p what)
+    Tree *Do(Tree *what)
     {
         nodes.push(what);
         do
         {
-            Block_p  bl; Infix_p  in; Prefix_p  pr; Postfix_p  po;
-            Tree_p  curr, res;
+            Block   *bl;
+            Infix   *in;
+            Prefix  *pr;
+            Postfix *po;
+            Tree    *curr;
+            Tree    *res;
 
             curr = nodes.front();
             if (!curr)
@@ -74,21 +78,21 @@ struct BreadthFirstSearch : Action
             if (!fullScan && res)
                 return res;
             nodes.pop();
-            if ((bl = curr->AsBlock()) != NULL)
+            if ((bl = curr->AsBlock()))
             {
               nodes.push(bl->child);
             }
-            if ((in = curr->AsInfix()) != NULL)
+            if ((in = curr->AsInfix()))
             {
               nodes.push(in->left);
               nodes.push(in->right);
             }
-            if ((pr = curr->AsPrefix()) != NULL)
+            if ((pr = curr->AsPrefix()))
             {
               nodes.push(pr->left);
               nodes.push(pr->right);
             }
-            if ((po = curr->AsPostfix()) != NULL)
+            if ((po = curr->AsPostfix()))
             {
               nodes.push(po->left);
               nodes.push(po->right);

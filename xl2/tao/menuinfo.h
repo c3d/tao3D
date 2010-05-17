@@ -71,7 +71,7 @@ struct GroupInfo : QButtonGroup, XL::Info
 public:
     typedef GroupInfo * data_t;
 
-    GroupInfo(XL::Tree_p t, QWidget * parent) :
+    GroupInfo(XL::Tree *t, QWidget * parent) :
             QButtonGroup(parent), XL::Info(), tree(t), action(NULL)
     {
         connect(this, SIGNAL(buttonClicked(QAbstractButton*)),
@@ -90,7 +90,7 @@ public slots:
 
 public:
     XL::Tree_p tree;
-    XL::TreeRoot *action;
+    XL::Tree_p action;
 };
 
 }

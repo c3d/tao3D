@@ -62,16 +62,16 @@ struct Serializer : Action
     ~Serializer() {}
 
     // Serialization of the canonical nodes
-    Tree_p      DoInteger(Integer_p what);
-    Tree_p      DoReal(Real_p what);
-    Tree_p      DoText(Text_p what);
-    Tree_p      DoName(Name_p what);
-    Tree_p      DoPrefix(Prefix_p what);
-    Tree_p      DoPostfix(Postfix_p what);
-    Tree_p      DoInfix(Infix_p what);
-    Tree_p      DoBlock(Block_p what);
-    Tree_p      DoChild(Tree_p child);
-    Tree_p      Do(Tree_p what);
+    Tree *      DoInteger(Integer *what);
+    Tree *      DoReal(Real *what);
+    Tree *      DoText(Text *what);
+    Tree *      DoName(Name *what);
+    Tree *      DoPrefix(Prefix *what);
+    Tree *      DoPostfix(Postfix *what);
+    Tree *      DoInfix(Infix *what);
+    Tree *      DoBlock(Block *what);
+    Tree *      DoChild(Tree *child);
+    Tree *      Do(Tree *what);
 
     bool        IsValid()       { return out.good(); }
 
@@ -81,7 +81,7 @@ protected:
     void        WriteUnsigned(ulonglong);
     void        WriteReal(double);
     void        WriteText(text);
-    void        WriteChild(Tree_p child);
+    void        WriteChild(Tree *child);
 
 protected:
     std::ostream &      out;
@@ -94,11 +94,11 @@ struct Deserializer
 //   Reconstruct a tree from its serialized form
 // ----------------------------------------------------------------------------
 {
-    Deserializer(std::istream &in, tree_position pos = Tree::NOWHERE);
+    Deserializer(std::istream &in, TreePosition pos = Tree::NOWHERE);
     ~Deserializer();
 
     // Deserialize a tree from the input and return it, or return NULL
-    Tree_p      ReadTree();
+    Tree *      ReadTree();
     bool        IsValid()       { return in.good(); }
 
 protected:
@@ -110,7 +110,7 @@ protected:
 
 protected:
     std::istream &      in;
-    tree_position       pos;
+    TreePosition        pos;
     text_ids            texts;
 };
 

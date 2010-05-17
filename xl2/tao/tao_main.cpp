@@ -58,27 +58,29 @@ int main(int argc, char **argv)
     tao.updateSearchPathes();
 
     // Fetch info for XL files
-    QFileInfo builtins  ("xl:builtins.xl");
-    QFileInfo syntax    ("xl:xl.syntax");
-    QFileInfo stylesheet("xl:xl.stylesheet");
     QFileInfo user      ("xl:user.xl");
     QFileInfo theme     ("xl:theme.xl");
+    QFileInfo syntax    ("system:xl.syntax");
+    QFileInfo stylesheet("system:xl.stylesheet");
+    QFileInfo builtins  ("system:builtins.xl");
 
     // Setup the XL runtime environment
     XL::Compiler compiler("xl_tao");
     XL::Main *xlr = new XL::Main(argc, argv, compiler,
-                                 +builtins.canonicalFilePath(),
                                  +syntax.canonicalFilePath(),
-                                 +stylesheet.canonicalFilePath());
+                                 +stylesheet.canonicalFilePath(),
+                                 +builtins.canonicalFilePath());
     XL::MAIN = xlr;
-    EnterGraphics(&xlr->context);
+    XL::source_names contextFileNames;
+    EnterGraphics(xlr->context);
+
     xlr->ParseOptions();
     if (user.exists())
-        xlr->context_file_names.push_back(+user.canonicalFilePath());
+        contextFileNames.push_back(+user.canonicalFilePath());
     if (theme.exists())
-        xlr->context_file_names.push_back(+theme.canonicalFilePath());
+        contextFileNames.push_back(+theme.canonicalFilePath());
 
-    xlr->LoadContextFiles();
+    xlr->LoadContextFiles(contextFileNames);
 
     xlr->LoadFiles();
 
@@ -93,7 +95,7 @@ int main(int argc, char **argv)
         {
             XL::SourceFile &sf = xlr->files[*it];
             hadFile = true;
-            Tao::Window *window = new Tao::Window (xlr, &sf);
+            Tao::Window *window = new Tao::Window (xlr, contextFileNames, &sf);
             if (window->isUntitled)
                 delete window;
             else
@@ -108,9 +110,25 @@ int main(int argc, char **argv)
     }
     if (!hadFile)
     {
-        Tao::Window *untitled = new Tao::Window(xlr, NULL);
+        Tao::Window *untitled = new Tao::Window(xlr, contextFileNames, NULL);
         untitled->show();
     }
 
     return tao.exec();
 }
+
+
+XL_BEGIN
+text Main::SearchFile(text file)
+// ----------------------------------------------------------------------------
+//   Find the file in the application path
+// ----------------------------------------------------------------------------
+{
+    using namespace Tao;
+    text header = "xl:";
+    header += file;
+
+    QFileInfo fileInfo(header.c_str());
+    return +fileInfo.canonicalFilePath();
+}
+XL_END

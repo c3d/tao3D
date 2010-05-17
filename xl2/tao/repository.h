@@ -26,6 +26,7 @@
 
 #include "tao.h"
 #include "tree.h"
+#include "tao_tree.h"
 #include "process.h"
 #include "main.h"
 #include "ansi_textedit.h"
@@ -97,8 +98,8 @@ public:
     virtual ~Repository();
 
 public:
-    virtual bool        write(text fileName, XL::Tree_p tree);
-    virtual XL::Tree_p  read(text fileName);
+    virtual bool        write(text fileName, Tree *tree);
+    virtual XL::Tree *  read(text fileName);
     virtual bool        setTask(text name);
     virtual bool        selectWorkBranch();
     virtual bool        selectUndoBranch();
@@ -131,7 +132,7 @@ public:
     virtual bool        delRemote(QString name)         = 0;
     virtual bool        renRemote(QString oldName, QString newName) = 0;
     virtual QList<Commit> history(int max = 100)        = 0;
-    virtual Process *   asyncClone(QString cloneUrl,
+    virtual Process *   asyncClone(QString cloneUrl, QString newFolder,
                               AnsiTextEdit *out = NULL, void *id = NULL) = 0;
 
 public:

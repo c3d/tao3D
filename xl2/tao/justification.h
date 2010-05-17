@@ -162,15 +162,15 @@ bool Justifier<Item>::Adjust(coord start, coord end,
 //    Place elements until we reach the target size
 // ----------------------------------------------------------------------------
 {
-    coord pos  = start;
-    scale lastSpace = 0;
+    coord pos          = start;
+    scale lastSpace    = 0;
     scale lastOversize = 0;
-    bool  hasRoom = true;
-    bool  hadBreak = false;
-    bool  done = false; // e.g. line break in a line
-    uint  numBreaks = 0;
-    uint  numSolids = 0;
-    int   sign = start < end ? 1 : -1;
+    bool  hasRoom      = true;
+    bool  hadBreak     = false;
+    bool  done         = false; // e.g. line break in a line
+    uint  numBreaks    = 0;
+    uint  numSolids    = 0;
+    int   sign         = start < end ? 1 : -1;
 
     // Place items until there's none left or we are beyond the max position
     ItemsIterator i;

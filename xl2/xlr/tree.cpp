@@ -56,29 +56,6 @@ Tree::~Tree()
 }
 
 
-void *Tree::operator new(size_t sz)
-// ----------------------------------------------------------------------------
-//    Record the tree in the garbage collector
-// ----------------------------------------------------------------------------
-{
-    void *result = ::operator new(sz);
-    if (Context::context)
-        Context::context->Mark((Tree_p) result);
-    return result;
-}
-
-
-void Tree::operator delete(void *what)
-// ----------------------------------------------------------------------------
-//    Record the tree in the garbage collector
-// ----------------------------------------------------------------------------
-{
-    ::operator delete(what);
-    if (Context::context)
-        Context::context->Purge((Tree_p) what);
-}
-
-
 Tree::operator text()
 // ----------------------------------------------------------------------------
 //   Conversion of a tree to text
@@ -107,69 +84,32 @@ Name::operator bool()
 
 // ============================================================================
 // 
-//   TreeRoot - Protect a tree against garbage collection
-// 
-// ============================================================================
-
-TreeRoot::TreeRoot(Tree_p t)
-// ----------------------------------------------------------------------------
-//   Record the root in the current context
-// ----------------------------------------------------------------------------
-    : tree(t)
-{
-    Context::context->roots.insert(this);
-}
-
-
-TreeRoot::TreeRoot(const TreeRoot &o)
-// ----------------------------------------------------------------------------
-//   Record the root in the current context
-// ----------------------------------------------------------------------------
-    : tree(o.tree)
-{
-    Context::context->roots.insert(this);
-}
-
-
-TreeRoot::~TreeRoot()
-// ----------------------------------------------------------------------------
-//   Remove a root from the context
-// ----------------------------------------------------------------------------
-{
-    if (Context *context = Context::context)
-        context->roots.erase(this);
-}
-
-
-
-// ============================================================================
-// 
 //   Actions on a tree
 // 
 // ============================================================================
 
-Tree_p Tree::Do(Action *action)
+Tree *Tree::Do(Action *action)
 // ----------------------------------------------------------------------------
 //   Perform an action on the tree 
 // ----------------------------------------------------------------------------
 {
     switch(Kind())
     {
-    case INTEGER:       return action->DoInteger((Integer_p) this);
-    case REAL:          return action->DoReal((Real_p) this);
-    case TEXT:          return action->DoText((Text_p) this);
-    case NAME:          return action->DoName((Name_p) this);
-    case BLOCK:         return action->DoBlock((Block_p) this);
-    case PREFIX:        return action->DoPrefix((Prefix_p) this);
-    case POSTFIX:       return action->DoPostfix((Postfix_p) this);
-    case INFIX:         return action->DoInfix((Infix_p) this);
+    case INTEGER:       return action->DoInteger((Integer *) this);
+    case REAL:          return action->DoReal((Real *) this);
+    case TEXT:          return action->DoText((Text *) this);
+    case NAME:          return action->DoName((Name *) this);
+    case BLOCK:         return action->DoBlock((Block *) this);
+    case PREFIX:        return action->DoPrefix((Prefix *) this);
+    case POSTFIX:       return action->DoPostfix((Postfix *) this);
+    case INFIX:         return action->DoInfix((Infix *) this);
     default:            assert(!"Unexpected tree kind");
     }
     return NULL;
 }
 
 
-Tree_p Action::DoInteger(Integer_p what)
+Tree *Action::DoInteger(Integer *what)
 // ----------------------------------------------------------------------------
 //   Default is simply to invoke 'Do'
 // ----------------------------------------------------------------------------
@@ -178,7 +118,7 @@ Tree_p Action::DoInteger(Integer_p what)
 }
 
 
-Tree_p Action::DoReal(Real_p what)
+Tree *Action::DoReal(Real *what)
 // ----------------------------------------------------------------------------
 //   Default is simply to invoke 'Do'
 // ----------------------------------------------------------------------------
@@ -187,7 +127,7 @@ Tree_p Action::DoReal(Real_p what)
 }
 
 
-Tree_p Action::DoText(Text_p what)
+Tree *Action::DoText(Text *what)
 // ----------------------------------------------------------------------------
 //   Default is simply to invoke 'Do'
 // ----------------------------------------------------------------------------
@@ -196,7 +136,7 @@ Tree_p Action::DoText(Text_p what)
 }
 
 
-Tree_p Action::DoName(Name_p what)
+Tree *Action::DoName(Name *what)
 // ----------------------------------------------------------------------------
 //   Default is simply to invoke 'Do'
 // ----------------------------------------------------------------------------
@@ -205,7 +145,7 @@ Tree_p Action::DoName(Name_p what)
 }
 
 
-Tree_p Action::DoBlock(Block_p what)
+Tree *Action::DoBlock(Block *what)
 // ----------------------------------------------------------------------------
 //    Default is to firm perform action on block's child, then on self
 // ----------------------------------------------------------------------------
@@ -215,7 +155,7 @@ Tree_p Action::DoBlock(Block_p what)
 }
 
 
-Tree_p Action::DoPrefix(Prefix_p what)
+Tree *Action::DoPrefix(Prefix *what)
 // ----------------------------------------------------------------------------
 //   Default is to run the action on the left, then on right
 // ----------------------------------------------------------------------------
@@ -226,7 +166,7 @@ Tree_p Action::DoPrefix(Prefix_p what)
 }
 
 
-Tree_p Action::DoPostfix(Postfix_p what)
+Tree *Action::DoPostfix(Postfix *what)
 // ----------------------------------------------------------------------------
 //   Default is to run the action on the right, then on the left
 // ----------------------------------------------------------------------------
@@ -237,7 +177,7 @@ Tree_p Action::DoPostfix(Postfix_p what)
 }
 
 
-Tree_p Action::DoInfix(Infix_p what)
+Tree *Action::DoInfix(Infix *what)
 // ----------------------------------------------------------------------------
 //   Default is to run the action on children first
 // ----------------------------------------------------------------------------
@@ -259,7 +199,7 @@ XL_END
 
 XL_BEGIN
 
-text sha1(Tree_p t)
+text sha1(Tree *t)
 // ----------------------------------------------------------------------------
 //    Compute the SHA-1 for a tree and return it
 // ----------------------------------------------------------------------------

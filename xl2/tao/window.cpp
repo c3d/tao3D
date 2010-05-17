@@ -43,12 +43,12 @@
 
 TAO_BEGIN
 
-Window::Window(XL::Main *xlr, XL::SourceFile *sf)
+Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create a Tao window with default parameters
 // ----------------------------------------------------------------------------
-    : isUntitled(sf == NULL), xlRuntime(xlr), repo(NULL),
-      textEdit(NULL), errorMessages(NULL),
+    : isUntitled(sf == NULL), contextFileNames(context), xlRuntime(xlr),
+      repo(NULL), textEdit(NULL), errorMessages(NULL),
       dock(NULL), errorDock(NULL),
       taoWidget(NULL), curFile(),
       fileCheckTimer(this)
@@ -161,10 +161,10 @@ void Window::checkFiles()
     if (taoWidget)
     {
         XL::SourceFile *prog = taoWidget->xlProgram;
-        if (prog && prog->tree.tree)
+        if (prog && prog->tree)
         {
             import_set done;
-            if (ImportedFilesChanged(prog->tree.tree, done, false))
+            if (ImportedFilesChanged(prog->tree, done, false))
                 loadFile(+prog->name);
         }
     }
@@ -194,7 +194,8 @@ void Window::newFile()
 //   Create a new window
 // ----------------------------------------------------------------------------
 {
-    Window *other = new Window(xlRuntime, NULL);
+    XL::source_names noExtraContext;
+    Window *other = new Window(xlRuntime, noExtraContext, NULL);
     other->move(x() + 40, y() + 40);
     other->show();
 }
@@ -237,10 +238,11 @@ void Window::open(QString fileName)
     else
     {
         QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
+        XL::source_names noExtraContext;
         text fn = canonicalFilePath.toStdString();
         xlRuntime->LoadFile(fn);
         XL::SourceFile &sf = xlRuntime->files[fn];
-        Window *other = new Window(xlRuntime, &sf);
+        Window *other = new Window(xlRuntime, noExtraContext, &sf);
         if (other->isUntitled ||
             !other->openProject(QFileInfo(+sf.name).canonicalPath(),
                                 QFileInfo(+sf.name).fileName()))
@@ -248,7 +250,6 @@ void Window::open(QString fileName)
             delete other;
             return;
         }
-
 
         other->move(x() + 40, y() + 40);
         other->show();
@@ -794,7 +795,7 @@ void Window::updateProgram(const QString &fileName)
 
     // Clean menus and reload XL program
     resetTaoMenus();
-    if (!sf->tree.tree)
+    if (!sf->tree)
         xlRuntime->LoadFile(fn);
 
     taoWidget->updateProgram(sf);
@@ -878,8 +879,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
 
     if (!RepositoryFactory::available())
     {
-        TaoApp->currentProjectFolder = path;
-        TaoApp->updateSearchPathes();
+        updateContext(path);
         return true;
     }
 
@@ -1029,12 +1029,34 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         }
     }
 
-    TaoApp->currentProjectFolder = path;
-    TaoApp->updateSearchPathes();
+    updateContext(path);
 
     return true;
 }
 
+
+void Window::updateContext(QString docPath)
+// ----------------------------------------------------------------------------
+// update the context of the window with the path of the current document,
+// and the associated user.xl and theme.xl.
+// ----------------------------------------------------------------------------
+{
+    TaoApp->currentProjectFolder = docPath;
+    TaoApp->updateSearchPathes();
+
+    // Fetch info for XL files
+    QFileInfo user      ("xl:user.xl");
+    QFileInfo theme     ("xl:theme.xl");
+
+    contextFileNames.clear();
+
+    if (user.exists())
+        contextFileNames.push_back(+user.canonicalFilePath());
+    if (theme.exists())
+        contextFileNames.push_back(+theme.canonicalFilePath());
+
+    XL::MAIN->LoadContextFiles(contextFileNames);
+}
 
 void Window::switchToFullScreen(bool fs)
 // ----------------------------------------------------------------------------

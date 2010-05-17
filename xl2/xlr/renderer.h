@@ -48,17 +48,17 @@ struct Renderer
     void                SelectStyleSheet(text styleFile);
 
     // Rendering proper
-    void                Render (Tree_p what);
-    void                RenderOne(Tree_p what);
+    void                Render (Tree *what);
+    void                RenderOne(Tree *what);
     void                RenderText(text format);
-    void                RenderFormat(Tree_p format);
+    void                RenderFormat(Tree *format);
     void                RenderFormat(text self, text format);
     void                RenderFormat(text self, text format, text generic);
     void                RenderFormat(text self, text f, text g1, text g2);
-    Tree_p               ImplicitBlock(Tree_p t);
-    bool                IsAmbiguousPrefix(Tree_p test, bool testL, bool testR);
-    bool                IsSubFunctionInfix(Tree_p t);
-    int                 InfixPriority(Tree_p test);
+    Tree *              ImplicitBlock(Tree *t);
+    bool                IsAmbiguousPrefix(Tree *test, bool testL, bool testR);
+    bool                IsSubFunctionInfix(Tree *t);
+    int                 InfixPriority(Tree *test);
 
     std::ostream &      output;
     Syntax &            syntax;
@@ -76,13 +76,12 @@ struct Renderer
     static Renderer *   renderer;
 };
 
-std::ostream& operator<< (std::ostream&out, XL::Tree_p t);
+std::ostream& operator<< (std::ostream&out, XL::Tree *t);
 
 XL_END
 
 // For use in a debugger
-extern "C" void debug(XL::Tree_p);
-extern "C" void debugp(XL::Tree_p);
-extern "C" void debugc(XL::Tree_p);
+extern "C" void debug(XL::Tree *);
+extern "C" void debugp(XL::Tree *);
 
 #endif // RENDERER_H

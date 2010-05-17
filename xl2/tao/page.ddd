@@ -3,34 +3,134 @@ center 0.5
 spacing 100% 
 vertical_center 0.3 
 vertical_spacing 1.0 
-mypage x, y, w, h, t -> 
-    locally 
-        color 1, 0, 0, 20% 
-        rectangle x, y, w, h
-    
-    text_box x, y, w, h, t
-
-myov x, y, w, h -> 
-    locally 
-        color 80% ,80% ,100% ,80% 
-        rectangle x, y, w, h
-    
-    text_overflow x, y, w, h
-
-mypage -93, 366, 256, 218, do 
-    font "Arial" 
-    font_size 20 
-    text <<Hello world,
-    this is a rather boring long text with plenty of blah blah blah in it that is just there to test the layout>> 
-    font_size 18 
-    font "Times New Roman" 
-    color 0, 0, 1, 1 
-    text "World Peace! World Peace über alles! "
-    color 0, 40% ,0, 90% 
-    center 0.5 
-    text <<Une Dosa (தோசை) est une sorte de crêpe, ça se böùffe avec du Sambar (சாம்பார்).
-    Maintenant, vous n'êtes pas obligés de me croire...
-    Dixit toto>>
-
-myov 55, 152, 175, 109 
-myov 19, -216, 331, 188
+shape 
+    text_box -579, 418, 526, 220, do 
+        font "Arial" 
+        font_size 20 
+        text theme_path 
+        text <<Hello world,
+        this is a rather boring long text with plenty of blah blah blah in it that is just there to test the layout>> 
+        font_size 18 
+        font "Times New Roman" 
+        color 0, 0, 1, 1 
+        text "World Peace! World Peace über alles! "
+        color 0, 40% ,0, 90% 
+        center 0.5 
+        text <<Une Dosa (தோசை) est une sorte de crêpe, ça se böùffe avec du Sambar (சாம்பார்).
+        Maintenant, vous n êtes pas obligés de me croire...
+        Dixit toto. 
+        Ah ! Non ! C'est un peu court, jeune homme !
+        On pouvait dire... oh ! Dieu ! ... bien des choses en somme...
+        En variant le ton, —par exemple, tenez :
+        Agressif : « moi, monsieur, si j'avais un tel nez,
+        Il faudrait sur le champ que je me l'amputasse ! »
+        Amical : « mais il doit tremper dans votre tasse :
+        Pour boire, faites-vous fabriquer un hanap ! »
+        Descriptif : « c'est un roc ! ... c'est un pic... c'est un cap !
+        Que dis-je, c'est un cap ? ... c'est une péninsule ! »
+        Curieux : « de quoi sert cette oblongue capsule ?
+        D'écritoire, monsieur, ou de boîte à ciseaux ? »
+        Gracieux : « aimez-vous à ce point les oiseaux
+        Que paternellement vous vous préoccupâtes
+        De tendre ce perchoir à leurs petites pattes ? »
+        Truculent : « ça, monsieur, lorsque vous pétunez,
+        La vapeur du tabac vous sort-elle du nez
+        Sans qu'un voisin ne crie au feu de cheminée ? »
+        Prévenant : « gardez-vous, votre tête entraînée
+        Par ce poids, de tomber en avant sur le sol ! »
+        Tendre : « faites-lui faire un petit parasol
+        De peur que sa couleur au soleil ne se fane ! »
+        Pédant : « l'animal seul, monsieur, qu'Aristophane
+        Appelle hippocampelephantocamélos
+        Dut avoir sous le front tant de chair sur tant d'os ! »
+        Cavalier : « quoi, l'ami, ce croc est à la mode ?
+        Pour pendre son chapeau c'est vraiment très commode ! »
+        Emphatique : « aucun vent ne peut, nez magistral,
+        T'enrhumer tout entier, excepté le mistral ! »
+        Dramatique : « c'est la Mer Rouge quand il saigne ! »
+        Admiratif : « pour un parfumeur, quelle enseigne ! »
+        Lyrique : « est-ce une conque, êtes-vous un triton ? »
+        Naïf : « ce monument, quand le visite-t-on ? »
+        Respectueux : « souffrez, monsieur, qu'on vous salue,
+        C'est là ce qui s'appelle avoir pignon sur rue ! »
+        Campagnard : « hé, ardé ! C'est-y un nez ? Nanain !
+        C'est queuqu'navet géant ou ben queuqu'melon nain ! »
+        Militaire : « pointez contre cavalerie ! »
+        Pratique : « voulez-vous le mettre en loterie ?
+        Assurément, monsieur, ce sera le gros lot ! »
+        Enfin parodiant Pyrame en un sanglot :
+        « Le voilà donc ce nez qui des traits de son maître
+        A détruit l'harmonie ! Il en rougit, le traître ! »
+        —Voilà ce qu'à peu près, mon cher, vous m'auriez dit
+        Si vous aviez un peu de lettres et d'esprit :
+        Mais d'esprit, ô le plus lamentable des êtres,
+        Vous n'en eûtes jamais un atome, et de lettres
+        Vous n'avez que les trois qui forment le mot : sot !
+        Eussiez-vous eu, d'ailleurs, l'invention qu'il faut
+        Pour pouvoir là, devant ces nobles galeries,
+        Me servir toutes ces folles plaisanteries,
+        Que vous n'en eussiez pas articulé le quart
+        De la moitié du commencement d'une, car
+        Je me les sers moi-même, avec assez de verve,
+        Mais je ne permets pas qu'un autre me les serve.
+        
+        Edmond Rostand (1897) >>
+        text << 
+        Et que faudrait-il faire ?
+        Chercher un protecteur puissant, prendre un patron,
+        Et comme un lierre obscur qui circonvient un tronc
+        Et s'en fait un tuteur en lui léchant l'écorce,
+        Grimper par ruse au lieu de s'élever par force ?
+          Non, merci ! Dédier, comme tous ils le font,
+          Des vers aux financiers ? se changer en bouffon
+          Dans l'espoir vil de voir, aux lèvres d'un ministre,
+          Naître un sourire, enfin, qui ne soit pas sinistre ?
+          Non, merci ! Déjeuner, chaque jour, d'un crapaud ?
+          Avoir un ventre usé par la marche ? une peau
+          Qui plus vite, à l'endroit des genoux, devient sale ?
+          Exécuter des tours de souplesse dorsale ?...
+          Non, merci ! D'une main flatter la chèvre au cou
+          Cependant que, de l'autre, on arrose le chou,
+          Et donneur de séné par désir de rhubarbe1,
+          Avoir son encensoir, toujours, dans quelque barbe ?
+          Non, merci ! Se pousser de giron en giron2,
+          Devenir un petit grand homme dans un rond,
+          Et naviguer, avec des madrigaux3 pour rames,
+          Et dans ses voiles des soupirs de vieilles dames ?
+          Non, merci ! Chez le bon éditeur de Sercy4
+          Faire éditer ses vers en payant ? Non, merci !
+          S'aller faire nommer pape par les conciles
+          Que dans des cabarets tiennent des imbéciles ?
+          Non, merci ! Travailler à se construire un nom
+          Sur un sonnet, au lieu d'en faire d'autres ? Non,
+          Merci ! Ne découvrir du talent qu'aux mazettes5 ?
+          Être terrorisé par de vagues gazettes6,
+          Et se dire sans cesse : "Oh ! pourvu que je sois
+          Dans les petits papiers du Mercure François" ?...
+          Non, merci ! Calculer, avoir peur, être blême,
+          Préférer faire une visite qu'un poème,
+          Rédiger des placets7, se faire présenter ?
+          (vers 42) Non, merci ! non, merci ! non, merci ! Mais... chanter,
+          Rêver, rire, passer, être seul, être libre,
+          Avoir l'œil qui regarde bien, la voix qui vibre,
+          Mettre, quand il vous plaît, son feutre de travers,
+          Pour un oui, pour un non, se battre, - ou faire un vers !
+          Travailler sans souci de gloire ou de fortune,
+          À tel voyage, auquel on pense, dans la lune !
+          N'écrire jamais rien qui de soi ne sortît,
+          Et modeste d'ailleurs, se dire : mon petit,
+          Sois satisfait des fleurs, des fruits, même des feuilles,
+          Si c'est dans ton jardin à toi que tu les cueilles !
+          Puis, s'il advient d'un peu triompher, par hasard,
+          Ne pas être obligé d'en rien rendre à César,
+          Vis-à-vis de soi-même en garder le mérite,
+          Bref, dédaignant d'être le lierre parasite,
+          Lors même qu'on n'est pas le chêne ou le tilleul,
+          (vers 58) Ne pas monter bien haut, peut-être, mais tout seul !
+          >>
+shape 
+    text_overflow -591, -124, 503, 827 
+shape 
+    text_overflow 46, -2, 555, 1066 
+shape 
+    text_overflow 567, 0, 447, 1063

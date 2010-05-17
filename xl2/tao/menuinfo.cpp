@@ -104,7 +104,7 @@ void GroupInfo::bClicked(QAbstractButton *button)
     struct ClickTreeClone : XL::TreeClone
     {
         ClickTreeClone(text c) : name(c){}
-        XL::Tree_p DoName(XL::Name_p what)
+        XL::Tree * DoName(XL::Name * what)
         {
             if (what->value == "button_name")
             {
@@ -117,7 +117,7 @@ void GroupInfo::bClicked(QAbstractButton *button)
 
 
     // The tree to be evaluated needs its own symbol table before evaluation
-    XL::Tree_p  toBeEvaluated = action->tree;
+    XL::Tree *  toBeEvaluated = action;
     XL::Symbols *syms = toBeEvaluated->Symbols();
     if (!syms)
         syms = XL::Symbols::symbols;

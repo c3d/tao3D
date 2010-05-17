@@ -34,51 +34,51 @@ struct ApplyChanges : XL::Action
 //   Check if we can apply changes from another tree on the current one
 // ----------------------------------------------------------------------------
 {
-    ApplyChanges (Tree_p r): replace(r) {}
-    Tree_p DoInteger(Integer_p what)
+    ApplyChanges (Tree *r): replace(r) {}
+    Tree *DoInteger(Integer *what)
     {
-        if (Integer_p it = replace->AsInteger())
+        if (Integer *it = replace->AsInteger())
         {
             what->value = it->value;
             return what;
         }
         return NULL;
     }
-    Tree_p DoReal(Real_p what)
+    Tree *DoReal(Real *what)
     {
-        if (Real_p rt = replace->AsReal())
+        if (Real *rt = replace->AsReal())
         {
             what->value = rt->value;
             return what;
         }
         return NULL;
     }
-    Tree_p DoText(Text_p what)
+    Tree *DoText(Text *what)
     {
-        if (Text_p tt = replace->AsText())
+        if (Text *tt = replace->AsText())
         {
             what->value = tt->value;
             return what;
         }
         return NULL;
     }
-    Tree_p DoName(Name_p what)
+    Tree *DoName(Name *what)
     {
-        if (Name_p nt = replace->AsName())
+        if (Name *nt = replace->AsName())
             if (nt->value == what->value)
                 return what;
         return NULL;
     }
 
-    Tree_p DoBlock(Block_p what)
+    Tree *DoBlock(Block *what)
     {
-        if (Block_p bt = replace->AsBlock())
+        if (Block *bt = replace->AsBlock())
         {
             if (bt->opening == what->opening &&
                 bt->closing == what->closing)
             {
                 replace = bt->child;
-                Tree_p br = what->child->Do(this);
+                Tree *br = what->child->Do(this);
                 replace = bt;
                 if (br)
                     return br;
@@ -86,9 +86,9 @@ struct ApplyChanges : XL::Action
         }
         return NULL;
     }
-    Tree_p DoInfix(Infix_p what)
+    Tree *DoInfix(Infix *what)
     {
-        if (Infix_p it = replace->AsInfix())
+        if (Infix *it = replace->AsInfix())
         {
             if (it->name == what->name)
             {
@@ -96,20 +96,20 @@ struct ApplyChanges : XL::Action
                 if (it->name == "->")
                 {
                     XL::TreeMatch identical(it->left);
-                    Tree_p lr = what->left->Do(identical);
+                    Tree *lr = what->left->Do(identical);
                     if (!lr)
                         return NULL;
                 }
                 else
                 {
                     replace = it->left;
-                    Tree_p lr = what->left->Do(this);
+                    Tree *lr = what->left->Do(this);
                     replace = it;
                     if (!lr)
                         return NULL;
                 }
                 replace = it->right;
-                Tree_p rr = what->right->Do(this);
+                Tree *rr = what->right->Do(this);
                 replace = it;
                 if (!rr)
                     return NULL;
@@ -118,17 +118,17 @@ struct ApplyChanges : XL::Action
         }
         return NULL;
     }
-    Tree_p DoPrefix(Prefix_p what)
+    Tree *DoPrefix(Prefix *what)
     {
-        if (Prefix_p pt = replace->AsPrefix())
+        if (Prefix *pt = replace->AsPrefix())
         {
             replace = pt->left;
-            Tree_p lr = what->left->Do(this);
+            Tree *lr = what->left->Do(this);
             replace = pt;
             if (!lr)
                 return NULL;
             replace = pt->right;
-            Tree_p rr = what->right->Do(this);
+            Tree *rr = what->right->Do(this);
             replace = pt;
             if (!rr)
                 return NULL;
@@ -136,17 +136,17 @@ struct ApplyChanges : XL::Action
         }
         return NULL;
     }
-    Tree_p DoPostfix(Postfix_p what)
+    Tree *DoPostfix(Postfix *what)
     {
-        if (Postfix_p pt = replace->AsPostfix())
+        if (Postfix *pt = replace->AsPostfix())
         {
             replace = pt->right;
-            Tree_p rr = what->right->Do(this);
+            Tree *rr = what->right->Do(this);
             replace = pt;
             if (!rr)
                 return NULL;
             replace = pt->left;
-            Tree_p lr = what->left->Do(this);
+            Tree *lr = what->left->Do(this);
             replace = pt;
             if (!lr)
                 return NULL;
@@ -154,7 +154,7 @@ struct ApplyChanges : XL::Action
         }
         return NULL;
     }
-    Tree_p Do(Tree_p )
+    Tree *Do(Tree * )
     {
         return NULL;
     }
@@ -169,12 +169,12 @@ struct PruneInfo : XL::Action
 // ----------------------------------------------------------------------------
 {
     PruneInfo() : XL::Action() {}
-    XL::Tree_p Do(XL::Tree_p what);
+    XL::Tree *Do(XL::Tree *what);
 };
 
 
 typedef std::set<XL::SourceFile *> import_set;
-bool ImportedFilesChanged(XL::Tree_p prog,
+bool ImportedFilesChanged(XL::Tree *prog,
                           import_set &done,
                           bool markChanged);
 

@@ -36,7 +36,7 @@ struct TextSpan : Shape
 //    A contiguous run of glyphs
 // ----------------------------------------------------------------------------
 {
-    TextSpan(XL::Text_p source, uint start = 0, uint end = ~0)
+    TextSpan(Text *source, uint start = 0, uint end = ~0)
         : Shape(), source(source), start(start), end(end) {}
     virtual void        Draw(Layout *where);
     virtual void        DrawCached(Layout *where, bool identify);
@@ -52,7 +52,7 @@ protected:
     void                DrawSelection(Layout *where);
 
 public:
-    XL::TextRoot        source;
+    Text_p              source;
     uint                start, end;
 };
 
@@ -62,8 +62,8 @@ struct TextFormulaEditInfo : XL::Info
 //    Record the text format for a text formula while editing it
 // ----------------------------------------------------------------------------
 {
-    TextFormulaEditInfo(XL::Text_p s, uint id): source(s), order(id) {}
-    XL::TextRoot        source;
+    TextFormulaEditInfo(XL::Text *s, uint id): source(s), order(id) {}
+    Text_p              source;
     uint                order;
 };
 
@@ -73,16 +73,20 @@ struct TextFormula : TextSpan
 //   Like a text span, but for an evaluated value
 // ----------------------------------------------------------------------------
 {
-    TextFormula(XL::Prefix_p self, uint start = 0, uint end = ~0)
-        : TextSpan(Format(self), start, end), self(self) {}
-    XL::Text_p          Format(XL::Prefix_p value);
-    bool                Validate(XL::Text_p source, Widget *widget);
+    TextFormula(XL::Prefix *self, Widget *wid, uint start = 0, uint end = ~0)
+        : TextSpan(NULL, start, end), self(self), widget(wid)
+    {
+        source = Format(self);
+    }
+    Text *              Format(Prefix *value);
+    bool                Validate(Text *source, Widget *widget);
 
     virtual void        DrawSelection(Layout *where);
     virtual void        Identify(Layout *where);
 
 public:
-    XL::TreeRoot        self;
+    Prefix_p            self;
+    Widget *            widget;
     static uint         formulas, shows;
 };
 

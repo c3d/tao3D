@@ -9,7 +9,7 @@
 //     Ostream operations on a SHA-1 class
 // 
 //     The only reasons they are not in sha1.h is because putthing them
-//     at that spot apparently 'disables' another operator<< (os&, Tree_p)
+//     at that spot apparently 'disables' another operator<< (os&, Tree *)
 //     I have not spent enough time to know if it's a GCC bug or a C++ feature
 // 
 // 

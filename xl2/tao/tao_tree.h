@@ -31,34 +31,38 @@
 
 TAO_BEGIN
 
-typedef XL::Tree      Tree;
-typedef XL::Tree_p    Tree_p;
-typedef XL::Integer   Integer;
-typedef XL::Integer_p Integer_p;
-typedef XL::Real      Real;
-typedef XL::Real_p    Real_p;
-typedef XL::Text      Text;
-typedef XL::Text_p    Text_p;
-typedef XL::Name      Name;
-typedef XL::Name_p    Name_p;
-typedef XL::Infix     Infix;
-typedef XL::Infix_p   Infix_p;
-typedef XL::Prefix    Prefix;
-typedef XL::Prefix_p  Prefix_p;
-typedef XL::Postfix   Postfix;
-typedef XL::Postfix_p Postfix_p;
-typedef XL::Block     Block;
-typedef XL::Block_p   Block_p;
+typedef XL::Tree           Tree;
+typedef XL::Tree_p         Tree_p;
+typedef XL::Integer        Integer;
+typedef XL::Integer_p      Integer_p;
+typedef XL::Real           Real;
+typedef XL::Real_p         Real_p;
+typedef XL::Text           Text;
+typedef XL::Text_p         Text_p;
+typedef XL::Name           Name;
+typedef XL::Name_p         Name_p;
+typedef XL::Infix          Infix;
+typedef XL::Infix_p        Infix_p;
+typedef XL::Prefix         Prefix;
+typedef XL::Prefix_p       Prefix_p;
+typedef XL::Postfix        Postfix;
+typedef XL::Postfix_p      Postfix_p;
+typedef XL::Block          Block;
+typedef XL::Block_p        Block_p;
 
-typedef XL::real_r    real_r;
-typedef XL::integer_r integer_r;
-typedef XL::text_r    text_r;
+typedef XL::real_r         real_r;
+typedef XL::integer_r      integer_r;
+typedef XL::text_r         text_r;
 typedef XL::symbolicname_r symbolicname_r;
 
-typedef XL::real_p    real_p;
-typedef XL::integer_p integer_p;
-typedef XL::text_p    text_p;
+typedef XL::real_p         real_p;
+typedef XL::integer_p      integer_p;
+typedef XL::text_p         text_p;
 typedef XL::symbolicname_p symbolicname_p;
+
+typedef XL::Action         Action;
+typedef XL::TreeList       TreeList;
+typedef XL::Symbols        Symbols;
 
 TAO_END
 

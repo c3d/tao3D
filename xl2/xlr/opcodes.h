@@ -30,12 +30,12 @@
 
 XL_BEGIN
 
-longlong        xl_integer_arg(Tree_p arg);
-double          xl_real_arg(Tree_p arg);
-text            xl_text_arg(Tree_p arg);
-int             xl_character_arg(Tree_p arg);
-bool            xl_boolean_arg(Tree_p arg);
-Tree_p          ParametersTree(TreeList parameters);
+longlong        xl_integer_arg(Tree *arg);
+double          xl_real_arg(Tree *arg);
+text            xl_text_arg(Tree *arg);
+int             xl_character_arg(Tree *arg);
+bool            xl_boolean_arg(Tree *arg);
+Tree *          ParametersTree(TreeList parameters);
 
 #define XL_TREE(v)      (v)
 #define XL_INT(v)       ((integer_t) (v))
@@ -44,9 +44,9 @@ Tree_p          ParametersTree(TreeList parameters);
 #define XL_TEXT(v)      ((text_t) (v))
 #define XL_BOOL(v)      ((boolean_t) (v))
 #define XL_RTREE(val)   return (val)
-#define XL_RINT(val)    return (XL::Integer_p) xl_set_source(new XL::Integer(val), self)
-#define XL_RREAL(val)   return (XL::Real_p) xl_set_source(new XL::Real(val), self)
-#define XL_RTEXT(val)   return (XL::Text_p) xl_set_source(new XL::Text(val), self);
+#define XL_RINT(val)    return (XL::Integer *) xl_set_source(new XL::Integer(val), self)
+#define XL_RREAL(val)   return (XL::Real *) xl_set_source(new XL::Real(val), self)
+#define XL_RTEXT(val)   return (XL::Text *) xl_set_source(new XL::Text(val), self);
 #define XL_RBOOL(val)   return (val) ? XL::xl_true : XL::xl_false
 
 typedef Integer &       integer_r;
@@ -81,6 +81,17 @@ typedef Infix &         infix_t;
 typedef Prefix &        prefix_t;
 typedef Postfix &       postfix_t;
 typedef Block &         block_t;
+
+typedef Integer *       integer_nkp;
+typedef Real *          real_nkp;
+typedef Text *          text_nkp;
+typedef Name *          boolean_nkp;
+typedef Name *          symbolicname_nkp;
+typedef Tree *          tree_nkp;
+typedef Infix *         infix_nkp;
+typedef Prefix *        prefix_nkp;
+typedef Postfix *       postfix_nkp;
+typedef Block *         block_nkp;
 
 XL_END
 

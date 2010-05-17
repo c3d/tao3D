@@ -54,22 +54,22 @@ union ieee754_double
     struct
     {
 #if	BYTE_ORDER == BIG_ENDIAN
-	unsigned int negative:1;
-	unsigned int exponent:11;
-	unsigned int mantissa0:20;
-	unsigned int mantissa1:32;
+        unsigned int negative:1;
+        unsigned int exponent:11;
+        unsigned int mantissa0:20;
+        unsigned int mantissa1:32;
 #endif  /* Big endian.  */
 #if	BYTE_ORDER == LITTLE_ENDIAN
 # if	FLOAT_WORD_ORDER == BIG_ENDIAN
-	unsigned int mantissa0:20;
-	unsigned int exponent:11;
-	unsigned int negative:1;
-	unsigned int mantissa1:32;
+        unsigned int mantissa0:20;
+        unsigned int exponent:11;
+        unsigned int negative:1;
+        unsigned int mantissa1:32;
 # else
-	unsigned int mantissa1:32;
-	unsigned int mantissa0:20;
-	unsigned int exponent:11;
-	unsigned int negative:1;
+        unsigned int mantissa1:32;
+        unsigned int mantissa0:20;
+        unsigned int exponent:11;
+        unsigned int negative:1;
 # endif
 #endif  /* Little endian.  */
     } ieee;
@@ -94,7 +94,7 @@ Serializer::Serializer(std::ostream &out)
 }
 
 
-Tree_p Serializer::Do(Tree_p what)
+Tree *Serializer::Do(Tree *what)
 // ----------------------------------------------------------------------------
 //   The default is to write an invalid tree, we should not be here
 // ----------------------------------------------------------------------------
@@ -105,7 +105,7 @@ Tree_p Serializer::Do(Tree_p what)
 }
 
 
-Tree_p Serializer::DoInteger(Integer_p what)
+Tree *Serializer::DoInteger(Integer *what)
 // ----------------------------------------------------------------------------
 //   Serialize an integer leaf
 // ----------------------------------------------------------------------------
@@ -116,7 +116,7 @@ Tree_p Serializer::DoInteger(Integer_p what)
 }
 
 
-Tree_p Serializer::DoReal(Real_p what)
+Tree *Serializer::DoReal(Real *what)
 // ----------------------------------------------------------------------------
 //   Serialize a real leaf
 // ----------------------------------------------------------------------------
@@ -127,7 +127,7 @@ Tree_p Serializer::DoReal(Real_p what)
 }
 
 
-Tree_p Serializer::DoText(Text_p what)
+Tree *Serializer::DoText(Text *what)
 // ----------------------------------------------------------------------------
 //   Serialize a text leaf
 // ----------------------------------------------------------------------------
@@ -140,7 +140,7 @@ Tree_p Serializer::DoText(Text_p what)
 }
 
 
-Tree_p Serializer::DoName(Name_p what)
+Tree *Serializer::DoName(Name *what)
 // ----------------------------------------------------------------------------
 //   Serialize a name/symbol leaf
 // ----------------------------------------------------------------------------
@@ -151,7 +151,7 @@ Tree_p Serializer::DoName(Name_p what)
 }
 
 
-Tree_p Serializer::DoPrefix(Prefix_p what)
+Tree *Serializer::DoPrefix(Prefix *what)
 // ----------------------------------------------------------------------------
 //   Serialize a prefix tree
 // ----------------------------------------------------------------------------
@@ -163,7 +163,7 @@ Tree_p Serializer::DoPrefix(Prefix_p what)
 }
 
 
-Tree_p Serializer::DoPostfix(Postfix_p what)
+Tree *Serializer::DoPostfix(Postfix *what)
 // ----------------------------------------------------------------------------
 //   Serialize a postfix tree
 // ----------------------------------------------------------------------------
@@ -175,7 +175,7 @@ Tree_p Serializer::DoPostfix(Postfix_p what)
 }
 
 
-Tree_p Serializer::DoInfix(Infix_p what)
+Tree *Serializer::DoInfix(Infix *what)
 // ----------------------------------------------------------------------------
 //   Serialize an infix tree
 // ----------------------------------------------------------------------------
@@ -188,7 +188,7 @@ Tree_p Serializer::DoInfix(Infix_p what)
 }
 
 
-Tree_p Serializer::DoBlock(Block_p what)
+Tree *Serializer::DoBlock(Block *what)
 // ----------------------------------------------------------------------------
 //   Serialize a block tree
 // ----------------------------------------------------------------------------
@@ -257,6 +257,8 @@ void Serializer::WriteText(text value)
 //   Write the length followed by data bytes
 // ----------------------------------------------------------------------------
 {
+    // texts[value] is created with value 0 if not existing,
+    // and then it increases texts.size by 1.
     longlong exists = texts[value];
     if (exists)
     {
@@ -264,14 +266,14 @@ void Serializer::WriteText(text value)
     }
     else
     {
-        WriteUnsigned(value.length());
+        WriteSigned(value.length());
         out.write(value.data(), value.length());
         texts[value] = texts.size();
     }
 }
 
 
-void Serializer::WriteChild(Tree_p child)
+void Serializer::WriteChild(Tree *child)
 // ----------------------------------------------------------------------------
 //   Serialie a child, either NULL or actual child
 // ----------------------------------------------------------------------------
@@ -290,13 +292,13 @@ void Serializer::WriteChild(Tree_p child)
 //
 // ============================================================================
 
-Deserializer::Deserializer(std::istream &in, tree_position pos)
+Deserializer::Deserializer(std::istream &in, TreePosition pos)
 // ----------------------------------------------------------------------------
 //   Read a few bytes from the stream, check version and magic value
 // ----------------------------------------------------------------------------
     : in(in), pos(pos)
 {
-    if (ReadUnsigned() != serialMAGIC || 
+    if (ReadUnsigned() != serialMAGIC ||
         ReadUnsigned() != serialVERSION)
     {
         // Error on input: close the stream
@@ -312,7 +314,7 @@ Deserializer::~Deserializer()
 {}
 
 
-Tree_p Deserializer::ReadTree()
+Tree *Deserializer::ReadTree()
 // ----------------------------------------------------------------------------
 //   Read back data from input stream and build tree from it
 // ----------------------------------------------------------------------------
@@ -325,10 +327,10 @@ Tree_p Deserializer::ReadTree()
     text             tvalue, opening, closing;
     longlong         ivalue;
     double           rvalue;
-    Tree_p           left;
-    Tree_p           right;
-    Tree_p           child;
-    Tree_p           result = NULL;
+    Tree *           left;
+    Tree *           right;
+    Tree *           child;
+    Tree *           result = NULL;
 
     switch(tag)
     {

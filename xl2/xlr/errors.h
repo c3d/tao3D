@@ -49,9 +49,9 @@ struct Errors
     text Error(text err, ulong pos, text arg1);
     text Error(text err, ulong pos, text arg1, text arg2);
     text Error(text err, ulong pos, text arg1, text arg2, text arg3);
-    text Error(text err, Tree_p arg1);
-    text Error(text err, Tree_p arg1, Tree_p arg2);
-    text Error(text err, Tree_p arg1, Tree_p arg2, Tree_p arg3);
+    text Error(text err, Tree *arg1);
+    text Error(text err, Tree *arg1, Tree *arg2);
+    text Error(text err, Tree *arg1, Tree *arg2, Tree *arg3);
 
     Positions *         positions;
 };
@@ -62,7 +62,7 @@ struct Error
 //   Encapsulate a single error
 // ----------------------------------------------------------------------------
 {
-    Error (text message, Tree_p arg1, Tree_p arg2, Tree_p arg3):
+    Error (text message, Tree *arg1, Tree *arg2, Tree *arg3):
         message(message), arg1(arg1), arg2(arg2), arg3(arg3), handled(false) {}
     Error (const Error &o):
         message(o.message), arg1(o.arg1), arg2(o.arg2), arg3(o.arg3),

@@ -40,7 +40,7 @@ TAO_BEGIN
 //
 // ============================================================================
 
-Manipulator::Manipulator(XL::Tree_p self)
+Manipulator::Manipulator(XL::Tree *self)
 // ----------------------------------------------------------------------------
 //   Record the GL name for a given tree
 // ----------------------------------------------------------------------------
@@ -82,7 +82,7 @@ void Manipulator::Identify(Layout *layout)
 }
 
 
-XL::Tree_p Manipulator::Source()
+XL::Tree *Manipulator::Source()
 // ----------------------------------------------------------------------------
 //   Return the source tree for this manipulator
 // ----------------------------------------------------------------------------
@@ -106,7 +106,7 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id, text name)
 }
 
 
-void Manipulator::updateArg(Widget *widget, Tree_p arg,
+void Manipulator::updateArg(Widget *widget, Tree *arg,
                             double first, double previous, double current,
                             double min, double max)
 // ----------------------------------------------------------------------------
@@ -117,7 +117,7 @@ void Manipulator::updateArg(Widget *widget, Tree_p arg,
     if (!arg || previous == current)
         return;
 
-    Tree_p source   = xl_source(arg); // Find the source expression
+    Tree_p  source   = xl_source(arg); // Find the source expression
     Tree_p *ptr      = &source;
     bool    more     = true;
     Tree_p *pptr     = NULL;
@@ -131,7 +131,7 @@ void Manipulator::updateArg(Widget *widget, Tree_p arg,
         more = false;
         ppptr = pptr;
         pptr = NULL;
-        if (XL::Infix_p infix = (*ptr)->AsInfix())
+        if (XL::Infix *infix = (*ptr)->AsInfix())
         {
             if (infix->name == "-")
             {
@@ -145,25 +145,25 @@ void Manipulator::updateArg(Widget *widget, Tree_p arg,
             }
             else if (infix->name == "*")
             {
-                if (XL::Real_p lr = infix->left->AsReal())
+                if (XL::Real *lr = infix->left->AsReal())
                 {
                     scale *= lr->value;
                     ptr = &infix->right;
                     more = true;
                 }
-                else if (XL::Real_p rr = infix->right->AsReal())
+                else if (XL::Real *rr = infix->right->AsReal())
                 {
                     scale *= rr->value;
                     ptr = &infix->left;
                     more = true;
                 }
-                else if (XL::Integer_p li = infix->left->AsInteger())
+                else if (XL::Integer *li = infix->left->AsInteger())
                 {
                     scale *= li->value;
                     ptr = &infix->right;
                     more = true;
                 }
-                else if (XL::Integer_p ri = infix->right->AsInteger())
+                else if (XL::Integer *ri = infix->right->AsInteger())
                 {
                     scale *= ri->value;
                     ptr = &infix->left;
@@ -171,9 +171,9 @@ void Manipulator::updateArg(Widget *widget, Tree_p arg,
                 }
             }
         }
-        if (XL::Prefix_p prefix = (*ptr)->AsPrefix())
+        if (XL::Prefix *prefix = (*ptr)->AsPrefix())
         {
-            if (XL::Name_p name = prefix->left->AsName())
+            if (XL::Name *name = prefix->left->AsName())
             {
                 if (name->value == "-")
                 {
@@ -184,9 +184,9 @@ void Manipulator::updateArg(Widget *widget, Tree_p arg,
                 }
             }
         }
-        if (XL::Postfix_p postfix = (*ptr)->AsPostfix())
+        if (XL::Postfix *postfix = (*ptr)->AsPostfix())
         {
-            if (XL::Name_p name = postfix->right->AsName())
+            if (XL::Name *name = postfix->right->AsName())
             {
                 if (name->value == "%")
                 {
@@ -203,7 +203,7 @@ void Manipulator::updateArg(Widget *widget, Tree_p arg,
         scale = 1.0;
 
     // Test the simple cases where the argument is directly an Integer or Real
-    if (XL::Integer_p ival = (*ptr)->AsInteger())
+    if (XL::Integer *ival = (*ptr)->AsInteger())
     {
         ival->value -= longlong((previous - first) / scale);
         ival->value += longlong((current - first) / scale);
@@ -214,7 +214,7 @@ void Manipulator::updateArg(Widget *widget, Tree_p arg,
         if (ppptr && ival->value < 0)
             widget->renormalizeProgram();
     }
-    else if (XL::Real_p rval = (*ptr)->AsReal())
+    else if (XL::Real *rval = (*ptr)->AsReal())
     {
         rval->value += (current - previous) / scale;
         if (rval->value * scale < min)
@@ -230,7 +230,7 @@ void Manipulator::updateArg(Widget *widget, Tree_p arg,
         // LIONEL: When does that happen?
         // CHRISTOPHE: The first time we hit an expression which is not
         // a linear operation on the argument
-        if (ptr != &arg)
+        if (ptr != &source)
         {
             double value = current;
             if (current < min)
@@ -245,7 +245,7 @@ void Manipulator::updateArg(Widget *widget, Tree_p arg,
 }
 
 
-void Manipulator::rotate(Widget *widget, Tree_p shape, kPoint3 center,
+void Manipulator::rotate(Widget *widget, Tree *shape, kPoint3 center,
                          kPoint3 p0, kPoint3 p1, kPoint3 p2, bool stepped)
 // ----------------------------------------------------------------------------
 //   Rotate the shape around the given center, given 3 drag points
@@ -314,7 +314,7 @@ void Manipulator::rotate(Widget *widget, Tree_p shape, kPoint3 center,
 //
 // ============================================================================
 
-ControlPoint::ControlPoint(Tree_p self, real_r x, real_r y, real_r z, uint id)
+ControlPoint::ControlPoint(Tree *self, Real *x, Real *y, Real *z, uint id)
 // ----------------------------------------------------------------------------
 //   Record where we want to draw
 // ----------------------------------------------------------------------------
@@ -371,9 +371,9 @@ bool ControlPoint::DrawHandles(Layout *layout)
             if (p1 != p2)
             {
                 Point3 p0 = drag->Origin();
-                updateArg(widget, &x,  p0.x, p1.x, p2.x);
-                updateArg(widget, &y,  p0.y, p1.y, p2.y);
-                updateArg(widget, &z,  p0.z, p1.z, p2.z);
+                updateArg(widget, x,  p0.x, p1.x, p2.x);
+                updateArg(widget, y,  p0.y, p1.y, p2.y);
+                updateArg(widget, z,  p0.z, p1.z, p2.z);
                 widget->markChanged("Control point moved");
                 return true;
             }
@@ -390,8 +390,8 @@ bool ControlPoint::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-FrameManipulator::FrameManipulator(Tree_p self,
-                                   real_r x, real_r y, real_r w, real_r h)
+FrameManipulator::FrameManipulator(Tree *self,
+                                   Real *x, Real *y, Real *w, Real *h)
 // ----------------------------------------------------------------------------
 //   A control rectangle owns a given child and manipulates it
 // ----------------------------------------------------------------------------
@@ -401,17 +401,14 @@ FrameManipulator::FrameManipulator(Tree_p self,
 
 void FrameManipulator::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
-//
+//  Draw a rectangular selection unless we double-clicked to edit inside
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
     uint sel = widget->selected(layout);
-    if (DOUBLE_CLICKS(sel))
-    {
-        // On double-click, let alternate manipulator show up and do not dosplay
-        // frame
+    if (Widget::doubleClicks(sel))
         return;
-    }
+
     return Manipulator::DrawSelection(layout);
 }
 
@@ -450,19 +447,19 @@ bool FrameManipulator::DrawHandles(Layout *layout)
         switch (mode)
         {
         case TM_ResizeLockCenter:
-            updateArg(widget, &w, 2*sw*p0.x, 2*sw*p1.x, 2*sw*p2.x);
-            updateArg(widget, &h, 2*sh*p0.y, 2*sh*p1.y, 2*sh*p2.y);
+            updateArg(widget, w, 2*sw*p0.x, 2*sw*p1.x, 2*sw*p2.x);
+            updateArg(widget, h, 2*sh*p0.y, 2*sh*p1.y, 2*sh*p2.y);
             break;
 
         case TM_FreeCenteredRotate:
         case TM_SteppedCenteredRotate:
-            rotate(widget, self.tree, Point3(xx, yy, 0), p0, p1, p2,
+            rotate(widget, self, Point3(xx, yy, 0), p0, p1, p2,
                    mode == TM_SteppedCenteredRotate);
             break;
 
         case TM_FreeOppositeRotate:
         case TM_SteppedOppositeRotate:
-            rotate(widget, self.tree,
+            rotate(widget, self,
                    Point3(xx-sw*w/2, yy-sh*h/2, 0),
                    p0, p1, p2, mode == TM_SteppedOppositeRotate);
             break;
@@ -501,10 +498,10 @@ bool FrameManipulator::DrawHandles(Layout *layout)
                         ux = 0.5; uy = (1/r)*sh*sw/2; uw = sw; uh = (1/r)*sw;
                         a = p0.x; b = p1.x ; c = p0.x;
                     }
-                    updateArg(widget, &x, ux*a, ux*b, ux*c);
-                    updateArg(widget, &y, uy*a, uy*b, uy*c);
-                    updateArg(widget, &w, uw*a, uw*b, uw*c);
-                    updateArg(widget, &h, uh*a, uh*b, uh*c);
+                    updateArg(widget, x, ux*a, ux*b, ux*c);
+                    updateArg(widget, y, uy*a, uy*b, uy*c);
+                    updateArg(widget, w, uw*a, uw*b, uw*c);
+                    updateArg(widget, h, uh*a, uh*b, uh*c);
                     p1 = p0;
                 }
                 if (condY2)
@@ -517,10 +514,10 @@ bool FrameManipulator::DrawHandles(Layout *layout)
                     ux = 0.5; uy = (1/r)*sh*sw/2; uw = sw; uh = (1/r)*sw;
                     a = p0.x; b = p1.x ; c = p2.x;
                 }
-                updateArg(widget, &x, ux*a, ux*b, ux*c);
-                updateArg(widget, &y, uy*a, uy*b, uy*c);
-                updateArg(widget, &w, uw*a, uw*b, uw*c);
-                updateArg(widget, &h, uh*a, uh*b, uh*c);
+                updateArg(widget, x, ux*a, ux*b, ux*c);
+                updateArg(widget, y, uy*a, uy*b, uy*c);
+                updateArg(widget, w, uw*a, uw*b, uw*c);
+                updateArg(widget, h, uh*a, uh*b, uh*c);
                 break;
             }
 
@@ -529,10 +526,10 @@ bool FrameManipulator::DrawHandles(Layout *layout)
 
         case TM_FreeResize:
         default:
-            updateArg(widget, &x, p0.x/2, p1.x/2, p2.x/2);
-            updateArg(widget, &y, p0.y/2, p1.y/2, p2.y/2);
-            updateArg(widget, &w, sw*p0.x, sw*p1.x, sw*p2.x);
-            updateArg(widget, &h, sh*p0.y, sh*p1.y, sh*p2.y);
+            updateArg(widget, x, p0.x/2, p1.x/2, p2.x/2);
+            updateArg(widget, y, p0.y/2, p1.y/2, p2.y/2);
+            updateArg(widget, w, sw*p0.x, sw*p1.x, sw*p2.x);
+            updateArg(widget, h, sh*p0.y, sh*p1.y, sh*p2.y);
             break;
         }
 
@@ -581,8 +578,8 @@ FrameManipulator::TransformMode FrameManipulator::CurrentTransformMode()
 //
 // ============================================================================
 
-ControlRectangle::ControlRectangle(Tree_p self,
-                                   real_r x, real_r y, real_r w, real_r h)
+ControlRectangle::ControlRectangle(Tree *self,
+                                   Real *x, Real *y, Real *w, Real *h)
 // ----------------------------------------------------------------------------
 //   A control rectangle owns a given child and manipulates it
 // ----------------------------------------------------------------------------
@@ -608,8 +605,8 @@ bool ControlRectangle::DrawHandles(Layout *layout)
             if (p1 != p2)
             {
                 Point3 p0 = drag->Origin();
-                updateArg(widget, &x, p0.x, p1.x, p2.x);
-                updateArg(widget, &y, p0.y, p1.y, p2.y);
+                updateArg(widget, x, p0.x, p1.x, p2.x);
+                updateArg(widget, y, p0.y, p1.y, p2.y);
                 widget->markChanged("Shape moved");
                 changed = true;
             }
@@ -626,10 +623,10 @@ bool ControlRectangle::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlRoundedRectangle::ControlRoundedRectangle(Tree_p self,
-                                                 real_r x, real_r y,
-                                                 real_r w, real_r h,
-                                                 real_r r)
+ControlRoundedRectangle::ControlRoundedRectangle(Tree *self,
+                                                 Real *x, Real *y,
+                                                 Real *w, Real *h,
+                                                 Real *r)
 // ----------------------------------------------------------------------------
 //   A control arrow adds the radius of the corners to the control rectangle
 // ----------------------------------------------------------------------------
@@ -664,7 +661,7 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
                 if (p1 != p2)
                 {
                     Point3 p0 = drag->Origin();
-                    updateArg(widget, &r,
+                    updateArg(widget, r,
                               y+sh*h/2-p0.y, y+sh*h/2-p1.y, y+sh*h/2-p2.y,
                               0.0, sh*h/2);
                     widget->markChanged("Rounded rectangle corner modified");
@@ -687,7 +684,7 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
                 if (p1 != p2)
                 {
                     Point3 p0 = drag->Origin();
-                    updateArg(widget, &r,
+                    updateArg(widget, r,
                               x+sw*w/2-p0.x, x+sw*w/2-p1.x, x+sw*w/2-p2.x,
                               0.0, sw*w/2);
                     widget->markChanged("Rounded rectangle corner modified");
@@ -712,9 +709,9 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlArrow::ControlArrow(Tree_p self,
-                           real_r x, real_r y, real_r w, real_r h,
-                           real_r ax, real_r ary)
+ControlArrow::ControlArrow(Tree *self,
+                           Real *x, Real *y, Real *w, Real *h,
+                           Real *ax, Real *ary)
 // ----------------------------------------------------------------------------
 //   Same as above setting is_double to false
 // ----------------------------------------------------------------------------
@@ -722,9 +719,9 @@ ControlArrow::ControlArrow(Tree_p self,
 {}
 
 
-ControlArrow::ControlArrow(Tree_p self,
-                           real_r x, real_r y, real_r w, real_r h,
-                           real_r ax, real_r ary, bool is_double)
+ControlArrow::ControlArrow(Tree *self,
+                           Real *x, Real *y, Real *w, Real *h,
+                           Real *ax, Real *ary, bool is_double)
 // ----------------------------------------------------------------------------
 //   A control arrow adds the arrow handle to the control rectangle
 // ----------------------------------------------------------------------------
@@ -774,13 +771,13 @@ bool ControlArrow::DrawHandles(Layout *layout)
             if (p1 != p2)
             {
                 Point3 p0 = drag->Origin();
-                updateArg(widget, &ax,
+                updateArg(widget, ax,
                           swd*(x-p0.x)+sw*w/2, swd*(x-p1.x)+sw*w/2,
                           swd*(x-p2.x)+sw*w/2,
                           0.0, sw*w/df);
                 if (h != 0)
                 {
-                    updateArg(widget, &ary,
+                    updateArg(widget, ary,
                               2*sh*(p0.y-y)/h, 2*sh*(p1.y-y)/h, 2*sh*(p2.y-y)/h,
                               0.0, 1.0);
                 }
@@ -804,9 +801,9 @@ bool ControlArrow::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlPolygon::ControlPolygon(Tree_p self,
-                               real_r x, real_r y, real_r w, real_r h,
-                               integer_r p)
+ControlPolygon::ControlPolygon(Tree *self,
+                               Real *x, Real *y, Real *w, Real *h,
+                               Integer *p)
 // ----------------------------------------------------------------------------
 //   A control star adds the number of points to the control rectangle
 // ----------------------------------------------------------------------------
@@ -845,7 +842,7 @@ bool ControlPolygon::DrawHandles(Layout *layout)
                 coord p0x = 19*sw*(p0.x - x)/w + 11.5;
                 coord p1x = 19*sw*(p1.x - x)/w + 11.5;
                 coord p2x = 19*sw*(p2.x - x)/w + 11.5;
-                updateArg(widget, &p, p0x, p1x, p2x, p_min, p_max);
+                updateArg(widget, p, p0x, p1x, p2x, p_min, p_max);
                 widget->markChanged("Number of points changed");
                 changed = true;
             }
@@ -866,9 +863,9 @@ bool ControlPolygon::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlStar::ControlStar(Tree_p self,
-                         real_r x, real_r y, real_r w, real_r h,
-                         integer_r p, real_r r)
+ControlStar::ControlStar(Tree *self,
+                         Real *x, Real *y, Real *w, Real *h,
+                         Integer *p, Real *r)
 // ----------------------------------------------------------------------------
 //   A control star adds inner circle ratio to the control polygon
 // ----------------------------------------------------------------------------
@@ -906,7 +903,7 @@ bool ControlStar::DrawHandles(Layout *layout)
             {
                 Point3 p0 = drag->Origin();
                 scale hp = sqrt(w*sp*w*sp + h*cp*h*cp)*sh*cp/2;
-                updateArg(widget, &r,
+                updateArg(widget, r,
                           (p0.y - y)/hp, (p1.y - y)/hp, (p2.y - y)/hp,
                           r_min, r_max);
                 widget->markChanged("Star inner circle changed");
@@ -929,9 +926,9 @@ bool ControlStar::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlBalloon::ControlBalloon(Tree_p self,
-                               real_r x, real_r y, real_r w, real_r h,
-                               real_r r, real_r ax, real_r ay)
+ControlBalloon::ControlBalloon(Tree *self,
+                               Real *x, Real *y, Real *w, Real *h,
+                               Real *r, Real *ax, Real *ay)
 // ----------------------------------------------------------------------------
 //   A control balloon adds a tail to the control rounded rectangle
 // ----------------------------------------------------------------------------
@@ -957,8 +954,8 @@ bool ControlBalloon::DrawHandles(Layout *layout)
             if (p1 != p2)
             {
                 Point3 p0 = drag->Origin();
-                updateArg(widget, &ax, p0.x, p1.x, p2.x);
-                updateArg(widget, &ay, p0.y, p1.y, p2.y);
+                updateArg(widget, ax, p0.x, p1.x, p2.x);
+                updateArg(widget, ay, p0.y, p1.y, p2.y);
                 widget->markChanged("Balloon tail changed");
                 changed = true;
             }
@@ -979,9 +976,9 @@ bool ControlBalloon::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlCallout::ControlCallout(Tree_p self,
-                               real_r x, real_r y, real_r w, real_r h,
-                               real_r r, real_r ax, real_r ay, real_r d)
+ControlCallout::ControlCallout(Tree *self,
+                               Real *x, Real *y, Real *w, Real *h,
+                               Real *r, Real *ax, Real *ay, Real *d)
 // ----------------------------------------------------------------------------
 //   A control callout adds a width to the tail to the control balloon
 // ----------------------------------------------------------------------------
@@ -1065,12 +1062,12 @@ bool ControlCallout::DrawHandles(Layout *layout)
                 Point3 p0 = drag->Origin();
                 if (-sty*cos(beta+M_PI_2) > stx*sin(beta+M_PI_2))
                 {
-                    updateArg(widget, &d, -sty*4*p0.x, -sty*4*p1.x, -sty*4*p2.x,
+                    updateArg(widget, d, -sty*4*p0.x, -sty*4*p1.x, -sty*4*p2.x,
                               0, pw<ph? pw: ph );
                 }
                 else
                 {
-                    updateArg(widget, &d, stx*4*p0.y, stx*4*p1.y, stx*4*p2.y,
+                    updateArg(widget, d, stx*4*p0.y, stx*4*p1.y, stx*4*p2.y,
                               0, pw<ph? pw: ph );
                 }
                 widget->markChanged("Callout tail width changed");
@@ -1093,8 +1090,8 @@ bool ControlCallout::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-WidgetManipulator::WidgetManipulator(Tree_p self,
-                                     real_r x, real_r y, real_r w, real_r h,
+WidgetManipulator::WidgetManipulator(Tree *self,
+                                     Real *x, Real *y, Real *w, Real *h,
                                      WidgetSurface *s)
 // ----------------------------------------------------------------------------
 //    Create a widget manipulator within the given rectangle
@@ -1133,7 +1130,10 @@ GraphicPathManipulator::GraphicPathManipulator(Tree_p self,
 // ----------------------------------------------------------------------------
 //   A path manipulator owns a given child and manipulates it
 // ----------------------------------------------------------------------------
-    : FrameManipulator(self, x, y, w, h), path(path), path_tree(path_tree)
+    : FrameManipulator(self,
+                       new XL::Real(), new XL::Real(),  // x, y
+                       new XL::Real(), new XL::Real()), // w, h
+      path(path), path_tree(path_tree)
 {}
 
 
@@ -1146,10 +1146,9 @@ bool GraphicPathManipulator::DrawHandles(Layout *layout)
 {
     // Shape manipulations are first handled at the bounding box level, then
     // individual path control points are moved proportionally
-
     Widget *widget = layout->Display();
     uint sel = widget->selected(layout);
-    if (DOUBLE_CLICKS(sel))
+    if (Widget::doubleClicks(sel))
         return false;
 
     GraphicPathInfo *path_info = path_tree->GetInfo<GraphicPathInfo>();
@@ -1162,7 +1161,10 @@ bool GraphicPathManipulator::DrawHandles(Layout *layout)
 
     // Set manipulator dimensions = current bounding box
     Box3 b1 = path->bounds;
-    x = b1.Center().x;  y = b1.Center().y;  w = b1.Width();  h = b1.Height();
+    x->value = b1.Center().x;
+    y->value = b1.Center().y;
+    w->value = b1.Width();
+    h->value = b1.Height();
 
     // Display handles and deal with resize/rotate through FrameManipulator
     bool changed = FrameManipulator::DrawHandles(layout);
@@ -1178,8 +1180,8 @@ bool GraphicPathManipulator::DrawHandles(Layout *layout)
             if (p1 != p2)
             {
                 Point3 p0 = drag->Origin();
-                updateArg(widget, &x, p0.x, p1.x, p2.x);
-                updateArg(widget, &y, p0.y, p1.y, p2.y);
+                updateArg(widget, x, p0.x, p1.x, p2.x);
+                updateArg(widget, y, p0.y, p1.y, p2.y);
                 widget->markChanged("Path moved");
                 changed = true;
             }
@@ -1211,8 +1213,8 @@ bool GraphicPathManipulator::DrawHandles(Layout *layout)
             Point3 cp2 = b2.lower + v2;
 
             ControlPoint *child = *i;
-            updateArg(widget, &child->x, cp0.x, cp1.x, cp2.x);
-            updateArg(widget, &child->y, cp0.y, cp1.y, cp2.y);
+            updateArg(widget, child->x, cp0.x, cp1.x, cp2.x);
+            updateArg(widget, child->y, cp0.y, cp1.y, cp2.y);
         }
     }
 
@@ -1227,9 +1229,9 @@ bool GraphicPathManipulator::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-BoxManipulator::BoxManipulator(Tree_p self,
-                               real_r x, real_r y, real_r z,
-                               real_r w, real_r h, real_r d)
+BoxManipulator::BoxManipulator(Tree *self,
+                               Real *x, Real *y, Real *z,
+                               Real *w, Real *h, Real *d)
 // ----------------------------------------------------------------------------
 //   A control rectangle owns a given child and manipulates it
 // ----------------------------------------------------------------------------
@@ -1274,16 +1276,16 @@ bool BoxManipulator::DrawHandles(Layout *layout)
 
                         if (hn < 4)
                         {
-                            updateArg(widget, &x, p0.x/2, p1.x/2, p2.x/2);
-                            updateArg(widget, &w, sw*p0.x, sw*p1.x, sw*p2.x);
+                            updateArg(widget, x, p0.x/2, p1.x/2, p2.x/2);
+                            updateArg(widget, w, sw*p0.x, sw*p1.x, sw*p2.x);
                         }
                         else
                         {
-                            updateArg(widget, &z, p0.x/2, p1.x/2, p2.x/2);
-                            updateArg(widget, &d, sd*p0.x, sd*p1.x, sd*p2.x);
+                            updateArg(widget, z, p0.x/2, p1.x/2, p2.x/2);
+                            updateArg(widget, d, sd*p0.x, sd*p1.x, sd*p2.x);
                         }
-                        updateArg(widget, &y, p0.y/2, p1.y/2, p2.y/2);
-                        updateArg(widget, &h, sh*p0.y, sh*p1.y, sh*p2.y);
+                        updateArg(widget, y, p0.y/2, p1.y/2, p2.y/2);
+                        updateArg(widget, h, sh*p0.y, sh*p1.y, sh*p2.y);
 
                         widget->markChanged(t1 + t2 + t3 + "corner moved");
                     }
@@ -1303,9 +1305,9 @@ bool BoxManipulator::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ControlBox::ControlBox(Tree_p self,
-                       real_r x, real_r y, real_r z,
-                       real_r w, real_r h, real_r d)
+ControlBox::ControlBox(Tree *self,
+                       Real *x, Real *y, Real *z,
+                       Real *w, Real *h, Real *d)
 // ----------------------------------------------------------------------------
 //   A control rectangle owns a given child and manipulates it
 // ----------------------------------------------------------------------------
@@ -1331,9 +1333,9 @@ bool ControlBox::DrawHandles(Layout *layout)
             if (p1 != p2)
             {
                 Point3 p0 = drag->Origin();
-                updateArg(widget, &x, p0.x, p1.x, p2.x);
-                updateArg(widget, &y, p0.y, p1.y, p2.y);
-                updateArg(widget, &z, p0.z, p1.z, p2.z);
+                updateArg(widget, x, p0.x, p1.x, p2.x);
+                updateArg(widget, y, p0.y, p1.y, p2.y);
+                updateArg(widget, z, p0.z, p1.z, p2.z);
                 widget->markChanged("3D shape moved");
                 changed = true;
             }
@@ -1350,7 +1352,7 @@ bool ControlBox::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-TransformManipulator::TransformManipulator(Tree_p self)
+TransformManipulator::TransformManipulator(Tree *self)
 // ----------------------------------------------------------------------------
 //   Record the child we own
 // ----------------------------------------------------------------------------
@@ -1365,8 +1367,8 @@ TransformManipulator::TransformManipulator(Tree_p self)
 //
 // ============================================================================
 
-RotationManipulator::RotationManipulator(Tree_p self,
-                                         real_r a, real_r x,real_r y,real_r z)
+RotationManipulator::RotationManipulator(Tree *self,
+                                         Real *a, Real *x,Real *y,Real *z)
 // ----------------------------------------------------------------------------
 //   Manipulation of a rotation
 // ----------------------------------------------------------------------------
@@ -1408,9 +1410,9 @@ bool RotationManipulator::DrawHandles(Layout *layout)
             {
                 Point3 p0 = drag->Origin();
 
-                updateArg(widget, &x, p0.x, p1.x, p2.x);
-                updateArg(widget, &y, p0.y, p1.y, p2.y);
-                updateArg(widget, &z, p0.z, p1.z, p2.z);
+                updateArg(widget, x, p0.x, p1.x, p2.x);
+                updateArg(widget, y, p0.y, p1.y, p2.y);
+                updateArg(widget, z, p0.z, p1.z, p2.z);
                 widget->markChanged("Changed rotation direction");
                 changed = true;
             }
@@ -1436,8 +1438,8 @@ bool RotationManipulator::DrawHandles(Layout *layout)
                 Vector3 v2 = Vector3(p2) - offset;
                 double  a2 = atan2(v2.y, v2.x) * (180 / M_PI);
 
-                updateArg(widget, &a,  a0, a1, a2);
-                updateArg(widget, &a,  a0, a1, a2);
+                updateArg(widget, a,  a0, a1, a2);
+                updateArg(widget, a,  a0, a1, a2);
 
                 widget->markChanged("Changed rotation amount");
                 changed = true;
@@ -1456,8 +1458,8 @@ bool RotationManipulator::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-TranslationManipulator::TranslationManipulator(Tree_p self,
-                                               real_r x, real_r y, real_r z)
+TranslationManipulator::TranslationManipulator(Tree *self,
+                                               Real *x, Real *y, Real *z)
 // ----------------------------------------------------------------------------
 //   Manipulation of a translation
 // ----------------------------------------------------------------------------
@@ -1510,20 +1512,20 @@ bool TranslationManipulator::DrawHandles(Layout *layout)
             switch(handle)
             {
             case 1:
-                updateArg(widget, &x,  p0.x, p1.x, p2.x);
-                updateArg(widget, &y,  p0.y, p1.y, p2.y);
+                updateArg(widget, x,  p0.x, p1.x, p2.x);
+                updateArg(widget, y,  p0.y, p1.y, p2.y);
                 widget->markChanged("Updated translation");
                 break;
             case 2:
-                updateArg(widget, &x,  p0.x, p1.x, p2.x);
+                updateArg(widget, x,  p0.x, p1.x, p2.x);
                 widget->markChanged("Updated translation X axis");
                 break;
             case 3:
-                updateArg(widget, &y,  p0.y, p1.y, p2.y);
+                updateArg(widget, y,  p0.y, p1.y, p2.y);
                 widget->markChanged("Updated translation Y axis");
                 break;
             case 4:
-                updateArg(widget, &z,  p0.x - p0.y, p1.x - p1.y, p2.x - p2.y);
+                updateArg(widget, z,  p0.x - p0.y, p1.x - p1.y, p2.x - p2.y);
                 widget->markChanged("Updated translation Z axis");
                 break;
             }
@@ -1544,7 +1546,7 @@ bool TranslationManipulator::DrawHandles(Layout *layout)
 //
 // ============================================================================
 
-ScaleManipulator::ScaleManipulator(Tree_p self, real_r x, real_r y, real_r z)
+ScaleManipulator::ScaleManipulator(Tree *self, Real *x, Real *y, Real *z)
 // ----------------------------------------------------------------------------
 //   Manipulation of a scale
 // ----------------------------------------------------------------------------
@@ -1601,21 +1603,21 @@ bool ScaleManipulator::DrawHandles(Layout *layout)
             switch(handle)
             {
             case 1:
-                updateArg(widget, &x, v0, v1, v2);
-                updateArg(widget, &y, v0, v1, v2);
-                updateArg(widget, &z, v0, v1, v2);
+                updateArg(widget, x, v0, v1, v2);
+                updateArg(widget, y, v0, v1, v2);
+                updateArg(widget, z, v0, v1, v2);
                 widget->markChanged("Updated scale");
                 break;
             case 2:
-                updateArg(widget, &x,  s * p0.x, s * p1.x, s * p2.x);
+                updateArg(widget, x,  s * p0.x, s * p1.x, s * p2.x);
                 widget->markChanged("Updated scale X axis");
                 break;
             case 3:
-                updateArg(widget, &y,  s * p0.y, s * p1.y, s * p2.y);
+                updateArg(widget, y,  s * p0.y, s * p1.y, s * p2.y);
                 widget->markChanged("Updated scale Y axis");
                 break;
             case 4:
-                updateArg(widget, &z,  v0, v1, v2);
+                updateArg(widget, z,  v0, v1, v2);
                 widget->markChanged("Updated scale Z axis");
                 break;
             }

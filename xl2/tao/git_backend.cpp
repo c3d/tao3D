@@ -528,7 +528,7 @@ QList<GitRepository::Commit> GitRepository::history(int max)
     return result;
 }
 
-Process * GitRepository::asyncClone(QString cloneUrl,
+Process * GitRepository::asyncClone(QString cloneUrl, QString newFolder,
                                     AnsiTextEdit * out, void *id)
 // ----------------------------------------------------------------------------
 //   Make a local copy of a remote project
@@ -536,6 +536,8 @@ Process * GitRepository::asyncClone(QString cloneUrl,
 {
     QStringList args;
     args << "clone" << "--progress" << cloneUrl;
+    if (!newFolder.isEmpty())
+        args << newFolder;
     return dispatch(new Process(command(), args, path, false), out, out, id);
 }
 

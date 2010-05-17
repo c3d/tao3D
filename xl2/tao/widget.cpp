@@ -1296,7 +1296,10 @@ void Widget::updateProgram(XL::SourceFile *source)
     Renormalize renorm;
     xlProgram = source;
     if (Tree *prog = xlProgram->tree)
+    {
         xlProgram->tree = prog->Do(renorm);
+        xlProgram->tree->SetSymbols(prog->Symbols());
+    }
     refreshProgram();
     inError = false;
 }

@@ -76,6 +76,9 @@ public:
     static bool         IsAllocated(void *ptr);
     static bool         InUse(void *ptr);
 
+    void *operator new(size_t size);
+    void operator delete(void *ptr);
+
 public:
     enum ChunkBits
     {
@@ -422,8 +425,13 @@ Allocator<Object> * Allocator<Object>::Singleton()
 //    Return a singleton for the allocation class
 // ----------------------------------------------------------------------------
 {
-    static Allocator allocator;
-    return &allocator;
+    static Allocator *allocator = NULL;
+
+    if (!allocator)
+        // Create the singleton
+        allocator = new Allocator;
+
+    return allocator;
 }
 
 

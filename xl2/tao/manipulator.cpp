@@ -106,7 +106,7 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id, text name)
 }
 
 
-void Manipulator::updateArg(Widget *widget, Tree *arg,
+void Manipulator::updateArg(Widget *, Tree *arg,
                             double first, double previous, double current,
                             double min, double max)
 // ----------------------------------------------------------------------------
@@ -211,8 +211,6 @@ void Manipulator::updateArg(Widget *widget, Tree *arg,
             ival->value = min / scale;
         if (ival->value * scale > max)
             ival->value = max / scale;
-        if (ppptr && ival->value < 0)
-            widget->renormalizeProgram();
     }
     else if (XL::Real *rval = (*ptr)->AsReal())
     {
@@ -221,8 +219,6 @@ void Manipulator::updateArg(Widget *widget, Tree *arg,
             rval->value = min / scale;
         if (rval->value * scale > max)
             rval->value = max / scale;
-        if (ppptr && rval->value < 0)
-            widget->renormalizeProgram();
     }
     else
     {
@@ -239,7 +235,6 @@ void Manipulator::updateArg(Widget *widget, Tree *arg,
                 value = max;
             double delta = (value - previous) / scale;
             *ptr = new XL::Infix("+", new XL::Real(delta), *ptr);
-            widget->renormalizeProgram();
         }
     }
 }

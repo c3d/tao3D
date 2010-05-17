@@ -22,6 +22,7 @@
 
 #include "gc.h"
 #include "options.h"
+#include <malloc.h>
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
@@ -253,8 +254,14 @@ void *TypeAllocator::operator new(size_t size)
 // ----------------------------------------------------------------------------
 {
     void *result = NULL;
+#ifdef CONFIG_MINGW // Windows. Enough said
+    result = __mingw_aligned_malloc(size, PTR_MASK+1);
+    if (!result)
+        throw std::bad_alloc();
+#else // Real operating systems
     if (posix_memalign(&result, PTR_MASK+1, size))
         throw std::bad_alloc();
+#endif // WINDOWS or real operating system
     return result;
 }
 
@@ -264,7 +271,13 @@ void TypeAllocator::operator delete(void *ptr)
 //    Matching deallocation
 // ----------------------------------------------------------------------------
 {
+#ifdef CONFIG_MINGW // Aka MS-DOS NT.
+    // Brain damaged?
+    __mingw_aligned_free(ptr);
+#else // No brain-damage
     free(ptr);
+#endif // WINDOWS vs. rest of the world 
+
 }
 
 

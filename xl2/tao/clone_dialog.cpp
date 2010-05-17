@@ -56,6 +56,7 @@ void CloneDialog::accept()
 
     QString url = urlEdit->text();
     QString folder = folderEdit->text();
+    QString newFolder = newFolderEdit->text();
     if (url.isEmpty() || folder.isEmpty())
         return;
     TaoApp->addUrlCompletion(url);
@@ -75,7 +76,7 @@ void CloneDialog::accept()
     setCursor(Qt::BusyCursor);
     connect(repo.data(), SIGNAL(asyncCloneComplete(void *, QString)),
             this, SLOT(endClone(void *, QString)));
-    proc = repo->asyncClone(url, cloneOutput, this);
+    proc = repo->asyncClone(url, newFolder, cloneOutput, this);
 }
 
 

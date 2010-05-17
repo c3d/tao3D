@@ -247,6 +247,27 @@ void TypeAllocator::Sweep()
 }
 
 
+void *TypeAllocator::operator new(size_t size)
+// ----------------------------------------------------------------------------
+//   Force 16-byte alignment not guaranteed by regular operator new
+// ----------------------------------------------------------------------------
+{
+    void *result = NULL;
+    if (posix_memalign(&result, PTR_MASK+1, size))
+        throw std::bad_alloc();
+    return result;
+}
+
+
+void TypeAllocator::operator delete(void *ptr)
+// ----------------------------------------------------------------------------
+//    Matching deallocation
+// ----------------------------------------------------------------------------
+{
+    free(ptr);
+}
+
+
 
 // ============================================================================
 //

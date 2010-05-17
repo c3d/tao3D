@@ -738,6 +738,9 @@ eval_fn CompiledUnit::Finalize()
     }
 
     void *result = compiler->runtime->getPointerToFunction(function);
+    IFTRACE(llvmgc)
+        std::cerr << "Code for " << (void*)function << " = "
+                  << (void *) result << '\n';
     return (eval_fn) result;
 }
 

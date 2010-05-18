@@ -1339,9 +1339,9 @@ void Widget::reloadProgram(XL::Tree *newProg)
     else
     {
         // We want to force a clone so that we recompile everything
-        Renormalize renorm(this);
         if (prog)
         {
+            Renormalize renorm(this);
             newProg = prog->Do(renorm);
             newProg->SetSymbols(prog->Symbols());
             xlProgram->tree = newProg;
@@ -5042,6 +5042,7 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert)
     if (!program)
     {
         *top = toInsert;
+        toInsert->SetSymbols(xlProgram->symbols);
     }
     else
     {
@@ -5054,7 +5055,9 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert)
 
         // Append at end of the statements
         Tree_p *what = parent ? &parent->right : top;
+        Symbols *symbols = (*what)->Symbols();
         *what = new XL::Infix("\n", *what, toInsert);
+        (*what)->SetSymbols(symbols);
     }
 
     // Reload the program and mark the changes

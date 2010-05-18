@@ -283,6 +283,7 @@ menu_item "menu:insert > shape > polygon", "Polygon", insert
 menu      "menu:insert", ""
 submenu   "menu:insert > object", "Object"
 menu_item "menu:insert > object > image", "Image ...", file_chooser
+    filter "All formats (*.bmp *.gif *.jpg *.jpeg *.png *.pbm *.pgm *.ppm *.tif *.tiff *.xbm *.xpm);;BMP - Windows Bitmap (*.bmp);;GIF - Graphic Interchange Format (*.gif);;JPEG - Joint Photographic Experts Group (*.jpg *.jpeg);;PNG - Portable Network Graphics (*.png);;PBM - Portable Bitmap (*.pbm);;PGM - Portable Graymap (*.pgm);;PPM - Portable Pixmap (*.ppm);;TIFF - Tagged Image File Format (*.tif *.tiff);;XBM - X11 Bitmap (*.xbm);;XPM - X11 Pixmap (*.xpm)"
     action insert {
     shape
         color 1,1,1,1

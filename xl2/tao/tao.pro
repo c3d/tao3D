@@ -202,8 +202,7 @@ OTHER_FILES += xl.syntax \
     dbghtml.stylesheet \
     bytecode.stylesheet \
     builtins.xl \
-    graphics.tbl \
-    formulas.tbl \
+    tutorial.ddd \
     git.stylesheet
 
 # Copy the support files to the target directory

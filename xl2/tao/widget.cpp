@@ -193,11 +193,9 @@ void Widget::dawdle()
     }
     pageRefresh = remaining;
 
-    if (xlProgram && xlProgram->changed)
+    if (xlProgram->changed && xlProgram->readOnly)
     {
-        text txt = *xlProgram->tree;
-        Window *window = (Window *) parentWidget();
-        window->setText(+txt);
+        updateProgramSource();
         if (!repo)
             xlProgram->changed = false;
     }
@@ -271,7 +269,7 @@ void Widget::draw()
 
     // Make sure we compile the selection the first time
     static bool first = true;
-    if (xlProgram && first)
+    if (first)
     {
         XL::Symbols *s = xlProgram->symbols;
         double x = 0;
@@ -349,28 +347,23 @@ void Widget::runProgram()
     selectionTrees.clear();
     id = charId = 0;
 
-    if (xlProgram)
+    // Evaluate the program
+    XL::MAIN->EvalContextFiles(((Window*)parent())->contextFileNames);
+    if (Tree *prog = xlProgram->tree)
+        xl_evaluate(prog);
+
+    // Clean the end of the old menu list.
+    for  ( ; order < orderedMenuElements.count(); order++)
     {
-        if (Tree *prog = xlProgram->tree)
-        {
-            XL::MAIN->EvalContextFiles(((Window*)parent())->contextFileNames);
-            // Evaluate the program
-            xl_evaluate(prog);
-
-            // Clean the end of the old menu list.
-            for  ( ; order < orderedMenuElements.count(); order++)
-            {
-                delete orderedMenuElements[order];
-                orderedMenuElements[order] = NULL;
-            }
-
-            // Reset the order value.
-            order          = 0;
-            currentMenu    = NULL;
-            currentToolBar = NULL;
-            currentMenuBar = ((Window*)parent())->menuBar();
-        }
+        delete orderedMenuElements[order];
+        orderedMenuElements[order] = NULL;
     }
+
+    // Reset the order value.
+    order          = 0;
+    currentMenu    = NULL;
+    currentToolBar = NULL;
+    currentMenuBar = ((Window*)parent())->menuBar();
 
     // Remember how many elements are drawn on the page, plus arbitrary buffer
     if (id + charId + 100 > capacity)
@@ -553,21 +546,17 @@ void Widget::paste()
         render.Render(tree);
     }
 
-    // Insert tree at current selection, or at end of current page
-    // TODO: paste with an offset to avoid exactly overlapping objects
-    insert(NULL, tree);
-
     // Deselect previous selection
     selection.clear();
     selectionTrees.clear();
 
     // Make sure the new objects appear selected next time they're drawn
-    XL::Infix *i;
-    XL::Tree *t = tree;
-    selectNextTime.clear();
-    for (i = tree->AsInfix(); i ; t = i->right, i = i->right->AsInfix())
-        selectNextTime.insert(i->left);
-    selectNextTime.insert(t);
+    selectStatements(tree);
+
+    // Insert tree at end of current page
+    // TODO: paste with an offset to avoid exactly overlapping objects
+    insert(NULL, tree);
+
 }
 
 
@@ -1122,7 +1111,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
 
     // Now call "key" in the current context
     text name = keyName(event);
-    XL::Symbols *syms = xlProgram ? xlProgram->symbols : XL::Symbols::symbols;
+    XL::Symbols *syms = xlProgram->symbols;
     (XL::XLCall ("key"), name) (syms);
 }
 
@@ -1141,7 +1130,7 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
 
     // Now call "key" in the current context with the ~ prefix
     text name = "~" + keyName(event);
-    XL::Symbols *syms = xlProgram ? xlProgram->symbols : XL::Symbols::symbols;
+    XL::Symbols *syms = xlProgram->symbols;
     (XL::XLCall ("key"), name) (syms);
 }
 
@@ -1293,10 +1282,10 @@ void Widget::updateProgram(XL::SourceFile *source)
 //   Change the XL program, clean up stuff along the way
 // ----------------------------------------------------------------------------
 {
-    Renormalize renorm;
     xlProgram = source;
     if (Tree *prog = xlProgram->tree)
     {
+        Renormalize renorm(this);
         xlProgram->tree = prog->Do(renorm);
         xlProgram->tree->SetSymbols(prog->Symbols());
     }
@@ -1310,8 +1299,6 @@ void Widget::applyAction(XL::Action &action)
 //   Applies an action on the tree and all the dependents
 // ----------------------------------------------------------------------------
 {
-    if (!xlProgram)
-        return;
     Tree *prog = xlProgram->tree;
     if (!prog)
         return;
@@ -1352,17 +1339,36 @@ void Widget::reloadProgram(XL::Tree *newProg)
     else
     {
         // We want to force a clone so that we recompile everything
-        Renormalize renorm;
-        newProg = prog->Do(renorm);
-        newProg->SetSymbols(prog->Symbols());
-        xlProgram->tree = newProg;
-        prog = newProg;
+        Renormalize renorm(this);
+        if (prog)
+        {
+            newProg = prog->Do(renorm);
+            newProg->SetSymbols(prog->Symbols());
+            xlProgram->tree = newProg;
+            prog = newProg;
+        }
     }
 
     // Now update the window
-    text txt = *prog;
+    updateProgramSource();
+}
+
+
+void Widget::updateProgramSource()
+// ----------------------------------------------------------------------------
+//   Update the contents of the program source window
+// ----------------------------------------------------------------------------
+{
     Window *window = (Window *) parentWidget();
-    window->setText(+txt);
+    if (Tree *prog = xlProgram->tree)
+    {
+        text txt = *prog;
+        window->setText(+txt);
+    }
+    else
+    {
+        window->setText("");
+    }
 }
 
 
@@ -1371,12 +1377,9 @@ void Widget::refreshProgram()
 //   Check if any of the source files we depend on changed
 // ----------------------------------------------------------------------------
 {
-    if (!xlProgram)
-        return;
-
     Repository *repo = repository();
     Tree *prog = xlProgram->tree;
-    if (!prog)
+    if (!prog || !repo || xlProgram->readOnly)
         return;
 
     // Loop on imported files
@@ -1484,30 +1487,44 @@ void Widget::markChanged(text reason)
     Repository *repo = repository();
     if (repo)
         repo->markChanged(reason);
-    if (xlProgram)
+
+    if (Tree *prog = xlProgram->tree)
     {
-        if (Tree *prog = xlProgram->tree)
+        import_set done;
+        ImportedFilesChanged(prog, done, true);
+
+        import_set::iterator f;
+        for (f = done.begin(); f != done.end(); f++)
         {
-            import_set done;
-            ImportedFilesChanged(prog, done, true);
-
-            import_set::iterator f;
-            for (f = done.begin(); f != done.end(); f++)
-            {
-                XL::SourceFile &sf = **f;
-                if (&sf != xlProgram && sf.changed)
-                    writeIfChanged(sf);
-            }
-
-            // Now update the window
-            text txt = *prog;
-            Window *window = (Window *) parentWidget();
-            window->setText(+txt);
+            XL::SourceFile &sf = **f;
+            if (&sf != xlProgram && sf.changed)
+                writeIfChanged(sf);
         }
     }
 
+    // Now update the window
+    updateProgramSource();
+
     // Cause the screen to redraw
     refresh(0);
+}
+
+
+void Widget::selectStatements(Tree *tree)
+// ----------------------------------------------------------------------------
+//   Put all statements in the given selection in the next selection
+// ----------------------------------------------------------------------------
+{
+    selectNextTime.clear();
+    Tree *t = tree;
+    while (Infix *i = t->AsInfix())
+    {
+        if (i->name != "\n" && i->name != ";")
+            break;
+        selectNextTime.insert(i->left);
+        t = i->right;
+    }
+    selectNextTime.insert(t);
 }
 
 
@@ -2027,9 +2044,7 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
 // ----------------------------------------------------------------------------
 {
     // Symbols where we will find the selection code
-    XL::Symbols *symbols = XL::Symbols::symbols;
-    if (xlProgram)
-        symbols = xlProgram->symbols;
+    XL::Symbols *symbols = xlProgram->symbols;
 
     Box3 bounds(bnds);
     bounds.Normalize();
@@ -2059,9 +2074,7 @@ void Widget::drawHandle(const Point3 &p, text handleName)
 // ----------------------------------------------------------------------------
 {
     // Symbols where we will find the selection code
-    XL::Symbols *symbols = XL::Symbols::symbols;
-    if (xlProgram)
-        symbols = xlProgram->symbols;
+    XL::Symbols *symbols = xlProgram->symbols;
 
     SpaceLayout selectionSpace(this);
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
@@ -4999,50 +5012,53 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert)
 //    Insert the tree after the selection, assuming there is only one
 // ----------------------------------------------------------------------------
 {
-    if (!xlProgram)
-        return XL::xl_false;
-
-    Tree *program = xlProgram->tree;
+    // For 'insert { statement; }', we don't want the { } block
     if (XL::Block *block = toInsert->AsBlock())
         toInsert = block->child;
 
-    InsertAtSelectionAction insert(this, toInsert, pageTree);
-    Tree_p afterInsert = program->Do(insert);
+    // Start at the top of the program to find where we will insert
+    Tree_p *top = &xlProgram->tree;
+    Infix *parent  = NULL;
 
-    // If we never hit the selection during the insert, append
-    if (insert.toInsert)
+    // If we have a current page, insert only in that context
+    if (Tree *page = pageTree)
     {
-        Tree_p *top = &afterInsert;
-        XL::Infix *parent  = NULL;
-        if (pageTree)
-        {
-            if (XL::Prefix *prefix = pageTree->AsPrefix())
-                if (XL::Name *left = prefix->left->AsName())
-                    if (left->value == "do")
-                        pageTree = prefix->right;
-            if (XL::Block *block = pageTree->AsBlock())
-                pageTree = block->child;
+        // Restrict insertion to that page
+        top = &pageTree;
 
-            top = &pageTree;
+        // The page instructions often runs a 'do' block
+        if (Prefix *prefix = page->AsPrefix())
+            if (Name *left = prefix->left->AsName())
+                if (left->value == "do")
+                    top = &prefix->right;
+
+        // If the page code is a block, look inside
+        if (XL::Block *block = (*top)->AsBlock())
+            top = &block->child;
+    }
+
+    // Descend on the right of the statements
+    Tree *program = *top;
+    if (!program)
+    {
+        *top = toInsert;
+    }
+    else
+    {
+        if (Infix *statements = program->AsInfix())
+        {
+            statements = statements->LastStatement();
+            parent = statements;
+            program = statements->right;
         }
 
-        program = *top;
-        while (true)
-        {
-            XL::Infix *infix = program->AsInfix();
-            if (!infix)
-                break;
-            if (infix->name != ";" && infix->name != "\n")
-                break;
-            parent = infix;
-            program = infix->right;
-         }
-
+        // Append at end of the statements
         Tree_p *what = parent ? &parent->right : top;
         *what = new XL::Infix("\n", *what, toInsert);
     }
 
-    reloadProgram(afterInsert);
+    // Reload the program and mark the changes
+    reloadProgram();
     markChanged("Inserted tree");
 
     return XL::xl_true;
@@ -5068,11 +5084,16 @@ void Widget::deleteSelection()
 //    Delete the selection (when selection is not text)
 // ----------------------------------------------------------------------------
 {
-    DeleteSelectionAction del(this);
     XL::Tree *what = xlProgram->tree;
-    what = what->Do(del);
-    reloadProgram(what);
-    markChanged("Deleted selection");
+    if (what)
+    {
+        DeleteSelectionAction del(this);
+        what = what->Do(del);
+        if (!what)
+            xlProgram->tree = what;
+        reloadProgram(what);
+        markChanged("Deleted selection");
+    }
     selection.clear();
     selectionTrees.clear();
 }
@@ -5085,19 +5106,19 @@ XL::Name_p Widget::setAttribute(Tree_p self,
 //    Insert the tree in all shapes in the selection
 // ----------------------------------------------------------------------------
 {
-    if (!xlProgram)
-        return XL::xl_false;
+    if (Tree *program = xlProgram->tree)
+    {
+        if (XL::Block_p block = attribute->AsBlock())
+            attribute = block->child;
 
-    Tree *program = xlProgram->tree;
-    if (XL::Block_p block = attribute->AsBlock())
-        attribute = block->child;
+        SetAttributeAction setAttrib(name, attribute, this, shape);
+        program->Do(setAttrib);
+        reloadProgram();
+        markChanged("Updated " + name + " attribute");
 
-    SetAttributeAction setAttrib(name, attribute, this, shape);
-    program->Do(setAttrib);
-    reloadProgram();
-    markChanged("Updated " + name + " attribute");
-
-    return XL::xl_true;
+        return XL::xl_true;
+    }
+    return XL::xl_false;
 }
 
 

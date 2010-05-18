@@ -24,14 +24,15 @@
 // ****************************************************************************
 
 #include "normalize.h"
+#include "widget.h"
 
 TAO_BEGIN
 
-Renormalize::Renormalize()
+Renormalize::Renormalize(Widget *widget)
 // ----------------------------------------------------------------------------
 //   Constructor, nothing special to do
 // ----------------------------------------------------------------------------
-    : XL::TreeClone()
+    : XL::TreeClone(), widget(widget)
 {}
 
 
@@ -67,8 +68,9 @@ Tree *Renormalize::DoInfix(Infix *what)
 // ----------------------------------------------------------------------------
 {
     // Put left and right in normal form
-    Tree *left = what->left->Do(this);
-    Tree *right = what->right->Do(this);
+    Tree  *left   = what->left->Do(this);
+    Tree  *right  = what->right->Do(this);
+    Infix *result = NULL;
 
     // Look for \n and ; with abnormal form
     if (what->name == "\n" || what->name == ";")
@@ -78,16 +80,11 @@ Tree *Renormalize::DoInfix(Infix *what)
             if (il->name == "\n" || il->name == ";")
             {
                 // Loop on the right to find where we want to attach
-                Infix *last = il;
-                Infix *next;
-                while ((next = last->right->AsInfix()) &&
-                       (next->name == "\n" || next->name == ";"))
-                    last = next;
+                Infix *last = il->LastStatement();
 
                 // Build the top tree of the result
-                Infix *result = new Infix(what->name,
-                                          il->left, il->right,
-                                          what->Position());
+                result = new Infix(what->name, il->left, il->right,
+                                   what->Position());
 
                 // Disconnect what we had on the left, now useless
                 il->left = NULL;
@@ -97,15 +94,33 @@ Tree *Renormalize::DoInfix(Infix *what)
                 last->right = new Infix(what->name,
                                         last->right, right,
                                         what->Position());
-
-                // Return the normalized tree
-                return result;
             }
         }
     }
 
     // Otherwise, return clone
-    return new Infix(what->name, left, right, what->Position());
+    if (!result)
+        result = new Infix(what->name, left, right, what->Position());
+
+    // Check if we are possibly changing the selection
+    std::set<Tree_p> &sel = widget->selectionTrees;
+    if (sel.count(what->left))
+        sel.insert(left);
+    if (sel.count(what->right))
+        sel.insert(right);
+    if (sel.count(what))
+        sel.insert(result);
+
+    // Check if we are possibly changing the next selection
+    std::set<Tree_p> &nxSel = widget->selectNextTime;
+    if (nxSel.count(what->left))
+        nxSel.insert(left);
+    if (nxSel.count(what->right))
+        nxSel.insert(right);
+    if (nxSel.count(what))
+        nxSel.insert(result);
+
+    return result;
 }
 
 

@@ -136,7 +136,9 @@ public:
     void        applyAction(Action &action);
     void        reloadProgram(Tree *newProg = NULL);
     void        refreshProgram();
+    void        updateProgramSource();
     void        markChanged(text reason);
+    void        selectStatements(Tree *tree);
     bool        writeIfChanged(XL::SourceFile &sf);
     bool        doCommit(bool immediate = false);
     Repository *repository();
@@ -166,7 +168,7 @@ public:
     uint        charSelected(uint i)    { return selected(i | CHAR_ID_BIT); }
     uint        charSelected()          { return charSelected(charId); }
     void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
-    uint        selected(Tree_p tree)   { return selectionTrees.count(tree); }
+    uint        selected(Tree* tree)    { return selectionTrees.count(tree); }
     bool        selected()              { return !selectionTrees.empty(); }
     bool        hasSelection()          { return selected(); }
     void        select(Tree *tree)      { selectionTrees.insert(tree); }
@@ -442,7 +444,7 @@ public:
 
     // Tree management
     Name_p      insert(Tree_p self, Tree_p toInsert);
-    void         deleteSelection();
+    void        deleteSelection();
     Name_p      deleteSelection(Tree_p self, text key);
     Name_p      setAttribute(Tree_p self, text name, Tree_p attribute, text sh);
 
@@ -461,6 +463,7 @@ private:
     friend class TextSelect;
     friend class Manipulator;
     friend class ControlPoint;
+    friend class Renormalize;
 
     typedef XL::LocalSave<QEvent *>             EventSave;
     typedef std::map<GLuint, uint>              selection_map;
@@ -586,98 +589,89 @@ inline double CurrentTime()
 //
 // ============================================================================
 
-struct DeleteSelectionAction : XL::TreeClone
+struct DeleteSelectionAction : XL::Action
 // ----------------------------------------------------------------------------
 //    A specialized clone action that doesn't copy selected trees
 // ----------------------------------------------------------------------------
 {
     DeleteSelectionAction(Widget *widget): widget(widget) {}
+    Tree *DoInteger(Integer *what)
+    {
+        if (widget->selected(what))
+            return NULL;           
+        return new Integer(what->value, what->Position());
+    }
+    Tree *DoReal(Real *what)
+    {
+        if (widget->selected(what))
+            return NULL;           
+        return new Real(what->value, what->Position());
+
+    }
+    Tree *DoText(Text *what)
+    {
+        if (widget->selected(what))
+            return NULL;           
+        return new Text(what->value, what->opening, what->closing,
+                        what->Position());
+    }
+    Tree *DoName(Name *what)
+    {
+        if (widget->selected(what))
+            return NULL;           
+        return new Name(what->value, what->Position());
+    }
+
+    Tree *DoBlock(Block *what)
+    {
+        if (widget->selected(what))
+            return NULL;
+        Tree *child = what->child->Do(this);
+        if (!child)
+            return NULL;
+        return new Block(child, what->opening, what->closing, what->Position());
+    }
     Tree *DoInfix(XL::Infix *what)
     {
-        if (what->name == "\n" || what->name == ";")
-        {
-            if (widget->selected(what->left))
-            {
-                if (widget->selected(what->right))
-                    return NULL;
-                return what->right->Do(this);
-            }
-            if (widget->selected(what->right))
-                return what->left->Do(this);
-        }
+        if (widget->selected(what))
+            return NULL;
         Tree *left = what->left->Do(this);
         Tree *right = what->right->Do(this);
-        if (left && right)
-            return new XL::Infix(what->name, left, right, what->Position());
-        else if (left)
+        if (!right)
             return left;
-        return right;
+        if (!left)
+            return right;
+        return new Infix(what->name, left, right, what->Position());
+    }
+    Tree *DoPrefix(Prefix *what)
+    {
+        if (widget->selected(what))
+            return NULL;
+        Tree *left = what->left->Do(this);
+        Tree *right = what->right->Do(this);
+        if (!right)
+            return left;
+        if (!left)
+            return right;
+        return new Prefix(left, right, what->Position());
+    }
+    Tree *DoPostfix(Postfix *what)
+    {
+        if (widget->selected(what))
+            return NULL;
+        Tree *left = what->left->Do(this);
+        Tree *right = what->right->Do(this);
+        if (!right)
+            return left;
+        if (!left)
+            return right;
+        return new Postfix(left, right, what->Position());
+    }
+    Tree *Do(Tree *what)
+    {
+        return what;            // ??? Should not happen
     }
     Widget *widget;
-};
-
-
-struct InsertAtSelectionAction : XL::TreeClone
-// ----------------------------------------------------------------------------
-//    A specialized clone action that inserts an input
-// ----------------------------------------------------------------------------
-{
-    InsertAtSelectionAction(Widget *widget,
-                            Tree *toInsert, Tree *parent)
-        : widget(widget), toInsert(toInsert), parent(parent) {}
-
-
-    Tree *DoName(XL::Name *what)
-    {
-        if (what == parent)
-            parent = NULL;
-        return XL::TreeClone::DoName(what);
-    }
-
-    Tree *DoPrefix(XL::Prefix *what)
-    {
-        if (what == parent)
-            parent = NULL;
-        return XL::TreeClone::DoPrefix(what);
-    }
-
-    Tree *DoPostfix(XL::Postfix *what)
-    {
-        if (what == parent)
-            parent = NULL;
-        return XL::TreeClone::DoPostfix(what);
-    }
-
-    Tree *DoBlock(XL::Block *what)
-    {
-        if (what == parent)
-            parent = NULL;
-        return XL::TreeClone::DoBlock(what);
-    }
-
-    Tree *DoInfix(XL::Infix *what)
-    {
-        if (what == parent)
-            parent = NULL;
-
-        if (!parent)
-        {
-            if (what->name == "\n" || what->name == ";")
-            {
-                // Check if we hit the selection. If so, insert
-                if (toInsert && widget->selected(what->left))
-                {
-                    Tree *ins = toInsert;
-                    toInsert = NULL;
-                    return new XL::Infix(what->name, ins, what->Do(this));
-                }
-            }
-        }
-        return XL::TreeClone::DoInfix(what);
-    }
-    Widget   *widget;
-    Tree_p toInsert;
-    Tree_p parent;
 };
 
 

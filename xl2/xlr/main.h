@@ -49,14 +49,15 @@ struct SourceFile
 //    A source file and associated data
 // ----------------------------------------------------------------------------
 {
-    SourceFile(text n, Tree *t, Symbols *s);
+    SourceFile(text n, Tree *t, Symbols *s, bool readOnly = false);
     SourceFile();
     text        name;
     Tree_p      tree;
     Symbols_p   symbols;
     time_t      modified;
-    bool        changed;
     text        hash;
+    bool        changed;
+    bool        readOnly;
 };
 typedef std::map<text, SourceFile> source_files;
 typedef std::vector<text> source_names;
@@ -74,8 +75,8 @@ struct Main
     ~Main();
 
     int  ParseOptions();
-    int  LoadContextFiles(source_names context_file_names);
-    void EvalContextFiles(source_names context_file_names);
+    int  LoadContextFiles(source_names &context_file_names);
+    void EvalContextFiles(source_names &context_file_names);
     int  LoadFiles();
     int  LoadFile(text file, bool updateContext = false);
     text SearchFile(text input);

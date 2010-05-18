@@ -39,16 +39,20 @@
 
 TAO_BEGIN
 
+struct Widget;
+
 struct Renormalize : XL::TreeClone
 // ----------------------------------------------------------------------------
 //   Put the input program back in normal form
 // ----------------------------------------------------------------------------
 {
-    Renormalize();
+    Renormalize(Widget *widget);
     virtual ~Renormalize();
 
     virtual Tree *DoPrefix(Prefix *what);
     virtual Tree *DoInfix(Infix *what);
+
+    Widget *widget;
 };
 
 TAO_END

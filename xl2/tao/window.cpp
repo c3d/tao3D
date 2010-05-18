@@ -47,7 +47,8 @@ Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create a Tao window with default parameters
 // ----------------------------------------------------------------------------
-    : isUntitled(sf == NULL), contextFileNames(context), xlRuntime(xlr),
+    : isUntitled(sf == NULL || sf->readOnly),
+      contextFileNames(context), xlRuntime(xlr),
       repo(NULL), textEdit(NULL), errorMessages(NULL),
       dock(NULL), errorDock(NULL),
       taoWidget(NULL), curFile(),
@@ -745,7 +746,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 //    Load a specific file (and optionally, open project repository)
 // ----------------------------------------------------------------------------
 {
-    if ( openProj &&
+    if (openProj &&
         !openProject(QFileInfo(fileName).canonicalPath(),
                      QFileInfo(fileName).fileName()))
         return false;
@@ -790,13 +791,17 @@ void Window::updateProgram(const QString &fileName)
 // ----------------------------------------------------------------------------
 {
     QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
-    text fn = canonicalFilePath.toStdString();
+    text fn = +canonicalFilePath;
     XL::SourceFile *sf = &xlRuntime->files[fn];
 
     // Clean menus and reload XL program
     resetTaoMenus();
     if (!sf->tree)
         xlRuntime->LoadFile(fn);
+
+    // Check if we can access the file
+    if (access(fn.c_str(), W_OK) == 0)
+        sf->readOnly = true;
 
     taoWidget->updateProgram(sf);
     taoWidget->updateGL();

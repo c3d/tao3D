@@ -553,21 +553,17 @@ void Widget::paste()
         render.Render(tree);
     }
 
-    // Insert tree at current selection, or at end of current page
-    // TODO: paste with an offset to avoid exactly overlapping objects
-    insert(NULL, tree);
-
     // Deselect previous selection
     selection.clear();
     selectionTrees.clear();
 
     // Make sure the new objects appear selected next time they're drawn
-    XL::Infix *i;
-    XL::Tree *t = tree;
-    selectNextTime.clear();
-    for (i = tree->AsInfix(); i ; t = i->right, i = i->right->AsInfix())
-        selectNextTime.insert(i->left);
-    selectNextTime.insert(t);
+    selectStatements(tree);
+
+    // Insert tree at end of current page
+    // TODO: paste with an offset to avoid exactly overlapping objects
+    insert(NULL, tree);
+
 }
 
 
@@ -1293,7 +1289,7 @@ void Widget::updateProgram(XL::SourceFile *source)
 //   Change the XL program, clean up stuff along the way
 // ----------------------------------------------------------------------------
 {
-    Renormalize renorm;
+    Renormalize renorm(this);
     xlProgram = source;
     if (Tree *prog = xlProgram->tree)
     {
@@ -1352,7 +1348,7 @@ void Widget::reloadProgram(XL::Tree *newProg)
     else
     {
         // We want to force a clone so that we recompile everything
-        Renormalize renorm;
+        Renormalize renorm(this);
         newProg = prog->Do(renorm);
         newProg->SetSymbols(prog->Symbols());
         xlProgram->tree = newProg;
@@ -1508,6 +1504,24 @@ void Widget::markChanged(text reason)
 
     // Cause the screen to redraw
     refresh(0);
+}
+
+
+void Widget::selectStatements(Tree *tree)
+// ----------------------------------------------------------------------------
+//   Put all statements in the given selection in the next selection
+// ----------------------------------------------------------------------------
+{
+    selectNextTime.clear();
+    Tree *t = tree;
+    while (Infix *i = t->AsInfix())
+    {
+        if (i->name != "\n" && i->name != ";")
+            break;
+        selectNextTime.insert(i->left);
+        t = i->right;
+    }
+    selectNextTime.insert(t);
 }
 
 
@@ -5002,47 +5016,46 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert)
     if (!xlProgram)
         return XL::xl_false;
 
-    Tree *program = xlProgram->tree;
+    // For 'insert { statement; }', we don't want the { } block
     if (XL::Block *block = toInsert->AsBlock())
         toInsert = block->child;
 
-    InsertAtSelectionAction insert(this, toInsert, pageTree);
-    Tree_p afterInsert = program->Do(insert);
+    // Start at the top of the program to find where we will insert
+    Tree_p *top = &xlProgram->tree;
+    Infix *parent  = NULL;
 
-    // If we never hit the selection during the insert, append
-    if (insert.toInsert)
+    // If we have a current page, insert only in that context
+    if (Tree *page = pageTree)
     {
-        Tree_p *top = &afterInsert;
-        XL::Infix *parent  = NULL;
-        if (pageTree)
-        {
-            if (XL::Prefix *prefix = pageTree->AsPrefix())
-                if (XL::Name *left = prefix->left->AsName())
-                    if (left->value == "do")
-                        pageTree = prefix->right;
-            if (XL::Block *block = pageTree->AsBlock())
-                pageTree = block->child;
+        // Restrict insertion to that page
+        top = &pageTree;
 
-            top = &pageTree;
-        }
+        // The page instructions often runs a 'do' block
+        if (Prefix *prefix = page->AsPrefix())
+            if (Name *left = prefix->left->AsName())
+                if (left->value == "do")
+                    top = &prefix->right;
 
-        program = *top;
-        while (true)
-        {
-            XL::Infix *infix = program->AsInfix();
-            if (!infix)
-                break;
-            if (infix->name != ";" && infix->name != "\n")
-                break;
-            parent = infix;
-            program = infix->right;
-         }
-
-        Tree_p *what = parent ? &parent->right : top;
-        *what = new XL::Infix("\n", *what, toInsert);
+        // If the page code is a block, look inside
+        if (XL::Block *block = (*top)->AsBlock())
+            top = &block->child;
     }
 
-    reloadProgram(afterInsert);
+    // Descend on the right of the statements
+    Tree *program = *top;
+    if (Infix *statements = program->AsInfix())
+    {
+        statements = statements->LastStatement();
+        parent = statements;
+        program = statements->right;
+    }
+
+    // Append at end of the statements
+    Tree_p *what = parent ? &parent->right : top;
+    *what = new XL::Infix("\n", *what, toInsert);
+
+    // Reload the program and mark the changes
+    reloadProgram();
     markChanged("Inserted tree");
 
     return XL::xl_true;

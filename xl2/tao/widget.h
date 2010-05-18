@@ -137,6 +137,7 @@ public:
     void        reloadProgram(Tree *newProg = NULL);
     void        refreshProgram();
     void        markChanged(text reason);
+    void        selectStatements(Tree *tree);
     bool        writeIfChanged(XL::SourceFile &sf);
     bool        doCommit(bool immediate = false);
     Repository *repository();
@@ -166,7 +167,7 @@ public:
     uint        charSelected(uint i)    { return selected(i | CHAR_ID_BIT); }
     uint        charSelected()          { return charSelected(charId); }
     void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
-    uint        selected(Tree_p tree)   { return selectionTrees.count(tree); }
+    uint        selected(Tree* tree)    { return selectionTrees.count(tree); }
     bool        selected()              { return !selectionTrees.empty(); }
     bool        hasSelection()          { return selected(); }
     void        select(Tree *tree)      { selectionTrees.insert(tree); }
@@ -442,7 +443,7 @@ public:
 
     // Tree management
     Name_p      insert(Tree_p self, Tree_p toInsert);
-    void         deleteSelection();
+    void        deleteSelection();
     Name_p      deleteSelection(Tree_p self, text key);
     Name_p      setAttribute(Tree_p self, text name, Tree_p attribute, text sh);
 
@@ -461,6 +462,7 @@ private:
     friend class TextSelect;
     friend class Manipulator;
     friend class ControlPoint;
+    friend class Renormalize;
 
     typedef XL::LocalSave<QEvent *>             EventSave;
     typedef std::map<GLuint, uint>              selection_map;
@@ -614,70 +616,6 @@ struct DeleteSelectionAction : XL::TreeClone
         return right;
     }
     Widget *widget;
-};
-
-
-struct InsertAtSelectionAction : XL::TreeClone
-// ----------------------------------------------------------------------------
-//    A specialized clone action that inserts an input
-// ----------------------------------------------------------------------------
-{
-    InsertAtSelectionAction(Widget *widget,
-                            Tree *toInsert, Tree *parent)
-        : widget(widget), toInsert(toInsert), parent(parent) {}
-
-
-    Tree *DoName(XL::Name *what)
-    {
-        if (what == parent)
-            parent = NULL;
-        return XL::TreeClone::DoName(what);
-    }
-
-    Tree *DoPrefix(XL::Prefix *what)
-    {
-        if (what == parent)
-            parent = NULL;
-        return XL::TreeClone::DoPrefix(what);
-    }
-
-    Tree *DoPostfix(XL::Postfix *what)
-    {
-        if (what == parent)
-            parent = NULL;
-        return XL::TreeClone::DoPostfix(what);
-    }
-
-    Tree *DoBlock(XL::Block *what)
-    {
-        if (what == parent)
-            parent = NULL;
-        return XL::TreeClone::DoBlock(what);
-    }
-
-    Tree *DoInfix(XL::Infix *what)
-    {
-        if (what == parent)
-            parent = NULL;
-
-        if (!parent)
-        {
-            if (what->name == "\n" || what->name == ";")
-            {
-                // Check if we hit the selection. If so, insert
-                if (toInsert && widget->selected(what->left))
-                {
-                    Tree *ins = toInsert;
-                    toInsert = NULL;
-                    return new XL::Infix(what->name, ins, what->Do(this));
-                }
-            }
-        }
-        return XL::TreeClone::DoInfix(what);
-    }
-    Widget   *widget;
-    Tree_p toInsert;
-    Tree_p parent;
 };
 
 

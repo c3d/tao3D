@@ -88,12 +88,19 @@ bool Repository::write(text fileName, XL::Tree *tree)
         renderer.SelectStyleSheet(styleSheet());
         renderer.Render(tree);
         output.flush();
-        ok = output.good()  && !output.fail() && !output.bad();
+        ok = output.good();
     }
 
     // If we were successful writing, rename to new file
+    // Note: on Windows, std::rename (or QDir::rename) fail if
+    // destination exists, hence the rename/rename/remove
+    text backup = full + ".bak";
     if (ok)
+        ok = std::rename(full.c_str(), backup.c_str()) == 0;
+    if (ok)        
         ok = std::rename(copy.c_str(), full.c_str()) == 0;
+    if (ok)
+        ok = std::remove(backup.c_str()) == 0;
 
     state = RS_NotClean;
 

@@ -54,7 +54,7 @@ static inline GLuint computeDefaultTexture()
 // ----------------------------------------------------------------------------
 {
     GLuint txtId;
-    QString file(":/images/defaultImage.svg");
+    QString file(":/images/default_image.svg");
     QImage defOrig(file);
     if (defOrig.isNull())
         return 0;

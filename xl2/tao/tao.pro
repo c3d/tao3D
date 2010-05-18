@@ -64,6 +64,7 @@ HEADERS += widget.h \
     page_layout.h \
     space_layout.h \
     apply_changes.h \
+    normalize.h \
     activity.h \
     selection.h \
     manipulator.h \
@@ -132,6 +133,7 @@ SOURCES += tao_main.cpp \
     page_layout.cpp \
     space_layout.cpp \
     apply_changes.cpp \
+    normalize.cpp \
     activity.cpp \
     selection.cpp \
     manipulator.cpp \
@@ -198,8 +200,7 @@ OTHER_FILES += xl.syntax \
     dbghtml.stylesheet \
     bytecode.stylesheet \
     builtins.xl \
-    graphics.tbl \
-    formulas.tbl \
+    tutorial.ddd \
     git.stylesheet
 
 # Copy the support files to the target directory

@@ -738,6 +738,9 @@ eval_fn CompiledUnit::Finalize()
     }
 
     void *result = compiler->runtime->getPointerToFunction(function);
+    IFTRACE(llvmgc)
+        std::cerr << "Code for " << (void*)function << " = "
+                  << (void *) result << '\n';
     return (eval_fn) result;
 }
 
@@ -1615,13 +1618,13 @@ void ExpressionReduction::Failed()
     CompiledUnit &u = unit;
 
     u.CallTypeError(source);
-    u.code->CreateUnreachable();
+    u.code->CreateBr(successbb);
     if (u.failbb)
     {
         IRBuilder<> failTail(u.failbb);
         u.code->SetInsertPoint(u.failbb);
         u.CallTypeError(source);
-        failTail.CreateUnreachable();
+        failTail.CreateBr(successbb);
         u.failbb = NULL;
     }
 

@@ -75,7 +75,6 @@ struct ControlPoint : Manipulator
     virtual void        DrawSelection(Layout *layout);
     virtual void        Identify(Layout *layout);
 
-protected:
     Real_p              x, y, z;
     uint                id;
 };
@@ -101,6 +100,7 @@ struct FrameManipulator : Manipulator
 
     FrameManipulator(Tree *self,
                      Real *x, Real *y, Real *w, Real *h);
+    virtual void        DrawSelection(Layout *layout);
     virtual bool        DrawHandles(Layout *layout);
     virtual TransformMode CurrentTransformMode();
 
@@ -227,6 +227,21 @@ protected:
 };
 
 
+struct GraphicPath;
+struct GraphicPathManipulator : FrameManipulator
+// ----------------------------------------------------------------------------
+//   Manipulator for GraphicPath
+// ----------------------------------------------------------------------------
+{
+    GraphicPathManipulator(Tree_p self, GraphicPath *path, Tree_p path_tree);
+    virtual bool        DrawHandles(Layout *layout);
+
+protected:
+    GraphicPath       * path;
+    Tree_p              path_tree;
+};
+
+
 struct BoxManipulator : Manipulator
 // ----------------------------------------------------------------------------
 //   Dispays 8 handles in the corner, but clicks in the volume pass through
@@ -303,42 +318,5 @@ protected:
 };
 
 TAO_END
-
-XL_BEGIN
-
-// ============================================================================
-// 
-//    Specialized variant of 'TreeClone' that normalizes -(-x) into x
-// 
-// ============================================================================
-//    Note that -(-x) shows as --x when rendered. That's probably a bug
-
-struct NormalizedCloneMode;
-template<>
-inline Tree *TreeCloneTemplate<NormalizedCloneMode>::DoPrefix(Prefix *what)
-// ----------------------------------------------------------------------------
-//   Specialization of TreeClone that changes -(-x) into x
-// ----------------------------------------------------------------------------
-{
-    if (Name *n = what->left->AsName())
-    {
-        if (n->value == "-")
-        {
-            if (Real *rv = what->right->AsReal())
-                if (rv->value < 0)
-                    return new Real(-rv->value, rv->Position());
-            if (Integer *iv = what->right->AsInteger())
-                if (iv->value < 0)
-                    return new Integer(-iv->value, iv->Position());
-        }
-    }
-    return new Prefix(Clone(what->left), Clone(what->right),
-                      what->Position());
-}
-
-
-typedef XL::TreeCloneTemplate<NormalizedCloneMode> NormalizedClone;
-
-XL_END
 
 #endif // MANIPULATOR_H

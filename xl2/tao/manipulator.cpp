@@ -26,6 +26,7 @@
 #include "layout.h"
 #include "shapes.h"
 #include "widget_surface.h"
+#include "path3d.h"
 #include "gl_keepers.h"
 #include "runtime.h"
 #include "transforms.h"
@@ -62,25 +63,9 @@ void Manipulator::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    if (uint sel = widget->selected(layout))
+    if (widget->selected(layout))
     {
         widget->selectionTrees.insert(self);
-        if (sel < 0x1000)
-        {
-            uint count = 1;
-            uint idR = 99, idT = 99, idS = 99;
-            if (layout->rotationId)       idR = count++;
-            if (layout->translationId)    idT = count++;
-            if (layout->scaleId)          idS = count++;
-
-            sel = (sel-1) % count;
-
-            widget->select(layout->rotationId,    sel == idR ? 0x1000 : 0);
-            widget->select(layout->translationId, sel == idT ? 0x2000 : 0);
-            widget->select(layout->scaleId,       sel == idS ? 0x4000 : 0);
-            widget->select(layout->id,            sel+1);
-        }
-
         glPushName(layout->id);
         DrawHandles(layout);
         glPopName();
@@ -121,7 +106,7 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id, text name)
 }
 
 
-void Manipulator::updateArg(Widget *widget, Tree *arg,
+void Manipulator::updateArg(Widget *, Tree *arg,
                             double first, double previous, double current,
                             double min, double max)
 // ----------------------------------------------------------------------------
@@ -226,8 +211,6 @@ void Manipulator::updateArg(Widget *widget, Tree *arg,
             ival->value = min / scale;
         if (ival->value * scale > max)
             ival->value = max / scale;
-        if (ppptr && ival->value < 0)
-            widget->renormalizeProgram();
     }
     else if (XL::Real *rval = (*ptr)->AsReal())
     {
@@ -236,8 +219,6 @@ void Manipulator::updateArg(Widget *widget, Tree *arg,
             rval->value = min / scale;
         if (rval->value * scale > max)
             rval->value = max / scale;
-        if (ppptr && rval->value < 0)
-            widget->renormalizeProgram();
     }
     else
     {
@@ -254,7 +235,6 @@ void Manipulator::updateArg(Widget *widget, Tree *arg,
                 value = max;
             double delta = (value - previous) / scale;
             *ptr = new XL::Infix("+", new XL::Real(delta), *ptr);
-            widget->renormalizeProgram();
         }
     }
 }
@@ -333,7 +313,7 @@ ControlPoint::ControlPoint(Tree *self, Real *x, Real *y, Real *z, uint id)
 // ----------------------------------------------------------------------------
 //   Record where we want to draw
 // ----------------------------------------------------------------------------
-    : Manipulator(self), x(x), y(y), z(z), id(id)
+    : Manipulator(self), x(x), y(y), z(z), id(id + 4)
 {}
 
 
@@ -375,7 +355,7 @@ bool ControlPoint::DrawHandles(Layout *layout)
 //   For a control point, there is a single handle
 // ----------------------------------------------------------------------------
 {
-    if (DrawHandle(layout, Point3(x, y, z), id))
+    if (DrawHandle(layout, Point3(x, y, z), id, "control_point_handle"))
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
@@ -412,6 +392,20 @@ FrameManipulator::FrameManipulator(Tree *self,
 // ----------------------------------------------------------------------------
     : Manipulator(self), x(x), y(y), w(w), h(h)
 {}
+
+
+void FrameManipulator::DrawSelection(Layout *layout)
+// ----------------------------------------------------------------------------
+//  Draw a rectangular selection unless we double-clicked to edit inside
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = layout->Display();
+    uint sel = widget->selected(layout);
+    if (Widget::doubleClicks(sel))
+        return;
+
+    return Manipulator::DrawSelection(layout);
+}
 
 
 bool FrameManipulator::DrawHandles(Layout *layout)
@@ -1115,6 +1109,111 @@ void WidgetManipulator::DrawSelection(Layout *layout)
         widget->drawSelection(Bounds(layout) + layout->Offset(),
                               "widget_selection");
     }
+}
+
+
+
+// ============================================================================
+//
+//   A GraphicPathManipulator is able to update all the points in a path
+//
+// ============================================================================
+
+GraphicPathManipulator::GraphicPathManipulator(Tree_p self,
+                                               GraphicPath * path,
+                                               Tree_p path_tree)
+// ----------------------------------------------------------------------------
+//   A path manipulator owns a given child and manipulates it
+// ----------------------------------------------------------------------------
+    : FrameManipulator(self,
+                       new XL::Real(), new XL::Real(),  // x, y
+                       new XL::Real(), new XL::Real()), // w, h
+      path(path), path_tree(path_tree)
+{}
+
+
+bool GraphicPathManipulator::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Draw the handles around a graphic path
+// ----------------------------------------------------------------------------
+//   REVISIT: currently the bounding box includes the exterior control points,
+//   we probably want to limit the bb to the actual drawing
+{
+    // Shape manipulations are first handled at the bounding box level, then
+    // individual path control points are moved proportionally
+    Widget *widget = layout->Display();
+    uint sel = widget->selected(layout);
+    if (Widget::doubleClicks(sel))
+        return false;
+
+    GraphicPathInfo *path_info = path_tree->GetInfo<GraphicPathInfo>();
+    if (!path_info)
+    {
+        // Save info about the initial state of the graphic path
+        path_info = new GraphicPathInfo(path);
+        path_tree->SetInfo<GraphicPathInfo> (path_info);
+    }
+
+    // Set manipulator dimensions = current bounding box
+    Box3 b1 = path->bounds;
+    x->value = b1.Center().x;
+    y->value = b1.Center().y;
+    w->value = b1.Width();
+    h->value = b1.Height();
+
+    // Display handles and deal with resize/rotate through FrameManipulator
+    bool changed = FrameManipulator::DrawHandles(layout);
+
+    // Handle shape move
+    if (!changed)
+    {
+        Drag   *drag = widget->drag();
+        if (drag && !widget->manipulatorId())
+        {
+            Point3 p1 = drag->Previous();
+            Point3 p2 = drag->Current();
+            if (p1 != p2)
+            {
+                Point3 p0 = drag->Origin();
+                updateArg(widget, x, p0.x, p1.x, p2.x);
+                updateArg(widget, y, p0.y, p1.y, p2.y);
+                widget->markChanged("Path moved");
+                changed = true;
+            }
+        }
+    }
+
+    if (changed)
+    {
+        // Update each control point to reflect new shape bounding box
+        Box3 b0 = path_info->b0;
+        Point3 lower(x - w/2, y - h/2, 0);
+        Point3 upper(x + w/2, y + h/2, 0);
+        Box3 b2(lower, upper);
+
+        GraphicPath::control_points::iterator i;
+        std::vector<Point3>::iterator j;
+        for (i = path->controls.begin(), j = path_info->controls.begin();
+             i != path->controls.end();
+             i++, j++)
+        {
+            Point3 cp0 = *j;
+            scale kx = (cp0.x - b0.Left())   / b0.Width();
+            scale ky = (cp0.y - b0.Bottom()) / b0.Height();
+
+            Vector3 v1 (kx * b1.Width(), ky * b1.Height(), 0);
+            Point3 cp1 = b1.lower + v1;
+
+            Vector3 v2 (kx * b2.Width(), ky * b2.Height(), 0);
+            Point3 cp2 = b2.lower + v2;
+
+            ControlPoint *child = *i;
+            updateArg(widget, child->x, cp0.x, cp1.x, cp2.x);
+            updateArg(widget, child->y, cp0.y, cp1.y, cp2.y);
+        }
+    }
+
+    return changed;
 }
 
 

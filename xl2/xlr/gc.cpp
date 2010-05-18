@@ -24,6 +24,12 @@
 #include "options.h"
 #include <iostream>
 #include <cstdio>
+#include <cstdlib>
+
+#ifdef CONFIG_MINGW // Windows: When getting in the way becomes an art form...
+#include <malloc.h>
+#endif // CONFIG_MINGW
+
 
 XL_BEGIN
 
@@ -48,11 +54,19 @@ TypeAllocator::TypeAllocator(kstring tn, uint os, mark_fn mark)
       allocatedCount(0), freedCount(0), totalCount(0)
 {
     // Make sure we align everything on Chunk boundaries
-    if (os < sizeof(Chunk))
-        alignedSize = sizeof(Chunk);
+    if ((alignedSize + sizeof (Chunk)) & CHUNKALIGN_MASK)
+    {
+        // Align total size up to 8-bytes boundaries
+        uint totalSize = alignedSize + sizeof(Chunk);
+        totalSize = (totalSize + CHUNKALIGN_MASK) & ~CHUNKALIGN_MASK;
+        alignedSize = totalSize - sizeof(Chunk);
+    }
 
     // Use the address of the garbage collector as signature
     gc = GarbageCollector::Singleton();
+
+    // Register the allocator with the garbage collector
+    gc->Register(this);
 
     // Make sure that we have the correct alignment
     assert(this == ValidPointer(this));
@@ -235,6 +249,39 @@ void TypeAllocator::Sweep()
             }
         }
     }
+}
+
+
+void *TypeAllocator::operator new(size_t size)
+// ----------------------------------------------------------------------------
+//   Force 16-byte alignment not guaranteed by regular operator new
+// ----------------------------------------------------------------------------
+{
+    void *result = NULL;
+#ifdef CONFIG_MINGW // Windows. Enough said
+    result = __mingw_aligned_malloc(size, PTR_MASK+1);
+    if (!result)
+        throw std::bad_alloc();
+#else // Real operating systems
+    if (posix_memalign(&result, PTR_MASK+1, size))
+        throw std::bad_alloc();
+#endif // WINDOWS or real operating system
+    return result;
+}
+
+
+void TypeAllocator::operator delete(void *ptr)
+// ----------------------------------------------------------------------------
+//    Matching deallocation
+// ----------------------------------------------------------------------------
+{
+#ifdef CONFIG_MINGW // Aka MS-DOS NT.
+    // Brain damaged?
+    __mingw_aligned_free(ptr);
+#else // No brain-damage
+    free(ptr);
+#endif // WINDOWS vs. rest of the world 
+
 }
 
 

@@ -132,7 +132,7 @@ public:
     virtual bool        delRemote(QString name)         = 0;
     virtual bool        renRemote(QString oldName, QString newName) = 0;
     virtual QList<Commit> history(int max = 100)        = 0;
-    virtual Process *   asyncClone(QString cloneUrl,
+    virtual Process *   asyncClone(QString cloneUrl, QString newFolder,
                               AnsiTextEdit *out = NULL, void *id = NULL) = 0;
 
 public:

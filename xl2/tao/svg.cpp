@@ -54,7 +54,7 @@ QSvgRenderer * SvgRendererInfo::defaultImageRenderer()
 // ----------------------------------------------------------------------------
 {
     static  QSvgRenderer * defSvg =
-            new QSvgRenderer(QString(":/images/defaultImage.svg"));
+            new QSvgRenderer(QString(":/images/default_image.svg"));
     return defSvg;
 }
 

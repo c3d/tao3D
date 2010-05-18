@@ -29,6 +29,7 @@
 #include "opcodes.h"
 #include <cmath>
 #include <cstdlib>
+#include <ctime>
 #include <sstream>
 
 XL_BEGIN

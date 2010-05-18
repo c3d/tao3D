@@ -570,35 +570,36 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
             }
         }
 
-        // Create the shorthened stroke
-        // If the path is flat, use a QPainterPathStroker
         QPainterPath path;
         if ( extractQtPath(outline, path) )
-            {
-                QPainterPathStroker stroker;
-                stroker.setWidth(where->lineWidth);
-                stroker.setCapStyle(Qt::FlatCap);
-                stroker.setJoinStyle(Qt::RoundJoin);
-                stroker.setDashPattern(Qt::SolidLine);
-                QPainterPath stroke = stroker.createStroke(path);
-                outline.clear();
-                outline.addQtPath(stroke);
-            }
+        // If the path is flat, use a QPainterPathStroker
+        {
+            // Create the shorthened stroke
+            QPainterPathStroker stroker;
+            stroker.setWidth(where->lineWidth);
+            stroker.setCapStyle(Qt::FlatCap);
+            stroker.setJoinStyle(Qt::RoundJoin);
+            stroker.setDashPattern(Qt::SolidLine);
+            QPainterPath stroke = stroker.createStroke(path);
+            outline.clear();
+            outline.addQtPath(stroke);
 
-        // Draw the endpoints
-        if (!first)
-        {
-            addEndpointToPath(startStyle, startPoint, startHeading, outline);
+            // Draw the endpoints
+            if (!first)
+            {
+                addEndpointToPath(startStyle, startPoint, startHeading, outline);
+            }
+            if (!last)
+            {
+                addEndpointToPath(endStyle, endPoint, endHeading, outline);
+            }
+            outline.Draw(where->offset, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
         }
-        if (!last)
+        else
+        // Otherwise, use GL lines
         {
-            addEndpointToPath(endStyle, endPoint, endHeading, outline);
+            Draw(where->offset, GL_LINE_STRIP, 0);
         }
-        outline.Draw(where->offset, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
-    }
-    else
-    {
-        Draw(where->offset, tessel ? GL_LINE_LOOP : GL_LINE_STRIP, 0);
     }
 }
 
@@ -1046,7 +1047,9 @@ void GraphicPath::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    if (widget->selected(layout))
+    uint sel = widget->selected(layout);
+
+    if (Widget::doubleClicks(sel))
     {
         glPushName(layout->id);
         control_points::iterator i;
@@ -1077,6 +1080,21 @@ void GraphicPath::Identify(Layout *layout)
             child->Identify(layout);
         }
         glPopName();
+    }
+}
+
+
+GraphicPathInfo::GraphicPathInfo(GraphicPath *path)
+// ----------------------------------------------------------------------------
+//   Store information about a GraphicPath
+// ----------------------------------------------------------------------------
+{
+    b0 = path->bounds;
+    GraphicPath::control_points::iterator i;
+    for (i = path->controls.begin(); i != path->controls.end(); i++)
+    {
+        ControlPoint *child = *i;
+        controls.push_back(Point3(child->x, child->y, child->z));
     }
 }
 

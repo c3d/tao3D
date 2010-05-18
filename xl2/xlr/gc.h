@@ -76,6 +76,9 @@ public:
     static bool         IsAllocated(void *ptr);
     static bool         InUse(void *ptr);
 
+    void *operator new(size_t size);
+    void operator delete(void *ptr);
+
 public:
     enum ChunkBits
     {
@@ -110,7 +113,7 @@ public:
     static void *       highestAddress;
     static void *       lowestAllocatorAddress;
     static void *       highestAllocatorAddress;
-};
+} __attribute__((aligned(16)));
 
 
 template <class Object, typename ValueType=void> struct GCPtr;
@@ -423,14 +426,11 @@ Allocator<Object> * Allocator<Object>::Singleton()
 // ----------------------------------------------------------------------------
 {
     static Allocator *allocator = NULL;
+
     if (!allocator)
-    {
         // Create the singleton
         allocator = new Allocator;
 
-        // Register the allocator with the garbage collector
-        GarbageCollector::Singleton()->Register(allocator);
-    }
     return allocator;
 }
 

@@ -47,7 +47,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create a Tao window with default parameters
 // ----------------------------------------------------------------------------
-    : isUntitled(sf == NULL || sf->readOnly),
+    : isUntitled(sf == NULL), isReadOnly(sf == NULL || sf->readOnly),
       contextFileNames(context), xlRuntime(xlr),
       repo(NULL), textEdit(NULL), errorMessages(NULL),
       dock(NULL), errorDock(NULL),
@@ -93,12 +93,9 @@ Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
     readSettings();
     setUnifiedTitleAndToolBarOnMac(true);
     bool loaded = false;
-    if (sf)
-    {
-        QString fileName(+sf->name);
-        if (loadFile(fileName, true))
-            loaded = true;
-    }
+    QString fileName(+sf->name);
+    if (loadFile(fileName, !sf->readOnly))
+        loaded = true;
     if (!loaded)
         setCurrentFile("");
 
@@ -166,7 +163,7 @@ void Window::checkFiles()
         {
             import_set done;
             if (ImportedFilesChanged(prog->tree, done, false))
-                loadFile(+prog->name);
+                loadFile(+prog->name, !prog->readOnly);
         }
     }
 }
@@ -229,22 +226,24 @@ void Window::open(QString fileName)
         return;
     }
 
-    if (isUntitled &&
+    if ((isUntitled || isReadOnly) &&
         textEdit->document()->isEmpty() &&
         !isWindowModified())
     {
-        if (!loadFile(fileName, true))
+        text fn = +fileName;
+        isReadOnly = access(fn.c_str(), W_OK) == 0;
+        if (!loadFile(fileName, !isReadOnly))
             return;
     }
     else
     {
         QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
         XL::source_names noExtraContext;
-        text fn = canonicalFilePath.toStdString();
+        text fn = +canonicalFilePath;
         xlRuntime->LoadFile(fn);
         XL::SourceFile &sf = xlRuntime->files[fn];
         Window *other = new Window(xlRuntime, noExtraContext, &sf);
-        if (other->isUntitled ||
+        if ((other->isUntitled && !sf.readOnly) ||
             !other->openProject(QFileInfo(+sf.name).canonicalPath(),
                                 QFileInfo(+sf.name).fileName()))
         {
@@ -264,7 +263,7 @@ bool Window::save()
 //    Save the current window
 // ----------------------------------------------------------------------------
 {
-    if (isUntitled)
+    if (isUntitled || isReadOnly)
         return saveAs();
     return saveFile(curFile);
 }
@@ -1178,7 +1177,9 @@ void Window::setCurrentFile(const QString &fileName)
         } while (exists);
     }
 
-    curFile = QFileInfo(name).absoluteFilePath();
+    QFileInfo fi(name);
+    curFile = fi.absoluteFilePath();
+    isReadOnly |= !fi.isWritable();
 
     markChanged(false);
     setWindowFilePath(curFile);

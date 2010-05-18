@@ -1,3 +1,10 @@
 page "What is Tao?", do
     text_box 0,0,800,600, do
+        font "Papyrus"
+        font_size 44
+        color 0,0,1,30%
+        line_color 1,1,0,80%
+        line_width 2
+        center 0.5
+        vertical_center 0.5
         text "Welcome to Tao..."

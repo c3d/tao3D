@@ -63,6 +63,7 @@ public:
     bool loadFileIntoSourceFileView(const QString &fileName, bool box=false);
 
     bool isUntitled;
+    bool isReadOnly;
 
 public:
     QUndoStack       * undoStack;

@@ -1,0 +1,3 @@
+page "What is Tao?", do
+    text_box 0,0,800,600, do
+        text "Welcome to Tao..."

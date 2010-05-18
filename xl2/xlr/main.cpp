@@ -49,16 +49,18 @@ XL_BEGIN
 
 Main *MAIN = NULL;
 
-SourceFile::SourceFile(text n, Tree *t, Symbols *s)
+SourceFile::SourceFile(text n, Tree *t, Symbols *s, bool ro)
 // ----------------------------------------------------------------------------
 //   Construct a source file given a name
 // ----------------------------------------------------------------------------
     : name(n), tree(t), symbols(s),
-      modified(0), changed(false)
+      modified(0), changed(false), readOnly(ro)
 {
     struct stat st;
     stat (n.c_str(), &st);
     modified = st.st_mtime;
+    if (access(n.c_str(), W_OK) == 0)
+        readOnly = true;
 }
 
 
@@ -110,8 +112,8 @@ int Main::ParseOptions()
 //   Load all files given on the command line and compile them
 // ----------------------------------------------------------------------------
 {
-    text                         cmd, end = "";
-    int                          filenum = 0;
+    text cmd, end = "";
+    int  filenum  = 0;
 
     // Make sure debug function is linked in...
     if (getenv("SHOW_INITIAL_DEBUG"))
@@ -148,8 +150,9 @@ int Main::LoadFiles()
 //   Load all files given on the command line and compile them
 // ----------------------------------------------------------------------------
 {
-    std::vector<text>::iterator  file;
-    bool                         hadError = false;
+    source_names::iterator  file;
+    bool hadError = false;
+
     // Loop over files we will process
     for (file = file_names.begin(); file != file_names.end(); file++)
         hadError |= LoadFile(*file);
@@ -158,36 +161,32 @@ int Main::LoadFiles()
 }
 
 
-int Main::LoadContextFiles( source_names context_file_names)
+int Main::LoadContextFiles(source_names &ctxFiles)
 // ----------------------------------------------------------------------------
 //   Load all files given on the command line and compile them
 // ----------------------------------------------------------------------------
 {
-    std::vector<text>::iterator  file;
-    bool                         hadError = false;
+    source_names::iterator file;
+    bool hadError = false;
 
-    // clear previous context
-
-    // load builtins
+    // Load builtins
     if (!options.builtins.empty())
         hadError |= LoadFile(options.builtins, true);
 
     // Loop over files we will process
-    for (file = context_file_names.begin();
-         file != context_file_names.end(); file++)
-    {
+    for (file = ctxFiles.begin(); file != ctxFiles.end(); file++)
         hadError |= LoadFile(*file, true);
-    }
+
     return hadError;
 }
 
 
-void Main::EvalContextFiles(source_names context_file_names)
+void Main::EvalContextFiles(source_names &ctxFiles)
 // ----------------------------------------------------------------------------
 //   Evaluate the context files
 // ----------------------------------------------------------------------------
 {
-    std::vector<text>::iterator  file;
+    source_names::iterator  file;
 
     // Execute xl.builtins file first
     if (!options.builtins.empty())
@@ -195,9 +194,7 @@ void Main::EvalContextFiles(source_names context_file_names)
             xl_evaluate(builtins_file);
 
     // Execute other context files (user.xl, theme.xl)
-    for (file = context_file_names.begin();
-         file != context_file_names.end();
-         file++)
+    for (file = ctxFiles.begin(); file != ctxFiles.end(); file++)
         if (Tree *context_file = files[*file].tree)
             xl_evaluate(context_file);
 }
@@ -278,11 +275,6 @@ int Main::LoadFile(text file, bool updateContext)
             files[file] = SourceFile (file, NULL, NULL);
             hadError = false;
         }
-        else
-        {
-            hadError = true;
-        }
-        return hadError;
     }
 
     Symbols *syms = Symbols::symbols;
@@ -296,14 +288,15 @@ int Main::LoadFile(text file, bool updateContext)
         syms = new Symbols(syms);
     }
     Symbols::symbols = syms;
-    tree->SetSymbols(syms);
+    if (tree)
+        tree->SetSymbols(syms);
 
     if (options.fileLoad)
         std::cout << "Loading: " << file << "\n";
 
     files[file] = SourceFile (file, tree, syms);
 
-    if (options.showGV)
+    if (options.showGV && tree)
     {
         SetNodeIdAction sni;
         BreadthFirstSearch bfs(sni);
@@ -317,14 +310,14 @@ int Main::LoadFile(text file, bool updateContext)
 
     if (!options.parseOnly)
     {
-        if (options.optimize_level)
+        if (options.optimize_level && tree)
         {
             tree = syms->CompileAll(tree);
+            if (!tree)
+                hadError = true;
+            else
+                files[file].tree = tree;
         }
-        if (!tree)
-            hadError = true;
-        else
-            files[file].tree = tree;
     }
 
     if (options.verbose)

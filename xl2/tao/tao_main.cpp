@@ -63,6 +63,7 @@ int main(int argc, char **argv)
     QFileInfo syntax    ("system:xl.syntax");
     QFileInfo stylesheet("system:xl.stylesheet");
     QFileInfo builtins  ("system:builtins.xl");
+    QFileInfo tutorial  ("system:tutorial.ddd");
 
     // Setup the XL runtime environment
     XL::Compiler compiler("xl_tao");
@@ -71,23 +72,23 @@ int main(int argc, char **argv)
                                  +stylesheet.canonicalFilePath(),
                                  +builtins.canonicalFilePath());
     XL::MAIN = xlr;
-    XL::source_names contextFileNames;
+    XL::source_names contextFiles;
     EnterGraphics(xlr->context);
 
     xlr->ParseOptions();
     if (user.exists())
-        contextFileNames.push_back(+user.canonicalFilePath());
+        contextFiles.push_back(+user.canonicalFilePath());
     if (theme.exists())
-        contextFileNames.push_back(+theme.canonicalFilePath());
+        contextFiles.push_back(+theme.canonicalFilePath());
+    xlr->LoadContextFiles(contextFiles);
 
-    xlr->LoadContextFiles(contextFileNames);
-
+    // Load the files
     xlr->LoadFiles();
 
     // Create the windows for each file on the command line
-    XL::source_names::iterator it;
-    XL::source_names &names = xlr->file_names;
     bool hadFile = false;
+    XL::source_names &names = xlr->file_names;
+    XL::source_names::iterator it;
     for (it = names.begin(); it != names.end(); it++)
     {
         using namespace Tao;
@@ -95,7 +96,7 @@ int main(int argc, char **argv)
         {
             XL::SourceFile &sf = xlr->files[*it];
             hadFile = true;
-            Tao::Window *window = new Tao::Window (xlr, contextFileNames, &sf);
+            Tao::Window *window = new Tao::Window (xlr, contextFiles, &sf);
             if (window->isUntitled)
                 delete window;
             else
@@ -110,8 +111,17 @@ int main(int argc, char **argv)
     }
     if (!hadFile)
     {
-        Tao::Window *untitled = new Tao::Window(xlr, contextFileNames, NULL);
-        untitled->show();
+        text tuto = +tutorial.canonicalFilePath();
+        if (!xlr->LoadFile(tuto))
+        {
+            if (xlr->files.count(tuto))
+            {
+                XL::SourceFile &sf = xlr->files[tuto];
+                sf.readOnly = true;
+                Tao::Window *untitled = new Tao::Window(xlr, contextFiles, &sf);
+                untitled->show();
+            }
+        }
     }
 
     return tao.exec();

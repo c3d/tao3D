@@ -63,6 +63,7 @@ public:
     bool loadFileIntoSourceFileView(const QString &fileName, bool box=false);
 
     bool isUntitled;
+    bool isReadOnly;
 
 public:
     QUndoStack       * undoStack;
@@ -109,6 +110,7 @@ private:
     bool loadFile(const QString &fileName, bool openProj = false);
     bool saveFile(const QString &fileName);
     void setCurrentFile(const QString &fileName);
+    QString findUnusedUntitledFile();
     QString strippedName(const QString &fullFileName);
     Window *findWindow(const QString &fileName);
     void updateProgram(const QString &filename);

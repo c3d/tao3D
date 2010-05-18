@@ -59,7 +59,7 @@ SourceFile::SourceFile(text n, Tree *t, Symbols *s, bool ro)
     struct stat st;
     stat (n.c_str(), &st);
     modified = st.st_mtime;
-    if (access(n.c_str(), W_OK) == 0)
+    if (access(n.c_str(), W_OK) != 0)
         readOnly = true;
 }
 
@@ -158,6 +158,16 @@ int Main::LoadFiles()
         hadError |= LoadFile(*file);
 
     return hadError;
+}
+
+
+SourceFile *Main::NewFile(text path)
+// ----------------------------------------------------------------------------
+//   Allocate an entry for updating programs (untitled)
+// ----------------------------------------------------------------------------
+{
+    files[path] = SourceFile(path, NULL, new Symbols(Symbols::symbols), true);
+    return &files[path];
 }
 
 

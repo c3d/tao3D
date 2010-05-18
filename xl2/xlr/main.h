@@ -74,14 +74,15 @@ struct Main
          text builtins = "xl.builtins");
     ~Main();
 
-    int  ParseOptions();
-    int  LoadContextFiles(source_names &context_file_names);
-    void EvalContextFiles(source_names &context_file_names);
-    int  LoadFiles();
-    int  LoadFile(text file, bool updateContext = false);
-    text SearchFile(text input);
-    int  Run();
-    int  Diff();
+    int        ParseOptions();
+    int        LoadContextFiles(source_names &context_file_names);
+    void       EvalContextFiles(source_names &context_file_names);
+    int        LoadFiles();
+    int        LoadFile(text file, bool updateContext = false);
+    SourceFile *NewFile(text path);
+    text       SearchFile(text input);
+    int        Run();
+    int        Diff();
 
 public:
     int          argc;

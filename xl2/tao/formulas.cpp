@@ -17,7 +17,7 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2010 JÃ©rÃ´me Forissier <jerome@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
 //  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
 //  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
@@ -43,11 +43,21 @@ namespace TaoFormulas
 
 void EnterFormulas(XL::Symbols *c)
 // ----------------------------------------------------------------------------
-//   Enter all the basic operations defined in basics.tbl
+//   Enter all the operations defined in formulas.tbl
 // ----------------------------------------------------------------------------
 {
     XL::Compiler *compiler = XL::Context::context->compiler;
 #include "opcodes_define.h"
+#include "formulas.tbl"
+}
+
+
+void DeleteFormulas()
+// ----------------------------------------------------------------------------
+//   Delete all the global operations defined in formulas.tbl
+// ----------------------------------------------------------------------------
+{
+#include "opcodes_delete.h"
 #include "formulas.tbl"
 }
 }

@@ -29,14 +29,18 @@
 #include "widget.h"
 #include "window.h"
 #include "main.h"
+#include "basics.h"
 #include "graphics.h"
 #include "tao_utf8.h"
+#include "gc.h"
 
 #include <QDir>
 #include <QtGui>
 #include <QtGui/QApplication>
 #include <QtGui/QMessageBox>
 
+
+static void cleanup();
 
 int main(int argc, char **argv)
 // ----------------------------------------------------------------------------
@@ -114,9 +118,34 @@ int main(int argc, char **argv)
         untitled->show();
     }
 
-    return tao.exec();
+    int ret = tao.exec();
+
+    cleanup();
+
+    // HACK: it seems that cleanup() does not clean everything, at least on
+    // Windows -- without the exit() call, the windows build crashes at exit
+    exit(ret);
+
+    return ret;
 }
 
+namespace TaoFormulas { void DeleteFormulas(); }
+
+void cleanup()
+// ----------------------------------------------------------------------------
+//   Cleaning up before exit
+// ----------------------------------------------------------------------------
+{
+    // First, discard ALL global (smart) pointers to XL types/names
+    XL::Symbols::symbols = NULL;
+    XL::Context::context = NULL;
+    XL::DeleteBasics();
+    DeleteGraphics();     // REVISIT: move to Tao:: namespace?
+    TaoFormulas::DeleteFormulas();
+
+    // No more global refs, deleting GC will purge everything
+    XL::GarbageCollector::Delete();
+}
 
 XL_BEGIN
 text Main::SearchFile(text file)

@@ -43,6 +43,9 @@ XL_BEGIN
 // Top-level entry point: enter all basic operations in the context
 void EnterBasics(Context *context);
 
+// Top-level entry point: delete all globals related to basic operations
+void DeleteBasics();
+
 
 
 // ============================================================================

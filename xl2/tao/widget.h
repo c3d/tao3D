@@ -136,6 +136,7 @@ public:
     void        applyAction(Action &action);
     void        reloadProgram(Tree *newProg = NULL);
     void        refreshProgram();
+    void        updateProgramSource();
     void        markChanged(text reason);
     void        selectStatements(Tree *tree);
     bool        writeIfChanged(XL::SourceFile &sf);
@@ -184,8 +185,8 @@ public:
     Point3      unproject (coord x, coord y, coord z = 0.0);
     Drag *      drag();
     TextSelect *textSelection();
-    void        drawSelection(const Box3 &bounds, text name);
-    void        drawHandle(const Point3 &point, text name);
+    void        drawSelection(const Box3 &bounds, text name, uint id);
+    void        drawHandle(const Point3 &point, text name, uint id);
     template<class Activity>
     Activity *  active();
     void        checkCopyAvailable();
@@ -588,32 +589,87 @@ inline double CurrentTime()
 //
 // ============================================================================
 
-struct DeleteSelectionAction : XL::TreeClone
+struct DeleteSelectionAction : XL::Action
 // ----------------------------------------------------------------------------
 //    A specialized clone action that doesn't copy selected trees
 // ----------------------------------------------------------------------------
 {
     DeleteSelectionAction(Widget *widget): widget(widget) {}
+    Tree *DoInteger(Integer *what)
+    {
+        if (widget->selected(what))
+            return NULL;           
+        return new Integer(what->value, what->Position());
+    }
+    Tree *DoReal(Real *what)
+    {
+        if (widget->selected(what))
+            return NULL;           
+        return new Real(what->value, what->Position());
+
+    }
+    Tree *DoText(Text *what)
+    {
+        if (widget->selected(what))
+            return NULL;           
+        return new Text(what->value, what->opening, what->closing,
+                        what->Position());
+    }
+    Tree *DoName(Name *what)
+    {
+        if (widget->selected(what))
+            return NULL;           
+        return new Name(what->value, what->Position());
+    }
+
+    Tree *DoBlock(Block *what)
+    {
+        if (widget->selected(what))
+            return NULL;
+        Tree *child = what->child->Do(this);
+        if (!child)
+            return NULL;
+        return new Block(child, what->opening, what->closing, what->Position());
+    }
     Tree *DoInfix(XL::Infix *what)
     {
-        if (what->name == "\n" || what->name == ";")
-        {
-            if (widget->selected(what->left))
-            {
-                if (widget->selected(what->right))
-                    return NULL;
-                return what->right->Do(this);
-            }
-            if (widget->selected(what->right))
-                return what->left->Do(this);
-        }
+        if (widget->selected(what))
+            return NULL;
         Tree *left = what->left->Do(this);
         Tree *right = what->right->Do(this);
-        if (left && right)
-            return new XL::Infix(what->name, left, right, what->Position());
-        else if (left)
+        if (!right)
             return left;
-        return right;
+        if (!left)
+            return right;
+        return new Infix(what->name, left, right, what->Position());
+    }
+    Tree *DoPrefix(Prefix *what)
+    {
+        if (widget->selected(what))
+            return NULL;
+        Tree *left = what->left->Do(this);
+        Tree *right = what->right->Do(this);
+        if (!right)
+            return left;
+        if (!left)
+            return right;
+        return new Prefix(left, right, what->Position());
+    }
+    Tree *DoPostfix(Postfix *what)
+    {
+        if (widget->selected(what))
+            return NULL;
+        Tree *left = what->left->Do(this);
+        Tree *right = what->right->Do(this);
+        if (!right)
+            return left;
+        if (!left)
+            return right;
+        return new Postfix(left, right, what->Position());
+    }
+    Tree *Do(Tree *what)
+    {
+        return what;            // ??? Should not happen
     }
     Widget *widget;
 };

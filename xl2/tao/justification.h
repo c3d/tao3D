@@ -204,7 +204,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
             else
             {
                 // It fits, place it
-                hadBreak |= next != NULL;
+                hadBreak |= next != NULL || size<=0;
                 places.push_back(Place(item, size, pos+sign*offset, !hadBreak));
                 pos += sign * size;
                 lastSpace = SpaceSize(item, layout) * spacing;
@@ -239,7 +239,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
             items.clear();
     }
     // If there is no place where we can justify, center instead
-    if (numSolids + numBreaks <= 1)
+    if (numSolids <= 1)
         just = 0;
     if (lastSpace == 0)
         numBreaks++;

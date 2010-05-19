@@ -75,6 +75,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
     errorDock = new QDockWidget(tr("Errors"));
     errorDock->setAllowedAreas(Qt::AllDockWidgetAreas);
     errorMessages = new QTextEdit(errorDock);
+    errorMessages->setReadOnly(true);
     errorDock->setWidget(errorMessages);
     errorDock->hide();
     addDockWidget(Qt::BottomDockWidgetArea, errorDock);

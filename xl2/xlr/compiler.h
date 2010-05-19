@@ -184,8 +184,8 @@ struct CompiledUnit
 
 public:
     Compiler *          compiler;       // The compiler environment we use
-    llvm::LLVMContext *context;        // The context we got from compiler
-    Tree *              source;         // The original source we compile
+    llvm::LLVMContext * context;        // The context we got from compiler
+    Tree_p              source;         // The original source we compile
 
     llvm::IRBuilder<> * code;           // Instruction builder for code
     llvm::IRBuilder<> * data;           // Instruction builder for data

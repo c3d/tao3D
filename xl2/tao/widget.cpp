@@ -3945,11 +3945,19 @@ Tree_p Widget::colorChooser(Tree_p self, text treeName, Tree_p action)
     updateColorDialog();
 
     // Connect the dialog and show it
-    connect(colorDialog, SIGNAL(colorSelected (const QColor&)),
-            this, SLOT(colorChosen(const QColor &)));
+    if(QSysInfo::MacintoshVersion)
+    {
+        colorDialog->setOption(QColorDialog::NoButtons, true);
+    }
+    else
+    {
+        connect(colorDialog, SIGNAL(colorSelected (const QColor&)),
+                this, SLOT(colorChosen(const QColor &)));
+        connect(colorDialog, SIGNAL(rejected()), this, SLOT(colorRejected()));
+    }
+
     connect(colorDialog, SIGNAL(currentColorChanged (const QColor&)),
             this, SLOT(colorChanged(const QColor &)));
-    connect(colorDialog, SIGNAL(rejected()), this, SLOT(colorRejected()));
     colorDialog->show();
 
 

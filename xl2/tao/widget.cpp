@@ -345,7 +345,6 @@ void Widget::runProgram()
     IFTRACE(memory)
         std::cerr << "cleared, count = " << space->count << ", ";
     XL::LocalSave<Layout *> saveLayout(layout, space);
-    selectionTrees.clear();
     id = charId = 0;
 
     // Evaluate the program
@@ -378,6 +377,7 @@ void Widget::runProgram()
     IFTRACE(memory)
         std::cerr << "Draw, count = " << space->count << "\n";
     id = charId = 0;
+    selectionTrees.clear();
     space->DrawSelection(NULL);
 
     // Clipboard management
@@ -401,6 +401,7 @@ void Widget::updateSelection()
 // ----------------------------------------------------------------------------
 {
     id = charId = 0;
+    selectionTrees.clear();
     space->DrawSelection(NULL);
 }
 

@@ -36,6 +36,7 @@ macx {
     QMAKE_INFO_PLIST = Info.plist
 }
 win32:DEFINES += CONFIG_MINGW
+
 # For debug
 # win32:CONFIG += console
 linux-g++:DEFINES += CONFIG_LINUX
@@ -108,7 +109,8 @@ HEADERS += widget.h \
     publish_to_dialog.h \
     undo.h \
     clone_dialog.h \
-    ansi_textedit.h
+    ansi_textedit.h \
+    ../xlr/opcodes_delete.h
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \

@@ -254,7 +254,7 @@ void LayoutLine::DrawSelection(Layout *where)
 
             glBlendFunc(GL_DST_COLOR, GL_ZERO);
             text mode = sel->textMode ? "text_selection" : "text_highlight";
-            widget->drawSelection(sel->selBox, mode);
+            widget->drawSelection(sel->selBox, mode, 0);
             sel->selBox.Empty();
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
@@ -263,7 +263,7 @@ void LayoutLine::DrawSelection(Layout *where)
         {
             glBlendFunc(GL_DST_COLOR, GL_ZERO);
             text mode = "formula_highlight";
-            widget->drawSelection(sel->formulaBox, mode);
+            widget->drawSelection(sel->formulaBox, mode, 0);
             sel->formulaBox.Empty();
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
@@ -596,7 +596,7 @@ void PageLayout::Add(Items::iterator first, Items::iterator last)
         }
         places.clear();
 
-        // Then again with leftover if any (noramlly not that many that late)
+        // Then again with leftover if any (normally not that many that late)
         items.insert(items.end(), line.items.begin(), line.items.end());
         line.items.clear();
     }

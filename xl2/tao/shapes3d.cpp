@@ -41,7 +41,7 @@ void Shape3::DrawSelection(Layout *layout)
         XL::LocalSave<Color> saveLine(layout->lineColor, line);
         XL::LocalSave<Color> saveFill(layout->fillColor, fill);
         widget->drawSelection(Bounds(layout) + layout->Offset(),
-                              "3D_selection");
+                              "3D_selection", 0);
     }
 }
 

@@ -41,6 +41,9 @@
 #include <QList>
 #include <QRegExp>
 
+#define TAO_FILESPECS "Tao documents (*.ddd);;XL programs (*.xl);;" \
+                      "Headers (*.dds *.xs);;All files (*.*)"
+
 TAO_BEGIN
 
 Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
@@ -196,10 +199,25 @@ void Window::newFile()
 //   Create a new window
 // ----------------------------------------------------------------------------
 {
-    XL::source_names noExtraContext;
-    Window *other = new Window(xlRuntime, noExtraContext, NULL);
-    other->move(x() + 40, y() + 40);
-    other->show();
+    if (isReadOnly && !isWindowModified())
+    {
+        QString fileName = findUnusedUntitledFile();
+        XL::SourceFile *sf = xlRuntime->NewFile(+fileName);
+        isUntitled = true;
+        isReadOnly = false;
+        setCurrentFile(fileName);
+        setText("");
+        markChanged(false);
+        taoWidget->updateProgram(sf);
+        taoWidget->refresh();
+    }
+    else
+    {
+        XL::source_names noExtraContext;
+        Window *other = new Window(xlRuntime, noExtraContext, NULL);
+        other->move(x() + 40, y() + 40);
+        other->show();
+    }
 }
 
 
@@ -214,8 +232,7 @@ void Window::open(QString fileName)
                            (this,
                             tr("Open Tao Document"),
                             currentProjectFolderPath(),
-                            tr("Tao documents (*.ddd);;XL programs (*.xl);;"
-                               "Headers (*.dds *.xs);;All files (*.*)"));
+                            tr(TAO_FILESPECS));
 
         if (fileName.isEmpty())
             return;
@@ -230,9 +247,7 @@ void Window::open(QString fileName)
         return;
     }
 
-    if ((isUntitled || isReadOnly) &&
-        textEdit->document()->isEmpty() &&
-        !isWindowModified())
+    if (!needNewWindow())
     {
         text fn = +fileName;
         isReadOnly = access(fn.c_str(), W_OK) != 0;
@@ -282,7 +297,8 @@ bool Window::saveAs()
     // path be the basename of file, as the user types it, while still
     // allowing override of directory name.
     QString fileName =
-        QFileDialog::getSaveFileName(this, tr("Save As"), curFile);
+        QFileDialog::getSaveFileName(this, tr("Save As"), curFile,
+                                     tr(TAO_FILESPECS));
     if (fileName.isEmpty())
         return false;
     QString projpath = QFileInfo(fileName).absolutePath();
@@ -741,6 +757,18 @@ bool Window::maybeSave()
             return false;
     }
     return true;
+}
+
+
+bool Window::needNewWindow()
+// ----------------------------------------------------------------------------
+//   Check if we need a new window or if we can recycle the old one
+// ----------------------------------------------------------------------------
+//   We need a new window if
+//   - The document has been modified
+//   - The document
+{
+    return isWindowModified() || !(isReadOnly || isUntitled);
 }
 
 

@@ -219,10 +219,11 @@ struct GarbageCollector
     ~GarbageCollector();
 
     void        Register(TypeAllocator *a);
-    void        RunCollection(bool force=false);
+    void        RunCollection(bool force=false, bool mark=true);
     void        MustRun()    { mustRun = true; }
 
     static GarbageCollector *   Singleton();
+    static void                 Delete();
     static void                 Collect(bool force=false);
     static void                 CollectionNeeded() { Singleton()->MustRun(); }
 
@@ -239,6 +240,7 @@ protected:
     std::vector<TypeAllocator *> allocators;
     std::set<Listener *>         listeners;
     bool mustRun;
+    static GarbageCollector *    gc;
 
     friend void ::debuggc(void *ptr);
 };
@@ -357,7 +359,7 @@ inline uint TypeAllocator::Acquire(void *pointer)
 
 inline uint TypeAllocator::Release(void *pointer)
 // ----------------------------------------------------------------------------
-//   Increase reference count for pointer and return it
+//   Decrease reference count for pointer and return it
 // ----------------------------------------------------------------------------
 {
     uint count = 0;

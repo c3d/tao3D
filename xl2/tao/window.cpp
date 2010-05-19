@@ -856,6 +856,7 @@ bool Window::saveFile(const QString &fileName)
         XL::SourceFile &sf = xlRuntime->files[fn];
         sf.changed = true;
         taoWidget->markChanged("Manual save");
+        taoWidget->writeIfChanged(sf);
         taoWidget->doCommit(true);
         sf.changed = false;
     }

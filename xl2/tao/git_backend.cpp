@@ -197,6 +197,8 @@ bool GitRepository::change(text name)
 //   Signal that a file in the repository changed
 // ----------------------------------------------------------------------------
 {
+    mergeCommitMessages(nextCommitMessage, whatsNew);
+    whatsNew = "";
     dispatch(new Process(command(), QStringList("add") << +name, path, false));
     return true;
 }
@@ -219,8 +221,8 @@ bool GitRepository::commit(text message, bool all)
 {
     if (message == "")
     {
-        message = whatsNew;
-        whatsNew = "";
+        message = nextCommitMessage;
+        nextCommitMessage = "";
     }
     QStringList args("commit");
     if (all)
@@ -250,9 +252,10 @@ bool GitRepository::asyncCommit(text message, bool all)
     }
     if (message == "")
     {
-        message = whatsNew;
-        whatsNew = "";
+        message = nextCommitMessage;
+        nextCommitMessage = "";
     }
+    state = RS_Clean;
     QStringList args("commit");
     if (all)
         args << "-a";
@@ -336,6 +339,8 @@ void GitRepository::asyncProcessFinished(int exitCode)
         if (parseCommitOutput(output, commitId, commitMsg))
             emit asyncCommitSuccess(commitId, commitMsg);
     }
+    if (!ok && isCommit)
+        state = RS_NotClean;
     if (isClone)
     {
         cmd->sendStandardOutputToTextEdit();
@@ -382,6 +387,22 @@ QString GitRepository::parseCloneOutput(QString output)
     return path.trimmed();
 }
 
+
+void GitRepository::mergeCommitMessages(text &dest, text src)
+// ----------------------------------------------------------------------------
+//   Add to 'dest' all lines from 'src' not already present in 'dest'
+// ----------------------------------------------------------------------------
+{
+    QStringList d = (+dest).split("\n");
+    QStringList s = (+src).split("\n");
+
+    foreach (QString line, s)
+        if (!d.contains(line))
+            d.append(s);
+
+    QString res = d.join("\n");
+    dest = +res;
+}
 
 bool GitRepository::merge(text branch)
 // ----------------------------------------------------------------------------

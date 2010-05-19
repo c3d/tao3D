@@ -467,6 +467,7 @@ private:
     friend class Renormalize;
 
     typedef XL::LocalSave<QEvent *>             EventSave;
+    typedef XL::LocalSave<Widget *>             TaoSave;
     typedef std::map<GLuint, uint>              selection_map;
     typedef std::map<text, PageLayout*>         flow_map;
     typedef std::map<text, text>                page_map;

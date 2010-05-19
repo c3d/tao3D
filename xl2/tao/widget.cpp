@@ -247,6 +247,8 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
+
     // Timing
     ulonglong before = now();
     event = NULL;
@@ -336,7 +338,6 @@ void Widget::runProgram()
     focusWidget = NULL;
 
     // Run the XL program associated with this widget
-    current = this;
     QTextOption alignCenter(Qt::AlignCenter);
     IFTRACE(memory)
         std::cerr << "Run, Drawing::count = " << space->count << ", ";
@@ -586,9 +587,8 @@ void Widget::userMenu(QAction *p_action)
     if (!var.isValid())
         return;
 
+    TaoSave saveCurrent(current, this);
     markChanged(+("Menu '" + p_action->text() + "' selected"));
-
-    current = this;
     XL::Tree *t = var.value<XL::Tree_p>();
     xl_evaluate(t);        // Typically will insert something...
 }
@@ -1102,6 +1102,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
 //   A key is pressed
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
 
@@ -1121,6 +1122,7 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
 //   A key is released
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
 
@@ -1140,6 +1142,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
 //   Mouse button click
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
 
@@ -1193,6 +1196,7 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
 //   Mouse button is released
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
 
@@ -1213,6 +1217,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
     bool active = event->buttons() != Qt::NoButton;
@@ -1232,6 +1237,7 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
 //   Mouse double click
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
 
@@ -1254,6 +1260,7 @@ void Widget::wheelEvent(QWheelEvent *event)
 //   Mouse wheel
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
     forwardEvent(event);
@@ -1265,6 +1272,7 @@ void Widget::timerEvent(QTimerEvent *event)
 //    Timer expired
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     forwardEvent(event);
 }
@@ -1335,13 +1343,16 @@ void Widget::reloadProgram(XL::Tree *newProg)
     }
 
     // Check if we can simply change some parameters in the tree
-    ApplyChanges changes(newProg);
-    if (!prog->Do(changes))
+    if (newProg)
     {
-        // Need a big hammer, i.e. reload the complete program
-        newProg->SetSymbols(prog->Symbols());
-        xlProgram->tree = newProg;
-        prog = newProg;
+        ApplyChanges changes(newProg);
+        if (!prog->Do(changes))
+        {
+            // Need a big hammer, i.e. reload the complete program
+            newProg->SetSymbols(prog->Symbols());
+            xlProgram->tree = newProg;
+            prog = newProg;
+        }
     }
     inError = false;
 
@@ -3947,7 +3958,6 @@ Tree_p Widget::colorChooser(Tree_p self, text treeName, Tree_p action)
             this, SLOT(colorChanged(const QColor &)));
     colorDialog->show();
 
-
     return XL::xl_true;
 }
 
@@ -3969,6 +3979,7 @@ void Widget::colorChanged(const QColor & col)
     if (!colorAction)
         return;
 
+    TaoSave saveCurrent(current, this);
     IFTRACE (widgets)
     {
         std::cerr << "Color "<< col.name().toStdString()
@@ -4016,6 +4027,8 @@ void Widget::updateColorDialog()
 {
     if (!colorDialog)
         return;
+
+    TaoSave saveCurrent(current, this);
 
     // Make sure we don't update the trees, only get their colors
     XL::LocalSave<Tree_p > action(colorAction, NULL);
@@ -4078,6 +4091,7 @@ void Widget::fontChanged(const QFont& ft)
     if (!fontAction)
         return;
 
+    TaoSave saveCurrent(current, this);
     IFTRACE (widgets)
     {
         std::cerr << "Font "<< ft.toString().toStdString()
@@ -4130,6 +4144,8 @@ void Widget::updateFontDialog()
 {
     if (!fontDialog)
         return;
+
+    TaoSave saveCurrent(current, this);
 
     // Make sure we don't update the trees, only get their colors
     XL::LocalSave<Tree_p > action(fontAction, NULL);

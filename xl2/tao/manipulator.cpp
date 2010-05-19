@@ -632,7 +632,7 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
 //   Draw the handles for the rounded rectangle (assuming rx = ry)
 // ----------------------------------------------------------------------------
 {
-    bool changed = false;
+    bool changed = ControlRectangle::DrawHandles(layout);
     Widget *widget = layout->Display();
     Drag   *drag = widget->drag();
 
@@ -687,10 +687,6 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
         }
     }
 
-    if (!changed)
-    {
-        changed = ControlRectangle::DrawHandles(layout);
-    }
     return changed;
 }
 
@@ -728,7 +724,7 @@ bool ControlArrow::DrawHandles(Layout *layout)
 //   Draw the handles for an arrow
 // ----------------------------------------------------------------------------
 {
-    bool changed = false;
+    bool changed = ControlRectangle::DrawHandles(layout);
     coord aax, aay;
     int sw = w > 0? 1: -1;
     int sdw = d? sw: 1;
@@ -779,10 +775,6 @@ bool ControlArrow::DrawHandles(Layout *layout)
             }
         }
     }
-    if (!changed)
-    {
-        changed = ControlRectangle::DrawHandles(layout);
-    }
     return changed;
 }
 
@@ -809,7 +801,7 @@ bool ControlPolygon::DrawHandles(Layout *layout)
 //   Draw the handles for a polygon
 // ----------------------------------------------------------------------------
 {
-    bool changed = false;
+    bool changed = ControlRectangle::DrawHandles(layout);
     int sw = w > 0? 1: -1;
     int sh = h > 0? 1: -1;
     int p_min = 3;
@@ -840,10 +832,6 @@ bool ControlPolygon::DrawHandles(Layout *layout)
                 changed = true;
             }
         }
-    }
-    if (!changed)
-    {
-        changed = ControlRectangle::DrawHandles(layout);
     }
     return changed;
 }
@@ -934,7 +922,7 @@ bool ControlBalloon::DrawHandles(Layout *layout)
 //   Draw the handles for a balloon
 // ----------------------------------------------------------------------------
 {
-    bool changed = false;
+    bool changed = ControlRoundedRectangle::DrawHandles(layout);
 
     if (DrawHandle(layout, Point3(ax, ay, 0), 11))
     {
@@ -953,10 +941,6 @@ bool ControlBalloon::DrawHandles(Layout *layout)
                 changed = true;
             }
         }
-    }
-    if (!changed)
-    {
-        changed = ControlRoundedRectangle::DrawHandles(layout);
     }
     return changed;
 }
@@ -984,7 +968,7 @@ bool ControlCallout::DrawHandles(Layout *layout)
 //   Draw the handles for a balloon
 // ----------------------------------------------------------------------------
 {
-    bool changed = false;
+    bool changed = ControlBalloon::DrawHandles(layout);
 
     int sw = w > 0? 1: -1;
     int sh = h > 0? 1: -1;
@@ -1067,10 +1051,6 @@ bool ControlCallout::DrawHandles(Layout *layout)
                 changed = true;
             }
         }
-    }
-    if (!changed)
-    {
-        changed = ControlBalloon::DrawHandles(layout);
     }
     return changed;
 }

@@ -2563,6 +2563,56 @@ Tree_p Widget::fillTextureFromSVG(Tree_p self, text img)
     return XL::xl_true;
 }
 
+Tree *InsertParamAction::DoInfix(Infix *what)
+// ----------------------------------------------------------------------------
+// Action modifying the Infix before the "path" component.
+// ----------------------------------------------------------------------------
+{
+    if ( done || what->name != "," || ! what->right->AsText())
+        return what;
+    Real *width = new Real(ww);
+    Real *height = new Real(hh);
+    Infix *inf2 = new XL::Infix (",", what->left, width);
+    Infix *inf1 = new XL::Infix (",", inf2, height);
+    what->left = inf1;
+
+    done = true;
+    return what;
+}
+
+
+Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, text filename)
+//----------------------------------------------------------------------------
+//  Make an image : rewrite the source with image x,y,w,h,path
+//----------------------------------------------------------------------------
+//  If w or h is 0 then the image width or height is used and assigned to it.
+{
+    GLuint texId = 0;
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+
+    ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
+    if (!rinfo)
+    {
+        rinfo = new ImageTextureInfo(this);
+        self->SetInfo<ImageTextureInfo>(rinfo);
+    }
+    texId = rinfo->bind(filename);
+
+    layout->Add(new FillTexture(texId));
+    layout->hasAttributes = true;
+
+    Rectangle shape(Box(x-rinfo->width/2, y-rinfo->height/2, rinfo->width, rinfo->height));
+    layout->Add(new Rectangle(shape));
+
+    InsertParamAction insertAct(rinfo->width, rinfo->height);
+    self->Do(insertAct);
+
+    reloadProgram();
+    markChanged("image size added");
+
+    return XL::xl_true;
+}
+
 
 Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                      text filename)
@@ -2581,21 +2631,6 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
     texId = rinfo->bind(filename);
-
-    if (w->value <= 0)
-    {
-        if (Tree *source = xl_source(w))
-            if (Integer *asInt = source->AsInteger())
-                asInt->value = rinfo->width;
-        w->value = rinfo->width;
-    }
-    if (h->value <= 0)
-    {
-        if (Tree *source = xl_source(h))
-            if (Integer *asInt = source->AsInteger())
-                asInt->value = rinfo->height;
-        h->value = rinfo->height;
-    }
 
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
@@ -4791,15 +4826,19 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
 
     if (par)
     {
+        QAction *before = NULL;
         if (orderedMenuElements[order])
         {
-            QAction *before = orderedMenuElements[order]->p_action;
-            par->insertAction(before, currentMenu->menuAction());
+            before = orderedMenuElements[order]->p_action;
         }
         else
         {
-            par->addAction(currentMenu->menuAction());
+            if (par == currentMenuBar)
+                before = ((Window*)parent())->shareMenu->menuAction();
+
+//            par->addAction(currentMenu->menuAction());
         }
+        par->insertAction(before, currentMenu->menuAction());
 
         QToolButton* button = NULL;
         if (par == currentToolBar &&

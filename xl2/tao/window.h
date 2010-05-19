@@ -137,7 +137,6 @@ private:
     QMenu            *fileMenu;
     QMenu            *openRecentMenu;
     QMenu            *editMenu;
-    QMenu            *shareMenu;
     QMenu            *viewMenu;
     QMenu            *helpMenu;
     QToolBar         *fileToolBar;
@@ -163,6 +162,10 @@ private:
     QAction          *redoAction;
     QAction          *recentFileActs[MaxRecentFiles];
     QAction          *clearRecentAct;
+
+public:
+    QMenu            *shareMenu;
+
 };
 
 // Prefixes for the created menus and sub menus

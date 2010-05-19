@@ -596,7 +596,7 @@ void PageLayout::Add(Items::iterator first, Items::iterator last)
         }
         places.clear();
 
-        // Then again with leftover if any (noramlly not that many that late)
+        // Then again with leftover if any (normally not that many that late)
         items.insert(items.end(), line.items.begin(), line.items.end());
         line.items.clear();
     }

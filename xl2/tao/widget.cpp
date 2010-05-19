@@ -1323,31 +1323,27 @@ void Widget::reloadProgram(XL::Tree *newProg)
 // ----------------------------------------------------------------------------
 {
     Tree *prog = xlProgram->tree;
-    if (newProg)
-    {
-        // Check if we can simply change some parameters in the tree
-        ApplyChanges changes(newProg);
-        if (!prog->Do(changes))
-        {
-            // Need a big hammer, i.e. reload the complete program
-            newProg->SetSymbols(prog->Symbols());
-            xlProgram->tree = newProg;
-            prog = newProg;
-        }
-        inError = false;
-    }
-    else
+
+    if (!newProg)
     {
         // We want to force a clone so that we recompile everything
         if (prog)
         {
             Renormalize renorm(this);
             newProg = prog->Do(renorm);
-            newProg->SetSymbols(prog->Symbols());
-            xlProgram->tree = newProg;
-            prog = newProg;
         }
     }
+
+    // Check if we can simply change some parameters in the tree
+    ApplyChanges changes(newProg);
+    if (!prog->Do(changes))
+    {
+        // Need a big hammer, i.e. reload the complete program
+        newProg->SetSymbols(prog->Symbols());
+        xlProgram->tree = newProg;
+        prog = newProg;
+    }
+    inError = false;
 
     // Now update the window
     updateProgramSource();
@@ -1933,7 +1929,7 @@ void Widget::select(uint id, uint count)
 //    Select the current shape if we are in selectable state
 // ----------------------------------------------------------------------------
 {
-    if (id && id != ~0U)
+    if (id)
     {
         if (count)
             selection[id] += (count == 1) ? 1 : (1 << 16);
@@ -2038,7 +2034,7 @@ TextSelect *Widget::textSelection()
 }
 
 
-void Widget::drawSelection(const Box3 &bnds, text selName)
+void Widget::drawSelection(const Box3 &bnds, text selName, uint id)
 // ----------------------------------------------------------------------------
 //    Draw a 2D or 3D selection with the given coordinates
 // ----------------------------------------------------------------------------
@@ -2056,8 +2052,8 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
     SpaceLayout selectionSpace(this);
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-    XL::LocalSave<GLuint>   saveId(id, ~0);
     GLAttribKeeper          saveGL;
+    selectionSpace.id = id;
     glDisable(GL_DEPTH_TEST);
     if (bounds.Depth() > 0)
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
@@ -2068,7 +2064,7 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
 }
 
 
-void Widget::drawHandle(const Point3 &p, text handleName)
+void Widget::drawHandle(const Point3 &p, text handleName, uint id)
 // ----------------------------------------------------------------------------
 //    Draw the handle of a 2D or 3D selection
 // ----------------------------------------------------------------------------
@@ -2080,7 +2076,7 @@ void Widget::drawHandle(const Point3 &p, text handleName)
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper          saveGL;
     glDisable(GL_DEPTH_TEST);
-    selectionSpace.id = ~0U;
+    selectionSpace.id = id;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
     selectionSpace.Draw(NULL);
     glEnable(GL_DEPTH_TEST);

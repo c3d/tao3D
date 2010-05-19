@@ -98,9 +98,7 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id, text name)
 {
     Widget *widget = layout->Display();
     Vector3 offset = layout->Offset();
-    glLoadName(id);
-    widget->drawHandle(p + offset, name);
-    glLoadName(0);
+    widget->drawHandle(p + offset, name, id);
     bool selected = widget->manipulator == id;
     return selected;
 }
@@ -1107,7 +1105,7 @@ void WidgetManipulator::DrawSelection(Layout *layout)
     {
         surface->requestFocus(layout, x, y);
         widget->drawSelection(Bounds(layout) + layout->Offset(),
-                              "widget_selection");
+                              "widget_selection", layout->id);
     }
 }
 

@@ -185,8 +185,8 @@ public:
     Point3      unproject (coord x, coord y, coord z = 0.0);
     Drag *      drag();
     TextSelect *textSelection();
-    void        drawSelection(const Box3 &bounds, text name);
-    void        drawHandle(const Point3 &point, text name);
+    void        drawSelection(const Box3 &bounds, text name, uint id);
+    void        drawHandle(const Point3 &point, text name, uint id);
     template<class Activity>
     Activity *  active();
     void        checkCopyAvailable();

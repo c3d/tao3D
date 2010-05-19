@@ -141,7 +141,7 @@ void TypeAllocator::Delete(void *ptr)
 
     Chunk *chunk = (Chunk *) ptr - 1;
     assert(IsGarbageCollected(ptr) || !"Deleted pointer is not managed by GC");
-    assert(IsAllocated(ptr) || !"Deleted GC pointer that wa already freed");
+    assert(IsAllocated(ptr) || !"Deleted GC pointer that was already freed");
     assert(!(chunk->bits & USE_MASK) || !"Deleted pointer has live references");
 
     // Put the pointer back on the free list
@@ -280,10 +280,9 @@ void TypeAllocator::operator delete(void *ptr)
     __mingw_aligned_free(ptr);
 #else // No brain-damage
     free(ptr);
-#endif // WINDOWS vs. rest of the world 
+#endif // WINDOWS vs. rest of the world
 
 }
-
 
 
 // ============================================================================
@@ -305,6 +304,9 @@ GarbageCollector::~GarbageCollector()
 //    Destroy the garbage collector
 // ----------------------------------------------------------------------------
 {
+    RunCollection(true, false);
+    RunCollection(true, false);
+
     std::vector<TypeAllocator *>::iterator i;
     for (i = allocators.begin(); i != allocators.end(); i++)
         delete *i;
@@ -320,12 +322,12 @@ void GarbageCollector::Register(TypeAllocator *allocator)
 }
 
 
-void GarbageCollector::RunCollection(bool force)
+void GarbageCollector::RunCollection(bool force, bool mark)
 // ----------------------------------------------------------------------------
 //   Run garbage collection on all the allocators we own
 // ----------------------------------------------------------------------------
 {
-    if (mustRun || force)
+    if (mustRun || force || !mark)
     {
         std::vector<TypeAllocator *>::iterator a;
         std::set<Listener *>::iterator l;
@@ -336,8 +338,9 @@ void GarbageCollector::RunCollection(bool force)
             (*l)->BeginCollection();
 
         // Mark roots in all the allocators
-        for (a = allocators.begin(); a != allocators.end(); a++)
-            (*a)->MarkRoots();
+        if (mark)
+            for (a = allocators.begin(); a != allocators.end(); a++)
+                (*a)->MarkRoots();
 
         // Then sweep whatever was not referenced
         for (a = allocators.begin(); a != allocators.end(); a++)
@@ -369,15 +372,26 @@ void GarbageCollector::RunCollection(bool force)
 }
 
 
+GarbageCollector *GarbageCollector::gc = NULL;
+
 GarbageCollector *GarbageCollector::Singleton()
 // ----------------------------------------------------------------------------
 //   Return the garbage collector
 // ----------------------------------------------------------------------------
 {
-    static GarbageCollector *gc = NULL;
     if (!gc)
         gc = new GarbageCollector;
     return gc;
+}
+
+
+void GarbageCollector::Delete()
+// ----------------------------------------------------------------------------
+//   Delete the garbage collector
+// ----------------------------------------------------------------------------
+{
+    if (gc)
+        delete gc;
 }
 
 

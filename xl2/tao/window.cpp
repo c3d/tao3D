@@ -41,6 +41,9 @@
 #include <QList>
 #include <QRegExp>
 
+#define TAO_FILESPECS "Tao documents (*.ddd);;XL programs (*.xl);;" \
+                      "Headers (*.dds *.xs);;All files (*.*)"
+
 TAO_BEGIN
 
 Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
@@ -214,8 +217,7 @@ void Window::open(QString fileName)
                            (this,
                             tr("Open Tao Document"),
                             currentProjectFolderPath(),
-                            tr("Tao documents (*.ddd);;XL programs (*.xl);;"
-                               "Headers (*.dds *.xs);;All files (*.*)"));
+                            tr(TAO_FILESPECS));
 
         if (fileName.isEmpty())
             return;
@@ -282,7 +284,8 @@ bool Window::saveAs()
     // path be the basename of file, as the user types it, while still
     // allowing override of directory name.
     QString fileName =
-        QFileDialog::getSaveFileName(this, tr("Save As"), curFile);
+        QFileDialog::getSaveFileName(this, tr("Save As"), curFile,
+                                     tr(TAO_FILESPECS));
     if (fileName.isEmpty())
         return false;
     QString projpath = QFileInfo(fileName).absolutePath();

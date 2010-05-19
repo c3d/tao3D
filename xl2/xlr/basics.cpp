@@ -60,4 +60,13 @@ void EnterBasics(Context *c)
 #include "basics.tbl"
 }
 
+void DeleteBasics()
+// ----------------------------------------------------------------------------
+//   Delete all the global operations defined in basics.tbl
+// ----------------------------------------------------------------------------
+{
+#include "opcodes_delete.h"
+#include "basics.tbl"
+}
+
 XL_END

@@ -562,7 +562,7 @@ Value *Compiler::Known(Tree *tree)
 }
 
 
-void Compiler::FreeResources(Tree *tree)
+bool Compiler::FreeResources(Tree *tree)
 // ----------------------------------------------------------------------------
 //   Free the LLVM resources associated to the tree, if any
 // ----------------------------------------------------------------------------
@@ -572,7 +572,9 @@ void Compiler::FreeResources(Tree *tree)
 //   other's body still makes a reference.
 {
     if (!tree->code || tree->code == xl_identity)
-        return;
+        return true;
+
+    bool result = true;
 
     IFTRACE(llvm)
         std::cerr << "FreeResources T" << (void *) tree;
@@ -590,12 +592,9 @@ void Compiler::FreeResources(Tree *tree)
 
         if (inUse)
         {
-            // Free body to remove all references made by it
-            f->deleteBody();
-            runtime->freeMachineCodeForFunction(f);
-
             // Mark the function for complete deletion later
             deleted.insert(f);
+            result = false;
         }
         else
         {
@@ -621,6 +620,7 @@ void Compiler::FreeResources(Tree *tree)
         if (inUse)
         {
             deleted.insert(v);
+            result = false;
         }
         else
         {
@@ -631,18 +631,23 @@ void Compiler::FreeResources(Tree *tree)
     }
 
     // Drop any address we may have generated for that tree
-    address_map::iterator addr = addresses.find(tree);
-    if (addr != addresses.end())
+    if (result)
     {
-        Tree **address = (*addr).second;
-        addresses.erase(addr);
-        IFTRACE(llvm)
-            std::cerr << " address A" << address;
-        delete address;
+        address_map::iterator addr = addresses.find(tree);
+        if (addr != addresses.end())
+        {
+            Tree **address = (*addr).second;
+            addresses.erase(addr);
+            IFTRACE(llvm)
+                std::cerr << " address A" << address;
+            delete address;
+        }
     }
 
     IFTRACE(llvm)
-        std::cerr << "\n";
+        std::cerr << (result ? " Delete\n" : "Save\n");
+
+    return result;
 }
 
 
@@ -1720,8 +1725,7 @@ bool CompilerGarbageCollectionListener::CanDelete(void *obj)
 // ----------------------------------------------------------------------------
 {
     Tree *tree = (Tree *) obj;
-    compiler->FreeResources(tree);
-    return true;
+    return compiler->FreeResources(tree);
 }
 
 XL_END

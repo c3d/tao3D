@@ -635,6 +635,8 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     bool changed = false;
+    Point3 handle;
+    int id = 9;
     Widget *widget = layout->Display();
     Drag   *drag = widget->drag();
 
@@ -647,7 +649,8 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
         if (r > sh*h/2)
             rr = sh*h/2;
 
-        if (DrawHandle(layout, Point3(x + sw*w/2,y + sh*h/2 - rr, 0), 9))
+        handle = Point3(x + sw*w/2,y + sh*h/2 - rr, 0);
+        if (DrawHandle(layout, handle, id, "adjust_shape_handle"))
         {
             if (drag)
             {
@@ -670,7 +673,8 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
         if (r > sw*w/2)
             rr = sw*w/2;
 
-        if (DrawHandle(layout, Point3(x + sw*w/2 - rr, y + sh*h/2, 0), 9))
+        handle = Point3(x + sw*w/2 - rr, y + sh*h/2, 0);
+        if (DrawHandle(layout, handle, id, "adjust_shape_handle"))
         {
             if (drag)
             {
@@ -731,6 +735,9 @@ bool ControlArrow::DrawHandles(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     bool changed = false;
+    Point3 handle;
+    int id = 9;
+
     coord aax, aay;
     int sw = w > 0? 1: -1;
     int sdw = d? sw: 1;
@@ -754,8 +761,8 @@ bool ControlArrow::DrawHandles(Layout *layout)
     if (ary < 0.0)
         aay = 0.0;
 
-    if (DrawHandle(layout,
-                   Point3(x+sdw*(w/2-aax), y+sh*aay/2, 0), 9))
+    handle = Point3(x+sdw*(w/2-aax), y+sh*aay/2, 0);
+    if (DrawHandle(layout, handle, id, "adjust_shape_handle"))
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
@@ -812,6 +819,8 @@ bool ControlPolygon::DrawHandles(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     bool changed = false;
+    Point3 handle;
+    int id = 9;
     int sw = w > 0? 1: -1;
     int sh = h > 0? 1: -1;
     int p_min = 3;
@@ -822,8 +831,8 @@ bool ControlPolygon::DrawHandles(Layout *layout)
     if (p > p_max)
         pp = p_max;
 
-    if (!changed && DrawHandle(layout,
-                               Point3(x-sw*w/2+sw*w*(pp-2)/19, y-sh*h/2, 0), 9))
+    handle = Point3(x-sw*w/2+sw*w*(pp-2)/19, y-sh*h/2, 0);
+    if (DrawHandle(layout, handle, id, "adjust_shape_handle"))
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
@@ -874,6 +883,9 @@ bool ControlStar::DrawHandles(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     bool changed = false;
+    Point3 handle;
+    int id = 11;
+
     double cp = cos(M_PI/p);
     double sp = sin(M_PI/p);
     int sw = w > 0? 1: -1;
@@ -886,7 +898,8 @@ bool ControlStar::DrawHandles(Layout *layout)
     if (r > r_max)
         rr = r_max;
 
-    if (DrawHandle(layout, Point3(x + rr*sw*w/2*sp, y + rr*h/2*cp, 0), 11))
+    handle = Point3(x + rr*sw*w/2*sp, y + rr*h/2*cp, 0);
+    if (DrawHandle(layout, handle, id, "adjust_shape_handle"))
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
@@ -937,8 +950,11 @@ bool ControlBalloon::DrawHandles(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     bool changed = false;
+    Point3 handle;
+    int id = 11;
 
-    if (DrawHandle(layout, Point3(ax, ay, 0), 11))
+    handle = Point3(ax, ay, 0);
+    if (DrawHandle(layout, handle, id, "adjust_shape_handle"))
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
@@ -987,6 +1003,8 @@ bool ControlCallout::DrawHandles(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     bool changed = false;
+    Point3 handle;
+    int id = 13;
 
     int sw = w > 0? 1: -1;
     int sh = h > 0? 1: -1;
@@ -1044,7 +1062,8 @@ bool ControlCallout::DrawHandles(Layout *layout)
     dcp.x = ax + dd/4*cos(beta+M_PI_2) - 15*td.x;
     dcp.y = ay + dd/4*sin(beta+M_PI_2) - 15*td.y;
 
-    if (DrawHandle(layout, Point3(dcp.x, dcp.y, 0), 13))
+    handle = Point3(dcp.x, dcp.y, 0);
+    if (DrawHandle(layout, handle, id, "adjust_shape_handle"))
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();

@@ -501,8 +501,7 @@ Tree *XLCall::operator() (Symbols *syms, bool nullIfBad, bool cached)
 //    Perform the given call in the given context
 // ----------------------------------------------------------------------------
 {
-    if (!syms)
-        syms = Symbols::symbols;
+    assert(syms);
     Tree *callee = syms->CompileCall(name, args, nullIfBad, cached);
     if (callee && callee->code)
         callee = callee->code(callee);
@@ -515,8 +514,7 @@ Tree *XLCall::build(Symbols *syms)
 //    Perform the given call in the given context
 // ----------------------------------------------------------------------------
 {
-    if (!syms)
-        syms = Symbols::symbols;
+    assert(syms);
     Tree *callee = syms->CompileCall(name, args);
     return callee;
 }

@@ -82,7 +82,7 @@ Main::Main(int inArgc, char **inArgv, Compiler &comp,
       positions(),
       errors(&positions),
       syntax(syntaxName.c_str()),
-      options(errors),
+      options(errors, inArgc, inArgv),
       compiler(comp),
       context(new Context(errors, &compiler)),
       renderer(std::cout, styleSheetName, syntax),
@@ -94,6 +94,8 @@ Main::Main(int inArgc, char **inArgv, Compiler &comp,
     Renderer::renderer = &renderer;
     Syntax::syntax = &syntax;
     options.builtins = builtinsName;
+
+    ParseOptions();
 }
 
 
@@ -128,7 +130,7 @@ int Main::ParseOptions()
     EnterBasics(context);
 
     // Scan options and build list of files we need to process
-    cmd = options.Parse(argc, argv);
+    cmd = options.ParseNext();
     if (options.doDiff)
         options.parseOnly = true;
 
@@ -434,9 +436,8 @@ int main(int argc, char **argv)
     source_names noSpecificContext;
     Compiler compiler("xl_tao");
     MAIN = new Main(argc, argv, compiler);
-    int rc = 0;
-    if ( !(rc=MAIN->ParseOptions()) ||
-         !(rc=MAIN->LoadContextFiles(noSpecificContext)))
+    int rc = MAIN->LoadContextFiles(noSpecificContext);
+    if (rc)
     {
         delete MAIN;
         return rc;

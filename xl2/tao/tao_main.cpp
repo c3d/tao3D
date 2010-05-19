@@ -76,10 +76,9 @@ int main(int argc, char **argv)
                                  +stylesheet.canonicalFilePath(),
                                  +builtins.canonicalFilePath());
     XL::MAIN = xlr;
+
     XL::source_names contextFiles;
     EnterGraphics(xlr->context);
-
-    xlr->ParseOptions();
     if (user.exists())
         contextFiles.push_back(+user.canonicalFilePath());
     if (theme.exists())

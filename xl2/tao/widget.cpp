@@ -3949,12 +3949,20 @@ Tree_p Widget::colorChooser(Tree_p self, text treeName, Tree_p action)
             this, SLOT(colorChosen(const QColor &)));
     connect(colorDialog, SIGNAL(currentColorChanged (const QColor&)),
             this, SLOT(colorChanged(const QColor &)));
+    connect(colorDialog, SIGNAL(rejected()), this, SLOT(colorRejected()));
     colorDialog->show();
 
 
     return XL::xl_true;
 }
 
+void Widget::colorRejected()
+// ----------------------------------------------------------------------------
+//   Slot called by the color widget's "cancel" button.
+// ----------------------------------------------------------------------------
+{
+    colorChanged(originalColor);
+}
 
 void Widget::colorChosen(const QColor & col)
 // ----------------------------------------------------------------------------
@@ -4032,9 +4040,8 @@ void Widget::updateColorDialog()
         attribute_args color;
         if (get(*i, colorName, color) && color.size() == 4)
         {
-            QColor qc;
-            qc.setRgbF(color[0], color[1], color[2], color[3]);
-            colorDialog->setCurrentColor(qc);
+            originalColor.setRgbF(color[0], color[1], color[2], color[3]);
+            colorDialog->setCurrentColor(originalColor);
             break;
         }
     }

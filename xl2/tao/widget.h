@@ -93,6 +93,7 @@ public slots:
     void        commitSuccess(QString id, QString msg);
     void        colorChosen(const QColor &);
     void        colorChanged(const QColor &);
+    void        colorRejected();
     void        updateColorDialog();
     void        fontChosen(const QFont &);
     void        fontChanged(const QFont &);
@@ -514,6 +515,7 @@ private:
     int                   order;
     Tree_p                colorAction, fontAction;
     text                  colorName;
+    QColor                originalColor;
 
     // Timing
     QTimer                timer, idleTimer;

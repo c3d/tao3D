@@ -63,12 +63,12 @@ Application::Application(int & argc, char ** argv)
 
     // Parse command line options
     XL::Errors errors(new XL::Positions());
-    XL::Options options(errors);
+    XL::Options options(errors, argc, argv);
 
     // Get the first file name and guess its location to initialize
     // the project folder. If there is no filename, or it is not found the
     // currentProjectFolder will be initialized to "".
-    text project = options.Parse(argc, argv);
+    text project = options.ParseNext();
     currentProjectFolder = QFileInfo(+project).canonicalPath();
 
     // Web settings

@@ -726,16 +726,18 @@ struct NameToTextReplacement : NameToNameReplacement
     Tree *  DoName(XL::Name *what);
 };
 
-struct InsertParamAction : XL::Action
+
+struct InsertImageWidthAndHeightAction : XL::Action
 // ----------------------------------------------------------------------------
 // Action to insert the width and height of the image in the source.
 // ----------------------------------------------------------------------------
 {
-    InsertParamAction(double w, double h) :ww(w), hh(h), done(false){};
+    InsertImageWidthAndHeightAction(double w, double h)
+        :ww(w), hh(h), done(false) {}
     Tree *Do (Tree *what) { return what;}
     Tree *DoInfix(Infix *what);
     double ww,hh;
-    bool done;
+    bool   done;
 };
 
 

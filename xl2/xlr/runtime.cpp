@@ -327,7 +327,7 @@ Tree *xl_new_closure(Tree *expr, uint ntrees, ...)
         unit.CallClosure(result, ntrees);
         fn = unit.Finalize();
         compiler->closures[ntrees] = fn;
-        compiler->functions.erase(result);
+        compiler->SetTreeFunction(result, NULL); // Now owned by closures[n]
     }
     result->code = fn;
     xl_set_source(result, expr);

@@ -233,7 +233,7 @@ public:
 };
 
 
-struct CompilerGarbageCollectionListener : GarbageCollector::Listener
+struct CompilerGarbageCollectionListener : TypeAllocator::Listener
 // ----------------------------------------------------------------------------
 //   Listen to the garbage collection to put away LLVM data structures
 // ----------------------------------------------------------------------------

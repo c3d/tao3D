@@ -95,8 +95,16 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
       functions()
 {
     // Register a listener with the garbage collector
-    GarbageCollector *gc = GarbageCollector::Singleton();
-    gc->AddListener(new CompilerGarbageCollectionListener(this));
+    CompilerGarbageCollectionListener *cgcl =
+        new CompilerGarbageCollectionListener(this);
+    Allocator<Tree>     ::Singleton()->AddListener(cgcl);
+    Allocator<Integer>  ::Singleton()->AddListener(cgcl);
+    Allocator<Real>     ::Singleton()->AddListener(cgcl);
+    Allocator<Name>     ::Singleton()->AddListener(cgcl);
+    Allocator<Infix>    ::Singleton()->AddListener(cgcl);
+    Allocator<Prefix>   ::Singleton()->AddListener(cgcl);
+    Allocator<Postfix>  ::Singleton()->AddListener(cgcl);
+    Allocator<Block>    ::Singleton()->AddListener(cgcl);
 
     // Initialize native target (new features)
     InitializeNativeTarget();
@@ -571,63 +579,63 @@ bool Compiler::FreeResources(Tree *tree)
 //   calling foo(), we will get an LLVM assert deleting one while the
 //   other's body still makes a reference.
 {
-    if (!tree->code || tree->code == xl_identity)
-        return true;
-
     bool result = true;
 
     IFTRACE(llvm)
         std::cerr << "FreeResources T" << (void *) tree;
 
-    // Drop any function reference
-    function_map::iterator fun = functions.find(tree);
-    if (fun != functions.end())
+    if (tree->code && tree->code != xl_identity)
     {
-        Function *f = (*fun).second;
-        bool inUse = !f->use_empty();
-
-        IFTRACE(llvm)
-            std::cerr << " function F" << f
-                      << (inUse ? " in use" : " unused");
-
-        if (inUse)
+        // Drop any function reference
+        function_map::iterator fun = functions.find(tree);
+        if (fun != functions.end())
         {
-            // Mark the function for complete deletion later
-            deleted.insert(f);
-            result = false;
+            Function *f = (*fun).second;
+            bool inUse = !f->use_empty();
+            
+            IFTRACE(llvm)
+                std::cerr << " function F" << f
+                          << (inUse ? " in use" : " unused");
+            
+            if (inUse)
+            {
+                // Mark the function for complete deletion later
+                deleted.insert(f);
+                result = false;
+            }
+            else
+            {
+                // Not in use, we can delete it directly
+                delete f;
+            }
+            
+            // We can no longer reference this address as an LLVM function
+            functions.erase(fun);
         }
-        else
+        
+        // Drop any global reference
+        value_map::iterator glob = globals.find(tree);
+        if (glob != globals.end())
         {
-            // Not in use, we can delete it directly
-            delete f;
+            Value *v = (*glob).second;
+            bool inUse = !v->use_empty();
+            
+            IFTRACE(llvm)
+                std::cerr << " global V" << v
+                          << (inUse ? " in use" : " unused");
+            
+            if (inUse)
+            {
+                deleted.insert(v);
+                result = false;
+            }
+            else
+            {
+                // Delete the LLVM value immediately if it's safe to do it.
+                delete v;
+            }
+            globals.erase(glob);
         }
-
-        // We can no longer reference this address as an LLVM function
-        functions.erase(fun);
-    }
-
-    // Drop any global reference
-    value_map::iterator glob = globals.find(tree);
-    if (glob != globals.end())
-    {
-        Value *v = (*glob).second;
-        bool inUse = !v->use_empty();
-
-        IFTRACE(llvm)
-            std::cerr << " global V" << v
-                      << (inUse ? " in use" : " unused");
-
-        if (inUse)
-        {
-            deleted.insert(v);
-            result = false;
-        }
-        else
-        {
-            // Delete the LLVM value immediately if it's safe to do it.
-            delete v;
-        }
-        globals.erase(glob);
     }
 
     // Drop any address we may have generated for that tree
@@ -1710,15 +1718,6 @@ void CompilerGarbageCollectionListener::BeginCollection()
 }
 
 
-void CompilerGarbageCollectionListener::EndCollection()
-// ----------------------------------------------------------------------------
-//   Finalize the collection
-// ----------------------------------------------------------------------------
-{
-    compiler->FreeResources();
-}
-
-
 bool CompilerGarbageCollectionListener::CanDelete(void *obj)
 // ----------------------------------------------------------------------------
 //   Tell the compiler to free the resources associated with the tree
@@ -1726,6 +1725,15 @@ bool CompilerGarbageCollectionListener::CanDelete(void *obj)
 {
     Tree *tree = (Tree *) obj;
     return compiler->FreeResources(tree);
+}
+
+
+void CompilerGarbageCollectionListener::EndCollection()
+// ----------------------------------------------------------------------------
+//   Finalize the collection
+// ----------------------------------------------------------------------------
+{
+    compiler->FreeResources();
 }
 
 XL_END

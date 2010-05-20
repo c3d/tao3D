@@ -285,6 +285,22 @@ void TypeAllocator::operator delete(void *ptr)
 }
 
 
+bool TypeAllocator::CanDelete(void *obj)
+// ----------------------------------------------------------------------------
+//   Ask all the listeners if it's OK to delete the object
+// ----------------------------------------------------------------------------
+{
+    bool result = true;
+    std::set<Listener *>::iterator i;
+    for (i = listeners.begin(); i != listeners.end(); i++)
+        if (!(*i)->CanDelete(obj))
+            result = false;
+    return result;
+}
+
+
+
+
 // ============================================================================
 //
 //   Garbage Collector class
@@ -330,8 +346,14 @@ void GarbageCollector::RunCollection(bool force, bool mark)
     if (mustRun || force || !mark)
     {
         std::vector<TypeAllocator *>::iterator a;
-        std::set<Listener *>::iterator l;
+        std::set<TypeAllocator::Listener *> listeners;
+        std::set<TypeAllocator::Listener *>::iterator l;
         mustRun = false;
+
+        // Build the listeners from all allocators
+        for (a = allocators.begin(); a != allocators.end(); a++)
+            for (l = (*a)->listeners.begin(); l != (*a)->listeners.end(); l++)
+                listeners.insert(*l);
 
         // Notify all the listeners that we begin a collection
         for (l = listeners.begin(); l != listeners.end(); l++)
@@ -401,20 +423,6 @@ void GarbageCollector::Collect(bool force)
 // ----------------------------------------------------------------------------
 {
     Singleton()->RunCollection(force);
-}
-
-
-bool GarbageCollector::CanDelete(void *obj)
-// ----------------------------------------------------------------------------
-//   Ask all the listeners if it's OK to delete the object
-// ----------------------------------------------------------------------------
-{
-    bool result = true;
-    std::set<Listener *>::iterator i;
-    for (i = listeners.begin(); i != listeners.end(); i++)
-        if (! (*i)->CanDelete(obj))
-            result = false;
-    return result;
 }
 
 XL_END

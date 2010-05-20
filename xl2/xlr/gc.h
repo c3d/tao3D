@@ -469,6 +469,11 @@ void Allocator<Object>::Finalize(void *obj)
         Object *object = (Object *) obj;
         delete object;
     }
+    else
+    {
+        Chunk *chunk = ((Chunk *) obj) - 1;
+        chunk->bits |= IN_USE;
+    }
 }
 
 

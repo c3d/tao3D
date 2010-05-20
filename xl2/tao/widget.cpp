@@ -1340,11 +1340,13 @@ void Widget::reloadProgram(XL::Tree *newProg)
         {
             Renormalize renorm(this);
             newProg = prog->Do(renorm);
+            newProg->SetSymbols(prog->Symbols());
+            xlProgram->tree = newProg;
         }
     }
 
     // Check if we can simply change some parameters in the tree
-    if (newProg)
+    else
     {
         ApplyChanges changes(newProg);
         if (!prog->Do(changes))
@@ -1352,7 +1354,6 @@ void Widget::reloadProgram(XL::Tree *newProg)
             // Need a big hammer, i.e. reload the complete program
             newProg->SetSymbols(prog->Symbols());
             xlProgram->tree = newProg;
-            prog = newProg;
         }
     }
     inError = false;
@@ -2575,13 +2576,15 @@ Tree_p Widget::fillTextureFromSVG(Tree_p self, text img)
     return XL::xl_true;
 }
 
-Tree *InsertParamAction::DoInfix(Infix *what)
+
+Tree *InsertImageWidthAndHeightAction::DoInfix(Infix *what)
 // ----------------------------------------------------------------------------
 // Action modifying the Infix before the "path" component.
 // ----------------------------------------------------------------------------
 {
     if ( done || what->name != "," || ! what->right->AsText())
         return what;
+
     Real *width = new Real(ww);
     Real *height = new Real(hh);
     Infix *inf2 = new XL::Infix (",", what->left, width);
@@ -2613,12 +2616,15 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, text filename)
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
-    Rectangle shape(Box(x-rinfo->width/2, y-rinfo->height/2, rinfo->width, rinfo->height));
+    Rectangle shape(Box(x-rinfo->width/2, y-rinfo->height/2,
+                        rinfo->width, rinfo->height));
     layout->Add(new Rectangle(shape));
 
-    InsertParamAction insertAct(rinfo->width, rinfo->height);
+    // Replace image x,y,"toto" with x,y,w,h,"toto"
+    InsertImageWidthAndHeightAction insertAct(rinfo->width, rinfo->height);
     self->Do(insertAct);
 
+    // The structure of the program has changed, we need to recompile
     reloadProgram();
     markChanged("image size added");
 
@@ -5168,7 +5174,8 @@ XL::Name_p Widget::setAttribute(Tree_p self,
 
         SetAttributeAction setAttrib(name, attribute, this, shape);
         program->Do(setAttrib);
-        reloadProgram();
+
+        // We don't need to reloadProgram() because Widget::set does it
         markChanged("Updated " + name + " attribute");
 
         return XL::xl_true;

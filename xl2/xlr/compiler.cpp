@@ -638,7 +638,7 @@ bool Compiler::FreeResources(Tree *tree)
         else
         {
             // Not in use, we can delete it directly
-            delete f;
+            f->eraseFromParent();
         }
     }
     
@@ -660,7 +660,7 @@ bool Compiler::FreeResources(Tree *tree)
         {
             // Delete the LLVM value immediately if it's safe to do it.
             runtime->updateGlobalMapping(v, NULL);
-            delete v;
+            v->eraseFromParent();
         }
     }
 
@@ -685,7 +685,7 @@ void Compiler::FreeResources()
     deleted_set::iterator i, next;
     for (i = deleted.begin(); i != deleted.end(); i = next)
     {
-        Value *v = *i;
+        GlobalValue *v = *i;
         bool inUse = !v->use_empty();
 
         IFTRACE(llvm)
@@ -694,7 +694,7 @@ void Compiler::FreeResources()
 
         if (!inUse)
         {
-            delete v;
+            v->eraseFromParent();
             deleted.erase(i);
             next = deleted.begin();
         }

@@ -58,7 +58,7 @@ typedef std::map<Tree *, Tree **>           address_map;
 typedef std::map<uint, eval_fn>             closure_map;
 typedef std::set<Tree *>                    closure_set;
 typedef std::set<Tree *>                    data_set;
-typedef std::set<llvm::Value *>             deleted_set;
+typedef std::set<llvm::GlobalValue *>       deleted_set;
 typedef Tree * (*adapter_fn) (eval_fn callee, Tree *src, Tree **args);
 
 

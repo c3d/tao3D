@@ -250,7 +250,7 @@ void Window::open(QString fileName)
     if (!needNewWindow())
     {
         text fn = +fileName;
-        isReadOnly = access(fn.c_str(), W_OK) != 0;
+        isReadOnly = !QFileInfo(fileName).isWritable();
         if (!loadFile(fileName, !isReadOnly))
             return;
     }
@@ -824,7 +824,8 @@ void Window::updateProgram(const QString &fileName)
 //   When a file has changed, reload corresponding XL program
 // ----------------------------------------------------------------------------
 {
-    QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
+    QFileInfo fileInfo(fileName);
+    QString canonicalFilePath = fileInfo.canonicalFilePath();
     text fn = +canonicalFilePath;
     XL::SourceFile *sf = &xlRuntime->files[fn];
 
@@ -836,7 +837,7 @@ void Window::updateProgram(const QString &fileName)
             xlRuntime->LoadFile(fn);
 
         // Check if we can access the file
-        if (access(fn.c_str(), W_OK) != 0)
+        if (!fileInfo.isWritable())
             sf->readOnly = true;
     }
 

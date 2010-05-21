@@ -91,12 +91,19 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
       xl_infix_match_check(NULL), xl_type_check(NULL), xl_type_error(NULL),
       xl_new_integer(NULL), xl_new_real(NULL), xl_new_character(NULL),
       xl_new_text(NULL), xl_new_xtext(NULL), xl_new_block(NULL),
-      xl_new_prefix(NULL), xl_new_postfix(NULL), xl_new_infix(NULL),
-      functions()
+      xl_new_prefix(NULL), xl_new_postfix(NULL), xl_new_infix(NULL)
 {
     // Register a listener with the garbage collector
-    GarbageCollector *gc = GarbageCollector::Singleton();
-    gc->AddListener(new CompilerGarbageCollectionListener(this));
+    CompilerGarbageCollectionListener *cgcl =
+        new CompilerGarbageCollectionListener(this);
+    Allocator<Tree>     ::Singleton()->AddListener(cgcl);
+    Allocator<Integer>  ::Singleton()->AddListener(cgcl);
+    Allocator<Real>     ::Singleton()->AddListener(cgcl);
+    Allocator<Name>     ::Singleton()->AddListener(cgcl);
+    Allocator<Infix>    ::Singleton()->AddListener(cgcl);
+    Allocator<Prefix>   ::Singleton()->AddListener(cgcl);
+    Allocator<Postfix>  ::Singleton()->AddListener(cgcl);
+    Allocator<Block>    ::Singleton()->AddListener(cgcl);
 
     // Initialize native target (new features)
     InitializeNativeTarget();
@@ -190,7 +197,7 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
         ulong    tag;
         eval_fn  code;
         Symbols *symbols;       // The original definitions have _p
-        Info    *info;          // We check that the size is the same
+        XL::Info*info;          // We check that the size is the same
         Tree    *source;
     };
     // If this assert fails, you changed struct tree and need to modify here
@@ -289,12 +296,6 @@ Compiler::~Compiler()
 //    Destructor deletes the various things we had created
 // ----------------------------------------------------------------------------
 {
-    // Delete all tree addresses we have generated
-    address_map::iterator a;
-    for (a = addresses.begin(); a != addresses.end(); a++)
-        delete (*a).second;
-    addresses.clear();
-
     delete context;
 }
 
@@ -304,10 +305,64 @@ void Compiler::Reset()
 //    Clear the contents of a compiler
 // ----------------------------------------------------------------------------
 {
-    functions.clear();
-    globals.clear();
     closures.clear();
     deleted.clear();
+}
+
+
+CompilerInfo *Compiler::Info(Tree *tree, bool create)
+// ----------------------------------------------------------------------------
+//   Find or create the compiler-related info for a given tree
+// ----------------------------------------------------------------------------
+{
+    CompilerInfo *result = tree->GetInfo<CompilerInfo>();
+    if (!result && create)
+    {
+        result = new CompilerInfo(tree);
+        tree->SetInfo<CompilerInfo>(result);
+    }
+    return result;
+}
+
+
+llvm::Function * Compiler::TreeFunction(Tree *tree)
+// ----------------------------------------------------------------------------
+//   Return the function associated to the tree
+// ----------------------------------------------------------------------------
+{
+    CompilerInfo *info = Info(tree);
+    return info ? info->function : NULL;
+}
+
+
+void Compiler::SetTreeFunction(Tree *tree, llvm::Function *function)
+// ----------------------------------------------------------------------------
+//   Associate a function to the given tree
+// ----------------------------------------------------------------------------
+{
+    CompilerInfo *info = Info(tree, true);
+    info->function = function;
+}
+
+
+llvm::GlobalValue * Compiler::TreeGlobal(Tree *tree)
+// ----------------------------------------------------------------------------
+//   Return the global value associated to the tree, if any
+// ----------------------------------------------------------------------------
+{
+    CompilerInfo *info = Info(tree);
+    return info ? info->global : NULL;
+}
+
+
+void Compiler::SetTreeGlobal(Tree *tree, llvm::GlobalValue *global, void *addr)
+// ----------------------------------------------------------------------------
+//   Set the global value associated to the tree
+// ----------------------------------------------------------------------------
+{
+    CompilerInfo *info = Info(tree, true);
+    info->global = global;
+    runtime->addGlobalMapping(global, addr ? addr : &info->tree);
 }
 
 
@@ -330,8 +385,8 @@ Function *Compiler::EnterBuiltin(text name,
     {
         IFTRACE(llvm)
             std::cerr << " existing F " << result
-                      << " replaces F" << functions[to] << "\n";
-        functions[to] = result;
+                      << " replaces F" << TreeFunction(to) << "\n";
+        SetTreeFunction(to, result);
     }
     else
     {
@@ -349,10 +404,10 @@ Function *Compiler::EnterBuiltin(text name,
 
         IFTRACE(llvm)
             std::cerr << " new F " << result
-                      << "replaces F" << functions[to] << "\n";
+                      << "replaces F" << TreeFunction(to) << "\n";
 
         // Associate the function with the tree form
-        functions[to] = result;
+        SetTreeFunction(to, result);
         builtins[name] = result;
     }
 
@@ -492,8 +547,7 @@ Value *Compiler::EnterGlobal(Name *name, Name_p *address)
     GlobalValue *result = new GlobalVariable (*module, treePtrTy, isConstant,
                                               GlobalVariable::ExternalLinkage,
                                               null, name->value);
-    runtime->addGlobalMapping(result, address);
-    globals[name] = result;
+    SetTreeGlobal(name, result, address);
 
     IFTRACE(llvm)
         std::cerr << "EnterGlobal " << name->value
@@ -525,17 +579,11 @@ Value *Compiler::EnterConstant(Tree *constant)
     GlobalValue *result = new GlobalVariable (*module, treePtrTy, isConstant,
                                               GlobalVariable::InternalLinkage,
                                               NULL, name);
-    globals[constant] = result;
-
-    // Create a constant address for that tree
-    Tree **address = new Tree*;
-    addresses[constant] = address;
-    *address = constant;
-    runtime->addGlobalMapping(result, address);
+    SetTreeGlobal(constant, result, NULL);
 
     IFTRACE(llvm)
         std::cerr << "EnterConstant T" << (void *) constant
-                  << " A" << (void *) address << "\n";
+                  << " A" << (void *) &Info(constant)->tree << "\n";
 
     return result;
 }
@@ -546,19 +594,7 @@ bool Compiler::IsKnown(Tree *tree)
 //    Test if global is known
 // ----------------------------------------------------------------------------
 {
-    return globals.count(tree) > 0;
-}
-
-
-Value *Compiler::Known(Tree *tree)
-// ----------------------------------------------------------------------------
-//    Return the known global value of the tree if it exists
-// ----------------------------------------------------------------------------
-{
-    Value *result = NULL;
-    if (globals.count(tree) > 0)
-        result = globals[tree];
-    return result;
+    return TreeGlobal(tree) != NULL;
 }
 
 
@@ -571,25 +607,28 @@ bool Compiler::FreeResources(Tree *tree)
 //   calling foo(), we will get an LLVM assert deleting one while the
 //   other's body still makes a reference.
 {
-    if (!tree->code || tree->code == xl_identity)
-        return true;
-
     bool result = true;
 
     IFTRACE(llvm)
         std::cerr << "FreeResources T" << (void *) tree;
 
-    // Drop any function reference
-    function_map::iterator fun = functions.find(tree);
-    if (fun != functions.end())
+    CompilerInfo *info = Info(tree);
+    if (!info)
     {
-        Function *f = (*fun).second;
-        bool inUse = !f->use_empty();
+        IFTRACE(llvm)
+            std::cerr << " has no info\n";
+        return true;
+    }
 
+    // Drop function reference if any
+    if (Function *f = info->function)
+    {
+        bool inUse = !f->use_empty();
+        
         IFTRACE(llvm)
             std::cerr << " function F" << f
                       << (inUse ? " in use" : " unused");
-
+        
         if (inUse)
         {
             // Mark the function for complete deletion later
@@ -599,24 +638,19 @@ bool Compiler::FreeResources(Tree *tree)
         else
         {
             // Not in use, we can delete it directly
-            delete f;
+            f->eraseFromParent();
         }
-
-        // We can no longer reference this address as an LLVM function
-        functions.erase(fun);
     }
-
+    
     // Drop any global reference
-    value_map::iterator glob = globals.find(tree);
-    if (glob != globals.end())
+    if (GlobalValue *v = info->global)
     {
-        Value *v = (*glob).second;
         bool inUse = !v->use_empty();
-
+        
         IFTRACE(llvm)
             std::cerr << " global V" << v
                       << (inUse ? " in use" : " unused");
-
+        
         if (inUse)
         {
             deleted.insert(v);
@@ -625,27 +659,13 @@ bool Compiler::FreeResources(Tree *tree)
         else
         {
             // Delete the LLVM value immediately if it's safe to do it.
-            delete v;
-        }
-        globals.erase(glob);
-    }
-
-    // Drop any address we may have generated for that tree
-    if (result)
-    {
-        address_map::iterator addr = addresses.find(tree);
-        if (addr != addresses.end())
-        {
-            Tree **address = (*addr).second;
-            addresses.erase(addr);
-            IFTRACE(llvm)
-                std::cerr << " address A" << address;
-            delete address;
+            runtime->updateGlobalMapping(v, NULL);
+            v->eraseFromParent();
         }
     }
 
     IFTRACE(llvm)
-        std::cerr << (result ? " Delete\n" : "Save\n");
+        std::cerr << (result ? " Delete\n" : "Preserved\n");
 
     return result;
 }
@@ -665,7 +685,7 @@ void Compiler::FreeResources()
     deleted_set::iterator i, next;
     for (i = deleted.begin(); i != deleted.end(); i = next)
     {
-        Value *v = *i;
+        GlobalValue *v = *i;
         bool inUse = !v->use_empty();
 
         IFTRACE(llvm)
@@ -674,7 +694,7 @@ void Compiler::FreeResources()
 
         if (!inUse)
         {
-            delete v;
+            v->eraseFromParent();
             deleted.erase(i);
             next = deleted.begin();
         }
@@ -705,10 +725,10 @@ CompiledUnit::CompiledUnit(Compiler *comp, Tree *src, TreeList parms)
         std::cerr << "CompiledUnit T" << (void *) src;
 
     // If a compilation for that tree is alread in progress, fwd decl
-    if (compiler->functions[src])
+    if (llvm::Function *function = compiler->TreeFunction(src))
     {
         IFTRACE(llvm)
-            std::cerr << " exists F" << compiler->functions[src] << "\n";
+            std::cerr << " exists F" << function << "\n";
         return;
     }
 
@@ -725,7 +745,7 @@ CompiledUnit::CompiledUnit(Compiler *comp, Tree *src, TreeList parms)
                                 label.c_str(), compiler->module);
 
     // Save it in the compiler
-    compiler->functions[src] = function;
+    compiler->SetTreeFunction(src, function);
     IFTRACE(llvm)
         std::cerr << " new F" << function << "\n";
 
@@ -827,7 +847,7 @@ Value *CompiledUnit::NeedStorage(Tree *tree)
     }
     if (value.count(tree))
         data->CreateStore(value[tree], result);
-    else if (Value *global = compiler->Known(tree))
+    else if (Value *global = compiler->TreeGlobal(tree))
         data->CreateStore(data->CreateLoad(global), result);
 
     return result;
@@ -869,7 +889,7 @@ Value *CompiledUnit::Known(Tree *tree, uint which)
     else if (which & knowGlobals)
     {
         // Check if this is a global
-        result = compiler->Known(tree);
+        result = compiler->TreeGlobal(tree);
         if (result)
         {
             text label = "glob";
@@ -1051,7 +1071,7 @@ llvm::Value *CompiledUnit::Invoke(Tree *subexpr, Tree *callee, TreeList args)
         }
     }
 
-    Function *toCall = compiler->functions[callee]; assert(toCall);
+    Function *toCall = compiler->TreeFunction(callee); assert(toCall);
 
     // Add the 'self' argument
     std::vector<Value *> argV;
@@ -1710,15 +1730,6 @@ void CompilerGarbageCollectionListener::BeginCollection()
 }
 
 
-void CompilerGarbageCollectionListener::EndCollection()
-// ----------------------------------------------------------------------------
-//   Finalize the collection
-// ----------------------------------------------------------------------------
-{
-    compiler->FreeResources();
-}
-
-
 bool CompilerGarbageCollectionListener::CanDelete(void *obj)
 // ----------------------------------------------------------------------------
 //   Tell the compiler to free the resources associated with the tree
@@ -1726,6 +1737,15 @@ bool CompilerGarbageCollectionListener::CanDelete(void *obj)
 {
     Tree *tree = (Tree *) obj;
     return compiler->FreeResources(tree);
+}
+
+
+void CompilerGarbageCollectionListener::EndCollection()
+// ----------------------------------------------------------------------------
+//   Finalize the collection
+// ----------------------------------------------------------------------------
+{
+    compiler->FreeResources();
 }
 
 XL_END

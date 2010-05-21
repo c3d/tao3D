@@ -296,6 +296,8 @@ void Widget::draw()
         remaining = 0.001;
     timer.setSingleShot(true);
     timer.start(1000 * remaining);
+    if (pageRefresh < 0)
+        reloadProgram();
 
     // Timing
     elapsed(before, after);
@@ -4051,6 +4053,7 @@ void Widget::colorChanged(const QColor & col)
     if (!colorAction)
         return;
 
+    assert(!current);
     TaoSave saveCurrent(current, this);
     IFTRACE (widgets)
     {
@@ -4081,8 +4084,7 @@ void Widget::colorChanged(const QColor & col)
     // The tree to be evaluated needs its own symbol table before evaluation
     XL::Tree *toBeEvaluated = colorAction;
     XL::Symbols *syms = toBeEvaluated->Symbols();
-    if (!syms)
-        syms = XL::Symbols::symbols;
+    assert(syms);
     syms = new XL::Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
     toBeEvaluated->SetSymbols(syms);
@@ -4197,8 +4199,7 @@ void Widget::fontChanged(const QFont& ft)
     // The tree to be evaluated needs its own symbol table before evaluation
     XL::Tree *toBeEvaluated = fontAction;
     XL::Symbols *syms = toBeEvaluated->Symbols();
-    if (!syms)
-        syms = XL::Symbols::symbols;
+    assert(syms);
     syms = new XL::Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
     toBeEvaluated->SetSymbols(syms);
@@ -5345,8 +5346,7 @@ XL::Tree *  NameToNameReplacement::Replace(XL::Tree *original)
 {
     XL::Tree *copy = original;
     XL::Symbols *syms = original->Symbols();
-    if (!syms)
-        syms = XL::Symbols::symbols;
+    assert(syms);
     syms = new XL::Symbols(syms);
     copy = original->Do(*this);
     copy->SetSymbols(syms);

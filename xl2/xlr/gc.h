@@ -90,11 +90,22 @@ public:
         IN_USE          = 8             // Set if already marked this time
     };
 
+public:
+    struct Listener
+    {
+        virtual void BeginCollection()          {}
+        virtual bool CanDelete(void *)          { return true; }
+        virtual void EndCollection()            {}
+    };
+    void AddListener(Listener *l) { listeners.insert(l); }
+    bool CanDelete(void *object);
+
 protected:
     GarbageCollector *  gc;
     kstring             name;
     std::vector<Chunk*> chunks;
     mark_fn             mark;
+    std::set<Listener *>listeners;
     std::map<void*,uint>roots;
     Chunk *             freeList;
     uint                chunkSize;
@@ -227,18 +238,8 @@ struct GarbageCollector
     static void                 Collect(bool force=false);
     static void                 CollectionNeeded() { Singleton()->MustRun(); }
 
-    struct Listener
-    {
-        virtual void BeginCollection()          {}
-        virtual bool CanDelete(void *)          { return true; }
-        virtual void EndCollection()            {}
-    };
-    void AddListener(Listener *l) { listeners.insert(l); }
-    bool CanDelete(void *object);
-
 protected:
     std::vector<TypeAllocator *> allocators;
-    std::set<Listener *>         listeners;
     bool mustRun;
     static GarbageCollector *    gc;
 
@@ -371,6 +372,7 @@ inline uint TypeAllocator::Release(void *pointer)
         Chunk *chunk = ((Chunk *) pointer) - 1;
         TypeAllocator *allocator = ValidPointer(chunk->allocator);
         count = chunk->bits & USE_MASK;
+        assert(count);
         if (count < LOCKED_ROOT)
         {
             chunk->bits = (chunk->bits & ~USE_MASK) | --count;
@@ -464,10 +466,15 @@ void Allocator<Object>::Finalize(void *obj)
 //   Make sure that we properly call the destructor for the object
 // ----------------------------------------------------------------------------
 {
-    if (gc->CanDelete(obj))
+    if (CanDelete(obj))
     {
         Object *object = (Object *) obj;
         delete object;
+    }
+    else
+    {
+        Chunk *chunk = ((Chunk *) obj) - 1;
+        chunk->bits |= IN_USE;
     }
 }
 

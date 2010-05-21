@@ -1914,8 +1914,8 @@ Tree *CompileAction::DoName(Name *what)
 
         // Check if there is code we need to call
         Compiler *compiler = Context::context->compiler;
-        if (compiler->functions.count(result) &&
-            compiler->functions[result] != unit.function)
+        llvm::Function *function = compiler->TreeFunction(result);
+        if (function && function != unit.function)
         {
             // Case of "Name -> Foo": Invoke Name
             TreeList noArgs;

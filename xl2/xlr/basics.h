@@ -61,7 +61,7 @@ extern void tao_widget_refresh(double delay);
 #endif
 
 
-static inline longlong xl_text2int(text_r t)
+inline longlong xl_text2int(text_r t)
 // ----------------------------------------------------------------------------
 //   Converts text to a numerical value
 // ----------------------------------------------------------------------------
@@ -73,7 +73,7 @@ static inline longlong xl_text2int(text_r t)
 }
 
 
-static inline double xl_text2real(text_r t)
+inline double xl_text2real(text_r t)
 // ----------------------------------------------------------------------------
 //   Converts text to a numerical value
 // ----------------------------------------------------------------------------
@@ -85,7 +85,7 @@ static inline double xl_text2real(text_r t)
 }
 
 
-static inline integer_t xl_mod(integer_r xr, integer_r yr)
+inline integer_t xl_mod(integer_r xr, integer_r yr)
 // ----------------------------------------------------------------------------
 //   Compute a mathematical 'mod' from the C99 % operator
 // ----------------------------------------------------------------------------
@@ -99,7 +99,7 @@ static inline integer_t xl_mod(integer_r xr, integer_r yr)
 }
 
 
-static inline integer_t xl_pow(integer_r xr, integer_r yr)
+inline integer_t xl_pow(integer_r xr, integer_r yr)
 // ----------------------------------------------------------------------------
 //   Compute integer power
 // ----------------------------------------------------------------------------
@@ -122,7 +122,7 @@ static inline integer_t xl_pow(integer_r xr, integer_r yr)
 }
 
 
-static inline real_t xl_modf(real_r xr, real_r yr)
+inline real_t xl_modf(real_r xr, real_r yr)
 // ----------------------------------------------------------------------------
 //   Compute a mathematical 'mod' from fmod
 // ----------------------------------------------------------------------------
@@ -136,7 +136,7 @@ static inline real_t xl_modf(real_r xr, real_r yr)
 }
 
 
-static inline real_t xl_powf(real_r xr, integer_r yr)
+inline real_t xl_powf(real_r xr, integer_r yr)
 // ----------------------------------------------------------------------------
 //   Compute real power with an integer on the right
 // ----------------------------------------------------------------------------
@@ -160,7 +160,7 @@ static inline real_t xl_powf(real_r xr, integer_r yr)
 }
 
 
-static inline integer_t xl_time(double delay)
+inline integer_t xl_time(double delay)
 // ----------------------------------------------------------------------------
 //   Return the current system time
 // ----------------------------------------------------------------------------
@@ -189,7 +189,7 @@ static inline integer_t xl_time(double delay)
 
 
 template<typename number>
-static inline number xl_random(number low, number high)
+inline number xl_random(number low, number high)
 // ----------------------------------------------------------------------------
 //    Return a pseudo-random number in the low..high range
 // ----------------------------------------------------------------------------
@@ -204,7 +204,7 @@ static inline number xl_random(number low, number high)
 
 
 #ifdef CONFIG_MINGW
-static struct tm *localtime_r (const time_t * timep, struct tm * result)
+inline struct tm *localtime_r (const time_t * timep, struct tm * result)
 // ----------------------------------------------------------------------------
 //   MinGW doesn't have localtime_r, but its localtime is thread-local storage
 // ----------------------------------------------------------------------------

@@ -252,6 +252,8 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
+
     // Timing
     ulonglong before = now();
     event = NULL;
@@ -299,6 +301,8 @@ void Widget::draw()
         remaining = 0.001;
     timer.setSingleShot(true);
     timer.start(1000 * remaining);
+    if (pageRefresh < 0)
+        reloadProgram();
 
     // Timing
     elapsed(before, after);
@@ -341,7 +345,6 @@ void Widget::runProgram()
     focusWidget = NULL;
 
     // Run the XL program associated with this widget
-    current = this;
     QTextOption alignCenter(Qt::AlignCenter);
     IFTRACE(memory)
         std::cerr << "Run, Drawing::count = " << space->count << ", ";
@@ -349,7 +352,6 @@ void Widget::runProgram()
     IFTRACE(memory)
         std::cerr << "cleared, count = " << space->count << ", ";
     XL::LocalSave<Layout *> saveLayout(layout, space);
-    selectionTrees.clear();
     id = charId = 0;
 
     // Evaluate the program
@@ -382,6 +384,7 @@ void Widget::runProgram()
     IFTRACE(memory)
         std::cerr << "Draw, count = " << space->count << "\n";
     id = charId = 0;
+    selectionTrees.clear();
     space->DrawSelection(NULL);
 
     // Clipboard management
@@ -405,6 +408,7 @@ void Widget::updateSelection()
 // ----------------------------------------------------------------------------
 {
     id = charId = 0;
+    selectionTrees.clear();
     space->DrawSelection(NULL);
 }
 
@@ -591,9 +595,8 @@ void Widget::userMenu(QAction *p_action)
     if (!var.isValid())
         return;
 
+    TaoSave saveCurrent(current, this);
     markChanged(+("Menu '" + p_action->text() + "' selected"));
-
-    current = this;
     XL::Tree *t = var.value<XL::Tree_p>();
     xl_evaluate(t);        // Typically will insert something...
 }
@@ -1107,6 +1110,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
 //   A key is pressed
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
 
@@ -1126,6 +1130,7 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
 //   A key is released
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
 
@@ -1145,6 +1150,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
 //   Mouse button click
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
 
@@ -1198,6 +1204,7 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
 //   Mouse button is released
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
 
@@ -1218,6 +1225,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
     bool active = event->buttons() != Qt::NoButton;
@@ -1237,6 +1245,7 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
 //   Mouse double click
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
 
@@ -1259,6 +1268,7 @@ void Widget::wheelEvent(QWheelEvent *event)
 //   Mouse wheel
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
     forwardEvent(event);
@@ -1270,6 +1280,7 @@ void Widget::timerEvent(QTimerEvent *event)
 //    Timer expired
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     forwardEvent(event);
 }
@@ -1328,20 +1339,8 @@ void Widget::reloadProgram(XL::Tree *newProg)
 // ----------------------------------------------------------------------------
 {
     Tree *prog = xlProgram->tree;
-    if (newProg)
-    {
-        // Check if we can simply change some parameters in the tree
-        ApplyChanges changes(newProg);
-        if (!prog->Do(changes))
-        {
-            // Need a big hammer, i.e. reload the complete program
-            newProg->SetSymbols(prog->Symbols());
-            xlProgram->tree = newProg;
-            prog = newProg;
-        }
-        inError = false;
-    }
-    else
+
+    if (!newProg)
     {
         // We want to force a clone so that we recompile everything
         if (prog)
@@ -1350,9 +1349,21 @@ void Widget::reloadProgram(XL::Tree *newProg)
             newProg = prog->Do(renorm);
             newProg->SetSymbols(prog->Symbols());
             xlProgram->tree = newProg;
-            prog = newProg;
         }
     }
+
+    // Check if we can simply change some parameters in the tree
+    else
+    {
+        ApplyChanges changes(newProg);
+        if (!prog->Do(changes))
+        {
+            // Need a big hammer, i.e. reload the complete program
+            newProg->SetSymbols(prog->Symbols());
+            xlProgram->tree = newProg;
+        }
+    }
+    inError = false;
 
     // Now update the window
     updateProgramSource();
@@ -1949,7 +1960,7 @@ void Widget::select(uint id, uint count)
 //    Select the current shape if we are in selectable state
 // ----------------------------------------------------------------------------
 {
-    if (id && id != ~0U)
+    if (id)
     {
         if (count)
             selection[id] += (count == 1) ? 1 : (1 << 16);
@@ -2054,7 +2065,7 @@ TextSelect *Widget::textSelection()
 }
 
 
-void Widget::drawSelection(const Box3 &bnds, text selName)
+void Widget::drawSelection(const Box3 &bnds, text selName, uint id)
 // ----------------------------------------------------------------------------
 //    Draw a 2D or 3D selection with the given coordinates
 // ----------------------------------------------------------------------------
@@ -2072,8 +2083,8 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
     SpaceLayout selectionSpace(this);
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-    XL::LocalSave<GLuint>   saveId(id, ~0);
     GLAttribKeeper          saveGL;
+    selectionSpace.id = id;
     glDisable(GL_DEPTH_TEST);
     if (bounds.Depth() > 0)
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
@@ -2084,7 +2095,7 @@ void Widget::drawSelection(const Box3 &bnds, text selName)
 }
 
 
-void Widget::drawHandle(const Point3 &p, text handleName)
+void Widget::drawHandle(const Point3 &p, text handleName, uint id)
 // ----------------------------------------------------------------------------
 //    Draw the handle of a 2D or 3D selection
 // ----------------------------------------------------------------------------
@@ -2096,7 +2107,7 @@ void Widget::drawHandle(const Point3 &p, text handleName)
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper          saveGL;
     glDisable(GL_DEPTH_TEST);
-    selectionSpace.id = ~0U;
+    selectionSpace.id = id;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
     selectionSpace.Draw(NULL);
     glEnable(GL_DEPTH_TEST);
@@ -2584,6 +2595,61 @@ Tree_p Widget::fillTextureFromSVG(Tree_p self, text img)
 }
 
 
+Tree *InsertImageWidthAndHeightAction::DoInfix(Infix *what)
+// ----------------------------------------------------------------------------
+// Action modifying the Infix before the "path" component.
+// ----------------------------------------------------------------------------
+{
+    if ( done || what->name != "," || ! what->right->AsText())
+        return what;
+
+    Real *width = new Real(ww);
+    Real *height = new Real(hh);
+    Infix *inf2 = new XL::Infix (",", what->left, width);
+    Infix *inf1 = new XL::Infix (",", inf2, height);
+    what->left = inf1;
+
+    done = true;
+    return what;
+}
+
+
+Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, text filename)
+//----------------------------------------------------------------------------
+//  Make an image : rewrite the source with image x,y,w,h,path
+//----------------------------------------------------------------------------
+//  If w or h is 0 then the image width or height is used and assigned to it.
+{
+    GLuint texId = 0;
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+
+    ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
+    if (!rinfo)
+    {
+        rinfo = new ImageTextureInfo(this);
+        self->SetInfo<ImageTextureInfo>(rinfo);
+    }
+    texId = rinfo->bind(filename);
+
+    layout->Add(new FillTexture(texId));
+    layout->hasAttributes = true;
+
+    Rectangle shape(Box(x-rinfo->width/2, y-rinfo->height/2,
+                        rinfo->width, rinfo->height));
+    layout->Add(new Rectangle(shape));
+
+    // Replace image x,y,"toto" with x,y,w,h,"toto"
+    InsertImageWidthAndHeightAction insertAct(rinfo->width, rinfo->height);
+    self->Do(insertAct);
+
+    // The structure of the program has changed, we need to recompile
+    reloadProgram();
+    markChanged("image size added");
+
+    return XL::xl_true;
+}
+
+
 Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                      text filename)
 //----------------------------------------------------------------------------
@@ -2601,21 +2667,6 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
     texId = rinfo->bind(filename);
-
-    if (w->value <= 0)
-    {
-        if (Tree *source = xl_source(w))
-            if (Integer *asInt = source->AsInteger())
-                asInt->value = rinfo->width;
-        w->value = rinfo->width;
-    }
-    if (h->value <= 0)
-    {
-        if (Tree *source = xl_source(h))
-            if (Integer *asInt = source->AsInteger())
-                asInt->value = rinfo->height;
-        h->value = rinfo->height;
-    }
 
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
@@ -3932,7 +3983,6 @@ Tree_p Widget::colorChooser(Tree_p self, text treeName, Tree_p action)
             this, SLOT(colorChanged(const QColor &)));
     colorDialog->show();
 
-
     return XL::xl_true;
 }
 
@@ -3954,6 +4004,8 @@ void Widget::colorChanged(const QColor & col)
     if (!colorAction)
         return;
 
+    assert(!current);
+    TaoSave saveCurrent(current, this);
     IFTRACE (widgets)
     {
         std::cerr << "Color "<< col.name().toStdString()
@@ -3983,8 +4035,7 @@ void Widget::colorChanged(const QColor & col)
     // The tree to be evaluated needs its own symbol table before evaluation
     XL::Tree *toBeEvaluated = colorAction;
     XL::Symbols *syms = toBeEvaluated->Symbols();
-    if (!syms)
-        syms = XL::Symbols::symbols;
+    assert(syms);
     syms = new XL::Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
     toBeEvaluated->SetSymbols(syms);
@@ -4001,6 +4052,8 @@ void Widget::updateColorDialog()
 {
     if (!colorDialog)
         return;
+
+    TaoSave saveCurrent(current, this);
 
     // Make sure we don't update the trees, only get their colors
     XL::LocalSave<Tree_p > action(colorAction, NULL);
@@ -4063,6 +4116,7 @@ void Widget::fontChanged(const QFont& ft)
     if (!fontAction)
         return;
 
+    TaoSave saveCurrent(current, this);
     IFTRACE (widgets)
     {
         std::cerr << "Font "<< ft.toString().toStdString()
@@ -4097,8 +4151,7 @@ void Widget::fontChanged(const QFont& ft)
     // The tree to be evaluated needs its own symbol table before evaluation
     XL::Tree *toBeEvaluated = fontAction;
     XL::Symbols *syms = toBeEvaluated->Symbols();
-    if (!syms)
-        syms = XL::Symbols::symbols;
+    assert(syms);
     syms = new XL::Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
     toBeEvaluated->SetSymbols(syms);
@@ -4115,6 +4168,8 @@ void Widget::updateFontDialog()
 {
     if (!fontDialog)
         return;
+
+    TaoSave saveCurrent(current, this);
 
     // Make sure we don't update the trees, only get their colors
     XL::LocalSave<Tree_p > action(fontAction, NULL);
@@ -4811,15 +4866,19 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
 
     if (par)
     {
+        QAction *before = NULL;
         if (orderedMenuElements[order])
         {
-            QAction *before = orderedMenuElements[order]->p_action;
-            par->insertAction(before, currentMenu->menuAction());
+            before = orderedMenuElements[order]->p_action;
         }
         else
         {
-            par->addAction(currentMenu->menuAction());
+            if (par == currentMenuBar)
+                before = ((Window*)parent())->shareMenu->menuAction();
+
+//            par->addAction(currentMenu->menuAction());
         }
+        par->insertAction(before, currentMenu->menuAction());
 
         QToolButton* button = NULL;
         if (par == currentToolBar &&
@@ -5132,7 +5191,8 @@ XL::Name_p Widget::setAttribute(Tree_p self,
 
         SetAttributeAction setAttrib(name, attribute, this, shape);
         program->Do(setAttrib);
-        reloadProgram();
+
+        // We don't need to reloadProgram() because Widget::set does it
         markChanged("Updated " + name + " attribute");
 
         return XL::xl_true;
@@ -5219,8 +5279,7 @@ XL::Tree *  NameToNameReplacement::Replace(XL::Tree *original)
 {
     XL::Tree *copy = original;
     XL::Symbols *syms = original->Symbols();
-    if (!syms)
-        syms = XL::Symbols::symbols;
+    assert(syms);
     syms = new XL::Symbols(syms);
     copy = original->Do(*this);
     copy->SetSymbols(syms);

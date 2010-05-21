@@ -50,15 +50,15 @@ namespace llvm
 XL_BEGIN
 
 struct CompiledUnit;
+struct CompilerInfo;
 struct Options;
 typedef std::map<text, llvm::Function *>    builtins_map;
 typedef std::map<Tree *, llvm::Value *>     value_map;
-typedef std::map<Tree *, llvm::Function *>  function_map;
 typedef std::map<Tree *, Tree **>           address_map;
 typedef std::map<uint, eval_fn>             closure_map;
 typedef std::set<Tree *>                    closure_set;
 typedef std::set<Tree *>                    data_set;
-typedef std::set<llvm::Value *>             deleted_set;
+typedef std::set<llvm::GlobalValue *>       deleted_set;
 typedef Tree * (*adapter_fn) (eval_fn callee, Tree *src, Tree **args);
 
 
@@ -70,6 +70,12 @@ struct Compiler
     Compiler(kstring moduleName = "xl", uint optimize_level = 999);
     ~Compiler();
 
+    void                      Reset();
+    CompilerInfo *            Info(Tree *tree, bool create = false);
+    llvm::Function *          TreeFunction(Tree *tree);
+    void                      SetTreeFunction(Tree *tree, llvm::Function *);
+    llvm::GlobalValue *       TreeGlobal(Tree *tree);
+    void                      SetTreeGlobal(Tree*, llvm::GlobalValue*, void*);
     llvm::Function *          EnterBuiltin(text name,
                                            Tree *to,
                                            TreeList parms,
@@ -81,12 +87,10 @@ struct Compiler
     llvm::Value *             EnterGlobal(Name *name, Name_p *address);
     llvm::Value *             EnterConstant(Tree *constant);
     bool                      IsKnown(Tree *value);
-    llvm::Value *             Known(Tree *value);
 
-    void                      FreeResources(Tree *tree);
+    bool                      FreeResources(Tree *tree);
     void                      FreeResources();
 
-    void                      Reset();
 
 public:
     llvm::LLVMContext         *context;
@@ -124,9 +128,6 @@ public:
     llvm::Function            *xl_new_infix;
     llvm::Function            *xl_new_closure;
     builtins_map               builtins;
-    function_map               functions;
-    value_map                  globals;
-    address_map                addresses;
     closure_map                closures;
     deleted_set                deleted;
     closure_map                array_to_args_adapters;
@@ -184,8 +185,8 @@ struct CompiledUnit
 
 public:
     Compiler *          compiler;       // The compiler environment we use
-    llvm::LLVMContext *context;        // The context we got from compiler
-    Tree *              source;         // The original source we compile
+    llvm::LLVMContext * context;        // The context we got from compiler
+    Tree_p              source;         // The original source we compile
 
     llvm::IRBuilder<> * code;           // Instruction builder for code
     llvm::IRBuilder<> * data;           // Instruction builder for data
@@ -233,7 +234,7 @@ public:
 };
 
 
-struct CompilerGarbageCollectionListener : GarbageCollector::Listener
+struct CompilerGarbageCollectionListener : TypeAllocator::Listener
 // ----------------------------------------------------------------------------
 //   Listen to the garbage collection to put away LLVM data structures
 // ----------------------------------------------------------------------------
@@ -246,6 +247,18 @@ struct CompilerGarbageCollectionListener : GarbageCollector::Listener
     virtual void EndCollection();
 
     Compiler *compiler;
+};
+
+
+struct CompilerInfo : Info
+// ----------------------------------------------------------------------------
+//   Information about compiler-related data structures
+// ----------------------------------------------------------------------------
+{
+    CompilerInfo(Tree *tree): tree(tree), global(0), function(0) {}
+    Tree *                      tree;
+    llvm::GlobalValue *         global;
+    llvm::Function *            function;
 };
 
 

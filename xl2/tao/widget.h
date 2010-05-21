@@ -186,8 +186,8 @@ public:
     Point3      unproject (coord x, coord y, coord z = 0.0);
     Drag *      drag();
     TextSelect *textSelection();
-    void        drawSelection(const Box3 &bounds, text name);
-    void        drawHandle(const Point3 &point, text name);
+    void        drawSelection(const Box3 &bounds, text name, uint id);
+    void        drawHandle(const Point3 &point, text name, uint id);
     template<class Activity>
     Activity *  active();
     void        checkCopyAvailable();
@@ -426,6 +426,7 @@ public:
 
     Tree_p      image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                       text filename);
+    Tree_p      image(Tree_p self, Real_p x, Real_p y, text filename);
 
     // Menus and widgets
     static Tree_p runtimeError(Tree_p self, text msg, Tree_p src);
@@ -467,6 +468,7 @@ private:
     friend class Renormalize;
 
     typedef XL::LocalSave<QEvent *>             EventSave;
+    typedef XL::LocalSave<Widget *>             TaoSave;
     typedef std::map<GLuint, uint>              selection_map;
     typedef std::map<text, PageLayout*>         flow_map;
     typedef std::map<text, text>                page_map;
@@ -603,27 +605,27 @@ struct DeleteSelectionAction : XL::Action
     Tree *DoInteger(Integer *what)
     {
         if (widget->selected(what))
-            return NULL;           
+            return NULL;
         return new Integer(what->value, what->Position());
     }
     Tree *DoReal(Real *what)
     {
         if (widget->selected(what))
-            return NULL;           
+            return NULL;
         return new Real(what->value, what->Position());
 
     }
     Tree *DoText(Text *what)
     {
         if (widget->selected(what))
-            return NULL;           
+            return NULL;
         return new Text(what->value, what->opening, what->closing,
                         what->Position());
     }
     Tree *DoName(Name *what)
     {
         if (widget->selected(what))
-            return NULL;           
+            return NULL;
         return new Name(what->value, what->Position());
     }
 
@@ -726,6 +728,21 @@ struct NameToTextReplacement : NameToNameReplacement
     NameToTextReplacement(): NameToNameReplacement() {}
     Tree *  DoName(XL::Name *what);
 };
+
+
+struct InsertImageWidthAndHeightAction : XL::Action
+// ----------------------------------------------------------------------------
+// Action to insert the width and height of the image in the source.
+// ----------------------------------------------------------------------------
+{
+    InsertImageWidthAndHeightAction(double w, double h)
+        :ww(w), hh(h), done(false) {}
+    Tree *Do (Tree *what) { return what;}
+    Tree *DoInfix(Infix *what);
+    double ww,hh;
+    bool   done;
+};
+
 
 } // namespace Tao
 

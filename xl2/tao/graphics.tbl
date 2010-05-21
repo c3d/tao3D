@@ -128,10 +128,12 @@ PREFIX(FillTexture, tree, "texture", PARM(n, text),
        RTAO(fillTexture(self, n)))
 PREFIX(FillTextureSVG, tree,"svg", PARM(img, text),
        RTAO(fillTextureFromSVG(self, img)))
-PREFIX(Image, tree,"image",
+PREFIX(ImageA, tree,"image",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real) PARM(img, text),
        RTAO(image(self, x, y, w, h, img)))
-
+PREFIX(ImageB, tree,"image",
+       PARM(x, real) PARM(y, real) PARM(img, text),
+       RTAO(image(self, x, y, img)))
 
 
 // ============================================================================
@@ -164,7 +166,7 @@ PREFIX(PathColor, tree, "path_color",
        PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
        RTAO(pathColor(self, r,g,b, a)))
 PREFIX(ClosePath, tree, "close_path",, RTAO(closePath(self)))
-PREFIX(EndpointsStyle, tree, "endpoints_style", 
+PREFIX(EndpointsStyle, tree, "endpoints_style",
        PARM(s, symbolicname) PARM(e, symbolicname),
        RTAO(endpointsStyle(self, s, e)))
 

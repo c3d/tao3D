@@ -212,10 +212,25 @@ void Window::newFile()
 //   Create a new window
 // ----------------------------------------------------------------------------
 {
-    XL::source_names noExtraContext;
-    Window *other = new Window(xlRuntime, noExtraContext, NULL);
-    other->move(x() + 40, y() + 40);
-    other->show();
+    if (isReadOnly && !isWindowModified())
+    {
+        QString fileName = findUnusedUntitledFile();
+        XL::SourceFile *sf = xlRuntime->NewFile(+fileName);
+        isUntitled = true;
+        isReadOnly = false;
+        setCurrentFile(fileName);
+        setText("");
+        markChanged(false);
+        taoWidget->updateProgram(sf);
+        taoWidget->refresh();
+    }
+    else
+    {
+        XL::source_names noExtraContext;
+        Window *other = new Window(xlRuntime, noExtraContext, NULL);
+        other->move(x() + 40, y() + 40);
+        other->show();
+    }
 }
 
 
@@ -245,12 +260,10 @@ void Window::open(QString fileName)
         return;
     }
 
-    if ((isUntitled || isReadOnly) &&
-        textEdit->document()->isEmpty() &&
-        !isWindowModified())
+    if (!needNewWindow())
     {
         text fn = +fileName;
-        isReadOnly = access(fn.c_str(), W_OK) != 0;
+        isReadOnly = !QFileInfo(fileName).isWritable();
         if (!loadFile(fileName, !isReadOnly))
             return;
     }
@@ -760,6 +773,18 @@ bool Window::maybeSave()
 }
 
 
+bool Window::needNewWindow()
+// ----------------------------------------------------------------------------
+//   Check if we need a new window or if we can recycle the old one
+// ----------------------------------------------------------------------------
+//   We need a new window if
+//   - The document has been modified
+//   - The document
+{
+    return isWindowModified() || !(isReadOnly || isUntitled);
+}
+
+
 bool Window::loadFile(const QString &fileName, bool openProj)
 // ----------------------------------------------------------------------------
 //    Load a specific file (and optionally, open project repository)
@@ -812,7 +837,8 @@ void Window::updateProgram(const QString &fileName)
 //   When a file has changed, reload corresponding XL program
 // ----------------------------------------------------------------------------
 {
-    QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
+    QFileInfo fileInfo(fileName);
+    QString canonicalFilePath = fileInfo.canonicalFilePath();
     text fn = +canonicalFilePath;
     XL::SourceFile *sf = &xlRuntime->files[fn];
 
@@ -824,7 +850,7 @@ void Window::updateProgram(const QString &fileName)
             xlRuntime->LoadFile(fn);
 
         // Check if we can access the file
-        if (access(fn.c_str(), W_OK) != 0)
+        if (!fileInfo.isWritable())
             sf->readOnly = true;
     }
 

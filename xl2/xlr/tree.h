@@ -201,7 +201,7 @@ public:
     GARBAGE_COLLECT(Tree);
 
 private:
-    Tree (const Tree &) {}
+    Tree (const Tree &);
 };
 
 

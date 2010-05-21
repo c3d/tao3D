@@ -296,6 +296,8 @@ void Widget::draw()
         remaining = 0.001;
     timer.setSingleShot(true);
     timer.start(1000 * remaining);
+    if (pageRefresh < 0)
+        reloadProgram();
 
     // Timing
     elapsed(before, after);

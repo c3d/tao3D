@@ -561,6 +561,53 @@ void Widget::paste()
 
 }
 
+Name_p Widget::bringToFront(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Bring the selected shape to front
+// ----------------------------------------------------------------------------
+{
+    Tree * select = removeSelection();
+    insert(NULL, select);
+    return XL::xl_true;
+}
+
+Name_p Widget::sendToBack(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Send the selected shape to back
+// ----------------------------------------------------------------------------
+{
+    Tree * select = removeSelection();
+    Symbols *symbols = xlProgram->tree->Symbols();
+    XL::Infix * top = new XL::Infix("\n", select, xlProgram->tree);
+    top->SetSymbols(symbols);
+    xlProgram->tree = top;
+    // Reload the program and mark the changes
+    reloadProgram();
+    markChanged("Selection sent back");
+
+    return XL::xl_true;
+}
+
+//Tree_p Widget::sendForward(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Swap the selected shape and the one in front of it
+// ----------------------------------------------------------------------------
+//{
+//    cut();
+//    selectNext();
+//    selectNext();
+//    pasteBeforeSelection();
+//}
+//
+//Tree_p Widget::sendBackward(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Swap the selected shape and the one just behind it
+// ----------------------------------------------------------------------------
+//{
+//    cut();
+//    selectPrevious();
+//    pasteBeforeSelection();
+//}
 
 void Widget::enableAnimations(bool enable)
 // ----------------------------------------------------------------------------
@@ -5084,7 +5131,7 @@ Tree_p  Widget::separator(Tree_p self)
 
 XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert)
 // ----------------------------------------------------------------------------
-//    Insert the tree after the selection, assuming there is only one
+//    Insert at the end of page or program
 // ----------------------------------------------------------------------------
 {
     // For 'insert { statement; }', we don't want the { } block
@@ -5142,6 +5189,25 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert)
     return XL::xl_true;
 }
 
+
+XL::Tree_p Widget::removeSelection()
+// ----------------------------------------------------------------------------
+//    Remove the selection from the tree and return a copy of it
+// ----------------------------------------------------------------------------
+{
+    if (!hasSelection())
+        return NULL;
+
+    // Build a single tree from all the selected sub-trees
+    std::set<Tree_p >::reverse_iterator i = selectionTrees.rbegin();
+    XL::Tree *tree = (*i++);
+    for ( ; i != selectionTrees.rend(); i++)
+        tree = new XL::Infix("\n", (*i), tree);
+
+    deleteSelection();
+
+    return tree;
+}
 
 XL::Name_p Widget::deleteSelection(Tree_p self, text key)
 // ----------------------------------------------------------------------------

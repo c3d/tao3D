@@ -449,6 +449,7 @@ public:
     void        deleteSelection();
     Name_p      deleteSelection(Tree_p self, text key);
     Name_p      setAttribute(Tree_p self, text name, Tree_p attribute, text sh);
+    Tree_p      removeSelection();
 
     // Unit conversionsxo
     Real_p      fromCm(Tree_p self, double cm);
@@ -456,6 +457,12 @@ public:
     Real_p      fromIn(Tree_p self, double in);
     Real_p      fromPt(Tree_p self, double pt);
     Real_p      fromPx(Tree_p self, double px);
+
+    // z order management
+    Name_p      bringToFront(Tree_p self);
+    Name_p      sendToBack(Tree_p self);
+//    Name_p      bringForward(Tree_p self);
+//    Name_p      sendBackward(Tree_p self);
 
 private:
     friend class Window;

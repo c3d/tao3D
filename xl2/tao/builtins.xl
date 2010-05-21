@@ -309,7 +309,7 @@ menu_item "toolbar:insert > shape > line ---", "", "images/tb_shape_line.png", i
         line 50, -50, -50, 50
 menu_item "toolbar:insert > shape > line -->", "", "images/tb_shape_line_w_arrowhead.png", insert
     shape
-        line_arrow 50, -50, none, -50, 50, arrowhead 
+        line_arrow 50, -50, none, -50, 50, arrowhead
 menu_item "toolbar:insert > shape > line <->", "", "images/tb_shape_line_w_two_arrowheads.png", insert
     shape
         line_arrow 50, -50, arrowhead, -50, 50, arrowhead
@@ -351,17 +351,25 @@ menu_item "toolbar:insert > shape > polygon", "", "images/tb_shape_polygon.png",
         polygon 0, 0, 100, 100, 5
 }
 
-menu_colors -> {
+menu_format -> {
 menubar
-menu      "menu:colors", "Colors"
-menu_item "menu:colors > fill color", "Fill Color...", do
+menu      "menu:format", "Format"
+submenu   "menu:format:colors", "Colors"
+menu_item "menu:format:colors > fill color", "Fill Color...", do
     color_chooser "color", do
         set_attribute "color", {color red, green, blue, alpha}
-menu_item "menu:colors > line color", "Line Color...", do
+menu_item "menu:format:colors > line color", "Line Color...", do
     color_chooser "line_color", do
         set_attribute "line_color", {line_color red, green, blue, alpha}
+
+menu      "menu:format"
+submenu   "menu:format:zorder", "Z order"
+menu_item "menu:format:zorder > toFront", "Bring to front", do
+    bring_to_front
+menu_item "menu:format:zorder > toBack", "Send to back", do
+    send_to_back
 }
 
 
 menu_insert
-menu_colors
+menu_format

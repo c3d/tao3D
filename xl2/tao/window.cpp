@@ -219,7 +219,7 @@ void Window::newFile()
         isUntitled = true;
         isReadOnly = false;
         setCurrentFile(fileName);
-        setText("");
+        setHtml("");
         markChanged(false);
         taoWidget->updateProgram(sf);
         taoWidget->refresh();

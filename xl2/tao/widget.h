@@ -44,6 +44,7 @@
 #include <QColorDialog>
 #include <QFontDialog>
 #include <iostream>
+#include <sstream>
 #include <map>
 
 namespace Tao {
@@ -520,6 +521,10 @@ private:
     ulonglong             tmin, tmax, tsum, tcount;
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
     bool                  animated;
+
+    // Source code view
+    std::ostringstream    srcRendererOutput;
+    XL::Renderer *        srcRenderer;
 
     static Widget *       current;
     static QColorDialog * colorDialog;

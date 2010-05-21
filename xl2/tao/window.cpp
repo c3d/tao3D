@@ -70,6 +70,8 @@ Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
     textEdit = new QTextEdit(dock);
     dock->setWidget(textEdit);
     addDockWidget(Qt::RightDockWidgetArea, dock);
+    connect(dock, SIGNAL(visibilityChanged(bool)),
+            this, SLOT(toggleSourceView(bool)));
 
     // Create the error reporting widget
     errorDock = new QDockWidget(tr("Errors"));
@@ -120,12 +122,12 @@ Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
 }
 
 
-void Window::setText(QString txt)
+void Window::setHtml(QString txt)
 // ----------------------------------------------------------------------------
 //   Update the text edit widget with updates we made
 // ----------------------------------------------------------------------------
 {
-    textEdit->document()->setPlainText(txt);
+    textEdit->document()->setHtml(txt);
 }
 
 
@@ -192,6 +194,16 @@ void Window::toggleAnimations()
 // ----------------------------------------------------------------------------
 {
     taoWidget->enableAnimations(!taoWidget->hasAnimations());
+}
+
+
+void Window::toggleSourceView(bool visible)
+// ----------------------------------------------------------------------------
+//   Source code view is shown or hidden
+// ----------------------------------------------------------------------------
+{
+    if (visible)
+        taoWidget->updateProgramSource();
 }
 
 

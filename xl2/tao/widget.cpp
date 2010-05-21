@@ -146,6 +146,10 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     // Connect the symbol table for formulas
     symbolTableRoot->SetSymbols(symbolTableForFormulas);
     TaoFormulas::EnterFormulas(symbolTableForFormulas);
+
+    // Select format for source file view
+    srcRenderer = new XL::Renderer(srcRendererOutput);
+    srcRenderer->SelectStyleSheet("srcview.stylesheet");
 }
 
 
@@ -156,6 +160,7 @@ Widget::~Widget()
 {
     delete space;
     delete path;
+    delete srcRenderer;
 }
 
 
@@ -1360,14 +1365,25 @@ void Widget::updateProgramSource()
 // ----------------------------------------------------------------------------
 {
     Window *window = (Window *) parentWidget();
+    if (window->dock->isHidden())
+        return;
     if (Tree *prog = xlProgram->tree)
     {
-        text txt = *prog;
-        window->setText(+txt);
+        text txt = "";
+        srcRendererOutput.str(txt);
+
+        // Tell renderer how to highlight selected items
+        std::set<Tree_p >::iterator i;
+        srcRenderer->highlights.clear();
+        for (i = selectionTrees.begin(); i != selectionTrees.end(); i++)
+            srcRenderer->highlights[*i] = "selected";
+        srcRenderer->Render(prog);
+
+        window->setHtml(+srcRendererOutput.str());
     }
     else
     {
-        window->setText("");
+        window->setHtml("");
     }
 }
 

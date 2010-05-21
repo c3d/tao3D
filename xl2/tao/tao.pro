@@ -23,7 +23,6 @@ QT += webkit \
     opengl \
     svg \
     phonon
-
 QMAKE_CXXFLAGS_RELEASE += -g
 
 # Tell the XLR portion that we are building for Tao
@@ -203,7 +202,8 @@ OTHER_FILES += xl.syntax \
     bytecode.stylesheet \
     builtins.xl \
     tutorial.ddd \
-    git.stylesheet
+    git.stylesheet \
+    srcview.stylesheet
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}

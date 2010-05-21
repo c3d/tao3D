@@ -55,7 +55,7 @@ class Window : public QMainWindow
 public:
     Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf = NULL);
 
-    void setText(QString txt);
+    void setHtml(QString txt);
     void addError(QString txt);
     bool openProject(QString path, QString filename, bool confirm = true);
     Repository * repository() { return repo.data(); }
@@ -72,6 +72,7 @@ public:
 public slots:
     void markChanged(bool changed = true);
     void toggleAnimations();
+    void toggleSourceView(bool visible);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -128,7 +129,9 @@ private:
 
     QTextEdit        *textEdit;
     QTextEdit        *errorMessages;
+public:
     QDockWidget      *dock;
+private:
     QDockWidget      *errorDock;
     Widget           *taoWidget;
     QString           curFile;

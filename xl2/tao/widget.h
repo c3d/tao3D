@@ -90,7 +90,8 @@ public slots:
     void        runProgram();
     void        appFocusChanged(QWidget *prev, QWidget *next);
     void        userMenu(QAction *action);
-    bool        refresh(double delay = 0.0);
+    bool        refresh();
+    bool        refresh(double delay);
     void        commitSuccess(QString id, QString msg);
     void        colorChosen(const QColor &);
     void        colorChanged(const QColor &);
@@ -502,6 +503,7 @@ private:
     selection_map         selection, savedSelection;
     std::set<Tree_p >     selectionTrees, selectNextTime;
     bool                  wasSelected;
+    bool                  selectionDirty;
     QEvent *              event;
     QWidget *             focusWidget;
     GLdouble              focusProjection[16], focusModel[16];

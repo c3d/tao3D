@@ -99,7 +99,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
       id(0), charId(0), capacity(1), manipulator(0),
-      wasSelected(false),
+      wasSelected(false), selectionDirty(false),
       event(NULL), focusWidget(NULL), keyboardModifiers(0),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
@@ -314,6 +314,13 @@ void Widget::draw()
     for (Activity *a = activities; a; a = a->Display()) ;
     selectionSpace.Draw(NULL);
     glEnable(GL_DEPTH_TEST);
+
+    // Color selection if required
+    if (selectionDirty)
+    {
+        selectionDirty = false;
+        updateProgramSource();
+    }
 
     // Update page count for next run
     pageTotal = pageId;
@@ -599,6 +606,17 @@ void Widget::userMenu(QAction *p_action)
     markChanged(+("Menu '" + p_action->text() + "' selected"));
     XL::Tree *t = var.value<XL::Tree_p>();
     xl_evaluate(t);        // Typically will insert something...
+}
+
+
+bool Widget::refresh()
+// ----------------------------------------------------------------------------
+//   Refresh the screen as soon as possible
+// ----------------------------------------------------------------------------
+//   We also update the source code to match the selection
+{
+    selectionDirty = true;
+    return refresh(0.0);
 }
 
 
@@ -1390,7 +1408,8 @@ void Widget::updateProgramSource()
             srcRenderer->highlights[*i] = "selected";
         srcRenderer->Render(prog);
 
-        window->setHtml(+srcRendererOutput.str());
+        text html = srcRendererOutput.str();
+        window->setHtml(+html);
     }
     else
     {

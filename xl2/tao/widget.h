@@ -78,6 +78,7 @@ class Widget : public QGLWidget
     Q_OBJECT
 public:
     typedef std::vector<double>   attribute_args;
+    typedef std::map<GLuint, uint> selection_map;
 
 public:
     Widget(Window *parent, XL::SourceFile *sf = NULL);
@@ -192,6 +193,8 @@ public:
     Activity *  active();
     void        checkCopyAvailable();
     bool        canPaste();
+    static
+    bool        selectionsEqual(selection_map &s1, selection_map &s2);
 
     // Text flows and text managemen
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
@@ -469,7 +472,6 @@ private:
 
     typedef XL::LocalSave<QEvent *>             EventSave;
     typedef XL::LocalSave<Widget *>             TaoSave;
-    typedef std::map<GLuint, uint>              selection_map;
     typedef std::map<text, PageLayout*>         flow_map;
     typedef std::map<text, text>                page_map;
 
@@ -502,6 +504,7 @@ private:
     selection_map         selection, savedSelection;
     std::set<Tree_p >     selectionTrees, selectNextTime;
     bool                  wasSelected;
+    bool                  selectionChanged;
     QEvent *              event;
     QWidget *             focusWidget;
     GLdouble              focusProjection[16], focusModel[16];

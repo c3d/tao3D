@@ -162,6 +162,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     delete[] buffer;
 
     // If this is the first click, then update selection
+    Widget::selection_map prev_selection = widget->selection;
     if (firstClick)
     {
         if (shiftModifier || widget->selection.count(selected) || manipulator)
@@ -178,6 +179,9 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         }
         widget->manipulator = manipulator;
     }
+    if (!widget->selectionChanged &&
+        !Widget::selectionsEqual(prev_selection, widget->selection))
+        widget->selectionChanged = true;
 
     // In all cases, we want a screen refresh
     Idle();
@@ -247,6 +251,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     // [1]: Minimum depth
     // [2]: Maximum depth
     // [3..3+[0]-1]: List of names
+    Widget::selection_map prev_selection = widget->selection;
     widget->selection = widget->savedSelection;
     int hits = glRenderMode(GL_RENDER);
     GLuint selected = 0;
@@ -263,6 +268,9 @@ Activity *Selection::MouseMove(int x, int y, bool active)
         }
     }
     delete[] buffer;
+    if (!widget->selectionChanged &&
+        !Widget::selectionsEqual(prev_selection, widget->selection))
+        widget->selectionChanged = true;
 
     // Need a refresh
     widget->refresh();

@@ -540,7 +540,7 @@ private:
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:
-    void        updateFileDialog(Tree *properties);
+    void        updateFileDialog(Tree *properties, Tree *context);
 
 };
 

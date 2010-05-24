@@ -117,17 +117,24 @@ text_cursor_highlight ->
     line_color 1,0,0,0
 
 handle_outer_color ->
-    color 0.0..0.4 / 3.0, 0.0, 0.0, 0.9
+    color 0.0, 0.0, 0.0, 0.9
     line_color 0,0,0,0
 handle_inner_color ->
     color 1.0, 1.0, 1.0, 1.0
     line_color 0,0,0,0
 
+adjust_shape_handle_outer_color ->
+    color 0.0, 0.0, 0.0, 0.9
+    line_color 0,0,0,0
+adjust_shape_handle_inner_color ->
+    color 0.0, 1.0, 0.0, 0.9
+    line_color 0,0,0,0
+
 control_point_handle_outer_color ->
-    color 0.0..0.4 / 3.0, 0.0, 0.0, 0.9
+    color 0.0, 0.0, 0.0, 0.9
     line_color 0,0,0,0
 control_point_handle_inner_color ->
-    color 1.0..0.4 / 3.0, 0.0, 0.0, 0.9
+    color 1.0, 0.0, 0.0, 0.9
     line_color 0,0,0,0
 
 draw_selection x,y,z,w,h,d ->
@@ -175,6 +182,12 @@ draw_handle x, y, z ->
     handle_outer_color
     point x, y, z, 12
     handle_inner_color
+    point x, y, z, 8
+
+draw_adjust_shape_handle x, y, z ->
+    adjust_shape_handle_outer_color
+    point x, y, z, 12
+    adjust_shape_handle_inner_color
     point x, y, z, 8
 
 draw_control_point_handle x, y, z ->
@@ -225,10 +238,19 @@ radio_button x:real, y:real, w:real, h:real, l:text, m:text, a:tree ->
 check_box_button x:real, y:real, w:real, h:real, l:text, m:text, a:tree ->
       check_box_button  x, y, w, h, l, l, m, a
 
-theme_colors ->
-    texture ""
-    color 0.6, 0.6, 0.6, 1
-    line_color 0, 0, 0, 1
+texture "default"       -> texture      ""
+color "default"         -> color        0.2, 0.6, 1.0, 0.5
+color "line"            -> color        0.0, 0.0, 0.0, 0.0
+color "font"            -> color        0.0, 0.0, 0.0, 1.0
+line_color "default"    -> line_color   0.0, 0.0, 0.0, 0.0
+line_color "line"       -> line_color   0.0, 0.2, 0.8, 1.0
+line_color "font"       -> line_color   0.0, 0.0, 0.0, 0.0
+line_width "default"    -> line_width   4
+
+texture     ""
+color       "default"
+line_color  "default"
+line_width  "default"
 
 menu_insert -> {
 menubar
@@ -236,12 +258,18 @@ menu      "menu:insert", "Insert"
 submenu   "menu:insert > shape", "Shape"
 menu_item "menu:insert > shape > line ---", "Line", insert
     shape
+        color "line"
+        line_color "line"
         line 50, -50, -50, 50
 menu_item "menu:insert > shape > line -->", "Line with Arrowhead", insert
     shape
+        color "line"
+        line_color "line"
         line_arrow 50, -50, none, -50, 50, arrowhead
 menu_item "menu:insert > shape > line <->", "Line with Two Arrowheads", insert
     shape
+        color "line"
+        line_color "line"
         line_arrow 50, -50, arrowhead, -50, 50, arrowhead
 menu_item "menu:insert > shape > rectangle", "Rectangle", insert
     shape
@@ -281,9 +309,8 @@ menu_item "menu:insert > shape > polygon", "Polygon", insert
         polygon 0, 0, 100, 100, 5
 
 menu      "menu:insert", ""
-submenu   "menu:insert > object", "Object"
-menu_item "menu:insert > object > image", "Image ...", file_chooser
-    filter "All formats (*.bmp *.gif *.jpg *.jpeg *.png *.pbm *.pgm *.ppm *.svg *.tif *.tiff *.xbm *.xpm);;" &
+menu_item "menu:insert > image...", "Image...", file_chooser
+    filter "All image formats (*.bmp *.gif *.jpg *.jpeg *.png *.pbm *.pgm *.ppm *.svg *.tif *.tiff *.xbm *.xpm);;" &
            "BMP - Windows Bitmap (*.bmp);;" &
            "GIF - Graphic Interchange Format (*.gif);;" &
            "JPEG - Joint Photographic Experts Group (*.jpg *.jpeg);;" &
@@ -298,20 +325,41 @@ menu_item "menu:insert > object > image", "Image ...", file_chooser
     action insert {
     shape
         color 1,1,1,1
-        image 0, 0, 0, 0, file_path}
+        image 0, 0, file_path}
 }
+
+menu_colors -> {
+menubar
+menu      "menu:colors", "Colors"
+menu_item "menu:colors > fill color", "Fill Color...", do
+    color_chooser "color", do
+        set_attribute "color", {color red, green, blue, alpha}
+menu_item "menu:colors > line color", "Line Color...", do
+    color_chooser "line_color", do
+        set_attribute "line_color", {line_color red, green, blue, alpha}
+}
+
+
+menu_insert
+menu_colors
 
 toolbar_insert -> {
 toolbar   "toolbar:insert", "Insert", "N"
 submenu   "toolbar:insert > shape", "Shape", "images/tb_shapes.png"
 menu_item "toolbar:insert > shape > line ---", "", "images/tb_shape_line.png", insert
     shape
+        color "line"
+        line_color "line"
         line 50, -50, -50, 50
 menu_item "toolbar:insert > shape > line -->", "", "images/tb_shape_line_w_arrowhead.png", insert
     shape
+        color "line"
+        line_color "line"
         line_arrow 50, -50, none, -50, 50, arrowhead 
 menu_item "toolbar:insert > shape > line <->", "", "images/tb_shape_line_w_two_arrowheads.png", insert
     shape
+        color "line"
+        line_color "line"
         line_arrow 50, -50, arrowhead, -50, 50, arrowhead
 menu_item "toolbar:insert > shape > rectangle", "", "images/tb_shape_rectangle.png", insert
     shape
@@ -351,17 +399,5 @@ menu_item "toolbar:insert > shape > polygon", "", "images/tb_shape_polygon.png",
         polygon 0, 0, 100, 100, 5
 }
 
-menu_colors -> {
-menubar
-menu      "menu:colors", "Colors"
-menu_item "menu:colors > fill color", "Fill Color...", do
-    color_chooser "color", do
-        set_attribute "color", {color red, green, blue, alpha}
-menu_item "menu:colors > line color", "Line Color...", do
-    color_chooser "line_color", do
-        set_attribute "line_color", {line_color red, green, blue, alpha}
-}
+toolbar_insert
 
-
-menu_insert
-menu_colors

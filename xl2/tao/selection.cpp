@@ -184,7 +184,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         widget->selectionChanged = true;
 
     // In all cases, we want a screen refresh
-    Idle();
+    widget->refresh();
 
     // Delete any text selection we might have if we didn't click in it
     if (count == 1 && !charSelected)
@@ -196,7 +196,6 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         TextSelect *tsel = widget->textSelection();
         if (!tsel)
             tsel = new TextSelect(widget);
-        widget->refresh();
         delete this;
         return tsel;
     }
@@ -205,7 +204,6 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     if (doneWithSelection)
     {
         Widget *widget = this->widget; // Save before 'delete this'
-        widget->refresh();
         delete this;
         if (selected && count == 1)
             return new Drag(widget);

@@ -99,8 +99,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
       id(0), charId(0), capacity(1), manipulator(0),
-      wasSelected(false),
-      selectionChanged(false),
+      wasSelected(false), selectionChanged(false),
       event(NULL), focusWidget(NULL), keyboardModifiers(0),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
@@ -561,13 +560,6 @@ void Widget::paste()
         render.SelectStyleSheet("debug.stylesheet");
         render.Render(tree);
     }
-
-    // Deselect previous selection
-    selection.clear();
-    selectionTrees.clear();
-
-    // Make sure the new objects appear selected next time they're drawn
-    selectStatements(tree);
 
     // Insert tree at end of current page
     // TODO: paste with an offset to avoid exactly overlapping objects
@@ -1418,14 +1410,15 @@ void Widget::updateProgramSource()
             srcRenderer->highlights[*i] = "selected";
         srcRenderer->Render(prog);
 
-        window->setHtml(+srcRendererOutput.str());
+        text html = srcRendererOutput.str();
+        window->setHtml(+html);
         IFTRACE(srcview)
         {
             QFile data("srcview.html");
             if (data.open(QFile::WriteOnly | QFile::Truncate))
             {
                 QTextStream out(&data);
-                out << +srcRendererOutput.str();
+                out << +html;
             }
         }
     }
@@ -1579,6 +1572,11 @@ void Widget::selectStatements(Tree *tree)
 //   Put all statements in the given selection in the next selection
 // ----------------------------------------------------------------------------
 {
+    // Deselect previous selection
+    selection.clear();
+    selectionTrees.clear();
+
+    // Fill the selection for next time
     selectNextTime.clear();
     Tree *t = tree;
     while (Infix *i = t->AsInfix())
@@ -1589,6 +1587,7 @@ void Widget::selectStatements(Tree *tree)
         t = i->right;
     }
     selectNextTime.insert(t);
+    selectionChanged = true;
 }
 
 
@@ -2681,7 +2680,7 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, text filename)
 
     // The structure of the program has changed, we need to recompile
     reloadProgram();
-    markChanged("image size added");
+    markChanged("Image size added");
 
     return XL::xl_true;
 }
@@ -4071,8 +4070,7 @@ void Widget::colorChanged(const QColor & col)
 
     // The tree to be evaluated needs its own symbol table before evaluation
     XL::Tree *toBeEvaluated = colorAction;
-    XL::Symbols *syms = toBeEvaluated->Symbols();
-    assert(syms);
+    XL::Symbols *syms = toBeEvaluated->Symbols(); assert(syms);
     syms = new XL::Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
     toBeEvaluated->SetSymbols(syms);
@@ -4131,6 +4129,8 @@ Tree_p Widget::fontChooser(Tree_p self, Tree_p action)
     fontDialog->setModal(false);
     fontDialog->show();
     fontAction = action;
+    if (!fontAction->Symbols())
+        fontAction->SetSymbols(self->Symbols());
 
     return XL::xl_true;
 }
@@ -4153,7 +4153,6 @@ void Widget::fontChanged(const QFont& ft)
     if (!fontAction)
         return;
 
-    TaoSave saveCurrent(current, this);
     IFTRACE (widgets)
     {
         std::cerr << "Font "<< ft.toString().toStdString()
@@ -4187,13 +4186,13 @@ void Widget::fontChanged(const QFont& ft)
 
     // The tree to be evaluated needs its own symbol table before evaluation
     XL::Tree *toBeEvaluated = fontAction;
-    XL::Symbols *syms = toBeEvaluated->Symbols();
-    assert(syms);
+    XL::Symbols *syms = toBeEvaluated->Symbols(); assert(syms);
     syms = new XL::Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
     toBeEvaluated->SetSymbols(syms);
 
     // Evaluate the input tree
+    TaoSave saveCurrent(current, this);
     xl_evaluate(toBeEvaluated);
 }
 
@@ -4322,7 +4321,7 @@ Tree_p Widget::fileChooser(Tree_p self, Tree_p properties)
     currentFileDialog = fileDialog;
     fileDialog->setModal(false);
 
-    updateFileDialog(properties);
+    updateFileDialog(properties, self);
 
     // Connect the dialog and show it
     connect(fileDialog, SIGNAL(fileSelected (const QString&)),
@@ -4333,7 +4332,7 @@ Tree_p Widget::fileChooser(Tree_p self, Tree_p properties)
 }
 
 
-void Widget::updateFileDialog(Tree *properties)
+void Widget::updateFileDialog(Tree *properties, Tree *context)
 // ----------------------------------------------------------------------------
 //   Execute code for a file dialog
 // ----------------------------------------------------------------------------
@@ -4349,6 +4348,8 @@ void Widget::updateFileDialog(Tree *properties)
     map["label"]     = "file_chooser_label";
     map["filter"]    = "file_chooser_filter";
 
+    if (!properties->Symbols())
+        properties->SetSymbols(context->Symbols());
     XL::Tree *toBeEvaluated = map.Replace(properties);
     xl_evaluate(toBeEvaluated);
 
@@ -4464,6 +4465,7 @@ void Widget::fileChosen(const QString & filename)
     XL::Tree *toBeEvaluated = map.Replace(fileAction);
 
     // Evaluate the input tree
+    TaoSave saveCurrent(current, this);
     xl_evaluate(toBeEvaluated);
 }
 
@@ -4504,7 +4506,7 @@ Tree_p Widget::fileChooserTexture(Tree_p self, double w, double h,
     }
     currentFileDialog = (QFileDialog *)surface->widget;
 
-    updateFileDialog(properties);
+    updateFileDialog(properties, self);
 
     // Resize to requested size, and bind texture
     surface->resize(w,h);
@@ -5128,6 +5130,9 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert)
     if (XL::Block *block = toInsert->AsBlock())
         toInsert = block->child;
 
+    // Make sure the new objects appear selected next time they're drawn
+    selectStatements(toInsert);
+
     // Start at the top of the program to find where we will insert
     Tree_p *top = &xlProgram->tree;
     Infix *parent  = NULL;
@@ -5315,8 +5320,7 @@ XL::Tree *  NameToNameReplacement::Replace(XL::Tree *original)
 // ----------------------------------------------------------------------------
 {
     XL::Tree *copy = original;
-    XL::Symbols *syms = original->Symbols();
-    assert(syms);
+    XL::Symbols *syms = original->Symbols(); assert(syms);
     syms = new XL::Symbols(syms);
     copy = original->Do(*this);
     copy->SetSymbols(syms);

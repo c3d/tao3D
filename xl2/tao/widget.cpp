@@ -99,7 +99,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
       id(0), charId(0), capacity(1), manipulator(0),
-      wasSelected(false), selectionDirty(false),
+      wasSelected(false), selectionChanged(false),
       event(NULL), focusWidget(NULL), keyboardModifiers(0),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
@@ -315,13 +315,6 @@ void Widget::draw()
     selectionSpace.Draw(NULL);
     glEnable(GL_DEPTH_TEST);
 
-    // Color selection if required
-    if (selectionDirty)
-    {
-        selectionDirty = false;
-        updateProgramSource();
-    }
-
     // Update page count for next run
     pageTotal = pageId;
 
@@ -333,6 +326,12 @@ void Widget::draw()
             updateColorDialog();
         if (fontDialog)
             updateFontDialog();
+    }
+
+    if (selectionChanged)
+    {
+        updateProgramSource();
+        selectionChanged = false;
     }
 }
 
@@ -576,6 +575,27 @@ void Widget::paste()
 }
 
 
+bool Widget::selectionsEqual(selection_map &s1, selection_map &s2)
+// ----------------------------------------------------------------------------
+//   Compare selections
+// ----------------------------------------------------------------------------
+{
+// REVISIT: would be more efficient if maps cannot contain null values
+//    if (s1.size() != s2.size())
+//        return false;
+    Widget::selection_map::iterator i;
+    for (i = s1.begin(); i != s1.end(); i++)
+        if ((*i).second)
+            if (!s2.count((*i).first) || !s2[(*i).first])
+                return false;
+    for (i = s2.begin(); i != s2.end(); i++)
+        if ((*i).second)
+            if (!s1.count((*i).first) || !s1[(*i).first])
+                return false;
+    return true;
+}
+
+
 void Widget::enableAnimations(bool enable)
 // ----------------------------------------------------------------------------
 //   Enable or disable animations on the page
@@ -606,17 +626,6 @@ void Widget::userMenu(QAction *p_action)
     markChanged(+("Menu '" + p_action->text() + "' selected"));
     XL::Tree *t = var.value<XL::Tree_p>();
     xl_evaluate(t);        // Typically will insert something...
-}
-
-
-bool Widget::refresh()
-// ----------------------------------------------------------------------------
-//   Refresh the screen as soon as possible
-// ----------------------------------------------------------------------------
-//   We also update the source code to match the selection
-{
-    selectionDirty = true;
-    return refresh(0.0);
 }
 
 

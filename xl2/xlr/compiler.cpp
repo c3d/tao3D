@@ -95,8 +95,16 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
       functions()
 {
     // Register a listener with the garbage collector
-    GarbageCollector *gc = GarbageCollector::Singleton();
-    gc->AddListener(new CompilerGarbageCollectionListener(this));
+    CompilerGarbageCollectionListener *cgcl =
+        new CompilerGarbageCollectionListener(this);
+    Allocator<Tree>     ::Singleton()->AddListener(cgcl);
+    Allocator<Integer>  ::Singleton()->AddListener(cgcl);
+    Allocator<Real>     ::Singleton()->AddListener(cgcl);
+    Allocator<Name>     ::Singleton()->AddListener(cgcl);
+    Allocator<Infix>    ::Singleton()->AddListener(cgcl);
+    Allocator<Prefix>   ::Singleton()->AddListener(cgcl);
+    Allocator<Postfix>  ::Singleton()->AddListener(cgcl);
+    Allocator<Block>    ::Singleton()->AddListener(cgcl);
 
     // Initialize native target (new features)
     InitializeNativeTarget();
@@ -321,9 +329,16 @@ Function *Compiler::EnterBuiltin(text name,
 //   The input is not technically an eval_fn, but has as many parameters as
 //   there are variables in the form
 {
+    IFTRACE(llvm)
+        std::cerr << "EnterBuiltin " << name
+                  << " C" << (void *) code << " T" << (void *) to;
+
     Function *result = builtins[name];
     if (result)
     {
+        IFTRACE(llvm)
+            std::cerr << " existing F " << result
+                      << " replaces F" << functions[to] << "\n";
         functions[to] = result;
     }
     else
@@ -339,6 +354,10 @@ Function *Compiler::EnterBuiltin(text name,
 
         // Record the runtime symbol address
         sys::DynamicLibrary::AddSymbol(name, (void*) code);
+
+        IFTRACE(llvm)
+            std::cerr << " new F " << result
+                      << "replaces F" << functions[to] << "\n";
 
         // Associate the function with the tree form
         functions[to] = result;
@@ -358,10 +377,17 @@ adapter_fn Compiler::EnterArrayToArgsAdapter(uint numargs)
 //   For example, it allows you to call foo(Tree *src, Tree *a1, Tree *a2)
 //   by calling generated_adapter(foo, Tree *src, Tree *args[2])
 {
+    IFTRACE(llvm)
+        std::cerr << "EnterArrayToArgsAdapater " << numargs;
+
     // Check if we already computed it
     eval_fn result = array_to_args_adapters[numargs];
     if (result)
+    {
+        IFTRACE(llvm)
+            std::cerr << " existing C" << (void *) result << "\n";
         return (adapter_fn) result;
+    }
 
     // Generate the function type: Tree *generated(eval_fn, Tree *, Tree **)
     std::vector<const Type *> parms;
@@ -420,6 +446,9 @@ adapter_fn Compiler::EnterArrayToArgsAdapter(uint numargs)
     result = (eval_fn) runtime->getPointerToFunction(adapter);
     array_to_args_adapters[numargs] = result;
 
+    IFTRACE(llvm)
+        std::cerr << " new C" << (void *) result << "\n";
+
     // And return it to the caller
     return (adapter_fn) result;
 }
@@ -431,6 +460,11 @@ Function *Compiler::ExternFunction(kstring name, void *address,
 //   Return a Function for some given external symbol
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(llvm)
+        std::cerr << "ExternFunction " << name
+                  << " has " << parmCount << " parameters "
+                  << " C" << address;
+
     va_list va;
     std::vector<const Type *> parms;
     bool isVarArg = parmCount < 0;
@@ -448,6 +482,10 @@ Function *Compiler::ExternFunction(kstring name, void *address,
     Function *result = Function::Create(fnType, Function::ExternalLinkage,
                                         name, module);
     sys::DynamicLibrary::AddSymbol(name, address);
+
+    IFTRACE(llvm)
+        std::cerr << " F" << result << "\n";
+
     return result;
 }
 
@@ -464,9 +502,14 @@ Value *Compiler::EnterGlobal(Name *name, Name_p *address)
                                               null, name->value);
     runtime->addGlobalMapping(result, address);
     globals[name] = result;
-    IFTRACE(llvmgc)
-        std::cerr << "Address for global '" << name << "' ("
-                  << (void *) name << ") is " << (void *) address << '\n';
+
+    IFTRACE(llvm)
+        std::cerr << "EnterGlobal " << name->value
+                  << " name T" << (void *) name
+                  << " A" << address
+                  << " address T" << (void *) address->Pointer()
+                  << "\n";
+
     return result;
 }
 
@@ -497,10 +540,10 @@ Value *Compiler::EnterConstant(Tree *constant)
     addresses[constant] = address;
     *address = constant;
     runtime->addGlobalMapping(result, address);
-    IFTRACE(llvmgc)
-        std::cerr << "Address for '" << constant << "' ("
-                  << (void *) constant << ") is " << (void *) address << '\n';
 
+    IFTRACE(llvm)
+        std::cerr << "EnterConstant T" << (void *) constant
+                  << " A" << (void *) address << "\n";
 
     return result;
 }
@@ -527,7 +570,7 @@ Value *Compiler::Known(Tree *tree)
 }
 
 
-void Compiler::FreeResources(Tree *tree)
+bool Compiler::FreeResources(Tree *tree)
 // ----------------------------------------------------------------------------
 //   Free the LLVM resources associated to the tree, if any
 // ----------------------------------------------------------------------------
@@ -536,74 +579,83 @@ void Compiler::FreeResources(Tree *tree)
 //   calling foo(), we will get an LLVM assert deleting one while the
 //   other's body still makes a reference.
 {
-    if (!tree->code || tree->code == xl_identity)
-        return;
+    bool result = true;
 
-    // Drop any function reference
-    function_map::iterator fun = functions.find(tree);
-    if (fun != functions.end())
+    IFTRACE(llvm)
+        std::cerr << "FreeResources T" << (void *) tree;
+
+    if (tree->code && tree->code != xl_identity)
     {
-        Function *f = (*fun).second;
-        bool inUse = !f->use_empty();
-
-        IFTRACE(llvmgc)
-            std::cerr << "Tree'" << tree << "' is "
-                      << (inUse ? "in use\n" : "unused\n");
-
-        if (inUse)
+        // Drop any function reference
+        function_map::iterator fun = functions.find(tree);
+        if (fun != functions.end())
         {
-            // Free body to remove all references made by it
-            f->deleteBody();
-            runtime->freeMachineCodeForFunction(f);
-
-            // Mark the function for complete deletion later
-            deleted.insert(f);
-            IFTRACE(llvmgc)
-                std::cerr << "Function " << f << " for tree "
-                          << (void *) tree << " in use\n";
+            Function *f = (*fun).second;
+            bool inUse = !f->use_empty();
+            
+            IFTRACE(llvm)
+                std::cerr << " function F" << f
+                          << (inUse ? " in use" : " unused");
+            
+            if (inUse)
+            {
+                // Mark the function for complete deletion later
+                deleted.insert(f);
+                result = false;
+            }
+            else
+            {
+                // Not in use, we can delete it directly
+                delete f;
+            }
+            
+            // We can no longer reference this address as an LLVM function
+            functions.erase(fun);
         }
-        else
+        
+        // Drop any global reference
+        value_map::iterator glob = globals.find(tree);
+        if (glob != globals.end())
         {
-            // Not in use, we can delete it directly
-            delete f;
+            Value *v = (*glob).second;
+            bool inUse = !v->use_empty();
+            
+            IFTRACE(llvm)
+                std::cerr << " global V" << v
+                          << (inUse ? " in use" : " unused");
+            
+            if (inUse)
+            {
+                deleted.insert(v);
+                result = false;
+            }
+            else
+            {
+                // Delete the LLVM value immediately if it's safe to do it.
+                delete v;
+            }
+            globals.erase(glob);
         }
-
-        // We can no longer reference this address as an LLVM function
-        functions.erase(fun);
-    }
-
-    // Drop any global reference
-    value_map::iterator glob = globals.find(tree);
-    if (glob != globals.end())
-    {
-        Value *v = (*glob).second;
-        bool inUse = !v->use_empty();
-
-        if (inUse)
-        {
-            deleted.insert(v);
-            IFTRACE(llvmgc)
-                std::cerr << "Global " << v << " for tree "
-                          << (void *) tree << " in use\n";
-        }
-        else
-        {
-            // Delete the LLVM value immediately if it's safe to do it.
-            delete v;
-        }
-        globals.erase(glob);
     }
 
     // Drop any address we may have generated for that tree
-    address_map::iterator addr = addresses.find(tree);
-    if (addr != addresses.end())
+    if (result)
     {
-        Tree **address = (*addr).second;
-        addresses.erase(addr);
-        IFTRACE(llvmgc)
-            std::cerr << "Deleting addres " << address << "\n";
-        delete address;
+        address_map::iterator addr = addresses.find(tree);
+        if (addr != addresses.end())
+        {
+            Tree **address = (*addr).second;
+            addresses.erase(addr);
+            IFTRACE(llvm)
+                std::cerr << " address A" << address;
+            delete address;
+        }
     }
+
+    IFTRACE(llvm)
+        std::cerr << (result ? " Delete\n" : "Save\n");
+
+    return result;
 }
 
 
@@ -614,11 +666,21 @@ void Compiler::FreeResources()
 //   At this stage, we have deleted all the bodies we could
 //   Normally, none of the elements should be used anymore
 {
+    IFTRACE(llvm)
+        if (deleted.size())
+            std::cerr << "FreeResources remaining=" << deleted.size() << "\n";
+
     deleted_set::iterator i, next;
     for (i = deleted.begin(); i != deleted.end(); i = next)
     {
         Value *v = *i;
-        if (v->use_empty())
+        bool inUse = !v->use_empty();
+
+        IFTRACE(llvm)
+            std::cerr << " value V" << v
+                      << (inUse ? " in use\n" : " unused\n");
+
+        if (!inUse)
         {
             delete v;
             deleted.erase(i);
@@ -626,9 +688,6 @@ void Compiler::FreeResources()
         }
         else
         {
-            IFTRACE(llvmgc)
-                std::cerr << "Dropping reference to used value "
-                          << v << ":\n";
             next = ++i;
         }
     }
@@ -650,9 +709,16 @@ CompiledUnit::CompiledUnit(Compiler *comp, Tree *src, TreeList parms)
       code(NULL), data(NULL), function(NULL),
       allocabb(NULL), entrybb(NULL), exitbb(NULL), failbb(NULL)
 {
+    IFTRACE(llvm)
+        std::cerr << "CompiledUnit T" << (void *) src;
+
     // If a compilation for that tree is alread in progress, fwd decl
     if (compiler->functions[src])
+    {
+        IFTRACE(llvm)
+            std::cerr << " exists F" << compiler->functions[src] << "\n";
         return;
+    }
 
     // Create the function signature, one entry per parameter + one for source
     std::vector<const Type *> signature;
@@ -668,6 +734,8 @@ CompiledUnit::CompiledUnit(Compiler *comp, Tree *src, TreeList parms)
 
     // Save it in the compiler
     compiler->functions[src] = function;
+    IFTRACE(llvm)
+        std::cerr << " new F" << function << "\n";
 
     // Create function entry point, where we will have all allocas
     allocabb = BasicBlock::Create(*context, "allocas", function);
@@ -720,6 +788,10 @@ eval_fn CompiledUnit::Finalize()
 //   Finalize the build of the current function
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(llvm)
+        std::cerr << "CompiledUnit Finalize T" << (void *) source
+                  << " F" << function;
+
     // Branch to the exit block from the last test we did
     code->CreateBr(exitbb);
 
@@ -738,9 +810,9 @@ eval_fn CompiledUnit::Finalize()
     }
 
     void *result = compiler->runtime->getPointerToFunction(function);
-    IFTRACE(llvmgc)
-        std::cerr << "Code for " << (void*)function << " = "
-                  << (void *) result << '\n';
+    IFTRACE(llvm)
+        std::cerr << " C" << (void *) result << "\n";
+
     return (eval_fn) result;
 }
 
@@ -1646,23 +1718,22 @@ void CompilerGarbageCollectionListener::BeginCollection()
 }
 
 
-void CompilerGarbageCollectionListener::EndCollection()
-// ----------------------------------------------------------------------------
-//   Finalize the collection
-// ----------------------------------------------------------------------------
-{
-    compiler->FreeResources();
-}
-
-
 bool CompilerGarbageCollectionListener::CanDelete(void *obj)
 // ----------------------------------------------------------------------------
 //   Tell the compiler to free the resources associated with the tree
 // ----------------------------------------------------------------------------
 {
     Tree *tree = (Tree *) obj;
-    compiler->FreeResources(tree);
-    return true;
+    return compiler->FreeResources(tree);
+}
+
+
+void CompilerGarbageCollectionListener::EndCollection()
+// ----------------------------------------------------------------------------
+//   Finalize the collection
+// ----------------------------------------------------------------------------
+{
+    compiler->FreeResources();
 }
 
 XL_END

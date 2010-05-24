@@ -57,9 +57,9 @@ class Options
 /*---------------------------------------------------------------------------*/
 {
   public:
-    Options(Errors &err);
-    text                Parse(int argc, char **argv);
-    text                ParseNext();
+    Options(Errors &err, int argc, char **argv);
+    text                Parse(int argc, char **argv, bool consumeFile);
+    text                ParseNext(bool consumeFile = true);
 
   public:
     // Read options from the options.tbl file

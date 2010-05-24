@@ -35,7 +35,7 @@ Table::Table(uint r, uint c)
 //    Constructor
 // ----------------------------------------------------------------------------
     : rows(r), columns(c),
-      elements(), margins(), column_width(), row_height(),
+      elements(), margins(0,0,0,0), column_width(), row_height(),
       fill(NULL)
 {}
 
@@ -141,6 +141,14 @@ void Table::Compute(Layout *where)
     row_height.clear();
     row_height.resize(rows);
     rowBB.resize(rows);
+
+    // Set initial (empty) bounding box for rows and columns
+    for (r = 0; r < rows; r++)
+        rowBB[r] |= Point3(0,0,0);
+    for (c = 0; c < columns; c++)
+        colBB[c] |= Point3(0,0,0);
+
+    // Compute actual row and column bounding box
     for (r = 0; r < rows; r++)
     {
         if (i == elements.end())
@@ -158,6 +166,7 @@ void Table::Compute(Layout *where)
 
     // Compute the bounding box
     Box3 bb;
+    bb |= Point3(0,0,0);
     for (c = 0; c < columns; c++)
     {
         column_width[c] = colBB[c].Width();

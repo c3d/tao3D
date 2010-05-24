@@ -3676,11 +3676,15 @@ Tree_p Widget::newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body)
 {
     Table *tbl = new Table(r, c);
     XL::LocalSave<Table *> saveTable(table, tbl);
-    if (!body->Symbols())
+    layout->Add(tbl);
+
+    // Patch the symbol table with short versions of table_xyz functions
+    XL::Symbols *parent = self->Symbols();
+    XL::Symbols *symbols = body->Symbols();
+    if (!symbols || symbols == parent)
     {
         // REVISIT: Candidate for factorization
-        XL::Symbols *parent = self->Symbols();
-        XL::Symbols *symbols = new XL::Symbols(parent);
+        symbols = new XL::Symbols(parent);
         body->SetSymbols(symbols);
 
         // Add aliases for some names in the symbol table

@@ -203,7 +203,11 @@ void Window::toggleSourceView(bool visible)
 // ----------------------------------------------------------------------------
 {
     if (visible)
+    {
+        bool modified = textEdit->document()->isModified();
         taoWidget->updateProgramSource();
+        markChanged(modified);
+    }
 }
 
 
@@ -798,11 +802,12 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     if (!loadFileIntoSourceFileView(fileName, openProj))
         return false;
 
+    updateProgram(fileName);
     setCurrentFile(fileName);
     statusBar()->showMessage(tr("File loaded"), 2000);
-    updateProgram(fileName);
     return true;
 }
+
 
 bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 // ----------------------------------------------------------------------------
@@ -899,6 +904,7 @@ bool Window::saveFile(const QString &fileName)
         taoWidget->doCommit(true);
         sf.changed = false;
     }
+    markChanged(false);
 
     return true;
 }

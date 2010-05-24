@@ -55,6 +55,7 @@ struct Layout;
 struct PageLayout;
 struct SpaceLayout;
 struct GraphicPath;
+struct Table;
 struct Repository;
 struct Drag;
 struct TextSelect;
@@ -347,6 +348,12 @@ public:
     Tree_p      drawingBreak(Tree_p self, Drawing::BreakOrder order);
     Name_p      textEditKey(Tree_p self, text key);
 
+    // Tables
+    Tree_p      newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body);
+    Tree_p      tableFill(Tree_p self, Tree_p body);
+    Tree_p      tableCell(Tree_p self, Real_p w, Real_p h, Tree_p body);
+    Tree_p      tableCell(Tree_p self, Tree_p body);
+
     // Frames and widgets
     Tree_p      status(Tree_p self, text t);
     Tree_p      framePaint(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
@@ -486,6 +493,7 @@ private:
     SpaceLayout *         space;
     Layout *              layout;
     GraphicPath *         path;
+    Table *               table;
     scale                 pageW, pageH;
     text                  flowName;
     flow_map              flows;

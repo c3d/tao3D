@@ -50,6 +50,7 @@
 #include "text_drawing.h"
 #include "shapes3d.h"
 #include "path3d.h"
+#include "table.h"
 #include "attributes.h"
 #include "transforms.h"
 #include "undo.h"
@@ -3661,6 +3662,95 @@ XL::Name_p Widget::textEditKey(Tree_p self, text key)
 }
 
 
+
+// ============================================================================
+// 
+//   Tables
+// 
+// ============================================================================
+
+Tree_p Widget::newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body)
+// ----------------------------------------------------------------------------
+//   Create a new table
+// ----------------------------------------------------------------------------
+{
+    Table *tbl = new Table(r, c);
+    XL::LocalSave<Table *> saveTable(table, tbl);
+    if (!body->Symbols())
+    {
+        // REVISIT: Candidate for factorization
+        XL::Symbols *parent = self->Symbols();
+        XL::Symbols *symbols = new XL::Symbols(parent);
+        body->SetSymbols(symbols);
+
+        // Add aliases for some names in the symbol table
+        kstring renames[] = { "cell", "fill" };
+        for (uint i = 0; i < sizeof(renames) / sizeof(renames[0]); i++)
+        {
+            text from = renames[i];
+            text to = "table_" + from;
+            Tree *named = parent->Named(to);
+            if (named)
+                symbols->EnterName(from, named);
+        }
+    }
+
+    return xl_evaluate(body);
+}
+
+
+Tree_p Widget::tableFill(Tree_p self, Tree_p body)
+// ----------------------------------------------------------------------------
+//   Define the table fill for the current table
+// ----------------------------------------------------------------------------
+{
+    if (!table)
+        return Ooops("Table fill '$1' outside of any table", self);
+    if (!body->Symbols())
+        body->SetSymbols(self->Symbols());
+    table->fill = body;
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::tableCell(Tree_p self, Real_p w, Real_p h, Tree_p body)
+// ----------------------------------------------------------------------------
+//   Define a sized cell in the table
+// ----------------------------------------------------------------------------
+{
+    if (!table)
+        return Ooops("Table cell '$1' outside of any table", self);
+    if (!body->Symbols())
+        body->SetSymbols(self->Symbols());
+
+    // Define a new text layout
+    PageLayout *tbox = new PageLayout(this);
+    tbox->space = Box3(0, 0, 0, w, h, 0);
+    table->AddElement(tbox);
+    flows[flowName] = tbox;
+
+    XL::LocalSave<Layout *> save(layout, tbox);
+    return xl_evaluate(body);
+}
+
+
+Tree_p Widget::tableCell(Tree_p self, Tree_p body)
+// ----------------------------------------------------------------------------
+//   Define a free-size cell in the table
+// ----------------------------------------------------------------------------
+{
+    if (!table)
+        return Ooops("Table cell '$1' outside of any table", self);
+    if (!body->Symbols())
+        body->SetSymbols(self->Symbols());
+
+    // Define a new text layout
+    Layout *tbox = new Layout(this);
+    table->AddElement(tbox);
+
+    XL::LocalSave<Layout *> save(layout, tbox);
+    return xl_evaluate(body);
+}
 
 
 

@@ -325,6 +325,24 @@ PREFIX(TextEditKey, boolean, "text_edit_key", PARM(k, text),
 
 // ============================================================================
 //
+//   Tables
+//
+// ============================================================================
+
+PREFIX(NewTable, tree, "table", PARM(r,integer) PARM(c,integer) PARM(b,tree),
+       RTAO(newTable(self, r, c, b)));
+PREFIX(TableFill, tree, "table_fill", PARM(b, tree),
+       RTAO(tableFill(self, b)))
+PREFIX(TableSizedCell, tree, "table_cell",
+       PARM(w, real) PARM(h, real) PARM(b, tree),
+       RTAO(tableCell(self, w, h, b)))
+PREFIX(TableCell, tree, "table_cell", PARM(b, tree),
+       RTAO(tableCell(self, b)))
+
+
+
+// ============================================================================
+//
 //   Frames and widgets
 //
 // ============================================================================

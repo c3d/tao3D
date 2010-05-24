@@ -54,7 +54,7 @@ space           = nbsp
 cr              = "<BR>" indents
 '<'             = "&lt;"
 '>'             = "&gt;"
-'&'             = "&amper;"
+'&'             = "&amp;"
 
 
 // Colorization of numbers

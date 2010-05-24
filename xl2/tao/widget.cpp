@@ -561,13 +561,6 @@ void Widget::paste()
         render.Render(tree);
     }
 
-    // Deselect previous selection
-    selection.clear();
-    selectionTrees.clear();
-
-    // Make sure the new objects appear selected next time they're drawn
-    selectStatements(tree);
-
     // Insert tree at end of current page
     // TODO: paste with an offset to avoid exactly overlapping objects
     insert(NULL, tree);
@@ -1570,6 +1563,11 @@ void Widget::selectStatements(Tree *tree)
 //   Put all statements in the given selection in the next selection
 // ----------------------------------------------------------------------------
 {
+    // Deselect previous selection
+    selection.clear();
+    selectionTrees.clear();
+
+    // Fill the selection for next time
     selectNextTime.clear();
     Tree *t = tree;
     while (Infix *i = t->AsInfix())
@@ -1580,6 +1578,7 @@ void Widget::selectStatements(Tree *tree)
         t = i->right;
     }
     selectNextTime.insert(t);
+    selectionChanged = true;
 }
 
 
@@ -5121,6 +5120,9 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert)
     // For 'insert { statement; }', we don't want the { } block
     if (XL::Block *block = toInsert->AsBlock())
         toInsert = block->child;
+
+    // Make sure the new objects appear selected next time they're drawn
+    selectStatements(toInsert);
 
     // Start at the top of the program to find where we will insert
     Tree_p *top = &xlProgram->tree;

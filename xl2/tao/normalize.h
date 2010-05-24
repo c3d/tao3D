@@ -41,7 +41,7 @@ TAO_BEGIN
 
 struct Widget;
 
-struct Renormalize : XL::TreeClone
+struct Renormalize : XL::Action
 // ----------------------------------------------------------------------------
 //   Put the input program back in normal form
 // ----------------------------------------------------------------------------
@@ -49,9 +49,44 @@ struct Renormalize : XL::TreeClone
     Renormalize(Widget *widget);
     virtual ~Renormalize();
 
+    Tree *        Reselect(Tree *old, Tree *cloned);
     virtual Tree *DoPrefix(Prefix *what);
+    virtual Tree *DoPostfix(Postfix *what);
     virtual Tree *DoInfix(Infix *what);
 
+    Tree *DoInteger(Integer *what)
+    {
+        return Reselect(what, new Integer(what->value, what->Position()));
+    }
+    Tree *DoReal(Real *what)
+    {
+        return Reselect(what, new Real(what->value, what->Position()));
+
+    }
+    Tree *DoText(Text *what)
+    {
+        return Reselect(what,
+                        new Text(what->value, what->opening, what->closing,
+                                 what->Position()));
+    }
+    Tree *DoName(Name *what)
+    {
+        return Reselect(what, new Name(what->value, what->Position()));
+    }
+
+    Tree *DoBlock(Block *what)
+    {
+        return Reselect(what,
+                        new Block(what->child->Do(this),
+                                  what->opening, what->closing,
+                                  what->Position()));
+    }
+    Tree *Do(Tree *what)
+    {
+        return what;            // Should not happen
+    }
+
+protected:
     Widget *widget;
 };
 

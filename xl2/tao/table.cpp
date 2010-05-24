@@ -27,6 +27,7 @@
 #include "layout.h"
 #include "graphics.h"
 #include "runtime.h"
+#include "widget.h"
 
 TAO_BEGIN
 
@@ -34,9 +35,9 @@ Table::Table(uint r, uint c)
 // ----------------------------------------------------------------------------
 //    Constructor
 // ----------------------------------------------------------------------------
-    : rows(r), columns(c),
+    : rows(r), columns(c), row(0), column(0),
       elements(), margins(0,0,0,0), column_width(), row_height(),
-      fill(NULL)
+      fill(NULL), border(NULL)
 {}
 
 
@@ -60,44 +61,47 @@ void Table::Draw(Layout *where)
     if (column_width.size() != columns || row_height.size() != rows)
         Compute(where);
 
-    Box     selectionBox;
+    coord   cellX, cellY, cellW, cellH;
     Vector3 offset(where->offset);
     coord   px = bounds.lower.x;
     coord   py = bounds.upper.y;
     uint    r, c;
+    Widget *widget = where->Display();
     std::vector<Drawing *>::iterator i = elements.begin();
+    XL::LocalSave<Table *> saveTable(widget->table, this);
 
     for (r = 0; r < rows; r++)
     {
-        if (i == elements.end())
-            break;
-
         px = bounds.lower.x;
         if (r < row_height.size())
             py -= row_height[r];
-        py -= margins.lower.y + margins.upper.y;
+        py -= margins.Height();
         row = r;
         for (c = 0; c < columns; c++)
         {
-            if (i == elements.end())
-                break;
+            bool atEnd = i == elements.end();
 
-            Drawing *d = *i++;
-            Vector3 pos(px + margins.lower.x, py + margins.lower.y, 0);
+            Drawing *d = atEnd ? NULL : *i++;
+            Vector3 pos(px - margins.lower.x, py - margins.lower.y, 0);
             column = c;
-            left = px + offset.x;
-            bottom = py + offset.y;
-            right = left + column_width[c] + margins.lower.x + margins.upper.x;
-            top = bottom + row_height[r] + margins.lower.y + margins.upper.y;
+
+            cellW = column_width[c] + margins.Width();
+            cellH = row_height[r] + margins.Height();
+            cellX = px + offset.x + cellW/2;
+            cellY = py + offset.y + cellH/2;
+            cellBox = Box(cellX-cellW/2, cellY-cellH/2, cellW, cellH);
 
             XL::LocalSave<Point3> saveOffset(where->offset, pos + offset);
-            d->Draw(where);
-
             if (fill)
-                xl_evaluate(fill);
+                widget->drawTree(fill);
+            if (d)
+                d->Draw(where);
+            if (border)
+                widget->drawTree(border);
+
             if (c < column_width.size())
                 px += column_width[c];
-            px += margins.lower.x + margins.upper.x;
+            px += margins.Width();
         }
     }
 }
@@ -170,14 +174,12 @@ void Table::Compute(Layout *where)
     for (c = 0; c < columns; c++)
     {
         column_width[c] = colBB[c].Width();
-        bb.upper.x += column_width[c];
-        bb.upper.x += margins.lower.x + margins.upper.x;
+        bb.upper.x += column_width[c] + margins.Width();
     }
     for (r = 0; r < rows; r++)
     {
         row_height[r] = rowBB[r].Height();
-        bb.upper.y += row_height[r];
-        bb.upper.y += margins.lower.y + margins.upper.y;
+        bb.upper.y += row_height[r] + margins.Height();
     }
     bounds = bb;
 }

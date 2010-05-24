@@ -94,7 +94,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       symbolTableForFormulas(new XL::Symbols(NULL)),
       symbolTableRoot(new XL::Name("formula_symbol_table")),
       inError(false), mustUpdateDialogs(false),
-      space(NULL), layout(NULL), path(NULL),
+      space(NULL), layout(NULL), path(NULL), table(NULL),
       pageName(""), pageId(0), pageTotal(0), pageTree(NULL),
       currentShape(NULL),
       currentGridLayout(NULL),
@@ -2130,7 +2130,6 @@ void Widget::drawHandle(const Point3 &p, text handleName, uint id)
 {
     // Symbols where we will find the selection code
     XL::Symbols *symbols = xlProgram->symbols;
-
     SpaceLayout selectionSpace(this);
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper          saveGL;
@@ -2138,6 +2137,22 @@ void Widget::drawHandle(const Point3 &p, text handleName, uint id)
     selectionSpace.id = id;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
     selectionSpace.Draw(NULL);
+    glEnable(GL_DEPTH_TEST);
+}
+
+
+void Widget::drawTree(Tree *code)
+// ----------------------------------------------------------------------------
+//    Draw some tree, e.g. cell fill and border
+// ----------------------------------------------------------------------------
+{
+    XL::Symbols *symbols = code->Symbols(); assert(symbols);
+    SpaceLayout space(this);
+    XL::LocalSave<Layout *> saveLayout(layout, &space);
+    GLAttribKeeper          saveGL;
+    glDisable(GL_DEPTH_TEST);
+    xl_evaluate(code);
+    space.Draw(NULL);
     glEnable(GL_DEPTH_TEST);
 }
 
@@ -3679,41 +3694,34 @@ Tree_p Widget::newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body)
     layout->Add(tbl);
 
     // Patch the symbol table with short versions of table_xyz functions
-    XL::Symbols *parent = self->Symbols();
-    XL::Symbols *symbols = body->Symbols();
-    if (!symbols || symbols == parent)
+    if (Prefix *prefix = self->AsPrefix())
     {
-        // REVISIT: Candidate for factorization
-        symbols = new XL::Symbols(parent);
-        body->SetSymbols(symbols);
-
-        // Add aliases for some names in the symbol table
-        kstring renames[] = { "cell", "fill" };
-        for (uint i = 0; i < sizeof(renames) / sizeof(renames[0]); i++)
+        NameToNameReplacement replacer;
+        replacer["cell"]    = "table_cell";
+        replacer["fill"]    = "table_fill";
+        replacer["margins"] = "table_cell_margins";
+        replacer["fill"]    = "table_cell_fill";
+        replacer["border"]  = "table_cell_border";
+        replacer["cellx"]   = "table_cell_x";
+        replacer["celly"]   = "table_cell_y";
+        replacer["cellw"]   = "table_cell_w";
+        replacer["cellh"]   = "table_cell_h";
+        replacer["row"]     = "table_cell_row";
+        replacer["column"]  = "table_cell_column";
+        replacer["rows"]    = "table_rows";
+        replacer["columns"] = "table_columns";
+        if (!prefix->right->Symbols())
+            prefix->right->SetSymbols(self->Symbols());
+        Tree *tablified = replacer.Replace(prefix->right);
+        if (replacer.replaced)
         {
-            text from = renames[i];
-            text to = "table_" + from;
-            Tree *named = parent->Named(to);
-            if (named)
-                symbols->EnterName(from, named);
+            prefix->right = tablified;
+            reloadProgram();
+            return XL::xl_false;
         }
     }
 
     return xl_evaluate(body);
-}
-
-
-Tree_p Widget::tableFill(Tree_p self, Tree_p body)
-// ----------------------------------------------------------------------------
-//   Define the table fill for the current table
-// ----------------------------------------------------------------------------
-{
-    if (!table)
-        return Ooops("Table fill '$1' outside of any table", self);
-    if (!body->Symbols())
-        body->SetSymbols(self->Symbols());
-    table->fill = body;
-    return XL::xl_true;
 }
 
 
@@ -3754,6 +3762,155 @@ Tree_p Widget::tableCell(Tree_p self, Tree_p body)
 
     XL::LocalSave<Layout *> save(layout, tbox);
     return xl_evaluate(body);
+}
+
+
+Tree_p Widget::tableMargins(Tree_p self,
+                            Real_p x, Real_p y, Real_p w, Real_p h)
+// ----------------------------------------------------------------------------
+//   Set the margin rectangle for the table
+// ----------------------------------------------------------------------------
+{
+    if (!table)
+        return Ooops("Table margins '$1' outside of any table", self);
+    table->margins = Box(x-w/2, y-h/2, w, h);
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::tableMargins(Tree_p self, Real_p w, Real_p h)
+// ----------------------------------------------------------------------------
+//   Set the margin rectangle for the table
+// ----------------------------------------------------------------------------
+{
+    if (!table)
+        return Ooops("Table margins '$1' outside of any table", self);
+    table->margins = Box(-w/2, -h/2, w, h);
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::tableFill(Tree_p self, Tree_p code)
+// ----------------------------------------------------------------------------
+//   Define the fill code for cells
+// ----------------------------------------------------------------------------
+{
+    if (!table)
+        return Ooops("Table fill '$1' outside of any table", self);
+    if (!code->Symbols())
+        code->SetSymbols(self->Symbols());
+    table->fill = code;
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::tableBorder(Tree_p self, Tree_p code)
+// ----------------------------------------------------------------------------
+//   Define the border code for cells
+// ----------------------------------------------------------------------------
+{
+    if (!table)
+        return Ooops("Table border '$1' outside of any table", self);
+    if (!code->Symbols())
+        code->SetSymbols(self->Symbols());
+    table->border = code;
+    return XL::xl_true;
+}
+
+
+Real_p Widget::tableCellX(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Get the horizontal center of the current table cell
+// ----------------------------------------------------------------------------
+{
+    if (!table)
+        return Ooops("Table cell position '$1' without a table", self)
+            ->AsReal();
+    return new Real(table->cellBox.Center().x, self->Position());
+}
+
+
+Real_p Widget::tableCellY(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Get the vertical center of the current table cell
+// ----------------------------------------------------------------------------
+{
+    if (!table)
+        return Ooops("Table cell position '$1' without a table", self)
+            ->AsReal();
+    return new Real(table->cellBox.Center().y, self->Position());
+}
+
+
+Real_p Widget::tableCellW(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Get the horizontal size of the current table cell
+// ----------------------------------------------------------------------------
+{
+    if (!table)
+        return Ooops("Table cell size '$1' without a table", self)
+            ->AsReal();
+    return new Real(table->cellBox.Width(), self->Position());
+}
+
+
+Real_p Widget::tableCellH(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Get the vertical size of the current table cell
+// ----------------------------------------------------------------------------
+{
+    if (!table)
+        return Ooops("Table cell size '$1' without a table", self)
+            ->AsReal();
+    return new Real(table->cellBox.Height(), self->Position());
+}
+
+
+Integer_p Widget::tableRow(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the current row
+// ----------------------------------------------------------------------------
+{
+    if (!table)
+        return Ooops("Table cell attribute '$1' without a table", self)
+            ->AsInteger();
+    return new Integer(table->row, self->Position());
+}
+
+
+Integer_p Widget::tableColumn(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the current column
+// ----------------------------------------------------------------------------
+{
+    if (!table)
+        return Ooops("Table cell attribute '$1' without a table", self)
+            ->AsInteger();
+    return new Integer(table->column, self->Position());
+}
+
+
+Integer_p Widget::tableRows(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the number of rows in the current table
+// ----------------------------------------------------------------------------
+{
+    if (!table)
+        return Ooops("Table attribute '$1' without a table", self)
+            ->AsInteger();
+    return new Integer(table->rows, self->Position());
+}
+
+
+Integer_p Widget::tableColumns(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the number of columns in the current table
+// ----------------------------------------------------------------------------
+{
+    if (!table)
+        return Ooops("Table attribute '$1' without a table", self)
+            ->AsInteger();
+    return new Integer(table->columns, self->Position());
 }
 
 
@@ -5394,7 +5551,10 @@ XL::Tree *NameToNameReplacement::DoName(XL::Name *what)
 {
     std::map<text, text>::iterator found = map.find(what->value);
     if (found != map.end())
+    {
+        replaced = true;
         return new XL::Name((*found).second, what->Position());
+    }
     return new XL::Name(what->value, what->Position());
 }
 
@@ -5420,7 +5580,10 @@ XL::Tree *NameToTextReplacement::DoName(XL::Name *what)
 {
     std::map<text, text>::iterator found = map.find(what->value);
     if (found != map.end())
+    {
+        replaced = true;
         return new XL::Text((*found).second, "\"", "\"", what->Position());
+    }
     return new XL::Name(what->value, what->Position());
 }
 

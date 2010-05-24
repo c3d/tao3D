@@ -44,14 +44,14 @@ struct Table : Drawing
 
 public:
     uint                   rows, columns;
+    uint                   row, column;
     std::vector<Drawing *> elements;
     Box                    margins;
     std::vector<scale>     column_width;
     std::vector<scale>     row_height;
     Box3                   bounds;
-    XL::Tree_p             fill;
-    coord                  left, right, top, bottom;
-    uint                   row, column;
+    Tree_p                 fill, border;
+    Box                    cellBox;
 };
 
 TAO_END

@@ -190,6 +190,7 @@ public:
     TextSelect *textSelection();
     void        drawSelection(const Box3 &bounds, text name, uint id);
     void        drawHandle(const Point3 &point, text name, uint id);
+    void        drawTree(Tree *code);
     template<class Activity>
     Activity *  active();
     void        checkCopyAvailable();
@@ -350,9 +351,22 @@ public:
 
     // Tables
     Tree_p      newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body);
-    Tree_p      tableFill(Tree_p self, Tree_p body);
     Tree_p      tableCell(Tree_p self, Real_p w, Real_p h, Tree_p body);
     Tree_p      tableCell(Tree_p self, Tree_p body);
+    Tree_p      tableMargins(Tree_p self,
+                             Real_p x, Real_p y, Real_p w, Real_p h);
+    Tree_p      tableMargins(Tree_p self,
+                             Real_p w, Real_p h);
+    Tree_p      tableFill(Tree_p self, Tree_p code);
+    Tree_p	tableBorder(Tree_p self, Tree_p code);
+    Real_p      tableCellX(Tree_p self);
+    Real_p      tableCellY(Tree_p self);
+    Real_p      tableCellW(Tree_p self);
+    Real_p      tableCellH(Tree_p self);
+    Integer_p   tableRow(Tree_p self);
+    Integer_p   tableColumn(Tree_p self);
+    Integer_p   tableRows(Tree_p self);
+    Integer_p   tableColumns(Tree_p self);
 
     // Frames and widgets
     Tree_p      status(Tree_p self, text t);
@@ -476,6 +490,7 @@ private:
     friend class Manipulator;
     friend class ControlPoint;
     friend class Renormalize;
+    friend class Table;
 
     typedef XL::LocalSave<QEvent *>             EventSave;
     typedef XL::LocalSave<Widget *>             TaoSave;
@@ -721,13 +736,14 @@ struct NameToNameReplacement : XL::TreeClone
 //    Replace specific names with names (e.g. alternate spellings)
 // ----------------------------------------------------------------------------
 {
-    NameToNameReplacement(){}
+    NameToNameReplacement(): replaced(false) {}
 
     Tree *  DoName(XL::Name *what);
     Tree *  Replace(Tree *original);
     text &      operator[] (text index)         { return map[index]; }
 
     std::map<text, text> map;
+    bool replaced;
 };
 
 

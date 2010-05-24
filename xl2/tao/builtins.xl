@@ -325,7 +325,7 @@ menu_item "menu:insert > image...", "Image...", file_chooser
     action insert {
     shape
         color 1,1,1,1
-        image 0, 0, 0, 0, file_path}
+        image 0, 0, file_path}
 }
 
 menu_colors -> {

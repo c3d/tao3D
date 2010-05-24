@@ -2672,7 +2672,7 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, text filename)
 
     // The structure of the program has changed, we need to recompile
     reloadProgram();
-    markChanged("image size added");
+    markChanged("Image size added");
 
     return XL::xl_true;
 }
@@ -4062,8 +4062,7 @@ void Widget::colorChanged(const QColor & col)
 
     // The tree to be evaluated needs its own symbol table before evaluation
     XL::Tree *toBeEvaluated = colorAction;
-    XL::Symbols *syms = toBeEvaluated->Symbols();
-    assert(syms);
+    XL::Symbols *syms = toBeEvaluated->Symbols(); assert(syms);
     syms = new XL::Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
     toBeEvaluated->SetSymbols(syms);
@@ -4122,6 +4121,8 @@ Tree_p Widget::fontChooser(Tree_p self, Tree_p action)
     fontDialog->setModal(false);
     fontDialog->show();
     fontAction = action;
+    if (!fontAction->Symbols())
+        fontAction->SetSymbols(self->Symbols());
 
     return XL::xl_true;
 }
@@ -4144,7 +4145,6 @@ void Widget::fontChanged(const QFont& ft)
     if (!fontAction)
         return;
 
-    TaoSave saveCurrent(current, this);
     IFTRACE (widgets)
     {
         std::cerr << "Font "<< ft.toString().toStdString()
@@ -4178,13 +4178,13 @@ void Widget::fontChanged(const QFont& ft)
 
     // The tree to be evaluated needs its own symbol table before evaluation
     XL::Tree *toBeEvaluated = fontAction;
-    XL::Symbols *syms = toBeEvaluated->Symbols();
-    assert(syms);
+    XL::Symbols *syms = toBeEvaluated->Symbols(); assert(syms);
     syms = new XL::Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
     toBeEvaluated->SetSymbols(syms);
 
     // Evaluate the input tree
+    TaoSave saveCurrent(current, this);
     xl_evaluate(toBeEvaluated);
 }
 
@@ -4313,7 +4313,7 @@ Tree_p Widget::fileChooser(Tree_p self, Tree_p properties)
     currentFileDialog = fileDialog;
     fileDialog->setModal(false);
 
-    updateFileDialog(properties);
+    updateFileDialog(properties, self);
 
     // Connect the dialog and show it
     connect(fileDialog, SIGNAL(fileSelected (const QString&)),
@@ -4324,7 +4324,7 @@ Tree_p Widget::fileChooser(Tree_p self, Tree_p properties)
 }
 
 
-void Widget::updateFileDialog(Tree *properties)
+void Widget::updateFileDialog(Tree *properties, Tree *context)
 // ----------------------------------------------------------------------------
 //   Execute code for a file dialog
 // ----------------------------------------------------------------------------
@@ -4340,6 +4340,8 @@ void Widget::updateFileDialog(Tree *properties)
     map["label"]     = "file_chooser_label";
     map["filter"]    = "file_chooser_filter";
 
+    if (!properties->Symbols())
+        properties->SetSymbols(context->Symbols());
     XL::Tree *toBeEvaluated = map.Replace(properties);
     xl_evaluate(toBeEvaluated);
 
@@ -4455,6 +4457,7 @@ void Widget::fileChosen(const QString & filename)
     XL::Tree *toBeEvaluated = map.Replace(fileAction);
 
     // Evaluate the input tree
+    TaoSave saveCurrent(current, this);
     xl_evaluate(toBeEvaluated);
 }
 
@@ -4495,7 +4498,7 @@ Tree_p Widget::fileChooserTexture(Tree_p self, double w, double h,
     }
     currentFileDialog = (QFileDialog *)surface->widget;
 
-    updateFileDialog(properties);
+    updateFileDialog(properties, self);
 
     // Resize to requested size, and bind texture
     surface->resize(w,h);
@@ -5306,8 +5309,7 @@ XL::Tree *  NameToNameReplacement::Replace(XL::Tree *original)
 // ----------------------------------------------------------------------------
 {
     XL::Tree *copy = original;
-    XL::Symbols *syms = original->Symbols();
-    assert(syms);
+    XL::Symbols *syms = original->Symbols(); assert(syms);
     syms = new XL::Symbols(syms);
     copy = original->Do(*this);
     copy->SetSymbols(syms);

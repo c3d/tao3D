@@ -68,7 +68,11 @@ void Table::Draw(Layout *where)
     uint    r, c;
     Widget *widget = where->Display();
     std::vector<Drawing *>::iterator i = elements.begin();
+    TreeList::iterator fillI = cellFill.begin();
+    TreeList::iterator borderI = cellBorder.begin();
     XL::LocalSave<Table *> saveTable(widget->table, this);
+    Tree *fillCode = fill;
+    Tree *borderCode = border;
 
     for (r = 0; r < rows; r++)
     {
@@ -92,12 +96,16 @@ void Table::Draw(Layout *where)
             cellBox = Box(cellX-cellW/2, cellY-cellH/2, cellW, cellH);
 
             XL::LocalSave<Point3> saveOffset(where->offset, pos + offset);
-            if (fill)
-                widget->drawTree(fill);
+            if (fillI != cellFill.end())
+                fillCode = *fillI++;
+            if (fillCode)
+                widget->drawTree(fillCode);
             if (d)
                 d->Draw(where);
-            if (border)
-                widget->drawTree(border);
+            if (borderI != cellBorder.end())
+                borderCode = *borderI++;
+            if (borderCode)
+                widget->drawTree(borderCode);
 
             if (c < column_width.size())
                 px += column_width[c];
@@ -124,6 +132,8 @@ void Table::AddElement(Drawing *d)
 // ----------------------------------------------------------------------------
 {
     elements.push_back(d);
+    cellFill.push_back(fill);
+    cellBorder.push_back(border);
     column_width.clear();
     row_height.clear();
 }

@@ -26,6 +26,7 @@
 // ****************************************************************************
 
 #include "drawing.h"
+#include "tao_tree.h"
 
 TAO_BEGIN
 
@@ -46,6 +47,7 @@ public:
     uint                   rows, columns;
     uint                   row, column;
     std::vector<Drawing *> elements;
+    TreeList               cellFill, cellBorder;
     Box                    margins;
     std::vector<scale>     column_width;
     std::vector<scale>     row_height;

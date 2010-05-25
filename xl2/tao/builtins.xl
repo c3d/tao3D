@@ -328,20 +328,6 @@ menu_item "menu:insert > image...", "Image...", file_chooser
         image 0, 0, file_path}
 }
 
-menu_colors -> {
-menubar
-menu      "menu:colors", "Colors"
-menu_item "menu:colors > fill color", "Fill Color...", do
-    color_chooser "color", do
-        set_attribute "color", {color red, green, blue, alpha}
-menu_item "menu:colors > line color", "Line Color...", do
-    color_chooser "line_color", do
-        set_attribute "line_color", {line_color red, green, blue, alpha}
-}
-
-
-menu_insert
-menu_colors
 
 toolbar_insert -> {
 toolbar   "toolbar:insert", "Insert", "N"
@@ -355,7 +341,7 @@ menu_item "toolbar:insert > shape > line -->", "", "images/tb_shape_line_w_arrow
     shape
         color "line"
         line_color "line"
-        line_arrow 50, -50, none, -50, 50, arrowhead 
+        line_arrow 50, -50, none, -50, 50, arrowhead
 menu_item "toolbar:insert > shape > line <->", "", "images/tb_shape_line_w_two_arrowheads.png", insert
     shape
         color "line"

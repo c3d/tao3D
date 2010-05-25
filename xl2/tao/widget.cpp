@@ -574,6 +574,7 @@ Name_p Widget::bringToFront(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     Tree * select = removeSelection();
+    if ( ! select ) return XL::xl_false;
     insert(NULL, select);
     return XL::xl_true;
 }
@@ -584,10 +585,13 @@ Name_p Widget::sendToBack(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     Tree * select = removeSelection();
+    if ( ! select ) return XL::xl_false;
     Symbols *symbols = xlProgram->tree->Symbols();
     XL::Infix * top = new XL::Infix("\n", select, xlProgram->tree);
     top->SetSymbols(symbols);
     xlProgram->tree = top;
+    // Make sure the new objects appear selected next time they're drawn
+    selectStatements(select);
     // Reload the program and mark the changes
     reloadProgram();
     markChanged("Selection sent back");
@@ -3726,9 +3730,9 @@ XL::Name_p Widget::textEditKey(Tree_p self, text key)
 
 
 // ============================================================================
-// 
+//
 //   Tables
-// 
+//
 // ============================================================================
 
 Tree_p Widget::newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body)

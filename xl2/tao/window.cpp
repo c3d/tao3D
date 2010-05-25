@@ -65,7 +65,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
     setWindowIcon(QIcon(":/images/tao.png"));
 
     // Create the text edit widget
-    dock = new QDockWidget(tr("Source"));
+    dock = new QDockWidget(tr("Document Source"));
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
     textEdit = new QTextEdit(dock);
     dock->setWidget(textEdit);

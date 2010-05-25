@@ -629,6 +629,7 @@ bool Compiler::FreeResources(Tree *tree)
             std::cerr << " function F" << f
                       << (inUse ? " in use" : " unused");
         
+        info->function = NULL;
         if (inUse)
         {
             // Mark the function for complete deletion later
@@ -651,6 +652,7 @@ bool Compiler::FreeResources(Tree *tree)
             std::cerr << " global V" << v
                       << (inUse ? " in use" : " unused");
         
+        info->global = NULL;
         if (inUse)
         {
             deleted.insert(v);

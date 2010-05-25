@@ -315,11 +315,11 @@ menu_item "menu:insert > image...", "Image...", file_chooser
            "GIF - Graphic Interchange Format (*.gif);;" &
            "JPEG - Joint Photographic Experts Group (*.jpg *.jpeg);;" &
            "PNG - Portable Network Graphics (*.png);;" &
+           "SVG - Scalable Vector Graphics (*.svg);;" &
+           "TIFF - Tagged Image File Format (*.tif *.tiff);;" &
            "PBM - Portable Bitmap (*.pbm);;" &
            "PGM - Portable Graymap (*.pgm);;" &
            "PPM - Portable Pixmap (*.ppm);;" &
-           "SVG - Scalable Vector Graphics (*.svg);;" &
-           "TIFF - Tagged Image File Format (*.tif *.tiff);;" &
            "XBM - X11 Bitmap (*.xbm);;" &
            "XPM - X11 Pixmap (*.xpm)"
     action insert {

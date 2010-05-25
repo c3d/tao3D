@@ -126,8 +126,22 @@ void Window::setHtml(QString txt)
 // ----------------------------------------------------------------------------
 //   Update the text edit widget with updates we made
 // ----------------------------------------------------------------------------
+//   We try not to change the scrollbars and cursor positions
 {
-    textEdit->document()->setHtml(txt);
+    QScrollBar * hsb = textEdit->horizontalScrollBar();
+    QScrollBar * vsb = textEdit->verticalScrollBar();
+    int x = hsb->value();
+    int y = vsb->value();
+    int pos = textEdit->textCursor().position();
+
+    textEdit->setHtml(txt);
+
+    hsb->setValue(x);
+    vsb->setValue(y);
+    QTextCursor cursor(textEdit->document());
+    cursor.setPosition(pos);
+    textEdit->setTextCursor(cursor);
+    textEdit->update();
 }
 
 

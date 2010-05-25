@@ -162,7 +162,7 @@ void Table::Compute(Layout *where)
             if (i == elements.end())
                 break;
             Drawing *d = *i++;
-            Box3 bb = d->Bounds(where);
+            Box3 bb = d->Space(where);
             rowBB[r] |= bb;
             colBB[c] |= bb;
         }

@@ -75,6 +75,7 @@ struct Renderer
     bool                had_space;
     bool                had_punctuation;
     bool                need_separator;
+    bool                need_whitespace;
 
     static Renderer *   renderer;
 };

@@ -21,24 +21,24 @@
 // ****************************************************************************
 
 // Nothing really special here...
-infix  = separator left space self space right separator
-prefix = separator left space right separator
-block  = separator opening separator child separator closing separator
+infix  = whitespace left whitespace self whitespace right whitespace
+prefix = whitespace left whitespace right whitespace
+block  = whitespace opening whitespace child whitespace closing whitespace
 
 cr     = newline indents
 indent = indent cr
 unindent = unindent cr
 indents = "    "
-"block I+ I-" = indent cr child unindent cr
-"block  ( ) " = "(" child ")"
+"block I+ I-" = indent cr child unindent
 "?wildcard?" = "'" self "'"
-"infix ," = separator left "," space right separator
-"infix ;" = separator left ";" space right separator
-"infix :" = separator left ":" right separator
-"postfix %" = separator left "%" space separator
-"postfix !" = separator left "!" space separator
-"prefix +" = separator "+" separator right separator
-"prefix -" = separator "-" separator right separator
+"infix ," = whitespace left "," whitespace right whitespace
+"infix ;" = whitespace left ";" whitespace right whitespace
+"infix :" = whitespace left ":" whitespace right whitespace
+"postfix %" = whitespace left "%" whitespace
+"postfix !" = whitespace left "!" whitespace
+"prefix +" = whitespace "+" right whitespace
+"prefix -" = whitespace "-" right whitespace
+"text //" = "//" self
 "text "" """ = """" self """"
 "text << >>" = "<<" self ">>"
 "longtext "" """ = "<<" self ">>"

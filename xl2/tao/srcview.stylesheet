@@ -21,28 +21,25 @@
 
 // General transformation rules
 
-infix  = separator left space self space right separator
-prefix = separator left space right separator
-block  = separator opening separator child separator closing separator
+infix  = whitespace left whitespace self whitespace right whitespace
+prefix = whitespace left whitespace right whitespace
+block  = whitespace opening whitespace child whitespace closing whitespace
 
 indent = indent cr
 unindent = unindent cr
-"infix ," = separator left "," space right separator
-"infix ;" = separator left ";" space right separator
-"infix :" = separator left ":" right separator
-"postfix %" = separator left "%" space separator
-"postfix !" = separator left "!" space separator
-"prefix +" = separator "+" separator right separator
-"prefix -" = separator "-" separator right separator
-indents = nbsp nbsp nbsp nbsp
-"block I+ I-" = indent "<BR>" indents child unindent
-"block  ( ) " = "( " child " )"
-"block { }" = "{ " child " }"
+"infix ," = whitespace left "," whitespace right whitespace
+"infix ;" = whitespace left ";" whitespace right whitespace
+"infix :" = whitespace left ":" right whitespace
+"postfix %" = whitespace left "%" whitespace
+"postfix !" = whitespace left "!" whitespace
+"prefix +" = whitespace "+" right whitespace
+"prefix -" = whitespace "-" right whitespace
+indents = space space space space
+"block I+ I-" = indent cr child unindent
 
 // Character remapping
-nbsp            = "&nbsp;"
-space           = " "
-cr              = "<BR>" indents
+space           = "&nbsp;"
+cr              = "<br>" newline indents
 '<'             = "&lt;"
 '>'             = "&gt;"
 '&'             = "&amp;"
@@ -55,7 +52,6 @@ end           = newline "</body></html>"
 
 
 // CSS classes
-// FIXME: 1 space is added at the end of a // comment
 cppcomment      = "<span class=""comment"">//" self "</span>"
 number          = "<span class=""number"">" self "</span>"
 keyword         = "<span class=""keyword"">" self "</span>"
@@ -65,8 +61,9 @@ builtin         = "<span class=""builtin"">" self "</span>"
 string1         = "<span class=""string""> """ self """</span>"
 string2         = "<span class=""string""> &lt;&lt;" self "&gt;&gt;</span>"
 highlight_begin_selected = "<span class=""selected"">"
-highlight_end_selected = "</span>"
-
+highlight_end_selected = "</span><br>" newline
+// Note: 'newline' is needed to mark that highlight_end_selected ends in
+// white space, so that subsequent 'whitespace' should not add a space
 
 // Comments, text
 "text //"       = cppcomment
@@ -258,6 +255,7 @@ highlight_end_selected = "</span>"
 "circular_sector" = builtin
 //"rectangle" = builtin
 "square" = builtin
+"polygon" = builtin
 "polygram" = builtin
 "equilateral_triangle" = builtin
 "tetragon" = builtin
@@ -279,6 +277,14 @@ highlight_end_selected = "</span>"
 "enneadecagon" = builtin
 "icosagon" = builtin
 "schläfli" = builtin
+"pentagram" = builtin
+"hexagram" = builtin
+"star_of_david" = builtin
+"heptagram" = builtin
+"star_of_lakshmi" = builtin
+"octagram" = builtin
+"nonagram" = builtin
+"decagram" = builtin
 "selection_color" = builtin
 "text_selection_color" = builtin
 "text_highlight_color" = builtin
@@ -327,3 +333,5 @@ integer         = number
 "cos"           = function
 "tan"           = function
 "log"           = function
+
+"?null?" = ""

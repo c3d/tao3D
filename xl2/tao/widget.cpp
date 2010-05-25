@@ -568,6 +568,57 @@ void Widget::paste()
 
 }
 
+Name_p Widget::bringToFront(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Bring the selected shape to front
+// ----------------------------------------------------------------------------
+{
+    Tree * select = removeSelection();
+    if ( ! select ) return XL::xl_false;
+    insert(NULL, select);
+    return XL::xl_true;
+}
+
+Name_p Widget::sendToBack(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Send the selected shape to back
+// ----------------------------------------------------------------------------
+{
+    Tree * select = removeSelection();
+    if ( ! select ) return XL::xl_false;
+    Symbols *symbols = xlProgram->tree->Symbols();
+    XL::Infix * top = new XL::Infix("\n", select, xlProgram->tree);
+    top->SetSymbols(symbols);
+    xlProgram->tree = top;
+    // Make sure the new objects appear selected next time they're drawn
+    selectStatements(select);
+    // Reload the program and mark the changes
+    reloadProgram();
+    markChanged("Selection sent back");
+
+    return XL::xl_true;
+}
+
+//Tree_p Widget::sendForward(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Swap the selected shape and the one in front of it
+// ----------------------------------------------------------------------------
+//{
+//    cut();
+//    selectNext();
+//    selectNext();
+//    pasteBeforeSelection();
+//}
+//
+//Tree_p Widget::sendBackward(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Swap the selected shape and the one just behind it
+// ----------------------------------------------------------------------------
+//{
+//    cut();
+//    selectPrevious();
+//    pasteBeforeSelection();
+//}
 
 bool Widget::selectionsEqual(selection_map &s1, selection_map &s2)
 // ----------------------------------------------------------------------------
@@ -3688,9 +3739,9 @@ XL::Name_p Widget::textEditKey(Tree_p self, text key)
 
 
 // ============================================================================
-// 
+//
 //   Tables
-// 
+//
 // ============================================================================
 
 Tree_p Widget::newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body)
@@ -4264,8 +4315,19 @@ Tree_p Widget::colorChooser(Tree_p self, text treeName, Tree_p action)
     updateColorDialog();
 
     // Connect the dialog and show it
-    connect(colorDialog, SIGNAL(colorSelected (const QColor&)),
-            this, SLOT(colorChosen(const QColor &)));
+#ifdef Q_WS_MAC
+    //if(QSysInfo::MacintoshVersion)
+    {
+        colorDialog->setOption(QColorDialog::NoButtons, true);
+    }
+#else
+    //else
+    {
+        connect(colorDialog, SIGNAL(colorSelected (const QColor&)),
+                this, SLOT(colorChosen(const QColor &)));
+        connect(colorDialog, SIGNAL(rejected()), this, SLOT(colorRejected()));
+    }
+#endif
     connect(colorDialog, SIGNAL(currentColorChanged (const QColor&)),
             this, SLOT(colorChanged(const QColor &)));
     colorDialog->show();
@@ -4273,6 +4335,13 @@ Tree_p Widget::colorChooser(Tree_p self, text treeName, Tree_p action)
     return XL::xl_true;
 }
 
+void Widget::colorRejected()
+// ----------------------------------------------------------------------------
+//   Slot called by the color widget's "cancel" button.
+// ----------------------------------------------------------------------------
+{
+    colorChanged(originalColor);
+}
 
 void Widget::colorChosen(const QColor & col)
 // ----------------------------------------------------------------------------
@@ -4352,9 +4421,8 @@ void Widget::updateColorDialog()
         attribute_args color;
         if (get(*i, colorName, color) && color.size() == 4)
         {
-            QColor qc;
-            qc.setRgbF(color[0], color[1], color[2], color[3]);
-            colorDialog->setCurrentColor(qc);
+            originalColor.setRgbF(color[0], color[1], color[2], color[3]);
+            colorDialog->setCurrentColor(originalColor);
             break;
         }
     }
@@ -5374,7 +5442,7 @@ Tree_p  Widget::separator(Tree_p self)
 
 XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert)
 // ----------------------------------------------------------------------------
-//    Insert the tree after the selection, assuming there is only one
+//    Insert at the end of page or program
 // ----------------------------------------------------------------------------
 {
     // For 'insert { statement; }', we don't want the { } block
@@ -5435,6 +5503,25 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert)
     return XL::xl_true;
 }
 
+
+XL::Tree_p Widget::removeSelection()
+// ----------------------------------------------------------------------------
+//    Remove the selection from the tree and return a copy of it
+// ----------------------------------------------------------------------------
+{
+    if (!hasSelection())
+        return NULL;
+
+    // Build a single tree from all the selected sub-trees
+    std::set<Tree_p >::reverse_iterator i = selectionTrees.rbegin();
+    XL::Tree *tree = (*i++);
+    for ( ; i != selectionTrees.rend(); i++)
+        tree = new XL::Infix("\n", (*i), tree);
+
+    deleteSelection();
+
+    return tree;
+}
 
 XL::Name_p Widget::deleteSelection(Tree_p self, text key)
 // ----------------------------------------------------------------------------

@@ -530,6 +530,8 @@ PREFIX(SetAttribute, boolean, "set_attribute",
        PARM(n, text) PARM(t, tree),
        RTAO(setAttribute(self, n, t, "shape")))
 
+PREFIX(BringToFront, boolean, "bring_to_front",, RTAO(bringToFront(self)))
+PREFIX(SendToBack, boolean, "send_to_back",, RTAO(sendToBack(self)))
 
 // ============================================================================
 //

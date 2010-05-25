@@ -3744,10 +3744,10 @@ Tree_p Widget::newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body)
         replacer["margins"] = "table_cell_margins";
         replacer["fill"]    = "table_cell_fill";
         replacer["border"]  = "table_cell_border";
-        replacer["cellx"]   = "table_cell_x";
-        replacer["celly"]   = "table_cell_y";
-        replacer["cellw"]   = "table_cell_w";
-        replacer["cellh"]   = "table_cell_h";
+        replacer["x"]       = "table_cell_x";
+        replacer["y"]       = "table_cell_y";
+        replacer["w"]       = "table_cell_w";
+        replacer["h"]       = "table_cell_h";
         replacer["row"]     = "table_cell_row";
         replacer["column"]  = "table_cell_column";
         replacer["rows"]    = "table_rows";

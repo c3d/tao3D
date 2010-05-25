@@ -36,7 +36,7 @@ Table::Table(uint r, uint c)
 //    Constructor
 // ----------------------------------------------------------------------------
     : rows(r), columns(c), row(0), column(0),
-      elements(), margins(0,0,0,0), column_width(), row_height(),
+      elements(), margins(0,0,0,0), columnWidth(), rowHeight(),
       fill(NULL), border(NULL)
 {}
 
@@ -58,7 +58,7 @@ void Table::Draw(Layout *where)
 //   Draw all the table elements
 // ----------------------------------------------------------------------------
 {
-    if (column_width.size() != columns || row_height.size() != rows)
+    if (columnWidth.size() != columns || rowHeight.size() != rows)
         Compute(where);
 
     coord   cellX, cellY, cellW, cellH;
@@ -77,8 +77,8 @@ void Table::Draw(Layout *where)
     for (r = 0; r < rows; r++)
     {
         px = bounds.lower.x;
-        if (r < row_height.size())
-            py -= row_height[r];
+        if (r < rowHeight.size())
+            py -= rowHeight[r];
         py -= margins.Height();
         row = r;
         for (c = 0; c < columns; c++)
@@ -86,11 +86,12 @@ void Table::Draw(Layout *where)
             bool atEnd = i == elements.end();
 
             Drawing *d = atEnd ? NULL : *i++;
-            Vector3 pos(px - margins.lower.x, py - margins.lower.y, 0);
+            Vector3 pos(px - margins.lower.x + columnOffset[c],
+                        py - margins.lower.y + rowOffset[r], 0);
             column = c;
 
-            cellW = column_width[c] + margins.Width();
-            cellH = row_height[r] + margins.Height();
+            cellW = columnWidth[c] + margins.Width();
+            cellH = rowHeight[r] + margins.Height();
             cellX = px + offset.x + cellW/2;
             cellY = py + offset.y + cellH/2;
             cellBox = Box(cellX-cellW/2, cellY-cellH/2, cellW, cellH);
@@ -107,8 +108,8 @@ void Table::Draw(Layout *where)
             if (borderCode)
                 widget->drawTree(borderCode);
 
-            if (c < column_width.size())
-                px += column_width[c];
+            if (c < columnWidth.size())
+                px += columnWidth[c];
             px += margins.Width();
         }
     }
@@ -120,7 +121,7 @@ Box3 Table::Bounds(Layout *where)
 //   Compute the bounds of the table
 // ----------------------------------------------------------------------------
 {
-    if (column_width.size() != columns || row_height.size() != rows)
+    if (columnWidth.size() != columns || rowHeight.size() != rows)
         Compute(where);
     return bounds;
 }
@@ -134,8 +135,8 @@ void Table::AddElement(Drawing *d)
     elements.push_back(d);
     cellFill.push_back(fill);
     cellBorder.push_back(border);
-    column_width.clear();
-    row_height.clear();
+    columnWidth.clear();
+    rowHeight.clear();
 }
 
 
@@ -149,12 +150,17 @@ void Table::Compute(Layout *where)
     std::vector<Box3> rowBB, colBB;
 
     // Compute the actual column width and heights
-    column_width.clear();
-    column_width.resize(columns);
+    columnWidth.clear();
+    columnWidth.resize(columns);
     colBB.resize(columns);
-    row_height.clear();
-    row_height.resize(rows);
+    columnOffset.clear();
+    columnOffset.resize(columns);
+
+    rowHeight.clear();
+    rowHeight.resize(rows);
     rowBB.resize(rows);
+    rowOffset.clear();
+    rowOffset.resize(rows);
 
     // Set initial (empty) bounding box for rows and columns
     for (r = 0; r < rows; r++)
@@ -175,6 +181,12 @@ void Table::Compute(Layout *where)
             Box3 bb = d->Space(where);
             rowBB[r] |= bb;
             colBB[c] |= bb;
+            double lowX = colBB[c].lower.x;
+            double lowY = rowBB[r].lower.y;
+            if (lowX < 0)
+                columnOffset[c] = -lowX;
+            if (lowY < 0)
+                rowOffset[r] = -lowY;
         }
     }
 
@@ -183,13 +195,13 @@ void Table::Compute(Layout *where)
     bb |= Point3(0,0,0);
     for (c = 0; c < columns; c++)
     {
-        column_width[c] = colBB[c].Width();
-        bb.upper.x += column_width[c] + margins.Width();
+        columnWidth[c] = colBB[c].Width();
+        bb.upper.x += columnWidth[c] + margins.Width();
     }
     for (r = 0; r < rows; r++)
     {
-        row_height[r] = rowBB[r].Height();
-        bb.upper.y += row_height[r] + margins.Height();
+        rowHeight[r] = rowBB[r].Height();
+        bb.upper.y += rowHeight[r] + margins.Height();
     }
     bounds = bb;
 }

@@ -49,8 +49,10 @@ public:
     std::vector<Drawing *> elements;
     TreeList               cellFill, cellBorder;
     Box                    margins;
-    std::vector<scale>     column_width;
-    std::vector<scale>     row_height;
+    std::vector<scale>     columnWidth;
+    std::vector<scale>     rowHeight;
+    std::vector<coord>     columnOffset;
+    std::vector<coord>     rowOffset;
     Box3                   bounds;
     Tree_p                 fill, border;
     Box                    cellBox;

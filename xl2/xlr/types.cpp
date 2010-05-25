@@ -82,9 +82,11 @@ Tree *InferTypes::DoName(Name *what)
     {
         if (Tree *type = value->Get<TypeInfo>())
             return type;
-        return Ooops("Unknown type for '$1'", what);
+        Ooops("Unknown type for '$1'", what);
+        return NULL;
     }
-    return Ooops("Unknown name '$1'", what);
+    Ooops("Unknown name '$1'", what);
+    return NULL;
 }
 
 
@@ -720,12 +722,17 @@ Tree *ArgumentTypeMatch::DoInfix(Infix *what)
         // Check the variable name, e.g. K in example above
         Name *varName = what->left->AsName();
         if (!varName)
-            return Ooops("Expected a name, got '$1' ", what->left);
+        {
+            Ooops("Expected a name, got '$1' ", what->left);
+            return NULL;
+        }
 
         // Check if the name already exists
         if (Tree *existing = rewrite->Named(varName->value))
-            return Ooops("Name '$1' already exists as '$2'",
-                         what->left, existing);
+        {
+            Ooops("Name '$1' already exists as '$2'", what->left, existing);
+            return NULL;
+        }
 
         return what;
     }

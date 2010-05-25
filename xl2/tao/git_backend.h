@@ -89,8 +89,10 @@ private:
     bool                parseCommitOutput(text output, QString &id,
                                           QString &msg);
     QString             parseCloneOutput(QString out);
+    void                mergeCommitMessages(text &dest, text src);
 
     static QString      gitCommand;
+    text                nextCommitMessage;
 };
 
 }

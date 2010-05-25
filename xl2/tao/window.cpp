@@ -70,11 +70,14 @@ Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
     textEdit = new QTextEdit(dock);
     dock->setWidget(textEdit);
     addDockWidget(Qt::RightDockWidgetArea, dock);
+    connect(dock, SIGNAL(visibilityChanged(bool)),
+            this, SLOT(toggleSourceView(bool)));
 
     // Create the error reporting widget
     errorDock = new QDockWidget(tr("Errors"));
     errorDock->setAllowedAreas(Qt::AllDockWidgetAreas);
     errorMessages = new QTextEdit(errorDock);
+    errorMessages->setReadOnly(true);
     errorDock->setWidget(errorMessages);
     errorDock->hide();
     addDockWidget(Qt::BottomDockWidgetArea, errorDock);
@@ -119,12 +122,12 @@ Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
 }
 
 
-void Window::setText(QString txt)
+void Window::setHtml(QString txt)
 // ----------------------------------------------------------------------------
 //   Update the text edit widget with updates we made
 // ----------------------------------------------------------------------------
 {
-    textEdit->document()->setPlainText(txt);
+    textEdit->document()->setHtml(txt);
 }
 
 
@@ -194,6 +197,20 @@ void Window::toggleAnimations()
 }
 
 
+void Window::toggleSourceView(bool visible)
+// ----------------------------------------------------------------------------
+//   Source code view is shown or hidden
+// ----------------------------------------------------------------------------
+{
+    if (visible)
+    {
+        bool modified = textEdit->document()->isModified();
+        taoWidget->updateProgramSource();
+        markChanged(modified);
+    }
+}
+
+
 void Window::newFile()
 // ----------------------------------------------------------------------------
 //   Create a new window
@@ -206,7 +223,7 @@ void Window::newFile()
         isUntitled = true;
         isReadOnly = false;
         setCurrentFile(fileName);
-        setText("");
+        setHtml("");
         markChanged(false);
         taoWidget->updateProgram(sf);
         taoWidget->refresh();
@@ -785,11 +802,12 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     if (!loadFileIntoSourceFileView(fileName, openProj))
         return false;
 
+    updateProgram(fileName);
     setCurrentFile(fileName);
     statusBar()->showMessage(tr("File loaded"), 2000);
-    updateProgram(fileName);
     return true;
 }
+
 
 bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 // ----------------------------------------------------------------------------
@@ -882,9 +900,11 @@ bool Window::saveFile(const QString &fileName)
         XL::SourceFile &sf = xlRuntime->files[fn];
         sf.changed = true;
         taoWidget->markChanged("Manual save");
+        taoWidget->writeIfChanged(sf);
         taoWidget->doCommit(true);
         sf.changed = false;
     }
+    markChanged(false);
 
     return true;
 }

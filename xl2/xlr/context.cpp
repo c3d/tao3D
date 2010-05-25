@@ -421,7 +421,10 @@ Tree *Symbols::Run(Tree *code)
                 result = symbols->CompileAll(result);
             }
             if (!result->code)
-                return Ooops("Unable to compile '$1'", result);
+            {
+                Ooops("Unable to compile '$1'", result);
+                return NULL;
+            }
             result = result->code(code);
             more = (result != code && result &&
                     (has_rewrites_for_constants || !result->IsConstant())) ;
@@ -822,12 +825,17 @@ Tree *InterpretedArgumentMatch::DoInfix(Infix *what)
         // Check the variable name, e.g. K in example above
         Name *varName = what->left->AsName();
         if (!varName)
-            return Ooops("Expected a name, got '$1' ", what->left);
+        {
+            Ooops("Expected a name, got '$1' ", what->left);
+            return NULL;
+        }
 
         // Check if the name already exists
         if (Tree *existing = rewrite->Named(varName->value))
-            return Ooops("Name '$1' already exists as '$2'",
-                         what->left, existing);
+        {
+            Ooops("Name '$1' already exists as '$2'", what->left, existing);
+            return NULL;
+        }
 
         // Evaluate type expression, e.g. 'integer' in example above
         Tree *typeExpr = xl_evaluate(what->right);
@@ -999,12 +1007,18 @@ Tree *ParameterMatch::DoInfix(Infix *what)
         // Check the variable name, e.g. K in example above
         Name *varName = what->left->AsName();
         if (!varName)
-            return Ooops("Expected a name, got '$1' ", what->left);
+        {
+            Ooops("Expected a name, got '$1' ", what->left);
+            return NULL;
+        }
 
         // Check if the name already exists
         if (Tree *existing = symbols->Named(varName->value))
-            return Ooops("Typed name '$1' already exists as '$2'",
-                         what->left, existing);
+        {
+            Ooops("Typed name '$1' already exists as '$2'",
+                  what->left, existing);
+            return NULL;
+        }
 
         // Enter the name in symbol table
         Tree *result = symbols->Allocate(varName);
@@ -1138,7 +1152,10 @@ Tree *ArgumentMatch::CompileClosure(Tree *source)
     EnvironmentScan env(symbols);
     Tree *envOK = source->Do(env);
     if (!envOK)
-        return Ooops("Internal: what environment in '$1'?", source);
+    {
+        Ooops("Internal: what environment in '$1'?", source);
+        return NULL;
+    }
 
     // Create the parameter list with all imported locals
     TreeList parms, args;
@@ -1424,12 +1441,19 @@ Tree *ArgumentMatch::DoInfix(Infix *what)
         // Check the variable name, e.g. K in example above
         Name *varName = what->left->AsName();
         if (!varName)
-            return Ooops("Expected a name, got '$1' ", what->left);
+        {
+            Ooops("Expected a name, got '$1' ", what->left);
+            return NULL;
+        }
 
         // Check if the name already exists
         if (Tree *existing = rewrite->Named(varName->value))
-            return Ooops("Name '$1' already exists as '$2'",
-                         what->left, existing);
+        {
+            Ooops("Name '$1' already exists as '$2'",
+                  what->left, existing);
+            return NULL;
+        }
+
 
         // Evaluate type expression, e.g. 'integer' in example above
         Tree *typeExpr = Compile(what->right);
@@ -1800,10 +1824,8 @@ Tree *DeclarationAction::DoPrefix(Prefix *what)
         if (name->value == "load")
         {
             Text *file = what->right->AsText();
-            if (!file)
-                return Ooops("Argument '$1' to 'load' is not a text",
-                             what->right);
-            return xl_load(file->value);
+            if (file)
+                return xl_load(file->value);
         }
     }
 
@@ -1914,8 +1936,8 @@ Tree *CompileAction::DoName(Name *what)
 
         // Check if there is code we need to call
         Compiler *compiler = Context::context->compiler;
-        if (compiler->functions.count(result) &&
-            compiler->functions[result] != unit.function)
+        llvm::Function *function = compiler->TreeFunction(result);
+        if (function && function != unit.function)
         {
             // Case of "Name -> Foo": Invoke Name
             TreeList noArgs;
@@ -1945,7 +1967,8 @@ Tree *CompileAction::DoName(Name *what)
         unit.ConstantTree(what);
         return what;
     }
-    return Ooops("Name '$1' does not exist", what);
+    Ooops("Name '$1' does not exist", what);
+    return NULL;
 }
 
 
@@ -2201,7 +2224,8 @@ Tree *  CompileAction::Rewrites(Tree *what)
             what = what->Do(children);
             return NULL;
         }
-        return Ooops("No rewrite candidate for '$1'", what);
+        Ooops("No rewrite candidate for '$1'", what);
+        return NULL;
     }
 
     // Set the symbols for the result
@@ -2299,7 +2323,10 @@ Tree *Rewrite::Compile(void)
 
     // Check that we had symbols defined for the 'from' tree
     if (!from->Symbols())
-        return Ooops("Internal: No symbols for '$1'", from);
+    {
+        Ooops("Internal: No symbols for '$1'", from);
+        return NULL;
+    }
 
     // Create local symbols
     Symbols_p locals = new Symbols (from->Symbols());
@@ -2308,13 +2335,19 @@ Tree *Rewrite::Compile(void)
     DeclarationAction declare(locals);
     Tree *toDecl = to->Do(declare);
     if (!toDecl)
-        return Ooops("Internal: Declaration error for '$1'", to);
+    {
+        Ooops("Internal: Declaration error for '$1'", to);
+        return NULL;
+    }
 
     // Compile the body of the rewrite
     CompileAction compile(locals, unit, false, false);
     Tree *result = to->Do(compile);
     if (!result)
-        return Ooops("Unable to compile '$1'", to);
+    {
+        Ooops("Unable to compile '$1'", to);
+        return NULL;
+    }
 
     // Even if technically, this is not an 'eval_fn' (it has more args),
     // we still record it to avoid recompiling multiple times

@@ -325,23 +325,9 @@ menu_item "menu:insert > image...", "Image...", file_chooser
     action insert {
     shape
         color 1,1,1,1
-        image 0, 0, 0, 0, file_path}
+        image 0, 0, file_path}
 }
 
-menu_colors -> {
-menubar
-menu      "menu:colors", "Colors"
-menu_item "menu:colors > fill color", "Fill Color...", do
-    color_chooser "color", do
-        set_attribute "color", {color red, green, blue, alpha}
-menu_item "menu:colors > line color", "Line Color...", do
-    color_chooser "line_color", do
-        set_attribute "line_color", {line_color red, green, blue, alpha}
-}
-
-
-menu_insert
-menu_colors
 
 toolbar_insert -> {
 toolbar   "toolbar:insert", "Insert", "N"
@@ -355,7 +341,7 @@ menu_item "toolbar:insert > shape > line -->", "", "images/tb_shape_line_w_arrow
     shape
         color "line"
         line_color "line"
-        line_arrow 50, -50, none, -50, 50, arrowhead 
+        line_arrow 50, -50, none, -50, 50, arrowhead
 menu_item "toolbar:insert > shape > line <->", "", "images/tb_shape_line_w_two_arrowheads.png", insert
     shape
         color "line"
@@ -399,5 +385,25 @@ menu_item "toolbar:insert > shape > polygon", "", "images/tb_shape_polygon.png",
         polygon 0, 0, 100, 100, 5
 }
 
-toolbar_insert
+menu_format -> {
+menubar
+menu      "menu:format", "Format"
+submenu   "menu:format:colors", "Colors"
+menu_item "menu:format:colors > fill color", "Fill Color...", do
+    color_chooser "color", do
+        set_attribute "color", {color red, green, blue, alpha}
+menu_item "menu:format:colors > line color", "Line Color...", do
+    color_chooser "line_color", do
+        set_attribute "line_color", {line_color red, green, blue, alpha}
 
+menu      "menu:format"
+submenu   "menu:format:zorder", "Z order"
+menu_item "menu:format:zorder > toFront", "Bring to front", do
+    bring_to_front
+menu_item "menu:format:zorder > toBack", "Send to back", do
+    send_to_back
+}
+
+
+menu_insert
+menu_format

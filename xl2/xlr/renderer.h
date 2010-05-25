@@ -33,6 +33,7 @@ XL_BEGIN
 
 class Syntax;
 typedef std::map<text,Tree_p>    formats_table;
+typedef std::map<Tree_p,text>    highlights_table;
 
 
 struct Renderer
@@ -50,6 +51,7 @@ struct Renderer
     // Rendering proper
     void                Render (Tree *what);
     void                RenderOne(Tree *what);
+    void                DoRenderOne(Tree *what);
     void                RenderText(text format);
     void                RenderFormat(Tree *format);
     void                RenderFormat(text self, text format);
@@ -63,6 +65,7 @@ struct Renderer
     std::ostream &      output;
     Syntax &            syntax;
     formats_table       formats;
+    highlights_table    highlights;
     uint                indent;
     text                self;
     Tree_p              left;

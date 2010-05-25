@@ -862,6 +862,19 @@ void FixedSizePoint::Draw(Layout *where)
         glBegin(GL_POINTS);
         glVertex3f(center.x, center.y, center.z);
         glEnd();
+
+#ifdef CONFIG_LINUX
+        // This is a workaround for a bug seen on some Linux distros
+        // (e.g. Ubuntu 10.04 running on a system with Intel Mobile 4 graphics)
+        // where GL_POINTS are not detected in GL_SELECT mode.
+        // Drawing a null-sized quad makes the point selectable.
+        glBegin(GL_QUADS);
+        glVertex3f(center.x, center.y, center.z);
+        glVertex3f(center.x, center.y, center.z);
+        glVertex3f(center.x, center.y, center.z);
+        glVertex3f(center.x, center.y, center.z);
+        glEnd();
+#endif
     }
 }
 

@@ -372,6 +372,7 @@ inline uint TypeAllocator::Release(void *pointer)
         Chunk *chunk = ((Chunk *) pointer) - 1;
         TypeAllocator *allocator = ValidPointer(chunk->allocator);
         count = chunk->bits & USE_MASK;
+        assert(count);
         if (count < LOCKED_ROOT)
         {
             chunk->bits = (chunk->bits & ~USE_MASK) | --count;

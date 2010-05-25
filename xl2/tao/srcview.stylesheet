@@ -1,0 +1,98 @@
+// ****************************************************************************
+//  srcview.stylesheet                                             Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Stylesheet used to display a document in the source code view widget.
+//     Output format is HTML (passed to QTextEdit.setHtml()).
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jerome Forissier <jerome@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+infix  = separator left space self space right separator
+prefix = separator left space right separator
+block  = separator opening separator child separator closing separator
+
+indent = indent cr
+unindent = unindent cr
+"infix ," = separator left "," space right separator
+"infix ;" = separator left ";" space right separator
+"infix :" = separator left ":" right separator
+"postfix %" = separator left "%" space separator
+"postfix !" = separator left "!" space separator
+"prefix +" = separator "+" separator right separator
+"prefix -" = separator "-" separator right separator
+//JF "text "" """ = """" self """"
+//JF "text << >>" = "<<" self ">>"
+//JF "longtext "" """ = "<<" self ">>"
+//JF "longtext << >>" = "<<" self ">>"
+
+
+
+indents = nbsp nbsp nbsp nbsp
+"block I+ I-" = indent cr child unindent
+"block  ( ) " = "<FONT COLOR=""#707070"">(</FONT>" child "<FONT COLOR=""#707070"">)</FONT>"
+"block { }" = "<FONT COLOR=""#C00000"">{" child "}</FONT>"
+
+begin         = "<HTML><BODY>" newline
+end           = newline "</BODY></HTML>"
+
+
+// Character remapping
+nbsp            = "&nbsp;"
+space           = nbsp
+cr              = "<BR>" indents
+'<'             = "&lt;"
+'>'             = "&gt;"
+'&'             = "&amp;"
+
+
+// Colorization of numbers
+integer         = "<FONT color=""#800000"">" self "</FONT>"
+real            = "<FONT color=""#008000"">" self "</FONT>"
+
+// Basic keywords
+keyword         = "<FONT color=""#000080""><B>" self "</B></FONT>"
+
+"if"            = keyword
+"then"          = keyword
+"else"          = keyword
+"loop"          = keyword
+"while"         = keyword
+"for"           = keyword
+"exit"          = keyword
+"function"      = keyword
+"procedure"     = keyword
+"to"            = keyword
+"import"        = keyword
+
+// Basic types
+type            = "<FONT color=""#008080""><B>" self "</B></FONT>"
+
+"integer"       = type
+"real"          = type
+
+// Basic function names
+function        = "<FONT color=""#00C080""><B>" self "</B></FONT>"
+
+"exp"           = function
+"sin"           = function
+"cos"           = function
+"tan"           = function
+"log"           = function
+
+// Selection
+highlight_begin_selected = "<DIV style=""background-color:#f0f0f0"">"
+highlight_end_selected = "</DIV>"
+
+"?wildcard?"    = "<FONT color=""#808000"">" self "</FONT>"

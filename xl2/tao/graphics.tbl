@@ -325,6 +325,40 @@ PREFIX(TextEditKey, boolean, "text_edit_key", PARM(k, text),
 
 // ============================================================================
 //
+//   Tables
+//
+// ============================================================================
+
+PREFIX(NewTable, tree, "table", PARM(r,integer) PARM(c,integer) PARM(b,tree),
+       RTAO(newTable(self, r, c, b)));
+PREFIX(TableSizedCell, tree, "table_cell",
+       PARM(w, real) PARM(h, real) PARM(b, tree),
+       RTAO(tableCell(self, w, h, b)))
+PREFIX(TableCell, tree, "table_cell", PARM(b, tree),
+       RTAO(tableCell(self, b)))
+PREFIX(TableMargins2, tree, "table_cell_margins",
+       PARM(w, real) PARM(h, real),
+       RTAO(tableMargins(self, w, h)))
+PREFIX(TableMargins, tree, "table_cell_margins",
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real),
+       RTAO(tableMargins(self, x, y, w, h)))
+PREFIX(TableFill, tree, "table_cell_fill", PARM(b, tree),
+       RTAO(tableFill(self, b)))
+PREFIX(TableBorder, tree, "table_cell_border", PARM(b, tree),
+       RTAO(tableBorder(self, b)))
+PREFIX(TableCellX, tree, "table_cell_x", , RTAO(tableCellX(self)))
+PREFIX(TableCellY, tree, "table_cell_y", , RTAO(tableCellY(self)))
+PREFIX(TableCellW, tree, "table_cell_w", , RTAO(tableCellW(self)))
+PREFIX(TableCellH, tree, "table_cell_h", , RTAO(tableCellH(self)))
+PREFIX(TableRow, tree,   "table_cell_row", , RTAO(tableRow(self)))
+PREFIX(TableColumn, tree, "table_cell_column", , RTAO(tableColumn(self)))
+PREFIX(TableRows, tree, "table_rows", , RTAO(tableRows(self)))
+PREFIX(TableColumns, tree, "table_columns", , RTAO(tableColumns(self)))
+
+
+
+// ============================================================================
+//
 //   Frames and widgets
 //
 // ============================================================================

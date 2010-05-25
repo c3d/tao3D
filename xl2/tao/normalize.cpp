@@ -32,7 +32,7 @@ Renormalize::Renormalize(Widget *widget)
 // ----------------------------------------------------------------------------
 //   Constructor, nothing special to do
 // ----------------------------------------------------------------------------
-    : XL::TreeClone(), widget(widget)
+    : XL::Action(), widget(widget)
 {}
 
 
@@ -41,6 +41,25 @@ Renormalize::~Renormalize()
 //   Destructor, nothing special to do
 // ----------------------------------------------------------------------------
 {}
+
+
+Tree *Renormalize::Reselect(Tree *from, Tree *to)
+// ----------------------------------------------------------------------------
+//   Check if we change entries in the selection
+// ----------------------------------------------------------------------------
+{
+    // Check if we are possibly changing the selection
+    std::set<Tree_p> &sel = widget->selectionTrees;
+    if (sel.count(from))
+        sel.insert(to);
+
+    // Check if we are possibly changing the next selection
+    std::set<Tree_p> &nxSel = widget->selectNextTime;
+    if (nxSel.count(from))
+        nxSel.insert(to);
+
+    return to;
+}
 
 
 Tree *Renormalize::DoPrefix(Prefix *what)
@@ -53,12 +72,25 @@ Tree *Renormalize::DoPrefix(Prefix *what)
         if (leftName->value == "-")
         {
             if (Real *rr = what->right->AsReal())
-                return new Real(-rr->value, what->Position());
+                return Reselect(what,
+                                new Real(-rr->value, what->Position()));
             if (Integer *ir = what->right->AsInteger())
-                return new Integer(-ir->value, what->Position());
+                return Reselect(what,
+                                new Integer(-ir->value, what->Position()));
         }
     }
-    return XL::TreeClone::DoPrefix(what);
+    return Reselect(what, new Prefix(what->left->Do(this),
+                                     what->right->Do(this)));
+}
+
+
+Tree *Renormalize::DoPostfix(Postfix *what)
+// ----------------------------------------------------------------------------
+//   No special treatment of postfix values so far...
+// ----------------------------------------------------------------------------
+{
+    return Reselect(what, new Postfix(what->left->Do(this),
+                                      what->right->Do(this)));
 }
 
 
@@ -102,25 +134,7 @@ Tree *Renormalize::DoInfix(Infix *what)
     if (!result)
         result = new Infix(what->name, left, right, what->Position());
 
-    // Check if we are possibly changing the selection
-    std::set<Tree_p> &sel = widget->selectionTrees;
-    if (sel.count(what->left))
-        sel.insert(left);
-    if (sel.count(what->right))
-        sel.insert(right);
-    if (sel.count(what))
-        sel.insert(result);
-
-    // Check if we are possibly changing the next selection
-    std::set<Tree_p> &nxSel = widget->selectNextTime;
-    if (nxSel.count(what->left))
-        nxSel.insert(left);
-    if (nxSel.count(what->right))
-        nxSel.insert(right);
-    if (nxSel.count(what))
-        nxSel.insert(result);
-
-    return result;
+    return Reselect(what, result);
 }
 
 

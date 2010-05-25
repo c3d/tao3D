@@ -44,6 +44,7 @@
 #include <QColorDialog>
 #include <QFontDialog>
 #include <iostream>
+#include <sstream>
 #include <map>
 
 namespace Tao {
@@ -54,6 +55,7 @@ struct Layout;
 struct PageLayout;
 struct SpaceLayout;
 struct GraphicPath;
+struct Table;
 struct Repository;
 struct Drag;
 struct TextSelect;
@@ -77,6 +79,7 @@ class Widget : public QGLWidget
     Q_OBJECT
 public:
     typedef std::vector<double>   attribute_args;
+    typedef std::map<GLuint, uint> selection_map;
 
 public:
     Widget(Window *parent, XL::SourceFile *sf = NULL);
@@ -188,10 +191,13 @@ public:
     TextSelect *textSelection();
     void        drawSelection(const Box3 &bounds, text name, uint id);
     void        drawHandle(const Point3 &point, text name, uint id);
+    void        drawTree(Tree *code);
     template<class Activity>
     Activity *  active();
     void        checkCopyAvailable();
     bool        canPaste();
+    static
+    bool        selectionsEqual(selection_map &s1, selection_map &s2);
 
     // Text flows and text managemen
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
@@ -344,6 +350,25 @@ public:
     Tree_p      drawingBreak(Tree_p self, Drawing::BreakOrder order);
     Name_p      textEditKey(Tree_p self, text key);
 
+    // Tables
+    Tree_p      newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body);
+    Tree_p      tableCell(Tree_p self, Real_p w, Real_p h, Tree_p body);
+    Tree_p      tableCell(Tree_p self, Tree_p body);
+    Tree_p      tableMargins(Tree_p self,
+                             Real_p x, Real_p y, Real_p w, Real_p h);
+    Tree_p      tableMargins(Tree_p self,
+                             Real_p w, Real_p h);
+    Tree_p      tableFill(Tree_p self, Tree_p code);
+    Tree_p	tableBorder(Tree_p self, Tree_p code);
+    Real_p      tableCellX(Tree_p self);
+    Real_p      tableCellY(Tree_p self);
+    Real_p      tableCellW(Tree_p self);
+    Real_p      tableCellH(Tree_p self);
+    Integer_p   tableRow(Tree_p self);
+    Integer_p   tableColumn(Tree_p self);
+    Integer_p   tableRows(Tree_p self);
+    Integer_p   tableColumns(Tree_p self);
+
     // Frames and widgets
     Tree_p      status(Tree_p self, text t);
     Tree_p      framePaint(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
@@ -473,10 +498,10 @@ private:
     friend class Manipulator;
     friend class ControlPoint;
     friend class Renormalize;
+    friend class Table;
 
     typedef XL::LocalSave<QEvent *>             EventSave;
     typedef XL::LocalSave<Widget *>             TaoSave;
-    typedef std::map<GLuint, uint>              selection_map;
     typedef std::map<text, PageLayout*>         flow_map;
     typedef std::map<text, text>                page_map;
 
@@ -491,6 +516,7 @@ private:
     SpaceLayout *         space;
     Layout *              layout;
     GraphicPath *         path;
+    Table *               table;
     scale                 pageW, pageH;
     text                  flowName;
     flow_map              flows;
@@ -509,6 +535,7 @@ private:
     selection_map         selection, savedSelection;
     std::set<Tree_p >     selectionTrees, selectNextTime;
     bool                  wasSelected;
+    bool                  selectionChanged;
     QEvent *              event;
     QWidget *             focusWidget;
     GLdouble              focusProjection[16], focusModel[16];
@@ -532,6 +559,10 @@ private:
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
     bool                  animated;
 
+    // Source code view
+    std::ostringstream    srcRendererOutput;
+    XL::Renderer *        srcRenderer;
+
     static Widget *       current;
     static QColorDialog * colorDialog;
     static QFontDialog *  fontDialog;
@@ -541,7 +572,7 @@ private:
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:
-    void        updateFileDialog(Tree *properties);
+    void        updateFileDialog(Tree *properties, Tree *context);
 
 };
 
@@ -714,13 +745,14 @@ struct NameToNameReplacement : XL::TreeClone
 //    Replace specific names with names (e.g. alternate spellings)
 // ----------------------------------------------------------------------------
 {
-    NameToNameReplacement(){}
+    NameToNameReplacement(): replaced(false) {}
 
     Tree *  DoName(XL::Name *what);
     Tree *  Replace(Tree *original);
     text &      operator[] (text index)         { return map[index]; }
 
     std::map<text, text> map;
+    bool replaced;
 };
 
 

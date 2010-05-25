@@ -123,6 +123,7 @@ private:
     void     enableProjectSharingMenus();
     void     updateRecentFileActions();
     void     updateContext(QString docPath);
+    void     loadSrcViewStyleSheet();
 
 private:
     XL::Main *        xlRuntime;

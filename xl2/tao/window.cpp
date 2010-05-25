@@ -803,6 +803,23 @@ bool Window::needNewWindow()
 }
 
 
+void Window::loadSrcViewStyleSheet()
+// ----------------------------------------------------------------------------
+//    Load the CSS stylesheet to use for syntax highlighting
+// ----------------------------------------------------------------------------
+{
+    QFileInfo info("xl:srcview.css");
+    QString path = info.canonicalFilePath();
+    IFTRACE(srcview)
+        std::cerr << "Reading syntax highlighting from: " << +path << "\n";
+    QFile file(path);
+    file.open(QFile::ReadOnly | QFile::Text);
+    QTextStream css(&file);
+    QString srcViewStyleSheet = css.readAll();
+    textEdit->document()->setDefaultStyleSheet(srcViewStyleSheet);
+}
+
+
 bool Window::loadFile(const QString &fileName, bool openProj)
 // ----------------------------------------------------------------------------
 //    Load a specific file (and optionally, open project repository)
@@ -816,6 +833,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     if (!loadFileIntoSourceFileView(fileName, openProj))
         return false;
 
+    loadSrcViewStyleSheet();
     updateProgram(fileName);
     setCurrentFile(fileName);
     statusBar()->showMessage(tr("File loaded"), 2000);

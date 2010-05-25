@@ -56,6 +56,7 @@ HEADERS += widget.h \
     text_drawing.h \
     shapes3d.h \
     path3d.h \
+    table.h \
     binpack.h \
     glyph_cache.h \
     attributes.h \
@@ -126,6 +127,7 @@ SOURCES += tao_main.cpp \
     text_drawing.cpp \
     shapes3d.cpp \
     path3d.cpp \
+    table.cpp \
     binpack.cpp \
     glyph_cache.cpp \
     attributes.cpp \

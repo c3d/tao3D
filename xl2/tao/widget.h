@@ -55,6 +55,7 @@ struct Layout;
 struct PageLayout;
 struct SpaceLayout;
 struct GraphicPath;
+struct Table;
 struct Repository;
 struct Drag;
 struct TextSelect;
@@ -95,6 +96,7 @@ public slots:
     void        commitSuccess(QString id, QString msg);
     void        colorChosen(const QColor &);
     void        colorChanged(const QColor &);
+    void        colorRejected();
     void        updateColorDialog();
     void        fontChosen(const QFont &);
     void        fontChanged(const QFont &);
@@ -189,6 +191,7 @@ public:
     TextSelect *textSelection();
     void        drawSelection(const Box3 &bounds, text name, uint id);
     void        drawHandle(const Point3 &point, text name, uint id);
+    void        drawTree(Tree *code);
     template<class Activity>
     Activity *  active();
     void        checkCopyAvailable();
@@ -347,6 +350,25 @@ public:
     Tree_p      drawingBreak(Tree_p self, Drawing::BreakOrder order);
     Name_p      textEditKey(Tree_p self, text key);
 
+    // Tables
+    Tree_p      newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body);
+    Tree_p      tableCell(Tree_p self, Real_p w, Real_p h, Tree_p body);
+    Tree_p      tableCell(Tree_p self, Tree_p body);
+    Tree_p      tableMargins(Tree_p self,
+                             Real_p x, Real_p y, Real_p w, Real_p h);
+    Tree_p      tableMargins(Tree_p self,
+                             Real_p w, Real_p h);
+    Tree_p      tableFill(Tree_p self, Tree_p code);
+    Tree_p	tableBorder(Tree_p self, Tree_p code);
+    Real_p      tableCellX(Tree_p self);
+    Real_p      tableCellY(Tree_p self);
+    Real_p      tableCellW(Tree_p self);
+    Real_p      tableCellH(Tree_p self);
+    Integer_p   tableRow(Tree_p self);
+    Integer_p   tableColumn(Tree_p self);
+    Integer_p   tableRows(Tree_p self);
+    Integer_p   tableColumns(Tree_p self);
+
     // Frames and widgets
     Tree_p      status(Tree_p self, text t);
     Tree_p      framePaint(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
@@ -452,6 +474,7 @@ public:
     void        deleteSelection();
     Name_p      deleteSelection(Tree_p self, text key);
     Name_p      setAttribute(Tree_p self, text name, Tree_p attribute, text sh);
+    Tree_p      removeSelection();
 
     // Unit conversionsxo
     Real_p      fromCm(Tree_p self, double cm);
@@ -459,6 +482,12 @@ public:
     Real_p      fromIn(Tree_p self, double in);
     Real_p      fromPt(Tree_p self, double pt);
     Real_p      fromPx(Tree_p self, double px);
+
+    // z order management
+    Name_p      bringToFront(Tree_p self);
+    Name_p      sendToBack(Tree_p self);
+//    Name_p      bringForward(Tree_p self);
+//    Name_p      sendBackward(Tree_p self);
 
 private:
     friend class Window;
@@ -469,6 +498,7 @@ private:
     friend class Manipulator;
     friend class ControlPoint;
     friend class Renormalize;
+    friend class Table;
 
     typedef XL::LocalSave<QEvent *>             EventSave;
     typedef XL::LocalSave<Widget *>             TaoSave;
@@ -486,6 +516,7 @@ private:
     SpaceLayout *         space;
     Layout *              layout;
     GraphicPath *         path;
+    Table *               table;
     scale                 pageW, pageH;
     text                  flowName;
     flow_map              flows;
@@ -519,6 +550,7 @@ private:
     int                   order;
     Tree_p                colorAction, fontAction;
     text                  colorName;
+    QColor                originalColor;
 
     // Timing
     QTimer                timer, idleTimer;
@@ -713,13 +745,14 @@ struct NameToNameReplacement : XL::TreeClone
 //    Replace specific names with names (e.g. alternate spellings)
 // ----------------------------------------------------------------------------
 {
-    NameToNameReplacement(){}
+    NameToNameReplacement(): replaced(false) {}
 
     Tree *  DoName(XL::Name *what);
     Tree *  Replace(Tree *original);
     text &      operator[] (text index)         { return map[index]; }
 
     std::map<text, text> map;
+    bool replaced;
 };
 
 

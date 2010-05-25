@@ -19,6 +19,8 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+// General transformation rules
+
 infix  = separator left space self space right separator
 prefix = separator left space right separator
 block  = separator opening separator child separator closing separator
@@ -32,38 +34,50 @@ unindent = unindent cr
 "postfix !" = separator left "!" space separator
 "prefix +" = separator "+" separator right separator
 "prefix -" = separator "-" separator right separator
-//JF "text "" """ = """" self """"
-//JF "text << >>" = "<<" self ">>"
-//JF "longtext "" """ = "<<" self ">>"
-//JF "longtext << >>" = "<<" self ">>"
-
-
-
 indents = nbsp nbsp nbsp nbsp
-"block I+ I-" = indent cr child unindent
-"block  ( ) " = "<FONT COLOR=""#707070"">(</FONT>" child "<FONT COLOR=""#707070"">)</FONT>"
-"block { }" = "<FONT COLOR=""#C00000"">{" child "}</FONT>"
-
-begin         = "<HTML><BODY>" newline
-end           = newline "</BODY></HTML>"
-
+"block I+ I-" = indent "<BR>" indents child unindent
+"block  ( ) " = "( " child " )"
+"block { }" = "{ " child " }"
 
 // Character remapping
 nbsp            = "&nbsp;"
-space           = nbsp
+space           = " "
 cr              = "<BR>" indents
 '<'             = "&lt;"
 '>'             = "&gt;"
 '&'             = "&amp;"
 
+// Begin/end stanzas
+begin         =
+    "<html><head><link rel=""stylesheet"" type=""text/css"" href=""srcview.css"" /></head><body>"
+    newline
+end           = newline "</body></html>"
 
-// Colorization of numbers
-integer         = "<FONT color=""#800000"">" self "</FONT>"
-real            = "<FONT color=""#008000"">" self "</FONT>"
 
-// Basic keywords
-keyword         = "<FONT color=""#000080""><B>" self "</B></FONT>"
+// CSS classes
+// FIXME: 1 space is added at the end of a // comment
+cppcomment      = "<span class=""comment"">//" self "</span>"
+number          = "<span class=""number"">" self "</span>"
+keyword         = "<span class=""keyword"">" self "</span>"
+type            = "<span class=""type"">" self "</span>"
+function        = "<span class=""function"">" self "</span>"
+builtin         = "<span class=""builtin"">" self "</span>"
+string1         = "<span class=""string""> """ self """</span>"
+string2         = "<span class=""string""> &lt;&lt;" self "&gt;&gt;</span>"
+highlight_begin_selected = "<span class=""selected"">"
+highlight_end_selected = "</span>"
 
+
+// Comments, text
+"text //"       = cppcomment
+"text "" """ = string1
+"text << >>" = string2
+"longtext "" """ = string2
+"longtext << >>" = string2
+
+// Keywords
+"true"          = keyword
+"false"         = keyword
 "if"            = keyword
 "then"          = keyword
 "else"          = keyword
@@ -75,24 +89,241 @@ keyword         = "<FONT color=""#000080""><B>" self "</B></FONT>"
 "procedure"     = keyword
 "to"            = keyword
 "import"        = keyword
+"do"            = keyword
 
-// Basic types
-type            = "<FONT color=""#008080""><B>" self "</B></FONT>"
+// Graphic primitives defined in graphics.tbl
+"page" = builtin
+"page_link" = builtin
+"page_label" = builtin
+"page_number" = builtin
+"page_count" = builtin
+"page_width" = builtin
+"page_height" = builtin
+"frame_width" = builtin
+"frame_height" = builtin
+"frame_depth" = builtin
+"window_width" = builtin
+"window_height" = builtin
+"time" = builtin
+"page_time" = builtin
+"locally" = builtin
+"shape" = builtin
+"rotate" = builtin
+"rotatex" = builtin
+"rotatey" = builtin
+"rotatez" = builtin
+"translate" = builtin
+"translatex" = builtin
+"translatey" = funsction
+"translatez" = builtin
+"scale" = builtin
+"scalex" = builtin
+"scaley" = builtin
+"scalez" = builtin
+"enable_depth_test" = builtin
+"disable_depth_test" = builtin
+"refresh" = builtin
+"full_screen" = builtin
+"enable_animations" = builtin
+"toggle_full_screen" = builtin
+"polygon_offset" = builtin
+"line_color" = builtin
+"line_width" = builtin
+"line_stipple" = builtin
+"color" = builtin
+"texture" = builtin
+"svg" = builtin
+"image" = builtin
+"path" = builtin
+"move_to" = builtin
+"line_to" = builtin
+"curve_to" = builtin
+"move_relative" = builtin
+"line_relative" = builtin
+"path_texture" = builtin
+"path_color" = builtin
+"close_path" = builtin
+"endpoints_style" = builtin
+"point" = builtin
+"rectangle" = builtin
+"triangle" = builtin
+"right_triangle" = builtin
+"ellipse" = builtin
+"ellipse_arc" = builtin
+"rounded_rectangle" = builtin
+"elliptical_rectangle" = builtin
+"arrow" = builtin
+"double_arrow" = builtin
+"star_polygon" = builtin
+"star" = builtin
+"speech_balloon" = builtin
+"callout" = builtin
+"binpacker" = builtin
+"debug_parameters" = builtin
+"sphere" = builtin
+"cube" = builtin
+"cone" = builtin
+"text_box" = builtin
+"text_overflow" = builtin
+"text_flow" = builtin
+"text" = builtin
+"formula" = builtin
+"font" = builtin
+"font_size" = builtin
+"font_scaling" = builtin
+"plain" = builtin
+"slant" = builtin
+"roman" = builtin
+"italic" = builtin
+"oblique" = builtin
+"weight" = builtin
+"regular" = builtin
+"light" = builtin
+"bold" = builtin
+"underline" = builtin
+"overline" = builtin
+"strikeout" = builtin
+"stretch" = builtin
+"justify" = builtin
+"vertical_justify" = builtin
+"center" = builtin
+"vertical_center" = builtin
+"spread" = builtin
+"vertical_spread" = builtin
+"spacing" = builtin
+"vertical_spacing" = builtin
+"line_break" = builtin
+"column_break" = builtin
+"page_break" = builtin
+"text_edit_key" = builtin
+"status" = builtin
+"frame" = builtin
+"frame_texture" = builtin
+"url" = builtin
+"url_texture" = builtin
+"line_edit" = builtin
+"line_edit_texture" = builtin
+"push_button" = builtin
+"push_button_texture" = builtin
+"radio_button" = builtin
+"radio_button_texture" = builtin
+"check_box_button" = builtin
+"check_box_button_texture" = builtin
+"color_chooser" = builtin
+"color_chooser_texture" = builtin
+"font_chooser" = builtin
+"font_chooser_texture" = builtin
+"file_chooser" = builtin
+"file_chooser_texture" = builtin
+"file_chooser_action" = builtin
+"file_chooser_directory" = builtin
+"file_chooser_filter" = builtin
+"file_chooser_label" = builtin
+// Abbreviations for file_chooser_* in a file_chooser block
+"texture" = builtin
+"action" = builtin
+"directory" = builtin
+"filter" = builtin
+"label" = builtin
+// End of abbreviations
+"video_player" = builtin
+"video_player_texture" = builtin
+"button_group" = builtin
+"group_box" = builtin
+"groupboxtexture" = builtin
+"menu_item" = builtin
+"menu" = builtin
+"submenu" = builtin
+"toolbar" = builtin
+"menubar" = builtin
+"separator" = builtin
+"error" = builtin
+"insert" = builtin
+"delete_selection" = builtin
+"set_attribute" = builtin
+"cm" = builtin
+"mm" = builtin
+"inch" = builtin
+"pt" = builtin
+"px" = builtin
 
+// builtins defined in builtins.xl
+"key"           = builtin
+//"sphere"        = builtin
+"move_to"       = builtin
+"line" = builtin
+"line_arrow" = builtin
+"circle" = builtin
+"oval" = builtin
+"circular_sector" = builtin
+//"rectangle" = builtin
+"square" = builtin
+"polygram" = builtin
+"equilateral_triangle" = builtin
+"tetragon" = builtin
+"diamond" = builtin
+"pentagon" = builtin
+"hexagon" = builtin
+"heptagon" = builtin
+"octagon" = builtin
+"nonagon" = builtin
+"decagon  " = builtin
+"hendecagon" = builtin
+"dodecagon" = builtin
+"tridecagon" = builtin
+"tetradecagon" = builtin
+"pentadecagon" = builtin
+"hexadecagon " = builtin
+"heptadecagon" = builtin
+"octadecagon " = builtin
+"enneadecagon" = builtin
+"icosagon" = builtin
+"schläfli" = builtin
+"selection_color" = builtin
+"text_selection_color" = builtin
+"text_highlight_color" = builtin
+"formula_highlight_color" = builtin
+"text_cursor_color" = builtin
+"text_cursor_highlight" = builtin
+"handle_outer_color" = builtin
+"handle_inner_color" = builtin
+"control_point_handle_outer_color" = builtin
+"control_point_handle_inner_color" = builtin
+"draw_selection" = builtin
+"draw_text_selection" = builtin
+"draw_text_highlight" = builtin
+"draw_formula_highlight" = builtin
+"draw_3D_selection" = builtin
+"draw_widget_selection" = builtin
+"draw_selection_rectangle" = builtin
+"draw_handle" = builtin
+"draw_control_point_handle" = builtin
+"draw_rotation_base" = builtin
+"draw_rotation_tip" = builtin
+"draw_translation_base" = builtin
+"draw_translation_x" = builtin
+"draw_translation_y" = builtin
+"draw_translation_z" = builtin
+"draw_scale_base" = builtin
+"draw_scale_x" = builtin
+"draw_scale_y" = builtin
+"draw_scale_z" = builtin
+"theme_colors" = builtin
+"menu_insert" = builtin
+"toolbar_insert" = builtin
+"menu_colors" = builtin
+
+// Types
 "integer"       = type
 "real"          = type
 
-// Basic function names
-function        = "<FONT color=""#00C080""><B>" self "</B></FONT>"
+// Numbers
+real            = number
+integer         = number
 
+// Built-in functions
 "exp"           = function
 "sin"           = function
 "cos"           = function
 "tan"           = function
 "log"           = function
-
-// Selection
-highlight_begin_selected = "<DIV style=""background-color:#f0f0f0"">"
-highlight_end_selected = "</DIV>"
-
-"?wildcard?"    = "<FONT color=""#808000"">" self "</FONT>"

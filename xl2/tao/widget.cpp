@@ -1413,6 +1413,15 @@ void Widget::updateProgramSource()
 
         text html = srcRendererOutput.str();
         window->setHtml(+html);
+        IFTRACE(srcview)
+        {
+            QFile data("srcview.html");
+            if (data.open(QFile::WriteOnly | QFile::Truncate))
+            {
+                QTextStream out(&data);
+                out << +html;
+            }
+        }
     }
     else
     {

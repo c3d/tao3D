@@ -569,7 +569,7 @@ void Widget::paste()
 }
 
 
-Name_p Widget::bringToFront(Tree_p self)
+Name_p Widget::bringToFront(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 //   Bring the selected shape to front
 // ----------------------------------------------------------------------------
@@ -582,7 +582,7 @@ Name_p Widget::bringToFront(Tree_p self)
 }
 
 
-Name_p Widget::sendToBack(Tree_p self)
+Name_p Widget::sendToBack(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 //   Send the selected shape to back
 // ----------------------------------------------------------------------------

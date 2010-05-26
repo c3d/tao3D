@@ -87,8 +87,7 @@ Renderer::Renderer(std::ostream &out, text styleFile, Syntax &stx)
     : output(out), syntax(stx), formats(),
       indent(0), self(""), left(NULL), right(NULL), current_quote("\""),
       priority(0),
-      had_space(true), had_punctuation(false), need_separator(false),
-      need_whitespace(false)
+      had_space(true), had_punctuation(false), need_separator(false)
 {
     SelectStyleSheet(styleFile);
 }
@@ -103,8 +102,7 @@ Renderer::Renderer(std::ostream &out, Renderer *from)
       left(from->left), right(from->right),
       current_quote(from->current_quote), priority(from->priority),
       had_space(from->had_space), had_punctuation(from->had_punctuation),
-      need_separator(from->need_separator),
-      need_whitespace(from->need_whitespace)
+      need_separator(from->need_separator)
 {}
 
 
@@ -150,7 +148,7 @@ void Renderer::RenderText(text format)
     uint i;
     uint length  = format.length();
     bool quoted  = false;
-    bool needsep = need_separator || need_whitespace;
+    bool needsep = need_separator;
 
     for (i = 0; i < length; i++)
     {
@@ -159,7 +157,7 @@ void Renderer::RenderText(text format)
         {
             if (!had_space && !isspace(c))
             {
-                if (need_whitespace || had_punctuation == ispunct(c))
+                if (had_punctuation == ispunct(c))
                 {
                     text space = " ";
                     if (formats.count(space) > 0)
@@ -183,7 +181,7 @@ void Renderer::RenderText(text format)
         had_space = isspace(c);
         had_punctuation = ispunct(c);
     }
-    need_whitespace = need_separator = needsep;
+    need_separator = needsep;
 }
 
 
@@ -255,15 +253,12 @@ void Renderer::RenderFormat(Tree *format)
         }
         else if (n == "space")
         {
-            RenderText(" ");
+            if (!had_space)
+                RenderText(" ");
         }
         else if (n == "separator")
         {
             need_separator = true;
-        }
-        else if (n == "whitespace")
-        {
-            need_whitespace = true;
         }
         else if (n == "newline")
         {

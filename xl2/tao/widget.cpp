@@ -2135,7 +2135,8 @@ TextSelect *Widget::textSelection()
 }
 
 
-void Widget::drawSelection(const Box3 &bnds, text selName, uint id)
+void Widget::drawSelection(Layout *layout,
+                           const Box3 &bnds, text selName, uint id)
 // ----------------------------------------------------------------------------
 //    Draw a 2D or 3D selection with the given coordinates
 // ----------------------------------------------------------------------------
@@ -2150,6 +2151,7 @@ void Widget::drawSelection(const Box3 &bnds, text selName, uint id)
     coord h = bounds.Height();
     coord d = bounds.Depth();
     Point3 c  = bounds.Center();
+
     SpaceLayout selectionSpace(this);
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
@@ -2165,19 +2167,23 @@ void Widget::drawSelection(const Box3 &bnds, text selName, uint id)
 }
 
 
-void Widget::drawHandle(const Point3 &p, text handleName, uint id)
+void Widget::drawHandle(Layout *layout,
+                        const Point3 &p, text handleName, uint id)
 // ----------------------------------------------------------------------------
 //    Draw the handle of a 2D or 3D selection
 // ----------------------------------------------------------------------------
 {
     // Symbols where we will find the selection code
     XL::Symbols *symbols = xlProgram->symbols;
+
     SpaceLayout selectionSpace(this);
+
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper          saveGL;
     glDisable(GL_DEPTH_TEST);
     selectionSpace.id = id;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
+
     selectionSpace.Draw(NULL);
     glEnable(GL_DEPTH_TEST);
 }
@@ -2190,10 +2196,12 @@ void Widget::drawTree(Layout *where, Tree *code)
 {
     XL::Symbols *symbols = code->Symbols(); assert(symbols);
     SpaceLayout space(this);
+
     XL::LocalSave<Layout *> saveLayout(layout, &space);
     GLAttribKeeper          saveGL;
     glDisable(GL_DEPTH_TEST);
     xl_evaluate(code);
+
     space.Draw(where);
     glEnable(GL_DEPTH_TEST);
 }

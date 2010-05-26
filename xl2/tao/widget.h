@@ -189,8 +189,8 @@ public:
     Point3      unproject (coord x, coord y, coord z = 0.0);
     Drag *      drag();
     TextSelect *textSelection();
-    void        drawSelection(const Box3 &bounds, text name, uint id);
-    void        drawHandle(const Point3 &point, text name, uint id);
+    void        drawSelection(Layout *, const Box3 &, text name, uint id);
+    void        drawHandle(Layout *, const Point3 &, text name, uint id);
     void        drawTree(Layout *where, Tree *code);
     template<class Activity>
     Activity *  active();

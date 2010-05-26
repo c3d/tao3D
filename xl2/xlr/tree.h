@@ -268,12 +268,7 @@ template <class I> inline void Tree::Set2(typename I::data_t data)
 {
     I *i = GetInfo<I>();
     if (i)
-    {
-        Info *n = i->next;
         (*i) = data;
-        assert (n == i->next);
-        i->next = n;
-    }
     else
         Set<I>(data);
 }
@@ -329,9 +324,6 @@ template <class I> inline bool Tree::Purge()
             last = i;
         }
     }
-    assert(!last || !last->next); // REVISIT: Next statement useless?
-    if (last)
-        last->next = NULL;
     return purged;
 }
 

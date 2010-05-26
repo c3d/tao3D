@@ -588,8 +588,11 @@ void Renderer::DoRenderOne(Tree *what)
     }   break;
     case INFIX: {
         Infix *w = what->AsInfix();
+        text in = w->name;
+        if (in == "\n")
+            in = "cr";
         text n0 = "infix ";
-        text n = n0 + w->name;
+        text n = n0 + in;
         Tree *l = w->left;
         Tree *r = w->right;
 

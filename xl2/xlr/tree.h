@@ -58,9 +58,9 @@ struct Sha1;                                    // Hash used for id-ing trees
 
 
 // ============================================================================
-// 
+//
 //    Pointer and structure types
-// 
+//
 // ============================================================================
 
 typedef GCPtr<Tree>                     Tree_p;
@@ -81,9 +81,9 @@ typedef Tree *(*eval_fn) (Tree *);              // Compiled evaluation code
 
 
 // ============================================================================
-// 
+//
 //    Info class: data that can be associated to trees
-// 
+//
 // ============================================================================
 
 struct Info
@@ -156,7 +156,7 @@ struct Tree
     XL::Symbols *       Symbols()             { return symbols; }
     void                SetSymbols(XL::Symbols *s) { symbols = s; }
 
- 
+
     // Info
     template<class I>
     typename I::data_t  Get() const;
@@ -1179,6 +1179,69 @@ struct SetNodeIdAction : SimpleAction
     node_id id;
     node_id step;
 };
+
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+struct FindParentAction : Action
+{
+    FindParentAction(Tree *self) : child(self){}
+
+    Tree *DoInteger(Integer *what)
+    {
+        return NULL;
+    }
+    Tree *DoReal(Real *what)
+    {
+        return NULL;
+    }
+    Tree *DoText(Text *what)
+    {
+        return NULL;
+    }
+    Tree *DoName(Name *what)
+    {
+        return NULL;
+    }
+
+    Tree *DoPrefix(Prefix *what)
+    {
+        Tree * parent = NULL;
+        if (what->right == child) return what;
+        if (what->left == child) return what;
+        if ((parent = Do(what->right))) return parent;
+        return Do(what->left);
+    }
+
+    Tree *DoPostfix(Postfix *what)
+    {
+        Tree * parent = NULL;
+        if (what->right == child) return what;
+        if (what->left == child) return what;
+        if ((parent = Do(what->right))) return parent;
+        return Do(what->left);
+    }
+
+    Tree *DoInfix(Infix *what)
+    {
+        Tree * parent = NULL;
+        if (what->right == child) return what;
+        if (what->left == child) return what;
+        if ((parent = Do(what->right))) return parent;
+        return Do(what->left);
+    }
+    Tree *DoBlock(Block *what)
+    {
+        if (what->child == child) return what;
+        return Do(what->child);
+    }
+
+    Tree *  Do(Tree *what)
+    {
+        return what->Do(this);
+    }
+
+    Tree_p child;
+};
+#pragma GCC diagnostic warning "-Wunused-parameter"
 
 XL_END
 

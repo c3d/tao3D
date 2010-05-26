@@ -568,6 +568,8 @@ void Widget::paste()
 
 }
 
+
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 Name_p Widget::bringToFront(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Bring the selected shape to front
@@ -575,9 +577,10 @@ Name_p Widget::bringToFront(Tree_p self)
 {
     Tree * select = removeSelection();
     if ( ! select ) return XL::xl_false;
-    insert(NULL, select);
+    insert(NULL, select, "Selection brought to front");
     return XL::xl_true;
 }
+
 
 Name_p Widget::sendToBack(Tree_p self)
 // ----------------------------------------------------------------------------
@@ -585,40 +588,136 @@ Name_p Widget::sendToBack(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     Tree * select = removeSelection();
-    if ( ! select ) return XL::xl_false;
-    Symbols *symbols = xlProgram->tree->Symbols();
-    XL::Infix * top = new XL::Infix("\n", select, xlProgram->tree);
-    top->SetSymbols(symbols);
-    xlProgram->tree = top;
+    if ( ! select )
+        return XL::xl_false;
     // Make sure the new objects appear selected next time they're drawn
     selectStatements(select);
+
+    // Start at the top of the program to find where we will insert
+    Tree_p *top = &xlProgram->tree;
+
+    // If we have a current page, insert only in that context
+    if (pageTree)
+    {
+        // Restrict insertion to that page
+        top = &pageTree;
+
+        // The page instructions often runs a 'do' block
+        if (Prefix *prefix = (*top)->AsPrefix())
+            if (Name *left = prefix->left->AsName())
+                if (left->value == "do")
+                    top = &prefix->right;
+
+        // If the page code is a block, look inside
+        if (XL::Block *block = (*top)->AsBlock())
+            top = &block->child;
+    }
+
+    Symbols *symbols = (*top)->Symbols();
+    XL::Infix * newTop = new XL::Infix("\n", select, *top);
+    newTop->SetSymbols(symbols);
+    *top = newTop;
+
     // Reload the program and mark the changes
     reloadProgram();
-    markChanged("Selection sent back");
+    markChanged("Selection sent to back");
 
     return XL::xl_true;
 }
 
-//Tree_p Widget::sendForward(Tree_p self)
+Name_p Widget::bringForward(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Swap the selected shape and the one in front of it
 // ----------------------------------------------------------------------------
-//{
-//    cut();
-//    selectNext();
-//    selectNext();
-//    pasteBeforeSelection();
-//}
-//
-//Tree_p Widget::sendBackward(Tree_p self)
+{
+    if (!hasSelection())
+        return XL::xl_false;
+
+    std::set<Tree_p >::iterator sel = selectionTrees.begin();
+    XL::FindParentAction getParent(*sel);
+    Tree * parent = xlProgram->tree->Do(getParent);
+    // Check if we are not the only one
+    if (!parent)
+        return XL::xl_false;
+    Infix * current = parent->AsInfix();
+    if ( !current )
+        return XL::xl_false;
+
+    Tree * tmp =  NULL;
+    Infix * next = current->right->AsInfix();
+    if ( !next )
+    {
+        // We are at the bottom of the tree
+        //Check if we are already the latest
+        if (current->right == *sel)
+            return XL::xl_false;
+
+        // just swap left and right of parent.
+        tmp = current->left;
+        current->left = current->right;
+        current->right = tmp;
+    }
+    else
+    {
+        tmp = current->left;
+        current->left = next->left;
+        next->left = tmp;
+    }
+    selectStatements(tmp);
+    // Reload the program and mark the changes
+    reloadProgram();
+    markChanged("Selection brought forward");
+    return XL::xl_true;
+}
+
+
+Name_p Widget::sendBackward(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Swap the selected shape and the one just behind it
 // ----------------------------------------------------------------------------
-//{
-//    cut();
-//    selectPrevious();
-//    pasteBeforeSelection();
-//}
+{
+    if (!hasSelection())
+        return XL::xl_false;
+
+    std::set<Tree_p >::iterator sel = selectionTrees.begin();
+    XL::FindParentAction getParent(*sel);
+    Tree * parent = xlProgram->tree->Do(getParent);
+    // Check if we are not the only one
+    if (!parent)
+        return XL::xl_false;
+    Infix * current = parent->AsInfix();
+    if ( !current )
+        return XL::xl_false;
+
+     Tree * tmp = NULL;
+    // check if we are at the bottom of the tree
+    if (!current->right->AsInfix())
+    {
+        tmp = current->right;
+        current->right = current->left;
+        current->left = tmp;
+    }
+    else
+    {
+        XL::FindParentAction getGrandParent(parent);
+        Tree * grandParent = xlProgram->tree->Do(getGrandParent);
+        // No grand parent means the shape is already to back
+        if (!grandParent)
+            return XL::xl_false;
+        Infix * previous = grandParent->AsInfix();
+
+        tmp = current->left;
+        current->left = previous->left;
+        previous->left = tmp;
+    }
+    selectStatements(tmp);
+    // Reload the program and mark the changes
+    reloadProgram();
+    markChanged("Selection sent backward");
+    return XL::xl_true;
+}
+#pragma GCC diagnostic warning "-Wunused-parameter"
+
 
 bool Widget::selectionsEqual(selection_map &s1, selection_map &s2)
 // ----------------------------------------------------------------------------
@@ -5431,7 +5530,7 @@ Tree_p  Widget::separator(Tree_p self)
 //
 // ============================================================================
 
-XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert)
+XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
 // ----------------------------------------------------------------------------
 //    Insert at the end of page or program
 // ----------------------------------------------------------------------------
@@ -5489,7 +5588,7 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert)
 
     // Reload the program and mark the changes
     reloadProgram();
-    markChanged("Inserted tree");
+    markChanged(msg);
 
     return XL::xl_true;
 }

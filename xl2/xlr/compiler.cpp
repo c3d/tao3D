@@ -307,7 +307,6 @@ void Compiler::Reset()
 // ----------------------------------------------------------------------------
 {
     closures.clear();
-    deleted.clear();
 }
 
 
@@ -630,17 +629,16 @@ bool Compiler::FreeResources(Tree *tree)
             std::cerr << " function F" << f
                       << (inUse ? " in use" : " unused");
         
-        info->function = NULL;
         if (inUse)
         {
-            // Mark the function for complete deletion later
-            deleted.insert(f);
+            // Defer deletion until later
             result = false;
         }
         else
         {
             // Not in use, we can delete it directly
             f->eraseFromParent();
+            info->function = NULL;
         }
     }
     
@@ -653,10 +651,9 @@ bool Compiler::FreeResources(Tree *tree)
             std::cerr << " global V" << v
                       << (inUse ? " in use" : " unused");
         
-        info->global = NULL;
         if (inUse)
         {
-            deleted.insert(v);
+            // Defer deletion until later
             result = false;
         }
         else
@@ -664,6 +661,7 @@ bool Compiler::FreeResources(Tree *tree)
             // Delete the LLVM value immediately if it's safe to do it.
             runtime->updateGlobalMapping(v, NULL);
             v->eraseFromParent();
+            info->global = NULL;
         }
     }
 
@@ -671,41 +669,6 @@ bool Compiler::FreeResources(Tree *tree)
         std::cerr << (result ? " Delete\n" : "Preserved\n");
 
     return result;
-}
-
-
-void Compiler::FreeResources()
-// ----------------------------------------------------------------------------
-//   Delete LLVM functions for all trees we want to erase
-// ----------------------------------------------------------------------------
-//   At this stage, we have deleted all the bodies we could
-//   Normally, none of the elements should be used anymore
-{
-    IFTRACE(llvm)
-        if (deleted.size())
-            std::cerr << "FreeResources remaining=" << deleted.size() << "\n";
-
-    deleted_set::iterator i, next;
-    for (i = deleted.begin(); i != deleted.end(); i = next)
-    {
-        GlobalValue *v = *i;
-        bool inUse = !v->use_empty();
-
-        IFTRACE(llvm)
-            std::cerr << " value V" << v
-                      << (inUse ? " in use\n" : " unused\n");
-
-        if (!inUse)
-        {
-            v->eraseFromParent();
-            deleted.erase(i);
-            next = deleted.begin();
-        }
-        else
-        {
-            next = ++i;
-        }
-    }
 }
 
 
@@ -1740,10 +1703,9 @@ CompilerInfo::~CompilerInfo()
 
 void CompilerGarbageCollectionListener::BeginCollection()
 // ----------------------------------------------------------------------------
-//   Nothing to do here?
+//   Begin the collection - Nothing to do here?
 // ----------------------------------------------------------------------------
-{
-}
+{}
 
 
 bool CompilerGarbageCollectionListener::CanDelete(void *obj)
@@ -1758,11 +1720,9 @@ bool CompilerGarbageCollectionListener::CanDelete(void *obj)
 
 void CompilerGarbageCollectionListener::EndCollection()
 // ----------------------------------------------------------------------------
-//   Finalize the collection
+//   Finalize the collection - Nothing to do here?
 // ----------------------------------------------------------------------------
-{
-    compiler->FreeResources();
-}
+{}
 
 XL_END
 

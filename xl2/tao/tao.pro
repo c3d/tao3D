@@ -205,7 +205,8 @@ OTHER_FILES += xl.syntax \
     builtins.xl \
     tutorial.ddd \
     git.stylesheet \
-    srcview.stylesheet
+    srcview.stylesheet \
+    srcview.css
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}

@@ -154,6 +154,7 @@ TRACE(closure)
 TRACE(diff)
 TRACE(calls2xl)
 TRACE(clipboard)
+TRACE(srcview)
 
 // Undefine for next use...
 #undef OPTVAR

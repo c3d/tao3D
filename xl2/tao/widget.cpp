@@ -569,8 +569,7 @@ void Widget::paste()
 }
 
 
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-Name_p Widget::bringToFront(Tree_p self)
+Name_p Widget::bringToFront(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 //   Bring the selected shape to front
 // ----------------------------------------------------------------------------
@@ -582,7 +581,7 @@ Name_p Widget::bringToFront(Tree_p self)
 }
 
 
-Name_p Widget::sendToBack(Tree_p self)
+Name_p Widget::sendToBack(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 //   Send the selected shape to back
 // ----------------------------------------------------------------------------
@@ -625,7 +624,7 @@ Name_p Widget::sendToBack(Tree_p self)
     return XL::xl_true;
 }
 
-Name_p Widget::bringForward(Tree_p self)
+Name_p Widget::bringForward(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 //   Swap the selected shape and the one in front of it
 // ----------------------------------------------------------------------------
@@ -671,7 +670,7 @@ Name_p Widget::bringForward(Tree_p self)
 }
 
 
-Name_p Widget::sendBackward(Tree_p self)
+Name_p Widget::sendBackward(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 //   Swap the selected shape and the one just behind it
 // ----------------------------------------------------------------------------
@@ -716,17 +715,14 @@ Name_p Widget::sendBackward(Tree_p self)
     markChanged("Selection sent backward");
     return XL::xl_true;
 }
-#pragma GCC diagnostic warning "-Wunused-parameter"
 
 
 bool Widget::selectionsEqual(selection_map &s1, selection_map &s2)
 // ----------------------------------------------------------------------------
 //   Compare selections
 // ----------------------------------------------------------------------------
+//   We can't use operator== because we only compare keys, not values
 {
-// REVISIT: would be more efficient if maps cannot contain null values
-//    if (s1.size() != s2.size())
-//        return false;
     Widget::selection_map::iterator i;
     for (i = s1.begin(); i != s1.end(); i++)
         if ((*i).second)
@@ -1563,6 +1559,15 @@ void Widget::updateProgramSource()
 
         text html = srcRendererOutput.str();
         window->setHtml(+html);
+        IFTRACE(srcview)
+        {
+            QFile data("srcview.html");
+            if (data.open(QFile::WriteOnly | QFile::Truncate))
+            {
+                QTextStream out(&data);
+                out << +html;
+            }
+        }
     }
     else
     {
@@ -3852,10 +3857,10 @@ Tree_p Widget::newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body)
         replacer["margins"] = "table_cell_margins";
         replacer["fill"]    = "table_cell_fill";
         replacer["border"]  = "table_cell_border";
-        replacer["cellx"]   = "table_cell_x";
-        replacer["celly"]   = "table_cell_y";
-        replacer["cellw"]   = "table_cell_w";
-        replacer["cellh"]   = "table_cell_h";
+        replacer["x"]       = "table_cell_x";
+        replacer["y"]       = "table_cell_y";
+        replacer["w"]       = "table_cell_w";
+        replacer["h"]       = "table_cell_h";
         replacer["row"]     = "table_cell_row";
         replacer["column"]  = "table_cell_column";
         replacer["rows"]    = "table_rows";
@@ -4406,17 +4411,13 @@ Tree_p Widget::colorChooser(Tree_p self, text treeName, Tree_p action)
 
     // Connect the dialog and show it
 #ifdef Q_WS_MAC
-    //if(QSysInfo::MacintoshVersion)
-    {
-        colorDialog->setOption(QColorDialog::NoButtons, true);
-    }
+    // To make the color dialog look Mac-like, we don't show OK and Cancel
+    colorDialog->setOption(QColorDialog::NoButtons, true);
 #else
-    //else
-    {
-        connect(colorDialog, SIGNAL(colorSelected (const QColor&)),
-                this, SLOT(colorChosen(const QColor &)));
-        connect(colorDialog, SIGNAL(rejected()), this, SLOT(colorRejected()));
-    }
+    // On other platforms, it's expected fro OK and Cancel to show up
+    connect(colorDialog, SIGNAL(colorSelected (const QColor&)),
+            this, SLOT(colorChosen(const QColor &)));
+    connect(colorDialog, SIGNAL(rejected()), this, SLOT(colorRejected()));
 #endif
     connect(colorDialog, SIGNAL(currentColorChanged (const QColor&)),
             this, SLOT(colorChanged(const QColor &)));
@@ -4425,6 +4426,7 @@ Tree_p Widget::colorChooser(Tree_p self, text treeName, Tree_p action)
     return XL::xl_true;
 }
 
+
 void Widget::colorRejected()
 // ----------------------------------------------------------------------------
 //   Slot called by the color widget's "cancel" button.
@@ -4432,6 +4434,7 @@ void Widget::colorRejected()
 {
     colorChanged(originalColor);
 }
+
 
 void Widget::colorChosen(const QColor & col)
 // ----------------------------------------------------------------------------

@@ -256,6 +256,7 @@ struct CompilerInfo : Info
 // ----------------------------------------------------------------------------
 {
     CompilerInfo(Tree *tree): tree(tree), global(0), function(0) {}
+    ~CompilerInfo();
     Tree *                      tree;
     llvm::GlobalValue *         global;
     llvm::Function *            function;

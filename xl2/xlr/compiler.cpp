@@ -99,6 +99,7 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
     Allocator<Tree>     ::Singleton()->AddListener(cgcl);
     Allocator<Integer>  ::Singleton()->AddListener(cgcl);
     Allocator<Real>     ::Singleton()->AddListener(cgcl);
+    Allocator<Text>     ::Singleton()->AddListener(cgcl);
     Allocator<Name>     ::Singleton()->AddListener(cgcl);
     Allocator<Infix>    ::Singleton()->AddListener(cgcl);
     Allocator<Prefix>   ::Singleton()->AddListener(cgcl);
@@ -1723,6 +1724,19 @@ void ExpressionReduction::Failed()
 //   Compiler and garbage collection
 // 
 // ============================================================================
+
+CompilerInfo::~CompilerInfo()
+// ----------------------------------------------------------------------------
+//   Notice when we lose a compiler info
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(llvm)
+        std::cerr << "CompilerInfo deleted F" << (void *) function
+                  << " G" << (void *) global
+                  << " T" << (void *) tree
+                  << "\n";
+}
+
 
 void CompilerGarbageCollectionListener::BeginCollection()
 // ----------------------------------------------------------------------------

@@ -2183,7 +2183,7 @@ void Widget::drawHandle(const Point3 &p, text handleName, uint id)
 }
 
 
-void Widget::drawTree(Tree *code)
+void Widget::drawTree(Layout *where, Tree *code)
 // ----------------------------------------------------------------------------
 //    Draw some tree, e.g. cell fill and border
 // ----------------------------------------------------------------------------
@@ -2194,7 +2194,7 @@ void Widget::drawTree(Tree *code)
     GLAttribKeeper          saveGL;
     glDisable(GL_DEPTH_TEST);
     xl_evaluate(code);
-    space.Draw(NULL);
+    space.Draw(where);
     glEnable(GL_DEPTH_TEST);
 }
 

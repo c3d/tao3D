@@ -36,7 +36,7 @@ Table::Table(uint r, uint c)
 //    Constructor
 // ----------------------------------------------------------------------------
     : rows(r), columns(c), row(0), column(0),
-      elements(), margins(0,0,0,0), columnWidth(), rowHeight(),
+      elements(), margins(0,0,5,5), columnWidth(), rowHeight(),
       fill(NULL), border(NULL)
 {}
 
@@ -92,21 +92,23 @@ void Table::Draw(Layout *where)
 
             cellW = columnWidth[c] + margins.Width();
             cellH = rowHeight[r] + margins.Height();
-            cellX = px + offset.x + cellW/2;
-            cellY = py + offset.y + cellH/2;
+            cellX = px + cellW/2;
+            cellY = py + cellH/2;
             cellBox = Box(cellX-cellW/2, cellY-cellH/2, cellW, cellH);
 
-            XL::LocalSave<Point3> saveOffset(where->offset, pos + offset);
             if (fillI != cellFill.end())
                 fillCode = *fillI++;
             if (fillCode)
-                widget->drawTree(fillCode);
+                widget->drawTree(where, fillCode);
             if (d)
+            {
+                XL::LocalSave<Point3> saveOffset(where->offset, pos + offset);
                 d->Draw(where);
+            }
             if (borderI != cellBorder.end())
                 borderCode = *borderI++;
             if (borderCode)
-                widget->drawTree(borderCode);
+                widget->drawTree(where, borderCode);
 
             if (c < columnWidth.size())
                 px += columnWidth[c];

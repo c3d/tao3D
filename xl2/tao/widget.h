@@ -191,7 +191,7 @@ public:
     TextSelect *textSelection();
     void        drawSelection(const Box3 &bounds, text name, uint id);
     void        drawHandle(const Point3 &point, text name, uint id);
-    void        drawTree(Tree *code);
+    void        drawTree(Layout *where, Tree *code);
     template<class Activity>
     Activity *  active();
     void        checkCopyAvailable();

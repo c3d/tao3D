@@ -271,6 +271,7 @@ template <class I> inline void Tree::Set2(typename I::data_t data)
     {
         Info *n = i->next;
         (*i) = data;
+        assert (n == i->next);
         i->next = n;
     }
     else
@@ -328,6 +329,7 @@ template <class I> inline bool Tree::Purge()
             last = i;
         }
     }
+    assert(!last || !last->next); // REVISIT: Next statement useless?
     if (last)
         last->next = NULL;
     return purged;
@@ -336,16 +338,19 @@ template <class I> inline bool Tree::Purge()
 
 template <class I> inline I* Tree::Remove()
 // ----------------------------------------------------------------------------
-//   Find information and remove it if it exists
+//   Find information and unlinks it if it exists
 // ----------------------------------------------------------------------------
 {
-    Info *prev = info;
+    Info *prev = NULL;
     for (Info *i = info; i; i = i->next)
     {
         if (I *ic = dynamic_cast<I *> (i))
         {
-            prev->next = i->next;
-            ic->next = NULL;
+            if (prev)
+                prev->next = i->next;
+            else
+                info = i->next;
+            i->next = NULL;
             return ic;
         }
         prev = i;
@@ -353,22 +358,23 @@ template <class I> inline I* Tree::Remove()
     return NULL;
 }
 
+
 template <class I> inline I* Tree::Remove(I *toFind)
 // ----------------------------------------------------------------------------
 //   Find information matching input and remove it if it exists
 // ----------------------------------------------------------------------------
 {
-    Info *prev = info;
+    Info *prev = NULL;
     for (Info *i = info; i; i = i->next)
     {
         I *ic = dynamic_cast<I *> (i);
         if (ic == toFind)
         {
-            if (prev == info)
-                info = info->next;
-            else
+            if (prev)
                 prev->next = i->next;
-            ic->next = NULL;
+            else
+                info = i->next;
+            i->next = NULL;
             return ic;
         }
         prev = i;

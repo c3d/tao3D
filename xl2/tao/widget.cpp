@@ -150,7 +150,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 
     // Select format for source file view
     srcRenderer = new XL::Renderer(srcRendererOutput);
-    srcRenderer->SelectStyleSheet("srcview.stylesheet");
+    QFileInfo stylesheet("xl:srcview.stylesheet");
+    srcRenderer->SelectStyleSheet(+stylesheet.canonicalFilePath());
 }
 
 

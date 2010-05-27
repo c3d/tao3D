@@ -2135,7 +2135,7 @@ TextSelect *Widget::textSelection()
 }
 
 
-void Widget::drawSelection(Layout *layout,
+void Widget::drawSelection(Layout *where,
                            const Box3 &bnds, text selName, uint id)
 // ----------------------------------------------------------------------------
 //    Draw a 2D or 3D selection with the given coordinates
@@ -2155,6 +2155,7 @@ void Widget::drawSelection(Layout *layout,
     SpaceLayout selectionSpace(this);
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
+    XL::LocalSave<SpaceLayout *> saveSpace(space, &selectionSpace);
     GLAttribKeeper          saveGL;
     selectionSpace.id = id;
     glDisable(GL_DEPTH_TEST);
@@ -2162,12 +2163,12 @@ void Widget::drawSelection(Layout *layout,
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
     else
         (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (symbols);
-    selectionSpace.Draw(NULL);
+    selectionSpace.Draw(where);
     glEnable(GL_DEPTH_TEST);
 }
 
 
-void Widget::drawHandle(Layout *layout,
+void Widget::drawHandle(Layout *where,
                         const Point3 &p, text handleName, uint id)
 // ----------------------------------------------------------------------------
 //    Draw the handle of a 2D or 3D selection
@@ -2179,12 +2180,13 @@ void Widget::drawHandle(Layout *layout,
     SpaceLayout selectionSpace(this);
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
+    XL::LocalSave<SpaceLayout *> saveSpace(space, &selectionSpace);
     GLAttribKeeper          saveGL;
     glDisable(GL_DEPTH_TEST);
     selectionSpace.id = id;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
 
-    selectionSpace.Draw(NULL);
+    selectionSpace.Draw(where);
     glEnable(GL_DEPTH_TEST);
 }
 
@@ -2195,14 +2197,15 @@ void Widget::drawTree(Layout *where, Tree *code)
 // ----------------------------------------------------------------------------
 {
     XL::Symbols *symbols = code->Symbols(); assert(symbols);
-    SpaceLayout space(this);
+    SpaceLayout selectionSpace(this);
 
-    XL::LocalSave<Layout *> saveLayout(layout, &space);
+    XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
+    XL::LocalSave<SpaceLayout *> saveSpace(space, &selectionSpace);
     GLAttribKeeper          saveGL;
     glDisable(GL_DEPTH_TEST);
     xl_evaluate(code);
 
-    space.Draw(where);
+    selectionSpace.Draw(where);
     glEnable(GL_DEPTH_TEST);
 }
 

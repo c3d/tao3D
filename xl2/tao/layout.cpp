@@ -178,12 +178,18 @@ void Layout::DrawSelection(Layout *where)
     GLStateKeeper         glSave(hasAttributes?GL_LAYOUT_BITS:0, hasMatrix);
     Inherit(where);
 
-    layout_items::iterator i;
+    uint zzz = 0;
+    layout_items::iterator i, b = items.begin(), e = items.end();
     for (i = items.begin(); i != items.end(); i++)
     {
+        zzz++;
         Drawing *child = *i;
         glLoadName(id);         // Needed for handles (call Draw, not identify)
+        assert (b == items.begin());
+        assert (e == items.end());
         child->DrawSelection(this);
+        assert (b == items.begin());
+        assert (e == items.end());
     }
     glLoadName(0);
 }
@@ -293,7 +299,7 @@ void Layout::Inherit(Layout *where)
     alongX       = where->alongX;
     alongY       = where->alongY;
     alongZ       = where->alongZ;
-    lineWidth   = where->lineWidth;
+    lineWidth    = where->lineWidth;
     lineColor    = where->lineColor;
     fillColor    = where->fillColor;
     fillTexture  = where->fillTexture;

@@ -2155,7 +2155,6 @@ void Widget::drawSelection(Layout *where,
     SpaceLayout selectionSpace(this);
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-    XL::LocalSave<SpaceLayout *> saveSpace(space, &selectionSpace);
     GLAttribKeeper          saveGL;
     selectionSpace.id = id;
     glDisable(GL_DEPTH_TEST);
@@ -2180,7 +2179,6 @@ void Widget::drawHandle(Layout *where,
     SpaceLayout selectionSpace(this);
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-    XL::LocalSave<SpaceLayout *> saveSpace(space, &selectionSpace);
     GLAttribKeeper          saveGL;
     glDisable(GL_DEPTH_TEST);
     selectionSpace.id = id;
@@ -2200,7 +2198,6 @@ void Widget::drawTree(Layout *where, Tree *code)
     SpaceLayout selectionSpace(this);
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-    XL::LocalSave<SpaceLayout *> saveSpace(space, &selectionSpace);
     GLAttribKeeper          saveGL;
     glDisable(GL_DEPTH_TEST);
     xl_evaluate(code);

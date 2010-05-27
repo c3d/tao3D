@@ -58,7 +58,6 @@ typedef std::map<Tree *, Tree **>           address_map;
 typedef std::map<uint, eval_fn>             closure_map;
 typedef std::set<Tree *>                    closure_set;
 typedef std::set<Tree *>                    data_set;
-typedef std::set<llvm::GlobalValue *>       deleted_set;
 typedef Tree * (*adapter_fn) (eval_fn callee, Tree *src, Tree **args);
 
 
@@ -89,7 +88,6 @@ struct Compiler
     bool                      IsKnown(Tree *value);
 
     bool                      FreeResources(Tree *tree);
-    void                      FreeResources();
 
 
 public:
@@ -129,7 +127,6 @@ public:
     llvm::Function            *xl_new_closure;
     builtins_map               builtins;
     closure_map                closures;
-    deleted_set                deleted;
     closure_map                array_to_args_adapters;
 };
 
@@ -256,6 +253,7 @@ struct CompilerInfo : Info
 // ----------------------------------------------------------------------------
 {
     CompilerInfo(Tree *tree): tree(tree), global(0), function(0) {}
+    ~CompilerInfo();
     Tree *                      tree;
     llvm::GlobalValue *         global;
     llvm::Function *            function;

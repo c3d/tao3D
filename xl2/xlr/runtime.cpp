@@ -547,25 +547,27 @@ Tree *xl_load(text name)
 //    Load a file from disk
 // ----------------------------------------------------------------------------
 {
-    name = MAIN->SearchFile(name);
+    text path = MAIN->SearchFile(name);
+    if (path == "")
+        return Ooops("Source file '$1' not found", new Text(name));
 
     // Check if the file has already been loaded somehwere.
     // If so, return the loaded file
-    if (MAIN->files.count(name) > 0)
+    if (MAIN->files.count(path) > 0)
     {
-        SourceFile &sf = MAIN->files[name];
+        SourceFile &sf = MAIN->files[path];
         Symbols::symbols->Import(sf.symbols);
         return sf.tree;
     }
 
-    Parser parser(name.c_str(), MAIN->syntax, MAIN->positions, MAIN->errors);
+    Parser parser(path.c_str(), MAIN->syntax, MAIN->positions, MAIN->errors);
     Tree *tree = parser.Parse();
     if (!tree)
-        return Ooops("Unable to load file '$1'", new Text(name));
+        return Ooops("Unable to load file '$1'", new Text(path));
 
     Symbols_p old = Symbols::symbols;
     Symbols_p syms = new Symbols(Context::context);
-    MAIN->files[name] = SourceFile(name, tree, syms);
+    MAIN->files[path] = SourceFile(path, tree, syms);
     Symbols::symbols = syms;
     tree->SetSymbols(syms);
     tree = syms->CompileAll(tree);
@@ -581,13 +583,15 @@ Tree *xl_load_csv(text name)
 //    Load a comma-separated file from disk
 // ----------------------------------------------------------------------------
 {
-    name = MAIN->SearchFile(name);
+    text path = MAIN->SearchFile(name);
+    if (path == "")
+        return Ooops("CSV file '$1' not found", new Text(name));
 
     // Check if the file has already been loaded somehwere.
     // If so, return the loaded file
-    if (MAIN->files.count(name) > 0)
+    if (MAIN->files.count(path) > 0)
     {
-        SourceFile &sf = MAIN->files[name];
+        SourceFile &sf = MAIN->files[path];
         Symbols::symbols->Import(sf.symbols);
         return sf.tree;
     }
@@ -599,7 +603,7 @@ Tree *xl_load_csv(text name)
     char *end = buffer + sizeof(buffer) - 1;
     bool has_quote = false;
     bool has_nl = false;
-    FILE *f = fopen(name.c_str(), "r");
+    FILE *f = fopen(path.c_str(), "r");
 
     *end = 0;
     while (!feof(f))
@@ -664,14 +668,14 @@ Tree *xl_load_csv(text name)
     }
     fclose(f);
     if (!tree)
-        return Ooops("Unable to load CSV file '$1'", new Text(name));
+        return Ooops("Unable to load CSV file '$1'", new Text(path));
 
     // Store that we use the file
     struct stat st;
-    stat(name.c_str(), &st);
+    stat(path.c_str(), &st);
     Symbols_p old = Symbols::symbols;
     Symbols_p syms = new Symbols(Context::context);
-    MAIN->files[name] = SourceFile(name, tree, syms);
+    MAIN->files[path] = SourceFile(path, tree, syms);
     Symbols::symbols = syms;
     tree->SetSymbols(syms);
     tree = syms->CompileAll(tree);
@@ -687,13 +691,15 @@ Tree *xl_load_tsv(text name)
 //    Load a tab-separated file from disk
 // ----------------------------------------------------------------------------
 {
-    name = MAIN->SearchFile(name);
+    text path = MAIN->SearchFile(name);
+    if (path == "")
+        return Ooops("Tab-separated file '$1' not found", new Text(name));
 
     // Check if the file has already been loaded somehwere.
     // If so, return the loaded file
-    if (MAIN->files.count(name) > 0)
+    if (MAIN->files.count(path) > 0)
     {
-        SourceFile &sf = MAIN->files[name];
+        SourceFile &sf = MAIN->files[path];
         Symbols::symbols->Import(sf.symbols);
         return sf.tree;
     }
@@ -704,7 +710,7 @@ Tree *xl_load_tsv(text name)
     char *ptr = buffer;
     char *end = buffer + sizeof(buffer) - 1;
     bool has_nl = false;
-    FILE *f = fopen(name.c_str(), "r");
+    FILE *f = fopen(path.c_str(), "r");
 
     *end = 0;
     while (!feof(f))
@@ -777,14 +783,14 @@ Tree *xl_load_tsv(text name)
     }
     fclose(f);
     if (!tree)
-        return Ooops("Unable to load TSV file '$1'", new Text(name));
+        return Ooops("Unable to load TSV file '$1'", new Text(path));
 
     // Store that we use the file
     struct stat st;
-    stat(name.c_str(), &st);
+    stat(path.c_str(), &st);
     Symbols_p old = Symbols::symbols;
     Symbols_p syms = new Symbols(Context::context);
-    MAIN->files[name] = SourceFile(name, tree, syms);
+    MAIN->files[path] = SourceFile(path, tree, syms);
     Symbols::symbols = syms;
     tree->SetSymbols(syms);
     tree = syms->CompileAll(tree);

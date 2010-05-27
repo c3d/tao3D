@@ -293,7 +293,7 @@ void Layout::Inherit(Layout *where)
     alongX       = where->alongX;
     alongY       = where->alongY;
     alongZ       = where->alongZ;
-    lineWidth   = where->lineWidth;
+    lineWidth    = where->lineWidth;
     lineColor    = where->lineColor;
     fillColor    = where->fillColor;
     fillTexture  = where->fillTexture;

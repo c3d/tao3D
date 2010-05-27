@@ -203,7 +203,8 @@ void LayoutLine::Draw(Layout *where)
     {
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
-        where->offset.x = place.position;
+        XL::LocalSave<coord> saveY(where->offset.x,
+                                   where->offset.x + place.position);
         child->Draw(where);
     }
 }
@@ -231,7 +232,8 @@ void LayoutLine::DrawSelection(Layout *where)
     {
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
-        where->offset.x = place.position;
+        XL::LocalSave<coord> saveY(where->offset.x,
+                                   where->offset.x + place.position);
         child->DrawSelection(where);
     }
     uint endId = widget->currentCharId();
@@ -254,7 +256,7 @@ void LayoutLine::DrawSelection(Layout *where)
 
             glBlendFunc(GL_DST_COLOR, GL_ZERO);
             text mode = sel->textMode ? "text_selection" : "text_highlight";
-            widget->drawSelection(sel->selBox, mode, 0);
+            widget->drawSelection(where, sel->selBox, mode, 0);
             sel->selBox.Empty();
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
@@ -263,7 +265,7 @@ void LayoutLine::DrawSelection(Layout *where)
         {
             glBlendFunc(GL_DST_COLOR, GL_ZERO);
             text mode = "formula_highlight";
-            widget->drawSelection(sel->formulaBox, mode, 0);
+            widget->drawSelection(where, sel->formulaBox, mode, 0);
             sel->formulaBox.Empty();
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
@@ -285,7 +287,8 @@ void LayoutLine::Identify(Layout *where)
     {
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
-        where->offset.x = place.position;
+        XL::LocalSave<coord> saveY(where->offset.x,
+                                   where->offset.x + place.position);
         child->Identify(where);
     }
 }
@@ -633,7 +636,7 @@ void PageLayout::Draw(Layout *where)
     {
         PageJustifier::Place &place = *p;
         LayoutLine *child = place.item;
-        offset.y = place.position;
+        XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
         child->Draw(this);
     }
 }
@@ -660,7 +663,7 @@ void PageLayout::DrawSelection(Layout *where)
     {
         PageJustifier::Place &place = *p;
         LayoutLine *child = place.item;
-        offset.y = place.position;
+        XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
         child->DrawSelection(this);
     }
 
@@ -690,7 +693,7 @@ void PageLayout::Identify(Layout *where)
     {
         PageJustifier::Place &place = *p;
         LayoutLine *child = place.item;
-        offset.y = place.position;
+        XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
         child->Identify(this);
     }
 

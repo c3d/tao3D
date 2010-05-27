@@ -56,7 +56,7 @@ Activity *Selection::Display(void)
     b.Normalize();
     Box3 b3 (b.lower.x, b.lower.y, 0, b.Width(), b.Height(), 0);
     widget->setupGL();
-    widget->drawSelection(b3, "selection_rectangle", 0);
+    widget->drawSelection(NULL, b3, "selection_rectangle", 0);
 
     return next;
 }

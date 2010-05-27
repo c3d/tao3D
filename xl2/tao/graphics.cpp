@@ -17,11 +17,8 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
 //  (C) 2010 Taodyne SAS
-// ****************************************************************************
-// * File       : $RCSFile$
-// * Revision   : $Revision$
-// * Date       : $Date$
 // ****************************************************************************
 
 #include "graphics.h"
@@ -47,10 +44,20 @@ using namespace XL;
 
 void EnterGraphics(XL::Context *c)
 // ----------------------------------------------------------------------------
-//   Enter all the basic operations defined in basics.tbl
+//   Enter all the basic operations defined in graphics.tbl
 // ----------------------------------------------------------------------------
 {
     XL::Compiler *compiler = c->compiler;
 #include "opcodes_define.h"
+#include "graphics.tbl"
+}
+
+
+void DeleteGraphics()
+// ----------------------------------------------------------------------------
+//   Delete all the global operations defined in graphics.tbl
+// ----------------------------------------------------------------------------
+{
+#include "opcodes_delete.h"
 #include "graphics.tbl"
 }

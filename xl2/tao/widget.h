@@ -44,6 +44,7 @@
 #include <QColorDialog>
 #include <QFontDialog>
 #include <iostream>
+#include <sstream>
 #include <map>
 
 namespace Tao {
@@ -54,6 +55,7 @@ struct Layout;
 struct PageLayout;
 struct SpaceLayout;
 struct GraphicPath;
+struct Table;
 struct Repository;
 struct Drag;
 struct TextSelect;
@@ -77,6 +79,7 @@ class Widget : public QGLWidget
     Q_OBJECT
 public:
     typedef std::vector<double>   attribute_args;
+    typedef std::map<GLuint, uint> selection_map;
 
 public:
     Widget(Window *parent, XL::SourceFile *sf = NULL);
@@ -93,6 +96,7 @@ public slots:
     void        commitSuccess(QString id, QString msg);
     void        colorChosen(const QColor &);
     void        colorChanged(const QColor &);
+    void        colorRejected();
     void        updateColorDialog();
     void        fontChosen(const QFont &);
     void        fontChanged(const QFont &);
@@ -136,7 +140,9 @@ public:
     void        applyAction(Action &action);
     void        reloadProgram(Tree *newProg = NULL);
     void        refreshProgram();
+    void        updateProgramSource();
     void        markChanged(text reason);
+    void        selectStatements(Tree *tree);
     bool        writeIfChanged(XL::SourceFile &sf);
     bool        doCommit(bool immediate = false);
     Repository *repository();
@@ -166,7 +172,7 @@ public:
     uint        charSelected(uint i)    { return selected(i | CHAR_ID_BIT); }
     uint        charSelected()          { return charSelected(charId); }
     void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
-    uint        selected(Tree_p tree)   { return selectionTrees.count(tree); }
+    uint        selected(Tree* tree)    { return selectionTrees.count(tree); }
     bool        selected()              { return !selectionTrees.empty(); }
     bool        hasSelection()          { return selected(); }
     void        select(Tree *tree)      { selectionTrees.insert(tree); }
@@ -183,12 +189,15 @@ public:
     Point3      unproject (coord x, coord y, coord z = 0.0);
     Drag *      drag();
     TextSelect *textSelection();
-    void        drawSelection(const Box3 &bounds, text name);
-    void        drawHandle(const Point3 &point, text name);
+    void        drawSelection(const Box3 &bounds, text name, uint id);
+    void        drawHandle(const Point3 &point, text name, uint id);
+    void        drawTree(Tree *code);
     template<class Activity>
     Activity *  active();
     void        checkCopyAvailable();
     bool        canPaste();
+    static
+    bool        selectionsEqual(selection_map &s1, selection_map &s2);
 
     // Text flows and text managemen
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
@@ -341,6 +350,25 @@ public:
     Tree_p      drawingBreak(Tree_p self, Drawing::BreakOrder order);
     Name_p      textEditKey(Tree_p self, text key);
 
+    // Tables
+    Tree_p      newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body);
+    Tree_p      tableCell(Tree_p self, Real_p w, Real_p h, Tree_p body);
+    Tree_p      tableCell(Tree_p self, Tree_p body);
+    Tree_p      tableMargins(Tree_p self,
+                             Real_p x, Real_p y, Real_p w, Real_p h);
+    Tree_p      tableMargins(Tree_p self,
+                             Real_p w, Real_p h);
+    Tree_p      tableFill(Tree_p self, Tree_p code);
+    Tree_p	tableBorder(Tree_p self, Tree_p code);
+    Real_p      tableCellX(Tree_p self);
+    Real_p      tableCellY(Tree_p self);
+    Real_p      tableCellW(Tree_p self);
+    Real_p      tableCellH(Tree_p self);
+    Integer_p   tableRow(Tree_p self);
+    Integer_p   tableColumn(Tree_p self);
+    Integer_p   tableRows(Tree_p self);
+    Integer_p   tableColumns(Tree_p self);
+
     // Frames and widgets
     Tree_p      status(Tree_p self, text t);
     Tree_p      framePaint(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
@@ -423,6 +451,7 @@ public:
 
     Tree_p      image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                       text filename);
+    Tree_p      image(Tree_p self, Real_p x, Real_p y, text filename);
 
     // Menus and widgets
     static Tree_p runtimeError(Tree_p self, text msg, Tree_p src);
@@ -442,9 +471,10 @@ public:
 
     // Tree management
     Name_p      insert(Tree_p self, Tree_p toInsert);
-    void         deleteSelection();
+    void        deleteSelection();
     Name_p      deleteSelection(Tree_p self, text key);
     Name_p      setAttribute(Tree_p self, text name, Tree_p attribute, text sh);
+    Tree_p      removeSelection();
 
     // Unit conversionsxo
     Real_p      fromCm(Tree_p self, double cm);
@@ -452,6 +482,12 @@ public:
     Real_p      fromIn(Tree_p self, double in);
     Real_p      fromPt(Tree_p self, double pt);
     Real_p      fromPx(Tree_p self, double px);
+
+    // z order management
+    Name_p      bringToFront(Tree_p self);
+    Name_p      sendToBack(Tree_p self);
+//    Name_p      bringForward(Tree_p self);
+//    Name_p      sendBackward(Tree_p self);
 
 private:
     friend class Window;
@@ -461,9 +497,11 @@ private:
     friend class TextSelect;
     friend class Manipulator;
     friend class ControlPoint;
+    friend class Renormalize;
+    friend class Table;
 
     typedef XL::LocalSave<QEvent *>             EventSave;
-    typedef std::map<GLuint, uint>              selection_map;
+    typedef XL::LocalSave<Widget *>             TaoSave;
     typedef std::map<text, PageLayout*>         flow_map;
     typedef std::map<text, text>                page_map;
 
@@ -478,6 +516,7 @@ private:
     SpaceLayout *         space;
     Layout *              layout;
     GraphicPath *         path;
+    Table *               table;
     scale                 pageW, pageH;
     text                  flowName;
     flow_map              flows;
@@ -496,6 +535,7 @@ private:
     selection_map         selection, savedSelection;
     std::set<Tree_p >     selectionTrees, selectNextTime;
     bool                  wasSelected;
+    bool                  selectionChanged;
     QEvent *              event;
     QWidget *             focusWidget;
     GLdouble              focusProjection[16], focusModel[16];
@@ -510,6 +550,7 @@ private:
     int                   order;
     Tree_p                colorAction, fontAction;
     text                  colorName;
+    QColor                originalColor;
 
     // Timing
     QTimer                timer, idleTimer;
@@ -517,6 +558,10 @@ private:
     ulonglong             tmin, tmax, tsum, tcount;
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
     bool                  animated;
+
+    // Source code view
+    std::ostringstream    srcRendererOutput;
+    XL::Renderer *        srcRenderer;
 
     static Widget *       current;
     static QColorDialog * colorDialog;
@@ -527,7 +572,7 @@ private:
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:
-    void        updateFileDialog(Tree *properties);
+    void        updateFileDialog(Tree *properties, Tree *context);
 
 };
 
@@ -586,98 +631,89 @@ inline double CurrentTime()
 //
 // ============================================================================
 
-struct DeleteSelectionAction : XL::TreeClone
+struct DeleteSelectionAction : XL::Action
 // ----------------------------------------------------------------------------
 //    A specialized clone action that doesn't copy selected trees
 // ----------------------------------------------------------------------------
 {
     DeleteSelectionAction(Widget *widget): widget(widget) {}
+    Tree *DoInteger(Integer *what)
+    {
+        if (widget->selected(what))
+            return NULL;
+        return new Integer(what->value, what->Position());
+    }
+    Tree *DoReal(Real *what)
+    {
+        if (widget->selected(what))
+            return NULL;
+        return new Real(what->value, what->Position());
+
+    }
+    Tree *DoText(Text *what)
+    {
+        if (widget->selected(what))
+            return NULL;
+        return new Text(what->value, what->opening, what->closing,
+                        what->Position());
+    }
+    Tree *DoName(Name *what)
+    {
+        if (widget->selected(what))
+            return NULL;
+        return new Name(what->value, what->Position());
+    }
+
+    Tree *DoBlock(Block *what)
+    {
+        if (widget->selected(what))
+            return NULL;
+        Tree *child = what->child->Do(this);
+        if (!child)
+            return NULL;
+        return new Block(child, what->opening, what->closing, what->Position());
+    }
     Tree *DoInfix(XL::Infix *what)
     {
-        if (what->name == "\n" || what->name == ";")
-        {
-            if (widget->selected(what->left))
-            {
-                if (widget->selected(what->right))
-                    return NULL;
-                return what->right->Do(this);
-            }
-            if (widget->selected(what->right))
-                return what->left->Do(this);
-        }
+        if (widget->selected(what))
+            return NULL;
         Tree *left = what->left->Do(this);
         Tree *right = what->right->Do(this);
-        if (left && right)
-            return new XL::Infix(what->name, left, right, what->Position());
-        else if (left)
+        if (!right)
             return left;
-        return right;
+        if (!left)
+            return right;
+        return new Infix(what->name, left, right, what->Position());
+    }
+    Tree *DoPrefix(Prefix *what)
+    {
+        if (widget->selected(what))
+            return NULL;
+        Tree *left = what->left->Do(this);
+        Tree *right = what->right->Do(this);
+        if (!right)
+            return left;
+        if (!left)
+            return right;
+        return new Prefix(left, right, what->Position());
+    }
+    Tree *DoPostfix(Postfix *what)
+    {
+        if (widget->selected(what))
+            return NULL;
+        Tree *left = what->left->Do(this);
+        Tree *right = what->right->Do(this);
+        if (!right)
+            return left;
+        if (!left)
+            return right;
+        return new Postfix(left, right, what->Position());
+    }
+    Tree *Do(Tree *what)
+    {
+        return what;            // ??? Should not happen
     }
     Widget *widget;
-};
-
-
-struct InsertAtSelectionAction : XL::TreeClone
-// ----------------------------------------------------------------------------
-//    A specialized clone action that inserts an input
-// ----------------------------------------------------------------------------
-{
-    InsertAtSelectionAction(Widget *widget,
-                            Tree *toInsert, Tree *parent)
-        : widget(widget), toInsert(toInsert), parent(parent) {}
-
-
-    Tree *DoName(XL::Name *what)
-    {
-        if (what == parent)
-            parent = NULL;
-        return XL::TreeClone::DoName(what);
-    }
-
-    Tree *DoPrefix(XL::Prefix *what)
-    {
-        if (what == parent)
-            parent = NULL;
-        return XL::TreeClone::DoPrefix(what);
-    }
-
-    Tree *DoPostfix(XL::Postfix *what)
-    {
-        if (what == parent)
-            parent = NULL;
-        return XL::TreeClone::DoPostfix(what);
-    }
-
-    Tree *DoBlock(XL::Block *what)
-    {
-        if (what == parent)
-            parent = NULL;
-        return XL::TreeClone::DoBlock(what);
-    }
-
-    Tree *DoInfix(XL::Infix *what)
-    {
-        if (what == parent)
-            parent = NULL;
-
-        if (!parent)
-        {
-            if (what->name == "\n" || what->name == ";")
-            {
-                // Check if we hit the selection. If so, insert
-                if (toInsert && widget->selected(what->left))
-                {
-                    Tree *ins = toInsert;
-                    toInsert = NULL;
-                    return new XL::Infix(what->name, ins, what->Do(this));
-                }
-            }
-        }
-        return XL::TreeClone::DoInfix(what);
-    }
-    Widget   *widget;
-    Tree_p toInsert;
-    Tree_p parent;
 };
 
 
@@ -709,13 +745,14 @@ struct NameToNameReplacement : XL::TreeClone
 //    Replace specific names with names (e.g. alternate spellings)
 // ----------------------------------------------------------------------------
 {
-    NameToNameReplacement(){}
+    NameToNameReplacement(): replaced(false) {}
 
     Tree *  DoName(XL::Name *what);
     Tree *  Replace(Tree *original);
     text &      operator[] (text index)         { return map[index]; }
 
     std::map<text, text> map;
+    bool replaced;
 };
 
 
@@ -727,6 +764,21 @@ struct NameToTextReplacement : NameToNameReplacement
     NameToTextReplacement(): NameToNameReplacement() {}
     Tree *  DoName(XL::Name *what);
 };
+
+
+struct InsertImageWidthAndHeightAction : XL::Action
+// ----------------------------------------------------------------------------
+// Action to insert the width and height of the image in the source.
+// ----------------------------------------------------------------------------
+{
+    InsertImageWidthAndHeightAction(double w, double h)
+        :ww(w), hh(h), done(false) {}
+    Tree *Do (Tree *what) { return what;}
+    Tree *DoInfix(Infix *what);
+    double ww,hh;
+    bool   done;
+};
+
 
 } // namespace Tao
 

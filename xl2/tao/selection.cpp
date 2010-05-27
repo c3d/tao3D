@@ -56,7 +56,7 @@ Activity *Selection::Display(void)
     b.Normalize();
     Box3 b3 (b.lower.x, b.lower.y, 0, b.Width(), b.Height(), 0);
     widget->setupGL();
-    widget->drawSelection(b3, "selection_rectangle");
+    widget->drawSelection(b3, "selection_rectangle", 0);
 
     return next;
 }
@@ -138,7 +138,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     {
         GLuint depth = ~0U;
         GLuint *ptr = buffer;
-        for (int i = 0; !charSelected && i < hits; i++)
+        for (int i = 0; !(charSelected && count==2) && i < hits; i++)
         {
             uint size = ptr[0];
             if (ptr[3] && ptr[1] <= depth)
@@ -162,6 +162,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     delete[] buffer;
 
     // If this is the first click, then update selection
+    Widget::selection_map prev_selection = widget->selection;
     if (firstClick)
     {
         if (shiftModifier || widget->selection.count(selected) || manipulator)
@@ -178,23 +179,36 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         }
         widget->manipulator = manipulator;
     }
+    if (!widget->selectionChanged &&
+        !Widget::selectionsEqual(prev_selection, widget->selection))
+        widget->selectionChanged = true;
 
     // In all cases, we want a screen refresh
-    Idle();
+    widget->refresh();
 
     // Delete any text selection we might have if we didn't click in it
     if (count == 1 && !charSelected)
         delete widget->textSelection();
 
+    // If we double click in a text, create a text selection
+    if (count == 2 && charSelected)
+    {
+        TextSelect *tsel = widget->textSelection();
+        if (!tsel)
+            tsel = new TextSelect(widget);
+        delete this;
+        return tsel;
+    }
+
     // If we are done with the selection, remove it and shift to a Drag
     if (doneWithSelection)
     {
         Widget *widget = this->widget; // Save before 'delete this'
-        Idle();
         delete this;
         if (selected && count == 1)
             return new Drag(widget);
     }
+
 
     return NULL;                // We dealt with the event
 }
@@ -207,7 +221,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
 {
     if (!active)
     {
-        Idle();
+        widget->refresh();
         return next;
     }
 
@@ -235,6 +249,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     // [1]: Minimum depth
     // [2]: Maximum depth
     // [3..3+[0]-1]: List of names
+    Widget::selection_map prev_selection = widget->selection;
     widget->selection = widget->savedSelection;
     int hits = glRenderMode(GL_RENDER);
     GLuint selected = 0;
@@ -251,9 +266,12 @@ Activity *Selection::MouseMove(int x, int y, bool active)
         }
     }
     delete[] buffer;
+    if (!widget->selectionChanged &&
+        !Widget::selectionsEqual(prev_selection, widget->selection))
+        widget->selectionChanged = true;
 
     // Need a refresh
-    Idle();
+    widget->refresh();
 
     // We dealt with the mouse move, don't let other activities get it
     return NULL;

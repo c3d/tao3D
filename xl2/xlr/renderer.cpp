@@ -395,6 +395,26 @@ int Renderer::InfixPriority(Tree *test)
 
 void Renderer::RenderOne(Tree *what)
 // ----------------------------------------------------------------------------
+//   Render to given stream (taking care of selected items highlighting)
+// ----------------------------------------------------------------------------
+{
+    text hname;
+    if (highlights.count(what))
+        hname = highlights[what];
+
+    bool highlight = !hname.empty();
+
+    if (highlight)
+        RenderFormat("", "highlight_begin_" + hname + " ");
+
+    DoRenderOne(what);
+
+    if (highlight)
+        RenderFormat("", "highlight_end_" + hname + " ");
+}
+
+void Renderer::DoRenderOne(Tree *what)
+// ----------------------------------------------------------------------------
 //   Render to given stream
 // ----------------------------------------------------------------------------
 //   The real complication here is to figure out when to emit
@@ -563,8 +583,11 @@ void Renderer::RenderOne(Tree *what)
     }   break;
     case INFIX: {
         Infix *w = what->AsInfix();
+        text in = w->name;
+        if (in == "\n")
+            in = "cr";
         text n0 = "infix ";
-        text n = n0 + w->name;
+        text n = n0 + in;
         Tree *l = w->left;
         Tree *r = w->right;
 

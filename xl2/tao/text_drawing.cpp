@@ -148,8 +148,7 @@ void TextSpan::DrawCached(Layout *where, bool identify)
                 glDrawArrays(GL_QUADS, i, 4);
             }
             glDisableClientState(GL_VERTEX_ARRAY);
-            if (where->id != ~0U)
-                glLoadName(where->id);
+            glLoadName(where->id);
         }
         else if (setFillColor(where))
         {
@@ -358,7 +357,7 @@ void TextSpan::DrawSelection(Layout *where)
                 {
                     glBlendFunc(GL_DST_COLOR, GL_ZERO);
                     text mode = "formula_highlight";
-                    widget->drawSelection(sel->formulaBox, mode);
+                    widget->drawSelection(sel->formulaBox, mode, 0);
                     sel->formulaBox.Empty();
                     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 }

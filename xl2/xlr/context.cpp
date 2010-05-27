@@ -1800,10 +1800,8 @@ Tree *DeclarationAction::DoPrefix(Prefix *what)
         if (name->value == "load")
         {
             Text *file = what->right->AsText();
-            if (!file)
-                return Ooops("Argument '$1' to 'load' is not a text",
-                             what->right);
-            return xl_load(file->value);
+            if (file)
+                return xl_load(file->value);
         }
     }
 
@@ -1914,8 +1912,8 @@ Tree *CompileAction::DoName(Name *what)
 
         // Check if there is code we need to call
         Compiler *compiler = Context::context->compiler;
-        if (compiler->functions.count(result) &&
-            compiler->functions[result] != unit.function)
+        llvm::Function *function = compiler->TreeFunction(result);
+        if (function && function != unit.function)
         {
             // Case of "Name -> Foo": Invoke Name
             TreeList noArgs;

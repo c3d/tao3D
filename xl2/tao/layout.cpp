@@ -161,8 +161,10 @@ void Layout::Draw(Layout *where)
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
+        glLoadName(id);         // Needed for handles (call Draw, not identify)
         child->Draw(this);
     }
+    glLoadName(0);
 }
 
 
@@ -180,8 +182,10 @@ void Layout::DrawSelection(Layout *where)
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
+        glLoadName(id);         // Needed for handles (call Draw, not identify)
         child->DrawSelection(this);
     }
+    glLoadName(0);
 }
 
 
@@ -199,8 +203,10 @@ void Layout::Identify(Layout *where)
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
+        glLoadName(id);
         child->Identify(this);
     }
+    glLoadName(0);
 }
 
 
@@ -274,7 +280,6 @@ void Layout::Inherit(Layout *where)
 //   Inherit state from some other layout
 // ----------------------------------------------------------------------------
 {
-    LoadName();
     if (!where)
         return;
 
@@ -293,16 +298,6 @@ void Layout::Inherit(Layout *where)
     fillColor    = where->fillColor;
     fillTexture  = where->fillTexture;
     hasPixelBlur |= where->hasPixelBlur;
-}
-
-
-void Layout::LoadName()
-// ----------------------------------------------------------------------------
-//   Load the GL name for the given layout
-// ----------------------------------------------------------------------------
-{
-    if (id != ~0U)
-        glLoadName(id);
 }
 
 TAO_END

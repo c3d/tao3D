@@ -69,8 +69,6 @@ class XLOptions
 };
 
 
-
-
 extern XLOptions gOptions;
 /*---------------------------------------------------------------------------*/
 /*  The options referred to in the whole compiler                            */

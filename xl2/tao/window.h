@@ -55,7 +55,7 @@ class Window : public QMainWindow
 public:
     Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf = NULL);
 
-    void setText(QString txt);
+    void setHtml(QString txt);
     void addError(QString txt);
     bool openProject(QString path, QString filename, bool confirm = true);
     Repository * repository() { return repo.data(); }
@@ -63,6 +63,7 @@ public:
     bool loadFileIntoSourceFileView(const QString &fileName, bool box=false);
 
     bool isUntitled;
+    bool isReadOnly;
 
 public:
     QUndoStack       * undoStack;
@@ -71,6 +72,7 @@ public:
 public slots:
     void markChanged(bool changed = true);
     void toggleAnimations();
+    void toggleSourceView(bool visible);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -97,28 +99,31 @@ private slots:
     void toggleFullScreen();
 
 private:
-    void createActions();
-    void createMenus();
-    void createToolBars();
-    void createStatusBar();
-    void createUndoView();
+    void     createActions();
+    void     createMenus();
+    void     createToolBars();
+    void     createStatusBar();
+    void     createUndoView();
 
-    void readSettings();
-    void writeSettings();
-    bool maybeSave();
-    bool loadFile(const QString &fileName, bool openProj = false);
-    bool saveFile(const QString &fileName);
-    void setCurrentFile(const QString &fileName);
-    QString strippedName(const QString &fullFileName);
-    Window *findWindow(const QString &fileName);
-    void updateProgram(const QString &filename);
-    void resetTaoMenus();
-    QString currentProjectFolderPath();
-    bool populateUndoStack();
-    void warnNoRepo();
-    void enableProjectSharingMenus();
-    void updateRecentFileActions();
-    void updateContext(QString docPath);
+    void     readSettings();
+    void     writeSettings();
+    bool     maybeSave();
+    bool     needNewWindow();
+    bool     loadFile(const QString &fileName, bool openProj = false);
+    bool     saveFile(const QString &fileName);
+    void     setCurrentFile(const QString &fileName);
+    QString  findUnusedUntitledFile();
+    QString  strippedName(const QString &fullFileName);
+    Window  *findWindow(const QString &fileName);
+    void     updateProgram(const QString &filename);
+    void     resetTaoMenus();
+    QString  currentProjectFolderPath();
+    bool     populateUndoStack();
+    void     warnNoRepo();
+    void     enableProjectSharingMenus();
+    void     updateRecentFileActions();
+    void     updateContext(QString docPath);
+    void     loadSrcViewStyleSheet();
 
 private:
     XL::Main *        xlRuntime;
@@ -126,7 +131,9 @@ private:
 
     QTextEdit        *textEdit;
     QTextEdit        *errorMessages;
+public:
     QDockWidget      *dock;
+private:
     QDockWidget      *errorDock;
     Widget           *taoWidget;
     QString           curFile;
@@ -135,7 +142,6 @@ private:
     QMenu            *fileMenu;
     QMenu            *openRecentMenu;
     QMenu            *editMenu;
-    QMenu            *shareMenu;
     QMenu            *viewMenu;
     QMenu            *helpMenu;
     QToolBar         *fileToolBar;
@@ -161,6 +167,10 @@ private:
     QAction          *redoAction;
     QAction          *recentFileActs[MaxRecentFiles];
     QAction          *clearRecentAct;
+
+public:
+    QMenu            *shareMenu;
+
 };
 
 // Prefixes for the created menus and sub menus

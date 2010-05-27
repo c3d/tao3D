@@ -156,6 +156,7 @@ struct Tree
     XL::Symbols *       Symbols()             { return symbols; }
     void                SetSymbols(XL::Symbols *s) { symbols = s; }
 
+ 
     // Info
     template<class I>
     typename I::data_t  Get() const;
@@ -200,7 +201,7 @@ public:
     GARBAGE_COLLECT(Tree);
 
 private:
-    Tree (const Tree &) {}
+    Tree (const Tree &);
 };
 
 
@@ -511,6 +512,7 @@ struct Infix : Tree
         Tree(INFIX, pos), left(l), right(r), name(n) {}
     Infix(Infix *i, Tree *l, Tree *r):
         Tree(INFIX, i), left(l), right(r), name(i->name) {}
+    Infix *             LastStatement();
     Tree_p              left;
     Tree_p              right;
     text                name;
@@ -610,6 +612,20 @@ inline Postfix *Tree::AsPostfix()
     if (this && Kind() == POSTFIX)
         return (Postfix *) this;
     return NULL;
+}
+
+
+inline Infix *Infix::LastStatement()
+// ----------------------------------------------------------------------------
+//   Return the last statement following a given infix
+// ----------------------------------------------------------------------------
+{
+    Infix *last = this;
+    Infix *next;
+    while ((next = last->right->AsInfix()) &&
+           (next->name == "\n" || next->name == ";"))
+        last = next;
+    return last;
 }
 
 

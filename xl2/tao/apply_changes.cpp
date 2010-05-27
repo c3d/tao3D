@@ -25,6 +25,7 @@
 #include "widget_surface.h"
 #include "hash.h"
 #include "sha1_ostream.h"
+#include "widget.h"
 #include <sys/stat.h>
 #include <iostream>
 #include <sstream>

@@ -23,7 +23,6 @@ QT += webkit \
     opengl \
     svg \
     phonon
-
 QMAKE_CXXFLAGS_RELEASE += -g
 
 # Tell the XLR portion that we are building for Tao
@@ -36,6 +35,7 @@ macx {
     QMAKE_INFO_PLIST = Info.plist
 }
 win32:DEFINES += CONFIG_MINGW
+
 # For debug
 # win32:CONFIG += console
 linux-g++:DEFINES += CONFIG_LINUX
@@ -56,6 +56,7 @@ HEADERS += widget.h \
     text_drawing.h \
     shapes3d.h \
     path3d.h \
+    table.h \
     binpack.h \
     glyph_cache.h \
     attributes.h \
@@ -108,7 +109,9 @@ HEADERS += widget.h \
     publish_to_dialog.h \
     undo.h \
     clone_dialog.h \
-    ansi_textedit.h
+    ansi_textedit.h \
+    ../xlr/opcodes_delete.h \
+    error_message_dialog.h
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \
@@ -125,6 +128,7 @@ SOURCES += tao_main.cpp \
     text_drawing.cpp \
     shapes3d.cpp \
     path3d.cpp \
+    table.cpp \
     binpack.cpp \
     glyph_cache.cpp \
     attributes.cpp \
@@ -167,7 +171,8 @@ SOURCES += tao_main.cpp \
     publish_to_dialog.cpp \
     undo.cpp \
     clone_dialog.cpp \
-    ansi_textedit.cpp
+    ansi_textedit.cpp \
+    error_message_dialog.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \
@@ -200,9 +205,10 @@ OTHER_FILES += xl.syntax \
     dbghtml.stylesheet \
     bytecode.stylesheet \
     builtins.xl \
-    graphics.tbl \
-    formulas.tbl \
-    git.stylesheet
+    tutorial.ddd \
+    git.stylesheet \
+    srcview.stylesheet \
+    srcview.css
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}
@@ -211,4 +217,5 @@ QMAKE_BUNDLE_DATA += xlr_support
 FORMS += pull_from_dialog.ui \
     remote_selection_frame.ui \
     publish_to_dialog.ui \
-    clone_dialog.ui
+    clone_dialog.ui \
+    error_message_dialog.ui

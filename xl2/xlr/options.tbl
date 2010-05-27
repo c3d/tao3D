@@ -146,14 +146,15 @@ TRACE(memory)
 TRACE(rewrite)
 TRACE(eval)
 TRACE(code)
+TRACE(llvm)
 TRACE(typecheck)
 TRACE(labels)
 TRACE(builtins)
 TRACE(closure)
 TRACE(diff)
-TRACE(llvmgc)
 TRACE(calls2xl)
 TRACE(clipboard)
+TRACE(srcview)
 
 // Undefine for next use...
 #undef OPTVAR

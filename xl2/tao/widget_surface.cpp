@@ -232,7 +232,7 @@ void WebViewSurface::loadProgress(int progressPercent)
             urlTree->value = url;
         }
     }
-    if (progress)
+    if (progress.Pointer())
         progress->value = progressPercent;
 }
 

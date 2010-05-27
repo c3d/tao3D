@@ -28,6 +28,7 @@
 #include "git_backend.h"
 #include "tao.h"
 #include "tao_utf8.h"
+#include "error_message_dialog.h"
 
 #include <QString>
 #include <QSettings>
@@ -96,18 +97,20 @@ Application::Application(int & argc, char ** argv)
     if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
     {
         // Check frame buffer support (non-fatal)
-        QMessageBox::information(NULL, tr("Framebuffer support"),
-                                 tr("This system does not support framebuffers."
-                                    " Performance may not be optimal."
-                                    " Consider updating the OpenGL drivers."));
+        ErrorMessageDialog dialog;
+        dialog.setWindowTitle(tr("Framebuffer support"));
+        dialog.showMessage(tr("This system does not support framebuffers."
+                              " Performance may not be optimal."
+                              " Consider updating the OpenGL drivers."));
     }
     if (!RepositoryFactory::available())
     {
-        QMessageBox::warning(NULL, tr("Version control software"),
-                             tr("No supported version control software was "
-                                "found. Some functions will not be available. "
-                                "Consider re-installing the application, "
-                                "or installing Git v1.7.0 or later."));
+        ErrorMessageDialog dialog;
+        dialog.setWindowTitle(tr("Version control software"));
+        dialog.showMessage(tr("No supported version control software was "
+                              "found. Some functions will not be available. "
+                              "Consider re-installing the application, "
+                              "or installing Git v1.7.0 or later."));
     }
 
     // Create default folder for Tao documents

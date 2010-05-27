@@ -1095,7 +1095,7 @@ void WidgetManipulator::DrawSelection(Layout *layout)
     if (selected)
     {
         surface->requestFocus(layout, x, y);
-        widget->drawSelection(layout, Bounds(layout) + layout->Offset(),
+        widget->drawSelection(layout, Bounds(layout),
                               "widget_selection", layout->id);
     }
 }

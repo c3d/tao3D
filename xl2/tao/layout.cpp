@@ -178,7 +178,7 @@ void Layout::DrawSelection(Layout *where)
     GLStateKeeper         glSave(hasAttributes?GL_LAYOUT_BITS:0, hasMatrix);
     Inherit(where);
 
-    layout_items::iterator i, b = items.begin(), e = items.end();
+    layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;

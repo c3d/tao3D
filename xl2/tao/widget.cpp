@@ -540,6 +540,9 @@ void Widget::paste()
     if (!canPaste())
         return;
 
+    Tree * tmp =  pageTree;
+    std::cerr << "Paste: pageTree = " << tmp << std::endl<< std::endl;
+
     // Read clipboard content
     const QMimeData *mimeData = QApplication::clipboard()->mimeData();
 
@@ -575,8 +578,16 @@ Name_p Widget::bringToFront(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 {
     Tree * select = removeSelection();
-    if ( ! select ) return XL::xl_false;
+    if ( ! select )
+        return XL::xl_false;
+
     insert(NULL, select, "Selection brought to front");
+//    Tree * tmp =  pageTree;
+//
+//    std::cerr << "bringToFront: pageTree = " <<  tmp << std::endl;
+//
+//    cut();
+//    paste();
     return XL::xl_true;
 }
 
@@ -594,15 +605,16 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
 
     // Start at the top of the program to find where we will insert
     Tree_p *top = &xlProgram->tree;
+    Tree *page = pageTree;
 
     // If we have a current page, insert only in that context
-    if (pageTree)
+    if (page)
     {
         // Restrict insertion to that page
         top = &pageTree;
 
         // The page instructions often runs a 'do' block
-        if (Prefix *prefix = (*top)->AsPrefix())
+        if (Prefix *prefix = page->AsPrefix())
             if (Name *left = prefix->left->AsName())
                 if (left->value == "do")
                     top = &prefix->right;
@@ -611,15 +623,16 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
         if (XL::Block *block = (*top)->AsBlock())
             top = &block->child;
     }
+    std::cerr << "top is :\n"<< *top << std::endl;
 
     Symbols *symbols = (*top)->Symbols();
-    XL::Infix * newTop = new XL::Infix("\n", select, *top);
-    newTop->SetSymbols(symbols);
-    *top = newTop;
+    *top = new XL::Infix("\n", select, *top);
+    (*top)->SetSymbols(symbols);
 
     // Reload the program and mark the changes
     reloadProgram();
     markChanged("Selection sent to back");
+    std::cerr << "top is :\n"<< *top << std::endl;
 
     return XL::xl_true;
 }
@@ -704,6 +717,8 @@ Name_p Widget::sendBackward(Tree_p /*self*/)
         if (!grandParent)
             return XL::xl_false;
         Infix * previous = grandParent->AsInfix();
+        if ( !previous )
+            return XL::xl_false;
 
         tmp = current->left;
         current->left = previous->left;

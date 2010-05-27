@@ -392,6 +392,7 @@ void Widget::runProgram()
         std::cerr << "Draw, count = " << space->count << "\n";
     id = charId = 0;
     selectionTrees.clear();
+    space->offset.Set(0,0,0);
     space->DrawSelection(NULL);
 
     // Clipboard management
@@ -405,6 +406,7 @@ void Widget::identifySelection()
 // ----------------------------------------------------------------------------
 {
     id = charId = 0;
+    space->offset.Set(0,0,0);
     space->Identify(NULL);
 }
 
@@ -416,6 +418,7 @@ void Widget::updateSelection()
 {
     id = charId = 0;
     selectionTrees.clear();
+    space->offset.Set(0,0,0);
     space->DrawSelection(NULL);
 }
 

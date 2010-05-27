@@ -178,18 +178,12 @@ void Layout::DrawSelection(Layout *where)
     GLStateKeeper         glSave(hasAttributes?GL_LAYOUT_BITS:0, hasMatrix);
     Inherit(where);
 
-    uint zzz = 0;
     layout_items::iterator i, b = items.begin(), e = items.end();
     for (i = items.begin(); i != items.end(); i++)
     {
-        zzz++;
         Drawing *child = *i;
         glLoadName(id);         // Needed for handles (call Draw, not identify)
-        assert (b == items.begin());
-        assert (e == items.end());
         child->DrawSelection(this);
-        assert (b == items.begin());
-        assert (e == items.end());
     }
     glLoadName(0);
 }

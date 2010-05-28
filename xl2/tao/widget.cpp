@@ -4892,13 +4892,27 @@ void Widget::fileChosen(const QString & filename)
                   << "was chosen for reference "<< fileAction << "\n";
     }
 
-    // We override names 'filename', 'filepath', 'filepathname'
+    // We override names 'filename', 'filepath', 'filepathname', 'relfilepath'
     QFileInfo file(filename);
+    QString relFilePath = QDir(TaoApp->currentProjectFolder).
+                          relativeFilePath(file.canonicalFilePath());
+    if (relFilePath.contains(".."))
+    {
+        QDir::home().
+                relativeFilePath(file.canonicalFilePath());
+        if (relFilePath.contains(".."))
+        {
+            relFilePath = file.canonicalFilePath();
+        } else {
+            relFilePath.prepend("~/");
+        }
+    }
     NameToTextReplacement map;
 
     map["file_name"] = +file.fileName();
     map["file_directory"] = +file.canonicalPath();
     map["file_path"] = +file.canonicalFilePath();
+    map["rel_file_path"] = +relFilePath;
 
     XL::Tree *toBeEvaluated = map.Replace(fileAction);
 
@@ -5666,6 +5680,7 @@ void Widget::deleteSelection()
     {
         DeleteSelectionAction del(this);
         what = what->Do(del);
+
         if (!what)
             xlProgram->tree = what;
         reloadProgram(what);

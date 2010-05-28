@@ -782,7 +782,6 @@ void Widget::userMenu(QAction *p_action)
         return;
 
     TaoSave saveCurrent(current, this);
-    markChanged(+("Menu '" + p_action->text() + "' selected"));
     XL::Tree *t = var.value<XL::Tree_p>();
     xl_evaluate(t);        // Typically will insert something...
 }

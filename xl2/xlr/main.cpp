@@ -291,14 +291,7 @@ int Main::LoadFile(text file, bool updateContext)
 
     Symbols *syms = Symbols::symbols;
     Symbols *savedSyms = syms;
-    if (file == options.builtins)
-    {
-        syms = context;
-    }
-    else
-    {
-        syms = new Symbols(syms);
-    }
+    syms = new Symbols(syms);
     Symbols::symbols = syms;
     if (tree)
         tree->SetSymbols(syms);

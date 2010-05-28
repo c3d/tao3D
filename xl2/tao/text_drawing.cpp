@@ -689,8 +689,17 @@ XL::Text *TextFormula::Format(XL::Prefix *self)
     Name *name = value->AsName();
     Symbols *symbols = value->Symbols();
     if (name)
+    {
         if (Tree *named = symbols->Named(name->value, true))
+        {
             value = named;
+            Tree *definition = symbols->Defined(name->value);
+            if (definition)
+                if (Infix *infix = definition->AsInfix())
+                    value = infix->right;
+            symbols = value->Symbols();
+        }
+    }
 
     // Make sure we evaluate that in the formulas symbol table
     if (symbols != widget->formulaSymbols())

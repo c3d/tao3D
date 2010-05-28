@@ -1645,81 +1645,74 @@ Tree *EnvironmentScan::DoPostfix(Postfix *what)
 
 // ============================================================================
 //
-//   BuildChildren action: Build a non-leaf after evaluating children
+//   EvaluateChildren action: Build a non-leaf after evaluating children
 //
 // ============================================================================
 
-BuildChildren::BuildChildren(CompileAction *comp)
-// ----------------------------------------------------------------------------
-//   Constructor saves the unit's nullIfBad and sets it
-// ----------------------------------------------------------------------------
-    : compile(comp), unit(comp->unit), saveNullIfBad(comp->nullIfBad)
-{
-    comp->nullIfBad = true;
-}
-
-
-BuildChildren::~BuildChildren()
-// ----------------------------------------------------------------------------
-//   Destructor restores the original nullIfBad settigns
-// ----------------------------------------------------------------------------
-{
-    compile->nullIfBad = saveNullIfBad;
-}
-
-
-Tree *BuildChildren::DoPrefix(Prefix *what)
+Tree *EvaluateChildren::DoPrefix(Prefix *what)
 // ----------------------------------------------------------------------------
 //   Evaluate children, then build a prefix
 // ----------------------------------------------------------------------------
 {
-    unit.Left(what);
-    what->left->Do(compile);
-    unit.Right(what);
-    what->right->Do(compile);
-    unit.CallNewPrefix(what);
-    return what;
+    if (!what->left->Symbols())
+        what->left->SetSymbols(symbols);
+    if (!what->right->Symbols())
+        what->right->SetSymbols(symbols);
+    Tree *left = symbols->Run(what->left);
+    Tree *right = symbols->Run(what->right);
+    if (left == what->left && right == what->right)
+        return what;
+    return new Prefix(left, right, what->Position());
 }
 
 
-Tree *BuildChildren::DoPostfix(Postfix *what)
+Tree *EvaluateChildren::DoPostfix(Postfix *what)
 // ----------------------------------------------------------------------------
 //   Evaluate children, then build a postfix
 // ----------------------------------------------------------------------------
 {
-    unit.Left(what);
-    what->left->Do(compile);
-    unit.Right(what);
-    what->right->Do(compile);
-    unit.CallNewPostfix(what);
-    return what;
+    if (!what->left->Symbols())
+        what->left->SetSymbols(symbols);
+    if (!what->right->Symbols())
+        what->right->SetSymbols(symbols);
+    Tree *left = symbols->Run(what->left);
+    Tree *right = symbols->Run(what->right);
+    if (left == what->left && right == what->right)
+        return what;
+    return new Postfix(left, right, what->Position());
 }
 
 
-Tree *BuildChildren::DoInfix(Infix *what)
+Tree *EvaluateChildren::DoInfix(Infix *what)
 // ----------------------------------------------------------------------------
 //   Evaluate children, then build an infix
 // ----------------------------------------------------------------------------
 {
-    unit.Left(what);
-    what->left->Do(compile);
-    unit.Right(what);
-    what->right->Do(compile);
-    unit.CallNewInfix(what);
-    return what;
+    if (!what->left->Symbols())
+        what->left->SetSymbols(symbols);
+    if (!what->right->Symbols())
+        what->right->SetSymbols(symbols);
+    Tree *left = symbols->Run(what->left);
+    Tree *right = symbols->Run(what->right);
+    if (left == what->left && right == what->right)
+        return what;
+    return new Infix(what->name, left, right, what->Position());
 }
 
 
-Tree *BuildChildren::DoBlock(Block *what)
+Tree *EvaluateChildren::DoBlock(Block *what)
 // ----------------------------------------------------------------------------
 //   Evaluate children, then build a new block
 // ----------------------------------------------------------------------------
 {
-    unit.Left(what);
-    what->child->Do(compile);
-    unit.CallNewBlock(what);
-    return what;
+    if (!what->child->Symbols())
+        what->child->SetSymbols(symbols);
+    Tree *child = symbols->Run(what->child);
+    if (child == what->child)
+        return what;
+    return new Block(child, what->opening, what->closing, what->Position());
 }
+
 
 
 // ============================================================================
@@ -2133,10 +2126,11 @@ Tree *  CompileAction::Rewrites(Tree *what)
                     // If this is a data form, we are done
                     if (!candidate->to)
                     {
-                        unit.ConstantTree(what);
+                        // Set the symbols for the result
+                        if (!what->Symbols())
+                            what->SetSymbols(symbols);
+                        unit.CallEvaluateChildren(what);
                         foundUnconditional = !unit.failbb;
-                        BuildChildren children(this);
-                        what = what->Do(children);
                         unit.noeval.insert(what);
                         reduction.Succeeded();
                     }
@@ -2220,8 +2214,10 @@ Tree *  CompileAction::Rewrites(Tree *what)
     {
         if (nullIfBad)
         {
-            BuildChildren children(this);
-            what = what->Do(children);
+            // Set the symbols for the result
+            if (!what->Symbols())
+                what->SetSymbols(symbols);
+            unit.CallEvaluateChildren(what);
             return NULL;
         }
         Ooops("No rewrite candidate for '$1'", what);

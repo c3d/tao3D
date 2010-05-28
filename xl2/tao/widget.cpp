@@ -393,6 +393,7 @@ void Widget::runProgram()
         std::cerr << "Draw, count = " << space->count << "\n";
     id = charId = 0;
     selectionTrees.clear();
+    space->offset.Set(0,0,0);
     space->DrawSelection(NULL);
 
     // Clipboard management
@@ -406,6 +407,7 @@ void Widget::identifySelection()
 // ----------------------------------------------------------------------------
 {
     id = charId = 0;
+    space->offset.Set(0,0,0);
     space->Identify(NULL);
 }
 
@@ -417,6 +419,7 @@ void Widget::updateSelection()
 {
     id = charId = 0;
     selectionTrees.clear();
+    space->offset.Set(0,0,0);
     space->DrawSelection(NULL);
 }
 
@@ -2136,7 +2139,8 @@ TextSelect *Widget::textSelection()
 }
 
 
-void Widget::drawSelection(const Box3 &bnds, text selName, uint id)
+void Widget::drawSelection(Layout *where,
+                           const Box3 &bnds, text selName, uint id)
 // ----------------------------------------------------------------------------
 //    Draw a 2D or 3D selection with the given coordinates
 // ----------------------------------------------------------------------------
@@ -2151,6 +2155,7 @@ void Widget::drawSelection(const Box3 &bnds, text selName, uint id)
     coord h = bounds.Height();
     coord d = bounds.Depth();
     Point3 c  = bounds.Center();
+
     SpaceLayout selectionSpace(this);
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
@@ -2161,41 +2166,47 @@ void Widget::drawSelection(const Box3 &bnds, text selName, uint id)
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
     else
         (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (symbols);
-    selectionSpace.Draw(NULL);
+    selectionSpace.Draw(where);
     glEnable(GL_DEPTH_TEST);
 }
 
 
-void Widget::drawHandle(const Point3 &p, text handleName, uint id)
+void Widget::drawHandle(Layout *where,
+                        const Point3 &p, text handleName, uint id)
 // ----------------------------------------------------------------------------
 //    Draw the handle of a 2D or 3D selection
 // ----------------------------------------------------------------------------
 {
     // Symbols where we will find the selection code
     XL::Symbols *symbols = xlProgram->symbols;
+
     SpaceLayout selectionSpace(this);
+
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper          saveGL;
     glDisable(GL_DEPTH_TEST);
     selectionSpace.id = id;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
-    selectionSpace.Draw(NULL);
+
+    selectionSpace.Draw(where);
     glEnable(GL_DEPTH_TEST);
 }
 
 
-void Widget::drawTree(Tree *code)
+void Widget::drawTree(Layout *where, Tree *code)
 // ----------------------------------------------------------------------------
 //    Draw some tree, e.g. cell fill and border
 // ----------------------------------------------------------------------------
 {
     XL::Symbols *symbols = code->Symbols(); assert(symbols);
-    SpaceLayout space(this);
-    XL::LocalSave<Layout *> saveLayout(layout, &space);
+    SpaceLayout selectionSpace(this);
+
+    XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper          saveGL;
     glDisable(GL_DEPTH_TEST);
     xl_evaluate(code);
-    space.Draw(NULL);
+
+    selectionSpace.Draw(where);
     glEnable(GL_DEPTH_TEST);
 }
 
@@ -3745,10 +3756,10 @@ Tree_p Widget::newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body)
         replacer["margins"] = "table_cell_margins";
         replacer["fill"]    = "table_cell_fill";
         replacer["border"]  = "table_cell_border";
-        replacer["cellx"]   = "table_cell_x";
-        replacer["celly"]   = "table_cell_y";
-        replacer["cellw"]   = "table_cell_w";
-        replacer["cellh"]   = "table_cell_h";
+        replacer["x"]       = "table_cell_x";
+        replacer["y"]       = "table_cell_y";
+        replacer["w"]       = "table_cell_w";
+        replacer["h"]       = "table_cell_h";
         replacer["row"]     = "table_cell_row";
         replacer["column"]  = "table_cell_column";
         replacer["rows"]    = "table_rows";

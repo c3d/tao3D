@@ -357,7 +357,7 @@ void TextSpan::DrawSelection(Layout *where)
                 {
                     glBlendFunc(GL_DST_COLOR, GL_ZERO);
                     text mode = "formula_highlight";
-                    widget->drawSelection(sel->formulaBox, mode, 0);
+                    widget->drawSelection(where, sel->formulaBox, mode, 0);
                     sel->formulaBox.Empty();
                     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 }

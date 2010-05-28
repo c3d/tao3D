@@ -65,7 +65,7 @@ builtin         = "<span class=""builtin"">" self "</span>"
 string1         = "<span class=""string""> """ self """</span>"
 string2         = "<span class=""string""> &lt;&lt;" self "&gt;&gt;</span>"
 highlight_begin_selected = "<span class=""selected"">"
-highlight_end_selected = "</span>"
+highlight_end_selected = "</span><br>"
 
 
 // Comments, text
@@ -258,6 +258,7 @@ highlight_end_selected = "</span>"
 "circular_sector" = builtin
 //"rectangle" = builtin
 "square" = builtin
+"polygon" = builtin
 "polygram" = builtin
 "equilateral_triangle" = builtin
 "tetragon" = builtin
@@ -279,6 +280,14 @@ highlight_end_selected = "</span>"
 "enneadecagon" = builtin
 "icosagon" = builtin
 "schläfli" = builtin
+"pentagram" = builtin
+"hexagram" = builtin
+"star_of_david" = builtin
+"heptagram" = builtin
+"star_of_lakshmi" = builtin
+"octagram" = builtin
+"nonagram" = builtin
+"decagram" = builtin
 "selection_color" = builtin
 "text_selection_color" = builtin
 "text_highlight_color" = builtin
@@ -327,3 +336,5 @@ integer         = number
 "cos"           = function
 "tan"           = function
 "log"           = function
+
+"?null?" = ""

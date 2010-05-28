@@ -110,7 +110,8 @@ HEADERS += widget.h \
     undo.h \
     clone_dialog.h \
     ansi_textedit.h \
-    ../xlr/opcodes_delete.h
+    ../xlr/opcodes_delete.h \
+    error_message_dialog.h
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \
@@ -170,7 +171,8 @@ SOURCES += tao_main.cpp \
     publish_to_dialog.cpp \
     undo.cpp \
     clone_dialog.cpp \
-    ansi_textedit.cpp
+    ansi_textedit.cpp \
+    error_message_dialog.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \
@@ -215,4 +217,5 @@ QMAKE_BUNDLE_DATA += xlr_support
 FORMS += pull_from_dialog.ui \
     remote_selection_frame.ui \
     publish_to_dialog.ui \
-    clone_dialog.ui
+    clone_dialog.ui \
+    error_message_dialog.ui

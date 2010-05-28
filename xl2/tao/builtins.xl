@@ -325,7 +325,7 @@ menu_item "menu:insert > image...", "Image...", file_chooser
     action insert {
     shape
         color 1,1,1,1
-        image 0, 0, file_path}
+        image 0, 0, rel_file_path}
 }
 
 
@@ -400,8 +400,12 @@ menu      "menu:format"
 submenu   "menu:format:zorder", "Z order"
 menu_item "menu:format:zorder > toFront", "Bring to front", do
     bring_to_front
+menu_item "menu:format:zorder > forward", "Bring forward", do
+    bring_forward
 menu_item "menu:format:zorder > toBack", "Send to back", do
     send_to_back
+menu_item "menu:format:zorder > backward", "Send backward", do
+    send_backward
 }
 
 

@@ -465,7 +465,8 @@ struct EvaluateChildren : Action
     virtual Tree *DoPostfix(Postfix *what);
     virtual Tree *DoInfix(Infix *what);
     virtual Tree *DoBlock(Block *what);
- 
+
+    Tree *        Try(Tree *what);
 public:
     Symbols *   symbols;
 };

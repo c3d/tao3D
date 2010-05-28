@@ -1654,12 +1654,8 @@ Tree *EvaluateChildren::DoPrefix(Prefix *what)
 //   Evaluate children, then build a prefix
 // ----------------------------------------------------------------------------
 {
-    if (!what->left->Symbols())
-        what->left->SetSymbols(symbols);
-    if (!what->right->Symbols())
-        what->right->SetSymbols(symbols);
-    Tree *left = symbols->Run(what->left);
-    Tree *right = symbols->Run(what->right);
+    Tree *left = Try(what->left);
+    Tree *right = Try(what->right);
     if (left == what->left && right == what->right)
         return what;
     return new Prefix(left, right, what->Position());
@@ -1671,12 +1667,8 @@ Tree *EvaluateChildren::DoPostfix(Postfix *what)
 //   Evaluate children, then build a postfix
 // ----------------------------------------------------------------------------
 {
-    if (!what->left->Symbols())
-        what->left->SetSymbols(symbols);
-    if (!what->right->Symbols())
-        what->right->SetSymbols(symbols);
-    Tree *left = symbols->Run(what->left);
-    Tree *right = symbols->Run(what->right);
+    Tree *left = Try(what->left);
+    Tree *right = Try(what->right);
     if (left == what->left && right == what->right)
         return what;
     return new Postfix(left, right, what->Position());
@@ -1688,12 +1680,8 @@ Tree *EvaluateChildren::DoInfix(Infix *what)
 //   Evaluate children, then build an infix
 // ----------------------------------------------------------------------------
 {
-    if (!what->left->Symbols())
-        what->left->SetSymbols(symbols);
-    if (!what->right->Symbols())
-        what->right->SetSymbols(symbols);
-    Tree *left = symbols->Run(what->left);
-    Tree *right = symbols->Run(what->right);
+    Tree *left = Try(what->left);
+    Tree *right = Try(what->right);
     if (left == what->left && right == what->right)
         return what;
     return new Infix(what->name, left, right, what->Position());
@@ -1705,12 +1693,28 @@ Tree *EvaluateChildren::DoBlock(Block *what)
 //   Evaluate children, then build a new block
 // ----------------------------------------------------------------------------
 {
-    if (!what->child->Symbols())
-        what->child->SetSymbols(symbols);
-    Tree *child = symbols->Run(what->child);
+    Tree *child = Try(what->child);
     if (child == what->child)
         return what;
     return new Block(child, what->opening, what->closing, what->Position());
+}
+
+
+Tree *EvaluateChildren::Try(Tree *what)
+// ----------------------------------------------------------------------------
+//   Try to evaluate a child, otherwise recurse on children
+// ----------------------------------------------------------------------------
+{
+    if (!what->Symbols())
+        what->SetSymbols(symbols);
+    if (!what->code)
+    {
+        Tree *compiled = symbols->CompileAll(what, true);
+        if (!compiled)
+            return what->Do(this);
+        compiled = what;
+    }
+    return symbols->Run(what);
 }
 
 
@@ -2178,15 +2182,21 @@ Tree *  CompileAction::Rewrites(Tree *what)
 
                         // Compile the candidate
                         Tree *code = candidate->Compile();
+                        if (code)
+                        {
+                            // Invoke the candidate
+                            unit.Invoke(what, code, argsList);
 
-                        // Invoke the candidate
-                        unit.Invoke(what, code, argsList);
+                            // If there was no test code, don't keep testing
+                            foundUnconditional = !unit.failbb;
 
-                        // If there was no test code, don't keep testing further
-                        foundUnconditional = !unit.failbb;
-
-                        // This is the end of a successful invokation
-                        reduction.Succeeded();
+                            // This is the end of a successful invokation
+                            reduction.Succeeded();
+                        }
+                        else
+                        {
+                            reduction.Failed();
+                        }
                     } // if (data form)
                 } // Match args
                 else

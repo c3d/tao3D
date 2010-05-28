@@ -356,6 +356,8 @@ Tree *xl_evaluate_children(Tree *what)
 {
     EvaluateChildren eval(what->Symbols());
     Tree *result = what->Do(eval);
+    if (!result->Symbols())
+        result->SetSymbols(what->Symbols());
     return result;
 }
 

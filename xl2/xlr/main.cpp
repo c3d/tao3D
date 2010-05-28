@@ -200,7 +200,7 @@ void Main::EvalContextFiles(source_names &ctxFiles)
 {
     source_names::iterator  file;
 
-    // Execute xl.builtins file first
+    // Execute builtins.xl file first
     if (!options.builtins.empty())
         if (Tree *builtins_file = files[options.builtins].tree)
             xl_evaluate(builtins_file);

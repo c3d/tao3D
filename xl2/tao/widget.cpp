@@ -544,9 +544,6 @@ void Widget::paste()
     if (!canPaste())
         return;
 
-    Tree * tmp =  pageTree;
-    std::cerr << "Paste: pageTree = " << tmp << std::endl<< std::endl;
-
     // Read clipboard content
     const QMimeData *mimeData = QApplication::clipboard()->mimeData();
 
@@ -586,12 +583,6 @@ Name_p Widget::bringToFront(Tree_p /*self*/)
         return XL::xl_false;
 
     insert(NULL, select, "Selection brought to front");
-//    Tree * tmp =  pageTree;
-//
-//    std::cerr << "bringToFront: pageTree = " <<  tmp << std::endl;
-//
-//    cut();
-//    paste();
     return XL::xl_true;
 }
 

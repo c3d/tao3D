@@ -136,6 +136,15 @@ void Shape::Draw(Layout *where)
 //
 // ============================================================================
 
+Box3 Rectangle::Bounds(Layout *where)
+// ----------------------------------------------------------------------------
+//   Return the bounding box for all rectangular objects
+// ----------------------------------------------------------------------------
+{
+    return bounds + where->offset;
+}
+
+
 void Rectangle::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 //   Draw a rectangle

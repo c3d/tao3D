@@ -36,11 +36,9 @@ void Shape3::DrawSelection(Layout *layout)
     Widget *widget = layout->Display();
     if (widget->selected(layout))
     {
-        Color line(1.0, 0.0, 0.0, 0.5);
-        Color fill(0.0, 0.7, 1.0, 0.1);
-        XL::LocalSave<Color> saveLine(layout->lineColor, line);
-        XL::LocalSave<Color> saveFill(layout->fillColor, fill);
-        widget->drawSelection(layout, Bounds(layout), "3D_selection", 0);
+        Box3 bounds = Bounds(layout);
+        XL::LocalSave<Point3> zeroOffset(layout->offset, Point3(0,0,0));
+        widget->drawSelection(layout, bounds, "3D_selection", 0);
     }
 }
 

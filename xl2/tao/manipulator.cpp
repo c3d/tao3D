@@ -1095,7 +1095,9 @@ void WidgetManipulator::DrawSelection(Layout *layout)
     if (selected)
     {
         surface->requestFocus(layout, x, y);
-        widget->drawSelection(layout, Bounds(layout),
+        Box3 bounds = Bounds(layout);
+        XL::LocalSave<Point3> zeroOffset(layout->offset, Point3(0,0,0));
+        widget->drawSelection(layout, bounds,
                               "widget_selection", layout->id);
     }
 }

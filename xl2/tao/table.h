@@ -39,6 +39,8 @@ struct Table : Drawing
     ~Table();
 
     virtual void        Draw(Layout *);
+    virtual void        DrawSelection(Layout *);
+    virtual void        Identify(Layout *);
     virtual Box3        Bounds(Layout *);
     virtual void        AddElement(Drawing *d);
     virtual void        Compute(Layout *);

@@ -118,6 +118,112 @@ void Table::Draw(Layout *where)
 }
 
 
+void Table::DrawSelection(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw the selection for all the table elements
+// ----------------------------------------------------------------------------
+{
+    if (columnWidth.size() != columns || rowHeight.size() != rows)
+        Compute(where);
+
+    coord   cellX, cellY, cellW, cellH;
+    Vector3 offset(where->offset);
+    coord   px = bounds.lower.x;
+    coord   py = bounds.upper.y;
+    uint    r, c;
+    Widget *widget = where->Display();
+    std::vector<Drawing *>::iterator i = elements.begin();
+    XL::LocalSave<Table *> saveTable(widget->table, this);
+
+    for (r = 0; r < rows; r++)
+    {
+        px = bounds.lower.x;
+        if (r < rowHeight.size())
+            py -= rowHeight[r];
+        py -= margins.Height();
+        row = r;
+        for (c = 0; c < columns; c++)
+        {
+            bool atEnd = i == elements.end();
+
+            Drawing *d = atEnd ? NULL : *i++;
+            Vector3 pos(px - margins.lower.x + columnOffset[c],
+                        py - margins.lower.y + rowOffset[r], 0);
+            column = c;
+
+            cellW = columnWidth[c] + margins.Width();
+            cellH = rowHeight[r] + margins.Height();
+            cellX = px + cellW/2;
+            cellY = py + cellH/2;
+            cellBox = Box(cellX-cellW/2, cellY-cellH/2, cellW, cellH);
+
+            if (d)
+            {
+                XL::LocalSave<Point3> saveOffset(where->offset, pos + offset);
+                d->DrawSelection(where);
+            }
+
+            if (c < columnWidth.size())
+                px += columnWidth[c];
+            px += margins.Width();
+        }
+    }
+}
+
+
+void Table::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   Identify all the table elements
+// ----------------------------------------------------------------------------
+{
+    if (columnWidth.size() != columns || rowHeight.size() != rows)
+        Compute(where);
+
+    coord   cellX, cellY, cellW, cellH;
+    Vector3 offset(where->offset);
+    coord   px = bounds.lower.x;
+    coord   py = bounds.upper.y;
+    uint    r, c;
+    Widget *widget = where->Display();
+    std::vector<Drawing *>::iterator i = elements.begin();
+    XL::LocalSave<Table *> saveTable(widget->table, this);
+
+    for (r = 0; r < rows; r++)
+    {
+        px = bounds.lower.x;
+        if (r < rowHeight.size())
+            py -= rowHeight[r];
+        py -= margins.Height();
+        row = r;
+        for (c = 0; c < columns; c++)
+        {
+            bool atEnd = i == elements.end();
+
+            Drawing *d = atEnd ? NULL : *i++;
+            Vector3 pos(px - margins.lower.x + columnOffset[c],
+                        py - margins.lower.y + rowOffset[r], 0);
+            column = c;
+
+            cellW = columnWidth[c] + margins.Width();
+            cellH = rowHeight[r] + margins.Height();
+            cellX = px + cellW/2;
+            cellY = py + cellH/2;
+            cellBox = Box(cellX-cellW/2, cellY-cellH/2, cellW, cellH);
+
+            if (d)
+            {
+                XL::LocalSave<Point3> saveOffset(where->offset, pos + offset);
+                d->Identify(where);
+            }
+
+            if (c < columnWidth.size())
+                px += columnWidth[c];
+            px += margins.Width();
+        }
+    }
+}
+
+
 Box3 Table::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 //   Compute the bounds of the table

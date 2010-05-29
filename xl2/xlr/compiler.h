@@ -125,6 +125,7 @@ public:
     llvm::Function            *xl_new_postfix;
     llvm::Function            *xl_new_infix;
     llvm::Function            *xl_new_closure;
+    llvm::Function            *xl_evaluate_children;;
     builtins_map               builtins;
     closure_map                closures;
     closure_map                array_to_args_adapters;
@@ -171,6 +172,7 @@ struct CompiledUnit
     llvm::Value *       CreateClosure(Tree *callee, TreeList &args);
     llvm::Value *       CallClosure(Tree *callee, uint ntrees);
     llvm::Value *       CallTypeError(Tree *what);
+    llvm::Value *       CallEvaluateChildren(Tree *what);
 
     llvm::BasicBlock *  TagTest(Tree *code, ulong tag);
     llvm::BasicBlock *  IntegerTest(Tree *code, longlong value);

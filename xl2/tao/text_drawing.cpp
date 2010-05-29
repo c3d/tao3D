@@ -253,11 +253,11 @@ void TextSpan::DrawSelection(Layout *where)
 {
     Widget     *widget       = where->Display();
     GlyphCache &glyphs       = widget->glyphs();
-    Point3      pos          = where->offset;
     Text *      ttree        = source;
     text        str          = ttree->value;
     bool        canSel       = ttree->Position() != XL::Tree::NOWHERE;
     QFont      &font         = where->font;
+    Point3      pos          = where->offset;
     coord       x            = pos.x;
     coord       y            = pos.y;
     coord       z            = pos.z;
@@ -689,8 +689,17 @@ XL::Text *TextFormula::Format(XL::Prefix *self)
     Name *name = value->AsName();
     Symbols *symbols = value->Symbols();
     if (name)
+    {
         if (Tree *named = symbols->Named(name->value, true))
+        {
             value = named;
+            Tree *definition = symbols->Defined(name->value);
+            if (definition)
+                if (Infix *infix = definition->AsInfix())
+                    value = infix->right;
+            symbols = value->Symbols();
+        }
+    }
 
     // Make sure we evaluate that in the formulas symbol table
     if (symbols != widget->formulaSymbols())

@@ -29,7 +29,7 @@ export PATH=$PATH:.
 rm -rf buildroot
 mkdir buildroot
 doo cp $OBJDIR/Tao.exe buildroot/
-SFILES="builtins.xl xl.syntax xl.stylesheet git.stylesheet"
+SFILES="builtins.xl xl.syntax xl.stylesheet git.stylesheet srcview.stylesheet srcview.css tutorial.ddd"
 for f in $SFILES ; do
     doo cp $SRCDIR/$f buildroot/
 done

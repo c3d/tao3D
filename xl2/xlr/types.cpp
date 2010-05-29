@@ -232,7 +232,7 @@ Tree *MatchType::DoPrefix(Prefix *what)
     // Check if we match a prefix with the same shape
     if (Prefix *prefixType = type->AsPrefix())
     {
-        LocalSave<Tree *> saveType(type);
+        LocalSave<Tree_p> saveType(type);
 
         type = prefixType->left;
         Tree *leftValue = NameMatch(what->left);
@@ -263,7 +263,7 @@ Tree *MatchType::DoPostfix(Postfix *what)
     // Check if we match a postfix with the same shape
     if (Postfix *postfixType = type->AsPostfix())
     {
-        LocalSave<Tree *> saveType(type);
+        LocalSave<Tree_p> saveType(type);
 
         type = postfixType->right;
         Tree_p rightValue = NameMatch(what->right);
@@ -296,7 +296,7 @@ Tree *MatchType::DoInfix(Infix *what)
     {
         if (infixType->name == what->name)
         {
-            LocalSave<Tree *> saveType(type);
+            LocalSave<Tree_p> saveType(type);
 
             type = infixType->left;
             Tree *leftValue = what->left->Do(this);
@@ -331,7 +331,7 @@ Tree *MatchType::DoBlock(Block *what)
         if (blockType->opening == what->opening &&
             blockType->closing == what->closing)
         {
-            LocalSave<Tree *> saveType(type);
+            LocalSave<Tree_p> saveType(type);
 
             type = blockType->child;
             Tree *childValue = what->child->Do(this);
@@ -384,7 +384,7 @@ Tree *MatchType::MatchStructuredType(Tree *what, Tree *kind)
     {
         if (blockType->opening == "(" && blockType->closing == ")")
         {
-            LocalSave<Tree *> saveType(type);
+            LocalSave<Tree_p> saveType(type);
             type = blockType->child;
             Tree *childValue = what->Do(this);
             if (childValue)

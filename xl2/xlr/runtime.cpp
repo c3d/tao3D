@@ -349,6 +349,19 @@ Tree *xl_type_error(Tree *what)
 }
 
 
+Tree *xl_evaluate_children(Tree *what)
+// ----------------------------------------------------------------------------
+//   Reconstruct a similar tree evaluating children
+// ----------------------------------------------------------------------------
+{
+    EvaluateChildren eval(what->Symbols());
+    Tree *result = what->Do(eval);
+    if (!result->Symbols())
+        result->SetSymbols(what->Symbols());
+    return result;
+}
+
+
 
 // ============================================================================
 //

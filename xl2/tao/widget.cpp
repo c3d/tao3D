@@ -544,6 +544,9 @@ void Widget::paste()
     if (!canPaste())
         return;
 
+    Tree * tmp =  pageTree;
+    std::cerr << "Paste: pageTree = " << tmp << std::endl<< std::endl;
+
     // Read clipboard content
     const QMimeData *mimeData = QApplication::clipboard()->mimeData();
 
@@ -579,9 +582,16 @@ Name_p Widget::bringToFront(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 {
     Tree * select = removeSelection();
-    if (!select )
+    if ( ! select )
         return XL::xl_false;
-    insert(NULL, select);
+
+    insert(NULL, select, "Selection brought to front");
+//    Tree * tmp =  pageTree;
+//
+//    std::cerr << "bringToFront: pageTree = " <<  tmp << std::endl;
+//
+//    cut();
+//    paste();
     return XL::xl_true;
 }
 
@@ -592,18 +602,136 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 {
     Tree * select = removeSelection();
-    if (!select )
+    if ( ! select )
         return XL::xl_false;
-    Symbols *symbols = xlProgram->tree->Symbols();
-    XL::Infix * top = new XL::Infix("\n", select, xlProgram->tree);
-    top->SetSymbols(symbols);
-    xlProgram->tree = top;
     // Make sure the new objects appear selected next time they're drawn
     selectStatements(select);
+
+    // Start at the top of the program to find where we will insert
+    Tree_p *top = &xlProgram->tree;
+    Tree *page = pageTree;
+
+    // If we have a current page, insert only in that context
+    if (page)
+    {
+        // Restrict insertion to that page
+        top = &pageTree;
+
+        // The page instructions often runs a 'do' block
+        if (Prefix *prefix = page->AsPrefix())
+            if (Name *left = prefix->left->AsName())
+                if (left->value == "do")
+                    top = &prefix->right;
+
+        // If the page code is a block, look inside
+        if (XL::Block *block = (*top)->AsBlock())
+            top = &block->child;
+    }
+    std::cerr << "top is :\n"<< *top << std::endl;
+
+    Symbols *symbols = (*top)->Symbols();
+    *top = new XL::Infix("\n", select, *top);
+    (*top)->SetSymbols(symbols);
+
     // Reload the program and mark the changes
     reloadProgram();
-    markChanged("Selection sent back");
+    markChanged("Selection sent to back");
+    std::cerr << "top is :\n"<< *top << std::endl;
 
+    return XL::xl_true;
+}
+
+Name_p Widget::bringForward(Tree_p /*self*/)
+// ----------------------------------------------------------------------------
+//   Swap the selected shape and the one in front of it
+// ----------------------------------------------------------------------------
+{
+    if (!hasSelection())
+        return XL::xl_false;
+
+    std::set<Tree_p >::iterator sel = selectionTrees.begin();
+    XL::FindParentAction getParent(*sel);
+    Tree * parent = xlProgram->tree->Do(getParent);
+    // Check if we are not the only one
+    if (!parent)
+        return XL::xl_false;
+    Infix * current = parent->AsInfix();
+    if ( !current )
+        return XL::xl_false;
+
+    Tree * tmp =  NULL;
+    Infix * next = current->right->AsInfix();
+    if ( !next )
+    {
+        // We are at the bottom of the tree
+        //Check if we are already the latest
+        if (current->right == *sel)
+            return XL::xl_false;
+
+        // just swap left and right of parent.
+        tmp = current->left;
+        current->left = current->right;
+        current->right = tmp;
+    }
+    else
+    {
+        tmp = current->left;
+        current->left = next->left;
+        next->left = tmp;
+    }
+    selectStatements(tmp);
+    // Reload the program and mark the changes
+    reloadProgram();
+    markChanged("Selection brought forward");
+    return XL::xl_true;
+}
+
+
+Name_p Widget::sendBackward(Tree_p /*self*/)
+// ----------------------------------------------------------------------------
+//   Swap the selected shape and the one just behind it
+// ----------------------------------------------------------------------------
+{
+    if (!hasSelection())
+        return XL::xl_false;
+
+    std::set<Tree_p >::iterator sel = selectionTrees.begin();
+    XL::FindParentAction getParent(*sel);
+    Tree * parent = xlProgram->tree->Do(getParent);
+    // Check if we are not the only one
+    if (!parent)
+        return XL::xl_false;
+    Infix * current = parent->AsInfix();
+    if ( !current )
+        return XL::xl_false;
+
+     Tree * tmp = NULL;
+    // check if we are at the bottom of the tree
+    if (!current->right->AsInfix())
+    {
+        tmp = current->right;
+        current->right = current->left;
+        current->left = tmp;
+    }
+    else
+    {
+        XL::FindParentAction getGrandParent(parent);
+        Tree * grandParent = xlProgram->tree->Do(getGrandParent);
+        // No grand parent means the shape is already to back
+        if (!grandParent)
+            return XL::xl_false;
+        Infix * previous = grandParent->AsInfix();
+        if ( !previous )
+            return XL::xl_false;
+
+        tmp = current->left;
+        current->left = previous->left;
+        previous->left = tmp;
+    }
+    selectStatements(tmp);
+    // Reload the program and mark the changes
+    reloadProgram();
+    markChanged("Selection sent backward");
     return XL::xl_true;
 }
 
@@ -654,7 +782,6 @@ void Widget::userMenu(QAction *p_action)
         return;
 
     TaoSave saveCurrent(current, this);
-    markChanged(+("Menu '" + p_action->text() + "' selected"));
     XL::Tree *t = var.value<XL::Tree_p>();
     xl_evaluate(t);        // Typically will insert something...
 }
@@ -4765,13 +4892,27 @@ void Widget::fileChosen(const QString & filename)
                   << "was chosen for reference "<< fileAction << "\n";
     }
 
-    // We override names 'filename', 'filepath', 'filepathname'
+    // We override names 'filename', 'filepath', 'filepathname', 'relfilepath'
     QFileInfo file(filename);
+    QString relFilePath = QDir(TaoApp->currentProjectFolder).
+                          relativeFilePath(file.canonicalFilePath());
+    if (relFilePath.contains(".."))
+    {
+        QDir::home().
+                relativeFilePath(file.canonicalFilePath());
+        if (relFilePath.contains(".."))
+        {
+            relFilePath = file.canonicalFilePath();
+        } else {
+            relFilePath.prepend("~/");
+        }
+    }
     NameToTextReplacement map;
 
     map["file_name"] = +file.fileName();
     map["file_directory"] = +file.canonicalPath();
     map["file_path"] = +file.canonicalFilePath();
+    map["rel_file_path"] = +relFilePath;
 
     XL::Tree *toBeEvaluated = map.Replace(fileAction);
 
@@ -5432,7 +5573,7 @@ Tree_p  Widget::separator(Tree_p self)
 //
 // ============================================================================
 
-XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert)
+XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
 // ----------------------------------------------------------------------------
 //    Insert at the end of page or program
 // ----------------------------------------------------------------------------
@@ -5490,7 +5631,7 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert)
 
     // Reload the program and mark the changes
     reloadProgram();
-    markChanged("Inserted tree");
+    markChanged(msg);
 
     return XL::xl_true;
 }
@@ -5539,6 +5680,7 @@ void Widget::deleteSelection()
     {
         DeleteSelectionAction del(this);
         what = what->Do(del);
+
         if (!what)
             xlProgram->tree = what;
         reloadProgram(what);

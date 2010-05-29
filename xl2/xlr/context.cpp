@@ -1645,81 +1645,78 @@ Tree *EnvironmentScan::DoPostfix(Postfix *what)
 
 // ============================================================================
 //
-//   BuildChildren action: Build a non-leaf after evaluating children
+//   EvaluateChildren action: Build a non-leaf after evaluating children
 //
 // ============================================================================
 
-BuildChildren::BuildChildren(CompileAction *comp)
-// ----------------------------------------------------------------------------
-//   Constructor saves the unit's nullIfBad and sets it
-// ----------------------------------------------------------------------------
-    : compile(comp), unit(comp->unit), saveNullIfBad(comp->nullIfBad)
-{
-    comp->nullIfBad = true;
-}
-
-
-BuildChildren::~BuildChildren()
-// ----------------------------------------------------------------------------
-//   Destructor restores the original nullIfBad settigns
-// ----------------------------------------------------------------------------
-{
-    compile->nullIfBad = saveNullIfBad;
-}
-
-
-Tree *BuildChildren::DoPrefix(Prefix *what)
+Tree *EvaluateChildren::DoPrefix(Prefix *what)
 // ----------------------------------------------------------------------------
 //   Evaluate children, then build a prefix
 // ----------------------------------------------------------------------------
 {
-    unit.Left(what);
-    what->left->Do(compile);
-    unit.Right(what);
-    what->right->Do(compile);
-    unit.CallNewPrefix(what);
-    return what;
+    Tree *left = Try(what->left);
+    Tree *right = Try(what->right);
+    if (left == what->left && right == what->right)
+        return what;
+    return new Prefix(left, right, what->Position());
 }
 
 
-Tree *BuildChildren::DoPostfix(Postfix *what)
+Tree *EvaluateChildren::DoPostfix(Postfix *what)
 // ----------------------------------------------------------------------------
 //   Evaluate children, then build a postfix
 // ----------------------------------------------------------------------------
 {
-    unit.Left(what);
-    what->left->Do(compile);
-    unit.Right(what);
-    what->right->Do(compile);
-    unit.CallNewPostfix(what);
-    return what;
+    Tree *left = Try(what->left);
+    Tree *right = Try(what->right);
+    if (left == what->left && right == what->right)
+        return what;
+    return new Postfix(left, right, what->Position());
 }
 
 
-Tree *BuildChildren::DoInfix(Infix *what)
+Tree *EvaluateChildren::DoInfix(Infix *what)
 // ----------------------------------------------------------------------------
 //   Evaluate children, then build an infix
 // ----------------------------------------------------------------------------
 {
-    unit.Left(what);
-    what->left->Do(compile);
-    unit.Right(what);
-    what->right->Do(compile);
-    unit.CallNewInfix(what);
-    return what;
+    Tree *left = Try(what->left);
+    Tree *right = Try(what->right);
+    if (left == what->left && right == what->right)
+        return what;
+    return new Infix(what->name, left, right, what->Position());
 }
 
 
-Tree *BuildChildren::DoBlock(Block *what)
+Tree *EvaluateChildren::DoBlock(Block *what)
 // ----------------------------------------------------------------------------
 //   Evaluate children, then build a new block
 // ----------------------------------------------------------------------------
 {
-    unit.Left(what);
-    what->child->Do(compile);
-    unit.CallNewBlock(what);
-    return what;
+    Tree *child = Try(what->child);
+    if (child == what->child)
+        return what;
+    return new Block(child, what->opening, what->closing, what->Position());
 }
+
+
+Tree *EvaluateChildren::Try(Tree *what)
+// ----------------------------------------------------------------------------
+//   Try to evaluate a child, otherwise recurse on children
+// ----------------------------------------------------------------------------
+{
+    if (!what->Symbols())
+        what->SetSymbols(symbols);
+    if (!what->code)
+    {
+        Tree *compiled = symbols->CompileAll(what, true);
+        if (!compiled)
+            return what->Do(this);
+        compiled = what;
+    }
+    return symbols->Run(what);
+}
+
 
 
 // ============================================================================
@@ -2133,10 +2130,11 @@ Tree *  CompileAction::Rewrites(Tree *what)
                     // If this is a data form, we are done
                     if (!candidate->to)
                     {
-                        unit.ConstantTree(what);
+                        // Set the symbols for the result
+                        if (!what->Symbols())
+                            what->SetSymbols(symbols);
+                        unit.CallEvaluateChildren(what);
                         foundUnconditional = !unit.failbb;
-                        BuildChildren children(this);
-                        what = what->Do(children);
                         unit.noeval.insert(what);
                         reduction.Succeeded();
                     }
@@ -2184,15 +2182,21 @@ Tree *  CompileAction::Rewrites(Tree *what)
 
                         // Compile the candidate
                         Tree *code = candidate->Compile();
+                        if (code)
+                        {
+                            // Invoke the candidate
+                            unit.Invoke(what, code, argsList);
 
-                        // Invoke the candidate
-                        unit.Invoke(what, code, argsList);
+                            // If there was no test code, don't keep testing
+                            foundUnconditional = !unit.failbb;
 
-                        // If there was no test code, don't keep testing further
-                        foundUnconditional = !unit.failbb;
-
-                        // This is the end of a successful invokation
-                        reduction.Succeeded();
+                            // This is the end of a successful invokation
+                            reduction.Succeeded();
+                        }
+                        else
+                        {
+                            reduction.Failed();
+                        }
                     } // if (data form)
                 } // Match args
                 else
@@ -2220,8 +2224,10 @@ Tree *  CompileAction::Rewrites(Tree *what)
     {
         if (nullIfBad)
         {
-            BuildChildren children(this);
-            what = what->Do(children);
+            // Set the symbols for the result
+            if (!what->Symbols())
+                what->SetSymbols(symbols);
+            unit.CallEvaluateChildren(what);
             return NULL;
         }
         Ooops("No rewrite candidate for '$1'", what);

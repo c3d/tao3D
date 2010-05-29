@@ -470,12 +470,11 @@ public:
     Tree_p      separator(Tree_p self);
 
     // Tree management
-    Name_p      insert(Tree_p self, Tree_p toInsert);
+    Name_p      insert(Tree_p self, Tree_p toInsert, text msg = "Inserted tree");
     void        deleteSelection();
     Name_p      deleteSelection(Tree_p self, text key);
     Name_p      setAttribute(Tree_p self, text name, Tree_p attribute, text sh);
     Tree_p      removeSelection();
-
     // Unit conversionsxo
     Real_p      fromCm(Tree_p self, double cm);
     Real_p      fromMm(Tree_p self, double mm);
@@ -486,8 +485,8 @@ public:
     // z order management
     Name_p      bringToFront(Tree_p self);
     Name_p      sendToBack(Tree_p self);
-//    Name_p      bringForward(Tree_p self);
-//    Name_p      sendBackward(Tree_p self);
+    Name_p      bringForward(Tree_p self);
+    Name_p      sendBackward(Tree_p self);
 
 private:
     friend class Window;

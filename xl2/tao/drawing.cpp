@@ -65,13 +65,13 @@ void Drawing::Identify(Layout *l)
 }
 
 
-Box3 Drawing::Bounds(Layout *)
+Box3 Drawing::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the bounding box for the shape
 // ----------------------------------------------------------------------------
 {
     // By default, it is empty
-    return Box3(0,0,0,0,0,0);
+    return Box3(where->offset, where->offset);
 }
 
 

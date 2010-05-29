@@ -86,12 +86,12 @@ bool Shape3::setLineColor(Layout *where)
 }
 
 
-Box3 Cube::Bounds(Layout *)
+Box3 Cube::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the bounding box for a 3D shape
 // ----------------------------------------------------------------------------
 {
-    return bounds;
+    return bounds + where->offset;
 }
 
 

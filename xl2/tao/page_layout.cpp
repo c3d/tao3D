@@ -91,6 +91,7 @@ template<> inline coord Justifier<line_t>::ItemOffset(line_t item, Layout *l)
 //   Since the bounds are supposed drawn at coordinates (0,0,0),
 //   the offset is the opposite of the left of the bounds
 {
+    XL::LocalSave<Point3> zeroOffset(l->offset, Point3(0,0,0));
     Box3 space = item->Space(l);
     return -space.Left();
 }
@@ -151,6 +152,7 @@ template<> inline coord Justifier<page_t>::ItemOffset(page_t item, Layout *l)
 //   Since the bounds are supposed to be computed at coordinates (0,0,0),
 //   the offset for the top is Top()
 {
+    XL::LocalSave<Point3> zeroOffset(l->offset, Point3(0,0,0));
     Box3 space = item->Space(l);
     return space.Top();
 }
@@ -253,7 +255,7 @@ void LayoutLine::Identify(Layout *where)
 }
 
 
-Box3 LayoutLine::Bounds(Layout *layout)
+Box3 LayoutLine::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the bounds for the box
 // ----------------------------------------------------------------------------
@@ -266,8 +268,9 @@ Box3 LayoutLine::Bounds(Layout *layout)
     {
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
-        Box3 childBounds = child->Bounds(layout);
-        childBounds += Vector3(place.position, 0, 0); // Horizontal offset
+        XL::LocalSave<coord> saveY(where->offset.x,
+                                   where->offset.x + place.position);
+        Box3 childBounds = child->Bounds(where);
         result |= childBounds;
     }
 
@@ -275,7 +278,7 @@ Box3 LayoutLine::Bounds(Layout *layout)
 }
 
 
-Box3 LayoutLine::Space(Layout *layout)
+Box3 LayoutLine::Space(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the space for the box
 // ----------------------------------------------------------------------------
@@ -288,8 +291,9 @@ Box3 LayoutLine::Space(Layout *layout)
     {
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
-        Box3 childSpace = child->Space(layout);
-        childSpace += Vector3(place.position, 0, 0); // Horizontal offset
+        XL::LocalSave<coord> saveY(where->offset.x,
+                                   where->offset.x + place.position);
+        Box3 childSpace = child->Space(where);
         result |= childSpace;
     }
 
@@ -735,8 +739,8 @@ Box3 PageLayout::Bounds(Layout *layout)
     {
         PageJustifier::Place &place = *p;
         Drawing *child = place.item;
+        XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
         Box3 childBounds = child->Bounds(layout);
-        childBounds += Vector3(0, place.position, 0); // Vertical offset
         childBounds &= space;
         result |= childBounds;
     }

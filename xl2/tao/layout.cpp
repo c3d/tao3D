@@ -284,7 +284,7 @@ void Layout::Inherit(Layout *where)
         return;
 
     // Add offset of parent to the one we have
-    offset += where->Offset();
+    offset = where->Offset();
 
     // Inherit color and other parameters as initial values
     // Note that these may really impact what gets rendered,

@@ -661,6 +661,7 @@ void PageLayout::DrawSelection(Layout *where)
 
                 glBlendFunc(GL_DST_COLOR, GL_ZERO);
                 text mode = sel->textMode ? "text_selection" : "text_highlight";
+                XL::LocalSave<Point3> zeroOffset(where->offset, Point3());
                 widget->drawSelection(where, sel->selBox, mode, 0);
                 sel->selBox.Empty();
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -670,6 +671,7 @@ void PageLayout::DrawSelection(Layout *where)
             {
                 glBlendFunc(GL_DST_COLOR, GL_ZERO);
                 text mode = "formula_highlight";
+                XL::LocalSave<Point3> zeroOffset(where->offset, Point3());
                 widget->drawSelection(where, sel->formulaBox, mode, 0);
                 sel->formulaBox.Empty();
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

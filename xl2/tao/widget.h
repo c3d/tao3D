@@ -527,6 +527,7 @@ private:
     QGridLayout *         currentGridLayout;
     GroupInfo   *         currentGroup;
     GlyphCache            glyphCache;
+    bool                  hasGLMultisample;
 
     // Selection
     Activity *            activities;

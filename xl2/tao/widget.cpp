@@ -57,6 +57,7 @@
 #include "serializer.h"
 #include "binpack.h"
 #include "normalize.h"
+#include "error_message_dialog.h"
 
 #include <QToolButton>
 #include <QtGui/QImage>

@@ -23,6 +23,7 @@
 #include "frame.h"
 #include "gl_keepers.h"
 #include "widget.h"
+#include "application.h"
 
 
 TAO_BEGIN
@@ -113,7 +114,8 @@ void FrameInfo::begin()
     glLoadIdentity();
 
     glDisable(GL_TEXTURE_2D);
-    glDisable(GL_MULTISAMPLE);
+    if (TaoApp->hasGLMultisample)
+        glDisable(GL_MULTISAMPLE);
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -151,7 +153,8 @@ GLuint FrameInfo::bind()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glEnable(GL_TEXTURE_2D);
-    glEnable(GL_MULTISAMPLE);
+    if (TaoApp->hasGLMultisample)
+        glEnable(GL_MULTISAMPLE);
     return texId;
 }
 

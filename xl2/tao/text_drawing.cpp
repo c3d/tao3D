@@ -253,11 +253,11 @@ void TextSpan::DrawSelection(Layout *where)
 {
     Widget     *widget       = where->Display();
     GlyphCache &glyphs       = widget->glyphs();
-    Point3      pos          = where->offset;
     Text *      ttree        = source;
     text        str          = ttree->value;
     bool        canSel       = ttree->Position() != XL::Tree::NOWHERE;
     QFont      &font         = where->font;
+    Point3      pos          = where->offset;
     coord       x            = pos.x;
     coord       y            = pos.y;
     coord       z            = pos.z;

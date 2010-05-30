@@ -41,6 +41,7 @@ LayoutState::LayoutState()
     : offset(),
       font(qApp->font()),
       alongX(), alongY(), alongZ(),
+      left(0), right(0), top(0), bottom(0),
       lineWidth(1.0),
       lineColor(0,0,0,1),       // Black
       fillColor(0,0,0,0),       // Transparent black
@@ -56,6 +57,8 @@ LayoutState::LayoutState(const LayoutState &o)
       : offset(o.offset),
         font(o.font),
         alongX(o.alongX), alongY(o.alongY), alongZ(o.alongZ),
+        left(o.left), right(o.right),
+        top(o.top), bottom(o.bottom),
         lineWidth(o.lineWidth),
         lineColor(o.lineColor),
         fillColor(o.fillColor),
@@ -293,6 +296,10 @@ void Layout::Inherit(Layout *where)
     alongX       = where->alongX;
     alongY       = where->alongY;
     alongZ       = where->alongZ;
+    left         = where->left;
+    right        = where->right;
+    top          = where->top;
+    bottom       = where->bottom;
     lineWidth    = where->lineWidth;
     lineColor    = where->lineColor;
     fillColor    = where->fillColor;

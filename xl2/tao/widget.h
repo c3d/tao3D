@@ -348,6 +348,8 @@ public:
     Tree_p      center(Tree_p self, scale amount, uint axis);
     Tree_p      spread(Tree_p self, scale amount, uint axis);
     Tree_p      spacing(Tree_p self, scale amount, uint axis);
+    Tree_p      horizontalMargins(Tree_p self, coord left, coord right);
+    Tree_p      verticalMargins(Tree_p self, coord top, coord bottom);
     Tree_p      drawingBreak(Tree_p self, Drawing::BreakOrder order);
     Name_p      textEditKey(Tree_p self, text key);
 

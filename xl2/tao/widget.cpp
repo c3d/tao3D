@@ -3842,6 +3842,26 @@ Tree_p Widget::spacing(Tree_p self, scale amount, uint axis)
 }
 
 
+Tree_p Widget::horizontalMargins(Tree_p self, coord left, coord right)
+// ----------------------------------------------------------------------------
+//   Set the horizontal margin for text
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new HorizontalMarginChange(left, right));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::verticalMargins(Tree_p self, coord top, coord bottom)
+// ----------------------------------------------------------------------------
+//   Set the vertical margin for text
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new VerticalMarginChange(top, bottom));
+    return XL::xl_true;
+}
+
+
 Tree_p Widget::drawingBreak(Tree_p self, Drawing::BreakOrder order)
 // ----------------------------------------------------------------------------
 //   Change the spacing along the given axis

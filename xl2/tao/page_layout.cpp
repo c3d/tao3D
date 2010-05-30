@@ -440,7 +440,8 @@ void LayoutLine::Compute(Layout *layout)
 
     // Position one line of items
     Box3 space = layout->Space(layout);
-    coord left = space.Left(), right = space.Right();
+    coord left = space.Left() + layout->left;
+    coord right = space.Right() - layout->right;
     if (left > right) std::swap(left, right);
     line.Adjust(left, right, layout->alongX, layout);
 }
@@ -494,8 +495,7 @@ PageLayout::PageLayout(Widget *widget)
 //   Create a new layout
 // ----------------------------------------------------------------------------
     : Layout(widget), space()
-{
-}
+{}
 
 
 PageLayout::PageLayout(const PageLayout &o)
@@ -816,7 +816,8 @@ void PageLayout::Compute()
     }
 
     // Now that we have all lines, do the vertical layout
-    coord top = space.Top(), bottom = space.Bottom();
+    coord top = space.Top() - top;
+    coord bottom = space.Bottom() + bottom;
     if (top < bottom) std::swap(top, bottom);
     page.Adjust(top, bottom, alongY, this);
 }

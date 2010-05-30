@@ -313,6 +313,10 @@ PREFIX(Spacing, tree, "spacing",
        PARM(a, real), RTAO(spacing(self, a, 0)))
 PREFIX(VSpacing, tree, "vertical_spacing",
        PARM(a, real), RTAO(spacing(self, a, 1)))
+PREFIX(Margins, tree, "margins", PARM(l, real) PARM(r, real),
+       RTAO(horizontalMargins(self, l, r)))
+PREFIX(VMargins, tree, "vertical_margins", PARM(t, real) PARM(b, real),
+       RTAO(verticalMargins(self, t, b)))
 PREFIX(LineBreak, tree, "line_break",,
        RTAO(drawingBreak(self, Tao::Drawing::LineBreak)))
 PREFIX(ColumnBreak, tree, "column_break",,

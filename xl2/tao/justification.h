@@ -45,8 +45,11 @@ struct Justification
 //     Vertically, it's lines and paragraphs.
 //   - 'spacing' indicates extra amount of space to add around elements
 {
-    Justification(float a = 1.0, float c = 0.0, float s = 0.0, float spc = 1.0)
-        : amount(a), centering(c), spread(s), spacing(spc) {}
+    Justification(float amount = 1.0,
+                  float center = 0.0,
+                  float spread = 0.0,
+                  float spacing = 1.0)
+        : amount(amount), centering(center), spread(spread), spacing(spacing) {}
     float       amount;
     float       centering;
     float       spread;

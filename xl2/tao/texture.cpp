@@ -94,7 +94,8 @@ GLuint ImageTextureInfo::bind(text file)
             textures.erase(textures.begin());
 
         // Read the image file and convert to proper GL image format
-        QImage original(+file);
+        text qualified = "texture:" + file;
+        QImage original(+qualified);
         if (!original.isNull())
         {
             width = original.width();
@@ -107,14 +108,14 @@ GLuint ImageTextureInfo::bind(text file)
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                          texture.width(), texture.height(), 0, GL_RGBA,
                          GL_UNSIGNED_BYTE, texture.bits());
-
-            // Remember the texture for next time
-            textures[file] = textureId;
         }
         else
         {
             textureId = defaultTextureId();
         }
+
+        // Remember the texture for next time
+        textures[file] = textureId;
     }
 
     glBindTexture(GL_TEXTURE_2D, textureId);

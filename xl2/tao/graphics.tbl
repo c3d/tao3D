@@ -44,6 +44,14 @@ PREFIX(WindowWidth, real,     "window_width", , RTAO(windowWidth(self)))
 PREFIX(WindowHeight,real,     "window_height", ,RTAO(windowHeight(self)))
 PREFIX(DaySeconds,  real,     "time", ,         RTAO(time(self)))
 PREFIX(PageSeconds, real,     "page_time", ,    RTAO(pageTime(self)))
+PREFIX(After,       real,     "after", PARM(d, real) PARM(c, tree),
+       RTAO(after(self, d, c)))
+PREFIX(Every,       real,     "every",
+       PARM(i, real) PARM(d, real) PARM(c, tree),
+       RTAO(every(self, i, d, c)))
+PREFIX(Every50Pct,  real,     "every",
+       PARM(i, real) PARM(c, tree),
+       RTAO(every(self, i, 0.5, c)))
 
 
 

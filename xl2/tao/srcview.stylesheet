@@ -94,6 +94,7 @@ highlight_end_selected = "</span><br>"
 // Graphic primitives defined in graphics.tbl
 "page" = builtin
 "page_link" = builtin
+"goto_page" = builtin
 "page_label" = builtin
 "page_number" = builtin
 "page_count" = builtin
@@ -106,6 +107,8 @@ highlight_end_selected = "</span><br>"
 "window_height" = builtin
 "time" = builtin
 "page_time" = builtin
+"after" = builtin
+"every" = builtin
 "locally" = builtin
 "shape" = builtin
 "rotate" = builtin

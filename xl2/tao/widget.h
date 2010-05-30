@@ -224,6 +224,8 @@ public:
     Real_p      windowHeight(Tree_p self);
     Real_p      time(Tree_p self);
     Real_p      pageTime(Tree_p self);
+    Real_p      after(Tree_p self, double delay, Tree_p code);
+    Real_p      every(Tree_p self, double delay, double duration, Tree_p code);
 
     // Preserving attributes
     Tree_p      locally(Tree_p self, Tree_p t);
@@ -557,7 +559,7 @@ private:
 
     // Timing
     QTimer                timer, idleTimer;
-    double                pageStartTime, pageRefresh, frozenTime;
+    double                pageStartTime, pageRefresh, frozenTime, startTime;
     ulonglong             tmin, tmax, tsum, tcount;
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
     bool                  animated;

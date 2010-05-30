@@ -106,8 +106,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
       colorAction(NULL), fontAction(NULL),
       timer(this), idleTimer(this),
-      pageStartTime(CurrentTime()), pageRefresh(86400),
-      frozenTime(pageStartTime),
+      pageStartTime(1e6), pageRefresh(1e6), frozenTime(1e6), startTime(1e6),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
       nextPull(nextSave), animated(true),
@@ -178,6 +177,10 @@ void Widget::dawdle()
 //   Operations to do when idle (in the background)
 // ----------------------------------------------------------------------------
 {
+    // Check if this is the first time we go idle or if time wrapped up
+    if (pageStartTime > CurrentTime())
+        pageRefresh = pageStartTime = startTime = frozenTime = CurrentTime();
+
     // Run all activities, which will get them a chance to update refresh
     for (Activity *a = activities; a; a = a->Idle()) ;
 
@@ -186,19 +189,19 @@ void Widget::dawdle()
     XL::Main   *xlr            = XL::MAIN;
 
     // Check if we need to refresh something
+    double currentTime = CurrentTime();
     double idleInterval = 0.001 * idleTimer.interval();
-    double remaining = pageRefresh - idleInterval;
-    if (remaining <= idleInterval &&
-        (!timer.isActive() || remaining <= timer.interval() * 0.001))
+    double timerInterval = 0.001 * timer.interval();
+    double remaining = pageRefresh - currentTime;
+    if (!timer.isActive() ||
+        remaining <= timerInterval || remaining <= idleInterval)
     {
         if (remaining <= 0)
             remaining = 0.001;
         timer.stop();
         timer.setSingleShot(true);
         timer.start(1000 * remaining);
-        remaining = 86400;
     }
-    pageRefresh = remaining;
 
     if (xlProgram->changed && xlProgram->readOnly)
     {
@@ -293,18 +296,16 @@ void Widget::draw()
     }
 
     // If there is a program, we need to run it
-    pageRefresh = 86400;        // 24 hours
+    pageRefresh = CurrentTime() + 86400;        // 24 hours
     runProgram();
 
     // Check if we want to refresh something
     ulonglong after = now();
-    double remaining = pageRefresh - 1e-6 * (after - before) - 0.001;
-    if (remaining <= 0.001)
+    double remaining = pageRefresh - CurrentTime();
+    if (remaining < 0.001)
         remaining = 0.001;
     timer.setSingleShot(true);
     timer.start(1000 * remaining);
-    if (pageRefresh < 0)
-        reloadProgram();
 
     // Timing
     elapsed(before, after);
@@ -783,9 +784,10 @@ bool Widget::refresh(double delay)
 //   Refresh the screen after the given time interval
 // ----------------------------------------------------------------------------
 {
-    if (pageRefresh > delay)
+    double end = CurrentTime() + delay;
+    if (pageRefresh > end)
     {
-        pageRefresh = delay;
+        pageRefresh = end;
         return true;
     }
     return false;
@@ -2513,6 +2515,64 @@ XL::Real_p Widget::pageTime(Tree_p self)
 }
 
 
+XL::Real_p Widget::after(Tree_p self, double delay, Tree_p code)
+// ----------------------------------------------------------------------------
+//   Execute the given code only after the specified amount of time
+// ----------------------------------------------------------------------------
+{
+    if (animated)
+        frozenTime = CurrentTime();
+
+    double now = frozenTime;
+    double elapsed = now - startTime;
+
+    if (elapsed < delay)
+    {
+        if (pageRefresh > startTime + delay)
+            pageRefresh = startTime + delay;
+    }
+    else
+    {
+        XL::LocalSave<double> saveTime(startTime, startTime + delay);
+        xl_evaluate(code);
+    }
+
+    return new XL::Real(elapsed);
+}
+
+
+XL::Real_p Widget::every(Tree_p self,
+                         double interval, double duty,
+                         Tree_p code)
+// ----------------------------------------------------------------------------
+//   Execute the given code only after the specified amount of time
+// ----------------------------------------------------------------------------
+{
+    if (animated)
+        frozenTime = CurrentTime();
+
+    double now = frozenTime;
+    double elapsed = now - startTime;
+    double active = fmod(elapsed, interval);
+    double start = now - active;
+    double delay = duty * interval;
+    
+    if (active > delay)
+    {
+        if (pageRefresh > start + interval)
+            pageRefresh = start + interval;
+    }
+    else
+    {
+        XL::LocalSave<double> saveTime(startTime, start);
+        xl_evaluate(code);
+        if (pageRefresh > start + delay)
+            pageRefresh = start + delay;
+    }
+    return new XL::Real(elapsed);
+}
+
+
 Tree_p Widget::locally(Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree while preserving the current state
@@ -3896,7 +3956,8 @@ XL::Name_p Widget::textEditKey(Tree_p self, text key)
         selectionTrees.clear();
         delete textSelection();
         delete drag();
-        pageStartTime = frozenTime;
+        pageStartTime = startTime = frozenTime = CurrentTime();
+        draw();
         refresh(0);
         return XL::xl_true;
     }

@@ -91,6 +91,7 @@ template<> inline coord Justifier<line_t>::ItemOffset(line_t item, Layout *l)
 //   Since the bounds are supposed drawn at coordinates (0,0,0),
 //   the offset is the opposite of the left of the bounds
 {
+    XL::LocalSave<Point3> zeroOffset(l->offset, Point3(0,0,0));
     Box3 space = item->Space(l);
     return -space.Left();
 }
@@ -151,6 +152,7 @@ template<> inline coord Justifier<page_t>::ItemOffset(page_t item, Layout *l)
 //   Since the bounds are supposed to be computed at coordinates (0,0,0),
 //   the offset for the top is Top()
 {
+    XL::LocalSave<Point3> zeroOffset(l->offset, Point3(0,0,0));
     Box3 space = item->Space(l);
     return space.Top();
 }
@@ -253,7 +255,7 @@ void LayoutLine::Identify(Layout *where)
 }
 
 
-Box3 LayoutLine::Bounds(Layout *layout)
+Box3 LayoutLine::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the bounds for the box
 // ----------------------------------------------------------------------------
@@ -266,8 +268,9 @@ Box3 LayoutLine::Bounds(Layout *layout)
     {
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
-        Box3 childBounds = child->Bounds(layout);
-        childBounds += Vector3(place.position, 0, 0); // Horizontal offset
+        XL::LocalSave<coord> saveY(where->offset.x,
+                                   where->offset.x + place.position);
+        Box3 childBounds = child->Bounds(where);
         result |= childBounds;
     }
 
@@ -275,7 +278,7 @@ Box3 LayoutLine::Bounds(Layout *layout)
 }
 
 
-Box3 LayoutLine::Space(Layout *layout)
+Box3 LayoutLine::Space(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the space for the box
 // ----------------------------------------------------------------------------
@@ -288,8 +291,9 @@ Box3 LayoutLine::Space(Layout *layout)
     {
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
-        Box3 childSpace = child->Space(layout);
-        childSpace += Vector3(place.position, 0, 0); // Horizontal offset
+        XL::LocalSave<coord> saveY(where->offset.x,
+                                   where->offset.x + place.position);
+        Box3 childSpace = child->Space(where);
         result |= childSpace;
     }
 
@@ -436,7 +440,8 @@ void LayoutLine::Compute(Layout *layout)
 
     // Position one line of items
     Box3 space = layout->Space(layout);
-    coord left = space.Left(), right = space.Right();
+    coord left = space.Left() + layout->left;
+    coord right = space.Right() - layout->right;
     if (left > right) std::swap(left, right);
     line.Adjust(left, right, layout->alongX, layout);
 }
@@ -490,8 +495,7 @@ PageLayout::PageLayout(Widget *widget)
 //   Create a new layout
 // ----------------------------------------------------------------------------
     : Layout(widget), space()
-{
-}
+{}
 
 
 PageLayout::PageLayout(const PageLayout &o)
@@ -657,6 +661,7 @@ void PageLayout::DrawSelection(Layout *where)
 
                 glBlendFunc(GL_DST_COLOR, GL_ZERO);
                 text mode = sel->textMode ? "text_selection" : "text_highlight";
+                XL::LocalSave<Point3> zeroOffset(where->offset, Point3());
                 widget->drawSelection(where, sel->selBox, mode, 0);
                 sel->selBox.Empty();
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -666,6 +671,7 @@ void PageLayout::DrawSelection(Layout *where)
             {
                 glBlendFunc(GL_DST_COLOR, GL_ZERO);
                 text mode = "formula_highlight";
+                XL::LocalSave<Point3> zeroOffset(where->offset, Point3());
                 widget->drawSelection(where, sel->formulaBox, mode, 0);
                 sel->formulaBox.Empty();
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -735,8 +741,8 @@ Box3 PageLayout::Bounds(Layout *layout)
     {
         PageJustifier::Place &place = *p;
         Drawing *child = place.item;
+        XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
         Box3 childBounds = child->Bounds(layout);
-        childBounds += Vector3(0, place.position, 0); // Vertical offset
         childBounds &= space;
         result |= childBounds;
     }
@@ -810,7 +816,8 @@ void PageLayout::Compute()
     }
 
     // Now that we have all lines, do the vertical layout
-    coord top = space.Top(), bottom = space.Bottom();
+    coord top = space.Top() - top;
+    coord bottom = space.Bottom() + bottom;
     if (top < bottom) std::swap(top, bottom);
     page.Adjust(top, bottom, alongY, this);
 }
@@ -920,6 +927,81 @@ void PageLayoutOverflow::Identify(Layout *where)
         child->Identify(where);
     else
         PlaceholderRectangle::Draw(where);
+}
+
+
+
+// ============================================================================
+// 
+//    AnchorLayout: A layout used to anchor shapes in another layout
+// 
+// ============================================================================
+
+AnchorLayout::AnchorLayout(Widget *widget)
+// ----------------------------------------------------------------------------
+//   Create an anchor layout
+// ----------------------------------------------------------------------------
+    : Layout(widget)
+{}
+
+
+AnchorLayout::AnchorLayout(const AnchorLayout &o)
+// ----------------------------------------------------------------------------
+//   Create a copy of an anchor layout
+// ----------------------------------------------------------------------------
+    : Layout(o)
+{}
+
+
+AnchorLayout::~AnchorLayout()
+// ----------------------------------------------------------------------------
+//   Delete the layout
+// ----------------------------------------------------------------------------
+{}
+
+
+void AnchorLayout::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw all the children
+// ----------------------------------------------------------------------------
+{
+    Layout::Draw(where);
+}
+
+
+void AnchorLayout::DrawSelection(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw selection for all the children
+// ----------------------------------------------------------------------------
+{
+    Layout::DrawSelection(where);
+}
+
+
+void AnchorLayout::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   Identify all the children
+// ----------------------------------------------------------------------------
+{
+    Layout::Identify(where);
+}
+
+
+Box3 AnchorLayout::Bounds(Layout *where)
+// ----------------------------------------------------------------------------
+//   Unlike other layouts, anchors appear "empty" so that content can float
+// ----------------------------------------------------------------------------
+{
+    return Box3(where->offset, Vector3(0,0,0));
+}
+
+
+Box3 AnchorLayout::Space(Layout *where)
+// ----------------------------------------------------------------------------
+//   Unlike other layouts, anchors appear "empty" so that content can float
+// ----------------------------------------------------------------------------
+{
+    return Box3(where->offset, Vector3(0,0,0));
 }
 
 TAO_END

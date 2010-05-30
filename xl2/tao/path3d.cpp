@@ -1006,12 +1006,12 @@ void GraphicPath::Draw(Layout *where, QPainterPath &qtPath,
 }
 
 
-Box3 GraphicPath::Bounds(Layout *)
+Box3 GraphicPath::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the bounding box, computed from all path elements
 // ----------------------------------------------------------------------------
 {
-    return bounds;
+    return bounds + where->offset;
 }
 
 

@@ -157,4 +157,24 @@ void SpacingChange::Draw(Layout *where)
     layoutJustification(where, axis).spacing = amount;
 }
 
+
+void HorizontalMarginChange::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Replay an horizontal margin change
+// ----------------------------------------------------------------------------
+{
+    where->left = left;
+    where->right = right;
+}
+
+
+void VerticalMarginChange::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Replay a vertical margin change
+// ----------------------------------------------------------------------------
+{
+    where->top = top;
+    where->bottom = bottom;
+}
+
 TAO_END

@@ -211,6 +211,7 @@ public:
     // Getting attributes
     Text_p      page(Tree_p self, text name, Tree_p body);
     Text_p      pageLink(Tree_p self, text key, text name);
+    Text_p      gotoPage(Tree_p self, text page);
     Text_p      pageLabel(Tree_p self);
     Integer_p   pageNumber(Tree_p self);
     Integer_p   pageCount(Tree_p self);
@@ -223,10 +224,13 @@ public:
     Real_p      windowHeight(Tree_p self);
     Real_p      time(Tree_p self);
     Real_p      pageTime(Tree_p self);
+    Real_p      after(Tree_p self, double delay, Tree_p code);
+    Real_p      every(Tree_p self, double delay, double duration, Tree_p code);
 
     // Preserving attributes
     Tree_p      locally(Tree_p self, Tree_p t);
     Tree_p      shape(Tree_p self, Tree_p t);
+    Tree_p      anchor(Tree_p self, Tree_p t);
 
     // Transforms
     Tree_p      rotatex(Tree_p self, Real_p rx);
@@ -347,6 +351,8 @@ public:
     Tree_p      center(Tree_p self, scale amount, uint axis);
     Tree_p      spread(Tree_p self, scale amount, uint axis);
     Tree_p      spacing(Tree_p self, scale amount, uint axis);
+    Tree_p      horizontalMargins(Tree_p self, coord left, coord right);
+    Tree_p      verticalMargins(Tree_p self, coord top, coord bottom);
     Tree_p      drawingBreak(Tree_p self, Drawing::BreakOrder order);
     Name_p      textEditKey(Tree_p self, text key);
     Text_p      loremIpsum(Tree_p self, Integer_p nwords);
@@ -555,7 +561,7 @@ private:
 
     // Timing
     QTimer                timer, idleTimer;
-    double                pageStartTime, pageRefresh, frozenTime;
+    double                pageStartTime, pageRefresh, frozenTime, startTime;
     ulonglong             tmin, tmax, tsum, tcount;
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
     bool                  animated;

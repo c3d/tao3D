@@ -464,17 +464,18 @@ Box3 TextSpan::Bounds(Layout *where)
 //   Return the smallest box that surrounds the text
 // ----------------------------------------------------------------------------
 {
-    Widget     *widget = where->Display();
-    GlyphCache &glyphs = widget->glyphs();
-    text        str    = source->value;
-    QFont      &font   = where->font;
+    Widget     *widget  = where->Display();
+    GlyphCache &glyphs  = widget->glyphs();
+    text        str     = source->value;
+    QFont      &font    = where->font;
     Box3        result;
     scale       ascent  = glyphs.Ascent(font);
     scale       descent = glyphs.Descent(font);
     scale       leading = glyphs.Leading(font);
-    coord       x      = 0;
-    coord       y      = 0;
-    coord       z      = 0;
+    Point3      pos     = where->offset;
+    coord       x       = pos.x;
+    coord       y       = pos.y;
+    coord       z       = pos.z;
 
     GlyphCache::GlyphEntry  glyph;
 
@@ -518,6 +519,7 @@ Box3 TextSpan::Bounds(Layout *where)
             x += glyph.advance;
         }
     }
+    where->offset = Point3(x,y,z);
 
     return result;
 }
@@ -536,9 +538,10 @@ Box3 TextSpan::Space(Layout *where)
     scale       ascent  = glyphs.Ascent(font);
     scale       descent = glyphs.Descent(font);
     scale       leading = glyphs.Leading(font);
-    coord       x      = 0;
-    coord       y      = 0;
-    coord       z      = 0;
+    Point3      pos     = where->offset;
+    coord       x       = pos.x;
+    coord       y       = pos.y;
+    coord       z       = pos.z;
 
     GlyphCache::GlyphEntry  glyph;
 
@@ -580,6 +583,7 @@ Box3 TextSpan::Space(Layout *where)
             x += glyph.advance;
         }
     }
+    where->offset = Point3(x,y,z);
 
     return result;
 }

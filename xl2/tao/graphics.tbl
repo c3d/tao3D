@@ -320,6 +320,8 @@ PREFIX(PageBreak, tree, "page_break",,
        RTAO(drawingBreak(self, Tao::Drawing::PageBreak)))
 PREFIX(TextEditKey, boolean, "text_edit_key", PARM(k, text),
        RTAO(textEditKey(self, k)))
+PREFIX(LoremIpsum, tree, "lorem_ipsum",PARM(w,integer),
+       RTAO(loremIpsum(self,w)))
 
 
 

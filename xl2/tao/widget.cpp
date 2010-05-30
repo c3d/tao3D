@@ -2530,7 +2530,33 @@ Tree_p Widget::shape(Tree_p self, Tree_p child)
 }
 
 
-static inline XL::Real &r(double x) { return *new XL::Real(x); }
+Tree_p Widget::anchor(Tree_p self, Tree_p child)
+// ----------------------------------------------------------------------------
+//   Anchor a set of shapes to the current position
+// ----------------------------------------------------------------------------
+{
+    AnchorLayout *anchor = new AnchorLayout(this);
+    anchor->id = newId();
+    layout->Add(anchor);
+    XL::LocalSave<Layout *> saveLayout(layout, anchor);
+    XL::LocalSave<Tree_p>   saveShape (currentShape, self);
+    if (selectNextTime.count(self))
+    {
+        selection[id]++;
+        selectNextTime.erase(self);
+    }
+    Tree_p result = xl_evaluate(child);
+    return result;
+}
+
+
+static inline XL::Real &r(double x)
+// ----------------------------------------------------------------------------
+//   Utility shortcut to create a constant real value
+// ----------------------------------------------------------------------------
+{
+    return *new XL::Real(x);
+}
 
 
 Tree_p Widget::rotatex(Tree_p self, Real_p rx)

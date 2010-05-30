@@ -928,4 +928,79 @@ void PageLayoutOverflow::Identify(Layout *where)
         PlaceholderRectangle::Draw(where);
 }
 
+
+
+// ============================================================================
+// 
+//    AnchorLayout: A layout used to anchor shapes in another layout
+// 
+// ============================================================================
+
+AnchorLayout::AnchorLayout(Widget *widget)
+// ----------------------------------------------------------------------------
+//   Create an anchor layout
+// ----------------------------------------------------------------------------
+    : Layout(widget)
+{}
+
+
+AnchorLayout::AnchorLayout(const AnchorLayout &o)
+// ----------------------------------------------------------------------------
+//   Create a copy of an anchor layout
+// ----------------------------------------------------------------------------
+    : Layout(o)
+{}
+
+
+AnchorLayout::~AnchorLayout()
+// ----------------------------------------------------------------------------
+//   Delete the layout
+// ----------------------------------------------------------------------------
+{}
+
+
+void AnchorLayout::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw all the children
+// ----------------------------------------------------------------------------
+{
+    Layout::Draw(where);
+}
+
+
+void AnchorLayout::DrawSelection(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw selection for all the children
+// ----------------------------------------------------------------------------
+{
+    Layout::DrawSelection(where);
+}
+
+
+void AnchorLayout::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   Identify all the children
+// ----------------------------------------------------------------------------
+{
+    Layout::Identify(where);
+}
+
+
+Box3 AnchorLayout::Bounds(Layout *where)
+// ----------------------------------------------------------------------------
+//   Unlike other layouts, anchors appear "empty" so that content can float
+// ----------------------------------------------------------------------------
+{
+    return Box3(where->offset, Vector3(0,0,0));
+}
+
+
+Box3 AnchorLayout::Space(Layout *where)
+// ----------------------------------------------------------------------------
+//   Unlike other layouts, anchors appear "empty" so that content can float
+// ----------------------------------------------------------------------------
+{
+    return Box3(where->offset, Vector3(0,0,0));
+}
+
 TAO_END

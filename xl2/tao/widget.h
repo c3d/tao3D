@@ -227,6 +227,7 @@ public:
     // Preserving attributes
     Tree_p      locally(Tree_p self, Tree_p t);
     Tree_p      shape(Tree_p self, Tree_p t);
+    Tree_p      anchor(Tree_p self, Tree_p t);
 
     // Transforms
     Tree_p      rotatex(Tree_p self, Real_p rx);

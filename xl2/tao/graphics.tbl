@@ -30,6 +30,7 @@
 PREFIX(Page, text, "page", PARM(n, text) PARM(b, tree), RTAO(page(self,n,b)))
 PREFIX(PageLink, text, "page_link", PARM(k, text) PARM(n, text),
        RTAO(pageLink(self, k, n)))
+PREFIX(GotoPage, text, "goto_page", PARM(p, text), RTAO(gotoPage(self, p)))
 
 PREFIX(PageLabel,   text,     "page_label", ,   RTAO(pageLabel(self)))
 PREFIX(PageId,      integer,  "page_number", ,  RTAO(pageNumber(self)))

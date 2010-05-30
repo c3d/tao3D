@@ -2388,6 +2388,17 @@ XL::Text_p Widget::pageLink(Tree_p self, text key, text name)
 }
 
 
+XL::Text_p Widget::gotoPage(Tree_p self, text page)
+// ----------------------------------------------------------------------------
+//   Directly go to the given page
+// ----------------------------------------------------------------------------
+{
+    text old = pageName;
+    pageName = page;
+    return new Text(old);
+}
+
+
 XL::Text_p Widget::pageLabel(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the label of the current page

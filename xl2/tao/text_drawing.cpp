@@ -29,6 +29,7 @@
 #include "glyph_cache.h"
 #include "gl_keepers.h"
 #include "runtime.h"
+#include "application.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -161,7 +162,8 @@ void TextSpan::DrawCached(Layout *where, bool identify)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, blur);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, blur);
             glEnable(GL_TEXTURE_2D);
-            glEnable(GL_MULTISAMPLE);
+            if (TaoApp->hasGLMultisample)
+                glEnable(GL_MULTISAMPLE);
 
             // Draw a list of rectangles with the textures
             glVertexPointer(3, GL_DOUBLE, 0, &quads[0].x);

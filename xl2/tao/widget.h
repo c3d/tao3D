@@ -357,6 +357,7 @@ public:
     Tree_p      verticalMargins(Tree_p self, coord top, coord bottom);
     Tree_p      drawingBreak(Tree_p self, Drawing::BreakOrder order);
     Name_p      textEditKey(Tree_p self, text key);
+    Text_p      loremIpsum(Tree_p self, Integer_p nwords);
 
     // Tables
     Tree_p      newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body);
@@ -535,6 +536,7 @@ private:
     QGridLayout *         currentGridLayout;
     GroupInfo   *         currentGroup;
     GlyphCache            glyphCache;
+    bool                  hasGLMultisample;
 
     // Selection
     Activity *            activities;

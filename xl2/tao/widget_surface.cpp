@@ -25,6 +25,7 @@
 #include "gl_keepers.h"
 #include "runtime.h"
 #include "tao_utf8.h"
+#include "application.h"
 #include <QtWebKit>
 #include <phonon>
 #include <cstring>
@@ -131,10 +132,8 @@ GLuint WidgetSurface::bind ()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glEnable(GL_TEXTURE_2D);
-#ifdef GL_MULTISAMPLE   // Not supported on Windows
-    glEnable(GL_MULTISAMPLE);
-#endif
-
+    if (TaoApp->hasGLMultisample)
+        glEnable(GL_MULTISAMPLE);
     return textureId;
 }
 

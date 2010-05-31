@@ -26,6 +26,7 @@
 #include "attributes.h"
 #include "path3d.h"
 #include "gl_keepers.h"
+#include "application.h"
 #include <GL/glew.h>
 #include <QtOpenGL>
 #include <QPainterPath>
@@ -57,7 +58,8 @@ bool Shape::setTexture(Layout *where)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         }
         glEnable(GL_TEXTURE_2D);
-        glEnable(GL_MULTISAMPLE);
+        if (TaoApp->hasGLMultisample)
+            glEnable(GL_MULTISAMPLE);
     }
     else
     {

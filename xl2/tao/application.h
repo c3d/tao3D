@@ -71,6 +71,9 @@ public:
     void         updateSearchPathes();
     static bool  createDefaultTaoPrefFolder();
 
+public:
+    bool         hasGLMultisample;
+
 private:
     QStringList  pathList;
     QStringList  urlList;

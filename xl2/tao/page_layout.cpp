@@ -783,7 +783,8 @@ void PageLayout::Inherit(Layout *other)
 //    Make sure we also inherit the surrounding layout's ID
 // ----------------------------------------------------------------------------
 {
-    id = other->id;
+    if (other)
+        id = other->id;
     Layout::Inherit(other);
 }
 

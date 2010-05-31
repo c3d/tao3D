@@ -107,12 +107,14 @@ PREFIX(EnableDepthTest, boolean, "enable_depth_test",,
 PREFIX(DisableDepthTest, boolean, "disable_depth_test",,
        RTAO(depthTest(self, false)))
 PREFIX(Refresh, tree, "refresh", PARM(d, real), RTAO(refresh(self, d)))
+PREFIX(ShowSource, boolean, "show_source", PARM(an, boolean),
+       RTAO(showSource(self, an)))
 PREFIX(FullScreen, boolean, "full_screen", PARM(fs, boolean),
        RTAO(fullScreen(self, fs)))
-PREFIX(EnableAnimations, boolean, "enable_animations", PARM(an, boolean),
-       RTAO(enableAnimations(self, an)))
 PREFIX(ToggleFullScreen, boolean, "toggle_full_screen", ,
        RTAO(toggleFullScreen(self)))
+PREFIX(EnableAnimations, boolean, "enable_animations", PARM(an, boolean),
+       RTAO(enableAnimations(self, an)))
 PREFIX(PolygonOffset, integer, "polygon_offset",
        PARM(f0, real) PARM(f1, real) PARM(u0, real) PARM(u1, real),
        RTAO(polygonOffset(self, f0, f1, u0, u1)))

@@ -60,6 +60,7 @@ public:
     bool openProject(QString path, QString filename, bool confirm = true);
     Repository * repository() { return repo.data(); }
     void switchToFullScreen(bool fs);
+    bool showSourceView(bool fs);
     bool loadFileIntoSourceFileView(const QString &fileName, bool box=false);
 
     bool isUntitled;
@@ -72,7 +73,7 @@ public:
 public slots:
     void markChanged(bool changed = true);
     void toggleAnimations();
-    void toggleSourceView(bool visible);
+    void sourceViewBecameVisible(bool visible);
 
 protected:
     void closeEvent(QCloseEvent *event);

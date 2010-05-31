@@ -2768,6 +2768,17 @@ Tree_p Widget::refresh(Tree_p self, double delay)
 }
 
 
+XL::Name_p Widget::showSource(XL::Tree_p self, bool show)
+// ----------------------------------------------------------------------------
+//   Switch to full screen
+// ----------------------------------------------------------------------------
+{
+    Window *window = (Window *) parentWidget();
+    bool old = window->showSourceView(show);
+    return old ? XL::xl_true : XL::xl_false;
+}
+
+
 XL::Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
 // ----------------------------------------------------------------------------
 //   Switch to full screen
@@ -2777,6 +2788,15 @@ XL::Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
     Window *window = (Window *) parentWidget();
     window->switchToFullScreen(fs);
     return oldFs ? XL::xl_true : XL::xl_false;
+}
+
+
+XL::Name_p Widget::toggleFullScreen(XL::Tree_p self)
+// ----------------------------------------------------------------------------
+//   Switch to full screen
+// ----------------------------------------------------------------------------
+{
+    return fullScreen(self, !isFullScreen());
 }
 
 
@@ -2790,15 +2810,6 @@ XL::Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
     if (oldFs != fs)
         window->toggleAnimations();
     return oldFs ? XL::xl_true : XL::xl_false;
-}
-
-
-XL::Name_p Widget::toggleFullScreen(XL::Tree_p self)
-// ----------------------------------------------------------------------------
-//   Switch to full screen
-// ----------------------------------------------------------------------------
-{
-    return fullScreen(self, !isFullScreen());
 }
 
 

@@ -920,10 +920,10 @@ bool GraphicPath::extractQtPath(GraphicPath &in, QPainterPath &out)
     bool flat = true;
 
     // Check that Kind and QPainterPath::ElementType numerical values match
-    XL_CASSERT (int(QPainterPath::MoveToElement) == int(GraphicPath::MOVE_TO) &&
-                int(QPainterPath::LineToElement) == int(GraphicPath::LINE_TO) &&
-                int(QPainterPath::CurveToElement) == int(GraphicPath::CURVE_TO) &&
-                int(QPainterPath::CurveToDataElement) == int(GraphicPath::CURVE_CONTROL));
+    XL_CASSERT (int(QPainterPath::MoveToElement) == int(MOVE_TO) &&
+                int(QPainterPath::LineToElement) == int(LINE_TO) &&
+                int(QPainterPath::CurveToElement) == int(CURVE_TO) &&
+                int(QPainterPath::CurveToDataElement) == int(CURVE_CONTROL));
 
     // Loop on the Graphic Path and insert elements in the QT Path
     // Qt paths place CURVE_TO before control points, we place it last

@@ -320,6 +320,8 @@ PREFIX(PageBreak, tree, "page_break",,
        RTAO(drawingBreak(self, Tao::Drawing::PageBreak)))
 PREFIX(TextEditKey, boolean, "text_edit_key", PARM(k, text),
        RTAO(textEditKey(self, k)))
+PREFIX(LoremIpsum, tree, "lorem_ipsum",PARM(w,integer),
+       RTAO(loremIpsum(self,w)))
 
 
 
@@ -531,7 +533,9 @@ PREFIX(SetAttribute, boolean, "set_attribute",
        RTAO(setAttribute(self, n, t, "shape")))
 
 PREFIX(BringToFront, boolean, "bring_to_front",, RTAO(bringToFront(self)))
+PREFIX(BringForward, boolean, "bring_forward",, RTAO(bringForward(self)))
 PREFIX(SendToBack, boolean, "send_to_back",, RTAO(sendToBack(self)))
+PREFIX(SendBackward, boolean, "send_backward",, RTAO(sendBackward(self)))
 
 // ============================================================================
 //

@@ -47,7 +47,7 @@ Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
 //    Build the Tao application
 // ----------------------------------------------------------------------------
-    : QApplication(argc, argv)
+    : QApplication(argc, argv), hasGLMultisample(false)
 {
     // Set some useful parameters for the application
     setApplicationName ("Tao");
@@ -102,6 +102,17 @@ Application::Application(int & argc, char ** argv)
         dialog.showMessage(tr("This system does not support framebuffers."
                               " Performance may not be optimal."
                               " Consider updating the OpenGL drivers."));
+    }
+    {
+        QGLWidget gl(QGLFormat(QGL::SampleBuffers), NULL);
+        hasGLMultisample = gl.format().sampleBuffers();
+    }
+    if (!hasGLMultisample)
+    {
+        ErrorMessageDialog dialog;
+        dialog.setWindowTitle(tr("Multisample support"));
+        dialog.showMessage(tr("This system does not support GL sample buffers."
+                              " Shapes and large text may look jaggy."));
     }
     if (!RepositoryFactory::available())
     {

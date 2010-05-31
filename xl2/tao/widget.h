@@ -349,6 +349,7 @@ public:
     Tree_p      spacing(Tree_p self, scale amount, uint axis);
     Tree_p      drawingBreak(Tree_p self, Drawing::BreakOrder order);
     Name_p      textEditKey(Tree_p self, text key);
+    Text_p      loremIpsum(Tree_p self, Integer_p nwords);
 
     // Tables
     Tree_p      newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body);
@@ -470,12 +471,11 @@ public:
     Tree_p      separator(Tree_p self);
 
     // Tree management
-    Name_p      insert(Tree_p self, Tree_p toInsert);
+    Name_p      insert(Tree_p self, Tree_p toInsert, text msg = "Inserted tree");
     void        deleteSelection();
     Name_p      deleteSelection(Tree_p self, text key);
     Name_p      setAttribute(Tree_p self, text name, Tree_p attribute, text sh);
     Tree_p      removeSelection();
-
     // Unit conversionsxo
     Real_p      fromCm(Tree_p self, double cm);
     Real_p      fromMm(Tree_p self, double mm);
@@ -486,8 +486,8 @@ public:
     // z order management
     Name_p      bringToFront(Tree_p self);
     Name_p      sendToBack(Tree_p self);
-//    Name_p      bringForward(Tree_p self);
-//    Name_p      sendBackward(Tree_p self);
+    Name_p      bringForward(Tree_p self);
+    Name_p      sendBackward(Tree_p self);
 
 private:
     friend class Window;
@@ -528,6 +528,7 @@ private:
     QGridLayout *         currentGridLayout;
     GroupInfo   *         currentGroup;
     GlyphCache            glyphCache;
+    bool                  hasGLMultisample;
 
     // Selection
     Activity *            activities;

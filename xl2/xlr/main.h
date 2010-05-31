@@ -71,7 +71,7 @@ struct Main
     Main(int argc, char **argv, Compiler &comp,
          text syntax = "xl.syntax",
          text style = "xl.stylesheet",
-         text builtins = "xl.builtins");
+         text builtins = "builtins.xl");
     ~Main();
 
     int        ParseOptions();

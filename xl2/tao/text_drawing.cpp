@@ -29,6 +29,7 @@
 #include "glyph_cache.h"
 #include "gl_keepers.h"
 #include "runtime.h"
+#include "application.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -161,7 +162,8 @@ void TextSpan::DrawCached(Layout *where, bool identify)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, blur);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, blur);
             glEnable(GL_TEXTURE_2D);
-            glEnable(GL_MULTISAMPLE);
+            if (TaoApp->hasGLMultisample)
+                glEnable(GL_MULTISAMPLE);
 
             // Draw a list of rectangles with the textures
             glVertexPointer(3, GL_DOUBLE, 0, &quads[0].x);
@@ -253,11 +255,11 @@ void TextSpan::DrawSelection(Layout *where)
 {
     Widget     *widget       = where->Display();
     GlyphCache &glyphs       = widget->glyphs();
-    Point3      pos          = where->offset;
     Text *      ttree        = source;
     text        str          = ttree->value;
     bool        canSel       = ttree->Position() != XL::Tree::NOWHERE;
     QFont      &font         = where->font;
+    Point3      pos          = where->offset;
     coord       x            = pos.x;
     coord       y            = pos.y;
     coord       z            = pos.z;
@@ -689,8 +691,17 @@ XL::Text *TextFormula::Format(XL::Prefix *self)
     Name *name = value->AsName();
     Symbols *symbols = value->Symbols();
     if (name)
+    {
         if (Tree *named = symbols->Named(name->value, true))
+        {
             value = named;
+            Tree *definition = symbols->Defined(name->value);
+            if (definition)
+                if (Infix *infix = definition->AsInfix())
+                    value = infix->right;
+            symbols = value->Symbols();
+        }
+    }
 
     // Make sure we evaluate that in the formulas symbol table
     if (symbols != widget->formulaSymbols())

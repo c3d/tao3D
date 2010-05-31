@@ -106,8 +106,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
       colorAction(NULL), fontAction(NULL),
       timer(this), idleTimer(this),
-      pageStartTime(CurrentTime()), pageRefresh(86400),
-      frozenTime(pageStartTime),
+      pageStartTime(1e6), pageRefresh(1e6), frozenTime(1e6), startTime(1e6),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
       nextPull(nextSave), animated(true),
@@ -150,7 +149,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 
     // Select format for source file view
     srcRenderer = new XL::Renderer(srcRendererOutput);
-    srcRenderer->SelectStyleSheet("srcview.stylesheet");
+    QFileInfo stylesheet("xl:srcview.stylesheet");
+    srcRenderer->SelectStyleSheet(+stylesheet.canonicalFilePath());
 }
 
 
@@ -177,6 +177,10 @@ void Widget::dawdle()
 //   Operations to do when idle (in the background)
 // ----------------------------------------------------------------------------
 {
+    // Check if this is the first time we go idle or if time wrapped up
+    if (pageStartTime > CurrentTime())
+        pageRefresh = pageStartTime = startTime = frozenTime = CurrentTime();
+
     // Run all activities, which will get them a chance to update refresh
     for (Activity *a = activities; a; a = a->Idle()) ;
 
@@ -185,19 +189,19 @@ void Widget::dawdle()
     XL::Main   *xlr            = XL::MAIN;
 
     // Check if we need to refresh something
+    double currentTime = CurrentTime();
     double idleInterval = 0.001 * idleTimer.interval();
-    double remaining = pageRefresh - idleInterval;
-    if (remaining <= idleInterval &&
-        (!timer.isActive() || remaining <= timer.interval() * 0.001))
+    double timerInterval = 0.001 * timer.interval();
+    double remaining = pageRefresh - currentTime;
+    if (!timer.isActive() ||
+        remaining <= timerInterval || remaining <= idleInterval)
     {
         if (remaining <= 0)
             remaining = 0.001;
         timer.stop();
         timer.setSingleShot(true);
         timer.start(1000 * remaining);
-        remaining = 86400;
     }
-    pageRefresh = remaining;
 
     if (xlProgram->changed && xlProgram->readOnly)
     {
@@ -292,18 +296,16 @@ void Widget::draw()
     }
 
     // If there is a program, we need to run it
-    pageRefresh = 86400;        // 24 hours
+    pageRefresh = CurrentTime() + 86400;        // 24 hours
     runProgram();
 
     // Check if we want to refresh something
     ulonglong after = now();
-    double remaining = pageRefresh - 1e-6 * (after - before) - 0.001;
-    if (remaining <= 0.001)
+    double remaining = pageRefresh - CurrentTime();
+    if (remaining < 0.001)
         remaining = 0.001;
     timer.setSingleShot(true);
     timer.start(1000 * remaining);
-    if (pageRefresh < 0)
-        reloadProgram();
 
     // Timing
     elapsed(before, after);
@@ -543,9 +545,6 @@ void Widget::paste()
     if (!canPaste())
         return;
 
-    Tree * tmp =  pageTree;
-    std::cerr << "Paste: pageTree = " << tmp << std::endl<< std::endl;
-
     // Read clipboard content
     const QMimeData *mimeData = QApplication::clipboard()->mimeData();
 
@@ -585,12 +584,6 @@ Name_p Widget::bringToFront(Tree_p /*self*/)
         return XL::xl_false;
 
     insert(NULL, select, "Selection brought to front");
-//    Tree * tmp =  pageTree;
-//
-//    std::cerr << "bringToFront: pageTree = " <<  tmp << std::endl;
-//
-//    cut();
-//    paste();
     return XL::xl_true;
 }
 
@@ -781,7 +774,6 @@ void Widget::userMenu(QAction *p_action)
         return;
 
     TaoSave saveCurrent(current, this);
-    markChanged(+("Menu '" + p_action->text() + "' selected"));
     XL::Tree *t = var.value<XL::Tree_p>();
     xl_evaluate(t);        // Typically will insert something...
 }
@@ -792,9 +784,10 @@ bool Widget::refresh(double delay)
 //   Refresh the screen after the given time interval
 // ----------------------------------------------------------------------------
 {
-    if (pageRefresh > delay)
+    double end = CurrentTime() + delay;
+    if (pageRefresh > end)
     {
-        pageRefresh = delay;
+        pageRefresh = end;
         return true;
     }
     return false;
@@ -2397,6 +2390,17 @@ XL::Text_p Widget::pageLink(Tree_p self, text key, text name)
 }
 
 
+XL::Text_p Widget::gotoPage(Tree_p self, text page)
+// ----------------------------------------------------------------------------
+//   Directly go to the given page
+// ----------------------------------------------------------------------------
+{
+    text old = pageName;
+    pageName = page;
+    return new Text(old);
+}
+
+
 XL::Text_p Widget::pageLabel(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the label of the current page
@@ -2511,6 +2515,64 @@ XL::Real_p Widget::pageTime(Tree_p self)
 }
 
 
+XL::Real_p Widget::after(Tree_p self, double delay, Tree_p code)
+// ----------------------------------------------------------------------------
+//   Execute the given code only after the specified amount of time
+// ----------------------------------------------------------------------------
+{
+    if (animated)
+        frozenTime = CurrentTime();
+
+    double now = frozenTime;
+    double elapsed = now - startTime;
+
+    if (elapsed < delay)
+    {
+        if (pageRefresh > startTime + delay)
+            pageRefresh = startTime + delay;
+    }
+    else
+    {
+        XL::LocalSave<double> saveTime(startTime, startTime + delay);
+        xl_evaluate(code);
+    }
+
+    return new XL::Real(elapsed);
+}
+
+
+XL::Real_p Widget::every(Tree_p self,
+                         double interval, double duty,
+                         Tree_p code)
+// ----------------------------------------------------------------------------
+//   Execute the given code only after the specified amount of time
+// ----------------------------------------------------------------------------
+{
+    if (animated)
+        frozenTime = CurrentTime();
+
+    double now = frozenTime;
+    double elapsed = now - startTime;
+    double active = fmod(elapsed, interval);
+    double start = now - active;
+    double delay = duty * interval;
+    
+    if (active > delay)
+    {
+        if (pageRefresh > start + interval)
+            pageRefresh = start + interval;
+    }
+    else
+    {
+        XL::LocalSave<double> saveTime(startTime, start);
+        xl_evaluate(code);
+        if (pageRefresh > start + delay)
+            pageRefresh = start + delay;
+    }
+    return new XL::Real(elapsed);
+}
+
+
 Tree_p Widget::locally(Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree while preserving the current state
@@ -2539,7 +2601,33 @@ Tree_p Widget::shape(Tree_p self, Tree_p child)
 }
 
 
-static inline XL::Real &r(double x) { return *new XL::Real(x); }
+Tree_p Widget::anchor(Tree_p self, Tree_p child)
+// ----------------------------------------------------------------------------
+//   Anchor a set of shapes to the current position
+// ----------------------------------------------------------------------------
+{
+    AnchorLayout *anchor = new AnchorLayout(this);
+    anchor->id = newId();
+    layout->Add(anchor);
+    XL::LocalSave<Layout *> saveLayout(layout, anchor);
+    XL::LocalSave<Tree_p>   saveShape (currentShape, self);
+    if (selectNextTime.count(self))
+    {
+        selection[id]++;
+        selectNextTime.erase(self);
+    }
+    Tree_p result = xl_evaluate(child);
+    return result;
+}
+
+
+static inline XL::Real &r(double x)
+// ----------------------------------------------------------------------------
+//   Utility shortcut to create a constant real value
+// ----------------------------------------------------------------------------
+{
+    return *new XL::Real(x);
+}
 
 
 Tree_p Widget::rotatex(Tree_p self, Real_p rx)
@@ -2680,6 +2768,17 @@ Tree_p Widget::refresh(Tree_p self, double delay)
 }
 
 
+XL::Name_p Widget::showSource(XL::Tree_p self, bool show)
+// ----------------------------------------------------------------------------
+//   Switch to full screen
+// ----------------------------------------------------------------------------
+{
+    Window *window = (Window *) parentWidget();
+    bool old = window->showSourceView(show);
+    return old ? XL::xl_true : XL::xl_false;
+}
+
+
 XL::Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
 // ----------------------------------------------------------------------------
 //   Switch to full screen
@@ -2689,6 +2788,15 @@ XL::Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
     Window *window = (Window *) parentWidget();
     window->switchToFullScreen(fs);
     return oldFs ? XL::xl_true : XL::xl_false;
+}
+
+
+XL::Name_p Widget::toggleFullScreen(XL::Tree_p self)
+// ----------------------------------------------------------------------------
+//   Switch to full screen
+// ----------------------------------------------------------------------------
+{
+    return fullScreen(self, !isFullScreen());
 }
 
 
@@ -2702,15 +2810,6 @@ XL::Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
     if (oldFs != fs)
         window->toggleAnimations();
     return oldFs ? XL::xl_true : XL::xl_false;
-}
-
-
-XL::Name_p Widget::toggleFullScreen(XL::Tree_p self)
-// ----------------------------------------------------------------------------
-//   Switch to full screen
-// ----------------------------------------------------------------------------
-{
-    return fullScreen(self, !isFullScreen());
 }
 
 
@@ -3825,6 +3924,26 @@ Tree_p Widget::spacing(Tree_p self, scale amount, uint axis)
 }
 
 
+Tree_p Widget::horizontalMargins(Tree_p self, coord left, coord right)
+// ----------------------------------------------------------------------------
+//   Set the horizontal margin for text
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new HorizontalMarginChange(left, right));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::verticalMargins(Tree_p self, coord top, coord bottom)
+// ----------------------------------------------------------------------------
+//   Set the vertical margin for text
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new VerticalMarginChange(top, bottom));
+    return XL::xl_true;
+}
+
+
 Tree_p Widget::drawingBreak(Tree_p self, Drawing::BreakOrder order)
 // ----------------------------------------------------------------------------
 //   Change the spacing along the given axis
@@ -3848,7 +3967,8 @@ XL::Name_p Widget::textEditKey(Tree_p self, text key)
         selectionTrees.clear();
         delete textSelection();
         delete drag();
-        pageStartTime = frozenTime;
+        pageStartTime = startTime = frozenTime = CurrentTime();
+        draw();
         refresh(0);
         return XL::xl_true;
     }

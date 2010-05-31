@@ -349,6 +349,19 @@ Tree *xl_type_error(Tree *what)
 }
 
 
+Tree *xl_evaluate_children(Tree *what)
+// ----------------------------------------------------------------------------
+//   Reconstruct a similar tree evaluating children
+// ----------------------------------------------------------------------------
+{
+    EvaluateChildren eval(what->Symbols());
+    Tree *result = what->Do(eval);
+    if (!result->Symbols())
+        result->SetSymbols(what->Symbols());
+    return result;
+}
+
+
 
 // ============================================================================
 //
@@ -566,7 +579,7 @@ Tree *xl_load(text name)
         return Ooops("Unable to load file '$1'", new Text(path));
 
     Symbols_p old = Symbols::symbols;
-    Symbols_p syms = new Symbols(Context::context);
+    Symbols_p syms = new Symbols(old);
     MAIN->files[path] = SourceFile(path, tree, syms);
     Symbols::symbols = syms;
     tree->SetSymbols(syms);
@@ -674,7 +687,7 @@ Tree *xl_load_csv(text name)
     struct stat st;
     stat(path.c_str(), &st);
     Symbols_p old = Symbols::symbols;
-    Symbols_p syms = new Symbols(Context::context);
+    Symbols_p syms = new Symbols(old);
     MAIN->files[path] = SourceFile(path, tree, syms);
     Symbols::symbols = syms;
     tree->SetSymbols(syms);
@@ -789,7 +802,7 @@ Tree *xl_load_tsv(text name)
     struct stat st;
     stat(path.c_str(), &st);
     Symbols_p old = Symbols::symbols;
-    Symbols_p syms = new Symbols(Context::context);
+    Symbols_p syms = new Symbols(old);
     MAIN->files[path] = SourceFile(path, tree, syms);
     Symbols::symbols = syms;
     tree->SetSymbols(syms);

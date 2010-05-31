@@ -200,7 +200,7 @@ void Main::EvalContextFiles(source_names &ctxFiles)
 {
     source_names::iterator  file;
 
-    // Execute xl.builtins file first
+    // Execute builtins.xl file first
     if (!options.builtins.empty())
         if (Tree *builtins_file = files[options.builtins].tree)
             xl_evaluate(builtins_file);
@@ -291,14 +291,7 @@ int Main::LoadFile(text file, bool updateContext)
 
     Symbols *syms = Symbols::symbols;
     Symbols *savedSyms = syms;
-    if (file == options.builtins)
-    {
-        syms = context;
-    }
-    else
-    {
-        syms = new Symbols(syms);
-    }
+    syms = new Symbols(syms);
     Symbols::symbols = syms;
     if (tree)
         tree->SetSymbols(syms);

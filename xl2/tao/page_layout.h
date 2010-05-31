@@ -120,6 +120,25 @@ public:
 };
 
 
+struct AnchorLayout : Layout
+// ----------------------------------------------------------------------------
+//   A special layout used to anchor items at a given position
+// ----------------------------------------------------------------------------
+{
+                        AnchorLayout(Widget *widget);
+                        AnchorLayout(const AnchorLayout &o);
+                        ~AnchorLayout();
+
+    virtual void        Draw(Layout *where);
+    virtual void        DrawSelection(Layout *);
+    virtual void        Identify(Layout *l);
+
+    virtual Box3        Bounds(Layout *layout);
+    virtual Box3        Space(Layout *layout);
+    virtual AnchorLayout *NewChild()      { return new AnchorLayout(*this); }
+};
+
+
 // Specializations for Justifier computations
 typedef Drawing *       line_t;
 template<> line_t       Justifier<line_t>::Break(line_t, bool*, bool*);

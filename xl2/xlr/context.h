@@ -448,13 +448,13 @@ public:
 };
 
 
-struct BuildChildren : Action
+struct EvaluateChildren : Action
 // ----------------------------------------------------------------------------
 //   Build a clone of a tree, evaluating its children
 // ----------------------------------------------------------------------------
 {
-    BuildChildren(CompileAction *comp);
-    ~BuildChildren();
+    EvaluateChildren(Symbols *s): symbols(s)    { assert(s); }
+    ~EvaluateChildren()                         {}
 
     virtual Tree *Do(Tree *what)                { return what; }
     virtual Tree *DoInteger(Integer *what)      { return what; }
@@ -465,11 +465,10 @@ struct BuildChildren : Action
     virtual Tree *DoPostfix(Postfix *what);
     virtual Tree *DoInfix(Infix *what);
     virtual Tree *DoBlock(Block *what);
- 
+
+    Tree *        Try(Tree *what);
 public:
-    CompileAction *compile;             // Compilation in progress
-    CompiledUnit & unit;                // JIT compiler compilation unit
-    bool           saveNullIfBad;       // Unit original "nib" settings
+    Symbols *   symbols;
 };
 
 

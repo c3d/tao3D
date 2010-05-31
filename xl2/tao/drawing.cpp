@@ -46,11 +46,9 @@ void Drawing::DrawSelection(Layout *layout)
     Widget *widget = layout->Display();
     if (widget->selected(layout))
     {
-        Color line(1.0, 0.0, 0.0, 0.5);
-        Color fill(0.0, 0.7, 1.0, 0.1);
-        XL::LocalSave<Color> saveLine(layout->lineColor, line);
-        XL::LocalSave<Color> saveFill(layout->fillColor, fill);
-        widget->drawSelection(layout, Bounds(layout), "selection", layout->id);
+        Box3 bounds = Bounds(layout);
+        XL::LocalSave<Point3> zeroOffset(layout->offset, Point3(0,0,0));
+        widget->drawSelection(layout, bounds, "selection", layout->id);
     }
 }
 
@@ -65,13 +63,13 @@ void Drawing::Identify(Layout *l)
 }
 
 
-Box3 Drawing::Bounds(Layout *)
+Box3 Drawing::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the bounding box for the shape
 // ----------------------------------------------------------------------------
 {
     // By default, it is empty
-    return Box3(0,0,0,0,0,0);
+    return Box3(where->offset, Vector3(0,0,0));
 }
 
 

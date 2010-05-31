@@ -91,7 +91,8 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
       xl_infix_match_check(NULL), xl_type_check(NULL), xl_type_error(NULL),
       xl_new_integer(NULL), xl_new_real(NULL), xl_new_character(NULL),
       xl_new_text(NULL), xl_new_xtext(NULL), xl_new_block(NULL),
-      xl_new_prefix(NULL), xl_new_postfix(NULL), xl_new_infix(NULL)
+      xl_new_prefix(NULL), xl_new_postfix(NULL), xl_new_infix(NULL),
+      xl_new_closure(NULL), xl_evaluate_children()
 {
     // Register a listener with the garbage collector
     CompilerGarbageCollectionListener *cgcl =
@@ -278,9 +279,6 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
                                  treePtrTy, 1, charPtrTy);
     xl_new_xtext = ExternFunction(FN(xl_new_xtext),
                                  treePtrTy, 3, charPtrTy, charPtrTy, charPtrTy);
-    xl_new_closure = ExternFunction(FN(xl_new_closure),
-                                    treePtrTy, -2,
-                                    treePtrTy, LLVM_INTTYPE(uint));
     xl_new_block = ExternFunction(FN(xl_new_block),
                                   treePtrTy, 2, treePtrTy,treePtrTy);
     xl_new_prefix = ExternFunction(FN(xl_new_prefix),
@@ -289,6 +287,11 @@ Compiler::Compiler(kstring moduleName, uint optimize_level)
                                     treePtrTy, 3,treePtrTy,treePtrTy,treePtrTy);
     xl_new_infix = ExternFunction(FN(xl_new_infix),
                                   treePtrTy, 3, treePtrTy,treePtrTy,treePtrTy);
+    xl_new_closure = ExternFunction(FN(xl_new_closure),
+                                    treePtrTy, -2,
+                                    treePtrTy, LLVM_INTTYPE(uint));
+    xl_evaluate_children = ExternFunction(FN(xl_evaluate_children),
+                                          treePtrTy, -1, treePtrTy);
 }
 
 
@@ -1333,6 +1336,18 @@ Value *CompiledUnit::CallTypeError(Tree *what)
 {
     Value *ptr = ConstantTree(what); assert(what);
     Value *callVal = code->CreateCall(compiler->xl_type_error, ptr);
+    MarkComputed(what, callVal);
+    return callVal;
+}
+
+
+Value *CompiledUnit::CallEvaluateChildren(Tree *what)
+// ----------------------------------------------------------------------------
+//   Evaluate all children for a tree
+// ----------------------------------------------------------------------------
+{
+    Value *ptr = ConstantTree(what); assert(what);
+    Value *callVal = code->CreateCall(compiler->xl_evaluate_children, ptr);
     MarkComputed(what, callVal);
     return callVal;
 }

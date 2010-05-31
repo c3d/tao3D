@@ -346,6 +346,8 @@ PREFIX(TextEditKey, boolean, "text_edit_key", PARM(k, text),
        RTAO(textEditKey(self, k)))
 PREFIX(LoremIpsum, tree, "lorem_ipsum",PARM(w,integer),
        RTAO(loremIpsum(self,w)))
+PREFIX(LoadText, tree, "load_text",PARM(f,text),
+       RTAO(loadText(self,f)))
 
 
 

@@ -358,6 +358,7 @@ public:
     Tree_p      drawingBreak(Tree_p self, Drawing::BreakOrder order);
     Name_p      textEditKey(Tree_p self, text key);
     Text_p      loremIpsum(Tree_p self, Integer_p nwords);
+    Text_p      loadText(Tree_p self, text file);
 
     // Tables
     Tree_p      newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body);

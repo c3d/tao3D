@@ -163,6 +163,7 @@ void Application::updateSearchPathes()
         << currentProjectFolder + "/images"
         << currentProjectFolder;
 
+    QDir::setSearchPaths("doc", images_dir_list);
     QDir::setSearchPaths("image", images_dir_list);
     QDir::setSearchPaths("texture", images_dir_list);
     QDir::setSearchPaths("icon", images_dir_list);

@@ -4032,6 +4032,29 @@ XL::Text_p Widget::loremIpsum(Tree_p self, Integer_p nwords)
 }
 
 
+Text_p Widget::loadText(Tree_p self, text file)
+// ----------------------------------------------------------------------------
+//    Load a text file from disk
+// ----------------------------------------------------------------------------
+{
+    std::ostringstream output;
+    text qualified = "doc:" + file;
+    QFileInfo fileInfo(+qualified);
+    if (fileInfo.exists())
+    {
+        text path = +fileInfo.canonicalFilePath();
+        std::ifstream input(path.c_str());
+        while (input.good())
+        {
+            char c = input.get();
+            if (input.good())
+                output << c;
+        }
+    }
+    return new XL::Text(output.str());
+}
+
+
 
 // ============================================================================
 //

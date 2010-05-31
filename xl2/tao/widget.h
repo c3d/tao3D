@@ -507,6 +507,7 @@ private:
     friend class ControlPoint;
     friend class Renormalize;
     friend class Table;
+    friend class DeleteSelectionAction;
 
     typedef XL::LocalSave<QEvent *>             EventSave;
     typedef XL::LocalSave<Widget *>             TaoSave;
@@ -650,27 +651,27 @@ struct DeleteSelectionAction : XL::Action
     {
         if (widget->selected(what))
             return NULL;
-        return new Integer(what->value, what->Position());
+        return updateRef(what, new Integer(what->value, what->Position()));
     }
     Tree *DoReal(Real *what)
     {
         if (widget->selected(what))
             return NULL;
-        return new Real(what->value, what->Position());
+        return updateRef(what, new Real(what->value, what->Position()));
 
     }
     Tree *DoText(Text *what)
     {
         if (widget->selected(what))
             return NULL;
-        return new Text(what->value, what->opening, what->closing,
-                        what->Position());
+        return updateRef(what, new Text(what->value, what->opening, what->closing,
+                        what->Position()));
     }
     Tree *DoName(Name *what)
     {
         if (widget->selected(what))
             return NULL;
-        return new Name(what->value, what->Position());
+        return updateRef(what, new Name(what->value, what->Position()));
     }
 
     Tree *DoBlock(Block *what)
@@ -680,7 +681,8 @@ struct DeleteSelectionAction : XL::Action
         Tree *child = what->child->Do(this);
         if (!child)
             return NULL;
-        return new Block(child, what->opening, what->closing, what->Position());
+        return updateRef(what, new Block(child, what->opening, what->closing,
+                                         what->Position()));
     }
     Tree *DoInfix(XL::Infix *what)
     {
@@ -692,7 +694,8 @@ struct DeleteSelectionAction : XL::Action
             return left;
         if (!left)
             return right;
-        return new Infix(what->name, left, right, what->Position());
+        return updateRef(what, new Infix(what->name, left, right,
+                                         what->Position()));
     }
     Tree *DoPrefix(Prefix *what)
     {
@@ -704,7 +707,7 @@ struct DeleteSelectionAction : XL::Action
             return left;
         if (!left)
             return right;
-        return new Prefix(left, right, what->Position());
+        return updateRef(what, new Prefix(left, right, what->Position()));
     }
     Tree *DoPostfix(Postfix *what)
     {
@@ -716,13 +719,22 @@ struct DeleteSelectionAction : XL::Action
             return left;
         if (!left)
             return right;
-        return new Postfix(left, right, what->Position());
+        return updateRef(what, new Postfix(left, right, what->Position()));
     }
     Tree *Do(Tree *what)
     {
         return what;            // ??? Should not happen
     }
     Widget *widget;
+    Tree *updateRef(Tree *from, Tree *to)
+    {
+        // Check if we are possibly changing the page tree reference
+        if (widget->pageTree == from)
+            widget->pageTree = to;
+
+        return to;
+
+    }
 };
 
 

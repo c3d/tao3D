@@ -602,8 +602,12 @@ TextSpan *TextSpan::Break(BreakOrder &order)
         {
             charOrder = WordBreak;
             if (c == '\n')
+                charOrder = ParaBreak;
+            else if (c == '\r')
                 charOrder = LineBreak;
-        }
+            else if (c == '\f')
+                charOrder = SentenceBreak;
+       }
         if (order <= charOrder)
         {
             // Create two text spans, the first one containing the split

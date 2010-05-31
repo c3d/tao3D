@@ -324,6 +324,10 @@ PREFIX(Spacing, tree, "spacing",
        PARM(a, real), RTAO(spacing(self, a, 0)))
 PREFIX(VSpacing, tree, "vertical_spacing",
        PARM(a, real), RTAO(spacing(self, a, 1)))
+PREFIX(MinimumParagraphSpace, tree, "paragraph_space",
+       PARM(b, real) PARM(a, real), RTAO(minimumSpace(self, b, a, 1)))
+PREFIX(MinimumCharacterSpace, tree, "character_space",
+       PARM(b, real) PARM(a, real), RTAO(minimumSpace(self, b, a, 0)))
 PREFIX(Margins, tree, "margins", PARM(l, real) PARM(r, real),
        RTAO(horizontalMargins(self, l, r)))
 PREFIX(VMargins, tree, "vertical_margins", PARM(t, real) PARM(b, real),

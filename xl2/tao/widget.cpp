@@ -3924,6 +3924,16 @@ Tree_p Widget::spacing(Tree_p self, scale amount, uint axis)
 }
 
 
+Tree_p Widget::minimumSpace(Tree_p self, coord before, coord after, uint axis)
+// ----------------------------------------------------------------------------
+//   Define the paragraph or word space
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new MinimumSpacingChange(before, after, jaxis(axis)));
+    return XL::xl_true;
+}
+
+
 Tree_p Widget::horizontalMargins(Tree_p self, coord left, coord right)
 // ----------------------------------------------------------------------------
 //   Set the horizontal margin for text

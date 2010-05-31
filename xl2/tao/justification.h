@@ -198,10 +198,13 @@ bool Justifier<Item>::Adjust(coord start, coord end,
             scale spacing = justify.spacing;
             scale size = Size(item, layout) * spacing;
             coord offset = ItemOffset(item, layout);
-            if (firstElement && size < justify.before)
-                size = justify.before;
-            if (hadSeparator && size < justify.after)
-                size = justify.after;
+            if (hadSeparator && !firstElement && size > 0)
+            {
+                coord additional = justify.before;
+                if (additional < justify.after)
+                    additional = justify.after;
+                size += additional;
+            }
             if (sign * pos + size > sign * end && sign * pos > sign * start)
             {
                 // It doesn't fit, we need to stop here.

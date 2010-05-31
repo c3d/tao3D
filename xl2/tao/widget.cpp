@@ -2424,7 +2424,7 @@ XL::Integer_p Widget::pageCount(Tree_p self)
 //   Return the number of pages in the current document
 // ----------------------------------------------------------------------------
 {
-    return new Integer(pageTotal);
+    return new Integer(pageTotal ? pageTotal : 1);
 }
 
 

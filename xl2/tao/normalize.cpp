@@ -1,18 +1,18 @@
 // ****************************************************************************
 //  normalize.cpp                                                   Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     Put the XL program in 'normal' form, i.e. one that has some
 //     properties useful for editing purpose
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -57,6 +57,10 @@ Tree *Renormalize::Reselect(Tree *from, Tree *to)
     std::set<Tree_p> &nxSel = widget->selectNextTime;
     if (nxSel.count(from))
         nxSel.insert(to);
+
+    // Check if we are possibly changing the page tree reference
+    if (widget->pageTree == from)
+        widget->pageTree = to;
 
     return to;
 }

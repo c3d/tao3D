@@ -699,7 +699,7 @@ Name_p Widget::sendBackward(Tree_p /*self*/)
 
      Tree * tmp = NULL;
     // check if we are at the bottom of the tree
-    if (!current->right->AsInfix())
+    if (current->right == *sel)
     {
         tmp = current->right;
         current->right = current->left;
@@ -2556,7 +2556,7 @@ XL::Real_p Widget::every(Tree_p self,
     double active = fmod(elapsed, interval);
     double start = now - active;
     double delay = duty * interval;
-    
+
     if (active > delay)
     {
         if (pageRefresh > start + interval)

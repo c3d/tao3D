@@ -145,8 +145,9 @@ struct MapAction : Action
     Tree *  Map(Tree *what);
 
 public:
+    typedef Tree *      (*map_fn) (Tree *self, Tree *arg);
     Tree *              code;
-    eval_fn             function;
+    map_fn              function;
     std::set<text>      separators;
 };
 

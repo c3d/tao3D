@@ -1958,6 +1958,8 @@ Tree *CompileAction::DoName(Name *what)
             if (!what->Symbols())
                 what->SetSymbols(symbols);
             result = rw.Compile();
+            if (!result)
+                return result;
         }
 
         // Check if there is code we need to call

@@ -101,8 +101,23 @@ Tree *xl_map(Tree *data, Tree *code, text row, text column)
 {
     if (Name *name = data->AsName())
         data = xl_evaluate(name);
+    if (Block *block = data->AsBlock())
+    {
+        data = block->child;
+        if (!data->Symbols())
+            data->SetSymbols(block->Symbols());
+        if (!data->code)
+            data->code = xl_identity;
+    }
     if (!code)
         return data;
+    if (Block *codeBlock = code->AsBlock())
+    {
+        code = codeBlock->child;
+        if (!code->Symbols())
+            code->SetSymbols(codeBlock->Symbols());
+    }
+
     MapAction map(code, row, column);
     Tree *result = map.Map(data);
     return result;
@@ -771,10 +786,25 @@ Tree *MapAction::Map(Tree *data)
         Symbols *symbols = new Symbols(code->Symbols());
         eval_fn fn = NULL;
 
+        // Stuff to compile
         Tree *toCompile = code;
         Name *parameter = new Name("_");
         TreeList parameters;
         parameters.push_back(parameter);
+
+        // Check the case where we get x->sin x as input
+        if (Infix *infix = code->AsInfix())
+        {
+            if (infix->name == "->")
+            {
+                if (Name *name = infix->left->AsName())
+                {
+                    parameter->value = name->value;
+                    toCompile = infix->right;
+                }
+            }
+        }
+
 
         // Need to compile the prefix according to its type
         if (Name *name = code->AsName())
@@ -793,6 +823,7 @@ Tree *MapAction::Map(Tree *data)
         assert (!unit.IsForwardCall() || !"Forward call in map function");
 
         // Record internal declarations if any
+        symbols->Allocate(parameter);
         DeclarationAction declare(symbols);
         Tree *toDecl = toCompile->Do(declare);
         assert(toDecl);
@@ -818,7 +849,7 @@ Tree *MapAction::Map(Tree *data)
     }
 
     // The function we are going to use is the one we found
-    function = curry->function;
+    function = (map_fn) curry->function;
     if (!function)
         return Ooops("Unable to map with '$1'", code);
 
@@ -833,7 +864,7 @@ Tree *MapAction::Do(Tree *what)
 //   Apply the code to the given tree
 // ----------------------------------------------------------------------------
 {
-    return function(what);
+    return function(code, what);
 }
 
 
@@ -857,9 +888,6 @@ Tree *MapAction::DoInfix(Infix *infix)
     // Otherwise simply apply the function to the infix
     return Do(infix);
 }
-
-
-
 
 
 

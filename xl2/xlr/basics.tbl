@@ -145,7 +145,7 @@ PREFIX(LoadData,  tree, "load_data",
        return xl_load_data(f, p, fs, rs))
 PREFIX(Map, tree, "map", PARM(n, symbolicname) PARM(c, tree),
        return xl_map(&n,&c))       
-INFIX(InfixMap, tree, tree, "mapping", tree,
+INFIX(InfixMap, tree, tree, "with", tree,
       return xl_map(&r, &l))
 
 // Debugging code

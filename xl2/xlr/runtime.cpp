@@ -368,6 +368,9 @@ Tree *xl_type_error(Tree *what)
 //   Display message if we have a type error
 // ----------------------------------------------------------------------------
 {
+    bool quickExit = false;
+    if (quickExit)
+        return what;
     Symbols *syms = what->Symbols();
     if (!syms)
         syms = Symbols::symbols;

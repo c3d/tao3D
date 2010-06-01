@@ -1672,10 +1672,11 @@ Tree *EvaluateChildren::DoPrefix(Prefix *what)
 {
     Tree *left = Try(what->left);
     Tree *right = Try(what->right);
-    if (left == what->left && right == what->right)
-        return what;
-    Tree *result = new Prefix(left, right, what->Position());
-    result->code = xl_identity;
+    Tree *result = what;
+    if (left != what->left || right != what->right)
+        result = new Prefix(left, right, what->Position());
+    if (!result->code)
+        result->code = xl_evaluate_children;
     return result;
 }
 
@@ -1687,10 +1688,11 @@ Tree *EvaluateChildren::DoPostfix(Postfix *what)
 {
     Tree *left = Try(what->left);
     Tree *right = Try(what->right);
-    if (left == what->left && right == what->right)
-        return what;
-    Tree *result = new Postfix(left, right, what->Position());
-    result->code = xl_identity;
+    Tree *result = what;
+    if (left != what->left || right != what->right)
+        result = new Postfix(left, right, what->Position());
+    if (!result->code)
+        result->code = xl_evaluate_children;
     return result;
 }
 
@@ -1702,10 +1704,11 @@ Tree *EvaluateChildren::DoInfix(Infix *what)
 {
     Tree *left = Try(what->left);
     Tree *right = Try(what->right);
-    if (left == what->left && right == what->right)
-        return what;
-    Tree *result = new Infix(what->name, left, right, what->Position());
-    result->code = xl_identity;
+    Tree *result = what;
+    if (left != what->left || right != what->right)
+        result = new Infix(what->name, left, right, what->Position());
+    if (!result->code)
+        result->code = xl_evaluate_children;
     return result;
 }
 
@@ -1716,12 +1719,12 @@ Tree *EvaluateChildren::DoBlock(Block *what)
 // ----------------------------------------------------------------------------
 {
     Tree *child = Try(what->child);
-    if (child == what->child)
-        return what;
-    Tree *result = new Block(child,
-                             what->opening,what->closing,
-                             what->Position());
-    result->code = xl_identity;
+    Tree *result = what;
+    if (child != what->child)
+        result = new Block(child, what->opening,what->closing,
+                           what->Position());
+    if (!result->code)
+        result->code = xl_evaluate_children;
     return result;
 }
 

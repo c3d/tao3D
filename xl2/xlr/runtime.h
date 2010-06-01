@@ -26,6 +26,7 @@
 
 #include "base.h"
 #include "tree.h"
+#include <set>
 
 
 XL_BEGIN
@@ -52,6 +53,7 @@ struct Postfix;
 Tree *xl_identity(Tree *);
 Tree *xl_evaluate(Tree *);
 Tree *xl_repeat(Tree *self, Tree *code, longlong count);
+Tree *xl_map(Tree *data, Tree *code, text row = "\n", text column = ",");
 Tree *xl_source(Tree *);
 Tree *xl_set_source(Tree *val, Tree *src);
 bool  xl_same_text(Tree * , const char *);
@@ -120,6 +122,49 @@ public:
 };
 
 
+
+// ============================================================================
+// 
+//    Actions used for mapping
+// 
+// ============================================================================
+
+struct MapAction : Action
+// ----------------------------------------------------------------------------
+//   Map a given code onto each element
+// ----------------------------------------------------------------------------
+{
+    MapAction(Tree *code);
+    MapAction(Tree *code, text separator);
+    MapAction(Tree *code, text row, text column);
+
+    virtual Tree *Do(Tree *what);
+
+    virtual Tree *DoInfix(Infix *what);
+
+    Tree *  Map(Tree *what);
+
+public:
+    Tree *              code;
+    eval_fn             function;
+    std::set<text>      separators;
+};
+
+
+struct CurryFunctionInfo : Info
+// ----------------------------------------------------------------------------
+//   Hold a single-argument function for a given tree
+// ----------------------------------------------------------------------------
+//   REVISIT: According to Wikipedia, really a Moses Schönfinkel function
+{
+    CurryFunctionInfo(): function(NULL), symbols(NULL) {}
+    Tree_p      code;
+    eval_fn     function;
+    Symbols_p   symbols;
+};
+
+
+
 // ============================================================================
 // 
 //   Stack depth management
@@ -165,8 +210,8 @@ protected:
 // ============================================================================
 
 Tree *xl_load(text name);
-Tree *xl_load_csv(text name);
-Tree *xl_load_tsv(text name);
+Tree *xl_load_data(text name, text prefix,
+                   text fieldSeps = ",;", text recordSeps = "\n");
 
 
 

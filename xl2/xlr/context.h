@@ -394,9 +394,9 @@ struct ArgumentMatch : Action
 {
     ArgumentMatch (Tree *t,
                    Symbols *s, Symbols *l, Symbols *r,
-                   CompileAction *comp):
+                   CompileAction *comp, bool data):
         symbols(s), locals(l), rewrite(r),
-        test(t), defined(NULL), compile(comp), unit(comp->unit) {}
+        test(t), defined(NULL), compile(comp), unit(comp->unit), data(data) {}
 
     // Action callbacks
     virtual Tree *Do(Tree *what);
@@ -422,6 +422,7 @@ public:
     Tree_p         defined;     // Tree beind defined, e.g. 'sin' in 'sin X'
     CompileAction *compile;     // Action in which we are compiling
     CompiledUnit  &unit;        // JIT compiler compilation unit
+    bool           data;        // Is a data form
 };
 
 

@@ -1324,7 +1324,7 @@ Tree *ArgumentMatch::DoName(Name *what)
             // Check if the test is an identity
             if (Name *nt = test->AsName())
             {
-                if (nt->code == xl_identity)
+                if (nt->code == xl_identity || data)
                 {
                     if (nt->value == what->value)
                         return what;
@@ -2160,7 +2160,7 @@ Tree *  CompileAction::Rewrites(Tree *what)
                 Symbols args(symbols);
                 ArgumentMatch matchArgs(what,
                                         symbols, &args, candidate->symbols,
-                                        this);
+                                        this, !candidate->to);
                 Tree *argsTest = candidate->from->Do(matchArgs);
                 if (argsTest)
                 {

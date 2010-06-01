@@ -94,8 +94,12 @@ GLuint ImageTextureInfo::bind(text file)
             textures.erase(textures.begin());
 
         // Read the image file and convert to proper GL image format
-        text qualified = "texture:" + file;
-        QImage original(+qualified);
+        QImage original(+file);
+        if (original.isNull())
+        {
+            text qualified = "texture:" + file;
+            original.load(+qualified);
+        }
         if (!original.isNull())
         {
             width = original.width();

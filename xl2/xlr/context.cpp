@@ -1711,7 +1711,10 @@ Tree *EvaluateChildren::Try(Tree *what)
     {
         Tree *compiled = symbols->CompileAll(what, true);
         if (!compiled)
+        {
+            what->code = xl_evaluate_children;
             return what->Do(this);
+        }
         compiled = what;
     }
     return symbols->Run(what);
@@ -2357,7 +2360,7 @@ Tree *Rewrite::Compile(void)
 
     // Even if technically, this is not an 'eval_fn' (it has more args),
     // we still record it to avoid recompiling multiple times
-    eval_fn fn = compile.unit.Finalize();
+    eval_fn fn = unit.Finalize();
     to->code = fn;
 
     return to;

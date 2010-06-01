@@ -31,9 +31,9 @@
 TAO_BEGIN
 
 // ============================================================================
-// 
+//
 //   Specializations for the Justifier computations
-// 
+//
 // ============================================================================
 
 template<> inline line_t Justifier<line_t>::Break(line_t item,
@@ -329,7 +329,7 @@ LayoutLine *LayoutLine::Break(BreakOrder &order)
                 if (next || order < itemOrder)
                 {
                     order = itemOrder;
-                    
+
                     // Append what remains after line break to the new layout
                     LayoutLine *result = new LayoutLine(*this);
                     if (next)
@@ -339,18 +339,18 @@ LayoutLine *LayoutLine::Break(BreakOrder &order)
                         LineJustifier::Place &source = *pcopy;
                         result->Add(source.item);
                     }
-                    
+
                     // Also transfers the leftover items
                     result->Add(items.begin(), items.end());
                     items.clear();
-                    
+
                     // Erase what we transferred to the next line
                     places.erase(p+1, places.end());
-                    
+
                     // Return the new line
                     return result;
                 } // if (next)
-                
+
                 item = next;
             } // while(item)
         } // for (all places)
@@ -849,9 +849,9 @@ PageLayout *PageLayout::Remaining()
 
 
 // ============================================================================
-// 
+//
 //    PageLayoutOverflow: Overflow for a page layout
-// 
+//
 // ============================================================================
 
 PageLayoutOverflow::PageLayoutOverflow(const Box &bounds,
@@ -863,7 +863,7 @@ PageLayoutOverflow::PageLayoutOverflow(const Box &bounds,
       widget(widget), flowName(flowName), child(NULL)
 {}
 
-    
+
 PageLayoutOverflow::~PageLayoutOverflow()
 // ----------------------------------------------------------------------------
 //    If we got a child, then we need to delete it
@@ -937,9 +937,9 @@ void PageLayoutOverflow::Identify(Layout *where)
 
 
 // ============================================================================
-// 
+//
 //    AnchorLayout: A layout used to anchor shapes in another layout
-// 
+//
 // ============================================================================
 
 AnchorLayout::AnchorLayout(Widget *widget)

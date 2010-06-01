@@ -139,8 +139,12 @@ void Window::setHtml(QString txt)
     hsb->setValue(x);
     vsb->setValue(y);
     QTextCursor cursor(textEdit->document());
-    cursor.setPosition(pos);
-    textEdit->setTextCursor(cursor);
+    int last = textEdit->document()->characterCount();
+    if (pos < last)
+    {
+        cursor.setPosition(pos);
+        textEdit->setTextCursor(cursor);
+    }
     textEdit->update();
 }
 

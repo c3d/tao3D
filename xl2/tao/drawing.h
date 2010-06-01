@@ -54,7 +54,8 @@ struct Drawing
     enum BreakOrder
     {
         NoBreak,
-        CharBreak, WordBreak, LineBreak, ColumnBreak, PageBreak,
+        CharBreak, WordBreak, SentenceBreak, LineBreak, ParaBreak,
+        ColumnBreak, PageBreak,
         AnyBreak
     };
     virtual Drawing *   Break(BreakOrder &order);

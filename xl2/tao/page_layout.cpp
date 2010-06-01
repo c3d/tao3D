@@ -38,6 +38,7 @@ TAO_BEGIN
 
 template<> inline line_t Justifier<line_t>::Break(line_t item,
                                                   bool *hadBreak,
+                                                  bool *hadSep,
                                                   bool *done)
 // ----------------------------------------------------------------------------
 //   For drawings, we break at word boundaries
@@ -45,7 +46,8 @@ template<> inline line_t Justifier<line_t>::Break(line_t item,
 {
     Drawing::BreakOrder order = Drawing::WordBreak;
     line_t result = item->Break(order);
-    *done = order > Drawing::WordBreak;
+    *done = order > Drawing::SentenceBreak;
+    *hadSep = order > Drawing::WordBreak;
     *hadBreak = order != Drawing::NoBreak;
     return result;
 }
@@ -99,6 +101,7 @@ template<> inline coord Justifier<line_t>::ItemOffset(line_t item, Layout *l)
 
 template<> inline page_t Justifier<page_t>::Break(page_t line,
                                                   bool *hadBreak,
+                                                  bool *hadSep,
                                                   bool *done)
 // ----------------------------------------------------------------------------
 //   For lines, we break at line boundaries
@@ -106,7 +109,8 @@ template<> inline page_t Justifier<page_t>::Break(page_t line,
 {
     Drawing::BreakOrder order = Drawing::LineBreak;
     page_t result = line->Break(order);
-    *done = order > Drawing::LineBreak;
+    *done = order > Drawing::ParaBreak;
+    *hadSep = order > Drawing::LineBreak;
     *hadBreak = order != Drawing::NoBreak;
     return result;
 }
@@ -341,7 +345,7 @@ LayoutLine *LayoutLine::Break(BreakOrder &order)
                     items.clear();
                     
                     // Erase what we transferred to the next line
-                    places.erase(p, places.end());
+                    places.erase(p+1, places.end());
                     
                     // Return the new line
                     return result;
@@ -783,7 +787,8 @@ void PageLayout::Inherit(Layout *other)
 //    Make sure we also inherit the surrounding layout's ID
 // ----------------------------------------------------------------------------
 {
-    id = other->id;
+    if (other)
+        id = other->id;
     Layout::Inherit(other);
 }
 

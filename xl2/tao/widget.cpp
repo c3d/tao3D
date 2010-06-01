@@ -700,7 +700,7 @@ Name_p Widget::sendBackward(Tree_p /*self*/)
 
      Tree * tmp = NULL;
     // check if we are at the bottom of the tree
-    if (!current->right->AsInfix())
+    if (current->right == *sel)
     {
         tmp = current->right;
         current->right = current->left;
@@ -2425,7 +2425,7 @@ XL::Integer_p Widget::pageCount(Tree_p self)
 //   Return the number of pages in the current document
 // ----------------------------------------------------------------------------
 {
-    return new Integer(pageTotal);
+    return new Integer(pageTotal ? pageTotal : 1);
 }
 
 
@@ -2557,7 +2557,7 @@ XL::Real_p Widget::every(Tree_p self,
     double active = fmod(elapsed, interval);
     double start = now - active;
     double delay = duty * interval;
-    
+
     if (active > delay)
     {
         if (pageRefresh > start + interval)
@@ -2769,6 +2769,17 @@ Tree_p Widget::refresh(Tree_p self, double delay)
 }
 
 
+XL::Name_p Widget::showSource(XL::Tree_p self, bool show)
+// ----------------------------------------------------------------------------
+//   Switch to full screen
+// ----------------------------------------------------------------------------
+{
+    Window *window = (Window *) parentWidget();
+    bool old = window->showSourceView(show);
+    return old ? XL::xl_true : XL::xl_false;
+}
+
+
 XL::Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
 // ----------------------------------------------------------------------------
 //   Switch to full screen
@@ -2778,6 +2789,15 @@ XL::Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
     Window *window = (Window *) parentWidget();
     window->switchToFullScreen(fs);
     return oldFs ? XL::xl_true : XL::xl_false;
+}
+
+
+XL::Name_p Widget::toggleFullScreen(XL::Tree_p self)
+// ----------------------------------------------------------------------------
+//   Switch to full screen
+// ----------------------------------------------------------------------------
+{
+    return fullScreen(self, !isFullScreen());
 }
 
 
@@ -2791,15 +2811,6 @@ XL::Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
     if (oldFs != fs)
         window->toggleAnimations();
     return oldFs ? XL::xl_true : XL::xl_false;
-}
-
-
-XL::Name_p Widget::toggleFullScreen(XL::Tree_p self)
-// ----------------------------------------------------------------------------
-//   Switch to full screen
-// ----------------------------------------------------------------------------
-{
-    return fullScreen(self, !isFullScreen());
 }
 
 
@@ -3914,6 +3925,16 @@ Tree_p Widget::spacing(Tree_p self, scale amount, uint axis)
 }
 
 
+Tree_p Widget::minimumSpace(Tree_p self, coord before, coord after, uint axis)
+// ----------------------------------------------------------------------------
+//   Define the paragraph or word space
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new MinimumSpacingChange(before, after, jaxis(axis)));
+    return XL::xl_true;
+}
+
+
 Tree_p Widget::horizontalMargins(Tree_p self, coord left, coord right)
 // ----------------------------------------------------------------------------
 //   Set the horizontal margin for text
@@ -4008,6 +4029,30 @@ XL::Text_p Widget::loremIpsum(Tree_p self, Integer_p nwords)
         *i = '.';
 
     return new XL::Text(ret);
+}
+
+
+Text_p Widget::loadText(Tree_p self, text file)
+// ----------------------------------------------------------------------------
+//    Load a text file from disk
+// ----------------------------------------------------------------------------
+{
+    std::ostringstream output;
+    text qualified = "doc:" + file;
+    QFileInfo fileInfo(+qualified);
+    if (fileInfo.exists())
+    {
+        text path = +fileInfo.canonicalFilePath();
+        std::ifstream input(path.c_str());
+        while (input.good())
+        {
+            char c = input.get();
+            if (input.good())
+                output << c;
+        }
+    }
+    text contents = output.str();
+    return new XL::Text(contents);
 }
 
 

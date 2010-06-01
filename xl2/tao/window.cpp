@@ -71,7 +71,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
     dock->setWidget(textEdit);
     addDockWidget(Qt::RightDockWidgetArea, dock);
     connect(dock, SIGNAL(visibilityChanged(bool)),
-            this, SLOT(toggleSourceView(bool)));
+            this, SLOT(sourceViewBecameVisible(bool)));
 
     // Create the error reporting widget
     errorDock = new QDockWidget(tr("Errors"));
@@ -211,7 +211,7 @@ void Window::toggleAnimations()
 }
 
 
-void Window::toggleSourceView(bool visible)
+void Window::sourceViewBecameVisible(bool visible)
 // ----------------------------------------------------------------------------
 //   Source code view is shown or hidden
 // ----------------------------------------------------------------------------
@@ -1185,6 +1185,17 @@ void Window::switchToFullScreen(bool fs)
         editToolBar->show();
         setUnifiedTitleAndToolBarOnMac(true);
     }
+}
+
+
+bool Window::showSourceView(bool show)
+// ----------------------------------------------------------------------------
+//   Show or hide source view
+// ----------------------------------------------------------------------------
+{
+    bool old = dock->isVisible();
+    dock->setVisible(show);
+    return old;
 }
 
 

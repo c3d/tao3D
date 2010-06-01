@@ -230,6 +230,7 @@ public:
     // Preserving attributes
     Tree_p      locally(Tree_p self, Tree_p t);
     Tree_p      shape(Tree_p self, Tree_p t);
+    Tree_p      activeWidget(Tree_p self, Tree_p t);
     Tree_p      anchor(Tree_p self, Tree_p t);
 
     // Transforms

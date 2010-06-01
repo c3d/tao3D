@@ -30,6 +30,7 @@
 TAO_BEGIN
 
 struct GraphicPath;
+struct WidgetSurface;
 
 struct Shape : Drawing
 // ----------------------------------------------------------------------------
@@ -76,8 +77,10 @@ struct ClickThroughRectangle : Rectangle
 //    A rectangle that cannot be clicked into
 // ----------------------------------------------------------------------------
 {
-    ClickThroughRectangle(const Box &b): Rectangle(b) {}
+    ClickThroughRectangle(const Box &b, WidgetSurface *s)
+        : Rectangle(b), surface(s) {}
     virtual void        DrawSelection(Layout *where);
+    WidgetSurface *surface;
 };
 
 

@@ -27,6 +27,7 @@
 #include "path3d.h"
 #include "gl_keepers.h"
 #include "application.h"
+#include "widget_surface.h"
 #include <GL/glew.h>
 #include <QtOpenGL>
 #include <QPainterPath>
@@ -172,7 +173,7 @@ void PlaceholderRectangle::Draw(Layout *where)
     glColor4f(0.3, 0.7, 0.9, 0.7);
     glLineWidth(1);
     glDisable(GL_LINE_STIPPLE);
-    
+
     where->PolygonOffset();
     path.Draw(where->Offset(), GL_LINE_STRIP, 0);
 }
@@ -195,11 +196,19 @@ void PlaceholderRectangle::Draw(GraphicPath &path)
 }
 
 
-void ClickThroughRectangle::DrawSelection (Layout *)
+void ClickThroughRectangle::DrawSelection (Layout *layout)
 // ----------------------------------------------------------------------------
-//   This is where we draw nothing
+//   Pass clicks through to the widget
 // ----------------------------------------------------------------------------
-{}   
+{ 
+    Widget *widget = layout->Display();
+    bool selected = widget->selected(layout);
+    if (selected)
+    {
+        Point center = bounds.Center();
+        surface->requestFocus(layout, center.x, center.y);
+    }   
+}
 
 
 void IsoscelesTriangle::Draw(GraphicPath &path)
@@ -238,7 +247,7 @@ void RoundedRectangle::Draw(GraphicPath &path)
     int sh = h > 0? 1: -1;
     double pw = sw*w;
     double ph = sh*h;
-    
+
     if (pw < ph)
     {
         if (r > pw / 2)
@@ -284,7 +293,7 @@ void EllipticalRectangle::Draw(GraphicPath &path)
         ellipse.addEllipse(bounds.lower.x, bounds.lower.y,
                            bounds.Width(), bounds.Height());
         path.addQtPath(ellipse);
-    } 
+    }
     else if (r > 1.0)
     {
         path.moveTo(Point3(bounds.lower.x, bounds.lower.y, 0));
@@ -366,22 +375,22 @@ void Arrow::Draw(GraphicPath &path)
     coord aax, aay;
     int sw = bounds.Width() > 0? 1: -1;
 
-    if (ax > sw*bounds.Width()) 
+    if (ax > sw*bounds.Width())
         aax = bounds.Width();
     else
         aax = sw*ax;
-    
-    if (ax < 0.0) 
+
+    if (ax < 0.0)
         aax = 0.0;
 
-    if (ary > 1.0) 
+    if (ary > 1.0)
         aay = bounds.Height();
     else
         aay = ary*bounds.Height();
-    
-    if (ary < 0.0) 
+
+    if (ary < 0.0)
         aay = 0.0;
- 
+
     coord x0 = bounds.Left();
     coord x1 = bounds.Right();
     coord xa1 = x1 - aax;
@@ -422,22 +431,22 @@ void DoubleArrow::Draw(GraphicPath &path)
     coord aax, aay;
     int sw = bounds.Width() > 0? 1: -1;
 
-    if (ax > sw*bounds.Width()/2) 
+    if (ax > sw*bounds.Width()/2)
         aax = bounds.Width()/2;
     else
         aax = sw*ax;
-    
-    if (ax < 0.0) 
+
+    if (ax < 0.0)
         aax = 0.0;
 
-    if (ary > 1.0) 
+    if (ary > 1.0)
         aay = bounds.Height();
     else
         aay = ary*bounds.Height();
-    
-    if (ary < 0.0) 
+
+    if (ary < 0.0)
         aay = 0.0;
- 
+
     coord x0 = bounds.lower.x;
     coord x1 = bounds.upper.x;
     coord xa0 = x0 + aax;
@@ -521,10 +530,10 @@ void StarPolygon::Draw(GraphicPath &path)
                 path.lineTo(Point3(x1, y1, 0));
             else
                 path.moveTo(Point3(x1, y1, 0));
-            
+
             path.lineTo(Point3(x2, y2, 0));
 
-            
+
         }
         path.close();
     }
@@ -532,7 +541,7 @@ void StarPolygon::Draw(GraphicPath &path)
     {
         double a      = 0;
         double da     = 2 * M_PI * q / p;
-        
+
         for (int i = 0; i <= p; i++)
         {
             if (2*i == p)
@@ -583,9 +592,9 @@ void Star::Draw(GraphicPath &path)
 //   Draw a regular polygon or a star
 // ----------------------------------------------------------------------------
 {
-    if (r < 0.0) 
+    if (r < 0.0)
         r = 0.0;
-    if (r > 1.0) 
+    if (r > 1.0)
         r = 1.0;
     if (p < 3)
         p = 3;
@@ -612,7 +621,7 @@ void Star::Draw(GraphicPath &path)
             path.lineTo(Point3(x1, y1, 0));
         else
             path.moveTo(Point3(x1, y1, 0));
-        
+
         path.lineTo(Point3(x2, y2, 0));
 
     }
@@ -642,7 +651,7 @@ void SpeechBalloon::Draw(GraphicPath &path)
     coord h = bounds.Height();
     int sw = w > 0? 1: -1;
     int sh = h > 0? 1: -1;
-    double rx = r; 
+    double rx = r;
     double ry = r;
     if (r > sw * w/2)
         rx = sw * w/2;
@@ -651,7 +660,7 @@ void SpeechBalloon::Draw(GraphicPath &path)
 
     QPainterPath balloon;
     balloon.addRoundedRect(bounds.lower.x, bounds.lower.y, w, h, rx, ry);
- 
+
     double tx = a.x - c.x;
     double ty = a.y - c.y;
     int stx = tx > 0? 1: -1;
@@ -711,7 +720,7 @@ void Callout::Draw(GraphicPath &path)
     int sh = h > 0? 1: -1;
     double pw = sw*w;
     double ph = sh*h;
-    
+
     if (pw < ph)
     {
         if (r > pw/2)
@@ -726,7 +735,7 @@ void Callout::Draw(GraphicPath &path)
     QPainterPath rect;
     rect.addRoundedRect(bounds.lower.x, bounds.lower.y,
                         w, h, r, r);
-    
+
     double tx = a.x - c.x;
     double ty = a.y - c.y;
     int stx = tx > 0? 1: -1;
@@ -767,7 +776,7 @@ void Callout::Draw(GraphicPath &path)
         cr.x = c.x + stx*(pw/2-r);
         cr.y = c.y + sty*(ph/2-r);
         Vector tr = a - cr;
-        if (tr.Length() <= r) 
+        if (tr.Length() <= r)
         {
             inside = true;
         }
@@ -794,7 +803,7 @@ void Callout::Draw(GraphicPath &path)
         if (pty <= (ph-mrd)/2)
         {
             // Horizontal tail
-            cd.x = c.x + stx*(pw-mrd)/2; 
+            cd.x = c.x + stx*(pw-mrd)/2;
             cd.y = c.y + sty*(pty < (ph-mrd)/2? pty: (ph-mrd)/2);
 
             td = a - cd;
@@ -802,7 +811,7 @@ void Callout::Draw(GraphicPath &path)
 
             d1.x = cd.x + stx*d/2*sin(theta);
             d1.y = cd.y + d/2*cos(theta);
- 
+
             d2.x = cd.x + stx*d/2*sin(theta);
             d2.y = cd.y - d/2*cos(theta);
         }
@@ -810,32 +819,32 @@ void Callout::Draw(GraphicPath &path)
         {
             // Vertical tail
             cd.x = c.x + stx*(ptx < (pw-mrd)/2? ptx: (pw-mrd)/2);
-            cd.y = c.y + sty*(ph-mrd)/2; 
-            
+            cd.y = c.y + sty*(ph-mrd)/2;
+
             td = a - cd;
             theta = asin(d/2/td.Length());
 
             d1.x = cd.x + d/2*cos(theta);
             d1.y = cd.y + sty*d/2*sin(theta);
- 
+
             d2.x = cd.x - d/2*cos(theta);
             d2.y = cd.y + sty*d/2*sin(theta);
         }
-        else 
+        else
         {
             // Tail with an angle
             cd.x = c.x + stx*(pw-mrd)/2;
             cd.y = c.y + sty*(ph-mrd)/2;
-            
+
             td = a - cd;
             theta = asin(d/2/td.Length());
-            
+
             td.Normalize();
             beta = sty*acos(td.x);
 
             d1.x = cd.x + d/2*cos(beta+(M_PI_2-theta));
             d1.y = cd.y + d/2*sin(beta+(M_PI_2-theta));
- 
+
             d2.x = cd.x + d/2*cos(beta-(M_PI_2-theta));
             d2.y = cd.y + d/2*sin(beta-(M_PI_2-theta));
         }

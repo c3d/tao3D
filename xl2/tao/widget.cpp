@@ -2602,6 +2602,23 @@ Tree_p Widget::shape(Tree_p self, Tree_p child)
 }
 
 
+Tree_p Widget::activeWidget(Tree_p self, Tree_p child)
+// ----------------------------------------------------------------------------
+//   Create a context for active widgets, e.g. buttons
+// ----------------------------------------------------------------------------
+{
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(newId()));
+    XL::LocalSave<Tree_p>   saveShape (currentShape, NULL);
+    if (selectNextTime.count(self))
+    {
+        selection[id]++;
+        selectNextTime.erase(self);
+    }
+    Tree_p result = xl_evaluate(child);
+    return result;
+}
+
+
 Tree_p Widget::anchor(Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Anchor a set of shapes to the current position
@@ -4385,7 +4402,7 @@ Tree_p Widget::urlPaint(Tree_p self,
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     urlTexture(self, w, h, url, progress);
     WebViewSurface *surface = url->GetInfo<WebViewSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
@@ -4429,7 +4446,7 @@ Tree_p Widget::lineEdit(Tree_p self,
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     lineEditTexture(self, w, h, txt);
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
@@ -4592,7 +4609,7 @@ Tree_p Widget::abstractButton(Tree_p self, Text_p name,
     AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
 
     if (currentGroup &&
-        ! currentGroup->buttons().contains((QAbstractButton*)surface->widget))
+        !currentGroup->buttons().contains((QAbstractButton*)surface->widget))
     {
         currentGroup->addButton((QAbstractButton*)surface->widget);
     }
@@ -4603,7 +4620,7 @@ Tree_p Widget::abstractButton(Tree_p self, Text_p name,
         return XL::xl_true;
     }
 
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
 
@@ -4860,7 +4877,7 @@ Tree_p Widget::colorChooser(Tree_p self,
     colorChooserTexture(self, w, h, action);
 
     ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
@@ -4906,7 +4923,7 @@ Tree_p Widget::fontChooser(Tree_p self,
     fontChooserTexture(self, w, h, action);
 
     FontChooserSurface *surface = self->GetInfo<FontChooserSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
@@ -5131,7 +5148,7 @@ Tree_p Widget::fileChooser(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
     fileChooserTexture(self, w, h, properties);
 
     FileChooserSurface *surface = self->GetInfo<FileChooserSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
@@ -5220,7 +5237,7 @@ Tree_p Widget::groupBox(Tree_p self,
     groupBoxTexture(self, w, h, lbl);
 
     GroupBoxSurface *surface = self->GetInfo<GroupBoxSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
 
@@ -5276,7 +5293,7 @@ Tree_p Widget::videoPlayer(Tree_p self,
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     videoPlayerTexture(self, w, h, url);
     VideoPlayerSurface *surface = self->GetInfo<VideoPlayerSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
 

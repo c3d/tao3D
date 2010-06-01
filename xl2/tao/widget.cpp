@@ -57,6 +57,7 @@
 #include "serializer.h"
 #include "binpack.h"
 #include "normalize.h"
+#include "error_message_dialog.h"
 
 #include <QToolButton>
 #include <QtGui/QImage>
@@ -2424,7 +2425,7 @@ XL::Integer_p Widget::pageCount(Tree_p self)
 //   Return the number of pages in the current document
 // ----------------------------------------------------------------------------
 {
-    return new Integer(pageTotal);
+    return new Integer(pageTotal ? pageTotal : 1);
 }
 
 
@@ -3924,6 +3925,16 @@ Tree_p Widget::spacing(Tree_p self, scale amount, uint axis)
 }
 
 
+Tree_p Widget::minimumSpace(Tree_p self, coord before, coord after, uint axis)
+// ----------------------------------------------------------------------------
+//   Define the paragraph or word space
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new MinimumSpacingChange(before, after, jaxis(axis)));
+    return XL::xl_true;
+}
+
+
 Tree_p Widget::horizontalMargins(Tree_p self, coord left, coord right)
 // ----------------------------------------------------------------------------
 //   Set the horizontal margin for text
@@ -3975,6 +3986,73 @@ XL::Name_p Widget::textEditKey(Tree_p self, text key)
 
     for (Activity *a = activities; a; a = a->Key(key)) ;
     return XL::xl_true;
+}
+
+
+XL::Text_p Widget::loremIpsum(Tree_p self, Integer_p nwords)
+// ----------------------------------------------------------------------------
+//    Generate arbitrary length dummy text based on the well-known sequence
+// ----------------------------------------------------------------------------
+{
+    if (!nwords)
+        return new XL::Text("");
+
+    static struct LoremWords {
+        LoremWords()
+        {
+            using namespace std;
+            string lorem =
+            "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do "
+            "eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut "
+            "enim ad minim veniam, quis nostrud exercitation ullamco laboris "
+            "nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor "
+            "in reprehenderit in voluptate velit esse cillum dolore eu fugiat "
+            "nulla pariatur. Excepteur sint occaecat cupidatat non proident, "
+            "sunt in culpa qui officia deserunt mollit anim id est laborum.";
+            istringstream iss(lorem);
+            std::copy(istream_iterator<string>(iss),
+                      istream_iterator<string>(),
+                      back_inserter<vector<string> >(words));
+        }
+        std::vector<std::string> words;
+    } lorem;
+
+    std::string ret = lorem.words[0];
+    int size = lorem.words.size();
+    for (int i = 1; i < nwords; i++)
+        ret += " " + lorem.words[i % size];
+
+    std::string::reverse_iterator i = ret.rbegin();
+    if (!ispunct(*i))
+        ret += ".";
+    else if (*i != '.')
+        *i = '.';
+
+    return new XL::Text(ret);
+}
+
+
+Text_p Widget::loadText(Tree_p self, text file)
+// ----------------------------------------------------------------------------
+//    Load a text file from disk
+// ----------------------------------------------------------------------------
+{
+    std::ostringstream output;
+    text qualified = "doc:" + file;
+    QFileInfo fileInfo(+qualified);
+    if (fileInfo.exists())
+    {
+        text path = +fileInfo.canonicalFilePath();
+        std::ifstream input(path.c_str());
+        while (input.good())
+        {
+            char c = input.get();
+            if (input.good())
+                output << c;
+        }
+    }
+    text contents = output.str();
+    return new XL::Text(contents);
 }
 
 

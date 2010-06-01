@@ -174,6 +174,18 @@ struct SpacingChange : JustificationChange
 };
 
 
+struct MinimumSpacingChange : JustificationChange
+// ----------------------------------------------------------------------------
+//   Change a spacing attribute - Y axis is for line spacing
+// ----------------------------------------------------------------------------
+{
+    MinimumSpacingChange(float b, float a, Axis x)
+        : JustificationChange(a, x), before(b) {}
+    virtual void Draw(Layout *where);
+    coord before;
+};
+
+
 struct HorizontalMarginChange : Attribute
 // ----------------------------------------------------------------------------
 //   Change the horizontal text margin

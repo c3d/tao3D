@@ -22,6 +22,7 @@
 
 #include "svg.h"
 #include "tao_utf8.h"
+#include "application.h"
 
 
 TAO_BEGIN
@@ -91,7 +92,8 @@ GLuint SvgRendererInfo::bind (text file)
     if (r)
     {
         glDisable(GL_TEXTURE_2D);
-        glDisable(GL_MULTISAMPLE);
+        if (TaoApp->hasGLMultisample)
+            glDisable(GL_MULTISAMPLE);
         FramePainter painter(this);
         r->render(&painter);
     }

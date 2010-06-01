@@ -352,10 +352,13 @@ public:
     Tree_p      center(Tree_p self, scale amount, uint axis);
     Tree_p      spread(Tree_p self, scale amount, uint axis);
     Tree_p      spacing(Tree_p self, scale amount, uint axis);
+    Tree_p      minimumSpace(Tree_p self, coord before, coord after, uint ax);
     Tree_p      horizontalMargins(Tree_p self, coord left, coord right);
     Tree_p      verticalMargins(Tree_p self, coord top, coord bottom);
     Tree_p      drawingBreak(Tree_p self, Drawing::BreakOrder order);
     Name_p      textEditKey(Tree_p self, text key);
+    Text_p      loremIpsum(Tree_p self, Integer_p nwords);
+    Text_p      loadText(Tree_p self, text file);
 
     // Tables
     Tree_p      newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body);
@@ -535,6 +538,7 @@ private:
     QGridLayout *         currentGridLayout;
     GroupInfo   *         currentGroup;
     GlyphCache            glyphCache;
+    bool                  hasGLMultisample;
 
     // Selection
     Activity *            activities;

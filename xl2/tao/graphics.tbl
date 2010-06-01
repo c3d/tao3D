@@ -324,18 +324,30 @@ PREFIX(Spacing, tree, "spacing",
        PARM(a, real), RTAO(spacing(self, a, 0)))
 PREFIX(VSpacing, tree, "vertical_spacing",
        PARM(a, real), RTAO(spacing(self, a, 1)))
+PREFIX(MinimumParagraphSpace, tree, "paragraph_space",
+       PARM(b, real) PARM(a, real), RTAO(minimumSpace(self, b, a, 1)))
+PREFIX(MinimumCharacterSpace, tree, "character_space",
+       PARM(b, real) PARM(a, real), RTAO(minimumSpace(self, b, a, 0)))
 PREFIX(Margins, tree, "margins", PARM(l, real) PARM(r, real),
        RTAO(horizontalMargins(self, l, r)))
 PREFIX(VMargins, tree, "vertical_margins", PARM(t, real) PARM(b, real),
        RTAO(verticalMargins(self, t, b)))
 PREFIX(LineBreak, tree, "line_break",,
        RTAO(drawingBreak(self, Tao::Drawing::LineBreak)))
+PREFIX(SentenceBreak, tree, "sentence_break",,
+       RTAO(drawingBreak(self, Tao::Drawing::SentenceBreak)))
+PREFIX(ParaBreak, tree, "paragraph_break",,
+       RTAO(drawingBreak(self, Tao::Drawing::ParaBreak)))
 PREFIX(ColumnBreak, tree, "column_break",,
        RTAO(drawingBreak(self, Tao::Drawing::ColumnBreak)))
 PREFIX(PageBreak, tree, "page_break",,
        RTAO(drawingBreak(self, Tao::Drawing::PageBreak)))
 PREFIX(TextEditKey, boolean, "text_edit_key", PARM(k, text),
        RTAO(textEditKey(self, k)))
+PREFIX(LoremIpsum, tree, "lorem_ipsum",PARM(w,integer),
+       RTAO(loremIpsum(self,w)))
+PREFIX(LoadText, tree, "load_text",PARM(f,text),
+       RTAO(loadText(self,f)))
 
 
 

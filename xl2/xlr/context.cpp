@@ -419,11 +419,12 @@ Tree *Symbols::Run(Tree *code)
                     symbols = this;
                 }
                 result = symbols->CompileAll(result);
-            }
-            if (!result->code)
-            {
-                Ooops("Unable to compile '$1'", result);
-                return NULL;
+
+                if (!result->code)
+                {
+                    Ooops("Unable to compile '$1'", result);
+                    return NULL;
+                }
             }
             result = result->code(code);
             more = (result != code && result &&

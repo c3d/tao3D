@@ -1,0 +1,115 @@
+load "style.xl" 
+load "clock.xl" 
+show_background 
+show_title 
+show_page_info 
+
+page "Welcome to Tao", do 
+    show_source false
+    story 
+        vertical_center 0.2
+        vertical_spacing 100% 
+        * "Tao is a new way to share ideas and tell stories" 
+        -"Focus on ideas, not just presentation" 
+        -"Give more life to your stories with advanced animations" 
+        -"Collaborate on complex ideas, keep track of their history" 
+        * "This tutorial will introduce you to Tao" 
+    story
+        vertical_center 0.9
+        request "Hit the 'Page Down' key to continue"
+
+page "Why call it Tao (道)?", do
+    story
+        vertical_center 0.0
+        * "Here is what Wikipedia has to say:"
+    story
+        vertical_center 0.95
+        request "This is a live URL. Go ahead and click on it..."
+    active_widget
+        color 95%,100%,97%,70%
+        url 0,-40, 800, 350, "http://en.wikipedia.org/wiki/Tao#Meanings"
+
+
+page "Hello, World!", do 
+    story 
+        vertical_center 0.0 
+        * "Here is Tao's version of the venerable 'Hello World'"
+    story
+        vertical_center 1.0
+        request <<To see how simple this is to do, hit '?'
+                  Otherwise , hit 'Page Down'>>
+    active_widget
+        color 1,1,1,1
+        push_button 340,-190,120,25,"ViewSource", "View Source",
+            goto_page "Hello World Source"
+    page_link "?", "Hello World Source"
+    page_link "PageDown", "3D Graphics"
+    locally
+        frame_texture 1024, 768, do 
+            load "hello.ddd"
+        shape 
+            color 1, 1, 1, 1 
+            rounded_rectangle 0, -40, 512, 384, 40
+
+
+page "Hello World Source", do
+    story
+        vertical_center 0.0
+        * "Tao documents are simple programs"
+    locally
+        vertical_center 0.0
+        font "Courier New"
+        font_size 13.0
+        bold
+        text_box 0,-90,620,440, do
+            center 0.0
+            color 0%,40%,20%,100%
+            text load_text "hello.ddd"
+        text_box 40,-90,620,440, do
+            center 1.0
+            color 80%,20%,20%,100%
+            text load_text "hello.txt"
+    
+page "3D Graphics", do
+    page_link "PageUp", "Hello, World!"
+
+    frame_texture 1024, 768, do 
+        load "cubes.ddd"
+    shape 
+        color 80%, 80%, 80%, 60%
+        rounded_rectangle 100, -50, 640, 480, 10
+    texture ""
+
+    story
+       vertical_center 0.0
+       * "Tao uses advanced 3D graphics technology"
+       - "All documents can use 3D easily"
+       - "Wow your audience"
+       - "Present data in new and creative ways"
+
+
+SomeData -> data
+   "Q1", 10, 40, 30
+   "Q2", 20, 20, 60
+   "Q3", 40, 30, 20
+   "Q4", 60, 30, 10
+
+ShowTableCell X:text ->
+    table_cell
+        text X
+ShowTableCell X:real ->
+    table_cell
+        formula X
+
+page "Tables and Data", do
+    story
+       vertical_center 0.0
+       * "Tao makes it possible to manipulate tables and data"
+    table 4, 4, do
+        table_cell_margin 5,5
+        table_cell_fill
+            color real table_cell_row / table_rows, real table_cell_column / table_columns, 0, 30% 
+            line_color 0, 0, 1, 80% 
+            line_width 1 
+            rectangle table_cell_x, table_cell_y, table_cell_w, table_cell_h
+        map SomeData, ShowTableCell

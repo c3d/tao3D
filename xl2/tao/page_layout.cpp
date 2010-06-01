@@ -345,7 +345,7 @@ LayoutLine *LayoutLine::Break(BreakOrder &order)
                     items.clear();
                     
                     // Erase what we transferred to the next line
-                    places.erase(p, places.end());
+                    places.erase(p+1, places.end());
                     
                     // Return the new line
                     return result;

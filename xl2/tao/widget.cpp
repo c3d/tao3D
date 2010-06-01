@@ -4051,7 +4051,8 @@ Text_p Widget::loadText(Tree_p self, text file)
                 output << c;
         }
     }
-    return new XL::Text(output.str());
+    text contents = output.str();
+    return new XL::Text(contents);
 }
 
 

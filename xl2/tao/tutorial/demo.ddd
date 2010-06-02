@@ -112,4 +112,4 @@ page "Tables and Data", do
             line_color 0, 0, 1, 80% 
             line_width 1 
             rectangle table_cell_x, table_cell_y, table_cell_w, table_cell_h
-        map SomeData, ShowTableCell
+        ShowTableCell with SomeData

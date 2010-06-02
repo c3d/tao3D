@@ -729,7 +729,16 @@ Tree *xl_apply(Tree *code, Tree *data)
 //   - Code is in the form X where f(X): We filter based on f(X)
 {
     // Check if we got (1,2,3,4) or something like f(3) as 'data'
-    if (Block *block = data->AsBlock())
+    Block *block = data->AsBlock();
+    if (!block)
+    {
+        // We got f(3) or Hello as input: evaluate it
+        data = xl_evaluate(data);
+
+        // The returned data may itself be something like (1,2,3,4,5)
+        block = data->AsBlock();
+    }
+    if (block)
     {
         // We got (1,2,3,4): Extract 1,2,3,4
         data = block->child;
@@ -737,11 +746,6 @@ Tree *xl_apply(Tree *code, Tree *data)
             data->SetSymbols(block->Symbols());
         if (!data->code)
             data->code = xl_evaluate_children;
-    }
-    else
-    {
-        // We got something else: evaluate it to get actual data
-        data = xl_evaluate(data);
     }
 
     // Check if we already compiled that code
@@ -861,11 +865,15 @@ Tree *xl_apply(Tree *code, Tree *data)
         code->SetInfo<FunctionInfo>(fninfo);
         fninfo->function = fn;
         fninfo->symbols = symbols;
+        fninfo->compiled = toCompile;
         fninfo->separators = separators;
 
         // Report compile error the first time
         if (!compiled)
             return Ooops("Cannot compile map/reduce code '$1'", code);
+
+        if (!toCompile->code)
+            toCompile->code = xl_evaluate_children;
     }
 
     LocalSave<Symbols_p> saveSyms(Symbols::symbols, code->Symbols());

@@ -216,6 +216,7 @@ struct FunctionInfo : Info
 public:
     eval_fn        function;
     Symbols_p      symbols;
+    Tree_p         compiled;
     std::set<text> separators;
 };
 

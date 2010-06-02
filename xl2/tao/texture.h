@@ -44,10 +44,10 @@ struct ImageTextureInfo : XL::Info
     GLuint bind(text img);
     operator data_t() { return this; }
 
-    texture_map textures;
     Widget *    widget;
     double width, height;
 
+    static texture_map textures;
     static GLuint defaultTextureId();
 };
 

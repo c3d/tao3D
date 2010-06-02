@@ -229,8 +229,11 @@ Box3 Layout::Bounds(Layout *layout)
 {
     Box3 result;
     layout_items::iterator i;
-    for (i = items.begin(); i != items.end(); i++)
-        result |= (*i)->Bounds(layout);
+    if (items.size() == 0)
+        result |= Point3();
+    else
+        for (i = items.begin(); i != items.end(); i++)
+            result |= (*i)->Bounds(layout);
     return result;
 }
 
@@ -242,8 +245,11 @@ Box3 Layout::Space(Layout *layout)
 {
     Box3 result;
     layout_items::iterator i;
-    for (i = items.begin(); i != items.end(); i++)
-        result |= (*i)->Space(layout);
+    if (items.size() == 0)
+        result |= Point3();
+    else
+        for (i = items.begin(); i != items.end(); i++)
+            result |= (*i)->Space(layout);
     return result;
 }
 

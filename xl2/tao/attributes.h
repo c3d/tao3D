@@ -37,6 +37,8 @@ struct Attribute : Drawing
     Attribute(): Drawing() {}
     virtual void        DrawSelection(Layout *l)        { Draw(l); }
     virtual void        Identify(Layout *l)             { Draw(l); }
+    virtual Box3        Bounds(Layout *l);
+    virtual Box3        Space(Layout *l);
     virtual bool        IsAttribute()                   { return true; }
 };
 

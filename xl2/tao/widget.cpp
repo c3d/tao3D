@@ -4119,7 +4119,7 @@ Tree_p Widget::newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body)
 //   Create a new table
 // ----------------------------------------------------------------------------
 {
-    Table *tbl = new Table(r, c);
+    Table *tbl = new Table(this, r, c);
     XL::LocalSave<Table *> saveTable(table, tbl);
     layout->Add(tbl);
 
@@ -4168,7 +4168,7 @@ Tree_p Widget::tableCell(Tree_p self, Real_p w, Real_p h, Tree_p body)
     // Define a new text layout
     PageLayout *tbox = new PageLayout(this);
     tbox->space = Box3(0, 0, 0, w, h, 0);
-    table->AddElement(tbox);
+    table->Add(tbox);
     flows[flowName] = tbox;
 
     XL::LocalSave<Layout *> save(layout, tbox);
@@ -4188,7 +4188,7 @@ Tree_p Widget::tableCell(Tree_p self, Tree_p body)
 
     // Define a new text layout
     Layout *tbox = new Layout(this);
-    table->AddElement(tbox);
+    table->Add(tbox);
 
     XL::LocalSave<Layout *> save(layout, tbox);
     return xl_evaluate(body);

@@ -366,6 +366,17 @@ void Widget::runProgram()
 
     // Evaluate the program
     XL::MAIN->EvalContextFiles(((Window*)parent())->contextFileNames);
+    if (QMenu *arrange = parent()->findChild<QMenu*>("menu:zorder"))
+    {
+        IFTRACE(menus)
+            std::cerr<<"menu \"menu:zorder\" found.\n";
+        QList<QAction *> children = arrange->findChildren<QAction*>();
+        foreach(QAction *act, children)
+            connect(this, SIGNAL(copyAvailable(bool)),
+                    act, SLOT(setEnabled(bool)),
+                    Qt::UniqueConnection);
+
+    }
     if (Tree *prog = xlProgram->tree)
         xl_evaluate(prog);
 
@@ -620,7 +631,6 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
         if (XL::Block *block = (*top)->AsBlock())
             top = &block->child;
     }
-    std::cerr << "top is :\n"<< *top << std::endl;
 
     Symbols *symbols = (*top)->Symbols();
     *top = new XL::Infix("\n", select, *top);
@@ -629,7 +639,6 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
     // Reload the program and mark the changes
     reloadProgram();
     markChanged("Selection sent to back");
-    std::cerr << "top is :\n"<< *top << std::endl;
 
     return XL::xl_true;
 }

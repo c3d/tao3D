@@ -28,11 +28,13 @@
 
 TAO_BEGIN
 
+ImageTextureInfo::texture_map ImageTextureInfo::textures;
+
 ImageTextureInfo::ImageTextureInfo(Widget *w)
 // ----------------------------------------------------------------------------
 //   Prepare to record texture IDs for the various images
 // ----------------------------------------------------------------------------
-    : textures(), widget(w), width(0.0), height(0.0)
+    : widget(w), width(0.0), height(0.0)
 {
 }
 
@@ -42,10 +44,6 @@ ImageTextureInfo::~ImageTextureInfo()
 //   Release the GL texture
 // ----------------------------------------------------------------------------
 {
-    texture_map::iterator i;
-    glDisable(GL_TEXTURE_2D);
-    for (i = textures.begin(); i != textures.end(); i++)
-        glDeleteTextures(1, &(*i).second);
 }
 
 
@@ -90,13 +88,18 @@ GLuint ImageTextureInfo::bind(text file)
     GLuint textureId = textures[file];
     if (textureId == 0)
     {
+
         // Prune the map if it gets too big
         while (textures.size() > MAX_TEXTURES)
             textures.erase(textures.begin());
 
         // Read the image file and convert to proper GL image format
-        text qualified = "texture:" + file;
-        QImage original(+qualified);
+        QImage original(+file);
+        if (original.isNull())
+        {
+            text qualified = "texture:" + file;
+            original.load(+qualified);
+        }
         if (!original.isNull())
         {
             width = original.width();

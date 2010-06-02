@@ -2270,6 +2270,21 @@ TextSelect *Widget::textSelection()
 }
 
 
+static inline void resetLayout(Layout *where)
+// ----------------------------------------------------------------------------
+//   Put layout back into a state appropriate for drawing a selection
+// ----------------------------------------------------------------------------
+{
+    if (where)
+    {
+        where->lineWidth = 1;
+        where->lineColor = Color(1,0,0,1);
+        where->fillColor = Color(0,1,0,0.8);
+        where->fillTexture = 0;
+    }
+}
+
+
 void Widget::drawSelection(Layout *where,
                            const Box3 &bnds, text selName, uint id)
 // ----------------------------------------------------------------------------
@@ -2290,8 +2305,8 @@ void Widget::drawSelection(Layout *where,
     SpaceLayout selectionSpace(this);
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-    XL::LocalSave<GLuint>   clearTexture(where->fillTexture, 0);
     GLAttribKeeper          saveGL;
+    resetLayout(where);
     selectionSpace.id = id;
     glDisable(GL_DEPTH_TEST);
     if (bounds.Depth() > 0)
@@ -2315,8 +2330,8 @@ void Widget::drawHandle(Layout *where,
     SpaceLayout selectionSpace(this);
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-    XL::LocalSave<GLuint>   clearTexture(where->fillTexture, 0);
     GLAttribKeeper          saveGL;
+    resetLayout(where);
     glDisable(GL_DEPTH_TEST);
     selectionSpace.id = id;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);

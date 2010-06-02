@@ -816,7 +816,7 @@ Tree *MapAction::Map(Tree *data)
         else if (code->IsConstant())
             // For a constant like 17, we compile 17
             toCompile = code;
-        else
+        else if (toCompile == code)
             // For something like X -> 2+X, we finish with the parameter
             toCompile = new Infix("\n", toCompile, parameter);
 

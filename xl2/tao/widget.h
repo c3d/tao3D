@@ -533,7 +533,7 @@ private:
     flow_map              flows;
     text                  pageName, lastPageName;
     page_map              pageLinks;
-    uint                  pageId, pageShown, pageTotal;
+    uint                  pageId, pageFound, pageShown, pageTotal;
     Tree_p                pageTree;
     Tree_p                currentShape;
     QGridLayout *         currentGridLayout;

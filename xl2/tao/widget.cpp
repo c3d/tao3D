@@ -96,7 +96,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       symbolTableRoot(new XL::Name("formula_symbol_table")),
       inError(false), mustUpdateDialogs(false),
       space(NULL), layout(NULL), path(NULL), table(NULL),
-      pageName(""), pageId(0), pageTotal(0), pageTree(NULL),
+      pageName(""),
+      pageId(0), pageFound(0), pageShown(1), pageTotal(1),
+      pageTree(NULL),
       currentShape(NULL),
       currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
@@ -272,6 +274,7 @@ void Widget::draw()
     flowName = "";
     flows.clear();
     pageId = 0;
+    pageFound = 0;
     pageTree = NULL;
     lastPageName = "";
 
@@ -320,7 +323,11 @@ void Widget::draw()
     glEnable(GL_DEPTH_TEST);
 
     // Update page count for next run
-    pageTotal = pageId;
+    pageTotal = pageId ? pageId : 1;
+    if (pageFound)
+        pageShown = pageFound;
+    else
+        pageName = "";
 
     // If we must update dialogs, do it now
     if (mustUpdateDialogs)
@@ -1487,7 +1494,6 @@ void Widget::updateProgram(XL::SourceFile *source)
 // ----------------------------------------------------------------------------
 {
     xlProgram = source;
-    pageName = "";
     if (Tree *prog = xlProgram->tree)
     {
         Renormalize renorm(this);
@@ -2388,7 +2394,7 @@ XL::Text_p Widget::page(Tree_p self, text name, Tree_p body)
     if (pageName == name)
     {
         // Initialize back-link
-        pageShown = pageId;
+        pageFound = pageId;
         pageLinks.clear();
         if (pageId > 1)
             pageLinks["PageUp"] = lastPageName;

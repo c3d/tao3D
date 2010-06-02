@@ -2175,7 +2175,7 @@ void Widget::deleteFocus(QWidget *widget)
 }
 
 
-void Widget::requestFocus(QWidget *widget, coord x, coord y)
+bool Widget::requestFocus(QWidget *widget, coord x, coord y)
 // ----------------------------------------------------------------------------
 //   Some other widget request the focus
 // ----------------------------------------------------------------------------
@@ -2191,6 +2191,7 @@ void Widget::requestFocus(QWidget *widget, coord x, coord y)
         QObject *fin = focusWidget;
         fin->event(&focusIn);
     }
+    return focusWidget == widget;
 }
 
 

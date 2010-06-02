@@ -183,7 +183,7 @@ public:
     static uint doubleClicks(uint sel)  { return sel >> 16; }
     void        select(uint id, uint count);
     void        deleteFocus(QWidget *widget);
-    void        requestFocus(QWidget *widget, coord x, coord y);
+    bool        requestFocus(QWidget *widget, coord x, coord y);
     void        recordProjection();
     uint        lastModifiers()         { return keyboardModifiers; }
     Point3      unproject (coord x, coord y, coord z = 0.0);

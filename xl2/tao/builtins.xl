@@ -166,7 +166,8 @@ draw_3D_selection x,y,z,w,h,d ->
     cube x, y, z, w, h, d
 
 draw_widget_selection x,y,w,h ->
-    selection_color
+    line_color 0,70%,90%,80%
+    line_width 1
     color 0,0,0,0
     rectangle x, y, w, h
 

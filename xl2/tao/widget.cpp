@@ -1487,6 +1487,7 @@ void Widget::updateProgram(XL::SourceFile *source)
 // ----------------------------------------------------------------------------
 {
     xlProgram = source;
+    pageName = "";
     if (Tree *prog = xlProgram->tree)
     {
         Renormalize renorm(this);

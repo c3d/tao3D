@@ -74,6 +74,11 @@ void Table::Draw(Layout *where)
     Tree *fillCode = fill;
     Tree *borderCode = border;
 
+    // Save layout state
+    LayoutState st;
+    if (where)
+        st = *where;
+
     for (r = 0; r < rows; r++)
     {
         px = bounds.lower.x;
@@ -102,7 +107,14 @@ void Table::Draw(Layout *where)
                 widget->drawTree(where, fillCode);
             if (d)
             {
-                XL::LocalSave<Point3> saveOffset(where->offset, pos + offset);
+                XL::LocalSave<Point3> zeroOffset(where->offset, Point3());
+                Box3 bb = d->Space(where);
+
+                // Center table elements
+                pos.x += (cellW - bb.Width()) * where->alongX.centering;
+                pos.y += (cellH - bb.Height()) * where->alongY.centering;
+
+                where->offset = pos + offset;
                 d->Draw(where);
             }
             if (borderI != cellBorder.end())
@@ -115,6 +127,10 @@ void Table::Draw(Layout *where)
             px += margins.Width();
         }
     }
+
+    // Restore layout state
+    if (where)
+        *where = st;
 }
 
 
@@ -134,6 +150,11 @@ void Table::DrawSelection(Layout *where)
     Widget *widget = where->Display();
     std::vector<Drawing *>::iterator i = elements.begin();
     XL::LocalSave<Table *> saveTable(widget->table, this);
+
+    // Save layout state
+    LayoutState st;
+    if (where)
+        st = *where;
 
     for (r = 0; r < rows; r++)
     {
@@ -168,6 +189,10 @@ void Table::DrawSelection(Layout *where)
             px += margins.Width();
         }
     }
+
+    // Restore layout state
+    if (where)
+        *where = st;
 }
 
 
@@ -187,6 +212,11 @@ void Table::Identify(Layout *where)
     Widget *widget = where->Display();
     std::vector<Drawing *>::iterator i = elements.begin();
     XL::LocalSave<Table *> saveTable(widget->table, this);
+
+    // Save layout state
+    LayoutState st;
+    if (where)
+        st = *where;
 
     for (r = 0; r < rows; r++)
     {
@@ -221,6 +251,10 @@ void Table::Identify(Layout *where)
             px += margins.Width();
         }
     }
+
+    // Restore layout state
+    if (where)
+        *where = st;
 }
 
 
@@ -276,6 +310,11 @@ void Table::Compute(Layout *where)
     for (c = 0; c < columns; c++)
         colBB[c] |= Point3(0,0,0);
 
+    // Save original layout data
+    LayoutState st;
+    if (where)
+        st = *where;
+
     // Compute actual row and column bounding box
     for (r = 0; r < rows; r++)
     {
@@ -313,6 +352,10 @@ void Table::Compute(Layout *where)
         bb.upper.y += rowHeight[r] + margins.Height();
     }
     bounds = bb;
+
+    // Restore original layout state
+    if (where)
+        *where = st;
 }
 
 TAO_END

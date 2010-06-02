@@ -51,6 +51,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
 //    Create a Tao window with default parameters
 // ----------------------------------------------------------------------------
     : isUntitled(sf == NULL), isReadOnly(sf == NULL || sf->readOnly),
+      loadInProgress(false),
       contextFileNames(context), xlRuntime(xlr),
       repo(NULL), textEdit(NULL), errorMessages(NULL),
       dock(NULL), errorDock(NULL),
@@ -518,7 +519,11 @@ void Window::documentWasModified()
 //   Record when the document was modified
 // ----------------------------------------------------------------------------
 {
-    setWindowModified(true);
+    // If we're called because we're loading a file, don't set modified state.
+    // It is useless, and moreover it triggers an error message on Linux:
+    //   "The window title does not contain a '[*]' placeholder"
+    if (!loadInProgress)
+        setWindowModified(true);
 }
 
 
@@ -867,7 +872,9 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 
     QTextStream in(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
+    loadInProgress = true;
     textEdit->setPlainText(in.readAll());
+    loadInProgress = false;
     QApplication::restoreOverrideCursor();
     markChanged(false);
     return true;

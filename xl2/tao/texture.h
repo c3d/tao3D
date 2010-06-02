@@ -36,7 +36,8 @@ struct ImageTextureInfo : XL::Info
 // ----------------------------------------------------------------------------
 {
     typedef ImageTextureInfo *          data_t;
-    typedef std::map<text, GLuint>      texture_map;
+    struct  Texture { GLuint id, width, height; };
+    typedef std::map<text, Texture>     texture_map;
     enum { MAX_TEXTURES = 20 };
 
     ImageTextureInfo(Widget *w);
@@ -44,11 +45,11 @@ struct ImageTextureInfo : XL::Info
     GLuint bind(text img);
     operator data_t() { return this; }
 
-    texture_map textures;
     Widget *    widget;
-    double width, height;
+    uint        width, height;
 
-    static GLuint defaultTextureId();
+    static texture_map textures;
+    static Texture &defaultTexture();
 };
 
 TAO_END

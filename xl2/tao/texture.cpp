@@ -28,57 +28,56 @@
 
 TAO_BEGIN
 
+ImageTextureInfo::texture_map ImageTextureInfo::textures;
+
 ImageTextureInfo::ImageTextureInfo(Widget *w)
 // ----------------------------------------------------------------------------
 //   Prepare to record texture IDs for the various images
 // ----------------------------------------------------------------------------
-    : textures(), widget(w), width(0.0), height(0.0)
-{
-}
+    : widget(w), width(0), height(0)
+{}
 
 
 ImageTextureInfo::~ImageTextureInfo()
 // ----------------------------------------------------------------------------
 //   Release the GL texture
 // ----------------------------------------------------------------------------
-{
-    texture_map::iterator i;
-    glDisable(GL_TEXTURE_2D);
-    for (i = textures.begin(); i != textures.end(); i++)
-        glDeleteTextures(1, &(*i).second);
-}
+{}
 
 
-static inline GLuint computeDefaultTexture()
+static inline ImageTextureInfo::Texture computeDefaultTexture()
 // ----------------------------------------------------------------------------
 //   A texture that we use when the given source image is invalid
 // ----------------------------------------------------------------------------
 {
-    GLuint txtId;
+    ImageTextureInfo::Texture result = { 0,0,0 };
+
     QString file(":/images/default_image.svg");
-    QImage defOrig(file);
-    if (defOrig.isNull())
-        return 0;
+    QImage image(file);
+    if (!image.isNull())
+    {
+        QImage texture = QGLWidget::convertToGLFormat(image);
+        result.width = texture.width();
+        result.height = texture.height();
 
-    QImage texture = QGLWidget::convertToGLFormat(defOrig);
-
-    // Generate the GL texture
-    glGenTextures(1, &txtId);
-    glBindTexture(GL_TEXTURE_2D, txtId);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                 texture.width(), texture.height(), 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, texture.bits());
-    return txtId;
+        // Generate the GL texture
+        glGenTextures(1, &result.id);
+        glBindTexture(GL_TEXTURE_2D, result.id);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                     result.width, result.height, 0, GL_RGBA,
+                     GL_UNSIGNED_BYTE, texture.bits());
+    }
+    return result;
 }
 
 
-GLuint ImageTextureInfo::defaultTextureId()
+ImageTextureInfo::Texture &ImageTextureInfo::defaultTexture()
 // ----------------------------------------------------------------------------
 //   Build a singleton texture ID used when source image is invalid
 // ----------------------------------------------------------------------------
 {
-    static GLuint defTextureId = computeDefaultTexture();
-    return defTextureId;
+    static Texture texture = computeDefaultTexture();
+    return texture;
 }
 
 
@@ -87,46 +86,61 @@ GLuint ImageTextureInfo::bind(text file)
 //   Bind the given GL texture
 // ----------------------------------------------------------------------------
 {
-    GLuint textureId = textures[file];
-    if (textureId == 0)
+    texture_map::iterator found = textures.find(file);
+    Texture texinfo = { 0, 0, 0 };
+    if (found == textures.end())
     {
         // Prune the map if it gets too big
         while (textures.size() > MAX_TEXTURES)
-            textures.erase(textures.begin());
+        {
+            texture_map::iterator first = textures.begin();
+            glDeleteTextures(1, &(*first).second.id);
+            textures.erase(first);
+        }
 
         // Read the image file and convert to proper GL image format
-        text qualified = "texture:" + file;
-        QImage original(+qualified);
-        if (!original.isNull())
+        QImage image(+file);
+        if (image.isNull())
         {
-            width = original.width();
-            height = original.height();
-            QImage texture = QGLWidget::convertToGLFormat(original);
+            text qualified = "texture:" + file;
+            image.load(+qualified);
+        }
+        if (!image.isNull())
+        {
+            texinfo.width = image.width();
+            texinfo.height = image.height();
+            QImage texture = QGLWidget::convertToGLFormat(image);
 
             // Generate the GL texture
-            glGenTextures(1, &textureId);
-            glBindTexture(GL_TEXTURE_2D, textureId);
+            glGenTextures(1, &texinfo.id);
+            glBindTexture(GL_TEXTURE_2D, texinfo.id);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                         texture.width(), texture.height(), 0, GL_RGBA,
+                         texinfo.width, texinfo.height, 0, GL_RGBA,
                          GL_UNSIGNED_BYTE, texture.bits());
         }
         else
         {
-            textureId = defaultTextureId();
+            texinfo = defaultTexture();
         }
 
         // Remember the texture for next time
-        textures[file] = textureId;
+        textures[file] = texinfo;
+    }
+    else
+    {
+        texinfo = (*found).second;
     }
 
-    glBindTexture(GL_TEXTURE_2D, textureId);
+    glBindTexture(GL_TEXTURE_2D, texinfo.id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glEnable(GL_TEXTURE_2D);
     if (TaoApp->hasGLMultisample)
         glEnable(GL_MULTISAMPLE);
+    width = texinfo.width;
+    height = texinfo.height;
 
-    return textureId;
+    return texinfo.id;
 }
 
 TAO_END

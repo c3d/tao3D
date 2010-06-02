@@ -99,26 +99,30 @@ Tree *xl_map(Tree *data, Tree *code, text row, text column)
 //   Apply the code on each piece of data
 // ----------------------------------------------------------------------------
 {
+    bool evaluate = true;
+
     if (Name *name = data->AsName())
         data = xl_evaluate(name);
+
     if (Block *block = data->AsBlock())
     {
         data = block->child;
         if (!data->Symbols())
             data->SetSymbols(block->Symbols());
         if (!data->code)
-            data->code = xl_identity;
+            data->code = xl_evaluate_children;
     }
-    if (!code)
-        return data;
+
     if (Block *codeBlock = code->AsBlock())
     {
         code = codeBlock->child;
         if (!code->Symbols())
             code->SetSymbols(codeBlock->Symbols());
+        if (codeBlock->opening == "[" && codeBlock->closing == "]")
+            evaluate = false;
     }
 
-    MapAction map(code, row, column);
+    MapAction map(code, row, column, evaluate);
     Tree *result = map.Map(data);
     return result;
 }
@@ -748,29 +752,29 @@ Tree *xl_load_data(text name, text prefix, text fieldSeps, text recordSeps)
 // 
 // ============================================================================
 
-MapAction::MapAction(Tree *code)
+MapAction::MapAction(Tree *code, bool eval)
 // ----------------------------------------------------------------------------
 //   Compile the code for the action
 // ----------------------------------------------------------------------------
-    : code(code), function(NULL)
+    : code(code), function(NULL), evaluate(eval)
 {}
 
 
-MapAction::MapAction(Tree *code, text separator)
+MapAction::MapAction(Tree *code, text separator, bool eval)
 // ----------------------------------------------------------------------------
 //   Compile the code for the action
 // ----------------------------------------------------------------------------
-    : code(code), function(NULL)
+    : code(code), function(NULL), evaluate(eval)
 {
     separators.insert(separator);
 }
 
 
-MapAction::MapAction(Tree *code, text row, text column)
+MapAction::MapAction(Tree *code, text row, text column, bool eval)
 // ----------------------------------------------------------------------------
 //   Compile the code for the action
 // ----------------------------------------------------------------------------
-    : code(code), function(NULL)
+    : code(code), function(NULL), evaluate(eval)
 {
     separators.insert(row);
     separators.insert(column);
@@ -816,7 +820,7 @@ Tree *MapAction::Map(Tree *data)
         else if (code->IsConstant())
             // For a constant like 17, we compile 17
             toCompile = code;
-        else
+        else if (toCompile == code)
             // For something like X -> 2+X, we finish with the parameter
             toCompile = new Infix("\n", toCompile, parameter);
 
@@ -867,6 +871,12 @@ Tree *MapAction::Do(Tree *what)
 //   Apply the code to the given tree
 // ----------------------------------------------------------------------------
 {
+    if (evaluate)
+    {
+        if (!what->Symbols())
+            what->SetSymbols(code->Symbols());
+        what = xl_evaluate(what);
+    }
     return function(code, what);
 }
 
@@ -890,6 +900,33 @@ Tree *MapAction::DoInfix(Infix *infix)
 
     // Otherwise simply apply the function to the infix
     return Do(infix);
+}
+
+
+Tree *MapAction::DoPrefix(Prefix *prefix)
+// ----------------------------------------------------------------------------
+//   Apply to the whole prefix (don't decompose)
+// ----------------------------------------------------------------------------
+{
+    return Do(prefix);
+}
+
+
+Tree *MapAction::DoPostfix(Postfix *postfix)
+// ----------------------------------------------------------------------------
+//   Apply to the whole postfix (don't decompose)
+// ----------------------------------------------------------------------------
+{
+    return Do(postfix);
+}
+
+
+Tree *MapAction::DoBlock(Block *block)
+// ----------------------------------------------------------------------------
+//   Apply to the whole block (don't decompose)
+// ----------------------------------------------------------------------------
+{
+    return Do(block);
 }
 
 

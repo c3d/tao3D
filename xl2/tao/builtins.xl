@@ -166,7 +166,8 @@ draw_3D_selection x,y,z,w,h,d ->
     cube x, y, z, w, h, d
 
 draw_widget_selection x,y,w,h ->
-    selection_color
+    line_color 0,70%,90%,80%
+    line_width 1
     color 0,0,0,0
     rectangle x, y, w, h
 
@@ -387,25 +388,23 @@ menu_item "toolbar:insert > shape > polygon", "", "images/tb_shape_polygon.png",
 
 menu_format -> {
 menubar
-menu      "menu:format", "Format"
-submenu   "menu:format:colors", "Colors"
-menu_item "menu:format:colors > fill color", "Fill Color...", do
+menu   "menu:colors", "Colors"
+menu_item "menu:colors > fill color", "Fill Color...", do
     color_chooser "color", do
         set_attribute "color", {color red, green, blue, alpha}
-menu_item "menu:format:colors > line color", "Line Color...", do
+menu_item "menu:colors > line color", "Line Color...", do
     color_chooser "line_color", do
         set_attribute "line_color", {line_color red, green, blue, alpha}
 
-menu      "menu:format"
-submenu   "menu:format:zorder", "Z order"
-menu_item "menu:format:zorder > toFront", "Bring to front", do
+menu   "menu:zorder", "Arrange"
+menu_item "menu:zorder > toFront", "Bring to front", do
     bring_to_front
-menu_item "menu:format:zorder > forward", "Bring forward", do
+menu_item "menu:zorder > forward", "Bring forward", do
     bring_forward
-menu_item "menu:format:zorder > toBack", "Send to back", do
-    send_to_back
-menu_item "menu:format:zorder > backward", "Send backward", do
+menu_item "menu:zorder > backward", "Send backward", do
     send_backward
+menu_item "menu:zorder > toBack", "Send to back", do
+    send_to_back
 }
 
 

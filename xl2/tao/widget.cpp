@@ -366,6 +366,17 @@ void Widget::runProgram()
 
     // Evaluate the program
     XL::MAIN->EvalContextFiles(((Window*)parent())->contextFileNames);
+    if (QMenu *arrange = parent()->findChild<QMenu*>("menu:zorder"))
+    {
+        IFTRACE(menus)
+            std::cerr<<"menu \"menu:zorder\" found.\n";
+        QList<QAction *> children = arrange->findChildren<QAction*>();
+        foreach(QAction *act, children)
+            connect(this, SIGNAL(copyAvailable(bool)),
+                    act, SLOT(setEnabled(bool)),
+                    Qt::UniqueConnection);
+
+    }
     if (Tree *prog = xlProgram->tree)
         xl_evaluate(prog);
 
@@ -620,7 +631,6 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
         if (XL::Block *block = (*top)->AsBlock())
             top = &block->child;
     }
-    std::cerr << "top is :\n"<< *top << std::endl;
 
     Symbols *symbols = (*top)->Symbols();
     *top = new XL::Infix("\n", select, *top);
@@ -629,7 +639,6 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
     // Reload the program and mark the changes
     reloadProgram();
     markChanged("Selection sent to back");
-    std::cerr << "top is :\n"<< *top << std::endl;
 
     return XL::xl_true;
 }
@@ -2176,7 +2185,7 @@ void Widget::deleteFocus(QWidget *widget)
 }
 
 
-void Widget::requestFocus(QWidget *widget, coord x, coord y)
+bool Widget::requestFocus(QWidget *widget, coord x, coord y)
 // ----------------------------------------------------------------------------
 //   Some other widget request the focus
 // ----------------------------------------------------------------------------
@@ -2192,6 +2201,7 @@ void Widget::requestFocus(QWidget *widget, coord x, coord y)
         QObject *fin = focusWidget;
         fin->event(&focusIn);
     }
+    return focusWidget == widget;
 }
 
 
@@ -2261,6 +2271,21 @@ TextSelect *Widget::textSelection()
 }
 
 
+static inline void resetLayout(Layout *where)
+// ----------------------------------------------------------------------------
+//   Put layout back into a state appropriate for drawing a selection
+// ----------------------------------------------------------------------------
+{
+    if (where)
+    {
+        where->lineWidth = 1;
+        where->lineColor = Color(1,0,0,1);
+        where->fillColor = Color(0,1,0,0.8);
+        where->fillTexture = 0;
+    }
+}
+
+
 void Widget::drawSelection(Layout *where,
                            const Box3 &bnds, text selName, uint id)
 // ----------------------------------------------------------------------------
@@ -2282,6 +2307,7 @@ void Widget::drawSelection(Layout *where,
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper          saveGL;
+    resetLayout(where);
     selectionSpace.id = id;
     glDisable(GL_DEPTH_TEST);
     if (bounds.Depth() > 0)
@@ -2306,6 +2332,7 @@ void Widget::drawHandle(Layout *where,
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper          saveGL;
+    resetLayout(where);
     glDisable(GL_DEPTH_TEST);
     selectionSpace.id = id;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);

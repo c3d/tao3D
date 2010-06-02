@@ -134,21 +134,25 @@ struct MapAction : Action
 //   Map a given code onto each element
 // ----------------------------------------------------------------------------
 {
-    MapAction(Tree *code);
-    MapAction(Tree *code, text separator);
-    MapAction(Tree *code, text row, text column);
+    MapAction(Tree *code, bool eval = true);
+    MapAction(Tree *code, text separator, bool eval = true);
+    MapAction(Tree *code, text row, text column, bool eval = true);
 
     virtual Tree *Do(Tree *what);
 
     virtual Tree *DoInfix(Infix *what);
+    virtual Tree *DoPrefix(Prefix *what);
+    virtual Tree *DoPostfix(Postfix *what);
+    virtual Tree *DoBlock(Block *what);
 
     Tree *  Map(Tree *what);
 
 public:
     typedef Tree *      (*map_fn) (Tree *self, Tree *arg);
-    Tree *              code;
+    Tree_p              code;
     map_fn              function;
     std::set<text>      separators;
+    bool                evaluate;
 };
 
 

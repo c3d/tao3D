@@ -2290,6 +2290,7 @@ void Widget::drawSelection(Layout *where,
     SpaceLayout selectionSpace(this);
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
+    XL::LocalSave<GLuint>   clearTexture(where->fillTexture, 0);
     GLAttribKeeper          saveGL;
     selectionSpace.id = id;
     glDisable(GL_DEPTH_TEST);
@@ -2314,6 +2315,7 @@ void Widget::drawHandle(Layout *where,
     SpaceLayout selectionSpace(this);
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
+    XL::LocalSave<GLuint>   clearTexture(where->fillTexture, 0);
     GLAttribKeeper          saveGL;
     glDisable(GL_DEPTH_TEST);
     selectionSpace.id = id;

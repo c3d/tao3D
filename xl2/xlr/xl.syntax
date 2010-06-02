@@ -1,13 +1,14 @@
 INFIX
         11      NEWLINE
         21      ;
-        25      -> mapping
+        25      ->
         30      loop when
         35      else into
         40      then require ensure
         100     STATEMENT
         110     is as  while until
         120     with written
+        130     where
         200     DEFAULT
         210     ,
         221     := += -= *= /= ^= |= &=

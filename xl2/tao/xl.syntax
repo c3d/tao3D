@@ -8,6 +8,7 @@ INFIX
         100     STATEMENT
         110     is as  while until
         120     with written
+        130     where
         200     DEFAULT
         210     ,
         221     := += -= *= /= ^= |= &=

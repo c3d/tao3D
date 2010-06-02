@@ -143,10 +143,8 @@ PREFIX(LoadTSV,  tree, "load_tsv", PARM(f, text) PARM(p, text),
 PREFIX(LoadData,  tree, "load_data",
        PARM(f, text) PARM(p, text) PARM(fs, text) PARM(rs, text),
        return xl_load_data(f, p, fs, rs))
-PREFIX(Map, tree, "map", PARM(n, symbolicname) PARM(c, tree),
-       return xl_map(&n,&c))       
-INFIX(InfixMap, tree, tree, "with", tree,
-      return xl_map(&r, &l))
+INFIX(Apply, tree, tree, "with", tree,
+      return xl_apply(&l, &r))
 
 // Debugging code
 PREFIX(DebugTree, tree, "debug", PARM(toDebug, tree),

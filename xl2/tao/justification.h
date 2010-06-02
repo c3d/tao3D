@@ -45,12 +45,20 @@ struct Justification
 //     Vertically, it's lines and paragraphs.
 //   - 'spacing' indicates extra amount of space to add around elements
 {
-    Justification(float a = 1.0, float c = 0.0, float s = 0.0, float spc = 1.0)
-        : amount(a), centering(c), spread(s), spacing(spc) {}
+    Justification(float amount = 1.0,
+                  float center = 0.0,
+                  float spread = 0.0,
+                  float spacing = 1.0,
+                  float before = 0.0,
+                  float after = 0.0)
+        : amount(amount), centering(center), spread(spread),
+          spacing(spacing), before(before), after(after) {}
     float       amount;
     float       centering;
     float       spread;
     float       spacing;
+    float       before;
+    float       after;
 };
 
 
@@ -81,7 +89,7 @@ public:
     void        Clear();
 
     // Properties of the items in the layout
-    Item        Break(Item item, bool *hadBreak, bool *done);
+    Item        Break(Item item, bool *hadBreak, bool *hadSep, bool *done);
     scale       Size(Item item, Layout *);
     scale       SpaceSize(Item item, Layout *);
     coord       ItemOffset(Item item, Layout *);
@@ -167,10 +175,12 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     scale lastOversize = 0;
     bool  hasRoom      = true;
     bool  hadBreak     = false;
+    bool  hadSeparator = false;
     bool  done         = false; // e.g. line break in a line
     uint  numBreaks    = 0;
     uint  numSolids    = 0;
     int   sign         = start < end ? 1 : -1;
+    bool  firstElement = true;
 
     // Place items until there's none left or we are beyond the max position
     ItemsIterator i;
@@ -181,13 +191,20 @@ bool Justifier<Item>::Adjust(coord start, coord end,
         while (hasRoom && !done && item)
         {
             // Cut item at the first break point
-            Item next = Break(item, &hadBreak, &done);
+            Item next = Break(item, &hadBreak, &hadSeparator, &done);
 
             // Test the size of what remains
             ApplyAttributes(item, layout);
             scale spacing = justify.spacing;
             scale size = Size(item, layout) * spacing;
             coord offset = ItemOffset(item, layout);
+            if (hadSeparator && !firstElement && size > 0)
+            {
+                coord additional = justify.before;
+                if (additional < justify.after)
+                    additional = justify.after;
+                size += additional;
+            }
             if (sign * pos + size > sign * end && sign * pos > sign * start)
             {
                 // It doesn't fit, we need to stop here.
@@ -214,6 +231,9 @@ bool Justifier<Item>::Adjust(coord start, coord end,
                     numBreaks++;
                 else
                     numSolids++;
+
+                if (size > 0)
+                    firstElement = false;
 
                 if (done)
                 {

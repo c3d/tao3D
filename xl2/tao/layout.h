@@ -49,6 +49,7 @@ public:
     Vector3             offset;
     QFont               font;
     Justification       alongX, alongY, alongZ;
+    coord               left, right, top, bottom; // Margins
     scale               lineWidth;
     Color               lineColor;
     Color               fillColor;

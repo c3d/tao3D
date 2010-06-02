@@ -231,7 +231,7 @@ Box3 Table::Bounds(Layout *where)
 {
     if (columnWidth.size() != columns || rowHeight.size() != rows)
         Compute(where);
-    return bounds;
+    return bounds + where->offset;
 }
 
 
@@ -286,6 +286,7 @@ void Table::Compute(Layout *where)
             if (i == elements.end())
                 break;
             Drawing *d = *i++;
+            XL::LocalSave<Point3> zeroOffset(where->offset, Point3(0,0,0));
             Box3 bb = d->Space(where);
             rowBB[r] |= bb;
             colBB[c] |= bb;

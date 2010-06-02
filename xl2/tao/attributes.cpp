@@ -124,7 +124,7 @@ static inline Justification &layoutJustification(Layout *where,
 
 void JustificationChange::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Replay a color change
+//   Replay a justification change
 // ----------------------------------------------------------------------------
 {
     layoutJustification(where, axis).amount = amount;
@@ -133,7 +133,7 @@ void JustificationChange::Draw(Layout *where)
 
 void CenteringChange::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Replay a color change
+//   Replay a centering change
 // ----------------------------------------------------------------------------
 {
     layoutJustification(where, axis).centering = amount;
@@ -142,7 +142,7 @@ void CenteringChange::Draw(Layout *where)
 
 void SpreadChange::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Replay a color change
+//   Replay a spread change
 // ----------------------------------------------------------------------------
 {
     layoutJustification(where, axis).spread = amount;
@@ -151,10 +151,40 @@ void SpreadChange::Draw(Layout *where)
 
 void SpacingChange::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Replay a color change
+//   Replay a spacing change
 // ----------------------------------------------------------------------------
 {
     layoutJustification(where, axis).spacing = amount;
+}
+
+
+void MinimumSpacingChange::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Replay a change in minimum spacing
+// ----------------------------------------------------------------------------
+{
+    layoutJustification(where, axis).after = amount;
+    layoutJustification(where, axis).before = before;
+}
+
+
+void HorizontalMarginChange::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Replay an horizontal margin change
+// ----------------------------------------------------------------------------
+{
+    where->left = left;
+    where->right = right;
+}
+
+
+void VerticalMarginChange::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Replay a vertical margin change
+// ----------------------------------------------------------------------------
+{
+    where->top = top;
+    where->bottom = bottom;
 }
 
 TAO_END

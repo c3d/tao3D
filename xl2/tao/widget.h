@@ -211,6 +211,7 @@ public:
     // Getting attributes
     Text_p      page(Tree_p self, text name, Tree_p body);
     Text_p      pageLink(Tree_p self, text key, text name);
+    Text_p      gotoPage(Tree_p self, text page);
     Text_p      pageLabel(Tree_p self);
     Integer_p   pageNumber(Tree_p self);
     Integer_p   pageCount(Tree_p self);
@@ -223,10 +224,13 @@ public:
     Real_p      windowHeight(Tree_p self);
     Real_p      time(Tree_p self);
     Real_p      pageTime(Tree_p self);
+    Real_p      after(Tree_p self, double delay, Tree_p code);
+    Real_p      every(Tree_p self, double delay, double duration, Tree_p code);
 
     // Preserving attributes
     Tree_p      locally(Tree_p self, Tree_p t);
     Tree_p      shape(Tree_p self, Tree_p t);
+    Tree_p      anchor(Tree_p self, Tree_p t);
 
     // Transforms
     Tree_p      rotatex(Tree_p self, Real_p rx);
@@ -245,9 +249,10 @@ public:
     // Setting attributes
     Name_p      depthTest(Tree_p self, bool enable);
     Tree_p      refresh(Tree_p self, double delay);
+    Name_p      showSource(Tree_p self, bool show);
     Name_p      fullScreen(Tree_p self, bool fs);
-    Name_p      enableAnimations(Tree_p self, bool fs);
     Name_p      toggleFullScreen(Tree_p self);
+    Name_p      enableAnimations(Tree_p self, bool fs);
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
 
@@ -347,9 +352,13 @@ public:
     Tree_p      center(Tree_p self, scale amount, uint axis);
     Tree_p      spread(Tree_p self, scale amount, uint axis);
     Tree_p      spacing(Tree_p self, scale amount, uint axis);
+    Tree_p      minimumSpace(Tree_p self, coord before, coord after, uint ax);
+    Tree_p      horizontalMargins(Tree_p self, coord left, coord right);
+    Tree_p      verticalMargins(Tree_p self, coord top, coord bottom);
     Tree_p      drawingBreak(Tree_p self, Drawing::BreakOrder order);
     Name_p      textEditKey(Tree_p self, text key);
     Text_p      loremIpsum(Tree_p self, Integer_p nwords);
+    Text_p      loadText(Tree_p self, text file);
 
     // Tables
     Tree_p      newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body);
@@ -499,6 +508,7 @@ private:
     friend class ControlPoint;
     friend class Renormalize;
     friend class Table;
+    friend class DeleteSelectionAction;
 
     typedef XL::LocalSave<QEvent *>             EventSave;
     typedef XL::LocalSave<Widget *>             TaoSave;
@@ -555,7 +565,7 @@ private:
 
     // Timing
     QTimer                timer, idleTimer;
-    double                pageStartTime, pageRefresh, frozenTime;
+    double                pageStartTime, pageRefresh, frozenTime, startTime;
     ulonglong             tmin, tmax, tsum, tcount;
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
     bool                  animated;
@@ -642,27 +652,27 @@ struct DeleteSelectionAction : XL::Action
     {
         if (widget->selected(what))
             return NULL;
-        return new Integer(what->value, what->Position());
+        return updateRef(what, new Integer(what->value, what->Position()));
     }
     Tree *DoReal(Real *what)
     {
         if (widget->selected(what))
             return NULL;
-        return new Real(what->value, what->Position());
+        return updateRef(what, new Real(what->value, what->Position()));
 
     }
     Tree *DoText(Text *what)
     {
         if (widget->selected(what))
             return NULL;
-        return new Text(what->value, what->opening, what->closing,
-                        what->Position());
+        return updateRef(what, new Text(what->value, what->opening, what->closing,
+                        what->Position()));
     }
     Tree *DoName(Name *what)
     {
         if (widget->selected(what))
             return NULL;
-        return new Name(what->value, what->Position());
+        return updateRef(what, new Name(what->value, what->Position()));
     }
 
     Tree *DoBlock(Block *what)
@@ -672,7 +682,8 @@ struct DeleteSelectionAction : XL::Action
         Tree *child = what->child->Do(this);
         if (!child)
             return NULL;
-        return new Block(child, what->opening, what->closing, what->Position());
+        return updateRef(what, new Block(child, what->opening, what->closing,
+                                         what->Position()));
     }
     Tree *DoInfix(XL::Infix *what)
     {
@@ -684,7 +695,8 @@ struct DeleteSelectionAction : XL::Action
             return left;
         if (!left)
             return right;
-        return new Infix(what->name, left, right, what->Position());
+        return updateRef(what, new Infix(what->name, left, right,
+                                         what->Position()));
     }
     Tree *DoPrefix(Prefix *what)
     {
@@ -696,7 +708,7 @@ struct DeleteSelectionAction : XL::Action
             return left;
         if (!left)
             return right;
-        return new Prefix(left, right, what->Position());
+        return updateRef(what, new Prefix(left, right, what->Position()));
     }
     Tree *DoPostfix(Postfix *what)
     {
@@ -708,13 +720,22 @@ struct DeleteSelectionAction : XL::Action
             return left;
         if (!left)
             return right;
-        return new Postfix(left, right, what->Position());
+        return updateRef(what, new Postfix(left, right, what->Position()));
     }
     Tree *Do(Tree *what)
     {
         return what;            // ??? Should not happen
     }
     Widget *widget;
+    Tree *updateRef(Tree *from, Tree *to)
+    {
+        // Check if we are possibly changing the page tree reference
+        if (widget->pageTree == from)
+            widget->pageTree = to;
+
+        return to;
+
+    }
 };
 
 

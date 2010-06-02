@@ -173,6 +173,40 @@ struct SpacingChange : JustificationChange
     virtual void Draw(Layout *where);
 };
 
+
+struct MinimumSpacingChange : JustificationChange
+// ----------------------------------------------------------------------------
+//   Change a spacing attribute - Y axis is for line spacing
+// ----------------------------------------------------------------------------
+{
+    MinimumSpacingChange(float b, float a, Axis x)
+        : JustificationChange(a, x), before(b) {}
+    virtual void Draw(Layout *where);
+    coord before;
+};
+
+
+struct HorizontalMarginChange : Attribute
+// ----------------------------------------------------------------------------
+//   Change the horizontal text margin
+// ----------------------------------------------------------------------------
+{
+    HorizontalMarginChange(coord l, coord r): left(l), right(r) {}
+    virtual void Draw(Layout *where);
+    coord left, right;
+};
+
+
+struct VerticalMarginChange : Attribute
+// ----------------------------------------------------------------------------
+//   Change the vertical text margin
+// ----------------------------------------------------------------------------
+{
+    VerticalMarginChange(coord t, coord b): top(t), bottom(b) {}
+    virtual void Draw(Layout *where);
+    coord top, bottom;
+};
+
 TAO_END
 
 #endif // ATTRIBUTES_H

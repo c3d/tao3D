@@ -30,6 +30,7 @@
 PREFIX(Page, text, "page", PARM(n, text) PARM(b, tree), RTAO(page(self,n,b)))
 PREFIX(PageLink, text, "page_link", PARM(k, text) PARM(n, text),
        RTAO(pageLink(self, k, n)))
+PREFIX(GotoPage, text, "goto_page", PARM(p, text), RTAO(gotoPage(self, p)))
 
 PREFIX(PageLabel,   text,     "page_label", ,   RTAO(pageLabel(self)))
 PREFIX(PageId,      integer,  "page_number", ,  RTAO(pageNumber(self)))
@@ -43,6 +44,14 @@ PREFIX(WindowWidth, real,     "window_width", , RTAO(windowWidth(self)))
 PREFIX(WindowHeight,real,     "window_height", ,RTAO(windowHeight(self)))
 PREFIX(DaySeconds,  real,     "time", ,         RTAO(time(self)))
 PREFIX(PageSeconds, real,     "page_time", ,    RTAO(pageTime(self)))
+PREFIX(After,       real,     "after", PARM(d, real) PARM(c, tree),
+       RTAO(after(self, d, c)))
+PREFIX(Every,       real,     "every",
+       PARM(i, real) PARM(d, real) PARM(c, tree),
+       RTAO(every(self, i, d, c)))
+PREFIX(Every50Pct,  real,     "every",
+       PARM(i, real) PARM(c, tree),
+       RTAO(every(self, i, 0.5, c)))
 
 
 
@@ -54,6 +63,7 @@ PREFIX(PageSeconds, real,     "page_time", ,    RTAO(pageTime(self)))
 
 PREFIX(Locally, tree, "locally", PARM(t, tree), RTAO(locally(self, t)))
 PREFIX(Shape,   tree, "shape",   PARM(t, tree), RTAO(shape(self, t)))
+PREFIX(Anchor,  tree, "anchor",   PARM(t, tree), RTAO(anchor(self, t)))
 
 
 
@@ -97,12 +107,14 @@ PREFIX(EnableDepthTest, boolean, "enable_depth_test",,
 PREFIX(DisableDepthTest, boolean, "disable_depth_test",,
        RTAO(depthTest(self, false)))
 PREFIX(Refresh, tree, "refresh", PARM(d, real), RTAO(refresh(self, d)))
+PREFIX(ShowSource, boolean, "show_source", PARM(an, boolean),
+       RTAO(showSource(self, an)))
 PREFIX(FullScreen, boolean, "full_screen", PARM(fs, boolean),
        RTAO(fullScreen(self, fs)))
-PREFIX(EnableAnimations, boolean, "enable_animations", PARM(an, boolean),
-       RTAO(enableAnimations(self, an)))
 PREFIX(ToggleFullScreen, boolean, "toggle_full_screen", ,
        RTAO(toggleFullScreen(self)))
+PREFIX(EnableAnimations, boolean, "enable_animations", PARM(an, boolean),
+       RTAO(enableAnimations(self, an)))
 PREFIX(PolygonOffset, integer, "polygon_offset",
        PARM(f0, real) PARM(f1, real) PARM(u0, real) PARM(u1, real),
        RTAO(polygonOffset(self, f0, f1, u0, u1)))
@@ -312,8 +324,20 @@ PREFIX(Spacing, tree, "spacing",
        PARM(a, real), RTAO(spacing(self, a, 0)))
 PREFIX(VSpacing, tree, "vertical_spacing",
        PARM(a, real), RTAO(spacing(self, a, 1)))
+PREFIX(MinimumParagraphSpace, tree, "paragraph_space",
+       PARM(b, real) PARM(a, real), RTAO(minimumSpace(self, b, a, 1)))
+PREFIX(MinimumCharacterSpace, tree, "character_space",
+       PARM(b, real) PARM(a, real), RTAO(minimumSpace(self, b, a, 0)))
+PREFIX(Margins, tree, "margins", PARM(l, real) PARM(r, real),
+       RTAO(horizontalMargins(self, l, r)))
+PREFIX(VMargins, tree, "vertical_margins", PARM(t, real) PARM(b, real),
+       RTAO(verticalMargins(self, t, b)))
 PREFIX(LineBreak, tree, "line_break",,
        RTAO(drawingBreak(self, Tao::Drawing::LineBreak)))
+PREFIX(SentenceBreak, tree, "sentence_break",,
+       RTAO(drawingBreak(self, Tao::Drawing::SentenceBreak)))
+PREFIX(ParaBreak, tree, "paragraph_break",,
+       RTAO(drawingBreak(self, Tao::Drawing::ParaBreak)))
 PREFIX(ColumnBreak, tree, "column_break",,
        RTAO(drawingBreak(self, Tao::Drawing::ColumnBreak)))
 PREFIX(PageBreak, tree, "page_break",,
@@ -322,6 +346,8 @@ PREFIX(TextEditKey, boolean, "text_edit_key", PARM(k, text),
        RTAO(textEditKey(self, k)))
 PREFIX(LoremIpsum, tree, "lorem_ipsum",PARM(w,integer),
        RTAO(loremIpsum(self,w)))
+PREFIX(LoadText, tree, "load_text",PARM(f,text),
+       RTAO(loadText(self,f)))
 
 
 

@@ -88,10 +88,13 @@ GLuint ImageTextureInfo::bind(text file)
     GLuint textureId = textures[file];
     if (textureId == 0)
     {
-
         // Prune the map if it gets too big
         while (textures.size() > MAX_TEXTURES)
-            textures.erase(textures.begin());
+        {
+            texture_map::iterator first = textures.begin();
+            glDeleteTextures(1, &(*first).second);
+            textures.erase(first);
+        }
 
         // Read the image file and convert to proper GL image format
         QImage original(+file);

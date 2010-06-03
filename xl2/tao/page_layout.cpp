@@ -179,7 +179,7 @@ void LayoutLine::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // Compute layout
-    SafeCompute(where);
+    Compute(where);
 
     // Display all items
     LineJustifier::Places &places = line.places;
@@ -201,7 +201,7 @@ void LayoutLine::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // Compute layout
-    SafeCompute(where);
+    Compute(where);
 
     // Display all items
     LineJustifier::Places &places = line.places;
@@ -222,7 +222,7 @@ void LayoutLine::Identify(Layout *where)
 //   Identify page elements for OpenGL
 // ----------------------------------------------------------------------------
 {
-    SafeCompute(where);
+    Compute(where);
 
     // Display all items
     LineJustifier::Places &places = line.places;
@@ -401,7 +401,7 @@ void LayoutLine::Add(Items::iterator first, Items::iterator last)
 }
 
 
-void LayoutLine::SafeCompute(Layout *layout)
+void LayoutLine::Compute(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Compute the placement of items on the line, preserving layout state
 // ----------------------------------------------------------------------------
@@ -412,18 +412,6 @@ void LayoutLine::SafeCompute(Layout *layout)
 
     // Save attributes that may be modified by Compute(), as well as offset
     XL::LocalSave<LayoutState> save(*layout, *layout);
-    Compute(layout);
-}
-
-
-void LayoutLine::Compute(Layout *layout)
-// ----------------------------------------------------------------------------
-//   Compute the placement of items on the line
-// ----------------------------------------------------------------------------
-{
-    // If we already computed the placement, re-use that
-    if (line.places.size())
-        return;
 
     // Position one line of items
     if (left > right) std::swap(left, right);
@@ -555,10 +543,8 @@ void PageLayout::Draw(Layout *where)
 //   and then only iterate on the items that were placed, not all items,
 //   taking the layout offset from the placed position
 {
-    // Inherit state from our parent layout if there is one
-    Inherit(where);
-
-    SafeCompute();
+    // Inherit state from our parent layout if there is one and compute layout
+    Compute(where);
 
     // Display all items
     PageJustifier::Places &places = page.places;
@@ -584,9 +570,8 @@ void PageLayout::DrawSelection(Layout *where)
     GLuint      startId = widget->currentCharId();
     GLuint      lineStart, lineEnd;
 
-    // Inherit state from our parent layout if there is one
-    Inherit(where);
-    SafeCompute();
+    // Inherit state from our parent layout if there is one and compute layout
+    Compute(where);
 
     // Display all items
     PageJustifier::Places &places = page.places;
@@ -661,10 +646,8 @@ void PageLayout::Identify(Layout *where)
 //   Identify page elements for OpenGL
 // ----------------------------------------------------------------------------
 {
-    // Inherit state from our parent layout if there is one
-    Inherit(where);
-
-    SafeCompute();
+    // Inherit state from our parent layout if there is one and compute layout
+    Compute(where);
 
     // Display all items
     PageJustifier::Places &places = page.places;
@@ -701,11 +684,11 @@ Box3 PageLayout::Bounds(Layout *layout)
 //   Return the bounds for the page layout
 // ----------------------------------------------------------------------------
 {
+    // Inherit from surrounding context and compute layout
+    Compute(layout);
+
     // Loop over all elements, offseting by their position
     Box3 result;
-    Inherit(layout);
-    SafeCompute();
-
     PageJustifier::Places &places = page.places;
     PageJustifier::PlacesIterator p;
     if (places.size() == 0)
@@ -729,27 +712,13 @@ Box3 PageLayout::Space(Layout *layout)
 //   Return the space for the page layout
 // ----------------------------------------------------------------------------
 {
+    // Inherit context and compute layout
+    Compute(layout);
+
     Box3 result = space;
-    Inherit(layout);
-    SafeCompute();
     if (page.places.size())
         result |= Bounds(layout);
     return result;
-}
-
-
-void PageLayout::SafeCompute()
-// ----------------------------------------------------------------------------
-//   Layout all elements on the page, preserving layout state
-// ----------------------------------------------------------------------------
-{
-    // If we already computed the layout, just reuse that
-    if (page.places.size())
-        return;
-
-    // Save attributes that may be modified by Compute(), as well as offset
-    XL::LocalSave<LayoutState> save(*this, *this);
-    Compute();
 }
 
 
@@ -764,14 +733,20 @@ void PageLayout::Inherit(Layout *other)
 }
 
 
-void PageLayout::Compute()
+void PageLayout::Compute(Layout *where)
 // ----------------------------------------------------------------------------
-//   Layout all elements on the page in as many lines as necessary
+//   Layout all elements on the page, preserving layout state
 // ----------------------------------------------------------------------------
 {
+    // Get attributes from surrounding context
+    Inherit(where);
+
     // If we already computed the layout, just reuse that
     if (page.places.size())
         return;
+
+    // Save attributes that may be modified by Compute(), as well as offset
+    XL::LocalSave<LayoutState> save(*this, *this);
 
     // Transfer all items into a single line
     LayoutLine *line = new LayoutLine(space.Left(), space.Right());
@@ -796,6 +771,9 @@ void PageLayout::Compute()
     coord bottom = space.Bottom() + bottom;
     if (top < bottom) std::swap(top, bottom);
     page.Adjust(top, bottom, alongY, this);
+
+    // Restore state from surrounding context
+    Inherit(where);
 }
 
 

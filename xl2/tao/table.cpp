@@ -327,6 +327,9 @@ void Table::Compute(Layout *where)
         bb.upper.y += rowHeight[r] + margins.Height();
     }
     bounds = bb;
+
+    // Restore original state for the caller
+    Inherit(where);
 }
 
 TAO_END

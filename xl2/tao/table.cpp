@@ -100,14 +100,7 @@ void Table::Draw(Layout *where)
                 widget->drawTree(this, fillCode);
             if (d)
             {
-                XL::LocalSave<Point3> zeroOffset(offset, Point3());
-                Box3 bb = d->Space(this);
-
-                // Center table items
-                pos.x += (cellW - bb.Width()) * where->alongX.centering;
-                pos.y += (cellH - bb.Height()) * where->alongY.centering;
-
-                offset = pos + where->offset;
+                XL::LocalSave<Point3> saveOffset(offset, pos + where->offset);
                 d->Draw(this);
             }
             if (borderI != cellBorder.end())
@@ -300,6 +293,7 @@ void Table::Compute(Layout *where)
             if (i == items.end())
                 break;
             Drawing *d = *i++;
+            Inherit(where);
             XL::LocalSave<Point3> zeroOffset(offset, Point3());
             Box3 bb = d->Space(this);
             double lowX = colBB[c].lower.x;

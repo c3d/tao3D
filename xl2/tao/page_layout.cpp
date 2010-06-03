@@ -698,7 +698,7 @@ Box3 PageLayout::Bounds(Layout *layout)
         PageJustifier::Place &place = *p;
         Drawing *child = place.item;
         XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
-        Box3 childBounds = child->Bounds(layout);
+        Box3 childBounds = child->Bounds(this);
         //childBounds &= space;
         result |= childBounds;
     }
@@ -717,7 +717,7 @@ Box3 PageLayout::Space(Layout *layout)
 
     Box3 result = space;
     if (page.places.size())
-        result |= Bounds(layout);
+        result |= Bounds(this);
     return result;
 }
 

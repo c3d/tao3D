@@ -349,7 +349,7 @@ Infix *Symbols::CompileTypeTest(Tree *type)
                 return infix;
 
     // Create an infix node with two parameters for left and right
-    Name *valueParm = new Name("xl_value_to_typecheck");
+    Name *valueParm = new Name("_");
     Infix *call = new Infix(":", valueParm, type);
     TreeList parameters;
     parameters.push_back(valueParm);
@@ -419,11 +419,12 @@ Tree *Symbols::Run(Tree *code)
                     symbols = this;
                 }
                 result = symbols->CompileAll(result);
-            }
-            if (!result->code)
-            {
-                Ooops("Unable to compile '$1'", result);
-                return NULL;
+
+                if (!result->code)
+                {
+                    Ooops("Unable to compile '$1'", result);
+                    return NULL;
+                }
             }
             result = result->code(code);
             more = (result != code && result &&
@@ -1323,7 +1324,7 @@ Tree *ArgumentMatch::DoName(Name *what)
             // Check if the test is an identity
             if (Name *nt = test->AsName())
             {
-                if (nt->code == xl_identity)
+                if (nt->code == xl_identity || data)
                 {
                     if (nt->value == what->value)
                         return what;
@@ -1454,16 +1455,31 @@ Tree *ArgumentMatch::DoInfix(Infix *what)
             return NULL;
         }
 
-
         // Evaluate type expression, e.g. 'integer' in example above
         Tree *typeExpr = Compile(what->right);
         if (!typeExpr)
             return NULL;
 
+        // Check if this is a case where we don't compile the value
+        bool needEvaluation = true;
+        if (Name *name = typeExpr->AsName())
+            if (name->value == "tree" || name->value == "symbolicname")
+                needEvaluation = false;
+
         // Compile what we are testing against
-        Tree *compiled = Compile(test);
-        if (!compiled)
-            return NULL;
+        Tree *compiled = test;
+        if (needEvaluation)
+        {
+            compiled = Compile(compiled);
+            if (!compiled)
+                return NULL;
+        }
+        else
+        {
+            unit.ConstantTree(compiled);
+            if (!compiled->Symbols())
+                compiled->SetSymbols(symbols);
+        }
 
         // Insert a run-time type test
         unit.TypeTest(compiled, typeExpr);
@@ -1656,9 +1672,12 @@ Tree *EvaluateChildren::DoPrefix(Prefix *what)
 {
     Tree *left = Try(what->left);
     Tree *right = Try(what->right);
-    if (left == what->left && right == what->right)
-        return what;
-    return new Prefix(left, right, what->Position());
+    Tree *result = what;
+    if (left != what->left || right != what->right)
+        result = new Prefix(left, right, what->Position());
+    if (!result->code)
+        result->code = xl_evaluate_children;
+    return result;
 }
 
 
@@ -1669,9 +1688,12 @@ Tree *EvaluateChildren::DoPostfix(Postfix *what)
 {
     Tree *left = Try(what->left);
     Tree *right = Try(what->right);
-    if (left == what->left && right == what->right)
-        return what;
-    return new Postfix(left, right, what->Position());
+    Tree *result = what;
+    if (left != what->left || right != what->right)
+        result = new Postfix(left, right, what->Position());
+    if (!result->code)
+        result->code = xl_evaluate_children;
+    return result;
 }
 
 
@@ -1682,9 +1704,12 @@ Tree *EvaluateChildren::DoInfix(Infix *what)
 {
     Tree *left = Try(what->left);
     Tree *right = Try(what->right);
-    if (left == what->left && right == what->right)
-        return what;
-    return new Infix(what->name, left, right, what->Position());
+    Tree *result = what;
+    if (left != what->left || right != what->right)
+        result = new Infix(what->name, left, right, what->Position());
+    if (!result->code)
+        result->code = xl_evaluate_children;
+    return result;
 }
 
 
@@ -1694,9 +1719,13 @@ Tree *EvaluateChildren::DoBlock(Block *what)
 // ----------------------------------------------------------------------------
 {
     Tree *child = Try(what->child);
-    if (child == what->child)
-        return what;
-    return new Block(child, what->opening, what->closing, what->Position());
+    Tree *result = what;
+    if (child != what->child)
+        result = new Block(child, what->opening,what->closing,
+                           what->Position());
+    if (!result->code)
+        result->code = xl_evaluate_children;
+    return result;
 }
 
 
@@ -1711,7 +1740,10 @@ Tree *EvaluateChildren::Try(Tree *what)
     {
         Tree *compiled = symbols->CompileAll(what, true);
         if (!compiled)
+        {
+            what->code = xl_evaluate_children;
             return what->Do(this);
+        }
         compiled = what;
     }
     return symbols->Run(what);
@@ -1929,6 +1961,8 @@ Tree *CompileAction::DoName(Name *what)
             if (!what->Symbols())
                 what->SetSymbols(symbols);
             result = rw.Compile();
+            if (!result)
+                return result;
         }
 
         // Check if there is code we need to call
@@ -2048,7 +2082,13 @@ Tree *CompileAction::DoPrefix(Prefix *what)
     if (Name *name = what->left->AsName())
     {
         if (name->value == "data")
+        {
+            if (!what->right->Symbols())
+                what->right->SetSymbols(symbols);
+            unit.CallEvaluateChildren(what->right);
+            unit.Copy(what->right, what);
             return what;
+        }
     }
     return Rewrites(what);
 }
@@ -2120,7 +2160,7 @@ Tree *  CompileAction::Rewrites(Tree *what)
                 Symbols args(symbols);
                 ArgumentMatch matchArgs(what,
                                         symbols, &args, candidate->symbols,
-                                        this);
+                                        this, !candidate->to);
                 Tree *argsTest = candidate->from->Do(matchArgs);
                 if (argsTest)
                 {
@@ -2357,7 +2397,7 @@ Tree *Rewrite::Compile(void)
 
     // Even if technically, this is not an 'eval_fn' (it has more args),
     // we still record it to avoid recompiling multiple times
-    eval_fn fn = compile.unit.Finalize();
+    eval_fn fn = unit.Finalize();
     to->code = fn;
 
     return to;

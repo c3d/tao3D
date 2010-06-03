@@ -39,7 +39,7 @@ struct LayoutLine : Drawing
     typedef std::vector<Drawing *>      Items;
 
 public:
-                        LayoutLine();
+                        LayoutLine(coord left, coord right);
                         LayoutLine(const LayoutLine &o);
                         ~LayoutLine();
 
@@ -56,10 +56,10 @@ public:
     void                Compute(Layout *where);
     void                SafeCompute(Layout *where);
     LayoutLine *        Remaining();
-    void                ApplyAttributes(Layout *layout);
 
 public:
     LineJustifier       line;
+    coord               left, right;
 };
 
 
@@ -143,14 +143,12 @@ struct AnchorLayout : Layout
 typedef Drawing *       line_t;
 template<> line_t       Justifier<line_t>::Break(line_t, bool*, bool*, bool*);
 template<> scale        Justifier<line_t>::Size(line_t, Layout *);
-template<> void         Justifier<line_t>::ApplyAttributes(line_t, Layout*);
 template<> scale        Justifier<line_t>::SpaceSize(line_t, Layout *);
 template<> coord        Justifier<line_t>::ItemOffset(line_t, Layout *);
 
 typedef LayoutLine *    page_t;
 template<> page_t       Justifier<page_t>::Break(page_t, bool*, bool*, bool*);
 template<> scale        Justifier<page_t>::Size(page_t, Layout *);
-template<> void         Justifier<page_t>::ApplyAttributes(page_t, Layout*);
 template<> scale        Justifier<page_t>::SpaceSize(page_t, Layout *);
 template<> coord        Justifier<page_t>::ItemOffset(page_t, Layout *);
 

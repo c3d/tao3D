@@ -63,6 +63,7 @@ PREFIX(Every50Pct,  real,     "every",
 
 PREFIX(Locally, tree, "locally", PARM(t, tree), RTAO(locally(self, t)))
 PREFIX(Shape,   tree, "shape",   PARM(t, tree), RTAO(shape(self, t)))
+PREFIX(Widget,  tree, "active_widget", PARM(t,tree), RTAO(activeWidget(self,t)))
 PREFIX(Anchor,  tree, "anchor",   PARM(t, tree), RTAO(anchor(self, t)))
 
 

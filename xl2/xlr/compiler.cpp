@@ -696,6 +696,7 @@ CompiledUnit::CompiledUnit(Compiler *comp, Tree *src, TreeList parms)
     // If a compilation for that tree is alread in progress, fwd decl
     if (llvm::Function *function = compiler->TreeFunction(src))
     {
+        // We exit here without setting entrybb (see IsForward())
         IFTRACE(llvm)
             std::cerr << " exists F" << function << "\n";
         return;
@@ -759,6 +760,15 @@ CompiledUnit::~CompiledUnit()
 //   Delete what we must...
 // ----------------------------------------------------------------------------
 {
+    if (entrybb && exitbb)
+    {
+        // If entrybb is clear, we may be looking at a forward declaration
+        // Otherwise, if exitbb was not cleared by Finalize(), this means we
+        // failed to compile. Make sure the compiler forgets the function
+        compiler->SetTreeFunction(source, NULL);
+        function->eraseFromParent();
+    }
+
     delete code;
     delete data;
 }    
@@ -794,6 +804,7 @@ eval_fn CompiledUnit::Finalize()
     IFTRACE(llvm)
         std::cerr << " C" << (void *) result << "\n";
 
+    exitbb = NULL;              // Tell destructor we were successful
     return (eval_fn) result;
 }
 

@@ -52,7 +52,7 @@ public:
     operator            data_t() { return this; }
     void                resize(uint width, uint height);
     virtual GLuint      bind();
-    virtual void        requestFocus(Layout *l, coord x, coord y);
+    virtual bool        requestFocus(Layout *l, coord x, coord y);
 
     QWidget *           widget;
     GLuint              textureId;

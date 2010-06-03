@@ -1,0 +1,34 @@
+Max -> 5
+Size -> 100 
+Space -> -200 
+Init -> Space * -Max / 2 
+
+docube x, y, z -> 
+    if (x*31 + y*27 + z*33) mod 77 = seconds then
+        color 5%, 5%, 5%, 30%
+    else
+        color real (x) / Max, real (y) / Max, real (z) / Max, 1 
+    cube x * Space, y * Space, z * Space, Size, Size, Size 
+    // sphere x * Space, y * Space, z * Space, Size, Size, Size, 10, 10 
+
+cubes 0, 0, 0 -> 
+    docube 0, 0, 0 
+cubes 0, 0, z:integer -> 
+    cubes Max, Max, z - 1 
+    docube 0, 0, z 
+cubes 0, y:integer, z:integer -> 
+    cubes Max, y - 1, z 
+    docube 0, y, z 
+cubes x:integer, y:integer, z:integer -> 
+    cubes x - 1, y, z 
+    docube x, y, z 
+
+color 1, 0, 1, 20% 
+line_color 0, 0, 1, 25% 
+
+translatez -2000 
+rotatey time * 6 
+rotatex time * 0.1 
+rotatez time / 600 
+translate Init, Init, Init 
+cubes Max, Max, Max 

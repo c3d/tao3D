@@ -26,6 +26,7 @@
 
 #include "base.h"
 #include "tree.h"
+#include <set>
 
 
 XL_BEGIN
@@ -120,6 +121,134 @@ public:
 };
 
 
+
+// ============================================================================
+// 
+//    Actions used for functional applications
+// 
+// ============================================================================
+
+Tree *xl_apply(Tree *code, Tree *data);
+
+
+struct MapAction : Action
+// ----------------------------------------------------------------------------
+//   Map a given operation onto each element in a data set
+// ----------------------------------------------------------------------------
+{
+    typedef Tree * (*map_fn) (Tree *self, Tree *arg);
+
+public:
+    MapAction(eval_fn function, std::set<text> &sep)
+        : function((map_fn) function), separators(sep) {}
+
+    virtual Tree *Do(Tree *what);
+
+    virtual Tree *DoInfix(Infix *what);
+    virtual Tree *DoPrefix(Prefix *what);
+    virtual Tree *DoPostfix(Postfix *what);
+    virtual Tree *DoBlock(Block *what);
+
+public:
+    map_fn              function;
+    std::set<text>      separators;
+};
+
+
+struct ReduceAction : Action
+// ----------------------------------------------------------------------------
+//   Reduce a given operation by combining successive elements
+// ----------------------------------------------------------------------------
+{
+    typedef Tree * (*reduce_fn) (Tree *self, Tree *first, Tree *second);
+
+public:
+    ReduceAction(eval_fn function, std::set<text> &sep)
+        : function((reduce_fn) function), separators(sep) {}
+
+    virtual Tree *Do(Tree *what);
+
+    virtual Tree *DoInfix(Infix *what);
+    virtual Tree *DoPrefix(Prefix *what);
+    virtual Tree *DoPostfix(Postfix *what);
+    virtual Tree *DoBlock(Block *what);
+
+public:
+    reduce_fn           function;
+    std::set<text>      separators;
+};
+
+
+struct FilterAction : Action
+// ----------------------------------------------------------------------------
+//   Filter a given operation onto each element in a data set
+// ----------------------------------------------------------------------------
+{
+    typedef Tree * (*filter_fn) (Tree *self, Tree *arg);
+
+public:
+    FilterAction(eval_fn function, std::set<text> &sep)
+        : function((filter_fn) function), separators(sep) {}
+
+    virtual Tree *Do(Tree *what);
+
+    virtual Tree *DoInfix(Infix *what);
+    virtual Tree *DoPrefix(Prefix *what);
+    virtual Tree *DoPostfix(Postfix *what);
+    virtual Tree *DoBlock(Block *what);
+
+public:
+    filter_fn           function;
+    std::set<text>      separators;
+};
+
+
+struct FunctionInfo : Info
+// ----------------------------------------------------------------------------
+//   Hold a single-argument function for a given tree
+// ----------------------------------------------------------------------------
+//   REVISIT: According to Wikipedia, really a Moses Schönfinkel function
+{
+    FunctionInfo(): function(NULL), symbols(NULL) {}
+    
+    virtual Tree * Apply(Tree *what) { return what; }
+
+public:
+    eval_fn        function;
+    Symbols_p      symbols;
+    Tree_p         compiled;
+    std::set<text> separators;
+};
+
+
+struct MapFunctionInfo : FunctionInfo
+// ----------------------------------------------------------------------------
+//   Record the code for a map operation
+// ----------------------------------------------------------------------------
+{
+    virtual Tree * Apply(Tree *what);
+};
+
+
+struct ReduceFunctionInfo : FunctionInfo
+// ----------------------------------------------------------------------------
+//   Record the code for a reduce operation
+// ----------------------------------------------------------------------------
+{
+    virtual Tree * Apply(Tree *what);
+};
+
+
+struct FilterFunctionInfo : FunctionInfo
+// ----------------------------------------------------------------------------
+//   Record the code for a filter operation
+// ----------------------------------------------------------------------------
+{
+    virtual Tree * Apply(Tree *what);
+};
+
+
+
 // ============================================================================
 // 
 //   Stack depth management
@@ -165,8 +294,8 @@ protected:
 // ============================================================================
 
 Tree *xl_load(text name);
-Tree *xl_load_csv(text name);
-Tree *xl_load_tsv(text name);
+Tree *xl_load_data(text name, text prefix,
+                   text fieldSeps = ",;", text recordSeps = "\n");
 
 
 

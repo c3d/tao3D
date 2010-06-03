@@ -1,0 +1,114 @@
+min (x:real, y:real) -> if x < y then x else y 
+window_scale -> min (window_width / 1024, window_height / 768) 
+show_background -> 
+    scale window_scale, window_scale, window_scale 
+    locally 
+        color 0% ,40% ,20% ,20% 
+        path 
+            move_to -512, 384, 0 
+            line_to 512, 384, 0 
+            line_to 512, 320, 0 
+            curve_to -512 + 512 * page_number / page_count, 320, 0, -50 + 512 * page_number / page_count, -320, 0, -450 + 200 * page_number / page_count, -384, 0 
+            line_to -512, -384, 0
+        
+    
+    locally 
+        color 90% ,100% ,90% ,20% 
+        texture "Bamboo-bg.jpg" 
+        rectangle 0, 0, 1024, 768
+    
+    locally 
+        color 1, 1, 1, 1 
+        image 450, -340, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, 160.0, 116.0, "logo-v3.png"
+    
+
+show_title -> 
+    center 0.5 
+    vertical_center 0.9 
+    locally 
+        color 1, 1, 1, 40% 
+        line_color 0% ,40% ,0% ,70% 
+        line_width 1 
+        rounded_rectangle 0, 300, 850, 120, 10
+    
+    text_box 0, 300, 800, 120, do 
+        font "Papyrus" 
+        font_size 64 
+        color 90% ,50% ,5% ,70% 
+        line_color 90% ,20% ,10% ,80% 
+        line_width 2 
+        text page_label
+    
+    locally 
+        color 1, 1, 1, 40% 
+        line_color 0% ,40% ,0% ,70% 
+        line_width 1 
+        rounded_rectangle 0, -50, 850, 500, 10
+    
+
+show_page_info -> 
+    locally 
+        text_box -180, -360, 600, 50, do 
+            center 0.0 
+            vertical_center 0.5 
+            font "Papyrus" 
+            font_size 22 
+            color 0, 0, 70% ,90% 
+            text page_label 
+            color 0, 0, 70% ,60% 
+            font_size 18 
+            text " (page "& text (page_number) & "/" & text (page_count) & ")"
+        
+    
+
+story X -> 
+    locally 
+        center 0.0 
+        justify 1.0 
+        vertical_center 0.3 
+        vertical_justify 0.0 
+        font "Arial" 
+        font_size 32 
+        color 0, 0, 0, 1 
+        text_box 0, -50, 780, 480, do X
+    
+
+* X:text -> 
+    font "Arial" 
+    font_size 32 
+    margins 40, 0 
+    paragraph_space 30, 30 
+    paragraph_break 
+    anchor 
+        color 0, 70% ,50% ,70% 
+        line_color 0, 40% ,10% ,80% 
+        line_width 2 
+        star_polygon -15, 10, 10, 10, seconds mod 9 + 3, 1
+    
+    color 0, 0, 0, 70% 
+    text X
+
+-X:text -> 
+    font "Arial" 
+    font_size 28 
+    margins 80, 0 
+    paragraph_space 20, 20 
+    paragraph_break 
+    anchor 
+        color 0, 40% ,50% ,70% 
+        line_color 0, 40% ,10% ,80% 
+        line_width 1 
+        ellipse -20, 10, 8, 8
+    
+    color 0, 20% ,10% ,60% 
+    text X
+
+request X:text -> 
+    font "Times New Roman" 
+    italic 
+    font_size 24 
+    line_break 
+    center 1.0 
+    line_break 
+    color 100% ,10% ,10% ,80% 
+    text X

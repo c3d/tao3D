@@ -26,29 +26,29 @@
 // ****************************************************************************
 
 #include "drawing.h"
+#include "layout.h"
 #include "tao_tree.h"
 
 TAO_BEGIN
 
-struct Table : Drawing
+struct Table : Layout
 // ----------------------------------------------------------------------------
 //    A table-like layout for graphic elements
 // ----------------------------------------------------------------------------
 {
-    Table(uint r, uint c);
+    Table(Widget *display, uint r, uint c);
     ~Table();
 
     virtual void        Draw(Layout *);
     virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *);
     virtual Box3        Bounds(Layout *);
-    virtual void        AddElement(Drawing *d);
     virtual void        Compute(Layout *);
+    virtual void        Add (Drawing *d);
 
 public:
     uint                   rows, columns;
     uint                   row, column;
-    std::vector<Drawing *> elements;
     TreeList               cellFill, cellBorder;
     Box                    margins;
     std::vector<scale>     columnWidth;

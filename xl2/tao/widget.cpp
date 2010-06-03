@@ -96,7 +96,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       symbolTableRoot(new XL::Name("formula_symbol_table")),
       inError(false), mustUpdateDialogs(false),
       space(NULL), layout(NULL), path(NULL), table(NULL),
-      pageName(""), pageId(0), pageTotal(0), pageTree(NULL),
+      pageName(""),
+      pageId(0), pageFound(0), pageShown(1), pageTotal(1),
+      pageTree(NULL),
       currentShape(NULL),
       currentGridLayout(NULL),
       currentGroup(NULL), activities(NULL),
@@ -272,6 +274,7 @@ void Widget::draw()
     flowName = "";
     flows.clear();
     pageId = 0;
+    pageFound = 0;
     pageTree = NULL;
     lastPageName = "";
 
@@ -320,7 +323,11 @@ void Widget::draw()
     glEnable(GL_DEPTH_TEST);
 
     // Update page count for next run
-    pageTotal = pageId;
+    pageTotal = pageId ? pageId : 1;
+    if (pageFound)
+        pageShown = pageFound;
+    else
+        pageName = "";
 
     // If we must update dialogs, do it now
     if (mustUpdateDialogs)
@@ -366,6 +373,17 @@ void Widget::runProgram()
 
     // Evaluate the program
     XL::MAIN->EvalContextFiles(((Window*)parent())->contextFileNames);
+    if (QMenu *arrange = parent()->findChild<QMenu*>("menu:zorder"))
+    {
+        IFTRACE(menus)
+            std::cerr<<"menu \"menu:zorder\" found.\n";
+        QList<QAction *> children = arrange->findChildren<QAction*>();
+        foreach(QAction *act, children)
+            connect(this, SIGNAL(copyAvailable(bool)),
+                    act, SLOT(setEnabled(bool)),
+                    Qt::UniqueConnection);
+
+    }
     if (Tree *prog = xlProgram->tree)
         xl_evaluate(prog);
 
@@ -620,7 +638,6 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
         if (XL::Block *block = (*top)->AsBlock())
             top = &block->child;
     }
-    std::cerr << "top is :\n"<< *top << std::endl;
 
     Symbols *symbols = (*top)->Symbols();
     *top = new XL::Infix("\n", select, *top);
@@ -629,7 +646,6 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
     // Reload the program and mark the changes
     reloadProgram();
     markChanged("Selection sent to back");
-    std::cerr << "top is :\n"<< *top << std::endl;
 
     return XL::xl_true;
 }
@@ -2175,7 +2191,7 @@ void Widget::deleteFocus(QWidget *widget)
 }
 
 
-void Widget::requestFocus(QWidget *widget, coord x, coord y)
+bool Widget::requestFocus(QWidget *widget, coord x, coord y)
 // ----------------------------------------------------------------------------
 //   Some other widget request the focus
 // ----------------------------------------------------------------------------
@@ -2191,6 +2207,7 @@ void Widget::requestFocus(QWidget *widget, coord x, coord y)
         QObject *fin = focusWidget;
         fin->event(&focusIn);
     }
+    return focusWidget == widget;
 }
 
 
@@ -2260,6 +2277,21 @@ TextSelect *Widget::textSelection()
 }
 
 
+static inline void resetLayout(Layout *where)
+// ----------------------------------------------------------------------------
+//   Put layout back into a state appropriate for drawing a selection
+// ----------------------------------------------------------------------------
+{
+    if (where)
+    {
+        where->lineWidth = 1;
+        where->lineColor = Color(1,0,0,1);
+        where->fillColor = Color(0,1,0,0.8);
+        where->fillTexture = 0;
+    }
+}
+
+
 void Widget::drawSelection(Layout *where,
                            const Box3 &bnds, text selName, uint id)
 // ----------------------------------------------------------------------------
@@ -2281,6 +2313,7 @@ void Widget::drawSelection(Layout *where,
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper          saveGL;
+    resetLayout(where);
     selectionSpace.id = id;
     glDisable(GL_DEPTH_TEST);
     if (bounds.Depth() > 0)
@@ -2305,6 +2338,7 @@ void Widget::drawHandle(Layout *where,
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper          saveGL;
+    resetLayout(where);
     glDisable(GL_DEPTH_TEST);
     selectionSpace.id = id;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
@@ -2360,7 +2394,7 @@ XL::Text_p Widget::page(Tree_p self, text name, Tree_p body)
     if (pageName == name)
     {
         // Initialize back-link
-        pageShown = pageId;
+        pageFound = pageId;
         pageLinks.clear();
         if (pageId > 1)
             pageLinks["PageUp"] = lastPageName;
@@ -2592,6 +2626,23 @@ Tree_p Widget::shape(Tree_p self, Tree_p child)
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(newId()));
     XL::LocalSave<Tree_p>   saveShape (currentShape, self);
+    if (selectNextTime.count(self))
+    {
+        selection[id]++;
+        selectNextTime.erase(self);
+    }
+    Tree_p result = xl_evaluate(child);
+    return result;
+}
+
+
+Tree_p Widget::activeWidget(Tree_p self, Tree_p child)
+// ----------------------------------------------------------------------------
+//   Create a context for active widgets, e.g. buttons
+// ----------------------------------------------------------------------------
+{
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(newId()));
+    XL::LocalSave<Tree_p>   saveShape (currentShape, NULL);
     if (selectNextTime.count(self))
     {
         selection[id]++;
@@ -4068,7 +4119,7 @@ Tree_p Widget::newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body)
 //   Create a new table
 // ----------------------------------------------------------------------------
 {
-    Table *tbl = new Table(r, c);
+    Table *tbl = new Table(this, r, c);
     XL::LocalSave<Table *> saveTable(table, tbl);
     layout->Add(tbl);
 
@@ -4117,7 +4168,7 @@ Tree_p Widget::tableCell(Tree_p self, Real_p w, Real_p h, Tree_p body)
     // Define a new text layout
     PageLayout *tbox = new PageLayout(this);
     tbox->space = Box3(0, 0, 0, w, h, 0);
-    table->AddElement(tbox);
+    table->Add(tbox);
     flows[flowName] = tbox;
 
     XL::LocalSave<Layout *> save(layout, tbox);
@@ -4137,7 +4188,7 @@ Tree_p Widget::tableCell(Tree_p self, Tree_p body)
 
     // Define a new text layout
     Layout *tbox = new Layout(this);
-    table->AddElement(tbox);
+    table->Add(tbox);
 
     XL::LocalSave<Layout *> save(layout, tbox);
     return xl_evaluate(body);
@@ -4385,7 +4436,7 @@ Tree_p Widget::urlPaint(Tree_p self,
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     urlTexture(self, w, h, url, progress);
     WebViewSurface *surface = url->GetInfo<WebViewSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
@@ -4429,7 +4480,7 @@ Tree_p Widget::lineEdit(Tree_p self,
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     lineEditTexture(self, w, h, txt);
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
@@ -4592,7 +4643,7 @@ Tree_p Widget::abstractButton(Tree_p self, Text_p name,
     AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
 
     if (currentGroup &&
-        ! currentGroup->buttons().contains((QAbstractButton*)surface->widget))
+        !currentGroup->buttons().contains((QAbstractButton*)surface->widget))
     {
         currentGroup->addButton((QAbstractButton*)surface->widget);
     }
@@ -4603,7 +4654,7 @@ Tree_p Widget::abstractButton(Tree_p self, Text_p name,
         return XL::xl_true;
     }
 
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
 
@@ -4860,7 +4911,7 @@ Tree_p Widget::colorChooser(Tree_p self,
     colorChooserTexture(self, w, h, action);
 
     ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
@@ -4906,7 +4957,7 @@ Tree_p Widget::fontChooser(Tree_p self,
     fontChooserTexture(self, w, h, action);
 
     FontChooserSurface *surface = self->GetInfo<FontChooserSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
@@ -5131,7 +5182,7 @@ Tree_p Widget::fileChooser(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
     fileChooserTexture(self, w, h, properties);
 
     FileChooserSurface *surface = self->GetInfo<FileChooserSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
@@ -5220,7 +5271,7 @@ Tree_p Widget::groupBox(Tree_p self,
     groupBoxTexture(self, w, h, lbl);
 
     GroupBoxSurface *surface = self->GetInfo<GroupBoxSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
 
@@ -5276,7 +5327,7 @@ Tree_p Widget::videoPlayer(Tree_p self,
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     videoPlayerTexture(self, w, h, url);
     VideoPlayerSurface *surface = self->GetInfo<VideoPlayerSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h)));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
 

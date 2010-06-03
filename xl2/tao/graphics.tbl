@@ -559,10 +559,27 @@ PREFIX(SetAttribute, boolean, "set_attribute",
        PARM(n, text) PARM(t, tree),
        RTAO(setAttribute(self, n, t, "shape")))
 
+
+// ============================================================================
+//
+//   z order management
+//
+// ============================================================================
+
 PREFIX(BringToFront, boolean, "bring_to_front",, RTAO(bringToFront(self)))
 PREFIX(BringForward, boolean, "bring_forward",, RTAO(bringForward(self)))
 PREFIX(SendToBack, boolean, "send_to_back",, RTAO(sendToBack(self)))
 PREFIX(SendBackward, boolean, "send_backward",, RTAO(sendBackward(self)))
+
+// ============================================================================
+//
+//   group management
+//
+// ============================================================================
+
+PREFIX(Group, boolean, "group", PARM(t, tree), RTAO(group(self, t)))
+PREFIX(GroupSelection, boolean, "group_selection",, RTAO(groupSelection(self)))
+PREFIX(UngroupSelection, boolean, "ungroup_selection",, RTAO(ungroupSelection(self)))
 
 // ============================================================================
 //

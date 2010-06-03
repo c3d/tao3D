@@ -238,7 +238,7 @@ Tree *xl_new_block(Block *source, Tree *child)
 // ----------------------------------------------------------------------------
 {
     Tree *result = new Block(source, child);
-    result->code = xl_identity;
+    result->code = xl_evaluate_children;
     return result;
 }
 
@@ -249,7 +249,7 @@ Tree *xl_new_prefix(Prefix *source, Tree *left, Tree *right)
 // ----------------------------------------------------------------------------
 {
     Tree *result = new Prefix(source, left, right);
-    result->code = xl_identity;
+    result->code = xl_evaluate_children;
     return result;
 }
 
@@ -260,7 +260,7 @@ Tree *xl_new_postfix(Postfix *source, Tree *left, Tree *right)
 // ----------------------------------------------------------------------------
 {
     Tree *result = new Postfix(source, left, right);
-    result->code = xl_identity;
+    result->code = xl_evaluate_children;
     return result;
 }
 
@@ -271,7 +271,7 @@ Tree *xl_new_infix(Infix *source, Tree *left, Tree *right)
 // ----------------------------------------------------------------------------
 {
     Tree *result = new Infix(source, left, right);
-    result->code = xl_identity;
+    result->code = xl_evaluate_children;
     return result;
 }
 
@@ -354,10 +354,14 @@ Tree *xl_evaluate_children(Tree *what)
 //   Reconstruct a similar tree evaluating children
 // ----------------------------------------------------------------------------
 {
-    EvaluateChildren eval(what->Symbols());
-    Tree *result = what->Do(eval);
-    if (!result->Symbols())
-        result->SetSymbols(what->Symbols());
+    Tree *result = what;
+    if (Symbols *s = what->Symbols())
+    {
+        EvaluateChildren eval(s);
+        result = what->Do(eval);
+        if (!result->Symbols())
+            result->SetSymbols(what->Symbols());
+    }
     return result;
 }
 
@@ -910,6 +914,7 @@ Tree *MapAction::Do(Tree *what)
 {
     if (!what->Symbols())
         what->SetSymbols(Symbols::symbols);
+    what = xl_evaluate(what);
     return function(what, what);
 }
 
@@ -926,7 +931,7 @@ Tree *MapAction::DoInfix(Infix *infix)
         if (left != infix->left || right != infix->right)
         {
             infix = new Infix(infix->name, left, right, infix->Position());
-            infix->code = xl_identity;
+            infix->code = xl_evaluate_children;
         }
         return infix;
     }
@@ -1079,7 +1084,7 @@ Tree *FilterAction::DoInfix(Infix *infix)
         if (left && right)
         {
             infix = new Infix(infix->name, left, right, infix->Position());
-            infix->code = xl_identity;
+            infix->code = xl_evaluate_children;
             return infix;
         }
         if (left)

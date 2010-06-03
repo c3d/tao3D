@@ -220,7 +220,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
             else
             {
                 // It fits, place it
-                hadBreak |= next != NULL || size<=0;
+                hadBreak |= next != NULL;
                 places.push_back(Place(item, size, pos+sign*offset, !hadBreak));
                 pos += sign * size;
                 lastSpace = SpaceSize(item, layout) * spacing;

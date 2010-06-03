@@ -2673,6 +2673,18 @@ Tree_p Widget::anchor(Tree_p self, Tree_p child)
 }
 
 
+Tree_p Widget::resetTransform(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Reset transform to original projection state
+// ----------------------------------------------------------------------------
+{
+    setup(width(), height());
+    layout->hasPixelBlur = false;
+    layout->hasMatrix = false;
+    return XL::xl_false;
+}
+
+
 static inline XL::Real &r(double x)
 // ----------------------------------------------------------------------------
 //   Utility shortcut to create a constant real value

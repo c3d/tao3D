@@ -481,10 +481,11 @@ public:
     Tree_p      separator(Tree_p self);
 
     // Tree management
-    Name_p      insert(Tree_p self, Tree_p toInsert, text msg = "Inserted tree");
+    Name_p      insert(Tree_p self, Tree_p toInsert, text msg ="Inserted tree");
     void        deleteSelection();
     Name_p      deleteSelection(Tree_p self, text key);
     Name_p      setAttribute(Tree_p self, text name, Tree_p attribute, text sh);
+    Tree_p      copySelection();
     Tree_p      removeSelection();
     // Unit conversionsxo
     Real_p      fromCm(Tree_p self, double cm);
@@ -498,6 +499,11 @@ public:
     Name_p      sendToBack(Tree_p self);
     Name_p      bringForward(Tree_p self);
     Name_p      sendBackward(Tree_p self);
+
+    // group management
+    Name_p      group(Tree_p self, Tree_p shapes);
+    Name_p      groupSelection(Tree_p self);
+    Name_p      ungroupSelection(Tree_p self);
 
 private:
     friend class Window;
@@ -585,6 +591,8 @@ private:
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:
     void        updateFileDialog(Tree *properties, Tree *context);
+    Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child);
+    bool    updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group);
 
 };
 

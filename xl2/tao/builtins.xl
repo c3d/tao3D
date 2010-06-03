@@ -396,15 +396,21 @@ menu_item "menu:colors > line color", "Line Color...", do
     color_chooser "line_color", do
         set_attribute "line_color", {line_color red, green, blue, alpha}
 
-menu   "menu:zorder", "Arrange"
-menu_item "menu:zorder > toFront", "Bring to front", do
+menu   "menu:select:zorder", "Arrange"
+menu_item "menu:select:zorder > toFront", "Bring to front", do
     bring_to_front
-menu_item "menu:zorder > forward", "Bring forward", do
+menu_item "menu:select:zorder > forward", "Bring forward", do
     bring_forward
-menu_item "menu:zorder > backward", "Send backward", do
+menu_item "menu:select:zorder > backward", "Send backward", do
     send_backward
-menu_item "menu:zorder > toBack", "Send to back", do
+menu_item "menu:select:zorder > toBack", "Send to back", do
     send_to_back
+
+menu "menu:select:grouping", "Group"
+menu_item "menu:select:grouping > group", "Group", do
+    group_selection
+menu_item "menu:select:grouping > ungroup", "Ungroup", do
+    ungroup_selection
 }
 
 

@@ -43,6 +43,7 @@ struct Table : Layout
     virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *);
     virtual Box3        Bounds(Layout *);
+    virtual Box3        Space(Layout *);
     virtual void        Compute(Layout *);
     virtual void        Add (Drawing *d);
 

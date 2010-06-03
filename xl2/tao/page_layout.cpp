@@ -410,9 +410,6 @@ void LayoutLine::Compute(Layout *layout)
     if (line.places.size())
         return;
 
-    // Save attributes that may be modified by Compute(), as well as offset
-    XL::LocalSave<LayoutState> save(*layout, *layout);
-
     // Position one line of items
     if (left > right) std::swap(left, right);
     line.Adjust(left + layout->left, right - layout->right,
@@ -744,9 +741,6 @@ void PageLayout::Compute(Layout *where)
     // If we already computed the layout, just reuse that
     if (page.places.size())
         return;
-
-    // Save attributes that may be modified by Compute(), as well as offset
-    XL::LocalSave<LayoutState> save(*this, *this);
 
     // Transfer all items into a single line
     LayoutLine *line = new LayoutLine(space.Left(), space.Right());

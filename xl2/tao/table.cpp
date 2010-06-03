@@ -58,9 +58,7 @@ void Table::Draw(Layout *where)
 //   Draw all the table items
 // ----------------------------------------------------------------------------
 {
-    if (columnWidth.size() != columns || rowHeight.size() != rows)
-        Compute(where);
-    Inherit(where);
+    Compute(where);
 
     coord   cellX, cellY, cellW, cellH;
     coord   px = bounds.lower.x;
@@ -130,9 +128,7 @@ void Table::DrawSelection(Layout *where)
 //   Draw the selection for all the table items
 // ----------------------------------------------------------------------------
 {
-    if (columnWidth.size() != columns || rowHeight.size() != rows)
-        Compute(where);
-    Inherit(where);
+    Compute(where);
 
     coord   cellX, cellY, cellW, cellH;
     coord   px = bounds.lower.x;
@@ -183,9 +179,7 @@ void Table::Identify(Layout *where)
 //   Identify all the table items
 // ----------------------------------------------------------------------------
 {
-    if (columnWidth.size() != columns || rowHeight.size() != rows)
-        Compute(where);
-    Inherit(where);
+    Compute(where);
 
     coord   cellX, cellY, cellW, cellH;
     Vector3 offset(where->offset);
@@ -237,9 +231,17 @@ Box3 Table::Bounds(Layout *where)
 //   Compute the bounds of the table
 // ----------------------------------------------------------------------------
 {
-    if (columnWidth.size() != columns || rowHeight.size() != rows)
-        Compute(where);
+    Compute(where);
     return bounds + where->offset;
+}
+
+
+Box3 Table::Space(Layout *where)
+// ----------------------------------------------------------------------------
+//   Compute the bounds of the table
+// ----------------------------------------------------------------------------
+{
+    return Bounds(where);
 }
 
 
@@ -261,6 +263,10 @@ void Table::Compute(Layout *where)
 //   Compute column widths and row heights
 // ----------------------------------------------------------------------------
 {
+    Inherit(where);
+    if (columnWidth.size() == columns && rowHeight.size() == rows)
+        return;
+
     uint r, c;
     std::vector<Drawing *>::iterator i = items.begin();
     std::vector<Box3> rowBB, colBB;

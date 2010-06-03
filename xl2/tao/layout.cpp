@@ -229,11 +229,12 @@ Box3 Layout::Bounds(Layout *layout)
 {
     Box3 result;
     layout_items::iterator i;
+    Inherit(layout);
     if (items.size() == 0)
         result |= Point3();
     else
         for (i = items.begin(); i != items.end(); i++)
-            result |= (*i)->Bounds(layout);
+            result |= (*i)->Bounds(this);
     return result;
 }
 
@@ -245,11 +246,12 @@ Box3 Layout::Space(Layout *layout)
 {
     Box3 result;
     layout_items::iterator i;
+    Inherit(layout);
     if (items.size() == 0)
         result |= Point3();
     else
         for (i = items.begin(); i != items.end(); i++)
-            result |= (*i)->Space(layout);
+            result |= (*i)->Space(this);
     return result;
 }
 

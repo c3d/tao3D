@@ -427,7 +427,8 @@ void LayoutLine::Compute(Layout *layout)
 
     // Position one line of items
     if (left > right) std::swap(left, right);
-    line.Adjust(left, right, layout->alongX, layout);
+    line.Adjust(left + layout->left, right - layout->right,
+                layout->alongX, layout);
 }
 
 

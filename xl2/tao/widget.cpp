@@ -2678,9 +2678,7 @@ Tree_p Widget::resetTransform(Tree_p self)
 //   Reset transform to original projection state
 // ----------------------------------------------------------------------------
 {
-    setup(width(), height());
-    layout->hasPixelBlur = false;
-    layout->hasMatrix = false;
+    layout->Add(new ResetTransform());
     return XL::xl_false;
 }
 

@@ -24,6 +24,7 @@
 #include "layout.h"
 #include "shapes3d.h"
 #include "context.h"
+#include "widget.h"
 #include <GL/glew.h>
 
 
@@ -59,6 +60,18 @@ void Transform::Identify(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Draw(where);
+}
+
+
+void ResetTransform::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Reset the transformation matrix and other parameters
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = where->Display();
+    widget->setup(widget->width(), widget->height());
+    where->hasPixelBlur = false;
+    where->hasMatrix = false;
 }
 
 

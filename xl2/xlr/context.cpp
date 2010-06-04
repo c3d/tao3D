@@ -2087,6 +2087,8 @@ Tree *CompileAction::DoPrefix(Prefix *what)
                 what->right->SetSymbols(symbols);
             unit.CallEvaluateChildren(what->right);
             unit.Copy(what->right, what);
+            if (!what->right->code)
+                what->right->code = xl_evaluate_children;
             return what;
         }
     }

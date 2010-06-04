@@ -234,6 +234,7 @@ public:
     Tree_p      anchor(Tree_p self, Tree_p t);
 
     // Transforms
+    Tree_p      resetTransform(Tree_p self);
     Tree_p      rotatex(Tree_p self, Real_p rx);
     Tree_p      rotatey(Tree_p self, Real_p ry);
     Tree_p      rotatez(Tree_p self, Real_p rz);

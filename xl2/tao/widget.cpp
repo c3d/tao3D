@@ -2640,6 +2640,8 @@ Tree_p Widget::activeWidget(Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Create a context for active widgets, e.g. buttons
 // ----------------------------------------------------------------------------
+//   We set currentShape to NULL, which means that we won't create manipulator
+//   so the widget is active (it can be selected) but won't budge
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(newId()));
     XL::LocalSave<Tree_p>   saveShape (currentShape, NULL);
@@ -2659,10 +2661,9 @@ Tree_p Widget::anchor(Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 {
     AnchorLayout *anchor = new AnchorLayout(this);
-    anchor->id = newId();
+    anchor->id = layout->id;
     layout->Add(anchor);
     XL::LocalSave<Layout *> saveLayout(layout, anchor);
-    XL::LocalSave<Tree_p>   saveShape (currentShape, self);
     if (selectNextTime.count(self))
     {
         selection[id]++;

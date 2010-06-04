@@ -245,7 +245,7 @@ void TextSpan::DrawDirect(Layout *where)
 }
 
 
-void TextSpan::DrawSelection(Layout *where)
+uint TextSpan::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the selection for any selected character
 // ----------------------------------------------------------------------------
@@ -418,6 +418,7 @@ void TextSpan::DrawSelection(Layout *where)
     }
 
     where->offset = Point3(x, y, z);
+    return 0;
 }
 
 
@@ -737,7 +738,7 @@ XL::Text *TextFormula::Format(XL::Prefix *self)
 }
 
 
-void TextFormula::DrawSelection(Layout *where)
+uint TextFormula::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Detect if we edit a formula, if so create its FormulEditInfo
 // ----------------------------------------------------------------------------
@@ -748,6 +749,7 @@ void TextFormula::DrawSelection(Layout *where)
     XL::Tree *           value  = prefix->right;
     TextFormulaEditInfo *info   = value->GetInfo<TextFormulaEditInfo>();
     uint                 selId  = widget->currentCharId() + 1;
+    uint                 ret = 0;
 
     // Count formulas to identify them uniquely
     shows++;
@@ -797,7 +799,7 @@ void TextFormula::DrawSelection(Layout *where)
         }
     }
 
-    TextSpan::DrawSelection(where);
+    ret = TextSpan::DrawSelection(where);
 
     // Check if the cursor moves out of the selection - If so, validate
     if (info &&info->order == shows)
@@ -823,6 +825,7 @@ void TextFormula::DrawSelection(Layout *where)
         // First run, make sure we return here to create the editor
         widget->refresh();
     }
+    return ret;
 }
 
 

@@ -31,6 +31,26 @@ TAO_BEGIN
 
 uint Drawing::count = 0;
 
+Drawing::Drawing()
+// ----------------------------------------------------------------------------
+//   Create a Drawing
+// ----------------------------------------------------------------------------
+    : groupDepth(0)
+{
+    count++;
+}
+
+
+Drawing::Drawing(const Drawing& d)
+// ----------------------------------------------------------------------------
+//   Copy Drawing
+// ----------------------------------------------------------------------------
+    : groupDepth(d.groupDepth)
+{
+    count++;
+}
+
+
 void Drawing::Draw(Layout *)
 // ----------------------------------------------------------------------------
 //   Draw a shape for rendering purpose
@@ -38,7 +58,15 @@ void Drawing::Draw(Layout *)
 {}
 
 
-void Drawing::DrawSelection(Layout *layout)
+Drawing::~Drawing()
+// ----------------------------------------------------------------------------
+//   Destroy a Drawing
+// ----------------------------------------------------------------------------
+{
+    count--;
+}
+
+uint Drawing::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Draw the marker indicating that a shape is selected
 // ----------------------------------------------------------------------------
@@ -50,6 +78,7 @@ void Drawing::DrawSelection(Layout *layout)
         XL::LocalSave<Point3> zeroOffset(layout->offset, Point3(0,0,0));
         widget->drawSelection(layout, bounds, "selection", layout->id);
     }
+    return 0;
 }
 
 

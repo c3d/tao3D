@@ -57,19 +57,21 @@ void Manipulator::Draw(Layout *layout)
 }
 
 
-void Manipulator::DrawSelection(Layout *layout)
+uint Manipulator::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Draw the manipulator using simple GL points
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    if (widget->selected(layout))
+    uint sel = widget->selected(layout);
+    if (sel)
     {
         widget->selectionTrees.insert(self);
         glPushName(layout->id);
         DrawHandles(layout);
         glPopName();
     }
+    return sel;
 }
 
 
@@ -324,18 +326,20 @@ void ControlPoint::Draw(Layout *where)
 }
 
 
-void ControlPoint::DrawSelection(Layout *layout)
+uint ControlPoint::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 //    Draw the selection for a control point
 // ----------------------------------------------------------------------------
 {
     // We don't need to glPushName, as the parent should have done it for us
     Widget *widget = layout->Display();
-    if (widget->selected(layout))
+    uint sel = widget->selected(layout);
+    if (sel)
     {
         widget->selectionTrees.insert(self);
         DrawHandles(layout);
     }
+    return 0;
 }
 
 
@@ -392,16 +396,17 @@ FrameManipulator::FrameManipulator(Tree *self,
 {}
 
 
-void FrameManipulator::DrawSelection(Layout *layout)
+uint FrameManipulator::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 //  Draw a rectangular selection unless we double-clicked to edit inside
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
     uint sel = widget->selected(layout);
-    if (Widget::doubleClicks(sel))
-        return;
-
+    uint dclicks = Widget::doubleClicks(sel);
+    if (dclicks > groupDepth) {
+        return 0;
+}
     return Manipulator::DrawSelection(layout);
 }
 
@@ -531,6 +536,17 @@ bool FrameManipulator::DrawHandles(Layout *layout)
     }
 
     return handle != 0;
+}
+
+
+Box3 FrameManipulator::Bounds(Layout *where)
+// ----------------------------------------------------------------------------
+//   Return the bounding box for the shape
+// ----------------------------------------------------------------------------
+{
+    Point3  l(x-w/2, y-h/2, 0);
+    Vector3 s(w, h, 0);
+    return Box3(l + where->offset, s);
 }
 
 
@@ -1084,7 +1100,7 @@ WidgetManipulator::WidgetManipulator(Tree *self,
 {}
 
 
-void WidgetManipulator::DrawSelection(Layout *layout)
+uint WidgetManipulator::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Draw the selection as usual, and if selected, request focus
 // ----------------------------------------------------------------------------
@@ -1102,6 +1118,7 @@ void WidgetManipulator::DrawSelection(Layout *layout)
                                   "widget_selection", layout->id);
         }
     }
+    return selected;
 }
 
 
@@ -1136,7 +1153,8 @@ bool GraphicPathManipulator::DrawHandles(Layout *layout)
     // individual path control points are moved proportionally
     Widget *widget = layout->Display();
     uint sel = widget->selected(layout);
-    if (Widget::doubleClicks(sel))
+    uint dclicks = Widget::doubleClicks(sel);
+    if (dclicks > groupDepth)
         return false;
 
     GraphicPathInfo *path_info = path_tree->GetInfo<GraphicPathInfo>();

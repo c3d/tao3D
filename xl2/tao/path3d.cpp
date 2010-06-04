@@ -1041,16 +1041,18 @@ void GraphicPath::AddControl(XL::Tree *self, Real *x, Real *y, Real *z)
 }
 
 
-void GraphicPath::DrawSelection(Layout *layout)
+uint GraphicPath::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Draw the control points
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
     uint sel = widget->selected(layout);
+    uint dclicks = Widget::doubleClicks(sel);
 
-    if (Widget::doubleClicks(sel))
+    if (dclicks > groupDepth)
     {
+        // Show the control points
         glPushName(layout->id);
         control_points::iterator i;
         for (i = controls.begin(); i != controls.end(); i++)
@@ -1060,6 +1062,12 @@ void GraphicPath::DrawSelection(Layout *layout)
         }
         glPopName();
     }
+    else if (sel)
+    {
+        // Show bounding box
+        Drawing::DrawSelection(layout);
+    }
+    return 0;
 }
 
 

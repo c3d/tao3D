@@ -32,7 +32,7 @@ struct Shape3 : Shape
 // ----------------------------------------------------------------------------
 {
     Shape3(): Shape() {}
-    virtual void        DrawSelection(Layout *layout);
+    virtual uint        DrawSelection(Layout *layout);
 
 protected:
     bool                setFillColor(Layout *where);

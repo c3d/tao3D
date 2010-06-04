@@ -58,6 +58,7 @@
 #include "binpack.h"
 #include "normalize.h"
 #include "error_message_dialog.h"
+#include "group_layout.h"
 
 #include <QToolButton>
 #include <QtGui/QImage>
@@ -373,17 +374,7 @@ void Widget::runProgram()
 
     // Evaluate the program
     XL::MAIN->EvalContextFiles(((Window*)parent())->contextFileNames);
-    if (QMenu *arrange = parent()->findChild<QMenu*>("menu:zorder"))
-    {
-        IFTRACE(menus)
-            std::cerr<<"menu \"menu:zorder\" found.\n";
-        QList<QAction *> children = arrange->findChildren<QAction*>();
-        foreach(QAction *act, children)
-            connect(this, SIGNAL(copyAvailable(bool)),
-                    act, SLOT(setEnabled(bool)),
-                    Qt::UniqueConnection);
 
-    }
     if (Tree *prog = xlProgram->tree)
         xl_evaluate(prog);
 
@@ -1837,9 +1828,9 @@ Repository * Widget::repository()
 }
 
 
-XL::Tree *Widget::get(Tree *shape, text name, text topName)
+XL::Tree *Widget::get(Tree *shape, text name, text topNameList)
 // ----------------------------------------------------------------------------
-//   Find an attribute in the current shape or returns NULL
+//   Find an attribute in the current shape, group or returns NULL
 // ----------------------------------------------------------------------------
 {
     // Can't get attributes without a current shape
@@ -1851,7 +1842,7 @@ XL::Tree *Widget::get(Tree *shape, text name, text topName)
     if (!shapePrefix)
         return NULL;
     Name *shapeName = shapePrefix->left->AsName();
-    if (!shapeName || shapeName->value != topName)
+    if (!shapeName || topNameList.find(shapeName->value) == std::string::npos)
         return NULL;
 
     // Take the right child. If it's a block, extract the block
@@ -1892,9 +1883,9 @@ XL::Tree *Widget::get(Tree *shape, text name, text topName)
 }
 
 
-bool Widget::set(Tree *shape, text name, Tree *value, text topName)
+bool Widget::set(Tree *shape, text name, Tree *value, text topNameList)
 // ----------------------------------------------------------------------------
-//   Set an attribute in the current shape, return true if successful
+//   Set an attribute in the current shape or group, return true if successful
 // ----------------------------------------------------------------------------
 {
     // Can't get attributes without a current shape
@@ -1906,7 +1897,7 @@ bool Widget::set(Tree *shape, text name, Tree *value, text topName)
     if (!shapePrefix)
         return false;
     Name *shapeName = shapePrefix->left->AsName();
-    if (!shapeName || shapeName->value != topName)
+    if (!shapeName || topNameList.find(shapeName->value) == std::string::npos)
         return false;
 
     // Take the right child. If it's a block, extract the block
@@ -5488,9 +5479,17 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
         par =  currentMenu;
     else
         par = currentToolBar;
-    p_action = new QAction(+lbl, par);
 
+    p_action = new QAction(+lbl, par);
     p_action->setData(var);
+
+    // Set the item sensible to the selection
+    if (fullName.startsWith("menu:select:"))
+    {
+        p_action->setEnabled(hasSelection());
+        connect(this, SIGNAL(copyAvailable(bool)),
+                p_action, SLOT(setEnabled(bool)));
+    }
 
     if (iconFileName != "")
         p_action->setIcon(QIcon(+iconFileName));
@@ -5896,10 +5895,9 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
     return XL::xl_true;
 }
 
-
-XL::Tree_p Widget::removeSelection()
+XL::Tree_p Widget::copySelection()
 // ----------------------------------------------------------------------------
-//    Remove the selection from the tree and return a copy of it
+//    copy the selection from the tree
 // ----------------------------------------------------------------------------
 {
     if (!hasSelection())
@@ -5907,12 +5905,24 @@ XL::Tree_p Widget::removeSelection()
 
     // Build a single tree from all the selected sub-trees
     std::set<Tree_p >::reverse_iterator i = selectionTrees.rbegin();
-    XL::Tree *tree = (*i++);
+    XL::ShallowCopyTreeClone cloner;
+    XL::Tree *tree = (*i++)->Do(cloner);
+
     for ( ; i != selectionTrees.rend(); i++)
-        tree = new XL::Infix("\n", (*i), tree);
+        tree = new XL::Infix("\n", (*i)->Do(cloner), tree);
 
+    return tree;
+}
+
+XL::Tree_p Widget::removeSelection()
+// ----------------------------------------------------------------------------
+//    Remove the selection from the tree and return a copy of it
+// ----------------------------------------------------------------------------
+{
+    XL::Tree *tree = copySelection();
+    if ( !tree)
+        return NULL;
     deleteSelection();
-
     return tree;
 }
 
@@ -5974,7 +5984,210 @@ XL::Name_p Widget::setAttribute(Tree_p self,
     return XL::xl_false;
 }
 
+// ============================================================================
+//
+//   Group management
+//
+// ============================================================================
 
+
+
+
+Tree_p Widget::group(Tree_p self, Tree_p shapes)
+// ----------------------------------------------------------------------------
+//   Group objects together, make them selectable as a whole
+// ----------------------------------------------------------------------------
+{
+    GroupLayout *group = new GroupLayout(this, self);
+    group->id = newId();
+    layout->Add(group);
+    XL::LocalSave<Layout *> saveLayout(layout, group);
+    XL::LocalSave<Tree_p>   saveShape (currentShape, self);
+    if (selectNextTime.count(self))
+    {
+        selection[id]++;
+        selectNextTime.erase(self);
+    }
+
+    Tree_p result = xl_evaluate(shapes);
+    return result;
+}
+
+
+Tree_p Widget::updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child)
+// ----------------------------------------------------------------------------
+//    Helper function : Replace the child in the parent tree with the group
+//                      formed from the complete selection
+// ----------------------------------------------------------------------------
+{
+    Name * groupName = new Name("group");
+    Tree * group = new Prefix(groupName, copySelection());
+
+    Infix * inf = parent->AsInfix();
+    if ( inf )
+    {
+        if (inf->left == child)
+            inf->left = group;
+        else
+            inf->right = group;
+
+        return group;
+    }
+
+    Prefix * pref = parent->AsPrefix();
+    if ( pref )
+    {
+        if (pref->left == child)
+            pref->left = group;
+        else
+            pref->right = group;
+
+        return group;
+    }
+
+    Postfix * pos = parent->AsPostfix();
+    if ( pos )
+    {
+        if (pos->left == child)
+            pos->left = group;
+        else
+            pos->right = group;
+
+        return group;
+    }
+
+    Block * block = parent->AsBlock();
+    if (block)
+        block->child = group;
+
+    return NULL;
+
+}
+
+
+Name_p Widget::groupSelection(Tree_p /*self*/)
+// ----------------------------------------------------------------------------
+//    Create the group from the selected objects
+// ----------------------------------------------------------------------------
+{
+    if (!hasSelection())
+        return XL::xl_false;
+
+    // Find the first non-selected ancestor of the first element
+    //      in the selection set.
+    std::set<Tree_p >::iterator sel = selectionTrees.begin();
+    Tree * child = *sel;
+    Tree * parent = NULL;
+    do {
+        XL::FindParentAction getParent(child);
+        parent = xlProgram->tree->Do(getParent);
+    } while (parent && selectionTrees.count(parent) && (child = parent));
+
+    // Check if we are not the only one
+    if (!parent)
+        return XL::xl_false;
+
+    // Do the work
+    Tree * theGroup = updateParentWithGroupInPlaceOfChild(parent, child);
+    if (! theGroup )
+        return XL::xl_false;
+
+    deleteSelection();
+
+    selectStatements(theGroup);
+    // Reload the program and mark the changes
+    reloadProgram();
+    markChanged("Selection grouped");
+
+    return XL::xl_true;
+}
+
+
+bool Widget::updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group)
+// ----------------------------------------------------------------------------
+//    Helper function : Plug the group's chlid tree under the parent.
+// ----------------------------------------------------------------------------
+{
+    Infix * inf = parent->AsInfix();
+    if ( inf )
+    {
+        if (inf->left == group)
+            inf->left = group->right;
+        else
+            inf->right = group->right;
+        return true;
+    }
+
+    Prefix * pref = parent->AsPrefix();
+    if ( pref )
+    {
+        if (pref->left == group)
+            pref->left = group->right;
+        else
+            pref->right = group->right;
+
+        return true;
+    }
+
+    Postfix * pos = parent->AsPostfix();
+    if ( pos )
+    {
+        if (pos->left == group)
+            pos->left = group->right;
+        else
+            pos->right = group->right;
+
+        return true;
+    }
+
+    Block * block = parent->AsBlock();
+    if (block)
+    {
+        block->child = group->right;
+        return true;
+    }
+
+    return false;
+
+}
+
+Name_p Widget::ungroupSelection(Tree_p /*self*/)
+// ----------------------------------------------------------------------------
+//    Remove the group instruction from the source code
+// ----------------------------------------------------------------------------
+{
+    if (!hasSelection())
+        return XL::xl_false;
+
+    std::set<Tree_p >::iterator sel = selectionTrees.begin();
+
+    Prefix * groupTree = (*sel)->AsPrefix();
+    if (!groupTree)
+        return XL::xl_false;
+
+    Name * name = groupTree->left->AsName();
+    if (! name || name->value != "group")
+        return XL::xl_false;
+
+    XL::FindParentAction getParent(*sel);
+    Tree * parent = xlProgram->tree->Do(getParent);
+    // Check if we are not the only one
+    if (!parent)
+        return XL::xl_false;
+
+    bool res = updateParentWithChildrenInPlaceOfGroup(parent, groupTree);
+    if (! res )
+        return XL::xl_false;
+
+    selectStatements(groupTree->right);
+    // Reload the program and mark the changes
+    reloadProgram();
+    markChanged("Selection ungrouped");
+
+    return XL::xl_true;
+
+
+}
 
 // ============================================================================
 //

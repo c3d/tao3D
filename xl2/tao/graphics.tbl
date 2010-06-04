@@ -74,6 +74,8 @@ PREFIX(Anchor,  tree, "anchor",   PARM(t, tree), RTAO(anchor(self, t)))
 //
 // ============================================================================
 
+PREFIX(ResetTransform, tree, "reset_transform", , RTAO(resetTransform(self)))
+
 PREFIX(RotateX, tree, "rotatex", PARM(rx, real), RTAO(rotatex(self, rx)))
 PREFIX(RotateY, tree, "rotatey", PARM(ry, real), RTAO(rotatey(self, ry)))
 PREFIX(RotateZ, tree, "rotatez", PARM(rz, real), RTAO(rotatez(self, rz)))
@@ -557,7 +559,7 @@ PREFIX(Delete, boolean, "delete_selection", PARM(k, text),
        RTAO(deleteSelection(self, k)))
 PREFIX(SetAttribute, boolean, "set_attribute",
        PARM(n, text) PARM(t, tree),
-       RTAO(setAttribute(self, n, t, "shape")))
+       RTAO(setAttribute(self, n, t, "group,shape")))
 
 
 // ============================================================================

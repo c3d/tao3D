@@ -94,20 +94,21 @@ void Table::Draw(Layout *where)
             cellY = py + cellH/2;
             cellBox = Box(cellX-cellW/2, cellY-cellH/2, cellW, cellH);
 
+            if (Layout *cell = dynamic_cast<Layout *>(d))
+            {
+                XL::LocalSave<Point3> zeroOffset(offset, Point3());
+                Box3 bb = d->Space(this);
+                pos.x += (columnWidth[c]-bb.Width() ) * cell->alongX.centering;
+                pos.y += (rowHeight[r]-bb.Height()) * cell->alongY.centering;
+            }
+
             if (fillI != cellFill.end())
                 fillCode = *fillI++;
             if (fillCode)
                 widget->drawTree(this, fillCode);
             if (d)
             {
-                XL::LocalSave<Point3> zeroOffset(offset, Point3());
-                Box3 bb = d->Space(this);
-
-                // Center table items
-                pos.x += (cellW - bb.Width()) * where->alongX.centering;
-                pos.y += (cellH - bb.Height()) * where->alongY.centering;
-
-                offset = pos + where->offset;
+                XL::LocalSave<Point3> saveOffset(offset, pos + where->offset);
                 d->Draw(this);
             }
             if (borderI != cellBorder.end())
@@ -161,6 +162,14 @@ uint Table::DrawSelection(Layout *where)
             cellY = py + cellH/2;
             cellBox = Box(cellX-cellW/2, cellY-cellH/2, cellW, cellH);
 
+            if (Layout *cell = dynamic_cast<Layout *>(d))
+            {
+                XL::LocalSave<Point3> zeroOffset(offset, Point3());
+                Box3 bb = d->Space(this);
+                pos.x += (columnWidth[c]-bb.Width() ) * cell->alongX.centering;
+                pos.y += (rowHeight[r]-bb.Height()) * cell->alongY.centering;
+            }
+
             if (d)
             {
                 XL::LocalSave<Point3> saveOffset(offset, where->offset + pos);
@@ -184,7 +193,6 @@ void Table::Identify(Layout *where)
     Compute(where);
 
     coord   cellX, cellY, cellW, cellH;
-    Vector3 offset(where->offset);
     coord   px = bounds.lower.x;
     coord   py = bounds.upper.y;
     uint    r, c;
@@ -213,6 +221,14 @@ void Table::Identify(Layout *where)
             cellX = px + cellW/2;
             cellY = py + cellH/2;
             cellBox = Box(cellX-cellW/2, cellY-cellH/2, cellW, cellH);
+
+            if (Layout *cell = dynamic_cast<Layout *>(d))
+            {
+                XL::LocalSave<Point3> zeroOffset(offset, Point3());
+                Box3 bb = d->Space(this);
+                pos.x += (columnWidth[c]-bb.Width() ) * cell->alongX.centering;
+                pos.y += (rowHeight[r]-bb.Height()) * cell->alongY.centering;
+            }
 
             if (d)
             {
@@ -302,6 +318,7 @@ void Table::Compute(Layout *where)
             if (i == items.end())
                 break;
             Drawing *d = *i++;
+            Inherit(where);
             XL::LocalSave<Point3> zeroOffset(offset, Point3());
             Box3 bb = d->Space(this);
             double lowX = colBB[c].lower.x;

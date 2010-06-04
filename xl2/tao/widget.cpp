@@ -1828,9 +1828,9 @@ Repository * Widget::repository()
 }
 
 
-XL::Tree *Widget::get(Tree *shape, text name, text topName)
+XL::Tree *Widget::get(Tree *shape, text name, text topNameList)
 // ----------------------------------------------------------------------------
-//   Find an attribute in the current shape or returns NULL
+//   Find an attribute in the current shape, group or returns NULL
 // ----------------------------------------------------------------------------
 {
     // Can't get attributes without a current shape
@@ -1842,7 +1842,7 @@ XL::Tree *Widget::get(Tree *shape, text name, text topName)
     if (!shapePrefix)
         return NULL;
     Name *shapeName = shapePrefix->left->AsName();
-    if (!shapeName || shapeName->value != topName)
+    if (!shapeName || topNameList.find(shapeName->value) == std::string::npos)
         return NULL;
 
     // Take the right child. If it's a block, extract the block
@@ -1883,9 +1883,9 @@ XL::Tree *Widget::get(Tree *shape, text name, text topName)
 }
 
 
-bool Widget::set(Tree *shape, text name, Tree *value, text topName)
+bool Widget::set(Tree *shape, text name, Tree *value, text topNameList)
 // ----------------------------------------------------------------------------
-//   Set an attribute in the current shape, return true if successful
+//   Set an attribute in the current shape or group, return true if successful
 // ----------------------------------------------------------------------------
 {
     // Can't get attributes without a current shape
@@ -1897,7 +1897,7 @@ bool Widget::set(Tree *shape, text name, Tree *value, text topName)
     if (!shapePrefix)
         return false;
     Name *shapeName = shapePrefix->left->AsName();
-    if (!shapeName || shapeName->value != topName)
+    if (!shapeName || topNameList.find(shapeName->value) == std::string::npos)
         return false;
 
     // Take the right child. If it's a block, extract the block
@@ -2661,6 +2661,18 @@ Tree_p Widget::anchor(Tree_p self, Tree_p child)
     }
     Tree_p result = xl_evaluate(child);
     return result;
+}
+
+
+Tree_p Widget::resetTransform(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Reset transform to original projection state
+// ----------------------------------------------------------------------------
+{
+    setup(width(), height());
+    layout->hasPixelBlur = false;
+    layout->hasMatrix = false;
+    return XL::xl_false;
 }
 
 
@@ -5894,9 +5906,11 @@ XL::Tree_p Widget::copySelection()
 
     // Build a single tree from all the selected sub-trees
     std::set<Tree_p >::reverse_iterator i = selectionTrees.rbegin();
-    XL::Tree *tree = (*i++);
+    XL::ShallowCopyTreeClone cloner;
+    XL::Tree *tree = (*i++)->Do(cloner);
+
     for ( ; i != selectionTrees.rend(); i++)
-        tree = new XL::Infix("\n", (*i), tree);
+        tree = new XL::Infix("\n", (*i)->Do(cloner), tree);
 
     return tree;
 }
@@ -6047,7 +6061,7 @@ Tree_p Widget::updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child)
     if (block)
         block->child = group;
 
-    return group;
+    return NULL;
 
 }
 
@@ -6079,10 +6093,12 @@ Name_p Widget::groupSelection(Tree_p /*self*/)
     if (! theGroup )
         return XL::xl_false;
 
+    deleteSelection();
+
     selectStatements(theGroup);
     // Reload the program and mark the changes
     reloadProgram();
-    markChanged("Selection Grouped");
+    markChanged("Selection grouped");
 
     return XL::xl_true;
 }
@@ -6167,7 +6183,7 @@ Name_p Widget::ungroupSelection(Tree_p /*self*/)
     selectStatements(groupTree->right);
     // Reload the program and mark the changes
     reloadProgram();
-    markChanged("Selection Grouped");
+    markChanged("Selection ungrouped");
 
     return XL::xl_true;
 

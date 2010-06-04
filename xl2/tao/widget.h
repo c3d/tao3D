@@ -146,12 +146,12 @@ public:
     bool        writeIfChanged(XL::SourceFile &sf);
     bool        doCommit(bool immediate = false);
     Repository *repository();
-    Tree *      get(Tree *shape, text name, text sh = "shape");
-    bool        set(Tree *shape, text n, Tree *value, text sh = "shape");
-    bool        get(Tree *shape, text n, TreeList &a, text sh = "shape");
-    bool        set(Tree *shape, text n, TreeList &a, text sh = "shape");
-    bool        get(Tree *shape, text n, attribute_args &a, text sh = "shape");
-    bool        set(Tree *shape, text n, attribute_args &a, text sh = "shape");
+    Tree *      get(Tree *shape, text name, text sh = "group,shape");
+    bool        set(Tree *shape, text n, Tree *value, text sh = "group,shape");
+    bool        get(Tree *shape, text n, TreeList &a, text sh = "group,shape");
+    bool        set(Tree *shape, text n, TreeList &a, text sh = "group,shape");
+    bool        get(Tree *shape, text n, attribute_args &a, text sh = "group,shape");
+    bool        set(Tree *shape, text n, attribute_args &a, text sh = "group,shape");
 
     // Timing
     ulonglong   now();

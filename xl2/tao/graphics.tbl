@@ -559,7 +559,7 @@ PREFIX(Delete, boolean, "delete_selection", PARM(k, text),
        RTAO(deleteSelection(self, k)))
 PREFIX(SetAttribute, boolean, "set_attribute",
        PARM(n, text) PARM(t, tree),
-       RTAO(setAttribute(self, n, t, "shape")))
+       RTAO(setAttribute(self, n, t, "group,shape")))
 
 
 // ============================================================================

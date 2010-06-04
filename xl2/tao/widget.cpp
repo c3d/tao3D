@@ -6022,7 +6022,7 @@ Tree_p Widget::updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child)
 // ----------------------------------------------------------------------------
 {
     Name * groupName = new Name("group");
-    Tree * group = new Prefix(groupName, copySelection());
+    Tree * group = new Prefix(groupName, new Block(copySelection(), "", ""));
 
     Infix * inf = parent->AsInfix();
     if ( inf )
@@ -6110,12 +6110,16 @@ bool Widget::updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group)
 // ----------------------------------------------------------------------------
 {
     Infix * inf = parent->AsInfix();
+    Block * block = group->right->AsBlock();
+    if ( !block)
+        return false;
+
     if ( inf )
     {
         if (inf->left == group)
-            inf->left = group->right;
+            inf->left = block->child;
         else
-            inf->right = group->right;
+            inf->right = block->child;
         return true;
     }
 
@@ -6123,9 +6127,9 @@ bool Widget::updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group)
     if ( pref )
     {
         if (pref->left == group)
-            pref->left = group->right;
+            pref->left = block->child;
         else
-            pref->right = group->right;
+            pref->right = block->child;
 
         return true;
     }
@@ -6134,17 +6138,17 @@ bool Widget::updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group)
     if ( pos )
     {
         if (pos->left == group)
-            pos->left = group->right;
+            pos->left = block->child;
         else
-            pos->right = group->right;
+            pos->right = block->child;
 
         return true;
     }
 
-    Block * block = parent->AsBlock();
-    if (block)
+    Block * blockPar = parent->AsBlock();
+    if (blockPar)
     {
-        block->child = group->right;
+        blockPar->child = block->child;
         return true;
     }
 

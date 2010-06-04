@@ -6038,12 +6038,8 @@ Tree_p Widget::constant(Tree_p self, Tree_p tree)
 //   Return a clone of the tree to make sure it is not modified
 // ----------------------------------------------------------------------------
 {
-    Symbols *symbols = tree->Symbols();
-    Tree *result = xl_evaluate(tree);
-    XL::TreeClone clone;
-    result = result->Do(clone);
-    result->SetSymbols(symbols);
-    return result;
+    tree->tag |= ~0UL<<Tree::KINDBITS;
+    return tree;
 }
 
 

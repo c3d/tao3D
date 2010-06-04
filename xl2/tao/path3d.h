@@ -43,7 +43,7 @@ struct GraphicPath : Shape
     ~GraphicPath();
 
     virtual void        Draw(Layout *where);
-    virtual void        DrawSelection(Layout *where);
+    virtual uint        DrawSelection(Layout *where);
     virtual void        Identify(Layout *where);
     virtual void        Draw(Layout *where, GLenum tessel);
     virtual void        Draw(const Vector3 &offset, GLenum mode, GLenum tessel);

@@ -171,7 +171,7 @@ void Layout::Draw(Layout *where)
 }
 
 
-void Layout::DrawSelection(Layout *where)
+uint Layout::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the selection for the elements in the layout
 // ----------------------------------------------------------------------------
@@ -180,15 +180,17 @@ void Layout::DrawSelection(Layout *where)
     XL::LocalSave<Point3> save(offset, offset);
     GLStateKeeper         glSave(hasAttributes?GL_LAYOUT_BITS:0, hasMatrix);
     Inherit(where);
+    uint sel = 0;
 
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
         glLoadName(id);         // Needed for handles (call Draw, not identify)
-        child->DrawSelection(this);
+        sel += child->DrawSelection(this);
     }
     glLoadName(0);
+    return sel;
 }
 
 
@@ -201,7 +203,7 @@ void Layout::Identify(Layout *where)
     XL::LocalSave<Point3> save(offset, offset);
     GLStateKeeper         glSave(hasAttributes?GL_LAYOUT_BITS:0, hasMatrix);
     Inherit(where);
-        
+
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
     {
@@ -262,6 +264,7 @@ void Layout::Add(Drawing *d)
 // ----------------------------------------------------------------------------
 {
     items.push_back(d);
+    d->groupDepth = this->groupDepth;
 }
 
 

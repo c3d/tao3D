@@ -69,7 +69,7 @@ struct Layout : Drawing, LayoutState
 
     // Drawing interface
     virtual void        Draw(Layout *where);
-    virtual void        DrawSelection(Layout *);
+    virtual uint        DrawSelection(Layout *);
     virtual void        Identify(Layout *);
     virtual Box3        Bounds(Layout *);
     virtual Box3        Space(Layout *);

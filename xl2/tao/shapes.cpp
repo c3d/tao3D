@@ -196,7 +196,7 @@ void PlaceholderRectangle::Draw(GraphicPath &path)
 }
 
 
-void ClickThroughRectangle::DrawSelection (Layout *layout)
+uint ClickThroughRectangle::DrawSelection (Layout *layout)
 // ----------------------------------------------------------------------------
 //   Pass clicks through to the widget
 // ----------------------------------------------------------------------------
@@ -214,6 +214,7 @@ void ClickThroughRectangle::DrawSelection (Layout *layout)
                                   "widget_selection", layout->id);
         }
     }
+    return selected;
 }
 
 

@@ -501,7 +501,7 @@ public:
     Name_p      sendBackward(Tree_p self);
 
     // group management
-    Name_p      group(Tree_p self, Tree_p shapes);
+    Tree_p      group(Tree_p self, Tree_p shapes);
     Name_p      groupSelection(Tree_p self);
     Name_p      ungroupSelection(Tree_p self);
 

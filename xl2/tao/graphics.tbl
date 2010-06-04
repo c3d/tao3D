@@ -577,7 +577,7 @@ PREFIX(SendBackward, boolean, "send_backward",, RTAO(sendBackward(self)))
 //
 // ============================================================================
 
-PREFIX(Group, boolean, "group", PARM(t, tree), RTAO(group(self, t)))
+PREFIX(Group, tree, "group",   PARM(t, tree), RTAO(group(self, t)))
 PREFIX(GroupSelection, boolean, "group_selection",, RTAO(groupSelection(self)))
 PREFIX(UngroupSelection, boolean, "ungroup_selection",, RTAO(ungroupSelection(self)))
 

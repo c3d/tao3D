@@ -23,6 +23,7 @@
 // ****************************************************************************
 
 #include "coords.h"
+#include <iostream>
 
 
 TAO_BEGIN
@@ -457,6 +458,26 @@ inline Point3 operator/ (const Point3 &p, const Box3 &b)
     return Point3((p.x - b.lower.x) / dx,
                   (p.y - b.lower.y) / dy,
                   (p.z - b.lower.z) / dz);
+}
+
+
+inline std::ostream& operator<< (std::ostream &out, Point3 p)
+// ----------------------------------------------------------------------------
+//   Display a Point3
+// ----------------------------------------------------------------------------
+{
+    out << "(" << p.x << ", " << p.y << ", " << p.z << ")";
+    return out;
+}
+
+
+inline std::ostream& operator<< (std::ostream &out, Box3 b)
+// ----------------------------------------------------------------------------
+//   Display a Box3
+// ----------------------------------------------------------------------------
+{
+    out << "[" << b.lower << " - " << b.upper << "]";
+    return out;
 }
 
 TAO_END

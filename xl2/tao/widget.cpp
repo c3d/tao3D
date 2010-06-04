@@ -58,6 +58,7 @@
 #include "binpack.h"
 #include "normalize.h"
 #include "error_message_dialog.h"
+#include "group_layout.h"
 
 #include <QToolButton>
 #include <QtGui/QImage>
@@ -5976,16 +5977,27 @@ XL::Name_p Widget::setAttribute(Tree_p self,
 //
 // ============================================================================
 
-Name_p  Widget::group(Tree_p /*self*/, Tree_p shapes)
+
+
+
+Tree_p Widget::group(Tree_p self, Tree_p shapes)
 // ----------------------------------------------------------------------------
-//    FIXME : This is a fake implementation of group to be able to test
-//            groupSelection and ungroupSelection that just manipulate the
-//            source code.
+//   Group objects together, make them selectable as a whole
 // ----------------------------------------------------------------------------
 {
-    std::cerr<< "Grouping following objects :\n" << shapes <<std::endl;
-    xl_evaluate(shapes);
-    return XL::xl_true;
+    GroupLayout *group = new GroupLayout(this, self);
+    group->id = newId();
+    layout->Add(group);
+    XL::LocalSave<Layout *> saveLayout(layout, group);
+    XL::LocalSave<Tree_p>   saveShape (currentShape, self);
+    if (selectNextTime.count(self))
+    {
+        selection[id]++;
+        selectNextTime.erase(self);
+    }
+
+    Tree_p result = xl_evaluate(shapes);
+    return result;
 }
 
 

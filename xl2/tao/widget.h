@@ -494,6 +494,8 @@ public:
     Real_p      fromPt(Tree_p self, double pt);
     Real_p      fromPx(Tree_p self, double px);
 
+    Tree_p      constant(Tree_p self, Tree_p tree);
+
     // z order management
     Name_p      bringToFront(Tree_p self);
     Name_p      sendToBack(Tree_p self);

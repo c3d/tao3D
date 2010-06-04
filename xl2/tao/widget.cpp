@@ -6028,6 +6028,27 @@ XL::Real_p Widget::fromPx(Tree_p self, double px)
 
 
 // ============================================================================
+// 
+//    Misc...
+// 
+// ============================================================================
+
+Tree_p Widget::constant(Tree_p self, Tree_p tree)
+// ----------------------------------------------------------------------------
+//   Return a clone of the tree to make sure it is not modified
+// ----------------------------------------------------------------------------
+{
+    Symbols *symbols = tree->Symbols();
+    Tree *result = xl_evaluate(tree);
+    XL::TreeClone clone;
+    result = result->Do(clone);
+    result->SetSymbols(symbols);
+    return result;
+}
+
+
+
+// ============================================================================
 //
 //   Tree substitution / replacement helpers
 //

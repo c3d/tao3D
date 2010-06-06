@@ -28,7 +28,7 @@
 
 TAO_BEGIN
 
-uint Shape3::DrawSelection(Layout *layout)
+void Shape3::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Draw a selection for 3-dimensional objects
 // ----------------------------------------------------------------------------
@@ -41,7 +41,6 @@ uint Shape3::DrawSelection(Layout *layout)
         XL::LocalSave<Point3> zeroOffset(layout->offset, Point3(0,0,0));
         widget->drawSelection(layout, bounds, "3D_selection", 0);
     }
-    return sel;
 }
 
     

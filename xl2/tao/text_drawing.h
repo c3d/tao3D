@@ -49,7 +49,7 @@ struct TextSpan : Shape
 
 protected:
     void                DrawDirect(Layout *where);
-    uint                DrawSelection(Layout *where);
+    void                DrawSelection(Layout *where);
 
 public:
     Text_p              source;
@@ -81,7 +81,7 @@ struct TextFormula : TextSpan
     Text *              Format(Prefix *value);
     bool                Validate(Text *source, Widget *widget);
 
-    virtual uint        DrawSelection(Layout *where);
+    virtual void        DrawSelection(Layout *where);
     virtual void        Identify(Layout *where);
 
 public:

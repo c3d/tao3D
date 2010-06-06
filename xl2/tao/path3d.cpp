@@ -1041,7 +1041,7 @@ void GraphicPath::AddControl(XL::Tree *self, Real *x, Real *y, Real *z)
 }
 
 
-uint GraphicPath::DrawSelection(Layout *layout)
+void GraphicPath::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Draw the control points
 // ----------------------------------------------------------------------------
@@ -1067,7 +1067,6 @@ uint GraphicPath::DrawSelection(Layout *layout)
         // Show bounding box
         Drawing::DrawSelection(layout);
     }
-    return 0;
 }
 
 

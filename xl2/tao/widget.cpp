@@ -2159,15 +2159,31 @@ uint Widget::selected(Layout *layout)
 
 void Widget::select(uint id, uint count)
 // ----------------------------------------------------------------------------
-//    Select the current shape if we are in selectable state
+//    Change the current shape selection state if we are in selectable state
 // ----------------------------------------------------------------------------
 {
     if (id)
     {
-        if (count)
-            selection[id] += (count == 1) ? 1 : (1 << 16);
-        else
+        uint s;
+        switch (count)
+        {
+        case 0:        // Deselect
             selection.erase(id);
+            break;
+        case 1:        // Add "one single click" to selection state
+            selection[id] += 1;
+            break;
+        case 2:        // Add "one double click" to selection state
+            selection[id] += (1 << 16);
+            break;
+        case (uint)-1: // Remove "one single click" from selection state
+            s = selected(id);
+            if (singleClicks(s))
+                selection[id] -= 1;
+            break;
+        default:       // Error
+            break;
+        }
     }
 }
 

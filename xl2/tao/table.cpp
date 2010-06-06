@@ -124,7 +124,7 @@ void Table::Draw(Layout *where)
 }
 
 
-uint Table::DrawSelection(Layout *where)
+void Table::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the selection for all the table items
 // ----------------------------------------------------------------------------
@@ -135,7 +135,6 @@ uint Table::DrawSelection(Layout *where)
     coord   px = bounds.lower.x;
     coord   py = bounds.upper.y;
     uint    r, c;
-    uint    sel;
     Widget *widget = where->Display();
     std::vector<Drawing *>::iterator i = items.begin();
     XL::LocalSave<Table *> saveTable(widget->table, this);
@@ -173,7 +172,7 @@ uint Table::DrawSelection(Layout *where)
             if (d)
             {
                 XL::LocalSave<Point3> saveOffset(offset, where->offset + pos);
-                sel += d->DrawSelection(this);
+                d->DrawSelection(this);
             }
 
             if (c < columnWidth.size())
@@ -181,7 +180,6 @@ uint Table::DrawSelection(Layout *where)
             px += margins.Width();
         }
     }
-    return sel;
 }
 
 

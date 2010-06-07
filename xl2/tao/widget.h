@@ -33,6 +33,7 @@
 #include "activity.h"
 #include "menuinfo.h"
 #include "glyph_cache.h"
+#include "font_file_manager.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -199,9 +200,10 @@ public:
     static
     bool        selectionsEqual(selection_map &s1, selection_map &s2);
 
-    // Text flows and text managemen
+    // Text flows and text management
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
     GlyphCache &glyphs()    { return glyphCache; }
+    QStringList fontFiles();
 
 public:
     // XLR entry points
@@ -548,7 +550,7 @@ private:
     QGridLayout *         currentGridLayout;
     GroupInfo   *         currentGroup;
     GlyphCache            glyphCache;
-    bool                  hasGLMultisample;
+    FontFileManager *     fontFileMgr;
 
     // Selection
     Activity *            activities;

@@ -29,8 +29,16 @@ page "Why call it Tao (道)?", do
         request "The box above is a live web page. Click to activate..."
     
     active_widget 
+        reset_transform
         color 95% ,100% ,97% ,70% 
-        url 0, -40, 800, 350, "http://en.wikipedia.org/wiki/Tao#Meanings"
+        url 0 * window_scale, -40 * window_scale, 800 * window_scale, 350 * window_scale, constant "http://en.wikipedia.org/wiki/Tao#Meanings"
+    
+    active_widget 
+        reset_transform
+
+        color 1, 1, 1, 1 
+        push_button 300 * window_scale, -280 * window_scale, 160, 25, "MoreURLs", "More Web Quotes...", goto_page "More Web Pages"
+        
     
 
 page "Hello, World!", do 
@@ -88,7 +96,7 @@ page "3D Graphics", do
     
     shape 
         color 80% ,80% ,80% ,60% 
-        rounded_rectangle 86, -60, 640, 480, 79
+        rounded_rectangle 91, -47, 640, 480, 79
     
     texture ""
     story 
@@ -99,11 +107,11 @@ page "3D Graphics", do
         -"Present data in new and creative ways"
     
 
-SomeData -> data 
+MyData -> data 
     "Quarter", "Sales", "Revenues", "Schtroumpfs" 
-    "Q1", 10, -40, 30.3 
-    "Q2", 20, -20, 60.4 
-    "Q3", 40, 30, 75.25 
+    "Q1", 10, -40, 30.3 + 20 * seconds mod 37 
+    "Q2", 20, -20, 60.4 + 40 * cos seconds 
+    "Q3", 40, 30, 75.25 + 40 * sin (seconds * 0.01) 
     "Q4", 60, 30, 10.54
 
 ShowTableCell X:text -> 
@@ -137,8 +145,8 @@ page "Tables and Data", do
         * "Tao makes it easy to manipulate tables and data" 
         font "Arial" 
         font_size 22 
-        center 0.5 
         paragraph_break 
+        center 0.5 
         table 5, 4, do 
             table_cell_fill 
                 color real table_cell_row / table_rows, real table_cell_column / table_columns, 0, 30% 
@@ -147,9 +155,29 @@ page "Tables and Data", do
                 rectangle table_cell_x, table_cell_y, table_cell_w, table_cell_h
             
             table_cell_margins 5, 5 
-            ShowTableCell with SomeData
+            ShowTableCell with MyData
         
         paragraph_break 
         center 0.0 
-        * "Tables integrate naturally with other items"
+        * "Tables integrate very naturally with other items"
+    
+
+page "More Web Pages", do 
+    story 
+        vertical_center 0.0 
+        * "PowerPoint makes us stupid!" 
+        line_break 
+        italic 
+        font_size 16 
+        text "Gen. James N. Mattis, US Joint Forces Commander, Marine Corps"
+    
+    active_widget 
+        reset_transform
+        color 95% ,100% ,97% ,70% 
+        url 0 * window_scale, -70 * window_scale, 800 * window_scale, 400 * window_scale, constant "http://www.nytimes.com/2010/04/27/world/27powerpoint.html"
+    
+    active_widget 
+        reset_transform 
+        color 1, 1, 1, 1 
+        push_button 340 * window_scale, -280 * window_scale, 120 * window_scale, 25 * window_scale, "MoreURLs", "More Web...", goto_page "More Quotes"
     

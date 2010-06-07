@@ -5984,14 +5984,13 @@ XL::Name_p Widget::setAttribute(Tree_p self,
     return XL::xl_false;
 }
 
+
+
 // ============================================================================
 //
 //   Group management
 //
 // ============================================================================
-
-
-
 
 Tree_p Widget::group(Tree_p self, Tree_p shapes)
 // ----------------------------------------------------------------------------
@@ -6016,8 +6015,7 @@ Tree_p Widget::group(Tree_p self, Tree_p shapes)
 
 Tree_p Widget::updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child)
 // ----------------------------------------------------------------------------
-//    Helper function : Replace the child in the parent tree with the group
-//                      formed from the complete selection
+//   Replace 'child' with a group created from the selection
 // ----------------------------------------------------------------------------
 {
     Name * groupName = new Name("group");
@@ -6105,7 +6103,7 @@ Name_p Widget::groupSelection(Tree_p /*self*/)
 
 bool Widget::updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group)
 // ----------------------------------------------------------------------------
-//    Helper function : Plug the group's chlid tree under the parent.
+//    Helper function: Plug the group's chlid tree under the parent.
 // ----------------------------------------------------------------------------
 {
     Infix * inf = parent->AsInfix();

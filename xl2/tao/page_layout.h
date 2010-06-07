@@ -44,7 +44,7 @@ public:
                         ~LayoutLine();
 
     virtual void        Draw(Layout *where);
-    virtual uint        DrawSelection(Layout *);
+    virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
 
     virtual Box3        Bounds(Layout *layout);
@@ -76,7 +76,7 @@ public:
                         ~PageLayout();
 
     virtual void        Draw(Layout *where);
-    virtual uint        DrawSelection(Layout *);
+    virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
 
     virtual void        Add(Drawing *child);
@@ -108,7 +108,7 @@ struct PageLayoutOverflow : PlaceholderRectangle
 public:
     bool                HasData(Layout *where);
     virtual void        Draw(Layout *where);
-    virtual uint        DrawSelection(Layout *);
+    virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
 
 public:
@@ -128,7 +128,7 @@ struct AnchorLayout : Layout
                         ~AnchorLayout();
 
     virtual void        Draw(Layout *where);
-    virtual uint        DrawSelection(Layout *);
+    virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
 
     virtual Box3        Bounds(Layout *layout);

@@ -45,13 +45,12 @@ void Transform::Draw(Layout *where)
 }
 
 
-uint Transform::DrawSelection(Layout *where)
+void Transform::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Transforms don't have a selection, they just draw themselves
 // ----------------------------------------------------------------------------
 {
     Draw(where);
-    return 0;
 }
 
 

@@ -69,7 +69,7 @@ struct Layout : Drawing, LayoutState
 
     // Drawing interface
     virtual void        Draw(Layout *where);
-    virtual uint        DrawSelection(Layout *);
+    virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *);
     virtual Box3        Bounds(Layout *);
     virtual Box3        Space(Layout *);
@@ -82,6 +82,8 @@ struct Layout : Drawing, LayoutState
     virtual void        Clear();
     virtual Widget *    Display()        { return display; }
     virtual void        PolygonOffset();
+    virtual uint        Selected();
+    virtual uint        ChildrenSelected();
 
     LayoutState &       operator=(const LayoutState &o);
     void                Inherit(Layout *other);

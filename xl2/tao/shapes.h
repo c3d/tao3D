@@ -79,7 +79,7 @@ struct ClickThroughRectangle : Rectangle
 {
     ClickThroughRectangle(const Box &b, WidgetSurface *s)
         : Rectangle(b), surface(s) {}
-    virtual uint        DrawSelection(Layout *where);
+    virtual void        DrawSelection(Layout *where);
     WidgetSurface *surface;
 };
 
@@ -238,7 +238,7 @@ struct FixedSizePoint : Shape
 {
     FixedSizePoint(Point3 c, scale r): Shape(), center(c), radius(r) {}
     virtual void        Draw(Layout *where);
-    virtual uint        DrawSelection(Layout *where) { Draw(where); return 0; }
+    virtual void        DrawSelection(Layout *where) { Draw(where); }
     Point3 center;
     scale  radius;
 };

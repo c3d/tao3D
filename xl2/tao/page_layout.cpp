@@ -195,7 +195,7 @@ void LayoutLine::Draw(Layout *where)
 }
 
 
-uint LayoutLine::DrawSelection(Layout *where)
+void LayoutLine::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Recompute layout if necessary and draw selection for all children
 // ----------------------------------------------------------------------------
@@ -214,7 +214,6 @@ uint LayoutLine::DrawSelection(Layout *where)
                                    where->offset.x + place.position);
         child->DrawSelection(where);
     }
-    return 0;
 }
 
 
@@ -557,7 +556,7 @@ void PageLayout::Draw(Layout *where)
 }
 
 
-uint PageLayout::DrawSelection(Layout *where)
+void PageLayout::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Recompute layout if necessary and draw selection for all children
 // ----------------------------------------------------------------------------
@@ -636,8 +635,6 @@ uint PageLayout::DrawSelection(Layout *where)
         if (sel->findingLayout)
             if (sel->start() <= endId+1 && sel->end() >= startId)
                 widget->select(where->id, 1);
-
-    return 0;
 }
 
 
@@ -857,17 +854,15 @@ void PageLayoutOverflow::Draw(Layout *where)
 }
 
 
-uint PageLayoutOverflow::DrawSelection(Layout *where)
+void PageLayoutOverflow::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the selection
 // ----------------------------------------------------------------------------
 {
-    uint selected = 0;
     if (HasData(where))
-        selected = child->DrawSelection(where);
+        child->DrawSelection(where);
     else
         PlaceholderRectangle::Draw(where);
-    return selected;
 }
 
 
@@ -922,7 +917,7 @@ void AnchorLayout::Draw(Layout *where)
 }
 
 
-uint AnchorLayout::DrawSelection(Layout *where)
+void AnchorLayout::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw selection for all the children
 // ----------------------------------------------------------------------------

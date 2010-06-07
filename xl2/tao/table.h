@@ -40,7 +40,7 @@ struct Table : Layout
     ~Table();
 
     virtual void        Draw(Layout *);
-    virtual uint        DrawSelection(Layout *);
+    virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *);
     virtual Box3        Bounds(Layout *);
     virtual Box3        Space(Layout *);

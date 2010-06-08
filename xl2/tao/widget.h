@@ -363,6 +363,8 @@ public:
     Text_p      loadText(Tree_p self, text file);
 
     // Tables
+    Tree_p      newTable(Tree_p self, Real_p x, Real_p y,
+                         Integer_p r, Integer_p c, Tree_p body);
     Tree_p      newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body);
     Tree_p      tableCell(Tree_p self, Real_p w, Real_p h, Tree_p body);
     Tree_p      tableCell(Tree_p self, Tree_p body);

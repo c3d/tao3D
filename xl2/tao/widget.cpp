@@ -2691,12 +2691,12 @@ Tree_p Widget::resetTransform(Tree_p self)
 }
 
 
-static inline XL::Real &r(double x)
+static inline XL::Real *r(double x)
 // ----------------------------------------------------------------------------
 //   Utility shortcut to create a constant real value
 // ----------------------------------------------------------------------------
 {
-    return *new XL::Real(x);
+    return new XL::Real(x);
 }
 
 
@@ -4132,12 +4132,24 @@ Text_p Widget::loadText(Tree_p self, text file)
 //
 // ============================================================================
 
-Tree_p Widget::newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body)
+Tree_p Widget::newTable(Tree_p self,
+                        Integer_p rows, Integer_p columns,
+                        Tree_p body)
+// ----------------------------------------------------------------------------
+//   Case of a new table without a position
+// ----------------------------------------------------------------------------
+{
+    return newTable(self, r(0), r(0), rows, columns, body);
+}
+
+
+Tree_p Widget::newTable(Tree_p self, Real_p x, Real_p y,
+                        Integer_p r, Integer_p c, Tree_p body)
 // ----------------------------------------------------------------------------
 //   Create a new table
 // ----------------------------------------------------------------------------
 {
-    Table *tbl = new Table(this, r, c);
+    Table *tbl = new Table(this, x, y, r, c);
     XL::LocalSave<Table *> saveTable(table, tbl);
     layout->Add(tbl);
 

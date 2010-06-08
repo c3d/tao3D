@@ -360,6 +360,9 @@ PREFIX(LoadText, tree, "load_text",PARM(f,text),
 //
 // ============================================================================
 
+PREFIX(NewTableAt, tree, "table",
+       PARM(x,real) PARM(y, real) PARM(r,integer) PARM(c,integer) PARM(b,tree),
+       RTAO(newTable(self, x, y, r, c, b)));
 PREFIX(NewTable, tree, "table", PARM(r,integer) PARM(c,integer) PARM(b,tree),
        RTAO(newTable(self, r, c, b)));
 PREFIX(TableSizedCell, tree, "table_cell",

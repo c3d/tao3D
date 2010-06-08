@@ -214,40 +214,53 @@ Tree *FontParsingAction::DoName(Name *what)
 }
 
 
-bool FontParsingAction::SetAttribute(text name, Tree *value)
+bool FontParsingAction::SetAttribute(Name *n, Tree *value)
 // ----------------------------------------------------------------------------
 //   Set an attribute
 // ----------------------------------------------------------------------------
 {
-    double amount = 0.0;
+    text name = n->value;
 
-    if (!value->Symbols())
-        value->SetSymbols(symbols);
-    Tree *evaluated = xl_evaluate(value);
+    if (name == "size"      ||
+        name == "slant"     ||
+        name == "weight"    ||
+        name == "stretch")
+    {
+        double amount = 0.0;
 
-    if (Integer *iv = evaluated->AsInteger())
-        amount = iv->value;
-    else if (Real *rv = evaluated->AsReal())
-        amount = rv->value;
-    else
-        return false;
+        if (!value->Symbols())
+            value->SetSymbols(symbols);
+        Tree *evaluated = xl_evaluate(value);
 
-    if (name == "size")
-    {
-        font.setPointSizeF(amount);
+        if (Integer *iv = evaluated->AsInteger())
+            amount = iv->value;
+        else if (Real *rv = evaluated->AsReal())
+            amount = rv->value;
+        else
+            return false;
+
+        if (name == "size")
+        {
+            font.setPointSizeF(amount);
+        }
+        else if (name == "slant")
+        {
+            font.setStyle(QFont::Style(amount));
+        }
+        else if (name == "weight")
+        {
+            font.setWeight(QFont::Weight(amount * 100));
+        }
+        else if (name == "stretch")
+        {
+            font.setStretch(QFont::Stretch(amount * 100));
+        }
+        else
+        {
+            return false;
+        }
     }
-    else if (name == "slant")
-    {
-        font.setStyle(QFont::Style(amount));
-    }
-    else if (name == "weight")
-    {
-        font.setWeight(QFont::Weight(amount * 100));
-    }
-    else if (name == "stretch")
-    {
-        font.setStretch(QFont::Stretch(amount * 100));
-    }
+
     return true;
 }
 
@@ -258,19 +271,9 @@ Tree *FontParsingAction::DoPrefix(Prefix *what)
 //   Evaluate the prefix
 // ----------------------------------------------------------------------------
 {
-    if (Name *n = what->left->AsName())
-    {
-        text name = n->value;
-
-        if (name == "size"      ||
-            name == "slant"     ||
-            name == "weight"    ||
-            name == "stretch")
-        {
-            if (SetAttribute(name, what->right))
-                return what;
-        }
-    }
+    if (Name *name = what->left->AsName())
+        if (SetAttribute(name, what->right))
+            return what;
 
     if (!what->Symbols())
         what->SetSymbols(symbols);
@@ -308,18 +311,9 @@ Tree *FontParsingAction::DoInfix(Infix *what)
     }
     else if (what->name == "=" || what->name == ":")
     {
-        if (Name *n = what->left->AsName())
-        {
-            text name = n->value;
-            if (name == "size"      ||
-                name == "slant"     ||
-                name == "weight"    ||
-                name == "stretch")
-            {
-                if (SetAttribute(name, what->right))
-                    return what;
-            }
-        }
+        if (Name *name = what->left->AsName())
+            if (SetAttribute(name, what->right))
+                return what;
     }
 
     if (!what->Symbols())

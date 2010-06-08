@@ -48,7 +48,7 @@ struct FontParsingAction : Action
     virtual Tree *DoInfix(Infix *what);
     virtual Tree *DoBlock(Block *what);
 
-    bool          SetAttribute(text name, Tree *value);
+    bool          SetAttribute(Name *name, Tree *value);
 
 public:
     Symbols_p   symbols;

@@ -91,6 +91,7 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
     : Drawing(), LayoutState(), id(0),
       hasPixelBlur(false), hasMatrix(false), hasAttributes(false),
+      isSelection(false),
       items(), display(widget)
 {}
 
@@ -101,6 +102,7 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
     : Drawing(o), LayoutState(o), id(0),
       hasPixelBlur(o.hasPixelBlur), hasMatrix(false), hasAttributes(false),
+      isSelection(o.isSelection),
       items(), display(o.display)
 {}
 

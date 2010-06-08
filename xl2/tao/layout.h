@@ -96,6 +96,7 @@ public:
     bool                hasPixelBlur    : 1; // Pixels not aligning naturally
     bool                hasMatrix       : 1;
     bool                hasAttributes   : 1;
+    bool                isSelection     : 1;
 
 protected:
     // List of drawing elements

@@ -23,6 +23,7 @@
 
 #include "attributes.h"
 #include "layout.h"
+#include "widget.h"
 #include <GL/glew.h>
 #include <iostream>
 
@@ -64,6 +65,8 @@ void LineColor::Draw(Layout *where)
 //   Remember the color in the layout
 // ----------------------------------------------------------------------------
 {
+    Widget *widget = where->Display();
+    widget->setColor("line_color", color);
     where->lineColor = color;
 }
 
@@ -73,6 +76,8 @@ void FillColor::Draw(Layout *where)
 //   Remember the color in the layout
 // ----------------------------------------------------------------------------
 {
+    Widget *widget = where->Display();
+    widget->setColor("color", color);
     where->fillColor = color;
 }
 

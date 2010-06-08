@@ -2322,6 +2322,8 @@ void Widget::drawSelection(Layout *where,
     GLAttribKeeper          saveGL;
     resetLayout(where);
     selectionSpace.id = id;
+    selectionSpace.isSelection = true;
+    selectionColor = currentColor;
     glDisable(GL_DEPTH_TEST);
     if (bounds.Depth() > 0)
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
@@ -2348,6 +2350,7 @@ void Widget::drawHandle(Layout *where,
     resetLayout(where);
     glDisable(GL_DEPTH_TEST);
     selectionSpace.id = id;
+    selectionSpace.isSelection = true;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
 
     selectionSpace.Draw(where);
@@ -4810,6 +4813,8 @@ void Widget::updateColorDialog()
 
     // Make sure we don't update the trees, only get their colors
     XL::LocalSave<Tree_p > action(colorAction, NULL);
+    Color c = selectionColor[colorName];
+    originalColor.setRgbF(c.red, c.green, c.blue, c.alpha);
 
     // Get the default color from the first selected shape
     for (std::set<Tree_p >::iterator i = selectionTrees.begin();
@@ -4820,10 +4825,10 @@ void Widget::updateColorDialog()
         if (get(*i, colorName, color) && color.size() == 4)
         {
             originalColor.setRgbF(color[0], color[1], color[2], color[3]);
-            colorDialog->setCurrentColor(originalColor);
             break;
         }
     }
+    colorDialog->setCurrentColor(originalColor);
 }
 
 

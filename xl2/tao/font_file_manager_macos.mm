@@ -30,6 +30,9 @@
 TAO_BEGIN
 
 QString FontFileManager::FontToFile(const QFont &font)
+// ----------------------------------------------------------------------------
+//   Find the font file that defines the given font
+// ----------------------------------------------------------------------------
 {
     QString             result;
     CTFontDescriptorRef desc       = NULL;

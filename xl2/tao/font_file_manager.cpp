@@ -33,11 +33,18 @@ void FontFileManager::AddFontFile(const QFont &font)
 // ----------------------------------------------------------------------------
 {
     QString path = FontToFile(font);
-    if (!fontFiles.contains(path))
-        if (IsLoadable(path))
-            fontFiles << path;
-        else
-            errors << QString("%1: unsupported format").arg(path);
+    if (fontFiles.contains(path))
+        return;
+    if (path.isEmpty())
+    {
+        QString family = font.family();
+        errors << QString("Font file not found for family: '%1'").arg(family);
+        return;
+    }
+    if (IsLoadable(path))
+        fontFiles << path;
+    else
+        errors << QString("%1: unsupported format").arg(path);
 }
 
 
@@ -52,5 +59,17 @@ bool FontFileManager::IsLoadable(QString fileName)
     QFontDatabase::removeApplicationFont(id);
     return true;
 }
+
+#ifndef Q_WS_MAC
+
+QString FontFileManager::FontToFile(const QFont &font)
+// ----------------------------------------------------------------------------
+//   Dummy implementation, pending Windows and Linux-specific versions
+// ----------------------------------------------------------------------------
+{
+    return QString();
+}
+
+#endif
 
 TAO_END

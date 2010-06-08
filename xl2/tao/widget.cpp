@@ -59,6 +59,7 @@
 #include "normalize.h"
 #include "error_message_dialog.h"
 #include "group_layout.h"
+#include "font.h"
 
 #include <QToolButton>
 #include <QtGui/QImage>
@@ -3801,12 +3802,14 @@ Tree_p Widget::textFormula(Tree_p self, Tree_p value)
 }
 
 
-Tree_p Widget::font(Tree_p self, text description)
+Tree_p Widget::font(Tree_p self, Tree_p description)
 // ----------------------------------------------------------------------------
 //   Select a font family
 // ----------------------------------------------------------------------------
 {
-    layout->font.fromString(+description);
+    FontParsingAction parseFont(self->Symbols(), layout->font);
+    description->Do(parseFont);
+    layout->font = parseFont.font;
     layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }

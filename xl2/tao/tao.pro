@@ -76,6 +76,7 @@ HEADERS += widget.h \
     git_backend.h \
     tao_utf8.h \
     tao_tree.h \
+    font.h \
     ../xlr/utf8.h \
     ../xlr/base.h \
     ../xlr/options.h \
@@ -148,6 +149,7 @@ SOURCES += tao_main.cpp \
     repository.cpp \
     git_backend.cpp \
     application.cpp \
+    font.cpp \
     ../xlr/tree.cpp \
     ../xlr/gc.cpp \
     ../xlr/sha1.cpp \

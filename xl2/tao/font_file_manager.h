@@ -28,6 +28,7 @@
 #include <QFont>
 #include <QString>
 #include <QStringList>
+#include <QMap>
 
 TAO_BEGIN
 
@@ -36,7 +37,7 @@ struct FontFileManager
 //   Manage fonts (import/export font files)
 // ----------------------------------------------------------------------------
 {
-    FontFileManager() {};
+    FontFileManager();
     ~FontFileManager() {};
 
     void               AddFontFile(const QFont &font);
@@ -46,8 +47,15 @@ struct FontFileManager
 
 protected:
 
-    static QString     FontToFile(const QFont &font);
-    static bool        IsLoadable(QString fileName);
+    QString            FontToFile(const QFont &font);
+    bool               IsLoadable(QString fileName);
+
+#ifdef CONFIG_MINGW
+
+private:
+    QMap<QString, QString> fontFaceToFile;
+
+#endif
 
 };
 

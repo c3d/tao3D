@@ -65,6 +65,7 @@ public:
 
     bool isUntitled;
     bool isReadOnly;
+    bool loadInProgress;
 
 public:
     QUndoStack       * undoStack;

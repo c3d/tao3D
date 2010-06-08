@@ -93,7 +93,6 @@ public:
     scale       Size(Item item, Layout *);
     scale       SpaceSize(Item item, Layout *);
     coord       ItemOffset(Item item, Layout *);
-    void        ApplyAttributes(Item item, Layout *layout);
 
     void        Dump(text msg);
 
@@ -194,10 +193,10 @@ bool Justifier<Item>::Adjust(coord start, coord end,
             Item next = Break(item, &hadBreak, &hadSeparator, &done);
 
             // Test the size of what remains
-            ApplyAttributes(item, layout);
-            scale spacing = justify.spacing;
-            scale size = Size(item, layout) * spacing;
+            scale size = Size(item, layout);
             coord offset = ItemOffset(item, layout);
+            scale spacing = justify.spacing;
+            size *= spacing;
             if (hadSeparator && !firstElement && size > 0)
             {
                 coord additional = justify.before;
@@ -221,7 +220,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
             else
             {
                 // It fits, place it
-                hadBreak |= next != NULL || size<=0;
+                hadBreak |= next != NULL;
                 places.push_back(Place(item, size, pos+sign*offset, !hadBreak));
                 pos += sign * size;
                 lastSpace = SpaceSize(item, layout) * spacing;
@@ -259,7 +258,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
             items.clear();
     }
     // If there is no place where we can justify, center instead
-    if (numSolids <= 1)
+    if (numSolids <= 1 && numBreaks <= 1)
         just = 0;
     if (lastSpace == 0)
         numBreaks++;

@@ -111,6 +111,7 @@ highlight_end_selected = "</span><br>"
 "every" = builtin
 "locally" = builtin
 "shape" = builtin
+"group" = builtin
 "rotate" = builtin
 "rotatex" = builtin
 "rotatey" = builtin

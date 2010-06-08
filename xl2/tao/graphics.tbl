@@ -74,6 +74,8 @@ PREFIX(Anchor,  tree, "anchor",   PARM(t, tree), RTAO(anchor(self, t)))
 //
 // ============================================================================
 
+PREFIX(ResetTransform, tree, "reset_transform", , RTAO(resetTransform(self)))
+
 PREFIX(RotateX, tree, "rotatex", PARM(rx, real), RTAO(rotatex(self, rx)))
 PREFIX(RotateY, tree, "rotatey", PARM(ry, real), RTAO(rotatey(self, ry)))
 PREFIX(RotateZ, tree, "rotatez", PARM(rz, real), RTAO(rotatez(self, rz)))
@@ -557,12 +559,29 @@ PREFIX(Delete, boolean, "delete_selection", PARM(k, text),
        RTAO(deleteSelection(self, k)))
 PREFIX(SetAttribute, boolean, "set_attribute",
        PARM(n, text) PARM(t, tree),
-       RTAO(setAttribute(self, n, t, "shape")))
+       RTAO(setAttribute(self, n, t, "group,shape")))
+
+
+// ============================================================================
+//
+//   z order management
+//
+// ============================================================================
 
 PREFIX(BringToFront, boolean, "bring_to_front",, RTAO(bringToFront(self)))
 PREFIX(BringForward, boolean, "bring_forward",, RTAO(bringForward(self)))
 PREFIX(SendToBack, boolean, "send_to_back",, RTAO(sendToBack(self)))
 PREFIX(SendBackward, boolean, "send_backward",, RTAO(sendBackward(self)))
+
+// ============================================================================
+//
+//   group management
+//
+// ============================================================================
+
+PREFIX(Group, tree, "group",   PARM(t, tree), RTAO(group(self, t)))
+PREFIX(GroupSelection, boolean, "group_selection",, RTAO(groupSelection(self)))
+PREFIX(UngroupSelection, boolean, "ungroup_selection",, RTAO(ungroupSelection(self)))
 
 // ============================================================================
 //
@@ -576,3 +595,12 @@ POSTFIX(FromInch, real, PARM(x, real), "inch", RTAO(fromIn(self, x)))
 POSTFIX(FromPt,   real, PARM(x, real), "pt", RTAO(fromPt(self, x)))
 POSTFIX(FromPx,   real, PARM(x, real), "px", RTAO(fromPx(self, x)))
 
+
+
+// ============================================================================
+// 
+//   Misc...
+// 
+// ============================================================================
+
+PREFIX(Constant, tree, "constant", PARM(t, tree), RTAO(constant(self, t)))

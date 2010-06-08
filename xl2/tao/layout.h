@@ -82,6 +82,8 @@ struct Layout : Drawing, LayoutState
     virtual void        Clear();
     virtual Widget *    Display()        { return display; }
     virtual void        PolygonOffset();
+    virtual uint        Selected();
+    virtual uint        ChildrenSelected();
 
     LayoutState &       operator=(const LayoutState &o);
     void                Inherit(Layout *other);

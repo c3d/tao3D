@@ -29,6 +29,26 @@
 
 TAO_BEGIN
 
+Box3 Attribute::Bounds(Layout *where)
+// ----------------------------------------------------------------------------
+//   Make sure we apply attributes when computing bounds
+// ----------------------------------------------------------------------------
+{
+    Draw(where);
+    return Box3(where->offset, Vector3(0,0,0));
+}
+
+
+Box3 Attribute::Space(Layout *where)
+// ----------------------------------------------------------------------------
+//    Make sure we apply attributes when computing space
+// ----------------------------------------------------------------------------
+{
+    Draw(where);
+    return Box3(where->offset, Vector3(0,0,0));
+}
+
+
 Drawing *DrawingBreak::Break(BreakOrder &order)
 // ----------------------------------------------------------------------------
 //   Perform a character, word, line, column or page break

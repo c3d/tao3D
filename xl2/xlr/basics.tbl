@@ -132,6 +132,7 @@ PREFIX(RandomNumber2i, integer, "random", PARM(low,integer) PARM(high,integer),
        XL_RINT(xl_random(XL_INT(low), XL_INT(high))))
 
 // Executing some code
+PREFIX(Identity,  tree, "identity", PARM(code, tree), return xl_identity(&code))
 PREFIX(DoCode,    tree, "do", PARM(code, tree), return xl_evaluate(&code))
 PREFIX(RepeatCode,tree, "repeat", PARM(n, integer) PARM(code, tree),
        return xl_repeat(self, &code, n))
@@ -143,10 +144,8 @@ PREFIX(LoadTSV,  tree, "load_tsv", PARM(f, text) PARM(p, text),
 PREFIX(LoadData,  tree, "load_data",
        PARM(f, text) PARM(p, text) PARM(fs, text) PARM(rs, text),
        return xl_load_data(f, p, fs, rs))
-PREFIX(Map, tree, "map", PARM(n, symbolicname) PARM(c, tree),
-       return xl_map(&n,&c))       
-INFIX(InfixMap, tree, tree, "with", tree,
-      return xl_map(&r, &l))
+INFIX(Apply, tree, tree, "with", tree,
+      return xl_apply(&l, &r))
 
 // Debugging code
 PREFIX(DebugTree, tree, "debug", PARM(toDebug, tree),

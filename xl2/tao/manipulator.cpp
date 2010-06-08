@@ -63,7 +63,8 @@ void Manipulator::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    if (widget->selected(layout))
+    uint sel = widget->selected(layout);
+    if (sel)
     {
         widget->selectionTrees.insert(self);
         glPushName(layout->id);
@@ -331,7 +332,8 @@ void ControlPoint::DrawSelection(Layout *layout)
 {
     // We don't need to glPushName, as the parent should have done it for us
     Widget *widget = layout->Display();
-    if (widget->selected(layout))
+    uint sel = widget->selected(layout);
+    if (sel)
     {
         widget->selectionTrees.insert(self);
         DrawHandles(layout);
@@ -399,9 +401,9 @@ void FrameManipulator::DrawSelection(Layout *layout)
 {
     Widget *widget = layout->Display();
     uint sel = widget->selected(layout);
-    if (Widget::doubleClicks(sel))
+    uint dclicks = Widget::doubleClicks(sel);
+    if (dclicks > groupDepth)
         return;
-
     return Manipulator::DrawSelection(layout);
 }
 
@@ -531,6 +533,17 @@ bool FrameManipulator::DrawHandles(Layout *layout)
     }
 
     return handle != 0;
+}
+
+
+Box3 FrameManipulator::Bounds(Layout *where)
+// ----------------------------------------------------------------------------
+//   Return the bounding box for the shape
+// ----------------------------------------------------------------------------
+{
+    Point3  l(x-w/2, y-h/2, 0);
+    Vector3 s(w, h, 0);
+    return Box3(l + where->offset, s);
 }
 
 
@@ -1136,7 +1149,8 @@ bool GraphicPathManipulator::DrawHandles(Layout *layout)
     // individual path control points are moved proportionally
     Widget *widget = layout->Display();
     uint sel = widget->selected(layout);
-    if (Widget::doubleClicks(sel))
+    uint dclicks = Widget::doubleClicks(sel);
+    if (dclicks > groupDepth)
         return false;
 
     GraphicPathInfo *path_info = path_tree->GetInfo<GraphicPathInfo>();

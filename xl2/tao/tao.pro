@@ -111,7 +111,8 @@ HEADERS += widget.h \
     clone_dialog.h \
     ansi_textedit.h \
     ../xlr/opcodes_delete.h \
-    error_message_dialog.h
+    error_message_dialog.h \
+    group_layout.h
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \
@@ -172,7 +173,8 @@ SOURCES += tao_main.cpp \
     undo.cpp \
     clone_dialog.cpp \
     ansi_textedit.cpp \
-    error_message_dialog.cpp
+    error_message_dialog.cpp \
+    group_layout.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \

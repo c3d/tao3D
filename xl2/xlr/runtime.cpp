@@ -62,7 +62,7 @@ Tree *xl_evaluate(Tree *what)
     Symbols *symbols = what->Symbols();
     if (!symbols)
         symbols = Symbols::symbols;
-    
+
     StackDepthCheck depthCheck(what);
     if (depthCheck)
         return what;
@@ -90,40 +90,6 @@ Tree *xl_repeat(Tree *self, Tree *what, longlong count)
         result = symbols->Run(what);
     if (result != what)
         result->source = xl_source(what);
-    return result;
-}
-
-
-Tree *xl_map(Tree *data, Tree *code, text row, text column)
-// ----------------------------------------------------------------------------
-//   Apply the code on each piece of data
-// ----------------------------------------------------------------------------
-{
-    bool evaluate = true;
-
-    if (Name *name = data->AsName())
-        data = xl_evaluate(name);
-
-    if (Block *block = data->AsBlock())
-    {
-        data = block->child;
-        if (!data->Symbols())
-            data->SetSymbols(block->Symbols());
-        if (!data->code)
-            data->code = xl_evaluate_children;
-    }
-
-    if (Block *codeBlock = code->AsBlock())
-    {
-        code = codeBlock->child;
-        if (!code->Symbols())
-            code->SetSymbols(codeBlock->Symbols());
-        if (codeBlock->opening == "[" && codeBlock->closing == "]")
-            evaluate = false;
-    }
-
-    MapAction map(code, row, column, evaluate);
-    Tree *result = map.Map(data);
     return result;
 }
 
@@ -272,7 +238,7 @@ Tree *xl_new_block(Block *source, Tree *child)
 // ----------------------------------------------------------------------------
 {
     Tree *result = new Block(source, child);
-    result->code = xl_identity;
+    result->code = xl_evaluate_children;
     return result;
 }
 
@@ -283,7 +249,7 @@ Tree *xl_new_prefix(Prefix *source, Tree *left, Tree *right)
 // ----------------------------------------------------------------------------
 {
     Tree *result = new Prefix(source, left, right);
-    result->code = xl_identity;
+    result->code = xl_evaluate_children;
     return result;
 }
 
@@ -294,7 +260,7 @@ Tree *xl_new_postfix(Postfix *source, Tree *left, Tree *right)
 // ----------------------------------------------------------------------------
 {
     Tree *result = new Postfix(source, left, right);
-    result->code = xl_identity;
+    result->code = xl_evaluate_children;
     return result;
 }
 
@@ -305,7 +271,7 @@ Tree *xl_new_infix(Infix *source, Tree *left, Tree *right)
 // ----------------------------------------------------------------------------
 {
     Tree *result = new Infix(source, left, right);
-    result->code = xl_identity;
+    result->code = xl_evaluate_children;
     return result;
 }
 
@@ -388,10 +354,14 @@ Tree *xl_evaluate_children(Tree *what)
 //   Reconstruct a similar tree evaluating children
 // ----------------------------------------------------------------------------
 {
-    EvaluateChildren eval(what->Symbols());
-    Tree *result = what->Do(eval);
-    if (!result->Symbols())
-        result->SetSymbols(what->Symbols());
+    Tree *result = what;
+    if (Symbols *s = what->Symbols())
+    {
+        EvaluateChildren eval(s);
+        result = what->Do(eval);
+        if (!result->Symbols())
+            result->SetSymbols(what->Symbols());
+    }
     return result;
 }
 
@@ -747,90 +717,134 @@ Tree *xl_load_data(text name, text prefix, text fieldSeps, text recordSeps)
 
 
 // ============================================================================
-// 
-//   Map the given action on the code
-// 
+//
+//   Apply a code recursively to a data set
+//
 // ============================================================================
 
-MapAction::MapAction(Tree *code, bool eval)
+Tree *xl_apply(Tree *code, Tree *data)
 // ----------------------------------------------------------------------------
-//   Compile the code for the action
+//   Apply the input code on each piece of data
 // ----------------------------------------------------------------------------
-    : code(code), function(NULL), evaluate(eval)
-{}
-
-
-MapAction::MapAction(Tree *code, text separator, bool eval)
-// ----------------------------------------------------------------------------
-//   Compile the code for the action
-// ----------------------------------------------------------------------------
-    : code(code), function(NULL), evaluate(eval)
+//   We deal with the following cases:
+//   - Code is a name: We map it as a prefix to a single-argument function
+//   - Code is in the form X->f(X): We map the right-hand side
+//   - Code is in the form X,Y->f(X,Y): We reduce using the right-hand side
+//   - Code is in the form X where f(X): We filter based on f(X)
 {
-    separators.insert(separator);
-}
-
-
-MapAction::MapAction(Tree *code, text row, text column, bool eval)
-// ----------------------------------------------------------------------------
-//   Compile the code for the action
-// ----------------------------------------------------------------------------
-    : code(code), function(NULL), evaluate(eval)
-{
-    separators.insert(row);
-    separators.insert(column);
-}
-
-
-Tree *MapAction::Map(Tree *data)
-// ----------------------------------------------------------------------------
-//   Compile the code as a one-argument function
-// ----------------------------------------------------------------------------
-{
-    CurryFunctionInfo *curry = code->GetInfo<CurryFunctionInfo>();
-    if (!curry)
+    // Check if we got (1,2,3,4) or something like f(3) as 'data'
+    Block *block = data->AsBlock();
+    if (!block)
     {
-        // Symbols and function we are going to create
-        Symbols *symbols = new Symbols(code->Symbols());
-        eval_fn fn = NULL;
+        // We got f(3) or Hello as input: evaluate it
+        data = xl_evaluate(data);
 
-        // Stuff to compile
+        // The returned data may itself be something like (1,2,3,4,5)
+        block = data->AsBlock();
+    }
+    if (block)
+    {
+        // We got (1,2,3,4): Extract 1,2,3,4
+        data = block->child;
+        if (!data->Symbols())
+            data->SetSymbols(block->Symbols());
+        if (!data->code)
+            data->code = xl_evaluate_children;
+    }
+
+    // Check if we already compiled that code
+    FunctionInfo *fninfo = code->GetInfo<FunctionInfo>();
+    if (!fninfo)
+    {
+        // Identify what operation we want to perform
         Tree *toCompile = code;
-        Name *parameter = new Name("_");
         TreeList parameters;
-        parameters.push_back(parameter);
+        bool reduce = false;
+        bool filter = false;
 
-        // Check the case where we get x->sin x as input
-        if (Infix *infix = code->AsInfix())
+        // For syntactic convenience, the code is generally in a block
+        if (Block *codeBlock = toCompile->AsBlock())
         {
+            toCompile = codeBlock->child;
+            if (!toCompile->Symbols())
+                toCompile->SetSymbols(codeBlock->Symbols());
+        }
+
+        // Define default data separators
+        std::set<text> separators;
+        separators.insert(",");
+        separators.insert(";");
+        separators.insert("\n");
+
+        // Check the case where code is x->sin x  (map) or x,y->x+y (reduce)
+        if (Infix *infix = toCompile->AsInfix())
+        {
+            Tree *ileft = infix->left;
             if (infix->name == "->")
             {
-                if (Name *name = infix->left->AsName())
+                // Case of x -> sin x
+                if (Name *name = ileft->AsName())
                 {
-                    parameter->value = name->value;
+                    parameters.push_back(name);
                     toCompile = infix->right;
+                }
+
+                // Case of x,y -> x+y
+                else if (Infix *op = ileft->AsInfix())
+                {
+                    // This defines the separator we use for data
+                    separators.insert(op->name);
+
+                    Name *first = op->left->AsName();
+                    Name *second = op->right->AsName();
+                    if (first && second)
+                    {
+                        parameters.push_back(first);
+                        parameters.push_back(second);
+                        reduce = true;
+                        toCompile = infix->right;
+                    }
+                }
+            }
+            else if (infix->name == "where")
+            {
+                // Case of x where x < 3
+                if (Name *name = ileft->AsName())
+                {
+                    parameters.push_back(name);
+                    toCompile = infix->right;
+                    filter = true;
                 }
             }
         }
-
-
-        // Need to compile the prefix according to its type
-        if (Name *name = code->AsName())
-            // For a name Foo, we compile Foo _
+        else if (Name *name = code->AsName())
+        {
+            // We have a single name: consider it as a prefix to all elements
+            Name *parameter = new Name("_");
+            parameters.push_back(parameter);
             toCompile = new Prefix(name, parameter);
-        else if (code->IsConstant())
-            // For a constant like 17, we compile 17
-            toCompile = code;
-        else if (toCompile == code)
-            // For something like X -> 2+X, we finish with the parameter
-            toCompile = new Infix("\n", toCompile, parameter);
+        }
+        else
+        {
+            // OK, we don't know what to do with this stuff...
+            return Ooops("Malformed map/reduce code '$1'", code);
+        }
 
-        // Create a compile unit;
+        // We have now decided what this is, so we compile the code
+        Symbols *symbols = new Symbols(code->Symbols());
+        eval_fn fn = NULL;
+
+        // Record all the parameters in the symbol table
+        for (TreeList::iterator p=parameters.begin(); p!=parameters.end(); p++)
+            if (Name *parmName = (*p)->AsName())
+                symbols->Allocate(parmName);
+
+        // Create a compile unit with the right number of parameters
         Compiler *compiler = Context::context->compiler;
         CompiledUnit unit(compiler, toCompile, parameters);
-        assert (!unit.IsForwardCall() || !"Forward call in map function");
+        assert (!unit.IsForwardCall() || !"Forward call in map/reduce code");
 
         // Record internal declarations if any
-        symbols->Allocate(parameter);
         DeclarationAction declare(symbols);
         Tree *toDecl = toCompile->Do(declare);
         assert(toDecl);
@@ -839,30 +853,57 @@ Tree *MapAction::Map(Tree *data)
         CompileAction compile(symbols, unit, true, true);
         Tree *compiled = toCompile->Do(compile);
 
-        // Record success or failure
+        // Generate code if compilation was successful
         if (compiled)
             fn = unit.Finalize();
 
-        // Record the generated function
-        curry = new CurryFunctionInfo;
-        code->SetInfo<CurryFunctionInfo>(curry);
-        curry->code = compiled;
-        curry->symbols = symbols;
-        curry->function = fn;
+        // Generate appropriate function info
+        if (filter)
+            fninfo = new FilterFunctionInfo;
+        else if (reduce)
+            fninfo = new ReduceFunctionInfo;
+        else
+            fninfo = new MapFunctionInfo;
 
-        // Check for errors (emit message only once)
+        // Record generated code (or NULL in case of compilation failure)
+        code->SetInfo<FunctionInfo>(fninfo);
+        fninfo->function = fn;
+        fninfo->symbols = symbols;
+        fninfo->compiled = toCompile;
+        fninfo->separators = separators;
+
+        // Report compile error the first time
         if (!compiled)
-            return Ooops("Unable to compile '$1' for map function", code);
+            return Ooops("Cannot compile map/reduce code '$1'", code);
+
+        if (!toCompile->code)
+            toCompile->code = xl_evaluate_children;
     }
 
-    // The function we are going to use is the one we found
-    function = (map_fn) curry->function;
-    if (!function)
-        return Ooops("Unable to map with '$1'", code);
-
-    // Now that we have a compiled function, we can map our data
-    Tree *result = data->Do(this);
+    LocalSave<Symbols_p> saveSyms(Symbols::symbols, code->Symbols());
+    Tree *result = data;
+    if (fninfo->function)
+        result = fninfo->Apply(result);
+    else
+        result = Ooops("Invalid map/reduce code '$1'", code);
     return result;
+}
+
+
+
+// ============================================================================
+// 
+//   Map an operation on all elements
+// 
+// ============================================================================
+
+Tree *MapFunctionInfo::Apply(Tree *what)
+// ----------------------------------------------------------------------------
+//   Apply a map operation
+// ----------------------------------------------------------------------------
+{
+    MapAction map(function, separators);
+    return what->Do(map);
 }
 
 
@@ -871,13 +912,10 @@ Tree *MapAction::Do(Tree *what)
 //   Apply the code to the given tree
 // ----------------------------------------------------------------------------
 {
-    if (evaluate)
-    {
-        if (!what->Symbols())
-            what->SetSymbols(code->Symbols());
-        what = xl_evaluate(what);
-    }
-    return function(code, what);
+    if (!what->Symbols())
+        what->SetSymbols(Symbols::symbols);
+    what = xl_evaluate(what);
+    return function(what, what);
 }
 
 
@@ -893,7 +931,7 @@ Tree *MapAction::DoInfix(Infix *infix)
         if (left != infix->left || right != infix->right)
         {
             infix = new Infix(infix->name, left, right, infix->Position());
-            infix->code = xl_identity;
+            infix->code = xl_evaluate_children;
         }
         return infix;
     }
@@ -933,8 +971,164 @@ Tree *MapAction::DoBlock(Block *block)
 
 // ============================================================================
 // 
-//   Stack depth check
+//   Reduce by applying operations to consecutive elements
 // 
+// ============================================================================
+
+Tree *ReduceFunctionInfo::Apply(Tree *what)
+// ----------------------------------------------------------------------------
+//   Apply a reduce operation to the tree
+// ----------------------------------------------------------------------------
+{
+    ReduceAction reduce(function, separators);
+    return what->Do(reduce);
+}
+
+
+Tree *ReduceAction::Do(Tree *what)
+// ----------------------------------------------------------------------------
+//   By default, reducing non-list elements returns these elements
+// ----------------------------------------------------------------------------
+{
+    return what;
+}
+
+
+Tree *ReduceAction::DoInfix(Infix *infix)
+// ----------------------------------------------------------------------------
+//   Check if this is a separator, if so combine left and right
+// ----------------------------------------------------------------------------
+{
+    if (separators.count(infix->name))
+    {
+        Tree *left = infix->left->Do(this);
+        Tree *right = infix->right->Do(this);
+        if (!infix->Symbols())
+            infix->SetSymbols(Symbols::symbols);
+        return function(infix, left, right);
+    }
+
+    // Otherwise simply apply the function to the infix
+    return Do(infix);
+}
+
+
+Tree *ReduceAction::DoPrefix(Prefix *prefix)
+// ----------------------------------------------------------------------------
+//   Apply to the whole prefix (don't decompose)
+// ----------------------------------------------------------------------------
+{
+    return Do(prefix);
+}
+
+
+Tree *ReduceAction::DoPostfix(Postfix *postfix)
+// ----------------------------------------------------------------------------
+//   Apply to the whole postfix (don't decompose)
+// ----------------------------------------------------------------------------
+{
+    return Do(postfix);
+}
+
+
+Tree *ReduceAction::DoBlock(Block *block)
+// ----------------------------------------------------------------------------
+//   Apply to the whole block (don't decompose)
+// ----------------------------------------------------------------------------
+{
+    return Do(block);
+}
+
+
+// ============================================================================
+// 
+//   Filter by selecting elements that match a given condition
+// 
+// ============================================================================
+
+Tree *FilterFunctionInfo::Apply(Tree *what)
+// ----------------------------------------------------------------------------
+//   Apply a filter operation to the tree
+// ----------------------------------------------------------------------------
+{
+    FilterAction filter(function, separators);
+    Tree *result = what->Do(filter);
+    if (!result)
+        result = xl_false;
+    return result;
+}
+
+
+Tree *FilterAction::Do(Tree *what)
+// ----------------------------------------------------------------------------
+//   By default, reducing non-list elements returns these elements
+// ----------------------------------------------------------------------------
+{
+    if (!what->Symbols())
+        what->SetSymbols(Symbols::symbols);
+    if (function(what, what) == xl_true)
+        return what;
+    return NULL;
+}
+
+
+Tree *FilterAction::DoInfix(Infix *infix)
+// ----------------------------------------------------------------------------
+//   Check if this is a separator, if so combine left and right
+// ----------------------------------------------------------------------------
+{
+    if (separators.count(infix->name))
+    {
+        Tree *left = infix->left->Do(this);
+        Tree *right = infix->right->Do(this);
+        if (left && right)
+        {
+            infix = new Infix(infix->name, left, right, infix->Position());
+            infix->code = xl_evaluate_children;
+            return infix;
+        }
+        if (left)
+            return left;
+        return right;
+    }
+
+    // Otherwise simply apply the function to the infix
+    return Do(infix);
+}
+
+
+Tree *FilterAction::DoPrefix(Prefix *prefix)
+// ----------------------------------------------------------------------------
+//   Apply to the whole prefix (don't decompose)
+// ----------------------------------------------------------------------------
+{
+    return Do(prefix);
+}
+
+
+Tree *FilterAction::DoPostfix(Postfix *postfix)
+// ----------------------------------------------------------------------------
+//   Apply to the whole postfix (don't decompose)
+// ----------------------------------------------------------------------------
+{
+    return Do(postfix);
+}
+
+
+Tree *FilterAction::DoBlock(Block *block)
+// ----------------------------------------------------------------------------
+//   Apply to the whole block (don't decompose)
+// ----------------------------------------------------------------------------
+{
+    return Do(block);
+}
+
+
+
+// ============================================================================
+//
+//   Stack depth check
+//
 // ============================================================================
 
 uint StackDepthCheck::stack_depth      = 0;

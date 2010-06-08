@@ -31,12 +31,12 @@
 
 TAO_BEGIN
 
-Table::Table(uint r, uint c)
+Table::Table(Widget *w, uint r, uint c)
 // ----------------------------------------------------------------------------
 //    Constructor
 // ----------------------------------------------------------------------------
-    : rows(r), columns(c), row(0), column(0),
-      elements(), margins(0,0,5,5), columnWidth(), rowHeight(),
+    : Layout(w), rows(r), columns(c), row(0), column(0),
+      margins(0,0,5,5), columnWidth(), rowHeight(),
       fill(NULL), border(NULL)
 {}
 
@@ -47,27 +47,25 @@ Table::~Table()
 // ----------------------------------------------------------------------------
 {
     std::vector<Drawing *>::iterator it;
-    for (it = elements.begin(); it != elements.end(); it++)
+    for (it = items.begin(); it != items.end(); it++)
         delete *it;
-    elements.clear();
+    items.clear();
 }
 
 
 void Table::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Draw all the table elements
+//   Draw all the table items
 // ----------------------------------------------------------------------------
 {
-    if (columnWidth.size() != columns || rowHeight.size() != rows)
-        Compute(where);
+    Compute(where);
 
     coord   cellX, cellY, cellW, cellH;
-    Vector3 offset(where->offset);
     coord   px = bounds.lower.x;
     coord   py = bounds.upper.y;
     uint    r, c;
     Widget *widget = where->Display();
-    std::vector<Drawing *>::iterator i = elements.begin();
+    std::vector<Drawing *>::iterator i = items.begin();
     TreeList::iterator fillI = cellFill.begin();
     TreeList::iterator borderI = cellBorder.begin();
     XL::LocalSave<Table *> saveTable(widget->table, this);
@@ -83,7 +81,7 @@ void Table::Draw(Layout *where)
         row = r;
         for (c = 0; c < columns; c++)
         {
-            bool atEnd = i == elements.end();
+            bool atEnd = i == items.end();
 
             Drawing *d = atEnd ? NULL : *i++;
             Vector3 pos(px - margins.lower.x + columnOffset[c],
@@ -96,19 +94,27 @@ void Table::Draw(Layout *where)
             cellY = py + cellH/2;
             cellBox = Box(cellX-cellW/2, cellY-cellH/2, cellW, cellH);
 
+            if (Layout *cell = dynamic_cast<Layout *>(d))
+            {
+                XL::LocalSave<Point3> zeroOffset(offset, Point3());
+                Box3 bb = d->Space(this);
+                pos.x += (columnWidth[c]-bb.Width() ) * cell->alongX.centering;
+                pos.y += (rowHeight[r]-bb.Height()) * cell->alongY.centering;
+            }
+
             if (fillI != cellFill.end())
                 fillCode = *fillI++;
             if (fillCode)
-                widget->drawTree(where, fillCode);
+                widget->drawTree(this, fillCode);
             if (d)
             {
-                XL::LocalSave<Point3> saveOffset(where->offset, pos + offset);
-                d->Draw(where);
+                XL::LocalSave<Point3> saveOffset(offset, pos + where->offset);
+                d->Draw(this);
             }
             if (borderI != cellBorder.end())
                 borderCode = *borderI++;
             if (borderCode)
-                widget->drawTree(where, borderCode);
+                widget->drawTree(this, borderCode);
 
             if (c < columnWidth.size())
                 px += columnWidth[c];
@@ -120,19 +126,17 @@ void Table::Draw(Layout *where)
 
 void Table::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
-//   Draw the selection for all the table elements
+//   Draw the selection for all the table items
 // ----------------------------------------------------------------------------
 {
-    if (columnWidth.size() != columns || rowHeight.size() != rows)
-        Compute(where);
+    Compute(where);
 
     coord   cellX, cellY, cellW, cellH;
-    Vector3 offset(where->offset);
     coord   px = bounds.lower.x;
     coord   py = bounds.upper.y;
     uint    r, c;
     Widget *widget = where->Display();
-    std::vector<Drawing *>::iterator i = elements.begin();
+    std::vector<Drawing *>::iterator i = items.begin();
     XL::LocalSave<Table *> saveTable(widget->table, this);
 
     for (r = 0; r < rows; r++)
@@ -144,7 +148,7 @@ void Table::DrawSelection(Layout *where)
         row = r;
         for (c = 0; c < columns; c++)
         {
-            bool atEnd = i == elements.end();
+            bool atEnd = i == items.end();
 
             Drawing *d = atEnd ? NULL : *i++;
             Vector3 pos(px - margins.lower.x + columnOffset[c],
@@ -157,10 +161,18 @@ void Table::DrawSelection(Layout *where)
             cellY = py + cellH/2;
             cellBox = Box(cellX-cellW/2, cellY-cellH/2, cellW, cellH);
 
+            if (Layout *cell = dynamic_cast<Layout *>(d))
+            {
+                XL::LocalSave<Point3> zeroOffset(offset, Point3());
+                Box3 bb = d->Space(this);
+                pos.x += (columnWidth[c]-bb.Width() ) * cell->alongX.centering;
+                pos.y += (rowHeight[r]-bb.Height()) * cell->alongY.centering;
+            }
+
             if (d)
             {
-                XL::LocalSave<Point3> saveOffset(where->offset, pos + offset);
-                d->DrawSelection(where);
+                XL::LocalSave<Point3> saveOffset(offset, where->offset + pos);
+                d->DrawSelection(this);
             }
 
             if (c < columnWidth.size())
@@ -173,19 +185,17 @@ void Table::DrawSelection(Layout *where)
 
 void Table::Identify(Layout *where)
 // ----------------------------------------------------------------------------
-//   Identify all the table elements
+//   Identify all the table items
 // ----------------------------------------------------------------------------
 {
-    if (columnWidth.size() != columns || rowHeight.size() != rows)
-        Compute(where);
+    Compute(where);
 
     coord   cellX, cellY, cellW, cellH;
-    Vector3 offset(where->offset);
     coord   px = bounds.lower.x;
     coord   py = bounds.upper.y;
     uint    r, c;
     Widget *widget = where->Display();
-    std::vector<Drawing *>::iterator i = elements.begin();
+    std::vector<Drawing *>::iterator i = items.begin();
     XL::LocalSave<Table *> saveTable(widget->table, this);
 
     for (r = 0; r < rows; r++)
@@ -197,7 +207,7 @@ void Table::Identify(Layout *where)
         row = r;
         for (c = 0; c < columns; c++)
         {
-            bool atEnd = i == elements.end();
+            bool atEnd = i == items.end();
 
             Drawing *d = atEnd ? NULL : *i++;
             Vector3 pos(px - margins.lower.x + columnOffset[c],
@@ -210,10 +220,18 @@ void Table::Identify(Layout *where)
             cellY = py + cellH/2;
             cellBox = Box(cellX-cellW/2, cellY-cellH/2, cellW, cellH);
 
+            if (Layout *cell = dynamic_cast<Layout *>(d))
+            {
+                XL::LocalSave<Point3> zeroOffset(offset, Point3());
+                Box3 bb = d->Space(this);
+                pos.x += (columnWidth[c]-bb.Width() ) * cell->alongX.centering;
+                pos.y += (rowHeight[r]-bb.Height()) * cell->alongY.centering;
+            }
+
             if (d)
             {
-                XL::LocalSave<Point3> saveOffset(where->offset, pos + offset);
-                d->Identify(where);
+                XL::LocalSave<Point3> saveOffset(offset, where->offset + pos);
+                d->Identify(this);
             }
 
             if (c < columnWidth.size())
@@ -229,18 +247,26 @@ Box3 Table::Bounds(Layout *where)
 //   Compute the bounds of the table
 // ----------------------------------------------------------------------------
 {
-    if (columnWidth.size() != columns || rowHeight.size() != rows)
-        Compute(where);
+    Compute(where);
     return bounds + where->offset;
 }
 
 
-void Table::AddElement(Drawing *d)
+Box3 Table::Space(Layout *where)
+// ----------------------------------------------------------------------------
+//   Compute the bounds of the table
+// ----------------------------------------------------------------------------
+{
+    return Bounds(where);
+}
+
+
+void Table::Add(Drawing *d)
 // ----------------------------------------------------------------------------
 //    Add an element to a table
 // ----------------------------------------------------------------------------
 {
-    elements.push_back(d);
+    Layout::Add(d);
     cellFill.push_back(fill);
     cellBorder.push_back(border);
     columnWidth.clear();
@@ -253,8 +279,12 @@ void Table::Compute(Layout *where)
 //   Compute column widths and row heights
 // ----------------------------------------------------------------------------
 {
+    Inherit(where);
+    if (columnWidth.size() == columns && rowHeight.size() == rows)
+        return;
+
     uint r, c;
-    std::vector<Drawing *>::iterator i = elements.begin();
+    std::vector<Drawing *>::iterator i = items.begin();
     std::vector<Box3> rowBB, colBB;
 
     // Compute the actual column width and heights
@@ -279,23 +309,24 @@ void Table::Compute(Layout *where)
     // Compute actual row and column bounding box
     for (r = 0; r < rows; r++)
     {
-        if (i == elements.end())
+        if (i == items.end())
             break;
         for (c = 0; c < columns; c++)
         {
-            if (i == elements.end())
+            if (i == items.end())
                 break;
             Drawing *d = *i++;
-            XL::LocalSave<Point3> zeroOffset(where->offset, Point3(0,0,0));
-            Box3 bb = d->Space(where);
-            rowBB[r] |= bb;
-            colBB[c] |= bb;
+            Inherit(where);
+            XL::LocalSave<Point3> zeroOffset(offset, Point3());
+            Box3 bb = d->Space(this);
             double lowX = colBB[c].lower.x;
             double lowY = rowBB[r].lower.y;
             if (lowX < 0)
                 columnOffset[c] = -lowX;
             if (lowY < 0)
                 rowOffset[r] = -lowY;
+            rowBB[r] |= bb;
+            colBB[c] |= bb;
         }
     }
 
@@ -313,6 +344,9 @@ void Table::Compute(Layout *where)
         bb.upper.y += rowHeight[r] + margins.Height();
     }
     bounds = bb;
+
+    // Restore original state for the caller
+    Inherit(where);
 }
 
 TAO_END

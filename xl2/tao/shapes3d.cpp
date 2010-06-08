@@ -34,7 +34,8 @@ void Shape3::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    if (widget->selected(layout))
+    uint sel = widget->selected(layout);
+    if (sel)
     {
         Box3 bounds = Bounds(layout);
         XL::LocalSave<Point3> zeroOffset(layout->offset, Point3(0,0,0));

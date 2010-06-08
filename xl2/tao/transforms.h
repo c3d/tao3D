@@ -38,6 +38,16 @@ struct Transform : Attribute
 };
 
 
+struct ResetTransform : Transform
+// ----------------------------------------------------------------------------
+//   Reset transform to what it was initially
+// ----------------------------------------------------------------------------
+{
+    ResetTransform() {}
+    virtual void Draw(Layout *where);
+};
+
+
 struct Rotation : Transform
 // ----------------------------------------------------------------------------
 //    Record a rotation

@@ -102,6 +102,7 @@ struct FrameManipulator : Manipulator
                      Real *x, Real *y, Real *w, Real *h);
     virtual void        DrawSelection(Layout *layout);
     virtual bool        DrawHandles(Layout *layout);
+    virtual Box3        Bounds(Layout *);
     virtual TransformMode CurrentTransformMode();
 
 protected:

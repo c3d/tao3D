@@ -1,0 +1,2 @@
+filtered -> (x where x < 0) with (2, 3, -14, 8, 14, sin 14, -3.22)
+(a, b -> a+b) with filtered

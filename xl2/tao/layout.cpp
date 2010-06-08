@@ -201,7 +201,7 @@ void Layout::Identify(Layout *where)
     XL::LocalSave<Point3> save(offset, offset);
     GLStateKeeper         glSave(hasAttributes?GL_LAYOUT_BITS:0, hasMatrix);
     Inherit(where);
-        
+
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
     {
@@ -229,8 +229,12 @@ Box3 Layout::Bounds(Layout *layout)
 {
     Box3 result;
     layout_items::iterator i;
-    for (i = items.begin(); i != items.end(); i++)
-        result |= (*i)->Bounds(layout);
+    Inherit(layout);
+    if (items.size() == 0)
+        result |= Point3();
+    else
+        for (i = items.begin(); i != items.end(); i++)
+            result |= (*i)->Bounds(this);
     return result;
 }
 
@@ -242,8 +246,12 @@ Box3 Layout::Space(Layout *layout)
 {
     Box3 result;
     layout_items::iterator i;
-    for (i = items.begin(); i != items.end(); i++)
-        result |= (*i)->Space(layout);
+    Inherit(layout);
+    if (items.size() == 0)
+        result |= Point3();
+    else
+        for (i = items.begin(); i != items.end(); i++)
+            result |= (*i)->Space(this);
     return result;
 }
 
@@ -254,6 +262,7 @@ void Layout::Add(Drawing *d)
 // ----------------------------------------------------------------------------
 {
     items.push_back(d);
+    d->groupDepth = this->groupDepth;
 }
 
 
@@ -265,6 +274,30 @@ void Layout::PolygonOffset()
     int offset = polygonOffset++;
     glPolygonOffset (factorBase + offset * factorIncrement,
                      unitBase + offset * unitIncrement);
+}
+
+
+uint Layout::ChildrenSelected()
+// ----------------------------------------------------------------------------
+//   The sum of chilren selections
+// ----------------------------------------------------------------------------
+{
+    uint result = 0;
+    Layout *l;
+    layout_items::iterator i;
+    for (i = items.begin(); i != items.end(); i++)
+        if ((l = dynamic_cast<Layout*>(*i)))
+            result += l->Selected();
+    return result;
+}
+
+
+uint Layout::Selected()
+// ----------------------------------------------------------------------------
+//   Selection state of this layout plus the sum of chilren selections
+// ----------------------------------------------------------------------------
+{
+    return Display()->selected(id) + ChildrenSelected();
 }
 
 

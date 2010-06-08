@@ -66,17 +66,6 @@ template<> inline scale Justifier<line_t>::Size(line_t item, Layout *layout)
 }
 
 
-template<> inline void Justifier<line_t>::ApplyAttributes(line_t item,
-                                                          Layout *layout)
-// ----------------------------------------------------------------------------
-//   For drawings, we compute the horizontal size
-// ----------------------------------------------------------------------------
-{
-    if (item->IsAttribute())
-        item->Draw(layout);
-}
-
-
 template<> inline scale Justifier<line_t>::SpaceSize(line_t item, Layout * l)
 // ----------------------------------------------------------------------------
 //   Return the size of the spaces at the end of an item
@@ -129,16 +118,6 @@ template<> inline scale Justifier<page_t>::Size(page_t line, Layout *l)
 }
 
 
-template<> inline void Justifier<page_t>::ApplyAttributes(page_t line,
-                                                          Layout *layout)
-// ----------------------------------------------------------------------------
-//   For drawings, we compute the horizontal size
-// ----------------------------------------------------------------------------
-{
-    line->ApplyAttributes(layout);
-}
-
-
 template<> inline scale Justifier<page_t>::SpaceSize(page_t, Layout *)
 // ----------------------------------------------------------------------------
 //   Return the size of a space for the layout
@@ -169,11 +148,11 @@ template<> inline coord Justifier<page_t>::ItemOffset(page_t item, Layout *l)
 //
 // ============================================================================
 
-LayoutLine::LayoutLine()
+LayoutLine::LayoutLine(coord left, coord right)
 // ----------------------------------------------------------------------------
 //   Create a new line of drawing elements
 // ----------------------------------------------------------------------------
-    : line()
+    : line(), left(left), right(right)
 {}
 
 
@@ -181,7 +160,7 @@ LayoutLine::LayoutLine(const LayoutLine &o)
 // ----------------------------------------------------------------------------
 //   Copy a line
 // ----------------------------------------------------------------------------
-    : Drawing(o), line(o.line)
+    : Drawing(o), line(o.line), left(o.left), right(o.right)
 {}
 
 
@@ -200,7 +179,7 @@ void LayoutLine::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // Compute layout
-    SafeCompute(where);
+    Compute(where);
 
     // Display all items
     LineJustifier::Places &places = line.places;
@@ -222,7 +201,7 @@ void LayoutLine::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // Compute layout
-    SafeCompute(where);
+    Compute(where);
 
     // Display all items
     LineJustifier::Places &places = line.places;
@@ -243,7 +222,7 @@ void LayoutLine::Identify(Layout *where)
 //   Identify page elements for OpenGL
 // ----------------------------------------------------------------------------
 {
-    SafeCompute(where);
+    Compute(where);
 
     // Display all items
     LineJustifier::Places &places = line.places;
@@ -268,6 +247,8 @@ Box3 LayoutLine::Bounds(Layout *where)
     Box3 result;
     LineJustifier::Places &places = line.places;
     LineJustifier::PlacesIterator p;
+    if (places.size() == 0)
+        result |= Point3();
     for (p = places.begin(); p != places.end(); p++)
     {
         LineJustifier::Place &place = *p;
@@ -291,6 +272,8 @@ Box3 LayoutLine::Space(Layout *where)
     Box3 result;
     LineJustifier::Places &places = line.places;
     LineJustifier::PlacesIterator p;
+    if (places.size() == 0)
+        result |= Point3();
     for (p = places.begin(); p != places.end(); p++)
     {
         LineJustifier::Place &place = *p;
@@ -418,7 +401,7 @@ void LayoutLine::Add(Items::iterator first, Items::iterator last)
 }
 
 
-void LayoutLine::SafeCompute(Layout *layout)
+void LayoutLine::Compute(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Compute the placement of items on the line, preserving layout state
 // ----------------------------------------------------------------------------
@@ -427,27 +410,10 @@ void LayoutLine::SafeCompute(Layout *layout)
     if (line.places.size())
         return;
 
-    // Save attributes that may be modified by Compute(), as well as offset
-    XL::LocalSave<LayoutState> save(*layout, *layout);
-    Compute(layout);
-}
-
-
-void LayoutLine::Compute(Layout *layout)
-// ----------------------------------------------------------------------------
-//   Compute the placement of items on the line
-// ----------------------------------------------------------------------------
-{
-    // If we already computed the placement, re-use that
-    if (line.places.size())
-        return;
-
     // Position one line of items
-    Box3 space = layout->Space(layout);
-    coord left = space.Left() + layout->left;
-    coord right = space.Right() - layout->right;
     if (left > right) std::swap(left, right);
-    line.Adjust(left, right, layout->alongX, layout);
+    line.Adjust(left + layout->left, right - layout->right,
+                layout->alongX, layout);
 }
 
 
@@ -467,23 +433,6 @@ LayoutLine *LayoutLine::Remaining()
     items.clear();
 
     return result;
-}
-
-
-void LayoutLine::ApplyAttributes(Layout *layout)
-// ----------------------------------------------------------------------------
-//   Apply the attributes we find in the line
-// ----------------------------------------------------------------------------
-{
-    LineJustifier::Places &places = line.places;
-    LineJustifier::PlacesIterator p;
-    for (p = places.begin(); p != places.end(); p++)
-    {
-        LineJustifier::Place &place = *p;
-        Drawing *child = place.item;
-        if (child->IsAttribute())
-            child->Draw(layout);
-    }
 }
 
 
@@ -591,10 +540,8 @@ void PageLayout::Draw(Layout *where)
 //   and then only iterate on the items that were placed, not all items,
 //   taking the layout offset from the placed position
 {
-    // Inherit state from our parent layout if there is one
-    Inherit(where);
-
-    SafeCompute();
+    // Inherit state from our parent layout if there is one and compute layout
+    Compute(where);
 
     // Display all items
     PageJustifier::Places &places = page.places;
@@ -620,9 +567,8 @@ void PageLayout::DrawSelection(Layout *where)
     GLuint      startId = widget->currentCharId();
     GLuint      lineStart, lineEnd;
 
-    // Inherit state from our parent layout if there is one
-    Inherit(where);
-    SafeCompute();
+    // Inherit state from our parent layout if there is one and compute layout
+    Compute(where);
 
     // Display all items
     PageJustifier::Places &places = page.places;
@@ -697,10 +643,8 @@ void PageLayout::Identify(Layout *where)
 //   Identify page elements for OpenGL
 // ----------------------------------------------------------------------------
 {
-    // Inherit state from our parent layout if there is one
-    Inherit(where);
-
-    SafeCompute();
+    // Inherit state from our parent layout if there is one and compute layout
+    Compute(where);
 
     // Display all items
     PageJustifier::Places &places = page.places;
@@ -737,17 +681,22 @@ Box3 PageLayout::Bounds(Layout *layout)
 //   Return the bounds for the page layout
 // ----------------------------------------------------------------------------
 {
+    // Inherit from surrounding context and compute layout
+    Compute(layout);
+
     // Loop over all elements, offseting by their position
     Box3 result;
     PageJustifier::Places &places = page.places;
     PageJustifier::PlacesIterator p;
+    if (places.size() == 0)
+        result |= Point3();
     for (p = places.begin(); p != places.end(); p++)
     {
         PageJustifier::Place &place = *p;
         Drawing *child = place.item;
         XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
-        Box3 childBounds = child->Bounds(layout);
-        childBounds &= space;
+        Box3 childBounds = child->Bounds(this);
+        //childBounds &= space;
         result |= childBounds;
     }
 
@@ -760,25 +709,13 @@ Box3 PageLayout::Space(Layout *layout)
 //   Return the space for the page layout
 // ----------------------------------------------------------------------------
 {
+    // Inherit context and compute layout
+    Compute(layout);
+
     Box3 result = space;
     if (page.places.size())
-        result |= Bounds(layout);
-    return space;
-}
-
-
-void PageLayout::SafeCompute()
-// ----------------------------------------------------------------------------
-//   Layout all elements on the page, preserving layout state
-// ----------------------------------------------------------------------------
-{
-    // If we already computed the layout, just reuse that
-    if (page.places.size())
-        return;
-
-    // Save attributes that may be modified by Compute(), as well as offset
-    XL::LocalSave<LayoutState> save(*this, *this);
-    Compute();
+        result |= Bounds(this);
+    return result;
 }
 
 
@@ -793,17 +730,20 @@ void PageLayout::Inherit(Layout *other)
 }
 
 
-void PageLayout::Compute()
+void PageLayout::Compute(Layout *where)
 // ----------------------------------------------------------------------------
-//   Layout all elements on the page in as many lines as necessary
+//   Layout all elements on the page, preserving layout state
 // ----------------------------------------------------------------------------
 {
+    // Get attributes from surrounding context
+    Inherit(where);
+
     // If we already computed the layout, just reuse that
     if (page.places.size())
         return;
 
     // Transfer all items into a single line
-    LayoutLine *line = new LayoutLine();
+    LayoutLine *line = new LayoutLine(space.Left(), space.Right());
     line->Add(items.begin(), items.end());
     items.clear();
 
@@ -825,6 +765,9 @@ void PageLayout::Compute()
     coord bottom = space.Bottom() + bottom;
     if (top < bottom) std::swap(top, bottom);
     page.Adjust(top, bottom, alongY, this);
+
+    // Restore state from surrounding context
+    Inherit(where);
 }
 
 
@@ -979,7 +922,7 @@ void AnchorLayout::DrawSelection(Layout *where)
 //   Draw selection for all the children
 // ----------------------------------------------------------------------------
 {
-    Layout::DrawSelection(where);
+    return Layout::DrawSelection(where);
 }
 
 

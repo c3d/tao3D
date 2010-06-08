@@ -53,7 +53,6 @@ struct Postfix;
 Tree *xl_identity(Tree *);
 Tree *xl_evaluate(Tree *);
 Tree *xl_repeat(Tree *self, Tree *code, longlong count);
-Tree *xl_map(Tree *data, Tree *code, text row = "\n", text column = ",");
 Tree *xl_source(Tree *);
 Tree *xl_set_source(Tree *val, Tree *src);
 bool  xl_same_text(Tree * , const char *);
@@ -125,18 +124,23 @@ public:
 
 // ============================================================================
 // 
-//    Actions used for mapping
+//    Actions used for functional applications
 // 
 // ============================================================================
 
+Tree *xl_apply(Tree *code, Tree *data);
+
+
 struct MapAction : Action
 // ----------------------------------------------------------------------------
-//   Map a given code onto each element
+//   Map a given operation onto each element in a data set
 // ----------------------------------------------------------------------------
 {
-    MapAction(Tree *code, bool eval = true);
-    MapAction(Tree *code, text separator, bool eval = true);
-    MapAction(Tree *code, text row, text column, bool eval = true);
+    typedef Tree * (*map_fn) (Tree *self, Tree *arg);
+
+public:
+    MapAction(eval_fn function, std::set<text> &sep)
+        : function((map_fn) function), separators(sep) {}
 
     virtual Tree *Do(Tree *what);
 
@@ -145,27 +149,102 @@ struct MapAction : Action
     virtual Tree *DoPostfix(Postfix *what);
     virtual Tree *DoBlock(Block *what);
 
-    Tree *  Map(Tree *what);
-
 public:
-    typedef Tree *      (*map_fn) (Tree *self, Tree *arg);
-    Tree_p              code;
     map_fn              function;
     std::set<text>      separators;
-    bool                evaluate;
 };
 
 
-struct CurryFunctionInfo : Info
+struct ReduceAction : Action
+// ----------------------------------------------------------------------------
+//   Reduce a given operation by combining successive elements
+// ----------------------------------------------------------------------------
+{
+    typedef Tree * (*reduce_fn) (Tree *self, Tree *first, Tree *second);
+
+public:
+    ReduceAction(eval_fn function, std::set<text> &sep)
+        : function((reduce_fn) function), separators(sep) {}
+
+    virtual Tree *Do(Tree *what);
+
+    virtual Tree *DoInfix(Infix *what);
+    virtual Tree *DoPrefix(Prefix *what);
+    virtual Tree *DoPostfix(Postfix *what);
+    virtual Tree *DoBlock(Block *what);
+
+public:
+    reduce_fn           function;
+    std::set<text>      separators;
+};
+
+
+struct FilterAction : Action
+// ----------------------------------------------------------------------------
+//   Filter a given operation onto each element in a data set
+// ----------------------------------------------------------------------------
+{
+    typedef Tree * (*filter_fn) (Tree *self, Tree *arg);
+
+public:
+    FilterAction(eval_fn function, std::set<text> &sep)
+        : function((filter_fn) function), separators(sep) {}
+
+    virtual Tree *Do(Tree *what);
+
+    virtual Tree *DoInfix(Infix *what);
+    virtual Tree *DoPrefix(Prefix *what);
+    virtual Tree *DoPostfix(Postfix *what);
+    virtual Tree *DoBlock(Block *what);
+
+public:
+    filter_fn           function;
+    std::set<text>      separators;
+};
+
+
+struct FunctionInfo : Info
 // ----------------------------------------------------------------------------
 //   Hold a single-argument function for a given tree
 // ----------------------------------------------------------------------------
 //   REVISIT: According to Wikipedia, really a Moses Schönfinkel function
 {
-    CurryFunctionInfo(): function(NULL), symbols(NULL) {}
-    Tree_p      code;
-    eval_fn     function;
-    Symbols_p   symbols;
+    FunctionInfo(): function(NULL), symbols(NULL) {}
+    
+    virtual Tree * Apply(Tree *what) { return what; }
+
+public:
+    eval_fn        function;
+    Symbols_p      symbols;
+    Tree_p         compiled;
+    std::set<text> separators;
+};
+
+
+struct MapFunctionInfo : FunctionInfo
+// ----------------------------------------------------------------------------
+//   Record the code for a map operation
+// ----------------------------------------------------------------------------
+{
+    virtual Tree * Apply(Tree *what);
+};
+
+
+struct ReduceFunctionInfo : FunctionInfo
+// ----------------------------------------------------------------------------
+//   Record the code for a reduce operation
+// ----------------------------------------------------------------------------
+{
+    virtual Tree * Apply(Tree *what);
+};
+
+
+struct FilterFunctionInfo : FunctionInfo
+// ----------------------------------------------------------------------------
+//   Record the code for a filter operation
+// ----------------------------------------------------------------------------
+{
+    virtual Tree * Apply(Tree *what);
 };
 
 

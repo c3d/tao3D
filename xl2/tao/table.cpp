@@ -61,8 +61,8 @@ void Table::Draw(Layout *where)
     Compute(where);
 
     coord   cellX, cellY, cellW, cellH;
-    coord   x0 = double(x);
-    coord   y0 = double(y);
+    coord   x0 = double(x) - bounds.Width()/2;
+    coord   y0 = double(y) - bounds.Height()/2;
     coord   px = bounds.lower.x + x0;
     coord   py = bounds.upper.y + y0;
     uint    r, c;
@@ -134,8 +134,8 @@ void Table::DrawSelection(Layout *where)
     Compute(where);
 
     coord   cellX, cellY, cellW, cellH;
-    coord   x0 = double(x);
-    coord   y0 = double(y);
+    coord   x0 = double(x) - bounds.Width()/2;
+    coord   y0 = double(y) - bounds.Height()/2;
     coord   px = bounds.lower.x + x0;
     coord   py = bounds.upper.y + y0;
     uint    r, c;
@@ -195,8 +195,8 @@ void Table::Identify(Layout *where)
     Compute(where);
 
     coord   cellX, cellY, cellW, cellH;
-    coord   x0 = double(x);
-    coord   y0 = double(y);
+    coord   x0 = double(x) - bounds.Width()/2;
+    coord   y0 = double(y) - bounds.Height()/2;
     coord   px = bounds.lower.x + x0;
     coord   py = bounds.upper.y + y0;
     uint    r, c;
@@ -254,7 +254,8 @@ Box3 Table::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Compute(where);
-    return bounds + where->offset;
+    Vector3 boff(-bounds.Width()/2, -bounds.Height()/2, 0);
+    return bounds + where->offset + boff;
 }
 
 

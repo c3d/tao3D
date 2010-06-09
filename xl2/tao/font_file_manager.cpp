@@ -39,6 +39,8 @@ FontFileManager::FontFileManager()
 // ----------------------------------------------------------------------------
 {
 #ifdef CONFIG_MINGW
+    // Enumerate installed fonts
+
     HKEY  key = NULL;
     LONG  res = 0;
     char  valueName[256];
@@ -126,34 +128,15 @@ bool FontFileManager::IsLoadable(QString fileName)
 
 QStringList FontFileManager::FilesForFontFamily(const QString &family)
 // ----------------------------------------------------------------------------
-//   Find the font file that defines the given font (Windows version)
+//   Find the font files that define the given font family (Windows version)
 // ----------------------------------------------------------------------------
 {
-    return QStringList();
-
-#if 0
-    // TODO
-    QString ret;
-    Qt::HANDLE f = font.handle();
-    if (!f)
-        return ret;
-
-    HFONT g;
-    HDC dc;
-    char fface[LF_FACESIZE];
-    memset(fface, 0, LF_FACESIZE);
-    dc = GetDC(NULL);
-    g = (HFONT)SelectObject(dc, f);
-    GetTextFaceA(dc, sizeof(fface), fface);
-    const char notFoundFont[] = "MS Shell Dlg";
-    if (!strncmp(fface, notFoundFont, sizeof(notFoundFont) - 1))
-        return ret;
-
-    if (fontFaceToFile.contains(fface))
-        ret = fontFaceToFile[fface];
-
+    QStringList ret;
+    QMap<QString, QString>::const_iterator i;
+    for (i =  fontFaceToFile.constBegin(); i != fontFaceToFile.constEnd(); i++)
+        if (i.key().startsWith(family))
+            ret << i.value();
     return ret;
-#endif
 }
 
 #elif defined(CONFIG_MACOSX)
@@ -162,7 +145,7 @@ QStringList FontFileManager::FilesForFontFamily(const QString &family)
 
 #else
 
-QStringList FontFileManager::FilesForFontFamily(const QFont &font)
+QStringList FontFileManager::FilesForFontFamily(const QString &family)
 // ----------------------------------------------------------------------------
 //   Dummy implementation, pending Linux-specific version
 // ----------------------------------------------------------------------------

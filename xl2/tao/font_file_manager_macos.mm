@@ -57,7 +57,7 @@ static void AddFontFileFromCTFontDescriptor(const void *value, void *context)
 
 QStringList FontFileManager::FilesForFontFamily(const QString &family)
 // ----------------------------------------------------------------------------
-//   Find the file(s) that contain all the fonts in the same family as 'font'
+//   Find the font files that define the given font family (Windows version)
 // ----------------------------------------------------------------------------
 {
     QStringList            result;

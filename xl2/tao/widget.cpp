@@ -59,6 +59,7 @@
 #include "normalize.h"
 #include "error_message_dialog.h"
 #include "group_layout.h"
+#include "font.h"
 
 #include <QToolButton>
 #include <QtGui/QImage>
@@ -2346,6 +2347,8 @@ void Widget::drawSelection(Layout *where,
     GLAttribKeeper          saveGL;
     resetLayout(where);
     selectionSpace.id = id;
+    selectionSpace.isSelection = true;
+    selectionColor = currentColor;
     glDisable(GL_DEPTH_TEST);
     if (bounds.Depth() > 0)
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
@@ -2372,6 +2375,7 @@ void Widget::drawHandle(Layout *where,
     resetLayout(where);
     glDisable(GL_DEPTH_TEST);
     selectionSpace.id = id;
+    selectionSpace.isSelection = true;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
 
     selectionSpace.Draw(where);
@@ -2715,12 +2719,12 @@ Tree_p Widget::resetTransform(Tree_p self)
 }
 
 
-static inline XL::Real &r(double x)
+static inline XL::Real *r(double x)
 // ----------------------------------------------------------------------------
 //   Utility shortcut to create a constant real value
 // ----------------------------------------------------------------------------
 {
-    return *new XL::Real(x);
+    return new XL::Real(x);
 }
 
 
@@ -3822,15 +3826,17 @@ Tree_p Widget::textFormula(Tree_p self, Tree_p value)
 }
 
 
-Tree_p Widget::font(Tree_p self, text description)
+Tree_p Widget::font(Tree_p self, Tree_p description)
 // ----------------------------------------------------------------------------
 //   Select a font family
 // ----------------------------------------------------------------------------
 {
-    layout->font.fromString(+description);
+    FontParsingAction parseFont(self->Symbols(), layout->font);
+    description->Do(parseFont);
+    layout->font = parseFont.font;
+    layout->Add(new FontChange(layout->font));
     if (fontFileMgr)
         fontFileMgr->AddFontFiles(layout->font);
-    layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }
 
@@ -4158,12 +4164,24 @@ Text_p Widget::loadText(Tree_p self, text file)
 //
 // ============================================================================
 
-Tree_p Widget::newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body)
+Tree_p Widget::newTable(Tree_p self,
+                        Integer_p rows, Integer_p columns,
+                        Tree_p body)
+// ----------------------------------------------------------------------------
+//   Case of a new table without a position
+// ----------------------------------------------------------------------------
+{
+    return newTable(self, r(0), r(0), rows, columns, body);
+}
+
+
+Tree_p Widget::newTable(Tree_p self, Real_p x, Real_p y,
+                        Integer_p r, Integer_p c, Tree_p body)
 // ----------------------------------------------------------------------------
 //   Create a new table
 // ----------------------------------------------------------------------------
 {
-    Table *tbl = new Table(this, r, c);
+    Table *tbl = new Table(this, x, y, r, c);
     XL::LocalSave<Table *> saveTable(table, tbl);
     layout->Add(tbl);
 
@@ -4824,6 +4842,8 @@ void Widget::updateColorDialog()
 
     // Make sure we don't update the trees, only get their colors
     XL::LocalSave<Tree_p > action(colorAction, NULL);
+    Color c = selectionColor[colorName];
+    originalColor.setRgbF(c.red, c.green, c.blue, c.alpha);
 
     // Get the default color from the first selected shape
     for (std::set<Tree_p >::iterator i = selectionTrees.begin();
@@ -4834,10 +4854,10 @@ void Widget::updateColorDialog()
         if (get(*i, colorName, color) && color.size() == 4)
         {
             originalColor.setRgbF(color[0], color[1], color[2], color[3]);
-            colorDialog->setCurrentColor(originalColor);
             break;
         }
     }
+    colorDialog->setCurrentColor(originalColor);
 }
 
 
@@ -6026,14 +6046,13 @@ XL::Name_p Widget::setAttribute(Tree_p self,
     return XL::xl_false;
 }
 
+
+
 // ============================================================================
 //
 //   Group management
 //
 // ============================================================================
-
-
-
 
 Tree_p Widget::group(Tree_p self, Tree_p shapes)
 // ----------------------------------------------------------------------------
@@ -6058,8 +6077,7 @@ Tree_p Widget::group(Tree_p self, Tree_p shapes)
 
 Tree_p Widget::updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child)
 // ----------------------------------------------------------------------------
-//    Helper function : Replace the child in the parent tree with the group
-//                      formed from the complete selection
+//   Replace 'child' with a group created from the selection
 // ----------------------------------------------------------------------------
 {
     Name * groupName = new Name("group");
@@ -6147,7 +6165,7 @@ Name_p Widget::groupSelection(Tree_p /*self*/)
 
 bool Widget::updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group)
 // ----------------------------------------------------------------------------
-//    Helper function : Plug the group's chlid tree under the parent.
+//    Helper function: Plug the group's chlid tree under the parent.
 // ----------------------------------------------------------------------------
 {
     Infix * inf = parent->AsInfix();

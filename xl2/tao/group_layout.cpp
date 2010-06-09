@@ -56,12 +56,12 @@ void GroupLayout::DrawSelection(Layout *where)
     bool hide = widget->selected(id) && !show;
 
     if (show)
-        Select();
+        Select(where);
     else if (hide)
-        Deselect();
+        Deselect(where);
 
     // Children selection
-    Layout::DrawSelection(this);
+    Layout::DrawSelection(where);
 
     if (show || hide)
         widget->updateProgramSource();  // REVISIT
@@ -87,7 +87,7 @@ uint GroupLayout::Selected()
 }
 
 
-void GroupLayout::Select()
+void GroupLayout::Select(Layout *where)
 // ----------------------------------------------------------------------------
 //   Select the group (draw the bounding box, select all contained items)
 // ----------------------------------------------------------------------------
@@ -95,12 +95,12 @@ void GroupLayout::Select()
     Widget *widget = Display();
     widget->select(self);
     widget->select(id, 1);
-    Drawing::DrawSelection(this);
+    Drawing::DrawSelection(where);
     SelectAll(true);
 }
 
 
-void GroupLayout::Deselect()
+void GroupLayout::Deselect(Layout *)
 // ----------------------------------------------------------------------------
 //   Deselect the group (clear the bounding box, deselect all contained items)
 // ----------------------------------------------------------------------------
@@ -130,11 +130,9 @@ void GroupLayout::SelectAll(bool doSelect)
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
-        Layout      *l  = dynamic_cast<Layout *>(child);
-        GroupLayout *gl = dynamic_cast<GroupLayout*>(l);
-        if (gl)
+        if (GroupLayout *gl = dynamic_cast<GroupLayout*>(child))
             gl->SelectAll(doSelect);
-        else if (l)
+        else if (Layout *l  = dynamic_cast<Layout *>(child))
             if (doSelect != (bool)widget->selected(l->id))
                 if (doSelect)
                     widget->select(l->id, 1);

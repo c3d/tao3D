@@ -74,9 +74,6 @@ FontFileManager::FontFileManager()
         }
         else if (res == ERROR_SUCCESS)
         {
-            char *p = strstr(valueName, " (TrueType)");
-            if (p)
-                *p = '\0';
             QString path = QString("%1\\Fonts\\%2").arg(sysroot).arg(value);
             fontFaceToFile[valueName] = path;
         }

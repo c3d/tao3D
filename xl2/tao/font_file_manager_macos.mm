@@ -29,48 +29,83 @@
 
 TAO_BEGIN
 
-QString FontFileManager::FontToFile(const QFont &font)
+static void AddFontFileFromCTFontDescriptor(const void *value, void *context)
 // ----------------------------------------------------------------------------
-//   Find the font file that defines the given font
+//   Callback used in FilesForFontFamily. Adds a single font file to a list.
 // ----------------------------------------------------------------------------
 {
-    QString             result;
-    CTFontDescriptorRef desc       = NULL;
+    CTFontDescriptorRef desc       = (CTFontDescriptorRef)value;
+    QStringList *       list       = (QStringList*)context;
     CFURLRef            url        = NULL;
     CFStringRef         str        = NULL;
     const int           buffersize = 1024;
     char                buffer[buffersize];
 
+    url = (CFURLRef)CTFontDescriptorCopyAttribute(desc, kCTFontURLAttribute);
+    if (!url)
+        return;
+
+    str = CFURLGetString(url);
+    if (!str)
+        return;
+
+    memset(buffer, 0, buffersize);
+    CFURLGetFileSystemRepresentation(url, true, (UInt8*)buffer, buffersize-1);
+
+    *list << (QString)buffer;
+}
+
+QStringList FontFileManager::FilesForFontFamily(const QString &family)
+// ----------------------------------------------------------------------------
+//   Find the file(s) that contain all the fonts in the same family as 'font'
+// ----------------------------------------------------------------------------
+{
+    QStringList            result;
+    CFArrayRef             matchings  = NULL;
+    CFMutableDictionaryRef attr       = NULL;
+    CTFontDescriptorRef    desc       = NULL;
+    CFRange                range;
+
     // 4 string containers for the same value is probably record-breaking ;-)
-    QString     qfamily = font.family();
-    std::string sfamily = qfamily.toStdString();
+    std::string sfamily = family.toStdString();
     const char *cfamily = sfamily.c_str();
-    CFStringRef ffamily = CFStringCreateWithCString(kCFAllocatorDefault, cfamily,
+    CFStringRef ffamily = CFStringCreateWithCString(kCFAllocatorDefault,
+                                                    cfamily,
                                                     kCFStringEncodingMacRoman);
     if (!ffamily)
         goto out;
 
-    desc = CTFontDescriptorCreateWithNameAndSize (ffamily, 0.0);
+    attr =  CFDictionaryCreateMutable(kCFAllocatorDefault, 0,
+                                      &kCFTypeDictionaryKeyCallBacks,
+                                      &kCFTypeDictionaryValueCallBacks);
+
+    if (!attr)
+        goto out;
+
+    CFDictionaryAddValue(attr, kCTFontFamilyNameAttribute, ffamily);
+
+    desc = CTFontDescriptorCreateWithAttributes(attr);
     if (!desc)
         goto out;
 
-    url = (CFURLRef)CTFontDescriptorCopyAttribute(desc, kCTFontURLAttribute);
-    if (!url)
+    matchings = CTFontDescriptorCreateMatchingFontDescriptors(desc, NULL);
+    if (!matchings)
         goto out;
 
-    str = CFURLGetString(url);
-    if (!str)
-        goto out;
-
-    memset(buffer, 0, buffersize);
-    CFURLGetFileSystemRepresentation(url, true, (UInt8*)buffer, buffersize - 1);
-    result = buffer;
+    range.location = 0;
+    range.length = CFArrayGetCount(matchings);
+    CFArrayApplyFunction(matchings, range, AddFontFileFromCTFontDescriptor,
+                         &result);
 
 out:
     if (ffamily)
         CFRelease(ffamily);
+    if (attr)
+        CFRelease(attr);
     if (desc)
         CFRelease(desc);
+    if (matchings)
+        CFRelease(matchings);
 
     return result;
 }

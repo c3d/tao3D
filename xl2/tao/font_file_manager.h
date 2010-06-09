@@ -40,14 +40,14 @@ struct FontFileManager
     FontFileManager();
     ~FontFileManager() {};
 
-    void               AddFontFile(const QFont &font);
+    void               AddFontFiles(const QFont &font);
 
     QStringList        fontFiles;
     QStringList        errors;
 
 protected:
 
-    QString            FontToFile(const QFont &font);
+    QStringList        FilesForFontFamily(const QString &family);
     bool               IsLoadable(QString fileName);
 
 #ifdef CONFIG_MINGW

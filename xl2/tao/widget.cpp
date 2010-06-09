@@ -778,6 +778,7 @@ QStringList Widget::fontFiles()
     return fontFileMgr->fontFiles;
 }
 
+
 void Widget::enableAnimations(bool enable)
 // ----------------------------------------------------------------------------
 //   Enable or disable animations on the page
@@ -3828,7 +3829,7 @@ Tree_p Widget::font(Tree_p self, text description)
 {
     layout->font.fromString(+description);
     if (fontFileMgr)
-        fontFileMgr->AddFontFile(layout->font);
+        fontFileMgr->AddFontFiles(layout->font);
     layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }

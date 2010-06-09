@@ -85,24 +85,27 @@ FontFileManager::FontFileManager()
 }
 
 
-void FontFileManager::AddFontFile(const QFont &font)
+void FontFileManager::AddFontFiles(const QFont &font)
 // ----------------------------------------------------------------------------
-//   Declare that a font is used by the current document
+//   Record that current document uses fonts from the family of 'font'
 // ----------------------------------------------------------------------------
 {
-    QString path = FontToFile(font);
-    if (fontFiles.contains(path))
-        return;
-    if (path.isEmpty())
+    QString family = font.family();
+    QStringList list = FilesForFontFamily(family);
+    if (list.isEmpty())
     {
-        QString family = font.family();
         errors << QString("Font file not found for family: '%1'").arg(family);
         return;
     }
-    if (IsLoadable(path))
-        fontFiles << path;
-    else
-        errors << QString("%1: unsupported format").arg(path);
+    foreach (QString path, list)
+    {
+        if (fontFiles.contains(path))
+            return;
+        if (IsLoadable(path))
+            fontFiles << path;
+        else
+            errors << QString("%1: unsupported format").arg(path);
+    }
 }
 
 
@@ -121,11 +124,15 @@ bool FontFileManager::IsLoadable(QString fileName)
 
 #ifdef CONFIG_MINGW
 
-QString FontFileManager::FontToFile(const QFont &font)
+QStringList FontFileManager::FilesForFontFamily(const QString &family)
 // ----------------------------------------------------------------------------
 //   Find the font file that defines the given font (Windows version)
 // ----------------------------------------------------------------------------
 {
+    return QStringList();
+
+#if 0
+    // TODO
     QString ret;
     Qt::HANDLE f = font.handle();
     if (!f)
@@ -146,20 +153,21 @@ QString FontFileManager::FontToFile(const QFont &font)
         ret = fontFaceToFile[fface];
 
     return ret;
+#endif
 }
 
-#elif defined(Q_WS_MAC)
+#elif defined(CONFIG_MACOSX)
 
-// MacOS implementation of FontToFile is in font_file_manager.mm
+// MacOS implementation of FilesForFontFamily is in font_file_manager.mm
 
 #else
 
-QString FontFileManager::FontToFile(const QFont &font)
+QStringList FontFileManager::FilesForFontFamily(const QFont &font)
 // ----------------------------------------------------------------------------
-//   Dummy implementation, pending Windows and Linux-specific versions
+//   Dummy implementation, pending Linux-specific version
 // ----------------------------------------------------------------------------
 {
-    return QString();
+    return QStringList();
 }
 
 #endif

@@ -59,7 +59,6 @@ int main(int argc, char **argv)
 
     // Initialize the Tao application
     Tao::Application tao(argc, argv);
-    tao.updateSearchPathes();
 
     // Fetch info for XL files
     QFileInfo user      ("xl:user.xl");

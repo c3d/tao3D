@@ -4742,7 +4742,7 @@ void Widget::colorChanged(const QColor & col)
     // We override names 'red', 'green', 'blue' and 'alpha' in the input tree
     struct ColorTreeClone : XL::TreeClone
     {
-        ColorTreeClone(const QColor &c) : color(c){}
+        ColorTreeClone(const QColor &c): color(c){}
         XL::Tree *DoName(XL::Name *what)
         {
             if (what->value == "red")
@@ -4858,15 +4858,17 @@ void Widget::fontChanged(const QFont& ft)
                 return new XL::Text(font.family().toStdString(),
                                     "\"" ,"\"",what->Position());
             if (what->value == "pointSize")
-                return new XL::Integer(font.pointSize(), what->Position());
+                return new XL::Integer(font.pointSize(),
+                                       what->Position());
             if (what->value == "weight")
-                return new XL::Integer(font.weight(), what->Position());
+                return new XL::Integer(font.weight(),
+                                       what->Position());
             if (what->value == "italic")
             {
                 return new XL::Name(font.italic() ?
-                                      XL::xl_true->value :
-                                      XL::xl_false->value,
-                                      what->Position());
+                                    XL::xl_true->value :
+                                    XL::xl_false->value,
+                                    what->Position());
             }
 
             return new XL::Name(what->value, what->Position());
@@ -5146,7 +5148,7 @@ void Widget::fileChosen(const QString & filename)
 
     // We override names 'filename', 'filepath', 'filepathname', 'relfilepath'
     QFileInfo file(filename);
-    QString relFilePath = QDir(TaoApp->currentProjectFolder).
+    QString relFilePath = QDir(((Window*)parent())->currentProjectFolderPath()).
                           relativeFilePath(file.canonicalFilePath());
     if (relFilePath.contains(".."))
     {
@@ -6190,7 +6192,6 @@ Name_p Widget::ungroupSelection(Tree_p /*self*/)
     markChanged("Selection ungrouped");
 
     return XL::xl_true;
-
 
 }
 

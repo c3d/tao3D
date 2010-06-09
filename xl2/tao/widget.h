@@ -60,6 +60,7 @@ struct Repository;
 struct Drag;
 struct TextSelect;
 struct WidgetSurface;
+struct TaoTreeClone;
 
 // ----------------------------------------------------------------------------
 // Name of fixed menu. Menus then may be retrieved by
@@ -517,6 +518,7 @@ private:
     friend class Renormalize;
     friend class Table;
     friend class DeleteSelectionAction;
+    friend class TaoTreeClone;
 
     typedef XL::LocalSave<QEvent *>             EventSave;
     typedef XL::LocalSave<Widget *>             TaoSave;

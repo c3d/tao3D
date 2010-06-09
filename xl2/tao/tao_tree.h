@@ -3,18 +3,18 @@
 // ****************************************************************************
 //  tao_tree.h                                                      Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     Make the various XL tree types visible in Tao namespace
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -63,6 +63,8 @@ typedef XL::symbolicname_p symbolicname_p;
 typedef XL::Action         Action;
 typedef XL::TreeList       TreeList;
 typedef XL::Symbols        Symbols;
+
+
 
 TAO_END
 

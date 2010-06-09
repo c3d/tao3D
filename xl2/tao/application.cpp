@@ -70,7 +70,7 @@ Application::Application(int & argc, char ** argv)
     // the project folder. If there is no filename, or it is not found the
     // currentProjectFolder will be initialized to "".
     text project = options.ParseNext();
-    currentProjectFolder = QFileInfo(+project).canonicalPath();
+    updateSearchPathes(QFileInfo(+project).canonicalPath());
 
     // Web settings
     QWebSettings *gs = QWebSettings::globalSettings();
@@ -140,7 +140,7 @@ Application::~Application()
     saveSettings();
 }
 
-void Application::updateSearchPathes()
+void Application::updateSearchPathes(QString currentProjectFolder)
 // ----------------------------------------------------------------------------
 //   Set the current project folder and all the dependant pathes.
 // ----------------------------------------------------------------------------

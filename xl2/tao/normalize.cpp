@@ -32,7 +32,7 @@ Renormalize::Renormalize(Widget *widget)
 // ----------------------------------------------------------------------------
 //   Constructor, nothing special to do
 // ----------------------------------------------------------------------------
-    : XL::Action(), widget(widget)
+    : TaoTreeClone(widget)
 {}
 
 
@@ -42,28 +42,6 @@ Renormalize::~Renormalize()
 // ----------------------------------------------------------------------------
 {}
 
-
-Tree *Renormalize::Reselect(Tree *from, Tree *to)
-// ----------------------------------------------------------------------------
-//   Check if we change entries in the selection
-// ----------------------------------------------------------------------------
-{
-    // Check if we are possibly changing the selection
-    std::set<Tree_p> &sel = widget->selectionTrees;
-    if (sel.count(from))
-        sel.insert(to);
-
-    // Check if we are possibly changing the next selection
-    std::set<Tree_p> &nxSel = widget->selectNextTime;
-    if (nxSel.count(from))
-        nxSel.insert(to);
-
-    // Check if we are possibly changing the page tree reference
-    if (widget->pageTree == from)
-        widget->pageTree = to;
-
-    return to;
-}
 
 
 Tree *Renormalize::DoPrefix(Prefix *what)
@@ -141,5 +119,12 @@ Tree *Renormalize::DoInfix(Infix *what)
     return Reselect(what, result);
 }
 
+Tree *Renormalize::DoBlock(Block *what)
+{
+    return Reselect(what,
+                    new Block(what->child->Do(this),
+                              what->opening, what->closing,
+                              what->Position()));
+}
 
 TAO_END

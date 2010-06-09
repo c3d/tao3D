@@ -4889,20 +4889,22 @@ void Widget::fontChanged(const QFont& ft)
         FontTreeClone(const QFont &f) : font(f){}
         XL::Tree *DoName(XL::Name *what)
         {
-            if (what->value == "family")
+            if (what->value == "font_family")
                 return new XL::Text(font.family().toStdString(),
                                     "\"" ,"\"",what->Position());
-            if (what->value == "pointSize")
+            if (what->value == "font_size")
                 return new XL::Integer(font.pointSize(), what->Position());
-            if (what->value == "weight")
+            if (what->value == "font_weight")
                 return new XL::Integer(font.weight(), what->Position());
-            if (what->value == "italic")
-            {
-                return new XL::Name(font.italic() ?
-                                      XL::xl_true->value :
-                                      XL::xl_false->value,
-                                      what->Position());
-            }
+            if (what->value == "font_slant")
+                return new XL::Integer((int) font.style() * 100,
+                                       what->Position());
+            if (what->value == "font_stretch")
+                return new XL::Integer(font.stretch(), what->Position());
+            if (what->value == "font_is_italic")
+                return font.italic() ? XL::xl_true : XL::xl_false;
+            if (what->value == "font_is_bold")
+                return font.bold() ? XL::xl_true : XL::xl_false;
 
             return new XL::Name(what->value, what->Position());
         }

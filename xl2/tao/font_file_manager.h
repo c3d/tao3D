@@ -41,6 +41,10 @@ struct FontFileManager
     ~FontFileManager() {};
 
     void               AddFontFiles(const QFont &font);
+    QList<int>         LoadEmbeddedFonts(const QString &docPath);
+
+    static void        UnloadEmbeddedFonts(const QList<int> &ids);
+    static QString     FontPathFor(const QString &docPath);
 
     QStringList        fontFiles;
     QStringList        errors;

@@ -114,7 +114,6 @@ private:
     bool     maybeSave();
     bool     needNewWindow();
     bool     loadFile(const QString &fileName, bool openProj = false);
-    bool     loadEmbeddedFonts(const QString &fileName);
     bool     saveFile(const QString &fileName);
     void     setCurrentFile(const QString &fileName);
     QString  findUnusedUntitledFile();

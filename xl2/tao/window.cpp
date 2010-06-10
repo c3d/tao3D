@@ -128,12 +128,7 @@ Window::~Window()
 //   Destroy a document window and free associated resources
 // ----------------------------------------------------------------------------
 {
-    foreach(int id, appFontIds)
-    {
-        IFTRACE(fonts)
-            std::cerr << "Unregistering font id " << id << "\n";
-        QFontDatabase::removeApplicationFont(id);
-    }
+    FontFileManager::UnloadEmbeddedFonts(appFontIds);
 }
 
 
@@ -360,18 +355,6 @@ bool Window::saveAs()
 }
 
 
-QString Window::fontPathFor(const QString &docPath)
-// ----------------------------------------------------------------------------
-//    Return the directory where to store embedded fonts for a document
-// ----------------------------------------------------------------------------
-{
-    QString projPath, fontPath;
-    projPath = QFileInfo(docPath).absolutePath();
-    fontPath = QString("%1/fonts").arg(projPath);
-    return fontPath;
-}
-
-
 bool Window::saveFonts()
 // ----------------------------------------------------------------------------
 //    Like saveAs() but also embed currently used fonts into the document
@@ -396,7 +379,7 @@ bool Window::saveFonts()
         return ok;
 
     QString fontPath;
-    fontPath = fontPathFor(curFile);
+    fontPath = FontFileManager::FontPathFor(curFile);
     if (!QDir().exists(fontPath))
     {
         ok = QDir().mkdir(fontPath);
@@ -932,8 +915,12 @@ bool Window::loadFile(const QString &fileName, bool openProj)
                      QFileInfo(fileName).fileName()))
         return false;
 
-    if (loadEmbeddedFonts(fileName))
+    FontFileManager ffm;
+    appFontIds = ffm.LoadEmbeddedFonts(fileName);
+    if (!appFontIds.empty())
         taoWidget->glyphs().Clear();
+    foreach (QString e, ffm.errors)
+        addError(e);
 
     if (!loadFileIntoSourceFileView(fileName, openProj))
         return false;
@@ -943,42 +930,6 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     setCurrentFile(fileName);
     statusBar()->showMessage(tr("File loaded"), 2000);
     return true;
-}
-
-
-bool Window::loadEmbeddedFonts(const QString &fileName)
-// ----------------------------------------------------------------------------
-//    Load the fonts associated with a document (font embedding)
-// ----------------------------------------------------------------------------
-//    Return true if at least one font could be loaded
-{
-    bool ok = false;
-    QString fontPath = fontPathFor(fileName);
-    QDir fontDir(fontPath);
-    QFileInfoList contents = fontDir.entryInfoList();
-    foreach (QFileInfo f, contents)
-    {
-        if (f.isFile())
-        {
-            QString path = f.absoluteFilePath();
-            IFTRACE(fonts)
-                std::cerr << "Loading font file '" << +path << "'...";
-            int id = QFontDatabase::addApplicationFont(path);
-            if (id != -1)
-            {
-                IFTRACE(fonts)
-                    std::cerr << " done (id=" << id << ")\n";
-                appFontIds.append(id);
-                ok = true;
-            }
-            else
-            {
-                IFTRACE(fonts)
-                    std::cerr << " failed\n";
-            }
-        }
-    }
-    return ok;
 }
 
 

@@ -199,8 +199,7 @@ public:
     bool        canPaste();
     static
     bool        selectionsEqual(selection_map &s1, selection_map &s2);
-    void        setColor(text n, const Color &c) { currentColor[n] = c; }
-    void        saveSelectionColors() { selectionColor = currentColor; }
+    void        saveSelectionState(Layout *where);
 
     // Text flows and text managemen
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
@@ -576,7 +575,8 @@ private:
     int                   order;
     Tree_p                colorAction, fontAction;
     text                  colorName;
-    std::map<text,Color>  currentColor, selectionColor;
+    std::map<text,Color>  selectionColor;
+    QFont                 selectionFont;
     QColor                originalColor;
 
     // Timing

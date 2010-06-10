@@ -2324,7 +2324,7 @@ void Widget::drawSelection(Layout *where,
     resetLayout(where);
     selectionSpace.id = id;
     selectionSpace.isSelection = true;
-    selectionColor = currentColor;
+    saveSelectionState(where);
     glDisable(GL_DEPTH_TEST);
     if (bounds.Depth() > 0)
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
@@ -2374,6 +2374,17 @@ void Widget::drawTree(Layout *where, Tree *code)
 
     selectionSpace.Draw(where);
     glEnable(GL_DEPTH_TEST);
+}
+
+
+void Widget::saveSelectionState(Layout *where)
+// ----------------------------------------------------------------------------
+//   Save the color and font for the selection
+// ----------------------------------------------------------------------------
+{
+    selectionColor["line_color"] = where->lineColor;
+    selectionColor["color"] = where->fillColor;
+    selectionFont = where->font;
 }
 
 
@@ -4716,11 +4727,11 @@ Tree_p Widget::colorChooser(Tree_p self, text treeName, Tree_p action)
     // Setup the color dialog
     colorDialog = new QColorDialog(this);
     colorDialog->setOption(QColorDialog::ShowAlphaChannel, true);
-    colorDialog->setModal(false);
     colorDialog->setOption(QColorDialog::DontUseNativeDialog, false);
+    colorDialog->setModal(false);
     updateColorDialog();
 
-    // Connect the dialog and show it
+    // Connect the dialog and sh'ow it
 #ifdef Q_WS_MAC
     // To make the color dialog look Mac-like, we don't show OK and Cancel
     colorDialog->setOption(QColorDialog::NoButtons, true);
@@ -4850,8 +4861,14 @@ Tree_p Widget::fontChooser(Tree_p self, Tree_p action)
     fontDialog = new QFontDialog(this);
     connect(fontDialog, SIGNAL(fontSelected (const QFont&)),
             this, SLOT(fontChosen(const QFont &)));
+    connect(fontDialog, SIGNAL(currentFontChanged (const QFont&)),
+            this, SLOT(fontChanged(const QFont &)));
 
+    fontDialog->setOption(QFontDialog::NoButtons, true);
+    fontDialog->setOption(QFontDialog::DontUseNativeDialog, false);
     fontDialog->setModal(false);
+    updateFontDialog();
+
     fontDialog->show();
     fontAction = action;
     if (!fontAction->Symbols())
@@ -4931,11 +4948,7 @@ void Widget::updateFontDialog()
 {
     if (!fontDialog)
         return;
-
-    TaoSave saveCurrent(current, this);
-
-    // Make sure we don't update the trees, only get their colors
-    XL::LocalSave<Tree_p > action(fontAction, NULL);
+    fontDialog->setCurrentFont(selectionFont);
 }
 
 

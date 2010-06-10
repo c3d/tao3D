@@ -247,11 +247,13 @@ line_color "default"    -> line_color   0.0, 0.0, 0.0, 0.0
 line_color "line"       -> line_color   0.0, 0.2, 0.8, 1.0
 line_color "font"       -> line_color   0.0, 0.0, 0.0, 0.0
 line_width "default"    -> line_width   4
+font "default"          -> font "Times New Roman", 18
 
 texture     "default"
 color       "default"
 line_color  "default"
 line_width  "default"
+font "default"
 
 menu_insert -> {
 menubar

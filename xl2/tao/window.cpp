@@ -932,7 +932,8 @@ bool Window::loadFile(const QString &fileName, bool openProj)
                      QFileInfo(fileName).fileName()))
         return false;
 
-    loadEmbeddedFonts(fileName);
+    if (loadEmbeddedFonts(fileName))
+        taoWidget->glyphs().Clear();
 
     if (!loadFileIntoSourceFileView(fileName, openProj))
         return false;
@@ -945,11 +946,13 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 }
 
 
-void Window::loadEmbeddedFonts(const QString &fileName)
+bool Window::loadEmbeddedFonts(const QString &fileName)
 // ----------------------------------------------------------------------------
 //    Load the fonts associated with a document (font embedding)
 // ----------------------------------------------------------------------------
+//    Return true if at least one font could be loaded
 {
+    bool ok = false;
     QString fontPath = fontPathFor(fileName);
     QDir fontDir(fontPath);
     QFileInfoList contents = fontDir.entryInfoList();
@@ -966,6 +969,7 @@ void Window::loadEmbeddedFonts(const QString &fileName)
                 IFTRACE(fonts)
                     std::cerr << " done (id=" << id << ")\n";
                 appFontIds.append(id);
+                ok = true;
             }
             else
             {
@@ -974,6 +978,7 @@ void Window::loadEmbeddedFonts(const QString &fileName)
             }
         }
     }
+    return ok;
 }
 
 

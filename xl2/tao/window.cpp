@@ -123,6 +123,20 @@ Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
 }
 
 
+Window::~Window()
+// ----------------------------------------------------------------------------
+//   Destroy a document window and free associated resources
+// ----------------------------------------------------------------------------
+{
+    foreach(int id, appFontIds)
+    {
+        IFTRACE(fonts)
+            std::cerr << "Unregistering font id " << id << "\n";
+        QFontDatabase::removeApplicationFont(id);
+    }
+}
+
+
 void Window::setHtml(QString txt)
 // ----------------------------------------------------------------------------
 //   Update the text edit widget with updates we made
@@ -346,6 +360,18 @@ bool Window::saveAs()
 }
 
 
+QString Window::fontPathFor(const QString &docPath)
+// ----------------------------------------------------------------------------
+//    Return the directory where to store embedded fonts for a document
+// ----------------------------------------------------------------------------
+{
+    QString projPath, fontPath;
+    projPath = QFileInfo(docPath).absolutePath();
+    fontPath = QString("%1/fonts").arg(projPath);
+    return fontPath;
+}
+
+
 bool Window::saveFonts()
 // ----------------------------------------------------------------------------
 //    Like saveAs() but also embed currently used fonts into the document
@@ -369,9 +395,8 @@ bool Window::saveFonts()
     if (!ok)
         return ok;
 
-    QString projPath, fontPath;
-    projPath = QFileInfo(curFile).absolutePath();
-    fontPath = QString("%1/fonts").arg(projPath);
+    QString fontPath;
+    fontPath = fontPathFor(curFile);
     if (!QDir().exists(fontPath))
     {
         ok = QDir().mkdir(fontPath);
@@ -907,6 +932,8 @@ bool Window::loadFile(const QString &fileName, bool openProj)
                      QFileInfo(fileName).fileName()))
         return false;
 
+    loadEmbeddedFonts(fileName);
+
     if (!loadFileIntoSourceFileView(fileName, openProj))
         return false;
 
@@ -915,6 +942,38 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     setCurrentFile(fileName);
     statusBar()->showMessage(tr("File loaded"), 2000);
     return true;
+}
+
+
+bool Window::loadEmbeddedFonts(const QString &fileName)
+// ----------------------------------------------------------------------------
+//    Load the fonts associated with a document (font embedding)
+// ----------------------------------------------------------------------------
+{
+    QString fontPath = fontPathFor(fileName);
+    QDir fontDir(fontPath);
+    QFileInfoList contents = fontDir.entryInfoList();
+    foreach (QFileInfo f, contents)
+    {
+        if (f.isFile())
+        {
+            QString path = f.absoluteFilePath();
+            IFTRACE(fonts)
+                std::cerr << "Loading font file '" << +path << "'...";
+            int id = QFontDatabase::addApplicationFont(path);
+            if (id != -1)
+            {
+                IFTRACE(fonts)
+                    std::cerr << " done (id=" << id << ")\n";
+                appFontIds.append(id);
+            }
+            else
+            {
+                IFTRACE(fonts)
+                    std::cerr << " failed\n";
+            }
+        }
+    }
 }
 
 

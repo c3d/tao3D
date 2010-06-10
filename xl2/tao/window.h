@@ -54,6 +54,7 @@ class Window : public QMainWindow
 
 public:
     Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf = NULL);
+    ~Window();
 
     void setHtml(QString txt);
     void addError(QString txt);
@@ -113,6 +114,7 @@ private:
     bool     maybeSave();
     bool     needNewWindow();
     bool     loadFile(const QString &fileName, bool openProj = false);
+    bool     loadEmbeddedFonts(const QString &fileName);
     bool     saveFile(const QString &fileName);
     void     setCurrentFile(const QString &fileName);
     QString  findUnusedUntitledFile();
@@ -121,6 +123,7 @@ private:
     void     updateProgram(const QString &filename);
     void     resetTaoMenus();
     QString  currentProjectFolderPath();
+    QString  fontPathFor(const QString &docPath);
     bool     populateUndoStack();
     void     warnNoRepo();
     void     enableProjectSharingMenus();
@@ -131,6 +134,7 @@ private:
 private:
     XL::Main *        xlRuntime;
     QSharedPointer<Repository> repo;
+    QList<int>        appFontIds;
 
     QTextEdit        *textEdit;
     QTextEdit        *errorMessages;

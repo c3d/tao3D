@@ -945,7 +945,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 }
 
 
-bool Window::loadEmbeddedFonts(const QString &fileName)
+void Window::loadEmbeddedFonts(const QString &fileName)
 // ----------------------------------------------------------------------------
 //    Load the fonts associated with a document (font embedding)
 // ----------------------------------------------------------------------------

@@ -32,6 +32,7 @@
 #include "drawing.h"
 #include "activity.h"
 #include "menuinfo.h"
+#include "color.h"
 #include "glyph_cache.h"
 
 #include <GL/glew.h>
@@ -198,6 +199,8 @@ public:
     bool        canPaste();
     static
     bool        selectionsEqual(selection_map &s1, selection_map &s2);
+    void        setColor(text n, const Color &c) { currentColor[n] = c; }
+    void        saveSelectionColors() { selectionColor = currentColor; }
 
     // Text flows and text managemen
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
@@ -340,7 +343,7 @@ public:
     Text_p      textFlow(Tree_p self, text name);
     Tree_p      textSpan(Tree_p self, Text_p content);
     Tree_p      textFormula(Tree_p self, Tree_p value);
-    Tree_p      font(Tree_p self, text family);
+    Tree_p      font(Tree_p self, Tree_p descr);
     Tree_p      fontSize(Tree_p self, double size);
     Tree_p      fontScaling(Tree_p self, double scaling, double minSize);
     Tree_p      fontPlain(Tree_p self);
@@ -363,6 +366,8 @@ public:
     Text_p      loadText(Tree_p self, text file);
 
     // Tables
+    Tree_p      newTable(Tree_p self, Real_p x, Real_p y,
+                         Integer_p r, Integer_p c, Tree_p body);
     Tree_p      newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body);
     Tree_p      tableCell(Tree_p self, Real_p w, Real_p h, Tree_p body);
     Tree_p      tableCell(Tree_p self, Tree_p body);
@@ -571,6 +576,7 @@ private:
     int                   order;
     Tree_p                colorAction, fontAction;
     text                  colorName;
+    std::map<text,Color>  currentColor, selectionColor;
     QColor                originalColor;
 
     // Timing

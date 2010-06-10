@@ -63,6 +63,7 @@ typedef XL::symbolicname_p symbolicname_p;
 typedef XL::Action         Action;
 typedef XL::TreeList       TreeList;
 typedef XL::Symbols        Symbols;
+typedef XL::Symbols_p      Symbols_p;
 
 TAO_END
 

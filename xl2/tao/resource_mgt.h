@@ -52,6 +52,9 @@ private :
     // Useful to cleanup the git repository.
     std::set<text> usedFile;
 
+    // List of already moved files in case of a file is used more than once.
+    std::map<text,text> movedFiles;
+
 };
 
 

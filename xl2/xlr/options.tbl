@@ -137,6 +137,7 @@ TRACE(drag)
 TRACE(focus)
 TRACE(undo)
 TRACE(widgets)
+TRACE(resources)
 #endif // TAO
 
 // Traces. The first ones must match the MzTrace definition in base.h

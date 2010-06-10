@@ -162,10 +162,14 @@ text Main::SearchFile(text file)
 // ----------------------------------------------------------------------------
 {
     using namespace Tao;
+    QFileInfo fileInfo1(+file);
+    if (fileInfo1.exists())
+        return +fileInfo1.canonicalFilePath();
+
     text header = "xl:";
     header += file;
 
-    QFileInfo fileInfo(header.c_str());
-    return +fileInfo.canonicalFilePath();
+    QFileInfo fileInfo2(header.c_str());
+    return +fileInfo2.canonicalFilePath();
 }
 XL_END

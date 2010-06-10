@@ -938,7 +938,7 @@ bool Window::saveFile(const QString &fileName)
     xlRuntime->LoadFile(fn);
 
     ResourceMgt checkFiles(taoWidget);
-    xlRuntime->files[fn].tree->Do(checkFiles);
+    xlRuntime->files[fn].tree->Do(checkFiles); // Crash sur le [fn] CaB
     checkFiles.cleanUpRepo();
     // Reload the program and mark the changes
     taoWidget->reloadProgram();

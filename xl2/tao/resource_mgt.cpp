@@ -62,11 +62,25 @@ Tree *ResourceMgt::DoPrefix(Prefix *what)
     if ( ! info.exists() || isLocalToDoc(info))
     {
         usedFile.insert(+(info.filePath()));
+        IFTRACE(resources)
+        {
+            std::cerr << "Used file: "<< +(info.filePath()) << std::endl;
+        }
+
         return TaoTreeClone::DoPrefix(what);
     }
 
-    arg->value = integrateFile(info, +(cmdFileList[n->value].second));
-    usedFile.insert(arg->value);
+    if (movedFiles.count(+(info.canonicalFilePath())))
+        arg->value = movedFiles[+(info.canonicalFilePath())];
+    else
+    {
+        arg->value = integrateFile(info, +(cmdFileList[n->value].second));
+        usedFile.insert(arg->value);
+    }
+    IFTRACE(resources)
+    {
+        std::cerr << "Used file: "<< +(info.filePath()) << std::endl;
+    }
 
     return TaoTreeClone::DoPrefix(what);
 }
@@ -88,7 +102,10 @@ Text * ResourceMgt::getArg(Prefix * what, int pos)
     {
         // pos <= 0 means the latest parameter
         inf = inf->LastStatement();
-
+        IFTRACE(resources)
+        {
+            std::cerr << "Return last arg: "<<inf->right->AsText()<< std::endl;
+        }
         return inf->right->AsText();
     }
 
@@ -99,13 +116,26 @@ Text * ResourceMgt::getArg(Prefix * what, int pos)
             (next = last->right->AsInfix()) &&
             (next->name == "," ))
     {
+        IFTRACE(resources)
+        {
+            std::cerr << "pos is: "<<pos<< std::endl;
+        }
         last = next;
     }
 
     if (next->name ==  "\n" || next->name == ";")
     {
+        IFTRACE(resources)
+        {
+            std::cerr << "returning next->left: "<< next->left->AsText()
+                    << std::endl;
+        }
         return next->left->AsText();
     }
+
+    IFTRACE(resources)
+         std::cerr << "returning last->left: "<< last->left->AsText()
+                << std::endl;
 
     return last->left->AsText();
 }
@@ -143,12 +173,17 @@ text ResourceMgt::integrateFile(QFileInfo info, QString subDir)
                             + QString::number(i)
                             + "." +info.suffix());
     }
+    if (!subDir.isEmpty())
+        QDir(w->currentProjectFolderPath()).mkpath(subDir);
 
-    QDir(w->currentProjectFolderPath()).mkpath(subDir);
-
-    QFile::copy(info.absoluteFilePath(), newName.absoluteFilePath());
-
-    text relName = +(projdir.relativeFilePath(newName.filePath()));
+    IFTRACE(resources)
+    {
+        std::cerr << "Copying "<< +(info.canonicalFilePath()) <<
+                " into " << +(newName.canonicalFilePath()) << std::endl;
+    }
+    QFile::copy(info.canonicalFilePath(), newName.canonicalFilePath());
+    text relName = +(projdir.relativeFilePath(newName.canonicalFilePath()));
+    movedFiles[+(info.canonicalFilePath())] = relName;
 
     Repository * repo = ((Window*)widget->parent())->repository();
     if (repo)

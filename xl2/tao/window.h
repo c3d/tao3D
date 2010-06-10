@@ -67,6 +67,8 @@ public:
     bool isReadOnly;
     bool loadInProgress;
 
+    QString  currentProjectFolderPath();
+
 public:
     QUndoStack       * undoStack;
     XL::source_names   contextFileNames; // Extra context file names
@@ -119,7 +121,6 @@ private:
     Window  *findWindow(const QString &fileName);
     void     updateProgram(const QString &filename);
     void     resetTaoMenus();
-    QString  currentProjectFolderPath();
     bool     populateUndoStack();
     void     warnNoRepo();
     void     enableProjectSharingMenus();
@@ -133,6 +134,8 @@ private:
 
     QTextEdit        *textEdit;
     QTextEdit        *errorMessages;
+    // currentProjectFolder : Used if repo is not used.
+    QString          currentProjectFolder;
 public:
     QDockWidget      *dock;
 private:

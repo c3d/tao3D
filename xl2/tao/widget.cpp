@@ -2189,6 +2189,25 @@ void Widget::select(uint id, uint count)
 }
 
 
+void Widget::reselect(Tree *from, Tree *to)
+// ----------------------------------------------------------------------------
+//   If 'from' is in any selection map, add 'to' to this selection
+// ----------------------------------------------------------------------------
+{
+    // Check if we are possibly changing the selection
+    if (selectionTrees.count(from))
+        selectionTrees.insert(to);
+
+    // Check if we are possibly changing the next selection
+    if (selectNextTime.count(from))
+        selectNextTime.insert(to);
+
+    // Check if we are possibly changing the page tree reference
+    if (pageTree == from)
+        pageTree = to;
+}
+
+
 void Widget::deleteFocus(QWidget *widget)
 // ----------------------------------------------------------------------------
 //   Make sure we don't keep a focus on a widget that was deleted
@@ -2382,9 +2401,12 @@ void Widget::saveSelectionState(Layout *where)
 //   Save the color and font for the selection
 // ----------------------------------------------------------------------------
 {
-    selectionColor["line_color"] = where->lineColor;
-    selectionColor["color"] = where->fillColor;
-    selectionFont = where->font;
+    if (where)
+    {
+        selectionColor["line_color"] = where->lineColor;
+        selectionColor["color"] = where->fillColor;
+        selectionFont = where->font;
+    }
 }
 
 
@@ -4786,7 +4808,7 @@ void Widget::colorChanged(const QColor & col)
     // We override names 'red', 'green', 'blue' and 'alpha' in the input tree
     struct ColorTreeClone : XL::TreeClone
     {
-        ColorTreeClone(const QColor &c) : color(c){}
+        ColorTreeClone(const QColor &c): color(c){}
         XL::Tree *DoName(XL::Name *what)
         {
             if (what->value == "red")
@@ -5196,7 +5218,7 @@ void Widget::fileChosen(const QString & filename)
 
     // We override names 'filename', 'filepath', 'filepathname', 'relfilepath'
     QFileInfo file(filename);
-    QString relFilePath = QDir(TaoApp->currentProjectFolder).
+    QString relFilePath = QDir(((Window*)parent())->currentProjectFolderPath()).
                           relativeFilePath(file.canonicalFilePath());
     if (relFilePath.contains(".."))
     {
@@ -6239,7 +6261,6 @@ Name_p Widget::ungroupSelection(Tree_p /*self*/)
 
     return XL::xl_true;
 
-
 }
 
 // ============================================================================
@@ -6295,9 +6316,9 @@ XL::Real_p Widget::fromPx(Tree_p self, double px)
 
 
 // ============================================================================
-// 
+//
 //    Misc...
-// 
+//
 // ============================================================================
 
 Tree_p Widget::constant(Tree_p self, Tree_p tree)

@@ -180,6 +180,7 @@ public:
     void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
     uint        selected(uint i);
     uint        selected(Layout *);
+    void        reselect(Tree *from, Tree *to);
     static uint singleClicks(uint sel)  { return sel & 0xFFFF; }
     static uint doubleClicks(uint sel)  { return sel >> 16; }
     void        select(uint id, uint count);

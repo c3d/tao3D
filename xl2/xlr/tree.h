@@ -638,7 +638,6 @@ struct DeepCopyCloneMode;       // Child nodes are cloned too (default)
 struct ShallowCopyCloneMode;    // Child nodes are referenced
 struct NodeOnlyCloneMode;       // Child nodes are left NULL
 
-
 template <typename mode> struct TreeCloneTemplate : Action
 // ----------------------------------------------------------------------------
 //   Clone a tree

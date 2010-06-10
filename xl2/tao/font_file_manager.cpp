@@ -22,6 +22,8 @@
 // ****************************************************************************
 
 #include "font_file_manager.h"
+#include "options.h"
+#include "tao_utf8.h"
 
 #include <QFontDatabase>
 #include <iostream>
@@ -90,16 +92,26 @@ void FontFileManager::AddFontFiles(const QFont &font)
 // ----------------------------------------------------------------------------
 {
     QString family = font.family();
+    IFTRACE(fonts)
+        std::cerr << "Searching files for font family '" << +family << "'\n";
     QStringList list = FilesForFontFamily(family);
     if (list.isEmpty())
     {
-        errors << QString("Font file not found for family: '%1'").arg(family);
+        IFTRACE(fonts)
+            std::cerr << "No font file found!\n";
+        errors << QString("No font file found for family '%1'").arg(family);
         return;
     }
     foreach (QString path, list)
     {
+        IFTRACE(fonts)
+            std::cerr << "  " << +path << "\n";
         if (fontFiles.contains(path))
+        {
+            IFTRACE(fonts)
+                std::cerr << "  Already in list\n";
             return;
+        }
         if (IsLoadable(path))
             fontFiles << path;
         else
@@ -115,7 +127,13 @@ bool FontFileManager::IsLoadable(QString fileName)
 {
     int id = QFontDatabase::addApplicationFont(fileName);
     if (id == -1)
+    {
+        IFTRACE(fonts)
+            std::cerr << "    Font file cannot be loaded";
         return false;
+    }
+    IFTRACE(fonts)
+        std::cerr << "    Font file can be loaded\n";
     QFontDatabase::removeApplicationFont(id);
     return true;
 }

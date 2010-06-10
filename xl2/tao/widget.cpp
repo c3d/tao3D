@@ -103,7 +103,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       pageTree(NULL),
       currentShape(NULL),
       currentGridLayout(NULL),
-      currentGroup(NULL), activities(NULL),
+      currentGroup(NULL), fontFileMgr(NULL), activities(NULL),
       id(0), charId(0), capacity(1), manipulator(0),
       wasSelected(false), selectionChanged(false),
       event(NULL), focusWidget(NULL), keyboardModifiers(0),
@@ -753,6 +753,30 @@ bool Widget::selectionsEqual(selection_map &s1, selection_map &s2)
             if (!s1.count((*i).first) || !s1[(*i).first])
                 return false;
     return true;
+}
+
+
+QStringList Widget::fontFiles()
+// ----------------------------------------------------------------------------
+//   Return the paths of all font files used in the document
+// ----------------------------------------------------------------------------
+{
+    struct FFM {
+        FFM(FontFileManager *&m): m(m) { m = new FontFileManager(); }
+       ~FFM()                          { delete m; m = NULL; }
+       FontFileManager *&m;
+    } ffm(fontFileMgr);
+
+    paintGL();
+    if (!fontFileMgr->errors.empty())
+    {
+        // Some font files are not in a suitable format, so we won't try to
+        // embed them (Qt can only load TrueType, TrueType Collection and
+        // OpenType files).
+        foreach (QString m, fontFileMgr->errors)
+            std::cerr << +m << "\n";
+    }
+    return fontFileMgr->fontFiles;
 }
 
 
@@ -3844,6 +3868,8 @@ Tree_p Widget::font(Tree_p self, Tree_p description)
     description->Do(parseFont);
     layout->font = parseFont.font;
     layout->Add(new FontChange(layout->font));
+    if (fontFileMgr)
+        fontFileMgr->AddFontFiles(layout->font);
     return XL::xl_true;
 }
 

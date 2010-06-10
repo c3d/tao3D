@@ -115,7 +115,8 @@ HEADERS += widget.h \
     error_message_dialog.h \
     group_layout.h \
     resource_mgt.h \
-    tree_cloning.h
+    tree_cloning.h \
+    font_file_manager.h
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \
@@ -180,12 +181,17 @@ SOURCES += tao_main.cpp \
     error_message_dialog.cpp \
     group_layout.cpp \
     resource_mgt.cpp \
-    tree_cloning.cpp
+    tree_cloning.cpp \
+    font_file_manager.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \
         GL/wglew.h
     SOURCES += glew.c
+}
+macx { 
+    OBJECTIVE_SOURCES += font_file_manager_macos.mm
+    LIBS += -framework ApplicationServices
 }
 RESOURCES += tao.qrc
 
@@ -216,7 +222,8 @@ OTHER_FILES += xl.syntax \
     tutorial.ddd \
     git.stylesheet \
     srcview.stylesheet \
-    srcview.css
+    srcview.css \
+    font_file_manager_macos.mm
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}

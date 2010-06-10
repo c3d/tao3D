@@ -347,6 +347,68 @@ bool Window::saveAs()
 }
 
 
+bool Window::saveFonts()
+// ----------------------------------------------------------------------------
+//    Like saveAs() but also embed currently used fonts into the document
+// ----------------------------------------------------------------------------
+{
+    bool ok;
+
+    ok = saveAs();
+    if (!ok)
+        return ok;
+
+    struct SOC
+    {
+         SOC() { QApplication::setOverrideCursor(Qt::WaitCursor); }
+        ~SOC() { QApplication::restoreOverrideCursor(); }
+    } soc;
+
+    QStringList files;
+    files = taoWidget->fontFiles();
+    ok = !files.empty();
+    if (!ok)
+        return ok;
+
+    QString projPath, fontPath;
+    projPath = QFileInfo(curFile).absolutePath();
+    fontPath = QString("%1/fonts").arg(projPath);
+    if (!QDir().exists(fontPath))
+    {
+        ok = QDir().mkdir(fontPath);
+        if (!ok)
+            return ok;
+    }
+
+    QString fileName, newFile;
+    foreach (QString file, files)
+    {
+        fileName = QFileInfo(file).fileName();
+        newFile = QString("%1/%2").arg(fontPath).arg(fileName);
+        IFTRACE(fonts)
+        {
+            std::cerr << "Copying '" << +file << "' as '" << +newFile << "'\n";
+        }
+        if (newFile == file)
+            continue;
+        if (QFile::exists(newFile))
+            QFile::remove(newFile);
+        ok |= QFile::copy(file, newFile);
+    }
+
+    if (repo)
+    {
+        repo->markChanged("Embed fonts");
+        repo->change(+fontPath);
+        repo->state = Repository::RS_NotClean;
+        repo->asyncCommit();
+    }
+
+    statusBar()->showMessage(tr("File saved"), 2000);
+    return ok;
+}
+
+
 void Window::openRecentFile()
 // ----------------------------------------------------------------------------
 //    Open a file from the recent file list
@@ -556,6 +618,11 @@ void Window::createActions()
     saveAsAct->setStatusTip(tr("Save the document under a new name"));
     connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
 
+    saveFontsAct = new QAction(tr("Save with fonts..."), this);
+    saveFontsAct->setStatusTip(tr("Save the document and store all the "
+                                  "needed fonts alongside the document"));
+    connect(saveFontsAct, SIGNAL(triggered()), this, SLOT(saveFonts()));
+
     clearRecentAct = new QAction(tr("Clear list"), this);
     connect(clearRecentAct, SIGNAL(triggered()),
             this, SLOT(clearRecentFileList()));
@@ -667,6 +734,7 @@ void Window::createMenus()
     openRecentMenu = fileMenu->addMenu(tr("Open Recent"));
     fileMenu->addAction(saveAct);
     fileMenu->addAction(saveAsAct);
+    fileMenu->addAction(saveFontsAct);
     fileMenu->addSeparator();
     fileMenu->addAction(closeAct);
     fileMenu->addAction(exitAct);

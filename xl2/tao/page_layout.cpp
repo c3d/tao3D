@@ -112,13 +112,8 @@ template<> inline scale Justifier<page_t>::Size(page_t line, Layout *l)
 {
     Box3 space = line->Space(l);
     scale result = space.Height();
-    if (l)
-    {
-        if (result < l->alongY.before)
-            result = l->alongY.before;
-        if (result < l->alongY.after)
-            result = l->alongY.after;
-    }
+    if (result < 0)
+        result = 0;
     return result;
 }
 

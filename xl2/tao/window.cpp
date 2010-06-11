@@ -373,12 +373,15 @@ bool Window::saveFonts()
         ~SOC() { QApplication::restoreOverrideCursor(); }
     } soc;
 
+    // Get list of font files
     QStringList files;
     files = taoWidget->fontFiles();
     ok = !files.empty();
     if (!ok)
         return ok;
 
+    // Create font directory
+    bool fontDirCreated = false;
     QString fontPath;
     fontPath = FontFileManager::FontPathFor(curFile);
     if (!QDir().exists(fontPath))
@@ -386,8 +389,49 @@ bool Window::saveFonts()
         ok = QDir().mkdir(fontPath);
         if (!ok)
             return ok;
+        fontDirCreated = true;
     }
 
+    // Check if there are unused files in the font directory
+    // (Some fonts may have been previously embedded and not used anymore)
+    if (!fontDirCreated)
+    {
+        QDir fontDir(fontPath);
+        QFileInfoList contents = fontDir.entryInfoList();
+        foreach (QFileInfo f, contents)
+        {
+            if (f.isFile())
+            {
+                QString path = f.absoluteFilePath();
+                QString name = f.fileName();
+                bool found = false;
+                foreach (QString s, files)
+                {
+                    if (s.endsWith(name))
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    IFTRACE(fonts)
+                        std::cerr << "Removing  '" << +path << "'\n";
+                    if (repo)
+                    {
+                        QString relPath = QString("fonts/%1").arg(name);
+                        repo->remove(+relPath);
+                    }
+                    else
+                    {
+                        QDir().remove(path);
+                    }
+                }
+            }
+        }
+    }
+
+    // Copy font files into font directory
     QString fileName, newFile;
     foreach (QString file, files)
     {

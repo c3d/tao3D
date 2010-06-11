@@ -197,7 +197,8 @@ bool Justifier<Item>::Adjust(coord start, coord end,
             coord offset = ItemOffset(item, layout);
             scale spacing = justify.spacing;
             size *= spacing;
-            if (hadSeparator && !firstElement && size > 0)
+            if (hadSeparator &&
+                ((!firstElement && size > 0) || i == items.end()))
             {
                 coord additional = justify.before;
                 if (additional < justify.after)

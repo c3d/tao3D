@@ -59,7 +59,7 @@ Tree *ResourceMgt::DoPrefix(Prefix *what)
         return TaoTreeClone::DoPrefix(what);
 
     QFileInfo info(+(arg->value));
-    if ( ! info.exists() || isLocalToDoc(info))
+    if (! isToBeMoved(info))
     {
         usedFile.insert(+(info.filePath()));
         IFTRACE(resources)
@@ -79,7 +79,7 @@ Tree *ResourceMgt::DoPrefix(Prefix *what)
     }
     IFTRACE(resources)
     {
-        std::cerr << "Used file: "<< +(info.filePath()) << std::endl;
+        std::cerr << "Used file: "<< arg->value << std::endl;
     }
 
     return TaoTreeClone::DoPrefix(what);
@@ -141,7 +141,7 @@ Text * ResourceMgt::getArg(Prefix * what, int pos)
 }
 
 
-bool ResourceMgt::isLocalToDoc(QFileInfo info)
+bool ResourceMgt::isToBeMoved(QFileInfo &info)
 //-----------------------------------------------------------------------------
 //  Check if the given file name is in or under the project folder.
 //-----------------------------------------------------------------------------
@@ -149,9 +149,16 @@ bool ResourceMgt::isLocalToDoc(QFileInfo info)
     Window * w = (Window*)widget->parent();
 
     QDir dir(w->currentProjectFolderPath());
+
+    if (info.isRelative())
+        info.setFile(dir, info.filePath());
+
+    if (! info.exists())
+        return false;
+
     QString relName = dir.relativeFilePath(info.absoluteFilePath());
 
-    return ! relName.contains("..");
+    return relName.contains("..");
 }
 
 
@@ -170,8 +177,9 @@ text ResourceMgt::integrateFile(QFileInfo info, QString subDir)
         newName = QFileInfo(projdir,
                             subDir
                             + info.completeBaseName()
+                            +'_'
                             + QString::number(i)
-                            + "." +info.suffix());
+                            + '.' +info.suffix());
     }
     if (!subDir.isEmpty())
         QDir(w->currentProjectFolderPath()).mkpath(subDir);
@@ -179,10 +187,11 @@ text ResourceMgt::integrateFile(QFileInfo info, QString subDir)
     IFTRACE(resources)
     {
         std::cerr << "Copying "<< +(info.canonicalFilePath()) <<
-                " into " << +(newName.canonicalFilePath()) << std::endl;
+                " into " << +(newName.filePath()) << std::endl;
     }
-    QFile::copy(info.canonicalFilePath(), newName.canonicalFilePath());
-    text relName = +(projdir.relativeFilePath(newName.canonicalFilePath()));
+    QFile::copy(info.canonicalFilePath(), newName.filePath());
+
+    text relName = +(projdir.relativeFilePath(newName.filePath()));
     movedFiles[+(info.canonicalFilePath())] = relName;
 
     Repository * repo = ((Window*)widget->parent())->repository();

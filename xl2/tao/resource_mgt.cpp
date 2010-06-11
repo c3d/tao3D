@@ -34,13 +34,21 @@ ResourceMgt::ResourceMgt(Widget *widget): TaoTreeClone(widget)
 {
     if (cmdFileList.empty())
     {
-        cmdFileList["load"]      = std::pair<int, text>(1, "");
-        cmdFileList["texture"]   = std::pair<int, text>(1, "images/");
-        cmdFileList["svg"]       = std::pair<int, text>(1, "images/");
-        cmdFileList["image"]     = std::pair<int, text>(-1, "images/");
-        cmdFileList["menu_item"] = std::pair<int, text>(3, "images/");
-        cmdFileList["menu"]      = std::pair<int, text>(3, "images/");
-        cmdFileList["submenu"]   = std::pair<int, text>(3, "images/");
+        cmdFileList["load"]      = std::pair<int, text>(1, "xl");
+        cmdFileList["texture"]   = std::pair<int, text>(1, "texture");
+        cmdFileList["svg"]       = std::pair<int, text>(1, "image");
+        cmdFileList["image"]     = std::pair<int, text>(-1, "image");
+        cmdFileList["menu_item"] = std::pair<int, text>(3, "icon");
+        cmdFileList["menu"]      = std::pair<int, text>(3, "icon");
+        cmdFileList["submenu"]   = std::pair<int, text>(3, "icon");
+    }
+    if (subDirList.empty())
+    {
+        subDirList["xl"]      = "";
+        subDirList["image"]   = "images/";
+        subDirList["texture"] = "images/";
+        subDirList["icon"]    = "images/";
+        subDirList["doc"]     = "images/";
     }
 }
 
@@ -59,7 +67,7 @@ Tree *ResourceMgt::DoPrefix(Prefix *what)
         return TaoTreeClone::DoPrefix(what);
 
     QFileInfo info(+(arg->value));
-    if (! isToBeMoved(info))
+    if (! isToBeMoved(info,+(cmdFileList[n->value].second)))
     {
         usedFile.insert(+(info.filePath()));
         IFTRACE(resources)
@@ -75,12 +83,8 @@ Tree *ResourceMgt::DoPrefix(Prefix *what)
     else
     {
         arg->value = integrateFile(info, +(cmdFileList[n->value].second));
-        usedFile.insert(arg->value);
     }
-    IFTRACE(resources)
-    {
-        std::cerr << "Used file: "<< arg->value << std::endl;
-    }
+
 
     return TaoTreeClone::DoPrefix(what);
 }
@@ -112,36 +116,36 @@ Text * ResourceMgt::getArg(Prefix * what, int pos)
     // loop to get the required argument (inf->left is already the first one)
     Infix *last = inf;
     Infix *next;
-    while ( (--pos > 0) &&
-            (next = last->right->AsInfix()) &&
+    while ( (--pos > 1) &&
+            (next = last->left->AsInfix()) &&
             (next->name == "," ))
     {
-        IFTRACE(resources)
-        {
-            std::cerr << "pos is: "<<pos<< std::endl;
-        }
         last = next;
     }
 
-    if (next->name ==  "\n" || next->name == ";")
+    IFTRACE(resources)
+    {
+        std::cerr << "pos is: "<<pos<< std::endl;
+    }
+    if (next && (next->name ==  "\n" || next->name == ";"))
     {
         IFTRACE(resources)
         {
-            std::cerr << "returning next->left: "<< next->left->AsText()
+            std::cerr << "returning next->right: "<< next->right->AsText()
                     << std::endl;
         }
-        return next->left->AsText();
+        return next->right->AsText();
     }
 
     IFTRACE(resources)
-         std::cerr << "returning last->left: "<< last->left->AsText()
+         std::cerr << "returning last->right: "<< last->right->AsText()
                 << std::endl;
 
-    return last->left->AsText();
+    return last->right->AsText();
 }
 
 
-bool ResourceMgt::isToBeMoved(QFileInfo &info)
+bool ResourceMgt::isToBeMoved(QFileInfo &info, QString prefix)
 //-----------------------------------------------------------------------------
 //  Check if the given file name is in or under the project folder.
 //-----------------------------------------------------------------------------
@@ -151,7 +155,7 @@ bool ResourceMgt::isToBeMoved(QFileInfo &info)
     QDir dir(w->currentProjectFolderPath());
 
     if (info.isRelative())
-        info.setFile(dir, info.filePath());
+        info.setFile(prefix+':'+info.filePath());
 
     if (! info.exists())
         return false;
@@ -162,27 +166,28 @@ bool ResourceMgt::isToBeMoved(QFileInfo &info)
 }
 
 
-text ResourceMgt::integrateFile(QFileInfo info, QString subDir)
+text ResourceMgt::integrateFile(QFileInfo info, QString prefix)
 //-----------------------------------------------------------------------------
 //  Compute the new name and copy the file
 //-----------------------------------------------------------------------------
 {
+    QString subdir(+(subDirList[+(prefix)]));
     Window * w = (Window*)widget->parent();
     QDir projdir(w->currentProjectFolderPath());
 
-    QFileInfo newName(projdir, subDir+info.fileName());
+    QFileInfo newName(projdir, subdir+info.fileName());
     int i=0;
     while (++i, newName.exists())
     {
         newName = QFileInfo(projdir,
-                            subDir
+                            subdir
                             + info.completeBaseName()
                             +'_'
                             + QString::number(i)
                             + '.' +info.suffix());
     }
-    if (!subDir.isEmpty())
-        QDir(w->currentProjectFolderPath()).mkpath(subDir);
+    if (!subdir.isEmpty())
+        QDir(w->currentProjectFolderPath()).mkpath(subdir);
 
     IFTRACE(resources)
     {
@@ -191,8 +196,18 @@ text ResourceMgt::integrateFile(QFileInfo info, QString subDir)
     }
     QFile::copy(info.canonicalFilePath(), newName.filePath());
 
-    text relName = +(projdir.relativeFilePath(newName.filePath()));
+    text relName = +(prefix + ':' + newName.fileName());
     movedFiles[+(info.canonicalFilePath())] = relName;
+    newName.refresh();
+    usedFile.insert(+(projdir.relativeFilePath(newName.canonicalFilePath())));
+    IFTRACE(resources)
+    {
+        std::cerr << " usedFile.insert("<<
+                +(projdir.relativeFilePath(newName.canonicalFilePath()))
+                <<")"<< std::endl;
+        std::cerr << "newName.canonicalFilePath() "
+                << +(newName.canonicalFilePath()) << std::endl;
+    }
 
     Repository * repo = ((Window*)widget->parent())->repository();
     if (repo)
@@ -212,6 +227,6 @@ void ResourceMgt::cleanUpRepo()
 
 
 std::map<text, std::pair < int, text > > ResourceMgt::cmdFileList;
-
+std::map < text, text > ResourceMgt::subDirList;
 
 TAO_END

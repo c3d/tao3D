@@ -1005,8 +1005,13 @@ bool Window::saveFile(const QString &fileName)
     setCurrentFile(fileName);
     xlRuntime->LoadFile(fn);
 
+    IFTRACE(resources)
+    {
+        std::cerr << "fn is "<< fn << std::endl;
+    }
+
     ResourceMgt checkFiles(taoWidget);
-    xlRuntime->files[fn].tree->Do(checkFiles); // Crash sur le [fn] CaB
+    xlRuntime->files[fn].tree->Do(checkFiles);
     checkFiles.cleanUpRepo();
     // Reload the program and mark the changes
     taoWidget->reloadProgram();

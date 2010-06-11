@@ -773,8 +773,9 @@ QStringList Widget::fontFiles()
         // Some font files are not in a suitable format, so we won't try to
         // embed them (Qt can only load TrueType, TrueType Collection and
         // OpenType files).
+        Window *window = (Window *) parentWidget();
         foreach (QString m, fontFileMgr->errors)
-            std::cerr << +m << "\n";
+            window->addError(m);
     }
     return fontFileMgr->fontFiles;
 }

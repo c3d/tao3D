@@ -93,32 +93,6 @@ void TextSpan::DrawCached(Layout *where, bool identify)
         uint  unicode  = XL::Utf8Code(str, i);
         bool  newLine  = unicode == '\n';
 
-        // Find the glyph in the glyph cache
-        if (!glyphs.Find(font, unicode, glyph, false))
-        {
-            // Try to create the glyph
-            if (!glyphs.Find(font, unicode, glyph, true))
-                continue;
-        }
-
-        // Enter the geometry coordinates
-        coord charX1 = x + glyph.bounds.lower.x;
-        coord charX2 = x + glyph.bounds.upper.x;
-        coord charY1 = y - glyph.bounds.lower.y;
-        coord charY2 = y - glyph.bounds.upper.y;
-        quads.push_back(Point3(charX1, charY1, z));
-        quads.push_back(Point3(charX2, charY1, z));
-        quads.push_back(Point3(charX2, charY2, z));
-        quads.push_back(Point3(charX1, charY2, z));
-
-        // Enter the texture coordinates
-        Point &texL = glyph.texture.lower;
-        Point &texU = glyph.texture.upper;
-        texCoords.push_back(Point(texL.x, texL.y));
-        texCoords.push_back(Point(texU.x, texL.y));
-        texCoords.push_back(Point(texU.x, texU.y));
-        texCoords.push_back(Point(texL.x, texU.y));
-
         // Advance to next character
         if (newLine)
         {
@@ -129,6 +103,32 @@ void TextSpan::DrawCached(Layout *where, bool identify)
         }
         else
         {
+            // Find the glyph in the glyph cache
+            if (!glyphs.Find(font, unicode, glyph, false))
+            {
+                // Try to create the glyph
+                if (!glyphs.Find(font, unicode, glyph, true))
+                    continue;
+            }
+
+            // Enter the geometry coordinates
+            coord charX1 = x + glyph.bounds.lower.x;
+            coord charX2 = x + glyph.bounds.upper.x;
+            coord charY1 = y - glyph.bounds.lower.y;
+            coord charY2 = y - glyph.bounds.upper.y;
+            quads.push_back(Point3(charX1, charY1, z));
+            quads.push_back(Point3(charX2, charY1, z));
+            quads.push_back(Point3(charX2, charY2, z));
+            quads.push_back(Point3(charX1, charY2, z));
+
+            // Enter the texture coordinates
+            Point &texL = glyph.texture.lower;
+            Point &texU = glyph.texture.upper;
+            texCoords.push_back(Point(texL.x, texL.y));
+            texCoords.push_back(Point(texU.x, texL.y));
+            texCoords.push_back(Point(texU.x, texU.y));
+            texCoords.push_back(Point(texL.x, texU.y));
+
             x += glyph.advance;
         }
     }
@@ -210,23 +210,6 @@ void TextSpan::DrawDirect(Layout *where)
         uint  unicode  = XL::Utf8Code(str, i);
         bool  newLine  = unicode == '\n';
 
-        // Find the glyph in the glyph cache
-        if (!glyphs.Find(font, unicode, glyph, true, true, lw))
-            continue;
-
-        if (canSel)
-            glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
-        GLMatrixKeeper save;
-        glTranslatef(x, y, z);
-        scale gscale = glyph.scalingFactor;
-        glScalef(gscale, gscale, gscale);
-
-        setTexture(where);
-        if (setFillColor(where))
-            glCallList(glyph.interior);
-        if (setLineColor(where))
-            glCallList(glyph.outline);
-
         // Advance to next character
         if (newLine)
         {
@@ -237,6 +220,23 @@ void TextSpan::DrawDirect(Layout *where)
         }
         else
         {
+            // Find the glyph in the glyph cache
+            if (!glyphs.Find(font, unicode, glyph, true, true, lw))
+                continue;
+
+            if (canSel)
+                glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
+            GLMatrixKeeper save;
+            glTranslatef(x, y, z);
+            scale gscale = glyph.scalingFactor;
+            glScalef(gscale, gscale, gscale);
+
+            setTexture(where);
+            if (setFillColor(where))
+                glCallList(glyph.interior);
+            if (setLineColor(where))
+                glCallList(glyph.outline);
+
             x += glyph.advance;
         }
     }

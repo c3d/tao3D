@@ -114,6 +114,8 @@ HEADERS += widget.h \
     ../xlr/opcodes_delete.h \
     error_message_dialog.h \
     group_layout.h \
+    resource_mgt.h \
+    tree_cloning.h \
     font_file_manager.h
 SOURCES += tao_main.cpp \
     coords.cpp \
@@ -178,6 +180,8 @@ SOURCES += tao_main.cpp \
     ansi_textedit.cpp \
     error_message_dialog.cpp \
     group_layout.cpp \
+    resource_mgt.cpp \
+    tree_cloning.cpp \
     font_file_manager.cpp
 !win32 { 
     HEADERS += GL/glew.h \

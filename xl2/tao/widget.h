@@ -181,6 +181,7 @@ public:
     void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
     uint        selected(uint i);
     uint        selected(Layout *);
+    void        reselect(Tree *from, Tree *to);
     static uint singleClicks(uint sel)  { return sel & 0xFFFF; }
     static uint doubleClicks(uint sel)  { return sel >> 16; }
     void        select(uint id, uint count);
@@ -200,8 +201,7 @@ public:
     bool        canPaste();
     static
     bool        selectionsEqual(selection_map &s1, selection_map &s2);
-    void        setColor(text n, const Color &c) { currentColor[n] = c; }
-    void        saveSelectionColors() { selectionColor = currentColor; }
+    void        saveSelectionState(Layout *where);
 
     // Text flows and text management
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
@@ -578,7 +578,8 @@ private:
     int                   order;
     Tree_p                colorAction, fontAction;
     text                  colorName;
-    std::map<text,Color>  currentColor, selectionColor;
+    std::map<text,Color>  selectionColor;
+    QFont                 selectionFont;
     QColor                originalColor;
 
     // Timing

@@ -31,6 +31,7 @@
 #include "publish_to_dialog.h"
 #include "clone_dialog.h"
 #include "undo.h"
+#include "resource_mgt.h"
 
 #include <iostream>
 #include <sstream>
@@ -996,7 +997,6 @@ bool Window::saveFile(const QString &fileName)
 // ----------------------------------------------------------------------------
 {
     QFile file(fileName);
-    text fn = +fileName;
 
     if (!file.open(QFile::WriteOnly | QFile::Text))
     {
@@ -1015,8 +1015,18 @@ bool Window::saveFile(const QString &fileName)
         QApplication::restoreOverrideCursor();
     } while (0); // Flush
 
+    text fn = +fileName;
+
     setCurrentFile(fileName);
     xlRuntime->LoadFile(fn);
+
+    ResourceMgt checkFiles(taoWidget);
+    xlRuntime->files[fn].tree->Do(checkFiles); // Crash sur le [fn] CaB
+    checkFiles.cleanUpRepo();
+    // Reload the program and mark the changes
+    taoWidget->reloadProgram();
+    taoWidget->markChanged("Related files included in the project");
+
     statusBar()->showMessage(tr("File saved"), 2000);
     updateProgram(fileName);
 
@@ -1236,8 +1246,8 @@ void Window::updateContext(QString docPath)
 // and the associated user.xl and theme.xl.
 // ----------------------------------------------------------------------------
 {
-    TaoApp->currentProjectFolder = docPath;
-    TaoApp->updateSearchPathes();
+    currentProjectFolder = docPath;
+    TaoApp->updateSearchPathes(currentProjectFolder);
 
     // Fetch info for XL files
     QFileInfo user      ("xl:user.xl");
@@ -1300,6 +1310,10 @@ QString Window::currentProjectFolderPath()
 {
     if (repo)
         return repo->path;
+
+    if ( !currentProjectFolder.isEmpty())
+        return currentProjectFolder;
+
     return Application::defaultProjectFolderPath();
 }
 
@@ -1378,7 +1392,7 @@ void Window::setCurrentFile(const QString &fileName)
         while (files.size() > MaxRecentFiles)
             files.removeLast();
         settings.setValue("recentFileList", files);
-        
+
         foreach (QWidget *widget, QApplication::topLevelWidgets())
         {
             Window *mainWin = qobject_cast<Window *>(widget);
@@ -1403,7 +1417,7 @@ QString Window::findUnusedUntitledFile()
         QFile file(name);
         if (!file.open(QFile::ReadOnly | QFile::Text))
             return name;
-    } 
+    }
 
     return "";
 }

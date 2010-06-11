@@ -66,6 +66,7 @@ Drawing::~Drawing()
     count--;
 }
 
+
 void Drawing::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Draw the marker indicating that a shape is selected

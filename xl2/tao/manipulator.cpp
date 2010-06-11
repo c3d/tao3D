@@ -57,7 +57,7 @@ void Manipulator::Draw(Layout *layout)
 }
 
 
-uint Manipulator::DrawSelection(Layout *layout)
+void Manipulator::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Draw the manipulator using simple GL points
 // ----------------------------------------------------------------------------
@@ -71,7 +71,6 @@ uint Manipulator::DrawSelection(Layout *layout)
         DrawHandles(layout);
         glPopName();
     }
-    return sel;
 }
 
 
@@ -326,7 +325,7 @@ void ControlPoint::Draw(Layout *where)
 }
 
 
-uint ControlPoint::DrawSelection(Layout *layout)
+void ControlPoint::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 //    Draw the selection for a control point
 // ----------------------------------------------------------------------------
@@ -339,7 +338,6 @@ uint ControlPoint::DrawSelection(Layout *layout)
         widget->selectionTrees.insert(self);
         DrawHandles(layout);
     }
-    return 0;
 }
 
 
@@ -396,7 +394,7 @@ FrameManipulator::FrameManipulator(Tree *self,
 {}
 
 
-uint FrameManipulator::DrawSelection(Layout *layout)
+void FrameManipulator::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 //  Draw a rectangular selection unless we double-clicked to edit inside
 // ----------------------------------------------------------------------------
@@ -404,9 +402,8 @@ uint FrameManipulator::DrawSelection(Layout *layout)
     Widget *widget = layout->Display();
     uint sel = widget->selected(layout);
     uint dclicks = Widget::doubleClicks(sel);
-    if (dclicks > groupDepth) {
-        return 0;
-}
+    if (dclicks > groupDepth)
+        return;
     return Manipulator::DrawSelection(layout);
 }
 
@@ -1100,7 +1097,7 @@ WidgetManipulator::WidgetManipulator(Tree *self,
 {}
 
 
-uint WidgetManipulator::DrawSelection(Layout *layout)
+void WidgetManipulator::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Draw the selection as usual, and if selected, request focus
 // ----------------------------------------------------------------------------
@@ -1118,7 +1115,6 @@ uint WidgetManipulator::DrawSelection(Layout *layout)
                                   "widget_selection", layout->id);
         }
     }
-    return selected;
 }
 
 

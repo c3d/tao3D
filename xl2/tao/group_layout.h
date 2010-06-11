@@ -35,10 +35,15 @@ struct GroupLayout : Layout
                         GroupLayout(Widget *widget, Tree_p self);
                         GroupLayout(const GroupLayout &o);
 
-    virtual uint        DrawSelection(Layout *);
+    virtual void        DrawSelection(Layout *);
     virtual void        Add (Drawing *d);
+    virtual uint        Selected();
 
 protected:
+    void                Select(Layout *);
+    void                Deselect(Layout *);
+    void                SelectAll(bool doSelect);
+
     Tree_p              self;
 };
 

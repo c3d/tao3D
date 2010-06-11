@@ -32,7 +32,9 @@
 #include "drawing.h"
 #include "activity.h"
 #include "menuinfo.h"
+#include "color.h"
 #include "glyph_cache.h"
+#include "font_file_manager.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -60,7 +62,6 @@ struct Repository;
 struct Drag;
 struct TextSelect;
 struct WidgetSurface;
-struct TaoTreeClone;
 
 // ----------------------------------------------------------------------------
 // Name of fixed menu. Menus then may be retrieved by
@@ -180,6 +181,7 @@ public:
     void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
     uint        selected(uint i);
     uint        selected(Layout *);
+    void        reselect(Tree *from, Tree *to);
     static uint singleClicks(uint sel)  { return sel & 0xFFFF; }
     static uint doubleClicks(uint sel)  { return sel >> 16; }
     void        select(uint id, uint count);
@@ -199,10 +201,12 @@ public:
     bool        canPaste();
     static
     bool        selectionsEqual(selection_map &s1, selection_map &s2);
+    void        saveSelectionState(Layout *where);
 
-    // Text flows and text managemen
+    // Text flows and text management
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
     GlyphCache &glyphs()    { return glyphCache; }
+    QStringList fontFiles();
 
 public:
     // XLR entry points
@@ -341,7 +345,7 @@ public:
     Text_p      textFlow(Tree_p self, text name);
     Tree_p      textSpan(Tree_p self, Text_p content);
     Tree_p      textFormula(Tree_p self, Tree_p value);
-    Tree_p      font(Tree_p self, text family);
+    Tree_p      font(Tree_p self, Tree_p descr);
     Tree_p      fontSize(Tree_p self, double size);
     Tree_p      fontScaling(Tree_p self, double scaling, double minSize);
     Tree_p      fontPlain(Tree_p self);
@@ -364,6 +368,8 @@ public:
     Text_p      loadText(Tree_p self, text file);
 
     // Tables
+    Tree_p      newTable(Tree_p self, Real_p x, Real_p y,
+                         Integer_p r, Integer_p c, Tree_p body);
     Tree_p      newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body);
     Tree_p      tableCell(Tree_p self, Real_p w, Real_p h, Tree_p body);
     Tree_p      tableCell(Tree_p self, Tree_p body);
@@ -496,6 +502,8 @@ public:
     Real_p      fromPt(Tree_p self, double pt);
     Real_p      fromPx(Tree_p self, double px);
 
+    Tree_p      constant(Tree_p self, Tree_p tree);
+
     // z order management
     Name_p      bringToFront(Tree_p self);
     Name_p      sendToBack(Tree_p self);
@@ -518,7 +526,6 @@ private:
     friend class Renormalize;
     friend class Table;
     friend class DeleteSelectionAction;
-    friend class TaoTreeClone;
 
     typedef XL::LocalSave<QEvent *>             EventSave;
     typedef XL::LocalSave<Widget *>             TaoSave;
@@ -548,7 +555,7 @@ private:
     QGridLayout *         currentGridLayout;
     GroupInfo   *         currentGroup;
     GlyphCache            glyphCache;
-    bool                  hasGLMultisample;
+    FontFileManager *     fontFileMgr;
 
     // Selection
     Activity *            activities;
@@ -571,6 +578,8 @@ private:
     int                   order;
     Tree_p                colorAction, fontAction;
     text                  colorName;
+    std::map<text,Color>  selectionColor;
+    QFont                 selectionFont;
     QColor                originalColor;
 
     // Timing

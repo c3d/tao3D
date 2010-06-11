@@ -86,6 +86,7 @@ private slots:
     void open(QString fileName = "");
     bool save();
     bool saveAs();
+    bool saveFonts();
     void openRecentFile();
     void clearRecentFileList();
     void cut();
@@ -155,6 +156,7 @@ private:
     QAction          *openAct;
     QAction          *saveAct;
     QAction          *saveAsAct;
+    QAction          *saveFontsAct;
     QAction          *closeAct;
     QAction          *exitAct;
     QAction          *cutAct;

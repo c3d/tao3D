@@ -66,7 +66,8 @@ Drawing::~Drawing()
     count--;
 }
 
-uint Drawing::DrawSelection(Layout *layout)
+
+void Drawing::DrawSelection(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Draw the marker indicating that a shape is selected
 // ----------------------------------------------------------------------------
@@ -78,7 +79,6 @@ uint Drawing::DrawSelection(Layout *layout)
         XL::LocalSave<Point3> zeroOffset(layout->offset, Point3(0,0,0));
         widget->drawSelection(layout, bounds, "selection", layout->id);
     }
-    return 0;
 }
 
 

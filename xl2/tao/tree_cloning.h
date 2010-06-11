@@ -1,8 +1,5 @@
 #ifndef TREE_CLONING_H
 #define TREE_CLONING_H
-#include "tao_tree.h"
-#include "tree.h"
-
 // ****************************************************************************
 //  tree_cloning						   Tao project
 // ****************************************************************************
@@ -25,6 +22,11 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include "tao_tree.h"
+#include "tree.h"
+#include "widget.h"
+
+
 TAO_BEGIN
 struct Widget;
 
@@ -34,16 +36,24 @@ struct Widget;
 //
 // ============================================================================
 
+typedef struct XL::DeepCopyCloneMode DeepCopyCloneMode;
+typedef struct XL::ShallowCopyCloneMode ShallowCopyCloneMode;
+typedef struct XL::NodeOnlyCloneMode NodeOnlyCloneMode;
 
-struct TaoTreeClone : Action
+
+template <typename mode> struct TaoCloneTemplate : Action
 // ----------------------------------------------------------------------------
 //   Clone a tree
 // ----------------------------------------------------------------------------
 {
-    TaoTreeClone(Widget *widget) : widget(widget){}
-    virtual ~TaoTreeClone(){}
+    TaoCloneTemplate(Widget *widget) : widget(widget){}
+    virtual ~TaoCloneTemplate(){}
 
-    Tree * Reselect(Tree *from, Tree *to);
+    Tree *Reselect(Tree *from, Tree *to)
+    {
+        widget->reselect(from, to);
+        return to;
+    }
 
     Tree *DoInteger(Integer *what)
     {
@@ -105,17 +115,29 @@ protected:
 };
 
 
-
-
-struct  TaoShallowCopyTreeClone : TaoTreeClone
+template<> inline
+Tree *TaoCloneTemplate<ShallowCopyCloneMode>::Clone(Tree *t)
+// ----------------------------------------------------------------------------
+//   Specialization for the shallow copy clone
+// ----------------------------------------------------------------------------
 {
-    Tree *  Clone(Tree *t) { return t; }
-};
+    return t;
+}
 
-struct TaoNodeOnlyTreeClone : TaoTreeClone
+
+template<> inline
+Tree *TaoCloneTemplate<NodeOnlyCloneMode>::Clone(Tree *)
+// ----------------------------------------------------------------------------
+//   Specialization for the node-only clone
+// ----------------------------------------------------------------------------
 {
-    Tree *  Clone(Tree * /*t*/) { return NULL; }
-};
+    return NULL;
+}
+
+
+typedef struct TaoCloneTemplate<DeepCopyCloneMode>   TaoTreeClone;
+typedef struct TaoCloneTemplate<ShallowCopyCloneMode>TaoShallowCopyTreeClone;
+typedef struct TaoCloneTemplate<NodeOnlyCloneMode>    TaoNodeOnlyTreeClone;
 
 
 TAO_END

@@ -119,7 +119,11 @@ Tree *Renormalize::DoInfix(Infix *what)
     return Reselect(what, result);
 }
 
+
 Tree *Renormalize::DoBlock(Block *what)
+// ----------------------------------------------------------------------------
+//   Detect selection changes on a block
+// ----------------------------------------------------------------------------
 {
     return Reselect(what,
                     new Block(what->child->Do(this),

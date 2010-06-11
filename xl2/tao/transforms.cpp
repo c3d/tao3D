@@ -24,6 +24,7 @@
 #include "layout.h"
 #include "shapes3d.h"
 #include "context.h"
+#include "widget.h"
 #include <GL/glew.h>
 
 
@@ -44,13 +45,12 @@ void Transform::Draw(Layout *where)
 }
 
 
-uint Transform::DrawSelection(Layout *where)
+void Transform::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Transforms don't have a selection, they just draw themselves
 // ----------------------------------------------------------------------------
 {
     Draw(where);
-    return 0;
 }
 
 
@@ -60,6 +60,17 @@ void Transform::Identify(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Draw(where);
+}
+
+
+void ResetTransform::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Reset the transformation matrix and other parameters
+// ----------------------------------------------------------------------------
+{
+    glLoadIdentity();
+    where->hasPixelBlur = false;
+    where->hasMatrix = false;
 }
 
 

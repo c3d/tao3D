@@ -45,7 +45,7 @@ struct Manipulator : Drawing
     Manipulator(Tree *self);
 
     virtual void        Draw(Layout *layout);
-    virtual uint        DrawSelection(Layout *layout);
+    virtual void        DrawSelection(Layout *layout);
     virtual void        Identify(Layout *layout);
     virtual bool        DrawHandle(Layout *layout, Point3 p, uint id,
                                    text name = "handle");
@@ -72,7 +72,7 @@ struct ControlPoint : Manipulator
     ControlPoint(Tree * self, Real * x, Real * y, Real * z, uint id);
     virtual bool        DrawHandles(Layout *layout);
     virtual void        Draw(Layout *layout);
-    virtual uint        DrawSelection(Layout *layout);
+    virtual void        DrawSelection(Layout *layout);
     virtual void        Identify(Layout *layout);
 
     Real_p              x, y, z;
@@ -100,7 +100,7 @@ struct FrameManipulator : Manipulator
 
     FrameManipulator(Tree *self,
                      Real *x, Real *y, Real *w, Real *h);
-    virtual uint        DrawSelection(Layout *layout);
+    virtual void        DrawSelection(Layout *layout);
     virtual bool        DrawHandles(Layout *layout);
     virtual Box3        Bounds(Layout *);
     virtual TransformMode CurrentTransformMode();
@@ -221,7 +221,7 @@ struct WidgetManipulator : FrameManipulator
     WidgetManipulator(Tree *self,
                       Real *x, Real *y, Real *w, Real *h,
                       WidgetSurface *s);
-    virtual uint        DrawSelection(Layout *layout);
+    virtual void        DrawSelection(Layout *layout);
 
 protected:
     WidgetSurface *     surface;

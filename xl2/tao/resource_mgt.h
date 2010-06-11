@@ -30,6 +30,9 @@ TAO_BEGIN
 struct Widget;
 
 struct ResourceMgt : public TaoTreeClone
+// ----------------------------------------------------------------------------
+//   Action collection resources used by a tree, such as external files
+// ----------------------------------------------------------------------------
 {
     ResourceMgt(Widget *widget);
 

@@ -36,11 +36,11 @@ struct Table : Layout
 //    A table-like layout for graphic elements
 // ----------------------------------------------------------------------------
 {
-    Table(Widget *display, uint r, uint c);
+    Table(Widget *display, Real_p x, Real_p y, uint r, uint c);
     ~Table();
 
     virtual void        Draw(Layout *);
-    virtual uint        DrawSelection(Layout *);
+    virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *);
     virtual Box3        Bounds(Layout *);
     virtual Box3        Space(Layout *);
@@ -48,6 +48,7 @@ struct Table : Layout
     virtual void        Add (Drawing *d);
 
 public:
+    Real_p                 x, y;
     uint                   rows, columns;
     uint                   row, column;
     TreeList               cellFill, cellBorder;

@@ -77,9 +77,9 @@ public:
     virtual GLuint bind(XL::Text *url, XL::Integer_p progress=NULL);
 
 private:
-    XL::Text_p    urlTree;
-    text          url;
+    XL::Text_p    url;
     XL::Integer_p progress;
+    text          inputUrl, currentUrl;
 
 protected slots:
     void        finishedLoading(bool loadedOK);

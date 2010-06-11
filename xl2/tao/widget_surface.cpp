@@ -176,7 +176,7 @@ WebViewSurface::WebViewSurface(XL::Tree *self, Widget *parent)
 //    Build the QWebView
 // ----------------------------------------------------------------------------
     : WidgetSurface(self, new QWebView(parent)),
-      urlTree(NULL), url(""), progress(0)
+      url(NULL), progress(0), inputUrl(""), currentUrl("")
 {
     QWebView *webView = (QWebView *) widget;
     connect(webView->page(),    SIGNAL(repaintRequested(const QRect &)),
@@ -193,15 +193,14 @@ GLuint WebViewSurface::bind(XL::Text *urlTree, XL::Integer_p progressTree)
 //    Update depending on URL changes, then bind texture
 // ----------------------------------------------------------------------------
 {
-    if (progress != progressTree)
-        progress = progressTree;
+    progress = progressTree;
+    url = urlTree;
 
-    if (urlTree != this->urlTree || urlTree->value != url)
+    if (urlTree->value != inputUrl)
     {
+        inputUrl = currentUrl = urlTree->value;
         QWebView *webView = (QWebView *) widget;
-        url = urlTree->value;
-        this->urlTree = urlTree;
-        webView->load(QUrl(+url));
+        webView->load(QUrl(+inputUrl));
         loadProgress(0);
     }
 
@@ -223,15 +222,20 @@ void WebViewSurface::loadProgress(int progressPercent)
 //   If we have a progress status, update it
 // ----------------------------------------------------------------------------
 {
-    if (urlTree)
+    QWebView *webView = (QWebView *) widget;
+    if (webView->url().isValid() && progressPercent >= 20)
+        currentUrl = +webView->url().toString();
+
+    if (url.Pointer() &&
+        url->value != currentUrl &&
+        url->Position() != XL::Tree::NOWHERE)
     {
-        QWebView *webView = (QWebView *) widget;
-        if (webView->url().isValid() && progressPercent >= 20)
-        {
-            url = +webView->url().toString();
-            urlTree->value = url;
-        }
+        // Record the change
+        url->value = currentUrl;
+        Widget *parent = (Widget *) widget->parent();
+        parent->markChanged("URL change");
     }
+
     if (progress.Pointer())
         progress->value = progressPercent;
 }

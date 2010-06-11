@@ -33,8 +33,18 @@ struct Transform : Attribute
 {
     Transform() : Attribute() {}
     virtual void Draw(Layout *where);
-    virtual uint DrawSelection(Layout *where);
+    virtual void DrawSelection(Layout *where);
     virtual void Identify(Layout *where);
+};
+
+
+struct ResetTransform : Transform
+// ----------------------------------------------------------------------------
+//   Reset transform to what it was initially
+// ----------------------------------------------------------------------------
+{
+    ResetTransform() {}
+    virtual void Draw(Layout *where);
 };
 
 

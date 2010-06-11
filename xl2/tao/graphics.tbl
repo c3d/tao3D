@@ -291,7 +291,7 @@ PREFIX(TextFlow, tree, "text_flow", PARM(n, text), RTAO(textFlow(self, n)))
 
 PREFIX(TextSpan, tree,"text", PARM(t, text), RTAO(textSpan(self, t)))
 PREFIX(TextFormula, tree,"formula", PARM(t, tree), RTAO(textFormula(self, t)))
-PREFIX(Font, tree, "font", PARM(f, text), RTAO(font(self, f)))
+PREFIX(Font, tree, "font", PARM(f, tree), RTAO(font(self, f)))
 PREFIX(FontSize, tree, "font_size", PARM(s, real), RTAO(fontSize(self, s)))
 PREFIX(FontScaling, tree, "font_scaling", PARM(s,real) PARM(ms,real),
        RTAO(fontScaling(self,s,ms)))
@@ -360,6 +360,9 @@ PREFIX(LoadText, tree, "load_text",PARM(f,text),
 //
 // ============================================================================
 
+PREFIX(NewTableAt, tree, "table",
+       PARM(x,real) PARM(y, real) PARM(r,integer) PARM(c,integer) PARM(b,tree),
+       RTAO(newTable(self, x, y, r, c, b)));
 PREFIX(NewTable, tree, "table", PARM(r,integer) PARM(c,integer) PARM(b,tree),
        RTAO(newTable(self, r, c, b)));
 PREFIX(TableSizedCell, tree, "table_cell",
@@ -595,3 +598,12 @@ POSTFIX(FromInch, real, PARM(x, real), "inch", RTAO(fromIn(self, x)))
 POSTFIX(FromPt,   real, PARM(x, real), "pt", RTAO(fromPt(self, x)))
 POSTFIX(FromPx,   real, PARM(x, real), "px", RTAO(fromPx(self, x)))
 
+
+
+// ============================================================================
+// 
+//   Misc...
+// 
+// ============================================================================
+
+PREFIX(Constant, tree, "constant", PARM(t, tree), RTAO(constant(self, t)))

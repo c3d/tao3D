@@ -91,6 +91,7 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
     : Drawing(), LayoutState(), id(0),
       hasPixelBlur(false), hasMatrix(false), hasAttributes(false),
+      isSelection(false),
       items(), display(widget)
 {}
 
@@ -101,6 +102,7 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
     : Drawing(o), LayoutState(o), id(0),
       hasPixelBlur(o.hasPixelBlur), hasMatrix(false), hasAttributes(false),
+      isSelection(o.isSelection),
       items(), display(o.display)
 {}
 
@@ -171,7 +173,7 @@ void Layout::Draw(Layout *where)
 }
 
 
-uint Layout::DrawSelection(Layout *where)
+void Layout::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the selection for the elements in the layout
 // ----------------------------------------------------------------------------
@@ -180,17 +182,15 @@ uint Layout::DrawSelection(Layout *where)
     XL::LocalSave<Point3> save(offset, offset);
     GLStateKeeper         glSave(hasAttributes?GL_LAYOUT_BITS:0, hasMatrix);
     Inherit(where);
-    uint sel = 0;
 
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
         glLoadName(id);         // Needed for handles (call Draw, not identify)
-        sel += child->DrawSelection(this);
+        child->DrawSelection(this);
     }
     glLoadName(0);
-    return sel;
 }
 
 
@@ -276,6 +276,30 @@ void Layout::PolygonOffset()
     int offset = polygonOffset++;
     glPolygonOffset (factorBase + offset * factorIncrement,
                      unitBase + offset * unitIncrement);
+}
+
+
+uint Layout::ChildrenSelected()
+// ----------------------------------------------------------------------------
+//   The sum of chilren selections
+// ----------------------------------------------------------------------------
+{
+    uint result = 0;
+    Layout *l;
+    layout_items::iterator i;
+    for (i = items.begin(); i != items.end(); i++)
+        if ((l = dynamic_cast<Layout*>(*i)))
+            result += l->Selected();
+    return result;
+}
+
+
+uint Layout::Selected()
+// ----------------------------------------------------------------------------
+//   Selection state of this layout plus the sum of chilren selections
+// ----------------------------------------------------------------------------
+{
+    return Display()->selected(id) + ChildrenSelected();
 }
 
 

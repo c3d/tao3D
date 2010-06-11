@@ -59,6 +59,7 @@
 #include "normalize.h"
 #include "error_message_dialog.h"
 #include "group_layout.h"
+#include "font.h"
 
 #include <QToolButton>
 #include <QtGui/QImage>
@@ -102,7 +103,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       pageTree(NULL),
       currentShape(NULL),
       currentGridLayout(NULL),
-      currentGroup(NULL), activities(NULL),
+      currentGroup(NULL), fontFileMgr(NULL), activities(NULL),
       id(0), charId(0), capacity(1), manipulator(0),
       wasSelected(false), selectionChanged(false),
       event(NULL), focusWidget(NULL), keyboardModifiers(0),
@@ -752,6 +753,30 @@ bool Widget::selectionsEqual(selection_map &s1, selection_map &s2)
             if (!s1.count((*i).first) || !s1[(*i).first])
                 return false;
     return true;
+}
+
+
+QStringList Widget::fontFiles()
+// ----------------------------------------------------------------------------
+//   Return the paths of all font files used in the document
+// ----------------------------------------------------------------------------
+{
+    struct FFM {
+        FFM(FontFileManager *&m): m(m) { m = new FontFileManager(); }
+       ~FFM()                          { delete m; m = NULL; }
+       FontFileManager *&m;
+    } ffm(fontFileMgr);
+
+    paintGL();
+    if (!fontFileMgr->errors.empty())
+    {
+        // Some font files are not in a suitable format, so we won't try to
+        // embed them (Qt can only load TrueType, TrueType Collection and
+        // OpenType files).
+        foreach (QString m, fontFileMgr->errors)
+            std::cerr << +m << "\n";
+    }
+    return fontFileMgr->fontFiles;
 }
 
 
@@ -2159,16 +2184,51 @@ uint Widget::selected(Layout *layout)
 
 void Widget::select(uint id, uint count)
 // ----------------------------------------------------------------------------
-//    Select the current shape if we are in selectable state
+//    Change the current shape selection state if we are in selectable state
 // ----------------------------------------------------------------------------
 {
     if (id)
     {
-        if (count)
-            selection[id] += (count == 1) ? 1 : (1 << 16);
-        else
+        uint s;
+        switch (count)
+        {
+        case 0:        // Deselect
             selection.erase(id);
+            break;
+        case 1:        // Add "one single click" to selection state
+            selection[id] += 1;
+            break;
+        case 2:        // Add "one double click" to selection state
+            selection[id] += (1 << 16);
+            break;
+        case (uint)-1: // Remove "one single click" from selection state
+            s = selected(id);
+            if (singleClicks(s))
+                selection[id] -= 1;
+            break;
+        default:       // Error
+            break;
+        }
     }
+}
+
+
+void Widget::reselect(Tree *from, Tree *to)
+// ----------------------------------------------------------------------------
+//   If 'from' is in any selection map, add 'to' to this selection
+// ----------------------------------------------------------------------------
+{
+    // Check if we are possibly changing the selection
+    if (selectionTrees.count(from))
+        selectionTrees.insert(to);
+
+    // Check if we are possibly changing the next selection
+    if (selectNextTime.count(from))
+        selectNextTime.insert(to);
+
+    // Check if we are possibly changing the page tree reference
+    if (pageTree == from)
+        pageTree = to;
 }
 
 
@@ -2306,6 +2366,8 @@ void Widget::drawSelection(Layout *where,
     GLAttribKeeper          saveGL;
     resetLayout(where);
     selectionSpace.id = id;
+    selectionSpace.isSelection = true;
+    saveSelectionState(where);
     glDisable(GL_DEPTH_TEST);
     if (bounds.Depth() > 0)
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
@@ -2332,6 +2394,7 @@ void Widget::drawHandle(Layout *where,
     resetLayout(where);
     glDisable(GL_DEPTH_TEST);
     selectionSpace.id = id;
+    selectionSpace.isSelection = true;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
 
     selectionSpace.Draw(where);
@@ -2354,6 +2417,20 @@ void Widget::drawTree(Layout *where, Tree *code)
 
     selectionSpace.Draw(where);
     glEnable(GL_DEPTH_TEST);
+}
+
+
+void Widget::saveSelectionState(Layout *where)
+// ----------------------------------------------------------------------------
+//   Save the color and font for the selection
+// ----------------------------------------------------------------------------
+{
+    if (where)
+    {
+        selectionColor["line_color"] = where->lineColor;
+        selectionColor["color"] = where->fillColor;
+        selectionFont = where->font;
+    }
 }
 
 
@@ -2631,6 +2708,8 @@ Tree_p Widget::activeWidget(Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Create a context for active widgets, e.g. buttons
 // ----------------------------------------------------------------------------
+//   We set currentShape to NULL, which means that we won't create manipulator
+//   so the widget is active (it can be selected) but won't budge
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(newId()));
     XL::LocalSave<Tree_p>   saveShape (currentShape, NULL);
@@ -2650,10 +2729,9 @@ Tree_p Widget::anchor(Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 {
     AnchorLayout *anchor = new AnchorLayout(this);
-    anchor->id = newId();
+    anchor->id = layout->id;
     layout->Add(anchor);
     XL::LocalSave<Layout *> saveLayout(layout, anchor);
-    XL::LocalSave<Tree_p>   saveShape (currentShape, self);
     if (selectNextTime.count(self))
     {
         selection[id]++;
@@ -2669,19 +2747,17 @@ Tree_p Widget::resetTransform(Tree_p self)
 //   Reset transform to original projection state
 // ----------------------------------------------------------------------------
 {
-    setup(width(), height());
-    layout->hasPixelBlur = false;
-    layout->hasMatrix = false;
+    layout->Add(new ResetTransform());
     return XL::xl_false;
 }
 
 
-static inline XL::Real &r(double x)
+static inline XL::Real *r(double x)
 // ----------------------------------------------------------------------------
 //   Utility shortcut to create a constant real value
 // ----------------------------------------------------------------------------
 {
-    return *new XL::Real(x);
+    return new XL::Real(x);
 }
 
 
@@ -3783,13 +3859,17 @@ Tree_p Widget::textFormula(Tree_p self, Tree_p value)
 }
 
 
-Tree_p Widget::font(Tree_p self, text description)
+Tree_p Widget::font(Tree_p self, Tree_p description)
 // ----------------------------------------------------------------------------
 //   Select a font family
 // ----------------------------------------------------------------------------
 {
-    layout->font.fromString(+description);
+    FontParsingAction parseFont(self->Symbols(), layout->font);
+    description->Do(parseFont);
+    layout->font = parseFont.font;
     layout->Add(new FontChange(layout->font));
+    if (fontFileMgr)
+        fontFileMgr->AddFontFiles(layout->font);
     return XL::xl_true;
 }
 
@@ -4117,12 +4197,24 @@ Text_p Widget::loadText(Tree_p self, text file)
 //
 // ============================================================================
 
-Tree_p Widget::newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body)
+Tree_p Widget::newTable(Tree_p self,
+                        Integer_p rows, Integer_p columns,
+                        Tree_p body)
+// ----------------------------------------------------------------------------
+//   Case of a new table without a position
+// ----------------------------------------------------------------------------
+{
+    return newTable(self, r(0), r(0), rows, columns, body);
+}
+
+
+Tree_p Widget::newTable(Tree_p self, Real_p x, Real_p y,
+                        Integer_p r, Integer_p c, Tree_p body)
 // ----------------------------------------------------------------------------
 //   Create a new table
 // ----------------------------------------------------------------------------
 {
-    Table *tbl = new Table(this, r, c);
+    Table *tbl = new Table(this, x, y, r, c);
     XL::LocalSave<Table *> saveTable(table, tbl);
     layout->Add(tbl);
 
@@ -4683,11 +4775,11 @@ Tree_p Widget::colorChooser(Tree_p self, text treeName, Tree_p action)
     // Setup the color dialog
     colorDialog = new QColorDialog(this);
     colorDialog->setOption(QColorDialog::ShowAlphaChannel, true);
-    colorDialog->setModal(false);
     colorDialog->setOption(QColorDialog::DontUseNativeDialog, false);
+    colorDialog->setModal(false);
     updateColorDialog();
 
-    // Connect the dialog and show it
+    // Connect the dialog and sh'ow it
 #ifdef Q_WS_MAC
     // To make the color dialog look Mac-like, we don't show OK and Cancel
     colorDialog->setOption(QColorDialog::NoButtons, true);
@@ -4783,6 +4875,8 @@ void Widget::updateColorDialog()
 
     // Make sure we don't update the trees, only get their colors
     XL::LocalSave<Tree_p > action(colorAction, NULL);
+    Color c = selectionColor[colorName];
+    originalColor.setRgbF(c.red, c.green, c.blue, c.alpha);
 
     // Get the default color from the first selected shape
     for (std::set<Tree_p >::iterator i = selectionTrees.begin();
@@ -4793,10 +4887,10 @@ void Widget::updateColorDialog()
         if (get(*i, colorName, color) && color.size() == 4)
         {
             originalColor.setRgbF(color[0], color[1], color[2], color[3]);
-            colorDialog->setCurrentColor(originalColor);
             break;
         }
     }
+    colorDialog->setCurrentColor(originalColor);
 }
 
 
@@ -4815,8 +4909,14 @@ Tree_p Widget::fontChooser(Tree_p self, Tree_p action)
     fontDialog = new QFontDialog(this);
     connect(fontDialog, SIGNAL(fontSelected (const QFont&)),
             this, SLOT(fontChosen(const QFont &)));
+    connect(fontDialog, SIGNAL(currentFontChanged (const QFont&)),
+            this, SLOT(fontChanged(const QFont &)));
 
+    fontDialog->setOption(QFontDialog::NoButtons, true);
+    fontDialog->setOption(QFontDialog::DontUseNativeDialog, false);
     fontDialog->setModal(false);
+    updateFontDialog();
+
     fontDialog->show();
     fontAction = action;
     if (!fontAction->Symbols())
@@ -4854,22 +4954,22 @@ void Widget::fontChanged(const QFont& ft)
         FontTreeClone(const QFont &f) : font(f){}
         XL::Tree *DoName(XL::Name *what)
         {
-            if (what->value == "family")
+            if (what->value == "font_family")
                 return new XL::Text(font.family().toStdString(),
                                     "\"" ,"\"",what->Position());
-            if (what->value == "pointSize")
-                return new XL::Integer(font.pointSize(),
+            if (what->value == "font_size")
+                return new XL::Integer(font.pointSize(), what->Position());
+            if (what->value == "font_weight")
+                return new XL::Integer(font.weight(), what->Position());
+            if (what->value == "font_slant")
+                return new XL::Integer((int) font.style() * 100,
                                        what->Position());
-            if (what->value == "weight")
-                return new XL::Integer(font.weight(),
-                                       what->Position());
-            if (what->value == "italic")
-            {
-                return new XL::Name(font.italic() ?
-                                    XL::xl_true->value :
-                                    XL::xl_false->value,
-                                    what->Position());
-            }
+            if (what->value == "font_stretch")
+                return new XL::Integer(font.stretch(), what->Position());
+            if (what->value == "font_is_italic")
+                return font.italic() ? XL::xl_true : XL::xl_false;
+            if (what->value == "font_is_bold")
+                return font.bold() ? XL::xl_true : XL::xl_false;
 
             return new XL::Name(what->value, what->Position());
         }
@@ -4896,11 +4996,7 @@ void Widget::updateFontDialog()
 {
     if (!fontDialog)
         return;
-
-    TaoSave saveCurrent(current, this);
-
-    // Make sure we don't update the trees, only get their colors
-    XL::LocalSave<Tree_p > action(fontAction, NULL);
+    fontDialog->setCurrentFont(selectionFont);
 }
 
 
@@ -5987,14 +6083,13 @@ XL::Name_p Widget::setAttribute(Tree_p self,
     return XL::xl_false;
 }
 
+
+
 // ============================================================================
 //
 //   Group management
 //
 // ============================================================================
-
-
-
 
 Tree_p Widget::group(Tree_p self, Tree_p shapes)
 // ----------------------------------------------------------------------------
@@ -6019,8 +6114,7 @@ Tree_p Widget::group(Tree_p self, Tree_p shapes)
 
 Tree_p Widget::updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child)
 // ----------------------------------------------------------------------------
-//    Helper function : Replace the child in the parent tree with the group
-//                      formed from the complete selection
+//   Replace 'child' with a group created from the selection
 // ----------------------------------------------------------------------------
 {
     Name * groupName = new Name("group");
@@ -6108,7 +6202,7 @@ Name_p Widget::groupSelection(Tree_p /*self*/)
 
 bool Widget::updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group)
 // ----------------------------------------------------------------------------
-//    Helper function : Plug the group's chlid tree under the parent.
+//    Helper function: Plug the group's chlid tree under the parent.
 // ----------------------------------------------------------------------------
 {
     Infix * inf = parent->AsInfix();
@@ -6243,6 +6337,23 @@ XL::Real_p Widget::fromPx(Tree_p self, double px)
 // ----------------------------------------------------------------------------
 {
     XL_RREAL(px);
+}
+
+
+
+// ============================================================================
+//
+//    Misc...
+//
+// ============================================================================
+
+Tree_p Widget::constant(Tree_p self, Tree_p tree)
+// ----------------------------------------------------------------------------
+//   Return a clone of the tree to make sure it is not modified
+// ----------------------------------------------------------------------------
+{
+    tree->tag |= ~0UL<<Tree::KINDBITS;
+    return tree;
 }
 
 

@@ -31,11 +31,11 @@
 
 TAO_BEGIN
 
-Table::Table(Widget *w, uint r, uint c)
+Table::Table(Widget *w, Real_p x, Real_p y, uint r, uint c)
 // ----------------------------------------------------------------------------
 //    Constructor
 // ----------------------------------------------------------------------------
-    : Layout(w), rows(r), columns(c), row(0), column(0),
+    : Layout(w), x(x), y(y), rows(r), columns(c), row(0), column(0),
       margins(0,0,5,5), columnWidth(), rowHeight(),
       fill(NULL), border(NULL)
 {}
@@ -61,8 +61,10 @@ void Table::Draw(Layout *where)
     Compute(where);
 
     coord   cellX, cellY, cellW, cellH;
-    coord   px = bounds.lower.x;
-    coord   py = bounds.upper.y;
+    coord   x0 = double(x) - bounds.Width()/2;
+    coord   y0 = double(y) - bounds.Height()/2;
+    coord   px = bounds.lower.x + x0;
+    coord   py = bounds.upper.y + y0;
     uint    r, c;
     Widget *widget = where->Display();
     std::vector<Drawing *>::iterator i = items.begin();
@@ -74,7 +76,7 @@ void Table::Draw(Layout *where)
 
     for (r = 0; r < rows; r++)
     {
-        px = bounds.lower.x;
+        px = bounds.lower.x + x0;
         if (r < rowHeight.size())
             py -= rowHeight[r];
         py -= margins.Height();
@@ -124,7 +126,7 @@ void Table::Draw(Layout *where)
 }
 
 
-uint Table::DrawSelection(Layout *where)
+void Table::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the selection for all the table items
 // ----------------------------------------------------------------------------
@@ -132,17 +134,18 @@ uint Table::DrawSelection(Layout *where)
     Compute(where);
 
     coord   cellX, cellY, cellW, cellH;
-    coord   px = bounds.lower.x;
-    coord   py = bounds.upper.y;
+    coord   x0 = double(x) - bounds.Width()/2;
+    coord   y0 = double(y) - bounds.Height()/2;
+    coord   px = bounds.lower.x + x0;
+    coord   py = bounds.upper.y + y0;
     uint    r, c;
-    uint    sel;
     Widget *widget = where->Display();
     std::vector<Drawing *>::iterator i = items.begin();
     XL::LocalSave<Table *> saveTable(widget->table, this);
 
     for (r = 0; r < rows; r++)
     {
-        px = bounds.lower.x;
+        px = bounds.lower.x + x0;
         if (r < rowHeight.size())
             py -= rowHeight[r];
         py -= margins.Height();
@@ -173,7 +176,7 @@ uint Table::DrawSelection(Layout *where)
             if (d)
             {
                 XL::LocalSave<Point3> saveOffset(offset, where->offset + pos);
-                sel += d->DrawSelection(this);
+                d->DrawSelection(this);
             }
 
             if (c < columnWidth.size())
@@ -181,7 +184,6 @@ uint Table::DrawSelection(Layout *where)
             px += margins.Width();
         }
     }
-    return sel;
 }
 
 
@@ -193,8 +195,10 @@ void Table::Identify(Layout *where)
     Compute(where);
 
     coord   cellX, cellY, cellW, cellH;
-    coord   px = bounds.lower.x;
-    coord   py = bounds.upper.y;
+    coord   x0 = double(x) - bounds.Width()/2;
+    coord   y0 = double(y) - bounds.Height()/2;
+    coord   px = bounds.lower.x + x0;
+    coord   py = bounds.upper.y + y0;
     uint    r, c;
     Widget *widget = where->Display();
     std::vector<Drawing *>::iterator i = items.begin();
@@ -202,7 +206,7 @@ void Table::Identify(Layout *where)
 
     for (r = 0; r < rows; r++)
     {
-        px = bounds.lower.x;
+        px = bounds.lower.x + x0;
         if (r < rowHeight.size())
             py -= rowHeight[r];
         py -= margins.Height();
@@ -250,7 +254,8 @@ Box3 Table::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Compute(where);
-    return bounds + where->offset;
+    Vector3 boff(-bounds.Width()/2, -bounds.Height()/2, 0);
+    return bounds + where->offset + boff;
 }
 
 

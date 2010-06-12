@@ -76,6 +76,9 @@ GLuint SvgRendererInfo::bind (text file)
         }
 
         QString svgFile(+file);
+        QFileInfo fi(svgFile);
+        if (!fi.isReadable())
+            svgFile = "svg:" + svgFile;
         r = new QSvgRenderer(svgFile, widget);
         if (r->isValid())
         {

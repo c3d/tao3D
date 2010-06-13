@@ -98,6 +98,28 @@ struct FillTexture : Attribute
 };
 
 
+struct TextureWrap : Attribute
+// ----------------------------------------------------------------------------
+//    Record a texture wrapping setting
+// ----------------------------------------------------------------------------
+{
+    TextureWrap(bool s, bool t): Attribute(), s(s), t(t) {}
+    virtual void Draw(Layout *where);
+    bool        s, t;
+};
+
+
+struct TextureTransform : Attribute
+// ----------------------------------------------------------------------------
+//    Record a texture transform
+// ----------------------------------------------------------------------------
+{
+    TextureTransform(bool enable): Attribute(), enable(enable) {}
+    virtual void Draw(Layout *where);
+    bool        enable;
+};
+
+
 struct LineWidth : Attribute
 // ----------------------------------------------------------------------------
 //    Record the line width when drawing elements

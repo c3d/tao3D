@@ -88,6 +88,28 @@ void FillTexture::Draw(Layout *where)
 }
 
 
+void TextureWrap::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Replay a texture change
+// ----------------------------------------------------------------------------
+{
+    where->wrapS = s;
+    where->wrapT = t;
+}
+
+
+void TextureTransform::Draw(Layout *)
+// ----------------------------------------------------------------------------
+//   Enter or exit texture transform mode
+// ----------------------------------------------------------------------------
+{
+    if (enable)
+        glMatrixMode(GL_TEXTURE);
+    else
+        glMatrixMode(GL_MODELVIEW);
+}
+
+
 void LineWidth::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Replay a line width change

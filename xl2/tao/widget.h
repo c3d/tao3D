@@ -270,6 +270,8 @@ public:
     Tree_p      fillColor(Tree_p self, double r, double g, double b, double a);
     Tree_p      fillTexture(Tree_p self, text fileName);
     Tree_p      fillTextureFromSVG(Tree_p self, text svg);
+    Tree_p      textureWrap(Tree_p self, bool s, bool t);
+    Tree_p      textureTransform(Tree_p self, Tree_p code);
 
     // Generating a path
     Tree_p      newPath(Tree_p self, Tree_p t);

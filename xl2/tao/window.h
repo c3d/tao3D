@@ -63,12 +63,12 @@ public:
     void switchToFullScreen(bool fs);
     bool showSourceView(bool fs);
     bool loadFileIntoSourceFileView(const QString &fileName, bool box=false);
+    QString  currentProjectFolderPath();
 
     bool isUntitled;
     bool isReadOnly;
     bool loadInProgress;
 
-    QString  currentProjectFolderPath();
 
 public:
     QUndoStack       * undoStack;

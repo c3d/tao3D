@@ -58,6 +58,10 @@ bool Shape::setTexture(Layout *where)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         }
+        GLuint wrapS = where->wrapS ? GL_REPEAT : GL_CLAMP;
+        GLuint wrapT = where->wrapT ? GL_REPEAT : GL_CLAMP;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
         glEnable(GL_TEXTURE_2D);
         if (TaoApp->hasGLMultisample)
             glEnable(GL_MULTISAMPLE);

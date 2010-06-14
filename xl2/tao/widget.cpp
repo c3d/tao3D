@@ -3135,6 +3135,29 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
 }
 
 
+Tree_p Widget::textureWrap(Tree_p self, bool s, bool t)
+// ----------------------------------------------------------------------------
+//   Record if we want to wrap textures or clamp them
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new TextureWrap(s, t));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::textureTransform(Tree_p self, Tree_p code)
+// ----------------------------------------------------------------------------
+//   Apply a texture transformation
+// ----------------------------------------------------------------------------
+{
+    layout->hasTextureMatrix = true;
+    layout->Add(new TextureTransform(true));
+    Tree_p result = xl_evaluate(code);
+    layout->Add(new TextureTransform(false));
+    return result;
+}
+    
+
 
 // ============================================================================
 //
@@ -5462,6 +5485,7 @@ Tree_p Widget::videoPlayerTexture(Tree_p self, Real_p wt, Real_p ht, Text_p url)
 
     return XL::xl_true;
 }
+
 
 
 // ============================================================================

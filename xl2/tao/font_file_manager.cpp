@@ -26,6 +26,8 @@
 #include "tao_utf8.h"
 
 #include <QFontDatabase>
+#include <QFileInfoList>
+#include <QDir>
 #include <iostream>
 
 #ifdef CONFIG_MINGW
@@ -136,6 +138,67 @@ bool FontFileManager::IsLoadable(QString fileName)
         std::cerr << "    Font file can be loaded\n";
     QFontDatabase::removeApplicationFont(id);
     return true;
+}
+
+
+QList<int> FontFileManager::LoadEmbeddedFonts(const QString &docPath)
+// ----------------------------------------------------------------------------
+//    Load the fonts associated with a document (font embedding)
+// ----------------------------------------------------------------------------
+{
+    QList<int> ids;
+    QString fontPath = FontPathFor(docPath);
+    QDir fontDir(fontPath);
+    QFileInfoList contents = fontDir.entryInfoList();
+    foreach (QFileInfo f, contents)
+    {
+        if (f.isFile())
+        {
+            QString path = f.absoluteFilePath();
+            IFTRACE(fonts)
+                std::cerr << "Loading font file '" << +path << "'...";
+            int id = QFontDatabase::addApplicationFont(path);
+            if (id != -1)
+            {
+                IFTRACE(fonts)
+                    std::cerr << " done (id=" << id << ")\n";
+                ids.append(id);
+            }
+            else
+            {
+                IFTRACE(fonts)
+                    std::cerr << " failed\n";
+                errors << QString(QObject::tr("Cannot load font file: %1"))
+                                 .arg(path);
+            }
+        }
+    }
+    return ids;
+}
+
+void FontFileManager::UnloadEmbeddedFonts(const QList<int> &ids)
+// ----------------------------------------------------------------------------
+//    Unload previously loaded fonts
+// ----------------------------------------------------------------------------
+{
+    foreach(int id, ids)
+    {
+        IFTRACE(fonts)
+                std::cerr << "Unloading font id " << id << "\n";
+        QFontDatabase::removeApplicationFont(id);
+    }
+}
+
+
+QString FontFileManager::FontPathFor(const QString &docPath)
+// ----------------------------------------------------------------------------
+//    Return the directory where to store embedded fonts for a document
+// ----------------------------------------------------------------------------
+{
+    QString projPath, fontPath;
+    projPath = QFileInfo(docPath).absolutePath();
+    fontPath = QString("%1/fonts").arg(projPath);
+    return fontPath;
 }
 
 

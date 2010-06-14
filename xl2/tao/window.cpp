@@ -124,6 +124,15 @@ Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
 }
 
 
+Window::~Window()
+// ----------------------------------------------------------------------------
+//   Destroy a document window and free associated resources
+// ----------------------------------------------------------------------------
+{
+    FontFileManager::UnloadEmbeddedFonts(appFontIds);
+}
+
+
 void Window::setHtml(QString txt)
 // ----------------------------------------------------------------------------
 //   Update the text edit widget with updates we made
@@ -370,9 +379,8 @@ bool Window::saveFonts()
     if (!ok)
         return ok;
 
-    QString projPath, fontPath;
-    projPath = QFileInfo(curFile).absolutePath();
-    fontPath = QString("%1/fonts").arg(projPath);
+    QString fontPath;
+    fontPath = FontFileManager::FontPathFor(curFile);
     if (!QDir().exists(fontPath))
     {
         ok = QDir().mkdir(fontPath);
@@ -907,6 +915,13 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         !openProject(QFileInfo(fileName).canonicalPath(),
                      QFileInfo(fileName).fileName()))
         return false;
+
+    FontFileManager ffm;
+    appFontIds = ffm.LoadEmbeddedFonts(fileName);
+    if (!appFontIds.empty())
+        taoWidget->glyphs().Clear();
+    foreach (QString e, ffm.errors)
+        addError(e);
 
     if (!loadFileIntoSourceFileView(fileName, openProj))
         return false;

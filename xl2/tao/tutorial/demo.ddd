@@ -22,29 +22,27 @@ page "Welcome to Tao", do
 page "Why call it Tao (道)?", do 
     story 
         vertical_center 0.0 
-        * "Here is what Wikipedia has to say:"
+        * "Wikipedia explains the Tao:"
     
     story 
         vertical_center 0.95 
         request "The box above is a live web page. Click to activate..."
     
     active_widget 
-        reset_transform
+        reset_transform 
         color 95% ,100% ,97% ,70% 
         url 0 * window_scale, -40 * window_scale, 800 * window_scale, 350 * window_scale, constant "http://en.wikipedia.org/wiki/Tao#Meanings"
     
     active_widget 
-        reset_transform
-
+        reset_transform 
         color 1, 1, 1, 1 
         push_button 300 * window_scale, -280 * window_scale, 160, 25, "MoreURLs", "More Web Quotes...", goto_page "More Web Pages"
-        
     
 
 page "Hello, World!", do 
     story 
         vertical_center 0.0 
-        * "Here is Tao's version of the venerable 'Hello World'"
+        * "This is Tao's version of the venerable 'Hello World'"
     
     story 
         vertical_center 1.0 
@@ -172,7 +170,7 @@ page "More Web Pages", do
         text "Gen. James N. Mattis, US Joint Forces Commander, Marine Corps"
     
     active_widget 
-        reset_transform
+        reset_transform 
         color 95% ,100% ,97% ,70% 
         url 0 * window_scale, -70 * window_scale, 800 * window_scale, 400 * window_scale, constant "http://www.nytimes.com/2010/04/27/world/27powerpoint.html"
     

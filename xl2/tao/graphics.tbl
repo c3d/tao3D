@@ -149,6 +149,11 @@ PREFIX(ImageA, tree,"image",
 PREFIX(ImageB, tree,"image",
        PARM(x, real) PARM(y, real) PARM(img, text),
        RTAO(image(self, x, y, img)))
+PREFIX(TextureWrap, tree, "texture_wrap", PARM(s, boolean) PARM(t, boolean),
+       RTAO(textureWrap(self, s, t)))
+PREFIX(TextureTransform, tree, "texture_transform", PARM(t, tree),
+       RTAO(textureTransform(self, t)))
+
 
 
 // ============================================================================
@@ -184,6 +189,7 @@ PREFIX(ClosePath, tree, "close_path",, RTAO(closePath(self)))
 PREFIX(EndpointsStyle, tree, "endpoints_style",
        PARM(s, symbolicname) PARM(e, symbolicname),
        RTAO(endpointsStyle(self, s, e)))
+
 
 
 // ============================================================================

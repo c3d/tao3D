@@ -94,7 +94,8 @@ GLuint ImageTextureInfo::bind(text file)
         while (textures.size() > MAX_TEXTURES)
         {
             texture_map::iterator first = textures.begin();
-            glDeleteTextures(1, &(*first).second.id);
+            if ((*first).second.id != defaultTexture().id)
+                glDeleteTextures(1, &(*first).second.id);
             textures.erase(first);
         }
 

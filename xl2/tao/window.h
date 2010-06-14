@@ -54,6 +54,7 @@ class Window : public QMainWindow
 
 public:
     Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf = NULL);
+    ~Window();
 
     void setHtml(QString txt);
     void addError(QString txt);
@@ -62,10 +63,12 @@ public:
     void switchToFullScreen(bool fs);
     bool showSourceView(bool fs);
     bool loadFileIntoSourceFileView(const QString &fileName, bool box=false);
+    QString  currentProjectFolderPath();
 
     bool isUntitled;
     bool isReadOnly;
     bool loadInProgress;
+
 
 public:
     QUndoStack       * undoStack;
@@ -84,6 +87,7 @@ private slots:
     void open(QString fileName = "");
     bool save();
     bool saveAs();
+    bool saveFonts();
     void openRecentFile();
     void clearRecentFileList();
     void cut();
@@ -119,7 +123,7 @@ private:
     Window  *findWindow(const QString &fileName);
     void     updateProgram(const QString &filename);
     void     resetTaoMenus();
-    QString  currentProjectFolderPath();
+    QString  fontPathFor(const QString &docPath);
     bool     populateUndoStack();
     void     warnNoRepo();
     void     enableProjectSharingMenus();
@@ -130,9 +134,12 @@ private:
 private:
     XL::Main *        xlRuntime;
     QSharedPointer<Repository> repo;
+    QList<int>        appFontIds;
 
     QTextEdit        *textEdit;
     QTextEdit        *errorMessages;
+    // currentProjectFolder : Used if repo is not used.
+    QString          currentProjectFolder;
 public:
     QDockWidget      *dock;
 private:
@@ -152,6 +159,7 @@ private:
     QAction          *openAct;
     QAction          *saveAct;
     QAction          *saveAsAct;
+    QAction          *saveFontsAct;
     QAction          *closeAct;
     QAction          *exitAct;
     QAction          *cutAct;

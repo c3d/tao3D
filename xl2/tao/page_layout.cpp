@@ -635,6 +635,8 @@ void PageLayout::DrawSelection(Layout *where)
         if (sel->findingLayout)
             if (sel->start() <= endId+1 && sel->end() >= startId)
                 widget->select(where->id, 1);
+    if (widget->selected(where))
+        widget->saveSelectionState(where);
 }
 
 

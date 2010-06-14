@@ -54,6 +54,8 @@ public:
     Color               lineColor;
     Color               fillColor;
     uint                fillTexture;
+    bool                wrapS : 1;                // Texture wrapping
+    bool                wrapT : 1;
     uint                rotationId, translationId, scaleId;
 };
 
@@ -96,6 +98,7 @@ public:
     bool                hasPixelBlur    : 1; // Pixels not aligning naturally
     bool                hasMatrix       : 1;
     bool                hasAttributes   : 1;
+    bool                hasTextureMatrix: 1;
     bool                isSelection     : 1;
 
 protected:

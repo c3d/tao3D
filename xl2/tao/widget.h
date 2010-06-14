@@ -34,6 +34,7 @@
 #include "menuinfo.h"
 #include "color.h"
 #include "glyph_cache.h"
+#include "font_file_manager.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -180,6 +181,7 @@ public:
     void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
     uint        selected(uint i);
     uint        selected(Layout *);
+    void        reselect(Tree *from, Tree *to);
     static uint singleClicks(uint sel)  { return sel & 0xFFFF; }
     static uint doubleClicks(uint sel)  { return sel >> 16; }
     void        select(uint id, uint count);
@@ -199,12 +201,12 @@ public:
     bool        canPaste();
     static
     bool        selectionsEqual(selection_map &s1, selection_map &s2);
-    void        setColor(text n, const Color &c) { currentColor[n] = c; }
-    void        saveSelectionColors() { selectionColor = currentColor; }
+    void        saveSelectionState(Layout *where);
 
-    // Text flows and text managemen
+    // Text flows and text management
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
     GlyphCache &glyphs()    { return glyphCache; }
+    QStringList fontFiles();
 
 public:
     // XLR entry points
@@ -268,6 +270,8 @@ public:
     Tree_p      fillColor(Tree_p self, double r, double g, double b, double a);
     Tree_p      fillTexture(Tree_p self, text fileName);
     Tree_p      fillTextureFromSVG(Tree_p self, text svg);
+    Tree_p      textureWrap(Tree_p self, bool s, bool t);
+    Tree_p      textureTransform(Tree_p self, Tree_p code);
 
     // Generating a path
     Tree_p      newPath(Tree_p self, Tree_p t);
@@ -553,7 +557,7 @@ private:
     QGridLayout *         currentGridLayout;
     GroupInfo   *         currentGroup;
     GlyphCache            glyphCache;
-    bool                  hasGLMultisample;
+    FontFileManager *     fontFileMgr;
 
     // Selection
     Activity *            activities;
@@ -576,7 +580,8 @@ private:
     int                   order;
     Tree_p                colorAction, fontAction;
     text                  colorName;
-    std::map<text,Color>  currentColor, selectionColor;
+    std::map<text,Color>  selectionColor;
+    QFont                 selectionFont;
     QColor                originalColor;
 
     // Timing

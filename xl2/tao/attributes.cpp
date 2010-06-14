@@ -24,6 +24,7 @@
 #include "attributes.h"
 #include "layout.h"
 #include "widget.h"
+#include "tao_utf8.h"
 #include <GL/glew.h>
 #include <iostream>
 
@@ -65,8 +66,6 @@ void LineColor::Draw(Layout *where)
 //   Remember the color in the layout
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = where->Display();
-    widget->setColor("line_color", color);
     where->lineColor = color;
 }
 
@@ -76,8 +75,6 @@ void FillColor::Draw(Layout *where)
 //   Remember the color in the layout
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = where->Display();
-    widget->setColor("color", color);
     where->fillColor = color;
 }
 
@@ -88,6 +85,28 @@ void FillTexture::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     where->fillTexture = glName;
+}
+
+
+void TextureWrap::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Replay a texture change
+// ----------------------------------------------------------------------------
+{
+    where->wrapS = s;
+    where->wrapT = t;
+}
+
+
+void TextureTransform::Draw(Layout *)
+// ----------------------------------------------------------------------------
+//   Enter or exit texture transform mode
+// ----------------------------------------------------------------------------
+{
+    if (enable)
+        glMatrixMode(GL_TEXTURE);
+    else
+        glMatrixMode(GL_MODELVIEW);
 }
 
 

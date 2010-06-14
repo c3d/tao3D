@@ -31,6 +31,7 @@
 #include "publish_to_dialog.h"
 #include "clone_dialog.h"
 #include "undo.h"
+#include "resource_mgt.h"
 
 #include <iostream>
 #include <sstream>
@@ -120,6 +121,15 @@ Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
     connect(qApp->clipboard(), SIGNAL(dataChanged()),
             this, SLOT(checkClipboard()));
     checkClipboard();
+}
+
+
+Window::~Window()
+// ----------------------------------------------------------------------------
+//   Destroy a document window and free associated resources
+// ----------------------------------------------------------------------------
+{
+    FontFileManager::UnloadEmbeddedFonts(appFontIds);
 }
 
 
@@ -346,6 +356,67 @@ bool Window::saveAs()
 }
 
 
+bool Window::saveFonts()
+// ----------------------------------------------------------------------------
+//    Like saveAs() but also embed currently used fonts into the document
+// ----------------------------------------------------------------------------
+{
+    bool ok;
+
+    ok = saveAs();
+    if (!ok)
+        return ok;
+
+    struct SOC
+    {
+         SOC() { QApplication::setOverrideCursor(Qt::WaitCursor); }
+        ~SOC() { QApplication::restoreOverrideCursor(); }
+    } soc;
+
+    QStringList files;
+    files = taoWidget->fontFiles();
+    ok = !files.empty();
+    if (!ok)
+        return ok;
+
+    QString fontPath;
+    fontPath = FontFileManager::FontPathFor(curFile);
+    if (!QDir().exists(fontPath))
+    {
+        ok = QDir().mkdir(fontPath);
+        if (!ok)
+            return ok;
+    }
+
+    QString fileName, newFile;
+    foreach (QString file, files)
+    {
+        fileName = QFileInfo(file).fileName();
+        newFile = QString("%1/%2").arg(fontPath).arg(fileName);
+        IFTRACE(fonts)
+        {
+            std::cerr << "Copying '" << +file << "' as '" << +newFile << "'\n";
+        }
+        if (newFile == file)
+            continue;
+        if (QFile::exists(newFile))
+            QFile::remove(newFile);
+        ok |= QFile::copy(file, newFile);
+    }
+
+    if (repo)
+    {
+        repo->markChanged("Embed fonts");
+        repo->change(+fontPath);
+        repo->state = Repository::RS_NotClean;
+        repo->asyncCommit();
+    }
+
+    statusBar()->showMessage(tr("File saved"), 2000);
+    return ok;
+}
+
+
 void Window::openRecentFile()
 // ----------------------------------------------------------------------------
 //    Open a file from the recent file list
@@ -555,6 +626,11 @@ void Window::createActions()
     saveAsAct->setStatusTip(tr("Save the document under a new name"));
     connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
 
+    saveFontsAct = new QAction(tr("Save with fonts..."), this);
+    saveFontsAct->setStatusTip(tr("Save the document and store all the "
+                                  "needed fonts alongside the document"));
+    connect(saveFontsAct, SIGNAL(triggered()), this, SLOT(saveFonts()));
+
     clearRecentAct = new QAction(tr("Clear list"), this);
     connect(clearRecentAct, SIGNAL(triggered()),
             this, SLOT(clearRecentFileList()));
@@ -666,6 +742,7 @@ void Window::createMenus()
     openRecentMenu = fileMenu->addMenu(tr("Open Recent"));
     fileMenu->addAction(saveAct);
     fileMenu->addAction(saveAsAct);
+    fileMenu->addAction(saveFontsAct);
     fileMenu->addSeparator();
     fileMenu->addAction(closeAct);
     fileMenu->addAction(exitAct);
@@ -839,6 +916,13 @@ bool Window::loadFile(const QString &fileName, bool openProj)
                      QFileInfo(fileName).fileName()))
         return false;
 
+    FontFileManager ffm;
+    appFontIds = ffm.LoadEmbeddedFonts(fileName);
+    if (!appFontIds.empty())
+        taoWidget->glyphs().Clear();
+    foreach (QString e, ffm.errors)
+        addError(e);
+
     if (!loadFileIntoSourceFileView(fileName, openProj))
         return false;
 
@@ -913,7 +997,6 @@ bool Window::saveFile(const QString &fileName)
 // ----------------------------------------------------------------------------
 {
     QFile file(fileName);
-    text fn = +fileName;
 
     if (!file.open(QFile::WriteOnly | QFile::Text))
     {
@@ -932,8 +1015,18 @@ bool Window::saveFile(const QString &fileName)
         QApplication::restoreOverrideCursor();
     } while (0); // Flush
 
+    text fn = +fileName;
+
     setCurrentFile(fileName);
     xlRuntime->LoadFile(fn);
+
+    ResourceMgt checkFiles(taoWidget);
+    xlRuntime->files[fn].tree->Do(checkFiles); // Crash sur le [fn] CaB
+    checkFiles.cleanUpRepo();
+    // Reload the program and mark the changes
+    taoWidget->reloadProgram();
+    taoWidget->markChanged("Related files included in the project");
+
     statusBar()->showMessage(tr("File saved"), 2000);
     updateProgram(fileName);
 
@@ -1153,8 +1246,8 @@ void Window::updateContext(QString docPath)
 // and the associated user.xl and theme.xl.
 // ----------------------------------------------------------------------------
 {
-    TaoApp->currentProjectFolder = docPath;
-    TaoApp->updateSearchPathes();
+    currentProjectFolder = docPath;
+    TaoApp->updateSearchPathes(currentProjectFolder);
 
     // Fetch info for XL files
     QFileInfo user      ("xl:user.xl");
@@ -1217,6 +1310,10 @@ QString Window::currentProjectFolderPath()
 {
     if (repo)
         return repo->path;
+
+    if ( !currentProjectFolder.isEmpty())
+        return currentProjectFolder;
+
     return Application::defaultProjectFolderPath();
 }
 
@@ -1295,7 +1392,7 @@ void Window::setCurrentFile(const QString &fileName)
         while (files.size() > MaxRecentFiles)
             files.removeLast();
         settings.setValue("recentFileList", files);
-        
+
         foreach (QWidget *widget, QApplication::topLevelWidgets())
         {
             Window *mainWin = qobject_cast<Window *>(widget);
@@ -1320,7 +1417,7 @@ QString Window::findUnusedUntitledFile()
         QFile file(name);
         if (!file.open(QFile::ReadOnly | QFile::Text))
             return name;
-    } 
+    }
 
     return "";
 }

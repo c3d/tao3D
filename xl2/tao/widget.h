@@ -347,6 +347,7 @@ public:
                      Real_p w, Real_p h, Real_p d);
     Tree_p      cone(Tree_p self, Real_p cx, Real_p cy, Real_p cz,
                      Real_p w, Real_p h, Real_p d);
+    Tree_p      load3D(Tree_p self, Text_p name);
 
     // Text and font
     Tree_p      textBox(Tree_p self,

@@ -60,6 +60,7 @@
 #include "error_message_dialog.h"
 #include "group_layout.h"
 #include "font.h"
+#include "objloader.h"
 
 #include <QToolButton>
 #include <QtGui/QImage>
@@ -3084,7 +3085,7 @@ Tree_p Widget::fillTexture(Tree_p self, text img)
         ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
         if (!rinfo)
         {
-            rinfo = new ImageTextureInfo(this);
+            rinfo = new ImageTextureInfo();
             self->SetInfo<ImageTextureInfo>(rinfo);
         }
         texId = rinfo->bind(img);
@@ -3151,7 +3152,7 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, text filename)
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
     if (!rinfo)
     {
-        rinfo = new ImageTextureInfo(this);
+        rinfo = new ImageTextureInfo();
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
     texId = rinfo->bind(filename);
@@ -3188,7 +3189,7 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
     if (!rinfo)
     {
-        rinfo = new ImageTextureInfo(this);
+        rinfo = new ImageTextureInfo();
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
     texId = rinfo->bind(filename);
@@ -3863,6 +3864,22 @@ Tree_p Widget::cone(Tree_p self,
     layout->Add(new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d)));
     if (currentShape)
         layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::load3D(Tree_p self, Text_p name)
+// ----------------------------------------------------------------------------
+//   Load a 3D object
+// ----------------------------------------------------------------------------
+{
+    Object3D *obj = name->GetInfo<Object3D>();
+    if (!obj)
+    {
+        obj = new Object3D(name->value.c_str());
+        name->SetInfo<Object3D>(obj);
+    }
+    layout->Add(new Object3DDrawing(obj));
     return XL::xl_true;
 }
 

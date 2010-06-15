@@ -109,9 +109,9 @@ Text * ResourceMgt::getArg(Prefix * what, int pos)
         return inf->right->AsText();
     }
 
-    // loop to get the required argument (inf->left is already the first one)
+    // Loop to get the required argument (inf->left is already the first one)
     Infix *last = inf;
-    Infix *next;
+    Infix *next = NULL;
     while ( (--pos > 0) &&
             (next = last->right->AsInfix()) &&
             (next->name == "," ))
@@ -123,7 +123,7 @@ Text * ResourceMgt::getArg(Prefix * what, int pos)
         last = next;
     }
 
-    if (next->name ==  "\n" || next->name == ";")
+    if (next && (next->name ==  "\n" || next->name == ";"))
     {
         IFTRACE(resources)
         {

@@ -110,6 +110,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
       colorAction(NULL), fontAction(NULL),
+      lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
       timer(this), idleTimer(this),
       pageStartTime(1e6), pageRefresh(1e6), frozenTime(1e6), startTime(1e6),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
@@ -156,6 +157,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     srcRenderer = new XL::Renderer(srcRendererOutput);
     QFileInfo stylesheet("xl:srcview.stylesheet");
     srcRenderer->SelectStyleSheet(+stylesheet.canonicalFilePath());
+
+    // Make sure we get mouse events even when no click is made
+    setMouseTracking(true);
 }
 
 
@@ -1370,6 +1374,11 @@ void Widget::mousePressEvent(QMouseEvent *event)
     int     x           = event->x();
     int     y           = event->y();
 
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+    lastMouseButtons = button;
+
     // Create a selection if left click and nothing going on right now
     if (button == Qt::LeftButton)
         new Selection(this);
@@ -1423,6 +1432,11 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
     int x = event->x();
     int y = event->y();
 
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+    lastMouseButtons = button;
+
     // Check if there is an activity that deals with it
     for (Activity *a = activities; a; a = a->Click(button, 0, x, y)) ;
 
@@ -1439,9 +1453,15 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
     TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
-    bool active = event->buttons() != Qt::NoButton;
+    int buttons = event->buttons();
+    bool active = buttons != Qt::NoButton;
     int x = event->x();
     int y = event->y();
+
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+    lastMouseButtons = buttons;
 
     // Check if there is an activity that deals with it
     for (Activity *a = activities; a; a = a->MouseMove(x, y, active)) ;
@@ -1467,6 +1487,11 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
     if (button == Qt::LeftButton && !activities)
         new Selection(this);
 
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+    lastMouseButtons = button;
+
     // Send the click to all activities
     for (Activity *a = activities; a; a = a->Click(button, 2, x, y)) ;
 
@@ -1482,6 +1507,13 @@ void Widget::wheelEvent(QWheelEvent *event)
     TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
+    int     x           = event->x();
+    int     y           = event->y();
+
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+
     forwardEvent(event);
 }
 
@@ -2676,6 +2708,39 @@ XL::Real_p Widget::every(Tree_p self,
 }
 
 
+Real_p Widget::mouseX(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the position of the mouse
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new RecordMouseCoordinates(self));
+    if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
+        return new Real(info->coordinates.x);
+    return new Real(0.0);
+}
+
+
+Real_p Widget::mouseY(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the position of the mouse
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new RecordMouseCoordinates(self));
+    if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
+        return new Real(info->coordinates.y);
+    return new Real(0.0);
+}
+
+
+Integer_p Widget::mouseButtons(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the buttons of the last mouse event
+// ----------------------------------------------------------------------------
+{
+    return new Integer(lastMouseButtons);
+}
+
+
 Tree_p Widget::locally(Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree while preserving the current state
@@ -2880,13 +2945,8 @@ XL::Name_p Widget::depthTest(XL::Tree_p self, bool enable)
 //   Change the delta we use for the depth
 // ----------------------------------------------------------------------------
 {
-    GLboolean old;
-    glGetBooleanv(GL_DEPTH_TEST, &old);
-    if (enable)
-        glEnable(GL_DEPTH_TEST);
-    else
-        glDisable(GL_DEPTH_TEST);
-    return old ? XL::xl_true : XL::xl_false;
+    layout->Add(new DepthTest(enable));
+    return XL::xl_true;
 }
 
 

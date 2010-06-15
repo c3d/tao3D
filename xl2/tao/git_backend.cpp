@@ -204,6 +204,18 @@ bool GitRepository::change(text name)
 }
 
 
+bool GitRepository::remove(text name)
+// ----------------------------------------------------------------------------
+//   Remove a file from the repository
+// ----------------------------------------------------------------------------
+{
+    mergeCommitMessages(nextCommitMessage, whatsNew);
+    whatsNew = "";
+    dispatch(new Process(command(), QStringList("rm") << +name, path, false));
+    return true;
+}
+
+
 bool GitRepository::rename(text from, text to)
 // ----------------------------------------------------------------------------
 //   Rename a file in the repository

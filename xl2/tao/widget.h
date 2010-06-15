@@ -611,6 +611,7 @@ private:
     static QFileDialog *  fileDialog;
            QFileDialog *  currentFileDialog;
     static double         zNear, zFar;
+    double                zoom;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:

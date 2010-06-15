@@ -55,6 +55,7 @@ public:
     virtual bool        branch(text name);
     virtual bool        add(text name);
     virtual bool        change(text name);
+    virtual bool        remove(text name);
     virtual bool        rename(text from, text to);
     virtual bool        commit(text message = "", bool all=false);
     virtual bool        asyncCommit(text message = "", bool all=false);

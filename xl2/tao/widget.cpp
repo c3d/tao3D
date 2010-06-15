@@ -116,7 +116,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
       nextPull(nextSave), animated(true),
-      currentFileDialog(NULL)
+      currentFileDialog(NULL),
+      zoom(1.0)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -777,8 +778,9 @@ QStringList Widget::fontFiles()
         // Some font files are not in a suitable format, so we won't try to
         // embed them (Qt can only load TrueType, TrueType Collection and
         // OpenType files).
+        Window *window = (Window *) parentWidget();
         foreach (QString m, fontFileMgr->errors)
-            std::cerr << +m << "\n";
+            window->addError(m);
     }
     return fontFileMgr->fontFiles;
 }
@@ -905,7 +907,7 @@ void Widget::setup(double w, double h, Box *picking)
     double eyeX = 0.0, eyeY = 0.0, eyeZ = zNear;
     double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
     double upX = 0.0, upY = 1.0, upZ = 0.0;
-    glFrustum (-w/2, w/2, -h/2, h/2, zNear, zFar);
+    glFrustum ((-w/2)*zoom, (w/2)*zoom, (-h/2)*zoom, (h/2)*zoom, zNear, zFar);
     gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
     glTranslatef(0.0, 0.0, -zNear);
     glScalef(2.0, 2.0, 2.0);
@@ -1501,7 +1503,7 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
 
 void Widget::wheelEvent(QWheelEvent *event)
 // ----------------------------------------------------------------------------
-//   Mouse wheel
+//   Mouse wheel: zoom in/out
 // ----------------------------------------------------------------------------
 {
     TaoSave saveCurrent(current, this);
@@ -1514,7 +1516,16 @@ void Widget::wheelEvent(QWheelEvent *event)
     lastMouseX = x;
     lastMouseY = y;
 
-    forwardEvent(event);
+    if (forwardEvent(event))
+        return;
+
+    int d = event->delta();
+    if (d < 0 && zoom <= 3.75)
+        zoom += 0.25;
+    else if (d > 0 && zoom >= 0.5)
+        zoom -= 0.25;
+    setup(width(), height());
+    updateGL();
 }
 
 

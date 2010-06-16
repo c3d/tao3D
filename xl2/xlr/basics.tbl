@@ -64,6 +64,7 @@ PREFIX(Negate, real, "-", PARM(r, real), XL_RREAL(-r))
 PREFIX(Sin, real, "sin", PARM(x, real), XL_RREAL(sin(x)))
 PREFIX(Cos, real, "cos", PARM(x, real), XL_RREAL(cos(x)))
 PREFIX(Tan, real, "tan", PARM(x, real), XL_RREAL(tan(x)))
+PREFIX(Sqrt, real, "sqrt", PARM(x, real), XL_RREAL(sqrt(x)))
 PREFIX(ArcSin, real, "asin", PARM(x, real), XL_RREAL(asin(x)))
 PREFIX(ArcCos, real, "acos", PARM(x, real), XL_RREAL(acos(x)))
 PREFIX(ArcTan, real, "atan", PARM(x, real), XL_RREAL(atan(x)))
@@ -146,6 +147,7 @@ PREFIX(LoadData,  tree, "load_data",
        return xl_load_data(f, p, fs, rs))
 INFIX(Apply, tree, tree, "with", tree,
       return xl_apply(&l, &r))
+INFIX(Range, tree, integer, "..", integer, return xl_range(l, r))
 
 // Debugging code
 PREFIX(DebugTree, tree, "debug", PARM(toDebug, tree),

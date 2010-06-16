@@ -763,8 +763,8 @@ void PageLayout::Compute(Layout *where)
     }
 
     // Now that we have all lines, do the vertical layout
-    coord top = space.Top() - top;
-    coord bottom = space.Bottom() + bottom;
+    coord top = space.Top() - this->top;
+    coord bottom = space.Bottom() + this->bottom;
     if (top < bottom) std::swap(top, bottom);
     page.Adjust(top, bottom, alongY, this);
 

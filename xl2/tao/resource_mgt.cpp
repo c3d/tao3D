@@ -113,20 +113,28 @@ Text * ResourceMgt::getArg(Prefix * what, int pos)
         return inf->right->AsText();
     }
 
-    // loop to get the required argument (inf->left is already the first one)
+    // Loop to get the required argument (inf->left is already the first one)
     Infix *last = inf;
     Infix *next = NULL;
+<<<<<<< variant A
     while ( (--pos > 1) &&
             (next = last->left->AsInfix()) &&
+>>>>>>> variant B
+    while ( (--pos > 0) &&
+            (next = last->right->AsInfix()) &&
+======= end
             (next->name == "," ))
     {
         last = next;
     }
 
+<<<<<<< variant A
     IFTRACE(resources)
     {
         std::cerr << "pos is: "<<pos<< std::endl;
     }
+>>>>>>> variant B
+======= end
     if (next && (next->name ==  "\n" || next->name == ";"))
     {
         IFTRACE(resources)

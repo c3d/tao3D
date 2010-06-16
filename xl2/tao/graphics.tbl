@@ -52,6 +52,9 @@ PREFIX(Every,       real,     "every",
 PREFIX(Every50Pct,  real,     "every",
        PARM(i, real) PARM(c, tree),
        RTAO(every(self, i, 0.5, c)))
+PREFIX(MouseX, real, "mouse_x", ,RTAO(mouseX(self)))
+PREFIX(MouseY, real, "mouse_y", ,RTAO(mouseY(self)))
+PREFIX(MouseButtons, integer, "mouse_buttons", , RTAO(mouseButtons(self)))
 
 
 

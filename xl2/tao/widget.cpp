@@ -110,12 +110,14 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
       colorAction(NULL), fontAction(NULL),
+      lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
       timer(this), idleTimer(this),
       pageStartTime(1e6), pageRefresh(1e6), frozenTime(1e6), startTime(1e6),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
       nextPull(nextSave), animated(true),
-      currentFileDialog(NULL)
+      currentFileDialog(NULL),
+      zoom(1.0)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -156,6 +158,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     srcRenderer = new XL::Renderer(srcRendererOutput);
     QFileInfo stylesheet("xl:srcview.stylesheet");
     srcRenderer->SelectStyleSheet(+stylesheet.canonicalFilePath());
+
+    // Make sure we get mouse events even when no click is made
+    setMouseTracking(true);
 }
 
 
@@ -773,8 +778,9 @@ QStringList Widget::fontFiles()
         // Some font files are not in a suitable format, so we won't try to
         // embed them (Qt can only load TrueType, TrueType Collection and
         // OpenType files).
+        Window *window = (Window *) parentWidget();
         foreach (QString m, fontFileMgr->errors)
-            std::cerr << +m << "\n";
+            window->addError(m);
     }
     return fontFileMgr->fontFiles;
 }
@@ -901,7 +907,7 @@ void Widget::setup(double w, double h, Box *picking)
     double eyeX = 0.0, eyeY = 0.0, eyeZ = zNear;
     double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
     double upX = 0.0, upY = 1.0, upZ = 0.0;
-    glFrustum (-w/2, w/2, -h/2, h/2, zNear, zFar);
+    glFrustum ((-w/2)*zoom, (w/2)*zoom, (-h/2)*zoom, (h/2)*zoom, zNear, zFar);
     gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
     glTranslatef(0.0, 0.0, -zNear);
     glScalef(2.0, 2.0, 2.0);
@@ -1370,6 +1376,11 @@ void Widget::mousePressEvent(QMouseEvent *event)
     int     x           = event->x();
     int     y           = event->y();
 
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+    lastMouseButtons = button;
+
     // Create a selection if left click and nothing going on right now
     if (button == Qt::LeftButton)
         new Selection(this);
@@ -1423,6 +1434,11 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
     int x = event->x();
     int y = event->y();
 
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+    lastMouseButtons = button;
+
     // Check if there is an activity that deals with it
     for (Activity *a = activities; a; a = a->Click(button, 0, x, y)) ;
 
@@ -1439,9 +1455,15 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
     TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
-    bool active = event->buttons() != Qt::NoButton;
+    int buttons = event->buttons();
+    bool active = buttons != Qt::NoButton;
     int x = event->x();
     int y = event->y();
+
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+    lastMouseButtons = buttons;
 
     // Check if there is an activity that deals with it
     for (Activity *a = activities; a; a = a->MouseMove(x, y, active)) ;
@@ -1467,6 +1489,11 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
     if (button == Qt::LeftButton && !activities)
         new Selection(this);
 
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+    lastMouseButtons = button;
+
     // Send the click to all activities
     for (Activity *a = activities; a; a = a->Click(button, 2, x, y)) ;
 
@@ -1476,13 +1503,29 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
 
 void Widget::wheelEvent(QWheelEvent *event)
 // ----------------------------------------------------------------------------
-//   Mouse wheel
+//   Mouse wheel: zoom in/out
 // ----------------------------------------------------------------------------
 {
     TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
-    forwardEvent(event);
+    int     x           = event->x();
+    int     y           = event->y();
+
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+
+    if (forwardEvent(event))
+        return;
+
+    int d = event->delta();
+    if (d < 0 && zoom <= 3.75)
+        zoom += 0.25;
+    else if (d > 0 && zoom >= 0.5)
+        zoom -= 0.25;
+    setup(width(), height());
+    updateGL();
 }
 
 
@@ -2676,6 +2719,39 @@ XL::Real_p Widget::every(Tree_p self,
 }
 
 
+Real_p Widget::mouseX(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the position of the mouse
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new RecordMouseCoordinates(self));
+    if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
+        return new Real(info->coordinates.x);
+    return new Real(0.0);
+}
+
+
+Real_p Widget::mouseY(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the position of the mouse
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new RecordMouseCoordinates(self));
+    if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
+        return new Real(info->coordinates.y);
+    return new Real(0.0);
+}
+
+
+Integer_p Widget::mouseButtons(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the buttons of the last mouse event
+// ----------------------------------------------------------------------------
+{
+    return new Integer(lastMouseButtons);
+}
+
+
 Tree_p Widget::locally(Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree while preserving the current state
@@ -2880,13 +2956,8 @@ XL::Name_p Widget::depthTest(XL::Tree_p self, bool enable)
 //   Change the delta we use for the depth
 // ----------------------------------------------------------------------------
 {
-    GLboolean old;
-    glGetBooleanv(GL_DEPTH_TEST, &old);
-    if (enable)
-        glEnable(GL_DEPTH_TEST);
-    else
-        glDisable(GL_DEPTH_TEST);
-    return old ? XL::xl_true : XL::xl_false;
+    layout->Add(new DepthTest(enable));
+    return XL::xl_true;
 }
 
 

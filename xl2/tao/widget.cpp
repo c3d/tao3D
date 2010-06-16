@@ -1714,6 +1714,10 @@ void Widget::refreshProgram()
                 }
                 else
                 {
+                    // Make sure we normalize the replacement
+                    Renormalize renorm(this);
+                    replacement = replacement->Do(renorm);
+                    
                     // Check if we can simply change some parameters in file
                     ApplyChanges changes(replacement);
                     if (!sf.tree->Do(changes))

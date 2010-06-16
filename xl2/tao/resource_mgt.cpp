@@ -115,7 +115,7 @@ Text * ResourceMgt::getArg(Prefix * what, int pos)
 
     // loop to get the required argument (inf->left is already the first one)
     Infix *last = inf;
-    Infix *next;
+    Infix *next = NULL;
     while ( (--pos > 1) &&
             (next = last->left->AsInfix()) &&
             (next->name == "," ))

@@ -25,11 +25,14 @@
 
 #include "objloader.h"
 #include "layout.h"
+#include "tao_utf8.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>
 #include <fstream>
+#include <map>
 #include <GL/glew.h>
+#include <QFileInfo>
 
 TAO_BEGIN
 
@@ -37,6 +40,7 @@ Object3D::Object3D(kstring name)
 // ----------------------------------------------------------------------------
 //   Initialize an object. If a name is given, load the file
 // ----------------------------------------------------------------------------
+    : listID(0)
 {
     if (name)
         Load(name);
@@ -47,7 +51,10 @@ Object3D::~Object3D()
 // ----------------------------------------------------------------------------
 //   No specific destruction here
 // ----------------------------------------------------------------------------
-{}
+{
+    if (listID)
+        glDeleteLists(listID, 1);
+}
 
 
 void Object3D::Load(kstring name)
@@ -56,30 +63,42 @@ void Object3D::Load(kstring name)
 // ----------------------------------------------------------------------------
 {
     std::ifstream input(name);
+    uint          materialId = 0;
+    uint          line       = 0;
     text          token;
     coord         x, y, z;
     char          buffer[256];
     char *        ptr;
     char *        end;
     bool          texture, normal;
-    uint          line = 0;
     Face *        face;
     long          vIdx, tIdx, nIdx;
     text          material;
-    uint          materialId = 0;
+    int           c;
 
     while (input.good())
     {
-        input.getline(buffer, sizeof(buffer));
+        // Scan a new line of text
         ptr = buffer;
+        end = buffer + sizeof(buffer) - 1;
         line++;
 
+        do
+        {
+            c = input.get();
+            if (c && ptr < end)
+                *ptr++ = c;
+        } while (input.good() && c != '\n' && c != '\r');
+        *ptr++ = 0;
+
         // Skip spaces and blank lines
+        ptr = buffer;
         while(isspace(*ptr))
             ptr++;
         if (!*ptr)
             continue;
 
+        // Analyze input
         char key = *ptr++;
         switch(key)
         {
@@ -197,19 +216,17 @@ void Object3D::Load(kstring name)
 
         } // Switch key
     } // While loop
-}
 
 
-void Object3D::Draw(Layout *)
-// ----------------------------------------------------------------------------
-//   Draw the 3D object
-// ----------------------------------------------------------------------------
-{
+    // Now create a display list with the object data
     Faces::iterator             f;
     std::vector<uint>::iterator v, t, n;
     uint nv = vertices.size();
     uint nn = normals.size();
     uint nt = texCoords.size();
+
+    listID = glGenLists(1);
+    glNewList(listID, GL_COMPILE);
 
     for (f = faces.begin(); f != faces.end(); f++)
     {
@@ -247,6 +264,30 @@ void Object3D::Draw(Layout *)
 
         glEnd();
     }
+    glEndList();
+}
+
+
+void Object3D::Draw(Layout *where,
+                    coord x, coord y, coord z,
+                    scale w, scale h, scale d)
+// ----------------------------------------------------------------------------
+//   Draw the 3D object
+// ----------------------------------------------------------------------------
+{
+    Vector3 offset = where->Offset();
+    coord ox = x - bounds.Center().x;
+    coord oy = y - bounds.Center().y;
+    coord oz = z - bounds.Center().z;
+    scale sx = w / bounds.Width();
+    scale sy = h / bounds.Height();
+    scale sz = d / bounds.Depth();
+
+    glPushMatrix();
+    glTranslatef(ox, oy, oz);
+    glScalef(sx, sy, sz);
+    glCallList(listID);
+    glPopMatrix();
 }
 
 
@@ -256,6 +297,57 @@ Box3 Object3D::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 {
     return bounds + where->Offset();
+}
+
+
+Object3D *Object3D::Object(text name)
+// ----------------------------------------------------------------------------
+//   Maintain a list of object files currently in use
+// ----------------------------------------------------------------------------
+{
+    typedef std::map<text, Object3D *> file_map;
+    static file_map loaded;
+    
+    file_map::iterator found = loaded.find(name);
+    if (found == loaded.end())
+    {
+        QString file = +name;
+        QFileInfo fi(file);
+        if (!fi.isReadable())
+            fi.setFile("object:" + file);
+        if (fi.isReadable())
+        {
+            text path = +fi.canonicalFilePath();
+            found = loaded.find(path);
+            if (found == loaded.end())
+            {
+                Object3D *object = new Object3D(path.c_str());
+                loaded[name] = object;
+                loaded[path] = object;
+            }
+        }
+        else
+        {
+            // Record that we don't know how to load this guy
+            loaded[name] = NULL;
+        }
+
+        // We should have a valid entry now
+        found = loaded.find(name);
+    }
+
+    return (*found).second;
+}
+
+
+void Object3DDrawing::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw a 3D object using current texture and color
+// ----------------------------------------------------------------------------
+{
+    setTexture(where);
+    if (setFillColor(where))
+        object->Draw(where, x,y,z, w,h,d);
 }
 
 TAO_END

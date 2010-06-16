@@ -281,8 +281,11 @@ PREFIX(Cone, tree, "cone",
        PARM(x, real) PARM(y, real) PARM(z, real)
        PARM(w, real) PARM(h, real) PARM(d, real),
        RTAO(cone(self, x, y, z, w, h, d)))
-PREFIX(Object3D, tree, "load_obj3d", PARM(f, text),
-       RTAO(load3D(self, f)));
+PREFIX(Object3D, tree, "object",
+       PARM(x, real) PARM(y, real) PARM(z, real)
+       PARM(w, real) PARM(h, real) PARM(d, real)
+       PARM(f, text),
+       RTAO(object(self, x, y, z, w, h, d, f)))
 
 
 

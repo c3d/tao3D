@@ -26,13 +26,13 @@
 // ****************************************************************************
 
 #include "tao_tree.h"
-#include "drawing.h"
+#include "shapes3d.h"
 #include "coords3d.h"
 #include "coords.h"
 
 TAO_BEGIN
 
-struct Object3D : XL::Info
+struct Object3D
 // ----------------------------------------------------------------------------
 //   Representation of a complete 3D object
 // ----------------------------------------------------------------------------
@@ -45,8 +45,10 @@ struct Object3D : XL::Info
     void Load(kstring name);
 
     // Draw interface (called from Object3DDrawing)
-    void Draw(Layout *);
+    void Draw(Layout *l, coord x, coord y, coord z, scale w, scale h, scale d);
     Box3 Bounds(Layout *w);
+
+    static Object3D *Object(text name);
 
 public:
     // Types
@@ -71,25 +73,31 @@ public:
     TexCoords   texCoords;
     Faces       faces;
     Box3        bounds;
+    uint        listID;
 };
 
 
-struct Object3DDrawing : Drawing
+struct Object3DDrawing : Shape3
 // ----------------------------------------------------------------------------
 //   We draw a 3D object by reference
 // ----------------------------------------------------------------------------
 {
-    Object3DDrawing (Object3D *obj): object(obj) {}
+    Object3DDrawing (Object3D *obj,
+                     coord x, coord y, coord z,
+                     scale w, scale h, scale d)
+        : object(obj), x(x), y(y), z(z), w(w), h(h), d(d) {}
     ~Object3DDrawing() {}
 
-    virtual void        Draw(Layout *l)         { object->Draw(l); }
-    virtual void        DrawSelection(Layout *l){ object->Draw(l); }
-    virtual void        Identify(Layout *l)     { object->Draw(l); }
+    virtual void        Draw(Layout *l);
+    virtual void        DrawSelection(Layout *l){ Draw(l); }
+    virtual void        Identify(Layout *l)     { Draw(l); }
     virtual Box3        Bounds(Layout *l)       { return object->Bounds(l); }
     virtual Box3        Space(Layout *l)        { return object->Bounds(l); }
 
 public:
     Object3D *          object;
+    coord               x, y, z;
+    scale               w, h, d;
 };
 
 TAO_END

@@ -3868,18 +3868,37 @@ Tree_p Widget::cone(Tree_p self,
 }
 
 
-Tree_p Widget::load3D(Tree_p self, Text_p name)
+Tree_p Widget::object(Tree_p self,
+                      Real_p x, Real_p y, Real_p z,
+                      Real_p w, Real_p h, Real_p d,
+                      Text_p name)
 // ----------------------------------------------------------------------------
 //   Load a 3D object
 // ----------------------------------------------------------------------------
 {
-    Object3D *obj = name->GetInfo<Object3D>();
+    // Try to load the 3D object in memory and graphic card
+    Object3D *obj = Object3D::Object(name);
     if (!obj)
+        return XL::xl_false;
+
+    // Update object dimensions if we didn't specify them
+    if (w->value <= 0 || h->value <= 0 || d->value <= 0)
     {
-        obj = new Object3D(name->value.c_str());
-        name->SetInfo<Object3D>(obj);
+        Box3 &bounds = obj->bounds;
+        if (w->value <= 0)
+            w->value = bounds.Width();
+        if (h->value <= 0)
+            h->value = bounds.Height();
+        if (d->value <= 0)
+            d->value = bounds.Depth();
+        markChanged ("Update object dimensions");
     }
-    layout->Add(new Object3DDrawing(obj));
+
+    // Add the object
+    layout->Add(new Object3DDrawing(obj, x, y, z, w, h, d));
+    if (currentShape)
+        layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
+
     return XL::xl_true;
 }
 

@@ -111,7 +111,7 @@ void Object3D::Load(kstring name)
             {
             case 't':
                 // Texture coordinate
-                if (sscanf(++ptr, "%lf %lf %lf", &x, &y, &z) != 3)
+                if (sscanf(++ptr, "%lf %lf %lf", &x, &y, &z) < 2)
                     std::cerr << name << ":" << line << ":"
                               << "Invalid texture coordinate: " << ptr << '\n';
                 texCoords.push_back(Point3(x,y,z));
@@ -124,7 +124,7 @@ void Object3D::Load(kstring name)
                 normals.push_back(Point3(x,y,z));
                 break;
             default:
-                if (sscanf(ptr, "%lf %lf %lf", &x, &y, &z) < 2)
+                if (sscanf(ptr, "%lf %lf %lf", &x, &y, &z) != 3)
                     std::cerr << name << ":" << line << ":"
                               << "Invalid vertex coordinate: " << ptr << '\n';
                 vertices.push_back(Point3(x,y,z));

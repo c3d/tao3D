@@ -311,13 +311,17 @@ Object3D *Object3D::Object(text name)
     file_map::iterator found = loaded.find(name);
     if (found == loaded.end())
     {
-        QString file = +name;
-        QFileInfo fi(file);
-        if (!fi.isReadable())
-            fi.setFile("object:" + file);
-        if (fi.isReadable())
+        QString qname(+name);
+        QFileInfo file(qname);
+        if (!file.isReadable())
         {
-            text path = +fi.canonicalFilePath();
+            QFile qualified ("object:" + qname);
+            file = QFileInfo(qualified);
+        }
+        text path = +file.canonicalFilePath();
+        file.setFile(+path);
+        if (file.isReadable())
+        {
             found = loaded.find(path);
             if (found == loaded.end())
             {

@@ -60,6 +60,7 @@
 #include "error_message_dialog.h"
 #include "group_layout.h"
 #include "font.h"
+#include "objloader.h"
 
 #include <QToolButton>
 #include <QtGui/QImage>
@@ -110,6 +111,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
       colorAction(NULL), fontAction(NULL),
+      lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
       timer(this), idleTimer(this),
       pageStartTime(1e6), pageRefresh(1e6), frozenTime(1e6), startTime(1e6),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
@@ -159,6 +161,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     srcRenderer = new XL::Renderer(srcRendererOutput);
     QFileInfo stylesheet("xl:srcview.stylesheet");
     srcRenderer->SelectStyleSheet(+stylesheet.canonicalFilePath());
+
+    // Make sure we get mouse events even when no click is made
+    setMouseTracking(true);
 }
 
 
@@ -1404,6 +1409,11 @@ void Widget::mousePressEvent(QMouseEvent *event)
     int     x           = event->x();
     int     y           = event->y();
 
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+    lastMouseButtons = button;
+
     // Create a selection if left click and nothing going on right now
     if (button == Qt::LeftButton)
         new Selection(this);
@@ -1460,6 +1470,11 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
     int x = event->x();
     int y = event->y();
 
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+    lastMouseButtons = button;
+
     // Check if there is an activity that deals with it
     for (Activity *a = activities; a; a = a->Click(button, 0, x, y)) ;
 
@@ -1479,9 +1494,15 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
     TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
-    bool active = event->buttons() != Qt::NoButton;
+    int buttons = event->buttons();
+    bool active = buttons != Qt::NoButton;
     int x = event->x();
     int y = event->y();
+
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+    lastMouseButtons = buttons;
 
     // Check if there is an activity that deals with it
     for (Activity *a = activities; a; a = a->MouseMove(x, y, active)) ;
@@ -1507,6 +1528,11 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
     if (button == Qt::LeftButton && !activities)
         new Selection(this);
 
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+    lastMouseButtons = button;
+
     // Send the click to all activities
     for (Activity *a = activities; a; a = a->Click(button, 2, x, y)) ;
 
@@ -1519,6 +1545,19 @@ void Widget::wheelEvent(QWheelEvent *event)
 //   Mouse wheel: zoom in/out
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
+    EventSave save(this->event, event);
+    keyboardModifiers = event->modifiers();
+    int     x           = event->x();
+    int     y           = event->y();
+
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+
+    if (forwardEvent(event))
+        return;
+
     int d = event->delta();
     if (d < 0 && zoom <= 3.75)
         zoom += 0.25;
@@ -1758,6 +1797,10 @@ void Widget::refreshProgram()
                 }
                 else
                 {
+                    // Make sure we normalize the replacement
+                    Renormalize renorm(this);
+                    replacement = replacement->Do(renorm);
+                    
                     // Check if we can simply change some parameters in file
                     ApplyChanges changes(replacement);
                     if (!sf.tree->Do(changes))
@@ -2764,6 +2807,39 @@ XL::Real_p Widget::every(Tree_p self,
 }
 
 
+Real_p Widget::mouseX(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the position of the mouse
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new RecordMouseCoordinates(self));
+    if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
+        return new Real(info->coordinates.x);
+    return new Real(0.0);
+}
+
+
+Real_p Widget::mouseY(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the position of the mouse
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new RecordMouseCoordinates(self));
+    if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
+        return new Real(info->coordinates.y);
+    return new Real(0.0);
+}
+
+
+Integer_p Widget::mouseButtons(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the buttons of the last mouse event
+// ----------------------------------------------------------------------------
+{
+    return new Integer(lastMouseButtons);
+}
+
+
 Tree_p Widget::locally(Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree while preserving the current state
@@ -2968,13 +3044,8 @@ XL::Name_p Widget::depthTest(XL::Tree_p self, bool enable)
 //   Change the delta we use for the depth
 // ----------------------------------------------------------------------------
 {
-    GLboolean old;
-    glGetBooleanv(GL_DEPTH_TEST, &old);
-    if (enable)
-        glEnable(GL_DEPTH_TEST);
-    else
-        glDisable(GL_DEPTH_TEST);
-    return old ? XL::xl_true : XL::xl_false;
+    layout->Add(new DepthTest(enable));
+    return XL::xl_true;
 }
 
 
@@ -3101,7 +3172,7 @@ Tree_p Widget::fillTexture(Tree_p self, text img)
         ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
         if (!rinfo)
         {
-            rinfo = new ImageTextureInfo(this);
+            rinfo = new ImageTextureInfo();
             self->SetInfo<ImageTextureInfo>(rinfo);
         }
         texId = rinfo->bind(img);
@@ -3168,7 +3239,7 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, text filename)
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
     if (!rinfo)
     {
-        rinfo = new ImageTextureInfo(this);
+        rinfo = new ImageTextureInfo();
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
     texId = rinfo->bind(filename);
@@ -3205,7 +3276,7 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
     if (!rinfo)
     {
-        rinfo = new ImageTextureInfo(this);
+        rinfo = new ImageTextureInfo();
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
     texId = rinfo->bind(filename);
@@ -3880,6 +3951,41 @@ Tree_p Widget::cone(Tree_p self,
     layout->Add(new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d)));
     if (currentShape)
         layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::object(Tree_p self,
+                      Real_p x, Real_p y, Real_p z,
+                      Real_p w, Real_p h, Real_p d,
+                      Text_p name)
+// ----------------------------------------------------------------------------
+//   Load a 3D object
+// ----------------------------------------------------------------------------
+{
+    // Try to load the 3D object in memory and graphic card
+    Object3D *obj = Object3D::Object(name);
+    if (!obj)
+        return XL::xl_false;
+
+    // Update object dimensions if we didn't specify them
+    if (w->value <= 0 || h->value <= 0 || d->value <= 0)
+    {
+        Box3 &bounds = obj->bounds;
+        if (w->value <= 0)
+            w->value = bounds.Width();
+        if (h->value <= 0)
+            h->value = bounds.Height();
+        if (d->value <= 0)
+            d->value = bounds.Depth();
+        markChanged ("Update object dimensions");
+    }
+
+    // Add the object
+    layout->Add(new Object3DDrawing(obj, x, y, z, w, h, d));
+    if (currentShape)
+        layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
+
     return XL::xl_true;
 }
 

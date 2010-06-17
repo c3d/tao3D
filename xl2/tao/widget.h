@@ -109,6 +109,9 @@ public slots:
     void        cut();
     void        paste();
     void        enableAnimations(bool animate);
+    void        showHandCursor(bool enabled);
+    void        resetView();
+
 
 signals:
     // Signals
@@ -136,6 +139,9 @@ public:
     void        mouseDoubleClickEvent(QMouseEvent *);
     void        wheelEvent(QWheelEvent *);
     void        timerEvent(QTimerEvent *);
+    void        startPanning(QMouseEvent *);
+    void        doPanning(QMouseEvent *);
+    void        endPanning(QMouseEvent *);
 
     // XL program management
     void        updateProgram(XL::SourceFile *sf);
@@ -602,6 +608,9 @@ private:
            QFileDialog *  currentFileDialog;
     static double         zNear, zFar;
     double                zoom;
+    double                eyeX, eyeY, eyeZ;
+    double                centerX, centerY, centerZ;
+    int                   panX, panY;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:

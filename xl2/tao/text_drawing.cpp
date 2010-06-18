@@ -59,14 +59,24 @@ void TextSpan::Draw(Layout *where)
     uint dbgMod = (Qt::ShiftModifier|Qt::ControlModifier|Qt::AltModifier);
     bool debugForceDirect = (widget->lastModifiers() & dbgMod) == dbgMod;
 
+    Point3 off0 = where->Offset();
+
     if (!hasLine && !hasTexture && !tooBig && !debugForceDirect)
-        DrawCached(where, false);
+        DrawCached(where);
     else
         DrawDirect(where);
+
+    {
+        glDisable(GL_TEXTURE_2D);
+        glColor4f(0.8, 0.4, 0.3, 0.2);
+        XL::LocalSave<Point3> save(where->offset, off0);
+        Identify(where);
+    }
+
 }
 
 
-void TextSpan::DrawCached(Layout *where, bool identify)
+void TextSpan::DrawCached(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw text span using cached textures
 // ----------------------------------------------------------------------------
@@ -76,7 +86,6 @@ void TextSpan::DrawCached(Layout *where, bool identify)
     Point3      pos    = where->offset;
     Text *      ttree  = source;
     text        str    = ttree->value;
-    bool        canSel = ttree->Position() != XL::Tree::NOWHERE;
     QFont      &font   = where->font;
     coord       x      = pos.x;
     coord       y      = pos.y;
@@ -135,45 +144,28 @@ void TextSpan::DrawCached(Layout *where, bool identify)
 
     // Check if there's anything to draw
     uint count = quads.size();
-    if (count)
+    if (count && setFillColor(where))
     {
-        if (identify)
-        {
-            // Draw a list of rectangles with the textures
-            glVertexPointer(3, GL_DOUBLE, 0, &quads[0].x);
-            glEnableClientState(GL_VERTEX_ARRAY);
-            for (uint i = 0; i < count; i += 4)
-            {
-                if (canSel)
-                    glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
-                glDrawArrays(GL_QUADS, i, 4);
-            }
-            glDisableClientState(GL_VERTEX_ARRAY);
-            glLoadName(where->id);
-        }
-        else if (setFillColor(where))
-        {
-            // Bind the glyph texture
-            glBindTexture(GL_TEXTURE_2D, glyphs.Texture());
-            GLenum blur = GL_LINEAR;
-            if (!where->hasPixelBlur &&
-                font.pointSizeF() < glyphs.minFontSizeForAntialiasing)
-                blur = GL_NEAREST;
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, blur);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, blur);
-            glEnable(GL_TEXTURE_2D);
-            if (TaoApp->hasGLMultisample)
-                glEnable(GL_MULTISAMPLE);
+        // Bind the glyph texture
+        glBindTexture(GL_TEXTURE_2D, glyphs.Texture());
+        GLenum blur = GL_LINEAR;
+        if (!where->hasPixelBlur &&
+            font.pointSizeF() < glyphs.minFontSizeForAntialiasing)
+            blur = GL_NEAREST;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, blur);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, blur);
+        glEnable(GL_TEXTURE_2D);
+        if (TaoApp->hasGLMultisample)
+            glEnable(GL_MULTISAMPLE);
 
-            // Draw a list of rectangles with the textures
-            glVertexPointer(3, GL_DOUBLE, 0, &quads[0].x);
-            glTexCoordPointer(2, GL_DOUBLE, 0, &texCoords[0].x);
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-            glDrawArrays(GL_QUADS, 0, count);
-            glDisableClientState(GL_VERTEX_ARRAY);
-            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-        }
+        // Draw a list of rectangles with the textures
+        glVertexPointer(3, GL_DOUBLE, 0, &quads[0].x);
+        glTexCoordPointer(2, GL_DOUBLE, 0, &texCoords[0].x);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        glDrawArrays(GL_QUADS, 0, count);
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     }
 
     where->offset = Point3(x, y, z);
@@ -426,7 +418,104 @@ void TextSpan::Identify(Layout *where)
 //   Draw and identify the bounding boxes for the various characters
 // ----------------------------------------------------------------------------
 {
-    DrawCached(where, true);
+    Widget     *widget    = where->Display();
+    GlyphCache &glyphs    = widget->glyphs();
+    Text *      ttree     = source;
+    text        str       = ttree->value;
+    bool        canSel    = ttree->Position() != XL::Tree::NOWHERE;
+    QFont      &font      = where->font;
+    Point3      pos       = where->offset;
+    coord       x         = pos.x;
+    coord       y         = pos.y;
+    coord       z         = pos.z;
+    uint        first     = start;
+    scale       textWidth = 0;
+    GLuint      charId    = ~0;
+    scale       ascent    = glyphs.Ascent(font);
+    scale       descent   = glyphs.Descent(font);
+    scale       height    = ascent + descent;
+    scale       sd        = descent ;
+    scale       sh        = height;
+    scale       charW     = 0;
+    coord       charX1    = x;
+    coord       charX2    = x;
+    coord       charY1    = y;
+    coord       charY2    = y;
+
+    GlyphCache::GlyphEntry  glyph;
+    Point3                  quad[4];
+
+
+    // Prepare to draw with the quad
+    glVertexPointer(3, GL_DOUBLE, 0, &quad[0].x);
+    glEnableClientState(GL_VERTEX_ARRAY);
+
+    // Loop over all characters in the text span
+    uint i, next, max = str.length();
+    for (i = start; i < max && i < end; i = next)
+    {
+        uint unicode = XL::Utf8Code(str, i);
+        if (canSel)
+        {
+            charId = widget->newCharId();
+            glLoadName(charId | Widget::CHAR_ID_BIT);
+        }
+        next = XL::Utf8Next(str, i);
+
+        // Fetch data about that glyph
+        if (!glyphs.Find(font, unicode, glyph, false))
+            continue;
+
+        sd = glyph.scalingFactor * descent;
+        sh = glyph.scalingFactor * height;
+        charW = glyph.bounds.Width() / 2;
+        charX1 = x + glyph.bounds.lower.x - charW/2;
+        charX2 = x + glyph.bounds.upper.x - charW/2;
+        charY1 = y - sd;
+        charY2 = y - sd + sh;
+
+        quad[0] = Point3(charX1, charY1, z);
+        quad[1] = Point3(charX2, charY1, z);
+        quad[2] = Point3(charX2, charY2, z);
+        quad[3] = Point3(charX1, charY2, z);
+        glDrawArrays(GL_QUADS, 0, 4);
+
+        // Advance to next character
+        if (unicode == '\n')
+        {
+            scale spacing = height + glyphs.Leading(font);
+            x = 0;
+            y -= spacing;
+            textWidth = 0;
+            first = i;
+        }
+        else
+        {
+            x += glyph.advance;
+            textWidth += glyph.advance;
+        }
+    }
+
+    // Draw a final quad at end of line to ease selection of end of text
+    if (canSel)
+    {
+        charId++;
+        glLoadName(charId | Widget::CHAR_ID_BIT);
+    }
+
+    charX1 = charX2;
+    charX2 += sh;
+    quad[0] = Point3(charX1, charY1, z);
+    quad[1] = Point3(charX2, charY1, z);
+    quad[2] = Point3(charX2, charY2, z);
+    quad[3] = Point3(charX1, charY2, z);
+    glDrawArrays(GL_QUADS, 0, 4);
+
+    // Disable drawing with the quad
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    where->offset = Point3(x, y, z);
 }
 
 

@@ -1615,7 +1615,7 @@ void Widget::doPanning(QMouseEvent *event)
 }
 
 
-void Widget::endPanning(QMouseEvent *event)
+void Widget::endPanning(QMouseEvent *)
 // ----------------------------------------------------------------------------
 //    Leave view panning mode
 // ----------------------------------------------------------------------------

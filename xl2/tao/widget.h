@@ -64,14 +64,16 @@ struct TextSelect;
 struct WidgetSurface;
 
 // ----------------------------------------------------------------------------
-// Name of fixed menu. Menus then may be retrieved by
-//   QMenu * view = window->findChild<QMenu*>(VIEW_MENU_NAME)
+// Name of fixed menu.
 // ----------------------------------------------------------------------------
+// Menus then may be retrieved by
+//   QMenu * view = window->findChild<QMenu*>(VIEW_MENU_NAME)
 #define FILE_MENU_NAME  "TAO_FILE_MENU"
 #define EDIT_MENU_NAME  "TAO_EDIT_MENU"
 #define SHARE_MENU_NAME "TAO_SHARE_MENU"
 #define VIEW_MENU_NAME  "TAO_VIEW_MENU"
 #define HELP_MENU_NAME  "TAO_HELP_MENU"
+
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -152,8 +154,10 @@ public:
     bool        set(Tree *shape, text n, Tree *value, text sh = "group,shape");
     bool        get(Tree *shape, text n, TreeList &a, text sh = "group,shape");
     bool        set(Tree *shape, text n, TreeList &a, text sh = "group,shape");
-    bool        get(Tree *shape, text n, attribute_args &a, text sh = "group,shape");
-    bool        set(Tree *shape, text n, attribute_args &a, text sh = "group,shape");
+    bool        get(Tree *shape, text n, attribute_args &a,
+                    text sh = "group,shape");
+    bool        set(Tree *shape, text n, attribute_args &a,
+                    text sh = "group,shape");
 
     // Timing
     ulonglong   now();
@@ -188,6 +192,8 @@ public:
     void        deleteFocus(QWidget *widget);
     bool        requestFocus(QWidget *widget, coord x, coord y);
     void        recordProjection();
+    Point3      unprojectLastMouse()    { return unproject(lastMouseX,
+                                                           lastMouseY); }
     uint        lastModifiers()         { return keyboardModifiers; }
     Point3      unproject (coord x, coord y, coord z = 0.0);
     Drag *      drag();
@@ -231,6 +237,9 @@ public:
     Real_p      pageTime(Tree_p self);
     Real_p      after(Tree_p self, double delay, Tree_p code);
     Real_p      every(Tree_p self, double delay, double duration, Tree_p code);
+    Real_p      mouseX(Tree_p self);
+    Real_p      mouseY(Tree_p self);
+    Integer_p   mouseButtons(Tree_p self);
 
     // Preserving attributes
     Tree_p      locally(Tree_p self, Tree_p t);
@@ -338,6 +347,10 @@ public:
                      Real_p w, Real_p h, Real_p d);
     Tree_p      cone(Tree_p self, Real_p cx, Real_p cy, Real_p cz,
                      Real_p w, Real_p h, Real_p d);
+    Tree_p      object(Tree_p self,
+                       Real_p x, Real_p y, Real_p z,
+                       Real_p w, Real_p h, Real_p d,
+                       Text_p name);
 
     // Text and font
     Tree_p      textBox(Tree_p self,
@@ -583,6 +596,7 @@ private:
     std::map<text,Color>  selectionColor;
     QFont                 selectionFont;
     QColor                originalColor;
+    int                   lastMouseX, lastMouseY, lastMouseButtons;
 
     // Timing
     QTimer                timer, idleTimer;
@@ -601,6 +615,7 @@ private:
     static QFileDialog *  fileDialog;
            QFileDialog *  currentFileDialog;
     static double         zNear, zFar;
+    double                zoom;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:

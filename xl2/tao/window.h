@@ -123,7 +123,6 @@ private:
     Window  *findWindow(const QString &fileName);
     void     updateProgram(const QString &filename);
     void     resetTaoMenus();
-    QString  fontPathFor(const QString &docPath);
     bool     populateUndoStack();
     void     warnNoRepo();
     void     enableProjectSharingMenus();

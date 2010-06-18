@@ -231,4 +231,34 @@ void VerticalMarginChange::Draw(Layout *where)
     where->bottom = bottom;
 }
 
+
+void DepthTest::Draw(Layout *)
+// ----------------------------------------------------------------------------
+//   Enable or disable the depth test
+// ----------------------------------------------------------------------------
+{
+    if (enable)
+        glEnable(GL_DEPTH_TEST);
+    else
+        glDisable(GL_DEPTH_TEST);
+}
+
+
+void RecordMouseCoordinates::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Record the widget mouse coordinates in a tree info
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = where->Display();
+    widget->recordProjection();
+    Point3 pos = widget->unprojectLastMouse();
+    MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>();
+    if (!info)
+    {
+        info = new MouseCoordinatesInfo;
+        self->SetInfo<MouseCoordinatesInfo>(info);
+    }
+    info->coordinates = pos;
+}
+
 TAO_END

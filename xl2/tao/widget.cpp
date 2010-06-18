@@ -118,7 +118,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
       nextPull(nextSave), animated(true),
       currentFileDialog(NULL),
-      zoom(1.0)
+      zoom(1.0),
+      eyeX(0.0), eyeY(0.0), eyeZ(Widget::zNear),
+      centerX(0.0), centerY(0.0), centerZ(0.0)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -797,6 +799,35 @@ void Widget::enableAnimations(bool enable)
 }
 
 
+void Widget::showHandCursor(bool enabled)
+// ----------------------------------------------------------------------------
+//   Switch panning mode on/off
+// ----------------------------------------------------------------------------
+{
+    if (enabled)
+        setCursor(Qt::OpenHandCursor);
+    else
+        setCursor(Qt::ArrowCursor);
+}
+
+
+void Widget::resetView()
+// ----------------------------------------------------------------------------
+//   Restore default view parameters (zoom, position etc.)
+// ----------------------------------------------------------------------------
+{
+    zoom = 1.0;
+    eyeX = 0.0;
+    eyeY = 0.0;
+    eyeZ = Widget::zNear;
+    centerX = 0.0;
+    centerY = 0.0;
+    centerZ = 0.0;
+    setup(width(), height());
+    updateGL();
+}
+
+
 void Widget::userMenu(QAction *p_action)
 // ----------------------------------------------------------------------------
 //   User menu slot activation
@@ -903,10 +934,8 @@ void Widget::setup(double w, double h, Box *picking)
         gluPickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
     }
 
-    // Setup the frustrum for the projection
+    // Setup the frustum for the projection
     double zNear = Widget::zNear, zFar = Widget::zFar;
-    double eyeX = 0.0, eyeY = 0.0, eyeZ = zNear;
-    double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
     double upX = 0.0, upY = 1.0, upZ = 0.0;
     glFrustum ((-w/2)*zoom, (w/2)*zoom, (-h/2)*zoom, (h/2)*zoom, zNear, zFar);
     gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
@@ -1368,6 +1397,9 @@ void Widget::mousePressEvent(QMouseEvent *event)
 //   Mouse button click
 // ----------------------------------------------------------------------------
 {
+    if (cursor().shape() == Qt::OpenHandCursor)
+        return startPanning(event);
+
     TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
@@ -1427,6 +1459,9 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
 //   Mouse button is released
 // ----------------------------------------------------------------------------
 {
+    if (cursor().shape() == Qt::ClosedHandCursor)
+        return endPanning(event);
+
     TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
@@ -1453,6 +1488,9 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
+    if (cursor().shape() == Qt::ClosedHandCursor)
+        return doPanning(event);
+
     TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
@@ -1538,6 +1576,51 @@ void Widget::timerEvent(QTimerEvent *event)
     TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     forwardEvent(event);
+}
+
+
+void Widget::startPanning(QMouseEvent *event)
+// ----------------------------------------------------------------------------
+//    Enter view panning mode
+// ----------------------------------------------------------------------------
+{
+    setCursor(Qt::ClosedHandCursor);
+    panX = event->x();
+    panY = event->y();
+}
+
+
+void Widget::doPanning(QMouseEvent *event)
+// ----------------------------------------------------------------------------
+//    Move view to follow mouse (panning mode)
+// ----------------------------------------------------------------------------
+{
+    int x, y, dx, dy;
+
+    x = event->x();
+    y = event->y();
+    dx = x - panX;
+    dy = y - panY;
+
+    eyeX -= 2*dx*zoom;
+    eyeY += 2*dy*zoom;
+    centerX -= 2*dx*zoom;
+    centerY += 2*dy*zoom;
+
+    panX = x;
+    panY = y;
+
+    setup(width(), height());
+    updateGL();
+}
+
+
+void Widget::endPanning(QMouseEvent *event)
+// ----------------------------------------------------------------------------
+//    Leave view panning mode
+// ----------------------------------------------------------------------------
+{
+    setCursor(Qt::OpenHandCursor);
 }
 
 

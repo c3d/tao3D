@@ -12,5 +12,7 @@
         <file>images/save.png</file>
         <file>images/default_image.svg</file>
         <file>images/tao_color_bars.svg</file>
+        <file>images/cursor-openhand.png</file>
+        <file>images/view-restore.png</file>
     </qresource>
 </RCC>

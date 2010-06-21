@@ -5077,10 +5077,10 @@ void Widget::fontChanged(const QFont& ft)
     if (!fontAction)
         return;
 
-    IFTRACE (widgets)
+    IFTRACE2 (widgets,fonts)
     {
         std::cerr << "Font "<< ft.toString().toStdString()
-                  << "was chosen for reference "<< fontAction << "\n";
+                  << " was chosen for reference "<< fontAction << "\n";
     }
 
     struct FontTreeClone : XL::TreeClone

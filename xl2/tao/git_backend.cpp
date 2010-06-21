@@ -131,7 +131,7 @@ bool GitRepository::initialCommit()
     if (!cmd.done(&errors))
         return false;
     Process cmd2(command(), QStringList("commit") << "-a" << "-m"
-                 << "\"Automatic initial commit\"", path);
+                 << "Automatic initial commit", path);
     return cmd.done(&errors);
 }
 

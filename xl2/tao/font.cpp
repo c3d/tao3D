@@ -26,9 +26,11 @@
 #include "font.h"
 #include "tao_utf8.h"
 #include "runtime.h"
+#include "options.h"
 #include <iostream>
 #include <QFontInfo>
 #include <QStringList>
+#include <QFontDatabase>
 
 TAO_BEGIN
 
@@ -70,12 +72,31 @@ Tree *FontParsingAction::DoText(Text *what)
 {
     if (!exactMatch)
     {
-        // Font workaround for QTBUG-736 (apparently still not fixed in 4.6)
-        // http://bugreports.qt.nokia.com/browse/QTBUG-736
-        text family = what->value;
-        if (family == "Times")
-            family = "Times New Roman";
-        font.setFamily(+family);
+        text desc = what->value;
+        IFTRACE(fonts)
+            std::cerr << "Parsing font description: '" <<  desc << "'\n";
+        size_t slash = desc.find('/');
+        if (slash != std::string::npos)
+        {
+            // Parse string as "family/style"
+            text family = desc.substr(0, slash);
+            text style = desc.substr(slash + 1, std::string::npos);
+            IFTRACE(fonts)
+                std::cerr << "  Font family='" << family
+                          << "' style='" << style << "'\n";
+            int size = font.pointSize();
+            font = QFontDatabase().font(+family, +style, size);
+        }
+        else
+        {
+            // Font workaround for QTBUG-736 (apparently still not fixed in
+            // 4.6)
+            // http://bugreports.qt.nokia.com/browse/QTBUG-736
+            text family = what->value;
+            if (family == "Times")
+                family = "Times New Roman";
+            font.setFamily(+family);
+        }
         exactMatch = font.exactMatch();
     }
     return what;

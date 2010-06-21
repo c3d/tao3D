@@ -1145,8 +1145,9 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
 //        no repository management tool is available;
 // - false if user cancelled.
 {
-    if (isUntitled || isReadOnly)
-        return true;
+    if (confirm)
+        if (isUntitled || isReadOnly)
+            return true;
 
     if (!RepositoryFactory::available())
     {

@@ -54,7 +54,7 @@ void UndoCommand::redo()
     IFTRACE(undo)
         std::cerr << "Redo " << +id << " " << +text() << "\n";
     if (repo)
-        repo->asyncCherryPick(+id);
+        repo->cherryPick(+id);
 }
 
 
@@ -66,7 +66,7 @@ void UndoCommand::undo()
     IFTRACE(undo)
         std::cerr << "Undo " << +id << " " << +text() << "\n";
     if (repo)
-        repo->asyncRevert(+id);
+        repo->revert(+id);
 }
 
 

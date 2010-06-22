@@ -1956,10 +1956,11 @@ bool Widget::doCommit(bool immediate)
 //   Commit files previously written to repository and reset next commit time
 // ----------------------------------------------------------------------------
 {
+    (void)immediate; // Now unused. Commit is always synchronous.
     IFTRACE(filesync)
             std::cerr << "Commit: " << repository()->whatsNew << "\n";
     bool done;
-    done = immediate ? repository()->commit() : repository()->asyncCommit();
+    done = repository()->commit();
     if (done)
     {
         XL::Main *xlr = XL::MAIN;

@@ -199,8 +199,8 @@ bool GitRepository::change(text name)
 {
     mergeCommitMessages(nextCommitMessage, whatsNew);
     whatsNew = "";
-    dispatch(new Process(command(), QStringList("add") << +name, path, false));
-    return true;
+    Process cmd(command(), QStringList("add") << +name, path);
+    return cmd.done(&errors);
 }
 
 
@@ -242,77 +242,57 @@ bool GitRepository::commit(text message, bool all)
     args << "--allow-empty"    // Don't fail if working directory is clean
          << "-m" << +message;
     Process cmd(command(), args, path);
-    bool result = cmd.done(&errors);
+    text output;
+    bool result = cmd.done(&errors, &output);
     if (!result)
         if (errors.find("nothing added") != errors.npos)
             result = true;
     state = RS_Clean;
+    if (result)
+    {
+        QString commitId, commitMsg;
+        if (parseCommitOutput(output, commitId, commitMsg))
+            emit commitSuccess(commitId, commitMsg);
+    }
     return result;
 }
 
 
-bool GitRepository::asyncCommit(text message, bool all)
-// ----------------------------------------------------------------------------
-//   Rename a file in the repository
-// ----------------------------------------------------------------------------
-{
-    if (state == RS_Clean)
-    {
-        // May happen if a commit was already in progress when this process was
-        // enqueued
-        return true;
-    }
-    if (message == "")
-    {
-        message = nextCommitMessage;
-        nextCommitMessage = "";
-    }
-    state = RS_Clean;
-    QStringList args("commit");
-    if (all)
-        args << "-a";
-    args << "--allow-empty"    // Don't fail if working directory is clean
-         << "-m" << +message;
-    dispatch(new Process(command(), args, path, false));
-    return true;
-}
-
-
-bool GitRepository::asyncRevert(text id)
+bool GitRepository::revert(text id)
 // ----------------------------------------------------------------------------
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
     if (state != RS_Clean)
     {
-        asyncCommit();
+        commit();
         state = RS_Clean;    // Avoid recursion
-        asyncRevert("HEAD");
+        revert("HEAD");
     }
 
     QStringList args("revert");
     args << "--no-edit" << +id;
-    dispatch(new Process(command(), args, path, false));
-    return true;
+    Process cmd(command(), args, path);
+    return cmd.done(&errors);
 }
 
 
-bool GitRepository::asyncCherryPick(text id)
+bool GitRepository::cherryPick(text id)
 // ----------------------------------------------------------------------------
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
     if (state != RS_Clean)
     {
-        asyncCommit();
+        commit();
         state = RS_Clean;    // Avoid recursion
-        asyncRevert("HEAD");
+        revert("HEAD");
     }
 
     QStringList args("cherry-pick");
     args << "-x" << +id;
-    dispatch(new Process(command(), args, path, false));
-    return true;
+    Process cmd(command(), args, path);
+    return cmd.done(&errors);
 }
 
 
@@ -320,46 +300,24 @@ void GitRepository::asyncProcessFinished(int exitCode)
 // ----------------------------------------------------------------------------
 //   An asynchronous subprocess has finished
 // ----------------------------------------------------------------------------
+//   For the moment, only "clone" is performed asynchronously
 {
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
-    QString op = cmd->args.first();
-    bool isCommit = (op == "commit");
-    bool newHead  = (isCommit ||
-                     op == "revert" ||
-                     op == "cherry-pick");
-    bool isClone  = (op == "clone");
     bool ok       = true;
     text output;
     cmd->done(&errors, &output);
     if (exitCode)
     {
-        ok = false;
-        if (isCommit && errors.find("nothing added") != errors.npos)
-                ok = true;
-        if (!ok)
-            std::cerr << +tr("Async command failed, exit status %1: %2\n")
-                             .arg((int)exitCode).arg(cmd->commandLine)
-                      << +tr("Error output:\n") << errors;
+        std::cerr << +tr("Async command failed, exit status %1: %2\n")
+                        .arg((int)exitCode).arg(cmd->commandLine)
+                  << +tr("Error output:\n") << errors;
     }
-    if (ok && newHead)
-        state = RS_Clean;
-    if (ok && isCommit)
-    {
-        QString commitId, commitMsg;
-        if (parseCommitOutput(output, commitId, commitMsg))
-            emit asyncCommitSuccess(commitId, commitMsg);
-    }
-    if (!ok && isCommit)
-        state = RS_NotClean;
-    if (isClone)
-    {
-        cmd->sendStandardOutputToTextEdit();
-        QString projPath;
-        projPath = parseCloneOutput(cmd->out);
-        emit asyncCloneComplete(cmd->id, projPath);
-    }
+    cmd->sendStandardOutputToTextEdit();
+    QString projPath;
+    projPath = parseCloneOutput(cmd->out);
+    emit asyncCloneComplete(cmd->id, projPath);
 }
 
 

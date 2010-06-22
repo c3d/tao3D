@@ -572,6 +572,7 @@ private:
     page_map              pageLinks;
     uint                  pageId, pageFound, pageShown, pageTotal;
     Tree_p                pageTree;
+    bool                  drawAllPages;
     Tree_p                currentShape;
     QGridLayout *         currentGridLayout;
     GroupInfo   *         currentGroup;

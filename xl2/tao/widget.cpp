@@ -101,6 +101,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       space(NULL), layout(NULL), path(NULL), table(NULL),
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
+      drawAllPages(false),
       pageTree(NULL),
       currentShape(NULL),
       currentGridLayout(NULL),
@@ -775,7 +776,10 @@ QStringList Widget::fontFiles()
        FontFileManager *&m;
     } ffm(fontFileMgr);
 
-    paintGL();
+    drawAllPages = true;
+    draw();
+    drawAllPages = false;
+    draw();
     if (!fontFileMgr->errors.empty())
     {
         // Some font files are not in a suitable format, so we won't try to
@@ -2591,7 +2595,7 @@ XL::Text_p Widget::page(Tree_p self, text name, Tree_p body)
     pageId++;
 
     // If the page is set, then we display it
-    if (pageName == name)
+    if (pageName == name || drawAllPages)
     {
         // Initialize back-link
         pageFound = pageId;

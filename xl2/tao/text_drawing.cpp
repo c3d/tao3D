@@ -60,6 +60,8 @@ void TextSpan::Draw(Layout *where)
     bool debugForceDirect = (widget->lastModifiers() & dbgMod) == dbgMod;
     Point3 offset0 = where->Offset();
 
+    Point3 off0 = where->Offset();
+
     if (!hasLine && !hasTexture && !tooBig && !debugForceDirect)
         DrawCached(where);
     else
@@ -458,7 +460,10 @@ void TextSpan::Identify(Layout *where)
         if (canSel)
         {
             charId = widget->newCharId();
+<<<<<<< HEAD
             charId++;
+=======
+>>>>>>> qt-merge
             glLoadName(charId | Widget::CHAR_ID_BIT);
         }
         next = XL::Utf8Next(str, i);
@@ -470,6 +475,10 @@ void TextSpan::Identify(Layout *where)
         sd = glyph.scalingFactor * descent;
         sh = glyph.scalingFactor * height;
         charW = glyph.bounds.Width() / 2;
+<<<<<<< HEAD
+=======
+        charX1 = x + glyph.bounds.lower.x - charW/2;
+>>>>>>> qt-merge
         charX2 = x + glyph.bounds.upper.x - charW/2;
         charY1 = y - sd;
         charY2 = y - sd + sh;
@@ -488,16 +497,23 @@ void TextSpan::Identify(Layout *where)
             y -= spacing;
             textWidth = 0;
             first = i;
+<<<<<<< HEAD
             charX1 = x;
         }
         else
         {
             charX1 = charX2;
+=======
+        }
+        else
+        {
+>>>>>>> qt-merge
             x += glyph.advance;
             textWidth += glyph.advance;
         }
     }
 
+<<<<<<< HEAD
     // Draw a trailing block
     charId++;
     glLoadName(charId | Widget::CHAR_ID_BIT);
@@ -517,6 +533,23 @@ void TextSpan::Identify(Layout *where)
         glDrawArrays(GL_QUADS, 0, 4);
     }
 
+=======
+    // Draw a final quad at end of line to ease selection of end of text
+    if (canSel)
+    {
+        charId++;
+        glLoadName(charId | Widget::CHAR_ID_BIT);
+    }
+
+    charX1 = charX2;
+    charX2 += sh;
+    quad[0] = Point3(charX1, charY1, z);
+    quad[1] = Point3(charX2, charY1, z);
+    quad[2] = Point3(charX2, charY2, z);
+    quad[3] = Point3(charX1, charY2, z);
+    glDrawArrays(GL_QUADS, 0, 4);
+
+>>>>>>> qt-merge
     // Disable drawing with the quad
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);

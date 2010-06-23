@@ -274,6 +274,7 @@ public:
     Name_p      showSource(Tree_p self, bool show);
     Name_p      fullScreen(Tree_p self, bool fs);
     Name_p      toggleFullScreen(Tree_p self);
+    Name_p      toggleHandCursor(Tree_p self);
     Name_p      enableAnimations(Tree_p self, bool fs);
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);

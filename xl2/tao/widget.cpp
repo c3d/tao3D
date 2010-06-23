@@ -3095,6 +3095,17 @@ XL::Name_p Widget::toggleFullScreen(XL::Tree_p self)
 }
 
 
+XL::Name_p Widget::toggleHandCursor(XL::Tree_p self)
+// ----------------------------------------------------------------------------
+//   Switch between hand and arrow cursor
+// ----------------------------------------------------------------------------
+{
+    bool isArrow = (cursor().shape() == Qt::ArrowCursor);
+    showHandCursor(isArrow);
+    return (!isArrow) ? XL::xl_true : XL::xl_false;
+}
+
+
 XL::Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
 // ----------------------------------------------------------------------------
 //   Enable or disable animations

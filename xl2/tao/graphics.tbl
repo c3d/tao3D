@@ -119,6 +119,8 @@ PREFIX(FullScreen, boolean, "full_screen", PARM(fs, boolean),
        RTAO(fullScreen(self, fs)))
 PREFIX(ToggleFullScreen, boolean, "toggle_full_screen", ,
        RTAO(toggleFullScreen(self)))
+PREFIX(ToggleHandCursor, boolean, "toggle_hand_cursor", ,
+       RTAO(toggleHandCursor(self)))
 PREFIX(EnableAnimations, boolean, "enable_animations", PARM(an, boolean),
        RTAO(enableAnimations(self, an)))
 PREFIX(PolygonOffset, integer, "polygon_offset",

@@ -1087,8 +1087,13 @@ bool Window::saveFile(const QString &fileName)
     xlRuntime->LoadFile(fn);
 
     ResourceMgt checkFiles(taoWidget);
-    xlRuntime->files[fn].tree->Do(checkFiles); // Crash sur le [fn] CaB
-    checkFiles.cleanUpRepo();
+    Tree_p tree = xlRuntime->files[fn].tree;
+    if (tree)
+    {
+        tree->Do(checkFiles);
+        checkFiles.cleanUpRepo();
+    }
+
     // Reload the program and mark the changes
     taoWidget->reloadProgram();
     taoWidget->markChanged("Related files included in the project");

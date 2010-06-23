@@ -60,7 +60,9 @@
 #include "error_message_dialog.h"
 #include "group_layout.h"
 #include "font.h"
+#include "tree_cloning.h"
 
+#include <QApplication>
 #include <QToolButton>
 #include <QtGui/QImage>
 #include <cmath>
@@ -106,7 +108,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentGroup(NULL), fontFileMgr(NULL), activities(NULL),
       id(0), charId(0), capacity(1), manipulator(0),
       wasSelected(false), selectionChanged(false),
-      event(NULL), focusWidget(NULL), keyboardModifiers(0),
+      w_event(NULL), focusWidget(NULL), keyboardModifiers(0),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
       colorAction(NULL), fontAction(NULL),
@@ -173,8 +175,6 @@ Widget::~Widget()
     delete path;
     delete srcRenderer;
 }
-
-
 
 // ============================================================================
 //
@@ -271,7 +271,7 @@ void Widget::draw()
 
     // Timing
     ulonglong before = now();
-    event = NULL;
+    w_event = NULL;
 
     // Setup the initial drawing environment
     double w = width(), h = height();
@@ -999,8 +999,12 @@ bool Widget::forwardEvent(QEvent *event)
 //   Forward event to the focus proxy if there is any
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(widgets)
+            std::cerr << "-1-Event type "<< event->type()<< std::endl;
+
     if (QObject *focus = focusWidget)
         return focus->event(event);
+
     return false;
 }
 
@@ -1010,6 +1014,8 @@ bool Widget::forwardEvent(QMouseEvent *event)
 //   Forward event to the focus proxy if there is any, adjusting coordinates
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(widgets)
+            std::cerr << "-2-Event type "<< event->type()<< std::endl;
     if (QObject *focus = focusWidget)
     {
         int x = event->x();
@@ -1018,11 +1024,23 @@ bool Widget::forwardEvent(QMouseEvent *event)
         int h = focusWidget->height();
 
         Point3 u = unproject(x, y, 0);
-        QMouseEvent local(event->type(), QPoint(u.x + w/2, h/2 - u.y),
+        int nx = u.x + w/2;
+        int ny = h/2 - u.y;
+        QMouseEvent local(event->type(), QPoint(nx, ny ),
                           event->button(), event->buttons(),
                           event->modifiers());
+        IFTRACE(widgets)
+        {
+            std::cerr << "forwardEvent::Event type "<< event->type()
+                    << " Event->x="<<nx <<" Event->y="<< ny
+                    << " focusWidget name " << +(focus->objectName())
+                    << std::endl;
+        }
+
         return focus->event(&local);
     }
+    IFTRACE(widgets)
+            std::cerr << "forwardEvent::No FocusWidget\n ";
     return false;
 }
 
@@ -1328,7 +1346,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 {
     TaoSave saveCurrent(current, this);
-    EventSave save(this->event, event);
+    EventSave save(this->w_event, event);
     keyboardModifiers = event->modifiers();
 
     // Forward it down the regular event chain
@@ -1348,7 +1366,7 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
 // ----------------------------------------------------------------------------
 {
     TaoSave saveCurrent(current, this);
-    EventSave save(this->event, event);
+    EventSave save(this->w_event, event);
     keyboardModifiers = event->modifiers();
 
     // Forward it down the regular event chain
@@ -1368,7 +1386,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     TaoSave saveCurrent(current, this);
-    EventSave save(this->event, event);
+    EventSave save(this->w_event, event);
     keyboardModifiers = event->modifiers();
 
     QMenu * contextMenu = NULL;
@@ -1427,7 +1445,7 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     TaoSave saveCurrent(current, this);
-    EventSave save(this->event, event);
+    EventSave save(this->w_event, event);
     keyboardModifiers = event->modifiers();
 
     uint button = (uint) event->button();
@@ -1453,7 +1471,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     TaoSave saveCurrent(current, this);
-    EventSave save(this->event, event);
+    EventSave save(this->w_event, event);
     keyboardModifiers = event->modifiers();
     int buttons = event->buttons();
     bool active = buttons != Qt::NoButton;
@@ -1479,7 +1497,7 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
 // ----------------------------------------------------------------------------
 {
     TaoSave saveCurrent(current, this);
-    EventSave save(this->event, event);
+    EventSave save(this->w_event, event);
     keyboardModifiers = event->modifiers();
 
     // Create a selection if left click and nothing going on right now
@@ -1507,7 +1525,7 @@ void Widget::wheelEvent(QWheelEvent *event)
 // ----------------------------------------------------------------------------
 {
     TaoSave saveCurrent(current, this);
-    EventSave save(this->event, event);
+    EventSave save(this->w_event, event);
     keyboardModifiers = event->modifiers();
     int     x           = event->x();
     int     y           = event->y();
@@ -1535,7 +1553,7 @@ void Widget::timerEvent(QTimerEvent *event)
 // ----------------------------------------------------------------------------
 {
     TaoSave saveCurrent(current, this);
-    EventSave save(this->event, event);
+    EventSave save(this->w_event, event);
     forwardEvent(event);
 }
 
@@ -2290,6 +2308,9 @@ bool Widget::requestFocus(QWidget *widget, coord x, coord y)
 //   Some other widget request the focus
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(widgets)
+            std::cerr << "Widget::requestFocus name " << +(widget->objectName()) << std::endl;
+
     if (!focusWidget)
     {
         GLMatrixKeeper saveGL;
@@ -3227,7 +3248,7 @@ Tree_p Widget::textureTransform(Tree_p self, Tree_p code)
     layout->Add(new TextureTransform(false));
     return result;
 }
-    
+
 
 
 // ============================================================================
@@ -5493,15 +5514,12 @@ Tree_p Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
     GroupBoxSurface *surface = self->GetInfo<GroupBoxSurface>();
     if (!surface)
     {
-        currentGridLayout = new QGridLayout();
-        currentGridLayout->setObjectName("groupBox layout");
-        surface = new GroupBoxSurface(self, this, currentGridLayout);
+        surface = new GroupBoxSurface(self, this);
         self->SetInfo<GroupBoxSurface> (surface);
     }
-    else
-    {
-        currentGridLayout = surface->grid;
-    }
+
+    currentGridLayout = surface->grid();
+
 
     // Resize to requested size, and bind texture
     surface->resize(w,h);
@@ -6089,6 +6107,42 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
     return XL::xl_true;
 }
 
+
+void Widget::removeFromSelection(Tree *from, Tree *to)
+{
+    // Check if we are possibly changing the next selection
+    if (selectNextTime.count(from))
+        selectNextTime.insert(to);
+
+    // Check if we are possibly changing the page tree reference
+    if (pageTree == from)
+        pageTree = to;
+
+}
+
+
+struct NoSelTreeClone : TaoTreeClone
+{
+    NoSelTreeClone(Widget *widget, std::set<Tree_p> *selCopy) :
+            TaoTreeClone(widget), selCopy(selCopy){}
+
+    virtual Tree *Reselect(Tree *from, Tree *to)
+    {
+        IFTRACE(widgets)
+        {
+            std::cerr << "using NoSelTreeClone::Reselect\n";
+        }
+
+        selCopy->erase(from);
+
+        widget->removeFromSelection(from, to);
+
+        return to;
+    }
+    std::set<Tree_p> *selCopy;
+};
+
+
 XL::Tree_p Widget::copySelection()
 // ----------------------------------------------------------------------------
 //    copy the selection from the tree
@@ -6097,13 +6151,19 @@ XL::Tree_p Widget::copySelection()
     if (!hasSelection())
         return NULL;
 
+    std::set<Tree_p> selCopy(selectionTrees);
     // Build a single tree from all the selected sub-trees
-    std::set<Tree_p >::reverse_iterator i = selectionTrees.rbegin();
-    XL::ShallowCopyTreeClone cloner;
-    XL::Tree *tree = (*i++)->Do(cloner);
+    std::set<Tree_p >::reverse_iterator i = selCopy.rbegin();
+    // As the selectionTrees member is changed by the following cloner,
+    // a new iterator is build on each loop
+    NoSelTreeClone cloner(this, &selCopy);
+    XL::Tree *tree = (*i)->Do(cloner);
 
-    for ( ; i != selectionTrees.rend(); i++)
+    while (! selCopy.empty())
+    {
+        i = selCopy.rbegin();
         tree = new XL::Infix("\n", (*i)->Do(cloner), tree);
+    }
 
     return tree;
 }

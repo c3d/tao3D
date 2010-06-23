@@ -49,7 +49,7 @@ template <typename mode> struct TaoCloneTemplate : Action
     TaoCloneTemplate(Widget *widget) : widget(widget){}
     virtual ~TaoCloneTemplate(){}
 
-    Tree *Reselect(Tree *from, Tree *to)
+    virtual Tree *Reselect(Tree *from, Tree *to)
     {
         widget->reselect(from, to);
         return to;

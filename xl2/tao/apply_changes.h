@@ -185,14 +185,30 @@ struct ApplyChanges : XL::Action
 };
 
 
-struct PruneInfo : XL::Action
+struct IsMarkedConstantInfo : XL::Info
 // ----------------------------------------------------------------------------
-//    Remove info that we don't want to persist if we change programs
+//   Indicate whether a tree is constant or not
+// ----------------------------------------------------------------------------
+{};
+
+
+inline bool IsMarkedConstant(Tree *tree)
+// ----------------------------------------------------------------------------
+//   Indicates if a tree is marked as constant
 // ----------------------------------------------------------------------------
 {
-    PruneInfo() : XL::Action() {}
-    XL::Tree *Do(XL::Tree *what);
-};
+    return tree->Exists<IsMarkedConstantInfo>();
+}
+
+
+inline void MarkAsConstant(Tree* tree)
+// ----------------------------------------------------------------------------
+//   Mark the tree as constant
+// ----------------------------------------------------------------------------
+{
+    if (!IsMarkedConstant(tree))
+        tree->SetInfo<IsMarkedConstantInfo>(new IsMarkedConstantInfo());
+}
 
 
 typedef std::set<XL::SourceFile *> import_set;

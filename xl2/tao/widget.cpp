@@ -6575,7 +6575,7 @@ Tree_p Widget::constant(Tree_p self, Tree_p tree)
 //   Return a clone of the tree to make sure it is not modified
 // ----------------------------------------------------------------------------
 {
-    tree->tag |= ~0UL<<Tree::KINDBITS;
+    MarkAsConstant(tree);
     return tree;
 }
 

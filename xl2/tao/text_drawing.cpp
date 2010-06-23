@@ -30,6 +30,7 @@
 #include "gl_keepers.h"
 #include "runtime.h"
 #include "application.h"
+#include "apply_changes.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -190,8 +191,11 @@ void TextSpan::DrawDirect(Layout *where)
     coord       y      = pos.y;
     coord       z      = pos.z;
     scale       lw     = where->lineWidth;
+
     if (where->lineColor.alpha <= 0)
         lw = 0;
+    if (canSel && IsMarkedConstant(ttree))
+        canSel = false;
 
     GlyphCache::GlyphEntry  glyph;
     std::vector<Point3>     quads;
@@ -266,6 +270,9 @@ void TextSpan::DrawSelection(Layout *where)
     scale       descent      = glyphs.Descent(font);
     scale       height       = ascent + descent;
     GlyphCache::GlyphEntry  glyph;
+
+    if (canSel && IsMarkedConstant(ttree))
+        canSel = false;
 
     // Loop over all characters in the text span
     uint i, next, max = str.length();
@@ -447,6 +454,8 @@ void TextSpan::Identify(Layout *where)
     GlyphCache::GlyphEntry  glyph;
     Point3                  quad[4];
 
+    if (canSel && IsMarkedConstant(ttree))
+        canSel = false;
 
     // Prepare to draw with the quad
     glVertexPointer(3, GL_DOUBLE, 0, &quad[0].x);

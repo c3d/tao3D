@@ -1095,6 +1095,7 @@ bool Window::saveFile(const QString &fileName)
 
     statusBar()->showMessage(tr("File saved"), 2000);
     updateProgram(fileName);
+    isReadOnly = false;
 
     if (repo)
     {

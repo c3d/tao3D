@@ -283,7 +283,10 @@ QString Application::defaultTaoApplicationFolderPath()
 //    Try to guess the best application folder to use by default
 // ----------------------------------------------------------------------------
 {
-    return applicationDirPath();
+    QString path = applicationDirPath();
+    IFTRACE(paths) 
+        std::cerr << "Tao Application Folder: " << +path << "\n"; 
+    return path;
 }
 
 

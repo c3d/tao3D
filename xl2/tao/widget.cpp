@@ -4440,6 +4440,9 @@ Tree_p Widget::newTable(Tree_p self, Real_p x, Real_p y,
     XL::LocalSave<Table *> saveTable(table, tbl);
     layout->Add(tbl);
 
+    if (currentShape)
+        layout->Add(new TableManipulator(currentShape, x, y, tbl));
+
     // Patch the symbol table with short versions of table_xyz functions
     if (Prefix *prefix = self->AsPrefix())
     {

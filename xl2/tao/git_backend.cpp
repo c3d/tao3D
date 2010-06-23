@@ -300,12 +300,11 @@ void GitRepository::asyncProcessFinished(int exitCode)
 // ----------------------------------------------------------------------------
 //   An asynchronous subprocess has finished
 // ----------------------------------------------------------------------------
-//   For the moment, only "clone" is performed asynchronously
 {
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
-    bool ok       = true;
+    QString op = cmd->args.first();
     text output;
     cmd->done(&errors, &output);
     if (exitCode)
@@ -314,10 +313,13 @@ void GitRepository::asyncProcessFinished(int exitCode)
                         .arg((int)exitCode).arg(cmd->commandLine)
                   << +tr("Error output:\n") << errors;
     }
-    cmd->sendStandardOutputToTextEdit();
-    QString projPath;
-    projPath = parseCloneOutput(cmd->out);
-    emit asyncCloneComplete(cmd->id, projPath);
+    if (op == "clone")
+    {
+        cmd->sendStandardOutputToTextEdit();
+        QString projPath;
+        projPath = parseCloneOutput(cmd->out);
+        emit asyncCloneComplete(cmd->id, projPath);
+    }
 }
 
 

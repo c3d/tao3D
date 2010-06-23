@@ -29,6 +29,7 @@
 
 #include <QDir>
 #include <QtGlobal>
+#include <QApplication>
 #include <fstream>
 
 TAO_BEGIN
@@ -235,6 +236,19 @@ Process * Repository::dispatch(Process *cmd,
     return cmd;
 }
 
+
+void Repository::waitForAsyncProcessCompletion()
+// ----------------------------------------------------------------------------
+//   Make sure no asynchrounous subprocess is running
+// ----------------------------------------------------------------------------
+{
+    while (!pQueue.empty())
+    {
+        IFTRACE(process)
+            std::cerr << "Async process queue not empty, waiting\n";
+        QApplication::processEvents();
+    }
+}
 
 void Repository::abort(Process *proc)
 // ----------------------------------------------------------------------------

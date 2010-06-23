@@ -149,6 +149,7 @@ protected:
     virtual text        fullName(text fileName);
     Process *           dispatch(Process *cmd, AnsiTextEdit *err = NULL,
                                  AnsiTextEdit *out = NULL, void *id = NULL);
+    void                waitForAsyncProcessCompletion();
 
 protected slots:
     virtual void        asyncProcessFinished(int exitCode);

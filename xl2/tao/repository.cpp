@@ -230,7 +230,7 @@ Process * Repository::dispatch(Process *cmd,
         connect(cmd, SIGNAL(readyReadStandardOutput()),
                 cmd, SLOT(sendStandardOutputToTextEdit()));
     }
-    pQueue.append(cmd);
+    pQueue.enqueue(cmd);
     if (pQueue.count() == 1)
         cmd->start();
     return cmd;
@@ -255,13 +255,13 @@ void Repository::abort(Process *proc)
 //   Abort an asynchronous process returned by dispatch()
 // ----------------------------------------------------------------------------
 {
-    if (pQueue.first() == proc)
+    if (pQueue.head() == proc)
     {
         proc->aborted = true;
         proc->close();
-        delete pQueue.takeFirst();
+        delete pQueue.dequeue();
         if (pQueue.count())
-            pQueue.first()->start();
+            pQueue.head()->start();
     }
     else
     {
@@ -278,7 +278,7 @@ void Repository::asyncProcessFinished(int exitCode)
 {
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
-    Q_ASSERT(cmd == pQueue.first());
+    Q_ASSERT(cmd == pQueue.head());
     if (exitCode)
     {
         IFTRACE(process)
@@ -297,7 +297,7 @@ void Repository::asyncProcessError(QProcess::ProcessError error)
     // This slot is called *in addition to* asyncProcessFinished, which
     // will do the cleanup.
     Process *cmd = (Process *)sender();
-    Q_ASSERT(cmd == pQueue.first());
+    Q_ASSERT(cmd == pQueue.head());
     IFTRACE(process)
         std::cerr << +tr("Async command error %1: %2\nError output:\n%3")
                      .arg((int)error).arg(cmd->commandLine)
@@ -334,14 +334,14 @@ Repository::ProcQueueConsumer::~ProcQueueConsumer()
 //   Pop the head process from process queue, delete it and start next one
 // ----------------------------------------------------------------------------
 {
-    if (repo.pQueue.first()->aborted)
+    if (repo.pQueue.head()->aborted)
     {
         // We're here as a result of Repository::abort(). Let him clean up.
         return;
     }
-    delete repo.pQueue.takeFirst();
+    delete repo.pQueue.dequeue();
     if (repo.pQueue.count())
-        repo.pQueue.first()->start();
+        repo.pQueue.head()->start();
 }
 
 

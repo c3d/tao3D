@@ -10,6 +10,7 @@ if false then TrueBody                  -> false
 
 // Key management
 key "Control-F"                         -> toggle_full_screen
+key "Escape"                            -> full_screen false
 key "Control-M"                         -> toggle_hand_cursor
 key "Delete"                            -> delete_selection "Delete"
 key "Backspace"                         -> delete_selection "Backspace"

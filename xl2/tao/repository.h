@@ -141,6 +141,7 @@ public:
 signals:
     void                commitSuccess(QString commitId, QString msg);
     void                asyncCloneComplete(void *id, QString projPath);
+    void                asyncPullComplete();
     void                deleted();
 
 protected:

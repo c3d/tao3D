@@ -330,6 +330,11 @@ void GitRepository::asyncProcessFinished(int exitCode)
         projPath = parseCloneOutput(cmd->out);
         emit asyncCloneComplete(cmd->id, projPath);
     }
+    else if (op == "pull")
+    {
+        if (output.find("Already up-to-date") == std::string::npos)
+            emit asyncPullComplete();
+    }
 }
 
 

@@ -1358,6 +1358,7 @@ void Window::switchToFullScreen(bool fs)
         setUnifiedTitleAndToolBarOnMac(false);
         removeToolBar(fileToolBar);
         removeToolBar(editToolBar);
+        removeToolBar(viewToolBar);
         showFullScreen();
         taoWidget->showFullScreen();
     }
@@ -1367,8 +1368,10 @@ void Window::switchToFullScreen(bool fs)
         taoWidget->showNormal();
         addToolBar(fileToolBar);
         addToolBar(editToolBar);
+        addToolBar(viewToolBar);
         fileToolBar->show();
         editToolBar->show();
+        viewToolBar->show();
         setUnifiedTitleAndToolBarOnMac(true);
     }
 }

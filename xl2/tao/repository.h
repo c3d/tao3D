@@ -119,9 +119,8 @@ public:
     virtual bool        remove(text name)               = 0;
     virtual bool        rename(text from, text to)      = 0;
     virtual bool        commit(text msg = "",bool all=false) = 0;
-    virtual bool        asyncCommit(text msg = "", bool all=false) = 0;
-    virtual bool        asyncRevert(text id)            = 0;
-    virtual bool        asyncCherryPick(text id)        = 0;
+    virtual bool        revert(text id)                 = 0;
+    virtual bool        cherryPick(text id)             = 0;
     virtual bool        merge(text branch)              = 0;
     virtual bool        reset()                         = 0;
     virtual bool        pull()                          = 0;
@@ -140,7 +139,7 @@ public:
     static bool         versionGreaterOrEqual(QString ver, QString ref);
 
 signals:
-    void                asyncCommitSuccess(QString commitId, QString msg);
+    void                commitSuccess(QString commitId, QString msg);
     void                asyncCloneComplete(void *id, QString projPath);
     void                deleted();
 

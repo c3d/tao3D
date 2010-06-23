@@ -3468,7 +3468,7 @@ Tree_p Widget::closePath(Tree_p self)
 }
 
 
-static GraphicPath::EndpointStyle endpointStyle(symbolicname_r n)
+static GraphicPath::EndpointStyle endpointStyle(symbol_r n)
 // ----------------------------------------------------------------------------
 //   Translates XL name into endpoint style enum
 // ----------------------------------------------------------------------------
@@ -3531,7 +3531,7 @@ static GraphicPath::EndpointStyle endpointStyle(symbolicname_r n)
     }
 }
 
-Tree_p Widget::endpointsStyle(Tree_p self, symbolicname_r s, symbolicname_r e)
+Tree_p Widget::endpointsStyle(Tree_p self, symbol_r s, symbol_r e)
 // ----------------------------------------------------------------------------
 //   Specify the style of the path endpoints
 // ----------------------------------------------------------------------------

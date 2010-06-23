@@ -28,7 +28,7 @@ line x0:real, y0:real, x1:real, y1:real ->
         move_to x0, y0
         line_to x1, y1
 
-line_arrow x0:real, y0:real, s0:symbolicname, x1:real, y1:real, s1:symbolicname ->
+line_arrow x0:real, y0:real, s0:symbol, x1:real, y1:real, s1:symbol ->
     path
         move_to x0, y0
         line_to x1, y1

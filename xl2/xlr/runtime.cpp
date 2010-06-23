@@ -770,11 +770,10 @@ Tree *xl_apply(Tree *code, Tree *data)
                 toCompile->SetSymbols(codeBlock->Symbols());
         }
 
-        // Define default data separators
+        // Define the default data separator
         std::set<text> separators;
-        separators.insert(",");
-        separators.insert(";");
-        separators.insert("\n");
+        if (Infix *dataInfix = data->AsInfix())
+            separators.insert(dataInfix->name);
 
         // Check the case where code is x->sin x  (map) or x,y->x+y (reduce)
         if (Infix *infix = toCompile->AsInfix())
@@ -793,6 +792,7 @@ Tree *xl_apply(Tree *code, Tree *data)
                 else if (Infix *op = ileft->AsInfix())
                 {
                     // This defines the separator we use for data
+                    separators.clear();
                     separators.insert(op->name);
 
                     Name *first = op->left->AsName();
@@ -956,7 +956,7 @@ Tree *xl_nth(Tree *data, longlong index)
     {
         TreeList list;
         xl_infix_to_list(infix, list);
-        if (index < 1 || index > list.size())
+        if (index < 1 || index > (longlong) list.size())
             return Ooops("Index '$2' for '$1' out of range",
                          source, new Integer(index));
         result = list[index-1];

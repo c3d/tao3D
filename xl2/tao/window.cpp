@@ -453,7 +453,7 @@ bool Window::saveFonts()
         repo->markChanged("Embed fonts");
         repo->change(+fontPath);
         repo->state = Repository::RS_NotClean;
-        repo->asyncCommit();
+        repo->commit();
     }
 
     statusBar()->showMessage(tr("File saved"), 2000);
@@ -1087,14 +1087,20 @@ bool Window::saveFile(const QString &fileName)
     xlRuntime->LoadFile(fn);
 
     ResourceMgt checkFiles(taoWidget);
-    xlRuntime->files[fn].tree->Do(checkFiles); // Crash sur le [fn] CaB
-    checkFiles.cleanUpRepo();
+    Tree_p tree = xlRuntime->files[fn].tree;
+    if (tree)
+    {
+        tree->Do(checkFiles);
+        checkFiles.cleanUpRepo();
+    }
+
     // Reload the program and mark the changes
     taoWidget->reloadProgram();
     taoWidget->markChanged("Related files included in the project");
 
     statusBar()->showMessage(tr("File saved"), 2000);
     updateProgram(fileName);
+    isReadOnly = false;
 
     if (repo)
     {
@@ -1145,8 +1151,9 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
 //        no repository management tool is available;
 // - false if user cancelled.
 {
-    if (isUntitled || isReadOnly)
-        return true;
+    if (confirm)
+        if (isUntitled || isReadOnly)
+            return true;
 
     if (!RepositoryFactory::available())
     {
@@ -1291,9 +1298,14 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
 
                 // For undo/redo: widget has to be notified when document
                 // is succesfully committed into repository
-                connect(repo.data(),SIGNAL(asyncCommitSuccess(QString,QString)),
+                connect(repo.data(),SIGNAL(commitSuccess(QString,QString)),
                         taoWidget,  SLOT(commitSuccess(QString, QString)));
-                populateUndoStack();
+                // REVISIT
+                // Do not populate undo stack with current Git history to avoid
+                // making it possible to undo some operations like document
+                // creation... (these commits are not easy to identify
+                // currently)
+                // populateUndoStack();
 
                 enableProjectSharingMenus();
             }

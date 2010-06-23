@@ -60,6 +60,7 @@
 #include "error_message_dialog.h"
 #include "group_layout.h"
 #include "font.h"
+#include "objloader.h"
 #include "tree_cloning.h"
 
 #include <QApplication>
@@ -119,7 +120,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
       nextPull(nextSave), animated(true),
       currentFileDialog(NULL),
-      zoom(1.0)
+      zoom(1.0),
+      eyeX(0.0), eyeY(0.0), eyeZ(Widget::zNear),
+      centerX(0.0), centerY(0.0), centerZ(0.0)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -796,6 +799,35 @@ void Widget::enableAnimations(bool enable)
 }
 
 
+void Widget::showHandCursor(bool enabled)
+// ----------------------------------------------------------------------------
+//   Switch panning mode on/off
+// ----------------------------------------------------------------------------
+{
+    if (enabled)
+        setCursor(Qt::OpenHandCursor);
+    else
+        setCursor(Qt::ArrowCursor);
+}
+
+
+void Widget::resetView()
+// ----------------------------------------------------------------------------
+//   Restore default view parameters (zoom, position etc.)
+// ----------------------------------------------------------------------------
+{
+    zoom = 1.0;
+    eyeX = 0.0;
+    eyeY = 0.0;
+    eyeZ = Widget::zNear;
+    centerX = 0.0;
+    centerY = 0.0;
+    centerZ = 0.0;
+    setup(width(), height());
+    updateGL();
+}
+
+
 void Widget::userMenu(QAction *p_action)
 // ----------------------------------------------------------------------------
 //   User menu slot activation
@@ -902,10 +934,8 @@ void Widget::setup(double w, double h, Box *picking)
         gluPickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
     }
 
-    // Setup the frustrum for the projection
+    // Setup the frustum for the projection
     double zNear = Widget::zNear, zFar = Widget::zFar;
-    double eyeX = 0.0, eyeY = 0.0, eyeZ = zNear;
-    double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
     double upX = 0.0, upY = 1.0, upZ = 0.0;
     glFrustum ((-w/2)*zoom, (w/2)*zoom, (-h/2)*zoom, (h/2)*zoom, zNear, zFar);
     gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
@@ -1385,6 +1415,9 @@ void Widget::mousePressEvent(QMouseEvent *event)
 //   Mouse button click
 // ----------------------------------------------------------------------------
 {
+    if (cursor().shape() == Qt::OpenHandCursor)
+        return startPanning(event);
+
     TaoSave saveCurrent(current, this);
     EventSave save(this->w_event, event);
     keyboardModifiers = event->modifiers();
@@ -1444,6 +1477,9 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
 //   Mouse button is released
 // ----------------------------------------------------------------------------
 {
+    if (cursor().shape() == Qt::ClosedHandCursor)
+        return endPanning(event);
+
     TaoSave saveCurrent(current, this);
     EventSave save(this->w_event, event);
     keyboardModifiers = event->modifiers();
@@ -1470,6 +1506,9 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
+    if (cursor().shape() == Qt::ClosedHandCursor)
+        return doPanning(event);
+
     TaoSave saveCurrent(current, this);
     EventSave save(this->w_event, event);
     keyboardModifiers = event->modifiers();
@@ -1555,6 +1594,51 @@ void Widget::timerEvent(QTimerEvent *event)
     TaoSave saveCurrent(current, this);
     EventSave save(this->w_event, event);
     forwardEvent(event);
+}
+
+
+void Widget::startPanning(QMouseEvent *event)
+// ----------------------------------------------------------------------------
+//    Enter view panning mode
+// ----------------------------------------------------------------------------
+{
+    setCursor(Qt::ClosedHandCursor);
+    panX = event->x();
+    panY = event->y();
+}
+
+
+void Widget::doPanning(QMouseEvent *event)
+// ----------------------------------------------------------------------------
+//    Move view to follow mouse (panning mode)
+// ----------------------------------------------------------------------------
+{
+    int x, y, dx, dy;
+
+    x = event->x();
+    y = event->y();
+    dx = x - panX;
+    dy = y - panY;
+
+    eyeX -= 2*dx*zoom;
+    eyeY += 2*dy*zoom;
+    centerX -= 2*dx*zoom;
+    centerY += 2*dy*zoom;
+
+    panX = x;
+    panY = y;
+
+    setup(width(), height());
+    updateGL();
+}
+
+
+void Widget::endPanning(QMouseEvent *)
+// ----------------------------------------------------------------------------
+//    Leave view panning mode
+// ----------------------------------------------------------------------------
+{
+    setCursor(Qt::OpenHandCursor);
 }
 
 
@@ -1731,6 +1815,10 @@ void Widget::refreshProgram()
                 }
                 else
                 {
+                    // Make sure we normalize the replacement
+                    Renormalize renorm(this);
+                    replacement = replacement->Do(renorm);
+                    
                     // Check if we can simply change some parameters in file
                     ApplyChanges changes(replacement);
                     if (!sf.tree->Do(changes))
@@ -3105,7 +3193,7 @@ Tree_p Widget::fillTexture(Tree_p self, text img)
         ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
         if (!rinfo)
         {
-            rinfo = new ImageTextureInfo(this);
+            rinfo = new ImageTextureInfo();
             self->SetInfo<ImageTextureInfo>(rinfo);
         }
         texId = rinfo->bind(img);
@@ -3172,7 +3260,7 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, text filename)
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
     if (!rinfo)
     {
-        rinfo = new ImageTextureInfo(this);
+        rinfo = new ImageTextureInfo();
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
     texId = rinfo->bind(filename);
@@ -3209,7 +3297,7 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
     if (!rinfo)
     {
-        rinfo = new ImageTextureInfo(this);
+        rinfo = new ImageTextureInfo();
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
     texId = rinfo->bind(filename);
@@ -3884,6 +3972,41 @@ Tree_p Widget::cone(Tree_p self,
     layout->Add(new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d)));
     if (currentShape)
         layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::object(Tree_p self,
+                      Real_p x, Real_p y, Real_p z,
+                      Real_p w, Real_p h, Real_p d,
+                      Text_p name)
+// ----------------------------------------------------------------------------
+//   Load a 3D object
+// ----------------------------------------------------------------------------
+{
+    // Try to load the 3D object in memory and graphic card
+    Object3D *obj = Object3D::Object(name);
+    if (!obj)
+        return XL::xl_false;
+
+    // Update object dimensions if we didn't specify them
+    if (w->value <= 0 || h->value <= 0 || d->value <= 0)
+    {
+        Box3 &bounds = obj->bounds;
+        if (w->value <= 0)
+            w->value = bounds.Width();
+        if (h->value <= 0)
+            h->value = bounds.Height();
+        if (d->value <= 0)
+            d->value = bounds.Depth();
+        markChanged ("Update object dimensions");
+    }
+
+    // Add the object
+    layout->Add(new Object3DDrawing(obj, x, y, z, w, h, d));
+    if (currentShape)
+        layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
+
     return XL::xl_true;
 }
 

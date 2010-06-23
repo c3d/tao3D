@@ -771,6 +771,22 @@ void Window::createActions()
 
     redoAction = undoStack->createRedoAction(this, tr("&Redo"));
     redoAction->setShortcuts(QKeySequence::Redo);
+
+    // Icon copied from:
+    // /Developer/Documentation/Qt/html/images/cursor-openhand.png
+    handCursorAct = new QAction(QIcon(":/images/cursor-openhand.png"),
+                                    tr("Hand cursor"), this);
+    handCursorAct->setStatusTip(tr("Select hand cursor to pan around screen"));
+    handCursorAct->setCheckable(true);
+    connect(handCursorAct, SIGNAL(toggled(bool)), taoWidget,
+            SLOT(showHandCursor(bool)));
+    // Icon copied from:
+    // /opt/local/share/icons/gnome/32x32/actions/view-restore.png
+    resetViewAct = new QAction(QIcon(":/images/view-restore.png"),
+                                    tr("Restore default view"), this);
+    resetViewAct->setStatusTip(tr("Restore default view (zoom and position)"));
+    connect(resetViewAct, SIGNAL(triggered()), taoWidget,
+            SLOT(resetView()));
 }
 
 
@@ -847,6 +863,12 @@ void Window::createToolBars()
     editToolBar->addAction(pasteAct);
     if (view)
         view->addAction(editToolBar->toggleViewAction());
+
+    viewToolBar = addToolBar(tr("View"));
+    viewToolBar->addAction(handCursorAct);
+    viewToolBar->addAction(resetViewAct);
+    if (view)
+        view->addAction(viewToolBar->toggleViewAction());
 }
 
 

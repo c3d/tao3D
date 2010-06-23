@@ -39,7 +39,7 @@ struct TextSpan : Shape
     TextSpan(Text *source, uint start = 0, uint end = ~0)
         : Shape(), source(source), start(start), end(end) {}
     virtual void        Draw(Layout *where);
-    virtual void        DrawCached(Layout *where, bool identify);
+    virtual void        DrawCached(Layout *where);
     virtual void        Identify(Layout *where);
     virtual Box3        Bounds(Layout *where);
     virtual Box3        Space(Layout *where);

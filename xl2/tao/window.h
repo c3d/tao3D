@@ -154,6 +154,7 @@ private:
     QMenu            *helpMenu;
     QToolBar         *fileToolBar;
     QToolBar         *editToolBar;
+    QToolBar         *viewToolBar;
     QAction          *newAct;
     QAction          *openAct;
     QAction          *saveAct;
@@ -176,6 +177,8 @@ private:
     QAction          *redoAction;
     QAction          *recentFileActs[MaxRecentFiles];
     QAction          *clearRecentAct;
+    QAction          *handCursorAct;
+    QAction          *resetViewAct;
 
 public:
     QMenu            *shareMenu;

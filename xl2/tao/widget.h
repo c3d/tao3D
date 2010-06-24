@@ -113,6 +113,7 @@ public slots:
     void        enableAnimations(bool animate);
     void        showHandCursor(bool enabled);
     void        resetView();
+    void        saveAndCommit();
 
 
 signals:
@@ -154,7 +155,10 @@ public:
     void        markChanged(text reason);
     void        selectStatements(Tree *tree);
     bool        writeIfChanged(XL::SourceFile &sf);
-    bool        doCommit(bool immediate = false);
+    bool        enableAutoSave(bool enabled);
+    bool        doSave(ulonglong tick);
+    bool        doPull(ulonglong tick);
+    bool        doCommit(ulonglong tick);
     Repository *repository();
     Tree *      get(Tree *shape, text name, text sh = "group,shape");
     bool        set(Tree *shape, text n, Tree *value, text sh = "group,shape");
@@ -627,6 +631,7 @@ private:
     double                eyeX, eyeY, eyeZ;
     double                centerX, centerY, centerZ;
     int                   panX, panY;
+    bool                  autoSaveEnabled;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:

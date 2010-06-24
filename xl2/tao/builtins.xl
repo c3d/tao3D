@@ -380,10 +380,10 @@ menu_item "menu:insert > shape > diamond", "Diamond", insert
         diamond (0, 0), 100, 100
 menu_item "menu:insert > shape > speech ballon", "Speech Balloon", insert
     shape
-        speech_balloon (0, 16), 100, 68, 50, -50, -50
+        speech_balloon (0, 16), 100, 68, 50, (-50, -50)
 menu_item "menu:insert > shape > callout", "Callout", insert
     shape
-        callout (16, 0), 68, 100, 15, -50, 0, 60
+        callout (16, 0), 68, 100, 15, (-50, 0), 60
 menu_item "menu:insert > shape > star", "Star", insert
     shape
         star (0, 0), 100, 100, 5, 50%
@@ -452,53 +452,53 @@ menu_item "toolbar:insert > shape > line ---", "", "images/tb_shape_line.png", i
     shape
         color "line"
         line_color "line"
-        line 50, -50, -50, 50
+        line (50, -50), (-50, 50)
 menu_item "toolbar:insert > shape > line -->", "", "images/tb_shape_line_w_arrowhead.png", insert
     shape
         color "line"
         line_color "line"
-        line_arrow 50, -50, none, -50, 50, arrowhead
+        line_arrow (50, -50), none, (-50, 50), arrowhead
 menu_item "toolbar:insert > shape > line <->", "", "images/tb_shape_line_w_two_arrowheads.png", insert
     shape
         color "line"
         line_color "line"
-        line_arrow 50, -50, arrowhead, -50, 50, arrowhead
+        line_arrow (50, -50), arrowhead, (-50, 50), arrowhead
 menu_item "toolbar:insert > shape > rectangle", "", "images/tb_shape_rectangle.png", insert
     shape
-        rectangle 0, 0, 100, 100
+        rectangle (0, 0), 100, 100
 menu_item "toolbar:insert > shape > rounded rectangle", "", "images/tb_shape_rounded_rectangle.png", insert
     shape
-        rounded_rectangle 0, 0, 100, 100, 15
+        rounded_rectangle (0, 0), 100, 100, 15
 menu_item "toolbar:insert > shape > oval", "", "images/tb_shape_oval.png", insert
     shape
-        oval 0, 0, 100, 100
+        ellipse (0, 0), 100, 100
 menu_item "toolbar:insert > shape > triangle", "", "images/tb_shape_triangle.png", insert
     shape
-        triangle 0, 0, 100, 100
+        triangle (0, 0), 100, 100
 menu_item "toolbar:insert > shape > right triangle", "", "images/tb_shape_right_triangle.png", insert
     shape
-        right_triangle 0, 0, 100, 100
+        right_triangle (0, 0), 100, 100
 menu_item "toolbar:insert > shape > arrow", "", "images/tb_shape_arrow.png", insert
     shape
-        arrow 0, 0, 100, 100, 44, 32%
+        arrow (0, 0), 100, 100, 44, 32%
 menu_item "toolbar:insert > shape > double arrow", "", "images/tb_shape_double_arrow.png", insert
     shape
-        double_arrow 0, 0, 100, 100, 44, 32%
+        double_arrow (0, 0), 100, 100, 44, 32%
 menu_item "toolbar:insert > shape > diamond", "", "images/tb_shape_diamond.png", insert
     shape
-        diamond 0, 0, 100, 100
+        diamond (0, 0), 100, 100
 menu_item "toolbar:insert > shape > speech ballon", "", "images/tb_shape_speech_balloon.png", insert
     shape
-        speech_balloon 0, 16, 100, 68, 50, -50, -50
+        speech_balloon (0, 16), 100, 68, 50, (-50, -50)
 menu_item "toolbar:insert > shape > callout", "", "images/tb_shape_callout.png", insert
     shape
-        callout 16, 0, 68, 100, 15, -50, 0, 60
+        callout (16, 0), 68, 100, 15, (-50, 0), 60
 menu_item "toolbar:insert > shape > star", "", "images/tb_shape_star.png", insert
     shape
-        star 0, 0, 100, 100, 5, 50%
+        star (0, 0), 100, 100, 5, 50%
 menu_item "toolbar:insert > shape > polygon", "", "images/tb_shape_polygon.png", insert
     shape
-        polygon 0, 0, 100, 100, 5
+        polygon (0, 0), 100, 100, 5
 }
 
 menu_format -> {

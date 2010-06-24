@@ -42,14 +42,18 @@ struct ResourceMgt : public TaoTreeClone
 
 private :
     Text * getArg(Prefix * what, int pos);
-    bool isToBeMoved(QFileInfo &info);
+    bool isToBeMoved(QFileInfo &info, QString prefix);
     text integrateFile(QFileInfo info, QString prefix);
 
     // List of commands using a filename,
     // associated with
     //  -A- the rank of the filename in the argument list. -1 means last one.
-    //  -B- the subdir where the file will be put
+    //  -B- the prefix that will determinate the subdir where the file will
+    //      be searched and put (if necessary).
     static std::map < text, std::pair < int, text > > cmdFileList;
+
+    // List of QResource prefix and associated directoy where to place files
+    static std::map < text, text > subDirList;
 
     // The list of used files in the program.
     // Useful to cleanup the git repository.

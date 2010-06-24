@@ -192,6 +192,7 @@ public:
     uint        selected(uint i);
     uint        selected(Layout *);
     void        reselect(Tree *from, Tree *to);
+    void        removeFromSelection(Tree *from, Tree *to);
     static uint singleClicks(uint sel)  { return sel & 0xFFFF; }
     static uint doubleClicks(uint sel)  { return sel >> 16; }
     void        select(uint id, uint count);
@@ -586,7 +587,7 @@ private:
     std::set<Tree_p >     selectionTrees, selectNextTime;
     bool                  wasSelected;
     bool                  selectionChanged;
-    QEvent *              event;
+    QEvent *              w_event;
     QWidget *             focusWidget;
     GLdouble              focusProjection[16], focusModel[16];
     GLint                 focusViewport[4];

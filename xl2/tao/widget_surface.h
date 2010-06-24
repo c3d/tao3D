@@ -168,7 +168,7 @@ public:
 
 struct CheckBoxSurface : AbstractButtonSurface
 // ----------------------------------------------------------------------------
-//    Hold information about a QPushButton
+//    Hold information about a QCheckBox button
 // ----------------------------------------------------------------------------
 {
     Q_OBJECT;
@@ -182,24 +182,42 @@ public:
 
 struct GroupBoxSurface : WidgetSurface
 // ----------------------------------------------------------------------------
-//    Hold information about a QPushButton
+//    Hold information about a QGroupBox
 // ----------------------------------------------------------------------------
 {
     Q_OBJECT;
 public:
     typedef GroupBoxSurface * data_t;
-    GroupBoxSurface(XL::Tree *t, Widget *parent, QGridLayout *l);
+    GroupBoxSurface(XL::Tree *t, Widget *parent);
     virtual ~GroupBoxSurface();
 
     operator data_t() { return this; }
     virtual GLuint bind(XL::Text *lbl);
+    QGridLayout *grid(){
+        return (QGridLayout*)widget->layout();
+     }
+
 
 private:
     text label;
-public:
-    QGridLayout *grid;
-//public slots:
-//    void clicked(bool checked);
+};
+
+
+struct GridGroupBox : QGroupBox
+// ----------------------------------------------------------------------------
+//    A specialized QGroupBox with a QGridLayout
+// ----------------------------------------------------------------------------
+{
+    GridGroupBox(QWidget* p):
+            QGroupBox(p)
+    {
+        QGridLayout *grid = new QGridLayout(this);
+        grid->setObjectName("groupBox layout");
+        setLayout(grid);
+    }
+protected:
+    virtual bool event(QEvent *event);
+
 };
 
 

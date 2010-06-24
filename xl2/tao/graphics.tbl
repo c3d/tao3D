@@ -119,6 +119,12 @@ PREFIX(FullScreen, boolean, "full_screen", PARM(fs, boolean),
        RTAO(fullScreen(self, fs)))
 PREFIX(ToggleFullScreen, boolean, "toggle_full_screen", ,
        RTAO(toggleFullScreen(self)))
+PREFIX(ZoomPlus, boolean, "zoom_plus", ,
+       RTAO(zoomPlus(self)))
+PREFIX(ZoomMinus, boolean, "zoom_minus", ,
+       RTAO(zoomMinus(self)))
+PREFIX(ResetView, boolean, "reset_view", ,
+       RTAO(resetView(self)))
 PREFIX(ToggleHandCursor, boolean, "toggle_hand_cursor", ,
        RTAO(toggleHandCursor(self)))
 PREFIX(EnableAnimations, boolean, "enable_animations", PARM(an, boolean),

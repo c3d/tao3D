@@ -9,9 +9,12 @@ if true then TrueBody                   -> do TrueBody
 if false then TrueBody                  -> false
 
 // Key management
-key "Control-F"                         -> toggle_full_screen
+key "Control-L"                         -> toggle_full_screen
 key "Escape"                            -> full_screen false
 key "Control-M"                         -> toggle_hand_cursor
+key "Control-1"                         -> reset_view
+key "Control-+"                         -> zoom_plus
+key "Control--"                         -> zoom_minus
 key "Delete"                            -> delete_selection "Delete"
 key "Backspace"                         -> delete_selection "Backspace"
 key X                                   -> text_edit_key X

@@ -1104,6 +1104,18 @@ static text keyName(QKeyEvent *event)
     case Qt::Key_X:                     ctrl = "X"; break;
     case Qt::Key_Y:                     ctrl = "Y"; break;
     case Qt::Key_Z:                     ctrl = "Z"; break;
+    case Qt::Key_0:                     ctrl = "0"; break;
+    case Qt::Key_1:                     ctrl = "1"; break;
+    case Qt::Key_2:                     ctrl = "2"; break;
+    case Qt::Key_3:                     ctrl = "3"; break;
+    case Qt::Key_4:                     ctrl = "4"; break;
+    case Qt::Key_5:                     ctrl = "5"; break;
+    case Qt::Key_6:                     ctrl = "6"; break;
+    case Qt::Key_7:                     ctrl = "7"; break;
+    case Qt::Key_8:                     ctrl = "8"; break;
+    case Qt::Key_9:                     ctrl = "9"; break;
+    case Qt::Key_Minus:                 ctrl = "-"; break;
+    case Qt::Key_Plus:                  ctrl = "+"; break;
     case Qt::Key_BracketLeft:           ctrl = "["; break;
     case Qt::Key_Backslash:             ctrl = "\\"; break;
     case Qt::Key_BracketRight:          ctrl = "]"; break;
@@ -1567,12 +1579,10 @@ void Widget::wheelEvent(QWheelEvent *event)
         return;
 
     int d = event->delta();
-    if (d < 0 && zoom <= 3.75)
-        zoom += 0.25;
-    else if (d > 0 && zoom >= 0.5)
-        zoom -= 0.25;
-    setup(width(), height());
-    updateGL();
+    if (d < 0)
+        zoomPlus();
+    else
+        zoomMinus();
 }
 
 
@@ -3153,6 +3163,48 @@ XL::Name_p Widget::toggleHandCursor(XL::Tree_p self)
     bool isArrow = (cursor().shape() == Qt::ArrowCursor);
     showHandCursor(isArrow);
     return (!isArrow) ? XL::xl_true : XL::xl_false;
+}
+
+
+XL::Name_p Widget::resetView(XL::Tree_p self)
+// ----------------------------------------------------------------------------
+//   Restore default view parameters (zoom, position etc.)
+// ----------------------------------------------------------------------------
+{
+    resetView();
+    return XL::xl_true;
+}
+
+
+Name_p Widget::zoomPlus(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Increase zoom level
+// ----------------------------------------------------------------------------
+{
+    if (zoom >= 0.5)
+    {
+        zoom -= 0.25;
+        setup(width(), height());
+        updateGL();
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
+
+Name_p Widget::zoomMinus(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Decrease zoom level
+// ----------------------------------------------------------------------------
+{
+    if (zoom <= 3.75)
+    {
+        zoom += 0.25;
+        setup(width(), height());
+        updateGL();
+        return XL::xl_true;
+    }
+    return XL::xl_false;
 }
 
 

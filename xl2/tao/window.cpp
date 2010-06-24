@@ -1062,6 +1062,9 @@ void Window::updateProgram(const QString &fileName)
 }
 
 void Window::consolidate()
+// ----------------------------------------------------------------------------
+//   Menu entry for the resource management activities.
+// ----------------------------------------------------------------------------
 {
     text fn = +curFile;
     IFTRACE(resources)

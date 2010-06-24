@@ -96,14 +96,4 @@ bool ImportedFilesChanged(XL::Tree *prog,
     return result;
 }
 
-
-XL::Tree *PruneInfo::Do(XL::Tree *what)
-// ----------------------------------------------------------------------------
-//   Prune info that we don't want to preserve when the tree changes
-// ----------------------------------------------------------------------------
-{
-    what->Purge<WidgetSurface>();
-    return what;
-}
-
 TAO_END

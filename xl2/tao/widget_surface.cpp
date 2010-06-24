@@ -26,6 +26,7 @@
 #include "runtime.h"
 #include "tao_utf8.h"
 #include "application.h"
+#include "apply_changes.h"
 #include <QtWebKit>
 #include <phonon>
 #include <cstring>
@@ -228,7 +229,7 @@ void WebViewSurface::loadProgress(int progressPercent)
 
     if (url.Pointer() &&
         url->value != currentUrl &&
-        url->Position() != XL::Tree::NOWHERE)
+        !IsMarkedConstant(url))
     {
         // Record the change
         url->value = currentUrl;
@@ -287,7 +288,7 @@ GLuint LineEditSurface::bind(XL::Text *textTree)
 
         // Record the change
         Widget *parent = (Widget *) widget->parent();
-        parent->markChanged("Text change");
+        parent->markChanged("Line editor text change");
     }
 
     return WidgetSurface::bind();
@@ -313,7 +314,7 @@ void LineEditSurface::textChanged(const QString &text)
 
         // Record the change
         Widget *parent = (Widget *) widget->parent();
-        parent->markChanged("Text change");
+        parent->markChanged("Line editor text change");
     }
 
     repaint();

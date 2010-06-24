@@ -30,6 +30,8 @@
 #include "gl_keepers.h"
 #include "runtime.h"
 #include "transforms.h"
+#include "apply_changes.h"
+#include "table.h"
 #include <cmath>
 
 TAO_BEGIN
@@ -112,8 +114,8 @@ void Manipulator::updateArg(Widget *, Tree *arg,
 //   Update the given argument by the given offset
 // ----------------------------------------------------------------------------
 {
-    // Defensive coding against bad callers...
-    if (!arg || previous == current)
+    // Verify if there is something we are allowed to modify
+    if (!arg || previous == current || IsMarkedConstant(arg))
         return;
 
     Tree_p  source   = xl_source(arg); // Find the source expression
@@ -355,22 +357,25 @@ bool ControlPoint::DrawHandles(Layout *layout)
 //   For a control point, there is a single handle
 // ----------------------------------------------------------------------------
 {
-    if (DrawHandle(layout, Point3(x, y, z), id, "control_point_handle"))
+    if (!IsMarkedConstant(x) || !IsMarkedConstant(y) || !IsMarkedConstant(z))
     {
-        Widget *widget = layout->Display();
-        Drag *drag = widget->drag();
-        if (drag)
+        if (DrawHandle(layout, Point3(x, y, z), id, "control_point_handle"))
         {
-            Point3 p1 = drag->Previous();
-            Point3 p2 = drag->Current();
-            if (p1 != p2)
+            Widget *widget = layout->Display();
+            Drag *drag = widget->drag();
+            if (drag)
             {
-                Point3 p0 = drag->Origin();
-                updateArg(widget, x,  p0.x, p1.x, p2.x);
-                updateArg(widget, y,  p0.y, p1.y, p2.y);
-                updateArg(widget, z,  p0.z, p1.z, p2.z);
-                widget->markChanged("Control point moved");
-                return true;
+                Point3 p1 = drag->Previous();
+                Point3 p2 = drag->Current();
+                if (p1 != p2)
+                {
+                    Point3 p0 = drag->Origin();
+                    updateArg(widget, x,  p0.x, p1.x, p2.x);
+                    updateArg(widget, y,  p0.y, p1.y, p2.y);
+                    updateArg(widget, z,  p0.z, p1.z, p2.z);
+                    widget->markChanged("Control point moved");
+                    return true;
+                }
             }
         }
     }
@@ -656,6 +661,9 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
     Point3 handle;
     int id = 9;
 
+    if (IsMarkedConstant(r))
+        return changed;
+
     if (sw*w < sh*h)
     {
         if (r > sh*h/2)
@@ -743,6 +751,9 @@ bool ControlArrow::DrawHandles(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     bool changed = ControlRectangle::DrawHandles(layout);
+
+    if (IsMarkedConstant(ax) && IsMarkedConstant(ary))
+        return changed;
 
     coord aax, aay;
     int sw = w > 0? 1: -1;
@@ -833,7 +844,8 @@ bool ControlPolygon::DrawHandles(Layout *layout)
         pp = p_max;
     
     Point3 handle = Point3(x-sw*w/2+sw*w*(pp-2)/19, y-sh*h/2, 0);
-    if (DrawHandle(layout, handle, 9, "adjust_shape_handle"))
+    if (!IsMarkedConstant(p) &&
+        DrawHandle(layout, handle, 9, "adjust_shape_handle"))
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
@@ -894,7 +906,8 @@ bool ControlStar::DrawHandles(Layout *layout)
         rr = r_max;
 
     Point3 handle = Point3(x + rr*sw*w/2*sp, y + rr*h/2*cp, 0);
-    if (DrawHandle(layout, handle, 11, "adjust_shape_handle"))
+    if (!IsMarkedConstant(r) &&
+        DrawHandle(layout, handle, 11, "adjust_shape_handle"))
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
@@ -947,7 +960,8 @@ bool ControlBalloon::DrawHandles(Layout *layout)
     bool changed = ControlRoundedRectangle::DrawHandles(layout);
 
     Point3 handle = Point3(ax, ay, 0);
-    if (DrawHandle(layout, handle, 11, "adjust_shape_handle"))
+    if (!(IsMarkedConstant(ax) && IsMarkedConstant(ay)) &&
+        DrawHandle(layout, handle, 11, "adjust_shape_handle"))
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
@@ -1050,7 +1064,8 @@ bool ControlCallout::DrawHandles(Layout *layout)
     dcp.y = ay + dd/4*sin(beta+M_PI_2) - 15*td.y;
 
     Point3 handle = Point3(dcp.x, dcp.y, 0);
-    if (DrawHandle(layout, handle, 13, "adjust_shape_handle"))
+    if (!IsMarkedConstant(d) &&
+        DrawHandle(layout, handle, 13, "adjust_shape_handle"))
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
@@ -1115,6 +1130,33 @@ void WidgetManipulator::DrawSelection(Layout *layout)
                                   "widget_selection", layout->id);
         }
     }
+}
+
+
+// ============================================================================
+//
+//   Manipulate a table
+//
+// ============================================================================
+
+TableManipulator::TableManipulator(Tree *self,
+                                   Real *x, Real *y, Table *table)
+// ----------------------------------------------------------------------------
+//    Create a table manipulator at the current coordinates
+// ----------------------------------------------------------------------------
+    : FrameManipulator(self, x, y, new Real(200), new Real(100)), table(table)
+{}
+
+
+bool TableManipulator::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Allow a table to be moved around
+// ----------------------------------------------------------------------------
+{
+    Box3 bounds = table->Bounds(layout);
+    w = new Real(bounds.Width());
+    h = new Real(bounds.Height());
+    return FrameManipulator::DrawHandles(layout);
 }
 
 

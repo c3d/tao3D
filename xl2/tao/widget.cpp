@@ -104,6 +104,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
       pageTree(NULL),
+      drawAllPages(false),
       currentShape(NULL),
       currentGridLayout(NULL),
       currentGroup(NULL), fontFileMgr(NULL), activities(NULL),
@@ -776,7 +777,10 @@ QStringList Widget::fontFiles()
        FontFileManager *&m;
     } ffm(fontFileMgr);
 
-    paintGL();
+    drawAllPages = true;
+    draw();
+    drawAllPages = false;
+    draw();
     if (!fontFileMgr->errors.empty())
     {
         // Some font files are not in a suitable format, so we won't try to
@@ -1975,10 +1979,11 @@ bool Widget::doCommit(bool immediate)
 //   Commit files previously written to repository and reset next commit time
 // ----------------------------------------------------------------------------
 {
+    (void)immediate; // Now unused. Commit is always synchronous.
     IFTRACE(filesync)
             std::cerr << "Commit: " << repository()->whatsNew << "\n";
     bool done;
-    done = immediate ? repository()->commit() : repository()->asyncCommit();
+    done = repository()->commit();
     if (done)
     {
         XL::Main *xlr = XL::MAIN;
@@ -2621,7 +2626,7 @@ XL::Text_p Widget::page(Tree_p self, text name, Tree_p body)
     pageId++;
 
     // If the page is set, then we display it
-    if (pageName == name)
+    if (pageName == name || drawAllPages)
     {
         // Initialize back-link
         pageFound = pageId;
@@ -3499,7 +3504,7 @@ Tree_p Widget::closePath(Tree_p self)
 }
 
 
-static GraphicPath::EndpointStyle endpointStyle(symbolicname_r n)
+static GraphicPath::EndpointStyle endpointStyle(symbol_r n)
 // ----------------------------------------------------------------------------
 //   Translates XL name into endpoint style enum
 // ----------------------------------------------------------------------------
@@ -3562,7 +3567,7 @@ static GraphicPath::EndpointStyle endpointStyle(symbolicname_r n)
     }
 }
 
-Tree_p Widget::endpointsStyle(Tree_p self, symbolicname_r s, symbolicname_r e)
+Tree_p Widget::endpointsStyle(Tree_p self, symbol_r s, symbol_r e)
 // ----------------------------------------------------------------------------
 //   Specify the style of the path endpoints
 // ----------------------------------------------------------------------------
@@ -4465,6 +4470,9 @@ Tree_p Widget::newTable(Tree_p self, Real_p x, Real_p y,
     Table *tbl = new Table(this, x, y, r, c);
     XL::LocalSave<Table *> saveTable(table, tbl);
     layout->Add(tbl);
+
+    if (currentShape)
+        layout->Add(new TableManipulator(currentShape, x, y, tbl));
 
     // Patch the symbol table with short versions of table_xyz functions
     if (Prefix *prefix = self->AsPrefix())
@@ -6640,7 +6648,7 @@ Tree_p Widget::constant(Tree_p self, Tree_p tree)
 //   Return a clone of the tree to make sure it is not modified
 // ----------------------------------------------------------------------------
 {
-    tree->tag |= ~0UL<<Tree::KINDBITS;
+    MarkAsConstant(tree);
     return tree;
 }
 

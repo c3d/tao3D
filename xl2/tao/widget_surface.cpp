@@ -145,7 +145,7 @@ bool WidgetSurface::requestFocus(Layout *layout, coord x, coord y)
 {
     // Request focus for this widget
     Widget *parent = (Widget *) widget->parent();
-    if (parent->selected(layout))
+    if (parent->focused(layout))
         return parent->requestFocus(widget, x, y);
     return false;
 }
@@ -753,7 +753,9 @@ bool GridGroupBox::event(QEvent *event)
                             QMouseEvent clocal(evt->type(), QPoint(cx, cy ),
                                                evt->button(), evt->buttons(),
                                                evt->modifiers());
-                            return ((QObject*)item->widget())->event(&clocal);
+                            bool ret = ((QObject*)item->widget())->event(&clocal);
+                            ((Widget*)parent())->refresh();
+                            return ret;
                         }
                         return QGroupBox::event(event);
                     }

@@ -109,7 +109,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentGroup(NULL), fontFileMgr(NULL), activities(NULL),
       id(0), charId(0), capacity(1), manipulator(0),
       wasSelected(false), selectionChanged(false),
-      w_event(NULL), focusWidget(NULL), keyboardModifiers(0),
+      w_event(NULL), focusWidget(NULL), focusId(0), keyboardModifiers(0),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
       colorAction(NULL), fontAction(NULL),
@@ -166,6 +166,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 
     // Make sure we get mouse events even when no click is made
     setMouseTracking(true);
+    new Identify("Focus Rectangle", this);
 }
 
 
@@ -1818,7 +1819,7 @@ void Widget::refreshProgram()
                     // Make sure we normalize the replacement
                     Renormalize renorm(this);
                     replacement = replacement->Do(renorm);
-                    
+
                     // Check if we can simply change some parameters in file
                     ApplyChanges changes(replacement);
                     if (!sf.tree->Do(changes))
@@ -2328,6 +2329,15 @@ uint Widget::selected(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     return selected(layout->id);
+}
+
+
+bool Widget::focused(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Test if the current shape is selected
+// ----------------------------------------------------------------------------
+{
+    return layout->id == focusId;
 }
 
 

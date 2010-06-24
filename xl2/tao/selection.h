@@ -27,7 +27,25 @@
 
 TAO_BEGIN
 
-struct Selection : Activity
+struct Identify : Activity
+// ----------------------------------------------------------------------------
+//   Identify the object under the mouse
+// ----------------------------------------------------------------------------
+{
+    Identify(text t, Widget *w);
+
+//    virtual Activity *  Display(void);
+//    virtual Activity *  Idle(void);
+//    virtual Activity *  Click(uint button, uint count, int x, int y);
+    virtual Activity *  MouseMove(int x, int y, bool active);
+
+    uint whatIsHere(int x, int y);
+
+    Box                 rectangle;
+    uint previous;
+};
+
+struct Selection : Identify
 // ----------------------------------------------------------------------------
 //   A selection (represented by a selection rectangle)
 // ----------------------------------------------------------------------------
@@ -39,7 +57,6 @@ struct Selection : Activity
     virtual Activity *  Click(uint button, uint count, int x, int y);
     virtual Activity *  MouseMove(int x, int y, bool active);
 
-    Box                 rectangle;
 };
 
 TAO_END

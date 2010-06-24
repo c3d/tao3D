@@ -31,6 +31,7 @@
 #include "runtime.h"
 #include "transforms.h"
 #include "apply_changes.h"
+#include "table.h"
 #include <cmath>
 
 TAO_BEGIN
@@ -1129,6 +1130,33 @@ void WidgetManipulator::DrawSelection(Layout *layout)
                                   "widget_selection", layout->id);
         }
     }
+}
+
+
+// ============================================================================
+//
+//   Manipulate a table
+//
+// ============================================================================
+
+TableManipulator::TableManipulator(Tree *self,
+                                   Real *x, Real *y, Table *table)
+// ----------------------------------------------------------------------------
+//    Create a table manipulator at the current coordinates
+// ----------------------------------------------------------------------------
+    : FrameManipulator(self, x, y, new Real(200), new Real(100)), table(table)
+{}
+
+
+bool TableManipulator::DrawHandles(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Allow a table to be moved around
+// ----------------------------------------------------------------------------
+{
+    Box3 bounds = table->Bounds(layout);
+    w = new Real(bounds.Width());
+    h = new Real(bounds.Height());
+    return FrameManipulator::DrawHandles(layout);
 }
 
 

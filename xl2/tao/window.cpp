@@ -665,6 +665,10 @@ void Window::createActions()
     saveAct->setIconVisibleInMenu(false);
     connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
 
+    recAct = new QAction(tr("Reconcile"), this);
+    recAct->setStatusTip(tr("Make the document self contained"));
+    connect(recAct, SIGNAL(triggered()), this, SLOT(reconcile()));
+
     saveAsAct = new QAction(tr("Save &As..."), this);
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
     saveAsAct->setStatusTip(tr("Save the document under a new name"));
@@ -803,6 +807,7 @@ void Window::createMenus()
     fileMenu->addAction(saveAct);
     fileMenu->addAction(saveAsAct);
     fileMenu->addAction(saveFontsAct);
+    fileMenu->addAction(recAct);
     fileMenu->addSeparator();
     fileMenu->addAction(closeAct);
     fileMenu->addAction(exitAct);
@@ -1056,6 +1061,22 @@ void Window::updateProgram(const QString &fileName)
     taoWidget->updateGL();
 }
 
+void Window::reconcile()
+{
+    text fn = +curFile;
+    IFTRACE(resources)
+    {
+        std::cerr << "fn is "<< fn << std::endl;
+    }
+
+    ResourceMgt checkFiles(taoWidget);
+    xlRuntime->files[fn].tree->Do(checkFiles);
+    checkFiles.cleanUpRepo();
+    // Reload the program and mark the changes
+    taoWidget->reloadProgram();
+    taoWidget->markChanged("Related files included in the project");
+
+}
 
 bool Window::saveFile(const QString &fileName)
 // ----------------------------------------------------------------------------
@@ -1085,18 +1106,6 @@ bool Window::saveFile(const QString &fileName)
 
     setCurrentFile(fileName);
     xlRuntime->LoadFile(fn);
-
-    IFTRACE(resources)
-    {
-        std::cerr << "fn is "<< fn << std::endl;
-    }
-
-    ResourceMgt checkFiles(taoWidget);
-    xlRuntime->files[fn].tree->Do(checkFiles);
-    checkFiles.cleanUpRepo();
-    // Reload the program and mark the changes
-    taoWidget->reloadProgram();
-    taoWidget->markChanged("Related files included in the project");
 
     statusBar()->showMessage(tr("File saved"), 2000);
     updateProgram(fileName);

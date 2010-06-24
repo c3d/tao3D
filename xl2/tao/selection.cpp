@@ -75,8 +75,6 @@ uint Identify::whatIsHere(int x, int y)
         GLuint *ptr = buffer;
         for (int i = 0; i < hits; i++)
         {
-            std::cerr << "Stack depth " << ptr[0] << " mini depth " << ptr[1]
-                    <<" maxi depth " << ptr[2] << " ID " << ptr[3] << std::endl;
             uint size = ptr[0];
             if (ptr[3] && ptr[1] <= depth)
             {

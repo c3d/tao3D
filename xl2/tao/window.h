@@ -88,7 +88,7 @@ private slots:
     bool save();
     bool saveAs();
     bool saveFonts();
-    void reconcile();
+    void consolidate();
     void openRecentFile();
     void clearRecentFileList();
     void cut();

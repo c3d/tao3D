@@ -665,9 +665,9 @@ void Window::createActions()
     saveAct->setIconVisibleInMenu(false);
     connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
 
-    recAct = new QAction(tr("Reconcile"), this);
+    recAct = new QAction(tr("Consolidate"), this);
     recAct->setStatusTip(tr("Make the document self contained"));
-    connect(recAct, SIGNAL(triggered()), this, SLOT(reconcile()));
+    connect(recAct, SIGNAL(triggered()), this, SLOT(consolidate()));
 
     saveAsAct = new QAction(tr("Save &As..."), this);
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
@@ -1061,7 +1061,7 @@ void Window::updateProgram(const QString &fileName)
     taoWidget->updateGL();
 }
 
-void Window::reconcile()
+void Window::consolidate()
 {
     text fn = +curFile;
     IFTRACE(resources)

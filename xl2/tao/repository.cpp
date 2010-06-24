@@ -65,7 +65,7 @@ text Repository::styleSheet()
 //   Return the style sheet we use for this repository
 // ----------------------------------------------------------------------------
 {
-    return "xl.stylesheet";
+    return "system:xl.stylesheet";
 }
 
 
@@ -85,7 +85,8 @@ bool Repository::write(text fileName, XL::Tree *tree)
     {
         std::ofstream output(copy.c_str());
         XL::Renderer renderer(output);
-        renderer.SelectStyleSheet(styleSheet());
+        QFileInfo stylesheet(+styleSheet());
+        renderer.SelectStyleSheet(+stylesheet.canonicalFilePath());
         renderer.Render(tree);
         output.flush();
         ok = output.good();

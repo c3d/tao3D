@@ -57,6 +57,8 @@ public:
     bool                wrapS : 1;                // Texture wrapping
     bool                wrapT : 1;
     bool                printing : 1;
+    double              planarRotation;
+    double              planarScale;
     uint                rotationId, translationId, scaleId;
 };
 
@@ -98,6 +100,7 @@ public:
     // For optimized drawing, we keep track of what changes
     bool                hasPixelBlur    : 1; // Pixels not aligning naturally
     bool                hasMatrix       : 1;
+    bool                has3D           : 1;
     bool                hasAttributes   : 1;
     bool                hasTextureMatrix: 1;
     bool                isSelection     : 1;

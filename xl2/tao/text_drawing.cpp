@@ -196,7 +196,7 @@ void TextSpan::DrawDirect(Layout *where)
     // When printing and there is no rotation, we try to use GL2PS direct
     if (where->printing)
     {
-        if (!where->hasPixelBlur && !where->hasMatrix)
+        if (!where->has3D)
         {
             setTexture(where);
             if (setFillColor(where))
@@ -205,7 +205,11 @@ void TextSpan::DrawDirect(Layout *where)
                 text family = +where->font.family();
                 uint size = where->font.pointSize();
                 glRasterPos3d(pos.x, pos.y, pos.z);
-                gl2psText(range.c_str(), family.c_str(), size);
+                if (where->planarRotation != 0.0)
+                    gl2psTextOpt(range.c_str(), family.c_str(), size,
+                                 GL2PS_TEXT_BL, where->planarRotation);
+                else
+                    gl2psText(range.c_str(), family.c_str(), size);
             }
             if (where->lineColor.alpha <= 0)
                 skip = true;

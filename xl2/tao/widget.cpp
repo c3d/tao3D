@@ -4776,7 +4776,7 @@ Tree_p Widget::urlPaint(Tree_p self,
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     urlTexture(self, w, h, url, progress);
-    WebViewSurface *surface = url->GetInfo<WebViewSurface>();
+    WebViewSurface *surface = self->GetInfo<WebViewSurface>();
     layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
@@ -4794,11 +4794,11 @@ Tree_p Widget::urlTexture(Tree_p self, double w, double h,
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    WebViewSurface *surface = url->GetInfo<WebViewSurface>();
+    WebViewSurface *surface = self->GetInfo<WebViewSurface>();
     if (!surface)
     {
-        surface = new WebViewSurface(url, this);
-        url->SetInfo<WebViewSurface> (surface);
+        surface = new WebViewSurface(self, this);
+        self->SetInfo<WebViewSurface> (surface);
     }
 
     // Resize to requested size, and bind texture

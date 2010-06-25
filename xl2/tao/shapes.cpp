@@ -206,9 +206,9 @@ void ClickThroughRectangle::DrawSelection (Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = layout->Display();
-    bool selected = widget->selected(layout);
-    if (selected)
-    {
+//    bool selected = widget->selected(layout);
+//    if (selected)
+//    {
         Point center = bounds.Center();
         if (surface->requestFocus(layout, center.x, center.y))
         {
@@ -217,7 +217,7 @@ void ClickThroughRectangle::DrawSelection (Layout *layout)
             widget->drawSelection(layout, bounds,
                                   "widget_selection", layout->id);
         }
-    }
+//    }
 }
 
 

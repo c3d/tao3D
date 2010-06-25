@@ -146,7 +146,7 @@ bool WidgetSurface::requestFocus(Layout *layout, coord x, coord y)
 {
     // Request focus for this widget
     Widget *parent = (Widget *) widget->parent();
-    if (parent->selected(layout))
+    if (parent->focused(layout))
         return parent->requestFocus(widget, x, y);
     return false;
 }
@@ -675,16 +675,11 @@ void FileChooserSurface::hideWidget()
 //
 // ============================================================================
 
-GroupBoxSurface::GroupBoxSurface(XL::Tree *t, Widget *parent, QGridLayout *l)
+GroupBoxSurface::GroupBoxSurface(XL::Tree *t, Widget *parent)
 // ----------------------------------------------------------------------------
 //    Create the Group Box surface
 // ----------------------------------------------------------------------------
-    : WidgetSurface(t, new QGroupBox(parent)), grid(l)
-{
-    QGroupBox *gbox = (QGroupBox *) widget;
-    grid->setParent(gbox);
-    gbox->setLayout(grid);
-}
+    : WidgetSurface(t, new GridGroupBox(parent)){}
 
 GroupBoxSurface::~GroupBoxSurface()
 // ----------------------------------------------------------------------------
@@ -692,7 +687,7 @@ GroupBoxSurface::~GroupBoxSurface()
 // ----------------------------------------------------------------------------
 {
     QLayoutItem *child;
-    while ((child = grid->takeAt(0)) != 0) {
+    while ((child = grid()->takeAt(0)) != 0) {
         child->widget()->setParent(NULL);
         delete child;
     }
@@ -708,6 +703,7 @@ GLuint GroupBoxSurface::bind(XL::Text *lbl)
     {
         label = lbl->value;
         QGroupBox *gbox = (QGroupBox *) widget;
+        gbox->setObjectName(+label);
         gbox->setTitle(+label);
         dirty = true;
         IFTRACE(widgets)
@@ -722,6 +718,60 @@ GLuint GroupBoxSurface::bind(XL::Text *lbl)
 }
 
 
+bool GridGroupBox::event(QEvent *event)
+// ----------------------------------------------------------------------------
+//   In case of MouseEvent it forward the event to the desired widget
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(widgets)
+            std::cerr << "GridGroupBox::event\n";
+    switch (event->type()){
+    case QEvent::MouseButtonPress:
+    case QEvent::MouseButtonRelease:
+    case QEvent::MouseButtonDblClick:
+    case QEvent::MouseMove:
+        {
+            QGridLayout * grid = static_cast<QGridLayout *>(layout());
+            QMouseEvent *evt = static_cast<QMouseEvent*>(event);
+
+            int nx = evt->x();
+            int ny = evt->y();
+
+            for (int col = 0; col < grid->columnCount(); col++)
+            {
+                for(int row = 0; row < grid->rowCount(); row++)
+                {
+                    QRect rect = grid->cellRect(row,col);
+                    if (rect.contains(nx, ny))
+                    {
+                        if (QLayoutItem * item = grid->itemAtPosition(row, col))
+                        {
+                            int cx = nx - rect.x();
+                            int cy = ny - rect.y();
+                            IFTRACE(widgets)
+                                    std::cerr << "GridGroupBox::event cx = "
+                                    << cx <<" cy = " << cy << std::endl;
+                            QMouseEvent clocal(evt->type(), QPoint(cx, cy ),
+                                               evt->button(), evt->buttons(),
+                                               evt->modifiers());
+                            bool ret = ((QObject*)item->widget())->event(&clocal);
+                            ((Widget*)parent())->refresh();
+                            return ret;
+                        }
+                        return QGroupBox::event(event);
+                    }
+                }
+
+            }
+
+        }
+
+    default:
+        return QGroupBox::event(event);
+
+    }
+
+}
 
 // ============================================================================
 //

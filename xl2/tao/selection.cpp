@@ -30,12 +30,102 @@
 
 TAO_BEGIN
 
+Identify::Identify(text t, Widget *w)
+// ----------------------------------------------------------------------------
+//   Initialize the activity
+// ----------------------------------------------------------------------------
+    :Activity(t, w), rectangle(), previous(0)
+{}
+
+uint Identify::whatIsHere(int x, int y)
+// ----------------------------------------------------------------------------
+//   Initialize the activity
+// ----------------------------------------------------------------------------
+{
+    y = widget->height() - y;
+    rectangle.lower.Set(x-4, y-4);
+    rectangle.upper.Set(x+4, y+4);
+
+    // Create the select buffer and switch to select mode
+    GLuint *buffer = new GLuint[4 * widget->capacity];
+    glSelectBuffer(4 * widget->capacity, buffer);
+    glRenderMode(GL_SELECT);
+
+    // Adjust viewport for rendering
+    widget->setup(widget->width(), widget->height(), &rectangle);
+
+    // Initialize names
+    glInitNames();
+    glPushName(0);
+
+    // Run the programs, which detects selected items
+    widget->identifySelection();
+
+    // Get number of hits and extract selection
+    // Each record is as follows:
+    // [0]: Depth of the name stack
+    // [1]: Minimum depth
+    // [2]: Maximum depth
+    // [3..3+[0]-1]: List of names
+    int hits = glRenderMode(GL_RENDER);
+    GLuint depth = ~0U;
+    GLuint selected = 0;
+    if (hits > 0)
+    {
+        GLuint *ptr = buffer;
+        for (int i = 0; i < hits; i++)
+        {
+            uint size = ptr[0];
+            if (ptr[3] && ptr[1] <= depth)
+            {
+                selected = ptr[3];
+                depth = ptr[1];
+            }
+
+            ptr += 3 + size;
+        }
+    }
+    delete[] buffer;
+
+    return selected;
+}
+
+
+Activity *  Identify::MouseMove(int x, int y, bool active)
+// ----------------------------------------------------------------------------
+//   Track focus as mouse moves
+// ----------------------------------------------------------------------------
+{
+    if (active)
+        return next;
+
+    uint current = whatIsHere(x, y);
+    if (current != previous)
+    {
+        if (previous > 0)
+        {
+            // forwarder un focus out pour previous
+            widget->focusId = 0;
+            widget->focusWidget = NULL;
+        }
+        if (current > 0)
+        {
+            // forwarder un focus in pour current
+            widget->focusId = current;
+        }
+        widget->refresh();
+    }
+
+    previous = current;
+    return next;
+}
+
 
 Selection::Selection(Widget *w)
 // ----------------------------------------------------------------------------
 //   Initialize the selection rectangle
 // ----------------------------------------------------------------------------
-    : Activity("Selection Rectangle", w), rectangle()
+    : Identify("Selection Rectangle", w)
 {}
 
 

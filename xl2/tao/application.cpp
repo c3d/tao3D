@@ -184,7 +184,7 @@ QString Application::defaultUserDocumentsFolderPath()
 //    Try to guess the best documents folder to use by default
 // ----------------------------------------------------------------------------
 {
-#ifdef QT_WS_WIN
+#ifdef CONFIG_MINGW
     // Looking at the Windows registry
     QSettings settings(
             "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows"
@@ -202,7 +202,7 @@ QString Application::defaultUserDocumentsFolderPath()
         return path;
     }
 
-#endif // QT_WS_WIN
+#endif // CONFIG_MINGW
 
     // Trying to ding a home sub-directory ending with "Documents"
     QFileInfoList list = QDir::home().entryInfoList(
@@ -234,7 +234,7 @@ QString Application::defaultPreferencesFolderPath()
 //    Try to guess the best user preference folder to use by default
 // ----------------------------------------------------------------------------
 {
-#ifdef QT_WS_WIN
+#ifdef CONFIG_MINGW
     // Looking at the Windows registry
     QSettings settings(
             "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows"
@@ -250,7 +250,7 @@ QString Application::defaultPreferencesFolderPath()
     {
         return path;
     }
-#endif // QT_WS_WIN
+#endif // CONFIG_MINGW
 
     // Trying to ding a home sub-directory ending with "Documents"
     QFileInfoList list = QDir::home().entryInfoList(
@@ -283,7 +283,10 @@ QString Application::defaultTaoApplicationFolderPath()
 //    Try to guess the best application folder to use by default
 // ----------------------------------------------------------------------------
 {
-    return applicationDirPath();
+    QString path = applicationDirPath();
+    IFTRACE(paths) 
+        std::cerr << "Tao Application Folder: " << +path << "\n"; 
+    return path;
 }
 
 
@@ -292,7 +295,7 @@ QString Application::defaultUserImagesFolderPath()
 //    Try to guess the best Images folder to use by default
 // ----------------------------------------------------------------------------
 {
-#ifdef QT_WS_WIN
+#ifdef CONFIG_MINGW
     // Looking at the Windows registry
     QSettings settings(
             "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows"
@@ -308,7 +311,7 @@ QString Application::defaultUserImagesFolderPath()
     {
         return path;
     }
-#endif // QT_WS_WIN
+#endif // CONFIG_MINGW
 
     // Trying to ding a home sub-directory ending with "images" or "pictures"
     QFileInfoList list = QDir::home().entryInfoList(

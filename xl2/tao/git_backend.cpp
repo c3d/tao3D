@@ -86,7 +86,7 @@ text GitRepository::styleSheet()
 //   Return the XL style sheet to be used for rendering files in git
 // ----------------------------------------------------------------------------
 {
-    return "git.stylesheet";
+    return "system:git.stylesheet";
 }
 
 

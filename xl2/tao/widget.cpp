@@ -62,6 +62,7 @@
 #include "font.h"
 #include "objloader.h"
 #include "tree_cloning.h"
+#include "gl2ps.h"
 
 #include <QApplication>
 #include <QToolButton>
@@ -3348,6 +3349,45 @@ XL::Integer_p  Widget::polygonOffset(Tree_p self,
     Layout::unitBase = u0;
     Layout::unitIncrement = u1;
     return new Integer(Layout::polygonOffset);
+}
+
+
+Name_p Widget::printPage(Tree_p self, text filename)
+// ----------------------------------------------------------------------------
+//    Print a page either to a file or by picking file
+// ----------------------------------------------------------------------------
+{
+    if (filename == "")
+    {
+        QPrintDialog printDialog(this);
+        if (printDialog.exec() != QDialog::Accepted)
+            return XL::xl_false;
+        filename = xlProgram->name + ".pdf";
+        printDialog.printer()->setDocName(+filename);
+    }
+
+
+    FILE *fp = fopen(filename.c_str(), "wb");
+    GLint buffsize = 0, state = GL2PS_OVERFLOW;
+    GLint viewport[4];
+
+    glGetIntegerv(GL_VIEWPORT, viewport);
+
+    while( state == GL2PS_OVERFLOW ){ 
+        buffsize += 1024*1024;
+        gl2psBeginPage ( "Tao Output", "Tao", viewport,
+                         GL2PS_PDF, GL2PS_BSP_SORT,
+                         GL2PS_DRAW_BACKGROUND |
+                         GL2PS_SIMPLE_LINE_OFFSET |
+                         GL2PS_OCCLUSION_CULL | GL2PS_BEST_ROOT,
+                         GL_RGBA, 0, NULL, 0, 0, 0, buffsize,
+                         fp, filename.c_str());
+        gl2psEnable(GL2PS_BLEND);
+        space->Draw(NULL);
+        state = gl2psEndPage();
+    }
+
+    fclose(fp);
 }
 
 

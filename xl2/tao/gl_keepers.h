@@ -103,28 +103,43 @@ struct GLAllStateKeeper : GLStateKeeper
 // ----------------------------------------------------------------------------
 {
     GLAllStateKeeper(GLbitfield bits = GL_ALL_ATTRIB_BITS,
-                     bool saveModel = true, bool saveProjection = true)
-        : GLStateKeeper(bits, saveModel), saveProjection(saveProjection)
+                     bool saveModel = true,
+                     bool saveProjection = true,
+                     bool saveTextureMatrix = true)
+        : GLStateKeeper(bits, saveModel),
+          saveProjection(saveProjection),
+          saveTextureMatrix(saveTextureMatrix)
     {
         if (saveProjection)
         {
             glMatrixMode(GL_PROJECTION);
             glPushMatrix();
-            glMatrixMode(GL_MODELVIEW);
         }
+        if (saveTextureMatrix)
+        {
+            glMatrixMode(GL_TEXTURE);
+            glPushMatrix();
+        }
+        glMatrixMode(GL_MODELVIEW);
     }
     ~GLAllStateKeeper()
     {
+        if (saveTextureMatrix)
+        {
+            glMatrixMode(GL_TEXTURE);
+            glPopMatrix();
+        }
         if (saveProjection)
         {
             glMatrixMode(GL_PROJECTION);
             glPopMatrix();
-            glMatrixMode(GL_MODELVIEW);
         }
+        glMatrixMode(GL_MODELVIEW);
     }
 
 private:
     bool        saveProjection;
+    bool        saveTextureMatrix;
     GLAllStateKeeper(const GLStateKeeper &other);
 };
 

@@ -39,7 +39,7 @@ typedef GraphicPath::Vertices           Vertices;
 typedef GraphicPath::DynamicVertices    DynamicVertices;
 typedef GraphicPath::EndpointStyle      EndpointStyle;
 
-scale GraphicPath::default_steps = 5;
+scale GraphicPath::default_steps = 12;
 
 #ifndef CALLBACK // Needed for Windows
 #define CALLBACK

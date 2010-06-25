@@ -58,9 +58,8 @@ public:
     virtual bool        remove(text name);
     virtual bool        rename(text from, text to);
     virtual bool        commit(text message = "", bool all=false);
-    virtual bool        asyncCommit(text message = "", bool all=false);
-    virtual bool        asyncRevert(text id);
-    virtual bool        asyncCherryPick(text id);
+    virtual bool        revert(text id);
+    virtual bool        cherryPick(text id);
     virtual bool        merge(text branch);
     virtual bool        reset();
     virtual bool        pull();

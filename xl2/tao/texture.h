@@ -38,14 +38,14 @@ struct ImageTextureInfo : XL::Info
     typedef ImageTextureInfo *          data_t;
     struct  Texture { GLuint id, width, height; };
     typedef std::map<text, Texture>     texture_map;
-    enum { MAX_TEXTURES = 20 };
+    enum { MAX_TEXTURES = 200 };
 
-    ImageTextureInfo(Widget *w);
+    ImageTextureInfo();
     ~ImageTextureInfo();
+
+    Texture load(text img);
     GLuint bind(text img);
     operator data_t() { return this; }
-
-    Widget *    widget;
     uint        width, height;
 
     static texture_map textures;

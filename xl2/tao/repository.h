@@ -36,7 +36,7 @@
 #include <QMap>
 #include <QWeakPointer>
 #include <QSharedPointer>
-#include <QList>
+#include <QQueue>
 #include <iostream>
 
 namespace Tao {
@@ -119,9 +119,8 @@ public:
     virtual bool        remove(text name)               = 0;
     virtual bool        rename(text from, text to)      = 0;
     virtual bool        commit(text msg = "",bool all=false) = 0;
-    virtual bool        asyncCommit(text msg = "", bool all=false) = 0;
-    virtual bool        asyncRevert(text id)            = 0;
-    virtual bool        asyncCherryPick(text id)        = 0;
+    virtual bool        revert(text id)                 = 0;
+    virtual bool        cherryPick(text id)             = 0;
     virtual bool        merge(text branch)              = 0;
     virtual bool        reset()                         = 0;
     virtual bool        pull()                          = 0;
@@ -140,8 +139,9 @@ public:
     static bool         versionGreaterOrEqual(QString ver, QString ref);
 
 signals:
-    void                asyncCommitSuccess(QString commitId, QString msg);
+    void                commitSuccess(QString commitId, QString msg);
     void                asyncCloneComplete(void *id, QString projPath);
+    void                asyncPullComplete();
     void                deleted();
 
 protected:
@@ -150,6 +150,7 @@ protected:
     virtual text        fullName(text fileName);
     Process *           dispatch(Process *cmd, AnsiTextEdit *err = NULL,
                                  AnsiTextEdit *out = NULL, void *id = NULL);
+    void                waitForAsyncProcessCompletion();
 
 protected slots:
     virtual void        asyncProcessFinished(int exitCode);
@@ -177,7 +178,7 @@ public:
     QString            lastPublishTo;
 
 protected:
-    QList<Process *> pQueue;
+    QQueue<Process *> pQueue;
 };
 
 #define TAO_UNDO_SUFFIX "_tao_undo"

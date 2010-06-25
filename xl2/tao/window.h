@@ -63,12 +63,12 @@ public:
     void switchToFullScreen(bool fs);
     bool showSourceView(bool fs);
     bool loadFileIntoSourceFileView(const QString &fileName, bool box=false);
+    QString  currentProjectFolderPath();
 
     bool isUntitled;
     bool isReadOnly;
     bool loadInProgress;
 
-    QString  currentProjectFolderPath();
 
 public:
     QUndoStack       * undoStack;
@@ -103,6 +103,7 @@ private slots:
     void documentWasModified();
     void checkFiles();
     void toggleFullScreen();
+    void clearUndoStack();
 
 private:
     void     createActions();
@@ -154,6 +155,7 @@ private:
     QMenu            *helpMenu;
     QToolBar         *fileToolBar;
     QToolBar         *editToolBar;
+    QToolBar         *viewToolBar;
     QAction          *newAct;
     QAction          *openAct;
     QAction          *saveAct;
@@ -176,6 +178,8 @@ private:
     QAction          *redoAction;
     QAction          *recentFileActs[MaxRecentFiles];
     QAction          *clearRecentAct;
+    QAction          *handCursorAct;
+    QAction          *resetViewAct;
 
 public:
     QMenu            *shareMenu;

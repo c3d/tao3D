@@ -30,11 +30,11 @@ TAO_BEGIN
 
 ImageTextureInfo::texture_map ImageTextureInfo::textures;
 
-ImageTextureInfo::ImageTextureInfo(Widget *w)
+ImageTextureInfo::ImageTextureInfo()
 // ----------------------------------------------------------------------------
 //   Prepare to record texture IDs for the various images
 // ----------------------------------------------------------------------------
-    : widget(w), width(0), height(0)
+    : width(0), height(0)
 {}
 
 
@@ -81,9 +81,9 @@ ImageTextureInfo::Texture &ImageTextureInfo::defaultTexture()
 }
 
 
-GLuint ImageTextureInfo::bind(text file)
+ImageTextureInfo::Texture ImageTextureInfo::load(text file)
 // ----------------------------------------------------------------------------
-//   Bind the given GL texture
+//   Load the given GL texture
 // ----------------------------------------------------------------------------
 {
     texture_map::iterator found = textures.find(file);
@@ -94,7 +94,8 @@ GLuint ImageTextureInfo::bind(text file)
         while (textures.size() > MAX_TEXTURES)
         {
             texture_map::iterator first = textures.begin();
-            glDeleteTextures(1, &(*first).second.id);
+            if ((*first).second.id != defaultTexture().id)
+                glDeleteTextures(1, &(*first).second.id);
             textures.erase(first);
         }
 
@@ -130,6 +131,17 @@ GLuint ImageTextureInfo::bind(text file)
     {
         texinfo = (*found).second;
     }
+
+    return texinfo;
+}
+
+
+GLuint ImageTextureInfo::bind(text file)
+// ----------------------------------------------------------------------------
+//   Bind the given GL texture
+// ----------------------------------------------------------------------------
+{
+    Texture texinfo = load(file);
 
     glBindTexture(GL_TEXTURE_2D, texinfo.id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

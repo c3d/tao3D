@@ -42,6 +42,9 @@ struct ApplyChanges : XL::Action
             what->value = it->value;
             return what;
         }
+        IFTRACE(filesync)
+            std::cerr << "Integer " << (Tree *) what 
+                      << " replaced with  " << (Tree *) replace << '\n';
         return NULL;
     }
     Tree *DoReal(Real *what)
@@ -51,6 +54,9 @@ struct ApplyChanges : XL::Action
             what->value = rt->value;
             return what;
         }
+        IFTRACE(filesync)
+            std::cerr << "Real " << (Tree *) what 
+                      << " replaced with  " << (Tree *) replace << '\n';
         return NULL;
     }
     Tree *DoText(Text *what)
@@ -60,6 +66,9 @@ struct ApplyChanges : XL::Action
             what->value = tt->value;
             return what;
         }
+        IFTRACE(filesync)
+            std::cerr << "Text " << (Tree *) what 
+                      << " replaced with  " << (Tree *) replace << '\n';
         return NULL;
     }
     Tree *DoName(Name *what)
@@ -82,8 +91,12 @@ struct ApplyChanges : XL::Action
                 replace = bt;
                 if (br)
                     return br;
+                return NULL;
             }
         }
+        IFTRACE(filesync)
+            std::cerr << "Block " << (Tree *) what 
+                      << " replaced with  " << (Tree *) replace << '\n';
         return NULL;
     }
     Tree *DoInfix(Infix *what)
@@ -116,6 +129,9 @@ struct ApplyChanges : XL::Action
                 return what;
             }
         }
+        IFTRACE(filesync)
+            std::cerr << "Infix " << (Tree *) what 
+                      << " replaced with  " << (Tree *) replace << '\n';
         return NULL;
     }
     Tree *DoPrefix(Prefix *what)
@@ -134,6 +150,9 @@ struct ApplyChanges : XL::Action
                 return NULL;
             return what;
         }
+        IFTRACE(filesync)
+            std::cerr << "Prefix " << (Tree *) what 
+                      << " replaced with  " << (Tree *) replace << '\n';
         return NULL;
     }
     Tree *DoPostfix(Postfix *what)
@@ -152,6 +171,9 @@ struct ApplyChanges : XL::Action
                 return NULL;
             return what;
         }
+        IFTRACE(filesync)
+            std::cerr << "Postfix " << (Tree *) what 
+                      << " replaced with  " << (Tree *) replace << '\n';
         return NULL;
     }
     Tree *Do(Tree * )

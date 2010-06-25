@@ -64,14 +64,16 @@ struct TextSelect;
 struct WidgetSurface;
 
 // ----------------------------------------------------------------------------
-// Name of fixed menu. Menus then may be retrieved by
-//   QMenu * view = window->findChild<QMenu*>(VIEW_MENU_NAME)
+// Name of fixed menu.
 // ----------------------------------------------------------------------------
+// Menus then may be retrieved by
+//   QMenu * view = window->findChild<QMenu*>(VIEW_MENU_NAME)
 #define FILE_MENU_NAME  "TAO_FILE_MENU"
 #define EDIT_MENU_NAME  "TAO_EDIT_MENU"
 #define SHARE_MENU_NAME "TAO_SHARE_MENU"
 #define VIEW_MENU_NAME  "TAO_VIEW_MENU"
 #define HELP_MENU_NAME  "TAO_HELP_MENU"
+
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -109,6 +111,10 @@ public slots:
     void        cut();
     void        paste();
     void        enableAnimations(bool animate);
+    void        showHandCursor(bool enabled);
+    void        resetView();
+    void        saveAndCommit();
+
 
 signals:
     // Signals
@@ -136,6 +142,9 @@ public:
     void        mouseDoubleClickEvent(QMouseEvent *);
     void        wheelEvent(QWheelEvent *);
     void        timerEvent(QTimerEvent *);
+    void        startPanning(QMouseEvent *);
+    void        doPanning(QMouseEvent *);
+    void        endPanning(QMouseEvent *);
 
     // XL program management
     void        updateProgram(XL::SourceFile *sf);
@@ -146,14 +155,19 @@ public:
     void        markChanged(text reason);
     void        selectStatements(Tree *tree);
     bool        writeIfChanged(XL::SourceFile &sf);
-    bool        doCommit(bool immediate = false);
+    bool        enableAutoSave(bool enabled);
+    bool        doSave(ulonglong tick);
+    bool        doPull(ulonglong tick);
+    bool        doCommit(ulonglong tick);
     Repository *repository();
     Tree *      get(Tree *shape, text name, text sh = "group,shape");
     bool        set(Tree *shape, text n, Tree *value, text sh = "group,shape");
     bool        get(Tree *shape, text n, TreeList &a, text sh = "group,shape");
     bool        set(Tree *shape, text n, TreeList &a, text sh = "group,shape");
-    bool        get(Tree *shape, text n, attribute_args &a, text sh = "group,shape");
-    bool        set(Tree *shape, text n, attribute_args &a, text sh = "group,shape");
+    bool        get(Tree *shape, text n, attribute_args &a,
+                    text sh = "group,shape");
+    bool        set(Tree *shape, text n, attribute_args &a,
+                    text sh = "group,shape");
 
     // Timing
     ulonglong   now();
@@ -188,6 +202,8 @@ public:
     void        deleteFocus(QWidget *widget);
     bool        requestFocus(QWidget *widget, coord x, coord y);
     void        recordProjection();
+    Point3      unprojectLastMouse()    { return unproject(lastMouseX,
+                                                           lastMouseY); }
     uint        lastModifiers()         { return keyboardModifiers; }
     Point3      unproject (coord x, coord y, coord z = 0.0);
     Drag *      drag();
@@ -231,6 +247,9 @@ public:
     Real_p      pageTime(Tree_p self);
     Real_p      after(Tree_p self, double delay, Tree_p code);
     Real_p      every(Tree_p self, double delay, double duration, Tree_p code);
+    Real_p      mouseX(Tree_p self);
+    Real_p      mouseY(Tree_p self);
+    Integer_p   mouseButtons(Tree_p self);
 
     // Preserving attributes
     Tree_p      locally(Tree_p self, Tree_p t);
@@ -259,6 +278,11 @@ public:
     Name_p      showSource(Tree_p self, bool show);
     Name_p      fullScreen(Tree_p self, bool fs);
     Name_p      toggleFullScreen(Tree_p self);
+    Name_p      toggleHandCursor(Tree_p self);
+    Name_p      resetView(Tree_p self);
+    Name_p      zoomPlus(Tree_p self = NULL);
+    Name_p      zoomMinus(Tree_p self = NULL);
+
     Name_p      enableAnimations(Tree_p self, bool fs);
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
@@ -270,6 +294,8 @@ public:
     Tree_p      fillColor(Tree_p self, double r, double g, double b, double a);
     Tree_p      fillTexture(Tree_p self, text fileName);
     Tree_p      fillTextureFromSVG(Tree_p self, text svg);
+    Tree_p      textureWrap(Tree_p self, bool s, bool t);
+    Tree_p      textureTransform(Tree_p self, Tree_p code);
 
     // Generating a path
     Tree_p      newPath(Tree_p self, Tree_p t);
@@ -336,6 +362,10 @@ public:
                      Real_p w, Real_p h, Real_p d);
     Tree_p      cone(Tree_p self, Real_p cx, Real_p cy, Real_p cz,
                      Real_p w, Real_p h, Real_p d);
+    Tree_p      object(Tree_p self,
+                       Real_p x, Real_p y, Real_p z,
+                       Real_p w, Real_p h, Real_p d,
+                       Text_p name);
 
     // Text and font
     Tree_p      textBox(Tree_p self,
@@ -551,6 +581,7 @@ private:
     page_map              pageLinks;
     uint                  pageId, pageFound, pageShown, pageTotal;
     Tree_p                pageTree;
+    bool                  drawAllPages;
     Tree_p                currentShape;
     QGridLayout *         currentGridLayout;
     GroupInfo   *         currentGroup;
@@ -581,6 +612,7 @@ private:
     std::map<text,Color>  selectionColor;
     QFont                 selectionFont;
     QColor                originalColor;
+    int                   lastMouseX, lastMouseY, lastMouseButtons;
 
     // Timing
     QTimer                timer, idleTimer;
@@ -599,6 +631,11 @@ private:
     static QFileDialog *  fileDialog;
            QFileDialog *  currentFileDialog;
     static double         zNear, zFar;
+    double                zoom;
+    double                eyeX, eyeY, eyeZ;
+    double                centerX, centerY, centerZ;
+    int                   panX, panY;
+    bool                  autoSaveEnabled;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:

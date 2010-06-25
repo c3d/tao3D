@@ -52,6 +52,9 @@ PREFIX(Every,       real,     "every",
 PREFIX(Every50Pct,  real,     "every",
        PARM(i, real) PARM(c, tree),
        RTAO(every(self, i, 0.5, c)))
+PREFIX(MouseX, real, "mouse_x", ,RTAO(mouseX(self)))
+PREFIX(MouseY, real, "mouse_y", ,RTAO(mouseY(self)))
+PREFIX(MouseButtons, integer, "mouse_buttons", , RTAO(mouseButtons(self)))
 
 
 
@@ -116,6 +119,14 @@ PREFIX(FullScreen, boolean, "full_screen", PARM(fs, boolean),
        RTAO(fullScreen(self, fs)))
 PREFIX(ToggleFullScreen, boolean, "toggle_full_screen", ,
        RTAO(toggleFullScreen(self)))
+PREFIX(ZoomPlus, boolean, "zoom_plus", ,
+       RTAO(zoomPlus(self)))
+PREFIX(ZoomMinus, boolean, "zoom_minus", ,
+       RTAO(zoomMinus(self)))
+PREFIX(ResetView, boolean, "reset_view", ,
+       RTAO(resetView(self)))
+PREFIX(ToggleHandCursor, boolean, "toggle_hand_cursor", ,
+       RTAO(toggleHandCursor(self)))
 PREFIX(EnableAnimations, boolean, "enable_animations", PARM(an, boolean),
        RTAO(enableAnimations(self, an)))
 PREFIX(PolygonOffset, integer, "polygon_offset",
@@ -149,6 +160,11 @@ PREFIX(ImageA, tree,"image",
 PREFIX(ImageB, tree,"image",
        PARM(x, real) PARM(y, real) PARM(img, text),
        RTAO(image(self, x, y, img)))
+PREFIX(TextureWrap, tree, "texture_wrap", PARM(s, boolean) PARM(t, boolean),
+       RTAO(textureWrap(self, s, t)))
+PREFIX(TextureTransform, tree, "texture_transform", PARM(t, tree),
+       RTAO(textureTransform(self, t)))
+
 
 
 // ============================================================================
@@ -184,6 +200,7 @@ PREFIX(ClosePath, tree, "close_path",, RTAO(closePath(self)))
 PREFIX(EndpointsStyle, tree, "endpoints_style",
        PARM(s, symbolicname) PARM(e, symbolicname),
        RTAO(endpointsStyle(self, s, e)))
+
 
 
 // ============================================================================
@@ -272,6 +289,11 @@ PREFIX(Cone, tree, "cone",
        PARM(x, real) PARM(y, real) PARM(z, real)
        PARM(w, real) PARM(h, real) PARM(d, real),
        RTAO(cone(self, x, y, z, w, h, d)))
+PREFIX(Object3D, tree, "object",
+       PARM(x, real) PARM(y, real) PARM(z, real)
+       PARM(w, real) PARM(h, real) PARM(d, real)
+       PARM(f, text),
+       RTAO(object(self, x, y, z, w, h, d, f)))
 
 
 

@@ -76,6 +76,9 @@ public:
     void       *id;
     bool        aborted;
     QString     err, out;
+
+protected:
+    static ulong num;    // For debug traces only
 };
 
 }

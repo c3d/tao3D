@@ -453,7 +453,7 @@ bool Window::saveFonts()
         repo->markChanged("Embed fonts");
         repo->change(+fontPath);
         repo->state = Repository::RS_NotClean;
-        repo->asyncCommit();
+        repo->commit();
     }
 
     statusBar()->showMessage(tr("File saved"), 2000);
@@ -771,6 +771,22 @@ void Window::createActions()
 
     redoAction = undoStack->createRedoAction(this, tr("&Redo"));
     redoAction->setShortcuts(QKeySequence::Redo);
+
+    // Icon copied from:
+    // /Developer/Documentation/Qt/html/images/cursor-openhand.png
+    handCursorAct = new QAction(QIcon(":/images/cursor-openhand.png"),
+                                    tr("Hand cursor"), this);
+    handCursorAct->setStatusTip(tr("Select hand cursor to pan around screen"));
+    handCursorAct->setCheckable(true);
+    connect(handCursorAct, SIGNAL(toggled(bool)), taoWidget,
+            SLOT(showHandCursor(bool)));
+    // Icon copied from:
+    // /opt/local/share/icons/gnome/32x32/actions/view-restore.png
+    resetViewAct = new QAction(QIcon(":/images/view-restore.png"),
+                                    tr("Restore default view"), this);
+    resetViewAct->setStatusTip(tr("Restore default view (zoom and position)"));
+    connect(resetViewAct, SIGNAL(triggered()), taoWidget,
+            SLOT(resetView()));
 }
 
 
@@ -847,6 +863,12 @@ void Window::createToolBars()
     editToolBar->addAction(pasteAct);
     if (view)
         view->addAction(editToolBar->toggleViewAction());
+
+    viewToolBar = addToolBar(tr("View"));
+    viewToolBar->addAction(handCursorAct);
+    viewToolBar->addAction(resetViewAct);
+    if (view)
+        view->addAction(viewToolBar->toggleViewAction());
 }
 
 
@@ -1065,14 +1087,20 @@ bool Window::saveFile(const QString &fileName)
     xlRuntime->LoadFile(fn);
 
     ResourceMgt checkFiles(taoWidget);
-    xlRuntime->files[fn].tree->Do(checkFiles); // Crash sur le [fn] CaB
-    checkFiles.cleanUpRepo();
+    Tree_p tree = xlRuntime->files[fn].tree;
+    if (tree)
+    {
+        tree->Do(checkFiles);
+        checkFiles.cleanUpRepo();
+    }
+
     // Reload the program and mark the changes
     taoWidget->reloadProgram();
     taoWidget->markChanged("Related files included in the project");
 
     statusBar()->showMessage(tr("File saved"), 2000);
     updateProgram(fileName);
+    isReadOnly = false;
 
     if (repo)
     {
@@ -1123,8 +1151,9 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
 //        no repository management tool is available;
 // - false if user cancelled.
 {
-    if (isUntitled || isReadOnly)
-        return true;
+    if (confirm)
+        if (isUntitled || isReadOnly)
+            return true;
 
     if (!RepositoryFactory::available())
     {
@@ -1269,9 +1298,18 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
 
                 // For undo/redo: widget has to be notified when document
                 // is succesfully committed into repository
-                connect(repo.data(),SIGNAL(asyncCommitSuccess(QString,QString)),
+                // REVISIT: should slot be in Window rather than Widget?
+                connect(repo.data(),SIGNAL(commitSuccess(QString,QString)),
                         taoWidget,  SLOT(commitSuccess(QString, QString)));
-                populateUndoStack();
+                // Also be notified when changes come from remote sync (pull)
+                connect(repo.data(), SIGNAL(asyncPullComplete()),
+                        this, SLOT(clearUndoStack()));
+                // REVISIT
+                // Do not populate undo stack with current Git history to avoid
+                // making it possible to undo some operations like document
+                // creation... (these commits are not easy to identify
+                // currently)
+                // populateUndoStack();
 
                 enableProjectSharingMenus();
             }
@@ -1320,6 +1358,7 @@ void Window::switchToFullScreen(bool fs)
         setUnifiedTitleAndToolBarOnMac(false);
         removeToolBar(fileToolBar);
         removeToolBar(editToolBar);
+        removeToolBar(viewToolBar);
         showFullScreen();
         taoWidget->showFullScreen();
     }
@@ -1329,8 +1368,10 @@ void Window::switchToFullScreen(bool fs)
         taoWidget->showNormal();
         addToolBar(fileToolBar);
         addToolBar(editToolBar);
+        addToolBar(viewToolBar);
         fileToolBar->show();
         editToolBar->show();
+        viewToolBar->show();
         setUnifiedTitleAndToolBarOnMac(true);
     }
 }
@@ -1533,6 +1574,15 @@ bool Window::populateUndoStack()
         undoStack->push(new UndoCommand(repo.data(), c.id, c.msg));
     }
     return true;
+}
+
+
+void Window::clearUndoStack()
+// ----------------------------------------------------------------------------
+//    Clear the undo stack
+// ----------------------------------------------------------------------------
+{
+    undoStack->clear();
 }
 
 TAO_END

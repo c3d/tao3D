@@ -99,6 +99,7 @@ bool GitRepository::valid()
 {
     if (!QDir(path).exists())
         return false;
+    waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("branch"), path);
     return cmd.done(&errors);
 }
@@ -131,7 +132,7 @@ bool GitRepository::initialCommit()
     if (!cmd.done(&errors))
         return false;
     Process cmd2(command(), QStringList("commit") << "-a" << "-m"
-                 << "\"Automatic initial commit\"", path);
+                 << "Automatic initial commit", path);
     return cmd.done(&errors);
 }
 
@@ -142,6 +143,7 @@ text GitRepository::branch()
 // ----------------------------------------------------------------------------
 {
     text    output, result;
+    waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("branch"), path);
     bool    ok = cmd.done(&errors, &output);
     if (ok)
@@ -163,6 +165,7 @@ bool GitRepository::checkout(text branch)
 //    Checkout a given branch
 // ----------------------------------------------------------------------------
 {
+    waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("checkout") << +branch, path);
     return cmd.done(&errors);
 }
@@ -173,6 +176,7 @@ bool GitRepository::branch(text name)
 //    Create a new branch
 // ----------------------------------------------------------------------------
 {
+    waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("branch") << +name, path);
     bool result = cmd.done(&errors);
     if (!result)
@@ -187,6 +191,7 @@ bool GitRepository::add(text name)
 //   Add a new file to the repository
 // ----------------------------------------------------------------------------
 {
+    waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("add") << +name, path);
     return cmd.done(&errors);
 }
@@ -197,10 +202,11 @@ bool GitRepository::change(text name)
 //   Signal that a file in the repository changed
 // ----------------------------------------------------------------------------
 {
+    waitForAsyncProcessCompletion();
     mergeCommitMessages(nextCommitMessage, whatsNew);
     whatsNew = "";
-    dispatch(new Process(command(), QStringList("add") << +name, path, false));
-    return true;
+    Process cmd(command(), QStringList("add") << +name, path);
+    return cmd.done(&errors);
 }
 
 
@@ -221,6 +227,7 @@ bool GitRepository::rename(text from, text to)
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
+    waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("mv") << +from << +to, path);
     return cmd.done(&errors);
 }
@@ -231,6 +238,7 @@ bool GitRepository::commit(text message, bool all)
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
+    waitForAsyncProcessCompletion();
     if (message == "")
     {
         message = nextCommitMessage;
@@ -242,77 +250,59 @@ bool GitRepository::commit(text message, bool all)
     args << "--allow-empty"    // Don't fail if working directory is clean
          << "-m" << +message;
     Process cmd(command(), args, path);
-    bool result = cmd.done(&errors);
+    text output;
+    bool result = cmd.done(&errors, &output);
     if (!result)
         if (errors.find("nothing added") != errors.npos)
             result = true;
     state = RS_Clean;
+    if (result)
+    {
+        QString commitId, commitMsg;
+        if (parseCommitOutput(output, commitId, commitMsg))
+            emit commitSuccess(commitId, commitMsg);
+    }
     return result;
 }
 
 
-bool GitRepository::asyncCommit(text message, bool all)
+bool GitRepository::revert(text id)
 // ----------------------------------------------------------------------------
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
-    if (state == RS_Clean)
-    {
-        // May happen if a commit was already in progress when this process was
-        // enqueued
-        return true;
-    }
-    if (message == "")
-    {
-        message = nextCommitMessage;
-        nextCommitMessage = "";
-    }
-    state = RS_Clean;
-    QStringList args("commit");
-    if (all)
-        args << "-a";
-    args << "--allow-empty"    // Don't fail if working directory is clean
-         << "-m" << +message;
-    dispatch(new Process(command(), args, path, false));
-    return true;
-}
-
-
-bool GitRepository::asyncRevert(text id)
-// ----------------------------------------------------------------------------
-//   Rename a file in the repository
-// ----------------------------------------------------------------------------
-{
+    waitForAsyncProcessCompletion();
     if (state != RS_Clean)
     {
-        asyncCommit();
+        commit();
         state = RS_Clean;    // Avoid recursion
-        asyncRevert("HEAD");
+        revert("HEAD");
     }
 
     QStringList args("revert");
     args << "--no-edit" << +id;
-    dispatch(new Process(command(), args, path, false));
-    return true;
+    Process cmd(command(), args, path);
+    return cmd.done(&errors);
 }
 
 
-bool GitRepository::asyncCherryPick(text id)
+bool GitRepository::cherryPick(text id)
 // ----------------------------------------------------------------------------
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
+    waitForAsyncProcessCompletion();
     if (state != RS_Clean)
     {
-        asyncCommit();
+        commit();
         state = RS_Clean;    // Avoid recursion
-        asyncRevert("HEAD");
+        revert("HEAD");
     }
 
     QStringList args("cherry-pick");
     args << "-x" << +id;
-    dispatch(new Process(command(), args, path, false));
-    return true;
+    Process cmd(command(), args, path);
+    return cmd.done(&errors);
 }
 
 
@@ -325,40 +315,25 @@ void GitRepository::asyncProcessFinished(int exitCode)
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
     QString op = cmd->args.first();
-    bool isCommit = (op == "commit");
-    bool newHead  = (isCommit ||
-                     op == "revert" ||
-                     op == "cherry-pick");
-    bool isClone  = (op == "clone");
-    bool ok       = true;
     text output;
     cmd->done(&errors, &output);
     if (exitCode)
     {
-        ok = false;
-        if (isCommit && errors.find("nothing added") != errors.npos)
-                ok = true;
-        if (!ok)
-            std::cerr << +tr("Async command failed, exit status %1: %2\n")
-                             .arg((int)exitCode).arg(cmd->commandLine)
-                      << +tr("Error output:\n") << errors;
+        std::cerr << +tr("Async command failed, exit status %1: %2\n")
+                        .arg((int)exitCode).arg(cmd->commandLine)
+                  << +tr("Error output:\n") << errors;
     }
-    if (ok && newHead)
-        state = RS_Clean;
-    if (ok && isCommit)
-    {
-        QString commitId, commitMsg;
-        if (parseCommitOutput(output, commitId, commitMsg))
-            emit asyncCommitSuccess(commitId, commitMsg);
-    }
-    if (!ok && isCommit)
-        state = RS_NotClean;
-    if (isClone)
+    if (op == "clone")
     {
         cmd->sendStandardOutputToTextEdit();
         QString projPath;
         projPath = parseCloneOutput(cmd->out);
         emit asyncCloneComplete(cmd->id, projPath);
+    }
+    else if (op == "pull")
+    {
+        if (output.find("Already up-to-date") == std::string::npos)
+            emit asyncPullComplete();
     }
 }
 
@@ -421,6 +396,7 @@ bool GitRepository::merge(text branch)
 //   Merge another branch into the current one
 // ----------------------------------------------------------------------------
 {
+    waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("merge") << +branch, path);
     return cmd.done(&errors);
 }
@@ -431,6 +407,7 @@ bool GitRepository::reset()
 //   Reset a branch to normal state
 // ----------------------------------------------------------------------------
 {
+    waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("reset") << "--hard", path);
     return cmd.done(&errors);
 }
@@ -462,6 +439,7 @@ bool GitRepository::push(QString pushUrl)
 //   Push to a remote
 // ----------------------------------------------------------------------------
 {
+    waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("push") << pushUrl << +branch(), path);
     return cmd.done(&errors);
 }
@@ -474,6 +452,7 @@ QStringList GitRepository::remotes()
 {
     QStringList result;
     text        output;
+    waitForAsyncProcessCompletion();
     Process     cmd(command(), QStringList("remote"), path);
     if (cmd.done(&errors, &output))
     {
@@ -491,6 +470,7 @@ QString GitRepository::remotePullUrl(QString name)
     QStringList args;
     args << "config" << "--get" << QString("remote.%1.url").arg(name);
     text    output;
+    waitForAsyncProcessCompletion();
     Process cmd(command(), args, path);
     cmd.done(&errors, &output);
     return (+output).trimmed();
@@ -502,6 +482,7 @@ bool GitRepository::addRemote(QString name, QString url)
 //   Add a remote, giving its pull URL
 // ----------------------------------------------------------------------------
 {
+    waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("remote") <<"add" <<name <<url, path);
     return cmd.done(&errors);
 }
@@ -511,6 +492,7 @@ bool GitRepository::setRemote(QString name, QString url)
 //   Set a new pull URL for a remote
 // ----------------------------------------------------------------------------
 {
+    waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("remote") <<"set-url" << name
                 << url, path);
     return cmd.done(&errors);
@@ -521,6 +503,7 @@ bool GitRepository::delRemote(QString name)
 //   Delete a remote
 // ----------------------------------------------------------------------------
 {
+    waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("remote") << "rm" << name, path);
     return cmd.done(&errors);
 }
@@ -531,6 +514,7 @@ bool GitRepository::renRemote(QString oldName, QString newName)
 //   Rename a remote
 // ----------------------------------------------------------------------------
 {
+    waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("remote") << "rename"
                 << oldName << newName, path);
     return cmd.done(&errors);
@@ -546,6 +530,7 @@ QList<GitRepository::Commit> GitRepository::history(int max)
     args << "log" << "--pretty=format:%h:%s";
     args << "-n" << QString("%1").arg(max);
     text    output;
+    waitForAsyncProcessCompletion();
     Process cmd(command(), args, path);
     cmd.done(&errors, &output);
 

@@ -42,7 +42,7 @@ struct ResourceMgt : public TaoTreeClone
 
 private :
     Text * getArg(Prefix * what, int pos);
-    bool isLocalToDoc(QFileInfo info);
+    bool isToBeMoved(QFileInfo &info);
     text integrateFile(QFileInfo info, QString prefix);
 
     // List of commands using a filename,

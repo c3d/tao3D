@@ -165,10 +165,19 @@ void Application::updateSearchPathes(QString currentProjectFolder)
 
     QDir::setSearchPaths("doc", images_dir_list);
     QDir::setSearchPaths("image", images_dir_list);
+    QDir::setSearchPaths("svg", images_dir_list);
     QDir::setSearchPaths("texture", images_dir_list);
     QDir::setSearchPaths("icon", images_dir_list);
 
+    // Setup search path for 3D objects
+    QStringList object_dir_list;
+    object_dir_list
+        << currentProjectFolder + "/objects"
+        << currentProjectFolder;
+
+    QDir::setSearchPaths("object", images_dir_list);
 }
+
 
 QString Application::defaultUserDocumentsFolderPath()
 // ----------------------------------------------------------------------------

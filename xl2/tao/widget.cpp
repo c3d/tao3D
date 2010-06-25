@@ -60,6 +60,7 @@
 #include "error_message_dialog.h"
 #include "group_layout.h"
 #include "font.h"
+#include "objloader.h"
 
 #include <QToolButton>
 #include <QtGui/QImage>
@@ -101,6 +102,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
       pageTree(NULL),
+      drawAllPages(false),
       currentShape(NULL),
       currentGridLayout(NULL),
       currentGroup(NULL), fontFileMgr(NULL), activities(NULL),
@@ -110,12 +112,17 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
       colorAction(NULL), fontAction(NULL),
+      lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
       timer(this), idleTimer(this),
       pageStartTime(1e6), pageRefresh(1e6), frozenTime(1e6), startTime(1e6),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
       nextPull(nextSave), animated(true),
-      currentFileDialog(NULL)
+      currentFileDialog(NULL),
+      zoom(1.0),
+      eyeX(0.0), eyeY(0.0), eyeZ(Widget::zNear),
+      centerX(0.0), centerY(0.0), centerZ(0.0),
+      autoSaveEnabled(true)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -156,6 +163,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     srcRenderer = new XL::Renderer(srcRendererOutput);
     QFileInfo stylesheet("xl:srcview.stylesheet");
     srcRenderer->SelectStyleSheet(+stylesheet.canonicalFilePath());
+
+    // Make sure we get mouse events even when no click is made
+    setMouseTracking(true);
 }
 
 
@@ -215,39 +225,31 @@ void Widget::dawdle()
             xlProgram->changed = false;
     }
 
-    // Check if there's something to save
+    // Check if it's time to save
     ulonglong tick = now();
     longlong saveDelay = longlong(nextSave - tick);
-    if (repo && saveDelay < 0 && repo->idle())
+    if (repo && saveDelay < 0 && repo->idle() && autoSaveEnabled)
     {
-        XL::source_files::iterator it;
-        for (it = xlr->files.begin(); it != xlr->files.end(); it++)
-        {
-            XL::SourceFile &sf = (*it).second;
-            writeIfChanged(sf);
-        }
-
-        // Record when we will save file again
-        nextSave = tick + xlr->options.save_interval * 1000;
+        doSave(tick);
     }
 
-    // Check if there's something to commit
+    // Check if it's time to commit
     longlong commitDelay = longlong (nextCommit - tick);
-    if (repo && commitDelay < 0 && repo->state == Repository::RS_NotClean)
+    if (repo && commitDelay < 0 && repo->state == Repository::RS_NotClean &&
+        autoSaveEnabled)
     {
-        doCommit();
+        doCommit(tick);
     }
 
-    // Check if there's something to merge from the remote repository
+    // Check if it's time to merge from the remote repository
     // REVISIT: sync: what if several widgets share the same repository?
     longlong pullDelay = longlong (nextPull - tick);
     if (repo && pullDelay < 0 && repo->state == Repository::RS_Clean)
     {
-        repo->pull();
-        nextPull = now() + repo->pullInterval * 1000;
+        doPull(tick);
     }
 
-    // Check if there's something to reload
+    // Check if it's time to reload
     longlong syncDelay = longlong(nextSync - tick);
     if (syncDelay < 0)
     {
@@ -767,7 +769,10 @@ QStringList Widget::fontFiles()
        FontFileManager *&m;
     } ffm(fontFileMgr);
 
-    paintGL();
+    drawAllPages = true;
+    draw();
+    drawAllPages = false;
+    draw();
     if (!fontFileMgr->errors.empty())
     {
         // Some font files are not in a suitable format, so we won't try to
@@ -788,6 +793,46 @@ void Widget::enableAnimations(bool enable)
 {
     animated = enable;
     frozenTime = CurrentTime();
+}
+
+
+void Widget::showHandCursor(bool enabled)
+// ----------------------------------------------------------------------------
+//   Switch panning mode on/off
+// ----------------------------------------------------------------------------
+{
+    if (enabled)
+        setCursor(Qt::OpenHandCursor);
+    else
+        setCursor(Qt::ArrowCursor);
+}
+
+
+void Widget::resetView()
+// ----------------------------------------------------------------------------
+//   Restore default view parameters (zoom, position etc.)
+// ----------------------------------------------------------------------------
+{
+    zoom = 1.0;
+    eyeX = 0.0;
+    eyeY = 0.0;
+    eyeZ = Widget::zNear;
+    centerX = 0.0;
+    centerY = 0.0;
+    centerZ = 0.0;
+    setup(width(), height());
+    updateGL();
+}
+
+
+void Widget::saveAndCommit()
+// ----------------------------------------------------------------------------
+//   Save files and commit to repository if needed
+// ----------------------------------------------------------------------------
+{
+    ulonglong tick = now();
+    if (doSave(tick))
+        doCommit(tick);
 }
 
 
@@ -897,12 +942,10 @@ void Widget::setup(double w, double h, Box *picking)
         gluPickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
     }
 
-    // Setup the frustrum for the projection
+    // Setup the frustum for the projection
     double zNear = Widget::zNear, zFar = Widget::zFar;
-    double eyeX = 0.0, eyeY = 0.0, eyeZ = zNear;
-    double centerX = 0.0, centerY = 0.0, centerZ = 0.0;
     double upX = 0.0, upY = 1.0, upZ = 0.0;
-    glFrustum (-w/2, w/2, -h/2, h/2, zNear, zFar);
+    glFrustum ((-w/2)*zoom, (w/2)*zoom, (-h/2)*zoom, (h/2)*zoom, zNear, zFar);
     gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
     glTranslatef(0.0, 0.0, -zNear);
     glScalef(2.0, 2.0, 2.0);
@@ -1061,6 +1104,18 @@ static text keyName(QKeyEvent *event)
     case Qt::Key_X:                     ctrl = "X"; break;
     case Qt::Key_Y:                     ctrl = "Y"; break;
     case Qt::Key_Z:                     ctrl = "Z"; break;
+    case Qt::Key_0:                     ctrl = "0"; break;
+    case Qt::Key_1:                     ctrl = "1"; break;
+    case Qt::Key_2:                     ctrl = "2"; break;
+    case Qt::Key_3:                     ctrl = "3"; break;
+    case Qt::Key_4:                     ctrl = "4"; break;
+    case Qt::Key_5:                     ctrl = "5"; break;
+    case Qt::Key_6:                     ctrl = "6"; break;
+    case Qt::Key_7:                     ctrl = "7"; break;
+    case Qt::Key_8:                     ctrl = "8"; break;
+    case Qt::Key_9:                     ctrl = "9"; break;
+    case Qt::Key_Minus:                 ctrl = "-"; break;
+    case Qt::Key_Plus:                  ctrl = "+"; break;
     case Qt::Key_BracketLeft:           ctrl = "["; break;
     case Qt::Key_Backslash:             ctrl = "\\"; break;
     case Qt::Key_BracketRight:          ctrl = "]"; break;
@@ -1362,6 +1417,9 @@ void Widget::mousePressEvent(QMouseEvent *event)
 //   Mouse button click
 // ----------------------------------------------------------------------------
 {
+    if (cursor().shape() == Qt::OpenHandCursor)
+        return startPanning(event);
+
     TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
@@ -1370,6 +1428,11 @@ void Widget::mousePressEvent(QMouseEvent *event)
     uint    button      = (uint) event->button();
     int     x           = event->x();
     int     y           = event->y();
+
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+    lastMouseButtons = button;
 
     // Create a selection if left click and nothing going on right now
     if (button == Qt::LeftButton)
@@ -1416,6 +1479,9 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
 //   Mouse button is released
 // ----------------------------------------------------------------------------
 {
+    if (cursor().shape() == Qt::ClosedHandCursor)
+        return endPanning(event);
+
     TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
@@ -1423,6 +1489,11 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
     uint button = (uint) event->button();
     int x = event->x();
     int y = event->y();
+
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+    lastMouseButtons = button;
 
     // Check if there is an activity that deals with it
     for (Activity *a = activities; a; a = a->Click(button, 0, x, y)) ;
@@ -1437,12 +1508,21 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
+    if (cursor().shape() == Qt::ClosedHandCursor)
+        return doPanning(event);
+
     TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
-    bool active = event->buttons() != Qt::NoButton;
+    int buttons = event->buttons();
+    bool active = buttons != Qt::NoButton;
     int x = event->x();
     int y = event->y();
+
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+    lastMouseButtons = buttons;
 
     // Check if there is an activity that deals with it
     for (Activity *a = activities; a; a = a->MouseMove(x, y, active)) ;
@@ -1468,6 +1548,11 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
     if (button == Qt::LeftButton && !activities)
         new Selection(this);
 
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+    lastMouseButtons = button;
+
     // Send the click to all activities
     for (Activity *a = activities; a; a = a->Click(button, 2, x, y)) ;
 
@@ -1477,13 +1562,27 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
 
 void Widget::wheelEvent(QWheelEvent *event)
 // ----------------------------------------------------------------------------
-//   Mouse wheel
+//   Mouse wheel: zoom in/out
 // ----------------------------------------------------------------------------
 {
     TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     keyboardModifiers = event->modifiers();
-    forwardEvent(event);
+    int     x           = event->x();
+    int     y           = event->y();
+
+    // Save location
+    lastMouseX = x;
+    lastMouseY = y;
+
+    if (forwardEvent(event))
+        return;
+
+    int d = event->delta();
+    if (d < 0)
+        zoomPlus();
+    else
+        zoomMinus();
 }
 
 
@@ -1495,6 +1594,51 @@ void Widget::timerEvent(QTimerEvent *event)
     TaoSave saveCurrent(current, this);
     EventSave save(this->event, event);
     forwardEvent(event);
+}
+
+
+void Widget::startPanning(QMouseEvent *event)
+// ----------------------------------------------------------------------------
+//    Enter view panning mode
+// ----------------------------------------------------------------------------
+{
+    setCursor(Qt::ClosedHandCursor);
+    panX = event->x();
+    panY = event->y();
+}
+
+
+void Widget::doPanning(QMouseEvent *event)
+// ----------------------------------------------------------------------------
+//    Move view to follow mouse (panning mode)
+// ----------------------------------------------------------------------------
+{
+    int x, y, dx, dy;
+
+    x = event->x();
+    y = event->y();
+    dx = x - panX;
+    dy = y - panY;
+
+    eyeX -= 2*dx*zoom;
+    eyeY += 2*dy*zoom;
+    centerX -= 2*dx*zoom;
+    centerY += 2*dy*zoom;
+
+    panX = x;
+    panY = y;
+
+    setup(width(), height());
+    updateGL();
+}
+
+
+void Widget::endPanning(QMouseEvent *)
+// ----------------------------------------------------------------------------
+//    Leave view panning mode
+// ----------------------------------------------------------------------------
+{
+    setCursor(Qt::OpenHandCursor);
 }
 
 
@@ -1671,6 +1815,10 @@ void Widget::refreshProgram()
                 }
                 else
                 {
+                    // Make sure we normalize the replacement
+                    Renormalize renorm(this);
+                    replacement = replacement->Do(renorm);
+                    
                     // Check if we can simply change some parameters in file
                     ApplyChanges changes(replacement);
                     if (!sf.tree->Do(changes))
@@ -1821,19 +1969,66 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
 }
 
 
-bool Widget::doCommit(bool immediate)
+bool Widget::doPull(ulonglong tick)
+// ----------------------------------------------------------------------------
+//   Pull from remote repository and reset next pull time
+// ----------------------------------------------------------------------------
+{
+    Repository *repo = repository();
+    bool ok = repo->pull();
+    nextPull = tick + repo->pullInterval * 1000;
+    return ok;
+}
+
+
+bool Widget::enableAutoSave(bool enabled)
+// ----------------------------------------------------------------------------
+//   Enable or disable automatic (periodic) save
+// ----------------------------------------------------------------------------
+{
+    bool old = autoSaveEnabled;
+    autoSaveEnabled = enabled;
+    return old;
+}
+
+bool Widget::doSave(ulonglong tick)
+// ----------------------------------------------------------------------------
+//   Save source files that have changed and reset next save time
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
+    XL::Main *xlr = XL::MAIN;
+    XL::source_files::iterator it;
+    for (it = xlr->files.begin(); it != xlr->files.end(); it++)
+    {
+        XL::SourceFile &sf = (*it).second;
+        if (writeIfChanged(sf))
+            changed = true;
+    }
+
+    // Record when we will save file again
+    nextSave = tick + xlr->options.save_interval * 1000;
+    return changed;
+}
+
+
+bool Widget::doCommit(ulonglong tick)
 // ----------------------------------------------------------------------------
 //   Commit files previously written to repository and reset next commit time
 // ----------------------------------------------------------------------------
 {
+    Repository * repo = repository();
+    if (repo->state == Repository::RS_Clean)
+        return false;
+
     IFTRACE(filesync)
-            std::cerr << "Commit: " << repository()->whatsNew << "\n";
+            std::cerr << "Commit\n";
     bool done;
-    done = immediate ? repository()->commit() : repository()->asyncCommit();
+    done = repo->commit();
     if (done)
     {
         XL::Main *xlr = XL::MAIN;
-        nextCommit = now() + xlr->options.commit_interval * 1000;
+        nextCommit = tick + xlr->options.commit_interval * 1000;
 
         Window *window = (Window *) parentWidget();
         window->markChanged(false);
@@ -2460,7 +2655,7 @@ XL::Text_p Widget::page(Tree_p self, text name, Tree_p body)
     pageId++;
 
     // If the page is set, then we display it
-    if (pageName == name)
+    if (pageName == name || drawAllPages)
     {
         // Initialize back-link
         pageFound = pageId;
@@ -2677,6 +2872,39 @@ XL::Real_p Widget::every(Tree_p self,
 }
 
 
+Real_p Widget::mouseX(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the position of the mouse
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new RecordMouseCoordinates(self));
+    if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
+        return new Real(info->coordinates.x);
+    return new Real(0.0);
+}
+
+
+Real_p Widget::mouseY(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the position of the mouse
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new RecordMouseCoordinates(self));
+    if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
+        return new Real(info->coordinates.y);
+    return new Real(0.0);
+}
+
+
+Integer_p Widget::mouseButtons(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the buttons of the last mouse event
+// ----------------------------------------------------------------------------
+{
+    return new Integer(lastMouseButtons);
+}
+
+
 Tree_p Widget::locally(Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree while preserving the current state
@@ -2881,13 +3109,8 @@ XL::Name_p Widget::depthTest(XL::Tree_p self, bool enable)
 //   Change the delta we use for the depth
 // ----------------------------------------------------------------------------
 {
-    GLboolean old;
-    glGetBooleanv(GL_DEPTH_TEST, &old);
-    if (enable)
-        glEnable(GL_DEPTH_TEST);
-    else
-        glDisable(GL_DEPTH_TEST);
-    return old ? XL::xl_true : XL::xl_false;
+    layout->Add(new DepthTest(enable));
+    return XL::xl_true;
 }
 
 
@@ -2929,6 +3152,59 @@ XL::Name_p Widget::toggleFullScreen(XL::Tree_p self)
 // ----------------------------------------------------------------------------
 {
     return fullScreen(self, !isFullScreen());
+}
+
+
+XL::Name_p Widget::toggleHandCursor(XL::Tree_p self)
+// ----------------------------------------------------------------------------
+//   Switch between hand and arrow cursor
+// ----------------------------------------------------------------------------
+{
+    bool isArrow = (cursor().shape() == Qt::ArrowCursor);
+    showHandCursor(isArrow);
+    return (!isArrow) ? XL::xl_true : XL::xl_false;
+}
+
+
+XL::Name_p Widget::resetView(XL::Tree_p self)
+// ----------------------------------------------------------------------------
+//   Restore default view parameters (zoom, position etc.)
+// ----------------------------------------------------------------------------
+{
+    resetView();
+    return XL::xl_true;
+}
+
+
+Name_p Widget::zoomPlus(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Increase zoom level
+// ----------------------------------------------------------------------------
+{
+    if (zoom >= 0.5)
+    {
+        zoom -= 0.25;
+        setup(width(), height());
+        updateGL();
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
+
+Name_p Widget::zoomMinus(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Decrease zoom level
+// ----------------------------------------------------------------------------
+{
+    if (zoom <= 3.75)
+    {
+        zoom += 0.25;
+        setup(width(), height());
+        updateGL();
+        return XL::xl_true;
+    }
+    return XL::xl_false;
 }
 
 
@@ -3014,7 +3290,7 @@ Tree_p Widget::fillTexture(Tree_p self, text img)
         ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
         if (!rinfo)
         {
-            rinfo = new ImageTextureInfo(this);
+            rinfo = new ImageTextureInfo();
             self->SetInfo<ImageTextureInfo>(rinfo);
         }
         texId = rinfo->bind(img);
@@ -3081,7 +3357,7 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, text filename)
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
     if (!rinfo)
     {
-        rinfo = new ImageTextureInfo(this);
+        rinfo = new ImageTextureInfo();
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
     texId = rinfo->bind(filename);
@@ -3118,7 +3394,7 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
     if (!rinfo)
     {
-        rinfo = new ImageTextureInfo(this);
+        rinfo = new ImageTextureInfo();
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
     texId = rinfo->bind(filename);
@@ -3135,6 +3411,29 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
     return XL::xl_true;
 }
 
+
+Tree_p Widget::textureWrap(Tree_p self, bool s, bool t)
+// ----------------------------------------------------------------------------
+//   Record if we want to wrap textures or clamp them
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new TextureWrap(s, t));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::textureTransform(Tree_p self, Tree_p code)
+// ----------------------------------------------------------------------------
+//   Apply a texture transformation
+// ----------------------------------------------------------------------------
+{
+    layout->hasTextureMatrix = true;
+    layout->Add(new TextureTransform(true));
+    Tree_p result = xl_evaluate(code);
+    layout->Add(new TextureTransform(false));
+    return result;
+}
+    
 
 
 // ============================================================================
@@ -3770,6 +4069,41 @@ Tree_p Widget::cone(Tree_p self,
     layout->Add(new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d)));
     if (currentShape)
         layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::object(Tree_p self,
+                      Real_p x, Real_p y, Real_p z,
+                      Real_p w, Real_p h, Real_p d,
+                      Text_p name)
+// ----------------------------------------------------------------------------
+//   Load a 3D object
+// ----------------------------------------------------------------------------
+{
+    // Try to load the 3D object in memory and graphic card
+    Object3D *obj = Object3D::Object(name);
+    if (!obj)
+        return XL::xl_false;
+
+    // Update object dimensions if we didn't specify them
+    if (w->value <= 0 || h->value <= 0 || d->value <= 0)
+    {
+        Box3 &bounds = obj->bounds;
+        if (w->value <= 0)
+            w->value = bounds.Width();
+        if (h->value <= 0)
+            h->value = bounds.Height();
+        if (d->value <= 0)
+            d->value = bounds.Depth();
+        markChanged ("Update object dimensions");
+    }
+
+    // Add the object
+    layout->Add(new Object3DDrawing(obj, x, y, z, w, h, d));
+    if (currentShape)
+        layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
+
     return XL::xl_true;
 }
 
@@ -5463,6 +5797,7 @@ Tree_p Widget::videoPlayerTexture(Tree_p self, Real_p wt, Real_p ht, Text_p url)
 
     return XL::xl_true;
 }
+
 
 
 // ============================================================================

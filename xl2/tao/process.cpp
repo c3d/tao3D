@@ -33,6 +33,8 @@
 
 TAO_BEGIN
 
+ulong Process::num = 0;
+
 Process::Process(size_t bufSize)
 // ----------------------------------------------------------------------------
 //   Create a QProcess without starting it yet
@@ -40,6 +42,7 @@ Process::Process(size_t bufSize)
     : commandLine(""), outTextEdit(NULL), errTextEdit(NULL), id(NULL),
       aborted(false)
 {
+    num++;
     initialize(bufSize);
 }
 
@@ -55,6 +58,7 @@ Process::Process(const QString &cmd,
     : commandLine(""), cmd(cmd), args(args), wd(wd),
       outTextEdit(NULL), errTextEdit(NULL), id(NULL), aborted(false)
 {
+    num++;
     setWorkingDirectory(wd);
     initialize(bufSize);
     if (startImmediately)
@@ -83,7 +87,7 @@ void Process::start(const QString &cmd, const QStringList &args,
         setWorkingDirectory(wd);
 
     IFTRACE(process)
-        std::cerr << "Process: " << +commandLine
+        std::cerr << "Process " << num << ": " << +commandLine
                   << " (wd " << +workingDirectory() << ")\n";
 
     QProcess::start(cmd, args);
@@ -121,14 +125,14 @@ bool Process::done(text *errors, text *output)
 
     int rc = exitCode();
     IFTRACE(process)
-        std::cerr << "Process: " << +commandLine << " returned " << rc << "\n";
+        std::cerr << "Process " << num << " returned " << rc << "\n";
     if (rc)
         ok = false;
 
     bool tracing = XLTRACE(process);
     if (!ok)
     {
-        err = tr("Process '%1' terminated abormally "
+        err = tr("Process '%1'' terminated abormally "
                  "with exit code %2:\n%3")
             .arg(commandLine) .arg(rc) .arg(QString(readAll()));
     }
@@ -144,9 +148,9 @@ bool Process::done(text *errors, text *output)
     if (tracing)
     {
         if (err.length())
-            std::cerr << "Process: Error output:\n" << +err;
+            std::cerr << "Process " << num << ": Error output:\n" << +err;
         if (out.length())
-            std::cerr << "Process: Standard output\n" << +out;
+            std::cerr << "Process " << num << ": Standard output:\n" << +out;
     }
 
     return ok;

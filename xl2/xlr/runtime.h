@@ -129,6 +129,8 @@ public:
 // ============================================================================
 
 Tree *xl_apply(Tree *code, Tree *data);
+Tree *xl_range(longlong l, longlong h);
+Tree *xl_nth(Tree *data, longlong index);
 
 
 struct MapAction : Action

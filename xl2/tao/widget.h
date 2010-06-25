@@ -195,6 +195,7 @@ public:
     void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
     uint        selected(uint i);
     uint        selected(Layout *);
+    bool        focused(Layout *);
     void        reselect(Tree *from, Tree *to);
     void        removeFromSelection(Tree *from, Tree *to);
     static uint singleClicks(uint sel)  { return sel & 0xFFFF; }
@@ -556,6 +557,7 @@ private:
     friend class Window;
     friend class Activity;
     friend class Selection;
+    friend class Identify;
     friend class Drag;
     friend class TextSelect;
     friend class Manipulator;
@@ -604,6 +606,7 @@ private:
     bool                  selectionChanged;
     QEvent *              w_event;
     QWidget *             focusWidget;
+    uint                  focusId;
     GLdouble              focusProjection[16], focusModel[16];
     GLint                 focusViewport[4];
     uint                  keyboardModifiers;

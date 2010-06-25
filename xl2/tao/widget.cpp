@@ -1616,11 +1616,13 @@ void Widget::wheelEvent(QWheelEvent *event)
     if (forwardEvent(event))
         return;
 
+    // Propagate the wheel event
+    XL::Symbols *symbols = xlProgram->symbols;
     int d = event->delta();
-    if (d < 0)
-        zoomPlus();
-    else
-        zoomMinus();
+    Qt::Orientation orientation = event->orientation();
+    longlong dx = orientation == Qt::Horizontal ? d : 0;
+    longlong dy = orientation == Qt::Vertical   ? d : 0;
+    (XL::XLCall("wheel_event"), dx, dy)(symbols);
 }
 
 
@@ -3217,14 +3219,39 @@ XL::Name_p Widget::resetView(XL::Tree_p self)
 }
 
 
-Name_p Widget::zoomPlus(Tree_p self)
+XL::Name_p Widget::panView(Tree_p self, coord dx, coord dy)
 // ----------------------------------------------------------------------------
-//   Increase zoom level
+//   Pan the current view by the current amount
 // ----------------------------------------------------------------------------
 {
-    if (zoom >= 0.5)
+    eyeX += dx;
+    eyeY += dy;
+    centerX += dx;
+    centerY += dy;
+
+    setup(width(), height());
+    updateGL();
+    return XL::xl_true;
+}
+
+
+Real_p Widget::currentZoom(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the current zoom level
+// ----------------------------------------------------------------------------
+{
+    return new Real(zoom);
+}
+
+
+Name_p Widget::setZoom(Tree_p self, scale z)
+// ----------------------------------------------------------------------------
+//   Decrease zoom level
+// ----------------------------------------------------------------------------
+{
+    if (z > 0)
     {
-        zoom -= 0.25;
+        zoom = z;
         setup(width(), height());
         updateGL();
         return XL::xl_true;
@@ -3233,19 +3260,56 @@ Name_p Widget::zoomPlus(Tree_p self)
 }
 
 
-Name_p Widget::zoomMinus(Tree_p self)
+Infix_p Widget::currentEyePosition(Tree_p self)
 // ----------------------------------------------------------------------------
-//   Decrease zoom level
+//   Return the current eye position
 // ----------------------------------------------------------------------------
 {
-    if (zoom <= 3.75)
-    {
-        zoom += 0.25;
-        setup(width(), height());
-        updateGL();
-        return XL::xl_true;
-    }
-    return XL::xl_false;
+    return new Infix(",", new Real(eyeX), new Real(eyeY));
+}
+
+
+Name_p Widget::setEyePosition(Tree_p self, coord x, coord y)
+// ----------------------------------------------------------------------------
+//   Set the eye position and update view
+// ----------------------------------------------------------------------------
+{
+    eyeX = x;
+    eyeY = y;
+    setup(width(), height());
+    updateGL();
+    return XL::xl_true;
+}
+
+
+Infix_p Widget::currentCenterPosition(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the current center position
+// ----------------------------------------------------------------------------
+{
+    return new Infix(",", new Real(centerX), new Real(centerY));
+}
+
+
+Name_p Widget::setCenterPosition(Tree_p self, coord x, coord y)
+// ----------------------------------------------------------------------------
+//   Set the center position and update view
+// ----------------------------------------------------------------------------
+{
+    centerX = x;
+    centerY = y;
+    setup(width(), height());
+    updateGL();
+    return XL::xl_true;
+}
+
+
+Integer_p Widget::lastModifiers(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the current modifiers
+// ----------------------------------------------------------------------------
+{
+    return new Integer(keyboardModifiers);
 }
 
 
@@ -6386,6 +6450,9 @@ void Widget::removeFromSelection(Tree *from, Tree *to)
 
 
 struct NoSelTreeClone : TaoTreeClone
+// ----------------------------------------------------------------------------
+// 
+// ----------------------------------------------------------------------------
 {
     NoSelTreeClone(Widget *widget, std::set<Tree_p> *selCopy) :
             TaoTreeClone(widget), selCopy(selCopy){}
@@ -6409,7 +6476,7 @@ struct NoSelTreeClone : TaoTreeClone
 
 XL::Tree_p Widget::copySelection()
 // ----------------------------------------------------------------------------
-//    copy the selection from the tree
+//    Copy the selection from the tree
 // ----------------------------------------------------------------------------
 {
     if (!hasSelection())
@@ -6418,8 +6485,9 @@ XL::Tree_p Widget::copySelection()
     std::set<Tree_p> selCopy(selectionTrees);
     // Build a single tree from all the selected sub-trees
     std::set<Tree_p >::reverse_iterator i = selCopy.rbegin();
+
     // As the selectionTrees member is changed by the following cloner,
-    // a new iterator is build on each loop
+    // a new iterator is built on each loop
     NoSelTreeClone cloner(this, &selCopy);
     XL::Tree *tree = (*i)->Do(cloner);
 

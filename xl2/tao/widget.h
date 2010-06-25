@@ -281,8 +281,14 @@ public:
     Name_p      toggleFullScreen(Tree_p self);
     Name_p      toggleHandCursor(Tree_p self);
     Name_p      resetView(Tree_p self);
-    Name_p      zoomPlus(Tree_p self = NULL);
-    Name_p      zoomMinus(Tree_p self = NULL);
+    Name_p      panView(Tree_p self, coord dx, coord dy);
+    Real_p      currentZoom(Tree_p self);
+    Name_p      setZoom(Tree_p self, scale z);
+    Infix_p     currentEyePosition(Tree_p self);
+    Name_p      setEyePosition(Tree_p self, coord x, coord y);
+    Infix_p     currentCenterPosition(Tree_p self);
+    Name_p      setCenterPosition(Tree_p self, coord x, coord y);
+    Integer_p   lastModifiers(Tree_p self);
 
     Name_p      enableAnimations(Tree_p self, bool fs);
     Integer_p   polygonOffset(Tree_p self,

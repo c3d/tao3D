@@ -119,12 +119,18 @@ PREFIX(FullScreen, boolean, "full_screen", PARM(fs, boolean),
        RTAO(fullScreen(self, fs)))
 PREFIX(ToggleFullScreen, boolean, "toggle_full_screen", ,
        RTAO(toggleFullScreen(self)))
-PREFIX(ZoomPlus, boolean, "zoom_plus", ,
-       RTAO(zoomPlus(self)))
-PREFIX(ZoomMinus, boolean, "zoom_minus", ,
-       RTAO(zoomMinus(self)))
 PREFIX(ResetView, boolean, "reset_view", ,
        RTAO(resetView(self)))
+PREFIX(PanEye, boolean, "pan", PARM(dx, real) PARM(dy, real),
+       RTAO(panView(self,dx,dy)))
+PREFIX(GetZoom, real, "zoom", , RTAO(currentZoom(self)))
+PREFIX(SetZoom, boolean, "zoom", PARM(z, real), RTAO(setZoom(self, z)))
+PREFIX(GetEye, infix, "eye_position", , RTAO(currentEyePosition(self)))
+PREFIX(SetEye, boolean, "eye_position", PARM(x, real) PARM(y, real),
+       RTAO(setEyePosition(self,x,y)))
+PREFIX(GetCenter, infix, "center_position", , RTAO(currentCenterPosition(self)))
+PREFIX(SetCenter, boolean, "center_position", PARM(x, real) PARM(y, real),
+       RTAO(setCenterPosition(self,x,y)))
 PREFIX(ToggleHandCursor, boolean, "toggle_hand_cursor", ,
        RTAO(toggleHandCursor(self)))
 PREFIX(EnableAnimations, boolean, "enable_animations", PARM(an, boolean),
@@ -132,6 +138,8 @@ PREFIX(EnableAnimations, boolean, "enable_animations", PARM(an, boolean),
 PREFIX(PolygonOffset, integer, "polygon_offset",
        PARM(f0, real) PARM(f1, real) PARM(u0, real) PARM(u1, real),
        RTAO(polygonOffset(self, f0, f1, u0, u1)))
+PREFIX(KeyboardModifiers, integer, "keyboard_modifiers", ,
+       RTAO(lastModifiers(self)))
 
 
 // ============================================================================

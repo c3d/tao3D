@@ -50,7 +50,7 @@ cr              = "<BR>" indents
 
 // Begin/end stanzas
 begin         =
-    "<html><head><link rel=""stylesheet"" type=""text/css"" href=""srcview.css"" /></head><body>"
+    "<html><head><meta http-equiv=""Content-Type"" content=""text/html; charset=utf-8""><link rel=""stylesheet"" type=""text/css"" href=""srcview.css"" /></head><body>"
     newline
 end           = newline "</body></html>"
 
@@ -118,9 +118,9 @@ highlight_end_selected = "</span><br>"
 "rotatey" = builtin
 "rotatez" = builtin
 "translate" = builtin
-"translatex" = function
-"translatey" = function
-"translatez" = function
+"translatex" = builtin
+"translatey" = builtin
+"translatez" = builtin
 "scale" = builtin
 "scalex" = builtin
 "scaley" = builtin

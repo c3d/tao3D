@@ -1362,7 +1362,7 @@ void Window::updateContext(QString docPath)
 // ----------------------------------------------------------------------------
 {
     currentProjectFolder = docPath;
-    TaoApp->updateSearchPathes(currentProjectFolder);
+    TaoApp->updateSearchPaths(currentProjectFolder);
 
     // Fetch info for XL files
     QFileInfo user      ("xl:user.xl");

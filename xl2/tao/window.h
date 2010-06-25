@@ -122,7 +122,7 @@ private:
     QString  findUnusedUntitledFile();
     QString  strippedName(const QString &fullFileName);
     Window  *findWindow(const QString &fileName);
-    void     updateProgram(const QString &filename);
+    bool     updateProgram(const QString &filename);
     void     resetTaoMenus();
     bool     populateUndoStack();
     void     warnNoRepo();

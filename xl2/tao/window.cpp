@@ -982,6 +982,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
                      QFileInfo(fileName).fileName()))
         return false;
 
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    statusBar()->showMessage(tr("Loading fonts"));
     FontFileManager ffm;
     appFontIds = ffm.LoadEmbeddedFonts(fileName);
     if (!appFontIds.empty())
@@ -989,20 +992,35 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     foreach (QString e, ffm.errors)
         addError(e);
 
-    if (!loadFileIntoSourceFileView(fileName, openProj))
-        return false;
+    statusBar()->showMessage(tr("Loading document"));
+    bool hadError = updateProgram(fileName);
 
-    loadSrcViewStyleSheet();
-    updateProgram(fileName);
-    setCurrentFile(fileName);
-    statusBar()->showMessage(tr("File loaded"), 2000);
+    QApplication::restoreOverrideCursor();
+
+    if (hadError)
+    {
+        // File not found, or parse error
+        statusBar()->showMessage(tr("Load error"), 2000);
+        // Try to show source as plain text
+        if (!loadFileIntoSourceFileView(fileName, openProj))
+            return false;
+    }
+    else
+    {
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+        loadSrcViewStyleSheet();
+        taoWidget->updateProgramSource();
+        QApplication::restoreOverrideCursor();
+        setCurrentFile(fileName);
+        statusBar()->showMessage(tr("File loaded"), 2000);
+    }
     return true;
 }
 
 
 bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 // ----------------------------------------------------------------------------
-//    Update the source file view with the contents of a specific file
+//    Update the source file view with the plain contents of a specific file
 // ----------------------------------------------------------------------------
 {
     if (isUntitled)
@@ -1030,11 +1048,12 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
     return true;
 }
 
-void Window::updateProgram(const QString &fileName)
+bool Window::updateProgram(const QString &fileName)
 // ----------------------------------------------------------------------------
 //   When a file has changed, reload corresponding XL program
 // ----------------------------------------------------------------------------
 {
+    bool hadError = false;
     QFileInfo fileInfo(fileName);
     QString canonicalFilePath = fileInfo.canonicalFilePath();
     text fn = +canonicalFilePath;
@@ -1045,7 +1064,8 @@ void Window::updateProgram(const QString &fileName)
         // Clean menus and reload XL program
         resetTaoMenus();
         if (!sf->tree)
-            xlRuntime->LoadFile(fn);
+            if (xlRuntime->LoadFile(fn))
+                hadError = true;
 
         // Check if we can access the file
         if (!fileInfo.isWritable())
@@ -1054,6 +1074,7 @@ void Window::updateProgram(const QString &fileName)
 
     taoWidget->updateProgram(sf);
     taoWidget->updateGL();
+    return hadError;
 }
 
 

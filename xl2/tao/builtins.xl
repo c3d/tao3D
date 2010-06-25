@@ -9,10 +9,34 @@ if true then TrueBody                   -> do TrueBody
 if false then TrueBody                  -> false
 
 // Key management
-key "Control-F"                         -> toggle_full_screen
+key "Control-L"                         -> toggle_full_screen
+key "Escape"                            -> full_screen false
+key "Control-M"                         -> toggle_hand_cursor
+key "Control-1"                         -> reset_view
+key "Control-+"                         -> zoom_in
+key "Control--"                         -> zoom_out
 key "Delete"                            -> delete_selection "Delete"
 key "Backspace"                         -> delete_selection "Backspace"
 key X                                   -> text_edit_key X
+
+// Zoom
+zoom_in                                 -> if zoom < 4.0 then zoom (zoom+0.25)
+zoom_out                                -> if zoom > 0.25 then zoom (zoom-0.25)
+
+// Wheel events
+control_modifier  -> (keyboard_modifiers and 16#04000000) <> 0
+shift_modifier    -> (keyboard_modifiers and 16#02000000) <> 0
+alt_modifier      -> (keyboard_modifiers and 16#08000000) <> 0
+meta_modifier     -> (keyboard_modifiers and 16#10000000) <> 0
+
+wheel_event x, y                        ->
+    if control_modifier then
+        if y > 0 then
+            zoom_in
+        else
+            zoom_out
+    else
+        pan -x, y
 
 // 3D Paths    
 move_to (x:real, y:real, z:real)        -> move_to x, y, z

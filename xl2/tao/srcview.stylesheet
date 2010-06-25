@@ -38,6 +38,7 @@ indents = nbsp nbsp nbsp nbsp
 "block I+ I-" = indent "<BR>" indents child unindent
 "block  ( ) " = "( " child " )"
 "block { }" = "{ " child " }"
+"infix else" = separator left cr self right separator
 
 // Character remapping
 nbsp            = "&nbsp;"

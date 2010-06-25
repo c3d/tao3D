@@ -665,6 +665,10 @@ void Window::createActions()
     saveAct->setIconVisibleInMenu(false);
     connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
 
+    recAct = new QAction(tr("Consolidate"), this);
+    recAct->setStatusTip(tr("Make the document self contained"));
+    connect(recAct, SIGNAL(triggered()), this, SLOT(consolidate()));
+
     saveAsAct = new QAction(tr("Save &As..."), this);
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
     saveAsAct->setStatusTip(tr("Save the document under a new name"));
@@ -803,6 +807,7 @@ void Window::createMenus()
     fileMenu->addAction(saveAct);
     fileMenu->addAction(saveAsAct);
     fileMenu->addAction(saveFontsAct);
+    fileMenu->addAction(recAct);
     fileMenu->addSeparator();
     fileMenu->addAction(closeAct);
     fileMenu->addAction(exitAct);
@@ -1056,6 +1061,25 @@ void Window::updateProgram(const QString &fileName)
     taoWidget->updateGL();
 }
 
+void Window::consolidate()
+// ----------------------------------------------------------------------------
+//   Menu entry for the resource management activities.
+// ----------------------------------------------------------------------------
+{
+    text fn = +curFile;
+    IFTRACE(resources)
+    {
+        std::cerr << "fn is "<< fn << std::endl;
+    }
+
+    ResourceMgt checkFiles(taoWidget);
+    xlRuntime->files[fn].tree->Do(checkFiles);
+    checkFiles.cleanUpRepo();
+    // Reload the program and mark the changes
+    taoWidget->reloadProgram();
+    taoWidget->markChanged("Related files included in the project");
+
+}
 
 bool Window::saveFile(const QString &fileName)
 // ----------------------------------------------------------------------------
@@ -1085,18 +1109,6 @@ bool Window::saveFile(const QString &fileName)
 
     setCurrentFile(fileName);
     xlRuntime->LoadFile(fn);
-
-    ResourceMgt checkFiles(taoWidget);
-    Tree_p tree = xlRuntime->files[fn].tree;
-    if (tree)
-    {
-        tree->Do(checkFiles);
-        checkFiles.cleanUpRepo();
-    }
-
-    // Reload the program and mark the changes
-    taoWidget->reloadProgram();
-    taoWidget->markChanged("Related files included in the project");
 
     statusBar()->showMessage(tr("File saved"), 2000);
     updateProgram(fileName);
@@ -1298,8 +1310,12 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
 
                 // For undo/redo: widget has to be notified when document
                 // is succesfully committed into repository
+                // REVISIT: should slot be in Window rather than Widget?
                 connect(repo.data(),SIGNAL(commitSuccess(QString,QString)),
                         taoWidget,  SLOT(commitSuccess(QString, QString)));
+                // Also be notified when changes come from remote sync (pull)
+                connect(repo.data(), SIGNAL(asyncPullComplete()),
+                        this, SLOT(clearUndoStack()));
                 // REVISIT
                 // Do not populate undo stack with current Git history to avoid
                 // making it possible to undo some operations like document
@@ -1354,6 +1370,7 @@ void Window::switchToFullScreen(bool fs)
         setUnifiedTitleAndToolBarOnMac(false);
         removeToolBar(fileToolBar);
         removeToolBar(editToolBar);
+        removeToolBar(viewToolBar);
         showFullScreen();
         taoWidget->showFullScreen();
     }
@@ -1363,8 +1380,10 @@ void Window::switchToFullScreen(bool fs)
         taoWidget->showNormal();
         addToolBar(fileToolBar);
         addToolBar(editToolBar);
+        addToolBar(viewToolBar);
         fileToolBar->show();
         editToolBar->show();
+        viewToolBar->show();
         setUnifiedTitleAndToolBarOnMac(true);
     }
 }
@@ -1567,6 +1586,15 @@ bool Window::populateUndoStack()
         undoStack->push(new UndoCommand(repo.data(), c.id, c.msg));
     }
     return true;
+}
+
+
+void Window::clearUndoStack()
+// ----------------------------------------------------------------------------
+//    Clear the undo stack
+// ----------------------------------------------------------------------------
+{
+    undoStack->clear();
 }
 
 TAO_END

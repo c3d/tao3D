@@ -56,6 +56,7 @@ public:
     uint                fillTexture;
     bool                wrapS : 1;                // Texture wrapping
     bool                wrapT : 1;
+    bool                printing : 1;
     uint                rotationId, translationId, scaleId;
 };
 

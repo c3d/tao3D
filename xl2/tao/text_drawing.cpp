@@ -31,6 +31,7 @@
 #include "runtime.h"
 #include "application.h"
 #include "apply_changes.h"
+#include "gl2ps.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -57,13 +58,12 @@ void TextSpan::Draw(Layout *where)
     bool hasTexture = setTexture(where);
     GlyphCache &glyphs = widget->glyphs();
     bool tooBig = where->font.pointSize() > (int) glyphs.maxFontSize;
+    bool printing = where->printing;
     uint dbgMod = (Qt::ShiftModifier|Qt::ControlModifier|Qt::AltModifier);
     bool debugForceDirect = (widget->lastModifiers() & dbgMod) == dbgMod;
     Point3 offset0 = where->Offset();
 
-    Point3 off0 = where->Offset();
-
-    if (!hasLine && !hasTexture && !tooBig && !debugForceDirect)
+    if (!printing && !hasLine && !hasTexture && !tooBig && !debugForceDirect)
         DrawCached(where);
     else
         DrawDirect(where);
@@ -191,6 +191,26 @@ void TextSpan::DrawDirect(Layout *where)
     coord       y      = pos.y;
     coord       z      = pos.z;
     scale       lw     = where->lineWidth;
+    bool        skip   = false;
+
+    // When printing and there is no rotation, we try to use GL2PS direct
+    if (where->printing)
+    {
+        if (!where->hasPixelBlur && !where->hasMatrix)
+        {
+            setTexture(where);
+            if (setFillColor(where))
+            {
+                text range = str.substr(start, end - start);
+                text family = +where->font.family();
+                uint size = where->font.pointSize();
+                glRasterPos3d(pos.x, pos.y, pos.z);
+                gl2psText(range.c_str(), family.c_str(), size);
+            }
+            if (where->lineColor.alpha <= 0)
+                skip = true;
+        }
+    }
 
     if (where->lineColor.alpha <= 0)
         lw = 0;
@@ -228,10 +248,13 @@ void TextSpan::DrawDirect(Layout *where)
             glTranslatef(x, y, z);
             scale gscale = glyph.scalingFactor;
             glScalef(gscale, gscale, gscale);
-
-            setTexture(where);
-            if (setFillColor(where))
-                glCallList(glyph.interior);
+            
+            if (!skip)
+            {
+                setTexture(where);
+                if (setFillColor(where))
+                    glCallList(glyph.interior);
+            }
             if (setLineColor(where))
                 glCallList(glyph.outline);
 

@@ -13,6 +13,7 @@ key "Control-L"                         -> toggle_full_screen
 key "Escape"                            -> full_screen false
 key "Control-M"                         -> toggle_hand_cursor
 key "Control-P"                         -> print_page "toto.pdf"
+key "Control-Shift-P"                   -> print_page "toto.svg"
 key "Control-1"                         -> reset_view
 key "Control-+"                         -> zoom_in
 key "Control--"                         -> zoom_out

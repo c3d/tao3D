@@ -24,6 +24,7 @@
 #include "layout.h"
 #include "gl_keepers.h"
 #include "attributes.h"
+#include "gl2ps.h"
 
 TAO_BEGIN
 
@@ -45,7 +46,7 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,1),       // Black
       fillColor(0,0,0,0),       // Transparent black
-      fillTexture(0), wrapS(false), wrapT(false),
+      fillTexture(0), wrapS(false), wrapT(false), printing(false),
       rotationId(0), translationId(0), scaleId(0)
 {}
 
@@ -65,6 +66,7 @@ LayoutState::LayoutState(const LayoutState &o)
         fillTexture(o.fillTexture),
         wrapS(o.wrapS),
         wrapT(o.wrapT),
+        printing(o.printing),
         rotationId(o.rotationId),
         translationId(o.translationId),
         scaleId(o.scaleId)
@@ -283,6 +285,8 @@ void Layout::PolygonOffset()
     int offset = polygonOffset++;
     glPolygonOffset (factorBase + offset * factorIncrement,
                      unitBase + offset * unitIncrement);
+    if (printing)
+        gl2psEnable(GL2PS_POLYGON_OFFSET_FILL);
 }
 
 
@@ -348,6 +352,7 @@ void Layout::Inherit(Layout *where)
     fillTexture  = where->fillTexture;
     wrapS        = where->wrapS;
     wrapT        = where->wrapT;
+    printing     = where->printing;
     hasPixelBlur |= where->hasPixelBlur;
 }
 

@@ -3586,7 +3586,7 @@ Tree_p Widget::closePath(Tree_p self)
 }
 
 
-static GraphicPath::EndpointStyle endpointStyle(symbolicname_r n)
+static GraphicPath::EndpointStyle endpointStyle(symbol_r n)
 // ----------------------------------------------------------------------------
 //   Translates XL name into endpoint style enum
 // ----------------------------------------------------------------------------
@@ -3649,7 +3649,7 @@ static GraphicPath::EndpointStyle endpointStyle(symbolicname_r n)
     }
 }
 
-Tree_p Widget::endpointsStyle(Tree_p self, symbolicname_r s, symbolicname_r e)
+Tree_p Widget::endpointsStyle(Tree_p self, symbol_r s, symbol_r e)
 // ----------------------------------------------------------------------------
 //   Specify the style of the path endpoints
 // ----------------------------------------------------------------------------
@@ -4552,6 +4552,9 @@ Tree_p Widget::newTable(Tree_p self, Real_p x, Real_p y,
     Table *tbl = new Table(this, x, y, r, c);
     XL::LocalSave<Table *> saveTable(table, tbl);
     layout->Add(tbl);
+
+    if (currentShape)
+        layout->Add(new TableManipulator(currentShape, x, y, tbl));
 
     // Patch the symbol table with short versions of table_xyz functions
     if (Prefix *prefix = self->AsPrefix())
@@ -6688,7 +6691,7 @@ Tree_p Widget::constant(Tree_p self, Tree_p tree)
 //   Return a clone of the tree to make sure it is not modified
 // ----------------------------------------------------------------------------
 {
-    tree->tag |= ~0UL<<Tree::KINDBITS;
+    MarkAsConstant(tree);
     return tree;
 }
 

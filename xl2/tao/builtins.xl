@@ -33,7 +33,7 @@ line x0:real, y0:real, x1:real, y1:real ->
         move_to x0, y0
         line_to x1, y1
 
-line_arrow x0:real, y0:real, s0:symbolicname, x1:real, y1:real, s1:symbolicname ->
+line_arrow x0:real, y0:real, s0:symbol, x1:real, y1:real, s1:symbol ->
     path
         move_to x0, y0
         line_to x1, y1
@@ -62,34 +62,34 @@ polygram x:real, y:real, w:real, h:real, p:integer, q:integer ->
 polygon x:real, y:real, w:real, h:real, p:integer ->
     star_polygon x, y, w, h, p, 1
 
-equilateral_triangle t                  -> polygon t, 3
-tetragon t                              -> polygon t, 4
-diamond t                               -> polygon t, 4
-pentagon t                              -> polygon t, 5
-hexagon t                               -> polygon t, 6
-heptagon t                              -> polygon t, 7
-octagon t                               -> polygon t, 8
-nonagon t                               -> polygon t, 9
-decagon t                               -> polygon t, 10
-hendecagon t                            -> polygon t, 11
-dodecagon t                             -> polygon t, 12
-tridecagon t                            -> polygon t, 13
-tetradecagon t                          -> polygon t, 14
-pentadecagon t                          -> polygon t, 15
-hexadecagon t                           -> polygon t, 16
-heptadecagon t                          -> polygon t, 17
-octadecagon t                           -> polygon t, 18
-enneadecagon t                          -> polygon t, 19
-icosagon t                              -> polygon t, 20
+equilateral_triangle t                  -> polygon t, constant 3
+tetragon t                              -> polygon t, constant 4
+diamond t                               -> polygon t, constant 4
+pentagon t                              -> polygon t, constant 5
+hexagon t                               -> polygon t, constant 6
+heptagon t                              -> polygon t, constant 7
+octagon t                               -> polygon t, constant 8
+nonagon t                               -> polygon t, constant 9
+decagon t                               -> polygon t, constant 10
+hendecagon t                            -> polygon t, constant 11
+dodecagon t                             -> polygon t, constant 12
+tridecagon t                            -> polygon t, constant 13
+tetradecagon t                          -> polygon t, constant 14
+pentadecagon t                          -> polygon t, constant 15
+hexadecagon t                           -> polygon t, constant 16
+heptadecagon t                          -> polygon t, constant 17
+octadecagon t                           -> polygon t, constant 18
+enneadecagon t                          -> polygon t, constant 19
+icosagon t                              -> polygon t, constant 20
 
-pentagram t                             -> polygram t, 5, 2
-hexagram t                              -> polygram t, 6, 2
-star_of_david t                         -> polygram t, 6, 2
-heptagram t                             -> polygram t, 7, 2
-star_of_lakshmi t                       -> polygram t, 8, 2
-octagram t                              -> polygram t, 8, 3
-nonagram t                              -> polygram t, 9, 3
-decagram t                              -> polygram t, 10, 3
+pentagram t                             -> polygram t, constant 5, constant 2
+hexagram t                              -> polygram t, constant 6, constant 2
+star_of_david t                         -> polygram t, constant 6, constant 2
+heptagram t                             -> polygram t, constant 7, constant 2
+star_of_lakshmi t                       -> polygram t, constant 8, constant 2
+octagram t                              -> polygram t, constant 8, constant 3
+nonagram t                              -> polygram t, constant 9, constant 3
+decagram t                              -> polygram t, constant 10, constant 3
 
 schläfli t, {p:integer}                 -> polygon t, p
 schläfli t, {p:integer/q:integer}       -> polygram t, p, q

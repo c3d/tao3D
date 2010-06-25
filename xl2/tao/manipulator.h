@@ -228,6 +228,20 @@ protected:
 };
 
 
+struct Table;
+struct TableManipulator : FrameManipulator
+// ----------------------------------------------------------------------------
+//   Manipulator for tables
+// ----------------------------------------------------------------------------
+{
+    TableManipulator(Tree *self, Real *x, Real *y, Table *table);
+    virtual bool        DrawHandles(Layout *layout);
+
+protected:
+    Table *             table;
+};
+
+
 struct GraphicPath;
 struct GraphicPathManipulator : FrameManipulator
 // ----------------------------------------------------------------------------

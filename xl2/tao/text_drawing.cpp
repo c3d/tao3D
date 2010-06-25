@@ -192,6 +192,7 @@ void TextSpan::DrawDirect(Layout *where)
     coord       z      = pos.z;
     scale       lw     = where->lineWidth;
     bool        skip   = false;
+    uint        i, max = str.length();
 
     // When printing and there is no rotation, we try to use GL2PS direct
     if (where->printing)
@@ -226,7 +227,6 @@ void TextSpan::DrawDirect(Layout *where)
     std::vector<Point>      texCoords;
 
     // Loop over all characters in the text span
-    uint i, max = str.length();
     for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
     {
         uint  unicode  = XL::Utf8Code(str, i);

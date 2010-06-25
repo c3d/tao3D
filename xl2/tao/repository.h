@@ -36,7 +36,7 @@
 #include <QMap>
 #include <QWeakPointer>
 #include <QSharedPointer>
-#include <QList>
+#include <QQueue>
 #include <iostream>
 
 namespace Tao {
@@ -141,6 +141,7 @@ public:
 signals:
     void                commitSuccess(QString commitId, QString msg);
     void                asyncCloneComplete(void *id, QString projPath);
+    void                asyncPullComplete();
     void                deleted();
 
 protected:
@@ -149,6 +150,7 @@ protected:
     virtual text        fullName(text fileName);
     Process *           dispatch(Process *cmd, AnsiTextEdit *err = NULL,
                                  AnsiTextEdit *out = NULL, void *id = NULL);
+    void                waitForAsyncProcessCompletion();
 
 protected slots:
     virtual void        asyncProcessFinished(int exitCode);
@@ -176,7 +178,7 @@ public:
     QString            lastPublishTo;
 
 protected:
-    QList<Process *> pQueue;
+    QQueue<Process *> pQueue;
 };
 
 #define TAO_UNDO_SUFFIX "_tao_undo"

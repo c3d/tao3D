@@ -104,6 +104,7 @@ private slots:
     void documentWasModified();
     void checkFiles();
     void toggleFullScreen();
+    void clearUndoStack();
 
 private:
     void     createActions();

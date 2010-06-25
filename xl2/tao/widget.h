@@ -113,6 +113,7 @@ public slots:
     void        enableAnimations(bool animate);
     void        showHandCursor(bool enabled);
     void        resetView();
+    void        saveAndCommit();
 
 
 signals:
@@ -154,7 +155,10 @@ public:
     void        markChanged(text reason);
     void        selectStatements(Tree *tree);
     bool        writeIfChanged(XL::SourceFile &sf);
-    bool        doCommit(bool immediate = false);
+    bool        enableAutoSave(bool enabled);
+    bool        doSave(ulonglong tick);
+    bool        doPull(ulonglong tick);
+    bool        doCommit(ulonglong tick);
     Repository *repository();
     Tree *      get(Tree *shape, text name, text sh = "group,shape");
     bool        set(Tree *shape, text n, Tree *value, text sh = "group,shape");
@@ -275,6 +279,11 @@ public:
     Name_p      showSource(Tree_p self, bool show);
     Name_p      fullScreen(Tree_p self, bool fs);
     Name_p      toggleFullScreen(Tree_p self);
+    Name_p      toggleHandCursor(Tree_p self);
+    Name_p      resetView(Tree_p self);
+    Name_p      zoomPlus(Tree_p self = NULL);
+    Name_p      zoomMinus(Tree_p self = NULL);
+
     Name_p      enableAnimations(Tree_p self, bool fs);
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
@@ -627,6 +636,7 @@ private:
     double                eyeX, eyeY, eyeZ;
     double                centerX, centerY, centerZ;
     int                   panX, panY;
+    bool                  autoSaveEnabled;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:

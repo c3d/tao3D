@@ -32,7 +32,20 @@ Drag::Drag(Widget *w)
 //   Initialize the drag object
 // ----------------------------------------------------------------------------
     : Activity("Drag", w)
-{}
+{
+    // No auto-save during drag; wait for end of operation
+    widget->enableAutoSave(false);
+}
+
+
+Drag::~Drag()
+// ----------------------------------------------------------------------------
+//   End of drag
+// ----------------------------------------------------------------------------
+{
+    widget->saveAndCommit();
+    widget->enableAutoSave(true);
+}
 
 
 Activity *Drag::Click(uint button, uint count, int x, int y)

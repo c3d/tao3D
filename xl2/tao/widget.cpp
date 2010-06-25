@@ -123,7 +123,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentFileDialog(NULL),
       zoom(1.0),
       eyeX(0.0), eyeY(0.0), eyeZ(Widget::zNear),
-      centerX(0.0), centerY(0.0), centerZ(0.0)
+      centerX(0.0), centerY(0.0), centerZ(0.0),
+      autoSaveEnabled(true)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -224,39 +225,31 @@ void Widget::dawdle()
             xlProgram->changed = false;
     }
 
-    // Check if there's something to save
+    // Check if it's time to save
     ulonglong tick = now();
     longlong saveDelay = longlong(nextSave - tick);
-    if (repo && saveDelay < 0 && repo->idle())
+    if (repo && saveDelay < 0 && repo->idle() && autoSaveEnabled)
     {
-        XL::source_files::iterator it;
-        for (it = xlr->files.begin(); it != xlr->files.end(); it++)
-        {
-            XL::SourceFile &sf = (*it).second;
-            writeIfChanged(sf);
-        }
-
-        // Record when we will save file again
-        nextSave = tick + xlr->options.save_interval * 1000;
+        doSave(tick);
     }
 
-    // Check if there's something to commit
+    // Check if it's time to commit
     longlong commitDelay = longlong (nextCommit - tick);
-    if (repo && commitDelay < 0 && repo->state == Repository::RS_NotClean)
+    if (repo && commitDelay < 0 && repo->state == Repository::RS_NotClean &&
+        autoSaveEnabled)
     {
-        doCommit();
+        doCommit(tick);
     }
 
-    // Check if there's something to merge from the remote repository
+    // Check if it's time to merge from the remote repository
     // REVISIT: sync: what if several widgets share the same repository?
     longlong pullDelay = longlong (nextPull - tick);
     if (repo && pullDelay < 0 && repo->state == Repository::RS_Clean)
     {
-        repo->pull();
-        nextPull = now() + repo->pullInterval * 1000;
+        doPull(tick);
     }
 
-    // Check if there's something to reload
+    // Check if it's time to reload
     longlong syncDelay = longlong(nextSync - tick);
     if (syncDelay < 0)
     {
@@ -832,6 +825,17 @@ void Widget::resetView()
 }
 
 
+void Widget::saveAndCommit()
+// ----------------------------------------------------------------------------
+//   Save files and commit to repository if needed
+// ----------------------------------------------------------------------------
+{
+    ulonglong tick = now();
+    if (doSave(tick))
+        doCommit(tick);
+}
+
+
 void Widget::userMenu(QAction *p_action)
 // ----------------------------------------------------------------------------
 //   User menu slot activation
@@ -1118,6 +1122,18 @@ static text keyName(QKeyEvent *event)
     case Qt::Key_X:                     ctrl = "X"; break;
     case Qt::Key_Y:                     ctrl = "Y"; break;
     case Qt::Key_Z:                     ctrl = "Z"; break;
+    case Qt::Key_0:                     ctrl = "0"; break;
+    case Qt::Key_1:                     ctrl = "1"; break;
+    case Qt::Key_2:                     ctrl = "2"; break;
+    case Qt::Key_3:                     ctrl = "3"; break;
+    case Qt::Key_4:                     ctrl = "4"; break;
+    case Qt::Key_5:                     ctrl = "5"; break;
+    case Qt::Key_6:                     ctrl = "6"; break;
+    case Qt::Key_7:                     ctrl = "7"; break;
+    case Qt::Key_8:                     ctrl = "8"; break;
+    case Qt::Key_9:                     ctrl = "9"; break;
+    case Qt::Key_Minus:                 ctrl = "-"; break;
+    case Qt::Key_Plus:                  ctrl = "+"; break;
     case Qt::Key_BracketLeft:           ctrl = "["; break;
     case Qt::Key_Backslash:             ctrl = "\\"; break;
     case Qt::Key_BracketRight:          ctrl = "]"; break;
@@ -1581,12 +1597,10 @@ void Widget::wheelEvent(QWheelEvent *event)
         return;
 
     int d = event->delta();
-    if (d < 0 && zoom <= 3.75)
-        zoom += 0.25;
-    else if (d > 0 && zoom >= 0.5)
-        zoom -= 0.25;
-    setup(width(), height());
-    updateGL();
+    if (d < 0)
+        zoomPlus();
+    else
+        zoomMinus();
 }
 
 
@@ -1973,20 +1987,66 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
 }
 
 
-bool Widget::doCommit(bool immediate)
+bool Widget::doPull(ulonglong tick)
+// ----------------------------------------------------------------------------
+//   Pull from remote repository and reset next pull time
+// ----------------------------------------------------------------------------
+{
+    Repository *repo = repository();
+    bool ok = repo->pull();
+    nextPull = tick + repo->pullInterval * 1000;
+    return ok;
+}
+
+
+bool Widget::enableAutoSave(bool enabled)
+// ----------------------------------------------------------------------------
+//   Enable or disable automatic (periodic) save
+// ----------------------------------------------------------------------------
+{
+    bool old = autoSaveEnabled;
+    autoSaveEnabled = enabled;
+    return old;
+}
+
+bool Widget::doSave(ulonglong tick)
+// ----------------------------------------------------------------------------
+//   Save source files that have changed and reset next save time
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
+    XL::Main *xlr = XL::MAIN;
+    XL::source_files::iterator it;
+    for (it = xlr->files.begin(); it != xlr->files.end(); it++)
+    {
+        XL::SourceFile &sf = (*it).second;
+        if (writeIfChanged(sf))
+            changed = true;
+    }
+
+    // Record when we will save file again
+    nextSave = tick + xlr->options.save_interval * 1000;
+    return changed;
+}
+
+
+bool Widget::doCommit(ulonglong tick)
 // ----------------------------------------------------------------------------
 //   Commit files previously written to repository and reset next commit time
 // ----------------------------------------------------------------------------
 {
-    (void)immediate; // Now unused. Commit is always synchronous.
+    Repository * repo = repository();
+    if (repo->state == Repository::RS_Clean)
+        return false;
+
     IFTRACE(filesync)
-            std::cerr << "Commit: " << repository()->whatsNew << "\n";
+            std::cerr << "Commit\n";
     bool done;
-    done = repository()->commit();
+    done = repo->commit();
     if (done)
     {
         XL::Main *xlr = XL::MAIN;
-        nextCommit = now() + xlr->options.commit_interval * 1000;
+        nextCommit = tick + xlr->options.commit_interval * 1000;
 
         Window *window = (Window *) parentWidget();
         window->markChanged(false);
@@ -3113,6 +3173,59 @@ XL::Name_p Widget::toggleFullScreen(XL::Tree_p self)
 // ----------------------------------------------------------------------------
 {
     return fullScreen(self, !isFullScreen());
+}
+
+
+XL::Name_p Widget::toggleHandCursor(XL::Tree_p self)
+// ----------------------------------------------------------------------------
+//   Switch between hand and arrow cursor
+// ----------------------------------------------------------------------------
+{
+    bool isArrow = (cursor().shape() == Qt::ArrowCursor);
+    showHandCursor(isArrow);
+    return (!isArrow) ? XL::xl_true : XL::xl_false;
+}
+
+
+XL::Name_p Widget::resetView(XL::Tree_p self)
+// ----------------------------------------------------------------------------
+//   Restore default view parameters (zoom, position etc.)
+// ----------------------------------------------------------------------------
+{
+    resetView();
+    return XL::xl_true;
+}
+
+
+Name_p Widget::zoomPlus(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Increase zoom level
+// ----------------------------------------------------------------------------
+{
+    if (zoom >= 0.5)
+    {
+        zoom -= 0.25;
+        setup(width(), height());
+        updateGL();
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
+
+Name_p Widget::zoomMinus(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Decrease zoom level
+// ----------------------------------------------------------------------------
+{
+    if (zoom <= 3.75)
+    {
+        zoom += 0.25;
+        setup(width(), height());
+        updateGL();
+        return XL::xl_true;
+    }
+    return XL::xl_false;
 }
 
 

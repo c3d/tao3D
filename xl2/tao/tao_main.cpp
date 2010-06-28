@@ -82,10 +82,6 @@ int main(int argc, char **argv)
         contextFiles.push_back(+user.canonicalFilePath());
     if (theme.exists())
         contextFiles.push_back(+theme.canonicalFilePath());
-    xlr->LoadContextFiles(contextFiles);
-
-    // Load the files
-    xlr->LoadFiles();
 
     // Create the windows for each file on the command line
     bool hadFile = false;
@@ -93,37 +89,29 @@ int main(int argc, char **argv)
     XL::source_names::iterator it;
     for (it = names.begin(); it != names.end(); it++)
     {
-        using namespace Tao;
-        if (xlr->files.count(*it))
+        QString sourceFile = +(*it);
+        hadFile = true;
+        Tao::Window *window = new Tao::Window (xlr, sourceFile, contextFiles);
+        if (window->isUntitled)
         {
-            XL::SourceFile &sf = xlr->files[*it];
-            hadFile = true;
-            Tao::Window *window = new Tao::Window (xlr, contextFiles, &sf);
-            if (window->isUntitled)
-                delete window;
-            else
-                window->show();
-        }
-        else
-        {
+            delete window;
             QMessageBox::warning(NULL, tao.tr("Invalid input file"),
                                  tao.tr("The file %1 cannot be read.")
                                  .arg(+*it));
         }
+        else
+            window->show();
     }
+
     if (!hadFile)
     {
-        text tuto = +tutorial.canonicalFilePath();
-        if (!xlr->LoadFile(tuto))
-        {
-            if (xlr->files.count(tuto))
-            {
-                XL::SourceFile &sf = xlr->files[tuto];
-                sf.readOnly = true;
-                Tao::Window *untitled = new Tao::Window(xlr, contextFiles, &sf);
-                untitled->show();
-            }
-        }
+        // Open tutorial file read-only
+        QString tuto = tutorial.canonicalFilePath();
+        Tao::Window *untitled = new Tao::Window(xlr, "", contextFiles);
+        untitled->open(tuto, true);
+        untitled->isUntitled = true;
+        untitled->isReadOnly = true;
+        untitled->show();
     }
 
     int ret = tao.exec();

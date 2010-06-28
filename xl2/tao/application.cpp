@@ -29,6 +29,7 @@
 #include "tao.h"
 #include "tao_utf8.h"
 #include "error_message_dialog.h"
+#include "options.h"
 
 #include <QString>
 #include <QSettings>
@@ -62,15 +63,10 @@ Application::Application(int & argc, char ** argv)
         std::exit(0);
     }
 
-    // Parse command line options
-    XL::Errors errors(new XL::Positions());
-    XL::Options options(errors, argc, argv);
-
     // Get the first file name and guess its location to initialize
     // the project folder. If there is no filename, or it is not found the
-    // currentProjectFolder will be initialized to "".
-    text project = options.ParseNext();
-    updateSearchPaths(QFileInfo(+project).canonicalPath());
+    // currentProjectFolder will be initialized to ".".
+    updateSearchPaths();
 
     // Web settings
     QWebSettings *gs = QWebSettings::globalSettings();
@@ -151,11 +147,11 @@ static void printSearchPath(QString prefix)
     int c = list.count();
     for (int i = 0; i < c; i++)
     {
-        std::cout << +list[i];
+        std::cerr << +list[i];
         if (i != c-1)
-            std::cout << ":";
+            std::cerr << ":";
     }
-    std::cout << "'\n";
+    std::cerr << "'\n";
 }
 
 
@@ -174,6 +170,9 @@ void Application::updateSearchPaths(QString currentProjectFolder)
 //   Set the current project folder and all the dependant paths.
 // ----------------------------------------------------------------------------
 {
+    if (currentProjectFolder.isEmpty())
+        currentProjectFolder = ".";
+
     // Initialize dir search path for XL files
     QStringList xl_dir_list;
     xl_dir_list << currentProjectFolder

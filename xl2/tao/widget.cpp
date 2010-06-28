@@ -346,7 +346,10 @@ void Widget::draw()
 
     if (selectionChanged)
     {
-        updateProgramSource();
+        Window *window = (Window *) parentWidget();
+        // TODO: honoring isReadOnly involves more than just this
+        if (!window->isReadOnly)
+            updateProgramSource();
         selectionChanged = false;
     }
 }

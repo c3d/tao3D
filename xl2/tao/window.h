@@ -53,7 +53,8 @@ class Window : public QMainWindow
     enum { MaxRecentFiles = 5 };
 
 public:
-    Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf = NULL);
+    Window(XL::Main *xlr, QString sourceFile = "",
+           XL::source_names context = XL::source_names(), bool ro = false);
     ~Window();
 
     void setHtml(QString txt);
@@ -78,13 +79,13 @@ public slots:
     void markChanged(bool changed = true);
     void toggleAnimations();
     void sourceViewBecameVisible(bool visible);
+    void open(QString fileName = "", bool readOnly = false);
 
 protected:
     void closeEvent(QCloseEvent *event);
 
 private slots:
     void newFile();
-    void open(QString fileName = "");
     bool save();
     bool saveAs();
     bool saveFonts();

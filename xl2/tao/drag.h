@@ -36,6 +36,7 @@ struct Drag : Activity
 // ----------------------------------------------------------------------------
 {
     Drag(Widget *w);
+    ~Drag();
 
     virtual Activity *  Click(uint button, uint count, int x, int y);
     virtual Activity *  MouseMove(int x, int y, bool active);

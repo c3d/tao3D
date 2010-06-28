@@ -51,6 +51,7 @@ static inline ImageTextureInfo::Texture computeDefaultTexture()
 // ----------------------------------------------------------------------------
 {
     ImageTextureInfo::Texture result = { 0,0,0 };
+    glGenTextures(1, &result.id);
 
     QString file(":/images/default_image.svg");
     QImage image(file);
@@ -61,7 +62,6 @@ static inline ImageTextureInfo::Texture computeDefaultTexture()
         result.height = texture.height();
 
         // Generate the GL texture
-        glGenTextures(1, &result.id);
         glBindTexture(GL_TEXTURE_2D, result.id);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                      result.width, result.height, 0, GL_RGBA,

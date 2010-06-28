@@ -1310,8 +1310,12 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
 
                 // For undo/redo: widget has to be notified when document
                 // is succesfully committed into repository
+                // REVISIT: should slot be in Window rather than Widget?
                 connect(repo.data(),SIGNAL(commitSuccess(QString,QString)),
                         taoWidget,  SLOT(commitSuccess(QString, QString)));
+                // Also be notified when changes come from remote sync (pull)
+                connect(repo.data(), SIGNAL(asyncPullComplete()),
+                        this, SLOT(clearUndoStack()));
                 // REVISIT
                 // Do not populate undo stack with current Git history to avoid
                 // making it possible to undo some operations like document
@@ -1366,6 +1370,7 @@ void Window::switchToFullScreen(bool fs)
         setUnifiedTitleAndToolBarOnMac(false);
         removeToolBar(fileToolBar);
         removeToolBar(editToolBar);
+        removeToolBar(viewToolBar);
         showFullScreen();
         taoWidget->showFullScreen();
     }
@@ -1375,8 +1380,10 @@ void Window::switchToFullScreen(bool fs)
         taoWidget->showNormal();
         addToolBar(fileToolBar);
         addToolBar(editToolBar);
+        addToolBar(viewToolBar);
         fileToolBar->show();
         editToolBar->show();
+        viewToolBar->show();
         setUnifiedTitleAndToolBarOnMac(true);
     }
 }
@@ -1579,6 +1586,15 @@ bool Window::populateUndoStack()
         undoStack->push(new UndoCommand(repo.data(), c.id, c.msg));
     }
     return true;
+}
+
+
+void Window::clearUndoStack()
+// ----------------------------------------------------------------------------
+//    Clear the undo stack
+// ----------------------------------------------------------------------------
+{
+    undoStack->clear();
 }
 
 TAO_END

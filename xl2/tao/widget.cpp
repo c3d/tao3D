@@ -525,10 +525,7 @@ void Widget::copy()
         return;
 
     // Build a single tree from all the selected sub-trees
-    std::set<Tree_p >::reverse_iterator i = selectionTrees.rbegin();
-    XL::Tree *tree = (*i++);
-    for ( ; i != selectionTrees.rend(); i++)
-        tree = new XL::Infix("\n", (*i), tree);
+    XL::Tree *tree = copySelection();
 
     IFTRACE(clipboard)
     {
@@ -660,7 +657,7 @@ Name_p Widget::bringForward(Tree_p /*self*/)
     if (!hasSelection())
         return XL::xl_false;
 
-    std::set<Tree_p >::iterator sel = selectionTrees.begin();
+    std::list<Tree_p >::iterator sel = selectionTrees.begin();
     XL::FindParentAction getParent(*sel);
     Tree * parent = xlProgram->tree->Do(getParent);
     // Check if we are not the only one
@@ -706,7 +703,7 @@ Name_p Widget::sendBackward(Tree_p /*self*/)
     if (!hasSelection())
         return XL::xl_false;
 
-    std::set<Tree_p >::iterator sel = selectionTrees.begin();
+    std::list<Tree_p >::iterator sel = selectionTrees.begin();
     XL::FindParentAction getParent(*sel);
     Tree * parent = xlProgram->tree->Do(getParent);
     // Check if we are not the only one
@@ -1034,9 +1031,6 @@ bool Widget::forwardEvent(QEvent *event)
 //   Forward event to the focus proxy if there is any
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(widgets)
-            std::cerr << "-1-Event type "<< event->type()<< std::endl;
-
     if (QObject *focus = focusWidget)
         return focus->event(event);
 
@@ -1049,8 +1043,6 @@ bool Widget::forwardEvent(QMouseEvent *event)
 //   Forward event to the focus proxy if there is any, adjusting coordinates
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(widgets)
-            std::cerr << "-2-Event type "<< event->type()<< std::endl;
     if (QObject *focus = focusWidget)
     {
         int x = event->x();
@@ -1074,8 +1066,6 @@ bool Widget::forwardEvent(QMouseEvent *event)
 
         return focus->event(&local);
     }
-    IFTRACE(widgets)
-            std::cerr << "forwardEvent::No FocusWidget\n ";
     return false;
 }
 
@@ -1745,7 +1735,7 @@ void Widget::updateProgramSource()
         srcRendererOutput.str(txt);
 
         // Tell renderer how to highlight selected items
-        std::set<Tree_p >::iterator i;
+        std::list<Tree_p >::iterator i;
         srcRenderer->highlights.clear();
         for (i = selectionTrees.begin(); i != selectionTrees.end(); i++)
             srcRenderer->highlights[*i] = "selected";
@@ -2382,9 +2372,14 @@ void Widget::reselect(Tree *from, Tree *to)
 //   If 'from' is in any selection map, add 'to' to this selection
 // ----------------------------------------------------------------------------
 {
+    std::list<Tree_p >::iterator location = std::find(selectionTrees.begin(),
+                      selectionTrees.end(), from);
     // Check if we are possibly changing the selection
-    if (selectionTrees.count(from))
-        selectionTrees.insert(to);
+    if ( location != selectionTrees.end() )
+    {
+        selectionTrees.insert(location, to);
+        selectionTrees.erase(location);
+    }
 
     // Check if we are possibly changing the next selection
     if (selectNextTime.count(from))
@@ -5135,7 +5130,7 @@ void Widget::updateColorDialog()
     originalColor.setRgbF(c.red, c.green, c.blue, c.alpha);
 
     // Get the default color from the first selected shape
-    for (std::set<Tree_p >::iterator i = selectionTrees.begin();
+    for (std::list<Tree_p >::iterator i = selectionTrees.begin();
          i != selectionTrees.end();
          i++)
     {
@@ -6250,6 +6245,9 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
 
 
 void Widget::removeFromSelection(Tree *from, Tree *to)
+// ----------------------------------------------------------------------------
+//    Update references, excepting the selection list.
+// ----------------------------------------------------------------------------
 {
     // Check if we are possibly changing the next selection
     if (selectNextTime.count(from))
@@ -6263,24 +6261,21 @@ void Widget::removeFromSelection(Tree *from, Tree *to)
 
 
 struct NoSelTreeClone : TaoTreeClone
+// ----------------------------------------------------------------------------
+//    Make a deep copy, and remove copied element from the selection.
+// ----------------------------------------------------------------------------
 {
-    NoSelTreeClone(Widget *widget, std::set<Tree_p> *selCopy) :
+    NoSelTreeClone(Widget *widget, std::list<Tree_p> *selCopy) :
             TaoTreeClone(widget), selCopy(selCopy){}
 
     virtual Tree *Reselect(Tree *from, Tree *to)
     {
-        IFTRACE(widgets)
-        {
-            std::cerr << "using NoSelTreeClone::Reselect\n";
-        }
-
-        selCopy->erase(from);
-
+        selCopy->remove(from);
         widget->removeFromSelection(from, to);
 
         return to;
     }
-    std::set<Tree_p> *selCopy;
+    std::list<Tree_p> *selCopy;
 };
 
 
@@ -6292,17 +6287,18 @@ XL::Tree_p Widget::copySelection()
     if (!hasSelection())
         return NULL;
 
-    std::set<Tree_p> selCopy(selectionTrees);
+    std::list<Tree_p> selCopy(selectionTrees);
     // Build a single tree from all the selected sub-trees
-    std::set<Tree_p >::reverse_iterator i = selCopy.rbegin();
-    // As the selectionTrees member is changed by the following cloner,
-    // a new iterator is build on each loop
+    std::list<Tree_p>::iterator i = selCopy.begin();
+
     NoSelTreeClone cloner(this, &selCopy);
     XL::Tree *tree = (*i)->Do(cloner);
 
+    // As the selCopy member is changed by the cloner,
+    // a new iterator is created on each loop
     while (! selCopy.empty())
     {
-        i = selCopy.rbegin();
+        i = selCopy.begin();
         tree = new XL::Infix("\n", (*i)->Do(cloner), tree);
     }
 
@@ -6451,7 +6447,10 @@ Tree_p Widget::updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child)
 
     Block * block = parent->AsBlock();
     if (block)
+    {
         block->child = group;
+        return group;
+    }
 
     return NULL;
 
@@ -6468,13 +6467,17 @@ Name_p Widget::groupSelection(Tree_p /*self*/)
 
     // Find the first non-selected ancestor of the first element
     //      in the selection set.
-    std::set<Tree_p >::iterator sel = selectionTrees.begin();
+    std::list<Tree_p >::iterator sel = selectionTrees.begin();
     Tree * child = *sel;
     Tree * parent = NULL;
     do {
         XL::FindParentAction getParent(child);
         parent = xlProgram->tree->Do(getParent);
-    } while (parent && selectionTrees.count(parent) && (child = parent));
+    } while (parent &&
+             (std::find(selectionTrees.begin(),
+                        selectionTrees.end(),
+                        parent) != selectionTrees.end()) &&
+             (child = parent));
 
     // Check if we are not the only one
     if (!parent)
@@ -6556,7 +6559,7 @@ Name_p Widget::ungroupSelection(Tree_p /*self*/)
     if (!hasSelection())
         return XL::xl_false;
 
-    std::set<Tree_p >::iterator sel = selectionTrees.begin();
+    std::list<Tree_p >::iterator sel = selectionTrees.begin();
 
     Prefix * groupTree = (*sel)->AsPrefix();
     if (!groupTree)

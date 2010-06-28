@@ -63,6 +63,7 @@ struct Drag;
 struct TextSelect;
 struct WidgetSurface;
 
+
 // ----------------------------------------------------------------------------
 // Name of fixed menu.
 // ----------------------------------------------------------------------------
@@ -184,11 +185,13 @@ public:
     uint        charSelected(uint i)    { return selected(i | CHAR_ID_BIT); }
     uint        charSelected()          { return charSelected(charId); }
     void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
-    uint        selected(Tree* tree)    { return selectionTrees.count(tree); }
+    uint        selected(Tree* tree)    { return std::find(selectionTrees.begin(),
+                                                           selectionTrees.end(),
+                                                           tree) != selectionTrees.end(); }
     bool        selected()              { return !selectionTrees.empty(); }
     bool        hasSelection()          { return selected(); }
-    void        select(Tree *tree)      { selectionTrees.insert(tree); }
-    void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
+    void        select(Tree *tree)      { selectionTrees.push_back(tree); }
+    void        deselect(Tree *tree)    { selectionTrees.remove(tree); }
     uint        selected(uint i);
     uint        selected(Layout *);
     bool        focused(Layout *);
@@ -586,7 +589,8 @@ private:
     Activity *            activities;
     GLuint                id, charId, capacity, manipulator;
     selection_map         selection, savedSelection;
-    std::set<Tree_p >     selectionTrees, selectNextTime;
+    std::set<Tree_p>      selectNextTime;
+    std::list<Tree_p>     selectionTrees;
     bool                  wasSelected;
     bool                  selectionChanged;
     QEvent *              w_event;

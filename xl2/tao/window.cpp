@@ -993,6 +993,8 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     if (XL::MAIN->options.fileLoad)
             std::cerr << "Opening document: " << +fileName << "\n";
 
+    QString msg = QString(tr("Loading %1 [%2]...")).arg(fileName);
+
     QString docPath = QFileInfo(fileName).canonicalPath();
     if (openProj &&
         !openProject(docPath,
@@ -1001,7 +1003,8 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    statusBar()->showMessage(tr("Loading fonts"));
+    statusBar()->showMessage(msg.arg(tr("fonts")));
+    QApplication::processEvents();
     FontFileManager ffm;
     appFontIds = ffm.LoadEmbeddedFonts(fileName);
     if (!appFontIds.empty())
@@ -1009,7 +1012,8 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     foreach (QString e, ffm.errors)
         addError(e);
 
-    statusBar()->showMessage(tr("Loading document"));
+    statusBar()->showMessage(msg.arg(tr("document")));
+    QApplication::processEvents();
     // FIXME: the whole search path stuff is broken when multiple documents
     // are open. There is no way to make "xl:" have a different meaning in
     // two Window instances. And yet it's what we need!
@@ -1026,6 +1030,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     {
         // File not found, or parse error
         statusBar()->showMessage(tr("Load error"), 2000);
+        QApplication::processEvents();
         // Try to show source as plain text
         if (!loadFileIntoSourceFileView(fileName, openProj))
             return false;
@@ -1040,6 +1045,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         QApplication::restoreOverrideCursor();
         setCurrentFile(fileName);
         statusBar()->showMessage(tr("File loaded"), 2000);
+        QApplication::processEvents();
     }
     isUntitled = false;
     return true;
@@ -1148,6 +1154,9 @@ bool Window::saveFile(const QString &fileName)
         return false;
     }
 
+    statusBar()->showMessage(tr("Saving..."));
+    QApplication::processEvents();
+
     do
     {
         QTextStream out(&file);
@@ -1162,6 +1171,7 @@ bool Window::saveFile(const QString &fileName)
     xlRuntime->LoadFile(fn);
 
     statusBar()->showMessage(tr("File saved"), 2000);
+    QApplication::processEvents();
     updateProgram(fileName);
     isReadOnly = false;
 

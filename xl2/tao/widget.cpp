@@ -1575,7 +1575,7 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
     uint    button      = (uint) event->button();
     int     x           = event->x();
     int     y           = event->y();
-    if (button == Qt::LeftButton && !activities)
+    if (button == Qt::LeftButton && ( !activities || !activities->next))
         new Selection(this);
 
     // Save location
@@ -6540,8 +6540,28 @@ struct NoSelTreeClone : TaoTreeClone
         return to;
     }
     std::list<Tree_p> *selCopy;
+    bool isFinished()
+    {
+        return selCopy->empty();
+    }
+    Tree * nextVal()
+    {
+        std::list<Tree_p>::iterator i = selCopy->begin();
+        return (*i)->Do(*this);
+    }
 };
 
+XL::Tree* buildCopy(NoSelTreeClone *cloner)
+// ----------------------------------------------------------------------------
+//    Recursively buil the copy of the selection
+// ----------------------------------------------------------------------------
+{
+    Tree * val = cloner->nextVal();
+    if (cloner->isFinished())
+        return val;
+    else
+        return new Infix("\n", val, buildCopy(cloner));
+}
 
 XL::Tree_p Widget::copySelection()
 // ----------------------------------------------------------------------------
@@ -6553,20 +6573,10 @@ XL::Tree_p Widget::copySelection()
 
     std::list<Tree_p> selCopy(selectionTrees);
     // Build a single tree from all the selected sub-trees
-    std::list<Tree_p>::reverse_iterator i = selCopy.rbegin();
+    std::list<Tree_p>::iterator i = selCopy.begin();
 
     NoSelTreeClone cloner(this, &selCopy);
-    XL::Tree *tree = (*i)->Do(cloner);
-
-    // As the selCopy member is changed by the cloner,
-    // a new iterator is created on each loop
-    while (! selCopy.empty())
-    {
-        i = selCopy.rbegin();
-        tree = new XL::Infix("\n", (*i)->Do(cloner), tree);
-    }
-
-    return tree;
+    return buildCopy(&cloner);
 }
 
 XL::Tree_p Widget::removeSelection()

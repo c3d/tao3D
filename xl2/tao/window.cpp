@@ -314,18 +314,19 @@ void Window::open(QString fileName, bool readOnly)
     else
     {
         QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
-        Window *other = new Window(xlRuntime, canonicalFilePath, contextFileNames,
+        Window *other = new Window(xlRuntime, "", contextFileNames,
                                    readOnly);
+        other->move(x() + 40, y() + 40);
+        other->show();
+        other->loadFile(fileName);
+
         if (other->isUntitled)
         {
+            other->hide();
             delete other;
             return;
         }
-
-        other->move(x() + 40, y() + 40);
-        other->show();
     }
-
 }
 
 

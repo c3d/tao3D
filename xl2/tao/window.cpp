@@ -990,7 +990,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 //    Load a specific file (and optionally, open project repository)
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(filesync)
+    if (XL::MAIN->options.fileLoad)
             std::cerr << "Opening document: " << +fileName << "\n";
 
     QString docPath = QFileInfo(fileName).canonicalPath();

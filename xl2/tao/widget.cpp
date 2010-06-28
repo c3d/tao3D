@@ -3386,7 +3386,7 @@ Name_p Widget::printPage(Tree_p self, text filename)
     char *oldlocale = setlocale(LC_NUMERIC, "C");
 
     while(state == GL2PS_OVERFLOW)
-    { 
+    {
         buffsize += 1024*1024;
         gl2psBeginPage ( "Tao Output", "Tao", viewport,
                          kind, GL2PS_BSP_SORT,
@@ -6553,7 +6553,7 @@ XL::Tree_p Widget::copySelection()
 
     std::list<Tree_p> selCopy(selectionTrees);
     // Build a single tree from all the selected sub-trees
-    std::list<Tree_p>::iterator i = selCopy.begin();
+    std::list<Tree_p>::reverse_iterator i = selCopy.rbegin();
 
     NoSelTreeClone cloner(this, &selCopy);
     XL::Tree *tree = (*i)->Do(cloner);
@@ -6562,7 +6562,7 @@ XL::Tree_p Widget::copySelection()
     // a new iterator is created on each loop
     while (! selCopy.empty())
     {
-        i = selCopy.begin();
+        i = selCopy.rbegin();
         tree = new XL::Infix("\n", (*i)->Do(cloner), tree);
     }
 
@@ -6776,9 +6776,23 @@ bool Widget::updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group)
     if ( inf )
     {
         if (inf->left == group)
-            inf->left = block->child;
+        {
+            if (Infix * inf_child = block->child->AsInfix())
+            {
+
+                Tree *p_right = inf->right;
+                Infix *last = inf_child->LastStatement();
+                last->right = new Infix("\n",last->right, p_right);
+                inf->left = inf_child->left;
+                inf->right = inf_child->right;
+            }
+            else
+                inf->left = block->child;
+
+        }
         else
             inf->right = block->child;
+
         return true;
     }
 

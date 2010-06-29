@@ -28,6 +28,7 @@
 #include "gl_keepers.h"
 #include "application.h"
 #include "widget_surface.h"
+#include "gl2ps.h"
 #include <GL/glew.h>
 #include <QtOpenGL>
 #include <QPainterPath>
@@ -175,6 +176,8 @@ void PlaceholderRectangle::Draw(Layout *where)
     Draw(path);
 
     glColor4f(0.3, 0.7, 0.9, 0.7);
+    if (where->printing)
+        gl2psLineWidth(1);
     glLineWidth(1);
     glDisable(GL_LINE_STIPPLE);
 
@@ -888,6 +891,8 @@ void FixedSizePoint::Draw(Layout *where)
     setTexture(where);
     if (setFillColor(where))
     {
+        if (where->printing)
+            gl2psPointSize(radius);
         glPointSize(radius);
         glBegin(GL_POINTS);
         glVertex3f(center.x, center.y, center.z);

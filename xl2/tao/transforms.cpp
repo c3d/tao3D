@@ -71,6 +71,7 @@ void ResetTransform::Draw(Layout *where)
     glLoadIdentity();
     where->hasPixelBlur = false;
     where->hasMatrix = false;
+    where->has3D = false;
 }
 
 
@@ -83,6 +84,15 @@ void Rotation::Draw(Layout *where)
     double amod90 = fmod(amount, 90.0);
     if (amod90 < -0.01 || amod90 > 0.01)
         where->hasPixelBlur = true;
+    if (amount != 0.0)
+    {
+        if (xaxis != 0.0 || yaxis != 0.0)
+            where->has3D = true;
+        else if (zaxis > 0)
+            where->planarRotation += amount;
+        else if (zaxis < 0)
+            where->planarRotation -= amount;
+    }
     where->offset = Point3();
 }
 
@@ -107,6 +117,10 @@ void Scale::Draw(Layout *where)
     glScalef(xaxis, yaxis, zaxis);
     if (xaxis != 1.0 || yaxis != 1.0)
         where->hasPixelBlur = true;
+    if (xaxis == yaxis && xaxis == zaxis)
+        where->planarScale *= xaxis;
+    else
+        where->has3D = true;
     where->offset = Point3();
 }
 

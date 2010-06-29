@@ -294,6 +294,8 @@ public:
     Name_p      enableAnimations(Tree_p self, bool fs);
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
+    Name_p      printPage(Tree_p self, text filename);
+
 
     // Graphic attributes
     Tree_p      lineColor(Tree_p self, double r, double g, double b, double a);

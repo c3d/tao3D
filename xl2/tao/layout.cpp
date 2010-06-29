@@ -24,6 +24,7 @@
 #include "layout.h"
 #include "gl_keepers.h"
 #include "attributes.h"
+#include "gl2ps.h"
 
 TAO_BEGIN
 
@@ -45,7 +46,8 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,1),       // Black
       fillColor(0,0,0,0),       // Transparent black
-      fillTexture(0), wrapS(false), wrapT(false),
+      fillTexture(0), wrapS(false), wrapT(false), printing(false),
+      planarRotation(0), planarScale(1),
       rotationId(0), translationId(0), scaleId(0)
 {}
 
@@ -65,6 +67,9 @@ LayoutState::LayoutState(const LayoutState &o)
         fillTexture(o.fillTexture),
         wrapS(o.wrapS),
         wrapT(o.wrapT),
+        printing(o.printing),
+        planarRotation(o.planarRotation),
+        planarScale(o.planarScale),
         rotationId(o.rotationId),
         translationId(o.translationId),
         scaleId(o.scaleId)
@@ -92,8 +97,8 @@ Layout::Layout(Widget *widget)
 //    Create an empty layout
 // ----------------------------------------------------------------------------
     : Drawing(), LayoutState(), id(0),
-      hasPixelBlur(false), hasMatrix(false), hasAttributes(false),
-      hasTextureMatrix(false),
+      hasPixelBlur(false), hasMatrix(false), has3D(false),
+      hasAttributes(false), hasTextureMatrix(false),
       isSelection(false),
       items(), display(widget)
 {}
@@ -104,8 +109,8 @@ Layout::Layout(const Layout &o)
 //   Copy constructor
 // ----------------------------------------------------------------------------
     : Drawing(o), LayoutState(o), id(0),
-      hasPixelBlur(o.hasPixelBlur), hasMatrix(false), hasAttributes(false),
-      hasTextureMatrix(false),
+      hasPixelBlur(o.hasPixelBlur), hasMatrix(false), has3D(o.has3D),
+      hasAttributes(false), hasTextureMatrix(false),
       isSelection(o.isSelection),
       items(), display(o.display)
 {}
@@ -145,6 +150,7 @@ void Layout::Clear()
     // Initial state has no rotation or attribute changes
     hasPixelBlur = false;
     hasMatrix = false;
+    has3D = false;
     hasAttributes = false;
 
     LayoutState::Clear();
@@ -283,6 +289,8 @@ void Layout::PolygonOffset()
     int offset = polygonOffset++;
     glPolygonOffset (factorBase + offset * factorIncrement,
                      unitBase + offset * unitIncrement);
+    if (printing)
+        gl2psEnable(GL2PS_POLYGON_OFFSET_FILL);
 }
 
 
@@ -334,21 +342,25 @@ void Layout::Inherit(Layout *where)
     // Inherit color and other parameters as initial values
     // Note that these may really impact what gets rendered,
     // e.g. transparent colors may cause shapes to be drawn or not
-    font         = where->font;
-    alongX       = where->alongX;
-    alongY       = where->alongY;
-    alongZ       = where->alongZ;
-    left         = where->left;
-    right        = where->right;
-    top          = where->top;
-    bottom       = where->bottom;
-    lineWidth    = where->lineWidth;
-    lineColor    = where->lineColor;
-    fillColor    = where->fillColor;
-    fillTexture  = where->fillTexture;
-    wrapS        = where->wrapS;
-    wrapT        = where->wrapT;
-    hasPixelBlur |= where->hasPixelBlur;
+    font            = where->font;
+    alongX          = where->alongX;
+    alongY          = where->alongY;
+    alongZ          = where->alongZ;
+    left            = where->left;
+    right           = where->right;
+    top             = where->top;
+    bottom          = where->bottom;
+    lineWidth       = where->lineWidth;
+    lineColor       = where->lineColor;
+    fillColor       = where->fillColor;
+    fillTexture     = where->fillTexture;
+    wrapS           = where->wrapS;
+    wrapT           = where->wrapT;
+    printing        = where->printing;
+    planarRotation  = where->planarRotation;
+    planarScale     = where->planarScale;
+    has3D           = where->has3D;
+    hasPixelBlur    = where->hasPixelBlur;
 }
 
 TAO_END

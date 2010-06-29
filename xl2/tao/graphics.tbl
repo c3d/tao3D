@@ -133,13 +133,16 @@ PREFIX(SetCenter, boolean, "center_position", PARM(x, real) PARM(y, real),
        RTAO(setCenterPosition(self,x,y)))
 PREFIX(ToggleHandCursor, boolean, "toggle_hand_cursor", ,
        RTAO(toggleHandCursor(self)))
+PREFIX(KeyboardModifiers, integer, "keyboard_modifiers", ,
+       RTAO(lastModifiers(self)))
 PREFIX(EnableAnimations, boolean, "enable_animations", PARM(an, boolean),
        RTAO(enableAnimations(self, an)))
 PREFIX(PolygonOffset, integer, "polygon_offset",
        PARM(f0, real) PARM(f1, real) PARM(u0, real) PARM(u1, real),
        RTAO(polygonOffset(self, f0, f1, u0, u1)))
-PREFIX(KeyboardModifiers, integer, "keyboard_modifiers", ,
-       RTAO(lastModifiers(self)))
+PREFIX(PrintOnePage, boolean, "print_page", , RTAO(printPage(self, "")))
+PREFIX(printPage, boolean, "print_page", PARM(f, text), RTAO(printPage(self,f)))
+
 
 
 // ============================================================================

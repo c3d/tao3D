@@ -47,22 +47,19 @@
 
 TAO_BEGIN
 
-Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
+Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
+               bool ro)
 // ----------------------------------------------------------------------------
-//    Create a Tao window with default parameters
+//    Create a Tao window and optionnally open a document
 // ----------------------------------------------------------------------------
-    : isUntitled(sf == NULL), isReadOnly(sf == NULL || sf->readOnly),
+    : isUntitled(sourceFile.isEmpty()), isReadOnly(ro),
       loadInProgress(false),
       contextFileNames(context), xlRuntime(xlr),
       repo(NULL), textEdit(NULL), errorMessages(NULL),
       dock(NULL), errorDock(NULL),
       taoWidget(NULL), curFile(),
-      fileCheckTimer(this)
+      fileCheckTimer(this), splashScreen(NULL)
 {
-    // If we are actually creating a new file, generate its source file entry
-    if (!sf)
-        sf = xlr->NewFile(+findUnusedUntitledFile());
-
     // Define the icon
     setWindowIcon(QIcon(":/images/tao.png"));
 
@@ -85,7 +82,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
     addDockWidget(Qt::BottomDockWidgetArea, errorDock);
 
     // Create the main widget for displaying Tao stuff
-    taoWidget = new Widget(this, sf);
+    taoWidget = new Widget(this);
     setCentralWidget(taoWidget);
 
     // Undo/redo management
@@ -104,16 +101,21 @@ Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
     setAttribute(Qt::WA_DeleteOnClose);
     readSettings();
     setUnifiedTitleAndToolBarOnMac(true);
-    bool loaded = false;
-    QString fileName(+sf->name);
-    if (isUntitled)
-        setCurrentFile(fileName);
-    else if (loadFile(fileName, !sf->readOnly))
-        loaded = true;
 
-    // Fire a timer to check if files changed
-    fileCheckTimer.start(500);
-    connect(&fileCheckTimer, SIGNAL(timeout()), this, SLOT(checkFiles()));
+    // Set current document
+    if (sourceFile.isEmpty())
+    {
+        // Create a new file
+        sourceFile = findUnusedUntitledFile();
+        xlr->NewFile(+sourceFile);
+        setCurrentFile(sourceFile);
+    }
+    else
+    {
+        // Load existing file
+        if (loadFile(sourceFile, !isReadOnly))
+            return;
+    }
 
     // Cut/Copy/Paste actions management
     connect(qApp, SIGNAL(focusChanged(QWidget*,QWidget*)),
@@ -121,6 +123,14 @@ Window::Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf)
     connect(qApp->clipboard(), SIGNAL(dataChanged()),
             this, SLOT(checkClipboard()));
     checkClipboard();
+
+    // Create the main widget to display Tao stuff
+    XL::SourceFile &sf = xlRuntime->files[+sourceFile];
+    taoWidget->xlProgram = &sf;
+
+    // Fire a timer to check if files changed
+    fileCheckTimer.start(500);
+    connect(&fileCheckTimer, SIGNAL(timeout()), this, SLOT(checkFiles()));
 }
 
 
@@ -242,10 +252,10 @@ void Window::sourceViewBecameVisible(bool visible)
 
 void Window::newFile()
 // ----------------------------------------------------------------------------
-//   Create a new window
+//   Create a new document (either in a new window or in the current one)
 // ----------------------------------------------------------------------------
 {
-    if (isReadOnly && !isWindowModified())
+    if (!needNewWindow())
     {
         QString fileName = findUnusedUntitledFile();
         XL::SourceFile *sf = xlRuntime->NewFile(+fileName);
@@ -259,15 +269,14 @@ void Window::newFile()
     }
     else
     {
-        XL::source_names noExtraContext;
-        Window *other = new Window(xlRuntime, noExtraContext, NULL);
+        Window *other = new Window(xlRuntime, contextFileNames);
         other->move(x() + 40, y() + 40);
         other->show();
     }
 }
 
 
-void Window::open(QString fileName)
+void Window::open(QString fileName, bool readOnly)
 // ----------------------------------------------------------------------------
 //   Openg a file
 // ----------------------------------------------------------------------------
@@ -295,31 +304,38 @@ void Window::open(QString fileName)
 
     if (!needNewWindow())
     {
-        text fn = +fileName;
-        isReadOnly = !QFileInfo(fileName).isWritable();
+        if (readOnly)
+            isReadOnly = true;
+        else
+            isReadOnly = !QFileInfo(fileName).isWritable();
         if (!loadFile(fileName, !isReadOnly))
             return;
     }
     else
     {
         QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
-        XL::source_names noExtraContext;
-        text fn = +canonicalFilePath;
-        xlRuntime->LoadFile(fn);
-        XL::SourceFile &sf = xlRuntime->files[fn];
-        Window *other = new Window(xlRuntime, noExtraContext, &sf);
-        if ((other->isUntitled && !sf.readOnly) ||
-            !other->openProject(QFileInfo(+sf.name).canonicalPath(),
-                                QFileInfo(+sf.name).fileName()))
+        Window *other = new Window(xlRuntime, contextFileNames, "",
+                                   readOnly);
+        other->move(x() + 40, y() + 40);
+        other->show();
+        other->loadFile(fileName);
+
+        if (other->isUntitled)
         {
+            other->hide();
             delete other;
             return;
         }
-
-        other->move(x() + 40, y() + 40);
-        other->show();
     }
+}
 
+
+void Window::removeSplashScreen()
+// ----------------------------------------------------------------------------
+//    Do not use the splash screen anymore
+// ----------------------------------------------------------------------------
+{
+    splashScreen = NULL;
 }
 
 
@@ -351,6 +367,7 @@ bool Window::saveAs()
     QString fileNameOnly = QFileInfo(fileName).fileName();
     if (!openProject(projpath, fileNameOnly, false))
         return false;
+    updateContext(projpath);
 
     return saveFile(fileName);
 }
@@ -952,11 +969,12 @@ bool Window::needNewWindow()
 // ----------------------------------------------------------------------------
 //   Check if we need a new window or if we can recycle the old one
 // ----------------------------------------------------------------------------
-//   We need a new window if
-//   - The document has been modified
-//   - The document
+//   We need a new window if:
+//   - A document is currently open (i.e., current doc is not 'Untitled')
+//     or
+//   - Current doc is untitled and has been modified.
 {
-    return isWindowModified() || !(isReadOnly || isUntitled);
+    return isWindowModified() || !isUntitled;
 }
 
 
@@ -977,16 +995,42 @@ void Window::loadSrcViewStyleSheet()
 }
 
 
+void Window::showMessage(QString message, int timeout)
+// ----------------------------------------------------------------------------
+//    Show a status message, either in the status bar on on the splash screen
+// ----------------------------------------------------------------------------
+{
+    if (splashScreen)
+    {
+        QColor gray60(102, 102, 102);
+        splashScreen->showMessage(message, Qt::AlignBottom, gray60);
+        QApplication::processEvents();
+        return;
+    }
+    statusBar()->showMessage(message, timeout);
+}
+
+
 bool Window::loadFile(const QString &fileName, bool openProj)
 // ----------------------------------------------------------------------------
 //    Load a specific file (and optionally, open project repository)
 // ----------------------------------------------------------------------------
 {
+    if (XL::MAIN->options.fileLoad)
+            std::cerr << "Opening document: " << +fileName << "\n";
+
+    QString msg = QString(tr("Loading %1 [%2]...")).arg(fileName);
+
+    QString docPath = QFileInfo(fileName).canonicalPath();
     if (openProj &&
-        !openProject(QFileInfo(fileName).canonicalPath(),
+        !openProject(docPath,
                      QFileInfo(fileName).fileName()))
         return false;
 
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    showMessage(msg.arg(tr("fonts")));
+    QApplication::processEvents();
     FontFileManager ffm;
     appFontIds = ffm.LoadEmbeddedFonts(fileName);
     if (!appFontIds.empty())
@@ -994,20 +1038,49 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     foreach (QString e, ffm.errors)
         addError(e);
 
-    if (!loadFileIntoSourceFileView(fileName, openProj))
-        return false;
+    showMessage(msg.arg(tr("document")));
+    QApplication::processEvents();
+    // FIXME: the whole search path stuff is broken when multiple documents
+    // are open. There is no way to make "xl:" have a different meaning in
+    // two Window instances. And yet it's what we need!
+    // As a result, opening a new document from a different directory *will*
+    // make the current doc fail to execute if it uses e.g., [load "stuff.xl"]
+    // to load a file from the project's directory.
+    updateContext(docPath);
+    xlRuntime->LoadContextFiles(contextFileNames);
+    bool hadError = updateProgram(fileName);
 
-    loadSrcViewStyleSheet();
-    updateProgram(fileName);
-    setCurrentFile(fileName);
-    statusBar()->showMessage(tr("File loaded"), 2000);
+    QApplication::restoreOverrideCursor();
+
+    if (hadError)
+    {
+        // File not found, or parse error
+        showMessage(tr("Load error"), 2000);
+        QApplication::processEvents();
+        // Try to show source as plain text
+        if (!loadFileIntoSourceFileView(fileName, openProj))
+            return false;
+    }
+    else
+    {
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+        loadSrcViewStyleSheet();
+        loadInProgress = true;
+        taoWidget->updateProgramSource();
+        loadInProgress = false;
+        QApplication::restoreOverrideCursor();
+        setCurrentFile(fileName);
+        showMessage(tr("File loaded"), 2000);
+        QApplication::processEvents();
+    }
+    isUntitled = false;
     return true;
 }
 
 
 bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 // ----------------------------------------------------------------------------
-//    Update the source file view with the contents of a specific file
+//    Update the source file view with the plain contents of a specific file
 // ----------------------------------------------------------------------------
 {
     if (isUntitled)
@@ -1035,31 +1108,43 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
     return true;
 }
 
-void Window::updateProgram(const QString &fileName)
+
+bool Window::updateProgram(const QString &fileName)
 // ----------------------------------------------------------------------------
 //   When a file has changed, reload corresponding XL program
 // ----------------------------------------------------------------------------
 {
+    bool hadError = false;
     QFileInfo fileInfo(fileName);
     QString canonicalFilePath = fileInfo.canonicalFilePath();
     text fn = +canonicalFilePath;
-    XL::SourceFile *sf = &xlRuntime->files[fn];
+    XL::SourceFile *sf = NULL;
 
     if (!isUntitled)
     {
+        sf = &xlRuntime->files[fn];
         // Clean menus and reload XL program
         resetTaoMenus();
         if (!sf->tree)
-            xlRuntime->LoadFile(fn);
+            if (xlRuntime->LoadFile(fn))
+                hadError = true;
 
         // Check if we can access the file
         if (!fileInfo.isWritable())
             sf->readOnly = true;
     }
+    else
+    {
+        if (xlRuntime->LoadFile(fn))
+            return true;
+        sf = &xlRuntime->files[fn];
+    }
 
     taoWidget->updateProgram(sf);
     taoWidget->updateGL();
+    return hadError;
 }
+
 
 void Window::consolidate()
 // ----------------------------------------------------------------------------
@@ -1097,6 +1182,9 @@ bool Window::saveFile(const QString &fileName)
         return false;
     }
 
+    statusBar()->showMessage(tr("Saving..."));
+    QApplication::processEvents();
+
     do
     {
         QTextStream out(&file);
@@ -1111,6 +1199,7 @@ bool Window::saveFile(const QString &fileName)
     xlRuntime->LoadFile(fn);
 
     statusBar()->showMessage(tr("File saved"), 2000);
+    QApplication::processEvents();
     updateProgram(fileName);
     isReadOnly = false;
 
@@ -1125,6 +1214,7 @@ bool Window::saveFile(const QString &fileName)
         sf.changed = false;
     }
     markChanged(false);
+    isUntitled = false;
 
     return true;
 }
@@ -1163,16 +1253,6 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
 //        no repository management tool is available;
 // - false if user cancelled.
 {
-    if (confirm)
-        if (isUntitled || isReadOnly)
-            return true;
-
-    if (!RepositoryFactory::available())
-    {
-        updateContext(path);
-        return true;
-    }
-
     bool created = false;
     repository_ptr repo = RepositoryFactory::repository(path);
     if (!repo)
@@ -1328,8 +1408,6 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         }
     }
 
-    updateContext(path);
-
     return true;
 }
 
@@ -1341,7 +1419,7 @@ void Window::updateContext(QString docPath)
 // ----------------------------------------------------------------------------
 {
     currentProjectFolder = docPath;
-    TaoApp->updateSearchPathes(currentProjectFolder);
+    TaoApp->updateSearchPaths(currentProjectFolder);
 
     // Fetch info for XL files
     QFileInfo user      ("xl:user.xl");

@@ -35,6 +35,7 @@ QT_BEGIN_NAMESPACE
 class QAction;
 class QMenu;
 class QTextEdit;
+class QSplashScreen;
 QT_END_NAMESPACE
 
 namespace Tao {
@@ -53,7 +54,8 @@ class Window : public QMainWindow
     enum { MaxRecentFiles = 5 };
 
 public:
-    Window(XL::Main *xlr, XL::source_names context, XL::SourceFile *sf = NULL);
+    Window(XL::Main *xlr, XL::source_names context = XL::source_names(),
+           QString sourceFile = "", bool ro = false);
     ~Window();
 
     void setHtml(QString txt);
@@ -78,13 +80,14 @@ public slots:
     void markChanged(bool changed = true);
     void toggleAnimations();
     void sourceViewBecameVisible(bool visible);
+    void open(QString fileName = "", bool readOnly = false);
+    void removeSplashScreen();
 
 protected:
     void closeEvent(QCloseEvent *event);
 
 private slots:
     void newFile();
-    void open(QString fileName = "");
     bool save();
     bool saveAs();
     bool saveFonts();
@@ -123,7 +126,7 @@ private:
     QString  findUnusedUntitledFile();
     QString  strippedName(const QString &fullFileName);
     Window  *findWindow(const QString &fileName);
-    void     updateProgram(const QString &filename);
+    bool     updateProgram(const QString &filename);
     void     resetTaoMenus();
     bool     populateUndoStack();
     void     warnNoRepo();
@@ -131,6 +134,7 @@ private:
     void     updateRecentFileActions();
     void     updateContext(QString docPath);
     void     loadSrcViewStyleSheet();
+    void     showMessage(QString message, int timeout = 0);
 
 private:
     XL::Main *        xlRuntime;
@@ -185,6 +189,7 @@ private:
 
 public:
     QMenu            *shareMenu;
+    QSplashScreen    *splashScreen;
 
 };
 

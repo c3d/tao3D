@@ -53,12 +53,27 @@ int main(int argc, char **argv)
 
     // We need to brute-force option parsing here, the OpenGL choice must
     // be made before calling the QApplication constructor...
+    bool showSplash = true;
     for (int a = 1; a < argc; a++)
+    {
         if (text(argv[a]) == "-gl")
             QGL::setPreferredPaintEngine(QPaintEngine::OpenGL);
+        if (text(argv[a]) == "-nosplash")
+            showSplash = false;
+    }
 
     // Initialize the Tao application
     Tao::Application tao(argc, argv);
+
+    // Show splash screen
+    QSplashScreen *splash = NULL;
+    if (showSplash)
+    {
+        QPixmap pic(":/images/splash.png");
+        splash = new QSplashScreen(pic, Qt::WindowStaysOnTopHint);
+        splash->show();
+        QApplication::processEvents();
+    }
 
     // Fetch info for XL files
     QFileInfo user      ("xl:user.xl");
@@ -91,7 +106,14 @@ int main(int argc, char **argv)
     {
         QString sourceFile = +(*it);
         hadFile = true;
-        Tao::Window *window = new Tao::Window (xlr, sourceFile, contextFiles);
+        Tao::Window *window = new Tao::Window (xlr, contextFiles);
+        if (splash)
+        {
+            window->splashScreen = splash;
+            QObject::connect(splash, SIGNAL(destroyed(QObject*)),
+                             window, SLOT(removeSplashScreen()));
+        }
+        window->open(sourceFile);
         if (window->isUntitled)
         {
             delete window;
@@ -107,11 +129,17 @@ int main(int argc, char **argv)
     {
         // Open tutorial file read-only
         QString tuto = tutorial.canonicalFilePath();
-        Tao::Window *untitled = new Tao::Window(xlr, "", contextFiles);
+        Tao::Window *untitled = new Tao::Window(xlr, contextFiles);
         untitled->open(tuto, true);
         untitled->isUntitled = true;
         untitled->isReadOnly = true;
         untitled->show();
+    }
+
+    if (splash)
+    {
+        splash->close();
+        delete splash;
     }
 
     int ret = tao.exec();

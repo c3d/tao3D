@@ -14,5 +14,6 @@
         <file>images/tao_color_bars.svg</file>
         <file>images/cursor-openhand.png</file>
         <file>images/view-restore.png</file>
+        <file>images/splash.png</file>
     </qresource>
 </RCC>

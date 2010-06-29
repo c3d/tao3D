@@ -47,7 +47,7 @@
 
 TAO_BEGIN
 
-Window::Window(XL::Main *xlr, QString sourceFile, XL::source_names context,
+Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
                bool ro)
 // ----------------------------------------------------------------------------
 //    Create a Tao window and optionnally open a document
@@ -58,7 +58,7 @@ Window::Window(XL::Main *xlr, QString sourceFile, XL::source_names context,
       repo(NULL), textEdit(NULL), errorMessages(NULL),
       dock(NULL), errorDock(NULL),
       taoWidget(NULL), curFile(),
-      fileCheckTimer(this)
+      fileCheckTimer(this), splashScreen(NULL)
 {
     // Define the icon
     setWindowIcon(QIcon(":/images/tao.png"));
@@ -269,7 +269,7 @@ void Window::newFile()
     }
     else
     {
-        Window *other = new Window(xlRuntime, "", contextFileNames);
+        Window *other = new Window(xlRuntime, contextFileNames);
         other->move(x() + 40, y() + 40);
         other->show();
     }
@@ -314,7 +314,7 @@ void Window::open(QString fileName, bool readOnly)
     else
     {
         QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
-        Window *other = new Window(xlRuntime, "", contextFileNames,
+        Window *other = new Window(xlRuntime, contextFileNames, "",
                                    readOnly);
         other->move(x() + 40, y() + 40);
         other->show();
@@ -327,6 +327,15 @@ void Window::open(QString fileName, bool readOnly)
             return;
         }
     }
+}
+
+
+void Window::removeSplashScreen()
+// ----------------------------------------------------------------------------
+//    Do not use the splash screen anymore
+// ----------------------------------------------------------------------------
+{
+    splashScreen = NULL;
 }
 
 
@@ -986,6 +995,22 @@ void Window::loadSrcViewStyleSheet()
 }
 
 
+void Window::showMessage(QString message, int timeout)
+// ----------------------------------------------------------------------------
+//    Show a status message, either in the status bar on on the splash screen
+// ----------------------------------------------------------------------------
+{
+    if (splashScreen)
+    {
+        QColor gray60(102, 102, 102);
+        splashScreen->showMessage(message, Qt::AlignBottom, gray60);
+        QApplication::processEvents();
+        return;
+    }
+    statusBar()->showMessage(message, timeout);
+}
+
+
 bool Window::loadFile(const QString &fileName, bool openProj)
 // ----------------------------------------------------------------------------
 //    Load a specific file (and optionally, open project repository)
@@ -1004,7 +1029,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    statusBar()->showMessage(msg.arg(tr("fonts")));
+    showMessage(msg.arg(tr("fonts")));
     QApplication::processEvents();
     FontFileManager ffm;
     appFontIds = ffm.LoadEmbeddedFonts(fileName);
@@ -1013,7 +1038,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     foreach (QString e, ffm.errors)
         addError(e);
 
-    statusBar()->showMessage(msg.arg(tr("document")));
+    showMessage(msg.arg(tr("document")));
     QApplication::processEvents();
     // FIXME: the whole search path stuff is broken when multiple documents
     // are open. There is no way to make "xl:" have a different meaning in
@@ -1030,7 +1055,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     if (hadError)
     {
         // File not found, or parse error
-        statusBar()->showMessage(tr("Load error"), 2000);
+        showMessage(tr("Load error"), 2000);
         QApplication::processEvents();
         // Try to show source as plain text
         if (!loadFileIntoSourceFileView(fileName, openProj))
@@ -1045,7 +1070,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         loadInProgress = false;
         QApplication::restoreOverrideCursor();
         setCurrentFile(fileName);
-        statusBar()->showMessage(tr("File loaded"), 2000);
+        showMessage(tr("File loaded"), 2000);
         QApplication::processEvents();
     }
     isUntitled = false;
@@ -1083,6 +1108,7 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
     return true;
 }
 
+
 bool Window::updateProgram(const QString &fileName)
 // ----------------------------------------------------------------------------
 //   When a file has changed, reload corresponding XL program
@@ -1118,6 +1144,7 @@ bool Window::updateProgram(const QString &fileName)
     taoWidget->updateGL();
     return hadError;
 }
+
 
 void Window::consolidate()
 // ----------------------------------------------------------------------------

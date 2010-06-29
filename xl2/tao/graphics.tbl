@@ -55,6 +55,12 @@ PREFIX(Every50Pct,  real,     "every",
 PREFIX(MouseX, real, "mouse_x", ,RTAO(mouseX(self)))
 PREFIX(MouseY, real, "mouse_y", ,RTAO(mouseY(self)))
 PREFIX(MouseButtons, integer, "mouse_buttons", , RTAO(mouseButtons(self)))
+PREFIX(ShapeAction, tree, "on",PARM(n,text) PARM(t,tree),
+       RTAO(shapeAction(self,n,t)))
+PREFIX(ShapeClickAction, tree, "on_click",PARM(t,tree),
+       RTAO(shapeAction(self,"click",t)))
+PREFIX(ShapeMouseoverAction, tree, "on_mouseover",PARM(t,tree),
+       RTAO(shapeAction(self,"mouseover",t)))
 
 
 

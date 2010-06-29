@@ -34,16 +34,14 @@ struct Identify : Activity
 {
     Identify(text t, Widget *w);
 
-//    virtual Activity *  Display(void);
-//    virtual Activity *  Idle(void);
-//    virtual Activity *  Click(uint button, uint count, int x, int y);
     virtual Activity *  MouseMove(int x, int y, bool active);
 
     uint whatIsHere(int x, int y);
 
-    Box                 rectangle;
+    Box  rectangle;
     uint previous;
 };
+
 
 struct Selection : Identify
 // ----------------------------------------------------------------------------
@@ -56,7 +54,6 @@ struct Selection : Identify
     virtual Activity *  Idle(void);
     virtual Activity *  Click(uint button, uint count, int x, int y);
     virtual Activity *  MouseMove(int x, int y, bool active);
-
 };
 
 TAO_END

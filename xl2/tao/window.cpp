@@ -1004,10 +1004,12 @@ void Window::showMessage(QString message, int timeout)
     {
         QColor gray60(102, 102, 102);
         splashScreen->showMessage(message, Qt::AlignBottom, gray60);
-        QApplication::processEvents();
-        return;
     }
-    statusBar()->showMessage(message, timeout);
+    else
+    {
+        statusBar()->showMessage(message, timeout);
+    }
+    QApplication::processEvents();
 }
 
 
@@ -1030,7 +1032,6 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
     showMessage(msg.arg(tr("fonts")));
-    QApplication::processEvents();
     FontFileManager ffm;
     appFontIds = ffm.LoadEmbeddedFonts(fileName);
     if (!appFontIds.empty())
@@ -1039,7 +1040,6 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         addError(e);
 
     showMessage(msg.arg(tr("document")));
-    QApplication::processEvents();
     // FIXME: the whole search path stuff is broken when multiple documents
     // are open. There is no way to make "xl:" have a different meaning in
     // two Window instances. And yet it's what we need!
@@ -1056,7 +1056,6 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     {
         // File not found, or parse error
         showMessage(tr("Load error"), 2000);
-        QApplication::processEvents();
         // Try to show source as plain text
         if (!loadFileIntoSourceFileView(fileName, openProj))
             return false;
@@ -1071,7 +1070,6 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         QApplication::restoreOverrideCursor();
         setCurrentFile(fileName);
         showMessage(tr("File loaded"), 2000);
-        QApplication::processEvents();
     }
     isUntitled = false;
     return true;
@@ -1183,7 +1181,9 @@ bool Window::saveFile(const QString &fileName)
     }
 
     statusBar()->showMessage(tr("Saving..."));
-    QApplication::processEvents();
+    // FIXME: can't call processEvent here, or the "Save with fonts..."
+    // function fails to save all the fonts of a multi-page doc
+    // QApplication::processEvents();
 
     do
     {
@@ -1198,8 +1198,7 @@ bool Window::saveFile(const QString &fileName)
     setCurrentFile(fileName);
     xlRuntime->LoadFile(fn);
 
-    statusBar()->showMessage(tr("File saved"), 2000);
-    QApplication::processEvents();
+    showMessage(tr("File saved"), 2000);
     updateProgram(fileName);
     isReadOnly = false;
 

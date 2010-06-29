@@ -193,6 +193,9 @@ void Widget::dawdle()
 //   Operations to do when idle (in the background)
 // ----------------------------------------------------------------------------
 {
+    if (!xlProgram)
+        return;
+
     // Check if this is the first time we go idle or if time wrapped up
     if (pageStartTime > CurrentTime())
         pageRefresh = pageStartTime = startTime = frozenTime = CurrentTime();

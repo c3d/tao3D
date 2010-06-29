@@ -68,7 +68,7 @@ void Manipulator::DrawSelection(Layout *layout)
     uint sel = widget->selected(layout);
     if (sel)
     {
-        widget->selectionTrees.insert(self);
+        widget->selectionTrees.push_back(self);
         glPushName(layout->id);
         DrawHandles(layout);
         glPopName();
@@ -337,7 +337,7 @@ void ControlPoint::DrawSelection(Layout *layout)
     uint sel = widget->selected(layout);
     if (sel)
     {
-        widget->selectionTrees.insert(self);
+        widget->selectionTrees.push_back(self);
         DrawHandles(layout);
     }
 }
@@ -842,7 +842,7 @@ bool ControlPolygon::DrawHandles(Layout *layout)
         pp = p_min;
     if (p > p_max)
         pp = p_max;
-    
+
     Point3 handle = Point3(x-sw*w/2+sw*w*(pp-2)/19, y-sh*h/2, 0);
     if (!IsMarkedConstant(p) &&
         DrawHandle(layout, handle, 9, "adjust_shape_handle"))

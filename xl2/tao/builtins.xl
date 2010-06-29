@@ -40,95 +40,56 @@ wheel_event x, y                        ->
     else
         pan -x, y
 
-// 3D Paths    
-move_to (x:real, y:real, z:real)        -> move_to x, y, z
-line_to (x:real, y:real, z:real)        -> line_to x, y, z
-curve_to (cx:real, cy:real, cz:real),(x:real, y:real, z:real) -> 
-    curve_to cx, cy, cz, x, y, z
-curve_to (c1x:real, c1y:real, c1z:real),(c2x:real, c2y:real, c2z:real),(x:real, y:real, z:real) -> 
-    curve_to c1x, c1y, c1z, c2x, c2y, c2z, x, y, z
-
 // 3D Shapes
 sphere x:real, y:real, z:real, r:real   -> sphere x,y,z,2*r,2*r,2*r,25,25
-sphere (x:real, y:real, z:real), r:real -> sphere x,y,z,r
 sphere r:real                           ->
     sphere 0.0, 0.0, 0.0, 2*r, 2*r, 2*r, 25, 25
-cube (x:real, y:real, z:real), w:real, h:real, d:real ->
-    cube x, y, z, w, h, d
-cone (x:real, y:real, z:real), w:real, h:real, d:real ->
-    cone x, y, z, w, h, d
-object (x:real, y:real, z:real), w:real, h:real, d:real, f:text ->
-    object x, y, z, w, h, d, f
-point (x:real, y:real, z:real), s:real ->
-    point x, y, z, s
 
+// 2D Paths
+move_to x:real, y:real                  -> move_to x, y, 0
 
-//2D Paths
-move_to (x:real, y:real)                -> move_to x, y, 0
-line_to (x:real, y:real)                -> line_to x, y, 0
-curve_to (cx:real, cy:real),(x:real, y:real) -> 
-    curve_to cx, cy, 0, x, y, 0
-curve_to (c1x:real, c1y:real),(c2x:real, c2y:real),(x:real, y:real) -> 
-    curve_to c1x, c1y, 0, c2x, c2y, 0, x, y, 0
+line_to x:real, y:real                  -> line_to x, y, 0
+
+quad_to cx:real, cy:real, x:real, y:real -> 
+    quad_to cx, cy, 0, x, y, 0
+
+cubic_to c1x:real, c1y:real, c2x:real, c2y:real, x:real, y:real -> 
+    cubic_to c1x, c1y, 0, c2x, c2y, 0, x, y, 0
 
 // 2D Shapes
 line x0:real, y0:real, x1:real, y1:real ->
     path
-        move_to (x0, y0)
-        line_to (x1, y1)
-line (x0:real, y0:real),(x1:real, y1:real) -> line x0, y0, x1, y1
+        move_to x0, y0
+        line_to x1, y1
 
 line_arrow x0:real, y0:real, s0:symbol, x1:real, y1:real, s1:symbol ->
     path
-        move_to (x0, y0)
-        line_to (x1, y1)
+        move_to x0, y0
+        line_to x1, y1
         endpoints_style s0, s1
-line_arrow (x0:real, y0:real), s0:symbolicname, (x1:real, y1:real), s1:symbolicname ->
-     line_arrow x0, y0, s0, x1, y1, s1
 
 
-ellipse (x:real, y:real), w:real, h:real -> ellipse x, y, w, h
 circle x:real, y:real, r:real           -> ellipse x, y, 2*r, 2*r
-circle (x:real, y:real), r:real         -> ellipse x, y, 2*r, 2*r
 circle r:real                           -> ellipse 0.0, 0.0, 2*r, 2*r
 oval t                                  -> ellipse t
 
-ellipse_arc (x:real, y:real), w:real, h:real a:real, b:real ->
-    ellipse_arc x, y, w, h, a, b
 circular_sector x:real, y:real, r:real, a:real, b:real ->
-    ellipse_arc x, y, 2*r, 2*r, a, b
-circular_sector (x:real, y:real), r:real, a:real, b:real ->
     ellipse_arc x, y, 2*r, 2*r, a, b
 circular_sector r:real, a:real, b:real  -> ellipse_arc 0.0, 0.0, 2*r,2*r, a, b
 
-rectangle (x:real, y:real), w:real, h:real -> rectangle x, y, w, h
 rectangle w:real, h:real                -> rectangle 0.0, 0.0, w, h
 
 square x:real, y:real, s:real           -> rectangle x, y, s, s
-square (x:real, y:real), s:real         -> rectangle x, y, s, s
 square s:real                           -> rectangle 0.0, 0.0, s, s
 
-triangle (x:real, y:real), w:real, h:real -> triangle x, y, w, h
 triangle w:real, h:real                 -> triangle 0.0, 0.0, w, h
-right_triangle (x:real, y:real), w:real, h:real -> right_triangle x, y, w, h
 right_triangle w:real, h:real           -> right_triangle 0.0, 0.0, w, h
 
-rounded_rectangle (x:real, y:real), w:real, h:real, r:real -> 
-    rounded_rectangle x, y, w, h, r
 rounded_rectangle w:real, h:real, r:real-> rounded_rectangle 0.0, 0.0, w, h, r
 
-elliptical_rectangle (x:real, y:real), w:real, h:real, r:real -> 
-    elliptical_rectangle x, y, w, h, r
-
-star_polygon (x:real, y:real), w:real, h:real, p:integer, q:integer ->
-    star_polygon x, y, w, h, p, q
 polygram x:real, y:real, w:real, h:real, p:integer, q:integer ->
     star_polygon x, y, w, h, p, q
-polygram (x:real, y:real), w:real, h:real, p:integer, q:integer ->
-    star_polygon x, y, w, h, p, q
 polygon x:real, y:real, w:real, h:real, p:integer ->
-    star_polygon x, y, w, h, p, 1
-polygon (x:real, y:real), w:real, h:real, p:integer ->
     star_polygon x, y, w, h, p, 1
 
 equilateral_triangle t                  -> polygon t, constant 3
@@ -162,31 +123,6 @@ decagram t                              -> polygram t, constant 10, constant 3
 
 schläfli t, {p:integer}                 -> polygon t, p
 schläfli t, {p:integer/q:integer}       -> polygram t, p, q
-
-arrow (x:real, y:real), w:real, h:real, ax:real, ay:real -> 
-    arrow x, y, w, h, ax, ay
-
-double_arrow (x:real, y:real), w:real, h:real, ax:real, ay:real -> 
-    double_arrow x, y, w, h, ax, ay
-
-star (x:real, y:real), w:real, h:real, p:real, r:real -> 
-    star x, y, w, h, p, r
-
-speech_balloon (x:real, y:real), w:real, h:real, r:real, (ax:real, ay:real) -> 
-    speech_balloon x, y, w, h, r, ax, ay
-
-callout (x:real, y:real), w:real, h:real, r:real, (ax:real, ay:real), d:real -> 
-    callout x, y, w, h, r, ax, ay, d
-
-// Text
-text_box (x:real, y:real), w:real, h:real, t:tree -> 
-    text_box x, y, w, h, t
-
-text_overflow (x:real, y:real), w:real, h:real -> 
-    text_overflow x, y, w, h
-
-
-
 
 // x..y / t -> x + (y-x) * (1 + sin(time/t * 2*pi)) / 2
 x..y / t -> x
@@ -362,60 +298,60 @@ menu_item "menu:insert > text box", "Text Box", insert
         color "font"
         line_color "font"
         font "default"
-        text_box (0, 0), 100, 100, do
+        text_box 0, 0, 100, 100, do
             text "Text"
 submenu   "menu:insert > shape", "Shape"
 menu_item "menu:insert > shape > line ---", "Line", insert
     shape
         color "line"
         line_color "line"
-        line (50, -50), (-50, 50)
+        line 50, -50, -50, 50
 menu_item "menu:insert > shape > line -->", "Line with Arrowhead", insert
     shape
         color "line"
         line_color "line"
-        line_arrow (50, -50), none, (-50, 50), arrowhead
+        line_arrow 50, -50, none, -50, 50, arrowhead
 menu_item "menu:insert > shape > line <->", "Line with Two Arrowheads", insert
     shape
         color "line"
         line_color "line"
-        line_arrow (50, -50), arrowhead, (-50, 50), arrowhead
+        line_arrow 50, -50, arrowhead, -50, 50, arrowhead
 menu_item "menu:insert > shape > rectangle", "Rectangle", insert
     shape
-        rectangle (0, 0), 100, 100
+        rectangle 0, 0, 100, 100
 menu_item "menu:insert > shape > rounded rectangle", "Rounded Rectangle", insert
     shape
-        rounded_rectangle (0, 0), 100, 100, 15
+        rounded_rectangle 0, 0, 100, 100, 15
 menu_item "menu:insert > shape > oval", "Oval", insert
     shape
-        ellipse (0, 0), 100, 100
+        ellipse 0, 0, 100, 100
 menu_item "menu:insert > shape > triangle", "Triangle", insert
     shape
-        triangle (0, 0), 100, 100
+        triangle 0, 0, 100, 100
 menu_item "menu:insert > shape > right triangle", "Right Triangle", insert
     shape
-        right_triangle (0, 0), 100, 100
+        right_triangle 0, 0, 100, 100
 menu_item "menu:insert > shape > arrow", "Arrow", insert
     shape
-        arrow (0, 0), 100, 100, 44, 32%
+        arrow 0, 0, 100, 100, 44, 32%
 menu_item "menu:insert > shape > double arrow", "Double Arrow", insert
     shape
-        double_arrow (0, 0), 100, 100, 44, 32%
+        double_arrow 0, 0, 100, 100, 44, 32%
 menu_item "menu:insert > shape > diamond", "Diamond", insert
     shape
-        diamond (0, 0), 100, 100
+        diamond 0, 0, 100, 100
 menu_item "menu:insert > shape > speech ballon", "Speech Balloon", insert
     shape
-        speech_balloon (0, 16), 100, 68, 50, (-50, -50)
+        speech_balloon 0, 16, 100, 68, 50, -50, -50
 menu_item "menu:insert > shape > callout", "Callout", insert
     shape
-        callout (16, 0), 68, 100, 15, (-50, 0), 60
+        callout 16, 0, 68, 100, 15, -50, 0, 60
 menu_item "menu:insert > shape > star", "Star", insert
     shape
-        star (0, 0), 100, 100, 5, 50%
+        star 0, 0, 100, 100, 5, 50%
 menu_item "menu:insert > shape > polygon", "Polygon", insert
     shape
-        polygon (0, 0), 100, 100, 5
+        polygon 0, 0, 100, 100, 5
 
 menu      "menu:insert", ""
 menu_item "menu:insert > table", "Table", insert
@@ -478,53 +414,53 @@ menu_item "toolbar:insert > shape > line ---", "", "images/tb_shape_line.png", i
     shape
         color "line"
         line_color "line"
-        line (50, -50), (-50, 50)
+        line 50, -50, -50, 50
 menu_item "toolbar:insert > shape > line -->", "", "images/tb_shape_line_w_arrowhead.png", insert
     shape
         color "line"
         line_color "line"
-        line_arrow (50, -50), none, (-50, 50), arrowhead
+        line_arrow 50, -50, none, -50, 50, arrowhead
 menu_item "toolbar:insert > shape > line <->", "", "images/tb_shape_line_w_two_arrowheads.png", insert
     shape
         color "line"
         line_color "line"
-        line_arrow (50, -50), arrowhead, (-50, 50), arrowhead
+        line_arrow 50, -50, arrowhead, -50, 50, arrowhead
 menu_item "toolbar:insert > shape > rectangle", "", "images/tb_shape_rectangle.png", insert
     shape
-        rectangle (0, 0), 100, 100
+        rectangle 0, 0, 100, 100
 menu_item "toolbar:insert > shape > rounded rectangle", "", "images/tb_shape_rounded_rectangle.png", insert
     shape
-        rounded_rectangle (0, 0), 100, 100, 15
+        rounded_rectangle 0, 0, 100, 100, 15
 menu_item "toolbar:insert > shape > oval", "", "images/tb_shape_oval.png", insert
     shape
-        ellipse (0, 0), 100, 100
+        ellipse 0, 0, 100, 100
 menu_item "toolbar:insert > shape > triangle", "", "images/tb_shape_triangle.png", insert
     shape
-        triangle (0, 0), 100, 100
+        triangle 0, 0, 100, 100
 menu_item "toolbar:insert > shape > right triangle", "", "images/tb_shape_right_triangle.png", insert
     shape
-        right_triangle (0, 0), 100, 100
+        right_triangle 0, 0, 100, 100
 menu_item "toolbar:insert > shape > arrow", "", "images/tb_shape_arrow.png", insert
     shape
-        arrow (0, 0), 100, 100, 44, 32%
+        arrow 0, 0, 100, 100, 44, 32%
 menu_item "toolbar:insert > shape > double arrow", "", "images/tb_shape_double_arrow.png", insert
     shape
-        double_arrow (0, 0), 100, 100, 44, 32%
+        double_arrow 0, 0, 100, 100, 44, 32%
 menu_item "toolbar:insert > shape > diamond", "", "images/tb_shape_diamond.png", insert
     shape
-        diamond (0, 0), 100, 100
+        diamond 0, 0, 100, 100
 menu_item "toolbar:insert > shape > speech ballon", "", "images/tb_shape_speech_balloon.png", insert
     shape
-        speech_balloon (0, 16), 100, 68, 50, (-50, -50)
+        speech_balloon 0, 16, 100, 68, 50, -50, -50
 menu_item "toolbar:insert > shape > callout", "", "images/tb_shape_callout.png", insert
     shape
-        callout (16, 0), 68, 100, 15, (-50, 0), 60
+        callout 16, 0, 68, 100, 15, -50, 0, 60
 menu_item "toolbar:insert > shape > star", "", "images/tb_shape_star.png", insert
     shape
-        star (0, 0), 100, 100, 5, 50%
+        star 0, 0, 100, 100, 5, 50%
 menu_item "toolbar:insert > shape > polygon", "", "images/tb_shape_polygon.png", insert
     shape
-        polygon (0, 0), 100, 100, 5
+        polygon 0, 0, 100, 100, 5
 }
 
 menu_format -> {

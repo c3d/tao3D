@@ -63,6 +63,7 @@
 #include "objloader.h"
 #include "tree_cloning.h"
 #include "gl2ps.h"
+#include "version.h"
 
 #include <QApplication>
 #include <QToolButton>
@@ -4731,6 +4732,15 @@ Text_p Widget::loadText(Tree_p self, text file)
     }
     text contents = output.str();
     return new XL::Text(contents);
+}
+
+
+Text_p Widget::taoVersion(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the version of the Tao program
+// ----------------------------------------------------------------------------
+{
+    return new XL::Text(GITREV);
 }
 
 

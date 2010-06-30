@@ -252,6 +252,7 @@ highlight_end_selected = "</span><br>"
 "inch" = builtin
 "pt" = builtin
 "px" = builtin
+"tao_version" = builtin
 
 // builtins defined in builtins.xl
 "key"           = builtin

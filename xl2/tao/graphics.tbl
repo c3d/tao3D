@@ -385,6 +385,7 @@ PREFIX(LoremIpsum, tree, "lorem_ipsum",PARM(w,integer),
 PREFIX(LoadText, tree, "load_text",PARM(f,text),
        RTAO(loadText(self,f)))
 PREFIX(TaoVersion, tree, "tao_version",, RTAO(taoVersion(self)))
+PREFIX(DocVersion, tree, "doc_version",, RTAO(docVersion(self)))
 
 
 

@@ -4744,6 +4744,21 @@ Text_p Widget::taoVersion(Tree_p self)
 }
 
 
+Text_p Widget::docVersion(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the version of the current document (if known)
+// ----------------------------------------------------------------------------
+{
+    text        version        = "?";
+    Repository *repo           = repository();
+
+    if (repo)
+        version = repo->version();
+
+    return new XL::Text(version);
+}
+
+
 
 // ============================================================================
 //

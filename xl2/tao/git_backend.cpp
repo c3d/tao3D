@@ -36,6 +36,17 @@ TAO_BEGIN
 QString GitRepository::gitCommand("git");
 
 
+GitRepository::GitRepository(const QString &path)
+// ----------------------------------------------------------------------------
+//   GitRepository constructor
+// ----------------------------------------------------------------------------
+    : Repository(path)
+{
+    connect(&cdvTimer, SIGNAL(timeout()), this, SLOT(clearCachedDocVersion()));
+    cdvTimer.start(5000);
+}
+
+
 bool GitRepository::checkGit()
 // ----------------------------------------------------------------------------
 //   Return true if Git is functional, and set the git command accordingly
@@ -165,6 +176,7 @@ bool GitRepository::checkout(text branch)
 //    Checkout a given branch
 // ----------------------------------------------------------------------------
 {
+    clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("checkout") << +branch, path);
     return cmd.done(&errors);
@@ -176,6 +188,7 @@ bool GitRepository::branch(text name)
 //    Create a new branch
 // ----------------------------------------------------------------------------
 {
+    clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("branch") << +name, path);
     bool result = cmd.done(&errors);
@@ -191,6 +204,7 @@ bool GitRepository::add(text name)
 //   Add a new file to the repository
 // ----------------------------------------------------------------------------
 {
+    clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("add") << +name, path);
     return cmd.done(&errors);
@@ -202,6 +216,7 @@ bool GitRepository::change(text name)
 //   Signal that a file in the repository changed
 // ----------------------------------------------------------------------------
 {
+    clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     mergeCommitMessages(nextCommitMessage, whatsNew);
     whatsNew = "";
@@ -215,6 +230,7 @@ bool GitRepository::remove(text name)
 //   Remove a file from the repository
 // ----------------------------------------------------------------------------
 {
+    clearCachedDocVersion();
     mergeCommitMessages(nextCommitMessage, whatsNew);
     whatsNew = "";
     dispatch(new Process(command(), QStringList("rm") << +name, path, false));
@@ -227,6 +243,7 @@ bool GitRepository::rename(text from, text to)
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
+    clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("mv") << +from << +to, path);
     return cmd.done(&errors);
@@ -238,6 +255,7 @@ bool GitRepository::commit(text message, bool all)
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
+    clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     if (message == "")
     {
@@ -271,6 +289,7 @@ bool GitRepository::revert(text id)
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
+    clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     if (state != RS_Clean)
     {
@@ -291,6 +310,7 @@ bool GitRepository::cherryPick(text id)
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
+    clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     if (state != RS_Clean)
     {
@@ -335,6 +355,16 @@ void GitRepository::asyncProcessFinished(int exitCode)
         if (output.find("Already up-to-date") == std::string::npos)
             emit asyncPullComplete();
     }
+}
+
+
+void GitRepository::clearCachedDocVersion()
+// ----------------------------------------------------------------------------
+//   Forget cached document version
+// ----------------------------------------------------------------------------
+
+{
+    cachedDocVersion = "";
 }
 
 
@@ -396,6 +426,7 @@ bool GitRepository::merge(text branch)
 //   Merge another branch into the current one
 // ----------------------------------------------------------------------------
 {
+    clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("merge") << +branch, path);
     return cmd.done(&errors);
@@ -407,6 +438,7 @@ bool GitRepository::reset()
 //   Reset a branch to normal state
 // ----------------------------------------------------------------------------
 {
+    clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("reset") << "--hard", path);
     return cmd.done(&errors);
@@ -420,6 +452,7 @@ bool GitRepository::pull()
 {
     if (pullFrom.isEmpty())
         return true;
+    clearCachedDocVersion();
     QStringList args("pull");
     args << "-s" << "recursive";
     switch (conflictResolution)
@@ -557,6 +590,27 @@ Process * GitRepository::asyncClone(QString cloneUrl, QString newFolder,
     if (!newFolder.isEmpty())
         args << newFolder;
     return dispatch(new Process(command(), args, path, false), out, out, id);
+}
+
+
+text GitRepository::version()
+// ----------------------------------------------------------------------------
+//    Return the name of the current version of the document
+// ----------------------------------------------------------------------------
+{
+    if (cachedDocVersion != "")
+        return cachedDocVersion;
+
+    text    output, result = +QString(tr("Unkwnown"));
+    waitForAsyncProcessCompletion();
+    QString dirty(tr("%1=-dirty").arg("--dirty="));
+    QStringList args;
+    args << "describe" << dirty << "--tags" << "--always";
+    Process cmd(command(), args, path);
+    bool    ok = cmd.done(&errors, &output);
+    if (ok)
+        result = cachedDocVersion = output;
+    return result;
 }
 
 TAO_END

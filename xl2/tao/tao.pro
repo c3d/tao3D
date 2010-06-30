@@ -238,3 +238,11 @@ FORMS += pull_from_dialog.ui \
     publish_to_dialog.ui \
     clone_dialog.ui \
     error_message_dialog.ui
+
+# Automatic embedding of Git version
+
+PRE_TARGETDEPS += version.h
+revtarget.target = version.h
+revtarget.commands = ./updaterev.sh
+revtarget.depends = $$SOURCES $$HEADERS $$FORMS
+QMAKE_EXTRA_TARGETS += revtarget

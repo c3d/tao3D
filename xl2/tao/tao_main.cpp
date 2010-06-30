@@ -33,6 +33,7 @@
 #include "graphics.h"
 #include "tao_utf8.h"
 #include "gc.h"
+#include "version.h"
 
 #include <QDir>
 #include <QtGui>
@@ -71,6 +72,9 @@ int main(int argc, char **argv)
     {
         QPixmap pic(":/images/splash.png");
         splash = new QSplashScreen(pic, Qt::WindowStaysOnTopHint);
+        QString version(QObject::tr("Version %1").arg(GITREV));
+        QColor gray60(102, 102, 102);
+        splash->showMessage(version, Qt::AlignBottom, gray60);
         splash->show();
         QApplication::processEvents();
     }

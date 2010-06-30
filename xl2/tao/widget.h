@@ -608,6 +608,7 @@ private:
     GLuint                id, charId, capacity, manipulator;
     selection_map         selection, savedSelection;
     std::set<Tree_p>      selectionTrees, selectNextTime;
+    action_map            actionMap;
     bool                  wasSelected;
     bool                  selectionChanged;
     QEvent *              w_event;

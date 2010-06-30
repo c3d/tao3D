@@ -194,6 +194,9 @@ void Widget::dawdle()
 //   Operations to do when idle (in the background)
 // ----------------------------------------------------------------------------
 {
+    if (!xlProgram)
+        return;
+
     // Check if this is the first time we go idle or if time wrapped up
     if (pageStartTime > CurrentTime())
         pageRefresh = pageStartTime = startTime = frozenTime = CurrentTime();
@@ -347,7 +350,10 @@ void Widget::draw()
 
     if (selectionChanged)
     {
-        updateProgramSource();
+        Window *window = (Window *) parentWidget();
+        // TODO: honoring isReadOnly involves more than just this
+        if (!window->isReadOnly)
+            updateProgramSource();
         selectionChanged = false;
     }
 }
@@ -2674,6 +2680,24 @@ void Widget::saveSelectionState(Layout *where)
 }
 
 
+Tree * Widget::shapeAction(text n, GLuint id)
+// ----------------------------------------------------------------------------
+//   Return the shape action for the given name and GL id
+// ----------------------------------------------------------------------------
+{
+    action_map::iterator foundName = actionMap.find(n);
+    if (foundName != actionMap.end())
+    {
+        GLid_map::iterator foundAction = (*foundName).second.find(id);
+        if (foundAction != (*foundName).second.end())
+        {
+            return (*foundAction).second;
+        }
+    }
+    return NULL;
+}
+
+
 
 // ============================================================================
 //
@@ -2946,6 +2970,18 @@ Integer_p Widget::mouseButtons(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     return new Integer(lastMouseButtons);
+}
+
+
+Tree_p Widget::shapeAction(Tree_p self, text name, Tree_p action)
+// ----------------------------------------------------------------------------
+//   Set the action associated with a click or other on the object
+// ----------------------------------------------------------------------------
+{
+    actionMap[name][layout->id] = action;
+    if (!action->Symbols())
+        action->SetSymbols(self->Symbols());
+    return XL::xl_true;
 }
 
 

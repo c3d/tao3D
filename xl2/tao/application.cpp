@@ -29,6 +29,7 @@
 #include "tao.h"
 #include "tao_utf8.h"
 #include "error_message_dialog.h"
+#include "options.h"
 
 #include <QString>
 #include <QSettings>
@@ -62,15 +63,10 @@ Application::Application(int & argc, char ** argv)
         std::exit(0);
     }
 
-    // Parse command line options
-    XL::Errors errors(new XL::Positions());
-    XL::Options options(errors, argc, argv);
-
     // Get the first file name and guess its location to initialize
     // the project folder. If there is no filename, or it is not found the
-    // currentProjectFolder will be initialized to "".
-    text project = options.ParseNext();
-    updateSearchPathes(QFileInfo(+project).canonicalPath());
+    // currentProjectFolder will be initialized to ".".
+    updateSearchPaths();
 
     // Web settings
     QWebSettings *gs = QWebSettings::globalSettings();
@@ -140,22 +136,54 @@ Application::~Application()
     saveSettings();
 }
 
-void Application::updateSearchPathes(QString currentProjectFolder)
+
+static void printSearchPath(QString prefix)
 // ----------------------------------------------------------------------------
-//   Set the current project folder and all the dependant pathes.
+//   Display a Qt search path to stdout (debugging)
 // ----------------------------------------------------------------------------
 {
+    std::cerr << "Qt search path '" << +prefix << ":' set to '";
+    QStringList list = QDir::searchPaths(prefix);
+    int c = list.count();
+    for (int i = 0; i < c; i++)
+    {
+        std::cerr << +list[i];
+        if (i != c-1)
+            std::cerr << ":";
+    }
+    std::cerr << "'\n";
+}
+
+
+static void setSearchPaths(QString prefix, QStringList value)
+// ----------------------------------------------------------------------------
+//   Set search paths for a prefix
+// ----------------------------------------------------------------------------
+{
+    QDir::setSearchPaths(prefix, value);
+    IFTRACE(paths)
+        printSearchPath(prefix);
+}
+
+void Application::updateSearchPaths(QString currentProjectFolder)
+// ----------------------------------------------------------------------------
+//   Set the current project folder and all the dependant paths.
+// ----------------------------------------------------------------------------
+{
+    if (currentProjectFolder.isEmpty())
+        currentProjectFolder = ".";
+
     // Initialize dir search path for XL files
     QStringList xl_dir_list;
     xl_dir_list << currentProjectFolder
                 << defaultTaoPreferencesFolderPath()
                 << defaultTaoApplicationFolderPath();
-    QDir::setSearchPaths("xl", xl_dir_list);
+    setSearchPaths("xl", xl_dir_list);
 
     // Initialize dir search path for XL system files
     QStringList xl_sys_list;
     xl_sys_list << defaultTaoApplicationFolderPath();
-    QDir::setSearchPaths("system", xl_sys_list);
+    setSearchPaths("system", xl_sys_list);
 
     // Setup search path for images
     QStringList images_dir_list;
@@ -163,11 +191,11 @@ void Application::updateSearchPathes(QString currentProjectFolder)
         << currentProjectFolder + "/images"
         << currentProjectFolder;
 
-    QDir::setSearchPaths("doc", images_dir_list);
-    QDir::setSearchPaths("image", images_dir_list);
-    QDir::setSearchPaths("svg", images_dir_list);
-    QDir::setSearchPaths("texture", images_dir_list);
-    QDir::setSearchPaths("icon", images_dir_list);
+    setSearchPaths("doc", images_dir_list);
+    setSearchPaths("image", images_dir_list);
+    setSearchPaths("svg", images_dir_list);
+    setSearchPaths("texture", images_dir_list);
+    setSearchPaths("icon", images_dir_list);
 
     // Setup search path for 3D objects
     QStringList object_dir_list;
@@ -175,7 +203,7 @@ void Application::updateSearchPathes(QString currentProjectFolder)
         << currentProjectFolder + "/objects"
         << currentProjectFolder;
 
-    QDir::setSearchPaths("object", images_dir_list);
+    setSearchPaths("object", images_dir_list);
 }
 
 
@@ -283,10 +311,7 @@ QString Application::defaultTaoApplicationFolderPath()
 //    Try to guess the best application folder to use by default
 // ----------------------------------------------------------------------------
 {
-    QString path = applicationDirPath();
-    IFTRACE(paths) 
-        std::cerr << "Tao Application Folder: " << +path << "\n"; 
-    return path;
+    return applicationDirPath();
 }
 
 

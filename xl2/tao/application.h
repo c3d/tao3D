@@ -67,7 +67,7 @@ protected:
     static bool    createDefaultProjectFolder();
 
 public:
-    void         updateSearchPathes( QString path );
+    void         updateSearchPaths(QString path = "");
     static bool  createDefaultTaoPrefFolder();
 
 public:

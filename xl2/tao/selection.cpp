@@ -25,6 +25,7 @@
 #include "widget.h"
 #include "text_drawing.h"
 #include "gl_keepers.h"
+#include "runtime.h"
 #include <GL/glew.h>
 #include <QtGui>
 
@@ -37,9 +38,10 @@ Identify::Identify(text t, Widget *w)
     :Activity(t, w), rectangle(), previous(0)
 {}
 
+
 uint Identify::whatIsHere(int x, int y)
 // ----------------------------------------------------------------------------
-//   Initialize the activity
+//   Find the GL identifier of the object at (x, y)
 // ----------------------------------------------------------------------------
 {
     y = widget->height() - y;
@@ -104,13 +106,13 @@ Activity *  Identify::MouseMove(int x, int y, bool active)
     {
         if (previous > 0)
         {
-            // forwarder un focus out pour previous
+            // Forward 'focus-out' to previous item
             widget->focusId = 0;
             widget->focusWidget = NULL;
         }
         if (current > 0)
         {
-            // forwarder un focus in pour current
+            // Forward 'focus-in' to current item
             widget->focusId = current;
         }
         widget->refresh();
@@ -263,9 +265,17 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         if (selected)
         {
             if (shiftModifier && widget->selection[selected] && !manipulator)
+            {
+                // De-select previously selected object using shift
                 widget->select(selected, 0);
+            }
             else
+            {
+                // Select given object
                 widget->select(selected, count);
+                if (Tree *action = widget->shapeAction("click", selected))
+                    xl_evaluate(action);
+            }
         }
         widget->manipulator = manipulator;
     }

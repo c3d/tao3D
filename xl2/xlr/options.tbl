@@ -129,6 +129,8 @@ OPTION(autopull, "Interval for automatic pull in milliseconds",
 
 OPTVAR(prefer_opengl, bool, false)
 OPTION(gl, "Prefer OpenGL for rendering", prefer_opengl = true)
+OPTVAR(nosplash, bool, false)
+OPTION(nosplash, "Disable splash screen on startup", nosplash = true)
 
 TRACE(filesync)
 TRACE(menus)

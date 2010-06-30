@@ -53,12 +53,27 @@ int main(int argc, char **argv)
 
     // We need to brute-force option parsing here, the OpenGL choice must
     // be made before calling the QApplication constructor...
+    bool showSplash = true;
     for (int a = 1; a < argc; a++)
+    {
         if (text(argv[a]) == "-gl")
             QGL::setPreferredPaintEngine(QPaintEngine::OpenGL);
+        if (text(argv[a]) == "-nosplash")
+            showSplash = false;
+    }
 
     // Initialize the Tao application
     Tao::Application tao(argc, argv);
+
+    // Show splash screen
+    QSplashScreen *splash = NULL;
+    if (showSplash)
+    {
+        QPixmap pic(":/images/splash.png");
+        splash = new QSplashScreen(pic, Qt::WindowStaysOnTopHint);
+        splash->show();
+        QApplication::processEvents();
+    }
 
     // Fetch info for XL files
     QFileInfo user      ("xl:user.xl");
@@ -82,10 +97,6 @@ int main(int argc, char **argv)
         contextFiles.push_back(+user.canonicalFilePath());
     if (theme.exists())
         contextFiles.push_back(+theme.canonicalFilePath());
-    xlr->LoadContextFiles(contextFiles);
-
-    // Load the files
-    xlr->LoadFiles();
 
     // Create the windows for each file on the command line
     bool hadFile = false;
@@ -93,37 +104,42 @@ int main(int argc, char **argv)
     XL::source_names::iterator it;
     for (it = names.begin(); it != names.end(); it++)
     {
-        using namespace Tao;
-        if (xlr->files.count(*it))
+        QString sourceFile = +(*it);
+        hadFile = true;
+        Tao::Window *window = new Tao::Window (xlr, contextFiles);
+        if (splash)
         {
-            XL::SourceFile &sf = xlr->files[*it];
-            hadFile = true;
-            Tao::Window *window = new Tao::Window (xlr, contextFiles, &sf);
-            if (window->isUntitled)
-                delete window;
-            else
-                window->show();
+            window->splashScreen = splash;
+            QObject::connect(splash, SIGNAL(destroyed(QObject*)),
+                             window, SLOT(removeSplashScreen()));
         }
-        else
+        window->open(sourceFile);
+        if (window->isUntitled)
         {
+            delete window;
             QMessageBox::warning(NULL, tao.tr("Invalid input file"),
                                  tao.tr("The file %1 cannot be read.")
                                  .arg(+*it));
         }
+        else
+            window->show();
     }
+
     if (!hadFile)
     {
-        text tuto = +tutorial.canonicalFilePath();
-        if (!xlr->LoadFile(tuto))
-        {
-            if (xlr->files.count(tuto))
-            {
-                XL::SourceFile &sf = xlr->files[tuto];
-                sf.readOnly = true;
-                Tao::Window *untitled = new Tao::Window(xlr, contextFiles, &sf);
-                untitled->show();
-            }
-        }
+        // Open tutorial file read-only
+        QString tuto = tutorial.canonicalFilePath();
+        Tao::Window *untitled = new Tao::Window(xlr, contextFiles);
+        untitled->open(tuto, true);
+        untitled->isUntitled = true;
+        untitled->isReadOnly = true;
+        untitled->show();
+    }
+
+    if (splash)
+    {
+        splash->close();
+        delete splash;
     }
 
     int ret = tao.exec();

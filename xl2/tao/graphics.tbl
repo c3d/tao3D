@@ -55,6 +55,12 @@ PREFIX(Every50Pct,  real,     "every",
 PREFIX(MouseX, real, "mouse_x", ,RTAO(mouseX(self)))
 PREFIX(MouseY, real, "mouse_y", ,RTAO(mouseY(self)))
 PREFIX(MouseButtons, integer, "mouse_buttons", , RTAO(mouseButtons(self)))
+PREFIX(ShapeAction, tree, "on",PARM(n,text) PARM(t,tree),
+       RTAO(shapeAction(self,n,t)))
+PREFIX(ShapeClickAction, tree, "on_click",PARM(t,tree),
+       RTAO(shapeAction(self,"click",t)))
+PREFIX(ShapeMouseoverAction, tree, "on_mouseover",PARM(t,tree),
+       RTAO(shapeAction(self,"mouseover",t)))
 
 
 
@@ -189,11 +195,11 @@ PREFIX(MoveTo, tree, "move_to", PARM(x, real) PARM(y, real) PARM(z, real),
        RTAO(moveTo(self, x, y, z)))
 PREFIX(LineTo, tree, "line_to", PARM(x, real) PARM(y, real) PARM(z, real),
        RTAO(lineTo(self, x, y, z)))
-PREFIX(CurveTo2, tree, "curve_to",
+PREFIX(QuadTo, tree, "quad_to",
        PARM(cx, real) PARM(cy, real) PARM(cz, real)
        PARM(x, real) PARM(y, real) PARM(z, real),
        RTAO(curveTo(self, cx, cy, cz, x, y, z)))
-PREFIX(CurveTo3, tree, "curve_to",
+PREFIX(CubicTo, tree, "cubic_to",
        PARM(c1x, real) PARM(c1y, real) PARM(c1z, real)
        PARM(c2x, real) PARM(c2y, real) PARM(c2z, real)
        PARM(x, real) PARM(y, real) PARM(z, real),

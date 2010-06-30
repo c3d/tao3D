@@ -1453,6 +1453,7 @@ void Window::switchToFullScreen(bool fs)
         removeToolBar(fileToolBar);
         removeToolBar(editToolBar);
         removeToolBar(viewToolBar);
+        statusBar()->hide();
         showFullScreen();
         taoWidget->showFullScreen();
     }
@@ -1460,6 +1461,7 @@ void Window::switchToFullScreen(bool fs)
     {
         showNormal();
         taoWidget->showNormal();
+        statusBar()->show();
         addToolBar(fileToolBar);
         addToolBar(editToolBar);
         addToolBar(viewToolBar);

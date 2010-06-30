@@ -980,13 +980,15 @@ bool Window::needNewWindow()
 
 void Window::loadSrcViewStyleSheet()
 // ----------------------------------------------------------------------------
-//    Load the CSS stylesheet to use for syntax highlighting
+//    Load the XL and CSS stylesheet to use for syntax highlighting
 // ----------------------------------------------------------------------------
 {
+    taoWidget->setSrcRenderer();
+
     QFileInfo info("xl:srcview.css");
     QString path = info.canonicalFilePath();
-    IFTRACE(srcview)
-        std::cerr << "Reading syntax highlighting from: " << +path << "\n";
+    IFTRACE2(srcview, paths)
+       std::cerr << "Reading syntax highlighting CSS from '" << +path << "'\n";
     QFile file(path);
     file.open(QFile::ReadOnly | QFile::Text);
     QTextStream css(&file);

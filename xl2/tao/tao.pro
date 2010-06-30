@@ -195,7 +195,8 @@ SOURCES += tao_main.cpp \
 }
 macx { 
     OBJECTIVE_SOURCES += font_file_manager_macos.mm
-    LIBS += -framework ApplicationServices
+    LIBS += -framework \
+        ApplicationServices
 }
 RESOURCES += tao.qrc
 
@@ -226,8 +227,7 @@ OTHER_FILES += xl.syntax \
     tutorial.ddd \
     git.stylesheet \
     srcview.stylesheet \
-    srcview.css \
-    font_file_manager_macos.mm
+    srcview.css
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}

@@ -122,6 +122,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
       nextPull(nextSave), animated(true),
       currentFileDialog(NULL),
+      srcRenderer(NULL),
       zoom(1.0),
       eyeX(0.0), eyeY(0.0), eyeZ(Widget::zNear),
       centerX(0.0), centerY(0.0), centerZ(0.0),
@@ -163,9 +164,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     TaoFormulas::EnterFormulas(symbolTableForFormulas);
 
     // Select format for source file view
-    srcRenderer = new XL::Renderer(srcRendererOutput);
-    QFileInfo stylesheet("xl:srcview.stylesheet");
-    srcRenderer->SelectStyleSheet(+stylesheet.canonicalFilePath());
+    setSrcRenderer();
 
     // Make sure we get mouse events even when no click is made
     setMouseTracking(true);
@@ -531,6 +530,9 @@ void Widget::copy()
     {
         std::cerr << "Clipboard: copying:\n";
         XL::Renderer render(std::cerr);
+        // FIXME: won't work if debug.stylesheet is not in current directory
+        // Should be "system:debug.stylesheet". Need XL::Renderer subclass
+        // with Qt path resolution support?
         render.SelectStyleSheet("debug.stylesheet");
         render.Render(tree);
     }
@@ -1761,6 +1763,25 @@ void Widget::reloadProgram(XL::Tree *newProg)
 
     // Now update the window
     updateProgramSource();
+}
+
+void Widget::setSrcRenderer()
+// ----------------------------------------------------------------------------
+//   (Re-)create the XL renderer to display the source code
+// ----------------------------------------------------------------------------
+{
+    if (srcRenderer)
+        delete srcRenderer;
+
+    srcRenderer = new XL::Renderer(srcRendererOutput);
+    QFileInfo stylesheet("xl:srcview.stylesheet");
+    QFileInfo syntax("xl:xl.syntax");
+    QString sspath(stylesheet.canonicalFilePath());
+    QString sypath(syntax.canonicalFilePath());
+    IFTRACE2(srcview, paths)
+        std::cerr << "Loading source view stylesheet '" << +sspath
+                  << "' with syntax '" << +sypath << "'\n";
+    srcRenderer->SelectStyleSheet(+sspath, +sypath);
 }
 
 

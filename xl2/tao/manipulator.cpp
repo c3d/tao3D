@@ -68,7 +68,7 @@ void Manipulator::DrawSelection(Layout *layout)
     uint sel = widget->selected(layout);
     if (sel)
     {
-        widget->selectionTrees.push_back(self);
+        widget->selectionTrees.insert(self);
         glPushName(layout->id);
         DrawHandles(layout);
         glPopName();
@@ -337,7 +337,7 @@ void ControlPoint::DrawSelection(Layout *layout)
     uint sel = widget->selected(layout);
     if (sel)
     {
-        widget->selectionTrees.push_back(self);
+        widget->selectionTrees.insert(self);
         DrawHandles(layout);
     }
 }

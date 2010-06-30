@@ -189,18 +189,15 @@ public:
     uint        charSelected(uint i)    { return selected(i | CHAR_ID_BIT); }
     uint        charSelected()          { return charSelected(charId); }
     void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
-    uint        selected(Tree* tree)    { return std::find(selectionTrees.begin(),
-                                                           selectionTrees.end(),
-                                                           tree) != selectionTrees.end(); }
+    uint        selected(Tree* tree)    { return selectionTrees.count(tree); }
     bool        selected()              { return !selectionTrees.empty(); }
     bool        hasSelection()          { return selected(); }
-    void        select(Tree *tree)      { selectionTrees.push_back(tree); }
-    void        deselect(Tree *tree)    { selectionTrees.remove(tree); }
+    void        select(Tree *tree)      { selectionTrees.insert(tree); }
+    void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
     uint        selected(uint i);
     uint        selected(Layout *);
     bool        focused(Layout *);
     void        reselect(Tree *from, Tree *to);
-    void        removeFromSelection(Tree *from, Tree *to);
     static uint singleClicks(uint sel)  { return sel & 0xFFFF; }
     static uint doubleClicks(uint sel)  { return sel >> 16; }
     void        select(uint id, uint count);
@@ -606,8 +603,7 @@ private:
     Activity *            activities;
     GLuint                id, charId, capacity, manipulator;
     selection_map         selection, savedSelection;
-    std::set<Tree_p>      selectNextTime;
-    std::list<Tree_p>     selectionTrees;
+    std::set<Tree_p>      selectionTrees, selectNextTime;
     bool                  wasSelected;
     bool                  selectionChanged;
     QEvent *              w_event;

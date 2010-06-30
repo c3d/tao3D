@@ -651,7 +651,7 @@ Name_p Widget::bringForward(Tree_p /*self*/)
     if (!hasSelection())
         return XL::xl_false;
 
-    std::list<Tree_p >::iterator sel = selectionTrees.begin();
+    std::set<Tree_p >::iterator sel = selectionTrees.begin();
     XL::FindParentAction getParent(*sel);
     Tree * parent = xlProgram->tree->Do(getParent);
     // Check if we are not the only one
@@ -697,7 +697,7 @@ Name_p Widget::sendBackward(Tree_p /*self*/)
     if (!hasSelection())
         return XL::xl_false;
 
-    std::list<Tree_p >::iterator sel = selectionTrees.begin();
+    std::set<Tree_p >::iterator sel = selectionTrees.begin();
     XL::FindParentAction getParent(*sel);
     Tree * parent = xlProgram->tree->Do(getParent);
     // Check if we are not the only one
@@ -1772,7 +1772,7 @@ void Widget::updateProgramSource()
         srcRendererOutput.str(txt);
 
         // Tell renderer how to highlight selected items
-        std::list<Tree_p >::iterator i;
+        std::set<Tree_p >::iterator i;
         srcRenderer->highlights.clear();
         for (i = selectionTrees.begin(); i != selectionTrees.end(); i++)
             srcRenderer->highlights[*i] = "selected";
@@ -2455,14 +2455,9 @@ void Widget::reselect(Tree *from, Tree *to)
 //   If 'from' is in any selection map, add 'to' to this selection
 // ----------------------------------------------------------------------------
 {
-    std::list<Tree_p >::iterator location = std::find(selectionTrees.begin(),
-                      selectionTrees.end(), from);
     // Check if we are possibly changing the selection
-    if ( location != selectionTrees.end() )
-    {
-        selectionTrees.insert(location, to);
-        selectionTrees.erase(location);
-    }
+    if ( selectionTrees.count(from) )
+        selectionTrees.insert(to);
 
     // Check if we are possibly changing the next selection
     if (selectNextTime.count(from))
@@ -5394,7 +5389,7 @@ void Widget::updateColorDialog()
     originalColor.setRgbF(c.red, c.green, c.blue, c.alpha);
 
     // Get the default color from the first selected shape
-    for (std::list<Tree_p >::iterator i = selectionTrees.begin();
+    for (std::set<Tree_p >::iterator i = selectionTrees.begin();
          i != selectionTrees.end();
          i++)
     {
@@ -6508,75 +6503,17 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
 }
 
 
-void Widget::removeFromSelection(Tree *from, Tree *to)
-// ----------------------------------------------------------------------------
-//    Update references, excepting the selection list.
-// ----------------------------------------------------------------------------
-{
-    // Check if we are possibly changing the next selection
-    if (selectNextTime.count(from))
-        selectNextTime.insert(to);
-
-    // Check if we are possibly changing the page tree reference
-    if (pageTree == from)
-        pageTree = to;
-
-}
-
-
-struct NoSelTreeClone : TaoTreeClone
-// ----------------------------------------------------------------------------
-//    Make a deep copy, and remove copied element from the selection.
-// ----------------------------------------------------------------------------
-{
-    NoSelTreeClone(Widget *widget, std::list<Tree_p> *selCopy) :
-            TaoTreeClone(widget), selCopy(selCopy){}
-
-    virtual Tree *Reselect(Tree *from, Tree *to)
-    {
-        selCopy->remove(from);
-        widget->removeFromSelection(from, to);
-
-        return to;
-    }
-    std::list<Tree_p> *selCopy;
-    bool isFinished()
-    {
-        return selCopy->empty();
-    }
-    Tree * nextVal()
-    {
-        std::list<Tree_p>::iterator i = selCopy->begin();
-        return (*i)->Do(*this);
-    }
-};
-
-XL::Tree* buildCopy(NoSelTreeClone *cloner)
-// ----------------------------------------------------------------------------
-//    Recursively buil the copy of the selection
-// ----------------------------------------------------------------------------
-{
-    Tree * val = cloner->nextVal();
-    if (cloner->isFinished())
-        return val;
-    else
-        return new Infix("\n", val, buildCopy(cloner));
-}
-
 XL::Tree_p Widget::copySelection()
 // ----------------------------------------------------------------------------
 //    Copy the selection from the tree
 // ----------------------------------------------------------------------------
 {
-    if (!hasSelection())
+    if (!hasSelection() || !xlProgram || !xlProgram->tree)
         return NULL;
 
-    std::list<Tree_p> selCopy(selectionTrees);
-    // Build a single tree from all the selected sub-trees
-    std::list<Tree_p>::iterator i = selCopy.begin();
+    CopySelection copy(this);
 
-    NoSelTreeClone cloner(this, &selCopy);
-    return buildCopy(&cloner);
+    return xlProgram->tree->Do(copy);
 }
 
 XL::Tree_p Widget::removeSelection()
@@ -6741,17 +6678,13 @@ Name_p Widget::groupSelection(Tree_p /*self*/)
 
     // Find the first non-selected ancestor of the first element
     //      in the selection set.
-    std::list<Tree_p >::iterator sel = selectionTrees.begin();
+    std::set<Tree_p >::iterator sel = selectionTrees.begin();
     Tree * child = *sel;
     Tree * parent = NULL;
     do {
         XL::FindParentAction getParent(child);
         parent = xlProgram->tree->Do(getParent);
-    } while (parent &&
-             (std::find(selectionTrees.begin(),
-                        selectionTrees.end(),
-                        parent) != selectionTrees.end()) &&
-             (child = parent));
+    } while (parent && selectionTrees.count(parent) && (child = parent));
 
     // Check if we are not the only one
     if (!parent)
@@ -6847,7 +6780,7 @@ Name_p Widget::ungroupSelection(Tree_p /*self*/)
     if (!hasSelection())
         return XL::xl_false;
 
-    std::list<Tree_p >::iterator sel = selectionTrees.begin();
+    std::set<Tree_p >::iterator sel = selectionTrees.begin();
 
     Prefix * groupTree = (*sel)->AsPrefix();
     if (!groupTree)

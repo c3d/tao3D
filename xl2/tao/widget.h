@@ -83,8 +83,8 @@ class Widget : public QGLWidget
 {
     Q_OBJECT
 public:
-    typedef std::vector<double>   attribute_args;
-    typedef std::map<GLuint, uint> selection_map;
+    typedef std::vector<double>         attribute_args;
+    typedef std::map<GLuint, uint>      selection_map;
 
 public:
     Widget(Window *parent, XL::SourceFile *sf = NULL);
@@ -220,6 +220,7 @@ public:
     static
     bool        selectionsEqual(selection_map &s1, selection_map &s2);
     void        saveSelectionState(Layout *where);
+    Tree *      shapeAction(text n, GLuint id);
 
     // Text flows and text management
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
@@ -252,6 +253,7 @@ public:
     Real_p      mouseX(Tree_p self);
     Real_p      mouseY(Tree_p self);
     Integer_p   mouseButtons(Tree_p self);
+    Tree_p      shapeAction(Tree_p self, text name, Tree_p action);
 
     // Preserving attributes
     Tree_p      locally(Tree_p self, Tree_p t);
@@ -572,6 +574,8 @@ private:
     typedef XL::LocalSave<Widget *>             TaoSave;
     typedef std::map<text, PageLayout*>         flow_map;
     typedef std::map<text, text>                page_map;
+    typedef std::map<GLuint, Tree_p>            GLid_map;
+    typedef std::map<text, GLid_map>            action_map;
 
     // XL Runtime
     XL::SourceFile       *xlProgram;

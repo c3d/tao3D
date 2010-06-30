@@ -19,7 +19,7 @@ gitrev() {
     then
         :
     else    
-        v=$(git describe --always --dirty=-dirty 2>/dev/null)
+        v=$(git describe --tags --always --dirty=-dirty 2>/dev/null)
     fi
     [ -z "$v" ] && v="Unknown"
     echo "$v"

@@ -414,6 +414,8 @@ public:
     Name_p      textEditKey(Tree_p self, text key);
     Text_p      loremIpsum(Tree_p self, Integer_p nwords);
     Text_p      loadText(Tree_p self, text file);
+    Text_p      taoVersion(Tree_p self);
+    Text_p      docVersion(Tree_p self);
 
     // Tables
     Tree_p      newTable(Tree_p self, Real_p x, Real_p y,

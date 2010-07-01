@@ -32,6 +32,7 @@
 #include "clone_dialog.h"
 #include "undo.h"
 #include "resource_mgt.h"
+#include "version.h"
 
 #include <iostream>
 #include <sstream>
@@ -633,9 +634,11 @@ void Window::about()
 // ----------------------------------------------------------------------------
 {
     kstring txt =
-        "<b>Tao</b>, an interactive collaboration tool.<br/>"
-        "Brought to you by Taodyne SAS:<br/>"
         "<center>"
+        "<b>Tao</b>, an interactive collaboration tool<br/><br/>"
+        "Version " GITREV "<br/><br/>"
+        "Copyright \302\251 2010 Taodyne SAS<br/><br/>"
+        "Brought to you by:<br/>"
         "Anne Lempereur<br/>"
         "Catherine Burvelle<br/>"
         "J\303\251r\303\264me Forissier<br/>"
@@ -1450,6 +1453,7 @@ void Window::switchToFullScreen(bool fs)
         removeToolBar(fileToolBar);
         removeToolBar(editToolBar);
         removeToolBar(viewToolBar);
+        statusBar()->hide();
         showFullScreen();
         taoWidget->showFullScreen();
     }
@@ -1457,6 +1461,7 @@ void Window::switchToFullScreen(bool fs)
     {
         showNormal();
         taoWidget->showNormal();
+        statusBar()->show();
         addToolBar(fileToolBar);
         addToolBar(editToolBar);
         addToolBar(viewToolBar);

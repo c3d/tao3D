@@ -31,6 +31,7 @@
 #include <QString>
 #include <QProcess>
 #include <QtGlobal>
+#include <QTimer>
 #include <iostream>
 
 namespace Tao {
@@ -43,7 +44,7 @@ class GitRepository : public Repository
     Q_OBJECT
 
 public:
-    GitRepository(const QString &path): Repository(path) { }
+    GitRepository(const QString &path);
     virtual ~GitRepository() {}
 
 public:
@@ -73,6 +74,7 @@ public:
     virtual QList<Commit> history(int max = 20);
     virtual Process *   asyncClone(QString cloneUrl, QString newFolder,
                                    AnsiTextEdit *out = NULL, void *id = NULL);
+    virtual text        version();
 
     static  bool        checkGit();
 
@@ -83,6 +85,7 @@ protected:
 
 protected slots:
     virtual void        asyncProcessFinished(int exitCode);
+    void                clearCachedDocVersion();
 
 private:
     bool                initialCommit();
@@ -93,6 +96,8 @@ private:
 
     static QString      gitCommand;
     text                nextCommitMessage;
+    text                cachedDocVersion;
+    QTimer              cdvTimer;
 };
 
 }

@@ -63,6 +63,7 @@
 #include "objloader.h"
 #include "tree_cloning.h"
 #include "gl2ps.h"
+#include "version.h"
 
 #include <QApplication>
 #include <QToolButton>
@@ -121,8 +122,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
       nextPull(nextSave), animated(true),
-      currentFileDialog(NULL),
       srcRenderer(NULL),
+      currentFileDialog(NULL),
       zoom(1.0),
       eyeX(0.0), eyeY(0.0), eyeZ(Widget::zNear),
       centerX(0.0), centerY(0.0), centerZ(0.0),
@@ -4756,6 +4757,30 @@ Text_p Widget::loadText(Tree_p self, text file)
     }
     text contents = output.str();
     return new XL::Text(contents);
+}
+
+
+Text_p Widget::taoVersion(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the version of the Tao program
+// ----------------------------------------------------------------------------
+{
+    return new XL::Text(GITREV);
+}
+
+
+Text_p Widget::docVersion(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the version of the current document (if known)
+// ----------------------------------------------------------------------------
+{
+    text        version        = "?";
+    Repository *repo           = repository();
+
+    if (repo)
+        version = repo->version();
+
+    return new XL::Text(version);
 }
 
 

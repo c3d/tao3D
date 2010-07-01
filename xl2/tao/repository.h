@@ -134,6 +134,7 @@ public:
     virtual QList<Commit> history(int max = 100)        = 0;
     virtual Process *   asyncClone(QString cloneUrl, QString newFolder,
                               AnsiTextEdit *out = NULL, void *id = NULL) = 0;
+    virtual text        version()                       = 0;
 
 public:
     static bool         versionGreaterOrEqual(QString ver, QString ref);

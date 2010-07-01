@@ -195,7 +195,8 @@ SOURCES += tao_main.cpp \
 }
 macx { 
     OBJECTIVE_SOURCES += font_file_manager_macos.mm
-    LIBS += -framework ApplicationServices
+    LIBS += -framework \
+        ApplicationServices
 }
 RESOURCES += tao.qrc
 
@@ -226,8 +227,7 @@ OTHER_FILES += xl.syntax \
     tutorial.ddd \
     git.stylesheet \
     srcview.stylesheet \
-    srcview.css \
-    font_file_manager_macos.mm
+    srcview.css
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}
@@ -238,3 +238,11 @@ FORMS += pull_from_dialog.ui \
     publish_to_dialog.ui \
     clone_dialog.ui \
     error_message_dialog.ui
+
+# Automatic embedding of Git version
+QMAKE_CLEAN += version.h
+PRE_TARGETDEPS += version.h
+revtarget.target = version.h
+revtarget.commands = ./updaterev.sh
+revtarget.depends = $$SOURCES $$HEADERS $$FORMS
+QMAKE_EXTRA_TARGETS += revtarget

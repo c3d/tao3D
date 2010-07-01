@@ -12,3 +12,4 @@ tao.pro.user
 /object_script.*.Release
 /object_script.*.Debug
 /Tao_resource.rc
+/version.h

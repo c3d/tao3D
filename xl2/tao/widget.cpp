@@ -1804,7 +1804,7 @@ void Widget::updateProgramSource()
         srcRenderer->highlights.clear();
         for (i = selectionTrees.begin(); i != selectionTrees.end(); i++)
             srcRenderer->highlights[*i] = "selected";
-        srcRenderer->Render(prog);
+        srcRenderer->RenderFile(prog);
 
         text html = srcRendererOutput.str();
         window->setHtml(+html);

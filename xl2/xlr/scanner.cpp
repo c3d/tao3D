@@ -514,6 +514,13 @@ text Scanner::Comment(text EOC)
     while (*match && c != EOF)
     {
         c = input.get();
+        if (c == EOF)
+        {
+            // End of file: show the final comment
+            comment += EOC;
+            return comment;
+        }
+
         position++;
         skip = false;
 

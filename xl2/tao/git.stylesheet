@@ -43,4 +43,5 @@ indents = "    "
 "longtext << >>" = "<<" self ">>"
 """ quoted" = """"
 "comment " = self
+"comment_after " = space self
 "?null?" = ""

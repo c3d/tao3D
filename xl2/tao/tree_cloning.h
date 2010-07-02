@@ -50,7 +50,7 @@ template <typename mode> struct TaoCloneTemplate : Action
     TaoCloneTemplate(Widget *widget) : widget(widget){}
     virtual ~TaoCloneTemplate(){}
 
-    virtual Tree *Reselect(Tree *from, Tree *to)
+    Tree *Reselect(Tree *from, Tree *to)
     {
         widget->reselect(from, to);
         if (XL::CommentsInfo *cinfo = from->GetInfo<XL::CommentsInfo>())
@@ -142,6 +142,87 @@ typedef struct TaoCloneTemplate<DeepCopyCloneMode>   TaoTreeClone;
 typedef struct TaoCloneTemplate<ShallowCopyCloneMode>TaoShallowCopyTreeClone;
 typedef struct TaoCloneTemplate<NodeOnlyCloneMode>    TaoNodeOnlyTreeClone;
 
+
+struct CopySelection : Action
+// ----------------------------------------------------------------------------
+//   Create a copy of the selected trees.
+// ----------------------------------------------------------------------------
+{
+    CopySelection(Widget *w) : Action(), widget(w), clone(){}
+    virtual ~CopySelection(){}
+
+    Tree *DoInteger(Integer *what)
+    {
+        if (widget->selected(what))
+            return what->Do(clone);
+
+        return NULL;
+    }
+    Tree *DoReal(Real *what)
+    {
+        if (widget->selected(what))
+            return  what->Do(clone);
+
+        return NULL;
+    }
+    Tree *DoText(Text *what)
+    {
+        if (widget->selected(what))
+            return  what->Do(clone);
+
+        return NULL;
+    }
+    Tree *DoName(Name *what)
+    {
+        if (widget->selected(what))
+            return  what->Do(clone);
+
+        return NULL;
+    }
+
+    Tree *DoBlock(Block *what)
+    {
+        if (widget->selected(what))
+            return  what->Do(clone);
+
+        return  Do(what->child);
+    }
+    Tree *DoInfix(Infix *what)
+    {
+        if (widget->selected(what))
+            return  what->Do(clone);
+
+        Tree * l = Do(what->left);
+        Tree * r = Do(what->right);
+
+        if (!l) return r;
+        if (!r) return l;
+
+        return new Infix(what->name, l, r);
+
+    }
+    Tree *DoPrefix(Prefix *what)
+    {
+        if (widget->selected(what))
+            return  what->Do(clone);
+
+        return  Do(what->right);
+    }
+    Tree *DoPostfix(Postfix *what)
+    {
+        if (widget->selected(what))
+            return what->Do(clone);
+
+        return  Do(what->left);
+    }
+    Tree *Do(Tree *what)
+    {
+        return what->Do(*this);
+    }
+
+    Widget *widget;
+    XL::TreeClone clone;
+};
 
 TAO_END
 #endif // TREE_CLONING_H

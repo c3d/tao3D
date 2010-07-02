@@ -133,6 +133,13 @@ struct CommentsInfo : Info
     CommentsInfo() {}
     ~CommentsInfo() {}
 
+    virtual CommentsInfo *Copy()
+    {
+        CommentsInfo *result = new CommentsInfo(*this);
+        result->next = next->Copy();
+        return result;
+    }
+
 public:
     CommentsList before, after;
 };

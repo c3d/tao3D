@@ -55,7 +55,7 @@ end           = "</body></html>"
 
 // CSS classes
 // FIXME: 1 space is added at the end of a // comment
-cppcomment      = "<span class=""comment"">//" self "</span>"
+cppcomment      = "<span class=""comment"">" self "</span>"
 number          = "<span class=""number"">" self "</span>"
 keyword         = "<span class=""keyword"">" self "</span>"
 type            = "<span class=""type"">" self "</span>"

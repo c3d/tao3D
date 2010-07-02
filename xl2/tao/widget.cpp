@@ -1887,6 +1887,9 @@ void Widget::refreshProgram()
                     // Record new modification time
                     sf.modified = st.st_mtime;
 
+                    if (fname == xlProgram->name)
+                        updateProgramSource();
+
                     IFTRACE(filesync)
                     {
                         if (needBigHammer)
@@ -1895,22 +1898,6 @@ void Widget::refreshProgram()
                             std::cerr << "Surgical replacement worked\n";
                     }
                 } // Replacement checked
-
-                if (fname == xlProgram->name)
-                {
-                    // Update source file view
-                    Window *window = (Window *) parentWidget();
-                    loadError = !window->loadFileIntoSourceFileView(+fname);
-                    if (loadError)
-                    {
-                        IFTRACE(filesync)
-                            std::cerr << "Main program could not be read\n";
-
-                        // Source file is cleared, delete tree
-                        sf.tree = new XL::Text("Program could not be read",
-                                               "//", "\n");
-                    }
-                }
 
                 // If a file was modified, we need to refresh the screen
                 refresh();
@@ -1929,6 +1916,8 @@ void Widget::refreshProgram()
                     text fname = sf.name;
                     XL::MAIN->LoadFile(fname);
                     inError = false;
+                    if (fname == xlProgram->name)
+                        updateProgramSource();
                 }
             }
         }

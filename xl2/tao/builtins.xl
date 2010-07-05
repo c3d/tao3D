@@ -22,8 +22,8 @@ key "Backspace"                         -> delete_selection "Backspace"
 key X                                   -> text_edit_key X
 
 // Zoom
-zoom_in                                 -> if zoom < 4.0 then zoom (zoom+0.25)
-zoom_out                                -> if zoom > 0.25 then zoom (zoom-0.25)
+zoom_out                                -> if zoom < 4.0 then zoom (zoom+0.25)
+zoom_in                                 -> if zoom > 0.25 then zoom (zoom-0.25)
 
 // Wheel events
 control_modifier  -> (keyboard_modifiers and 16#04000000) <> 0

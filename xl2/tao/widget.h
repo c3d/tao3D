@@ -524,7 +524,7 @@ public:
     // Menus and widgets
     Tree_p      chooser(Tree_p self, text caption);
     Tree_p      chooserChoice(Tree_p self, text caption, Tree_p command);
-    Tree_p      chooserCommands(Tree_p self, text prefix);
+    Tree_p      chooserCommands(Tree_p self, text prefix, text label);
 
     static Tree_p runtimeError(Tree_p self, text msg, Tree_p src);
     static Tree_p formulaRuntimeError(Tree_p self, text msg, Tree_p src);

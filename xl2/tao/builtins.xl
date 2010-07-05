@@ -43,9 +43,6 @@ wheel_event x, y                        ->
 // Chooser
 main_chooser ->
     chooser "Choose command"
-    chooser_choice "Red", insert {color 1,0,0,1}
-    chooser_choice "Green", insert {color 0,1,0,1}
-    chooser_choice "Blue", insert {color 0,0,1,1}
     chooser_choice "Toggle full screen", {toggle_full_screen}
     chooser_choice "Enter full screen", {full_screen true}
     chooser_choice "Exit full screen", {full_screen false}
@@ -56,7 +53,7 @@ main_chooser ->
     chooser_choice "Zoom in", {zoom_in}
     chooser_choice "Zoom out", {zoom_out}
     chooser_choice "Toggle hand cursor", {toggle_hand_cursor}
-
+    chooser_commands "shape_color_", "Set shape color to "
 
 chooser_title_font              -> font "Arial Black", 30
 chooser_item_font               -> font "Arial", 28
@@ -111,6 +108,17 @@ draw_chooser_match m1, m2, m3, x, y ->
     text m2
     color 100%, 100%, 100%, 60%
     text m3
+
+// Colors
+shape_color_black     -> set_attribute "color", {color 0, 0, 0, 1}
+shape_color_red       -> set_attribute "color", {color 1, 0, 0, 1}
+shape_color_green     -> set_attribute "color", {color 0, 1, 0, 1}
+shape_color_yellow    -> set_attribute "color", {color 1, 1, 0, 1}
+shape_color_blue      -> set_attribute "color", {color 0, 0, 1, 1}
+shape_color_magenta   -> set_attribute "color", {color 1, 0, 1, 1}
+shape_color_cyan      -> set_attribute "color", {color 0, 1, 1, 1}
+shape_color_white     -> set_attribute "color", {color 1, 1, 1, 1}
+
 
 // 3D Shapes
 sphere x:real, y:real, z:real, r:real   -> sphere x,y,z,2*r,2*r,2*r,25,25

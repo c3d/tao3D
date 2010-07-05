@@ -57,7 +57,7 @@ struct Chooser : Activity
 
     // Add an element to a chooser
     void                AddItem(text caption, XL::Tree *function);
-    void                AddCommands(text prefix, XL::Symbols *symbols);
+    void                AddCommands(text prefix, XL::Symbols *sym, text label);
 
 public:
     text         keystrokes;

@@ -349,7 +349,7 @@ void Chooser::AddItem(text caption, Tree *function)
 }
 
 
-void Chooser::AddCommands(text prefix, Symbols *symbols)
+void Chooser::AddCommands(text prefix, Symbols *symbols, text label)
 // ----------------------------------------------------------------------------
 //   Add chooser commands from the symbols table
 // ----------------------------------------------------------------------------
@@ -373,13 +373,16 @@ void Chooser::AddCommands(text prefix, Symbols *symbols)
                 mbtowc(&wc, data + c, maxc - c);
                 if (wc == '_')
                     wc = ' ';
-                else if (c == first)
+                else if (c == first && label.length() > 0)
                     wc = towupper(wc);
                 int sz = wctomb(wcbuf, wc);
                 if (sz > 0)
                     caption.insert(caption.end(), wcbuf, wcbuf + sz);
             }
-            AddItem(caption, (*elem).second);
+            Tree *command = (*elem).second;
+            if (!command->Symbols())
+                command->SetSymbols(symbols);
+            AddItem(label + caption, command);
         }
     }
 }

@@ -6141,7 +6141,7 @@ Tree_p Widget::chooserChoice(Tree_p self, text caption, Tree_p command)
 }
 
 
-Tree_p Widget::chooserCommands(Tree_p self, text prefix)
+Tree_p Widget::chooserCommands(Tree_p self, text prefix, text label)
 // ----------------------------------------------------------------------------
 //   Add all commands in the current symbol table that have the given prefix
 // ----------------------------------------------------------------------------
@@ -6149,7 +6149,7 @@ Tree_p Widget::chooserCommands(Tree_p self, text prefix)
     if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
     {
         for (XL::Symbols *s = self->Symbols(); s; s = s->Parent())
-            chooser->AddCommands(prefix, s);
+            chooser->AddCommands(prefix, s, label);
         return XL::xl_true;
     }
     return XL::xl_false;

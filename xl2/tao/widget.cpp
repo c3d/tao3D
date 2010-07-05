@@ -1033,6 +1033,24 @@ uint Widget::showGlErrors()
 }
 
 
+QFont &Widget::currentFont()
+// ----------------------------------------------------------------------------
+//   Return the font currently in use (the one in the current layout)
+// ----------------------------------------------------------------------------
+{
+    return layout->font;
+}
+
+
+Symbols *Widget::currentSymbols()
+// ----------------------------------------------------------------------------
+//   Return the symbols for the top-level program
+// ----------------------------------------------------------------------------
+{
+    return xlProgram->symbols;
+}
+
+
 
 // ============================================================================
 //
@@ -2672,6 +2690,28 @@ void Widget::drawTree(Layout *where, Tree *code)
     glDisable(GL_DEPTH_TEST);
     xl_evaluate(code);
 
+    selectionSpace.Draw(where);
+    glEnable(GL_DEPTH_TEST);
+}
+
+
+void Widget::drawText(Layout *where, text what,
+                      text format, const Point3 &coord)
+// ----------------------------------------------------------------------------
+//   Display the given text at the given location
+// ----------------------------------------------------------------------------
+{
+    // Symbols where we will find the selection code
+    XL::Symbols *symbols = xlProgram->symbols;
+    SpaceLayout selectionSpace(this);
+
+    XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
+    GLAttribKeeper saveGL;
+    resetLayout(where);
+    selectionSpace.id = id;
+    selectionSpace.isSelection = true;
+    glDisable(GL_DEPTH_TEST);
+    (XL::XLCall(format), what, coord.x, coord.y, coord.z) (symbols);
     selectionSpace.Draw(where);
     glEnable(GL_DEPTH_TEST);
 }

@@ -122,7 +122,7 @@ signals:
     void        copyAvailable(bool yes = true);
 
 public:
-    // OpenGL
+    // OpenGL and drawing
     void        initializeGL();
     void        resizeGL(int width, int height);
     void        paintGL();
@@ -131,6 +131,8 @@ public:
     void        identifySelection();
     void        updateSelection();
     uint        showGlErrors();
+    QFont &     currentFont();
+    Symbols *   currentSymbols();
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -211,9 +213,10 @@ public:
     Point3      unproject (coord x, coord y, coord z = 0.0);
     Drag *      drag();
     TextSelect *textSelection();
-    void        drawSelection(Layout *, const Box3 &, text name, uint id);
-    void        drawHandle(Layout *, const Point3 &, text name, uint id);
+    void        drawSelection(Layout *, const Box3 &, text name, uint id=0);
+    void        drawHandle(Layout *, const Point3 &, text name, uint id=0);
     void        drawTree(Layout *where, Tree *code);
+    void        drawText(Layout *, text what, text format, const Point3 &coord);
     template<class Activity>
     Activity *  active();
     void        checkCopyAvailable();

@@ -34,6 +34,7 @@
 #include "menuinfo.h"
 #include "color.h"
 #include "glyph_cache.h"
+#include "runtime.h"
 #include "font_file_manager.h"
 
 #include <GL/glew.h>
@@ -216,7 +217,7 @@ public:
     void        drawSelection(Layout *, const Box3 &, text name, uint id=0);
     void        drawHandle(Layout *, const Point3 &, text name, uint id=0);
     void        drawTree(Layout *where, Tree *code);
-    void        drawText(Layout *, text what, text format, const Point3 &coord);
+    void        drawCall(Layout *, XL::XLCall &call, uint id=0);
     template<class Activity>
     Activity *  active();
     void        checkCopyAvailable();
@@ -521,6 +522,10 @@ public:
     Tree_p      image(Tree_p self, Real_p x, Real_p y, text filename);
 
     // Menus and widgets
+    Tree_p      chooser(Tree_p self, text caption);
+    Tree_p      chooserChoice(Tree_p self, text caption, Tree_p command);
+    Tree_p      chooserCommands(Tree_p self, text prefix);
+
     static Tree_p runtimeError(Tree_p self, text msg, Tree_p src);
     static Tree_p formulaRuntimeError(Tree_p self, text msg, Tree_p src);
     Tree_p      menuItem(Tree_p self, text name, text lbl, text iconFileName,

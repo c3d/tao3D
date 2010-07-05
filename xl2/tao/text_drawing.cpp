@@ -1067,7 +1067,17 @@ Activity *TextSelect::Idle()
 
 Activity *TextSelect::Key(text key)
 // ----------------------------------------------------------------------------
-//    Perform activities on the text selection
+//    Tell that we want keys to be passed down to the document
+// ----------------------------------------------------------------------------
+{
+    (void) key;
+    return next;
+}
+
+
+Activity *TextSelect::Edit(text key)
+// ----------------------------------------------------------------------------
+//   Perform text editing activities
 // ----------------------------------------------------------------------------
 {
     if (!textMode)
@@ -1138,6 +1148,11 @@ Activity *TextSelect::Key(text key)
             widget->markChanged("Inserted text");
         direction = Mark;
     }
+    else
+    {
+        // We don't know what to do with that key
+        return next;
+    }
 
     if (replace)
     {
@@ -1147,7 +1162,9 @@ Activity *TextSelect::Key(text key)
     }
 
     updateSelection();
-    return next;
+
+    // We have handled this activity
+    return NULL;
 }
 
 

@@ -61,6 +61,7 @@
 #include "group_layout.h"
 #include "font.h"
 #include "objloader.h"
+#include "chooser.h"
 #include "tree_cloning.h"
 #include "gl2ps.h"
 #include "version.h"
@@ -1442,10 +1443,38 @@ void Widget::keyPressEvent(QKeyEvent *event)
     if (forwardEvent(event))
         return;
 
-    // Now call "key" in the current context
-    text name = keyName(event);
-    XL::Symbols *syms = xlProgram->symbols;
-    (XL::XLCall ("key"), name) (syms);
+    // Get the name of the key
+    text key = keyName(event);
+
+    // Check if we are changing pages here...
+    if (pageLinks.count(key))
+    {
+        pageName = pageLinks[key];
+        selection.clear();
+        selectionTrees.clear();
+        delete textSelection();
+        delete drag();
+        pageStartTime = startTime = frozenTime = CurrentTime();
+        draw();
+        refresh(0);
+        return;
+    }
+
+    // Check if one of the activities handled the key
+    bool handled = false;
+    Activity *next;
+    for (Activity *a = activities; a; a = next)
+    {
+        next = a->Key(key);
+        handled |= next != a->next;
+    }        
+
+    // If the key was not handled by any activity, forward to document
+    if (!handled)
+    {
+        XL::Symbols *syms = xlProgram->symbols;
+        (XL::XLCall ("key"), key) (syms);
+    }
 }
 
 
@@ -2611,7 +2640,7 @@ static inline void resetLayout(Layout *where)
     if (where)
     {
         where->lineWidth = 1;
-        where->lineColor = Color(1,0,0,1);
+        where->lineColor = Color(0,0,0,0);
         where->fillColor = Color(0,1,0,0.8);
         where->fillTexture = 0;
     }
@@ -2639,7 +2668,7 @@ void Widget::drawSelection(Layout *where,
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper          saveGL;
-    resetLayout(where);
+    resetLayout(layout);
     selectionSpace.id = id;
     selectionSpace.isSelection = true;
     saveSelectionState(where);
@@ -2666,7 +2695,7 @@ void Widget::drawHandle(Layout *where,
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper          saveGL;
-    resetLayout(where);
+    resetLayout(layout);
     glDisable(GL_DEPTH_TEST);
     selectionSpace.id = id;
     selectionSpace.isSelection = true;
@@ -2695,8 +2724,7 @@ void Widget::drawTree(Layout *where, Tree *code)
 }
 
 
-void Widget::drawText(Layout *where, text what,
-                      text format, const Point3 &coord)
+void Widget::drawCall(Layout *where, XL::XLCall &call, uint id)
 // ----------------------------------------------------------------------------
 //   Display the given text at the given location
 // ----------------------------------------------------------------------------
@@ -2707,11 +2735,11 @@ void Widget::drawText(Layout *where, text what,
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper saveGL;
-    resetLayout(where);
+    resetLayout(layout);
     selectionSpace.id = id;
     selectionSpace.isSelection = true;
     glDisable(GL_DEPTH_TEST);
-    (XL::XLCall(format), what, coord.x, coord.y, coord.z) (symbols);
+    call(symbols);
     selectionSpace.Draw(where);
     glEnable(GL_DEPTH_TEST);
 }
@@ -4695,25 +4723,18 @@ Tree_p Widget::drawingBreak(Tree_p self, Drawing::BreakOrder order)
 
 XL::Name_p Widget::textEditKey(Tree_p self, text key)
 // ----------------------------------------------------------------------------
-//   Send a key to the activities
+//   Send a key to the text editing activities
 // ----------------------------------------------------------------------------
 {
-    // Check if we are changing pages here...
-    if (pageLinks.count(key))
+    for (Activity *a = activities; a; a = a->next)
     {
-        pageName = pageLinks[key];
-        selection.clear();
-        selectionTrees.clear();
-        delete textSelection();
-        delete drag();
-        pageStartTime = startTime = frozenTime = CurrentTime();
-        draw();
-        refresh(0);
-        return XL::xl_true;
+        if (TextSelect *tsel = dynamic_cast<TextSelect *> (a))
+        {
+            tsel->Edit(key);
+            return XL::xl_true;
+        }
     }
-
-    for (Activity *a = activities; a; a = a->Key(key)) ;
-    return XL::xl_true;
+    return XL::xl_false;
 }
 
 
@@ -6081,6 +6102,58 @@ Tree_p Widget::videoPlayerTexture(Tree_p self, Real_p wt, Real_p ht, Text_p url)
     return XL::xl_true;
 }
 
+
+
+// ============================================================================
+// 
+//    Chooser
+// 
+// ============================================================================
+
+Tree_p Widget::chooser(Tree_p self, text caption)
+// ----------------------------------------------------------------------------
+//   Create a chooser with the given caption
+// ----------------------------------------------------------------------------
+//   Note: the current implementation doesn't prevent hierarchical choosers.
+//   It's by design, I see only good reasons to allow it...
+{
+    Chooser *chooser = dynamic_cast<Chooser *> (activities);
+    if (chooser)
+        if (chooser->name == caption)
+            return XL::xl_false;
+
+    chooser = new Chooser(caption, this);
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::chooserChoice(Tree_p self, text caption, Tree_p command)
+// ----------------------------------------------------------------------------
+//   Create a chooser item and associate a command
+// ----------------------------------------------------------------------------
+{
+    if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
+    {
+        chooser->AddItem(caption, command);
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
+
+Tree_p Widget::chooserCommands(Tree_p self, text prefix)
+// ----------------------------------------------------------------------------
+//   Add all commands in the current symbol table that have the given prefix
+// ----------------------------------------------------------------------------
+{
+    if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
+    {
+        for (XL::Symbols *s = self->Symbols(); s; s = s->Parent())
+            chooser->AddCommands(prefix, s);
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
 
 
 // ============================================================================

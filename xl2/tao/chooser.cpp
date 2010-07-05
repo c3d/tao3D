@@ -76,7 +76,7 @@ static utf8position KeystrokesFind(text where, text what)
     kstring dj = what.data();
     int c = 0;
 
-    for (i = 0; i < maxi; i = Utf8Next(di, i))
+    for (i = 0; i + maxj <= maxi; i = Utf8Next(di, i))
     {
         bool found = true;
         for (j = 0; found && j < maxj; j = Utf8Next(dj, j))
@@ -88,7 +88,7 @@ static utf8position KeystrokesFind(text where, text what)
                      ((iswspace(test) || test == '_') &&
                       (iswspace(ref) || ref == '_')));
         }
-        if (found)
+        if (found && j >= maxj)
             return utf8position(i, c);
         c++;
     }
@@ -115,7 +115,7 @@ Activity *Chooser::Display(void)
     coord ww = widget->width();
     coord wh = widget->height();
     coord mw = ww / 2;
-    coord mh = mtlh;
+    coord mh = mtlh * 3 / 2;
 
     int i, found = 0, displayed = 0;
 
@@ -174,11 +174,17 @@ Activity *Chooser::Display(void)
 
     // Show what the user has typed
     if (keystrokes.length())
-        widget->drawText(NULL, keystrokes, 
-                         found ? "chooser_choice" : "chooser_choice_not_found",
-                         Point3(ix, iy, 0));
+    {
+        XLCall call(found ? "draw_chooser_choice" : "draw_chooser_error");
+        call, keystrokes, ix, iy;
+        widget->drawCall(NULL, call);
+    }
     else
-        widget->drawText(NULL, name, "chooser_title", Point3(ix, iy, 0));
+    {
+        XLCall call("draw_chooser_title");
+        call, name, ix, iy;
+        widget->drawCall(NULL, call);
+    }
     iy -= mtlh;
 
     // Adjust the chooser selection
@@ -216,19 +222,28 @@ Activity *Chooser::Display(void)
         // Draw the selection box if we are on selected line
         if (i + firstItem == item)
         {
-            widget->drawSelection(NULL,  Box3(mx, iy + mild, 0, mw, milh, 0),
+            widget->drawSelection(NULL,  Box3(mx, iy - mild, 0, mw, milh, 0),
                                   "chooser_selection");
             selected = remaining[i + firstItem].function;
         }
 
-        // Render left of command selection
-        utf8position pos = KeystrokesFind(caption, keystrokes);
-        text ca1 = caption.substr(0, pos.byteOffset);
-        text ca2 = caption.substr(pos.byteOffset, keystrokes.length());
-        text ca3 = caption.substr(pos.byteOffset + keystrokes.length());
-        widget->drawText(NULL, ca1, "chooser_item_begin", Point3(ix, iy, 0));
-        widget->drawText(NULL, ca1, "chooser_item_match",Point3(ix, iy, 0));
-        widget->drawText(NULL, ca1, "chooser_item_end", Point3(ix, iy, 0));
+        // Render command selection
+        if (keystrokes.length())
+        {
+            utf8position pos = KeystrokesFind(caption, keystrokes);
+            text ca1 = caption.substr(0, pos.byteOffset);
+            text ca2 = caption.substr(pos.byteOffset, keystrokes.length());
+            text ca3 = caption.substr(pos.byteOffset + keystrokes.length());
+            XLCall call("draw_chooser_match");
+            call, ca1, ca2, ca3, ix, iy;
+            widget->drawCall(NULL, call);
+        }
+        else
+        {
+            XLCall call("draw_chooser_item");
+            call, caption, ix, iy;
+            widget->drawCall(NULL, call);
+        }
 
         // Move to the next line
         iy -= milh;
@@ -294,6 +309,9 @@ Activity *Chooser::Key(text key)
     {
         keystrokes += key;
     }
+
+    // Force an immediate widget refresh
+    widget->refresh(0);
 
     // Notify caller that we intercept all keystrokes
     return NULL;

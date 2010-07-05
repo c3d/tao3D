@@ -10,7 +10,7 @@ if false then TrueBody                  -> false
 
 // Key management
 key "Control-L"                         -> toggle_full_screen
-key "Escape"                            -> full_screen false
+key "Escape"                            -> main_chooser
 key "Control-M"                         -> toggle_hand_cursor
 key "Control-P"                         -> print_page "toto.pdf"
 key "Control-Shift-P"                   -> print_page "toto.svg"
@@ -39,6 +39,78 @@ wheel_event x, y                        ->
             zoom_out
     else
         pan -x, y
+
+// Chooser
+main_chooser ->
+    chooser "Choose command"
+    chooser_choice "Red", insert {color 1,0,0,1}
+    chooser_choice "Green", insert {color 0,1,0,1}
+    chooser_choice "Blue", insert {color 0,0,1,1}
+    chooser_choice "Toggle full screen", {toggle_full_screen}
+    chooser_choice "Enter full screen", {full_screen true}
+    chooser_choice "Exit full screen", {full_screen false}
+    chooser_choice "Print to 'toto.pdf'", {print "toto.pdf"}
+    chooser_choice "Print to 'toto.svg'", {print "toto.svg"}
+    chooser_choice "Print to 'toto.ps'", {print "toto.ps"}
+    chooser_choice "Reset view", {reset_view}
+    chooser_choice "Zoom in", {zoom_in}
+    chooser_choice "Zoom out", {zoom_out}
+    chooser_choice "Toggle hand cursor", {toggle_hand_cursor}
+
+
+chooser_title_font              -> font "Arial Black", 30
+chooser_item_font               -> font "Arial", 28
+
+draw_chooser_box x,y,w,h        ->
+    color 20%, 20%, 20%, 70%
+    line_color 1,0,0,70%
+    rounded_rectangle x, y, w+10, h+10, 5
+    line_color 0,0,0,0
+
+draw_chooser_caption m, x, y  ->
+    chooser_title_font
+    move_to x, y, 0
+    text m
+
+draw_chooser_choice m, x, y  ->
+    color 70%, 70%, 100%, 90%
+    draw_chooser_caption m, x, y
+
+draw_chooser_error m, x, y ->
+    color 100%, 90%, 20%, 90%
+    draw_chooser_caption m, x, y
+
+draw_chooser_title m, x, y  ->
+    color 100%, 100%, 70%, 90%
+    draw_chooser_caption m, x, y
+
+draw_chooser_more_above x, y, w, h ->
+    color 20%, 100%, 40%, 80%
+    triangle x, y, w, h
+
+draw_chooser_more_below x, y, w, h ->
+    color 20%, 100%, 40%, 80%
+    triangle x, y, w, -h
+
+draw_chooser_selection x, y, w, h ->
+    color 40%, 60%, 90%, 80%
+    rectangle x, y, w+8, h+2
+
+draw_chooser_item m, x, y ->
+    chooser_item_font
+    color 100%, 100%, 100%, 90%
+    move_to x, y, 0
+    text m
+
+draw_chooser_match m1, m2, m3, x, y ->
+    chooser_item_font
+    color 100%, 100%, 100%, 70%
+    move_to x, y, 0
+    text m1
+    color 100%, 100%, 60%, 90%
+    text m2
+    color 100%, 100%, 100%, 60%
+    text m3
 
 // 3D Shapes
 sphere x:real, y:real, z:real, r:real   -> sphere x,y,z,2*r,2*r,2*r,25,25

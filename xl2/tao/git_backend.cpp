@@ -201,12 +201,17 @@ bool GitRepository::branch(text name)
 
 bool GitRepository::add(text name)
 // ----------------------------------------------------------------------------
-//   Add a new file to the repository
+//   Add a new file to the repository. If name == "", add all untracked filed.
 // ----------------------------------------------------------------------------
 {
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
-    Process cmd(command(), QStringList("add") << +name, path);
+    QStringList args("add");
+    if (name.empty())
+        args << "--all";
+    else
+        args << +name;
+    Process cmd(command(), args, path);
     return cmd.done(&errors);
 }
 
@@ -262,6 +267,8 @@ bool GitRepository::commit(text message, bool all)
         message = nextCommitMessage;
         nextCommitMessage = "";
     }
+    if (all)
+        add("");
     QStringList args("commit");
     if (all)
         args << "-a";

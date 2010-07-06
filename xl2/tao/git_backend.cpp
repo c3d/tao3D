@@ -613,4 +613,27 @@ text GitRepository::version()
     return result;
 }
 
+
+bool GitRepository::isClean()
+// ----------------------------------------------------------------------------
+//    Is working directory is clean or dirty?
+// ----------------------------------------------------------------------------
+//    Working directory is considered dirty when a file tracked by Git has
+//    been modified or deleted and not committed, or a file not tracked by Git
+//    is found in the directory.
+{
+    bool ok;
+    text    output;
+    waitForAsyncProcessCompletion();
+
+    QStringList args;
+    args << "status" << "--porcelain";
+    Process cmd(command(), args, path);
+    ok = cmd.done(&errors, &output);
+    if (!ok || !output.empty())
+        return false;
+
+    return true;
+}
+
 TAO_END

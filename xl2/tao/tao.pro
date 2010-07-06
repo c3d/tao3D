@@ -119,7 +119,8 @@ HEADERS += widget.h \
     group_layout.h \
     resource_mgt.h \
     tree_cloning.h \
-    font_file_manager.h
+    font_file_manager.h \
+    splash_screen.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -188,7 +189,8 @@ SOURCES += tao_main.cpp \
     group_layout.cpp \
     resource_mgt.cpp \
     tree_cloning.cpp \
-    font_file_manager.cpp
+    font_file_manager.cpp \
+    splash_screen.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \
@@ -246,5 +248,7 @@ QMAKE_CLEAN += version.h
 PRE_TARGETDEPS += version.h
 revtarget.target = version.h
 revtarget.commands = ./updaterev.sh
-revtarget.depends = $$SOURCES $$HEADERS $$FORMS
+revtarget.depends = $$SOURCES \
+    $$HEADERS \
+    $$FORMS
 QMAKE_EXTRA_TARGETS += revtarget

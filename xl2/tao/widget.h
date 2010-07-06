@@ -34,6 +34,7 @@
 #include "menuinfo.h"
 #include "color.h"
 #include "glyph_cache.h"
+#include "runtime.h"
 #include "font_file_manager.h"
 
 #include <GL/glew.h>
@@ -122,7 +123,7 @@ signals:
     void        copyAvailable(bool yes = true);
 
 public:
-    // OpenGL
+    // OpenGL and drawing
     void        initializeGL();
     void        resizeGL(int width, int height);
     void        paintGL();
@@ -131,6 +132,8 @@ public:
     void        identifySelection();
     void        updateSelection();
     uint        showGlErrors();
+    QFont &     currentFont();
+    Symbols *   currentSymbols();
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -211,9 +214,10 @@ public:
     Point3      unproject (coord x, coord y, coord z = 0.0);
     Drag *      drag();
     TextSelect *textSelection();
-    void        drawSelection(Layout *, const Box3 &, text name, uint id);
-    void        drawHandle(Layout *, const Point3 &, text name, uint id);
+    void        drawSelection(Layout *, const Box3 &, text name, uint id=0);
+    void        drawHandle(Layout *, const Point3 &, text name, uint id=0);
     void        drawTree(Layout *where, Tree *code);
+    void        drawCall(Layout *, XL::XLCall &call, uint id=0);
     template<class Activity>
     Activity *  active();
     void        checkCopyAvailable();
@@ -518,6 +522,11 @@ public:
     Tree_p      image(Tree_p self, Real_p x, Real_p y, text filename);
 
     // Menus and widgets
+    Tree_p      chooser(Tree_p self, text caption);
+    Tree_p      chooserChoice(Tree_p self, text caption, Tree_p command);
+    Tree_p      chooserCommands(Tree_p self, text prefix, text label);
+    Tree_p      chooserPages(Tree_p self, Name_p prefix, text label);
+
     static Tree_p runtimeError(Tree_p self, text msg, Tree_p src);
     static Tree_p formulaRuntimeError(Tree_p self, text msg, Tree_p src);
     Tree_p      menuItem(Tree_p self, text name, text lbl, text iconFileName,
@@ -577,6 +586,7 @@ private:
     typedef XL::LocalSave<Widget *>             TaoSave;
     typedef std::map<text, PageLayout*>         flow_map;
     typedef std::map<text, text>                page_map;
+    typedef std::list<text>                     page_list;
     typedef std::map<GLuint, Tree_p>            GLid_map;
     typedef std::map<text, GLid_map>            action_map;
 
@@ -597,6 +607,7 @@ private:
     flow_map              flows;
     text                  pageName, lastPageName;
     page_map              pageLinks;
+    page_list             pageNames;
     uint                  pageId, pageFound, pageShown, pageTotal;
     Tree_p                pageTree;
     bool                  drawAllPages;

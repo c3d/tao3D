@@ -527,14 +527,6 @@ PREFIX(SetFileDialogLabel, tree, "file_chooser_label",
        PARM(lbl, text) PARM(v, text),
        RTAO(setFileDialogLabel(self, lbl, v)))
 
-
-PREFIX(VideoPlayer, tree, "video_player",
-       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(u,text),
-       RTAO(videoPlayer(self, x, y, w, h, u)))
-PREFIX(VideoPlayerTexture, tree, "video_player_texture",
-       PARM(w,real) PARM(h,real) PARM(u,text),
-       RTAO(videoPlayerTexture(self, w, h, u)))
-
 PREFIX(Action, tree, "button_group_action", PARM(act, tree),
        RTAO(setButtonGroupAction(self, act)))
 
@@ -546,9 +538,34 @@ PREFIX(GroupBox, tree, "group_box",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(u, text) PARM(b, tree),
        RTAO(groupBox(self, x, y, w, h, u, b)))
-PREFIX(GroupBoxTexture, tree, "groupboxtexture",
+PREFIX(GroupBoxTexture, tree, "group_box_texture",
        PARM(w,real) PARM(h,real) PARM(u, text),
        RTAO(groupBoxTexture(self, w, h, u)))
+
+
+PREFIX(VideoPlayer, tree, "video_player",
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(u,text),
+       RTAO(videoPlayer(self, x, y, w, h, u)))
+PREFIX(VideoPlayerTexture, tree, "video_player_texture",
+       PARM(w,real) PARM(h,real) PARM(u,text),
+       RTAO(videoPlayerTexture(self, w, h, u)))
+
+
+
+// ============================================================================
+//
+//   Chooser
+//
+// ============================================================================
+
+PREFIX(Chooser, tree, "chooser", PARM(n, text), RTAO(chooser(self, n)))
+PREFIX(ChooserChoice, tree, "chooser_choice", PARM(n, text) PARM(t, tree),
+       RTAO(chooserChoice(self, n, t)))
+PREFIX(ChooserCommands, tree, "chooser_commands", PARM(p, text) PARM(t,text),
+       RTAO(chooserCommands(self, p, t)))
+PREFIX(ChooserPages, tree, "chooser_pages", PARM(p, symbol) PARM(l, text),
+       RTAO(chooserPages(self, p, l)))
+
 
 
 // ============================================================================
@@ -642,9 +659,9 @@ POSTFIX(FromPx,   real, PARM(x, real), "px", RTAO(fromPx(self, x)))
 
 
 // ============================================================================
-// 
+//
 //   Misc...
-// 
+//
 // ============================================================================
 
 PREFIX(Constant, tree, "constant", PARM(t, tree), RTAO(constant(self, t)))

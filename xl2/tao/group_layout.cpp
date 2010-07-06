@@ -92,10 +92,12 @@ void GroupLayout::Select(Layout *where)
 //   Select the group (draw the bounding box, select all contained items)
 // ----------------------------------------------------------------------------
 {
+    (void) where;
     Widget *widget = Display();
     widget->select(self);
     widget->select(id, 1);
-    Drawing::DrawSelection(where);
+
+//    Drawing::DrawSelection(this);
     SelectAll(true);
 }
 

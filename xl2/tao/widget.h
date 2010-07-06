@@ -525,6 +525,7 @@ public:
     Tree_p      chooser(Tree_p self, text caption);
     Tree_p      chooserChoice(Tree_p self, text caption, Tree_p command);
     Tree_p      chooserCommands(Tree_p self, text prefix, text label);
+    Tree_p      chooserPages(Tree_p self, Name_p prefix, text label);
 
     static Tree_p runtimeError(Tree_p self, text msg, Tree_p src);
     static Tree_p formulaRuntimeError(Tree_p self, text msg, Tree_p src);
@@ -585,6 +586,7 @@ private:
     typedef XL::LocalSave<Widget *>             TaoSave;
     typedef std::map<text, PageLayout*>         flow_map;
     typedef std::map<text, text>                page_map;
+    typedef std::list<text>                     page_list;
     typedef std::map<GLuint, Tree_p>            GLid_map;
     typedef std::map<text, GLid_map>            action_map;
 
@@ -605,6 +607,7 @@ private:
     flow_map              flows;
     text                  pageName, lastPageName;
     page_map              pageLinks;
+    page_list             pageNames;
     uint                  pageId, pageFound, pageShown, pageTotal;
     Tree_p                pageTree;
     bool                  drawAllPages;

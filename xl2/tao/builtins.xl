@@ -19,6 +19,7 @@ key "Control-+"                         -> zoom_in
 key "Control--"                         -> zoom_out
 key "Delete"                            -> delete_selection "Delete"
 key "Backspace"                         -> delete_selection "Backspace"
+key "Control-G"                         -> page_chooser
 key X                                   -> text_edit_key X
 
 // Zoom
@@ -53,7 +54,12 @@ main_chooser ->
     chooser_choice "Zoom in", {zoom_in}
     chooser_choice "Zoom out", {zoom_out}
     chooser_choice "Toggle hand cursor", {toggle_hand_cursor}
+    chooser_choice "Select page", {page_chooser}
     chooser_commands "shape_color_", "Set shape color to "
+
+page_chooser ->
+    chooser "Go to page..."
+    chooser_pages goto_page, ""
 
 chooser_title_font              -> font "Arial Black", 30
 chooser_item_font               -> font "Arial", 28

@@ -563,6 +563,9 @@ PREFIX(ChooserChoice, tree, "chooser_choice", PARM(n, text) PARM(t, tree),
        RTAO(chooserChoice(self, n, t)))
 PREFIX(ChooserCommands, tree, "chooser_commands", PARM(p, text) PARM(t,text),
        RTAO(chooserCommands(self, p, t)))
+PREFIX(ChooserPages, tree, "chooser_pages", PARM(p, symbol) PARM(l, text),
+       RTAO(chooserPages(self, p, l)))
+
 
 
 // ============================================================================

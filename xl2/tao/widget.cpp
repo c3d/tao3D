@@ -287,6 +287,7 @@ void Widget::draw()
     pageFound = 0;
     pageTree = NULL;
     lastPageName = "";
+    pageNames.clear();
 
     // Clear the background
     glClearColor (1.0, 1.0, 1.0, 1.0);
@@ -2798,8 +2799,9 @@ XL::Text_p Widget::page(Tree_p self, text name, Tree_p body)
     if (pageName == "")
         pageName = name;
 
-    // Increment pageId
+    // Increment pageId and build page list
     pageId++;
+    pageNames.push_back(name);
 
     // If the page is set, then we display it
     if (pageName == name || drawAllPages)
@@ -6154,6 +6156,28 @@ Tree_p Widget::chooserCommands(Tree_p self, text prefix, text label)
     }
     return XL::xl_false;
 }
+
+
+Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
+// ----------------------------------------------------------------------------
+//   Add a list of pages to the chooser
+// ----------------------------------------------------------------------------
+{
+    if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
+    {
+        page_list::iterator p;
+        for (p = pageNames.begin(); p != pageNames.end(); p++)
+        {
+            text name = *p;
+            Tree *action = new Prefix(prefix, new Text(name));
+            action->SetSymbols(self->Symbols());
+            chooser->AddItem(label + name, action);
+        }
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
 
 
 // ============================================================================

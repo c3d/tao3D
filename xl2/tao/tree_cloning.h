@@ -25,6 +25,7 @@
 #include "tao_tree.h"
 #include "tree.h"
 #include "widget.h"
+#include "parser.h"
 
 
 TAO_BEGIN
@@ -52,6 +53,8 @@ template <typename mode> struct TaoCloneTemplate : Action
     Tree *Reselect(Tree *from, Tree *to)
     {
         widget->reselect(from, to);
+        if (XL::CommentsInfo *cinfo = from->GetInfo<XL::CommentsInfo>())
+            to->SetInfo<XL::CommentsInfo> (new XL::CommentsInfo(*cinfo));
         return to;
     }
 

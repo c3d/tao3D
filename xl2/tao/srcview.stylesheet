@@ -25,17 +25,16 @@ infix  = separator left space self space right separator
 prefix = separator left space right separator
 block  = separator opening separator child separator closing separator
 
-indent = indent cr
-unindent = unindent cr
 "infix ," = separator left "," space right separator
 "infix ;" = separator left ";" space right separator
 "infix :" = separator left ":" right separator
+"infix cr" = separator left cr right separator
 "postfix %" = separator left "%" space separator
 "postfix !" = separator left "!" space separator
 "prefix +" = separator "+" separator right separator
 "prefix -" = separator "-" separator right separator
 indents = nbsp nbsp nbsp nbsp
-"block I+ I-" = indent "<BR>" indents child unindent
+"block I+ I-" = indent cr child unindent
 "block  ( ) " = "( " child " )"
 "block { }" = "{ " child " }"
 "infix else" = separator left cr self right separator
@@ -43,7 +42,7 @@ indents = nbsp nbsp nbsp nbsp
 // Character remapping
 nbsp            = "&nbsp;"
 space           = " "
-cr              = "<BR>" indents
+cr              = "<BR>"
 '<'             = "&lt;"
 '>'             = "&gt;"
 '&'             = "&amp;"
@@ -51,13 +50,12 @@ cr              = "<BR>" indents
 // Begin/end stanzas
 begin         =
     "<html><head><meta http-equiv=""Content-Type"" content=""text/html; charset=utf-8""><link rel=""stylesheet"" type=""text/css"" href=""srcview.css"" /></head><body>"
-    newline
-end           = newline "</body></html>"
+end           = "</body></html>"
 
 
 // CSS classes
 // FIXME: 1 space is added at the end of a // comment
-cppcomment      = "<span class=""comment"">//" self "</span>"
+cppcomment      = "<span class=""comment"">" self "</span>"
 number          = "<span class=""number"">" self "</span>"
 keyword         = "<span class=""keyword"">" self "</span>"
 type            = "<span class=""type"">" self "</span>"
@@ -70,9 +68,10 @@ highlight_end_selected = "</span><br>"
 
 
 // Comments, text
-"text //"       = cppcomment
-"text "" """ = string1
-"text << >>" = string2
+"comment "       = cppcomment
+"comment_after " = space cppcomment
+"text "" """     = string1
+"text << >>"     = string2
 "longtext "" """ = string2
 "longtext << >>" = string2
 """ quoted" = """"

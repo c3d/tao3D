@@ -214,6 +214,8 @@ token_t Scanner::NextToken(bool hungry)
         }
 
         // Keep looking for more spaces
+        if (c == '\n')
+            textValue += c;
         c = input.get();
         position++;
     } // End of space testing
@@ -272,6 +274,8 @@ token_t Scanner::NextToken(bool hungry)
     if (input.eof())
 	return tokEOF;
 
+    // Clear spelling from whitespaces
+    textValue = "";
 
     // Look for numbers
     if (isdigit(c))
@@ -510,6 +514,13 @@ text Scanner::Comment(text EOC)
     while (*match && c != EOF)
     {
         c = input.get();
+        if (c == EOF)
+        {
+            // End of file: show the final comment
+            comment += EOC;
+            return comment;
+        }
+
         position++;
         skip = false;
 

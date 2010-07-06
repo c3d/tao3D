@@ -76,17 +76,18 @@ token_t Parser::NextToken()
 //    Return the next token, skipping comments and gathering long text
 // ----------------------------------------------------------------------------
 {
+    text opening, closing;
     while (true)
     {
         token_t pend = pending;
         if (pend != tokNONE && pend != tokNEWLINE)
         {
             pending = tokNONE;
+            beginningLine = false;
             return pend;
         }
 
         // Here, there's nothing pending or only a newline
-        text opening, closing;
         token_t result = scanner.NextToken();
         hadSpaceBefore = scanner.HadSpaceBefore();
         hadSpaceAfter = scanner.HadSpaceAfter();
@@ -104,9 +105,24 @@ token_t Parser::NextToken()
             else if (syntax.IsComment(opening, closing))
             {
                 // Skip comments, keep looking to get the right indentation
-                text comment = scanner.Comment(closing);
+                text comment = opening + scanner.Comment(closing);
+                AddComment(comment);
                 if (closing == "\n" && pend == tokNONE)
+                {
+                    // If we had comments after a token, add them to that token
+                    if (!beginningLine && comments.size() && commented)
+                    {
+                        AddComments(commented, false);
+                        commented = NULL;
+                    }
+
                     pending = tokNEWLINE;
+                    beginningLine = true;
+                }
+                else
+                {
+                    // Don't change beginningLine in: /* ... */ /* ... */
+                }
                 continue;
             }
             else if (syntax.IsTextDelimiter(opening, closing))
@@ -123,7 +139,14 @@ token_t Parser::NextToken()
                     return tokNEWLINE;
                 }
                 if (closing == "\n" && pend == tokNONE)
+                {
                     pending = tokNEWLINE;
+                    beginningLine = true;
+                }
+                else
+                {
+                    beginningLine = false;
+                }
                 return tokLONGSTRING;
             }
 
@@ -137,22 +160,56 @@ token_t Parser::NextToken()
                     int infixPrio = syntax.InfixPriority(opening);
                     if (infixPrio < syntax.statement_priority)
                         pending = pend = tokNONE;
-                }    
+                }
             }
+
+            // All comments after this will be following the token
+            beginningLine = false;
             break;
         case tokNEWLINE:
-            // Combined with any previous pending indent
+            // Record actual new-lines and preceding comment
+            opening = scanner.TextValue();
+            if (!opening.empty())
+            {
+                AddComment(opening);
+
+                // If we had comments after a token, add them to that token
+                if (!beginningLine && comments.size() && commented)
+                {
+                    AddComments(commented, false);
+                    commented = NULL;
+                }
+            }
+
+            // Combine newline with any previous pending indent
             pending = tokNEWLINE;
+            beginningLine = true;
             continue;
         case tokUNINDENT:
-            // Add newline if no infix
+            opening = scanner.TextValue();
+            if (!opening.empty())
+            {
+                AddComment(opening);
+
+                // If we had comments after a token, add them to that token
+                if (!beginningLine && comments.size() && commented)
+                {
+                    AddComments(commented, false);
+                    commented = NULL;
+                }
+            }
+
+            // Add newline if what comes next isn't an infix like 'else'
             pending = tokNEWLINE;
+            beginningLine = true;
             return result;
         case tokINDENT:
-            // Ignore pending newline when indenting
+            // If we had a new-line followed by indent, ignore the new line
             pending = tokNONE;
+            beginningLine = true;
             return result;
         default:
+            beginningLine = false;
             break;
         } // switch (result)
 
@@ -161,12 +218,33 @@ token_t Parser::NextToken()
         if (pend != tokNONE)
         {
             pending = result;
+            beginningLine = true;
             return pend;
         }
 
         return result;
     } // While loop
 }
+
+
+void Parser::AddComments(Tree *what, bool before)
+// ----------------------------------------------------------------------------
+//   Add the pending comments to the given tree
+// ----------------------------------------------------------------------------
+{
+    CommentsInfo *cinfo = what->GetInfo<CommentsInfo>();
+    if (!cinfo)
+    {
+        cinfo =  new CommentsInfo();
+        what->SetInfo<CommentsInfo> (cinfo);
+    }
+    if (before)
+        cinfo->before = comments;
+    else
+        cinfo->after = comments;
+    comments.clear();
+}
+
 
 
 Tree *Parser::Parse(text closing)
@@ -214,6 +292,7 @@ Tree *Parser::Parse(text closing)
     char                 separator;
     text                 blk_opening, blk_closing;
     std::vector<Pending> stack;
+    CommentsList         pendingComments;
 
     // When inside a () block, we are in 'expression' mode right away
     if (closing != "" && paren_priority > statement_priority)
@@ -224,10 +303,16 @@ Tree *Parser::Parse(text closing)
 
     while (!done)
     {
+        bool wasBeginningLine = beginningLine;
+
         // Scan next token
         right = NULL;
         prefix_priority = infix_priority = default_priority;
         tok = NextToken();
+
+        // If we had comments after a token, add them to that token
+        if (!wasBeginningLine && comments.size() && commented)
+            AddComments(commented, false);
 
         // Check if we are dealing with a trailing operator (at end of line)
         if (line_continuation)
@@ -380,12 +465,16 @@ Tree *Parser::Parse(text closing)
             // Just like for names, parse the contents of the parentheses
             prefix_priority = paren_priority;
             infix_priority = default_priority;
+            pendingComments = comments;
+            comments.clear();
             right = Parse(blk_closing);
             if (tok == tokPAROPEN)
                 scanner.CloseParen(old_indent);
             if (!right)
                 right = new Name("", pos); // Case where we have ()
             right = new Block(right, blk_opening, blk_closing, pos);
+            comments.insert(comments.end(),
+                            pendingComments.begin(), pendingComments.end());
             break;
         default:
             if (true)
@@ -397,6 +486,23 @@ Tree *Parser::Parse(text closing)
             }
             break;
         } // switch(tok)
+
+
+        // Attach any comments we may have had and return the result
+        if (right)
+        {
+            commented = right;
+            if (comments.size())
+                AddComments(commented, true);
+        }
+        else if (left && (pending == tokNONE || pending == tokNEWLINE))
+        {
+            // We just got 'then', but 'then' will be an infix
+            // so we can't really attach comments to it.
+            // Instead, we defer the comment to the next 'right'
+            commented = NULL;
+        }
+            
 
         // Check what is the current result
         line_continuation = false;
@@ -509,19 +615,10 @@ Tree *Parser::Parse(text closing)
 
             // Check if new statement
             if (!is_expression)
-            {
-                if (right->Kind() != BLOCK)
-                {
-                    if (result_priority > statement_priority)
-                    {
-                        if (stack.size() == 0)
-                            result_priority = statement_priority;
-                        else
-                            if (stack.back().priority < statement_priority)
-                                result_priority = statement_priority;
-                    }
-                }
-            }
+                if (result_priority > statement_priority)
+                    if (stack.size() == 0 ||
+                        stack.back().priority < statement_priority)
+                        result_priority = statement_priority;
 
             // Push a recognized prefix op
             stack.push_back(Pending(prefix,result,result_priority,pos));
@@ -554,6 +651,7 @@ Tree *Parser::Parse(text closing)
             stack.pop_back();
         }
     }
+
     return result;
 }
 

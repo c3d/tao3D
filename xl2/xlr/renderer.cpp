@@ -1,19 +1,19 @@
 // ****************************************************************************
-//  renderer.cpp                    (C) 1992-2009 Christophe de Dinechin (ddd) 
-//                                                                 XL2 project 
+//  renderer.cpp                    (C) 1992-2009 Christophe de Dinechin (ddd)
+//                                                                 XL2 project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     Rendering of XL trees
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -36,9 +36,9 @@
 XL_BEGIN
 
 // ============================================================================
-// 
+//
 //   Renderer construction / initialization
-// 
+//
 // ============================================================================
 
 Renderer *Renderer::renderer = NULL;
@@ -87,7 +87,8 @@ Renderer::Renderer(std::ostream &out, text styleFile, Syntax &stx)
     : output(out), syntax(stx), formats(),
       indent(0), self(""), left(NULL), right(NULL), current_quote("\""),
       priority(0),
-      had_space(true), had_punctuation(false), need_separator(false)
+      had_space(true), had_punctuation(false),
+      need_separator(false), need_newline(false)
 {
     SelectStyleSheet(styleFile);
 }
@@ -98,11 +99,13 @@ Renderer::Renderer(std::ostream &out, Renderer *from)
 //   Clone a renderer from some existing one
 // ----------------------------------------------------------------------------
     : output(out), syntax(from->syntax), formats(from->formats),
-      indent(from->indent), self(from->self), 
+      indent(from->indent), self(from->self),
       left(from->left), right(from->right),
       current_quote(from->current_quote), priority(from->priority),
-      had_space(from->had_space), had_punctuation(from->had_punctuation),
-      need_separator(from->need_separator)
+      had_space(from->had_space),
+      had_punctuation(from->had_punctuation),
+      need_separator(from->need_separator),
+      need_newline(from->need_newline)
 {}
 
 
@@ -134,9 +137,9 @@ void Renderer::SelectStyleSheet(text styleFile, text syntaxFile)
 
 
 // ============================================================================
-// 
+//
 //   Rendering proper
-// 
+//
 // ============================================================================
 
 void Renderer::RenderText(text format)
@@ -146,14 +149,30 @@ void Renderer::RenderText(text format)
 {
     char c;
     uint i;
-    uint length  = format.length();
-    bool quoted  = false;
-    bool needsep = need_separator;
+    uint length   = format.length();
+    bool quoted   = false;
 
     for (i = 0; i < length; i++)
     {
         c = format[i];
-        if (needsep)
+        if (need_newline)
+        {
+            had_space = true;
+            need_newline = false;
+            need_separator = false;
+
+            text cr = "\n";
+            if (formats.count(cr) > 0)
+                RenderFormat(formats[cr]);
+            else
+                output << cr;
+
+            if (c == '\n')
+                continue;
+            RenderIndents();
+        }
+
+        if (need_separator)
         {
             if (!had_space && !isspace(c))
             {
@@ -166,22 +185,50 @@ void Renderer::RenderText(text format)
                         output << ' ';
                 }
             }
-            needsep = false;
+            need_separator = false;
         }
-        text t = text(1, c);
-        quoted = i > 0 && i < length-1 && t == current_quote;
-        if (quoted)
-            t += " quoted";
-        if (formats.count(t) > 0)
-            RenderFormat(formats[t]);
-        else if (!quoted)
-            output << c;
+
+        if (c == '\n')
+        {
+            need_newline = true;
+            need_separator = false;
+        }
         else
-            output << c << c;   // Quoted char, as in  """Hello"""
+        {
+            text t = text(1, c);
+            quoted = i > 0 && i < length-1 && t == current_quote;
+            if (quoted)
+                t += " quoted";
+            if (formats.count(t) > 0)
+                RenderFormat(formats[t]);
+            else if (!quoted)
+                output << c;
+            else
+                output << c << c;   // Quoted char, as in  """Hello"""
+        }
         had_space = isspace(c);
         had_punctuation = ispunct(c);
     }
-    need_separator = needsep;
+}
+
+
+void Renderer::RenderIndents()
+// ----------------------------------------------------------------------------
+//   Render the indents at the beginning of a line
+// ----------------------------------------------------------------------------
+{
+    text k0 = "indents ";
+    if (formats.count(k0) > 0)
+    {
+        Tree *fmt = formats[k0];
+        for (uint i = 0; i < indent; i++)
+            RenderFormat(fmt);
+    }
+    else
+    {
+        for (uint i = 0; i < indent; i++)
+            RenderText(" ");
+    }
 }
 
 
@@ -202,7 +249,10 @@ void Renderer::RenderFormat(Tree *format)
         text n = nf->value;
         text m = n + " ";
         if (n == "cr")
+        {
             m = "\n";
+            need_newline = true;
+        }
 
         if (n == "indent")
         {
@@ -214,18 +264,7 @@ void Renderer::RenderFormat(Tree *format)
         }
         else if (n == "indents")
         {
-            text k0 = "indents ";
-            if (formats.count(k0) > 0)
-            {
-                Tree *fmt = formats[k0];
-                for (uint i = 0; i < indent; i++)
-                    RenderFormat(fmt);
-            }
-            else
-            {
-                for (uint i = 0; i < indent; i++)
-                    RenderText(" ");
-            }
+            RenderIndents();
         }
         else if (n == "self")
         {
@@ -247,11 +286,11 @@ void Renderer::RenderFormat(Tree *format)
         }
         else if (n ==  "left" || n == "child")
         {
-            RenderOne(left);
+            Render(left);
         }
         else if (n == "right")
         {
-            RenderOne(right);
+            Render(right);
         }
         else if (n == "opening")
         {
@@ -274,10 +313,9 @@ void Renderer::RenderFormat(Tree *format)
         {
             need_separator = true;
         }
-        else if (n == "newline")
+        else if (n == "newline" || n == "cr")
         {
-            output << '\n';
-            had_space = true;
+            need_newline = true;
         }
         else if (formats.count(m) > 0)
         {
@@ -407,27 +445,45 @@ int Renderer::InfixPriority(Tree *test)
 }
 
 
-void Renderer::RenderOne(Tree *what)
+void Renderer::Render(Tree *what)
 // ----------------------------------------------------------------------------
 //   Render to given stream (taking care of selected items highlighting)
 // ----------------------------------------------------------------------------
 {
     text hname;
-    if (highlights.count(what))
+    bool highlight = what && highlights.count(what) > 0;
+    if (highlight)
         hname = highlights[what];
-
-    bool highlight = !hname.empty();
+    CommentsInfo *cinfo = what ? what->GetInfo<CommentsInfo>() : NULL;
+    CommentsList::iterator ci;
 
     if (highlight)
         RenderFormat("", "highlight_begin_" + hname + " ");
 
-    DoRenderOne(what);
+    if (cinfo)
+    {
+        text saveSelf = self;
+        for (ci = cinfo->before.begin(); ci != cinfo->before.end(); ci++)
+            RenderFormat(*ci, "comment_before ", "comment ");
+        self = saveSelf;
+    }
+
+    RenderBody(what);
+
+    if (cinfo)
+    {
+        text saveSelf = self;
+        for (ci = cinfo->after.begin(); ci != cinfo->after.end(); ci++)
+            RenderFormat(*ci, "comment_after ", "comment ");
+        self = saveSelf;
+    }
 
     if (highlight)
         RenderFormat("", "highlight_end_" + hname + " ");
 }
 
-void Renderer::DoRenderOne(Tree *what)
+
+void Renderer::RenderBody(Tree *what)
 // ----------------------------------------------------------------------------
 //   Render to given stream
 // ----------------------------------------------------------------------------
@@ -538,23 +594,23 @@ void Renderer::DoRenderOne(Tree *what)
         {
             text n = n0 + lf->value;
             if (formats.count(n) > 0)
-                RenderFormat (formats[n]); 
+                RenderFormat (formats[n]);
             else if (formats.count(n0) > 0)
                 RenderFormat (formats[n0]);
             else
             {
-                RenderOne (l);
-                RenderOne (r);
+                Render (l);
+                Render (r);
             }
-        }            
+        }
         else if (formats.count(n0) > 0)
         {
             RenderFormat (formats[n0]);
         }
         else
         {
-            RenderOne (l);
-            RenderOne (r);
+            Render (l);
+            Render (r);
         }
     }   break;
     case POSTFIX: {
@@ -576,23 +632,23 @@ void Renderer::DoRenderOne(Tree *what)
         {
             text n = n0 + rf->value;
             if (formats.count(n) > 0)
-                RenderFormat (formats[n]); 
+                RenderFormat (formats[n]);
             else if (formats.count(n0) > 0)
                 RenderFormat (formats[n0]);
             else
             {
-                RenderOne (l);
-                RenderOne (r);
+                Render (l);
+                Render (r);
             }
-        }            
+        }
         else if (formats.count(n0) > 0)
         {
             RenderFormat (formats[n0]);
         }
         else
         {
-            RenderOne (l);
-            RenderOne (r);
+            Render (l);
+            Render (r);
         }
     }   break;
     case INFIX: {
@@ -628,9 +684,9 @@ void Renderer::DoRenderOne(Tree *what)
             RenderFormat(formats[n0]);
         else
         {
-            RenderOne (l);
+            Render (l);
             RenderFormat (w->name, w->name);
-            RenderOne (r);
+            Render (r);
         }
     }   break;
     case BLOCK: {
@@ -649,7 +705,7 @@ void Renderer::DoRenderOne(Tree *what)
         else
         {
             RenderFormat (w->opening, w->opening, "opening ");
-            RenderOne (w->child);
+            Render (w->child);
             RenderFormat (w->closing, w->closing, "closing ");
         }
     }   break;
@@ -662,7 +718,7 @@ void Renderer::DoRenderOne(Tree *what)
 }
 
 
-void Renderer::Render(Tree *what)
+void Renderer::RenderFile(Tree *what)
 // ----------------------------------------------------------------------------
 //   Output the tree, including begin and end formats if any
 // ----------------------------------------------------------------------------
@@ -673,7 +729,7 @@ void Renderer::Render(Tree *what)
     need_separator = false;
     priority = 0;
     RenderFormat("", "begin ");
-    RenderOne(what);
+    Render(what);
     RenderFormat("", "end ");
 }
 
@@ -684,7 +740,7 @@ std::ostream& operator<< (std::ostream &out, XL::Tree *t)
 // ----------------------------------------------------------------------------
 {
     XL::Renderer render(out);
-    render.Render(t);
+    render.RenderFile(t);
     return out;
 }
 
@@ -697,7 +753,7 @@ void debug(XL::Tree *tree)
 // ----------------------------------------------------------------------------
 {
     XL::Renderer render(std::cout);
-    render.Render(tree);
+    render.RenderFile(tree);
     std::cout << "\n";
 }
 
@@ -711,7 +767,7 @@ void debugp(XL::Tree *tree)
 {
     XL::Renderer render(std::cout);
     render.SelectStyleSheet("debug.stylesheet");
-    render.Render(tree);
+    render.RenderFile(tree);
 
     XL::TreeHashAction<> h_action(XL::TreeHashAction<>::Force);
     tree->Do(h_action);

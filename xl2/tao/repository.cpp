@@ -147,8 +147,10 @@ bool Repository::setTask(text name)
     task = name;
 
     // Don't fail if working directory is not clean
-    if (!commit("Automatic commit on Tao startup", true))
-        return false;
+    if (!isClean())
+        if (!commit(+tr("Automatic commit on document opening "
+                        "(clean working directory)"), true))
+            return false;
     // Check if we can checkout the task branch
     if (!checkout(task))
         if (!branch(task) || !checkout(task))

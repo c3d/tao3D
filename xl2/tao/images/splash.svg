@@ -16,7 +16,7 @@
    id="svg3527"
    inkscape:version="0.47 r22583"
    sodipodi:docname="splash.svg"
-   inkscape:export-filename="/Users/jerome/Documents/Work/Logo/splash.png"
+   inkscape:export-filename="/Users/jerome/work/xlr/xl2/tao/images/splash.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
   <metadata
@@ -27,7 +27,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -40,17 +40,17 @@
      guidetolerance="10"
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
-     inkscape:window-width="1397"
-     inkscape:window-height="992"
+     inkscape:window-width="1630"
+     inkscape:window-height="991"
      id="namedview149"
      showgrid="false"
      units="cm"
      height="21cm"
      inkscape:zoom="1.06"
-     inkscape:cx="408.5418"
+     inkscape:cx="286.94809"
      inkscape:cy="233.7496"
-     inkscape:window-x="432"
-     inkscape:window-y="22"
+     inkscape:window-x="149"
+     inkscape:window-y="13"
      inkscape:window-maximized="0"
      inkscape:current-layer="svg3527" />
   <defs
@@ -930,23 +930,23 @@
   <flowRoot
      xml:space="preserve"
      id="flowRoot2959"
-     style="font-size:17.79202652px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:BlairMdITC TT;-inkscape-font-specification:BlairMdITC TT Bold"
-     transform="matrix(2.0233782,0,0,2.0233782,-163.5243,-1101.1379)"><flowRegion
+     style="font-size:14.82668972px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:BlairMdITC TT;-inkscape-font-specification:BlairMdITC TT Bold"
+     transform="matrix(2.0233782,0,0,2.0233782,-172.38817,-1101.1379)"><flowRegion
        id="flowRegion2961"><rect
          id="rect2963"
          width="759.32202"
          height="141.01695"
          x="114.98305"
          y="581.38263"
-         style="font-size:17.79202652px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:BlairMdITC TT;-inkscape-font-specification:BlairMdITC TT Bold" /></flowRegion><flowPara
+         style="font-size:14.82668972px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:BlairMdITC TT;-inkscape-font-specification:BlairMdITC TT Bold" /></flowRegion><flowPara
        id="flowPara2965"
-       style="font-size:17.79202652px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:BlairMdITC TT;-inkscape-font-specification:BlairMdITC TT Bold"><flowSpan
-         style="font-size:17.79202652px;fill:#0033cc;fill-opacity:1"
+       style="font-size:14.82668971999999918px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:justify;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:BlairMdITC TT;-inkscape-font-specification:BlairMdITC TT Bold"><flowSpan
+         style="font-size:14.82668971999999918px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:justify;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#0033cc;fill-opacity:1;font-family:BlairMdITC TT;-inkscape-font-specification:BlairMdITC TT Bold"
          id="flowSpan3739"><flowSpan
-   style="font-size:17.79202652px;fill:#666666"
+   style="font-size:14.82668971999999918px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:justify;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#666666;font-family:BlairMdITC TT;-inkscape-font-specification:BlairMdITC TT Bold"
    id="flowSpan3054">Welcome to  </flowSpan>Tao </flowSpan><flowSpan
-         style="fill:#666666"
-         id="flowSpan5592">Present! </flowSpan></flowPara></flowRoot>  <g
+         style="font-size:14.82668971999999918px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:justify;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#666666;font-family:BlairMdITC TT;-inkscape-font-specification:BlairMdITC TT Bold"
+         id="flowSpan5592">Presentations </flowSpan></flowPara></flowRoot>  <g
      id="g5526"
      transform="translate(212.5,316.25)">
     <g
@@ -1382,7 +1382,7 @@
      xml:space="preserve"
      id="flowRoot2959-7"
      style="font-size:17.79202652px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:BlairMdITC TT;-inkscape-font-specification:BlairMdITC TT Bold"
-     transform="matrix(2.0233782,0,0,2.0233782,106.1691,-782.75519)"><flowRegion
+     transform="matrix(2.0233782,0,0,2.0233782,-1028.2024,-772.37783)"><flowRegion
        id="flowRegion2961-9"><rect
          id="rect2963-3"
          width="759.32202"
@@ -1391,27 +1391,15 @@
          y="581.38263"
          style="font-size:17.79202652px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:BlairMdITC TT;-inkscape-font-specification:BlairMdITC TT Bold" /></flowRegion><flowPara
        id="flowPara2965-8"
-       style="font-size:8.89601326px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#666666;fill-opacity:1;font-family:BlairMdITC TT;-inkscape-font-specification:BlairMdITC TT Bold">© Taodyne — www.taodyne.com</flowPara></flowRoot>  <text
+       style="font-size:6.91912174px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:end;line-height:125%;writing-mode:lr-tb;text-anchor:end;fill:#666666;fill-opacity:1;font-family:BlairMdITC TT;-inkscape-font-specification:BlairMdITC TT Bold">© 2010 Taodyne SAS — http://www.taodyne.com</flowPara></flowRoot>  <text
      xml:space="preserve"
      style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:end;line-height:125%;writing-mode:lr-tb;text-anchor:end;fill:#666666;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
-     x="727.81134"
-     y="272.07547"
+     x="740.0506"
+     y="145.66037"
      id="text3112"
      sodipodi:linespacing="125%"><tspan
        sodipodi:role="line"
-       id="tspan3114"
-       x="727.81134"
-       y="272.07547">The Art Of sharing ideas</tspan><tspan
-       sodipodi:role="line"
-       x="727.81134"
-       y="294.57547"
-       id="tspan3116" /><tspan
-       sodipodi:role="line"
-       x="727.81134"
-       y="317.07547"
-       id="tspan3118">Version 1.0<tspan
-   style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:end;line-height:125%;writing-mode:lr-tb;text-anchor:end;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
-   id="tspan3120"><tspan
-   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Times New Roman;-inkscape-font-specification:'Times New Roman,'"
-   id="tspan3124">α</tspan> (alpha)</tspan></tspan></text>
+       x="740.0506"
+       y="145.66037"
+       id="tspan3118">The Art Of Sharing Ideas</tspan></text>
 </svg>

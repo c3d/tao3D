@@ -319,7 +319,7 @@ void Window::open(QString fileName, bool readOnly)
                                    readOnly);
         other->move(x() + 40, y() + 40);
         other->show();
-        other->loadFile(fileName);
+        other->loadFile(fileName, true);
 
         if (other->isUntitled)
         {

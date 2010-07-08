@@ -136,6 +136,7 @@ public:
                               AnsiTextEdit *out = NULL, void *id = NULL) = 0;
     virtual text        version()                       = 0;
     virtual bool        isClean()                       = 0;
+    virtual QString     url()                           = 0;
 
 public:
     static bool         versionGreaterOrEqual(QString ver, QString ref);

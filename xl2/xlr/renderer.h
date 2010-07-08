@@ -53,6 +53,7 @@ struct Renderer
     void                RenderFile (Tree *what);
     void                Render (Tree *what);
     void                RenderBody(Tree *what);
+    void                RenderSeparators(char c);
     void                RenderText(text format);
     void                RenderIndents();
     void                RenderFormat(Tree *format);
@@ -75,6 +76,7 @@ struct Renderer
     text                current_quote;
     int                 priority;
     bool                had_space;
+    bool                had_newline;
     bool                had_punctuation;
     bool                need_separator;
     bool                need_newline;

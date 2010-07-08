@@ -41,7 +41,7 @@ QT_END_NAMESPACE
 namespace Tao {
 
 struct Widget;
-
+class SplashScreen;
 
 class Window : public QMainWindow
 // ----------------------------------------------------------------------------
@@ -82,6 +82,7 @@ public slots:
     void sourceViewBecameVisible(bool visible);
     void open(QString fileName = "", bool readOnly = false);
     void removeSplashScreen();
+    void deleteAboutSplash();
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -190,6 +191,7 @@ private:
 public:
     QMenu            *shareMenu;
     QSplashScreen    *splashScreen;
+    SplashScreen     *aboutSplash;
 
 };
 

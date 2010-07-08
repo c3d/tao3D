@@ -32,7 +32,7 @@
 #include "clone_dialog.h"
 #include "undo.h"
 #include "resource_mgt.h"
-#include "version.h"
+#include "splash_screen.h"
 
 #include <iostream>
 #include <sstream>
@@ -59,7 +59,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
       repo(NULL), textEdit(NULL), errorMessages(NULL),
       dock(NULL), errorDock(NULL),
       taoWidget(NULL), curFile(),
-      fileCheckTimer(this), splashScreen(NULL)
+      fileCheckTimer(this), splashScreen(NULL), aboutSplash(NULL)
 {
     // Define the icon
     setWindowIcon(QIcon(":/images/tao.png"));
@@ -633,19 +633,21 @@ void Window::about()
 //    About Box
 // ----------------------------------------------------------------------------
 {
-    kstring txt =
-        "<center>"
-        "<b>Tao</b>, an interactive collaboration tool<br/><br/>"
-        "Version " GITREV "<br/><br/>"
-        "Copyright \302\251 2010 Taodyne SAS<br/><br/>"
-        "Brought to you by:<br/>"
-        "Anne Lempereur<br/>"
-        "Catherine Burvelle<br/>"
-        "J\303\251r\303\264me Forissier<br/>"
-        "Lionel Schaffhauser<br/>"
-        "Christophe de Dinechin"
-        "</center>";
-   QMessageBox::about (this, tr("About Tao"), trUtf8(txt));
+    if (aboutSplash)
+        return;
+    aboutSplash = new SplashScreen();
+    connect(aboutSplash, SIGNAL(dismissed()), this, SLOT(deleteAboutSplash()));
+    aboutSplash->show();
+}
+
+
+void Window::deleteAboutSplash()
+// ----------------------------------------------------------------------------
+//    Delete the SplashScreen object allocated by the about() method
+// ----------------------------------------------------------------------------
+{
+    delete aboutSplash;
+    aboutSplash = NULL;
 }
 
 

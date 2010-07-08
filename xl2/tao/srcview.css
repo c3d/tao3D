@@ -8,7 +8,7 @@ body {
     color:#00007f;
 }
 .string {
-    color:#007f00;
+    color:#007f7f;
 }
 .type {
     color:#7f007f;
@@ -23,6 +23,6 @@ body {
     color:#7f007f;
 }
 .comment {
-    color:#007f00;
+    color:#7f0000;
     font-style:oblique;
 }

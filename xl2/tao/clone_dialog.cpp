@@ -123,7 +123,7 @@ void CloneDialog::endClone(void *id, QString projPath)
         {
             bool ok;
             cloneOutput->insertPlainText(tr("Checking out files...\n"));
-            ok = repo->checkout("master_tao_undo");
+            ok = repo->setTask("master");
             if (ok)
                 cloneOutput->insertPlainText(tr("Done\n"));
             else

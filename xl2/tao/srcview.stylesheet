@@ -25,19 +25,19 @@ infix  = separator left space self space right separator
 prefix = separator left space right separator
 block  = separator opening separator child separator closing separator
 
-"infix ," = separator left "," space right separator
-"infix ;" = separator left ";" space right separator
-"infix :" = separator left ":" right separator
-"infix cr" = separator left cr right separator
-"postfix %" = separator left "%" space separator
-"postfix !" = separator left "!" space separator
-"prefix +" = separator "+" separator right separator
-"prefix -" = separator "-" separator right separator
+"infix ," = separator left ',' space right separator
+"infix ;" = separator left ';' space right separator
+"infix :" = separator left ':' right separator
+"postfix %" = separator left '%' separator
+"postfix !" = separator left '!' separator
+"prefix +" = separator '+' separator right separator
+"prefix -" = separator '-' separator right separator
+"prefix *" = separator '*' separator right separator
+"prefix /" = separator '/' separator right separator
 indents = nbsp nbsp nbsp nbsp
-"block I+ I-" = indent cr child unindent
-"block  ( ) " = "( " child " )"
-"block { }" = "{ " child " }"
-"infix else" = separator left cr self right separator
+"block I+ I-" = indent newline child unindent
+"block  ( ) " = '(' child ')'
+"block { }" = '{' child '}'
 
 // Character remapping
 nbsp            = "&nbsp;"
@@ -61,8 +61,8 @@ keyword         = "<span class=""keyword"">" self "</span>"
 type            = "<span class=""type"">" self "</span>"
 function        = "<span class=""function"">" self "</span>"
 builtin         = "<span class=""builtin"">" self "</span>"
-string1         = "<span class=""string""> """ quoted_self """</span>"
-string2         = "<span class=""string""> &lt;&lt;" self "&gt;&gt;</span>"
+string1         = "<span class=""string"">" '"' quoted_self '"' "</span>"
+string2         = "<span class=""string"">" '<<' self '>>' "</span>"
 highlight_begin_selected = "<span class=""selected"">"
 highlight_end_selected = "</span><br>"
 

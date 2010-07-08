@@ -75,6 +75,7 @@ public:
     virtual Process *   asyncClone(QString cloneUrl, QString newFolder,
                                    AnsiTextEdit *out = NULL, void *id = NULL);
     virtual text        version();
+    virtual bool        isClean();
 
     static  bool        checkGit();
 

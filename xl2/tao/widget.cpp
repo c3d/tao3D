@@ -107,10 +107,10 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
       pageTree(NULL),
-      drawAllPages(false),
-      currentShape(NULL),
-      currentGridLayout(NULL),
-      currentGroup(NULL), fontFileMgr(NULL), activities(NULL),
+      currentShape(NULL), currentGridLayout(NULL), currentGroup(NULL),
+      fontFileMgr(NULL),
+      drawAllPages(false), animated(true), stereoscopic(false),
+      activities(NULL),
       id(0), charId(0), capacity(1), manipulator(0),
       wasSelected(false), selectionChanged(false),
       w_event(NULL), focusWidget(NULL), focusId(0), keyboardModifiers(0),
@@ -122,11 +122,11 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       pageStartTime(1e6), pageRefresh(1e6), frozenTime(1e6), startTime(1e6),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
-      nextPull(nextSave), animated(true),
+      nextPull(nextSave),
       srcRenderer(NULL),
       currentFileDialog(NULL),
       zoom(1.0),
-      eyeX(0.0), eyeY(0.0), eyeZ(Widget::zNear),
+      eyeX(0.0), eyeY(0.0), eyeZ(Widget::zNear), eyeDistance(200.0),
       centerX(0.0), centerY(0.0), centerZ(0.0),
       autoSaveEnabled(true)
 {
@@ -290,6 +290,7 @@ void Widget::draw()
     pageNames.clear();
 
     // Clear the background
+    glDrawBuffer(GL_BACK);
     glClearColor (1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     Layout::polygonOffset = 0;
@@ -411,14 +412,32 @@ void Widget::runProgram()
         capacity = capacity / 2;
 
     // After we are done, draw the space with all the drawings in it
-    id = charId = 0;
-    space->Draw(NULL);
-    IFTRACE(memory)
-        std::cerr << "Draw, count = " << space->count << "\n";
-    id = charId = 0;
-    selectionTrees.clear();
-    space->offset.Set(0,0,0);
-    space->DrawSelection(NULL);
+    // If we are in stereoscopice mode, we draw twice, once for each eye
+    do
+    {
+        // Select the buffer in which we draw
+        if (stereoscopic == 1)
+            glDrawBuffer(GL_BACK_LEFT);
+        else if (stereoscopic == 2)
+            glDrawBuffer(GL_BACK_RIGHT);
+
+        id = charId = 0;
+        space->Draw(NULL);
+        IFTRACE(memory)
+            std::cerr << "Draw, count = " << space->count << "\n";
+
+        id = charId = 0;
+        selectionTrees.clear();
+        space->offset.Set(0,0,0);
+        space->DrawSelection(NULL);
+
+        // If we use stereoscopy, switch to other eye
+        if (stereoscopic)
+        {
+            stereoscopic = 3 - stereoscopic;
+            setup(width(), height());
+        }
+    } while (stereoscopic == 2);
 
     // Clipboard management
     checkCopyAvailable();
@@ -806,6 +825,15 @@ void Widget::enableAnimations(bool enable)
 }
 
 
+void Widget::enableStereoscopy(bool enable)
+// ----------------------------------------------------------------------------
+//   Enable or disable stereoscopy on the page
+// ----------------------------------------------------------------------------
+{
+    stereoscopic = enable;
+}
+
+
 void Widget::showHandCursor(bool enabled)
 // ----------------------------------------------------------------------------
 //   Switch panning mode on/off
@@ -955,6 +983,12 @@ void Widget::setup(double w, double h, Box *picking)
     // Setup the frustum for the projection
     double zNear = Widget::zNear, zFar = Widget::zFar;
     double upX = 0.0, upY = 1.0, upZ = 0.0;
+    double eyeX = this->eyeX;
+    if (stereoscopic == 1)
+        eyeX -= eyeDistance;
+    else if (stereoscopic == 2)
+        eyeX += eyeDistance;
+
     glFrustum ((-w/2)*zoom, (w/2)*zoom, (-h/2)*zoom, (h/2)*zoom, zNear, zFar);
     gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
     glTranslatef(0.0, 0.0, -zNear);
@@ -3440,6 +3474,19 @@ XL::Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
     Window *window = (Window *) parentWidget();
     if (oldFs != fs)
         window->toggleAnimations();
+    return oldFs ? XL::xl_true : XL::xl_false;
+}
+
+
+XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, bool fs)
+// ----------------------------------------------------------------------------
+//   Enable or disable animations
+// ----------------------------------------------------------------------------
+{
+    bool oldFs = hasAnimations();
+    Window *window = (Window *) parentWidget();
+    if (oldFs != fs)
+        window->toggleStereoscopy();
     return oldFs ? XL::xl_true : XL::xl_false;
 }
 

@@ -112,7 +112,8 @@ public slots:
     void        copy();
     void        cut();
     void        paste();
-    void        enableAnimations(bool animate);
+    void        enableAnimations(bool enable);
+    void        enableStereoscopy(bool enable);
     void        showHandCursor(bool enabled);
     void        resetView();
     void        saveAndCommit();
@@ -180,6 +181,7 @@ public:
                         bool stats = true, bool show=true);
     bool        timerIsActive()         { return timer.isActive(); }
     bool        hasAnimations(void)     { return animated; }
+    bool        hasStereoscopy(void)    { return stereoscopic; }
 
 
     // Selection
@@ -299,6 +301,7 @@ public:
     Integer_p   lastModifiers(Tree_p self);
 
     Name_p      enableAnimations(Tree_p self, bool fs);
+    Name_p      enableStereoscopy(Tree_p self, bool fs);
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
     Name_p      printPage(Tree_p self, text filename);
@@ -610,12 +613,14 @@ private:
     page_list             pageNames;
     uint                  pageId, pageFound, pageShown, pageTotal;
     Tree_p                pageTree;
-    bool                  drawAllPages;
     Tree_p                currentShape;
     QGridLayout *         currentGridLayout;
     GroupInfo   *         currentGroup;
     GlyphCache            glyphCache;
     FontFileManager *     fontFileMgr;
+    bool                  drawAllPages;
+    bool                  animated;
+    char                  stereoscopic;
 
     // Selection
     Activity *            activities;
@@ -650,7 +655,6 @@ private:
     double                pageStartTime, pageRefresh, frozenTime, startTime;
     ulonglong             tmin, tmax, tsum, tcount;
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
-    bool                  animated;
 
     // Source code view
     std::ostringstream    srcRendererOutput;
@@ -663,7 +667,7 @@ private:
            QFileDialog *  currentFileDialog;
     static double         zNear, zFar;
     double                zoom;
-    double                eyeX, eyeY, eyeZ;
+    double                eyeX, eyeY, eyeZ, eyeDistance;
     double                centerX, centerY, centerZ;
     int                   panX, panY;
     bool                  autoSaveEnabled;

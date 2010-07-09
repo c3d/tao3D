@@ -237,6 +237,15 @@ void Window::toggleAnimations()
 }
 
 
+void Window::toggleStereoscopy()
+// ----------------------------------------------------------------------------
+//   Toggle between full-screen and normal mode
+// ----------------------------------------------------------------------------
+{
+    taoWidget->enableStereoscopy(!taoWidget->hasStereoscopy());
+}
+
+
 void Window::sourceViewBecameVisible(bool visible)
 // ----------------------------------------------------------------------------
 //   Source code view is shown or hidden
@@ -781,6 +790,13 @@ void Window::createActions()
     connect(viewAnimationsAct, SIGNAL(triggered()),
             this, SLOT(toggleAnimations()));
 
+    viewStereoscopyAct = new QAction(tr("Stereoscopy"), this);
+    viewStereoscopyAct->setStatusTip(tr("Switch stereoscopy on or off"));
+    viewStereoscopyAct->setCheckable(true);
+    viewStereoscopyAct->setChecked(taoWidget->hasStereoscopy());
+    connect(viewStereoscopyAct, SIGNAL(triggered()),
+            this, SLOT(toggleStereoscopy()));
+
     cutAct->setEnabled(false);
     copyAct->setEnabled(false);
     connect(textEdit, SIGNAL(copyAvailable(bool)),
@@ -861,6 +877,7 @@ void Window::createMenus()
     viewMenu->addAction(errorDock->toggleViewAction());
     viewMenu->addAction(fullScreenAct);
     viewMenu->addAction(viewAnimationsAct);
+    viewMenu->addAction(viewStereoscopyAct);
     viewMenu->addMenu(tr("&Toolbars"))->setObjectName(VIEW_MENU_NAME);
 
     menuBar()->addSeparator();

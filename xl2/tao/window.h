@@ -79,6 +79,7 @@ public:
 public slots:
     void markChanged(bool changed = true);
     void toggleAnimations();
+    void toggleStereoscopy();
     void sourceViewBecameVisible(bool visible);
     void open(QString fileName = "", bool readOnly = false);
     void removeSplashScreen();
@@ -180,6 +181,7 @@ private:
     QAction          *aboutQtAct;
     QAction          *fullScreenAct;
     QAction          *viewAnimationsAct;
+    QAction          *viewStereoscopyAct;
     QUndoView        *undoView;
     QAction          *undoAction;
     QAction          *redoAction;

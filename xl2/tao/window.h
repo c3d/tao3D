@@ -88,6 +88,7 @@ public slots:
 
 signals:
     void projectUrlChanged(QString url);
+    void projectChanged(Repository *repo);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -114,6 +115,7 @@ private slots:
     void checkFiles();
     void toggleFullScreen();
     void clearUndoStack();
+    void reloadCurrentFile();
 
 private:
     void     createActions();
@@ -167,6 +169,7 @@ private:
     QToolBar         *fileToolBar;
     QToolBar         *editToolBar;
     QToolBar         *viewToolBar;
+    QToolBar         *branchToolBar;
     QAction          *newAct;
     QAction          *openAct;
     QAction          *saveAct;

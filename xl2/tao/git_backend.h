@@ -54,6 +54,10 @@ public:
     virtual text        branch();
     virtual bool        checkout(text branch);
     virtual bool        branch(text name);
+    virtual QStringList branches();
+    virtual bool        addBranch(QString name, bool force = false);
+    virtual bool        delBranch(QString name, bool force = false);
+    virtual bool        renBranch(QString oldName, QString newName, bool force = false);
     virtual bool        add(text name);
     virtual bool        change(text name);
     virtual bool        remove(text name);

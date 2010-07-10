@@ -30,6 +30,7 @@
 #include "pull_from_dialog.h"
 #include "publish_to_dialog.h"
 #include "clone_dialog.h"
+#include "branch_selection_toolbar.h"
 #include "undo.h"
 #include "resource_mgt.h"
 #include "splash_screen.h"
@@ -906,6 +907,15 @@ void Window::createToolBars()
     viewToolBar->addAction(resetViewAct);
     if (view)
         view->addAction(viewToolBar->toggleViewAction());
+
+    branchToolBar = new BranchSelectionToolBar(tr("Branch selection"));
+    connect(this, SIGNAL(projectChanged(Repository*)),
+            branchToolBar, SLOT(setRepository(Repository*)));
+    connect(branchToolBar, SIGNAL(checkedOut(QString)),
+            this, SLOT(reloadCurrentFile()));
+    addToolBar(branchToolBar);
+    if (view)
+        view->addAction(branchToolBar->toggleViewAction());
 }
 
 
@@ -1196,8 +1206,16 @@ bool Window::saveFile(const QString &fileName)
 //   Save a file with a given name
 // ----------------------------------------------------------------------------
 {
-    QFile file(fileName);
+    if (repo && !repo->isUndoBranch(repo->cachedBranch))
+    {
+        QMessageBox::warning(this, tr("Error saving file"),
+                             tr("Cannot write file %1.\n"
+                                "Current branch is not an undo branch.")
+                             .arg(fileName));
+        return false;
+    }
 
+    QFile file(fileName);
     if (!file.open(QFile::WriteOnly | QFile::Text))
     {
         QMessageBox::warning(this, tr("Error saving file"),
@@ -1232,12 +1250,16 @@ bool Window::saveFile(const QString &fileName)
     if (repo)
     {
         // Trigger immediate commit to repository
+        // FIXME: shouldn't create an empty commit
         XL::SourceFile &sf = xlRuntime->files[fn];
         sf.changed = true;
         taoWidget->markChanged("Manual save");
         taoWidget->writeIfChanged(sf);
         taoWidget->doCommit(true);
         sf.changed = false;
+
+        // Merge into task branch
+        repo->mergeUndoBranchIntoWorkBranch(repo->cachedBranch);
     }
     markChanged(false);
     isUntitled = false;
@@ -1279,6 +1301,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
 //        no repository management tool is available;
 // - false if user cancelled.
 {
+    repository_ptr oldRepo = repo;
     QString oldUrl;
     if (repo)
         oldUrl = repo->url();
@@ -1341,13 +1364,10 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
     if (repo && repo->valid())
     {
         text task = repo->branch();
-        size_t pos = task.rfind(TAO_UNDO_SUFFIX);
-        size_t len = task.length() - (sizeof(TAO_UNDO_SUFFIX) - 1);
         text currentBranch = task;
-        bool onUndoBranch = pos != task.npos && pos == len;
-        if (onUndoBranch)
+        if (repo->isUndoBranch(task))
         {
-            task = task.substr(0, len);
+            task = repo->taskBranch(task);
         }
         else if (!created)
         {
@@ -1442,6 +1462,9 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
     if (url != oldUrl)
         emit projectUrlChanged(url);
 
+    if (repo != oldRepo)
+        emit projectChanged(repo.data());   // REVISIT projectUrlChanged
+
     return true;
 }
 
@@ -1483,6 +1506,7 @@ void Window::switchToFullScreen(bool fs)
         removeToolBar(fileToolBar);
         removeToolBar(editToolBar);
         removeToolBar(viewToolBar);
+        removeToolBar(branchToolBar);
         statusBar()->hide();
         showFullScreen();
         taoWidget->showFullScreen();
@@ -1495,9 +1519,11 @@ void Window::switchToFullScreen(bool fs)
         addToolBar(fileToolBar);
         addToolBar(editToolBar);
         addToolBar(viewToolBar);
+        addToolBar(branchToolBar);
         fileToolBar->show();
         editToolBar->show();
         viewToolBar->show();
+        branchToolBar->show();
         setUnifiedTitleAndToolBarOnMac(true);
     }
 }
@@ -1709,6 +1735,15 @@ void Window::clearUndoStack()
 // ----------------------------------------------------------------------------
 {
     undoStack->clear();
+}
+
+
+void Window::reloadCurrentFile()
+// ----------------------------------------------------------------------------
+//    Reload the current document when user has switched branches
+// ----------------------------------------------------------------------------
+{
+    loadFile(curFile, false);
 }
 
 TAO_END

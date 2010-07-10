@@ -168,7 +168,89 @@ text GitRepository::branch()
         else
             result = "master";  // May happen on a totally empty repository
     }
+    if (result == "(no branch)")
+        result = "";
     return result;
+}
+
+
+QStringList GitRepository::branches()
+// ----------------------------------------------------------------------------
+//    Return the names of all known branches (local and remote)
+// ----------------------------------------------------------------------------
+{
+    text    output;
+    QStringList result;
+    waitForAsyncProcessCompletion();
+    Process cmd(command(), QStringList("branch") << "-a", path);
+    bool    ok = cmd.done(&errors, &output);
+    if (ok)
+    {
+        QStringList branches = (+output).split("\n");
+        foreach (QString branch, branches)
+        {
+            branch = branch.mid(2);
+            if (branch != "(no branch)")
+                result << branch;
+        }
+    }
+    return result;
+}
+
+
+bool GitRepository::addBranch(QString name, bool force)
+// ----------------------------------------------------------------------------
+//    Create a new branch, starting from latest commit on current branch
+// ----------------------------------------------------------------------------
+//    If force == false, Git will refuse to change an existing branch
+{
+    waitForAsyncProcessCompletion();
+    QStringList args("branch");
+    if (force)
+        args << "-f";
+    args << name;
+    Process cmd(command(), args, path);
+    return cmd.done(&errors);
+}
+
+
+bool GitRepository::delBranch(QString name, bool force)
+// ----------------------------------------------------------------------------
+//    Delete a branch
+// ----------------------------------------------------------------------------
+//    If force == false, the branch to delete must be fully merged into
+//    HEAD of the current branch
+{
+    waitForAsyncProcessCompletion();
+    QStringList args("branch");
+    if (force)
+        args << "-D";
+    else
+        args << "-d";
+    args << name;
+    Process cmd(command(), args, path);
+    return cmd.done(&errors);
+}
+
+
+bool GitRepository::renBranch(QString oldName, QString newName, bool force)
+// ----------------------------------------------------------------------------
+//    Rename a branch
+// ----------------------------------------------------------------------------
+//    If force == true, rename event if the new branch name already exists
+{
+    waitForAsyncProcessCompletion();
+    QStringList args("branch");
+    if (force)
+        args << "-M";
+    else
+        args << "-m";
+    args << oldName << newName;
+    Process cmd(command(), args, path);
+    bool ok = cmd.done(&errors);
+    if (ok && +cachedBranch == oldName)
+        cachedBranch = +newName;
+    return ok;
 }
 
 
@@ -180,7 +262,10 @@ bool GitRepository::checkout(text branch)
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("checkout") << +branch, path);
-    return cmd.done(&errors);
+    bool ok = cmd.done(&errors);
+    if (ok)
+        cachedBranch = branch;
+    return ok;
 }
 
 
@@ -645,7 +730,7 @@ bool GitRepository::isClean()
 }
 
 
-QString  GitRepository::url()
+QString GitRepository::url()
 // ----------------------------------------------------------------------------
 //    Return a valid URL for the current repository
 // ----------------------------------------------------------------------------

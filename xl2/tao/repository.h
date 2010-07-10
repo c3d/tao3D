@@ -103,6 +103,10 @@ public:
     virtual bool        setTask(text name);
     virtual bool        selectWorkBranch();
     virtual bool        selectUndoBranch();
+    virtual bool        isUndoBranch(text branch);
+    virtual text        undoBranch(text name);
+    virtual text        taskBranch(text name);
+    virtual bool        mergeUndoBranchIntoWorkBranch(text name);
     virtual bool        idle();
     virtual void        markChanged(text reason);
     virtual void        abort(Process *proc);
@@ -112,6 +116,10 @@ public:
     virtual bool        valid()                         = 0;
     virtual bool        initialize()                    = 0;
     virtual text        branch()                        = 0;
+    virtual QStringList branches()                      = 0;
+    virtual bool        addBranch(QString name, bool force = false) = 0;
+    virtual bool        delBranch(QString name, bool force = false) = 0;
+    virtual bool        renBranch(QString oldName, QString newName, bool force = false) = 0;
     virtual bool        checkout(text name)             = 0;
     virtual bool        branch(text name)               = 0;
     virtual bool        add(text name)                  = 0;
@@ -179,6 +187,7 @@ public:
     State              state;
     text               whatsNew;
     QString            lastPublishTo;
+    text               cachedBranch;
 
 protected:
     QQueue<Process *> pQueue;

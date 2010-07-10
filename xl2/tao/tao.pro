@@ -120,7 +120,9 @@ HEADERS += widget.h \
     resource_mgt.h \
     tree_cloning.h \
     font_file_manager.h \
-    splash_screen.h
+    splash_screen.h \
+    branch_selection_combobox.h \
+    branch_selection_toolbar.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -190,7 +192,9 @@ SOURCES += tao_main.cpp \
     resource_mgt.cpp \
     tree_cloning.cpp \
     font_file_manager.cpp \
-    splash_screen.cpp
+    splash_screen.cpp \
+    branch_selection_combobox.cpp \
+    branch_selection_toolbar.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \

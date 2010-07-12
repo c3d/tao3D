@@ -76,6 +76,7 @@ public:
                                    AnsiTextEdit *out = NULL, void *id = NULL);
     virtual text        version();
     virtual bool        isClean();
+    virtual QString     url();
 
     static  bool        checkGit();
 

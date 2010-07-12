@@ -28,6 +28,7 @@
 #include <QtGlobal>
 #include <QApplication>
 #include <QRegExp>
+#include <QHostInfo>
 #include <iostream>
 
 TAO_BEGIN
@@ -641,6 +642,20 @@ bool GitRepository::isClean()
         return false;
 
     return true;
+}
+
+
+QString  GitRepository::url()
+// ----------------------------------------------------------------------------
+//    Return a valid URL for the current repository
+// ----------------------------------------------------------------------------
+{
+    if (path.isEmpty())
+        return "";
+
+    QString hostname = QHostInfo::localHostName();
+    QString url = QString("ssh://%1/%2").arg(hostname).arg(path);
+    return url;
 }
 
 TAO_END

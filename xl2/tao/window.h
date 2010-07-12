@@ -36,6 +36,7 @@ class QAction;
 class QMenu;
 class QTextEdit;
 class QSplashScreen;
+class QLabel;
 QT_END_NAMESPACE
 
 namespace Tao {
@@ -84,6 +85,10 @@ public slots:
     void open(QString fileName = "", bool readOnly = false);
     void removeSplashScreen();
     void deleteAboutSplash();
+    void showProjectUrl(QString url);
+
+signals:
+    void projectUrlChanged(QString url);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -189,6 +194,7 @@ private:
     QAction          *clearRecentAct;
     QAction          *handCursorAct;
     QAction          *resetViewAct;
+    QLabel           *projectUrl;
 
 public:
     QMenu            *shareMenu;

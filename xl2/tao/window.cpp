@@ -328,7 +328,7 @@ void Window::open(QString fileName, bool readOnly)
                                    readOnly);
         other->move(x() + 40, y() + 40);
         other->show();
-        other->loadFile(fileName);
+        other->loadFile(fileName, true);
 
         if (other->isUntitled)
         {
@@ -660,6 +660,16 @@ void Window::deleteAboutSplash()
 }
 
 
+void Window::showProjectUrl(QString url)
+// ----------------------------------------------------------------------------
+//    Update the project URL in the status bar
+// ----------------------------------------------------------------------------
+{
+    QString msg = tr("Project: %1").arg(url);
+    projectUrl->setText(msg);
+}
+
+
 void Window::documentWasModified()
 // ----------------------------------------------------------------------------
 //   Record when the document was modified
@@ -921,6 +931,16 @@ void Window::createStatusBar()
 //    Create the status bar for the window
 // ----------------------------------------------------------------------------
 {
+    // Set up project URL area
+    projectUrl = new QLabel;
+    projectUrl->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    projectUrl->setToolTip(tr("Shows the URL of the project for the current "
+                              "document"));
+    statusBar()->addPermanentWidget(projectUrl);
+    connect(this, SIGNAL(projectUrlChanged(QString)),
+            this, SLOT(showProjectUrl(QString)));
+    showProjectUrl(tr("None"));
+
     statusBar()->showMessage(tr("Ready"));
 }
 
@@ -1276,6 +1296,10 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
 //        no repository management tool is available;
 // - false if user cancelled.
 {
+    QString oldUrl;
+    if (repo)
+        oldUrl = repo->url();
+
     bool created = false;
     repository_ptr repo = RepositoryFactory::repository(path);
     if (!repo)
@@ -1430,6 +1454,10 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
             }
         }
     }
+
+    QString url = repo->url();
+    if (url != oldUrl)
+        emit projectUrlChanged(url);
 
     return true;
 }

@@ -72,6 +72,7 @@ int main(int argc, char **argv)
     {
         splash = new SplashScreen();
         splash->show();
+        splash->raise();
         QApplication::processEvents();
     }
 
@@ -104,6 +105,8 @@ int main(int argc, char **argv)
     XL::source_names::iterator it;
     for (it = names.begin(); it != names.end(); it++)
     {
+        if (splash)
+            splash->raise();
         QString sourceFile = +(*it);
         hadFile = true;
         Tao::Window *window = new Tao::Window (xlr, contextFiles);

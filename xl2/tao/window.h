@@ -108,6 +108,7 @@ private slots:
     void checkClipboard();
 
     void setPullUrl();
+    void fetch();
     void publish();
     void clone();
     void about();
@@ -183,6 +184,7 @@ private:
     QAction          *pasteAct;
     QAction          *setPullUrlAct;
     QAction          *publishAct;
+    QAction          *fetchAct;
     QAction          *cloneAct;
     QAction          *aboutAct;
     QAction          *aboutQtAct;

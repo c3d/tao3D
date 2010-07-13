@@ -122,7 +122,8 @@ HEADERS += widget.h \
     font_file_manager.h \
     splash_screen.h \
     branch_selection_combobox.h \
-    branch_selection_toolbar.h
+    branch_selection_toolbar.h \
+    fetch_dialog.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -194,7 +195,8 @@ SOURCES += tao_main.cpp \
     font_file_manager.cpp \
     splash_screen.cpp \
     branch_selection_combobox.cpp \
-    branch_selection_toolbar.cpp
+    branch_selection_toolbar.cpp \
+    fetch_dialog.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \
@@ -245,7 +247,8 @@ FORMS += pull_from_dialog.ui \
     remote_selection_frame.ui \
     publish_to_dialog.ui \
     clone_dialog.ui \
-    error_message_dialog.ui
+    error_message_dialog.ui \
+    fetch_dialog.ui
 
 # Automatic embedding of Git version
 QMAKE_CLEAN += version.h

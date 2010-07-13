@@ -69,10 +69,11 @@ public:
     virtual bool        reset();
     virtual bool        pull();
     virtual bool        push(QString pushUrl);
+    virtual bool        fetch(QString url);
     virtual QStringList remotes();
     virtual QString     remotePullUrl(QString name);
-    virtual bool        addRemote(QString name, QString pullUrl);
-    virtual bool        setRemote(QString name, QString newPullUrl);
+    virtual bool        addRemote(QString name, QString url);
+    virtual bool        setRemote(QString name, QString url);
     virtual bool        delRemote(QString name);
     virtual bool        renRemote(QString oldName, QString newName);
     virtual QList<Commit> history(int max = 20);

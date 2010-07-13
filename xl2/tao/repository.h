@@ -133,6 +133,7 @@ public:
     virtual bool        reset()                         = 0;
     virtual bool        pull()                          = 0;
     virtual bool        push(QString pushUrl)           = 0;
+    virtual bool        fetch(QString url)              = 0;
     virtual QStringList remotes()                       = 0;
     virtual QString     remotePullUrl(QString name)     = 0;
     virtual bool        addRemote(QString name, QString pullUrl) = 0;
@@ -187,6 +188,7 @@ public:
     State              state;
     text               whatsNew;
     QString            lastPublishTo;
+    QString            lastFetchUrl;
     text               cachedBranch;
 
 protected:

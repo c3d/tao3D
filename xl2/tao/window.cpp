@@ -29,6 +29,7 @@
 #include "tao_utf8.h"
 #include "pull_from_dialog.h"
 #include "publish_to_dialog.h"
+#include "fetch_dialog.h"
 #include "clone_dialog.h"
 #include "branch_selection_toolbar.h"
 #include "undo.h"
@@ -605,6 +606,18 @@ void Window::setPullUrl()
 }
 
 
+void Window::fetch()
+// ----------------------------------------------------------------------------
+//    Prompt user for address of remote repository to fetch
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+        return warnNoRepo();
+
+    FetchDialog(repo.data()).exec();
+}
+
+
 void Window::publish()
 // ----------------------------------------------------------------------------
 //    Prompt user for address of remote repository to publish to
@@ -767,6 +780,12 @@ void Window::createActions()
     publishAct->setEnabled(false);
     connect(publishAct, SIGNAL(triggered()), this, SLOT(publish()));
 
+    fetchAct = new QAction(tr("Fetch..."), this);
+    fetchAct->setStatusTip(tr("Fetch data from a remote Tao project "
+                              "(path or URL)"));
+    fetchAct->setEnabled(false);
+    connect(fetchAct, SIGNAL(triggered()), this, SLOT(fetch()));
+
     cloneAct = new QAction(tr("Clone..."), this);
     cloneAct->setStatusTip(tr("Clone (download) a Tao project "
                               "and make a local copy"));
@@ -863,6 +882,7 @@ void Window::createMenus()
     shareMenu = menuBar()->addMenu(tr("&Share"));
     shareMenu->setObjectName(SHARE_MENU_NAME);
     shareMenu->addAction(cloneAct);
+    shareMenu->addAction(fetchAct);
     shareMenu->addAction(setPullUrlAct);
     shareMenu->addAction(publishAct);
 
@@ -1285,6 +1305,7 @@ void Window::enableProjectSharingMenus()
 {
     setPullUrlAct->setEnabled(true);
     publishAct->setEnabled(true);
+    fetchAct->setEnabled(true);
 }
 
 

@@ -571,6 +571,17 @@ bool GitRepository::push(QString pushUrl)
 }
 
 
+bool GitRepository::fetch(QString url)
+// ----------------------------------------------------------------------------
+//   Fetch (download objects and refs) from a remote repository
+// ----------------------------------------------------------------------------
+{
+    waitForAsyncProcessCompletion();
+    Process cmd(command(), QStringList("fetch") << url, path);
+    return cmd.done(&errors);
+}
+
+
 QStringList GitRepository::remotes()
 // ----------------------------------------------------------------------------
 //   Return the names of all remotes configured in the repository

@@ -71,7 +71,8 @@ public:
     virtual bool        push(QString pushUrl);
     virtual bool        fetch(QString url);
     virtual QStringList remotes();
-    virtual QString     remotePullUrl(QString name);
+    virtual QString     remoteFetchUrl(QString name);
+    virtual QString     remotePushUrl(QString name);
     virtual bool        addRemote(QString name, QString url);
     virtual bool        setRemote(QString name, QString url);
     virtual bool        delRemote(QString name);

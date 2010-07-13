@@ -37,10 +37,22 @@ class RemoteSelectionFrame : public QFrame, private Ui::RemoteSelectionFrame
     Q_OBJECT
 
 public:
+    enum PushOrFetch
+    // ------------------------------------------------------------------------
+    //   Should we display the push or the fetch URL of the remotes?
+    // ------------------------------------------------------------------------
+    {
+        RSF_Unknown,
+        RSF_Push,
+        RSF_Fetch
+    };
+
+public:
     RemoteSelectionFrame(QWidget *parent = 0);
 
 public:
     void    setRepository(Repository *repo, QString preferredRemote = "");
+    void    setRole(PushOrFetch whatFor);
     QString remote();
 
 signals:
@@ -73,6 +85,7 @@ private:
 private:
     Repository * repo;
     QString      prevSelected;
+    PushOrFetch  whatFor;
 };
 
 }

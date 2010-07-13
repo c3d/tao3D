@@ -599,9 +599,10 @@ QStringList GitRepository::remotes()
     return result;
 }
 
-QString GitRepository::remotePullUrl(QString name)
+
+QString GitRepository::remoteFetchUrl(QString name)
 // ----------------------------------------------------------------------------
-//   Return the pull URL for the specified remote
+//   Return the pull/fetch URL for the specified remote
 // ----------------------------------------------------------------------------
 {
     QStringList args;
@@ -611,6 +612,23 @@ QString GitRepository::remotePullUrl(QString name)
     Process cmd(command(), args, path);
     cmd.done(&errors, &output);
     return (+output).trimmed();
+}
+
+
+QString GitRepository::remotePushUrl(QString name)
+// ----------------------------------------------------------------------------
+//   Return the push URL for the specified remote
+// ----------------------------------------------------------------------------
+{
+    QStringList args;
+    args << "config" << "--get" << QString("remote.%1.pushUrl").arg(name);
+    text    output;
+    waitForAsyncProcessCompletion();
+    Process cmd(command(), args, path);
+    bool ok = cmd.done(&errors, &output);
+    if (ok)
+        return (+output).trimmed();
+    return remoteFetchUrl(name);
 }
 
 

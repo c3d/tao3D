@@ -38,6 +38,7 @@ PublishToDialog::PublishToDialog(Repository *repo, QWidget *parent)
 {
     setupUi(this);
     rsFrame->setRepository(repo, repo->lastPublishTo);
+    rsFrame->setRole(RemoteSelectionFrame::RSF_Push);
 }
 
 

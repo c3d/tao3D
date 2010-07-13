@@ -38,6 +38,7 @@ FetchDialog::FetchDialog(Repository *repo, QWidget *parent)
 {
     setupUi(this);
     rsFrame->setRepository(repo, repo->lastFetchUrl);
+    rsFrame->setRole(RemoteSelectionFrame::RSF_Fetch);
 }
 
 

@@ -36,6 +36,7 @@ TAO_BEGIN
 
 QMap<QString, QWeakPointer<Repository> > RepositoryFactory::cache;
 Repository::Kind  RepositoryFactory::availableScm = Repository::Unknown;
+struct Repository::Commit Repository::HeadCommit = Repository::Commit("HEAD");
 
 Repository::~Repository()
 // ----------------------------------------------------------------------------

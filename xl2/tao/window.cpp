@@ -30,6 +30,7 @@
 #include "pull_from_dialog.h"
 #include "publish_to_dialog.h"
 #include "fetch_dialog.h"
+#include "merge_dialog.h"
 #include "clone_dialog.h"
 #include "branch_selection_toolbar.h"
 #include "undo.h"
@@ -639,6 +640,18 @@ void Window::publish()
 }
 
 
+void Window::merge()
+// ----------------------------------------------------------------------------
+//    Show a "Merge" dialog
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+        return warnNoRepo();
+
+    MergeDialog(repo.data()).exec();
+}
+
+
 void Window::clone()
 // ----------------------------------------------------------------------------
 //    Prompt user for address of remote repository and clone it locally
@@ -800,6 +813,12 @@ void Window::createActions()
                               "and make a local copy"));
     connect(cloneAct, SIGNAL(triggered()), this, SLOT(clone()));
 
+    mergeAct = new QAction(tr("Merge..."), this);
+    mergeAct->setStatusTip(tr("Apply the changes made in one branch into "
+                              "another branch"));
+    mergeAct->setEnabled(false);
+    connect(mergeAct, SIGNAL(triggered()), this, SLOT(merge()));
+
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setStatusTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
@@ -901,6 +920,7 @@ void Window::createMenus()
     shareMenu->addAction(fetchAct);
     shareMenu->addAction(setPullUrlAct);
     shareMenu->addAction(publishAct);
+    shareMenu->addAction(mergeAct);
 
     viewMenu = menuBar()->addMenu(tr("&View"));
 //    viewMenu->setObjectName(VIEW_MENU_NAME);
@@ -1327,6 +1347,7 @@ void Window::enableProjectSharingMenus()
     setPullUrlAct->setEnabled(true);
     publishAct->setEnabled(true);
     fetchAct->setEnabled(true);
+    mergeAct->setEnabled(true);
 }
 
 

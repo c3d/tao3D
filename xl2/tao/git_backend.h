@@ -58,6 +58,7 @@ public:
     virtual bool        addBranch(QString name, bool force = false);
     virtual bool        delBranch(QString name, bool force = false);
     virtual bool        renBranch(QString oldName, QString newName, bool force = false);
+    virtual bool        isRemoteBranch(text branch);
     virtual bool        add(text name);
     virtual bool        change(text name);
     virtual bool        remove(text name);
@@ -65,8 +66,8 @@ public:
     virtual bool        commit(text message = "", bool all=false);
     virtual bool        revert(text id);
     virtual bool        cherryPick(text id);
-    virtual bool        merge(text branch);
-    virtual bool        reset();
+    virtual bool        merge(text branch, ConflictResolution how = CR_Manual);
+    virtual bool        reset(text commit = "");
     virtual bool        pull();
     virtual bool        push(QString pushUrl);
     virtual bool        fetch(QString url);
@@ -77,7 +78,7 @@ public:
     virtual bool        setRemote(QString name, QString url);
     virtual bool        delRemote(QString name);
     virtual bool        renRemote(QString oldName, QString newName);
-    virtual QList<Commit> history(int max = 20);
+    virtual QList<Commit> history(QString branch = "", int max = 20);
     virtual Process *   asyncClone(QString cloneUrl, QString newFolder,
                                    AnsiTextEdit *out = NULL, void *id = NULL);
     virtual text        version();
@@ -101,6 +102,7 @@ private:
                                           QString &msg);
     QString             parseCloneOutput(QString out);
     void                mergeCommitMessages(text &dest, text src);
+    QStringList         crArgs(ConflictResolution mode);
 
     static QString      gitCommand;
     text                nextCommitMessage;

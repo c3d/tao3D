@@ -77,6 +77,8 @@ void BranchSelectionToolBar::checkout(QString branch)
 //    Checkout a branch
 // ----------------------------------------------------------------------------
 {
+    if (+branch == repo->branch())
+        return;
     bool ok = repo->checkout(+branch);
     if (ok)
     {

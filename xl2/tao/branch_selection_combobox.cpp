@@ -189,7 +189,7 @@ void BranchSelectionComboBox::on_activated(QString selected)
 
 QString BranchSelectionComboBox::addNewBranch()
 // ----------------------------------------------------------------------------
-//    Prompt user for name of a new branch and create it
+//    Prompt user for name of a new branch, create both task and undo branch
 // ----------------------------------------------------------------------------
 {
     QString name;
@@ -207,10 +207,16 @@ again:
         goto again;
     }
 
+    QString task, undo;
     if (!result.isEmpty())
-        repo->addBranch(result);
+    {
+        task = +repo->taskBranch(+result);
+        undo = +repo->undoBranch(+result);
+        repo->addBranch(task);
+        repo->addBranch(undo);
+    }
 
-    return result;
+    return undo;
 }
 
 

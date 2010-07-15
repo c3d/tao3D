@@ -33,7 +33,7 @@ RemoteSelectionFrame::RemoteSelectionFrame(QWidget *parent)
 // ----------------------------------------------------------------------------
 //    Create a "remote" selection frame
 // ----------------------------------------------------------------------------
-    : QFrame(parent), repo(NULL)
+    : QFrame(parent), repo(NULL), whatFor(RSF_Unknown)
 {
     setupUi(this);
     urlEdit->setCompleter(new QCompleter(TaoApp->urlCompletions(), this));
@@ -47,6 +47,15 @@ void RemoteSelectionFrame::setRepository(Repository *repo, QString sel)
 {
     this->repo = repo;
     populateNameComboAndSelect(sel);
+}
+
+
+void RemoteSelectionFrame::setRole(PushOrFetch whatFor)
+// ----------------------------------------------------------------------------
+//    Do we select a remote and an URL to push or to pull/fetch?
+// ----------------------------------------------------------------------------
+{
+    this->whatFor = whatFor;
 }
 
 
@@ -120,7 +129,12 @@ bool RemoteSelectionFrame::populateNameComboAndSelect(QString sel)
             return false;
         nameCombo->setCurrentIndex(index);
         // Also update URL field
-        urlEdit->setText(repo->remotePullUrl(sel));
+        QString url;
+        if (whatFor == RSF_Fetch)
+            url = repo->remoteFetchUrl(sel);
+        else
+            url = repo->remotePushUrl(sel);
+        urlEdit->setText(url);
         urlEdit->setEnabled(true);
         emit nameSelected();
     }

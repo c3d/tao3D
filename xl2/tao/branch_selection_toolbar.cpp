@@ -1,12 +1,12 @@
 // ****************************************************************************
-//  publish_to_dialog.cpp                                          Tao project
+//  branch_selection_toolbar.cpp                                   Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    The class to display the "Publish to" dialog box
-//
-//
+//    A class to display a toolbar that contains:
+//      * a label
+//      * a branch selection combo box; select a branch to check it out
 //
 //
 //
@@ -20,61 +20,69 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "tao.h"
-#include "publish_to_dialog.h"
-#include "remote_selection_frame.h"
+#include "branch_selection_toolbar.h"
 #include "repository.h"
-#include <QInputDialog>
-#include <QDialogButtonBox>
-#include <QPushButton>
+#include "tao_utf8.h"
+#include <QLabel>
+
 
 namespace Tao {
 
-PublishToDialog::PublishToDialog(Repository *repo, QWidget *parent)
+BranchSelectionToolBar::BranchSelectionToolBar(QWidget *parent)
 // ----------------------------------------------------------------------------
-//    Create a "remote" selection box for the given repository
+//    Create a branch selection combo box with given parent
 // ----------------------------------------------------------------------------
-    : QDialog(parent), repo(repo)
+    : QToolBar(parent)
 {
-    setupUi(this);
-    rsFrame->setRepository(repo, repo->lastPublishTo);
-    rsFrame->setRole(RemoteSelectionFrame::RSF_Push);
+    init();
 }
 
 
-QString PublishToDialog::pushTo()
+BranchSelectionToolBar::BranchSelectionToolBar(const QString &title, QWidget *parent)
 // ----------------------------------------------------------------------------
-//    The name of the currently selected remote (empty string if "<None>")
+//    Create a branch selection combo box with given title and parent
 // ----------------------------------------------------------------------------
+    : QToolBar(title, parent)
 {
-    return rsFrame->remote();
+    init();
 }
 
 
-void PublishToDialog::accept()
+void BranchSelectionToolBar::init()
 // ----------------------------------------------------------------------------
-//    Publish the current project to the previously chosen remote
+//    Initialize the widgets in the toolbar
 // ----------------------------------------------------------------------------
 {
-    repo->push(repo->lastPublishTo = pushTo());
-    QDialog::accept();
-}
+    addWidget(new QLabel(tr("Branch:")));
 
-void PublishToDialog::on_rsFrame_noneSelected()
-// ----------------------------------------------------------------------------
-//    Disable the OK button if remote is not set
-// ----------------------------------------------------------------------------
-{
-    buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+    branchSelector = new BranchSelectionComboBox;
+    connect(branchSelector, SIGNAL(branchSelected(QString)),
+            this, SLOT(checkout(QString)));
+    addWidget(branchSelector);
 }
 
 
-void PublishToDialog::on_rsFrame_nameSelected()
+void BranchSelectionToolBar::setRepository(Repository *repo)
 // ----------------------------------------------------------------------------
-//    Disable the OK button if remote is not set
+//    Select a repository and update the UI accordingly
 // ----------------------------------------------------------------------------
 {
-    buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+    this->repo = repo;
+    branchSelector->setRepository(repo);
+}
+
+
+void BranchSelectionToolBar::checkout(QString branch)
+// ----------------------------------------------------------------------------
+//    Checkout a branch
+// ----------------------------------------------------------------------------
+{
+    bool ok = repo->checkout(+branch);
+    if (ok)
+    {
+        branchSelector->refresh();
+        emit checkedOut(branch);
+    }
 }
 
 }

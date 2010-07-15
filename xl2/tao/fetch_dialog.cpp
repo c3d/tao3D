@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  publish_to_dialog.cpp                                          Tao project
+//  fetch_dialog.cpp                                               Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    The class to display the "Publish to" dialog box
+//    The class to display the "Fetch" dialog box
 //
 //
 //
@@ -21,7 +21,7 @@
 // ****************************************************************************
 
 #include "tao.h"
-#include "publish_to_dialog.h"
+#include "fetch_dialog.h"
 #include "remote_selection_frame.h"
 #include "repository.h"
 #include <QInputDialog>
@@ -30,19 +30,19 @@
 
 namespace Tao {
 
-PublishToDialog::PublishToDialog(Repository *repo, QWidget *parent)
+FetchDialog::FetchDialog(Repository *repo, QWidget *parent)
 // ----------------------------------------------------------------------------
 //    Create a "remote" selection box for the given repository
 // ----------------------------------------------------------------------------
     : QDialog(parent), repo(repo)
 {
     setupUi(this);
-    rsFrame->setRepository(repo, repo->lastPublishTo);
-    rsFrame->setRole(RemoteSelectionFrame::RSF_Push);
+    rsFrame->setRepository(repo, repo->lastFetchUrl);
+    rsFrame->setRole(RemoteSelectionFrame::RSF_Fetch);
 }
 
 
-QString PublishToDialog::pushTo()
+QString FetchDialog::fetchUrl()
 // ----------------------------------------------------------------------------
 //    The name of the currently selected remote (empty string if "<None>")
 // ----------------------------------------------------------------------------
@@ -51,16 +51,16 @@ QString PublishToDialog::pushTo()
 }
 
 
-void PublishToDialog::accept()
+void FetchDialog::accept()
 // ----------------------------------------------------------------------------
 //    Publish the current project to the previously chosen remote
 // ----------------------------------------------------------------------------
 {
-    repo->push(repo->lastPublishTo = pushTo());
+    repo->fetch(repo->lastFetchUrl = fetchUrl());
     QDialog::accept();
 }
 
-void PublishToDialog::on_rsFrame_noneSelected()
+void FetchDialog::on_rsFrame_noneSelected()
 // ----------------------------------------------------------------------------
 //    Disable the OK button if remote is not set
 // ----------------------------------------------------------------------------
@@ -69,7 +69,7 @@ void PublishToDialog::on_rsFrame_noneSelected()
 }
 
 
-void PublishToDialog::on_rsFrame_nameSelected()
+void FetchDialog::on_rsFrame_nameSelected()
 // ----------------------------------------------------------------------------
 //    Disable the OK button if remote is not set
 // ----------------------------------------------------------------------------

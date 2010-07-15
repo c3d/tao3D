@@ -168,7 +168,89 @@ text GitRepository::branch()
         else
             result = "master";  // May happen on a totally empty repository
     }
+    if (result == "(no branch)")
+        result = "";
     return result;
+}
+
+
+QStringList GitRepository::branches()
+// ----------------------------------------------------------------------------
+//    Return the names of all known branches (local and remote)
+// ----------------------------------------------------------------------------
+{
+    text    output;
+    QStringList result;
+    waitForAsyncProcessCompletion();
+    Process cmd(command(), QStringList("branch") << "-a", path);
+    bool    ok = cmd.done(&errors, &output);
+    if (ok)
+    {
+        QStringList branches = (+output).split("\n");
+        foreach (QString branch, branches)
+        {
+            branch = branch.mid(2);
+            if (branch != "(no branch)")
+                result << branch;
+        }
+    }
+    return result;
+}
+
+
+bool GitRepository::addBranch(QString name, bool force)
+// ----------------------------------------------------------------------------
+//    Create a new branch, starting from latest commit on current branch
+// ----------------------------------------------------------------------------
+//    If force == false, Git will refuse to change an existing branch
+{
+    waitForAsyncProcessCompletion();
+    QStringList args("branch");
+    if (force)
+        args << "-f";
+    args << name;
+    Process cmd(command(), args, path);
+    return cmd.done(&errors);
+}
+
+
+bool GitRepository::delBranch(QString name, bool force)
+// ----------------------------------------------------------------------------
+//    Delete a branch
+// ----------------------------------------------------------------------------
+//    If force == false, the branch to delete must be fully merged into
+//    HEAD of the current branch
+{
+    waitForAsyncProcessCompletion();
+    QStringList args("branch");
+    if (force)
+        args << "-D";
+    else
+        args << "-d";
+    args << name;
+    Process cmd(command(), args, path);
+    return cmd.done(&errors);
+}
+
+
+bool GitRepository::renBranch(QString oldName, QString newName, bool force)
+// ----------------------------------------------------------------------------
+//    Rename a branch
+// ----------------------------------------------------------------------------
+//    If force == true, rename event if the new branch name already exists
+{
+    waitForAsyncProcessCompletion();
+    QStringList args("branch");
+    if (force)
+        args << "-M";
+    else
+        args << "-m";
+    args << oldName << newName;
+    Process cmd(command(), args, path);
+    bool ok = cmd.done(&errors);
+    if (ok && +cachedBranch == oldName)
+        cachedBranch = +newName;
+    return ok;
 }
 
 
@@ -180,7 +262,10 @@ bool GitRepository::checkout(text branch)
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("checkout") << +branch, path);
-    return cmd.done(&errors);
+    bool ok = cmd.done(&errors);
+    if (ok)
+        cachedBranch = branch;
+    return ok;
 }
 
 
@@ -486,6 +571,17 @@ bool GitRepository::push(QString pushUrl)
 }
 
 
+bool GitRepository::fetch(QString url)
+// ----------------------------------------------------------------------------
+//   Fetch (download objects and refs) from a remote repository
+// ----------------------------------------------------------------------------
+{
+    waitForAsyncProcessCompletion();
+    Process cmd(command(), QStringList("fetch") << url, path);
+    return cmd.done(&errors);
+}
+
+
 QStringList GitRepository::remotes()
 // ----------------------------------------------------------------------------
 //   Return the names of all remotes configured in the repository
@@ -503,9 +599,10 @@ QStringList GitRepository::remotes()
     return result;
 }
 
-QString GitRepository::remotePullUrl(QString name)
+
+QString GitRepository::remoteFetchUrl(QString name)
 // ----------------------------------------------------------------------------
-//   Return the pull URL for the specified remote
+//   Return the pull/fetch URL for the specified remote
 // ----------------------------------------------------------------------------
 {
     QStringList args;
@@ -515,6 +612,23 @@ QString GitRepository::remotePullUrl(QString name)
     Process cmd(command(), args, path);
     cmd.done(&errors, &output);
     return (+output).trimmed();
+}
+
+
+QString GitRepository::remotePushUrl(QString name)
+// ----------------------------------------------------------------------------
+//   Return the push URL for the specified remote
+// ----------------------------------------------------------------------------
+{
+    QStringList args;
+    args << "config" << "--get" << QString("remote.%1.pushUrl").arg(name);
+    text    output;
+    waitForAsyncProcessCompletion();
+    Process cmd(command(), args, path);
+    bool ok = cmd.done(&errors, &output);
+    if (ok)
+        return (+output).trimmed();
+    return remoteFetchUrl(name);
 }
 
 
@@ -645,7 +759,7 @@ bool GitRepository::isClean()
 }
 
 
-QString  GitRepository::url()
+QString GitRepository::url()
 // ----------------------------------------------------------------------------
 //    Return a valid URL for the current repository
 // ----------------------------------------------------------------------------

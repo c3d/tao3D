@@ -103,6 +103,10 @@ public:
     virtual bool        setTask(text name);
     virtual bool        selectWorkBranch();
     virtual bool        selectUndoBranch();
+    virtual bool        isUndoBranch(text branch);
+    virtual text        undoBranch(text name);
+    virtual text        taskBranch(text name);
+    virtual bool        mergeUndoBranchIntoWorkBranch(text name);
     virtual bool        idle();
     virtual void        markChanged(text reason);
     virtual void        abort(Process *proc);
@@ -112,6 +116,10 @@ public:
     virtual bool        valid()                         = 0;
     virtual bool        initialize()                    = 0;
     virtual text        branch()                        = 0;
+    virtual QStringList branches()                      = 0;
+    virtual bool        addBranch(QString name, bool force = false) = 0;
+    virtual bool        delBranch(QString name, bool force = false) = 0;
+    virtual bool        renBranch(QString oldName, QString newName, bool force = false) = 0;
     virtual bool        checkout(text name)             = 0;
     virtual bool        branch(text name)               = 0;
     virtual bool        add(text name)                  = 0;
@@ -125,8 +133,10 @@ public:
     virtual bool        reset()                         = 0;
     virtual bool        pull()                          = 0;
     virtual bool        push(QString pushUrl)           = 0;
+    virtual bool        fetch(QString url)              = 0;
     virtual QStringList remotes()                       = 0;
-    virtual QString     remotePullUrl(QString name)     = 0;
+    virtual QString     remoteFetchUrl(QString name)    = 0;
+    virtual QString     remotePushUrl(QString name)    = 0;
     virtual bool        addRemote(QString name, QString pullUrl) = 0;
     virtual bool        setRemote(QString name, QString newPullUrl) = 0;
     virtual bool        delRemote(QString name)         = 0;
@@ -136,6 +146,7 @@ public:
                               AnsiTextEdit *out = NULL, void *id = NULL) = 0;
     virtual text        version()                       = 0;
     virtual bool        isClean()                       = 0;
+    virtual QString     url()                           = 0;
 
 public:
     static bool         versionGreaterOrEqual(QString ver, QString ref);
@@ -178,6 +189,8 @@ public:
     State              state;
     text               whatsNew;
     QString            lastPublishTo;
+    QString            lastFetchUrl;
+    text               cachedBranch;
 
 protected:
     QQueue<Process *> pQueue;

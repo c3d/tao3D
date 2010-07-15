@@ -170,6 +170,7 @@ bool Repository::setTask(text name)
         return false;
 
     // We are now on the _undo branch
+    cachedBranch = undo;
     return true;
 }
 
@@ -188,7 +189,59 @@ bool Repository::selectUndoBranch()
 //    Select the undo branch
 // ----------------------------------------------------------------------------
 {
-    return checkout(task + TAO_UNDO_SUFFIX);
+    return checkout(undoBranch(task));
+}
+
+
+bool Repository::isUndoBranch(text name)
+// ----------------------------------------------------------------------------
+//    Is 'branch' is an undo branch?
+// ----------------------------------------------------------------------------
+{
+    return (+name).endsWith(TAO_UNDO_SUFFIX);
+}
+
+
+text Repository::undoBranch(text name)
+// ----------------------------------------------------------------------------
+//   Take the name of a task branch and return the name of the undo branch
+// ----------------------------------------------------------------------------
+{
+    if (isUndoBranch(name))
+        return name;
+
+    return name + TAO_UNDO_SUFFIX;
+}
+
+
+text Repository::taskBranch(text name)
+// ----------------------------------------------------------------------------
+//   Take the name of an undo branch and return the name of the task branch
+// ----------------------------------------------------------------------------
+{
+    if (isUndoBranch(name))
+    {
+        size_t len = name.length() - (sizeof(TAO_UNDO_SUFFIX) - 1);
+        name = name.substr(0, len);
+    }
+    return name;
+}
+
+
+bool Repository::mergeUndoBranchIntoWorkBranch(text undo)
+// ----------------------------------------------------------------------------
+//    Merge the (current) undo branch into the task branch and stay on undo
+// ----------------------------------------------------------------------------
+{
+    if (!isUndoBranch(undo))
+        return false;
+
+    text task = taskBranch(undo);
+
+    if (!checkout(task) || !merge(undo) || !checkout(undo))
+        return false;
+
+    return true;
 }
 
 

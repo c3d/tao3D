@@ -36,6 +36,7 @@ PullFromDialog::PullFromDialog(Repository *repo, QWidget *parent)
 {
     setupUi(this);
     rsFrame->setRepository(repo, repo->pullFrom);
+    rsFrame->setRole(RemoteSelectionFrame::RSF_Fetch);
     QString interval = QString("%1").arg(repo->pullInterval/1000);
     updateInterval->setText(interval);
 }

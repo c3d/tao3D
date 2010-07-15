@@ -36,6 +36,7 @@ class QAction;
 class QMenu;
 class QTextEdit;
 class QSplashScreen;
+class QLabel;
 QT_END_NAMESPACE
 
 namespace Tao {
@@ -83,6 +84,11 @@ public slots:
     void open(QString fileName = "", bool readOnly = false);
     void removeSplashScreen();
     void deleteAboutSplash();
+    void showProjectUrl(QString url);
+
+signals:
+    void projectUrlChanged(QString url);
+    void projectChanged(Repository *repo);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -102,6 +108,7 @@ private slots:
     void checkClipboard();
 
     void setPullUrl();
+    void fetch();
     void publish();
     void clone();
     void about();
@@ -109,6 +116,7 @@ private slots:
     void checkFiles();
     void toggleFullScreen();
     void clearUndoStack();
+    void reloadCurrentFile();
 
 private:
     void     createActions();
@@ -162,6 +170,7 @@ private:
     QToolBar         *fileToolBar;
     QToolBar         *editToolBar;
     QToolBar         *viewToolBar;
+    QToolBar         *branchToolBar;
     QAction          *newAct;
     QAction          *openAct;
     QAction          *saveAct;
@@ -175,6 +184,7 @@ private:
     QAction          *pasteAct;
     QAction          *setPullUrlAct;
     QAction          *publishAct;
+    QAction          *fetchAct;
     QAction          *cloneAct;
     QAction          *aboutAct;
     QAction          *aboutQtAct;
@@ -187,6 +197,7 @@ private:
     QAction          *clearRecentAct;
     QAction          *handCursorAct;
     QAction          *resetViewAct;
+    QLabel           *projectUrl;
 
 public:
     QMenu            *shareMenu;

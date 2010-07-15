@@ -35,7 +35,7 @@ TAO_BEGIN
 #define TEXT_COLOR "#666666"
 
 SplashScreen::SplashScreen()
-    : QSplashScreen(QPixmap(":/images/splash.png"), Qt::WindowStaysOnTopHint)
+    : QSplashScreen(QPixmap(":/images/splash.png"))
 // ----------------------------------------------------------------------------
 //    Splash screen constructor: load the Tao bitmap and show program version
 // ----------------------------------------------------------------------------

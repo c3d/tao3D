@@ -47,7 +47,6 @@ void GroupLayout::DrawSelection(Layout *where)
 //   Draw the selection for the group or part of it
 // ----------------------------------------------------------------------------
 {
-    (void) where;
     uint subsel = Selected();
     uint dclicks = Widget::doubleClicks(subsel);
     Widget *widget = Display();
@@ -56,12 +55,21 @@ void GroupLayout::DrawSelection(Layout *where)
     bool hide = widget->selected(id) && !show;
 
     if (show)
+    {
         Select(where);
+    }
     else if (hide)
+    {
         Deselect(where);
 
-    // Children selection
-    Layout::DrawSelection(where);
+        // Children selection
+        Layout::DrawSelection(where);
+    }
+    else
+    {
+        // Children selection
+        Layout::DrawSelection(where);
+    }
 
     if (show || hide)
         widget->updateProgramSource();  // REVISIT
@@ -95,7 +103,8 @@ void GroupLayout::Select(Layout *where)
     Widget *widget = Display();
     widget->select(self);
     widget->select(id, 1);
-    Drawing::DrawSelection(where);
+    SelectAll(false);
+    Drawing::DrawSelection(this);
     SelectAll(true);
 }
 
@@ -117,7 +126,7 @@ void GroupLayout::SelectAll(bool doSelect)
 //   Recursively (de)select all selectable items in a GroupLayout
 // ----------------------------------------------------------------------------
 {
-    if (!doSelect)
+    if (false && !doSelect)
     {
         uint sel = Selected();
         uint dclicks = Widget::doubleClicks(sel);
@@ -140,6 +149,5 @@ void GroupLayout::SelectAll(bool doSelect)
                     widget->select(l->id, -1);
     }
 }
-
 
 TAO_END

@@ -210,12 +210,15 @@ decagram t                              -> polygram t, constant 10, constant 3
 schläfli t, {p:integer}                 -> polygon t, p
 schläfli t, {p:integer/q:integer}       -> polygram t, p, q
 
-// x..y / t -> x + (y-x) * (1 + sin(time/t * 2*pi)) / 2
-x..y / t -> x
-
 selection_color ->
-    color 0.7..1.0 / 5.0, 0.8..1.0 / 9.0, 0.9..1.0 / 6.0, 0.4
-    line_color 0.8, 0.6, 0.3..0.7 / 3.0, 0.8
+    color 0.7, 0.8, 0.9, 0.4
+    line_color 0.8, 0.3, 0.3, 0.8
+    line_width 2
+
+selection_rectangle_color ->
+    color 0.7, 0.9, 0.8, 0.4
+    line_color 0.4 * sin seconds, 0.9 * sin (2*seconds), 0.8 * sin(3 * seconds), 0.8
+    line_width 1
 
 text_selection_color ->
     color 70%,90%,100%,50%
@@ -294,11 +297,11 @@ draw_widget_selection x,y,w,h ->
 
 draw_selection x,y,w,h ->
     selection_color
-    // svg "bubbles.svg"
     rectangle x, y, w+4, h+4
 
 draw_selection_rectangle x, y, w, h ->
-    draw_selection x,y,w,h
+    selection_rectangle_color
+    rectangle x, y, w+4, h+4
 
 draw_handle x, y, z ->
     handle_outer_color

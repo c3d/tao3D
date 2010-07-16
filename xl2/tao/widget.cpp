@@ -6261,7 +6261,12 @@ Tree_p Widget::runtimeError(Tree_p self, text msg, Tree_p arg)
 // ----------------------------------------------------------------------------
 {
     if (current)
+    {
         current->inError = true;             // Stop refreshing
+        Window *window = (Window *) current->parentWidget();
+        QString fname = +(current->xlProgram->name);
+        window->loadFileIntoSourceFileView(fname); // Load source as plain text
+    }
     return formulaRuntimeError(self, msg, arg);
 }
 

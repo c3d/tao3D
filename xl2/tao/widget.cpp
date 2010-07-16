@@ -123,7 +123,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
       nextPull(nextSave),
-      srcRenderer(NULL),
+      sourceRenderer(NULL),
       currentFileDialog(NULL),
       zoom(1.0),
       eyeX(0.0), eyeY(0.0), eyeZ(Widget::zNear), eyeDistance(200.0),
@@ -166,7 +166,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     TaoFormulas::EnterFormulas(symbolTableForFormulas);
 
     // Select format for source file view
-    setSrcRenderer();
+    setSourceRenderer();
 
     // Make sure we get mouse events even when no click is made
     setMouseTracking(true);
@@ -181,7 +181,7 @@ Widget::~Widget()
 {
     delete space;
     delete path;
-    delete srcRenderer;
+    delete sourceRenderer;
 }
 
 // ============================================================================
@@ -295,22 +295,6 @@ void Widget::draw()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     Layout::polygonOffset = 0;
 
-    // Make sure we compile the selection the first time
-    static bool first = true;
-    if (first)
-    {
-        XL::Symbols *s = xlProgram->symbols;
-        double x = 0;
-        (XL::XLCall("draw_selection"), x,x,x,x).build(s);
-        (XL::XLCall("draw_selection"), x,x,x,x,x,x).build(s);
-        (XL::XLCall("draw_widget_selection"), x,x,x,x).build(s);
-        (XL::XLCall("draw_widget_selection"), x,x,x,x,x,x).build(s);
-        (XL::XLCall("draw_3D_selection"), x,x,x,x,x,x).build(s);
-        (XL::XLCall("draw_handle"), x, x, x).build(s);
-        (XL::XLCall("draw_control_point_handle"), x, x, x).build(s);
-        first = false;
-    }
-
     // If there is a program, we need to run it
     pageRefresh = CurrentTime() + 86400;        // 24 hours
     runProgram();
@@ -420,6 +404,8 @@ void Widget::runProgram()
             glDrawBuffer(GL_BACK_LEFT);
         else if (stereoscopic == 2)
             glDrawBuffer(GL_BACK_RIGHT);
+        glClearColor (1.0, 1.0, 1.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         id = charId = 0;
         space->Draw(NULL);
@@ -1852,15 +1838,15 @@ void Widget::reloadProgram(XL::Tree *newProg)
     updateProgramSource();
 }
 
-void Widget::setSrcRenderer()
+void Widget::setSourceRenderer()
 // ----------------------------------------------------------------------------
 //   (Re-)create the XL renderer to display the source code
 // ----------------------------------------------------------------------------
 {
-    if (srcRenderer)
-        delete srcRenderer;
+    if (sourceRenderer)
+        delete sourceRenderer;
 
-    srcRenderer = new XL::Renderer(srcRendererOutput);
+    sourceRenderer = new XL::Renderer(sourceRendererOutput);
     QFileInfo stylesheet("xl:srcview.stylesheet");
     QFileInfo syntax("xl:xl.syntax");
     QString sspath(stylesheet.canonicalFilePath());
@@ -1868,7 +1854,7 @@ void Widget::setSrcRenderer()
     IFTRACE2(srcview, paths)
         std::cerr << "Loading source view stylesheet '" << +sspath
                   << "' with syntax '" << +sypath << "'\n";
-    srcRenderer->SelectStyleSheet(+sspath, +sypath);
+    sourceRenderer->SelectStyleSheet(+sspath, +sypath);
 }
 
 
@@ -1883,16 +1869,16 @@ void Widget::updateProgramSource()
     if (Tree *prog = xlProgram->tree)
     {
         text txt = "";
-        srcRendererOutput.str(txt);
+        sourceRendererOutput.str(txt);
 
         // Tell renderer how to highlight selected items
         std::set<Tree_p >::iterator i;
-        srcRenderer->highlights.clear();
+        sourceRenderer->highlights.clear();
         for (i = selectionTrees.begin(); i != selectionTrees.end(); i++)
-            srcRenderer->highlights[*i] = "selected";
-        srcRenderer->RenderFile(prog);
+            sourceRenderer->highlights[*i] = "selected";
+        sourceRenderer->RenderFile(prog);
 
-        text html = srcRendererOutput.str();
+        text html = sourceRendererOutput.str();
         window->setHtml(+html);
         IFTRACE(srcview)
         {
@@ -2007,6 +1993,30 @@ void Widget::refreshProgram()
                 }
             }
         }
+    }
+}
+
+
+void Widget::preloadSelectionCode()
+// ----------------------------------------------------------------------------
+//   Make sure that we compile the selection code before running
+// ----------------------------------------------------------------------------
+//   This is mostly to avoid a pause the first time the user clicks
+{
+    // Make sure we compile the selection the first time
+    static bool first = true;
+    if (first)
+    {
+        XL::Symbols *s = xlProgram->symbols;
+        double x = 0;
+        (XL::XLCall("draw_selection"), x,x,x,x).build(s);
+        (XL::XLCall("draw_selection"), x,x,x,x,x,x).build(s);
+        (XL::XLCall("draw_widget_selection"), x,x,x,x).build(s);
+        (XL::XLCall("draw_widget_selection"), x,x,x,x,x,x).build(s);
+        (XL::XLCall("draw_3D_selection"), x,x,x,x,x,x).build(s);
+        (XL::XLCall("draw_handle"), x, x, x).build(s);
+        (XL::XLCall("draw_control_point_handle"), x, x, x).build(s);
+        first = false;
     }
 }
 

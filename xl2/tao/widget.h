@@ -156,6 +156,7 @@ public:
     void        applyAction(Action &action);
     void        reloadProgram(Tree *newProg = NULL);
     void        refreshProgram();
+    void        preloadSelectionCode();
     void        updateProgramSource();
     void        markChanged(text reason);
     void        selectStatements(Tree *tree);
@@ -173,7 +174,7 @@ public:
                     text sh = "group,shape");
     bool        set(Tree *shape, text n, attribute_args &a,
                     text sh = "group,shape");
-    void        setSrcRenderer();
+    void        setSourceRenderer();
 
     // Timing
     ulonglong   now();
@@ -657,8 +658,8 @@ private:
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
 
     // Source code view
-    std::ostringstream    srcRendererOutput;
-    XL::Renderer *        srcRenderer;
+    std::ostringstream    sourceRendererOutput;
+    XL::Renderer *        sourceRenderer;
 
     static Widget *       current;
     static QColorDialog * colorDialog;

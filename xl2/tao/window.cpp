@@ -257,7 +257,10 @@ void Window::sourceViewBecameVisible(bool visible)
     if (visible)
     {
         bool modified = textEdit->document()->isModified();
-        taoWidget->updateProgramSource();
+        if (!taoWidget->inError)
+            taoWidget->updateProgramSource();
+        else
+            loadFileIntoSourceFileView(curFile);
         markChanged(modified);
     }
 }
@@ -1155,6 +1158,11 @@ bool Window::loadFile(const QString &fileName, bool openProj)
             return false;
     }
     else
+    if (taoWidget->inError)
+    {
+        // Runtime error. Already handled by Widget::runtimeError().
+    }
+    else
     {
         QApplication::setOverrideCursor(Qt::WaitCursor);
 
@@ -1166,9 +1174,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         taoWidget->updateProgramSource();
         loadInProgress = false;
         QApplication::restoreOverrideCursor();
-        setCurrentFile(fileName);
         showMessage(tr("File loaded"), 2000);
     }
+    setCurrentFile(fileName);
     isUntitled = false;
     return true;
 }

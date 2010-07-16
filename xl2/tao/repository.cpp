@@ -229,7 +229,7 @@ text Repository::taskBranch(text name)
 }
 
 
-bool Repository::mergeUndoBranchIntoWorkBranch(text undo)
+bool Repository::mergeUndoBranchIntoTaskBranch(text undo)
 // ----------------------------------------------------------------------------
 //    Merge the (current) undo branch into the task branch and stay on undo
 // ----------------------------------------------------------------------------
@@ -240,6 +240,23 @@ bool Repository::mergeUndoBranchIntoWorkBranch(text undo)
     text task = taskBranch(undo);
 
     if (!checkout(task) || !merge(undo) || !checkout(undo))
+        return false;
+
+    return true;
+}
+
+
+bool Repository::mergeTaskBranchIntoUndoBranch(text task)
+// ----------------------------------------------------------------------------
+//    Merge the (current) task branch into the undo branch and stay on task
+// ----------------------------------------------------------------------------
+{
+    if (isUndoBranch(task))
+        return false;
+
+    text undo = undoBranch(task);
+
+    if (!checkout(undo) || !merge(task) || !checkout(task))
         return false;
 
     return true;

@@ -132,7 +132,8 @@ public:
     virtual bool        isUndoBranch(text branch);
     virtual text        undoBranch(text name);
     virtual text        taskBranch(text name);
-    virtual bool        mergeUndoBranchIntoWorkBranch(text name);
+    virtual bool        mergeUndoBranchIntoTaskBranch(text name);
+    virtual bool        mergeTaskBranchIntoUndoBranch(text name);
     virtual bool        idle();
     virtual void        markChanged(text reason);
     virtual void        abort(Process *proc);

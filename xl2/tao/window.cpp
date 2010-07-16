@@ -1320,7 +1320,7 @@ bool Window::saveFile(const QString &fileName)
         sf.changed = false;
 
         // Merge into task branch
-        repo->mergeUndoBranchIntoWorkBranch(repo->cachedBranch);
+        repo->mergeUndoBranchIntoTaskBranch(repo->cachedBranch);
     }
     markChanged(false);
     isUntitled = false;

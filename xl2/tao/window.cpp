@@ -239,6 +239,15 @@ void Window::toggleAnimations()
 }
 
 
+void Window::toggleStereoscopy()
+// ----------------------------------------------------------------------------
+//   Toggle between full-screen and normal mode
+// ----------------------------------------------------------------------------
+{
+    taoWidget->enableStereoscopy(!taoWidget->hasStereoscopy());
+}
+
+
 void Window::sourceViewBecameVisible(bool visible)
 // ----------------------------------------------------------------------------
 //   Source code view is shown or hidden
@@ -811,6 +820,13 @@ void Window::createActions()
     connect(viewAnimationsAct, SIGNAL(triggered()),
             this, SLOT(toggleAnimations()));
 
+    viewStereoscopyAct = new QAction(tr("Stereoscopy"), this);
+    viewStereoscopyAct->setStatusTip(tr("Switch stereoscopy on or off"));
+    viewStereoscopyAct->setCheckable(true);
+    viewStereoscopyAct->setChecked(taoWidget->hasStereoscopy());
+    connect(viewStereoscopyAct, SIGNAL(triggered()),
+            this, SLOT(toggleStereoscopy()));
+
     cutAct->setEnabled(false);
     copyAct->setEnabled(false);
     connect(textEdit, SIGNAL(copyAvailable(bool)),
@@ -892,6 +908,7 @@ void Window::createMenus()
     viewMenu->addAction(errorDock->toggleViewAction());
     viewMenu->addAction(fullScreenAct);
     viewMenu->addAction(viewAnimationsAct);
+    viewMenu->addAction(viewStereoscopyAct);
     viewMenu->addMenu(tr("&Toolbars"))->setObjectName(VIEW_MENU_NAME);
 
     menuBar()->addSeparator();
@@ -1038,7 +1055,7 @@ void Window::loadSrcViewStyleSheet()
 //    Load the XL and CSS stylesheet to use for syntax highlighting
 // ----------------------------------------------------------------------------
 {
-    taoWidget->setSrcRenderer();
+    taoWidget->setSourceRenderer();
 
     QFileInfo info("xl:srcview.css");
     QString path = info.canonicalFilePath();
@@ -1088,15 +1105,15 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    showMessage(msg.arg(tr("fonts")));
+    showMessage(msg.arg(tr("Fonts")));
     FontFileManager ffm;
     appFontIds = ffm.LoadEmbeddedFonts(fileName);
     if (!appFontIds.empty())
         taoWidget->glyphs().Clear();
     foreach (QString e, ffm.errors)
         addError(e);
+    showMessage(msg.arg(tr("Document")));
 
-    showMessage(msg.arg(tr("document")));
     // FIXME: the whole search path stuff is broken when multiple documents
     // are open. There is no way to make "xl:" have a different meaning in
     // two Window instances. And yet it's what we need!
@@ -1120,6 +1137,10 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     else
     {
         QApplication::setOverrideCursor(Qt::WaitCursor);
+
+        showMessage(msg.arg(tr("Caching code")));
+        taoWidget->preloadSelectionCode();
+
         loadSrcViewStyleSheet();
         loadInProgress = true;
         taoWidget->updateProgramSource();

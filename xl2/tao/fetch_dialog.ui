@@ -39,7 +39,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Choose the remote project you want to fetch:</string>
+    <string>Choose the remote project you want to fetch from:</string>
    </property>
   </widget>
   <widget class="Tao::RemoteSelectionFrame" name="rsFrame">

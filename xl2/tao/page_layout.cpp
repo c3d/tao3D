@@ -570,6 +570,13 @@ void PageLayout::DrawSelection(Layout *where)
     // Inherit state from our parent layout if there is one and compute layout
     Compute(where);
 
+    // Clear the selection box in case it was set by some previous text
+    if (sel)
+    {
+        sel->selBox.Empty();
+        sel->formulaBox.Empty();
+    }
+
     // Display all items
     PageJustifier::Places &places = page.places;
     PageJustifier::PlacesIterator p;

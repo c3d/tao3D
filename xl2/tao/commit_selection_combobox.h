@@ -52,7 +52,7 @@ public:
 public:
     Repository::Commit currentCommit();
     void               refresh();
-    void               setMode(Mode mode);
+    void               setMode(unsigned int mode);
 
 public slots:
     void    setRepository(Repository *repo);
@@ -71,7 +71,7 @@ private:
     Repository * repo;
     QString      branch;
     int          prevSelected;
-    Mode         mode;
+    unsigned int mode;
 };
 
 }

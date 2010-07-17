@@ -33,7 +33,7 @@ CommitSelectionComboBox::CommitSelectionComboBox(QWidget *parent)
 // ----------------------------------------------------------------------------
 //    Create a commit selection combo box
 // ----------------------------------------------------------------------------
-    : QComboBox(parent), repo(NULL), mode(CSM_Default)
+    : QComboBox(parent), repo(NULL), prevSelected(-1), mode(CSM_Default)
 {
     connect(this, SIGNAL(activated(int)),
             this, SLOT(on_activated(int)));
@@ -79,7 +79,7 @@ Repository::Commit CommitSelectionComboBox::currentCommit()
 }
 
 
-void CommitSelectionComboBox::setMode(Mode mode)
+void CommitSelectionComboBox::setMode(unsigned int mode)
 // ----------------------------------------------------------------------------
 //    Select display options 
 // ----------------------------------------------------------------------------
@@ -116,8 +116,10 @@ bool CommitSelectionComboBox::populate()
     }
 
     QList<Repository::Commit> commits = repo->history(branch);
-    foreach (Repository::Commit commit, commits)
+    // Commit list is in chronological order, we want latest first
+    for (int n = commits.size() - 1; n >= 0; n--)
     {
+        Repository::Commit commit = commits[n];
         QString txt;
         if (mode & CSM_CommitId)
         {
@@ -136,6 +138,7 @@ bool CommitSelectionComboBox::populate()
         }
     }
 
+    on_activated(currentIndex());
     return true;
 }
 
@@ -148,6 +151,7 @@ void CommitSelectionComboBox::on_activated(int selected)
     if (selected == prevSelected)
         return;
 
+    prevSelected = selected;
     Repository::Commit commit = currentCommit();
     emit commitSelected(commit);
 }

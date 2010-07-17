@@ -371,8 +371,11 @@ void Layout::PushLayout(Layout *where)
 //   Save away information required to maintain selection hierarchy
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = where->Display();
-    widget->selectionContainerPush();
+    if (where)
+    {
+        Widget *widget = where->Display();
+        widget->selectionContainerPush();
+    }
 }
 
 
@@ -381,8 +384,11 @@ void Layout::PopLayout(Layout *where)
 //   Restore information required to maintain selection hierarchy
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = where->Display();
-    widget->selectionContainerPop();
+    if (where)
+    {
+        Widget *widget = where->Display();
+        widget->selectionContainerPop();
+    }
 }
 
 TAO_END

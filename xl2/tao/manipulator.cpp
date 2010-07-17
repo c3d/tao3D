@@ -102,7 +102,7 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id, text name)
     Widget *widget = layout->Display();
     Vector3 offset = layout->Offset();
     widget->drawHandle(layout, p + offset, name, id);
-    bool selected = widget->manipulator == id;
+    bool selected = widget->selectionHandleId() == id;
     return selected;
 }
 
@@ -406,10 +406,8 @@ void FrameManipulator::DrawSelection(Layout *layout)
 {
     Widget *widget = layout->Display();
     uint sel = widget->selected(layout);
-    uint dclicks = Widget::doubleClicks(sel);
-    if (dclicks > groupDepth)
-        return;
-    return Manipulator::DrawSelection(layout);
+    if (sel & Widget::CONTAINER_OPENED)
+        Manipulator::DrawSelection(layout);
 }
 
 
@@ -466,7 +464,7 @@ bool FrameManipulator::DrawHandles(Layout *layout)
 
         case TM_ResizeLockAspectRatio:
             {
-                int id = widget->currentId();
+                int id = widget->selectionCurrentId();
                 coord &h0 = drag->h0[id];
                 coord &w0 = drag->w0[id];
                 if (!h0 && !w0)
@@ -609,7 +607,7 @@ bool ControlRectangle::DrawHandles(Layout *layout)
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
-        if (drag && !widget->manipulatorId())
+        if (drag && !widget->selectionHandleId())
         {
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();
@@ -1191,8 +1189,7 @@ bool GraphicPathManipulator::DrawHandles(Layout *layout)
     // individual path control points are moved proportionally
     Widget *widget = layout->Display();
     uint sel = widget->selected(layout);
-    uint dclicks = Widget::doubleClicks(sel);
-    if (dclicks > groupDepth)
+    if ((sel & Widget::CONTAINER_OPENED) == 0)
         return false;
 
     GraphicPathInfo *path_info = path_tree->GetInfo<GraphicPathInfo>();
@@ -1217,7 +1214,7 @@ bool GraphicPathManipulator::DrawHandles(Layout *layout)
     if (!changed)
     {
         Drag   *drag = widget->drag();
-        if (drag && !widget->manipulatorId())
+        if (drag && !widget->selectionHandleId())
         {
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();
@@ -1370,7 +1367,7 @@ bool ControlBox::DrawHandles(Layout *layout)
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
-        if (drag && !widget->manipulatorId())
+        if (drag && !widget->selectionHandleId())
         {
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();

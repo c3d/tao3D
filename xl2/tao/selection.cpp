@@ -31,6 +31,12 @@
 
 TAO_BEGIN
 
+// ============================================================================
+//
+//    Identify : Find item under cursor, give it focus if it's a widget
+//
+// ============================================================================
+
 Identify::Identify(text t, Widget *w)
 // ----------------------------------------------------------------------------
 //   Initialize the activity
@@ -39,7 +45,7 @@ Identify::Identify(text t, Widget *w)
 {}
 
 
-uint Identify::whatIsHere(int x, int y)
+uint Identify::IdUnderMouse(int x, int y)
 // ----------------------------------------------------------------------------
 //   Find the GL identifier of the object at (x, y)
 // ----------------------------------------------------------------------------
@@ -49,8 +55,9 @@ uint Identify::whatIsHere(int x, int y)
     rectangle.upper.Set(x+4, y+4);
 
     // Create the select buffer and switch to select mode
-    GLuint *buffer = new GLuint[4 * widget->capacity];
-    glSelectBuffer(4 * widget->capacity, buffer);
+    GLuint capacity = widget->selectionCapacity();
+    GLuint *buffer = new GLuint[capacity];
+    glSelectBuffer(capacity, buffer);
     glRenderMode(GL_SELECT);
 
     // Adjust viewport for rendering
@@ -60,7 +67,7 @@ uint Identify::whatIsHere(int x, int y)
     glInitNames();
     glPushName(0);
 
-    // Run the programs, which detects selected items
+    // Draw the items in "Identity" mode (simplified drawing)
     widget->identifySelection();
 
     // Get number of hits and extract selection
@@ -77,14 +84,22 @@ uint Identify::whatIsHere(int x, int y)
         GLuint *ptr = buffer;
         for (int i = 0; i < hits; i++)
         {
-            uint size = ptr[0];
+            uint    size    = ptr[0];
+            GLuint *selPtr  = ptr + 3;
+            GLuint *selNext = selPtr + size;
+
             if (ptr[3] && ptr[1] <= depth)
             {
-                selected = ptr[3];
                 depth = ptr[1];
+
+                // Walk down the hierarchy if item is in a group
+                ptr += 3;
+                selected = *ptr++;
+                while ((selected & Widget::CONTAINER_OPENED) && ptr+1 < selNext)
+                    selected = *ptr++;
             }
 
-            ptr += 3 + size;
+            ptr = selNext;
         }
     }
     delete[] buffer;
@@ -93,7 +108,7 @@ uint Identify::whatIsHere(int x, int y)
 }
 
 
-Activity *  Identify::MouseMove(int x, int y, bool active)
+Activity *Identify::MouseMove(int x, int y, bool active)
 // ----------------------------------------------------------------------------
 //   Track focus as mouse moves
 // ----------------------------------------------------------------------------
@@ -101,7 +116,7 @@ Activity *  Identify::MouseMove(int x, int y, bool active)
     if (active)
         return next;
 
-    uint current = whatIsHere(x, y);
+    uint current = IdUnderMouse(x, y);
     if (current != previous)
     {
         if (previous > 0)
@@ -122,6 +137,13 @@ Activity *  Identify::MouseMove(int x, int y, bool active)
     return next;
 }
 
+
+
+// ============================================================================
+//
+//    Selection - Shape selection and selection rectangle
+//
+// ============================================================================
 
 Selection::Selection(Widget *w)
 // ----------------------------------------------------------------------------
@@ -183,8 +205,8 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         if (count)
         {
             firstClick = true;
-            rectangle.lower.Set(x-4, y-4);
-            rectangle.upper.Set(x+4, y+4);
+            rectangle.lower.Set(x-2, y-2);
+            rectangle.upper.Set(x+2, y+2);
         }
         else
         {
@@ -202,8 +224,8 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
 
     // Create the select buffer and switch to select mode
     GLuint capacity = widget->selectionCapacity();
-    GLuint *buffer = new GLuint[4 * capacity];
-    glSelectBuffer(4 * capacity, buffer);
+    GLuint *buffer = new GLuint[capacity];
+    glSelectBuffer(capacity, buffer);
     glRenderMode(GL_SELECT);
 
     // Adjust viewport for rendering
@@ -213,7 +235,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     glInitNames();
     glPushName(0);
 
-    // Run the programs, which will give us the list of selectable things
+    // Draw the items in "Identity" mode (simplified drawing)
     widget->identifySelection();
 
     // Get number of hits and extract selection
@@ -222,28 +244,48 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     // [1]: Minimum depth
     // [2]: Maximum depth
     // [3..3+[0]-1]: List of names
+    GLuint selected     = 0;
+    GLuint handleId     = 0;
+    GLuint charSelected = 0;
+    bool   hasChildren  = false;
+
     int hits = glRenderMode(GL_RENDER);
-    GLuint selected = 0;
-    GLuint manipulator = 0;
-    bool charSelected = false;
     if (hits > 0)
     {
         GLuint depth = ~0U;
         GLuint *ptr = buffer;
-        for (int i = 0; !(charSelected && count==2) && i < hits; i++)
+        for (int i = 0; i < hits; i++)
         {
-            uint size = ptr[0];
+            uint    size    = ptr[0];
+            GLuint *selPtr  = ptr + 3;
+            GLuint *selNext = selPtr + size;
+
             if (ptr[3] && ptr[1] <= depth)
             {
-                selected = ptr[3];
-                if (size > 1)
-                    manipulator = ptr[4];
                 depth = ptr[1];
-                if (selected & Widget::CHAR_ID_BIT)
-                    charSelected = true;
+                hasChildren = false;
+
+                // Walk down the hierarchy if item is in a group
+                ptr += 3;
+                selected = *ptr++;
+                while ((selected & Widget::CONTAINER_OPENED) && ptr+1 < selNext)
+                    selected = *ptr++;
+
+                // Check if we have a handleId or character ID
+                if (ptr+1 < selNext)
+                {
+                    GLuint child = ptr[1];
+                    hasChildren = (child & Widget::HANDLE_SELECTED) == 0;
+                    if (child & Widget::HANDLE_SELECTED)
+                        handleId = child & ~Widget::HANDLE_SELECTED;
+                    if (child & Widget::CHARACTER_SELECTED)
+                        charSelected = child & ~Widget::CHARACTER_SELECTED;
+                }
             }
-            ptr += 3 + size;
+
+            ptr = selNext;
         }
+
         if (selected)
         {
             doneWithSelection = true;
@@ -254,44 +296,50 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     delete[] buffer;
 
     // If this is the first click, then update selection
-    Widget::selection_map prev_selection = widget->selection;
+    Widget::selection_map previousSelection = widget->selection;
     if (firstClick)
     {
-        if (shiftModifier || widget->selection.count(selected) || manipulator)
-            widget->savedSelection = widget->selection;
+        if (shiftModifier || previousSelection.count(selected) || handleId)
+            savedSelection = widget->selection;
         else
-            widget->savedSelection.clear();
-        widget->selection = widget->savedSelection;
+            savedSelection.clear();
+        widget->selection = savedSelection;
         if (selected)
         {
-            if (shiftModifier && widget->selection[selected] && !manipulator)
+            if (shiftModifier && widget->selected(selected) && !handleId)
             {
                 // De-select previously selected object using shift
                 widget->select(selected, 0);
             }
+            else if (hasChildren && count == 2)
+            {
+                // Double-click on a container: mark it as opened
+                widget->select(selected, Widget::CONTAINER_OPENED);
+            }
             else
             {
                 // Select given object
-                widget->select(selected, count);
-                if (Tree *action = widget->shapeAction("click", selected))
-                    xl_evaluate(action);
+                widget->select(selected, savedSelection[selected] + count);
+                if (!shiftModifier && !handleId)
+                    if (Tree *action = widget->shapeAction("click", selected))
+                        xl_evaluate(action);
             }
         }
-        widget->manipulator = manipulator;
+        widget->handleId = handleId;
     }
     if (!widget->selectionChanged &&
-        !Widget::selectionsEqual(prev_selection, widget->selection))
+        !selectionsMatch(previousSelection, widget->selection))
         widget->selectionChanged = true;
 
     // In all cases, we want a screen refresh
     widget->refresh();
 
     // Delete any text selection we might have if we didn't click in it
-    if (count == 1 && !charSelected)
+    if (!charSelected)
         delete widget->textSelection();
 
     // If we double click in a text, create a text selection
-    if (count == 2 && charSelected)
+    else if (count == 2)
     {
         TextSelect *tsel = widget->textSelection();
         if (!tsel)
@@ -308,7 +356,6 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         if (selected && count == 1)
             return new Drag(widget);
     }
-
 
     return NULL;                // We dealt with the event
 }
@@ -329,8 +376,9 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     rectangle.upper.Set(x,y);
 
     // Create the select buffer and switch to select mode
-    GLuint *buffer = new GLuint[4 * widget->capacity];
-    glSelectBuffer(4 * widget->capacity, buffer);
+    GLuint capacity = widget->selectionCapacity();
+    GLuint *buffer = new GLuint[capacity];
+    glSelectBuffer(capacity, buffer);
     glRenderMode(GL_SELECT);
 
     // Adjust viewport for rendering
@@ -340,7 +388,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     glInitNames();
     glPushName(0);
 
-    // Run the programs, which detects selected items
+    // Draw the items in "Identity" mode (simplified drawing)
     widget->identifySelection();
 
     // Get number of hits and extract selection
@@ -349,8 +397,8 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     // [1]: Minimum depth
     // [2]: Maximum depth
     // [3..3+[0]-1]: List of names
-    Widget::selection_map prev_selection = widget->selection;
-    widget->selection = widget->savedSelection;
+    Widget::selection_map previousSelection = widget->selection;
+    widget->selection = savedSelection;
     int hits = glRenderMode(GL_RENDER);
     GLuint selected = 0;
     if (hits > 0)
@@ -361,13 +409,13 @@ Activity *Selection::MouseMove(int x, int y, bool active)
             uint size = ptr[0];
             selected = ptr[3];
             if (selected)
-                widget->selection[selected] = !widget->savedSelection[selected];
+                widget->selection[selected] = !savedSelection[selected];
             ptr += 3 + size;
         }
     }
     delete[] buffer;
     if (!widget->selectionChanged &&
-        !Widget::selectionsEqual(prev_selection, widget->selection))
+        !selectionsMatch(previousSelection, widget->selection))
         widget->selectionChanged = true;
 
     // Need a refresh
@@ -376,5 +424,25 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     // We dealt with the mouse move, don't let other activities get it
     return NULL;
 }
+
+
+bool Selection::selectionsMatch(selection_map &s1, selection_map &s2)
+// ----------------------------------------------------------------------------
+//   Compare selections to check if they identify the same elements
+// ----------------------------------------------------------------------------
+//   We can't use operator== because we only compare keys, not values
+{
+    Widget::selection_map::iterator i;
+    for (i = s1.begin(); i != s1.end(); i++)
+        if ((*i).second)
+            if (!s2.count((*i).first) || !s2[(*i).first])
+                return false;
+    for (i = s2.begin(); i != s2.end(); i++)
+        if ((*i).second)
+            if (!s1.count((*i).first) || !s1[(*i).first])
+                return false;
+    return true;
+}
+
 
 TAO_END

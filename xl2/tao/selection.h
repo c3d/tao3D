@@ -36,7 +36,7 @@ struct Identify : Activity
 
     virtual Activity *  MouseMove(int x, int y, bool active);
 
-    uint whatIsHere(int x, int y);
+    uint IdUnderMouse(int x, int y);
 
     Box  rectangle;
     uint previous;
@@ -54,6 +54,11 @@ struct Selection : Identify
     virtual Activity *  Idle(void);
     virtual Activity *  Click(uint button, uint count, int x, int y);
     virtual Activity *  MouseMove(int x, int y, bool active);
+
+public:
+    typedef std::map<GLuint, uint> selection_map; // Widget::selection_map
+    static bool selectionsMatch(selection_map &s1, selection_map &s2);
+    selection_map       savedSelection;
 };
 
 TAO_END

@@ -47,31 +47,23 @@ void GroupLayout::DrawSelection(Layout *where)
 //   Draw the selection for the group or part of it
 // ----------------------------------------------------------------------------
 {
-    uint subsel = Selected();
-    uint dclicks = Widget::doubleClicks(subsel);
     Widget *widget = Display();
+    uint selected = widget->selected(id);
+    bool open = selected & Widget::CONTAINER_OPENED;
+    bool sel = selected && !open;
 
-    bool show = subsel && (dclicks == groupDepth);
-    bool hide = widget->selected(id) && !show;
-
-    if (show)
+    if (open)
     {
-        Select(where);
-    }
-    else if (hide)
-    {
-        Deselect(where);
-
-        // Children selection
+        // Draw children selection
         Layout::DrawSelection(where);
     }
-    else
+    else if (sel)
     {
-        // Children selection
-        Layout::DrawSelection(where);
+        // Draw selection here
+        Drawing::DrawSelection(this);
     }
 
-    if (show || hide)
+    if (open || sel)
         widget->updateProgramSource();  // REVISIT
 }
 
@@ -82,7 +74,6 @@ void GroupLayout::Add (Drawing *d)
 // ----------------------------------------------------------------------------
 {
     Layout::Add(d);
-    d->groupDepth = this->groupDepth + 1;
 }
 
 
@@ -126,14 +117,6 @@ void GroupLayout::SelectAll(bool doSelect)
 //   Recursively (de)select all selectable items in a GroupLayout
 // ----------------------------------------------------------------------------
 {
-    if (false && !doSelect)
-    {
-        uint sel = Selected();
-        uint dclicks = Widget::doubleClicks(sel);
-        if (dclicks == groupDepth)
-            return;
-    }
-
     Widget *widget = Display();
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)

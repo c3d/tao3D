@@ -1048,19 +1048,18 @@ void GraphicPath::DrawSelection(Layout *layout)
 {
     Widget *widget = layout->Display();
     uint sel = widget->selected(layout);
-    uint dclicks = Widget::doubleClicks(sel);
 
-    if (dclicks > groupDepth)
+    if (sel > 1)
     {
         // Show the control points
-        glPushName(layout->id);
+        widget->selectionContainerPush();
         control_points::iterator i;
         for (i = controls.begin(); i != controls.end(); i++)
         {
             ControlPoint *child = *i;
             child->DrawSelection(layout);
         }
-        glPopName();
+        widget->selectionContainerPop();
     }
     else if (sel)
     {

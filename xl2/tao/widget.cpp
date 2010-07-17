@@ -111,9 +111,10 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       fontFileMgr(NULL),
       drawAllPages(false), animated(true), stereoscopic(false),
       activities(NULL),
-      id(0), charId(0), capacity(1), manipulator(0),
-      wasSelected(false), selectionChanged(false),
-      w_event(NULL), focusWidget(NULL), focusId(0), keyboardModifiers(0),
+      id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
+      selection(), selectionTrees(), selectNextTime(), actionMap(),
+      hadSelection(false), selectionChanged(false),
+      w_event(NULL), focusWidget(NULL), keyboardModifiers(0),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
       colorAction(NULL), fontAction(NULL),
@@ -183,6 +184,8 @@ Widget::~Widget()
     delete path;
     delete sourceRenderer;
 }
+
+
 
 // ============================================================================
 //
@@ -338,10 +341,11 @@ void Widget::draw()
     if (selectionChanged)
     {
         Window *window = (Window *) parentWidget();
+        selectionChanged = false;
+
         // TODO: honoring isReadOnly involves more than just this
         if (!window->isReadOnly)
             updateProgramSource();
-        selectionChanged = false;
     }
 }
 
@@ -359,6 +363,7 @@ void Widget::runProgram()
 
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
+    id = idDepth = 0;
 
     // Run the XL program associated with this widget
     QTextOption alignCenter(Qt::AlignCenter);
@@ -368,11 +373,9 @@ void Widget::runProgram()
     IFTRACE(memory)
         std::cerr << "cleared, count = " << space->count << ", ";
     XL::LocalSave<Layout *> saveLayout(layout, space);
-    id = charId = 0;
 
     // Evaluate the program
     XL::MAIN->EvalContextFiles(((Window*)parent())->contextFileNames);
-
     if (Tree *prog = xlProgram->tree)
         xl_evaluate(prog);
 
@@ -388,12 +391,10 @@ void Widget::runProgram()
     currentMenu    = NULL;
     currentToolBar = NULL;
     currentMenuBar = ((Window*)parent())->menuBar();
-
-    // Remember how many elements are drawn on the page, plus arbitrary buffer
-    if (id + charId + 100 > capacity)
-        capacity = id + charId + 100;
-    else if (id + charId + 50 < capacity / 2)
-        capacity = capacity / 2;
+    
+    // Remember number of elements drawn for GL selection buffer capacity
+    if (maxId < id + 100 || maxId > 2 * (id + 100))
+        maxId = id + 100;
 
     // After we are done, draw the space with all the drawings in it
     // If we are in stereoscopice mode, we draw twice, once for each eye
@@ -407,12 +408,12 @@ void Widget::runProgram()
         glClearColor (1.0, 1.0, 1.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        id = charId = 0;
+        id = idDepth = 0;
         space->Draw(NULL);
         IFTRACE(memory)
             std::cerr << "Draw, count = " << space->count << "\n";
 
-        id = charId = 0;
+        id = idDepth = 0;
         selectionTrees.clear();
         space->offset.Set(0,0,0);
         space->DrawSelection(NULL);
@@ -435,7 +436,7 @@ void Widget::identifySelection()
 //   Draw the elements in global space for selection purpose
 // ----------------------------------------------------------------------------
 {
-    id = charId = 0;
+    id = idDepth = 0;
     space->offset.Set(0,0,0);
     space->Identify(NULL);
 }
@@ -443,10 +444,14 @@ void Widget::identifySelection()
 
 void Widget::updateSelection()
 // ----------------------------------------------------------------------------
-//   Redraw selection in order to perform text editing operations
+//   Redraw selection, perform associated operations
 // ----------------------------------------------------------------------------
+//   One important operation that happens while we draw the selection is
+//   text editing. If a text span notes that there is a text selection,
+//   and that the text selection has an associated operation, it will
+//   update the Text* it points to (e.g. insert or delete characters)
 {
-    id = charId = 0;
+    id = idDepth = 0;
     selectionTrees.clear();
     space->offset.Set(0,0,0);
     space->DrawSelection(NULL);
@@ -492,11 +497,11 @@ void Widget::checkCopyAvailable()
 //   Emit a signal when clipboard can copy or cut something (or cannot anymore)
 // ----------------------------------------------------------------------------
 {
-    bool isSelected = selected();
-    if (wasSelected != isSelected)
+    bool sel = hasSelection();
+    if (hadSelection != sel)
     {
-        emit copyAvailable(isSelected);
-        wasSelected = isSelected;
+        emit copyAvailable(sel);
+        hadSelection = sel;
     }
 }
 
@@ -659,6 +664,7 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
     return XL::xl_true;
 }
 
+
 Name_p Widget::bringForward(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 //   Swap the selected shape and the one in front of it
@@ -670,6 +676,7 @@ Name_p Widget::bringForward(Tree_p /*self*/)
     std::set<Tree_p >::iterator sel = selectionTrees.begin();
     XL::FindParentAction getParent(*sel);
     Tree * parent = xlProgram->tree->Do(getParent);
+
     // Check if we are not the only one
     if (!parent)
         return XL::xl_false;
@@ -686,7 +693,7 @@ Name_p Widget::bringForward(Tree_p /*self*/)
         if (current->right == *sel)
             return XL::xl_false;
 
-        // just swap left and right of parent.
+        // Just swap left and right of parent.
         tmp = current->left;
         current->left = current->right;
         current->right = tmp;
@@ -751,25 +758,6 @@ Name_p Widget::sendBackward(Tree_p /*self*/)
     reloadProgram();
     markChanged("Selection sent backward");
     return XL::xl_true;
-}
-
-
-bool Widget::selectionsEqual(selection_map &s1, selection_map &s2)
-// ----------------------------------------------------------------------------
-//   Compare selections
-// ----------------------------------------------------------------------------
-//   We can't use operator== because we only compare keys, not values
-{
-    Widget::selection_map::iterator i;
-    for (i = s1.begin(); i != s1.end(); i++)
-        if ((*i).second)
-            if (!s2.count((*i).first) || !s2[(*i).first])
-                return false;
-    for (i = s2.begin(); i != s2.end(); i++)
-        if ((*i).second)
-            if (!s1.count((*i).first) || !s1[(*i).first])
-                return false;
-    return true;
 }
 
 
@@ -2515,59 +2503,35 @@ ulonglong Widget::elapsed(ulonglong since, ulonglong until,
 
 uint Widget::selected(uint i)
 // ----------------------------------------------------------------------------
-//   Test if the current shape is selected
+//   Test if the given shape ID is in the selection map, return selection value
 // ----------------------------------------------------------------------------
 {
-    return i && selection.count(i) > 0 ? selection[i] : 0;
+    selection_map::iterator found = selection.find(i);
+    if (found != selection.end())
+        return (*found).second;
+    return 0;
 }
 
 
 uint Widget::selected(Layout *layout)
 // ----------------------------------------------------------------------------
-//   Test if the current shape is selected
+//   Test if the current shape (as identified by layout ID) is selected
 // ----------------------------------------------------------------------------
 {
     return selected(layout->id);
 }
 
 
-bool Widget::focused(Layout *layout)
-// ----------------------------------------------------------------------------
-//   Test if the current shape is selected
-// ----------------------------------------------------------------------------
-{
-    return layout->id == focusId;
-}
-
-
 void Widget::select(uint id, uint count)
 // ----------------------------------------------------------------------------
-//    Change the current shape selection state if we are in selectable state
+//    Change the current shape selection state
 // ----------------------------------------------------------------------------
+//    We use the following special selection 'counts':
+//    - CHAR_SELECTED means we selected characters, see TextSelect
+//    - CONTAINER_OPENED means that we are opening a hierarchy, e.g.
+//      a text box or a group.
 {
-    if (id)
-    {
-        uint s;
-        switch (count)
-        {
-        case 0:        // Deselect
-            selection.erase(id);
-            break;
-        case 1:        // Add "one single click" to selection state
-            selection[id] += 1;
-            break;
-        case 2:        // Add "one double click" to selection state
-            selection[id] += (1 << 16);
-            break;
-        case (uint)-1: // Remove "one single click" from selection state
-            s = selected(id);
-            if (singleClicks(s))
-                selection[id] -= 1;
-            break;
-        default:       // Error
-            break;
-        }
-    }
+    selection[id] = count;
 }
 
 
@@ -2577,7 +2541,7 @@ void Widget::reselect(Tree *from, Tree *to)
 // ----------------------------------------------------------------------------
 {
     // Check if we are possibly changing the selection
-    if ( selectionTrees.count(from) )
+    if (selectionTrees.count(from))
         selectionTrees.insert(to);
 
     // Check if we are possibly changing the next selection
@@ -2587,6 +2551,56 @@ void Widget::reselect(Tree *from, Tree *to)
     // Check if we are possibly changing the page tree reference
     if (pageTree == from)
         pageTree = to;
+}
+
+
+void Widget::selectionContainerPush()
+// ----------------------------------------------------------------------------
+//    Push current item, which becomes a parent in the selection hierarchy
+// ----------------------------------------------------------------------------
+{
+    idDepth++;
+    if (maxIdDepth < idDepth)
+        maxIdDepth = idDepth;
+
+    // Check if the group was opened. If so, update OpenGL name
+    uint open = selected(id);
+    uint groupId = id++;
+    if (open & CONTAINER_OPENED)
+        groupId |= CONTAINER_OPENED;
+    glPushName(groupId);
+}
+
+
+void Widget::selectionContainerPop()
+// ----------------------------------------------------------------------------
+//   Pop current child in selection hierarchy
+// ----------------------------------------------------------------------------
+{
+    glPopName();
+}
+
+
+void Widget::saveSelectionColorAndFont(Layout *where)
+// ----------------------------------------------------------------------------
+//   Save the color and font for the selection
+// ----------------------------------------------------------------------------
+{
+    if (where)
+    {
+        selectionColor["line_color"] = where->lineColor;
+        selectionColor["color"] = where->fillColor;
+        selectionFont = where->font;
+    }
+}
+
+
+bool Widget::focused(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Test if the current shape is selected
+// ----------------------------------------------------------------------------
+{
+    return layout->id == focusId;
 }
 
 
@@ -2606,7 +2620,8 @@ bool Widget::requestFocus(QWidget *widget, coord x, coord y)
 // ----------------------------------------------------------------------------
 {
     IFTRACE(widgets)
-            std::cerr << "Widget::requestFocus name " << +(widget->objectName()) << std::endl;
+            std::cerr << "Widget::requestFocus name "
+                      << +(widget->objectName()) << std::endl;
 
     if (!focusWidget)
     {
@@ -2728,7 +2743,7 @@ void Widget::drawSelection(Layout *where,
     resetLayout(layout);
     selectionSpace.id = id;
     selectionSpace.isSelection = true;
-    saveSelectionState(where);
+    saveSelectionColorAndFont(where);
     glDisable(GL_DEPTH_TEST);
     if (bounds.Depth() > 0)
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
@@ -2754,7 +2769,7 @@ void Widget::drawHandle(Layout *where,
     GLAttribKeeper          saveGL;
     resetLayout(layout);
     glDisable(GL_DEPTH_TEST);
-    selectionSpace.id = id;
+    selectionSpace.id = id | HANDLE_SELECTED;
     selectionSpace.isSelection = true;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
 
@@ -2802,20 +2817,6 @@ void Widget::drawCall(Layout *where, XL::XLCall &call, uint id)
 }
 
 
-void Widget::saveSelectionState(Layout *where)
-// ----------------------------------------------------------------------------
-//   Save the color and font for the selection
-// ----------------------------------------------------------------------------
-{
-    if (where)
-    {
-        selectionColor["line_color"] = where->lineColor;
-        selectionColor["color"] = where->fillColor;
-        selectionFont = where->font;
-    }
-}
-
-
 Tree * Widget::shapeAction(text n, GLuint id)
 // ----------------------------------------------------------------------------
 //   Return the shape action for the given name and GL id
@@ -2824,7 +2825,7 @@ Tree * Widget::shapeAction(text n, GLuint id)
     action_map::iterator foundName = actionMap.find(n);
     if (foundName != actionMap.end())
     {
-        GLid_map::iterator foundAction = (*foundName).second.find(id);
+        perId_action_map::iterator foundAction = (*foundName).second.find(id);
         if (foundAction != (*foundName).second.end())
         {
             return (*foundAction).second;
@@ -3138,7 +3139,7 @@ Tree_p Widget::shape(Tree_p self, Tree_p child)
 //   Evaluate the child and mark the current shape
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(newId()));
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     XL::LocalSave<Tree_p>   saveShape (currentShape, self);
     if (selectNextTime.count(self))
     {
@@ -3157,7 +3158,7 @@ Tree_p Widget::activeWidget(Tree_p self, Tree_p child)
 //   We set currentShape to NULL, which means that we won't create manipulator
 //   so the widget is active (it can be selected) but won't budge
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(newId()));
+    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     XL::LocalSave<Tree_p>   saveShape (currentShape, NULL);
     if (selectNextTime.count(self))
     {
@@ -6877,7 +6878,7 @@ Tree_p Widget::group(Tree_p self, Tree_p shapes)
 // ----------------------------------------------------------------------------
 {
     GroupLayout *group = new GroupLayout(this, self);
-    group->id = newId();
+    group->id = selectionId();
     layout->Add(group);
     XL::LocalSave<Layout *> saveLayout(layout, group);
     XL::LocalSave<Tree_p>   saveShape (currentShape, self);

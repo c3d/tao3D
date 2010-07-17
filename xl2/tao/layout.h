@@ -92,6 +92,8 @@ struct Layout : Drawing, LayoutState
 
     LayoutState &       operator=(const LayoutState &o);
     void                Inherit(Layout *other);
+    void                PushLayout(Layout *where);
+    void                PopLayout(Layout *where);
 
 public:
     // OpenGL identification for that shape

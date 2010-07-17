@@ -173,14 +173,14 @@ void Layout::Draw(Layout *where)
     Inherit(where);
 
     // Display all items
+    PushLayout(where);
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
-        glLoadName(id);         // Needed for handles (call Draw, not identify)
         child->Draw(this);
     }
-    glLoadName(0);
+    PopLayout(where);
 }
 
 
@@ -195,14 +195,14 @@ void Layout::DrawSelection(Layout *where)
                             hasMatrix, false, hasTextureMatrix);
     Inherit(where);
 
+    PushLayout(where);
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
-        glLoadName(id);         // Needed for handles (call Draw, not identify)
         child->DrawSelection(this);
     }
-    glLoadName(0);
+    PopLayout(where);
 }
 
 
@@ -217,14 +217,15 @@ void Layout::Identify(Layout *where)
                             hasMatrix, false, hasTextureMatrix);
     Inherit(where);
 
+
+    PushLayout(where);
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
-        glLoadName(id);
         child->Identify(this);
     }
-    glLoadName(0);
+    PopLayout(where);
 }
 
 
@@ -277,7 +278,6 @@ void Layout::Add(Drawing *d)
 // ----------------------------------------------------------------------------
 {
     items.push_back(d);
-    d->groupDepth = this->groupDepth;
 }
 
 
@@ -314,7 +314,9 @@ uint Layout::Selected()
 //   Selection state of this layout plus the sum of chilren selections
 // ----------------------------------------------------------------------------
 {
-    return Display()->selected(id) + ChildrenSelected();
+    uint selected = Display()->selected(id);
+    selected &= Widget::SELECTION_MASK;
+    return selected + ChildrenSelected();
 }
 
 
@@ -361,6 +363,26 @@ void Layout::Inherit(Layout *where)
     planarScale     = where->planarScale;
     has3D           = where->has3D;
     hasPixelBlur    = where->hasPixelBlur;
+}
+
+
+void Layout::PushLayout(Layout *where)
+// ----------------------------------------------------------------------------
+//   Save away information required to maintain selection hierarchy
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = where->Display();
+    widget->selectionContainerPush();
+}
+
+
+void Layout::PopLayout(Layout *where)
+// ----------------------------------------------------------------------------
+//   Restore information required to maintain selection hierarchy
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = where->Display();
+    widget->selectionContainerPop();
 }
 
 TAO_END

@@ -544,6 +544,7 @@ void PageLayout::Draw(Layout *where)
     Compute(where);
 
     // Display all items
+    PushLayout(where);
     PageJustifier::Places &places = page.places;
     PageJustifier::PlacesIterator p;
     for (p = places.begin(); p != places.end(); p++)
@@ -553,6 +554,7 @@ void PageLayout::Draw(Layout *where)
         XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
         child->Draw(this);
     }
+    PopLayout(where);
 }
 
 
@@ -564,7 +566,7 @@ void PageLayout::DrawSelection(Layout *where)
     // Remember the initial selection ID
     Widget     *widget  = where->Display();
     TextSelect *sel     = widget->textSelection();
-    GLuint      startId = widget->currentCharId();
+    GLuint      startId = widget->selectionCurrentId();
     GLuint      lineStart, lineEnd;
 
     // Inherit state from our parent layout if there is one and compute layout
@@ -578,6 +580,7 @@ void PageLayout::DrawSelection(Layout *where)
     }
 
     // Display all items
+    PushLayout(where);
     PageJustifier::Places &places = page.places;
     PageJustifier::PlacesIterator p;
     for (p = places.begin(); p != places.end(); p++)
@@ -594,13 +597,12 @@ void PageLayout::DrawSelection(Layout *where)
         else
         {
             // Text selection: Draw the selection box
-            lineStart = widget->currentCharId();
             sel->newLine();
-            lineStart = widget->currentCharId();
+            lineStart = widget->selectionCurrentId();
             XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
             child->DrawSelection(this);
             offset.y = saveY.saved;
-            lineEnd = widget->currentCharId();
+            lineEnd = widget->selectionCurrentId();
 
             if (sel->selBox.Width() > 0 && sel->selBox.Height() > 0)
             {
@@ -635,15 +637,16 @@ void PageLayout::DrawSelection(Layout *where)
             }
         }
     }
+    PopLayout(where);
 
     // Assign an ID for the page layout itself and draw a rectangle in it
-    GLuint endId = widget->currentCharId();
+    GLuint endId = widget->selectionCurrentId();
     if (TextSelect *sel = widget->textSelection())
         if (sel->findingLayout)
             if (sel->start() <= endId+1 && sel->end() >= startId)
-                widget->select(where->id, 1);
+                widget->select(where->id, Widget::CHARACTER_SELECTED);
     if (widget->selected(where))
-        widget->saveSelectionState(where);
+        widget->saveSelectionColorAndFont(where);
 }
 
 
@@ -656,6 +659,7 @@ void PageLayout::Identify(Layout *where)
     Compute(where);
 
     // Display all items
+    PushLayout(where);
     PageJustifier::Places &places = page.places;
     PageJustifier::PlacesIterator p;
     for (p = places.begin(); p != places.end(); p++)
@@ -665,6 +669,7 @@ void PageLayout::Identify(Layout *where)
         XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
         child->Identify(this);
     }
+    PopLayout(where);
 
     coord x = space.Left(),  y = space.Bottom();
     coord w = space.Width(), h = space.Height();
@@ -705,7 +710,6 @@ Box3 PageLayout::Bounds(Layout *layout)
         Drawing *child = place.item;
         XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
         Box3 childBounds = child->Bounds(this);
-        //childBounds &= space;
         result |= childBounds;
     }
 

@@ -53,17 +53,17 @@ void TextSpan::Draw(Layout *where)
 //   Render a portion of text and advance by the width of the text
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = where->Display();
-    bool hasLine = setLineColor(where);
-    bool hasTexture = setTexture(where);
-    GlyphCache &glyphs = widget->glyphs();
-    bool tooBig = where->font.pointSize() > (int) glyphs.maxFontSize;
-    bool printing = where->printing;
-    uint dbgMod = (Qt::ShiftModifier|Qt::ControlModifier|Qt::AltModifier);
-    bool debugForceDirect = (widget->lastModifiers() & dbgMod) == dbgMod;
-    Point3 offset0 = where->Offset();
+    Widget     *widget     = where->Display();
+    bool        hasLine    = setLineColor(where);
+    bool        hasTexture = setTexture(where);
+    GlyphCache &glyphs     = widget->glyphs();
+    bool        tooBig     = where->font.pointSize() > (int) glyphs.maxFontSize;
+    bool        printing   = where->printing;
+    Point3      offset0    = where->Offset();
+    uint        dbgMod     = (Qt::ShiftModifier | Qt::ControlModifier);
+    bool        dbgDirect  = (widget->lastModifiers() & dbgMod) == dbgMod;
 
-    if (!printing && !hasLine && !hasTexture && !tooBig && !debugForceDirect)
+    if (!printing && !hasLine && !hasTexture && !tooBig && !dbgDirect)
         DrawCached(where);
     else
         DrawDirect(where);
@@ -247,7 +247,8 @@ void TextSpan::DrawDirect(Layout *where)
                 continue;
 
             if (canSel)
-                glLoadName(widget->newCharId() | Widget::CHAR_ID_BIT);
+                glLoadName(widget->selectionId() | Widget::CHARACTER_SELECTED);
+
             GLMatrixKeeper save;
             glTranslatef(x, y, z);
             scale gscale = glyph.scalingFactor;
@@ -308,8 +309,8 @@ void TextSpan::DrawSelection(Layout *where)
         uint unicode = XL::Utf8Code(str, i);
         if (canSel)
         {
-            charId = widget->newCharId();
-            charSelected = widget->charSelected();
+            charId = widget->selectionId();
+            charSelected = widget->selected(charId);
         }
         next = XL::Utf8Next(str, i);
 
@@ -328,7 +329,7 @@ void TextSpan::DrawSelection(Layout *where)
                 charId >= sel->start() && charId <= sel->end())
             {
                 charSelected = true;
-                widget->selectChar(charId, 1);
+                widget->select(charId, Widget::CHARACTER_SELECTED);
             }
 
             // Check up and down keys
@@ -495,8 +496,8 @@ void TextSpan::Identify(Layout *where)
         uint unicode = XL::Utf8Code(str, i);
         if (canSel)
         {
-            charId = widget->newCharId();
-            glLoadName(charId | Widget::CHAR_ID_BIT);
+            charId = widget->selectionId();
+            glLoadName(charId | Widget::CHARACTER_SELECTED);
         }
         next = XL::Utf8Next(str, i);
 
@@ -537,7 +538,7 @@ void TextSpan::Identify(Layout *where)
 
     // Draw a trailing block
     charId++;
-    glLoadName(charId | Widget::CHAR_ID_BIT);
+    glLoadName(charId | Widget::CHARACTER_SELECTED);
     if (glyphs.Find(font, ' ', glyph, false))
     {
         sd = glyph.scalingFactor * descent;
@@ -879,7 +880,7 @@ void TextFormula::DrawSelection(Layout *where)
     XL::Prefix *         prefix = self;
     XL::Tree *           value  = prefix->right;
     TextFormulaEditInfo *info   = value->GetInfo<TextFormulaEditInfo>();
-    uint                 selId  = widget->currentCharId() + 1;
+    uint                 selId  = widget->selectionCurrentId() + 1;
 
     // Count formulas to identify them uniquely
     shows++;
@@ -888,7 +889,7 @@ void TextFormula::DrawSelection(Layout *where)
     // Check if formula is selected and we are not editing it
     if (sel && sel->textMode)
     {
-        if (!info && widget->charSelected(selId))
+        if (!info && widget->selected(selId))
         {
             // No info: create one
 
@@ -969,8 +970,8 @@ void TextFormula::Identify(Layout *where)
     if (!info)
     {
         Widget *widget  = where->Display();
-        uint    selId = widget->currentCharId() + 1;
-        glLoadName(selId | Widget::CHAR_ID_BIT);
+        uint    selId = widget->selectionCurrentId() + 1;
+        glLoadName(selId | Widget::CHARACTER_SELECTED);
     }
     TextSpan::Identify(where);
 }
@@ -1034,9 +1035,9 @@ TextSelect::TextSelect(Widget *w)
     for (i = w->selection.begin(); i != last; i++)
     {
         uint id = (*i).first;
-        if (id & Widget::CHAR_ID_BIT)
+        if (id & Widget::CHARACTER_SELECTED)
         {
-            id &= Widget::CHAR_ID_MASK;
+            id &= Widget::CHARACTER_SELECTED;
             if (!mark)
                 mark = point = id;
             else
@@ -1200,8 +1201,9 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
     Box rectangle(x, y, 1, 1);
 
     // Create the select buffer and switch to select mode
-    GLuint *buffer = new GLuint[4 * widget->capacity];
-    glSelectBuffer(4 * widget->capacity, buffer);
+    uint capacity = widget->selectionCapacity();
+    GLuint *buffer = new GLuint[capacity];
+    glSelectBuffer(capacity, buffer);
     glRenderMode(GL_SELECT);
 
     // Adjust viewport for rendering
@@ -1220,39 +1222,61 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
     // [1]: Minimum depth
     // [2]: Maximum depth
     // [3..3+[0]-1]: List of names
+    GLuint selected     = 0;
+    GLuint charSelected = 0;
+    GLuint handleId     = 0;
+    bool   hadChildren  = false;
+    GLuint depth = ~0U;
+
     int hits = glRenderMode(GL_RENDER);
-    GLuint selected = 0;
-    GLuint manipulator = 0;
     if (hits > 0)
     {
         GLuint *ptr = buffer;
         for (int i = 0; i < hits; i++)
         {
-            uint size = ptr[0];
-            if (size > 1)
+            uint    size    = ptr[0];
+            GLuint *selPtr  = ptr + 3;
+            GLuint *selNext = selPtr + size;
+
+            if (ptr[3] && ptr[1] <= depth)
             {
-                manipulator = ptr[4];
-                selected = ptr[3];
+                depth = ptr[1];
+
+                // Walk down the hierarchy if item is in a group
+                ptr += 3;
+                selected = *ptr++;
+                while ((selected & Widget::CONTAINER_OPENED) && ptr+1 < selNext)
+                    selected = *ptr++;
+
+                // Check if we have a handleId or character ID
+                if (ptr+1 < selNext)
+                {
+                    GLuint child = ptr[1];
+                    hadChildren = (child & Widget::HANDLE_SELECTED) == 0;
+                    if (child & Widget::HANDLE_SELECTED)
+                        handleId = child & ~Widget::HANDLE_SELECTED;
+                    if (child & Widget::CHARACTER_SELECTED)
+                        charSelected = child & ~Widget::CHARACTER_SELECTED;
+                }
+
             }
-            else if (!selected)
-                selected = ptr[3];
-            ptr += 3 + size;
+
+            ptr = selNext;                
         }
 
         findingLayout = true;
-        if (manipulator)
+        if (handleId)
         {
             textMode = false;
         }
-        else if ((selected & Widget::CHAR_ID_BIT))
+        else if (charSelected)
         {
-            selected &= Widget::CHAR_ID_MASK;
             if (textMode)
             {
                 if (mark)
-                    point = selected;
+                    point = charSelected;
                 else
-                    mark = point = selected;
+                    mark = point = charSelected;
                 updateSelection();
             }
             else if (!mark)
@@ -1289,7 +1313,7 @@ void TextSelect::updateSelection()
     widget->selection.clear();
     uint s = start(), e = end();
     for (uint i = s; i < e; i++)
-        widget->selection[i | Widget::CHAR_ID_BIT] = 1;
+        widget->select(i, Widget::CHARACTER_SELECTED);
     findingLayout = true;
     formulaMode = false;
     widget->refresh();
@@ -1306,7 +1330,7 @@ void TextSelect::newLine()
     if (!up && !down)
         return;
 
-    uint charId = widget->currentCharId();
+    uint charId = widget->selectionCurrentId();
     if (down)
     {
         // Current best position
@@ -1360,7 +1384,7 @@ void TextSelect::newChar(coord x, bool selected)
         return;
     }
 
-    uint charId = widget->currentCharId();
+    uint charId = widget->selectionCurrentId();
     if (down)
     {
         if (pickingUpDown && x >= targetX)

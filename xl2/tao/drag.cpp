@@ -63,7 +63,7 @@ Activity *Drag::Click(uint button, uint count, int x, int y)
         else
         {
             Activity *next = this->next;
-            widget->manipulator = 0;
+            widget->handleId = 0;
             delete this;
             return next;
         }

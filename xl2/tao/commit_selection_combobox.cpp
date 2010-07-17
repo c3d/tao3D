@@ -107,6 +107,7 @@ bool CommitSelectionComboBox::populate()
 
     int i = 0;
     clear();
+    prevSelected = -1;
 
     if (mode & CSM_HeadEntry)
     {

@@ -227,6 +227,12 @@ bool GitRepository::delBranch(QString name, bool force)
         args << "-D";
     else
         args << "-d";
+    if (isRemoteBranch(+name))
+    {
+        args << "-r";
+        // Strip "remotes/" prefix
+        name = name.mid(8);
+    }
     args << name;
     Process cmd(command(), args, path);
     return cmd.done(&errors);

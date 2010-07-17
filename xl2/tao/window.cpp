@@ -31,6 +31,7 @@
 #include "publish_to_dialog.h"
 #include "fetch_dialog.h"
 #include "merge_dialog.h"
+#include "revert_to_dialog.h"
 #include "clone_dialog.h"
 #include "branch_selection_toolbar.h"
 #include "undo.h"
@@ -655,6 +656,23 @@ void Window::merge()
 }
 
 
+void Window::revertTo()
+// ----------------------------------------------------------------------------
+//    Show a "Revert to" dialog
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+        return warnNoRepo();
+
+    RevertToDialog *dialog = new RevertToDialog(repo.data(), this);
+    connect(dialog, SIGNAL(checkedOut(QString)),
+            this, SLOT(reloadCurrentFile()));
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
+}
+
+
 void Window::clone()
 // ----------------------------------------------------------------------------
 //    Prompt user for address of remote repository and clone it locally
@@ -822,6 +840,12 @@ void Window::createActions()
     mergeAct->setEnabled(false);
     connect(mergeAct, SIGNAL(triggered()), this, SLOT(merge()));
 
+    revertToAct = new QAction(tr("Revert to..."), this);
+    revertToAct->setStatusTip(tr("Checkout a previous version of the document "
+                                 "into a temporary branch"));
+    revertToAct->setEnabled(false);
+    connect(revertToAct, SIGNAL(triggered()), this, SLOT(revertTo()));
+
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setStatusTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
@@ -924,6 +948,7 @@ void Window::createMenus()
     shareMenu->addAction(setPullUrlAct);
     shareMenu->addAction(publishAct);
     shareMenu->addAction(mergeAct);
+    shareMenu->addAction(revertToAct);
 
     viewMenu = menuBar()->addMenu(tr("&View"));
 //    viewMenu->setObjectName(VIEW_MENU_NAME);
@@ -1356,6 +1381,7 @@ void Window::enableProjectSharingMenus()
     publishAct->setEnabled(true);
     fetchAct->setEnabled(true);
     mergeAct->setEnabled(true);
+    revertToAct->setEnabled(true);
 }
 
 

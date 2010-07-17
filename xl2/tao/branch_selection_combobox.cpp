@@ -67,7 +67,7 @@ QString BranchSelectionComboBox::branch()
 }
 
 
-void BranchSelectionComboBox::setFilter(Filter filter)
+void BranchSelectionComboBox::setFilter(unsigned int filter)
 // ----------------------------------------------------------------------------
 //    Select which branches should appear in the combobox
 // ----------------------------------------------------------------------------

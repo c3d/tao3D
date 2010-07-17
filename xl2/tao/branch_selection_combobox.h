@@ -52,7 +52,7 @@ public:
 public:
     QString branch();
     void    refresh();
-    void    setFilter(Filter filter);
+    void    setFilter(unsigned int filter);
 
 public slots:
     void    setRepository(Repository *repo, QString preferredBranch = "");
@@ -86,7 +86,7 @@ private:
 private:
     Repository * repo;
     QString      prevSelected;
-    Filter       filter;
+    unsigned int filter;
 };
 
 }

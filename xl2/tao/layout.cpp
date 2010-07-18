@@ -173,14 +173,14 @@ void Layout::Draw(Layout *where)
     Inherit(where);
 
     // Display all items
-    PushLayout(where);
+    PushLayout(this);
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
         child->Draw(this);
     }
-    PopLayout(where);
+    PopLayout(this);
 }
 
 
@@ -195,14 +195,14 @@ void Layout::DrawSelection(Layout *where)
                             hasMatrix, false, hasTextureMatrix);
     Inherit(where);
 
-    PushLayout(where);
+    PushLayout(this);
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
         child->DrawSelection(this);
     }
-    PopLayout(where);
+    PopLayout(this);
 }
 
 
@@ -218,14 +218,14 @@ void Layout::Identify(Layout *where)
     Inherit(where);
 
 
-    PushLayout(where);
+    PushLayout(this);
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
         child->Identify(this);
     }
-    PopLayout(where);
+    PopLayout(this);
 }
 
 
@@ -371,10 +371,16 @@ void Layout::PushLayout(Layout *where)
 //   Save away information required to maintain selection hierarchy
 // ----------------------------------------------------------------------------
 {
-    if (where)
+    // Check if the group was opened. If so, update OpenGL name
+    if (uint groupId = id)
     {
         Widget *widget = where->Display();
         widget->selectionContainerPush();
+
+        uint open = widget->selected(id);
+        if (open & Widget::CONTAINER_OPENED)
+            groupId |= Widget::CONTAINER_OPENED;
+        glPushName(groupId);
     }
 }
 
@@ -384,10 +390,11 @@ void Layout::PopLayout(Layout *where)
 //   Restore information required to maintain selection hierarchy
 // ----------------------------------------------------------------------------
 {
-    if (where)
+    if (id)
     {
         Widget *widget = where->Display();
         widget->selectionContainerPop();
+        glPopName();
     }
 }
 

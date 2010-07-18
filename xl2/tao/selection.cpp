@@ -65,7 +65,6 @@ uint Identify::IdUnderMouse(int x, int y)
 
     // Initialize names
     glInitNames();
-    glPushName(0);
 
     // Draw the items in "Identity" mode (simplified drawing)
     widget->identifySelection();
@@ -233,7 +232,6 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
 
     // Initialize names
     glInitNames();
-    glPushName(0);
 
     // Draw the items in "Identity" mode (simplified drawing)
     widget->identifySelection();
@@ -386,7 +384,6 @@ Activity *Selection::MouseMove(int x, int y, bool active)
 
     // Initialize names
     glInitNames();
-    glPushName(0);
 
     // Draw the items in "Identity" mode (simplified drawing)
     widget->identifySelection();

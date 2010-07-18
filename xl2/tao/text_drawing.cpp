@@ -1211,7 +1211,6 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
 
     // Initialize names
     glInitNames();
-    glPushName(0);
 
     // Run the programs, which detects selected items
     widget->identifySelection();

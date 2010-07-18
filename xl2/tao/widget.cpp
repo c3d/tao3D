@@ -172,6 +172,11 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     // Make sure we get mouse events even when no click is made
     setMouseTracking(true);
     new Identify("Focus Rectangle", this);
+
+    GLint maxDepth = 42;
+    glGetIntegerv(GL_MAX_NAME_STACK_DEPTH, &maxDepth);
+    std::cout << "Max GL Stack depth = " << maxDepth << "\n";
+
 }
 
 
@@ -2562,13 +2567,6 @@ void Widget::selectionContainerPush()
     idDepth++;
     if (maxIdDepth < idDepth)
         maxIdDepth = idDepth;
-
-    // Check if the group was opened. If so, update OpenGL name
-    uint open = selected(id);
-    uint groupId = id++;
-    if (open & CONTAINER_OPENED)
-        groupId |= CONTAINER_OPENED;
-    glPushName(groupId);
 }
 
 
@@ -2577,7 +2575,7 @@ void Widget::selectionContainerPop()
 //   Pop current child in selection hierarchy
 // ----------------------------------------------------------------------------
 {
-    glPopName();
+    idDepth--;
 }
 
 

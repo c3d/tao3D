@@ -406,7 +406,7 @@ void FrameManipulator::DrawSelection(Layout *layout)
 {
     Widget *widget = layout->Display();
     uint sel = widget->selected(layout);
-    if (sel & Widget::CONTAINER_OPENED)
+    if (sel)
         Manipulator::DrawSelection(layout);
 }
 

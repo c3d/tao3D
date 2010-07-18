@@ -172,11 +172,6 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     // Make sure we get mouse events even when no click is made
     setMouseTracking(true);
     new Identify("Focus Rectangle", this);
-
-    GLint maxDepth = 42;
-    glGetIntegerv(GL_MAX_NAME_STACK_DEPTH, &maxDepth);
-    std::cout << "Max GL Stack depth = " << maxDepth << "\n";
-
 }
 
 

@@ -242,10 +242,10 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     // [1]: Minimum depth
     // [2]: Maximum depth
     // [3..3+[0]-1]: List of names
-    GLuint selected     = 0;
-    GLuint handleId     = 0;
-    GLuint charSelected = 0;
-    bool   hasChildren  = false;
+    GLuint selected      = 0;
+    GLuint handleId      = 0;
+    GLuint charSelected  = 0;
+    GLuint childSelected = 0;
 
     int hits = glRenderMode(GL_RENDER);
     if (hits > 0)
@@ -261,21 +261,22 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
             if (ptr[3] && ptr[1] <= depth)
             {
                 depth = ptr[1];
-                hasChildren = false;
+                childSelected = false;
 
                 // Walk down the hierarchy if item is in a group
                 ptr += 3;
                 selected = *ptr++;
-                while ((selected & Widget::CONTAINER_OPENED) && ptr+1 < selNext)
+                while ((selected & Widget::CONTAINER_OPENED) && ptr < selNext)
                     selected = *ptr++;
 
                 // Check if we have a handleId or character ID
-                if (ptr+1 < selNext)
+                if (ptr < selNext)
                 {
-                    GLuint child = ptr[1];
-                    hasChildren = (child & Widget::HANDLE_SELECTED) == 0;
+                    GLuint child = *ptr;
                     if (child & Widget::HANDLE_SELECTED)
                         handleId = child & ~Widget::HANDLE_SELECTED;
+                    else
+                        childSelected = child;
                     if (child & Widget::CHARACTER_SELECTED)
                         charSelected = child & ~Widget::CHARACTER_SELECTED;
                 }
@@ -309,10 +310,11 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
                 // De-select previously selected object using shift
                 widget->select(selected, 0);
             }
-            else if (hasChildren && count == 2)
+            else if (childSelected && count == 2)
             {
                 // Double-click on a container: mark it as opened
                 widget->select(selected, Widget::CONTAINER_OPENED);
+                widget->select(childSelected, 1);
             }
             else
             {
@@ -351,7 +353,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     {
         Widget *widget = this->widget; // Save before 'delete this'
         delete this;
-        if (selected && count == 1)
+        if (selected)
             return new Drag(widget);
     }
 

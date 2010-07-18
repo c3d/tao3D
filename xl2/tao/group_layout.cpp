@@ -94,7 +94,6 @@ void GroupLayout::Select(Layout *where)
     Widget *widget = Display();
     widget->select(self);
     widget->select(id, 1);
-    SelectAll(false);
     Drawing::DrawSelection(this);
     SelectAll(true);
 }

@@ -193,10 +193,11 @@ public:
 
     enum
     {
-        HANDLE_SELECTED    =  0x1000000, // A handle is selected
-        CHARACTER_SELECTED =  0x2000000, // A character was selected
-        CONTAINER_OPENED   =  0x4000000, // A shape container was opened
-        SELECTION_MASK     = ~0x7000000  // Mask for "regular" selection
+        HANDLE_SELECTED    =  0x10000000, // A handle is selected
+        CHARACTER_SELECTED =  0x20000000, // A character was selected
+        CONTAINER_OPENED   =  0x40000000, // A shape container was opened
+        CONTAINER_SELECTED =  0x80000000, // Container is selected
+        SELECTION_MASK     = ~0xF0000000  // Mask for "regular" selection
     };
     void        select(uint id, uint count = 1);
     uint        selected(uint i);

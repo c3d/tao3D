@@ -270,15 +270,15 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
                     selected = *ptr++;
 
                 // Check if we have a handleId or character ID
-                if (ptr < selNext)
+                while (ptr < selNext)
                 {
-                    GLuint child = *ptr;
+                    GLuint child = *ptr++;
                     if (child & Widget::HANDLE_SELECTED)
                         handleId = child & ~Widget::HANDLE_SELECTED;
-                    else
-                        childSelected = child;
-                    if (child & Widget::CHARACTER_SELECTED)
+                    else if (child & Widget::CHARACTER_SELECTED)
                         charSelected = child & ~Widget::CHARACTER_SELECTED;
+                    else if (!childSelected)
+                        childSelected = child;
                 }
             }
 

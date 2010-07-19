@@ -30,6 +30,9 @@
 #include "pull_from_dialog.h"
 #include "publish_to_dialog.h"
 #include "fetch_dialog.h"
+#include "merge_dialog.h"
+#include "revert_to_dialog.h"
+#include "selective_undo_dialog.h"
 #include "clone_dialog.h"
 #include "branch_selection_toolbar.h"
 #include "undo.h"
@@ -256,7 +259,10 @@ void Window::sourceViewBecameVisible(bool visible)
     if (visible)
     {
         bool modified = textEdit->document()->isModified();
-        taoWidget->updateProgramSource();
+        if (!taoWidget->inError)
+            taoWidget->updateProgramSource();
+        else
+            loadFileIntoSourceFileView(curFile);
         markChanged(modified);
     }
 }
@@ -639,6 +645,50 @@ void Window::publish()
 }
 
 
+void Window::merge()
+// ----------------------------------------------------------------------------
+//    Show a "Merge" dialog
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+        return warnNoRepo();
+
+    MergeDialog(repo.data()).exec();
+}
+
+
+void Window::revertTo()
+// ----------------------------------------------------------------------------
+//    Show a "Revert to" dialog
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+        return warnNoRepo();
+
+    RevertToDialog *dialog = new RevertToDialog(repo.data(), this);
+    connect(dialog, SIGNAL(checkedOut(QString)),
+            this, SLOT(reloadCurrentFile()));
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
+}
+
+
+void Window::selectiveUndo()
+// ----------------------------------------------------------------------------
+//    Show a "Selective undo" dialog
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+        return warnNoRepo();
+
+    SelectiveUndoDialog *dialog = new SelectiveUndoDialog(repo.data(), this);
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
+}
+
+
 void Window::clone()
 // ----------------------------------------------------------------------------
 //    Prompt user for address of remote repository and clone it locally
@@ -658,7 +708,7 @@ void Window::about()
 {
     if (aboutSplash)
         return;
-    aboutSplash = new SplashScreen();
+    aboutSplash = new SplashScreen(Qt::WindowStaysOnTopHint);
     connect(aboutSplash, SIGNAL(dismissed()), this, SLOT(deleteAboutSplash()));
     aboutSplash->show();
 }
@@ -800,6 +850,25 @@ void Window::createActions()
                               "and make a local copy"));
     connect(cloneAct, SIGNAL(triggered()), this, SLOT(clone()));
 
+    mergeAct = new QAction(tr("Merge..."), this);
+    mergeAct->setStatusTip(tr("Apply the changes made in one branch into "
+                              "another branch"));
+    mergeAct->setEnabled(false);
+    connect(mergeAct, SIGNAL(triggered()), this, SLOT(merge()));
+
+    revertToAct = new QAction(tr("Revert to..."), this);
+    revertToAct->setStatusTip(tr("Checkout a previous version of the document "
+                                 "into a temporary branch"));
+    revertToAct->setEnabled(false);
+    connect(revertToAct, SIGNAL(triggered()), this, SLOT(revertTo()));
+
+    selectiveUndoAct = new QAction(tr("Selective undo..."), this);
+    selectiveUndoAct->setStatusTip(tr("Pick a previous change, revert it and "
+                                      "apply it to the current document"));
+    selectiveUndoAct->setEnabled(false);
+    connect(selectiveUndoAct, SIGNAL(triggered()),
+            this, SLOT(selectiveUndo()));
+
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setStatusTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
@@ -901,6 +970,9 @@ void Window::createMenus()
     shareMenu->addAction(fetchAct);
     shareMenu->addAction(setPullUrlAct);
     shareMenu->addAction(publishAct);
+    shareMenu->addAction(mergeAct);
+    shareMenu->addAction(revertToAct);
+    shareMenu->addAction(selectiveUndoAct);
 
     viewMenu = menuBar()->addMenu(tr("&View"));
 //    viewMenu->setObjectName(VIEW_MENU_NAME);
@@ -1135,6 +1207,11 @@ bool Window::loadFile(const QString &fileName, bool openProj)
             return false;
     }
     else
+    if (taoWidget->inError)
+    {
+        // Runtime error. Already handled by Widget::runtimeError().
+    }
+    else
     {
         QApplication::setOverrideCursor(Qt::WaitCursor);
 
@@ -1146,9 +1223,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         taoWidget->updateProgramSource();
         loadInProgress = false;
         QApplication::restoreOverrideCursor();
-        setCurrentFile(fileName);
         showMessage(tr("File loaded"), 2000);
     }
+    setCurrentFile(fileName);
     isUntitled = false;
     return true;
 }
@@ -1300,7 +1377,7 @@ bool Window::saveFile(const QString &fileName)
         sf.changed = false;
 
         // Merge into task branch
-        repo->mergeUndoBranchIntoWorkBranch(repo->cachedBranch);
+        repo->mergeUndoBranchIntoTaskBranch(repo->cachedBranch);
     }
     markChanged(false);
     isUntitled = false;
@@ -1327,6 +1404,9 @@ void Window::enableProjectSharingMenus()
     setPullUrlAct->setEnabled(true);
     publishAct->setEnabled(true);
     fetchAct->setEnabled(true);
+    mergeAct->setEnabled(true);
+    revertToAct->setEnabled(true);
+    selectiveUndoAct->setEnabled(true);
 }
 
 
@@ -1407,6 +1487,14 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
     {
         text task = repo->branch();
         text currentBranch = task;
+        text useBranch = currentBranch + TAO_UNDO_SUFFIX;
+        if (task == "")
+        {
+            // Special handling if we're not on a named branch
+            currentBranch = "(no branch)";
+            task = "master";
+            useBranch = task + TAO_UNDO_SUFFIX;
+        }
         if (repo->isUndoBranch(task))
         {
             task = repo->taskBranch(task);
@@ -1431,7 +1519,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
                         "or skip and use '%3' without a project (version "
                         "control and sharing will be disabled)?")
                      .arg(+currentBranch)
-                     .arg(+currentBranch + TAO_UNDO_SUFFIX)
+                     .arg(+useBranch)
                      .arg(fileName));
             // REVISIT: this info text is not very well suited to the
             // "Save as..." case.
@@ -1500,12 +1588,15 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         }
     }
 
-    QString url = repo->url();
-    if (url != oldUrl)
-        emit projectUrlChanged(url);
+    if (repo)
+    {
+        QString url = repo->url();
+        if (url != oldUrl)
+            emit projectUrlChanged(url);
 
-    if (repo != oldRepo)
-        emit projectChanged(repo.data());   // REVISIT projectUrlChanged
+        if (repo != oldRepo)
+            emit projectChanged(repo.data());   // REVISIT projectUrlChanged
+    }
 
     return true;
 }

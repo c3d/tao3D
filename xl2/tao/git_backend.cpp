@@ -227,6 +227,12 @@ bool GitRepository::delBranch(QString name, bool force)
         args << "-D";
     else
         args << "-d";
+    if (isRemoteBranch(+name))
+    {
+        args << "-r";
+        // Strip "remotes/" prefix
+        name = name.mid(8);
+    }
     args << name;
     Process cmd(command(), args, path);
     return cmd.done(&errors);
@@ -251,6 +257,15 @@ bool GitRepository::renBranch(QString oldName, QString newName, bool force)
     if (ok && +cachedBranch == oldName)
         cachedBranch = +newName;
     return ok;
+}
+
+
+bool GitRepository::isRemoteBranch(text branch)
+// ----------------------------------------------------------------------------
+//    Return true if branch is remote, false otherwise
+// ----------------------------------------------------------------------------
+{
+    return (+branch).startsWith("remotes/");
 }
 
 
@@ -514,26 +529,50 @@ void GitRepository::mergeCommitMessages(text &dest, text src)
     dest = +res;
 }
 
-bool GitRepository::merge(text branch)
+
+QStringList GitRepository::crArgs(ConflictResolution mode)
+// ----------------------------------------------------------------------------
+//   Build the git command line arguments for conflict resolution mode 'mode'
+// ----------------------------------------------------------------------------
+{
+    QStringList args;
+    switch (mode)
+    {
+    case CR_Manual:  break;
+    case CR_Ours:    args << "-s" << "recursive" << "-Xours";   break;
+    case CR_Theirs:  args << "-s" << "recursive" << "-Xtheirs"; break;
+    case CR_Unknown: std::cerr << "Unspecified conflict resolution mode\n";
+    }
+    return args;
+}
+
+
+bool GitRepository::merge(text branch, ConflictResolution how)
 // ----------------------------------------------------------------------------
 //   Merge another branch into the current one
 // ----------------------------------------------------------------------------
 {
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
-    Process cmd(command(), QStringList("merge") << +branch, path);
+    QStringList args("merge");
+    args << crArgs(how) << +branch;
+    Process cmd(command(), args, path);
     return cmd.done(&errors);
 }
 
 
-bool GitRepository::reset()
+bool GitRepository::reset(text commit)
 // ----------------------------------------------------------------------------
-//   Reset a branch to normal state
+//   Reset a branch to normal state or to a given commit
 // ----------------------------------------------------------------------------
 {
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
-    Process cmd(command(), QStringList("reset") << "--hard", path);
+    QStringList args("reset");
+    args << "--hard";
+    if (!commit.empty())
+        args << +commit;
+    Process cmd(command(), args, path);
     return cmd.done(&errors);
 }
 
@@ -547,13 +586,7 @@ bool GitRepository::pull()
         return true;
     clearCachedDocVersion();
     QStringList args("pull");
-    args << "-s" << "recursive";
-    switch (conflictResolution)
-    {
-    case CR_Ours:    args << "-Xours";   break;
-    case CR_Theirs:  args << "-Xtheirs"; break;
-    case CR_Unknown: std::cerr << "Unspecified conflict resolution mode\n";
-    }
+    args << crArgs(conflictResolution);
     args << pullFrom << "master_tao_undo";  // TODO hardcoded branch!
     dispatch(new Process(command(), args, path, false));
     return true;
@@ -676,14 +709,17 @@ bool GitRepository::renRemote(QString oldName, QString newName)
 }
 
 
-QList<GitRepository::Commit> GitRepository::history(int max)
+QList<GitRepository::Commit> GitRepository::history(QString branch, int max)
 // ----------------------------------------------------------------------------
-//   Return the last commits on the current branch in chronological order
+//   Return the last commits on a branch in chronological order
 // ----------------------------------------------------------------------------
+//   If branch == "", the current branch is used
 {
     QStringList args;
     args << "log" << "--pretty=format:%h:%s";
     args << "-n" << QString("%1").arg(max);
+    if (!branch.isEmpty())
+        args << branch;
     text    output;
     waitForAsyncProcessCompletion();
     Process cmd(command(), args, path);
@@ -725,9 +761,8 @@ text GitRepository::version()
 
     text    output, result = +QString(tr("Unkwnown"));
     waitForAsyncProcessCompletion();
-    QString dirty(tr("%1=-dirty").arg("--dirty="));
     QStringList args;
-    args << "describe" << dirty << "--tags" << "--always";
+    args << "describe" << tr("--dirty=-dirty") << "--tags" << "--always";
     Process cmd(command(), args, path);
     bool    ok = cmd.done(&errors, &output);
     if (ok)

@@ -1034,8 +1034,7 @@ TextSelect::TextSelect(Widget *w)
       replacement(""), replace(false),
       textMode(false),
       pickingLineEnds(false), pickingUpDown(false), movePointOnly(false),
-      formulaMode(false),
-      findingLayout(true)
+      formulaMode(false)
 {
     Widget::selection_map::iterator i, last = w->selection.end();
     for (i = w->selection.begin(); i != last; i++)
@@ -1058,7 +1057,6 @@ Activity *TextSelect::Display()
 //   Display the text selection
 // ----------------------------------------------------------------------------
 {
-    findingLayout = false;
     return next;
 }
 
@@ -1216,7 +1214,6 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
                                  &handleId, &charSelected, &childSelected);
     if (selected)
     {
-        findingLayout = true;
         if (handleId)
         {
             textMode = false;
@@ -1268,7 +1265,6 @@ void TextSelect::updateSelection()
         widget->select(i | marker, marker);
     if (textBoxId)
         widget->select(textBoxId, Widget::CONTAINER_OPENED);
-    findingLayout = true;
     formulaMode = false;
     widget->refresh();
 }

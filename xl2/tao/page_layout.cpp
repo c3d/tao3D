@@ -566,7 +566,6 @@ void PageLayout::DrawSelection(Layout *where)
     // Remember the initial selection ID
     Widget     *widget   = where->Display();
     TextSelect *sel      = widget->textSelection();
-    GLuint      startId  = widget->selectionCurrentId();
     uint        selected = widget->selected(id);
     GLuint      lineStart, lineEnd;
 
@@ -651,12 +650,7 @@ void PageLayout::DrawSelection(Layout *where)
     }
     PopLayout(this);
 
-    // Assign an ID for the page layout itself and draw a rectangle in it
-    GLuint endId = widget->selectionCurrentId();
-    if (TextSelect *sel = widget->textSelection())
-        if (sel->findingLayout)
-            if (sel->start() <= endId+1 && sel->end() >= startId)
-                widget->select(where->id, Widget::CHARACTER_SELECTED);
+    // Save color and font as necessary for color selectors
     if (widget->selected(where))
         widget->saveSelectionColorAndFont(where);
 }

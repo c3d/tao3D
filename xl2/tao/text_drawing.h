@@ -130,7 +130,6 @@ struct TextSelect : Identify
     bool                pickingUpDown;
     bool                movePointOnly;
     uint                formulaMode;
-    bool                findingLayout;
 };
 
 

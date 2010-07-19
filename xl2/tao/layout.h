@@ -94,10 +94,12 @@ struct Layout : Drawing, LayoutState
     void                Inherit(Layout *other);
     void                PushLayout(Layout *where);
     void                PopLayout(Layout *where);
+    uint                CharacterId()   { return ++charId; }
 
 public:
-    // OpenGL identification for that shape
+    // OpenGL identification for that shape and for characters within
     uint                id;
+    uint                charId;
 
     // For optimized drawing, we keep track of what changes
     bool                hasPixelBlur    : 1; // Pixels not aligning naturally

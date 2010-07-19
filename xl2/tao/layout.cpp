@@ -96,7 +96,7 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
 //    Create an empty layout
 // ----------------------------------------------------------------------------
-    : Drawing(), LayoutState(), id(0),
+    : Drawing(), LayoutState(), id(0), charId(0),
       hasPixelBlur(false), hasMatrix(false), has3D(false),
       hasAttributes(false), hasTextureMatrix(false),
       isSelection(false),
@@ -108,7 +108,7 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
 //   Copy constructor
 // ----------------------------------------------------------------------------
-    : Drawing(o), LayoutState(o), id(0),
+    : Drawing(o), LayoutState(o), id(0), charId(0),
       hasPixelBlur(o.hasPixelBlur), hasMatrix(false), has3D(o.has3D),
       hasAttributes(false), hasTextureMatrix(false),
       isSelection(o.isSelection),
@@ -335,6 +335,9 @@ void Layout::Inherit(Layout *where)
 //   Inherit state from some other layout
 // ----------------------------------------------------------------------------
 {
+    // Reset the index of characters
+    charId = 0;
+
     if (!where)
         return;
 

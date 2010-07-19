@@ -6894,7 +6894,8 @@ Tree_p Widget::updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child)
 // ----------------------------------------------------------------------------
 {
     Name * groupName = new Name("group");
-    Tree * group = new Prefix(groupName, new Block(copySelection(), "I+", "I-"));
+    Tree * group = new Prefix(groupName,
+                              new Block(copySelection(), "I+", "I-"));
 
     Infix * inf = parent->AsInfix();
     if ( inf )

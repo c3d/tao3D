@@ -93,6 +93,7 @@ void TextSpan::DrawCached(Layout *where)
     coord       x      = pos.x;
     coord       y      = pos.y;
     coord       z      = pos.z;
+    uint        charId = ~0U;
 
     GlyphCache::GlyphEntry  glyph;
     std::vector<Point3>     quads;
@@ -104,6 +105,8 @@ void TextSpan::DrawCached(Layout *where)
     {
         uint  unicode  = XL::Utf8Code(str, i);
         bool  newLine  = unicode == '\n';
+
+        charId   = where->CharacterId();
 
         // Advance to next character
         if (newLine)
@@ -193,6 +196,7 @@ void TextSpan::DrawDirect(Layout *where)
     scale       lw     = where->lineWidth;
     bool        skip   = false;
     uint        i, max = str.length();
+    uint        charId = ~0U;
 
     // When printing and there is no rotation, we try to use GL2PS direct
     if (where->printing)
@@ -231,6 +235,8 @@ void TextSpan::DrawDirect(Layout *where)
     {
         uint  unicode  = XL::Utf8Code(str, i);
         bool  newLine  = unicode == '\n';
+
+        charId   = where->CharacterId();
 
         // Advance to next character
         if (newLine)
@@ -290,6 +296,7 @@ void TextSpan::DrawSelection(Layout *where)
     scale       textWidth    = 0;
     TextSelect *sel          = widget->textSelection();
     bool        charSelected = false;
+    uint        charId       = ~0U;
     scale       ascent       = glyphs.Ascent(font);
     scale       descent      = glyphs.Descent(font);
     scale       height       = ascent + descent;
@@ -303,7 +310,9 @@ void TextSpan::DrawSelection(Layout *where)
     for (i = start; i < max && i < end; i = next)
     {
         uint unicode = XL::Utf8Code(str, i);
-        next = XL::Utf8Next(str, i);
+        
+        charId = where->CharacterId();
+        next   = XL::Utf8Next(str, i);
 
         // Fetch data about that glyph
         if (!glyphs.Find(font, unicode, glyph, false))
@@ -312,7 +321,7 @@ void TextSpan::DrawSelection(Layout *where)
         if (sel)
         {
             // Mark characters in selection range
-            charSelected = i >= sel->start() && i <= sel->end();
+            charSelected = charId >= sel->start() && charId <= sel->end();
 
             // Check up and down keys
             if (charSelected || sel->needsPositions())
@@ -320,7 +329,7 @@ void TextSpan::DrawSelection(Layout *where)
                 coord charX = x + glyph.bounds.lower.x;
                 coord charY = y;
 
-                sel->newChar(i, charX, charSelected);
+                sel->newChar(charId, charX, charSelected);
 
                 if (charSelected)
                 {
@@ -354,7 +363,6 @@ void TextSpan::DrawSelection(Layout *where)
                     scale sh = glyph.scalingFactor * height;
                     sel->selBox |= Box3(charX,charY - sd,z, 1, sh, 0);
                 } // if(charSelected)
-
             } // if (charSelected || upDown)
 
             // Check if we are in a formula, if so display formula box
@@ -396,7 +404,8 @@ void TextSpan::DrawSelection(Layout *where)
 
     if (sel && max <= end)
     {
-        if (i >= sel->start() && i <= sel->end())
+        charId++;
+        if (charId >= sel->start() && charId <= sel->end())
         {
             if (sel->replace)
             {
@@ -441,6 +450,8 @@ void TextSpan::Identify(Layout *where)
     Text *      ttree     = source;
     text        str       = ttree->value;
     bool        canSel    = ttree->Position() != XL::Tree::NOWHERE;
+    TextSelect *sel       = widget->textSelection();
+    uint        charId    = ~0U;
     QFont      &font      = where->font;
     Point3      pos       = where->offset;
     coord       x         = pos.x;
@@ -474,14 +485,16 @@ void TextSpan::Identify(Layout *where)
     for (i = start; i < max && i < end; i = next)
     {
         uint unicode = XL::Utf8Code(str, i);
-        next = XL::Utf8Next(str, i);
+
+        charId = where->CharacterId();
+        next   = XL::Utf8Next(str, i);
 
         // Fetch data about that glyph
         if (!glyphs.Find(font, unicode, glyph, false))
             continue;
 
         if (canSel)
-            glLoadName(i | Widget::CHARACTER_SELECTED);
+            glLoadName(charId | Widget::CHARACTER_SELECTED);
 
         sd = glyph.scalingFactor * descent;
         sh = glyph.scalingFactor * height;
@@ -515,21 +528,25 @@ void TextSpan::Identify(Layout *where)
     }
 
     // Draw a trailing block
-    glLoadName(i | Widget::CHARACTER_SELECTED);
-    if (glyphs.Find(font, ' ', glyph, false))
+    if (sel && max <= end)
     {
-        sd = glyph.scalingFactor * descent;
-        sh = glyph.scalingFactor * height;
-        charW = glyph.bounds.Width() / 2;
-        charX2 = x + glyph.bounds.upper.x - charW/2;
-        charY1 = y - sd;
-        charY2 = y - sd + sh;
+        charId++;
+        glLoadName(charId | Widget::CHARACTER_SELECTED);
+        if (glyphs.Find(font, ' ', glyph, false))
+        {
+            sd = glyph.scalingFactor * descent;
+            sh = glyph.scalingFactor * height;
+            charW = glyph.bounds.Width() / 2;
+            charX2 = x + glyph.bounds.upper.x - charW/2;
+            charY1 = y - sd;
+            charY2 = y - sd + sh;
 
-        quad[0] = Point3(charX1, charY1, z);
-        quad[1] = Point3(charX2, charY1, z);
-        quad[2] = Point3(charX2, charY2, z);
-        quad[3] = Point3(charX1, charY2, z);
-        glDrawArrays(GL_QUADS, 0, 4);
+            quad[0] = Point3(charX1, charY1, z);
+            quad[1] = Point3(charX2, charY1, z);
+            quad[2] = Point3(charX2, charY2, z);
+            quad[3] = Point3(charX1, charY2, z);
+            glDrawArrays(GL_QUADS, 0, 4);
+        }
     }
 
     // Disable drawing with the quad
@@ -947,7 +964,7 @@ void TextFormula::Identify(Layout *where)
     if (!info)
     {
         Widget *widget  = where->Display();
-        uint    selId = where->id;
+        uint    selId = where->CharacterId();
         glLoadName(selId | Widget::CHARACTER_SELECTED);
     }
     TextSpan::Identify(where);

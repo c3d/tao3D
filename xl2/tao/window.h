@@ -113,6 +113,7 @@ private slots:
     void publish();
     void merge();
     void revertTo();
+    void selectiveUndo();
     void clone();
     void about();
     void documentWasModified();
@@ -191,6 +192,7 @@ private:
     QAction          *cloneAct;
     QAction          *mergeAct;
     QAction          *revertToAct;
+    QAction          *selectiveUndoAct;
     QAction          *aboutAct;
     QAction          *aboutQtAct;
     QAction          *fullScreenAct;

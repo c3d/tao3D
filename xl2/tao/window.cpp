@@ -32,6 +32,7 @@
 #include "fetch_dialog.h"
 #include "merge_dialog.h"
 #include "revert_to_dialog.h"
+#include "selective_undo_dialog.h"
 #include "clone_dialog.h"
 #include "branch_selection_toolbar.h"
 #include "undo.h"
@@ -673,6 +674,21 @@ void Window::revertTo()
 }
 
 
+void Window::selectiveUndo()
+// ----------------------------------------------------------------------------
+//    Show a "Selective undo" dialog
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+        return warnNoRepo();
+
+    SelectiveUndoDialog *dialog = new SelectiveUndoDialog(repo.data(), this);
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
+}
+
+
 void Window::clone()
 // ----------------------------------------------------------------------------
 //    Prompt user for address of remote repository and clone it locally
@@ -846,6 +862,13 @@ void Window::createActions()
     revertToAct->setEnabled(false);
     connect(revertToAct, SIGNAL(triggered()), this, SLOT(revertTo()));
 
+    selectiveUndoAct = new QAction(tr("Selective undo..."), this);
+    selectiveUndoAct->setStatusTip(tr("Pick a previous change, revert it and "
+                                      "apply it to the current document"));
+    selectiveUndoAct->setEnabled(false);
+    connect(selectiveUndoAct, SIGNAL(triggered()),
+            this, SLOT(selectiveUndo()));
+
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setStatusTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
@@ -949,6 +972,7 @@ void Window::createMenus()
     shareMenu->addAction(publishAct);
     shareMenu->addAction(mergeAct);
     shareMenu->addAction(revertToAct);
+    shareMenu->addAction(selectiveUndoAct);
 
     viewMenu = menuBar()->addMenu(tr("&View"));
 //    viewMenu->setObjectName(VIEW_MENU_NAME);
@@ -1382,6 +1406,7 @@ void Window::enableProjectSharingMenus()
     fetchAct->setEnabled(true);
     mergeAct->setEnabled(true);
     revertToAct->setEnabled(true);
+    selectiveUndoAct->setEnabled(true);
 }
 
 

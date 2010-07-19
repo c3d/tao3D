@@ -127,7 +127,8 @@ HEADERS += widget.h \
     merge_dialog.h \
     commit_selection_combobox.h \
     history_dialog.h \
-    revert_to_dialog.h
+    revert_to_dialog.h \
+    selective_undo_dialog.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -204,7 +205,8 @@ SOURCES += tao_main.cpp \
     merge_dialog.cpp \
     commit_selection_combobox.cpp \
     history_dialog.cpp \
-    revert_to_dialog.cpp
+    revert_to_dialog.cpp \
+    selective_undo_dialog.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \

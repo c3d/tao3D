@@ -243,7 +243,7 @@ public:
 
 public:
     // XLR entry points
-    static Widget *Tao() { assert(current); return current; }
+    static Widget *Tao()                { assert(current); return current; }
     XL::Symbols *formulaSymbols()       { return symbolTableForFormulas; }
 
     // Getting attributes

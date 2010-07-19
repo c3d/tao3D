@@ -1221,15 +1221,15 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
     // [1]: Minimum depth
     // [2]: Maximum depth
     // [3..3+[0]-1]: List of names
-    GLuint selected     = 0;
-    GLuint charSelected = 0;
-    GLuint handleId     = 0;
-    bool   hadChildren  = false;
-    GLuint depth = ~0U;
+    GLuint selected      = 0;
+    GLuint handleId      = 0;
+    GLuint charSelected  = 0;
+    GLuint childSelected = 0;
 
     int hits = glRenderMode(GL_RENDER);
     if (hits > 0)
     {
+        GLuint depth = ~0U;
         GLuint *ptr = buffer;
         for (int i = 0; i < hits; i++)
         {
@@ -1240,22 +1240,24 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
             if (ptr[3] && ptr[1] <= depth)
             {
                 depth = ptr[1];
+                childSelected = false;
 
                 // Walk down the hierarchy if item is in a group
                 ptr += 3;
                 selected = *ptr++;
-                while ((selected & Widget::CONTAINER_OPENED) && ptr+1 < selNext)
+                while ((selected & Widget::CONTAINER_OPENED) && ptr < selNext)
                     selected = *ptr++;
 
                 // Check if we have a handleId or character ID
-                if (ptr+1 < selNext)
+                while (ptr < selNext)
                 {
-                    GLuint child = ptr[1];
-                    hadChildren = (child & Widget::HANDLE_SELECTED) == 0;
+                    GLuint child = *ptr++;
                     if (child & Widget::HANDLE_SELECTED)
                         handleId = child & ~Widget::HANDLE_SELECTED;
-                    if (child & Widget::CHARACTER_SELECTED)
+                    else if (child & Widget::CHARACTER_SELECTED)
                         charSelected = child & ~Widget::CHARACTER_SELECTED;
+                    else if (!childSelected)
+                        childSelected = child;
                 }
 
             }

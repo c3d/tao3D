@@ -544,7 +544,7 @@ void PageLayout::Draw(Layout *where)
     Compute(where);
 
     // Display all items
-    PushLayout(where);
+    PushLayout(this);
     PageJustifier::Places &places = page.places;
     PageJustifier::PlacesIterator p;
     for (p = places.begin(); p != places.end(); p++)
@@ -554,7 +554,7 @@ void PageLayout::Draw(Layout *where)
         XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
         child->Draw(this);
     }
-    PopLayout(where);
+    PopLayout(this);
 }
 
 
@@ -580,7 +580,7 @@ void PageLayout::DrawSelection(Layout *where)
     }
 
     // Display all items
-    PushLayout(where);
+    PushLayout(this);
     PageJustifier::Places &places = page.places;
     PageJustifier::PlacesIterator p;
     for (p = places.begin(); p != places.end(); p++)
@@ -637,7 +637,7 @@ void PageLayout::DrawSelection(Layout *where)
             }
         }
     }
-    PopLayout(where);
+    PopLayout(this);
 
     // Assign an ID for the page layout itself and draw a rectangle in it
     GLuint endId = widget->selectionCurrentId();
@@ -659,7 +659,7 @@ void PageLayout::Identify(Layout *where)
     Compute(where);
 
     // Display all items
-    PushLayout(where);
+    PushLayout(this);
     PageJustifier::Places &places = page.places;
     PageJustifier::PlacesIterator p;
     for (p = places.begin(); p != places.end(); p++)
@@ -669,7 +669,7 @@ void PageLayout::Identify(Layout *where)
         XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
         child->Identify(this);
     }
-    PopLayout(where);
+    PopLayout(this);
 
     coord x = space.Left(),  y = space.Bottom();
     coord w = space.Width(), h = space.Height();

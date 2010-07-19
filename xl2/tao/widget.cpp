@@ -172,6 +172,10 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     // Make sure we get mouse events even when no click is made
     setMouseTracking(true);
     new Identify("Focus Rectangle", this);
+
+    GLint maxDepth = 42;
+    glGetIntegerv(GL_MAX_NAME_STACK_DEPTH, &maxDepth);
+    std::cout << "Max GL Stack depth = " << maxDepth << "\n";
 }
 
 
@@ -3169,7 +3173,7 @@ Tree_p Widget::anchor(Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 {
     AnchorLayout *anchor = new AnchorLayout(this);
-    anchor->id = layout->id;
+    anchor->id = selectionId();
     layout->Add(anchor);
     XL::LocalSave<Layout *> saveLayout(layout, anchor);
     if (selectNextTime.count(self))
@@ -4475,14 +4479,12 @@ Tree_p  Widget::textBox(Tree_p self,
 {
     PageLayout *tbox = new PageLayout(this);
     tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
+    tbox->id = selectionId();
     layout->Add(tbox);
     flows[flowName] = tbox;
 
     if (currentShape)
-    {
-        tbox->id = layout->id;
         layout->Add(new ControlRectangle(currentShape, x, y, w, h));
-    }
 
     XL::LocalSave<Layout *> save(layout, tbox);
     return xl_evaluate(prog);

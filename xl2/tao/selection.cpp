@@ -94,7 +94,7 @@ uint Identify::IdUnderMouse(int x, int y)
                 // Walk down the hierarchy if item is in a group
                 ptr += 3;
                 selected = *ptr++;
-                while ((selected & Widget::CONTAINER_OPENED) && ptr+1 < selNext)
+                while ((selected & Widget::CONTAINER_OPENED) && ptr < selNext)
                     selected = *ptr++;
             }
 
@@ -405,6 +405,8 @@ Activity *Selection::MouseMove(int x, int y, bool active)
         GLuint *ptr = buffer;
         for (int i = 0; i < hits; i++)
         {
+            // With a drag rectangle, we only select the top item in a
+            // hierarchy. For example, in a group, we only select the top group
             uint size = ptr[0];
             selected = ptr[3];
             if (selected)

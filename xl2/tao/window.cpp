@@ -674,7 +674,7 @@ void Window::about()
 {
     if (aboutSplash)
         return;
-    aboutSplash = new SplashScreen();
+    aboutSplash = new SplashScreen(Qt::WindowStaysOnTopHint);
     connect(aboutSplash, SIGNAL(dismissed()), this, SLOT(deleteAboutSplash()));
     aboutSplash->show();
 }

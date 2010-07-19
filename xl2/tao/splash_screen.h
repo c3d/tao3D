@@ -35,7 +35,7 @@ class SplashScreen : public QSplashScreen
     Q_OBJECT
 
 public:
-    SplashScreen();
+    SplashScreen(Qt::WindowFlags flags = 0);
     virtual void mousePressEvent(QMouseEvent *event);
 
 protected:

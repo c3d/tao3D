@@ -56,6 +56,10 @@ void GroupLayout::DrawSelection(Layout *where)
     {
         // Draw children selection
         Layout::DrawSelection(where);
+
+        Box3 bounds = Bounds(where);
+        XL::LocalSave<Point3> zeroOffset(where->offset, Point3(0,0,0));
+        widget->drawSelection(where, bounds, "open_group", where->id);
     }
     else if (sel)
     {
@@ -91,7 +95,7 @@ void GroupLayout::Select(Layout *where)
 //   Select the group (draw the bounding box, select all contained items)
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = Display();
+    Widget *widget = where->Display();
     widget->select(self);
     widget->select(id, 1);
     Drawing::DrawSelection(this);

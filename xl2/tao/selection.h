@@ -45,7 +45,7 @@ public:
                                   uint *charId   = 0, // Selected char or 0
                                   uint *childId  = 0, // Selected child or 0
                                   uint *parentId = 0);// Parent or 0
-    uint        ObjectsInRectangle(const Box &rectangle, id_list &list);
+    int         ObjectsInRectangle(const Box &rectangle, id_list &list);
 };
 
 

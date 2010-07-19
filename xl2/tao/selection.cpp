@@ -96,7 +96,7 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
     {
         GLuint depth = ~0U;
         GLuint *ptr = buffer;
-        for (int i = 0; i < hits; i++)
+        for (int i = 0; i < hits && !handleId; i++)
         {
             uint    size    = ptr[0];
             GLuint *selPtr  = ptr + 3;
@@ -148,7 +148,7 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
 }
 
 
-uint Identify::ObjectsInRectangle(const Box &rectangle, id_list &list)
+int Identify::ObjectsInRectangle(const Box &rectangle, id_list &list)
 // ----------------------------------------------------------------------------
 //   Return the list of objects under the rectangle
 // ----------------------------------------------------------------------------
@@ -348,9 +348,9 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     if (firstClick)
     {
         // Check cases where we need to start with a fresh selection
-        if (shiftModifier || handleId || charSelected)
+        if (shiftModifier || handleId)
         {
-            // User held shift, selected a control handle or a character
+            // User held shift or selected a control handle
             savedSelection = oldSelection;
         }
         else if (oldSelection.count(selected))
@@ -444,7 +444,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     rectangle.upper.Set(x,y);
 
     id_list list;
-    if (ObjectsInRectangle(rectangle, list))
+    if (ObjectsInRectangle(rectangle, list) > 0)
     {
         Widget::selection_map oldSelection = widget->selection;
         widget->selection = savedSelection;
@@ -459,10 +459,11 @@ Activity *Selection::MouseMove(int x, int y, bool active)
         if (!widget->selectionChanged &&
             !selectionsMatch(oldSelection, widget->selection))
             widget->selectionChanged = true;
-
+    
         // Need a refresh
         widget->refresh();
     }
+
 
     // We dealt with the mouse move, don't let other activities get it
     return NULL;

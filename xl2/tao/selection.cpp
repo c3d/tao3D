@@ -344,6 +344,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         else
             savedSelection.clear();
         widget->selection = savedSelection;
+
         if (selected)
         {
             if (shiftModifier && widget->selected(selected) && !handleId)

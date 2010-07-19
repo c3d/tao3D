@@ -564,9 +564,10 @@ void PageLayout::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // Remember the initial selection ID
-    Widget     *widget  = where->Display();
-    TextSelect *sel     = widget->textSelection();
-    GLuint      startId = widget->selectionCurrentId();
+    Widget     *widget   = where->Display();
+    TextSelect *sel      = widget->textSelection();
+    GLuint      startId  = widget->selectionCurrentId();
+    uint        selected = widget->selected(id);
     GLuint      lineStart, lineEnd;
 
     // Inherit state from our parent layout if there is one and compute layout
@@ -577,6 +578,17 @@ void PageLayout::DrawSelection(Layout *where)
     {
         sel->selBox.Empty();
         sel->formulaBox.Empty();
+    }
+
+    // Check if the text layout was opened, if so draw the text box
+    if (selected)
+    {
+        Box3 bounds = space;
+        XL::LocalSave<Point3> zeroOffset(where->offset, Point3(0,0,0));
+        if (selected & Widget::CONTAINER_OPENED)
+            widget->drawSelection(where, bounds, "open_textbox", where->id);
+        else
+            widget->drawSelection(where, bounds, "selected_textbox", where->id);
     }
 
     // Display all items

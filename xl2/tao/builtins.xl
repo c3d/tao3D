@@ -221,9 +221,19 @@ selection_rectangle_color ->
     line_width 1
 
 open_group_color ->
-    color 0.7, 0.9, 0.8, 0.4
-    line_color 0.4, 0.9, 0.8, 0.8
-    line_width 2 * sin seconds + 2
+    color 0.8, 0.8, 0.9, 0.05
+    line_color 0.4, 0.4, 0.9, 0.3
+    line_width 2
+
+open_textbox_color ->
+    color 0.9, 0.8, 0.8, 0.05
+    line_color 0.9, 0.4, 0.4, 0.3
+    line_width 2
+
+selected_textbox_color ->
+    color 0.8, 0.9, 0.8, 0.1
+    line_color 0.4, 0.9, 0.4, 0.3
+    line_width 2
 
 text_selection_color ->
     color 70%,90%,100%,50%
@@ -310,6 +320,14 @@ draw_selection_rectangle x, y, w, h ->
 
 draw_open_group x, y, w, h ->
     open_group_color
+    rectangle x, y, w+4, h+4
+
+draw_open_textbox x, y, w, h ->
+    open_textbox_color
+    rectangle x, y, w+4, h+4
+
+draw_selected_textbox x, y, w, h ->
+    selected_textbox_color
     rectangle x, y, w+4, h+4
 
 draw_handle x, y, z ->

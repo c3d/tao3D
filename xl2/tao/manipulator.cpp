@@ -1131,6 +1131,7 @@ void WidgetManipulator::DrawSelection(Layout *layout)
 }
 
 
+
 // ============================================================================
 //
 //   Manipulate a table

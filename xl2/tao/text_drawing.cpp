@@ -963,7 +963,6 @@ void TextFormula::Identify(Layout *where)
     TextFormulaEditInfo *info    = value->GetInfo<TextFormulaEditInfo>();
     if (!info)
     {
-        Widget *widget  = where->Display();
         uint    selId = where->CharacterId();
         glLoadName(selId | Widget::CHARACTER_SELECTED);
     }
@@ -1018,7 +1017,8 @@ TextSelect::TextSelect(Widget *w)
 //   Constructor initializes an empty text range
 // ----------------------------------------------------------------------------
     : Identify("Text selection", w),
-      mark(0), point(0), direction(None), targetX(0),
+      mark(0), point(0), previous(0), textBoxId(0),
+      direction(None), targetX(0),
       replacement(""), replace(false),
       textMode(false),
       pickingLineEnds(false), pickingUpDown(false), movePointOnly(false),
@@ -1216,6 +1216,7 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
                     point = charSelected;
                 else
                     mark = point = charSelected;
+                textBoxId = selected;
                 updateSelection();
             }
             else if (!mark)
@@ -1252,6 +1253,8 @@ void TextSelect::updateSelection()
     uint s = start(), e = end();
     for (uint i = s; i < e; i++)
         widget->select(i, Widget::CHARACTER_SELECTED);
+    if (textBoxId)
+        widget->select(textBoxId, Widget::CONTAINER_OPENED);
     findingLayout = true;
     formulaMode = false;
     widget->refresh();

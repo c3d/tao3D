@@ -118,7 +118,7 @@ struct TextSelect : Identify
 
 
     enum Direction      { None, Mark, Left, Right, Up, Down };
-    uint                mark, point, previous;
+    uint                mark, point, previous, textBoxId;
     Direction           direction;
     coord               targetX;
     Box3                selBox;

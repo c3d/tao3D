@@ -230,6 +230,11 @@ open_textbox_color ->
     line_color 0.9, 0.4, 0.4, 0.3
     line_width 2
 
+group_item_color ->
+    color 0.8, 0.8, 0.8, 0.05
+    line_color 0.4, 0.4, 0.4, 0.05
+    line_width 2
+
 selected_textbox_color ->
     color 0.8, 0.9, 0.8, 0.1
     line_color 0.4, 0.9, 0.4, 0.3
@@ -260,6 +265,13 @@ handle_outer_color ->
     line_color 0,0,0,0
 handle_inner_color ->
     color 1.0, 1.0, 1.0, 1.0
+    line_color 0,0,0,0
+
+group_handle_outer_color ->
+    color 0.0, 0.0, 0.6, 0.05
+    line_color 0,0,0,0
+group_handle_inner_color ->
+    color 1.0, 1.0, 1.0, 0.05
     line_color 0,0,0,0
 
 adjust_shape_handle_outer_color ->
@@ -322,6 +334,14 @@ draw_open_group x, y, w, h ->
     open_group_color
     rectangle x, y, w+4, h+4
 
+draw_group_item x, y, w, h ->
+    group_item_color
+    rectangle x, y, w+4, h+4
+
+draw_group_item x, y, z, w, h, d ->
+    group_item_color
+    cube x, y, z, w+4, h+4, d+4
+
 draw_open_textbox x, y, w, h ->
     open_textbox_color
     rectangle x, y, w+4, h+4
@@ -336,6 +356,12 @@ draw_handle x, y, z ->
     handle_inner_color
     point x, y, z, 8
 
+draw_group_handle x, y, z ->
+    group_handle_outer_color
+    point x, y, z, 10
+    group_handle_inner_color
+    point x, y, z, 8
+
 draw_adjust_shape_handle x, y, z ->
     adjust_shape_handle_outer_color
     point x, y, z, 12
@@ -347,6 +373,9 @@ draw_control_point_handle x, y, z ->
     point x, y, z, 12
     control_point_handle_inner_color
     point x, y, z, 8
+
+draw_group_adjust_shape_handle x, y, z -> 0
+draw_group_control_point_handle x, y, z -> 0
 
 draw_rotation_base x, y, z ->
     selection_color

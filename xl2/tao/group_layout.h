@@ -40,10 +40,6 @@ struct GroupLayout : Layout
     virtual uint        Selected();
 
 protected:
-    void                Select(Layout *);
-    void                Deselect(Layout *);
-    void                SelectAll(bool doSelect);
-
     Tree_p              self;
 };
 

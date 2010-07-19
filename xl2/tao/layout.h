@@ -108,6 +108,7 @@ public:
     bool                hasAttributes   : 1;
     bool                hasTextureMatrix: 1;
     bool                isSelection     : 1;
+    bool                groupDrag       : 1;
 
 protected:
     // List of drawing elements

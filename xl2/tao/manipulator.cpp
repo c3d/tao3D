@@ -99,10 +99,18 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id, text name)
 //   Draw one of the handles for the current manipulator
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = layout->Display();
-    Vector3 offset = layout->Offset();
-    widget->drawHandle(layout, p + offset, name, id);
-    bool selected = widget->selectionHandleId() == id;
+    Widget  *widget   = layout->Display();
+    Vector3  offset   = layout->Offset();
+    bool     selected = false;
+    if (layout->groupDrag)
+    {
+        widget->drawHandle(layout, p + offset, "group_" + name, id);
+    }
+    else
+    {
+        widget->drawHandle(layout, p + offset, name, id);
+        selected = widget->selectionHandleId() == id;
+    }
     return selected;
 }
 
@@ -359,7 +367,8 @@ bool ControlPoint::DrawHandles(Layout *layout)
 {
     if (!IsMarkedConstant(x) || !IsMarkedConstant(y) || !IsMarkedConstant(z))
     {
-        if (DrawHandle(layout, Point3(x, y, z), id, "control_point_handle"))
+        if (DrawHandle(layout, Point3(x, y, z), id, "control_point_handle") ||
+            layout->groupDrag)
         {
             Widget *widget = layout->Display();
             Drag *drag = widget->drag();
@@ -607,7 +616,7 @@ bool ControlRectangle::DrawHandles(Layout *layout)
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
-        if (drag && !widget->selectionHandleId())
+        if (drag && (layout->groupDrag || !widget->selectionHandleId()))
         {
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();
@@ -1215,7 +1224,7 @@ bool GraphicPathManipulator::DrawHandles(Layout *layout)
     if (!changed)
     {
         Drag   *drag = widget->drag();
-        if (drag && !widget->selectionHandleId())
+        if (drag && (layout->groupDrag || !widget->selectionHandleId()))
         {
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();

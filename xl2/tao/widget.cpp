@@ -2522,6 +2522,8 @@ uint Widget::selected(Layout *layout)
 //   Test if the current shape (as identified by layout ID) is selected
 // ----------------------------------------------------------------------------
 {
+    if (layout->groupDrag)
+        return Widget::CONTAINER_SELECTED;
     return selected(layout->id);
 }
 
@@ -2734,6 +2736,9 @@ void Widget::drawSelection(Layout *where,
     Point3 c  = bounds.Center();
 
     SpaceLayout selectionSpace(this);
+
+    if (where && where->groupDrag)
+        selName = "group_item";
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper          saveGL;

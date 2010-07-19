@@ -114,7 +114,7 @@ struct TextSelect : Identify
     void                updateSelection();
     bool                needsPositions()        { return direction >= Up; }
     void                newLine();
-    void                newChar(coord x, bool selected);
+    void                newChar(uint id, coord x, bool selected);
 
 
     enum Direction      { None, Mark, Left, Right, Up, Down };
@@ -126,6 +126,7 @@ struct TextSelect : Identify
     text                replacement;
     bool                replace;
     bool                textMode;
+    bool                pickingLineEnds;
     bool                pickingUpDown;
     bool                movePointOnly;
     uint                formulaMode;

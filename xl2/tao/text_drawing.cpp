@@ -246,9 +246,6 @@ void TextSpan::DrawDirect(Layout *where)
             if (!glyphs.Find(font, unicode, glyph, true, true, lw))
                 continue;
 
-            if (canSel)
-                glLoadName(widget->selectionId() | Widget::CHARACTER_SELECTED);
-
             GLMatrixKeeper save;
             glTranslatef(x, y, z);
             scale gscale = glyph.scalingFactor;
@@ -292,7 +289,6 @@ void TextSpan::DrawSelection(Layout *where)
     uint        first        = start;
     scale       textWidth    = 0;
     TextSelect *sel          = widget->textSelection();
-    GLuint      charId       = ~0;
     bool        charSelected = false;
     scale       ascent       = glyphs.Ascent(font);
     scale       descent      = glyphs.Descent(font);
@@ -307,16 +303,7 @@ void TextSpan::DrawSelection(Layout *where)
     for (i = start; i < max && i < end; i = next)
     {
         uint unicode = XL::Utf8Code(str, i);
-        if (canSel)
-        {
-            charId = widget->selectionId();
-            charSelected = widget->selected(charId);
-        }
         next = XL::Utf8Next(str, i);
-
-        // Create a text selection if we need one
-        if (charSelected && !sel && where->id)
-            sel = new TextSelect(widget);
 
         // Fetch data about that glyph
         if (!glyphs.Find(font, unicode, glyph, false))
@@ -325,12 +312,7 @@ void TextSpan::DrawSelection(Layout *where)
         if (sel)
         {
             // Mark characters in selection range
-            if (!charSelected &&
-                charId >= sel->start() && charId <= sel->end())
-            {
-                charSelected = true;
-                widget->select(charId, Widget::CHARACTER_SELECTED);
-            }
+            charSelected = i >= sel->start() && i <= sel->end();
 
             // Check up and down keys
             if (charSelected || sel->needsPositions())
@@ -338,7 +320,7 @@ void TextSpan::DrawSelection(Layout *where)
                 coord charX = x + glyph.bounds.lower.x;
                 coord charY = y;
 
-                sel->newChar(charX, charSelected);
+                sel->newChar(i, charX, charSelected);
 
                 if (charSelected)
                 {
@@ -414,8 +396,7 @@ void TextSpan::DrawSelection(Layout *where)
 
     if (sel && max <= end)
     {
-        charId++;
-        if (charId >= sel->start() && charId <= sel->end())
+        if (i >= sel->start() && i <= sel->end())
         {
             if (sel->replace)
             {
@@ -467,7 +448,6 @@ void TextSpan::Identify(Layout *where)
     coord       z         = pos.z;
     uint        first     = start;
     scale       textWidth = 0;
-    GLuint      charId    = ~0;
     scale       ascent    = glyphs.Ascent(font);
     scale       descent   = glyphs.Descent(font);
     scale       height    = ascent + descent;
@@ -494,16 +474,14 @@ void TextSpan::Identify(Layout *where)
     for (i = start; i < max && i < end; i = next)
     {
         uint unicode = XL::Utf8Code(str, i);
-        if (canSel)
-        {
-            charId = widget->selectionId();
-            glLoadName(charId | Widget::CHARACTER_SELECTED);
-        }
         next = XL::Utf8Next(str, i);
 
         // Fetch data about that glyph
         if (!glyphs.Find(font, unicode, glyph, false))
             continue;
+
+        if (canSel)
+            glLoadName(i | Widget::CHARACTER_SELECTED);
 
         sd = glyph.scalingFactor * descent;
         sh = glyph.scalingFactor * height;
@@ -537,8 +515,7 @@ void TextSpan::Identify(Layout *where)
     }
 
     // Draw a trailing block
-    charId++;
-    glLoadName(charId | Widget::CHARACTER_SELECTED);
+    glLoadName(i | Widget::CHARACTER_SELECTED);
     if (glyphs.Find(font, ' ', glyph, false))
     {
         sd = glyph.scalingFactor * descent;
@@ -970,7 +947,7 @@ void TextFormula::Identify(Layout *where)
     if (!info)
     {
         Widget *widget  = where->Display();
-        uint    selId = widget->selectionCurrentId() + 1;
+        uint    selId = where->id;
         glLoadName(selId | Widget::CHARACTER_SELECTED);
     }
     TextSpan::Identify(where);
@@ -1027,7 +1004,7 @@ TextSelect::TextSelect(Widget *w)
       mark(0), point(0), direction(None), targetX(0),
       replacement(""), replace(false),
       textMode(false),
-      pickingUpDown(false), movePointOnly(false),
+      pickingLineEnds(false), pickingUpDown(false), movePointOnly(false),
       formulaMode(false),
       findingLayout(true)
 {
@@ -1269,52 +1246,11 @@ void TextSelect::newLine()
 //   Mark the beginning of a new drawing line for Up/Down keys
 // ----------------------------------------------------------------------------
 {
-    bool up = direction == Up;
-    bool down = direction == Down;
-    if (!up && !down)
-        return;
-
-    uint charId = widget->selectionCurrentId();
-    if (down)
-    {
-        // Current best position
-        if (charId >= point)
-        {
-            if (pickingUpDown)
-            {
-                // What we had was the best position
-                point = charId;
-                if (!movePointOnly)
-                    mark = point;
-                direction = None;
-                pickingUpDown = false;
-                updateSelection();
-            }
-            else
-            {
-                // Best default position is start of line
-                pickingUpDown = true;
-            }
-        }
-        else
-        {
-            pickingUpDown = false;
-        }
-    }
-    else // Up
-    {
-        if (charId < point)
-        {
-            if (pickingUpDown)
-                previous = charId; // We are at right of previous line
-            else
-                pickingUpDown = true;
-        }
-    }
+    pickingLineEnds = true;
 }
 
 
-void TextSelect::newChar(coord x, bool selected)
+void TextSelect::newChar(uint charId, coord x, bool selected)
 // ----------------------------------------------------------------------------
 //   Record a new character and deal with Up/Down keys
 // ----------------------------------------------------------------------------
@@ -1328,37 +1264,82 @@ void TextSelect::newChar(coord x, bool selected)
         return;
     }
 
-    uint charId = widget->selectionCurrentId();
-    if (down)
+    // Check if we are at beginning or end of line, if so find ends
+    if (pickingLineEnds)
     {
-        if (pickingUpDown && x >= targetX)
+        // Next character we will look at is not a line boundary
+        pickingLineEnds = false;
+                
+        if (down)
         {
-            // We found the best position candidate: stop here
-            point = charId;
-            if (!movePointOnly)
-                mark = point;
-            direction = None;
-            pickingUpDown = false;
-            updateSelection();
+            // Current best position
+            if (charId >= point)
+            {
+                if (pickingUpDown)
+                {
+                    // What we had was the best position
+                    point = charId;
+                    if (!movePointOnly)
+                        mark = point;
+                    direction = None;
+                    pickingUpDown = false;
+                    updateSelection();
+                }
+                else
+                {
+                    // Best default position is start of line
+                    pickingUpDown = true;
+                }
+            }
+            else
+            {
+                pickingUpDown = false;
+            }
+        }
+        else // Up
+        {
+            if (charId < point)
+            {
+                if (pickingUpDown)
+                    previous = charId; // We are at right of previous line
+                else
+                    pickingUpDown = true;
+            }
         }
     }
-    else // Up
+    else // !pickingLineEnds
     {
-        if (pickingUpDown && charId < point && x >= targetX)
+        if (down)
         {
-            // We found the best position candidate
-            previous = charId;
-            pickingUpDown = false;
+            if (pickingUpDown && x >= targetX)
+            {
+                // We found the best position candidate: stop here
+                point = charId;
+                if (!movePointOnly)
+                    mark = point;
+                direction = None;
+                pickingUpDown = false;
+                updateSelection();
+            }
         }
-        else if (charId >= point)
+        else // Up
         {
-            // The last position we had was the right one
-            point = previous;
-            if (!movePointOnly)
-                mark = point;
-            pickingUpDown = false;
-            direction = None;
-            updateSelection();
+            if (pickingUpDown && charId < point && x >= targetX)
+            {
+                // We found the best position candidate
+                previous = charId;
+                pickingUpDown = false;
+            }
+            else if (charId >= point)
+            {
+                // The last position we had was the right one
+                point = previous;
+                if (!movePointOnly)
+                    mark = point;
+                pickingUpDown = false;
+                direction = None;
+                updateSelection();
+            }
         }
     }
 }

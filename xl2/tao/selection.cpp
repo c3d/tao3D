@@ -33,7 +33,7 @@ TAO_BEGIN
 
 // ============================================================================
 //
-//    Identify : Find item under cursor, give it focus if it's a widget
+//   Identify:  Find objects under the cursor
 //
 // ============================================================================
 
@@ -41,19 +41,112 @@ Identify::Identify(text t, Widget *w)
 // ----------------------------------------------------------------------------
 //   Initialize the activity
 // ----------------------------------------------------------------------------
-    :Activity(t, w), rectangle(), previous(0)
+    : Activity(t, w)
 {}
 
 
-uint Identify::IdUnderMouse(int x, int y)
+uint Identify::ObjectAtPoint(coord x, coord y)
 // ----------------------------------------------------------------------------
-//   Find the GL identifier of the object at (x, y)
+//   Find the object under the cursor at the given coordinates
 // ----------------------------------------------------------------------------
 {
-    y = widget->height() - y;
-    rectangle.lower.Set(x-4, y-4);
-    rectangle.upper.Set(x+4, y+4);
+    Box rectangle(x, y, 2, 2);
+    return ObjectInRectangle(rectangle);
+}
 
+
+uint Identify::ObjectInRectangle(const Box &rectangle,
+                                 uint      *handlePtr,
+                                 uint      *characterPtr,
+                                 uint      *childPtr)
+// ----------------------------------------------------------------------------
+//   Find the top-most object in the given box, return # of objects
+// ----------------------------------------------------------------------------
+{
+    // Create the select buffer and switch to select mode
+    GLuint capacity = widget->selectionCapacity();
+    GLuint *buffer = new GLuint[capacity];
+    glSelectBuffer(capacity, buffer);
+    glRenderMode(GL_SELECT);
+
+    // Adjust viewport for rendering
+    widget->setup(widget->width(), widget->height(), &rectangle);
+
+    // Initialize names
+    glInitNames();
+
+    // Draw the items in "Identity" mode (simplified drawing)
+    widget->identifySelection();
+
+    // Get number of hits and extract selection
+    // Each record is as follows:
+    // [0]: Depth of the name stack
+    // [1]: Minimum depth
+    // [2]: Maximum depth
+    // [3..3+[0]-1]: List of names
+    GLuint selected      = 0;
+    GLuint handleId      = 0;
+    GLuint charSelected  = 0;
+    GLuint childSelected = 0;
+
+    int hits = glRenderMode(GL_RENDER);
+    if (hits > 0)
+    {
+        GLuint depth = ~0U;
+        GLuint *ptr = buffer;
+        for (int i = 0; i < hits; i++)
+        {
+            uint    size    = ptr[0];
+            GLuint *selPtr  = ptr + 3;
+            GLuint *selNext = selPtr + size;
+
+            if (ptr[3] && ptr[1] <= depth)
+            {
+                depth = ptr[1];
+                childSelected = false;
+
+                // Walk down the hierarchy if item is in a group
+                ptr += 3;
+                selected = *ptr++;
+                while ((selected & Widget::CONTAINER_OPENED) && ptr < selNext)
+                    selected = *ptr++;
+
+                // Check if we have a handleId or character ID
+                while (ptr < selNext)
+                {
+                    GLuint child = *ptr++;
+                    if (child & Widget::HANDLE_SELECTED)
+                        handleId = child & ~Widget::HANDLE_SELECTED;
+                    else if (child & Widget::CHARACTER_SELECTED)
+                        charSelected = child & ~Widget::CHARACTER_SELECTED;
+                    else if (!childSelected)
+                        childSelected = child;
+                }
+            }
+
+            ptr = selNext;
+        }
+    }
+
+    delete[] buffer;
+
+    // Update output arguments
+    if (handlePtr)
+        *handlePtr = handleId;
+    if (characterPtr)
+        *characterPtr = charSelected;
+    if (childPtr)
+        *childPtr = childSelected;
+
+    return selected;
+}
+
+
+uint Identify::ObjectsInRectangle(const Box &rectangle, id_list &list)
+// ----------------------------------------------------------------------------
+//   Return the list of objects under the rectangle
+// ----------------------------------------------------------------------------
+{
     // Create the select buffer and switch to select mode
     GLuint capacity = widget->selectionCapacity();
     GLuint *buffer = new GLuint[capacity];
@@ -76,38 +169,41 @@ uint Identify::IdUnderMouse(int x, int y)
     // [2]: Maximum depth
     // [3..3+[0]-1]: List of names
     int hits = glRenderMode(GL_RENDER);
-    GLuint depth = ~0U;
     GLuint selected = 0;
     if (hits > 0)
     {
         GLuint *ptr = buffer;
         for (int i = 0; i < hits; i++)
         {
-            uint    size    = ptr[0];
-            GLuint *selPtr  = ptr + 3;
-            GLuint *selNext = selPtr + size;
-
-            if (ptr[3] && ptr[1] <= depth)
-            {
-                depth = ptr[1];
-
-                // Walk down the hierarchy if item is in a group
-                ptr += 3;
-                selected = *ptr++;
-                while ((selected & Widget::CONTAINER_OPENED) && ptr < selNext)
-                    selected = *ptr++;
-            }
-
-            ptr = selNext;
+            // With a drag rectangle, we only select the top item in a
+            // hierarchy. For example, in a group, we only select the top group
+            uint size = ptr[0];
+            selected = ptr[3];
+            list.push_back(selected);
+            ptr += 3 + size;
         }
     }
     delete[] buffer;
 
-    return selected;
+    return hits;
 }
 
 
-Activity *Identify::MouseMove(int x, int y, bool active)
+// ============================================================================
+//
+//    MouseFocusTracker : Find item under cursor, give it focus if it's a widget
+//
+// ============================================================================
+
+MouseFocusTracker::MouseFocusTracker(text t, Widget *w)
+// ----------------------------------------------------------------------------
+//   Initialize the activity
+// ----------------------------------------------------------------------------
+    : Identify(t, w), previous(0)
+{}
+
+
+Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
 // ----------------------------------------------------------------------------
 //   Track focus as mouse moves
 // ----------------------------------------------------------------------------
@@ -115,7 +211,8 @@ Activity *Identify::MouseMove(int x, int y, bool active)
     if (active)
         return next;
 
-    uint current = IdUnderMouse(x, y);
+    uint current = ObjectAtPoint(x, widget->height() - y);
+
     if (current != previous)
     {
         if (previous > 0)
@@ -221,78 +318,22 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         return next;
     }
 
-    // Create the select buffer and switch to select mode
-    GLuint capacity = widget->selectionCapacity();
-    GLuint *buffer = new GLuint[capacity];
-    glSelectBuffer(capacity, buffer);
-    glRenderMode(GL_SELECT);
 
-    // Adjust viewport for rendering
-    widget->setup(widget->width(), widget->height(), &rectangle);
-
-    // Initialize names
-    glInitNames();
-
-    // Draw the items in "Identity" mode (simplified drawing)
-    widget->identifySelection();
-
-    // Get number of hits and extract selection
-    // Each record is as follows:
-    // [0]: Depth of the name stack
-    // [1]: Minimum depth
-    // [2]: Maximum depth
-    // [3..3+[0]-1]: List of names
+    // Get the object at the click point
     GLuint selected      = 0;
     GLuint handleId      = 0;
     GLuint charSelected  = 0;
     GLuint childSelected = 0;
 
-    int hits = glRenderMode(GL_RENDER);
-    if (hits > 0)
+    selected = ObjectInRectangle(rectangle,
+                                 &handleId, &charSelected, &childSelected);
+
+    // If we selected an object, need to adjust dialogs to match new selection
+    if (selected)
     {
-        GLuint depth = ~0U;
-        GLuint *ptr = buffer;
-        for (int i = 0; i < hits; i++)
-        {
-            uint    size    = ptr[0];
-            GLuint *selPtr  = ptr + 3;
-            GLuint *selNext = selPtr + size;
-
-            if (ptr[3] && ptr[1] <= depth)
-            {
-                depth = ptr[1];
-                childSelected = false;
-
-                // Walk down the hierarchy if item is in a group
-                ptr += 3;
-                selected = *ptr++;
-                while ((selected & Widget::CONTAINER_OPENED) && ptr < selNext)
-                    selected = *ptr++;
-
-                // Check if we have a handleId or character ID
-                while (ptr < selNext)
-                {
-                    GLuint child = *ptr++;
-                    if (child & Widget::HANDLE_SELECTED)
-                        handleId = child & ~Widget::HANDLE_SELECTED;
-                    else if (child & Widget::CHARACTER_SELECTED)
-                        charSelected = child & ~Widget::CHARACTER_SELECTED;
-                    else if (!childSelected)
-                        childSelected = child;
-                }
-            }
-
-            ptr = selNext;
-        }
-
-        if (selected)
-        {
-            doneWithSelection = true;
-            widget->updateDialogs();
-        }
+        doneWithSelection = true;
+        widget->updateDialogs();
     }
-
-    delete[] buffer;
 
     // If this is the first click, then update selection
     Widget::selection_map previousSelection = widget->selection;
@@ -375,52 +416,26 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     y = widget->height() - y;
     rectangle.upper.Set(x,y);
 
-    // Create the select buffer and switch to select mode
-    GLuint capacity = widget->selectionCapacity();
-    GLuint *buffer = new GLuint[capacity];
-    glSelectBuffer(capacity, buffer);
-    glRenderMode(GL_SELECT);
-
-    // Adjust viewport for rendering
-    widget->setup(widget->width(), widget->height(), &rectangle);
-
-    // Initialize names
-    glInitNames();
-
-    // Draw the items in "Identity" mode (simplified drawing)
-    widget->identifySelection();
-
-    // Get number of hits and extract selection
-    // Each record is as follows:
-    // [0]: Depth of the name stack
-    // [1]: Minimum depth
-    // [2]: Maximum depth
-    // [3..3+[0]-1]: List of names
-    Widget::selection_map previousSelection = widget->selection;
-    widget->selection = savedSelection;
-    int hits = glRenderMode(GL_RENDER);
-    GLuint selected = 0;
-    if (hits > 0)
+    id_list list;
+    if (ObjectsInRectangle(rectangle, list))
     {
-        GLuint *ptr = buffer;
-        for (int i = 0; i < hits; i++)
+        Widget::selection_map previousSelection = widget->selection;
+        widget->selection = savedSelection;
+
+        for (id_list::iterator i = list.begin(); i != list.end(); i++)
         {
-            // With a drag rectangle, we only select the top item in a
-            // hierarchy. For example, in a group, we only select the top group
-            uint size = ptr[0];
-            selected = ptr[3];
+            GLuint selected = *i;
             if (selected)
                 widget->selection[selected] = !savedSelection[selected];
-            ptr += 3 + size;
         }
-    }
-    delete[] buffer;
-    if (!widget->selectionChanged &&
-        !selectionsMatch(previousSelection, widget->selection))
-        widget->selectionChanged = true;
 
-    // Need a refresh
-    widget->refresh();
+        if (!widget->selectionChanged &&
+            !selectionsMatch(previousSelection, widget->selection))
+            widget->selectionChanged = true;
+
+        // Need a refresh
+        widget->refresh();
+    }
 
     // We dealt with the mouse move, don't let other activities get it
     return NULL;

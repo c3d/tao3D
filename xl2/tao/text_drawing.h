@@ -24,7 +24,7 @@
 
 #include "attributes.h"
 #include "shapes.h"
-#include "activity.h"
+#include "selection.h"
 #include "coords3d.h"
 #include "tree.h"
 #include <QFont>
@@ -91,7 +91,7 @@ public:
 };
 
 
-struct TextSelect : Activity
+struct TextSelect : Identify
 // ----------------------------------------------------------------------------
 //   A text selection (contiguous range of characters)
 // ----------------------------------------------------------------------------

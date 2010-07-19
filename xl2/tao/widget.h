@@ -128,7 +128,7 @@ public:
     void        initializeGL();
     void        resizeGL(int width, int height);
     void        paintGL();
-    void        setup(double w, double h, Box *picking = NULL);
+    void        setup(double w, double h, const Box *picking = NULL);
     void        setupGL();
     void        identifySelection();
     void        updateSelection();
@@ -582,8 +582,9 @@ public:
 private:
     friend class Window;
     friend class Activity;
-    friend class Selection;
     friend class Identify;
+    friend class Selection;
+    friend class MouseFocusTracker;
     friend class Drag;
     friend class TextSelect;
     friend class Manipulator;

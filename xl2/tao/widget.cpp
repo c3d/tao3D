@@ -171,7 +171,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 
     // Make sure we get mouse events even when no click is made
     setMouseTracking(true);
-    new Identify("Focus Rectangle", this);
+    new MouseFocusTracker("Focus tracking", this);
 
     GLint maxDepth = 42;
     glGetIntegerv(GL_MAX_NAME_STACK_DEPTH, &maxDepth);
@@ -939,7 +939,7 @@ void Widget::paintGL()
 }
 
 
-void Widget::setup(double w, double h, Box *picking)
+void Widget::setup(double w, double h, const Box *picking)
 // ----------------------------------------------------------------------------
 //   Setup an initial environment for drawing
 // ----------------------------------------------------------------------------

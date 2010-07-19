@@ -1023,7 +1023,7 @@ TextSelect::TextSelect(Widget *w)
 // ----------------------------------------------------------------------------
 //   Constructor initializes an empty text range
 // ----------------------------------------------------------------------------
-    : Activity("Text selection", w),
+    : Identify("Text selection", w),
       mark(0), point(0), direction(None), targetX(0),
       replacement(""), replace(false),
       textMode(false),
@@ -1200,71 +1200,15 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
     y = widget->height() - y;
     Box rectangle(x, y, 1, 1);
 
-    // Create the select buffer and switch to select mode
-    uint capacity = widget->selectionCapacity();
-    GLuint *buffer = new GLuint[capacity];
-    glSelectBuffer(capacity, buffer);
-    glRenderMode(GL_SELECT);
-
-    // Adjust viewport for rendering
-    widget->setup(widget->width(), widget->height(), &rectangle);
-
-    // Initialize names
-    glInitNames();
-
-    // Run the programs, which detects selected items
-    widget->identifySelection();
-
-    // Get number of hits and extract selection
-    // Each record is as follows:
-    // [0]: Depth of the name stack
-    // [1]: Minimum depth
-    // [2]: Maximum depth
-    // [3..3+[0]-1]: List of names
+    // Get the object at the click point
     GLuint selected      = 0;
     GLuint handleId      = 0;
     GLuint charSelected  = 0;
     GLuint childSelected = 0;
-
-    int hits = glRenderMode(GL_RENDER);
-    if (hits > 0)
+    selected = ObjectInRectangle(rectangle,
+                                 &handleId, &charSelected, &childSelected);
+    if (selected)
     {
-        GLuint depth = ~0U;
-        GLuint *ptr = buffer;
-        for (int i = 0; i < hits; i++)
-        {
-            uint    size    = ptr[0];
-            GLuint *selPtr  = ptr + 3;
-            GLuint *selNext = selPtr + size;
-
-            if (ptr[3] && ptr[1] <= depth)
-            {
-                depth = ptr[1];
-                childSelected = false;
-
-                // Walk down the hierarchy if item is in a group
-                ptr += 3;
-                selected = *ptr++;
-                while ((selected & Widget::CONTAINER_OPENED) && ptr < selNext)
-                    selected = *ptr++;
-
-                // Check if we have a handleId or character ID
-                while (ptr < selNext)
-                {
-                    GLuint child = *ptr++;
-                    if (child & Widget::HANDLE_SELECTED)
-                        handleId = child & ~Widget::HANDLE_SELECTED;
-                    else if (child & Widget::CHARACTER_SELECTED)
-                        charSelected = child & ~Widget::CHARACTER_SELECTED;
-                    else if (!childSelected)
-                        childSelected = child;
-                }
-
-            }
-
-            ptr = selNext;                
-        }
-
         findingLayout = true;
         if (handleId)
         {
@@ -1286,7 +1230,6 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
             }
         }
     }
-    delete[] buffer;
 
     // If selecting a range of text, prevent the drag from moving us around
     if (textMode)

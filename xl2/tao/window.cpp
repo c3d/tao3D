@@ -1436,6 +1436,14 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
     {
         text task = repo->branch();
         text currentBranch = task;
+        text useBranch = currentBranch + TAO_UNDO_SUFFIX;
+        if (task == "")
+        {
+            // Special handling if we're not on a named branch
+            currentBranch = "(no branch)";
+            task = "master";
+            useBranch = task + TAO_UNDO_SUFFIX;
+        }
         if (repo->isUndoBranch(task))
         {
             task = repo->taskBranch(task);
@@ -1460,7 +1468,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
                         "or skip and use '%3' without a project (version "
                         "control and sharing will be disabled)?")
                      .arg(+currentBranch)
-                     .arg(+currentBranch + TAO_UNDO_SUFFIX)
+                     .arg(+useBranch)
                      .arg(fileName));
             // REVISIT: this info text is not very well suited to the
             // "Save as..." case.

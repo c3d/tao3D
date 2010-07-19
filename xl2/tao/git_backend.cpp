@@ -755,9 +755,8 @@ text GitRepository::version()
 
     text    output, result = +QString(tr("Unkwnown"));
     waitForAsyncProcessCompletion();
-    QString dirty(tr("%1=-dirty").arg("--dirty="));
     QStringList args;
-    args << "describe" << dirty << "--tags" << "--always";
+    args << "describe" << tr("--dirty=-dirty") << "--tags" << "--always";
     Process cmd(command(), args, path);
     bool    ok = cmd.done(&errors, &output);
     if (ok)

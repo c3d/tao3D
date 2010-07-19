@@ -302,8 +302,14 @@ void TextSpan::DrawSelection(Layout *where)
     scale       height       = ascent + descent;
     GlyphCache::GlyphEntry  glyph;
 
-    if (canSel && IsMarkedConstant(ttree))
-        canSel = false;
+    // A number of cases where we can't select text
+    if (canSel)
+    {
+        if (IsMarkedConstant(ttree))
+            canSel = false;
+        else if (sel && sel->textBoxId && where->id != sel->textBoxId)
+            canSel = false;
+    }
 
     // Loop over all characters in the text span
     uint i, next, max = str.length();
@@ -318,7 +324,7 @@ void TextSpan::DrawSelection(Layout *where)
         if (!glyphs.Find(font, unicode, glyph, false))
             continue;
 
-        if (sel)
+        if (sel && canSel)
         {
             // Mark characters in selection range
             charSelected = charId >= sel->start() && charId <= sel->end();
@@ -402,7 +408,7 @@ void TextSpan::DrawSelection(Layout *where)
         }
     }
 
-    if (sel && max <= end)
+    if (sel && canSel && max <= end)
     {
         charId++;
         if (charId >= sel->start() && charId <= sel->end())
@@ -473,8 +479,14 @@ void TextSpan::Identify(Layout *where)
     GlyphCache::GlyphEntry  glyph;
     Point3                  quad[4];
 
-    if (canSel && IsMarkedConstant(ttree))
-        canSel = false;
+    // A number of cases where we can't select text
+    if (canSel)
+    {
+        if (IsMarkedConstant(ttree))
+            canSel = false;
+        else if (sel && sel->textBoxId && where->id != sel->textBoxId)
+            canSel = false;
+    }
 
     // Prepare to draw with the quad
     glVertexPointer(3, GL_DOUBLE, 0, &quad[0].x);
@@ -528,7 +540,7 @@ void TextSpan::Identify(Layout *where)
     }
 
     // Draw a trailing block
-    if (sel && max <= end)
+    if (sel && canSel && max <= end)
     {
         charId++;
         glLoadName(charId | Widget::CHARACTER_SELECTED);

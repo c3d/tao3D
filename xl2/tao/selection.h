@@ -42,8 +42,9 @@ public:
     uint        ObjectAtPoint(coord x, coord y);
     uint        ObjectInRectangle(const Box &rectangle,
                                   uint *handleId = 0, // Selection handle or 0
-                                  uint *charId = 0,   // Selected char or 0
-                                  uint *childId = 0); // Selected child or 0
+                                  uint *charId   = 0, // Selected char or 0
+                                  uint *childId  = 0, // Selected child or 0
+                                  uint *parentId = 0);// Parent or 0
     uint        ObjectsInRectangle(const Box &rectangle, id_list &list);
 };
 

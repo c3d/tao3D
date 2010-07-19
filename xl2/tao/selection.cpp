@@ -58,7 +58,8 @@ uint Identify::ObjectAtPoint(coord x, coord y)
 uint Identify::ObjectInRectangle(const Box &rectangle,
                                  uint      *handlePtr,
                                  uint      *characterPtr,
-                                 uint      *childPtr)
+                                 uint      *childPtr,
+                                 uint      *parentPtr)
 // ----------------------------------------------------------------------------
 //   Find the top-most object in the given box, return # of objects
 // ----------------------------------------------------------------------------
@@ -88,6 +89,7 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
     GLuint handleId      = 0;
     GLuint charSelected  = 0;
     GLuint childSelected = 0;
+    GLuint parentId      = 0;
 
     int hits = glRenderMode(GL_RENDER);
     if (hits > 0)
@@ -107,7 +109,7 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
 
                 // Walk down the hierarchy if item is in a group
                 ptr += 3;
-                selected = *ptr++;
+                parentId = selected = *ptr++;
 
                 // Check if we have a handleId or character ID
                 while (ptr < selNext)
@@ -137,6 +139,8 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
         *characterPtr = charSelected;
     if (childPtr)
         *childPtr = childSelected;
+    if (parentPtr)
+        *parentPtr = parentId;
 
     selected &= Widget::SELECTION_MASK;
 
@@ -326,9 +330,11 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     GLuint handleId      = 0;
     GLuint charSelected  = 0;
     GLuint childSelected = 0;
+    GLuint parentId      = 0;
 
     selected = ObjectInRectangle(rectangle,
-                                 &handleId, &charSelected, &childSelected);
+                                 &handleId, &charSelected,
+                                 &childSelected, &parentId);
 
     // If we selected an object, need to adjust dialogs to match new selection
     if (selected)
@@ -338,15 +344,31 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     }
 
     // If this is the first click, then update selection
-    Widget::selection_map previousSelection = widget->selection;
+    Widget::selection_map oldSelection = widget->selection;
     if (firstClick)
     {
+        // Check cases where we need to start with a fresh selection
         if (shiftModifier || handleId || charSelected)
-            savedSelection = widget->selection;
-        else if (previousSelection.count(selected))
-            savedSelection = widget->selection;
+        {
+            // User held shift, selected a control handle or a character
+            savedSelection = oldSelection;
+        }
+        else if (oldSelection.count(selected))
+        {
+            // Clicking on an already selected item
+            savedSelection = oldSelection;
+        }
         else
+        {
+            // Other cases: start with a fresh selection
             savedSelection.clear();
+
+            // Clicking in some other child of a parent: select parent again
+            parentId &= Widget::SELECTION_MASK;
+            if (parentId && parentId != selected)
+                selected = parentId;
+        }
+
         widget->selection = savedSelection;
 
         if (selected)
@@ -374,7 +396,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         widget->handleId = handleId;
     }
     if (!widget->selectionChanged &&
-        !selectionsMatch(previousSelection, widget->selection))
+        !selectionsMatch(oldSelection, widget->selection))
         widget->selectionChanged = true;
 
     // In all cases, we want a screen refresh
@@ -424,7 +446,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     id_list list;
     if (ObjectsInRectangle(rectangle, list))
     {
-        Widget::selection_map previousSelection = widget->selection;
+        Widget::selection_map oldSelection = widget->selection;
         widget->selection = savedSelection;
 
         for (id_list::iterator i = list.begin(); i != list.end(); i++)
@@ -435,7 +457,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
         }
 
         if (!widget->selectionChanged &&
-            !selectionsMatch(previousSelection, widget->selection))
+            !selectionsMatch(oldSelection, widget->selection))
             widget->selectionChanged = true;
 
         // Need a refresh

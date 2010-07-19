@@ -101,6 +101,7 @@ int main(int argc, char **argv)
 
     // Create the windows for each file on the command line
     bool hadFile = false;
+    bool hadWin = false;
     XL::source_names &names = xlr->file_names;
     XL::source_names::iterator it;
     for (it = names.begin(); it != names.end(); it++)
@@ -120,12 +121,12 @@ int main(int argc, char **argv)
         if (window->isUntitled)
         {
             delete window;
-            QMessageBox::warning(NULL, tao.tr("Invalid input file"),
-                                 tao.tr("The file %1 cannot be read.")
-                                 .arg(+*it));
         }
         else
+        {
             window->show();
+            hadWin = true;
+        }
     }
 
     if (!hadFile)
@@ -137,6 +138,7 @@ int main(int argc, char **argv)
         untitled->isUntitled = true;
         untitled->isReadOnly = true;
         untitled->show();
+        hadWin = true;
     }
 
     if (splash)
@@ -144,6 +146,9 @@ int main(int argc, char **argv)
         splash->close();
         delete splash;
     }
+
+    if (!hadWin)
+        return 0;
 
     int ret = tao.exec();
 

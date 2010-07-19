@@ -2044,6 +2044,10 @@ void Widget::markChanged(text reason)
         }
     }
 
+    // Record change to repository
+    if (autoSaveEnabled)
+        saveAndCommit();
+
     // Now update the window
     updateProgramSource();
 

@@ -108,8 +108,6 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
                 // Walk down the hierarchy if item is in a group
                 ptr += 3;
                 selected = *ptr++;
-                while ((selected & Widget::CONTAINER_OPENED) && ptr < selNext)
-                    selected = *ptr++;
 
                 // Check if we have a handleId or character ID
                 while (ptr < selNext)
@@ -119,6 +117,8 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
                         handleId = child & ~Widget::HANDLE_SELECTED;
                     else if (child & Widget::CHARACTER_SELECTED)
                         charSelected = child & ~Widget::CHARACTER_SELECTED;
+                    else if (selected & Widget::CONTAINER_OPENED)
+                        selected = child;
                     else if (!childSelected)
                         childSelected = child;
                 }
@@ -137,6 +137,8 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
         *characterPtr = charSelected;
     if (childPtr)
         *childPtr = childSelected;
+
+    selected &= Widget::SELECTION_MASK;
 
     return selected;
 }
@@ -339,7 +341,9 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     Widget::selection_map previousSelection = widget->selection;
     if (firstClick)
     {
-        if (shiftModifier || previousSelection.count(selected) || handleId)
+        if (shiftModifier || handleId || charSelected)
+            savedSelection = widget->selection;
+        else if (previousSelection.count(selected))
             savedSelection = widget->selection;
         else
             savedSelection.clear();

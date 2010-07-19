@@ -1263,9 +1263,9 @@ void TextSelect::updateSelection()
 // ----------------------------------------------------------------------------
 {
     widget->selection.clear();
-    uint s = start(), e = end();
+    uint s = start(), e = end(), marker = Widget::CHARACTER_SELECTED;
     for (uint i = s; i < e; i++)
-        widget->select(i, Widget::CHARACTER_SELECTED);
+        widget->select(i | marker, marker);
     if (textBoxId)
         widget->select(textBoxId, Widget::CONTAINER_OPENED);
     findingLayout = true;

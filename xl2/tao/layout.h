@@ -94,7 +94,7 @@ struct Layout : Drawing, LayoutState
     void                Inherit(Layout *other);
     void                PushLayout(Layout *where);
     void                PopLayout(Layout *where);
-    uint                CharacterId()   { return ++charId; }
+    uint                CharacterId();
 
 public:
     // OpenGL identification for that shape and for characters within

@@ -402,4 +402,16 @@ void Layout::PopLayout(Layout *where)
     }
 }
 
+
+uint Layout::CharacterId()
+// ----------------------------------------------------------------------------
+//    Allocate a character ID
+// ----------------------------------------------------------------------------
+//    We also increment the widget's selection ID so that we account
+//    for the right number of selectable items
+{
+    display->selectionId();
+    return ++charId;
+}
+
 TAO_END

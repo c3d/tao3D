@@ -65,7 +65,14 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
 // ----------------------------------------------------------------------------
 {
     // Create the select buffer and switch to select mode
-    GLuint capacity = widget->selectionCapacity();
+    GLuint capacity      = widget->selectionCapacity();
+    GLuint selected      = 0;
+    GLuint handleId      = 0;
+    GLuint charSelected  = 0;
+    GLuint childSelected = 0;
+    GLuint parentId      = 0;
+    int    hits          = 0;
+
     GLuint *buffer = new GLuint[capacity];
     glSelectBuffer(capacity, buffer);
     glRenderMode(GL_SELECT);
@@ -85,13 +92,8 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
     // [1]: Minimum depth
     // [2]: Maximum depth
     // [3..3+[0]-1]: List of names
-    GLuint selected      = 0;
-    GLuint handleId      = 0;
-    GLuint charSelected  = 0;
-    GLuint childSelected = 0;
-    GLuint parentId      = 0;
 
-    int hits = glRenderMode(GL_RENDER);
+    hits = glRenderMode(GL_RENDER);
     if (hits > 0)
     {
         GLuint depth = ~0U;
@@ -153,8 +155,11 @@ int Identify::ObjectsInRectangle(const Box &rectangle, id_list &list)
 //   Return the list of objects under the rectangle
 // ----------------------------------------------------------------------------
 {
-    // Create the select buffer and switch to select mode
+    int    hits     = 0;
+    GLuint selected = 0;
     GLuint capacity = widget->selectionCapacity();
+
+    // Create the select buffer and switch to select mode
     GLuint *buffer = new GLuint[capacity];
     glSelectBuffer(capacity, buffer);
     glRenderMode(GL_SELECT);
@@ -174,8 +179,7 @@ int Identify::ObjectsInRectangle(const Box &rectangle, id_list &list)
     // [1]: Minimum depth
     // [2]: Maximum depth
     // [3..3+[0]-1]: List of names
-    int hits = glRenderMode(GL_RENDER);
-    GLuint selected = 0;
+    hits = glRenderMode(GL_RENDER);
     if (hits > 0)
     {
         GLuint *ptr = buffer;
@@ -190,6 +194,9 @@ int Identify::ObjectsInRectangle(const Box &rectangle, id_list &list)
         }
     }
     delete[] buffer;
+
+    if (hits < 0)
+        std::cout << "Capacity is incorrectly computed\n";
 
     return hits;
 }
@@ -443,11 +450,12 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     y = widget->height() - y;
     rectangle.upper.Set(x,y);
 
+    Widget::selection_map oldSelection = widget->selection;
+    widget->selection = savedSelection;
+
     id_list list;
     if (ObjectsInRectangle(rectangle, list) > 0)
     {
-        Widget::selection_map oldSelection = widget->selection;
-        widget->selection = savedSelection;
 
         for (id_list::iterator i = list.begin(); i != list.end(); i++)
         {
@@ -459,11 +467,10 @@ Activity *Selection::MouseMove(int x, int y, bool active)
         if (!widget->selectionChanged &&
             !selectionsMatch(oldSelection, widget->selection))
             widget->selectionChanged = true;
-    
-        // Need a refresh
-        widget->refresh();
     }
-
+    
+    // Need a refresh
+    widget->refresh();
 
     // We dealt with the mouse move, don't let other activities get it
     return NULL;

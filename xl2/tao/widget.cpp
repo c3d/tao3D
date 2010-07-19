@@ -396,10 +396,6 @@ void Widget::runProgram()
     currentToolBar = NULL;
     currentMenuBar = ((Window*)parent())->menuBar();
     
-    // Remember number of elements drawn for GL selection buffer capacity
-    if (maxId < id + 100 || maxId > 2 * (id + 100))
-        maxId = id + 100;
-
     // After we are done, draw the space with all the drawings in it
     // If we are in stereoscopice mode, we draw twice, once for each eye
     do
@@ -429,6 +425,10 @@ void Widget::runProgram()
             setup(width(), height());
         }
     } while (stereoscopic == 2);
+
+    // Remember number of elements drawn for GL selection buffer capacity
+    if (maxId < id + 100 || maxId > 2 * (id + 100))
+        maxId = id + 100;
 
     // Clipboard management
     checkCopyAvailable();

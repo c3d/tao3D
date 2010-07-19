@@ -429,6 +429,11 @@ bool FrameManipulator::DrawHandles(Layout *layout)
     coord   xx = x, yy = y, ww = w, hh = h;
     Drag   *drag = widget->drag();
     uint    handle = 0;
+    uint    selected = widget->selected(layout);
+
+    // Don't draw the handles if this is an open container
+    if (selected & Widget::CONTAINER_OPENED)
+        return false;
 
     for (uint hn = 0; hn < 4; hn++)
     {

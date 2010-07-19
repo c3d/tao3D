@@ -1091,6 +1091,7 @@ Activity *TextSelect::Edit(text key)
         return next;
 
     if (key == "Space")                 key = " ";
+    else if (key == "Shift-Space")      key = " ";
     else if (key == "Return")           key = "\n";
     else if (key == "Enter")            key = "\n";
 

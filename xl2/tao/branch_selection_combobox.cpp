@@ -210,7 +210,24 @@ void BranchSelectionComboBox::on_activated(QString selected)
 
     case CIK_Delete:
         repo->checkout("master_tao_undo");  // REVISIT
-        repo->delBranch(prevSelected);
+        if (!repo->delBranch(prevSelected))
+        {
+            int ret;
+            QString msg = tr("A branch will not be deleted unless it is fully "
+                             "merged into the main branch.\n"
+                             "Do you want to delete %1 anyway?")
+                          .arg(prevSelected);
+            ret = QMessageBox::warning(this, tr("Unmerged branch"), msg,
+                                       QMessageBox::Ok | QMessageBox::Cancel);
+            if (ret == QMessageBox::Ok)
+            {
+                repo->delBranch(prevSelected, true);
+            }
+            else
+            {
+                repo->checkout(+prevSelected);
+            }
+        }
         populateAndSelect();
         break;
     }

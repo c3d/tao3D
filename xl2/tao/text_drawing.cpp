@@ -411,6 +411,7 @@ void TextSpan::DrawSelection(Layout *where)
     if (sel && canSel && max <= end)
     {
         charId++;
+        sel->last = charId;
         if (charId >= sel->start() && charId <= sel->end())
         {
             if (sel->replace)
@@ -1029,7 +1030,7 @@ TextSelect::TextSelect(Widget *w)
 //   Constructor initializes an empty text range
 // ----------------------------------------------------------------------------
     : Identify("Text selection", w),
-      mark(0), point(0), previous(0), textBoxId(0),
+      mark(0), point(0), previous(0), last(0), textBoxId(0),
       direction(None), targetX(0),
       replacement(""), replace(false),
       textMode(false),
@@ -1095,12 +1096,18 @@ Activity *TextSelect::Edit(text key)
 
     if (key == "Left")
     {
-        moveTo(start() - !hasSelection());
+        uint pos = start();
+        if (pos > 1 && !hasSelection())
+            pos--;
+        moveTo(pos);
         direction = Left;
     }
     else if (key == "Right")
     {
-        moveTo(end() + !hasSelection());
+        uint pos = end();
+        if (pos < last && !hasSelection())
+            pos++;
+        moveTo(pos);
         direction = Right;
     }
     else if (key == "Shift-Left")

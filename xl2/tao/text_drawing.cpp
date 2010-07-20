@@ -189,6 +189,7 @@ void TextSpan::DrawDirect(Layout *where)
     Text *      ttree  = source;
     text        str    = ttree->value;
     bool        canSel = ttree->Position() != XL::Tree::NOWHERE;
+    TextSelect *sel    = widget->textSelection();
     QFont      &font   = where->font;
     coord       x      = pos.x;
     coord       y      = pos.y;
@@ -223,7 +224,8 @@ void TextSpan::DrawDirect(Layout *where)
 
     if (where->lineColor.alpha <= 0)
         lw = 0;
-    if (canSel && IsMarkedConstant(ttree))
+    if (canSel && (!sel || IsMarkedConstant(ttree) ||
+                   !sel->textBoxId || where->id != sel->textBoxId))
         canSel = false;
 
     GlyphCache::GlyphEntry  glyph;
@@ -303,13 +305,9 @@ void TextSpan::DrawSelection(Layout *where)
     GlyphCache::GlyphEntry  glyph;
 
     // A number of cases where we can't select text
-    if (canSel)
-    {
-        if (IsMarkedConstant(ttree))
-            canSel = false;
-        else if (sel && sel->textBoxId && where->id != sel->textBoxId)
-            canSel = false;
-    }
+    if (canSel && (!sel || IsMarkedConstant(ttree) ||
+                   !sel->textBoxId || where->id != sel->textBoxId))
+        canSel = false;
 
     // Loop over all characters in the text span
     uint i, next, max = str.length();
@@ -481,12 +479,16 @@ void TextSpan::Identify(Layout *where)
     Point3                  quad[4];
 
     // A number of cases where we can't select text
+    if (canSel && (!sel || IsMarkedConstant(ttree) ||
+                   !sel->textBoxId || where->id != sel->textBoxId))
+        canSel = false;
+
     if (canSel)
     {
-        if (IsMarkedConstant(ttree))
-            canSel = false;
-        else if (sel && sel->textBoxId && where->id != sel->textBoxId)
-            canSel = false;
+        GLint nameStackDepth = 0;
+        glGetIntegerv(GL_NAME_STACK_DEPTH, &nameStackDepth);
+        if (nameStackDepth == 0)
+            std::cerr << "Invalid stack depth\n";
     }
 
     // Prepare to draw with the quad

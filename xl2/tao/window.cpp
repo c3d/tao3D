@@ -331,7 +331,6 @@ void Window::open(QString fileName, bool readOnly)
     }
     else
     {
-        QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
         Window *other = new Window(xlRuntime, contextFileNames, "",
                                    readOnly);
         other->move(x() + 40, y() + 40);

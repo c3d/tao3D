@@ -968,10 +968,15 @@ void TextFormula::Identify(Layout *where)
     XL::Prefix *         prefix  = self->AsPrefix();
     XL::Tree *           value   = prefix->right;
     TextFormulaEditInfo *info    = value->GetInfo<TextFormulaEditInfo>();
-    if (!info)
+    if (!info && where->id)
     {
-        uint    selId = where->CharacterId();
-        glLoadName(selId | Widget::CHARACTER_SELECTED);
+        uint    charId = where->CharacterId();
+        glLoadName(charId | Widget::CHARACTER_SELECTED);
+
+        Widget     *widget = where->Display();
+        TextSelect *sel    = widget->textSelection();
+        if (sel)
+            sel->last = charId + 1;
     }
     TextSpan::Identify(where);
 }

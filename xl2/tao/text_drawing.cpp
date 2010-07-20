@@ -846,6 +846,7 @@ XL::Text *TextFormula::Format(XL::Prefix *self)
         }
     }
 
+#if 0 // Disable formula symbols
     // Make sure we evaluate that in the formulas symbol table
     if (symbols != widget->formulaSymbols())
     {
@@ -864,6 +865,7 @@ XL::Text *TextFormula::Format(XL::Prefix *self)
             self->right = value;
         }
     }
+#endif // Formula symbols
 
     // Evaluate the tree and turn it into a tree
     Tree *computed = xl_evaluate(value);
@@ -992,10 +994,17 @@ bool TextFormula::Validate(XL::Text *source, Widget *widget)
     XL::Positions      &positions = XL::MAIN->positions;
     XL::Errors         &errors    = XL::MAIN->errors;
     XL::Parser          parser(input, syntax,positions,errors);
-    Tree *              newTree = parser.Parse();
+    Tree *              newTree   = parser.Parse();
+    XL::Prefix *        prefix    = self->AsPrefix();
+    XL::Tree *          value     = prefix->right;
+
     if (newTree)
     {
+#if 0
         newTree->SetSymbols(widget->formulaSymbols());
+#else
+        newTree->SetSymbols(value->Symbols());
+#endif
 
         XL::Prefix *prefix = self;
         XL::Name *name = prefix->right->AsName();

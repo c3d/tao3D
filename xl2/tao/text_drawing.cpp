@@ -224,8 +224,8 @@ void TextSpan::DrawDirect(Layout *where)
 
     if (where->lineColor.alpha <= 0)
         lw = 0;
-    if (canSel && (!sel || IsMarkedConstant(ttree) ||
-                   !sel->textBoxId || where->id != sel->textBoxId))
+    if (canSel && (!where->id || IsMarkedConstant(ttree) ||
+                   (sel && sel->textBoxId && where->id != sel->textBoxId)))
         canSel = false;
 
     GlyphCache::GlyphEntry  glyph;
@@ -305,8 +305,8 @@ void TextSpan::DrawSelection(Layout *where)
     GlyphCache::GlyphEntry  glyph;
 
     // A number of cases where we can't select text
-    if (canSel && (!sel || IsMarkedConstant(ttree) ||
-                   !sel->textBoxId || where->id != sel->textBoxId))
+    if (canSel && (!where->id || IsMarkedConstant(ttree) ||
+                   (sel && sel->textBoxId && where->id != sel->textBoxId)))
         canSel = false;
 
     // Loop over all characters in the text span
@@ -479,17 +479,9 @@ void TextSpan::Identify(Layout *where)
     Point3                  quad[4];
 
     // A number of cases where we can't select text
-    if (canSel && (!sel || IsMarkedConstant(ttree) ||
-                   !sel->textBoxId || where->id != sel->textBoxId))
+    if (canSel && (!where->id || IsMarkedConstant(ttree) ||
+                   (sel && sel->textBoxId && where->id != sel->textBoxId)))
         canSel = false;
-
-    if (canSel)
-    {
-        GLint nameStackDepth = 0;
-        glGetIntegerv(GL_NAME_STACK_DEPTH, &nameStackDepth);
-        if (nameStackDepth == 0)
-            std::cerr << "Invalid stack depth\n";
-    }
 
     // Prepare to draw with the quad
     glVertexPointer(3, GL_DOUBLE, 0, &quad[0].x);

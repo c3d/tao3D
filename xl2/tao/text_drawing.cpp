@@ -924,7 +924,6 @@ void TextFormula::DrawSelection(Layout *where)
             uint length = source->value.length();
             sel->point = charId;
             sel->mark = charId + length;
-            sel->updateSelection();
 
             widget->refresh();
         }

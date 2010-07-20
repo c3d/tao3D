@@ -89,6 +89,8 @@ void TextSpan::DrawCached(Layout *where)
     Point3      pos    = where->offset;
     Text *      ttree  = source;
     text        str    = ttree->value;
+    bool        canSel = ttree->Position() != XL::Tree::NOWHERE;
+    TextSelect *sel    = widget->textSelection();
     QFont      &font   = where->font;
     coord       x      = pos.x;
     coord       y      = pos.y;
@@ -99,6 +101,11 @@ void TextSpan::DrawCached(Layout *where)
     std::vector<Point3>     quads;
     std::vector<Point>      texCoords;
 
+
+    if (canSel && (!where->id || IsMarkedConstant(ttree) ||
+                   (sel && sel->textBoxId && where->id != sel->textBoxId)))
+        canSel = false;
+
     // Loop over all characters in the text span
     uint i, max = str.length();
     for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
@@ -106,7 +113,8 @@ void TextSpan::DrawCached(Layout *where)
         uint  unicode  = XL::Utf8Code(str, i);
         bool  newLine  = unicode == '\n';
 
-        charId   = where->CharacterId();
+        if (canSel)
+            charId = where->CharacterId();
 
         // Advance to next character
         if (newLine)
@@ -238,7 +246,8 @@ void TextSpan::DrawDirect(Layout *where)
         uint  unicode  = XL::Utf8Code(str, i);
         bool  newLine  = unicode == '\n';
 
-        charId   = where->CharacterId();
+        if (canSel)
+            charId = where->CharacterId();
 
         // Advance to next character
         if (newLine)
@@ -314,9 +323,10 @@ void TextSpan::DrawSelection(Layout *where)
     for (i = start; i < max && i < end; i = next)
     {
         uint unicode = XL::Utf8Code(str, i);
-        
-        charId = where->CharacterId();
         next   = XL::Utf8Next(str, i);
+        
+        if (canSel)
+            charId = where->CharacterId();
 
         // Fetch data about that glyph
         if (!glyphs.Find(font, unicode, glyph, false))
@@ -492,9 +502,10 @@ void TextSpan::Identify(Layout *where)
     for (i = start; i < max && i < end; i = next)
     {
         uint unicode = XL::Utf8Code(str, i);
-
-        charId = where->CharacterId();
         next   = XL::Utf8Next(str, i);
+
+        if (canSel)
+            charId = where->CharacterId();
 
         // Fetch data about that glyph
         if (!glyphs.Find(font, unicode, glyph, false))
@@ -846,6 +857,7 @@ XL::Text *TextFormula::Format(XL::Prefix *self)
         }
     }
 
+#if 0 // Disable formula symbols
     // Make sure we evaluate that in the formulas symbol table
     if (symbols != widget->formulaSymbols())
     {
@@ -864,6 +876,7 @@ XL::Text *TextFormula::Format(XL::Prefix *self)
             self->right = value;
         }
     }
+#endif // Formula symbols
 
     // Evaluate the tree and turn it into a tree
     Tree *computed = xl_evaluate(value);
@@ -881,7 +894,7 @@ void TextFormula::DrawSelection(Layout *where)
     XL::Prefix *         prefix = self;
     XL::Tree *           value  = prefix->right;
     TextFormulaEditInfo *info   = value->GetInfo<TextFormulaEditInfo>();
-    uint                 selId  = widget->selectionCurrentId() + 1;
+    uint                 charId = where->CharacterId();
 
     // Count formulas to identify them uniquely
     shows++;
@@ -890,7 +903,7 @@ void TextFormula::DrawSelection(Layout *where)
     // Check if formula is selected and we are not editing it
     if (sel && sel->textMode)
     {
-        if (!info && widget->selected(selId))
+        if (!info && widget->selected(charId | Widget::CHARACTER_SELECTED))
         {
             // No info: create one
 
@@ -901,7 +914,7 @@ void TextFormula::DrawSelection(Layout *where)
                 if (Tree *named = symbols->Named(name->value, true))
                     value = named;
             
-            text edited = text(" ") + text(*value) + " ";
+            text edited = text("   ") + text(*value) + "  ";
             Text *editor = new Text(edited, "\"", "\"", value->Position());
             info = new TextFormulaEditInfo(editor, shows);
             prefix->right->SetInfo<TextFormulaEditInfo>(info);
@@ -909,8 +922,8 @@ void TextFormula::DrawSelection(Layout *where)
             // Update mark and point
             XL::Text *source = info->source;
             uint length = source->value.length();
-            sel->point = selId;
-            sel->mark = selId + length;
+            sel->point = charId;
+            sel->mark = charId + length;
 
             widget->refresh();
         }
@@ -940,19 +953,20 @@ void TextFormula::DrawSelection(Layout *where)
         uint length = source->value.length();
 
         if (!sel || (sel->mark == sel->point &&
-                     (sel->point < selId || sel->point > selId + length)))
+                     (sel->point < charId || sel->point > charId + length)))
         {
             if (Validate(info->source, widget))
             {
-                if (sel && sel->point > selId + length)
+                if (sel && sel->point > charId + length)
                 {
                     sel->point -= length;
                     sel->mark -= length;
+                    sel->updateSelection();
                 }
             }
         }
     }
-    else if (!info && sel && selId >= sel->start() && selId <= sel->end())
+    else if (!info && sel && charId >= sel->start() && charId <= sel->end())
     {
         // First run, make sure we return here to create the editor
         widget->refresh();
@@ -965,14 +979,19 @@ void TextFormula::Identify(Layout *where)
 //   Give one ID to the whole formula so that we can click on it
 // ----------------------------------------------------------------------------
 {
-    XL::Prefix *         prefix  = self->AsPrefix();
-    XL::Tree *           value   = prefix->right;
-    TextFormulaEditInfo *info    = value->GetInfo<TextFormulaEditInfo>();
-    if (!info)
-    {
-        uint    selId = where->CharacterId();
-        glLoadName(selId | Widget::CHARACTER_SELECTED);
-    }
+    XL::Prefix *         prefix = self->AsPrefix();
+    XL::Tree *           value  = prefix->right;
+    TextFormulaEditInfo *info   = value->GetInfo<TextFormulaEditInfo>();
+    uint                 charId = where->CharacterId();
+    Widget              *widget = where->Display();
+    TextSelect          *sel    = widget->textSelection();
+
+    if (!info && where->id)
+        glLoadName(charId | Widget::CHARACTER_SELECTED);
+
+    if (sel)
+        sel->last = charId + 1;
+
     TextSpan::Identify(where);
 }
 
@@ -987,10 +1006,17 @@ bool TextFormula::Validate(XL::Text *source, Widget *widget)
     XL::Positions      &positions = XL::MAIN->positions;
     XL::Errors         &errors    = XL::MAIN->errors;
     XL::Parser          parser(input, syntax,positions,errors);
-    Tree *              newTree = parser.Parse();
+    Tree *              newTree   = parser.Parse();
+    XL::Prefix *        prefix    = self->AsPrefix();
+    XL::Tree *          value     = prefix->right;
+
     if (newTree)
     {
+#if 0
         newTree->SetSymbols(widget->formulaSymbols());
+#else
+        newTree->SetSymbols(value->Symbols());
+#endif
 
         XL::Prefix *prefix = self;
         XL::Name *name = prefix->right->AsName();
@@ -1011,6 +1037,7 @@ bool TextFormula::Validate(XL::Text *source, Widget *widget)
     }
     return false;
 }
+
 
 
 // ============================================================================
@@ -1262,7 +1289,7 @@ void TextSelect::updateSelection()
 {
     widget->selection.clear();
     uint s = start(), e = end(), marker = Widget::CHARACTER_SELECTED;
-    for (uint i = s; i < e; i++)
+    for (uint i = s; i <= e; i++)
         widget->select(i | marker, marker);
     if (textBoxId)
         widget->select(textBoxId, Widget::CONTAINER_OPENED);

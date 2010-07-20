@@ -577,6 +577,7 @@ void PageLayout::DrawSelection(Layout *where)
     {
         sel->selBox.Empty();
         sel->formulaBox.Empty();
+        sel->formulaMode = 0;
     }
 
     // Check if the text layout was opened, if so draw the text box

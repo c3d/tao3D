@@ -1592,7 +1592,6 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         QString url = repo->url();
         if (url != oldUrl)
             emit projectUrlChanged(url);
-
         if (repo != oldRepo)
             emit projectChanged(repo.data());   // REVISIT projectUrlChanged
     }

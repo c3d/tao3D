@@ -1,33 +1,33 @@
 color 1, 1, 1, 1 
 
-HelloWorldMessage -> "Hello World! or Καλημέρα κόσμε; or こんにちは 世界"
+HelloWorldMessage -> "Hello World! or Καλημέρα κόσμε; or こんにちは 世界" 
 
 locally 
-    texture "earth.bmp" 
+    texture "./earth.bmp" 
     rotatey 25 * page_time 
-    sphere 0, 0, 0, 250
+    sphere 0, 0, 0, 250 
 
 locally 
     texture "milkyway.jpg" 
     rotatey 0.8 * page_time + 90 
     scale 1, -1, 1 
-    sphere 0, 0, 0, 2000
+    sphere 0, 0, 0, 2000 
 
 frame_texture 1800, 600, do 
     color 1, 1, 1, 1 
     font "Arial Unicode MS" 
     font_size 62 
     move_to -900, -10, 0 
-    text HelloWorldMessage
+    text HelloWorldMessage 
 
 rotatey -29 * page_time + 270 
-color 0% ,0% ,0% ,40% 
+color 0% , 0% , 0% , 40% 
 sphere 0, 0, 0, 260 
 if page_time mod 3 > 0.5 then 
-    color 100% ,90% ,20% ,90% 
+    color 100% , 90% , 20% , 90% 
 else 
     color 0, 0, 1, 60% 
 
 move_to 0, 0, 0 
 sphere 0, 0, 0, 270 
-refresh 0.02
+refresh 0.02 

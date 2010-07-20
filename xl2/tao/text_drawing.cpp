@@ -89,6 +89,8 @@ void TextSpan::DrawCached(Layout *where)
     Point3      pos    = where->offset;
     Text *      ttree  = source;
     text        str    = ttree->value;
+    bool        canSel = ttree->Position() != XL::Tree::NOWHERE;
+    TextSelect *sel    = widget->textSelection();
     QFont      &font   = where->font;
     coord       x      = pos.x;
     coord       y      = pos.y;
@@ -99,6 +101,11 @@ void TextSpan::DrawCached(Layout *where)
     std::vector<Point3>     quads;
     std::vector<Point>      texCoords;
 
+
+    if (canSel && (!where->id || IsMarkedConstant(ttree) ||
+                   (sel && sel->textBoxId && where->id != sel->textBoxId)))
+        canSel = false;
+
     // Loop over all characters in the text span
     uint i, max = str.length();
     for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
@@ -106,7 +113,8 @@ void TextSpan::DrawCached(Layout *where)
         uint  unicode  = XL::Utf8Code(str, i);
         bool  newLine  = unicode == '\n';
 
-        charId   = where->CharacterId();
+        if (canSel)
+            charId = where->CharacterId();
 
         // Advance to next character
         if (newLine)
@@ -238,7 +246,8 @@ void TextSpan::DrawDirect(Layout *where)
         uint  unicode  = XL::Utf8Code(str, i);
         bool  newLine  = unicode == '\n';
 
-        charId   = where->CharacterId();
+        if (canSel)
+            charId = where->CharacterId();
 
         // Advance to next character
         if (newLine)
@@ -314,9 +323,10 @@ void TextSpan::DrawSelection(Layout *where)
     for (i = start; i < max && i < end; i = next)
     {
         uint unicode = XL::Utf8Code(str, i);
-        
-        charId = where->CharacterId();
         next   = XL::Utf8Next(str, i);
+        
+        if (canSel)
+            charId = where->CharacterId();
 
         // Fetch data about that glyph
         if (!glyphs.Find(font, unicode, glyph, false))
@@ -492,9 +502,10 @@ void TextSpan::Identify(Layout *where)
     for (i = start; i < max && i < end; i = next)
     {
         uint unicode = XL::Utf8Code(str, i);
-
-        charId = where->CharacterId();
         next   = XL::Utf8Next(str, i);
+
+        if (canSel)
+            charId = where->CharacterId();
 
         // Fetch data about that glyph
         if (!glyphs.Find(font, unicode, glyph, false))
@@ -903,7 +914,7 @@ void TextFormula::DrawSelection(Layout *where)
                 if (Tree *named = symbols->Named(name->value, true))
                     value = named;
             
-            text edited = text(" ") + text(*value) + " ";
+            text edited = text("   ") + text(*value) + "  ";
             Text *editor = new Text(edited, "\"", "\"", value->Position());
             info = new TextFormulaEditInfo(editor, shows);
             prefix->right->SetInfo<TextFormulaEditInfo>(info);
@@ -913,6 +924,7 @@ void TextFormula::DrawSelection(Layout *where)
             uint length = source->value.length();
             sel->point = charId;
             sel->mark = charId + length;
+            sel->updateSelection();
 
             widget->refresh();
         }
@@ -950,6 +962,7 @@ void TextFormula::DrawSelection(Layout *where)
                 {
                     sel->point -= length;
                     sel->mark -= length;
+                    sel->updateSelection();
                 }
             }
         }
@@ -1277,7 +1290,7 @@ void TextSelect::updateSelection()
 {
     widget->selection.clear();
     uint s = start(), e = end(), marker = Widget::CHARACTER_SELECTED;
-    for (uint i = s; i < e; i++)
+    for (uint i = s; i <= e; i++)
         widget->select(i | marker, marker);
     if (textBoxId)
         widget->select(textBoxId, Widget::CONTAINER_OPENED);

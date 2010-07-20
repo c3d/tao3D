@@ -1176,6 +1176,12 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
+    if (openProj && repo)
+    {
+        showMessage(msg.arg(tr("GC")));
+        repo->gc();
+    }
+
     showMessage(msg.arg(tr("Fonts")));
     FontFileManager ffm;
     appFontIds = ffm.LoadEmbeddedFonts(fileName);

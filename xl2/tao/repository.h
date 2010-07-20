@@ -175,6 +175,7 @@ public:
     virtual text        version()                       = 0;
     virtual bool        isClean()                       = 0;
     virtual QString     url()                           = 0;
+    virtual bool        gc()                            = 0;
 
 public:
     static bool         versionGreaterOrEqual(QString ver, QString ref);

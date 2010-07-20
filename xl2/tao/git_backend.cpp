@@ -817,4 +817,15 @@ QString GitRepository::url()
     return url;
 }
 
+
+bool GitRepository::gc()
+// ----------------------------------------------------------------------------
+//    Run garbage collection
+// ----------------------------------------------------------------------------
+{
+    waitForAsyncProcessCompletion();
+    Process cmd(command(), QStringList("gc"), path);
+    return cmd.done(&errors);
+}
+
 TAO_END

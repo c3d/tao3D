@@ -84,6 +84,7 @@ public:
     virtual text        version();
     virtual bool        isClean();
     virtual QString     url();
+    virtual bool        gc();
 
     static  bool        checkGit();
 

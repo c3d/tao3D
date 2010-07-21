@@ -91,9 +91,13 @@ bool BranchSelectionComboBox::populate()
 // ----------------------------------------------------------------------------
 {
     clear();
-    addItem(tr("<No branch>"), CIK_None);
+    int i = 0;
+    if (repo->branch() == "")
+    {
+        addItem(tr("<No branch>"), CIK_None);
+        i++;
+    }
     QStringList branches = repo->branches();
-    int i = 1;
     foreach (QString branch, branches)
     {
         bool match = (filter == BSF_AllBranches);

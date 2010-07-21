@@ -847,7 +847,7 @@ void Widget::saveAndCommit()
 // ----------------------------------------------------------------------------
 {
     Repository * repo = repository();
-    if (!repo->isUndoBranch(repo->cachedBranch))
+    if (repo && !repo->isUndoBranch(repo->cachedBranch))
         return;
 
     ulonglong tick = now();
@@ -2140,7 +2140,7 @@ bool Widget::doSave(ulonglong tick)
 // ----------------------------------------------------------------------------
 {
     Repository * repo = repository();
-    if (!repo->isUndoBranch(repo->cachedBranch))
+    if (repo && !repo->isUndoBranch(repo->cachedBranch))
         return false;
 
     bool changed = false;
@@ -2165,6 +2165,8 @@ bool Widget::doCommit(ulonglong tick)
 // ----------------------------------------------------------------------------
 {
     Repository * repo = repository();
+    if (!repo)
+        return false;
     if (repo->state == Repository::RS_Clean)
         return false;
     if (!repo->isUndoBranch(repo->cachedBranch))

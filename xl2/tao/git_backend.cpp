@@ -599,8 +599,18 @@ bool GitRepository::push(QString pushUrl)
 // ----------------------------------------------------------------------------
 {
     waitForAsyncProcessCompletion();
-    Process cmd(command(), QStringList("push") << pushUrl << +branch(), path);
-    return cmd.done(&errors);
+    text current = branch();
+    text task = taskBranch(current);
+    text undo = undoBranch(current);
+    QStringList args("push");
+    args << pushUrl;
+    Process cmd(command(), args << +task, path);
+    bool ok = cmd.done(&errors);
+    if (!ok)
+        return false;
+    Process cmd2(command(), args << +undo, path);
+    ok = cmd2.done(&errors);
+    return ok;
 }
 
 

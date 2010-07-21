@@ -33,6 +33,7 @@
 #include <QtGlobal>
 #include <QTimer>
 #include <iostream>
+#include <sys/stat.h>
 
 namespace Tao {
 
@@ -96,6 +97,7 @@ protected:
 protected slots:
     virtual void        asyncProcessFinished(int exitCode);
     void                clearCachedDocVersion();
+    virtual void        checkCurrentBranch();
 
 private:
     bool                initialCommit();
@@ -109,6 +111,7 @@ private:
     text                nextCommitMessage;
     text                cachedDocVersion;
     QTimer              cdvTimer;
+    time_t              currentBranchMtime;
 };
 
 }

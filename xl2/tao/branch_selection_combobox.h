@@ -66,7 +66,7 @@ protected slots:
 
 private:
     bool    populate();
-    bool    populateAndSelect(QString sel = "");
+    bool    populateAndSelect(QString sel = "", bool sig = true);
     QString addNewBranch();
     QString renameBranch();
 

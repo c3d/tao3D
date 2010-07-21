@@ -41,7 +41,7 @@ GitRepository::GitRepository(const QString &path)
 // ----------------------------------------------------------------------------
 //   GitRepository constructor
 // ----------------------------------------------------------------------------
-    : Repository(path)
+    : Repository(path), currentBranchMtime(0)
 {
     connect(&cdvTimer, SIGNAL(timeout()), this, SLOT(clearCachedDocVersion()));
     cdvTimer.start(5000);
@@ -170,6 +170,7 @@ text GitRepository::branch()
     }
     if (result == "(no branch)")
         result = "";
+    cachedBranch = result;
     return result;
 }
 
@@ -470,11 +471,27 @@ void GitRepository::clearCachedDocVersion()
 // ----------------------------------------------------------------------------
 //   Forget cached document version
 // ----------------------------------------------------------------------------
-
 {
     cachedDocVersion = "";
 }
 
+
+void GitRepository::checkCurrentBranch()
+// ----------------------------------------------------------------------------
+//   Emit signal if current branch has changed since last call
+// ----------------------------------------------------------------------------
+{
+    QString head = path + "/.git/HEAD";
+    struct stat st;
+    if (stat((+head).c_str(), &st) < 0)
+        return;
+    if (currentBranchMtime == 0)
+        currentBranchMtime = st.st_mtime;
+    if (st.st_mtime <= currentBranchMtime)
+        return;
+    currentBranchMtime = st.st_mtime;
+    emit branchChanged(+branch());
+}
 
 
 bool GitRepository::parseCommitOutput(text output, QString &id, QString &msg)

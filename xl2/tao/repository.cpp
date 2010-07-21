@@ -38,6 +38,17 @@ QMap<QString, QWeakPointer<Repository> > RepositoryFactory::cache;
 Repository::Kind  RepositoryFactory::availableScm = Repository::Unknown;
 struct Repository::Commit Repository::HeadCommit = Repository::Commit("HEAD");
 
+Repository::Repository(const QString &path): path(path), task("work"),
+                                     pullInterval(XL::MAIN->options
+                                                  .pull_interval),
+                                     state(RS_Clean), whatsNew("")
+{
+    connect(&branchCheckTimer, SIGNAL(timeout()),
+            this, SLOT(checkCurrentBranch()));
+    branchCheckTimer.start(1000);
+}
+
+
 Repository::~Repository()
 // ----------------------------------------------------------------------------
 //   Remove self from cache (if present)

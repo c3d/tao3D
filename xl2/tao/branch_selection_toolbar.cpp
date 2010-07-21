@@ -72,6 +72,15 @@ void BranchSelectionToolBar::setRepository(Repository *repo)
 }
 
 
+void BranchSelectionToolBar::refresh()
+// ----------------------------------------------------------------------------
+//    Update the UI when current branch was changed externally
+// ----------------------------------------------------------------------------
+{
+    branchSelector->refresh();
+}
+
+
 void BranchSelectionToolBar::checkout(QString branch)
 // ----------------------------------------------------------------------------
 //    Checkout a branch

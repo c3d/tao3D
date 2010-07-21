@@ -1600,6 +1600,8 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
             emit projectUrlChanged(url);
         if (repo != oldRepo)
             emit projectChanged(repo.data());   // REVISIT projectUrlChanged
+        connect(repo.data(), SIGNAL(branchChanged(QString)),
+                branchToolBar, SLOT(refresh()));
     }
 
     return true;

@@ -81,7 +81,7 @@ void BranchSelectionComboBox::refresh()
 //    Refresh UI (call e.g., when current branch has changed externally)
 // ----------------------------------------------------------------------------
 {
-    populateAndSelect();
+    populateAndSelect("", false);
 }
 
 
@@ -118,7 +118,7 @@ bool BranchSelectionComboBox::populate()
 }
 
 
-bool BranchSelectionComboBox::populateAndSelect(QString sel)
+bool BranchSelectionComboBox::populateAndSelect(QString sel, bool sig)
 // ----------------------------------------------------------------------------
 //    Re-fill combo box and select a name, or current branch if sel == ""
 // ----------------------------------------------------------------------------
@@ -130,7 +130,7 @@ bool BranchSelectionComboBox::populateAndSelect(QString sel)
     // If "<No branch>" is selected, only the "New" action is present ; if a
     // name is chosen, the delete and rename actions are added, too.
     // Signal noneSelected() or branchSelected() is emitted if selection has
-    // changed.
+    // changed and sig == true
 
     if (!populate())
         return false;
@@ -140,7 +140,7 @@ bool BranchSelectionComboBox::populateAndSelect(QString sel)
         sel = +repo->branch();
         if (sel == "")
         {
-            bool doEmit = (sel != prevSelected);
+            bool doEmit = sig && (sel != prevSelected);
             prevSelected = sel;
             if (doEmit)
                 emit noneSelected();
@@ -156,7 +156,7 @@ bool BranchSelectionComboBox::populateAndSelect(QString sel)
     if (kind != CIK_None && kind != CIK_Name)
         return false;
 
-    bool doEmit = (sel != prevSelected);
+    bool doEmit = sig && (sel != prevSelected);
     prevSelected = sel;
     if (kind == CIK_Name)
     {

@@ -37,6 +37,7 @@
 #include <QWeakPointer>
 #include <QSharedPointer>
 #include <QQueue>
+#include <QTimer>
 #include <iostream>
 
 namespace Tao {
@@ -117,10 +118,7 @@ public:
     static struct Commit HeadCommit;
 
 public:
-    Repository(const QString &path): path(path), task("work"),
-                                     pullInterval(XL::MAIN->options
-                                                  .pull_interval),
-                                     state(RS_Clean), whatsNew("") {}
+    Repository(const QString &path);
     virtual ~Repository();
 
 public:
@@ -185,6 +183,7 @@ signals:
     void                asyncCloneComplete(void *id, QString projPath);
     void                asyncPullComplete();
     void                deleted();
+    void                branchChanged(QString newBranch);
 
 protected:
     virtual QString     command()                       = 0;
@@ -197,6 +196,7 @@ protected:
 protected slots:
     virtual void        asyncProcessFinished(int exitCode);
     virtual void        asyncProcessError(QProcess::ProcessError error);
+    virtual void        checkCurrentBranch() {};
 
 
 protected:
@@ -223,6 +223,7 @@ public:
 
 protected:
     QQueue<Process *> pQueue;
+    QTimer            branchCheckTimer;
 };
 
 #define TAO_UNDO_SUFFIX "_tao_undo"

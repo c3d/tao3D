@@ -125,7 +125,10 @@ void CloneDialog::endClone(void *id, QString projPath)
             cloneOutput->insertPlainText(tr("Checking out files...\n"));
             ok = repo->setTask("master");
             if (ok)
+            {
+                this->projectPath = projPath;
                 cloneOutput->insertPlainText(tr("Done\n"));
+            }
             else
                 cloneOutput->insertPlainText(tr("Failed.\n"));
         }

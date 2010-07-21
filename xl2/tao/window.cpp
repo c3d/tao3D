@@ -296,15 +296,26 @@ void Window::newFile()
 
 void Window::open(QString fileName, bool readOnly)
 // ----------------------------------------------------------------------------
-//   Openg a file
+//   Open a file or a directory
 // ----------------------------------------------------------------------------
 {
-    if (fileName.isEmpty())
+    bool  isDir = false;
+    QString dir = currentProjectFolderPath();
+    if (!fileName.isEmpty())
+    {
+        if (QFileInfo(fileName).isDir())
+        {
+            isDir = true;
+            dir = fileName;
+        }
+    }
+    bool showDialog = fileName.isEmpty() || isDir;
+    if (showDialog)
     {
         fileName = QFileDialog::getOpenFileName
                            (this,
                             tr("Open Tao Document"),
-                            currentProjectFolderPath(),
+                            dir,
                             tr(TAO_FILESPECS));
 
         if (fileName.isEmpty())
@@ -693,10 +704,14 @@ void Window::clone()
 //    Prompt user for address of remote repository and clone it locally
 // ----------------------------------------------------------------------------
 {
-    CloneDialog *dialog = new CloneDialog(this);
-    dialog->show();
-    dialog->raise();
-    dialog->activateWindow();
+    CloneDialog dialog(this);
+    int ret = dialog.exec();
+    if (ret != QDialog::Accepted)
+        return;
+    QString path = dialog.projectPath;
+    if (path.isEmpty())
+        return;
+    open(path);
 }
 
 

@@ -21,12 +21,14 @@
 // ****************************************************************************
 
 #include "tao.h"
+#include "tao_utf8.h"
 #include "publish_to_dialog.h"
 #include "remote_selection_frame.h"
 #include "repository.h"
 #include <QInputDialog>
 #include <QDialogButtonBox>
 #include <QPushButton>
+#include <QMessageBox>
 
 namespace Tao {
 
@@ -56,7 +58,20 @@ void PublishToDialog::accept()
 //    Publish the current project to the previously chosen remote
 // ----------------------------------------------------------------------------
 {
-    repo->push(repo->lastPublishTo = pushTo());
+    bool ok;
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    ok = repo->push(repo->lastPublishTo = pushTo());
+    QApplication::restoreOverrideCursor();
+    if (!ok)
+    {
+            QMessageBox box;
+            box.setWindowTitle("Error");
+            box.setText(tr("Publish failed."));
+            box.setInformativeText(+(repo->errors));
+            box.setIcon(QMessageBox::Warning);
+            int ret = box.exec(); (void) ret;
+            return;
+    }
     QDialog::accept();
 }
 

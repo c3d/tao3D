@@ -72,6 +72,7 @@ void FetchDialog::accept()
             int ret = box.exec(); (void) ret;
             return;
     }
+    emit fetched();
     QDialog::accept();
 }
 

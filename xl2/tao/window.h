@@ -43,6 +43,7 @@ namespace Tao {
 
 struct Widget;
 class SplashScreen;
+class BranchSelectionToolBar;
 
 class Window : public QMainWindow
 // ----------------------------------------------------------------------------
@@ -174,7 +175,7 @@ private:
     QToolBar         *fileToolBar;
     QToolBar         *editToolBar;
     QToolBar         *viewToolBar;
-    QToolBar         *branchToolBar;
+    BranchSelectionToolBar *branchToolBar;
     QAction          *newAct;
     QAction          *openAct;
     QAction          *saveAct;

@@ -639,7 +639,9 @@ void Window::fetch()
     if (!repo)
         return warnNoRepo();
 
-    FetchDialog(repo.data()).exec();
+    FetchDialog dialog(repo.data());
+    connect(&dialog, SIGNAL(fetched()), branchToolBar, SLOT(refresh()));
+    dialog.exec();
 }
 
 

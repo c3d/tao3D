@@ -47,6 +47,9 @@ public slots:
     void         on_rsFrame_noneSelected();
     void         on_rsFrame_nameSelected();
 
+signals:
+    void         fetched();
+
 private:
     Repository * repo;
 };

@@ -125,13 +125,6 @@ public:
     virtual bool        write(text fileName, Tree *tree);
     virtual XL::Tree *  read(text fileName);
     virtual bool        setTask(text name);
-    virtual bool        selectWorkBranch();
-    virtual bool        selectUndoBranch();
-    virtual bool        isUndoBranch(text branch);
-    virtual text        undoBranch(text name);
-    virtual text        taskBranch(text name);
-    virtual bool        mergeUndoBranchIntoTaskBranch(text name);
-    virtual bool        mergeTaskBranchIntoUndoBranch(text name);
     virtual bool        idle();
     virtual void        markChanged(text reason);
     virtual void        abort(Process *proc);
@@ -219,14 +212,11 @@ public:
     text               whatsNew;
     QString            lastPublishTo;
     QString            lastFetchUrl;
-    text               cachedBranch;
 
 protected:
     QQueue<Process *> pQueue;
     QTimer            branchCheckTimer;
 };
-
-#define TAO_UNDO_SUFFIX "_tao_undo"
 
 
 

@@ -68,12 +68,6 @@ void SelectiveUndoDialog::undoButton_clicked()
 
         repo->reset();
     }
-    else
-    {
-        text branch = repo->branch();
-        if (branch != "" && !repo->isUndoBranch(branch))
-            repo->mergeTaskBranchIntoUndoBranch(branch);
-    }
 }
 
 }

@@ -170,7 +170,6 @@ text GitRepository::branch()
     }
     if (result == "(no branch)")
         result = "";
-    cachedBranch = result;
     return result;
 }
 
@@ -254,10 +253,7 @@ bool GitRepository::renBranch(QString oldName, QString newName, bool force)
         args << "-m";
     args << oldName << newName;
     Process cmd(command(), args, path);
-    bool ok = cmd.done(&errors);
-    if (ok && +cachedBranch == oldName)
-        cachedBranch = +newName;
-    return ok;
+    return cmd.done(&errors);
 }
 
 
@@ -278,10 +274,7 @@ bool GitRepository::checkout(text branch)
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     Process cmd(command(), QStringList("checkout") << +branch, path);
-    bool ok = cmd.done(&errors);
-    if (ok)
-        cachedBranch = branch;
-    return ok;
+    return cmd.done(&errors);
 }
 
 
@@ -500,7 +493,7 @@ bool GitRepository::parseCommitOutput(text output, QString &id, QString &msg)
 // ----------------------------------------------------------------------------
 {
     // Commit output is like:
-    // [master_tao_undo 35a1376] Shape moved
+    // [master 35a1376] Shape moved
     //  1 files changed, 1 insertions(+), 1 deletions(-)
     QRegExp rx("\\[[^ ]+ ([0-9a-f]+)\\] ([^\r\n]+)");
 
@@ -601,10 +594,13 @@ bool GitRepository::pull()
 {
     if (pullFrom.isEmpty())
         return true;
+    QString branch = +(this->branch());
+    if (branch.isEmpty())
+        branch = "master";
     clearCachedDocVersion();
     QStringList args("pull");
     args << crArgs(conflictResolution);
-    args << pullFrom << "master_tao_undo";  // TODO hardcoded branch!
+    args << pullFrom << branch;
     dispatch(new Process(command(), args, path, false));
     return true;
 }
@@ -616,18 +612,11 @@ bool GitRepository::push(QString pushUrl)
 // ----------------------------------------------------------------------------
 {
     waitForAsyncProcessCompletion();
-    text current = branch();
-    text task = taskBranch(current);
-    text undo = undoBranch(current);
+    text branch = this->branch();
     QStringList args("push");
     args << pushUrl;
-    Process cmd(command(), args << +task, path);
-    bool ok = cmd.done(&errors);
-    if (!ok)
-        return false;
-    Process cmd2(command(), args << +undo, path);
-    ok = cmd2.done(&errors);
-    return ok;
+    Process cmd(command(), args << +branch, path);
+    return cmd.done(&errors);
 }
 
 

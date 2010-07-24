@@ -846,10 +846,6 @@ void Widget::saveAndCommit()
 //   Save files and commit to repository if needed
 // ----------------------------------------------------------------------------
 {
-    Repository * repo = repository();
-    if (repo && !repo->isUndoBranch(repo->cachedBranch))
-        return;
-
     ulonglong tick = now();
     if (doSave(tick))
         doCommit(tick);
@@ -2116,8 +2112,6 @@ bool Widget::doPull(ulonglong tick)
 // ----------------------------------------------------------------------------
 {
     Repository *repo = repository();
-    if (!repo->isUndoBranch(repo->cachedBranch))
-        return false;
     bool ok = repo->pull();
     nextPull = tick + repo->pullInterval * 1000;
     return ok;
@@ -2139,10 +2133,6 @@ bool Widget::doSave(ulonglong tick)
 //   Save source files that have changed and reset next save time
 // ----------------------------------------------------------------------------
 {
-    Repository * repo = repository();
-    if (repo && !repo->isUndoBranch(repo->cachedBranch))
-        return false;
-
     bool changed = false;
     XL::Main *xlr = XL::MAIN;
     XL::source_files::iterator it;
@@ -2168,8 +2158,6 @@ bool Widget::doCommit(ulonglong tick)
     if (!repo)
         return false;
     if (repo->state == Repository::RS_Clean)
-        return false;
-    if (!repo->isUndoBranch(repo->cachedBranch))
         return false;
 
     IFTRACE(filesync)

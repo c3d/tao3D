@@ -213,7 +213,7 @@ void BranchSelectionComboBox::on_activated(QString selected)
         break;
 
     case CIK_Delete:
-        repo->checkout("master_tao_undo");  // REVISIT
+        repo->checkout("master");  // REVISIT
         if (!repo->delBranch(prevSelected))
         {
             int ret;
@@ -240,7 +240,7 @@ void BranchSelectionComboBox::on_activated(QString selected)
 
 QString BranchSelectionComboBox::addNewBranch()
 // ----------------------------------------------------------------------------
-//    Prompt user for name of a new branch, create both task and undo branch
+//    Prompt user for name of a new branch, create branch
 // ----------------------------------------------------------------------------
 {
     QString name;
@@ -258,16 +258,11 @@ again:
         goto again;
     }
 
-    QString task, undo;
-    if (!result.isEmpty())
-    {
-        task = +repo->taskBranch(+result);
-        undo = +repo->undoBranch(+result);
-        repo->addBranch(task);
-        repo->addBranch(undo);
-    }
+    if (!name.isEmpty())
+        if (!repo->addBranch(name))
+            name = "";
 
-    return undo;
+    return name;
 }
 
 

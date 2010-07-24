@@ -100,11 +100,6 @@ void MergeDialog::accept()
 
         repo->reset();
     }
-    else
-    {
-        if (!repo->isUndoBranch(to))
-            repo->mergeTaskBranchIntoUndoBranch(to);
-    }
 
     if (needswitch)
         repo->checkout(current);

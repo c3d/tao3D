@@ -1346,15 +1346,6 @@ bool Window::saveFile(const QString &fileName)
 //   Save a file with a given name
 // ----------------------------------------------------------------------------
 {
-    if (repo && !repo->isUndoBranch(repo->cachedBranch))
-    {
-        QMessageBox::warning(this, tr("Error saving file"),
-                             tr("Cannot write file %1.\n"
-                                "Current branch is not an undo branch.")
-                             .arg(fileName));
-        return false;
-    }
-
     QFile file(fileName);
     if (!file.open(QFile::WriteOnly | QFile::Text))
     {
@@ -1397,9 +1388,6 @@ bool Window::saveFile(const QString &fileName)
         taoWidget->writeIfChanged(sf);
         taoWidget->doCommit(true);
         sf.changed = false;
-
-        // Merge into task branch
-        repo->mergeUndoBranchIntoTaskBranch(repo->cachedBranch);
     }
     markChanged(false);
     isUntitled = false;
@@ -1504,121 +1492,47 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         }
     }
 
-    // Select the task branch, either current branch or without _tao_undo
+    // Select current branch, make sure it can be used
     if (repo && repo->valid())
     {
         text task = repo->branch();
-        text currentBranch = task;
-        text useBranch = currentBranch + TAO_UNDO_SUFFIX;
-        if (task == "")
+        if (!repo->setTask(task))
         {
-            // Special handling if we're not on a named branch
-            currentBranch = "(no branch)";
-            task = "master";
-            useBranch = task + TAO_UNDO_SUFFIX;
+            QMessageBox::information
+                    (NULL, tr("Task selection"),
+                     tr("An error occured setting the task:\n%1")
+                     .arg(+repo->errors),
+                     QMessageBox::Ok);
         }
-        if (repo->isUndoBranch(task))
+        else
         {
-            task = repo->taskBranch(task);
+            this->repo = repo;
+
+            // For undo/redo: widget has to be notified when document
+            // is succesfully committed into repository
+            // REVISIT: should slot be in Window rather than Widget?
+            connect(repo.data(),SIGNAL(commitSuccess(QString,QString)),
+                    taoWidget,  SLOT(commitSuccess(QString, QString)));
+            // Also be notified when changes come from remote sync (pull)
+            connect(repo.data(), SIGNAL(asyncPullComplete()),
+                    this, SLOT(clearUndoStack()));
+            // REVISIT
+            // Do not populate undo stack with current Git history to avoid
+            // making it possible to undo some operations like document
+            // creation... (these commits are not easy to identify
+            // currently)
+            // populateUndoStack();
+
+            enableProjectSharingMenus();
+
+            QString url = repo->url();
+            if (url != oldUrl)
+                emit projectUrlChanged(url);
+            if (repo != oldRepo)
+                emit projectChanged(repo.data());   // REVISIT projectUrlChanged
+            connect(repo.data(), SIGNAL(branchChanged(QString)),
+                    branchToolBar, SLOT(refresh()));
         }
-        else if (!created)
-        {
-            QMessageBox box;
-            QString rep = repo->userVisibleName();
-            box.setIcon(QMessageBox::Question);
-            box.setWindowTitle
-                    (tr("Existing %1 repository").arg(rep));
-            box.setText
-                    (tr("The folder '%1' looks like a valid "
-                        "%2 repository, but is not currently used by Tao.")
-                     .arg(path).arg(rep));
-            box.setInformativeText
-                    (tr("This repository appears to not be currently "
-                        "used by Tao, because the current branch, "
-                        "'%1', is not a Tao working branch. "
-                        "Do you want to use this repository (Tao will "
-                        "use the '%2' branch and make it the active one) "
-                        "or skip and use '%3' without a project (version "
-                        "control and sharing will be disabled)?")
-                     .arg(+currentBranch)
-                     .arg(+useBranch)
-                     .arg(fileName));
-            // REVISIT: this info text is not very well suited to the
-            // "Save as..." case.
-
-            QPushButton *cancel = box.addButton(tr("Cancel"),
-                                                QMessageBox::RejectRole);
-            QPushButton *skip = box.addButton(tr("Skip"),
-                                              QMessageBox::NoRole);
-            QPushButton *use = box.addButton(tr("Use"),
-                                             QMessageBox::YesRole);
-            box.setDefaultButton(use);
-            int index = box.exec(); (void) index;
-            QAbstractButton *which = box.clickedButton();
-
-            if (which == cancel)
-            {
-                return false;
-            }
-            else if (which == use)
-            {
-                // Continue with current repo
-            }
-            else if (which == skip)
-            {
-                repo.clear();  // Drop shared pointer reference -> repo == NULL
-            }
-            else
-            {
-                QMessageBox::question(NULL, tr("Coin?"),
-                                      tr("How did you do that?"),
-                                      QMessageBox::Discard);
-            }
-        }
-
-        if (repo)
-        {
-            if (!repo->setTask(task))
-            {
-                QMessageBox::information
-                        (NULL, tr("Task selection"),
-                         tr("An error occured setting the task:\n%1")
-                         .arg(+repo->errors),
-                         QMessageBox::Ok);
-            }
-            else
-            {
-                this->repo = repo;
-
-                // For undo/redo: widget has to be notified when document
-                // is succesfully committed into repository
-                // REVISIT: should slot be in Window rather than Widget?
-                connect(repo.data(),SIGNAL(commitSuccess(QString,QString)),
-                        taoWidget,  SLOT(commitSuccess(QString, QString)));
-                // Also be notified when changes come from remote sync (pull)
-                connect(repo.data(), SIGNAL(asyncPullComplete()),
-                        this, SLOT(clearUndoStack()));
-                // REVISIT
-                // Do not populate undo stack with current Git history to avoid
-                // making it possible to undo some operations like document
-                // creation... (these commits are not easy to identify
-                // currently)
-                // populateUndoStack();
-
-                enableProjectSharingMenus();
-            }
-        }
-    }
-
-    if (repo)
-    {
-        QString url = repo->url();
-        if (url != oldUrl)
-            emit projectUrlChanged(url);
-        if (repo != oldRepo)
-            emit projectChanged(repo.data());   // REVISIT projectUrlChanged
-        connect(repo.data(), SIGNAL(branchChanged(QString)),
-                branchToolBar, SLOT(refresh()));
     }
 
     return true;

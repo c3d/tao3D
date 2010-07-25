@@ -819,7 +819,7 @@ QString GitRepository::url()
         return "";
 
     QString hostname = QHostInfo::localHostName();
-    QString url = QString("ssh://%1/%2").arg(hostname).arg(path);
+    QString url = QString("ssh://%1%2").arg(hostname).arg(path);
     return url;
 }
 

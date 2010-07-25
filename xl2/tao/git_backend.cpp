@@ -190,8 +190,11 @@ QStringList GitRepository::branches()
         foreach (QString branch, branches)
         {
             branch = branch.mid(2);
-            if (branch != "(no branch)")
-                result << branch;
+            if (branch == "(no branch)")
+                continue;
+            if (branch.contains(" -> "))
+                continue;
+            result << branch;
         }
     }
     return result;

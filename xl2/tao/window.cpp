@@ -386,8 +386,13 @@ bool Window::saveAs()
     // REVISIT: create custom dialog to have the last part of the directory
     // path be the basename of file, as the user types it, while still
     // allowing override of directory name.
+    QString dir;
+    if (isUntitled)
+        dir = Application::defaultProjectFolderPath();
+    else
+        dir = curFile;
     QString fileName =
-        QFileDialog::getSaveFileName(this, tr("Save As"), curFile,
+        QFileDialog::getSaveFileName(this, tr("Save As"), dir,
                                      tr(TAO_FILESPECS));
     if (fileName.isEmpty())
         return false;

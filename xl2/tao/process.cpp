@@ -132,7 +132,7 @@ bool Process::done(text *errors, text *output)
     bool tracing = XLTRACE(process);
     if (!ok)
     {
-        err = tr("Process '%1'' terminated abormally "
+        err = tr("Process '%1'' terminated abnormally "
                  "with exit code %2:\n%3")
             .arg(commandLine) .arg(rc) .arg(QString(readAll()));
     }

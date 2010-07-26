@@ -99,10 +99,18 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id, text name)
 //   Draw one of the handles for the current manipulator
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = layout->Display();
-    Vector3 offset = layout->Offset();
-    widget->drawHandle(layout, p + offset, name, id);
-    bool selected = widget->manipulator == id;
+    Widget  *widget   = layout->Display();
+    Vector3  offset   = layout->Offset();
+    bool     selected = false;
+    if (layout->groupDrag)
+    {
+        widget->drawHandle(layout, p + offset, "group_" + name, id);
+    }
+    else
+    {
+        widget->drawHandle(layout, p + offset, name, id);
+        selected = widget->selectionHandleId() == id;
+    }
     return selected;
 }
 
@@ -359,7 +367,8 @@ bool ControlPoint::DrawHandles(Layout *layout)
 {
     if (!IsMarkedConstant(x) || !IsMarkedConstant(y) || !IsMarkedConstant(z))
     {
-        if (DrawHandle(layout, Point3(x, y, z), id, "control_point_handle"))
+        if (DrawHandle(layout, Point3(x, y, z), id, "control_point_handle") ||
+            layout->groupDrag)
         {
             Widget *widget = layout->Display();
             Drag *drag = widget->drag();
@@ -406,10 +415,8 @@ void FrameManipulator::DrawSelection(Layout *layout)
 {
     Widget *widget = layout->Display();
     uint sel = widget->selected(layout);
-    uint dclicks = Widget::doubleClicks(sel);
-    if (dclicks > groupDepth)
-        return;
-    return Manipulator::DrawSelection(layout);
+    if (sel)
+        Manipulator::DrawSelection(layout);
 }
 
 
@@ -422,6 +429,11 @@ bool FrameManipulator::DrawHandles(Layout *layout)
     coord   xx = x, yy = y, ww = w, hh = h;
     Drag   *drag = widget->drag();
     uint    handle = 0;
+    uint    selected = widget->selected(layout);
+
+    // Don't draw the handles if this is an open container
+    if (selected & Widget::CONTAINER_OPENED)
+        return false;
 
     for (uint hn = 0; hn < 4; hn++)
     {
@@ -466,7 +478,7 @@ bool FrameManipulator::DrawHandles(Layout *layout)
 
         case TM_ResizeLockAspectRatio:
             {
-                int id = widget->currentId();
+                int id = widget->selectionCurrentId();
                 coord &h0 = drag->h0[id];
                 coord &w0 = drag->w0[id];
                 if (!h0 && !w0)
@@ -609,7 +621,7 @@ bool ControlRectangle::DrawHandles(Layout *layout)
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
-        if (drag && !widget->manipulatorId())
+        if (drag && (layout->groupDrag || !widget->selectionHandleId()))
         {
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();
@@ -1133,6 +1145,7 @@ void WidgetManipulator::DrawSelection(Layout *layout)
 }
 
 
+
 // ============================================================================
 //
 //   Manipulate a table
@@ -1191,8 +1204,7 @@ bool GraphicPathManipulator::DrawHandles(Layout *layout)
     // individual path control points are moved proportionally
     Widget *widget = layout->Display();
     uint sel = widget->selected(layout);
-    uint dclicks = Widget::doubleClicks(sel);
-    if (dclicks > groupDepth)
+    if ((sel & Widget::CONTAINER_OPENED) == 0)
         return false;
 
     GraphicPathInfo *path_info = path_tree->GetInfo<GraphicPathInfo>();
@@ -1217,7 +1229,7 @@ bool GraphicPathManipulator::DrawHandles(Layout *layout)
     if (!changed)
     {
         Drag   *drag = widget->drag();
-        if (drag && !widget->manipulatorId())
+        if (drag && (layout->groupDrag || !widget->selectionHandleId()))
         {
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();
@@ -1370,7 +1382,7 @@ bool ControlBox::DrawHandles(Layout *layout)
     {
         Widget *widget = layout->Display();
         Drag *drag = widget->drag();
-        if (drag && !widget->manipulatorId())
+        if (drag && !widget->selectionHandleId())
         {
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();

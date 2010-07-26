@@ -42,6 +42,7 @@ public:
 
 public slots:
     void    setRepository(Repository *repo);
+    void    refresh();
 
 signals:
     void    checkedOut(QString branch);

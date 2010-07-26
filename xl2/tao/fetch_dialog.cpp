@@ -21,12 +21,14 @@
 // ****************************************************************************
 
 #include "tao.h"
+#include "tao_utf8.h"
 #include "fetch_dialog.h"
 #include "remote_selection_frame.h"
 #include "repository.h"
 #include <QInputDialog>
 #include <QDialogButtonBox>
 #include <QPushButton>
+#include <QMessageBox>
 
 namespace Tao {
 
@@ -56,7 +58,21 @@ void FetchDialog::accept()
 //    Publish the current project to the previously chosen remote
 // ----------------------------------------------------------------------------
 {
-    repo->fetch(repo->lastFetchUrl = fetchUrl());
+    bool ok;
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    ok = repo->fetch(repo->lastFetchUrl = fetchUrl());
+    QApplication::restoreOverrideCursor();
+    if (!ok)
+    {
+            QMessageBox box;
+            box.setWindowTitle("Error");
+            box.setText(tr("Fetch failed."));
+            box.setInformativeText(+(repo->errors));
+            box.setIcon(QMessageBox::Warning);
+            int ret = box.exec(); (void) ret;
+            return;
+    }
+    emit fetched();
     QDialog::accept();
 }
 

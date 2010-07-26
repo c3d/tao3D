@@ -44,7 +44,10 @@ Chooser::Chooser(text name, Widget *w)
 //   Chooser constructor
 // ----------------------------------------------------------------------------
     : Activity(name, w), keystrokes(""), item(0), firstItem(0), selected(NULL)
-{}
+{
+    // Force an immediate widget refresh
+    widget->refresh(0);
+}
 
 
 Chooser::~Chooser()

@@ -30,6 +30,9 @@
 #include "pull_from_dialog.h"
 #include "publish_to_dialog.h"
 #include "fetch_dialog.h"
+#include "merge_dialog.h"
+#include "revert_to_dialog.h"
+#include "selective_undo_dialog.h"
 #include "clone_dialog.h"
 #include "branch_selection_toolbar.h"
 #include "undo.h"
@@ -256,7 +259,10 @@ void Window::sourceViewBecameVisible(bool visible)
     if (visible)
     {
         bool modified = textEdit->document()->isModified();
-        taoWidget->updateProgramSource();
+        if (!taoWidget->inError)
+            taoWidget->updateProgramSource();
+        else
+            loadFileIntoSourceFileView(curFile);
         markChanged(modified);
     }
 }
@@ -290,15 +296,26 @@ void Window::newFile()
 
 void Window::open(QString fileName, bool readOnly)
 // ----------------------------------------------------------------------------
-//   Openg a file
+//   Open a file or a directory
 // ----------------------------------------------------------------------------
 {
-    if (fileName.isEmpty())
+    bool  isDir = false;
+    QString dir = currentProjectFolderPath();
+    if (!fileName.isEmpty())
+    {
+        if (QFileInfo(fileName).isDir())
+        {
+            isDir = true;
+            dir = fileName;
+        }
+    }
+    bool showDialog = fileName.isEmpty() || isDir;
+    if (showDialog)
     {
         fileName = QFileDialog::getOpenFileName
                            (this,
                             tr("Open Tao Document"),
-                            currentProjectFolderPath(),
+                            dir,
                             tr(TAO_FILESPECS));
 
         if (fileName.isEmpty())
@@ -325,7 +342,6 @@ void Window::open(QString fileName, bool readOnly)
     }
     else
     {
-        QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
         Window *other = new Window(xlRuntime, contextFileNames, "",
                                    readOnly);
         other->move(x() + 40, y() + 40);
@@ -370,8 +386,13 @@ bool Window::saveAs()
     // REVISIT: create custom dialog to have the last part of the directory
     // path be the basename of file, as the user types it, while still
     // allowing override of directory name.
+    QString dir;
+    if (isUntitled)
+        dir = Application::defaultProjectFolderPath();
+    else
+        dir = curFile;
     QString fileName =
-        QFileDialog::getSaveFileName(this, tr("Save As"), curFile,
+        QFileDialog::getSaveFileName(this, tr("Save As"), dir,
                                      tr(TAO_FILESPECS));
     if (fileName.isEmpty())
         return false;
@@ -623,7 +644,9 @@ void Window::fetch()
     if (!repo)
         return warnNoRepo();
 
-    FetchDialog(repo.data()).exec();
+    FetchDialog dialog(repo.data());
+    connect(&dialog, SIGNAL(fetched()), branchToolBar, SLOT(refresh()));
+    dialog.exec();
 }
 
 
@@ -639,15 +662,63 @@ void Window::publish()
 }
 
 
+void Window::merge()
+// ----------------------------------------------------------------------------
+//    Show a "Merge" dialog
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+        return warnNoRepo();
+
+    MergeDialog(repo.data()).exec();
+}
+
+
+void Window::revertTo()
+// ----------------------------------------------------------------------------
+//    Show a "Revert to" dialog
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+        return warnNoRepo();
+
+    RevertToDialog *dialog = new RevertToDialog(repo.data(), this);
+    connect(dialog, SIGNAL(checkedOut(QString)),
+            this, SLOT(reloadCurrentFile()));
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
+}
+
+
+void Window::selectiveUndo()
+// ----------------------------------------------------------------------------
+//    Show a "Selective undo" dialog
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+        return warnNoRepo();
+
+    SelectiveUndoDialog *dialog = new SelectiveUndoDialog(repo.data(), this);
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
+}
+
+
 void Window::clone()
 // ----------------------------------------------------------------------------
 //    Prompt user for address of remote repository and clone it locally
 // ----------------------------------------------------------------------------
 {
-    CloneDialog *dialog = new CloneDialog(this);
-    dialog->show();
-    dialog->raise();
-    dialog->activateWindow();
+    CloneDialog dialog(this);
+    int ret = dialog.exec();
+    if (ret != QDialog::Accepted)
+        return;
+    QString path = dialog.projectPath;
+    if (path.isEmpty())
+        return;
+    open(path);
 }
 
 
@@ -658,7 +729,7 @@ void Window::about()
 {
     if (aboutSplash)
         return;
-    aboutSplash = new SplashScreen();
+    aboutSplash = new SplashScreen(Qt::WindowStaysOnTopHint);
     connect(aboutSplash, SIGNAL(dismissed()), this, SLOT(deleteAboutSplash()));
     aboutSplash->show();
 }
@@ -800,6 +871,25 @@ void Window::createActions()
                               "and make a local copy"));
     connect(cloneAct, SIGNAL(triggered()), this, SLOT(clone()));
 
+    mergeAct = new QAction(tr("Merge..."), this);
+    mergeAct->setStatusTip(tr("Apply the changes made in one branch into "
+                              "another branch"));
+    mergeAct->setEnabled(false);
+    connect(mergeAct, SIGNAL(triggered()), this, SLOT(merge()));
+
+    revertToAct = new QAction(tr("Revert to..."), this);
+    revertToAct->setStatusTip(tr("Checkout a previous version of the document "
+                                 "into a temporary branch"));
+    revertToAct->setEnabled(false);
+    connect(revertToAct, SIGNAL(triggered()), this, SLOT(revertTo()));
+
+    selectiveUndoAct = new QAction(tr("Selective undo..."), this);
+    selectiveUndoAct->setStatusTip(tr("Pick a previous change, revert it and "
+                                      "apply it to the current document"));
+    selectiveUndoAct->setEnabled(false);
+    connect(selectiveUndoAct, SIGNAL(triggered()),
+            this, SLOT(selectiveUndo()));
+
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setStatusTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
@@ -901,6 +991,9 @@ void Window::createMenus()
     shareMenu->addAction(fetchAct);
     shareMenu->addAction(setPullUrlAct);
     shareMenu->addAction(publishAct);
+    shareMenu->addAction(mergeAct);
+    shareMenu->addAction(revertToAct);
+    shareMenu->addAction(selectiveUndoAct);
 
     viewMenu = menuBar()->addMenu(tr("&View"));
 //    viewMenu->setObjectName(VIEW_MENU_NAME);
@@ -1105,6 +1198,12 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
+    if (openProj && repo)
+    {
+        showMessage(msg.arg(tr("Repository cleanup")));
+        repo->gc();
+    }
+
     showMessage(msg.arg(tr("Fonts")));
     FontFileManager ffm;
     appFontIds = ffm.LoadEmbeddedFonts(fileName);
@@ -1135,6 +1234,11 @@ bool Window::loadFile(const QString &fileName, bool openProj)
             return false;
     }
     else
+    if (taoWidget->inError)
+    {
+        // Runtime error. Already handled by Widget::runtimeError().
+    }
+    else
     {
         QApplication::setOverrideCursor(Qt::WaitCursor);
 
@@ -1146,9 +1250,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         taoWidget->updateProgramSource();
         loadInProgress = false;
         QApplication::restoreOverrideCursor();
-        setCurrentFile(fileName);
         showMessage(tr("File loaded"), 2000);
     }
+    setCurrentFile(fileName);
     isUntitled = false;
     return true;
 }
@@ -1247,15 +1351,6 @@ bool Window::saveFile(const QString &fileName)
 //   Save a file with a given name
 // ----------------------------------------------------------------------------
 {
-    if (repo && !repo->isUndoBranch(repo->cachedBranch))
-    {
-        QMessageBox::warning(this, tr("Error saving file"),
-                             tr("Cannot write file %1.\n"
-                                "Current branch is not an undo branch.")
-                             .arg(fileName));
-        return false;
-    }
-
     QFile file(fileName);
     if (!file.open(QFile::WriteOnly | QFile::Text))
     {
@@ -1298,9 +1393,6 @@ bool Window::saveFile(const QString &fileName)
         taoWidget->writeIfChanged(sf);
         taoWidget->doCommit(true);
         sf.changed = false;
-
-        // Merge into task branch
-        repo->mergeUndoBranchIntoWorkBranch(repo->cachedBranch);
     }
     markChanged(false);
     isUntitled = false;
@@ -1327,6 +1419,9 @@ void Window::enableProjectSharingMenus()
     setPullUrlAct->setEnabled(true);
     publishAct->setEnabled(true);
     fetchAct->setEnabled(true);
+    mergeAct->setEnabled(true);
+    revertToAct->setEnabled(true);
+    selectiveUndoAct->setEnabled(true);
 }
 
 
@@ -1402,111 +1497,48 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         }
     }
 
-    // Select the task branch, either current branch or without _tao_undo
+    // Select current branch, make sure it can be used
     if (repo && repo->valid())
     {
         text task = repo->branch();
-        text currentBranch = task;
-        if (repo->isUndoBranch(task))
+        if (!repo->setTask(task))
         {
-            task = repo->taskBranch(task);
+            QMessageBox::information
+                    (NULL, tr("Task selection"),
+                     tr("An error occured setting the task:\n%1")
+                     .arg(+repo->errors),
+                     QMessageBox::Ok);
         }
-        else if (!created)
+        else
         {
-            QMessageBox box;
-            QString rep = repo->userVisibleName();
-            box.setIcon(QMessageBox::Question);
-            box.setWindowTitle
-                    (tr("Existing %1 repository").arg(rep));
-            box.setText
-                    (tr("The folder '%1' looks like a valid "
-                        "%2 repository, but is not currently used by Tao.")
-                     .arg(path).arg(rep));
-            box.setInformativeText
-                    (tr("This repository appears to not be currently "
-                        "used by Tao, because the current branch, "
-                        "'%1', is not a Tao working branch. "
-                        "Do you want to use this repository (Tao will "
-                        "use the '%2' branch and make it the active one) "
-                        "or skip and use '%3' without a project (version "
-                        "control and sharing will be disabled)?")
-                     .arg(+currentBranch)
-                     .arg(+currentBranch + TAO_UNDO_SUFFIX)
-                     .arg(fileName));
-            // REVISIT: this info text is not very well suited to the
-            // "Save as..." case.
+            this->repo = repo;
 
-            QPushButton *cancel = box.addButton(tr("Cancel"),
-                                                QMessageBox::RejectRole);
-            QPushButton *skip = box.addButton(tr("Skip"),
-                                              QMessageBox::NoRole);
-            QPushButton *use = box.addButton(tr("Use"),
-                                             QMessageBox::YesRole);
-            box.setDefaultButton(use);
-            int index = box.exec(); (void) index;
-            QAbstractButton *which = box.clickedButton();
+            // For undo/redo: widget has to be notified when document
+            // is succesfully committed into repository
+            // REVISIT: should slot be in Window rather than Widget?
+            connect(repo.data(),SIGNAL(commitSuccess(QString,QString)),
+                    taoWidget,  SLOT(commitSuccess(QString, QString)));
+            // Also be notified when changes come from remote sync (pull)
+            connect(repo.data(), SIGNAL(asyncPullComplete()),
+                    this, SLOT(clearUndoStack()));
+            // REVISIT
+            // Do not populate undo stack with current Git history to avoid
+            // making it possible to undo some operations like document
+            // creation... (these commits are not easy to identify
+            // currently)
+            // populateUndoStack();
 
-            if (which == cancel)
-            {
-                return false;
-            }
-            else if (which == use)
-            {
-                // Continue with current repo
-            }
-            else if (which == skip)
-            {
-                repo.clear();  // Drop shared pointer reference -> repo == NULL
-            }
-            else
-            {
-                QMessageBox::question(NULL, tr("Coin?"),
-                                      tr("How did you do that?"),
-                                      QMessageBox::Discard);
-            }
-        }
-
-        if (repo)
-        {
-            if (!repo->setTask(task))
-            {
-                QMessageBox::information
-                        (NULL, tr("Task selection"),
-                         tr("An error occured setting the task:\n%1")
-                         .arg(+repo->errors),
-                         QMessageBox::Ok);
-            }
-            else
-            {
-                this->repo = repo;
-
-                // For undo/redo: widget has to be notified when document
-                // is succesfully committed into repository
-                // REVISIT: should slot be in Window rather than Widget?
-                connect(repo.data(),SIGNAL(commitSuccess(QString,QString)),
-                        taoWidget,  SLOT(commitSuccess(QString, QString)));
-                // Also be notified when changes come from remote sync (pull)
-                connect(repo.data(), SIGNAL(asyncPullComplete()),
-                        this, SLOT(clearUndoStack()));
-                // REVISIT
-                // Do not populate undo stack with current Git history to avoid
-                // making it possible to undo some operations like document
-                // creation... (these commits are not easy to identify
-                // currently)
-                // populateUndoStack();
-
-                enableProjectSharingMenus();
-            }
+            enableProjectSharingMenus();
 
             QString url = repo->url();
             if (url != oldUrl)
                 emit projectUrlChanged(url);
+            if (repo != oldRepo)
+                emit projectChanged(repo.data());   // REVISIT projectUrlChanged
+            connect(repo.data(), SIGNAL(branchChanged(QString)),
+                    branchToolBar, SLOT(refresh()));
         }
     }
-
-
-    if (repo != oldRepo)
-        emit projectChanged(repo.data());   // REVISIT projectUrlChanged
 
     return true;
 }

@@ -47,23 +47,39 @@ void GroupLayout::DrawSelection(Layout *where)
 //   Draw the selection for the group or part of it
 // ----------------------------------------------------------------------------
 {
-    (void) where;
-    uint subsel = Selected();
-    uint dclicks = Widget::doubleClicks(subsel);
+    if (where->groupDrag)
+        groupDrag = true;
+
     Widget *widget = Display();
+    uint selected = widget->selected(id);
+    bool open = selected & Widget::CONTAINER_OPENED;
+    bool sel = (selected || groupDrag) && !open;
 
-    bool show = subsel && (dclicks == groupDepth);
-    bool hide = widget->selected(id) && !show;
+    if (open)
+    {
+        // Individual drag for items below
+        groupDrag = false;
 
-    if (show)
-        Select(where);
-    else if (hide)
-        Deselect(where);
+        // Draw children selection
+        Layout::DrawSelection(where);
 
-    // Children selection
-    Layout::DrawSelection(where);
+        Box3 bounds = Bounds(where);
+        XL::LocalSave<Point3> zeroOffset(where->offset, Point3(0,0,0));
+        widget->drawSelection(where, bounds, "open_group", where->id);
+    }
+    else if (sel)
+    {
+        // We are in "group drag" mode (we will drag children as well)
+        groupDrag = true;
 
-    if (show || hide)
+        // Draw selection here
+        Drawing::DrawSelection(this);
+
+        // Draw children selection to allow drag
+        Layout::DrawSelection(this);
+    }
+
+    if (open || sel)
         widget->updateProgramSource();  // REVISIT
 }
 
@@ -74,7 +90,6 @@ void GroupLayout::Add (Drawing *d)
 // ----------------------------------------------------------------------------
 {
     Layout::Add(d);
-    d->groupDepth = this->groupDepth + 1;
 }
 
 
@@ -85,63 +100,5 @@ uint GroupLayout::Selected()
 {
     return ChildrenSelected();
 }
-
-
-void GroupLayout::Select(Layout *where)
-// ----------------------------------------------------------------------------
-//   Select the group (draw the bounding box, select all contained items)
-// ----------------------------------------------------------------------------
-{
-    (void) where;
-    Widget *widget = Display();
-    widget->select(self);
-    widget->select(id, 1);
-
-//    Drawing::DrawSelection(this);
-    SelectAll(true);
-}
-
-
-void GroupLayout::Deselect(Layout *)
-// ----------------------------------------------------------------------------
-//   Deselect the group (clear the bounding box, deselect all contained items)
-// ----------------------------------------------------------------------------
-{
-    Widget *widget = Display();
-    widget->deselect(self);
-    widget->select(id, 0);
-    SelectAll(false);
-}
-
-
-void GroupLayout::SelectAll(bool doSelect)
-// ----------------------------------------------------------------------------
-//   Recursively (de)select all selectable items in a GroupLayout
-// ----------------------------------------------------------------------------
-{
-    if (!doSelect)
-    {
-        uint sel = Selected();
-        uint dclicks = Widget::doubleClicks(sel);
-        if (dclicks == groupDepth)
-            return;
-    }
-
-    Widget *widget = Display();
-    layout_items::iterator i;
-    for (i = items.begin(); i != items.end(); i++)
-    {
-        Drawing *child = *i;
-        if (GroupLayout *gl = dynamic_cast<GroupLayout*>(child))
-            gl->SelectAll(doSelect);
-        else if (Layout *l  = dynamic_cast<Layout *>(child))
-            if (doSelect != (bool)widget->selected(l->id))
-                if (doSelect)
-                    widget->select(l->id, 1);
-                else
-                    widget->select(l->id, -1);
-    }
-}
-
 
 TAO_END

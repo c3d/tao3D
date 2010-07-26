@@ -1,14 +1,14 @@
-#ifndef FETCH_DIALOG_H
-#define FETCH_DIALOG_H
+#ifndef SELECTIVE_UNDO_DIALOG_H
+#define SELECTIVE_UNDO_DIALOG_H
 // ****************************************************************************
-//  fetch_dialog.h                                                 Tao project
+//  selective_undo_dialog.cpp                                      Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    The class to display the "Fetch" dialog box
-//
-//
+//    The class to display the "Selective undo" dialog box. This is a modeless
+//    dialog which enables to pick any past change and revert it in the current
+//    document.
 //
 //
 //
@@ -22,38 +22,26 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "remote_selection_frame.h"
-#include "ui_fetch_dialog.h"
+#include "history_dialog.h"
 #include "repository.h"
-#include <QDialog>
 #include <QWidget>
+#include <QPushButton>
 
 namespace Tao {
 
 struct Repository;
 
-class FetchDialog : public QDialog, private Ui::FetchDialog
+class SelectiveUndoDialog : public HistoryDialog
 {
     Q_OBJECT
 
 public:
-    FetchDialog(Repository *repo, QWidget *parent = 0);
+    SelectiveUndoDialog(Repository *repo, QWidget *parent = 0);
 
-public:
-    QString      fetchUrl();
-
-public slots:
-    virtual void accept();
-    void         on_rsFrame_noneSelected();
-    void         on_rsFrame_nameSelected();
-
-signals:
-    void         fetched();
-
-private:
-    Repository * repo;
+private slots:
+    void    undoButton_clicked();
 };
 
 }
 
-#endif // FETCH_DIALOG_H
+#endif // SELECTIVE_UNDO_DIALOG_H

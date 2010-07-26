@@ -34,7 +34,7 @@ BranchSelectionComboBox::BranchSelectionComboBox(QWidget *parent)
 // ----------------------------------------------------------------------------
 //    Create a branch selection combo box
 // ----------------------------------------------------------------------------
-    : QComboBox(parent), repo(NULL)
+    : QComboBox(parent), repo(NULL), filter(BSF_AllBranches)
 {
     connect(this, SIGNAL(activated(QString)),
             this, SLOT(on_activated(QString)));
@@ -50,7 +50,7 @@ void BranchSelectionComboBox::setRepository(Repository *repo, QString sel)
     if (!repo)
         return;
     this->repo = repo;
-    populateAndSelect(sel, false);
+    populateAndSelect(sel);
     setEnabled(true);
 }
 
@@ -64,6 +64,15 @@ QString BranchSelectionComboBox::branch()
     if (currentIndex())
         result = currentText();
     return result;
+}
+
+
+void BranchSelectionComboBox::setFilter(unsigned int filter)
+// ----------------------------------------------------------------------------
+//    Select which branches should appear in the combobox
+// ----------------------------------------------------------------------------
+{
+    this->filter = filter;
 }
 
 
@@ -82,10 +91,30 @@ bool BranchSelectionComboBox::populate()
 // ----------------------------------------------------------------------------
 {
     clear();
-    addItem(tr("<No branch>"), CIK_None);
-    addItems(repo->branches());
-    for (int i = 1; i < count(); i++)
-        setItemData(i, CIK_Name);
+    int i = 0;
+    if (repo->branch() == "")
+    {
+        addItem(tr("<No branch>"), CIK_None);
+        i++;
+    }
+    QStringList branches = repo->branches();
+    foreach (QString branch, branches)
+    {
+        bool match = (filter == BSF_AllBranches);
+        if (!match)
+        {
+            bool remote = repo->isRemoteBranch(+branch);
+            if (remote)
+                match = (filter & BSF_RemoteBranches);
+            else
+                match = (filter & BSF_LocalBranches);
+
+            if (!match)
+                continue;
+        }
+        addItem(branch);
+        setItemData(i++, CIK_Name);
+    }
     insertSeparator(count());
     addItem(tr("New branch..."), CIK_AddNew);
 
@@ -93,7 +122,7 @@ bool BranchSelectionComboBox::populate()
 }
 
 
-bool BranchSelectionComboBox::populateAndSelect(QString sel, bool doEmit)
+bool BranchSelectionComboBox::populateAndSelect(QString sel, bool sig)
 // ----------------------------------------------------------------------------
 //    Re-fill combo box and select a name, or current branch if sel == ""
 // ----------------------------------------------------------------------------
@@ -102,8 +131,10 @@ bool BranchSelectionComboBox::populateAndSelect(QString sel, bool doEmit)
     // The combo is split in two sections:
     // (1) the list of branches, including "<No branch>", and
     // (2) a list of actions (new/rename/delete).
-    // If "<No branch>" is selected, only the "New" action is present ; if a name is
-    // chosen, the delete and rename actions are added, too.
+    // If "<No branch>" is selected, only the "New" action is present ; if a
+    // name is chosen, the delete and rename actions are added, too.
+    // Signal noneSelected() or branchSelected() is emitted if selection has
+    // changed and sig == true
 
     if (!populate())
         return false;
@@ -113,6 +144,8 @@ bool BranchSelectionComboBox::populateAndSelect(QString sel, bool doEmit)
         sel = +repo->branch();
         if (sel == "")
         {
+            bool doEmit = sig && (sel != prevSelected);
+            prevSelected = sel;
             if (doEmit)
                 emit noneSelected();
             return true;
@@ -127,9 +160,10 @@ bool BranchSelectionComboBox::populateAndSelect(QString sel, bool doEmit)
     if (kind != CIK_None && kind != CIK_Name)
         return false;
 
+    bool doEmit = sig && (sel != prevSelected);
+    prevSelected = sel;
     if (kind == CIK_Name)
     {
-        prevSelected = sel;
         addItem(tr("Rename %1...").arg(sel), CIK_Rename);
         addItem(tr("Delete %1...").arg(sel), CIK_Delete);
         index = findText(sel);
@@ -163,7 +197,7 @@ void BranchSelectionComboBox::on_activated(QString selected)
     switch (kind)
     {
     case CIK_None:
-        populateAndSelect("");
+        populateAndSelect();
         break;
 
     case CIK_Name:
@@ -179,9 +213,26 @@ void BranchSelectionComboBox::on_activated(QString selected)
         break;
 
     case CIK_Delete:
-        repo->checkout("master_tao_undo");  // REVISIT
-        repo->delBranch(prevSelected);
-        populateAndSelect("");
+        repo->checkout("master");  // REVISIT
+        if (!repo->delBranch(prevSelected))
+        {
+            int ret;
+            QString msg = tr("A branch will not be deleted unless it is fully "
+                             "merged into the main branch.\n"
+                             "Do you want to delete %1 anyway?")
+                          .arg(prevSelected);
+            ret = QMessageBox::warning(this, tr("Unmerged branch"), msg,
+                                       QMessageBox::Ok | QMessageBox::Cancel);
+            if (ret == QMessageBox::Ok)
+            {
+                repo->delBranch(prevSelected, true);
+            }
+            else
+            {
+                repo->checkout(+prevSelected);
+            }
+        }
+        populateAndSelect();
         break;
     }
 }
@@ -189,7 +240,7 @@ void BranchSelectionComboBox::on_activated(QString selected)
 
 QString BranchSelectionComboBox::addNewBranch()
 // ----------------------------------------------------------------------------
-//    Prompt user for name of a new branch, create both task and undo branch
+//    Prompt user for name of a new branch, create branch
 // ----------------------------------------------------------------------------
 {
     QString name;
@@ -207,16 +258,11 @@ again:
         goto again;
     }
 
-    QString task, undo;
-    if (!result.isEmpty())
-    {
-        task = +repo->taskBranch(+result);
-        undo = +repo->undoBranch(+result);
-        repo->addBranch(task);
-        repo->addBranch(undo);
-    }
+    if (!name.isEmpty())
+        if (!repo->addBranch(name))
+            name = "";
 
-    return undo;
+    return name;
 }
 
 

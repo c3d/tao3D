@@ -37,6 +37,7 @@
 #include <QWeakPointer>
 #include <QSharedPointer>
 #include <QQueue>
+#include <QTimer>
 #include <iostream>
 
 namespace Tao {
@@ -67,6 +68,7 @@ public:
         CR_Unknown,
         CR_Ours,     // Keep local version
         CR_Theirs,   // Take remote version
+        CR_Manual,   // Do nothing, user will manually resolve conflict
     };
 
     // ------------------------------------------------------------------------
@@ -84,29 +86,45 @@ public:
     // ------------------------------------------------------------------------
     struct Commit
     {
-        Commit(QString id, QString msg): id(id), msg(msg) {}
+        Commit() {}
+        Commit(QString id, QString msg = ""): id(id), msg(msg) {}
+        Commit(const Commit &o): id(o.id), msg(o.msg) {}
+        Commit& operator = (const Commit &o)
+        {
+            id = o.id;
+            msg = o.msg;
+            return *this;
+        }
+        bool operator == (const Commit &o) const
+        {
+            return id == o.id && msg == o.msg;
+        }
+        bool operator != (const Commit &o) const
+        {
+            return ! operator ==(o);
+        }
+        QString toString()
+        {
+            QString ret = id;
+            if (!msg.isEmpty())
+                ret += " " + msg;
+            return ret;
+        }
 
         QString id;
         QString msg;
     };
 
+    static struct Commit HeadCommit;
+
 public:
-    Repository(const QString &path): path(path), task("work"),
-                                     pullInterval(XL::MAIN->options
-                                                  .pull_interval),
-                                     state(RS_Clean), whatsNew("") {}
+    Repository(const QString &path);
     virtual ~Repository();
 
 public:
     virtual bool        write(text fileName, Tree *tree);
     virtual XL::Tree *  read(text fileName);
     virtual bool        setTask(text name);
-    virtual bool        selectWorkBranch();
-    virtual bool        selectUndoBranch();
-    virtual bool        isUndoBranch(text branch);
-    virtual text        undoBranch(text name);
-    virtual text        taskBranch(text name);
-    virtual bool        mergeUndoBranchIntoWorkBranch(text name);
     virtual bool        idle();
     virtual void        markChanged(text reason);
     virtual void        abort(Process *proc);
@@ -120,6 +138,7 @@ public:
     virtual bool        addBranch(QString name, bool force = false) = 0;
     virtual bool        delBranch(QString name, bool force = false) = 0;
     virtual bool        renBranch(QString oldName, QString newName, bool force = false) = 0;
+    virtual bool        isRemoteBranch(text branch)     = 0;
     virtual bool        checkout(text name)             = 0;
     virtual bool        branch(text name)               = 0;
     virtual bool        add(text name)                  = 0;
@@ -129,8 +148,8 @@ public:
     virtual bool        commit(text msg = "",bool all=false) = 0;
     virtual bool        revert(text id)                 = 0;
     virtual bool        cherryPick(text id)             = 0;
-    virtual bool        merge(text branch)              = 0;
-    virtual bool        reset()                         = 0;
+    virtual bool        merge(text branch, ConflictResolution how = CR_Manual) = 0;
+    virtual bool        reset(text commit = "")         = 0;
     virtual bool        pull()                          = 0;
     virtual bool        push(QString pushUrl)           = 0;
     virtual bool        fetch(QString url)              = 0;
@@ -141,12 +160,13 @@ public:
     virtual bool        setRemote(QString name, QString newPullUrl) = 0;
     virtual bool        delRemote(QString name)         = 0;
     virtual bool        renRemote(QString oldName, QString newName) = 0;
-    virtual QList<Commit> history(int max = 100)        = 0;
+    virtual QList<Commit> history(QString branch = "", int max = 100) = 0;
     virtual Process *   asyncClone(QString cloneUrl, QString newFolder,
                               AnsiTextEdit *out = NULL, void *id = NULL) = 0;
     virtual text        version()                       = 0;
     virtual bool        isClean()                       = 0;
     virtual QString     url()                           = 0;
+    virtual bool        gc()                            = 0;
 
 public:
     static bool         versionGreaterOrEqual(QString ver, QString ref);
@@ -156,6 +176,7 @@ signals:
     void                asyncCloneComplete(void *id, QString projPath);
     void                asyncPullComplete();
     void                deleted();
+    void                branchChanged(QString newBranch);
 
 protected:
     virtual QString     command()                       = 0;
@@ -168,6 +189,7 @@ protected:
 protected slots:
     virtual void        asyncProcessFinished(int exitCode);
     virtual void        asyncProcessError(QProcess::ProcessError error);
+    virtual void        checkCurrentBranch() {};
 
 
 protected:
@@ -190,13 +212,11 @@ public:
     text               whatsNew;
     QString            lastPublishTo;
     QString            lastFetchUrl;
-    text               cachedBranch;
 
 protected:
     QQueue<Process *> pQueue;
+    QTimer            branchCheckTimer;
 };
-
-#define TAO_UNDO_SUFFIX "_tao_undo"
 
 
 
@@ -246,5 +266,8 @@ protected:
 };
 
 }
+
+// Make struct Commit useable as a QVariant
+Q_DECLARE_METATYPE(Tao::Repository::Commit);
 
 #endif // REPOSITORY_H

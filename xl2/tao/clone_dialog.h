@@ -46,6 +46,9 @@ public slots:
     virtual void on_urlEdit_textEdited();
     virtual void endClone(void *id, QString projPath);
 
+public:
+    QString      projectPath;
+
 private:
     void         enableOkCancel();
 

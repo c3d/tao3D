@@ -24,7 +24,7 @@
 
 #include "attributes.h"
 #include "shapes.h"
-#include "activity.h"
+#include "selection.h"
 #include "coords3d.h"
 #include "tree.h"
 #include <QFont>
@@ -91,7 +91,7 @@ public:
 };
 
 
-struct TextSelect : Activity
+struct TextSelect : Identify
 // ----------------------------------------------------------------------------
 //   A text selection (contiguous range of characters)
 // ----------------------------------------------------------------------------
@@ -114,11 +114,11 @@ struct TextSelect : Activity
     void                updateSelection();
     bool                needsPositions()        { return direction >= Up; }
     void                newLine();
-    void                newChar(coord x, bool selected);
+    void                newChar(uint id, coord x, bool selected);
 
 
     enum Direction      { None, Mark, Left, Right, Up, Down };
-    uint                mark, point, previous;
+    uint                mark, point, previous, last, textBoxId;
     Direction           direction;
     coord               targetX;
     Box3                selBox;
@@ -126,10 +126,10 @@ struct TextSelect : Activity
     text                replacement;
     bool                replace;
     bool                textMode;
+    bool                pickingLineEnds;
     bool                pickingUpDown;
     bool                movePointOnly;
     uint                formulaMode;
-    bool                findingLayout;
 };
 
 

@@ -36,11 +36,23 @@ class BranchSelectionComboBox : public QComboBox
     Q_OBJECT
 
 public:
+    enum Filter
+    // ------------------------------------------------------------------------
+    //   Branch selection filter: which branches will appear in the combobox
+    // ------------------------------------------------------------------------
+    {
+        BSF_LocalBranches  = 1,
+        BSF_RemoteBranches = 2,
+        BSF_AllBranches    = (BSF_LocalBranches | BSF_RemoteBranches),
+    };
+
+public:
     BranchSelectionComboBox(QWidget *parent = 0);
 
 public:
     QString branch();
     void    refresh();
+    void    setFilter(unsigned int filter);
 
 public slots:
     void    setRepository(Repository *repo, QString preferredBranch = "");
@@ -54,7 +66,7 @@ protected slots:
 
 private:
     bool    populate();
-    bool    populateAndSelect(QString sel = "", bool doEmit = true);
+    bool    populateAndSelect(QString sel = "", bool sig = true);
     QString addNewBranch();
     QString renameBranch();
 
@@ -74,6 +86,7 @@ private:
 private:
     Repository * repo;
     QString      prevSelected;
+    unsigned int filter;
 };
 
 }

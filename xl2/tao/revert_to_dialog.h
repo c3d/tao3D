@@ -1,14 +1,14 @@
-#ifndef FETCH_DIALOG_H
-#define FETCH_DIALOG_H
+#ifndef REVERT_TO_DIALOG_H
+#define REVERT_TO_DIALOG_H
 // ****************************************************************************
-//  fetch_dialog.h                                                 Tao project
+//  revert_to_dialog.h                                             Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    The class to display the "Fetch" dialog box
-//
-//
+//    The class to display the "Revert to" dialog box. This is a modeless
+//    dialog which enables to checkout any past version of the document into a
+//    temporary branch
 //
 //
 //
@@ -22,38 +22,29 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "remote_selection_frame.h"
-#include "ui_fetch_dialog.h"
+#include "history_dialog.h"
 #include "repository.h"
-#include <QDialog>
 #include <QWidget>
+#include <QPushButton>
 
 namespace Tao {
 
 struct Repository;
 
-class FetchDialog : public QDialog, private Ui::FetchDialog
+class RevertToDialog : public HistoryDialog
 {
     Q_OBJECT
 
 public:
-    FetchDialog(Repository *repo, QWidget *parent = 0);
-
-public:
-    QString      fetchUrl();
-
-public slots:
-    virtual void accept();
-    void         on_rsFrame_noneSelected();
-    void         on_rsFrame_nameSelected();
+    RevertToDialog(Repository *repo, QWidget *parent = 0);
 
 signals:
-    void         fetched();
+    void   checkedOut(QString id);
 
-private:
-    Repository * repo;
+private slots:
+    void    checkoutButton_clicked();
 };
 
 }
 
-#endif // FETCH_DIALOG_H
+#endif // REVERT_TO_DIALOG_H

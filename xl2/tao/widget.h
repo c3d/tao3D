@@ -128,7 +128,7 @@ public:
     void        initializeGL();
     void        resizeGL(int width, int height);
     void        paintGL();
-    void        setup(double w, double h, Box *picking = NULL);
+    void        setup(double w, double h, const Box *picking = NULL);
     void        setupGL();
     void        identifySelection();
     void        updateSelection();
@@ -186,28 +186,35 @@ public:
 
 
     // Selection
-    enum { CHAR_ID_BIT = 1U<<31, CHAR_ID_MASK = ~CHAR_ID_BIT };
-    GLuint      newId()                 { return ++id; }
-    GLuint      currentId()             { return id; }
-    GLuint      manipulatorId()         { return manipulator; }
-    GLuint      selectionCapacity()     { return capacity; }
-    GLuint      newCharId(uint ids = 1) { return charId += ids; }
-    GLuint      currentCharId()         { return charId; }
-    uint        charSelected(uint i)    { return selected(i | CHAR_ID_BIT); }
-    uint        charSelected()          { return charSelected(charId); }
-    void        selectChar(uint i,uint c){ select(i|CHAR_ID_BIT, c); }
-    uint        selected(Tree* tree)    { return selectionTrees.count(tree); }
-    bool        selected()              { return !selectionTrees.empty(); }
-    bool        hasSelection()          { return selected(); }
-    void        select(Tree *tree)      { selectionTrees.insert(tree); }
-    void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
+    GLuint      selectionId()           { return ++id; }
+    GLuint      selectionCurrentId()    { return id; }
+    GLuint      selectionHandleId()     { return handleId; }
+    GLuint      selectionCapacity()     { return maxId * (maxIdDepth + 3); }
+
+    enum
+    {
+        HANDLE_SELECTED    =  0x10000000, // A handle is selected
+        CHARACTER_SELECTED =  0x20000000, // A character was selected
+        CONTAINER_OPENED   =  0x40000000, // A shape container was opened
+        CONTAINER_SELECTED =  0x80000000, // Container is selected
+        SELECTION_MASK     = ~0xF0000000  // Mask for "regular" selection
+    };
+    void        select(uint id, uint count = 1);
     uint        selected(uint i);
     uint        selected(Layout *);
-    bool        focused(Layout *);
     void        reselect(Tree *from, Tree *to);
-    static uint singleClicks(uint sel)  { return sel & 0xFFFF; }
-    static uint doubleClicks(uint sel)  { return sel >> 16; }
-    void        select(uint id, uint count);
+
+    void        select(Tree *tree)      { selectionTrees.insert(tree); }
+    void        deselect(Tree *tree)    { selectionTrees.erase(tree); }
+    bool        selected(Tree* tree)    { return selectionTrees.count(tree); }
+    bool        hasSelection()          { return !selectionTrees.empty(); }
+
+    void        selectionContainerPush();
+    void        selectionContainerPop();
+
+    void        saveSelectionColorAndFont(Layout *where);
+
+    bool        focused(Layout *);
     void        deleteFocus(QWidget *widget);
     bool        requestFocus(QWidget *widget, coord x, coord y);
     void        recordProjection();
@@ -221,13 +228,12 @@ public:
     void        drawHandle(Layout *, const Point3 &, text name, uint id=0);
     void        drawTree(Layout *where, Tree *code);
     void        drawCall(Layout *, XL::XLCall &call, uint id=0);
+
     template<class Activity>
     Activity *  active();
     void        checkCopyAvailable();
     bool        canPaste();
-    static
-    bool        selectionsEqual(selection_map &s1, selection_map &s2);
-    void        saveSelectionState(Layout *where);
+
     Tree *      shapeAction(text n, GLuint id);
 
     // Text flows and text management
@@ -237,7 +243,7 @@ public:
 
 public:
     // XLR entry points
-    static Widget *Tao() { assert(current); return current; }
+    static Widget *Tao()                { assert(current); return current; }
     XL::Symbols *formulaSymbols()       { return symbolTableForFormulas; }
 
     // Getting attributes
@@ -579,8 +585,9 @@ public:
 private:
     friend class Window;
     friend class Activity;
-    friend class Selection;
     friend class Identify;
+    friend class Selection;
+    friend class MouseFocusTracker;
     friend class Drag;
     friend class TextSelect;
     friend class Manipulator;
@@ -594,8 +601,10 @@ private:
     typedef std::map<text, PageLayout*>         flow_map;
     typedef std::map<text, text>                page_map;
     typedef std::list<text>                     page_list;
-    typedef std::map<GLuint, Tree_p>            GLid_map;
-    typedef std::map<text, GLid_map>            action_map;
+    typedef std::map<GLuint, Tree_p>            perId_action_map;
+    typedef std::map<text, perId_action_map>    action_map;
+    typedef std::map<Tree_p, GLuint>            GLid_map;
+    typedef std::set<Tree_p>                    tree_set;
 
     // XL Runtime
     XL::SourceFile       *xlProgram;
@@ -628,15 +637,14 @@ private:
 
     // Selection
     Activity *            activities;
-    GLuint                id, charId, capacity, manipulator;
-    selection_map         selection, savedSelection;
-    std::set<Tree_p>      selectionTrees, selectNextTime;
+    GLuint                id, focusId, maxId, idDepth, maxIdDepth, handleId;
+    selection_map         selection;
+    tree_set              selectionTrees, selectNextTime;
     action_map            actionMap;
-    bool                  wasSelected;
+    bool                  hadSelection;
     bool                  selectionChanged;
     QEvent *              w_event;
     QWidget *             focusWidget;
-    uint                  focusId;
     GLdouble              focusProjection[16], focusModel[16];
     GLint                 focusViewport[4];
     uint                  keyboardModifiers;

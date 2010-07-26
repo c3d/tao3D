@@ -96,10 +96,10 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
 //    Create an empty layout
 // ----------------------------------------------------------------------------
-    : Drawing(), LayoutState(), id(0),
+    : Drawing(), LayoutState(), id(0), charId(0),
       hasPixelBlur(false), hasMatrix(false), has3D(false),
       hasAttributes(false), hasTextureMatrix(false),
-      isSelection(false),
+      isSelection(false), groupDrag(false),
       items(), display(widget)
 {}
 
@@ -108,10 +108,10 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
 //   Copy constructor
 // ----------------------------------------------------------------------------
-    : Drawing(o), LayoutState(o), id(0),
+    : Drawing(o), LayoutState(o), id(0), charId(0),
       hasPixelBlur(o.hasPixelBlur), hasMatrix(false), has3D(o.has3D),
       hasAttributes(false), hasTextureMatrix(false),
-      isSelection(o.isSelection),
+      isSelection(o.isSelection), groupDrag(false),
       items(), display(o.display)
 {}
 
@@ -173,14 +173,14 @@ void Layout::Draw(Layout *where)
     Inherit(where);
 
     // Display all items
+    PushLayout(this);
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
-        glLoadName(id);         // Needed for handles (call Draw, not identify)
         child->Draw(this);
     }
-    glLoadName(0);
+    PopLayout(this);
 }
 
 
@@ -195,14 +195,14 @@ void Layout::DrawSelection(Layout *where)
                             hasMatrix, false, hasTextureMatrix);
     Inherit(where);
 
+    PushLayout(this);
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
-        glLoadName(id);         // Needed for handles (call Draw, not identify)
         child->DrawSelection(this);
     }
-    glLoadName(0);
+    PopLayout(this);
 }
 
 
@@ -217,14 +217,15 @@ void Layout::Identify(Layout *where)
                             hasMatrix, false, hasTextureMatrix);
     Inherit(where);
 
+
+    PushLayout(this);
     layout_items::iterator i;
     for (i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
-        glLoadName(id);
         child->Identify(this);
     }
-    glLoadName(0);
+    PopLayout(this);
 }
 
 
@@ -277,7 +278,6 @@ void Layout::Add(Drawing *d)
 // ----------------------------------------------------------------------------
 {
     items.push_back(d);
-    d->groupDepth = this->groupDepth;
 }
 
 
@@ -314,7 +314,9 @@ uint Layout::Selected()
 //   Selection state of this layout plus the sum of chilren selections
 // ----------------------------------------------------------------------------
 {
-    return Display()->selected(id) + ChildrenSelected();
+    uint selected = Display()->selected(id);
+    selected &= Widget::SELECTION_MASK;
+    return selected + ChildrenSelected();
 }
 
 
@@ -333,6 +335,9 @@ void Layout::Inherit(Layout *where)
 //   Inherit state from some other layout
 // ----------------------------------------------------------------------------
 {
+    // Reset the index of characters
+    charId = 0;
+
     if (!where)
         return;
 
@@ -361,6 +366,52 @@ void Layout::Inherit(Layout *where)
     planarScale     = where->planarScale;
     has3D           = where->has3D;
     hasPixelBlur    = where->hasPixelBlur;
+    groupDrag       = where->groupDrag;
+}
+
+
+void Layout::PushLayout(Layout *where)
+// ----------------------------------------------------------------------------
+//   Save away information required to maintain selection hierarchy
+// ----------------------------------------------------------------------------
+{
+    // Check if the group was opened. If so, update OpenGL name
+    if (uint groupId = id)
+    {
+        Widget *widget = where->Display();
+        widget->selectionContainerPush();
+
+        uint open = widget->selected(id);
+        if (open & Widget::CONTAINER_OPENED)
+            groupId |= Widget::CONTAINER_OPENED;
+        glPushName(groupId);
+    }
+}
+
+
+void Layout::PopLayout(Layout *where)
+// ----------------------------------------------------------------------------
+//   Restore information required to maintain selection hierarchy
+// ----------------------------------------------------------------------------
+{
+    if (id)
+    {
+        Widget *widget = where->Display();
+        widget->selectionContainerPop();
+        glPopName();
+    }
+}
+
+
+uint Layout::CharacterId()
+// ----------------------------------------------------------------------------
+//    Allocate a character ID
+// ----------------------------------------------------------------------------
+//    We also increment the widget's selection ID so that we account
+//    for the right number of selectable items
+{
+    display->selectionId();
+    return ++charId;
 }
 
 TAO_END

@@ -619,7 +619,8 @@ PREFIX(ErrorMessage0, tree, "error", PARM(m, text),
 //   Tree management
 //
 // ============================================================================
-
+PREFIX(Insert0, boolean, "insert", PARM(m, text) PARM(t, tree),
+       RTAO(insert(self, t, m)), "")
 PREFIX(Insert, boolean, "insert", PARM(t, tree), RTAO(insert(self, t)), "")
 PREFIX(Delete, boolean, "delete_selection", PARM(k, text),
        RTAO(deleteSelection(self, k)), "")

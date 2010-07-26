@@ -36,6 +36,18 @@ TAO_BEGIN
 
 QMap<QString, QWeakPointer<Repository> > RepositoryFactory::cache;
 Repository::Kind  RepositoryFactory::availableScm = Repository::Unknown;
+struct Repository::Commit Repository::HeadCommit = Repository::Commit("HEAD");
+
+Repository::Repository(const QString &path): path(path),
+                                     pullInterval(XL::MAIN->options
+                                                  .pull_interval),
+                                     state(RS_Clean), whatsNew("")
+{
+    connect(&branchCheckTimer, SIGNAL(timeout()),
+            this, SLOT(checkCurrentBranch()));
+    branchCheckTimer.start(1000);
+}
+
 
 Repository::~Repository()
 // ----------------------------------------------------------------------------
@@ -137,109 +149,23 @@ XL::Tree *  Repository::read(text fileName)
 
 bool Repository::setTask(text name)
 // ----------------------------------------------------------------------------
-//   Set the name of the current task
+//   Set the name of the current task. The task is the current branch.
 // ----------------------------------------------------------------------------
-//   We use the task to identify two branches in the repository
-//       <name> is the work branch itself, recording user-defined checkpoints
-//       <name>_tao_undo is the undo branch, managed by us
 {
-    text undo = name + TAO_UNDO_SUFFIX;
-    task = name;
-
     // Don't fail if working directory is not clean
     if (!isClean())
         if (!commit(+tr("Automatic commit on document opening "
                         "(clean working directory)"), true))
             return false;
-    // Check if we can checkout the task branch
-    if (!checkout(task))
-        if (!branch(task) || !checkout(task))
+
+    // Temporary branch
+    if (name == "")
+        return true;
+
+    // Check if we can checkout the branch
+    if (!checkout(name))
+        if (!branch(name) || !checkout(name))
             return false;
-
-    // Check if we can checkout the undo branch
-    if (!checkout(undo))
-        if (!branch(undo)||!checkout(undo))
-            return false;
-
-    // Merge the undo branch into the task branch
-    if (!checkout(task) || !merge(undo))
-        return false;
-
-    // Merge the task branch into the undo branch, stay on undo
-    if (!checkout(undo) || !merge(task))
-        return false;
-
-    // We are now on the _undo branch
-    cachedBranch = undo;
-    return true;
-}
-
-
-bool Repository::selectWorkBranch()
-// ----------------------------------------------------------------------------
-//    Select the work branch
-// ----------------------------------------------------------------------------
-{
-    return checkout(task);
-}
-
-
-bool Repository::selectUndoBranch()
-// ----------------------------------------------------------------------------
-//    Select the undo branch
-// ----------------------------------------------------------------------------
-{
-    return checkout(undoBranch(task));
-}
-
-
-bool Repository::isUndoBranch(text name)
-// ----------------------------------------------------------------------------
-//    Is 'branch' is an undo branch?
-// ----------------------------------------------------------------------------
-{
-    return (+name).endsWith(TAO_UNDO_SUFFIX);
-}
-
-
-text Repository::undoBranch(text name)
-// ----------------------------------------------------------------------------
-//   Take the name of a task branch and return the name of the undo branch
-// ----------------------------------------------------------------------------
-{
-    if (isUndoBranch(name))
-        return name;
-
-    return name + TAO_UNDO_SUFFIX;
-}
-
-
-text Repository::taskBranch(text name)
-// ----------------------------------------------------------------------------
-//   Take the name of an undo branch and return the name of the task branch
-// ----------------------------------------------------------------------------
-{
-    if (isUndoBranch(name))
-    {
-        size_t len = name.length() - (sizeof(TAO_UNDO_SUFFIX) - 1);
-        name = name.substr(0, len);
-    }
-    return name;
-}
-
-
-bool Repository::mergeUndoBranchIntoWorkBranch(text undo)
-// ----------------------------------------------------------------------------
-//    Merge the (current) undo branch into the task branch and stay on undo
-// ----------------------------------------------------------------------------
-{
-    if (!isUndoBranch(undo))
-        return false;
-
-    text task = taskBranch(undo);
-
-    if (!checkout(task) || !merge(undo) || !checkout(undo))
-        return false;
 
     return true;
 }

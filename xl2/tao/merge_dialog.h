@@ -1,12 +1,12 @@
-#ifndef FETCH_DIALOG_H
-#define FETCH_DIALOG_H
+#ifndef MERGE_DIALOG_H
+#define MERGE_DIALOG_H
 // ****************************************************************************
-//  fetch_dialog.h                                                 Tao project
+//  merge_dialog.h                                                 Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    The class to display the "Fetch" dialog box
+//    The class to display the "Merge" dialog box
 //
 //
 //
@@ -22,8 +22,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "remote_selection_frame.h"
-#include "ui_fetch_dialog.h"
+#include "ui_merge_dialog.h"
 #include "repository.h"
 #include <QDialog>
 #include <QWidget>
@@ -32,28 +31,23 @@ namespace Tao {
 
 struct Repository;
 
-class FetchDialog : public QDialog, private Ui::FetchDialog
+class MergeDialog : public QDialog, private Ui::MergeDialog
 {
     Q_OBJECT
 
 public:
-    FetchDialog(Repository *repo, QWidget *parent = 0);
+    MergeDialog(Repository *repo, QWidget *parent = 0);
 
 public:
-    QString      fetchUrl();
+    Repository::ConflictResolution conflictResolution();
 
 public slots:
     virtual void accept();
-    void         on_rsFrame_noneSelected();
-    void         on_rsFrame_nameSelected();
-
-signals:
-    void         fetched();
 
 private:
-    Repository * repo;
+    Repository           *repo;
 };
 
 }
 
-#endif // FETCH_DIALOG_H
+#endif // MERGE_DIALOG_H

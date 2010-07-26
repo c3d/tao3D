@@ -1200,7 +1200,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     if (openProj && repo)
     {
-        showMessage(msg.arg(tr("GC")));
+        showMessage(msg.arg(tr("Repository cleanup")));
         repo->gc();
     }
 

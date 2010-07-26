@@ -1,20 +1,20 @@
 // ****************************************************************************
-//  opcodes_declare.h               (C) 1992-2009 Christophe de Dinechin (ddd) 
-//                                                                 XL2 project 
+//  opcodes_declare.h               (C) 1992-2009 Christophe de Dinechin (ddd)
+//                                                                 XL2 project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     Macros used to declare built-ins.
-// 
+//
 //     Usage:
 //     #include "opcodes_declare.h"
 //     #include "builtins.tbl"
-// 
+//
 //     #include "opcodes_define.h"
 //     #include "builtins.tbl"
 //
-// 
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -40,7 +40,8 @@
 
 #define DS(n) IFTRACE(builtins) std::cerr << "Builtin " #n ": " << self << '\n';
 
-#define INFIX(name, rtype, t1, symbol, t2, _code)                       \
+
+#define INFIX(name, rtype, t1, symbol, t2, _code, doc)                  \
     rtype##_nkp xl_##name(Tree *self,t1##_r l,t2##_r r)                 \
     {                                                                   \
         DS(symbol) _code;                                               \
@@ -52,6 +53,7 @@
         Infix *from = new Infix(symbol, ldecl, rdecl);                  \
         Name *to = new Name(symbol);                                    \
         eval_fn fn = (eval_fn) xl_##name;                               \
+        setDocumentation(from, doc);                                      \
         Rewrite *rw = c->EnterRewrite(from, to);                        \
         to->code = fn;                                                  \
         to->SetSymbols(c);                                              \
@@ -62,7 +64,7 @@
 
 #define PARM(symbol, type)      , type##_r symbol
 
-#define PREFIX(name, rtype, symbol, parms, _code)                       \
+#define PREFIX(name, rtype, symbol, parms, _code, doc)                  \
     rtype##_nkp xl_##name(Tree *self parms)                             \
     {                                                                   \
         DS(symbol) _code;                                               \
@@ -77,6 +79,7 @@
             Tree *parmtree = ParametersTree(parameters);                \
             Prefix *from = new Prefix(new Name(symbol), parmtree);      \
             Name *to = new Name(symbol);                                \
+            setDocumentation(from, doc);                                      \
             Rewrite *rw = c->EnterRewrite(from, to);                    \
             to->code = fn;                                              \
             to->SetSymbols(c);                                          \
@@ -90,6 +93,7 @@
             n->code = fn;                                               \
             n->SetSymbols (c);                                          \
             n ->Set<TypeInfo> (rtype##_type);                           \
+            setDocumentation(n, doc);                                      \
             c->EnterName(symbol, n);                                    \
             TreeList noparms;                                           \
             compiler->EnterBuiltin(XL_SCOPE #name, n, noparms, fn);     \
@@ -97,7 +101,7 @@
     }
 
 
-#define POSTFIX(name, rtype, parms, symbol, _code)                      \
+#define POSTFIX(name, rtype, parms, symbol, _code, doc)                      \
     rtype##_nkp xl_##name(Tree *self parms)                             \
     {                                                                   \
         DS(symbol) _code;                                               \
@@ -111,6 +115,7 @@
         Postfix *from = new Postfix(parmtree, new Name(symbol));        \
         Name *to = new Name(symbol);                                    \
         eval_fn fn = (eval_fn) xl_##name;                               \
+        setDocumentation(to, doc);                                      \
         Rewrite *rw = c->EnterRewrite(from, to);                        \
         to->code = fn;                                                  \
         to->SetSymbols(c);                                              \

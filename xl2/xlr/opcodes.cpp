@@ -25,19 +25,20 @@
 
 #include "opcodes.h"
 #include "basics.h"
+#include "parser.h"
 #include <typeinfo>
 
 XL_BEGIN
 
 // ============================================================================
-// 
+//
 //    Helper functions for native code
-// 
+//
 // ============================================================================
 
 longlong xl_integer_arg(Tree *value)
 // ----------------------------------------------------------------------------
-//    Return an integer value 
+//    Return an integer value
 // ----------------------------------------------------------------------------
 {
     if (Integer *ival = value->AsInteger())
@@ -49,7 +50,7 @@ longlong xl_integer_arg(Tree *value)
 
 double xl_real_arg(Tree *value)
 // ----------------------------------------------------------------------------
-//    Return a real value 
+//    Return a real value
 // ----------------------------------------------------------------------------
 {
     if (Real *rval = value->AsReal())
@@ -61,7 +62,7 @@ double xl_real_arg(Tree *value)
 
 text xl_text_arg(Tree *value)
 // ----------------------------------------------------------------------------
-//    Return a text value 
+//    Return a text value
 // ----------------------------------------------------------------------------
 {
     if (Text *tval = value->AsText())
@@ -74,7 +75,7 @@ text xl_text_arg(Tree *value)
 
 int xl_character_arg(Tree *value)
 // ----------------------------------------------------------------------------
-//    Return a character value 
+//    Return a character value
 // ----------------------------------------------------------------------------
 {
     if (Text *tval = value->AsText())
@@ -87,7 +88,7 @@ int xl_character_arg(Tree *value)
 
 bool xl_boolean_arg(Tree *value)
 // ----------------------------------------------------------------------------
-//    Return a boolean truth value 
+//    Return a boolean truth value
 // ----------------------------------------------------------------------------
 {
     if (value == xl_true)
@@ -117,6 +118,18 @@ Tree *ParametersTree(TreeList parameters)
     return result;
 }
 
+void setDocumentation(Tree *node, text doc)
+// ----------------------------------------------------------------------------
+//   attach the documentation to the node as a comment
+// ----------------------------------------------------------------------------
+{
+    if (doc.empty()) return;
+
+    std::vector<text> com(1,doc);
+    CommentsInfo *cinfo = new CommentsInfo();
+    cinfo->after = com;
+    node->SetInfo<CommentsInfo> (cinfo);
+}
 
 XL_END
 

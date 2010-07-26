@@ -123,7 +123,8 @@ HEADERS += widget.h \
     splash_screen.h \
     branch_selection_combobox.h \
     branch_selection_toolbar.h \
-    fetch_dialog.h
+    fetch_dialog.h \
+    documentation.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -196,7 +197,8 @@ SOURCES += tao_main.cpp \
     splash_screen.cpp \
     branch_selection_combobox.cpp \
     branch_selection_toolbar.cpp \
-    fetch_dialog.cpp
+    fetch_dialog.cpp \
+    documentation.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \

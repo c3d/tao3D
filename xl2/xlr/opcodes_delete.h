@@ -1,16 +1,16 @@
 // ****************************************************************************
 //  opcodes_delete.h                                               XLR project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     Macros used to delete built-ins.
-// 
+//
 //     Usage:
 //     #include "opcodes_delete.h"
 //     #include "builtins.tbl"
 //
-// 
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -27,13 +27,13 @@
 #undef TYPE
 #undef PARM
 
-#define INFIX(name, rtype, t1, symbol, t2, _code)
+#define INFIX(name, rtype, t1, symbol, t2, _code, doc)
 
 #define PARM(symbol, type)
 
-#define PREFIX(name, rtype, symbol, parms, _code)
+#define PREFIX(name, rtype, symbol, parms, _code, doc)
 
-#define POSTFIX(name, rtype, parms, symbol, _code)
+#define POSTFIX(name, rtype, parms, symbol, _code, doc)
 
 #define BLOCK(name, rtype, open, type, close, _code)
 

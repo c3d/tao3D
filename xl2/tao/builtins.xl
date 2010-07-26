@@ -106,6 +106,21 @@ draw_chooser_item m, x, y ->
     text m
 
 draw_chooser_match m1, m2, m3, x, y ->
+    /*|
+        syntax "draw_chooser_match  m1, m2, m3, x, y"
+        synopsis "draw the matching"
+        param "m1" [typem1] "m1 description"
+        param "m2" [typem2] "m2 description"
+        param "m3" [typem3] "m3 description"
+        param "x" [typex] "the x-coordinate"
+        param "y" [typey] "the y-coordinate"
+        desc <<It does something
+              and maybe more.>>
+        ret [typeret] <<returns something else.>>
+        see "the tutorial"
+        err "a" : "error value a"
+        err "b" : "error value b"
+        |*/
     chooser_item_font
     color 100%, 100%, 100%, 70%
     move_to x, y, 0
@@ -136,10 +151,10 @@ move_to x:real, y:real                  -> move_to x, y, 0
 
 line_to x:real, y:real                  -> line_to x, y, 0
 
-quad_to cx:real, cy:real, x:real, y:real -> 
+quad_to cx:real, cy:real, x:real, y:real ->
     quad_to cx, cy, 0, x, y, 0
 
-cubic_to c1x:real, c1y:real, c2x:real, c2y:real, x:real, y:real -> 
+cubic_to c1x:real, c1y:real, c2x:real, c2y:real, x:real, y:real ->
     cubic_to c1x, c1y, 0, c2x, c2y, 0, x, y, 0
 
 // 2D Shapes
@@ -445,12 +460,12 @@ menu_item "menu:insert > table", "Table", insert
         color "font"
         line_color "font"
         table 3, 3, do
-            table_cell_fill 
+            table_cell_fill
                 color 0,0,0,20%
-                line_color 0, 0, 1, 80% 
-                line_width 2 
+                line_color 0, 0, 1, 80%
+                line_width 2
                 rectangle table_cell_x, table_cell_y, table_cell_w, table_cell_h
-            table_cell_margins 5, 5 
+            table_cell_margins 5, 5
             table_cell
                 text "Cell 1,1"
             table_cell

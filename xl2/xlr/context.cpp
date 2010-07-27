@@ -401,13 +401,7 @@ Tree *Symbols::Run(Tree *code)
     if (opt)
     {
         // Check trees that we won't rewrite
-        bool more =
-            has_rewrites_for_constants || 
-            !code ||
-            !code->IsConstant();
-
-        // Repeat until we get a stable result
-        while (more)
+        if (has_rewrites_for_constants || !code || !code->IsConstant())
         {
             if (!result->code)
             {
@@ -427,12 +421,6 @@ Tree *Symbols::Run(Tree *code)
                 }
             }
             result = result->code(code);
-            more = (result != code && result &&
-                    (has_rewrites_for_constants || !result->IsConstant())) ;
-            if (more)
-                IFTRACE(eval)
-                    std::cerr << "LOOP" << index << ": " << result << '\n';
-            code = result;
         }
         IFTRACE(eval)
             std::cerr << "RSLT" << index-- << ": " << result << '\n';
@@ -612,7 +600,7 @@ Tree *Symbols::Run(Tree *code)
 //
 // ============================================================================
 
-Tree *  Symbols::Error(text message, Tree *arg1, Tree *arg2, Tree *arg3)
+Tree *Symbols::Error(text message, Tree *arg1, Tree *arg2, Tree *arg3)
 // ----------------------------------------------------------------------------
 //   Execute the innermost error handler
 // ----------------------------------------------------------------------------
@@ -976,6 +964,10 @@ Tree *ParameterMatch::DoName(Name *what)
     }
     else
     {
+        // We only allow names here, not symbols (bug #154)
+        if (what->value.length() == 0 || !isalpha(what->value[0]))
+            Ooops("The pattern variable '$1' is not a name", what);
+
         // Check if the name already exists, e.g. 'false' or 'A+A'
         if (Tree *existing = symbols->Named(what->value))
             return existing;
@@ -1014,10 +1006,12 @@ Tree *ParameterMatch::DoInfix(Infix *what)
         }
 
         // Check if the name already exists
-        if (Tree *existing = symbols->Named(varName->value))
+        if (Tree *existing = symbols->Named(varName->value, false))
         {
             Ooops("Typed name '$1' already exists as '$2'",
                   what->left, existing);
+            Ooops("This is the previous declaration of '$1'",
+                  existing);
             return NULL;
         }
 
@@ -1189,10 +1183,16 @@ Tree *ArgumentMatch::CompileClosure(Tree *source)
     {
         Tree *result = symbols->Compile(source, subUnit, true);
         if (!result)
+        {
             unit.ConstantTree(source);
-
-        eval_fn fn = subUnit.Finalize();
-        source->code = fn;
+        }
+        else
+        {
+            eval_fn fn = subUnit.Finalize();
+            source->code = fn;
+        }
+        if (!source->Symbols())
+            source->SetSymbols(symbols);
     }
 
     // Create a call to xl_new_closure to save the required trees
@@ -1319,7 +1319,7 @@ Tree *ArgumentMatch::DoName(Name *what)
     {
         // Check if the name already exists, e.g. 'false' or 'A+A'
         // If it does, we generate a run-time check to verify equality
-        if (Tree *existing = rewrite->Named(what->value))
+        if (Tree *existing = locals->Named(what->value))
         {
             // Check if the test is an identity
             if (Name *nt = test->AsName())
@@ -2175,7 +2175,7 @@ Tree *  CompileAction::Rewrites(Tree *what)
             {
                 // Create the invokation point
                 reduction.NewForm();
-                Symbols args(symbols);
+                Symbols args(candidate->symbols);
                 ArgumentMatch matchArgs(what,
                                         symbols, &args, candidate->symbols,
                                         this, !candidate->to);

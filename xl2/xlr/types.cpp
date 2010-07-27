@@ -506,7 +506,7 @@ Tree *MatchType::Normalize()
 #define PARM(symbol, type)
 #define PREFIX(name, rtype, symbol, parms, code, doc)
 #define POSTFIX(name, rtype, parms, symbol, code, doc)
-#define BLOCK(name, rtype, open, type, close, code)
+#define BLOCK(name, rtype, open, type, close, code, doc)
 #define NAME(symbol)
 #define TYPE(symbol)                            \
             if (name == #symbol)                \

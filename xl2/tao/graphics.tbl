@@ -580,8 +580,10 @@ PREFIX(MenuItem, tree, "menu_item",
        PARM(n, text) PARM(lbl, text) PARM(icon, text) PARM(cable, boolean)
        PARM(isc, text)  PARM(t, tree),
        RTAO(menuItem(self, n, lbl, icon, cable, isc, t)),
-       "/*| syntax \"menu_item\"                 \
-            synopsis \"add an entry in a menu\"  \
+       "/*| docname \"menu_item\", \"widget:menu\", do { \
+                dsyntax <<menu_item \"unique_name\", \"label\", \"icon\", checkable, isChecked, tree>>;\
+                synopsis \"add an entry in a menu\" ; \
+                }\
           |*/")
 
 PREFIX(Menu, tree, "menu", PARM(n, text) PARM(lbl, text) PARM(icon, text),
@@ -656,7 +658,16 @@ PREFIX(UngroupSelection, boolean, "ungroup_selection",, RTAO(ungroupSelection(se
 //
 // ============================================================================
 
-POSTFIX(FromCm,   real, PARM(x, real), "cm", RTAO(fromCm(self, x)), "")
+POSTFIX(FromCm,   real, PARM(x, real), "cm", RTAO(fromCm(self, x)),
+"/*| docname \"cm\", \"unit\", do { \
+         dsyntax \"x cm\" ;\
+         synopsis \"Specify the unit as centimeter \"; \
+         description \"This postfix specify the previous real as centimeter. \"; \
+         parameters; \
+         parameter \"real\", \"x\", \"The value\";\
+         return_value \"real\", \"The value in centimeter. \";\
+         }\
+|*/")
 POSTFIX(FromMm,   real, PARM(x, real), "mm", RTAO(fromMm(self, x)), "")
 POSTFIX(FromInch, real, PARM(x, real), "inch", RTAO(fromIn(self, x)), "")
 POSTFIX(FromPt,   real, PARM(x, real), "pt", RTAO(fromPt(self, x)), "")
@@ -671,4 +682,25 @@ POSTFIX(FromPx,   real, PARM(x, real), "px", RTAO(fromPx(self, x)), "")
 // ============================================================================
 
 PREFIX(Constant, tree, "constant", PARM(t, tree), RTAO(constant(self, t)), "")
-PREFIX(GenDoc, tree, "generate_doc", ,RTAO(generateDoc(self)), "")
+PREFIX(GenDoc, tree, "generate_doc", PARM(t, tree),RTAO(generateDoc(self, t)),
+"/*| docname \"generate_doc\", \"documentation\", do { \
+         dsyntax \"generate_doc t\" ;\
+         synopsis \"generate the doc for the specified tree \"; \
+         description \"Extract the documentation from the specified tree. \"; \
+         parameters; \
+         parameter \"tree\", \"t\", \"The tree from wich extracting the documentation\";\
+         return_value \"Text\", \"The Text contains the documentation, ready to be parsed. \";\
+         }\
+|*/")
+
+PREFIX(GenAllDoc, tree, "generate_all_doc", PARM(filename, text),
+       RTAO(generateAllDoc(self, filename)),
+"/*| docname \"generate_all_doc\", \"documentation\", do { \
+         dsyntax \"generate_all_doc filename\" ;\
+         synopsis \"generate all the documentation. \"; \
+         description \"Extract the documentation from the context, the primitive and the current document. It writes the documentation into the specified files if any. \"; \
+         parameters; \
+         parameter \"text\", \"filename\", \"The location where to write the documentation. If empty, no file written. \";\
+         return_value \"Text\", \"The Text contains the documentation, ready to be parsed. \";\
+         }\
+|*/")

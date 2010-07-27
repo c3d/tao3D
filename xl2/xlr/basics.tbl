@@ -9,9 +9,9 @@ INFIX(EnterRewrite, tree, tree,"->", tree,
       Symbols::symbols->EnterRewrite(&l,&r);
       XL_RTREE(self), "")
 BLOCK(EvaluateParentheses, tree, "(", tree, ")",
-      XL_RTREE(xl_evaluate(&child)))
+      XL_RTREE(xl_evaluate(&child)), "")
 BLOCK(EvaluateBlock, tree, Block::indent, tree, Block::unindent,
-      XL_RTREE(xl_evaluate(&child)))
+      XL_RTREE(xl_evaluate(&child)), "")
 
 // Integer arithmetic and comparisons
 INFIX(AddInt,integer, integer,"+",integer, XL_RINT(XL_INT(l) + XL_INT(r)), "")

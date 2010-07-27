@@ -75,7 +75,7 @@
     } while(0);
 
 
-#define BLOCK(name, rtype, open, type, close, _code)    \
+#define BLOCK(name, rtype, open, type, close, _code, doc)    \
     xl_enter_block_##name(c, compiler);
 
 

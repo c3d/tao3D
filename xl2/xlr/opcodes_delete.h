@@ -35,7 +35,7 @@
 
 #define POSTFIX(name, rtype, parms, symbol, _code, doc)
 
-#define BLOCK(name, rtype, open, type, close, _code)
+#define BLOCK(name, rtype, open, type, close, _code, doc)
 
 #define NAME(symbol)    xl_##symbol = 0;
 

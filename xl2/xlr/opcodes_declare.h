@@ -53,7 +53,7 @@
         Infix *from = new Infix(symbol, ldecl, rdecl);                  \
         Name *to = new Name(symbol);                                    \
         eval_fn fn = (eval_fn) xl_##name;                               \
-        setDocumentation(from, doc);                                      \
+        setDocumentation(from, doc);                                    \
         Rewrite *rw = c->EnterRewrite(from, to);                        \
         to->code = fn;                                                  \
         to->SetSymbols(c);                                              \
@@ -93,7 +93,7 @@
             n->code = fn;                                               \
             n->SetSymbols (c);                                          \
             n ->Set<TypeInfo> (rtype##_type);                           \
-            setDocumentation(n, doc);                                      \
+            setDocumentation(n, doc);                                   \
             c->EnterName(symbol, n);                                    \
             TreeList noparms;                                           \
             compiler->EnterBuiltin(XL_SCOPE #name, n, noparms, fn);     \
@@ -101,7 +101,7 @@
     }
 
 
-#define POSTFIX(name, rtype, parms, symbol, _code, doc)                      \
+#define POSTFIX(name, rtype, parms, symbol, _code, doc)                 \
     rtype##_nkp xl_##name(Tree *self parms)                             \
     {                                                                   \
         DS(symbol) _code;                                               \
@@ -115,7 +115,7 @@
         Postfix *from = new Postfix(parmtree, new Name(symbol));        \
         Name *to = new Name(symbol);                                    \
         eval_fn fn = (eval_fn) xl_##name;                               \
-        setDocumentation(to, doc);                                      \
+        setDocumentation(from, doc);                                    \
         Rewrite *rw = c->EnterRewrite(from, to);                        \
         to->code = fn;                                                  \
         to->SetSymbols(c);                                              \
@@ -125,7 +125,7 @@
     }
 
 
-#define BLOCK(name, rtype, open, type, close, _code)                    \
+#define BLOCK(name, rtype, open, type, close, _code, doc)                \
     rtype##_nkp xl_##name(Tree *self, type##_r child)                   \
     {                                                                   \
         DS(symbol) _code;                                               \
@@ -136,6 +136,7 @@
         Block *from = new Block(parms, open, close);                    \
         Name *to = new Name(#name);                                     \
         eval_fn fn = (eval_fn) xl_##name;                               \
+        setDocumentation(from, doc);                                    \
         Rewrite *rw = c->EnterRewrite(from, to);                        \
         to->code = fn;                                                  \
         to->SetSymbols(c);                                              \

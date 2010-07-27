@@ -396,7 +396,7 @@ void Widget::runProgram()
     currentMenu    = NULL;
     currentToolBar = NULL;
     currentMenuBar = ((Window*)parent())->menuBar();
-    
+
     // After we are done, draw the space with all the drawings in it
     // If we are in stereoscopice mode, we draw twice, once for each eye
     do
@@ -7155,11 +7155,16 @@ Tree_p Widget::constant(Tree_p self, Tree_p tree)
     return tree;
 }
 
+Tree_p Widget::generateDoc(Tree_p /*self*/, Tree_p tree)
+{
+    ExtractDoc doc;
+    return tree->Do(doc);
 
-Tree_p Widget::generateDoc(Tree_p /*self*/)
+}
+
+Text_p Widget::generateAllDoc(Tree_p self, text filename)
 {
     XL::Main   *xlr            = XL::MAIN;
-    ExtractDoc doc;
     text com="";
 
     Tree *t = NULL;
@@ -7170,18 +7175,35 @@ Tree_p Widget::generateDoc(Tree_p /*self*/)
     {
         XL::SourceFile src = couple->second;
         if (!src.tree) continue;
-        t = src.tree->Do(doc);
+        t = generateDoc(self, src.tree);
         com += t->AsText()->value;
     }
 
     // documentation from the primitives files (*.tbl)
-    XL::rewrite_table s = xlr->context->rewrites->hash;
+    XL::rewrite_table h = xlr->context->rewrites->hash;
     XL::rewrite_table::iterator i;
-    for (i = s.begin(); i != s.end(); i++)
+    for (i = h.begin(); i != h.end(); i++)
     {
         Tree * tree = i->second->from;
-        t = tree->Do(doc);
+        t = generateDoc(self, tree);
         com += t->AsText()->value;
+    }
+    XL::symbol_table::iterator si;
+    XL::symbol_table names = XL::Context::context->names;
+    for (si = names.begin(); si != names.end(); si++)
+    {
+        Tree * tree = si->second;
+        if (!tree) continue;
+        t = generateDoc(self, tree);
+        com += t->AsText()->value;
+    }
+
+    if (!filename.empty())
+    {
+        QFile file(+filename);
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+            file.write(com.c_str());
+        file.close();
     }
     std::cerr << "\n=========================================================\n";
     std::cerr << com << std::endl;

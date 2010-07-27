@@ -1,0 +1,3 @@
+color 1.0, 0.0, 0.498039, 1.0 
+line_edit 0, 0, 100, 30, "toto" & text time 
+push_button 100, 100, 100, 30, "Hello", { insert text "hello" } 

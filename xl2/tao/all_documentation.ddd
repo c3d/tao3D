@@ -1,0 +1,30 @@
+ documentation de generate_doc 
+
+  docname "docname", "documentation", do
+      dsyntax <<docname fname:text, family:text, t:tree>>
+      synopsis "The first documentation function to call."
+      description <<This function installs the text_box and may handle some filters on the family parameter.>>
+      parameters
+      parameter "text", "fname", "The name of the function."
+      parameter "text", "family", "The family of this function."
+      parameter "tree", "t", "The rest of the description."
+
+ docname "draw_chooser_match", "chooser", do
+    dsyntax "draw_chooser_match  m1, m2, m3, x, y"
+    synopsis "draw the matching"
+    parameter "typem1", "m1", "m1 description"
+    parameter "typem2", "m2", "m2 description"
+    parameter "typem3", "m3", "m3 description"
+    parameter "real", "x",  "the x-coordinate"
+    parameter "real", "y",  "the y-coordinate"
+    description <<It does something
+        and maybe more.>>
+    return_value "typeret", <<returns something else.>>
+    see "the tutorial"
+    err "a", "error value a"
+    err "b", "error value b"
+  
+ docname "cm", "unit", do {          dsyntax "x cm" ;         synopsis "Specify the unit as centimeter ";          description "This postfix specify the previous real as centimeter. ";          parameters;          parameter "real", "x", "The value";         return_value "real", "The value in centimeter. ";         }
+ docname "generate_doc", "documentation", do {          dsyntax "generate_doc t" ;         synopsis "generate the doc for the specified tree ";          description "Extract the documentation from the specified tree. ";          parameters;          parameter "tree", "t", "The tree from wich extracting the documentation";         return_value "Text", "The Text contains the documentation, ready to be parsed. ";         }
+ docname "menu_item", "widget:menu", do {                 dsyntax <<menu_item "unique_name", "label", "icon", checkable, isChecked, tree>>;                synopsis "add an entry in a menu" ;                 }          
+ docname "generate_all_doc", "documentation", do {          dsyntax "generate_all_doc filename" ;         synopsis "generate all the documentation. ";          description "Extract the documentation from the context, the primitive and the current document. It writes the documentation into the specified files if any. ";          parameters;          parameter "text", "filename", "The location where to write the documentation. If empty, no file written. ";         return_value "Text", "The Text contains the documentation, ready to be parsed. ";         }

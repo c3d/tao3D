@@ -1,0 +1,50 @@
+color 1, 1, 1, 1 
+locally 
+    rotatex 0 
+    rotatey 0 
+    group_box 216, 397, 241, 127, "Les boutons ",{ push_button 1, 0, 145, 27, "color chooser ",{ color_chooser 0, 0, 300, 300, { insert { color red, green, blue, alpha 
+    rectangle 0, 0, 50, 100 } } } 
+    push_button 0, 0, 178, 27, "font chooser ",{ font_chooser 0, 0, 300, 300, { insert { font family 
+    font_size pointSize } } } } 
+color 0.5, 0.9, 0.5, 1 
+line_edit -275, 134, 158, 22, "tralala" 
+color 1, 0, 1, 1 
+rectangle 148, -182, 381, 131 
+push_button -382, 82, 122, 32, "color chooser ",{ color_chooser 0, 0, 300, 300, { insert { color red, green, blue, alpha 
+rectangle 0, 0, 50, 100 } } } 
+color 1.0, 1.0, 1.0, 1.0 
+group_box -395, -310, 103, 184, "Les radios", button_group 
+    radio_button 0, 0, 101, 28, "radio 1", { insert text "Hello World 1" } 
+    radio_button 0, 1, 95, 26, "radio 2", { insert text "Hello World 2" } 
+    radio_button 0, 2, 97, 24, "radio 3", { insert text "Hello World 3" } 
+check_box_button -45, -28, 143, 32,"check1", "Une check box", "true",{ insert text "check 1" } 
+color 1.0, 1.0, 1.0, 1.0 
+button_group 
+    radio_button -34, 29, 93, 26, "radio 10", { insert text "Hello World 10" } 
+    radio_button 56, 57, 79, 24, "radio 20", { insert text "Hello World 20" } 
+    radio_button 141, 88, 85, 28, "radio 30", { insert text "Hello World 30" } 
+color 1.0, 0.306447, 0.328145, 1.0 
+text "check 1" 
+text "Hello World 20" 
+text "Hello World 30" 
+rectangle 231, 158, 50, 100 
+text "check 1" 
+text "Hello World 10" 
+color 0.945861, 0.30869, 1.0, 1.0 
+rectangle 153, -77, 50, 100 
+color 1.0, 1.0, 1.0, 1.0 
+rectangle 120, 317, 50, 100 
+color 0.8, 1.0, 0.1, 1.0 
+rectangle -304, 264, 50, 100 
+text "check 1" 
+text "check 1" 
+text "check 1" 
+text "check 1" 
+text "check 1" 
+text "check 1" 
+text "check 1" 
+text "Hello World 30" 
+text "Hello World 30" 
+text "Hello World 1" 
+text "Hello World 2" 
+text "Hello World 3" 

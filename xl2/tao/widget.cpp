@@ -98,7 +98,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create the GL widget
 // ----------------------------------------------------------------------------
-    : QGLWidget(QGLFormat(QGL::SampleBuffers|QGL::AlphaChannel), parent),
+    : QGLWidget(QGLFormat(QGL::SampleBuffers |
+                          QGL::AlphaChannel  |
+                          QGL::StereoBuffers), parent),
       xlProgram(sf),
       symbolTableForFormulas(new XL::Symbols(NULL)),
       symbolTableRoot(new XL::Name("formula_symbol_table")),

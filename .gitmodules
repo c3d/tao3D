@@ -1,0 +1,3 @@
+[submodule "xlr"]
+	path = xlr
+	url = git://xlr.git.sourceforge.net/gitroot/xlr/xlr

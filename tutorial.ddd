@@ -1,0 +1,15 @@
+page "What is Tao?", do 
+    text_box 0, 0, 800, 600, do 
+        font "Papyrus" 
+        font_size 74 
+        color 0, 0, 1, 80% 
+        line_color 90%, 50%, 0, 70%
+        line_width 2 
+        center 0.5 
+        vertical_center 0.5 
+        text "Welcome to Tao!"
+        line_break
+        line_color 0,0,0,0
+        font_size 28
+        color 0,30%,0,70%
+        text "The Art of Turning Ideas into Reality"

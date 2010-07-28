@@ -15,9 +15,9 @@ TEMPLATE = app
 TARGET = Tao
 VERSION = "0.0.3"
 DEPENDPATH += . \
-    ../xlr
+    xlr/xlr
 INCLUDEPATH += . \
-    ../xlr
+    xlr/xlr
 QT += webkit \
     network \
     opengl \
@@ -80,33 +80,33 @@ HEADERS += widget.h \
     tao_utf8.h \
     tao_tree.h \
     font.h \
-    ../xlr/utf8.h \
-    ../xlr/base.h \
-    ../xlr/options.h \
-    ../xlr/basics.h \
-    ../xlr/parser.h \
-    ../xlr/compiler.h \
-    ../xlr/renderer.h \
-    ../xlr/configuration.h \
-    ../xlr/runtime.h \
-    ../xlr/context.h \
-    ../xlr/scanner.h \
-    ../xlr/errors.h \
-    ../xlr/serializer.h \
-    ../xlr/hash.h \
-    ../xlr/sha1.h \
-    ../xlr/main.h \
-    ../xlr/sha1_ostream.h \
-    ../xlr/opcodes.h \
-    ../xlr/syntax.h \
-    ../xlr/opcodes_declare.h \
-    ../xlr/tree.h \
-    ../xlr/gc.h \
-    ../xlr/opcodes_define.h \
-    ../xlr/types.h \
-    ../xlr/diff.h \
-    ../xlr/lcs.h \
-    ../xlr/bfs.h \
+    xlr/xlr/utf8.h \
+    xlr/xlr/base.h \
+    xlr/xlr/options.h \
+    xlr/xlr/basics.h \
+    xlr/xlr/parser.h \
+    xlr/xlr/compiler.h \
+    xlr/xlr/renderer.h \
+    xlr/xlr/configuration.h \
+    xlr/xlr/runtime.h \
+    xlr/xlr/context.h \
+    xlr/xlr/scanner.h \
+    xlr/xlr/errors.h \
+    xlr/xlr/serializer.h \
+    xlr/xlr/hash.h \
+    xlr/xlr/sha1.h \
+    xlr/xlr/main.h \
+    xlr/xlr/sha1_ostream.h \
+    xlr/xlr/opcodes.h \
+    xlr/xlr/syntax.h \
+    xlr/xlr/opcodes_declare.h \
+    xlr/xlr/tree.h \
+    xlr/xlr/gc.h \
+    xlr/xlr/opcodes_define.h \
+    xlr/xlr/types.h \
+    xlr/xlr/diff.h \
+    xlr/xlr/lcs.h \
+    xlr/xlr/bfs.h \
     drag.h \
     pull_from_dialog.h \
     remote_selection_frame.h \
@@ -114,7 +114,7 @@ HEADERS += widget.h \
     undo.h \
     clone_dialog.h \
     ansi_textedit.h \
-    ../xlr/opcodes_delete.h \
+    xlr/xlr/opcodes_delete.h \
     error_message_dialog.h \
     group_layout.h \
     resource_mgt.h \
@@ -168,24 +168,24 @@ SOURCES += tao_main.cpp \
     git_backend.cpp \
     application.cpp \
     font.cpp \
-    ../xlr/tree.cpp \
-    ../xlr/gc.cpp \
-    ../xlr/sha1.cpp \
-    ../xlr/serializer.cpp \
-    ../xlr/syntax.cpp \
-    ../xlr/scanner.cpp \
-    ../xlr/runtime.cpp \
-    ../xlr/renderer.cpp \
-    ../xlr/parser.cpp \
-    ../xlr/options.cpp \
-    ../xlr/opcodes.cpp \
-    ../xlr/main.cpp \
-    ../xlr/errors.cpp \
-    ../xlr/context.cpp \
-    ../xlr/compiler.cpp \
-    ../xlr/basics.cpp \
-    ../xlr/diff.cpp \
-    ../xlr/lcs.cpp \
+    xlr/xlr/tree.cpp \
+    xlr/xlr/gc.cpp \
+    xlr/xlr/sha1.cpp \
+    xlr/xlr/serializer.cpp \
+    xlr/xlr/syntax.cpp \
+    xlr/xlr/scanner.cpp \
+    xlr/xlr/runtime.cpp \
+    xlr/xlr/renderer.cpp \
+    xlr/xlr/parser.cpp \
+    xlr/xlr/options.cpp \
+    xlr/xlr/opcodes.cpp \
+    xlr/xlr/main.cpp \
+    xlr/xlr/errors.cpp \
+    xlr/xlr/context.cpp \
+    xlr/xlr/compiler.cpp \
+    xlr/xlr/basics.cpp \
+    xlr/xlr/diff.cpp \
+    xlr/xlr/lcs.cpp \
     drag.cpp \
     pull_from_dialog.cpp \
     remote_selection_frame.cpp \

@@ -129,7 +129,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       sourceRenderer(NULL),
       currentFileDialog(NULL),
       zoom(1.0),
-      eyeX(0.0), eyeY(0.0), eyeZ(Widget::zNear), eyeDistance(200.0),
+      eyeX(0.0), eyeY(0.0), eyeZ(Widget::zNear), eyeDistance(20.0),
       centerX(0.0), centerY(0.0), centerZ(0.0),
       autoSaveEnabled(true)
 {
@@ -965,9 +965,9 @@ void Widget::setup(double w, double h, const Box *picking)
     double upX = 0.0, upY = 1.0, upZ = 0.0;
     double eyeX = this->eyeX;
     if (stereoscopic == 1)
-        eyeX -= eyeDistance;
-    else if (stereoscopic == 2)
         eyeX += eyeDistance;
+    else if (stereoscopic == 2)
+        eyeX -= eyeDistance;
 
     glFrustum ((-w/2)*zoom, (w/2)*zoom, (-h/2)*zoom, (h/2)*zoom, zNear, zFar);
     gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);

@@ -8,9 +8,6 @@ if false then TrueBody else FalseBody   -> do FalseBody
 if true then TrueBody                   -> do TrueBody
 if false then TrueBody                  -> false
 
-// Argument list data structure
-data x,y
-
 // Key management
 key "Control-L"                         -> toggle_full_screen
 key "Escape"                            -> main_chooser

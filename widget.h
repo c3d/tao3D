@@ -579,6 +579,10 @@ public:
     Name_p      groupSelection(Tree_p self);
     Name_p      ungroupSelection(Tree_p self);
 
+    //Documentation
+    Tree_p generateDoc(Tree_p self, Tree_p tree);
+    Text_p generateAllDoc(Tree_p self, text filename);
+
 private:
     friend class Window;
     friend class Activity;

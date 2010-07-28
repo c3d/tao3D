@@ -106,6 +106,21 @@ draw_chooser_item m, x, y ->
     text m
 
 draw_chooser_match m1, m2, m3, x, y ->
+    /*|docname "draw_chooser_match", "chooser", do
+          dsyntax "draw_chooser_match  m1, m2, m3, x, y"
+          synopsis "draw the matching"
+          parameter "typem1", "m1", "m1 description"
+          parameter "typem2", "m2", "m2 description"
+          parameter "typem3", "m3", "m3 description"
+          parameter "real", "x",  "the x-coordinate"
+          parameter "real", "y",  "the y-coordinate"
+          description <<It does something
+              and maybe more.>>
+          return_value "typeret", <<returns something else.>>
+          see "the tutorial"
+          err "a", "error value a"
+          err "b", "error value b"
+        |*/
     chooser_item_font
     color 100%, 100%, 100%, 70%
     move_to x, y, 0
@@ -136,10 +151,10 @@ move_to x:real, y:real                  -> move_to x, y, 0
 
 line_to x:real, y:real                  -> line_to x, y, 0
 
-quad_to cx:real, cy:real, x:real, y:real -> 
+quad_to cx:real, cy:real, x:real, y:real ->
     quad_to cx, cy, 0, x, y, 0
 
-cubic_to c1x:real, c1y:real, c2x:real, c2y:real, x:real, y:real -> 
+cubic_to c1x:real, c1y:real, c2x:real, c2y:real, x:real, y:real ->
     cubic_to c1x, c1y, 0, c2x, c2y, 0, x, y, 0
 
 // 2D Shapes

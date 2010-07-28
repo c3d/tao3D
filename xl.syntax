@@ -13,7 +13,7 @@ INFIX
         200     DEFAULT
         210     ,
         221     := += -= *= /= ^= |= &=
-        230     return 
+        230     return
         240     and or xor
         250     in at
         251     of to
@@ -31,7 +31,7 @@ PREFIX
         120     exit loop
         125     case if return while until yield transform
         320     not in out constant variable const var
-        340     @ 
+        340     @
         380     ! ~
         390     - + * /
         400     FUNCTION
@@ -51,3 +51,5 @@ TEXT
 COMMENT
         "//" NEWLINE
         "/*" "*/"
+        "/*|" "|*/"
+        "//|" NEWLINE

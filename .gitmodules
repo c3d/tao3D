@@ -1,3 +1,6 @@
 [submodule "xlr"]
 	path = xlr
 	url = git://xlr.git.sourceforge.net/gitroot/xlr/xlr
+[submodule "tests"]
+	path = tests
+	url = ssh://nano.taodyne.com/~ddd/Work/tests.git

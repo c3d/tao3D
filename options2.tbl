@@ -1,0 +1,36 @@
+// ============================================================================
+//
+//   Tao options, in addition to the ones defined in xlr/options.tbl
+//
+// ============================================================================
+
+OPTVAR(sync_interval, ulong,   500)
+OPTVAR(save_interval, ulong,   1000)
+OPTVAR(commit_interval, ulong, 5000)
+OPTVAR(pull_interval, ulong, 5000)
+OPTION(autosync, "Interval for automatic file sync in milliseconds",
+       sync_interval = INTEGER)
+OPTION(autosave, "Interval for automatic save in milliseconds",
+       save_interval = INTEGER)
+OPTION(autocommit, "Interval for automatic commit in milliseconds",
+       commit_interval = INTEGER)
+OPTION(autopull, "Interval for automatic pull in milliseconds",
+       pull_interval = INTEGER)
+
+OPTVAR(prefer_opengl, bool, false)
+OPTION(gl, "Prefer OpenGL for rendering", prefer_opengl = true)
+
+TRACE(filesync)
+TRACE(menus)
+TRACE(process)
+TRACE(drag)
+TRACE(focus)
+TRACE(undo)
+TRACE(widgets)
+TRACE(resources)
+TRACE(clipboard)
+TRACE(srcview)
+TRACE(fonts)
+TRACE(textselect)
+TRACE(paths)
+

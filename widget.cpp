@@ -65,6 +65,7 @@
 #include "tree_cloning.h"
 #include "gl2ps.h"
 #include "version.h"
+#include "documentation.h"
 
 #include <QApplication>
 #include <QToolButton>
@@ -397,7 +398,7 @@ void Widget::runProgram()
     currentMenu    = NULL;
     currentToolBar = NULL;
     currentMenuBar = ((Window*)parent())->menuBar();
-    
+
     // After we are done, draw the space with all the drawings in it
     // If we are in stereoscopice mode, we draw twice, once for each eye
     do
@@ -1482,7 +1483,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
     {
         next = a->Key(key);
         handled |= next != a->next;
-    }        
+    }
 
     // If the key was not handled by any activity, forward to document
     if (!handled)
@@ -6173,9 +6174,9 @@ Tree_p Widget::videoPlayerTexture(Tree_p self, Real_p wt, Real_p ht, Text_p url)
 
 
 // ============================================================================
-// 
+//
 //    Chooser
-// 
+//
 // ============================================================================
 
 Tree_p Widget::chooser(Tree_p self, text caption)
@@ -7156,6 +7157,61 @@ Tree_p Widget::constant(Tree_p self, Tree_p tree)
     return tree;
 }
 
+Tree_p Widget::generateDoc(Tree_p /*self*/, Tree_p tree)
+{
+    ExtractDoc doc;
+    return tree->Do(doc);
+
+}
+
+Text_p Widget::generateAllDoc(Tree_p self, text filename)
+{
+    XL::Main   *xlr            = XL::MAIN;
+    text com="";
+
+    Tree *t = NULL;
+    // documentation from the context files (*.xl)
+    XL::source_files::iterator couple;
+    for (couple = xlr->files.begin();
+         couple != xlr->files.end(); couple++ )
+    {
+        XL::SourceFile src = couple->second;
+        if (!src.tree) continue;
+        t = generateDoc(self, src.tree);
+        com += t->AsText()->value;
+    }
+
+    // documentation from the primitives files (*.tbl)
+    XL::rewrite_table h = xlr->context->rewrites->hash;
+    XL::rewrite_table::iterator i;
+    for (i = h.begin(); i != h.end(); i++)
+    {
+        Tree * tree = i->second->from;
+        t = generateDoc(self, tree);
+        com += t->AsText()->value;
+    }
+    XL::symbol_table::iterator si;
+    XL::symbol_table names = XL::Context::context->names;
+    for (si = names.begin(); si != names.end(); si++)
+    {
+        Tree * tree = si->second;
+        if (!tree) continue;
+        t = generateDoc(self, tree);
+        com += t->AsText()->value;
+    }
+
+    if (!filename.empty())
+    {
+        QFile file(+filename);
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+            file.write(com.c_str());
+        file.close();
+    }
+    std::cerr << "\n=========================================================\n";
+    std::cerr << com << std::endl;
+    std::cerr << "=========================================================\n";
+    return new Text(com, "", "");
+}
 
 
 // ============================================================================

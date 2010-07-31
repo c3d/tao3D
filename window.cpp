@@ -1001,7 +1001,8 @@ void Window::createMenus()
     viewMenu->addAction(errorDock->toggleViewAction());
     viewMenu->addAction(fullScreenAct);
     viewMenu->addAction(viewAnimationsAct);
-    viewMenu->addAction(viewStereoscopyAct);
+    if (XL::MAIN->options.enable_stereoscopy)
+        viewMenu->addAction(viewStereoscopyAct);
     viewMenu->addMenu(tr("&Toolbars"))->setObjectName(VIEW_MENU_NAME);
 
     menuBar()->addSeparator();

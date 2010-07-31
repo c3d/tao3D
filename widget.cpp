@@ -95,13 +95,24 @@ double Widget::zNear = 2000.0;
 double Widget::zFar = 40000.0;
 
 
+static inline QGL::FormatOptions TaoGLFormatOptions()
+// ----------------------------------------------------------------------------
+//   Return the options we will use when creating the widget
+// ----------------------------------------------------------------------------
+//   This was made necessary by Bug #251
+{
+    QGL::FormatOptions result = QGL::SampleBuffers | QGL::AlphaChannel;
+    if (XL::MAIN->options.enable_stereoscopy)
+        result |= QGL::StereoBuffers;
+    return result;
+}
+
+
 Widget::Widget(Window *parent, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create the GL widget
 // ----------------------------------------------------------------------------
-    : QGLWidget(QGLFormat(QGL::SampleBuffers |
-                          QGL::AlphaChannel  |
-                          QGL::StereoBuffers), parent),
+    : QGLWidget(QGLFormat(TaoGLFormatOptions()), parent),
       xlProgram(sf),
       symbolTableForFormulas(new XL::Symbols(NULL)),
       symbolTableRoot(new XL::Name("formula_symbol_table")),
@@ -812,6 +823,7 @@ void Widget::enableStereoscopy(bool enable)
 // ----------------------------------------------------------------------------
 {
     stereoscopic = enable;
+    refresh();
 }
 
 

@@ -20,6 +20,14 @@ OPTION(autopull, "Interval for automatic pull in milliseconds",
 OPTVAR(prefer_opengl, bool, false)
 OPTION(gl, "Prefer OpenGL for rendering", prefer_opengl = true)
 
+#ifdef CONFIG_MACOSX // Bug in 10.6.4, see Bug #251, re-enable when fixed
+OPTVAR(enable_stereoscopy, bool, false)
+#else
+OPTVAR(enable_stereoscopy, bool, true)
+#endif
+OPTION(stereo, "Enable stereoscopy", enable_stereoscopy = true)
+OPTION(nostereo, "Disable stereoscopy", enable_stereoscopy = false)
+
 TRACE(filesync)
 TRACE(menus)
 TRACE(process)

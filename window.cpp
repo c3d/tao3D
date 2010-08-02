@@ -1437,8 +1437,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
 //   Find and open a project (= SCM repository)
 // ----------------------------------------------------------------------------
 // If project does not exist and 'confirm' is true, user will be asked to
-// confirm project creation. User is always prompted before re-using a
-// valid repository not currently used by Tao.
+// confirm project creation.
 // Returns:
 // - true if project is open succesfully, or
 //        user has chosen to proceed without a project, or

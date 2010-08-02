@@ -331,6 +331,12 @@ void Window::open(QString fileName, bool readOnly)
         return;
     }
 
+    if (!QFileInfo(fileName).exists())
+    {
+        QMessageBox::warning(this, tr("Error"),
+                             tr("%1: File not found").arg(fileName));
+        return;
+    }
     if (!needNewWindow())
     {
         if (readOnly)

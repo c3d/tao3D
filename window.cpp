@@ -602,6 +602,8 @@ void Window::clearRecentFileList()
 {
     QSettings settings;
     settings.setValue("recentFileList", QStringList());
+    IFTRACE(settings)
+        std::cerr << "Cleared recent file list\n";
     updateRecentFileActions();
 }
 
@@ -1327,8 +1329,8 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         QApplication::restoreOverrideCursor();
         showMessage(tr("File loaded"), 2000);
     }
-    setCurrentFile(fileName);
     isUntitled = false;
+    setCurrentFile(fileName);
     return true;
 }
 
@@ -1771,6 +1773,9 @@ void Window::setCurrentFile(const QString &fileName)
     // Update the recent file list
     if (!isUntitled)
     {
+        IFTRACE(settings)
+            std::cerr << "Adding " << +fileName << " to recent file list\n";
+
         QSettings settings;
         QStringList files = settings.value("recentFileList").toStringList();
         files.removeAll(fileName);
@@ -1778,6 +1783,13 @@ void Window::setCurrentFile(const QString &fileName)
         while (files.size() > MaxRecentFiles)
             files.removeLast();
         settings.setValue("recentFileList", files);
+
+        IFTRACE(settings)
+        {
+            std::cerr << "Recent file list:\n";
+            foreach (QString s, files)
+                std::cerr << "  " << +s << "\n";
+        }
 
         foreach (QWidget *widget, QApplication::topLevelWidgets())
         {

@@ -1175,14 +1175,9 @@ void Window::showMessage(QString message, int timeout)
 // ----------------------------------------------------------------------------
 {
     if (splashScreen)
-    {
-        QColor gray60(102, 102, 102);
-        splashScreen->showMessage(message, Qt::AlignBottom, gray60);
-    }
+        splashScreen->showMessage(message);
     else
-    {
         statusBar()->showMessage(message, timeout);
-    }
     QApplication::processEvents();
 }
 

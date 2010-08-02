@@ -67,7 +67,7 @@ int main(int argc, char **argv)
     Tao::Application tao(argc, argv);
 
     // Show splash screen
-    QSplashScreen *splash = NULL;
+    SplashScreen *splash = NULL;
     if (showSplash)
     {
         splash = new SplashScreen();

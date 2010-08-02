@@ -210,7 +210,7 @@ private:
 
 public:
     QMenu            *shareMenu;
-    QSplashScreen    *splashScreen;
+    SplashScreen     *splashScreen;
     SplashScreen     *aboutSplash;
 
 };

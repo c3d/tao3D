@@ -41,7 +41,7 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
 // ----------------------------------------------------------------------------
 {
     QString version(QObject::tr("Version %1").arg(GITREV));
-    showMessage(version, Qt::AlignBottom, QColor(TEXT_COLOR));
+    showMessage(version);
 }
 
 
@@ -78,6 +78,16 @@ void SplashScreen::drawContents(QPainter *painter)
     painter->translate(x, y);
     doc.setHtml(trUtf8(txt));
     doc.drawContents(painter, clip);
+}
+
+
+void SplashScreen::showMessage(const QString &message, int alignment,
+                               const QColor &color)
+// ----------------------------------------------------------------------------
+//    Show message with our default alignment and color
+// ----------------------------------------------------------------------------
+{
+    QSplashScreen::showMessage(message, alignment, color);
 }
 
 TAO_END

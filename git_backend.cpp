@@ -355,7 +355,7 @@ bool GitRepository::rename(text from, text to)
 
 bool GitRepository::commit(text message, bool all)
 // ----------------------------------------------------------------------------
-//   Rename a file in the repository
+//   Record pending changes to the repository
 // ----------------------------------------------------------------------------
 {
     clearCachedDocVersion();
@@ -370,13 +370,13 @@ bool GitRepository::commit(text message, bool all)
     QStringList args("commit");
     if (all)
         args << "-a";
-    args << "--allow-empty"    // Don't fail if working directory is clean
-         << "-m" << +message;
+    args << "-m" << +message;
     Process cmd(command(), args, path);
     text output;
     bool result = cmd.done(&errors, &output);
     if (!result)
-        if (errors.find("nothing added") != errors.npos)
+        if (errors.find("nothing added") != errors.npos ||
+            errors.find("nothing to commit") != errors.npos)
             result = true;
     state = RS_Clean;
     if (result)

@@ -25,7 +25,6 @@
 
 #include "tao.h"
 #include "base.h"
-#include "ansi_textedit.h"
 
 #include <QString>
 #include <QProcess>
@@ -54,10 +53,22 @@ public:
                        const QString &wd = "");
     virtual void start();
     virtual bool done(text *errors = NULL, text *output = NULL);
+    virtual bool failed();
 
-public slots:
-    void         sendStandardOutputToTextEdit();
-    void         sendStandardErrorToTextEdit();
+public:
+    static QString processErrorToString(QProcess::ProcessError error);
+    static QString exitStatusToString(QProcess::ExitStatus status);
+
+protected slots:
+    void         readStandardOutput();
+    void         readStandardError();
+    void         debugProcessError(QProcess::ProcessError error);
+    void         debugProcessFinished(int exitCode, QProcess::ExitStatus st);
+
+signals:
+    void         standardOutputUpdated(QByteArray newtext);
+    void         standardErrorUpdated(QByteArray newtext);
+    void         percentComplete(int percent);
 
 protected:
     virtual void initialize(size_t bufSize);
@@ -72,13 +83,15 @@ public:
     QString     cmd;
     QStringList args;
     QString     wd;
-    AnsiTextEdit  *outTextEdit, *errTextEdit;
     void       *id;
     bool        aborted;
     QString     err, out;
+    int         errPos;    // current position in err (% complete parsing)
+    int         percent;   // % complete
 
-protected:
-    static ulong num;    // For debug traces only
+public:
+    ulong        num;
+    static ulong snum;    // For debug traces only
 };
 
 }

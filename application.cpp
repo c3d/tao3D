@@ -30,6 +30,10 @@
 #include "tao_utf8.h"
 #include "error_message_dialog.h"
 #include "options.h"
+#include "uri.h"
+#include "splash_screen.h"
+#include "graphics.h"
+#include "window.h"
 
 #include <QString>
 #include <QSettings>
@@ -48,7 +52,8 @@ Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
 //    Build the Tao application
 // ----------------------------------------------------------------------------
-    : QApplication(argc, argv), hasGLMultisample(false)
+    : QApplication(argc, argv), hasGLMultisample(false), splash(NULL),
+      pendingOpen(0)
 {
     // Set some useful parameters for the application
     setApplicationName ("Tao");
@@ -134,6 +139,132 @@ Application::~Application()
 // ----------------------------------------------------------------------------
 {
     saveSettings();
+}
+
+
+bool Application::processCommandLine()
+// ----------------------------------------------------------------------------
+//   Handle command-line arguments, open files or URIs
+// ----------------------------------------------------------------------------
+{
+    bool showSplash = true;
+    if (arguments().contains("-nosplash"))
+        showSplash = false;
+
+    // Show splash screen
+    if (showSplash)
+    {
+        splash = new SplashScreen();
+        splash->show();
+        splash->raise();
+        QApplication::processEvents();
+    }
+
+    // Fetch info for XL files
+    QFileInfo user      ("xl:user.xl");
+    QFileInfo theme     ("xl:theme.xl");
+    QFileInfo syntax    ("system:xl.syntax");
+    QFileInfo stylesheet("system:xl.stylesheet");
+    QFileInfo builtins  ("system:builtins.xl");
+    QFileInfo tutorial  ("system:tutorial.ddd");
+
+    // Setup the XL runtime environment
+    XL::Compiler *compiler = new XL::Compiler("xl_tao");
+    XL::Main *xlr = new XL::Main(argc(), argv(), *compiler,
+                                 +syntax.canonicalFilePath(),
+                                 +stylesheet.canonicalFilePath(),
+                                 +builtins.canonicalFilePath());
+    XL::MAIN = xlr;
+
+    XL::source_names contextFiles;
+    EnterGraphics(xlr->context);
+    if (user.exists())
+        contextFiles.push_back(+user.canonicalFilePath());
+    if (theme.exists())
+        contextFiles.push_back(+theme.canonicalFilePath());
+
+    // Cleanup obsolete URI/project mappings (QSettings)
+    Uri::gc();
+
+    // Create the windows for each file or URI on the command line
+    bool hadFile = false;
+    hadWin = false;
+    XL::source_names &names = xlr->file_names;
+    XL::source_names::iterator it;
+    for (it = names.begin(); it != names.end(); it++)
+    {
+        if (splash)
+            splash->raise();
+        QString sourceFile = +(*it);
+        hadFile = true;
+        Tao::Window *window = new Tao::Window (xlr, contextFiles);
+        if (splash)
+        {
+            window->splashScreen = splash;
+            QObject::connect(splash, SIGNAL(destroyed(QObject*)),
+                             window, SLOT(removeSplashScreen()));
+        }
+        window->deleteOnOpenFailed = true;
+        connect(window, SIGNAL(openFinished(bool)),
+                this, SLOT(onOpenFinished(bool)));
+        int st = window->open(sourceFile);
+        switch (st)
+        {
+        case 0:
+            break;
+        case 1:
+            window->show();
+            hadWin = true;
+            break;
+        case 2:
+            window->show();
+            if (splash)
+                splash->raise();
+            pendingOpen++;
+            break;
+        default:
+            Q_ASSERT(!"Unexpected return value");
+            break;
+        }
+    }
+
+    if (!hadFile)
+    {
+        // Open tutorial file read-only
+        QString tuto = tutorial.canonicalFilePath();
+        Tao::Window *untitled = new Tao::Window(xlr, contextFiles);
+        untitled->open(tuto, true);
+        untitled->isUntitled = true;
+        untitled->isReadOnly = true;
+        untitled->show();
+        hadWin = true;
+    }
+
+    if (splash && pendingOpen == 0)
+    {
+        splash->close();
+        splash->deleteLater();
+        splash = NULL;
+    }
+
+    return (hadWin || pendingOpen);
+}
+
+
+void Application::onOpenFinished(bool ok)
+// ----------------------------------------------------------------------------
+//   Decrement count of pending opens, delete splash screen accordingly
+// ----------------------------------------------------------------------------
+{
+    if (ok)
+        hadWin = true;
+
+    if (--pendingOpen == 0 && splash)
+    {
+        splash->close();
+        splash->deleteLater();
+        splash = NULL;
+    }
 }
 
 

@@ -336,8 +336,8 @@ bool GitRepository::remove(text name)
     clearCachedDocVersion();
     mergeCommitMessages(nextCommitMessage, whatsNew);
     whatsNew = "";
-    dispatch(new Process(command(), QStringList("rm") << +name, path, false));
-    return true;
+    Process cmd(command(), QStringList("rm") << +name, path);
+    return cmd.done(&errors);
 }
 
 
@@ -431,34 +431,82 @@ bool GitRepository::cherryPick(text id)
 }
 
 
-void GitRepository::asyncProcessFinished(int exitCode)
+void GitRepository::computePercentComplete()
+// ----------------------------------------------------------------------------
+//   Extract % complete from the text output of a clone or fetch process
+// ----------------------------------------------------------------------------
+{
+    Process *cmd = (Process *)sender();
+    int &pos = cmd->errPos;
+    bool matched = false;
+    int percent = -1;
+    do
+    {
+        int p1 = 5, p2 = 94, p3 = 1;
+        QString str = cmd->err.mid(pos);
+        QRegExp rx1("Compressing objects: +([0-9]*)%");
+        QRegExp rx2("Receiving objects: +([0-9]*)%");
+        QRegExp rx3("Resolving deltas: +([0-9]*)%");
+        matched = true;
+        if (rx1.indexIn(str) != -1)
+        {
+            percent = rx1.cap(1).toInt() * p1 / 100;
+            pos += rx1.matchedLength();
+        }
+        else
+        if (rx2.indexIn(str) != -1)
+        {
+            percent = p1 + rx2.cap(1).toInt() * p2 / 100;
+            pos += rx2.matchedLength();
+        }
+        else
+        if (rx3.indexIn(str) != -1)
+        {
+            percent = p1 + p2 + rx3.cap(1).toInt() * p3 / 100;
+            pos += rx3.matchedLength();
+        }
+        else
+        {
+            matched = false;
+        }
+    }
+    while (matched);
+
+    if (percent == -1 || percent == cmd->percent)
+        return;
+
+    IFTRACE(process)
+        std::cerr << "Process " << cmd->num << ": " << percent << "% complete\n";
+    cmd->percent = percent;
+    emit percentComplete(percent);
+}
+
+
+void GitRepository::asyncProcessFinished(int exitCode, QProcess::ExitStatus st)
 // ----------------------------------------------------------------------------
 //   An asynchronous subprocess has finished
 // ----------------------------------------------------------------------------
 {
+    (void)exitCode; (void)st;
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
     Q_ASSERT(cmd == pQueue.first());
     QString op = cmd->args.first();
-    text output;
-    cmd->done(&errors, &output);
-    if (exitCode)
-    {
-        std::cerr << +tr("Async command failed, exit status %1: %2\n")
-                        .arg((int)exitCode).arg(cmd->commandLine)
-                  << +tr("Error output:\n") << errors;
-    }
     if (op == "clone")
     {
-        cmd->sendStandardOutputToTextEdit();
         QString projPath;
         projPath = parseCloneOutput(cmd->out);
         emit asyncCloneComplete(cmd->id, projPath);
     }
     else if (op == "pull")
     {
-        if (output.find("Already up-to-date") == std::string::npos)
+        if (!cmd->out.contains("Already up-to-date"))
             emit asyncPullComplete();
+        delete cmd;  // REVISIT inconsistency: deleting only in this case
+    }
+    else if (op == "fetch")
+    {
+        emit asyncFetchComplete(cmd->id);
     }
 }
 
@@ -604,7 +652,10 @@ bool GitRepository::pull()
     QStringList args("pull");
     args << crArgs(conflictResolution);
     args << pullFrom << branch;
-    dispatch(new Process(command(), args, path, false));
+    Process * proc = new Process(command(), args, path, false);
+    connect(proc,  SIGNAL(finished(int,QProcess::ExitStatus)),
+            this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
+    dispatch(proc);
     return true;
 }
 
@@ -684,6 +735,19 @@ QString GitRepository::remotePushUrl(QString name)
 }
 
 
+QString GitRepository::remoteWithFetchUrl(QString url)
+// ----------------------------------------------------------------------------
+//   Return the name of the remote with specified fetch URL
+// ----------------------------------------------------------------------------
+{
+    QStringList remotes = this->remotes();
+    foreach (QString remote, remotes)
+        if (remoteFetchUrl(remote) == url)
+            return remote;
+    return "";
+}
+
+
 bool GitRepository::addRemote(QString name, QString url)
 // ----------------------------------------------------------------------------
 //   Add a remote, giving its pull URL
@@ -756,17 +820,47 @@ QList<GitRepository::Commit> GitRepository::history(QString branch, int max)
     return result;
 }
 
-Process * GitRepository::asyncClone(QString cloneUrl, QString newFolder,
-                                    AnsiTextEdit * out, void *id)
+
+Process * GitRepository::asyncClone(QString cloneUrl, QString newFolder)
 // ----------------------------------------------------------------------------
-//   Make a local copy of a remote project
+//   Prepare a Process that will make a local copy of a remote project
 // ----------------------------------------------------------------------------
 {
     QStringList args;
     args << "clone" << "--progress" << cloneUrl;
     if (!newFolder.isEmpty())
         args << newFolder;
-    return dispatch(new Process(command(), args, path, false), out, out, id);
+    Process * proc = new Process(command(), args, path, false);
+    connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
+            this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
+
+    // Track % complete by reading stderr
+    connect(proc, SIGNAL(standardErrorUpdated(QByteArray)),
+            this, SLOT  (computePercentComplete()));
+    connect(this, SIGNAL(percentComplete(int)),
+            proc, SIGNAL(percentComplete(int)));  // signal forwarding
+
+    return proc;
+}
+
+
+Process * GitRepository::asyncFetch(QString url)
+// ----------------------------------------------------------------------------
+//   Prepare a Process that will download latest changes from a remote project
+// ----------------------------------------------------------------------------
+{
+    QStringList args;
+    args << "fetch" << url;
+    Process * proc = new Process(command(), args, path, false);
+    connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
+            this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
+
+    // Track % complete by reading stderr
+    connect(proc, SIGNAL(standardErrorUpdated(QByteArray)),
+            this, SLOT  (computePercentComplete()));
+    connect(this, SIGNAL(percentComplete(int)),
+            proc, SIGNAL(percentComplete(int)));  // signal forwarding
+    return proc;
 }
 
 

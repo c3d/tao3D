@@ -75,13 +75,14 @@ public:
     virtual QStringList remotes();
     virtual QString     remoteFetchUrl(QString name);
     virtual QString     remotePushUrl(QString name);
+    virtual QString     remoteWithFetchUrl(QString url);
     virtual bool        addRemote(QString name, QString url);
     virtual bool        setRemote(QString name, QString url);
     virtual bool        delRemote(QString name);
     virtual bool        renRemote(QString oldName, QString newName);
     virtual QList<Commit> history(QString branch = "", int max = 20);
-    virtual Process *   asyncClone(QString cloneUrl, QString newFolder,
-                                   AnsiTextEdit *out = NULL, void *id = NULL);
+    virtual Process *   asyncClone(QString cloneUrl, QString newFolder);
+    virtual Process *   asyncFetch(QString url);
     virtual text        version();
     virtual bool        isClean();
     virtual QString     url();
@@ -89,13 +90,17 @@ public:
 
     static  bool        checkGit();
 
+signals:
+    void                percentComplete(int percent);
+
 protected:
     virtual QString     command();
     virtual QString     userVisibleName();
     virtual text        styleSheet();
 
 protected slots:
-    virtual void        asyncProcessFinished(int exitCode);
+    void                computePercentComplete();
+    virtual void        asyncProcessFinished(int exitCode, QProcess::ExitStatus st);
     void                clearCachedDocVersion();
     virtual void        checkCurrentBranch();
 

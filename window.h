@@ -44,6 +44,8 @@ namespace Tao {
 struct Widget;
 class SplashScreen;
 class BranchSelectionToolBar;
+class Uri;
+
 
 class Window : public QMainWindow
 // ----------------------------------------------------------------------------
@@ -83,14 +85,17 @@ public slots:
     void toggleAnimations();
     void toggleStereoscopy();
     void sourceViewBecameVisible(bool visible);
-    void open(QString fileName = "", bool readOnly = false);
+    int  open(QString fileName = "", bool readOnly = false);
+    void openUri();
     void removeSplashScreen();
     void deleteAboutSplash();
     void showProjectUrl(QString url);
+    void showMessage(QString message)  { showMessage(message, 2000); }
 
 signals:
     void projectUrlChanged(QString url);
     void projectChanged(Repository *repo);
+    void openFinished(bool success);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -122,6 +127,8 @@ private slots:
     void toggleFullScreen();
     void clearUndoStack();
     void reloadCurrentFile();
+    void onUriGetFailed();
+    void onDocReady(QString path);
 
 private:
     void     createActions();
@@ -148,7 +155,7 @@ private:
     void     updateRecentFileActions();
     void     updateContext(QString docPath);
     void     loadSrcViewStyleSheet();
-    void     showMessage(QString message, int timeout = 0);
+    void     showMessage(QString message, int timeout);
 
 private:
     XL::Main *        xlRuntime;
@@ -165,6 +172,7 @@ private:
     QDockWidget      *errorDock;
     Widget           *taoWidget;
     QString           curFile;
+    Uri              *uri;
 
     QTimer            fileCheckTimer;
     QMenu            *fileMenu;
@@ -178,6 +186,7 @@ private:
     BranchSelectionToolBar *branchToolBar;
     QAction          *newAct;
     QAction          *openAct;
+    QAction          *openUriAct;
     QAction          *saveAct;
     QAction          *saveAsAct;
     QAction          *recAct;
@@ -212,6 +221,7 @@ public:
     QMenu            *shareMenu;
     SplashScreen     *splashScreen;
     SplashScreen     *aboutSplash;
+    bool              deleteOnOpenFailed;
 
 };
 

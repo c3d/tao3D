@@ -597,7 +597,19 @@ void Application::saveSettings()
 // ----------------------------------------------------------------------------
 {
     QSettings().setValue("UrlCompletions", QVariant(urlList));
+    IFTRACE(settings)
+    {
+        std::cerr << "URL completions saved:\n";
+        foreach (QString s, urlList)
+            std::cerr << "  " << +s << "\n";
+    }
     QSettings().setValue("PathCompletions", QVariant(pathList));
+    IFTRACE(settings)
+    {
+        std::cerr << "Path completions saved:\n";
+        foreach (QString s, pathList)
+            std::cerr << "  " << +s << "\n";
+    }
 }
 
 

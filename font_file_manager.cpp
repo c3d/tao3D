@@ -228,6 +228,7 @@ QStringList FontFileManager::FilesForFontFamily(const QString &family)
 //   Dummy implementation, pending Linux-specific version
 // ----------------------------------------------------------------------------
 {
+    (void)family;
     return QStringList();
 }
 

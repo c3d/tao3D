@@ -254,7 +254,7 @@ void Repository::asyncProcessFinished(int exitCode, QProcess::ExitStatus st)
 
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
-    Q_ASSERT(cmd == pQueue.head());
+    Q_ASSERT(cmd == pQueue.head()); (void)cmd;
 }
 
 
@@ -269,7 +269,7 @@ void Repository::asyncProcessError(QProcess::ProcessError error)
     // This slot is called *in addition to* asyncProcessFinished, which
     // will do the cleanup.
     Process *cmd = (Process *)sender();
-    Q_ASSERT(cmd == pQueue.head());
+    Q_ASSERT(cmd == pQueue.head()); (void)cmd;
 }
 
 

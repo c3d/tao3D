@@ -23,6 +23,8 @@ QT += webkit \
     opengl \
     svg \
     phonon
+QMAKE_CFLAGS += -Werror
+QMAKE_CXXFLAGS += -Werror
 QMAKE_CXXFLAGS_RELEASE += -g
 
 # Tell the XLR portion that we are building for Tao
@@ -33,6 +35,7 @@ macx {
     XLRDIR = Contents/MacOS
     ICON = tao.icns
     QMAKE_INFO_PLIST = Info.plist
+    QMAKE_CFLAGS += -mmacosx-version-min=10.5  # Avoid warning with font_file_manager_macos.mm
 }
 win32:DEFINES += CONFIG_MINGW
 

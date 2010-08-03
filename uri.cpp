@@ -47,8 +47,6 @@ Uri::~Uri()
 //    Delete objects that may have been created by Uri
 // ----------------------------------------------------------------------------
 {
-    if (proc)
-        delete proc;
     if (progress)
         delete progress;
 }
@@ -273,11 +271,11 @@ bool Uri::fetchAndCheckout()
     proc = repo->asyncFetch(remote);
     if (!proc)
         return false;
-    connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
+    connect(proc.data(), SIGNAL(finished(int,QProcess::ExitStatus)),
             this, SLOT(onDownloadFinished(int,QProcess::ExitStatus)));
-    connect(proc, SIGNAL(error(QProcess::ProcessError)),
+    connect(proc.data(), SIGNAL(error(QProcess::ProcessError)),
             this, SLOT(onDownloadError(QProcess::ProcessError)));
-    connect(proc, SIGNAL(percentComplete(int)),
+    connect(proc.data(), SIGNAL(percentComplete(int)),
             progress, SLOT(setValue(int)));
 
     // Run clone process asynchronously. Checkout will be done later.
@@ -313,11 +311,11 @@ bool Uri::cloneAndCheckout()
     proc = repo->asyncClone(repoUri, project);
     if (!proc)
         return false;
-    connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
+    connect(proc.data(), SIGNAL(finished(int,QProcess::ExitStatus)),
             this, SLOT(onDownloadFinished(int,QProcess::ExitStatus)));
-    connect(proc, SIGNAL(error(QProcess::ProcessError)),
+    connect(proc.data(), SIGNAL(error(QProcess::ProcessError)),
             this, SLOT(onDownloadError(QProcess::ProcessError)));
-    connect(proc, SIGNAL(percentComplete(int)),
+    connect(proc.data(), SIGNAL(percentComplete(int)),
             progress, SLOT(setValue(int)));
 
     // Run clone process asynchronously. Checkout will be done later.

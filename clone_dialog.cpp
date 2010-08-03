@@ -77,9 +77,9 @@ void CloneDialog::accept()
     connect(repo.data(), SIGNAL(asyncCloneComplete(void *, QString)),
             this, SLOT(endClone(void *, QString)));
     proc = repo->asyncClone(url, newFolder);
-    connect(proc, SIGNAL(standardErrorUpdated(QByteArray)),
+    connect(proc.data(), SIGNAL(standardErrorUpdated(QByteArray)),
             cloneOutput, SLOT(insertAnsiText(QByteArray)));
-    connect(proc, SIGNAL(standardOutputUpdated(QByteArray)),
+    connect(proc.data(), SIGNAL(standardOutputUpdated(QByteArray)),
             cloneOutput, SLOT(insertAnsiText(QByteArray)));
     repo->dispatch(proc, this);
 }
@@ -93,13 +93,10 @@ void CloneDialog::reject()
     if (!proc)
         return QDialog::reject();
 
-    Process *p = proc;
-    proc = NULL;
+    process_p p = proc;
+    proc.clear();
     if (p)
-    {
         repo->abort(p);
-        delete p;
-    }
 }
 
 
@@ -113,13 +110,10 @@ void CloneDialog::endClone(void *id, QString projPath)
     setCursor(Qt::ArrowCursor);
     QString text;
     if (proc)
-    {
         text = tr("Done.\n");
-        delete proc;
-    }
     else
         text = tr("Aborted.\n");
-    proc = NULL;
+    proc.clear();
     okToDismiss = true;
     okButton->setText("Close");
     okButton->setEnabled(true);

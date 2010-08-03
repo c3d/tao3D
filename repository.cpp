@@ -194,14 +194,14 @@ void Repository::markChanged(text reason)
 }
 
 
-Process * Repository::dispatch(Process *cmd, void *id)
+process_p Repository::dispatch(process_p cmd, void *id)
 // ----------------------------------------------------------------------------
 //   Insert process in run queue and start first process. Return cmd.
 // ----------------------------------------------------------------------------
 //   Caller is responsible for deleting the returned Process
 {
     cmd->id = id;
-    connect(cmd,  SIGNAL(error(QProcess::ProcessError)),
+    connect(cmd.data(), SIGNAL(error(QProcess::ProcessError)),
             this, SLOT  (asyncProcessError(QProcess::ProcessError)));
     pQueue.enqueue(cmd);
     if (pQueue.count() == 1)
@@ -217,7 +217,7 @@ void Repository::waitForAsyncProcessCompletion()
 {
     while (!pQueue.empty())
     {
-        Process *p = pQueue.first();
+        process_p p = pQueue.first();
         IFTRACE(process)
             std::cerr << "Process queue not empty (first=#" << p->num
                       << "), waiting\n";
@@ -225,7 +225,7 @@ void Repository::waitForAsyncProcessCompletion()
     }
 }
 
-void Repository::abort(Process *proc)
+void Repository::abort(process_p proc)
 // ----------------------------------------------------------------------------
 //   Abort an asynchronous process returned by dispatch()
 // ----------------------------------------------------------------------------

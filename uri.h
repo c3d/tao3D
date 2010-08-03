@@ -92,7 +92,7 @@ private:
     repository_ptr        repo;
     bool                  done;
     QProgressDialog *     progress;
-    Process *             proc;
+    process_p             proc;
     QString               procOut;
     int                   pos;
     QString               project;

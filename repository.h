@@ -41,6 +41,8 @@
 
 namespace Tao {
 
+typedef QSharedPointer<Process> process_p;
+
 class Repository : public QObject
 // ----------------------------------------------------------------------------
 //   A repository storing the history of documents
@@ -126,8 +128,8 @@ public:
     virtual bool        setTask(text name);
     virtual bool        idle();
     virtual void        markChanged(text reason);
-    virtual void        abort(Process *proc);
-    Process *           dispatch(Process *cmd, void *id = NULL);
+    virtual void        abort(process_p proc);
+    process_p           dispatch(process_p cmd, void *id = NULL);
 
 public:
     virtual QString     userVisibleName()               = 0;
@@ -162,8 +164,8 @@ public:
     virtual bool        delRemote(QString name)         = 0;
     virtual bool        renRemote(QString oldName, QString newName) = 0;
     virtual QList<Commit> history(QString branch = "", int max = 100) = 0;
-    virtual Process *   asyncClone(QString cloneUrl, QString newFolder) = 0;
-    virtual Process *   asyncFetch(QString url) = 0;
+    virtual process_p   asyncClone(QString cloneUrl, QString newFolder) = 0;
+    virtual process_p   asyncFetch(QString url) = 0;
     virtual text        version()                       = 0;
     virtual bool        isClean()                       = 0;
     virtual QString     url()                           = 0;
@@ -215,7 +217,7 @@ public:
     QString            lastFetchUrl;
 
 protected:
-    QQueue<Process *> pQueue;
+    QQueue<process_p> pQueue;
     QTimer            branchCheckTimer;
 };
 

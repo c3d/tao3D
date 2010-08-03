@@ -502,7 +502,6 @@ void GitRepository::asyncProcessFinished(int exitCode, QProcess::ExitStatus st)
     {
         if (!cmd->out.contains("Already up-to-date"))
             emit asyncPullComplete();
-        delete cmd;  // REVISIT inconsistency: deleting only in this case
     }
     else if (op == "fetch")
     {
@@ -655,7 +654,7 @@ bool GitRepository::pull()
     Process * proc = new Process(command(), args, path, false);
     connect(proc,  SIGNAL(finished(int,QProcess::ExitStatus)),
             this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
-    dispatch(proc);
+    dispatch(process_p(proc));
     return true;
 }
 
@@ -821,7 +820,7 @@ QList<GitRepository::Commit> GitRepository::history(QString branch, int max)
 }
 
 
-Process * GitRepository::asyncClone(QString cloneUrl, QString newFolder)
+process_p GitRepository::asyncClone(QString cloneUrl, QString newFolder)
 // ----------------------------------------------------------------------------
 //   Prepare a Process that will make a local copy of a remote project
 // ----------------------------------------------------------------------------
@@ -840,11 +839,11 @@ Process * GitRepository::asyncClone(QString cloneUrl, QString newFolder)
     connect(this, SIGNAL(percentComplete(int)),
             proc, SIGNAL(percentComplete(int)));  // signal forwarding
 
-    return proc;
+    return process_p(proc);
 }
 
 
-Process * GitRepository::asyncFetch(QString url)
+process_p GitRepository::asyncFetch(QString url)
 // ----------------------------------------------------------------------------
 //   Prepare a Process that will download latest changes from a remote project
 // ----------------------------------------------------------------------------
@@ -860,7 +859,7 @@ Process * GitRepository::asyncFetch(QString url)
             this, SLOT  (computePercentComplete()));
     connect(this, SIGNAL(percentComplete(int)),
             proc, SIGNAL(percentComplete(int)));  // signal forwarding
-    return proc;
+    return process_p(proc);
 }
 
 

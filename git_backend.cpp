@@ -926,8 +926,11 @@ bool GitRepository::gc()
 // ----------------------------------------------------------------------------
 {
     waitForAsyncProcessCompletion();
-    Process cmd(command(), QStringList("gc"), path);
-    return cmd.done(&errors);
+    Process * proc = new Process(command(), QStringList("gc"), path, false);
+    connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
+            this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
+    dispatch(process_p(proc));
+    return true;
 }
 
 TAO_END

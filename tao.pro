@@ -185,6 +185,7 @@ SOURCES += tao_main.cpp \
     xlr/xlr/context.cpp \
     xlr/xlr/compiler.cpp \
     xlr/xlr/basics.cpp \
+    xlr/xlr/types.cpp \
     xlr/xlr/diff.cpp \
     xlr/xlr/lcs.cpp \
     drag.cpp \

@@ -148,7 +148,7 @@ bool Application::processCommandLine()
 // ----------------------------------------------------------------------------
 {
     bool showSplash = true;
-    if (arguments().contains("-nosplash"))
+    if (arguments().contains("-nosplash") || arguments().contains("-h"))
         showSplash = false;
 
     // Show splash screen

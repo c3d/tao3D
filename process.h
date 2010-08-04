@@ -29,6 +29,7 @@
 #include <QString>
 #include <QProcess>
 #include <QTextEdit>
+#include <QTime>
 #include <iostream>
 
 namespace Tao {
@@ -92,6 +93,9 @@ public:
 public:
     ulong        num;
     static ulong snum;    // For debug traces only
+
+protected:
+    QTime        startTime;
 };
 
 }

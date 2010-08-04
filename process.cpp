@@ -95,6 +95,7 @@ void Process::start(const QString &cmd, const QStringList &args,
         std::cerr << "Process " << num << ": " << +commandLine
                   << " (wd " << +workingDirectory() << ")\n";
 
+    startTime.start();
     QProcess::start(cmd, args);
 }
 
@@ -242,9 +243,11 @@ void Process::debugProcessFinished(int exitCode, QProcess::ExitStatus st)
 //   Print debug traces to stderr when process finishes
 // ------------------------------------------------------------------------
 {
+    int elapsed = startTime.elapsed();
     QString type = exitStatusToString(st);
-    std::cerr << +tr("Process %1 finished (exit type: %2, exit code: %3)\n")
-                     .arg(num).arg(type).arg((int)exitCode);
+    std::cerr << +tr("Process %1 finished (exit type: %2, exit code: %3,"
+                     " elapsed: %4 ms)\n")
+                     .arg(num).arg(type).arg((int)exitCode).arg(elapsed);
     if (!out.isEmpty())
         std::cerr << +tr("Process %1 stdout:\n%2Process %3 stdout end\n")
                          .arg(num).arg(out).arg(num);

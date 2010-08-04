@@ -1283,11 +1283,13 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     showMessage(msg.arg(tr("Fonts")));
     FontFileManager ffm;
+    QList<int> prev = appFontIds;
     appFontIds = ffm.LoadEmbeddedFonts(fileName);
     if (!appFontIds.empty())
         taoWidget->glyphs().Clear();
     foreach (QString e, ffm.errors)
         addError(e);
+    ffm.UnloadEmbeddedFonts(prev);
     showMessage(msg.arg(tr("Document")));
 
     // FIXME: the whole search path stuff is broken when multiple documents

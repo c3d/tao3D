@@ -33,6 +33,10 @@
 #include <QGLWidget>
 #include <QFileInfo>
 
+#ifdef CONFIG_MINGW
+#include <windows.h>
+static void win_redirect_io();
+#endif
 
 static void cleanup();
 
@@ -44,6 +48,11 @@ int main(int argc, char **argv)
     using namespace Tao;
 
     Q_INIT_RESOURCE(tao);
+
+#ifdef CONFIG_MINGW
+    // Do our best to send stdout/stderr output somewhere
+    win_redirect_io();
+#endif
 
     // We need to brute-force option parsing here, the OpenGL choice must
     // be made before calling the QApplication constructor...
@@ -86,6 +95,31 @@ void cleanup()
     // No more global refs, deleting GC will purge everything
     XL::GarbageCollector::Delete();
 }
+
+#ifdef CONFIG_MINGW
+void win_redirect_io()
+// ----------------------------------------------------------------------------
+//   Send stdout and stderr to parent console if we have one, or to a file
+// ----------------------------------------------------------------------------
+{
+    if (AttachConsole(ATTACH_PARENT_PROCESS))
+    {
+        // Log to console of parent process
+        freopen("CON", "a", stdout);
+        freopen("CON", "a", stderr);
+    }
+    else
+    {
+        // Parent has no console, log to a file
+        QDir dir(Tao::Application::defaultProjectFolderPath());
+        QString path = dir.absoluteFilePath("tao.log");
+        const char *f = path.toStdString().c_str();
+        fclose(fopen(f, "w"));
+        freopen(f, "a", stdout);
+        freopen(f, "a", stderr);
+    }
+}
+#endif
 
 XL_BEGIN
 text Main::SearchFile(text file)

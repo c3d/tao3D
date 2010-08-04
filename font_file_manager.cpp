@@ -28,6 +28,7 @@
 #include <QFontDatabase>
 #include <QFileInfoList>
 #include <QDir>
+#include <QTime>
 #include <iostream>
 
 #ifdef CONFIG_MINGW
@@ -150,13 +151,20 @@ QList<int> FontFileManager::LoadEmbeddedFonts(const QString &docPath)
     QString fontPath = FontPathFor(docPath);
     QDir fontDir(fontPath);
     QFileInfoList contents = fontDir.entryInfoList();
+    QTime time;
+    int count = 0;
+    IFTRACE(fonts)
+        time.start();
     foreach (QFileInfo f, contents)
     {
         if (f.isFile())
         {
             QString path = f.absoluteFilePath();
             IFTRACE(fonts)
+            {
                 std::cerr << "Loading font file '" << +path << "'...";
+                count++;
+            }
             int id = QFontDatabase::addApplicationFont(path);
             if (id != -1)
             {
@@ -173,6 +181,12 @@ QList<int> FontFileManager::LoadEmbeddedFonts(const QString &docPath)
             }
         }
     }
+    IFTRACE(fonts)
+    {
+        int ms = time.elapsed();
+        std::cerr << count << " font files loaded in " << ms << " ms\n";
+    }
+
     return ids;
 }
 

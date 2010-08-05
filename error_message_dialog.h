@@ -36,7 +36,7 @@ public:
     ErrorMessageDialog(QWidget *parent = 0);
     ~ErrorMessageDialog();
 
-    void showMessage(const QString & message, bool dontShowAgain = true);
+    bool showMessage(const QString & message, bool dontShowAgain = true);
 
 public slots:
     void accept();

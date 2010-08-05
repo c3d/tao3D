@@ -229,6 +229,19 @@ void Uri::clearLocalProject()
 }
 
 
+bool Uri::showRepoErrorDialog()
+// ----------------------------------------------------------------------------
+//    Display an error dialog when repository can't be open
+// ----------------------------------------------------------------------------
+{
+    QString uri = toString();
+    QString err = RepositoryFactory::errors;
+    QMessageBox::warning(NULL, tr("Error"),
+                         tr("Could not open %1:\n%2").arg(uri).arg(err));
+    return false;
+}
+
+
 bool Uri::fetchAndCheckout()
 // ----------------------------------------------------------------------------
 //    Display a progress dialog and use Repository to fetch remote project
@@ -239,7 +252,7 @@ bool Uri::fetchAndCheckout()
     repo = RepositoryFactory::repository(project,
                                          RepositoryFactory::OpenExisting);
     if (!repo)
-        return false;
+        return showRepoErrorDialog();
 
     // Prepare progress dialog
     progress = new QProgressDialog(tr("Opening %1...").arg(toString()),
@@ -294,7 +307,7 @@ bool Uri::cloneAndCheckout()
     project = newProject();
     repo = RepositoryFactory::repository(project, RepositoryFactory::Clone);
     if (!repo)
-        return false;
+        return showRepoErrorDialog();
 
     // Prepare progress dialog
     QString uri = toString();
@@ -362,6 +375,7 @@ void Uri::onDownloadError(QProcess::ProcessError error)
 {
     if (aborted)
         return;
+    progress->close();
     QString err = Process::processErrorToString(error);
     QString msg = tr("Download failed: %1").arg(err);
     QMessageBox::warning(NULL, tr("Error"), msg);
@@ -490,7 +504,7 @@ QString Uri::newProject()
     {
         QString dir = remoteName;
         if (exists)
-            dir = QString("%1%2").arg(remoteName).arg(count++);
+            dir = QString("%1_%2").arg(remoteName).arg(count++);
         project = Application::defaultProjectFolderPath() + "/" + dir;
         exists = QFileInfo(project).exists();
     }

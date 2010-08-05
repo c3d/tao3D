@@ -70,6 +70,7 @@ public:
     bool showSourceView(bool fs);
     bool loadFileIntoSourceFileView(const QString &fileName, bool box=false);
     QString  currentProjectFolderPath();
+    bool     needNewWindow();
 
     bool isUntitled;
     bool isReadOnly;
@@ -140,7 +141,6 @@ private:
     void     readSettings();
     void     writeSettings();
     bool     maybeSave();
-    bool     needNewWindow();
     bool     loadFile(const QString &fileName, bool openProj = false);
     bool     saveFile(const QString &fileName);
     void     setCurrentFile(const QString &fileName);

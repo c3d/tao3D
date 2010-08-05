@@ -67,11 +67,18 @@ Application::Application(int & argc, char ** argv)
         internalCleanEverythingAsIfTaoWereNeverRun();
         std::exit(0);
     }
+    bool showSplash = true;
+    if (arguments().contains("-nosplash") || arguments().contains("-h"))
+        showSplash = false;
 
-    // Get the first file name and guess its location to initialize
-    // the project folder. If there is no filename, or it is not found the
-    // currentProjectFolder will be initialized to ".".
-    updateSearchPaths();
+    // Show splash screen
+    if (showSplash)
+    {
+        splash = new SplashScreen();
+        splash->show();
+        splash->raise();
+        QApplication::processEvents();
+    }
 
     // Web settings
     QWebSettings *gs = QWebSettings::globalSettings();
@@ -130,6 +137,18 @@ Application::Application(int & argc, char ** argv)
     createDefaultProjectFolder();
 
     loadSettings();
+
+    // Setup the XL runtime environment
+    updateSearchPaths();
+    QFileInfo syntax    ("system:xl.syntax");
+    QFileInfo stylesheet("system:xl.stylesheet");
+    QFileInfo builtins  ("system:builtins.xl");
+    XL::Compiler *compiler = new XL::Compiler("xl_tao");
+    XL::Main *xlr = new XL::Main(argc, argv, *compiler,
+                                 +syntax.canonicalFilePath(),
+                                 +stylesheet.canonicalFilePath(),
+                                 +builtins.canonicalFilePath());
+    XL::MAIN = xlr;
 }
 
 
@@ -144,47 +163,21 @@ Application::~Application()
 
 bool Application::processCommandLine()
 // ----------------------------------------------------------------------------
-//   Handle command-line arguments, open files or URIs
+//   Handle command-line files or URIs
 // ----------------------------------------------------------------------------
 {
-    bool showSplash = true;
-    if (arguments().contains("-nosplash") || arguments().contains("-h"))
-        showSplash = false;
-
-    // Show splash screen
-    if (showSplash)
-    {
-        splash = new SplashScreen();
-        splash->show();
-        splash->raise();
-        QApplication::processEvents();
-    }
-
     // Fetch info for XL files
     QFileInfo user      ("xl:user.xl");
     QFileInfo theme     ("xl:theme.xl");
-    QFileInfo syntax    ("system:xl.syntax");
-    QFileInfo stylesheet("system:xl.stylesheet");
-    QFileInfo builtins  ("system:builtins.xl");
     QFileInfo tutorial  ("system:tutorial.ddd");
 
-    // Setup the XL runtime environment
-    XL::Compiler *compiler = new XL::Compiler("xl_tao");
-    XL::Main *xlr = new XL::Main(argc(), argv(), *compiler,
-                                 +syntax.canonicalFilePath(),
-                                 +stylesheet.canonicalFilePath(),
-                                 +builtins.canonicalFilePath());
-    XL::MAIN = xlr;
-
+    XL::Main *xlr = XL::MAIN;
     XL::source_names contextFiles;
     EnterGraphics(xlr->context);
     if (user.exists())
         contextFiles.push_back(+user.canonicalFilePath());
     if (theme.exists())
         contextFiles.push_back(+theme.canonicalFilePath());
-
-    // Cleanup obsolete URI/project mappings (QSettings)
-    Uri::gc();
 
     // Create the windows for each file or URI on the command line
     bool hadFile = false;
@@ -624,6 +617,9 @@ void Application::loadSettings()
     // create duplicates :(
     urlList.removeDuplicates();
     pathList.removeDuplicates();
+
+    // Cleanup obsolete URI/project mappings (QSettings) before we open any URI
+    Uri::gc();
 }
 
 

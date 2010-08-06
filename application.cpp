@@ -278,6 +278,7 @@ void Application::loadUri(QString uri)
         QMessageBox::warning(window, tr("Error"),
                              tr("Could not open %1.\n"
                                 "Please check the address.\n").arg(uri));
+    pendingOpen++;
 }
 
 

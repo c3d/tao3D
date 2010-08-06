@@ -29,20 +29,21 @@
 #include <cassert>
 #include <QMessageBox>
 #include <QApplication>
+#include <QRegExp>
+#include <QDir>
 
 
 TAO_BEGIN
 
-ulong Process::num = 0;
+ulong Process::snum = 0;
 
 Process::Process(size_t bufSize)
 // ----------------------------------------------------------------------------
 //   Create a QProcess without starting it yet
 // ----------------------------------------------------------------------------
-    : commandLine(""), outTextEdit(NULL), errTextEdit(NULL), id(NULL),
-      aborted(false)
+    : commandLine(""), id(NULL),
+      aborted(false), errPos(0), percent(0)
 {
-    num++;
     initialize(bufSize);
 }
 
@@ -56,9 +57,9 @@ Process::Process(const QString &cmd,
 //   Create a QProcess
 // ----------------------------------------------------------------------------
     : commandLine(""), cmd(cmd), args(args), wd(wd),
-      outTextEdit(NULL), errTextEdit(NULL), id(NULL), aborted(false)
+      id(NULL), aborted(false),
+      errPos(0), percent(0)
 {
-    num++;
     setWorkingDirectory(wd);
     initialize(bufSize);
     if (startImmediately)
@@ -84,12 +85,17 @@ void Process::start(const QString &cmd, const QStringList &args,
 {
     commandLine = cmd + " " + args.join(" ");
     if (!wd.isEmpty())
+    {
+        // Note: it is possible that directory wd does not exist. It must not
+        // be rejected here or clone won't work anymore.
         setWorkingDirectory(wd);
+    }
 
     IFTRACE(process)
         std::cerr << "Process " << num << ": " << +commandLine
                   << " (wd " << +workingDirectory() << ")\n";
 
+    startTime.start();
     QProcess::start(cmd, args);
 }
 
@@ -124,36 +130,24 @@ bool Process::done(text *errors, text *output)
             ok = false;
 
     int rc = exitCode();
-    IFTRACE(process)
-        std::cerr << "Process " << num << " returned " << rc << "\n";
     if (rc)
         ok = false;
 
-    bool tracing = XLTRACE(process);
-    if (!ok)
-    {
-        err = tr("Process '%1'' terminated abnormally "
-                 "with exit code %2:\n%3")
-            .arg(commandLine) .arg(rc) .arg(QString(readAll()));
-    }
-    if (output || tracing)
-        out += QString(readAllStandardOutput());
-    if (errors || tracing)
-        err += QString(readAllStandardError());
     if (output)
         *output = +out;
     if (errors)
         *errors = +err;
 
-    if (tracing)
-    {
-        if (err.length())
-            std::cerr << "Process " << num << ": Error output:\n" << +err;
-        if (out.length())
-            std::cerr << "Process " << num << ": Standard output:\n" << +out;
-    }
-
     return ok;
+}
+
+
+bool Process::failed()
+// ----------------------------------------------------------------------------
+//   Return true if the process crashed or returned a non-zero value
+// ----------------------------------------------------------------------------
+{
+  return (exitStatus() != QProcess::NormalExit) || exitCode();
 }
 
 
@@ -162,9 +156,26 @@ void Process::initialize(size_t bufSize)
 //   Initialize the process and streambuf
 // ----------------------------------------------------------------------------
 {
+    num = snum++;
+
     // Allocate data to be used by the streambuf
     char *ptr = new char[bufSize];
     setp(ptr, ptr + bufSize);
+
+    // Set up the stderr/stdout signal mechanism
+    connect(this, SIGNAL(readyReadStandardOutput()),
+            this, SLOT(readStandardOutput()));
+    connect(this, SIGNAL(readyReadStandardError()),
+            this, SLOT(readStandardError()));
+
+    // Set up debug traces
+    IFTRACE(process)
+    {
+        connect(this, SIGNAL(finished(int,QProcess::ExitStatus)),
+                this, SLOT(debugProcessFinished(int,QProcess::ExitStatus)));
+        connect(this, SIGNAL(error(QProcess::ProcessError)),
+                this, SLOT(debugProcessError(QProcess::ProcessError)));
+    }
 }
 
 
@@ -205,33 +216,89 @@ int Process::sync()
 }
 
 
-void Process::sendStandardOutputToTextEdit()
+void Process::readStandardOutput()
 // ------------------------------------------------------------------------
-//   Read+save stdout and send text to previously registered QTextEdit
+//   Append new stdout data to buffer
 // ------------------------------------------------------------------------
 {
-    if (!outTextEdit)
-        return;
-    QByteArray outB = readAllStandardOutput();
-    IFTRACE(process)
-        std::cerr << +QString(outB);
-    outTextEdit->insertAnsiText(outB);
-    out.append(outB);
+    QByteArray newOut = QProcess::readAllStandardOutput();
+    out.append(newOut);
+    emit standardOutputUpdated(newOut);
 }
 
 
-void Process::sendStandardErrorToTextEdit()
+void Process::readStandardError()
 // ------------------------------------------------------------------------
-//   Read+save stderr and send text to previously registered QTextEdit
+//   Append new stderr data to buffer
 // ------------------------------------------------------------------------
 {
-    if (!errTextEdit)
-        return;
-    QByteArray errB = readAllStandardError();
-    IFTRACE(process)
-        std::cerr << +QString(errB);
-    errTextEdit->insertAnsiText(errB);
-    err.append(errB);
+    QByteArray newErr = QProcess::readAllStandardError();
+    err.append(newErr);
+    emit standardErrorUpdated(newErr);
+}
+
+
+void Process::debugProcessFinished(int exitCode, QProcess::ExitStatus st)
+// ------------------------------------------------------------------------
+//   Print debug traces to stderr when process finishes
+// ------------------------------------------------------------------------
+{
+    int elapsed = startTime.elapsed();
+    QString type = exitStatusToString(st);
+    std::cerr << +tr("Process %1 finished (exit type: %2, exit code: %3,"
+                     " elapsed: %4 ms)\n")
+                     .arg(num).arg(type).arg((int)exitCode).arg(elapsed);
+    if (!out.isEmpty())
+        std::cerr << +tr("Process %1 stdout:\n%2Process %3 stdout end\n")
+                         .arg(num).arg(out).arg(num);
+    if (!err.isEmpty())
+        std::cerr << +tr("Process %1 stderr:\n%2Process %3 stderr end\n")
+                         .arg(num).arg(err).arg(num);
+}
+
+
+void Process::debugProcessError(QProcess::ProcessError error)
+// ------------------------------------------------------------------------
+//   Print debug traces to stderr in case of process error
+// ------------------------------------------------------------------------
+{
+    QString type = processErrorToString(error);
+    std::cerr << +tr("Process %1 error: %2\n").arg(num)
+                                              .arg(type);
+    if (!err.isEmpty())
+        std::cerr << +tr("  stderr: %1\n").arg(err);
+}
+
+
+QString Process::processErrorToString(QProcess::ProcessError error)
+// ------------------------------------------------------------------------
+//   Convert error code to text
+// ------------------------------------------------------------------------
+{
+    switch (error)
+    {
+    case QProcess::FailedToStart:  return tr("Failed to start");
+    case QProcess::Crashed:        return tr("Crashed");
+    case QProcess::Timedout:       return tr("Timed out");
+    case QProcess::WriteError:     return tr("Write error");
+    case QProcess::ReadError:      return tr("Read error");
+    case QProcess::UnknownError:   return tr("Unknown error");
+    default:                       return tr("???");
+    }
+}
+
+
+QString Process::exitStatusToString(QProcess::ExitStatus status)
+// ------------------------------------------------------------------------
+//   Convert error code to text
+// ------------------------------------------------------------------------
+{
+    switch (status)
+    {
+    case QProcess::NormalExit:  return tr("Normal exit");
+    case QProcess::CrashExit:   return tr("Crash exit");
+    default:                    return tr("???");
+    }
 }
 
 TAO_END

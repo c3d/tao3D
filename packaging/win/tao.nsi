@@ -16,7 +16,7 @@ InstallDir $PROGRAMFILES\Taodyne\Tao
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\Tao" "Install_Dir"
+InstallDirRegKey HKLM "Software\Taodyne\Tao" "Install_Dir"
 
 ; Request application privileges for Windows Vista
 RequestExecutionLevel admin
@@ -46,7 +46,7 @@ Section "Tao (required)"
   File /r "buildroot\*.*"
   
   ; Write the installation path into the registry
-  WriteRegStr HKLM SOFTWARE\Tao "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM SOFTWARE\Taodyne\Tao "Install_Dir" "$INSTDIR"
   
   ; Write the uninstall keys for Windows
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao" "DisplayName" "Tao"
@@ -74,7 +74,7 @@ Section "Uninstall"
   
   ; Remove registry keys
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao"
-  DeleteRegKey HKLM SOFTWARE\Tao
+  DeleteRegKey HKLM SOFTWARE\Taodyne\Tao
 
   ; Remove application files and uninstaller
   Delete $INSTDIR\*.*

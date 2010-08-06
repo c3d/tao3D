@@ -57,7 +57,7 @@ Application::Application(int & argc, char ** argv)
 {
     // Set some useful parameters for the application
     setApplicationName ("Tao");
-    setOrganizationName ("Taodyne SAS");
+    setOrganizationName ("Taodyne");
     setOrganizationDomain ("taodyne.com");
     setWindowIcon(QIcon(":/images/tao.png"));
 

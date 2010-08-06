@@ -74,6 +74,7 @@ signals:
 protected:
     virtual void initialize(size_t bufSize);
     virtual void setEnvironment();
+    virtual void setWd(const QString &wd);
 
 protected:                      // From std::streambuf
     virtual int sync();

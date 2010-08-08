@@ -23,12 +23,18 @@
 #include "renderer.h"
 #include "options.h"
 #include "tao_utf8.h"
+#include "error_message_dialog.h"
+
 #include <QDir>
 #include <QString>
 #include <QtGlobal>
 #include <QApplication>
 #include <QRegExp>
 #include <QHostInfo>
+#include <QSettings>
+#include <QMessageBox>
+#include <QFileDialog>
+
 #include <iostream>
 
 TAO_BEGIN
@@ -53,8 +59,13 @@ bool GitRepository::checkGit()
 //   Return true if Git is functional, and set the git command accordingly
 // ----------------------------------------------------------------------------
 {
+    // Test user-defined git command (if any), then
     // Look for "git" in $PATH, then in <application's directory>/git/bin
+again:
     QStringList commands;
+    QString userCmd = QSettings().value("GitCommand").toString();
+    if (!userCmd.isEmpty())
+        commands << userCmd;
     commands << "git" << qApp->applicationDirPath() + "/git/bin/git";
     QStringListIterator it(commands);
     while (it.hasNext())
@@ -71,7 +82,47 @@ bool GitRepository::checkGit()
                 return true;
         }
     }
+
+    bool again = showGitSelectionDialog();
+    if (again)
+        goto again;
+
     return false;
+}
+
+
+bool GitRepository::showGitSelectionDialog()
+// ----------------------------------------------------------------------------
+//   Enable user to select the git program to use
+// ----------------------------------------------------------------------------
+{
+    ErrorMessageDialog dialog;
+    dialog.setWindowTitle(tr("Version control software"));
+    bool shown = dialog.showMessage(tr("No supported version control software was "
+                              "found. Some functions will not be available. "
+                              "Consider re-installing the application, "
+                              "or installing Git v1.7.0 or later."));
+    if (!shown)
+        return false;
+
+    int ret;
+    ret = QMessageBox::question(NULL, tr("Git selection"),
+                                tr("Missing command: git\n"
+                                   "Do you want to locate the file yourself?"),
+                                   QMessageBox::Yes | QMessageBox::No);
+    if (ret == QMessageBox::No)
+        return false;
+    QString gitCommand;
+    gitCommand = QFileDialog::getOpenFileName
+                           (NULL,
+                            tr("Select git program"));
+    if (!gitCommand.isEmpty())
+    {
+        IFTRACE(settings)
+            std::cerr << "Setting GitCommand to '" << +gitCommand <<"'\n";
+        QSettings().setValue("GitCommand", gitCommand);
+    }
+    return true;
 }
 
 

@@ -63,7 +63,7 @@ void ErrorMessageDialog::changeEvent(QEvent *e)
 }
 
 
-void ErrorMessageDialog::showMessage(const QString & message,
+bool ErrorMessageDialog::showMessage(const QString & message,
                                      bool doNotShowAgain)
 // ----------------------------------------------------------------------------
 //    Display given message if not forbidden by saved setting
@@ -73,10 +73,11 @@ void ErrorMessageDialog::showMessage(const QString & message,
     QVariant var(QSettings().value(EMD_SETTING_NAME));
     prefs = var.toStringList();
     if (prefs.contains(message))
-        return;
+        return false;
     ui->message->setText(message);
     ui->doNotShowAgain->setChecked(doNotShowAgain);
     exec();
+    return true;
 }
 
 

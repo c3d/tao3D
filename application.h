@@ -22,6 +22,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include "main.h"
 #include <QApplication>
 #include <QDir>
 #include <QStringList>
@@ -30,6 +31,7 @@
 namespace Tao {
 
 struct Widget;
+struct Window;
 struct SplashScreen;
 
 
@@ -56,10 +58,13 @@ public:
     void           addPathCompletion(QString path);
     void           addUrlCompletion(QString url);
     bool           processCommandLine();
+    Window *       findFirstTaoWindow();
+    void           loadUri(QString uri);
 
 protected:
     void           saveSettings();
     void           loadSettings();
+    virtual bool   event(QEvent *e);
 
 protected slots:
     void           onOpenFinished(bool ok);
@@ -83,6 +88,9 @@ private:
     SplashScreen *splash;
     int          pendingOpen;
     bool         hadWin;
+    XL::source_names contextFiles;
+    XL::Main *   xlr;
+    QString      savedUri;
 };
 
 #define TaoApp  ((Application *) qApp)

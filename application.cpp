@@ -53,11 +53,11 @@ Application::Application(int & argc, char ** argv)
 //    Build the Tao application
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false), splash(NULL),
-      pendingOpen(0)
+      pendingOpen(0), xlr(NULL)
 {
     // Set some useful parameters for the application
     setApplicationName ("Tao");
-    setOrganizationName ("Taodyne SAS");
+    setOrganizationName ("Taodyne");
     setOrganizationDomain ("taodyne.com");
     setWindowIcon(QIcon(":/images/tao.png"));
 
@@ -124,12 +124,7 @@ Application::Application(int & argc, char ** argv)
     }
     if (!RepositoryFactory::available())
     {
-        ErrorMessageDialog dialog;
-        dialog.setWindowTitle(tr("Version control software"));
-        dialog.showMessage(tr("No supported version control software was "
-                              "found. Some functions will not be available. "
-                              "Consider re-installing the application, "
-                              "or installing Git v1.7.0 or later."));
+        // Nothing (dialog box already shown by Repository class)
     }
 
     // Create default folder for Tao documents
@@ -144,11 +139,14 @@ Application::Application(int & argc, char ** argv)
     QFileInfo stylesheet("system:xl.stylesheet");
     QFileInfo builtins  ("system:builtins.xl");
     XL::Compiler *compiler = new XL::Compiler("xl_tao");
-    XL::Main *xlr = new XL::Main(argc, argv, *compiler,
-                                 +syntax.canonicalFilePath(),
-                                 +stylesheet.canonicalFilePath(),
-                                 +builtins.canonicalFilePath());
+    xlr = new XL::Main(argc, argv, *compiler,
+                       +syntax.canonicalFilePath(),
+                       +stylesheet.canonicalFilePath(),
+                       +builtins.canonicalFilePath());
     XL::MAIN = xlr;
+
+    if (!savedUri.isEmpty())
+        loadUri(savedUri);
 }
 
 
@@ -171,8 +169,6 @@ bool Application::processCommandLine()
     QFileInfo theme     ("xl:theme.xl");
     QFileInfo tutorial  ("system:tutorial.ddd");
 
-    XL::Main *xlr = XL::MAIN;
-    XL::source_names contextFiles;
     EnterGraphics(xlr->context);
     if (user.exists())
         contextFiles.push_back(+user.canonicalFilePath());
@@ -180,7 +176,6 @@ bool Application::processCommandLine()
         contextFiles.push_back(+theme.canonicalFilePath());
 
     // Create the windows for each file or URI on the command line
-    bool hadFile = false;
     hadWin = false;
     XL::source_names &names = xlr->file_names;
     XL::source_names::iterator it;
@@ -189,7 +184,6 @@ bool Application::processCommandLine()
         if (splash)
             splash->raise();
         QString sourceFile = +(*it);
-        hadFile = true;
         Tao::Window *window = new Tao::Window (xlr, contextFiles);
         if (splash)
         {
@@ -221,7 +215,7 @@ bool Application::processCommandLine()
         }
     }
 
-    if (!hadFile)
+    if (!findFirstTaoWindow())
     {
         // Open tutorial file read-only
         QString tuto = tutorial.canonicalFilePath();
@@ -241,6 +235,50 @@ bool Application::processCommandLine()
     }
 
     return (hadWin || pendingOpen);
+}
+
+
+Window * Application::findFirstTaoWindow()
+// ----------------------------------------------------------------------------
+//   Enumerate Tao top-level windows and return first instance, or NULL
+// ----------------------------------------------------------------------------
+{
+    Window *window = NULL;
+    foreach (QWidget *widget, QApplication::topLevelWidgets())
+    {
+        window = dynamic_cast<Window *>(widget);
+        if (window)
+            break;
+    }
+    return window;
+}
+
+
+void Application::loadUri(QString uri)
+// ----------------------------------------------------------------------------
+//   Create a new window to load a document from a Tao URI
+// ----------------------------------------------------------------------------
+{
+    if (!xlr)
+    {
+        // Event delivered before Application constructor could complete.
+        // Save URI, constructor will open it
+        savedUri = uri;
+        return;
+    }
+
+    Window *window = findFirstTaoWindow();
+    if (!window)
+    {
+        window = new Tao::Window (xlr, contextFiles);
+        window->deleteOnOpenFailed = true;
+    }
+    int st = window->open(uri);
+    if (st == 0)
+        QMessageBox::warning(window, tr("Error"),
+                             tr("Could not open %1.\n"
+                                "Please check the address.\n").arg(uri));
+    pendingOpen++;
 }
 
 
@@ -620,6 +658,31 @@ void Application::loadSettings()
 
     // Cleanup obsolete URI/project mappings (QSettings) before we open any URI
     Uri::gc();
+}
+
+
+bool Application::event(QEvent *e)
+// ----------------------------------------------------------------------------
+//    Process file open / URI open events
+// ----------------------------------------------------------------------------
+{
+    QFileOpenEvent * foe;
+    switch(e->type())
+    {
+    case QEvent::FileOpen:
+        {
+            foe = (QFileOpenEvent *)e;
+            QString uri = foe->url().toString();
+            IFTRACE(uri)
+                    std::cerr << "URL event: " << +uri << "\n";
+            loadUri(uri);
+            return true;
+        }
+    default:
+        break;
+    }
+
+    return QCoreApplication::event(e);
 }
 
 

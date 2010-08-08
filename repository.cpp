@@ -268,8 +268,6 @@ void Repository::asyncProcessError(QProcess::ProcessError error)
     // Note: do not pop current process from run queue here!
     // This slot is called *in addition to* asyncProcessFinished, which
     // will do the cleanup.
-    Process *cmd = (Process *)sender();
-    Q_ASSERT(cmd == pQueue.head()); (void)cmd;
 }
 
 
@@ -319,6 +317,8 @@ Repository::ProcQueueConsumer::~ProcQueueConsumer()
 //
 // ============================================================================
 
+QString RepositoryFactory::errors;
+
 repository_ptr
 RepositoryFactory::repository(QString path, RepositoryFactory::Mode mode)
 // ----------------------------------------------------------------------------
@@ -354,8 +354,8 @@ RepositoryFactory::newRepository(QString path, RepositoryFactory::Mode mode)
     {
         if (mode == Clone)
         {
-            // Can't clone into an existing repository
             delete git;
+            errors = QObject::tr("Can't clone into an existing repository");
             return NULL;
         }
         return git;
@@ -366,6 +366,7 @@ RepositoryFactory::newRepository(QString path, RepositoryFactory::Mode mode)
         git->initialize();
         if (git->valid())
             return git;
+        errors = QObject::tr("Repository initialization failed");
     }
     if (mode == Clone)
     {
@@ -394,13 +395,17 @@ bool RepositoryFactory::available()
 //    Test if Repository features are available
 // ----------------------------------------------------------------------------
 {
-    if (availableScm == Repository::Unknown)
+    if (availableScm == Repository::Unknown ||
+        availableScm == Repository::None)
     {
         availableScm = Repository::None;
         if (GitRepository::checkGit())
             availableScm = Repository::Git;
     }
-    return (availableScm != Repository::None);
+    bool available = (availableScm != Repository::None);
+    if (!available)
+        errors = QObject::tr("'git' command not found or invalid");
+    return available;
 }
 
 TAO_END

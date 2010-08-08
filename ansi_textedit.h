@@ -37,7 +37,7 @@ class AnsiTextEdit : public QTextEdit
 public:
     AnsiTextEdit(QWidget *parent = 0);
 
-public:
+public slots:
     virtual void insertAnsiText(const QByteArray &text);
 
 private:

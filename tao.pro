@@ -23,6 +23,8 @@ QT += webkit \
     opengl \
     svg \
     phonon
+QMAKE_CFLAGS += -Werror
+QMAKE_CXXFLAGS += -Werror
 QMAKE_CXXFLAGS_RELEASE += -g
 
 # Tell the XLR portion that we are building for Tao
@@ -33,6 +35,7 @@ macx {
     XLRDIR = Contents/MacOS
     ICON = tao.icns
     QMAKE_INFO_PLIST = Info.plist
+    QMAKE_CFLAGS += -mmacosx-version-min=10.5  # Avoid warning with font_file_manager_macos.mm
 }
 win32:DEFINES += CONFIG_MINGW
 
@@ -129,7 +132,9 @@ HEADERS += widget.h \
     history_dialog.h \
     revert_to_dialog.h \
     selective_undo_dialog.h \
-    documentation.h
+    documentation.h \
+    uri.h \
+    open_uri_dialog.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -185,6 +190,7 @@ SOURCES += tao_main.cpp \
     xlr/xlr/context.cpp \
     xlr/xlr/compiler.cpp \
     xlr/xlr/basics.cpp \
+    xlr/xlr/types.cpp \
     xlr/xlr/diff.cpp \
     xlr/xlr/lcs.cpp \
     drag.cpp \
@@ -208,7 +214,9 @@ SOURCES += tao_main.cpp \
     history_dialog.cpp \
     revert_to_dialog.cpp \
     selective_undo_dialog.cpp \
-    documentation.cpp
+    documentation.cpp \
+    uri.cpp \
+    open_uri_dialog.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \
@@ -262,7 +270,8 @@ FORMS += pull_from_dialog.ui \
     error_message_dialog.ui \
     fetch_dialog.ui \
     merge_dialog.ui \
-    history_dialog.ui
+    history_dialog.ui \
+    open_uri_dialog.ui
 
 # Automatic embedding of Git version
 QMAKE_CLEAN += version.h

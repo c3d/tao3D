@@ -38,6 +38,8 @@
 #include "undo.h"
 #include "resource_mgt.h"
 #include "splash_screen.h"
+#include "uri.h"
+#include "open_uri_dialog.h"
 
 #include <iostream>
 #include <sstream>
@@ -63,8 +65,9 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
       contextFileNames(context), xlRuntime(xlr),
       repo(NULL), textEdit(NULL), errorMessages(NULL),
       dock(NULL), errorDock(NULL),
-      taoWidget(NULL), curFile(),
-      fileCheckTimer(this), splashScreen(NULL), aboutSplash(NULL)
+      taoWidget(NULL), curFile(), uri(NULL),
+      fileCheckTimer(this), splashScreen(NULL), aboutSplash(NULL),
+      deleteOnOpenFailed(false)
 {
     // Define the icon
     setWindowIcon(QIcon(":/images/tao.png"));
@@ -294,15 +297,37 @@ void Window::newFile()
 }
 
 
-void Window::open(QString fileName, bool readOnly)
+int Window::open(QString fileName, bool readOnly)
 // ----------------------------------------------------------------------------
-//   Open a file or a directory
+//   Open a file or a directory.
 // ----------------------------------------------------------------------------
+//   0: error
+//   1: success
+//   2: don't know yet (asynchronous opening of an URI)
 {
     bool  isDir = false;
     QString dir = currentProjectFolderPath();
     if (!fileName.isEmpty())
     {
+        bool fileExists = QFileInfo(fileName).exists();
+        if (!fileExists && fileName.contains("://"))
+        {
+            // No local file with this name: try to parse as an URI
+            uri = new Uri(fileName);
+            if (uri->isValid())
+            {
+                connect(uri, SIGNAL(progressMessage(QString)),
+                        this, SLOT(showMessage(QString)));
+                connect(uri, SIGNAL(docReady(QString)),
+                        this, SLOT(onDocReady(QString)));
+                connect(uri, SIGNAL(getFailed()),
+                        this, SLOT(onUriGetFailed()));
+                bool ok = uri->get();  // Will emit a signal when done
+                if (!ok && deleteOnOpenFailed)
+                    deleteLater();
+                return 2;
+            }
+        }
         if (QFileInfo(fileName).isDir())
         {
             isDir = true;
@@ -319,7 +344,7 @@ void Window::open(QString fileName, bool readOnly)
                             tr(TAO_FILESPECS));
 
         if (fileName.isEmpty())
-            return;
+            return 0;
     }
 
     Window *existing = findWindow(fileName);
@@ -328,9 +353,15 @@ void Window::open(QString fileName, bool readOnly)
         existing->show();
         existing->raise();
         existing->activateWindow();
-        return;
+        return 0;
     }
 
+    if (!QFileInfo(fileName).exists())
+    {
+        QMessageBox::warning(this, tr("Error"),
+                             tr("%1: File not found").arg(fileName));
+        return 0;
+    }
     if (!needNewWindow())
     {
         if (readOnly)
@@ -338,7 +369,7 @@ void Window::open(QString fileName, bool readOnly)
         else
             isReadOnly = !QFileInfo(fileName).isWritable();
         if (!loadFile(fileName, !isReadOnly))
-            return;
+            return 0;
     }
     else
     {
@@ -352,9 +383,51 @@ void Window::open(QString fileName, bool readOnly)
         {
             other->hide();
             delete other;
-            return;
         }
+        return 0;
     }
+    deleteOnOpenFailed = 0;
+    return 1;
+}
+
+
+void Window::onUriGetFailed()
+// ----------------------------------------------------------------------------
+//    Called asynchronously when open() failed to open an URI
+// ----------------------------------------------------------------------------
+{
+    if (deleteOnOpenFailed)
+        deleteLater();
+    emit openFinished(false);
+}
+
+
+void Window::onDocReady(QString path)
+// ----------------------------------------------------------------------------
+//    Called asynchronously when URI resolution is sucessful
+// ----------------------------------------------------------------------------
+{
+    int st = open(path);
+    bool ok = (st == 1);
+    if (ok)
+        show();
+    emit openFinished(ok);
+}
+
+
+void Window::openUri()
+// ----------------------------------------------------------------------------
+//    Show a dialog box to enter URI and open it
+// ----------------------------------------------------------------------------
+{
+    OpenUriDialog dialog(this);
+    int ret = dialog.exec();
+    if (ret != QDialog::Accepted)
+        return;
+    QString uri = dialog.uri;
+    if (uri.isEmpty())
+        return;
+    open(uri);
 }
 
 
@@ -529,6 +602,8 @@ void Window::clearRecentFileList()
 {
     QSettings settings;
     settings.setValue("recentFileList", QStringList());
+    IFTRACE(settings)
+        std::cerr << "Cleared recent file list\n";
     updateRecentFileActions();
 }
 
@@ -779,11 +854,16 @@ void Window::createActions()
     newAct->setIconVisibleInMenu(false);
     connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
 
-    openAct = new QAction(QIcon(":/images/open.png"), tr("&Open..."), this);
+    openAct = new QAction(QIcon(":/images/open.png"), tr("&Open file..."),
+                          this);
     openAct->setShortcuts(QKeySequence::Open);
     openAct->setStatusTip(tr("Open an existing file"));
     openAct->setIconVisibleInMenu(false);
     connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
+
+    openUriAct = new QAction(tr("Open &URI..."), this);
+    openUriAct->setStatusTip(tr("Open an URI"));
+    connect(openUriAct, SIGNAL(triggered()), this, SLOT(openUri()));
 
     saveAct = new QAction(QIcon(":/images/save.png"), tr("&Save"), this);
     saveAct->setShortcuts(QKeySequence::Save);
@@ -961,6 +1041,7 @@ void Window::createMenus()
     fileMenu->setObjectName(FILE_MENU_NAME);
     fileMenu->addAction(newAct);
     fileMenu->addAction(openAct);
+    fileMenu->addAction(openUriAct);
     openRecentMenu = fileMenu->addMenu(tr("Open Recent"));
     fileMenu->addAction(saveAct);
     fileMenu->addAction(saveAsAct);
@@ -996,12 +1077,12 @@ void Window::createMenus()
     shareMenu->addAction(selectiveUndoAct);
 
     viewMenu = menuBar()->addMenu(tr("&View"));
-//    viewMenu->setObjectName(VIEW_MENU_NAME);
     viewMenu->addAction(dock->toggleViewAction());
     viewMenu->addAction(errorDock->toggleViewAction());
     viewMenu->addAction(fullScreenAct);
     viewMenu->addAction(viewAnimationsAct);
-    viewMenu->addAction(viewStereoscopyAct);
+    if (XL::MAIN->options.enable_stereoscopy)
+        viewMenu->addAction(viewStereoscopyAct);
     viewMenu->addMenu(tr("&Toolbars"))->setObjectName(VIEW_MENU_NAME);
 
     menuBar()->addSeparator();
@@ -1168,14 +1249,9 @@ void Window::showMessage(QString message, int timeout)
 // ----------------------------------------------------------------------------
 {
     if (splashScreen)
-    {
-        QColor gray60(102, 102, 102);
-        splashScreen->showMessage(message, Qt::AlignBottom, gray60);
-    }
+        splashScreen->showMessage(message);
     else
-    {
         statusBar()->showMessage(message, timeout);
-    }
     QApplication::processEvents();
 }
 
@@ -1206,11 +1282,13 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     showMessage(msg.arg(tr("Fonts")));
     FontFileManager ffm;
+    QList<int> prev = appFontIds;
     appFontIds = ffm.LoadEmbeddedFonts(fileName);
     if (!appFontIds.empty())
         taoWidget->glyphs().Clear();
     foreach (QString e, ffm.errors)
         addError(e);
+    ffm.UnloadEmbeddedFonts(prev);
     showMessage(msg.arg(tr("Document")));
 
     // FIXME: the whole search path stuff is broken when multiple documents
@@ -1252,8 +1330,8 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         QApplication::restoreOverrideCursor();
         showMessage(tr("File loaded"), 2000);
     }
-    setCurrentFile(fileName);
     isUntitled = false;
+    setCurrentFile(fileName);
     return true;
 }
 
@@ -1430,8 +1508,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
 //   Find and open a project (= SCM repository)
 // ----------------------------------------------------------------------------
 // If project does not exist and 'confirm' is true, user will be asked to
-// confirm project creation. User is always prompted before re-using a
-// valid repository not currently used by Tao.
+// confirm project creation.
 // Returns:
 // - true if project is open succesfully, or
 //        user has chosen to proceed without a project, or
@@ -1697,6 +1774,9 @@ void Window::setCurrentFile(const QString &fileName)
     // Update the recent file list
     if (!isUntitled)
     {
+        IFTRACE(settings)
+            std::cerr << "Adding " << +fileName << " to recent file list\n";
+
         QSettings settings;
         QStringList files = settings.value("recentFileList").toStringList();
         files.removeAll(fileName);
@@ -1704,6 +1784,13 @@ void Window::setCurrentFile(const QString &fileName)
         while (files.size() > MaxRecentFiles)
             files.removeLast();
         settings.setValue("recentFileList", files);
+
+        IFTRACE(settings)
+        {
+            std::cerr << "Recent file list:\n";
+            foreach (QString s, files)
+                std::cerr << "  " << +s << "\n";
+        }
 
         foreach (QWidget *widget, QApplication::topLevelWidgets())
         {

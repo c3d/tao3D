@@ -22,16 +22,15 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "tao.h"
-
 #include <QApplication>
 #include <QDir>
 #include <QStringList>
 
 
-TAO_BEGIN
+namespace Tao {
 
 struct Widget;
+struct SplashScreen;
 
 
 class Application : public QApplication
@@ -39,6 +38,7 @@ class Application : public QApplication
 //    The main Tao application
 // ----------------------------------------------------------------------------
 {
+    Q_OBJECT
 
 public:
     Application(int & argc, char ** argv);
@@ -55,10 +55,14 @@ public:
     QStringList    urlCompletions();
     void           addPathCompletion(QString path);
     void           addUrlCompletion(QString url);
+    bool           processCommandLine();
 
 protected:
     void           saveSettings();
     void           loadSettings();
+
+protected slots:
+    void           onOpenFinished(bool ok);
 
 protected:
     static bool    recursiveDelete(QString path);
@@ -76,10 +80,13 @@ public:
 private:
     QStringList  pathList;
     QStringList  urlList;
+    SplashScreen *splash;
+    int          pendingOpen;
+    bool         hadWin;
 };
 
 #define TaoApp  ((Application *) qApp)
 
-TAO_END
+}
 
 #endif // APPLICATION_H

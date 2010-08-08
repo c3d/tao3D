@@ -29,7 +29,6 @@
 #include "tao_tree.h"
 #include "process.h"
 #include "main.h"
-#include "ansi_textedit.h"
 #include <QString>
 #include <QProcess>
 #include <QtGlobal>
@@ -41,6 +40,8 @@
 #include <iostream>
 
 namespace Tao {
+
+typedef QSharedPointer<Process> process_p;
 
 class Repository : public QObject
 // ----------------------------------------------------------------------------
@@ -127,7 +128,8 @@ public:
     virtual bool        setTask(text name);
     virtual bool        idle();
     virtual void        markChanged(text reason);
-    virtual void        abort(Process *proc);
+    virtual void        abort(process_p proc);
+    process_p           dispatch(process_p cmd, void *id = NULL);
 
 public:
     virtual QString     userVisibleName()               = 0;
@@ -156,13 +158,14 @@ public:
     virtual QStringList remotes()                       = 0;
     virtual QString     remoteFetchUrl(QString name)    = 0;
     virtual QString     remotePushUrl(QString name)    = 0;
+    virtual QString     remoteWithFetchUrl(QString url) = 0;
     virtual bool        addRemote(QString name, QString pullUrl) = 0;
     virtual bool        setRemote(QString name, QString newPullUrl) = 0;
     virtual bool        delRemote(QString name)         = 0;
     virtual bool        renRemote(QString oldName, QString newName) = 0;
     virtual QList<Commit> history(QString branch = "", int max = 100) = 0;
-    virtual Process *   asyncClone(QString cloneUrl, QString newFolder,
-                              AnsiTextEdit *out = NULL, void *id = NULL) = 0;
+    virtual process_p   asyncClone(QString cloneUrl, QString newFolder) = 0;
+    virtual process_p   asyncFetch(QString url) = 0;
     virtual text        version()                       = 0;
     virtual bool        isClean()                       = 0;
     virtual QString     url()                           = 0;
@@ -174,23 +177,23 @@ public:
 signals:
     void                commitSuccess(QString commitId, QString msg);
     void                asyncCloneComplete(void *id, QString projPath);
+    void                asyncFetchComplete(void *id);
     void                asyncPullComplete();
     void                deleted();
     void                branchChanged(QString newBranch);
 
-protected:
+//protected:
+public:
     virtual QString     command()                       = 0;
+protected:
     virtual text        styleSheet();
     virtual text        fullName(text fileName);
-    Process *           dispatch(Process *cmd, AnsiTextEdit *err = NULL,
-                                 AnsiTextEdit *out = NULL, void *id = NULL);
     void                waitForAsyncProcessCompletion();
 
 protected slots:
-    virtual void        asyncProcessFinished(int exitCode);
+    virtual void        asyncProcessFinished(int exitCode, QProcess::ExitStatus);
     virtual void        asyncProcessError(QProcess::ProcessError error);
     virtual void        checkCurrentBranch() {};
-
 
 protected:
     struct ProcQueueConsumer
@@ -214,7 +217,7 @@ public:
     QString            lastFetchUrl;
 
 protected:
-    QQueue<Process *> pQueue;
+    QQueue<process_p> pQueue;
     QTimer            branchCheckTimer;
 };
 

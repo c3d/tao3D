@@ -38,6 +38,11 @@ public:
     SplashScreen(Qt::WindowFlags flags = 0);
     virtual void mousePressEvent(QMouseEvent *event);
 
+public slots:
+    virtual void showMessage(const QString &message,
+                             int alignment = Qt::AlignBottom,
+                             const QColor &color = QColor(102, 102, 102));
+
 protected:
     virtual void drawContents(QPainter *painter);
 

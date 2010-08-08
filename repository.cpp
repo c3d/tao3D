@@ -194,30 +194,15 @@ void Repository::markChanged(text reason)
 }
 
 
-Process * Repository::dispatch(Process *cmd,
-                               AnsiTextEdit *err, AnsiTextEdit *out,
-                               void *id)
+process_p Repository::dispatch(process_p cmd, void *id)
 // ----------------------------------------------------------------------------
 //   Insert process in run queue and start first process. Return cmd.
 // ----------------------------------------------------------------------------
+//   Caller is responsible for deleting the returned Process
 {
     cmd->id = id;
-    connect(cmd,  SIGNAL(finished(int,QProcess::ExitStatus)),
-            this, SLOT  (asyncProcessFinished(int)));
-    connect(cmd,  SIGNAL(error(QProcess::ProcessError)),
+    connect(cmd.data(), SIGNAL(error(QProcess::ProcessError)),
             this, SLOT  (asyncProcessError(QProcess::ProcessError)));
-    if (err)
-    {
-        cmd->errTextEdit = err;
-        connect(cmd, SIGNAL(readyReadStandardError()),
-                cmd, SLOT(sendStandardErrorToTextEdit()));
-    }
-    if (out)
-    {
-        cmd->outTextEdit = out;
-        connect(cmd, SIGNAL(readyReadStandardOutput()),
-                cmd, SLOT(sendStandardOutputToTextEdit()));
-    }
     pQueue.enqueue(cmd);
     if (pQueue.count() == 1)
         cmd->start();
@@ -232,47 +217,44 @@ void Repository::waitForAsyncProcessCompletion()
 {
     while (!pQueue.empty())
     {
+        process_p p = pQueue.first();
         IFTRACE(process)
-            std::cerr << "Async process queue not empty, waiting\n";
-        QApplication::processEvents();
+            std::cerr << "Process queue not empty (first=#" << p->num
+                      << "), waiting\n";
+        QApplication::processEvents(QEventLoop::WaitForMoreEvents);
     }
 }
 
-void Repository::abort(Process *proc)
+void Repository::abort(process_p proc)
 // ----------------------------------------------------------------------------
 //   Abort an asynchronous process returned by dispatch()
 // ----------------------------------------------------------------------------
 {
+    proc->aborted = true;
     if (pQueue.head() == proc)
     {
-        proc->aborted = true;
         proc->close();
-        delete pQueue.dequeue();
+        pQueue.dequeue();
         if (pQueue.count())
             pQueue.head()->start();
     }
     else
     {
         pQueue.removeOne(proc);
-        delete proc;
     }
 }
 
 
-void Repository::asyncProcessFinished(int exitCode)
+void Repository::asyncProcessFinished(int exitCode, QProcess::ExitStatus st)
 // ----------------------------------------------------------------------------
 //   Default action when an asynchronous subprocess has finished
 // ----------------------------------------------------------------------------
 {
+    (void)exitCode; (void)st;
+
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
-    Q_ASSERT(cmd == pQueue.head());
-    if (exitCode)
-    {
-        IFTRACE(process)
-            std::cerr << +tr("Async command failed, exit status %1: %2\n")
-                         .arg((int)exitCode).arg(cmd->commandLine);
-    }
+    Q_ASSERT(cmd == pQueue.head()); (void)cmd;
 }
 
 
@@ -281,16 +263,13 @@ void Repository::asyncProcessError(QProcess::ProcessError error)
 //   Default action when an asynchronous subprocess has an error
 // ----------------------------------------------------------------------------
 {
+    (void)error;
+
     // Note: do not pop current process from run queue here!
     // This slot is called *in addition to* asyncProcessFinished, which
     // will do the cleanup.
     Process *cmd = (Process *)sender();
-    Q_ASSERT(cmd == pQueue.head());
-    IFTRACE(process)
-        std::cerr << +tr("Async command error %1: %2\nError output:\n%3")
-                     .arg((int)error).arg(cmd->commandLine)
-                     .arg(QString(cmd->readAllStandardError()));
-    cmd->sendStandardErrorToTextEdit();
+    Q_ASSERT(cmd == pQueue.head()); (void)cmd;
 }
 
 
@@ -319,7 +298,7 @@ bool Repository::versionGreaterOrEqual(QString ver, QString ref)
 
 Repository::ProcQueueConsumer::~ProcQueueConsumer()
 // ----------------------------------------------------------------------------
-//   Pop the head process from process queue, delete it and start next one
+//   Pop the head process from process queue and start next one
 // ----------------------------------------------------------------------------
 {
     if (repo.pQueue.head()->aborted)
@@ -327,7 +306,7 @@ Repository::ProcQueueConsumer::~ProcQueueConsumer()
         // We're here as a result of Repository::abort(). Let him clean up.
         return;
     }
-    delete repo.pQueue.dequeue();
+    repo.pQueue.dequeue();
     if (repo.pQueue.count())
         repo.pQueue.head()->start();
 }

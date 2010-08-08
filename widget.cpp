@@ -95,13 +95,24 @@ double Widget::zNear = 2000.0;
 double Widget::zFar = 40000.0;
 
 
+static inline QGL::FormatOptions TaoGLFormatOptions()
+// ----------------------------------------------------------------------------
+//   Return the options we will use when creating the widget
+// ----------------------------------------------------------------------------
+//   This was made necessary by Bug #251
+{
+    QGL::FormatOptions result = QGL::SampleBuffers | QGL::AlphaChannel;
+    if (XL::MAIN->options.enable_stereoscopy)
+        result |= QGL::StereoBuffers;
+    return result;
+}
+
+
 Widget::Widget(Window *parent, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create the GL widget
 // ----------------------------------------------------------------------------
-    : QGLWidget(QGLFormat(QGL::SampleBuffers |
-                          QGL::AlphaChannel  |
-                          QGL::StereoBuffers), parent),
+    : QGLWidget(QGLFormat(TaoGLFormatOptions()), parent),
       xlProgram(sf),
       symbolTableForFormulas(new XL::Symbols(NULL)),
       symbolTableRoot(new XL::Name("formula_symbol_table")),
@@ -130,7 +141,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       sourceRenderer(NULL),
       currentFileDialog(NULL),
       zoom(1.0),
-      eyeX(0.0), eyeY(0.0), eyeZ(Widget::zNear), eyeDistance(200.0),
+      eyeX(0.0), eyeY(0.0), eyeZ(Widget::zNear), eyeDistance(20.0),
       centerX(0.0), centerY(0.0), centerZ(0.0),
       autoSaveEnabled(true)
 {
@@ -812,6 +823,7 @@ void Widget::enableStereoscopy(bool enable)
 // ----------------------------------------------------------------------------
 {
     stereoscopic = enable;
+    refresh();
 }
 
 
@@ -966,9 +978,9 @@ void Widget::setup(double w, double h, const Box *picking)
     double upX = 0.0, upY = 1.0, upZ = 0.0;
     double eyeX = this->eyeX;
     if (stereoscopic == 1)
-        eyeX -= eyeDistance;
-    else if (stereoscopic == 2)
         eyeX += eyeDistance;
+    else if (stereoscopic == 2)
+        eyeX -= eyeDistance;
 
     glFrustum ((-w/2)*zoom, (w/2)*zoom, (-h/2)*zoom, (h/2)*zoom, zNear, zFar);
     gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);

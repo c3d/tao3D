@@ -319,7 +319,7 @@ void TextSpan::DrawSelection(Layout *where)
         canSel = false;
 
     // Loop over all characters in the text span
-    uint i, next, max = str.length();
+    uint i, next = 0, max = str.length();
     for (i = start; i < max && i < end; i = next)
     {
         uint unicode = XL::Utf8Code(str, i);

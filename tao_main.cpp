@@ -18,28 +18,25 @@
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jerome Forissier <jerome@taodyne.com>
 //  (C) 2010 Taodyne SAS
-// ****************************************************************************
-// * File       : $RCSFile$
-// * Revision   : $Revision$
-// * Date       : $Date$
 // ****************************************************************************
 
 #include "application.h"
-#include "widget.h"
-#include "window.h"
 #include "main.h"
 #include "basics.h"
 #include "graphics.h"
 #include "tao_utf8.h"
 #include "gc.h"
-#include "splash_screen.h"
 
-#include <QDir>
-#include <QtGui>
-#include <QtGui/QApplication>
-#include <QtGui/QMessageBox>
+#include <QApplication>
+#include <QGLWidget>
+#include <QFileInfo>
 
+#ifdef CONFIG_MINGW
+#include <windows.h>
+static void win_redirect_io();
+#endif
 
 static void cleanup();
 
@@ -52,106 +49,26 @@ int main(int argc, char **argv)
 
     Q_INIT_RESOURCE(tao);
 
+#ifdef CONFIG_MINGW
+    // Do our best to send stdout/stderr output somewhere
+    win_redirect_io();
+#endif
+
     // We need to brute-force option parsing here, the OpenGL choice must
     // be made before calling the QApplication constructor...
-    bool showSplash = true;
     for (int a = 1; a < argc; a++)
-    {
         if (text(argv[a]) == "-gl")
             QGL::setPreferredPaintEngine(QPaintEngine::OpenGL);
-        if (text(argv[a]) == "-nosplash")
-            showSplash = false;
-    }
 
-    // Initialize the Tao application
-    Tao::Application tao(argc, argv);
-
-    // Show splash screen
-    QSplashScreen *splash = NULL;
-    if (showSplash)
+    // Initialize and run the Tao application
+    int ret = 0;
     {
-        splash = new SplashScreen();
-        splash->show();
-        splash->raise();
-        QApplication::processEvents();
+        Tao::Application tao(argc, argv);
+        bool ok = tao.processCommandLine();
+        if (ok)
+            ret = tao.exec();
+        // Note: keep this inside a block so that ~Application gets called!
     }
-
-    // Fetch info for XL files
-    QFileInfo user      ("xl:user.xl");
-    QFileInfo theme     ("xl:theme.xl");
-    QFileInfo syntax    ("system:xl.syntax");
-    QFileInfo stylesheet("system:xl.stylesheet");
-    QFileInfo builtins  ("system:builtins.xl");
-    QFileInfo tutorial  ("system:tutorial.ddd");
-
-    // Setup the XL runtime environment
-    XL::Compiler compiler("xl_tao");
-    XL::Main *xlr = new XL::Main(argc, argv, compiler,
-                                 +syntax.canonicalFilePath(),
-                                 +stylesheet.canonicalFilePath(),
-                                 +builtins.canonicalFilePath());
-    XL::MAIN = xlr;
-
-    XL::source_names contextFiles;
-    EnterGraphics(xlr->context);
-    if (user.exists())
-        contextFiles.push_back(+user.canonicalFilePath());
-    if (theme.exists())
-        contextFiles.push_back(+theme.canonicalFilePath());
-
-    // Create the windows for each file on the command line
-    bool hadFile = false;
-    bool hadWin = false;
-    XL::source_names &names = xlr->file_names;
-    XL::source_names::iterator it;
-    for (it = names.begin(); it != names.end(); it++)
-    {
-        if (splash)
-            splash->raise();
-        QString sourceFile = +(*it);
-        hadFile = true;
-        Tao::Window *window = new Tao::Window (xlr, contextFiles);
-        if (splash)
-        {
-            window->splashScreen = splash;
-            QObject::connect(splash, SIGNAL(destroyed(QObject*)),
-                             window, SLOT(removeSplashScreen()));
-        }
-        window->open(sourceFile);
-        if (window->isUntitled)
-        {
-            delete window;
-        }
-        else
-        {
-            window->show();
-            hadWin = true;
-        }
-    }
-
-    if (!hadFile)
-    {
-        // Open tutorial file read-only
-        QString tuto = tutorial.canonicalFilePath();
-        Tao::Window *untitled = new Tao::Window(xlr, contextFiles);
-        untitled->open(tuto, true);
-        untitled->isUntitled = true;
-        untitled->isReadOnly = true;
-        untitled->show();
-        hadWin = true;
-    }
-
-    if (splash)
-    {
-        splash->close();
-        delete splash;
-    }
-
-    if (!hadWin)
-        return 0;
-
-    int ret = tao.exec();
-
     cleanup();
 
     // HACK: it seems that cleanup() does not clean everything, at least on
@@ -178,6 +95,31 @@ void cleanup()
     // No more global refs, deleting GC will purge everything
     XL::GarbageCollector::Delete();
 }
+
+#ifdef CONFIG_MINGW
+void win_redirect_io()
+// ----------------------------------------------------------------------------
+//   Send stdout and stderr to parent console if we have one, or to a file
+// ----------------------------------------------------------------------------
+{
+    if (AttachConsole(ATTACH_PARENT_PROCESS))
+    {
+        // Log to console of parent process
+        freopen("CON", "a", stdout);
+        freopen("CON", "a", stderr);
+    }
+    else
+    {
+        // Parent has no console, log to a file
+        QDir dir(Tao::Application::defaultProjectFolderPath());
+        QString path = dir.absoluteFilePath("tao.log");
+        const char *f = path.toStdString().c_str();
+        fclose(fopen(f, "w"));
+        freopen(f, "a", stdout);
+        freopen(f, "a", stderr);
+    }
+}
+#endif
 
 XL_BEGIN
 text Main::SearchFile(text file)

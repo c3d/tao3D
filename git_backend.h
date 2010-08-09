@@ -89,6 +89,7 @@ public:
     virtual bool        gc();
 
     static  bool        checkGit();
+    static  bool        showGitSelectionDialog();
 
 signals:
     void                percentComplete(int percent);

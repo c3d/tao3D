@@ -1170,9 +1170,14 @@ void Window::readSettings()
 //   Load the settings from persistent user preference
 // ----------------------------------------------------------------------------
 {
+    // By default, the application's main window is centered and proportional
+    // to the screen size, p being the scaling factor
+    const float p = 0.7;
+    QRect avail = TaoApp->desktop()->availableGeometry(this);
+    int w = avail.width(), h = avail.height();
     QSettings settings;
-    QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
-    QSize size = settings.value("size", QSize(400, 400)).toSize();
+    QPoint pos = settings.value("pos", QPoint((w*(1-p))/2, (h*(1-p))/2)).toPoint();
+    QSize size = settings.value("size", QSize(w*p, h*p)).toSize();
     move(pos);
     resize(size);
 }

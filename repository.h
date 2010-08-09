@@ -259,6 +259,9 @@ public:
     static bool             available();
     static repository_ptr   repository(QString path, Mode mode = OpenExisting);
 
+public:
+    static QString          errors;
+
 protected:
     static Repository *     newRepository(QString path, Mode mode);
     static void             removeFromCache(QString path);

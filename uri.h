@@ -72,6 +72,7 @@ protected:
     QString               newProject();
     QString               docPath(QString project);
     QString               repoUri();
+    bool                  showRepoErrorDialog();
 
     QString               localProject();
     void                  setLocalProject(const QString &path);

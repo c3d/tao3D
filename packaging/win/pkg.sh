@@ -18,11 +18,11 @@ doo() {
 THISDIR=`dirname $0`
 
 #
-# Copy application and dependencies into buildroot/
+# Copy Tao application and dependencies into buildroot/
 #
 
-OBJDIR=../../$MODE
-SRCDIR=../..
+OBJDIR=../../tao/$MODE
+SRCDIR=../../tao
 (
 cd $THISDIR
 export PATH=$PATH:.
@@ -43,6 +43,12 @@ do
     doo cp $f buildroot/
 done
 )
+
+#
+# Copy SshAskPass and Detach utilities
+#
+doo cp ../../ssh_ask_pass/$MODE/SshAskPass.exe buildroot/
+doo cp ../../detach/$MODE/Detach.exe buildroot/
 
 #
 # Uncompress Git distribution into buildroot/

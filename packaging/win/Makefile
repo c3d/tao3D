@@ -11,12 +11,12 @@ RM_RF = rm -rf
 
 debug:
 	./pkg.sh debug
-	$(MAKENSIS) tao.nsi
+	$(MAKENSIS) -DOUTFILE=taosetup_d.exe tao.nsi
 
 release:
 	./pkg.sh release
-	$(MAKENSIS) tao.nsi 
+	$(MAKENSIS) -DOUTFILE=taosetup.exe tao.nsi 
 
 clean:
-	$(RM_RF) buildroot/ taosetup.exe
+	$(RM_RF) buildroot/ taosetup.exe taosetup_d.exe
 

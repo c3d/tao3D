@@ -45,4 +45,4 @@ TRACE(textselect)
 TRACE(paths)
 TRACE(settings)
 TRACE(uri)
-
+TRACE(justify)

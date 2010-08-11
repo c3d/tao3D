@@ -94,7 +94,7 @@ public:
     scale       SpaceSize(Item item, Layout *);
     coord       ItemOffset(Item item, Layout *);
 
-    void        Dump(text msg);
+    void        Dump(text msg, Layout *);
 
     // Structure recording an item after we placed it
     struct Place
@@ -292,7 +292,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
 
 
 template <class Item>
-void Justifier<Item>::Dump(text msg)
+void Justifier<Item>::Dump(text msg, Layout *l)
 // ----------------------------------------------------------------------------
 //   Dump the contents of a justifier for debugging purpose
 // ----------------------------------------------------------------------------
@@ -305,7 +305,7 @@ void Justifier<Item>::Dump(text msg)
     {
         Item item = *i;
         std::cout << " I" << i - items.begin() << ": "
-                  << item << " (" << Size(item) << ")\n";
+                  << item << " (" << Size(item, l) << ")\n";
     }
 
     // Dump the places remaining

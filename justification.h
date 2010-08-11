@@ -299,16 +299,7 @@ void Justifier<Item>::Dump(text msg, Layout *l)
 {
     std::cout << msg << "\n";
 
-    // Dump the items remaining
-    ItemsIterator i;
-    for (i = items.begin(); i != items.end(); i++)
-    {
-        Item item = *i;
-        std::cout << " I" << i - items.begin() << ": "
-                  << item << " (" << Size(item, l) << ")\n";
-    }
-
-    // Dump the places remaining
+    // Dump the placed items
     PlacesIterator p;
     for (p = places.begin(); p != places.end(); p++)
     {
@@ -318,6 +309,16 @@ void Justifier<Item>::Dump(text msg, Layout *l)
                   << place.size << " @ " << place.position
                   << (place.solid ? " solid" : " break") << ")\n";
     }
+
+    // Dump the items remaining
+    ItemsIterator i;
+    for (i = items.begin(); i != items.end(); i++)
+    {
+        Item item = *i;
+        std::cout << " I" << i - items.begin() << ": "
+                  << item << " (" << Size(item, l) << ")\n";
+    }
+
 }
 
 TAO_END

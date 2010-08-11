@@ -226,13 +226,15 @@ bool Justifier<Item>::Adjust(coord start, coord end,
                 lastSpace = SpaceSize(item, layout) * spacing;
                 lastOversize = size * (spacing-1);
                 item = next;
-                if (hadBreak)
-                    numBreaks++;
-                else
-                    numSolids++;
 
                 if (size > 0)
+                {
+                    if (hadBreak)
+                        numBreaks++;
+                    else
+                        numSolids++;
                     firstElement = false;
+                }
 
                 if (done)
                 {
@@ -280,10 +282,13 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     {
         Place &place = *p;
         place.position += offset;
-        if (place.solid)
-            offset += atSolid;
-        else
-            offset += atBreak;
+        if (place.size > 0)
+        {
+            if (place.solid)
+                offset += atSolid;
+            else
+                offset += atBreak;
+        }
     }
 
     // Return true if we placed all the items

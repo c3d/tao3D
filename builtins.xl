@@ -141,6 +141,155 @@ shape_color_cyan      -> set_attribute "color", {color 0, 1, 1, 1}
 shape_color_white     -> set_attribute "color", {color 1, 1, 1, 1}
 
 
+// SVG Named Colors
+color "aliceblue" -> color 94%, 97%, 100%, 100% 
+color "antiquewhite" -> color 98%, 92%, 84%, 100%
+color "aqua" -> color 0%, 100%, 100%, 100% 
+color "aquamarine" -> color 50%, 100%, 83%, 100%
+color "azure" -> color 94%, 100%, 100%, 100% 
+color "beige" -> color 96%, 96%, 86%, 100% 
+color "bisque" -> color 100%, 89%, 77%, 100%
+color "black" -> color 0%, 0%, 0%, 100% 
+color "blanchedalmond" -> color 100%, 92%, 80%, 100% 
+color "blue" -> color 0%, 0%, 100%, 100%
+color "blueviolet" -> color 54%, 17%, 89%, 100% 
+color "brown" -> color 65%, 16%, 16%, 100% 
+color "burlywood" -> color 87%, 72%, 53%, 100%
+color "cadetblue" -> color 37%, 62%, 63%, 100% 
+color "chartreuse" -> color 50%, 100%, 0%, 100% 
+color "chocolate" -> color 82%, 41%, 12%, 100% 
+color "coral" -> color 100%, 50%, 31%, 100% 
+color "cornflowerblue" -> color 39%, 58%, 93%, 100% 
+color "cornsilk" -> color 100%, 97%, 86%, 100%
+color "crimson" -> color 86%, 8%, 24%, 100%
+color "cyan" -> color 0%, 100%, 100%, 100% 
+color "darkblue" -> color 0%, 0%, 55%, 100% 
+color "darkcyan" -> color 0%, 55%, 55%, 100% 
+color "darkgoldenrod" -> color 72%, 53%, 4%, 100% 
+color "darkgray" -> color 66%, 66%, 66%, 100%
+color "darkgreen" -> color 0%, 39%, 0%, 100% 
+color "darkgrey" -> color 66%, 66%, 66%, 100% 
+color "darkkhaki" -> color 74%, 72%, 42%, 100% 
+color "darkmagenta" -> color 55%, 0%, 55%, 100% 
+color "darkolivegreen" -> color 33%, 42%, 18%, 100%
+color "darkorange" -> color 100%, 55%, 0%, 100%
+color "darkorchid" -> color 60%, 20%, 80%, 100% 
+color "darkred" -> color 55%, 0%, 0%, 100%
+color "darksalmon" -> color 91%, 59%, 48%, 100%
+color "darkseagreen" -> color 56%, 74%, 56%, 100%
+color "darkslateblue" -> color 28%, 24%, 55%, 100%
+color "darkslategray" -> color 18%, 31%, 31%, 100% 
+color "darkslategrey" -> color 18%, 31%, 31%, 100%
+color "darkturquoise" -> color 0%, 81%, 82%, 100%
+color "darkviolet" -> color 58%, 0%, 83%, 100%
+color "deeppink" -> color 100%, 8%, 58%, 100% 
+color "deepskyblue" -> color 0%, 75%, 100%, 100% 
+color "dimgray" -> color 41%, 41%, 41%, 100% 
+color "dimgrey" -> color 41%, 41%, 41%, 100% 
+color "dodgerblue" -> color 12%, 56%, 100%, 100% 
+color "firebrick" -> color 70%, 13%, 13%, 100% 
+color "floralwhite" -> color 100%, 98%, 94%, 100% 
+color "forestgreen" -> color 13%, 55%, 13%, 100%
+color "fuchsia" -> color 100%, 0%, 100%, 100% 
+color "gainsboro" -> color 86%, 86%, 86%, 100% 
+color "ghostwhite" -> color 97%, 97%, 100%, 100% 
+color "gold" -> color 100%, 84%, 0%, 100% 
+color "goldenrod" -> color 85%, 65%, 13%, 100% 
+color "gray" -> color 50%, 50%, 50%, 100% 
+color "green" -> color 0%, 50%, 0%, 100% 
+color "greenyellow" -> color 68%, 100%, 18%, 100%
+color "grey" -> color 50%, 50%, 50%, 100% 
+color "honeydew" -> color 94%, 100%, 94%, 100%
+color "hotpink" -> color 100%, 41%, 71%, 100% 
+color "indianred" -> color 80%, 36%, 36%, 100% 
+color "indigo" -> color 29%, 0%, 51%, 100% 
+color "ivory" -> color 100%, 100%, 94%, 100%
+color "khaki" -> color 94%, 90%, 55%, 100% 
+color "lavender" -> color 90%, 90%, 98%, 100% 
+color "lavenderblush" -> color 100%, 94%, 96%, 100% 
+color "lawngreen" -> color 49%, 99%, 0%, 100% 
+color "lemonchiffon" -> color 100%, 98%, 80%, 100% 
+color "lightblue" -> color 68%, 85%, 90%, 100% 
+color "lightcoral" -> color 94%, 50%, 50%, 100%
+color "lightcyan" -> color 88%, 100%, 100%, 100% 
+color "lightgoldenrodyellow" -> color 98%, 98%, 82%, 100% 
+color "lightgray" -> color 83%, 83%, 83%, 100%
+color "lightgreen" -> color 56%, 93%, 56%, 100% 
+color "lightgrey" -> color 83%, 83%, 83%, 100% 
+color "lightpink" -> color 100%, 71%, 76%, 100%
+color "lightsalmon" -> color 100%, 63%, 48%, 100% 
+color "lightseagreen" -> color 13%, 70%, 67%, 100% 
+color "lightskyblue" -> color 53%, 81%, 98%, 100% 
+color "lightslategray" -> color 47%, 53%, 60%, 100% 
+color "lightslategrey" -> color 47%, 53%, 60%, 100% 
+color "lightsteelblue" -> color 69%, 77%, 87%, 100% 
+color "lightyellow" -> color 100%, 100%, 88%, 100% 
+color "lime" -> color 0%, 100%, 0%, 100% 
+color "limegreen" -> color 20%, 80%, 20%, 100% 
+color "linen" -> color 98%, 94%, 90%, 100% 
+color "magenta" -> color 100%, 0%, 100%, 100%
+color "maroon" -> color 50%, 0%, 0%, 100% 
+color "mediumaquamarine" -> color 40%, 80%, 67%, 100%
+color "mediumblue" -> color 0%, 0%, 80%, 100% 
+color "mediumorchid" -> color 73%, 33%, 83%, 100%
+color "mediumpurple" -> color 58%, 44%, 86%, 100% 
+color "mediumseagreen" -> color 24%, 70%, 44%, 100% 
+color "mediumslateblue" -> color 48%, 41%, 93%, 100%
+color "mediumspringgreen" -> color 0%, 98%, 60%, 100% 
+color "mediumturquoise" -> color 28%, 82%, 80%, 100% 
+color "mediumvioletred" -> color 78%, 8%, 52%, 100% 
+color "midnightblue" -> color 10%, 10%, 44%, 100%
+color "mintcream" -> color 96%, 100%, 98%, 100%
+color "mistyrose" -> color 100%, 89%, 88%, 100% 
+color "moccasin" -> color 100%, 89%, 71%, 100% 
+color "navajowhite" -> color 100%, 87%, 68%, 100% 
+color "navy" -> color 0%, 0%, 50%, 100%
+color "oldlace" -> color 99%, 96%, 90%, 100%
+color "olive" -> color 50%, 50%, 0%, 100%
+color "olivedrab" -> color 42%, 56%, 14%, 100% 
+color "orange" -> color 100%, 65%, 0%, 100% 
+color "orangered" -> color 100%, 27%, 0%, 100% 
+color "orchid" -> color 85%, 44%, 84%, 100%
+color "palegoldenrod" -> color 93%, 91%, 67%, 100% 
+color "palegreen" -> color 60%, 98%, 60%, 100% 
+color "paleturquoise" -> color 69%, 93%, 93%, 100% 
+color "palevioletred" -> color 86%, 44%, 58%, 100% 
+color "papayawhip" -> color 100%, 94%, 84%, 100%
+color "peachpuff" -> color 100%, 85%, 73%, 100%
+color "peru" -> color 80%, 52%, 25%, 100%
+color "pink" -> color 100%, 75%, 80%, 100% 
+color "plum" -> color 87%, 63%, 87%, 100% 
+color "powderblue" -> color 69%, 88%, 90%, 100%
+color "purple" -> color 50%, 0%, 50%, 100% 
+color "red" -> color 100%, 0%, 0%, 100% 
+color "rosybrown" -> color 74%, 56%, 56%, 100% 
+color "royalblue" -> color 25%, 41%, 88%, 100% 
+color "saddlebrown" -> color 55%, 27%, 7%, 100% 
+color "salmon" -> color 98%, 50%, 45%, 100% 
+color "sandybrown" -> color 96%, 64%, 38%, 100% 
+color "seagreen" -> color 18%, 55%, 34%, 100% 
+color "seashell" -> color 100%, 96%, 93%, 100% 
+color "sienna" -> color 63%, 32%, 18%, 100% 
+color "silver" -> color 75%, 75%, 75%, 100%
+color "skyblue" -> color 53%, 81%, 92%, 100%
+color "slateblue" -> color 42%, 35%, 80%, 100%
+color "slategray" -> color 44%, 50%, 56%, 100%
+color "slategrey" -> color 44%, 50%, 56%, 100% 
+color "snow" -> color 100%, 98%, 98%, 100%
+color "springgreen" -> color 0%, 100%, 50%, 100%
+color "steelblue" -> color 27%, 51%, 71%, 100% 
+color "tan" -> color 82%, 71%, 55%, 100% 
+color "teal" -> color 0%, 50%, 50%, 100%
+color "thistle" -> color 85%, 75%, 85%, 100% 
+color "tomato" -> color 100%, 39%, 28%, 100%
+color "turquoise" -> color 25%, 88%, 82%, 100%
+color "violet" -> color 93%, 51%, 93%, 100% 
+color "wheat" -> color 96%, 87%, 70%, 100%
+color "white" -> color 100%, 100%, 100%, 100% 
+color "whitesmoke" -> color 96%, 96%, 96%, 100% 
+color "yellow" -> color 100%, 100%, 0%, 100% 
+color "yellowgreen" -> color 60%, 80%, 20%, 100%
+
 // 3D Shapes
 sphere x:real, y:real, z:real, r:real   -> sphere x,y,z,2*r,2*r,2*r,25,25
 sphere r:real                           ->
@@ -435,14 +584,16 @@ check_box_button x:real, y:real, w:real, h:real, l:text, m:text, a:tree ->
       check_box_button  x, y, w, h, l, l, m, a
 
 texture "default"       -> texture      ""
-color "default"         -> color        0.2, 0.6, 1.0, 0.5
+color "default"         -> color        0.0, 0.0, 0.0, 1.0
+color "fill"            -> color        0.2, 0.6, 1.0, 0.5
 color "line"            -> color        0.0, 0.0, 0.0, 0.0
 color "font"            -> color        0.0, 0.0, 0.0, 1.0
 line_color "default"    -> line_color   0.0, 0.0, 0.0, 0.0
+line_color "fill"       -> line_color   0.0, 0.0, 0.0, 0.0
 line_color "line"       -> line_color   0.0, 0.2, 0.8, 1.0
 line_color "font"       -> line_color   0.0, 0.0, 0.0, 0.0
 line_width "default"    -> line_width   4
-font "default"          -> font "Times New Roman", 18
+font "default"          -> font "Times New Roman", 24
 
 texture     "default"
 color       "default"
@@ -483,6 +634,8 @@ menu_item "menu:insert > shape > line <->", "Line with Two Arrowheads", do
 menu_item "menu:insert > shape > rectangle", "Rectangle", do
     insert "Insert rectangle",
         shape
+            color "fill"
+            line_color "fill"
             rectangle 0, 0, 100, 100
 menu_item "menu:insert > shape > rounded rectangle", "Rounded Rectangle", do
     insert "Insert rounded rectangle",
@@ -491,42 +644,62 @@ menu_item "menu:insert > shape > rounded rectangle", "Rounded Rectangle", do
 menu_item "menu:insert > shape > oval", "Oval", do
     insert "Insert oval",
         shape
+            color "fill"
+            line_color "fill"
             ellipse 0, 0, 100, 100
 menu_item "menu:insert > shape > triangle", "Triangle", do
     insert "Insert triangle",
         shape
+            color "fill"
+            line_color "fill"
             triangle 0, 0, 100, 100
 menu_item "menu:insert > shape > right triangle", "Right Triangle", do
     insert "Insert right triangle",
         shape
+            color "fill"
+            line_color "fill"
             right_triangle 0, 0, 100, 100
 menu_item "menu:insert > shape > arrow", "Arrow", do
     insert "Insert arrow",
         shape
+            color "fill"
+            line_color "fill"
             arrow 0, 0, 100, 100, 44, 32%
 menu_item "menu:insert > shape > double arrow", "Double Arrow", do
     insert "Insert double arrow",
         shape
+            color "fill"
+            line_color "fill"
             double_arrow 0, 0, 100, 100, 44, 32%
 menu_item "menu:insert > shape > diamond", "Diamond", do
     insert "Insert diamond",
         shape
+            color "fill"
+            line_color "fill"
             diamond 0, 0, 100, 100
 menu_item "menu:insert > shape > speech ballon", "Speech Balloon", do
     insert "Insert speech balloon",
         shape
+            color "fill"
+            line_color "fill"
             speech_balloon 0, 16, 100, 68, 50, -50, -50
 menu_item "menu:insert > shape > callout", "Callout", do
     insert "Insert callout",
         shape
+            color "fill"
+            line_color "fill"
             callout 16, 0, 68, 100, 15, -50, 0, 60
 menu_item "menu:insert > shape > star", "Star", do
     insert "Insert star",
         shape
+            color "fill"
+            line_color "fill"
             star 0, 0, 100, 100, 5, 50%
 menu_item "menu:insert > shape > polygon", "Polygon", do
     insert "Insert polygon",
         shape
+            color "fill"
+            line_color "fill"
             polygon 0, 0, 100, 100, 5
 
 menu      "menu:insert", ""
@@ -609,50 +782,74 @@ menu_item "toolbar:insert > shape > line <->", "", "images/tb_shape_line_w_two_a
 menu_item "toolbar:insert > shape > rectangle", "", "images/tb_shape_rectangle.png", do
     insert "Insert rectangle",
         shape
+            color "fill"
+            line_color "fill"
             rectangle 0, 0, 100, 100
 menu_item "toolbar:insert > shape > rounded rectangle", "", "images/tb_shape_rounded_rectangle.png", do
     insert "Insert rounded rectangle",
         shape
+            color "fill"
+            line_color "fill"
             rounded_rectangle 0, 0, 100, 100, 15
 menu_item "toolbar:insert > shape > oval", "", "images/tb_shape_oval.png", do
     insert "Insert oval",
         shape
+            color "fill"
+            line_color "fill"
             ellipse 0, 0, 100, 100
 menu_item "toolbar:insert > shape > triangle", "", "images/tb_shape_triangle.png", do
     insert "Insert triangle",
         shape
+            color "fill"
+            line_color "fill"
             triangle 0, 0, 100, 100
 menu_item "toolbar:insert > shape > right triangle", "", "images/tb_shape_right_triangle.png", do
     insert "Insert right triangle",
         shape
+            color "fill"
+            line_color "fill"
             right_triangle 0, 0, 100, 100
 menu_item "toolbar:insert > shape > arrow", "", "images/tb_shape_arrow.png", do
     insert "Insert arrow",
         shape
+            color "fill"
+            line_color "fill"
             arrow 0, 0, 100, 100, 44, 32%
 menu_item "toolbar:insert > shape > double arrow", "", "images/tb_shape_double_arrow.png", do
     insert "Insert double arrow",
         shape
+            color "fill"
+            line_color "fill"
             double_arrow 0, 0, 100, 100, 44, 32%
 menu_item "toolbar:insert > shape > diamond", "", "images/tb_shape_diamond.png", do
     insert "Insert diamond",
         shape
+            color "fill"
+            line_color "fill"
             diamond 0, 0, 100, 100
 menu_item "toolbar:insert > shape > speech ballon", "", "images/tb_shape_speech_balloon.png", do
     insert "Insert speech balloon",
         shape
+            color "fill"
+            line_color "fill"
             speech_balloon 0, 16, 100, 68, 50, -50, -50
 menu_item "toolbar:insert > shape > callout", "", "images/tb_shape_callout.png", do
     insert "Insert callout",
         shape
+            color "fill"
+            line_color "fill"
             callout 16, 0, 68, 100, 15, -50, 0, 60
 menu_item "toolbar:insert > shape > star", "", "images/tb_shape_star.png", do
     insert "Insert star",
         shape
+            color "fill"
+            line_color "fill"
             star 0, 0, 100, 100, 5, 50%
 menu_item "toolbar:insert > shape > polygon", "", "images/tb_shape_polygon.png", do
     insert "Insert polygon",
         shape
+            color "fill"
+            line_color "fill"
             polygon 0, 0, 100, 100, 5
 }
 

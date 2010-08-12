@@ -237,7 +237,8 @@ bool Justifier<Item>::Adjust(coord start, coord end,
                 {
                     if (hadBreak)
                         numBreaks++;
-                    numSolids += itemCount;
+                    else
+                        numSolids += itemCount;
                     firstElement = false;
                 }
 

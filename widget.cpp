@@ -3514,7 +3514,7 @@ XL::Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
 
 XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, bool fs)
 // ----------------------------------------------------------------------------
-//   Enable or disable animations
+//   Enable or disable stereoscopie mode
 // ----------------------------------------------------------------------------
 {
     bool oldFs = hasAnimations();

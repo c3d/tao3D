@@ -414,6 +414,8 @@ void LayoutLine::Compute(Layout *layout)
     if (left > right) std::swap(left, right);
     line.Adjust(left + layout->left, right - layout->right,
                 layout->alongX, layout);
+    IFTRACE(justify)
+        line.Dump("Line justification", layout);
 }
 
 
@@ -785,6 +787,8 @@ void PageLayout::Compute(Layout *where)
     coord bottom = space.Bottom() + this->bottom;
     if (top < bottom) std::swap(top, bottom);
     page.Adjust(top, bottom, alongY, this);
+    IFTRACE(justify)
+        page.Dump("Page justification", this);
 
     // Restore state from surrounding context
     Inherit(where);

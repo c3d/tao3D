@@ -94,7 +94,7 @@ public:
     scale       SpaceSize(Item item, Layout *);
     coord       ItemOffset(Item item, Layout *);
 
-    void        Dump(text msg);
+    void        Dump(text msg, Layout *);
 
     // Structure recording an item after we placed it
     struct Place
@@ -226,13 +226,15 @@ bool Justifier<Item>::Adjust(coord start, coord end,
                 lastSpace = SpaceSize(item, layout) * spacing;
                 lastOversize = size * (spacing-1);
                 item = next;
-                if (hadBreak)
-                    numBreaks++;
-                else
-                    numSolids++;
 
                 if (size > 0)
+                {
+                    if (hadBreak)
+                        numBreaks++;
+                    else
+                        numSolids++;
                     firstElement = false;
+                }
 
                 if (done)
                 {
@@ -280,10 +282,13 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     {
         Place &place = *p;
         place.position += offset;
-        if (place.solid)
-            offset += atSolid;
-        else
-            offset += atBreak;
+        if (place.size > 0)
+        {
+            if (place.solid)
+                offset += atSolid;
+            else
+                offset += atBreak;
+        }
     }
 
     // Return true if we placed all the items
@@ -292,23 +297,14 @@ bool Justifier<Item>::Adjust(coord start, coord end,
 
 
 template <class Item>
-void Justifier<Item>::Dump(text msg)
+void Justifier<Item>::Dump(text msg, Layout *l)
 // ----------------------------------------------------------------------------
 //   Dump the contents of a justifier for debugging purpose
 // ----------------------------------------------------------------------------
 {
     std::cout << msg << "\n";
 
-    // Dump the items remaining
-    ItemsIterator i;
-    for (i = items.begin(); i != items.end(); i++)
-    {
-        Item item = *i;
-        std::cout << " I" << i - items.begin() << ": "
-                  << item << " (" << Size(item) << ")\n";
-    }
-
-    // Dump the places remaining
+    // Dump the placed items
     PlacesIterator p;
     for (p = places.begin(); p != places.end(); p++)
     {
@@ -318,6 +314,16 @@ void Justifier<Item>::Dump(text msg)
                   << place.size << " @ " << place.position
                   << (place.solid ? " solid" : " break") << ")\n";
     }
+
+    // Dump the items remaining
+    ItemsIterator i;
+    for (i = items.begin(); i != items.end(); i++)
+    {
+        Item item = *i;
+        std::cout << " I" << i - items.begin() << ": "
+                  << item << " (" << Size(item, l) << ")\n";
+    }
+
 }
 
 TAO_END

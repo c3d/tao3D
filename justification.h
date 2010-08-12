@@ -52,13 +52,16 @@ struct Justification
                   float before = 0.0,
                   float after = 0.0)
         : amount(amount), centering(center), spread(spread),
-          spacing(spacing), before(before), after(after) {}
+          spacing(spacing), before(before), after(after),
+          perSolid(0.0), perBreak(0.0) {}
     float       amount;
     float       centering;
     float       spread;
     float       spacing;
     float       before;
     float       after;
+    float       perSolid;
+    float       perBreak;
 };
 
 
@@ -89,7 +92,8 @@ public:
     void        Clear();
 
     // Properties of the items in the layout
-    Item        Break(Item item, bool *hadBreak, bool *hadSep, bool *done);
+    Item        Break(Item item, uint &size,
+                      bool &hadBreak, bool &hadSep, bool &done);
     scale       Size(Item item, Layout *);
     scale       SpaceSize(Item item, Layout *);
     coord       ItemOffset(Item item, Layout *);
@@ -180,6 +184,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     uint  numSolids    = 0;
     int   sign         = start < end ? 1 : -1;
     bool  firstElement = true;
+    uint  itemCount    = 0;
 
     // Place items until there's none left or we are beyond the max position
     ItemsIterator i;
@@ -190,7 +195,8 @@ bool Justifier<Item>::Adjust(coord start, coord end,
         while (hasRoom && !done && item)
         {
             // Cut item at the first break point
-            Item next = Break(item, &hadBreak, &hadSeparator, &done);
+            itemCount = 0;
+            Item next = Break(item, itemCount, hadBreak, hadSeparator, done);
 
             // Test the size of what remains
             scale size = Size(item, layout);
@@ -231,8 +237,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
                 {
                     if (hadBreak)
                         numBreaks++;
-                    else
-                        numSolids++;
+                    numSolids += itemCount;
                     firstElement = false;
                 }
 
@@ -275,6 +280,8 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     // And allocate to individual items
     coord atSolid = forSolids / (numSolids > 1 ? numSolids - 1 : 1);
     coord atBreak = forBreaks / (numBreaks > 1 ? numBreaks - 1 : 1);
+    justify.perSolid = atSolid;
+    justify.perBreak = atBreak;
 
     // Now perform the adjustment on individual positions
     PlacesIterator p;

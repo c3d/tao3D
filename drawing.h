@@ -58,7 +58,7 @@ struct Drawing
         ColumnBreak, PageBreak,
         AnyBreak
     };
-    virtual Drawing *   Break(BreakOrder &order);
+    virtual Drawing *   Break(BreakOrder &order, uint &size);
     virtual scale       TrailingSpaceSize(Layout *);
     virtual bool        IsAttribute();
 

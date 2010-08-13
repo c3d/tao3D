@@ -33,8 +33,7 @@ Drag::Drag(Widget *w)
 // ----------------------------------------------------------------------------
     : Activity("Drag", w)
 {
-    // No auto-save during drag; wait for end of operation
-    widget->enableAutoSave(false);
+    widget->setDragging(true);
 }
 
 
@@ -43,8 +42,7 @@ Drag::~Drag()
 //   End of drag
 // ----------------------------------------------------------------------------
 {
-    widget->saveAndCommit();
-    widget->enableAutoSave(true);
+    widget->setDragging(false);
 }
 
 

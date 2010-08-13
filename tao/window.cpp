@@ -1771,7 +1771,8 @@ void Window::setCurrentFile(const QString &fileName)
     QString name = fileName;
     QFileInfo fi(name);
     curFile = fi.absoluteFilePath();
-    isReadOnly |= !fi.isWritable();
+    if (fi.exists())
+        isReadOnly |= !fi.isWritable();
 
     markChanged(false);
     setWindowFilePath(curFile);

@@ -36,61 +36,34 @@ FetchDialog::FetchDialog(Repository *repo, QWidget *parent)
 // ----------------------------------------------------------------------------
 //    Create a "remote" selection box for the given repository
 // ----------------------------------------------------------------------------
-    : QDialog(parent), repo(repo)
+    : FetchPushDialogBase(repo, parent)
 {
     setupUi(this);
+    chooseRemoteLabel->setText(tr("Choose the remote project you want to "
+                                  "fetch from:"));
     rsFrame->setRepository(repo, repo->lastFetchUrl);
     rsFrame->setRole(RemoteSelectionFrame::RSF_Fetch);
 }
 
 
-QString FetchDialog::fetchUrl()
-// ----------------------------------------------------------------------------
-//    The name of the currently selected remote (empty string if "<None>")
-// ----------------------------------------------------------------------------
-{
-    return rsFrame->remote();
-}
-
-
 void FetchDialog::accept()
 // ----------------------------------------------------------------------------
-//    Publish the current project to the previously chosen remote
+//    Fetch from the previously chosen remote
 // ----------------------------------------------------------------------------
 {
-    bool ok;
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    ok = repo->fetch(repo->lastFetchUrl = fetchUrl());
-    QApplication::restoreOverrideCursor();
-    if (!ok)
-    {
-            QMessageBox box;
-            box.setWindowTitle("Error");
-            box.setText(tr("Fetch failed."));
-            box.setInformativeText(+(repo->errors));
-            box.setIcon(QMessageBox::Warning);
-            int ret = box.exec(); (void) ret;
-            return;
-    }
-    emit fetched();
-    QDialog::accept();
-}
 
-void FetchDialog::on_rsFrame_noneSelected()
-// ----------------------------------------------------------------------------
-//    Disable the OK button if remote is not set
-// ----------------------------------------------------------------------------
-{
-    buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-}
+    proc = repo->asyncFetch(repo->lastFetchUrl = Url());
+    if (!proc)
+        return;
+    connect(proc.data(), SIGNAL(finished(int,QProcess::ExitStatus)),
+            this, SLOT(onFinished(int,QProcess::ExitStatus)));
+    connect(proc.data(), SIGNAL(error(QProcess::ProcessError)),
+            this, SLOT(onError(QProcess::ProcessError)));
+    connect(proc.data(), SIGNAL(percentComplete(int)),
+            progressBar, SLOT(setValue(int)));
 
-
-void FetchDialog::on_rsFrame_nameSelected()
-// ----------------------------------------------------------------------------
-//    Disable the OK button if remote is not set
-// ----------------------------------------------------------------------------
-{
-    buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+    (void)repo->dispatch(proc);
 }
 
 }

@@ -22,33 +22,19 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "remote_selection_frame.h"
-#include "ui_publish_to_dialog.h"
-#include "repository.h"
-#include <QDialog>
-#include <QWidget>
+#include "fetch_push_dialog_base.h"
 
 namespace Tao {
 
-struct Repository;
-
-class PublishToDialog : public QDialog, private Ui::PublishToDialog
+class PublishToDialog : public FetchPushDialogBase
 {
     Q_OBJECT
 
 public:
     PublishToDialog(Repository *repo, QWidget *parent = 0);
 
-public:
-    QString      pushTo();
-
 public slots:
     virtual void accept();
-    void         on_rsFrame_noneSelected();
-    void         on_rsFrame_nameSelected();
-
-private:
-    Repository * repo;
 };
 
 }

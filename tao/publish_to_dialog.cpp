@@ -36,20 +36,13 @@ PublishToDialog::PublishToDialog(Repository *repo, QWidget *parent)
 // ----------------------------------------------------------------------------
 //    Create a "remote" selection box for the given repository
 // ----------------------------------------------------------------------------
-    : QDialog(parent), repo(repo)
+    : FetchPushDialogBase(repo, parent)
 {
     setupUi(this);
+    chooseRemoteLabel->setText(tr("Choose the remote project you want to "
+                                  "publish to:"));
     rsFrame->setRepository(repo, repo->lastPublishTo);
     rsFrame->setRole(RemoteSelectionFrame::RSF_Push);
-}
-
-
-QString PublishToDialog::pushTo()
-// ----------------------------------------------------------------------------
-//    The name of the currently selected remote (empty string if "<None>")
-// ----------------------------------------------------------------------------
-{
-    return rsFrame->remote();
 }
 
 
@@ -58,38 +51,19 @@ void PublishToDialog::accept()
 //    Publish the current project to the previously chosen remote
 // ----------------------------------------------------------------------------
 {
-    bool ok;
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    ok = repo->push(repo->lastPublishTo = pushTo());
-    QApplication::restoreOverrideCursor();
-    if (!ok)
-    {
-            QMessageBox box;
-            box.setWindowTitle("Error");
-            box.setText(tr("Publish failed."));
-            box.setInformativeText(+(repo->errors));
-            box.setIcon(QMessageBox::Warning);
-            int ret = box.exec(); (void) ret;
-            return;
-    }
-    QDialog::accept();
-}
 
-void PublishToDialog::on_rsFrame_noneSelected()
-// ----------------------------------------------------------------------------
-//    Disable the OK button if remote is not set
-// ----------------------------------------------------------------------------
-{
-    buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-}
+    proc = repo->asyncPush(repo->lastPublishTo = Url());
+    if (!proc)
+        return;
+    connect(proc.data(), SIGNAL(finished(int,QProcess::ExitStatus)),
+            this, SLOT(onFinished(int,QProcess::ExitStatus)));
+    connect(proc.data(), SIGNAL(error(QProcess::ProcessError)),
+            this, SLOT(onError(QProcess::ProcessError)));
+    connect(proc.data(), SIGNAL(percentComplete(int)),
+            progressBar, SLOT(setValue(int)));
 
-
-void PublishToDialog::on_rsFrame_nameSelected()
-// ----------------------------------------------------------------------------
-//    Disable the OK button if remote is not set
-// ----------------------------------------------------------------------------
-{
-    buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+    (void)repo->dispatch(proc);
 }
 
 }

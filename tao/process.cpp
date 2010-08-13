@@ -80,13 +80,15 @@ void Process::setWd(const QString &wd)
 // ----------------------------------------------------------------------------
 //   Set working directory after checking it is valid
 // ----------------------------------------------------------------------------
+//   If wd is empty or invalid, working directory defaults to parent's
 {
+    if (wd.isEmpty())
+        return;
     if (QDir(wd).isReadable())
         setWorkingDirectory(wd);
     else
         std::cerr << +tr("Warning: cannot set working directory to "
                          "non-existent or not readable path: %1\n").arg(wd);
-    // Note: if wd is invalid, working directory defaults to parent's
 }
 
 
@@ -95,8 +97,7 @@ void Process::start()
 //   Start child process
 // ----------------------------------------------------------------------------
 {
-    if (!wd.isEmpty())
-        setWd(wd);
+    setWd(wd);
     setEnvironment();
 
     IFTRACE(process)

@@ -1346,9 +1346,6 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 //    Update the source file view with the plain contents of a specific file
 // ----------------------------------------------------------------------------
 {
-    if (isUntitled)
-        return true;
-
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text))
     {
@@ -1364,6 +1361,7 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
     QTextStream in(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
     loadInProgress = true;
+    textEdit->setTextColor(Qt::black);
     textEdit->setPlainText(in.readAll());
     loadInProgress = false;
     QApplication::restoreOverrideCursor();

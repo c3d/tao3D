@@ -1148,7 +1148,6 @@ GitAuthProcess::GitAuthProcess(
     this->cmd = GitRepository::gitCommand;
 #endif
 
-    initialize(bufSize);
     if (startImmediately)
         start();
 };

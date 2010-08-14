@@ -747,7 +747,7 @@ Box3 TextSpan::Space(Layout *where)
 }
 
 
-TextSpan *TextSpan::Break(BreakOrder &order, uint &sz)
+TextSpan *TextSpan::Break(BreakOrder &order, uint &size)
 // ----------------------------------------------------------------------------
 //   If the text span contains a word or line break, cut there
 // ----------------------------------------------------------------------------
@@ -758,7 +758,7 @@ TextSpan *TextSpan::Break(BreakOrder &order, uint &sz)
     {
         QChar c = QChar(XL::Utf8Code(str, i));
         BreakOrder charOrder = CharBreak;
-        sz++;
+        size++;
         if (c.isSpace())
         {
             charOrder = WordBreak;

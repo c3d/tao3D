@@ -23,6 +23,7 @@
 #include "page_layout.h"
 #include "attributes.h"
 #include "text_drawing.h"
+#include "justification.hpp"
 #include "gl_keepers.h"
 #include "window.h"
 #include <QFontMetrics>

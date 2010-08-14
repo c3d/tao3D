@@ -52,10 +52,10 @@
 #include <QRegExp>
 
 #define TAO_FILESPECS "Tao documents (*.ddd)"
-//\
-//                      ";;XL programs (*.xl)" \
-//                      ";;Headers (*.dds *.xs)"\
-                      ";;All files (*.*)"
+/*                      ";;XL programs (*.xl)" \
+ *                      ";;Headers (*.dds *.xs)"\
+ *                      ";;All files (*.*)"
+ */
 
 TAO_BEGIN
 
@@ -874,7 +874,7 @@ void Window::createActions()
     newAct->setIconVisibleInMenu(false);
     connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
 
-    openAct = new QAction(QIcon(":/images/open.png"), tr("&Open file..."),
+    openAct = new QAction(QIcon(":/images/open.png"), tr("&Open File..."),
                           this);
     openAct->setShortcuts(QKeySequence::Open);
     openAct->setStatusTip(tr("Open an existing file"));

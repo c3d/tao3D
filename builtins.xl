@@ -66,7 +66,7 @@ chooser_item_font               -> font "Arial", 28
 
 draw_chooser_box x,y,w,h        ->
     color 20%, 20%, 20%, 70%
-    line_color 1,0,0,70%
+    line_color 100%,0%,0%,70%
     rounded_rectangle x, y, w+10, h+10, 5
     line_color 0,0,0,0
 
@@ -130,165 +130,71 @@ draw_chooser_match m1, m2, m3, x, y ->
     color 100%, 100%, 100%, 60%
     text m3
 
+// Defaults
+texture "default"       -> texture      ""
+color "default"         -> color        0.0, 0.0, 0.0, 1.0
+color "fill"            -> color        0.2, 0.6, 1.0, 0.5
+color "line"            -> color        0.0, 0.0, 0.0, 0.0
+color "font"            -> color        0.0, 0.0, 0.0, 1.0
+line_color "default"    -> line_color   0.0, 0.0, 0.0, 0.0
+line_color "fill"       -> line_color   0.0, 0.0, 0.0, 0.0
+line_color "line"       -> line_color   0.0, 0.2, 0.8, 1.0
+line_color "font"       -> line_color   0.0, 0.0, 0.0, 0.0
+line_width "default"    -> line_width   4
+font "default"          -> font "Times New Roman", 24
+
+texture     "default"
+color       "default"
+line_color  "default"
+line_width  "default"
+font        "default"
+
+
 // Colors
-shape_color_black     -> set_attribute "color", {color 0, 0, 0, 1}
-shape_color_red       -> set_attribute "color", {color 1, 0, 0, 1}
-shape_color_green     -> set_attribute "color", {color 0, 1, 0, 1}
-shape_color_yellow    -> set_attribute "color", {color 1, 1, 0, 1}
-shape_color_blue      -> set_attribute "color", {color 0, 0, 1, 1}
-shape_color_magenta   -> set_attribute "color", {color 1, 0, 1, 1}
-shape_color_cyan      -> set_attribute "color", {color 0, 1, 1, 1}
-shape_color_white     -> set_attribute "color", {color 1, 1, 1, 1}
+shape_color_black     -> set_attribute "color", {color 0.0, 0.0, 0.0, 1.0}
+shape_color_red       -> set_attribute "color", {color 1.0, 0.0, 0.0, 1.0}
+shape_color_green     -> set_attribute "color", {color 0.0, 1.0, 0.0, 1.0}
+shape_color_yellow    -> set_attribute "color", {color 1.0, 1.0, 0.0, 1.0}
+shape_color_blue      -> set_attribute "color", {color 0.0, 0.0, 1.0, 1.0}
+shape_color_magenta   -> set_attribute "color", {color 1.0, 0.0, 1.0, 1.0}
+shape_color_cyan      -> set_attribute "color", {color 0.0, 1.0, 1.0, 1.0}
+shape_color_white     -> set_attribute "color", {color 1.0, 1.0, 1.0, 1.0}
 
+color n:text                                                       -> color n, 1.0
+color r:integer, g:integer, b:integer, a:real                      -> color real r / 255, real g / 255, real b / 255, a
+color r:integer, g:integer, b:integer                              -> color real r / 255, real g / 255, real b / 255, 1.0
+color r:real, g:real, b:real                                       -> color r, g, b, 1.0
+color_hsl h:integer, s:integer, l:integer, a:real                  -> color_hsl real (h mod 360) / 360, real s / 255, real l / 255, a
+color_hsl h:integer, s:integer, l:integer                          -> color_hsl real (h mod 360) / 360, real s / 255, real l / 255, 1.0
+color_hsl h:integer, s:real, l:real, a:real                        -> color_hsl real (h mod 360) / 360, s, l, a
+color_hsl h:integer, s:real, l:real                                -> color_hsl real (h mod 360) / 360, s, l, 1.0
+color_hsl h:real, s:real, l:real                                   -> color_hsl h, s, l, 1.0
+color_hsv h:integer, s:integer, l:integer, a:real                  -> color_hsv real (h mod 360) / 360, real s / 255, real l / 255, a
+color_hsv h:integer, s:integer, l:integer                          -> color_hsv real (h mod 360) / 360, real s / 255, real l / 255, 1.0
+color_hsv h:integer, s:real, l:real, a:real                        -> color_hsv real (h mod 360) / 360, s, l, a
+color_hsv h:integer, s:real, l:real                                -> color_hsv real (h mod 360) / 360, s, l, 1.0
+color_hsv h:real, s:real, l:real                                   -> color_hsv h, s, l, 1.0
+color_cmyk c:integer, m:integer, y:integer, k:integer, a:real      -> color_cmyk real c / 255, real m / 255, real y / 255, real k / 255, a
+color_cmyk c:integer, m:integer, y:integer, k:integer              -> color_cmyk real c / 255, real m / 255, real y / 255, real k / 255, 1.0
+color_cmyk c:real, m:real, y:real, k:real                          -> color_cmyk c, m, y, k, 1.0
 
-// SVG Named Colors
-color "aliceblue" -> color 94%, 97%, 100%, 100% 
-color "antiquewhite" -> color 98%, 92%, 84%, 100%
-color "aqua" -> color 0%, 100%, 100%, 100% 
-color "aquamarine" -> color 50%, 100%, 83%, 100%
-color "azure" -> color 94%, 100%, 100%, 100% 
-color "beige" -> color 96%, 96%, 86%, 100% 
-color "bisque" -> color 100%, 89%, 77%, 100%
-color "black" -> color 0%, 0%, 0%, 100% 
-color "blanchedalmond" -> color 100%, 92%, 80%, 100% 
-color "blue" -> color 0%, 0%, 100%, 100%
-color "blueviolet" -> color 54%, 17%, 89%, 100% 
-color "brown" -> color 65%, 16%, 16%, 100% 
-color "burlywood" -> color 87%, 72%, 53%, 100%
-color "cadetblue" -> color 37%, 62%, 63%, 100% 
-color "chartreuse" -> color 50%, 100%, 0%, 100% 
-color "chocolate" -> color 82%, 41%, 12%, 100% 
-color "coral" -> color 100%, 50%, 31%, 100% 
-color "cornflowerblue" -> color 39%, 58%, 93%, 100% 
-color "cornsilk" -> color 100%, 97%, 86%, 100%
-color "crimson" -> color 86%, 8%, 24%, 100%
-color "cyan" -> color 0%, 100%, 100%, 100% 
-color "darkblue" -> color 0%, 0%, 55%, 100% 
-color "darkcyan" -> color 0%, 55%, 55%, 100% 
-color "darkgoldenrod" -> color 72%, 53%, 4%, 100% 
-color "darkgray" -> color 66%, 66%, 66%, 100%
-color "darkgreen" -> color 0%, 39%, 0%, 100% 
-color "darkgrey" -> color 66%, 66%, 66%, 100% 
-color "darkkhaki" -> color 74%, 72%, 42%, 100% 
-color "darkmagenta" -> color 55%, 0%, 55%, 100% 
-color "darkolivegreen" -> color 33%, 42%, 18%, 100%
-color "darkorange" -> color 100%, 55%, 0%, 100%
-color "darkorchid" -> color 60%, 20%, 80%, 100% 
-color "darkred" -> color 55%, 0%, 0%, 100%
-color "darksalmon" -> color 91%, 59%, 48%, 100%
-color "darkseagreen" -> color 56%, 74%, 56%, 100%
-color "darkslateblue" -> color 28%, 24%, 55%, 100%
-color "darkslategray" -> color 18%, 31%, 31%, 100% 
-color "darkslategrey" -> color 18%, 31%, 31%, 100%
-color "darkturquoise" -> color 0%, 81%, 82%, 100%
-color "darkviolet" -> color 58%, 0%, 83%, 100%
-color "deeppink" -> color 100%, 8%, 58%, 100% 
-color "deepskyblue" -> color 0%, 75%, 100%, 100% 
-color "dimgray" -> color 41%, 41%, 41%, 100% 
-color "dimgrey" -> color 41%, 41%, 41%, 100% 
-color "dodgerblue" -> color 12%, 56%, 100%, 100% 
-color "firebrick" -> color 70%, 13%, 13%, 100% 
-color "floralwhite" -> color 100%, 98%, 94%, 100% 
-color "forestgreen" -> color 13%, 55%, 13%, 100%
-color "fuchsia" -> color 100%, 0%, 100%, 100% 
-color "gainsboro" -> color 86%, 86%, 86%, 100% 
-color "ghostwhite" -> color 97%, 97%, 100%, 100% 
-color "gold" -> color 100%, 84%, 0%, 100% 
-color "goldenrod" -> color 85%, 65%, 13%, 100% 
-color "gray" -> color 50%, 50%, 50%, 100% 
-color "green" -> color 0%, 50%, 0%, 100% 
-color "greenyellow" -> color 68%, 100%, 18%, 100%
-color "grey" -> color 50%, 50%, 50%, 100% 
-color "honeydew" -> color 94%, 100%, 94%, 100%
-color "hotpink" -> color 100%, 41%, 71%, 100% 
-color "indianred" -> color 80%, 36%, 36%, 100% 
-color "indigo" -> color 29%, 0%, 51%, 100% 
-color "ivory" -> color 100%, 100%, 94%, 100%
-color "khaki" -> color 94%, 90%, 55%, 100% 
-color "lavender" -> color 90%, 90%, 98%, 100% 
-color "lavenderblush" -> color 100%, 94%, 96%, 100% 
-color "lawngreen" -> color 49%, 99%, 0%, 100% 
-color "lemonchiffon" -> color 100%, 98%, 80%, 100% 
-color "lightblue" -> color 68%, 85%, 90%, 100% 
-color "lightcoral" -> color 94%, 50%, 50%, 100%
-color "lightcyan" -> color 88%, 100%, 100%, 100% 
-color "lightgoldenrodyellow" -> color 98%, 98%, 82%, 100% 
-color "lightgray" -> color 83%, 83%, 83%, 100%
-color "lightgreen" -> color 56%, 93%, 56%, 100% 
-color "lightgrey" -> color 83%, 83%, 83%, 100% 
-color "lightpink" -> color 100%, 71%, 76%, 100%
-color "lightsalmon" -> color 100%, 63%, 48%, 100% 
-color "lightseagreen" -> color 13%, 70%, 67%, 100% 
-color "lightskyblue" -> color 53%, 81%, 98%, 100% 
-color "lightslategray" -> color 47%, 53%, 60%, 100% 
-color "lightslategrey" -> color 47%, 53%, 60%, 100% 
-color "lightsteelblue" -> color 69%, 77%, 87%, 100% 
-color "lightyellow" -> color 100%, 100%, 88%, 100% 
-color "lime" -> color 0%, 100%, 0%, 100% 
-color "limegreen" -> color 20%, 80%, 20%, 100% 
-color "linen" -> color 98%, 94%, 90%, 100% 
-color "magenta" -> color 100%, 0%, 100%, 100%
-color "maroon" -> color 50%, 0%, 0%, 100% 
-color "mediumaquamarine" -> color 40%, 80%, 67%, 100%
-color "mediumblue" -> color 0%, 0%, 80%, 100% 
-color "mediumorchid" -> color 73%, 33%, 83%, 100%
-color "mediumpurple" -> color 58%, 44%, 86%, 100% 
-color "mediumseagreen" -> color 24%, 70%, 44%, 100% 
-color "mediumslateblue" -> color 48%, 41%, 93%, 100%
-color "mediumspringgreen" -> color 0%, 98%, 60%, 100% 
-color "mediumturquoise" -> color 28%, 82%, 80%, 100% 
-color "mediumvioletred" -> color 78%, 8%, 52%, 100% 
-color "midnightblue" -> color 10%, 10%, 44%, 100%
-color "mintcream" -> color 96%, 100%, 98%, 100%
-color "mistyrose" -> color 100%, 89%, 88%, 100% 
-color "moccasin" -> color 100%, 89%, 71%, 100% 
-color "navajowhite" -> color 100%, 87%, 68%, 100% 
-color "navy" -> color 0%, 0%, 50%, 100%
-color "oldlace" -> color 99%, 96%, 90%, 100%
-color "olive" -> color 50%, 50%, 0%, 100%
-color "olivedrab" -> color 42%, 56%, 14%, 100% 
-color "orange" -> color 100%, 65%, 0%, 100% 
-color "orangered" -> color 100%, 27%, 0%, 100% 
-color "orchid" -> color 85%, 44%, 84%, 100%
-color "palegoldenrod" -> color 93%, 91%, 67%, 100% 
-color "palegreen" -> color 60%, 98%, 60%, 100% 
-color "paleturquoise" -> color 69%, 93%, 93%, 100% 
-color "palevioletred" -> color 86%, 44%, 58%, 100% 
-color "papayawhip" -> color 100%, 94%, 84%, 100%
-color "peachpuff" -> color 100%, 85%, 73%, 100%
-color "peru" -> color 80%, 52%, 25%, 100%
-color "pink" -> color 100%, 75%, 80%, 100% 
-color "plum" -> color 87%, 63%, 87%, 100% 
-color "powderblue" -> color 69%, 88%, 90%, 100%
-color "purple" -> color 50%, 0%, 50%, 100% 
-color "red" -> color 100%, 0%, 0%, 100% 
-color "rosybrown" -> color 74%, 56%, 56%, 100% 
-color "royalblue" -> color 25%, 41%, 88%, 100% 
-color "saddlebrown" -> color 55%, 27%, 7%, 100% 
-color "salmon" -> color 98%, 50%, 45%, 100% 
-color "sandybrown" -> color 96%, 64%, 38%, 100% 
-color "seagreen" -> color 18%, 55%, 34%, 100% 
-color "seashell" -> color 100%, 96%, 93%, 100% 
-color "sienna" -> color 63%, 32%, 18%, 100% 
-color "silver" -> color 75%, 75%, 75%, 100%
-color "skyblue" -> color 53%, 81%, 92%, 100%
-color "slateblue" -> color 42%, 35%, 80%, 100%
-color "slategray" -> color 44%, 50%, 56%, 100%
-color "slategrey" -> color 44%, 50%, 56%, 100% 
-color "snow" -> color 100%, 98%, 98%, 100%
-color "springgreen" -> color 0%, 100%, 50%, 100%
-color "steelblue" -> color 27%, 51%, 71%, 100% 
-color "tan" -> color 82%, 71%, 55%, 100% 
-color "teal" -> color 0%, 50%, 50%, 100%
-color "thistle" -> color 85%, 75%, 85%, 100% 
-color "tomato" -> color 100%, 39%, 28%, 100%
-color "turquoise" -> color 25%, 88%, 82%, 100%
-color "violet" -> color 93%, 51%, 93%, 100% 
-color "wheat" -> color 96%, 87%, 70%, 100%
-color "white" -> color 100%, 100%, 100%, 100% 
-color "whitesmoke" -> color 96%, 96%, 96%, 100% 
-color "yellow" -> color 100%, 100%, 0%, 100% 
-color "yellowgreen" -> color 60%, 80%, 20%, 100%
+line_color n:text                                                  -> line_color n, 1.0
+line_color r:integer, g:integer, b:integer, a:real                 -> line_color real r / 255, real g / 255, real b / 255, a
+line_color r:integer, g:integer, b:integer                         -> line_color real r / 255, real g / 255, real b / 255, 1.0
+line_color r:real, g:real, b:real                                  -> line_color r, g, b, 1.0
+line_color_hsl h:integer, s:integer, l:integer, a:real             -> line_color_hsl real (h mod 360) / 360, real s / 255, real l / 255, a
+line_color_hsl h:integer, s:integer, l:integer                     -> line_color_hsl real (h mod 360) / 360, real s / 255, real l / 255, 1.0
+line_color_hsl h:integer, s:real, l:real, a:real                   -> line_color_hsl real (h mod 360) / 360, s, l, a
+line_color_hsl h:integer, s:real, l:real                           -> line_color_hsl real (h mod 360) / 360, s, l, 1.0
+line_color_hsl h:real, s:real, l:real                              -> line_color_hsl h, s, l, 1.0
+line_color_hsv h:integer, s:integer, l:integer, a:real             -> line_color_hsv real (h mod 360) / 360, real s / 255, real l / 255, a
+line_color_hsv h:integer, s:integer, l:integer                     -> line_color_hsv real (h mod 360) / 360, real s / 255, real l / 255, 1.0
+line_color_hsv h:integer, s:real, l:real, a:real                   -> line_color_hsv real (h mod 360) / 360, s, l, a
+line_color_hsv h:integer, s:real, l:real                           -> line_color_hsv real (h mod 360) / 360, s, l, 1.0
+line_color_hsv h:real, s:real, l:real                              -> line_color_hsv h, s, l, 1.0
+line_color_cmyk c:integer, m:integer, y:integer, k:integer, a:real -> line_color_cmyk real c / 255, real m / 255, real y / 255, real k / 255, a
+line_color_cmyk c:integer, m:integer, y:integer, k:integer         -> line_color_cmyk real c / 255, real m / 255, real y / 255, real k / 255, 1.0
+line_color_cmyk c:real, m:real, y:real, k:real                     -> line_color_cmyk c, m, y, k, 1.0
 
 // 3D Shapes
 sphere x:real, y:real, z:real, r:real   -> sphere x,y,z,2*r,2*r,2*r,25,25
@@ -406,51 +312,51 @@ selected_textbox_color ->
 
 text_selection_color ->
     color 70%,90%,100%,50%
-    line_color 1,0,0,0
+    line_color 100%,0%,0%,0%
 
 text_highlight_color ->
     color 70%,70%,70%,50%
-    line_color 1,0,0,0
+    line_color 100%,0%,0%,0%
 
 formula_highlight_color ->
-    color 100%,950%,90%,20%
-    line_color 1,0,0,100%
+    color 100%,95%,90%,20%
+    line_color 100%,0%,0%,100%
 
 text_cursor_color ->
-    color 1, 0, 0, 90%
-    line_color 1,0,0,0
+    color 100%, 0%, 0%, 90%
+    line_color 100%,0%,0%,0%
 
 text_cursor_highlight ->
-    color 0.6, 0.6, 0.6, 40%
-    line_color 1,0,0,0
+    color 60%, 60%, 60%, 40%
+    line_color 100%,0%,0%,0%
 
 handle_outer_color ->
-    color 0.0, 0.0, 0.0, 0.9
-    line_color 0,0,0,0
+    color 0%, 0%, 0%, 90%
+    line_color 0%,0%,0%,0%
 handle_inner_color ->
-    color 1.0, 1.0, 1.0, 1.0
-    line_color 0,0,0,0
+    color 100%, 100%, 100%, 100%
+    line_color 0%,0%,0%,0%
 
 group_handle_outer_color ->
-    color 0.0, 0.0, 0.6, 0.05
-    line_color 0,0,0,0
+    color 0%, 0%, 60%, 5%
+    line_color 0%,0%,0%,0%
 group_handle_inner_color ->
-    color 1.0, 1.0, 1.0, 0.05
-    line_color 0,0,0,0
+    color 100%, 100%, 100%, 5%
+    line_color 0%,0%,0%,0%
 
 adjust_shape_handle_outer_color ->
-    color 0.0, 0.0, 0.0, 0.9
-    line_color 0,0,0,0
+    color  0%, 0%, 0%, 90%
+    line_color 0%,0%,0%,0%
 adjust_shape_handle_inner_color ->
-    color 0.0, 1.0, 0.0, 0.9
-    line_color 0,0,0,0
+    color  0%, 100%, 0%, 90%
+    line_color 0%,0%,0%,0%
 
 control_point_handle_outer_color ->
-    color 0.0, 0.0, 0.0, 0.9
-    line_color 0,0,0,0
+    color  0%, 0%, 0%, 90%
+    line_color 0%,0%,0%,0%
 control_point_handle_inner_color ->
-    color 1.0, 0.0, 0.0, 0.9
-    line_color 0,0,0,0
+    color 100%, 0%, 0%, 90%
+    line_color 0%,0%,0%,0%
 
 draw_selection x,y,z,w,h,d ->
     selection_color
@@ -481,9 +387,9 @@ draw_3D_selection x,y,z,w,h,d ->
     cube x, y, z, w, h, d
 
 draw_widget_selection x,y,w,h ->
-    line_color 0,70%,90%,80%
+    line_color 0%,70%,90%,80%
     line_width 1
-    color 0,0,0,0
+    color 0%,0%,0%,0%
     rectangle x, y, w, h
 
 draw_selection x,y,w,h ->
@@ -582,24 +488,6 @@ radio_button x:real, y:real, w:real, h:real, l:text, m:text, a:tree ->
       radio_button x, y, w, h, l, l, m, a
 check_box_button x:real, y:real, w:real, h:real, l:text, m:text, a:tree ->
       check_box_button  x, y, w, h, l, l, m, a
-
-texture "default"       -> texture      ""
-color "default"         -> color        0.0, 0.0, 0.0, 1.0
-color "fill"            -> color        0.2, 0.6, 1.0, 0.5
-color "line"            -> color        0.0, 0.0, 0.0, 0.0
-color "font"            -> color        0.0, 0.0, 0.0, 1.0
-line_color "default"    -> line_color   0.0, 0.0, 0.0, 0.0
-line_color "fill"       -> line_color   0.0, 0.0, 0.0, 0.0
-line_color "line"       -> line_color   0.0, 0.2, 0.8, 1.0
-line_color "font"       -> line_color   0.0, 0.0, 0.0, 0.0
-line_width "default"    -> line_width   4
-font "default"          -> font "Times New Roman", 24
-
-texture     "default"
-color       "default"
-line_color  "default"
-line_width  "default"
-font        "default"
 
 menu_insert -> {
 menubar
@@ -710,8 +598,8 @@ menu_item "menu:insert > table", "Table", do
             line_color "font"
             table 3, 3, do
                 table_cell_fill
-                    color 0,0,0,20%
-                    line_color 0, 0, 1, 80%
+                    color 0%,0%,0%,20%
+                    line_color 0%, 0%, 100%, 80%
                     line_width 2
                     rectangle table_cell_x, table_cell_y, table_cell_w, table_cell_h
                 table_cell_margins 5, 5
@@ -753,7 +641,7 @@ menu_item "menu:insert > image...", "Image...", file_chooser
     action do
         insert "Insert image",
             shape
-                color 1,1,1,1
+                color 100%,100%,100%,100%
                 image 0, 0, rel_file_path
 }
 

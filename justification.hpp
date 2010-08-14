@@ -93,6 +93,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     uint  numSolids     = 0;
     uint  numItems      = 0;
     uint  itemCount     = 0;
+    uint  lastItemCount = 0;
     int   sign          = start < end ? 1 : -1;
     bool  firstElement  = true;
 
@@ -150,6 +151,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
                     else
                         numSolids++;
                     numItems += itemCount;
+                    lastItemCount = itemCount;
                     firstElement = false;
                 }
   
@@ -191,7 +193,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     coord atSolid   = forSolids / (numItems>numBreaks ? numItems-numBreaks : 1);
 
     // Allocate extra space between breaks
-    coord lastSolid = atSolid * itemCount;
+    coord lastSolid = atSolid * lastItemCount;
     coord forBreaks = just - forSolids + lastSolid + justify.spread * lastSpace;
     coord atBreak = forBreaks / (numBreaks > 1 ? numBreaks - 1 : 1);
 

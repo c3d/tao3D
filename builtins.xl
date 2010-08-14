@@ -68,7 +68,7 @@ draw_chooser_box x,y,w,h        ->
     color 20%, 20%, 20%, 70%
     line_color 100%,0%,0%,70%
     rounded_rectangle x, y, w+10, h+10, 5
-    line_color 0,0,0,0
+    line_color 0%,0%,0%,0%
 
 draw_chooser_caption m, x, y  ->
     chooser_title_font
@@ -281,33 +281,33 @@ schläfli t, {p:integer}                 -> polygon t, p
 schläfli t, {p:integer/q:integer}       -> polygram t, p, q
 
 selection_color ->
-    color 0.7, 0.8, 0.9, 0.4
-    line_color 0.8, 0.3, 0.3, 0.8
+    color 70%, 80%, 90%, 40%
+    line_color 80%, 30%, 30%, 80%
     line_width 2
 
 selection_rectangle_color ->
-    color 0.7, 0.9, 0.8, 0.4
+    color 70%, 90%, 80%, 40%
     line_color 0.4 * sin seconds, 0.9 * sin (2*seconds), 0.8 * sin(3 * seconds), 0.8
     line_width 1
 
 open_group_color ->
-    color 0.8, 0.8, 0.9, 0.05
-    line_color 0.4, 0.4, 0.9, 0.3
+    color 80%, 80%, 90%, 5%
+    line_color 40%, 40%, 90%, 30%
     line_width 2
 
 open_textbox_color ->
-    color 0.9, 0.8, 0.8, 0.05
-    line_color 0.9, 0.4, 0.4, 0.3
+    color 90%, 80%, 80%, 5%
+    line_color 90%, 40%, 40%, 30%
     line_width 2
 
 group_item_color ->
-    color 0.8, 0.8, 0.8, 0.05
-    line_color 0.4, 0.4, 0.4, 0.05
+    color 80%, 80%, 80%, 5%
+    line_color 40%, 40%, 40%, 5%
     line_width 2
 
 selected_textbox_color ->
-    color 0.8, 0.9, 0.8, 0.1
-    line_color 0.4, 0.9, 0.4, 0.3
+    color 80%, 90%, 80%, 10%
+    line_color 40%, 90%, 40%, 30%
     line_width 2
 
 text_selection_color ->
@@ -496,7 +496,7 @@ menu_item "menu:insert > text box", "Text Box", do
     insert "Insert text box",
         shape
             color "font"
-            line_color "font"
+            //line_color "font"
             font "default"
             text_box 0, 0, 100, 100, do
                 text "Text"
@@ -505,13 +505,13 @@ menu_item "menu:insert > shape > line ---", "Line", do
     insert "Insert line",
         shape
             color "line"
-            line_color "line"
+            //line_color "line"
             line 50, -50, -50, 50
 menu_item "menu:insert > shape > line -->", "Line with Arrowhead", do
     insert "Insert line with arrowhead",
         shape
             color "line"
-            line_color "line"
+            //line_color "line"
             line_arrow 50, -50, none, -50, 50, arrowhead
 menu_item "menu:insert > shape > line <->", "Line with Two Arrowheads", do
     insert "Insert line with two arroheads",

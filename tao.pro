@@ -134,7 +134,8 @@ HEADERS += widget.h \
     selective_undo_dialog.h \
     documentation.h \
     uri.h \
-    open_uri_dialog.h
+    open_uri_dialog.h \
+    new_document_wizard.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -216,7 +217,8 @@ SOURCES += tao_main.cpp \
     selective_undo_dialog.cpp \
     documentation.cpp \
     uri.cpp \
-    open_uri_dialog.cpp
+    open_uri_dialog.cpp \
+    new_document_wizard.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \

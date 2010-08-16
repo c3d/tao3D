@@ -70,6 +70,8 @@ HEADERS += widget.h \
     layout.h \
     page_layout.h \
     space_layout.h \
+    justification.h \
+    justification.hpp \
     apply_changes.h \
     normalize.h \
     activity.h \

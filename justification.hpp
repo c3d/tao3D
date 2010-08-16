@@ -167,7 +167,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
 
     // Extra space that we can use for justification
     scale atEnd = sign * (lastSpace + lastOversize);
-    scale extra = (end + atEnd - pos);
+    scale extra = end - pos + atEnd;
 
     // Amount of justification
     scale just = extra * justify.amount;
@@ -189,12 +189,14 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     coord offset = (extra - just) * justify.centering;
 
     // Allocate extra space between characters
-    coord forSolids = just * justify.spread;
+    scale spread = justify.spread;
+    coord forSolids = just * spread;
     coord atSolid   = forSolids / (numItems>numBreaks ? numItems-numBreaks : 1);
 
     // Allocate extra space between breaks
-    coord lastSolid = atSolid * lastItemCount;
-    coord forBreaks = just - forSolids + lastSolid + justify.spread * lastSpace;
+    coord inLastWord = atSolid * (lastItemCount > 1 ? lastItemCount-2 : 0);
+    coord forBreaks = just - inLastWord;
+;
     coord atBreak = forBreaks / (numBreaks > 1 ? numBreaks - 1 : 1);
 
     // Store that for use in the text_drawing routines

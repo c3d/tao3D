@@ -161,7 +161,7 @@ public:
     void        markChanged(text reason);
     void        selectStatements(Tree *tree);
     bool        writeIfChanged(XL::SourceFile &sf);
-    bool        enableAutoSave(bool enabled);
+    bool        setDragging(bool on);
     bool        doSave(ulonglong tick);
     bool        doPull(ulonglong tick);
     bool        doCommit(ulonglong tick);
@@ -315,10 +315,18 @@ public:
 
 
     // Graphic attributes
-    Tree_p      lineColor(Tree_p self, double r, double g, double b, double a);
+    Tree_p      lineColorName(Tree_p self, text name, double a);
+    Tree_p      lineColorRgb(Tree_p self, double r, double g, double b, double a);
+    Tree_p      lineColorHsl(Tree_p self, double h, double s, double l, double a);
+    Tree_p      lineColorHsv(Tree_p self, double h, double s, double v, double a);
+    Tree_p      lineColorCmyk(Tree_p self, double c, double m, double y, double k, double a);
     Tree_p      lineWidth(Tree_p self, double lw);
     Tree_p      lineStipple(Tree_p self, uint16 pattern, uint16 scale);
-    Tree_p      fillColor(Tree_p self, double r, double g, double b, double a);
+    Tree_p      fillColorName(Tree_p self, text name, double a);
+    Tree_p      fillColorRgb(Tree_p self, double r, double g, double b, double a);
+    Tree_p      fillColorHsl(Tree_p self, double h, double s, double l, double a);
+    Tree_p      fillColorHsv(Tree_p self, double h, double s, double v, double a);
+    Tree_p      fillColorCmyk(Tree_p self, double c, double m, double y, double k, double a);
     Tree_p      fillTexture(Tree_p self, text fileName);
     Tree_p      fillTextureFromSVG(Tree_p self, text svg);
     Tree_p      textureWrap(Tree_p self, bool s, bool t);
@@ -683,7 +691,7 @@ private:
     double                eyeX, eyeY, eyeZ, eyeDistance;
     double                centerX, centerY, centerZ;
     int                   panX, panY;
-    bool                  autoSaveEnabled;
+    bool                  dragging;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:

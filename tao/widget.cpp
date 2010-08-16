@@ -81,6 +81,12 @@
 #include <sys/stat.h>
 
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
+
+#define CHECK_0_1_RANGE(var) \
+    if (var < 0.0 || var > 1.0) { \
+        var = std::max(0.0, std::min(var, 1.0)); \
+    }
+
 namespace TaoFormulas { void EnterFormulas(XL::Symbols *syms); }
 
 TAO_BEGIN
@@ -143,7 +149,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       zoom(1.0),
       eyeX(0.0), eyeY(0.0), eyeZ(Widget::zNear), eyeDistance(20.0),
       centerX(0.0), centerY(0.0), centerZ(0.0),
-      autoSaveEnabled(true)
+      dragging(false)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -247,7 +253,8 @@ void Widget::dawdle()
 
     if (xlProgram->changed && xlProgram->readOnly)
     {
-        updateProgramSource();
+        if (!dragging)
+            updateProgramSource();
         if (!repo)
             xlProgram->changed = false;
     }
@@ -255,7 +262,7 @@ void Widget::dawdle()
     // Check if it's time to save
     ulonglong tick = now();
     longlong saveDelay = longlong(nextSave - tick);
-    if (repo && saveDelay < 0 && repo->idle() && autoSaveEnabled)
+    if (repo && saveDelay < 0 && repo->idle() && !dragging)
     {
         doSave(tick);
     }
@@ -263,7 +270,7 @@ void Widget::dawdle()
     // Check if it's time to commit
     longlong commitDelay = longlong (nextCommit - tick);
     if (repo && commitDelay < 0 && repo->state == Repository::RS_NotClean &&
-        autoSaveEnabled)
+        !dragging)
     {
         doCommit(tick);
     }
@@ -2047,12 +2054,15 @@ void Widget::markChanged(text reason)
         }
     }
 
-    // Record change to repository
-    if (autoSaveEnabled)
+
+    if (!dragging)
+    {
+        // Record change to repository
         saveAndCommit();
 
-    // Now update the window
-    updateProgramSource();
+        // Now update the window
+        updateProgramSource();
+    }
 
     // Cause the screen to redraw
     refresh(0);
@@ -2133,15 +2143,19 @@ bool Widget::doPull(ulonglong tick)
 }
 
 
-bool Widget::enableAutoSave(bool enabled)
+bool Widget::setDragging(bool on)
 // ----------------------------------------------------------------------------
-//   Enable or disable automatic (periodic) save
+//   A drag operation starts or ends
 // ----------------------------------------------------------------------------
 {
-    bool old = autoSaveEnabled;
-    autoSaveEnabled = enabled;
+    bool old = dragging;
+    dragging = on;
+    updateProgramSource();
+    if (!dragging)
+        saveAndCommit();
     return old;
 }
+
 
 bool Widget::doSave(ulonglong tick)
 // ----------------------------------------------------------------------------
@@ -3606,12 +3620,96 @@ Name_p Widget::printPage(Tree_p self, text filename)
 }
 
 
-Tree_p Widget::lineColor(Tree_p self, double r, double g, double b, double a)
+Tree_p Widget::lineColorName(Tree_p self, text name, double a)
 // ----------------------------------------------------------------------------
-//    Set the RGBA color for lines
+//    Set the named color for lines
 // ----------------------------------------------------------------------------
 {
+    CHECK_0_1_RANGE(a);
+
+#if QT_VERSION >=  0x040700
+    if( QColor::isValidColor(+name) )
+    {
+        QColor c(+name);
+#else
+    QColor c(+name);
+    if( c.isValid() )
+    {
+#endif
+        layout->Add(new LineColor(c.redF(), c.greenF(), c.blueF(), a));
+    }
+    else
+    {
+        layout->Add(new LineColor(0.0, 0.0, 0.0, a)); // black
+    }
+
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::lineColorRgb(Tree_p self, double r, double g, double b, double a)
+// ----------------------------------------------------------------------------
+//    Set the RGB color for lines
+// ----------------------------------------------------------------------------
+{
+    CHECK_0_1_RANGE(r);
+    CHECK_0_1_RANGE(g);
+    CHECK_0_1_RANGE(b);
+    CHECK_0_1_RANGE(a);
+
     layout->Add(new LineColor(r, g, b, a));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::lineColorHsl(Tree_p self, double h, double s, double l, double a)
+// ----------------------------------------------------------------------------
+//    Set the HSL color for lines
+// ----------------------------------------------------------------------------
+{
+    CHECK_0_1_RANGE(h);
+    CHECK_0_1_RANGE(s);
+    CHECK_0_1_RANGE(l);
+    CHECK_0_1_RANGE(a);
+
+    QColor hsl;
+    hsl.setHslF(h, s, l);
+    layout->Add(new LineColor(hsl.redF(), hsl.greenF(), hsl.blueF(), a));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::lineColorHsv(Tree_p self, double h, double s, double v, double a)
+// ----------------------------------------------------------------------------
+//    Set the HSV color for lines
+// ----------------------------------------------------------------------------
+{
+    CHECK_0_1_RANGE(h);
+    CHECK_0_1_RANGE(s);
+    CHECK_0_1_RANGE(v);
+    CHECK_0_1_RANGE(a);
+
+    QColor hsv;
+    hsv.setHsvF(h, s, v);
+    layout->Add(new LineColor(hsv.redF(), hsv.greenF(), hsv.blueF(), a));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::lineColorCmyk(Tree_p self, double c, double m, double y, double k, double a)
+// ----------------------------------------------------------------------------
+//    Set the CMYK color for lines
+// ----------------------------------------------------------------------------
+{
+    CHECK_0_1_RANGE(c);
+    CHECK_0_1_RANGE(m);
+    CHECK_0_1_RANGE(y);
+    CHECK_0_1_RANGE(k);
+    CHECK_0_1_RANGE(a);
+
+    QColor cmyk;
+    cmyk.setCmykF(c, m, y, k);
+    layout->Add(new LineColor(cmyk.redF(), cmyk.greenF(), cmyk.blueF(), a));
     return XL::xl_true;
 }
 
@@ -3638,12 +3736,96 @@ Tree_p Widget::lineStipple(Tree_p self, uint16 pattern, uint16 scale)
 }
 
 
-Tree_p Widget::fillColor(Tree_p self, double r, double g, double b, double a)
+Tree_p Widget::fillColorName(Tree_p self, text name, double a)
 // ----------------------------------------------------------------------------
-//    Set the RGBA color for fill
+//    Set the named color for fill
 // ----------------------------------------------------------------------------
 {
+    CHECK_0_1_RANGE(a);
+
+#if QT_VERSION >=  0x040700
+    if( QColor::isValidColor(+name) )
+    {
+        QColor c(+name);
+#else
+    QColor c(+name);
+    if( c.isValid() )
+    {
+#endif
+        layout->Add(new FillColor(c.redF(), c.greenF(), c.blueF(), a));
+    }
+    else
+    {
+        layout->Add(new FillColor(0.0, 0.0, 0.0, a)); // black
+    }
+
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::fillColorRgb(Tree_p self, double r, double g, double b, double a)
+// ----------------------------------------------------------------------------
+//    Set the RGB color for fill
+// ----------------------------------------------------------------------------
+{
+    CHECK_0_1_RANGE(r);
+    CHECK_0_1_RANGE(g);
+    CHECK_0_1_RANGE(b);
+    CHECK_0_1_RANGE(a);
+
     layout->Add(new FillColor(r, g, b, a));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::fillColorHsl(Tree_p self, double h, double s, double l, double a)
+// ----------------------------------------------------------------------------
+//    Set the HSL color for fill
+// ----------------------------------------------------------------------------
+{
+    CHECK_0_1_RANGE(h);
+    CHECK_0_1_RANGE(s);
+    CHECK_0_1_RANGE(l);
+    CHECK_0_1_RANGE(a);
+
+    QColor hsl;
+    hsl.setHslF(h, s, l);
+    layout->Add(new FillColor(hsl.redF(), hsl.greenF(), hsl.blueF(), a));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::fillColorHsv(Tree_p self, double h, double s, double v, double a)
+// ----------------------------------------------------------------------------
+//    Set the HSV color for fill
+// ----------------------------------------------------------------------------
+{
+    CHECK_0_1_RANGE(h);
+    CHECK_0_1_RANGE(s);
+    CHECK_0_1_RANGE(v);
+    CHECK_0_1_RANGE(a);
+
+    QColor hsv;
+    hsv.setHsvF(h, s, v);
+    layout->Add(new FillColor(hsv.redF(), hsv.greenF(), hsv.blueF(), a));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::fillColorCmyk(Tree_p self, double c, double m, double y, double k, double a)
+// ----------------------------------------------------------------------------
+//    Set the CMYK color for fill
+// ----------------------------------------------------------------------------
+{
+    CHECK_0_1_RANGE(c);
+    CHECK_0_1_RANGE(m);
+    CHECK_0_1_RANGE(y);
+    CHECK_0_1_RANGE(k);
+    CHECK_0_1_RANGE(a);
+
+    QColor cmyk;
+    cmyk.setCmykF(c, m, y, k);
+    layout->Add(new FillColor(cmyk.redF(), cmyk.greenF(), cmyk.blueF(), a));
     return XL::xl_true;
 }
 
@@ -4946,7 +5128,6 @@ Tree_p Widget::newTable(Tree_p self, Real_p x, Real_p y,
     {
         NameToNameReplacement replacer;
         replacer["cell"]    = "table_cell";
-        replacer["fill"]    = "table_fill";
         replacer["margins"] = "table_cell_margins";
         replacer["fill"]    = "table_cell_fill";
         replacer["border"]  = "table_cell_border";
@@ -5292,7 +5473,7 @@ Tree_p Widget::lineEdit(Tree_p self,
                         Real_p x, Real_p y, Real_p w, Real_p h,
                         Text_p txt)
 // ----------------------------------------------------------------------------
-//   Draw a line editor in the curent frame
+//   Draw a line editor in the current frame
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
@@ -6111,7 +6292,7 @@ Tree_p Widget::groupBox(Tree_p self,
 
 Tree_p Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 // ----------------------------------------------------------------------------
-//   Make a texture out of a given push button
+//   Make a texture out of a given group box
 // ----------------------------------------------------------------------------
 {
     if (w < 16) w = 16;
@@ -6559,7 +6740,7 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
 
 Tree_p  Widget::menuBar(Tree_p self)
 // ----------------------------------------------------------------------------
-// Set the currentManueBar to the default menuBar.
+// Set currentMenuBar to the default menuBar.
 // ----------------------------------------------------------------------------
 {
     currentMenuBar = ((Window *)parent())->menuBar();

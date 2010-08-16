@@ -9,7 +9,10 @@
 Name "Tao"
 
 ; The file to write
-OutFile "taosetup.exe"
+!ifndef OUTFILE
+!define OUTFILE taosetup.exe
+!endif
+OutFile ${OUTFILE}
 
 ; The default installation directory
 InstallDir $PROGRAMFILES\Taodyne\Tao

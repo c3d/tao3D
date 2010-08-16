@@ -40,6 +40,7 @@
 #include "splash_screen.h"
 #include "uri.h"
 #include "open_uri_dialog.h"
+#include "new_document_wizard.h"
 
 #include <iostream>
 #include <sstream>
@@ -50,8 +51,11 @@
 #include <QList>
 #include <QRegExp>
 
-#define TAO_FILESPECS "Tao documents (*.ddd);;XL programs (*.xl);;" \
-                      "Headers (*.dds *.xs);;All files (*.*)"
+#define TAO_FILESPECS "Tao documents (*.ddd)"
+/*                      ";;XL programs (*.xl)" \
+ *                      ";;Headers (*.dds *.xs)"\
+ *                      ";;All files (*.*)"
+ */
 
 TAO_BEGIN
 
@@ -271,9 +275,19 @@ void Window::sourceViewBecameVisible(bool visible)
 }
 
 
+void Window::newDocument()
+// ----------------------------------------------------------------------------
+//   Create, save and open a new document from a wizard
+// ----------------------------------------------------------------------------
+{
+    NewDocumentWizard wizard(this);
+    wizard.exec();
+}
+
+
 void Window::newFile()
 // ----------------------------------------------------------------------------
-//   Create a new document (either in a new window or in the current one)
+//   Create a new file (either in a new window or in the current one)
 // ----------------------------------------------------------------------------
 {
     if (!needNewWindow())
@@ -848,13 +862,19 @@ void Window::createActions()
 //   Create the various menus and icons on the toolbar
 // ----------------------------------------------------------------------------
 {
+    newDocAct = new QAction(QIcon(":/images/new.png"), tr("New &Document..."), this);
+    newDocAct->setShortcut(QKeySequence(Qt::SHIFT + Qt::CTRL + Qt::Key_N));
+    newDocAct->setStatusTip(tr("Create a new document"));
+    newDocAct->setIconVisibleInMenu(false);
+    connect(newDocAct, SIGNAL(triggered()), this, SLOT(newDocument()));
+
     newAct = new QAction(QIcon(":/images/new.png"), tr("&New"), this);
     newAct->setShortcuts(QKeySequence::New);
     newAct->setStatusTip(tr("Create a new file"));
     newAct->setIconVisibleInMenu(false);
     connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
 
-    openAct = new QAction(QIcon(":/images/open.png"), tr("&Open file..."),
+    openAct = new QAction(QIcon(":/images/open.png"), tr("&Open File..."),
                           this);
     openAct->setShortcuts(QKeySequence::Open);
     openAct->setStatusTip(tr("Open an existing file"));
@@ -1039,6 +1059,7 @@ void Window::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->setObjectName(FILE_MENU_NAME);
+    fileMenu->addAction(newDocAct);
     fileMenu->addAction(newAct);
     fileMenu->addAction(openAct);
     fileMenu->addAction(openUriAct);
@@ -1346,9 +1367,6 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 //    Update the source file view with the plain contents of a specific file
 // ----------------------------------------------------------------------------
 {
-    if (isUntitled)
-        return true;
-
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text))
     {
@@ -1364,6 +1382,7 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
     QTextStream in(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
     loadInProgress = true;
+    textEdit->setTextColor(Qt::black);
     textEdit->setPlainText(in.readAll());
     loadInProgress = false;
     QApplication::restoreOverrideCursor();
@@ -1771,7 +1790,8 @@ void Window::setCurrentFile(const QString &fileName)
     QString name = fileName;
     QFileInfo fi(name);
     curFile = fi.absoluteFilePath();
-    isReadOnly |= !fi.isWritable();
+    if (fi.exists())
+        isReadOnly |= !fi.isWritable();
 
     markChanged(false);
     setWindowFilePath(curFile);

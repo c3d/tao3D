@@ -32,7 +32,6 @@
 #include <QRegExp>
 #include <QDir>
 
-
 TAO_BEGIN
 
 ulong Process::snum = 0;
@@ -41,7 +40,7 @@ Process::Process(size_t bufSize)
 // ----------------------------------------------------------------------------
 //   Create a QProcess without starting it yet
 // ----------------------------------------------------------------------------
-    : commandLine(""), id(NULL),
+    : id(NULL),
       aborted(false), errPos(0), percent(0)
 {
     initialize(bufSize);
@@ -56,7 +55,7 @@ Process::Process(const QString &cmd,
 // ----------------------------------------------------------------------------
 //   Create a QProcess
 // ----------------------------------------------------------------------------
-    : commandLine(""), cmd(cmd), args(args), wd(""),
+    : cmd(cmd), args(args), wd(""),
       id(NULL), aborted(false),
       errPos(0), percent(0)
 {
@@ -81,32 +80,15 @@ void Process::setWd(const QString &wd)
 // ----------------------------------------------------------------------------
 //   Set working directory after checking it is valid
 // ----------------------------------------------------------------------------
+//   If wd is empty or invalid, working directory defaults to parent's
 {
+    if (wd.isEmpty())
+        return;
     if (QDir(wd).isReadable())
         setWorkingDirectory(wd);
     else
         std::cerr << +tr("Warning: cannot set working directory to "
                          "non-existent or not readable path: %1\n").arg(wd);
-    // Note: if wd is invalid, working directory defaults to parent's
-}
-
-
-void Process::start(const QString &cmd, const QStringList &args,
-                    const QString &wd)
-// ----------------------------------------------------------------------------
-//   Start child process
-// ----------------------------------------------------------------------------
-{
-    commandLine = cmd + " " + args.join(" ");
-    if (!wd.isEmpty())
-        setWd(wd);
-
-    IFTRACE(process)
-        std::cerr << "Process " << num << ": " << +commandLine
-                  << " (wd " << +workingDirectory() << ")\n";
-
-    startTime.start();
-    QProcess::start(cmd, args);
 }
 
 
@@ -115,7 +97,24 @@ void Process::start()
 //   Start child process
 // ----------------------------------------------------------------------------
 {
-    start(cmd, args, wd);
+    setWd(wd);
+    setEnvironment();
+
+    IFTRACE(process)
+    {
+        QString commandLine = "{" + cmd;
+        foreach (QString a, args)
+            commandLine += "} {" + a;
+        commandLine += "}";
+        QString dir = workingDirectory();
+        if (dir.isEmpty())
+            dir = "<not set>";
+        std::cerr << "Process " << num << ": " << +commandLine
+                  << " (wd " << +dir << ")\n";
+    }
+
+    startTime.start();
+    QProcess::start(cmd, args);
 }
 
 

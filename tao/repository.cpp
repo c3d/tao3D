@@ -327,11 +327,7 @@ RepositoryFactory::repository(QString path, RepositoryFactory::Mode mode)
 {
     // Do we know this guy already?
     if (cache.contains(path))
-    {
-//        if (mode == RepositoryFactory::Clone)
-//            return repository_ptr(NULL);  // Can't clone into existing repo
         return repository_ptr(cache.value(path));
-    }
 
     // Open (and optionally, create) a repository in 'path'
     repository_ptr rep(newRepository(path, mode));

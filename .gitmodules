@@ -1,6 +1,6 @@
-[submodule "xlr"]
-	path = xlr
+[submodule "tao/xlr"]
+	path = tao/xlr
 	url = git://xlr.git.sourceforge.net/gitroot/xlr/xlr
-[submodule "tests"]
-	path = tests
+[submodule "tao/tests"]
+	path = tao/tests
 	url = ssh://nano.taodyne.com/~ddd/Work/tests.git

@@ -88,7 +88,14 @@ public:
     virtual QString     url();
     virtual bool        gc();
 
+public:
     static  bool        checkGit();
+
+protected:
+    static  bool        checkGitCmd();
+    static  bool        checkCmd(QString cmd, QString var, QString &out);
+    static  QString     checkExe(QString cmd);
+    static  QString     resolveExePath(QString cmd);
     static  bool        showGitSelectionDialog();
 
 signals:
@@ -114,10 +121,36 @@ private:
     QStringList         crArgs(ConflictResolution mode);
 
     static QString      gitCommand;
+    static QString      sshAskPassCommand;
+#ifdef CONFIG_MINGW
+    static QString      detachCommand;
+#endif
     text                nextCommitMessage;
     text                cachedDocVersion;
     QTimer              cdvTimer;
     time_t              currentBranchMtime;
+
+friend class GitAuthProcess;
+
+};
+
+
+// TODO? move to process.h
+class GitAuthProcess : public Process
+// ----------------------------------------------------------------------------
+//   A Git process that may require user authentication (password prompt)
+// ----------------------------------------------------------------------------
+{
+public:
+    GitAuthProcess(size_t bufSize = 1024) : Process(bufSize) {};
+    GitAuthProcess(
+            const QStringList &args = QStringList(),
+            const QString &workingDirectory = "",
+            bool  startImmediately = true,
+            size_t bufSize = 1024);
+    virtual ~GitAuthProcess() {};
+
+    virtual void setEnvironment();
 };
 
 }

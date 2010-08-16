@@ -38,7 +38,7 @@ FetchDialog::FetchDialog(Repository *repo, QWidget *parent)
 // ----------------------------------------------------------------------------
     : FetchPushDialogBase(repo, parent)
 {
-    setupUi(this);
+    setWindowTitle(tr("Fetch"));
     chooseRemoteLabel->setText(tr("Choose the remote project you want to "
                                   "fetch from:"));
     rsFrame->setRepository(repo, repo->lastFetchUrl);
@@ -56,13 +56,7 @@ void FetchDialog::accept()
     proc = repo->asyncFetch(repo->lastFetchUrl = Url());
     if (!proc)
         return;
-    connect(proc.data(), SIGNAL(finished(int,QProcess::ExitStatus)),
-            this, SLOT(onFinished(int,QProcess::ExitStatus)));
-    connect(proc.data(), SIGNAL(error(QProcess::ProcessError)),
-            this, SLOT(onError(QProcess::ProcessError)));
-    connect(proc.data(), SIGNAL(percentComplete(int)),
-            progressBar, SLOT(setValue(int)));
-
+    connectSignalsAndSlots();
     (void)repo->dispatch(proc);
 }
 

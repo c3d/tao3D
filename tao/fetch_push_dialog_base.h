@@ -50,6 +50,7 @@ public slots:
 
 protected:
     void         dismissShortly();
+    void         connectSignalsAndSlots();
 
 protected slots:
     void         onFinished(int code, QProcess::ExitStatus status);

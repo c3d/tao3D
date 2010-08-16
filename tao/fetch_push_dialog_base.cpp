@@ -38,6 +38,17 @@ FetchPushDialogBase::FetchPushDialogBase(Repository *repo, QWidget *parent)
 // ----------------------------------------------------------------------------
     : QDialog(parent), repo(repo), proc(NULL), aborted(false)
 {
+    setupUi(this);
+    QPushButton *detailsBtn = new QPushButton(tr("Show/Hide details"), NULL);
+    detailsBtn->setCheckable(true);
+    connect(detailsBtn, SIGNAL(toggled(bool)),
+            textPane, SLOT(setVisible(bool)));
+    buttonBox->addButton(detailsBtn, QDialogButtonBox::ActionRole);
+    textPane->hide();
+    // Restore margins - for some reason, they are set to 0 in the
+    // Ui::FetchPushDialog constructor
+    verticalLayout->setContentsMargins(11, 11, 11, 11);
+    setLayout(verticalLayout);
 }
 
 
@@ -79,6 +90,24 @@ void FetchPushDialogBase::dismiss()
 // ----------------------------------------------------------------------------
 {
     QDialog::accept();
+}
+
+
+void FetchPushDialogBase::connectSignalsAndSlots()
+// ----------------------------------------------------------------------------
+//    Setup connections with Git process.
+// ----------------------------------------------------------------------------
+{
+    connect(proc.data(), SIGNAL(finished(int,QProcess::ExitStatus)),
+            this, SLOT(onFinished(int,QProcess::ExitStatus)));
+    connect(proc.data(), SIGNAL(error(QProcess::ProcessError)),
+            this, SLOT(onError(QProcess::ProcessError)));
+    connect(proc.data(), SIGNAL(percentComplete(int)),
+            progressBar, SLOT(setValue(int)));
+    connect(proc.data(), SIGNAL(standardErrorUpdated(QByteArray)),
+            textPane, SLOT(insertAnsiText(QByteArray)));
+    connect(proc.data(), SIGNAL(standardOutputUpdated(QByteArray)),
+            textPane, SLOT(insertAnsiText(QByteArray)));
 }
 
 

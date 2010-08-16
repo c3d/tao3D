@@ -38,7 +38,7 @@ PublishToDialog::PublishToDialog(Repository *repo, QWidget *parent)
 // ----------------------------------------------------------------------------
     : FetchPushDialogBase(repo, parent)
 {
-    setupUi(this);
+    setWindowTitle(tr("Publish"));
     chooseRemoteLabel->setText(tr("Choose the remote project you want to "
                                   "publish to:"));
     rsFrame->setRepository(repo, repo->lastPublishTo);
@@ -56,13 +56,7 @@ void PublishToDialog::accept()
     proc = repo->asyncPush(repo->lastPublishTo = Url());
     if (!proc)
         return;
-    connect(proc.data(), SIGNAL(finished(int,QProcess::ExitStatus)),
-            this, SLOT(onFinished(int,QProcess::ExitStatus)));
-    connect(proc.data(), SIGNAL(error(QProcess::ProcessError)),
-            this, SLOT(onError(QProcess::ProcessError)));
-    connect(proc.data(), SIGNAL(percentComplete(int)),
-            progressBar, SLOT(setValue(int)));
-
+    connectSignalsAndSlots();
     (void)repo->dispatch(proc);
 }
 

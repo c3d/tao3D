@@ -1122,35 +1122,45 @@ bool GitRepository::gc()
 }
 
 
-GitAuthProcess::GitAuthProcess(
-        const QStringList &args,
-        const QString &wd,
-        bool  startImmediately,
-        size_t bufSize):
-    Process(bufSize)
+void GitAuthProcess::start()
 // ----------------------------------------------------------------------------
-//    Construct a process object for commands that may need authentication
+//   Start child process
 // ----------------------------------------------------------------------------
 {
-    this->wd = wd;
+    setWd(wd);
+    setEnvironment();
 
-    // Here, 'cmd' is the path to the Git command, and 'args' are the Git
-    // arguments. For instance: "/usr/bin/git fetch remote_name"
+    // Here, 'this->cmd' is the path to the Git command, and 'this>args' are
+    // the Git arguments. For instance: "/usr/bin/git fetch remote_name"
     // On Windows we MUST exec Git through the detach.exe wrapper (the source
     // code explains why -- see detach/main.cpp).
     // So, we want a command line like:
     // "C:\some\path\to\detach.exe C:\some\path\to\git.exe fetch remote_name"
-    this->args = args;
+    QStringList args = this->args;
+    QString cmd;
 #ifdef CONFIG_MINGW
-    this->cmd = GitRepository::detachCommand;
-    this->args.prepend(GitRepository::gitCommand);
+    cmd = GitRepository::detachCommand;
+    args.prepend(GitRepository::gitCommand);
 #else
-    this->cmd = GitRepository::gitCommand;
+    cmd = GitRepository::gitCommand;
 #endif
 
-    if (startImmediately)
-        start();
-};
+    IFTRACE(process)
+    {
+        QString commandLine = "{" + cmd;
+        foreach (QString a, args)
+            commandLine += "} {" + a;
+        commandLine += "}";
+        QString dir = workingDirectory();
+        if (dir.isEmpty())
+            dir = "<not set>";
+        std::cerr << "Process " << num << ": " << +commandLine
+                  << " (wd " << +dir << ")\n";
+    }
+
+    startTime.start();
+    QProcess::start(cmd, args);
+}
 
 
 void GitAuthProcess::setEnvironment()

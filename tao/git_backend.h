@@ -147,10 +147,12 @@ public:
             const QStringList &args = QStringList(),
             const QString &workingDirectory = "",
             bool  startImmediately = true,
-            size_t bufSize = 1024);
+            size_t bufSize = 1024)
+        : Process("", args, workingDirectory, startImmediately, bufSize) {};
     virtual ~GitAuthProcess() {};
 
     virtual void setEnvironment();
+    virtual void start();
 };
 
 }

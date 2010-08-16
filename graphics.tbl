@@ -653,20 +653,49 @@ PREFIX(printPage, boolean, "print_page", PARM(f, text), RTAO(printPage(self,f)),
 //
 // ============================================================================
 
-PREFIX(LineColorRGBA, tree, "line_color",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
-       RTAO(lineColor(self, r,g,b, a)), 
-       "/*| docname \"line_color\", \"graph:attribute\", do { \
+PREFIX(LineColorName, tree, "line_color",
+       PARM(n, text) PARM(a, real),
+       RTAO(lineColorName(self, n, a)),
+       "/*| docname \"color\", \"graph:attribute\", do { \
+                dsyntax <<line_color name, a>>;\
                 dsyntax <<line_color r, g, b, a>>;\
-                synopsis \"Set color\" ; \
-                description <<Set the RGBA color for lines>> ;\
+                dsyntax <<line_color_hsl h, s, l, a>>;\
+                dsyntax <<line_color_hsv h, s, v, a>>;\
+                dsyntax <<line_color_cmyk c, m, y, k, a>>;\
+                synopsis \"Set the line color\" ; \
+                description <<Set the color for lines.>> ;\
                 parameters;\
-                parameter \"real\", \"r\", <<The red componant of the color>>;\
-                parameter \"real\", \"g\", <<The blue componant of the color>>;\
-                parameter \"real\", \"b\", <<The green componant of the color>>;\
-                parameter \"real\", \"a\", <<Alpha channel: the transparency of the color. >>;\
+                parameter \"text\", \"name\", <<The name of the color, which can be one of the SVG color keywork names, or in one of these formats: #RGB or #RRGGBB  (each of R, G, and B being a single hex digit).>>;\
+                parameter \"real\", \"r\", <<The red component of an color, is in the range 0.0 to 1.0.>>;\
+                parameter \"real\", \"g\", <<The blue component of an RGB color, is in the range 0.0 to 1.0.>>;\
+                parameter \"real\", \"b\", <<The green component of an RGB color, is in the range 0.0 to 1.0.>>;\
+                parameter \"real\", \"h\", <<The hue of an HSL or HSV color, is in the range 0.0 to 1.0 if the color is chromatic (not gray), or meaningless if it is gray. It represents degrees/360 on the color wheel familiar to most people. Red is 0, green is 1/3, and blue is 2/3.>>;\
+                parameter \"real\", \"s\", <<The saturation of an HSL or HSV color, is in the range 0.0 to 1.0, and the bigger it is, the stronger the color is. Grayish colors have saturation near 0; very strong colors have saturation near 1.>>;\
+                parameter \"real\", \"l\", <<The lightness an HSL color, is in the range 0.0 to 1.0. 0 is black; 1 is as far from black as possible. In the HSL model, lightness is defined as the average of the largest and smallest color components.>>;\
+                parameter \"real\", \"v\", <<The value or brightness of an HSV color, is in the range 0.0 to 1.0. 0 is black; 1 is as far from black as possible. In the HSV model, value is defined as the largest component of a color.>>;\
+                parameter \"real\", \"c\", <<The cyan component of the a color, is in the range 0.0 to 1.0.>>;\
+                parameter \"real\", \"m\", <<The magenta component of a CMYK color, is in the range 0.0 to 1.0.>>;\
+                parameter \"real\", \"y\", <<The Yellow component of a CMYK color, is in the range 0.0 to 1.0.>>;\
+                parameter \"real\", \"k\", <<The black component of a CMYK color, is in the range 0.0 to 1.0.>>;\
+                parameter \"real\", \"a\", <<The alpha channel, transparency of the color, is in the range 0.0 to 1.0. >>;\
                 }\
           |*/")
+PREFIX(LineColorRGB, tree, "line_color",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(lineColorRgb(self, r, g, b, a)),
+       "")
+PREFIX(LineColorHSL, tree, "line_color_hsl",
+       PARM(h, real) PARM(s, real) PARM(l, real) PARM(a, real),
+       RTAO(lineColorHsl(self, h, s, l, a)),
+       "")
+PREFIX(LineColorHSV, tree, "line_color_hsv",
+       PARM(h, real) PARM(s, real) PARM(v, real) PARM(a, real),
+       RTAO(lineColorHsv(self, h, s, v, a)),
+       "")
+PREFIX(LineColorCMYK, tree, "line_color_cmyk",
+       PARM(c, real) PARM(m, real) PARM(y, real) PARM(k, real) PARM(a, real),
+       RTAO(lineColorCmyk(self, c, m, y, k, a)),
+       "")
 PREFIX(LineWidth, tree, "line_width", PARM(lw, real), RTAO(lineWidth(self, lw)), 
        "/*| docname \"line_width\", \"graph:attribute\", do { \
                 dsyntax <<line_width lw>>;\
@@ -688,20 +717,49 @@ PREFIX(LineStipple, tree, "line_stipple",
                 parameter \"integer\", \"s\", <<scale>>;\
                 }\
           |*/")
-PREFIX(FillColorRGBA, tree, "color",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
-       RTAO(fillColor(self, r,g,b, a)), 
+PREFIX(FillColorName, tree, "color",
+       PARM(n, text) PARM(a, real),
+       RTAO(fillColorName(self, n, a)),
        "/*| docname \"color\", \"graph:attribute\", do { \
+                dsyntax <<color name, a>>;\
                 dsyntax <<color r, g, b, a>>;\
-                synopsis \"The fill color\" ; \
-                description <<Set the RGBA color for fill.>> ;\
+                dsyntax <<color_hsl h, s, l, a>>;\
+                dsyntax <<color_hsv h, s, v, a>>;\
+                dsyntax <<color_cmyk c, m, y, k, a>>;\
+                synopsis \"Set the fill color\" ; \
+                description <<Set the color for fill.>> ;\
                 parameters;\
-                parameter \"real\", \"r\", <<The red componant of the color>>;\
-                parameter \"real\", \"g\", <<The blue componant of the color>>;\
-                parameter \"real\", \"b\", <<The green componant of the color>>;\
-                parameter \"real\", \"a\", <<Alpha channel: the transparency of the color. >>;\
+                parameter \"text\", \"name\", <<The name of the color, which can be one of the SVG color keywork names, or in one of these formats: #RGB or #RRGGBB  (each of R, G, and B being a single hex digit).>>;\
+                parameter \"real\", \"r\", <<The red component of an color, is in the range 0.0 to 1.0.>>;\
+                parameter \"real\", \"g\", <<The blue component of an RGB color, is in the range 0.0 to 1.0.>>;\
+                parameter \"real\", \"b\", <<The green component of an RGB color, is in the range 0.0 to 1.0.>>;\
+                parameter \"real\", \"h\", <<The hue of an HSL or HSV color, is in the range 0.0 to 1.0 if the color is chromatic (not gray), or meaningless if it is gray. It represents degrees/360 on the color wheel familiar to most people. Red is 0, green is 1/3, and blue is 2/3.>>;\
+                parameter \"real\", \"s\", <<The saturation of an HSL or HSV color, is in the range 0.0 to 1.0, and the bigger it is, the stronger the color is. Grayish colors have saturation near 0; very strong colors have saturation near 1.>>;\
+                parameter \"real\", \"l\", <<The lightness an HSL color, is in the range 0.0 to 1.0. 0 is black; 1 is as far from black as possible. In the HSL model, lightness is defined as the average of the largest and smallest color components.>>;\
+                parameter \"real\", \"v\", <<The value or brightness of an HSV color, is in the range 0.0 to 1.0. 0 is black; 1 is as far from black as possible. In the HSV model, value is defined as the largest component of a color.>>;\
+                parameter \"real\", \"c\", <<The cyan component of the a color, is in the range 0.0 to 1.0.>>;\
+                parameter \"real\", \"m\", <<The magenta component of a CMYK color, is in the range 0.0 to 1.0.>>;\
+                parameter \"real\", \"y\", <<The Yellow component of a CMYK color, is in the range 0.0 to 1.0.>>;\
+                parameter \"real\", \"k\", <<The black component of a CMYK color, is in the range 0.0 to 1.0.>>;\
+                parameter \"real\", \"a\", <<The alpha channel, transparency of the color, is in the range 0.0 to 1.0. >>;\
                 }\
           |*/")
+PREFIX(FillColorRGB, tree, "color",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(fillColorRgb(self, r, g, b, a)),
+       "")
+PREFIX(FillColorHSL, tree, "color_hsl",
+       PARM(h, real) PARM(s, real) PARM(l, real) PARM(a, real),
+       RTAO(fillColorHsl(self, h, s, l, a)),
+       "")
+PREFIX(FillColorHSV, tree, "color_hsv",
+       PARM(h, real) PARM(s, real) PARM(v, real) PARM(a, real),
+       RTAO(fillColorHsv(self, h, s, v, a)),
+       "")
+PREFIX(FillColorCMYK, tree, "color_cmyk",
+       PARM(c, real) PARM(m, real) PARM(y, real) PARM(k, real) PARM(a, real),
+       RTAO(fillColorCmyk(self, c, m, y, k, a)),
+       "")
 PREFIX(FillTexture, tree, "texture", PARM(n, text),
        RTAO(fillTexture(self, n)), 
        "/*| docname \"texture\", \"graph:attribute\", do { \

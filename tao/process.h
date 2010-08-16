@@ -50,8 +50,6 @@ public:
             size_t bufSize = 1024);
     virtual ~Process();
 
-    virtual void start(const QString &cmd, const QStringList & arguments,
-                       const QString &wd = "");
     virtual void start();
     virtual bool done(text *errors = NULL, text *output = NULL);
     virtual bool failed();
@@ -81,7 +79,6 @@ protected:                      // From std::streambuf
     virtual int overflow(int c);
 
 public:
-    QString     commandLine;
     QString     cmd;
     QStringList args;
     QString     wd;

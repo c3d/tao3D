@@ -41,6 +41,13 @@ TAO_BEGIN
 
 // The 'git' command. May be updated by checkGit().
 QString GitRepository::gitCommand("git");
+// The command that ssh should use to prompt user for a password.
+// Updated by checkGit().
+QString GitRepository::sshAskPassCommand;
+#ifdef CONFIG_MINGW
+// Windows needs to run git process through a special spawner (detach.exe)
+QString GitRepository::detachCommand;
+#endif
 
 
 GitRepository::GitRepository(const QString &path)
@@ -56,22 +63,38 @@ GitRepository::GitRepository(const QString &path)
 
 bool GitRepository::checkGit()
 // ----------------------------------------------------------------------------
-//   Return true if Git is functional, and set the git command accordingly
+//   Return true if Git is functional, and set the git commands accordingly
+// ----------------------------------------------------------------------------
+{
+    bool ok;
+    ok = checkGitCmd();
+    ok = ok && checkCmd("SshAskPass", "SSH_ASKPASS", sshAskPassCommand);
+#ifdef CONFIG_MINGW
+    ok = ok && checkCmd("detach.exe", "TAO_DETACH", detachCommand);
+#endif
+    return ok;
+}
+
+
+bool GitRepository::checkGitCmd()
+// ----------------------------------------------------------------------------
+//   Locate the git command, return true on success
 // ----------------------------------------------------------------------------
 {
     // Test user-defined git command (if any), then
-    // Look for "git" in $PATH, then in <application's directory>/git/bin
+    // Look for "git" in <application's directory>/git/bin, then in $PATH
 again:
     QStringList commands;
     QString userCmd = QSettings().value("GitCommand").toString();
     if (!userCmd.isEmpty())
         commands << userCmd;
-    commands << "git" << qApp->applicationDirPath() + "/git/bin/git";
+    commands << qApp->applicationDirPath() + "/git/bin/git" << "git";
     QStringListIterator it(commands);
+    bool ok = false;
     while (it.hasNext())
     {
         text errors, output;
-        gitCommand = it.next();
+        gitCommand = resolveExePath(it.next());
         Process cmd(gitCommand, QStringList("--version"));
         if (cmd.done(&errors, &output))
         {
@@ -79,15 +102,129 @@ again:
             // (we need the merge -Xours / -Xtheirs feature)
             QString ver = (+output).replace(QRegExp("[^\\d\\.]"), "");
             if (versionGreaterOrEqual(ver, "1.7.0"))
-                return true;
+            {
+                ok = true;
+                break;
+            }
         }
     }
 
+    if (ok)
+    {
+        IFTRACE(process)
+            std::cerr << "Will use git command: " << +gitCommand << "\n";
+        return true;
+    }
+
+    // !ok
     bool again = showGitSelectionDialog();
     if (again)
         goto again;
 
+    IFTRACE(process)
+        std::cerr << "No valid git command found\n";
     return false;
+}
+
+
+bool GitRepository::checkCmd(QString cmd, QString var, QString &out)
+// ----------------------------------------------------------------------------
+//   Locate a command, copy full path into 'out' and return true on success
+// ----------------------------------------------------------------------------
+{
+    // First try to locate the command in Tao's application directory, then
+    // in $PATH, then use the value of the environment variable 'var', if set.
+    QStringList commands;
+    commands << qApp->applicationDirPath() + "/" + cmd
+             << cmd;
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    QString path = env.value(var);
+    if (!path.isEmpty())
+        commands << path;
+    bool ok = false;
+    foreach (QString s, commands)
+    {
+        QString p = resolveExePath(s);
+        if (!p.isEmpty())
+        {
+            out = p;
+            ok = true;
+            break;
+        }
+    }
+    if (ok)
+    {
+        IFTRACE(process)
+            std::cerr << "Will use " << +cmd << " command: " << +out << "\n";
+    }
+    else
+    {
+        IFTRACE(process)
+            std::cerr << "No valid " << +cmd << " command found\n";
+    }
+
+    return true; // REVISIT: should return false
+}
+
+
+QString GitRepository::resolveExePath(QString cmd)
+// ----------------------------------------------------------------------------
+//   Find an executable, using system PATH if needed. Return absolute path.
+// ----------------------------------------------------------------------------
+{
+    QString ret;
+    if (QFileInfo(cmd).isAbsolute())
+        ret = checkExe(cmd);
+    else
+    {
+        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+        QString path = env.value("PATH");
+#ifdef CONFIG_MINGW
+        QString sep = ";";
+#else
+        QString sep = ":";
+#endif
+        QStringList paths = path.split(sep);
+        foreach (QString d, paths)
+        {
+            QString file = d + "/" + cmd;
+            QString p = checkExe(file);
+            if (!p.isEmpty())
+            {
+                ret = p;
+                break;
+            }
+        }
+    }
+
+    return ret;
+}
+
+
+QString GitRepository::checkExe(QString cmd)
+// ----------------------------------------------------------------------------
+//    If cmd is executable, return canonical (and native) path to cmd
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(process)
+        std::cerr << "Testing " << +cmd << "\n";
+    QString path;
+    path = QFileInfo(cmd).canonicalFilePath();
+    if (QFileInfo(path).isExecutable())
+    {
+        path = QDir::toNativeSeparators(path);
+        IFTRACE(process)
+            std::cerr << "Executable found, canonical path: " << +path << "\n";
+        return path;
+    }
+
+#ifdef CONFIG_MINGW
+    // Second chance on Windows: append .exe
+    if (!cmd.endsWith(".exe", Qt::CaseInsensitive))
+        return checkExe(cmd + ".exe");
+#endif
+
+    return "";
 }
 
 
@@ -702,7 +839,7 @@ bool GitRepository::pull()
     QStringList args("pull");
     args << crArgs(conflictResolution);
     args << pullFrom << branch;
-    Process * proc = new Process(command(), args, path, false);
+    GitAuthProcess * proc = new GitAuthProcess(args, path, false);
     connect(proc,  SIGNAL(finished(int,QProcess::ExitStatus)),
             this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
     dispatch(process_p(proc));
@@ -719,7 +856,7 @@ bool GitRepository::push(QString pushUrl)
     text branch = this->branch();
     QStringList args("push");
     args << pushUrl;
-    Process cmd(command(), args << +branch, path);
+    GitAuthProcess cmd(args << +branch, path);
     return cmd.done(&errors);
 }
 
@@ -730,7 +867,7 @@ bool GitRepository::fetch(QString url)
 // ----------------------------------------------------------------------------
 {
     waitForAsyncProcessCompletion();
-    Process cmd(command(), QStringList("fetch") << url, path);
+    GitAuthProcess cmd(QStringList("fetch") << url, path);
     return cmd.done(&errors);
 }
 
@@ -880,7 +1017,7 @@ process_p GitRepository::asyncClone(QString cloneUrl, QString newFolder)
     args << "clone" << "--progress" << cloneUrl;
     if (!newFolder.isEmpty())
         args << newFolder;
-    Process * proc = new Process(command(), args, path, false);
+    GitAuthProcess * proc = new GitAuthProcess(args, "", false);
     connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
             this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
 
@@ -901,7 +1038,7 @@ process_p GitRepository::asyncFetch(QString url)
 {
     QStringList args;
     args << "fetch" << url;
-    Process * proc = new Process(command(), args, path, false);
+    GitAuthProcess * proc = new GitAuthProcess(args, path, false);
     connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
             this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
 
@@ -982,6 +1119,61 @@ bool GitRepository::gc()
             this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
     dispatch(process_p(proc));
     return true;
+}
+
+
+GitAuthProcess::GitAuthProcess(
+        const QStringList &args,
+        const QString &wd,
+        bool  startImmediately,
+        size_t bufSize):
+    Process(bufSize)
+// ----------------------------------------------------------------------------
+//    Construct a process object for commands that may need authentication
+// ----------------------------------------------------------------------------
+{
+    this->wd = wd;
+
+    // Here, 'cmd' is the path to the Git command, and 'args' are the Git
+    // arguments. For instance: "/usr/bin/git fetch remote_name"
+    // On Windows we MUST exec Git through the detach.exe wrapper (the source
+    // code explains why -- see detach/main.cpp).
+    // So, we want a command line like:
+    // "C:\some\path\to\detach.exe C:\some\path\to\git.exe fetch remote_name"
+    this->args = args;
+#ifdef CONFIG_MINGW
+    this->cmd = GitRepository::detachCommand;
+    this->args.prepend(GitRepository::gitCommand);
+#else
+    this->cmd = GitRepository::gitCommand;
+#endif
+
+    if (startImmediately)
+        start();
+};
+
+
+void GitAuthProcess::setEnvironment()
+// ----------------------------------------------------------------------------
+//    Set environment variables for the GitAuth process
+// ----------------------------------------------------------------------------
+{
+    Process::setEnvironment();
+
+    // Variables needed for ssh authentication
+    QString sap = GitRepository::sshAskPassCommand;
+    if (!sap.isEmpty())
+    {
+        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+
+        env.insert("SSH_ASKPASS", sap);
+        if (!env.contains("DISPLAY"))
+            env.insert("DISPLAY", ":dummy");
+        if (!env.contains("HOME"))
+            env.insert("HOME", QDir::toNativeSeparators(QDir::homePath()));
+
+        setProcessEnvironment(env);
+    }
 }
 
 TAO_END

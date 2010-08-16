@@ -80,6 +80,18 @@ Application::Application(int & argc, char ** argv)
         QApplication::processEvents();
     }
 
+    // Setup the XL runtime environment
+    // Do it soon because debug traces are activated by this
+    updateSearchPaths();
+    QFileInfo syntax    ("system:xl.syntax");
+    QFileInfo stylesheet("system:xl.stylesheet");
+    QFileInfo builtins  ("system:builtins.xl");
+    XL::Compiler *compiler = new XL::Compiler("xl_tao");
+    XL::Main * xlr = new XL::Main(argc, argv, *compiler,
+                       +syntax.canonicalFilePath(),
+                       +stylesheet.canonicalFilePath(),
+                       +builtins.canonicalFilePath());
+
     // Web settings
     QWebSettings *gs = QWebSettings::globalSettings();
     gs->setAttribute(QWebSettings::JavascriptEnabled, true);
@@ -133,18 +145,8 @@ Application::Application(int & argc, char ** argv)
 
     loadSettings();
 
-    // Setup the XL runtime environment
-    updateSearchPaths();
-    QFileInfo syntax    ("system:xl.syntax");
-    QFileInfo stylesheet("system:xl.stylesheet");
-    QFileInfo builtins  ("system:builtins.xl");
-    XL::Compiler *compiler = new XL::Compiler("xl_tao");
-    xlr = new XL::Main(argc, argv, *compiler,
-                       +syntax.canonicalFilePath(),
-                       +stylesheet.canonicalFilePath(),
-                       +builtins.canonicalFilePath());
-    XL::MAIN = xlr;
-
+    // We're ready to go
+    XL::MAIN = this->xlr = xlr;
     if (!savedUri.isEmpty())
         loadUri(savedUri);
 }

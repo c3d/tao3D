@@ -149,7 +149,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       zoom(1.0),
       eyeX(0.0), eyeY(0.0), eyeZ(Widget::zNear), eyeDistance(20.0),
       centerX(0.0), centerY(0.0), centerZ(0.0),
-      autoSaveEnabled(true)
+      dragging(false)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -253,7 +253,8 @@ void Widget::dawdle()
 
     if (xlProgram->changed && xlProgram->readOnly)
     {
-        updateProgramSource();
+        if (!dragging)
+            updateProgramSource();
         if (!repo)
             xlProgram->changed = false;
     }
@@ -261,7 +262,7 @@ void Widget::dawdle()
     // Check if it's time to save
     ulonglong tick = now();
     longlong saveDelay = longlong(nextSave - tick);
-    if (repo && saveDelay < 0 && repo->idle() && autoSaveEnabled)
+    if (repo && saveDelay < 0 && repo->idle() && !dragging)
     {
         doSave(tick);
     }
@@ -269,7 +270,7 @@ void Widget::dawdle()
     // Check if it's time to commit
     longlong commitDelay = longlong (nextCommit - tick);
     if (repo && commitDelay < 0 && repo->state == Repository::RS_NotClean &&
-        autoSaveEnabled)
+        !dragging)
     {
         doCommit(tick);
     }
@@ -2053,12 +2054,15 @@ void Widget::markChanged(text reason)
         }
     }
 
-    // Record change to repository
-    if (autoSaveEnabled)
+
+    if (!dragging)
+    {
+        // Record change to repository
         saveAndCommit();
 
-    // Now update the window
-    updateProgramSource();
+        // Now update the window
+        updateProgramSource();
+    }
 
     // Cause the screen to redraw
     refresh(0);
@@ -2139,15 +2143,19 @@ bool Widget::doPull(ulonglong tick)
 }
 
 
-bool Widget::enableAutoSave(bool enabled)
+bool Widget::setDragging(bool on)
 // ----------------------------------------------------------------------------
-//   Enable or disable automatic (periodic) save
+//   A drag operation starts or ends
 // ----------------------------------------------------------------------------
 {
-    bool old = autoSaveEnabled;
-    autoSaveEnabled = enabled;
+    bool old = dragging;
+    dragging = on;
+    updateProgramSource();
+    if (!dragging)
+        saveAndCommit();
     return old;
 }
+
 
 bool Widget::doSave(ulonglong tick)
 // ----------------------------------------------------------------------------

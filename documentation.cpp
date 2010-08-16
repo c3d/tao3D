@@ -54,6 +54,10 @@ text ExtractDoc::extract(XL::CommentsList commentList)
         else
             inDoc = true;
     }
+    size_t pos = theComment.find_first_not_of(" \t\n");
+    if (pos != std::string::npos && pos > 0 & pos < theComment.length())
+        return theComment.substr(pos);
+
     return theComment;
 }
 

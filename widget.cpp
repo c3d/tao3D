@@ -4946,7 +4946,6 @@ Tree_p Widget::newTable(Tree_p self, Real_p x, Real_p y,
     {
         NameToNameReplacement replacer;
         replacer["cell"]    = "table_cell";
-        replacer["fill"]    = "table_fill";
         replacer["margins"] = "table_cell_margins";
         replacer["fill"]    = "table_cell_fill";
         replacer["border"]  = "table_cell_border";
@@ -5292,7 +5291,7 @@ Tree_p Widget::lineEdit(Tree_p self,
                         Real_p x, Real_p y, Real_p w, Real_p h,
                         Text_p txt)
 // ----------------------------------------------------------------------------
-//   Draw a line editor in the curent frame
+//   Draw a line editor in the current frame
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
@@ -6111,7 +6110,7 @@ Tree_p Widget::groupBox(Tree_p self,
 
 Tree_p Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 // ----------------------------------------------------------------------------
-//   Make a texture out of a given push button
+//   Make a texture out of a given group box
 // ----------------------------------------------------------------------------
 {
     if (w < 16) w = 16;
@@ -6559,7 +6558,7 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
 
 Tree_p  Widget::menuBar(Tree_p self)
 // ----------------------------------------------------------------------------
-// Set the currentManueBar to the default menuBar.
+// Set currentMenuBar to the default menuBar.
 // ----------------------------------------------------------------------------
 {
     currentMenuBar = ((Window *)parent())->menuBar();

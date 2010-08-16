@@ -81,6 +81,12 @@
 #include <sys/stat.h>
 
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
+
+#define CHECK_0_1_RANGE(var) \
+    if (var < 0.0 || var > 1.0) { \
+        var = std::max(0.0, std::min(var, 1.0)); \
+    }
+
 namespace TaoFormulas { void EnterFormulas(XL::Symbols *syms); }
 
 TAO_BEGIN
@@ -3611,9 +3617,17 @@ Tree_p Widget::lineColorName(Tree_p self, text name, double a)
 //    Set the named color for lines
 // ----------------------------------------------------------------------------
 {
+    CHECK_0_1_RANGE(a);
+
+#if QT_VERSION >=  0x040700
     if( QColor::isValidColor(+name) )
     {
         QColor c(+name);
+#else
+    QColor c(+name);
+    if( c.isValid() )
+    {
+#endif
         layout->Add(new LineColor(c.redF(), c.greenF(), c.blueF(), a));
     }
     else
@@ -3630,6 +3644,11 @@ Tree_p Widget::lineColorRgb(Tree_p self, double r, double g, double b, double a)
 //    Set the RGB color for lines
 // ----------------------------------------------------------------------------
 {
+    CHECK_0_1_RANGE(r);
+    CHECK_0_1_RANGE(g);
+    CHECK_0_1_RANGE(b);
+    CHECK_0_1_RANGE(a);
+
     layout->Add(new LineColor(r, g, b, a));
     return XL::xl_true;
 }
@@ -3640,6 +3659,11 @@ Tree_p Widget::lineColorHsl(Tree_p self, double h, double s, double l, double a)
 //    Set the HSL color for lines
 // ----------------------------------------------------------------------------
 {
+    CHECK_0_1_RANGE(h);
+    CHECK_0_1_RANGE(s);
+    CHECK_0_1_RANGE(l);
+    CHECK_0_1_RANGE(a);
+
     QColor hsl;
     hsl.setHslF(h, s, l);
     layout->Add(new LineColor(hsl.redF(), hsl.greenF(), hsl.blueF(), a));
@@ -3652,6 +3676,11 @@ Tree_p Widget::lineColorHsv(Tree_p self, double h, double s, double v, double a)
 //    Set the HSV color for lines
 // ----------------------------------------------------------------------------
 {
+    CHECK_0_1_RANGE(h);
+    CHECK_0_1_RANGE(s);
+    CHECK_0_1_RANGE(v);
+    CHECK_0_1_RANGE(a);
+
     QColor hsv;
     hsv.setHsvF(h, s, v);
     layout->Add(new LineColor(hsv.redF(), hsv.greenF(), hsv.blueF(), a));
@@ -3664,6 +3693,12 @@ Tree_p Widget::lineColorCmyk(Tree_p self, double c, double m, double y, double k
 //    Set the CMYK color for lines
 // ----------------------------------------------------------------------------
 {
+    CHECK_0_1_RANGE(c);
+    CHECK_0_1_RANGE(m);
+    CHECK_0_1_RANGE(y);
+    CHECK_0_1_RANGE(k);
+    CHECK_0_1_RANGE(a);
+
     QColor cmyk;
     cmyk.setCmykF(c, m, y, k);
     layout->Add(new LineColor(cmyk.redF(), cmyk.greenF(), cmyk.blueF(), a));
@@ -3698,9 +3733,17 @@ Tree_p Widget::fillColorName(Tree_p self, text name, double a)
 //    Set the named color for fill
 // ----------------------------------------------------------------------------
 {
+    CHECK_0_1_RANGE(a);
+
+#if QT_VERSION >=  0x040700
     if( QColor::isValidColor(+name) )
     {
         QColor c(+name);
+#else
+    QColor c(+name);
+    if( c.isValid() )
+    {
+#endif
         layout->Add(new FillColor(c.redF(), c.greenF(), c.blueF(), a));
     }
     else
@@ -3717,6 +3760,11 @@ Tree_p Widget::fillColorRgb(Tree_p self, double r, double g, double b, double a)
 //    Set the RGB color for fill
 // ----------------------------------------------------------------------------
 {
+    CHECK_0_1_RANGE(r);
+    CHECK_0_1_RANGE(g);
+    CHECK_0_1_RANGE(b);
+    CHECK_0_1_RANGE(a);
+
     layout->Add(new FillColor(r, g, b, a));
     return XL::xl_true;
 }
@@ -3727,6 +3775,11 @@ Tree_p Widget::fillColorHsl(Tree_p self, double h, double s, double l, double a)
 //    Set the HSL color for fill
 // ----------------------------------------------------------------------------
 {
+    CHECK_0_1_RANGE(h);
+    CHECK_0_1_RANGE(s);
+    CHECK_0_1_RANGE(l);
+    CHECK_0_1_RANGE(a);
+
     QColor hsl;
     hsl.setHslF(h, s, l);
     layout->Add(new FillColor(hsl.redF(), hsl.greenF(), hsl.blueF(), a));
@@ -3739,6 +3792,11 @@ Tree_p Widget::fillColorHsv(Tree_p self, double h, double s, double v, double a)
 //    Set the HSV color for fill
 // ----------------------------------------------------------------------------
 {
+    CHECK_0_1_RANGE(h);
+    CHECK_0_1_RANGE(s);
+    CHECK_0_1_RANGE(v);
+    CHECK_0_1_RANGE(a);
+
     QColor hsv;
     hsv.setHsvF(h, s, v);
     layout->Add(new FillColor(hsv.redF(), hsv.greenF(), hsv.blueF(), a));
@@ -3751,6 +3809,12 @@ Tree_p Widget::fillColorCmyk(Tree_p self, double c, double m, double y, double k
 //    Set the CMYK color for fill
 // ----------------------------------------------------------------------------
 {
+    CHECK_0_1_RANGE(c);
+    CHECK_0_1_RANGE(m);
+    CHECK_0_1_RANGE(y);
+    CHECK_0_1_RANGE(k);
+    CHECK_0_1_RANGE(a);
+
     QColor cmyk;
     cmyk.setCmykF(c, m, y, k);
     layout->Add(new FillColor(cmyk.redF(), cmyk.greenF(), cmyk.blueF(), a));

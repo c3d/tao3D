@@ -1463,6 +1463,8 @@ bool Window::saveFile(const QString &fileName)
         return false;
     }
 
+    isUntitled = false;
+    setCurrentFile(fileName);
     statusBar()->showMessage(tr("Saving..."));
     // FIXME: can't call processEvent here, or the "Save with fonts..."
     // function fails to save all the fonts of a multi-page doc
@@ -1478,7 +1480,6 @@ bool Window::saveFile(const QString &fileName)
 
     text fn = +fileName;
 
-    setCurrentFile(fileName);
     xlRuntime->LoadFile(fn);
 
     showMessage(tr("File saved"), 2000);
@@ -1497,7 +1498,6 @@ bool Window::saveFile(const QString &fileName)
         sf.changed = false;
     }
     markChanged(false);
-    isUntitled = false;
 
     return true;
 }

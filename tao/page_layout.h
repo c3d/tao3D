@@ -49,7 +49,7 @@ public:
 
     virtual Box3        Bounds(Layout *layout);
     virtual Box3        Space(Layout *layout);
-    virtual LayoutLine *Break(BreakOrder &order);
+    virtual LayoutLine *Break(BreakOrder &order, uint &sz);
 
     void                Add(Drawing *d);
     void                Add(Items::iterator first, Items::iterator last);
@@ -58,7 +58,7 @@ public:
 
 public:
     LineJustifier       line;
-    coord               left, right;
+    coord               left, right, perSolid;
 };
 
 
@@ -139,13 +139,21 @@ struct AnchorLayout : Layout
 
 // Specializations for Justifier computations
 typedef Drawing *       line_t;
-template<> line_t       Justifier<line_t>::Break(line_t, bool*, bool*, bool*);
+template<> line_t       Justifier<line_t>::Break(line_t,
+                                                 uint &size,
+                                                 bool &hadBreak,
+                                                 bool &hadSeps,
+                                                 bool &done);
 template<> scale        Justifier<line_t>::Size(line_t, Layout *);
 template<> scale        Justifier<line_t>::SpaceSize(line_t, Layout *);
 template<> coord        Justifier<line_t>::ItemOffset(line_t, Layout *);
 
 typedef LayoutLine *    page_t;
-template<> page_t       Justifier<page_t>::Break(page_t, bool*, bool*, bool*);
+template<> page_t       Justifier<page_t>::Break(page_t,
+                                                 uint &size,
+                                                 bool &hadBreak,
+                                                 bool &hadSeps,
+                                                 bool &done);
 template<> scale        Justifier<page_t>::Size(page_t, Layout *);
 template<> scale        Justifier<page_t>::SpaceSize(page_t, Layout *);
 template<> coord        Justifier<page_t>::ItemOffset(page_t, Layout *);

@@ -23,6 +23,7 @@
 #include "page_layout.h"
 #include "attributes.h"
 #include "text_drawing.h"
+#include "justification.hpp"
 #include "gl_keepers.h"
 #include "window.h"
 #include <QFontMetrics>
@@ -37,18 +38,19 @@ TAO_BEGIN
 // ============================================================================
 
 template<> inline line_t Justifier<line_t>::Break(line_t item,
-                                                  bool *hadBreak,
-                                                  bool *hadSep,
-                                                  bool *done)
+                                                  uint &size,
+                                                  bool &hadBreak,
+                                                  bool &hadSep,
+                                                  bool &done)
 // ----------------------------------------------------------------------------
 //   For drawings, we break at word boundaries
 // ----------------------------------------------------------------------------
 {
     Drawing::BreakOrder order = Drawing::WordBreak;
-    line_t result = item->Break(order);
-    *done = order > Drawing::SentenceBreak;
-    *hadSep = order > Drawing::WordBreak;
-    *hadBreak = order != Drawing::NoBreak;
+    line_t result = item->Break(order, size);
+    done = order > Drawing::SentenceBreak;
+    hadSep = order > Drawing::WordBreak;
+    hadBreak = order != Drawing::NoBreak;
     return result;
 }
 
@@ -89,18 +91,19 @@ template<> inline coord Justifier<line_t>::ItemOffset(line_t item, Layout *l)
 
 
 template<> inline page_t Justifier<page_t>::Break(page_t line,
-                                                  bool *hadBreak,
-                                                  bool *hadSep,
-                                                  bool *done)
+                                                  uint &size,
+                                                  bool &hadBreak,
+                                                  bool &hadSep,
+                                                  bool &done)
 // ----------------------------------------------------------------------------
 //   For lines, we break at line boundaries
 // ----------------------------------------------------------------------------
 {
     Drawing::BreakOrder order = Drawing::LineBreak;
-    page_t result = line->Break(order);
-    *done = order > Drawing::ParaBreak;
-    *hadSep = order > Drawing::LineBreak;
-    *hadBreak = order != Drawing::NoBreak;
+    page_t result = line->Break(order, size);
+    done = order > Drawing::ParaBreak;
+    hadSep = order > Drawing::LineBreak;
+    hadBreak = order != Drawing::NoBreak;
     return result;
 }
 
@@ -152,7 +155,7 @@ LayoutLine::LayoutLine(coord left, coord right)
 // ----------------------------------------------------------------------------
 //   Create a new line of drawing elements
 // ----------------------------------------------------------------------------
-    : line(), left(left), right(right)
+    : line(), left(left), right(right), perSolid(0.0)
 {}
 
 
@@ -288,7 +291,7 @@ Box3 LayoutLine::Space(Layout *where)
 }
 
 
-LayoutLine *LayoutLine::Break(BreakOrder &order)
+LayoutLine *LayoutLine::Break(BreakOrder &order, uint &size)
 // ----------------------------------------------------------------------------
 //   Cut a line layout at a line, paragraph or column boundary
 // ----------------------------------------------------------------------------
@@ -307,8 +310,10 @@ LayoutLine *LayoutLine::Break(BreakOrder &order)
             Drawing *item = place.item;
             while (item)
             {
-                BreakOrder itemOrder = LineBreak;
-                Drawing *next = item->Break(itemOrder);
+                BreakOrder  itemOrder = LineBreak;
+                uint        sz        = 0;
+                Drawing    *next      = item->Break(itemOrder, sz);
+                size += sz;
                 if (next || order < itemOrder)
                 {
                     order = itemOrder;
@@ -342,9 +347,11 @@ LayoutLine *LayoutLine::Break(BreakOrder &order)
     // If not found in placed item, iterates again over leftover items
     for (i = items.begin(); i != items.end(); i++)
     {
-        Drawing *item = *i;
-        BreakOrder itemOrder = LineBreak;
-        Drawing *next = item->Break(itemOrder);
+        Drawing    *item      = *i;
+        BreakOrder  itemOrder = LineBreak;
+        uint        sz        = 0;
+        Drawing    *next      = item->Break(itemOrder, sz);
+        size += sz;
         if (next || itemOrder > Drawing::LineBreak)
         {
             // Keep the current item in this layout
@@ -408,12 +415,16 @@ void LayoutLine::Compute(Layout *layout)
 {
     // If we already computed the placement, re-use that
     if (line.places.size())
+    {
+        layout->alongX.perSolid = perSolid;
         return;
+    }
 
     // Position one line of items
     if (left > right) std::swap(left, right);
     line.Adjust(left + layout->left, right - layout->right,
                 layout->alongX, layout);
+    perSolid = layout->alongX.perSolid;
     IFTRACE(justify)
         line.Dump("Line justification", layout);
 }

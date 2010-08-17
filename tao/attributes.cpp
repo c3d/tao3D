@@ -52,12 +52,13 @@ Box3 Attribute::Space(Layout *where)
 }
 
 
-Drawing *DrawingBreak::Break(BreakOrder &order)
+Drawing *DrawingBreak::Break(BreakOrder &order, uint &size)
 // ----------------------------------------------------------------------------
 //   Perform a character, word, line, column or page break
 // ----------------------------------------------------------------------------
 {
     order = this->order;
+    size = 0;
     return NULL;
 }
 

@@ -70,6 +70,8 @@ HEADERS += widget.h \
     layout.h \
     page_layout.h \
     space_layout.h \
+    justification.h \
+    justification.hpp \
     apply_changes.h \
     normalize.h \
     activity.h \
@@ -135,6 +137,7 @@ HEADERS += widget.h \
     documentation.h \
     uri.h \
     open_uri_dialog.h \
+    new_document_wizard.h \
     fetch_push_dialog_base.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
@@ -218,6 +221,7 @@ SOURCES += tao_main.cpp \
     documentation.cpp \
     uri.cpp \
     open_uri_dialog.cpp \
+    new_document_wizard.cpp \
     fetch_push_dialog_base.cpp
 !win32 { 
     HEADERS += GL/glew.h \

@@ -43,7 +43,7 @@ struct TextSpan : Shape
     virtual void        Identify(Layout *where);
     virtual Box3        Bounds(Layout *where);
     virtual Box3        Space(Layout *where);
-    virtual TextSpan *  Break(BreakOrder &order);
+    virtual TextSpan *  Break(BreakOrder &order, uint &sz);
     virtual scale       TrailingSpaceSize(Layout *where);
     virtual void        Draw(GraphicPath &path, Layout *where);
 

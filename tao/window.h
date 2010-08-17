@@ -102,6 +102,7 @@ protected:
     void closeEvent(QCloseEvent *event);
 
 private slots:
+    void newDocument();
     void newFile();
     bool save();
     bool saveAs();
@@ -184,6 +185,7 @@ private:
     QToolBar         *editToolBar;
     QToolBar         *viewToolBar;
     BranchSelectionToolBar *branchToolBar;
+    QAction          *newDocAct;
     QAction          *newAct;
     QAction          *openAct;
     QAction          *openUriAct;

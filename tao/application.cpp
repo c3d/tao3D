@@ -391,12 +391,12 @@ QString Application::defaultUserDocumentsFolderPath()
 
     if (!path.isNull())
     {
-        return path;
+        return QDir::toNativeSeparators(path);
     }
 
 #endif // CONFIG_MINGW
 
-    // Trying to ding a home sub-directory ending with "Documents"
+    // Trying to find a home sub-directory ending with "Documents"
     QFileInfoList list = QDir::home().entryInfoList(
             QDir::NoDotAndDotDot | QDir::Dirs );
     for (int i = 0; i < list.size(); i++)
@@ -404,11 +404,11 @@ QString Application::defaultUserDocumentsFolderPath()
         QFileInfo info = list[i];
         if (info.fileName().endsWith("documents", Qt::CaseInsensitive))
         {
-            return info.canonicalFilePath();
+            return QDir::toNativeSeparators(info.canonicalFilePath());
         }
     }
     // Last default would be home itself
-    return QDir::homePath();
+    return QDir::toNativeSeparators(QDir::homePath());
 }
 
 
@@ -417,7 +417,8 @@ QString Application::defaultProjectFolderPath()
 //    The folder proposed by default  "Save as..." for a new (Untitled) file
 // ----------------------------------------------------------------------------
 {
-    return defaultUserDocumentsFolderPath() + tr("/Tao");
+    return QDir::toNativeSeparators(defaultUserDocumentsFolderPath()
+                                    + tr("/Tao"));
 }
 
 
@@ -440,23 +441,12 @@ QString Application::defaultPreferencesFolderPath()
                    .toString();
     if (!path.isNull())
     {
-        return path;
+        return QDir::toNativeSeparators(path);
     }
 #endif // CONFIG_MINGW
 
-    // Trying to ding a home sub-directory ending with "Documents"
-    QFileInfoList list = QDir::home().entryInfoList(
-            QDir::NoDotAndDotDot | QDir::Dirs );
-    for (int i = 0; i < list.size(); i++)
-    {
-        QFileInfo info = list[i];
-        if (info.fileName().endsWith("pref", Qt::CaseInsensitive))
-        {
-            return info.canonicalFilePath();
-        }
-    }
-    // Last default would be home itself
-    return QDir::homePath();
+    // Default would be home itself
+    return QDir::toNativeSeparators(QDir::homePath());
 }
 
 
@@ -466,7 +456,10 @@ QString Application::defaultTaoPreferencesFolderPath()
 //    (user preferences for tao application)
 // ----------------------------------------------------------------------------
 {
-    return defaultPreferencesFolderPath() + tr("/xl.d");
+    // REVISIT: Unix:    .tao.d
+    //          Windows: Tao
+    return QDir::toNativeSeparators(defaultPreferencesFolderPath()
+                                    + tr("/xl.d"));
 }
 
 
@@ -475,7 +468,7 @@ QString Application::defaultTaoApplicationFolderPath()
 //    Try to guess the best application folder to use by default
 // ----------------------------------------------------------------------------
 {
-    return applicationDirPath();
+    return QDir::toNativeSeparators(applicationDirPath());
 }
 
 
@@ -498,24 +491,23 @@ QString Application::defaultUserImagesFolderPath()
                    .toString();
     if (!path.isNull())
     {
-        return path;
+        return QDir::toNativeSeparators(path);
     }
 #endif // CONFIG_MINGW
 
-    // Trying to ding a home sub-directory ending with "images" or "pictures"
+    // Trying to find a home sub-directory ending with "pictures"
     QFileInfoList list = QDir::home().entryInfoList(
             QDir::NoDotAndDotDot | QDir::Dirs );
     for (int i = 0; i < list.size(); i++)
     {
         QFileInfo info = list[i];
-        if (info.fileName().endsWith("images", Qt::CaseInsensitive) ||
-            info.fileName().endsWith("pictures", Qt::CaseInsensitive) )
+        if (info.fileName().endsWith("pictures", Qt::CaseInsensitive) )
         {
-            return info.canonicalFilePath();
+            return QDir::toNativeSeparators(info.canonicalFilePath());
         }
     }
     // Last default would be home itself
-    return QDir::homePath();
+    return QDir::toNativeSeparators(QDir::homePath());
 }
 
 

@@ -3617,29 +3617,31 @@ Name_p Widget::printPage(Tree_p self, text filename)
 }
 
 
+static inline QColor colorByName(text name)
+// ----------------------------------------------------------------------------
+//    Return a color by name, or black if the color is invalid
+// ----------------------------------------------------------------------------
+{
+#if QT_VERSION >=  0x040700
+    if (QColor::isValidColor(+name))
+        return QColor(+name);
+#else // Older QT
+    QColor c(+name);
+    if (c.isValid())
+        return c;
+#endif
+    return QColor(0.0, 0.0, 0.0);
+}
+
+
 Tree_p Widget::lineColorName(Tree_p self, text name, double a)
 // ----------------------------------------------------------------------------
 //    Set the named color for lines
 // ----------------------------------------------------------------------------
 {
     CHECK_0_1_RANGE(a);
-
-#if QT_VERSION >=  0x040700
-    if( QColor::isValidColor(+name) )
-    {
-        QColor c(+name);
-#else
-    QColor c(+name);
-    if( c.isValid() )
-    {
-#endif
-        layout->Add(new LineColor(c.redF(), c.greenF(), c.blueF(), a));
-    }
-    else
-    {
-        layout->Add(new LineColor(0.0, 0.0, 0.0, a)); // black
-    }
-
+    QColor c = colorByName(name);
+    layout->Add(new LineColor(c.redF(), c.greenF(), c.blueF(), a));
     return XL::xl_true;
 }
 
@@ -3693,7 +3695,8 @@ Tree_p Widget::lineColorHsv(Tree_p self, double h, double s, double v, double a)
 }
 
 
-Tree_p Widget::lineColorCmyk(Tree_p self, double c, double m, double y, double k, double a)
+Tree_p Widget::lineColorCmyk(Tree_p self,
+                             double c, double m, double y, double k, double a)
 // ----------------------------------------------------------------------------
 //    Set the CMYK color for lines
 // ----------------------------------------------------------------------------
@@ -3739,23 +3742,8 @@ Tree_p Widget::fillColorName(Tree_p self, text name, double a)
 // ----------------------------------------------------------------------------
 {
     CHECK_0_1_RANGE(a);
-
-#if QT_VERSION >=  0x040700
-    if( QColor::isValidColor(+name) )
-    {
-        QColor c(+name);
-#else
-    QColor c(+name);
-    if( c.isValid() )
-    {
-#endif
-        layout->Add(new FillColor(c.redF(), c.greenF(), c.blueF(), a));
-    }
-    else
-    {
-        layout->Add(new FillColor(0.0, 0.0, 0.0, a)); // black
-    }
-
+    QColor c = colorByName(name);
+    layout->Add(new FillColor(c.redF(), c.greenF(), c.blueF(), a));
     return XL::xl_true;
 }
 

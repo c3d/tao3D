@@ -43,11 +43,11 @@ CloneDialog::CloneDialog(QWidget *parent)
     QCompleter *uc = new QCompleter(TaoApp->urlCompletions(), this);
     folderEdit->setCompleter(pc);
     urlEdit->setCompleter(uc);
-    QPushButton *detailsBtn = new QPushButton(tr("Show/Hide details"), NULL);
-    detailsBtn->setCheckable(true);
-    connect(detailsBtn, SIGNAL(toggled(bool)),
+    detailsButton = new QPushButton(tr("Show/Hide details"), NULL);
+    detailsButton->setCheckable(true);
+    connect(detailsButton, SIGNAL(toggled(bool)),
             cloneOutput, SLOT(setVisible(bool)));
-    buttonBox->addButton(detailsBtn, QDialogButtonBox::ActionRole);
+    buttonBox->addButton(detailsButton, QDialogButtonBox::ActionRole);
     cloneOutput->hide();
 }
 
@@ -113,21 +113,23 @@ void CloneDialog::endClone(void *id, QString projPath)
 //    The clone operation has completed or has been canceled
 // ----------------------------------------------------------------------------
 {
+    bool allOk = false;
     if (id != this)
         return;
     setCursor(Qt::ArrowCursor);
     QString text;
-    if (proc)
-        text = tr("Done.\n");
-    else
+    bool aborted = (proc == NULL);
+    if (aborted)
         text = tr("Aborted.\n");
+    else
+        text = tr("Done.\n");
     proc.clear();
     okToDismiss = true;
     okButton->setText("Close");
     okButton->setEnabled(true);
     cancelButton->setEnabled(false);
     cloneOutput->insertPlainText(text);
-    if (!projPath.isEmpty())
+    if (!projPath.isEmpty() && !aborted)
     {
         repository_ptr repo;
         repo = RepositoryFactory::repository(projPath,
@@ -141,12 +143,35 @@ void CloneDialog::endClone(void *id, QString projPath)
             {
                 this->projectPath = projPath;
                 cloneOutput->insertPlainText(tr("Done\n"));
+                allOk = true;
             }
             else
                 cloneOutput->insertPlainText(tr("Failed.\n"));
         }
     }
     cloneOutput->moveCursor(QTextCursor::End);
+    if (allOk)
+        dismissShortly();
+    else
+        detailsButton->setChecked(true);
+}
+
+
+void CloneDialog::dismissShortly()
+// ----------------------------------------------------------------------------
+//    Close dialog after a short period of time (let user see 100% completion)
+// ----------------------------------------------------------------------------
+{
+    QTimer::singleShot(200, this, SLOT(dismiss()));
+}
+
+
+void CloneDialog::dismiss()
+// ----------------------------------------------------------------------------
+//    Immediately close dialog (on success)
+// ----------------------------------------------------------------------------
+{
+    QDialog::accept();
 }
 
 

@@ -45,17 +45,19 @@ public slots:
     virtual void on_folderEdit_textEdited();
     virtual void on_urlEdit_textEdited();
     virtual void endClone(void *id, QString projPath);
+    virtual void dismiss();
 
 public:
     QString      projectPath;
 
 private:
     void         enableOkCancel();
+    void         dismissShortly();
 
 private:
     repository_ptr repo;
     bool           okToDismiss;
-    QPushButton   *okButton, *cancelButton;
+    QPushButton   *okButton, *cancelButton, *detailsButton;
     process_p      proc;
 };
 

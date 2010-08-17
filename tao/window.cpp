@@ -1797,7 +1797,7 @@ void Window::setCurrentFile(const QString &fileName)
     setWindowFilePath(curFile);
 
     // Update the recent file list
-    if (!isUntitled)
+    if (!isUntitled && !isTutorial(curFile))
     {
         IFTRACE(settings)
             std::cerr << "Adding " << +fileName << " to recent file list\n";
@@ -1824,6 +1824,17 @@ void Window::setCurrentFile(const QString &fileName)
                 mainWin->updateRecentFileActions();
         }
     }
+}
+
+
+bool Window::isTutorial(const QString &filePath)
+// ----------------------------------------------------------------------------
+//    Return true if the file currently loaded is the Tao tutorial
+// ----------------------------------------------------------------------------
+{
+    static QFileInfo tutorial("system:tutorial.ddd");
+    static QString tutoPath = tutorial.canonicalFilePath();
+    return (filePath == tutoPath);
 }
 
 

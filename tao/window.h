@@ -144,6 +144,7 @@ private:
     bool     maybeSave();
     bool     loadFile(const QString &fileName, bool openProj = false);
     bool     saveFile(const QString &fileName);
+    bool     isTutorial(const QString &filePath);
     void     setCurrentFile(const QString &fileName);
     QString  findUnusedUntitledFile();
     Window  *findWindow(const QString &fileName);

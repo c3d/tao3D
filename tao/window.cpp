@@ -1871,7 +1871,11 @@ void Window::updateRecentFileActions()
 
     for (int i = 0; i < numRecentFiles; ++i) {
         QString nat = QDir::toNativeSeparators(files[i]);
+#ifdef CONFIG_MACOSX
+        QString text = nat;
+#else
         QString text = tr("&%1 %2").arg(i + 1).arg(nat);
+#endif
         recentFileActs[i]->setText(text);
         recentFileActs[i]->setData(files[i]);
         recentFileActs[i]->setToolTip(files[i]);

@@ -1859,7 +1859,8 @@ void Window::updateRecentFileActions()
     int numRecentFiles = qMin(files.size(), (int)MaxRecentFiles);
 
     for (int i = 0; i < numRecentFiles; ++i) {
-        QString text = tr("&%1 %2").arg(i + 1).arg(strippedName(files[i]));
+        QString nat = QDir::toNativeSeparators(files[i]);
+        QString text = tr("&%1 %2").arg(i + 1).arg(nat);
         recentFileActs[i]->setText(text);
         recentFileActs[i]->setData(files[i]);
         recentFileActs[i]->setToolTip(files[i]);
@@ -1869,15 +1870,6 @@ void Window::updateRecentFileActions()
         recentFileActs[j]->setVisible(false);
 
     clearRecentAct->setEnabled(numRecentFiles > 0);
-}
-
-
-QString Window::strippedName(const QString &fullFileName)
-// ----------------------------------------------------------------------------
-//   Return the short name for a document (no directory name)
-// ----------------------------------------------------------------------------
-{
-    return QFileInfo(fullFileName).fileName();
 }
 
 

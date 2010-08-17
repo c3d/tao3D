@@ -705,7 +705,7 @@ void Window::setPullUrl()
     if (!repo)
         warnNoRepo();
 
-    PullFromDialog dialog(repo.data());
+    PullFromDialog dialog(repo.data(), this);
     if (dialog.exec())
         taoWidget->nextPull = taoWidget->now();
 }
@@ -719,7 +719,7 @@ void Window::fetch()
     if (!repo)
         return warnNoRepo();
 
-    FetchDialog dialog(repo.data());
+    FetchDialog dialog(repo.data(), this);
     connect(&dialog, SIGNAL(fetched()), branchToolBar, SLOT(refresh()));
     dialog.exec();
 }
@@ -733,7 +733,7 @@ void Window::publish()
     if (!repo)
         return warnNoRepo();
 
-    PublishToDialog(repo.data()).exec();
+    PublishToDialog(repo.data(), this).exec();
 }
 
 
@@ -745,7 +745,7 @@ void Window::merge()
     if (!repo)
         return warnNoRepo();
 
-    MergeDialog(repo.data()).exec();
+    MergeDialog(repo.data(), this).exec();
 }
 
 

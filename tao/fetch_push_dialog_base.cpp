@@ -45,10 +45,6 @@ FetchPushDialogBase::FetchPushDialogBase(Repository *repo, QWidget *parent)
             textPane, SLOT(setVisible(bool)));
     buttonBox->addButton(detailsBtn, QDialogButtonBox::ActionRole);
     textPane->hide();
-    // Restore margins - for some reason, they are set to 0 in the
-    // Ui::FetchPushDialog constructor
-    verticalLayout->setContentsMargins(11, 11, 11, 11);
-    setLayout(verticalLayout);
 }
 
 

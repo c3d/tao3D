@@ -43,6 +43,12 @@ CloneDialog::CloneDialog(QWidget *parent)
     QCompleter *uc = new QCompleter(TaoApp->urlCompletions(), this);
     folderEdit->setCompleter(pc);
     urlEdit->setCompleter(uc);
+    QPushButton *detailsBtn = new QPushButton(tr("Show/Hide details"), NULL);
+    detailsBtn->setCheckable(true);
+    connect(detailsBtn, SIGNAL(toggled(bool)),
+            cloneOutput, SLOT(setVisible(bool)));
+    buttonBox->addButton(detailsBtn, QDialogButtonBox::ActionRole);
+    cloneOutput->hide();
 }
 
 
@@ -77,6 +83,8 @@ void CloneDialog::accept()
     connect(repo.data(), SIGNAL(asyncCloneComplete(void *, QString)),
             this, SLOT(endClone(void *, QString)));
     proc = repo->asyncClone(url, newFolder);
+    connect(proc.data(), SIGNAL(percentComplete(int)),
+            progressBar, SLOT(setValue(int)));
     connect(proc.data(), SIGNAL(standardErrorUpdated(QByteArray)),
             cloneOutput, SLOT(insertAnsiText(QByteArray)));
     connect(proc.data(), SIGNAL(standardOutputUpdated(QByteArray)),
@@ -140,6 +148,7 @@ void CloneDialog::endClone(void *id, QString projPath)
     }
     cloneOutput->moveCursor(QTextCursor::End);
 }
+
 
 void CloneDialog::on_browseButton_clicked()
 // ----------------------------------------------------------------------------

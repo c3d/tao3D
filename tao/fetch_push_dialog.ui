@@ -2,106 +2,84 @@
 <ui version="4.0">
  <class>FetchPushDialog</class>
  <widget class="QDialog" name="FetchPushDialog">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>464</width>
-    <height>417</height>
+    <width>544</width>
+    <height>507</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Fetch/Push</string>
   </property>
-  <widget class="QWidget" name="verticalLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>436</width>
-     <height>397</height>
-    </rect>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="sizeConstraint">
+    <enum>QLayout::SetFixedSize</enum>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <property name="sizeConstraint">
-     <enum>QLayout::SetFixedSize</enum>
-    </property>
-    <item>
-     <widget class="QLabel" name="chooseRemoteLabel">
-      <property name="text">
-       <string>Label</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="Tao::RemoteSelectionFrame" name="rsFrame">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>424</width>
-        <height>89</height>
-       </size>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
-      </property>
-      <zorder>chooseRemoteLabel</zorder>
-      <zorder>chooseRemoteLabel</zorder>
-     </widget>
-    </item>
-    <item>
-     <widget class="QProgressBar" name="progressBar">
-      <property name="value">
-       <number>0</number>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QDialogButtonBox" name="buttonBox">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="standardButtons">
-       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="Tao::AnsiTextEdit" name="textPane">
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <spacer name="verticalSpacer">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>0</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-   </layout>
-  </widget>
+   <item>
+    <widget class="QLabel" name="chooseRemoteLabel">
+     <property name="text">
+      <string>Label</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="Tao::RemoteSelectionFrame" name="rsFrame">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>424</width>
+       <height>89</height>
+      </size>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QProgressBar" name="progressBar">
+     <property name="value">
+      <number>0</number>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="Tao::AnsiTextEdit" name="textPane">
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>Tao::AnsiTextEdit</class>
+   <extends>QTextEdit</extends>
+   <header>ansi_textedit.h</header>
+  </customwidget>
   <customwidget>
    <class>Tao::RemoteSelectionFrame</class>
    <extends>QFrame</extends>
    <header>remote_selection_frame.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>Tao::AnsiTextEdit</class>
-   <extends>QPlainTextEdit</extends>
-   <header>ansi_textedit.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -1025,7 +1025,10 @@ process_p GitRepository::asyncClone(QString cloneUrl, QString newFolder)
     args << "clone" << "--progress" << cloneUrl;
     if (!newFolder.isEmpty())
         args << newFolder;
-    GitAuthProcess * proc = new GitAuthProcess(args, "", false);
+    QString wd = path;
+    if (!QFileInfo(wd).exists())
+        wd = "";
+    GitAuthProcess * proc = new GitAuthProcess(args, wd, false);
     connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
             this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
 

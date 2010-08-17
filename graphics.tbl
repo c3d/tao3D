@@ -669,7 +669,7 @@ PREFIX(LineColorName, tree, "line_color",
                 parameter \"real\", \"r\", <<The red component of an color, is in the range 0.0 to 1.0.>>;\
                 parameter \"real\", \"g\", <<The blue component of an RGB color, is in the range 0.0 to 1.0.>>;\
                 parameter \"real\", \"b\", <<The green component of an RGB color, is in the range 0.0 to 1.0.>>;\
-                parameter \"real\", \"h\", <<The hue of an HSL or HSV color, is in the range 0.0 to 1.0 if the color is chromatic (not gray), or meaningless if it is gray. It represents degrees/360 on the color wheel familiar to most people. Red is 0, green is 1/3, and blue is 2/3.>>;\
+                parameter \"real\", \"h\", <<The hue of an HSL or HSV color if the color is chromatic (not gray), or meaningless if it is gray. It represents degrees on the color wheel familiar to most people. Red is 0, green is 120, and blue is 240.>>;\
                 parameter \"real\", \"s\", <<The saturation of an HSL or HSV color, is in the range 0.0 to 1.0, and the bigger it is, the stronger the color is. Grayish colors have saturation near 0; very strong colors have saturation near 1.>>;\
                 parameter \"real\", \"l\", <<The lightness an HSL color, is in the range 0.0 to 1.0. 0 is black; 1 is as far from black as possible. In the HSL model, lightness is defined as the average of the largest and smallest color components.>>;\
                 parameter \"real\", \"v\", <<The value or brightness of an HSV color, is in the range 0.0 to 1.0. 0 is black; 1 is as far from black as possible. In the HSV model, value is defined as the largest component of a color.>>;\
@@ -733,7 +733,7 @@ PREFIX(FillColorName, tree, "color",
                 parameter \"real\", \"r\", <<The red component of an color, is in the range 0.0 to 1.0.>>;\
                 parameter \"real\", \"g\", <<The blue component of an RGB color, is in the range 0.0 to 1.0.>>;\
                 parameter \"real\", \"b\", <<The green component of an RGB color, is in the range 0.0 to 1.0.>>;\
-                parameter \"real\", \"h\", <<The hue of an HSL or HSV color, is in the range 0.0 to 1.0 if the color is chromatic (not gray), or meaningless if it is gray. It represents degrees/360 on the color wheel familiar to most people. Red is 0, green is 1/3, and blue is 2/3.>>;\
+                parameter \"real\", \"h\", <<The hue of an HSL or HSV color if the color is chromatic (not gray), or meaningless if it is gray. It represents degrees on the color wheel familiar to most people. Red is 0, green is 120, and blue is 240.>>;\
                 parameter \"real\", \"s\", <<The saturation of an HSL or HSV color, is in the range 0.0 to 1.0, and the bigger it is, the stronger the color is. Grayish colors have saturation near 0; very strong colors have saturation near 1.>>;\
                 parameter \"real\", \"l\", <<The lightness an HSL color, is in the range 0.0 to 1.0. 0 is black; 1 is as far from black as possible. In the HSL model, lightness is defined as the average of the largest and smallest color components.>>;\
                 parameter \"real\", \"v\", <<The value or brightness of an HSV color, is in the range 0.0 to 1.0. 0 is black; 1 is as far from black as possible. In the HSV model, value is defined as the largest component of a color.>>;\

@@ -3659,10 +3659,12 @@ Tree_p Widget::lineColorHsl(Tree_p self, double h, double s, double l, double a)
 //    Set the HSL color for lines
 // ----------------------------------------------------------------------------
 {
-    CHECK_0_1_RANGE(h);
     CHECK_0_1_RANGE(s);
     CHECK_0_1_RANGE(l);
     CHECK_0_1_RANGE(a);
+
+    h = std::fmod(h, 360) / 360; // converts h from degrees to %
+    if ( h < 0 ) h++;
 
     QColor hsl;
     hsl.setHslF(h, s, l);
@@ -3676,10 +3678,12 @@ Tree_p Widget::lineColorHsv(Tree_p self, double h, double s, double v, double a)
 //    Set the HSV color for lines
 // ----------------------------------------------------------------------------
 {
-    CHECK_0_1_RANGE(h);
     CHECK_0_1_RANGE(s);
     CHECK_0_1_RANGE(v);
     CHECK_0_1_RANGE(a);
+
+    h = std::fmod(h, 360) / 360; // converts h from degrees to %
+    if ( h < 0 ) h++;
 
     QColor hsv;
     hsv.setHsvF(h, s, v);
@@ -3775,10 +3779,12 @@ Tree_p Widget::fillColorHsl(Tree_p self, double h, double s, double l, double a)
 //    Set the HSL color for fill
 // ----------------------------------------------------------------------------
 {
-    CHECK_0_1_RANGE(h);
     CHECK_0_1_RANGE(s);
     CHECK_0_1_RANGE(l);
     CHECK_0_1_RANGE(a);
+
+    h = std::fmod(h, 360) / 360; // converts h from degrees to %
+    if ( h < 0 ) h++;
 
     QColor hsl;
     hsl.setHslF(h, s, l);
@@ -3792,10 +3798,12 @@ Tree_p Widget::fillColorHsv(Tree_p self, double h, double s, double v, double a)
 //    Set the HSV color for fill
 // ----------------------------------------------------------------------------
 {
-    CHECK_0_1_RANGE(h);
     CHECK_0_1_RANGE(s);
     CHECK_0_1_RANGE(v);
     CHECK_0_1_RANGE(a);
+
+    h = std::fmod(h, 360) / 360; // converts h from degrees to %
+    if ( h < 0 ) h++;
 
     QColor hsv;
     hsv.setHsvF(h, s, v);

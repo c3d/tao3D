@@ -82,10 +82,7 @@
 
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
 
-#define CHECK_0_1_RANGE(var) \
-    if (var < 0.0 || var > 1.0) { \
-        var = std::max(0.0, std::min(var, 1.0)); \
-    }
+#define CHECK_0_1_RANGE(var) if (var < 0) var = 0; else if (var > 1) var = 1;
 
 namespace TaoFormulas { void EnterFormulas(XL::Symbols *syms); }
 

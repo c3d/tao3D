@@ -1,5 +1,5 @@
 # ******************************************************************************
-# tao.pro                                                           XLR project
+#  tao.pro                                                          Tao project
 # ******************************************************************************
 # File Description:
 # Main Qt build file for Tao
@@ -70,6 +70,8 @@ HEADERS += widget.h \
     layout.h \
     page_layout.h \
     space_layout.h \
+    justification.h \
+    justification.hpp \
     apply_changes.h \
     normalize.h \
     activity.h \

@@ -161,7 +161,7 @@ public:
     void        markChanged(text reason);
     void        selectStatements(Tree *tree);
     bool        writeIfChanged(XL::SourceFile &sf);
-    bool        enableAutoSave(bool enabled);
+    bool        setDragging(bool on);
     bool        doSave(ulonglong tick);
     bool        doPull(ulonglong tick);
     bool        doCommit(ulonglong tick);
@@ -691,7 +691,7 @@ private:
     double                eyeX, eyeY, eyeZ, eyeDistance;
     double                centerX, centerY, centerZ;
     int                   panX, panY;
-    bool                  autoSaveEnabled;
+    bool                  dragging;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:

@@ -119,12 +119,13 @@ Tree *Drawing::Source()
 }
 
 
-Drawing *Drawing::Break(BreakOrder &order)
+Drawing *Drawing::Break(BreakOrder &order, uint &size)
 // ----------------------------------------------------------------------------
 //    Break a shape at the next line boundary, if any
 // ----------------------------------------------------------------------------
 {
     order = NoBreak;
+    size = 1;
     return NULL;
 }
 

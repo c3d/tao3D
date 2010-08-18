@@ -49,7 +49,7 @@ struct DrawingBreak : Attribute
 // ----------------------------------------------------------------------------
 {
     DrawingBreak(BreakOrder order): order(order) {}
-    virtual Drawing *   Break(BreakOrder &order);
+    virtual Drawing *   Break(BreakOrder &order, uint &sz);
     BreakOrder order;
 };
 

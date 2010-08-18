@@ -106,6 +106,9 @@ void TextSpan::DrawCached(Layout *where)
                    (sel && sel->textBoxId && where->id != sel->textBoxId)))
         canSel = false;
 
+    // Compute per-char spread
+    float spread = where->alongX.perSolid;
+
     // Loop over all characters in the text span
     uint i, max = str.length();
     for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
@@ -152,7 +155,7 @@ void TextSpan::DrawCached(Layout *where)
             texCoords.push_back(Point(texU.x, texU.y));
             texCoords.push_back(Point(texL.x, texU.y));
 
-            x += glyph.advance;
+            x += glyph.advance + spread;
         }
     }
 
@@ -240,6 +243,9 @@ void TextSpan::DrawDirect(Layout *where)
     std::vector<Point3>     quads;
     std::vector<Point>      texCoords;
 
+    // Find length of text span and compute per-char spread
+    float spread = where->alongX.perSolid;
+
     // Loop over all characters in the text span
     for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
     {
@@ -277,7 +283,7 @@ void TextSpan::DrawDirect(Layout *where)
             if (setLineColor(where))
                 glCallList(glyph.outline);
 
-            x += glyph.advance;
+            x += glyph.advance + spread;
         }
     }
 
@@ -317,6 +323,9 @@ void TextSpan::DrawSelection(Layout *where)
     if (canSel && (!where->id || IsMarkedConstant(ttree) ||
                    (sel && sel->textBoxId && where->id != sel->textBoxId)))
         canSel = false;
+
+    // Find length of text span and compute per-char spread
+    float spread = where->alongX.perSolid;
 
     // Loop over all characters in the text span
     uint i, next = 0, max = str.length();
@@ -411,8 +420,8 @@ void TextSpan::DrawSelection(Layout *where)
         }
         else
         {
-            x += glyph.advance;
-            textWidth += glyph.advance;
+            x += glyph.advance + spread;
+            textWidth += glyph.advance + spread;
         }
     }
 
@@ -493,12 +502,15 @@ void TextSpan::Identify(Layout *where)
                    (sel && sel->textBoxId && where->id != sel->textBoxId)))
         canSel = false;
 
+    // Find length of text span and compute per-char spread
+    float spread = where->alongX.perSolid;
+
     // Prepare to draw with the quad
     glVertexPointer(3, GL_DOUBLE, 0, &quad[0].x);
     glEnableClientState(GL_VERTEX_ARRAY);
 
     // Loop over all characters in the text span
-    uint i, next, max = str.length();
+    uint i, next = 0, max = str.length();
     for (i = start; i < max && i < end; i = next)
     {
         uint unicode = XL::Utf8Code(str, i);
@@ -540,8 +552,8 @@ void TextSpan::Identify(Layout *where)
         else
         {
             charX1 = charX2;
-            x += glyph.advance;
-            textWidth += glyph.advance;
+            x += glyph.advance + spread;
+            textWidth += glyph.advance + spread;
         }
     }
 
@@ -735,7 +747,7 @@ Box3 TextSpan::Space(Layout *where)
 }
 
 
-TextSpan *TextSpan::Break(BreakOrder &order)
+TextSpan *TextSpan::Break(BreakOrder &order, uint &size)
 // ----------------------------------------------------------------------------
 //   If the text span contains a word or line break, cut there
 // ----------------------------------------------------------------------------
@@ -746,6 +758,7 @@ TextSpan *TextSpan::Break(BreakOrder &order)
     {
         QChar c = QChar(XL::Utf8Code(str, i));
         BreakOrder charOrder = CharBreak;
+        size++;
         if (c.isSpace())
         {
             charOrder = WordBreak;

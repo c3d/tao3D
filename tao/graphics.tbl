@@ -1341,271 +1341,249 @@ PREFIX(Object3D, tree, "object",
 PREFIX(TextBox, tree, "text_box",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real) PARM(t, tree),
        RTAO(textBox(self, x, y, w, h, t)), 
-       "/*| docname \"text_box\", \"text\", do { \
-                dsyntax <<text_box>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"text_box\", \"text:graph\", do { \
+                dsyntax <<text_box x, y, w, h, t>>;\
+                synopsis \"Create a new page layout\" ; \
+                description <<Create a new page layout and render text in it.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", <<x-coordinate>>;\
+                parameter \"real\", \"y\", <<y-coordinate>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"tree\", \"t\", <<text description>>;\
+                return_value \"tree\", <<t evaluation result>>;\
                 }\
           |*/")
 PREFIX(TextOverflow, tree, "text_overflow",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real),
        RTAO(textOverflow(self, x, y, w, h)), 
-       "/*| docname \"text_overflow\", \"\", do { \
-                dsyntax <<text_overflow>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"text_overflow\", \"text:graph\", do { \
+                dsyntax <<text_overflow x, y, w, h>>;\
+                synopsis \"Overflow text box\" ; \
+                description <<Overflow text box for the rest of the current text flow>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", <<x-coordinate>>;\
+                parameter \"real\", \"y\", <<y-coordinate>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
                 }\
           |*/")
 PREFIX(TextFlow, tree, "text_flow", PARM(n, text), RTAO(textFlow(self, n)), 
-       "/*| docname \"text_flow\", \"\", do { \
-                dsyntax <<text_flow>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"text_flow\", \"text\", do { \
+                dsyntax <<text_flow name>>;\
+                synopsis \"Names the flow\" ; \
+                description <<Set the name of the current text flow>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"text\", \"name\", <<The name of the current flow>>;\
+                return_value \"text\", <<The previous name. [TODO: The name of the previous flow or the previous name of the current flow ?]>>;\
                 }\
           |*/")
 
 PREFIX(TextSpan, tree,"text", PARM(t, text), RTAO(textSpan(self, t)), 
-       "/*| docname \"text\", \"\", do { \
-                dsyntax <<text>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"text\", \"text\", do { \
+                dsyntax <<text t>>;\
+                synopsis \"Insert a block of text\" ; \
+                description <<Insert a block of text with the current definition of font, color, ...>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"text\", \"t\", <<The text to insert>>;\
                 }\
           |*/")
 PREFIX(TextFormula, tree,"formula", PARM(t, tree), RTAO(textFormula(self, t)), 
-       "/*| docname \"formula\", \"\", do { \
-                dsyntax <<formula>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"formula\", \"text\", do { \
+                dsyntax <<formula t>>;\
+                synopsis \"Insert a block of text corresponding to the given formula\" ; \
+                description <<Insert a block of text corresponding to the given formula>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"tree\", \"t\", <<The formula>>;\
+                return_value \"tree\", <<The tree t given in parameter.>>;\
                 }\
           |*/")
 PREFIX(Font, tree, "font", PARM(f, tree), RTAO(font(self, f)), 
-       "/*| docname \"font\", \"\", do { \
-                dsyntax <<font>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"font\", \"text:font\", do { \
+                dsyntax <<font f>>;\
+                synopsis \"Select a font family\" ; \
+                description <<Select a font family>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"tree\", \"f\", <<The font description>>;\
                 }\
           |*/")
 PREFIX(FontSize, tree, "font_size", PARM(s, real), RTAO(fontSize(self, s)), 
-       "/*| docname \"font_size\", \"\", do { \
-                dsyntax <<font_size>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"font_size\", \"text:font\", do { \
+                dsyntax <<font_size s>>;\
+                synopsis \"Select a font size\" ; \
+                description <<Select a font size>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"s\", <<The font size.>>;\
                 }\
           |*/")
 PREFIX(FontScaling, tree, "font_scaling", PARM(s,real) PARM(ms,real),
        RTAO(fontScaling(self,s,ms)), 
-       "/*| docname \"font_scaling\", \"\", do { \
+       "/*| docname \"font_scaling\", \"text:font\", do { \
                 dsyntax <<font_scaling>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+                synopsis \"Change the font scaling factor\" ; \
+                description <<Change the font scaling factor>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
+                parameter \"real\", \"s\", <<Scaling factor>>;\
+                parameter \"real\", \"ms\", <<Minimum AA size>>;\
                 return_value \"\", <<>>;\
                 }\
           |*/")
 PREFIX(FontPlain, tree, "plain",, RTAO(fontPlain(self)), 
-       "/*| docname \"plain\", \"\", do { \
+       "/*| docname \"plain\", \"text:font\", do { \
                 dsyntax <<plain>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"Set plain text\" ; \
+                description <<Reset the font style, the font weight and the font stretch to normal; reset the font to no underline, nor strikeout, nor overline.>> ;\
                 }\
           |*/")
 PREFIX(FontSlant, tree, "slant", PARM(a, real), RTAO(fontItalic(self, a/100)), 
-       "/*| docname \"slant\", \"\", do { \
-                dsyntax <<slant>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"slant\", \"text:font\", do { \
+                dsyntax <<slant a>>;\
+                synopsis \"Set slant percentage.\" ; \
+                description <<Set slant percentage.[TODO: J'aurais plutot vu une valeur de a/50 pour que slant 100 donne fontItalic 2, qui est le max] >> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"a\", <<slant percentage>>;\
                 }\
           |*/")
 PREFIX(FontRoman, tree, "roman",, RTAO(fontItalic(self, 0)), 
-       "/*| docname \"roman\", \"\", do { \
+       "/*| docname \"roman\", \"text:font\", do { \
                 dsyntax <<roman>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"No slant\" ; \
+                description <<Set slant value to 0 (min value).>> ;\
                 }\
           |*/")
 PREFIX(FontItalic, tree, "italic",, RTAO(fontItalic(self, 1)), 
-       "/*| docname \"italic\", \"\", do { \
+       "/*| docname \"italic\", \"text:font\", do { \
                 dsyntax <<italic>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"set set italic\" ; \
+                description <<Set slant value to 1 (medium value). Is equivalent to slant 100>> ;\
+                see \"slant\"; \
                 }\
           |*/")
 PREFIX(FontOblique, tree, "oblique",, RTAO(fontItalic(self, 2)), 
-       "/*| docname \"oblique\", \"\", do { \
+       "/*| docname \"oblique\", \"text:font\", do { \
                 dsyntax <<oblique>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"set to oblique\" ; \
+                description <<Set slant value to 2 (higher value). Is equivalent to slant 200>> ;\
+                see \"slant\"; \
                 }\
           |*/")
 PREFIX(FontWeight, tree, "weight", PARM(a, real), RTAO(fontBold(self, a)), 
-       "/*| docname \"weight\", \"\", do { \
-                dsyntax <<weight>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"weight\", \"text:font\", do { \
+                dsyntax <<weight a>>;\
+                synopsis \"set the bold value of the font\" ; \
+                description <<Select whether the font is bold or not. Qt weight values range from 0 to 99 with 50 = regular>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
-                }\
+                parameter \"real\", \"a\", <<The bold value of the font>>;\
+                 }\
           |*/")
 PREFIX(FontRegular, tree, "regular",, RTAO(fontBold(self, 50)), 
-       "/*| docname \"regular\", \"\", do { \
+       "/*| docname \"regular\", \"text:font\", do { \
                 dsyntax <<regular>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"reset bold value to neutral.\" ; \
+                description <<Reset bold value to neutral. Is equivalent to weight 50.>> ;  \
+                see \"weight\"; \
                 }\
           |*/")
 PREFIX(FontLight, tree, "light",, RTAO(fontBold(self, 25)), 
-       "/*| docname \"light\", \"\", do { \
+       "/*| docname \"light\", \"text:font\", do { \
                 dsyntax <<light>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"Make the font thin.\" ; \
+                description <<Make the font thinner. Is equivalent to weight 25>> ;\
+                see \"weight\"; \
                 }\
           |*/")
 PREFIX(FontBold, tree, "bold",, RTAO(fontBold(self, 75)), 
-       "/*| docname \"bold\", \"\", do { \
+       "/*| docname \"bold\", \"text:font\", do { \
                 dsyntax <<bold>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"Make the font bold.\" ; \
+                description <<Make the font bold. Is equivalent to weight 75>> ;\
+                see \"weight\"; \
                 }\
           |*/")
 PREFIX(FontUnderline, tree, "underline", PARM(a, real),
        RTAO(fontUnderline(self, a)), 
-       "/*| docname \"underline\", \"\", do { \
-                dsyntax <<underline>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"underline\", \"text:font\", do { \
+                dsyntax <<underline a>>;\
+                synopsis \"Underline attribute of the font\" ; \
+                description <<Select whether we underline a font. Qt doesn't support setting the size of the underline, it's on or off.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"a\", <<Underline values: 0 is off, values > 0 are on.>>;\
                 }\
           |*/")
 PREFIX(FontOverline, tree, "overline", PARM(a, real),
        RTAO(fontOverline(self, a)), 
-       "/*| docname \"overline\", \"\", do { \
-                dsyntax <<overline>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"overline\", \"text:font\", do { \
+                dsyntax <<overline a>>;\
+                synopsis \"Overline attribute of the font\" ; \
+                description <<Select whether we overline a font. Qt doesn't support setting the size of the underline, it's on or off.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"a\", <<Overline values: 0 is off, values > 0 are on.>>;\
                 }\
           |*/")
 PREFIX(FontStrikeout, tree, "strikeout", PARM(a, real),
        RTAO(fontStrikeout(self, a)), 
-       "/*| docname \"strikeout\", \"\", do { \
+       "/*| docname \"strikeout\", \"text:font\", do { \
                 dsyntax <<strikeout>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+                synopsis \"Strikeout attribute of the font\" ; \
+                description <<Select whether we strikeout a font. Qt doesn't support setting the size of the underline, it's on or off.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"a\", <<Strikeout values: 0 is off, values > 0 are on.>>;\
                 }\
           |*/")
 PREFIX(FontStretch, tree, "stretch", PARM(s,real),RTAO(fontStretch(self,s)), 
-       "/*| docname \"stretch\", \"\", do { \
-                dsyntax <<stretch>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"stretch\", \"text:font\", do { \
+                dsyntax <<stretch s>>;\
+                synopsis \"Set font stretching factor\" ; \
+                description <<Set font stretching factor. Qt font stretch ranges from 0 to 4000, with 100 = 100%.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"s\", <<The font stretching factor. Value range is from 0 to 4000, with 100 = 100%>>;\
                 }\
           |*/")
 PREFIX(Justify, tree, "justify",
        PARM(a, real), RTAO(justify(self, a, 0)), 
-       "/*| docname \"justify\", \"\", do { \
-                dsyntax <<justify>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"justify\", \"text:spread\", do { \
+                dsyntax <<justify a>>;\
+                synopsis \"Horizontal justification\" ; \
+                description <<Horizontaly justify the text. An amount of 0 pack the text on the left, an amount of 100 pack the text on the right and an amount of 50 spread regularly the text over the line>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"a\", <<Amount of justification along x-axis>>;\
                 }\
           |*/")
 PREFIX(VJustify, tree, "vertical_justify",
        PARM(a, real), RTAO(justify(self, a, 1)), 
-       "/*| docname \"vertical_justify\", \"\", do { \
-                dsyntax <<vertical_justify>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"vertical_justify\", \"text:spread\", do { \
+                dsyntax <<vertical_justify a>>;\
+                synopsis \"Vertical justification\" ; \
+                description <<Verticaly justify the text. An amount of 0 pack the text on the top, an amount of 100 pack the text on the bottom and an amount of 50 spread regularly the text over the box>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"a\", <<Amount of justification along y-axis>>;\
                 }\
           |*/")
 PREFIX(Center, tree, "center",
        PARM(a, real), RTAO(center(self, a, 0)), 
-       "/*| docname \"center\", \"\", do { \
-                dsyntax <<center>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"center\", \"text:spread\", do { \
+                dsyntax <<center a>>;\
+                synopsis \"Horizontal centering\" ; \
+                description <<Set the horizontal center attibute. An amount of 0 align the center of the text on the left of the box, an amount of 100 align the center of the text on the right of the box and an amount of 50 align the center of the text on the center of the box.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"a\", <<Place the center along x-axis>>;\
                 }\
           |*/")
 PREFIX(VCenter, tree, "vertical_center",
        PARM(a, real), RTAO(center(self, a, 1)), 
-       "/*| docname \"vertical_center\", \"\", do { \
-                dsyntax <<vertical_center>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"vertical_center\", \"text:spread\", do { \
+                dsyntax <<vertical_center a>>;\
+                synopsis \"Vertical centering\" ; \
+                description <<Set the vertical center attibute. An amount of 0 align the center of the text on the top of the box, an amount of 100 align the center of the text on the bottom of the box and an amount of 50 align the center of the text on the center of the box.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"a\", <<Place the center along y-axis>>;\
                 }\
           |*/")
 PREFIX(Spread, tree, "spread",
        PARM(a, real), RTAO(spread(self, a, 0)), 
-       "/*| docname \"spread\", \"\", do { \
-                dsyntax <<spread>>;\
-                synopsis \"\" ; \
+       "/*| docname \"spread\", \"text:spread\", do { \
+                dsyntax <<spread a>>;\
+                synopsis \"[TODO: Quel est la difference entre spread et justify ? Est-ce l'ecart max autorise entre les lettres/mots ?]\" ; \
                 description <<>> ;\
                 parameters;\
                 parameter \"\", \"\", <<>>;\
@@ -1614,187 +1592,165 @@ PREFIX(Spread, tree, "spread",
           |*/")
 PREFIX(VSpread, tree, "vertical_spread",
        PARM(a, real), RTAO(spread(self, a, 1)), 
-       "/*| docname \"vertical_spread\", \"\", do { \
-                dsyntax <<vertical_spread>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"vertical_spread\", \"text:spread\", do { \
+                dsyntax <<vertical_spread a>>;\
+                synopsis \"[TODO: Quel est la difference entre spread et justify ?]\" ; \
+                description <<[TODO]>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"a\", <<[TODO]>>;\
                 }\
           |*/")
 PREFIX(Spacing, tree, "spacing",
        PARM(a, real), RTAO(spacing(self, a, 0)), 
-       "/*| docname \"spacing\", \"\", do { \
-                dsyntax <<spacing>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"spacing\", \"text:spread\", do { \
+                dsyntax <<spacing a>>;\
+                synopsis \"[TODO]\" ; \
+                description <<[TODO]>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"a\", <<[TODO]>>;\
                 }\
           |*/")
 PREFIX(VSpacing, tree, "vertical_spacing",
        PARM(a, real), RTAO(spacing(self, a, 1)), 
-       "/*| docname \"vertical_spacing\", \"\", do { \
-                dsyntax <<vertical_spacing>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"vertical_spacing\", \"text:spread\", do { \
+                dsyntax <<vertical_spacing a>>;\
+                synopsis \"[TODO]\" ; \
+                description <[TODO]<>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
-                }\
+                parameter \"real\", \"a\", <<[TODO]>>;\
+                 }\
           |*/")
 PREFIX(MinimumParagraphSpace, tree, "paragraph_space",
        PARM(b, real) PARM(a, real), RTAO(minimumSpace(self, b, a, 1)), 
-       "/*| docname \"paragraph_space\", \"\", do { \
-                dsyntax <<paragraph_space>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"paragraph_space\", \"text:spread\", do { \
+                dsyntax <<paragraph_space before, after>>;\
+                synopsis \"Set the space around the paragraph\" ; \
+                description <<Set the minimum space allowed around the paragraph. [TODO: Quelle valeur faut-il mettre si on ne veut modifier que la valeur avant (ou apres), est-ce -1, ou est-ce que des valeurs negatives sont autorisees et que dans ce cas des paragraphes peuvent se marcher dessus ?]>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"before\", <<Space before the paragraph.>>;\
+                parameter \"real\", \"after\", <<Space after the paragraph.>>;\
                 }\
           |*/")
 PREFIX(MinimumCharacterSpace, tree, "character_space",
        PARM(b, real) PARM(a, real), RTAO(minimumSpace(self, b, a, 0)), 
-       "/*| docname \"character_space\", \"\", do { \
-                dsyntax <<character_space>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"character_space\", \"text:spread\", do { \
+                dsyntax <<character_space before, after>>;\
+                synopsis \"[TODO: words or characters ?]\" ; \
+                description <<[TODO: dans widget.cpp on parle d'espace entre mots et non entre charactere. Cette clarification rejoint celles demandees audessus sur le spacing/spread]>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"before\", <<Space before the [TODO].>>;\
+                parameter \"real\", \"after\", <<Space after the [TODO].>>;\
                 }\
           |*/")
 PREFIX(Margins, tree, "margins", PARM(l, real) PARM(r, real),
        RTAO(horizontalMargins(self, l, r)), 
-       "/*| docname \"margins\", \"\", do { \
-                dsyntax <<margins>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"margins\", \"text:spread\", do { \
+                dsyntax <<margins l, r>>;\
+                synopsis \"Set the horizontal margin for text\" ; \
+                description <<Set the minimum space allowed around the page. [TODO: Quelle valeur faut-il mettre si on ne veut modifier que la valeur gauche (ou droite), est-ce -1, ou est-ce que des valeurs negatives sont autorisees et que dans ce cas on peut ecrire dans la marge ?]>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"l\", <<left margin>>;\
+                parameter \"real\", \"r\", <<right margin>>;\
                 }\
           |*/")
 PREFIX(VMargins, tree, "vertical_margins", PARM(t, real) PARM(b, real),
        RTAO(verticalMargins(self, t, b)), 
-       "/*| docname \"vertical_margins\", \"\", do { \
-                dsyntax <<vertical_margins>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"vertical_margins\", \"text:spread\", do { \
+                dsyntax <<vertical_margins t, b>>;\
+                synopsis \"Set the vertical margin for text\" ; \
+                description <<Set the minimum space allowed around the page. [TODO: Quelle valeur faut-il mettre si on ne veut modifier que la valeur gauche (ou droite), est-ce -1, ou est-ce que des valeurs negatives sont autorisees et que dans ce cas on peut ecrire dans la marge ?]>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"t\", <<top margin>>;\
+                parameter \"real\", \"b\", <<bottom margin>>;\
                 }\
           |*/")
 PREFIX(LineBreak, tree, "line_break",,
        RTAO(drawingBreak(self, Tao::Drawing::LineBreak)), 
-       "/*| docname \"line_break\", \"\", do { \
+       "/*| docname \"line_break\", \"text:spread\", do { \
                 dsyntax <<line_break>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
-                }\
+                synopsis \"Insert a line break\" ; \
+                description <<Insert a line break in the current text.>> ;\
+               }\
           |*/")
 PREFIX(SentenceBreak, tree, "sentence_break",,
        RTAO(drawingBreak(self, Tao::Drawing::SentenceBreak)), 
-       "/*| docname \"sentence_break\", \"\", do { \
+       "/*| docname \"sentence_break\", \"text:spread\", do { \
                 dsyntax <<sentence_break>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"Insert a sentence break\" ; \
+                description <<Insert a sentence break in the text.>> ;\
                 }\
           |*/")
 PREFIX(ParaBreak, tree, "paragraph_break",,
        RTAO(drawingBreak(self, Tao::Drawing::ParaBreak)), 
-       "/*| docname \"paragraph_break\", \"\", do { \
+       "/*| docname \"paragraph_break\", \"text:spread\", do { \
                 dsyntax <<paragraph_break>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"Insert a paragraph break\" ; \
+                description <<Insert a paragraph break>> ;\
                 }\
           |*/")
 PREFIX(ColumnBreak, tree, "column_break",,
        RTAO(drawingBreak(self, Tao::Drawing::ColumnBreak)), 
-       "/*| docname \"column_break\", \"\", do { \
+       "/*| docname \"column_break\", \"text:spread\", do { \
                 dsyntax <<column_break>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"Insert a column break\" ; \
+                description <<Insert a column break[TODO]>> ;\
                 }\
           |*/")
 PREFIX(PageBreak, tree, "page_break",,
        RTAO(drawingBreak(self, Tao::Drawing::PageBreak)), 
-       "/*| docname \"page_break\", \"\", do { \
+       "/*| docname \"page_break\", \"text:spread\", do { \
                 dsyntax <<page_break>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"Insert a page break\" ; \
+                description <<Insert a page break. [TODO]>> ;\
                 }\
           |*/")
 PREFIX(TextEditKey, boolean, "text_edit_key", PARM(k, text),
        RTAO(textEditKey(self, k)), 
-       "/*| docname \"text_edit_key\", \"\", do { \
-                dsyntax <<text_edit_key>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"text_edit_key\", \"text\", do { \
+                dsyntax <<text_edit_key k>>;\
+                synopsis \"[TODO]\" ; \
+                description <<Send a key to the text editing activities. [TODO: Concretement, ca fait quoi ???]>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"text\", \"k\", <<key name>>;\
+                return_value \"boolean\", <<true/false [TODO]>>;\
                 }\
           |*/")
 PREFIX(LoremIpsum, tree, "lorem_ipsum",PARM(w,integer),
        RTAO(loremIpsum(self,w)), 
-       "/*| docname \"lorem_ipsum\", \"\", do { \
-                dsyntax <<lorem_ipsum>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"lorem_ipsum\", \"text:debug\", do { \
+                dsyntax <<lorem_ipsum w>>;\
+                synopsis \"Produce text\" ; \
+                description <<Generate arbitrary length dummy text based on the well-known sequence>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"integer\", \"w\", <<The number of word to insert>>;\
+                return_value \"text\", <<A dummy text with the required number of words>>;\
                 }\
           |*/")
 PREFIX(LoadText, tree, "load_text",PARM(f,text),
        RTAO(loadText(self,f)), 
-       "/*| docname \"load_text\", \"\", do { \
-                dsyntax <<load_text>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"load_text\", \"text:file\", do { \
+                dsyntax <<load_text f>>;\
+                synopsis \"Load a text file from disk\" ; \
+                description <<Load a text file from disk. It uses the 'doc' prefix to look into resources>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"text\", \"f\", <<file name>>;\
+                return_value \"text\", <<The content of the file.>>;\
                 }\
           |*/")
 PREFIX(TaoVersion, tree, "tao_version",, RTAO(taoVersion(self)), 
-       "/*| docname \"tao_version\", \"\", do { \
+       "/*| docname \"tao_version\", \"version\", do { \
                 dsyntax <<tao_version>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"The Tao version\" ; \
+                description <<Return the version of the Tao program>> ;\
+                return_value \"text\", <<The version of the running Tao program>>;\
                 }\
           |*/")
 PREFIX(DocVersion, tree, "doc_version",, RTAO(docVersion(self)), 
-       "/*| docname \"doc_version\", \"\", do { \
+       "/*| docname \"doc_version\", \"version\", do { \
                 dsyntax <<doc_version>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"The document version\" ; \
+                description <<Return the version of the current document (if known)>> ;\
+                return_value \"text\", <<The current document version>>;\
                 }\
           |*/")
 
@@ -1811,14 +1767,18 @@ PREFIX(NewTableAt, tree, "table",
        RTAO(newTable(self, x, y, r, c, b)), "");
 PREFIX(NewTable, tree, "table", PARM(r,integer) PARM(c,integer) PARM(b,tree),
        RTAO(newTable(self, r, c, b)), 
-       "/*| docname \"table\", \"\", do { \
+       "/*| docname \"table\", \"table\", do { \
                 dsyntax <<table x, y, r, c, b>>;\
                 dsyntax <<table r, c, b>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+                synopsis \"Create a table\" ; \
+                description <<Create a new table. The body is executed in the environement of the table, that means short name can be used for table description>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", <<x-coordinate of the table. 0 if not specified.>>;\
+                parameter \"real\", \"y\", <<y-coordinate of the table. 0 if not specified.>>;\
+                parameter \"integer\", \"r\", <<The number of row>>;\
+                parameter \"integer\", \"c\", <<The number of column>>;\
+                parameter \"tree\", \"b\", <<The content of the table>>;\
+                return_value \"tree\", <<The result of the body (b) evaluation.>>;\
                 }\
           |*/");
 PREFIX(TableSizedCell, tree, "table_cell",
@@ -1826,15 +1786,20 @@ PREFIX(TableSizedCell, tree, "table_cell",
        RTAO(tableCell(self, w, h, b)), "")
 PREFIX(TableCell, tree, "table_cell", PARM(b, tree),
        RTAO(tableCell(self, b)), 
-       "/*| docname \"table_cell\", \"\", do { \
+       "/*| docname \"table_cell\", \"table\", do { \
                 dsyntax <<table_cell w, h, b>>;\
+                synopsis \"Define a sized cell in the table\" ; \
                 dsyntax <<table_cell b>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+                synopsis \"Define a free-size cell in the table\" ; \
+                dsyntax <<cell>>;\
+                description <<Define a cell in the context of the table. Short name 'cell' can be used with both syntaxes.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
-                }\
+                parameter \"real\", \"w\", <<width of the cell if specified, otherwise free size.>>;\
+                parameter \"real\", \"h\", <<height of the cell if specified, otherwise free size.>>;\
+                parameter \"tree\", \"b\", <<body pf the cell>>;\
+                return_value \"tree\", <<body evaluation result>>;\
+                err \"Error raised when invoked outside of a table context.\" \
+               }\
           |*/")
 PREFIX(TableMargins2, tree, "table_cell_margins",
        PARM(w, real) PARM(h, real),
@@ -1842,116 +1807,120 @@ PREFIX(TableMargins2, tree, "table_cell_margins",
 PREFIX(TableMargins, tree, "table_cell_margins",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real),
        RTAO(tableMargins(self, x, y, w, h)), 
-       "/*| docname \"table_cell_margins\", \"\", do { \
+       "/*| docname \"table_cell_margins\", \"table\", do { \
                 dsyntax <<table_cell_margins x, y, w, h>>;\
                 dsyntax <<table_cell_margins w, h>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+                dsyntax <<margins >>;                             \
+                synopsis \"Set the margin rectangle for the table.\" ; \
+                description <<Set the margin rectangle for the table. The short name of the function is margins. It can be used with both syntaxes.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", <<x-coordinate of the table. 0 if not specified.>>;\
+                parameter \"real\", \"y\", <<y-coordinate of the table. 0 if not specified.>>;\
+                parameter \"real\", \"w\", <<width of the cell if specified, otherwise free size.>>;\
+                parameter \"real\", \"h\", <<height of the cell if specified, otherwise free size.>>;\
+                err \"Error raised when invoked outside of a table context.\" \
                 }\
           |*/")
 PREFIX(TableFill, tree, "table_cell_fill", PARM(b, tree),
        RTAO(tableFill(self, b)), 
-       "/*| docname \"table_cell_fill\", \"\", do { \
-                dsyntax <<table_cell_fill>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"table_cell_fill\", \"table\", do { \
+                dsyntax <<table_cell_fill b>>;\
+                dsyntax <<fill>>;                             \
+                synopsis \"fill of the cell\" ; \
+                description <<Define the fill code for cells>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"tree\", \"b\", <<fill code body.>>;\
+                err \"Error raised when invoked outside of a table context.\" \
                 }\
           |*/")
 PREFIX(TableBorder, tree, "table_cell_border", PARM(b, tree),
        RTAO(tableBorder(self, b)), 
-       "/*| docname \"table_cell_border\", \"\", do { \
+       "/*| docname \"table_cell_border\", \"table\", do { \
                 dsyntax <<table_cell_border>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+                dsyntax <<border>>;                             \
+                synopsis \"Define the border code for cells\" ; \
+                description <<Define the border code for cells. The short name is border.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"tree\", \"b\", <<border code body.>>;\
+                err \"Error raised when invoked outside of a table context.\" \
                 }\
           |*/")
 PREFIX(TableCellX, tree, "table_cell_x", , RTAO(tableCellX(self)), 
-       "/*| docname \"table_cell_x\", \"\", do { \
+       "/*| docname \"table_cell_x\", \"table\", do { \
                 dsyntax <<table_cell_x>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                dsyntax <<x >>;                             \
+                synopsis \"x-ccordinate of the cell center\" ; \
+                description <<Get the horizontal center of the current table cell>> ;\
+                return_value \"real\", <<The coordinate of the center of the current cell on x-axis>>;\
+                err \"Error raised when invoked outside of a table context.\" \
                 }\
           |*/")
 PREFIX(TableCellY, tree, "table_cell_y", , RTAO(tableCellY(self)), 
-       "/*| docname \"table_cell_y\", \"\", do { \
+       "/*| docname \"table_cell_y\", \"table\", do { \
                 dsyntax <<table_cell_y>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                dsyntax <<y>>;                             \
+                synopsis \"y-ccordinate of the cell center\" ; \
+                description <<Get the vertical center of the current table cell>> ;\
+                return_value \"real\", <<The coordinate of the center of the current cell on y-axis>>;\
                 }\
           |*/")
 PREFIX(TableCellW, tree, "table_cell_w", , RTAO(tableCellW(self)), 
-       "/*| docname \"table_cell_w\", \"\", do { \
+       "/*| docname \"table_cell_w\", \"table\", do { \
                 dsyntax <<table_cell_w>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                dsyntax <<w>>;                             \
+                synopsis \"Width of the cell\" ; \
+                description <<Get the horizontal size of the current table cell>> ;\
+                return_value \"real\", <<The size of the current cell along the x-axis>>;\
                 }\
           |*/")
 PREFIX(TableCellH, tree, "table_cell_h", , RTAO(tableCellH(self)), 
-       "/*| docname \"table_cell_h\", \"\", do { \
+       "/*| docname \"table_cell_h\", \"table\", do { \
                 dsyntax <<table_cell_h>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                dsyntax <<h>>;                             \
+                synopsis \"Height of the cell.\" ; \
+                description <<Get the vertical size of the current table cell>> ;\
+                return_value \"real\", <<The size of the current cell along the y-axis>>;\
+                err \"Error raised when invoked outside of a table context.\" \
                 }\
           |*/")
-PREFIX(TableRow, tree,   "table_cell_row", , RTAO(tableRow(self)), 
-       "/*| docname \"table_cell_row\", \"\", do { \
+PREFIX(TableRow, tree, "table_cell_row", , RTAO(tableRow(self)), 
+       "/*| docname \"table_cell_row\", \"table\", do { \
                 dsyntax <<table_cell_row>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                dsyntax <<row>>;                             \
+                synopsis \"Return the current row\" ; \
+                description <<Return the current row index>> ;\
+                return_value \"integer\", <<the row index>>;\
+                err \"Error raised when invoked outside of a table context.\" \
                 }\
           |*/")
 PREFIX(TableColumn, tree, "table_cell_column", , RTAO(tableColumn(self)), 
-       "/*| docname \"table_cell_column\", \"\", do { \
+       "/*| docname \"table_cell_column\", \"table\", do { \
                 dsyntax <<table_cell_column>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                dsyntax <<column>>;                             \
+                synopsis \"Return the current column\" ; \
+                description <<Return the current column index.>> ;\
+                return_value \"interger\", <<The column index.>>;\
+                err \"Error raised when invoked outside of a table context.\" \
                 }\
           |*/")
 PREFIX(TableRows, tree, "table_rows", , RTAO(tableRows(self)), 
-       "/*| docname \"table_rows\", \"\", do { \
+       "/*| docname \"table_rows\", \"table\", do { \
                 dsyntax <<table_rows>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                dsyntax <<rows>>;                             \
+                synopsis \"number of rows in the current table\" ; \
+                description <<Return the number of rows in the current table>> ;\
+                return_value \"integer\", <<Number of rows in the table>>;\
+                err \"Error raised when invoked outside of a table context.\" \
                 }\
           |*/")
 PREFIX(TableColumns, tree, "table_columns", , RTAO(tableColumns(self)), 
-       "/*| docname \"table_columns\", \"\", do { \
+       "/*| docname \"table_columns\", \"table\", do { \
                 dsyntax <<table_columns>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                dsyntax <<columns>>;                             \
+                synopsis \"number of columns in the current table\" ; \
+                description <<Return the number of columns in the current table>> ;\
+                return_value \"interger\", <<number of columns in the table>>>;\
+                err \"Error raised when invoked outside of a table context.\" \
                 }\
           |*/")
 
@@ -1964,37 +1933,42 @@ PREFIX(TableColumns, tree, "table_columns", , RTAO(tableColumns(self)),
 // ============================================================================
 
 PREFIX(Caption, tree, "status", PARM(t, text), RTAO(status(self, t)), 
-       "/*| docname \"status\", \"\", do { \
-                dsyntax <<status>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"status\", \"widget\", do { \
+                dsyntax <<status t>>;\
+                synopsis \"Set the status line of the window\" ; \
+                description <<Set the content of the status line of the window>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"text\", \"t\", <<The text for the status line.>>;\
                 }\
           |*/")
 PREFIX(Frame, tree, "frame",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(p, tree),
        RTAO(framePaint(self, x, y, w, h, p)), 
-       "/*| docname \"frame\", \"\", do { \
-                dsyntax <<frame>>;\
+       "/*| docname \"frame\", \"widget\", do { \
+                dsyntax <<frame x, y, w, h, p>>;\
                 synopsis \"\" ; \
-                description <<>> ;\
+                description <<Draw a frame with the current text flow[TODO: Really ?]>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", <<x-coordinate>>;\
+                parameter \"real\", \"y\", <<y-coordinate>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"tree\", \"p\", <<The program that represent the content of the frame>>;\
+                return_value \"tree\", <<The result of p evaluation>>;\
                 }\
           |*/")
 PREFIX(FrameTexture, tree, "frame_texture",
        PARM(w,real) PARM(h,real) PARM(p, tree),
        RTAO(frameTexture(self, w, h, p)), 
-       "/*| docname \"frame_texture\", \"\", do { \
-                dsyntax <<frame_texture>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"frame_texture\", \"widget\", do { \
+                dsyntax <<frame_texture w, h, p>>;\
+                synopsis \"Make a texture out of the current text layout\" ; \
+                description <<Make a texture out of the current text layout>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"tree\", \"p\", <<The program that represent the content of the frame>>;\
+                return_value \"tree\", <<The result of p evaluation>>;\
                 }\
           |*/")
 PREFIX(Url, tree, "url",
@@ -2004,55 +1978,64 @@ PREFIX(UrlProgress, tree, "url",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(u, text) PARM(progress, integer),
        RTAO(urlPaint(self, x, y, w, h, u, progress)), 
-       "/*| docname \"url\", \"\", do { \
+       "/*| docname \"url\", \"widget\", do { \
                 dsyntax <<url x, y, w, h, u, progress>>;\
                 dsyntax <<url x, y, w, h, u>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+                synopsis \"Draw a URL in the curent frame\" ; \
+                description <<Load from the given URL a web page and draw it. It uses the QT webkit. >> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", <<x-coordinate>>;\
+                parameter \"real\", \"y\", <<y-coordinate>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"text\", \"u\", <<The URL to display>>;\
+                parameter \"integer\", \"progress\", <<The progession of the load. 0 if not provided>>;\
                 }\
           |*/")
 PREFIX(UrlTexture, tree, "url_texture",
        PARM(w,real) PARM(h,real) PARM(u, text),
-       RTAO(urlTexture(self, w, h, u, NULL)), 
-       "")
+       RTAO(urlTexture(self, w, h, u, NULL)), "")
 PREFIX(UrlTextureProgress, tree, "url_texture",
        PARM(w,real) PARM(h,real) PARM(u, text) PARM(progress, integer),
        RTAO(urlTexture(self, w, h, u, progress)), 
-       "/*| docname \"url_texture\", \"\", do { \
+       "/*| docname \"url_texture\", \"widget\", do { \
                 dsyntax <<url_texture w, h, u, progress>>;\
                 dsyntax <<url_texture w, h, u>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+                synopsis \"Make a texture out of a given URL\" ; \
+                description <<Load from the given URL a web page and draw it. It uses the QT webkit. >>\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"text\", \"u\", <<The URL to display>>;\
+                parameter \"integer\", \"progress\", <<The progession of the load. 0 if not provided>>;\
                 }\
           |*/")
 PREFIX(LineEdit, tree, "line_edit",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(u, text),
        RTAO(lineEdit(self, x, y, w, h, u)), 
-       "/*| docname \"line_edit\", \"\", do { \
-                dsyntax <<line_edit>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"line_edit\", \"widget\", do { \
+                dsyntax <<line_edit x, y, w, h, u>>;\
+                synopsis \"Draw a line editor in the current frame\" ; \
+                description <<Draw a line editor in the current frame>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", <<x-coordinate>>;\
+                parameter \"real\", \"y\", <<y-coordinate>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"text\", \"u\", <<The text to insert in the line edit widget.>>;\
                 }\
           |*/")
 PREFIX(LineEditTexture, tree, "line_edit_texture",
        PARM(w,real) PARM(h,real) PARM(u, text),
        RTAO(lineEditTexture(self, w, h, u)), 
-       "/*| docname \"line_edit_texture\", \"\", do { \
-                dsyntax <<line_edit_texture>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"line_edit_texture\", \"widget\", do { \
+                dsyntax <<line_edit_texture w, h, u>>;\
+                synopsis \"Make a texture out of a given line editor\" ; \
+                description <<Make a texture out of a given line editor>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"text\", \"u\", <<The text to insert in the line edit widget.>>;\
                 }\
           |*/")
 
@@ -2060,25 +2043,33 @@ PREFIX(PushButton, tree, "push_button",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(n, text) PARM(l, text) PARM(a, tree),
        RTAO(pushButton(self, x, y, w, h, n, l, a)), 
-       "/*| docname \"push_button\", \"\", do { \
-                dsyntax <<push_button>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"push_button\", \"widget\", do { \
+                dsyntax <<push_button x, y, w, h, n, l, a>>;\
+                synopsis \"A push button\" ; \
+                description <<Draw a push button in the curent frame>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", <<x-coordinate>>;\
+                parameter \"real\", \"y\", <<y-coordinate>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"text\", \"n\", <<Name that uniquely identify this button>>;\
+                parameter \"text\", \"l\", <<Label of the button>>;\
+                parameter \"tree\", \"a\", <<The action to perform when the button is clicked.>>;\
                 }\
           |*/")
 PREFIX(PushButtonTexture, tree, "push_button_texture",
        PARM(w,real) PARM(h,real) PARM(n, text) PARM(l, text) PARM(a, tree),
        RTAO(pushButtonTexture(self, w, h, n, l, a)), 
-       "/*| docname \"push_button_texture\", \"\", do { \
-                dsyntax <<push_button_texture>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"push_button_texture\", \"widget\", do { \
+                dsyntax <<push_button_texture w, h, n, l, a>>;\
+                synopsis \"Make a texture out of a given push button\" ; \
+                description <<Make a texture out of a given push button>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"text\", \"n\", <<Name that uniquely identify this button>>;\
+                parameter \"text\", \"l\", <<Label of the button>>;\
+                parameter \"tree\", \"a\", <<The action to perform when the button is clicked.>>;\
                 }\
           |*/")
 
@@ -2086,26 +2077,36 @@ PREFIX(RadioButton, tree, "radio_button",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(n, text) PARM(l, text) PARM(m, text) PARM(a, tree),
        RTAO(radioButton(self, x, y, w, h, n, l, m, a)), 
-       "/*| docname \"radio_button\", \"\", do { \
-                dsyntax <<radio_button>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"radio_button\", \"widget\", do { \
+                dsyntax <<radio_button x, y, w, h, n, l, m, a>>;\
+                synopsis \"Draw a radio button\" ; \
+                description <<Draw a radio button in the curent frame. Associate the action to perform when the button state change from non-selected to selected.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", <<x-coordinate>>;\
+                parameter \"real\", \"y\", <<y-coordinate>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"text\", \"n\", <<Name that uniquely identify this button>>;\
+                parameter \"text\", \"l\", <<Label of the button>>;\
+                parameter \"text\", \"s\", <<True if the button is selected>>;\
+                parameter \"tree\", \"a\", <<The action to perform when the button state change from non-selected to selected.>>;\
                 }\
           |*/")
 PREFIX(RadioButtonTexture, tree, "radio_button_texture",
        PARM(w,real) PARM(h,real) PARM(n, text) PARM(l, text)
        PARM(m, text) PARM(a, tree),
        RTAO(radioButtonTexture(self, w, h, n, l, m, a)), 
-       "/*| docname \"radio_button_texture\", \"\", do { \
-                dsyntax <<radio_button_texture>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"radio_button_texture\", \"widget\", do { \
+                dsyntax <<radio_button_texture w, h, n, l, m, a>>;\
+                synopsis \"Make a texture out of a given radio button\" ; \
+                description <<Make a texture out of a given radio button>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"text\", \"n\", <<Name that uniquely identify this button>>;\
+                parameter \"text\", \"l\", <<Label of the button>>;\
+                parameter \"text\", \"s\", <<True if the button is selected>>;\
+                parameter \"tree\", \"a\", <<The action to perform when the button state change from non-selected to selected.>>;\
                 }\
           |*/")
 
@@ -2113,230 +2114,241 @@ PREFIX(CheckBoxButton, tree, "check_box_button",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(n, text) PARM(l, text) PARM(m, text) PARM(a, tree),
        RTAO(checkBoxButton(self, x, y, w, h, n, l, m, a)), 
-       "/*| docname \"check_box_button\", \"\", do { \
-                dsyntax <<check_box_button>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"check_box_button\", \"widget\", do { \
+                dsyntax <<check_box_button x, y, w, h, n, l, m, a>>;\
+                synopsis \"Draw a check button\" ; \
+                description <<Draw a check button in the curent frame>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", <<x-coordinate>>;\
+                parameter \"real\", \"y\", <<y-coordinate>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"text\", \"n\", <<Name that uniquely identify this button>>;\
+                parameter \"text\", \"l\", <<Label of the button>>;\
+                parameter \"text\", \"m\", <<True if the button is marked>>;\
+                parameter \"tree\", \"a\", <<The action to perform when the button state change from non-sed.>>; \
                 }\
           |*/")
 PREFIX(CheckBoxButtonTexture, tree, "check_box_button_texture",
        PARM(w,real) PARM(h,real) PARM(n, text) PARM(l, text)
        PARM(m, text) PARM(a, tree),
        RTAO(checkBoxButtonTexture(self, w, h, n, l, m, a)), 
-       "/*| docname \"check_box_button_texture\", \"\", do { \
-                dsyntax <<check_box_button_texture>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"check_box_button_texture\", \"widget\", do { \
+                dsyntax <<check_box_button_texture w, h, n, l, m, a>>;\
+                synopsis \"Make a texture out of a given checkbox button\" ; \
+                description <<Make a texture out of a given checkbox button>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
-                }\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"text\", \"n\", <<Name that uniquely identify this button>>;\
+                parameter \"text\", \"l\", <<Label of the button>>;\
+                parameter \"text\", \"m\", <<True if the button is marked>>;\
+                parameter \"tree\", \"a\", <<The action to perform when the button state change from non-s                }\
           |*/")
 
 PREFIX(ColorChooser, tree, "color_chooser",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,tree),
-       RTAO(colorChooser(self, x, y, w, h, t)), 
-       "/*| docname \"color_chooser\", \"\", do { \
-                dsyntax <<color_chooser>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
-                }\
-          |*/")
-PREFIX(ColorChooserTexture, tree, "color_chooser_texture",
-       PARM(w,real) PARM(h,real) PARM(t,tree),
-       RTAO(colorChooserTexture(self, w, h, t)), 
-       "/*| docname \"color_chooser_texture\", \"\", do { \
-                dsyntax <<color_chooser_texture>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
-                }\
-          |*/")
+       RTAO(colorChooser(self, x, y, w, h, t)), "")
 PREFIX(ColorChooserNow, tree, "color_chooser", PARM(n, text) PARM(t,tree),
        RTAO(colorChooser(self, n, t)), 
-       "/*| docname \"color_chooser\", \"\", do { \
-                dsyntax <<color_chooser>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"color_chooser\", \"widget\", do { \
+                dsyntax <<color_chooser x, y, w, h, t>>;\
+                dsyntax <<color_chooser n, t>>;\
+                synopsis \"Draw a color chooser\" ; \
+                description <<Pop a window with the platform dependant color chooser inside.\
+Once the color is chosen Names 'red', 'green', 'blue', and 'alpha' are replaced in the given tree by the corresponding value in the selected color. Then the resulting tree is evaluated. >> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", <<x-coordinate>>;\
+                parameter \"real\", \"y\", <<y-coordinate>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"text\", \"n\", <<tree name to get the original color.>>;\
+                parameter \"tree\", \"t\", <<tree to update with new color>>;\
                 }\
           |*/")
 
+PREFIX(ColorChooserTexture, tree, "color_chooser_texture",
+       PARM(w,real) PARM(h,real) PARM(t,tree),
+       RTAO(colorChooserTexture(self, w, h, t)), 
+       "/*| docname \"color_chooser_texture\", \"widget\", do { \
+                dsyntax <<color_chooser_texture w, h, t>>;\
+                synopsis \"Make a texture out of a given color chooser\" ; \
+                description <<Make a texture out of a given color chooser>> ;\
+                parameters;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"tree\", \"t\", <<tree to update with new color>>;\
+                }\
+          |*/")
+PREFIX(FontChooserNow, tree, "font_chooser", PARM(t,tree),
+       RTAO(fontChooser(self, t)), "")
 PREFIX(FontChooser, tree, "font_chooser",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,tree),
        RTAO(fontChooser(self, x, y, w, h, t)), 
-       "/*| docname \"font_chooser\", \"\", do { \
-                dsyntax <<font_chooser>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"font_chooser\", \"widget\", do { \
+                dsyntax <<font_chooser t>>;\
+                dsyntax <<font_chooser x, y, w, h, t>>;\
+                synopsis \"font chooser\" ; \
+                description <<Pop a window with the platform dependant font chooser inside. \
+Once the font is chosen, Names 'font_family', 'font_size', 'font_weight', 'font_slant', 'font_stretch', 'font_is_italic', and 'font_is_bold' are replaced by their corresponding values in the selected font. The resulting tree is then evaluated.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", <<x-coordinate>>;\
+                parameter \"real\", \"y\", <<y-coordinate>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"tree\", \"t\", <<tree to update with new font>>;\
                 }\
           |*/")
 PREFIX(FontChooserTexture, tree, "font_chooser_texture",
        PARM(w,real) PARM(h,real) PARM(t,tree),
        RTAO(fontChooserTexture(self, w, h, t)), 
-       "/*| docname \"font_chooser_texture\", \"\", do { \
-                dsyntax <<font_chooser_texture>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"font_chooser_texture\", \"widget\", do { \
+                dsyntax <<font_chooser_texture w, h, t>>;\
+                synopsis \"Make a texture out of a given color chooser\" ; \
+                description <<Make a texture out of a given color chooser>> ; \
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"tree\", \"t\", <<tree to update with new font>>;\
                 }\
           |*/")
-PREFIX(FontChooserNow, tree, "font_chooser", PARM(t,tree),
-       RTAO(fontChooser(self, t)), 
-       "/*| docname \"font_chooser\", \"\", do { \
-                dsyntax <<font_chooser>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
-                }\
-          |*/")
-
 PREFIX(FileChooser, tree, "file_chooser",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,tree),
-       RTAO(fileChooser(self, x, y, w, h, t)), 
-       "/*| docname \"file_chooser\", \"\", do { \
-                dsyntax <<file_chooser>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       RTAO(fileChooser(self, x, y, w, h, t)), "")
+PREFIX(FileChooserNow, tree, "file_chooser", PARM(t,tree),
+       RTAO(fileChooser(self, t)), 
+       "/*| docname \"file_chooser\", \"widget\", do { \
+                dsyntax <<file_chooser x, y, w, h, t>>;\
+                dsyntax <<file_chooser t>>;\
+                synopsis \"Draw a file chooser\" ; \
+                description <<Pop a window with the platform dependant file chooser inside. \
+The file_chooser can be parameterized with 4 atributes which are 'action', 'directory', 'label' and 'filter'. Those attributes are defined in the function with file_chooser_ prefix.\
+Once the file is selected, Names 'file_name', 'file_directory', 'file_path', and 'rel_file_path' are replaced by their corresponding values from the selected file.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", <<x-coordinate>>;\
+                parameter \"real\", \"y\", <<y-coordinate>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"tree\", \"t\", <<tree to update with new file>>;\
+                see \"file_chooser_action\" ;\
+                see \"file_chooser_directory\" ;\
+                see \"file_chooser_filter\" ;\
+                see \"file_chooser_label\" ;\
                 }\
           |*/")
 PREFIX(FileChooserTexture, tree, "file_chooser_texture",
        PARM(w,real) PARM(h,real) PARM(t,tree),
        RTAO(fileChooserTexture(self, w, h, t)), 
-       "/*| docname \"\", \"\", do { \
-                dsyntax <<>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"file_chooser_texture\", \"widget\", do { \
+                dsyntax <<file_chooser_texture w, h, t>>;\
+                synopsis \"Make a texture out of a given file chooser\" ; \
+                description <<Make a texture out of a given file chooser>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
-                }\
-          |*/")
-PREFIX(FileChooserNow, tree, "file_chooser", PARM(t,tree),
-       RTAO(fileChooser(self, t)), 
-       "/*| docname \"file_chooser\", \"\", do { \
-                dsyntax <<file_chooser>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"tree\", \"t\", <<tree to update with new file>>;\
                 }\
           |*/")
 PREFIX(SetFileDialogAction, tree, "file_chooser_action", PARM(t, tree),
        RTAO(setFileDialogAction(self, t)), 
-       "/*| docname \"file_chooser_action\", \"\", do { \
-                dsyntax <<file_chooser_action>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"file_chooser_action\", \"widget\", do { \
+                dsyntax <<file_chooser_action t>>;\
+                dsyntax <<action t>>;\
+                synopsis \"File chooser action\" ; \
+                description <<Set the action that will be execute when OK is pressed. Only available in a file chooser sub tree.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"tree\", \"t\", <<The action to modify and execute when file is chosen.>>;\
+                see \"file_chooser\";\
                 }\
           |*/")
 PREFIX(SetFileDialogDirectory, tree, "file_chooser_directory", PARM(d, text),
        RTAO(setFileDialogDirectory(self, d)), 
-       "/*| docname \"file_chooser_directory\", \"\", do { \
-                dsyntax <<file_chooser_directory>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"file_chooser_directory\", \"widget\", do { \
+                dsyntax <<file_chooser_directory d>>;\
+                dsyntax <<directory d>>;\
+                synopsis \"File chooser directory\" ; \
+                description <<Set the directory to open first. Only available in a file chooser sub tree.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"text\", \"d\", <<directory name>>;\
+                see \"file_chooser\";\
                 }\
           |*/")
 PREFIX(SetFileDialogFilter, tree, "file_chooser_filter", PARM(d, text),
        RTAO(setFileDialogFilter(self, d)), 
-       "/*| docname \"file_chooser_filter\", \"\", do { \
+       "/*| docname \"file_chooser_filter\", \"widget\", do { \
                 dsyntax <<file_chooser_filter>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+                synopsis \"Set the file filters\" ; \
+                description <<Set the file filters (file pattern, e.g. *.img). Only available in a file chooser sub tree.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"text\", \"t\", <<filter for file>>;\
+                see \"file_chooser\";\
                 }\
           |*/")
 PREFIX(SetFileDialogLabel, tree, "file_chooser_label",
        PARM(lbl, text) PARM(v, text),
        RTAO(setFileDialogLabel(self, lbl, v)), 
-       "/*| docname \"file_chooser_label\", \"\", do { \
+       "/*| docname \"file_chooser_label\", \"widget\", do { \
                 dsyntax <<file_chooser_label>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+                synopsis \"Set labels on a file dialog\" ; \
+                description <<Set labels on a file dialog. Only available in a file chooser sub tree.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
-                }\
-          |*/")
-
-PREFIX(Action, tree, "button_group_action", PARM(act, tree),
-       RTAO(setButtonGroupAction(self, act)), 
-       "/*| docname \"button_group_action\", \"\", do { \
-                dsyntax <<button_group_action>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"text\", \"t\", <<The label for the file chooser dialog box.>>;\
+                see \"file_chooser\";\
                 }\
           |*/")
 
 PREFIX(ButtonGroup, tree, "button_group",
        PARM(ex, boolean) PARM(b, tree),
        RTAO(buttonGroup(self, ex, b)), 
-       "/*| docname \"button_group\", \"\", do { \
-                dsyntax <<button_group>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"button_group\", \"widget\", do { \
+                dsyntax <<button_group ex, b>>;\
+                synopsis \"Create a button group.\" ; \
+                description <<Create a group. Buttons included in this group are mutually exclusive. It is useful to create multiple group of radio buttons>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"boolean\", \"ex\", <<If true, the group is exclusive.>>;\
+                parameter \"tree\", \"t\", <<The code of buttons>>;\
+                }\
+          |*/")
+
+PREFIX(Action, tree, "button_group_action", PARM(act, tree),
+       RTAO(setButtonGroupAction(self, act)), 
+       "/*| docname \"button_group_action\", \"widget\", do { \
+                dsyntax <<button_group_action act>>;\
+                synopsis \"Action of the group\" ; \
+                description <<Set the action to be executed by the current buttonGroup.When a button in the group is clicked, this action is triggered as well as the button's action.>> ;\
+                parameters;\
+                parameter \"tree\", \"act\", <<The action.>>;\
                 }\
           |*/")
 
 PREFIX(GroupBox, tree, "group_box",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
-       PARM(u, text) PARM(b, tree),
-       RTAO(groupBox(self, x, y, w, h, u, b)), 
-       "/*| docname \"group_box\", \"\", do { \
-                dsyntax <<group_box>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       PARM(lbl, text) PARM(b, tree),
+       RTAO(groupBox(self, x, y, w, h, lbl, b)), 
+       "/*| docname \"group_box\", \"widget\", do { \
+                dsyntax <<group_box x, y, w, h, lbl, b>>;\
+                synopsis \"group box\" ; \
+                description <<Draw a group box in the current frame. The x and y coordinate of widgets placed in this box are the colomn and row number. Total number of rows and columns is dynamic.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", <<x-coordinate of this box>>;\
+                parameter \"real\", \"y\", <<y-coordinate of this box>>;\
+                parameter \"real\", \"w\", <<width of this box>>;\
+                parameter \"real\", \"h\", <<height of this box>>;\
+                parameter \"text\", \"lbl\", <<The label of the box>>;\
+                parameter \"tree\", \"b\", <<The content of the box>>;\
                 }\
           |*/")
 PREFIX(GroupBoxTexture, tree, "group_box_texture",
-       PARM(w,real) PARM(h,real) PARM(u, text),
-       RTAO(groupBoxTexture(self, w, h, u)), 
-       "/*| docname \"group_box_texture\", \"\", do { \
-                dsyntax <<group_box_texture>>;\
+       PARM(w,real) PARM(h,real) PARM(lbl, text),
+       RTAO(groupBoxTexture(self, w, h, lbl)), 
+       "/*| docname \"group_box_texture\", \"widget\", do { \
+                dsyntax <<group_box_texture w, h, lbl>>;\
                 synopsis \"\" ; \
-                description <<>> ;\
+                description <<Make a texture out of a given group box.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"text\", \"lbl\", <<The label of the box>>;\
                 }\
           |*/")
 
@@ -2344,24 +2356,29 @@ PREFIX(GroupBoxTexture, tree, "group_box_texture",
 PREFIX(VideoPlayer, tree, "video_player",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(u,text),
        RTAO(videoPlayer(self, x, y, w, h, u)), 
-       "/*| docname \"video_player\", \"\", do { \
-                dsyntax <<video_player>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"video_player\", \"widget\", do { \
+                dsyntax <<video_player x, y, w, h, u>>;\
+                synopsis \"Make a video player\" ; \
+                description <<It creates a video player based on the Phonon library. Then the supported format are platform dependant.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", <<x-coordinate>>;\
+                parameter \"real\", \"y\", <<y-coordinate>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"text\", \"u\", <<The URL of the video to play.>>;\
                 }\
           |*/")
 PREFIX(VideoPlayerTexture, tree, "video_player_texture",
        PARM(w,real) PARM(h,real) PARM(u,text),
        RTAO(videoPlayerTexture(self, w, h, u)), 
-       "/*| docname \"video_player_texture\", \"\", do { \
-                dsyntax <<video_player_texture>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"video_player_texture\", \"widget\", do { \
+                dsyntax <<video_player_texture w, h, u>>;\
+                synopsis \"Make a video player texture.\" ; \
+                description <<The video plyer texture associated.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"text\", \"u\", <<The URL to play>>;\
                 return_value \"\", <<>>;\
                 }\
           |*/")
@@ -2375,46 +2392,45 @@ PREFIX(VideoPlayerTexture, tree, "video_player_texture",
 // ============================================================================
 
 PREFIX(Chooser, tree, "chooser", PARM(n, text), RTAO(chooser(self, n)), 
-       "/*| docname \"chooser\", \"\", do { \
-                dsyntax <<chooser>>;\
+       "/*| docname \"chooser\", \"code:chooser\", do { \
+                dsyntax <<chooser c>>;\
                 synopsis \"\" ; \
-                description <<>> ;\
+                description <<Create a chooser with the given caption. A chooser shows a selection among the possible commands>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"text\", \"c\", <<The caption of the chooser.>>;\
                 }\
           |*/")
 PREFIX(ChooserChoice, tree, "chooser_choice", PARM(n, text) PARM(t, tree),
        RTAO(chooserChoice(self, n, t)), 
-       "/*| docname \"chooser_choice\", \"\", do { \
-                dsyntax <<chooser_choice>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"chooser_choice\", \"code:chooser\", do { \
+                dsyntax <<chooser_choice l, t>>;\
+                synopsis \"Add a command in the chooser list.\" ; \
+                description <<Create a chooser item and associate a command>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"text\", \"l\", <<label of the command>>;\
+                parameter \"tree\", \"t\", <<the command>>;\
                 }\
           |*/")
 PREFIX(ChooserCommands, tree, "chooser_commands", PARM(p, text) PARM(t,text),
        RTAO(chooserCommands(self, p, t)), 
-       "/*| docname \"chooser_commands\", \"\", do { \
-                dsyntax <<chooser_commands>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"chooser_commands\", \"code:chooser\", do { \
+                dsyntax <<chooser_commands, p, t>>;\
+                synopsis \"Add all commands from the symbols list.\" ; \
+                description << Add all commands in the current symbol table that have the given prefix>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"text\", \"p\", <<The prefix>>;\
+                parameter \"text\", \"t \", <<The label>>;\
                 }\
           |*/")
 PREFIX(ChooserPages, tree, "chooser_pages", PARM(p, symbol) PARM(l, text),
        RTAO(chooserPages(self, p, l)), 
-       "/*| docname \"chooser_pages\", \"\", do { \
-                dsyntax <<chooser_pages>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"chooser_pages\", \"code:chooser\", do { \
+                dsyntax <<chooser_pages p, l>>;\
+                synopsis \"pages added to the chooser\" ; \
+                description <<Add the list of pages to the chooser>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"synbol\", \"p\", <<The prefix that will be added to the page name>>;\
+                parameter \"text\", \"l\", <<The text that will be added as label prefix to the name of pages.>>;\
                 }\
           |*/")
 
@@ -2426,6 +2442,33 @@ PREFIX(ChooserPages, tree, "chooser_pages", PARM(p, symbol) PARM(l, text),
 //
 // ============================================================================
 
+PREFIX(Menu, tree, "menu", PARM(n, text) PARM(lbl, text) PARM(icon, text),
+       RTAO(menu(self, n, lbl, icon, false)),
+       "/*| docname \"menu\", \"widget:menu\", do { \
+                dsyntax <<menu \"unique_name\", \"label\", \"icon\">>;\
+                synopsis \"Create/Select a menu\" ; \
+                description <<Add the menu to the current menu bar or create the contextual menu. If the menu already exist, it is updated and set as the current menu>> ;\
+                parameters;\
+                parameter \"text\", \"unique_name\", <<Name that uniquely identify this menu>>;\
+                parameter \"text\", \"label\", <<The label of the menu>>;\
+                parameter \"text\", \"icon\", <<The name of the icon (filename).>>;\
+                }\
+          |*/")
+
+PREFIX(SubMenu, tree, "submenu",
+       PARM(name, text) PARM(lbl, text) PARM(icon, text),
+       RTAO(menu(self, name, lbl, icon, true)), 
+       "/*| docname \"submenu\", \"widget:menu\", do { \
+                dsyntax <<submenu \"unique_name\", \"label\", \"icon\">>;\
+                synopsis \"Create/Select a submenu\" ; \
+                description <<Add the submenu to the current menu. If the submenu already exist, it is updated and set as the current menu>> ;\
+                parameters;\
+                parameter \"text\", \"unique_name\", <<Name that uniquely identify this menu>>;\
+                parameter \"text\", \"label\", <<The label of the menu>>;\
+                parameter \"text\", \"icon\", <<The name of the icon (filename).>>;\
+                }\
+          |*/")
+
 PREFIX(MenuItem, tree, "menu_item",
        PARM(n, text) PARM(lbl, text) PARM(icon, text) PARM(cable, boolean)
        PARM(isc, text)  PARM(t, tree),
@@ -2433,67 +2476,45 @@ PREFIX(MenuItem, tree, "menu_item",
        "/*| docname \"menu_item\", \"widget:menu\", do { \
                 dsyntax <<menu_item \"unique_name\", \"label\", \"icon\", checkable, isChecked, tree>>;\
                 synopsis \"add an entry in a menu\" ; \
-                }\
-          |*/")
-
-PREFIX(Menu, tree, "menu", PARM(n, text) PARM(lbl, text) PARM(icon, text),
-       RTAO(menu(self, n, lbl, icon, false)),
-       "/*| docname \"menu\", \"\", do { \
-                dsyntax <<menu>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+                description <<Add an entry in the current menu with the label, icon, checkmark and command.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
-                }\
-          |*/")
-
-PREFIX(SubMenu, tree, "submenu",
-       PARM(name, text) PARM(lbl, text) PARM(icon, text),
-       RTAO(menu(self, name, lbl, icon, true)), 
-       "/*| docname \"submenu\", \"\", do { \
-                dsyntax <<submenu>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"text\", \"unique_name\", <<Name that uniquely identify this entry>>;\
+                parameter \"text\", \"label\", <<The label of the entry>>;\
+                parameter \"text\", \"icon\", <<The name of the icon (filename).>>;\
+                parameter \"boolean\", \"checkable\", <<Should this entry carry a check box ?>>;\
+                parameter \"text\", \"isChecked\", <<If this entry carries a check box, is it cheked or not.>>;\
+                parameter \"tree\", \"t\", <<The command to execute on item selection.>>;\
                 }\
           |*/")
 
 PREFIX(ToolBar, tree, "toolbar",
        PARM(name, text) PARM(lbl, text) PARM(loc, text),
        RTAO(toolBar(self, name, lbl, true, loc)), 
-       "/*| docname \"toolbar\", \"\", do { \
-                dsyntax <<toolbar>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"toolbar\", \"widget:menu\", do { \
+                dsyntax <<toolbar  \"unique_name\", \"label\", \"loc\">>;\
+                synopsis \"Add the toolBar\" ; \
+                description <<Add the toolBar to the current widget at the specify location.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"text\", \"unique_name\", <<Name that uniquely identify this toolbar>>;\
+                parameter \"text\", \"label\", <<The label of the toolbar>>;\
+                parameter \"text\", \"loc\", <<The location of the toolbar in the widget. Supported values are [n|N]*, [e|E]*, [s|S]*, [w|W|o|O]*>>;\
                 }\
           |*/")
 
 PREFIX(MenuBar, tree, "menubar", , RTAO(menuBar(self)), 
-       "/*| docname \"menubar\", \"\", do { \
+       "/*| docname \"menubar\", \"widget:menu\", do { \
                 dsyntax <<menubar>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"Set the current menubar\" ; \
+                description <<Set the current menubar to the default menuBar>> ;\
                 }\
           |*/")
 
 PREFIX(Separator, tree, "separator", ,
        RTAO(separator(self)), 
-       "/*| docname \"separator\", \"\", do { \
+       "/*| docname \"separator\", \"widget:menu\", do { \
                 dsyntax <<separator>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"Add a separator\" ; \
+                description <<Add a separator to the current menu or menu bar or tool bar. >> ;\
                 }\
           |*/")
 
@@ -2511,11 +2532,12 @@ PREFIX(ErrorMessage0, tree, "error", PARM(m, text),
        "/*| docname \"error\", \"\", do { \
                 dsyntax <<error m, s>>;\
                 dsyntax <<error m>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+                synopsis \"Display an error message from the input\" ; \
+                description <<Display an error message from the input>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"text\", \"m\", <<The message to display>>;\
+                parameter \"tree\", \"s\", <<[TODO]>>;\
+                return_value \"tree\", <<[TODO]>>;\
                 }\
           |*/")
 
@@ -2529,37 +2551,36 @@ PREFIX(ErrorMessage0, tree, "error", PARM(m, text),
 PREFIX(Insert0, boolean, "insert", PARM(m, text) PARM(t, tree),
        RTAO(insert(self, t, m)), "")
 PREFIX(Insert, boolean, "insert", PARM(t, tree), RTAO(insert(self, t)), 
-       "/*| docname \"insert\", \"\", do { \
+       "/*| docname \"insert\", \"tree\", do { \
                 dsyntax <<insert m, t>>;\
                 dsyntax <<insert t>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+                synopsis \"Insert code\" ; \
+                description <<Insert at the end of page or program>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"text\", \"m\", <<message used to mark the change in the version management tool (git). >>;\
+                parameter \"tree\", \"t\", <<The tree to insert in the code.>>;\
                 }\
           |*/")
 PREFIX(Delete, boolean, "delete_selection", PARM(k, text),
        RTAO(deleteSelection(self, k)), 
-       "/*| docname \"delete_selection\", \"\", do { \
+       "/*| docname \"delete_selection\", \"tree\", do { \
                 dsyntax <<delete_selection>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+                synopsis \"Delete the selection\" ; \
+                description <<Delete the selection (with text support)>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"text\", \"k\", <<key [TODO]>>;\
                 }\
           |*/")
 PREFIX(SetAttribute, boolean, "set_attribute",
        PARM(n, text) PARM(t, tree),
        RTAO(setAttribute(self, n, t, "group,shape")), 
-       "/*| docname \"set_attribute\", \"\", do { \
-                dsyntax <<set_attribute>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"set_attribute\", \"tree\", do { \
+                dsyntax <<set_attribute n, t>>;\
+                synopsis \"set attribute is selection\" ; \
+                description <<Insert the tree in all shapes in the selection>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"text\", \"n\", <<Attribute name>>;\
+                parameter \"tree\", \"t\", <<Attribute value >>;\
                 }\
           |*/")
 
@@ -2571,43 +2592,31 @@ PREFIX(SetAttribute, boolean, "set_attribute",
 // ============================================================================
 
 PREFIX(BringToFront, boolean, "bring_to_front",, RTAO(bringToFront(self)), 
-       "/*| docname \"bring_to_front\", \"\", do { \
+       "/*| docname \"bring_to_front\", \"code:zorder\", do { \
                 dsyntax <<bring_to_front>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"Bring the selected shape to front\" ; \
+                description <<Bring the selected shape to front. This moves the source code of the selection to the end of the page or program>> ;\
                 }\
           |*/")
 PREFIX(BringForward, boolean, "bring_forward",, RTAO(bringForward(self)), 
-       "/*| docname \"bring_forward\", \"\", do { \
+       "/*| docname \"bring_forward\", \"code:zorder\", do { \
                 dsyntax <<bring_forward>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"Bring the selection one forward\" ; \
+                description <<Swap the selected shape and the one in front of it. This is done by swaping code in the source.> ;\
                 }\
           |*/")
 PREFIX(SendToBack, boolean, "send_to_back",, RTAO(sendToBack(self)), 
-       "/*| docname \"send_to_back\", \"\", do { \
+       "/*| docname \"send_to_back\", \"code:zorder\", do { \
                 dsyntax <<send_to_back>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"Send the selected shape to back\" ; \
+                description <<Send the selected shape to back. This moves the source code of the selection to the begining of the page or program>> ;\
                 }\
           |*/")
 PREFIX(SendBackward, boolean, "send_backward",, RTAO(sendBackward(self)), 
-       "/*| docname \"send_backward\", \"\", do { \
+       "/*| docname \"send_backward\", \"code:zorder\", do { \
                 dsyntax <<send_backward>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"Send the selection one backward\" ; \
+                description <<Swap the selected shape and the one just behind it. This is done by swaping code in the source.>> ;\
                 }\
           |*/")
 
@@ -2618,33 +2627,28 @@ PREFIX(SendBackward, boolean, "send_backward",, RTAO(sendBackward(self)),
 // ============================================================================
 
 PREFIX(Group, tree, "group",   PARM(t, tree), RTAO(group(self, t)), 
-       "/*| docname \"group\", \"\", do { \
-                dsyntax <<group>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"group\", \"code:group\", do { \
+                dsyntax <<group t>>;\
+                synopsis \"Create a logical group\" ; \
+                description <<Group objects together, make them selectable as a whole.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"tree\", \"t\", <<The code to group>>;\
                 }\
           |*/")
 PREFIX(GroupSelection, boolean, "group_selection",, RTAO(groupSelection(self)), 
-       "/*| docname \"group_selection\", \"\", do { \
+       "/*| docname \"group_selection\", \"code:group\", do { \
                 dsyntax <<group_selection>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"Create the group from the selected objects\" ; \
+                description <<Modify the source code to group the selection.>> ;\
+                see \"group\";\
                 }\
           |*/")
 PREFIX(UngroupSelection, boolean, "ungroup_selection",, RTAO(ungroupSelection(self)), 
-       "/*| docname \"ungroup_selection\", \"\", do { \
+       "/*| docname \"ungroup_selection\", \"code:group\", do { \
                 dsyntax <<ungroup_selection>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                synopsis \"ungroup the selected group\" ; \
+                description <<Modify the source code to ungroup the selection>> ;\
+                see \"group\";\
                 }\
           |*/")
 
@@ -2655,53 +2659,53 @@ PREFIX(UngroupSelection, boolean, "ungroup_selection",, RTAO(ungroupSelection(se
 // ============================================================================
 
 POSTFIX(FromCm,   real, PARM(x, real), "cm", RTAO(fromCm(self, x)),
-"/*| docname \"cm\", \"unit\", do { \
+"/*| docname \"cm\", \"code:unit\", do { \
          dsyntax \"x cm\" ;\
-         synopsis \"Specify the unit as centimeter \"; \
-         description \"This postfix specify the previous real as centimeter. \"; \
+         synopsis \"Convert from cm to pixels\"; \
+         description \"Convert from cm to pixels\"; \
          parameters; \
-         parameter \"real\", \"x\", \"The value\";\
-         return_value \"real\", \"The value in centimeter. \";\
+         parameter \"real\", \"x\", \"The value in cm\";\
+         return_value \"real\", \"The value in pixel. \";\
          }\
 |*/")
 POSTFIX(FromMm,   real, PARM(x, real), "mm", RTAO(fromMm(self, x)), 
-       "/*| docname \"mm\", \"\", do { \
-                dsyntax <<mm>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"mm\", \"code:unit\", do { \
+                dsyntax <<x mm>>;\
+                synopsis \"Convert from mm to pixels\" ; \
+                description <<Convert from mm to pixels>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", \"The value in mm\";              \
+                return_value \"real\", \"The value in pixel. \";\
                 }\
           |*/")
 POSTFIX(FromInch, real, PARM(x, real), "inch", RTAO(fromIn(self, x)), 
-       "/*| docname \"inch\", \"\", do { \
-                dsyntax <<inch>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"inch\", \"code:unit\", do { \
+                dsyntax <<x inch>>;\
+                synopsis \"Convert from inch to pixels\" ; \
+                description <<Convert from inch to pixels>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", \"The value in inch\";              \
+                return_value \"real\", \"The value in pixel. \";\
                 }\
           |*/")
 POSTFIX(FromPt,   real, PARM(x, real), "pt", RTAO(fromPt(self, x)), 
-       "/*| docname \"pt\", \"\", do { \
-                dsyntax <<pt>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"pt\", \"code:unit\", do { \
+                dsyntax <<x pt>>;\
+                synopsis \"Convert from pt to pixels\" ; \
+                description <<Convert from pt to pixels>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", \"The value in point\";              \
+                return_value \"real\", \"The value in pixel. \";\
                 }\
           |*/")
 POSTFIX(FromPx,   real, PARM(x, real), "px", RTAO(fromPx(self, x)), 
-       "/*| docname \"px\", \"\", do { \
-                dsyntax <<px>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"px\", \"code:unit\", do { \
+                dsyntax <<x px>>;\
+                synopsis \"Convert from pixel\" ; \
+                description <<Convert from pixel (currently 1-1 mapping, could be based on scaling?)>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"real\", \"x\", \"The value in pixel\";              \
+                return_value \"real\", \"The value in pixel. \";\
                 }\
           |*/")
 
@@ -2714,13 +2718,13 @@ POSTFIX(FromPx,   real, PARM(x, real), "px", RTAO(fromPx(self, x)),
 // ============================================================================
 
 PREFIX(Constant, tree, "constant", PARM(t, tree), RTAO(constant(self, t)), 
-       "/*| docname \"constant\", \"\", do { \
-                dsyntax <<constant>>;\
-                synopsis \"\" ; \
-                description <<>> ;\
+       "/*| docname \"constant\", \"code\", do { \
+                dsyntax <<constant t>>;\
+                synopsis \"a constant tree\" ; \
+                description <<A tree that cannot be modify.>> ;\
                 parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
+                parameter \"tree\", \"t\", <<the tree that is constant>>;\
+                return_value \"tree\", <<the tree>>;\
                 }\
           |*/")
 PREFIX(GenDoc, tree, "generate_doc", PARM(t, tree),RTAO(generateDoc(self, t)),

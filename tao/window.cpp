@@ -1367,9 +1367,6 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 //    Update the source file view with the plain contents of a specific file
 // ----------------------------------------------------------------------------
 {
-    if (isUntitled)
-        return true;
-
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text))
     {
@@ -1385,6 +1382,7 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
     QTextStream in(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
     loadInProgress = true;
+    textEdit->setTextColor(Qt::black);
     textEdit->setPlainText(in.readAll());
     loadInProgress = false;
     QApplication::restoreOverrideCursor();
@@ -1792,7 +1790,8 @@ void Window::setCurrentFile(const QString &fileName)
     QString name = fileName;
     QFileInfo fi(name);
     curFile = fi.absoluteFilePath();
-    isReadOnly |= !fi.isWritable();
+    if (fi.exists())
+        isReadOnly |= !fi.isWritable();
 
     markChanged(false);
     setWindowFilePath(curFile);

@@ -1718,13 +1718,14 @@ bool Window::showSourceView(bool show)
 
 QString Window::currentProjectFolderPath()
 // ----------------------------------------------------------------------------
-//    The folder to use in the "Save as..." dialog
+//    The folder to use in the "Save as..."/"Open File..." dialogs
 // ----------------------------------------------------------------------------
 {
     if (repo)
         return repo->path;
 
-    if ( !currentProjectFolder.isEmpty())
+    if ( !currentProjectFolder.isEmpty() &&
+         !isTutorial(curFile))
         return currentProjectFolder;
 
     return Application::defaultProjectFolderPath();

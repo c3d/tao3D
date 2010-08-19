@@ -1324,7 +1324,6 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     // make the current doc fail to execute if it uses e.g., [load "stuff.xl"]
     // to load a file from the project's directory.
     updateContext(docPath);
-    xlRuntime->LoadContextFiles(contextFileNames);
     bool hadError = updateProgram(fileName);
 
     QApplication::restoreOverrideCursor();

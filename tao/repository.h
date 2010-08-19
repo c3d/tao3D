@@ -153,7 +153,7 @@ public:
     virtual bool        merge(text branch, ConflictResolution how = CR_Manual) = 0;
     virtual bool        reset(text commit = "")         = 0;
     virtual bool        pull()                          = 0;
-    virtual bool        push(QString pushUrl)           = 0;
+    virtual process_p   asyncPush(QString pushUrl)      = 0;
     virtual bool        fetch(QString url)              = 0;
     virtual QStringList remotes()                       = 0;
     virtual QString     remoteFetchUrl(QString name)    = 0;

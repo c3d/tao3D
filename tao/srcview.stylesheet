@@ -41,7 +41,7 @@ indents = nbsp nbsp nbsp nbsp
 
 // Character remapping
 nbsp            = "&nbsp;"
-space           = " "
+space           = "&nbsp;"
 cr              = "<BR>"
 '<'             = "&lt;"
 '>'             = "&gt;"

@@ -719,7 +719,7 @@ void Window::setPullUrl()
     if (!repo)
         warnNoRepo();
 
-    PullFromDialog dialog(repo.data());
+    PullFromDialog dialog(repo.data(), this);
     if (dialog.exec())
         taoWidget->nextPull = taoWidget->now();
 }
@@ -733,7 +733,7 @@ void Window::fetch()
     if (!repo)
         return warnNoRepo();
 
-    FetchDialog dialog(repo.data());
+    FetchDialog dialog(repo.data(), this);
     connect(&dialog, SIGNAL(fetched()), branchToolBar, SLOT(refresh()));
     dialog.exec();
 }
@@ -747,7 +747,7 @@ void Window::publish()
     if (!repo)
         return warnNoRepo();
 
-    PublishToDialog(repo.data()).exec();
+    PublishToDialog(repo.data(), this).exec();
 }
 
 
@@ -759,7 +759,7 @@ void Window::merge()
     if (!repo)
         return warnNoRepo();
 
-    MergeDialog(repo.data()).exec();
+    MergeDialog(repo.data(), this).exec();
 }
 
 
@@ -1463,6 +1463,8 @@ bool Window::saveFile(const QString &fileName)
         return false;
     }
 
+    isUntitled = false;
+    setCurrentFile(fileName);
     statusBar()->showMessage(tr("Saving..."));
     // FIXME: can't call processEvent here, or the "Save with fonts..."
     // function fails to save all the fonts of a multi-page doc
@@ -1478,7 +1480,6 @@ bool Window::saveFile(const QString &fileName)
 
     text fn = +fileName;
 
-    setCurrentFile(fileName);
     xlRuntime->LoadFile(fn);
 
     showMessage(tr("File saved"), 2000);
@@ -1497,7 +1498,6 @@ bool Window::saveFile(const QString &fileName)
         sf.changed = false;
     }
     markChanged(false);
-    isUntitled = false;
 
     return true;
 }
@@ -1797,7 +1797,7 @@ void Window::setCurrentFile(const QString &fileName)
     setWindowFilePath(curFile);
 
     // Update the recent file list
-    if (!isUntitled)
+    if (!isUntitled && !isTutorial(curFile))
     {
         IFTRACE(settings)
             std::cerr << "Adding " << +fileName << " to recent file list\n";
@@ -1824,6 +1824,17 @@ void Window::setCurrentFile(const QString &fileName)
                 mainWin->updateRecentFileActions();
         }
     }
+}
+
+
+bool Window::isTutorial(const QString &filePath)
+// ----------------------------------------------------------------------------
+//    Return true if the file currently loaded is the Tao tutorial
+// ----------------------------------------------------------------------------
+{
+    static QFileInfo tutorial("system:tutorial.ddd");
+    static QString tutoPath = tutorial.canonicalFilePath();
+    return (filePath == tutoPath);
 }
 
 
@@ -1859,7 +1870,8 @@ void Window::updateRecentFileActions()
     int numRecentFiles = qMin(files.size(), (int)MaxRecentFiles);
 
     for (int i = 0; i < numRecentFiles; ++i) {
-        QString text = tr("&%1 %2").arg(i + 1).arg(strippedName(files[i]));
+        QString nat = QDir::toNativeSeparators(files[i]);
+        QString text = tr("&%1 %2").arg(i + 1).arg(nat);
         recentFileActs[i]->setText(text);
         recentFileActs[i]->setData(files[i]);
         recentFileActs[i]->setToolTip(files[i]);
@@ -1869,15 +1881,6 @@ void Window::updateRecentFileActions()
         recentFileActs[j]->setVisible(false);
 
     clearRecentAct->setEnabled(numRecentFiles > 0);
-}
-
-
-QString Window::strippedName(const QString &fullFileName)
-// ----------------------------------------------------------------------------
-//   Return the short name for a document (no directory name)
-// ----------------------------------------------------------------------------
-{
-    return QFileInfo(fullFileName).fileName();
 }
 
 

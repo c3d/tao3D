@@ -1,5 +1,5 @@
 # ******************************************************************************
-#  tao.pro                                                          Tao project
+# tao.pro                                                            Tao project
 # ******************************************************************************
 # File Description:
 # Main Qt build file for Tao
@@ -35,7 +35,7 @@ macx {
     XLRDIR = Contents/MacOS
     ICON = tao.icns
     QMAKE_INFO_PLIST = Info.plist
-    QMAKE_CFLAGS += -mmacosx-version-min=10.5  # Avoid warning with font_file_manager_macos.mm
+    QMAKE_CFLAGS += -mmacosx-version-min=10.5 # Avoid warning with font_file_manager_macos.mm
 }
 win32:DEFINES += CONFIG_MINGW
 
@@ -137,7 +137,8 @@ HEADERS += widget.h \
     documentation.h \
     uri.h \
     open_uri_dialog.h \
-    new_document_wizard.h
+    new_document_wizard.h \
+    fetch_push_dialog_base.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -220,7 +221,8 @@ SOURCES += tao_main.cpp \
     documentation.cpp \
     uri.cpp \
     open_uri_dialog.cpp \
-    new_document_wizard.cpp
+    new_document_wizard.cpp \
+    fetch_push_dialog_base.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \
@@ -269,13 +271,12 @@ xlr_support.files += $${OTHER_FILES}
 QMAKE_BUNDLE_DATA += xlr_support
 FORMS += pull_from_dialog.ui \
     remote_selection_frame.ui \
-    publish_to_dialog.ui \
     clone_dialog.ui \
     error_message_dialog.ui \
-    fetch_dialog.ui \
     merge_dialog.ui \
     history_dialog.ui \
-    open_uri_dialog.ui
+    open_uri_dialog.ui \
+    fetch_push_dialog.ui
 
 # Automatic embedding of Git version
 QMAKE_CLEAN += version.h

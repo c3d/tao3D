@@ -161,39 +161,15 @@ shape_color_cyan      -> set_attribute "color", {color 0.0, 1.0, 1.0, 1.0}
 shape_color_white     -> set_attribute "color", {color 1.0, 1.0, 1.0, 1.0}
 
 color n:text                                                       -> color n, 1.0
-color r:integer, g:integer, b:integer, a:real                      -> color real r / 255, real g / 255, real b / 255, a
-color r:integer, g:integer, b:integer                              -> color real r / 255, real g / 255, real b / 255, 1.0
 color r:real, g:real, b:real                                       -> color r, g, b, 1.0
-color_hsl h:integer, s:integer, l:integer, a:real                  -> color_hsl real (h mod 360) / 360, real s / 255, real l / 255, a
-color_hsl h:integer, s:integer, l:integer                          -> color_hsl real (h mod 360) / 360, real s / 255, real l / 255, 1.0
-color_hsl h:integer, s:real, l:real, a:real                        -> color_hsl real (h mod 360) / 360, s, l, a
-color_hsl h:integer, s:real, l:real                                -> color_hsl real (h mod 360) / 360, s, l, 1.0
 color_hsl h:real, s:real, l:real                                   -> color_hsl h, s, l, 1.0
-color_hsv h:integer, s:integer, l:integer, a:real                  -> color_hsv real (h mod 360) / 360, real s / 255, real l / 255, a
-color_hsv h:integer, s:integer, l:integer                          -> color_hsv real (h mod 360) / 360, real s / 255, real l / 255, 1.0
-color_hsv h:integer, s:real, l:real, a:real                        -> color_hsv real (h mod 360) / 360, s, l, a
-color_hsv h:integer, s:real, l:real                                -> color_hsv real (h mod 360) / 360, s, l, 1.0
-color_hsv h:real, s:real, l:real                                   -> color_hsv h, s, l, 1.0
-color_cmyk c:integer, m:integer, y:integer, k:integer, a:real      -> color_cmyk real c / 255, real m / 255, real y / 255, real k / 255, a
-color_cmyk c:integer, m:integer, y:integer, k:integer              -> color_cmyk real c / 255, real m / 255, real y / 255, real k / 255, 1.0
+color_hsv h:real, s:real, v:real                                   -> color_hsv h, s, v, 1.0
 color_cmyk c:real, m:real, y:real, k:real                          -> color_cmyk c, m, y, k, 1.0
 
 line_color n:text                                                  -> line_color n, 1.0
-line_color r:integer, g:integer, b:integer, a:real                 -> line_color real r / 255, real g / 255, real b / 255, a
-line_color r:integer, g:integer, b:integer                         -> line_color real r / 255, real g / 255, real b / 255, 1.0
 line_color r:real, g:real, b:real                                  -> line_color r, g, b, 1.0
-line_color_hsl h:integer, s:integer, l:integer, a:real             -> line_color_hsl real (h mod 360) / 360, real s / 255, real l / 255, a
-line_color_hsl h:integer, s:integer, l:integer                     -> line_color_hsl real (h mod 360) / 360, real s / 255, real l / 255, 1.0
-line_color_hsl h:integer, s:real, l:real, a:real                   -> line_color_hsl real (h mod 360) / 360, s, l, a
-line_color_hsl h:integer, s:real, l:real                           -> line_color_hsl real (h mod 360) / 360, s, l, 1.0
 line_color_hsl h:real, s:real, l:real                              -> line_color_hsl h, s, l, 1.0
-line_color_hsv h:integer, s:integer, l:integer, a:real             -> line_color_hsv real (h mod 360) / 360, real s / 255, real l / 255, a
-line_color_hsv h:integer, s:integer, l:integer                     -> line_color_hsv real (h mod 360) / 360, real s / 255, real l / 255, 1.0
-line_color_hsv h:integer, s:real, l:real, a:real                   -> line_color_hsv real (h mod 360) / 360, s, l, a
-line_color_hsv h:integer, s:real, l:real                           -> line_color_hsv real (h mod 360) / 360, s, l, 1.0
-line_color_hsv h:real, s:real, l:real                              -> line_color_hsv h, s, l, 1.0
-line_color_cmyk c:integer, m:integer, y:integer, k:integer, a:real -> line_color_cmyk real c / 255, real m / 255, real y / 255, real k / 255, a
-line_color_cmyk c:integer, m:integer, y:integer, k:integer         -> line_color_cmyk real c / 255, real m / 255, real y / 255, real k / 255, 1.0
+line_color_hsv h:real, s:real, v:real                              -> line_color_hsv h, s, v, 1.0
 line_color_cmyk c:real, m:real, y:real, k:real                     -> line_color_cmyk c, m, y, k, 1.0
 
 // 3D Shapes

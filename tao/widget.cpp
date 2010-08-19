@@ -429,7 +429,8 @@ void Widget::runProgram()
         id = idDepth = 0;
         space->Draw(NULL);
         IFTRACE(memory)
-            std::cerr << "Draw, count = " << space->count << "\n";
+            std::cerr << "Draw, count = " << space->count
+                      << " buffer " << (int) stereoscopic << '\n';
 
         id = idDepth = 0;
         selectionTrees.clear();
@@ -441,6 +442,7 @@ void Widget::runProgram()
         {
             stereoscopic = 3 - stereoscopic;
             setup(width(), height());
+            swapBuffers();
         }
     } while (stereoscopic == 2);
 

@@ -38,7 +38,7 @@ RevertToDialog::RevertToDialog(Repository *repo, QWidget *parent)
                     "Checkout to bring a copy into a temporary branch"));
     QPushButton *checkoutButton;
     checkoutButton = new QPushButton(tr("&Checkout"));
-    buttonBox->addButton(checkoutButton, QDialogButtonBox::ActionRole);
+    buttonBox->addButton(checkoutButton, QDialogButtonBox::ApplyRole);
     connect(checkoutButton, SIGNAL(clicked()),
             this, SLOT(checkoutButton_clicked()));
 }

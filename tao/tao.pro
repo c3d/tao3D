@@ -138,7 +138,9 @@ HEADERS += widget.h \
     uri.h \
     open_uri_dialog.h \
     new_document_wizard.h \
-    fetch_push_dialog_base.h
+    fetch_push_dialog_base.h \
+    commit_table_widget.h \
+    commit_table_model.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -222,7 +224,9 @@ SOURCES += tao_main.cpp \
     uri.cpp \
     open_uri_dialog.cpp \
     new_document_wizard.cpp \
-    fetch_push_dialog_base.cpp
+    fetch_push_dialog_base.cpp \
+    commit_table_widget.cpp \
+    commit_table_model.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \

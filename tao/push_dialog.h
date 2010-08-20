@@ -1,12 +1,12 @@
-#ifndef PUBLISH_TO_DIALOG_H
-#define PUBLISH_TO_DIALOG_H
+#ifndef PUSH_DIALOG_H
+#define PUSH_DIALOG_H
 // ****************************************************************************
-//  publish_to_dialog.h                                            Tao project
+//  push_dialog.h                                                  Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    The class to display the "Publish to" dialog box
+//    The class to display the "Push" dialog box
 //
 //
 //
@@ -26,12 +26,12 @@
 
 namespace Tao {
 
-class PublishToDialog : public FetchPushDialogBase
+class PushDialog : public FetchPushDialogBase
 {
     Q_OBJECT
 
 public:
-    PublishToDialog(Repository *repo, QWidget *parent = 0);
+    PushDialog(Repository *repo, QWidget *parent = 0);
 
 public slots:
     virtual void accept();
@@ -39,4 +39,4 @@ public slots:
 
 }
 
-#endif // PUBLISH_TO_DIALOG_H
+#endif // PUSH_DIALOG_H

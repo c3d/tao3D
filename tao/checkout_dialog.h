@@ -1,7 +1,7 @@
-#ifndef REVERT_TO_DIALOG_H
-#define REVERT_TO_DIALOG_H
+#ifndef CHECKOUT_DIALOG_H
+#define CHECKOUT_DIALOG_H
 // ****************************************************************************
-//  revert_to_dialog.h                                             Tao project
+//  checkout_dialog.h                                              Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -31,20 +31,20 @@ namespace Tao {
 
 struct Repository;
 
-class RevertToDialog : public HistoryDialog
+class CheckoutDialog : public HistoryDialog
 {
     Q_OBJECT
 
 public:
-    RevertToDialog(Repository *repo, QWidget *parent = 0);
+    CheckoutDialog(Repository *repo, QWidget *parent = 0);
 
 signals:
     void   checkedOut(QString id);
 
 private slots:
-    void    checkoutButton_clicked();
+    void   checkoutButton_clicked();
 };
 
 }
 
-#endif // REVERT_TO_DIALOG_H
+#endif // CHECKOUT_DIALOG_H

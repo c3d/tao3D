@@ -118,9 +118,9 @@ private slots:
 
     void setPullUrl();
     void fetch();
-    void publish();
+    void push();
     void merge();
-    void revertTo();
+    void checkout();
     void selectiveUndo();
     void clone();
     void about();
@@ -199,11 +199,11 @@ private:
     QAction          *copyAct;
     QAction          *pasteAct;
     QAction          *setPullUrlAct;
-    QAction          *publishAct;
+    QAction          *pushAct;
     QAction          *fetchAct;
     QAction          *cloneAct;
     QAction          *mergeAct;
-    QAction          *revertToAct;
+    QAction          *checkoutAct;
     QAction          *selectiveUndoAct;
     QAction          *aboutAct;
     QAction          *aboutQtAct;

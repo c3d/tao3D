@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  revert_to_dialog.Cpp                                           Tao project
+//  checkout_dialog.cpp                                            Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    RevertToDialog implementation.
+//    CheckoutDialog implementation.
 //
 //
 //
@@ -21,19 +21,19 @@
 // ****************************************************************************
 
 #include "tao.h"
-#include "revert_to_dialog.h"
+#include "checkout_dialog.h"
 #include "repository.h"
 #include "tao_utf8.h"
 
 namespace Tao {
 
-RevertToDialog::RevertToDialog(Repository *repo, QWidget *parent)
+CheckoutDialog::CheckoutDialog(Repository *repo, QWidget *parent)
 // ----------------------------------------------------------------------------
 //    Create a history dialog with a checkout button
 // ----------------------------------------------------------------------------
     : HistoryDialog(repo, parent)
 {
-    setWindowTitle(tr("Revert to"));
+    setWindowTitle(tr("Checkout"));
     msg->setText(tr("Please select a version of the document and click "
                     "Checkout to bring a copy into a temporary branch"));
     QPushButton *checkoutButton;
@@ -44,7 +44,7 @@ RevertToDialog::RevertToDialog(Repository *repo, QWidget *parent)
 }
 
 
-void RevertToDialog::checkoutButton_clicked()
+void CheckoutDialog::checkoutButton_clicked()
 // ----------------------------------------------------------------------------
 //    Action for checkout button
 // ----------------------------------------------------------------------------

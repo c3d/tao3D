@@ -22,7 +22,7 @@
 
 #include "tao.h"
 #include "tao_utf8.h"
-#include "publish_to_dialog.h"
+#include "push_dialog.h"
 #include "remote_selection_frame.h"
 #include "repository.h"
 #include <QInputDialog>
@@ -32,21 +32,21 @@
 
 namespace Tao {
 
-PublishToDialog::PublishToDialog(Repository *repo, QWidget *parent)
+PushDialog::PushDialog(Repository *repo, QWidget *parent)
 // ----------------------------------------------------------------------------
 //    Create a "remote" selection box for the given repository
 // ----------------------------------------------------------------------------
     : FetchPushDialogBase(repo, parent)
 {
-    setWindowTitle(tr("Publish"));
+    setWindowTitle(tr("Push"));
     chooseRemoteLabel->setText(tr("Choose the remote project you want to "
-                                  "publish to:"));
+                                  "push to:"));
     rsFrame->setRepository(repo, repo->lastPublishTo);
     rsFrame->setRole(RemoteSelectionFrame::RSF_Push);
 }
 
 
-void PublishToDialog::accept()
+void PushDialog::accept()
 // ----------------------------------------------------------------------------
 //    Publish the current project to the previously chosen remote
 // ----------------------------------------------------------------------------

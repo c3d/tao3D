@@ -69,7 +69,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
       contextFileNames(context), xlRuntime(xlr),
       repo(NULL), textEdit(NULL), errorMessages(NULL),
       dock(NULL), errorDock(NULL),
-      taoWidget(NULL), curFile(), uri(NULL),
+      taoWidget(NULL), curFile(), uri(NULL), slideShowMode(false),
       fileCheckTimer(this), splashScreen(NULL), aboutSplash(NULL),
       deleteOnOpenFailed(false)
 {
@@ -1003,6 +1003,11 @@ void Window::createActions()
     fullScreenAct->setCheckable(true);
     connect(fullScreenAct, SIGNAL(triggered()), this, SLOT(toggleFullScreen()));
 
+    slideShowAct = new QAction(tr("Slide show"), this);
+    slideShowAct->setStatusTip(tr("Toggle slide show mode"));
+    slideShowAct->setCheckable(true);
+    connect(slideShowAct, SIGNAL(triggered()), this, SLOT(toggleSlideShow()));
+
     viewAnimationsAct = new QAction(tr("Animations"), this);
     viewAnimationsAct->setStatusTip(tr("Switch animations on or off"));
     viewAnimationsAct->setCheckable(true);
@@ -1101,6 +1106,7 @@ void Window::createMenus()
     viewMenu->addAction(dock->toggleViewAction());
     viewMenu->addAction(errorDock->toggleViewAction());
     viewMenu->addAction(fullScreenAct);
+    viewMenu->addAction(slideShowAct);
     viewMenu->addAction(viewAnimationsAct);
     if (XL::MAIN->options.enable_stereoscopy)
         viewMenu->addAction(viewStereoscopyAct);
@@ -1357,9 +1363,33 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     }
     isUntitled = false;
     setCurrentFile(fileName);
+    if (XL::MAIN->options.slideshow)
+        switchToSlideShow();
     return true;
 }
 
+
+bool Window::toggleSlideShow()
+// ----------------------------------------------------------------------------
+//    Toggle between slide show and normal mode
+// ----------------------------------------------------------------------------
+{
+    return switchToSlideShow(!slideShowMode);
+}
+
+
+bool Window::switchToSlideShow(bool ss)
+// ----------------------------------------------------------------------------
+//    Enter or leave slide show mode
+// ----------------------------------------------------------------------------
+{
+    bool oldMode = slideShowMode;
+    showSourceView(!ss);
+    switchToFullScreen(ss);
+    taoWidget->autoHideCursor(NULL, ss);
+    slideShowMode = ss;
+    return oldMode;
+}
 
 bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 // ----------------------------------------------------------------------------

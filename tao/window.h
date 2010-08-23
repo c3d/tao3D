@@ -66,7 +66,8 @@ public:
     void addError(QString txt);
     bool openProject(QString path, QString filename, bool confirm = true);
     Repository * repository() { return repo.data(); }
-    void switchToFullScreen(bool fs);
+    void switchToFullScreen(bool fs = true);
+    bool switchToSlideShow(bool ss = true);
     bool showSourceView(bool fs);
     bool loadFileIntoSourceFileView(const QString &fileName, bool box=false);
     QString  currentProjectFolderPath();
@@ -85,6 +86,7 @@ public slots:
     void markChanged(bool changed = true);
     void toggleAnimations();
     void toggleStereoscopy();
+    bool toggleSlideShow();
     void sourceViewBecameVisible(bool visible);
     int  open(QString fileName = "", bool readOnly = false);
     void openUri();
@@ -158,6 +160,7 @@ private:
     void     loadSrcViewStyleSheet();
     void     showMessage(QString message, int timeout);
 
+
 private:
     XL::Main *        xlRuntime;
     QSharedPointer<Repository> repo;
@@ -174,6 +177,7 @@ private:
     Widget           *taoWidget;
     QString           curFile;
     Uri              *uri;
+    bool              slideShowMode;
 
     QTimer            fileCheckTimer;
     QMenu            *fileMenu;
@@ -208,6 +212,7 @@ private:
     QAction          *aboutAct;
     QAction          *aboutQtAct;
     QAction          *fullScreenAct;
+    QAction          *slideShowAct;
     QAction          *viewAnimationsAct;
     QAction          *viewStereoscopyAct;
     QUndoView        *undoView;

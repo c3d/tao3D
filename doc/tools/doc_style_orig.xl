@@ -1,0 +1,156 @@
+color "Background" "Light"  -> color  90%,  90%,  90%, 100%
+color "Title" "Light"       -> color   0%,  20%,  80%, 100%
+color "Subtitle" "Light"    -> color  20%,  20%,  20%, 100%
+color "Text" "Light"        -> color   0%,   0%,   0%, 100%
+color "Background" "Dark"   -> color  20%,  20%,  20%, 100%
+color "Title" "Dark"        -> color 100%, 100%, 100%, 100%
+color "Subtitle" "Dark"     -> color  90%,  90%,  90%, 100%
+color "Text" "Dark"         -> color 100%, 100%, 100%, 100%
+color "Accent", 1           -> color  80%,   0%,   0%, 100%
+color "Accent", 2           -> color 100%,  40%,   0%, 100%
+color "Accent", 3           -> color 100%,  80%,   0%, 100%
+color "Accent", 4           -> color  20%,  80%,   0%, 100%
+color "Accent", 5           -> color  20%,  60%, 100%, 100%
+color "Accent", 6           -> color   0%,  20%,  80%, 100%
+color "Accent", 7           -> color  80%,  20%,  80%, 100%
+
+line_color "Line" "Light"   -> line_color  20%,  20%,  20%, 100%
+line_color "Line" "Dark"    -> line_color  90%,  90%,  90%, 100%
+line_color "Accent", 1      -> line_color  80%,   0%,   0%, 100%
+line_color "Accent", 2      -> line_color 100%,  40%,   0%, 100%
+line_color "Accent", 3      -> line_color 100%,  80%,   0%, 100%
+line_color "Accent", 4      -> line_color  20%,  80%,   0%, 100%
+line_color "Accent", 5      -> line_color  20%,  60%, 100%, 100%
+line_color "Accent", 6      -> line_color   0%,  20%,  80%, 100%
+line_color "Accent", 7      -> line_color  80%,  20%,  80%, 100%
+
+//font "Title"                -> font "Andika Basic", 60
+//font "Footer"               -> font "Andika Basic", 20
+//font "Text"                 -> font "Gentium Book Basic", 32
+//font "Code"                 -> font "Andika Basic", 32
+font "Title"                -> font "Helvetica Neue", 24, slant 0% , weight 80% , stretch 100% 
+font "Footer"               -> font "Andika Basic", 12
+font "Text"                 -> font "Helvetica Neue", 18, slant 0% , weight 50% , stretch 100%
+font "Item"                 -> font "Helvetica Neue", 20, slant 0% , weight 80% , stretch 100%
+font "Code"                 -> font "Courier", 18, slant 0% , weight 50% , stretch 100% 
+
+apply_style T:text ->
+    show_background
+    show_footer
+
+min (x:real, y:real) -> if x < y then x else y
+
+window_scale -> min (window_width / 1024, window_height / 640)
+
+show_background ->
+    scale window_scale, window_scale, window_scale
+
+    locally
+        color "Background" "Light" 
+        rectangle 0, 0, 1280, 800
+
+    locally
+        color 1, 1, 1, 40%
+        line_color 0,0,0,40%
+        line_width 2
+        rounded_rectangle 0, 230, 964, 120, 30
+
+    locally
+        color 1, 1, 1, 40%
+        line_color 0,0,0,40%
+        line_width 2
+        rounded_rectangle 0, -60, 964, 400, 30
+
+    locally
+        color 1, 1, 1, 1
+        image 433, -230, 128, 128, "taodyne-logo.png"
+
+
+show_footer ->
+    locally
+        text_box -256, -290, 422, 30, do
+            center 0.0
+            vertical_center 0.5
+            font "Footer"
+            color "Subtitle" "Light"
+            text "Version "& doc_version
+        text_box 0, -290, 90, 30, do
+            center 0.5
+            vertical_center 0.5
+            font "Footer"
+            color "Subtitle" "Light"
+            text text (page_number) & "/" & text (page_count)
+
+slide T:text, B ->
+    page T, do
+        show_title T
+        show_body B
+
+slide L:text, T:text, B ->
+    page L, do
+        show_title T
+        show_body B
+
+show_title X ->
+    center 0.5
+    vertical_center 0.5
+
+    text_box 0, 230, 900, 120, do
+        font "Title"
+        color "Title" "Light"
+        text X
+
+
+show_body X ->
+    locally
+        center 0.0
+        justify 1.0
+        vertical_center 0.3
+        vertical_justify 0.0
+        font "Text"
+        color 0, 0, 0, 1
+        text_box 0, -60, 900, 400, do X
+
+* X:text ->
+    factor -> 32.0
+    font "Text"
+    font_size factor
+    margins 40, 0
+    paragraph_space 0, 10
+    paragraph_break
+    anchor
+        color "Accent", 5
+        circle factor * -75%, factor * 30%, factor * 20%
+
+    color "Text" "Light"
+    text X
+
+- X:text ->
+    factor -> 28.0
+    font "Text"
+    font_size factor
+    margins 80, 0
+    paragraph_space 0, 5
+    paragraph_break
+    anchor
+        line_color "Accent", 5
+        line_width factor * 15%
+        line factor * -100%, factor * 20%, factor * -50%, factor * 20%
+
+    color "Text" "Light"
+    text X
+
+. X:text ->
+    factor -> 24.0
+    font "Text"
+    font_size factor
+    margins 120, 0
+    paragraph_space 0, 5
+    paragraph_break
+    anchor
+        color "Accent", 5
+        circle factor * -75%, factor * 30%, factor * 20%
+
+    color "Text" "Light"
+    text X
+

@@ -66,7 +66,8 @@ public:
     void addError(QString txt);
     bool openProject(QString path, QString filename, bool confirm = true);
     Repository * repository() { return repo.data(); }
-    void switchToFullScreen(bool fs);
+    void switchToFullScreen(bool fs = true);
+    bool switchToSlideShow(bool ss = true);
     bool showSourceView(bool fs);
     bool loadFileIntoSourceFileView(const QString &fileName, bool box=false);
     QString  currentProjectFolderPath();
@@ -85,6 +86,7 @@ public slots:
     void markChanged(bool changed = true);
     void toggleAnimations();
     void toggleStereoscopy();
+    bool toggleSlideShow();
     void sourceViewBecameVisible(bool visible);
     int  open(QString fileName = "", bool readOnly = false);
     void openUri();
@@ -118,9 +120,9 @@ private slots:
 
     void setPullUrl();
     void fetch();
-    void publish();
+    void push();
     void merge();
-    void revertTo();
+    void checkout();
     void selectiveUndo();
     void clone();
     void about();
@@ -158,6 +160,7 @@ private:
     void     loadSrcViewStyleSheet();
     void     showMessage(QString message, int timeout);
 
+
 private:
     XL::Main *        xlRuntime;
     QSharedPointer<Repository> repo;
@@ -174,6 +177,7 @@ private:
     Widget           *taoWidget;
     QString           curFile;
     Uri              *uri;
+    bool              slideShowMode;
 
     QTimer            fileCheckTimer;
     QMenu            *fileMenu;
@@ -199,15 +203,16 @@ private:
     QAction          *copyAct;
     QAction          *pasteAct;
     QAction          *setPullUrlAct;
-    QAction          *publishAct;
+    QAction          *pushAct;
     QAction          *fetchAct;
     QAction          *cloneAct;
     QAction          *mergeAct;
-    QAction          *revertToAct;
+    QAction          *checkoutAct;
     QAction          *selectiveUndoAct;
     QAction          *aboutAct;
     QAction          *aboutQtAct;
     QAction          *fullScreenAct;
+    QAction          *slideShowAct;
     QAction          *viewAnimationsAct;
     QAction          *viewStereoscopyAct;
     QUndoView        *undoView;

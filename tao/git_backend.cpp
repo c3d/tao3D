@@ -994,7 +994,7 @@ QList<GitRepository::Commit> GitRepository::history(QString branch, int max)
 //   If branch == "", the current branch is used
 {
     QStringList args;
-    args << "log" << "--pretty=format:%h:%s";
+    args << "log" << "--pretty=format:%h/%at/%an/%s";
     args << "-n" << QString("%1").arg(max);
     if (!branch.isEmpty())
         args << branch;
@@ -1006,12 +1006,12 @@ QList<GitRepository::Commit> GitRepository::history(QString branch, int max)
     QList<Commit>       result;
     QStringList         log = (+output).split("\n");
     QStringListIterator it(log);
-    QRegExp             rx("([^:]+):(.*)");
+    QRegExp             rx("([^/]+)/([0-9]+)/([^/]+)/(.*)");
 
     while (it.hasNext())
         if (rx.indexIn(it.next()) != -1)
-            result.prepend(Repository::Commit(rx.cap(1), rx.cap(2)));
-
+            result.prepend(Repository::Commit(rx.cap(1), rx.cap(4),
+                                              rx.cap(2), rx.cap(3)));
     return result;
 }
 

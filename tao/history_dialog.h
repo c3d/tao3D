@@ -41,7 +41,7 @@ public:
     HistoryDialog(Repository *repo, QWidget *parent = 0);
 
 private slots:
-    void    revCombo_commitSelected(Repository::Commit commit);
+    void    tableView_commitSelected(Repository::Commit commit);
 
 private:
     void    setRepository(Repository *repo);

@@ -507,6 +507,44 @@ PREFIX(ToggleFullScreen, boolean, "toggle_full_screen", ,
                 description <<Toggle the full screen mode>> ;\
                 }\
           |*/")
+PREFIX(AutoHideCursor, boolean, "auto_hide_cursor", PARM(autoHide, boolean),
+       RTAO(autoHideCursor(self, autoHide)),
+       "/*| docname \"auto_hide_cursor\", \"gui\", do { \
+                dsyntax <<auto_hide_cursor ah>>;\
+                synopsis \"Enable or disable cursor auto-hide\" ; \
+                description <<Enable ior disable cursor auto-hide>> ;\
+                parameters;\
+                parameter \"boolean\", \"ah\", <<on or off>>;\
+                return_value \"\", <<>>;\
+                }\
+          |*/")
+PREFIX(ToggleAutoHideCursor, boolean, "toggle_auto_hide_cursor", ,
+       RTAO(toggleAutoHideCursor(self)),
+       "/*| docname \"toggle_auto_hide_cursor\", \"gui\", do { \
+                dsyntax <<toggle_auto_hide_cursor>>;\
+                synopsis \"Toggle the cursor auto-hide mode\" ; \
+                description <<Toggle the cursor auto-hide mode>> ;\
+                }\
+          |*/")
+PREFIX(SlideShow, boolean, "slide_show", PARM(ss, boolean),
+       RTAO(slideShow(self, ss)),
+       "/*| docname \"slide_show\", \"gui\", do { \
+                dsyntax <<slide_show ss>>;\
+                synopsis \"Switch to slide show mode\" ; \
+                description <<Set the slide show mode>> ;\
+                parameters;\
+                parameter \"boolean\", \"fs\", <<on or off>>;\
+                return_value \"\", <<>>;\
+                }\
+          |*/")
+PREFIX(ToggleSlideShow, boolean, "toggle_slide_show", ,
+       RTAO(toggleSlideShow(self)),
+       "/*| docname \"toggle_slide_show\", \"gui\", do { \
+                dsyntax <<toggle_slide_show>>;\
+                synopsis \"Toggle the slide show mode\" ; \
+                description <<Toggle the slide show mode>> ;\
+                }\
+          |*/")
 PREFIX(ResetView, boolean, "reset_view", ,
        RTAO(resetView(self)), 
        "/*| docname \"reset_view\", \"gui\", do { \

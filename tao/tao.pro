@@ -115,7 +115,6 @@ HEADERS += widget.h \
     drag.h \
     pull_from_dialog.h \
     remote_selection_frame.h \
-    publish_to_dialog.h \
     undo.h \
     clone_dialog.h \
     ansi_textedit.h \
@@ -132,13 +131,16 @@ HEADERS += widget.h \
     merge_dialog.h \
     commit_selection_combobox.h \
     history_dialog.h \
-    revert_to_dialog.h \
     selective_undo_dialog.h \
     documentation.h \
     uri.h \
     open_uri_dialog.h \
     new_document_wizard.h \
-    fetch_push_dialog_base.h
+    fetch_push_dialog_base.h \
+    commit_table_widget.h \
+    commit_table_model.h \
+    checkout_dialog.h \
+    push_dialog.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -200,7 +202,6 @@ SOURCES += tao_main.cpp \
     drag.cpp \
     pull_from_dialog.cpp \
     remote_selection_frame.cpp \
-    publish_to_dialog.cpp \
     undo.cpp \
     clone_dialog.cpp \
     ansi_textedit.cpp \
@@ -216,13 +217,16 @@ SOURCES += tao_main.cpp \
     merge_dialog.cpp \
     commit_selection_combobox.cpp \
     history_dialog.cpp \
-    revert_to_dialog.cpp \
     selective_undo_dialog.cpp \
     documentation.cpp \
     uri.cpp \
     open_uri_dialog.cpp \
     new_document_wizard.cpp \
-    fetch_push_dialog_base.cpp
+    fetch_push_dialog_base.cpp \
+    commit_table_widget.cpp \
+    commit_table_model.cpp \
+    checkout_dialog.cpp \
+    push_dialog.cpp
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \

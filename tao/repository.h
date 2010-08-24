@@ -88,17 +88,24 @@ public:
     struct Commit
     {
         Commit() {}
-        Commit(QString id, QString msg = ""): id(id), msg(msg) {}
-        Commit(const Commit &o): id(o.id), msg(o.msg) {}
+        Commit(QString id, QString msg = "", QString unixTime = "",
+               QString author = ""): id(id), msg(msg),
+               author(author)
+               { date = QDateTime().fromTime_t(unixTime.toUInt()); }
+        Commit(const Commit &o): id(o.id), msg(o.msg), date(o.date),
+               author(o.author) {}
         Commit& operator = (const Commit &o)
         {
             id = o.id;
             msg = o.msg;
+            date = o.date;
+            author = o.author;
             return *this;
         }
         bool operator == (const Commit &o) const
         {
-            return id == o.id && msg == o.msg;
+            return id == o.id && msg == o.msg &&
+                   date == o.date && author == o.author;
         }
         bool operator != (const Commit &o) const
         {
@@ -107,6 +114,10 @@ public:
         QString toString()
         {
             QString ret = id;
+            if (date.isValid())
+                ret += " " + date.toString();
+            if (!author.isEmpty())
+                ret += " " + author;
             if (!msg.isEmpty())
                 ret += " " + msg;
             return ret;
@@ -114,6 +125,8 @@ public:
 
         QString id;
         QString msg;
+        QDateTime date;
+        QString author;
     };
 
     static struct Commit HeadCommit;

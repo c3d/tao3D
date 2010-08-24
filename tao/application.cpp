@@ -45,6 +45,15 @@
 #include <QDebug>
 #include <QtWebKit>
 
+#if defined(CONFIG_MINGW)
+#include <windows.h>
+#elif defined(CONFIG_MACOSX)
+extern "C" void UpdateSystemActivity(uint8_t);
+#define UsrActivity 1
+#elif defined(CONFIG_LINUX)
+#include <X11/extensions/scrnsaver.h>
+#endif
+
 TAO_BEGIN
 
 
@@ -53,7 +62,7 @@ Application::Application(int & argc, char ** argv)
 //    Build the Tao application
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false), splash(NULL),
-      pendingOpen(0), xlr(NULL)
+      pendingOpen(0), xlr(NULL), screenSaverBlocked(false)
 {
     // Set some useful parameters for the application
     setApplicationName ("Tao");
@@ -300,6 +309,56 @@ void Application::onOpenFinished(bool ok)
     }
 }
 
+
+void Application::blockScreenSaver(bool block)
+// ----------------------------------------------------------------------------
+//   Disable screen saver or restore it to previous state
+// ----------------------------------------------------------------------------
+{
+    if (block && screenSaverBlocked)
+        return;
+
+    screenSaverBlocked = block;
+    if (block)
+    {
+#if   defined(CONFIG_MACOSX)
+        QTimer::singleShot(30000, this, SLOT(simulateUserActivity()));
+#elif defined(CONFIG_MINGW)
+        SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, FALSE, 0, 0);
+#elif defined(CONFIG_LINUX)
+        Display *dpy = XOpenDisplay(NULL);
+        XScreenSaverSuspend(dpy, True);
+#endif
+    }
+    else
+    {
+#if   defined(CONFIG_MACOSX)
+        // Nothing
+#elif defined(CONFIG_MINGW)
+        SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE, 0, 0);
+#elif defined(CONFIG_LINUX)
+        Display *dpy = XOpenDisplay(NULL);
+        XScreenSaverSuspend(dpy, False);
+#endif
+    }
+}
+
+
+#ifdef CONFIG_MACOSX
+
+void Application::simulateUserActivity()
+// ----------------------------------------------------------------------------
+//   Simulate user activity so that screensaver won't kick in
+// ----------------------------------------------------------------------------
+{
+    if (!screenSaverBlocked)
+        return;
+
+    UpdateSystemActivity(UsrActivity);
+    QTimer::singleShot(30000, this, SLOT(simulateUserActivity()));
+}
+
+#endif
 
 static void printSearchPath(QString prefix)
 // ----------------------------------------------------------------------------

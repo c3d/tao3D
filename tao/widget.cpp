@@ -3384,7 +3384,7 @@ Tree_p Widget::refresh(Tree_p self, double delay)
 
 XL::Name_p Widget::showSource(XL::Tree_p self, bool show)
 // ----------------------------------------------------------------------------
-//   Switch to full screen
+//   Show or hide source code
 // ----------------------------------------------------------------------------
 {
     Window *window = (Window *) parentWidget();

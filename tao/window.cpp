@@ -245,7 +245,9 @@ void Window::toggleAnimations()
 //   Toggle between full-screen and normal mode
 // ----------------------------------------------------------------------------
 {
-    taoWidget->enableAnimations(!taoWidget->hasAnimations());
+    bool enable = !taoWidget->hasAnimations();
+    taoWidget->enableAnimations(enable);
+    viewAnimationsAct->setChecked(enable);
 }
 
 
@@ -254,7 +256,9 @@ void Window::toggleStereoscopy()
 //   Toggle between full-screen and normal mode
 // ----------------------------------------------------------------------------
 {
-    taoWidget->enableStereoscopy(!taoWidget->hasStereoscopy());
+    bool enable = !taoWidget->hasStereoscopy();
+    taoWidget->enableStereoscopy(enable);
+    viewStereoscopyAct->setChecked(enable);
 }
 
 
@@ -1387,6 +1391,8 @@ bool Window::switchToSlideShow(bool ss)
     showSourceView(!ss);
     switchToFullScreen(ss);
     taoWidget->autoHideCursor(NULL, ss);
+    TaoApp->blockScreenSaver(ss);
+    slideShowAct->setChecked(ss);
     slideShowMode = ss;
     return oldMode;
 }
@@ -1713,6 +1719,7 @@ void Window::switchToFullScreen(bool fs)
         removeToolBar(viewToolBar);
         removeToolBar(branchToolBar);
         statusBar()->hide();
+        menuBar()->hide();
         showFullScreen();
         taoWidget->showFullScreen();
     }
@@ -1720,6 +1727,7 @@ void Window::switchToFullScreen(bool fs)
     {
         showNormal();
         taoWidget->showNormal();
+        menuBar()->show();
         statusBar()->show();
         addToolBar(fileToolBar);
         addToolBar(editToolBar);
@@ -1731,6 +1739,7 @@ void Window::switchToFullScreen(bool fs)
         branchToolBar->show();
         setUnifiedTitleAndToolBarOnMac(true);
     }
+    fullScreenAct->setChecked(fs);
 }
 
 
@@ -1741,6 +1750,7 @@ bool Window::showSourceView(bool show)
 {
     bool old = dock->isVisible();
     dock->setVisible(show);
+    dock->toggleViewAction()->setChecked(show);
     return old;
 }
 

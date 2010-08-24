@@ -39,9 +39,10 @@ macx {
 }
 win32:DEFINES += CONFIG_MINGW
 
-# For debug
-# win32:CONFIG += console
-linux-g++:DEFINES += CONFIG_LINUX
+linux-g++ {
+    DEFINES += CONFIG_LINUX
+    LIBS += -lXss
+}
 
 # Input
 HEADERS += widget.h \

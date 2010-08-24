@@ -60,6 +60,7 @@ public:
     bool           processCommandLine();
     Window *       findFirstTaoWindow();
     void           loadUri(QString uri);
+    void           blockScreenSaver(bool block);
 
 protected:
     void           saveSettings();
@@ -68,6 +69,9 @@ protected:
 
 protected slots:
     void           onOpenFinished(bool ok);
+#ifdef CONFIG_MACOSX
+    void           simulateUserActivity();
+#endif
 
 protected:
     static bool    recursiveDelete(QString path);
@@ -91,6 +95,7 @@ private:
     XL::source_names contextFiles;
     XL::Main *   xlr;
     QString      savedUri;
+    bool         screenSaverBlocked;
 };
 
 #define TaoApp  ((Application *) qApp)

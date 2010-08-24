@@ -2245,16 +2245,16 @@ Once the font is chosen, Names 'font_family', 'font_size', 'font_weight', 'font_
           |*/")
 PREFIX(FontChooserTexture, tree, "font_chooser_texture",
        PARM(w,real) PARM(h,real) PARM(t,tree),
-       RTAO(fontChooserTexture(self, w, h, tree)), 
+       RTAO(fontChooserTexture(self, w, h, t)), 
        "/*| docname \"font_chooser_texture\", \"widget\", do { \
-                dsyntax <<font_chooser_texture w, h, t>>;\
+                dsyntax <<font_chooser_texture w, h, tree>>;\
                 synopsis \"Make a texture out of a given color chooser\" ; \
                 description <<Make a texture out of a given color chooser>> ; \
                 parameters;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
                 parameter \"tree\", \"tree\", <<tree to update with new font>>;\
-                see \"font_chooser\" \
+                see \"font_chooser\"; \
                 }\
           |*/")
 PREFIX(FileChooser, tree, "file_chooser",
@@ -2292,7 +2292,7 @@ PREFIX(FileChooserTexture, tree, "file_chooser_texture",
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
                 parameter \"tree\", \"t\", <<tree to update with new file>>;\
-                see \"file_chooser\"
+                see \"file_chooser\"; \
                 }\
           |*/")
 PREFIX(SetFileDialogAction, tree, "file_chooser_action", PARM(t, tree),
@@ -2414,7 +2414,7 @@ PREFIX(VideoPlayer, tree, "video_player",
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
                 parameter \"text\", \"u\", <<The URL of the video to play.>>;\
-                see \"http://doc.qt.nokia.com/4.6/phonon-module.html\"
+                see \"http://doc.qt.nokia.com/4.6/phonon-module.html\" \
                 }\
           |*/")
 PREFIX(VideoPlayerTexture, tree, "video_player_texture",

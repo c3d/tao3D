@@ -27,7 +27,7 @@
 #include "repository.h"
 #include <QDialog>
 #include <QWidget>
-#include <Qprocess>
+#include <QProcess>
 
 
 namespace Tao {

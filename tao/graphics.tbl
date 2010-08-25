@@ -155,7 +155,7 @@ PREFIX(PageSeconds, real,     "page_time", ,    RTAO(pageTime(self)),
                 dsyntax <<page_time>>;\
                 synopsis \"Returns the page time\" ; \
                 description <<Returns the time of the current page relatively to the current document's time, or relatively to the frozen time.>> ;\
-                return_value \"\", <<Return a fractional time, including milliseconds>>;\
+                return_value \"real\", <<Return a fractional time, including milliseconds>>;\
                 }\
           |*/")
 PREFIX(After,       real,     "after", PARM(d, real) PARM(c, tree),
@@ -1834,7 +1834,7 @@ PREFIX(TableCell, tree, "table_cell", PARM(b, tree),
                 parameters;\
                 parameter \"real\", \"w\", <<width of the cell if specified, otherwise free size.>>;\
                 parameter \"real\", \"h\", <<height of the cell if specified, otherwise free size.>>;\
-                parameter \"tree\", \"b\", <<body pf the cell>>;\
+                parameter \"tree\", \"b\", <<body of the cell>>;\
                 return_value \"tree\", <<body evaluation result>>;\
                 err \"Error raised when invoked outside of a table context.\" \
                }\
@@ -1971,7 +1971,7 @@ PREFIX(TableColumns, tree, "table_columns", , RTAO(tableColumns(self)),
 // ============================================================================
 
 PREFIX(Caption, tree, "status", PARM(t, text), RTAO(status(self, t)), 
-       "/*| docname \"status\", \"widget\", do { \
+       "/*| docname \"status\", \"gui\", do { \
                 dsyntax <<status t>>;\
                 synopsis \"Set the status line of the window\" ; \
                 description <<Set the content of the status line of the window>> ;\
@@ -1983,30 +1983,32 @@ PREFIX(Frame, tree, "frame",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(p, tree),
        RTAO(framePaint(self, x, y, w, h, p)), 
        "/*| docname \"frame\", \"widget\", do { \
-                dsyntax <<frame x, y, w, h, p>>;\
-                synopsis \"\" ; \
-                description <<Draw a frame with the current text flow[TODO: Really ?]>> ;\
+                dsyntax <<frame x, y, w, h, prog>>;\
+                synopsis \"A frame with a content\" ; \
+                description <<Draw a frame with the described content in 'prog'. This frame as no displayed border. It makes a texture of size (w,h) using 'frame_texture', and map it on a rectangle at (x,y) location.>> ;\
                 parameters;\
                 parameter \"real\", \"x\", <<x-coordinate>>;\
                 parameter \"real\", \"y\", <<y-coordinate>>;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
-                parameter \"tree\", \"p\", <<The program that represent the content of the frame>>;\
-                return_value \"tree\", <<The result of p evaluation>>;\
+                parameter \"tree\", \"prog\", <<The program that represent the content of the frame>>;\
+                return_value \"tree\", <<The result of 'prog' evaluation>>;\
+                see \"frame_texture\";\
                 }\
           |*/")
 PREFIX(FrameTexture, tree, "frame_texture",
        PARM(w,real) PARM(h,real) PARM(p, tree),
        RTAO(frameTexture(self, w, h, p)), 
        "/*| docname \"frame_texture\", \"widget\", do { \
-                dsyntax <<frame_texture w, h, p>>;\
-                synopsis \"Make a texture out of the current text layout\" ; \
-                description <<Make a texture out of the current text layout>> ;\
+                dsyntax <<frame_texture w, h, prog>>;\
+                synopsis \"A texture with content\" ; \
+                description <<Make a texture out of the described content>> ;\
                 parameters;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
-                parameter \"tree\", \"p\", <<The program that represent the content of the frame>>;\
-                return_value \"tree\", <<The result of p evaluation>>;\
+                parameter \"tree\", \"prog\", <<The program that represent the content of the frame>>;\
+                return_value \"tree\", <<The result of 'prog' evaluation>>;\
+                see \"frame\";\
                 }\
           |*/")
 PREFIX(Url, tree, "url",
@@ -2017,17 +2019,18 @@ PREFIX(UrlProgress, tree, "url",
        PARM(u, text) PARM(progress, integer),
        RTAO(urlPaint(self, x, y, w, h, u, progress)), 
        "/*| docname \"url\", \"widget\", do { \
-                dsyntax <<url x, y, w, h, u, progress>>;\
-                dsyntax <<url x, y, w, h, u>>;\
-                synopsis \"Draw a URL in the curent frame\" ; \
+                dsyntax <<url x, y, w, h, url, progress>>;\
+                dsyntax <<url x, y, w, h, url>>;\
+                synopsis \"Draw a web container\" ; \
                 description <<Load from the given URL a web page and draw it. It uses the QT webkit. >> ;\
                 parameters;\
                 parameter \"real\", \"x\", <<x-coordinate>>;\
                 parameter \"real\", \"y\", <<y-coordinate>>;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
-                parameter \"text\", \"u\", <<The URL to display>>;\
-                parameter \"integer\", \"progress\", <<The progession of the load. 0 if not provided>>;\
+                parameter \"text\", \"url\", <<The URL to display>>;\
+                parameter \"[out] integer\", \"progress\", <<The progession of the load in output.>>;\
+                see \"http://doc.qt.nokia.com/4.6/webintegration.html\" ;\
                 }\
           |*/")
 PREFIX(UrlTexture, tree, "url_texture",
@@ -2037,14 +2040,14 @@ PREFIX(UrlTextureProgress, tree, "url_texture",
        PARM(w,real) PARM(h,real) PARM(u, text) PARM(progress, integer),
        RTAO(urlTexture(self, w, h, u, progress)), 
        "/*| docname \"url_texture\", \"widget\", do { \
-                dsyntax <<url_texture w, h, u, progress>>;\
-                dsyntax <<url_texture w, h, u>>;\
+                dsyntax <<url_texture w, h, url, progress>>;\
+                dsyntax <<url_texture w, h, url>>;\
                 synopsis \"Make a texture out of a given URL\" ; \
                 description <<Load from the given URL a web page and draw it. It uses the QT webkit. >>\
                 parameters;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
-                parameter \"text\", \"u\", <<The URL to display>>;\
+                parameter \"text\", \"url\", <<The URL to display>>;\
                 parameter \"integer\", \"progress\", <<The progession of the load. 0 if not provided>>;\
                 }\
           |*/")
@@ -2052,28 +2055,28 @@ PREFIX(LineEdit, tree, "line_edit",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(u, text),
        RTAO(lineEdit(self, x, y, w, h, u)), 
        "/*| docname \"line_edit\", \"widget\", do { \
-                dsyntax <<line_edit x, y, w, h, u>>;\
+                dsyntax <<line_edit x, y, w, h, line>>;\
                 synopsis \"Draw a line editor in the current frame\" ; \
-                description <<Draw a line editor in the current frame>> ;\
+                description <<A line edit allows the user to enter and edit a single line of plain text with a useful collection of editing functions, including undo and redo, cut and paste, and drag and drop.>> ;\
                 parameters;\
                 parameter \"real\", \"x\", <<x-coordinate>>;\
                 parameter \"real\", \"y\", <<y-coordinate>>;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
-                parameter \"text\", \"u\", <<The text to insert in the line edit widget.>>;\
+                parameter \"[in/out] text\", \"line\", <<The text in the line edit widget. It is an in/out parameter.>>;\
                 }\
           |*/")
 PREFIX(LineEditTexture, tree, "line_edit_texture",
        PARM(w,real) PARM(h,real) PARM(u, text),
        RTAO(lineEditTexture(self, w, h, u)), 
        "/*| docname \"line_edit_texture\", \"widget\", do { \
-                dsyntax <<line_edit_texture w, h, u>>;\
+                dsyntax <<line_edit_texture w, h, line>>;\
                 synopsis \"Make a texture out of a given line editor\" ; \
-                description <<Make a texture out of a given line editor>> ;\
                 parameters;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
-                parameter \"text\", \"u\", <<The text to insert in the line edit widget.>>;\
+                parameter \"[in/out] text\", \"line\", <<The text to insert in the line edit widget.>>;\
+                see \"line_edit\" ;\
                 }\
           |*/")
 
@@ -2082,32 +2085,32 @@ PREFIX(PushButton, tree, "push_button",
        PARM(n, text) PARM(l, text) PARM(a, tree),
        RTAO(pushButton(self, x, y, w, h, n, l, a)), 
        "/*| docname \"push_button\", \"widget\", do { \
-                dsyntax <<push_button x, y, w, h, n, l, a>>;\
+                dsyntax <<push_button x, y, w, h, name, label, action>>;\
                 synopsis \"A push button\" ; \
-                description <<Draw a push button in the curent frame>> ;\
+                description <<Draw a simple push button in the curent frame. The look and feel of the button is platform dependant. >> ;\
                 parameters;\
                 parameter \"real\", \"x\", <<x-coordinate>>;\
                 parameter \"real\", \"y\", <<y-coordinate>>;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
-                parameter \"text\", \"n\", <<Name that uniquely identify this button>>;\
-                parameter \"text\", \"l\", <<Label of the button>>;\
-                parameter \"tree\", \"a\", <<The action to perform when the button is clicked.>>;\
+                parameter \"text\", \"name\", <<Name that uniquely identify this button>>;\
+                parameter \"text\", \"label\", <<Label of the button>>;\
+                parameter \"tree\", \"action\", <<The action to perform when the button is clicked.>>;\
                 }\
           |*/")
 PREFIX(PushButtonTexture, tree, "push_button_texture",
        PARM(w,real) PARM(h,real) PARM(n, text) PARM(l, text) PARM(a, tree),
        RTAO(pushButtonTexture(self, w, h, n, l, a)), 
        "/*| docname \"push_button_texture\", \"widget\", do { \
-                dsyntax <<push_button_texture w, h, n, l, a>>;\
+                dsyntax <<push_button_texture w, h, name, label, action>>;\
                 synopsis \"Make a texture out of a given push button\" ; \
-                description <<Make a texture out of a given push button>> ;\
+                description <<Make a platform dependant texture out of a given push button>> ;\
                 parameters;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
-                parameter \"text\", \"n\", <<Name that uniquely identify this button>>;\
-                parameter \"text\", \"l\", <<Label of the button>>;\
-                parameter \"tree\", \"a\", <<The action to perform when the button is clicked.>>;\
+                parameter \"text\", \"name\", <<Name that uniquely identify this button>>;\
+                parameter \"text\", \"label\", <<Label of the button>>;\
+                parameter \"tree\", \"action\", <<The action to perform when the button is clicked.>>;\
                 }\
           |*/")
 
@@ -2116,18 +2119,19 @@ PREFIX(RadioButton, tree, "radio_button",
        PARM(n, text) PARM(l, text) PARM(m, text) PARM(a, tree),
        RTAO(radioButton(self, x, y, w, h, n, l, m, a)), 
        "/*| docname \"radio_button\", \"widget\", do { \
-                dsyntax <<radio_button x, y, w, h, n, l, m, a>>;\
+                dsyntax <<radio_button x, y, w, h, name, label, selected, action>>;\
                 synopsis \"Draw a radio button\" ; \
-                description <<Draw a radio button in the curent frame. Associate the action to perform when the button state change from non-selected to selected.>> ;\
+                description <<Draw a radio button in the curent frame. Associate the action to perform when the button state change from non-selected to selected. Radio buttons are mutually exclusive, if you want to have multiple groups of radio button, uses the button_group.>> ;\
                 parameters;\
                 parameter \"real\", \"x\", <<x-coordinate>>;\
                 parameter \"real\", \"y\", <<y-coordinate>>;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
-                parameter \"text\", \"n\", <<Name that uniquely identify this button>>;\
-                parameter \"text\", \"l\", <<Label of the button>>;\
-                parameter \"text\", \"s\", <<True if the button is selected>>;\
-                parameter \"tree\", \"a\", <<The action to perform when the button state change from non-selected to selected.>>;\
+                parameter \"text\", \"name\",  <<Name that uniquely identify this button>>;\
+                parameter \"text\", \"label\", <<Label of the button>>;\
+                parameter \"text\", \"selected\", <<True if the button is selected>>;\
+                parameter \"tree\", \"action\", <<The action to perform when the button state change from non-selected to selected.>>;\
+                see \"button_group\" \
                 }\
           |*/")
 PREFIX(RadioButtonTexture, tree, "radio_button_texture",
@@ -2135,16 +2139,16 @@ PREFIX(RadioButtonTexture, tree, "radio_button_texture",
        PARM(m, text) PARM(a, tree),
        RTAO(radioButtonTexture(self, w, h, n, l, m, a)), 
        "/*| docname \"radio_button_texture\", \"widget\", do { \
-                dsyntax <<radio_button_texture w, h, n, l, m, a>>;\
+                dsyntax <<radio_button_texture w, h, name, label, selected, action>>;\
                 synopsis \"Make a texture out of a given radio button\" ; \
                 description <<Make a texture out of a given radio button>> ;\
                 parameters;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
-                parameter \"text\", \"n\", <<Name that uniquely identify this button>>;\
-                parameter \"text\", \"l\", <<Label of the button>>;\
-                parameter \"text\", \"s\", <<True if the button is selected>>;\
-                parameter \"tree\", \"a\", <<The action to perform when the button state change from non-selected to selected.>>;\
+                parameter \"text\", \"name\", <<Name that uniquely identify this button>>;\
+                parameter \"text\", \"label\", <<Label of the button>>;\
+                parameter \"text\", \"selected\", <<True if the button is selected>>;\
+                parameter \"tree\", \"action\", <<The action to perform when the button state change from non-selected to selected.>>;\
                 }\
           |*/")
 
@@ -2153,7 +2157,7 @@ PREFIX(CheckBoxButton, tree, "check_box_button",
        PARM(n, text) PARM(l, text) PARM(m, text) PARM(a, tree),
        RTAO(checkBoxButton(self, x, y, w, h, n, l, m, a)), 
        "/*| docname \"check_box_button\", \"widget\", do { \
-                dsyntax <<check_box_button x, y, w, h, n, l, m, a>>;\
+                dsyntax <<check_box_button x, y, w, h, name, label, marked, action>>;\
                 synopsis \"Draw a check button\" ; \
                 description <<Draw a check button in the curent frame>> ;\
                 parameters;\
@@ -2161,10 +2165,10 @@ PREFIX(CheckBoxButton, tree, "check_box_button",
                 parameter \"real\", \"y\", <<y-coordinate>>;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
-                parameter \"text\", \"n\", <<Name that uniquely identify this button>>;\
-                parameter \"text\", \"l\", <<Label of the button>>;\
-                parameter \"text\", \"m\", <<True if the button is marked>>;\
-                parameter \"tree\", \"a\", <<The action to perform when the button state change from non-sed.>>; \
+                parameter \"text\", \"name\", <<Name that uniquely identify this button>>;\
+                parameter \"text\", \"label\", <<Label of the button>>;\
+                parameter \"text\", \"marked\", <<True if the button is marked>>;\
+                parameter \"tree\", \"action\", <<The action to perform when the button state change from non-sed.>>; \
                 }\
           |*/")
 PREFIX(CheckBoxButtonTexture, tree, "check_box_button_texture",
@@ -2172,16 +2176,16 @@ PREFIX(CheckBoxButtonTexture, tree, "check_box_button_texture",
        PARM(m, text) PARM(a, tree),
        RTAO(checkBoxButtonTexture(self, w, h, n, l, m, a)), 
        "/*| docname \"check_box_button_texture\", \"widget\", do { \
-                dsyntax <<check_box_button_texture w, h, n, l, m, a>>;\
+                dsyntax <<check_box_button_texture w, h, name, label, marked, action>>;\
                 synopsis \"Make a texture out of a given checkbox button\" ; \
                 description <<Make a texture out of a given checkbox button>> ;\
                 parameters;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
-                parameter \"text\", \"n\", <<Name that uniquely identify this button>>;\
-                parameter \"text\", \"l\", <<Label of the button>>;\
-                parameter \"text\", \"m\", <<True if the button is marked>>;\
-                parameter \"tree\", \"a\", <<The action to perform when the button state change from non-s                }\
+                parameter \"text\", \"name\", <<Name that uniquely identify this button>>;\
+                parameter \"text\", \"label\", <<Label of the button>>;\
+                parameter \"text\", \"marked\", <<True if the button is marked>>;\
+                parameter \"tree\", \"action\", <<The action to perform when the button state change from non-s                }\
           |*/")
 
 PREFIX(ColorChooser, tree, "color_chooser",
@@ -2190,18 +2194,19 @@ PREFIX(ColorChooser, tree, "color_chooser",
 PREFIX(ColorChooserNow, tree, "color_chooser", PARM(n, text) PARM(t,tree),
        RTAO(colorChooser(self, n, t)), 
        "/*| docname \"color_chooser\", \"widget\", do { \
-                dsyntax <<color_chooser x, y, w, h, t>>;\
-                dsyntax <<color_chooser n, t>>;\
+                dsyntax <<color_chooser x, y, w, h, tree>>;\
+                dsyntax <<color_chooser name, tree>>;\
                 synopsis \"Draw a color chooser\" ; \
                 description <<Pop a window with the platform dependant color chooser inside.\
-Once the color is chosen Names 'red', 'green', 'blue', and 'alpha' are replaced in the given tree by the corresponding value in the selected color. Then the resulting tree is evaluated. >> ;\
+Once the color is chosen Names 'red', 'green', 'blue', and 'alpha' are replaced in the given tree by the corresponding value in the selected color. Then the resulting tree is evaluated.\
+ 'name' is used to register and uses a color attribute : 'line_color' and 'color' are defined.  >> ;\
                 parameters;\
                 parameter \"real\", \"x\", <<x-coordinate>>;\
                 parameter \"real\", \"y\", <<y-coordinate>>;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
-                parameter \"text\", \"n\", <<tree name to get the original color.>>;\
-                parameter \"tree\", \"t\", <<tree to update with new color>>;\
+                parameter \"text\", \"name\", <<name af attribute to associate with.>>;\
+                parameter \"tree\", \"tree\", <<tree to update with new color>>;\
                 }\
           |*/")
 
@@ -2209,13 +2214,14 @@ PREFIX(ColorChooserTexture, tree, "color_chooser_texture",
        PARM(w,real) PARM(h,real) PARM(t,tree),
        RTAO(colorChooserTexture(self, w, h, t)), 
        "/*| docname \"color_chooser_texture\", \"widget\", do { \
-                dsyntax <<color_chooser_texture w, h, t>>;\
+                dsyntax <<color_chooser_texture w, h, tree>>;\
                 synopsis \"Make a texture out of a given color chooser\" ; \
                 description <<Make a texture out of a given color chooser>> ;\
                 parameters;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
-                parameter \"tree\", \"t\", <<tree to update with new color>>;\
+                parameter \"tree\", \"tree\", <<tree to update with new color>>;\
+                see \"color_chooser\" \
                 }\
           |*/")
 PREFIX(FontChooserNow, tree, "font_chooser", PARM(t,tree),
@@ -2225,7 +2231,7 @@ PREFIX(FontChooser, tree, "font_chooser",
        RTAO(fontChooser(self, x, y, w, h, t)), 
        "/*| docname \"font_chooser\", \"widget\", do { \
                 dsyntax <<font_chooser t>>;\
-                dsyntax <<font_chooser x, y, w, h, t>>;\
+                dsyntax <<font_chooser x, y, w, h, tree>>;\
                 synopsis \"font chooser\" ; \
                 description <<Pop a window with the platform dependant font chooser inside. \
 Once the font is chosen, Names 'font_family', 'font_size', 'font_weight', 'font_slant', 'font_stretch', 'font_is_italic', and 'font_is_bold' are replaced by their corresponding values in the selected font. The resulting tree is then evaluated.>> ;\
@@ -2234,20 +2240,21 @@ Once the font is chosen, Names 'font_family', 'font_size', 'font_weight', 'font_
                 parameter \"real\", \"y\", <<y-coordinate>>;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
-                parameter \"tree\", \"t\", <<tree to update with new font>>;\
+                parameter \"tree\", \"tree\", <<tree to update with new font>>;\
                 }\
           |*/")
 PREFIX(FontChooserTexture, tree, "font_chooser_texture",
        PARM(w,real) PARM(h,real) PARM(t,tree),
        RTAO(fontChooserTexture(self, w, h, t)), 
        "/*| docname \"font_chooser_texture\", \"widget\", do { \
-                dsyntax <<font_chooser_texture w, h, t>>;\
+                dsyntax <<font_chooser_texture w, h, tree>>;\
                 synopsis \"Make a texture out of a given color chooser\" ; \
                 description <<Make a texture out of a given color chooser>> ; \
                 parameters;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
-                parameter \"tree\", \"t\", <<tree to update with new font>>;\
+                parameter \"tree\", \"tree\", <<tree to update with new font>>;\
+                see \"font_chooser\"; \
                 }\
           |*/")
 PREFIX(FileChooser, tree, "file_chooser",
@@ -2256,8 +2263,8 @@ PREFIX(FileChooser, tree, "file_chooser",
 PREFIX(FileChooserNow, tree, "file_chooser", PARM(t,tree),
        RTAO(fileChooser(self, t)), 
        "/*| docname \"file_chooser\", \"widget\", do { \
-                dsyntax <<file_chooser x, y, w, h, t>>;\
-                dsyntax <<file_chooser t>>;\
+                dsyntax <<file_chooser x, y, w, h, tree>>;\
+                dsyntax <<file_chooser tree>>;\
                 synopsis \"Draw a file chooser\" ; \
                 description <<Pop a window with the platform dependant file chooser inside. \
 The file_chooser can be parameterized with 4 atributes which are 'action', 'directory', 'label' and 'filter'. Those attributes are defined in the function with file_chooser_ prefix.\
@@ -2285,6 +2292,7 @@ PREFIX(FileChooserTexture, tree, "file_chooser_texture",
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
                 parameter \"tree\", \"t\", <<tree to update with new file>>;\
+                see \"file_chooser\"; \
                 }\
           |*/")
 PREFIX(SetFileDialogAction, tree, "file_chooser_action", PARM(t, tree),
@@ -2339,23 +2347,24 @@ PREFIX(ButtonGroup, tree, "button_group",
        PARM(ex, boolean) PARM(b, tree),
        RTAO(buttonGroup(self, ex, b)), 
        "/*| docname \"button_group\", \"widget\", do { \
-                dsyntax <<button_group ex, b>>;\
+                dsyntax <<button_group ex, buttons>>;\
                 synopsis \"Create a button group.\" ; \
                 description <<Create a group. Buttons included in this group are mutually exclusive. It is useful to create multiple group of radio buttons>> ;\
                 parameters;\
                 parameter \"boolean\", \"ex\", <<If true, the group is exclusive.>>;\
-                parameter \"tree\", \"t\", <<The code of buttons>>;\
+                parameter \"tree\", \"buttons\", <<The code of buttons>>;\
                 }\
           |*/")
 
 PREFIX(Action, tree, "button_group_action", PARM(act, tree),
        RTAO(setButtonGroupAction(self, act)), 
        "/*| docname \"button_group_action\", \"widget\", do { \
-                dsyntax <<button_group_action act>>;\
+                dsyntax <<button_group_action action>>;\
                 synopsis \"Action of the group\" ; \
                 description <<Set the action to be executed by the current buttonGroup.When a button in the group is clicked, this action is triggered as well as the button's action.>> ;\
                 parameters;\
-                parameter \"tree\", \"act\", <<The action.>>;\
+                parameter \"tree\", \"action\", <<The action.>>;\
+                see \"button_group\" \
                 }\
           |*/")
 
@@ -2364,7 +2373,7 @@ PREFIX(GroupBox, tree, "group_box",
        PARM(lbl, text) PARM(b, tree),
        RTAO(groupBox(self, x, y, w, h, lbl, b)), 
        "/*| docname \"group_box\", \"widget\", do { \
-                dsyntax <<group_box x, y, w, h, lbl, b>>;\
+                dsyntax <<group_box x, y, w, h, label, buttons>>;\
                 synopsis \"group box\" ; \
                 description <<Draw a group box in the current frame. The x and y coordinate of widgets placed in this box are the colomn and row number. Total number of rows and columns is dynamic.>> ;\
                 parameters;\
@@ -2372,8 +2381,8 @@ PREFIX(GroupBox, tree, "group_box",
                 parameter \"real\", \"y\", <<y-coordinate of this box>>;\
                 parameter \"real\", \"w\", <<width of this box>>;\
                 parameter \"real\", \"h\", <<height of this box>>;\
-                parameter \"text\", \"lbl\", <<The label of the box>>;\
-                parameter \"tree\", \"b\", <<The content of the box>>;\
+                parameter \"text\", \"label\", <<The label of the box>>;\
+                parameter \"tree\", \"buttons\", <<The tree describing the content of the box>>;\
                 }\
           |*/")
 PREFIX(GroupBoxTexture, tree, "group_box_texture",
@@ -2381,12 +2390,13 @@ PREFIX(GroupBoxTexture, tree, "group_box_texture",
        RTAO(groupBoxTexture(self, w, h, lbl)), 
        "/*| docname \"group_box_texture\", \"widget\", do { \
                 dsyntax <<group_box_texture w, h, lbl>>;\
-                synopsis \"\" ; \
+                synopsis \"Texture group box.\" ; \
                 description <<Make a texture out of a given group box.>> ;\
                 parameters;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
                 parameter \"text\", \"lbl\", <<The label of the box>>;\
+                see \"group_box\" \
                 }\
           |*/")
 
@@ -2404,6 +2414,7 @@ PREFIX(VideoPlayer, tree, "video_player",
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
                 parameter \"text\", \"u\", <<The URL of the video to play.>>;\
+                see \"http://doc.qt.nokia.com/4.6/phonon-module.html\" \
                 }\
           |*/")
 PREFIX(VideoPlayerTexture, tree, "video_player_texture",
@@ -2412,12 +2423,12 @@ PREFIX(VideoPlayerTexture, tree, "video_player_texture",
        "/*| docname \"video_player_texture\", \"widget\", do { \
                 dsyntax <<video_player_texture w, h, u>>;\
                 synopsis \"Make a video player texture.\" ; \
-                description <<The video plyer texture associated.>> ;\
+                description <<The video player texture associated.>> ;\
                 parameters;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
                 parameter \"text\", \"u\", <<The URL to play>>;\
-                return_value \"\", <<>>;\
+                see \"videlo_player\" \
                 }\
           |*/")
 

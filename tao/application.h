@@ -44,7 +44,7 @@ class Application : public QApplication
 
 public:
     Application(int & argc, char ** argv);
-    virtual ~Application();
+    virtual ~Application() {}
 
     void           internalCleanEverythingAsIfTaoWereNeverRun();
     static QString defaultProjectFolderPath();
@@ -68,6 +68,7 @@ protected:
     virtual bool   event(QEvent *e);
 
 protected slots:
+    void           cleanup();
     void           onOpenFinished(bool ok);
 #ifdef CONFIG_MACOSX
     void           simulateUserActivity();

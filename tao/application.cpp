@@ -154,6 +154,9 @@ Application::Application(int & argc, char ** argv)
 
     loadSettings();
 
+    // The aboutToQuit signal is the recommended way for cleaning things up
+    connect(this, SIGNAL(aboutToQuit()), this, SLOT(cleanup()));
+
     // We're ready to go
     XL::MAIN = this->xlr = xlr;
     if (!savedUri.isEmpty())
@@ -161,12 +164,14 @@ Application::Application(int & argc, char ** argv)
 }
 
 
-Application::~Application()
+void Application::cleanup()
 // ----------------------------------------------------------------------------
-//   Save user settings when we quit the application
+//   Perform last-minute cleanup before application exit
 // ----------------------------------------------------------------------------
 {
     saveSettings();
+    if (screenSaverBlocked)
+        blockScreenSaver(false);
 }
 
 

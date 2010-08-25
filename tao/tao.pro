@@ -25,7 +25,7 @@ QT += webkit \
     phonon
 QMAKE_CFLAGS += -Werror
 QMAKE_CXXFLAGS += -Werror
-QMAKE_CXXFLAGS_RELEASE += -g
+QMAKE_CXXFLAGS_RELEASE += -g \$(CXXFLAGS_\$%)
 
 # Tell the XLR portion that we are building for Tao
 DEFINES += TAO \
@@ -146,10 +146,8 @@ SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
     coords3d.cpp \
-    graphics.cpp \
     widget.cpp \
     window.cpp \
-    formulas.cpp \
     frame.cpp \
     svg.cpp \
     widget_surface.cpp \
@@ -196,7 +194,6 @@ SOURCES += tao_main.cpp \
     xlr/xlr/errors.cpp \
     xlr/xlr/context.cpp \
     xlr/xlr/compiler.cpp \
-    xlr/xlr/basics.cpp \
     xlr/xlr/types.cpp \
     xlr/xlr/diff.cpp \
     xlr/xlr/lcs.cpp \
@@ -228,6 +225,11 @@ SOURCES += tao_main.cpp \
     commit_table_model.cpp \
     checkout_dialog.cpp \
     push_dialog.cpp
+CXXTBL_SOURCES += \
+    graphics.cpp \
+    formulas.cpp \
+    xlr/xlr/basics.cpp
+
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \
@@ -292,3 +294,11 @@ revtarget.depends = $$SOURCES \
     $$HEADERS \
     $$FORMS
 QMAKE_EXTRA_TARGETS += revtarget
+
+# Adding 'c++tbl' option with lowered optimization level
+c++tbl.output = ${QMAKE_FILE_BASE}.o
+c++tbl.commands = $(CXX) -c $(CXXFLAGS:-O2=-g) $(INCPATH) ${QMAKE_FILE_NAME} -o ${QMAKE_FILE_OUT}
+c++tbl.depend_command = $(CXX) -E -M ${QMAKE_FILE_NAME} | sed "s/^.*: //"
+c++tbl.input = CXXTBL_SOURCES
+QMAKE_EXTRA_COMPILERS += c++tbl
+

@@ -386,8 +386,11 @@ int Window::open(QString fileName, bool readOnly)
             isReadOnly = true;
         else
             isReadOnly = !QFileInfo(fileName).isWritable();
+
         if (!loadFile(fileName, !isReadOnly))
             return 0;
+
+        taoWidget->refresh();
     }
     else
     {

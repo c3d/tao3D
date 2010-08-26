@@ -7406,23 +7406,37 @@ Tree_p Widget::constant(Tree_p self, Tree_p tree)
     return tree;
 }
 
+
+
+// ============================================================================
+//
+//   Documentation generation
+//
+// ============================================================================
+
 Tree_p Widget::generateDoc(Tree_p /*self*/, Tree_p tree)
+// ----------------------------------------------------------------------------
+//   Generate documentation for a given tree
+// ----------------------------------------------------------------------------
 {
     ExtractDoc doc;
     return tree->Do(doc);
 
 }
 
-Text_p Widget::generateAllDoc(Tree_p self, text filename)
-{
-    XL::Main   *xlr            = XL::MAIN;
-    text com="";
 
-    Tree *t = NULL;
-    // documentation from the context files (*.xl)
+Text_p Widget::generateAllDoc(Tree_p self, text filename)
+// ----------------------------------------------------------------------------
+//   Generate documentation for all trees in the given file
+// ----------------------------------------------------------------------------
+{
+    XL::Main *xlr = XL::MAIN;
+    text      com = "";
+    Tree     *t   = NULL;
+
+    // Documentation from the context files (*.xl)
     XL::source_files::iterator couple;
-    for (couple = xlr->files.begin();
-         couple != xlr->files.end(); couple++ )
+    for (couple = xlr->files.begin(); couple != xlr->files.end(); couple++ )
     {
         XL::SourceFile src = couple->second;
         if (!src.tree) continue;
@@ -7430,8 +7444,8 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
         com += t->AsText()->value;
     }
 
-    // documentation from the primitives files (*.tbl)
-    XL::rewrite_table h = xlr->context->rewrites->hash;
+    // Documentation from the primitives files (*.tbl)
+    XL::rewrite_table &h = xlr->context->rewrites->hash;
     XL::rewrite_table::iterator i;
     for (i = h.begin(); i != h.end(); i++)
     {
@@ -7439,8 +7453,9 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
         t = generateDoc(self, tree);
         com += t->AsText()->value;
     }
+
     XL::symbol_table::iterator si;
-    XL::symbol_table names = XL::Context::context->names;
+    XL::symbol_table &names = XL::Context::context->names;
     for (si = names.begin(); si != names.end(); si++)
     {
         Tree * tree = si->second;
@@ -7456,11 +7471,15 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
             file.write(com.c_str());
         file.close();
     }
-    std::cerr << "\n=========================================================\n";
-    std::cerr << com << std::endl;
-    std::cerr << "=========================================================\n";
+    std::cerr
+        << "\n"
+        << "=========================================================\n"
+        << com << std::endl
+        << "=========================================================\n";
+
     return new Text(com, "", "");
 }
+
 
 
 // ============================================================================

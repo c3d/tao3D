@@ -1,0 +1,194 @@
+// Theme for TAO documentation
+//load "doc_style.xl"
+font "Title" -> font "Helvetica Neue", 24, slant 0% , weight 80% , stretch 100% 
+font "Footer" -> font "Andika Basic", 12 
+font "Text" -> font "Helvetica Neue", 18, slant 0% , weight 50% , stretch 100% 
+font "Item" -> font "Helvetica Neue", 20, slant 0% , weight 80% , stretch 100% 
+font "Code" -> font "Courier", 18, slant 0% , weight 50% , stretch 100% 
+font "Type" -> font "Helvetica Neue", 18, slant 50% , weight 40% , stretch 100% 
+color "Accent", 5 -> color 20% , 60% , 100% , 100% 
+color "font" -> color 0% , 0% , 0% , 100% 
+line_color "font" -> line_color 0% , 0% , 0% , 0% 
+color "Text" "Light" -> color 0% , 0% , 0% , 100% 
+
+groupname familyName:text -> 
+//    family := familyName
+    page familyName, do 
+        color 100% , 100% , 100% , 100% 
+        shape 
+            url -152, -4, 1113, 1022, "/Users/cathy/Work/tao.git/tao/doc/src/" & familyName & ".html" 
+    import "all_documentation.xl" 
+
+docname fname:text, families:text, t:tree -> 
+/*|docname "docname", "documentation", do
+      dsyntax <<docname fname:text, family:text, t:tree>>
+      synopsis "The first documentation function to call."
+      description <<This function installs the text_box and may handle some filters on the family parameter. It is mandatory to use this function first.>>
+      parameters
+      parameter "text", "fname", "The name of the function."
+      parameter "text", "families", "The set of families this function belongs to."
+      parameter "tree", "t", "The rest of the description."
+|*/
+//  if family into families then
+    if "widget" = families then 
+        page fname, do 
+            page_link "Backspace", "TOC" 
+            text_box 0, -300, 300, 80, do 
+                color "Accent", 5 
+                font "Footer" 
+                text "page " & text page_number & " on " & text page_count 
+            color "font" 
+            line_color "font" 
+            font "Times New Roman", 18, slant 0% , weight 50% , stretch 100% 
+            text_box 0, 300, 1000, 600, do 
+                paragraph_space 0, 10 
+                font "Title" 
+                color "Accent", 5 
+                text fname 
+                paragraph_break 
+                color "font" 
+                line_color "font" 
+                do t 
+
+
+dsyntax text_syntax -> 
+/*|docname "dsyntax", "documentation", do
+      dsyntax <<dsyntax text_syntax>>
+      synopsis "Documents the syntax of the function."
+      description <<It shows the full syntax, you may use it more than once if you want to document multiple variant of one functionality.>>
+      parameters
+      parameter "text", "text_syntax", "The syntax."
+|*/
+    font "Item" 
+    paragraph_break 
+    text "Syntax: " 
+    font "Code" 
+    text text_syntax 
+    paragraph_break 
+
+synopsis text_synopsis -> 
+/*|docname "synopsis", "documentation", do
+      dsyntax <<synopsis text_synopsis>>
+      synopsis "A very short description."
+      description <<It is a short documentation of the funtion that can be shown in popup in an editor for example.>>
+      parameters
+      parameter "text", "text_synopsis", "The synopsis."
+|*/
+    font "Item" 
+    line_break 
+    text "Synopsis: " 
+    font "Text" 
+    text text_synopsis 
+    paragraph_break 
+
+description text_desc -> 
+/*|docname "description", "documentation", do
+      dsyntax <<description text_desc>>
+      synopsis "The full description."
+      description <<This is the full description of the function. It should explain the behavior regarding the parameters value, errors, etc...>>
+      parameters
+      parameter "text", "text_desc", "The description."
+|*/
+    font "Item" 
+    line_break 
+    text "Description: " 
+    font "Text" 
+    text text_desc 
+    paragraph_break 
+
+parameters -> 
+/*|docname "parameters", "documentation", do
+      dsyntax <<parameters>>
+      synopsis "Introduction to parameter list."
+      description <<It just add the parameters header to the text. Be careful it is a plural>>
+      see "parameter"
+|*/
+    font "Item" 
+    line_break 
+    text "Parameters: " 
+
+parameter ptype, pname, pdesc -> 
+/*|docname "parameter", "documentation", do
+      dsyntax <<parameter ptype, pname, pdesc>>
+      synopsis "A parameter description."
+      description <<This is the detailed description of a parameter. >>
+      parameters
+      parameter "text", "ptype", "The parameter's type."
+      parameter "text", "pname", "The parameter's name."
+      parameter "text", "pdesc", "The parameter's description."
+|*/
+    line_break 
+    factor -> 18.0 
+    font "Text" 
+    font_size factor 
+    margins 40, 0 
+    paragraph_space 0, 10 
+    paragraph_break 
+    anchor 
+        color "Accent", 5 
+        circle factor * -75% , factor * 30% , factor * 20% 
+
+    color "Text" "Light" 
+    font "Item" 
+    text pname 
+    font "Type" 
+    text " [" & ptype & "] " 
+    font "Text" 
+    text pdesc 
+    margins 0, 0 
+
+return_value rtype, rdesc -> 
+/*|docname "return_value", "documentation", do
+      dsyntax <<return_value rtype, rdesc>>
+      synopsis "The return value description."
+      description <<This is the detailed description of the returned value. >>
+      parameters
+      parameter "text", "rtype", "The return type."
+      parameter "text", "rdesc", "The description."
+|*/
+    font "Item" 
+    paragraph_break 
+    text "Returns: " 
+    font "Type" 
+    text "[" & rtype & "] " 
+    font "Text" 
+    text rdesc 
+    paragraph_break 
+
+see text_ref -> 
+/*|docname "see", "documentation", do
+      dsyntax <<see text_ref>>
+      synopsis "A cross reference."
+      description <<Point out an other place for more information. >>
+      parameters
+      parameter "text", "text_ref", "the reference."
+|*/
+    font "Item" 
+    paragraph_break 
+    text "See: " 
+    anchor 
+        factor -> 18.0 
+        on_click goto_page text_ref 
+        color "Accent", 5 
+        circle factor * -75% , factor * 30% , factor * 20% 
+    font "Text" 
+    text text_ref 
+    paragraph_break 
+
+err etype, evalue -> 
+/*|docname "err", "documentation", do
+      dsyntax <<err etype, evalue>>
+      synopsis "Error description."
+      description <<This is the detailed description of a potential reported error. >>
+      parameters
+      parameter "text", "etype", "The error's type."
+      parameter "text", "edesc", "The error's description."
+|*/
+    font "Item" 
+    paragraph_break 
+    text "error: " 
+    font "Type" 
+    text "[" & etype & "] " 
+    font "Text" 
+    text evalue 
+    paragraph_break 

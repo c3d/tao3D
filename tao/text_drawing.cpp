@@ -425,39 +425,43 @@ void TextSpan::DrawSelection(Layout *where)
         }
     }
 
-    if (sel && canSel && max <= end)
+    if (sel && canSel)
     {
-        charId++;
-        sel->last = charId;
-        if (charId >= sel->start() && charId <= sel->end())
+        if (max <= end)
         {
-            if (sel->replace)
+            charId++;
+            if (charId >= sel->start() && charId <= sel->end())
             {
-                text rpl = sel->replacement;
-                if (rpl.length())
+                if (sel->replace)
                 {
-                    uint eos = i;
-                    if (sel->point != sel->mark)
+                    text rpl = sel->replacement;
+                    if (rpl.length())
                     {
-                        eos = next;
-                        if (sel->point > sel->mark)
-                            sel->point--;
-                        else
-                            sel->mark--;
+                        uint eos = i;
+                        if (sel->point != sel->mark)
+                        {
+                            eos = next;
+                            if (sel->point > sel->mark)
+                                sel->point--;
+                            else
+                                sel->mark--;
+                        }
+                        source->value.replace(i, eos-i, rpl);
+                        sel->replacement = "";
+                        uint length = XL::Utf8Length(rpl);
+                        sel->point += length;
+                        sel->mark += length;
+                        if (sel->point == sel->mark)
+                            sel->replace = false;
                     }
-                    source->value.replace(i, eos-i, rpl);
-                    sel->replacement = "";
-                    uint length = XL::Utf8Length(rpl);
-                    sel->point += length;
-                    sel->mark += length;
-                    if (sel->point == sel->mark)
-                        sel->replace = false;
                 }
+                scale sd = glyph.scalingFactor * descent;
+                scale sh = glyph.scalingFactor * height;
+                sel->selBox |= Box3(x,y - sd,z, 1, sh, 0);
             }
-            scale sd = glyph.scalingFactor * descent;
-            scale sh = glyph.scalingFactor * height;
-            sel->selBox |= Box3(x,y - sd,z, 1, sh, 0);
         }
+
+        sel->last = charId;
     }
 
     where->offset = Point3(x, y, z);

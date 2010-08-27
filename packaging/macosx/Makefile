@@ -1,0 +1,147 @@
+# Makefile to build a MacOSX installer (.dmg)
+#
+# The application is distributed as a disk image (.dmg) which
+# contains an application bundle (Tao.app) with:
+#   - The Tao exectuables
+#   - The Qt libraries, distributed as Frameworks
+#   - Git binaries (downloaded and built by this Makefile)
+#   - All the files loaded by Tao at runtime (XL definitions, etc.)
+#
+# HOW TO CHANGE THE APPEARANCE OF THE DISK IMAGE IN FINDER
+#
+# The template/ folder serves (guess what?) as a template for the
+# final disk image. Its content is copied into build_root/ before
+# building the disk image.
+# The appearance of the Finder window (icon position, size, window
+# size...) is controled by the file build_root/.DS_Store.
+# Unfortunately, simply changing these settings through the Finder
+# "Show View Options" does not work. It has to be done inside a
+# mounted disk image. Therefore, here is how to change this file:
+#
+# $ make K=1
+# $ open tmp.dmg
+# Edit appearance through the Finder's "Show View Options", and eject
+# the disk image to flush file buffers
+# $ open tmp.dmg
+# $ cp -fp /Volumes/Tao\ Presentations/.DS_Store template/dot_DS_Store
+# Eject tmp.dmg again, then run "make clean.dmg ; make" to build the
+# final disk image.
+#
+# Usage:
+#   make
+#   make clean      # Won't remove Git source package
+#   make veryclean  # Will remove Git source
+
+GIT_VERSION=1.7.2.2
+
+########
+
+GIT_INSTALL_PREFIX=$(shell pwd)/build_root/Tao.app/Contents/MacOS/git
+
+tao.dmg: tmp.dmg
+	hdiutil convert -format UDBZ -o $@ tmp.dmg
+	[ "$(K)" ] || rm -f tmp.dmg
+
+# Note: blue arrow in DMG_image.{svg,png} is taken from http://www.clker.com/clipart-12263.html
+tmp.dmg: .tao_install_ts .git_install_ts .cp_template_ts
+	hdiutil create tmp.dmg -fs HFSX -format UDRW -srcfolder build_root -volname "Tao Presentations"
+
+clean: clean.git clean.tao clean.dmg
+
+veryclean: clean veryclean.git
+
+clean.dmg: clean.cp_template
+	rm -f tao.dmg tmp.dmg
+
+########
+
+.cp_template_ts:
+	ditto template build_root
+	mv build_root/dot_DS_Store build_root/.DS_Store
+	ln -s /Applications build_root
+	touch $@
+
+clean.cp_template:
+	rm -f .cp_template_ts
+
+########
+
+.tao_install_ts: .tao_install_prog_ts .tao_install_deps_ts
+	touch $@
+
+clean.tao_install: clean.tao_install_prog clean.tao_install_deps
+	rm -f .tao_install_ts
+
+########
+
+.tao_install_deps_ts: .tao_install_prog_ts
+	macdeployqt build_root/Tao.app
+	touch $@
+
+clean.tao_install_deps:
+	rm -f .tao_install_deps_ts
+
+########
+
+.tao_install_prog_ts:
+	[ -d build_root ] || mkdir -p build_root
+	cp -Rp ../../tao/Tao.app build_root
+	touch $@
+
+clean.tao_install_prog:
+	rm -rf build_root/Tao.app
+	rm -f .tao_install_prog_ts
+
+########
+
+clean.tao: clean.tao_install
+	rm -rf build_root
+
+########
+
+.git_install_ts: .git_build_ts
+	make -C git_build/git-$(GIT_VERSION) CFLAGS="-mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.5.sdk -arch i386" LDFLAGS="-mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.5.sdk -arch i386" prefix=$(GIT_INSTALL_PREFIX) install
+	touch $@
+
+clean.git_install:
+	rm -rf $(GIT_INSTALL_PREFIX)
+	rm -f .git_install_ts
+
+########
+
+.git_build_ts: .git_extract_ts
+	cd git_build/git-$(GIT_VERSION) && echo "NO_DARWIN_PORTS=1" >> Makefile.tmp && cat Makefile >> Makefile.tmp && mv Makefile.tmp Makefile
+	make -C git_build/git-$(GIT_VERSION) CFLAGS="-mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.5.sdk -arch i386" LDFLAGS="-mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.5.sdk -arch i386" prefix=$(GIT_INSTALL_PREFIX) all
+	make -C git_build/git-$(GIT_VERSION) CFLAGS="-mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.5.sdk -arch i386" LDFLAGS="-mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.5.sdk -arch i386" prefix=$(GIT_INSTALL_PREFIX) strip
+	touch .git_build_ts
+
+clean.git_build:
+	rm -f .git_build_ts
+
+########
+
+.git_extract_ts: .git_download_ts
+	[ -d git_build/git-$(GIT_VERSION) ] || ( cd git_build ; tar jxf git-$(GIT_VERSION).tar.bz2 )
+	touch $@
+
+clean.git_extract:
+	rm -rf git_build/git-$(GIT_VERSION)
+	rm -f .git_extract_ts
+
+########
+
+.git_download_ts:
+	[ -d git_build ] || mkdir -p git_build
+	[ -f git_build/git-$(GIT_VERSION).tar.bz2 ] || ( cd git_build ; curl -O http://kernel.org/pub/software/scm/git/git-$(GIT_VERSION).tar.bz2 )
+	touch $@
+
+clean.git_download:
+	rm -rf git_build/git-$(GIT_VERSION).tar.bz2
+	rm -f .git_download_ts
+
+########
+
+clean.git: clean.git_extract clean.git_build clean.git_install
+
+veryclean.git: clean.git clean.git_download
+

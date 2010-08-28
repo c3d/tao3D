@@ -50,6 +50,7 @@ struct TextSpan : Shape
 protected:
     void                DrawDirect(Layout *where);
     void                DrawSelection(Layout *where);
+    uint                PerformEditOperation(Widget *w, uint i, uint next);
 
 public:
     Text_p              source;
@@ -123,7 +124,6 @@ struct TextSelect : Identify
     coord               targetX;
     Box3                selBox;
     Box3                formulaBox;
-    kstring             commitMessage;
     text                replacement;
     bool                replace;
     bool                textMode;

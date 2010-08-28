@@ -359,30 +359,10 @@ void TextSpan::DrawSelection(Layout *where)
                     // Edit text in place if we have an editing request
                     if (sel->replace)
                     {
-                        text rpl = sel->replacement;
-                        uint eos = i;
-                        if (sel->point != sel->mark)
-                        {
-                            eos = next;
-                            if (sel->point > sel->mark)
-                                sel->point--;
-                            else
-                                sel->mark--;
-                        }
-                        source->value.replace(i, eos-i, rpl);
-                        sel->replacement = "";
-                        uint length = XL::Utf8Length(rpl);
-                        sel->point += length;
-                        sel->mark += length;
-                        if (!length)
+                        if (PerformEditOperation(widget, i, next) == 0)
                         {
                             next = i;
                             max--;
-                        }
-                        if (sel->point == sel->mark)
-                        {
-                            sel->replace = false;
-                            widget->markChanged(sel->commitMessage);
                         }
                     }
                     scale sd = glyph.scalingFactor * descent;
@@ -436,31 +416,7 @@ void TextSpan::DrawSelection(Layout *where)
             if (charId >= sel->start() && charId <= sel->end())
             {
                 if (sel->replace)
-                {
-                    text rpl = sel->replacement;
-                    if (rpl.length())
-                    {
-                        uint eos = i;
-                        if (sel->point != sel->mark)
-                        {
-                            eos = next;
-                            if (sel->point > sel->mark)
-                                sel->point--;
-                            else
-                                sel->mark--;
-                        }
-                        source->value.replace(i, eos-i, rpl);
-                        sel->replacement = "";
-                        uint length = XL::Utf8Length(rpl);
-                        sel->point += length;
-                        sel->mark += length;
-                        if (sel->point == sel->mark)
-                        {
-                            sel->replace = false;
-                            widget->markChanged(sel->commitMessage);
-                        }
-                    }
-                }
+                    PerformEditOperation(widget, i, next);
                 scale sd = glyph.scalingFactor * descent;
                 scale sh = glyph.scalingFactor * height;
                 sel->selBox |= Box3(x,y - sd,z, 1, sh, 0);
@@ -840,6 +796,40 @@ scale TextSpan::TrailingSpaceSize(Layout *where)
 }
 
 
+uint TextSpan::PerformEditOperation(Widget *widget, uint i, uint next)
+// ----------------------------------------------------------------------------
+//   Perform text editing operations (insert, replace, ...)
+// ----------------------------------------------------------------------------
+{
+    TextSelect *sel           = widget->textSelection();
+    text        rpl           = sel->replacement;
+    uint        length        = XL::Utf8Length(rpl);
+    kstring     commitMessage = length ? "Inserted text" : "Deleted text";
+    uint        eos           = i;
+    if (sel->point != sel->mark)
+    {
+        if (length)
+            commitMessage = "Replaced text";
+        eos = next;
+        if (sel->point > sel->mark)
+            sel->point--;
+        else
+            sel->mark--;
+    }
+    source->value.replace(i, eos-i, rpl);
+    sel->replacement = "";
+    sel->point += length;
+    sel->mark += length;
+    if (sel->point == sel->mark)
+    {
+        sel->replace = false;
+        widget->markChanged(commitMessage);
+    }
+
+    return length;
+}
+
+
 
 // ============================================================================
 //
@@ -1076,7 +1066,7 @@ TextSelect::TextSelect(Widget *w)
     : Identify("Text selection", w),
       mark(0), point(0), previous(0), last(0), textBoxId(0),
       direction(None), targetX(0),
-      commitMessage(""), replacement(""), replace(false),
+      replacement(""), replace(false),
       textMode(false),
       pickingLineEnds(false), pickingUpDown(false), movePointOnly(false),
       formulaMode(false)
@@ -1192,17 +1182,12 @@ Activity *TextSelect::Edit(text key)
         replace = true;
         if (!hasSelection())
             point = (key == "Delete") ? point+1 : point-1;
-        commitMessage = "Deleted text";
         direction = Mark;
     }
     else if (XL::Utf8Length(key) == 1)
     {
         replacement = key;
         replace = true;
-        if (hasSelection())
-            commitMessage = "Replaced text";
-        else
-            commitMessage = "Inserted text";
         direction = Mark;
     }
     else

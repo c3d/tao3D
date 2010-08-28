@@ -113,8 +113,8 @@ struct TextSelect : Identify
     bool                hasSelection()          { return mark != point; }
     void                updateSelection();
     bool                needsPositions()        { return direction >= Up; }
-    void                newLine();
-    void                newChar(uint id, coord x, bool selected);
+    void                processLineBreak();
+    void                processChar(uint id, coord x, bool selected, uint code);
 
 
     enum Direction      { None, Mark, Left, Right, Up, Down };

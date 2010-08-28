@@ -352,7 +352,7 @@ void TextSpan::DrawSelection(Layout *where)
                 coord charX = x + glyph.bounds.lower.x;
                 coord charY = y;
 
-                sel->newChar(charId, charX, charSelected);
+                sel->processChar(charId, charX, charSelected, unicode);
 
                 if (charSelected)
                 {
@@ -1315,7 +1315,7 @@ void TextSelect::updateSelection()
 }
 
 
-void TextSelect::newLine()
+void TextSelect::processLineBreak()
 // ----------------------------------------------------------------------------
 //   Mark the beginning of a new drawing line for Up/Down keys
 // ----------------------------------------------------------------------------
@@ -1324,13 +1324,14 @@ void TextSelect::newLine()
 }
 
 
-void TextSelect::newChar(uint charId, coord x, bool selected)
+void TextSelect::processChar(uint charId, coord x, bool selected, uint code)
 // ----------------------------------------------------------------------------
 //   Record a new character and deal with Up/Down keys
 // ----------------------------------------------------------------------------
 {
     bool up = direction == Up;
     bool down = direction == Down;
+    bool lineBreak = code == '\n';
     if (!up && !down)
     {
         if (selected && direction != None)
@@ -1347,9 +1348,9 @@ void TextSelect::newChar(uint charId, coord x, bool selected)
         if (down)
         {
             // Current best position
-            if (charId >= point)
+            if (charId > point)
             {
-                if (pickingUpDown)
+                if (pickingUpDown || x >= targetX || lineBreak)
                 {
                     // What we had was the best position
                     point = charId;
@@ -1374,7 +1375,7 @@ void TextSelect::newChar(uint charId, coord x, bool selected)
         {
             if (charId < point)
             {
-                if (pickingUpDown)
+                if (pickingUpDown || x >= targetX || lineBreak)
                     previous = charId; // We are at right of previous line
                 else
                     pickingUpDown = true;
@@ -1385,7 +1386,7 @@ void TextSelect::newChar(uint charId, coord x, bool selected)
     {
         if (down)
         {
-            if (pickingUpDown && x >= targetX)
+            if (pickingUpDown && (x >= targetX || lineBreak))
             {
                 // We found the best position candidate: stop here
                 point = charId;
@@ -1398,7 +1399,7 @@ void TextSelect::newChar(uint charId, coord x, bool selected)
         }
         else // Up
         {
-            if (pickingUpDown && charId < point && x >= targetX)
+            if (pickingUpDown && charId < point && (x >= targetX || lineBreak))
             {
                 // We found the best position candidate
                 previous = charId;

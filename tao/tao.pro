@@ -25,7 +25,7 @@ QT += webkit \
     phonon
 QMAKE_CFLAGS += -Werror
 QMAKE_CXXFLAGS += -Werror
-QMAKE_CXXFLAGS_RELEASE += -g
+QMAKE_CXXFLAGS_RELEASE += -g \$(CXXFLAGS_\$%)
 
 # Tell the XLR portion that we are building for Tao
 DEFINES += TAO \

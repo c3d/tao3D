@@ -126,6 +126,7 @@ struct TextSelect : Identify
     Box3                formulaBox;
     text                replacement;
     bool                replace;
+    bool                replaceInProgress;
     bool                textMode;
     bool                pickingLineEnds;
     bool                pickingUpDown;

@@ -344,7 +344,8 @@ void TextSpan::DrawSelection(Layout *where)
         if (sel && canSel)
         {
             // Mark characters in selection range
-            charSelected = charId >= sel->start() && charId <= sel->end();
+            charSelected = (sel->replaceInProgress ||
+                            (charId >= sel->start() && charId <= sel->end()));
 
             // Check up and down keys
             if (charSelected || sel->needsPositions())
@@ -413,7 +414,8 @@ void TextSpan::DrawSelection(Layout *where)
         if (max <= end)
         {
             charId++;
-            if (charId >= sel->start() && charId <= sel->end())
+            if (sel->replaceInProgress ||
+                (charId >= sel->start() && charId <= sel->end()))
             {
                 if (sel->replace)
                     PerformEditOperation(widget, i, next);
@@ -806,6 +808,8 @@ uint TextSpan::PerformEditOperation(Widget *widget, uint i, uint next)
     uint        length        = XL::Utf8Length(rpl);
     kstring     commitMessage = length ? "Inserted text" : "Deleted text";
     uint        eos           = i;
+
+    // Move the cursor to take into account this specific character
     if (sel->point != sel->mark)
     {
         if (length)
@@ -815,7 +819,12 @@ uint TextSpan::PerformEditOperation(Widget *widget, uint i, uint next)
             sel->point--;
         else
             sel->mark--;
+
+        // Indicate that a text replacement is in progress
+        sel->replaceInProgress = true;
     }
+
+    // Replace the text and move the cursor accordingly
     source->value.replace(i, eos-i, rpl);
     sel->replacement = "";
     sel->point += length;
@@ -823,6 +832,7 @@ uint TextSpan::PerformEditOperation(Widget *widget, uint i, uint next)
     if (sel->point == sel->mark)
     {
         sel->replace = false;
+        sel->replaceInProgress = false;
         widget->markChanged(commitMessage);
     }
 
@@ -1066,7 +1076,7 @@ TextSelect::TextSelect(Widget *w)
     : Identify("Text selection", w),
       mark(0), point(0), previous(0), last(0), textBoxId(0),
       direction(None), targetX(0),
-      replacement(""), replace(false),
+      replacement(""), replace(false), replaceInProgress(false),
       textMode(false),
       pickingLineEnds(false), pickingUpDown(false), movePointOnly(false),
       formulaMode(false)

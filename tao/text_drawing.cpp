@@ -380,7 +380,10 @@ void TextSpan::DrawSelection(Layout *where)
                             max--;
                         }
                         if (sel->point == sel->mark)
+                        {
                             sel->replace = false;
+                            widget->markChanged(sel->commitMessage);
+                        }
                     }
                     scale sd = glyph.scalingFactor * descent;
                     scale sh = glyph.scalingFactor * height;
@@ -452,7 +455,10 @@ void TextSpan::DrawSelection(Layout *where)
                         sel->point += length;
                         sel->mark += length;
                         if (sel->point == sel->mark)
+                        {
                             sel->replace = false;
+                            widget->markChanged(sel->commitMessage);
+                        }
                     }
                 }
                 scale sd = glyph.scalingFactor * descent;
@@ -1070,7 +1076,7 @@ TextSelect::TextSelect(Widget *w)
     : Identify("Text selection", w),
       mark(0), point(0), previous(0), last(0), textBoxId(0),
       direction(None), targetX(0),
-      replacement(""), replace(false),
+      commitMessage(""), replacement(""), replace(false),
       textMode(false),
       pickingLineEnds(false), pickingUpDown(false), movePointOnly(false),
       formulaMode(false)
@@ -1186,7 +1192,7 @@ Activity *TextSelect::Edit(text key)
         replace = true;
         if (!hasSelection())
             point = (key == "Delete") ? point+1 : point-1;
-        widget->markChanged("Deleted text");
+        commitMessage = "Deleted text";
         direction = Mark;
     }
     else if (XL::Utf8Length(key) == 1)
@@ -1194,9 +1200,9 @@ Activity *TextSelect::Edit(text key)
         replacement = key;
         replace = true;
         if (hasSelection())
-            widget->markChanged("Replaced text");
+            commitMessage = "Replaced text";
         else
-            widget->markChanged("Inserted text");
+            commitMessage = "Inserted text";
         direction = Mark;
     }
     else

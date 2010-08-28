@@ -123,6 +123,7 @@ struct TextSelect : Identify
     coord               targetX;
     Box3                selBox;
     Box3                formulaBox;
+    kstring             commitMessage;
     text                replacement;
     bool                replace;
     bool                textMode;

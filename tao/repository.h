@@ -91,7 +91,7 @@ public:
         Commit(QString id, QString msg = "", QString unixTime = "",
                QString author = ""): id(id), msg(msg),
                author(author)
-               { date = QDateTime().fromTime_t(unixTime.toUInt()); }
+               { if (!unixTime.isEmpty()) date = QDateTime().fromTime_t(unixTime.toUInt()); }
         Commit(const Commit &o): id(o.id), msg(o.msg), date(o.date),
                author(o.author) {}
         Commit& operator = (const Commit &o)

@@ -344,7 +344,8 @@ void TextSpan::DrawSelection(Layout *where)
         if (sel && canSel)
         {
             // Mark characters in selection range
-            charSelected = charId >= sel->start() && charId <= sel->end();
+            charSelected = (sel->replaceInProgress ||
+                            (charId >= sel->start() && charId <= sel->end()));
 
             // Check up and down keys
             if (charSelected || sel->needsPositions())
@@ -352,35 +353,18 @@ void TextSpan::DrawSelection(Layout *where)
                 coord charX = x + glyph.bounds.lower.x;
                 coord charY = y;
 
-                sel->newChar(charId, charX, charSelected);
+                sel->processChar(charId, charX, charSelected, unicode);
 
                 if (charSelected)
                 {
                     // Edit text in place if we have an editing request
                     if (sel->replace)
                     {
-                        text rpl = sel->replacement;
-                        uint eos = i;
-                        if (sel->point != sel->mark)
-                        {
-                            eos = next;
-                            if (sel->point > sel->mark)
-                                sel->point--;
-                            else
-                                sel->mark--;
-                        }
-                        source->value.replace(i, eos-i, rpl);
-                        sel->replacement = "";
-                        uint length = XL::Utf8Length(rpl);
-                        sel->point += length;
-                        sel->mark += length;
-                        if (!length)
+                        if (PerformEditOperation(widget, i, next) == 0)
                         {
                             next = i;
                             max--;
                         }
-                        if (sel->point == sel->mark)
-                            sel->replace = false;
                     }
                     scale sd = glyph.scalingFactor * descent;
                     scale sh = glyph.scalingFactor * height;
@@ -425,39 +409,23 @@ void TextSpan::DrawSelection(Layout *where)
         }
     }
 
-    if (sel && canSel && max <= end)
+    if (sel && canSel)
     {
-        charId++;
-        sel->last = charId;
-        if (charId >= sel->start() && charId <= sel->end())
+        if (max <= end)
         {
-            if (sel->replace)
+            charId++;
+            if (sel->replaceInProgress ||
+                (charId >= sel->start() && charId <= sel->end()))
             {
-                text rpl = sel->replacement;
-                if (rpl.length())
-                {
-                    uint eos = i;
-                    if (sel->point != sel->mark)
-                    {
-                        eos = next;
-                        if (sel->point > sel->mark)
-                            sel->point--;
-                        else
-                            sel->mark--;
-                    }
-                    source->value.replace(i, eos-i, rpl);
-                    sel->replacement = "";
-                    uint length = XL::Utf8Length(rpl);
-                    sel->point += length;
-                    sel->mark += length;
-                    if (sel->point == sel->mark)
-                        sel->replace = false;
-                }
+                if (sel->replace)
+                    PerformEditOperation(widget, i, next);
+                scale sd = glyph.scalingFactor * descent;
+                scale sh = glyph.scalingFactor * height;
+                sel->selBox |= Box3(x,y - sd,z, 1, sh, 0);
             }
-            scale sd = glyph.scalingFactor * descent;
-            scale sh = glyph.scalingFactor * height;
-            sel->selBox |= Box3(x,y - sd,z, 1, sh, 0);
         }
+
+        sel->last = charId;
     }
 
     where->offset = Point3(x, y, z);
@@ -830,6 +798,48 @@ scale TextSpan::TrailingSpaceSize(Layout *where)
 }
 
 
+uint TextSpan::PerformEditOperation(Widget *widget, uint i, uint next)
+// ----------------------------------------------------------------------------
+//   Perform text editing operations (insert, replace, ...)
+// ----------------------------------------------------------------------------
+{
+    TextSelect *sel           = widget->textSelection();
+    text        rpl           = sel->replacement;
+    uint        length        = XL::Utf8Length(rpl);
+    kstring     commitMessage = length ? "Inserted text" : "Deleted text";
+    uint        eos           = i;
+
+    // Move the cursor to take into account this specific character
+    if (sel->point != sel->mark)
+    {
+        if (length)
+            commitMessage = "Replaced text";
+        eos = next;
+        if (sel->point > sel->mark)
+            sel->point--;
+        else
+            sel->mark--;
+
+        // Indicate that a text replacement is in progress
+        sel->replaceInProgress = true;
+    }
+
+    // Replace the text and move the cursor accordingly
+    source->value.replace(i, eos-i, rpl);
+    sel->replacement = "";
+    sel->point += length;
+    sel->mark += length;
+    if (sel->point == sel->mark)
+    {
+        sel->replace = false;
+        sel->replaceInProgress = false;
+        widget->markChanged(commitMessage);
+    }
+
+    return length;
+}
+
+
 
 // ============================================================================
 //
@@ -1066,7 +1076,7 @@ TextSelect::TextSelect(Widget *w)
     : Identify("Text selection", w),
       mark(0), point(0), previous(0), last(0), textBoxId(0),
       direction(None), targetX(0),
-      replacement(""), replace(false),
+      replacement(""), replace(false), replaceInProgress(false),
       textMode(false),
       pickingLineEnds(false), pickingUpDown(false), movePointOnly(false),
       formulaMode(false)
@@ -1182,17 +1192,12 @@ Activity *TextSelect::Edit(text key)
         replace = true;
         if (!hasSelection())
             point = (key == "Delete") ? point+1 : point-1;
-        widget->markChanged("Deleted text");
         direction = Mark;
     }
     else if (XL::Utf8Length(key) == 1)
     {
         replacement = key;
         replace = true;
-        if (hasSelection())
-            widget->markChanged("Replaced text");
-        else
-            widget->markChanged("Inserted text");
         direction = Mark;
     }
     else
@@ -1311,7 +1316,7 @@ void TextSelect::updateSelection()
 }
 
 
-void TextSelect::newLine()
+void TextSelect::processLineBreak()
 // ----------------------------------------------------------------------------
 //   Mark the beginning of a new drawing line for Up/Down keys
 // ----------------------------------------------------------------------------
@@ -1320,13 +1325,14 @@ void TextSelect::newLine()
 }
 
 
-void TextSelect::newChar(uint charId, coord x, bool selected)
+void TextSelect::processChar(uint charId, coord x, bool selected, uint code)
 // ----------------------------------------------------------------------------
 //   Record a new character and deal with Up/Down keys
 // ----------------------------------------------------------------------------
 {
     bool up = direction == Up;
     bool down = direction == Down;
+    bool lineBreak = code == '\n';
     if (!up && !down)
     {
         if (selected && direction != None)
@@ -1343,9 +1349,9 @@ void TextSelect::newChar(uint charId, coord x, bool selected)
         if (down)
         {
             // Current best position
-            if (charId >= point)
+            if (charId > point)
             {
-                if (pickingUpDown)
+                if (pickingUpDown || x >= targetX || lineBreak)
                 {
                     // What we had was the best position
                     point = charId;
@@ -1370,7 +1376,7 @@ void TextSelect::newChar(uint charId, coord x, bool selected)
         {
             if (charId < point)
             {
-                if (pickingUpDown)
+                if (pickingUpDown || x >= targetX || lineBreak)
                     previous = charId; // We are at right of previous line
                 else
                     pickingUpDown = true;
@@ -1381,7 +1387,7 @@ void TextSelect::newChar(uint charId, coord x, bool selected)
     {
         if (down)
         {
-            if (pickingUpDown && x >= targetX)
+            if (pickingUpDown && (x >= targetX || lineBreak))
             {
                 // We found the best position candidate: stop here
                 point = charId;
@@ -1394,7 +1400,7 @@ void TextSelect::newChar(uint charId, coord x, bool selected)
         }
         else // Up
         {
-            if (pickingUpDown && charId < point && x >= targetX)
+            if (pickingUpDown && charId < point && (x >= targetX || lineBreak))
             {
                 // We found the best position candidate
                 previous = charId;

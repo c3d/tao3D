@@ -44,7 +44,7 @@ class Application : public QApplication
 
 public:
     Application(int & argc, char ** argv);
-    virtual ~Application();
+    virtual ~Application() {}
 
     void           internalCleanEverythingAsIfTaoWereNeverRun();
     static QString defaultProjectFolderPath();
@@ -68,8 +68,9 @@ protected:
     virtual bool   event(QEvent *e);
 
 protected slots:
+    void           cleanup();
     void           onOpenFinished(bool ok);
-#ifdef CONFIG_MACOSX
+#if defined (CONFIG_MACOSX) || defined (CONFIG_LINUX)
     void           simulateUserActivity();
 #endif
 
@@ -96,6 +97,10 @@ private:
     XL::Main *   xlr;
     QString      savedUri;
     bool         screenSaverBlocked;
+#if defined (CONFIG_LINUX)
+    Display *    xDisplay;
+    QString      ssHeartBeatCommand;
+#endif
 };
 
 #define TaoApp  ((Application *) qApp)

@@ -50,6 +50,7 @@ struct TextSpan : Shape
 protected:
     void                DrawDirect(Layout *where);
     void                DrawSelection(Layout *where);
+    uint                PerformEditOperation(Widget *w, uint i, uint next);
 
 public:
     Text_p              source;
@@ -113,8 +114,8 @@ struct TextSelect : Identify
     bool                hasSelection()          { return mark != point; }
     void                updateSelection();
     bool                needsPositions()        { return direction >= Up; }
-    void                newLine();
-    void                newChar(uint id, coord x, bool selected);
+    void                processLineBreak();
+    void                processChar(uint id, coord x, bool selected, uint code);
 
 
     enum Direction      { None, Mark, Left, Right, Up, Down };
@@ -125,6 +126,7 @@ struct TextSelect : Identify
     Box3                formulaBox;
     text                replacement;
     bool                replace;
+    bool                replaceInProgress;
     bool                textMode;
     bool                pickingLineEnds;
     bool                pickingUpDown;

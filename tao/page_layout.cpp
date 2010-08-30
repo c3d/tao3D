@@ -622,7 +622,7 @@ void PageLayout::DrawSelection(Layout *where)
         else
         {
             // Text selection: Draw the selection box
-            sel->newLine();
+            sel->processLineBreak();
             lineStart = widget->selectionCurrentId();
             XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
             child->DrawSelection(this);

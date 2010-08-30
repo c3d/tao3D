@@ -22,36 +22,23 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "remote_selection_frame.h"
-#include "ui_fetch_dialog.h"
-#include "repository.h"
-#include <QDialog>
-#include <QWidget>
+#include "fetch_push_dialog_base.h"
 
 namespace Tao {
 
-struct Repository;
-
-class FetchDialog : public QDialog, private Ui::FetchDialog
+class FetchDialog : public FetchPushDialogBase
 {
     Q_OBJECT
 
 public:
     FetchDialog(Repository *repo, QWidget *parent = 0);
 
-public:
-    QString      fetchUrl();
-
 public slots:
     virtual void accept();
-    void         on_rsFrame_noneSelected();
-    void         on_rsFrame_nameSelected();
 
 signals:
     void         fetched();
 
-private:
-    Repository * repo;
 };
 
 }

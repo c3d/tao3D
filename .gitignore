@@ -7,4 +7,5 @@ release/
 ui_*.h
 object_script.*.Release
 object_script.*.Debug
+.DS_Store
 /Makefile

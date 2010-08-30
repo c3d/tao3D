@@ -24,7 +24,7 @@
 #include "history_dialog.h"
 #include "repository.h"
 #include "ui_history_dialog.h"
-#include "commit_selection_combobox.h"
+#include "commit_table_widget.h"
 #include "tao_utf8.h"
 #include <QMessageBox>
 #include <QLineEdit>
@@ -42,20 +42,18 @@ HistoryDialog::HistoryDialog(Repository *repo, QWidget *parent)
     setupUi(this);
 
     connect(branchCombo, SIGNAL(branchSelected(QString)),
-            revCombo, SLOT(setBranch(QString)));
-    connect(revCombo, SIGNAL(commitSelected(Repository::Commit)),
-            this, SLOT(revCombo_commitSelected(Repository::Commit)));
+            tableView, SLOT(setBranch(QString)));
+    connect(tableView, SIGNAL(commitSelected(Repository::Commit)),
+            this, SLOT(tableView_commitSelected(Repository::Commit)));
 
-    revCombo->setMode(CommitSelectionComboBox::CSM_CommitId |
-                      CommitSelectionComboBox::CSM_CommitMsg);
-    revCombo->setRepository(repo);
+    tableView->setRepository(repo);
     branchCombo->setRepository(repo);
 }
 
 
-void HistoryDialog::revCombo_commitSelected(Repository::Commit commit)
+void HistoryDialog::tableView_commitSelected(Repository::Commit commit)
 // ----------------------------------------------------------------------------
-//    Update QLineEdit widget when commit is selected through combo box
+//    Update QLineEdit widget when a commit is selected through table view
 // ----------------------------------------------------------------------------
 {
     revEdit->setText(commit.id);

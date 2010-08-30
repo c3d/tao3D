@@ -39,7 +39,7 @@ SelectiveUndoDialog::SelectiveUndoDialog(Repository *repo, QWidget *parent)
                     "Undo to undo this change in the current document"));
     QPushButton *undoButton;
     undoButton = new QPushButton(tr("&Undo"));
-    buttonBox->addButton(undoButton, QDialogButtonBox::ActionRole);
+    buttonBox->addButton(undoButton, QDialogButtonBox::ApplyRole);
     connect(undoButton, SIGNAL(clicked()),
             this, SLOT(undoButton_clicked()));
 }

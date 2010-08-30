@@ -60,10 +60,9 @@ QString BranchSelectionComboBox::branch()
 //    The name of the currently selected branch (empty string if "<No branch>")
 // ----------------------------------------------------------------------------
 {
-    QString result;
-    if (currentIndex())
-        result = currentText();
-    return result;
+    if (itemData(currentIndex()).toInt() == CIK_None)
+        return "";
+    return currentText();
 }
 
 

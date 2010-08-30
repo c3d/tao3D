@@ -28,10 +28,10 @@
 #include "application.h"
 #include "tao_utf8.h"
 #include "pull_from_dialog.h"
-#include "publish_to_dialog.h"
+#include "push_dialog.h"
 #include "fetch_dialog.h"
 #include "merge_dialog.h"
-#include "revert_to_dialog.h"
+#include "checkout_dialog.h"
 #include "selective_undo_dialog.h"
 #include "clone_dialog.h"
 #include "branch_selection_toolbar.h"
@@ -69,7 +69,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
       contextFileNames(context), xlRuntime(xlr),
       repo(NULL), textEdit(NULL), errorMessages(NULL),
       dock(NULL), errorDock(NULL),
-      taoWidget(NULL), curFile(), uri(NULL),
+      taoWidget(NULL), curFile(), uri(NULL), slideShowMode(false),
       fileCheckTimer(this), splashScreen(NULL), aboutSplash(NULL),
       deleteOnOpenFailed(false)
 {
@@ -245,7 +245,9 @@ void Window::toggleAnimations()
 //   Toggle between full-screen and normal mode
 // ----------------------------------------------------------------------------
 {
-    taoWidget->enableAnimations(!taoWidget->hasAnimations());
+    bool enable = !taoWidget->hasAnimations();
+    taoWidget->enableAnimations(enable);
+    viewAnimationsAct->setChecked(enable);
 }
 
 
@@ -254,7 +256,9 @@ void Window::toggleStereoscopy()
 //   Toggle between full-screen and normal mode
 // ----------------------------------------------------------------------------
 {
-    taoWidget->enableStereoscopy(!taoWidget->hasStereoscopy());
+    bool enable = !taoWidget->hasStereoscopy();
+    taoWidget->enableStereoscopy(enable);
+    viewStereoscopyAct->setChecked(enable);
 }
 
 
@@ -719,7 +723,7 @@ void Window::setPullUrl()
     if (!repo)
         warnNoRepo();
 
-    PullFromDialog dialog(repo.data());
+    PullFromDialog dialog(repo.data(), this);
     if (dialog.exec())
         taoWidget->nextPull = taoWidget->now();
 }
@@ -733,21 +737,21 @@ void Window::fetch()
     if (!repo)
         return warnNoRepo();
 
-    FetchDialog dialog(repo.data());
+    FetchDialog dialog(repo.data(), this);
     connect(&dialog, SIGNAL(fetched()), branchToolBar, SLOT(refresh()));
     dialog.exec();
 }
 
 
-void Window::publish()
+void Window::push()
 // ----------------------------------------------------------------------------
-//    Prompt user for address of remote repository to publish to
+//    Prompt user for address of remote repository to push to
 // ----------------------------------------------------------------------------
 {
     if (!repo)
         return warnNoRepo();
 
-    PublishToDialog(repo.data()).exec();
+    PushDialog(repo.data(), this).exec();
 }
 
 
@@ -759,19 +763,19 @@ void Window::merge()
     if (!repo)
         return warnNoRepo();
 
-    MergeDialog(repo.data()).exec();
+    MergeDialog(repo.data(), this).exec();
 }
 
 
-void Window::revertTo()
+void Window::checkout()
 // ----------------------------------------------------------------------------
-//    Show a "Revert to" dialog
+//    Show a "Checkout" dialog
 // ----------------------------------------------------------------------------
 {
     if (!repo)
         return warnNoRepo();
 
-    RevertToDialog *dialog = new RevertToDialog(repo.data(), this);
+    CheckoutDialog *dialog = new CheckoutDialog(repo.data(), this);
     connect(dialog, SIGNAL(checkedOut(QString)),
             this, SLOT(reloadCurrentFile()));
     dialog->show();
@@ -954,11 +958,11 @@ void Window::createActions()
     setPullUrlAct->setEnabled(false);
     connect(setPullUrlAct, SIGNAL(triggered()), this, SLOT(setPullUrl()));
 
-    publishAct = new QAction(tr("Publish..."), this);
-    publishAct->setStatusTip(tr("Publish the current project to "
+    pushAct = new QAction(tr("Push..."), this);
+    pushAct->setStatusTip(tr("Push the current project to "
                                 "a specific path or URL"));
-    publishAct->setEnabled(false);
-    connect(publishAct, SIGNAL(triggered()), this, SLOT(publish()));
+    pushAct->setEnabled(false);
+    connect(pushAct, SIGNAL(triggered()), this, SLOT(push()));
 
     fetchAct = new QAction(tr("Fetch..."), this);
     fetchAct->setStatusTip(tr("Fetch data from a remote Tao project "
@@ -977,11 +981,11 @@ void Window::createActions()
     mergeAct->setEnabled(false);
     connect(mergeAct, SIGNAL(triggered()), this, SLOT(merge()));
 
-    revertToAct = new QAction(tr("Revert to..."), this);
-    revertToAct->setStatusTip(tr("Checkout a previous version of the document "
+    checkoutAct = new QAction(tr("Checkout..."), this);
+    checkoutAct->setStatusTip(tr("Checkout a previous version of the document "
                                  "into a temporary branch"));
-    revertToAct->setEnabled(false);
-    connect(revertToAct, SIGNAL(triggered()), this, SLOT(revertTo()));
+    checkoutAct->setEnabled(false);
+    connect(checkoutAct, SIGNAL(triggered()), this, SLOT(checkout()));
 
     selectiveUndoAct = new QAction(tr("Selective undo..."), this);
     selectiveUndoAct->setStatusTip(tr("Pick a previous change, revert it and "
@@ -1002,6 +1006,11 @@ void Window::createActions()
     fullScreenAct->setStatusTip(tr("Toggle full screen mode"));
     fullScreenAct->setCheckable(true);
     connect(fullScreenAct, SIGNAL(triggered()), this, SLOT(toggleFullScreen()));
+
+    slideShowAct = new QAction(tr("Slide show"), this);
+    slideShowAct->setStatusTip(tr("Toggle slide show mode"));
+    slideShowAct->setCheckable(true);
+    connect(slideShowAct, SIGNAL(triggered()), this, SLOT(toggleSlideShow()));
 
     viewAnimationsAct = new QAction(tr("Animations"), this);
     viewAnimationsAct->setStatusTip(tr("Switch animations on or off"));
@@ -1092,15 +1101,16 @@ void Window::createMenus()
     shareMenu->addAction(cloneAct);
     shareMenu->addAction(fetchAct);
     shareMenu->addAction(setPullUrlAct);
-    shareMenu->addAction(publishAct);
+    shareMenu->addAction(pushAct);
     shareMenu->addAction(mergeAct);
-    shareMenu->addAction(revertToAct);
+    shareMenu->addAction(checkoutAct);
     shareMenu->addAction(selectiveUndoAct);
 
     viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(dock->toggleViewAction());
     viewMenu->addAction(errorDock->toggleViewAction());
     viewMenu->addAction(fullScreenAct);
+    viewMenu->addAction(slideShowAct);
     viewMenu->addAction(viewAnimationsAct);
     if (XL::MAIN->options.enable_stereoscopy)
         viewMenu->addAction(viewStereoscopyAct);
@@ -1324,7 +1334,6 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     // make the current doc fail to execute if it uses e.g., [load "stuff.xl"]
     // to load a file from the project's directory.
     updateContext(docPath);
-    xlRuntime->LoadContextFiles(contextFileNames);
     bool hadError = updateProgram(fileName);
 
     QApplication::restoreOverrideCursor();
@@ -1358,9 +1367,35 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     }
     isUntitled = false;
     setCurrentFile(fileName);
+    if (XL::MAIN->options.slideshow)
+        switchToSlideShow();
     return true;
 }
 
+
+bool Window::toggleSlideShow()
+// ----------------------------------------------------------------------------
+//    Toggle between slide show and normal mode
+// ----------------------------------------------------------------------------
+{
+    return switchToSlideShow(!slideShowMode);
+}
+
+
+bool Window::switchToSlideShow(bool ss)
+// ----------------------------------------------------------------------------
+//    Enter or leave slide show mode
+// ----------------------------------------------------------------------------
+{
+    bool oldMode = slideShowMode;
+    showSourceView(!ss);
+    switchToFullScreen(ss);
+    taoWidget->autoHideCursor(NULL, ss);
+    TaoApp->blockScreenSaver(ss);
+    slideShowAct->setChecked(ss);
+    slideShowMode = ss;
+    return oldMode;
+}
 
 bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 // ----------------------------------------------------------------------------
@@ -1463,6 +1498,8 @@ bool Window::saveFile(const QString &fileName)
         return false;
     }
 
+    isUntitled = false;
+    setCurrentFile(fileName);
     statusBar()->showMessage(tr("Saving..."));
     // FIXME: can't call processEvent here, or the "Save with fonts..."
     // function fails to save all the fonts of a multi-page doc
@@ -1478,7 +1515,6 @@ bool Window::saveFile(const QString &fileName)
 
     text fn = +fileName;
 
-    setCurrentFile(fileName);
     xlRuntime->LoadFile(fn);
 
     showMessage(tr("File saved"), 2000);
@@ -1497,7 +1533,6 @@ bool Window::saveFile(const QString &fileName)
         sf.changed = false;
     }
     markChanged(false);
-    isUntitled = false;
 
     return true;
 }
@@ -1519,10 +1554,10 @@ void Window::enableProjectSharingMenus()
 // ----------------------------------------------------------------------------
 {
     setPullUrlAct->setEnabled(true);
-    publishAct->setEnabled(true);
+    pushAct->setEnabled(true);
     fetchAct->setEnabled(true);
     mergeAct->setEnabled(true);
-    revertToAct->setEnabled(true);
+    checkoutAct->setEnabled(true);
     selectiveUndoAct->setEnabled(true);
 }
 
@@ -1684,6 +1719,7 @@ void Window::switchToFullScreen(bool fs)
         removeToolBar(viewToolBar);
         removeToolBar(branchToolBar);
         statusBar()->hide();
+        menuBar()->hide();
         showFullScreen();
         taoWidget->showFullScreen();
     }
@@ -1691,6 +1727,7 @@ void Window::switchToFullScreen(bool fs)
     {
         showNormal();
         taoWidget->showNormal();
+        menuBar()->show();
         statusBar()->show();
         addToolBar(fileToolBar);
         addToolBar(editToolBar);
@@ -1702,6 +1739,7 @@ void Window::switchToFullScreen(bool fs)
         branchToolBar->show();
         setUnifiedTitleAndToolBarOnMac(true);
     }
+    fullScreenAct->setChecked(fs);
 }
 
 
@@ -1712,19 +1750,21 @@ bool Window::showSourceView(bool show)
 {
     bool old = dock->isVisible();
     dock->setVisible(show);
+    dock->toggleViewAction()->setChecked(show);
     return old;
 }
 
 
 QString Window::currentProjectFolderPath()
 // ----------------------------------------------------------------------------
-//    The folder to use in the "Save as..." dialog
+//    The folder to use in the "Save as..."/"Open File..." dialogs
 // ----------------------------------------------------------------------------
 {
     if (repo)
         return repo->path;
 
-    if ( !currentProjectFolder.isEmpty())
+    if ( !currentProjectFolder.isEmpty() &&
+         !isTutorial(curFile))
         return currentProjectFolder;
 
     return Application::defaultProjectFolderPath();
@@ -1797,7 +1837,7 @@ void Window::setCurrentFile(const QString &fileName)
     setWindowFilePath(curFile);
 
     // Update the recent file list
-    if (!isUntitled)
+    if (!isUntitled && !isTutorial(curFile))
     {
         IFTRACE(settings)
             std::cerr << "Adding " << +fileName << " to recent file list\n";
@@ -1824,6 +1864,17 @@ void Window::setCurrentFile(const QString &fileName)
                 mainWin->updateRecentFileActions();
         }
     }
+}
+
+
+bool Window::isTutorial(const QString &filePath)
+// ----------------------------------------------------------------------------
+//    Return true if the file currently loaded is the Tao tutorial
+// ----------------------------------------------------------------------------
+{
+    static QFileInfo tutorial("system:tutorial.ddd");
+    static QString tutoPath = tutorial.canonicalFilePath();
+    return (filePath == tutoPath);
 }
 
 
@@ -1859,7 +1910,12 @@ void Window::updateRecentFileActions()
     int numRecentFiles = qMin(files.size(), (int)MaxRecentFiles);
 
     for (int i = 0; i < numRecentFiles; ++i) {
-        QString text = tr("&%1 %2").arg(i + 1).arg(strippedName(files[i]));
+        QString nat = QDir::toNativeSeparators(files[i]);
+#ifdef CONFIG_MACOSX
+        QString text = nat;
+#else
+        QString text = tr("&%1 %2").arg(i + 1).arg(nat);
+#endif
         recentFileActs[i]->setText(text);
         recentFileActs[i]->setData(files[i]);
         recentFileActs[i]->setToolTip(files[i]);
@@ -1869,15 +1925,6 @@ void Window::updateRecentFileActions()
         recentFileActs[j]->setVisible(false);
 
     clearRecentAct->setEnabled(numRecentFiles > 0);
-}
-
-
-QString Window::strippedName(const QString &fullFileName)
-// ----------------------------------------------------------------------------
-//   Return the short name for a document (no directory name)
-// ----------------------------------------------------------------------------
-{
-    return QFileInfo(fullFileName).fileName();
 }
 
 

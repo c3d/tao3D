@@ -70,7 +70,7 @@ public:
     virtual bool        merge(text branch, ConflictResolution how = CR_Manual);
     virtual bool        reset(text commit = "");
     virtual bool        pull();
-    virtual bool        push(QString pushUrl);
+    virtual process_p   asyncPush(QString pushUrl);
     virtual bool        fetch(QString url);
     virtual QStringList remotes();
     virtual QString     remoteFetchUrl(QString name);
@@ -147,10 +147,12 @@ public:
             const QStringList &args = QStringList(),
             const QString &workingDirectory = "",
             bool  startImmediately = true,
-            size_t bufSize = 1024);
+            size_t bufSize = 1024)
+        : Process("", args, workingDirectory, startImmediately, bufSize) {};
     virtual ~GitAuthProcess() {};
 
     virtual void setEnvironment();
+    virtual void start();
 };
 
 }

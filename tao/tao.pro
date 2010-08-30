@@ -1,5 +1,5 @@
 # ******************************************************************************
-#  tao.pro                                                          Tao project
+# tao.pro                                                            Tao project
 # ******************************************************************************
 # File Description:
 # Main Qt build file for Tao
@@ -25,7 +25,7 @@ QT += webkit \
     phonon
 QMAKE_CFLAGS += -Werror
 QMAKE_CXXFLAGS += -Werror
-QMAKE_CXXFLAGS_RELEASE += -g
+QMAKE_CXXFLAGS_RELEASE += -g \$(CXXFLAGS_\$%)
 
 # Tell the XLR portion that we are building for Tao
 DEFINES += TAO \
@@ -35,13 +35,14 @@ macx {
     XLRDIR = Contents/MacOS
     ICON = tao.icns
     QMAKE_INFO_PLIST = Info.plist
-    QMAKE_CFLAGS += -mmacosx-version-min=10.5  # Avoid warning with font_file_manager_macos.mm
+    QMAKE_CFLAGS += -mmacosx-version-min=10.5 # Avoid warning with font_file_manager_macos.mm
 }
 win32:DEFINES += CONFIG_MINGW
 
-# For debug
-# win32:CONFIG += console
-linux-g++:DEFINES += CONFIG_LINUX
+linux-g++ {
+    DEFINES += CONFIG_LINUX
+    LIBS += -lXss
+}
 
 # Input
 HEADERS += widget.h \
@@ -115,7 +116,6 @@ HEADERS += widget.h \
     drag.h \
     pull_from_dialog.h \
     remote_selection_frame.h \
-    publish_to_dialog.h \
     undo.h \
     clone_dialog.h \
     ansi_textedit.h \
@@ -132,20 +132,22 @@ HEADERS += widget.h \
     merge_dialog.h \
     commit_selection_combobox.h \
     history_dialog.h \
-    revert_to_dialog.h \
     selective_undo_dialog.h \
     documentation.h \
     uri.h \
     open_uri_dialog.h \
-    new_document_wizard.h
+    new_document_wizard.h \
+    fetch_push_dialog_base.h \
+    commit_table_widget.h \
+    commit_table_model.h \
+    checkout_dialog.h \
+    push_dialog.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
     coords3d.cpp \
-    graphics.cpp \
     widget.cpp \
     window.cpp \
-    formulas.cpp \
     frame.cpp \
     svg.cpp \
     widget_surface.cpp \
@@ -192,14 +194,12 @@ SOURCES += tao_main.cpp \
     xlr/xlr/errors.cpp \
     xlr/xlr/context.cpp \
     xlr/xlr/compiler.cpp \
-    xlr/xlr/basics.cpp \
     xlr/xlr/types.cpp \
     xlr/xlr/diff.cpp \
     xlr/xlr/lcs.cpp \
     drag.cpp \
     pull_from_dialog.cpp \
     remote_selection_frame.cpp \
-    publish_to_dialog.cpp \
     undo.cpp \
     clone_dialog.cpp \
     ansi_textedit.cpp \
@@ -215,12 +215,21 @@ SOURCES += tao_main.cpp \
     merge_dialog.cpp \
     commit_selection_combobox.cpp \
     history_dialog.cpp \
-    revert_to_dialog.cpp \
     selective_undo_dialog.cpp \
     documentation.cpp \
     uri.cpp \
     open_uri_dialog.cpp \
-    new_document_wizard.cpp
+    new_document_wizard.cpp \
+    fetch_push_dialog_base.cpp \
+    commit_table_widget.cpp \
+    commit_table_model.cpp \
+    checkout_dialog.cpp \
+    push_dialog.cpp
+CXXTBL_SOURCES += \
+    graphics.cpp \
+    formulas.cpp \
+    xlr/xlr/basics.cpp
+
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \
@@ -269,13 +278,12 @@ xlr_support.files += $${OTHER_FILES}
 QMAKE_BUNDLE_DATA += xlr_support
 FORMS += pull_from_dialog.ui \
     remote_selection_frame.ui \
-    publish_to_dialog.ui \
     clone_dialog.ui \
     error_message_dialog.ui \
-    fetch_dialog.ui \
     merge_dialog.ui \
     history_dialog.ui \
-    open_uri_dialog.ui
+    open_uri_dialog.ui \
+    fetch_push_dialog.ui
 
 # Automatic embedding of Git version
 QMAKE_CLEAN += version.h
@@ -286,3 +294,11 @@ revtarget.depends = $$SOURCES \
     $$HEADERS \
     $$FORMS
 QMAKE_EXTRA_TARGETS += revtarget
+
+# Adding 'c++tbl' option with lowered optimization level
+c++tbl.output = ${QMAKE_FILE_BASE}.o
+c++tbl.commands = $(CXX) -c $(CXXFLAGS:-O2=-g) $(INCPATH) ${QMAKE_FILE_NAME} -o ${QMAKE_FILE_OUT}
+c++tbl.depend_command = $(CXX) -E -M ${QMAKE_FILE_NAME} | sed "s/^.*: //"
+c++tbl.input = CXXTBL_SOURCES
+QMAKE_EXTRA_COMPILERS += c++tbl
+

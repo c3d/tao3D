@@ -146,7 +146,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       zoom(1.0),
       eyeX(0.0), eyeY(0.0), eyeZ(Widget::zNear), eyeDistance(20.0),
       centerX(0.0), centerY(0.0), centerZ(0.0),
-      dragging(false)
+      dragging(false), bAutoHideCursor(false)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -429,7 +429,8 @@ void Widget::runProgram()
         id = idDepth = 0;
         space->Draw(NULL);
         IFTRACE(memory)
-            std::cerr << "Draw, count = " << space->count << "\n";
+            std::cerr << "Draw, count = " << space->count
+                      << " buffer " << (int) stereoscopic << '\n';
 
         id = idDepth = 0;
         selectionTrees.clear();
@@ -441,6 +442,7 @@ void Widget::runProgram()
         {
             stereoscopic = 3 - stereoscopic;
             setup(width(), height());
+            swapBuffers();
         }
     } while (stereoscopic == 2);
 
@@ -840,6 +842,16 @@ void Widget::showHandCursor(bool enabled)
         setCursor(Qt::OpenHandCursor);
     else
         setCursor(Qt::ArrowCursor);
+}
+
+
+void Widget::hideCursor()
+// ----------------------------------------------------------------------------
+//   Hide the mouse cursor if in auto-hide mode
+// ----------------------------------------------------------------------------
+{
+    if (bAutoHideCursor)
+        setCursor(Qt::BlankCursor);
 }
 
 
@@ -1628,6 +1640,13 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 {
     if (cursor().shape() == Qt::ClosedHandCursor)
         return doPanning(event);
+
+    if (cursor().shape() == Qt::BlankCursor)
+    {
+        setCursor(Qt::ArrowCursor);
+        if (bAutoHideCursor)
+            QTimer::singleShot(2000, this, SLOT(hideCursor()));
+    }
 
     TaoSave saveCurrent(current, this);
     EventSave save(this->w_event, event);
@@ -3365,7 +3384,7 @@ Tree_p Widget::refresh(Tree_p self, double delay)
 
 XL::Name_p Widget::showSource(XL::Tree_p self, bool show)
 // ----------------------------------------------------------------------------
-//   Switch to full screen
+//   Show or hide source code
 // ----------------------------------------------------------------------------
 {
     Window *window = (Window *) parentWidget();
@@ -3403,6 +3422,50 @@ XL::Name_p Widget::toggleHandCursor(XL::Tree_p self)
     bool isArrow = (cursor().shape() == Qt::ArrowCursor);
     showHandCursor(isArrow);
     return (!isArrow) ? XL::xl_true : XL::xl_false;
+}
+
+
+XL::Name_p Widget::toggleAutoHideCursor(XL::Tree_p self)
+// ----------------------------------------------------------------------------
+//   Toggle auto-hide cursor mode
+// ----------------------------------------------------------------------------
+{
+    return autoHideCursor(self, !bAutoHideCursor);
+}
+
+
+XL::Name_p Widget::autoHideCursor(XL::Tree_p self, bool ah)
+// ----------------------------------------------------------------------------
+//   Enable or disable auto-hiding of mouse cursor
+// ----------------------------------------------------------------------------
+{
+    bool oldAutoHide = bAutoHideCursor;
+    bAutoHideCursor = ah;
+    if (ah)
+        QTimer::singleShot(2000, this, SLOT(hideCursor()));
+    return oldAutoHide ? XL::xl_true : XL::xl_false;
+}
+
+
+XL::Name_p Widget::slideShow(XL::Tree_p self, bool ss)
+// ----------------------------------------------------------------------------
+//   Switch to slide show mode
+// ----------------------------------------------------------------------------
+{
+    Window *window = (Window *) parentWidget();
+    bool oldMode = window->switchToSlideShow(ss);
+    return oldMode ? XL::xl_true : XL::xl_false;
+}
+
+
+XL::Name_p Widget::toggleSlideShow(XL::Tree_p self)
+// ----------------------------------------------------------------------------
+//   Toggle slide show mode
+// ----------------------------------------------------------------------------
+{
+    Window *window = (Window *) parentWidget();
+    bool oldMode = window->toggleSlideShow();
+    return oldMode ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -7343,23 +7406,37 @@ Tree_p Widget::constant(Tree_p self, Tree_p tree)
     return tree;
 }
 
+
+
+// ============================================================================
+//
+//   Documentation generation
+//
+// ============================================================================
+
 Tree_p Widget::generateDoc(Tree_p /*self*/, Tree_p tree)
+// ----------------------------------------------------------------------------
+//   Generate documentation for a given tree
+// ----------------------------------------------------------------------------
 {
     ExtractDoc doc;
     return tree->Do(doc);
 
 }
 
-Text_p Widget::generateAllDoc(Tree_p self, text filename)
-{
-    XL::Main   *xlr            = XL::MAIN;
-    text com="";
 
-    Tree *t = NULL;
-    // documentation from the context files (*.xl)
+Text_p Widget::generateAllDoc(Tree_p self, text filename)
+// ----------------------------------------------------------------------------
+//   Generate documentation for all trees in the given file
+// ----------------------------------------------------------------------------
+{
+    XL::Main *xlr = XL::MAIN;
+    text      com = "";
+    Tree     *t   = NULL;
+
+    // Documentation from the context files (*.xl)
     XL::source_files::iterator couple;
-    for (couple = xlr->files.begin();
-         couple != xlr->files.end(); couple++ )
+    for (couple = xlr->files.begin(); couple != xlr->files.end(); couple++ )
     {
         XL::SourceFile src = couple->second;
         if (!src.tree) continue;
@@ -7367,8 +7444,8 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
         com += t->AsText()->value;
     }
 
-    // documentation from the primitives files (*.tbl)
-    XL::rewrite_table h = xlr->context->rewrites->hash;
+    // Documentation from the primitives files (*.tbl)
+    XL::rewrite_table &h = xlr->context->rewrites->hash;
     XL::rewrite_table::iterator i;
     for (i = h.begin(); i != h.end(); i++)
     {
@@ -7376,8 +7453,9 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
         t = generateDoc(self, tree);
         com += t->AsText()->value;
     }
+
     XL::symbol_table::iterator si;
-    XL::symbol_table names = XL::Context::context->names;
+    XL::symbol_table &names = XL::Context::context->names;
     for (si = names.begin(); si != names.end(); si++)
     {
         Tree * tree = si->second;
@@ -7393,11 +7471,15 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
             file.write(com.c_str());
         file.close();
     }
-    std::cerr << "\n=========================================================\n";
-    std::cerr << com << std::endl;
-    std::cerr << "=========================================================\n";
+    std::cerr
+        << "\n"
+        << "=========================================================\n"
+        << com << std::endl
+        << "=========================================================\n";
+
     return new Text(com, "", "");
 }
+
 
 
 // ============================================================================

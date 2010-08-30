@@ -47,6 +47,8 @@ main_chooser ->
     chooser_choice "Toggle full screen", {toggle_full_screen}
     chooser_choice "Enter full screen", {full_screen true}
     chooser_choice "Exit full screen", {full_screen false}
+    chooser_choice "Enter slide show", {slide_show true}
+    chooser_choice "Exit slide show", {slide_show false}
     chooser_choice "Print to 'toto.pdf'", {print "toto.pdf"}
     chooser_choice "Print to 'toto.svg'", {print "toto.svg"}
     chooser_choice "Print to 'toto.ps'", {print "toto.ps"}

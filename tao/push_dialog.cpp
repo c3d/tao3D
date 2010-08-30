@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  fetch_dialog.cpp                                               Tao project
+//  publish_to_dialog.cpp                                          Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    The class to display the "Fetch" dialog box
+//    The class to display the "Publish to" dialog box
 //
 //
 //
@@ -22,7 +22,7 @@
 
 #include "tao.h"
 #include "tao_utf8.h"
-#include "fetch_dialog.h"
+#include "push_dialog.h"
 #include "remote_selection_frame.h"
 #include "repository.h"
 #include <QInputDialog>
@@ -32,28 +32,28 @@
 
 namespace Tao {
 
-FetchDialog::FetchDialog(Repository *repo, QWidget *parent)
+PushDialog::PushDialog(Repository *repo, QWidget *parent)
 // ----------------------------------------------------------------------------
 //    Create a "remote" selection box for the given repository
 // ----------------------------------------------------------------------------
     : FetchPushDialogBase(repo, parent)
 {
-    setWindowTitle(tr("Fetch"));
+    setWindowTitle(tr("Push"));
     chooseRemoteLabel->setText(tr("Choose the remote project you want to "
-                                  "fetch from:"));
-    rsFrame->setRepository(repo, repo->lastFetchUrl);
-    rsFrame->setRole(RemoteSelectionFrame::RSF_Fetch);
+                                  "push to:"));
+    rsFrame->setRepository(repo, repo->lastPublishTo);
+    rsFrame->setRole(RemoteSelectionFrame::RSF_Push);
 }
 
 
-void FetchDialog::accept()
+void PushDialog::accept()
 // ----------------------------------------------------------------------------
-//    Fetch from the previously chosen remote
+//    Publish the current project to the previously chosen remote
 // ----------------------------------------------------------------------------
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    proc = repo->asyncFetch(repo->lastFetchUrl = Url());
+    proc = repo->asyncPush(repo->lastPublishTo = Url());
     if (!proc)
         return;
     connectSignalsAndSlots();

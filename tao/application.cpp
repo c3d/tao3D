@@ -44,6 +44,16 @@
 #include <QDir>
 #include <QDebug>
 #include <QtWebKit>
+#include <QProcessEnvironment>
+
+#if defined(CONFIG_MINGW)
+#include <windows.h>
+#elif defined(CONFIG_MACOSX)
+extern "C" void UpdateSystemActivity(uint8_t);
+#define UsrActivity 1
+#elif defined(CONFIG_LINUX)
+#include <X11/extensions/scrnsaver.h>
+#endif
 
 TAO_BEGIN
 
@@ -53,7 +63,7 @@ Application::Application(int & argc, char ** argv)
 //    Build the Tao application
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false), splash(NULL),
-      pendingOpen(0), xlr(NULL)
+      pendingOpen(0), xlr(NULL), screenSaverBlocked(false)
 {
     // Set some useful parameters for the application
     setApplicationName ("Tao");
@@ -145,6 +155,16 @@ Application::Application(int & argc, char ** argv)
 
     loadSettings();
 
+    // The aboutToQuit signal is the recommended way for cleaning things up
+    connect(this, SIGNAL(aboutToQuit()), this, SLOT(cleanup()));
+
+#if defined (CONFIG_LINUX)
+    xDisplay = XOpenDisplay(NULL);
+    Q_ASSERT(xDisplay);
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    ssHeartBeatCommand = env.value("TAO_SS_HEARTBEAT_CMD");
+#endif
+
     // We're ready to go
     XL::MAIN = this->xlr = xlr;
     if (!savedUri.isEmpty())
@@ -152,12 +172,14 @@ Application::Application(int & argc, char ** argv)
 }
 
 
-Application::~Application()
+void Application::cleanup()
 // ----------------------------------------------------------------------------
-//   Save user settings when we quit the application
+//   Perform last-minute cleanup before application exit
 // ----------------------------------------------------------------------------
 {
     saveSettings();
+    if (screenSaverBlocked)
+        blockScreenSaver(false);
 }
 
 
@@ -300,6 +322,90 @@ void Application::onOpenFinished(bool ok)
     }
 }
 
+
+void Application::blockScreenSaver(bool block)
+// ----------------------------------------------------------------------------
+//   Disable screen saver or restore it to previous state
+// ----------------------------------------------------------------------------
+{
+    // Preventing the screen saver from running is system-specific.
+    // Unfortunately, Qt provides no interface for this.
+    //
+    // MacOSX
+    //   Simulate activity by calling UpdateSystemActivity(UsrActivity)
+    //   periodically (every 30s).
+    //
+    // Windows
+    //   There is one function call to disable the screen saver, another one
+    //   to enable it.
+    //
+    // Linux
+    //   The technique depends on the screen saver being used. Here is what we
+    //   do to prevent the screen saver from running:
+    //     1. Call (once) the XSS API: XScreenSaverSuspend
+    //     2. Periodically call the Xlib API: XResetScreenSaver
+    //     3. Periodically execute the command given in the
+    //        TAO_SS_HEARTBEAT_CMD environment variable, if defined.
+    //   Therefore, all screen savers that support the Xlib or XSS APIs are
+    //   automatically disabled. For other screen savers you will have to
+    //   define TAO_SS_HEARTBEAT_CMD.
+    //     * Example for Gnome:
+    //         TAO_SS_HEARTBEAT_CMD="gnome-screensaver-command -p"
+    //     * Example for xscreensaver:
+    //         TAO_SS_HEARTBEAT_CMD="xscreensaver-command -deactivate"
+
+    if (block && screenSaverBlocked)
+        return;
+
+    screenSaverBlocked = block;
+    if (block)
+    {
+#if   defined(CONFIG_MACOSX)
+        QTimer::singleShot(30000, this, SLOT(simulateUserActivity()));
+#elif defined(CONFIG_MINGW)
+        SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, FALSE, 0, 0);
+#elif defined(CONFIG_LINUX)
+        XScreenSaverSuspend(xDisplay, True);
+        QTimer::singleShot(30000, this, SLOT(simulateUserActivity()));
+#endif
+    }
+    else
+    {
+#if   defined(CONFIG_MACOSX)
+        // Nothing
+#elif defined(CONFIG_MINGW)
+        // CHECKTHIS: I suspect we should do this only if screen saver
+        // was enabled when we disabled it. But this looks fundamentally
+        // flawed: what if several apps do this at the same time?
+        SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE, 0, 0);
+#elif defined(CONFIG_LINUX)
+        XScreenSaverSuspend(xDisplay, False);
+#endif
+    }
+}
+
+
+#if defined (CONFIG_MACOSX) || defined (CONFIG_LINUX)
+
+void Application::simulateUserActivity()
+// ----------------------------------------------------------------------------
+//   Simulate user activity so that screensaver won't kick in
+// ----------------------------------------------------------------------------
+{
+    if (!screenSaverBlocked)
+        return;
+
+#if defined (CONFIG_MACOSX)
+    UpdateSystemActivity(UsrActivity);
+#elif defined (CONFIG_LINUX)
+    XResetScreenSaver(xDisplay);
+    if (!ssHeartBeatCommand.isEmpty())
+        QProcess::execute(ssHeartBeatCommand);
+#endif
+    QTimer::singleShot(30000, this, SLOT(simulateUserActivity()));
+}
+
+#endif
 
 static void printSearchPath(QString prefix)
 // ----------------------------------------------------------------------------

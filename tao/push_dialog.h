@@ -1,12 +1,12 @@
-#ifndef PUBLISH_TO_DIALOG_H
-#define PUBLISH_TO_DIALOG_H
+#ifndef PUSH_DIALOG_H
+#define PUSH_DIALOG_H
 // ****************************************************************************
-//  publish_to_dialog.h                                            Tao project
+//  push_dialog.h                                                  Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    The class to display the "Publish to" dialog box
+//    The class to display the "Push" dialog box
 //
 //
 //
@@ -22,35 +22,21 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "remote_selection_frame.h"
-#include "ui_publish_to_dialog.h"
-#include "repository.h"
-#include <QDialog>
-#include <QWidget>
+#include "fetch_push_dialog_base.h"
 
 namespace Tao {
 
-struct Repository;
-
-class PublishToDialog : public QDialog, private Ui::PublishToDialog
+class PushDialog : public FetchPushDialogBase
 {
     Q_OBJECT
 
 public:
-    PublishToDialog(Repository *repo, QWidget *parent = 0);
-
-public:
-    QString      pushTo();
+    PushDialog(Repository *repo, QWidget *parent = 0);
 
 public slots:
     virtual void accept();
-    void         on_rsFrame_noneSelected();
-    void         on_rsFrame_nameSelected();
-
-private:
-    Repository * repo;
 };
 
 }
 
-#endif // PUBLISH_TO_DIALOG_H
+#endif // PUSH_DIALOG_H

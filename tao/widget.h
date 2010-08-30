@@ -115,6 +115,7 @@ public slots:
     void        enableAnimations(bool enable);
     void        enableStereoscopy(bool enable);
     void        showHandCursor(bool enabled);
+    void        hideCursor();
     void        resetView();
     void        saveAndCommit();
 
@@ -296,7 +297,11 @@ public:
     Name_p      showSource(Tree_p self, bool show);
     Name_p      fullScreen(Tree_p self, bool fs);
     Name_p      toggleFullScreen(Tree_p self);
+    Name_p      slideShow(XL::Tree_p self, bool ss);
+    Name_p      toggleSlideShow(Tree_p self);
     Name_p      toggleHandCursor(Tree_p self);
+    Name_p      autoHideCursor(XL::Tree_p self, bool autoHide);
+    Name_p      toggleAutoHideCursor(XL::Tree_p self);
     Name_p      resetView(Tree_p self);
     Name_p      panView(Tree_p self, coord dx, coord dy);
     Real_p      currentZoom(Tree_p self);
@@ -692,6 +697,7 @@ private:
     double                centerX, centerY, centerZ;
     int                   panX, panY;
     bool                  dragging;
+    bool                  bAutoHideCursor;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:

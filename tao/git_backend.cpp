@@ -621,7 +621,7 @@ bool GitRepository::cherryPick(text id)
 
 void GitRepository::computePercentComplete()
 // ----------------------------------------------------------------------------
-//   Extract % complete from the text output of a clone or fetch process
+//   Extract % complete from the text output of a clone/fetch/push process
 // ----------------------------------------------------------------------------
 {
     Process *cmd = (Process *)sender();
@@ -630,6 +630,10 @@ void GitRepository::computePercentComplete()
     int percent = -1;
     do
     {
+        // The percent points allocated to each of the 3 phases below
+        // (compressing, receiving, resolving).
+        // Phases #1 and #3 are typically much faster than #2 so we give them
+        // less weight.
         int p1 = 5, p2 = 94, p3 = 1;
         QString str = cmd->err.mid(pos);
         QRegExp rx1("Compressing objects: +([0-9]*)%");
@@ -690,10 +694,6 @@ void GitRepository::asyncProcessFinished(int exitCode, QProcess::ExitStatus st)
     {
         if (!cmd->out.contains("Already up-to-date"))
             emit asyncPullComplete();
-    }
-    else if (op == "fetch")
-    {
-        emit asyncFetchComplete(cmd->id);
     }
 }
 
@@ -847,7 +847,7 @@ bool GitRepository::pull()
 }
 
 
-bool GitRepository::push(QString pushUrl)
+process_p GitRepository::asyncPush(QString pushUrl)
 // ----------------------------------------------------------------------------
 //   Push to a remote
 // ----------------------------------------------------------------------------
@@ -855,9 +855,17 @@ bool GitRepository::push(QString pushUrl)
     waitForAsyncProcessCompletion();
     text branch = this->branch();
     QStringList args("push");
-    args << pushUrl;
-    GitAuthProcess cmd(args << +branch, path);
-    return cmd.done(&errors);
+    args << pushUrl << +branch;
+    GitAuthProcess * proc = new GitAuthProcess(args, path, false);
+    connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
+            this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
+
+    // Track % complete by reading stderr
+    connect(proc, SIGNAL(standardErrorUpdated(QByteArray)),
+            this, SLOT  (computePercentComplete()));
+    connect(this, SIGNAL(percentComplete(int)),
+            proc, SIGNAL(percentComplete(int)));  // signal forwarding
+    return process_p(proc);
 }
 
 
@@ -986,7 +994,7 @@ QList<GitRepository::Commit> GitRepository::history(QString branch, int max)
 //   If branch == "", the current branch is used
 {
     QStringList args;
-    args << "log" << "--pretty=format:%h:%s";
+    args << "log" << "--pretty=format:%h/%at/%an/%s";
     args << "-n" << QString("%1").arg(max);
     if (!branch.isEmpty())
         args << branch;
@@ -998,12 +1006,12 @@ QList<GitRepository::Commit> GitRepository::history(QString branch, int max)
     QList<Commit>       result;
     QStringList         log = (+output).split("\n");
     QStringListIterator it(log);
-    QRegExp             rx("([^:]+):(.*)");
+    QRegExp             rx("([^/]+)/([0-9]+)/([^/]+)/(.*)");
 
     while (it.hasNext())
         if (rx.indexIn(it.next()) != -1)
-            result.prepend(Repository::Commit(rx.cap(1), rx.cap(2)));
-
+            result.prepend(Repository::Commit(rx.cap(1), rx.cap(4),
+                                              rx.cap(2), rx.cap(3)));
     return result;
 }
 
@@ -1017,7 +1025,10 @@ process_p GitRepository::asyncClone(QString cloneUrl, QString newFolder)
     args << "clone" << "--progress" << cloneUrl;
     if (!newFolder.isEmpty())
         args << newFolder;
-    GitAuthProcess * proc = new GitAuthProcess(args, "", false);
+    QString wd = path;
+    if (!QFileInfo(wd).exists())
+        wd = "";
+    GitAuthProcess * proc = new GitAuthProcess(args, wd, false);
     connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
             this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
 
@@ -1122,35 +1133,45 @@ bool GitRepository::gc()
 }
 
 
-GitAuthProcess::GitAuthProcess(
-        const QStringList &args,
-        const QString &wd,
-        bool  startImmediately,
-        size_t bufSize):
-    Process(bufSize)
+void GitAuthProcess::start()
 // ----------------------------------------------------------------------------
-//    Construct a process object for commands that may need authentication
+//   Start child process
 // ----------------------------------------------------------------------------
 {
-    this->wd = wd;
+    setWd(wd);
+    setEnvironment();
 
-    // Here, 'cmd' is the path to the Git command, and 'args' are the Git
-    // arguments. For instance: "/usr/bin/git fetch remote_name"
+    // Here, 'this->cmd' is the path to the Git command, and 'this>args' are
+    // the Git arguments. For instance: "/usr/bin/git fetch remote_name"
     // On Windows we MUST exec Git through the detach.exe wrapper (the source
     // code explains why -- see detach/main.cpp).
     // So, we want a command line like:
     // "C:\some\path\to\detach.exe C:\some\path\to\git.exe fetch remote_name"
-    this->args = args;
+    QStringList args = this->args;
+    QString cmd;
 #ifdef CONFIG_MINGW
-    this->cmd = GitRepository::detachCommand;
-    this->args.prepend(GitRepository::gitCommand);
+    cmd = GitRepository::detachCommand;
+    args.prepend(GitRepository::gitCommand);
 #else
-    this->cmd = GitRepository::gitCommand;
+    cmd = GitRepository::gitCommand;
 #endif
 
-    if (startImmediately)
-        start();
-};
+    IFTRACE(process)
+    {
+        QString commandLine = "{" + cmd;
+        foreach (QString a, args)
+            commandLine += "} {" + a;
+        commandLine += "}";
+        QString dir = workingDirectory();
+        if (dir.isEmpty())
+            dir = "<not set>";
+        std::cerr << "Process " << num << ": " << +commandLine
+                  << " (wd " << +dir << ")\n";
+    }
+
+    startTime.start();
+    QProcess::start(cmd, args);
+}
 
 
 void GitAuthProcess::setEnvironment()

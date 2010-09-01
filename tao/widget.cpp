@@ -7463,7 +7463,8 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
     }
 
     // Documentation from the primitives files (*.tbl)
-    XL::rewrite_table &h = xlr->context->rewrites->hash;
+    XL::Symbols *globals = xlr->globals;
+    XL::rewrite_table &h = globals->rewrites->hash;
     XL::rewrite_table::iterator i;
     for (i = h.begin(); i != h.end(); i++)
     {
@@ -7473,7 +7474,7 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
     }
 
     XL::symbol_table::iterator si;
-    XL::symbol_table &names = XL::Context::context->names;
+    XL::symbol_table &names = globals->names;
     for (si = names.begin(); si != names.end(); si++)
     {
         Tree * tree = si->second;

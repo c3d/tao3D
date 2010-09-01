@@ -42,12 +42,12 @@ using namespace XL;
 #include "graphics.tbl"
 
 
-void EnterGraphics(XL::Context *c)
+void EnterGraphics(XL::Symbols *c)
 // ----------------------------------------------------------------------------
 //   Enter all the basic operations defined in graphics.tbl
 // ----------------------------------------------------------------------------
 {
-    XL::Compiler *compiler = c->compiler;
+    XL::Compiler *compiler = MAIN->compiler;
 #include "opcodes_define.h"
 #include "graphics.tbl"
 }

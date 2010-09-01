@@ -97,10 +97,10 @@ Application::Application(int & argc, char ** argv)
     QFileInfo stylesheet("system:xl.stylesheet");
     QFileInfo builtins  ("system:builtins.xl");
     XL::Compiler *compiler = new XL::Compiler("xl_tao");
-    XL::Main * xlr = new XL::Main(argc, argv, *compiler,
-                       +syntax.canonicalFilePath(),
-                       +stylesheet.canonicalFilePath(),
-                       +builtins.canonicalFilePath());
+    XL::Main * xlr = new XL::Main(argc, argv, compiler,
+                                  +syntax.canonicalFilePath(),
+                                  +stylesheet.canonicalFilePath(),
+                                  +builtins.canonicalFilePath());
 
     // Web settings
     QWebSettings *gs = QWebSettings::globalSettings();
@@ -193,7 +193,7 @@ bool Application::processCommandLine()
     QFileInfo theme     ("xl:theme.xl");
     QFileInfo tutorial  ("system:tutorial.ddd");
 
-    EnterGraphics(xlr->context);
+    EnterGraphics(xlr->globals);
     if (user.exists())
         contextFiles.push_back(+user.canonicalFilePath());
     if (theme.exists())

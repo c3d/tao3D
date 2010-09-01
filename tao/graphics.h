@@ -37,7 +37,7 @@
 // ============================================================================
 
 // Top-level entry point: enter all basic operations in the context
-void EnterGraphics(XL::Context *context);
+void EnterGraphics(XL::Symbols *context);
 
 // Top-level entry point: reset all global pointers related to graphics
 void DeleteGraphics();

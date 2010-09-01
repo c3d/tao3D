@@ -29,6 +29,7 @@
 #include "runtime.h"
 #include "basics.h"
 #include "widget.h"
+#include "main.h"
 #include <iostream>
 
 
@@ -46,7 +47,7 @@ void EnterFormulas(XL::Symbols *c)
 //   Enter all the operations defined in formulas.tbl
 // ----------------------------------------------------------------------------
 {
-    XL::Compiler *compiler = XL::Context::context->compiler;
+    XL::Compiler *compiler = MAIN->compiler;
 #include "opcodes_define.h"
 #include "formulas.tbl"
 }

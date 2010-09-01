@@ -176,6 +176,7 @@ public:
     bool        set(Tree *shape, text n, attribute_args &a,
                     text sh = "group,shape");
     void        setSourceRenderer();
+    bool        isReadOnly();
 
     // Timing
     ulonglong   now();

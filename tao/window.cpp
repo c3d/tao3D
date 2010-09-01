@@ -1153,6 +1153,8 @@ void Window::createToolBars()
     branchToolBar = new BranchSelectionToolBar(tr("Branch selection"));
     connect(this, SIGNAL(projectChanged(Repository*)),
             branchToolBar, SLOT(setRepository(Repository*)));
+    connect(this, SIGNAL(projectChanged(Repository*)),
+            this, SLOT(checkDetachedHead()));
     connect(branchToolBar, SIGNAL(checkedOut(QString)),
             this, SLOT(reloadCurrentFile()));
     addToolBar(branchToolBar);
@@ -1289,6 +1291,19 @@ void Window::showMessage(QString message, int timeout)
     else
         statusBar()->showMessage(message, timeout);
     QApplication::processEvents();
+}
+
+
+void Window::setReadOnly(bool ro)
+// ----------------------------------------------------------------------------
+//    Switch document to read-only or read-write mode
+// ----------------------------------------------------------------------------
+{
+    isReadOnly = ro;
+    textEdit->setReadOnly(ro);
+    pushAct->setEnabled(!ro);
+    mergeAct->setEnabled(!ro);
+    selectiveUndoAct->setEnabled(!ro);
 }
 
 
@@ -1673,6 +1688,8 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
                 emit projectChanged(repo.data());   // REVISIT projectUrlChanged
             connect(repo.data(), SIGNAL(branchChanged(QString)),
                     branchToolBar, SLOT(refresh()));
+            connect(repo.data(), SIGNAL(branchChanged(QString)),
+                    this, SLOT(checkDetachedHead()));
         }
     }
 
@@ -1980,5 +1997,16 @@ void Window::reloadCurrentFile()
     loadFile(curFile, false);
 }
 
-TAO_END
 
+void Window::checkDetachedHead()
+// ----------------------------------------------------------------------------
+//    Prevent document changes when current head is detached
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+        return;
+    setReadOnly(repo->branch() == "");
+}
+
+
+TAO_END

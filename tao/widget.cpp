@@ -2482,6 +2482,16 @@ bool Widget::set(Tree *shape, text name, attribute_args &args, text topName)
 }
 
 
+bool Widget::isReadOnly()
+// ----------------------------------------------------------------------------
+//   Is document currently flagged read-only?
+// ----------------------------------------------------------------------------
+{
+    Window *window = (Window *)parentWidget();
+    return window->isReadOnly;
+}
+
+
 
 // ============================================================================
 //

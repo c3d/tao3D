@@ -143,9 +143,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       nextPull(nextSave),
       sourceRenderer(NULL),
       currentFileDialog(NULL),
-      zoom(1.0),
-      eyeX(0.0), eyeY(0.0), eyeZ(Widget::zNear), eyeDistance(20.0),
-      centerX(0.0), centerY(0.0), centerZ(0.0),
+      zoom(1.0), eyeDistance(20.0),
+      eye(0.0, 0.0, Widget::zNear), viewCenter(0.0, 0.0, 0.0),
       dragging(false), bAutoHideCursor(false)
 {
     // Make sure we don't fill background with crap
@@ -861,12 +860,12 @@ void Widget::resetView()
 // ----------------------------------------------------------------------------
 {
     zoom = 1.0;
-    eyeX = 0.0;
-    eyeY = 0.0;
-    eyeZ = Widget::zNear;
-    centerX = 0.0;
-    centerY = 0.0;
-    centerZ = 0.0;
+    eye.x = 0.0;
+    eye.y = 0.0;
+    eye.z = Widget::zNear;
+    viewCenter.x = 0.0;
+    viewCenter.y = 0.0;
+    viewCenter.z = 0.0;
     setup(width(), height());
     updateGL();
 }
@@ -991,15 +990,17 @@ void Widget::setup(double w, double h, const Box *picking)
 
     // Setup the frustum for the projection
     double zNear = Widget::zNear, zFar = Widget::zFar;
-    double upX = 0.0, upY = 1.0, upZ = 0.0;
-    double eyeX = this->eyeX;
+    Point3 up(0.0, 1.0, 0.0);
+    double eyeX = eye.x;
     if (stereoscopic == 1)
         eyeX += eyeDistance;
     else if (stereoscopic == 2)
         eyeX -= eyeDistance;
 
     glFrustum ((-w/2)*zoom, (w/2)*zoom, (-h/2)*zoom, (h/2)*zoom, zNear, zFar);
-    gluLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+    gluLookAt(eyeX, eye.y, eye.z,
+              viewCenter.x,viewCenter.y,viewCenter.z,
+              up.x,up.y,up.z);
     glTranslatef(0.0, 0.0, -zNear);
     glScalef(2.0, 2.0, 2.0);
 
@@ -1759,10 +1760,10 @@ void Widget::doPanning(QMouseEvent *event)
     dx = x - panX;
     dy = y - panY;
 
-    eyeX -= 2*dx*zoom;
-    eyeY += 2*dy*zoom;
-    centerX -= 2*dx*zoom;
-    centerY += 2*dy*zoom;
+    eye.x -= 2*dx*zoom;
+    eye.y += 2*dy*zoom;
+    viewCenter.x -= 2*dx*zoom;
+    viewCenter.y += 2*dy*zoom;
 
     panX = x;
     panY = y;
@@ -3484,10 +3485,10 @@ XL::Name_p Widget::panView(Tree_p self, coord dx, coord dy)
 //   Pan the current view by the current amount
 // ----------------------------------------------------------------------------
 {
-    eyeX += dx;
-    eyeY += dy;
-    centerX += dx;
-    centerY += dy;
+    eye.x += dx;
+    eye.y += dy;
+    viewCenter.x += dx;
+    viewCenter.y += dy;
 
     setup(width(), height());
     updateGL();
@@ -3525,7 +3526,7 @@ Infix_p Widget::currentEyePosition(Tree_p self)
 //   Return the current eye position
 // ----------------------------------------------------------------------------
 {
-    return new Infix(",", new Real(eyeX), new Real(eyeY));
+    return new Infix(",", new Real(eye.x), new Real(eye.y));
 }
 
 
@@ -3534,8 +3535,8 @@ Name_p Widget::setEyePosition(Tree_p self, coord x, coord y)
 //   Set the eye position and update view
 // ----------------------------------------------------------------------------
 {
-    eyeX = x;
-    eyeY = y;
+    eye.x = x;
+    eye.y = y;
     setup(width(), height());
     updateGL();
     return XL::xl_true;
@@ -3547,7 +3548,7 @@ Infix_p Widget::currentCenterPosition(Tree_p self)
 //   Return the current center position
 // ----------------------------------------------------------------------------
 {
-    return new Infix(",", new Real(centerX), new Real(centerY));
+    return new Infix(",", new Real(viewCenter.x), new Real(viewCenter.y));
 }
 
 
@@ -3556,8 +3557,8 @@ Name_p Widget::setCenterPosition(Tree_p self, coord x, coord y)
 //   Set the center position and update view
 // ----------------------------------------------------------------------------
 {
-    centerX = x;
-    centerY = y;
+    viewCenter.x = x;
+    viewCenter.y = y;
     setup(width(), height());
     updateGL();
     return XL::xl_true;
@@ -5456,6 +5457,8 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
     {
         GLAllStateKeeper saveGL;
         XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
+        XL::LocalSave<Point3> saveCenter(viewCenter, Point3());
+        XL::LocalSave<Point3> saveEye(eye, Point3(0,0,Widget::zNear));
 
         // Clear the background and setup initial state
         frame->resize(w,h);

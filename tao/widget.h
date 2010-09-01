@@ -692,9 +692,8 @@ private:
     static QFileDialog *  fileDialog;
            QFileDialog *  currentFileDialog;
     static double         zNear, zFar;
-    double                zoom;
-    double                eyeX, eyeY, eyeZ, eyeDistance;
-    double                centerX, centerY, centerZ;
+    double                zoom, eyeDistance;
+    Point3                eye, viewCenter;
     int                   panX, panY;
     bool                  dragging;
     bool                  bAutoHideCursor;

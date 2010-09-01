@@ -376,7 +376,8 @@ int Window::open(QString fileName, bool readOnly)
 
     if (!QFileInfo(fileName).exists())
     {
-        QMessageBox::warning(this, tr("Error"),
+        QMessageBox::warning(this->isVisible() ? this : NULL,
+                             tr("Error"),
                              tr("%1: File not found").arg(fileName));
         return 0;
     }
@@ -386,8 +387,11 @@ int Window::open(QString fileName, bool readOnly)
             isReadOnly = true;
         else
             isReadOnly = !QFileInfo(fileName).isWritable();
+
         if (!loadFile(fileName, !isReadOnly))
             return 0;
+
+        taoWidget->refresh();
     }
     else
     {

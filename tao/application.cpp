@@ -222,6 +222,8 @@ bool Application::processCommandLine()
         switch (st)
         {
         case 0:
+            delete window;
+            window = NULL;
             break;
         case 1:
             window->show();

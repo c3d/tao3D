@@ -2635,11 +2635,16 @@ void Widget::saveSelectionColorAndFont(Layout *where)
 //   Save the color and font for the selection
 // ----------------------------------------------------------------------------
 {
-    if (where)
+    if (where && where->id)
     {
         selectionColor["line_color"] = where->lineColor;
         selectionColor["color"] = where->fillColor;
         selectionFont = where->font;
+        IFTRACE (fonts)
+        {
+            std::cerr << "Widget::saveSelectionColorAndFont(" << where->id
+                    << ") font : " << +where->font.toString() << std::endl;
+        }
     }
 }
 

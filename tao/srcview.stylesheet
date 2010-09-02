@@ -64,7 +64,7 @@ builtin         = "<span class=""builtin"">" self "</span>"
 string1         = "<span class=""string"">" '"' quoted_self '"' "</span>"
 string2         = "<span class=""string"">" '<<' self '>>' "</span>"
 highlight_begin_selected = "<span class=""selected"">"
-highlight_end_selected = "</span><br>"
+highlight_end_selected = "</span>" cr
 
 
 // Comments, text

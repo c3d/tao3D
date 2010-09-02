@@ -23,6 +23,7 @@
 
 infix  = separator left space self space right separator
 prefix = separator left space right separator
+postfix = separator left separator right separator
 block  = separator opening separator child separator closing separator
 
 "infix ," = separator left ',' space right separator

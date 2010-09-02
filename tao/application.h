@@ -50,6 +50,7 @@ public:
     static QString defaultProjectFolderPath();
     static QString defaultTaoPreferencesFolderPath();
     static QString defaultTaoApplicationFolderPath();
+    static QString defaultTaoFontsFolderPath();
     static QString defaultUserImagesFolderPath();
 
 public:
@@ -65,6 +66,7 @@ public:
 protected:
     void           saveSettings();
     void           loadSettings();
+    void           loadFonts();
     virtual bool   event(QEvent *e);
 
 protected slots:

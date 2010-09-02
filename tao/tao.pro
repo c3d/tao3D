@@ -270,7 +270,8 @@ OTHER_FILES += xl.syntax \
     tutorial.ddd \
     git.stylesheet \
     srcview.stylesheet \
-    srcview.css
+    srcview.css \
+    fonts/unifont-5.1.20080907.ttf
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}
@@ -302,4 +303,3 @@ c++tbl.commands = $(CXX) -c $(CXXFLAGS:-O2=-g) $(INCPATH) ${QMAKE_FILE_NAME} -o 
 c++tbl.depend_command = /usr/bin/g++ -E -M -DTAO -DDEBUG -DCONFIG_MACOSX -D_DEBUG -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -DQT_WEBKIT_LIB -DQT_PHONON_LIB -DQT_SVG_LIB -DQT_OPENGL_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_SHARED -I/usr/local/Trolltech/Qt-4.7.0/mkspecs/macx-g++ -I. -I/usr/local/Trolltech/Qt-4.6.2/lib/QtCore.framework/Versions/4/Headers -I/usr/local/Trolltech/Qt-4.6.2/include/QtCore -I/usr/local/Trolltech/Qt-4.6.2/lib/QtNetwork.framework/Versions/4/Headers -I/usr/local/Trolltech/Qt-4.6.2/include/QtNetwork -I/usr/local/Trolltech/Qt-4.6.2/lib/QtGui.framework/Versions/4/Headers -I/usr/local/Trolltech/Qt-4.6.2/include/QtGui -I/usr/local/Trolltech/Qt-4.6.2/lib/QtOpenGL.framework/Versions/4/Headers -I/usr/local/Trolltech/Qt-4.6.2/include/QtOpenGL -I/usr/local/Trolltech/Qt-4.6.2/lib/QtSvg.framework/Versions/4/Headers -I/usr/local/Trolltech/Qt-4.6.2/include/QtSvg -I/usr/local/Trolltech/Qt-4.6.2/lib/phonon.framework/Versions/4/Headers -I/usr/local/Trolltech/Qt-4.6.2/include/phonon -I/usr/local/Trolltech/Qt-4.6.2/lib/QtWebKit.framework/Versions/4/Headers -I/usr/local/Trolltech/Qt-4.6.2/include/QtWebKit -I/usr/local/Trolltech/Qt-4.6.2/include -I. -Ixlr/xlr -I/usr/local/include -I/usr/local/Trolltech/Qt-4.6.2/include/phonon_compat -I/System/Library/Frameworks/OpenGL.framework/Versions/A/Headers -I/System/Library/Frameworks/AGL.framework/Headers -I. -I. ${QMAKE_FILE_NAME} | sed "s/^.*://"
 c++tbl.input = CXXTBL_SOURCES
 QMAKE_EXTRA_COMPILERS += c++tbl
-

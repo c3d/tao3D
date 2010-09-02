@@ -34,6 +34,7 @@
 #include "splash_screen.h"
 #include "graphics.h"
 #include "window.h"
+#include "font_file_manager.h"
 
 #include <QString>
 #include <QSettings>
@@ -154,6 +155,8 @@ Application::Application(int & argc, char ** argv)
     createDefaultProjectFolder();
 
     loadSettings();
+
+    loadFonts();
 
     // The aboutToQuit signal is the recommended way for cleaning things up
     connect(this, SIGNAL(aboutToQuit()), this, SLOT(cleanup()));
@@ -580,6 +583,15 @@ QString Application::defaultTaoApplicationFolderPath()
 }
 
 
+QString Application::defaultTaoFontsFolderPath()
+// ----------------------------------------------------------------------------
+//    Try to guess the best application fonts folder to use by default
+// ----------------------------------------------------------------------------
+{
+    return QDir::toNativeSeparators(applicationDirPath()+"/fonts");
+}
+
+
 QString Application::defaultUserImagesFolderPath()
 // ----------------------------------------------------------------------------
 //    Try to guess the best Images folder to use by default
@@ -760,6 +772,15 @@ void Application::loadSettings()
 
     // Cleanup obsolete URI/project mappings (QSettings) before we open any URI
     Uri::gc();
+}
+
+
+void Application::loadFonts()
+// ----------------------------------------------------------------------------
+//    Load default fonts
+// ----------------------------------------------------------------------------
+{
+    FontFileManager::loadApplicationFonts();
 }
 
 

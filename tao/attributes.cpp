@@ -181,6 +181,15 @@ void JustificationChange::Draw(Layout *where)
 }
 
 
+void PartialJustificationChange::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Replay a partial justification change
+// ----------------------------------------------------------------------------
+{
+    layoutJustification(where, axis).partial = amount;
+}
+
+
 void CenteringChange::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Replay a centering change

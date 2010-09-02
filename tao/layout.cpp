@@ -82,13 +82,15 @@ void LayoutState::Clear()
 //   Reset default state for a layout
 // ----------------------------------------------------------------------------
 {
-    offset.Set(0,0,0);
-    font = qApp->font();
-
-    alongX = alongY = alongZ = Justification();
-    lineColor.Set(0,0,0,0); // Transparent black
-    fillColor.Set(0,0,0,1); // Black
-    fillTexture = 0;
+    LayoutState zero;
+    offset = zero.offset;
+    font = zero.font;
+    alongX = zero.alongX;
+    alongY = zero.alongY;
+    alongZ = zero.alongZ;
+    lineColor = zero.lineColor;
+    fillColor = zero.fillColor;
+    fillTexture = zero.fillTexture;
 }
 
 

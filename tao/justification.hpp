@@ -175,7 +175,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     // If we have placed all the items, don't justify
     if (hasRoom)
     {
-        just = 0;
+        just = extra * justify.partial;
         if (!done)
             items.clear();
     }
@@ -196,7 +196,6 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     // Allocate extra space between breaks
     coord inLastWord = atSolid * (lastItemCount > 1 ? lastItemCount-2 : 0);
     coord forBreaks = just - inLastWord;
-;
     coord atBreak = forBreaks / (numBreaks > 1 ? numBreaks - 1 : 1);
 
     // Store that for use in the text_drawing routines

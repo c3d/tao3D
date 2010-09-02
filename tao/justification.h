@@ -38,6 +38,8 @@ struct Justification
 //   There are three parameters:
 //   - 'amount' indicates how much of the total gap we justify.
 //     0.0 means packed (no justification), 1.0 means fully justified
+//   - 'partial' indicates how much of the gap we justify for a partially
+//     filled line. 0.0 means packed, 1.0 means fully justified.
 //   - 'center' indicates how the elements should be centered on page.
 //     0.0 means on the left or top, 1.0 on the right or bottm, 0.5 on center
 //   - 'spread' indicates how much of the justification is between elements.
@@ -46,15 +48,17 @@ struct Justification
 //   - 'spacing' indicates extra amount of space to add around elements
 {
     Justification(float amount = 1.0,
+                  float partial = 0.0,
                   float center = 0.0,
                   float spread = 0.0,
                   float spacing = 1.0,
                   float before = 0.0,
                   float after = 0.0)
-        : amount(amount), centering(center), spread(spread),
+        : amount(amount), partial(partial), centering(center), spread(spread),
           spacing(spacing), before(before), after(after),
           perSolid(0.0), perBreak(0.0) {}
     float       amount;
+    float       partial;
     float       centering;
     float       spread;
     float       spacing;

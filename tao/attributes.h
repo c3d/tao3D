@@ -168,6 +168,16 @@ struct JustificationChange : Attribute
 };
 
 
+struct PartialJustificationChange : JustificationChange
+// ----------------------------------------------------------------------------
+//   Change justification for partial lines
+// ----------------------------------------------------------------------------
+{
+    PartialJustificationChange(float a, Axis x): JustificationChange(a, x) {}
+    virtual void Draw(Layout *where);
+};
+
+
 struct CenteringChange : JustificationChange
 // ----------------------------------------------------------------------------
 //   Change a centering attribute

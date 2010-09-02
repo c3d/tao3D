@@ -4986,6 +4986,16 @@ Tree_p Widget::justify(Tree_p self, scale amount, uint axis)
 }
 
 
+Tree_p Widget::partialJustify(Tree_p self, scale amount, uint axis)
+// ----------------------------------------------------------------------------
+//   Change justification along the given axis
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new PartialJustificationChange(amount, jaxis(axis)));
+    return XL::xl_true;
+}
+
+
 Tree_p Widget::center(Tree_p self, scale amount, uint axis)
 // ----------------------------------------------------------------------------
 //   Change centering along the given axis

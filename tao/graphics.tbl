@@ -1582,9 +1582,9 @@ PREFIX(Justify, tree, "justify",
        "/*| docname \"justify\", \"text:spread\", do { \
                 dsyntax <<justify a>>;\
                 synopsis \"Horizontal justification\" ; \
-                description <<Horizontaly justify the text. An amount of 0 pack the text on the left, an amount of 100 pack the text on the right and an amount of 50 spread regularly the text over the line>> ;\
+                description <<Horizontaly justify the text. An amount of 0% doesn't justify (ragged edge), an amount of 100% justifies fully.>> ;\
                 parameters;\
-                parameter \"real\", \"a\", <<Amount of justification along x-axis>>;\
+                parameter \"real\", \"a\", <<Amount of horizontal justification>>;\
                 }\
           |*/")
 PREFIX(VJustify, tree, "vertical_justify",
@@ -1593,6 +1593,26 @@ PREFIX(VJustify, tree, "vertical_justify",
                 dsyntax <<vertical_justify a>>;\
                 synopsis \"Vertical justification\" ; \
                 description <<Verticaly justify the text. An amount of 0 pack the text on the top, an amount of 100 pack the text on the bottom and an amount of 50 spread regularly the text over the box>> ;\
+                parameters;\
+                parameter \"real\", \"a\", <<Amount of justification along y-axis>>;\
+                }\
+          |*/")
+PREFIX(PartialJustify, tree, "partial_justify",
+       PARM(a, real), RTAO(partialJustify(self, a, 0)), 
+       "/*| docname \"partial_justify\", \"text:spread\", do { \
+                dsyntax <<partial_justify a>>;\
+                synopsis \"Horizontal justification for partially-filled lines\" ; \
+                description <<Horizontaly justify the text in lines that do not have enough characters.>> ;\
+                parameters;\
+                parameter \"real\", \"a\", <<Amount of justification for partial lines>>;\
+                }\
+          |*/")
+PREFIX(VPartialJustify, tree, "vertical_partial_justify",
+       PARM(a, real), RTAO(partialJustify(self, a, 1)), 
+       "/*| docname \"vertical_partial_justify\", \"text:spread\", do { \
+                dsyntax <<vertical_partial_justify a>>;\
+                synopsis \"Vertical justification\" ; \
+                description <<Verticaly justify the text.>> ;\
                 parameters;\
                 parameter \"real\", \"a\", <<Amount of justification along y-axis>>;\
                 }\

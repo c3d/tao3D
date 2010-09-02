@@ -24,6 +24,7 @@
 #include "font_file_manager.h"
 #include "options.h"
 #include "tao_utf8.h"
+#include "application.h"
 
 #include <QFontDatabase>
 #include <QFileInfoList>
@@ -37,6 +38,12 @@
 
 TAO_BEGIN
 
+// ----------------------------------------------------------------------------
+// Supported font file formats
+// ----------------------------------------------------------------------------
+QStringList FontFileManager::fontFileFilter = QStringList("*.ttf")
+                                                       << "*.ttc"
+                                                       << "*.otf";
 
 FontFileManager::FontFileManager()
 // ----------------------------------------------------------------------------
@@ -142,6 +149,54 @@ bool FontFileManager::IsLoadable(QString fileName)
 }
 
 
+void FontFileManager::loadApplicationFonts()
+// ----------------------------------------------------------------------------
+//    Load application fonts
+// ----------------------------------------------------------------------------
+{
+    QString fontPath = Application::defaultTaoApplicationFolderPath();
+    QDir fontDir(fontPath);
+    QFileInfoList contents = fontDir.entryInfoList(fontFileFilter);
+
+    fontPath = Application::defaultTaoFontsFolderPath();
+    fontDir = QDir(fontPath);
+    contents.append(fontDir.entryInfoList(fontFileFilter));
+
+    QTime time;
+    int count = 0;
+    IFTRACE(fonts)
+        time.start();
+    foreach (QFileInfo f, contents)
+    {
+        if (f.isFile())
+        {
+            QString path = f.absoluteFilePath();
+            IFTRACE(fonts)
+            {
+                std::cerr << "Loading default font file '" << +path << "'...";
+                count++;
+            }
+            int id = QFontDatabase::addApplicationFont(path);
+            if (id != -1)
+            {
+                IFTRACE(fonts)
+                    std::cerr << " done (id=" << id << ")\n";
+            }
+            else
+            {
+                IFTRACE(fonts)
+                    std::cerr << " failed\n";
+            }
+        }
+    }
+    IFTRACE(fonts)
+    {
+        int ms = time.elapsed();
+        std::cerr << count << " font files loaded in " << ms << " ms\n";
+    }
+}
+
+
 QList<int> FontFileManager::LoadEmbeddedFonts(const QString &docPath)
 // ----------------------------------------------------------------------------
 //    Load the fonts associated with a document (font embedding)
@@ -150,7 +205,7 @@ QList<int> FontFileManager::LoadEmbeddedFonts(const QString &docPath)
     QList<int> ids;
     QString fontPath = FontPathFor(docPath);
     QDir fontDir(fontPath);
-    QFileInfoList contents = fontDir.entryInfoList();
+    QFileInfoList contents = fontDir.entryInfoList(fontFileFilter);
     QTime time;
     int count = 0;
     IFTRACE(fonts)

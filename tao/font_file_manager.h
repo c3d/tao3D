@@ -43,6 +43,7 @@ struct FontFileManager
     void               AddFontFiles(const QFont &font);
     QList<int>         LoadEmbeddedFonts(const QString &docPath);
 
+    static void        loadApplicationFonts();
     static void        UnloadEmbeddedFonts(const QList<int> &ids);
     static QString     FontPathFor(const QString &docPath);
 
@@ -61,6 +62,8 @@ private:
 
 #endif
 
+private:
+    static QStringList fontFileFilter;
 };
 
 TAO_END

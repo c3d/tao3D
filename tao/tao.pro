@@ -270,7 +270,8 @@ OTHER_FILES += xl.syntax \
     tutorial.ddd \
     git.stylesheet \
     srcview.stylesheet \
-    srcview.css
+    srcview.css \
+    fonts/unifont-5.1.20080907.ttf
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}
@@ -301,4 +302,3 @@ c++tbl.commands = $(CXX) -c $(CXXFLAGS:-O2=-g) $(INCPATH) ${QMAKE_FILE_NAME} -o 
 c++tbl.depend_command = $(CXX) -E -M ${QMAKE_FILE_NAME} | sed "s/^.*: //"
 c++tbl.input = CXXTBL_SOURCES
 QMAKE_EXTRA_COMPILERS += c++tbl
-

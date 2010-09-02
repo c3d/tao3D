@@ -28,10 +28,15 @@ cd $THISDIR
 export PATH=$PATH:.
 rm -rf buildroot
 mkdir buildroot
+mkdir buildroot/fonts
 doo cp $OBJDIR/Tao.exe buildroot/
 SFILES="builtins.xl xl.syntax xl.stylesheet git.stylesheet srcview.stylesheet srcview.css tutorial.ddd"
 for f in $SFILES ; do
     doo cp $SRCDIR/$f buildroot/
+done
+FONTS="unifont-5.1.20080907.ttf"
+for f in $FONTS ; do
+    doo cp $SRCDIR/fonts/$f buildroot/fonts
 done
 for f in `bin/ldd buildroot/Tao.exe | \
           grep -v -i 'windows/system' | \

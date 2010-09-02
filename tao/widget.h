@@ -176,6 +176,7 @@ public:
     bool        set(Tree *shape, text n, attribute_args &a,
                     text sh = "group,shape");
     void        setSourceRenderer();
+    bool        isReadOnly();
 
     // Timing
     ulonglong   now();
@@ -692,9 +693,8 @@ private:
     static QFileDialog *  fileDialog;
            QFileDialog *  currentFileDialog;
     static double         zNear, zFar;
-    double                zoom;
-    double                eyeX, eyeY, eyeZ, eyeDistance;
-    double                centerX, centerY, centerZ;
+    double                zoom, eyeDistance;
+    Point3                eye, viewCenter;
     int                   panX, panY;
     bool                  dragging;
     bool                  bAutoHideCursor;

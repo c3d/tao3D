@@ -94,6 +94,7 @@ public slots:
     void deleteAboutSplash();
     void showProjectUrl(QString url);
     void showMessage(QString message)  { showMessage(message, 2000); }
+    void setReadOnly(bool ro);
 
 signals:
     void projectUrlChanged(QString url);
@@ -133,6 +134,7 @@ private slots:
     void reloadCurrentFile();
     void onUriGetFailed();
     void onDocReady(QString path);
+    void checkDetachedHead();
 
 private:
     void     createActions();

@@ -77,7 +77,7 @@ Activity *Drag::MouseMove(int x, int y, bool active)
 //   Save mouse position as it moves
 // ----------------------------------------------------------------------------
 {
-    if (active)
+    if (active && !widget->isReadOnly())
     {
         x2 = x;
         y2 = y;

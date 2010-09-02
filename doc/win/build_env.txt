@@ -4,6 +4,8 @@ How to setup a Tao build environment on Windows
 - Install Win7 x86
 - Install the Qt SDK
 - Install msysgit
+  You should pick the "full installer" version to get a version of make,
+  which will prove useful for building LLVM (LLVM wants gmake to build)
 - Start msysgit's bash. cd $HOME. Create $HOME/.profile:
   export PATH=/c/llvm/bin:/c/Qt/2010.02.1/mingw/bin:/c/Qt/2010.02.1/qt/bin:$PATH
   (this is needed to use Qt's gcc rather than msysgit's ; and to have the Qt

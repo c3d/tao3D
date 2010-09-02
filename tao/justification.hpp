@@ -84,7 +84,6 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     coord pos           = start;
     scale lastSpace     = 0;
     scale lastOversize  = 0;
-    scale totalSpace    = 0;
     bool  hasRoom       = true;
     bool  hadBreak      = false;
     bool  hadSeparator  = false;
@@ -113,6 +112,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
             scale size = Size(item, layout);
             coord offset = ItemOffset(item, layout);
             scale spacing = justify.spacing;
+            coord originalSize = size;
             size *= spacing;
             if (hadSeparator)
             {
@@ -140,8 +140,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
                 places.push_back(Place(item, size, pos+sign*offset, !hadBreak));
                 pos += sign * size;
                 lastSpace = SpaceSize(item, layout) * spacing;
-                lastOversize = size * (spacing-1);
-                totalSpace += lastSpace + lastOversize;
+                lastOversize = size - originalSize;
                 item = next;
 
                 if (size > 0)
@@ -194,7 +193,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     coord atSolid   = forSolids / (numItems>numBreaks ? numItems-numBreaks : 1);
 
     // Allocate extra space between breaks
-    coord inLastWord = atSolid * (lastItemCount > 1 ? lastItemCount-2 : 0);
+    coord inLastWord = atSolid * (lastItemCount > 1 ? lastItemCount-1 : 0);
     coord forBreaks = just - inLastWord;
     coord atBreak = forBreaks / (numBreaks > 1 ? numBreaks - 1 : 1);
 

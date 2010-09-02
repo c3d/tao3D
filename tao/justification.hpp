@@ -139,7 +139,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
                 hadBreak |= next != NULL;
                 places.push_back(Place(item, size, pos+sign*offset, !hadBreak));
                 pos += sign * size;
-                lastSpace = SpaceSize(item, layout) * spacing;
+                lastSpace = SpaceSize(item, layout);
                 lastOversize = size - originalSize;
                 item = next;
 

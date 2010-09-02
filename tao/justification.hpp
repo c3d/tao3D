@@ -137,7 +137,9 @@ bool Justifier<Item>::Adjust(coord start, coord end,
             {
                 // It fits, place it
                 hadBreak |= next != NULL;
-                places.push_back(Place(item, size, pos+sign*offset, !hadBreak));
+                places.push_back(Place(item, itemCount,
+                                       size, pos+sign*offset,
+                                       !hadBreak));
                 pos += sign * size;
                 lastSpace = SpaceSize(item, layout);
                 lastOversize = size - originalSize;
@@ -190,11 +192,10 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     // Allocate extra space between characters
     scale spread = justify.spread;
     coord forSolids = just * spread;
-    coord atSolid   = forSolids / (numItems>numBreaks ? numItems-numBreaks : 1);
+    coord atSolid   = forSolids / (numItems > 1 ? numItems - 2 : 1);
 
     // Allocate extra space between breaks
-    coord inLastWord = atSolid * (lastItemCount > 1 ? lastItemCount-1 : 0);
-    coord forBreaks = just - inLastWord;
+    coord forBreaks = just - forSolids;
     coord atBreak = forBreaks / (numBreaks > 1 ? numBreaks - 1 : 1);
 
     // Store that for use in the text_drawing routines
@@ -212,7 +213,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
             if (place.solid)
                 offset += atSolid;
             else
-                offset += atBreak;
+                offset += atBreak + atSolid * place.itemCount;
         }
     }
 

@@ -107,11 +107,15 @@ public:
     // Structure recording an item after we placed it
     struct Place
     {
-        Place(Item item, scale size = 0, coord pos = 0, bool solid=true)
-            : size(size), position(pos), item(item), solid(solid) {}
+        Place(Item item, uint itemCount = 0,
+              scale size = 0, coord pos = 0, bool solid=true)
+            : size(size), position(pos),
+              item(item), itemCount(itemCount),
+              solid(solid) {}
         scale   size;
         coord   position;
         Item    item;
+        uint    itemCount;
         bool    solid;
     };
     typedef std::vector<Place>          Places;

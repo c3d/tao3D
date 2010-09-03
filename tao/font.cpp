@@ -27,6 +27,7 @@
 #include "tao_utf8.h"
 #include "runtime.h"
 #include "options.h"
+#include "errors.h"
 #include <iostream>
 #include <QFontInfo>
 #include <QStringList>

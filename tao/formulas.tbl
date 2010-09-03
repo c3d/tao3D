@@ -23,21 +23,6 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-// Basic language features
-INFIX(SemiColonSequence, tree, tree,";",tree,
-      xl_evaluate(&l);
-      XL_RTREE(xl_evaluate(&r)), "/*| syntax semicolonsequence |*/")
-INFIX(NewlineSequence, tree, tree,"\n",tree,
-      xl_evaluate(&l);
-      XL_RTREE(xl_evaluate(&r)), "")
-INFIX(EnterRewrite, tree, tree,"->", tree,
-      Symbols::symbols->EnterRewrite(&l,&r);
-      XL_RTREE(self), "")
-BLOCK(EvaluateParentheses, tree, "(", tree, ")",
-      XL_RTREE(xl_evaluate(&child)), "")
-BLOCK(EvaluateBlock, tree, Block::indent, tree, Block::unindent,
-      XL_RTREE(xl_evaluate(&child)), "")
-
 // Integer arithmetic and comparisons
 INFIX(AddInt,integer, integer,"+",integer, XL_RINT(XL_INT(l) + XL_INT(r)), "")
 INFIX(SubInt,integer, integer,"-",integer, XL_RINT(XL_INT(l) - XL_INT(r)), "")

@@ -50,6 +50,7 @@ bool ImportedFilesChanged(XL::Tree *prog,
     // Make sure we detect changes in builtins.xl
     imported.insert(Symbols::symbols);
 
+    // Loop while there are more files to process
     while (more)
     {
         more = false;

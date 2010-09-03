@@ -139,7 +139,7 @@ XL::Tree *  Repository::read(text fileName)
     // Create the parser, with a local copy of the syntax (per-file syntax)
     XL::Syntax     syntax (XL::MAIN->syntax);
     XL::Positions &positions = XL::MAIN->positions;
-    XL::Errors    &errors    = XL::MAIN->errors;
+    XL::Errors     errors;
     XL::Parser     parser(full.c_str(), syntax, positions, errors);
 
     result = parser.Parse();

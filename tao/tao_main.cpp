@@ -26,6 +26,7 @@
 #include "main.h"
 #include "basics.h"
 #include "graphics.h"
+#include "formulas.h"
 #include "tao_utf8.h"
 #include "gc.h"
 
@@ -78,7 +79,6 @@ int main(int argc, char **argv)
     return ret;
 }
 
-namespace TaoFormulas { void DeleteFormulas(); }
 
 void cleanup()
 // ----------------------------------------------------------------------------

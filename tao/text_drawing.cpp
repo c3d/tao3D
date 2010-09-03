@@ -1027,7 +1027,7 @@ bool TextFormula::Validate(XL::Text *source, Widget *widget)
     std::istringstream  input(source->value);
     XL::Syntax          syntax (XL::MAIN->syntax);
     XL::Positions      &positions = XL::MAIN->positions;
-    XL::Errors         &errors    = XL::MAIN->errors;
+    XL::Errors          errors;
     XL::Parser          parser(input, syntax,positions,errors);
     Tree *              newTree   = parser.Parse();
     XL::Prefix *        prefix    = self->AsPrefix();

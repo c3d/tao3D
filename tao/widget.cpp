@@ -66,6 +66,7 @@
 #include "gl2ps.h"
 #include "version.h"
 #include "documentation.h"
+#include "formulas.h"
 
 #include <QApplication>
 #include <QToolButton>
@@ -84,7 +85,6 @@
 
 #define CHECK_0_1_RANGE(var) if (var < 0) var = 0; else if (var > 1) var = 1;
 
-namespace TaoFormulas { void EnterFormulas(XL::Symbols *syms); }
 
 TAO_BEGIN
 
@@ -1958,7 +1958,7 @@ void Widget::refreshProgram()
                 {
                     XL::Syntax syntax(XL::MAIN->syntax);
                     XL::Positions &positions = XL::MAIN->positions;
-                    XL::Errors &errors = XL::MAIN->errors;
+                    XL::Errors errors;
                     XL::Parser parser(fname.c_str(), syntax, positions, errors);
                     replacement = parser.Parse();
                 }

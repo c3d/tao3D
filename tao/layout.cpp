@@ -44,8 +44,8 @@ LayoutState::LayoutState()
       alongX(), alongY(), alongZ(),
       left(0), right(0), top(0), bottom(0),
       lineWidth(1.0),
-      lineColor(0,0,0,1),       // Black
-      fillColor(0,0,0,0),       // Transparent black
+      lineColor(0,0,0,0),       // Transparent black
+      fillColor(0,0,0,1),       // Black
       fillTexture(0), wrapS(false), wrapT(false), printing(false),
       planarRotation(0), planarScale(1),
       rotationId(0), translationId(0), scaleId(0)
@@ -83,14 +83,7 @@ void LayoutState::Clear()
 // ----------------------------------------------------------------------------
 {
     LayoutState zero;
-    offset = zero.offset;
-    font = zero.font;
-    alongX = zero.alongX;
-    alongY = zero.alongY;
-    alongZ = zero.alongZ;
-    lineColor = zero.lineColor;
-    fillColor = zero.fillColor;
-    fillTexture = zero.fillTexture;
+    *this = zero;
 }
 
 

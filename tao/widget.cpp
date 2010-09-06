@@ -6519,6 +6519,65 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
 }
 
 
+Tree_p Widget::chooserBranches(Tree_p self, Name_p prefix, text label)
+// ----------------------------------------------------------------------------
+//   Add a list of branches to the chooser
+// ----------------------------------------------------------------------------
+{
+    Repository *repo = repository();
+    Chooser *chooser = dynamic_cast<Chooser *> (activities);
+    if (chooser && repo)
+    {
+        QStringList branches = repo->branches();
+        foreach (QString branch, branches)
+        {
+            Tree *action = new Prefix(prefix, new Text(+branch));
+            action->SetSymbols(self->Symbols());
+            chooser->AddItem(label + +branch + "...", action);
+        }
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
+
+Tree_p Widget::chooserCommits(Tree_p self, text branch, Name_p prefix,
+                              text label)
+// ----------------------------------------------------------------------------
+//   Add a list of commits to the chooser
+// ----------------------------------------------------------------------------
+{
+    Repository *repo = repository();
+    Chooser *chooser = dynamic_cast<Chooser *> (activities);
+    if (chooser && repo)
+    {
+        QList<Repository::Commit> commits = repo->history(+branch);
+        commits.append(Repository::Commit(+branch));
+        for (int n = commits.size() - 1; n >= 0; n--)
+        {
+            Repository::Commit c = commits[n];
+            text ctext = +c.toString();
+            Tree *action = new Prefix(prefix, new Text(+c.id));
+            action->SetSymbols(self->Symbols());
+            chooser->AddItem(label + ctext, action);
+        }
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
+
+Tree_p Widget::checkout(Tree_p self, text what)
+// ----------------------------------------------------------------------------
+//   Checkout a branch or a commit. Called by chooser.
+// ----------------------------------------------------------------------------
+{
+    Repository *repo = repository();
+    if (repo && repo->checkout(what))
+        return XL::xl_true;
+    return XL::xl_false;
+}
+
 
 // ============================================================================
 //

@@ -57,11 +57,20 @@ main_chooser ->
     chooser_choice "Zoom out", {zoom_out}
     chooser_choice "Toggle hand cursor", {toggle_hand_cursor}
     chooser_choice "Select page", {page_chooser}
+    chooser_choice "Checkout...", {branch_chooser}
     chooser_commands "shape_color_", "Set shape color to "
 
 page_chooser ->
     chooser "Go to page..."
     chooser_pages goto_page, ""
+
+branch_chooser ->
+    chooser "Select branch"
+    chooser_branches commit_chooser, ""
+
+commit_chooser b:text ->
+    chooser "Select commit"
+    chooser_commits b, checkout, ""
 
 chooser_title_font              -> font "Arial Black", 30
 chooser_item_font               -> font "Arial", 28

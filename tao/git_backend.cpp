@@ -382,6 +382,8 @@ QStringList GitRepository::branches()
                 continue;
             if (branch.contains(" -> "))
                 continue;
+            if (branch == "")
+                continue;
             result << branch;
         }
     }

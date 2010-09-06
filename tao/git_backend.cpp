@@ -550,7 +550,9 @@ bool GitRepository::commit(text message, bool all)
     waitForAsyncProcessCompletion();
     if (message == "")
     {
-        message = nextCommitMessage;
+        if (taskDescription != "")
+            message = "[" + taskDescription + "]\n";
+        message += nextCommitMessage;
         nextCommitMessage = "";
     }
     if (all)
@@ -766,8 +768,11 @@ void GitRepository::mergeCommitMessages(text &dest, text src)
 //   Add to 'dest' all lines from 'src' not already present in 'dest'
 // ----------------------------------------------------------------------------
 {
-    QStringList d = (+dest).split("\n");
-    QStringList s = (+src).split("\n");
+    QStringList d, s;
+    if (dest != "")
+        d = (+dest).split("\n");
+    if (src != "")
+        s = (+src).split("\n");
 
     foreach (QString line, s)
         if (!d.contains(line))

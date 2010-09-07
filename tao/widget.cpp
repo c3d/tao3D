@@ -4627,22 +4627,6 @@ XL::Tree_p Widget::debugBinPacker(Tree_p self, uint w, uint h, Tree_p t)
 }
 
 
-double debugX = 0, debugY = 0, debugW = 0, debugH = 0;
-XL::Tree_p Widget::debugParameters(Tree_p self,
-                                   double x, double y,
-                                   double w, double h)
-// ----------------------------------------------------------------------------
-//   Set debug parameters for fine-tuning stuff
-// ----------------------------------------------------------------------------
-{
-    debugX = x;
-    debugY = y;
-    debugW = w;
-    debugH = h;
-    return XL::xl_false;
-}
-
-
 
 // ============================================================================
 //

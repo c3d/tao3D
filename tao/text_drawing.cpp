@@ -164,14 +164,14 @@ void TextSpan::DrawCached(Layout *where)
     if (count && setFillColor(where))
     {
         // Bind the glyph texture
-        glBindTexture(GL_TEXTURE_2D, glyphs.Texture());
+        glBindTexture(GL_TEXTURE_RECTANGLE, glyphs.Texture());
         GLenum blur = GL_LINEAR;
         if (!where->hasPixelBlur &&
             font.pointSizeF() < glyphs.minFontSizeForAntialiasing)
             blur = GL_NEAREST;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, blur);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, blur);
-        glEnable(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, blur);
+        glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, blur);
+        glEnable(GL_TEXTURE_RECTANGLE);
         if (TaoApp->hasGLMultisample)
             glEnable(GL_MULTISAMPLE);
 
@@ -183,6 +183,7 @@ void TextSpan::DrawCached(Layout *where)
         glDrawArrays(GL_QUADS, 0, count);
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        glDisable(GL_TEXTURE_RECTANGLE);
     }
 
     where->offset = Point3(x, y, z);

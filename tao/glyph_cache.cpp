@@ -501,9 +501,9 @@ void GlyphCache::GenerateTexture()
 //   Copy the current image into our GL texture
 // ----------------------------------------------------------------------------
 {
-    QImage texImg = QGLWidget::convertToGLFormat(image);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+    QImage texImg = QGLWidget::convertToGLFormat(image).mirrored(false, true);
+    glBindTexture(GL_TEXTURE_RECTANGLE, texture);
+    glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA,
                  texImg.width(), texImg.height(), 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, texImg.bits());
 
@@ -540,7 +540,7 @@ qreal GlyphCache::Leading(const QFont &font)
 
 void GlyphCache::ScaleDown(GlyphEntry &entry, scale fontScale)
 // ----------------------------------------------------------------------------
-//   Adjust the scale from texel coordinates to GL coordinates
+//   Adjust the scale
 // ----------------------------------------------------------------------------
 {
     // Scale the geometry
@@ -550,21 +550,6 @@ void GlyphCache::ScaleDown(GlyphEntry &entry, scale fontScale)
     entry.bounds.upper.x *= fontScale;
     entry.advance *= fontScale;
     entry.scalingFactor = fontScale;
-
-    // Adjust texture coordinates
-    uint width = packer.Width();
-    uint height = packer.Height();
-    scale xscale = 1.0 / width;
-    scale yscale = 1.0 / height;
-
-    Point &l = entry.texture.lower;
-    Point &u = entry.texture.upper;
-
-    extern double debugX, debugY, debugW, debugH;
-    l.x = xscale * (l.x + debugX);
-    u.x = xscale * (u.x + debugW);
-    l.y = yscale * (height - (l.y + debugY));
-    u.y = yscale * (height - (u.y + debugH));
 }
 
 TAO_END

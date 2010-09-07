@@ -1270,20 +1270,6 @@ PREFIX(DebugBinPacker, tree, "binpacker",
                 parameter \"real\", \"t\", <<[TODO]>>;\
                 }\
           |*/")
-PREFIX(DebugParamters, tree, "debug_parameters",
-       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real),
-       RTAO(debugParameters(self, x, y, w, h)), 
-       "/*| docname \"debug_parameters\", \"graph:debug\", do { \
-                dsyntax <<debug_parameters x, y, w, h>>;\
-                synopsis \"Set debug parameters\" ; \
-                description <<Set debug parameters for fine-tuning stuff>> ;\
-                parameters;\
-                parameter \"real\", \"x\", <<x-coordinate>>;\
-                parameter \"real\", \"y\", <<y-coordinate>>;\
-                parameter \"real\", \"w\", <<width>>;\
-                parameter \"real\", \"h\", <<height>>;\
-                }\
-          |*/")
 
 
 

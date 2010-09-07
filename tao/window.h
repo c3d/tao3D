@@ -127,6 +127,7 @@ private slots:
     void selectiveUndo();
     void clone();
     void about();
+    void preferences();
     void documentWasModified();
     void checkFiles();
     void toggleFullScreen();
@@ -212,6 +213,7 @@ private:
     QAction          *checkoutAct;
     QAction          *selectiveUndoAct;
     QAction          *aboutAct;
+    QAction          *preferencesAct;
     QAction          *aboutQtAct;
     QAction          *fullScreenAct;
     QAction          *slideShowAct;

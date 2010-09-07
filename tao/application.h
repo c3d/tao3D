@@ -63,9 +63,13 @@ public:
     void           loadUri(QString uri);
     void           blockScreenSaver(bool block);
 
+public slots:
+    void           saveDebugTraceSettings();
+
 protected:
     void           saveSettings();
     void           loadSettings();
+    void           loadDebugTraceSettings();
     void           loadFonts();
     virtual bool   event(QEvent *e);
 
@@ -107,6 +111,7 @@ private:
 
 #define TaoApp  ((Application *) qApp)
 
+#define DEBUG_TRACES_SETTING_NAME "DebugTraces"
 }
 
 #endif // APPLICATION_H

@@ -41,6 +41,7 @@
 #include "uri.h"
 #include "open_uri_dialog.h"
 #include "new_document_wizard.h"
+#include "preferences_dialog.h"
 
 #include <iostream>
 #include <sstream>
@@ -842,6 +843,15 @@ void Window::deleteAboutSplash()
 }
 
 
+void Window::preferences()
+// ----------------------------------------------------------------------------
+//    Show the Preferences dialog
+// ----------------------------------------------------------------------------
+{
+    PreferencesDialog(this).exec();
+}
+
+
 void Window::showProjectUrl(QString url)
 // ----------------------------------------------------------------------------
 //    Update the project URL in the status bar
@@ -1006,6 +1016,10 @@ void Window::createActions()
     //aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
     //connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
+    preferencesAct = new QAction(tr("&Preferences"), this);
+    preferencesAct->setStatusTip(tr("Set application preferences"));
+    connect(preferencesAct, SIGNAL(triggered()), this, SLOT(preferences()));
+
     fullScreenAct = new QAction(tr("Full Screen"), this);
     fullScreenAct->setStatusTip(tr("Toggle full screen mode"));
     fullScreenAct->setCheckable(true);
@@ -1125,6 +1139,7 @@ void Window::createMenus()
     helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->setObjectName(HELP_MENU_NAME);
     helpMenu->addAction(aboutAct);
+    helpMenu->addAction(preferencesAct);
 }
 
 

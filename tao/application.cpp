@@ -102,6 +102,7 @@ Application::Application(int & argc, char ** argv)
                                   +syntax.canonicalFilePath(),
                                   +stylesheet.canonicalFilePath(),
                                   +builtins.canonicalFilePath());
+    loadDebugTraceSettings();
 
     // Web settings
     QWebSettings *gs = QWebSettings::globalSettings();
@@ -772,6 +773,54 @@ void Application::loadSettings()
 
     // Cleanup obsolete URI/project mappings (QSettings) before we open any URI
     Uri::gc();
+}
+
+
+void Application::loadDebugTraceSettings()
+// ----------------------------------------------------------------------------
+//    Enable any debug traces previously saved by user
+// ----------------------------------------------------------------------------
+//    Traces can only be enabled by this method. This means that any trace
+//    activated through the command line can't be cleared by previously saved
+//    settings, and will thus be active (as expected).
+{
+    QStringList enabled;
+    enabled = QSettings().value(DEBUG_TRACES_SETTING_NAME).toStringList();
+
+#define OPTVAR(name, type, value)
+#define OPTION(name, descr, code)
+#define TRACE(name) if (enabled.contains(#name)) \
+                        XL::MAIN->options.traces.name = true;
+
+#include "options.tbl"
+
+#undef OPTVAR
+#undef OPTION
+#undef TRACE
+}
+
+
+void Application::saveDebugTraceSettings()
+// ----------------------------------------------------------------------------
+//    Save the names of the debug traces that are currently enabled
+// ----------------------------------------------------------------------------
+{
+    QStringList enabled;
+
+#define OPTVAR(name, type, value)
+#define OPTION(name, descr, code)
+#define TRACE(name) if (XL::MAIN->options.traces.name) enabled.append(#name);
+
+#include "options.tbl"
+
+#undef OPTVAR
+#undef OPTION
+#undef TRACE
+
+    if (!enabled.isEmpty())
+        QSettings().setValue(DEBUG_TRACES_SETTING_NAME, enabled);
+    else
+        QSettings().remove(DEBUG_TRACES_SETTING_NAME);
 }
 
 

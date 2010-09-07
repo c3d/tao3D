@@ -15,5 +15,6 @@
         <file>images/cursor-openhand.png</file>
         <file>images/view-restore.png</file>
         <file>images/splash.png</file>
+        <file>images/bug.png</file>
     </qresource>
 </RCC>

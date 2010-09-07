@@ -25,7 +25,8 @@ QT += webkit \
     phonon
 QMAKE_CFLAGS += -Werror
 QMAKE_CXXFLAGS += -Werror
-QMAKE_CXXFLAGS_RELEASE += -g \$(CXXFLAGS_\$%)
+QMAKE_CXXFLAGS_RELEASE += -g \
+    \$(CXXFLAGS_\$%)
 
 # Tell the XLR portion that we are building for Tao
 DEFINES += TAO \
@@ -38,8 +39,7 @@ macx {
     QMAKE_CFLAGS += -mmacosx-version-min=10.5 # Avoid warning with font_file_manager_macos.mm
 }
 win32:DEFINES += CONFIG_MINGW
-
-linux-g++ {
+linux-g++ { 
     DEFINES += CONFIG_LINUX
     LIBS += -lXss
 }
@@ -141,7 +141,9 @@ HEADERS += widget.h \
     commit_table_widget.h \
     commit_table_model.h \
     checkout_dialog.h \
-    push_dialog.h
+    push_dialog.h \
+    preferences_dialog.h \
+    preferences_pages.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -224,12 +226,12 @@ SOURCES += tao_main.cpp \
     commit_table_widget.cpp \
     commit_table_model.cpp \
     checkout_dialog.cpp \
-    push_dialog.cpp
-CXXTBL_SOURCES += \
-    graphics.cpp \
+    push_dialog.cpp \
+    preferences_dialog.cpp \
+    preferences_pages.cpp
+CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp \
     xlr/xlr/basics.cpp
-
 !win32 { 
     HEADERS += GL/glew.h \
         GL/glxew.h \
@@ -298,7 +300,13 @@ QMAKE_EXTRA_TARGETS += revtarget
 
 # Adding 'c++tbl' option with lowered optimization level
 c++tbl.output = ${QMAKE_FILE_BASE}.o
-c++tbl.commands = $(CXX) -c $(CXXFLAGS:-O2=) $(INCPATH) ${QMAKE_FILE_NAME} -o ${QMAKE_FILE_OUT}
+c++tbl.commands = $(CXX) \
+    -c \
+    $(CXXFLAGS:-O2=) \
+    $(INCPATH) \
+    ${QMAKE_FILE_NAME} \
+    -o \
+    ${QMAKE_FILE_OUT}
 c++tbl.dependency_type = TYPE_C
 c++tbl.input = CXXTBL_SOURCES
 QMAKE_EXTRA_COMPILERS += c++tbl

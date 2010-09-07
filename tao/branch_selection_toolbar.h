@@ -27,6 +27,7 @@
 #include <QToolBar>
 #include <QWidget>
 #include <QPushButton>
+#include <QLineEdit>
 
 namespace Tao {
 
@@ -46,9 +47,11 @@ public slots:
 
 signals:
     void    checkedOut(QString branch);
+    void    taskDescriptionSet(QString desc);
 
 protected slots:
     void    checkout(QString branch);
+    void    setRepoTaskDescription();
 
 private:
     void    init();
@@ -56,6 +59,7 @@ private:
 private:
     BranchSelectionComboBox * branchSelector;
     Repository              * repo;
+    QLineEdit               * taskLineEdit;
 };
 
 }

@@ -194,6 +194,15 @@ void Repository::markChanged(text reason)
 }
 
 
+void Repository::setTaskDescription(QString desc)
+// ----------------------------------------------------------------------------
+//    Record description of current task, will be used in next commit message
+// ----------------------------------------------------------------------------
+{
+    taskDescription = +desc;
+}
+
+
 process_p Repository::dispatch(process_p cmd, void *id)
 // ----------------------------------------------------------------------------
 //   Insert process in run queue and start first process. Return cmd.

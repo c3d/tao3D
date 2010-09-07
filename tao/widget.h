@@ -551,6 +551,9 @@ public:
     Tree_p      chooserChoice(Tree_p self, text caption, Tree_p command);
     Tree_p      chooserCommands(Tree_p self, text prefix, text label);
     Tree_p      chooserPages(Tree_p self, Name_p prefix, text label);
+    Tree_p      chooserBranches(Tree_p self, Name_p prefix, text label);
+    Tree_p      chooserCommits(Tree_p self, text branch, Name_p prefix, text label);
+    Tree_p      checkout(Tree_p self, text what);
 
     static Tree_p runtimeError(Tree_p self, text msg, Tree_p src);
     static Tree_p formulaRuntimeError(Tree_p self, text msg, Tree_p src);

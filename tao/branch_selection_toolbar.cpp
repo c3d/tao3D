@@ -58,7 +58,14 @@ void BranchSelectionToolBar::init()
     branchSelector = new BranchSelectionComboBox;
     connect(branchSelector, SIGNAL(branchSelected(QString)),
             this, SLOT(checkout(QString)));
+    branchSelector->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     addWidget(branchSelector);
+
+    addWidget(new QLabel(tr("Task:")));
+
+    taskLineEdit = new QLineEdit();
+    taskLineEdit->setEnabled(false);
+    addWidget(taskLineEdit);
 }
 
 
@@ -69,6 +76,20 @@ void BranchSelectionToolBar::setRepository(Repository *repo)
 {
     this->repo = repo;
     branchSelector->setRepository(repo);
+    taskLineEdit->setEnabled(true);
+    connect(taskLineEdit, SIGNAL(editingFinished()),
+            this, SLOT(setRepoTaskDescription()));
+    connect(this, SIGNAL(taskDescriptionSet(QString)),
+            repo, SLOT(setTaskDescription(QString)));
+}
+
+
+void BranchSelectionToolBar::setRepoTaskDescription()
+// ----------------------------------------------------------------------------
+//    Emit signal when new task description is ready
+// ----------------------------------------------------------------------------
+{
+    emit taskDescriptionSet(taskLineEdit->text());
 }
 
 

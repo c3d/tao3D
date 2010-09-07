@@ -2502,6 +2502,38 @@ PREFIX(ChooserPages, tree, "chooser_pages", PARM(p, symbol) PARM(l, text),
                 parameter \"text\", \"l\", <<The text that will be added as label prefix to the name of pages.>>;\
                 }\
           |*/")
+PREFIX(ChooserBranches, tree, "chooser_branches", PARM(p, symbol) PARM(l, text),
+       RTAO(chooserBranches(self, p, l)),
+       "/*| docname \"chooser_branches\", \"code:chooser\", do { \
+                dsyntax <<chooser_branches p, l>>;\
+                synopsis \"branches added to the chooser\" ; \
+                description <<Add the list of project branches to the chooser>> ;\
+                parameters;\
+                parameter \"symbol\", \"p\", <<The action to execute when branch is selected (will be passed branch name as text)>>;\
+                parameter \"text\", \"l\", <<The text that will be added as label prefix to the name of branches.>>;\
+                }\
+          |*/")
+PREFIX(ChooserCommits, tree, "chooser_commits", PARM(b, text) PARM(p, symbol) PARM(l, text),
+       RTAO(chooserCommits(self, b, p, l)),
+       "/*| docname \"chooser_commits\", \"code:chooser\", do { \
+                dsyntax <<chooser_commits b, p, l>>;\
+                synopsis \"commits added to the chooser\" ; \
+                description <<Add the branch history (commits) to the chooser>> ;\
+                parameters;\
+                parameter \"text\", \"p\", <<The branch name>>;\
+                parameter \"symbol\", \"p\", <<The action to execute when commit is selected (will be passed commit ID as text)>>;\
+                parameter \"text\", \"l\", <<The text that will be added as label prefix to the commit log.>>;\
+                }\
+          |*/")
+PREFIX(Checkout, tree, "checkout", PARM(t, text), RTAO(checkout(self, t)),
+       "/*| docname \"checkout\", \"code:checkout\", do { \
+                dsyntax <<checkout t>>;\
+                synopsis \"\" ; \
+                description <<Checkout a branch or a commit>> ;\
+                parameters;\
+                parameter \"text\", \"t\", <<The name of the branch, or the commit ID, to checkout.>>;\
+                }\
+          |*/")
 
 
 

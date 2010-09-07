@@ -187,6 +187,9 @@ public:
 public:
     static bool         versionGreaterOrEqual(QString ver, QString ref);
 
+public slots:
+    void                setTaskDescription(QString desc);
+
 signals:
     void                commitSuccess(QString commitId, QString msg);
     void                asyncCloneComplete(void *id, QString projPath);
@@ -219,7 +222,7 @@ protected:
 
 public:
     QString            path;
-    text               task;
+    text               taskDescription;
     text               errors;
     QString            pullFrom;
     int                pullInterval;        // ms

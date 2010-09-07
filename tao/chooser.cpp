@@ -138,16 +138,29 @@ Activity *Chooser::Display(void)
     ChooserItems::iterator it;
     for (it = items.begin(); it != items.end(); it++)
     {
-        text caption = (*it).caption;
+        text &caption = (*it).caption;
         int pos = KeystrokesFind (caption, keystrokes).byteOffset;
         if (pos >= 0)
         {
-            // Add items found to the list
-            remaining.push_back(*it);
-            found++;
-
             // Compute the width of the chooser
             coord mw1 = itemFM.width(+caption);
+            if (mw1 > ww)
+            {
+                text cap = caption;
+                size_t keep;
+                do
+                {
+                    keep = cap.length() * ww / mw1;
+                    if (keep < 5)
+                        keep = 0;
+                    else
+                        keep -= 5;
+                    cap.erase(keep);
+                    mw1 = itemFM.width(+cap + "...");
+                }
+                while ((mw1 > ww) && keep);
+                caption = cap + "...";
+            }
             if (mw < mw1)
                 mw = mw1;
 
@@ -157,6 +170,10 @@ Activity *Chooser::Display(void)
                 mh += milh;
                 displayed++;
             }
+
+            // Add items found to the list
+            remaining.push_back(*it);
+            found++;
         }
     }
     coord mx = (ww - mw) / 2;

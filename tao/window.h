@@ -44,6 +44,7 @@ namespace Tao {
 struct Widget;
 class SplashScreen;
 class BranchSelectionToolBar;
+class HistoryPlaybackToolBar;
 class Uri;
 
 
@@ -192,6 +193,7 @@ private:
     QToolBar         *editToolBar;
     QToolBar         *viewToolBar;
     BranchSelectionToolBar *branchToolBar;
+    HistoryPlaybackToolBar *playbackToolBar;
     QAction          *newDocAct;
     QAction          *newAct;
     QAction          *openAct;

@@ -35,6 +35,7 @@
 #include "selective_undo_dialog.h"
 #include "clone_dialog.h"
 #include "branch_selection_toolbar.h"
+#include "history_playback_toolbar.h"
 #include "undo.h"
 #include "resource_mgt.h"
 #include "splash_screen.h"
@@ -1179,6 +1180,13 @@ void Window::createToolBars()
     addToolBar(branchToolBar);
     if (view)
         view->addAction(branchToolBar->toggleViewAction());
+
+    playbackToolBar = new HistoryPlaybackToolBar(tr("History playback"));
+    connect(this, SIGNAL(projectChanged(Repository*)),
+            playbackToolBar, SLOT(setRepository(Repository*)));
+    addToolBar(playbackToolBar);
+    if (view)
+        view->addAction(playbackToolBar->toggleViewAction());
 }
 
 
@@ -1707,6 +1715,8 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
                 emit projectChanged(repo.data());   // REVISIT projectUrlChanged
             connect(repo.data(), SIGNAL(branchChanged(QString)),
                     branchToolBar, SLOT(refresh()));
+            connect(repo.data(), SIGNAL(branchChanged(QString)),
+                    playbackToolBar, SLOT(refresh()));
             connect(repo.data(), SIGNAL(branchChanged(QString)),
                     this, SLOT(checkDetachedHead()));
         }

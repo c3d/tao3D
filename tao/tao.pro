@@ -143,7 +143,9 @@ HEADERS += widget.h \
     checkout_dialog.h \
     push_dialog.h \
     preferences_dialog.h \
-    preferences_pages.h
+    preferences_pages.h \
+    history_playback.h \
+    history_playback_toolbar.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -228,7 +230,9 @@ SOURCES += tao_main.cpp \
     checkout_dialog.cpp \
     push_dialog.cpp \
     preferences_dialog.cpp \
-    preferences_pages.cpp
+    preferences_pages.cpp \
+    history_playback.cpp \
+    history_playback_toolbar.cpp
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp \
     xlr/xlr/basics.cpp

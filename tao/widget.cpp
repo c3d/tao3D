@@ -67,7 +67,10 @@
 #include "version.h"
 #include "documentation.h"
 #include "formulas.h"
+#include "portability.h"
 
+#include <QDialog>
+#include <QTextCursor>
 #include <QApplication>
 #include <QToolButton>
 #include <QtGui/QImage>
@@ -315,6 +318,14 @@ void Widget::draw()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     Layout::polygonOffset = 0;
 
+    // Clean text selection
+    TextSelect *sel = textSelection(); // CaB
+    if (sel)
+    {
+        sel->cursor.select(QTextCursor::Document);
+        sel->cursor.removeSelectedText();
+    }
+
     // If there is a program, we need to run it
     pageRefresh = CurrentTime() + 86400;        // 24 hours
     runProgram();
@@ -531,7 +542,7 @@ bool Widget::canPaste()
 // ----------------------------------------------------------------------------
 {
     const QMimeData *mimeData = QApplication::clipboard()->mimeData();
-    return (mimeData->hasFormat(TAO_CLIPBOARD_MIME_TYPE));
+    return (mimeData->hasFormat(TAO_CLIPBOARD_MIME_TYPE)||mimeData->hasHtml());
 }
 
 
@@ -555,6 +566,30 @@ void Widget::copy()
     if (!hasSelection())
         return;
 
+    TextSelect *sel;
+    if ((sel = textSelection())) //CaB
+    {
+        IFTRACE(clipboard)
+        {
+            std::cerr <<"Document output "<< +sel->cursor.document()->toHtml("utf-8") << std::endl;
+            QTextEdit *edit = new QTextEdit;
+            edit->setDocument(sel->cursor.document());
+            QHBoxLayout *topLeftLayout = new QHBoxLayout;
+            topLeftLayout->addWidget(edit);
+            QDialog box;
+            box.setLayout(topLeftLayout);
+            box.exec();
+        }
+        // Encapsulate serialized tree as MIME data
+        QMimeData *mimeData = new QMimeData;
+        mimeData->setHtml(sel->cursor.document()->toHtml("utf-8"));
+        mimeData->setText(sel->cursor.document()->toPlainText());
+        // Transfer into clipboard
+        QClipboard *clipboard = QApplication::clipboard();
+        clipboard->setMimeData(mimeData);
+        return;
+    }
+
     // Build a single tree from all the selected sub-trees
     XL::Tree *tree = copySelection();
 
@@ -562,10 +597,8 @@ void Widget::copy()
     {
         std::cerr << "Clipboard: copying:\n";
         XL::Renderer render(std::cerr);
-        // FIXME: won't work if debug.stylesheet is not in current directory
-        // Should be "system:debug.stylesheet". Need XL::Renderer subclass
-        // with Qt path resolution support?
-        render.SelectStyleSheet("debug.stylesheet");
+        QFileInfo styleSheet("system:debug.stylesheet");
+        render.SelectStyleSheet(+styleSheet.absoluteFilePath());
         render.Render(tree);
     }
 
@@ -597,32 +630,67 @@ void Widget::paste()
     if (!canPaste())
         return;
 
-    // Read clipboard content
     const QMimeData *mimeData = QApplication::clipboard()->mimeData();
 
-    // Extract serialized tree
-    QByteArray binData = mimeData->data(TAO_CLIPBOARD_MIME_TYPE);
-    std::string ser(binData.data(), binData.length());
-
-    // De-serialize
-    std::istringstream istr(ser);
-    XL::Deserializer deserializer(istr);
-    XL::Tree *tree = deserializer.ReadTree();
-    if (!deserializer.IsValid())
-        return;
-
-    IFTRACE(clipboard)
+    if(mimeData->hasFormat(TAO_CLIPBOARD_MIME_TYPE))
     {
-        std::cerr << "Clipboard: pasting:\n";
-        XL::Renderer render(std::cerr);
-        render.SelectStyleSheet("debug.stylesheet");
-        render.Render(tree);
+        // Extract serialized tree
+        QByteArray binData = mimeData->data(TAO_CLIPBOARD_MIME_TYPE);
+        std::string ser(binData.data(), binData.length());
+
+        // De-serialize
+        std::istringstream istr(ser);
+        XL::Deserializer deserializer(istr);
+        XL::Tree *tree = deserializer.ReadTree();
+        if (!deserializer.IsValid())
+            return;
+
+        IFTRACE(clipboard)
+        {
+            std::cerr << "Clipboard: pasting:\n";
+            XL::Renderer render(std::cerr);
+            render.SelectStyleSheet("debug.stylesheet");
+            render.Render(tree);
+        }
+
+        // Insert tree at end of current page
+        // TODO: paste with an offset to avoid exactly overlapping objects
+        insert(NULL, tree);
     }
-
-    // Insert tree at end of current page
-    // TODO: paste with an offset to avoid exactly overlapping objects
-    insert(NULL, tree);
-
+    else if (mimeData->hasHtml()) //CaB
+    {
+        IFTRACE(clipboard)
+        {
+            QTextDocument doc;
+            doc.setHtml(mimeData->html());
+            QTextEdit *edit = new QTextEdit;
+            edit->setDocument(&doc);
+            QHBoxLayout *topLeftLayout = new QHBoxLayout;
+            topLeftLayout->addWidget(edit);
+            QDialog box;
+            box.setLayout(topLeftLayout);
+            box.exec();
+        }
+        Tree * t = portability().fromHTML(mimeData->html());
+        std::cerr << +mimeData->html() <<std::endl;
+        if(!textSelection())
+        {
+            // Insert a text box with that content at the end of the doc/page.
+            XL::Infix * comma = new XL::Infix(",", new XL::Integer(0LL),
+                                              new XL::Integer(0LL));
+            comma = new XL::Infix(",", comma, new XL::Integer(200));
+            comma = new XL::Infix(",", comma, new XL::Integer(200));
+            comma = new XL::Infix(",", comma,
+                                  new XL::Prefix(new Name("do"),
+                                                 new XL::Block(t, "I+", "I-")));
+            XL::Prefix * tb = new XL::Prefix( new XL::Name("text_box"),
+                                              comma);
+            tb = new XL::Prefix(new XL::Name("shape"),
+                                new XL::Block(tb, "I+", "I-"));
+            // Insert before the selection ? Insert at cursor ?
+            insert(NULL, tb, "paste from HTML");
+        }
+    }
 }
 
 
@@ -4902,7 +4970,7 @@ Tree_p Widget::fontBold(Tree_p self, scale amount)
 //   Qt weight values range from 0 to 99 with 50 = regular
 {
     amount = clamp(amount, 0, 99);
-    layout->font.setWeight(QFont::Weight(amount));
+    layout->font.setWeight(/*QFont::Weight*/(amount));
     layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }

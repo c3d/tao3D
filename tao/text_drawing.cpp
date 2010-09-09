@@ -75,7 +75,6 @@ void TextSpan::Draw(Layout *where)
         XL::LocalSave<Point3> save(where->offset, offset0);
         Identify(where);
     }
-
 }
 
 
@@ -273,7 +272,7 @@ void TextSpan::DrawDirect(Layout *where)
             glTranslatef(x, y, z);
             scale gscale = glyph.scalingFactor;
             glScalef(gscale, gscale, gscale);
-            
+
             if (!skip)
             {
                 setTexture(where);
@@ -318,6 +317,7 @@ void TextSpan::DrawSelection(Layout *where)
     scale       descent      = glyphs.Descent(font);
     scale       height       = ascent + descent;
     GlyphCache::GlyphEntry  glyph;
+    QString     selectedText; // CaB
 
     // A number of cases where we can't select text
     if (canSel && (!where->id || IsMarkedConstant(ttree) ||
@@ -333,7 +333,7 @@ void TextSpan::DrawSelection(Layout *where)
     {
         uint unicode = XL::Utf8Code(str, i);
         next   = XL::Utf8Next(str, i);
-        
+
         if (canSel)
             charId = where->CharacterId();
 
@@ -369,6 +369,9 @@ void TextSpan::DrawSelection(Layout *where)
                     scale sd = glyph.scalingFactor * descent;
                     scale sh = glyph.scalingFactor * height;
                     sel->selBox |= Box3(charX,charY - sd,z, 1, sh, 0);
+
+                    if (charId != sel->end()) // CaB
+                        selectedText.append(str[i]);
                 } // if(charSelected)
             } // if (charSelected || upDown)
 
@@ -407,6 +410,27 @@ void TextSpan::DrawSelection(Layout *where)
             x += glyph.advance + spread;
             textWidth += glyph.advance + spread;
         }
+    }
+
+    if (sel) // CaB
+    {
+        QTextBlockFormat blockFormat = sel->cursor.blockFormat();
+        blockFormat.setAlignment( where->alongX.toQtHAlign() |
+                                  where->alongY.toQtVAlign());
+        blockFormat.setTopMargin(where->top);
+        blockFormat.setBottomMargin(where->bottom);
+        blockFormat.setLeftMargin(where->left);
+        blockFormat.setRightMargin(where->right);
+
+        QTextCharFormat format;
+        format.setFont(font);
+        QColor fill;
+        fill.setRgbF(where->fillColor.red,
+                     where->fillColor.green,
+                     where->fillColor.blue,
+                     where->fillColor.alpha);
+        format.setForeground(QBrush(fill));
+        sel->cursor.insertText(selectedText,format);
     }
 
     if (sel && canSel)
@@ -936,7 +960,7 @@ void TextFormula::DrawSelection(Layout *where)
             if (name)
                 if (Tree *named = symbols->Named(name->value, true))
                     value = named;
-            
+
             text edited = text("   ") + text(*value) + "  ";
             Text *editor = new Text(edited, "\"", "\"", value->Position());
             info = new TextFormulaEditInfo(editor, shows);
@@ -1079,7 +1103,7 @@ TextSelect::TextSelect(Widget *w)
       replacement(""), replace(false), replaceInProgress(false),
       textMode(false),
       pickingLineEnds(false), pickingUpDown(false), movePointOnly(false),
-      formulaMode(false)
+      formulaMode(false),cursor(QTextCursor(new QTextDocument("")))
 {
     Widget::selection_map::iterator i, last = w->selection.end();
     for (i = w->selection.begin(); i != last; i++)
@@ -1345,7 +1369,7 @@ void TextSelect::processChar(uint charId, coord x, bool selected, uint code)
     {
         // Next character we will look at is not a line boundary
         pickingLineEnds = false;
-                
+
         if (down)
         {
             // Current best position

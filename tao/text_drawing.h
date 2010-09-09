@@ -28,6 +28,7 @@
 #include "coords3d.h"
 #include "tree.h"
 #include <QFont>
+#include <QTextCursor>
 
 TAO_BEGIN
 
@@ -132,6 +133,8 @@ struct TextSelect : Identify
     bool                pickingUpDown;
     bool                movePointOnly;
     uint                formulaMode;
+
+    QTextCursor         cursor; // CaB
 };
 
 

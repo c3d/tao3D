@@ -1,0 +1,261 @@
+// ****************************************************************************
+//  portability.cpp						   Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     The portability between tao text environment and QTextDocument.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+#include "portability.h"
+#include <QTextBlock>
+#include <iostream>
+#include "tao_tree.h"
+#include "tao_utf8.h"
+#include "options.h"
+portability::portability(){}
+
+XL::Tree * portability::fromHTML(QString html)
+{
+    QTextDocument doc;//  = new QTextDocument;
+    doc.setHtml(html);
+    return docToTree(doc);
+}
+
+XL::Tree* portability::docToTree(const QTextDocument &doc)
+{
+    std::cerr << "portability::docToTree"<<std::endl;
+    XL::Tree *t = NULL;
+
+    for ( QTextBlock block = doc.firstBlock();
+         block.isValid();
+         block = block.next())
+    {
+        if (!t)
+            t = blockToTree( block );
+        else
+            t = new XL::Infix("\n", t, blockToTree( block ));
+        for (QTextBlock::Iterator it = block.begin(); !it.atEnd(); ++it)
+        {
+            const QTextFragment fragment = it.fragment();
+            t = new XL::Infix("\n", t, fragmentToTree(fragment));
+        }
+
+        t = new XL::Infix("\n", t, new XL::Name("paragraph_break"));
+    }
+
+    IFTRACE(clipboard)
+            std::cerr << t << std::endl;
+    return t;
+}
+
+
+XL::Tree * portability::blockToTree(const QTextBlock &block)
+{
+    QTextBlockFormat blockFormat = block.blockFormat();
+    //////////////////////////
+    // Margin
+    //////////////////////////
+    // margins l, r ==> PREFIX("margins") - INFIX(REAL(l),",",REAL(r))
+    XL::Real * l = new XL::Real(blockFormat.leftMargin() +
+                                blockFormat.textIndent());
+    XL::Real * r = new XL::Real(blockFormat.rightMargin());
+    XL::Infix * comma = new XL::Infix(",", l, r);
+    XL::Name * n = new XL::Name("margins");
+    XL::Prefix * margin = new XL::Prefix(n, comma);
+
+    // paragraph_space b, a
+    XL::Real * b = new XL::Real(blockFormat.topMargin());
+    XL::Real * a = new XL::Real(blockFormat.bottomMargin());
+    comma = new XL::Infix(",", b, a);
+    n = new XL::Name("paragraph_space");
+    XL::Prefix * para_space = new XL::Prefix(n, comma);
+
+    //////////////////////////
+    // Text alignment
+    //////////////////////////
+    Qt::Alignment align = blockFormat.alignment();
+
+    // Horizontal justify
+    double hJust = 0.0;
+    if (align & Qt::AlignJustify)
+        hJust = 1.0;
+    XL::Real *hj = new XL::Real(hJust);
+    n = new XL::Name("justify");
+    XL::Prefix *hJustify = new XL::Prefix(n, hj);
+
+    // Horizontal alignment
+    double hAlign = 0.0;
+    if (align & Qt::AlignHCenter)
+        hAlign = 0.5;
+    else if (align & Qt::AlignRight)
+        hAlign = 1.0;
+    XL::Real *ha = new XL::Real(hAlign);
+    n = new XL::Name("center");
+    XL::Prefix *hAlignment = new XL::Prefix(n, ha);
+
+    // Vertical justify
+    // Vertical alignment
+    double vAlign = 0.0;
+    if (align & Qt::AlignVCenter)
+        vAlign = 0.5;
+    else if (align & Qt::AlignBottom)
+        vAlign = 1.0;
+    XL::Real *va = new XL::Real(vAlign);
+    n = new XL::Name("vertical_center");
+    XL::Prefix *vAlignment = new XL::Prefix(n, va);
+
+    //////////////////////////
+    // Building the resulting tree
+    //////////////////////////
+
+    XL::Infix * lf = new XL::Infix("\n", vAlignment, hAlignment);
+    lf = new XL::Infix("\n", hJustify, lf);
+    lf = new XL::Infix("\n", para_space, lf);
+    lf = new XL::Infix("\n", margin, lf);
+
+    return lf;
+}
+
+XL::Tree * portability::fragmentToTree(const QTextFragment &fragment)
+{
+    QTextCharFormat charFormat = fragment.charFormat();
+    XL::Prefix * customWeight = NULL;
+    XL::Prefix * customStretch = NULL;
+    //////////////////////////
+    // Text font
+    //////////////////////////
+    // color
+    QColor txtColor = charFormat.foreground().color().toRgb();
+
+    XL::Real * red = new XL::Real(txtColor.redF());
+    XL::Real * green = new XL::Real(txtColor.greenF());
+    XL::Real * blue = new XL::Real(txtColor.blueF());
+    XL::Real * alpha = new XL::Real(txtColor.alphaF());
+    XL::Name * n = new XL::Name("color");
+
+    XL::Infix * comma = new XL::Infix(",", red, green);
+    comma = new XL::Infix(",", comma, blue);
+    comma = new XL::Infix(",", comma, alpha);
+    XL::Prefix *textColor = new XL::Prefix(n, comma);
+
+    // Font
+    XL::Name *style = NULL;
+    QFont::Style st = charFormat.font().style();
+    switch (st) {
+        case QFont::StyleNormal  : style = new XL::Name("roman")  ; break;
+        case QFont::StyleItalic  : style = new XL::Name("italic") ; break;
+        case QFont::StyleOblique : style = new XL::Name("oblique"); break;
+    }
+
+    XL::Name *caps = NULL;
+    QFont::Capitalization capital = charFormat.fontCapitalization();
+    switch (capital) {
+        case QFont::MixedCase    : caps = new XL::Name("mixed_case") ; break;
+        case QFont::AllUppercase : caps = new XL::Name("uppercase")  ; break;
+        case QFont::AllLowercase : caps = new XL::Name("lowercase")  ; break;
+        case QFont::SmallCaps    : caps = new XL::Name("small_caps") ; break;
+        case QFont::Capitalize   : caps = new XL::Name("capitalized"); break;
+    }
+    XL::Infix *lf = new XL::Infix(",", caps, style);
+
+    XL::Name *weight = NULL;
+    /*Font::Weight*/
+    int w = charFormat.fontWeight();
+    switch (w) {
+        case QFont::Light    : weight = new XL::Name("light")   ; break;
+        case QFont::Normal   : weight = new XL::Name("regular") ; break;
+        case QFont::DemiBold : weight = new XL::Name("demibold"); break;
+        case QFont::Bold     : weight = new XL::Name("bold")    ; break;
+        case QFont::Black    : weight = new XL::Name("black")   ; break;
+        default :
+                customWeight = new XL::Prefix(new XL::Name("weight"),
+                                              new XL::Integer(w));
+                break;
+    }
+    if (weight)
+        lf = new XL::Infix(",", lf, weight);
+
+    XL::Name *stretch = NULL;
+    /*QFont::Stretch*/
+    int str = charFormat.font().stretch();
+    switch (str) {
+        case QFont::UltraCondensed :
+            stretch = new XL::Name("ultra_condensed"); break;
+        case QFont::ExtraCondensed :
+            stretch = new XL::Name("extra_condensed"); break;
+        case QFont::Condensed :
+            stretch = new XL::Name("condensed"      ); break;
+        case QFont::SemiCondensed :
+            stretch = new XL::Name("semi_condensed" ); break;
+        case QFont::Unstretched :
+            stretch = new XL::Name("unstretched"    ); break;
+        case QFont::SemiExpanded :
+            stretch = new XL::Name("semi_expanded"  ); break;
+        case QFont::Expanded :
+            stretch = new XL::Name("expanded"       ); break;
+        case QFont::ExtraExpanded :
+            stretch = new XL::Name("extra_expanded" ); break;
+        case QFont::UltraExpanded :
+            stretch = new XL::Name("ultra_expanded" ); break;
+    default :
+            customStretch = new XL::Prefix(new XL::Name("stretch"),
+                                           new XL::Integer(str));
+            break;
+    }
+    if (stretch)
+        lf = new XL::Infix(",", lf, stretch);
+
+    if (charFormat.fontUnderline())
+    {
+        lf = new XL::Infix(",", lf, new XL::Name("underline"));
+    }
+    if (charFormat.fontOverline())
+    {
+        lf = new XL::Infix(",", lf, new XL::Name("overline"));
+    }
+    if (charFormat.fontStrikeOut())
+    {
+        lf = new XL::Infix(",", lf, new XL::Name("strike_out"));
+    }
+    if (charFormat.fontKerning())
+    {
+        lf = new XL::Infix(",", lf, new XL::Name("kerning"));
+    }
+
+    XL::Integer * size = new XL::Integer(charFormat.font().pointSize());
+    lf = new XL::Infix(",", lf, size);
+
+    XL::Text * fontName = new XL::Text(charFormat.fontFamily().toUtf8().constData(),"\"", "\"");
+    lf = new XL::Infix(",", lf, fontName);
+
+    n = new XL::Name("font");
+    XL::Prefix *font = new XL::Prefix(n, lf);
+
+    // The text
+    XL::Prefix * txt = new XL::Prefix(new XL::Name("text"),
+                                      new XL::Text(fragment.text().toUtf8().constData(),"<<", ">>"));
+    //////////////////////////
+    // Building the resulting tree
+    //////////////////////////
+
+    lf = new XL::Infix("\n", textColor, txt);
+    if (customStretch)
+        lf = new XL::Infix("\n", customStretch, lf);
+    if (customWeight)
+        lf = new XL::Infix("\n", customWeight, lf);
+    lf = new XL::Infix("\n", font, lf);
+    return lf;
+}

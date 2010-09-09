@@ -999,9 +999,11 @@ QList<GitRepository::Commit> GitRepository::history(QString branch, int max)
 //   Return the last commits on a branch in chronological order
 // ----------------------------------------------------------------------------
 //   If branch == "", the current branch is used
+//   Returned commits are contiguous, i.e., each commit is parent of the next
+//   one (the commits of merged branches are not interspersed)
 {
     QStringList args;
-    args << "log" << "--pretty=format:%h/%at/%an/%s";
+    args << "log" << "--first-parent" << "--pretty=format:%h/%at/%an/%s";
     args << "-n" << QString("%1").arg(max);
     if (!branch.isEmpty())
         args << branch;

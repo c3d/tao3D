@@ -184,7 +184,7 @@ void HistoryPlayback::checkout(int n)
 {
     QString what;
     if (n)
-        what = QString("%1~%2").arg(head).arg(n);
+        what = history[span - n - 1].id;
     else
         what = head;
     repo->checkout(+what);

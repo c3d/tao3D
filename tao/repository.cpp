@@ -136,6 +136,9 @@ XL::Tree *  Repository::read(text fileName)
     XL::Tree *result = NULL;
     text      full   = fullName(fileName);
 
+    if (full == "")
+        return NULL;  // fileName is not in the repository
+
     // Create the parser, with a local copy of the syntax (per-file syntax)
     XL::Syntax     syntax (XL::MAIN->syntax);
     XL::Positions &positions = XL::MAIN->positions;

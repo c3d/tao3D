@@ -145,7 +145,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentFileDialog(NULL),
       zoom(1.0), eyeDistance(20.0),
       eye(0.0, 0.0, Widget::zNear), viewCenter(0.0, 0.0, 0.0),
-      dragging(false), bAutoHideCursor(false)
+      dragging(false), bAutoHideCursor(false), forceRefresh(false)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -875,6 +875,15 @@ void Widget::saveAndCommit()
     ulonglong tick = now();
     if (doSave(tick))
         doCommit(tick);
+}
+
+
+void Widget::setForceRefresh()
+// ----------------------------------------------------------------------------
+//    Force document reload next time the dawdle loop runs
+// ----------------------------------------------------------------------------
+{
+    forceRefresh = true;
 }
 
 
@@ -1932,7 +1941,7 @@ void Widget::refreshProgram()
 
     // Loop on imported files
     import_set iset;
-    if (ImportedFilesChanged(prog, iset, false))
+    if (ImportedFilesChanged(prog, iset, false) || forceRefresh)
     {
         import_set::iterator it;
         bool needBigHammer = false;
@@ -1944,7 +1953,7 @@ void Widget::refreshProgram()
             struct stat st;
             stat (fname.c_str(), &st);
 
-            if (st.st_mtime > sf.modified)
+            if ((st.st_mtime > sf.modified) || forceRefresh)
             {
                 IFTRACE(filesync)
                     std::cerr << "File " << fname << " changed\n";
@@ -2017,6 +2026,8 @@ void Widget::refreshProgram()
             }
         }
     }
+    if (forceRefresh)
+        forceRefresh = false;
 }
 
 

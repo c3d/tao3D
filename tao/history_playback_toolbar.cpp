@@ -94,6 +94,9 @@ HistoryPlaybackToolBar::HistoryPlaybackToolBar(const QString & title,
             playback, SLOT  (setValue(int)));
     connect(playback, SIGNAL(valueChanged(int)),
             slider,   SLOT  (setValue(int)));
+
+    connect(playback, SIGNAL(valueChanged(int)),
+            this,     SIGNAL(documentChanged()));
 }
 
 

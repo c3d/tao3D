@@ -46,6 +46,9 @@ public slots:
     void              setRepository(Repository *);
     void              refresh();
 
+signals:
+    void              documentChanged();
+
 private slots:
     void              setSliderRange(int min, int max);
 

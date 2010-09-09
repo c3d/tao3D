@@ -1208,6 +1208,8 @@ void Window::createToolBars()
     playbackToolBar = new HistoryPlaybackToolBar(tr("History playback"));
     connect(this, SIGNAL(projectChanged(Repository*)),
             playbackToolBar, SLOT(setRepository(Repository*)));
+    connect(playbackToolBar, SIGNAL(documentChanged()),
+            taoWidget, SLOT(setForceRefresh()));
     addToolBar(playbackToolBar);
     if (view)
         view->addAction(playbackToolBar->toggleViewAction());

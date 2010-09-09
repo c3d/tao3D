@@ -31,7 +31,7 @@ HistoryPlayback::HistoryPlayback(QObject *parent)
 // ----------------------------------------------------------------------------
 //   Create object to manage navigation through document history
 // ----------------------------------------------------------------------------
-    : QObject(parent), repo(NULL), max_span(100)
+    : QObject(parent), repo(NULL), span(0), max_span(100)
 {
     reset();
 }
@@ -41,7 +41,7 @@ HistoryPlayback::HistoryPlayback(QObject *parent, Repository *repo)
 // ----------------------------------------------------------------------------
 //   Create object to manage navigation through document history
 // ----------------------------------------------------------------------------
-    : QObject(parent), repo(repo), max_span(100)
+    : QObject(parent), repo(repo), span(0), max_span(100)
 {
     reset();
 }

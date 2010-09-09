@@ -187,6 +187,33 @@ line_color_hsl h:real, s:real, l:real                              -> line_color
 line_color_hsv h:real, s:real, v:real                              -> line_color_hsv h, s, v, 1.0
 line_color_cmyk c:real, m:real, y:real, k:real                     -> line_color_cmyk c, m, y, k, 1.0
 
+
+// Text Layout
+align center:real, justify:real, spread:real            -> align center, justify, spread, 0
+align center:real, justify:real                         -> align center, justify, 0, 0
+align center:real                                       -> align center, 0, 0, 0
+
+align_left                                              -> align   0, 0, 0, 0
+align_right                                             -> align   1, 0, 0, 0
+align_center                                            -> align 0.5, 0, 0, 0
+align_justify                                           -> align   0, 1, 0, 0
+align_left_justify                                      -> align   0, 1, 0, 0
+align_right_justify                                     -> align   1, 1, 0, 0
+align_full_justify                                      -> align   0, 1, 0, 1
+align_spread                                            -> align   0, 1, 1, 0
+align_full_spread                                       -> align   0, 1, 1, 1
+
+vertical_align center:real, justify:real, spread:real   -> vertical_align center, justify, spread, 0
+vertical_align center:real, justify:real                -> vertical_align center, justify, 0, 0
+vertical_align center:real                              -> vertical_align center, 0, 0, 0
+
+vertical_align_top                                      -> vertical_align   0, 0, 0, 0
+vertical_align_bottom                                   -> vertical_align   1, 0, 0, 0
+vertical_align_center                                   -> vertical_align 0.5, 0, 0, 0
+vertical_align_justify                                  -> vertical_align   0, 1, 0, 0
+vertical_align_spread                                   -> vertical_align   0, 1, 1, 0
+
+
 // 3D Shapes
 sphere x:real, y:real, z:real, r:real   -> sphere x,y,z,2*r,2*r,2*r,25,25
 sphere r:real                           ->

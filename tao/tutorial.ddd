@@ -5,8 +5,8 @@ page "What is Tao?", do
         color 0, 0, 1, 80% 
         line_color 90%, 50%, 0, 70%
         line_width 2 
-        center 0.5 
-        vertical_center 0.5 
+        align_center
+        vertical_align_center
         text "Welcome to Tao!"
         line_break
         line_color 0,0,0,0

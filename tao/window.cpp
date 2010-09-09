@@ -488,11 +488,35 @@ bool Window::saveAs()
         dir = Application::defaultProjectFolderPath();
     else
         dir = curFile;
+again:
     QString fileName =
         QFileDialog::getSaveFileName(this, tr("Save As"), dir,
                                      tr(TAO_FILESPECS));
     if (fileName.isEmpty())
         return false;
+
+    // Avoid saving in the Tao folder (and thus creating a repository with all
+    // the Tao documents inside...)
+    // Note that on MacOSX, in some circumstances, user may involontarily
+    // select the Tao folder as a target even though he/she wanted to create
+    // a subfolder -- see http://bugreports.qt.nokia.com/browse/QTBUG-13526.
+    {
+        QDir dir = QDir(QFileInfo(fileName).absoluteDir());
+        QDir taoDir = QDir(Application::defaultProjectFolderPath());
+        if (dir == taoDir)
+        {
+            int r = QMessageBox::warning(this, tr("Confirm folder"),
+                        tr("Saving in the Tao document folder is not "
+                           "recommended. You should create a subfolder "
+                           "instead.\n"
+                           "Do you want to proceed anyway? Click No to "
+                           "choose another location."),
+                           QMessageBox::Yes | QMessageBox::No);
+            if (r != QMessageBox::Yes)
+                goto again;
+        }
+    }
+
     QString projpath = QFileInfo(fileName).absolutePath();
     QString fileNameOnly = QFileInfo(fileName).fileName();
     if (!openProject(projpath, fileNameOnly, false))

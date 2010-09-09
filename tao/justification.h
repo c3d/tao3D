@@ -25,6 +25,7 @@
 #include "coords3d.h"
 #include <vector>
 #include <iostream>
+#include <Qt>
 
 TAO_BEGIN
 
@@ -66,6 +67,30 @@ struct Justification
     float       after;
     float       perSolid;
     float       perBreak;
+
+    Qt::Alignment toQtHAlign()
+    {
+        if (amount == 0)
+            std::cerr << "Qt::Alignment toQtHAlign() amount = " << amount <<std::endl;
+        if (amount >= 0.5)
+            return Qt::AlignJustify;
+        if (centering <= 0.4)
+            return Qt::AlignLeft;
+        if (centering <= 0.6)
+            return Qt::AlignHCenter;
+        return Qt::AlignRight;
+    }
+
+    Qt::Alignment toQtVAlign()
+    {
+//        std::cerr << "Qt::Alignment toQtVAlign() centering = " << centering <<std::endl;
+        if (centering <= 0.4)
+            return Qt::AlignTop;
+        if (centering <= 0.6)
+            return Qt::AlignVCenter;
+        return Qt::AlignBottom;
+    }
+
 };
 
 

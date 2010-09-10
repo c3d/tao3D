@@ -34,22 +34,21 @@ CheckoutDialog::CheckoutDialog(Repository *repo, QWidget *parent)
     : HistoryDialog(repo, parent)
 {
     setWindowTitle(tr("Checkout"));
-    msg->setText(tr("Please select a version of the document and click "
-                    "Checkout to bring a copy into a temporary branch"));
+    historyFrame->setMessage(tr("Please select a version of the document and "
+                    "click Checkout to bring a copy into a temporary branch"));
     QPushButton *checkoutButton;
     checkoutButton = new QPushButton(tr("&Checkout"));
     buttonBox->addButton(checkoutButton, QDialogButtonBox::ApplyRole);
-    connect(checkoutButton, SIGNAL(clicked()),
-            this, SLOT(checkoutButton_clicked()));
+    connect(checkoutButton, SIGNAL(clicked()), this, SLOT(checkout()));
 }
 
 
-void CheckoutDialog::checkoutButton_clicked()
+void CheckoutDialog::checkout()
 // ----------------------------------------------------------------------------
 //    Action for checkout button
 // ----------------------------------------------------------------------------
 {
-    QString id = revEdit->text();
+    QString id = historyFrame->rev();
     bool ok = repo->checkout(+id);
     if (ok)
         emit checkedOut(id);

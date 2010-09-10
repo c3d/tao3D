@@ -33,30 +33,23 @@ namespace Tao {
 
 HistoryDialog::HistoryDialog(Repository *repo, QWidget *parent)
 // ----------------------------------------------------------------------------
-//    Create a "History" dialog box with "Checkout" and "Undo" buttons
+//    Create a "History" dialog box
 // ----------------------------------------------------------------------------
     : QDialog(parent), repo(repo)
 {
     Q_ASSERT(repo);
 
     setupUi(this);
-
-    connect(branchCombo, SIGNAL(branchSelected(QString)),
-            tableView, SLOT(setBranch(QString)));
-    connect(tableView, SIGNAL(commitSelected(Repository::Commit)),
-            this, SLOT(tableView_commitSelected(Repository::Commit)));
-
-    tableView->setRepository(repo);
-    branchCombo->setRepository(repo);
+    historyFrame->setRepository(repo);
 }
 
 
-void HistoryDialog::tableView_commitSelected(Repository::Commit commit)
+QString HistoryDialog::rev()
 // ----------------------------------------------------------------------------
-//    Update QLineEdit widget when a commit is selected through table view
+//    Return ID of currently selected commit
 // ----------------------------------------------------------------------------
 {
-    revEdit->setText(commit.id);
+    return historyFrame->rev();
 }
 
 }

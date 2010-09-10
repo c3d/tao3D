@@ -35,22 +35,21 @@ SelectiveUndoDialog::SelectiveUndoDialog(Repository *repo, QWidget *parent)
     : HistoryDialog(repo, parent)
 {
     setWindowTitle(tr("Selective undo"));
-    msg->setText(tr("Please select a change and click "
+    historyFrame->setMessage(tr("Please select a change and click "
                     "Undo to undo this change in the current document"));
     QPushButton *undoButton;
     undoButton = new QPushButton(tr("&Undo"));
     buttonBox->addButton(undoButton, QDialogButtonBox::ApplyRole);
-    connect(undoButton, SIGNAL(clicked()),
-            this, SLOT(undoButton_clicked()));
+    connect(undoButton, SIGNAL(clicked()), this, SLOT(undo()));
 }
 
 
-void SelectiveUndoDialog::undoButton_clicked()
+void SelectiveUndoDialog::undo()
 // ----------------------------------------------------------------------------
 //    Action for undo button
 // ----------------------------------------------------------------------------
 {
-    QString id = revEdit->text();
+    QString id = historyFrame->rev();
     bool ok = repo->revert(+id);
     if (!ok)
     {

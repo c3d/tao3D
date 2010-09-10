@@ -6,9 +6,9 @@
 //
 //   File Description:
 //
-//    The class to display the "Revert to" dialog box. This is a modeless
+//    The class to display the Checkout dialog box. This is a modeless
 //    dialog which enables to checkout any past version of the document into a
-//    temporary branch
+//    temporary branch.
 //
 //
 //
@@ -23,9 +23,6 @@
 // ****************************************************************************
 
 #include "history_dialog.h"
-#include "repository.h"
-#include <QWidget>
-#include <QPushButton>
 
 namespace Tao {
 
@@ -42,7 +39,7 @@ signals:
     void   checkedOut(QString id);
 
 private slots:
-    void   checkoutButton_clicked();
+    void   checkout();
 };
 
 }

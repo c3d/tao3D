@@ -1,15 +1,15 @@
-#ifndef HISTORY_DIALOG_H
-#define HISTORY_DIALOG_H
+#ifndef HISTORY_FRAME_H
+#define HISTORY_FRAME_H
 // ****************************************************************************
-//  history_dialog.h                                               Tao project
+//  history_frame.h                                               Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    The class to display the "History" dialog box, which is used to select
-//    a commit. Contains a branch selection combo box, a table widget to show
-//    the commit log, and a free text edit area for current commit ID.
-//    Used as a base class for dialogs like Checkout and Selective Undo.
+//    The class to display the "History" frame box, which is used to select
+//    a commit. Contains a branch selection combo box, a commit selection combo
+//    box and a free text edit area.
+//    Used by HistoryDialog (1) and DiffDialog (2).
 //
 //
 //
@@ -23,9 +23,9 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "ui_history_dialog.h"
+#include "ui_history_frame.h"
 #include "repository.h"
-#include <QDialog>
+#include <QFrame>
 #include <QWidget>
 #include <QPushButton>
 
@@ -33,13 +33,18 @@ namespace Tao {
 
 struct Repository;
 
-class HistoryDialog : public QDialog, protected Ui::HistoryDialog
+class HistoryFrame : public QFrame, protected Ui::HistoryFrame
 {
     Q_OBJECT
 
 public:
-    HistoryDialog(Repository *repo, QWidget *parent = 0);
+    HistoryFrame(QWidget *parent = 0);
+    void    setMessage(QString text);
+    void    setRepository(Repository *repo);
     QString rev();
+
+private slots:
+    void    tableView_commitSelected(Repository::Commit commit);
 
 protected:
     Repository  *repo;
@@ -47,4 +52,4 @@ protected:
 
 }
 
-#endif // HISTORY_DIALOG_H
+#endif // HISTORY_FRAME_H

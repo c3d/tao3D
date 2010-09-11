@@ -43,6 +43,8 @@ HistoryFrame::HistoryFrame(QWidget *parent)
             tableView, SLOT(setBranch(QString)));
     connect(tableView, SIGNAL(commitSelected(Repository::Commit)),
             this, SLOT(tableView_commitSelected(Repository::Commit)));
+    connect(revEdit, SIGNAL(editingFinished()),
+            this,    SLOT(emitRev()));
 }
 
 
@@ -52,6 +54,7 @@ void HistoryFrame::tableView_commitSelected(Repository::Commit commit)
 // ----------------------------------------------------------------------------
 {
     revEdit->setText(commit.id);
+    emit revSet(revEdit->text());
 }
 
 
@@ -80,6 +83,15 @@ QString HistoryFrame::rev()
 // ----------------------------------------------------------------------------
 {
     return revEdit->text();
+}
+
+
+void HistoryFrame::emitRev()
+// ----------------------------------------------------------------------------
+//    Send signal with current text in commit ID line edit
+// ----------------------------------------------------------------------------
+{
+    emit revSet(revEdit->text());
 }
 
 }

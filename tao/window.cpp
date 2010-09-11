@@ -34,6 +34,7 @@
 #include "checkout_dialog.h"
 #include "selective_undo_dialog.h"
 #include "clone_dialog.h"
+#include "diff_dialog.h"
 #include "branch_selection_toolbar.h"
 #include "history_playback_toolbar.h"
 #include "undo.h"
@@ -797,6 +798,21 @@ void Window::merge()
 }
 
 
+void Window::diff()
+// ----------------------------------------------------------------------------
+//    Show a "Diff" dialog
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+        return warnNoRepo();
+
+    DiffDialog *dialog = new DiffDialog(repo.data(), this);
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
+}
+
+
 void Window::checkout()
 // ----------------------------------------------------------------------------
 //    Show a "Checkout" dialog
@@ -1033,6 +1049,12 @@ void Window::createActions()
     connect(selectiveUndoAct, SIGNAL(triggered()),
             this, SLOT(selectiveUndo()));
 
+    diffAct = new QAction(tr("Diff..."), this);
+    diffAct->setStatusTip(tr("View the source code difference between two "
+                             "document versions"));
+    diffAct->setEnabled(false);
+    connect(diffAct, SIGNAL(triggered()), this, SLOT(diff()));
+
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setStatusTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
@@ -1148,6 +1170,7 @@ void Window::createMenus()
     shareMenu->addAction(mergeAct);
     shareMenu->addAction(checkoutAct);
     shareMenu->addAction(selectiveUndoAct);
+    shareMenu->addAction(diffAct);
 
     viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(dock->toggleViewAction());
@@ -1627,6 +1650,7 @@ void Window::enableProjectSharingMenus()
     mergeAct->setEnabled(true);
     checkoutAct->setEnabled(true);
     selectiveUndoAct->setEnabled(true);
+    diffAct->setEnabled(true);
 }
 
 

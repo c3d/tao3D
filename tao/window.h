@@ -124,6 +124,7 @@ private slots:
     void fetch();
     void push();
     void merge();
+    void diff();
     void checkout();
     void selectiveUndo();
     void clone();
@@ -214,6 +215,7 @@ private:
     QAction          *mergeAct;
     QAction          *checkoutAct;
     QAction          *selectiveUndoAct;
+    QAction          *diffAct;
     QAction          *aboutAct;
     QAction          *preferencesAct;
     QAction          *aboutQtAct;

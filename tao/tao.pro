@@ -146,7 +146,8 @@ HEADERS += widget.h \
     preferences_pages.h \
     history_playback.h \
     history_playback_toolbar.h \
-    history_frame.h
+    history_frame.h \
+    diff_dialog.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -234,7 +235,8 @@ SOURCES += tao_main.cpp \
     preferences_pages.cpp \
     history_playback.cpp \
     history_playback_toolbar.cpp \
-    history_frame.cpp
+    history_frame.cpp \
+    diff_dialog.cpp
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp \
     xlr/xlr/basics.cpp
@@ -293,7 +295,8 @@ FORMS += pull_from_dialog.ui \
     history_dialog.ui \
     open_uri_dialog.ui \
     fetch_push_dialog.ui \
-    history_frame.ui
+    history_frame.ui \
+    diff_dialog.ui
 
 # Automatic embedding of Git version
 QMAKE_CLEAN += version.h

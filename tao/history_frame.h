@@ -43,8 +43,12 @@ public:
     void    setRepository(Repository *repo);
     QString rev();
 
+signals:
+    void revSet(QString id);
+
 private slots:
     void    tableView_commitSelected(Repository::Commit commit);
+    void    emitRev();
 
 protected:
     Repository  *repo;

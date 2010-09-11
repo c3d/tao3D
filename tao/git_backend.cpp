@@ -1025,6 +1025,26 @@ QList<GitRepository::Commit> GitRepository::history(QString branch, int max)
 }
 
 
+QString GitRepository::diff(QString a, QString b, bool symetric)
+// ----------------------------------------------------------------------------
+//   Return source code difference between version a and version b (commit ids)
+// ----------------------------------------------------------------------------
+{
+    text output;
+    QStringList args;
+    args << "diff";
+    if (symetric)
+        args << QString("%1...%2").arg(a).arg(b);
+    else
+        args << a << b;
+    waitForAsyncProcessCompletion();
+    Process cmd(command(), args, path);
+    cmd.done(&errors, &output);
+
+    return +output;
+}
+
+
 process_p GitRepository::asyncClone(QString cloneUrl, QString newFolder)
 // ----------------------------------------------------------------------------
 //   Prepare a Process that will make a local copy of a remote project

@@ -215,7 +215,7 @@ bool Application::processCommandLine()
     QFileInfo theme     ("xl:theme.xl");
     QFileInfo tutorial  ("system:tutorial.ddd");
 
-    EnterGraphics(xlr->globals);
+    EnterGraphics();
     if (user.exists())
         contextFiles.push_back(+user.canonicalFilePath());
     if (theme.exists())

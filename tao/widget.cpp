@@ -114,15 +114,12 @@ static inline QGL::FormatOptions TaoGLFormatOptions()
 }
 
 
-Widget::Widget(Window *parent, XL::SourceFile *sf)
+Widget::Widget(Window *parent, SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create the GL widget
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(TaoGLFormatOptions()), parent),
-      xlProgram(sf),
-      symbolTableForFormulas(new XL::Symbols(NULL)),
-      symbolTableRoot(new XL::Name("formula_symbol_table")),
-      inError(false), mustUpdateDialogs(false),
+      xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
       space(NULL), layout(NULL), path(NULL), table(NULL),
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
@@ -182,8 +179,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     toDialogLabel["Reject"]   = (QFileDialog::DialogLabel)QFileDialog::Reject;
 
     // Connect the symbol table for formulas
-    symbolTableRoot->SetSymbols(symbolTableForFormulas);
-    TaoFormulas::EnterFormulas(symbolTableForFormulas);
+    formulas = new Context(NULL, NULL);
+    TaoFormulas::EnterFormulas(formulas);
 
     // Select format for source file view
     setSourceRenderer();
@@ -228,8 +225,8 @@ void Widget::dawdle()
     for (Activity *a = activities; a; a = a->Idle()) ;
 
     // We will only auto-save and commit if we have a valid repository
-    Repository *repo           = repository();
-    XL::Main   *xlr            = XL::MAIN;
+    Repository *repo = repository();
+    Main       *xlr  = XL::MAIN;
 
     // Check if we need to refresh something
     double currentTime = CurrentTime();
@@ -403,9 +400,9 @@ void Widget::runProgram()
     XL::LocalSave<Layout *> saveLayout(layout, space);
 
     // Evaluate the program
-    XL::MAIN->EvalContextFiles(((Window*)parent())->contextFileNames);
+    XL::MAIN->EvaluateContextFiles(((Window*)parent())->contextFileNames);
     if (Tree *prog = xlProgram->tree)
-        xl_evaluate(prog);
+        xlProgram->context->Evaluate(prog);
 
     // Clean the end of the old menu list.
     for  ( ; order < orderedMenuElements.count(); order++)
@@ -756,10 +753,7 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
         if (XL::Block *block = (*top)->AsBlock())
             top = &block->child;
     }
-
-    Symbols *symbols = (*top)->Symbols();
     *top = new XL::Infix("\n", select, *top);
-    (*top)->SetSymbols(symbols);
 
     // Reload the program and mark the changes
     reloadProgram();
@@ -990,7 +984,7 @@ void Widget::userMenu(QAction *p_action)
 
     TaoSave saveCurrent(current, this);
     XL::Tree *t = var.value<XL::Tree_p>();
-    xl_evaluate(t);        // Typically will insert something...
+    xlProgram->context->Evaluate(t); // Typically will insert something...
 }
 
 
@@ -1178,12 +1172,12 @@ QFont &Widget::currentFont()
 }
 
 
-Symbols *Widget::currentSymbols()
+Context *Widget::context()
 // ----------------------------------------------------------------------------
 //   Return the symbols for the top-level program
 // ----------------------------------------------------------------------------
 {
-    return xlProgram->symbols;
+    return xlProgram->context;
 }
 
 
@@ -1606,10 +1600,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
 
     // If the key was not handled by any activity, forward to document
     if (!handled)
-    {
-        XL::Symbols *syms = xlProgram->symbols;
-        (XL::XLCall ("key"), key) (syms);
-    }
+        (XL::XLCall ("key"), key) (xlProgram->context);
 }
 
 
@@ -1628,8 +1619,7 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
 
     // Now call "key" in the current context with the ~ prefix
     text name = "~" + keyName(event);
-    XL::Symbols *syms = xlProgram->symbols;
-    (XL::XLCall ("key"), name) (syms);
+    (XL::XLCall ("key"), name) (xlProgram->context);
 }
 
 
@@ -1807,12 +1797,11 @@ void Widget::wheelEvent(QWheelEvent *event)
         return;
 
     // Propagate the wheel event
-    XL::Symbols *symbols = xlProgram->symbols;
     int d = event->delta();
     Qt::Orientation orientation = event->orientation();
     longlong dx = orientation == Qt::Horizontal ? d : 0;
     longlong dy = orientation == Qt::Vertical   ? d : 0;
-    (XL::XLCall("wheel_event"), dx, dy)(symbols);
+    (XL::XLCall("wheel_event"), dx, dy)(xlProgram->context);
 }
 
 
@@ -1889,7 +1878,6 @@ void Widget::updateProgram(XL::SourceFile *source)
     {
         Renormalize renorm(this);
         xlProgram->tree = prog->Do(renorm);
-        xlProgram->tree->SetSymbols(prog->Symbols());
     }
     refreshProgram();
     inError = false;
@@ -1933,7 +1921,6 @@ void Widget::reloadProgram(XL::Tree *newProg)
         {
             Renormalize renorm(this);
             newProg = prog->Do(renorm);
-            newProg->SetSymbols(prog->Symbols());
             xlProgram->tree = newProg;
         }
     }
@@ -1943,11 +1930,8 @@ void Widget::reloadProgram(XL::Tree *newProg)
     {
         ApplyChanges changes(newProg);
         if (!prog->Do(changes))
-        {
             // Need a big hammer, i.e. reload the complete program
-            newProg->SetSymbols(prog->Symbols());
             xlProgram->tree = newProg;
-        }
     }
     inError = false;
 
@@ -2126,15 +2110,15 @@ void Widget::preloadSelectionCode()
     static bool first = true;
     if (first)
     {
-        XL::Symbols *s = xlProgram->symbols;
+        Context *c = xlProgram->context;
         double x = 0;
-        (XL::XLCall("draw_selection"), x,x,x,x).build(s);
-        (XL::XLCall("draw_selection"), x,x,x,x,x,x).build(s);
-        (XL::XLCall("draw_widget_selection"), x,x,x,x).build(s);
-        (XL::XLCall("draw_widget_selection"), x,x,x,x,x,x).build(s);
-        (XL::XLCall("draw_3D_selection"), x,x,x,x,x,x).build(s);
-        (XL::XLCall("draw_handle"), x, x, x).build(s);
-        (XL::XLCall("draw_control_point_handle"), x, x, x).build(s);
+        (XL::XLCall("draw_selection"), x,x,x,x).build(c);
+        (XL::XLCall("draw_selection"), x,x,x,x,x,x).build(c);
+        (XL::XLCall("draw_widget_selection"), x,x,x,x).build(c);
+        (XL::XLCall("draw_widget_selection"), x,x,x,x,x,x).build(c);
+        (XL::XLCall("draw_3D_selection"), x,x,x,x,x,x).build(c);
+        (XL::XLCall("draw_handle"), x, x, x).build(c);
+        (XL::XLCall("draw_control_point_handle"), x, x, x).build(c);
         first = false;
     }
 }
@@ -2539,12 +2523,13 @@ bool Widget::get(Tree *shape, text name, attribute_args &args, text topName)
         return false;
 
     // Convert from integer or tree values
+    Context *context = xlProgram->context;
     XL::TreeList::iterator i;
     for (i = treeArgs.begin(); i != treeArgs.end(); i++)
     {
         Tree *arg = *i;
         if (!arg->IsConstant())
-            arg = xl_evaluate(arg);
+            arg = context->Evaluate(arg);
         if (XL::Real *asReal = arg->AsReal())
             args.push_back(asReal->value);
         else if (XL::Integer *asInteger = arg->AsInteger())
@@ -2872,7 +2857,7 @@ void Widget::drawSelection(Layout *where,
 // ----------------------------------------------------------------------------
 {
     // Symbols where we will find the selection code
-    XL::Symbols *symbols = xlProgram->symbols;
+    Context *context = xlProgram->context;
 
     Box3 bounds(bnds);
     bounds.Normalize();
@@ -2895,9 +2880,9 @@ void Widget::drawSelection(Layout *where,
     saveSelectionColorAndFont(where);
     glDisable(GL_DEPTH_TEST);
     if (bounds.Depth() > 0)
-        (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (symbols);
+        (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (context);
     else
-        (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (symbols);
+        (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (context);
     selectionSpace.Draw(where);
     glEnable(GL_DEPTH_TEST);
 }
@@ -2910,7 +2895,7 @@ void Widget::drawHandle(Layout *where,
 // ----------------------------------------------------------------------------
 {
     // Symbols where we will find the selection code
-    XL::Symbols *symbols = xlProgram->symbols;
+    Context *context = xlProgram->context;
 
     SpaceLayout selectionSpace(this);
 
@@ -2920,25 +2905,24 @@ void Widget::drawHandle(Layout *where,
     glDisable(GL_DEPTH_TEST);
     selectionSpace.id = id | HANDLE_SELECTED;
     selectionSpace.isSelection = true;
-    (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (symbols);
+    (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (context);
 
     selectionSpace.Draw(where);
     glEnable(GL_DEPTH_TEST);
 }
 
 
-void Widget::drawTree(Layout *where, Tree *code)
+void Widget::drawTree(Layout *where, Context *context, Tree *code)
 // ----------------------------------------------------------------------------
 //    Draw some tree, e.g. cell fill and border
 // ----------------------------------------------------------------------------
 {
-    XL::Symbols *symbols = code->Symbols(); assert(symbols);
     SpaceLayout selectionSpace(this);
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper          saveGL;
     glDisable(GL_DEPTH_TEST);
-    xl_evaluate(code);
+    context->Evaluate(code);
 
     selectionSpace.Draw(where);
     glEnable(GL_DEPTH_TEST);
@@ -2947,11 +2931,11 @@ void Widget::drawTree(Layout *where, Tree *code)
 
 void Widget::drawCall(Layout *where, XL::XLCall &call, uint id)
 // ----------------------------------------------------------------------------
-//   Display the given text at the given location
+//   Draw the given call in a selection context
 // ----------------------------------------------------------------------------
 {
     // Symbols where we will find the selection code
-    XL::Symbols *symbols = xlProgram->symbols;
+    Context *context = xlProgram->context;
     SpaceLayout selectionSpace(this);
 
     XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
@@ -2960,7 +2944,7 @@ void Widget::drawCall(Layout *where, XL::XLCall &call, uint id)
     selectionSpace.id = id;
     selectionSpace.isSelection = true;
     glDisable(GL_DEPTH_TEST);
-    call(symbols);
+    call(context);
     selectionSpace.Draw(where);
     glEnable(GL_DEPTH_TEST);
 }
@@ -2996,7 +2980,7 @@ Tree * Widget::shapeAction(text n, GLuint id)
 Widget *Widget::current = NULL;
 typedef XL::Tree Tree;
 
-XL::Text_p Widget::page(Tree_p self, text name, Tree_p body)
+XL::Text_p Widget::page(Context *context, text name, Tree_p body)
 // ----------------------------------------------------------------------------
 //   Start a new page, returns the previously named page
 // ----------------------------------------------------------------------------
@@ -3018,7 +3002,7 @@ XL::Text_p Widget::page(Tree_p self, text name, Tree_p body)
         if (pageId > 1)
             pageLinks["PageUp"] = lastPageName;
         pageTree = body;
-        xl_evaluate(body);
+        context->Evaluate(body);
     }
     else if (pageName == lastPageName)
     {
@@ -3169,7 +3153,7 @@ XL::Real_p Widget::pageTime(Tree_p self)
 }
 
 
-XL::Real_p Widget::after(Tree_p self, double delay, Tree_p code)
+XL::Real_p Widget::after(Context *context, double delay, Tree_p code)
 // ----------------------------------------------------------------------------
 //   Execute the given code only after the specified amount of time
 // ----------------------------------------------------------------------------
@@ -3188,14 +3172,14 @@ XL::Real_p Widget::after(Tree_p self, double delay, Tree_p code)
     else
     {
         XL::LocalSave<double> saveTime(startTime, startTime + delay);
-        xl_evaluate(code);
+        context->Evaluate(code);
     }
 
     return new XL::Real(elapsed);
 }
 
 
-XL::Real_p Widget::every(Tree_p self,
+XL::Real_p Widget::every(Context *context,
                          double interval, double duty,
                          Tree_p code)
 // ----------------------------------------------------------------------------
@@ -3219,7 +3203,7 @@ XL::Real_p Widget::every(Tree_p self,
     else
     {
         XL::LocalSave<double> saveTime(startTime, start);
-        xl_evaluate(code);
+        context->Evaluate(code);
         if (pageRefresh > start + delay)
             pageRefresh = start + delay;
     }
@@ -3266,24 +3250,22 @@ Tree_p Widget::shapeAction(Tree_p self, text name, Tree_p action)
 // ----------------------------------------------------------------------------
 {
     actionMap[name][layout->id] = action;
-    if (!action->Symbols())
-        action->SetSymbols(self->Symbols());
     return XL::xl_true;
 }
 
 
-Tree_p Widget::locally(Tree_p self, Tree_p child)
+Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree while preserving the current state
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> save(layout, layout->AddChild(layout->id));
-    Tree_p result = xl_evaluate(child);
+    Tree_p result = context->Evaluate(child);
     return result;
 }
 
 
-Tree_p Widget::shape(Tree_p self, Tree_p child)
+Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child and mark the current shape
 // ----------------------------------------------------------------------------
@@ -3295,12 +3277,12 @@ Tree_p Widget::shape(Tree_p self, Tree_p child)
         selection[id]++;
         selectNextTime.erase(self);
     }
-    Tree_p result = xl_evaluate(child);
+    Tree_p result = context->Evaluate(child);
     return result;
 }
 
 
-Tree_p Widget::activeWidget(Tree_p self, Tree_p child)
+Tree_p Widget::activeWidget(Context *context, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Create a context for active widgets, e.g. buttons
 // ----------------------------------------------------------------------------
@@ -3314,12 +3296,12 @@ Tree_p Widget::activeWidget(Tree_p self, Tree_p child)
         selection[id]++;
         selectNextTime.erase(self);
     }
-    Tree_p result = xl_evaluate(child);
+    Tree_p result = context->Evaluate(child);
     return result;
 }
 
 
-Tree_p Widget::anchor(Tree_p self, Tree_p child)
+Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Anchor a set of shapes to the current position
 // ----------------------------------------------------------------------------
@@ -3333,7 +3315,7 @@ Tree_p Widget::anchor(Tree_p self, Tree_p child)
         selection[id]++;
         selectNextTime.erase(self);
     }
-    Tree_p result = xl_evaluate(child);
+    Tree_p result = context->Evaluate(child);
     return result;
 }
 
@@ -4138,14 +4120,14 @@ Tree_p Widget::textureWrap(Tree_p self, bool s, bool t)
 }
 
 
-Tree_p Widget::textureTransform(Tree_p self, Tree_p code)
+Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 //   Apply a texture transformation
 // ----------------------------------------------------------------------------
 {
     layout->hasTextureMatrix = true;
     layout->Add(new TextureTransform(true));
-    Tree_p result = xl_evaluate(code);
+    Tree_p result = context->Evaluate(code);
     layout->Add(new TextureTransform(false));
     return result;
 }
@@ -4158,7 +4140,7 @@ Tree_p Widget::textureTransform(Tree_p self, Tree_p code)
 //
 // ============================================================================
 
-Tree_p Widget::newPath(Tree_p self, Tree_p child)
+Tree_p Widget::newPath(Context *context, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree within a polygon
 // ----------------------------------------------------------------------------
@@ -4171,7 +4153,7 @@ Tree_p Widget::newPath(Tree_p self, Tree_p child)
     layout->Add(localPath);
     if (currentShape)
         layout->Add(new GraphicPathManipulator(currentShape, localPath, self));
-    Tree_p result = xl_evaluate(child);
+    Tree_p result = context->Evaluate(child);
     return result;
 }
 
@@ -4815,7 +4797,7 @@ Tree_p Widget::object(Tree_p self,
 //
 // ============================================================================
 
-Tree_p  Widget::textBox(Tree_p self,
+Tree_p  Widget::textBox(Context *context, Tree_p self,
                         Real_p x, Real_p y, Real_p w, Real_p h, Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Create a new page layout and render text in it
@@ -4831,7 +4813,8 @@ Tree_p  Widget::textBox(Tree_p self,
         layout->Add(new ControlRectangle(currentShape, x, y, w, h));
 
     XL::LocalSave<Layout *> save(layout, tbox);
-    return xl_evaluate(prog);
+    Tree *result = context->Evaluate(prog);
+    return result;
 }
 
 
@@ -4892,12 +4875,12 @@ Tree_p Widget::textFormula(Tree_p self, Tree_p value)
 }
 
 
-Tree_p Widget::font(Tree_p self, Tree_p description)
+Tree_p Widget::font(Context *context, Tree_p self, Tree_p description)
 // ----------------------------------------------------------------------------
 //   Select a font family
 // ----------------------------------------------------------------------------
 {
-    FontParsingAction parseFont(self->Symbols(), layout->font);
+    FontParsingAction parseFont(context, layout->font);
     description->Do(parseFont);
     layout->font = parseFont.font;
     layout->Add(new FontChange(layout->font));
@@ -5231,24 +5214,25 @@ Text_p Widget::docVersion(Tree_p self)
 //
 // ============================================================================
 
-Tree_p Widget::newTable(Tree_p self,
+Tree_p Widget::newTable(Context *context, Tree_p self,
                         Integer_p rows, Integer_p columns,
                         Tree_p body)
 // ----------------------------------------------------------------------------
 //   Case of a new table without a position
 // ----------------------------------------------------------------------------
 {
-    return newTable(self, r(0), r(0), rows, columns, body);
+    return newTable(context, self, r(0), r(0), rows, columns, body);
 }
 
 
-Tree_p Widget::newTable(Tree_p self, Real_p x, Real_p y,
+Tree_p Widget::newTable(Context *context, Tree_p self,
+                        Real_p x, Real_p y,
                         Integer_p r, Integer_p c, Tree_p body)
 // ----------------------------------------------------------------------------
 //   Create a new table
 // ----------------------------------------------------------------------------
 {
-    Table *tbl = new Table(this, x, y, r, c);
+    Table *tbl = new Table(this, context, x, y, r, c);
     XL::LocalSave<Table *> saveTable(table, tbl);
     layout->Add(tbl);
 
@@ -5271,8 +5255,6 @@ Tree_p Widget::newTable(Tree_p self, Real_p x, Real_p y,
         replacer["column"]  = "table_cell_column";
         replacer["rows"]    = "table_rows";
         replacer["columns"] = "table_columns";
-        if (!prefix->right->Symbols())
-            prefix->right->SetSymbols(self->Symbols());
         Tree *tablified = replacer.Replace(prefix->right);
         if (replacer.replaced)
         {
@@ -5282,19 +5264,18 @@ Tree_p Widget::newTable(Tree_p self, Real_p x, Real_p y,
         }
     }
 
-    return xl_evaluate(body);
+    return context->Evaluate(body);
 }
 
 
-Tree_p Widget::tableCell(Tree_p self, Real_p w, Real_p h, Tree_p body)
+Tree_p Widget::tableCell(Context *context, Tree_p self,
+                         Real_p w, Real_p h, Tree_p body)
 // ----------------------------------------------------------------------------
 //   Define a sized cell in the table
 // ----------------------------------------------------------------------------
 {
     if (!table)
         return Ooops("Table cell '$1' outside of any table", self);
-    if (!body->Symbols())
-        body->SetSymbols(self->Symbols());
 
     // Define a new text layout
     PageLayout *tbox = new PageLayout(this);
@@ -5303,26 +5284,24 @@ Tree_p Widget::tableCell(Tree_p self, Real_p w, Real_p h, Tree_p body)
     flows[flowName] = tbox;
 
     XL::LocalSave<Layout *> save(layout, tbox);
-    return xl_evaluate(body);
+    return context->Evaluate(body);
 }
 
 
-Tree_p Widget::tableCell(Tree_p self, Tree_p body)
+Tree_p Widget::tableCell(Context *context, Tree_p self, Tree_p body)
 // ----------------------------------------------------------------------------
 //   Define a free-size cell in the table
 // ----------------------------------------------------------------------------
 {
     if (!table)
         return Ooops("Table cell '$1' outside of any table", self);
-    if (!body->Symbols())
-        body->SetSymbols(self->Symbols());
 
     // Define a new text layout
     Layout *tbox = new Layout(this);
     table->Add(tbox);
 
     XL::LocalSave<Layout *> save(layout, tbox);
-    return xl_evaluate(body);
+    return context->Evaluate(body);
 }
 
 
@@ -5358,8 +5337,6 @@ Tree_p Widget::tableFill(Tree_p self, Tree_p code)
 {
     if (!table)
         return Ooops("Table fill '$1' outside of any table", self);
-    if (!code->Symbols())
-        code->SetSymbols(self->Symbols());
     table->fill = code;
     return XL::xl_true;
 }
@@ -5372,8 +5349,6 @@ Tree_p Widget::tableBorder(Tree_p self, Tree_p code)
 {
     if (!table)
         return Ooops("Table border '$1' outside of any table", self);
-    if (!code->Symbols())
-        code->SetSymbols(self->Symbols());
     table->border = code;
     return XL::xl_true;
 }
@@ -5493,7 +5468,7 @@ Tree_p Widget::status(Tree_p self, text caption)
 }
 
 
-Tree_p Widget::framePaint(Tree_p self,
+Tree_p Widget::framePaint(Context *context, Tree_p self,
                           Real_p x, Real_p y, Real_p w, Real_p h,
                           Tree_p prog)
 // ----------------------------------------------------------------------------
@@ -5501,7 +5476,7 @@ Tree_p Widget::framePaint(Tree_p self,
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
-    Tree_p result = frameTexture(self, w, h, prog);
+    Tree_p result = frameTexture(context, self, w, h, prog);
 
     // Draw a rectangle with the resulting texture
     layout->Add(new Rectangle(Box(x-w/2, y-h/2, w, h)));
@@ -5511,7 +5486,8 @@ Tree_p Widget::framePaint(Tree_p self,
 }
 
 
-Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
+Tree_p Widget::frameTexture(Context *context, Tree_p self,
+                            double w, double h, Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
@@ -5538,7 +5514,7 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
         // Clear the background and setup initial state
         frame->resize(w,h);
         setup(w, h);
-        result = xl_evaluate(prog);
+        result = context->Evaluate(prog);
 
         // Draw the layout in the frame context
         frame->begin();
@@ -5891,13 +5867,10 @@ void Widget::colorChanged(const QColor & col)
 
     // The tree to be evaluated needs its own symbol table before evaluation
     XL::Tree *toBeEvaluated = colorAction;
-    XL::Symbols *syms = toBeEvaluated->Symbols(); assert(syms);
-    syms = new XL::Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
-    toBeEvaluated->SetSymbols(syms);
 
     // Evaluate the input tree
-    xl_evaluate(toBeEvaluated);
+    XL::MAIN->context->Evaluate(toBeEvaluated);
 }
 
 
@@ -5957,8 +5930,6 @@ Tree_p Widget::fontChooser(Tree_p self, Tree_p action)
 
     fontDialog->show();
     fontAction = action;
-    if (!fontAction->Symbols())
-        fontAction->SetSymbols(self->Symbols());
 
     return XL::xl_true;
 }
@@ -6016,14 +5987,11 @@ void Widget::fontChanged(const QFont& ft)
 
     // The tree to be evaluated needs its own symbol table before evaluation
     XL::Tree *toBeEvaluated = fontAction;
-    XL::Symbols *syms = toBeEvaluated->Symbols(); assert(syms);
-    syms = new XL::Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
-    toBeEvaluated->SetSymbols(syms);
 
     // Evaluate the input tree
     TaoSave saveCurrent(current, this);
-    xl_evaluate(toBeEvaluated);
+    XL::MAIN->context->Evaluate(toBeEvaluated);
 }
 
 
@@ -6174,10 +6142,8 @@ void Widget::updateFileDialog(Tree *properties, Tree *context)
     map["label"]     = "file_chooser_label";
     map["filter"]    = "file_chooser_filter";
 
-    if (!properties->Symbols())
-        properties->SetSymbols(context->Symbols());
     XL::Tree *toBeEvaluated = map.Replace(properties);
-    xl_evaluate(toBeEvaluated);
+    XL::MAIN->context->Evaluate(toBeEvaluated);
 
 }
 
@@ -6306,7 +6272,7 @@ void Widget::fileChosen(const QString & filename)
 
     // Evaluate the input tree
     TaoSave saveCurrent(current, this);
-    xl_evaluate(toBeEvaluated);
+    XL::MAIN->context->Evaluate(toBeEvaluated);
 }
 
 
@@ -6358,7 +6324,8 @@ Tree_p Widget::fileChooserTexture(Tree_p self, double w, double h,
 }
 
 
-Tree_p Widget::buttonGroup(Tree_p self, bool exclusive, Tree_p buttons)
+Tree_p Widget::buttonGroup(Context *context, Tree_p self,
+                           bool exclusive, Tree_p buttons)
 // ----------------------------------------------------------------------------
 //   Create a button group for radio buttons
 // ----------------------------------------------------------------------------
@@ -6377,7 +6344,7 @@ Tree_p Widget::buttonGroup(Tree_p self, bool exclusive, Tree_p buttons)
     XL::Tree *toBeEvaluated = map.Replace(buttons);
 
     // Evaluate the input tree
-    xl_evaluate(toBeEvaluated);
+    context->Evaluate(toBeEvaluated);
     currentGroup = NULL;
 
     return XL::xl_true;
@@ -6398,7 +6365,7 @@ Tree_p Widget::setButtonGroupAction(Tree_p self, Tree_p action)
 }
 
 
-Tree_p Widget::groupBox(Tree_p self,
+Tree_p Widget::groupBox(Context *context, Tree_p self,
                         Real_p x, Real_p y, Real_p w, Real_p h,
                         Text_p lbl, Tree_p buttons)
 // ----------------------------------------------------------------------------
@@ -6414,7 +6381,7 @@ Tree_p Widget::groupBox(Tree_p self,
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
 
-    xl_evaluate(buttons);
+    context->Evaluate(buttons);
 
     surface->dirty = true;
     ((WidgetSurface*)surface)->bind();
@@ -6506,7 +6473,7 @@ Tree_p Widget::videoPlayerTexture(Tree_p self, Real_p wt, Real_p ht, Text_p url)
 //
 // ============================================================================
 
-Tree_p Widget::chooser(Tree_p self, text caption)
+Tree_p Widget::chooser(Context *context, Tree_p self, text caption)
 // ----------------------------------------------------------------------------
 //   Create a chooser with the given caption
 // ----------------------------------------------------------------------------
@@ -6518,7 +6485,7 @@ Tree_p Widget::chooser(Tree_p self, text caption)
         if (chooser->name == caption)
             return XL::xl_false;
 
-    chooser = new Chooser(caption, this);
+    chooser = new Chooser(context, caption, this);
     return XL::xl_true;
 }
 
@@ -6544,8 +6511,7 @@ Tree_p Widget::chooserCommands(Tree_p self, text prefix, text label)
 {
     if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
     {
-        for (XL::Symbols *s = self->Symbols(); s; s = s->Parent())
-            chooser->AddCommands(prefix, s, label);
+        chooser->AddCommands(xlProgram->context, prefix, label);
         return XL::xl_true;
     }
     return XL::xl_false;
@@ -6564,7 +6530,6 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
         {
             text name = *p;
             Tree *action = new Prefix(prefix, new Text(name));
-            action->SetSymbols(self->Symbols());
             chooser->AddItem(label + name, action);
         }
         return XL::xl_true;
@@ -6586,7 +6551,6 @@ Tree_p Widget::chooserBranches(Tree_p self, Name_p prefix, text label)
         foreach (QString branch, branches)
         {
             Tree *action = new Prefix(prefix, new Text(+branch));
-            action->SetSymbols(self->Symbols());
             chooser->AddItem(label + +branch + "...", action);
         }
         return XL::xl_true;
@@ -6612,7 +6576,6 @@ Tree_p Widget::chooserCommits(Tree_p self, text branch, Name_p prefix,
             Repository::Commit c = commits[n];
             text ctext = +c.toString();
             Tree *action = new Prefix(prefix, new Text(+c.id));
-            action->SetSymbols(self->Symbols());
             chooser->AddItem(label + ctext, action);
         }
         return XL::xl_true;
@@ -6672,8 +6635,7 @@ Tree_p Widget::formulaRuntimeError(Tree_p self, text msg, Tree_p arg)
         err.Display();
     }
 
-    Tree_p result = new XL::Name("#ERROR");
-    result->code = XL::xl_identity;
+    Tree_p result = (Tree *) err;
     return result;
 }
 
@@ -7143,7 +7105,6 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
     if (!program)
     {
         *top = toInsert;
-        toInsert->SetSymbols(xlProgram->symbols);
     }
     else
     {
@@ -7156,9 +7117,7 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
 
         // Append at end of the statements
         Tree_p *what = parent ? &parent->right : top;
-        Symbols *symbols = (*what)->Symbols();
         *what = new XL::Infix("\n", *what, toInsert);
-        (*what)->SetSymbols(symbols);
     }
 
     // Reload the program and mark the changes
@@ -7261,7 +7220,7 @@ XL::Name_p Widget::setAttribute(Tree_p self,
 //
 // ============================================================================
 
-Tree_p Widget::group(Tree_p self, Tree_p shapes)
+Tree_p Widget::group(Context *context, Tree_p self, Tree_p shapes)
 // ----------------------------------------------------------------------------
 //   Group objects together, make them selectable as a whole
 // ----------------------------------------------------------------------------
@@ -7277,7 +7236,7 @@ Tree_p Widget::group(Tree_p self, Tree_p shapes)
         selectNextTime.erase(self);
     }
 
-    Tree_p result = xl_evaluate(shapes);
+    Tree_p result = context->Evaluate(shapes);
     return result;
 }
 
@@ -7582,27 +7541,6 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
         com += t->AsText()->value;
     }
 
-    // Documentation from the primitives files (*.tbl)
-    XL::Symbols *globals = xlr->globals;
-    XL::rewrite_table &h = globals->rewrites->hash;
-    XL::rewrite_table::iterator i;
-    for (i = h.begin(); i != h.end(); i++)
-    {
-        Tree * tree = i->second->from;
-        t = generateDoc(self, tree);
-        com += t->AsText()->value;
-    }
-
-    XL::symbol_table::iterator si;
-    XL::symbol_table &names = globals->names;
-    for (si = names.begin(); si != names.end(); si++)
-    {
-        Tree * tree = si->second;
-        if (!tree) continue;
-        t = generateDoc(self, tree);
-        com += t->AsText()->value;
-    }
-
     if (!filename.empty())
     {
         QFile file(+filename);
@@ -7648,10 +7586,7 @@ XL::Tree *  NameToNameReplacement::Replace(XL::Tree *original)
 // ----------------------------------------------------------------------------
 {
     XL::Tree *copy = original;
-    XL::Symbols *syms = original->Symbols(); assert(syms);
-    syms = new XL::Symbols(syms);
     copy = original->Do(*this);
-    copy->SetSymbols(syms);
     return copy;
 }
 

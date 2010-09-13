@@ -1393,8 +1393,8 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 //    Load a specific file (and optionally, open project repository)
 // ----------------------------------------------------------------------------
 {
-    if (XL::MAIN->options.fileLoad)
-            std::cerr << "Opening document: " << +fileName << "\n";
+    IFTRACE(fileLoad)
+        std::cerr << "Opening document: " << +fileName << "\n";
 
     QString msg = QString(tr("Loading %1 [%2]...")).arg(fileName);
 

@@ -32,7 +32,7 @@
 
 TAO_BEGIN
 
-bool ImportedFilesChanged(XL::Tree *prog,
+bool ImportedFilesChanged(Tree *prog,
                           import_set &done,
                           bool markChanged)
 // ----------------------------------------------------------------------------
@@ -43,12 +43,12 @@ bool ImportedFilesChanged(XL::Tree *prog,
 
     source_files &files = MAIN->files;
     source_files::iterator it;
-    symbols_set imported;
+    context_set imported;
     bool more = true;
     bool result = false;
 
     // Make sure we detect changes in builtins.xl
-    imported.insert(Symbols::symbols);
+    imported.insert(XL::MAIN->context);
 
     // Loop while there are more files to process
     while (more)
@@ -59,7 +59,7 @@ bool ImportedFilesChanged(XL::Tree *prog,
             SourceFile &sf = (*it).second;
             if (!done.count(&sf))
             {
-                if (sf.tree == prog || imported.count(sf.symbols))
+                if (sf.tree == prog || imported.count(sf.context))
                 {
                     done.insert(&sf);
                     if (markChanged)
@@ -70,7 +70,6 @@ bool ImportedFilesChanged(XL::Tree *prog,
                         std::ostringstream os;
                         os << sf.tree->Get< HashInfo<> > ();
                         sf.hash = os.str();
-
                         if (!prev_hash.empty() && sf.hash != prev_hash)
                             sf.changed = true;
                     }
@@ -80,9 +79,9 @@ bool ImportedFilesChanged(XL::Tree *prog,
                         result = true;
 
                     // Check the imported trees
-                    symbols_set &symset = sf.symbols->imported;
-                    symbols_set::iterator si;
-                    for (si = symset.begin(); si != symset.end(); si++)
+                    context_set &ctxset = sf.context->imported;
+                    context_set::iterator si;
+                    for (si = ctxset.begin(); si != ctxset.end(); si++)
                     {
                         if (!imported.count(*si))
                         {

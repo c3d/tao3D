@@ -1002,43 +1002,13 @@ XL::Text *TextFormula::Format(XL::Prefix *self)
 
     // If the value is a name, we evaluate it in its normal symbol table
     Name *name = value->AsName();
-    Symbols *symbols = value->Symbols();
+    Context *context = widget->formulasContext();
     if (name)
-    {
-        if (Tree *named = symbols->Named(name->value, true))
-        {
+        if (Tree *named = context->Bound(name))
             value = named;
-            Tree *definition = symbols->Defined(name->value);
-            if (definition)
-                if (Infix *infix = definition->AsInfix())
-                    value = infix->right;
-            symbols = value->Symbols();
-        }
-    }
-
-#if 0 // Disable formula symbols
-    // Make sure we evaluate that in the formulas symbol table
-    if (symbols != widget->formulaSymbols())
-    {
-        XL::TreeClone clone;
-        value = value->Do(clone);
-        value->SetSymbols(widget->formulaSymbols());
-        if (name)
-        {
-            Tree *definition = symbols->Defined(name->value);
-            if (definition)
-                if (Infix *infix = definition->AsInfix())
-                    infix->right = value;
-        }
-        else
-        {
-            self->right = value;
-        }
-    }
-#endif // Formula symbols
 
     // Evaluate the tree and turn it into a tree
-    Tree *computed = xl_evaluate(value);
+    Tree *computed = context->Evaluate(value);
     return new XL::Text(*computed);
 }
 
@@ -1068,18 +1038,19 @@ void TextFormula::DrawSelection(Layout *where)
 
             // If the value is a name, we evaluate it in its normal symbol table
             Name *name = value->AsName();
-            Symbols *symbols = value->Symbols();
+            Context *context = widget->formulasContext();
             if (name)
-                if (Tree *named = symbols->Named(name->value, true))
+                if (Tree *named = context->Bound(name))
                     value = named;
 
-            text edited = text("   ") + text(*value) + "  ";
+            
+            text edited = text("  ") + text(*value) + "  ";
             Text *editor = new Text(edited, "\"", "\"", value->Position());
             info = new TextFormulaEditInfo(editor, shows);
             prefix->right->SetInfo<TextFormulaEditInfo>(info);
 
             // Update mark and point
-            XL::Text *source = info->source;
+            Text *source = info->source;
             uint length = source->value.length();
             sel->point = charId;
             sel->mark = charId + length;
@@ -1093,12 +1064,12 @@ void TextFormula::DrawSelection(Layout *where)
     {
         if (shows == info->order)
         {
-            XL::Text *source = info->source;
+            Text *source = info->source;
             sel->formulaMode = source->value.length() + 1;
         }
         else
         {
-            XL::Text *source = this->source;
+            Text *source = this->source;
             sel->formulaMode = source->value.length() + 1;
         }
     }
@@ -1155,7 +1126,7 @@ void TextFormula::Identify(Layout *where)
 }
 
 
-bool TextFormula::Validate(XL::Text *source, Widget *widget)
+bool TextFormula::Validate(Text *source, Widget *widget)
 // ----------------------------------------------------------------------------
 //   Check if we can parse the input. If so, update self
 // ----------------------------------------------------------------------------
@@ -1166,30 +1137,11 @@ bool TextFormula::Validate(XL::Text *source, Widget *widget)
     XL::Errors          errors;
     XL::Parser          parser(input, syntax,positions,errors);
     Tree *              newTree   = parser.Parse();
-    XL::Prefix *        prefix    = self->AsPrefix();
-    XL::Tree *          value     = prefix->right;
 
     if (newTree)
     {
-#if 0
-        newTree->SetSymbols(widget->formulaSymbols());
-#else
-        newTree->SetSymbols(value->Symbols());
-#endif
-
-        XL::Prefix *prefix = self;
-        XL::Name *name = prefix->right->AsName();
-        if (name)
-        {
-            XL::Symbols *symbols = self->Symbols();
-            Tree *definition = symbols->Defined(name->value);
-            if (Infix *infix = definition->AsInfix())
-                infix->right = newTree;
-        }
-        else
-        {
-            prefix->right = newTree;
-        }
+        Prefix *prefix = self;
+        prefix->right = newTree;
         widget->reloadProgram();
         widget->markChanged("Replaced formula");
         return true;

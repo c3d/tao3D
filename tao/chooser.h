@@ -45,7 +45,7 @@ struct Chooser : Activity
 //  A chooser shows a selection among the possible commands
 // ----------------------------------------------------------------------------
 {
-    Chooser(text name, Widget *w);
+    Chooser(Context *c, text name, Widget *w);
     virtual ~Chooser();
 
     // Callbacks, return true if this activity 'handled' the event
@@ -57,9 +57,10 @@ struct Chooser : Activity
 
     // Add an element to a chooser
     void                AddItem(text caption, XL::Tree *function);
-    void                AddCommands(text prefix, XL::Symbols *sym, text label);
+    void                AddCommands(Context *ctx ,text prefix, text label);
 
 public:
+    Context *    context;
     text         keystrokes;
     int          item;
     int          firstItem;

@@ -35,8 +35,8 @@ struct FontParsingAction : Action
 //   Parse a font description
 // ----------------------------------------------------------------------------
 {
-    FontParsingAction(Symbols *symbols, const QFont &font)
-        : symbols(symbols), font(font), exactMatch(false) {}
+    FontParsingAction(Context *context, const QFont &font)
+        : context(context), font(font), exactMatch(false) {}
 
     virtual Tree *Do (Tree *what);
     virtual Tree *DoInteger(Integer *what);
@@ -51,7 +51,7 @@ struct FontParsingAction : Action
     bool          SetAttribute(Name *name, Tree *value);
 
 public:
-    Symbols_p   symbols;
+    Context_p   context;
     QFont       font;
     bool        exactMatch;
 };

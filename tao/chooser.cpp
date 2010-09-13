@@ -39,11 +39,12 @@ TAO_BEGIN
 using namespace XL;
 
 
-Chooser::Chooser(text name, Widget *w)
+Chooser::Chooser(Context *context, text name, Widget *w)
 // ----------------------------------------------------------------------------
 //   Chooser constructor
 // ----------------------------------------------------------------------------
-    : Activity(name, w), keystrokes(""), item(0), firstItem(0), selected(NULL)
+    : Activity(name, w), context(context),
+      keystrokes(""), item(0), firstItem(0), selected(NULL)
 {
     // Force an immediate widget refresh
     widget->refresh(0);
@@ -105,10 +106,10 @@ Activity *Chooser::Display(void)
 // ----------------------------------------------------------------------------
 {
     // Symbols where we execute stuff
-    Symbols *symbols = widget->currentSymbols();
+    Context *context = widget->context();
 
     // Select the chooser font
-    XLCall("chooser_title_font") (symbols);
+    XLCall("chooser_title_font") (context);
     QFont titleFont = widget->currentFont();
     QFontMetricsF titleFM(titleFont);
     coord mtlh = titleFM.height();
@@ -126,7 +127,7 @@ Activity *Chooser::Display(void)
     selected = NULL;
 
     // Select the chooser item font
-    XLCall("chooser_item_font")(symbols);
+    XLCall("chooser_item_font")(context);
     QFont itemFont = widget->currentFont();
     QFontMetricsF itemFM(itemFont);
     coord milh = itemFM.height();
@@ -293,7 +294,7 @@ Activity *Chooser::Key(text key)
     {
         if (selected)
         {
-            xl_evaluate(selected);
+            context->Evaluate(selected);
             delete this;
         }
     }
@@ -369,20 +370,25 @@ void Chooser::AddItem(text caption, Tree *function)
 }
 
 
-void Chooser::AddCommands(text prefix, Symbols *symbols, text label)
+void Chooser::AddCommands(Context *ctx, text prefix, text label)
 // ----------------------------------------------------------------------------
 //   Add chooser commands from the symbols table
 // ----------------------------------------------------------------------------
 {
     // Add all the commands that begin with the prefix in the current context
-    symbol_table &syms = symbols->names;
-    symbol_table::iterator elem;
-    uint first = prefix.length();
-    for (elem = syms.begin(); elem != syms.end(); elem++)
+    while (ctx)
     {
-        text symname = (*elem).first;
-        if (symname.find(prefix) == 0)
+        rewrite_list list;
+        ctx->ListNames(prefix, list);
+
+        // Loop over all rewrites that match
+        uint first = prefix.length();
+        rewrite_list::iterator i;
+        for (i = list.begin(); i != list.end(); i++)
         {
+            Rewrite *rw = *i;
+            Name *name = rw->from->AsName();
+            text symname = name->value;
             text caption = "";
             kstring data = symname.data();
             uint c, maxc = symname.length();
@@ -399,11 +405,13 @@ void Chooser::AddCommands(text prefix, Symbols *symbols, text label)
                 if (sz > 0)
                     caption.insert(caption.end(), wcbuf, wcbuf + sz);
             }
-            Tree *command = (*elem).second;
-            if (!command->Symbols())
-                command->SetSymbols(symbols);
+
+            // Create a closure from the resulting commands to remember context
+            Tree *command = ctx->CreateClosure(rw->to);
             AddItem(label + caption, command);
         }
+
+        ctx = ctx->scope;
     }
 }
 

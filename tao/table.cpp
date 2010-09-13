@@ -31,11 +31,12 @@
 
 TAO_BEGIN
 
-Table::Table(Widget *w, Real_p x, Real_p y, uint r, uint c)
+Table::Table(Widget *w, Context *ctx, Real_p x, Real_p y, uint r, uint c)
 // ----------------------------------------------------------------------------
 //    Constructor
 // ----------------------------------------------------------------------------
-    : Layout(w), x(x), y(y), rows(r), columns(c), row(0), column(0),
+    : Layout(w), context(ctx),
+      x(x), y(y), rows(r), columns(c), row(0), column(0),
       margins(0,0,5,5), columnWidth(), rowHeight(),
       fill(NULL), border(NULL)
 {}
@@ -107,7 +108,7 @@ void Table::Draw(Layout *where)
             if (fillI != cellFill.end())
                 fillCode = *fillI++;
             if (fillCode)
-                widget->drawTree(this, fillCode);
+                widget->drawTree(this, context, fillCode);
             if (d)
             {
                 XL::LocalSave<Point3> saveOffset(offset, pos + where->offset);
@@ -116,7 +117,7 @@ void Table::Draw(Layout *where)
             if (borderI != cellBorder.end())
                 borderCode = *borderI++;
             if (borderCode)
-                widget->drawTree(this, borderCode);
+                widget->drawTree(this, context, borderCode);
 
             if (c < columnWidth.size())
                 px += columnWidth[c];

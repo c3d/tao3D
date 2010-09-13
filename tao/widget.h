@@ -88,7 +88,7 @@ public:
     typedef std::map<GLuint, uint>      selection_map;
 
 public:
-    Widget(Window *parent, XL::SourceFile *sf = NULL);
+    Widget(Window *parent, SourceFile *sf = NULL);
     ~Widget();
 
 public slots:
@@ -136,7 +136,7 @@ public:
     void        updateSelection();
     uint        showGlErrors();
     QFont &     currentFont();
-    Symbols *   currentSymbols();
+    Context *   context();
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -154,7 +154,7 @@ public:
     void        endPanning(QMouseEvent *);
 
     // XL program management
-    void        updateProgram(XL::SourceFile *sf);
+    void        updateProgram(SourceFile *sf);
     void        applyAction(Action &action);
     void        reloadProgram(Tree *newProg = NULL);
     void        refreshProgram();
@@ -162,7 +162,7 @@ public:
     void        updateProgramSource();
     void        markChanged(text reason);
     void        selectStatements(Tree *tree);
-    bool        writeIfChanged(XL::SourceFile &sf);
+    bool        writeIfChanged(SourceFile &sf);
     bool        setDragging(bool on);
     bool        doSave(ulonglong tick);
     bool        doPull(ulonglong tick);
@@ -229,7 +229,7 @@ public:
     TextSelect *textSelection();
     void        drawSelection(Layout *, const Box3 &, text name, uint id=0);
     void        drawHandle(Layout *, const Point3 &, text name, uint id=0);
-    void        drawTree(Layout *where, Tree *code);
+    void        drawTree(Layout *where, Context *context, Tree *code);
     void        drawCall(Layout *, XL::XLCall &call, uint id=0);
 
     template<class Activity>
@@ -247,10 +247,10 @@ public:
 public:
     // XLR entry points
     static Widget *Tao()                { assert(current); return current; }
-    XL::Symbols *formulaSymbols()       { return symbolTableForFormulas; }
+    Context *   formulasContext()       { return formulas; }
 
     // Getting attributes
-    Text_p      page(Tree_p self, text name, Tree_p body);
+    Text_p      page(Context *context, text name, Tree_p body);
     Text_p      pageLink(Tree_p self, text key, text name);
     Text_p      gotoPage(Tree_p self, text page);
     Text_p      pageLabel(Tree_p self);
@@ -265,18 +265,18 @@ public:
     Real_p      windowHeight(Tree_p self);
     Real_p      time(Tree_p self);
     Real_p      pageTime(Tree_p self);
-    Real_p      after(Tree_p self, double delay, Tree_p code);
-    Real_p      every(Tree_p self, double delay, double duration, Tree_p code);
+    Real_p      after(Context *context, double delay, Tree_p code);
+    Real_p      every(Context *context, double delay, double duration, Tree_p code);
     Real_p      mouseX(Tree_p self);
     Real_p      mouseY(Tree_p self);
     Integer_p   mouseButtons(Tree_p self);
     Tree_p      shapeAction(Tree_p self, text name, Tree_p action);
 
     // Preserving attributes
-    Tree_p      locally(Tree_p self, Tree_p t);
-    Tree_p      shape(Tree_p self, Tree_p t);
-    Tree_p      activeWidget(Tree_p self, Tree_p t);
-    Tree_p      anchor(Tree_p self, Tree_p t);
+    Tree_p      locally(Context *context, Tree_p self, Tree_p t);
+    Tree_p      shape(Context *context, Tree_p self, Tree_p t);
+    Tree_p      activeWidget(Context *context, Tree_p self, Tree_p t);
+    Tree_p      anchor(Context *context, Tree_p self, Tree_p t);
 
     // Transforms
     Tree_p      resetTransform(Tree_p self);
@@ -330,17 +330,21 @@ public:
     Tree_p      lineWidth(Tree_p self, double lw);
     Tree_p      lineStipple(Tree_p self, uint16 pattern, uint16 scale);
     Tree_p      fillColorName(Tree_p self, text name, double a);
-    Tree_p      fillColorRgb(Tree_p self, double r, double g, double b, double a);
-    Tree_p      fillColorHsl(Tree_p self, double h, double s, double l, double a);
-    Tree_p      fillColorHsv(Tree_p self, double h, double s, double v, double a);
-    Tree_p      fillColorCmyk(Tree_p self, double c, double m, double y, double k, double a);
+    Tree_p      fillColorRgb(Tree_p self,
+                             double r, double g, double b, double a);
+    Tree_p      fillColorHsl(Tree_p self,
+                             double h, double s, double l, double a);
+    Tree_p      fillColorHsv(Tree_p self,
+                             double h, double s, double v, double a);
+    Tree_p      fillColorCmyk(Tree_p self,
+                              double c, double m, double y, double k, double a);
     Tree_p      fillTexture(Tree_p self, text fileName);
     Tree_p      fillTextureFromSVG(Tree_p self, text svg);
     Tree_p      textureWrap(Tree_p self, bool s, bool t);
-    Tree_p      textureTransform(Tree_p self, Tree_p code);
+    Tree_p      textureTransform(Context *context, Tree_p self, Tree_p code);
 
     // Generating a path
-    Tree_p      newPath(Tree_p self, Tree_p t);
+    Tree_p      newPath(Context *c, Tree_p self, Tree_p t);
     Tree_p      moveTo(Tree_p self, Real_p x, Real_p y, Real_p z);
     Tree_p      lineTo(Tree_p self, Real_p x, Real_p y, Real_p z);
     Tree_p      curveTo(Tree_p self,
@@ -410,14 +414,14 @@ public:
                        Text_p name);
 
     // Text and font
-    Tree_p      textBox(Tree_p self,
+    Tree_p      textBox(Context *context, Tree_p self,
                         Real_p x, Real_p y, Real_p w, Real_p h, Tree_p prog);
     Tree_p      textOverflow(Tree_p self,
                              Real_p x, Real_p y, Real_p w, Real_p h);
     Text_p      textFlow(Tree_p self, text name);
     Tree_p      textSpan(Tree_p self, Text_p content);
     Tree_p      textFormula(Tree_p self, Tree_p value);
-    Tree_p      font(Tree_p self, Tree_p descr);
+    Tree_p      font(Context *context, Tree_p self, Tree_p descr);
     Tree_p      fontSize(Tree_p self, double size);
     Tree_p      fontScaling(Tree_p self, double scaling, double minSize);
     Tree_p      fontPlain(Tree_p self);
@@ -442,11 +446,14 @@ public:
     Text_p      docVersion(Tree_p self);
 
     // Tables
-    Tree_p      newTable(Tree_p self, Real_p x, Real_p y,
+    Tree_p      newTable(Context *context, Tree_p self,
+                         Real_p x, Real_p y,
                          Integer_p r, Integer_p c, Tree_p body);
-    Tree_p      newTable(Tree_p self, Integer_p r, Integer_p c, Tree_p body);
-    Tree_p      tableCell(Tree_p self, Real_p w, Real_p h, Tree_p body);
-    Tree_p      tableCell(Tree_p self, Tree_p body);
+    Tree_p      newTable(Context *context, Tree_p self,
+                         Integer_p r, Integer_p c, Tree_p body);
+    Tree_p      tableCell(Context *, Tree_p self,
+                          Real_p w, Real_p h, Tree_p body);
+    Tree_p      tableCell(Context *, Tree_p self, Tree_p body);
     Tree_p      tableMargins(Tree_p self,
                              Real_p x, Real_p y, Real_p w, Real_p h);
     Tree_p      tableMargins(Tree_p self,
@@ -464,9 +471,11 @@ public:
 
     // Frames and widgets
     Tree_p      status(Tree_p self, text t);
-    Tree_p      framePaint(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
+    Tree_p      framePaint(Context *context, Tree_p self,
+                           Real_p x, Real_p y, Real_p w, Real_p h,
                            Tree_p prog);
-    Tree_p      frameTexture(Tree_p self, double w, double h, Tree_p prog);
+    Tree_p      frameTexture(Context *context, Tree_p self,
+                             double w, double h, Tree_p prog);
 
     Tree_p      urlPaint(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                          text_p s, integer_p p);
@@ -498,7 +507,8 @@ public:
                                       double w, double h,
                                       text_p name, Text_p lbl,
                                       Text_p  marked, Tree_p act);
-    Tree_p      buttonGroup(Tree_p self, bool exclusive, Tree_p buttons);
+    Tree_p      buttonGroup(Context *context, Tree_p self,
+                            bool exclusive, Tree_p buttons);
     Tree_p      setButtonGroupAction(Tree_p self, Tree_p action);
 
     Tree_p      colorChooser(Tree_p self, text name, Tree_p action);
@@ -529,7 +539,7 @@ public:
     Tree_p      setFileDialogFilter(Tree_p self, text filters);
     Tree_p      setFileDialogLabel(Tree_p self, text label, text value);
 
-    Tree_p      groupBox(Tree_p self,
+    Tree_p      groupBox(Context *context, Tree_p self,
                          Real_p x,Real_p y, Real_p w,Real_p h,
                          text_p lbl, Tree_p buttons);
     Tree_p      groupBoxTexture(Tree_p self,
@@ -547,7 +557,7 @@ public:
     Tree_p      image(Tree_p self, Real_p x, Real_p y, text filename);
 
     // Menus and widgets
-    Tree_p      chooser(Tree_p self, text caption);
+    Tree_p      chooser(Context *, Tree_p self, text caption);
     Tree_p      chooserChoice(Tree_p self, text caption, Tree_p command);
     Tree_p      chooserCommands(Tree_p self, text prefix, text label);
     Tree_p      chooserPages(Tree_p self, Name_p prefix, text label);
@@ -593,7 +603,7 @@ public:
     Name_p      sendBackward(Tree_p self);
 
     // group management
-    Tree_p      group(Tree_p self, Tree_p shapes);
+    Tree_p      group(Context *context, Tree_p self, Tree_p shapes);
     Name_p      groupSelection(Tree_p self);
     Name_p      ungroupSelection(Tree_p self);
 
@@ -627,9 +637,8 @@ private:
     typedef std::set<Tree_p>                    tree_set;
 
     // XL Runtime
-    XL::SourceFile       *xlProgram;
-    XL::Symbols          *symbolTableForFormulas;
-    Tree_p                symbolTableRoot;
+    SourceFile           *xlProgram;
+    Context_p             formulas;
     bool                  inError;
     bool                  mustUpdateDialogs;
 

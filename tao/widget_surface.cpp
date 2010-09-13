@@ -35,15 +35,6 @@
 TAO_BEGIN
 
 
-// ============================================================================
-//
-//   Names we use from XL namespace
-//
-// ============================================================================
-
-typedef XL::Symbols     Symbols;
-
-
 
 // ============================================================================
 //
@@ -398,9 +389,12 @@ void AbstractButtonSurface::clicked(bool checked)
                   << " was clicked with checked = " << checked << "\n";
     }
 
+    // Evaluate the action. The actual context doesn't matter much, because
+    // the action is usually a closure capturing the original context
     if (action)
-        xl_evaluate(action);
+        XL::MAIN->context->Evaluate(action);
 }
+
 
 void AbstractButtonSurface::toggled(bool checked)
 // ----------------------------------------------------------------------------
@@ -445,19 +439,15 @@ void AbstractButtonSurface::toggled(bool checked)
         bool checked;
     } replacer(checked);
 
-    // The tree to be evaluated needs its own symbol table before evaluation
+    // Replace "checked" with true or false in input tree
+    // REVISIT: Replace with a declaration of "checked" in the tree
     XL::Tree *toBeEvaluated = action;
-    XL::Symbols *syms = toBeEvaluated->Symbols();
-    if (!syms)
-        syms = XL::Symbols::symbols;
-    syms = new Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
-    toBeEvaluated->SetSymbols(syms);
 
     // Evaluate the input tree
-    xl_evaluate(toBeEvaluated);
-
+    XL::MAIN->context->Evaluate(toBeEvaluated);
 }
+
 
 
 // ============================================================================
@@ -529,20 +519,17 @@ void ColorChooserSurface::colorChosen(const QColor &col)
         QColor color;
     } replacer(col);
 
-    // The tree to be evaluated needs its own symbol table before evaluation
+    // Replace "red", "green", "blue" or "alpha".
+    // REVISIT: Perform actual definitions of these variables
     XL::Tree *toBeEvaluated = action;
-    XL::Symbols *syms = toBeEvaluated->Symbols();
-    if (!syms)
-        syms = XL::Symbols::symbols;
-    syms = new Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
-    toBeEvaluated->SetSymbols(syms);
 
     // Evaluate the input tree
-    xl_evaluate(toBeEvaluated);
+    XL::MAIN->context->Evaluate(toBeEvaluated);
 
     widget->setVisible(false);
 }
+
 
 
 // ============================================================================
@@ -613,17 +600,12 @@ void FontChooserSurface::fontChosen(const QFont& ft)
         QFont font;
     } replacer(ft);
 
-    // The tree to be evaluated needs its own symbol table before evaluation
+    // Replace the various keywords
     XL::Tree *toBeEvaluated = action;
-    XL::Symbols *syms = toBeEvaluated->Symbols();
-    if (!syms)
-        syms = XL::Symbols::symbols;
-    syms = new Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
-    toBeEvaluated->SetSymbols(syms);
 
     // Evaluate the input tree
-    xl_evaluate(toBeEvaluated);
+    XL::MAIN->context->Evaluate(toBeEvaluated);
 
     widget->setVisible(false);
 }

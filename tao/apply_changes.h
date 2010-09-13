@@ -108,9 +108,7 @@ struct ApplyChanges : XL::Action
                 // For a declaration, we can't change test values
                 if (it->name == "->")
                 {
-                    XL::TreeMatch identical(it->left);
-                    Tree *lr = what->left->Do(identical);
-                    if (!lr)
+                    if (!EqualTrees(it->left, what->left))
                         return NULL;
                 }
                 else

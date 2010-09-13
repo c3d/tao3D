@@ -250,9 +250,7 @@ bool FontParsingAction::SetAttribute(Name *n, Tree *value)
     {
         double amount = 0.0;
 
-        if (!value->Symbols())
-            value->SetSymbols(symbols);
-        Tree *evaluated = xl_evaluate(value);
+        Tree *evaluated = context->Evaluate(value);
 
         if (Integer *iv = evaluated->AsInteger())
             amount = iv->value;
@@ -297,9 +295,7 @@ Tree *FontParsingAction::DoPrefix(Prefix *what)
         if (SetAttribute(name, what->right))
             return what;
 
-    if (!what->Symbols())
-        what->SetSymbols(symbols);
-    Tree *value = xl_evaluate(what);
+    Tree *value = context->Evaluate(what);
     if (value != what)
         return value->Do(this);
     return Ooops("Invalid font attribute '$1'", what);
@@ -311,9 +307,7 @@ Tree *FontParsingAction::DoPostfix(Postfix *what)
 //   Evaluate the postfix
 // ----------------------------------------------------------------------------
 {
-    if (!what->Symbols())
-        what->SetSymbols(symbols);
-    Tree *value = xl_evaluate(what);
+    Tree *value = context->Evaluate(what);
     if (value != what)
         return value->Do(this);
     return Ooops("Invalid font attribute '$1'", what);
@@ -338,9 +332,7 @@ Tree *FontParsingAction::DoInfix(Infix *what)
                 return what;
     }
 
-    if (!what->Symbols())
-        what->SetSymbols(symbols);
-    Tree *value = xl_evaluate(what);
+    Tree *value = context->Evaluate(what);
     if (value != what)
         return value->Do(this);
     return Ooops("Invalid font attribute '$1'", what);

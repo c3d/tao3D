@@ -397,7 +397,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
                 widget->select(selected, savedSelection[selected] + count);
                 if (!shiftModifier && !handleId)
                     if (Tree *action = widget->shapeAction("click", selected))
-                        xl_evaluate(action);
+                        XL::MAIN->context->Evaluate(action);
             }
         }
         widget->handleId = handleId;

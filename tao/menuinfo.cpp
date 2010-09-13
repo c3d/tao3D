@@ -27,6 +27,7 @@
 #include "context.h"
 #include "runtime.h"
 #include "tao_utf8.h"
+#include "main.h"
 #include <iostream>
 
 TAO_BEGIN
@@ -118,15 +119,10 @@ void GroupInfo::bClicked(QAbstractButton *button)
 
     // The tree to be evaluated needs its own symbol table before evaluation
     XL::Tree *  toBeEvaluated = action;
-    XL::Symbols *syms = toBeEvaluated->Symbols();
-    if (!syms)
-        syms = XL::Symbols::symbols;
-    syms = new XL::Symbols(syms);
     toBeEvaluated = toBeEvaluated->Do(replacer);
-    toBeEvaluated->SetSymbols(syms);
 
     // Evaluate the input tree
-    xl_evaluate(toBeEvaluated);
+    XL::MAIN->context->Evaluate(toBeEvaluated);
 }
 
 TAO_END

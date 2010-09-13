@@ -28,6 +28,8 @@
 #include "tree.h"
 #include "opcodes.h"
 #include "tao.h"
+#include "main.h"
+
 
 TAO_BEGIN
 
@@ -62,10 +64,11 @@ typedef XL::symbol_p       symbol_p;
 
 typedef XL::Action         Action;
 typedef XL::TreeList       TreeList;
-typedef XL::Symbols        Symbols;
-typedef XL::Symbols_p      Symbols_p;
+typedef XL::Context        Context;
+typedef XL::Context_p      Context_p;
 
-
+typedef XL::SourceFile     SourceFile;
+typedef XL::Main           Main;
 
 TAO_END
 

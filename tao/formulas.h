@@ -40,7 +40,7 @@ namespace TaoFormulas
 {
 
 // Top-level entry point: enter all basic operations in the context
-void EnterFormulas(XL::Symbols *context);
+void EnterFormulas(XL::Context *context);
 
 // Top-level entry point: reset all global pointers related to formulas
 void DeleteFormulas();

@@ -42,7 +42,7 @@ namespace TaoFormulas
 #include "formulas.tbl"
 
 
-void EnterFormulas(XL::Symbols *c)
+void EnterFormulas(XL::Context *context)
 // ----------------------------------------------------------------------------
 //   Enter all the operations defined in formulas.tbl
 // ----------------------------------------------------------------------------

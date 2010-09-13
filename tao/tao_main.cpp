@@ -86,7 +86,6 @@ void cleanup()
 // ----------------------------------------------------------------------------
 {
     // First, discard ALL global (smart) pointers to XL types/names
-    XL::Symbols::symbols = NULL;
     XL::DeleteBasics();
     DeleteGraphics();     // REVISIT: move to Tao:: namespace?
     TaoFormulas::DeleteFormulas();

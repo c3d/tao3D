@@ -1563,105 +1563,52 @@ PREFIX(FontStretch, tree, "stretch", PARM(s,real),RTAO(fontStretch(self,s)),
                 parameter \"real\", \"s\", <<The font stretching factor. Value range is from 0 to 4000, with 100 = 100%>>;\
                 }\
           |*/")
-PREFIX(Justify, tree, "justify",
-       PARM(a, real), RTAO(justify(self, a, 0)), 
-       "/*| docname \"justify\", \"text:spread\", do { \
-                dsyntax <<justify a>>;\
-                synopsis \"Horizontal justification\" ; \
-                description <<Horizontaly justify the text. An amount of 0% doesn't justify (ragged edge), an amount of 100% justifies fully.>> ;\
-                parameters;\
-                parameter \"real\", \"a\", <<Amount of horizontal justification>>;\
-                }\
-          |*/")
-PREFIX(VJustify, tree, "vertical_justify",
-       PARM(a, real), RTAO(justify(self, a, 1)), 
-       "/*| docname \"vertical_justify\", \"text:spread\", do { \
-                dsyntax <<vertical_justify a>>;\
-                synopsis \"Vertical justification\" ; \
-                description <<Verticaly justify the text. An amount of 0 pack the text on the top, an amount of 100 pack the text on the bottom and an amount of 50 spread regularly the text over the box>> ;\
-                parameters;\
-                parameter \"real\", \"a\", <<Amount of justification along y-axis>>;\
-                }\
-          |*/")
-PREFIX(PartialJustify, tree, "partial_justify",
-       PARM(a, real), RTAO(partialJustify(self, a, 0)), 
-       "/*| docname \"partial_justify\", \"text:spread\", do { \
-                dsyntax <<partial_justify a>>;\
-                synopsis \"Horizontal justification for partially-filled lines\" ; \
-                description <<Horizontaly justify the text in lines that do not have enough characters.>> ;\
-                parameters;\
-                parameter \"real\", \"a\", <<Amount of justification for partial lines>>;\
-                }\
-          |*/")
-PREFIX(VPartialJustify, tree, "vertical_partial_justify",
-       PARM(a, real), RTAO(partialJustify(self, a, 1)), 
-       "/*| docname \"vertical_partial_justify\", \"text:spread\", do { \
-                dsyntax <<vertical_partial_justify a>>;\
-                synopsis \"Vertical justification\" ; \
-                description <<Verticaly justify the text.>> ;\
-                parameters;\
-                parameter \"real\", \"a\", <<Amount of justification along y-axis>>;\
-                }\
-          |*/")
-PREFIX(Center, tree, "center",
-       PARM(a, real), RTAO(center(self, a, 0)), 
-       "/*| docname \"center\", \"text:spread\", do { \
-                dsyntax <<center a>>;\
-                synopsis \"Horizontal centering\" ; \
-                description <<Set the horizontal center attibute. An amount of 0 align the center of the text on the left of the box, an amount of 100 align the center of the text on the right of the box and an amount of 50 align the center of the text on the center of the box.>> ;\
-                parameters;\
-                parameter \"real\", \"a\", <<Place the center along x-axis>>;\
-                }\
-          |*/")
-PREFIX(VCenter, tree, "vertical_center",
-       PARM(a, real), RTAO(center(self, a, 1)), 
-       "/*| docname \"vertical_center\", \"text:spread\", do { \
-                dsyntax <<vertical_center a>>;\
-                synopsis \"Vertical centering\" ; \
-                description <<Set the vertical center attibute. An amount of 0 align the center of the text on the top of the box, an amount of 100 align the center of the text on the bottom of the box and an amount of 50 align the center of the text on the center of the box.>> ;\
-                parameters;\
-                parameter \"real\", \"a\", <<Place the center along y-axis>>;\
-                }\
-          |*/")
-PREFIX(Spread, tree, "spread",
-       PARM(a, real), RTAO(spread(self, a, 0)), 
-       "/*| docname \"spread\", \"text:spread\", do { \
-                dsyntax <<spread a>>;\
-                synopsis \"[TODO: Quel est la difference entre spread et justify ? Est-ce l'ecart max autorise entre les lettres/mots ?]\" ; \
-                description <<>> ;\
-                parameters;\
-                parameter \"\", \"\", <<>>;\
-                return_value \"\", <<>>;\
-                }\
-          |*/")
-PREFIX(VSpread, tree, "vertical_spread",
-       PARM(a, real), RTAO(spread(self, a, 1)), 
-       "/*| docname \"vertical_spread\", \"text:spread\", do { \
-                dsyntax <<vertical_spread a>>;\
-                synopsis \"[TODO: Quel est la difference entre spread et justify ?]\" ; \
+PREFIX(Align, tree, "align",
+       PARM(center, real) PARM(justify, real) PARM(spread, real) PARM(full_justify, real),
+       RTAO(align(self, center, justify, spread, full_justify, 0)),
+       "/*| docname \"align\", \"text:spread\", do { \
+                dsyntax <<align center, jsutify, spread, full_justify>>;\
+                synopsis \"[TODO]\" ;\
                 description <<[TODO]>> ;\
                 parameters;\
-                parameter \"real\", \"a\", <<[TODO]>>;\
+                parameter \"real\", \"center\", <<Place the center along x-axis. An amount of 0% align the center of the text on the left of the box, an amount of 100% align the center of the text on the right of the box and an amount of 50% align the center of the text on the center of the box.>>;\
+                parameter \"real\", \"justify\", <<Horizontaly justify the text. An amount of 0% doesn't justify (ragged edge), an amount of 100% justifies fully.>>;\
+                parameter \"real\", \"spread\", <<[TODO: Quel est la difference entre spread et justify ? Est-ce l'ecart max autorise entre les lettres/mots ?]>>;\
+                parameter \"real\", \"full_justify\", <<Horizontaly justify the text in lines that do not have enough characters, typically the last line of a paragraph.>>;\
                 }\
           |*/")
-PREFIX(Spacing, tree, "spacing",
-       PARM(a, real), RTAO(spacing(self, a, 0)), 
-       "/*| docname \"spacing\", \"text:spread\", do { \
-                dsyntax <<spacing a>>;\
+PREFIX(VAlign, tree, "vertical_align",
+       PARM(center, real) PARM(justify, real) PARM(spread, real) PARM(full_justify, real),
+       RTAO(align(self, center, justify, spread, full_justify, 1)),
+       "/*| docname \"vertical_align\", \"text:spread\", do { \
+                dsyntax <<vertical_align center, jsutify, spread, full_justify>>;\
+                synopsis \"[TODO]\" ;\
+                description <<[TODO]>> ;\
+                parameters;\
+                parameter \"real\", \"center\", <<Place the center along y-axis. An amount of 0% aligns the center of the text on the top of the box, an amount of 100% aligns the center of the text on the bottom of the box and an amount of 50% centers the text in the box.>>;\
+                parameter \"real\", \"justify\", <<Verticaly justify the text. An amount of 0% doesn't justify (pack lines), an amount of 100% fully justifies vertically.>>;\
+                parameter \"real\", \"spread\", <<[TODO]>>;\
+                parameter \"real\", \"full_justify\", <<Vertically justify the lines in text boxes or overflows that are not full.>>;\
+                }\
+          |*/")
+PREFIX(Spacing, tree, "character_spacing",
+       PARM(factor, real), RTAO(spacing(self, factor, 0)),
+       "/*| docname \"character_spacing\", \"text:spread\", do { \
+                dsyntax <<character_spacing factor>>;\
                 synopsis \"[TODO]\" ; \
                 description <<[TODO]>> ;\
                 parameters;\
-                parameter \"real\", \"a\", <<[TODO]>>;\
+                parameter \"real\", \"factor\", <<[TODO]>>;\
                 }\
           |*/")
-PREFIX(VSpacing, tree, "vertical_spacing",
-       PARM(a, real), RTAO(spacing(self, a, 1)), 
-       "/*| docname \"vertical_spacing\", \"text:spread\", do { \
-                dsyntax <<vertical_spacing a>>;\
+PREFIX(VSpacing, tree, "line_spacing",
+       PARM(factor, real), RTAO(spacing(self, factor, 1)),
+       "/*| docname \"line_spacing\", \"text:spread\", do { \
+                dsyntax <<line_spacing factor>>;\
                 synopsis \"[TODO]\" ; \
                 description <[TODO]<>> ;\
                 parameters;\
-                parameter \"real\", \"a\", <<[TODO]>>;\
+                parameter \"real\", \"factor\", <<[TODO]>>;\
                  }\
           |*/")
 PREFIX(MinimumParagraphSpace, tree, "paragraph_space",

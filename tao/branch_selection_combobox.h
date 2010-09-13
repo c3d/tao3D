@@ -44,6 +44,8 @@ public:
         BSF_LocalBranches  = 1,
         BSF_RemoteBranches = 2,
         BSF_AllBranches    = (BSF_LocalBranches | BSF_RemoteBranches),
+        BSF_Commands       = 4,
+        BSF_All            = (BSF_AllBranches | BSF_Commands),
     };
 
 public:

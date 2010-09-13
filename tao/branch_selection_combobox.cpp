@@ -114,8 +114,11 @@ bool BranchSelectionComboBox::populate()
         addItem(branch);
         setItemData(i++, CIK_Name);
     }
-    insertSeparator(count());
-    addItem(tr("New branch..."), CIK_AddNew);
+    if (filter & BSF_Commands)
+    {
+        insertSeparator(count());
+        addItem(tr("New branch..."), CIK_AddNew);
+    }
 
     return true;
 }
@@ -163,8 +166,11 @@ bool BranchSelectionComboBox::populateAndSelect(QString sel, bool sig)
     prevSelected = sel;
     if (kind == CIK_Name)
     {
-        addItem(tr("Rename %1...").arg(sel), CIK_Rename);
-        addItem(tr("Delete %1...").arg(sel), CIK_Delete);
+        if (filter & BSF_Commands)
+        {
+            addItem(tr("Rename %1...").arg(sel), CIK_Rename);
+            addItem(tr("Delete %1...").arg(sel), CIK_Delete);
+        }
         index = findText(sel);
         if (index == -1)
             return false;

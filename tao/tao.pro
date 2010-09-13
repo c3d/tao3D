@@ -147,7 +147,8 @@ HEADERS += widget.h \
     history_playback.h \
     history_playback_toolbar.h \
     history_frame.h \
-    diff_dialog.h
+    diff_dialog.h \
+    diff_highlighter.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -236,7 +237,8 @@ SOURCES += tao_main.cpp \
     history_playback.cpp \
     history_playback_toolbar.cpp \
     history_frame.cpp \
-    diff_dialog.cpp
+    diff_dialog.cpp \
+    diff_highlighter.cpp
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp \
     xlr/xlr/basics.cpp

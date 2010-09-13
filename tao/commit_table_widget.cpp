@@ -59,6 +59,10 @@ void  CommitTableWidget::refresh()
 // ----------------------------------------------------------------------------
 {
     table->refresh();
+
+    resizeColumnToContents(0);  // ID
+    resizeColumnToContents(1);  // Date
+    resizeColumnToContents(2);  // Author
 }
 
 

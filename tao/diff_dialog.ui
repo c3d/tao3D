@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>663</width>
-    <height>666</height>
+    <width>1090</width>
+    <height>698</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Diff</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,1,2,0">
-   <item>
+  <layout class="QGridLayout" name="gridLayout" rowstretch="1,2,0">
+   <item row="0" column="0">
     <widget class="Tao::HistoryFrame" name="aFrame">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -30,7 +30,7 @@
      </property>
     </widget>
    </item>
-   <item>
+   <item row="0" column="1">
     <widget class="Tao::HistoryFrame" name="bFrame">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -46,8 +46,8 @@
      </property>
     </widget>
    </item>
-   <item>
-    <widget class="QTextBrowser" name="textBrowser">
+   <item row="1" column="0" colspan="2">
+    <widget class="QTextEdit" name="textEdit">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -56,12 +56,12 @@
      </property>
     </widget>
    </item>
-   <item>
+   <item row="2" column="0" colspan="2">
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
       <widget class="QCheckBox" name="symetric">
        <property name="text">
-        <string>Show symetric difference (all in B not in A)</string>
+        <string>Symmetric difference (show all changes made in B that are not also in A)</string>
        </property>
       </widget>
      </item>

@@ -427,10 +427,9 @@ public:
     Tree_p      fontOverline(Tree_p self, scale amount = 1);
     Tree_p      fontStrikeout(Tree_p self, scale amount = 1);
     Tree_p      fontStretch(Tree_p self, scale amount = 1);
-    Tree_p      justify(Tree_p self, scale amount, uint axis);
-    Tree_p      partialJustify(Tree_p self, scale amount, uint axis);
-    Tree_p      center(Tree_p self, scale amount, uint axis);
-    Tree_p      spread(Tree_p self, scale amount, uint axis);
+    Tree_p      align(Tree_p self,
+                      scale center, scale justify, scale spread,
+                      scale fullJustify, uint axis);
     Tree_p      spacing(Tree_p self, scale amount, uint axis);
     Tree_p      minimumSpace(Tree_p self, coord before, coord after, uint ax);
     Tree_p      horizontalMargins(Tree_p self, coord left, coord right);

@@ -4967,49 +4967,23 @@ static inline JustificationChange::Axis jaxis(uint a)
 }
 
 
-Tree_p Widget::justify(Tree_p self, scale amount, uint axis)
+Tree_p Widget::align(Tree_p self, scale center, scale justify, scale spread,
+                     scale fullJustify, uint axis)
 // ----------------------------------------------------------------------------
-//   Change justification along the given axis
-// ----------------------------------------------------------------------------
-{
-    layout->Add(new JustificationChange(amount, jaxis(axis)));
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::partialJustify(Tree_p self, scale amount, uint axis)
-// ----------------------------------------------------------------------------
-//   Change justification along the given axis
+//   Change the text alignment along the given axis
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new PartialJustificationChange(amount, jaxis(axis)));
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::center(Tree_p self, scale amount, uint axis)
-// ----------------------------------------------------------------------------
-//   Change centering along the given axis
-// ----------------------------------------------------------------------------
-{
-    layout->Add(new CenteringChange(amount, jaxis(axis)));
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::spread(Tree_p self, scale amount, uint axis)
-// ----------------------------------------------------------------------------
-//   Change the spread along the given axis
-// ----------------------------------------------------------------------------
-{
-    layout->Add(new SpreadChange(amount, jaxis(axis)));
+    layout->Add(new JustificationChange(justify, jaxis(axis)));
+    layout->Add(new PartialJustificationChange(fullJustify, jaxis(axis)));
+    layout->Add(new CenteringChange(center, jaxis(axis)));
+    layout->Add(new SpreadChange(spread, jaxis(axis)));
     return XL::xl_true;
 }
 
 
 Tree_p Widget::spacing(Tree_p self, scale amount, uint axis)
 // ----------------------------------------------------------------------------
-//   Change the spacing along the given axis
+//   Change the text spacing along the given axis
 // ----------------------------------------------------------------------------
 {
     layout->Add(new SpacingChange(amount, jaxis(axis)));

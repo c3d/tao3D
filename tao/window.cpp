@@ -171,6 +171,11 @@ void Window::setHtml(QString txt)
     int y = vsb->value();
     int pos = textEdit->textCursor().position();
 
+    if (txt.isEmpty())
+        txt = "<html><head><meta http-equiv=\"Content-Type\" "
+              "content=\"text/html; charset=utf-8\"><style type=\"text/css\">"
+              "body {font-family: \"unifont\"; font-size: 16px}"
+              "<style/></head><body></body></html>";
     textEdit->setHtml(txt);
 
     hsb->setValue(x);

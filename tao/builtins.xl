@@ -8,6 +8,10 @@ if false then TrueBody else FalseBody   -> do FalseBody
 if true then TrueBody                   -> do TrueBody
 if false then TrueBody                  -> false
 
+// module_description is used in a module's main file to describe the module
+// Parsing of this prefix is currently done in C++
+module_description b:block              -> false
+
 // Key management
 key "Control-L"                         -> toggle_slide_show
 key "Escape"                            -> main_chooser

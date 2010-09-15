@@ -46,14 +46,16 @@ XL::Tree* portability::docToTree(const QTextDocument &doc)
         if (!t)
             t = blockToTree( block );
         else
+        {
+            t = new XL::Infix("\n", t, new XL::Name("paragraph_break"));
             t = new XL::Infix("\n", t, blockToTree( block ));
+        }
         for (QTextBlock::Iterator it = block.begin(); !it.atEnd(); ++it)
         {
             const QTextFragment fragment = it.fragment();
             t = new XL::Infix("\n", t, fragmentToTree(fragment));
         }
 
-        t = new XL::Infix("\n", t, new XL::Name("paragraph_break"));
     }
 
     IFTRACE(clipboard)

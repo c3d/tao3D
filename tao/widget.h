@@ -609,6 +609,7 @@ private:
     friend class MouseFocusTracker;
     friend class Drag;
     friend class TextSelect;
+    friend class TextSpan;
     friend class Manipulator;
     friend class ControlPoint;
     friend class Renormalize;

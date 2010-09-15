@@ -324,6 +324,8 @@ void Widget::draw()
     {
         sel->cursor.select(QTextCursor::Document);
         sel->cursor.removeSelectedText();
+        std::cerr << "############ CLEAR CURSOR ## "<< sel->cursor.blockNumber()
+                << "\n"; // CaB
     }
 
     // If there is a program, we need to run it
@@ -673,7 +675,12 @@ void Widget::paste()
         }
         Tree * t = portability().fromHTML(mimeData->html());
         std::cerr << +mimeData->html() <<std::endl;
-        if(!textSelection())
+        TextSelect *sel  = textSelection();
+        if (sel)
+        {
+            sel->insert(t);
+        }
+        else
         {
             // Insert a text box with that content at the end of the doc/page.
             XL::Infix * comma = new XL::Infix(",", new XL::Integer(0LL),
@@ -689,6 +696,15 @@ void Widget::paste()
                                 new XL::Block(tb, "I+", "I-"));
             // Insert before the selection ? Insert at cursor ?
             insert(NULL, tb, "paste from HTML");
+        }
+    }
+    else if (mimeData->hasText()) //CaB
+    {
+        TextSelect *sel  = textSelection();
+        if (sel)
+        {
+            sel->replacement = +mimeData->text();
+            sel->replace = true;
         }
     }
 }

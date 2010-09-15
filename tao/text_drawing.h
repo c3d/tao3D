@@ -52,7 +52,9 @@ protected:
     void                DrawDirect(Layout *where);
     void                DrawSelection(Layout *where);
     uint                PerformEditOperation(Widget *w, uint i, uint next);
-
+    void                PerformInsertOperation(Layout * l,
+                                               Widget * widget,
+                                               uint     position);
 public:
     Text_p              source;
     uint                start, end;
@@ -118,6 +120,7 @@ struct TextSelect : Identify
     void                processLineBreak();
     void                processChar(uint id, coord x, bool selected, uint code);
 
+    void                insert( XL::Tree * t);
 
     enum Direction      { None, Mark, Left, Right, Up, Down };
     uint                mark, point, previous, last, textBoxId;
@@ -135,6 +138,8 @@ struct TextSelect : Identify
     uint                formulaMode;
 
     QTextCursor         cursor; // CaB
+    Tree *              replacement_tree;
+    bool                inSelection;
 };
 
 

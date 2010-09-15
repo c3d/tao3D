@@ -32,6 +32,7 @@
 #include "application.h"
 #include "apply_changes.h"
 #include "gl2ps.h"
+#include "portability.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -290,6 +291,39 @@ void TextSpan::DrawDirect(Layout *where)
 }
 
 
+QTextBlockFormat modifyBlockFormat(QTextBlockFormat blockFormat, Layout * where)
+// ----------------------------------------------------------------------------
+//   Modify a blockFormat with the given layout
+// ----------------------------------------------------------------------------
+{
+    blockFormat.setAlignment( where->alongX.toQtHAlign() |
+                              where->alongY.toQtVAlign());
+    blockFormat.setTopMargin(where->top);
+    blockFormat.setBottomMargin(where->bottom);
+    blockFormat.setLeftMargin(where->left);
+    blockFormat.setRightMargin(where->right);
+
+    return blockFormat;
+
+}
+
+
+QTextCharFormat modifyCharFormat( QTextCharFormat format, Layout * where)
+// ----------------------------------------------------------------------------
+//   Modify a charFormat with the given layout
+// ----------------------------------------------------------------------------
+{
+    format.setFont(where->font);
+    QColor fill;
+    fill.setRgbF(where->fillColor.red,
+                 where->fillColor.green,
+                 where->fillColor.blue,
+                 where->fillColor.alpha);
+    format.setForeground(QBrush(fill));
+    return format;
+}
+
+
 void TextSpan::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the selection for any selected character
@@ -346,7 +380,7 @@ void TextSpan::DrawSelection(Layout *where)
             // Mark characters in selection range
             charSelected = (sel->replaceInProgress ||
                             (charId >= sel->start() && charId <= sel->end()));
-
+            sel->inSelection = (charId >= sel->start() && charId <= sel->end());
             // Check up and down keys
             if (charSelected || sel->needsPositions())
             {
@@ -372,6 +406,11 @@ void TextSpan::DrawSelection(Layout *where)
 
                     if (charId != sel->end()) // CaB
                         selectedText.append(str[i]);
+
+                    if (sel->replacement_tree && sel->point == charId)
+                    {
+                        PerformInsertOperation(where, widget, i);
+                    }
                 } // if(charSelected)
             } // if (charSelected || upDown)
 
@@ -412,25 +451,15 @@ void TextSpan::DrawSelection(Layout *where)
         }
     }
 
-    if (sel) // CaB
+    if (sel && !selectedText.isEmpty()) // CaB
     {
-        QTextBlockFormat blockFormat = sel->cursor.blockFormat();
-        blockFormat.setAlignment( where->alongX.toQtHAlign() |
-                                  where->alongY.toQtVAlign());
-        blockFormat.setTopMargin(where->top);
-        blockFormat.setBottomMargin(where->bottom);
-        blockFormat.setLeftMargin(where->left);
-        blockFormat.setRightMargin(where->right);
+        std::cerr << "Insert text |" << +selectedText << "|\n";
+        sel->cursor.mergeBlockFormat(modifyBlockFormat(sel->cursor.blockFormat(),
+                                                       where));
 
-        QTextCharFormat format;
-        format.setFont(font);
-        QColor fill;
-        fill.setRgbF(where->fillColor.red,
-                     where->fillColor.green,
-                     where->fillColor.blue,
-                     where->fillColor.alpha);
-        format.setForeground(QBrush(fill));
-        sel->cursor.insertText(selectedText,format);
+        sel->cursor.insertText(selectedText,
+                               modifyCharFormat(sel->cursor.charFormat(),
+                                                where));
     }
 
     if (sel && canSel)
@@ -454,7 +483,6 @@ void TextSpan::DrawSelection(Layout *where)
 
     where->offset = Point3(x, y, z);
 }
-
 
 void TextSpan::Identify(Layout *where)
 // ----------------------------------------------------------------------------
@@ -861,8 +889,91 @@ uint TextSpan::PerformEditOperation(Widget *widget, uint i, uint next)
     }
 
     return length;
+
 }
 
+void TextSpan::PerformInsertOperation(Layout * l,
+                                      Widget * widget,
+                                      uint     position)
+{
+    TextSelect *sel = widget->textSelection();
+    if (sel->replacement_tree)
+    {
+        Tree * t = sel->replacement_tree;
+        // Cut the span at the current position
+        text endOfSpan = source->value.substr(position);
+        if (endOfSpan.size())
+        {
+            // Duplicate the Layout env of the current span
+            QTextCursor cursor(new QTextDocument(""));
+            cursor.setBlockFormat(modifyBlockFormat(cursor.blockFormat(), l));
+            cursor.setCharFormat(modifyCharFormat(cursor.charFormat(), l));
+            // Get text from sel->point to end of this text_span.
+            cursor.insertText(+endOfSpan);
+            // Delete the end of the current text_span
+            source->value.erase(position);
+
+            // insert the tree from the sel
+            t = portability().fromHTML(cursor.document()->toHtml());
+            t = new XL::Infix("\n", sel->replacement_tree, t);
+        }
+        if (source->value.size())
+        {
+            t = new XL::Infix("\n",
+                              new XL::Prefix(new XL::Name("text"),
+                                             new XL::Text((XL::Text*)source)),
+                              t);
+        }
+        sel->replacement_tree = NULL;
+
+        // Insert into the parent in place of the current text.
+        // source is the text surounded by "" or <<>> itself,
+        // its parent is the prefix text, so surch for the grand parent
+        XL::FindParentAction getParent(source);
+        Tree * parent = widget->xlProgram->tree->Do(getParent);
+        std::cerr << parent <<std::endl;
+        XL::FindParentAction getGrandParent(parent);
+        Tree * grandParent = widget->xlProgram->tree->Do(getGrandParent);
+
+        XL::Infix   *inf  = grandParent->AsInfix();
+        XL::Block   *bl   = grandParent->AsBlock();
+        XL::Prefix  *pre  = grandParent->AsPrefix();
+        XL::Postfix *post = grandParent->AsPostfix();
+        if (inf)
+        {
+            if (inf->left == parent)
+                inf->left = t;
+            else
+                inf->right = t;
+        }
+        else if (bl)
+        {
+            bl->child = t;
+
+        }
+        else if (pre)
+        {
+            if (pre->left == parent)
+                pre->left = t;
+            else
+                pre->right = t;
+
+        }
+        else if (post)
+        {
+            if (post->left == parent)
+                post->left = t;
+            else
+                post->right = t;
+
+        }
+        // Reload the program and mark the changes
+        widget->reloadProgram();
+        widget->markChanged("Clipboard content pasted");
+
+    }
+
+}
 
 
 // ============================================================================
@@ -1103,7 +1214,8 @@ TextSelect::TextSelect(Widget *w)
       replacement(""), replace(false), replaceInProgress(false),
       textMode(false),
       pickingLineEnds(false), pickingUpDown(false), movePointOnly(false),
-      formulaMode(false),cursor(QTextCursor(new QTextDocument("")))
+      formulaMode(false),cursor(QTextCursor(new QTextDocument(""))),
+      replacement_tree(NULL), inSelection(false)
 {
     Widget::selection_map::iterator i, last = w->selection.end();
     for (i = w->selection.begin(); i != last; i++)
@@ -1442,6 +1554,15 @@ void TextSelect::processChar(uint charId, coord x, bool selected, uint code)
             }
         }
     }
+}
+
+
+void TextSelect::insert(XL::Tree *t)
+// ----------------------------------------------------------------------------
+//  Insert a tree at the selection point in the text
+// ----------------------------------------------------------------------------
+{
+    replacement_tree = t;
 }
 
 TAO_END

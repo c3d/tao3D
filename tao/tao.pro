@@ -25,12 +25,13 @@ QT += webkit \
     phonon
 QMAKE_CFLAGS += -Werror
 QMAKE_CXXFLAGS += -Werror
-QMAKE_CXXFLAGS_RELEASE += -g \$(CXXFLAGS_\$%)
+QMAKE_CXXFLAGS_RELEASE += -g \
+    \$(CXXFLAGS_\$%)
 
 # Tell the XLR portion that we are building for Tao
 DEFINES += TAO \
     DEBUG
-macx { 
+macx {
     DEFINES += CONFIG_MACOSX
     XLRDIR = Contents/MacOS
     ICON = tao.icns
@@ -38,8 +39,7 @@ macx {
     QMAKE_CFLAGS += -mmacosx-version-min=10.5 # Avoid warning with font_file_manager_macos.mm
 }
 win32:DEFINES += CONFIG_MINGW
-
-linux-g++ {
+linux-g++ { 
     DEFINES += CONFIG_LINUX
     LIBS += -lXss
 }
@@ -141,7 +141,8 @@ HEADERS += widget.h \
     commit_table_widget.h \
     commit_table_model.h \
     checkout_dialog.h \
-    push_dialog.h
+    push_dialog.h \
+    portability.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -224,19 +225,20 @@ SOURCES += tao_main.cpp \
     commit_table_widget.cpp \
     commit_table_model.cpp \
     checkout_dialog.cpp \
-    push_dialog.cpp
+    push_dialog.cpp \
+    portability.cpp
 CXXTBL_SOURCES += \
     graphics.cpp \
     formulas.cpp \
     xlr/xlr/basics.cpp
 
-!win32 { 
+!win32 {
     HEADERS += GL/glew.h \
         GL/glxew.h \
         GL/wglew.h
     SOURCES += glew.c
 }
-macx { 
+macx {
     OBJECTIVE_SOURCES += font_file_manager_macos.mm
     LIBS += -framework \
         ApplicationServices

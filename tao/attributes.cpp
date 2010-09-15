@@ -69,12 +69,18 @@ void DrawingBreak::DrawSelection(Layout *l)
 {
     Widget     *widget       = l->Display();
     TextSelect *sel          = widget->textSelection();
-    if (sel)
+    if (sel && sel->inSelection)
     {
         if (order == LineBreak)
-            sel->cursor.insertText("\n");
+        {
+            sel->cursor.insertText("\n"); //Html("<BR/>");
+            std::cerr << "Insert LINE break \n";
+        }
         else if (order >= ParaBreak)
+        {
             sel->cursor.insertBlock();
+            std::cerr << "Insert BLOCK \n";
+        }
     }
     Draw(l);
 }

@@ -9,7 +9,7 @@ if true then TrueBody                   -> do TrueBody
 if false then TrueBody                  -> false
 
 // Key management
-key "Control-L"                         -> toggle_full_screen
+key "Control-L"                         -> toggle_slide_show
 key "Escape"                            -> main_chooser
 key "Control-M"                         -> toggle_hand_cursor
 key "Control-P"                         -> print_page "toto.pdf"

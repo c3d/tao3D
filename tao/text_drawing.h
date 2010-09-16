@@ -120,8 +120,6 @@ struct TextSelect : Identify
     void                processLineBreak();
     void                processChar(uint id, coord x, bool selected, uint code);
 
-    void                insert( XL::Tree * t);
-
     enum Direction      { None, Mark, Left, Right, Up, Down };
     uint                mark, point, previous, last, textBoxId;
     Direction           direction;
@@ -137,7 +135,7 @@ struct TextSelect : Identify
     bool                movePointOnly;
     uint                formulaMode;
 
-    QTextCursor         cursor; // CaB
+    QTextCursor         cursor;
     Tree *              replacement_tree;
     bool                inSelection;
 };

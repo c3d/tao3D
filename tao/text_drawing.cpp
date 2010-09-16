@@ -351,7 +351,7 @@ void TextSpan::DrawSelection(Layout *where)
     scale       descent      = glyphs.Descent(font);
     scale       height       = ascent + descent;
     GlyphCache::GlyphEntry  glyph;
-    QString     selectedText; // CaB
+    QString     selectedText;
 
     // A number of cases where we can't select text
     if (canSel && (!where->id || IsMarkedConstant(ttree) ||
@@ -404,13 +404,14 @@ void TextSpan::DrawSelection(Layout *where)
                     scale sh = glyph.scalingFactor * height;
                     sel->selBox |= Box3(charX,charY - sd,z, 1, sh, 0);
 
-                    if (charId != sel->end()) // CaB
+                    // add the char to the selected text
+                    if (charId != sel->end())
                         selectedText.append(str[i]);
 
+                    // Insert a tree from the clipboard if any
                     if (sel->replacement_tree && sel->point == charId)
-                    {
                         PerformInsertOperation(where, widget, i);
-                    }
+
                 } // if(charSelected)
             } // if (charSelected || upDown)
 
@@ -451,12 +452,11 @@ void TextSpan::DrawSelection(Layout *where)
         }
     }
 
-    if (sel && !selectedText.isEmpty()) // CaB
+    // Update the selection data with the format and text (to be used in copy/paste)
+    if (sel && !selectedText.isEmpty())
     {
-        std::cerr << "Insert text |" << +selectedText << "|\n";
         sel->cursor.mergeBlockFormat(modifyBlockFormat(sel->cursor.blockFormat(),
                                                        where));
-
         sel->cursor.insertText(selectedText,
                                modifyCharFormat(sel->cursor.charFormat(),
                                                 where));
@@ -483,6 +483,7 @@ void TextSpan::DrawSelection(Layout *where)
 
     where->offset = Point3(x, y, z);
 }
+
 
 void TextSpan::Identify(Layout *where)
 // ----------------------------------------------------------------------------
@@ -895,6 +896,9 @@ uint TextSpan::PerformEditOperation(Widget *widget, uint i, uint next)
 void TextSpan::PerformInsertOperation(Layout * l,
                                       Widget * widget,
                                       uint     position)
+// ----------------------------------------------------------------------------
+//   Insert replacement_tree of textSelection at the current cursor location.
+// ----------------------------------------------------------------------------
 {
     TextSelect *sel = widget->textSelection();
     if (sel->replacement_tree)
@@ -926,12 +930,11 @@ void TextSpan::PerformInsertOperation(Layout * l,
         }
         sel->replacement_tree = NULL;
 
-        // Insert into the parent in place of the current text.
+        // Insert the resulting tree in place of the parent's source:
         // source is the text surounded by "" or <<>> itself,
-        // its parent is the prefix text, so surch for the grand parent
+        // its parent is the prefix text, so surch for the grand parent.
         XL::FindParentAction getParent(source);
         Tree * parent = widget->xlProgram->tree->Do(getParent);
-        std::cerr << parent <<std::endl;
         XL::FindParentAction getGrandParent(parent);
         Tree * grandParent = widget->xlProgram->tree->Do(getGrandParent);
 
@@ -949,7 +952,6 @@ void TextSpan::PerformInsertOperation(Layout * l,
         else if (bl)
         {
             bl->child = t;
-
         }
         else if (pre)
         {
@@ -957,7 +959,6 @@ void TextSpan::PerformInsertOperation(Layout * l,
                 pre->left = t;
             else
                 pre->right = t;
-
         }
         else if (post)
         {
@@ -965,7 +966,6 @@ void TextSpan::PerformInsertOperation(Layout * l,
                 post->left = t;
             else
                 post->right = t;
-
         }
         // Reload the program and mark the changes
         widget->reloadProgram();
@@ -1556,13 +1556,5 @@ void TextSelect::processChar(uint charId, coord x, bool selected, uint code)
     }
 }
 
-
-void TextSelect::insert(XL::Tree *t)
-// ----------------------------------------------------------------------------
-//  Insert a tree at the selection point in the text
-// ----------------------------------------------------------------------------
-{
-    replacement_tree = t;
-}
 
 TAO_END

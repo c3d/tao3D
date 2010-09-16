@@ -319,13 +319,11 @@ void Widget::draw()
     Layout::polygonOffset = 0;
 
     // Clean text selection
-    TextSelect *sel = textSelection(); // CaB
+    TextSelect *sel = textSelection();
     if (sel)
     {
         sel->cursor.select(QTextCursor::Document);
         sel->cursor.removeSelectedText();
-        std::cerr << "############ CLEAR CURSOR ## "<< sel->cursor.blockNumber()
-                << "\n"; // CaB
     }
 
     // If there is a program, we need to run it
@@ -382,7 +380,7 @@ void Widget::draw()
 
 void Widget::runProgram()
 // ----------------------------------------------------------------------------
-//   Run the current XL program
+//   Run the  XL program
 // ----------------------------------------------------------------------------
 {
     XL::GarbageCollector::Collect();
@@ -544,7 +542,9 @@ bool Widget::canPaste()
 // ----------------------------------------------------------------------------
 {
     const QMimeData *mimeData = QApplication::clipboard()->mimeData();
-    return (mimeData->hasFormat(TAO_CLIPBOARD_MIME_TYPE)||mimeData->hasHtml());
+    return (mimeData->hasFormat(TAO_CLIPBOARD_MIME_TYPE)
+            || mimeData->hasHtml()
+            || mimeData->hasText());
 }
 
 
@@ -556,7 +556,7 @@ void Widget::cut()
     copy();
     IFTRACE(clipboard)
         std::cerr << "Clipboard: deleting selection\n";
-    deleteSelection();
+    deleteSelection(NULL, "Delete");
 }
 
 
@@ -564,58 +564,52 @@ void Widget::copy()
 // ----------------------------------------------------------------------------
 //   Copy current selection into clipboard
 // ----------------------------------------------------------------------------
+// If some text is selected it is copied as html and plain text into clipboard
+// otherwise the selected tree is serialized and placed into the clipboard.
 {
     if (!hasSelection())
         return;
 
+    QMimeData *mimeData = new QMimeData;
+
     TextSelect *sel;
-    if ((sel = textSelection())) //CaB
+    if ((sel = textSelection())) // Text selected
     {
         IFTRACE(clipboard)
         {
-            std::cerr <<"Document output "<< +sel->cursor.document()->toHtml("utf-8") << std::endl;
-            QTextEdit *edit = new QTextEdit;
-            edit->setDocument(sel->cursor.document());
-            QHBoxLayout *topLeftLayout = new QHBoxLayout;
-            topLeftLayout->addWidget(edit);
-            QDialog box;
-            box.setLayout(topLeftLayout);
-            box.exec();
+            std::cerr << "Clipboard: copying:\n";
+            std::cerr << +sel->cursor.document()->toHtml("utf-8") << std::endl;
         }
-        // Encapsulate serialized tree as MIME data
-        QMimeData *mimeData = new QMimeData;
+        // Encapsulate text as MIME data
         mimeData->setHtml(sel->cursor.document()->toHtml("utf-8"));
         mimeData->setText(sel->cursor.document()->toPlainText());
-        // Transfer into clipboard
-        QClipboard *clipboard = QApplication::clipboard();
-        clipboard->setMimeData(mimeData);
-        return;
     }
-
-    // Build a single tree from all the selected sub-trees
-    XL::Tree *tree = copySelection();
-
-    IFTRACE(clipboard)
+    else  // Object selected
     {
-        std::cerr << "Clipboard: copying:\n";
-        XL::Renderer render(std::cerr);
-        QFileInfo styleSheet("system:debug.stylesheet");
-        render.SelectStyleSheet(+styleSheet.absoluteFilePath());
-        render.Render(tree);
+        // Build a single tree from all the selected sub-trees
+        XL::Tree *tree = copySelection();
+
+        IFTRACE(clipboard)
+        {
+            std::cerr << "Clipboard: copying:\n";
+            XL::Renderer render(std::cerr);
+            QFileInfo styleSheet("system:debug.stylesheet");
+            render.SelectStyleSheet(+styleSheet.absoluteFilePath());
+            render.Render(tree);
+        }
+
+        // Serialize the tree
+        std::string ser;
+        std::ostringstream ostr;
+        XL::Serializer serializer(ostr);
+        tree->Do(serializer);
+        ser += ostr.str();
+
+        // Encapsulate serialized tree as MIME data
+        QByteArray binData;
+        binData.append(ser.data(), ser.length());
+        mimeData->setData(TAO_CLIPBOARD_MIME_TYPE, binData);
     }
-
-    // Serialize the tree
-    std::string ser;
-    std::ostringstream ostr;
-    XL::Serializer serializer(ostr);
-    tree->Do(serializer);
-    ser += ostr.str();
-
-    // Encapsulate serialized tree as MIME data
-    QByteArray binData;
-    binData.append(ser.data(), ser.length());
-    QMimeData *mimeData = new QMimeData;
-    mimeData->setData(TAO_CLIPBOARD_MIME_TYPE, binData);
 
     // Transfer into clipboard
     QClipboard *clipboard = QApplication::clipboard();
@@ -627,6 +621,7 @@ void Widget::paste()
 // ----------------------------------------------------------------------------
 //   Paste the clipboard content at the current selection
 // ----------------------------------------------------------------------------
+// Paste TAO MIME type or HTML MIME type or TEXT MIME type
 {
     // Does clipboard contain Tao stuff?)
     if (!canPaste())
@@ -634,7 +629,7 @@ void Widget::paste()
 
     const QMimeData *mimeData = QApplication::clipboard()->mimeData();
 
-    if(mimeData->hasFormat(TAO_CLIPBOARD_MIME_TYPE))
+    if (mimeData->hasFormat(TAO_CLIPBOARD_MIME_TYPE))
     {
         // Extract serialized tree
         QByteArray binData = mimeData->data(TAO_CLIPBOARD_MIME_TYPE);
@@ -649,7 +644,7 @@ void Widget::paste()
 
         IFTRACE(clipboard)
         {
-            std::cerr << "Clipboard: pasting:\n";
+            std::cerr << "Clipboard: pasting TAO:\n";
             XL::Renderer render(std::cerr);
             render.SelectStyleSheet("debug.stylesheet");
             render.Render(tree);
@@ -658,54 +653,60 @@ void Widget::paste()
         // Insert tree at end of current page
         // TODO: paste with an offset to avoid exactly overlapping objects
         insert(NULL, tree);
+
+        return;
     }
-    else if (mimeData->hasHtml()) //CaB
+
+    TextSelect *sel  = textSelection();
+
+    if (sel)
     {
-        IFTRACE(clipboard)
+        if (mimeData->hasHtml())
         {
-            QTextDocument doc;
-            doc.setHtml(mimeData->html());
-            QTextEdit *edit = new QTextEdit;
-            edit->setDocument(&doc);
-            QHBoxLayout *topLeftLayout = new QHBoxLayout;
-            topLeftLayout->addWidget(edit);
-            QDialog box;
-            box.setLayout(topLeftLayout);
-            box.exec();
+            IFTRACE(clipboard)
+            {
+                std::cerr << "Clipboard: pasting HTML:\n";
+                std::cerr << +mimeData->html() <<std::endl;
+            }
+            sel->replacement_tree = portability().fromHTML(mimeData->html());
+
+            return;
         }
-        Tree * t = portability().fromHTML(mimeData->html());
-        std::cerr << +mimeData->html() <<std::endl;
-        TextSelect *sel  = textSelection();
-        if (sel)
+        if (mimeData->hasText())
         {
-            sel->insert(t);
-        }
-        else
-        {
-            // Insert a text box with that content at the end of the doc/page.
-            XL::Infix * comma = new XL::Infix(",", new XL::Integer(0LL),
-                                              new XL::Integer(0LL));
-            comma = new XL::Infix(",", comma, new XL::Integer(200));
-            comma = new XL::Infix(",", comma, new XL::Integer(200));
-            comma = new XL::Infix(",", comma,
-                                  new XL::Prefix(new Name("do"),
-                                                 new XL::Block(t, "I+", "I-")));
-            XL::Prefix * tb = new XL::Prefix( new XL::Name("text_box"),
-                                              comma);
-            tb = new XL::Prefix(new XL::Name("shape"),
-                                new XL::Block(tb, "I+", "I-"));
-            // Insert before the selection ? Insert at cursor ?
-            insert(NULL, tb, "paste from HTML");
-        }
-    }
-    else if (mimeData->hasText()) //CaB
-    {
-        TextSelect *sel  = textSelection();
-        if (sel)
-        {
+            IFTRACE(clipboard)
+            {
+                std::cerr << "Clipboard: pasting TEXT:\n";
+                std::cerr << +mimeData->text() <<std::endl;
+            }
             sel->replacement = +mimeData->text();
             sel->replace = true;
+
+            return;
         }
+    }
+    else
+    {
+        Tree * t = NULL;
+        if (mimeData->hasHtml())
+            t = portability().fromHTML(mimeData->html());
+        else if (mimeData->hasText())
+            t = new XL::Prefix(new XL::Name("text"),
+                               new XL::Text(+mimeData->text()));
+        else return;
+        // Insert a text box with that content at the end of the doc/page.
+        XL::Infix * comma = new XL::Infix(",", new XL::Integer(0LL),
+                                          new XL::Integer(0LL));
+        comma = new XL::Infix(",", comma, new XL::Integer(200));
+        comma = new XL::Infix(",", comma, new XL::Integer(200));
+        comma = new XL::Infix(",", comma,
+                              new XL::Prefix(new Name("do"),
+                                             new XL::Block(t, "I+", "I-")));
+        XL::Prefix * tb = new XL::Prefix( new XL::Name("text_box"),
+                                          comma);
+        tb = new XL::Prefix(new XL::Name("shape"),
+                            new XL::Block(tb, "I+", "I-"));
+        insert(NULL, tb, "paste from HTML");
     }
 }
 
@@ -7229,6 +7230,7 @@ XL::Name_p Widget::deleteSelection(Tree_p self, text key)
 //    Delete the selection (with text support)
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
     if (textSelection())
         return textEditKey(self, key);
 

@@ -28,15 +28,21 @@
 portability::portability(){}
 
 XL::Tree * portability::fromHTML(QString html)
+// ----------------------------------------------------------------------------
+//   Translate an HTML formated text into XL::Tree
+// ----------------------------------------------------------------------------
 {
-    QTextDocument doc;//  = new QTextDocument;
+    QTextDocument doc;
     doc.setHtml(html);
     return docToTree(doc);
 }
 
+
 XL::Tree* portability::docToTree(const QTextDocument &doc)
+// ----------------------------------------------------------------------------
+//   Translate a QTextDocument into XL::Tree
+// ----------------------------------------------------------------------------
 {
-    std::cerr << "portability::docToTree"<<std::endl;
     XL::Tree *t = NULL;
 
     for ( QTextBlock block = doc.firstBlock();
@@ -47,6 +53,7 @@ XL::Tree* portability::docToTree(const QTextDocument &doc)
             t = blockToTree( block );
         else
         {
+            // Insert a paragraph_break between two blocks
             t = new XL::Infix("\n", t, new XL::Name("paragraph_break"));
             t = new XL::Infix("\n", t, blockToTree( block ));
         }
@@ -55,16 +62,16 @@ XL::Tree* portability::docToTree(const QTextDocument &doc)
             const QTextFragment fragment = it.fragment();
             t = new XL::Infix("\n", t, fragmentToTree(fragment));
         }
-
     }
 
-    IFTRACE(clipboard)
-            std::cerr << t << std::endl;
     return t;
 }
 
 
 XL::Tree * portability::blockToTree(const QTextBlock &block)
+// ----------------------------------------------------------------------------
+//   Translate a QTextBlock into XL::Tree
+// ----------------------------------------------------------------------------
 {
     QTextBlockFormat blockFormat = block.blockFormat();
     //////////////////////////
@@ -131,7 +138,11 @@ XL::Tree * portability::blockToTree(const QTextBlock &block)
     return lf;
 }
 
+
 XL::Tree * portability::fragmentToTree(const QTextFragment &fragment)
+// ----------------------------------------------------------------------------
+//   Translate a QTextFragment into XL::Tree
+// ----------------------------------------------------------------------------
 {
     QTextCharFormat charFormat = fragment.charFormat();
     XL::Prefix * customWeight = NULL;

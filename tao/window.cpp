@@ -1819,6 +1819,7 @@ void Window::switchToFullScreen(bool fs)
         removeToolBar(editToolBar);
         removeToolBar(viewToolBar);
         removeToolBar(branchToolBar);
+        removeToolBar(playbackToolBar);
         statusBar()->hide();
         menuBar()->hide();
         showFullScreen();
@@ -1834,6 +1835,7 @@ void Window::switchToFullScreen(bool fs)
         addToolBar(editToolBar);
         addToolBar(viewToolBar);
         addToolBar(branchToolBar);
+        addToolBar(playbackToolBar);
         fileToolBar->show();
         editToolBar->show();
         viewToolBar->show();

@@ -471,7 +471,7 @@ void TextSpan::DrawSelection(Layout *where)
             if (sel->replaceInProgress ||
                 (charId >= sel->start() && charId <= sel->end()))
             {
-                if (sel->replace)
+                if ((sel->replace) && (sel->mark == sel->point))
                     PerformEditOperation(widget, i, next);
                 scale sd = glyph.scalingFactor * descent;
                 scale sh = glyph.scalingFactor * height;

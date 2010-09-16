@@ -102,8 +102,6 @@ XL::Tree * portability::blockToTree(const QTextBlock &block)
     if (align & Qt::AlignJustify)
         hJust = 1.0;
     XL::Real *hj = new XL::Real(hJust);
-    n = new XL::Name("justify");
-    XL::Prefix *hJustify = new XL::Prefix(n, hj);
 
     // Horizontal alignment
     double hAlign = 0.0;
@@ -112,8 +110,8 @@ XL::Tree * portability::blockToTree(const QTextBlock &block)
     else if (align & Qt::AlignRight)
         hAlign = 1.0;
     XL::Real *ha = new XL::Real(hAlign);
-    n = new XL::Name("center");
-    XL::Prefix *hAlignment = new XL::Prefix(n, ha);
+    n = new XL::Name("align");
+    XL::Prefix *hAlignment = new XL::Prefix(n, new XL::Infix(",", ha, hj));
 
     // Vertical justify
     // Vertical alignment
@@ -123,7 +121,7 @@ XL::Tree * portability::blockToTree(const QTextBlock &block)
     else if (align & Qt::AlignBottom)
         vAlign = 1.0;
     XL::Real *va = new XL::Real(vAlign);
-    n = new XL::Name("vertical_center");
+    n = new XL::Name("vertical_align");
     XL::Prefix *vAlignment = new XL::Prefix(n, va);
 
     //////////////////////////
@@ -131,7 +129,6 @@ XL::Tree * portability::blockToTree(const QTextBlock &block)
     //////////////////////////
 
     XL::Infix * lf = new XL::Infix("\n", vAlignment, hAlignment);
-    lf = new XL::Infix("\n", hJustify, lf);
     lf = new XL::Infix("\n", para_space, lf);
     lf = new XL::Infix("\n", margin, lf);
 

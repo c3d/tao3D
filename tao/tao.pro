@@ -142,6 +142,12 @@ HEADERS += widget.h \
     commit_table_model.h \
     checkout_dialog.h \
     push_dialog.h \
+    preferences_dialog.h \
+    preferences_pages.h \
+    history_playback.h \
+    history_playback_toolbar.h \
+    history_frame.h \
+    diff_dialog.h \
     portability.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
@@ -226,9 +232,14 @@ SOURCES += tao_main.cpp \
     commit_table_model.cpp \
     checkout_dialog.cpp \
     push_dialog.cpp \
+    preferences_dialog.cpp \
+    preferences_pages.cpp \
+    history_playback.cpp \
+    history_playback_toolbar.cpp \
+    history_frame.cpp \
+    diff_dialog.cpp \
     portability.cpp
-CXXTBL_SOURCES += \
-    graphics.cpp \
+CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp \
     xlr/xlr/basics.cpp
 
@@ -286,7 +297,9 @@ FORMS += pull_from_dialog.ui \
     merge_dialog.ui \
     history_dialog.ui \
     open_uri_dialog.ui \
-    fetch_push_dialog.ui
+    fetch_push_dialog.ui \
+    history_frame.ui \
+    diff_dialog.ui
 
 # Automatic embedding of Git version
 QMAKE_CLEAN += version.h
@@ -300,7 +313,13 @@ QMAKE_EXTRA_TARGETS += revtarget
 
 # Adding 'c++tbl' option with lowered optimization level
 c++tbl.output = ${QMAKE_FILE_BASE}.o
-c++tbl.commands = $(CXX) -c $(CXXFLAGS:-O2=) $(INCPATH) ${QMAKE_FILE_NAME} -o ${QMAKE_FILE_OUT}
+c++tbl.commands = $(CXX) \
+    -c \
+    $(CXXFLAGS:-O2=) \
+    $(INCPATH) \
+    ${QMAKE_FILE_NAME} \
+    -o \
+    ${QMAKE_FILE_OUT}
 c++tbl.dependency_type = TYPE_C
 c++tbl.input = CXXTBL_SOURCES
 QMAKE_EXTRA_COMPILERS += c++tbl

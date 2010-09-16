@@ -44,6 +44,7 @@ namespace Tao {
 struct Widget;
 class SplashScreen;
 class BranchSelectionToolBar;
+class HistoryPlaybackToolBar;
 class Uri;
 
 
@@ -123,10 +124,12 @@ private slots:
     void fetch();
     void push();
     void merge();
+    void diff();
     void checkout();
     void selectiveUndo();
     void clone();
     void about();
+    void preferences();
     void documentWasModified();
     void checkFiles();
     void toggleFullScreen();
@@ -191,6 +194,7 @@ private:
     QToolBar         *editToolBar;
     QToolBar         *viewToolBar;
     BranchSelectionToolBar *branchToolBar;
+    HistoryPlaybackToolBar *playbackToolBar;
     QAction          *newDocAct;
     QAction          *newAct;
     QAction          *openAct;
@@ -211,7 +215,9 @@ private:
     QAction          *mergeAct;
     QAction          *checkoutAct;
     QAction          *selectiveUndoAct;
+    QAction          *diffAct;
     QAction          *aboutAct;
+    QAction          *preferencesAct;
     QAction          *aboutQtAct;
     QAction          *fullScreenAct;
     QAction          *slideShowAct;

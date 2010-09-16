@@ -1,14 +1,14 @@
-#ifndef CHECKOUT_DIALOG_H
-#define CHECKOUT_DIALOG_H
+#ifndef DIFF_DIALOG_H
+#define DIFF_DIALOG_H
 // ****************************************************************************
-//  checkout_dialog.h                                              Tao project
+//  diff_dialog .cpp                                               Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    The class to display the Checkout dialog box. This is a modeless
-//    dialog which enables to checkout any past version of the document into a
-//    temporary branch.
+//    The class to display the Diff dialog box. This is a modeless dialog
+//    which enables to pick two commits from any branch and show the textual
+//    difference between the two versions.
 //
 //
 //
@@ -22,26 +22,26 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "history_dialog.h"
+#include "ui_diff_dialog.h"
 
 namespace Tao {
 
-struct Repository;
+class Repository;
 
-class CheckoutDialog : public HistoryDialog
+class DiffDialog : public QDialog, protected Ui::DiffDialog
 {
     Q_OBJECT
 
 public:
-    CheckoutDialog(Repository *repo, QWidget *parent = 0);
-
-signals:
-    void   checkedOut(QString id);
+    DiffDialog(Repository *repo, QWidget *parent = 0);
 
 private slots:
-    void   checkout();
+    void          diff();
+
+protected:
+    Repository  * repo;
 };
 
 }
 
-#endif // CHECKOUT_DIALOG_H
+#endif // DIFF_DIALOG_H

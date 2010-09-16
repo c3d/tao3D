@@ -999,9 +999,11 @@ QList<GitRepository::Commit> GitRepository::history(QString branch, int max)
 //   Return the last commits on a branch in chronological order
 // ----------------------------------------------------------------------------
 //   If branch == "", the current branch is used
+//   Returned commits are contiguous, i.e., each commit is parent of the next
+//   one (the commits of merged branches are not interspersed)
 {
     QStringList args;
-    args << "log" << "--pretty=format:%h/%at/%an/%s";
+    args << "log" << "--first-parent" << "--pretty=format:%h/%at/%an/%s";
     args << "-n" << QString("%1").arg(max);
     if (!branch.isEmpty())
         args << branch;
@@ -1020,6 +1022,26 @@ QList<GitRepository::Commit> GitRepository::history(QString branch, int max)
             result.prepend(Repository::Commit(rx.cap(1), rx.cap(4),
                                               rx.cap(2), rx.cap(3)));
     return result;
+}
+
+
+QString GitRepository::diff(QString a, QString b, bool symetric)
+// ----------------------------------------------------------------------------
+//   Return source code difference between version a and version b (commit ids)
+// ----------------------------------------------------------------------------
+{
+    text output;
+    QStringList args;
+    args << "diff";
+    if (symetric)
+        args << QString("%1...%2").arg(a).arg(b);
+    else
+        args << a << b;
+    waitForAsyncProcessCompletion();
+    Process cmd(command(), args, path);
+    cmd.done(&errors, &output);
+
+    return +output;
 }
 
 

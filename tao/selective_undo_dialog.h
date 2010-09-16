@@ -6,7 +6,7 @@
 //
 //   File Description:
 //
-//    The class to display the "Selective undo" dialog box. This is a modeless
+//    The class to display the Selective Undo dialog box. This is a modeless
 //    dialog which enables to pick any past change and revert it in the current
 //    document.
 //
@@ -23,9 +23,6 @@
 // ****************************************************************************
 
 #include "history_dialog.h"
-#include "repository.h"
-#include <QWidget>
-#include <QPushButton>
 
 namespace Tao {
 
@@ -39,7 +36,7 @@ public:
     SelectiveUndoDialog(Repository *repo, QWidget *parent = 0);
 
 private slots:
-    void    undoButton_clicked();
+    void    undo();
 };
 
 }

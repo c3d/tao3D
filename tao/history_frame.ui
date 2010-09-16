@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>HistoryFrame</class>
+ <widget class="QFrame" name="HistoryFrame">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>700</width>
+    <height>210</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>History</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="msg">
+     <property name="text">
+      <string>&lt;Message&gt;</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="branchLabel">
+       <property name="text">
+        <string>Branch</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="Tao::BranchSelectionComboBox" name="branchCombo"/>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="revLabel">
+       <property name="text">
+        <string>Revision</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="revEdit"/>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="Tao::CommitTableWidget" name="tableView"/>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Tao::BranchSelectionComboBox</class>
+   <extends>QComboBox</extends>
+   <header>branch_selection_combobox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>Tao::CommitTableWidget</class>
+   <extends>QTableView</extends>
+   <header>commit_table_widget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

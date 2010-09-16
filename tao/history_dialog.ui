@@ -15,57 +15,14 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="msg">
-     <property name="text">
-      <string>&lt;Message&gt;</string>
+    <widget class="Tao::HistoryFrame" name="historyFrame">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
      </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
      </property>
     </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QLabel" name="branchLabel">
-       <property name="text">
-        <string>Branch</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="Tao::BranchSelectionComboBox" name="branchCombo"/>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QLabel" name="revLabel">
-       <property name="text">
-        <string>Revision</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="revEdit"/>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="Tao::CommitTableWidget" name="tableView"/>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
@@ -87,34 +44,14 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>Tao::BranchSelectionComboBox</class>
-   <extends>QComboBox</extends>
-   <header>branch_selection_combobox.h</header>
-  </customwidget>
-  <customwidget>
-   <class>Tao::CommitTableWidget</class>
-   <extends>QTableView</extends>
-   <header>commit_table_widget.h</header>
+   <class>Tao::HistoryFrame</class>
+   <extends>QFrame</extends>
+   <header>history_frame.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>
  <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>HistoryDialog</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
@@ -122,12 +59,12 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>361</x>
+     <y>319</y>
     </hint>
     <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
+     <x>361</x>
+     <y>169</y>
     </hint>
    </hints>
   </connection>

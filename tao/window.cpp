@@ -34,13 +34,16 @@
 #include "checkout_dialog.h"
 #include "selective_undo_dialog.h"
 #include "clone_dialog.h"
+#include "diff_dialog.h"
 #include "branch_selection_toolbar.h"
+#include "history_playback_toolbar.h"
 #include "undo.h"
 #include "resource_mgt.h"
 #include "splash_screen.h"
 #include "uri.h"
 #include "open_uri_dialog.h"
 #include "new_document_wizard.h"
+#include "preferences_dialog.h"
 
 #include <iostream>
 #include <sstream>
@@ -168,6 +171,11 @@ void Window::setHtml(QString txt)
     int y = vsb->value();
     int pos = textEdit->textCursor().position();
 
+    if (txt.isEmpty())
+        txt = "<html><head><meta http-equiv=\"Content-Type\" "
+              "content=\"text/html; charset=utf-8\"><style type=\"text/css\">"
+              "body {font-family: \"unifont\"; font-size: 16px}"
+              "<style/></head><body></body></html>";
     textEdit->setHtml(txt);
 
     hsb->setValue(x);
@@ -486,11 +494,35 @@ bool Window::saveAs()
         dir = Application::defaultProjectFolderPath();
     else
         dir = curFile;
+again:
     QString fileName =
         QFileDialog::getSaveFileName(this, tr("Save As"), dir,
                                      tr(TAO_FILESPECS));
     if (fileName.isEmpty())
         return false;
+
+    // Avoid saving in the Tao folder (and thus creating a repository with all
+    // the Tao documents inside...)
+    // Note that on MacOSX, in some circumstances, user may involontarily
+    // select the Tao folder as a target even though he/she wanted to create
+    // a subfolder -- see http://bugreports.qt.nokia.com/browse/QTBUG-13526.
+    {
+        QDir dir = QDir(QFileInfo(fileName).absoluteDir());
+        QDir taoDir = QDir(Application::defaultProjectFolderPath());
+        if (dir == taoDir)
+        {
+            int r = QMessageBox::warning(this, tr("Confirm folder"),
+                        tr("Saving in the Tao document folder is not "
+                           "recommended. You should create a subfolder "
+                           "instead.\n"
+                           "Do you want to proceed anyway? Click No to "
+                           "choose another location."),
+                           QMessageBox::Yes | QMessageBox::No);
+            if (r != QMessageBox::Yes)
+                goto again;
+        }
+    }
+
     QString projpath = QFileInfo(fileName).absolutePath();
     QString fileNameOnly = QFileInfo(fileName).fileName();
     if (!openProject(projpath, fileNameOnly, false))
@@ -771,6 +803,21 @@ void Window::merge()
 }
 
 
+void Window::diff()
+// ----------------------------------------------------------------------------
+//    Show a "Diff" dialog
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+        return warnNoRepo();
+
+    DiffDialog *dialog = new DiffDialog(repo.data(), this);
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
+}
+
+
 void Window::checkout()
 // ----------------------------------------------------------------------------
 //    Show a "Checkout" dialog
@@ -839,6 +886,15 @@ void Window::deleteAboutSplash()
 {
     delete aboutSplash;
     aboutSplash = NULL;
+}
+
+
+void Window::preferences()
+// ----------------------------------------------------------------------------
+//    Show the Preferences dialog
+// ----------------------------------------------------------------------------
+{
+    PreferencesDialog(this).exec();
 }
 
 
@@ -998,6 +1054,12 @@ void Window::createActions()
     connect(selectiveUndoAct, SIGNAL(triggered()),
             this, SLOT(selectiveUndo()));
 
+    diffAct = new QAction(tr("Diff..."), this);
+    diffAct->setStatusTip(tr("View the source code difference between two "
+                             "document versions"));
+    diffAct->setEnabled(false);
+    connect(diffAct, SIGNAL(triggered()), this, SLOT(diff()));
+
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setStatusTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
@@ -1005,6 +1067,10 @@ void Window::createActions()
     //aboutQtAct = new QAction(tr("About &Qt"), this);
     //aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
     //connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+
+    preferencesAct = new QAction(tr("&Preferences"), this);
+    preferencesAct->setStatusTip(tr("Set application preferences"));
+    connect(preferencesAct, SIGNAL(triggered()), this, SLOT(preferences()));
 
     fullScreenAct = new QAction(tr("Full Screen"), this);
     fullScreenAct->setStatusTip(tr("Toggle full screen mode"));
@@ -1109,6 +1175,7 @@ void Window::createMenus()
     shareMenu->addAction(mergeAct);
     shareMenu->addAction(checkoutAct);
     shareMenu->addAction(selectiveUndoAct);
+    shareMenu->addAction(diffAct);
 
     viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(dock->toggleViewAction());
@@ -1125,6 +1192,7 @@ void Window::createMenus()
     helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->setObjectName(HELP_MENU_NAME);
     helpMenu->addAction(aboutAct);
+    helpMenu->addAction(preferencesAct);
 }
 
 
@@ -1164,6 +1232,15 @@ void Window::createToolBars()
     addToolBar(branchToolBar);
     if (view)
         view->addAction(branchToolBar->toggleViewAction());
+
+    playbackToolBar = new HistoryPlaybackToolBar(tr("History playback"));
+    connect(this, SIGNAL(projectChanged(Repository*)),
+            playbackToolBar, SLOT(setRepository(Repository*)));
+    connect(playbackToolBar, SIGNAL(documentChanged()),
+            taoWidget, SLOT(setForceRefresh()));
+    addToolBar(playbackToolBar);
+    if (view)
+        view->addAction(playbackToolBar->toggleViewAction());
 }
 
 
@@ -1578,6 +1655,7 @@ void Window::enableProjectSharingMenus()
     mergeAct->setEnabled(true);
     checkoutAct->setEnabled(true);
     selectiveUndoAct->setEnabled(true);
+    diffAct->setEnabled(true);
 }
 
 
@@ -1693,6 +1771,8 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
             connect(repo.data(), SIGNAL(branchChanged(QString)),
                     branchToolBar, SLOT(refresh()));
             connect(repo.data(), SIGNAL(branchChanged(QString)),
+                    playbackToolBar, SLOT(refresh()));
+            connect(repo.data(), SIGNAL(branchChanged(QString)),
                     this, SLOT(checkDetachedHead()));
         }
     }
@@ -1739,6 +1819,7 @@ void Window::switchToFullScreen(bool fs)
         removeToolBar(editToolBar);
         removeToolBar(viewToolBar);
         removeToolBar(branchToolBar);
+        removeToolBar(playbackToolBar);
         statusBar()->hide();
         menuBar()->hide();
         showFullScreen();
@@ -1754,6 +1835,7 @@ void Window::switchToFullScreen(bool fs)
         addToolBar(editToolBar);
         addToolBar(viewToolBar);
         addToolBar(branchToolBar);
+        addToolBar(playbackToolBar);
         fileToolBar->show();
         editToolBar->show();
         viewToolBar->show();

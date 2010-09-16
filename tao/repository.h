@@ -183,6 +183,7 @@ public:
     virtual bool        isClean()                       = 0;
     virtual QString     url()                           = 0;
     virtual bool        gc()                            = 0;
+    virtual QString     diff(QString a, QString b, bool symetric = false) = 0;
 
 public:
     static bool         versionGreaterOrEqual(QString ver, QString ref);

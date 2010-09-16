@@ -87,6 +87,7 @@ public:
     virtual bool        isClean();
     virtual QString     url();
     virtual bool        gc();
+    virtual QString     diff(QString a, QString b, bool symetric);
 
 public:
     static  bool        checkGit();

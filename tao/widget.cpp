@@ -148,7 +148,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentFileDialog(NULL),
       zoom(1.0), eyeDistance(20.0),
       eye(0.0, 0.0, Widget::zNear), viewCenter(0.0, 0.0, 0.0),
-      dragging(false), bAutoHideCursor(false)
+      dragging(false), bAutoHideCursor(false), forceRefresh(false)
 {
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -960,6 +960,15 @@ void Widget::saveAndCommit()
     ulonglong tick = now();
     if (doSave(tick))
         doCommit(tick);
+}
+
+
+void Widget::setForceRefresh()
+// ----------------------------------------------------------------------------
+//    Force document reload next time the dawdle loop runs
+// ----------------------------------------------------------------------------
+{
+    forceRefresh = true;
 }
 
 
@@ -2017,7 +2026,7 @@ void Widget::refreshProgram()
 
     // Loop on imported files
     import_set iset;
-    if (ImportedFilesChanged(prog, iset, false))
+    if (ImportedFilesChanged(prog, iset, false) || forceRefresh)
     {
         import_set::iterator it;
         bool needBigHammer = false;
@@ -2029,7 +2038,7 @@ void Widget::refreshProgram()
             struct stat st;
             stat (fname.c_str(), &st);
 
-            if (st.st_mtime > sf.modified)
+            if ((st.st_mtime > sf.modified) || forceRefresh)
             {
                 IFTRACE(filesync)
                     std::cerr << "File " << fname << " changed\n";
@@ -2102,6 +2111,8 @@ void Widget::refreshProgram()
             }
         }
     }
+    if (forceRefresh)
+        forceRefresh = false;
 }
 
 
@@ -4712,22 +4723,6 @@ XL::Tree_p Widget::debugBinPacker(Tree_p self, uint w, uint h, Tree_p t)
 }
 
 
-double debugX = 0, debugY = 0, debugW = 0, debugH = 0;
-XL::Tree_p Widget::debugParameters(Tree_p self,
-                                   double x, double y,
-                                   double w, double h)
-// ----------------------------------------------------------------------------
-//   Set debug parameters for fine-tuning stuff
-// ----------------------------------------------------------------------------
-{
-    debugX = x;
-    debugY = y;
-    debugW = w;
-    debugH = h;
-    return XL::xl_false;
-}
-
-
 
 // ============================================================================
 //
@@ -5057,49 +5052,23 @@ static inline JustificationChange::Axis jaxis(uint a)
 }
 
 
-Tree_p Widget::justify(Tree_p self, scale amount, uint axis)
+Tree_p Widget::align(Tree_p self, scale center, scale justify, scale spread,
+                     scale fullJustify, uint axis)
 // ----------------------------------------------------------------------------
-//   Change justification along the given axis
-// ----------------------------------------------------------------------------
-{
-    layout->Add(new JustificationChange(amount, jaxis(axis)));
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::partialJustify(Tree_p self, scale amount, uint axis)
-// ----------------------------------------------------------------------------
-//   Change justification along the given axis
+//   Change the text alignment along the given axis
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new PartialJustificationChange(amount, jaxis(axis)));
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::center(Tree_p self, scale amount, uint axis)
-// ----------------------------------------------------------------------------
-//   Change centering along the given axis
-// ----------------------------------------------------------------------------
-{
-    layout->Add(new CenteringChange(amount, jaxis(axis)));
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::spread(Tree_p self, scale amount, uint axis)
-// ----------------------------------------------------------------------------
-//   Change the spread along the given axis
-// ----------------------------------------------------------------------------
-{
-    layout->Add(new SpreadChange(amount, jaxis(axis)));
+    layout->Add(new JustificationChange(justify, jaxis(axis)));
+    layout->Add(new PartialJustificationChange(fullJustify, jaxis(axis)));
+    layout->Add(new CenteringChange(center, jaxis(axis)));
+    layout->Add(new SpreadChange(spread, jaxis(axis)));
     return XL::xl_true;
 }
 
 
 Tree_p Widget::spacing(Tree_p self, scale amount, uint axis)
 // ----------------------------------------------------------------------------
-//   Change the spacing along the given axis
+//   Change the text spacing along the given axis
 // ----------------------------------------------------------------------------
 {
     layout->Add(new SpacingChange(amount, jaxis(axis)));

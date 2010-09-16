@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  history_dialog.cpp                                             Tao project
+//  diff_dialog.cpp                                                Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    HistoryDialog implementation.
+//    DiffDialog implementation.
 //
 //
 //
@@ -21,17 +21,15 @@
 // ****************************************************************************
 
 #include "tao.h"
-#include "history_dialog.h"
+#include "diff_dialog.h"
 #include "repository.h"
-#include "ui_history_dialog.h"
-#include "commit_table_widget.h"
-#include "tao_utf8.h"
-#include <QMessageBox>
-#include <QLineEdit>
+//#include "ui_diff_dialog.h"
+#include "history_frame.h"
+#include "tao_utf8.h"  // debug
 
 namespace Tao {
 
-HistoryDialog::HistoryDialog(Repository *repo, QWidget *parent)
+DiffDialog::DiffDialog(Repository *repo, QWidget *parent)
 // ----------------------------------------------------------------------------
 //    Create a "History" dialog box
 // ----------------------------------------------------------------------------
@@ -40,16 +38,30 @@ HistoryDialog::HistoryDialog(Repository *repo, QWidget *parent)
     Q_ASSERT(repo);
 
     setupUi(this);
-    historyFrame->setRepository(repo);
+    aFrame->setMessage(tr("Select first version (A):"));
+    bFrame->setMessage(tr("Select second version (B):"));
+    connect(aFrame, SIGNAL(revSet(QString)), this, SLOT(diff()));
+    connect(bFrame, SIGNAL(revSet(QString)), this, SLOT(diff()));
+    aFrame->setRepository(repo);
+    bFrame->setRepository(repo);
+    connect(symetric, SIGNAL(stateChanged(int)), this, SLOT(diff()));
 }
 
 
-QString HistoryDialog::rev()
+void DiffDialog::diff()
 // ----------------------------------------------------------------------------
-//    Return ID of currently selected commit
+//    Action for checkout button
 // ----------------------------------------------------------------------------
 {
-    return historyFrame->rev();
+    QString a = aFrame->rev();
+    QString b = bFrame->rev();
+
+    if (a == "" || b == "")
+        return;
+
+    bool sym = symetric->isChecked();
+    QString diff = repo->diff(a, b, sym);
+    textBrowser->setText(diff);
 }
 
 }

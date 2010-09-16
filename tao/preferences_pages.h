@@ -23,6 +23,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include "module_manager.h"
 #include <QWidget>
 
 namespace Tao {
@@ -46,6 +47,26 @@ private slots:
     void         toggleTrace(bool on);
     void         enableAllTraces();
     void         disableAllTraces();
+};
+
+
+class ModulesPage : public QWidget
+// ----------------------------------------------------------------------------
+//   Show all configured Tao modules and allow some operations
+// ----------------------------------------------------------------------------
+{
+
+    Q_OBJECT
+
+public:
+    ModulesPage(QWidget *parent = 0);
+
+private slots:
+    void         onCellClicked(int col, int row);
+
+private:
+    ModuleManager *                   mmgr;
+    QList<ModuleManager::ModuleInfo>  modules;
 };
 
 }

@@ -167,7 +167,9 @@ struct ModuleManager : public QObject
         QString id;
         QString path;
         QString name;
+        QString ver;
         QString desc;
+        QString icon;
         bool    enabled;
         bool    loaded;
 
@@ -178,6 +180,8 @@ struct ModuleManager : public QObject
     };
 
     bool                loadAll();
+    QList<ModuleInfo>   allModules()    { return modules; }
+    void                setEnabled(QString id, bool enabled);
 
     virtual bool        askRemove(const ModuleInfo &m, QString reason = "");
     virtual bool        askEnable(const ModuleInfo &m, QString reason = "");

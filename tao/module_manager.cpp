@@ -71,6 +71,13 @@ bool ModuleManager::init()
     if (!checkNew())
         return false;
 
+    IFTRACE(modules)
+    {
+        debug() << "Updated list of all installed modules\n";
+        foreach (ModuleInfo m, modules)
+            debugPrint(m);
+    }
+
     return true;
 }
 
@@ -232,6 +239,26 @@ bool ModuleManager::addToConfig(const ModuleInfo &m)
 }
 
 
+void ModuleManager::setEnabled(QString id, bool enabled)
+// ----------------------------------------------------------------------------
+//   Enable or disable a module
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(modules)
+        debug() << (enabled ? "En" : "Dis") << "abling module " << +id << "\n";
+
+    if (modulesById.contains(id))
+        modulesById[id]->enabled = enabled;
+
+    QSettings settings;
+    settings.beginGroup(USER_MODULES_SETTING_GROUP);
+    settings.beginGroup(id);
+    settings.setValue("Enabled", enabled);
+    settings.endGroup();
+    settings.endGroup();
+}
+
+
 bool ModuleManager::isValid(const ModuleInfo &m)
 // ----------------------------------------------------------------------------
 //   Check if module is valid wrt. what is installed on the filesystem
@@ -344,6 +371,17 @@ ModuleManager::ModuleInfo ModuleManager::readModule(QString moduleDir)
                 m.desc = moduleAttr(tree, "description");
             }
         }
+        QString iconPath = QDir(moduleDir).filePath("icon.png");
+        if (QFile(iconPath).exists())
+            m.icon = iconPath;
+    }
+    // Update module information
+    if (modulesById.contains(m.id))
+    {
+        ModuleInfo *p = modulesById[m.id];
+        p->name = m.name;
+        p->desc = m.desc;
+        p->icon = m.icon;
     }
     return m;
 }
@@ -431,6 +469,7 @@ void ModuleManager::debugPrint(const ModuleInfo &m)
     debug() << "  ID:      " << +m.id << "\n";
     debug() << "  Path:    " << +m.path << "\n";
     debug() << "  Name:    " << +m.name << "\n";
+    debug() << "  Icon:    " << +m.icon << "\n";
     debug() << "  Enabled: " << +m.enabled << "\n";
     debug() << "  Loaded:  " << +m.loaded << "\n";
 }

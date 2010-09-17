@@ -1105,6 +1105,7 @@ text GitRepository::version()
     args << "describe" << tr("--dirty=-dirty") << "--tags" << "--always";
     Process cmd(command(), args, path);
     bool    ok = cmd.done(&errors, &output);
+    output = +(+output).trimmed();
     if (ok)
         result = cachedDocVersion = output;
     return result;

@@ -27,6 +27,7 @@
 #include "tao_utf8.h"
 #include "parser.h"
 #include "runtime.h"
+#include "repository.h"
 #include <QSettings>
 #include <QMessageBox>
 
@@ -369,21 +370,36 @@ ModuleManager::ModuleInfo ModuleManager::readModule(QString moduleDir)
                 QString name = moduleAttr(tree, "name");
                 m = ModuleInfo(id, moduleDir, name, false);
                 m.desc = moduleAttr(tree, "description");
+                m.ver = gitVersion(moduleDir);
+                QString iconPath = QDir(moduleDir).filePath("icon.png");
+                if (QFile(iconPath).exists())
+                    m.icon = iconPath;
+
+                // Update module information
+                if (modulesById.contains(m.id))
+                {
+                    ModuleInfo *p = modulesById[m.id];
+                    p->name = m.name;
+                    p->desc = m.desc;
+                    p->ver = m.ver;
+                    p->icon = m.icon;
+                }
             }
         }
-        QString iconPath = QDir(moduleDir).filePath("icon.png");
-        if (QFile(iconPath).exists())
-            m.icon = iconPath;
-    }
-    // Update module information
-    if (modulesById.contains(m.id))
-    {
-        ModuleInfo *p = modulesById[m.id];
-        p->name = m.name;
-        p->desc = m.desc;
-        p->icon = m.icon;
     }
     return m;
+}
+
+
+QString ModuleManager::gitVersion(QString moduleDir)
+// ----------------------------------------------------------------------------
+//   Try to find the version of the module using Git
+// ----------------------------------------------------------------------------
+{
+    repository_ptr repo = RepositoryFactory::repository(moduleDir);
+    if (repo && repo->valid())
+        return +repo->version();
+    return "";
 }
 
 
@@ -469,6 +485,7 @@ void ModuleManager::debugPrint(const ModuleInfo &m)
     debug() << "  ID:      " << +m.id << "\n";
     debug() << "  Path:    " << +m.path << "\n";
     debug() << "  Name:    " << +m.name << "\n";
+    debug() << "  Version: " << +m.ver << "\n";
     debug() << "  Icon:    " << +m.icon << "\n";
     debug() << "  Enabled: " << +m.enabled << "\n";
     debug() << "  Loaded:  " << +m.loaded << "\n";

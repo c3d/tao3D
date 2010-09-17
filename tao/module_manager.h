@@ -245,6 +245,7 @@ private:
     bool                checkNew(QString parentDir);
     QList<ModuleInfo>   newModules(QString parentDir);
     ModuleInfo          readModule(QString moduleDir);
+    QString             gitVersion(QString moduleDir);
 
     Tree *              parse(QString xlPath);
     QString             moduleAttr(Tree * tree, QString attribute);

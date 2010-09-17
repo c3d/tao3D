@@ -188,10 +188,12 @@ ModulesPage::ModulesPage(QWidget *parent)
     QVBoxLayout *vbLayout = new QVBoxLayout;
 
     QTableWidget *table = new QTableWidget;
-    table->setColumnCount(3);
+    table->setColumnCount(5);
     table->setHorizontalHeaderItem(0, new QTableWidgetItem("Enabled"));
     table->setHorizontalHeaderItem(1, new QTableWidgetItem(""));
-    table->setHorizontalHeaderItem(2, new QTableWidgetItem("Description"));
+    table->setHorizontalHeaderItem(2, new QTableWidgetItem("Name"));
+    table->setHorizontalHeaderItem(3, new QTableWidgetItem("Version"));
+    table->setHorizontalHeaderItem(4, new QTableWidgetItem("Path"));
     table->horizontalHeader()->setStretchLastSection(true);
     table->setRowCount(modules.count());
     int row = 0;
@@ -209,16 +211,26 @@ ModulesPage::ModulesPage(QWidget *parent)
         item = new QTableWidgetItem;
         item->setTextAlignment(Qt::AlignCenter);
         item->setIcon(QIcon(m.icon));
+        item->setFlags(Qt::ItemIsEnabled);
         table->setItem(row, 1, item);
-        QString desc = QString("%1\n%2").arg(m.name).arg(m.path);
 
-        item = new QTableWidgetItem(desc);
+        item = new QTableWidgetItem(m.name);
         item->setFlags(Qt::NoItemFlags);
         table->setItem(row, 2, item);
+
+        item = new QTableWidgetItem(m.ver == "" ? tr("N/A") : m.ver);
+        item->setTextAlignment(Qt::AlignCenter);
+        item->setFlags(Qt::NoItemFlags);
+        table->setItem(row, 3, item);
+
+        item = new QTableWidgetItem(m.path);
+        item->setFlags(Qt::NoItemFlags);
+        table->setItem(row, 4, item);
+
         row++;
     }
-    table->resizeColumnToContents(0);
-    table->resizeColumnToContents(1);
+    for (int i = 0; i < table->columnCount() - 1; i++)
+        table->resizeColumnToContents(i);
     table->verticalHeader()->resizeSections(QHeaderView::ResizeToContents);
     connect(table, SIGNAL(cellClicked(int,int)),
             this, SLOT(onCellClicked(int,int)));
@@ -229,7 +241,6 @@ ModulesPage::ModulesPage(QWidget *parent)
     mainLayout->addWidget(gb);
     mainLayout->addStretch(1);
     setLayout(mainLayout);
-
 }
 
 

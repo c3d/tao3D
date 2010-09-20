@@ -135,7 +135,7 @@ a shared library that will be loaded by module_init.
  */
 
 #include "tao.h"
-#include "tree.h"
+#include "tao_tree.h"
 #include <QObject>
 #include <QString>
 #include <QList>
@@ -179,7 +179,7 @@ struct ModuleManager : public QObject
         }
     };
 
-    bool                loadAll();
+    bool                loadAll(Context *context);
     QList<ModuleInfo>   allModules()    { return modules; }
     void                setEnabled(QString id, bool enabled);
 
@@ -250,8 +250,8 @@ private:
     Tree *              parse(QString xlPath);
     QString             moduleAttr(Tree * tree, QString attribute);
 
-    bool                load(const QList<ModuleInfo> &mods);
-    bool                load(const ModuleInfo &m);
+    bool                load(Context *, const QList<ModuleInfo> &mods);
+    bool                load(Context *, const ModuleInfo &m);
 
     std::ostream &      debug();
     void                debugPrint(const ModuleInfo &m);

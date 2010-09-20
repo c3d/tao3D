@@ -184,13 +184,12 @@ void Application::loadModules()
 //   Initialize module manager and load all modules that user has enabled
 // ----------------------------------------------------------------------------
 {
-
     if (splash)
         splash->showMessage(tr("Checking module configuration"));
     moduleManager = ModuleManager::moduleManager();
     if (splash)
         splash->showMessage(tr("Loading modules"));
-    moduleManager->loadAll();
+    moduleManager->loadAll(XL::MAIN->context);
 }
 
 

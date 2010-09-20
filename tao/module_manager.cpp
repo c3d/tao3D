@@ -269,7 +269,7 @@ bool ModuleManager::isValid(const ModuleInfo &m)
 }
 
 
-bool ModuleManager::loadAll()
+bool ModuleManager::loadAll(Context *context)
 // ----------------------------------------------------------------------------
 //   Load all enabled modules for current user
 // ----------------------------------------------------------------------------
@@ -278,7 +278,7 @@ bool ModuleManager::loadAll()
     foreach (ModuleInfo m, modules)
         if (m.enabled && !m.loaded)
             enabled.append(m);
-    return load(enabled);
+    return load(context, enabled);
 }
 
 
@@ -435,19 +435,19 @@ QString ModuleManager::moduleAttr(XL::Tree *tree, QString attribute)
 }
 
 
-bool ModuleManager::load(const QList<ModuleInfo> &mods)
+bool ModuleManager::load(Context *context, const QList<ModuleInfo> &mods)
 // ----------------------------------------------------------------------------
 //   Load modules, in sequence
 // ----------------------------------------------------------------------------
 {
     bool ok = true;
     foreach(ModuleInfo m, mods)
-        ok &= load(m);
+        ok &= load(context, m);
     return ok;
 }
 
 
-bool ModuleManager::load(const ModuleInfo &m)
+bool ModuleManager::load(Context *context, const ModuleInfo &m)
 // ----------------------------------------------------------------------------
 //   Load one module
 // ----------------------------------------------------------------------------
@@ -458,7 +458,7 @@ bool ModuleManager::load(const ModuleInfo &m)
         debug() << "Loading module '" << +m.id << "' from " << +m.path << "\n";
 
     QString xlPath = QDir(m.path).filePath("module.xl");
-    ok = xl_load(+xlPath) != NULL;
+    ok = xl_load(context, +xlPath) != NULL;
 
     if (ok && modulesById.contains(m.id))
         modulesById[m.id]->loaded = true;

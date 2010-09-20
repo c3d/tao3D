@@ -31,7 +31,7 @@ QMAKE_CXXFLAGS_RELEASE += -g \
 # Tell the XLR portion that we are building for Tao
 DEFINES += TAO \
     DEBUG
-macx { 
+macx {
     DEFINES += CONFIG_MACOSX
     XLRDIR = Contents/MacOS
     ICON = tao.icns
@@ -149,7 +149,8 @@ HEADERS += widget.h \
     history_frame.h \
     diff_dialog.h \
     diff_highlighter.h \
-    module_manager.h
+    module_manager.h \
+    portability.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -240,17 +241,19 @@ SOURCES += tao_main.cpp \
     history_frame.cpp \
     diff_dialog.cpp \
     diff_highlighter.cpp \
-    module_manager.cpp
+    module_manager.cpp \
+    portability.cpp
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp \
     xlr/xlr/basics.cpp
-!win32 { 
+
+!win32 {
     HEADERS += GL/glew.h \
         GL/glxew.h \
         GL/wglew.h
     SOURCES += glew.c
 }
-macx { 
+macx {
     OBJECTIVE_SOURCES += font_file_manager_macos.mm
     LIBS += -framework \
         ApplicationServices

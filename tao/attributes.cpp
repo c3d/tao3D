@@ -28,7 +28,7 @@
 #include "gl2ps.h"
 #include <GL/glew.h>
 #include <iostream>
-
+#include "text_drawing.h"
 
 TAO_BEGIN
 
@@ -60,6 +60,23 @@ Drawing *DrawingBreak::Break(BreakOrder &order, uint &size)
     order = this->order;
     size = 0;
     return NULL;
+}
+
+void DrawingBreak::DrawSelection(Layout *l)
+// ----------------------------------------------------------------------------
+//   Insert the break into the selection description (for copy)
+// ----------------------------------------------------------------------------
+{
+    Widget     *widget       = l->Display();
+    TextSelect *sel          = widget->textSelection();
+    if (sel && sel->inSelection)
+    {
+        if (order == LineBreak)
+            sel->cursor.insertText("\n");
+        else if (order >= ParaBreak)
+            sel->cursor.insertBlock();
+    }
+    Draw(l);
 }
 
 

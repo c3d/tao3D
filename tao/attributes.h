@@ -50,6 +50,7 @@ struct DrawingBreak : Attribute
 {
     DrawingBreak(BreakOrder order): order(order) {}
     virtual Drawing *   Break(BreakOrder &order, uint &sz);
+    virtual void        DrawSelection(Layout *l);
     BreakOrder order;
 };
 

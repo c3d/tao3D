@@ -28,6 +28,7 @@
 #include "coords3d.h"
 #include "tree.h"
 #include <QFont>
+#include <QTextCursor>
 
 TAO_BEGIN
 
@@ -51,7 +52,9 @@ protected:
     void                DrawDirect(Layout *where);
     void                DrawSelection(Layout *where);
     uint                PerformEditOperation(Widget *w, uint i, uint next);
-
+    void                PerformInsertOperation(Layout * l,
+                                               Widget * widget,
+                                               uint     position);
 public:
     Text_p              source;
     uint                start, end;
@@ -117,7 +120,6 @@ struct TextSelect : Identify
     void                processLineBreak();
     void                processChar(uint id, coord x, bool selected, uint code);
 
-
     enum Direction      { None, Mark, Left, Right, Up, Down };
     uint                mark, point, previous, last, textBoxId;
     Direction           direction;
@@ -132,6 +134,10 @@ struct TextSelect : Identify
     bool                pickingUpDown;
     bool                movePointOnly;
     uint                formulaMode;
+
+    QTextCursor         cursor;
+    Tree *              replacement_tree;
+    bool                inSelection;
 };
 
 

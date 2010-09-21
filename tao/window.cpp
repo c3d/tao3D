@@ -1393,7 +1393,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 //    Load a specific file (and optionally, open project repository)
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(fileLoad)
+    IFTRACE(fileload)
         std::cerr << "Opening document: " << +fileName << "\n";
 
     QString msg = QString(tr("Loading %1 [%2]...")).arg(fileName);
@@ -1539,7 +1539,7 @@ bool Window::updateProgram(const QString &fileName)
         // Clean menus and reload XL program
         resetTaoMenus();
         if (!sf->tree)
-            if (xlRuntime->LoadFile(fn))
+            if (xlRuntime->LoadFile(fn, true))
                 hadError = true;
 
         // Check if we can access the file
@@ -1548,7 +1548,7 @@ bool Window::updateProgram(const QString &fileName)
     }
     else
     {
-        if (xlRuntime->LoadFile(fn))
+        if (xlRuntime->LoadFile(fn, true))
             return true;
         sf = &xlRuntime->files[fn];
     }

@@ -934,10 +934,9 @@ void TextSpan::PerformInsertOperation(Layout * l,
         // Insert the resulting tree in place of the parent's source:
         // source is the text surounded by "" or <<>> itself,
         // its parent is the prefix text, so surch for the grand parent.
-        XL::FindParentAction getParent(source);
-        Tree * parent = widget->xlProgram->tree->Do(getParent);
-        XL::FindParentAction getGrandParent(parent);
+        XL::FindParentAction getGrandParent(source, 2);
         Tree * grandParent = widget->xlProgram->tree->Do(getGrandParent);
+        char lastChar = getGrandParent.path->at(getGrandParent.path->size() - 1);
 
         XL::Infix   *inf  = grandParent->AsInfix();
         XL::Block   *bl   = grandParent->AsBlock();
@@ -945,7 +944,7 @@ void TextSpan::PerformInsertOperation(Layout * l,
         XL::Postfix *post = grandParent->AsPostfix();
         if (inf)
         {
-            if (inf->left == parent)
+            if (lastChar == 'l')
                 inf->left = t;
             else
                 inf->right = t;
@@ -956,14 +955,14 @@ void TextSpan::PerformInsertOperation(Layout * l,
         }
         else if (pre)
         {
-            if (pre->left == parent)
+            if (lastChar == 'l')
                 pre->left = t;
             else
                 pre->right = t;
         }
         else if (post)
         {
-            if (post->left == parent)
+            if (lastChar == 'l')
                 post->left = t;
             else
                 post->right = t;
@@ -971,6 +970,7 @@ void TextSpan::PerformInsertOperation(Layout * l,
         // Reload the program and mark the changes
         widget->reloadProgram();
         widget->markChanged("Clipboard content pasted");
+        widget->refresh();
 
     }
 

@@ -670,6 +670,7 @@ void Widget::paste()
             }
             sel->replacement_tree = portability().fromHTML(mimeData->html());
 
+            refresh();
             return;
         }
         if (mimeData->hasText())
@@ -682,6 +683,7 @@ void Widget::paste()
             sel->replacement = +mimeData->text();
             sel->replace = true;
 
+            refresh();
             return;
         }
     }

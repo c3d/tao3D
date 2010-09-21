@@ -108,9 +108,32 @@ Several options:
 
 6. How are modules upgraded?
 
-Modules installed as Git repositories are upgradeable automatically. Tao will
-use the information available to Git to determine if newer versions exists,
-and prompt the user accordingly.
+Modules installed as Git repositories are upgradeable either manually, or
+automatically. Tao will use the information available to Git to determine
+if newer versions exists.
+
+  6.1. Comparing versions and setting "update available" flag
+
+When checking for update, Tao will set the "update available" flag on a
+module in the following circumstances:
+
+(1) The local module has to be a valid Git repository;
+(2) It must have at least one tag (annotated or not, it doesn't matter),
+and the current checked out version must match a local tag (i.e., no
+development version);
+(3) The remote name "origin" must be a valid repository and must have at
+least one tag (annotated or not);
+(4) The highest local tag must be strictly lower than the highest remote
+tag. Comparison is performed assuming the usual versioning scheme, where:
+    1.0 < 1.1 < 1.1.2 < 1.2 < 1.9 < 1.10 < 2.0
+(lexicographic comparison left to right of integers separated by dots).
+
+  6.2. Maintaining a module repository
+
+(1) Only use one branch: master
+(2) To publish a new version, make one or several commits on master, then
+create a new tag (with a higher version number). Any Tao user who wants
+to update will get the version that corresponds to the new tag.
 
 7. How are modules configured?
 
@@ -134,16 +157,19 @@ a shared library that will be loaded by module_init.
 
  */
 
-#include "tao.h"
 #include "tree.h"
+#include "repository.h"
+#include "tao_utf8.h"
 #include <QObject>
 #include <QString>
 #include <QList>
 #include <QMap>
+#include <QStringList>
+#include <QSet>
 #include <iostream>
 
 
-TAO_BEGIN
+namespace Tao {
 
 using namespace XL;
 
@@ -152,6 +178,9 @@ struct ModuleManager : public QObject
 //   A singleton class to deal with modules
 // ----------------------------------------------------------------------------
 {
+    Q_OBJECT
+
+public:
     static ModuleManager * moduleManager();
 
     struct ModuleInfo
@@ -161,21 +190,29 @@ struct ModuleManager : public QObject
     {
         ModuleInfo() {}
         ModuleInfo(QString id, QString path, QString name, bool enabled)
-            : id(id), path(path), name(name), enabled(enabled), loaded(false)
+            : id(id), path(path), name(name), enabled(enabled), loaded(false),
+              updateAvailable(false)
             {}
 
         QString id;
         QString path;
         QString name;
         QString ver;
+        QString latest;
         QString desc;
         QString icon;
         bool    enabled;
         bool    loaded;
+        bool    updateAvailable;
 
         bool operator==(const ModuleInfo &o) const
         {
             return (id == o.id);
+        }
+
+        text toText() const
+        {
+            return +id + " (" + +path + ")";
         }
     };
 
@@ -185,6 +222,7 @@ struct ModuleManager : public QObject
 
     virtual bool        askRemove(const ModuleInfo &m, QString reason = "");
     virtual bool        askEnable(const ModuleInfo &m, QString reason = "");
+    virtual void        warnDuplicateModule(const ModuleInfo &m);
 
 private:
     ModuleManager()  {}
@@ -232,6 +270,7 @@ private:
         bool sectionFound;
     };
 
+
     bool                init();
     bool                initPaths();
 
@@ -256,7 +295,7 @@ private:
     std::ostream &      debug();
     void                debugPrint(const ModuleInfo &m);
 
-
+private:
     QString                     u, s;
     QList<ModuleInfo>           modules;
     QMap<QString, ModuleInfo *> modulesById;
@@ -265,9 +304,82 @@ private:
     static ModuleManager * instance;
     static Cleanup         cleanup;
 
+friend class CheckForUpdate;
+friend class CheckAllForUpdate;
+
 #   define USER_MODULES_SETTING_GROUP "Modules"
 };
 
+// ============================================================================
+//
+//    Context to perform "check for updates" for a single module
+//
+// ============================================================================
+
+class CheckForUpdate : public QObject
+// ------------------------------------------------------------------------
+//   Asynchronously check if an update is available for a single module
+// ------------------------------------------------------------------------
+{
+    Q_OBJECT
+
+public:
+    CheckForUpdate(ModuleManager &mm, QString id) : mm(mm), id(id) {}
+
+    bool           start();
+
+signals:
+    void           complete(ModuleManager::ModuleInfo m, bool updateAvailable);
+
+private slots:
+    void           processRemoteTags(QStringList tags);
+
+private:
+    std::ostream & debug()  { return mm.debug(); }
+
+private:
+    ModuleManager & mm;
+    QString         id;
+    repository_ptr  repo;
+    process_p       proc;
+};
+
+// ============================================================================
+//
+//    Context to perform "check for updates" for all modules
+//
+// ============================================================================
+
+class CheckAllForUpdate : public QObject
+// ------------------------------------------------------------------------
+//   Asynchronously check updates for all current modules in ModuleManager
+// ------------------------------------------------------------------------
+{
+    Q_OBJECT
+
+public:
+    CheckAllForUpdate(ModuleManager &mm) : mm(mm), updateAvailable(false) {}
+
+    bool           start();
+
+signals:
+    void           minimum(int min);
+    void           maximum(int max);
+    void           progress(int p);
+    void           complete(bool need);
+
+private slots:
+    void           processResult(ModuleManager::ModuleInfo m, bool need);
+
+private:
+    std::ostream & debug()  { return mm.debug(); }
+
+private:
+    ModuleManager & mm;
+    QSet<QString>   pending;
+    bool            updateAvailable;
+    int             num;
+};
 
 // ============================================================================
 //
@@ -321,6 +433,6 @@ inline Tree *ModuleManager::FindAttribute::Do(Tree *what)
     return NULL;
 }
 
-TAO_END
+}
 
 #endif // MODULE_MANAGER_H

@@ -88,6 +88,8 @@ public:
     virtual QString     url();
     virtual bool        gc();
     virtual QString     diff(QString a, QString b, bool symetric);
+    virtual process_p   asyncGetRemoteTags(QString remote);
+    virtual QStringList tags();
 
 public:
     static  bool        checkGit();
@@ -101,6 +103,7 @@ protected:
 
 signals:
     void                percentComplete(int percent);
+    void                asyncGetRemoteTagsComplete(QStringList tags);
 
 protected:
     virtual QString     command();
@@ -120,6 +123,7 @@ private:
     QString             parseCloneOutput(QString out);
     void                mergeCommitMessages(text &dest, text src);
     QStringList         crArgs(ConflictResolution mode);
+    QStringList         parseLsRemoteTagsOutput(QString output);
 
     static QString      gitCommand;
     static QString      sshAskPassCommand;

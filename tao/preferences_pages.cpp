@@ -176,7 +176,7 @@ void DebugPage::disableAllTraces()
 // ============================================================================
 
 ModulesPage::ModulesPage(QWidget *parent)
-     : QWidget(parent)
+     : QWidget(parent), findUpdatesInProgress(false)
 // ----------------------------------------------------------------------------
 //   Create the page and show a list of modules
 // ----------------------------------------------------------------------------
@@ -187,15 +187,86 @@ ModulesPage::ModulesPage(QWidget *parent)
     QGroupBox *gb = new QGroupBox(tr("Installed modules"));
     QVBoxLayout *vbLayout = new QVBoxLayout;
 
-    QTableWidget *table = new QTableWidget;
+    table = new QTableWidget;
     table->setColumnCount(5);
     table->setHorizontalHeaderItem(0, new QTableWidgetItem("Enabled"));
     table->setHorizontalHeaderItem(1, new QTableWidgetItem(""));
     table->setHorizontalHeaderItem(2, new QTableWidgetItem("Name"));
     table->setHorizontalHeaderItem(3, new QTableWidgetItem("Version"));
-    table->setHorizontalHeaderItem(4, new QTableWidgetItem("Path"));
+    table->setHorizontalHeaderItem(4, new QTableWidgetItem("Status"));
     table->horizontalHeader()->setStretchLastSection(true);
     table->setRowCount(modules.count());
+    table->verticalHeader()->hide();
+    updateTable();
+    connect(table, SIGNAL(cellClicked(int,int)),
+            this, SLOT(onCellClicked(int,int)));
+    vbLayout->addWidget(table);
+    gb->setLayout(vbLayout);
+
+    QWidget *cfuWidget = new QWidget;
+    QHBoxLayout *cfuLayout = new QHBoxLayout;
+    QPushButton *findUpdates = new QPushButton(tr("Check for updates"));
+    connect(findUpdates, SIGNAL(clicked()), this, SLOT(findUpdates()));
+    if (!modules.count())
+        findUpdates->setEnabled(false);
+    cfuLayout->addWidget(findUpdates);
+    cfuLayout->addSpacing(12);
+    sw = new QStackedWidget;
+    sw->insertWidget(0, new QFrame);
+    sw->insertWidget(1, (pb = new QProgressBar));
+    cfuLayout->addWidget(sw);
+    cfuWidget->setLayout(cfuLayout);
+
+    QVBoxLayout *mainLayout = new QVBoxLayout;
+    mainLayout->addWidget(gb);
+    mainLayout->addSpacing(12);
+    mainLayout->addWidget(cfuWidget);
+    mainLayout->addStretch(1);
+    setLayout(mainLayout);
+}
+
+
+void ModulesPage::onCellClicked(int row, int col)
+// ----------------------------------------------------------------------------
+//   Update module enabled/disabled state when checkbox is clicked
+// ----------------------------------------------------------------------------
+{
+    if (col)
+        return;
+    Q_ASSERT(row <= modules.count());
+    QTableWidget *table = (QTableWidget *)sender();
+    bool enabled = false;
+    if (table->item(row, col)->checkState() == Qt::Checked)
+        enabled = true;
+    ModuleManager::ModuleInfo m = modules[row];
+    mmgr->setEnabled(m.id, enabled);
+}
+
+
+void ModulesPage::findUpdates()
+// ----------------------------------------------------------------------------
+//   Start looking for updates
+// ----------------------------------------------------------------------------
+{
+    if (findUpdatesInProgress)
+        return;
+    findUpdatesInProgress = true;
+
+    sw->setCurrentIndex(1);
+    CheckAllForUpdate *cafu = new CheckAllForUpdate(*mmgr);
+    connect(cafu, SIGNAL(complete(bool)), this, SLOT(onCFUComplete()));
+    connect(cafu, SIGNAL(minimum(int)),   pb,   SLOT(setMinimum(int)));
+    connect(cafu, SIGNAL(maximum(int)),   pb,   SLOT(setMaximum(int)));
+    connect(cafu, SIGNAL(progress(int)),  pb,   SLOT(setValue(int)));
+    cafu->start();
+}
+
+
+void ModulesPage::updateTable()
+// ----------------------------------------------------------------------------
+//   Fill module table
+// ----------------------------------------------------------------------------
+{
     int row = 0;
     foreach (ModuleManager::ModuleInfo m, modules)
     {
@@ -218,46 +289,59 @@ ModulesPage::ModulesPage(QWidget *parent)
         item->setFlags(Qt::NoItemFlags);
         table->setItem(row, 2, item);
 
-        item = new QTableWidgetItem(m.ver == "" ? tr("N/A") : m.ver);
+        item = new QTableWidgetItem(m.ver);
         item->setTextAlignment(Qt::AlignCenter);
         item->setFlags(Qt::NoItemFlags);
         table->setItem(row, 3, item);
 
-        item = new QTableWidgetItem(m.path);
-        item->setFlags(Qt::NoItemFlags);
-        table->setItem(row, 4, item);
+        if (m.updateAvailable)
+        {
+            QString msg = QString("Version %1 available").arg(m.latest);
+#if 1
+            item = new QTableWidgetItem(msg);
+            item->setFlags(Qt::NoItemFlags);
+            QColor green = QColor(170, 255, 170);
+            item->setBackground(QBrush(green));
+            table->setItem(row, 4, item);
+#else
+            // TODO: Use tool buttons to update / enable / disable /
+            // show module details
+            QWidget *widget = new QWidget;
+            QHBoxLayout *layout = new QHBoxLayout;
+            layout->addWidget(new QLabel(msg));
+            QToolButton *b = new QToolButton;
+            b->setText("Update");
+            layout->addWidget(b);
+            widget->setLayout(layout);
+            table->setCellWidget(row, 4, widget);
+#endif
+        }
 
         row++;
     }
     for (int i = 0; i < table->columnCount() - 1; i++)
         table->resizeColumnToContents(i);
     table->verticalHeader()->resizeSections(QHeaderView::ResizeToContents);
-    connect(table, SIGNAL(cellClicked(int,int)),
-            this, SLOT(onCellClicked(int,int)));
-    vbLayout->addWidget(table);
-    gb->setLayout(vbLayout);
-
-    QVBoxLayout *mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(gb);
-    mainLayout->addStretch(1);
-    setLayout(mainLayout);
 }
 
 
-void ModulesPage::onCellClicked(int row, int col)
+void ModulesPage::onCFUComplete()
 // ----------------------------------------------------------------------------
-//   Update module enabled/disabled state when checkbox is clicked
+//   Leave time for progress bar to show 100%
 // ----------------------------------------------------------------------------
 {
-    if (col)
-        return;
-    Q_ASSERT(row <= modules.count());
-    QTableWidget *table = (QTableWidget *)sender();
-    bool enabled = false;
-    if (table->item(row, col)->checkState() == Qt::Checked)
-        enabled = true;
-    ModuleManager::ModuleInfo m = modules[row];
-    mmgr->setEnabled(m.id, enabled);
+    QTimer::singleShot(200, this, SLOT(refresh()));
+}
+
+
+void ModulesPage::refresh()
+// ----------------------------------------------------------------------------
+//   Hide progress bar, reload table
+// ----------------------------------------------------------------------------
+{
+    findUpdatesInProgress = false;
+    sw->setCurrentIndex(0);
+    updateTable();
 }
 
 }

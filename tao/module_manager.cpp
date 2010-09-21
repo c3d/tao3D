@@ -27,11 +27,10 @@
 #include "tao_utf8.h"
 #include "parser.h"
 #include "runtime.h"
-#include "repository.h"
 #include <QSettings>
 #include <QMessageBox>
 
-TAO_BEGIN
+namespace Tao {
 
 ModuleManager * ModuleManager::instance = NULL;
 ModuleManager::Cleanup ModuleManager::cleanup;
@@ -196,7 +195,7 @@ bool ModuleManager::removeFromConfig(const ModuleInfo &m)
 // ----------------------------------------------------------------------------
 {
     IFTRACE(modules)
-        debug() << "Removing module '" << +m.id << "' from configuration\n";
+        debug() << "Removing module " << m.toText() << " from configuration\n";
 
     modules.removeOne(m);
     modulesById.remove(m.id);
@@ -219,7 +218,7 @@ bool ModuleManager::addToConfig(const ModuleInfo &m)
 // ----------------------------------------------------------------------------
 {
     IFTRACE(modules)
-        debug() << "Adding module '" << +m.id << "' to configuration\n";
+        debug() << "Adding module " << m.toText() << " to configuration\n";
 
     modules.append(m);
     modulesById[m.id] = &modules.last();
@@ -333,14 +332,27 @@ QList<ModuleManager::ModuleInfo> ModuleManager::newModules(QString path)
         {
             QString moduleDir = QDir(dir.filePath(d)).absolutePath();
             ModuleInfo m = readModule(moduleDir);
-            if (m.id != "" && !modules.contains(m))
+            if (m.id != "")
             {
-                IFTRACE(modules)
+                if (!modules.contains(m))
                 {
-                    debug() << "Found new module:\n";
-                    debugPrint(m);
+                    IFTRACE(modules)
+                    {
+                        debug() << "Found new module:\n";
+                        debugPrint(m);
+                    }
+                    mods.append(m);
                 }
-                mods.append(m);
+                else
+                {
+                    ModuleInfo existing = *modulesById[m.id];
+                    if (m.path != existing.path)
+                    {
+                        debug() << "WARNING: Duplicate module will be ignored:\n";
+                        debugPrint(m);
+                        warnDuplicateModule(m);
+                    }
+                }
             }
         }
     }
@@ -455,7 +467,7 @@ bool ModuleManager::load(const ModuleInfo &m)
     bool ok = true;
 
     IFTRACE(modules)
-        debug() << "Loading module '" << +m.id << "' from " << +m.path << "\n";
+        debug() << "Loading module " << m.toText() << "\n";
 
     QString xlPath = QDir(m.path).filePath("module.xl");
     ok = xl_load(+xlPath) != NULL;
@@ -482,13 +494,15 @@ void ModuleManager::debugPrint(const ModuleInfo &m)
 //   Convenience method to display a ModuleInfo object
 // ----------------------------------------------------------------------------
 {
-    debug() << "  ID:      " << +m.id << "\n";
-    debug() << "  Path:    " << +m.path << "\n";
-    debug() << "  Name:    " << +m.name << "\n";
-    debug() << "  Version: " << +m.ver << "\n";
-    debug() << "  Icon:    " << +m.icon << "\n";
-    debug() << "  Enabled: " << +m.enabled << "\n";
-    debug() << "  Loaded:  " << +m.loaded << "\n";
+    debug() << "  ID:         " << +m.id << "\n";
+    debug() << "  Path:       " << +m.path << "\n";
+    debug() << "  Name:       " << +m.name << "\n";
+    debug() << "  Version:    " << +m.ver << "\n";
+    debug() << "  Latest:     " << +m.latest << "\n";
+    debug() << "  Icon:       " << +m.icon << "\n";
+    debug() << "  Enabled:    " <<  m.enabled << "\n";
+    debug() << "  Loaded:     " <<  m.loaded << "\n";
+    debug() << "  Up to date: " << !m.updateAvailable << "\n";
 }
 
 // ============================================================================
@@ -502,6 +516,7 @@ bool ModuleManager::askRemove(const ModuleInfo &m, QString reason)
 //   Prompt user when we're about to remove a module from the configuration
 // ----------------------------------------------------------------------------
 {
+#if 0
     QString msg = tr("Do you want to remove the following module from the "
                      "Tao configuration?\n\n"
                      "Name: %1\n"
@@ -512,6 +527,9 @@ bool ModuleManager::askRemove(const ModuleInfo &m, QString reason)
     int ret = QMessageBox::question(NULL, tr("Tao modules"), msg,
                                     QMessageBox::Yes | QMessageBox::No);
     return (ret == QMessageBox::Yes);
+#endif
+    (void)m; (void)reason;
+    return true;
 }
 
 
@@ -520,6 +538,7 @@ bool ModuleManager::askEnable(const ModuleInfo &m, QString reason)
 //   Prompt user to know if a module should be enabled or disabled
 // ----------------------------------------------------------------------------
 {
+#if 0
     QString msg = tr("Do you want to enable following module?\n\n"
                      "Name: %1\n"
                      "Location: %2").arg(m.name).arg(m.path);
@@ -529,6 +548,178 @@ bool ModuleManager::askEnable(const ModuleInfo &m, QString reason)
     int ret = QMessageBox::question(NULL, tr("Tao modules"), msg,
                                     QMessageBox::Yes | QMessageBox::No);
     return (ret == QMessageBox::Yes);
+#endif
+    (void)m; (void)reason;
+    return true;
 }
 
-TAO_END
+
+void ModuleManager::warnDuplicateModule(const ModuleInfo &m)
+// ----------------------------------------------------------------------------
+//   Tell user of conflicting new module (will be ignored)
+// ----------------------------------------------------------------------------
+{
+    (void)m;
+}
+
+// ============================================================================
+//
+//   Checking if a module has new updates
+//
+// ============================================================================
+
+bool CheckForUpdate::start()
+// ----------------------------------------------------------------------------
+//   Initiate "check for update" process for a module
+// ----------------------------------------------------------------------------
+{
+    if (!mm.modulesById.contains(id))
+        return false;
+
+    ModuleManager::ModuleInfo m = *(mm.modulesById[id]);
+    IFTRACE(modules)
+        debug() << "Start checking for updates, module "
+                << m.toText() << "\n";
+
+    bool inProgress = false;
+    repo = RepositoryFactory::repository(m.path);
+    if (repo && repo->valid())
+    {
+        QStringList tags = repo->tags();
+        if (!tags.isEmpty())
+        {
+            if (tags.contains(m.ver))
+            {
+                proc = repo->asyncGetRemoteTags("origin");
+                connect(repo.data(),
+                        SIGNAL(asyncGetRemoteTagsComplete(QStringList)),
+                        this,
+                        SLOT(processRemoteTags(QStringList)));
+                repo->dispatch(proc);
+                inProgress = true;
+            }
+            else
+            {
+                IFTRACE(modules)
+                    debug() << "N/A (current module version not tagged)\n";
+            }
+        }
+        else
+        {
+            IFTRACE(modules)
+                    debug() << "N/A (no local tags)\n";
+        }
+    }
+    else
+    {
+        IFTRACE(modules)
+            debug() << "N/A (not a Git repository)\n";
+    }
+
+    if (!inProgress)
+        emit complete(m, false);
+
+    return true;
+}
+
+
+void CheckForUpdate::processRemoteTags(QStringList tags)
+// ----------------------------------------------------------------------------
+//   Process the list of remote tags for module in currentModuleDir
+// ----------------------------------------------------------------------------
+{
+    ModuleManager::ModuleInfo &m = *(mm.modulesById[id]);
+
+    IFTRACE(modules)
+        debug() << "Module " << m.toText() << "\n";
+
+    bool hasUpdate;
+    if (!tags.isEmpty())
+    {
+        QString current = m.ver;
+        QString latest = tags[0];
+        foreach (QString tag, tags)
+            if (Repository::versionGreaterOrEqual(tag, latest))
+                latest = tag;
+
+        mm.modulesById[id]->latest = latest;
+
+        hasUpdate = (latest != current &&
+                     Repository::versionGreaterOrEqual(latest, current));
+
+        IFTRACE(modules)
+        {
+            debug() << "  Remote tags: " << +tags.join(" ")
+                    << " latest " << +latest << "\n";
+            debug() << "  Current " << +current << "\n";
+            debug() << "  Needs update: " << (hasUpdate ? "yes" : "no") << "\n";
+        }
+
+    }
+    else
+    {
+        IFTRACE(modules)
+            debug() << "  No remote tags\n";
+    }
+
+    m.updateAvailable = hasUpdate;
+    emit complete(m, hasUpdate);
+    deleteLater();
+}
+
+// ============================================================================
+//
+//   CheckAllForUpdateContext methods
+//
+// ============================================================================
+
+bool CheckAllForUpdate::start()
+// ----------------------------------------------------------------------------
+//   Start "check for updates" for all modules
+// ----------------------------------------------------------------------------
+{
+    // Signal checkForUpdateComplete(bool need) will be emitted
+    bool ok = true;
+
+    QList<ModuleManager::ModuleInfo> &modules = mm.modules;
+    num = modules.count();
+    if (!num)
+        return false;
+
+    emit minimum(0);
+    emit maximum(num);
+
+    foreach (ModuleManager::ModuleInfo m, modules)
+        pending << m.id;
+
+    foreach (ModuleManager::ModuleInfo m, modules)
+    {
+        pending << m.id;
+        CheckForUpdate *cfu = new CheckForUpdate(mm, m.id);
+        connect(cfu, SIGNAL(complete(ModuleManager::ModuleInfo,bool)),
+                this,  SLOT(processResult(ModuleManager::ModuleInfo,bool)));
+        if (!cfu->start())
+            ok = false;
+    }
+    return ok;
+}
+
+
+void CheckAllForUpdate::processResult(ModuleManager::ModuleInfo m,
+                                      bool updateAvailable)
+// ----------------------------------------------------------------------------
+//   Remove module from pending list and emit result on last module
+// ----------------------------------------------------------------------------
+{
+    if (updateAvailable)
+        this->updateAvailable = true;
+    pending.remove(m.id);
+    emit progress(num - pending.count());
+    if (pending.isEmpty())
+    {
+        emit complete(this->updateAvailable);
+        deleteLater();
+    }
+}
+
+}

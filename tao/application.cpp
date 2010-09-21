@@ -103,6 +103,11 @@ Application::Application(int & argc, char ** argv)
                                   +syntax.canonicalFilePath(),
                                   +stylesheet.canonicalFilePath(),
                                   +builtins.canonicalFilePath());
+
+    // Initialize the graphics just below contents of basics.tbl
+    xlr->context = new Context(xlr->context, NULL);
+    EnterGraphics();
+
     loadDebugTraceSettings();
 
     // Web settings
@@ -214,7 +219,6 @@ bool Application::processCommandLine()
     QFileInfo theme     ("xl:theme.xl");
     QFileInfo tutorial  ("system:tutorial.ddd");
 
-    EnterGraphics();
     if (user.exists())
         contextFiles.push_back(+user.canonicalFilePath());
     if (theme.exists())

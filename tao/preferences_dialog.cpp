@@ -42,6 +42,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
     contentsWidget->setSpacing(12);
 
     pagesWidget = new QStackedWidget;
+    pagesWidget->addWidget(new ModulesPage);
 #ifdef DEBUG
     pagesWidget->addWidget(new DebugPage);
 #endif
@@ -78,6 +79,16 @@ void PreferencesDialog::createIcons()
 //   Add one icon per preference page
 // ----------------------------------------------------------------------------
 {
+    // modules.png downloaded from:
+    // http://www.iconfinder.com/icondetails/17854/128/cubes_modules_icon
+    // Author: Everaldo Coelho (Crystal Project)
+    // License: LGPL
+    QListWidgetItem *modulesButton = new QListWidgetItem(contentsWidget);
+    modulesButton->setIcon(QIcon(":/images/modules.png"));
+    modulesButton->setText(tr("Module options"));
+    modulesButton->setTextAlignment(Qt::AlignHCenter);
+    modulesButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+
 #ifdef DEBUG
     // bug.png downloaded from:
     // http://www.iconfinder.com/icondetails/17857/128/animal_bug_insect_ladybird_icon

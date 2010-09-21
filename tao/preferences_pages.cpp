@@ -26,6 +26,7 @@
 #include "main.h"
 #include "application.h"
 
+
 namespace Tao {
 
 // ============================================================================
@@ -166,6 +167,97 @@ void DebugPage::disableAllTraces()
 // ----------------------------------------------------------------------------
 {
     toggleAllTraces(false);
+}
+
+// ============================================================================
+//
+//   The modules page shows all modules and allow some operations on them
+//
+// ============================================================================
+
+ModulesPage::ModulesPage(QWidget *parent)
+     : QWidget(parent)
+// ----------------------------------------------------------------------------
+//   Create the page and show a list of modules
+// ----------------------------------------------------------------------------
+{
+    mmgr = ModuleManager::moduleManager();
+    modules = mmgr->allModules();
+
+    QGroupBox *gb = new QGroupBox(tr("Installed modules"));
+    QVBoxLayout *vbLayout = new QVBoxLayout;
+
+    QTableWidget *table = new QTableWidget;
+    table->setColumnCount(5);
+    table->setHorizontalHeaderItem(0, new QTableWidgetItem("Enabled"));
+    table->setHorizontalHeaderItem(1, new QTableWidgetItem(""));
+    table->setHorizontalHeaderItem(2, new QTableWidgetItem("Name"));
+    table->setHorizontalHeaderItem(3, new QTableWidgetItem("Version"));
+    table->setHorizontalHeaderItem(4, new QTableWidgetItem("Path"));
+    table->horizontalHeader()->setStretchLastSection(true);
+    table->setRowCount(modules.count());
+    int row = 0;
+    foreach (ModuleManager::ModuleInfo m, modules)
+    {
+        QTableWidgetItem *item = new QTableWidgetItem;
+        item->setTextAlignment(Qt::AlignCenter);
+        item->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
+        Qt::CheckState state = m.enabled ? Qt::Checked : Qt::Unchecked;
+        item->setCheckState(state);
+        table->setItem(row, 0, item);
+
+        if (m.icon == "")
+            m.icon = ":/images/modules.png";
+        item = new QTableWidgetItem;
+        item->setTextAlignment(Qt::AlignCenter);
+        item->setIcon(QIcon(m.icon));
+        item->setFlags(Qt::ItemIsEnabled);
+        table->setItem(row, 1, item);
+
+        item = new QTableWidgetItem(m.name);
+        item->setFlags(Qt::NoItemFlags);
+        table->setItem(row, 2, item);
+
+        item = new QTableWidgetItem(m.ver == "" ? tr("N/A") : m.ver);
+        item->setTextAlignment(Qt::AlignCenter);
+        item->setFlags(Qt::NoItemFlags);
+        table->setItem(row, 3, item);
+
+        item = new QTableWidgetItem(m.path);
+        item->setFlags(Qt::NoItemFlags);
+        table->setItem(row, 4, item);
+
+        row++;
+    }
+    for (int i = 0; i < table->columnCount() - 1; i++)
+        table->resizeColumnToContents(i);
+    table->verticalHeader()->resizeSections(QHeaderView::ResizeToContents);
+    connect(table, SIGNAL(cellClicked(int,int)),
+            this, SLOT(onCellClicked(int,int)));
+    vbLayout->addWidget(table);
+    gb->setLayout(vbLayout);
+
+    QVBoxLayout *mainLayout = new QVBoxLayout;
+    mainLayout->addWidget(gb);
+    mainLayout->addStretch(1);
+    setLayout(mainLayout);
+}
+
+
+void ModulesPage::onCellClicked(int row, int col)
+// ----------------------------------------------------------------------------
+//   Update module enabled/disabled state when checkbox is clicked
+// ----------------------------------------------------------------------------
+{
+    if (col)
+        return;
+    Q_ASSERT(row <= modules.count());
+    QTableWidget *table = (QTableWidget *)sender();
+    bool enabled = false;
+    if (table->item(row, col)->checkState() == Qt::Checked)
+        enabled = true;
+    ModuleManager::ModuleInfo m = modules[row];
+    mmgr->setEnabled(m.id, enabled);
 }
 
 }

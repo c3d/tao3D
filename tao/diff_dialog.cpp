@@ -23,9 +23,8 @@
 #include "tao.h"
 #include "diff_dialog.h"
 #include "repository.h"
-//#include "ui_diff_dialog.h"
 #include "history_frame.h"
-#include "tao_utf8.h"  // debug
+#include "diff_highlighter.h"
 
 namespace Tao {
 
@@ -38,6 +37,7 @@ DiffDialog::DiffDialog(Repository *repo, QWidget *parent)
     Q_ASSERT(repo);
 
     setupUi(this);
+    setupEditor();
     aFrame->setMessage(tr("Select first version (A):"));
     bFrame->setMessage(tr("Select second version (B):"));
     connect(aFrame, SIGNAL(revSet(QString)), this, SLOT(diff()));
@@ -45,6 +45,21 @@ DiffDialog::DiffDialog(Repository *repo, QWidget *parent)
     aFrame->setRepository(repo);
     bFrame->setRepository(repo);
     connect(symetric, SIGNAL(stateChanged(int)), this, SLOT(diff()));
+}
+
+
+void DiffDialog::setupEditor()
+// ----------------------------------------------------------------------------
+//    Select text font and attach syntax highlighter
+// ----------------------------------------------------------------------------
+{
+    QFont font;
+    font.setFamily("unifont");
+    font.setFixedPitch(true);
+    font.setPointSize(16);
+    textEdit->setFont(font);
+    highlighter = new DiffHighlighter(textEdit->document());
+    textEdit->setReadOnly(true);
 }
 
 
@@ -61,7 +76,36 @@ void DiffDialog::diff()
 
     bool sym = symetric->isChecked();
     QString diff = repo->diff(a, b, sym);
-    textBrowser->setText(diff);
+    if (diff == "")
+        diff = "Identical\n";
+    textEdit->setPlainText(diff);
+
+    // Syntax highlighting is mostly done in the DiffHighlighter class, except
+    // for one thing: we want the background color of highlighted sections to
+    // cover the whole line width. This accomplished with QTextEdit 'extra
+    // selections'.
+
+    QList<QTextEdit::ExtraSelection> extraSelections;
+
+    QTextDocument *doc = textEdit->document();
+    for (QTextBlock b = doc->begin(); b != doc->end(); b = b.next())
+    {
+        QTextBlockUserData *ud = b.userData();
+        DiffBlockData *dbd = (DiffBlockData *)(ud);
+        if (ud)
+        {
+            QTextEdit::ExtraSelection selection;
+
+            selection.format.setBackground(dbd->format.background());
+            selection.format.setProperty(QTextFormat::FullWidthSelection,
+                                         true);
+            selection.cursor = QTextCursor(b);
+            selection.cursor.clearSelection();
+            extraSelections.append(selection);
+        }
+    }
+
+    textEdit->setExtraSelections(extraSelections);
 }
 
 }

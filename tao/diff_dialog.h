@@ -27,6 +27,7 @@
 namespace Tao {
 
 class Repository;
+class DiffHighlighter;
 
 class DiffDialog : public QDialog, protected Ui::DiffDialog
 {
@@ -38,8 +39,13 @@ public:
 private slots:
     void          diff();
 
+private:
+    void          setupEditor();
+
 protected:
-    Repository  * repo;
+    Repository      * repo;
+    DiffHighlighter * highlighter;
+
 };
 
 }

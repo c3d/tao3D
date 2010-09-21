@@ -33,6 +33,7 @@ namespace Tao {
 struct Widget;
 struct Window;
 struct SplashScreen;
+struct ModuleManager;
 
 
 class Application : public QApplication
@@ -71,6 +72,7 @@ protected:
     void           loadSettings();
     void           loadDebugTraceSettings();
     void           loadFonts();
+    void           loadModules();
     virtual bool   event(QEvent *e);
 
 protected slots:
@@ -107,6 +109,7 @@ private:
     Display *    xDisplay;
     QString      ssHeartBeatCommand;
 #endif
+    ModuleManager * moduleManager;
 };
 
 #define TaoApp  ((Application *) qApp)

@@ -35,6 +35,7 @@
 #include "graphics.h"
 #include "window.h"
 #include "font_file_manager.h"
+#include "module_manager.h"
 
 #include <QString>
 #include <QSettings>
@@ -64,7 +65,7 @@ Application::Application(int & argc, char ** argv)
 //    Build the Tao application
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false), splash(NULL),
-      pendingOpen(0), xlr(NULL), screenSaverBlocked(false)
+      pendingOpen(0), xlr(NULL), screenSaverBlocked(false), moduleManager(NULL)
 {
     // Set some useful parameters for the application
     setApplicationName ("Tao");
@@ -169,10 +170,27 @@ Application::Application(int & argc, char ** argv)
     ssHeartBeatCommand = env.value("TAO_SS_HEARTBEAT_CMD");
 #endif
 
-    // We're ready to go
     XL::MAIN = this->xlr = xlr;
+    loadModules();               // Needs a valid XL::MAIN
+
+    // We're ready to go
     if (!savedUri.isEmpty())
         loadUri(savedUri);
+}
+
+
+void Application::loadModules()
+// ----------------------------------------------------------------------------
+//   Initialize module manager and load all modules that user has enabled
+// ----------------------------------------------------------------------------
+{
+
+    if (splash)
+        splash->showMessage(tr("Checking module configuration"));
+    moduleManager = ModuleManager::moduleManager();
+    if (splash)
+        splash->showMessage(tr("Loading modules"));
+    moduleManager->loadAll();
 }
 
 

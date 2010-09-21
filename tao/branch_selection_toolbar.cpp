@@ -56,6 +56,7 @@ void BranchSelectionToolBar::init()
     addWidget(new QLabel(tr("Branch:")));
 
     branchSelector = new BranchSelectionComboBox;
+    branchSelector->setFilter(BranchSelectionComboBox::BSF_All);
     connect(branchSelector, SIGNAL(branchSelected(QString)),
             this, SLOT(checkout(QString)));
     branchSelector->setSizeAdjustPolicy(QComboBox::AdjustToContents);

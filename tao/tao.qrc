@@ -20,5 +20,6 @@
         <file>images/next.png</file>
         <file>images/previous.png</file>
         <file>images/start.png</file>
+        <file>images/modules.png</file>
     </qresource>
 </RCC>

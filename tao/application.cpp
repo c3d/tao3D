@@ -557,7 +557,9 @@ QString Application::defaultPreferencesFolderPath()
 //    Try to guess the best user preference folder to use by default
 // ----------------------------------------------------------------------------
 {
-#ifdef CONFIG_MINGW
+#if   defined (CONFIG_MACOSX)
+    return QDir::homePath() + "/Library/Application Support";
+#elif defined (CONFIG_MINGW)
     // Looking at the Windows registry
     QSettings settings(
             "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows"
@@ -573,7 +575,7 @@ QString Application::defaultPreferencesFolderPath()
     {
         return QDir::toNativeSeparators(path);
     }
-#endif // CONFIG_MINGW
+#endif
 
     // Default would be home itself
     return QDir::toNativeSeparators(QDir::homePath());
@@ -586,10 +588,12 @@ QString Application::defaultTaoPreferencesFolderPath()
 //    (user preferences for tao application)
 // ----------------------------------------------------------------------------
 {
-    // REVISIT: Unix:    .tao.d
-    //          Windows: Tao
-    return QDir::toNativeSeparators(defaultPreferencesFolderPath()
-                                    + tr("/xl.d"));
+#if   defined (CONFIG_LINUX)
+    QString tao = "/.tao";
+#else // Win, MacOS
+    QString tao = "/Tao";
+#endif
+    return QDir::toNativeSeparators(defaultPreferencesFolderPath() + tao);
 }
 
 
@@ -701,7 +705,20 @@ void Application::internalCleanEverythingAsIfTaoWereNeverRun()
     if (ret != QMessageBox::YesAll)
         ret = QMessageBox::question(NULL, tr("Tao"),
                                     tr("Do you want to delete:\n\n"
-                                       "User's default Tao folder?") +
+                                       "User's Tao documents folder?") +
+                                    " (" + path + ")",
+                                    QMessageBox::Yes    | QMessageBox::No |
+                                    QMessageBox::YesAll | QMessageBox::Cancel);
+    if (ret == QMessageBox::Cancel)
+        return;
+    if (ret == QMessageBox::Yes || ret == QMessageBox::YesAll)
+        recursiveDelete(path);
+
+    path = defaultTaoPreferencesFolderPath();
+    if (ret != QMessageBox::YesAll)
+        ret = QMessageBox::question(NULL, tr("Tao"),
+                                    tr("Do you want to delete:\n\n"
+                                       "User's Tao prefs/modules folder?") +
                                     " (" + path + ")",
                                     QMessageBox::Yes    | QMessageBox::No |
                                     QMessageBox::YesAll | QMessageBox::Cancel);

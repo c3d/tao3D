@@ -306,6 +306,7 @@ private:
 
 friend class CheckForUpdate;
 friend class CheckAllForUpdate;
+friend class UpdateModule;
 
 #   define USER_MODULES_SETTING_GROUP "Modules"
 };
@@ -324,7 +325,11 @@ class CheckForUpdate : public QObject
     Q_OBJECT
 
 public:
-    CheckForUpdate(ModuleManager &mm, QString id) : mm(mm), id(id) {}
+    CheckForUpdate(ModuleManager &mm, QString id) : mm(mm)
+    {
+        if (mm.modulesById.contains(id))
+            m = *(mm.modulesById[id]);
+    }
 
     bool           start();
 
@@ -338,10 +343,10 @@ private:
     std::ostream & debug()  { return mm.debug(); }
 
 private:
-    ModuleManager & mm;
-    QString         id;
-    repository_ptr  repo;
-    process_p       proc;
+    ModuleManager &           mm;
+    ModuleManager::ModuleInfo m;
+    repository_ptr            repo;
+    process_p                 proc;
 };
 
 // ============================================================================
@@ -379,6 +384,47 @@ private:
     QSet<QString>   pending;
     bool            updateAvailable;
     int             num;
+};
+
+// ============================================================================
+//
+//    Context to update a module
+//
+// ============================================================================
+
+class UpdateModule : public QObject
+// ------------------------------------------------------------------------
+//   Asynchronously update a module
+// ------------------------------------------------------------------------
+{
+    Q_OBJECT
+
+public:
+    UpdateModule(ModuleManager &mm, QString id) : mm(mm)
+    {
+        if (mm.modulesById.contains(id))
+            m = *(mm.modulesById[id]);
+    }
+
+    bool           start();
+
+signals:
+    void           minimum(int min);
+    void           maximum(int max);
+    void           progress(int percent);
+    void           complete(bool success);
+
+private slots:
+    void           onFinished(int exitCode, QProcess::ExitStatus status);
+
+private:
+    std::ostream & debug()  { return mm.debug(); }
+
+private:
+    ModuleManager &           mm;
+    ModuleManager::ModuleInfo m;
+    repository_ptr            repo;
+    process_p                 proc;
 };
 
 // ============================================================================

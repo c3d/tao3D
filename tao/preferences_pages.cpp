@@ -189,17 +189,14 @@ ModulesPage::ModulesPage(QWidget *parent)
 
     table = new QTableWidget;
     table->setColumnCount(5);
-    table->setHorizontalHeaderItem(0, new QTableWidgetItem("Enabled"));
+    table->setHorizontalHeaderItem(0, new QTableWidgetItem(""));
     table->setHorizontalHeaderItem(1, new QTableWidgetItem(""));
     table->setHorizontalHeaderItem(2, new QTableWidgetItem("Name"));
     table->setHorizontalHeaderItem(3, new QTableWidgetItem("Version"));
     table->setHorizontalHeaderItem(4, new QTableWidgetItem("Status"));
     table->horizontalHeader()->setStretchLastSection(true);
-    table->setRowCount(modules.count());
     table->verticalHeader()->hide();
     updateTable();
-    connect(table, SIGNAL(cellClicked(int,int)),
-            this, SLOT(onCellClicked(int,int)));
     vbLayout->addWidget(table);
     gb->setLayout(vbLayout);
 
@@ -226,20 +223,17 @@ ModulesPage::ModulesPage(QWidget *parent)
 }
 
 
-void ModulesPage::onCellClicked(int row, int col)
+void ModulesPage::toggleModule()
 // ----------------------------------------------------------------------------
-//   Update module enabled/disabled state when checkbox is clicked
+//   Update module enabled/disabled state when button is clicked
 // ----------------------------------------------------------------------------
 {
-    if (col)
-        return;
-    Q_ASSERT(row <= modules.count());
-    QTableWidget *table = (QTableWidget *)sender();
-    bool enabled = false;
-    if (table->item(row, col)->checkState() == Qt::Checked)
-        enabled = true;
+    QAction *act = (QAction *)sender();
+    int row = act->data().toInt();
     ModuleManager::ModuleInfo m = modules[row];
-    mmgr->setEnabled(m.id, enabled);
+
+    mmgr->setEnabled(m.id, !m.enabled);
+    updateTable();
 }
 
 
@@ -267,55 +261,51 @@ void ModulesPage::updateTable()
 //   Fill module table
 // ----------------------------------------------------------------------------
 {
+    modules = mmgr->allModules();
+    table->setRowCount(modules.count());
     int row = 0;
     foreach (ModuleManager::ModuleInfo m, modules)
     {
+        Qt::ItemFlags enFlag = m.enabled ? Qt::ItemIsEnabled : Qt::NoItemFlags;
+
         QTableWidgetItem *item = new QTableWidgetItem;
-        item->setTextAlignment(Qt::AlignCenter);
-        item->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
-        Qt::CheckState state = m.enabled ? Qt::Checked : Qt::Unchecked;
-        item->setCheckState(state);
-        table->setItem(row, 0, item);
+        QString txt = m.enabled ? tr("Disable") : tr("Enable");
+        QToolButton *b = new QToolButton;
+        QAction *act = new QAction(txt, this);
+        act->setData(QVariant(row));
+        connect(act, SIGNAL(triggered()), this, SLOT(toggleModule()));
+        b->setDefaultAction(act);
+        table->setCellWidget(row, 0, b);
 
         if (m.icon == "")
             m.icon = ":/images/modules.png";
         item = new QTableWidgetItem;
         item->setTextAlignment(Qt::AlignCenter);
         item->setIcon(QIcon(m.icon));
-        item->setFlags(Qt::ItemIsEnabled);
+        item->setFlags(enFlag);
         table->setItem(row, 1, item);
 
         item = new QTableWidgetItem(m.name);
-        item->setFlags(Qt::NoItemFlags);
+        item->setFlags(enFlag);
         table->setItem(row, 2, item);
 
         item = new QTableWidgetItem(m.ver);
         item->setTextAlignment(Qt::AlignCenter);
-        item->setFlags(Qt::NoItemFlags);
+        item->setFlags(enFlag);
         table->setItem(row, 3, item);
 
+        QWidget *widget = NULL;
         if (m.updateAvailable)
         {
-            QString msg = QString("Version %1 available").arg(m.latest);
-#if 1
-            item = new QTableWidgetItem(msg);
-            item->setFlags(Qt::NoItemFlags);
-            QColor green = QColor(170, 255, 170);
-            item->setBackground(QBrush(green));
-            table->setItem(row, 4, item);
-#else
-            // TODO: Use tool buttons to update / enable / disable /
-            // show module details
-            QWidget *widget = new QWidget;
-            QHBoxLayout *layout = new QHBoxLayout;
-            layout->addWidget(new QLabel(msg));
+            QString msg = QString("Update to %1").arg(m.latest);
             QToolButton *b = new QToolButton;
-            b->setText("Update");
-            layout->addWidget(b);
-            widget->setLayout(layout);
-            table->setCellWidget(row, 4, widget);
-#endif
+            QAction *act = new QAction(msg, this);
+            act->setData(QVariant(row));
+            connect(act, SIGNAL(triggered()), this, SLOT(updateOne()));
+            b->setDefaultAction(act);
+            widget = b;
         }
+        table->setCellWidget(row, 4, widget);
 
         row++;
     }
@@ -330,17 +320,43 @@ void ModulesPage::onCFUComplete()
 //   Leave time for progress bar to show 100%
 // ----------------------------------------------------------------------------
 {
-    QTimer::singleShot(200, this, SLOT(refresh()));
+    QTimer::singleShot(200, this, SLOT(endCheckForUpdate()));
 }
 
 
-void ModulesPage::refresh()
+void ModulesPage::endCheckForUpdate()
 // ----------------------------------------------------------------------------
-//   Hide progress bar, reload table
+//   Hide progress bar, refresh module list
 // ----------------------------------------------------------------------------
 {
     findUpdatesInProgress = false;
     sw->setCurrentIndex(0);
+    updateTable();
+}
+
+
+void ModulesPage::updateOne()
+// ----------------------------------------------------------------------------
+//   Start update for single module
+// ----------------------------------------------------------------------------
+{
+    QAction *act = (QAction *)sender();
+    int row = act->data().toInt();
+    ModuleManager::ModuleInfo m = modules[row];
+    act->setEnabled(false);
+    UpdateModule *up = new UpdateModule(*mmgr, m.id);
+    connect(up, SIGNAL(complete(bool)), this, SLOT(onUpdateOneComplete()));
+    up->start();
+}
+
+
+void ModulesPage::onUpdateOneComplete()
+// ----------------------------------------------------------------------------
+//   Delete module updater object, refresh module list
+// ----------------------------------------------------------------------------
+{
+    UpdateModule *up = (UpdateModule *)sender();
+    up->deleteLater();
     updateTable();
 }
 

@@ -348,7 +348,7 @@ QList<ModuleManager::ModuleInfo> ModuleManager::newModules(QString path)
                     ModuleInfo existing = *modulesById[m.id];
                     if (m.path != existing.path)
                     {
-                        debug() << "WARNING: Duplicate module will be ignored:\n";
+                        debug() << "WARN: Duplicate module will be ignored:\n";
                         debugPrint(m);
                         warnDuplicateModule(m);
                     }
@@ -573,10 +573,6 @@ bool CheckForUpdate::start()
 //   Initiate "check for update" process for a module
 // ----------------------------------------------------------------------------
 {
-    if (!mm.modulesById.contains(id))
-        return false;
-
-    ModuleManager::ModuleInfo m = *(mm.modulesById[id]);
     IFTRACE(modules)
         debug() << "Start checking for updates, module "
                 << m.toText() << "\n";
@@ -628,8 +624,6 @@ void CheckForUpdate::processRemoteTags(QStringList tags)
 //   Process the list of remote tags for module in currentModuleDir
 // ----------------------------------------------------------------------------
 {
-    ModuleManager::ModuleInfo &m = *(mm.modulesById[id]);
-
     IFTRACE(modules)
         debug() << "Module " << m.toText() << "\n";
 
@@ -642,7 +636,7 @@ void CheckForUpdate::processRemoteTags(QStringList tags)
             if (Repository::versionGreaterOrEqual(tag, latest))
                 latest = tag;
 
-        mm.modulesById[id]->latest = latest;
+        mm.modulesById[m.id]->latest = latest;
 
         hasUpdate = (latest != current &&
                      Repository::versionGreaterOrEqual(latest, current));
@@ -662,14 +656,14 @@ void CheckForUpdate::processRemoteTags(QStringList tags)
             debug() << "  No remote tags\n";
     }
 
-    m.updateAvailable = hasUpdate;
+    mm.modulesById[m.id]->updateAvailable = hasUpdate;
     emit complete(m, hasUpdate);
     deleteLater();
 }
 
 // ============================================================================
 //
-//   CheckAllForUpdateContext methods
+//   Checking if any module has an update
 //
 // ============================================================================
 
@@ -694,7 +688,6 @@ bool CheckAllForUpdate::start()
 
     foreach (ModuleManager::ModuleInfo m, modules)
     {
-        pending << m.id;
         CheckForUpdate *cfu = new CheckForUpdate(mm, m.id);
         connect(cfu, SIGNAL(complete(ModuleManager::ModuleInfo,bool)),
                 this,  SLOT(processResult(ModuleManager::ModuleInfo,bool)));
@@ -720,6 +713,59 @@ void CheckAllForUpdate::processResult(ModuleManager::ModuleInfo m,
         emit complete(this->updateAvailable);
         deleteLater();
     }
+}
+
+// ============================================================================
+//
+//   Updating one module to the latest version
+//
+// ============================================================================
+
+bool UpdateModule::start()
+// ----------------------------------------------------------------------------
+//   Start update (download and install) of one module
+// ----------------------------------------------------------------------------
+{
+    bool ok = false;
+
+    if (m.path != "")
+    {
+        repo = RepositoryFactory::repository(m.path);
+        if (repo && repo->valid())
+        {
+            proc = repo->asyncFetch("origin");
+            connect(proc.data(), SIGNAL(finished(int,QProcess::ExitStatus)),
+                    this,        SLOT(onFinished(int,QProcess::ExitStatus)));
+            connect(proc.data(), SIGNAL(percentComplete(int)),
+                    this,        SIGNAL(progress(int)));
+            repo->dispatch(proc);
+            ok = true;
+        }
+    }
+
+    return ok;
+}
+
+
+void UpdateModule::onFinished(int exitCode, QProcess::ExitStatus status)
+// ----------------------------------------------------------------------------
+//   Checkout latest tag and emit complete signal
+// ----------------------------------------------------------------------------
+{
+    bool ok = (status ==  QProcess::NormalExit && exitCode == 0);
+    if (ok)
+    {
+        repo->checkout(+m.latest);
+        QString ver = mm.gitVersion(m.path);
+        ok = (ver == m.latest);
+        if (ok)
+        {
+            ModuleManager::ModuleInfo *p = mm.modulesById[m.id];
+            p->ver = ver;
+            p->updateAvailable = false;
+        }
+    }
+    emit complete(ok);
 }
 
 }

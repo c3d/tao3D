@@ -1106,13 +1106,13 @@ process_p GitRepository::asyncClone(QString cloneUrl, QString newFolder)
 }
 
 
-process_p GitRepository::asyncFetch(QString url)
+process_p GitRepository::asyncFetch(QString what)
 // ----------------------------------------------------------------------------
 //   Prepare a Process that will download latest changes from a remote project
 // ----------------------------------------------------------------------------
 {
     QStringList args;
-    args << "fetch" << url;
+    args << "fetch" << what;
     GitAuthProcess * proc = new GitAuthProcess(args, path, false);
     connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
             this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));

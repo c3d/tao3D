@@ -68,10 +68,12 @@ public:
     ModulesPage(QWidget *parent = 0);
 
 private slots:
-    void         onCellClicked(int col, int row);
+    void         toggleModule();
     void         findUpdates();
     void         onCFUComplete();
-    void         refresh();
+    void         endCheckForUpdate();
+    void         updateOne();
+    void         onUpdateOneComplete();
 
 private:
     void         updateTable();

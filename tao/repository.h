@@ -178,7 +178,7 @@ public:
     virtual bool        renRemote(QString oldName, QString newName) = 0;
     virtual QList<Commit> history(QString branch = "", int max = 100) = 0;
     virtual process_p   asyncClone(QString cloneUrl, QString newFolder) = 0;
-    virtual process_p   asyncFetch(QString url) = 0;
+    virtual process_p   asyncFetch(QString what)        = 0;
     virtual text        version()                       = 0;
     virtual bool        isClean()                       = 0;
     virtual QString     url()                           = 0;

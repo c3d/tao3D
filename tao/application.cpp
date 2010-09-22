@@ -552,7 +552,7 @@ QString Application::defaultProjectFolderPath()
 }
 
 
-QString Application::defaultPreferencesFolderPath()
+QString Application::appDataPath()
 // ----------------------------------------------------------------------------
 //    Try to guess the best user preference folder to use by default
 // ----------------------------------------------------------------------------
@@ -560,21 +560,10 @@ QString Application::defaultPreferencesFolderPath()
 #if   defined (CONFIG_MACOSX)
     return QDir::homePath() + "/Library/Application Support";
 #elif defined (CONFIG_MINGW)
-    // Looking at the Windows registry
-    QSettings settings(
-            "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows"
-            "\\CurrentVersion\\Explorer",
-            QSettings::NativeFormat);
-    // For Windows Vista/7, typically
-    // C:\Users\username\???
-    // For Windows XP, typically
-    // C:\Documents and Settings\username\Local Settings\Application Data
-    QString path = settings.value("User Shell Folders\\Local AppData")
-                   .toString();
-    if (!path.isNull())
-    {
-        return QDir::toNativeSeparators(path);
-    }
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    QString path = env.value("APPDATA");
+    if (path != "")
+        return path;
 #endif
 
     // Default would be home itself
@@ -593,7 +582,7 @@ QString Application::defaultTaoPreferencesFolderPath()
 #else // Win, MacOS
     QString tao = "/Tao";
 #endif
-    return QDir::toNativeSeparators(defaultPreferencesFolderPath() + tao);
+    return QDir::toNativeSeparators(appDataPath() + tao);
 }
 
 

@@ -114,11 +114,14 @@ Section "Uninstall"
   ; Recursively remove Git files
   RMDir /r $INSTDIR\git
 
+  ; Recursively remove fonts packaged with Tao
+  RMDir /r $INSTDIR\fonts
+
   ; Remove shortcuts
   Delete "$SMPROGRAMS\Tao\*.*"
+  RMDir  "$SMPROGRAMS\Tao"
 
-  ; Remove directories used (if empty)
-  RMDir "$SMPROGRAMS\Tao"
+  ; Remove installtion directory if empty (should be)
   RMDir "$INSTDIR"
 
 SectionEnd

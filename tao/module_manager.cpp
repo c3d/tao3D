@@ -631,7 +631,7 @@ void CheckForUpdate::processRemoteTags(QStringList tags)
     IFTRACE(modules)
         debug() << "Module " << m.toText() << "\n";
 
-    bool hasUpdate;
+    bool hasUpdate = false;
     if (!tags.isEmpty())
     {
         QString current = m.ver;

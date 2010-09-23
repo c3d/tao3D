@@ -25,13 +25,15 @@
 #include "repository.h"
 #include "tao_utf8.h"
 
+#define MAX_SPAN 100
+
 namespace Tao {
 
 HistoryPlayback::HistoryPlayback(QObject *parent)
 // ----------------------------------------------------------------------------
 //   Create object to manage navigation through document history
 // ----------------------------------------------------------------------------
-    : QObject(parent), repo(NULL), span(0), max_span(100)
+    : QObject(parent), repo(NULL), span(0), max_span(MAX_SPAN)
 {
     reset();
 }
@@ -41,7 +43,7 @@ HistoryPlayback::HistoryPlayback(QObject *parent, Repository *repo)
 // ----------------------------------------------------------------------------
 //   Create object to manage navigation through document history
 // ----------------------------------------------------------------------------
-    : QObject(parent), repo(repo), span(0), max_span(100)
+    : QObject(parent), repo(repo), span(0), max_span(MAX_SPAN)
 {
     reset();
 }
@@ -54,7 +56,7 @@ void HistoryPlayback::setRepository(Repository *repo)
 {
     this->repo = repo;
     connect(repo, SIGNAL(commitSuccess(QString,QString)),
-            this, SLOT(newCommit()));
+            this, SLOT(newCommit(QString)));
     reset();
 }
 
@@ -151,13 +153,23 @@ void HistoryPlayback::end()
 }
 
 
-void HistoryPlayback::newCommit()
+void HistoryPlayback::newCommit(QString id)
 // ----------------------------------------------------------------------------
 //   Take into account the fact that branch head moved forward by 1 commit
 // ----------------------------------------------------------------------------
 //   This way, the begin position remains the same as doc changes
 {
     span++;
+    if (pos)
+    {
+        // pos == 0 means the latest commit. In this case we want to follow the
+        // branch head and therefore do not modify pos.
+        // When pos != 0 however, it refers to a specific, absolute position in
+        // the current branch history, and thus we need to adjust pos when a
+        // new commit comes in.
+        pos++;
+    }
+    history.append(Repository::Commit(id));
     emit rangeChanged(min(), max());
     emit valueChanged(max()-pos);
 }
@@ -189,6 +201,19 @@ void HistoryPlayback::checkout(int n)
         what = head;
     repo->checkout(+what);
     emit valueChanged(max()-n);
+}
+
+
+void HistoryPlayback::debugPrintHistory()
+// ----------------------------------------------------------------------------
+//   Display history array to stderr
+// ----------------------------------------------------------------------------
+{
+    QStringList list;
+    foreach (Repository::Commit c, history)
+        list << c.id;
+    std::cerr << "history[0.." << history.size() << "] = "
+              << +list.join(" ") << "\n";
 }
 
 }

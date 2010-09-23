@@ -51,7 +51,7 @@ public slots:
 
     void         setRepository(Repository *);
     void         reset();
-    void         newCommit();
+    void         newCommit(QString id);
 
     void         setValue(int n);
 
@@ -62,6 +62,7 @@ signals:
 
 private:
     void         checkout(int pos);
+    void         debugPrintHistory();
 
 private:
     QList<Repository::Commit> history;

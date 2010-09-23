@@ -348,8 +348,12 @@ QList<ModuleManager::ModuleInfo> ModuleManager::newModules(QString path)
                     ModuleInfo existing = *modulesById[m.id];
                     if (m.path != existing.path)
                     {
-                        debug() << "WARN: Duplicate module will be ignored:\n";
-                        debugPrint(m);
+                        IFTRACE(modules)
+                        {
+                            debug() << "WARNING: Duplicate module "
+                                       "will be ignored:\n";
+                            debugPrint(m);
+                        }
                         warnDuplicateModule(m);
                     }
                 }

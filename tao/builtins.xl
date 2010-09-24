@@ -8,6 +8,9 @@ if false then TrueBody else FalseBody   -> do FalseBody
 if true then TrueBody                   -> do TrueBody
 if false then TrueBody                  -> false
 
+// Applying something on a range
+f:tree with a..b                        -> f a, f with a+1..b
+
 // module_description is used in a module's main file to describe the module
 // Parsing of this prefix is currently done in C++
 module_description b:block              -> false

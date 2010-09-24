@@ -28,7 +28,7 @@
 //
 // ============================================================================
 
-PREFIX(Page, text, "page", PARM(n, text) PARM(b, tree),
+PREFIX(Page, text, "page", PARM(n, text) PARM(b, code),
        RTAO(page(context,n,b)), 
        "/*| docname \"page\", \"page\", do { \
                 dsyntax <<page name, content>>;\
@@ -159,7 +159,7 @@ PREFIX(PageSeconds, real,     "page_time", ,    RTAO(pageTime(self)),
                 return_value \"real\", <<Return a fractional time, including milliseconds>>;\
                 }\
           |*/")
-PREFIX(After,       real,     "after", PARM(d, real) PARM(c, tree),
+PREFIX(After,       real,     "after", PARM(d, real) PARM(c, code),
        RTAO(after(context, d, c)), 
        "/*| docname \"after\", \"time\", do { \
                 dsyntax <<after delay, code>>;\
@@ -172,10 +172,10 @@ PREFIX(After,       real,     "after", PARM(d, real) PARM(c, tree),
                 }\
           |*/")
 PREFIX(Every,       real,     "every",
-       PARM(i, real) PARM(d, real) PARM(c, tree),
+       PARM(i, real) PARM(d, real) PARM(c, code),
        RTAO(every(context, i, d, c)), "")
 PREFIX(Every50Pct,  real,     "every",
-       PARM(i, real) PARM(c, tree),
+       PARM(i, real) PARM(c, code),
        RTAO(every(context, i, 0.5, c)),
        "/*| docname \"every\", \"time\", do { \
                 dsyntax <<every interval, duty, code>>;\
@@ -221,7 +221,7 @@ Qt::XButton2	0x00000010	The second X button.\n\
                 return_value \"integer\", <<Return the buttons of the last mouse event>>;\
                 }\
           |*/")
-PREFIX(ShapeAction, tree, "on",PARM(n,text) PARM(t,tree),
+PREFIX(ShapeAction, tree, "on",PARM(n,text) PARM(t,code),
        RTAO(shapeAction(self,n,t)), 
        "/*| docname \"on\", \"mouse\", do { \
                 dsyntax <<on action, code>>;\
@@ -232,7 +232,7 @@ PREFIX(ShapeAction, tree, "on",PARM(n,text) PARM(t,tree),
                 parameter \"tree\", \"code\", <<The code to execute>>;\
                 }\
           |*/")
-PREFIX(ShapeClickAction, tree, "on_click",PARM(t,tree),
+PREFIX(ShapeClickAction, tree, "on_click",PARM(t,code),
        RTAO(shapeAction(self,"click",t)), 
        "/*| docname \"on_click\", \"mouse\", do { \
                 dsyntax <<on_click code>>;\
@@ -243,7 +243,7 @@ PREFIX(ShapeClickAction, tree, "on_click",PARM(t,tree),
                 see \"on\";\
                 }\
           |*/")
-PREFIX(ShapeMouseoverAction, tree, "on_mouseover",PARM(t,tree),
+PREFIX(ShapeMouseoverAction, tree, "on_mouseover",PARM(t,code),
        RTAO(shapeAction(self,"mouseover",t)), 
        "/*| docname \"on_mouseover\", \"mouse\", do { \
                 dsyntax <<on_mouseover code>>;\
@@ -263,7 +263,7 @@ PREFIX(ShapeMouseoverAction, tree, "on_mouseover",PARM(t,tree),
 //
 // ============================================================================
 
-PREFIX(Locally, tree, "locally", PARM(t, tree),
+PREFIX(Locally, tree, "locally", PARM(t, code),
        RTAO(locally(context, self, t)), 
        "/*| docname \"locally\", \"code\", do { \
                 dsyntax <<locally code>>;\
@@ -274,7 +274,7 @@ PREFIX(Locally, tree, "locally", PARM(t, tree),
                 return_value \"tree\", <<The result of the child execution.>>;\
                 }\
           |*/")
-PREFIX(Shape,   tree, "shape",   PARM(t, tree),
+PREFIX(Shape,   tree, "shape",   PARM(t, code),
        RTAO(shape(context, self, t)), 
        "/*| docname \"shape\", \"code:graph\", do { \
                 dsyntax <<shape code>>;\
@@ -285,7 +285,7 @@ PREFIX(Shape,   tree, "shape",   PARM(t, tree),
                 return_value \"\", <<The result of the child execution.>>;\
                 }\
           |*/")
-PREFIX(Widget,  tree, "active_widget", PARM(t,tree),
+PREFIX(Widget,  tree, "active_widget", PARM(t,code),
        RTAO(activeWidget(context, self, t)), 
        "/*| docname \"active_widget\", \"code:graph:widget\", do { \
                 dsyntax <<active_widget code>>;\
@@ -296,7 +296,7 @@ PREFIX(Widget,  tree, "active_widget", PARM(t,tree),
                 return_value \"tree\", <<The result of the child execution.>>;\
                 }\
           |*/")
-PREFIX(Anchor,  tree, "anchor",   PARM(t, tree),
+PREFIX(Anchor,  tree, "anchor",   PARM(t, code),
        RTAO(anchor(context, self, t)), 
        "/*| docname \"anchor\", \"graph\", do { \
                 dsyntax <<anchor code>>;\
@@ -865,7 +865,7 @@ PREFIX(TextureWrap, tree, "texture_wrap", PARM(s, boolean) PARM(t, boolean),
                 parameter \"boolean\", \"t\", <<[TODO]>>;\
                 }\
           |*/")
-PREFIX(TextureTransform, tree, "texture_transform", PARM(t, tree),
+PREFIX(TextureTransform, tree, "texture_transform", PARM(t, code),
        RTAO(textureTransform(context, self, t)), 
        "/*| docname \"texture_transform\", \"graph\", do { \
                 dsyntax <<texture_transform t>>;\
@@ -885,7 +885,7 @@ PREFIX(TextureTransform, tree, "texture_transform", PARM(t, tree),
 //
 // ============================================================================
 
-PREFIX(Path,   tree, "path", PARM(t, tree), RTAO(newPath(context, self, t)), 
+PREFIX(Path,   tree, "path", PARM(t, code), RTAO(newPath(context, self, t)), 
        "/*| docname \"path\", \"graph:path\", do { \
                 dsyntax <<path t>>;\
                 synopsis \"Start a path\" ; \
@@ -1263,7 +1263,7 @@ PREFIX(Callout, tree, "callout",
           |*/")
 
 PREFIX(DebugBinPacker, tree, "binpacker",
-       PARM(w, integer) PARM(h, integer) PARM(t, tree),
+       PARM(w, integer) PARM(h, integer) PARM(t, code),
        RTAO(debugBinPacker(self, w, h, t)), 
        "/*| docname \"binpacker\", \"graph:debug\", do { \
                 dsyntax <<binpacker w, h, t>>;\
@@ -1368,7 +1368,7 @@ PREFIX(Object3D, tree, "object",
 // ============================================================================
 
 PREFIX(TextBox, tree, "text_box",
-       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real) PARM(t, tree),
+       PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real) PARM(t, code),
        RTAO(textBox(context, self, x, y, w, h, t)), 
        "/*| docname \"text_box\", \"text:graph\", do { \
                 dsyntax <<text_box x, y, w, h, t>>;\
@@ -1417,7 +1417,7 @@ PREFIX(TextSpan, tree,"text", PARM(t, text), RTAO(textSpan(self, t)),
                 parameter \"text\", \"t\", <<The text to insert>>;\
                 }\
           |*/")
-PREFIX(TextFormula, tree,"formula", PARM(t, tree), RTAO(textFormula(self, t)), 
+PREFIX(TextFormula, tree,"formula", PARM(t, code), RTAO(textFormula(self, t)), 
        "/*| docname \"formula\", \"text\", do { \
                 dsyntax <<formula t>>;\
                 synopsis \"Insert a block of text corresponding to the given formula\" ; \
@@ -1759,9 +1759,9 @@ PREFIX(DocVersion, tree, "doc_version",, RTAO(docVersion(self)),
 // ============================================================================
 
 PREFIX(NewTableAt, tree, "table",
-       PARM(x,real) PARM(y, real) PARM(r,integer) PARM(c,integer) PARM(b,tree),
+       PARM(x,real) PARM(y, real) PARM(r,integer) PARM(c,integer) PARM(b,code),
        RTAO(newTable(context, self, x, y, r, c, b)), "");
-PREFIX(NewTable, tree, "table", PARM(r,integer) PARM(c,integer) PARM(b,tree),
+PREFIX(NewTable, tree, "table", PARM(r,integer) PARM(c,integer) PARM(b,code),
        RTAO(newTable(context, self, r, c, b)), 
        "/*| docname \"table\", \"table\", do { \
                 dsyntax <<table x, y, r, c, b>>;\
@@ -1778,9 +1778,9 @@ PREFIX(NewTable, tree, "table", PARM(r,integer) PARM(c,integer) PARM(b,tree),
                 }\
           |*/");
 PREFIX(TableSizedCell, tree, "table_cell",
-       PARM(w, real) PARM(h, real) PARM(b, tree),
+       PARM(w, real) PARM(h, real) PARM(b, code),
        RTAO(tableCell(context, self, w, h, b)), "")
-PREFIX(TableCell, tree, "table_cell", PARM(b, tree),
+PREFIX(TableCell, tree, "table_cell", PARM(b, code),
        RTAO(tableCell(context, self, b)), 
        "/*| docname \"table_cell\", \"table\", do { \
                 dsyntax <<table_cell w, h, b>>;\
@@ -1817,7 +1817,7 @@ PREFIX(TableMargins, tree, "table_cell_margins",
                 err \"Error raised when invoked outside of a table context.\" \
                 }\
           |*/")
-PREFIX(TableFill, tree, "table_cell_fill", PARM(b, tree),
+PREFIX(TableFill, tree, "table_cell_fill", PARM(b, code),
        RTAO(tableFill(self, b)), 
        "/*| docname \"table_cell_fill\", \"table\", do { \
                 dsyntax <<table_cell_fill b>>;\
@@ -1829,7 +1829,7 @@ PREFIX(TableFill, tree, "table_cell_fill", PARM(b, tree),
                 err \"Error raised when invoked outside of a table context.\" \
                 }\
           |*/")
-PREFIX(TableBorder, tree, "table_cell_border", PARM(b, tree),
+PREFIX(TableBorder, tree, "table_cell_border", PARM(b, code),
        RTAO(tableBorder(self, b)), 
        "/*| docname \"table_cell_border\", \"table\", do { \
                 dsyntax <<table_cell_border>>;\
@@ -1938,7 +1938,7 @@ PREFIX(Caption, tree, "status", PARM(t, text), RTAO(status(self, t)),
                 }\
           |*/")
 PREFIX(Frame, tree, "frame",
-       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(p, tree),
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(p, code),
        RTAO(framePaint(context, self, x, y, w, h, p)), 
        "/*| docname \"frame\", \"widget\", do { \
                 dsyntax <<frame x, y, w, h, prog>>;\
@@ -1955,7 +1955,7 @@ PREFIX(Frame, tree, "frame",
                 }\
           |*/")
 PREFIX(FrameTexture, tree, "frame_texture",
-       PARM(w,real) PARM(h,real) PARM(p, tree),
+       PARM(w,real) PARM(h,real) PARM(p, code),
        RTAO(frameTexture(context, self, w, h, p)), 
        "/*| docname \"frame_texture\", \"widget\", do { \
                 dsyntax <<frame_texture w, h, prog>>;\
@@ -2040,7 +2040,7 @@ PREFIX(LineEditTexture, tree, "line_edit_texture",
 
 PREFIX(PushButton, tree, "push_button",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
-       PARM(n, text) PARM(l, text) PARM(a, tree),
+       PARM(n, text) PARM(l, text) PARM(a, code),
        RTAO(pushButton(self, x, y, w, h, n, l, a)), 
        "/*| docname \"push_button\", \"widget\", do { \
                 dsyntax <<push_button x, y, w, h, name, label, action>>;\
@@ -2057,7 +2057,7 @@ PREFIX(PushButton, tree, "push_button",
                 }\
           |*/")
 PREFIX(PushButtonTexture, tree, "push_button_texture",
-       PARM(w,real) PARM(h,real) PARM(n, text) PARM(l, text) PARM(a, tree),
+       PARM(w,real) PARM(h,real) PARM(n, text) PARM(l, text) PARM(a, code),
        RTAO(pushButtonTexture(self, w, h, n, l, a)), 
        "/*| docname \"push_button_texture\", \"widget\", do { \
                 dsyntax <<push_button_texture w, h, name, label, action>>;\
@@ -2074,7 +2074,7 @@ PREFIX(PushButtonTexture, tree, "push_button_texture",
 
 PREFIX(RadioButton, tree, "radio_button",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
-       PARM(n, text) PARM(l, text) PARM(m, text) PARM(a, tree),
+       PARM(n, text) PARM(l, text) PARM(m, text) PARM(a, code),
        RTAO(radioButton(self, x, y, w, h, n, l, m, a)), 
        "/*| docname \"radio_button\", \"widget\", do { \
                 dsyntax <<radio_button x, y, w, h, name, label, selected, action>>;\
@@ -2094,7 +2094,7 @@ PREFIX(RadioButton, tree, "radio_button",
           |*/")
 PREFIX(RadioButtonTexture, tree, "radio_button_texture",
        PARM(w,real) PARM(h,real) PARM(n, text) PARM(l, text)
-       PARM(m, text) PARM(a, tree),
+       PARM(m, text) PARM(a, code),
        RTAO(radioButtonTexture(self, w, h, n, l, m, a)), 
        "/*| docname \"radio_button_texture\", \"widget\", do { \
                 dsyntax <<radio_button_texture w, h, name, label, selected, action>>;\
@@ -2112,7 +2112,7 @@ PREFIX(RadioButtonTexture, tree, "radio_button_texture",
 
 PREFIX(CheckBoxButton, tree, "check_box_button",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
-       PARM(n, text) PARM(l, text) PARM(m, text) PARM(a, tree),
+       PARM(n, text) PARM(l, text) PARM(m, text) PARM(a, code),
        RTAO(checkBoxButton(self, x, y, w, h, n, l, m, a)), 
        "/*| docname \"check_box_button\", \"widget\", do { \
                 dsyntax <<check_box_button x, y, w, h, name, label, marked, action>>;\
@@ -2131,7 +2131,7 @@ PREFIX(CheckBoxButton, tree, "check_box_button",
           |*/")
 PREFIX(CheckBoxButtonTexture, tree, "check_box_button_texture",
        PARM(w,real) PARM(h,real) PARM(n, text) PARM(l, text)
-       PARM(m, text) PARM(a, tree),
+       PARM(m, text) PARM(a, code),
        RTAO(checkBoxButtonTexture(self, w, h, n, l, m, a)), 
        "/*| docname \"check_box_button_texture\", \"widget\", do { \
                 dsyntax <<check_box_button_texture w, h, name, label, marked, action>>;\
@@ -2147,9 +2147,9 @@ PREFIX(CheckBoxButtonTexture, tree, "check_box_button_texture",
           |*/")
 
 PREFIX(ColorChooser, tree, "color_chooser",
-       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,tree),
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,code),
        RTAO(colorChooser(self, x, y, w, h, t)), "")
-PREFIX(ColorChooserNow, tree, "color_chooser", PARM(n, text) PARM(t,tree),
+PREFIX(ColorChooserNow, tree, "color_chooser", PARM(n, text) PARM(t,code),
        RTAO(colorChooser(self, n, t)), 
        "/*| docname \"color_chooser\", \"widget\", do { \
                 dsyntax <<color_chooser x, y, w, h, tree>>;\
@@ -2169,7 +2169,7 @@ Once the color is chosen Names 'red', 'green', 'blue', and 'alpha' are replaced 
           |*/")
 
 PREFIX(ColorChooserTexture, tree, "color_chooser_texture",
-       PARM(w,real) PARM(h,real) PARM(t,tree),
+       PARM(w,real) PARM(h,real) PARM(t,code),
        RTAO(colorChooserTexture(self, w, h, t)), 
        "/*| docname \"color_chooser_texture\", \"widget\", do { \
                 dsyntax <<color_chooser_texture w, h, tree>>;\
@@ -2182,10 +2182,10 @@ PREFIX(ColorChooserTexture, tree, "color_chooser_texture",
                 see \"color_chooser\" \
                 }\
           |*/")
-PREFIX(FontChooserNow, tree, "font_chooser", PARM(t,tree),
+PREFIX(FontChooserNow, tree, "font_chooser", PARM(t,code),
        RTAO(fontChooser(self, t)), "")
 PREFIX(FontChooser, tree, "font_chooser",
-       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,tree),
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,code),
        RTAO(fontChooser(self, x, y, w, h, t)), 
        "/*| docname \"font_chooser\", \"widget\", do { \
                 dsyntax <<font_chooser t>>;\
@@ -2202,7 +2202,7 @@ Once the font is chosen, Names 'font_family', 'font_size', 'font_weight', 'font_
                 }\
           |*/")
 PREFIX(FontChooserTexture, tree, "font_chooser_texture",
-       PARM(w,real) PARM(h,real) PARM(t,tree),
+       PARM(w,real) PARM(h,real) PARM(t,code),
        RTAO(fontChooserTexture(self, w, h, t)), 
        "/*| docname \"font_chooser_texture\", \"widget\", do { \
                 dsyntax <<font_chooser_texture w, h, tree>>;\
@@ -2216,9 +2216,9 @@ PREFIX(FontChooserTexture, tree, "font_chooser_texture",
                 }\
           |*/")
 PREFIX(FileChooser, tree, "file_chooser",
-       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,tree),
+       PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,code),
        RTAO(fileChooser(self, x, y, w, h, t)), "")
-PREFIX(FileChooserNow, tree, "file_chooser", PARM(t,tree),
+PREFIX(FileChooserNow, tree, "file_chooser", PARM(t, code),
        RTAO(fileChooser(self, t)), 
        "/*| docname \"file_chooser\", \"widget\", do { \
                 dsyntax <<file_chooser x, y, w, h, tree>>;\
@@ -2240,7 +2240,7 @@ Once the file is selected, Names 'file_name', 'file_directory', 'file_path', and
                 }\
           |*/")
 PREFIX(FileChooserTexture, tree, "file_chooser_texture",
-       PARM(w,real) PARM(h,real) PARM(t,tree),
+       PARM(w,real) PARM(h,real) PARM(t, code),
        RTAO(fileChooserTexture(self, w, h, t)), 
        "/*| docname \"file_chooser_texture\", \"widget\", do { \
                 dsyntax <<file_chooser_texture w, h, t>>;\
@@ -2253,7 +2253,7 @@ PREFIX(FileChooserTexture, tree, "file_chooser_texture",
                 see \"file_chooser\"; \
                 }\
           |*/")
-PREFIX(SetFileDialogAction, tree, "file_chooser_action", PARM(t, tree),
+PREFIX(SetFileDialogAction, tree, "file_chooser_action", PARM(t, code),
        RTAO(setFileDialogAction(self, t)), 
        "/*| docname \"file_chooser_action\", \"widget\", do { \
                 dsyntax <<file_chooser_action t>>;\
@@ -2302,7 +2302,7 @@ PREFIX(SetFileDialogLabel, tree, "file_chooser_label",
           |*/")
 
 PREFIX(ButtonGroup, tree, "button_group",
-       PARM(ex, boolean) PARM(b, tree),
+       PARM(ex, boolean) PARM(b, code),
        RTAO(buttonGroup(context, self, ex, b)), 
        "/*| docname \"button_group\", \"widget\", do { \
                 dsyntax <<button_group ex, buttons>>;\
@@ -2314,7 +2314,7 @@ PREFIX(ButtonGroup, tree, "button_group",
                 }\
           |*/")
 
-PREFIX(Action, tree, "button_group_action", PARM(act, tree),
+PREFIX(Action, tree, "button_group_action", PARM(act, code),
        RTAO(setButtonGroupAction(self, act)), 
        "/*| docname \"button_group_action\", \"widget\", do { \
                 dsyntax <<button_group_action action>>;\
@@ -2328,7 +2328,7 @@ PREFIX(Action, tree, "button_group_action", PARM(act, tree),
 
 PREFIX(GroupBox, tree, "group_box",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
-       PARM(lbl, text) PARM(b, tree),
+       PARM(lbl, text) PARM(b, code),
        RTAO(groupBox(context, self, x, y, w, h, lbl, b)), 
        "/*| docname \"group_box\", \"widget\", do { \
                 dsyntax <<group_box x, y, w, h, label, buttons>>;\
@@ -2408,7 +2408,7 @@ PREFIX(Chooser, tree, "chooser", PARM(n, text),
                 parameter \"text\", \"c\", <<The caption of the chooser.>>;\
                 }\
           |*/")
-PREFIX(ChooserChoice, tree, "chooser_choice", PARM(n, text) PARM(t, tree),
+PREFIX(ChooserChoice, tree, "chooser_choice", PARM(n, text) PARM(t, code),
        RTAO(chooserChoice(self, n, t)), 
        "/*| docname \"chooser_choice\", \"code:chooser\", do { \
                 dsyntax <<chooser_choice l, t>>;\
@@ -2511,7 +2511,7 @@ PREFIX(SubMenu, tree, "submenu",
 
 PREFIX(MenuItem, tree, "menu_item",
        PARM(n, text) PARM(lbl, text) PARM(icon, text) PARM(cable, boolean)
-       PARM(isc, text)  PARM(t, tree),
+       PARM(isc, text)  PARM(t, code),
        RTAO(menuItem(self, n, lbl, icon, cable, isc, t)),
        "/*| docname \"menu_item\", \"widget:menu\", do { \
                 dsyntax <<menu_item \"unique_name\", \"label\", \"icon\", checkable, isChecked, tree>>;\
@@ -2565,7 +2565,7 @@ PREFIX(Separator, tree, "separator", ,
 //
 // ============================================================================
 
-PREFIX(ErrorMessage, tree, "error", PARM(m, text) PARM(s, tree),
+PREFIX(ErrorMessage, tree, "error", PARM(m, text) PARM(s, code),
        return Tao::Widget::runtimeError(self, m, s), "")
 PREFIX(ErrorMessage0, tree, "error", PARM(m, text),
        return Tao::Widget::runtimeError(self, m, NULL), 
@@ -2588,9 +2588,9 @@ PREFIX(ErrorMessage0, tree, "error", PARM(m, text),
 //   Tree management
 //
 // ============================================================================
-PREFIX(Insert0, boolean, "insert", PARM(m, text) PARM(t, tree),
+PREFIX(Insert0, boolean, "insert", PARM(m, text) PARM(t, source),
        RTAO(insert(self, t, m)), "")
-PREFIX(Insert, boolean, "insert", PARM(t, tree), RTAO(insert(self, t)), 
+PREFIX(Insert, boolean, "insert", PARM(t, source), RTAO(insert(self, t)), 
        "/*| docname \"insert\", \"tree\", do { \
                 dsyntax <<insert m, t>>;\
                 dsyntax <<insert t>>;\
@@ -2612,7 +2612,7 @@ PREFIX(Delete, boolean, "delete_selection", PARM(k, text),
                 }\
           |*/")
 PREFIX(SetAttribute, boolean, "set_attribute",
-       PARM(n, text) PARM(t, tree),
+       PARM(n, text) PARM(t, source),
        RTAO(setAttribute(self, n, t, "group,shape")), 
        "/*| docname \"set_attribute\", \"tree\", do { \
                 dsyntax <<set_attribute n, t>>;\
@@ -2666,7 +2666,7 @@ PREFIX(SendBackward, boolean, "send_backward",, RTAO(sendBackward(self)),
 //
 // ============================================================================
 
-PREFIX(Group, tree, "group",   PARM(t, tree),
+PREFIX(Group, tree, "group",   PARM(t, code),
        RTAO(group(context, self, t)), 
        "/*| docname \"group\", \"code:group\", do { \
                 dsyntax <<group t>>;\
@@ -2758,7 +2758,7 @@ POSTFIX(FromPx,   real, PARM(x, real), "px", RTAO(fromPx(self, x)),
 //
 // ============================================================================
 
-PREFIX(Constant, tree, "constant", PARM(t, tree), RTAO(constant(self, t)), 
+PREFIX(Constant, tree, "constant", PARM(t, code), RTAO(constant(self, t)), 
        "/*| docname \"constant\", \"code\", do { \
                 dsyntax <<constant t>>;\
                 synopsis \"a constant tree\" ; \
@@ -2768,7 +2768,7 @@ PREFIX(Constant, tree, "constant", PARM(t, tree), RTAO(constant(self, t)),
                 return_value \"tree\", <<the tree>>;\
                 }\
           |*/")
-PREFIX(GenDoc, tree, "generate_doc", PARM(t, tree),RTAO(generateDoc(self, t)),
+PREFIX(GenDoc, tree, "generate_doc", PARM(t, source),RTAO(generateDoc(self, t)),
 "/*| docname \"generate_doc\", \"documentation\", do { \
          dsyntax \"generate_doc t\" ;\
          synopsis \"generate the doc for the specified tree \"; \

@@ -407,7 +407,7 @@ void Chooser::AddCommands(Context *ctx, text prefix, text label)
             }
 
             // Create a closure from the resulting commands to remember context
-            Tree *command = ctx->CreateClosure(rw->to);
+            Tree *command = ctx->CreateCode(rw->to);
             AddItem(label + caption, command);
         }
 

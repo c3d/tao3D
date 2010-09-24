@@ -189,18 +189,22 @@ public:
     // ------------------------------------------------------------------------
     {
         ModuleInfo() {}
-        ModuleInfo(QString id, QString path, QString name, bool enabled)
-            : id(id), path(path), name(name), enabled(enabled), loaded(false),
+        ModuleInfo(QString id, QString path, bool enabled = false)
+            : id(id), path(path), enabled(enabled), loaded(false),
               updateAvailable(false)
             {}
 
         QString id;
         QString path;
+
+        // Properties
         QString name;
-        QString ver;
-        QString latest;
         QString desc;
         QString icon;
+        QString ver;
+
+        // Runtime attributes
+        QString latest;
         bool    enabled;
         bool    loaded;
         bool    updateAvailable;
@@ -213,6 +217,11 @@ public:
         text toText() const
         {
             return +id + " (" + +path + ")";
+        }
+
+        void copyProperties(const ModuleInfo &o)
+        {
+            name = o.name;  desc = o.desc;  icon = o.icon;  ver = o.ver;
         }
     };
 
@@ -259,7 +268,8 @@ private:
         // If pattern is found at indentation level 0, a pointer to value is
         // returned. Otherwise, NULL is returned.
         FindAttribute (text sectionName, text attrName):
-                sectionName(sectionName), attrName(attrName) {}
+                sectionName(sectionName), attrName(attrName),
+                sectionFound(false) {}
 
         Tree *DoBlock(Block *what);
         Tree *DoInfix(Infix *what);
@@ -276,7 +286,6 @@ private:
 
     bool                loadConfig();
     bool                checkConfig();
-    bool                isValid(const ModuleInfo &m);
     bool                removeFromConfig(const ModuleInfo &m);
     bool                addToConfig(const ModuleInfo &m);
 

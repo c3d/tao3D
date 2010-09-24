@@ -89,7 +89,9 @@ bool ModuleManager::initPaths()
 {
 #   define MODULES "/modules"
     u = Application::defaultTaoPreferencesFolderPath() + MODULES;
+    u = QDir::toNativeSeparators(u);
     s = Application::defaultTaoApplicationFolderPath() + MODULES;
+    s = QDir::toNativeSeparators(s);
 #   undef MODULES
 
     IFTRACE(modules)
@@ -126,11 +128,10 @@ bool ModuleManager::loadConfig()
     {
         settings.beginGroup(id);
 
-        QString name    = settings.value("Name").toString();
         QString path    = settings.value("Path").toString();
         bool    enabled = settings.value("Enabled").toBool();
 
-        ModuleInfo m(id, path, name, enabled);
+        ModuleInfo m(id, path, enabled);
         modules.append(m);
         modulesById[id]     = &modules.last();
 
@@ -158,12 +159,13 @@ bool ModuleManager::checkConfig()
     foreach (ModuleInfo m, modules)
     {
         total++;
-        if (!isValid(m))
+        ModuleInfo d = readModule(m.path);
+        if (d.id != m.id)
         {
             invalid++;
             IFTRACE(modules)
-                debug() << "Module '" << +m.id << "' not found on disk "
-                           "or invalid\n";
+                debug() << "Module '" << m.toText() << "' not found on disk "
+                           "or ID mismatch\n";
             if (askRemove(m, tr("Module is not found or invalid")))
             {
                 if (removeFromConfig(m))
@@ -172,6 +174,7 @@ bool ModuleManager::checkConfig()
         }
         else
         {
+            modulesById[m.id]->copyProperties(d);
             if (!m.enabled)
                 disabled++;
         }
@@ -226,7 +229,6 @@ bool ModuleManager::addToConfig(const ModuleInfo &m)
     QSettings settings;
     settings.beginGroup(USER_MODULES_SETTING_GROUP);
     settings.beginGroup(m.id);
-    settings.setValue("Name", m.name);
     settings.setValue("Path", m.path);
     settings.setValue("Enabled", m.enabled);
     settings.endGroup();
@@ -256,15 +258,6 @@ void ModuleManager::setEnabled(QString id, bool enabled)
     settings.setValue("Enabled", enabled);
     settings.endGroup();
     settings.endGroup();
-}
-
-
-bool ModuleManager::isValid(const ModuleInfo &m)
-// ----------------------------------------------------------------------------
-//   Check if module is valid wrt. what is installed on the filesystem
-// ----------------------------------------------------------------------------
-{
-    return (readModule(m.path) == m);
 }
 
 
@@ -384,22 +377,13 @@ ModuleManager::ModuleInfo ModuleManager::readModule(QString moduleDir)
             if (id != "")
             {
                 QString name = moduleAttr(tree, "name");
-                m = ModuleInfo(id, moduleDir, name, false);
+                m = ModuleInfo(id, moduleDir);
+                m.name = name;
                 m.desc = moduleAttr(tree, "description");
                 m.ver = gitVersion(moduleDir);
                 QString iconPath = QDir(moduleDir).filePath("icon.png");
                 if (QFile(iconPath).exists())
                     m.icon = iconPath;
-
-                // Update module information
-                if (modulesById.contains(m.id))
-                {
-                    ModuleInfo *p = modulesById[m.id];
-                    p->name = m.name;
-                    p->desc = m.desc;
-                    p->ver = m.ver;
-                    p->icon = m.icon;
-                }
             }
         }
     }

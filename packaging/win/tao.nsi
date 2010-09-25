@@ -1,9 +1,10 @@
 ; tao.nsi
 ;
 ; Tao NSIS installation script.
-; Based on example2.nsi.
 
 ;--------------------------------
+
+!include "MUI.nsh"
 
 ; The name of the installer
 Name "Tao"
@@ -24,20 +25,46 @@ InstallDirRegKey HKLM "Software\Taodyne\Tao" "Install_Dir"
 ; Request application privileges for Windows Vista
 RequestExecutionLevel admin
 
+
+; Installer & uninstaller icons
+!define MUI_ICON "tao_inst.ico"
+!define MUI_UNICON "tao_uninst.ico"
+
+; Installer & uninstaller bitmaps
+!define MUI_HEADERIMAGE
+!define MUI_HEADERIMAGE_RIGHT
+!define MUI_HEADERIMAGE_BITMAP "inst_header.bmp"
+!define MUI_HEADERIMAGE_UNBITMAP "uninst_header.bmp"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "inst_welcome_finish.bmp"
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "uninst_welcome_finish.bmp"
+
 ;--------------------------------
 
 ; Pages
 
-Page components
-Page directory
-Page instfiles
+  !insertmacro MUI_PAGE_WELCOME
+;  !insertmacro MUI_PAGE_LICENSE "License.txt"
+  !insertmacro MUI_PAGE_COMPONENTS
+  !insertmacro MUI_PAGE_DIRECTORY
+  !insertmacro MUI_PAGE_INSTFILES
+  !insertmacro MUI_PAGE_FINISH
 
-UninstPage uninstConfirm
-UninstPage instfiles
+  !insertmacro MUI_UNPAGE_WELCOME
+  !insertmacro MUI_UNPAGE_CONFIRM
+  !insertmacro MUI_UNPAGE_INSTFILES
+  !insertmacro MUI_UNPAGE_FINISH
 
 ;--------------------------------
 
-; The stuff to install
+;Languages
+
+  !insertmacro MUI_LANGUAGE "English"
+
+
+;--------------------------------
+
+; Installer sections
+
 Section "Tao (required)"
 
   SectionIn RO

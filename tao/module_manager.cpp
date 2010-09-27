@@ -458,7 +458,7 @@ bool ModuleManager::load(const ModuleInfo &m)
         debug() << "Loading module " << m.toText() << "\n";
 
     QString xlPath = QDir(m.path).filePath("module.xl");
-    ok = xl_load(+xlPath) != NULL;
+    ok = XL::xl_load(+xlPath) != NULL;
 
     if (ok && modulesById.contains(m.id))
         modulesById[m.id]->loaded = true;

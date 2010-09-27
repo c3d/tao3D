@@ -171,8 +171,6 @@ a shared library that will be loaded by module_init.
 
 namespace Tao {
 
-using namespace XL;
-
 struct ModuleManager : public QObject
 // ----------------------------------------------------------------------------
 //   A singleton class to deal with modules

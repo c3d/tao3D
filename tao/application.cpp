@@ -28,6 +28,7 @@
 #include "git_backend.h"
 #include "tao.h"
 #include "tao_utf8.h"
+#include "tao_main.h"
 #include "error_message_dialog.h"
 #include "options.h"
 #include "uri.h"
@@ -99,10 +100,10 @@ Application::Application(int & argc, char ** argv)
     QFileInfo stylesheet("system:xl.stylesheet");
     QFileInfo builtins  ("system:builtins.xl");
     XL::Compiler *compiler = new XL::Compiler("xl_tao");
-    XL::Main * xlr = new XL::Main(argc, argv, compiler,
-                                  +syntax.canonicalFilePath(),
-                                  +stylesheet.canonicalFilePath(),
-                                  +builtins.canonicalFilePath());
+    XL::Main * xlr = new Main(argc, argv, compiler,
+                              +syntax.canonicalFilePath(),
+                              +stylesheet.canonicalFilePath(),
+                              +builtins.canonicalFilePath());
     loadDebugTraceSettings();
 
     // Web settings

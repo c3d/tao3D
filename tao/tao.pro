@@ -28,8 +28,8 @@ QMAKE_CXXFLAGS += -Werror
 QMAKE_CXXFLAGS_RELEASE += -g \
     \$(CXXFLAGS_\$%)
 
-# Tell the XLR portion that we are building for Tao
-DEFINES += TAO \
+# LIBXLR: tell the XLR portion we have our own main()
+DEFINES += LIBXLR \
     DEBUG
 macx {
     DEFINES += CONFIG_MACOSX

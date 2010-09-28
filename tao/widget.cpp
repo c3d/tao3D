@@ -7670,7 +7670,6 @@ XL::Tree *NameToTextReplacement::DoName(XL::Name *what)
     return new XL::Name(what->value, what->Position());
 }
 
-TAO_END
 
 
 // ============================================================================
@@ -7679,8 +7678,6 @@ TAO_END
 //
 // ============================================================================
 
-namespace XL
-{
 void tao_widget_refresh(double delay)
 // ----------------------------------------------------------------------------
 //    Refresh the current widget
@@ -7688,4 +7685,5 @@ void tao_widget_refresh(double delay)
 {
     TAO(refresh(delay));
 }
-}
+
+TAO_END

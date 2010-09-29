@@ -9,6 +9,7 @@
 # (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 # (C) 2010 Catherine Burvelle <cathy@taodyne.com>
 # (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
+# (C) 2010 Jerome Forissier <jerome@taodyne.com>
 # (C) 2010 Taodyne SAS
 # ******************************************************************************
 TEMPLATE = app
@@ -18,6 +19,7 @@ DEPENDPATH += . \
     xlr/xlr
 INCLUDEPATH += . \
     xlr/xlr
+win32:LIBS += -L../libxlr/release -L../libxlr/debug  # REVISIT
 LIBS += -L../libxlr -lxlr
 QT += webkit \
     network \

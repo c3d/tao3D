@@ -38,7 +38,12 @@ FONTS="unifont-5.1.20080907.ttf"
 for f in $FONTS ; do
     doo cp $SRCDIR/fonts/$f buildroot/fonts
 done
+LIBS="libxlr/$MODE/xlr.dll"
+for f in $LIBS ; do
+    doo cp ../../$f buildroot
+done
 for f in `bin/ldd buildroot/Tao.exe | \
+          grep -v -i 'buildroot' | \
           grep -v -i 'windows/system' | \
           grep -v -i 'ntdll.dll' | \
           grep -v -i 'comctl' | \

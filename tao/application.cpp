@@ -78,7 +78,7 @@ Application::Application(int & argc, char ** argv)
     if (arguments().contains("--internal-use-only-clean-environment"))
     {
         internalCleanEverythingAsIfTaoWereNeverRun();
-        std::exit(0);
+        exit(0);
     }
     bool showSplash = true;
     if (arguments().contains("-nosplash") || arguments().contains("-h"))

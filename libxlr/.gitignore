@@ -1,1 +1,4 @@
+/Makefile
+/Makefile.Debug
+/Makefile.Release
 /libxlr*.dylib

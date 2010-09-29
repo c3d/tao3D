@@ -17,6 +17,8 @@ CONFIG  += dll
 QT      -= core gui
 #VERSION  = "1.0.0"
 
+INCLUDEPATH += .
+
 QMAKE_CFLAGS += -Werror
 QMAKE_CXXFLAGS += -Werror
 QMAKE_CXXFLAGS_RELEASE += -g \

@@ -18,6 +18,7 @@ DEPENDPATH += . \
     xlr/xlr
 INCLUDEPATH += . \
     xlr/xlr
+LIBS += -L../libxlr -lxlr
 QT += webkit \
     network \
     opengl \
@@ -28,9 +29,7 @@ QMAKE_CXXFLAGS += -Werror
 QMAKE_CXXFLAGS_RELEASE += -g \
     \$(CXXFLAGS_\$%)
 
-# LIBXLR: tell the XLR portion we have our own main()
-DEFINES += LIBXLR \
-    DEBUG
+DEFINES += DEBUG
 macx {
     DEFINES += CONFIG_MACOSX
     XLRDIR = Contents/MacOS
@@ -86,40 +85,12 @@ HEADERS += widget.h \
     tao_utf8.h \
     tao_tree.h \
     font.h \
-    xlr/xlr/utf8.h \
-    xlr/xlr/base.h \
-    xlr/xlr/options.h \
-    xlr/xlr/basics.h \
-    xlr/xlr/parser.h \
-    xlr/xlr/compiler.h \
-    xlr/xlr/renderer.h \
-    xlr/xlr/configuration.h \
-    xlr/xlr/runtime.h \
-    xlr/xlr/context.h \
-    xlr/xlr/scanner.h \
-    xlr/xlr/errors.h \
-    xlr/xlr/serializer.h \
-    xlr/xlr/hash.h \
-    xlr/xlr/sha1.h \
-    xlr/xlr/main.h \
-    xlr/xlr/sha1_ostream.h \
-    xlr/xlr/opcodes.h \
-    xlr/xlr/syntax.h \
-    xlr/xlr/opcodes_declare.h \
-    xlr/xlr/tree.h \
-    xlr/xlr/gc.h \
-    xlr/xlr/opcodes_define.h \
-    xlr/xlr/types.h \
-    xlr/xlr/diff.h \
-    xlr/xlr/lcs.h \
-    xlr/xlr/bfs.h \
     drag.h \
     pull_from_dialog.h \
     remote_selection_frame.h \
     undo.h \
     clone_dialog.h \
     ansi_textedit.h \
-    xlr/xlr/opcodes_delete.h \
     error_message_dialog.h \
     group_layout.h \
     resource_mgt.h \
@@ -188,24 +159,6 @@ SOURCES += tao_main.cpp \
     git_backend.cpp \
     application.cpp \
     font.cpp \
-    xlr/xlr/tree.cpp \
-    xlr/xlr/gc.cpp \
-    xlr/xlr/sha1.cpp \
-    xlr/xlr/serializer.cpp \
-    xlr/xlr/syntax.cpp \
-    xlr/xlr/scanner.cpp \
-    xlr/xlr/runtime.cpp \
-    xlr/xlr/renderer.cpp \
-    xlr/xlr/parser.cpp \
-    xlr/xlr/options.cpp \
-    xlr/xlr/opcodes.cpp \
-    xlr/xlr/main.cpp \
-    xlr/xlr/errors.cpp \
-    xlr/xlr/context.cpp \
-    xlr/xlr/compiler.cpp \
-    xlr/xlr/types.cpp \
-    xlr/xlr/diff.cpp \
-    xlr/xlr/lcs.cpp \
     drag.cpp \
     pull_from_dialog.cpp \
     remote_selection_frame.cpp \
@@ -244,8 +197,7 @@ SOURCES += tao_main.cpp \
     module_manager.cpp \
     portability.cpp
 CXXTBL_SOURCES += graphics.cpp \
-    formulas.cpp \
-    xlr/xlr/basics.cpp
+    formulas.cpp
 
 !win32 {
     HEADERS += GL/glew.h \
@@ -259,21 +211,6 @@ macx {
         ApplicationServices
 }
 RESOURCES += tao.qrc
-
-# We need bash, llvm-config
-!system(bash -c \"bash --version >/dev/null\"):error("Can't execute bash")
-!system(bash -c \"llvm-config --version >/dev/null\"):error("Can't execute llvm-config")
-
-# LLVM dependencies
-LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\")
-LLVM_LIBS += $$system(bash -c \"llvm-config --ldflags\")
-LLVM_INC = $$system(bash -c \"llvm-config --includedir\")
-LLVM_DEF = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
-
-# Consolidated flags and libs
-INCLUDEPATH += $$LLVM_INC
-LIBS += $$LLVM_LIBS
-DEFINES += $$LLVM_DEF
 
 # Others
 OTHER_FILES += xl.syntax \

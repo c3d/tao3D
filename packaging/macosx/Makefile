@@ -76,6 +76,7 @@ clean.tao_install: clean.tao_install_prog clean.tao_install_deps
 
 .tao_install_deps_ts: .tao_install_prog_ts
 	macdeployqt build_root/Tao.app
+	cp -p ../../libxlr/libxlr*.dylib build_root/Tao.app/Contents/Frameworks
 	cp -p ../../ssh_ask_pass/SshAskPass.app/Contents/MacOS/SshAskPass build_root/Tao.app/Contents/MacOS
 	touch $@
 

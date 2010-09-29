@@ -12,5 +12,5 @@
 
 
 TEMPLATE = subdirs
-SUBDIRS  = tao ssh_ask_pass
+SUBDIRS  = libxlr tao ssh_ask_pass
 win32:SUBDIRS += detach

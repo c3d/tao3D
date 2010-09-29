@@ -11,11 +11,11 @@ void tao_widget_refresh(double delay);
 
 struct Main : public XL::Main
 {
-    Main(int argc, char **argv, XL::Compiler *comp,
+    Main(int argc, char **argv, text name = "xl_tao",
          text syntax = "xl.syntax",
          text style = "xl.stylesheet",
          text builtins = "builtins.xl")
-         : XL::Main(argc, argv, comp, syntax, style, builtins)
+         : XL::Main(argc, argv, name, syntax, style, builtins)
     {
         XL::refresh_fn = tao_widget_refresh;
     }

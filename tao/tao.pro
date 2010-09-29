@@ -121,7 +121,8 @@ HEADERS += widget.h \
     diff_dialog.h \
     diff_highlighter.h \
     module_manager.h \
-    portability.h
+    portability.h \
+    tao_main.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \

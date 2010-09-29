@@ -47,7 +47,7 @@ void EnterFormulas(XL::Symbols *c)
 //   Enter all the operations defined in formulas.tbl
 // ----------------------------------------------------------------------------
 {
-    XL::Compiler *compiler = MAIN->compiler;
+    XL::Main *main = MAIN;
 #include "opcodes_define.h"
 #include "formulas.tbl"
 }

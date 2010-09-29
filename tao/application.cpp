@@ -99,8 +99,7 @@ Application::Application(int & argc, char ** argv)
     QFileInfo syntax    ("system:xl.syntax");
     QFileInfo stylesheet("system:xl.stylesheet");
     QFileInfo builtins  ("system:builtins.xl");
-    XL::Compiler *compiler = new XL::Compiler("xl_tao");
-    XL::Main * xlr = new Main(argc, argv, compiler,
+    XL::Main * xlr = new Main(argc, argv, "xl_tao",
                               +syntax.canonicalFilePath(),
                               +stylesheet.canonicalFilePath(),
                               +builtins.canonicalFilePath());

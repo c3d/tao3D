@@ -47,7 +47,7 @@ void EnterGraphics(XL::Symbols *c)
 //   Enter all the basic operations defined in graphics.tbl
 // ----------------------------------------------------------------------------
 {
-    XL::Compiler *compiler = MAIN->compiler;
+    XL::Main *main = MAIN;
 #include "opcodes_define.h"
 #include "graphics.tbl"
 }

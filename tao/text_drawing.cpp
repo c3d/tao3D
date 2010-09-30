@@ -936,7 +936,7 @@ void TextSpan::PerformInsertOperation(Layout * l,
         // its parent is the prefix text, so surch for the grand parent.
         XL::FindParentAction getGrandParent(source, 2);
         Tree * grandParent = widget->xlProgram->tree->Do(getGrandParent);
-        char lastChar = getGrandParent.path->at(getGrandParent.path->size() - 1);
+        char lastChar = getGrandParent.path.at(getGrandParent.path.size() - 1);
 
         XL::Infix   *inf  = grandParent->AsInfix();
         XL::Block   *bl   = grandParent->AsBlock();

@@ -50,6 +50,8 @@
 #include <sstream>
 #include <map>
 
+#include "widgettests.h"
+
 namespace Tao {
 
 struct Window;
@@ -63,7 +65,6 @@ struct Repository;
 struct Drag;
 struct TextSelect;
 struct WidgetSurface;
-
 
 // ----------------------------------------------------------------------------
 // Name of fixed menu.
@@ -710,6 +711,21 @@ private:
     void        updateFileDialog(Tree *properties, Tree *context);
     Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child);
     bool    updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group);
+
+//    bool        screenShot();
+//    QImage      oldImage; // CaB
+
+    //Tests // CaB
+public:
+    Tree_p testRectangle(XL::Tree *self);
+    Tree_p startRecTest(XL::Tree *self);
+    Tree_p stopRecTest(XL::Tree *self);
+    Tree_p saveTest(XL::Tree *self);
+    Tree_p playTest(XL::Tree *self);
+    Tree_p loadTest(XL::Tree *self);
+    WidgetTests currentTest;
+
+
 
 };
 

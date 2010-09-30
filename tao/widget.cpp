@@ -84,6 +84,9 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 
+#include <QtGui>
+#include <QtTest/QtTest>
+
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
 
 #define CHECK_0_1_RANGE(var) if (var < 0) var = 0; else if (var > 1) var = 1;
@@ -148,8 +151,10 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentFileDialog(NULL),
       zoom(1.0), eyeDistance(20.0),
       eye(0.0, 0.0, Widget::zNear), viewCenter(0.0, 0.0, 0.0),
-      dragging(false), bAutoHideCursor(false), forceRefresh(false)
+      dragging(false), bAutoHideCursor(false), forceRefresh(false),
+      currentTest(this)
 {
+    setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
 
@@ -203,8 +208,14 @@ Widget::~Widget()
     delete path;
     delete sourceRenderer;
 }
-
-
+//
+// CaB
+//bool Widget::screenShot()
+//{
+//    QImage imageBuffer = grabFrameBuffer(true);
+//    imageBuffer.save("widget.png");
+//    return true;
+//}
 
 // ============================================================================
 //
@@ -568,8 +579,23 @@ void Widget::copy()
 // otherwise the selected tree is serialized and placed into the clipboard.
 {
     if (!hasSelection())
-        return;
+    {
+        //If no selection copy the Image
+        QClipboard *clipboard = QApplication::clipboard();
+        clipboard->setImage(grabFrameBuffer(true));
 
+//        // CaB Test to be removed
+//        QImage newImage = grabFrameBuffer(true);
+//
+//        if (oldImage == newImage)
+//            std::cerr << "Images are equal\n";
+//        else
+//            std::cerr << "Images are NOT equal\n";
+//
+//        oldImage = newImage;
+
+        return;
+    }
     QMimeData *mimeData = new QMimeData;
 
     TextSelect *sel;
@@ -1887,6 +1913,7 @@ void Widget::updateProgram(XL::SourceFile *source)
 // ----------------------------------------------------------------------------
 {
     xlProgram = source;
+    setObjectName(QString("Widget:").append(+xlProgram->name));
     if (Tree *prog = xlProgram->tree)
     {
         Renormalize renorm(this);
@@ -5814,6 +5841,7 @@ Tree_p Widget::colorChooser(Tree_p self, text treeName, Tree_p action)
 
     // Setup the color dialog
     colorDialog = new QColorDialog(this);
+    colorDialog->setObjectName("colorDialog");
     colorDialog->setOption(QColorDialog::ShowAlphaChannel, true);
     colorDialog->setOption(QColorDialog::DontUseNativeDialog, false);
     colorDialog->setModal(false);
@@ -5947,6 +5975,7 @@ Tree_p Widget::fontChooser(Tree_p self, Tree_p action)
     }
 
     fontDialog = new QFontDialog(this);
+    fontDialog->setObjectName("fontDialog");
     connect(fontDialog, SIGNAL(fontSelected (const QFont&)),
             this, SLOT(fontChosen(const QFont &)));
     connect(fontDialog, SIGNAL(currentFontChanged (const QFont&)),
@@ -7670,6 +7699,54 @@ XL::Tree *NameToTextReplacement::DoName(XL::Name *what)
         return new XL::Text((*found).second, "\"", "\"", what->Position());
     }
     return new XL::Name(what->value, what->Position());
+}
+
+
+// ============================================================================
+//
+//   Tests functions
+//
+// ============================================================================
+
+Tree_p Widget::testRectangle(XL::Tree */*self*/)
+{
+    QString fullName("menu:insert > shape > rectangle");
+    if (QAction* act = parent()->findChild<QAction*>(fullName))
+    {
+        act->activate(QAction::Trigger);
+        QTest::mousePress(this, Qt::LeftButton, 0, QPoint(), 500);
+        QTest::mouseMove(this, QPoint(452,730), 500);
+        QTest::mouseRelease(this, Qt::LeftButton, 0, QPoint(452,730), 500);
+    }
+    return XL::xl_true;
+
+}
+
+Tree_p Widget::startRecTest(XL::Tree *)
+{
+    currentTest.name = "Alfred";
+    currentTest.startRecord();
+    return XL::xl_true;
+}
+Tree_p Widget::stopRecTest(XL::Tree *)
+{
+    currentTest.stopRecord();
+    return XL::xl_true;
+}
+Tree_p Widget::playTest(XL::Tree *)
+{
+    currentTest.play();
+    return XL::xl_true;
+}
+Tree_p Widget::loadTest(XL::Tree *)
+{
+    currentTest.load();
+    return XL::xl_true;
+}
+Tree_p Widget::saveTest(XL::Tree *)
+{
+    currentTest.save();
+    return XL::xl_true;
 }
 
 TAO_END

@@ -28,7 +28,7 @@
 //
 // ============================================================================
 
-PREFIX(Page, text, "page", PARM(n, text) PARM(b, tree), RTAO(page(self,n,b)), 
+PREFIX(Page, text, "page", PARM(n, text) PARM(b, tree), RTAO(page(self,n,b)),
        "/*| docname \"page\", \"page\", do { \
                 dsyntax <<page name, content>>;\
                 synopsis \"Create a new page.\" ; \
@@ -40,7 +40,7 @@ PREFIX(Page, text, "page", PARM(n, text) PARM(b, tree), RTAO(page(self,n,b)),
                 }\
           |*/")
 PREFIX(PageLink, text, "page_link", PARM(k, text) PARM(n, text),
-       RTAO(pageLink(self, k, n)), 
+       RTAO(pageLink(self, k, n)),
        "/*| docname \"page_link\", \"page\", do { \
                 dsyntax <<page_link key, name>>;\
                 synopsis \"Indicate the chaining of pages.\" ; \
@@ -51,7 +51,7 @@ PREFIX(PageLink, text, "page_link", PARM(k, text) PARM(n, text),
                 return_value \"text\", <<The name of the page previously linked to this key.>>;\
                 }\
           |*/")
-PREFIX(GotoPage, text, "goto_page", PARM(p, text), RTAO(gotoPage(self, p)), 
+PREFIX(GotoPage, text, "goto_page", PARM(p, text), RTAO(gotoPage(self, p)),
        "/*| docname \"goto_page\", \"page\", do { \
                 dsyntax <<goto_page name>>;\
                 synopsis \"Directly go to the given page.\" ; \
@@ -62,7 +62,7 @@ PREFIX(GotoPage, text, "goto_page", PARM(p, text), RTAO(gotoPage(self, p)),
                 }\
           |*/")
 
-PREFIX(PageLabel,   text,     "page_label", ,   RTAO(pageLabel(self)), 
+PREFIX(PageLabel,   text,     "page_label", ,   RTAO(pageLabel(self)),
        "/*| docname \"page_label\", \"page\", do { \
                 dsyntax <<page_label>>;\
                 synopsis \"The current page name.\" ; \
@@ -70,7 +70,7 @@ PREFIX(PageLabel,   text,     "page_label", ,   RTAO(pageLabel(self)),
                 return_value \"text\", <<Return the label of the current page>>;\
                 }\
           |*/")
-PREFIX(PageId,      integer,  "page_number", ,  RTAO(pageNumber(self)), 
+PREFIX(PageId,      integer,  "page_number", ,  RTAO(pageNumber(self)),
        "/*| docname \"page_number\", \"page\", do { \
                 dsyntax <<page_number>>;\
                 synopsis \"The current page number\" ; \
@@ -78,7 +78,7 @@ PREFIX(PageId,      integer,  "page_number", ,  RTAO(pageNumber(self)),
                 return_value \"integer\", <<Return the number of the current page>>;\
                 }\
           |*/")
-PREFIX(PageCount,   integer,  "page_count", ,   RTAO(pageCount(self)), 
+PREFIX(PageCount,   integer,  "page_count", ,   RTAO(pageCount(self)),
        "/*| docname \"page_count\", \"page\", do { \
                 dsyntax <<page_count>>;\
                 synopsis \"The number of page.\" ; \
@@ -86,7 +86,7 @@ PREFIX(PageCount,   integer,  "page_count", ,   RTAO(pageCount(self)),
                 return_value \"integer\", <<Return the number of pages in the current document>>;\
                 }\
           |*/")
-PREFIX(PageWidth,   real,     "page_width", ,   RTAO(pageWidth(self)), 
+PREFIX(PageWidth,   real,     "page_width", ,   RTAO(pageWidth(self)),
        "/*| docname \"page_width\", \"page\", do { \
                 dsyntax <<page_width>>;\
                 synopsis \"Return the width of pages\" ; \
@@ -94,7 +94,7 @@ PREFIX(PageWidth,   real,     "page_width", ,   RTAO(pageWidth(self)),
                 return_value \"real\", <<Return the width of pages>>;\
                 }\
           |*/")
-PREFIX(PageHeight,  real,     "page_height", ,  RTAO(pageHeight(self)), 
+PREFIX(PageHeight,  real,     "page_height", ,  RTAO(pageHeight(self)),
        "/*| docname \"page_height\", \"page\", do { \
                 dsyntax <<page_height>>;\
                 synopsis \"Return the height of pages\" ; \
@@ -102,7 +102,7 @@ PREFIX(PageHeight,  real,     "page_height", ,  RTAO(pageHeight(self)),
                 return_value \"real\", <<Return the height of pages>>;\
                 }\
           |*/")
-PREFIX(FrameWidth,  real,     "frame_width", ,  RTAO(frameWidth(self)), 
+PREFIX(FrameWidth,  real,     "frame_width", ,  RTAO(frameWidth(self)),
        "/*| docname \"frame_width\", \"frame\", do { \
                 dsyntax <<frame_width>>;\
                 synopsis \"Return the width of the current layout frame\" ; \
@@ -110,7 +110,7 @@ PREFIX(FrameWidth,  real,     "frame_width", ,  RTAO(frameWidth(self)),
                 return_value \"real\", <<Return the width of the current layout frame>>;\
                 }\
           |*/")
-PREFIX(FrameHeight, real,     "frame_height", , RTAO(frameHeight(self)), 
+PREFIX(FrameHeight, real,     "frame_height", , RTAO(frameHeight(self)),
        "/*| docname \"frame_height\", \"frame\", do { \
                 dsyntax <<frame_height>>;\
                 synopsis \"Return the height of the current layout frame\" ; \
@@ -118,7 +118,7 @@ PREFIX(FrameHeight, real,     "frame_height", , RTAO(frameHeight(self)),
                 return_value \"real\", <<Return the height of the current layout frame>>;\
                 }\
           |*/")
-PREFIX(FrameDepth,  real,     "frame_depth", ,  RTAO(frameDepth(self)), 
+PREFIX(FrameDepth,  real,     "frame_depth", ,  RTAO(frameDepth(self)),
        "/*| docname \"frame_depth\", \"frame\", do { \
                 dsyntax <<frame_depth>>;\
                 synopsis \"Return the depth of the current layout frame\" ; \
@@ -126,7 +126,7 @@ PREFIX(FrameDepth,  real,     "frame_depth", ,  RTAO(frameDepth(self)),
                 return_value \"real\", <<Return the depth of the current layout frame>>;\
                 }\
           |*/")
-PREFIX(WindowWidth, real,     "window_width", , RTAO(windowWidth(self)), 
+PREFIX(WindowWidth, real,     "window_width", , RTAO(windowWidth(self)),
        "/*| docname \"window_width\", \"window\", do { \
                 dsyntax <<window_width>>;\
                 synopsis \"Return the width of the window in which we display\" ; \
@@ -134,7 +134,7 @@ PREFIX(WindowWidth, real,     "window_width", , RTAO(windowWidth(self)),
                 return_value \"real\", <<Return the width of the window in which we display>>;\
                 }\
           |*/")
-PREFIX(WindowHeight,real,     "window_height", ,RTAO(windowHeight(self)), 
+PREFIX(WindowHeight,real,     "window_height", ,RTAO(windowHeight(self)),
        "/*| docname \"window_height\", \"window\", do { \
                 dsyntax <<window_height>>;\
                 synopsis \"Return the height of window in which we display\" ; \
@@ -142,7 +142,7 @@ PREFIX(WindowHeight,real,     "window_height", ,RTAO(windowHeight(self)),
                 return_value \"real\", <<Return the height of window in which we display>>;\
                 }\
           |*/")
-PREFIX(DaySeconds,  real,     "time", ,         RTAO(time(self)), 
+PREFIX(DaySeconds,  real,     "time", ,         RTAO(time(self)),
        "/*| docname \"time\", \"time\", do { \
                 dsyntax <<time>>;\
                 synopsis \"Return a fractional time, including milliseconds\" ; \
@@ -150,7 +150,7 @@ PREFIX(DaySeconds,  real,     "time", ,         RTAO(time(self)),
                return_value \"real\", <<Return a fractional time, including milliseconds>>;\
                 }\
           |*/")
-PREFIX(PageSeconds, real,     "page_time", ,    RTAO(pageTime(self)), 
+PREFIX(PageSeconds, real,     "page_time", ,    RTAO(pageTime(self)),
        "/*| docname \"page_time\", \"time\", do { \
                 dsyntax <<page_time>>;\
                 synopsis \"Returns the page time\" ; \
@@ -159,7 +159,7 @@ PREFIX(PageSeconds, real,     "page_time", ,    RTAO(pageTime(self)),
                 }\
           |*/")
 PREFIX(After,       real,     "after", PARM(d, real) PARM(c, tree),
-       RTAO(after(self, d, c)), 
+       RTAO(after(self, d, c)),
        "/*| docname \"after\", \"time\", do { \
                 dsyntax <<after delay, code>>;\
                 synopsis \"Wait for time to execute code\" ; \
@@ -189,7 +189,7 @@ PREFIX(Every50Pct,  real,     "every",
                 }\
           |*/")
 
-PREFIX(MouseX, real, "mouse_x", ,RTAO(mouseX(self)), 
+PREFIX(MouseX, real, "mouse_x", ,RTAO(mouseX(self)),
        "/*| docname \"mouse_x\", \"mouse\", do { \
                 dsyntax <<mouse_x>>;\
                 synopsis \"Mouse x-coordinate\" ; \
@@ -197,7 +197,7 @@ PREFIX(MouseX, real, "mouse_x", ,RTAO(mouseX(self)),
                 return_value \"real\", <<Return the position of the mouse>>;\
                 }\
           |*/")
-PREFIX(MouseY, real, "mouse_y", ,RTAO(mouseY(self)), 
+PREFIX(MouseY, real, "mouse_y", ,RTAO(mouseY(self)),
        "/*| docname \"mouse_y\", \"mouse\", do { \
                 dsyntax <<mouse_y>>;\
                 synopsis \"Mouse y-coordinate\" ; \
@@ -205,7 +205,7 @@ PREFIX(MouseY, real, "mouse_y", ,RTAO(mouseY(self)),
                 return_value \"real\", <<Return the position of the mouse>>;\
                 }\
           |*/")
-PREFIX(MouseButtons, integer, "mouse_buttons", , RTAO(mouseButtons(self)), 
+PREFIX(MouseButtons, integer, "mouse_buttons", , RTAO(mouseButtons(self)),
        "/*| docname \"mouse_buttons\", \"mouse\", do { \
                 dsyntax <<mouse_buttons>>;\
                 synopsis \"Return the buttons of the last mouse event\" ; \
@@ -221,7 +221,7 @@ Qt::XButton2	0x00000010	The second X button.\n\
                 }\
           |*/")
 PREFIX(ShapeAction, tree, "on",PARM(n,text) PARM(t,tree),
-       RTAO(shapeAction(self,n,t)), 
+       RTAO(shapeAction(self,n,t)),
        "/*| docname \"on\", \"mouse\", do { \
                 dsyntax <<on action, code>>;\
                 synopsis \"Associate the specified code to the named action.\" ; \
@@ -232,7 +232,7 @@ PREFIX(ShapeAction, tree, "on",PARM(n,text) PARM(t,tree),
                 }\
           |*/")
 PREFIX(ShapeClickAction, tree, "on_click",PARM(t,tree),
-       RTAO(shapeAction(self,"click",t)), 
+       RTAO(shapeAction(self,"click",t)),
        "/*| docname \"on_click\", \"mouse\", do { \
                 dsyntax <<on_click code>>;\
                 synopsis \"Associate code with click.\" ; \
@@ -243,7 +243,7 @@ PREFIX(ShapeClickAction, tree, "on_click",PARM(t,tree),
                 }\
           |*/")
 PREFIX(ShapeMouseoverAction, tree, "on_mouseover",PARM(t,tree),
-       RTAO(shapeAction(self,"mouseover",t)), 
+       RTAO(shapeAction(self,"mouseover",t)),
        "/*| docname \"on_mouseover\", \"mouse\", do { \
                 dsyntax <<on_mouseover code>>;\
                 synopsis \"Associate code with mouse over\" ; \
@@ -262,7 +262,7 @@ PREFIX(ShapeMouseoverAction, tree, "on_mouseover",PARM(t,tree),
 //
 // ============================================================================
 
-PREFIX(Locally, tree, "locally", PARM(t, tree), RTAO(locally(self, t)), 
+PREFIX(Locally, tree, "locally", PARM(t, tree), RTAO(locally(self, t)),
        "/*| docname \"locally\", \"code\", do { \
                 dsyntax <<locally code>>;\
                 synopsis \"Make a local context\" ; \
@@ -272,7 +272,7 @@ PREFIX(Locally, tree, "locally", PARM(t, tree), RTAO(locally(self, t)),
                 return_value \"tree\", <<The result of the child execution.>>;\
                 }\
           |*/")
-PREFIX(Shape,   tree, "shape",   PARM(t, tree), RTAO(shape(self, t)), 
+PREFIX(Shape,   tree, "shape",   PARM(t, tree), RTAO(shape(self, t)),
        "/*| docname \"shape\", \"code:graph\", do { \
                 dsyntax <<shape code>>;\
                 synopsis \"Make the shape selectable\" ; \
@@ -282,7 +282,7 @@ PREFIX(Shape,   tree, "shape",   PARM(t, tree), RTAO(shape(self, t)),
                 return_value \"\", <<The result of the child execution.>>;\
                 }\
           |*/")
-PREFIX(Widget,  tree, "active_widget", PARM(t,tree), RTAO(activeWidget(self,t)), 
+PREFIX(Widget,  tree, "active_widget", PARM(t,tree), RTAO(activeWidget(self,t)),
        "/*| docname \"active_widget\", \"code:graph:widget\", do { \
                 dsyntax <<active_widget code>>;\
                 synopsis \"Make the widget clickable\" ; \
@@ -292,7 +292,7 @@ PREFIX(Widget,  tree, "active_widget", PARM(t,tree), RTAO(activeWidget(self,t)),
                 return_value \"tree\", <<The result of the child execution.>>;\
                 }\
           |*/")
-PREFIX(Anchor,  tree, "anchor",   PARM(t, tree), RTAO(anchor(self, t)), 
+PREFIX(Anchor,  tree, "anchor",   PARM(t, tree), RTAO(anchor(self, t)),
        "/*| docname \"anchor\", \"graph\", do { \
                 dsyntax <<anchor code>>;\
                 synopsis \"\" ; \
@@ -311,7 +311,7 @@ PREFIX(Anchor,  tree, "anchor",   PARM(t, tree), RTAO(anchor(self, t)),
 //
 // ============================================================================
 
-PREFIX(ResetTransform, tree, "reset_transform", , RTAO(resetTransform(self)), 
+PREFIX(ResetTransform, tree, "reset_transform", , RTAO(resetTransform(self)),
        "/*| docname \"reset_transform\", \"graph:transform\", do { \
                 dsyntax <<reset_transform>>;\
                 synopsis \"Reset transform\" ; \
@@ -319,7 +319,7 @@ PREFIX(ResetTransform, tree, "reset_transform", , RTAO(resetTransform(self)),
                 }\
           |*/")
 
-PREFIX(RotateX, tree, "rotatex", PARM(rx, real), RTAO(rotatex(self, rx)), 
+PREFIX(RotateX, tree, "rotatex", PARM(rx, real), RTAO(rotatex(self, rx)),
        "/*| docname \"rotatex\", \"graph:transform\", do { \
                 dsyntax <<rotatex rx>>;\
                 synopsis \"Rotate around X\" ; \
@@ -328,7 +328,7 @@ PREFIX(RotateX, tree, "rotatex", PARM(rx, real), RTAO(rotatex(self, rx)),
                 parameter \"real\", \"rx\", <<The angle of rotation in degree.[TODO : check the unit]>>;\
                 }\
           |*/")
-PREFIX(RotateY, tree, "rotatey", PARM(ry, real), RTAO(rotatey(self, ry)), 
+PREFIX(RotateY, tree, "rotatey", PARM(ry, real), RTAO(rotatey(self, ry)),
        "/*| docname \"rotatey\", \"graph:transform\", do { \
                 dsyntax <<rotatey ry>>;\
                 synopsis \"Rotate around Y\" ; \
@@ -337,7 +337,7 @@ PREFIX(RotateY, tree, "rotatey", PARM(ry, real), RTAO(rotatey(self, ry)),
                 parameter \"real\", \"ry\", <<The angle of rotation in degree.[TODO : check the unit]>>;\
                 }\
           |*/")
-PREFIX(RotateZ, tree, "rotatez", PARM(rz, real), RTAO(rotatez(self, rz)), 
+PREFIX(RotateZ, tree, "rotatez", PARM(rz, real), RTAO(rotatez(self, rz)),
        "/*| docname \"rotatez\", \"graph:transform\", do { \
                 dsyntax <<rotatez rz>>;\
                 synopsis \"Rotate around Z\" ; \
@@ -348,7 +348,7 @@ PREFIX(RotateZ, tree, "rotatez", PARM(rz, real), RTAO(rotatez(self, rz)),
           |*/")
 PREFIX(Rotate, tree, "rotate",
        PARM(ra, real) PARM(rx, real) PARM(ry, real) PARM(rz, real),
-       RTAO(rotate(self, ra, rx, ry, rz)), 
+       RTAO(rotate(self, ra, rx, ry, rz)),
        "/*| docname \"rotate\", \"graph:transform\", do { \
                 dsyntax <<rotate rx, ry, rz>>;\
                 synopsis \"Rotation\" ; \
@@ -361,7 +361,7 @@ PREFIX(Rotate, tree, "rotate",
                 }\
           |*/")
 
-PREFIX(TransX, tree, "translatex", PARM(x, real), RTAO(translatex(self, x)), 
+PREFIX(TransX, tree, "translatex", PARM(x, real), RTAO(translatex(self, x)),
        "/*| docname \"translatex\", \"graph:transform\", do { \
                 dsyntax <<translatex x>>;\
                 synopsis \"Translate along X\" ; \
@@ -370,7 +370,7 @@ PREFIX(TransX, tree, "translatex", PARM(x, real), RTAO(translatex(self, x)),
                 parameter \"real\", \"x\", <<x translation.>>;\
                 }\
           |*/")
-PREFIX(TransY, tree, "translatey", PARM(y, real), RTAO(translatey(self, y)), 
+PREFIX(TransY, tree, "translatey", PARM(y, real), RTAO(translatey(self, y)),
        "/*| docname \"translatey\", \"graph:transform\", do { \
                 dsyntax <<translatey>>;\
                 synopsis \"Translate along Y\" ; \
@@ -379,7 +379,7 @@ PREFIX(TransY, tree, "translatey", PARM(y, real), RTAO(translatey(self, y)),
                 parameter \"real\", \"y\", <<y translation.>>;\
                 }\
           |*/")
-PREFIX(TransZ, tree, "translatez", PARM(z, real), RTAO(translatez(self, z)), 
+PREFIX(TransZ, tree, "translatez", PARM(z, real), RTAO(translatez(self, z)),
        "/*| docname \"translatez\", \"graph:transform\", do { \
                 dsyntax <<translatez>>;\
                 synopsis \"Translate along Z\" ; \
@@ -390,7 +390,7 @@ PREFIX(TransZ, tree, "translatez", PARM(z, real), RTAO(translatez(self, z)),
           |*/")
 PREFIX(Translate, tree, "translate",
        PARM(x, real) PARM(y, real) PARM(z, real),
-       RTAO(translate(self, x, y, z)), 
+       RTAO(translate(self, x, y, z)),
        "/*| docname \"translate\", \"graph:transform\", do { \
                 dsyntax <<translate x, y, z>>;\
                 synopsis \"Translation along three axes\" ; \
@@ -402,7 +402,7 @@ PREFIX(Translate, tree, "translate",
                 }\
           |*/")
 
-PREFIX(ScaleX, tree, "scalex", PARM(x, real), RTAO(rescalex(self, x)), 
+PREFIX(ScaleX, tree, "scalex", PARM(x, real), RTAO(rescalex(self, x)),
        "/*| docname \"scalex\", \"graph:transform\", do { \
                 dsyntax <<scalex x>>;\
                 synopsis \"Rescale along X\" ; \
@@ -411,7 +411,7 @@ PREFIX(ScaleX, tree, "scalex", PARM(x, real), RTAO(rescalex(self, x)),
                 parameter \"real\", \"x\", <<scale factor.>>;\
                 }\
           |*/")
-PREFIX(ScaleY, tree, "scaley", PARM(y, real), RTAO(rescaley(self, y)), 
+PREFIX(ScaleY, tree, "scaley", PARM(y, real), RTAO(rescaley(self, y)),
        "/*| docname \"scaley\", \"graph:transform\", do { \
                 dsyntax <<scaley y>>;\
                 synopsis \"Rescale along Y\" ; \
@@ -420,7 +420,7 @@ PREFIX(ScaleY, tree, "scaley", PARM(y, real), RTAO(rescaley(self, y)),
                 parameter \"real\", \"y\", <<scale factor.>>;\
                 }\
           |*/")
-PREFIX(ScaleZ, tree, "scalez", PARM(z, real), RTAO(rescalez(self, z)), 
+PREFIX(ScaleZ, tree, "scalez", PARM(z, real), RTAO(rescalez(self, z)),
        "/*| docname \"scalez\", \"graph:transform\", do { \
                 dsyntax <<scalez z>>;\
                 synopsis \"Rescale along Z\" ; \
@@ -431,7 +431,7 @@ PREFIX(ScaleZ, tree, "scalez", PARM(z, real), RTAO(rescalez(self, z)),
           |*/")
 PREFIX(Scale, tree, "scale",
        PARM(x, real) PARM(y, real) PARM(z, real),
-       RTAO(rescale(self, x, y, z)), 
+       RTAO(rescale(self, x, y, z)),
        "/*| docname \"scale\", \"graph:transform\", do { \
                 dsyntax <<scale x, y, z>>;\
                 synopsis \"Scaling along three axes\" ; \
@@ -452,7 +452,7 @@ PREFIX(Scale, tree, "scale",
 // ============================================================================
 
 PREFIX(EnableDepthTest, boolean, "enable_depth_test",,
-       RTAO(depthTest(self, true)), 
+       RTAO(depthTest(self, true)),
        "/*| docname \"enable_depth_test\", \"code:graph\", do { \
                 dsyntax <<enable_depth_test>>;\
                 synopsis \"\" ; \
@@ -460,14 +460,14 @@ PREFIX(EnableDepthTest, boolean, "enable_depth_test",,
                 }\
           |*/")
 PREFIX(DisableDepthTest, boolean, "disable_depth_test",,
-       RTAO(depthTest(self, false)), 
+       RTAO(depthTest(self, false)),
        "/*| docname \"disable_depth_test\", \"code:graph\", do { \
                 dsyntax <<disable_depth_test>>;\
                 synopsis \"\" ; \
                 description <<[TODO : Je ne vois pas vraiment...]>> ;\
                 }\
           |*/")
-PREFIX(Refresh, tree, "refresh", PARM(d, real), RTAO(refresh(self, d)), 
+PREFIX(Refresh, tree, "refresh", PARM(d, real), RTAO(refresh(self, d)),
        "/*| docname \"refresh\", \"code:graph:time\", do { \
                 dsyntax <<refresh d>>;\
                 synopsis \"Refresh after d second\" ; \
@@ -478,7 +478,7 @@ PREFIX(Refresh, tree, "refresh", PARM(d, real), RTAO(refresh(self, d)),
                 }\
           |*/")
 PREFIX(ShowSource, boolean, "show_source", PARM(an, boolean),
-       RTAO(showSource(self, an)), 
+       RTAO(showSource(self, an)),
        "/*| docname \"show_source\", \"gui\", do { \
                 dsyntax <<show_source an>>;\
                 synopsis \"Source pane view\" ; \
@@ -489,7 +489,7 @@ PREFIX(ShowSource, boolean, "show_source", PARM(an, boolean),
                 }\
           |*/")
 PREFIX(FullScreen, boolean, "full_screen", PARM(fs, boolean),
-       RTAO(fullScreen(self, fs)), 
+       RTAO(fullScreen(self, fs)),
        "/*| docname \"full_screen\", \"gui\", do { \
                 dsyntax <<full_screen fs>>;\
                 synopsis \"Switch to full screen\" ; \
@@ -500,7 +500,7 @@ PREFIX(FullScreen, boolean, "full_screen", PARM(fs, boolean),
                 }\
           |*/")
 PREFIX(ToggleFullScreen, boolean, "toggle_full_screen", ,
-       RTAO(toggleFullScreen(self)), 
+       RTAO(toggleFullScreen(self)),
        "/*| docname \"toggle_full_screen\", \"gui\", do { \
                 dsyntax <<toggle_full_screen>>;\
                 synopsis \"Toggle the full screen mode\" ; \
@@ -546,7 +546,7 @@ PREFIX(ToggleSlideShow, boolean, "toggle_slide_show", ,
                 }\
           |*/")
 PREFIX(ResetView, boolean, "reset_view", ,
-       RTAO(resetView(self)), 
+       RTAO(resetView(self)),
        "/*| docname \"reset_view\", \"gui\", do { \
                 dsyntax <<reset_view>>;\
                 synopsis \"Reset view to default parameters\" ; \
@@ -554,7 +554,7 @@ PREFIX(ResetView, boolean, "reset_view", ,
                 }\
           |*/")
 PREFIX(PanEye, boolean, "pan", PARM(dx, real) PARM(dy, real),
-       RTAO(panView(self,dx,dy)), 
+       RTAO(panView(self,dx,dy)),
        "/*| docname \"pan\", \"gui\", do { \
                 dsyntax <<pan dx, dy>>;\
                 synopsis \"Pan the current view by the current amount\" ; \
@@ -565,7 +565,7 @@ PREFIX(PanEye, boolean, "pan", PARM(dx, real) PARM(dy, real),
                 }\
           |*/")
 PREFIX(GetZoom, real, "zoom", , RTAO(currentZoom(self)), "")
-PREFIX(SetZoom, boolean, "zoom", PARM(z, real), RTAO(setZoom(self, z)), 
+PREFIX(SetZoom, boolean, "zoom", PARM(z, real), RTAO(setZoom(self, z)),
        "/*| docname \"zoom\", \"gui\", do { \
                 synopsis \"zoom manipulation\" ; \
                 dsyntax <<zoom>>;\
@@ -579,7 +579,7 @@ PREFIX(SetZoom, boolean, "zoom", PARM(z, real), RTAO(setZoom(self, z)),
           |*/")
 PREFIX(GetEye, infix, "eye_position", , RTAO(currentEyePosition(self)), "")
 PREFIX(SetEye, boolean, "eye_position", PARM(x, real) PARM(y, real),
-       RTAO(setEyePosition(self,x,y)), 
+       RTAO(setEyePosition(self,x,y)),
        "/*| docname \"eye_position\", \"gui\", do { \
                 synopsis \"eye position manipulation\" ; \
                 dsyntax <<eye_position>>;\
@@ -594,7 +594,7 @@ PREFIX(SetEye, boolean, "eye_position", PARM(x, real) PARM(y, real),
           |*/")
 PREFIX(GetCenter, infix, "center_position", , RTAO(currentCenterPosition(self)),  "")
 PREFIX(SetCenter, boolean, "center_position", PARM(x, real) PARM(y, real),
-       RTAO(setCenterPosition(self,x,y)), 
+       RTAO(setCenterPosition(self,x,y)),
        "/*| docname \"center_position\", \"gui\", do { \
                 synopsis \"Center position management\" ; \
                 dsyntax <<center_position>>;\
@@ -608,7 +608,7 @@ PREFIX(SetCenter, boolean, "center_position", PARM(x, real) PARM(y, real),
                 }\
           |*/")
 PREFIX(ToggleHandCursor, boolean, "toggle_hand_cursor", ,
-       RTAO(toggleHandCursor(self)), 
+       RTAO(toggleHandCursor(self)),
        "/*| docname \"toggle_hand_cursor\", \"gui\", do { \
                 dsyntax <<toggle_hand_cursor>>;\
                 synopsis \"Switch between hand and arrow cursor\" ; \
@@ -617,7 +617,7 @@ PREFIX(ToggleHandCursor, boolean, "toggle_hand_cursor", ,
                 }\
           |*/")
 PREFIX(KeyboardModifiers, integer, "keyboard_modifiers", ,
-       RTAO(lastModifiers(self)), 
+       RTAO(lastModifiers(self)),
        "/*| docname \"keyboard_modifiers\", \"code\", do { \
                 dsyntax <<keyboard_modifiers>>;\
                 synopsis \"Get the current modifiers\" ; \
@@ -635,7 +635,7 @@ Note: On Windows Keyboards, Qt::MetaModifier and Qt::Key_Meta are mapped to the 
                 }\
           |*/")
 PREFIX(EnableAnimations, boolean, "enable_animations", PARM(an, boolean),
-       RTAO(enableAnimations(self, an)), 
+       RTAO(enableAnimations(self, an)),
        "/*| docname \"enable_animations\", \"gui\", do { \
                 dsyntax <<enable_animations an>>;\
                 synopsis \"Enable or disable animations\" ; \
@@ -646,7 +646,7 @@ PREFIX(EnableAnimations, boolean, "enable_animations", PARM(an, boolean),
                 }\
           |*/")
 PREFIX(EnableStereoscopy, boolean, "enable_stereoscopy", PARM(f, boolean),
-       RTAO(enableStereoscopy(self, f)), 
+       RTAO(enableStereoscopy(self, f)),
        "/*| docname \"enable_stereoscopy\", \"gui\", do { \
                 dsyntax <<enable_stereoscopy s>>;\
                 synopsis \"Enable or disable stereoscopie mode\" ; \
@@ -658,7 +658,7 @@ PREFIX(EnableStereoscopy, boolean, "enable_stereoscopy", PARM(f, boolean),
           |*/")
 PREFIX(PolygonOffset, integer, "polygon_offset",
        PARM(f0, real) PARM(f1, real) PARM(u0, real) PARM(u1, real),
-       RTAO(polygonOffset(self, f0, f1, u0, u1)), 
+       RTAO(polygonOffset(self, f0, f1, u0, u1)),
        "/*| docname \"polygon_offset\", \"graph\", do { \
                 dsyntax <<polygon_offset f0, f1, u0, u1>>;\
                 synopsis \"Set the polygon offset factors\" ; \
@@ -672,7 +672,7 @@ PREFIX(PolygonOffset, integer, "polygon_offset",
                 }\
           |*/")
 PREFIX(PrintOnePage, boolean, "print_page", , RTAO(printPage(self, "")), "")
-PREFIX(printPage, boolean, "print_page", PARM(f, text), RTAO(printPage(self,f)), 
+PREFIX(printPage, boolean, "print_page", PARM(f, text), RTAO(printPage(self,f)),
        "/*| docname \"print_page\", \"export\", do { \
                 dsyntax <<print_page>>;\
                 dsyntax <<print_page f>>;        \
@@ -734,7 +734,7 @@ PREFIX(LineColorCMYK, tree, "line_color_cmyk",
        PARM(c, real) PARM(m, real) PARM(y, real) PARM(k, real) PARM(a, real),
        RTAO(lineColorCmyk(self, c, m, y, k, a)),
        "")
-PREFIX(LineWidth, tree, "line_width", PARM(lw, real), RTAO(lineWidth(self, lw)), 
+PREFIX(LineWidth, tree, "line_width", PARM(lw, real), RTAO(lineWidth(self, lw)),
        "/*| docname \"line_width\", \"graph:attribute\", do { \
                 dsyntax <<line_width lw>>;\
                 synopsis \"Select the line width for OpenGL\" ; \
@@ -745,7 +745,7 @@ PREFIX(LineWidth, tree, "line_width", PARM(lw, real), RTAO(lineWidth(self, lw)),
           |*/")
 PREFIX(LineStipple, tree, "line_stipple",
        PARM(p, integer) PARM(s, integer),
-       RTAO(lineStipple(self, p, s)), 
+       RTAO(lineStipple(self, p, s)),
        "/*| docname \"line_stipple\", \"graph:attribute\", do { \
                 dsyntax <<line_stipple p, s>>;\
                 synopsis \"line stipple pattern\" ; \
@@ -799,7 +799,7 @@ PREFIX(FillColorCMYK, tree, "color_cmyk",
        RTAO(fillColorCmyk(self, c, m, y, k, a)),
        "")
 PREFIX(FillTexture, tree, "texture", PARM(n, text),
-       RTAO(fillTexture(self, n)), 
+       RTAO(fillTexture(self, n)),
        "/*| docname \"texture\", \"graph:attribute\", do { \
                 dsyntax <<texture img>>;\
                 synopsis \"Create a GL texture\" ; \
@@ -820,7 +820,7 @@ XPM	X11 Pixmap>> ;\
                 }\
           |*/")
 PREFIX(FillTextureSVG, tree,"svg", PARM(img, text),
-       RTAO(fillTextureFromSVG(self, img)), 
+       RTAO(fillTextureFromSVG(self, img)),
        "/*| docname \"svg\", \"graph\", do { \
                 dsyntax <<svg img>>;\
                 synopsis \"Create a texture from an SVG\" ; \
@@ -835,7 +835,7 @@ PREFIX(ImageA, tree,"image",
        RTAO(image(self, x, y, w, h, img)), "")
 PREFIX(ImageB, tree,"image",
        PARM(x, real) PARM(y, real) PARM(img, text),
-       RTAO(image(self, x, y, img)), 
+       RTAO(image(self, x, y, img)),
        "/*| docname \"image\", \"graph\", do { \
                 synopsis \"Make an image\" ; \
                 dsyntax <<image x, y, w, h, img >>;\
@@ -850,7 +850,7 @@ PREFIX(ImageB, tree,"image",
                 }\
           |*/")
 PREFIX(TextureWrap, tree, "texture_wrap", PARM(s, boolean) PARM(t, boolean),
-       RTAO(textureWrap(self, s, t)), 
+       RTAO(textureWrap(self, s, t)),
        "/*| docname \"texture_wrap\", \"graph\", do { \
                 dsyntax <<texture_wrap s, t>>;\
                 synopsis \"wrap textures or clamp them\" ; \
@@ -861,7 +861,7 @@ PREFIX(TextureWrap, tree, "texture_wrap", PARM(s, boolean) PARM(t, boolean),
                 }\
           |*/")
 PREFIX(TextureTransform, tree, "texture_transform", PARM(t, tree),
-       RTAO(textureTransform(self, t)), 
+       RTAO(textureTransform(self, t)),
        "/*| docname \"texture_transform\", \"graph\", do { \
                 dsyntax <<texture_transform t>>;\
                 synopsis \"Apply a texture transformation\" ; \
@@ -880,7 +880,7 @@ PREFIX(TextureTransform, tree, "texture_transform", PARM(t, tree),
 //
 // ============================================================================
 
-PREFIX(Path,   tree, "path", PARM(t, tree), RTAO(newPath(self, t)), 
+PREFIX(Path,   tree, "path", PARM(t, tree), RTAO(newPath(self, t)),
        "/*| docname \"path\", \"graph:path\", do { \
                 dsyntax <<path t>>;\
                 synopsis \"Start a path\" ; \
@@ -891,7 +891,7 @@ PREFIX(Path,   tree, "path", PARM(t, tree), RTAO(newPath(self, t)),
                 }\
           |*/")
 PREFIX(MoveTo, tree, "move_to", PARM(x, real) PARM(y, real) PARM(z, real),
-       RTAO(moveTo(self, x, y, z)), 
+       RTAO(moveTo(self, x, y, z)),
        "/*| docname \"move_to\", \"graph:path\", do { \
                 dsyntax <<move_to x, y, z>>;\
                 synopsis \"move to point\" ; \
@@ -903,7 +903,7 @@ PREFIX(MoveTo, tree, "move_to", PARM(x, real) PARM(y, real) PARM(z, real),
                 }\
           |*/")
 PREFIX(LineTo, tree, "line_to", PARM(x, real) PARM(y, real) PARM(z, real),
-       RTAO(lineTo(self, x, y, z)), 
+       RTAO(lineTo(self, x, y, z)),
        "/*| docname \"line_to\", \"graph:path\", do { \
                 dsyntax <<line_to x, y, z>>;\
                 synopsis \"line to point\" ; \
@@ -917,7 +917,7 @@ PREFIX(LineTo, tree, "line_to", PARM(x, real) PARM(y, real) PARM(z, real),
 PREFIX(QuadTo, tree, "quad_to",
        PARM(cx, real) PARM(cy, real) PARM(cz, real)
        PARM(x, real) PARM(y, real) PARM(z, real),
-       RTAO(curveTo(self, cx, cy, cz, x, y, z)), 
+       RTAO(curveTo(self, cx, cy, cz, x, y, z)),
        "/*| docname \"quad_to\", \"graph:path\", do { \
                 dsyntax <<quad_to cx, cy, cz, x, y, z>>;\
                 synopsis \" quadric curveTo\" ; \
@@ -935,7 +935,7 @@ PREFIX(CubicTo, tree, "cubic_to",
        PARM(c1x, real) PARM(c1y, real) PARM(c1z, real)
        PARM(c2x, real) PARM(c2y, real) PARM(c2z, real)
        PARM(x, real) PARM(y, real) PARM(z, real),
-       RTAO(curveTo(self, c1x, c1y, c1z, c2x, c2y, c2z, x, y, z)), 
+       RTAO(curveTo(self, c1x, c1y, c1z, c2x, c2y, c2z, x, y, z)),
        "/*| docname \"cubic_to\", \"graph:path\", do { \
                 dsyntax <<cubic_to c1x, c1y, c1z, c2x, c2y, c2z, x, y, z>>;\
                 synopsis \"cubic curveTo\" ; \
@@ -953,7 +953,7 @@ PREFIX(CubicTo, tree, "cubic_to",
                 }\
           |*/")
 PREFIX(MoveRel, tree, "move_relative", PARM(x,real) PARM(y,real) PARM(z,real),
-       RTAO(moveToRel(self, x, y, z)), 
+       RTAO(moveToRel(self, x, y, z)),
        "/*| docname \"move_relative\", \"graph:path\", do { \
                 dsyntax <<move_relative dx, dy, dz>>;\
                 synopsis \"relative moveTo\" ; \
@@ -965,7 +965,7 @@ PREFIX(MoveRel, tree, "move_relative", PARM(x,real) PARM(y,real) PARM(z,real),
                 }\
           |*/")
 PREFIX(LineRel, tree, "line_relative", PARM(x,real) PARM(y,real) PARM(z,real),
-       RTAO(lineToRel(self, x, y, z)), 
+       RTAO(lineToRel(self, x, y, z)),
        "/*| docname \"line_relative\", \"graph:path\", do { \
                 dsyntax <<line_relative dx, dy, dz>>;\
                 synopsis \"relative line to\" ; \
@@ -978,7 +978,7 @@ PREFIX(LineRel, tree, "line_relative", PARM(x,real) PARM(y,real) PARM(z,real),
                 }\
           |*/")
 PREFIX(PathTexCoord, tree, "path_texture", PARM(x,real)PARM(y,real)PARM(z,real),
-       RTAO(pathTextureCoord(self, x, y, z)), 
+       RTAO(pathTextureCoord(self, x, y, z)),
        "/*| docname \"path_texture\", \"graph:path\", do { \
                 dsyntax <<path_texture x, y, z>>;\
                 synopsis \"Not supported yet\" ; \
@@ -991,7 +991,7 @@ PREFIX(PathTexCoord, tree, "path_texture", PARM(x,real)PARM(y,real)PARM(z,real),
           |*/")
 PREFIX(PathColor, tree, "path_color",
        PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
-       RTAO(pathColor(self, r,g,b, a)), 
+       RTAO(pathColor(self, r,g,b, a)),
        "/*| docname \"path_color\", \"graph:path\", do { \
                 dsyntax <<path_color>>;\
                 synopsis \"Not supported yet\" ; \
@@ -1003,7 +1003,7 @@ PREFIX(PathColor, tree, "path_color",
                 parameter \"real\", \"a\", <<Alpha channel: the transparency of the color. >>;\
                 }\
           |*/")
-PREFIX(ClosePath, tree, "close_path",, RTAO(closePath(self)), 
+PREFIX(ClosePath, tree, "close_path",, RTAO(closePath(self)),
        "/*| docname \"close_path\", \"graph:path\", do { \
                 dsyntax <<close_path>>;\
                 synopsis \"close the path\" ; \
@@ -1012,7 +1012,7 @@ PREFIX(ClosePath, tree, "close_path",, RTAO(closePath(self)),
           |*/")
 PREFIX(EndpointsStyle, tree, "endpoints_style",
        PARM(s, symbol) PARM(e, symbol),
-       RTAO(endpointsStyle(self, s, e)), 
+       RTAO(endpointsStyle(self, s, e)),
        "/*| docname \"endpoints_style\", \"graph:path\", do { \
                 dsyntax <<endpoints_style s, e>>;\
                 synopsis \"style of the path endpoints\" ; \
@@ -1034,7 +1034,7 @@ PREFIX(EndpointsStyle, tree, "endpoints_style",
 
 PREFIX(Point, tree, "point",
        PARM(x,real) PARM(y,real) PARM(z,real) PARM(s,real),
-       RTAO(fixedSizePoint(self, x, y, z, s)), 
+       RTAO(fixedSizePoint(self, x, y, z, s)),
        "/*| docname \"point\", \"graph:path\", do { \
                 dsyntax <<point x, y, z, s>>;\
                 synopsis \"Draw a point\" ; \
@@ -1048,7 +1048,7 @@ PREFIX(Point, tree, "point",
           |*/")
 PREFIX(Rectangle, tree, "rectangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
-       RTAO(rectangle(self, x, y, w, h)), 
+       RTAO(rectangle(self, x, y, w, h)),
        "/*| docname \"rectangle\", \"graph:path:shape\", do { \
                 dsyntax <<rectangle x, y, w, h>>;\
                 synopsis \"Draw a rectangle\" ; \
@@ -1062,7 +1062,7 @@ PREFIX(Rectangle, tree, "rectangle",
           |*/")
 PREFIX(Triangle, tree, "triangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
-       RTAO(isoscelesTriangle(self, x, y, w, h)), 
+       RTAO(isoscelesTriangle(self, x, y, w, h)),
        "/*| docname \"triangle\", \"graph:path:shape\", do { \
                 dsyntax <<triangle x, y, b, h>>;\
                 synopsis \"Isocele triangle\" ; \
@@ -1076,7 +1076,7 @@ PREFIX(Triangle, tree, "triangle",
           |*/")
 PREFIX(RightTriangle, tree, "right_triangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
-       RTAO(rightTriangle(self, x, y, w, h)), 
+       RTAO(rightTriangle(self, x, y, w, h)),
        "/*| docname \"right_triangle\", \"graph:path:shape\", do { \
                 dsyntax <<right_triangle x, y, b, h>>;\
                 synopsis \"Right triangle\" ; \
@@ -1090,7 +1090,7 @@ PREFIX(RightTriangle, tree, "right_triangle",
           |*/")
 PREFIX(Ellipse, tree, "ellipse",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real),
-       RTAO(ellipse(self, x, y, w, h)), 
+       RTAO(ellipse(self, x, y, w, h)),
        "/*| docname \"ellipse\", \"graph:path:shape\", do { \
                 dsyntax <<ellipse cx, cy, w, h>>;\
                 synopsis \"Ellipse\" ; \
@@ -1105,7 +1105,7 @@ PREFIX(Ellipse, tree, "ellipse",
 PREFIX(EllipseArc, tree, "ellipse_arc",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(start, real) PARM(sweep, real),
-       RTAO(ellipseArc(self, x, y, w, h, start, sweep)), 
+       RTAO(ellipseArc(self, x, y, w, h, start, sweep)),
        "/*| docname \"ellipse_arc\", \"graph:path:shape\", do { \
                 dsyntax <<ellipse_arc x, y, w, h, start, sweep>>;\
                 synopsis \"Elliptic sector\" ; \
@@ -1122,7 +1122,7 @@ PREFIX(EllipseArc, tree, "ellipse_arc",
 PREFIX(RoundedRectangle, tree, "rounded_rectangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(r, real),
-       RTAO(roundedRectangle(self, x, y, w, h, r)), 
+       RTAO(roundedRectangle(self, x, y, w, h, r)),
        "/*| docname \"rounded_rectangle\", \"graph:path:shape\", do { \
                 dsyntax <<rounded_rectangle x, y, w, h, r>>;\
                 synopsis \"Rounded rectangle\" ; \
@@ -1138,7 +1138,7 @@ PREFIX(RoundedRectangle, tree, "rounded_rectangle",
 PREFIX(EllipticalRectangle, tree, "elliptical_rectangle",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(r, real),
-       RTAO(ellipticalRectangle(self, x, y, w, h, r)), 
+       RTAO(ellipticalRectangle(self, x, y, w, h, r)),
        "/*| docname \"elliptical_rectangle\", \"graph:path:shape\", do { \
                 dsyntax <<elliptical_rectangle>>;\
                 synopsis \"Elliptical rectangle\" ; \
@@ -1154,7 +1154,7 @@ PREFIX(EllipticalRectangle, tree, "elliptical_rectangle",
 PREFIX(Arrow, tree, "arrow",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(ax, real) PARM(ay, real),
-       RTAO(arrow(self, x, y, w, h, ax, ay)), 
+       RTAO(arrow(self, x, y, w, h, ax, ay)),
        "/*| docname \"arrow\", \"graph:path:shape\", do { \
                 dsyntax <<arrow x, y, w, h, ax, ay>>;\
                 synopsis \"Draw an arraw\" ; \
@@ -1171,7 +1171,7 @@ PREFIX(Arrow, tree, "arrow",
 PREFIX(DoubleArrow, tree, "double_arrow",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(ax, real) PARM(ay, real),
-       RTAO(doubleArrow(self, x, y, w, h, ax, ay)), 
+       RTAO(doubleArrow(self, x, y, w, h, ax, ay)),
        "/*| docname \"double_arrow\", \"graph:path:shape\", do { \
                 dsyntax <<double_arrow x, y, w, h, ax, ay>>;\
                 synopsis \"Double arraw\" ; \
@@ -1188,7 +1188,7 @@ PREFIX(DoubleArrow, tree, "double_arrow",
 PREFIX(StarPolygon, tree, "star_polygon",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
        PARM(p, integer) PARM(q, integer),
-       RTAO(starPolygon(self, x, y, w, h, p, q)), 
+       RTAO(starPolygon(self, x, y, w, h, p, q)),
        "/*| docname \"star_polygon\", \"graph:path:shape\", do { \
                 dsyntax <<star_polygon cx, cy, w, h, p, q>>;\
                 synopsis \"Draw a star\" ; \
@@ -1205,7 +1205,7 @@ PREFIX(StarPolygon, tree, "star_polygon",
 PREFIX(Star, tree, "star",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
        PARM(p, integer) PARM(r, real),
-       RTAO(star(self, x, y, w, h, p, r)), 
+       RTAO(star(self, x, y, w, h, p, r)),
        "/*| docname \"star\", \"graph:path:shape\", do { \
                 dsyntax <<star x, y, w, h, p, r>>;\
                 synopsis \"Draw a star\" ; \
@@ -1222,7 +1222,7 @@ PREFIX(Star, tree, "star",
 PREFIX(SpeechBalloon, tree, "speech_balloon",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
        PARM(r, real) PARM(ax, real) PARM(ay, real),
-       RTAO(speechBalloon(self, x, y, w, h, r, ax, ay)), 
+       RTAO(speechBalloon(self, x, y, w, h, r, ax, ay)),
        "/*| docname \"speech_balloon\", \"graph:path:shape\", do { \
                 dsyntax <<speech_balloon x, y, w, h, r, ax, ay>>;\
                 synopsis \"Speech balloon\" ; \
@@ -1240,7 +1240,7 @@ PREFIX(SpeechBalloon, tree, "speech_balloon",
 PREFIX(Callout, tree, "callout",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real)
        PARM(r, real) PARM(ax, real) PARM(ay, real) PARM(d, real),
-       RTAO(callout(self, x, y, w, h, r, ax, ay, d)), 
+       RTAO(callout(self, x, y, w, h, r, ax, ay, d)),
        "/*| docname \"callout\", \"graph:path:shape\", do { \
                 dsyntax <<callout>>;\
                 synopsis \"callout\" ; \
@@ -1259,7 +1259,7 @@ PREFIX(Callout, tree, "callout",
 
 PREFIX(DebugBinPacker, tree, "binpacker",
        PARM(w, integer) PARM(h, integer) PARM(t, tree),
-       RTAO(debugBinPacker(self, w, h, t)), 
+       RTAO(debugBinPacker(self, w, h, t)),
        "/*| docname \"binpacker\", \"graph:debug\", do { \
                 dsyntax <<binpacker w, h, t>>;\
                 synopsis \"Debug the bin packer\" ; \
@@ -1283,7 +1283,7 @@ PREFIX(Sphere, tree, "sphere",
        PARM(x, real) PARM(y, real) PARM(z, real)
        PARM(w, real) PARM(h, real) PARM(d, real)
        PARM(slices, integer) PARM(stacks, integer),
-       RTAO(sphere(self, x, y, z, w, h, d, slices, stacks)), 
+       RTAO(sphere(self, x, y, z, w, h, d, slices, stacks)),
        "/*| docname \"sphere\", \"graph\", do { \
                 dsyntax <<sphere x, y, z, w, h, d, slices, stacks>>;\
                 synopsis \"sphere like\" ; \
@@ -1303,7 +1303,7 @@ PREFIX(Sphere, tree, "sphere",
 PREFIX(Cube, tree, "cube",
        PARM(x, real) PARM(y, real) PARM(z, real)
        PARM(w, real) PARM(h, real) PARM(d, real),
-       RTAO(cube(self, x, y, z, w, h, d)), 
+       RTAO(cube(self, x, y, z, w, h, d)),
        "/*| docname \"cube\", \"graph\", do { \
                 dsyntax <<cube x, y, z, w, h, d>>;\
                 synopsis \"cube like\" ; \
@@ -1320,7 +1320,7 @@ PREFIX(Cube, tree, "cube",
 PREFIX(Cone, tree, "cone",
        PARM(x, real) PARM(y, real) PARM(z, real)
        PARM(w, real) PARM(h, real) PARM(d, real),
-       RTAO(cone(self, x, y, z, w, h, d)), 
+       RTAO(cone(self, x, y, z, w, h, d)),
        "/*| docname \"cone\", \"graph\", do { \
                 dsyntax <<cone x, y, z, w, h, d>>;\
                 synopsis \"cone\" ; \
@@ -1338,7 +1338,7 @@ PREFIX(Object3D, tree, "object",
        PARM(x, real) PARM(y, real) PARM(z, real)
        PARM(w, real) PARM(h, real) PARM(d, real)
        PARM(f, text),
-       RTAO(object(self, x, y, z, w, h, d, f)), 
+       RTAO(object(self, x, y, z, w, h, d, f)),
        "/*| docname \"object\", \"graph\", do { \
                 dsyntax <<object x, y, z, w, h, d, f>>;\
                 synopsis \"Load a 3D object\" ; \
@@ -1364,7 +1364,7 @@ PREFIX(Object3D, tree, "object",
 
 PREFIX(TextBox, tree, "text_box",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real) PARM(t, tree),
-       RTAO(textBox(self, x, y, w, h, t)), 
+       RTAO(textBox(self, x, y, w, h, t)),
        "/*| docname \"text_box\", \"text:graph\", do { \
                 dsyntax <<text_box x, y, w, h, t>>;\
                 synopsis \"Create a new page layout\" ; \
@@ -1380,7 +1380,7 @@ PREFIX(TextBox, tree, "text_box",
           |*/")
 PREFIX(TextOverflow, tree, "text_overflow",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real),
-       RTAO(textOverflow(self, x, y, w, h)), 
+       RTAO(textOverflow(self, x, y, w, h)),
        "/*| docname \"text_overflow\", \"text:graph\", do { \
                 dsyntax <<text_overflow x, y, w, h>>;\
                 synopsis \"Overflow text box\" ; \
@@ -1392,7 +1392,7 @@ PREFIX(TextOverflow, tree, "text_overflow",
                 parameter \"real\", \"h\", <<height>>;\
                 }\
           |*/")
-PREFIX(TextFlow, tree, "text_flow", PARM(n, text), RTAO(textFlow(self, n)), 
+PREFIX(TextFlow, tree, "text_flow", PARM(n, text), RTAO(textFlow(self, n)),
        "/*| docname \"text_flow\", \"text\", do { \
                 dsyntax <<text_flow name>>;\
                 synopsis \"Names the flow\" ; \
@@ -1403,7 +1403,7 @@ PREFIX(TextFlow, tree, "text_flow", PARM(n, text), RTAO(textFlow(self, n)),
                 }\
           |*/")
 
-PREFIX(TextSpan, tree,"text", PARM(t, text), RTAO(textSpan(self, t)), 
+PREFIX(TextSpan, tree,"text", PARM(t, text), RTAO(textSpan(self, t)),
        "/*| docname \"text\", \"text\", do { \
                 dsyntax <<text t>>;\
                 synopsis \"Insert a block of text\" ; \
@@ -1412,7 +1412,7 @@ PREFIX(TextSpan, tree,"text", PARM(t, text), RTAO(textSpan(self, t)),
                 parameter \"text\", \"t\", <<The text to insert>>;\
                 }\
           |*/")
-PREFIX(TextFormula, tree,"formula", PARM(t, tree), RTAO(textFormula(self, t)), 
+PREFIX(TextFormula, tree,"formula", PARM(t, tree), RTAO(textFormula(self, t)),
        "/*| docname \"formula\", \"text\", do { \
                 dsyntax <<formula t>>;\
                 synopsis \"Insert a block of text corresponding to the given formula\" ; \
@@ -1422,7 +1422,7 @@ PREFIX(TextFormula, tree,"formula", PARM(t, tree), RTAO(textFormula(self, t)),
                 return_value \"tree\", <<The tree t given in parameter.>>;\
                 }\
           |*/")
-PREFIX(Font, tree, "font", PARM(f, tree), RTAO(font(self, f)), 
+PREFIX(Font, tree, "font", PARM(f, tree), RTAO(font(self, f)),
        "/*| docname \"font\", \"text:font\", do { \
                 dsyntax <<font f>>;\
                 synopsis \"Select a font family\" ; \
@@ -1431,7 +1431,7 @@ PREFIX(Font, tree, "font", PARM(f, tree), RTAO(font(self, f)),
                 parameter \"tree\", \"f\", <<The font description>>;\
                 }\
           |*/")
-PREFIX(FontSize, tree, "font_size", PARM(s, real), RTAO(fontSize(self, s)), 
+PREFIX(FontSize, tree, "font_size", PARM(s, real), RTAO(fontSize(self, s)),
        "/*| docname \"font_size\", \"text:font\", do { \
                 dsyntax <<font_size s>>;\
                 synopsis \"Select a font size\" ; \
@@ -1441,7 +1441,7 @@ PREFIX(FontSize, tree, "font_size", PARM(s, real), RTAO(fontSize(self, s)),
                 }\
           |*/")
 PREFIX(FontScaling, tree, "font_scaling", PARM(s,real) PARM(ms,real),
-       RTAO(fontScaling(self,s,ms)), 
+       RTAO(fontScaling(self,s,ms)),
        "/*| docname \"font_scaling\", \"text:font\", do { \
                 dsyntax <<font_scaling>>;\
                 synopsis \"Change the font scaling factor\" ; \
@@ -1452,14 +1452,14 @@ PREFIX(FontScaling, tree, "font_scaling", PARM(s,real) PARM(ms,real),
                 return_value \"\", <<>>;\
                 }\
           |*/")
-PREFIX(FontPlain, tree, "plain",, RTAO(fontPlain(self)), 
+PREFIX(FontPlain, tree, "plain",, RTAO(fontPlain(self)),
        "/*| docname \"plain\", \"text:font\", do { \
                 dsyntax <<plain>>;\
                 synopsis \"Set plain text\" ; \
                 description <<Reset the font style, the font weight and the font stretch to normal; reset the font to no underline, nor strikeout, nor overline.>> ;\
                 }\
           |*/")
-PREFIX(FontSlant, tree, "slant", PARM(a, real), RTAO(fontItalic(self, a/100)), 
+PREFIX(FontSlant, tree, "slant", PARM(a, real), RTAO(fontItalic(self, a/100)),
        "/*| docname \"slant\", \"text:font\", do { \
                 dsyntax <<slant a>>;\
                 synopsis \"Set slant percentage.\" ; \
@@ -1468,14 +1468,14 @@ PREFIX(FontSlant, tree, "slant", PARM(a, real), RTAO(fontItalic(self, a/100)),
                 parameter \"real\", \"a\", <<slant percentage>>;\
                 }\
           |*/")
-PREFIX(FontRoman, tree, "roman",, RTAO(fontItalic(self, 0)), 
+PREFIX(FontRoman, tree, "roman",, RTAO(fontItalic(self, 0)),
        "/*| docname \"roman\", \"text:font\", do { \
                 dsyntax <<roman>>;\
                 synopsis \"No slant\" ; \
                 description <<Set slant value to 0 (min value).>> ;\
                 }\
           |*/")
-PREFIX(FontItalic, tree, "italic",, RTAO(fontItalic(self, 1)), 
+PREFIX(FontItalic, tree, "italic",, RTAO(fontItalic(self, 1)),
        "/*| docname \"italic\", \"text:font\", do { \
                 dsyntax <<italic>>;\
                 synopsis \"set set italic\" ; \
@@ -1483,7 +1483,7 @@ PREFIX(FontItalic, tree, "italic",, RTAO(fontItalic(self, 1)),
                 see \"slant\"; \
                 }\
           |*/")
-PREFIX(FontOblique, tree, "oblique",, RTAO(fontItalic(self, 2)), 
+PREFIX(FontOblique, tree, "oblique",, RTAO(fontItalic(self, 2)),
        "/*| docname \"oblique\", \"text:font\", do { \
                 dsyntax <<oblique>>;\
                 synopsis \"set to oblique\" ; \
@@ -1491,7 +1491,7 @@ PREFIX(FontOblique, tree, "oblique",, RTAO(fontItalic(self, 2)),
                 see \"slant\"; \
                 }\
           |*/")
-PREFIX(FontWeight, tree, "weight", PARM(a, real), RTAO(fontBold(self, a)), 
+PREFIX(FontWeight, tree, "weight", PARM(a, real), RTAO(fontBold(self, a)),
        "/*| docname \"weight\", \"text:font\", do { \
                 dsyntax <<weight a>>;\
                 synopsis \"set the bold value of the font\" ; \
@@ -1500,7 +1500,7 @@ PREFIX(FontWeight, tree, "weight", PARM(a, real), RTAO(fontBold(self, a)),
                 parameter \"real\", \"a\", <<The bold value of the font>>;\
                  }\
           |*/")
-PREFIX(FontRegular, tree, "regular",, RTAO(fontBold(self, 50)), 
+PREFIX(FontRegular, tree, "regular",, RTAO(fontBold(self, 50)),
        "/*| docname \"regular\", \"text:font\", do { \
                 dsyntax <<regular>>;\
                 synopsis \"reset bold value to neutral.\" ; \
@@ -1508,7 +1508,7 @@ PREFIX(FontRegular, tree, "regular",, RTAO(fontBold(self, 50)),
                 see \"weight\"; \
                 }\
           |*/")
-PREFIX(FontLight, tree, "light",, RTAO(fontBold(self, 25)), 
+PREFIX(FontLight, tree, "light",, RTAO(fontBold(self, 25)),
        "/*| docname \"light\", \"text:font\", do { \
                 dsyntax <<light>>;\
                 synopsis \"Make the font thin.\" ; \
@@ -1516,7 +1516,7 @@ PREFIX(FontLight, tree, "light",, RTAO(fontBold(self, 25)),
                 see \"weight\"; \
                 }\
           |*/")
-PREFIX(FontBold, tree, "bold",, RTAO(fontBold(self, 75)), 
+PREFIX(FontBold, tree, "bold",, RTAO(fontBold(self, 75)),
        "/*| docname \"bold\", \"text:font\", do { \
                 dsyntax <<bold>>;\
                 synopsis \"Make the font bold.\" ; \
@@ -1525,7 +1525,7 @@ PREFIX(FontBold, tree, "bold",, RTAO(fontBold(self, 75)),
                 }\
           |*/")
 PREFIX(FontUnderline, tree, "underline", PARM(a, real),
-       RTAO(fontUnderline(self, a)), 
+       RTAO(fontUnderline(self, a)),
        "/*| docname \"underline\", \"text:font\", do { \
                 dsyntax <<underline a>>;\
                 synopsis \"Underline attribute of the font\" ; \
@@ -1535,7 +1535,7 @@ PREFIX(FontUnderline, tree, "underline", PARM(a, real),
                 }\
           |*/")
 PREFIX(FontOverline, tree, "overline", PARM(a, real),
-       RTAO(fontOverline(self, a)), 
+       RTAO(fontOverline(self, a)),
        "/*| docname \"overline\", \"text:font\", do { \
                 dsyntax <<overline a>>;\
                 synopsis \"Overline attribute of the font\" ; \
@@ -1545,7 +1545,7 @@ PREFIX(FontOverline, tree, "overline", PARM(a, real),
                 }\
           |*/")
 PREFIX(FontStrikeout, tree, "strikeout", PARM(a, real),
-       RTAO(fontStrikeout(self, a)), 
+       RTAO(fontStrikeout(self, a)),
        "/*| docname \"strikeout\", \"text:font\", do { \
                 dsyntax <<strikeout>>;\
                 synopsis \"Strikeout attribute of the font\" ; \
@@ -1554,7 +1554,7 @@ PREFIX(FontStrikeout, tree, "strikeout", PARM(a, real),
                 parameter \"real\", \"a\", <<Strikeout values: 0 is off, values > 0 are on.>>;\
                 }\
           |*/")
-PREFIX(FontStretch, tree, "stretch", PARM(s,real),RTAO(fontStretch(self,s)), 
+PREFIX(FontStretch, tree, "stretch", PARM(s,real),RTAO(fontStretch(self,s)),
        "/*| docname \"stretch\", \"text:font\", do { \
                 dsyntax <<stretch s>>;\
                 synopsis \"Set font stretching factor\" ; \
@@ -1612,7 +1612,7 @@ PREFIX(VSpacing, tree, "line_spacing",
                  }\
           |*/")
 PREFIX(MinimumParagraphSpace, tree, "paragraph_space",
-       PARM(b, real) PARM(a, real), RTAO(minimumSpace(self, b, a, 1)), 
+       PARM(b, real) PARM(a, real), RTAO(minimumSpace(self, b, a, 1)),
        "/*| docname \"paragraph_space\", \"text:spread\", do { \
                 dsyntax <<paragraph_space before, after>>;\
                 synopsis \"Set the space around the paragraph\" ; \
@@ -1623,7 +1623,7 @@ PREFIX(MinimumParagraphSpace, tree, "paragraph_space",
                 }\
           |*/")
 PREFIX(MinimumCharacterSpace, tree, "character_space",
-       PARM(b, real) PARM(a, real), RTAO(minimumSpace(self, b, a, 0)), 
+       PARM(b, real) PARM(a, real), RTAO(minimumSpace(self, b, a, 0)),
        "/*| docname \"character_space\", \"text:spread\", do { \
                 dsyntax <<character_space before, after>>;\
                 synopsis \"[TODO: words or characters ?]\" ; \
@@ -1634,7 +1634,7 @@ PREFIX(MinimumCharacterSpace, tree, "character_space",
                 }\
           |*/")
 PREFIX(Margins, tree, "margins", PARM(l, real) PARM(r, real),
-       RTAO(horizontalMargins(self, l, r)), 
+       RTAO(horizontalMargins(self, l, r)),
        "/*| docname \"margins\", \"text:spread\", do { \
                 dsyntax <<margins l, r>>;\
                 synopsis \"Set the horizontal margin for text\" ; \
@@ -1645,7 +1645,7 @@ PREFIX(Margins, tree, "margins", PARM(l, real) PARM(r, real),
                 }\
           |*/")
 PREFIX(VMargins, tree, "vertical_margins", PARM(t, real) PARM(b, real),
-       RTAO(verticalMargins(self, t, b)), 
+       RTAO(verticalMargins(self, t, b)),
        "/*| docname \"vertical_margins\", \"text:spread\", do { \
                 dsyntax <<vertical_margins t, b>>;\
                 synopsis \"Set the vertical margin for text\" ; \
@@ -1656,7 +1656,7 @@ PREFIX(VMargins, tree, "vertical_margins", PARM(t, real) PARM(b, real),
                 }\
           |*/")
 PREFIX(LineBreak, tree, "line_break",,
-       RTAO(drawingBreak(self, Tao::Drawing::LineBreak)), 
+       RTAO(drawingBreak(self, Tao::Drawing::LineBreak)),
        "/*| docname \"line_break\", \"text:spread\", do { \
                 dsyntax <<line_break>>;\
                 synopsis \"Insert a line break\" ; \
@@ -1664,7 +1664,7 @@ PREFIX(LineBreak, tree, "line_break",,
                }\
           |*/")
 PREFIX(SentenceBreak, tree, "sentence_break",,
-       RTAO(drawingBreak(self, Tao::Drawing::SentenceBreak)), 
+       RTAO(drawingBreak(self, Tao::Drawing::SentenceBreak)),
        "/*| docname \"sentence_break\", \"text:spread\", do { \
                 dsyntax <<sentence_break>>;\
                 synopsis \"Insert a sentence break\" ; \
@@ -1672,7 +1672,7 @@ PREFIX(SentenceBreak, tree, "sentence_break",,
                 }\
           |*/")
 PREFIX(ParaBreak, tree, "paragraph_break",,
-       RTAO(drawingBreak(self, Tao::Drawing::ParaBreak)), 
+       RTAO(drawingBreak(self, Tao::Drawing::ParaBreak)),
        "/*| docname \"paragraph_break\", \"text:spread\", do { \
                 dsyntax <<paragraph_break>>;\
                 synopsis \"Insert a paragraph break\" ; \
@@ -1680,7 +1680,7 @@ PREFIX(ParaBreak, tree, "paragraph_break",,
                 }\
           |*/")
 PREFIX(ColumnBreak, tree, "column_break",,
-       RTAO(drawingBreak(self, Tao::Drawing::ColumnBreak)), 
+       RTAO(drawingBreak(self, Tao::Drawing::ColumnBreak)),
        "/*| docname \"column_break\", \"text:spread\", do { \
                 dsyntax <<column_break>>;\
                 synopsis \"Insert a column break\" ; \
@@ -1688,7 +1688,7 @@ PREFIX(ColumnBreak, tree, "column_break",,
                 }\
           |*/")
 PREFIX(PageBreak, tree, "page_break",,
-       RTAO(drawingBreak(self, Tao::Drawing::PageBreak)), 
+       RTAO(drawingBreak(self, Tao::Drawing::PageBreak)),
        "/*| docname \"page_break\", \"text:spread\", do { \
                 dsyntax <<page_break>>;\
                 synopsis \"Insert a page break\" ; \
@@ -1696,7 +1696,7 @@ PREFIX(PageBreak, tree, "page_break",,
                 }\
           |*/")
 PREFIX(TextEditKey, boolean, "text_edit_key", PARM(k, text),
-       RTAO(textEditKey(self, k)), 
+       RTAO(textEditKey(self, k)),
        "/*| docname \"text_edit_key\", \"text\", do { \
                 dsyntax <<text_edit_key k>>;\
                 synopsis \"[TODO]\" ; \
@@ -1707,7 +1707,7 @@ PREFIX(TextEditKey, boolean, "text_edit_key", PARM(k, text),
                 }\
           |*/")
 PREFIX(LoremIpsum, tree, "lorem_ipsum",PARM(w,integer),
-       RTAO(loremIpsum(self,w)), 
+       RTAO(loremIpsum(self,w)),
        "/*| docname \"lorem_ipsum\", \"text:debug\", do { \
                 dsyntax <<lorem_ipsum w>>;\
                 synopsis \"Produce text\" ; \
@@ -1718,7 +1718,7 @@ PREFIX(LoremIpsum, tree, "lorem_ipsum",PARM(w,integer),
                 }\
           |*/")
 PREFIX(LoadText, tree, "load_text",PARM(f,text),
-       RTAO(loadText(self,f)), 
+       RTAO(loadText(self,f)),
        "/*| docname \"load_text\", \"text:file\", do { \
                 dsyntax <<load_text f>>;\
                 synopsis \"Load a text file from disk\" ; \
@@ -1728,7 +1728,7 @@ PREFIX(LoadText, tree, "load_text",PARM(f,text),
                 return_value \"text\", <<The content of the file.>>;\
                 }\
           |*/")
-PREFIX(TaoVersion, tree, "tao_version",, RTAO(taoVersion(self)), 
+PREFIX(TaoVersion, tree, "tao_version",, RTAO(taoVersion(self)),
        "/*| docname \"tao_version\", \"version\", do { \
                 dsyntax <<tao_version>>;\
                 synopsis \"The Tao version\" ; \
@@ -1736,7 +1736,7 @@ PREFIX(TaoVersion, tree, "tao_version",, RTAO(taoVersion(self)),
                 return_value \"text\", <<The version of the running Tao program>>;\
                 }\
           |*/")
-PREFIX(DocVersion, tree, "doc_version",, RTAO(docVersion(self)), 
+PREFIX(DocVersion, tree, "doc_version",, RTAO(docVersion(self)),
        "/*| docname \"doc_version\", \"version\", do { \
                 dsyntax <<doc_version>>;\
                 synopsis \"The document version\" ; \
@@ -1757,7 +1757,7 @@ PREFIX(NewTableAt, tree, "table",
        PARM(x,real) PARM(y, real) PARM(r,integer) PARM(c,integer) PARM(b,tree),
        RTAO(newTable(self, x, y, r, c, b)), "");
 PREFIX(NewTable, tree, "table", PARM(r,integer) PARM(c,integer) PARM(b,tree),
-       RTAO(newTable(self, r, c, b)), 
+       RTAO(newTable(self, r, c, b)),
        "/*| docname \"table\", \"table\", do { \
                 dsyntax <<table x, y, r, c, b>>;\
                 dsyntax <<table r, c, b>>;\
@@ -1776,7 +1776,7 @@ PREFIX(TableSizedCell, tree, "table_cell",
        PARM(w, real) PARM(h, real) PARM(b, tree),
        RTAO(tableCell(self, w, h, b)), "")
 PREFIX(TableCell, tree, "table_cell", PARM(b, tree),
-       RTAO(tableCell(self, b)), 
+       RTAO(tableCell(self, b)),
        "/*| docname \"table_cell\", \"table\", do { \
                 dsyntax <<table_cell w, h, b>>;\
                 synopsis \"Define a sized cell in the table\" ; \
@@ -1797,7 +1797,7 @@ PREFIX(TableMargins2, tree, "table_cell_margins",
        RTAO(tableMargins(self, w, h)), "")
 PREFIX(TableMargins, tree, "table_cell_margins",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real),
-       RTAO(tableMargins(self, x, y, w, h)), 
+       RTAO(tableMargins(self, x, y, w, h)),
        "/*| docname \"table_cell_margins\", \"table\", do { \
                 dsyntax <<table_cell_margins x, y, w, h>>;\
                 dsyntax <<table_cell_margins w, h>>;\
@@ -1813,7 +1813,7 @@ PREFIX(TableMargins, tree, "table_cell_margins",
                 }\
           |*/")
 PREFIX(TableFill, tree, "table_cell_fill", PARM(b, tree),
-       RTAO(tableFill(self, b)), 
+       RTAO(tableFill(self, b)),
        "/*| docname \"table_cell_fill\", \"table\", do { \
                 dsyntax <<table_cell_fill b>>;\
                 dsyntax <<fill>>;                             \
@@ -1825,7 +1825,7 @@ PREFIX(TableFill, tree, "table_cell_fill", PARM(b, tree),
                 }\
           |*/")
 PREFIX(TableBorder, tree, "table_cell_border", PARM(b, tree),
-       RTAO(tableBorder(self, b)), 
+       RTAO(tableBorder(self, b)),
        "/*| docname \"table_cell_border\", \"table\", do { \
                 dsyntax <<table_cell_border>>;\
                 dsyntax <<border>>;                             \
@@ -1836,7 +1836,7 @@ PREFIX(TableBorder, tree, "table_cell_border", PARM(b, tree),
                 err \"Error raised when invoked outside of a table context.\" \
                 }\
           |*/")
-PREFIX(TableCellX, tree, "table_cell_x", , RTAO(tableCellX(self)), 
+PREFIX(TableCellX, tree, "table_cell_x", , RTAO(tableCellX(self)),
        "/*| docname \"table_cell_x\", \"table\", do { \
                 dsyntax <<table_cell_x>>;\
                 dsyntax <<x >>;                             \
@@ -1846,7 +1846,7 @@ PREFIX(TableCellX, tree, "table_cell_x", , RTAO(tableCellX(self)),
                 err \"Error raised when invoked outside of a table context.\" \
                 }\
           |*/")
-PREFIX(TableCellY, tree, "table_cell_y", , RTAO(tableCellY(self)), 
+PREFIX(TableCellY, tree, "table_cell_y", , RTAO(tableCellY(self)),
        "/*| docname \"table_cell_y\", \"table\", do { \
                 dsyntax <<table_cell_y>>;\
                 dsyntax <<y>>;                             \
@@ -1855,7 +1855,7 @@ PREFIX(TableCellY, tree, "table_cell_y", , RTAO(tableCellY(self)),
                 return_value \"real\", <<The coordinate of the center of the current cell on y-axis>>;\
                 }\
           |*/")
-PREFIX(TableCellW, tree, "table_cell_w", , RTAO(tableCellW(self)), 
+PREFIX(TableCellW, tree, "table_cell_w", , RTAO(tableCellW(self)),
        "/*| docname \"table_cell_w\", \"table\", do { \
                 dsyntax <<table_cell_w>>;\
                 dsyntax <<w>>;                             \
@@ -1864,7 +1864,7 @@ PREFIX(TableCellW, tree, "table_cell_w", , RTAO(tableCellW(self)),
                 return_value \"real\", <<The size of the current cell along the x-axis>>;\
                 }\
           |*/")
-PREFIX(TableCellH, tree, "table_cell_h", , RTAO(tableCellH(self)), 
+PREFIX(TableCellH, tree, "table_cell_h", , RTAO(tableCellH(self)),
        "/*| docname \"table_cell_h\", \"table\", do { \
                 dsyntax <<table_cell_h>>;\
                 dsyntax <<h>>;                             \
@@ -1874,7 +1874,7 @@ PREFIX(TableCellH, tree, "table_cell_h", , RTAO(tableCellH(self)),
                 err \"Error raised when invoked outside of a table context.\" \
                 }\
           |*/")
-PREFIX(TableRow, tree, "table_cell_row", , RTAO(tableRow(self)), 
+PREFIX(TableRow, tree, "table_cell_row", , RTAO(tableRow(self)),
        "/*| docname \"table_cell_row\", \"table\", do { \
                 dsyntax <<table_cell_row>>;\
                 dsyntax <<row>>;                             \
@@ -1884,7 +1884,7 @@ PREFIX(TableRow, tree, "table_cell_row", , RTAO(tableRow(self)),
                 err \"Error raised when invoked outside of a table context.\" \
                 }\
           |*/")
-PREFIX(TableColumn, tree, "table_cell_column", , RTAO(tableColumn(self)), 
+PREFIX(TableColumn, tree, "table_cell_column", , RTAO(tableColumn(self)),
        "/*| docname \"table_cell_column\", \"table\", do { \
                 dsyntax <<table_cell_column>>;\
                 dsyntax <<column>>;                             \
@@ -1894,7 +1894,7 @@ PREFIX(TableColumn, tree, "table_cell_column", , RTAO(tableColumn(self)),
                 err \"Error raised when invoked outside of a table context.\" \
                 }\
           |*/")
-PREFIX(TableRows, tree, "table_rows", , RTAO(tableRows(self)), 
+PREFIX(TableRows, tree, "table_rows", , RTAO(tableRows(self)),
        "/*| docname \"table_rows\", \"table\", do { \
                 dsyntax <<table_rows>>;\
                 dsyntax <<rows>>;                             \
@@ -1904,7 +1904,7 @@ PREFIX(TableRows, tree, "table_rows", , RTAO(tableRows(self)),
                 err \"Error raised when invoked outside of a table context.\" \
                 }\
           |*/")
-PREFIX(TableColumns, tree, "table_columns", , RTAO(tableColumns(self)), 
+PREFIX(TableColumns, tree, "table_columns", , RTAO(tableColumns(self)),
        "/*| docname \"table_columns\", \"table\", do { \
                 dsyntax <<table_columns>>;\
                 dsyntax <<columns>>;                             \
@@ -1923,7 +1923,7 @@ PREFIX(TableColumns, tree, "table_columns", , RTAO(tableColumns(self)),
 //
 // ============================================================================
 
-PREFIX(Caption, tree, "status", PARM(t, text), RTAO(status(self, t)), 
+PREFIX(Caption, tree, "status", PARM(t, text), RTAO(status(self, t)),
        "/*| docname \"status\", \"gui\", do { \
                 dsyntax <<status t>>;\
                 synopsis \"Set the status line of the window\" ; \
@@ -1934,7 +1934,7 @@ PREFIX(Caption, tree, "status", PARM(t, text), RTAO(status(self, t)),
           |*/")
 PREFIX(Frame, tree, "frame",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(p, tree),
-       RTAO(framePaint(self, x, y, w, h, p)), 
+       RTAO(framePaint(self, x, y, w, h, p)),
        "/*| docname \"frame\", \"widget\", do { \
                 dsyntax <<frame x, y, w, h, prog>>;\
                 synopsis \"A frame with a content\" ; \
@@ -1951,7 +1951,7 @@ PREFIX(Frame, tree, "frame",
           |*/")
 PREFIX(FrameTexture, tree, "frame_texture",
        PARM(w,real) PARM(h,real) PARM(p, tree),
-       RTAO(frameTexture(self, w, h, p)), 
+       RTAO(frameTexture(self, w, h, p)),
        "/*| docname \"frame_texture\", \"widget\", do { \
                 dsyntax <<frame_texture w, h, prog>>;\
                 synopsis \"A texture with content\" ; \
@@ -1970,7 +1970,7 @@ PREFIX(Url, tree, "url",
 PREFIX(UrlProgress, tree, "url",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(u, text) PARM(progress, integer),
-       RTAO(urlPaint(self, x, y, w, h, u, progress)), 
+       RTAO(urlPaint(self, x, y, w, h, u, progress)),
        "/*| docname \"url\", \"widget\", do { \
                 dsyntax <<url x, y, w, h, url, progress>>;\
                 dsyntax <<url x, y, w, h, url>>;\
@@ -1991,7 +1991,7 @@ PREFIX(UrlTexture, tree, "url_texture",
        RTAO(urlTexture(self, w, h, u, NULL)), "")
 PREFIX(UrlTextureProgress, tree, "url_texture",
        PARM(w,real) PARM(h,real) PARM(u, text) PARM(progress, integer),
-       RTAO(urlTexture(self, w, h, u, progress)), 
+       RTAO(urlTexture(self, w, h, u, progress)),
        "/*| docname \"url_texture\", \"widget\", do { \
                 dsyntax <<url_texture w, h, url, progress>>;\
                 dsyntax <<url_texture w, h, url>>;\
@@ -2006,7 +2006,7 @@ PREFIX(UrlTextureProgress, tree, "url_texture",
           |*/")
 PREFIX(LineEdit, tree, "line_edit",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(u, text),
-       RTAO(lineEdit(self, x, y, w, h, u)), 
+       RTAO(lineEdit(self, x, y, w, h, u)),
        "/*| docname \"line_edit\", \"widget\", do { \
                 dsyntax <<line_edit x, y, w, h, line>>;\
                 synopsis \"Draw a line editor in the current frame\" ; \
@@ -2021,7 +2021,7 @@ PREFIX(LineEdit, tree, "line_edit",
           |*/")
 PREFIX(LineEditTexture, tree, "line_edit_texture",
        PARM(w,real) PARM(h,real) PARM(u, text),
-       RTAO(lineEditTexture(self, w, h, u)), 
+       RTAO(lineEditTexture(self, w, h, u)),
        "/*| docname \"line_edit_texture\", \"widget\", do { \
                 dsyntax <<line_edit_texture w, h, line>>;\
                 synopsis \"Make a texture out of a given line editor\" ; \
@@ -2036,7 +2036,7 @@ PREFIX(LineEditTexture, tree, "line_edit_texture",
 PREFIX(PushButton, tree, "push_button",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(n, text) PARM(l, text) PARM(a, tree),
-       RTAO(pushButton(self, x, y, w, h, n, l, a)), 
+       RTAO(pushButton(self, x, y, w, h, n, l, a)),
        "/*| docname \"push_button\", \"widget\", do { \
                 dsyntax <<push_button x, y, w, h, name, label, action>>;\
                 synopsis \"A push button\" ; \
@@ -2053,7 +2053,7 @@ PREFIX(PushButton, tree, "push_button",
           |*/")
 PREFIX(PushButtonTexture, tree, "push_button_texture",
        PARM(w,real) PARM(h,real) PARM(n, text) PARM(l, text) PARM(a, tree),
-       RTAO(pushButtonTexture(self, w, h, n, l, a)), 
+       RTAO(pushButtonTexture(self, w, h, n, l, a)),
        "/*| docname \"push_button_texture\", \"widget\", do { \
                 dsyntax <<push_button_texture w, h, name, label, action>>;\
                 synopsis \"Make a texture out of a given push button\" ; \
@@ -2070,7 +2070,7 @@ PREFIX(PushButtonTexture, tree, "push_button_texture",
 PREFIX(RadioButton, tree, "radio_button",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(n, text) PARM(l, text) PARM(m, text) PARM(a, tree),
-       RTAO(radioButton(self, x, y, w, h, n, l, m, a)), 
+       RTAO(radioButton(self, x, y, w, h, n, l, m, a)),
        "/*| docname \"radio_button\", \"widget\", do { \
                 dsyntax <<radio_button x, y, w, h, name, label, selected, action>>;\
                 synopsis \"Draw a radio button\" ; \
@@ -2090,7 +2090,7 @@ PREFIX(RadioButton, tree, "radio_button",
 PREFIX(RadioButtonTexture, tree, "radio_button_texture",
        PARM(w,real) PARM(h,real) PARM(n, text) PARM(l, text)
        PARM(m, text) PARM(a, tree),
-       RTAO(radioButtonTexture(self, w, h, n, l, m, a)), 
+       RTAO(radioButtonTexture(self, w, h, n, l, m, a)),
        "/*| docname \"radio_button_texture\", \"widget\", do { \
                 dsyntax <<radio_button_texture w, h, name, label, selected, action>>;\
                 synopsis \"Make a texture out of a given radio button\" ; \
@@ -2108,7 +2108,7 @@ PREFIX(RadioButtonTexture, tree, "radio_button_texture",
 PREFIX(CheckBoxButton, tree, "check_box_button",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(n, text) PARM(l, text) PARM(m, text) PARM(a, tree),
-       RTAO(checkBoxButton(self, x, y, w, h, n, l, m, a)), 
+       RTAO(checkBoxButton(self, x, y, w, h, n, l, m, a)),
        "/*| docname \"check_box_button\", \"widget\", do { \
                 dsyntax <<check_box_button x, y, w, h, name, label, marked, action>>;\
                 synopsis \"Draw a check button\" ; \
@@ -2127,7 +2127,7 @@ PREFIX(CheckBoxButton, tree, "check_box_button",
 PREFIX(CheckBoxButtonTexture, tree, "check_box_button_texture",
        PARM(w,real) PARM(h,real) PARM(n, text) PARM(l, text)
        PARM(m, text) PARM(a, tree),
-       RTAO(checkBoxButtonTexture(self, w, h, n, l, m, a)), 
+       RTAO(checkBoxButtonTexture(self, w, h, n, l, m, a)),
        "/*| docname \"check_box_button_texture\", \"widget\", do { \
                 dsyntax <<check_box_button_texture w, h, name, label, marked, action>>;\
                 synopsis \"Make a texture out of a given checkbox button\" ; \
@@ -2145,7 +2145,7 @@ PREFIX(ColorChooser, tree, "color_chooser",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,tree),
        RTAO(colorChooser(self, x, y, w, h, t)), "")
 PREFIX(ColorChooserNow, tree, "color_chooser", PARM(n, text) PARM(t,tree),
-       RTAO(colorChooser(self, n, t)), 
+       RTAO(colorChooser(self, n, t)),
        "/*| docname \"color_chooser\", \"widget\", do { \
                 dsyntax <<color_chooser x, y, w, h, tree>>;\
                 dsyntax <<color_chooser name, tree>>;\
@@ -2165,7 +2165,7 @@ Once the color is chosen Names 'red', 'green', 'blue', and 'alpha' are replaced 
 
 PREFIX(ColorChooserTexture, tree, "color_chooser_texture",
        PARM(w,real) PARM(h,real) PARM(t,tree),
-       RTAO(colorChooserTexture(self, w, h, t)), 
+       RTAO(colorChooserTexture(self, w, h, t)),
        "/*| docname \"color_chooser_texture\", \"widget\", do { \
                 dsyntax <<color_chooser_texture w, h, tree>>;\
                 synopsis \"Make a texture out of a given color chooser\" ; \
@@ -2181,7 +2181,7 @@ PREFIX(FontChooserNow, tree, "font_chooser", PARM(t,tree),
        RTAO(fontChooser(self, t)), "")
 PREFIX(FontChooser, tree, "font_chooser",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,tree),
-       RTAO(fontChooser(self, x, y, w, h, t)), 
+       RTAO(fontChooser(self, x, y, w, h, t)),
        "/*| docname \"font_chooser\", \"widget\", do { \
                 dsyntax <<font_chooser t>>;\
                 dsyntax <<font_chooser x, y, w, h, tree>>;\
@@ -2198,7 +2198,7 @@ Once the font is chosen, Names 'font_family', 'font_size', 'font_weight', 'font_
           |*/")
 PREFIX(FontChooserTexture, tree, "font_chooser_texture",
        PARM(w,real) PARM(h,real) PARM(t,tree),
-       RTAO(fontChooserTexture(self, w, h, t)), 
+       RTAO(fontChooserTexture(self, w, h, t)),
        "/*| docname \"font_chooser_texture\", \"widget\", do { \
                 dsyntax <<font_chooser_texture w, h, tree>>;\
                 synopsis \"Make a texture out of a given color chooser\" ; \
@@ -2214,7 +2214,7 @@ PREFIX(FileChooser, tree, "file_chooser",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(t,tree),
        RTAO(fileChooser(self, x, y, w, h, t)), "")
 PREFIX(FileChooserNow, tree, "file_chooser", PARM(t,tree),
-       RTAO(fileChooser(self, t)), 
+       RTAO(fileChooser(self, t)),
        "/*| docname \"file_chooser\", \"widget\", do { \
                 dsyntax <<file_chooser x, y, w, h, tree>>;\
                 dsyntax <<file_chooser tree>>;\
@@ -2236,7 +2236,7 @@ Once the file is selected, Names 'file_name', 'file_directory', 'file_path', and
           |*/")
 PREFIX(FileChooserTexture, tree, "file_chooser_texture",
        PARM(w,real) PARM(h,real) PARM(t,tree),
-       RTAO(fileChooserTexture(self, w, h, t)), 
+       RTAO(fileChooserTexture(self, w, h, t)),
        "/*| docname \"file_chooser_texture\", \"widget\", do { \
                 dsyntax <<file_chooser_texture w, h, t>>;\
                 synopsis \"Make a texture out of a given file chooser\" ; \
@@ -2249,7 +2249,7 @@ PREFIX(FileChooserTexture, tree, "file_chooser_texture",
                 }\
           |*/")
 PREFIX(SetFileDialogAction, tree, "file_chooser_action", PARM(t, tree),
-       RTAO(setFileDialogAction(self, t)), 
+       RTAO(setFileDialogAction(self, t)),
        "/*| docname \"file_chooser_action\", \"widget\", do { \
                 dsyntax <<file_chooser_action t>>;\
                 dsyntax <<action t>>;\
@@ -2261,7 +2261,7 @@ PREFIX(SetFileDialogAction, tree, "file_chooser_action", PARM(t, tree),
                 }\
           |*/")
 PREFIX(SetFileDialogDirectory, tree, "file_chooser_directory", PARM(d, text),
-       RTAO(setFileDialogDirectory(self, d)), 
+       RTAO(setFileDialogDirectory(self, d)),
        "/*| docname \"file_chooser_directory\", \"widget\", do { \
                 dsyntax <<file_chooser_directory d>>;\
                 dsyntax <<directory d>>;\
@@ -2273,7 +2273,7 @@ PREFIX(SetFileDialogDirectory, tree, "file_chooser_directory", PARM(d, text),
                 }\
           |*/")
 PREFIX(SetFileDialogFilter, tree, "file_chooser_filter", PARM(d, text),
-       RTAO(setFileDialogFilter(self, d)), 
+       RTAO(setFileDialogFilter(self, d)),
        "/*| docname \"file_chooser_filter\", \"widget\", do { \
                 dsyntax <<file_chooser_filter>>;\
                 synopsis \"Set the file filters\" ; \
@@ -2285,7 +2285,7 @@ PREFIX(SetFileDialogFilter, tree, "file_chooser_filter", PARM(d, text),
           |*/")
 PREFIX(SetFileDialogLabel, tree, "file_chooser_label",
        PARM(lbl, text) PARM(v, text),
-       RTAO(setFileDialogLabel(self, lbl, v)), 
+       RTAO(setFileDialogLabel(self, lbl, v)),
        "/*| docname \"file_chooser_label\", \"widget\", do { \
                 dsyntax <<file_chooser_label>>;\
                 synopsis \"Set labels on a file dialog\" ; \
@@ -2298,7 +2298,7 @@ PREFIX(SetFileDialogLabel, tree, "file_chooser_label",
 
 PREFIX(ButtonGroup, tree, "button_group",
        PARM(ex, boolean) PARM(b, tree),
-       RTAO(buttonGroup(self, ex, b)), 
+       RTAO(buttonGroup(self, ex, b)),
        "/*| docname \"button_group\", \"widget\", do { \
                 dsyntax <<button_group ex, buttons>>;\
                 synopsis \"Create a button group.\" ; \
@@ -2310,7 +2310,7 @@ PREFIX(ButtonGroup, tree, "button_group",
           |*/")
 
 PREFIX(Action, tree, "button_group_action", PARM(act, tree),
-       RTAO(setButtonGroupAction(self, act)), 
+       RTAO(setButtonGroupAction(self, act)),
        "/*| docname \"button_group_action\", \"widget\", do { \
                 dsyntax <<button_group_action action>>;\
                 synopsis \"Action of the group\" ; \
@@ -2324,7 +2324,7 @@ PREFIX(Action, tree, "button_group_action", PARM(act, tree),
 PREFIX(GroupBox, tree, "group_box",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real)
        PARM(lbl, text) PARM(b, tree),
-       RTAO(groupBox(self, x, y, w, h, lbl, b)), 
+       RTAO(groupBox(self, x, y, w, h, lbl, b)),
        "/*| docname \"group_box\", \"widget\", do { \
                 dsyntax <<group_box x, y, w, h, label, buttons>>;\
                 synopsis \"group box\" ; \
@@ -2340,7 +2340,7 @@ PREFIX(GroupBox, tree, "group_box",
           |*/")
 PREFIX(GroupBoxTexture, tree, "group_box_texture",
        PARM(w,real) PARM(h,real) PARM(lbl, text),
-       RTAO(groupBoxTexture(self, w, h, lbl)), 
+       RTAO(groupBoxTexture(self, w, h, lbl)),
        "/*| docname \"group_box_texture\", \"widget\", do { \
                 dsyntax <<group_box_texture w, h, lbl>>;\
                 synopsis \"Texture group box.\" ; \
@@ -2356,7 +2356,7 @@ PREFIX(GroupBoxTexture, tree, "group_box_texture",
 
 PREFIX(VideoPlayer, tree, "video_player",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(u,text),
-       RTAO(videoPlayer(self, x, y, w, h, u)), 
+       RTAO(videoPlayer(self, x, y, w, h, u)),
        "/*| docname \"video_player\", \"widget\", do { \
                 dsyntax <<video_player x, y, w, h, u>>;\
                 synopsis \"Make a video player\" ; \
@@ -2372,7 +2372,7 @@ PREFIX(VideoPlayer, tree, "video_player",
           |*/")
 PREFIX(VideoPlayerTexture, tree, "video_player_texture",
        PARM(w,real) PARM(h,real) PARM(u,text),
-       RTAO(videoPlayerTexture(self, w, h, u)), 
+       RTAO(videoPlayerTexture(self, w, h, u)),
        "/*| docname \"video_player_texture\", \"widget\", do { \
                 dsyntax <<video_player_texture w, h, u>>;\
                 synopsis \"Make a video player texture.\" ; \
@@ -2393,7 +2393,7 @@ PREFIX(VideoPlayerTexture, tree, "video_player_texture",
 //
 // ============================================================================
 
-PREFIX(Chooser, tree, "chooser", PARM(n, text), RTAO(chooser(self, n)), 
+PREFIX(Chooser, tree, "chooser", PARM(n, text), RTAO(chooser(self, n)),
        "/*| docname \"chooser\", \"code:chooser\", do { \
                 dsyntax <<chooser c>>;\
                 synopsis \"\" ; \
@@ -2403,7 +2403,7 @@ PREFIX(Chooser, tree, "chooser", PARM(n, text), RTAO(chooser(self, n)),
                 }\
           |*/")
 PREFIX(ChooserChoice, tree, "chooser_choice", PARM(n, text) PARM(t, tree),
-       RTAO(chooserChoice(self, n, t)), 
+       RTAO(chooserChoice(self, n, t)),
        "/*| docname \"chooser_choice\", \"code:chooser\", do { \
                 dsyntax <<chooser_choice l, t>>;\
                 synopsis \"Add a command in the chooser list.\" ; \
@@ -2414,7 +2414,7 @@ PREFIX(ChooserChoice, tree, "chooser_choice", PARM(n, text) PARM(t, tree),
                 }\
           |*/")
 PREFIX(ChooserCommands, tree, "chooser_commands", PARM(p, text) PARM(t,text),
-       RTAO(chooserCommands(self, p, t)), 
+       RTAO(chooserCommands(self, p, t)),
        "/*| docname \"chooser_commands\", \"code:chooser\", do { \
                 dsyntax <<chooser_commands, p, t>>;\
                 synopsis \"Add all commands from the symbols list.\" ; \
@@ -2425,7 +2425,7 @@ PREFIX(ChooserCommands, tree, "chooser_commands", PARM(p, text) PARM(t,text),
                 }\
           |*/")
 PREFIX(ChooserPages, tree, "chooser_pages", PARM(p, symbol) PARM(l, text),
-       RTAO(chooserPages(self, p, l)), 
+       RTAO(chooserPages(self, p, l)),
        "/*| docname \"chooser_pages\", \"code:chooser\", do { \
                 dsyntax <<chooser_pages p, l>>;\
                 synopsis \"pages added to the chooser\" ; \
@@ -2491,7 +2491,7 @@ PREFIX(Menu, tree, "menu", PARM(n, text) PARM(lbl, text) PARM(icon, text),
 
 PREFIX(SubMenu, tree, "submenu",
        PARM(name, text) PARM(lbl, text) PARM(icon, text),
-       RTAO(menu(self, name, lbl, icon, true)), 
+       RTAO(menu(self, name, lbl, icon, true)),
        "/*| docname \"submenu\", \"widget:menu\", do { \
                 dsyntax <<submenu \"unique_name\", \"label\", \"icon\">>;\
                 synopsis \"Create/Select a submenu\" ; \
@@ -2523,7 +2523,7 @@ PREFIX(MenuItem, tree, "menu_item",
 
 PREFIX(ToolBar, tree, "toolbar",
        PARM(name, text) PARM(lbl, text) PARM(loc, text),
-       RTAO(toolBar(self, name, lbl, true, loc)), 
+       RTAO(toolBar(self, name, lbl, true, loc)),
        "/*| docname \"toolbar\", \"widget:menu\", do { \
                 dsyntax <<toolbar  \"unique_name\", \"label\", \"loc\">>;\
                 synopsis \"Add the toolBar\" ; \
@@ -2535,7 +2535,7 @@ PREFIX(ToolBar, tree, "toolbar",
                 }\
           |*/")
 
-PREFIX(MenuBar, tree, "menubar", , RTAO(menuBar(self)), 
+PREFIX(MenuBar, tree, "menubar", , RTAO(menuBar(self)),
        "/*| docname \"menubar\", \"widget:menu\", do { \
                 dsyntax <<menubar>>;\
                 synopsis \"Set the current menubar\" ; \
@@ -2544,7 +2544,7 @@ PREFIX(MenuBar, tree, "menubar", , RTAO(menuBar(self)),
           |*/")
 
 PREFIX(Separator, tree, "separator", ,
-       RTAO(separator(self)), 
+       RTAO(separator(self)),
        "/*| docname \"separator\", \"widget:menu\", do { \
                 dsyntax <<separator>>;\
                 synopsis \"Add a separator\" ; \
@@ -2562,7 +2562,7 @@ PREFIX(Separator, tree, "separator", ,
 PREFIX(ErrorMessage, tree, "error", PARM(m, text) PARM(s, tree),
        return Tao::Widget::runtimeError(self, m, s), "")
 PREFIX(ErrorMessage0, tree, "error", PARM(m, text),
-       return Tao::Widget::runtimeError(self, m, NULL), 
+       return Tao::Widget::runtimeError(self, m, NULL),
        "/*| docname \"error\", \"\", do { \
                 dsyntax <<error m, s>>;\
                 dsyntax <<error m>>;\
@@ -2584,7 +2584,7 @@ PREFIX(ErrorMessage0, tree, "error", PARM(m, text),
 // ============================================================================
 PREFIX(Insert0, boolean, "insert", PARM(m, text) PARM(t, tree),
        RTAO(insert(self, t, m)), "")
-PREFIX(Insert, boolean, "insert", PARM(t, tree), RTAO(insert(self, t)), 
+PREFIX(Insert, boolean, "insert", PARM(t, tree), RTAO(insert(self, t)),
        "/*| docname \"insert\", \"tree\", do { \
                 dsyntax <<insert m, t>>;\
                 dsyntax <<insert t>>;\
@@ -2596,7 +2596,7 @@ PREFIX(Insert, boolean, "insert", PARM(t, tree), RTAO(insert(self, t)),
                 }\
           |*/")
 PREFIX(Delete, boolean, "delete_selection", PARM(k, text),
-       RTAO(deleteSelection(self, k)), 
+       RTAO(deleteSelection(self, k)),
        "/*| docname \"delete_selection\", \"tree\", do { \
                 dsyntax <<delete_selection>>;\
                 synopsis \"Delete the selection\" ; \
@@ -2607,7 +2607,7 @@ PREFIX(Delete, boolean, "delete_selection", PARM(k, text),
           |*/")
 PREFIX(SetAttribute, boolean, "set_attribute",
        PARM(n, text) PARM(t, tree),
-       RTAO(setAttribute(self, n, t, "group,shape")), 
+       RTAO(setAttribute(self, n, t, "group,shape")),
        "/*| docname \"set_attribute\", \"tree\", do { \
                 dsyntax <<set_attribute n, t>>;\
                 synopsis \"set attribute is selection\" ; \
@@ -2625,28 +2625,28 @@ PREFIX(SetAttribute, boolean, "set_attribute",
 //
 // ============================================================================
 
-PREFIX(BringToFront, boolean, "bring_to_front",, RTAO(bringToFront(self)), 
+PREFIX(BringToFront, boolean, "bring_to_front",, RTAO(bringToFront(self)),
        "/*| docname \"bring_to_front\", \"code:zorder\", do { \
                 dsyntax <<bring_to_front>>;\
                 synopsis \"Bring the selected shape to front\" ; \
                 description <<Bring the selected shape to front. This moves the source code of the selection to the end of the page or program>> ;\
                 }\
           |*/")
-PREFIX(BringForward, boolean, "bring_forward",, RTAO(bringForward(self)), 
+PREFIX(BringForward, boolean, "bring_forward",, RTAO(bringForward(self)),
        "/*| docname \"bring_forward\", \"code:zorder\", do { \
                 dsyntax <<bring_forward>>;\
                 synopsis \"Bring the selection one forward\" ; \
                 description <<Swap the selected shape and the one in front of it. This is done by swaping code in the source.> ;\
                 }\
           |*/")
-PREFIX(SendToBack, boolean, "send_to_back",, RTAO(sendToBack(self)), 
+PREFIX(SendToBack, boolean, "send_to_back",, RTAO(sendToBack(self)),
        "/*| docname \"send_to_back\", \"code:zorder\", do { \
                 dsyntax <<send_to_back>>;\
                 synopsis \"Send the selected shape to back\" ; \
                 description <<Send the selected shape to back. This moves the source code of the selection to the begining of the page or program>> ;\
                 }\
           |*/")
-PREFIX(SendBackward, boolean, "send_backward",, RTAO(sendBackward(self)), 
+PREFIX(SendBackward, boolean, "send_backward",, RTAO(sendBackward(self)),
        "/*| docname \"send_backward\", \"code:zorder\", do { \
                 dsyntax <<send_backward>>;\
                 synopsis \"Send the selection one backward\" ; \
@@ -2660,7 +2660,7 @@ PREFIX(SendBackward, boolean, "send_backward",, RTAO(sendBackward(self)),
 //
 // ============================================================================
 
-PREFIX(Group, tree, "group",   PARM(t, tree), RTAO(group(self, t)), 
+PREFIX(Group, tree, "group",   PARM(t, tree), RTAO(group(self, t)),
        "/*| docname \"group\", \"code:group\", do { \
                 dsyntax <<group t>>;\
                 synopsis \"Create a logical group\" ; \
@@ -2669,7 +2669,7 @@ PREFIX(Group, tree, "group",   PARM(t, tree), RTAO(group(self, t)),
                 parameter \"tree\", \"t\", <<The code to group>>;\
                 }\
           |*/")
-PREFIX(GroupSelection, boolean, "group_selection",, RTAO(groupSelection(self)), 
+PREFIX(GroupSelection, boolean, "group_selection",, RTAO(groupSelection(self)),
        "/*| docname \"group_selection\", \"code:group\", do { \
                 dsyntax <<group_selection>>;\
                 synopsis \"Create the group from the selected objects\" ; \
@@ -2677,7 +2677,7 @@ PREFIX(GroupSelection, boolean, "group_selection",, RTAO(groupSelection(self)),
                 see \"group\";\
                 }\
           |*/")
-PREFIX(UngroupSelection, boolean, "ungroup_selection",, RTAO(ungroupSelection(self)), 
+PREFIX(UngroupSelection, boolean, "ungroup_selection",, RTAO(ungroupSelection(self)),
        "/*| docname \"ungroup_selection\", \"code:group\", do { \
                 dsyntax <<ungroup_selection>>;\
                 synopsis \"ungroup the selected group\" ; \
@@ -2702,7 +2702,7 @@ POSTFIX(FromCm,   real, PARM(x, real), "cm", RTAO(fromCm(self, x)),
          return_value \"real\", \"The value in pixel. \";\
          }\
 |*/")
-POSTFIX(FromMm,   real, PARM(x, real), "mm", RTAO(fromMm(self, x)), 
+POSTFIX(FromMm,   real, PARM(x, real), "mm", RTAO(fromMm(self, x)),
        "/*| docname \"mm\", \"code:unit\", do { \
                 dsyntax <<x mm>>;\
                 synopsis \"Convert from mm to pixels\" ; \
@@ -2712,7 +2712,7 @@ POSTFIX(FromMm,   real, PARM(x, real), "mm", RTAO(fromMm(self, x)),
                 return_value \"real\", \"The value in pixel. \";\
                 }\
           |*/")
-POSTFIX(FromInch, real, PARM(x, real), "inch", RTAO(fromIn(self, x)), 
+POSTFIX(FromInch, real, PARM(x, real), "inch", RTAO(fromIn(self, x)),
        "/*| docname \"inch\", \"code:unit\", do { \
                 dsyntax <<x inch>>;\
                 synopsis \"Convert from inch to pixels\" ; \
@@ -2722,7 +2722,7 @@ POSTFIX(FromInch, real, PARM(x, real), "inch", RTAO(fromIn(self, x)),
                 return_value \"real\", \"The value in pixel. \";\
                 }\
           |*/")
-POSTFIX(FromPt,   real, PARM(x, real), "pt", RTAO(fromPt(self, x)), 
+POSTFIX(FromPt,   real, PARM(x, real), "pt", RTAO(fromPt(self, x)),
        "/*| docname \"pt\", \"code:unit\", do { \
                 dsyntax <<x pt>>;\
                 synopsis \"Convert from pt to pixels\" ; \
@@ -2732,7 +2732,7 @@ POSTFIX(FromPt,   real, PARM(x, real), "pt", RTAO(fromPt(self, x)),
                 return_value \"real\", \"The value in pixel. \";\
                 }\
           |*/")
-POSTFIX(FromPx,   real, PARM(x, real), "px", RTAO(fromPx(self, x)), 
+POSTFIX(FromPx,   real, PARM(x, real), "px", RTAO(fromPx(self, x)),
        "/*| docname \"px\", \"code:unit\", do { \
                 dsyntax <<x px>>;\
                 synopsis \"Convert from pixel\" ; \
@@ -2751,7 +2751,7 @@ POSTFIX(FromPx,   real, PARM(x, real), "px", RTAO(fromPx(self, x)),
 //
 // ============================================================================
 
-PREFIX(Constant, tree, "constant", PARM(t, tree), RTAO(constant(self, t)), 
+PREFIX(Constant, tree, "constant", PARM(t, tree), RTAO(constant(self, t)),
        "/*| docname \"constant\", \"code\", do { \
                 dsyntax <<constant t>>;\
                 synopsis \"a constant tree\" ; \
@@ -2781,5 +2781,45 @@ PREFIX(GenAllDoc, tree, "generate_all_doc", PARM(filename, text),
          parameters; \
          parameter \"text\", \"filename\", \"The location where to write the documentation. If empty, no file written. \";\
          return_value \"Text\", \"The Text contains the documentation, ready to be parsed. \";\
+         }\
+|*/")
+
+
+// ============================================================================
+//
+//   Tests...
+//
+// ============================================================================
+
+PREFIX(TestRect, tree, "test_rectangle", ,
+       RTAO(testRectangle(self)),
+"/*| docname \"test_rectangle\", \"test\", do { \
+         dsyntax \"test_rectangle\" ;\
+         synopsis \"Test \"; \
+         description \"Test to activate rectangle action \"; \
+         }\
+|*/")
+PREFIX(TestStartRec, tree, "test_start_record", ,
+       RTAO(startRecTest(self)),
+"/*| docname \"test_start_record\", \"test\", do { \
+         dsyntax \"test_start_record\" ;\
+         synopsis \"Test \"; \
+         description \"Test to activate rectangle action \"; \
+         }\
+|*/")
+PREFIX(TestStopRec, tree, "test_stop_record", ,
+       RTAO(stopRecTest(self)),
+"/*| docname \"test_stop_record\", \"test\", do { \
+         dsyntax \"test_stop_record\" ;\
+         synopsis \"Test \"; \
+         description \"Test to activate rectangle action \"; \
+         }\
+|*/")
+PREFIX(TestReplay, tree, "test_replay", ,
+       RTAO(playTest(self)),
+"/*| docname \"test_replay\", \"test\", do { \
+         dsyntax \"test_replay\" ;\
+         synopsis \"Test \"; \
+         description \"Test to activate rectangle action \"; \
          }\
 |*/")

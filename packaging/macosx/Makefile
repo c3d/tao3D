@@ -5,7 +5,18 @@
 #   - The Tao exectuables
 #   - The Qt libraries, distributed as Frameworks
 #   - Git binaries (downloaded and built by this Makefile)
-#   - All the files loaded by Tao at runtime (XL definitions, etc.)
+#   - Standard Tao modules
+#   - All the files loaded by Tao at runtime (XL definitions,
+#     fonts, etc.)
+#
+# To build the package, this Makefile goes through the following
+# steps:
+#   - run "make install" at the top level of the Tao project
+#   - copy the installation directory under ./build_root
+#   - run macdeployqt on ./build_root to import Qt frameworks
+#   - download and build git under ./git_build
+#   - install git under ./build_root
+#   - create the DMG from ./buid_root
 #
 # HOW TO CHANGE THE APPEARANCE OF THE DISK IMAGE IN FINDER
 #
@@ -36,6 +47,7 @@ GIT_VERSION=1.7.2.2
 
 ########
 
+INSTROOT=$(shell pwd)/../../install
 GIT_INSTALL_PREFIX=$(shell pwd)/build_root/Tao.app/Contents/MacOS/git
 
 tao.dmg: tmp.dmg
@@ -73,11 +85,11 @@ clean.tao_install: clean.tao_install_prog clean.tao_install_deps
 	rm -f .tao_install_ts
 
 ########
-
+# Note: macdeployqt shows:
+# ERROR: no file at "/usr/lib/libxlr.1.dylib"
+# This is not a problem, the lib is in Tao.app/Contents/Framework
 .tao_install_deps_ts: .tao_install_prog_ts
 	macdeployqt build_root/Tao.app
-	cp -p ../../libxlr/libxlr*.dylib build_root/Tao.app/Contents/Frameworks
-	cp -p ../../ssh_ask_pass/SshAskPass.app/Contents/MacOS/SshAskPass build_root/Tao.app/Contents/MacOS
 	touch $@
 
 clean.tao_install_deps:
@@ -87,7 +99,8 @@ clean.tao_install_deps:
 
 .tao_install_prog_ts:
 	[ -d build_root ] || mkdir -p build_root
-	cp -Rp ../../tao/Tao.app build_root
+	cd ../.. && make install
+	cp -Rp $(INSTROOT)/* build_root
 	touch $@
 
 clean.tao_install_prog:

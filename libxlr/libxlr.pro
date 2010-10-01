@@ -11,6 +11,8 @@
 # ******************************************************************************
 
 
+include (../main.pri)
+
 TEMPLATE = lib
 TARGET   = xlr
 CONFIG  += dll
@@ -19,15 +21,7 @@ QT      -= core gui
 
 INCLUDEPATH += .
 
-QMAKE_CFLAGS += -Werror
-QMAKE_CXXFLAGS += -Werror
-QMAKE_CXXFLAGS_RELEASE += -g \
-    \$(CXXFLAGS_\$%)
-
-DEFINES += LIBXLR DEBUG
-macx:DEFINES += CONFIG_MACOSX
-win32:DEFINES += CONFIG_MINGW
-linux-g++:DEFINES += CONFIG_LINUX
+DEFINES += LIBXLR
 
 HEADERS = \
     ../tao/xlr/xlr/utf8.h \
@@ -95,19 +89,5 @@ INCLUDEPATH += $$LLVM_INC
 LIBS += $$LLVM_LIBS
 DEFINES += $$LLVM_DEF
 
-### <FIXME> copy/paste from tao.pro. Can we put common stuff in a central place? main.pro?
-
-# Adding 'c++tbl' option with lowered optimization level
-c++tbl.output = ${QMAKE_FILE_BASE}.o
-c++tbl.commands = $(CXX) \
-    -c \
-    $(CXXFLAGS:-O2=) \
-    $(INCPATH) \
-    ${QMAKE_FILE_NAME} \
-    -o \
-    ${QMAKE_FILE_OUT}
-c++tbl.dependency_type = TYPE_C
-c++tbl.input = CXXTBL_SOURCES
-QMAKE_EXTRA_COMPILERS += c++tbl
-
-### </FIXME>
+target.path = $$LIBINST
+INSTALLS    = target

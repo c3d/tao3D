@@ -1,8 +1,8 @@
 # ******************************************************************************
-#  ssh_ask_pass.pro                                                 Tao project
+#  modules.pro                                                      Tao project
 # ******************************************************************************
 # File Description:
-# Qt build file for the SshAskPass utility
+# Main build file for Tao modules
 # ******************************************************************************
 # This document is released under the GNU General Public License.
 # See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -11,16 +11,5 @@
 # ******************************************************************************
 
 
-include(../main.pri)
-
-TEMPLATE = app
-TARGET   = SshAskPass
-SOURCES += main.cpp\
-           ssh_ask_pass_dialog.cpp
-HEADERS += ssh_ask_pass_dialog.h
-FORMS   += ssh_ask_pass_dialog.ui
-
-win32:CONFIG += console
-
-target.path = $$APPINST
-INSTALLS    = target
+TEMPLATE = subdirs
+SUBDIRS  = lorem_ipsum

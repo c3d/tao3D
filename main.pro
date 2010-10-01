@@ -10,9 +10,21 @@
 # (C) 2010 Taodyne SAS
 # ******************************************************************************
 
+# make
+# make install     # installs locally under ./install/
+# make clean
+# make distclean
+#
+# Note that parallel build (make -jX) sometimes fails for the install target.
+# Instead, do:
+#   make -j3 && make install
+
+# Include global definitions and rules.
+include(main.pri)
 
 TEMPLATE = subdirs
-SUBDIRS  = libxlr tao ssh_ask_pass
+SUBDIRS  = libxlr tao modules ssh_ask_pass
 win32:SUBDIRS += detach
 
 tao.depends = libxlr
+modules.depends = tao

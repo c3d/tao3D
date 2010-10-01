@@ -12,6 +12,9 @@
 # (C) 2010 Jerome Forissier <jerome@taodyne.com>
 # (C) 2010 Taodyne SAS
 # ******************************************************************************
+
+include(../main.pri)
+
 TEMPLATE = app
 TARGET = Tao
 VERSION = "0.0.3"
@@ -227,8 +230,7 @@ OTHER_FILES += xl.syntax \
     tutorial.ddd \
     git.stylesheet \
     srcview.stylesheet \
-    srcview.css \
-    fonts/unifont-5.1.20080907.ttf
+    srcview.css
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}
@@ -255,15 +257,26 @@ revtarget.depends = $$SOURCES \
     $$FORMS
 QMAKE_EXTRA_TARGETS += revtarget
 
-# Adding 'c++tbl' option with lowered optimization level
-c++tbl.output = ${QMAKE_FILE_BASE}.o
-c++tbl.commands = $(CXX) \
-    -c \
-    $(CXXFLAGS:-O2=) \
-    $(INCPATH) \
-    ${QMAKE_FILE_NAME} \
-    -o \
-    ${QMAKE_FILE_OUT}
-c++tbl.dependency_type = TYPE_C
-c++tbl.input = CXXTBL_SOURCES
-QMAKE_EXTRA_COMPILERS += c++tbl
+# What to install
+xl_files.path  = $$APPINST
+xl_files.files = builtins.xl\
+    xl.syntax \
+    xl.stylesheet \
+    git.stylesheet \
+    srcview.stylesheet \
+    srcview.css \
+    tutorial.ddd
+fonts.path  = $$APPINST/fonts
+fonts.files = fonts/*
+INSTALLS    += xl_files fonts
+macx {
+  # Workaround install problem: on Mac, the standard way of installing (the 'else'
+  # part of this block) starts by recursively deleting $$target.path/Tao.app.
+  # This is bad since we have previously stored libraries there :(
+  app.path    = $$INSTROOT
+  app.extra   = \$(INSTALL_DIR) Tao.app $$INSTROOT
+  INSTALLS   += app
+} else {
+  target.path = $$INSTROOT
+  INSTALLS   += target
+}

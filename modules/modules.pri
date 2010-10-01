@@ -35,14 +35,19 @@ QMAKE_EXTRA_COMPILERS += tbl_wrap
 
 # Default module installation rules
 macx:MODULE  = lib$${TARGET}.dylib
-win32:MODULE = $${TARGET}.dll
 linux:MODULE = lib$${TARGET}.so
 isEmpty(APPINST):error(APPINST not defined)
 INSTDIR      = $${APPINST}/modules/$$TARGET
 thismod_xl.path   = $$INSTDIR
 thismod_xl.files  = module.xl
-thismod_bin.path  = $${INSTDIR}/lib
-# Workaround http://bugreports.qt.nokia.com/browse/QTBUG-5558
-# thismod_bin.files = $$MODULE
-thismod_bin.extra = \$(INSTALL_PROGRAM) $$MODULE $$thismod_bin.path
-INSTALLS += thismod_xl thismod_bin
+INSTALLS += thismod_xl
+win32 {
+    target.path = $${INSTDIR}/lib
+    INSTALLS += target
+} else {
+    thismod_bin.path  = $${INSTDIR}/lib
+    # Workaround http://bugreports.qt.nokia.com/browse/QTBUG-5558
+    # thismod_bin.files = $$MODULE
+    thismod_bin.extra = \$(INSTALL_PROGRAM) $$MODULE $$thismod_bin.path
+    INSTALLS += thismod_bin
+}

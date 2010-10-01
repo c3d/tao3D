@@ -73,7 +73,7 @@ Section "Tao (required)"
   SetOutPath $INSTDIR
   
   ; Files to package
-  File /r "buildroot\*.*"
+  File /r "build_root\*.*"
   
   ; Write the installation path into the registry
   WriteRegStr HKLM SOFTWARE\Taodyne\Tao "Install_Dir" "$INSTDIR"

@@ -43,3 +43,6 @@ c++tbl.commands = $(CXX) \
 c++tbl.dependency_type = TYPE_C
 c++tbl.input = CXXTBL_SOURCES
 QMAKE_EXTRA_COMPILERS += c++tbl
+
+# No -p by default on Windows-mingw. Our make install needs -p.
+win32:QMAKE_MKDIR = mkdir -p

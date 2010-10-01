@@ -208,14 +208,7 @@ Widget::~Widget()
     delete path;
     delete sourceRenderer;
 }
-//
-// CaB
-//bool Widget::screenShot()
-//{
-//    QImage imageBuffer = grabFrameBuffer(true);
-//    imageBuffer.save("widget.png");
-//    return true;
-//}
+
 
 // ============================================================================
 //
@@ -7708,46 +7701,159 @@ XL::Tree *NameToTextReplacement::DoName(XL::Name *what)
 //
 // ============================================================================
 
-Tree_p Widget::testRectangle(XL::Tree */*self*/)
-{
-    QString fullName("menu:insert > shape > rectangle");
-    if (QAction* act = parent()->findChild<QAction*>(fullName))
-    {
-        act->activate(QAction::Trigger);
-        QTest::mousePress(this, Qt::LeftButton, 0, QPoint(), 500);
-        QTest::mouseMove(this, QPoint(452,730), 500);
-        QTest::mouseRelease(this, Qt::LeftButton, 0, QPoint(452,730), 500);
-    }
-    return XL::xl_true;
-
-}
-
-Tree_p Widget::startRecTest(XL::Tree *)
+Tree_p Widget::startRecTest(Tree_p )
+// ----------------------------------------------------------------------------
+//   Start recording a sequence of events
+// ----------------------------------------------------------------------------
 {
     currentTest.name = "Alfred";
+    currentTest.description = "Le test de la mort qui tue...";
     currentTest.startRecord();
     return XL::xl_true;
 }
-Tree_p Widget::stopRecTest(XL::Tree *)
+
+
+Tree_p Widget::stopRecTest(Tree_p )
+// ----------------------------------------------------------------------------
+//   Stop recording events
+// ----------------------------------------------------------------------------
 {
     currentTest.stopRecord();
     return XL::xl_true;
 }
-Tree_p Widget::playTest(XL::Tree *)
+
+
+Tree_p Widget::playTest(Tree_p )
+// ----------------------------------------------------------------------------
+//   Replay the test
+// ----------------------------------------------------------------------------
 {
     currentTest.play();
-    return XL::xl_true;
+    currentTest.printResult();
+    return  currentTest.latestResult ? XL::xl_true : XL::xl_false;
 }
-Tree_p Widget::loadTest(XL::Tree *)
+
+
+Tree_p Widget::loadTest(Tree_p)
+// ----------------------------------------------------------------------------
+//   Load the named test
+// ----------------------------------------------------------------------------
 {
-    currentTest.load();
+ //   currentTest.load(name->value);
     return XL::xl_true;
 }
-Tree_p Widget::saveTest(XL::Tree *)
+
+
+Tree_p Widget::saveTest(Tree_p)
+// ----------------------------------------------------------------------------
+//   Save the named test
+// ----------------------------------------------------------------------------
 {
     currentTest.save();
     return XL::xl_true;
 }
+
+
+Tree_p Widget::testDef(Tree_p , text_p name, text_p desc, Tree_p body )
+// ----------------------------------------------------------------------------
+//   Define a new test
+// ----------------------------------------------------------------------------
+{
+    currentTest.reset(name->value, desc->value);
+    return xl_evaluate(body);
+}
+
+
+Tree_p Widget::testAddKeyPress(Tree_p , Integer_p key,
+                               Integer_p modifiers, Integer_p delay )
+// ----------------------------------------------------------------------------
+//  Add a key press event to the current test
+// ----------------------------------------------------------------------------
+{
+    currentTest.testList.addKeyPress(key->value,
+                                     (Qt::KeyboardModifier)modifiers->value,
+                                     delay->value);
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::testAddKeyRelease(Tree_p , Integer_p key,
+                                 Integer_p modifiers, Integer_p delay )
+// ----------------------------------------------------------------------------
+//  Add a key press event to the current test
+// ----------------------------------------------------------------------------
+{
+    currentTest.testList.addKeyRelease(key->value,
+                                       (Qt::KeyboardModifier)modifiers->value,
+                                       delay->value);
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::testAddMousePress(Tree_p , Integer_p button, Integer_p modifiers,
+                                 Integer_p x, Integer_p y, Integer_p delay)
+// ----------------------------------------------------------------------------
+//  Add a key press event to the current test
+// ----------------------------------------------------------------------------
+{
+    currentTest.testList.addMousePress((Qt::MouseButton)button->value,
+                                       (Qt::KeyboardModifier)modifiers->value,
+                                       QPoint(x->value, y->value),
+                                       delay->value);
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::testAddMouseRelease(Tree_p , Integer_p button,
+                                   Integer_p modifiers,
+                                   Integer_p x, Integer_p y, Integer_p delay)
+// ----------------------------------------------------------------------------
+//  Add a key press event to the current test
+// ----------------------------------------------------------------------------
+{
+    currentTest.testList.addMouseRelease((Qt::MouseButton)button->value,
+                                         (Qt::KeyboardModifier)modifiers->value,
+                                         QPoint(x->value, y->value),
+                                         delay->value);
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::testAddMouseDClick(Tree_p , Integer_p button, Integer_p modifiers,
+                                  Integer_p x, Integer_p y, Integer_p delay)
+// ----------------------------------------------------------------------------
+//  Add a key press event to the current test
+// ----------------------------------------------------------------------------
+{
+    currentTest.testList.addMouseDClick((Qt::MouseButton)button->value,
+                                        (Qt::KeyboardModifier)modifiers->value,
+                                        QPoint(x->value, y->value),
+                                        delay->value);
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::testAddMouseMove(Tree_p , Integer_p x, Integer_p y,
+                                Integer_p delay)
+// ----------------------------------------------------------------------------
+//  Add a key press event to the current test
+// ----------------------------------------------------------------------------
+{
+    currentTest.testList.addMouseMove(QPoint(x->value, y->value), delay->value);
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::testAddAction(Tree_p , text_p name, Integer_p delay)
+// ----------------------------------------------------------------------------
+//  Add a key press event to the current test
+// ----------------------------------------------------------------------------
+{
+    currentTest.testList.append(new QTestActionEvent(+name->value, delay->value));
+    return XL::xl_true;
+}
+
+
 
 TAO_END
 

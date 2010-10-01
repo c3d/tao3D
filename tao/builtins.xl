@@ -669,10 +669,11 @@ menu_item "menu:insert > image...", "Image...", file_chooser
 
 toolbar_test -> {
 toolbar "toolbar:test", "test", "N"
-menu_item "toolbar:test > testRect", "","images/tb_shape_rectangle.png", do test_rectangle
 menu_item "toolbar:test > start", "start","", do test_start_record
 menu_item "toolbar:test > stop", "stop","", do test_stop_record
 menu_item "toolbar:test > play", "play","", do test_replay
+menu_item "toolbar:test > save", "save","", do test_save
+menu_item "toolbar:test > load", "load","", do test_load
 }
 
 toolbar_insert -> {

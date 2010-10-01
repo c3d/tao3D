@@ -44,7 +44,8 @@ A module is a directory with the following structure:
   <module_name>/
     .git/        [Optional] Git folder, used to manage upgrades
     module.xl    A XL file, loaded by the module manager
-    lib/         [Optional] Native code as shared libraries
+    icon.png     [Optional] Module icon
+    lib/         [Optional] Native code as a shared library
 
   2.1 Structure of main.xl
 
@@ -153,7 +154,9 @@ Any XL code goes into module.xl and possibly other .xl files.
   8.2. Native code
 
 New XL primitives can be added by using the Tao module API, and generating
-a shared library that will be loaded by module_init.
+a shared library that will be loaded by Tao before module.xl is loaded.
+The base name of the library must be "module", i.e., module.dll on Windows,
+libmodule.dylib on MacOSX, libmodule.so on Linux.
 
  */
 
@@ -166,6 +169,7 @@ a shared library that will be loaded by module_init.
 #include <QMap>
 #include <QStringList>
 #include <QSet>
+#include <QLibrary>
 #include <iostream>
 
 
@@ -189,7 +193,7 @@ public:
         ModuleInfo() {}
         ModuleInfo(QString id, QString path, bool enabled = false)
             : id(id), path(path), enabled(enabled), loaded(false),
-              updateAvailable(false)
+              updateAvailable(false), hasNative(false), native(NULL)
             {}
 
         QString id;
@@ -206,6 +210,8 @@ public:
         bool    enabled;
         bool    loaded;
         bool    updateAvailable;
+        bool    hasNative;
+        QLibrary * native;
 
         bool operator==(const ModuleInfo &o) const
         {
@@ -298,9 +304,12 @@ private:
 
     bool                load(const QList<ModuleInfo> &mods);
     bool                load(const ModuleInfo &m);
+    bool                loadXL(const ModuleInfo &m);
+    bool                loadNative(const ModuleInfo &m);
 
     std::ostream &      debug();
     void                debugPrint(const ModuleInfo &m);
+    void                debugPrintShort(const ModuleInfo &m);
 
 private:
     QString                     u, s;

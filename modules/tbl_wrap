@@ -46,6 +46,11 @@ cat >$OUT << __EOF__
 #include "main.h"
 #include <iostream>
 
+extern "C" {
+    void enter_symbols(XL::Symbols *c);
+    void delete_symbols();
+}
+
 using namespace XL;
 
 #include "opcodes_declare.h"

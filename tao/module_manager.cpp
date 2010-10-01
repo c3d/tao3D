@@ -73,9 +73,9 @@ bool ModuleManager::init()
 
     IFTRACE(modules)
     {
-        debug() << "Updated list of all installed modules\n";
+        debug() << "Updated module list before load\n";
         foreach (ModuleInfo m, modules)
-            debugPrint(m);
+            debugPrintShort(m);
     }
 
     return true;
@@ -136,7 +136,7 @@ bool ModuleManager::loadConfig()
         modulesById[id]     = &modules.last();
 
         IFTRACE(modules)
-            debugPrint(m);
+            debugPrintShort(m);
 
         settings.endGroup();
     }
@@ -270,7 +270,14 @@ bool ModuleManager::loadAll()
     foreach (ModuleInfo m, modules)
         if (m.enabled && !m.loaded)
             enabled.append(m);
-    return load(enabled);
+    bool ok = load(enabled);
+    IFTRACE(modules)
+    {
+        debug() << "All modules\n";
+        foreach (ModuleInfo m, modules)
+            debugPrint(m);
+    }
+    return ok;
 }
 
 
@@ -345,7 +352,7 @@ QList<ModuleManager::ModuleInfo> ModuleManager::newModules(QString path)
                         {
                             debug() << "WARNING: Duplicate module "
                                        "will be ignored:\n";
-                            debugPrint(m);
+                            debugPrintShort(m);
                         }
                         warnDuplicateModule(m);
                     }
@@ -457,12 +464,81 @@ bool ModuleManager::load(const ModuleInfo &m)
     IFTRACE(modules)
         debug() << "Loading module " << m.toText() << "\n";
 
+    ok = loadNative(m);
+    if (ok)
+        ok = loadXL(m);
+
+    return ok;
+}
+
+
+bool ModuleManager::loadXL(const ModuleInfo &m)
+// ----------------------------------------------------------------------------
+//   Load the XL code of a module
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(modules)
+        debug() << "  Loading XL code (module.xl)\n";
+
     QString xlPath = QDir(m.path).filePath("module.xl");
-    ok = XL::xl_load(+xlPath) != NULL;
+    bool ok = (XL::xl_load(+xlPath) != NULL);
 
     if (ok && modulesById.contains(m.id))
         modulesById[m.id]->loaded = true;
 
+    return ok;
+}
+
+
+bool ModuleManager::loadNative(const ModuleInfo &m)
+// ----------------------------------------------------------------------------
+//   Load the native code of a module (shared libraries under lib/)
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(modules)
+        debug() << "  Looking for native library\n";
+
+    ModuleInfo * m_p = NULL;
+    if (modulesById.contains(m.id))
+        m_p = modulesById[m.id];
+
+    bool ok = false;
+#ifdef CONFIG_MINGW
+    QString path(m.path + "/lib/module");
+#else
+    QString path(m.path + "/lib/libmodule");
+#endif
+    QLibrary * lib = new QLibrary(path, this);
+    if (lib->load())
+    {
+        path = lib->fileName();
+        IFTRACE(modules)
+            debug() << "    Loaded: " << +path << "\n";
+        if (m_p)
+            m_p->hasNative = true;
+        typedef bool (*enter_symbols)(XL::Symbols *);
+        enter_symbols es = (enter_symbols) lib->resolve("enter_symbols");
+        ok = (es != NULL);
+        if (ok)
+        {
+            IFTRACE(modules)
+                debug() << "    Calling enter_symbols\n";
+            if (m_p)
+                m_p->native = lib;
+            es(XL::MAIN->globals);
+        }
+        else
+        {
+            IFTRACE(modules)
+                debug() << "    Could not revolve enter_symbols: "
+                        << +lib->errorString() << "\n";
+        }
+    }
+    else
+    {
+        IFTRACE(modules)
+            debug() << "    Not found or could not load\n";
+    }
     return ok;
 }
 
@@ -485,12 +561,30 @@ void ModuleManager::debugPrint(const ModuleInfo &m)
     debug() << "  ID:         " << +m.id << "\n";
     debug() << "  Path:       " << +m.path << "\n";
     debug() << "  Name:       " << +m.name << "\n";
+    debug() << "  Icon:       " << +m.icon << "\n";
     debug() << "  Version:    " << +m.ver << "\n";
     debug() << "  Latest:     " << +m.latest << "\n";
-    debug() << "  Icon:       " << +m.icon << "\n";
+    debug() << "  Up to date: " << !m.updateAvailable << "\n";
     debug() << "  Enabled:    " <<  m.enabled << "\n";
     debug() << "  Loaded:     " <<  m.loaded << "\n";
-    debug() << "  Up to date: " << !m.updateAvailable << "\n";
+    if (m.enabled)
+    {
+        debug() << "  Has native: " <<  m.hasNative << "\n";
+        debug() << "  Lib loaded: " << (m.native != NULL) << "\n";
+    }
+    debug() << "  ------------------------------------------------\n";
+}
+
+
+void ModuleManager::debugPrintShort(const ModuleInfo &m)
+// ----------------------------------------------------------------------------
+//   Display minimal information about a module
+// ----------------------------------------------------------------------------
+{
+    debug() << "  ID:         " << +m.id << "\n";
+    debug() << "  Path:       " << +m.path << "\n";
+    debug() << "  Enabled:    " <<  m.enabled << "\n";
+    debug() << "  ------------------------------------------------\n";
 }
 
 // ============================================================================

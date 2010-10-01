@@ -14,6 +14,7 @@
 include(../main.pri)
 
 TEMPLATE = lib
+TARGET   = module
 CONFIG  += dll
 QT      -= core gui
 
@@ -34,20 +35,22 @@ tbl_wrap.clean = ${QMAKE_FILE_BASE}_wrap.cpp
 QMAKE_EXTRA_COMPILERS += tbl_wrap
 
 # Default module installation rules
-macx:MODULE  = lib$${TARGET}.dylib
-linux:MODULE = lib$${TARGET}.so
+macx:MODULE  = libmodule.dylib
+linux:MODULE = libmodule.so
+win32 {
+    CONFIG(debug, debug|release):DD=debug
+    CONFIG(release, debug|release):DD=release
+    MODULE = $${DD}/module.dll
+}
 isEmpty(APPINST):error(APPINST not defined)
-INSTDIR      = $${APPINST}/modules/$$TARGET
+INSTDIR      = $${APPINST}/modules/$$MODINSTDIR
 thismod_xl.path   = $$INSTDIR
 thismod_xl.files  = module.xl
 INSTALLS += thismod_xl
-win32 {
-    target.path = $${INSTDIR}/lib
-    INSTALLS += target
-} else {
-    thismod_bin.path  = $${INSTDIR}/lib
-    # Workaround http://bugreports.qt.nokia.com/browse/QTBUG-5558
-    # thismod_bin.files = $$MODULE
-    thismod_bin.extra = \$(INSTALL_PROGRAM) $$MODULE $$thismod_bin.path
-    INSTALLS += thismod_bin
-}
+thismod_bin.path  = $${INSTDIR}/lib
+# Workaround http://bugreports.qt.nokia.com/browse/QTBUG-5558
+# thismod_bin.files = $$MODULE
+thismod_bin.extra = \$(INSTALL_PROGRAM) $$MODULE $$thismod_bin.path
+INSTALLS += thismod_bin
+thismod_icon.path  = $$INSTDIR
+thismod_icon.files = icon.png

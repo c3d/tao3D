@@ -1706,17 +1706,6 @@ PREFIX(TextEditKey, boolean, "text_edit_key", PARM(k, text),
                 return_value \"boolean\", <<true/false [TODO]>>;\
                 }\
           |*/")
-PREFIX(LoremIpsum, tree, "lorem_ipsum",PARM(w,integer),
-       RTAO(loremIpsum(self,w)),
-       "/*| docname \"lorem_ipsum\", \"text:debug\", do { \
-                dsyntax <<lorem_ipsum w>>;\
-                synopsis \"Produce text\" ; \
-                description <<Generate arbitrary length dummy text based on the well-known sequence>> ;\
-                parameters;\
-                parameter \"integer\", \"w\", <<The number of word to insert>>;\
-                return_value \"text\", <<A dummy text with the required number of words>>;\
-                }\
-          |*/")
 PREFIX(LoadText, tree, "load_text",PARM(f,text),
        RTAO(loadText(self,f)),
        "/*| docname \"load_text\", \"text:file\", do { \

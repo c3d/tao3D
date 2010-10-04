@@ -1,0 +1,5 @@
+// Definition of the hello_world primitive
+
+#include "tree.h"
+
+PREFIX(hello_world, tree, "hello_world", , return new XL::Text("Hello, World!"), "");

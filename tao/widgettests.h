@@ -25,6 +25,7 @@
 #include <QObject>
 #include <QTestEventList>
 #include <QAction>
+#include <QTime>
 #include "main.h"
 #include "tao_utf8.h"
 

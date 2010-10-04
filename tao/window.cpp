@@ -147,6 +147,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Fire a timer to check if files changed
     fileCheckTimer.start(500);
     connect(&fileCheckTimer, SIGNAL(timeout()), this, SLOT(checkFiles()));
+
 }
 
 
@@ -685,6 +686,7 @@ void Window::copy()
 
     if (taoWidget->hasFocus())
         return taoWidget->copy();
+
 }
 
 
@@ -701,13 +703,11 @@ void Window::paste()
 }
 
 
-void Window::onFocusWidgetChanged(QWidget *old, QWidget *now)
+void Window::onFocusWidgetChanged(QWidget */*old*/, QWidget *now)
 // ----------------------------------------------------------------------------
 //    Enable or disable copy/cut/paste actions when current widget changes
 // ----------------------------------------------------------------------------
 {
-    (void)old;    // Silence warning
-
     bool enable;
     if (now == textEdit)
         enable = textEdit->textCursor().hasSelection();
@@ -716,7 +716,6 @@ void Window::onFocusWidgetChanged(QWidget *old, QWidget *now)
     else
         return;
 
-    copyAct->setEnabled(enable);
     cutAct->setEnabled(enable);
 
     checkClipboard();
@@ -1097,15 +1096,11 @@ void Window::createActions()
             this, SLOT(toggleStereoscopy()));
 
     cutAct->setEnabled(false);
-    copyAct->setEnabled(false);
+    copyAct->setEnabled(true);
     connect(textEdit, SIGNAL(copyAvailable(bool)),
             cutAct, SLOT(setEnabled(bool)));
-    connect(textEdit, SIGNAL(copyAvailable(bool)),
-            copyAct, SLOT(setEnabled(bool)));
     connect(taoWidget, SIGNAL(copyAvailable(bool)),
             cutAct, SLOT(setEnabled(bool)));
-    connect(taoWidget, SIGNAL(copyAvailable(bool)),
-            copyAct, SLOT(setEnabled(bool)));
 
     undoAction = undoStack->createUndoAction(this, tr("&Undo"));
     undoAction->setShortcuts(QKeySequence::Undo);
@@ -2093,6 +2088,5 @@ void Window::checkDetachedHead()
         return;
     setReadOnly(repo->branch() == "");
 }
-
 
 TAO_END

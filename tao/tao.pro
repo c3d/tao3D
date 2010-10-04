@@ -33,6 +33,7 @@ QMAKE_CFLAGS += -Werror
 QMAKE_CXXFLAGS += -Werror
 QMAKE_CXXFLAGS_RELEASE += -g \
     \$(CXXFLAGS_\$%)
+CONFIG += qtestlib
 
 DEFINES += DEBUG
 macx {
@@ -127,7 +128,8 @@ HEADERS += widget.h \
     diff_highlighter.h \
     module_manager.h \
     portability.h \
-    tao_main.h
+    tao_main.h \
+    widgettests.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -201,7 +203,8 @@ SOURCES += tao_main.cpp \
     diff_dialog.cpp \
     diff_highlighter.cpp \
     module_manager.cpp \
-    portability.cpp
+    portability.cpp \
+    widgettests.cpp
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 
@@ -211,7 +214,7 @@ CXXTBL_SOURCES += graphics.cpp \
         GL/wglew.h
     SOURCES += glew.c
 }
-macx {
+macx { 
     OBJECTIVE_SOURCES += font_file_manager_macos.mm
     LIBS += -framework \
         ApplicationServices

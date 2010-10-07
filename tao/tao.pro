@@ -19,9 +19,9 @@ TEMPLATE = app
 TARGET = Tao
 VERSION = "0.0.3"
 DEPENDPATH += . \
-    xlr/xlr
+    xlr/xlr/include
 INCLUDEPATH += . \
-    xlr/xlr
+    xlr/xlr/include
 win32:LIBS += -L../libxlr/release -L../libxlr/debug  # REVISIT
 LIBS += -L../libxlr -lxlr
 QT += webkit \
@@ -233,7 +233,8 @@ OTHER_FILES += xl.syntax \
     tutorial.ddd \
     git.stylesheet \
     srcview.stylesheet \
-    srcview.css
+    srcview.css \
+    traces.tbl
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}

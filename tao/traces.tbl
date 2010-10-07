@@ -1,0 +1,46 @@
+// ****************************************************************************
+//  traces.tbl                                                     Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     This table defines the debug traces for the Tao main application
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jerome Forissier <jerome@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+#ifndef XL_TRACE_GROUP
+#define XL_TRACE_GROUP Tao
+#endif
+
+TRACE(builtins)
+TRACE(memory)
+TRACE(filesync)
+TRACE(menus)
+TRACE(process)
+TRACE(drag)
+TRACE(focus)
+TRACE(undo)
+TRACE(widgets)
+TRACE(resources)
+TRACE(clipboard)
+TRACE(srcview)
+TRACE(fonts)
+TRACE(textselect)
+TRACE(paths)
+TRACE(settings)
+TRACE(uri)
+TRACE(justify)
+TRACE(modules)

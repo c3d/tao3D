@@ -18,7 +18,7 @@ TARGET   = module
 CONFIG  += dll
 QT      -= core gui
 
-INCLUDEPATH += ../../tao/xlr/xlr
+INCLUDEPATH += . ../../tao/xlr/xlr/include
 win32:LIBS += -L../../libxlr/release -L../../libxlr/debug  # REVISIT
 LIBS += -L../../libxlr -lxlr
 

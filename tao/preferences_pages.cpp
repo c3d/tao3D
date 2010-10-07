@@ -88,15 +88,10 @@ QStringList DebugPage::allTraceNames()
 {
     QStringList ret;
 
-#define OPTVAR(name, type, value)
-#define OPTION(name, descr, code)
-#define TRACE(name) ret.append(#name);
-
-#include "options.tbl"
-
-#undef OPTVAR
-#undef OPTION
-#undef TRACE
+    std::set<std::string>::iterator it;
+    std::set<std::string> all = XL::Traces::names();
+    for (it = all.begin(); it != all.end(); it++)
+        ret << +*it;
 
     return ret;
 }
@@ -110,15 +105,7 @@ void DebugPage::toggleTrace(bool on)
     QCheckBox *b = (QCheckBox *)sender();
     QString toggled = b->text();
 
-#define OPTVAR(name, type, value)
-#define OPTION(name, descr, code)
-#define TRACE(name) if (#name == toggled) XL::MAIN->options.traces.name = on;
-
-#include "options.tbl"
-
-#undef OPTVAR
-#undef OPTION
-#undef TRACE
+    XL::Traces::enable(+toggled, on);
 }
 
 
@@ -127,17 +114,7 @@ bool DebugPage::isTraceEnabled(QString tname)
 //   Return true if trace is currently enabled
 // ----------------------------------------------------------------------------
 {
-#define OPTVAR(name, type, value)
-#define OPTION(name, descr, code)
-#define TRACE(name) if (#name == tname) return XL::MAIN->options.traces.name;
-
-#include "options.tbl"
-
-#undef OPTVAR
-#undef OPTION
-#undef TRACE
-
-    return false;
+    return XL::Traces::enabled(+tname);
 }
 
 

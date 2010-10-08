@@ -97,7 +97,7 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
         {
             QKeyEvent *e = (QKeyEvent*)evt;
             int delay = startTime.restart();
-            testList.addKeyPress(e->key(),
+            testList.addKeyPress((Qt::Key)e->key(),
                                  e->modifiers(),
                                  delay);
             QString cmd = QString("    test_add_key_press %1, %2, %3\n")
@@ -109,7 +109,7 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
         {
             QKeyEvent *e = (QKeyEvent*)evt;
             int delay = startTime.restart();
-            testList.addKeyRelease(e->key(),
+            testList.addKeyRelease((Qt::Key)e->key(),
                                    e->modifiers(),
                                    delay);
             QString cmd = QString("    test_add_key_release %1, %2, %3\n")
@@ -184,8 +184,14 @@ bool WidgetTests::play()
 {
     playedBefore = widget->grabFrameBuffer(true);
     if (playedBefore != before)
+    {
         qWarning("Test %s: image before test is not equal to reference.\n",
                  name.c_str());
+        if (playedBefore.rect() != before.rect())
+            qWarning("\timage size are different.\n");
+        if (playedBefore.format() != before.format())
+            qWarning("\timage format differs.\n");
+    }
     testList.simulate(widget);
     playedAfter = widget->grabFrameBuffer(true);
 
@@ -209,6 +215,9 @@ void WidgetTests::save(text newName)
 //   Save the named test
 // ----------------------------------------------------------------------------
 {
+    qWarning("Not Yet finished: Should ask for a name (instead of using %s),"
+             " a description and a feature id reference\n", name.c_str());
+
     if (!newName.empty())
         name = newName;
 
@@ -223,32 +232,39 @@ void WidgetTests::save(text newName)
     // Store test commands
     QFile testFile(QString(folder).append(+name).append("_test.ddd"));
     testFile.open(QIODevice::WriteOnly | QIODevice::Text);
-    testFile.write(toString()->c_str());
+    testFile.write(toString().c_str());
     testFile.flush();
     testFile.close();
-
-    qWarning("Not Yet implemented: Should save %s\n", name.c_str());
 
 }
 
 
-void WidgetTests::reset(text newName, text desc)
+void WidgetTests::reset(text newName, int feature, text desc)
 // ----------------------------------------------------------------------------
 //   Reset the test
 // ----------------------------------------------------------------------------
 {
     testList.clear();
     name = newName;
+    featureId = feature;
     description = desc;
-    before = QImage(QString("image:").append(+name).append("_before.png"));
-    after = QImage(QString("image:").append(+name).append("_after.png"));
+    if (name.empty())
+    {
+        before = QImage();
+        after = QImage();
+    }
+    else
+    {
+        before = QImage(QString("image:").append(+name).append("_before.png"));
+        after = QImage(QString("image:").append(+name).append("_after.png"));
+    }
 }
 
 void WidgetTests::printResult()
 {
-    std::cerr << "Test " << name << "\t\t"
+    std::cerr << name << ", " << featureId << ", "
             << (latestResult ? "PASSED" : "FAILED")
-            << "\t" << description << std::endl;
+            << ", " << description << std::endl;
 }
 
 TAO_END

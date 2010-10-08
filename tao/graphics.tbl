@@ -2805,15 +2805,17 @@ PREFIX(TestReplay, tree, "test_replay", ,
          }\
 |*/")
 PREFIX(TestDef, tree, "test_definition",
-       PARM(testname, text) PARM(description, text) PARM(testbody, tree),
-       RTAO(testDef(self, testname, description, testbody)),
+       PARM(testname, text) PARM(feature, integer) PARM(description, text)
+       PARM(testbody, tree),
+       RTAO(testDef(self, testname, feature, description, testbody)),
 "/*| docname \"test_definition\", \"test\", do { \
-         dsyntax \"test_definition testname, description, testbody\" ;\
+         dsyntax \"test_definition testname, feature, description, testbody\" ;\
          synopsis \"Define the current test\"; \
          description \"Test to activate rectangle action. \"; \
          parameters;\
          parameter \"text\", \"testname\", <<The name of the test.\
          It is used as basename for the filename, so it must not contain not valide characters for filename.>>;\
+         parameter \"integer\", \"feature\", <<The feature identifier in redmine.>>;\
          parameter \"text\", \"description\", <<The description of the test.>>;\
          parameter \"tree\", \"testbody\", <<The body of the test.\
          The description of events to play.>>;\
@@ -2945,6 +2947,14 @@ PREFIX(TestAddAction, tree, "test_add_action",
 PREFIX(TestSave, tree, "test_save", , RTAO(saveTest(self)),
 "/*| docname \"test_save\", \"test\", do { \
          dsyntax \"test_save\" ;\
+         synopsis \"Save the current test to disc\"; \
+         description \"Save the current test to disc.\"; \
+         }\
+|*/")
+
+PREFIX(TestReset, tree, "test_reset", , RTAO(resetTest(self)),
+"/*| docname \"test_reset\", \"test\", do { \
+         dsyntax \"test_reset\" ;\
          synopsis \"Save the current test to disc\"; \
          description \"Save the current test to disc.\"; \
          }\

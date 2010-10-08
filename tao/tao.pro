@@ -28,12 +28,14 @@ QT += webkit \
     network \
     opengl \
     svg \
-    phonon
+    phonon \
+    testlib
+
 QMAKE_CFLAGS += -Werror
 QMAKE_CXXFLAGS += -Werror
 QMAKE_CXXFLAGS_RELEASE += -g \
     \$(CXXFLAGS_\$%)
-CONFIG += qtestlib
+
 
 DEFINES += DEBUG
 macx {
@@ -44,7 +46,7 @@ macx {
     QMAKE_CFLAGS += -mmacosx-version-min=10.5 # Avoid warning with font_file_manager_macos.mm
 }
 win32:DEFINES += CONFIG_MINGW
-linux-g++ { 
+linux-g++ {
     DEFINES += CONFIG_LINUX
     LIBS += -lXss
 }
@@ -214,7 +216,7 @@ CXXTBL_SOURCES += graphics.cpp \
         GL/wglew.h
     SOURCES += glew.c
 }
-macx { 
+macx {
     OBJECTIVE_SOURCES += font_file_manager_macos.mm
     LIBS += -framework \
         ApplicationServices

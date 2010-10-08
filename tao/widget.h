@@ -718,9 +718,9 @@ public:
     Tree_p stopRecTest(Tree_p self);
     Tree_p playTest(Tree_p self);
     Tree_p saveTest(Tree_p self);
-    Tree_p loadTest(Tree_p self);
+    Tree_p resetTest(Tree_p self);
     WidgetTests currentTest;
-    Tree_p testDef(Tree_p self, text_p name, text_p desc, Tree_p body );
+    Tree_p testDef(Tree_p self, text_p name, Integer_p fId, text_p desc, Tree_p body);
     Tree_p testAddKeyPress(Tree_p self, Integer_p key,
                            Integer_p modifiers, Integer_p delay );
     Tree_p testAddKeyRelease(Tree_p self, Integer_p key,

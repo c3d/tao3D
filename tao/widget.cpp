@@ -7692,12 +7692,13 @@ Tree_p Widget::playTest(Tree_p )
 }
 
 
-Tree_p Widget::loadTest(Tree_p)
-// ----------------------------------------------------------------------------
-//   Load the named test
-// ----------------------------------------------------------------------------
+Tree_p Widget::resetTest(Tree_p)
+ // ----------------------------------------------------------------------------
+ //   Reset current test
+ // ----------------------------------------------------------------------------
 {
- //   currentTest.load(name->value);
+    currentTest.stopRecord();
+    currentTest.reset();
     return XL::xl_true;
 }
 
@@ -7712,12 +7713,12 @@ Tree_p Widget::saveTest(Tree_p)
 }
 
 
-Tree_p Widget::testDef(Tree_p , text_p name, text_p desc, Tree_p body )
+Tree_p Widget::testDef(Tree_p , text_p name, Integer_p fId, text_p desc, Tree_p body)
 // ----------------------------------------------------------------------------
 //   Define a new test
 // ----------------------------------------------------------------------------
 {
-    currentTest.reset(name->value, desc->value);
+    currentTest.reset(name->value, fId->value, desc->value);
     return xl_evaluate(body);
 }
 
@@ -7728,7 +7729,7 @@ Tree_p Widget::testAddKeyPress(Tree_p , Integer_p key,
 //  Add a key press event to the current test
 // ----------------------------------------------------------------------------
 {
-    currentTest.testList.addKeyPress(key->value,
+    currentTest.testList.addKeyPress((Qt::Key)key->value,
                                      (Qt::KeyboardModifier)modifiers->value,
                                      delay->value);
     return XL::xl_true;
@@ -7741,7 +7742,7 @@ Tree_p Widget::testAddKeyRelease(Tree_p , Integer_p key,
 //  Add a key press event to the current test
 // ----------------------------------------------------------------------------
 {
-    currentTest.testList.addKeyRelease(key->value,
+    currentTest.testList.addKeyRelease((Qt::Key)key->value,
                                        (Qt::KeyboardModifier)modifiers->value,
                                        delay->value);
     return XL::xl_true;

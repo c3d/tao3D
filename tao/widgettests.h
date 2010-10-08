@@ -39,7 +39,7 @@ Q_OBJECT
 public:
     WidgetTests(Widget *widget, text name = "", text description = ""):
             widget(widget), name(name), description(description),
-            latestResult(false){};
+            featureId(0), latestResult(false) {}
 
     void startRecord();
     void stopRecord();
@@ -47,18 +47,18 @@ public:
     void save(text newName = text());
     bool play();
     void printResult();
-    void reset(text newName = text(), text desc = text());
+    void reset(text newName = text(), int feature = 0, text desc = text());
     bool eventFilter(QObject *obj, QEvent *evt);
 
     // Save utilities
-    text *toString()
+    text toString()
     {
-        text* testDoc = new text(name);
-        testDoc->append("_test -> test_definition ");
-        testDoc->append("\"").append(name).append("\", <<").append(description)
-                .append(">>, do \n").append(taoCmd);
-        return testDoc;
-    }
+        QString testDoc = QString("%1_test -> test_definition \"%1\", %2,"
+                                  " <<%3>>, do \n%4")
+                .arg(+name).arg(featureId)
+                .arg(+description).arg(+taoCmd);
+        return +testDoc;
+     }
 
 
 public slots:
@@ -68,6 +68,7 @@ public:
     Widget *widget;
     text    name;
     text    description;
+    int     featureId;// The id in redmine of the feature that this test tests
     bool    latestResult;
     QImage  playedBefore, playedAfter;
     QImage  before, after;

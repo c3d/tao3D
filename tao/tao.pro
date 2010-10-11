@@ -17,7 +17,7 @@ include(../main.pri)
 
 TEMPLATE = app
 TARGET = Tao
-VERSION = "0.0.3"
+VERSION = "0.0.3"    # Windows: version is in tao.rc
 DEPENDPATH += . \
     xlr/xlr/include
 INCLUDEPATH += . \
@@ -43,8 +43,11 @@ macx {
     QMAKE_INFO_PLIST = Info.plist
     QMAKE_CFLAGS += -mmacosx-version-min=10.5 # Avoid warning with font_file_manager_macos.mm
 }
-win32:DEFINES += CONFIG_MINGW
-linux-g++ { 
+win32 {
+    DEFINES += CONFIG_MINGW
+    RC_FILE  = tao.rc
+}
+linux-g++ {
     DEFINES += CONFIG_LINUX
     LIBS += -lXss
 }

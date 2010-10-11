@@ -22,9 +22,13 @@
 #
 # The template/ folder serves (guess what?) as a template for the
 # final disk image. Its content is copied into build_root/ before
-# building the disk image.
-# The appearance of the Finder window (icon position, size, window
-# size...) is controled by the file build_root/.DS_Store.
+# building the disk image (dot_DS_Store is renamed .DS_Store).
+#
+# - To change the icon of the disk image, simply replace
+# template/.VolumIcon.icns and rebuild the disk image.
+# - The appearance of the Finder window (icon position, size, window
+# size...) is controled by the file build_root/.DS_Store (copied from
+# template/dot_DS_Store).
 # Unfortunately, simply changing these settings through the Finder
 # "Show View Options" does not work. It has to be done inside a
 # mounted disk image. Therefore, here is how to change this file:
@@ -57,6 +61,9 @@ tao.dmg: tmp.dmg
 # Note: blue arrow in DMG_image.{svg,png} is taken from http://www.clker.com/clipart-12263.html
 tmp.dmg: .tao_install_ts .git_install_ts .cp_template_ts
 	hdiutil create tmp.dmg -fs HFSX -format UDRW -srcfolder build_root -volname "Tao Presentations"
+	hdiutil attach tmp.dmg
+	SetFile -a C "/Volumes/Tao Presentations"
+	hdiutil detach "/Volumes/Tao Presentations"
 
 clean: clean.git clean.tao clean.dmg
 

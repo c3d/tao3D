@@ -28,8 +28,7 @@ QT += webkit \
     network \
     opengl \
     svg \
-    phonon \
-    testlib
+    phonon
 
 QMAKE_CFLAGS += -Werror
 QMAKE_CXXFLAGS += -Werror
@@ -205,8 +204,7 @@ SOURCES += tao_main.cpp \
     diff_dialog.cpp \
     diff_highlighter.cpp \
     module_manager.cpp \
-    portability.cpp \
-    widgettests.cpp
+    portability.cpp
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 
@@ -284,4 +282,12 @@ macx {
 } else {
   target.path = $$INSTROOT
   INSTALLS   += target
+}
+
+contains(QT, testlib) {
+    message(Building with qtestlib support.)
+    HEADERS += save_test_dialog.h
+    SOURCES += widgettests.cpp \
+               save_test_dialog.cpp
+    FORMS += save_test_dialog.ui
 }

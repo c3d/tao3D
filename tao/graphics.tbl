@@ -2917,13 +2917,19 @@ PREFIX(TestAddMouseDClick, tree, "test_add_mouse_dclick",
          }\
 |*/")
 PREFIX(TestAddMouseMove, tree, "test_add_mouse_move",
+       PARM(button, integer) PARM(modifiers, integer)
        PARM(x, integer) PARM(y, integer) PARM(delay, integer),
-       RTAO(testAddMouseMove(self, x, y, delay)),
+       RTAO(testAddMouseMove(self, button, modifiers, x, y, delay)),
 "/*| docname \"test_add_mouse_move\", \"test\", do { \
-         dsyntax \"test_add_mouse_move x, y, delay\" ;\
+         dsyntax \"test_add_mouse_move button, modifiers, x, y, delay\" ;\
          synopsis \"Add a mouse move event \"; \
          description \"Add a mouse move event to the current test.\"; \
          parameters;\
+         parameter \"integer\", \"button \", <<The code of the pressed button.\
+         The possible values are the one from the enum Qt::MouseButton.>>;\
+         parameter \"integer\", \"modifiers\", \
+         <<The ored value of modifiers hold down at the same time than the key.\
+         The possible values are the one from the enum Qt::KeyboardModifier.>>;\
          parameter \"integer\", \"x\", <<The x-coordinate of the event.>>;\
          parameter \"integer\", \"y\", <<The y-coordinate of the event.>>;\
          parameter \"integer\", \"delay\", <<The delay in millisecond before \
@@ -2959,3 +2965,4 @@ PREFIX(TestReset, tree, "test_reset", , RTAO(resetTest(self)),
          description \"Save the current test to disc.\"; \
          }\
 |*/")
+

@@ -712,6 +712,7 @@ private:
     Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child);
     bool    updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group);
 
+
     //Tests // CaB
 public:
     Tree_p startRecTest(Tree_p self);
@@ -732,8 +733,8 @@ public:
                                Integer_p x, Integer_p y, Integer_p delay);
     Tree_p testAddMouseDClick(Tree_p self, Integer_p button, Integer_p modifiers,
                               Integer_p x, Integer_p y, Integer_p delay);
-    Tree_p testAddMouseMove(Tree_p self, Integer_p x, Integer_p y,
-                              Integer_p delay);
+    Tree_p testAddMouseMove(Tree_p self, Integer_p button, Integer_p modifiers,
+                            Integer_p x, Integer_p y, Integer_p delay);
     Tree_p testAddAction(Tree_p self, text_p name, Integer_p delay);
 
 };

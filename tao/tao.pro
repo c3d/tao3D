@@ -29,10 +29,6 @@ QT += webkit \
     opengl \
     svg \
     phonon
-QMAKE_CFLAGS += -Werror
-QMAKE_CXXFLAGS += -Werror
-QMAKE_CXXFLAGS_RELEASE += -g \
-    \$(CXXFLAGS_\$%)
 CONFIG += qtestlib
 
 DEFINES += DEBUG

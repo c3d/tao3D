@@ -231,6 +231,12 @@ private:
     QAction          *handCursorAct;
     QAction          *resetViewAct;
     QLabel           *projectUrl;
+    struct
+    {
+      QByteArray         geometry;
+      QByteArray         state;
+      QList<QToolBar *>  visibleToolBars;
+    }                 savedState;
 
 public:
     QMenu            *shareMenu;

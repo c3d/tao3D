@@ -81,6 +81,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 
     // Create the text edit widget
     dock = new QDockWidget(tr("Document Source"));
+    dock->setObjectName("doc");
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
     textEdit = new QTextEdit(dock);
     dock->setWidget(textEdit);
@@ -90,6 +91,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 
     // Create the error reporting widget
     errorDock = new QDockWidget(tr("Errors"));
+    errorDock->setObjectName("errorDock");
     errorDock->setAllowedAreas(Qt::AllDockWidgetAreas);
     errorMessages = new QTextEdit(errorDock);
     errorMessages->setReadOnly(true);
@@ -1198,6 +1200,7 @@ void Window::createToolBars()
 {
     QMenu *view = findChild<QMenu*>(VIEW_MENU_NAME);
     fileToolBar = addToolBar(tr("File"));
+    fileToolBar->setObjectName("fileToolBar");
     fileToolBar->addAction(newAct);
     fileToolBar->addAction(openAct);
     fileToolBar->addAction(saveAct);
@@ -1205,6 +1208,7 @@ void Window::createToolBars()
         view->addAction(fileToolBar->toggleViewAction());
 
     editToolBar = addToolBar(tr("Edit"));
+    editToolBar->setObjectName("editToolBar");
     editToolBar->addAction(cutAct);
     editToolBar->addAction(copyAct);
     editToolBar->addAction(pasteAct);
@@ -1212,12 +1216,14 @@ void Window::createToolBars()
         view->addAction(editToolBar->toggleViewAction());
 
     viewToolBar = addToolBar(tr("View"));
+    viewToolBar->setObjectName("viewToolBar");
     viewToolBar->addAction(handCursorAct);
     viewToolBar->addAction(resetViewAct);
     if (view)
         view->addAction(viewToolBar->toggleViewAction());
 
     branchToolBar = new BranchSelectionToolBar(tr("Branch selection"));
+    branchToolBar->setObjectName("branchToolBar");
     connect(this, SIGNAL(projectChanged(Repository*)),
             branchToolBar, SLOT(setRepository(Repository*)));
     connect(this, SIGNAL(projectChanged(Repository*)),
@@ -1229,6 +1235,7 @@ void Window::createToolBars()
         view->addAction(branchToolBar->toggleViewAction());
 
     playbackToolBar = new HistoryPlaybackToolBar(tr("History playback"));
+    playbackToolBar->setObjectName("playbackToolBar");
     connect(this, SIGNAL(projectChanged(Repository*)),
             playbackToolBar, SLOT(setRepository(Repository*)));
     connect(playbackToolBar, SIGNAL(documentChanged()),
@@ -1810,32 +1817,47 @@ void Window::switchToFullScreen(bool fs)
     if (fs)
     {
         setUnifiedTitleAndToolBarOnMac(false);
-        removeToolBar(fileToolBar);
-        removeToolBar(editToolBar);
-        removeToolBar(viewToolBar);
-        removeToolBar(branchToolBar);
-        removeToolBar(playbackToolBar);
+        savedState.geometry = saveGeometry();
+        savedState.state = saveState();
+        QList<QDockWidget *> docks = findChildren<QDockWidget *>();
+        foreach(QDockWidget *d, docks)
+            d->hide();
+        QList<QToolBar *> toolBars = findChildren<QToolBar *>();
+        savedState.visibleToolBars.clear();
+        foreach (QToolBar *t, toolBars)
+        {
+            if (t->isVisible())
+                savedState.visibleToolBars << t;
+            // QTBUG?
+            // Toolbars have to be removed, not just hidden, to avoid a
+            // display glitch when the "unified title and toolbar look" is
+            // enabled on MacOSX.
+            // In this case, hiding a toolbar through its toggleViewAction
+            // effectively makes it disappear from the toolbar area (i.e., it
+            // does not leave an empty space). BUT, when a toolbar is hidden,
+            // switching to fullscreen then back to normal view causes an empty
+            // area to appear in place of the disabled toolbar.
+            // Removing all toolbars, then adding back only the ones which were
+            // visible solves the problem.
+            removeToolBar(t);
+        }
         statusBar()->hide();
         menuBar()->hide();
         showFullScreen();
-        taoWidget->showFullScreen();
     }
     else
     {
         showNormal();
-        taoWidget->showNormal();
         menuBar()->show();
         statusBar()->show();
-        addToolBar(fileToolBar);
-        addToolBar(editToolBar);
-        addToolBar(viewToolBar);
-        addToolBar(branchToolBar);
-        addToolBar(playbackToolBar);
-        fileToolBar->show();
-        editToolBar->show();
-        viewToolBar->show();
-        branchToolBar->show();
         setUnifiedTitleAndToolBarOnMac(true);
+        foreach (QToolBar *t, savedState.visibleToolBars)
+        {
+            addToolBar(t);
+            t->show();
+        }
+        restoreState(savedState.state);
+        restoreGeometry(savedState.geometry);
     }
     fullScreenAct->setChecked(fs);
 }

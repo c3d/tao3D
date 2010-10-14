@@ -54,6 +54,10 @@
 #include <QList>
 #include <QRegExp>
 
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
+
 #define TAO_FILESPECS "Tao documents (*.ddd)"
 /*                      ";;XL programs (*.xl)" \
  *                      ";;Headers (*.dds *.xs)"\
@@ -81,7 +85,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 
     // Create the text edit widget
     dock = new QDockWidget(tr("Document Source"));
-    dock->setObjectName("doc");
+    dock->setObjectName("dock");
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
     textEdit = new QTextEdit(dock);
     dock->setWidget(textEdit);
@@ -1486,14 +1490,41 @@ bool Window::switchToSlideShow(bool ss)
 // ----------------------------------------------------------------------------
 {
     bool oldMode = slideShowMode;
-    showSourceView(!ss);
     switchToFullScreen(ss);
+    setWindowAlwaysOnTop(ss);
+    showSourceView(!ss);
     taoWidget->autoHideCursor(NULL, ss);
     TaoApp->blockScreenSaver(ss);
     slideShowAct->setChecked(ss);
     slideShowMode = ss;
     return oldMode;
 }
+
+void Window::setWindowAlwaysOnTop(bool alwaysOnTop)
+// ----------------------------------------------------------------------------
+//    Set 'always on top' flag for the current window
+// ----------------------------------------------------------------------------
+{
+#ifdef Q_OS_WIN
+    HWND flag = alwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST;
+    SetWindowPos(winId(), flag, 0, 0, 0, 0,
+                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+#else
+    Qt::WindowFlags flags = windowFlags();
+    bool prev = ((flags & Qt::WindowStaysOnTopHint) ==
+                          Qt::WindowStaysOnTopHint);
+    if (prev != alwaysOnTop)
+    {
+        if (alwaysOnTop)
+            flags |= Qt::WindowStaysOnTopHint;
+        else
+            flags &= ~Qt::WindowStaysOnTopHint;
+        setWindowFlags(flags);
+        show();
+    }
+#endif
+}
+
 
 bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 // ----------------------------------------------------------------------------
@@ -1822,8 +1853,8 @@ void Window::switchToFullScreen(bool fs)
         QList<QDockWidget *> docks = findChildren<QDockWidget *>();
         foreach(QDockWidget *d, docks)
             d->hide();
-        QList<QToolBar *> toolBars = findChildren<QToolBar *>();
         savedState.visibleToolBars.clear();
+        QList<QToolBar *> toolBars = findChildren<QToolBar *>();
         foreach (QToolBar *t, toolBars)
         {
             if (t->isVisible())
@@ -1856,8 +1887,8 @@ void Window::switchToFullScreen(bool fs)
             addToolBar(t);
             t->show();
         }
-        restoreState(savedState.state);
         restoreGeometry(savedState.geometry);
+        restoreState(savedState.state);
     }
     fullScreenAct->setChecked(fs);
 }

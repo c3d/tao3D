@@ -1,15 +1,15 @@
-#ifndef BRANCH_SELECTION_TOOLBAR_H
-#define BRANCH_SELECTION_TOOLBAR_H
+#ifndef BRANCH_SELECTION_TOOL_H
+#define BRANCH_SELECTION_TOOL_H
 
 // ****************************************************************************
-//  branch_selection_toolbar.h                                     Tao project
+//  branch_selection_tool.h                                        Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    A class to display a toolbar that contains:
-//      * a label
-//      * a branch selection combo box; select a branch to check it out
+//    A floating tool window with a branch selection combobox, and other
+//    widgets to show/control the current state of the document.
+//
 //
 //
 //
@@ -23,27 +23,36 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "branch_selection_combobox.h"
-#include <QToolBar>
-#include <QWidget>
-#include <QPushButton>
-#include <QLineEdit>
+#include "tool_window.h"
+#include <QObject>
+#include <QString>
+
+QT_BEGIN_NAMESPACE
+class QWidget;
+class QLineEdit;
+class QLabel;
+QT_END_NAMESPACE
 
 namespace Tao {
 
+class  BranchSelectionComboBox;
 struct Repository;
 
-class BranchSelectionToolBar : public QToolBar
+class BranchSelectionTool : public ToolWindow
+// ----------------------------------------------------------------------------
+//    Tool for branch selection, task description, project URL
+// ----------------------------------------------------------------------------
 {
     Q_OBJECT
 
 public:
-    BranchSelectionToolBar(QWidget *parent = 0);
-    BranchSelectionToolBar(const QString &title, QWidget *parent = 0);
+    BranchSelectionTool(const QString &title, QWidget *parent = 0,
+                        const QString &objName = "");
 
 public slots:
     void    setRepository(Repository *repo);
     void    refresh();
+    void    showProjectUrl(QString url);
 
 signals:
     void    checkedOut(QString branch);
@@ -54,14 +63,12 @@ protected slots:
     void    setRepoTaskDescription();
 
 private:
-    void    init();
-
-private:
     BranchSelectionComboBox * branchSelector;
     Repository              * repo;
     QLineEdit               * taskLineEdit;
+    QLabel                  * projectUrl;
 };
 
 }
 
-#endif // BRANCH_SELECTION_TOOLBAR_H
+#endif // BRANCH_SELECTION_TOOL_H

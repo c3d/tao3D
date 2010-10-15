@@ -35,8 +35,7 @@
 #include "selective_undo_dialog.h"
 #include "clone_dialog.h"
 #include "diff_dialog.h"
-#include "branch_selection_toolbar.h"
-#include "history_playback_toolbar.h"
+#include "git_toolbar.h"
 #include "undo.h"
 #include "resource_mgt.h"
 #include "splash_screen.h"
@@ -44,6 +43,7 @@
 #include "open_uri_dialog.h"
 #include "new_document_wizard.h"
 #include "preferences_dialog.h"
+#include "tool_window.h"
 
 #include <iostream>
 #include <sstream>
@@ -115,7 +115,6 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     createActions();
     createMenus();
     createToolBars();
-    createStatusBar();
     connect(textEdit->document(), SIGNAL(contentsChanged()),
             this, SLOT(documentWasModified()));
 
@@ -153,7 +152,6 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Fire a timer to check if files changed
     fileCheckTimer.start(500);
     connect(&fileCheckTimer, SIGNAL(timeout()), this, SLOT(checkFiles()));
-
 }
 
 
@@ -219,6 +217,7 @@ void Window::closeEvent(QCloseEvent *event)
     if (maybeSave())
     {
         writeSettings();
+        closeToolWindows();
         event->accept();
     }
     else
@@ -779,7 +778,7 @@ void Window::fetch()
         return warnNoRepo();
 
     FetchDialog dialog(repo.data(), this);
-    connect(&dialog, SIGNAL(fetched()), branchToolBar, SLOT(refresh()));
+    connect(&dialog, SIGNAL(fetched()), gitToolBar, SLOT(refresh()));
     dialog.exec();
 }
 
@@ -900,16 +899,6 @@ void Window::preferences()
 // ----------------------------------------------------------------------------
 {
     PreferencesDialog(this).exec();
-}
-
-
-void Window::showProjectUrl(QString url)
-// ----------------------------------------------------------------------------
-//    Update the project URL in the status bar
-// ----------------------------------------------------------------------------
-{
-    QString msg = tr("Project: %1").arg(url);
-    projectUrl->setText(msg);
 }
 
 
@@ -1226,46 +1215,21 @@ void Window::createToolBars()
     if (view)
         view->addAction(viewToolBar->toggleViewAction());
 
-    branchToolBar = new BranchSelectionToolBar(tr("Branch selection"));
-    branchToolBar->setObjectName("branchToolBar");
+    gitToolBar = new GitToolBar(tr("Git Tools"), this);
+    gitToolBar->setObjectName("gitToolbar");
     connect(this, SIGNAL(projectChanged(Repository*)),
-            branchToolBar, SLOT(setRepository(Repository*)));
+            gitToolBar, SLOT(setRepository(Repository*)));
     connect(this, SIGNAL(projectChanged(Repository*)),
             this, SLOT(checkDetachedHead()));
-    connect(branchToolBar, SIGNAL(checkedOut(QString)),
+    connect(gitToolBar, SIGNAL(checkedOut(QString)),
             this, SLOT(reloadCurrentFile()));
-    addToolBar(branchToolBar);
-    if (view)
-        view->addAction(branchToolBar->toggleViewAction());
-
-    playbackToolBar = new HistoryPlaybackToolBar(tr("History playback"));
-    playbackToolBar->setObjectName("playbackToolBar");
-    connect(this, SIGNAL(projectChanged(Repository*)),
-            playbackToolBar, SLOT(setRepository(Repository*)));
-    connect(playbackToolBar, SIGNAL(documentChanged()),
+    connect(gitToolBar, SIGNAL(documentChanged()),
             taoWidget, SLOT(setForceRefresh()));
-    addToolBar(playbackToolBar);
-    if (view)
-        view->addAction(playbackToolBar->toggleViewAction());
-}
-
-
-void Window::createStatusBar()
-// ----------------------------------------------------------------------------
-//    Create the status bar for the window
-// ----------------------------------------------------------------------------
-{
-    // Set up project URL area
-    projectUrl = new QLabel;
-    projectUrl->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    projectUrl->setToolTip(tr("Shows the URL of the project for the current "
-                              "document"));
-    statusBar()->addPermanentWidget(projectUrl);
     connect(this, SIGNAL(projectUrlChanged(QString)),
-            this, SLOT(showProjectUrl(QString)));
-    showProjectUrl(tr("None"));
-
-    statusBar()->showMessage(tr("Ready"));
+            gitToolBar, SLOT(showProjectUrl(QString)));
+    addToolBar(gitToolBar);
+    if (view)
+        view->addAction(gitToolBar->toggleViewAction());
 }
 
 
@@ -1313,6 +1277,17 @@ void Window::writeSettings()
     settings.setValue("size", size());
 }
 
+
+void Window::closeToolWindows()
+// ----------------------------------------------------------------------------
+//   Close tool
+// ----------------------------------------------------------------------------
+{
+    // Call ToolWindow::doClose() because close() simply hides the window
+    QList<ToolWindow *> floats = findChildren<ToolWindow *>();
+    foreach (ToolWindow *f, floats)
+        f->doClose();
+}
 
 bool Window::maybeSave()
 // ----------------------------------------------------------------------------
@@ -1802,9 +1777,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
             if (repo != oldRepo)
                 emit projectChanged(repo.data());   // REVISIT projectUrlChanged
             connect(repo.data(), SIGNAL(branchChanged(QString)),
-                    branchToolBar, SLOT(refresh()));
-            connect(repo.data(), SIGNAL(branchChanged(QString)),
-                    playbackToolBar, SLOT(refresh()));
+                    gitToolBar, SLOT(refresh()));
             connect(repo.data(), SIGNAL(branchChanged(QString)),
                     this, SLOT(checkDetachedHead()));
         }
@@ -1848,11 +1821,32 @@ void Window::switchToFullScreen(bool fs)
     if (fs)
     {
         setUnifiedTitleAndToolBarOnMac(false);
+
+        // Save state of main window and dock widgets that were added by
+        // addDockWidget(). Toolbars should normally be saved, too, but see
+        // QTBUG? comment below.
         savedState.geometry = saveGeometry();
         savedState.state = saveState();
+
+        // Hide ToolWindows.
+        // Remember which ones are open. Required because they are not added to
+        // the main window with addDockWidget().
+        QList<ToolWindow *> tools = findChildren<ToolWindow *>();
+        foreach (ToolWindow *t, tools)
+        {
+            if (t->isVisible())
+            {
+                savedState.visibleTools[t] = t->saveGeometry();
+                t->hide();
+            }
+        }
+
+        // Hide all dockable widgets
         QList<QDockWidget *> docks = findChildren<QDockWidget *>();
         foreach(QDockWidget *d, docks)
             d->hide();
+
+        // Hide toolbars
         savedState.visibleToolBars.clear();
         QList<QToolBar *> toolBars = findChildren<QToolBar *>();
         foreach (QToolBar *t, toolBars)
@@ -1872,6 +1866,7 @@ void Window::switchToFullScreen(bool fs)
             // visible solves the problem.
             removeToolBar(t);
         }
+
         statusBar()->hide();
         menuBar()->hide();
         showFullScreen();
@@ -1882,11 +1877,22 @@ void Window::switchToFullScreen(bool fs)
         menuBar()->show();
         statusBar()->show();
         setUnifiedTitleAndToolBarOnMac(true);
+
+        // Restore toolbars
         foreach (QToolBar *t, savedState.visibleToolBars)
         {
             addToolBar(t);
             t->show();
         }
+
+        // Restore tool windows
+        foreach (ToolWindow *t, savedState.visibleTools.keys())
+        {
+            t->restoreGeometry(savedState.visibleTools[t]);
+            t->show();
+        }
+
+        // Restore dockable widgets, and window geometry
         restoreGeometry(savedState.geometry);
         restoreState(savedState.state);
     }

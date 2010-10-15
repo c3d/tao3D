@@ -1,7 +1,7 @@
-#ifndef HISTORY_PLAYBACK_TOOLBAR_H
-#define HISTORY_PLAYBACK_TOOLBAR_H
+#ifndef HISTORY_PLAYBACK_TOOL_H
+#define HISTORY_PLAYBACK_TOOL_H
 // ****************************************************************************
-//  history_playback_toolbar.h                                     Tao project
+//  history_playback_tool.h                                        Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -21,7 +21,9 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include <QToolBar>
+#include "tool_window.h"
+#include <QObject>
+#include <QString>
 
 QT_BEGIN_NAMESPACE
 class QSlider;
@@ -32,7 +34,7 @@ namespace Tao {
 class Repository;
 class HistoryPlayback;
 
-class HistoryPlaybackToolBar : public QToolBar
+class HistoryPlaybackTool : public ToolWindow
 // ----------------------------------------------------------------------------
 //   Manage navigation through the history of the current branch
 // ----------------------------------------------------------------------------
@@ -40,7 +42,8 @@ class HistoryPlaybackToolBar : public QToolBar
     Q_OBJECT
 
 public:
-    HistoryPlaybackToolBar(const QString & title, QWidget *parent = 0);
+    HistoryPlaybackTool(const QString &title, QWidget *parent = 0,
+                        const QString &objName = "");
 
 public slots:
     void              setRepository(Repository *);

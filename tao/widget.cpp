@@ -1741,6 +1741,8 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
+//    std::cerr << "mouseMove " <<event->pos().x() << ", "<< event->pos().y() <<
+//            ", buttons : " << event->buttons() << std::endl; // CaB
     if (cursor().shape() == Qt::ClosedHandCursor)
         return doPanning(event);
 
@@ -7686,7 +7688,8 @@ Tree_p Widget::resetTest(Tree_p)
  // ----------------------------------------------------------------------------
 {
     currentTest.stopRecord();
-    currentTest.reset();
+    currentTest.reset(text(), 0, text(),
+                      +((Window*)parent())->currentProjectFolderPath());
     return XL::xl_true;
 }
 
@@ -7706,7 +7709,8 @@ Tree_p Widget::testDef(Tree_p , text_p name, Integer_p fId, text_p desc, Tree_p 
 //   Define a new test
 // ----------------------------------------------------------------------------
 {
-    currentTest.reset(name->value, fId->value, desc->value);
+    currentTest.reset(name->value, fId->value, desc->value,
+                      +((Window*)parent())->currentProjectFolderPath());
     return xl_evaluate(body);
 }
 

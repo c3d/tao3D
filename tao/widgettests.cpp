@@ -35,10 +35,10 @@ WidgetTests::WidgetTests(Widget *widget, text name, text description) :
 // ----------------------------------------------------------------------------
 //   Creates a new test.
 // ----------------------------------------------------------------------------
-    widget(widget), name(name), description(description),
+    widget(widget), name(+name), description(+description),
     featureId(0), latestResult(false)
 {
-    folder = +((Window*)(widget->window()))->currentProjectFolderPath();
+    folder = ((Window*)(widget->window()))->currentProjectFolderPath().append("/");
 }
 
 
@@ -49,8 +49,8 @@ text WidgetTests::toString()
 {
     QString testDoc = QString("%1_test -> test_definition \"%1\", %2,"
                               " <<%3>>, do \n%4")
-            .arg(+name).arg(featureId)
-            .arg(+description).arg(+taoCmd);
+            .arg(name).arg(featureId)
+            .arg(description).arg(taoCmd);
     return +testDoc;
 
 }
@@ -107,7 +107,7 @@ void WidgetTests::recordAction(bool )
 
     QString cmd = QString("    test_add_action \"%1\", %2\n")
                   .arg(actName).arg(time);
-    taoCmd.append(+cmd);
+    taoCmd.append(cmd);
 }
 
 
@@ -125,7 +125,7 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
             addKeyPress((Qt::Key)e->key(), e->modifiers(), delay);
             QString cmd = QString("    test_add_key_press %1, %2, %3\n")
                           .arg(e->key()).arg(e->modifiers()).arg(delay);
-            taoCmd.append(+cmd);
+            taoCmd.append(cmd);
             break;
         }
     case QEvent::KeyRelease:
@@ -135,7 +135,7 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
             addKeyRelease((Qt::Key)e->key(), e->modifiers(), delay);
             QString cmd = QString("    test_add_key_release %1, %2, %3\n")
                           .arg(e->key()).arg(e->modifiers()).arg(delay);
-            taoCmd.append(+cmd);
+            taoCmd.append(cmd);
             break;
         }
     case QEvent::MouseButtonPress:
@@ -146,7 +146,7 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
             QString cmd = QString("    test_add_mouse_press %1, %2, %3, %4, %5\n")
                           .arg(e->button()).arg(e->modifiers())
                           .arg(e->pos().x()).arg(e->pos().y()).arg(delay);
-            taoCmd.append(+cmd);
+            taoCmd.append(cmd);
         }
     case QEvent::MouseMove:
         {
@@ -156,7 +156,7 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
             QString cmd = QString("    test_add_mouse_move %1, %2, %3, %4, %5\n")
                           .arg(e->buttons()).arg(e->modifiers())
                           .arg(e->pos().x()).arg(e->pos().y()).arg(delay);
-            taoCmd.append(+cmd);
+            taoCmd.append(cmd);
             break;
         }
     case QEvent::MouseButtonRelease:
@@ -167,7 +167,7 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
             QString cmd = QString("    test_add_mouse_release %1, %2, %3, %4, %5\n")
                           .arg(e->button()).arg(e->modifiers())
                           .arg(e->pos().x()).arg(e->pos().y()).arg(delay);
-            taoCmd.append(+cmd);
+            taoCmd.append(cmd);
             break;
         }
     case QEvent::MouseButtonDblClick:
@@ -178,7 +178,7 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
             QString cmd = QString("    test_add_mouse_dclick %1, %2, %3, %4, %5\n")
                           .arg(e->button()).arg(e->modifiers())
                           .arg(e->pos().x()).arg(e->pos().y()).arg(delay);
-            taoCmd.append(+cmd);
+            taoCmd.append(cmd);
             break;
         }
     default:
@@ -196,18 +196,27 @@ bool WidgetTests::play()
 // ----------------------------------------------------------------------------
 {
     playedBefore = widget->grabFrameBuffer(true);
+    QString playedBeforeName = QString(folder).append(name).append("_playedBefore.png");
+    playedBefore.save(playedBeforeName, "PNG");
+
     if (playedBefore != before)
     {
+        text t = +name;
         qWarning("Test %s: image before test is not equal to reference.",
-                 name.c_str());
+                 t.c_str());
         if (playedBefore.rect() != before.rect())
             qWarning("\timage size are different.");
         if (playedBefore.format() != before.format())
             qWarning("\timage format differs.");
     }
 
-    testList.simulate(widget);
+    // Copy the list as the original one can be modified by a reload during simulate
+    QTestEventList tempoList = QTestEventList(testList);
+    tempoList.simulate(widget);
     playedAfter = widget->grabFrameBuffer(true);
+
+    QString playedAfterName = QString(folder).append(name).append("_playedAfter.png");
+    playedAfter.save(playedAfterName, "PNG");
 
     latestResult = (playedAfter == after);
 
@@ -220,26 +229,23 @@ void WidgetTests::save()
 //   Save the named test
 // ----------------------------------------------------------------------------
 {
-    Save_test_dialog dialog(widget, +name, +folder, featureId, +description);
+    Save_test_dialog dialog(widget, name, folder, featureId, description);
     if (dialog.exec() == QDialog::Rejected)
         return;
 
-    name = +dialog.name;
-    description = +dialog.desc;
+    name = dialog.name;
+    description = dialog.desc;
     featureId = dialog.fid;
-
-    // Get project directory
-    QString folder = dialog.loc;
-    folder.append("/");
+    folder = QFileInfo(dialog.loc).canonicalPath().append("/");
 
     // Store Images
-    QString beforeName = QString(folder).append(+name).append("_before.png");
+    QString beforeName = QString(folder).append(name).append("_before.png");
     before.save(beforeName, "PNG");
-    QString afterName = QString(folder).append(+name).append("_after.png");
+    QString afterName = QString(folder).append(name).append("_after.png");
     after.save(afterName, "PNG");
 
     // Store test commands
-    QString testName = QString(folder).append(+name).append("_test.ddd");
+    QString testName = QString(folder).append(name).append("_test.ddd");
     QFile testFile(testName);
     testFile.open(QIODevice::WriteOnly | QIODevice::Text);
     testFile.write(toString().c_str());
@@ -248,24 +254,27 @@ void WidgetTests::save()
 }
 
 
-void WidgetTests::reset(text newName, int feature, text desc)
+void WidgetTests::reset(text newName, int feature, text desc, text dir)
 // ----------------------------------------------------------------------------
 //   Reset the test
 // ----------------------------------------------------------------------------
 {
     testList.clear();
-    name = newName;
+    name = +newName;
     featureId = feature;
-    description = desc;
-    if (name.empty())
+    description = +desc;
+    folder = +dir;
+    if (!folder.endsWith("/")) folder.append("/");
+
+    if (name.isEmpty())
     {
         before = QImage();
         after = QImage();
     }
     else
     {
-        before = QImage(QString("image:").append(+name).append("_before.png"));
-        after = QImage(QString("image:").append(+name).append("_after.png"));
+        before = QImage(QString("image:").append(name).append("_before.png"));
+        after = QImage(QString("image:").append(name).append("_after.png"));
     }
 }
 
@@ -274,9 +283,9 @@ void WidgetTests::printResult()
 //   Print the result of this test on stderr
 // ----------------------------------------------------------------------------
 {
-    std::cerr << name << ", " << featureId << ", "
+    std::cerr << +name << ", " << featureId << ", "
             << (latestResult ? "PASSED" : "FAILED")
-            << ", " << description << std::endl;
+            << ", " << +description << std::endl;
 }
 
 

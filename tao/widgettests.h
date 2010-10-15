@@ -46,7 +46,8 @@ public:
     void save();
     bool play();
     void printResult();
-    void reset(text newName = text(), int feature = 0, text desc = text());
+    void reset(text newName = text(), int feature = 0,
+               text desc = text(), text folder = text());
 
     void addKeyPress(Qt::Key qtKey,
                      Qt::KeyboardModifiers modifiers = Qt::NoModifier,
@@ -79,15 +80,15 @@ public slots:
 
 public:
     Widget *widget;
-    text    name;
-    text    description;
+    QString    name;
+    QString    description;
     int     featureId;// The id in redmine of the feature that this test tests
     bool    latestResult;
-    text    folder;
+    QString    folder;
     QImage  playedBefore, playedAfter;
     QImage  before, after;
     QTime   startTime;
-    text taoCmd;
+    QString taoCmd;
 protected:
     QTestEventList testList;
 
@@ -138,7 +139,11 @@ public:
     inline TestMouseMoveEvent( Qt::MouseButtons buttons,
                                Qt::KeyboardModifiers modifiers,
                                QPoint pos, int delay=-1)
-        : buttons(buttons), modifiers(modifiers), pos(pos), delay(delay) {}
+        : buttons(buttons), modifiers(modifiers), pos(pos), delay(delay)
+    {
+//        std::cerr << "Recreate mouseMove "<< pos.x()  << ", "<< pos.y() <<
+//                ", buttons : " << buttons << std::endl; // CaB
+    }
     inline QTestEvent *clone() const { return new TestMouseMoveEvent(*this); }
 
     inline void simulate(QWidget *w)
@@ -150,7 +155,10 @@ public:
         if (!qApp->notify(w, &me)) {
             QTest::qWarn("Mouse event \"MouseMove\" not accepted by receiving widget");
         }
-//        // Move the visual cursor to that pos ==> will throw another mouseMove event :(((
+//        std::cerr << "mouseMove replay :" << me.pos().x() << ", "<< me.pos().y() <<
+//                ", buttons : " << me.buttons() << std::endl; // CaB
+
+        //        // Move the visual cursor to that pos ==> will throw another mouseMove event :(((
 //        QCursor::setPos(w->mapToGlobal(pos));
 //        qApp->processEvents();
     }
@@ -202,7 +210,8 @@ public:
         qWarning("Rerun qmake with option \"QT+=testlib\"");
     }
 
-    void reset(text newName = text(), int feature = 0, text desc = text()) {
+    void reset(text newName = text(), int feature = 0,
+               text desc = text(), text folder = text()) {
         qWarning("Rerun qmake with option \"QT+=testlib\"");
     }
 

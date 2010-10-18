@@ -25,10 +25,35 @@
 #include "qtestevent.h"
 #include "tao_utf8.h"
 #include "application.h"
+#include "widget.h"
 #include "window.h"
+#include "save_test_dialog.h"
 
 TAO_BEGIN
 
+WidgetTests::WidgetTests(Widget *widget, text name, text description) :
+// ----------------------------------------------------------------------------
+//   Creates a new test.
+// ----------------------------------------------------------------------------
+    widget(widget), name(name), description(description),
+    featureId(0), latestResult(false)
+{
+    folder = +((Window*)(widget->window()))->currentProjectFolderPath();
+}
+
+
+text WidgetTests::toString()
+// ----------------------------------------------------------------------------
+//   Return the test as a tao command
+// ----------------------------------------------------------------------------
+{
+    QString testDoc = QString("%1_test -> test_definition \"%1\", %2,"
+                              " <<%3>>, do \n%4")
+            .arg(+name).arg(featureId)
+            .arg(+description).arg(+taoCmd);
+    return +testDoc;
+
+}
 
 void WidgetTests::startRecord()
 // ----------------------------------------------------------------------------
@@ -78,7 +103,7 @@ void WidgetTests::recordAction(bool )
 
     int time = startTime.restart();
 
-    testList.append(new QTestActionEvent(actName, time));
+    addAction(actName, time);
 
     QString cmd = QString("    test_add_action \"%1\", %2\n")
                   .arg(actName).arg(time);
@@ -97,9 +122,7 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
         {
             QKeyEvent *e = (QKeyEvent*)evt;
             int delay = startTime.restart();
-            testList.addKeyPress(e->key(),
-                                 e->modifiers(),
-                                 delay);
+            addKeyPress((Qt::Key)e->key(), e->modifiers(), delay);
             QString cmd = QString("    test_add_key_press %1, %2, %3\n")
                           .arg(e->key()).arg(e->modifiers()).arg(delay);
             taoCmd.append(+cmd);
@@ -109,9 +132,7 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
         {
             QKeyEvent *e = (QKeyEvent*)evt;
             int delay = startTime.restart();
-            testList.addKeyRelease(e->key(),
-                                   e->modifiers(),
-                                   delay);
+            addKeyRelease((Qt::Key)e->key(), e->modifiers(), delay);
             QString cmd = QString("    test_add_key_release %1, %2, %3\n")
                           .arg(e->key()).arg(e->modifiers()).arg(delay);
             taoCmd.append(+cmd);
@@ -121,10 +142,7 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
         {
             QMouseEvent *e = (QMouseEvent *)evt;
             int delay = startTime.restart();
-            testList.addMousePress(e->button(),
-                                     e->modifiers(),
-                                     e->pos(),
-                                     delay);
+            addMousePress(e->button(), e->modifiers(), e->pos(), delay);
             QString cmd = QString("    test_add_mouse_press %1, %2, %3, %4, %5\n")
                           .arg(e->button()).arg(e->modifiers())
                           .arg(e->pos().x()).arg(e->pos().y()).arg(delay);
@@ -134,9 +152,9 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
         {
             QMouseEvent *e = (QMouseEvent *)evt;
             int delay = startTime.restart();
-            testList.addMouseMove(e->pos(),
-                                  delay);
-            QString cmd = QString("    test_add_mouse_move %1, %2, %3\n")
+            addMouseMove(e->buttons(), e->modifiers(), e->pos(), delay);
+            QString cmd = QString("    test_add_mouse_move %1, %2, %3, %4, %5\n")
+                          .arg(e->buttons()).arg(e->modifiers())
                           .arg(e->pos().x()).arg(e->pos().y()).arg(delay);
             taoCmd.append(+cmd);
             break;
@@ -145,10 +163,7 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
         {
             QMouseEvent *e = (QMouseEvent *)evt;
             int delay = startTime.restart();
-            testList.addMouseRelease(e->button(),
-                                     e->modifiers(),
-                                     e->pos(),
-                                     delay);
+            addMouseRelease(e->button(), e->modifiers(), e->pos(), delay);
             QString cmd = QString("    test_add_mouse_release %1, %2, %3, %4, %5\n")
                           .arg(e->button()).arg(e->modifiers())
                           .arg(e->pos().x()).arg(e->pos().y()).arg(delay);
@@ -159,10 +174,7 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
         {
             QMouseEvent *e = (QMouseEvent *)evt;
             int delay = startTime.restart();
-            testList.addMouseDClick(e->button(),
-                                    e->modifiers(),
-                                    e->pos(),
-                                    delay);
+            addMouseDClick(e->button(), e->modifiers(), e->pos(), delay);
             QString cmd = QString("    test_add_mouse_dclick %1, %2, %3, %4, %5\n")
                           .arg(e->button()).arg(e->modifiers())
                           .arg(e->pos().x()).arg(e->pos().y()).arg(delay);
@@ -177,6 +189,7 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
 
 }
 
+
 bool WidgetTests::play()
 // ----------------------------------------------------------------------------
 //   Replay the test
@@ -184,71 +197,162 @@ bool WidgetTests::play()
 {
     playedBefore = widget->grabFrameBuffer(true);
     if (playedBefore != before)
-        qWarning("Test %s: image before test is not equal to reference.\n",
+    {
+        qWarning("Test %s: image before test is not equal to reference.",
                  name.c_str());
+        if (playedBefore.rect() != before.rect())
+            qWarning("\timage size are different.");
+        if (playedBefore.format() != before.format())
+            qWarning("\timage format differs.");
+    }
+
     testList.simulate(widget);
     playedAfter = widget->grabFrameBuffer(true);
 
-    return latestResult = (playedAfter == after);
+    latestResult = (playedAfter == after);
+
+    return latestResult;
 }
 
 
-void WidgetTests::load(text newName)
-// ----------------------------------------------------------------------------
-//   Load the named test
-// ----------------------------------------------------------------------------
-{
-    if (!newName.empty())
-        name = newName;
-
-    qWarning("Not Yet implemented: Should load %s\n", name.c_str());
-}
-
-void WidgetTests::save(text newName)
+void WidgetTests::save()
 // ----------------------------------------------------------------------------
 //   Save the named test
 // ----------------------------------------------------------------------------
 {
-    if (!newName.empty())
-        name = newName;
+    Save_test_dialog dialog(widget, +name, +folder, featureId, +description);
+    if (dialog.exec() == QDialog::Rejected)
+        return;
+
+    name = +dialog.name;
+    description = +dialog.desc;
+    featureId = dialog.fid;
 
     // Get project directory
-    Window *w = (Window*) widget->parent();
-    QString folder = w->currentProjectFolderPath();
+    QString folder = dialog.loc;
     folder.append("/");
 
     // Store Images
-    before.save(QString(folder).append(+name).append("_before.png"), "PNG");
-    after.save(QString(folder).append(+name).append("_after.png"), "PNG");
+    QString beforeName = QString(folder).append(+name).append("_before.png");
+    before.save(beforeName, "PNG");
+    QString afterName = QString(folder).append(+name).append("_after.png");
+    after.save(afterName, "PNG");
+
     // Store test commands
-    QFile testFile(QString(folder).append(+name).append("_test.ddd"));
+    QString testName = QString(folder).append(+name).append("_test.ddd");
+    QFile testFile(testName);
     testFile.open(QIODevice::WriteOnly | QIODevice::Text);
-    testFile.write(toString()->c_str());
+    testFile.write(toString().c_str());
     testFile.flush();
     testFile.close();
-
-    qWarning("Not Yet implemented: Should save %s\n", name.c_str());
-
 }
 
 
-void WidgetTests::reset(text newName, text desc)
+void WidgetTests::reset(text newName, int feature, text desc)
 // ----------------------------------------------------------------------------
 //   Reset the test
 // ----------------------------------------------------------------------------
 {
     testList.clear();
     name = newName;
+    featureId = feature;
     description = desc;
-    before = QImage(QString("image:").append(+name).append("_before.png"));
-    after = QImage(QString("image:").append(+name).append("_after.png"));
+    if (name.empty())
+    {
+        before = QImage();
+        after = QImage();
+    }
+    else
+    {
+        before = QImage(QString("image:").append(+name).append("_before.png"));
+        after = QImage(QString("image:").append(+name).append("_after.png"));
+    }
 }
 
 void WidgetTests::printResult()
+// ----------------------------------------------------------------------------
+//   Print the result of this test on stderr
+// ----------------------------------------------------------------------------
 {
-    std::cerr << "Test " << name << "\t\t"
+    std::cerr << name << ", " << featureId << ", "
             << (latestResult ? "PASSED" : "FAILED")
-            << "\t" << description << std::endl;
+            << ", " << description << std::endl;
+}
+
+
+void WidgetTests::addKeyPress(Qt::Key qtKey,
+                              Qt::KeyboardModifiers modifiers,
+                              int msecs)
+// ----------------------------------------------------------------------------
+// Add a key press event to the list of action
+// ----------------------------------------------------------------------------
+{
+    testList.addKeyPress(qtKey, modifiers, msecs);
+}
+
+
+void WidgetTests::addKeyRelease(Qt::Key qtKey,
+                                Qt::KeyboardModifiers modifiers,
+                                int msecs)
+// ----------------------------------------------------------------------------
+// Add a key release event to the list of action
+// ----------------------------------------------------------------------------
+{
+    testList.addKeyRelease(qtKey, modifiers, msecs);
+}
+
+
+void WidgetTests::addMousePress(Qt::MouseButton button,
+                                Qt::KeyboardModifiers modifiers,
+                                QPoint pos, int delay )
+// ----------------------------------------------------------------------------
+// Add a mouse press event to the list of action
+// ----------------------------------------------------------------------------
+{
+    testList.addMousePress(button, modifiers, pos, delay);
+}
+
+
+void WidgetTests::addMouseRelease(Qt::MouseButton button,
+                                  Qt::KeyboardModifiers modifiers,
+                                  QPoint pos, int delay )
+// ----------------------------------------------------------------------------
+// Add a mouse release event to the list of action
+// ----------------------------------------------------------------------------
+{
+    testList.addMouseRelease(button, modifiers, pos, delay);
+
+}
+
+
+void WidgetTests::addMouseMove(Qt::MouseButtons buttons,
+                               Qt::KeyboardModifiers modifiers,
+                               QPoint pos, int delay)
+// ----------------------------------------------------------------------------
+// Add a mouse move event to the list of action
+// ----------------------------------------------------------------------------
+{
+    testList.append(new TestMouseMoveEvent(buttons, modifiers, pos, delay));
+}
+
+
+void WidgetTests::addMouseDClick(Qt::MouseButton button,
+                                 Qt::KeyboardModifiers modifiers,
+                                 QPoint pos, int delay)
+// ----------------------------------------------------------------------------
+// Add a mouse double click event to the list of action
+// ----------------------------------------------------------------------------
+{
+    testList.addMouseDClick(button, modifiers, pos, delay);
+}
+
+
+void WidgetTests::addAction(QString name, int delay)
+// ----------------------------------------------------------------------------
+// Add an action to be replayed.
+// ----------------------------------------------------------------------------
+{
+    testList.append(new TestActionEvent(name, delay));
 }
 
 TAO_END

@@ -673,7 +673,7 @@ menu_item "toolbar:test > start", "start","", do test_start_record
 menu_item "toolbar:test > stop", "stop","", do test_stop_record
 menu_item "toolbar:test > play", "play","", do test_replay
 menu_item "toolbar:test > save", "save","", do test_save
-menu_item "toolbar:test > load", "load","", do test_load
+menu_item "toolbar:test > reset", "reset","", do test_reset
 }
 
 toolbar_insert -> {

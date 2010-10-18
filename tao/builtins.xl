@@ -2,11 +2,68 @@
 N! -> N * (N-1)!
 
 // If-then-else statement
-if true then TrueBody else FalseBody    -> do TrueBody
-if false then TrueBody else FalseBody   -> do FalseBody
+if true then TrueBody else FalseBody    -> TrueBody
+if false then TrueBody else FalseBody   -> FalseBody
 
-if true then TrueBody                   -> do TrueBody
+if true then TrueBody                   -> TrueBody
 if false then TrueBody                  -> false
+
+// Loops
+loop Body:code                  -> Body; loop Body
+while Cond:code loop Body:code  ->
+    if Cond then
+        Body
+        while Cond loop Body
+until Cond:code loop Body:code  ->
+    if not Cond then
+        Body
+        until Cond loop Body
+loop Body:code while Cond:code  ->
+    Body
+    if Cond then
+        loop Body while Cond
+loop Body:code until Cond:code  ->
+    Body
+    if not Cond then
+        loop Body until Cond
+for I:name in Low:integer..High:integer loop Body:code ->
+    I := Low
+    while I <= High loop
+        Body
+        I := I + 1
+
+// Building lists, notably lists of arguments
+data x,y
+first x,y -> x
+rest  x,y -> y
+first x   -> x
+rest  x   -> nil
+x, nil    -> x
+nil, x    -> x
+
+// Range of values
+data low..high
+data low..high step step
+
+// Mapping functions
+Callback:tree with A,B ->
+    data X:value, Y:value
+    (Callback A), (Callback with B)
+Callback:tree with nil -> nil
+Callback:tree with A..B when A < B ->
+    data X:value, Y:value
+    (Callback A), (Callback with A+1..B)
+Callback:tree with A..A -> Callback A
+Callback:tree with A..B -> nil
+Callback:tree with A -> Callback A
+
+// In-place arithmetic
+X:name += Y:value -> X := X + Y
+X:name -= Y:value -> X := X - Y
+X:name *= Y:value -> X := X * Y
+X:name /= Y:value -> X := X / Y
+++X:name -> X += 1
+--X:name -> X -= 1
 
 // Applying something on a range
 f:tree with a..b                        -> f a, f with a+1..b
@@ -503,21 +560,19 @@ menu n:text, l:text                     -> menu n, l, ""
 submenu n:text                          -> submenu n, "", ""
 submenu n:text, l:text                  -> submenu n, l, ""
 
-menu_item n:text, l:text, t             -> menu_item n, l, "", false, "false", t
-menu_item n:text, l:text, i:text, t     -> menu_item n, l, i, false, "false", t
-menu_item n:text, l:text, cb:boolean, ck:text, t-> menu_item n, l, "", cb, ck, t
-
-push_button x:real, y:real, w:real, h:real, l:text, a:tree ->
+push_button x:real, y:real, w:real, h:real, l:text, a:code ->
       push_button x, y, w, h, l, l, a
-radio_button x:real, y:real, w:real, h:real, l:text, m:text, a:tree ->
+radio_button x:real, y:real, w:real, h:real, l:text, m:text, a:code ->
       radio_button x, y, w, h, l, l, m, a
-check_box_button x:real, y:real, w:real, h:real, l:text, m:text, a:tree ->
+check_box_button x:real, y:real, w:real, h:real, l:text, m:text, a:code ->
       check_box_button  x, y, w, h, l, l, m, a
+
+menu_item name:text, label:text, todo:block -> menu_item name, label, "", false, "false", todo
 
 menu_insert -> {
 menubar
 menu      "menu:insert", "Insert"
-menu_item "menu:insert > text box", "Text Box", do
+menu_item "menu:insert > text box", "Text Box",
     insert "Insert text box",
         shape
             color "font"
@@ -526,89 +581,89 @@ menu_item "menu:insert > text box", "Text Box", do
             text_box 0, 0, 100, 100, do
                 text "Text"
 submenu   "menu:insert > shape", "Shape"
-menu_item "menu:insert > shape > line ---", "Line", do
+menu_item "menu:insert > shape > line ---", "Line",
     insert "Insert line",
         shape
             color "line"
             //line_color "line"
             line 50, -50, -50, 50
-menu_item "menu:insert > shape > line -->", "Line with Arrowhead", do
+menu_item "menu:insert > shape > line -->", "Line with Arrowhead",
     insert "Insert line with arrowhead",
         shape
             color "line"
             //line_color "line"
             line_arrow 50, -50, none, -50, 50, arrowhead
-menu_item "menu:insert > shape > line <->", "Line with Two Arrowheads", do
+menu_item "menu:insert > shape > line <->", "Line with Two Arrowheads",
     insert "Insert line with two arroheads",
         shape
             color "line"
             line_color "line"
             line_arrow 50, -50, arrowhead, -50, 50, arrowhead
-menu_item "menu:insert > shape > rectangle", "Rectangle", do
+menu_item "menu:insert > shape > rectangle", "Rectangle",
     insert "Insert rectangle",
         shape
             color "fill"
             line_color "fill"
             rectangle 0, 0, 100, 100
-menu_item "menu:insert > shape > rounded rectangle", "Rounded Rectangle", do
+menu_item "menu:insert > shape > rounded rectangle", "Rounded Rectangle",
     insert "Insert rounded rectangle",
         shape
             rounded_rectangle 0, 0, 100, 100, 15
-menu_item "menu:insert > shape > oval", "Oval", do
+menu_item "menu:insert > shape > oval", "Oval",
     insert "Insert oval",
         shape
             color "fill"
             line_color "fill"
             ellipse 0, 0, 100, 100
-menu_item "menu:insert > shape > triangle", "Triangle", do
+menu_item "menu:insert > shape > triangle", "Triangle",
     insert "Insert triangle",
         shape
             color "fill"
             line_color "fill"
             triangle 0, 0, 100, 100
-menu_item "menu:insert > shape > right triangle", "Right Triangle", do
+menu_item "menu:insert > shape > right triangle", "Right Triangle",
     insert "Insert right triangle",
         shape
             color "fill"
             line_color "fill"
             right_triangle 0, 0, 100, 100
-menu_item "menu:insert > shape > arrow", "Arrow", do
+menu_item "menu:insert > shape > arrow", "Arrow",
     insert "Insert arrow",
         shape
             color "fill"
             line_color "fill"
             arrow 0, 0, 100, 100, 44, 32%
-menu_item "menu:insert > shape > double arrow", "Double Arrow", do
+menu_item "menu:insert > shape > double arrow", "Double Arrow",
     insert "Insert double arrow",
         shape
             color "fill"
             line_color "fill"
             double_arrow 0, 0, 100, 100, 44, 32%
-menu_item "menu:insert > shape > diamond", "Diamond", do
+menu_item "menu:insert > shape > diamond", "Diamond",
     insert "Insert diamond",
         shape
             color "fill"
             line_color "fill"
             diamond 0, 0, 100, 100
-menu_item "menu:insert > shape > speech ballon", "Speech Balloon", do
+menu_item "menu:insert > shape > speech ballon", "Speech Balloon",
     insert "Insert speech balloon",
         shape
             color "fill"
             line_color "fill"
             speech_balloon 0, 16, 100, 68, 50, -50, -50
-menu_item "menu:insert > shape > callout", "Callout", do
+menu_item "menu:insert > shape > callout", "Callout",
     insert "Insert callout",
         shape
             color "fill"
             line_color "fill"
             callout 16, 0, 68, 100, 15, -50, 0, 60
-menu_item "menu:insert > shape > star", "Star", do
+menu_item "menu:insert > shape > star", "Star",
     insert "Insert star",
         shape
             color "fill"
             line_color "fill"
             star 0, 0, 100, 100, 5, 50%
-menu_item "menu:insert > shape > polygon", "Polygon", do
+menu_item "menu:insert > shape > polygon", "Polygon",
     insert "Insert polygon",
         shape
             color "fill"
@@ -616,12 +671,12 @@ menu_item "menu:insert > shape > polygon", "Polygon", do
             polygon 0, 0, 100, 100, 5
 
 menu      "menu:insert", ""
-menu_item "menu:insert > table", "Table", do
+menu_item "menu:insert > table", "Table",
     insert "Insert table",
         shape
             color "font"
             line_color "font"
-            table 3, 3, do
+            table 3, 3,
                 table_cell_fill
                     color 0%,0%,0%,20%
                     line_color 0%, 0%, 100%, 80%
@@ -650,7 +705,8 @@ menu_item "menu:insert > table", "Table", do
 separator
 
 menu      "menu:insert", ""
-menu_item "menu:insert > image...", "Image...", file_chooser
+menu_item "menu:insert > image...", "Image...",
+  file_chooser
     filter "All image formats (*.bmp *.gif *.jpg *.jpeg *.png *.pbm *.pgm *.ppm *.svg *.tif *.tiff *.xbm *.xpm);;" &
            "BMP - Windows Bitmap (*.bmp);;" &
            "GIF - Graphic Interchange Format (*.gif);;" &
@@ -663,7 +719,7 @@ menu_item "menu:insert > image...", "Image...", file_chooser
            "PPM - Portable Pixmap (*.ppm);;" &
            "XBM - X11 Bitmap (*.xbm);;" &
            "XPM - X11 Pixmap (*.xpm)"
-    action do
+    action
         insert "Insert image",
             shape
                 color 100%,100%,100%,100%
@@ -674,91 +730,91 @@ menu_item "menu:insert > image...", "Image...", file_chooser
 toolbar_insert -> {
 toolbar   "toolbar:insert", "Insert", "N"
 submenu   "toolbar:insert > shape", "Shape", "images/tb_shapes.png"
-menu_item "toolbar:insert > shape > line ---", "", "images/tb_shape_line.png", do
+menu_item "toolbar:insert > shape > line ---", "", "images/tb_shape_line.png",
     insert "Insert line",
         shape
             color "line"
             line_color "line"
             line 50, -50, -50, 50
-menu_item "toolbar:insert > shape > line -->", "", "images/tb_shape_line_w_arrowhead.png", do
+menu_item "toolbar:insert > shape > line -->", "", "images/tb_shape_line_w_arrowhead.png",
     insert
         shape
             color "line"
             line_color "line"
             line_arrow 50, -50, none, -50, 50, arrowhead
-menu_item "toolbar:insert > shape > line <->", "", "images/tb_shape_line_w_two_arrowheads.png", do
+menu_item "toolbar:insert > shape > line <->", "", "images/tb_shape_line_w_two_arrowheads.png",
     insert "Insert line with two arroheads",
         shape
             color "line"
             line_color "line"
             line_arrow 50, -50, arrowhead, -50, 50, arrowhead
-menu_item "toolbar:insert > shape > rectangle", "", "images/tb_shape_rectangle.png", do
+menu_item "toolbar:insert > shape > rectangle", "", "images/tb_shape_rectangle.png",
     insert "Insert rectangle",
         shape
             color "fill"
             line_color "fill"
             rectangle 0, 0, 100, 100
-menu_item "toolbar:insert > shape > rounded rectangle", "", "images/tb_shape_rounded_rectangle.png", do
+menu_item "toolbar:insert > shape > rounded rectangle", "", "images/tb_shape_rounded_rectangle.png",
     insert "Insert rounded rectangle",
         shape
             color "fill"
             line_color "fill"
             rounded_rectangle 0, 0, 100, 100, 15
-menu_item "toolbar:insert > shape > oval", "", "images/tb_shape_oval.png", do
+menu_item "toolbar:insert > shape > oval", "", "images/tb_shape_oval.png",
     insert "Insert oval",
         shape
             color "fill"
             line_color "fill"
             ellipse 0, 0, 100, 100
-menu_item "toolbar:insert > shape > triangle", "", "images/tb_shape_triangle.png", do
+menu_item "toolbar:insert > shape > triangle", "", "images/tb_shape_triangle.png",
     insert "Insert triangle",
         shape
             color "fill"
             line_color "fill"
             triangle 0, 0, 100, 100
-menu_item "toolbar:insert > shape > right triangle", "", "images/tb_shape_right_triangle.png", do
+menu_item "toolbar:insert > shape > right triangle", "", "images/tb_shape_right_triangle.png",
     insert "Insert right triangle",
         shape
             color "fill"
             line_color "fill"
             right_triangle 0, 0, 100, 100
-menu_item "toolbar:insert > shape > arrow", "", "images/tb_shape_arrow.png", do
+menu_item "toolbar:insert > shape > arrow", "", "images/tb_shape_arrow.png",
     insert "Insert arrow",
         shape
             color "fill"
             line_color "fill"
             arrow 0, 0, 100, 100, 44, 32%
-menu_item "toolbar:insert > shape > double arrow", "", "images/tb_shape_double_arrow.png", do
+menu_item "toolbar:insert > shape > double arrow", "", "images/tb_shape_double_arrow.png",
     insert "Insert double arrow",
         shape
             color "fill"
             line_color "fill"
             double_arrow 0, 0, 100, 100, 44, 32%
-menu_item "toolbar:insert > shape > diamond", "", "images/tb_shape_diamond.png", do
+menu_item "toolbar:insert > shape > diamond", "", "images/tb_shape_diamond.png",
     insert "Insert diamond",
         shape
             color "fill"
             line_color "fill"
             diamond 0, 0, 100, 100
-menu_item "toolbar:insert > shape > speech ballon", "", "images/tb_shape_speech_balloon.png", do
+menu_item "toolbar:insert > shape > speech ballon", "", "images/tb_shape_speech_balloon.png",
     insert "Insert speech balloon",
         shape
             color "fill"
             line_color "fill"
             speech_balloon 0, 16, 100, 68, 50, -50, -50
-menu_item "toolbar:insert > shape > callout", "", "images/tb_shape_callout.png", do
+menu_item "toolbar:insert > shape > callout", "", "images/tb_shape_callout.png",
     insert "Insert callout",
         shape
             color "fill"
             line_color "fill"
             callout 16, 0, 68, 100, 15, -50, 0, 60
-menu_item "toolbar:insert > shape > star", "", "images/tb_shape_star.png", do
+menu_item "toolbar:insert > shape > star", "", "images/tb_shape_star.png",
     insert "Insert star",
         shape
             color "fill"
             line_color "fill"
             star 0, 0, 100, 100, 5, 50%
-menu_item "toolbar:insert > shape > polygon", "", "images/tb_shape_polygon.png", do
+menu_item "toolbar:insert > shape > polygon", "", "images/tb_shape_polygon.png",
     insert "Insert polygon",
         shape
             color "fill"
@@ -769,33 +825,33 @@ menu_item "toolbar:insert > shape > polygon", "", "images/tb_shape_polygon.png",
 menu_format -> {
 menubar
 menu   "menu:select:format", "Format"
-menu_item "menu:select:format > fill color", "Fill Color...", do
-    color_chooser "color", do
+menu_item "menu:select:format > fill color", "Fill Color...",
+    color_chooser "color",
         set_attribute "color", {color red, green, blue, alpha}
-menu_item "menu:select:format > line color", "Line Color...", do
-    color_chooser "line_color", do
+menu_item "menu:select:format > line color", "Line Color...",
+    color_chooser "line_color",
         set_attribute "line_color", {line_color red, green, blue, alpha}
-menu_item "menu:select:format > font", "Font...", do
+menu_item "menu:select:format > font", "Font...",
     font_chooser
         set_attribute "font", {font font_family, font_size, slant font_slant%, weight font_weight%, stretch font_stretch%}
 }
 
 menu_arrange -> {
 menu   "menu:select:arrange", "Arrange"
-menu_item "menu:select:arrange > toFront", "Bring to front", do
+menu_item "menu:select:arrange > toFront", "Bring to front",
     bring_to_front
-menu_item "menu:select:arrange > forward", "Bring forward", do
+menu_item "menu:select:arrange > forward", "Bring forward",
     bring_forward
-menu_item "menu:select:arrange > backward", "Send backward", do
+menu_item "menu:select:arrange > backward", "Send backward",
     send_backward
-menu_item "menu:select:arrange > toBack", "Send to back", do
+menu_item "menu:select:arrange > toBack", "Send to back",
     send_to_back
 
 separator
 
-menu_item "menu:select:arrange > group", "Group", do
+menu_item "menu:select:arrange > group", "Group",
     group_selection
-menu_item "menu:select:arrange > ungroup", "Ungroup", do
+menu_item "menu:select:arrange > ungroup", "Ungroup",
     ungroup_selection
 }
 

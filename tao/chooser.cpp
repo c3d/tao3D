@@ -85,11 +85,11 @@ static utf8position KeystrokesFind(text where, text what)
         for (j = 0; found && j < maxj; j = Utf8Next(dj, j))
         {
             wchar_t ref, test;
-            mbtowc(&ref, di + i + j, maxi - i - j);
-            mbtowc(&test, dj + j, maxj - j);
-            found = (towlower(ref) == towlower(test) ||
-                     ((iswspace(test) || test == '_') &&
-                      (iswspace(ref) || ref == '_')));
+            if (mbtowc(&ref, di + i + j, maxi - i - j) > 0 &&
+                mbtowc(&test, dj + j, maxj - j) > 0)
+                found = (towlower(ref) == towlower(test) ||
+                         ((iswspace(test) || test == '_') &&
+                          (iswspace(ref) || ref == '_')));
         }
         if (found && j >= maxj)
             return utf8position(i, c);
@@ -390,11 +390,13 @@ void Chooser::AddCommands(text prefix, Symbols *symbols, text label)
             {
                 wchar_t wc;
                 char wcbuf[MB_LEN_MAX];
-                mbtowc(&wc, data + c, maxc - c);
-                if (wc == '_')
-                    wc = ' ';
-                else if (c == first && label.length() > 0)
-                    wc = towupper(wc);
+                if (mbtowc(&wc, data + c, maxc - c) > 0)
+                {
+                    if (wc == '_')
+                        wc = ' ';
+                    else if (c == first && label.length() > 0)
+                        wc = towupper(wc);
+                }
                 int sz = wctomb(wcbuf, wc);
                 if (sz > 0)
                     caption.insert(caption.end(), wcbuf, wcbuf + sz);

@@ -46,7 +46,7 @@ win32 {
     DEFINES += CONFIG_MINGW
     RC_FILE  = tao.rc
 }
-linux-g++ {
+linux-g++* {
     DEFINES += CONFIG_LINUX
     LIBS += -lXss
 }

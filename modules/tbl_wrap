@@ -48,7 +48,7 @@ cat >$OUT << __EOF__
 #include <iostream>
 
 extern "C" {
-    void enter_symbols(XL::Symbols *c);
+    void enter_symbols(XL::Context *context);
     void delete_symbols();
 }
 
@@ -57,12 +57,11 @@ using namespace XL;
 #include "opcodes_declare.h"
 #include "$IN"
 
-void enter_symbols(XL::Symbols *c)
+void enter_symbols(XL::Context *context)
 {
 #ifdef XL_TRACE_INSTNAME
     XL_INIT_TRACES();
 #endif
-    XL::Main *main = MAIN;
 #include "opcodes_define.h"
 #include "$IN"
 }

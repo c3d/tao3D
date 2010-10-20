@@ -304,7 +304,10 @@ public:
                text desc = text(), text folder = text()) {
         qWarning("Rerun qmake with option \"QT+=testlib\"");
     }
-
+    void checkNow()
+    {
+        qWarning("Rerun qmake with option \"QT+=testlib\"");
+    }
     void addKeyPress(Qt::Key qtKey,
                      Qt::KeyboardModifiers modifiers = Qt::NoModifier,
                      int msecs = -1 )

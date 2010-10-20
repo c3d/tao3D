@@ -30,6 +30,8 @@
 #include <QTestEventList>
 #include <QAction>
 #include <QTime>
+#include <QColorDialog>
+#include <QFontDialog>
 
 namespace Tao {
 
@@ -43,6 +45,7 @@ public:
 
     void startRecord();
     void stopRecord();
+    void checkNow();
     void save();
     bool play();
     void printResult();
@@ -68,7 +71,10 @@ public:
                         Qt::KeyboardModifiers modifiers = 0,
                         QPoint pos = QPoint(), int delay = -1 );
     void addAction(QString name, int delay = -1 );
-
+    void addCheck(int num, int delay);
+    void addColor(QString diagName, QString name, int delay = -1 );
+    void addFont(QString diagName, QString name, int delay = -1  );
+    void addDialogClose(QString diagName, int result, int delay = -1);
 
     // Save utilities
     text toString();
@@ -77,19 +83,24 @@ public:
 
 public slots:
     void recordAction(bool triggered);
+    void recordColor(QColor color);
+    void recordFont(QFont font);
+    void finishedDialog(int result);
 
 public:
-    Widget *widget;
+    Widget    *widget;
     QString    name;
     QString    description;
-    int     featureId;// The id in redmine of the feature that this test tests
-    bool    latestResult;
+    int        featureId;// The id in redmine of the feature that this test tests
+    bool       latestResult;
     QString    folder;
-    QImage  playedBefore, playedAfter;
-    QImage  before, after;
-    QTime   startTime;
-    QString taoCmd;
+    QImage     playedBefore, playedAfter;
+    QImage     before, after;
+    QList<QImage> checkPointList;
+    QTime      startTime;
+    QString    taoCmd;
 protected:
+
     QTestEventList testList;
 
 //private slots:
@@ -155,10 +166,9 @@ public:
         if (!qApp->notify(w, &me)) {
             QTest::qWarn("Mouse event \"MouseMove\" not accepted by receiving widget");
         }
-//        std::cerr << "mouseMove replay :" << me.pos().x() << ", "<< me.pos().y() <<
-//                ", buttons : " << me.buttons() << std::endl; // CaB
 
-        //        // Move the visual cursor to that pos ==> will throw another mouseMove event :(((
+        // Move the visual cursor to that pos ==> will throw another mouseMove
+        //      event but without the buttons information :(((
 //        QCursor::setPos(w->mapToGlobal(pos));
 //        qApp->processEvents();
     }
@@ -169,6 +179,86 @@ private:
     QPoint pos;
     int delay;
 };
+
+
+class TestColorActionEvent: public QTestEvent
+// ----------------------------------------------------------------------------
+//   Class used to store color change events
+// ----------------------------------------------------------------------------
+{
+public:
+    inline TestColorActionEvent(QString objName, QString name, int delay)
+        : objName(objName), colorName(name), delay(delay) {}
+    inline QTestEvent *clone() const { return new TestColorActionEvent(*this); }
+
+    void simulate(QWidget *w);
+    QString toTaoCmd();
+
+private:
+    QString objName;
+    QString colorName;
+    int delay;
+};
+
+class TestFontActionEvent: public QTestEvent
+// ----------------------------------------------------------------------------
+//   Class used to store font change events.
+// ----------------------------------------------------------------------------
+{
+public:
+    inline TestFontActionEvent(QString objName, QString name, int delay)
+        : objName(objName), fontName(name), delay(delay) {}
+    inline QTestEvent *clone() const { return new TestFontActionEvent(*this); }
+
+    void simulate(QWidget *w);
+    QString toTaoCmd();
+
+private:
+    QString objName;
+    QString fontName;
+    int delay;
+};
+
+
+class TestDialogActionEvent: public QTestEvent
+// ----------------------------------------------------------------------------
+//   Class used to store QAction events with other mouse/key events
+// ----------------------------------------------------------------------------
+{
+public:
+    inline TestDialogActionEvent(QString objName, int result, int delay)
+        : objName(objName), result(result), delay(delay) {}
+    inline QTestEvent *clone() const { return new TestDialogActionEvent(*this); }
+
+    void simulate(QWidget *w);
+
+private:
+    QString objName;
+    int result;
+    int delay;
+};
+
+
+class TestCheckEvent: public QTestEvent
+// ----------------------------------------------------------------------------
+//   Class used to store QAction events with other mouse/key events
+// ----------------------------------------------------------------------------
+{
+public:
+    inline TestCheckEvent(int num, int delay)
+        : number(num), delay(delay) {}
+    inline QTestEvent *clone() const { return new TestCheckEvent(*this); }
+
+    void simulate(QWidget *w);
+
+    QString toTaoCmd();
+
+private:
+    int number;
+    int delay;
+};
+
+
 
 } // end Tao namespace
 
@@ -255,7 +345,22 @@ public:
     {
         qWarning("Rerun qmake with option \"QT+=testlib\"");
     }
-
+    void addCheck(int num, int delay)
+    {
+        qWarning("Rerun qmake with option \"QT+=testlib\"");
+    }
+    void addColor(QString diagName, QString name, int delay = -1 )
+    {
+        qWarning("Rerun qmake with option \"QT+=testlib\"");
+    }
+    void addFont(QString diagName, QString name, int delay = -1  )
+    {
+        qWarning("Rerun qmake with option \"QT+=testlib\"");
+    }
+    void addDialogClose(QString diagName, int result, int delay = -1)
+    {
+        qWarning("Rerun qmake with option \"QT+=testlib\"");
+    }
 
 };
 #pragma GCC diagnostic error "-Wunused-parameter"

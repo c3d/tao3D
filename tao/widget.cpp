@@ -5834,8 +5834,6 @@ void Widget::colorChanged(const QColor & col)
     if (!colorAction)
         return;
 
-    assert(!current);
-    TaoSave saveCurrent(current, this);
     IFTRACE (widgets)
     {
         std::cerr << "Color "<< col.name().toStdString()
@@ -5870,6 +5868,8 @@ void Widget::colorChanged(const QColor & col)
     toBeEvaluated->SetSymbols(syms);
 
     // Evaluate the input tree
+  //  assert(!current); //CaB: Pourquoi ceci ?
+    TaoSave saveCurrent(current, this);
     xl_evaluate(toBeEvaluated);
 }
 
@@ -6118,6 +6118,7 @@ Tree_p Widget::fileChooser(Tree_p self, Tree_p properties)
 
     // Setup the color dialog
     fileDialog = new QFileDialog(this);
+    fileDialog->setObjectName("fileDialog");
     currentFileDialog = fileDialog;
     fileDialog->setModal(false);
 
@@ -7651,6 +7652,8 @@ XL::Tree *NameToTextReplacement::DoName(XL::Name *what)
 //   Tests functions
 //
 // ============================================================================
+
+
 Tree_p Widget::startRecTest(Tree_p )
 // ----------------------------------------------------------------------------
 //   Start recording a sequence of events
@@ -7704,6 +7707,16 @@ Tree_p Widget::saveTest(Tree_p)
 }
 
 
+Tree_p Widget::testCheck(Tree_p self)
+// ----------------------------------------------------------------------------
+//  Insert a check point in the current registering test event list.
+// ----------------------------------------------------------------------------
+{
+    currentTest.checkNow();
+    return XL::xl_true;
+}
+
+
 Tree_p Widget::testDef(Tree_p , text_p name, Integer_p fId, text_p desc, Tree_p body)
 // ----------------------------------------------------------------------------
 //   Define a new test
@@ -7722,7 +7735,7 @@ Tree_p Widget::testAddKeyPress(Tree_p , Integer_p key,
 // ----------------------------------------------------------------------------
 {
     currentTest.addKeyPress((Qt::Key)key->value,
-                            (Qt::KeyboardModifier)modifiers->value,
+                            (Qt::KeyboardModifiers)modifiers->value,
                             delay->value);
     return XL::xl_true;
 }
@@ -7735,7 +7748,7 @@ Tree_p Widget::testAddKeyRelease(Tree_p , Integer_p key,
 // ----------------------------------------------------------------------------
 {
     currentTest.addKeyRelease((Qt::Key)key->value,
-                              (Qt::KeyboardModifier)modifiers->value,
+                              (Qt::KeyboardModifiers)modifiers->value,
                               delay->value);
     return XL::xl_true;
 }
@@ -7748,7 +7761,7 @@ Tree_p Widget::testAddMousePress(Tree_p , Integer_p button, Integer_p modifiers,
 // ----------------------------------------------------------------------------
 {
     currentTest.addMousePress((Qt::MouseButton)button->value,
-                              (Qt::KeyboardModifier)modifiers->value,
+                              (Qt::KeyboardModifiers)modifiers->value,
                               QPoint(x->value, y->value),
                               delay->value);
     return XL::xl_true;
@@ -7763,7 +7776,7 @@ Tree_p Widget::testAddMouseRelease(Tree_p , Integer_p button,
 // ----------------------------------------------------------------------------
 {
     currentTest.addMouseRelease((Qt::MouseButton)button->value,
-                                (Qt::KeyboardModifier)modifiers->value,
+                                (Qt::KeyboardModifiers)modifiers->value,
                                 QPoint(x->value, y->value),
                                 delay->value);
     return XL::xl_true;
@@ -7777,7 +7790,7 @@ Tree_p Widget::testAddMouseDClick(Tree_p , Integer_p button, Integer_p modifiers
 // ----------------------------------------------------------------------------
 {
     currentTest.addMouseDClick((Qt::MouseButton)button->value,
-                               (Qt::KeyboardModifier)modifiers->value,
+                               (Qt::KeyboardModifiers)modifiers->value,
                                QPoint(x->value, y->value),
                                delay->value);
     return XL::xl_true;
@@ -7792,7 +7805,7 @@ Tree_p Widget::testAddMouseMove(Tree_p , Integer_p button, Integer_p modifiers,
 // ----------------------------------------------------------------------------
 {
     currentTest.addMouseMove((Qt::MouseButton)button->value,
-                             (Qt::KeyboardModifier)modifiers->value,
+                             (Qt::KeyboardModifiers)modifiers->value,
                              QPoint(x->value, y->value),
                              delay->value);
    return XL::xl_true;
@@ -7805,6 +7818,47 @@ Tree_p Widget::testAddAction(Tree_p , text_p name, Integer_p delay)
 // ----------------------------------------------------------------------------
 {
     currentTest.addAction(+name->value, delay->value);
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::testAddCheck(Tree_p , Integer_p num, Integer_p delay)
+// ----------------------------------------------------------------------------
+//  Add a check view event to the current test
+// ----------------------------------------------------------------------------
+{
+    currentTest.addCheck(num->value, delay->value);
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::testAddFont(Tree_p , text_p name, text_p ftname, Integer_p delay)
+// ----------------------------------------------------------------------------
+//  Add a font change event to the current test
+// ----------------------------------------------------------------------------
+{
+    currentTest.addColor(+name->value, +ftname->value, delay->value);
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::testAddColor(Tree_p , text_p name, text_p colname, Integer_p delay)
+// ----------------------------------------------------------------------------
+//  Add a color change event to the current test
+// ----------------------------------------------------------------------------
+{
+    currentTest.addFont(+name->value, +colname->value, delay->value);
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::testAddCloseDialog(Tree_p self, text_p diagname,
+                          Integer_p result, Integer_p delay)
+// ----------------------------------------------------------------------------
+//  Add a close dialog box event to the current test
+// ----------------------------------------------------------------------------
+{
+    currentTest.addDialogClose(+diagname->value, result->value, delay->value);
     return XL::xl_true;
 }
 

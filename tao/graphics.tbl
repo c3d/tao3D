@@ -2966,3 +2966,71 @@ PREFIX(TestReset, tree, "test_reset", , RTAO(resetTest(self)),
          }\
 |*/")
 
+PREFIX(TestCheck, tree, "test_check", , RTAO(testCheck(self)),
+"/*| docname \"test_check\", \"test\", do { \
+         dsyntax \"test_check\" ;\
+         synopsis \"Add a check point to the test\"; \
+         description \"Add a check point with its image to the test list.\
+         If the check pointis KO, the simulation is not stopped.\"; \
+         }\
+|*/")
+
+PREFIX(TestAddCheck, tree, "test_add_check",
+       PARM(num, integer) PARM(delay, integer),
+       RTAO(testAddCheck(self, num, delay)),
+"/*| docname \"test_add_check\", \"test\", do { \
+         dsyntax \"test_add_check num, delay\" ;\
+         synopsis \"Check the view\"; \
+         description \"Check\"; \
+         parameters;\
+         parameter \"integer\", \"numero\", <<[TODO]>>;\
+         parameter \"integer\", \"delay\", <<The delay in millisecond before \
+         this event is executed.>>;\
+         }\
+|*/")
+
+PREFIX(TestAddFont, tree, "test_add_font",
+       PARM(diagname, text) PARM(ftname, text) PARM(delay, integer),
+       RTAO(testAddFont(self, diagname, ftname, delay)),
+"/*| docname \"test_add_font\", \"test\", do { \
+         dsyntax \"test_add_font diagname, ftname, delay\" ;\
+         synopsis \"Add an event to change the current font\"; \
+         description \"Check[TODO]\"; \
+         parameters;\
+         parameter \"text\", \"diagname\", <<Dialog box name>>;\
+         parameter \"integer\", \"numero\", <<[TODO]>>;\
+         parameter \"integer\", \"delay\", <<The delay in millisecond before \
+         this event is executed.>>;\
+         }\
+|*/")
+
+PREFIX(TestAddColor, tree, "test_add_color",
+       PARM(diagname, text) PARM(colname, text) PARM(delay, integer),
+       RTAO(testAddColor(self, diagname, colname, delay)),
+"/*| docname \"test_add_color\", \"test\", do { \
+         dsyntax \"test_add_color diagname, colname, delay\" ;\
+         synopsis \"Check the view[TODO]\"; \
+         description \"Check\"; \
+         parameters;\
+         parameter \"text\", \"diagname\", <<Dialog box name>>;\
+         parameter \"text\", \"colname\", <<The name of the color (ex: #8aff40)>>;\
+         parameter \"integer\", \"delay\", <<The delay in millisecond before \
+         this event is executed.>>;\
+         }\
+|*/")
+
+PREFIX(TestAddCloseDialog, tree, "test_add_close_dialog",
+       PARM(diagname, text) PARM(result, integer) PARM(delay, integer),
+       RTAO(testAddCloseDialog(self, diagname, result, delay)),
+"/*| docname \"test_add_close_dialog\", \"test\", do { \
+         dsyntax \"test_add_close_dialog diagname, result, delay\" ;\
+         synopsis \"Check the view [TODO]\"; \
+         description \"Check\"; \
+         parameters;\
+         parameter \"text\", \"diagname\", <<Dialog box name>>;\
+         parameter \"text\", \"colname\", <<The name of the color (ex: #8aff40)>>;\
+         parameter \"integer\", \"delay\", <<The delay in millisecond before \
+         this event is executed.>>;\
+         }\
+|*/")
+

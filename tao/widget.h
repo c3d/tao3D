@@ -715,12 +715,15 @@ private:
 
     //Tests // CaB
 public:
+    // Commands for toolbar
     Tree_p startRecTest(Tree_p self);
     Tree_p stopRecTest(Tree_p self);
     Tree_p playTest(Tree_p self);
     Tree_p saveTest(Tree_p self);
     Tree_p resetTest(Tree_p self);
+    Tree_p testCheck(Tree_p self);
     WidgetTests currentTest;
+    // Definition of events to be load
     Tree_p testDef(Tree_p self, text_p name, Integer_p fId, text_p desc, Tree_p body);
     Tree_p testAddKeyPress(Tree_p self, Integer_p key,
                            Integer_p modifiers, Integer_p delay );
@@ -736,6 +739,11 @@ public:
     Tree_p testAddMouseMove(Tree_p self, Integer_p button, Integer_p modifiers,
                             Integer_p x, Integer_p y, Integer_p delay);
     Tree_p testAddAction(Tree_p self, text_p name, Integer_p delay);
+    Tree_p testAddCheck(Tree_p self, Integer_p num, Integer_p delay );
+    Tree_p testAddFont(Tree_p self, text_p diagname, text_p ftname, Integer_p delay);
+    Tree_p testAddColor(Tree_p self, text_p diagname, text_p colname, Integer_p delay);
+    Tree_p testAddCloseDialog(Tree_p self, text_p diagname,
+                              Integer_p result, Integer_p delay);
 
 };
 

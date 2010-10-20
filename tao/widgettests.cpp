@@ -61,11 +61,14 @@ void WidgetTests::startRecord()
 // ----------------------------------------------------------------------------
 {
     testList.clear();
+    checkPointList.clear();
     //photo
     before = widget->grabFrameBuffer(true);
     //connection
     foreach (QAction* act,  widget->parent()->findChildren<QAction*>())
     {
+        if (act->objectName().startsWith("toolbar:test"))
+            continue;
          connect(act, SIGNAL(triggered(bool)), this, SLOT(recordAction(bool)));
     }
     widget->installEventFilter(this);
@@ -92,7 +95,7 @@ void WidgetTests::stopRecord()
 
 void WidgetTests::recordAction(bool )
 // ----------------------------------------------------------------------------
-//   Records actions
+//   Records actions.
 // ----------------------------------------------------------------------------
 {
     QAction* act = dynamic_cast<QAction*>(QObject::sender());
@@ -108,6 +111,65 @@ void WidgetTests::recordAction(bool )
     QString cmd = QString("    test_add_action \"%1\", %2\n")
                   .arg(actName).arg(time);
     taoCmd.append(cmd);
+}
+
+
+void WidgetTests::recordColor(QColor color)
+// ----------------------------------------------------------------------------
+//   Record the color change event.
+// ----------------------------------------------------------------------------
+{
+    TestColorActionEvent * evt =
+            new TestColorActionEvent(QObject::sender()->objectName(),
+                                     color.name(), startTime.restart());
+    testList.append(evt);
+    taoCmd.append(evt->toTaoCmd());
+}
+
+
+void WidgetTests::recordFont(QFont font)
+// ----------------------------------------------------------------------------
+//   Record the font change event.
+// ----------------------------------------------------------------------------
+{
+    TestFontActionEvent * evt =
+            new TestFontActionEvent(QObject::sender()->objectName(),
+                                    font.toString(), startTime.restart());
+    testList.append(evt);
+    taoCmd.append(evt->toTaoCmd());
+}
+
+
+void WidgetTests::finishedDialog(int result)
+// ----------------------------------------------------------------------------
+//   Record the result of the dialog box (and close event).
+// ----------------------------------------------------------------------------
+{
+    QObject *sender = QObject::sender();
+    if (sender)
+    {
+        QDialog * dialog = dynamic_cast<QDialog*>(sender);
+        if (dialog)
+        {
+            disconnect(dialog, 0, this, 0);
+        }
+        testList.append(new TestDialogActionEvent(sender->objectName(),
+                                                  result, startTime.restart()));
+    }
+}
+
+
+void WidgetTests::checkNow()
+// ----------------------------------------------------------------------------
+//   Records a check point and the view.
+// ----------------------------------------------------------------------------
+{
+    TestCheckEvent *check = new TestCheckEvent(checkPointList.size(),
+                                               startTime.restart());
+    testList.append(check);
+    taoCmd.append(check->toTaoCmd());
+    QImage shot = widget->grabFrameBuffer(true);
+    checkPointList.append(shot);
 }
 
 
@@ -181,6 +243,28 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
             taoCmd.append(cmd);
             break;
         }
+    case QEvent::ChildPolished:
+        {
+            QChildEvent *e = (QChildEvent*)evt;
+            QString childName = e->child()->objectName();
+            std::cerr<< "Object polished " << +childName << std::endl; // CaB
+            if ( childName.contains("colorDialog"))
+            {
+                QColorDialog *diag = (QColorDialog*)e->child();
+                connect(diag, SIGNAL(currentColorChanged(QColor)),
+                        this, SLOT(recordColor(QColor)));
+                connect(diag, SIGNAL(finished(int)),
+                        this, SLOT(finishedDialog(int)));
+            }
+            else if (childName.contains("fontDialog"))
+            {
+                QFontDialog *diag = (QFontDialog*)e->child();
+                connect(diag, SIGNAL(currentFontChanged(QFont)),
+                        this, SLOT(recordFont(QFont)));
+                connect(diag, SIGNAL(finished(int)),
+                        this, SLOT(finishedDialog(int)));
+            }
+        }
     default:
         break;
     }
@@ -236,21 +320,37 @@ void WidgetTests::save()
     name = dialog.name;
     description = dialog.desc;
     featureId = dialog.fid;
-    folder = QFileInfo(dialog.loc).canonicalPath().append("/");
+    folder = QFileInfo(dialog.loc).canonicalFilePath();
+    if (!folder.endsWith("/")) folder.append("/");
 
     // Store Images
-    QString beforeName = QString(folder).append(name).append("_before.png");
-    before.save(beforeName, "PNG");
-    QString afterName = QString(folder).append(name).append("_after.png");
-    after.save(afterName, "PNG");
-
+    if (!before.isNull())
+    {
+        QString beforeName = QString(folder).append(name).append("_before.png");
+        before.save(beforeName, "PNG");
+    }
+    if (!after.isNull())
+    {
+        QString afterName = QString(folder).append(name).append("_after.png");
+        after.save(afterName, "PNG");
+    }
     // Store test commands
-    QString testName = QString(folder).append(name).append("_test.ddd");
-    QFile testFile(testName);
-    testFile.open(QIODevice::WriteOnly | QIODevice::Text);
-    testFile.write(toString().c_str());
-    testFile.flush();
-    testFile.close();
+    if (!testList.isEmpty())
+    {
+        QString testName = QString(folder).append(name).append("_test.ddd");
+        QFile testFile(testName);
+        testFile.open(QIODevice::WriteOnly | QIODevice::Text);
+        testFile.write(toString().c_str());
+        testFile.flush();
+        testFile.close();
+    }
+    // Store check point images
+    for (int i = 0; i < checkPointList.size(); i++)
+    {
+        QImage shot = checkPointList[i];
+        QString chkPt=QString("%1%2_%3.png").arg(folder).arg(name).arg(i);
+        shot.save(chkPt);
+    }
 }
 
 
@@ -260,6 +360,7 @@ void WidgetTests::reset(text newName, int feature, text desc, text dir)
 // ----------------------------------------------------------------------------
 {
     testList.clear();
+    checkPointList.clear();
     name = +newName;
     featureId = feature;
     description = +desc;
@@ -356,12 +457,151 @@ void WidgetTests::addMouseDClick(Qt::MouseButton button,
 }
 
 
-void WidgetTests::addAction(QString name, int delay)
+void WidgetTests::addAction(QString actName, int delay)
 // ----------------------------------------------------------------------------
 // Add an action to be replayed.
 // ----------------------------------------------------------------------------
 {
-    testList.append(new TestActionEvent(name, delay));
+    testList.append(new TestActionEvent(actName, delay));
 }
 
+
+void WidgetTests::addCheck( int num, int delay)
+// ----------------------------------------------------------------------------
+// Add a mouse move event to the list of action
+// ----------------------------------------------------------------------------
+{
+    testList.append(new TestCheckEvent(num, delay));
+}
+
+
+void WidgetTests::addColor(QString diagName, QString colName, int delay)
+// ----------------------------------------------------------------------------
+// Add an action to be replayed.
+// ----------------------------------------------------------------------------
+{
+    testList.append(new TestColorActionEvent(diagName, colName, delay));
+}
+
+
+void WidgetTests::addFont(QString diagName, QString ftName, int delay)
+// ----------------------------------------------------------------------------
+// Add an action to be replayed.
+// ----------------------------------------------------------------------------
+{
+    testList.append(new TestFontActionEvent(diagName, ftName, delay));
+}
+
+
+void WidgetTests::addDialogClose(QString objName, int result,  int delay)
+// ----------------------------------------------------------------------------
+// Add an action to be replayed.
+// ----------------------------------------------------------------------------
+{
+    testList.append(new TestDialogActionEvent(objName, result, delay));
+}
+
+
+// ============================================================================
+//
+//   Event Tests Classes
+//
+// ============================================================================
+
+
+void TestCheckEvent::simulate(QWidget *w)
+// ----------------------------------------------------------------------------
+//  Perform a check againts the reference view.
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = (Widget*) w;
+    QString testName = widget->currentTest.name;
+    QFileInfo refFile(QString("image:%1_%2.png").arg(testName).arg(number));
+    QImage ref(refFile.canonicalFilePath());
+    QImage shot = widget->grabFrameBuffer(true);
+    shot.save(QString("%1/%2_played_%3.png")
+              .arg(refFile.canonicalPath()).arg(testName).arg(number));
+
+    std::cerr << +testName <<  "\t Intermediate check " << number <<
+            (shot != ref ? " fails.\n" :  " succeeds.\n");
+}
+
+
+QString TestCheckEvent::toTaoCmd()
+// ----------------------------------------------------------------------------
+//  Return a command line for Tao.
+// ----------------------------------------------------------------------------
+{
+    QString cmd = QString("    test_add_check %1, %2\n").arg(number).arg(delay);
+    return cmd;
+}
+
+
+void TestColorActionEvent::simulate(QWidget *w)
+// ----------------------------------------------------------------------------
+//   Set the current color of the QColorDialog box.
+// ----------------------------------------------------------------------------
+{
+    QColorDialog* diag = w->findChild<QColorDialog*>(objName);
+    QColor col(colorName);
+    if (diag &&col.isValid())
+    {
+        QTest::qWait(delay);
+        diag->setCurrentColor(col);
+    }
+}
+
+
+QString TestColorActionEvent::toTaoCmd()
+// ----------------------------------------------------------------------------
+//  Return a command line for Tao.
+// ----------------------------------------------------------------------------
+{
+    QString cmd = QString("    test_add_color \"%1\", \"%2\", %3\n")
+                  .arg(objName).arg(colorName).arg(delay);
+    return cmd;
+}
+
+
+void TestFontActionEvent::simulate(QWidget *w)
+// ----------------------------------------------------------------------------
+//  Set the current font of the QFontDialog box.
+// ----------------------------------------------------------------------------
+{
+    QFontDialog* diag = w->findChild<QFontDialog*>(objName);
+    QFont ft;
+    ft.fromString(fontName);
+    if (diag )
+    {
+        QTest::qWait(delay);
+        diag->setCurrentFont(ft);
+    }
+}
+
+
+QString TestFontActionEvent::toTaoCmd()
+// ----------------------------------------------------------------------------
+//  Return a command line for Tao.
+// ----------------------------------------------------------------------------
+{
+    QString cmd = QString("    test_add_font \"%1\", \"%2\", %3\n")
+                  .arg(objName).arg(fontName).arg(delay);
+    return cmd;
+}
+
+
+void TestDialogActionEvent::simulate(QWidget *w)
+// ----------------------------------------------------------------------------
+//  Set the result of the dialog (Accepted or Rejected) and close it.
+// ----------------------------------------------------------------------------
+{
+    QDialog* diag = w->findChild<QDialog*>(objName);
+
+    if (diag)
+    {
+        QTest::qWait(delay);
+        diag->done(result);
+    }
+
+}
 TAO_END

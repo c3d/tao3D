@@ -144,6 +144,9 @@ Section "Uninstall"
   ; Recursively remove fonts packaged with Tao
   RMDir /r $INSTDIR\fonts
 
+  ; Recursively remove modules packaged with Tao, or installed subsequently
+  RMDir /r $INSTDIR\modules
+
   ; Remove shortcuts
   Delete "$SMPROGRAMS\Tao\*.*"
   RMDir  "$SMPROGRAMS\Tao"

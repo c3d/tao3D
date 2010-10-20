@@ -17,11 +17,11 @@ include(../main.pri)
 
 TEMPLATE = app
 TARGET = Tao
-VERSION = "0.0.3"
+VERSION = "0.0.3"    # Windows: version is in tao.rc
 DEPENDPATH += . \
-    xlr/xlr
+    xlr/xlr/include
 INCLUDEPATH += . \
-    xlr/xlr
+    xlr/xlr/include
 win32:LIBS += -L../libxlr/release -L../libxlr/debug  # REVISIT
 LIBS += -L../libxlr -lxlr
 QT += webkit \
@@ -35,7 +35,6 @@ QMAKE_CXXFLAGS += -Werror
 QMAKE_CXXFLAGS_RELEASE += -g \
     \$(CXXFLAGS_\$%)
 
-
 DEFINES += DEBUG
 macx {
     DEFINES += CONFIG_MACOSX
@@ -44,8 +43,11 @@ macx {
     QMAKE_INFO_PLIST = Info.plist
     QMAKE_CFLAGS += -mmacosx-version-min=10.5 # Avoid warning with font_file_manager_macos.mm
 }
-win32:DEFINES += CONFIG_MINGW
-linux-g++ {
+win32 {
+    DEFINES += CONFIG_MINGW
+    RC_FILE  = tao.rc
+}
+linux-g++* {
     DEFINES += CONFIG_LINUX
     LIBS += -lXss
 }
@@ -233,7 +235,8 @@ OTHER_FILES += xl.syntax \
     tutorial.ddd \
     git.stylesheet \
     srcview.stylesheet \
-    srcview.css
+    srcview.css \
+    traces.tbl
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}

@@ -44,6 +44,7 @@ cat >$OUT << __EOF__
 #include "runtime.h"
 #include "options.h"
 #include "main.h"
+#include "traces.h"
 #include <iostream>
 
 extern "C" {
@@ -58,6 +59,9 @@ using namespace XL;
 
 void enter_symbols(XL::Symbols *c)
 {
+#ifdef XL_TRACE_INSTNAME
+    XL_INIT_TRACES();
+#endif
     XL::Main *main = MAIN;
 #include "opcodes_define.h"
 #include "$IN"

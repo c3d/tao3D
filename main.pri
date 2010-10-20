@@ -22,10 +22,10 @@ LIBINST = $$INSTROOT
 
 QMAKE_DISTCLEAN += $$INSTROOT  # FIXME: need recursive delete
 
-DEFINES           += DEBUG
-macx:DEFINES      += CONFIG_MACOSX
-win32:DEFINES     += CONFIG_MINGW
-linux-g++:DEFINES += CONFIG_LINUX
+DEFINES            += DEBUG
+macx:DEFINES       += CONFIG_MACOSX
+win32:DEFINES      += CONFIG_MINGW
+linux-g++*:DEFINES += CONFIG_LINUX
 
 QMAKE_CFLAGS           += -Werror
 QMAKE_CXXFLAGS         += -Werror -ggdb

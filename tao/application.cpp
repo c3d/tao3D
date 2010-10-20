@@ -37,6 +37,7 @@
 #include "window.h"
 #include "font_file_manager.h"
 #include "module_manager.h"
+#include "traces.h"
 
 #include <QString>
 #include <QSettings>
@@ -57,6 +58,8 @@ extern "C" void UpdateSystemActivity(uint8_t);
 #elif defined(CONFIG_LINUX)
 #include <X11/extensions/scrnsaver.h>
 #endif
+
+XL_DEFINE_TRACES
 
 TAO_BEGIN
 
@@ -95,6 +98,7 @@ Application::Application(int & argc, char ** argv)
 
     // Setup the XL runtime environment
     // Do it soon because debug traces are activated by this
+    XL_INIT_TRACES();
     updateSearchPaths();
     QFileInfo syntax    ("system:xl.syntax");
     QFileInfo stylesheet("system:xl.stylesheet");
@@ -804,23 +808,15 @@ void Application::loadDebugTraceSettings()
 // ----------------------------------------------------------------------------
 //    Enable any debug traces previously saved by user
 // ----------------------------------------------------------------------------
-//    Traces can only be enabled by this method. This means that any trace
-//    activated through the command line can't be cleared by previously saved
-//    settings, and will thus be active (as expected).
+//    Traces can only be enabled by this method, not disabled.
+//    This means that any trace activated through the command line can't be
+//    cleared by previously saved settings, and will thus be active (as
+//    expected).
 {
     QStringList enabled;
     enabled = QSettings().value(DEBUG_TRACES_SETTING_NAME).toStringList();
-
-#define OPTVAR(name, type, value)
-#define OPTION(name, descr, code)
-#define TRACE(name) if (enabled.contains(#name)) \
-                        XL::MAIN->options.traces.name = true;
-
-#include "options.tbl"
-
-#undef OPTVAR
-#undef OPTION
-#undef TRACE
+    foreach (QString trace, enabled)
+        XL::Traces::enable(+trace);
 }
 
 
@@ -831,15 +827,11 @@ void Application::saveDebugTraceSettings()
 {
     QStringList enabled;
 
-#define OPTVAR(name, type, value)
-#define OPTION(name, descr, code)
-#define TRACE(name) if (XL::MAIN->options.traces.name) enabled.append(#name);
-
-#include "options.tbl"
-
-#undef OPTVAR
-#undef OPTION
-#undef TRACE
+    std::set<std::string>::iterator it;
+    std::set<std::string> names = XL::Traces::names();
+    for (it = names.begin(); it != names.end(); it++)
+        if (XL::Traces::enabled(*it))
+            enabled.append(+*it);
 
     if (!enabled.isEmpty())
         QSettings().setValue(DEBUG_TRACES_SETTING_NAME, enabled);

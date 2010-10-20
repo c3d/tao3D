@@ -699,6 +699,12 @@ void GitRepository::asyncProcessFinished(int exitCode, QProcess::ExitStatus st)
         if (!cmd->out.contains("Already up-to-date"))
             emit asyncPullComplete();
     }
+    else if (op == "ls-remote")
+    {
+        QStringList tags;
+        tags = parseLsRemoteTagsOutput(cmd->out);
+        emit asyncGetRemoteTagsComplete(tags);
+    }
 }
 
 
@@ -762,6 +768,35 @@ QString GitRepository::parseCloneOutput(QString output)
     if (i != -1)
         path = output.remove(0, i);
     return path.trimmed();
+}
+
+
+QStringList GitRepository::parseLsRemoteTagsOutput(QString output)
+// ----------------------------------------------------------------------------
+//   Extract the tag names from output of "git ls-remote --tags <remote_name>"
+// ----------------------------------------------------------------------------
+{
+    // output is like:
+    // a88e2db4dee6097d32add4848d810cabd915783c	refs/tags/2.0
+    // dbac2178d79ecdc58948c585bbcc5ad8f9040119	refs/tags/2.1
+    // bd83a3bf62d1a92cf3a0e7c97055a69e1cbc1d4a	refs/tags/2.1^{}
+
+    QStringList lines, tags;
+    if (output != "")
+        lines = output.split("\n");
+
+    foreach (QString line, lines)
+    {
+        QRegExp re("^[^r]+refs/tags/([^\\^]+)");
+        if (re.indexIn(line) != -1)
+        {
+            QString tag = re.cap(1);
+            if (!tags.contains(tag))
+                tags << tag;
+        }
+    }
+
+    return tags;
 }
 
 
@@ -1071,13 +1106,13 @@ process_p GitRepository::asyncClone(QString cloneUrl, QString newFolder)
 }
 
 
-process_p GitRepository::asyncFetch(QString url)
+process_p GitRepository::asyncFetch(QString what)
 // ----------------------------------------------------------------------------
 //   Prepare a Process that will download latest changes from a remote project
 // ----------------------------------------------------------------------------
 {
     QStringList args;
-    args << "fetch" << url;
+    args << "fetch" << what;
     GitAuthProcess * proc = new GitAuthProcess(args, path, false);
     connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
             this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
@@ -1088,6 +1123,36 @@ process_p GitRepository::asyncFetch(QString url)
     connect(this, SIGNAL(percentComplete(int)),
             proc, SIGNAL(percentComplete(int)));  // signal forwarding
     return process_p(proc);
+}
+
+
+process_p  GitRepository::asyncGetRemoteTags(QString remote)
+// ----------------------------------------------------------------------------
+//   Prepare a Process to download the list of tags from a remote peer
+// ----------------------------------------------------------------------------
+{
+    QStringList args;
+    args << "ls-remote" << "--tags" << remote;
+    GitAuthProcess * proc = new GitAuthProcess(args, path, false);
+    connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
+            this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
+    return process_p(proc);
+}
+
+
+QStringList GitRepository::tags()
+// ----------------------------------------------------------------------------
+//   Return the list of all local tags
+// ----------------------------------------------------------------------------
+{
+    QStringList tags;
+    text    output;
+    waitForAsyncProcessCompletion();
+    Process cmd(command(), QStringList("tag"), path);
+    bool    ok = cmd.done(&errors, &output);
+    if (ok && output != "")
+        tags = (+output).split("\n");
+    return tags;
 }
 
 

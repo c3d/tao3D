@@ -28,6 +28,7 @@
 #include "git_backend.h"
 #include "tao.h"
 #include "tao_utf8.h"
+#include "tao_main.h"
 #include "error_message_dialog.h"
 #include "options.h"
 #include "uri.h"
@@ -36,6 +37,7 @@
 #include "window.h"
 #include "font_file_manager.h"
 #include "module_manager.h"
+#include "traces.h"
 
 #include <QString>
 #include <QSettings>
@@ -57,6 +59,8 @@ extern "C" void UpdateSystemActivity(uint8_t);
 #include <X11/extensions/scrnsaver.h>
 #endif
 
+XL_DEFINE_TRACES
+
 TAO_BEGIN
 
 
@@ -77,7 +81,7 @@ Application::Application(int & argc, char ** argv)
     if (arguments().contains("--internal-use-only-clean-environment"))
     {
         internalCleanEverythingAsIfTaoWereNeverRun();
-        std::exit(0);
+        exit(0);
     }
     bool showSplash = true;
     if (arguments().contains("-nosplash") || arguments().contains("-h"))
@@ -94,20 +98,23 @@ Application::Application(int & argc, char ** argv)
 
     // Setup the XL runtime environment
     // Do it soon because debug traces are activated by this
+    XL_INIT_TRACES();
     updateSearchPaths();
     QFileInfo syntax    ("system:xl.syntax");
     QFileInfo stylesheet("system:xl.stylesheet");
     QFileInfo builtins  ("system:builtins.xl");
-    XL::Compiler *compiler = new XL::Compiler("xl_tao");
-    XL::Main * xlr = new XL::Main(argc, argv, compiler,
-                                  +syntax.canonicalFilePath(),
-                                  +stylesheet.canonicalFilePath(),
-                                  +builtins.canonicalFilePath());
+
+    // Create the globals (MAIN)
+    XL::Main * xlr = new Main(argc, argv, "xl_tao",
+                              +syntax.canonicalFilePath(),
+                              +stylesheet.canonicalFilePath(),
+                              +builtins.canonicalFilePath());
 
     // Initialize the graphics just below contents of basics.tbl
     xlr->context = new Context(xlr->context, NULL);
     EnterGraphics();
 
+    // Load settings
     loadDebugTraceSettings();
 
     // Web settings
@@ -555,28 +562,19 @@ QString Application::defaultProjectFolderPath()
 }
 
 
-QString Application::defaultPreferencesFolderPath()
+QString Application::appDataPath()
 // ----------------------------------------------------------------------------
 //    Try to guess the best user preference folder to use by default
 // ----------------------------------------------------------------------------
 {
-#ifdef CONFIG_MINGW
-    // Looking at the Windows registry
-    QSettings settings(
-            "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows"
-            "\\CurrentVersion\\Explorer",
-            QSettings::NativeFormat);
-    // For Windows Vista/7, typically
-    // C:\Users\username\???
-    // For Windows XP, typically
-    // C:\Documents and Settings\username\Local Settings\Application Data
-    QString path = settings.value("User Shell Folders\\Local AppData")
-                   .toString();
-    if (!path.isNull())
-    {
-        return QDir::toNativeSeparators(path);
-    }
-#endif // CONFIG_MINGW
+#if   defined (CONFIG_MACOSX)
+    return QDir::homePath() + "/Library/Application Support";
+#elif defined (CONFIG_MINGW)
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    QString path = env.value("APPDATA");
+    if (path != "")
+        return path;
+#endif
 
     // Default would be home itself
     return QDir::toNativeSeparators(QDir::homePath());
@@ -589,10 +587,12 @@ QString Application::defaultTaoPreferencesFolderPath()
 //    (user preferences for tao application)
 // ----------------------------------------------------------------------------
 {
-    // REVISIT: Unix:    .tao.d
-    //          Windows: Tao
-    return QDir::toNativeSeparators(defaultPreferencesFolderPath()
-                                    + tr("/xl.d"));
+#if   defined (CONFIG_LINUX)
+    QString tao = "/.tao";
+#else // Win, MacOS
+    QString tao = "/Tao";
+#endif
+    return QDir::toNativeSeparators(appDataPath() + tao);
 }
 
 
@@ -704,7 +704,20 @@ void Application::internalCleanEverythingAsIfTaoWereNeverRun()
     if (ret != QMessageBox::YesAll)
         ret = QMessageBox::question(NULL, tr("Tao"),
                                     tr("Do you want to delete:\n\n"
-                                       "User's default Tao folder?") +
+                                       "User's Tao documents folder?") +
+                                    " (" + path + ")",
+                                    QMessageBox::Yes    | QMessageBox::No |
+                                    QMessageBox::YesAll | QMessageBox::Cancel);
+    if (ret == QMessageBox::Cancel)
+        return;
+    if (ret == QMessageBox::Yes || ret == QMessageBox::YesAll)
+        recursiveDelete(path);
+
+    path = defaultTaoPreferencesFolderPath();
+    if (ret != QMessageBox::YesAll)
+        ret = QMessageBox::question(NULL, tr("Tao"),
+                                    tr("Do you want to delete:\n\n"
+                                       "User's Tao prefs/modules folder?") +
                                     " (" + path + ")",
                                     QMessageBox::Yes    | QMessageBox::No |
                                     QMessageBox::YesAll | QMessageBox::Cancel);
@@ -801,23 +814,15 @@ void Application::loadDebugTraceSettings()
 // ----------------------------------------------------------------------------
 //    Enable any debug traces previously saved by user
 // ----------------------------------------------------------------------------
-//    Traces can only be enabled by this method. This means that any trace
-//    activated through the command line can't be cleared by previously saved
-//    settings, and will thus be active (as expected).
+//    Traces can only be enabled by this method, not disabled.
+//    This means that any trace activated through the command line can't be
+//    cleared by previously saved settings, and will thus be active (as
+//    expected).
 {
     QStringList enabled;
     enabled = QSettings().value(DEBUG_TRACES_SETTING_NAME).toStringList();
-
-#define OPTVAR(name, type, value)
-#define OPTION(name, descr, code)
-#define TRACE(name) if (enabled.contains(#name)) \
-                        XL::MAIN->options.traces.name = true;
-
-#include "options.tbl"
-
-#undef OPTVAR
-#undef OPTION
-#undef TRACE
+    foreach (QString trace, enabled)
+        XL::Traces::enable(+trace);
 }
 
 
@@ -828,15 +833,11 @@ void Application::saveDebugTraceSettings()
 {
     QStringList enabled;
 
-#define OPTVAR(name, type, value)
-#define OPTION(name, descr, code)
-#define TRACE(name) if (XL::MAIN->options.traces.name) enabled.append(#name);
-
-#include "options.tbl"
-
-#undef OPTVAR
-#undef OPTION
-#undef TRACE
+    std::set<std::string>::iterator it;
+    std::set<std::string> names = XL::Traces::names();
+    for (it = names.begin(); it != names.end(); it++)
+        if (XL::Traces::enabled(*it))
+            enabled.append(+*it);
 
     if (!enabled.isEmpty())
         QSettings().setValue(DEBUG_TRACES_SETTING_NAME, enabled);

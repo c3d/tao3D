@@ -1,0 +1,45 @@
+#!/bin/bash
+#
+# Copy Tao dependencies into build_root:
+#   - DLLs (Qt, msys)
+#   - Git
+
+
+doo() {
+  echo $*
+  eval $*
+}
+
+THISDIR=`dirname $0`
+
+#
+# Copy DLLs required by Tao into build_root/
+#
+
+(
+cd $THISDIR
+export PATH=$PATH:.
+for f in `bin/ldd build_root/Tao.exe | \
+          grep -v -i 'build_root' | \
+          grep -v -i 'windows/system' | \
+          grep -v -i 'ntdll.dll' | \
+          grep -v -i 'comctl' | \
+          sed 's/^.*=> \\(.*\\)(0x.*)$/\\1/' | \
+          sed 's@/cygdrive@@'` ; 
+do 
+    doo cp $f build_root/
+done
+)
+
+
+#
+# Uncompress Git distribution into build_root/
+#
+
+GITKIT=PortableGit-1.7.0.2-preview20100309.7z
+(
+cd $THISDIR
+mkdir -p build_root/git
+cd build_root/git
+../../bin/7z x -bd ../../3rdparty/$GITKIT
+)

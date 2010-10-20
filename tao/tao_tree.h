@@ -68,7 +68,6 @@ typedef XL::Context        Context;
 typedef XL::Context_p      Context_p;
 
 typedef XL::SourceFile     SourceFile;
-typedef XL::Main           Main;
 
 TAO_END
 

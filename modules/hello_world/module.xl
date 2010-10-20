@@ -1,0 +1,6 @@
+// Module definition file
+
+module_description
+    id "5336423A-4EEE-45E4-9DEF-0A9D936E60A6"
+    name "Hello World"
+    description "A primitive that says hello to the world"

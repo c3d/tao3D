@@ -11,10 +11,14 @@
 # ******************************************************************************
 
 
+include(../main.pri)
+
 TEMPLATE = app
 TARGET   = Detach
 CONFIG  += console
 CONFIG  -= app_bundle
 QT      -= core gui
 SOURCES += main.cpp
-QMAKE_CXXFLAGS += -Werror -ggdb
+
+target.path = $$APPINST
+INSTALLS    = target

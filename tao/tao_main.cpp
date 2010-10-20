@@ -27,8 +27,10 @@
 #include "basics.h"
 #include "graphics.h"
 #include "formulas.h"
+#include "widget.h"
 #include "tao_utf8.h"
 #include "gc.h"
+#include "tao_main.h"
 
 #include <QApplication>
 #include <QGLWidget>
@@ -119,13 +121,12 @@ void win_redirect_io()
 }
 #endif
 
-XL_BEGIN
+TAO_BEGIN
 text Main::SearchFile(text file)
 // ----------------------------------------------------------------------------
 //   Find the file in the application path
 // ----------------------------------------------------------------------------
 {
-    using namespace Tao;
     QFileInfo fileInfo1(+file);
     if (fileInfo1.exists())
         return +fileInfo1.canonicalFilePath();
@@ -136,4 +137,18 @@ text Main::SearchFile(text file)
     QFileInfo fileInfo2(header.c_str());
     return +fileInfo2.canonicalFilePath();
 }
-XL_END
+
+
+bool Main::Refresh(double delay)
+// ----------------------------------------------------------------------------
+//   Refresh the current top-level widget if there is one
+// ----------------------------------------------------------------------------
+{
+    TAO(refresh(delay));
+    return true;
+}
+
+
+Main *Main::MAIN = NULL;
+
+TAO_END

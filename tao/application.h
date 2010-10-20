@@ -85,7 +85,7 @@ protected slots:
 protected:
     static bool    recursiveDelete(QString path);
     static QString defaultUserDocumentsFolderPath();
-    static QString defaultPreferencesFolderPath();
+    static QString appDataPath();
     static bool    createDefaultProjectFolder();
 
 public:

@@ -1,0 +1,7 @@
+Makefile
+Makefile.Debug
+Makefile.Release
+*_wrap.cpp
+lib*.dylib
+lib*.so
+*.dll

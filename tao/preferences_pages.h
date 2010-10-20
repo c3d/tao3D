@@ -26,6 +26,12 @@
 #include "module_manager.h"
 #include <QWidget>
 
+QT_BEGIN_NAMESPACE
+class QTableWidget;
+class QStackedWidget;
+class QProgressBar;
+QT_END_NAMESPACE
+
 namespace Tao {
 
 class DebugPage : public QWidget
@@ -62,11 +68,23 @@ public:
     ModulesPage(QWidget *parent = 0);
 
 private slots:
-    void         onCellClicked(int col, int row);
+    void         toggleModule();
+    void         findUpdates();
+    void         onCFUComplete();
+    void         endCheckForUpdate();
+    void         updateOne();
+    void         onUpdateOneComplete();
+
+private:
+    void         updateTable();
 
 private:
     ModuleManager *                   mmgr;
     QList<ModuleManager::ModuleInfo>  modules;
+    QTableWidget *                    table;
+    QStackedWidget *                  sw;
+    QProgressBar *                    pb;
+    bool                              findUpdatesInProgress;
 };
 
 }

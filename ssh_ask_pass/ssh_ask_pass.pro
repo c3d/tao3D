@@ -11,14 +11,16 @@
 # ******************************************************************************
 
 
+include(../main.pri)
+
 TEMPLATE = app
 TARGET   = SshAskPass
 SOURCES += main.cpp\
            ssh_ask_pass_dialog.cpp
 HEADERS += ssh_ask_pass_dialog.h
 FORMS   += ssh_ask_pass_dialog.ui
-QMAKE_CXXFLAGS += -Werror -ggdb
-win32 {
-    DEFINES += CONFIG_MINGW
-    CONFIG += console
-}
+
+win32:CONFIG += console
+
+target.path = $$APPINST
+INSTALLS    = target

@@ -44,7 +44,8 @@ A module is a directory with the following structure:
   <module_name>/
     .git/        [Optional] Git folder, used to manage upgrades
     module.xl    A XL file, loaded by the module manager
-    lib/         [Optional] Native code as shared libraries
+    icon.png     [Optional] Module icon
+    lib/         [Optional] Native code as a shared library
 
   2.1 Structure of main.xl
 
@@ -108,9 +109,32 @@ Several options:
 
 6. How are modules upgraded?
 
-Modules installed as Git repositories are upgradeable automatically. Tao will
-use the information available to Git to determine if newer versions exists,
-and prompt the user accordingly.
+Modules installed as Git repositories are upgradeable either manually, or
+automatically. Tao will use the information available to Git to determine
+if newer versions exists.
+
+  6.1. Comparing versions and setting "update available" flag
+
+When checking for update, Tao will set the "update available" flag on a
+module in the following circumstances:
+
+(1) The local module has to be a valid Git repository;
+(2) It must have at least one tag (annotated or not, it doesn't matter),
+and the current checked out version must match a local tag (i.e., no
+development version);
+(3) The remote name "origin" must be a valid repository and must have at
+least one tag (annotated or not);
+(4) The highest local tag must be strictly lower than the highest remote
+tag. Comparison is performed assuming the usual versioning scheme, where:
+    1.0 < 1.1 < 1.1.2 < 1.2 < 1.9 < 1.10 < 2.0
+(lexicographic comparison left to right of integers separated by dots).
+
+  6.2. Maintaining a module repository
+
+(1) Only use one branch: master
+(2) To publish a new version, make one or several commits on master, then
+create a new tag (with a higher version number). Any Tao user who wants
+to update will get the version that corresponds to the new tag.
 
 7. How are modules configured?
 
@@ -130,28 +154,36 @@ Any XL code goes into module.xl and possibly other .xl files.
   8.2. Native code
 
 New XL primitives can be added by using the Tao module API, and generating
-a shared library that will be loaded by module_init.
+a shared library that will be loaded by Tao before module.xl is loaded.
+The base name of the library must be "module", i.e., module.dll on Windows,
+libmodule.dylib on MacOSX, libmodule.so on Linux.
 
  */
 
 #include "tao.h"
 #include "tao_tree.h"
+#include "repository.h"
+#include "tao_utf8.h"
 #include <QObject>
 #include <QString>
 #include <QList>
 #include <QMap>
+#include <QStringList>
+#include <QSet>
+#include <QLibrary>
 #include <iostream>
 
 
-TAO_BEGIN
-
-using namespace XL;
+namespace Tao {
 
 struct ModuleManager : public QObject
 // ----------------------------------------------------------------------------
 //   A singleton class to deal with modules
 // ----------------------------------------------------------------------------
 {
+    Q_OBJECT
+
+public:
     static ModuleManager * moduleManager();
 
     struct ModuleInfo
@@ -160,22 +192,41 @@ struct ModuleManager : public QObject
     // ------------------------------------------------------------------------
     {
         ModuleInfo() {}
-        ModuleInfo(QString id, QString path, QString name, bool enabled)
-            : id(id), path(path), name(name), enabled(enabled), loaded(false)
+        ModuleInfo(QString id, QString path, bool enabled = false)
+            : id(id), path(path), enabled(enabled), loaded(false),
+              updateAvailable(false), hasNative(false), native(NULL)
             {}
 
         QString id;
         QString path;
+
+        // Properties
         QString name;
-        QString ver;
         QString desc;
         QString icon;
+        QString ver;
+
+        // Runtime attributes
+        QString latest;
         bool    enabled;
         bool    loaded;
+        bool    updateAvailable;
+        bool    hasNative;
+        QLibrary * native;
 
         bool operator==(const ModuleInfo &o) const
         {
             return (id == o.id);
+        }
+
+        text toText() const
+        {
+            return +id + " (" + +path + ")";
+        }
+
+        void copyProperties(const ModuleInfo &o)
+        {
+            name = o.name;  desc = o.desc;  icon = o.icon;  ver = o.ver;
         }
     };
 
@@ -185,6 +236,7 @@ struct ModuleManager : public QObject
 
     virtual bool        askRemove(const ModuleInfo &m, QString reason = "");
     virtual bool        askEnable(const ModuleInfo &m, QString reason = "");
+    virtual void        warnDuplicateModule(const ModuleInfo &m);
 
 private:
     ModuleManager()  {}
@@ -221,7 +273,8 @@ private:
         // If pattern is found at indentation level 0, a pointer to value is
         // returned. Otherwise, NULL is returned.
         FindAttribute (text sectionName, text attrName):
-                sectionName(sectionName), attrName(attrName) {}
+                sectionName(sectionName), attrName(attrName),
+                sectionFound(false) {}
 
         Tree *DoBlock(Block *what);
         Tree *DoInfix(Infix *what);
@@ -232,12 +285,12 @@ private:
         bool sectionFound;
     };
 
+
     bool                init();
     bool                initPaths();
 
     bool                loadConfig();
     bool                checkConfig();
-    bool                isValid(const ModuleInfo &m);
     bool                removeFromConfig(const ModuleInfo &m);
     bool                addToConfig(const ModuleInfo &m);
 
@@ -252,11 +305,14 @@ private:
 
     bool                load(Context *, const QList<ModuleInfo> &mods);
     bool                load(Context *, const ModuleInfo &m);
+    bool                loadXL(Context *, const ModuleInfo &m);
+    bool                loadNative(Context *, const ModuleInfo &m);
 
     std::ostream &      debug();
     void                debugPrint(const ModuleInfo &m);
+    void                debugPrintShort(const ModuleInfo &m);
 
-
+private:
     QString                     u, s;
     QList<ModuleInfo>           modules;
     QMap<QString, ModuleInfo *> modulesById;
@@ -265,9 +321,128 @@ private:
     static ModuleManager * instance;
     static Cleanup         cleanup;
 
+friend class CheckForUpdate;
+friend class CheckAllForUpdate;
+friend class UpdateModule;
+
 #   define USER_MODULES_SETTING_GROUP "Modules"
 };
 
+// ============================================================================
+//
+//    Context to perform "check for updates" for a single module
+//
+// ============================================================================
+
+class CheckForUpdate : public QObject
+// ------------------------------------------------------------------------
+//   Asynchronously check if an update is available for a single module
+// ------------------------------------------------------------------------
+{
+    Q_OBJECT
+
+public:
+    CheckForUpdate(ModuleManager &mm, QString id) : mm(mm)
+    {
+        if (mm.modulesById.contains(id))
+            m = *(mm.modulesById[id]);
+    }
+
+    bool           start();
+
+signals:
+    void           complete(ModuleManager::ModuleInfo m, bool updateAvailable);
+
+private slots:
+    void           processRemoteTags(QStringList tags);
+
+private:
+    std::ostream & debug()  { return mm.debug(); }
+
+private:
+    ModuleManager &           mm;
+    ModuleManager::ModuleInfo m;
+    repository_ptr            repo;
+    process_p                 proc;
+};
+
+// ============================================================================
+//
+//    Context to perform "check for updates" for all modules
+//
+// ============================================================================
+
+class CheckAllForUpdate : public QObject
+// ------------------------------------------------------------------------
+//   Asynchronously check updates for all current modules in ModuleManager
+// ------------------------------------------------------------------------
+{
+    Q_OBJECT
+
+public:
+    CheckAllForUpdate(ModuleManager &mm) : mm(mm), updateAvailable(false) {}
+
+    bool           start();
+
+signals:
+    void           minimum(int min);
+    void           maximum(int max);
+    void           progress(int p);
+    void           complete(bool need);
+
+private slots:
+    void           processResult(ModuleManager::ModuleInfo m, bool need);
+
+private:
+    std::ostream & debug()  { return mm.debug(); }
+
+private:
+    ModuleManager & mm;
+    QSet<QString>   pending;
+    bool            updateAvailable;
+    int             num;
+};
+
+// ============================================================================
+//
+//    Context to update a module
+//
+// ============================================================================
+
+class UpdateModule : public QObject
+// ------------------------------------------------------------------------
+//   Asynchronously update a module
+// ------------------------------------------------------------------------
+{
+    Q_OBJECT
+
+public:
+    UpdateModule(ModuleManager &mm, QString id) : mm(mm)
+    {
+        if (mm.modulesById.contains(id))
+            m = *(mm.modulesById[id]);
+    }
+
+    bool           start();
+
+signals:
+    void           minimum(int min);
+    void           maximum(int max);
+    void           progress(int percent);
+    void           complete(bool success);
+
+private slots:
+    void           onFinished(int exitCode, QProcess::ExitStatus status);
+
+private:
+    std::ostream & debug()  { return mm.debug(); }
+
+private:
+    ModuleManager &           mm;
+    ModuleManager::ModuleInfo m;
+    repository_ptr            repo;
+    process_p                 proc;
+};
 
 // ============================================================================
 //
@@ -321,6 +496,6 @@ inline Tree *ModuleManager::FindAttribute::Do(Tree *what)
     return NULL;
 }
 
-TAO_END
+}
 
 #endif // MODULE_MANAGER_H

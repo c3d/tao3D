@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# Update module repository
+
+usage() {
+    echo "Usage: $0 <repository_path> <version>"
+    echo ""
+    echo "Update the instalation directory of a Tao module:"
+    echo "Commit all pending files into a Git repository, and maybe create a tag."
+    echo "Example: $0 /path/to/tao/modules/my_module 1.2.0"
+}
+
+if [ $# != 2 ] ; then
+    usage
+    exit 1
+fi
+
+REPO=$1
+VER=$2
+SECONDS=$(date +%s)
+TAG=$VER.$SECONDS
+
+#echo Repo: $1
+#echo Version: $2
+
+(
+cd $REPO
+git init
+git add *
+git commit -a -m "Version $TAG"
+git tag $TAG
+)

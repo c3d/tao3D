@@ -69,6 +69,7 @@ public:
     Repository * repository() { return repo.data(); }
     void switchToFullScreen(bool fs = true);
     bool switchToSlideShow(bool ss = true);
+    void setWindowAlwaysOnTop(bool alwaysOnTop);
     bool showSourceView(bool fs);
     bool loadFileIntoSourceFileView(const QString &fileName, bool box=false);
     QString  currentProjectFolderPath();
@@ -231,6 +232,12 @@ private:
     QAction          *handCursorAct;
     QAction          *resetViewAct;
     QLabel           *projectUrl;
+    struct
+    {
+      QByteArray         geometry;
+      QByteArray         state;
+      QList<QToolBar *>  visibleToolBars;
+    }                 savedState;
 
 public:
     QMenu            *shareMenu;

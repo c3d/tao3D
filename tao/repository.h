@@ -178,12 +178,14 @@ public:
     virtual bool        renRemote(QString oldName, QString newName) = 0;
     virtual QList<Commit> history(QString branch = "", int max = 100) = 0;
     virtual process_p   asyncClone(QString cloneUrl, QString newFolder) = 0;
-    virtual process_p   asyncFetch(QString url) = 0;
+    virtual process_p   asyncFetch(QString what)        = 0;
     virtual text        version()                       = 0;
     virtual bool        isClean()                       = 0;
     virtual QString     url()                           = 0;
     virtual bool        gc()                            = 0;
     virtual QString     diff(QString a, QString b, bool symetric = false) = 0;
+    virtual process_p   asyncGetRemoteTags(QString remote) = 0;
+    virtual QStringList tags()                          = 0;
 
 public:
     static bool         versionGreaterOrEqual(QString ver, QString ref);
@@ -198,8 +200,8 @@ signals:
     void                asyncPullComplete();
     void                deleted();
     void                branchChanged(QString newBranch);
+    void                asyncGetRemoteTagsComplete(QStringList tags);
 
-//protected:
 public:
     virtual QString     command()                       = 0;
 protected:

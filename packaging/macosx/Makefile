@@ -5,15 +5,30 @@
 #   - The Tao exectuables
 #   - The Qt libraries, distributed as Frameworks
 #   - Git binaries (downloaded and built by this Makefile)
-#   - All the files loaded by Tao at runtime (XL definitions, etc.)
+#   - Standard Tao modules
+#   - All the files loaded by Tao at runtime (XL definitions,
+#     fonts, etc.)
+#
+# To build the package, this Makefile goes through the following
+# steps:
+#   - run "make install" at the top level of the Tao project
+#   - copy the installation directory under ./build_root
+#   - run macdeployqt on ./build_root to import Qt frameworks
+#   - download and build git under ./git_build
+#   - install git under ./build_root
+#   - create the DMG from ./buid_root
 #
 # HOW TO CHANGE THE APPEARANCE OF THE DISK IMAGE IN FINDER
 #
 # The template/ folder serves (guess what?) as a template for the
 # final disk image. Its content is copied into build_root/ before
-# building the disk image.
-# The appearance of the Finder window (icon position, size, window
-# size...) is controled by the file build_root/.DS_Store.
+# building the disk image (dot_DS_Store is renamed .DS_Store).
+#
+# - To change the icon of the disk image, simply replace
+# template/.VolumIcon.icns and rebuild the disk image.
+# - The appearance of the Finder window (icon position, size, window
+# size...) is controled by the file build_root/.DS_Store (copied from
+# template/dot_DS_Store).
 # Unfortunately, simply changing these settings through the Finder
 # "Show View Options" does not work. It has to be done inside a
 # mounted disk image. Therefore, here is how to change this file:
@@ -36,6 +51,7 @@ GIT_VERSION=1.7.2.2
 
 ########
 
+INSTROOT=$(shell pwd)/../../install
 GIT_INSTALL_PREFIX=$(shell pwd)/build_root/Tao.app/Contents/MacOS/git
 
 tao.dmg: tmp.dmg
@@ -45,6 +61,9 @@ tao.dmg: tmp.dmg
 # Note: blue arrow in DMG_image.{svg,png} is taken from http://www.clker.com/clipart-12263.html
 tmp.dmg: .tao_install_ts .git_install_ts .cp_template_ts
 	hdiutil create tmp.dmg -fs HFSX -format UDRW -srcfolder build_root -volname "Tao Presentations"
+	hdiutil attach tmp.dmg
+	SetFile -a C "/Volumes/Tao Presentations"
+	hdiutil detach "/Volumes/Tao Presentations"
 
 clean: clean.git clean.tao clean.dmg
 
@@ -73,10 +92,11 @@ clean.tao_install: clean.tao_install_prog clean.tao_install_deps
 	rm -f .tao_install_ts
 
 ########
-
+# Note: macdeployqt shows:
+# ERROR: no file at "/usr/lib/libxlr.1.dylib"
+# This is not a problem, the lib is in Tao.app/Contents/Framework
 .tao_install_deps_ts: .tao_install_prog_ts
 	macdeployqt build_root/Tao.app
-	cp -p ../../ssh_ask_pass/SshAskPass.app/Contents/MacOS/SshAskPass build_root/Tao.app/Contents/MacOS
 	touch $@
 
 clean.tao_install_deps:
@@ -86,7 +106,8 @@ clean.tao_install_deps:
 
 .tao_install_prog_ts:
 	[ -d build_root ] || mkdir -p build_root
-	cp -Rp ../../tao/Tao.app build_root
+	cd ../.. && make install
+	cp -Rp $(INSTROOT)/* build_root
 	touch $@
 
 clean.tao_install_prog:

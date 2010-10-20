@@ -54,6 +54,10 @@
 #include <QList>
 #include <QRegExp>
 
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
+
 #define TAO_FILESPECS "Tao documents (*.ddd)"
 /*                      ";;XL programs (*.xl)" \
  *                      ";;Headers (*.dds *.xs)"\
@@ -81,6 +85,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 
     // Create the text edit widget
     dock = new QDockWidget(tr("Document Source"));
+    dock->setObjectName("dock");
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
     textEdit = new QTextEdit(dock);
     dock->setWidget(textEdit);
@@ -90,6 +95,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 
     // Create the error reporting widget
     errorDock = new QDockWidget(tr("Errors"));
+    errorDock->setObjectName("errorDock");
     errorDock->setAllowedAreas(Qt::AllDockWidgetAreas);
     errorMessages = new QTextEdit(errorDock);
     errorMessages->setReadOnly(true);
@@ -147,6 +153,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Fire a timer to check if files changed
     fileCheckTimer.start(500);
     connect(&fileCheckTimer, SIGNAL(timeout()), this, SLOT(checkFiles()));
+
 }
 
 
@@ -685,6 +692,7 @@ void Window::copy()
 
     if (taoWidget->hasFocus())
         return taoWidget->copy();
+
 }
 
 
@@ -701,13 +709,11 @@ void Window::paste()
 }
 
 
-void Window::onFocusWidgetChanged(QWidget *old, QWidget *now)
+void Window::onFocusWidgetChanged(QWidget */*old*/, QWidget *now)
 // ----------------------------------------------------------------------------
 //    Enable or disable copy/cut/paste actions when current widget changes
 // ----------------------------------------------------------------------------
 {
-    (void)old;    // Silence warning
-
     bool enable;
     if (now == textEdit)
         enable = textEdit->textCursor().hasSelection();
@@ -716,7 +722,6 @@ void Window::onFocusWidgetChanged(QWidget *old, QWidget *now)
     else
         return;
 
-    copyAct->setEnabled(enable);
     cutAct->setEnabled(enable);
 
     checkClipboard();
@@ -1097,15 +1102,11 @@ void Window::createActions()
             this, SLOT(toggleStereoscopy()));
 
     cutAct->setEnabled(false);
-    copyAct->setEnabled(false);
+    copyAct->setEnabled(true);
     connect(textEdit, SIGNAL(copyAvailable(bool)),
             cutAct, SLOT(setEnabled(bool)));
-    connect(textEdit, SIGNAL(copyAvailable(bool)),
-            copyAct, SLOT(setEnabled(bool)));
     connect(taoWidget, SIGNAL(copyAvailable(bool)),
             cutAct, SLOT(setEnabled(bool)));
-    connect(taoWidget, SIGNAL(copyAvailable(bool)),
-            copyAct, SLOT(setEnabled(bool)));
 
     undoAction = undoStack->createUndoAction(this, tr("&Undo"));
     undoAction->setShortcuts(QKeySequence::Undo);
@@ -1203,6 +1204,7 @@ void Window::createToolBars()
 {
     QMenu *view = findChild<QMenu*>(VIEW_MENU_NAME);
     fileToolBar = addToolBar(tr("File"));
+    fileToolBar->setObjectName("fileToolBar");
     fileToolBar->addAction(newAct);
     fileToolBar->addAction(openAct);
     fileToolBar->addAction(saveAct);
@@ -1210,6 +1212,7 @@ void Window::createToolBars()
         view->addAction(fileToolBar->toggleViewAction());
 
     editToolBar = addToolBar(tr("Edit"));
+    editToolBar->setObjectName("editToolBar");
     editToolBar->addAction(cutAct);
     editToolBar->addAction(copyAct);
     editToolBar->addAction(pasteAct);
@@ -1217,12 +1220,14 @@ void Window::createToolBars()
         view->addAction(editToolBar->toggleViewAction());
 
     viewToolBar = addToolBar(tr("View"));
+    viewToolBar->setObjectName("viewToolBar");
     viewToolBar->addAction(handCursorAct);
     viewToolBar->addAction(resetViewAct);
     if (view)
         view->addAction(viewToolBar->toggleViewAction());
 
     branchToolBar = new BranchSelectionToolBar(tr("Branch selection"));
+    branchToolBar->setObjectName("branchToolBar");
     connect(this, SIGNAL(projectChanged(Repository*)),
             branchToolBar, SLOT(setRepository(Repository*)));
     connect(this, SIGNAL(projectChanged(Repository*)),
@@ -1234,6 +1239,7 @@ void Window::createToolBars()
         view->addAction(branchToolBar->toggleViewAction());
 
     playbackToolBar = new HistoryPlaybackToolBar(tr("History playback"));
+    playbackToolBar->setObjectName("playbackToolBar");
     connect(this, SIGNAL(projectChanged(Repository*)),
             playbackToolBar, SLOT(setRepository(Repository*)));
     connect(playbackToolBar, SIGNAL(documentChanged()),
@@ -1484,14 +1490,41 @@ bool Window::switchToSlideShow(bool ss)
 // ----------------------------------------------------------------------------
 {
     bool oldMode = slideShowMode;
-    showSourceView(!ss);
     switchToFullScreen(ss);
+    setWindowAlwaysOnTop(ss);
+    showSourceView(!ss);
     taoWidget->autoHideCursor(NULL, ss);
     TaoApp->blockScreenSaver(ss);
     slideShowAct->setChecked(ss);
     slideShowMode = ss;
     return oldMode;
 }
+
+void Window::setWindowAlwaysOnTop(bool alwaysOnTop)
+// ----------------------------------------------------------------------------
+//    Set 'always on top' flag for the current window
+// ----------------------------------------------------------------------------
+{
+#ifdef Q_OS_WIN
+    HWND flag = alwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST;
+    SetWindowPos(winId(), flag, 0, 0, 0, 0,
+                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+#else
+    Qt::WindowFlags flags = windowFlags();
+    bool prev = ((flags & Qt::WindowStaysOnTopHint) ==
+                          Qt::WindowStaysOnTopHint);
+    if (prev != alwaysOnTop)
+    {
+        if (alwaysOnTop)
+            flags |= Qt::WindowStaysOnTopHint;
+        else
+            flags &= ~Qt::WindowStaysOnTopHint;
+        setWindowFlags(flags);
+        show();
+    }
+#endif
+}
+
 
 bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 // ----------------------------------------------------------------------------
@@ -1815,32 +1848,47 @@ void Window::switchToFullScreen(bool fs)
     if (fs)
     {
         setUnifiedTitleAndToolBarOnMac(false);
-        removeToolBar(fileToolBar);
-        removeToolBar(editToolBar);
-        removeToolBar(viewToolBar);
-        removeToolBar(branchToolBar);
-        removeToolBar(playbackToolBar);
+        savedState.geometry = saveGeometry();
+        savedState.state = saveState();
+        QList<QDockWidget *> docks = findChildren<QDockWidget *>();
+        foreach(QDockWidget *d, docks)
+            d->hide();
+        savedState.visibleToolBars.clear();
+        QList<QToolBar *> toolBars = findChildren<QToolBar *>();
+        foreach (QToolBar *t, toolBars)
+        {
+            if (t->isVisible())
+                savedState.visibleToolBars << t;
+            // QTBUG?
+            // Toolbars have to be removed, not just hidden, to avoid a
+            // display glitch when the "unified title and toolbar look" is
+            // enabled on MacOSX.
+            // In this case, hiding a toolbar through its toggleViewAction
+            // effectively makes it disappear from the toolbar area (i.e., it
+            // does not leave an empty space). BUT, when a toolbar is hidden,
+            // switching to fullscreen then back to normal view causes an empty
+            // area to appear in place of the disabled toolbar.
+            // Removing all toolbars, then adding back only the ones which were
+            // visible solves the problem.
+            removeToolBar(t);
+        }
         statusBar()->hide();
         menuBar()->hide();
         showFullScreen();
-        taoWidget->showFullScreen();
     }
     else
     {
         showNormal();
-        taoWidget->showNormal();
         menuBar()->show();
         statusBar()->show();
-        addToolBar(fileToolBar);
-        addToolBar(editToolBar);
-        addToolBar(viewToolBar);
-        addToolBar(branchToolBar);
-        addToolBar(playbackToolBar);
-        fileToolBar->show();
-        editToolBar->show();
-        viewToolBar->show();
-        branchToolBar->show();
         setUnifiedTitleAndToolBarOnMac(true);
+        foreach (QToolBar *t, savedState.visibleToolBars)
+        {
+            addToolBar(t);
+            t->show();
+        }
+        restoreGeometry(savedState.geometry);
+        restoreState(savedState.state);
     }
     fullScreenAct->setChecked(fs);
 }
@@ -2093,6 +2141,5 @@ void Window::checkDetachedHead()
         return;
     setReadOnly(repo->branch() == "");
 }
-
 
 TAO_END

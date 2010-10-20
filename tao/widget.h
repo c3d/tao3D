@@ -50,6 +50,8 @@
 #include <sstream>
 #include <map>
 
+#include "widgettests.h"
+
 namespace Tao {
 
 struct Window;
@@ -63,7 +65,6 @@ struct Repository;
 struct Drag;
 struct TextSelect;
 struct WidgetSurface;
-
 
 // ----------------------------------------------------------------------------
 // Name of fixed menu.
@@ -719,6 +720,32 @@ private:
     void        updateFileDialog(Tree *properties, Tree *context);
     Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child);
     bool    updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group);
+
+
+    //Tests // CaB
+public:
+    Tree_p startRecTest(Tree_p self);
+    Tree_p stopRecTest(Tree_p self);
+    Tree_p playTest(Tree_p self);
+    Tree_p saveTest(Tree_p self);
+    Tree_p resetTest(Tree_p self);
+    WidgetTests currentTest;
+    Tree_p testDef(Context *, text_p name,
+                   Integer_p fId, text_p desc, Tree_p body);
+    Tree_p testAddKeyPress(Tree_p self, Integer_p key,
+                           Integer_p modifiers, Integer_p delay );
+    Tree_p testAddKeyRelease(Tree_p self, Integer_p key,
+                             Integer_p modifiers, Integer_p delay );
+    Tree_p testAddMousePress(Tree_p self, Integer_p button, Integer_p modifiers,
+                             Integer_p x, Integer_p y, Integer_p delay);
+    Tree_p testAddMouseRelease(Tree_p self, Integer_p button,
+                               Integer_p modifiers,
+                               Integer_p x, Integer_p y, Integer_p delay);
+    Tree_p testAddMouseDClick(Tree_p self, Integer_p button, Integer_p modifiers,
+                              Integer_p x, Integer_p y, Integer_p delay);
+    Tree_p testAddMouseMove(Tree_p self, Integer_p button, Integer_p modifiers,
+                            Integer_p x, Integer_p y, Integer_p delay);
+    Tree_p testAddAction(Tree_p self, text_p name, Integer_p delay);
 
 };
 

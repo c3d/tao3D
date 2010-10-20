@@ -9,15 +9,21 @@
 # (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 # (C) 2010 Catherine Burvelle <cathy@taodyne.com>
 # (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
+# (C) 2010 Jerome Forissier <jerome@taodyne.com>
 # (C) 2010 Taodyne SAS
 # ******************************************************************************
+
+include(../main.pri)
+
 TEMPLATE = app
 TARGET = Tao
-VERSION = "0.0.3"
+VERSION = "0.0.3"    # Windows: version is in tao.rc
 DEPENDPATH += . \
-    xlr/xlr
+    xlr/xlr/include
 INCLUDEPATH += . \
-    xlr/xlr
+    xlr/xlr/include
+win32:LIBS += -L../libxlr/release -L../libxlr/debug  # REVISIT
+LIBS += -L../libxlr -lxlr
 QT += webkit \
     network \
     opengl \
@@ -28,9 +34,7 @@ QMAKE_CXXFLAGS += -Werror
 QMAKE_CXXFLAGS_RELEASE += -g \
     \$(CXXFLAGS_\$%)
 
-# Tell the XLR portion that we are building for Tao
-DEFINES += TAO \
-    DEBUG
+DEFINES += DEBUG
 macx {
     DEFINES += CONFIG_MACOSX
     XLRDIR = Contents/MacOS
@@ -38,8 +42,11 @@ macx {
     QMAKE_INFO_PLIST = Info.plist
     QMAKE_CFLAGS += -mmacosx-version-min=10.5 # Avoid warning with font_file_manager_macos.mm
 }
-win32:DEFINES += CONFIG_MINGW
-linux-g++ { 
+win32 {
+    DEFINES += CONFIG_MINGW
+    RC_FILE  = tao.rc
+}
+linux-g++* {
     DEFINES += CONFIG_LINUX
     LIBS += -lXss
 }
@@ -86,40 +93,12 @@ HEADERS += widget.h \
     tao_utf8.h \
     tao_tree.h \
     font.h \
-    xlr/xlr/utf8.h \
-    xlr/xlr/base.h \
-    xlr/xlr/options.h \
-    xlr/xlr/basics.h \
-    xlr/xlr/parser.h \
-    xlr/xlr/compiler.h \
-    xlr/xlr/renderer.h \
-    xlr/xlr/configuration.h \
-    xlr/xlr/runtime.h \
-    xlr/xlr/context.h \
-    xlr/xlr/scanner.h \
-    xlr/xlr/errors.h \
-    xlr/xlr/serializer.h \
-    xlr/xlr/hash.h \
-    xlr/xlr/sha1.h \
-    xlr/xlr/main.h \
-    xlr/xlr/sha1_ostream.h \
-    xlr/xlr/opcodes.h \
-    xlr/xlr/syntax.h \
-    xlr/xlr/opcodes_declare.h \
-    xlr/xlr/tree.h \
-    xlr/xlr/gc.h \
-    xlr/xlr/opcodes_define.h \
-    xlr/xlr/types.h \
-    xlr/xlr/diff.h \
-    xlr/xlr/lcs.h \
-    xlr/xlr/bfs.h \
     drag.h \
     pull_from_dialog.h \
     remote_selection_frame.h \
     undo.h \
     clone_dialog.h \
     ansi_textedit.h \
-    xlr/xlr/opcodes_delete.h \
     error_message_dialog.h \
     group_layout.h \
     resource_mgt.h \
@@ -150,7 +129,9 @@ HEADERS += widget.h \
     diff_dialog.h \
     diff_highlighter.h \
     module_manager.h \
-    portability.h
+    portability.h \
+    tao_main.h \
+    widgettests.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -188,24 +169,6 @@ SOURCES += tao_main.cpp \
     git_backend.cpp \
     application.cpp \
     font.cpp \
-    xlr/xlr/tree.cpp \
-    xlr/xlr/gc.cpp \
-    xlr/xlr/sha1.cpp \
-    xlr/xlr/serializer.cpp \
-    xlr/xlr/syntax.cpp \
-    xlr/xlr/scanner.cpp \
-    xlr/xlr/runtime.cpp \
-    xlr/xlr/renderer.cpp \
-    xlr/xlr/parser.cpp \
-    xlr/xlr/options.cpp \
-    xlr/xlr/opcodes.cpp \
-    xlr/xlr/main.cpp \
-    xlr/xlr/errors.cpp \
-    xlr/xlr/context.cpp \
-    xlr/xlr/compiler.cpp \
-    xlr/xlr/types.cpp \
-    xlr/xlr/diff.cpp \
-    xlr/xlr/lcs.cpp \
     drag.cpp \
     pull_from_dialog.cpp \
     remote_selection_frame.cpp \
@@ -244,8 +207,7 @@ SOURCES += tao_main.cpp \
     module_manager.cpp \
     portability.cpp
 CXXTBL_SOURCES += graphics.cpp \
-    formulas.cpp \
-    xlr/xlr/basics.cpp
+    formulas.cpp
 
 !win32 {
     HEADERS += GL/glew.h \
@@ -260,21 +222,6 @@ macx {
 }
 RESOURCES += tao.qrc
 
-# We need bash, llvm-config
-!system(bash -c \"bash --version >/dev/null\"):error("Can't execute bash")
-!system(bash -c \"llvm-config --version >/dev/null\"):error("Can't execute llvm-config")
-
-# LLVM dependencies
-LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\")
-LLVM_LIBS += $$system(bash -c \"llvm-config --ldflags\")
-LLVM_INC = $$system(bash -c \"llvm-config --includedir\")
-LLVM_DEF = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
-
-# Consolidated flags and libs
-INCLUDEPATH += $$LLVM_INC
-LIBS += $$LLVM_LIBS
-DEFINES += $$LLVM_DEF
-
 # Others
 OTHER_FILES += xl.syntax \
     xl.stylesheet \
@@ -288,7 +235,7 @@ OTHER_FILES += xl.syntax \
     git.stylesheet \
     srcview.stylesheet \
     srcview.css \
-    fonts/unifont-5.1.20080907.ttf
+    traces.tbl
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}
@@ -315,15 +262,34 @@ revtarget.depends = $$SOURCES \
     $$FORMS
 QMAKE_EXTRA_TARGETS += revtarget
 
-# Adding 'c++tbl' option with lowered optimization level
-c++tbl.output = ${QMAKE_FILE_BASE}.o
-c++tbl.commands = $(CXX) \
-    -c \
-    $(CXXFLAGS:-O2=) \
-    $(INCPATH) \
-    ${QMAKE_FILE_NAME} \
-    -o \
-    ${QMAKE_FILE_OUT}
-c++tbl.dependency_type = TYPE_C
-c++tbl.input = CXXTBL_SOURCES
-QMAKE_EXTRA_COMPILERS += c++tbl
+# What to install
+xl_files.path  = $$APPINST
+xl_files.files = builtins.xl\
+    xl.syntax \
+    xl.stylesheet \
+    git.stylesheet \
+    srcview.stylesheet \
+    srcview.css \
+    tutorial.ddd
+fonts.path  = $$APPINST/fonts
+fonts.files = fonts/*
+INSTALLS    += xl_files fonts
+macx {
+  # Workaround install problem: on Mac, the standard way of installing (the 'else'
+  # part of this block) starts by recursively deleting $$target.path/Tao.app.
+  # This is bad since we have previously stored libraries there :(
+  app.path    = $$INSTROOT
+  app.extra   = \$(INSTALL_DIR) Tao.app $$INSTROOT
+  INSTALLS   += app
+} else {
+  target.path = $$INSTROOT
+  INSTALLS   += target
+}
+
+contains(QT, testlib) {
+    message(Building with qtestlib support.)
+    HEADERS += save_test_dialog.h
+    SOURCES += widgettests.cpp \
+               save_test_dialog.cpp
+    FORMS += save_test_dialog.ui
+}

@@ -129,7 +129,6 @@ HEADERS += widget.h \
     module_manager.h \
     portability.h \
     tao_main.h \
-    widgettests.h \
     history_playback_tool.h \
     tool_window.h \
     branch_selection_tool.h \
@@ -292,7 +291,8 @@ macx {
 
 contains(QT, testlib) {
     message(Building with qtestlib support.)
-    HEADERS += save_test_dialog.h
+    HEADERS += save_test_dialog.h \
+               widgettests.h
     SOURCES += widgettests.cpp \
                save_test_dialog.cpp
     FORMS += save_test_dialog.ui

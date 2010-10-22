@@ -68,31 +68,29 @@ cat >$OUT << __EOF__
 #include "options.h"
 #include "main.h"
 #include "traces.h"
+#include "tao/module_api.h"
 #include <iostream>
-
-extern "C" {
-    void enter_symbols(XL::Context *context);
-    void delete_symbols();
-}
 
 using namespace XL;
 
 #include "opcodes_declare.h"
 #include "$IN"
 
-void enter_symbols(XL::Context *context)
+int enter_symbols(XL::Context *context)
 {
 #ifdef XL_TRACE_INSTNAME
     XL_INIT_TRACES();
 #endif
 #include "opcodes_define.h"
 #include "$IN"
+    return 0;
 }
 
 
-void delete_symbols()
+int delete_symbols(XL::Context * /*context*/)
 {
 #include "opcodes_delete.h"
 #include "$IN"
+    return 0;
 }
 __EOF__

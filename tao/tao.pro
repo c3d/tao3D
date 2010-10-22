@@ -21,6 +21,7 @@ VERSION = "0.0.3"    # Windows: version is in tao.rc
 DEPENDPATH += . \
     xlr/xlr/include
 INCLUDEPATH += . \
+    include \
     xlr/xlr/include
 win32:LIBS += -L../libxlr/release -L../libxlr/debug  # REVISIT
 LIBS += -L../libxlr -lxlr
@@ -132,7 +133,9 @@ HEADERS += widget.h \
     history_playback_tool.h \
     tool_window.h \
     branch_selection_tool.h \
-    git_toolbar.h
+    git_toolbar.h \
+    include/tao/module_api.h \
+    include/tao/module_info.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -274,6 +277,7 @@ xl_files.files = builtins.xl\
     srcview.stylesheet \
     srcview.css \
     tutorial.ddd
+CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
 fonts.path  = $$APPINST/fonts
 fonts.files = fonts/*
 INSTALLS    += xl_files fonts

@@ -157,6 +157,48 @@ New XL primitives can be added by using the Tao module API, and generating
 a shared library that will be loaded by Tao before module.xl is loaded.
 The base name of the library must be "module", i.e., module.dll on Windows,
 libmodule.dylib on MacOSX, libmodule.so on Linux.
+To make building a Tao module easy, Tao has a special Qt project include
+file, modules.pri, as well as a C/C++ API. There are also examples under the
+'modules' directory.
+
+  8.2.1 Source files for a typical Tao module
+
+    mymodule.pro   Qt project file. Uses Tao's modules.pri.
+    module.xl      Module information (id, description...) and XL code.
+    mymodule.tbl   Declarations of new XL primitives. Processed by the tbl_gen
+                   script to produce mymodule_wrap.cpp, which defines functions
+                   enter_symbols and delete_symbols.
+    mymodule.cpp,
+    *.cpp          Implementation of new XL primitives and any support code.
+                   May use tao/module_api.h and tao/module_info.h.
+    traces.tbl     Declaration of debug trace levels for the module.
+
+  8.2.2 Native module API
+
+    tao/module_api.h
+
+This file defines the binary interface used by Tao to initialize/uninitialize
+the module (through module_init/module_exit), as well as to add/delete
+XL primitives (through enter_symbols/delete_symbols). See comments in the file
+for details.
+
+    tao/module_info.h
+
+This header file contains the definition of the ModuleInfo structure, which
+is used by Tao to communicate some module information to the module itself
+(identifier, version, installation path...). Use of this header is optional.
+
+  8.2.3 Order of calls
+
+Native and XL functions of a module are called by Tao in the following order:
+
+  1. module_init    (native)
+  2. enter_symbols  (native)
+  3. module_init    (XL)
+  ...
+  4. module_exit    (XL)
+  5. delete_symbols (native)
+  6. module_exit    (native)
 
  */
 
@@ -164,6 +206,7 @@ libmodule.dylib on MacOSX, libmodule.so on Linux.
 #include "tao_tree.h"
 #include "repository.h"
 #include "tao_utf8.h"
+#include "tao/module_info.h"
 #include <QObject>
 #include <QString>
 #include <QList>
@@ -186,25 +229,17 @@ struct ModuleManager : public QObject
 public:
     static ModuleManager * moduleManager();
 
-    struct ModuleInfo
+    struct ModuleInfoPrivate : ModuleInfo
     // ------------------------------------------------------------------------
     //   Information about a module
     // ------------------------------------------------------------------------
     {
-        ModuleInfo() {}
-        ModuleInfo(QString id, QString path, bool enabled = false)
-            : id(id), path(path), enabled(enabled), loaded(false),
-              updateAvailable(false), hasNative(false), native(NULL)
+        ModuleInfoPrivate() : ModuleInfo() {}
+        ModuleInfoPrivate(QString id, QString path, bool enabled = false)
+            : ModuleInfo(id, path), enabled(enabled), loaded(false),
+              updateAvailable(false), hasNative(false), native(NULL),
+              context(NULL)
             {}
-
-        QString id;
-        QString path;
-
-        // Properties
-        QString name;
-        QString desc;
-        QString icon;
-        QString ver;
 
         // Runtime attributes
         QString latest;
@@ -213,8 +248,9 @@ public:
         bool    updateAvailable;
         bool    hasNative;
         QLibrary * native;
+        XL::Context * context;
 
-        bool operator==(const ModuleInfo &o) const
+        bool operator==(const ModuleInfoPrivate &o) const
         {
             return (id == o.id);
         }
@@ -224,19 +260,22 @@ public:
             return +id + " (" + +path + ")";
         }
 
-        void copyProperties(const ModuleInfo &o)
+        void copyProperties(const ModuleInfoPrivate &o)
         {
             name = o.name;  desc = o.desc;  icon = o.icon;  ver = o.ver;
         }
     };
 
     bool                loadAll(Context *context);
-    QList<ModuleInfo>   allModules()    { return modules; }
+    bool                unloadAll(Context *context);
+    QList<ModuleInfoPrivate>   allModules()    { return modules; }
     void                setEnabled(QString id, bool enabled);
 
-    virtual bool        askRemove(const ModuleInfo &m, QString reason = "");
-    virtual bool        askEnable(const ModuleInfo &m, QString reason = "");
-    virtual void        warnDuplicateModule(const ModuleInfo &m);
+    virtual bool        askRemove(const ModuleInfoPrivate &m,
+                                  QString reason = "");
+    virtual bool        askEnable(const ModuleInfoPrivate &m,
+                                  QString reason = "");
+    virtual void        warnDuplicateModule(const ModuleInfoPrivate &m);
 
 private:
     ModuleManager()  {}
@@ -291,31 +330,35 @@ private:
 
     bool                loadConfig();
     bool                checkConfig();
-    bool                removeFromConfig(const ModuleInfo &m);
-    bool                addToConfig(const ModuleInfo &m);
+    bool                removeFromConfig(const ModuleInfoPrivate &m);
+    bool                addToConfig(const ModuleInfoPrivate &m);
 
     bool                checkNew();
     bool                checkNew(QString parentDir);
-    QList<ModuleInfo>   newModules(QString parentDir);
-    ModuleInfo          readModule(QString moduleDir);
+    QList<ModuleInfoPrivate>   newModules(QString parentDir);
+    ModuleInfoPrivate          readModule(QString moduleDir);
     QString             gitVersion(QString moduleDir);
 
     Tree *              parse(QString xlPath);
     QString             moduleAttr(Tree * tree, QString attribute);
 
-    bool                load(Context *, const QList<ModuleInfo> &mods);
-    bool                load(Context *, const ModuleInfo &m);
-    bool                loadXL(Context *, const ModuleInfo &m);
-    bool                loadNative(Context *, const ModuleInfo &m);
+    bool                load(Context *, const QList<ModuleInfoPrivate> &mods);
+    bool                load(Context *, const ModuleInfoPrivate &m);
+    bool                loadXL(Context *, const ModuleInfoPrivate &m);
+    bool                loadNative(Context *, const ModuleInfoPrivate &m);
+
+    bool                unload(Context *, const ModuleInfoPrivate &m);
+    bool                unloadXL(Context *, const ModuleInfoPrivate &m);
+    bool                unloadNative(Context *, const ModuleInfoPrivate &m);
 
     std::ostream &      debug();
-    void                debugPrint(const ModuleInfo &m);
-    void                debugPrintShort(const ModuleInfo &m);
+    void                debugPrint(const ModuleInfoPrivate &m);
+    void                debugPrintShort(const ModuleInfoPrivate &m);
 
 private:
     QString                     u, s;
-    QList<ModuleInfo>           modules;
-    QMap<QString, ModuleInfo *> modulesById;
+    QList<ModuleInfoPrivate>           modules;
+    QMap<QString, ModuleInfoPrivate *> modulesById;
 
 
     static ModuleManager * instance;
@@ -351,7 +394,7 @@ public:
     bool           start();
 
 signals:
-    void           complete(ModuleManager::ModuleInfo m, bool updateAvailable);
+    void           complete(ModuleManager::ModuleInfoPrivate m, bool updateAvailable);
 
 private slots:
     void           processRemoteTags(QStringList tags);
@@ -361,7 +404,7 @@ private:
 
 private:
     ModuleManager &           mm;
-    ModuleManager::ModuleInfo m;
+    ModuleManager::ModuleInfoPrivate m;
     repository_ptr            repo;
     process_p                 proc;
 };
@@ -391,7 +434,7 @@ signals:
     void           complete(bool need);
 
 private slots:
-    void           processResult(ModuleManager::ModuleInfo m, bool need);
+    void           processResult(ModuleManager::ModuleInfoPrivate m, bool need);
 
 private:
     std::ostream & debug()  { return mm.debug(); }
@@ -439,7 +482,7 @@ private:
 
 private:
     ModuleManager &           mm;
-    ModuleManager::ModuleInfo m;
+    ModuleManager::ModuleInfoPrivate m;
     repository_ptr            repo;
     process_p                 proc;
 };

@@ -207,7 +207,7 @@ void ModulesPage::toggleModule()
 {
     QAction *act = (QAction *)sender();
     int row = act->data().toInt();
-    ModuleManager::ModuleInfo m = modules[row];
+    ModuleManager::ModuleInfoPrivate m = modules[row];
 
     mmgr->setEnabled(m.id, !m.enabled);
     updateTable();
@@ -241,7 +241,7 @@ void ModulesPage::updateTable()
     modules = mmgr->allModules();
     table->setRowCount(modules.count());
     int row = 0;
-    foreach (ModuleManager::ModuleInfo m, modules)
+    foreach (ModuleManager::ModuleInfoPrivate m, modules)
     {
         Qt::ItemFlags enFlag = m.enabled ? Qt::ItemIsEnabled : Qt::NoItemFlags;
 
@@ -319,7 +319,7 @@ void ModulesPage::updateOne()
 {
     QAction *act = (QAction *)sender();
     int row = act->data().toInt();
-    ModuleManager::ModuleInfo m = modules[row];
+    ModuleManager::ModuleInfoPrivate m = modules[row];
     act->setEnabled(false);
     UpdateModule *up = new UpdateModule(*mmgr, m.id);
     connect(up, SIGNAL(complete(bool)), this, SLOT(onUpdateOneComplete()));

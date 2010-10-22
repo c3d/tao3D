@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  history_playback_toolbar.cpp                                   Tao project
+//  history_playback_tool.cpp                                      Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     HistoryPlaybackToolBar implementation.
+//     HistoryPlaybackTool implementation.
 //
 //
 //
@@ -19,7 +19,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "history_playback_toolbar.h"
+#include "history_playback_tool.h"
 #include "history_playback.h"
 #include <QLabel>
 #include <QSlider>
@@ -31,18 +31,15 @@
 
 namespace Tao {
 
-HistoryPlaybackToolBar::HistoryPlaybackToolBar(const QString & title,
-                                               QWidget *parent)
+HistoryPlaybackTool::HistoryPlaybackTool(const QString &title,
+                                         QWidget *parent,
+                                         const QString &objName)
 // ----------------------------------------------------------------------------
-//    Create a history playback toolbar with given parent
+//    Create a history playback tool window
 // ----------------------------------------------------------------------------
-    : QToolBar(title, parent)
+    : ToolWindow(title, parent, objName)
 {
     QHBoxLayout * layout = new QHBoxLayout();
-    layout->setContentsMargins(QStyle::PM_LayoutLeftMargin, 0,
-                               QStyle::PM_LayoutRightMargin, 0);
-
-    layout->addWidget(new QLabel(tr("Playback:")));
 
     // Button icons are from the Glaze 0.4.6 icon set
     // http://www.notmart.org/index.php/Graphics
@@ -67,9 +64,9 @@ HistoryPlaybackToolBar::HistoryPlaybackToolBar(const QString & title,
     slider->setTracking(false);
     layout->addWidget(slider);
 
-    QFrame * frame = new QFrame;
-    frame->setLayout(layout);
-    addWidget(frame);
+    setLayout(layout);
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    setMinimumWidth(250);
     setEnabled(false);
 
     playback = new HistoryPlayback(this);
@@ -100,7 +97,7 @@ HistoryPlaybackToolBar::HistoryPlaybackToolBar(const QString & title,
 }
 
 
-void HistoryPlaybackToolBar::setRepository(Repository *repo)
+void HistoryPlaybackTool::setRepository(Repository *repo)
 // ----------------------------------------------------------------------------
 //    Select a repository and update the UI accordingly
 // ----------------------------------------------------------------------------
@@ -109,7 +106,7 @@ void HistoryPlaybackToolBar::setRepository(Repository *repo)
 }
 
 
-void HistoryPlaybackToolBar::refresh()
+void HistoryPlaybackTool::refresh()
 // ----------------------------------------------------------------------------
 //    Update the UI when current branch was changed externally
 // ----------------------------------------------------------------------------
@@ -118,7 +115,7 @@ void HistoryPlaybackToolBar::refresh()
 }
 
 
-void HistoryPlaybackToolBar::setSliderRange(int min, int max)
+void HistoryPlaybackTool::setSliderRange(int min, int max)
 // ----------------------------------------------------------------------------
 //    Update min and max values of slider
 // ----------------------------------------------------------------------------

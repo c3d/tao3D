@@ -1,12 +1,12 @@
 // ****************************************************************************
-//  branch_selection_toolbar.cpp                                   Tao project
+//  branch_selection_tool.h                                        Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    A class to display a toolbar that contains:
-//      * a label
-//      * a branch selection combo box; select a branch to check it out
+//    BranchSelectionTool implementation
+//
+//
 //
 //
 //
@@ -20,57 +20,56 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "branch_selection_toolbar.h"
+#include "branch_selection_tool.h"
+#include "branch_selection_combobox.h"
 #include "repository.h"
 #include "tao_utf8.h"
+
+#include <QLineEdit>
 #include <QLabel>
+#include <QHBoxLayout>
+#include <QFormLayout>
 
 
 namespace Tao {
 
-BranchSelectionToolBar::BranchSelectionToolBar(QWidget *parent)
+BranchSelectionTool::BranchSelectionTool(const QString & title,
+                                         QWidget * parent,
+                                         const QString & objName)
 // ----------------------------------------------------------------------------
-//    Create a branch selection combo box with given parent
+//    Create a branch selection tool window
 // ----------------------------------------------------------------------------
-    : QToolBar(parent)
+    : ToolWindow(title, parent, objName)
 {
-    init();
-}
-
-
-BranchSelectionToolBar::BranchSelectionToolBar(const QString &title, QWidget *parent)
-// ----------------------------------------------------------------------------
-//    Create a branch selection combo box with given title and parent
-// ----------------------------------------------------------------------------
-    : QToolBar(title, parent)
-{
-    init();
-}
-
-
-void BranchSelectionToolBar::init()
-// ----------------------------------------------------------------------------
-//    Initialize the widgets in the toolbar
-// ----------------------------------------------------------------------------
-{
-    addWidget(new QLabel(tr("Branch:")));
-
     branchSelector = new BranchSelectionComboBox;
     branchSelector->setFilter(BranchSelectionComboBox::BSF_All);
     connect(branchSelector, SIGNAL(branchSelected(QString)),
             this, SLOT(checkout(QString)));
     branchSelector->setSizeAdjustPolicy(QComboBox::AdjustToContents);
-    addWidget(branchSelector);
+    branchSelector->setSizePolicy(QSizePolicy::MinimumExpanding,
+                                  QSizePolicy::Fixed);
 
-    addWidget(new QLabel(tr("Task:")));
-
-    taskLineEdit = new QLineEdit();
+    taskLineEdit = new QLineEdit;
     taskLineEdit->setEnabled(false);
-    addWidget(taskLineEdit);
+
+    projectUrl = new QLabel(tr("None"));
+    projectUrl->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    projectUrl->setToolTip(tr("Shows the URL of the project for the current "
+                              "document"));
+
+    QFormLayout *formLayout = new QFormLayout;
+    formLayout->setSizeConstraint(QLayout::SetMinimumSize);
+    formLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+    formLayout->addRow(tr("Branch:"), branchSelector);
+    formLayout->addRow(tr("Task:"), taskLineEdit);
+    formLayout->addRow(tr("Project URL:"), projectUrl);
+    setLayout(formLayout);
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    setMinimumWidth(250);
 }
 
 
-void BranchSelectionToolBar::setRepository(Repository *repo)
+void BranchSelectionTool::setRepository(Repository *repo)
 // ----------------------------------------------------------------------------
 //    Select a repository and update the UI accordingly
 // ----------------------------------------------------------------------------
@@ -85,7 +84,7 @@ void BranchSelectionToolBar::setRepository(Repository *repo)
 }
 
 
-void BranchSelectionToolBar::setRepoTaskDescription()
+void BranchSelectionTool::setRepoTaskDescription()
 // ----------------------------------------------------------------------------
 //    Emit signal when new task description is ready
 // ----------------------------------------------------------------------------
@@ -94,7 +93,7 @@ void BranchSelectionToolBar::setRepoTaskDescription()
 }
 
 
-void BranchSelectionToolBar::refresh()
+void BranchSelectionTool::refresh()
 // ----------------------------------------------------------------------------
 //    Update the UI when current branch was changed externally
 // ----------------------------------------------------------------------------
@@ -103,7 +102,7 @@ void BranchSelectionToolBar::refresh()
 }
 
 
-void BranchSelectionToolBar::checkout(QString branch)
+void BranchSelectionTool::checkout(QString branch)
 // ----------------------------------------------------------------------------
 //    Checkout a branch
 // ----------------------------------------------------------------------------
@@ -116,6 +115,15 @@ void BranchSelectionToolBar::checkout(QString branch)
         branchSelector->refresh();
         emit checkedOut(branch);
     }
+}
+
+
+void BranchSelectionTool::showProjectUrl(QString url)
+// ----------------------------------------------------------------------------
+//    Update the project URL area
+// ----------------------------------------------------------------------------
+{
+    projectUrl->setText(url);
 }
 
 }

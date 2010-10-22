@@ -106,7 +106,6 @@ HEADERS += widget.h \
     font_file_manager.h \
     splash_screen.h \
     branch_selection_combobox.h \
-    branch_selection_toolbar.h \
     fetch_dialog.h \
     merge_dialog.h \
     commit_selection_combobox.h \
@@ -124,14 +123,17 @@ HEADERS += widget.h \
     preferences_dialog.h \
     preferences_pages.h \
     history_playback.h \
-    history_playback_toolbar.h \
     history_frame.h \
     diff_dialog.h \
     diff_highlighter.h \
     module_manager.h \
     portability.h \
     tao_main.h \
-    widgettests.h
+    widgettests.h \
+    history_playback_tool.h \
+    tool_window.h \
+    branch_selection_tool.h \
+    git_toolbar.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -182,7 +184,6 @@ SOURCES += tao_main.cpp \
     font_file_manager.cpp \
     splash_screen.cpp \
     branch_selection_combobox.cpp \
-    branch_selection_toolbar.cpp \
     fetch_dialog.cpp \
     merge_dialog.cpp \
     commit_selection_combobox.cpp \
@@ -200,12 +201,15 @@ SOURCES += tao_main.cpp \
     preferences_dialog.cpp \
     preferences_pages.cpp \
     history_playback.cpp \
-    history_playback_toolbar.cpp \
     history_frame.cpp \
     diff_dialog.cpp \
     diff_highlighter.cpp \
     module_manager.cpp \
-    portability.cpp
+    portability.cpp \
+    tool_window.cpp \
+    branch_selection_tool.cpp \
+    history_playback_tool.cpp \
+    git_toolbar.cpp
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 

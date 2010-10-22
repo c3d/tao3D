@@ -43,9 +43,9 @@ namespace Tao {
 
 struct Widget;
 class SplashScreen;
-class BranchSelectionToolBar;
-class HistoryPlaybackToolBar;
+class GitToolBar;
 class Uri;
+class ToolWindow;
 
 
 class Window : public QMainWindow
@@ -94,7 +94,6 @@ public slots:
     void openUri();
     void removeSplashScreen();
     void deleteAboutSplash();
-    void showProjectUrl(QString url);
     void showMessage(QString message)  { showMessage(message, 2000); }
     void setReadOnly(bool ro);
 
@@ -165,6 +164,7 @@ private:
     void     updateContext(QString docPath);
     void     loadSrcViewStyleSheet();
     void     showMessage(QString message, int timeout);
+    void     closeToolWindows();
 
 
 private:
@@ -194,8 +194,7 @@ private:
     QToolBar         *fileToolBar;
     QToolBar         *editToolBar;
     QToolBar         *viewToolBar;
-    BranchSelectionToolBar *branchToolBar;
-    HistoryPlaybackToolBar *playbackToolBar;
+    GitToolBar       *gitToolBar;
     QAction          *newDocAct;
     QAction          *newAct;
     QAction          *openAct;
@@ -231,12 +230,12 @@ private:
     QAction          *clearRecentAct;
     QAction          *handCursorAct;
     QAction          *resetViewAct;
-    QLabel           *projectUrl;
     struct
     {
       QByteArray         geometry;
       QByteArray         state;
       QList<QToolBar *>  visibleToolBars;
+      QMap<ToolWindow *, QByteArray> visibleTools;
     }                 savedState;
 
 public:

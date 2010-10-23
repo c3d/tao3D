@@ -1257,9 +1257,12 @@ PREFIX(Callout, tree, "callout",
                 }\
           |*/")
 
-PREFIX(DebugBinPacker, tree, "binpacker",
-       PARM(w, integer) PARM(h, integer) PARM(t, tree),
-       RTAO(debugBinPacker(self, w, h, t)),
+PREFIX(PicturePacker, tree, "picture_packer",
+       PARM(tw, integer) PARM(th, integer)
+       PARM(iw, integer) PARM(ih, integer)
+       PARM(pw, integer) PARM(ph, integer)
+       PARM(t, tree),
+       RTAO(picturePacker(self, tw, th, iw, ih, pw, ph, t)),
        "/*| docname \"binpacker\", \"graph:debug\", do { \
                 dsyntax <<binpacker w, h, t>>;\
                 synopsis \"Debug the bin packer\" ; \

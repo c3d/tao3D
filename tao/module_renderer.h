@@ -1,12 +1,12 @@
-#ifndef TAO_MODULE_INFO_H
-#define TAO_MODULE_INFO_H
+#ifndef TAO_MODULE_RENDERER_H
+#define TAO_MODULE_RENDERER_H
 // ****************************************************************************
-//  module_info.h                                                  Tao project
+//  module_renderer.h                                              Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    Public interface to Tao module information
+//    Enables a module to render OpenGL graphics in a Tao document
 //
 //
 //
@@ -22,27 +22,33 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include <string>
+#include "tao/module_api.h"
+#include "drawing.h"
 
-namespace Tao {
+namespace Tao
+{
 
+struct Widget;
 
-struct ModuleInfo
+struct ModuleRenderer : Drawing
 // ------------------------------------------------------------------------
-//   Information about a module
+//   A special kind of drawing that invokes a callback to do the rendering
 // ------------------------------------------------------------------------
 {
-    ModuleInfo() {}
-    ModuleInfo(std::string id, std::string path) : id(id), path(path) {}
+    ModuleRenderer(ModuleApi::render_fn callback, void * arg)
+        : Drawing(), callback(callback), arg(arg) {}
 
-    std::string id;
-    std::string path;
-    std::string name;
-    std::string desc;
-    std::string icon;
-    std::string ver;
+    // Drawing interface
+    virtual void  Draw(Layout *where);
+
+    // Exported to ModuleApi
+    static bool   ScheduleRender(ModuleApi::render_fn callback, void *arg);
+
+private:
+    ModuleApi::render_fn  callback;
+    void *                arg;
 };
 
 }
 
-#endif // TAO_MODULE_INFO_H
+#endif // TAO_MODULE_RENDERER_H

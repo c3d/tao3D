@@ -132,7 +132,7 @@ bool ModuleManager::loadConfig()
         QString path    = settings.value("Path").toString();
         bool    enabled = settings.value("Enabled").toBool();
 
-        ModuleInfoPrivate m(id, path, enabled);
+        ModuleInfoPrivate m(+id, +path, enabled);
         modules.append(m);
         modulesById[id]     = &modules.last();
 
@@ -160,7 +160,7 @@ bool ModuleManager::checkConfig()
     foreach (ModuleInfoPrivate m, modules)
     {
         total++;
-        ModuleInfoPrivate d = readModule(m.path);
+        ModuleInfoPrivate d = readModule(+m.path);
         if (d.id != m.id)
         {
             invalid++;
@@ -175,7 +175,7 @@ bool ModuleManager::checkConfig()
         }
         else
         {
-            modulesById[m.id]->copyProperties(d);
+            moduleById(m.id)->copyProperties(d);
             if (!m.enabled)
                 disabled++;
         }
@@ -202,11 +202,11 @@ bool ModuleManager::removeFromConfig(const ModuleInfoPrivate &m)
         debug() << "Removing module " << m.toText() << " from configuration\n";
 
     modules.removeOne(m);
-    modulesById.remove(m.id);
+    modulesById.remove(+m.id);
 
     QSettings settings;
     settings.beginGroup(USER_MODULES_SETTING_GROUP);
-    settings.remove(m.id);
+    settings.remove(+m.id);
     settings.endGroup();
 
     IFTRACE(modules)
@@ -225,12 +225,12 @@ bool ModuleManager::addToConfig(const ModuleInfoPrivate &m)
         debug() << "Adding module " << m.toText() << " to configuration\n";
 
     modules.append(m);
-    modulesById[m.id] = &modules.last();
+    modulesById[+m.id] = &modules.last();
 
     QSettings settings;
     settings.beginGroup(USER_MODULES_SETTING_GROUP);
-    settings.beginGroup(m.id);
-    settings.setValue("Path", m.path);
+    settings.beginGroup(+m.id);
+    settings.setValue("Path", +m.path);
     settings.setValue("Enabled", m.enabled);
     settings.endGroup();
     settings.endGroup();
@@ -247,9 +247,9 @@ void ModuleManager::setEnabled(QString id, bool enabled)
 //   Enable or disable a module
 // ----------------------------------------------------------------------------
 {
-    if (!modulesById.contains(id))
+    ModuleInfoPrivate * m_p = moduleById(+id);
+    if (!m_p)
         return;
-    ModuleInfoPrivate * m_p = modulesById[id];
 
     IFTRACE(modules)
         debug() << (enabled ? "En" : "Dis") << "abling module "
@@ -285,7 +285,7 @@ bool ModuleManager::loadAll(Context *context)
     QList<ModuleInfoPrivate> toload;
     foreach (ModuleInfoPrivate m, modules)
     {
-        modulesById[m.id]->context = context;
+        moduleById(m.id)->context = context;
         if (m.enabled && !m.loaded)
             toload.append(m);
     }
@@ -310,7 +310,7 @@ bool ModuleManager::unloadAll(Context *context)
     bool ok = true;
     foreach (ModuleInfoPrivate m, modules)
     {
-        modulesById[m.id]->context = NULL;
+        moduleById(m.id)->context = NULL;
         if (m.loaded)
             ok &= unload(context, m);
     }
@@ -382,7 +382,7 @@ QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
                 }
                 else
                 {
-                    ModuleInfoPrivate existing = *modulesById[m.id];
+                    ModuleInfoPrivate existing = *moduleById(m.id);
                     if (m.path != existing.path)
                     {
                         IFTRACE(modules)
@@ -421,13 +421,13 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
             if (id != "")
             {
                 QString name = moduleAttr(tree, "name");
-                m = ModuleInfoPrivate(id, moduleDir);
-                m.name = name;
-                m.desc = moduleAttr(tree, "description");
-                m.ver = gitVersion(moduleDir);
+                m = ModuleInfoPrivate(+id, +moduleDir);
+                m.name = +name;
+                m.desc = +moduleAttr(tree, "description");
+                m.ver = +gitVersion(moduleDir);
                 QString iconPath = QDir(moduleDir).filePath("icon.png");
                 if (QFile(iconPath).exists())
-                    m.icon = iconPath;
+                    m.icon = +iconPath;
             }
         }
     }
@@ -517,7 +517,7 @@ bool ModuleManager::loadXL(Context *context, const ModuleInfoPrivate &m)
     IFTRACE(modules)
         debug() << "  Loading XL source (module.xl)\n";
 
-    QString xlPath = QDir(m.path).filePath("module.xl");
+    QString xlPath = QDir(+m.path).filePath("module.xl");
 
     // module_description <indent block> evaluates as nil
     // REVISIT: bind a native function and use it to parse the block?
@@ -529,8 +529,9 @@ bool ModuleManager::loadXL(Context *context, const ModuleInfoPrivate &m)
 
     bool ok = XL::xl_import(context, +xlPath) != NULL;
 
-    if (ok && modulesById.contains(m.id))
-        modulesById[m.id]->loaded = true;
+    ModuleInfoPrivate *m_p = moduleById(m.id);
+    if (ok && m_p)
+        m_p->loaded = true;
 
     XL::source_files::iterator it = XL::MAIN->files.find(+xlPath);
     XL::source_files::iterator end = XL::MAIN->files.end();
@@ -559,15 +560,12 @@ bool ModuleManager::loadNative(Context * /*context*/, const ModuleInfoPrivate &m
     IFTRACE(modules)
         debug() << "  Looking for native library\n";
 
-    ModuleInfoPrivate * m_p = NULL;
-    if (modulesById.contains(m.id))
-        m_p = modulesById[m.id];
-
+    ModuleInfoPrivate * m_p = moduleById(m.id);
     bool ok = false;
 #ifdef CONFIG_MINGW
-    QString path(m.path + "/lib/module");
+    QString path(+m.path + "/lib/module");
 #else
-    QString path(m.path + "/lib/libmodule");
+    QString path(+m.path + "/lib/libmodule");
 #endif
     QLibrary * lib = new QLibrary(path, this);
     if (lib->load())
@@ -587,7 +585,7 @@ bool ModuleManager::loadNative(Context * /*context*/, const ModuleInfoPrivate &m
             {
                 IFTRACE(modules)
                         debug() << "    Calling module_init\n";
-                mi(&m);
+                mi(&api, &m);
             }
 
             IFTRACE(modules)
@@ -638,10 +636,7 @@ bool ModuleManager::unloadNative(Context *context, const ModuleInfoPrivate &m)
 
     bool ok = true;
 
-    ModuleInfoPrivate * m_p = NULL;
-    if (modulesById.contains(m.id))
-        m_p = modulesById[m.id];
-
+    ModuleInfoPrivate * m_p = moduleById(m.id);
     if (!m_p || !m_p->hasNative)
         return ok;
 
@@ -663,7 +658,7 @@ bool ModuleManager::unloadNative(Context *context, const ModuleInfoPrivate &m)
     {
         IFTRACE(modules)
             debug() << "    Calling module_exit\n";
-        ok &= me(&m);
+        ok &= me();
     }
 
     IFTRACE(modules)
@@ -684,14 +679,11 @@ bool ModuleManager::unloadXL(Context *context, const ModuleInfoPrivate &m)
     IFTRACE(modules)
         debug() << "  Unloading XL code (module.xl)\n";
 
-    ModuleInfoPrivate * m_p = NULL;
-    if (modulesById.contains(m.id))
-        m_p = modulesById[m.id];
-
+    ModuleInfoPrivate * m_p = moduleById(m.id);
     if (!m_p)
         return ok;
 
-    QString xlPath = m_p->path + "module.xl";
+    QString xlPath = +m_p->path + "module.xl";
     XL::source_files::iterator it = XL::MAIN->files.find(+xlPath);
     XL::source_files::iterator end = XL::MAIN->files.end();
     if (it != end)
@@ -727,12 +719,12 @@ void ModuleManager::debugPrint(const ModuleInfoPrivate &m)
 //   Convenience method to display a ModuleInfoPrivate object
 // ----------------------------------------------------------------------------
 {
-    debug() << "  ID:         " << +m.id << "\n";
-    debug() << "  Path:       " << +m.path << "\n";
-    debug() << "  Name:       " << +m.name << "\n";
-    debug() << "  Icon:       " << +m.icon << "\n";
-    debug() << "  Version:    " << +m.ver << "\n";
-    debug() << "  Latest:     " << +m.latest << "\n";
+    debug() << "  ID:         " <<  m.id << "\n";
+    debug() << "  Path:       " <<  m.path << "\n";
+    debug() << "  Name:       " <<  m.name << "\n";
+    debug() << "  Icon:       " <<  m.icon << "\n";
+    debug() << "  Version:    " <<  m.ver << "\n";
+    debug() << "  Latest:     " <<  m.latest << "\n";
     debug() << "  Up to date: " << !m.updateAvailable << "\n";
     debug() << "  Enabled:    " <<  m.enabled << "\n";
     debug() << "  Loaded:     " <<  m.loaded << "\n";
@@ -750,10 +742,21 @@ void ModuleManager::debugPrintShort(const ModuleInfoPrivate &m)
 //   Display minimal information about a module
 // ----------------------------------------------------------------------------
 {
-    debug() << "  ID:         " << +m.id << "\n";
-    debug() << "  Path:       " << +m.path << "\n";
+    debug() << "  ID:         " <<  m.id << "\n";
+    debug() << "  Path:       " <<  m.path << "\n";
     debug() << "  Enabled:    " <<  m.enabled << "\n";
     debug() << "  ------------------------------------------------\n";
+}
+
+
+ModuleManager::ModuleInfoPrivate * ModuleManager::moduleById(text id)
+// ----------------------------------------------------------------------------
+//   Lookup a module info structure in the list of known modules
+// ----------------------------------------------------------------------------
+{
+    if (modulesById.contains(+id))
+        return modulesById[+id];
+    return NULL;
 }
 
 // ============================================================================
@@ -829,13 +832,13 @@ bool CheckForUpdate::start()
                 << m.toText() << "\n";
 
     bool inProgress = false;
-    repo = RepositoryFactory::repository(m.path);
+    repo = RepositoryFactory::repository(+m.path);
     if (repo && repo->valid())
     {
         QStringList tags = repo->tags();
         if (!tags.isEmpty())
         {
-            if (tags.contains(m.ver))
+            if (tags.contains(+m.ver))
             {
                 proc = repo->asyncGetRemoteTags("origin");
                 connect(repo.data(),
@@ -881,13 +884,13 @@ void CheckForUpdate::processRemoteTags(QStringList tags)
     bool hasUpdate = false;
     if (!tags.isEmpty())
     {
-        QString current = m.ver;
+        QString current = +m.ver;
         QString latest = tags[0];
         foreach (QString tag, tags)
             if (Repository::versionGreaterOrEqual(tag, latest))
                 latest = tag;
 
-        mm.modulesById[m.id]->latest = latest;
+        mm.moduleById(m.id)->latest = +latest;
 
         hasUpdate = (latest != current &&
                      Repository::versionGreaterOrEqual(latest, current));
@@ -907,7 +910,7 @@ void CheckForUpdate::processRemoteTags(QStringList tags)
             debug() << "  No remote tags\n";
     }
 
-    mm.modulesById[m.id]->updateAvailable = hasUpdate;
+    mm.moduleById(m.id)->updateAvailable = hasUpdate;
     emit complete(m, hasUpdate);
     deleteLater();
 }
@@ -935,11 +938,11 @@ bool CheckAllForUpdate::start()
     emit maximum(num);
 
     foreach (ModuleManager::ModuleInfoPrivate m, modules)
-        pending << m.id;
+        pending << +m.id;
 
     foreach (ModuleManager::ModuleInfoPrivate m, modules)
     {
-        CheckForUpdate *cfu = new CheckForUpdate(mm, m.id);
+        CheckForUpdate *cfu = new CheckForUpdate(mm, +m.id);
         connect(cfu, SIGNAL(complete(ModuleManager::ModuleInfoPrivate,bool)),
                 this,
                 SLOT(processResult(ModuleManager::ModuleInfoPrivate,bool)));
@@ -958,7 +961,7 @@ void CheckAllForUpdate::processResult(ModuleManager::ModuleInfoPrivate m,
 {
     if (updateAvailable)
         this->updateAvailable = true;
-    pending.remove(m.id);
+    pending.remove(+m.id);
     emit progress(num - pending.count());
     if (pending.isEmpty())
     {
@@ -982,7 +985,7 @@ bool UpdateModule::start()
 
     if (m.path != "")
     {
-        repo = RepositoryFactory::repository(m.path);
+        repo = RepositoryFactory::repository(+m.path);
         if (repo && repo->valid())
         {
             proc = repo->asyncFetch("origin");
@@ -1007,13 +1010,13 @@ void UpdateModule::onFinished(int exitCode, QProcess::ExitStatus status)
     bool ok = (status ==  QProcess::NormalExit && exitCode == 0);
     if (ok)
     {
-        repo->checkout(+m.latest);
-        QString ver = mm.gitVersion(m.path);
-        ok = (ver == m.latest);
+        repo->checkout(m.latest);
+        QString ver = mm.gitVersion(+m.path);
+        ok = (ver == +m.latest);
         if (ok)
         {
-            ModuleManager::ModuleInfoPrivate *p = mm.modulesById[m.id];
-            p->ver = ver;
+            ModuleManager::ModuleInfoPrivate *p = mm.moduleById(m.id);
+            p->ver = +ver;
             p->updateAvailable = false;
         }
     }

@@ -135,7 +135,8 @@ HEADERS += widget.h \
     branch_selection_tool.h \
     git_toolbar.h \
     include/tao/module_api.h \
-    include/tao/module_info.h
+    include/tao/module_info.h \
+    module_renderer.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -211,7 +212,9 @@ SOURCES += tao_main.cpp \
     tool_window.cpp \
     branch_selection_tool.cpp \
     history_playback_tool.cpp \
-    git_toolbar.cpp
+    git_toolbar.cpp \
+    module_api_p.cpp \
+    module_renderer.cpp
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 

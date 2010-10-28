@@ -209,7 +209,7 @@ void ModulesPage::toggleModule()
     int row = act->data().toInt();
     ModuleManager::ModuleInfoPrivate m = modules[row];
 
-    mmgr->setEnabled(m.id, !m.enabled);
+    mmgr->setEnabled(+m.id, !m.enabled);
     updateTable();
 }
 
@@ -258,15 +258,15 @@ void ModulesPage::updateTable()
             m.icon = ":/images/modules.png";
         item = new QTableWidgetItem;
         item->setTextAlignment(Qt::AlignCenter);
-        item->setIcon(QIcon(m.icon));
+        item->setIcon(QIcon(+m.icon));
         item->setFlags(enFlag);
         table->setItem(row, 1, item);
 
-        item = new QTableWidgetItem(m.name);
+        item = new QTableWidgetItem(+m.name);
         item->setFlags(enFlag);
         table->setItem(row, 2, item);
 
-        item = new QTableWidgetItem(m.ver);
+        item = new QTableWidgetItem(+m.ver);
         item->setTextAlignment(Qt::AlignCenter);
         item->setFlags(enFlag);
         table->setItem(row, 3, item);
@@ -274,7 +274,7 @@ void ModulesPage::updateTable()
         QWidget *widget = NULL;
         if (m.updateAvailable)
         {
-            QString msg = QString("Update to %1").arg(m.latest);
+            QString msg = QString("Update to %1").arg(+m.latest);
             QToolButton *b = new QToolButton;
             QAction *act = new QAction(msg, this);
             act->setData(QVariant(row));
@@ -321,7 +321,7 @@ void ModulesPage::updateOne()
     int row = act->data().toInt();
     ModuleManager::ModuleInfoPrivate m = modules[row];
     act->setEnabled(false);
-    UpdateModule *up = new UpdateModule(*mmgr, m.id);
+    UpdateModule *up = new UpdateModule(*mmgr, +m.id);
     connect(up, SIGNAL(complete(bool)), this, SLOT(onUpdateOneComplete()));
     up->start();
 }

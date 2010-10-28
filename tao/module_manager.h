@@ -206,7 +206,9 @@ Native and XL functions of a module are called by Tao in the following order:
 #include "tao_tree.h"
 #include "repository.h"
 #include "tao_utf8.h"
+#include "tao/module_api.h"
 #include "tao/module_info.h"
+#include "module_api_p.h"
 #include <QObject>
 #include <QString>
 #include <QList>
@@ -235,14 +237,14 @@ public:
     // ------------------------------------------------------------------------
     {
         ModuleInfoPrivate() : ModuleInfo() {}
-        ModuleInfoPrivate(QString id, QString path, bool enabled = false)
+        ModuleInfoPrivate(text id, text path, bool enabled = false)
             : ModuleInfo(id, path), enabled(enabled), loaded(false),
               updateAvailable(false), hasNative(false), native(NULL),
               context(NULL)
             {}
 
         // Runtime attributes
-        QString latest;
+        text    latest;
         bool    enabled;
         bool    loaded;
         bool    updateAvailable;
@@ -257,7 +259,7 @@ public:
 
         text toText() const
         {
-            return +id + " (" + +path + ")";
+            return id + " (" + path + ")";
         }
 
         void copyProperties(const ModuleInfoPrivate &o)
@@ -324,7 +326,6 @@ private:
         bool sectionFound;
     };
 
-
     bool                init();
     bool                initPaths();
 
@@ -355,10 +356,13 @@ private:
     void                debugPrint(const ModuleInfoPrivate &m);
     void                debugPrintShort(const ModuleInfoPrivate &m);
 
+    ModuleInfoPrivate * moduleById(text id);
+
 private:
     QString                     u, s;
     QList<ModuleInfoPrivate>           modules;
     QMap<QString, ModuleInfoPrivate *> modulesById;
+    ModuleApiPrivate                   api;
 
 
     static ModuleManager * instance;

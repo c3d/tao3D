@@ -26,6 +26,30 @@
 
 // ========================================================================
 //
+//   Interface versioning
+//
+// ========================================================================
+
+// The Tao module loader uses a versioning system similar to libtool's:
+// http://www.gnu.org/software/libtool/manual/html_node/Libtool-versioning.html
+// The loader will refuse to load a module library that does not pass the
+// version compatibility check.
+//
+// Here are the rules when changing these numbers:
+//
+// - Update the version information only immediately before a public release
+// - [ANY CHANGE] If any interfaces have been added, removed, or changed
+//   since the last update, increment current.
+// - [COMPATIBLE CHANGE] If any interfaces have been added since the last
+//   public release, then increment age.
+// - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
+//   since the last public release, then set age to 0.
+
+#define TAO_MODULE_API_CURRENT   0
+#define TAO_MODULE_API_AGE       0
+
+// ========================================================================
+//
 //   Tao runtime interface
 //
 // ========================================================================

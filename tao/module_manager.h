@@ -279,6 +279,7 @@ public:
     virtual bool        askEnable(const ModuleInfoPrivate &m,
                                   QString reason = "");
     virtual void        warnDuplicateModule(const ModuleInfoPrivate &m);
+    virtual void        warnBinaryModuleIncompatible(QLibrary *lib);
 
 private:
     ModuleManager()  {}
@@ -348,6 +349,7 @@ private:
     bool                load(Context *, const ModuleInfoPrivate &m);
     bool                loadXL(Context *, const ModuleInfoPrivate &m);
     bool                loadNative(Context *, const ModuleInfoPrivate &m);
+    bool                isCompatible(QLibrary * lib);
 
     bool                unload(Context *, const ModuleInfoPrivate &m);
     bool                unloadXL(Context *, const ModuleInfoPrivate &m);

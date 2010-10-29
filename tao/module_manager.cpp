@@ -581,30 +581,69 @@ bool ModuleManager::loadNative(Context * /*context*/, const ModuleInfoPrivate &m
             debug() << "    Loaded: " << +path << "\n";
         if (m_p)
             m_p->hasNative = true;
-        enter_symbols_fn es = (enter_symbols_fn) lib->resolve("enter_symbols");
-        ok = (es != NULL);
+        ok = isCompatible(lib);
         if (ok)
         {
-            module_init_fn mi =
-                    (module_init_fn) lib->resolve("module_init");
-            if ((mi != NULL))
+            enter_symbols_fn es =
+                    (enter_symbols_fn) lib->resolve("enter_symbols");
+            ok = (es != NULL);
+            if (ok)
             {
-                IFTRACE(modules)
-                        debug() << "    Calling module_init\n";
-                mi(&api, &m);
-            }
+                module_init_fn mi =
+                        (module_init_fn) lib->resolve("module_init");
+                if ((mi != NULL))
+                {
+                    IFTRACE(modules)
+                            debug() << "    Calling module_init\n";
+                    mi(&api, &m);
+                }
 
-            IFTRACE(modules)
-                debug() << "    Calling enter_symbols\n";
-            if (m_p)
-                m_p->native = lib;
-            es(XL::MAIN->context);
+                IFTRACE(modules)
+                        debug() << "    Calling enter_symbols\n";
+                if (m_p)
+                    m_p->native = lib;
+                es(XL::MAIN->context);
+            }
         }
     }
     else
     {
         IFTRACE(modules)
             debug() << "    Not found or could not load\n";
+    }
+    if (!ok)
+        delete lib;
+    return ok;
+}
+
+
+bool ModuleManager::isCompatible(QLibrary * lib)
+// ----------------------------------------------------------------------------
+//   Return true if library was built with a compatible version of the Tao API
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(modules)
+        debug() << "    Checking API compatibility\n";
+
+    unsigned   current   = TAO_MODULE_API_CURRENT;
+    unsigned   age       = TAO_MODULE_API_AGE;
+    unsigned * m_current = (unsigned *) lib->resolve("module_api_current");
+    if (!m_current)
+    {
+        IFTRACE(modules)
+            debug() << "      Error: library has no version information\n";
+        return false;
+    }
+
+    IFTRACE(modules)
+        debug() << "      Module [current " << *m_current << "]  Tao [current "
+                << current << " age " << age << "]\n";
+    bool ok = ((current - age) <= *m_current && *m_current <= current);
+    if (!ok)
+    {
+        IFTRACE(modules)
+            debug() << "      Version mismatch!\n";
+        warnBinaryModuleIncompatible(lib);
     }
     return ok;
 }
@@ -623,7 +662,7 @@ bool ModuleManager::unload(Context *context, const ModuleInfoPrivate &m)
     bool ok = true;
 
     IFTRACE(modules)
-        debug() << "Unloading module " << m.toText() << "\n";
+        debug() << "Unloading module: " << m.toText() << "\n";
 
     ok = unloadXL(context, m);
     if (ok)
@@ -820,6 +859,16 @@ void ModuleManager::warnDuplicateModule(const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 {
     (void)m;
+}
+
+
+void ModuleManager::warnBinaryModuleIncompatible(QLibrary *lib)
+// ----------------------------------------------------------------------------
+//   Tell user about incompatible binary module (will be ignored)
+// ----------------------------------------------------------------------------
+{
+    std::cerr << "WARNING: Skipping incompatible binary module "
+              << +lib->fileName() << "\n";
 }
 
 // ============================================================================

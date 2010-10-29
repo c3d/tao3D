@@ -71,6 +71,12 @@ cat >$OUT << __EOF__
 #include "tao/module_api.h"
 #include <iostream>
 
+/*
+ * Record the version of the API this module is compiled with
+ * (for runtime compatibility check)
+ */
+unsigned module_api_current = TAO_MODULE_API_CURRENT;
+
 using namespace XL;
 
 #include "opcodes_declare.h"

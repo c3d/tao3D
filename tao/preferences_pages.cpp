@@ -75,8 +75,8 @@ DebugPage::DebugPage(QWidget *parent)
     QVBoxLayout *mainLayout = new QVBoxLayout;
     mainLayout->addWidget(tracesGroup);
     mainLayout->addSpacing(12);
-    mainLayout->addWidget(buttonsWidget);
     mainLayout->addStretch(1);
+    mainLayout->addWidget(buttonsWidget);
     setLayout(mainLayout);
 }
 
@@ -159,6 +159,14 @@ ModulesPage::ModulesPage(QWidget *parent)
 // ----------------------------------------------------------------------------
 {
     mmgr = ModuleManager::moduleManager();
+    if (!mmgr)
+    {
+        QVBoxLayout *mainLayout = new QVBoxLayout;
+        QLabel *msg = new QLabel(tr("Modules are disabled"));
+        mainLayout->addWidget(msg);
+        setLayout(mainLayout);
+        return;
+    }
     modules = mmgr->allModules();
 
     QGroupBox *gb = new QGroupBox(tr("Installed modules"));
@@ -173,6 +181,7 @@ ModulesPage::ModulesPage(QWidget *parent)
     table->setHorizontalHeaderItem(4, new QTableWidgetItem("Status"));
     table->horizontalHeader()->setStretchLastSection(true);
     table->verticalHeader()->hide();
+    table->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     updateTable();
     vbLayout->addWidget(table);
     gb->setLayout(vbLayout);
@@ -188,6 +197,7 @@ ModulesPage::ModulesPage(QWidget *parent)
     sw = new QStackedWidget;
     sw->insertWidget(0, new QFrame);
     sw->insertWidget(1, (pb = new QProgressBar));
+    sw->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     cfuLayout->addWidget(sw);
     cfuWidget->setLayout(cfuLayout);
 
@@ -195,7 +205,6 @@ ModulesPage::ModulesPage(QWidget *parent)
     mainLayout->addWidget(gb);
     mainLayout->addSpacing(12);
     mainLayout->addWidget(cfuWidget);
-    mainLayout->addStretch(1);
     setLayout(mainLayout);
 }
 

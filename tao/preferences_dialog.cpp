@@ -38,7 +38,9 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
     contentsWidget->setViewMode(QListView::IconMode);
     contentsWidget->setIconSize(QSize(96, 96));
     contentsWidget->setMovement(QListView::Static);
-    contentsWidget->setMaximumWidth(128);
+    contentsWidget->setMinimumHeight(280);
+    contentsWidget->setMaximumWidth(140);
+    contentsWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     contentsWidget->setSpacing(12);
 
     pagesWidget = new QStackedWidget;
@@ -65,7 +67,6 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
     mainLayout->addLayout(horizontalLayout);
-    mainLayout->addStretch(1);
     mainLayout->addSpacing(12);
     mainLayout->addLayout(buttonsLayout);
     setLayout(mainLayout);

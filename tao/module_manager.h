@@ -272,6 +272,7 @@ public:
     bool                unloadAll(Context *context);
     QList<ModuleInfoPrivate>   allModules()    { return modules; }
     void                setEnabled(QString id, bool enabled);
+    bool                enabled() { return XL::MAIN->options.enable_modules; }
 
     virtual bool        askRemove(const ModuleInfoPrivate &m,
                                   QString reason = "");

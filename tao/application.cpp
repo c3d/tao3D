@@ -183,7 +183,8 @@ Application::Application(int & argc, char ** argv)
 #endif
 
     XL::MAIN = this->xlr = xlr;
-    loadModules();               // Needs a valid XL::MAIN
+    if (XL::MAIN->options.enable_modules)
+        loadModules();               // Needs a valid XL::MAIN
 
     // We're ready to go
     if (!savedUri.isEmpty())
@@ -213,7 +214,8 @@ void Application::cleanup()
     saveSettings();
     if (screenSaverBlocked)
         blockScreenSaver(false);
-    moduleManager->unloadAll(XL::MAIN->context);
+    if (moduleManager)
+        moduleManager->unloadAll(XL::MAIN->context);
 }
 
 

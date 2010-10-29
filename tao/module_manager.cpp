@@ -46,7 +46,10 @@ ModuleManager * ModuleManager::moduleManager()
     {
         instance = new ModuleManager;
         if (!instance->init())
+        {
+            delete instance;
             instance = NULL;
+        }
     }
     return instance;
 }
@@ -57,6 +60,9 @@ bool ModuleManager::init()
 //   Initialize module manager, load/check/update user's module configuration
 // ----------------------------------------------------------------------------
 {
+    if (!enabled())
+        return false;
+
     IFTRACE(modules)
         debug() << "Initializing\n";
 

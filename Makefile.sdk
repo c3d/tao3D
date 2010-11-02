@@ -32,9 +32,9 @@ FILES_linux = \
 
 FILES_mingw = \
 	libxlr \
-	libxlr/libxlr.a \
-	libxlr/xlr.dll \
 	$(NULL)
+
+OTHER_COMMANDS_mingw = $(CP_A) ./install/libxlr.a ./install/xlr.dll $(SDK_ROOT) 
 
 ####
 
@@ -56,7 +56,8 @@ sdk:
 		else \
 			doo $(CP_A) "$$i" $(SDK_ROOT)/"$$i" ; \
 		fi ; \
-	done
+	done ; \
+	doo $(OTHER_COMMANDS_$(BUILDENV))
 
 .PHONY: sdk
 

@@ -18,11 +18,11 @@ include(../main.pri)
 TEMPLATE = app
 TARGET = Tao
 VERSION = "0.0.3"    # Windows: version is in tao.rc
-DEPENDPATH += . \
-    xlr/xlr/include
-INCLUDEPATH += . \
+INC = . \
     include \
     xlr/xlr/include
+DEPENDPATH += $$INC
+INCLUDEPATH += $$INC
 win32:LIBS += -L../libxlr/release -L../libxlr/debug  # REVISIT
 LIBS += -L../libxlr -lxlr
 QT += webkit \

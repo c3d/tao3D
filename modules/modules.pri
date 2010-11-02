@@ -21,7 +21,9 @@ TARGET   = module
 CONFIG  += dll
 QT      -= core gui
 
-INCLUDEPATH += . $${TAOTOPSRC}/tao/xlr/xlr/include $${TAOTOPSRC}/tao/include
+INC = . $${TAOTOPSRC}/tao/xlr/xlr/include $${TAOTOPSRC}/tao/include
+INCLUDEPATH += $$INC
+DEPENDPATH  += $$INC
 win32:LIBS += -L$${TAOTOPSRC}/libxlr/release -L$${TAOTOPSRC}/libxlr/debug  # REVISIT
 LIBS += -L$${TAOTOPSRC}/libxlr -lxlr
 

@@ -38,3 +38,9 @@ QMAKE_EXTRA_TARGETS += sdk
 # Print the help text above (delimited by lines with 'Usage')
 help.commands = @awk \'f{print p} /Usage/&&f++{exit} {p=\$\$0}\' $$_PRO_FILE_
 QMAKE_EXTRA_TARGETS += help
+
+# Extend distclean target to also delete directories created by "make install"
+# and "make sdk"
+distclean_inst_sdk.commands = rm -rf ./install ./sdk
+distclean.depends = distclean_inst_sdk
+QMAKE_EXTRA_TARGETS += distclean distclean_inst_sdk

@@ -41,6 +41,8 @@ struct ModuleInfo
     std::string desc;
     std::string icon;
     std::string ver;
+    std::string author;
+    std::string website;
 };
 
 }

@@ -90,6 +90,7 @@ public:
     virtual QString     diff(QString a, QString b, bool symetric);
     virtual process_p   asyncGetRemoteTags(QString remote);
     virtual QStringList tags();
+    virtual bool        pathIsRoot();
 
 public:
     static  bool        checkGit();

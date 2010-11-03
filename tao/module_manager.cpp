@@ -28,6 +28,7 @@
 #include "tao_utf8.h"
 #include "parser.h"
 #include "runtime.h"
+#include "repository.h"
 #include <QSettings>
 #include <QMessageBox>
 
@@ -171,7 +172,7 @@ bool ModuleManager::checkConfig()
             invalid++;
             IFTRACE(modules)
                 debug() << "Module '" << m.toText() << "' not found on disk "
-                           "or ID mismatch\n";
+                           "or invalid or ID mismatch\n";
             if (askRemove(m, tr("Module is not found or invalid")))
             {
                 if (removeFromConfig(m))
@@ -428,26 +429,43 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
 // ----------------------------------------------------------------------------
 {
     ModuleInfoPrivate m;
-
+    QString cause;
     QString xlPath = QDir(moduleDir).filePath("module.xl");
     if (QFileInfo(xlPath).isReadable())
     {
         if (XL::Tree * tree = parse(xlPath))
         {
+            // If any mandatory attribute is missing, module is ignored
             QString id =  moduleAttr(tree, "id");
-            if (id != "")
+            QString name = moduleAttr(tree, "name");
+            QString ver = gitVersion(moduleDir);
+            if (ver == "")
+                ver = moduleAttr(tree, "version");
+
+            if (id != "" && name != "" && ver != "")
             {
-                QString name = moduleAttr(tree, "name");
                 m = ModuleInfoPrivate(+id, +moduleDir);
                 m.name = +name;
+                m.ver = +ver;
                 m.desc = +moduleAttr(tree, "description");
-                m.ver = +gitVersion(moduleDir);
                 QString iconPath = QDir(moduleDir).filePath("icon.png");
                 if (QFile(iconPath).exists())
                     m.icon = +iconPath;
+                m.author = +moduleAttr(tree, "author");
+                m.website = +moduleAttr(tree, "website");
+            }
+            else
+            {
+                cause = tr("Missing ID, name or version");
             }
         }
+        else
+        {
+            cause = tr("Could not parse module.xl");
+        }
     }
+    if (m.id == "")
+        warnInvalidModule(moduleDir, cause);
     return m;
 }
 
@@ -457,7 +475,8 @@ QString ModuleManager::gitVersion(QString moduleDir)
 //   Try to find the version of the module using Git
 // ----------------------------------------------------------------------------
 {
-    repository_ptr repo = RepositoryFactory::repository(moduleDir);
+    RepositoryFactory::Mode mode = RepositoryFactory::OpenExistingHere;
+    repository_ptr repo = RepositoryFactory::repository(moduleDir, mode);
     if (repo && repo->valid())
         return +repo->version();
     return "";
@@ -778,6 +797,8 @@ void ModuleManager::debugPrint(const ModuleInfoPrivate &m)
     debug() << "  ID:         " <<  m.id << "\n";
     debug() << "  Path:       " <<  m.path << "\n";
     debug() << "  Name:       " <<  m.name << "\n";
+    debug() << "  Author:     " <<  m.author << "\n";
+    debug() << "  Website:    " <<  m.website << "\n";
     debug() << "  Icon:       " <<  m.icon << "\n";
     debug() << "  Version:    " <<  m.ver << "\n";
     debug() << "  Latest:     " <<  m.latest << "\n";
@@ -864,6 +885,18 @@ bool ModuleManager::askEnable(const ModuleInfoPrivate &m, QString reason)
 }
 
 
+void ModuleManager::warnInvalidModule(QString moduleDir, QString cause)
+// ----------------------------------------------------------------------------
+//   Tell user of invalid module (will be ignored)
+// ----------------------------------------------------------------------------
+{
+    std::cerr << +tr("WARNING: Skipping invalid module %1\n")
+                 .arg(moduleDir);
+    if (cause != "")
+        std::cerr << +tr("WARNING:   %1\n").arg(cause);
+}
+
+
 void ModuleManager::warnDuplicateModule(const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 //   Tell user of conflicting new module (will be ignored)
@@ -878,7 +911,7 @@ void ModuleManager::warnBinaryModuleIncompatible(QLibrary *lib)
 //   Tell user about incompatible binary module (will be ignored)
 // ----------------------------------------------------------------------------
 {
-    std::cerr << "WARNING: Skipping incompatible binary module "
+    std::cerr << +QObject::tr("WARNING: Skipping incompatible binary module ")
               << +lib->fileName() << "\n";
 }
 

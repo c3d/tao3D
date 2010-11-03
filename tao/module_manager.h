@@ -7,8 +7,8 @@
 //   File Description:
 //
 //    Locate, load, enable, disable Tao modules.
-//    The architecture is largely inspired from Mozilla (Firefox) extensions
-//      https://developer.mozilla.org/en/Extensions
+//
+//
 //
 //
 //
@@ -47,33 +47,44 @@ A module is a directory with the following structure:
     icon.png     [Optional] Module icon
     lib/         [Optional] Native code as a shared library
 
-  2.1 Structure of main.xl
+  2.1 Structure of module.xl
 
-main.xl must contain at least the following.
+module.xl may contain the following.
 
+//-----
 module_description
     id "2D3DD293-C8CC-4AFC-B15A-EBB243081EFC"  // Any unique identifier
     name "My great Tao module"
     description "Undoubtedly, the nicest of all Tao modules."
-    creator "XYZ company"
+    author "XYZ company"
     website "http://greatmodule.xyz.com/"
-
-    target_application
-        id "XXXX TODO XXXX" // Tao's application ID
-        min_version "0.3"
-        max_version "0.3.*"
 
 module_init
     // Some XL code that will be evaluated on init
+//-----
 
-In this code:
- - min_version is the earliest version of Tao the module will work with.
- - max_version is the newest version of Tao the module is known to work with.
- 0.3.* means that the module works with Tao 0.3 and any subsequent 0.3.x
- release.
+id  [Mandatory]
+A unique identifier for the module. It is recommended to use uuidgen to get a
+new identifier. The module ID is used to exclude duplicates when Tao scans the
+user and application directories, looking for modules.
 
-Note that the module version does not appear in module.xl, because it is read
-from the git repository.
+name  [Mandatory]
+The short name of the module. Used in the user interface (module preferences,
+for instance).
+
+description  [Optional]
+A plain text module description.
+
+version  [Mandatory, conditional]
+The version attribute is used only if version cannot be read from the module's
+Git repository (such as, if the module is not a Git repository, or it contains
+no tag), in which case it is mandatory.
+
+author [Optional]
+The person or company that created the module.
+
+website  [Optional]
+The web site where one can find information about the module.
 
 3. Where are modules installed?
 
@@ -278,6 +289,7 @@ public:
                                   QString reason = "");
     virtual bool        askEnable(const ModuleInfoPrivate &m,
                                   QString reason = "");
+    virtual void        warnInvalidModule(QString moduleDir, QString cause);
     virtual void        warnDuplicateModule(const ModuleInfoPrivate &m);
     virtual void        warnBinaryModuleIncompatible(QLibrary *lib);
 

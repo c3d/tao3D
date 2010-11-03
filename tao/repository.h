@@ -186,6 +186,7 @@ public:
     virtual QString     diff(QString a, QString b, bool symetric = false) = 0;
     virtual process_p   asyncGetRemoteTags(QString remote) = 0;
     virtual QStringList tags()                          = 0;
+    virtual bool        pathIsRoot()                    = 0;
 
 public:
     static bool         versionGreaterOrEqual(QString ver, QString ref);
@@ -268,6 +269,7 @@ public:
         Clone,        // Return a Repository instance for a given path that
                       // must NOT contain a valid repository -- caller will
                       // later invoke Repository::clone()
+        OpenExistingHere, // Like OpenExisting but path must be repository root
     };
 
 public:

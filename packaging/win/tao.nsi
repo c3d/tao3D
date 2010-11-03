@@ -90,6 +90,7 @@ SectionEnd
 ; Optional section (can be disabled by the user)
 Section "Start Menu Shortcuts"
 
+  SetShellVarContext all
   CreateDirectory "$SMPROGRAMS\Tao"
   CreateShortCut "$SMPROGRAMS\Tao\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
   CreateShortCut "$SMPROGRAMS\Tao\Tao.lnk" "$INSTDIR\Tao.exe" "" "$INSTDIR\Tao.exe" 0
@@ -148,6 +149,7 @@ Section "Uninstall"
   RMDir /r $INSTDIR\modules
 
   ; Remove shortcuts
+  SetShellVarContext all
   Delete "$SMPROGRAMS\Tao\*.*"
   RMDir  "$SMPROGRAMS\Tao"
 

@@ -139,8 +139,7 @@ bool ModuleManager::loadConfig()
         bool    enabled = settings.value("Enabled").toBool();
 
         ModuleInfoPrivate m(+id, +path, enabled);
-        modules.append(m);
-        modulesById[id]     = &modules.last();
+        modules[id] = m;
 
         IFTRACE(modules)
             debugPrintShort(m);
@@ -181,7 +180,7 @@ bool ModuleManager::checkConfig()
         }
         else
         {
-            moduleById(m.id)->copyProperties(d);
+            modules[+m.id].copyProperties(d);
             if (!m.enabled)
                 disabled++;
         }
@@ -207,8 +206,7 @@ bool ModuleManager::removeFromConfig(const ModuleInfoPrivate &m)
     IFTRACE(modules)
         debug() << "Removing module " << m.toText() << " from configuration\n";
 
-    modules.removeOne(m);
-    modulesById.remove(+m.id);
+    modules.remove(+m.id);
 
     QSettings settings;
     settings.beginGroup(USER_MODULES_SETTING_GROUP);
@@ -230,8 +228,7 @@ bool ModuleManager::addToConfig(const ModuleInfoPrivate &m)
     IFTRACE(modules)
         debug() << "Adding module " << m.toText() << " to configuration\n";
 
-    modules.append(m);
-    modulesById[+m.id] = &modules.last();
+    modules[+m.id] = m;
 
     QSettings settings;
     settings.beginGroup(USER_MODULES_SETTING_GROUP);
@@ -291,7 +288,7 @@ bool ModuleManager::loadAll(Context *context)
     QList<ModuleInfoPrivate> toload;
     foreach (ModuleInfoPrivate m, modules)
     {
-        moduleById(m.id)->context = context;
+        modules[+m.id].context = context;
         if (m.enabled && !m.loaded)
             toload.append(m);
     }
@@ -316,11 +313,23 @@ bool ModuleManager::unloadAll(Context *context)
     bool ok = true;
     foreach (ModuleInfoPrivate m, modules)
     {
-        moduleById(m.id)->context = NULL;
+        modules[+m.id].context = NULL;
         if (m.loaded)
             ok &= unload(context, m);
     }
     return ok;
+}
+
+
+QList<ModuleManager::ModuleInfoPrivate> ModuleManager::allModules()
+// ----------------------------------------------------------------------------
+//   Return a list of all configured modules
+// ----------------------------------------------------------------------------
+{
+    QList<ModuleInfoPrivate> all;
+    foreach (const ModuleInfoPrivate m, modules)
+        all.append(m);
+    return all;
 }
 
 
@@ -374,10 +383,12 @@ QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
         foreach (QString d, subdirs)
         {
             QString moduleDir = QDir(dir.filePath(d)).absolutePath();
+            IFTRACE(modules)
+                debug() << "Checking " << +moduleDir << "\n";
             ModuleInfoPrivate m = readModule(moduleDir);
             if (m.id != "")
             {
-                if (!modules.contains(m))
+                if (!modules.contains(+m.id))
                 {
                     IFTRACE(modules)
                     {
@@ -388,7 +399,7 @@ QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
                 }
                 else
                 {
-                    ModuleInfoPrivate existing = *moduleById(m.id);
+                    ModuleInfoPrivate existing = modules[+m.id];
                     if (m.path != existing.path)
                     {
                         IFTRACE(modules)
@@ -799,8 +810,8 @@ ModuleManager::ModuleInfoPrivate * ModuleManager::moduleById(text id)
 //   Lookup a module info structure in the list of known modules
 // ----------------------------------------------------------------------------
 {
-    if (modulesById.contains(+id))
-        return modulesById[+id];
+    if (modules.contains(+id))
+        return &modules[+id];
     return NULL;
 }
 
@@ -945,7 +956,7 @@ void CheckForUpdate::processRemoteTags(QStringList tags)
             if (Repository::versionGreaterOrEqual(tag, latest))
                 latest = tag;
 
-        mm.moduleById(m.id)->latest = +latest;
+        mm.modules[+m.id].latest = +latest;
 
         hasUpdate = (latest != current &&
                      Repository::versionGreaterOrEqual(latest, current));
@@ -965,7 +976,7 @@ void CheckForUpdate::processRemoteTags(QStringList tags)
             debug() << "  No remote tags\n";
     }
 
-    mm.moduleById(m.id)->updateAvailable = hasUpdate;
+    mm.modules[+m.id].updateAvailable = hasUpdate;
     emit complete(m, hasUpdate);
     deleteLater();
 }
@@ -984,7 +995,7 @@ bool CheckAllForUpdate::start()
     // Signal checkForUpdateComplete(bool need) will be emitted
     bool ok = true;
 
-    QList<ModuleManager::ModuleInfoPrivate> &modules = mm.modules;
+    QList<ModuleManager::ModuleInfoPrivate> modules = mm.allModules();
     num = modules.count();
     if (!num)
         return false;

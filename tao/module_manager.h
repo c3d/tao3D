@@ -270,7 +270,7 @@ public:
 
     bool                loadAll(Context *context);
     bool                unloadAll(Context *context);
-    QList<ModuleInfoPrivate>   allModules()    { return modules; }
+    QList<ModuleInfoPrivate>   allModules();
     void                setEnabled(QString id, bool enabled);
     bool                enabled() { return XL::MAIN->options.enable_modules; }
 
@@ -363,8 +363,7 @@ private:
 
 private:
     QString                     u, s;
-    QList<ModuleInfoPrivate>           modules;
-    QMap<QString, ModuleInfoPrivate *> modulesById;
+    QMap<QString, ModuleInfoPrivate>   modules;
     ModuleApiPrivate                   api;
 
 
@@ -394,8 +393,8 @@ class CheckForUpdate : public QObject
 public:
     CheckForUpdate(ModuleManager &mm, QString id) : mm(mm)
     {
-        if (mm.modulesById.contains(id))
-            m = *(mm.modulesById[id]);
+        if (mm.modules.contains(id))
+            m = mm.modules[id];
     }
 
     bool           start();
@@ -469,8 +468,8 @@ class UpdateModule : public QObject
 public:
     UpdateModule(ModuleManager &mm, QString id) : mm(mm)
     {
-        if (mm.modulesById.contains(id))
-            m = *(mm.modulesById[id]);
+        if (mm.modules.contains(id))
+            m = mm.modules[id];
     }
 
     bool           start();

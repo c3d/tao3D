@@ -239,7 +239,8 @@ OTHER_FILES += xl.syntax \
     debug.stylesheet \
     dbghtml.stylesheet \
     bytecode.stylesheet \
-    builtins.xl \
+    xlr/xlr/builtins.xl \
+    tao.xl \
     tutorial.ddd \
     git.stylesheet \
     srcview.stylesheet \
@@ -273,7 +274,8 @@ QMAKE_EXTRA_TARGETS += revtarget
 
 # What to install
 xl_files.path  = $$APPINST
-xl_files.files = builtins.xl\
+xl_files.files = xlr/xlr/builtins.xl \
+    tao.xl \
     xl.syntax \
     xl.stylesheet \
     git.stylesheet \

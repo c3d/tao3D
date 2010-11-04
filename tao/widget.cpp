@@ -102,10 +102,6 @@ TAO_BEGIN
 //
 // ============================================================================
 
-double Widget::zNear = 2000.0;
-double Widget::zFar = 40000.0;
-
-
 static inline QGL::FormatOptions TaoGLFormatOptions()
 // ----------------------------------------------------------------------------
 //   Return the options we will use when creating the widget
@@ -148,7 +144,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       nextPull(nextSave),
       sourceRenderer(NULL),
       currentFileDialog(NULL),
-      zoom(1.0), eyeDistance(20.0),
+      zNear(2000.0), zFar(40000.0), zoom(1.0), eyeDistance(20.0),
       eye(0.0, 0.0, Widget::zNear), viewCenter(0.0, 0.0, 0.0),
       dragging(false), bAutoHideCursor(false), forceRefresh(false),
       currentTest(this)
@@ -3668,6 +3664,63 @@ Name_p Widget::setCenterPosition(Tree_p self, coord x, coord y)
 }
 
 
+Name_p Widget::setEyeDistance(Tree_p self, double eyeD)
+// ----------------------------------------------------------------------------
+//   Set the distance between the eyes for stereoscopy
+// ----------------------------------------------------------------------------
+{
+    eyeDistance = eyeD;
+    return XL::xl_true;
+}
+
+
+Real_p Widget::getEyeDistance(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Get the distance between the eyse for stereoscopy
+// ----------------------------------------------------------------------------
+{
+    return new Real(eyeDistance);
+}
+
+
+Name_p Widget::setZNear(Tree_p self, double zn)
+// ----------------------------------------------------------------------------
+//   Set the nearest position for OpenGL
+// ----------------------------------------------------------------------------
+{
+    zNear = zn;
+    return XL::xl_true;
+}
+
+
+Real_p Widget::getZNear(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Get the nearest position for OpenGL
+// ----------------------------------------------------------------------------
+{
+    return new Real(zNear);
+}
+
+
+Name_p Widget::setZFar(Tree_p self, double zf)
+// ----------------------------------------------------------------------------
+//   Set the farthest position for OpenGL
+// ----------------------------------------------------------------------------
+{
+    zFar = zf;
+    return XL::xl_true;
+}
+
+
+Real_p Widget::getZFar(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Get the nearest position for OpenGL
+// ----------------------------------------------------------------------------
+{
+    return new Real(zFar);
+}
+
+
 Integer_p Widget::lastModifiers(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the current modifiers
@@ -4077,10 +4130,10 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, text filename)
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
-    Rectangle shape(Box(x-rinfo->width/2, y-rinfo->height/2,
-                        rinfo->width, rinfo->height));
-    layout->Add(new Rectangle(shape));
+    layout->Add(new Rectangle(Box(x-rinfo->width/2, y-rinfo->height/2,
+                                  rinfo->width, rinfo->height)));
 
+#if 0
     // Replace image x,y,"toto" with x,y,w,h,"toto"
     InsertImageWidthAndHeightAction insertAct(rinfo->width, rinfo->height);
     self->Do(insertAct);
@@ -4088,6 +4141,7 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, text filename)
     // The structure of the program has changed, we need to recompile
     reloadProgram();
     markChanged("Image size added");
+#endif
 
     return XL::xl_true;
 }

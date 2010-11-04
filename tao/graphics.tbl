@@ -661,6 +661,24 @@ PREFIX(EnableStereoscopy, boolean, "enable_stereoscopy", PARM(f, boolean),
                 return_value \"\", <<True if previous state was on.>>;\
                 }\
           |*/")
+PREFIX(EyeDistance, boolean, "eye_distance", PARM(e, real),
+       RTAO(setEyeDistance(self, e)),
+       "")
+PREFIX(GetEyeDistance, real, "eye_distance",,
+       RTAO(getEyeDistance(self)),
+       "")
+PREFIX(ZNear, boolean, "z_near", PARM(zn, real),
+       RTAO(setZNear(self, zn)),
+       "")
+PREFIX(GetZNear, real, "z_near",,
+       RTAO(getZNear(self)),
+       "")
+PREFIX(ZFar, boolean, "z_far", PARM(zf, real),
+       RTAO(setZFar(self, zf)),
+       "")
+PREFIX(GetZFar, real, "z_far",,
+       RTAO(getZFar(self)),
+       "")
 PREFIX(PolygonOffset, integer, "polygon_offset",
        PARM(f0, real) PARM(f1, real) PARM(u0, real) PARM(u1, real),
        RTAO(polygonOffset(self, f0, f1, u0, u1)),

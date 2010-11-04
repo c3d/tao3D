@@ -58,6 +58,7 @@ module_description
     description "Undoubtedly, the nicest of all Tao modules."
     author "XYZ company"
     website "http://greatmodule.xyz.com/"
+    import_name "GreatModule"
 
 module_init
     // Some XL code that will be evaluated on init
@@ -86,6 +87,11 @@ The person or company that created the module.
 website  [Optional]
 The web site where one can find information about the module.
 
+import_name [Optional]
+The name to use if the module is to be explicitely imported. That is, if
+import_name is "MyModule", the module can be imported with:
+  import MyModule "1.0"
+
 3. Where are modules installed?
 
 Module files may be installed anywhere, but are typically stored either under
@@ -94,6 +100,8 @@ These locations depend on the operating system. We will call the per-user
 folder "U" and the system-wide folder "S".
 
 4. How are modules loaded?
+
+  4.1 Common module initialization
 
 When Tao starts up, it checks folders U/modules and S/modules, looking for
 unknown modules. A module is unknown if it is not registered in the user's
@@ -105,9 +113,25 @@ Otherwise, the module ID is stored with the "disabled" flag.
 The module path is also saved.
 
 Then, all other modules marked as "enabled" in the user settings are loaded
-and initialized.
+and initialized (see details below).
 
-At any time, the user may register a new module.
+  4.2 Explicit import
+
+A Tao document may explicitely import a module, for instance to benefit from
+new XL constructs or primitives. Explicit import is achived by the following
+line:
+
+  import ModuleName "1.10"
+
+When Tao encounters the import statement, it looks up ModuleName in the list
+of currently loaded modules, checks the version compatibility, and then makes
+the module definitions available to the Tao document.
+Version matching is a prefix match, that is: if version "1.10" is requested,
+Tao may load any module version starting with "1.10". For instance, "1.10"
+and "1.10.2" are compatible but "1", "1.11" and "2.0" are not.
+
+Without explicit import, no definition from the module.xl are reachable from
+the document.
 
 5. How are modules installed?
 
@@ -220,6 +244,8 @@ Native and XL functions of a module are called by Tao in the following order:
 #include "tao/module_api.h"
 #include "tao/module_info.h"
 #include "module_api_p.h"
+#include "tree.h"
+#include "context.h"
 #include <QObject>
 #include <QString>
 #include <QList>
@@ -241,6 +267,8 @@ struct ModuleManager : public QObject
 
 public:
     static ModuleManager * moduleManager();
+    static XL::Tree_p      import(XL::Context_p context, XL::Tree_p self,
+                                  XL::Tree_p what);
 
     struct ModuleInfoPrivate : ModuleInfo
     // ------------------------------------------------------------------------
@@ -273,9 +301,9 @@ public:
             return id + " (" + path + ")";
         }
 
-        void copyProperties(const ModuleInfoPrivate &o)
+        void copyPublicProperties(const ModuleInfo &o)
         {
-            name = o.name;  desc = o.desc;  icon = o.icon;  ver = o.ver;
+            *(ModuleInfo*)this = o;
         }
     };
 
@@ -373,6 +401,8 @@ private:
 
     ModuleInfoPrivate * moduleById(text id);
 
+    XL::Tree_p          importModule(XL::Context_p context, XL::Tree_p self,
+                                     XL::Tree_p what);
 private:
     QString                     u, s;
     QMap<QString, ModuleInfoPrivate>   modules;

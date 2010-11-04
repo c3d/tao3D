@@ -306,6 +306,29 @@ bool Repository::versionGreaterOrEqual(QString ver, QString ref)
 }
 
 
+bool Repository::versionMatches(QString ver, QString ref, int n)
+// ----------------------------------------------------------------------------
+//   Return true if ver is a prefix match of ref (up to nth dot if n != 0)
+// ----------------------------------------------------------------------------
+{
+    QStringList v = ver.split(".");
+    QStringListIterator vit(v);
+    QStringListIterator rit(ref.split("."));
+    if (!n)
+        n = v.size();
+    while (vit.hasNext() && rit.hasNext() && n--)
+    {
+        int vi = vit.next().toInt();
+        int ri = rit.next().toInt();
+        if (vi != ri)
+            return false;
+    }
+    if (n && vit.hasNext())
+        return false;
+    return true;
+}
+
+
 Repository::ProcQueueConsumer::~ProcQueueConsumer()
 // ----------------------------------------------------------------------------
 //   Pop the head process from process queue and start next one

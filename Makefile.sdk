@@ -1,0 +1,63 @@
+# Identification of the default build environment
+BUILDENV=$(BUILDENV_$(shell uname -s | sed s/CYGWIN.*/Cygwin/ | sed s/MINGW.*/MinGW/))
+BUILDENV_Darwin=macosx
+BUILDENV_Linux=linux
+BUILDENV_MinGW=mingw
+
+SDK_ROOT = sdk
+
+FILES_COMMON = \
+	main.pri \
+	modules \
+	modules/modules.pri \
+	modules/tbl_wrap \
+	tao \
+	tao/include \
+	$(shell find tao/include) \
+	tao/xlr \
+	tao/xlr/xlr \
+	tao/xlr/xlr/include \
+	$(shell find tao/xlr/xlr/include) \
+	$(NULL)
+
+FILES_macosx = \
+	libxlr \
+	libxlr/libxlr*.dylib \
+	$(NULL)
+
+FILES_linux = \
+	libxlr \
+	libxlr/libxlr.so* \
+	$(NULL)
+
+FILES_mingw = \
+	libxlr \
+	$(NULL)
+
+OTHER_COMMANDS_mingw = $(CP_A) ./install/libxlr.a ./install/xlr.dll $(SDK_ROOT) 
+
+####
+
+FILES = $(FILES_COMMON) $(FILES_$(BUILDENV))
+
+MKDIR_P = mkdir -p
+CP_A = cp -a
+
+sdk:
+	mkdir -p $(SDK_ROOT)
+	doo() { \
+		echo $$* ; \
+		$$* ; \
+	} ; \
+	set -e ; \
+	for i in $(FILES) ; do \
+		if [ -d "$$i" ] ; then \
+			doo $(MKDIR_P) $(SDK_ROOT)/"$$i" ; \
+		else \
+			doo $(CP_A) "$$i" $(SDK_ROOT)/"$$i" ; \
+		fi ; \
+	done ; \
+	doo $(OTHER_COMMANDS_$(BUILDENV))
+
+.PHONY: sdk
+

@@ -75,8 +75,8 @@ DebugPage::DebugPage(QWidget *parent)
     QVBoxLayout *mainLayout = new QVBoxLayout;
     mainLayout->addWidget(tracesGroup);
     mainLayout->addSpacing(12);
-    mainLayout->addWidget(buttonsWidget);
     mainLayout->addStretch(1);
+    mainLayout->addWidget(buttonsWidget);
     setLayout(mainLayout);
 }
 
@@ -159,6 +159,14 @@ ModulesPage::ModulesPage(QWidget *parent)
 // ----------------------------------------------------------------------------
 {
     mmgr = ModuleManager::moduleManager();
+    if (!mmgr)
+    {
+        QVBoxLayout *mainLayout = new QVBoxLayout;
+        QLabel *msg = new QLabel(tr("Modules are disabled"));
+        mainLayout->addWidget(msg);
+        setLayout(mainLayout);
+        return;
+    }
     modules = mmgr->allModules();
 
     QGroupBox *gb = new QGroupBox(tr("Installed modules"));
@@ -173,6 +181,7 @@ ModulesPage::ModulesPage(QWidget *parent)
     table->setHorizontalHeaderItem(4, new QTableWidgetItem("Status"));
     table->horizontalHeader()->setStretchLastSection(true);
     table->verticalHeader()->hide();
+    table->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     updateTable();
     vbLayout->addWidget(table);
     gb->setLayout(vbLayout);
@@ -188,6 +197,7 @@ ModulesPage::ModulesPage(QWidget *parent)
     sw = new QStackedWidget;
     sw->insertWidget(0, new QFrame);
     sw->insertWidget(1, (pb = new QProgressBar));
+    sw->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     cfuLayout->addWidget(sw);
     cfuWidget->setLayout(cfuLayout);
 
@@ -195,7 +205,6 @@ ModulesPage::ModulesPage(QWidget *parent)
     mainLayout->addWidget(gb);
     mainLayout->addSpacing(12);
     mainLayout->addWidget(cfuWidget);
-    mainLayout->addStretch(1);
     setLayout(mainLayout);
 }
 
@@ -207,9 +216,9 @@ void ModulesPage::toggleModule()
 {
     QAction *act = (QAction *)sender();
     int row = act->data().toInt();
-    ModuleManager::ModuleInfo m = modules[row];
+    ModuleManager::ModuleInfoPrivate m = modules[row];
 
-    mmgr->setEnabled(m.id, !m.enabled);
+    mmgr->setEnabled(+m.id, !m.enabled);
     updateTable();
 }
 
@@ -241,7 +250,7 @@ void ModulesPage::updateTable()
     modules = mmgr->allModules();
     table->setRowCount(modules.count());
     int row = 0;
-    foreach (ModuleManager::ModuleInfo m, modules)
+    foreach (ModuleManager::ModuleInfoPrivate m, modules)
     {
         Qt::ItemFlags enFlag = m.enabled ? Qt::ItemIsEnabled : Qt::NoItemFlags;
 
@@ -258,15 +267,15 @@ void ModulesPage::updateTable()
             m.icon = ":/images/modules.png";
         item = new QTableWidgetItem;
         item->setTextAlignment(Qt::AlignCenter);
-        item->setIcon(QIcon(m.icon));
+        item->setIcon(QIcon(+m.icon));
         item->setFlags(enFlag);
         table->setItem(row, 1, item);
 
-        item = new QTableWidgetItem(m.name);
+        item = new QTableWidgetItem(+m.name);
         item->setFlags(enFlag);
         table->setItem(row, 2, item);
 
-        item = new QTableWidgetItem(m.ver);
+        item = new QTableWidgetItem(+m.ver);
         item->setTextAlignment(Qt::AlignCenter);
         item->setFlags(enFlag);
         table->setItem(row, 3, item);
@@ -274,7 +283,7 @@ void ModulesPage::updateTable()
         QWidget *widget = NULL;
         if (m.updateAvailable)
         {
-            QString msg = QString("Update to %1").arg(m.latest);
+            QString msg = QString("Update to %1").arg(+m.latest);
             QToolButton *b = new QToolButton;
             QAction *act = new QAction(msg, this);
             act->setData(QVariant(row));
@@ -319,9 +328,9 @@ void ModulesPage::updateOne()
 {
     QAction *act = (QAction *)sender();
     int row = act->data().toInt();
-    ModuleManager::ModuleInfo m = modules[row];
+    ModuleManager::ModuleInfoPrivate m = modules[row];
     act->setEnabled(false);
-    UpdateModule *up = new UpdateModule(*mmgr, m.id);
+    UpdateModule *up = new UpdateModule(*mmgr, +m.id);
     connect(up, SIGNAL(complete(bool)), this, SLOT(onUpdateOneComplete()));
     up->start();
 }

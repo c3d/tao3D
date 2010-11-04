@@ -22,11 +22,13 @@
 
 
 #include "module_manager.h"
+#include "tao/module_api.h"
 #include "application.h"
 #include "options.h"
 #include "tao_utf8.h"
 #include "parser.h"
 #include "runtime.h"
+#include "repository.h"
 #include <QSettings>
 #include <QMessageBox>
 
@@ -45,7 +47,10 @@ ModuleManager * ModuleManager::moduleManager()
     {
         instance = new ModuleManager;
         if (!instance->init())
+        {
+            delete instance;
             instance = NULL;
+        }
     }
     return instance;
 }
@@ -56,6 +61,9 @@ bool ModuleManager::init()
 //   Initialize module manager, load/check/update user's module configuration
 // ----------------------------------------------------------------------------
 {
+    if (!enabled())
+        return false;
+
     IFTRACE(modules)
         debug() << "Initializing\n";
 
@@ -74,7 +82,7 @@ bool ModuleManager::init()
     IFTRACE(modules)
     {
         debug() << "Updated module list before load\n";
-        foreach (ModuleInfo m, modules)
+        foreach (ModuleInfoPrivate m, modules)
             debugPrintShort(m);
     }
 
@@ -131,9 +139,8 @@ bool ModuleManager::loadConfig()
         QString path    = settings.value("Path").toString();
         bool    enabled = settings.value("Enabled").toBool();
 
-        ModuleInfo m(id, path, enabled);
-        modules.append(m);
-        modulesById[id]     = &modules.last();
+        ModuleInfoPrivate m(+id, +path, enabled);
+        modules[id] = m;
 
         IFTRACE(modules)
             debugPrintShort(m);
@@ -156,16 +163,16 @@ bool ModuleManager::checkConfig()
         debug() << "Validating current module configuration\n";
 
     unsigned total = 0, invalid = 0, removed = 0, disabled = 0;
-    foreach (ModuleInfo m, modules)
+    foreach (ModuleInfoPrivate m, modules)
     {
         total++;
-        ModuleInfo d = readModule(m.path);
+        ModuleInfoPrivate d = readModule(+m.path);
         if (d.id != m.id)
         {
             invalid++;
             IFTRACE(modules)
                 debug() << "Module '" << m.toText() << "' not found on disk "
-                           "or ID mismatch\n";
+                           "or invalid or ID mismatch\n";
             if (askRemove(m, tr("Module is not found or invalid")))
             {
                 if (removeFromConfig(m))
@@ -174,7 +181,7 @@ bool ModuleManager::checkConfig()
         }
         else
         {
-            modulesById[m.id]->copyProperties(d);
+            modules[+m.id].copyProperties(d);
             if (!m.enabled)
                 disabled++;
         }
@@ -192,7 +199,7 @@ bool ModuleManager::checkConfig()
 }
 
 
-bool ModuleManager::removeFromConfig(const ModuleInfo &m)
+bool ModuleManager::removeFromConfig(const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 //   Remove m from the list of configured modules
 // ----------------------------------------------------------------------------
@@ -200,12 +207,11 @@ bool ModuleManager::removeFromConfig(const ModuleInfo &m)
     IFTRACE(modules)
         debug() << "Removing module " << m.toText() << " from configuration\n";
 
-    modules.removeOne(m);
-    modulesById.remove(m.id);
+    modules.remove(+m.id);
 
     QSettings settings;
     settings.beginGroup(USER_MODULES_SETTING_GROUP);
-    settings.remove(m.id);
+    settings.remove(+m.id);
     settings.endGroup();
 
     IFTRACE(modules)
@@ -215,7 +221,7 @@ bool ModuleManager::removeFromConfig(const ModuleInfo &m)
 }
 
 
-bool ModuleManager::addToConfig(const ModuleInfo &m)
+bool ModuleManager::addToConfig(const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 //   Add m to the list of configured modules
 // ----------------------------------------------------------------------------
@@ -223,13 +229,12 @@ bool ModuleManager::addToConfig(const ModuleInfo &m)
     IFTRACE(modules)
         debug() << "Adding module " << m.toText() << " to configuration\n";
 
-    modules.append(m);
-    modulesById[m.id] = &modules.last();
+    modules[+m.id] = m;
 
     QSettings settings;
     settings.beginGroup(USER_MODULES_SETTING_GROUP);
-    settings.beginGroup(m.id);
-    settings.setValue("Path", m.path);
+    settings.beginGroup(+m.id);
+    settings.setValue("Path", +m.path);
     settings.setValue("Enabled", m.enabled);
     settings.endGroup();
     settings.endGroup();
@@ -246,11 +251,13 @@ void ModuleManager::setEnabled(QString id, bool enabled)
 //   Enable or disable a module
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(modules)
-        debug() << (enabled ? "En" : "Dis") << "abling module " << +id << "\n";
+    ModuleInfoPrivate * m_p = moduleById(+id);
+    if (!m_p)
+        return;
 
-    if (modulesById.contains(id))
-        modulesById[id]->enabled = enabled;
+    IFTRACE(modules)
+        debug() << (enabled ? "En" : "Dis") << "abling module "
+                << m_p->toText() << "\n";
 
     QSettings settings;
     settings.beginGroup(USER_MODULES_SETTING_GROUP);
@@ -258,6 +265,19 @@ void ModuleManager::setEnabled(QString id, bool enabled)
     settings.setValue("Enabled", enabled);
     settings.endGroup();
     settings.endGroup();
+
+    bool prev = m_p->enabled;
+    m_p->enabled = enabled;
+
+    if (prev == enabled)
+        return;
+    if (!m_p->context)
+        return;
+    if (enabled && !m_p->loaded)
+        load(m_p->context, *m_p);
+    else
+    if (!enabled && m_p->loaded)
+        unload(m_p->context, *m_p);
 }
 
 
@@ -266,18 +286,51 @@ bool ModuleManager::loadAll(Context *context)
 //   Load all enabled modules for current user
 // ----------------------------------------------------------------------------
 {
-    QList<ModuleInfo> enabled;
-    foreach (ModuleInfo m, modules)
+    QList<ModuleInfoPrivate> toload;
+    foreach (ModuleInfoPrivate m, modules)
+    {
+        modules[+m.id].context = context;
         if (m.enabled && !m.loaded)
-            enabled.append(m);
-    bool ok = load(context, enabled);
+            toload.append(m);
+    }
+    bool ok = load(context, toload);
     IFTRACE(modules)
     {
         debug() << "All modules\n";
-        foreach (ModuleInfo m, modules)
+        foreach (ModuleInfoPrivate m, modules)
             debugPrint(m);
     }
     return ok;
+}
+
+static bool HACK_NoUnload = true;    // See FIXME below
+
+bool ModuleManager::unloadAll(Context *context)
+// ----------------------------------------------------------------------------
+//   Unload all currently loaded modules
+// ----------------------------------------------------------------------------
+{
+    HACK_NoUnload = false;
+    bool ok = true;
+    foreach (ModuleInfoPrivate m, modules)
+    {
+        modules[+m.id].context = NULL;
+        if (m.loaded)
+            ok &= unload(context, m);
+    }
+    return ok;
+}
+
+
+QList<ModuleManager::ModuleInfoPrivate> ModuleManager::allModules()
+// ----------------------------------------------------------------------------
+//   Return a list of all configured modules
+// ----------------------------------------------------------------------------
+{
+    QList<ModuleInfoPrivate> all;
+    foreach (const ModuleInfoPrivate m, modules)
+        all.append(m);
+    return all;
 }
 
 
@@ -301,8 +354,8 @@ bool ModuleManager::checkNew(QString path)
 {
     bool ok = true;
 
-    QList<ModuleInfo> mods = newModules(path);
-    foreach (ModuleInfo m, mods)
+    QList<ModuleInfoPrivate> mods = newModules(path);
+    foreach (ModuleInfoPrivate m, mods)
     {
         if (askEnable(m, tr("New module")))
             m.enabled = true;
@@ -314,12 +367,12 @@ bool ModuleManager::checkNew(QString path)
 }
 
 
-QList<ModuleManager::ModuleInfo> ModuleManager::newModules(QString path)
+QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
 // ----------------------------------------------------------------------------
 //   Return the modules under path that are not in the user's configuration
 // ----------------------------------------------------------------------------
 {
-    QList<ModuleManager::ModuleInfo> mods;
+    QList<ModuleManager::ModuleInfoPrivate> mods;
 
     IFTRACE(modules)
         debug() << "Checking for new modules in " << +path << "\n";
@@ -331,10 +384,12 @@ QList<ModuleManager::ModuleInfo> ModuleManager::newModules(QString path)
         foreach (QString d, subdirs)
         {
             QString moduleDir = QDir(dir.filePath(d)).absolutePath();
-            ModuleInfo m = readModule(moduleDir);
+            IFTRACE(modules)
+                debug() << "Checking " << +moduleDir << "\n";
+            ModuleInfoPrivate m = readModule(moduleDir);
             if (m.id != "")
             {
-                if (!modules.contains(m))
+                if (!modules.contains(+m.id))
                 {
                     IFTRACE(modules)
                     {
@@ -345,7 +400,7 @@ QList<ModuleManager::ModuleInfo> ModuleManager::newModules(QString path)
                 }
                 else
                 {
-                    ModuleInfo existing = *modulesById[m.id];
+                    ModuleInfoPrivate existing = modules[+m.id];
                     if (m.path != existing.path)
                     {
                         IFTRACE(modules)
@@ -368,32 +423,49 @@ QList<ModuleManager::ModuleInfo> ModuleManager::newModules(QString path)
 }
 
 
-ModuleManager::ModuleInfo ModuleManager::readModule(QString moduleDir)
+ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
 // ----------------------------------------------------------------------------
 //   Read module directory and return module info. Set m.id == "" on error.
 // ----------------------------------------------------------------------------
 {
-    ModuleInfo m;
-
+    ModuleInfoPrivate m;
+    QString cause;
     QString xlPath = QDir(moduleDir).filePath("module.xl");
     if (QFileInfo(xlPath).isReadable())
     {
         if (XL::Tree * tree = parse(xlPath))
         {
+            // If any mandatory attribute is missing, module is ignored
             QString id =  moduleAttr(tree, "id");
-            if (id != "")
+            QString name = moduleAttr(tree, "name");
+            QString ver = gitVersion(moduleDir);
+            if (ver == "")
+                ver = moduleAttr(tree, "version");
+
+            if (id != "" && name != "" && ver != "")
             {
-                QString name = moduleAttr(tree, "name");
-                m = ModuleInfo(id, moduleDir);
-                m.name = name;
-                m.desc = moduleAttr(tree, "description");
-                m.ver = gitVersion(moduleDir);
+                m = ModuleInfoPrivate(+id, +moduleDir);
+                m.name = +name;
+                m.ver = +ver;
+                m.desc = +moduleAttr(tree, "description");
                 QString iconPath = QDir(moduleDir).filePath("icon.png");
                 if (QFile(iconPath).exists())
-                    m.icon = iconPath;
+                    m.icon = +iconPath;
+                m.author = +moduleAttr(tree, "author");
+                m.website = +moduleAttr(tree, "website");
+            }
+            else
+            {
+                cause = tr("Missing ID, name or version");
             }
         }
+        else
+        {
+            cause = tr("Could not parse module.xl");
+        }
     }
+    if (m.id == "")
+        warnInvalidModule(moduleDir, cause);
     return m;
 }
 
@@ -403,7 +475,8 @@ QString ModuleManager::gitVersion(QString moduleDir)
 //   Try to find the version of the module using Git
 // ----------------------------------------------------------------------------
 {
-    repository_ptr repo = RepositoryFactory::repository(moduleDir);
+    RepositoryFactory::Mode mode = RepositoryFactory::OpenExistingHere;
+    repository_ptr repo = RepositoryFactory::repository(moduleDir, mode);
     if (repo && repo->valid())
         return +repo->version();
     return "";
@@ -442,19 +515,19 @@ QString ModuleManager::moduleAttr(XL::Tree *tree, QString attribute)
 }
 
 
-bool ModuleManager::load(Context *context, const QList<ModuleInfo> &mods)
+bool ModuleManager::load(Context *ctx, const QList<ModuleInfoPrivate> &mods)
 // ----------------------------------------------------------------------------
 //   Load modules, in sequence
 // ----------------------------------------------------------------------------
 {
     bool ok = true;
-    foreach(ModuleInfo m, mods)
-        ok &= load(context, m);
+    foreach(ModuleInfoPrivate m, mods)
+        ok &= load(ctx, m);
     return ok;
 }
 
 
-bool ModuleManager::load(Context *context, const ModuleInfo &m)
+bool ModuleManager::load(Context *context, const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 //   Load one module
 // ----------------------------------------------------------------------------
@@ -472,41 +545,63 @@ bool ModuleManager::load(Context *context, const ModuleInfo &m)
 }
 
 
-bool ModuleManager::loadXL(Context *context, const ModuleInfo &m)
+bool ModuleManager::loadXL(Context *context, const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 //   Load the XL code of a module
 // ----------------------------------------------------------------------------
 {
     IFTRACE(modules)
-        debug() << "  Loading XL code (module.xl)\n";
+        debug() << "  Loading XL source (module.xl)\n";
 
-    QString xlPath = QDir(m.path).filePath("module.xl");
-    bool ok = XL::xl_load(context, +xlPath) != NULL;
+    QString xlPath = QDir(+m.path).filePath("module.xl");
 
-    if (ok && modulesById.contains(m.id))
-        modulesById[m.id]->loaded = true;
+    // module_description <indent block> evaluates as nil
+    // REVISIT: bind a native function and use it to parse the block?
+    Name *n = new Name("module_description");
+    Block *b = new Block(new Name("x"), XL::Block::indent, XL::Block::unindent);
+    Prefix *from = new Prefix(n, b);
+    Name *to = new Name("nil");
+    context->Define(from, to);
+
+    bool ok = XL::xl_import(context, +xlPath) != NULL;
+
+    ModuleInfoPrivate *m_p = moduleById(m.id);
+    if (ok && m_p)
+        m_p->loaded = true;
+
+    XL::source_files::iterator it = XL::MAIN->files.find(+xlPath);
+    XL::source_files::iterator end = XL::MAIN->files.end();
+    if (it != end)
+    {
+        XL::SourceFile &sf = (*it).second;
+        Context *moduleContext = sf.context;
+
+        if (context->Bound(new XL::Name("module_init")))
+        {
+            IFTRACE(modules)
+                debug() << "    Calling XL module_init\n";
+            XL::XLCall("module_init")(moduleContext);
+        }
+    }
 
     return ok;
 }
 
 
-bool ModuleManager::loadNative(Context *context, const ModuleInfo &m)
+bool ModuleManager::loadNative(Context * /*context*/, const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 //   Load the native code of a module (shared libraries under lib/)
 // ----------------------------------------------------------------------------
 {
     IFTRACE(modules)
-        debug() << "  Looking for native library, context " << context << "\n";
+        debug() << "  Looking for native library\n";
 
-    ModuleInfo * m_p = NULL;
-    if (modulesById.contains(m.id))
-        m_p = modulesById[m.id];
-
+    ModuleInfoPrivate * m_p = moduleById(m.id);
     bool ok = false;
 #ifdef CONFIG_MINGW
-    QString path(m.path + "/lib/module");
+    QString path(+m.path + "/lib/module");
 #else
-    QString path(m.path + "/lib/libmodule");
+    QString path(+m.path + "/lib/libmodule");
 #endif
     QLibrary * lib = new QLibrary(path, this);
     if (lib->load())
@@ -516,22 +611,29 @@ bool ModuleManager::loadNative(Context *context, const ModuleInfo &m)
             debug() << "    Loaded: " << +path << "\n";
         if (m_p)
             m_p->hasNative = true;
-        typedef bool (*enter_symbols)(Context *);
-        enter_symbols es = (enter_symbols) lib->resolve("enter_symbols");
-        ok = (es != NULL);
+        ok = isCompatible(lib);
         if (ok)
         {
-            IFTRACE(modules)
-                debug() << "    Calling enter_symbols\n";
-            if (m_p)
-                m_p->native = lib;
-            es(XL::MAIN->context);
-        }
-        else
-        {
-            IFTRACE(modules)
-                debug() << "    Could not revolve enter_symbols: "
-                        << +lib->errorString() << "\n";
+            enter_symbols_fn es =
+                    (enter_symbols_fn) lib->resolve("enter_symbols");
+            ok = (es != NULL);
+            if (ok)
+            {
+                module_init_fn mi =
+                        (module_init_fn) lib->resolve("module_init");
+                if ((mi != NULL))
+                {
+                    IFTRACE(modules)
+                            debug() << "    Calling module_init\n";
+                    mi(&api, &m);
+                }
+
+                IFTRACE(modules)
+                        debug() << "    Calling enter_symbols\n";
+                if (m_p)
+                    m_p->native = lib;
+                es(XL::MAIN->context);
+            }
         }
     }
     else
@@ -539,6 +641,140 @@ bool ModuleManager::loadNative(Context *context, const ModuleInfo &m)
         IFTRACE(modules)
             debug() << "    Not found or could not load\n";
     }
+    if (!ok)
+        delete lib;
+    return ok;
+}
+
+
+bool ModuleManager::isCompatible(QLibrary * lib)
+// ----------------------------------------------------------------------------
+//   Return true if library was built with a compatible version of the Tao API
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(modules)
+        debug() << "    Checking API compatibility\n";
+
+    unsigned   current   = TAO_MODULE_API_CURRENT;
+    unsigned   age       = TAO_MODULE_API_AGE;
+    unsigned * m_current = (unsigned *) lib->resolve("module_api_current");
+    if (!m_current)
+    {
+        IFTRACE(modules)
+            debug() << "      Error: library has no version information\n";
+        return false;
+    }
+
+    IFTRACE(modules)
+        debug() << "      Module [current " << *m_current << "]  Tao [current "
+                << current << " age " << age << "]\n";
+    bool ok = ((current - age) <= *m_current && *m_current <= current);
+    if (!ok)
+    {
+        IFTRACE(modules)
+            debug() << "      Version mismatch!\n";
+        warnBinaryModuleIncompatible(lib);
+    }
+    return ok;
+}
+
+
+bool ModuleManager::unload(Context *context, const ModuleInfoPrivate &m)
+// ----------------------------------------------------------------------------
+//   Unload one module
+// ----------------------------------------------------------------------------
+{
+    // FIXME: unload is normally disabled because there is no way to remove
+    // primitives from the XL runtime
+    if (HACK_NoUnload)
+        return false;
+
+    bool ok = true;
+
+    IFTRACE(modules)
+        debug() << "Unloading module: " << m.toText() << "\n";
+
+    ok = unloadXL(context, m);
+    if (ok)
+        ok = unloadNative(context, m);
+    return ok;
+}
+
+
+bool ModuleManager::unloadNative(Context *context, const ModuleInfoPrivate &m)
+// ----------------------------------------------------------------------------
+//   Unload the native code of a module
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(modules)
+        debug() << "  Unloading native library\n";
+
+    bool ok = true;
+
+    ModuleInfoPrivate * m_p = moduleById(m.id);
+    if (!m_p || !m_p->hasNative)
+        return ok;
+
+    QLibrary * lib = m_p->native;
+    if (!lib)
+        return ok;
+
+    Tao::delete_symbols_fn ds;
+    ds = (Tao::delete_symbols_fn)lib->resolve("delete_symbols");
+    if (ds)
+    {
+        IFTRACE(modules)
+            debug() << "    Calling delete_symbols\n";
+        ok &= ds(context);
+    }
+    Tao::module_exit_fn me;
+    me = (Tao::module_exit_fn)lib->resolve("module_exit");
+    if (me)
+    {
+        IFTRACE(modules)
+            debug() << "    Calling module_exit\n";
+        ok &= me();
+    }
+
+    IFTRACE(modules)
+        debug() << "    Unloading library\n";
+    m_p->native->unload();
+    m_p->native->deleteLater();
+    m_p->native = NULL;
+    return ok;
+}
+
+
+bool ModuleManager::unloadXL(Context *context, const ModuleInfoPrivate &m)
+// ----------------------------------------------------------------------------
+//   Unload the XL code of a module
+// ----------------------------------------------------------------------------
+{
+    bool ok = true;
+    IFTRACE(modules)
+        debug() << "  Unloading XL code (module.xl)\n";
+
+    ModuleInfoPrivate * m_p = moduleById(m.id);
+    if (!m_p)
+        return ok;
+
+    QString xlPath = +m_p->path + "module.xl";
+    XL::source_files::iterator it = XL::MAIN->files.find(+xlPath);
+    XL::source_files::iterator end = XL::MAIN->files.end();
+    if (it != end)
+    {
+        XL::SourceFile &sf = (*it).second;
+        Context *moduleContext = sf.context;
+
+        if (context->Bound(new XL::Name("module_exit")))
+        {
+            IFTRACE(modules)
+                debug() << "    Calling XL module_exit\n";
+            XL::XLCall("module_exit")(moduleContext);
+        }
+    }
+
+    m_p->loaded = false;
     return ok;
 }
 
@@ -553,17 +789,19 @@ std::ostream & ModuleManager::debug()
 }
 
 
-void ModuleManager::debugPrint(const ModuleInfo &m)
+void ModuleManager::debugPrint(const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
-//   Convenience method to display a ModuleInfo object
+//   Convenience method to display a ModuleInfoPrivate object
 // ----------------------------------------------------------------------------
 {
-    debug() << "  ID:         " << +m.id << "\n";
-    debug() << "  Path:       " << +m.path << "\n";
-    debug() << "  Name:       " << +m.name << "\n";
-    debug() << "  Icon:       " << +m.icon << "\n";
-    debug() << "  Version:    " << +m.ver << "\n";
-    debug() << "  Latest:     " << +m.latest << "\n";
+    debug() << "  ID:         " <<  m.id << "\n";
+    debug() << "  Path:       " <<  m.path << "\n";
+    debug() << "  Name:       " <<  m.name << "\n";
+    debug() << "  Author:     " <<  m.author << "\n";
+    debug() << "  Website:    " <<  m.website << "\n";
+    debug() << "  Icon:       " <<  m.icon << "\n";
+    debug() << "  Version:    " <<  m.ver << "\n";
+    debug() << "  Latest:     " <<  m.latest << "\n";
     debug() << "  Up to date: " << !m.updateAvailable << "\n";
     debug() << "  Enabled:    " <<  m.enabled << "\n";
     debug() << "  Loaded:     " <<  m.loaded << "\n";
@@ -576,15 +814,26 @@ void ModuleManager::debugPrint(const ModuleInfo &m)
 }
 
 
-void ModuleManager::debugPrintShort(const ModuleInfo &m)
+void ModuleManager::debugPrintShort(const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 //   Display minimal information about a module
 // ----------------------------------------------------------------------------
 {
-    debug() << "  ID:         " << +m.id << "\n";
-    debug() << "  Path:       " << +m.path << "\n";
+    debug() << "  ID:         " <<  m.id << "\n";
+    debug() << "  Path:       " <<  m.path << "\n";
     debug() << "  Enabled:    " <<  m.enabled << "\n";
     debug() << "  ------------------------------------------------\n";
+}
+
+
+ModuleManager::ModuleInfoPrivate * ModuleManager::moduleById(text id)
+// ----------------------------------------------------------------------------
+//   Lookup a module info structure in the list of known modules
+// ----------------------------------------------------------------------------
+{
+    if (modules.contains(+id))
+        return &modules[+id];
+    return NULL;
 }
 
 // ============================================================================
@@ -593,7 +842,7 @@ void ModuleManager::debugPrintShort(const ModuleInfo &m)
 //
 // ============================================================================
 
-bool ModuleManager::askRemove(const ModuleInfo &m, QString reason)
+bool ModuleManager::askRemove(const ModuleInfoPrivate &m, QString reason)
 // ----------------------------------------------------------------------------
 //   Prompt user when we're about to remove a module from the configuration
 // ----------------------------------------------------------------------------
@@ -615,7 +864,7 @@ bool ModuleManager::askRemove(const ModuleInfo &m, QString reason)
 }
 
 
-bool ModuleManager::askEnable(const ModuleInfo &m, QString reason)
+bool ModuleManager::askEnable(const ModuleInfoPrivate &m, QString reason)
 // ----------------------------------------------------------------------------
 //   Prompt user to know if a module should be enabled or disabled
 // ----------------------------------------------------------------------------
@@ -636,12 +885,34 @@ bool ModuleManager::askEnable(const ModuleInfo &m, QString reason)
 }
 
 
-void ModuleManager::warnDuplicateModule(const ModuleInfo &m)
+void ModuleManager::warnInvalidModule(QString moduleDir, QString cause)
+// ----------------------------------------------------------------------------
+//   Tell user of invalid module (will be ignored)
+// ----------------------------------------------------------------------------
+{
+    std::cerr << +tr("WARNING: Skipping invalid module %1\n")
+                 .arg(moduleDir);
+    if (cause != "")
+        std::cerr << +tr("WARNING:   %1\n").arg(cause);
+}
+
+
+void ModuleManager::warnDuplicateModule(const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 //   Tell user of conflicting new module (will be ignored)
 // ----------------------------------------------------------------------------
 {
     (void)m;
+}
+
+
+void ModuleManager::warnBinaryModuleIncompatible(QLibrary *lib)
+// ----------------------------------------------------------------------------
+//   Tell user about incompatible binary module (will be ignored)
+// ----------------------------------------------------------------------------
+{
+    std::cerr << +QObject::tr("WARNING: Skipping incompatible binary module ")
+              << +lib->fileName() << "\n";
 }
 
 // ============================================================================
@@ -660,13 +931,13 @@ bool CheckForUpdate::start()
                 << m.toText() << "\n";
 
     bool inProgress = false;
-    repo = RepositoryFactory::repository(m.path);
+    repo = RepositoryFactory::repository(+m.path);
     if (repo && repo->valid())
     {
         QStringList tags = repo->tags();
         if (!tags.isEmpty())
         {
-            if (tags.contains(m.ver))
+            if (tags.contains(+m.ver))
             {
                 proc = repo->asyncGetRemoteTags("origin");
                 connect(repo.data(),
@@ -712,13 +983,13 @@ void CheckForUpdate::processRemoteTags(QStringList tags)
     bool hasUpdate = false;
     if (!tags.isEmpty())
     {
-        QString current = m.ver;
+        QString current = +m.ver;
         QString latest = tags[0];
         foreach (QString tag, tags)
             if (Repository::versionGreaterOrEqual(tag, latest))
                 latest = tag;
 
-        mm.modulesById[m.id]->latest = latest;
+        mm.modules[+m.id].latest = +latest;
 
         hasUpdate = (latest != current &&
                      Repository::versionGreaterOrEqual(latest, current));
@@ -738,7 +1009,7 @@ void CheckForUpdate::processRemoteTags(QStringList tags)
             debug() << "  No remote tags\n";
     }
 
-    mm.modulesById[m.id]->updateAvailable = hasUpdate;
+    mm.modules[+m.id].updateAvailable = hasUpdate;
     emit complete(m, hasUpdate);
     deleteLater();
 }
@@ -757,7 +1028,7 @@ bool CheckAllForUpdate::start()
     // Signal checkForUpdateComplete(bool need) will be emitted
     bool ok = true;
 
-    QList<ModuleManager::ModuleInfo> &modules = mm.modules;
+    QList<ModuleManager::ModuleInfoPrivate> modules = mm.allModules();
     num = modules.count();
     if (!num)
         return false;
@@ -765,14 +1036,15 @@ bool CheckAllForUpdate::start()
     emit minimum(0);
     emit maximum(num);
 
-    foreach (ModuleManager::ModuleInfo m, modules)
-        pending << m.id;
+    foreach (ModuleManager::ModuleInfoPrivate m, modules)
+        pending << +m.id;
 
-    foreach (ModuleManager::ModuleInfo m, modules)
+    foreach (ModuleManager::ModuleInfoPrivate m, modules)
     {
-        CheckForUpdate *cfu = new CheckForUpdate(mm, m.id);
-        connect(cfu, SIGNAL(complete(ModuleManager::ModuleInfo,bool)),
-                this,  SLOT(processResult(ModuleManager::ModuleInfo,bool)));
+        CheckForUpdate *cfu = new CheckForUpdate(mm, +m.id);
+        connect(cfu, SIGNAL(complete(ModuleManager::ModuleInfoPrivate,bool)),
+                this,
+                SLOT(processResult(ModuleManager::ModuleInfoPrivate,bool)));
         if (!cfu->start())
             ok = false;
     }
@@ -780,7 +1052,7 @@ bool CheckAllForUpdate::start()
 }
 
 
-void CheckAllForUpdate::processResult(ModuleManager::ModuleInfo m,
+void CheckAllForUpdate::processResult(ModuleManager::ModuleInfoPrivate m,
                                       bool updateAvailable)
 // ----------------------------------------------------------------------------
 //   Remove module from pending list and emit result on last module
@@ -788,7 +1060,7 @@ void CheckAllForUpdate::processResult(ModuleManager::ModuleInfo m,
 {
     if (updateAvailable)
         this->updateAvailable = true;
-    pending.remove(m.id);
+    pending.remove(+m.id);
     emit progress(num - pending.count());
     if (pending.isEmpty())
     {
@@ -812,7 +1084,7 @@ bool UpdateModule::start()
 
     if (m.path != "")
     {
-        repo = RepositoryFactory::repository(m.path);
+        repo = RepositoryFactory::repository(+m.path);
         if (repo && repo->valid())
         {
             proc = repo->asyncFetch("origin");
@@ -837,13 +1109,13 @@ void UpdateModule::onFinished(int exitCode, QProcess::ExitStatus status)
     bool ok = (status ==  QProcess::NormalExit && exitCode == 0);
     if (ok)
     {
-        repo->checkout(+m.latest);
-        QString ver = mm.gitVersion(m.path);
-        ok = (ver == m.latest);
+        repo->checkout(m.latest);
+        QString ver = mm.gitVersion(+m.path);
+        ok = (ver == +m.latest);
         if (ok)
         {
-            ModuleManager::ModuleInfo *p = mm.modulesById[m.id];
-            p->ver = ver;
+            ModuleManager::ModuleInfoPrivate *p = mm.moduleById(m.id);
+            p->ver = +ver;
             p->updateAvailable = false;
         }
     }

@@ -19,9 +19,11 @@ CONFIG  += dll
 QT      -= core gui
 #VERSION  = "1.0.0"
 
-INCLUDEPATH += . \
+INC = . \
     ../tao/xlr/xlr/include \
     ../tao/xlr/xlr
+INCLUDEPATH += $$INC
+DEPENDPATH += $$INC
 
 DEFINES += LIBXLR
 

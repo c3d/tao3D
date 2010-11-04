@@ -18,10 +18,11 @@ include(../main.pri)
 TEMPLATE = app
 TARGET = Tao
 VERSION = "0.0.3"    # Windows: version is in tao.rc
-DEPENDPATH += . \
+INC = . \
+    include \
     xlr/xlr/include
-INCLUDEPATH += . \
-    xlr/xlr/include
+DEPENDPATH += $$INC
+INCLUDEPATH += $$INC
 win32:LIBS += -L../libxlr/release -L../libxlr/debug  # REVISIT
 LIBS += -L../libxlr -lxlr
 QT += webkit \
@@ -132,7 +133,10 @@ HEADERS += widget.h \
     history_playback_tool.h \
     tool_window.h \
     branch_selection_tool.h \
-    git_toolbar.h
+    git_toolbar.h \
+    include/tao/module_api.h \
+    include/tao/module_info.h \
+    module_renderer.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -208,7 +212,9 @@ SOURCES += tao_main.cpp \
     tool_window.cpp \
     branch_selection_tool.cpp \
     history_playback_tool.cpp \
-    git_toolbar.cpp
+    git_toolbar.cpp \
+    module_api_p.cpp \
+    module_renderer.cpp
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 
@@ -233,7 +239,8 @@ OTHER_FILES += xl.syntax \
     debug.stylesheet \
     dbghtml.stylesheet \
     bytecode.stylesheet \
-    builtins.xl \
+    xlr/xlr/builtins.xl \
+    tao.xl \
     tutorial.ddd \
     git.stylesheet \
     srcview.stylesheet \
@@ -267,13 +274,15 @@ QMAKE_EXTRA_TARGETS += revtarget
 
 # What to install
 xl_files.path  = $$APPINST
-xl_files.files = builtins.xl\
+xl_files.files = xlr/xlr/builtins.xl \
+    tao.xl \
     xl.syntax \
     xl.stylesheet \
     git.stylesheet \
     srcview.stylesheet \
     srcview.css \
     tutorial.ddd
+CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
 fonts.path  = $$APPINST/fonts
 fonts.files = fonts/*
 INSTALLS    += xl_files fonts

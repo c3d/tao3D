@@ -1228,6 +1228,15 @@ bool GitRepository::gc()
 }
 
 
+bool GitRepository::pathIsRoot()
+// ----------------------------------------------------------------------------
+//    Return true if path used to open repository is the top-level directory
+// ----------------------------------------------------------------------------
+{
+    return (QDir(path + "/.git").exists());
+}
+
+
 void GitAuthProcess::start()
 // ----------------------------------------------------------------------------
 //   Start child process

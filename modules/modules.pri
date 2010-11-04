@@ -10,6 +10,11 @@
 # (C) 2010 Taodyne SAS
 # ******************************************************************************
 
+isEmpty(TAO_SDK) {
+  TAOTOPSRC = ../..
+} else {
+  TAOTOPSRC = $${TAO_SDK}
+}
 
 include(../main.pri)
 
@@ -18,9 +23,11 @@ TARGET   = module
 CONFIG  += dll
 QT      -= core gui
 
-INCLUDEPATH += . ../../tao/xlr/xlr/include
-win32:LIBS += -L../../libxlr/release -L../../libxlr/debug  # REVISIT
-LIBS += -L../../libxlr -lxlr
+INC = . $${TAOTOPSRC}/tao/xlr/xlr/include $${TAOTOPSRC}/tao/include
+INCLUDEPATH += $$INC
+DEPENDPATH  += $$INC
+win32:LIBS += -L$${TAOTOPSRC}/libxlr/release -L$${TAOTOPSRC}/libxlr/debug  # REVISIT
+LIBS += -L$${TAOTOPSRC}/libxlr -lxlr
 
 # How to generate *_wrap.cpp from *.tbl
 # Usage:
@@ -42,15 +49,25 @@ win32 {
     CONFIG(release, debug|release):DD=release
     MODULE = $${DD}/module.dll
 }
-isEmpty(APPINST):error(APPINST not defined)
-INSTDIR      = $${APPINST}/modules/$$MODINSTDIR
-thismod_xl.path   = $$INSTDIR
+# Try to install into (in this order, depending on what variable is defined):
+# 1. $$MODINSTPATH
+# 2. $$MODINSTROOT/$$MODINSTDIR
+# 3. <Tao application install dir>/$$MODINSTDIR
+isEmpty(MODINSTPATH) {
+  isEmpty(MODINSTROOT) {
+    isEmpty(APPINST):error(APPINST not defined)
+    MODINSTROOT = $${APPINST}/modules
+  }
+  isEmpty(MODINSTDIR):error(MODINSTDIR not defined)
+  MODINSTPATH      = $${MODINSTROOT}/$$MODINSTDIR
+}
+thismod_xl.path   = $$MODINSTPATH
 thismod_xl.files  = module.xl
 INSTALLS += thismod_xl
-thismod_bin.path  = $${INSTDIR}/lib
+thismod_bin.path  = $${MODINSTPATH}/lib
 # Workaround http://bugreports.qt.nokia.com/browse/QTBUG-5558
 # thismod_bin.files = $$MODULE
 thismod_bin.extra = \$(INSTALL_PROGRAM) $$MODULE $$thismod_bin.path
 INSTALLS += thismod_bin
-thismod_icon.path  = $$INSTDIR
+thismod_icon.path  = $$MODINSTPATH
 thismod_icon.files = icon.png

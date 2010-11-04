@@ -31,3 +31,6 @@ OPTION(nostereo, "Disable stereoscopy", enable_stereoscopy = false)
 OPTION(nosplash, "Disable splash screen", ;)
 OPTVAR(slideshow, bool, false)
 OPTION(slideshow, "Open document in slide show mode (full screen, no source code view)", slideshow = true)
+
+OPTVAR(enable_modules, bool, true)
+OPTION(nomodules, "Disable modules", enable_modules = false)

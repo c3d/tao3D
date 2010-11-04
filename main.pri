@@ -20,8 +20,6 @@ APPINST = $$INSTROOT
 LIBINST = $$INSTROOT
 }
 
-QMAKE_DISTCLEAN += $$INSTROOT  # FIXME: need recursive delete
-
 DEFINES            += DEBUG
 macx:DEFINES       += CONFIG_MACOSX
 win32:DEFINES      += CONFIG_MINGW

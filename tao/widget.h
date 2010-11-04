@@ -632,6 +632,7 @@ private:
     friend class Renormalize;
     friend class Table;
     friend class DeleteSelectionAction;
+    friend class ModuleRenderer;
 
     typedef XL::LocalSave<QEvent *>             EventSave;
     typedef XL::LocalSave<Widget *>             TaoSave;

@@ -1797,11 +1797,14 @@ void Window::updateContext(QString docPath)
     TaoApp->updateSearchPaths(currentProjectFolder);
 
     // Fetch info for XL files
+    QFileInfo tao       ("system:tao.xl");
     QFileInfo user      ("xl:user.xl");
     QFileInfo theme     ("xl:theme.xl");
 
     contextFileNames.clear();
 
+    if (tao.exists())
+        contextFileNames.push_back(+tao.canonicalFilePath());
     if (user.exists())
         contextFileNames.push_back(+user.canonicalFilePath());
     if (theme.exists())

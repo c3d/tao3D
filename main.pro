@@ -10,14 +10,16 @@
 # (C) 2010 Taodyne SAS
 # ******************************************************************************
 
-# make
-# make install     # installs locally under ./install/
-# make clean
-# make distclean
+# Usage:
+#   $ make             # build everything
+#   $ make install     # install Tao locally under ./install/
+#   $ make sdk         # copy files needed for module development under ./sdk/
+#   $ make clean
+#   $ make distclean   # clean + remove Makefiles
+#   $ make help        # this text
 #
-# Note that parallel build (make -jX) sometimes fails for the install target.
-# Instead, do:
-#   make -j3 && make install
+# Note: Packaging scripts are under ./packaging/
+# --End Usage
 
 # Include global definitions and rules.
 include(main.pri)
@@ -28,3 +30,17 @@ win32:SUBDIRS += detach
 
 tao.depends = libxlr
 modules.depends = tao
+
+sdk.commands = \$(MAKE) -f Makefile.sdk
+sdk.depends = FORCE
+QMAKE_EXTRA_TARGETS += sdk
+
+# Print the help text above (delimited by lines with 'Usage')
+help.commands = @awk \'f{print p} /Usage/&&f++{exit} {p=\$\$0}\' $$_PRO_FILE_
+QMAKE_EXTRA_TARGETS += help
+
+# Extend distclean target to also delete directories created by "make install"
+# and "make sdk"
+distclean_inst_sdk.commands = rm -rf ./install ./sdk
+distclean.depends = distclean_inst_sdk
+QMAKE_EXTRA_TARGETS += distclean distclean_inst_sdk

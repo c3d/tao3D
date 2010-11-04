@@ -79,12 +79,12 @@ private:
     void         updateTable();
 
 private:
-    ModuleManager *                   mmgr;
-    QList<ModuleManager::ModuleInfo>  modules;
-    QTableWidget *                    table;
-    QStackedWidget *                  sw;
-    QProgressBar *                    pb;
-    bool                              findUpdatesInProgress;
+    ModuleManager *                          mmgr;
+    QList<ModuleManager::ModuleInfoPrivate>  modules;
+    QTableWidget *                           table;
+    QStackedWidget *                         sw;
+    QProgressBar *                           pb;
+    bool                                     findUpdatesInProgress;
 };
 
 }

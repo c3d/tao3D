@@ -362,9 +362,19 @@ RepositoryFactory::newRepository(QString path, RepositoryFactory::Mode mode)
     {
         if (mode == Clone)
         {
-            delete git;
             errors = QObject::tr("Can't clone into an existing repository");
+            delete git;
             return NULL;
+        }
+        else
+        if (mode == OpenExistingHere)
+        {
+            if (!git->pathIsRoot())
+            {
+                errors = QObject::tr("Path is not repository root");
+                delete git;
+                return NULL;
+            }
         }
         return git;
     }

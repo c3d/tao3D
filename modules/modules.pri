@@ -10,8 +10,10 @@
 # (C) 2010 Taodyne SAS
 # ******************************************************************************
 
-isEmpty(TAOTOPSRC) {
+isEmpty(TAO_SDK) {
   TAOTOPSRC = ../..
+} else {
+  TAOTOPSRC = $${TAO_SDK}
 }
 
 include(../main.pri)

@@ -5694,8 +5694,9 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
     {
         GLAllStateKeeper saveGL;
         XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
-        XL::LocalSave<Point3> saveCenter(viewCenter, Point3());
-        XL::LocalSave<Point3> saveEye(eye, Point3(0,0,Widget::zNear));
+        XL::LocalSave<Point3> saveCenter(viewCenter, Point3(0,0,-zNear));
+        XL::LocalSave<Point3> saveEye(eye, Point3(0,0,zNear));
+        XL::LocalSave<char> saveStereo(stereoscopic, false);
 
         // Clear the background and setup initial state
         frame->resize(w,h);

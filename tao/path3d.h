@@ -72,10 +72,11 @@ struct GraphicPath : Shape
     void                AddControl(XL::Tree *self, Real *x,Real *y,Real *z);
 
 public:
-    enum Kind { MOVE_TO, LINE_TO, CURVE_TO, CURVE_CONTROL };
-    enum EndpointStyle { NONE, 
-                         ARROWHEAD, TRIANGLE, POINTER, DIAMOND, CIRCLE, SQUARE, 
-                         BAR, CUP, FLETCHING, HOLLOW_CIRCLE, HOLLOW_SQUARE };
+    enum Kind           { MOVE_TO, LINE_TO, CURVE_TO, CURVE_CONTROL };
+    enum EndpointStyle  { NONE, 
+                          ARROWHEAD, TRIANGLE, POINTER, DIAMOND, CIRCLE,
+                          SQUARE, BAR, CUP, FLETCHING,
+                          HOLLOW_CIRCLE, HOLLOW_SQUARE };
     struct Element
     {
         Element(Kind k, const Point3 &p): kind(k), position(p) {}

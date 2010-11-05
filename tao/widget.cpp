@@ -380,6 +380,14 @@ void Widget::draw()
         space->offset.Set(0,0,0);
         space->DrawSelection(NULL);
 
+        // Render all activities, e.g. the selection rectangle
+        SpaceLayout selectionSpace(this);
+        XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
+        glDisable(GL_DEPTH_TEST);
+        for (Activity *a = activities; a; a = a->Display()) ;
+        selectionSpace.Draw(NULL);
+        glEnable(GL_DEPTH_TEST);
+
         // If we use stereoscopy, switch to other eye
         if (stereoscopic)
         {
@@ -407,14 +415,6 @@ void Widget::draw()
 
     // Timing
     elapsed(before, after);
-
-    // Render all activities, e.g. the selection rectangle
-    SpaceLayout selectionSpace(this);
-    XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-    glDisable(GL_DEPTH_TEST);
-    for (Activity *a = activities; a; a = a->Display()) ;
-    selectionSpace.Draw(NULL);
-    glEnable(GL_DEPTH_TEST);
 
     // Update page count for next run
     pageTotal = pageId ? pageId : 1;

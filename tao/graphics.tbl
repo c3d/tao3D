@@ -645,7 +645,7 @@ PREFIX(EnableAnimations, boolean, "enable_animations", PARM(an, boolean),
                 return_value \"boolean\", <<True if previous state was on.>>;\
                 }\
           |*/")
-PREFIX(EnableStereoscopy, boolean, "enable_stereoscopy", PARM(mode, name),
+PREFIX(EnableStereoscopy, boolean, "enable_stereoscopy", PARM(mode, symbol),
        RTAO(enableStereoscopy(self, mode)),
        "/*| docname \"enable_stereoscopy\", \"gui\", do { \
                 dsyntax <<enable_stereoscopy s>>;\

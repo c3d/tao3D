@@ -316,6 +316,12 @@ public:
     Name_p      setEyePosition(Tree_p self, coord x, coord y);
     Infix_p     currentCenterPosition(Tree_p self);
     Name_p      setCenterPosition(Tree_p self, coord x, coord y);
+    Name_p      setEyeDistance(Tree_p self, double eyeD);
+    Real_p      getEyeDistance(Tree_p self);
+    Name_p      setZNear(Tree_p self, double zn);
+    Real_p      getZNear(Tree_p self);
+    Name_p      setZFar(Tree_p self, double zf);
+    Real_p      getZFar(Tree_p self);
     Integer_p   lastModifiers(Tree_p self);
 
     Name_p      enableAnimations(Tree_p self, bool fs);
@@ -706,7 +712,7 @@ private:
     static QFontDialog *  fontDialog;
     static QFileDialog *  fileDialog;
            QFileDialog *  currentFileDialog;
-    static double         zNear, zFar;
+    double                zNear, zFar;
     double                zoom, eyeDistance;
     Point3                eye, viewCenter;
     int                   panX, panY;

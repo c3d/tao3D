@@ -313,9 +313,9 @@ public:
     Real_p      currentZoom(Tree_p self);
     Name_p      setZoom(Tree_p self, scale z);
     Infix_p     currentEyePosition(Tree_p self);
-    Name_p      setEyePosition(Tree_p self, coord x, coord y);
+    Name_p      setEyePosition(Tree_p self, coord x, coord y, coord z);
     Infix_p     currentCenterPosition(Tree_p self);
-    Name_p      setCenterPosition(Tree_p self, coord x, coord y);
+    Name_p      setCenterPosition(Tree_p self, coord x, coord y, coord z);
     Name_p      setEyeDistance(Tree_p self, double eyeD);
     Real_p      getEyeDistance(Tree_p self);
     Name_p      setZNear(Tree_p self, double zn);

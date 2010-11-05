@@ -152,8 +152,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       nextPull(nextSave),
       sourceRenderer(NULL),
       currentFileDialog(NULL),
-      zNear(2000.0), zFar(40000.0), zoom(1.0), eyeDistance(20.0),
-      eye(0.0, 0.0, Widget::zNear), viewCenter(0.0, 0.0, 0.0),
+      zNear(2000.0), zFar(40000.0),
+      zoom(1.0), eyeDistance(10.0),
+      eye(0.0, 0.0, zNear), viewCenter(0.0, 0.0, -zNear),
       dragging(false), bAutoHideCursor(false), forceRefresh(false),
       currentTest(this)
 {
@@ -978,12 +979,11 @@ void Widget::resetView()
     zoom = 1.0;
     eye.x = 0.0;
     eye.y = 0.0;
-    eye.z = Widget::zNear;
+    eye.z = zNear;
     viewCenter.x = 0.0;
     viewCenter.y = 0.0;
-    viewCenter.z = 0.0;
+    viewCenter.z = -zNear;
     setup(width(), height());
-    updateGL();
 }
 
 
@@ -1124,9 +1124,9 @@ void Widget::setup(double w, double h, const Box *picking)
 
     glFrustum ((-w/2)*zoom, (w/2)*zoom, (-h/2)*zoom, (h/2)*zoom, zNear, zFar);
     gluLookAt(eyeX, eye.y, eye.z,
-              viewCenter.x,viewCenter.y,viewCenter.z,
-              up.x,up.y,up.z);
-    glTranslatef(0.0, 0.0, -zNear);
+              viewCenter.x, viewCenter.y ,viewCenter.z,
+              up.x, up.y, up.z);
+    glTranslatef(0.0, 0.0, viewCenter.z);
     glScalef(2.0, 2.0, 2.0);
 
     // Setup the model view matrix so that 1.0 unit = 1px
@@ -1937,9 +1937,6 @@ void Widget::doPanning(QMouseEvent *event)
 
     panX = x;
     panY = y;
-
-    setup(width(), height());
-    updateGL();
 }
 
 
@@ -3677,9 +3674,7 @@ XL::Name_p Widget::panView(Tree_p self, coord dx, coord dy)
     eye.y += dy;
     viewCenter.x += dx;
     viewCenter.y += dy;
-
     setup(width(), height());
-    updateGL();
     return XL::xl_true;
 }
 
@@ -3701,8 +3696,6 @@ Name_p Widget::setZoom(Tree_p self, scale z)
     if (z > 0)
     {
         zoom = z;
-        setup(width(), height());
-        updateGL();
         return XL::xl_true;
     }
     return XL::xl_false;
@@ -3718,15 +3711,14 @@ Infix_p Widget::currentEyePosition(Tree_p self)
 }
 
 
-Name_p Widget::setEyePosition(Tree_p self, coord x, coord y)
+Name_p Widget::setEyePosition(Tree_p self, coord x, coord y, coord z)
 // ----------------------------------------------------------------------------
 //   Set the eye position and update view
 // ----------------------------------------------------------------------------
 {
     eye.x = x;
     eye.y = y;
-    setup(width(), height());
-    updateGL();
+    eye.z = z;
     return XL::xl_true;
 }
 
@@ -3740,15 +3732,14 @@ Infix_p Widget::currentCenterPosition(Tree_p self)
 }
 
 
-Name_p Widget::setCenterPosition(Tree_p self, coord x, coord y)
+Name_p Widget::setCenterPosition(Tree_p self, coord x, coord y, coord z)
 // ----------------------------------------------------------------------------
 //   Set the center position and update view
 // ----------------------------------------------------------------------------
 {
     viewCenter.x = x;
     viewCenter.y = y;
-    setup(width(), height());
-    updateGL();
+    viewCenter.z = z;
     return XL::xl_true;
 }
 

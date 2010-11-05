@@ -578,8 +578,9 @@ PREFIX(SetZoom, boolean, "zoom", PARM(z, real), RTAO(setZoom(self, z)),
                 }\
           |*/")
 PREFIX(GetEye, infix, "eye_position", , RTAO(currentEyePosition(self)), "")
-PREFIX(SetEye, boolean, "eye_position", PARM(x, real) PARM(y, real),
-       RTAO(setEyePosition(self,x,y)),
+PREFIX(SetEye, boolean, "eye_position",
+       PARM(x, real) PARM(y, real) PARM(z, real),
+       RTAO(setEyePosition(self, x, y, z)),
        "/*| docname \"eye_position\", \"gui\", do { \
                 synopsis \"eye position manipulation\" ; \
                 dsyntax <<eye_position>>;\
@@ -593,8 +594,9 @@ PREFIX(SetEye, boolean, "eye_position", PARM(x, real) PARM(y, real),
                 }\
           |*/")
 PREFIX(GetCenter, infix, "center_position", , RTAO(currentCenterPosition(self)),  "")
-PREFIX(SetCenter, boolean, "center_position", PARM(x, real) PARM(y, real),
-       RTAO(setCenterPosition(self,x,y)),
+PREFIX(SetCenter, boolean, "center_position",
+       PARM(x, real) PARM(y, real) PARM(z, real),
+       RTAO(setCenterPosition(self, x, y, z)),
        "/*| docname \"center_position\", \"gui\", do { \
                 synopsis \"Center position management\" ; \
                 dsyntax <<center_position>>;\

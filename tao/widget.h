@@ -87,6 +87,7 @@ class Widget : public QGLWidget
 public:
     typedef std::vector<double>         attribute_args;
     typedef std::map<GLuint, uint>      selection_map;
+    enum StereoMode { stereoHARDWARE, stereoINTERLACED };
 
 public:
     Widget(Window *parent, XL::SourceFile *sf = NULL);
@@ -133,6 +134,7 @@ public:
     void        paintGL();
     void        setup(double w, double h, const Box *picking = NULL);
     void        setupGL();
+    void        setupStereoStencil(double w, double h);
     void        identifySelection();
     void        updateSelection();
     uint        showGlErrors();
@@ -187,6 +189,7 @@ public:
     bool        timerIsActive()         { return timer.isActive(); }
     bool        hasAnimations(void)     { return animated; }
     bool        hasStereoscopy(void)    { return stereoscopic; }
+    StereoMode  currentStereoMode(void) { return stereoMode; }
 
 
     // Selection
@@ -316,7 +319,7 @@ public:
     Integer_p   lastModifiers(Tree_p self);
 
     Name_p      enableAnimations(Tree_p self, bool fs);
-    Name_p      enableStereoscopy(Tree_p self, bool fs);
+    Name_p      enableStereoscopy(Tree_p self, Name_p name);
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
     Name_p      printPage(Tree_p self, text filename);
@@ -658,6 +661,7 @@ private:
     FontFileManager *     fontFileMgr;
     bool                  drawAllPages;
     bool                  animated;
+    StereoMode            stereoMode;
     char                  stereoscopic;
 
     // Selection

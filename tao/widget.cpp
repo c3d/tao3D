@@ -111,7 +111,12 @@ static inline QGL::FormatOptions TaoGLFormatOptions()
 // ----------------------------------------------------------------------------
 //   This was made necessary by Bug #251
 {
-    QGL::FormatOptions result = QGL::SampleBuffers | QGL::AlphaChannel;
+    QGL::FormatOptions result =
+        (QGL::DoubleBuffer      |
+         QGL::DepthBuffer       |
+         QGL::StencilBuffer     |
+         QGL::SampleBuffers     |
+         QGL::AlphaChannel);
     if (XL::MAIN->options.enable_stereoscopy)
         result |= QGL::StereoBuffers;
     return result;
@@ -133,7 +138,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       pageTree(NULL),
       currentShape(NULL), currentGridLayout(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
-      drawAllPages(false), animated(true), stereoscopic(false),
+      drawAllPages(false), animated(true),
+      stereoMode(stereoHARDWARE), stereoscopic(false),
       activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
       selection(), selectionTrees(), selectNextTime(), actionMap(),
@@ -306,7 +312,6 @@ void Widget::draw()
 
     // Setup the initial drawing environment
     double w = width(), h = height();
-    setup(w, h);
     pageW = (21.0 / 2.54) * logicalDpiX(); // REVISIT
     pageH = (29.7 / 2.54) * logicalDpiY();
     flowName = "";
@@ -318,9 +323,6 @@ void Widget::draw()
     pageNames.clear();
 
     // Clear the background
-    glDrawBuffer(GL_BACK);
-    glClearColor (1.0, 1.0, 1.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     Layout::polygonOffset = 0;
 
     // Clean text selection
@@ -334,6 +336,70 @@ void Widget::draw()
     // If there is a program, we need to run it
     pageRefresh = CurrentTime() + 86400;        // 24 hours
     runProgram();
+
+    // After we are done, draw the space with all the drawings in it
+    // If we are in stereoscopice mode, we draw twice, once for each eye
+    glClearColor (1.0, 1.0, 1.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (stereoMode == stereoINTERLACED)
+        setupStereoStencil(w, h);
+
+    do
+    {
+        // Select the buffer in which we draw
+        if (stereoscopic)
+        {
+            if (stereoMode == stereoHARDWARE)
+            {
+                if (stereoscopic == 1)
+                    glDrawBuffer(GL_BACK_LEFT);
+                else if (stereoscopic == 2)
+                    glDrawBuffer(GL_BACK_RIGHT);
+            }
+            else if (stereoMode == stereoINTERLACED)
+            {
+                glDrawBuffer(GL_BACK);
+                if (stereoscopic == 1)
+                    glStencilFunc(GL_NOTEQUAL,1,1);
+                else if (stereoscopic == 2)
+                    glStencilFunc(GL_EQUAL,1,1);
+            }
+        }
+        else
+        {
+            glDrawBuffer(GL_BACK);
+        }
+
+        // Draw the current buffer
+        setup(w, h);
+
+        id = idDepth = 0;
+        space->Draw(NULL);
+        IFTRACE(memory)
+            std::cerr << "Draw, count = " << space->count
+                      << " buffer " << (int) stereoscopic << '\n';
+
+        id = idDepth = 0;
+        selectionTrees.clear();
+        space->offset.Set(0,0,0);
+        space->DrawSelection(NULL);
+
+        // If we use stereoscopy, switch to other eye
+        if (stereoscopic)
+        {
+            stereoscopic = 3 - stereoscopic;
+            setup(width(), height());
+            if (false && stereoMode == stereoHARDWARE)
+                swapBuffers();
+        }
+    } while (stereoscopic == 2);
+
+    // Remember number of elements drawn for GL selection buffer capacity
+    if (maxId < id + 100 || maxId > 2 * (id + 100))
+        maxId = id + 100;
+
+    // Clipboard management
+    checkCopyAvailable();
 
     // Check if we want to refresh something
     ulonglong after = now();
@@ -424,45 +490,6 @@ void Widget::runProgram()
     currentMenu    = NULL;
     currentToolBar = NULL;
     currentMenuBar = ((Window*)parent())->menuBar();
-
-    // After we are done, draw the space with all the drawings in it
-    // If we are in stereoscopice mode, we draw twice, once for each eye
-    do
-    {
-        // Select the buffer in which we draw
-        if (stereoscopic == 1)
-            glDrawBuffer(GL_BACK_LEFT);
-        else if (stereoscopic == 2)
-            glDrawBuffer(GL_BACK_RIGHT);
-        glClearColor (1.0, 1.0, 1.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        id = idDepth = 0;
-        space->Draw(NULL);
-        IFTRACE(memory)
-            std::cerr << "Draw, count = " << space->count
-                      << " buffer " << (int) stereoscopic << '\n';
-
-        id = idDepth = 0;
-        selectionTrees.clear();
-        space->offset.Set(0,0,0);
-        space->DrawSelection(NULL);
-
-        // If we use stereoscopy, switch to other eye
-        if (stereoscopic)
-        {
-            stereoscopic = 3 - stereoscopic;
-            setup(width(), height());
-            swapBuffers();
-        }
-    } while (stereoscopic == 2);
-
-    // Remember number of elements drawn for GL selection buffer capacity
-    if (maxId < id + 100 || maxId > 2 * (id + 100))
-        maxId = id + 100;
-
-    // Clipboard management
-    checkCopyAvailable();
 }
 
 
@@ -1136,6 +1163,51 @@ void Widget::setupGL()
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);
+}
+
+void Widget::setupStereoStencil(double w, double h)
+// ----------------------------------------------------------------------------
+//   For interlaced output, generate a stencil with every other line
+// ----------------------------------------------------------------------------
+{
+    if (stereoMode == stereoINTERLACED)
+    {
+        // Setup the initial viewport and projection for drawing in stencil
+        glViewport(0, 0, w, h);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluOrtho2D(0,w,0,h);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+	// Prepare to draw in stencil buffer
+	glDrawBuffer(GL_BACK);
+	glEnable(GL_STENCIL_TEST);
+	glClearStencil(0);
+	glClear(GL_STENCIL_BUFFER_BIT);
+	glStencilOp (GL_REPLACE, GL_REPLACE, GL_REPLACE); // Copy to stencil
+	glDisable(GL_DEPTH_TEST);
+	glStencilFunc(GL_ALWAYS,1,1);                     // Ignore contents
+	
+        // Draw pattern showing every other line
+	glColor4f(1.0, 1.0, 1.0, 1.0);
+        glLineWidth(1.0);
+        glDisable(GL_LINE_SMOOTH);
+        glDisable(GL_LINE_STIPPLE);
+	for (uint y = 0; y < h; y += 2)
+	{
+            glBegin (GL_LINES);
+            glVertex2f (0, y);
+            glVertex2f (w, y);
+            glEnd();
+	}
+
+        // Protect stencil from now on
+	glStencilOp (GL_KEEP, GL_KEEP, GL_KEEP);
+        glFlush();
+    } // if stereoMode
 }
 
 
@@ -3707,16 +3779,37 @@ XL::Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
 }
 
 
-XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, bool fs)
+XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
 // ----------------------------------------------------------------------------
 //   Enable or disable stereoscopie mode
 // ----------------------------------------------------------------------------
 {
-    bool oldFs = hasAnimations();
+    bool oldState = hasStereoscopy();
+    bool newState = false;
+    if (name == XL::xl_false || name->value == "no" || name->value == "none")
+    {
+        newState = false;
+    }
+    else if (name == XL::xl_true || name->value == "hardware")
+    {
+        newState = true;
+        stereoMode = stereoHARDWARE;
+    }
+    else if (name->value == "interlace" || name->value == "interlaced" ||
+             name->value == "interleave" || name->value == "interleaved")
+    {
+        newState = true;
+        stereoMode = stereoINTERLACED;
+    }
+    else
+    {
+        std::cerr << "Stereoscopy mode " << name->value << " is unknown\n";
+    }
+
     Window *window = (Window *) parentWidget();
-    if (oldFs != fs)
+    if (oldState != newState)
         window->toggleStereoscopy();
-    return oldFs ? XL::xl_true : XL::xl_false;
+    return oldState ? XL::xl_true : XL::xl_false;
 }
 
 

@@ -144,7 +144,7 @@ void Object3D::Load(kstring name)
 
             // The 'fo' variant was seen in some object files
             if (*ptr == 'o')
-                *ptr++;
+                ptr++;
 
             do
             {

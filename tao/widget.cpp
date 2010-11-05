@@ -4704,72 +4704,126 @@ Tree_p Widget::callout(Tree_p self,
 }
 
 
-XL::Tree_p Widget::debugBinPacker(Tree_p self, uint w, uint h, Tree_p t)
+struct ImagePacker : XL::Action
+// ----------------------------------------------------------------------------
+//   Pack images into a bigger texture
+// ----------------------------------------------------------------------------
+{
+    ImagePacker(BinPacker &bp, uint w, uint h, uint pw, uint ph):
+        bp(bp), maxWidth(w), maxHeight(h), padWidth(pw), padHeight(ph),
+        composite(bp.Width(), bp.Height(), QImage::Format_ARGB32)
+    {
+        composite.fill(0);
+    }
+ 
+    void AddImage(QString file)
+    {
+        QFileInfo fi(file);
+        if (fi.isDir())
+        {
+            QDir dir(file);
+            QStringList subdirs = dir.entryList(QDir::Dirs | QDir::Files |
+                                                QDir::Readable |
+                                                QDir::NoDotAndDotDot);
+            foreach (QString d, subdirs)
+                AddImage(dir.cleanPath(dir.absoluteFilePath(d)));
+        }
+        else
+        {
+            QImage image(file);
+            if (image.isNull())
+            {
+                QString qualified = "texture:" + file;
+                image.load(qualified);
+            }
+            if (!image.isNull())
+            {
+                uint w = image.width();
+                uint h = image.height();
+
+                if (w > maxWidth)
+                {
+                    image = image.scaledToWidth(maxWidth,
+                                                Qt::SmoothTransformation);
+                    w = image.width();
+                    h = image.height();
+                }
+                if (h > maxHeight)
+                {
+                    image = image.scaledToHeight(maxHeight,
+                                                 Qt::SmoothTransformation);
+                    w = image.width();
+                    h = image.height();
+                }
+
+                BinPacker::Rect rect;
+                if (bp.Allocate(w + padWidth, h + padHeight, rect))
+                {
+                    QPainter painter(&composite);
+                    painter.setBrush(Qt::transparent);
+                    painter.setPen(Qt::white);
+                    painter.drawImage(rect.x1, rect.y1, image);
+                    painter.end();
+                }
+                else
+                {
+                    IFTRACE(picturepack)
+                        std::cerr << "No room for image " << +file
+                                  << "(" << w << "x" << h << " pixels)\n";
+                }
+            }
+            else
+            {
+                IFTRACE(picturepack)
+                    std::cerr << "Unable to load image " << +file << "\n";
+            }
+        }
+    }
+    virtual Tree *Do (Tree *what) { return what; }
+    Tree *DoText(Text *what)
+    {
+        AddImage(+what->value);
+        return what;
+    }
+    BinPacker   &bp;
+    uint        maxWidth, maxHeight;
+    uint        padWidth, padHeight;
+    QImage      composite;
+};
+
+
+XL::Tree_p Widget::picturePacker(Tree_p self,
+                                 uint tw, uint th,
+                                 uint iw, uint ih,
+                                 uint pw, uint ph,
+                                 Tree_p t)
 // ----------------------------------------------------------------------------
 //   Debug the bin packer
 // ----------------------------------------------------------------------------
 {
-    BinPacker binpack(w, h);
-    GraphicPath *path = new GraphicPath;
-
-    struct BinPackerTest : XL::Action
+    TextureIdInfo *tinfo = self->GetInfo<TextureIdInfo>();
+    if (!tinfo)
     {
-        BinPackerTest(GraphicPath *path, BinPacker &bp)
-            : path(path), bp(bp), w(0) {}
+        // Put all the images in the packer
+        BinPacker binpack(tw, th);
+        ImagePacker imagePacker(binpack, iw, ih, pw, ph);
+        t->Do(imagePacker);
 
-        virtual Tree *Do (Tree *what) { return what; }
-        void Allocate(uint w, uint h)
-        {
-            BinPacker::Rect rect;
-            while (!bp.Allocate(w, h, rect))
-            {
-                uint ww = bp.Width();
-                uint hh = bp.Height();
-                do { ww <<= 1; } while (ww < w);
-                do { hh <<= 1; } while (hh < h);
-                bp.Resize(ww, hh);
-            }
+        // Attach the texture ID to the 'self' tree to avoid re-creating
+        tinfo = new TextureIdInfo();
+        self->SetInfo<TextureIdInfo> (tinfo);
 
-            path->moveTo(Point3(rect.x1, rect.y1, 0));
-            path->lineTo(Point3(rect.x1, rect.y2, 0));
-            path->lineTo(Point3(rect.x2, rect.y2, 0));
-            path->lineTo(Point3(rect.x2, rect.y1, 0));
-            path->close();
-        }
-        Tree *DoInteger (Integer *what)
-        {
-            if (!w)
-            {
-                w = what->value;
-            }
-            else
-            {
-                Allocate(w, what->value);
-                w = 0;
-            }
-            return what;
-        }
-        Tree *DoText(Text *what)
-        {
-            QFont font(+what->value, w ? w : -1);
-            QFontMetrics fm(font);
-            for (uint i = 32; i < 256; i++)
-            {
-                QChar qc(i);
-                QRect bounds(fm.boundingRect(qc));
-                Allocate(bounds.width(), bounds.height());
-            }
-            return what;
-        }
-        GraphicPath *path;
-        BinPacker   &bp;
-        uint         w;
-    } binPackerTest(path, binpack);
+        // Convert the resulting image into a texture
+        QImage texImg = QGLWidget::convertToGLFormat(imagePacker.composite);
+        glBindTexture(GL_TEXTURE_2D, tinfo->textureId);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                     texImg.width(), texImg.height(), 0, GL_RGBA,
+                     GL_UNSIGNED_BYTE, texImg.bits());
+    }
 
-    t->Do(binPackerTest);
-    layout->Add(path);
-
-    return XL::xl_false;
+    GLuint textureId = tinfo->bind();
+    layout->Add(new FillTexture(textureId));
+    return new Integer(textureId);
 }
 
 

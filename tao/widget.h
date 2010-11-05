@@ -401,7 +401,11 @@ public:
                         Real_p cx, Real_p cy, Real_p w, Real_p h,
                         Real_p r, Real_p ax, Real_p ay, Real_p d);
 
-    Tree_p      debugBinPacker(Tree_p self, uint w, uint h, Tree_p t);
+    Tree_p      picturePacker(Tree_p self,
+                              uint tw, uint th,
+                              uint iw, uint ih,
+                              uint pw, uint ph,
+                              Tree_p t);
     Tree_p      debugParameters(Tree_p self,
                                 double x, double y,
                                 double w, double h);

@@ -87,6 +87,7 @@ class Widget : public QGLWidget
 public:
     typedef std::vector<double>         attribute_args;
     typedef std::map<GLuint, uint>      selection_map;
+    enum StereoMode { stereoHARDWARE, stereoINTERLACED };
 
 public:
     Widget(Window *parent, SourceFile *sf = NULL);
@@ -133,6 +134,7 @@ public:
     void        paintGL();
     void        setup(double w, double h, const Box *picking = NULL);
     void        setupGL();
+    void        setupStereoStencil(double w, double h);
     void        identifySelection();
     void        updateSelection();
     uint        showGlErrors();
@@ -187,6 +189,7 @@ public:
     bool        timerIsActive()         { return timer.isActive(); }
     bool        hasAnimations(void)     { return animated; }
     bool        hasStereoscopy(void)    { return stereoscopic; }
+    StereoMode  currentStereoMode(void) { return stereoMode; }
 
 
     // Selection
@@ -310,9 +313,9 @@ public:
     Real_p      currentZoom(Tree_p self);
     Name_p      setZoom(Tree_p self, scale z);
     Infix_p     currentEyePosition(Tree_p self);
-    Name_p      setEyePosition(Tree_p self, coord x, coord y);
+    Name_p      setEyePosition(Tree_p self, coord x, coord y, coord z);
     Infix_p     currentCenterPosition(Tree_p self);
-    Name_p      setCenterPosition(Tree_p self, coord x, coord y);
+    Name_p      setCenterPosition(Tree_p self, coord x, coord y, coord z);
     Name_p      setEyeDistance(Tree_p self, double eyeD);
     Real_p      getEyeDistance(Tree_p self);
     Name_p      setZNear(Tree_p self, double zn);
@@ -322,7 +325,7 @@ public:
     Integer_p   lastModifiers(Tree_p self);
 
     Name_p      enableAnimations(Tree_p self, bool fs);
-    Name_p      enableStereoscopy(Tree_p self, bool fs);
+    Name_p      enableStereoscopy(Tree_p self, Name_p name);
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
     Name_p      printPage(Tree_p self, text filename);
@@ -674,6 +677,7 @@ private:
     FontFileManager *     fontFileMgr;
     bool                  drawAllPages;
     bool                  animated;
+    StereoMode            stereoMode;
     char                  stereoscopic;
 
     // Selection
@@ -959,21 +963,6 @@ struct NameToTextReplacement : NameToNameReplacement
     NameToTextReplacement(): NameToNameReplacement() {}
     Tree *  DoName(XL::Name *what);
 };
-
-
-struct InsertImageWidthAndHeightAction : XL::Action
-// ----------------------------------------------------------------------------
-// Action to insert the width and height of the image in the source.
-// ----------------------------------------------------------------------------
-{
-    InsertImageWidthAndHeightAction(double w, double h)
-        :ww(w), hh(h), done(false) {}
-    Tree *Do (Tree *what) { return what;}
-    Tree *DoInfix(Infix *what);
-    double ww,hh;
-    bool   done;
-};
-
 
 } // namespace Tao
 

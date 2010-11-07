@@ -4194,7 +4194,7 @@ Tree_p Widget::fillTextureFromSVG(Tree_p self, text img)
 
 Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, text filename)
 //----------------------------------------------------------------------------
-//  Make an image : rewrite the source with image x,y,w,h,path
+//  Make an image with default size
 //----------------------------------------------------------------------------
 //  If w or h is 0 then the image width or height is used and assigned to it.
 {
@@ -4211,8 +4211,8 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
 {
     GLuint texId = 0;
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
-    double sx = w ? (double) w : 1.0;
-    double sy = h ? (double) h : 1.0;
+    double sx = w.Pointer() ? (double) w : 1.0;
+    double sy = h.Pointer() ? (double) h : 1.0;
 
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
     if (!rinfo)

@@ -4202,7 +4202,7 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, text filename)
 }
 
 
-Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
+Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
                      text filename)
 //----------------------------------------------------------------------------
 //  Make an image
@@ -4211,8 +4211,8 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
 {
     GLuint texId = 0;
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
-    double sx = w.Pointer() ? (double) w : 1.0;
-    double sy = h.Pointer() ? (double) h : 1.0;
+    double sx = sxp.Pointer() ? (double) sxp : 1.0;
+    double sy = syp.Pointer() ? (double) syp : 1.0;
 
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
     if (!rinfo)
@@ -4225,11 +4225,10 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
-    Rectangle shape(Box(x-w/2, y-h/2, rinfo->width * sx, rinfo->height * sy));
+    double w = rinfo->width * sx;
+    double h = rinfo->height * sy;
+    Rectangle shape(Box(x-w/2, y-h/2, w, h));
     layout->Add(new Rectangle(shape));
-
-    if (currentShape)
-        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
 
     return XL::xl_true;
 }

@@ -4192,63 +4192,17 @@ Tree_p Widget::fillTextureFromSVG(Tree_p self, text img)
 }
 
 
-Tree *InsertImageWidthAndHeightAction::DoInfix(Infix *what)
-// ----------------------------------------------------------------------------
-// Action modifying the Infix before the "path" component.
-// ----------------------------------------------------------------------------
-{
-    if ( done || what->name != "," || ! what->right->AsText())
-        return what;
-
-    Real *width = new Real(ww);
-    Real *height = new Real(hh);
-    Infix *inf2 = new XL::Infix (",", what->left, width);
-    Infix *inf1 = new XL::Infix (",", inf2, height);
-    what->left = inf1;
-
-    done = true;
-    return what;
-}
-
-
 Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, text filename)
 //----------------------------------------------------------------------------
-//  Make an image : rewrite the source with image x,y,w,h,path
+//  Make an image with default size
 //----------------------------------------------------------------------------
 //  If w or h is 0 then the image width or height is used and assigned to it.
 {
-    GLuint texId = 0;
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
-
-    ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
-    if (!rinfo)
-    {
-        rinfo = new ImageTextureInfo();
-        self->SetInfo<ImageTextureInfo>(rinfo);
-    }
-    texId = rinfo->bind(filename);
-
-    layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
-
-    layout->Add(new Rectangle(Box(x-rinfo->width/2, y-rinfo->height/2,
-                                  rinfo->width, rinfo->height)));
-
-#if 0
-    // Replace image x,y,"toto" with x,y,w,h,"toto"
-    InsertImageWidthAndHeightAction insertAct(rinfo->width, rinfo->height);
-    self->Do(insertAct);
-
-    // The structure of the program has changed, we need to recompile
-    reloadProgram();
-    markChanged("Image size added");
-#endif
-
-    return XL::xl_true;
+    return image(self, x, y, NULL, NULL, filename);
 }
 
 
-Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
+Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
                      text filename)
 //----------------------------------------------------------------------------
 //  Make an image
@@ -4257,6 +4211,8 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
 {
     GLuint texId = 0;
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    double sx = sxp.Pointer() ? (double) sxp : 1.0;
+    double sy = syp.Pointer() ? (double) syp : 1.0;
 
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
     if (!rinfo)
@@ -4269,11 +4225,10 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
+    double w = rinfo->width * sx;
+    double h = rinfo->height * sy;
     Rectangle shape(Box(x-w/2, y-h/2, w, h));
     layout->Add(new Rectangle(shape));
-
-    if (currentShape)
-        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
 
     return XL::xl_true;
 }

@@ -5056,7 +5056,7 @@ Tree_p Widget::fontSize(Tree_p self, double size)
 //   Select a font size
 // ----------------------------------------------------------------------------
 {
-    layout->font.setPointSizeF(size);
+    layout->font.setPointSizeF(fontSizeAdjust(size));
     layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }

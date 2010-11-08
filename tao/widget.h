@@ -188,7 +188,7 @@ public:
                         bool stats = true, bool show=true);
     bool        timerIsActive()         { return timer.isActive(); }
     bool        hasAnimations(void)     { return animated; }
-    bool        hasStereoscopy(void)    { return stereoscopic; }
+    char        hasStereoscopy(void)    { return stereoscopic; }
     StereoMode  currentStereoMode(void) { return stereoMode; }
 
 

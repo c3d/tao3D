@@ -231,7 +231,7 @@ void Process::readStandardOutput()
 // ------------------------------------------------------------------------
 {
     QByteArray newOut = QProcess::readAllStandardOutput();
-    out.append(newOut);
+    out.append(QString::fromUtf8(newOut.data()));
     emit standardOutputUpdated(newOut);
 }
 
@@ -242,7 +242,7 @@ void Process::readStandardError()
 // ------------------------------------------------------------------------
 {
     QByteArray newErr = QProcess::readAllStandardError();
-    err.append(newErr);
+    err.append(QString::fromUtf8(newErr.data()));
     emit standardErrorUpdated(newErr);
 }
 

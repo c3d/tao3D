@@ -272,7 +272,8 @@ void Widget::dawdle()
 
     // Check if it's time to commit
     longlong commitDelay = longlong (nextCommit - tick);
-    if (repo && commitDelay < 0 && repo->state == Repository::RS_NotClean &&
+    if (repo && commitDelay < 0 &&
+        repo->state == Repository::RS_NotClean &&
         !dragging)
     {
         doCommit(tick);

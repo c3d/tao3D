@@ -2806,10 +2806,10 @@ PREFIX(TestReplay, tree, "test_replay", ,
 |*/")
 PREFIX(TestDef, tree, "test_definition",
        PARM(testname, text) PARM(feature, integer) PARM(description, text)
-       PARM(testbody, tree),
-       RTAO(testDef(self, testname, feature, description, testbody)),
+       PARM(threshold, real) PARM(testbody, tree),
+       RTAO(testDef(self, testname, feature, description, testbody, threshold)),
 "/*| docname \"test_definition\", \"test\", do { \
-         dsyntax \"test_definition testname, feature, description, testbody\" ;\
+         dsyntax \"test_definition testname, feature, description, threshold, testbody\" ;\
          synopsis \"Define the current test\"; \
          description \"Test to activate rectangle action. \"; \
          parameters;\
@@ -2817,6 +2817,7 @@ PREFIX(TestDef, tree, "test_definition",
          It is used as basename for the filename, so it must not contain not valide characters for filename.>>;\
          parameter \"integer\", \"feature\", <<The feature identifier in redmine.>>;\
          parameter \"text\", \"description\", <<The description of the test.>>;\
+         parameter \"real\", \"threshold\", <<The percentage of error authorized between reference and played images.>>;\
          parameter \"tree\", \"testbody\", <<The body of the test.\
          The description of events to play.>>;\
          }\

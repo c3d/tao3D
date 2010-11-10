@@ -7717,13 +7717,14 @@ Tree_p Widget::testCheck(Tree_p self)
 }
 
 
-Tree_p Widget::testDef(Tree_p , text_p name, Integer_p fId, text_p desc, Tree_p body)
+Tree_p Widget::testDef(Tree_p , text_p name, Integer_p fId, text_p desc, Tree_p body,
+                       Real_p thr)
 // ----------------------------------------------------------------------------
 //   Define a new test
 // ----------------------------------------------------------------------------
 {
     currentTest.reset(name->value, fId->value, desc->value,
-                      +((Window*)parent())->currentProjectFolderPath());
+                      +((Window*)parent())->currentProjectFolderPath(), thr->value);
     return xl_evaluate(body);
 }
 

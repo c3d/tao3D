@@ -17,13 +17,15 @@ public:
                               QString name = "",
                               QString loc = "",
                               int fid = 0,
-                              QString desc = "");
+                              QString desc = "",
+                              double threshold = 0.0);
     ~Save_test_dialog();
 
     QString name;
     QString loc;
     int fid;
     QString desc;
+    double threshold;
 
 public slots:
     void changeLoc();

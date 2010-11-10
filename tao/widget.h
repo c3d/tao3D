@@ -724,7 +724,8 @@ public:
     Tree_p testCheck(Tree_p self);
     WidgetTests currentTest;
     // Definition of events to be load
-    Tree_p testDef(Tree_p self, text_p name, Integer_p fId, text_p desc, Tree_p body);
+    Tree_p testDef(Tree_p self, text_p name, Integer_p fId, text_p desc, Tree_p body,
+                   Real_p thr);
     Tree_p testAddKeyPress(Tree_p self, Integer_p key,
                            Integer_p modifiers, Integer_p delay );
     Tree_p testAddKeyRelease(Tree_p self, Integer_p key,

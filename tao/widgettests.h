@@ -50,7 +50,8 @@ public:
     bool play();
     void printResult();
     void reset(text newName = text(), int feature = 0,
-               text desc = text(), text folder = text());
+               text desc = text(), text folder = text(),
+               double thr = 0.0);
 
     void addKeyPress(Qt::Key qtKey,
                      Qt::KeyboardModifiers modifiers = Qt::NoModifier,
@@ -78,6 +79,8 @@ public:
 
     // Save utilities
     text toString();
+    double diff(QImage &ref, QImage &played, QString filename,
+                bool forceSave = false);
     // Spying events on widget
     bool eventFilter(QObject *obj, QEvent *evt);
 
@@ -92,13 +95,15 @@ public:
     QString    name;
     QString    description;
     int        featureId;// The id in redmine of the feature that this test tests
-    bool       latestResult;
     QString    folder;
     QImage     playedBefore, playedAfter;
     QImage     before, after;
     QList<QImage> checkPointList;
     QTime      startTime;
     QString    taoCmd;
+    int        nbChkPtKO;
+    double     threshold;
+
 protected:
 
     QTestEventList testList;
@@ -301,7 +306,8 @@ public:
     }
 
     void reset(text newName = text(), int feature = 0,
-               text desc = text(), text folder = text()) {
+               text desc = text(), text folder = text(),
+               double thr = 0.0, int w = 0, int h = 0) {
         qWarning("Rerun qmake with option \"QT+=testlib\"");
     }
     void checkNow()

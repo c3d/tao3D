@@ -31,12 +31,13 @@
 
 TAO_BEGIN
 
+
 WidgetTests::WidgetTests(Widget *widget, text name, text description) :
 // ----------------------------------------------------------------------------
 //   Creates a new test.
 // ----------------------------------------------------------------------------
     widget(widget), name(+name), description(+description),
-    featureId(0), latestResult(false)
+    featureId(0), threshold(0.0)
 {
     folder = ((Window*)(widget->window()))->currentProjectFolderPath().append("/");
 }
@@ -47,10 +48,11 @@ text WidgetTests::toString()
 //   Return the test as a tao command
 // ----------------------------------------------------------------------------
 {
-    QString testDoc = QString("%1_test -> test_definition \"%1\", %2,"
-                              " <<%3>>, do \n%4")
+    QString testDoc = QString("%1_test -> test_definition \"%1\", %2, "
+                              " <<%3>>, %5, do \n%4")
             .arg(name).arg(featureId)
-            .arg(description).arg(taoCmd);
+            .arg(description).arg(taoCmd.isEmpty() ? "    nil" : taoCmd)
+            .arg(threshold);
     return +testDoc;
 
 }
@@ -60,8 +62,10 @@ void WidgetTests::startRecord()
 //   Start recording a sequence of events
 // ----------------------------------------------------------------------------
 {
+    // clear lists
     testList.clear();
     checkPointList.clear();
+
     //photo
     before = widget->grabFrameBuffer(true);
     //connection
@@ -83,6 +87,7 @@ void WidgetTests::stopRecord()
 {
     //photo
     after = widget->grabFrameBuffer(true);
+
     //connection
     foreach (QAction* act,  widget->parent()->findChildren<QAction*>())
     {
@@ -279,32 +284,56 @@ bool WidgetTests::play()
 //   Replay the test
 // ----------------------------------------------------------------------------
 {
-    playedBefore = widget->grabFrameBuffer(true);
-    QString playedBeforeName = QString(folder).append(name).append("_playedBefore.png");
-    playedBefore.save(playedBeforeName, "PNG");
+    nbChkPtKO = 0;
 
-    if (playedBefore != before)
+    if (! before.isNull())
     {
-        text t = +name;
-        qWarning("Test %s: image before test is not equal to reference.",
-                 t.c_str());
-        if (playedBefore.rect() != before.rect())
-            qWarning("\timage size are different.");
-        if (playedBefore.format() != before.format())
-            qWarning("\timage format differs.");
+        // snap shot the widget
+        playedBefore = widget->grabFrameBuffer(true);
+
+        // save the image
+        QString playedBeforeName = QString(folder).append(name).append("_playedBefore.png");
+        playedBefore.save(playedBeforeName, "PNG");
+
+        // Compute the diff between reference and played image
+        QString diffBeforeName = QString(folder).append(name).append("_diffBefore.png");
+        double diffVal = diff(before, playedBefore, diffBeforeName);
+
+        if (diffVal > threshold)
+        {
+            text t = +name;
+            qWarning("Test %s: image before test is not equal to reference in %f%%",
+                     t.c_str(), diffVal);
+        }
     }
 
     // Copy the list as the original one can be modified by a reload during simulate
     QTestEventList tempoList = QTestEventList(testList);
     tempoList.simulate(widget);
-    playedAfter = widget->grabFrameBuffer(true);
 
-    QString playedAfterName = QString(folder).append(name).append("_playedAfter.png");
-    playedAfter.save(playedAfterName, "PNG");
+    if ( ! after.isNull() )
+    {
+        // snap shot the widget
+        playedAfter = widget->grabFrameBuffer(true);
 
-    latestResult = (playedAfter == after);
+        // save the image
+        QString playedAfterName = QString(folder).append(name).append("_playedAfter.png");
+        playedAfter.save(playedAfterName, "PNG");
 
-    return latestResult;
+        // Compute the diff between reference and played image
+        QString diffAfterName = QString(folder).append(name).append("_diffAfter.png");
+        double diffVal = diff(after, playedAfter, diffAfterName);
+
+        if (diffVal > threshold)
+        {
+            nbChkPtKO++;
+            text t = +name;
+            qWarning("Test %s: image after test is not equal to reference in %f%%",
+                     t.c_str(), diffVal);
+        }
+    }
+
+    return nbChkPtKO > 0;
 }
 
 
@@ -335,34 +364,37 @@ void WidgetTests::save()
         after.save(afterName, "PNG");
     }
     // Store test commands
-    if (!testList.isEmpty())
-    {
-        QString testName = QString(folder).append(name).append("_test.ddd");
-        QFile testFile(testName);
-        testFile.open(QIODevice::WriteOnly | QIODevice::Text);
-        testFile.write(toString().c_str());
-        testFile.flush();
-        testFile.close();
-    }
+    // If no action a nil list is written
+    QString testName = QString(folder).append(name).append("_test.ddd");
+    QFile testFile(testName);
+    testFile.open(QIODevice::WriteOnly | QIODevice::Text);
+    testFile.write(toString().c_str());
+    testFile.flush();
+    testFile.close();
+
     // Store check point images
     for (int i = 0; i < checkPointList.size(); i++)
     {
         QImage shot = checkPointList[i];
         QString chkPt=QString("%1%2_%3.png").arg(folder).arg(name).arg(i);
-        shot.save(chkPt);
+        shot.save(chkPt, "PNG");
     }
 }
 
 
-void WidgetTests::reset(text newName, int feature, text desc, text dir)
+void WidgetTests::reset(text newName, int feature, text desc, text dir, double thr)
 // ----------------------------------------------------------------------------
 //   Reset the test
 // ----------------------------------------------------------------------------
 {
     testList.clear();
+    taoCmd.clear();
     checkPointList.clear();
+    nbChkPtKO = 0;
     name = +newName;
     featureId = feature;
+    threshold = thr;
+
     description = +desc;
     folder = +dir;
     if (!folder.endsWith("/")) folder.append("/");
@@ -385,7 +417,7 @@ void WidgetTests::printResult()
 // ----------------------------------------------------------------------------
 {
     std::cerr << +name << ", " << featureId << ", "
-            << (latestResult ? "PASSED" : "FAILED")
+            << (nbChkPtKO == 0 ? "PASSED" : "FAILED")
             << ", " << +description << std::endl;
 }
 
@@ -501,6 +533,45 @@ void WidgetTests::addDialogClose(QString objName, int result,  int delay)
     testList.append(new TestDialogActionEvent(objName, result, delay));
 }
 
+double WidgetTests::diff(QImage &ref, QImage &played, QString filename,
+                         bool forceSave)
+// ----------------------------------------------------------------------------
+// Generate an mage with just the different pixel in red.
+// ----------------------------------------------------------------------------
+{
+    if (ref.size() != played.size())
+    {
+        std::cerr << "Image size differs: ref is (" << ref.size().width() << " x " <<
+                ref.size().height() << ") and played is (" << played.size().width()
+                << " x "  << played.size().height() << ")\n";
+        return 100.0;
+    }
+
+    int nbDiff = 0;
+    QImage imgDiff(ref.size(), ref.format());
+
+    for (int line =0; line < ref.height(); line++)
+    {
+        for (int col=0; col < ref.width(); col++)
+        {
+            if (ref.pixel(col, line) != played.pixel(col,line))
+            {
+                imgDiff.setPixel(col, line, QColor(Qt::red).rgba());
+                nbDiff++;
+            }
+            else
+                imgDiff.setPixel(col, line, QColor(Qt::transparent).rgba());
+        }
+    }
+
+    double res = (nbDiff * 100.0)/ref.byteCount();
+
+    if (!filename.isEmpty() && (res > threshold || forceSave))
+        imgDiff.save(filename, "PNG");
+
+    return res;
+}
+
 
 // ============================================================================
 //
@@ -519,11 +590,23 @@ void TestCheckEvent::simulate(QWidget *w)
     QFileInfo refFile(QString("image:%1_%2.png").arg(testName).arg(number));
     QImage ref(refFile.canonicalFilePath());
     QImage shot = widget->grabFrameBuffer(true);
-    shot.save(QString("%1/%2_played_%3.png")
-              .arg(refFile.canonicalPath()).arg(testName).arg(number));
 
-    std::cerr << +testName <<  "\t Intermediate check " << number <<
-            (shot != ref ? " fails.\n" :  " succeeds.\n");
+    shot.save(QString("%1/%2_played_%3.png")
+              .arg(refFile.canonicalPath()).arg(testName).arg(number), "PNG");
+
+    QString diffFilename = QString("%1/%2_diff_%3.png").arg(refFile.canonicalPath())
+                           .arg(testName).arg(number);
+    double resDiff = widget->currentTest.diff(ref, shot, diffFilename);
+
+    std::cerr << +testName <<  "\t Intermediate check " << number ;
+    if (resDiff > widget->currentTest.threshold)
+    {
+        std::cerr<< " fails by " << resDiff << "%\n";
+        widget->currentTest.nbChkPtKO++;
+    }
+    else
+        std::cerr<< " succeeds by " << resDiff << "%\n";
+
 }
 
 

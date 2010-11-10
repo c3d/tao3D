@@ -578,8 +578,9 @@ PREFIX(SetZoom, boolean, "zoom", PARM(z, real), RTAO(setZoom(self, z)),
                 }\
           |*/")
 PREFIX(GetEye, infix, "eye_position", , RTAO(currentEyePosition(self)), "")
-PREFIX(SetEye, boolean, "eye_position", PARM(x, real) PARM(y, real),
-       RTAO(setEyePosition(self,x,y)),
+PREFIX(SetEye, boolean, "eye_position",
+       PARM(x, real) PARM(y, real) PARM(z, real),
+       RTAO(setEyePosition(self, x, y, z)),
        "/*| docname \"eye_position\", \"gui\", do { \
                 synopsis \"eye position manipulation\" ; \
                 dsyntax <<eye_position>>;\
@@ -593,8 +594,9 @@ PREFIX(SetEye, boolean, "eye_position", PARM(x, real) PARM(y, real),
                 }\
           |*/")
 PREFIX(GetCenter, infix, "center_position", , RTAO(currentCenterPosition(self)),  "")
-PREFIX(SetCenter, boolean, "center_position", PARM(x, real) PARM(y, real),
-       RTAO(setCenterPosition(self,x,y)),
+PREFIX(SetCenter, boolean, "center_position",
+       PARM(x, real) PARM(y, real) PARM(z, real),
+       RTAO(setCenterPosition(self, x, y, z)),
        "/*| docname \"center_position\", \"gui\", do { \
                 synopsis \"Center position management\" ; \
                 dsyntax <<center_position>>;\
@@ -645,8 +647,8 @@ PREFIX(EnableAnimations, boolean, "enable_animations", PARM(an, boolean),
                 return_value \"boolean\", <<True if previous state was on.>>;\
                 }\
           |*/")
-PREFIX(EnableStereoscopy, boolean, "enable_stereoscopy", PARM(f, boolean),
-       RTAO(enableStereoscopy(self, f)),
+PREFIX(EnableStereoscopy, boolean, "enable_stereoscopy", PARM(mode, symbol),
+       RTAO(enableStereoscopy(self, mode)),
        "/*| docname \"enable_stereoscopy\", \"gui\", do { \
                 dsyntax <<enable_stereoscopy s>>;\
                 synopsis \"Enable or disable stereoscopie mode\" ; \
@@ -656,6 +658,24 @@ PREFIX(EnableStereoscopy, boolean, "enable_stereoscopy", PARM(f, boolean),
                 return_value \"\", <<True if previous state was on.>>;\
                 }\
           |*/")
+PREFIX(EyeDistance, boolean, "eye_distance", PARM(e, real),
+       RTAO(setEyeDistance(self, e)),
+       "")
+PREFIX(GetEyeDistance, real, "eye_distance",,
+       RTAO(getEyeDistance(self)),
+       "")
+PREFIX(ZNear, boolean, "z_near", PARM(zn, real),
+       RTAO(setZNear(self, zn)),
+       "")
+PREFIX(GetZNear, real, "z_near",,
+       RTAO(getZNear(self)),
+       "")
+PREFIX(ZFar, boolean, "z_far", PARM(zf, real),
+       RTAO(setZFar(self, zf)),
+       "")
+PREFIX(GetZFar, real, "z_far",,
+       RTAO(getZFar(self)),
+       "")
 PREFIX(PolygonOffset, integer, "polygon_offset",
        PARM(f0, real) PARM(f1, real) PARM(u0, real) PARM(u1, real),
        RTAO(polygonOffset(self, f0, f1, u0, u1)),
@@ -1257,9 +1277,12 @@ PREFIX(Callout, tree, "callout",
                 }\
           |*/")
 
-PREFIX(DebugBinPacker, tree, "binpacker",
-       PARM(w, integer) PARM(h, integer) PARM(t, tree),
-       RTAO(debugBinPacker(self, w, h, t)),
+PREFIX(PicturePacker, tree, "picture_packer",
+       PARM(tw, integer) PARM(th, integer)
+       PARM(iw, integer) PARM(ih, integer)
+       PARM(pw, integer) PARM(ph, integer)
+       PARM(t, tree),
+       RTAO(picturePacker(self, tw, th, iw, ih, pw, ph, t)),
        "/*| docname \"binpacker\", \"graph:debug\", do { \
                 dsyntax <<binpacker w, h, t>>;\
                 synopsis \"Debug the bin packer\" ; \

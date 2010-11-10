@@ -22,6 +22,10 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#ifdef CONFIG_MINGW
+#define WINVER 0x501
+#endif
+
 #include "application.h"
 #include "main.h"
 #include "basics.h"

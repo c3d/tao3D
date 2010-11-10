@@ -53,6 +53,9 @@ main_chooser ->
     chooser_choice "Exit full screen", {full_screen false}
     chooser_choice "Enter slide show", {slide_show true}
     chooser_choice "Exit slide show", {slide_show false}
+    chooser_choice "Enable stereoscopy", {enable_stereoscopy true}
+    chooser_choice "Disable stereoscopy", {enable_stereoscopy false}
+    chooser_choice "Enable stereoscopy (interleaved mode)", {enable_stereoscopy interleave}
     chooser_choice "Print to 'toto.pdf'", {print "toto.pdf"}
     chooser_choice "Print to 'toto.svg'", {print "toto.svg"}
     chooser_choice "Print to 'toto.ps'", {print "toto.ps"}

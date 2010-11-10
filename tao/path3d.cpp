@@ -137,9 +137,9 @@ void GraphicPath::Draw(Layout *where)
 }
 
 
-static scale getShortenByStyle(EndpointStyle style, scale lw) 
+static scale getShortenByStyle(EndpointStyle style, scale lw)
 // ----------------------------------------------------------------------------
-//   Returns the length to remove to a path for a particular endpoint style
+//   Returns the length to remove from a path for a particular endpoint style
 // ----------------------------------------------------------------------------
 {
     switch (style)
@@ -170,7 +170,7 @@ static scale getShortenByStyle(EndpointStyle style, scale lw)
 
 static void addEndpointToPath(EndpointStyle style,
                               Point3 endpoint, Vector3 heading,
-                              GraphicPath &outline) 
+                              GraphicPath &outline)
 // ----------------------------------------------------------------------------
 //   Adds the slyle decoration to the outline path
 // ----------------------------------------------------------------------------
@@ -349,10 +349,10 @@ static void addEndpointToPath(EndpointStyle style,
             {
                 Point3 c = endpoint + 4.0 / 7.0 * heading;
                 scale r = 3.0 / 7.0 * heading.Length();
-                
+
                 QPainterPath circle;
                 circle.addEllipse(c.x-r, c.y-r, 2*r, 2*r);
-                
+
                 QPainterPathStroker stroker;
                 stroker.setWidth(2.0 / 7.0 * heading.Length());
                 stroker.setCapStyle(Qt::FlatCap);
@@ -377,7 +377,7 @@ static void addEndpointToPath(EndpointStyle style,
                 p3.y -= 3.0 / 7.0 * heading.x;
                 p4.x -= 3.0 / 7.0 * heading.y;
                 p4.y += 3.0 / 7.0 * heading.x;
-                
+
                 QPainterPath square;
                 square.moveTo(p1.x, p1.y);
                 square.lineTo(p2.x, p2.y);
@@ -412,7 +412,7 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
     {
         Draw(where->offset, GL_POLYGON, tessel);
     }
-    if (setLineColor(where)) 
+    if (setLineColor(where))
     {
         GraphicPath outline;
 
@@ -429,71 +429,70 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
         scale length;
         scale shortenBy;
 
+        path_elements::iterator begin = elements.begin(), end = elements.end();
         path_elements::iterator p;
-        for ( path_elements::iterator i=elements.begin(); 
-              i < elements.end(); 
-              i++ )
+        for (path_elements::iterator i = begin; i != end; i++)
         {
             if (first)
             {
                 shortenBy = getShortenByStyle(startStyle, where->lineWidth);
-
+                
                 switch ((*i).kind)
                 {
-                    case MOVE_TO:
+                case MOVE_TO:
+                    startKind = MOVE_TO;
+                    startPoint = (*i).position;
+                    break;
+                case LINE_TO:
+                case CURVE_TO:
+                    // First line
+                    startKind = LINE_TO;
+                    startHeading = (*i).position - startPoint;
+                    length = startHeading.Length();
+                    if (length == 0)
+                    {
                         startKind = MOVE_TO;
                         startPoint = (*i).position;
-                        break;
-                    case LINE_TO:
-                    case CURVE_TO:
-                        // First line
-                        startKind = LINE_TO;
-                        startHeading = (*i).position - startPoint;
-                        length = startHeading.Length();
-                        if (length == 0)
+                    }
+                    else
+                    {
+                        startHeading.Normalize();
+                        startHeading *= shortenBy;
+                        if(length > shortenBy)
                         {
-                            startKind = MOVE_TO;
-                            startPoint = (*i).position;
+                            outline.moveTo(startPoint + startHeading);
                         }
                         else
                         {
-                            startHeading.Normalize();
-                            startHeading *= shortenBy;
-                            if(length > shortenBy)
-                            {
-                                outline.moveTo(startPoint + startHeading);
-                            }
-                            else
-                            {
-                                outline.moveTo(startPoint);
-                                startPoint -= startHeading;
-                            }
-                            p=i;
-                            first = false;
-                        }
-                        break;
-                    case CURVE_CONTROL:
-                        // First curve
-                        startKind = CURVE_TO;
-                        startHeading = (*i).position - startPoint;
-                        length = startHeading.Length();
-                        if (length == 0)
-                        {
-                            startKind = MOVE_TO;
-                            startPoint = (*i).position;
-                        }
-                        else
-                        {
-                            startHeading.Normalize();
-                            startHeading *= shortenBy;
                             outline.moveTo(startPoint);
                             startPoint -= startHeading;
-                            p=i;
-                            first = false;
                         }
-                        break;
+                        p=i;
+                        first = false;
+                    }
+                    break;
+                case CURVE_CONTROL:
+                    // First curve
+                    startKind = CURVE_TO;
+                    startHeading = (*i).position - startPoint;
+                    length = startHeading.Length();
+                    if (length == 0)
+                    {
+                        startKind = MOVE_TO;
+                        startPoint = (*i).position;
+                    }
+                    else
+                    {
+                        startHeading.Normalize();
+                        startHeading *= shortenBy;
+                        outline.moveTo(startPoint);
+                        startPoint -= startHeading;
+                        p = i;
+                        first = false;
+                    }
+                    break;
                 }
-
+                
             }
             else
             {
@@ -507,7 +506,7 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
                 else
                 {
                     outline.elements.push_back(*p);
-                    p=i;
+                    p = i;
                 }
             }
         }
@@ -515,9 +514,10 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
         {
             outline.elements.push_back(*p);
         }
-
-        for ( path_elements::reverse_iterator j, i=outline.elements.rbegin(); 
-              i < outline.elements.rend(); ++i )
+        
+        path_elements::reverse_iterator rbegin = outline.elements.rbegin();
+        path_elements::reverse_iterator rend = outline.elements.rend();
+        for (path_elements::reverse_iterator j, i = rbegin; i != rend; ++i)
         {
             j = i+1;
             if (last)
@@ -526,21 +526,21 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
                 
                 switch ((*i).kind)
                 {
-                    case LINE_TO:
-                        // Last line
+                case LINE_TO:
+                    // Last line
+                    endKind = LINE_TO;
+                    break;
+                case CURVE_TO:
+                case CURVE_CONTROL:
+                    // Last curve or line
+                    if ((*j).kind == CURVE_CONTROL)
+                        endKind = CURVE_TO;
+                    else
                         endKind = LINE_TO;
-                        break;
-                    case CURVE_TO:
-                    case CURVE_CONTROL:
-                        // Last curve or line
-                        if ((*j).kind == CURVE_CONTROL)
-                            endKind = CURVE_TO;
-                        else
-                            endKind = LINE_TO;
-                        break;
-                    case MOVE_TO:
-                        endKind = MOVE_TO;
-                        break;
+                    break;
+                case MOVE_TO:
+                    endKind = MOVE_TO;
+                    break;
                 }
                 endPoint = (*i).position;
                 endPointPtr = &(*i).position;
@@ -548,7 +548,7 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
                 length = endHeading.Length();
                 if (length == 0)
                 {
-                    endKind = MOVE_TO;                            
+                    endKind = MOVE_TO;
                 }
                 else
                 {
@@ -569,12 +569,13 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
                 }
             }
         }
+        
 
+        // Draw outline of the path.
         QPainterPath path;
-        if ( extractQtPath(outline, path) )
-        // If the path is flat, use a QPainterPathStroker
+        if (extractQtPath(outline, path))
         {
-            // Create the shorthened stroke
+            // Path is flat: use a QPainterPathStroker
             QPainterPathStroker stroker;
             stroker.setWidth(where->lineWidth);
             stroker.setCapStyle(Qt::FlatCap);
@@ -587,7 +588,7 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
             // Draw the endpoints
             if (!first)
             {
-                addEndpointToPath(startStyle, startPoint, startHeading, outline);
+                addEndpointToPath(startStyle,startPoint,startHeading,outline);
             }
             if (!last)
             {
@@ -596,8 +597,8 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
             outline.Draw(where->offset, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
         }
         else
-        // Otherwise, use GL lines
         {
+            // Path is not flat: use GL lines (temporarily)
             Draw(where->offset, GL_LINE_STRIP, 0);
         }
     }
@@ -632,7 +633,7 @@ void GraphicPath::Draw(const Vector3 &offset, GLenum mode, GLenum tesselation)
         gluTessBeginPolygon(tess, &polygon);
     }
 
-    for (path_elements::iterator i = begin; i != end; i++)
+    for (i = begin; i != end; i++)
     {
         Element    &e    = *i;
         Kind        kind = e.kind;

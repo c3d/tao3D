@@ -52,6 +52,29 @@ struct ImageTextureInfo : XL::Info
     static Texture &defaultTexture();
 };
 
+
+struct TextureIdInfo : XL::Info
+// ----------------------------------------------------------------------------
+//   Info recording a given texture ID in a tree
+// ----------------------------------------------------------------------------
+{
+    TextureIdInfo(): textureId(0)
+    {
+        glGenTextures(1, &textureId);
+    }
+    ~TextureIdInfo()
+    {
+        glDeleteTextures(1, &textureId);
+    }
+    GLuint bind()
+    {
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        return textureId;
+    }
+
+    GLuint textureId;
+};
+
 TAO_END
 
 #endif // texture.h

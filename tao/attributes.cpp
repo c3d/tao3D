@@ -282,15 +282,18 @@ void RecordMouseCoordinates::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = where->Display();
-    widget->recordProjection();
-    Point3 pos = widget->unprojectLastMouse();
-    MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>();
-    if (!info)
+    if (widget->hasStereoscopy() < 2)
     {
-        info = new MouseCoordinatesInfo;
-        self->SetInfo<MouseCoordinatesInfo>(info);
+        widget->recordProjection();
+        Point3 pos = widget->unprojectLastMouse();
+        MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>();
+        if (!info)
+        {
+            info = new MouseCoordinatesInfo;
+            self->SetInfo<MouseCoordinatesInfo>(info);
+        }
+        info->coordinates = pos;
     }
-    info->coordinates = pos;
 }
 
 TAO_END

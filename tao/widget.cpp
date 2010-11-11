@@ -19,7 +19,7 @@
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
-//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Jerome Forissier <jerome@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -2113,7 +2113,6 @@ void Widget::refreshProgram()
                 IFTRACE(filesync)
                     std::cerr << "File " << fname << " changed\n";
 
-
                 Tree *replacement = NULL;
                 if (repo)
                 {
@@ -2127,6 +2126,9 @@ void Widget::refreshProgram()
                     XL::Parser parser(fname.c_str(), syntax, positions, errors);
                     replacement = parser.Parse();
                 }
+
+                // Make sure we reload only once (bug #533)
+                sf.modified = st.st_mtime;
 
                 if (!replacement)
                 {
@@ -2143,9 +2145,6 @@ void Widget::refreshProgram()
                     ApplyChanges changes(replacement);
                     if (!sf.tree->Do(changes))
                         needBigHammer = true;
-
-                    // Record new modification time
-                    sf.modified = st.st_mtime;
 
                     if (fname == xlProgram->name)
                         updateProgramSource();

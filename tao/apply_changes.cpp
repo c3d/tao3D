@@ -42,36 +42,31 @@ bool ImportedFilesChanged(import_set &done,
 
     source_files &files = MAIN->files;
     source_files::iterator it;
-    bool more = true;
     bool result = false;
 
-    // Loop while there are more files to process
-    while (more)
+    // Loop on source files
+    for (it = files.begin(); it != files.end(); it++)
     {
-        more = false;
-        for (it = files.begin(); it != files.end(); it++)
+        SourceFile &sf = (*it).second;
+        if (!done.count(&sf))
         {
-            SourceFile &sf = (*it).second;
-            if (!done.count(&sf))
+            done.insert(&sf);
+            if (markChanged)
             {
-                done.insert(&sf);
-                if (markChanged)
-                {
-                    text prev_hash = sf.hash;
-                    TreeHashAction<> hash(XL::TreeHashAction<>::Force);
-                    sf.tree->Do(hash);
-                    std::ostringstream os;
-                    os << sf.tree->Get< HashInfo<> > ();
-                    sf.hash = os.str();
-                    
-                    if (!prev_hash.empty() && sf.hash != prev_hash)
-                        sf.changed = true;
-                }
-                struct stat st;
-                stat (sf.name.c_str(), &st);
-                if (st.st_mtime > sf.modified)
-                    result = true;
+                text prev_hash = sf.hash;
+                TreeHashAction<> hash(XL::TreeHashAction<>::Force);
+                sf.tree->Do(hash);
+                std::ostringstream os;
+                os << sf.tree->Get< HashInfo<> > ();
+                sf.hash = os.str();
+                
+                if (!prev_hash.empty() && sf.hash != prev_hash)
+                    sf.changed = true;
             }
+            struct stat st;
+            stat (sf.name.c_str(), &st);
+            if (st.st_mtime > sf.modified)
+                result = true;
         }
     }
     return result;

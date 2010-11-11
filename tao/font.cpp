@@ -50,7 +50,7 @@ Tree *FontParsingAction::DoInteger(Integer *what)
 //   Integers specify the font size
 // ----------------------------------------------------------------------------
 {
-    font.setPointSize(what->value);
+    font.setPointSizeF(fontSizeAdjust(what->value));
     return what;
 }
 
@@ -60,7 +60,7 @@ Tree *FontParsingAction::DoReal(Real *what)
 //   Real numbers specify the font size
 // ----------------------------------------------------------------------------
 {
-    font.setPointSizeF(what->value);
+    font.setPointSizeF(fontSizeAdjust(what->value));
     return what;
 }
 

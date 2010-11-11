@@ -57,6 +57,17 @@ public:
 };
 
 
+inline double fontSizeAdjust(double size)
+// ----------------------------------------------------------------------------
+//   Adjust font size for Windows
+// ----------------------------------------------------------------------------
+{
+#ifdef CONFIG_MINGW
+    size *= 72.0 / 96.0;
+#endif
+    return size;
+}
+
 TAO_END
 
 #endif // FONT_H

@@ -120,7 +120,6 @@ public slots:
     void        hideCursor();
     void        resetView();
     void        saveAndCommit();
-    void        setForceRefresh();
 
 
 signals:
@@ -188,7 +187,7 @@ public:
                         bool stats = true, bool show=true);
     bool        timerIsActive()         { return timer.isActive(); }
     bool        hasAnimations(void)     { return animated; }
-    bool        hasStereoscopy(void)    { return stereoscopic; }
+    char        hasStereoscopy(void)    { return stereoscopic; }
     StereoMode  currentStereoMode(void) { return stereoMode; }
 
 
@@ -718,7 +717,6 @@ private:
     int                   panX, panY;
     bool                  dragging;
     bool                  bAutoHideCursor;
-    bool                  forceRefresh;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:

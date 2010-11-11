@@ -32,8 +32,7 @@
 
 TAO_BEGIN
 
-bool ImportedFilesChanged(XL::Tree *prog,
-                          import_set &done,
+bool ImportedFilesChanged(import_set &done,
                           bool markChanged)
 // ----------------------------------------------------------------------------
 //   Compute the set of imported symbols
@@ -43,55 +42,31 @@ bool ImportedFilesChanged(XL::Tree *prog,
 
     source_files &files = MAIN->files;
     source_files::iterator it;
-    symbols_set imported;
-    bool more = true;
     bool result = false;
 
-    // Make sure we detect changes in builtins.xl
-    imported.insert(Symbols::symbols);
-
-    // Loop while there are more files to process
-    while (more)
+    // Loop on source files
+    for (it = files.begin(); it != files.end(); it++)
     {
-        more = false;
-        for (it = files.begin(); it != files.end(); it++)
+        SourceFile &sf = (*it).second;
+        if (!done.count(&sf))
         {
-            SourceFile &sf = (*it).second;
-            if (!done.count(&sf))
+            done.insert(&sf);
+            if (markChanged)
             {
-                if (sf.tree == prog || imported.count(sf.symbols))
-                {
-                    done.insert(&sf);
-                    if (markChanged)
-                    {
-                        text prev_hash = sf.hash;
-                        TreeHashAction<> hash(XL::TreeHashAction<>::Force);
-                        sf.tree->Do(hash);
-                        std::ostringstream os;
-                        os << sf.tree->Get< HashInfo<> > ();
-                        sf.hash = os.str();
-
-                        if (!prev_hash.empty() && sf.hash != prev_hash)
-                            sf.changed = true;
-                    }
-                    struct stat st;
-                    stat (sf.name.c_str(), &st);
-                    if (st.st_mtime > sf.modified)
-                        result = true;
-
-                    // Check the imported trees
-                    symbols_set &symset = sf.symbols->imported;
-                    symbols_set::iterator si;
-                    for (si = symset.begin(); si != symset.end(); si++)
-                    {
-                        if (!imported.count(*si))
-                        {
-                            more = true;
-                            imported.insert(*si);
-                        }
-                    }
-                }
+                text prev_hash = sf.hash;
+                TreeHashAction<> hash(XL::TreeHashAction<>::Force);
+                sf.tree->Do(hash);
+                std::ostringstream os;
+                os << sf.tree->Get< HashInfo<> > ();
+                sf.hash = os.str();
+                
+                if (!prev_hash.empty() && sf.hash != prev_hash)
+                    sf.changed = true;
             }
+            struct stat st;
+            stat (sf.name.c_str(), &st);
+            if (st.st_mtime > sf.modified)
+                result = true;
         }
     }
     return result;

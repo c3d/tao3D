@@ -155,7 +155,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       zNear(2000.0), zFar(40000.0),
       zoom(1.0), eyeDistance(10.0),
       eye(0.0, 0.0, zNear), viewCenter(0.0, 0.0, -zNear),
-      dragging(false), bAutoHideCursor(false), forceRefresh(false),
+      dragging(false), bAutoHideCursor(false),
       currentTest(this)
 {
     setObjectName(QString("Widget"));
@@ -272,7 +272,8 @@ void Widget::dawdle()
 
     // Check if it's time to commit
     longlong commitDelay = longlong (nextCommit - tick);
-    if (repo && commitDelay < 0 && repo->state == Repository::RS_NotClean &&
+    if (repo && commitDelay < 0 &&
+        repo->state == Repository::RS_NotClean &&
         !dragging)
     {
         doCommit(tick);
@@ -1009,15 +1010,6 @@ void Widget::saveAndCommit()
     ulonglong tick = now();
     if (doSave(tick))
         doCommit(tick);
-}
-
-
-void Widget::setForceRefresh()
-// ----------------------------------------------------------------------------
-//    Force document reload next time the dawdle loop runs
-// ----------------------------------------------------------------------------
-{
-    forceRefresh = true;
 }
 
 
@@ -1999,7 +1991,7 @@ void Widget::applyAction(XL::Action &action)
 
     // Lookup imported files
     import_set iset;
-    ImportedFilesChanged(prog, iset, false);
+    ImportedFilesChanged(iset, false);
 
     import_set::iterator it;
     for (it = iset.begin(); it != iset.end(); it++)
@@ -2118,7 +2110,7 @@ void Widget::refreshProgram()
 
     // Loop on imported files
     import_set iset;
-    if (ImportedFilesChanged(prog, iset, false) || forceRefresh)
+    if (ImportedFilesChanged(iset, false))
     {
         import_set::iterator it;
         bool needBigHammer = false;
@@ -2130,10 +2122,11 @@ void Widget::refreshProgram()
             struct stat st;
             stat (fname.c_str(), &st);
 
-            if ((st.st_mtime > sf.modified) || forceRefresh)
+            if ((st.st_mtime > sf.modified))
             {
                 IFTRACE(filesync)
                     std::cerr << "File " << fname << " changed\n";
+
 
                 Tree *replacement = NULL;
                 if (repo)
@@ -2194,17 +2187,15 @@ void Widget::refreshProgram()
                 for (it = iset.begin(); it != iset.end(); it++)
                 {
                     XL::SourceFile &sf = **it;
-                    text fname = sf.name;
-                    XL::MAIN->LoadFile(fname);
+                    XL::LocalSave<XL::Symbols_p> save(XL::Symbols::symbols,
+                                                      sf.symbols->Parent());
+                    XL::MAIN->LoadFile(sf.name);
                     inError = false;
-                    if (fname == xlProgram->name)
-                        updateProgramSource();
                 }
+                updateProgramSource();
             }
         }
     }
-    if (forceRefresh)
-        forceRefresh = false;
 }
 
 
@@ -2241,10 +2232,10 @@ void Widget::markChanged(text reason)
     if (repo)
         repo->markChanged(reason);
 
-    if (Tree *prog = xlProgram->tree)
+    if (xlProgram->tree)
     {
         import_set done;
-        ImportedFilesChanged(prog, done, true);
+        ImportedFilesChanged(done, true);
 
         import_set::iterator f;
         for (f = done.begin(); f != done.end(); f++)
@@ -5086,7 +5077,7 @@ Tree_p Widget::fontSize(Tree_p self, double size)
 //   Select a font size
 // ----------------------------------------------------------------------------
 {
-    layout->font.setPointSizeF(size);
+    layout->font.setPointSizeF(fontSizeAdjust(size));
     layout->Add(new FontChange(layout->font));
     return XL::xl_true;
 }

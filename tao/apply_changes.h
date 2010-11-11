@@ -212,8 +212,7 @@ inline void MarkAsConstant(Tree* tree)
 
 
 typedef std::set<XL::SourceFile *> import_set;
-bool ImportedFilesChanged(XL::Tree *prog,
-                          import_set &done,
+bool ImportedFilesChanged(import_set &done,
                           bool markChanged);
 
 

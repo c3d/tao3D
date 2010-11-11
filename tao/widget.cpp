@@ -477,7 +477,7 @@ void Widget::runProgram()
         xl_evaluate(prog);
 
     // If we have evaluation errors, show them (bug #498)
-    if (XL::MAIN->HadErrors())
+    if (XL::MAIN->errors->Count())
     {
         std::vector<XL::Error> &errors = XL::MAIN->errors->errors;
         std::vector<XL::Error>::iterator ei;

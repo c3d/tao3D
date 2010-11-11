@@ -245,7 +245,8 @@ OTHER_FILES += xl.syntax \
     git.stylesheet \
     srcview.stylesheet \
     srcview.css \
-    traces.tbl
+    traces.tbl \
+    graphics.tbl
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}

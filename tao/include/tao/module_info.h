@@ -43,6 +43,7 @@ struct ModuleInfo
     std::string ver;
     std::string author;
     std::string website;
+    std::string importName;
 };
 
 }

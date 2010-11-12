@@ -667,7 +667,7 @@ menu_item "menu:insert > image...", "Image...", file_chooser
         insert "Insert image",
             shape
                 color 100%,100%,100%,100%
-                image 0, 0, rel_file_path
+                image 0, 0, 100%, 100%, rel_file_path
 }
 
 toolbar_test -> {

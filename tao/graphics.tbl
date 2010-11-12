@@ -2996,3 +2996,14 @@ PREFIX(TestReset, tree, "test_reset", , RTAO(resetTest(self)),
          }\
 |*/")
 
+// ============================================================================
+//
+//   Module management
+//
+// ============================================================================
+
+// May hide primitive: import "filename" (from xlr/basics.tbl)
+// Not a problem because implementation takes care of the above syntax
+PREFIX(ImportModule, tree, "import", PARM(m, tree),
+       return Tao::ModuleManager::import(context, self, m),
+       "")

@@ -30,7 +30,6 @@
 #include "runtime.h"
 #include "repository.h"
 #include <QSettings>
-#include <QMessageBox>
 
 namespace Tao {
 
@@ -53,6 +52,84 @@ ModuleManager * ModuleManager::moduleManager()
         }
     }
     return instance;
+}
+
+
+XL::Tree_p ModuleManager::import(XL::Context_p context, XL::Tree_p self,
+                                 XL::Tree_p what)
+// ----------------------------------------------------------------------------
+//   The import primitive
+// ----------------------------------------------------------------------------
+{
+    // import "filename"
+    XL::Text *file = what->AsText();
+    if (file)
+        return XL::xl_import(context->stack, file->value);
+
+    // Other import syntax: explicit module import
+    ModuleManager *mmgr = moduleManager();
+    if (mmgr)
+        return mmgr->importModule(context, self, what);
+
+    return XL::xl_false;
+}
+
+
+XL::Tree_p ModuleManager::importModule(XL::Context_p context, XL::Tree_p self,
+                                       XL::Tree_p what)
+// ----------------------------------------------------------------------------
+//   The primitive to import a module, for example:   import ModuleName "1.10"
+// ----------------------------------------------------------------------------
+{
+    XL::Tree *err = NULL;
+    XL::Name *name = NULL;
+    XL::Text *ver = NULL;
+    text m_n, m_v;
+
+    XL::Prefix *prefix = what->AsPrefix();
+    if (prefix)
+    {
+        name = prefix->left->AsName();
+        if (name)
+            m_n = name->value;
+        ver = prefix->right->AsText();
+        if (ver)
+            m_v = ver->value;
+    }
+
+    if (m_n != "" && m_v != "")
+    {
+        bool found = false, name_found = false;
+        foreach (ModuleInfoPrivate m, modules)
+        {
+            if (m_n == m.importName)
+            {
+                name_found = true;
+                if (Repository::versionMatches(+m_v, +m.ver))
+                {
+                    found = true;
+                    err = XL::Ooops("Not implemented: $1", self);
+                }
+            }
+        }
+
+        if (!found)
+        {
+            if (name_found)
+                err = XL::Ooops("Installed module $1 does not match "
+                                "requested version $2", name,
+                                new XL::Text(m_v, "", ""));
+            else
+                err = XL::Ooops("Module $1 not found", name);
+        }
+    }
+    else
+        err = XL::Ooops("Invalid module import: $1", self);
+
+    if (err)
+        return context->stack->Evaluate(err);
+
+    return XL::xl_true;
 }
 
 
@@ -181,7 +258,7 @@ bool ModuleManager::checkConfig()
         }
         else
         {
-            modules[+m.id].copyProperties(d);
+            modules[+m.id].copyPublicProperties(d);
             if (!m.enabled)
                 disabled++;
         }
@@ -453,6 +530,7 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
                     m.icon = +iconPath;
                 m.author = +moduleAttr(tree, "author");
                 m.website = +moduleAttr(tree, "website");
+                m.importName = +moduleAttr(tree, "import_name");
             }
             else
             {
@@ -558,7 +636,8 @@ bool ModuleManager::loadXL(Context *context, const ModuleInfoPrivate &m)
     // module_description <indent block> evaluates as nil
     // REVISIT: bind a native function and use it to parse the block?
     Name *n = new Name("module_description");
-    Block *b = new Block(new Name("x"), XL::Block::indent, XL::Block::unindent);
+    Block *b = new Block(new Name("x"), XL::Block::indent,
+                         XL::Block::unindent);
     Prefix *from = new Prefix(n, b);
     Name *to = new Name("nil");
     context->Define(from, to);
@@ -797,6 +876,7 @@ void ModuleManager::debugPrint(const ModuleInfoPrivate &m)
     debug() << "  ID:         " <<  m.id << "\n";
     debug() << "  Path:       " <<  m.path << "\n";
     debug() << "  Name:       " <<  m.name << "\n";
+    debug() << "  Import:     " <<  m.importName << "\n";
     debug() << "  Author:     " <<  m.author << "\n";
     debug() << "  Website:    " <<  m.website << "\n";
     debug() << "  Icon:       " <<  m.icon << "\n";

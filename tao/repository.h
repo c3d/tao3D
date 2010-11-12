@@ -190,6 +190,7 @@ public:
 
 public:
     static bool         versionGreaterOrEqual(QString ver, QString ref);
+    static bool         versionMatches(QString ver, QString ref, int n = 0);
 
 public slots:
     void                setTaskDescription(QString desc);

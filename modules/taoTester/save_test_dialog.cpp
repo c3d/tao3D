@@ -2,7 +2,6 @@
 #include "ui_save_test_dialog.h"
 #include <QFileDialog>
 
-namespace Tao {
 
 Save_test_dialog::Save_test_dialog(QWidget *parent,
                                    QString name, QString loc,
@@ -49,4 +48,4 @@ void Save_test_dialog::accept()
 //{
 //    QDialog::reject();
 //}
-} // End namespace Tao
+

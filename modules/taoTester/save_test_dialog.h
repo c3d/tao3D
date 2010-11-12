@@ -7,7 +7,7 @@ namespace Ui {
     class Save_test_dialog;
 }
 
-namespace Tao {
+
 class Save_test_dialog : public QDialog
 {
     Q_OBJECT
@@ -36,5 +36,5 @@ private:
     Ui::Save_test_dialog *ui;
 };
 
-}
+
 #endif // SAVE_TEST_DIALOG_H

@@ -670,15 +670,6 @@ menu_item "menu:insert > image...", "Image...", file_chooser
                 image 0, 0, rel_file_path
 }
 
-toolbar_test -> {
-toolbar "toolbar:test", "test", "N"
-menu_item "toolbar:test > start", "start","", do test_start_record
-menu_item "toolbar:test > check", "check","", do test_check
-menu_item "toolbar:test > stop", "stop","", do test_stop_record
-menu_item "toolbar:test > play", "play","", do test_replay
-menu_item "toolbar:test > save", "save","", do test_save
-menu_item "toolbar:test > reset", "reset","", do test_reset
-}
 
 toolbar_insert -> {
 toolbar   "toolbar:insert", "Insert", "N"

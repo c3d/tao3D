@@ -1,0 +1,18 @@
+// Module definition file
+
+module_description
+        id "0"
+        name "tao tester"
+        description "Adds primitives to create automated test in Tao."
+
+toolbar_test -> {
+toolbar "toolbar:test", "test", "N"
+menu_item "toolbar:test > start", "start","", do test_start_record
+menu_item "toolbar:test > check", "check","", do test_check
+menu_item "toolbar:test > stop", "stop","", do test_stop_record
+menu_item "toolbar:test > play", "play","", do test_replay
+menu_item "toolbar:test > save", "save","", do test_save
+menu_item "toolbar:test > reset", "reset","", do test_reset
+}
+
+toolbar_test

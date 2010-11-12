@@ -1,7 +1,7 @@
 #ifndef WIDGETTESTS_H
 #define WIDGETTESTS_H
 // ****************************************************************************
-//  widgettests.h							   Tao project
+//  widgettests.h					        Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -22,26 +22,40 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include "main.h"
+#include "utf8.h"
+
 #include <QObject>
 #include <QPoint>
-#include "main.h"
-
-#ifdef QT_TESTLIB_LIB
+#include <QGLWidget>
 #include <QTestEventList>
 #include <QAction>
 #include <QTime>
 #include <QColorDialog>
 #include <QFontDialog>
 
-namespace Tao {
+inline QString operator +(text s)
+// ----------------------------------------------------------------------------
+//   Quickly convert from text to QString
+// ----------------------------------------------------------------------------
+{
+    return QString::fromUtf8(s.data(), s.length());
+}
 
-struct Widget;
+inline text operator +(QString s)
+// ----------------------------------------------------------------------------
+//   Quickly convert from QString to text
+// ----------------------------------------------------------------------------
+{
+    return text(s.toUtf8().constData());
+}
+
 
 struct WidgetTests : public QObject
 {
 Q_OBJECT
 public:
-    WidgetTests(Widget *widget, text name = "", text description = "");
+    WidgetTests(QGLWidget *widget = NULL, text name = "", text description = "");
 
     void startRecord();
     void stopRecord();
@@ -50,7 +64,7 @@ public:
     bool play();
     void printResult();
     void reset(text newName = text(), int feature = 0,
-               text desc = text(), text folder = text(),
+               text desc = text(), text folder = text("./"),
                double thr = 0.0);
 
     void addKeyPress(Qt::Key qtKey,
@@ -91,7 +105,7 @@ public slots:
     void finishedDialog(int result);
 
 public:
-    Widget    *widget;
+    QGLWidget *widget;
     QString    name;
     QString    description;
     int        featureId;// The id in redmine of the feature that this test tests
@@ -265,114 +279,4 @@ private:
 
 
 
-} // end Tao namespace
-
-#else
-// =================================================================
-// ===  USED WHEN TEST IS NOT DEFINED AT BUILD TIME
-// =================================================================
-
-namespace Tao {
-
-struct Widget;
-
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-struct WidgetTests : public QObject
-{
-
-public:
-    WidgetTests(Widget *widget, text name = "", text description = "")
-    {}
-
-    void startRecord() {
-        qWarning("Rerun qmake with option \"QT+=testlib\"");
-    }
-
-    void stopRecord() {
-        qWarning("Rerun qmake with option \"QT+=testlib\"");
-    }
-
-    void save() {
-        qWarning("Rerun qmake with option \"QT+=testlib\"");
-    }
-
-    bool play() {
-        qWarning("Rerun qmake with option \"QT+=testlib\"");
-        return true;
-    }
-
-    void printResult() {
-        qWarning("Rerun qmake with option \"QT+=testlib\"");
-    }
-
-    void reset(text newName = text(), int feature = 0,
-               text desc = text(), text folder = text(),
-               double thr = 0.0, int w = 0, int h = 0) {
-        qWarning("Rerun qmake with option \"QT+=testlib\"");
-    }
-    void checkNow()
-    {
-        qWarning("Rerun qmake with option \"QT+=testlib\"");
-    }
-    void addKeyPress(Qt::Key qtKey,
-                     Qt::KeyboardModifiers modifiers = Qt::NoModifier,
-                     int msecs = -1 )
-    {
-        qWarning("Rerun qmake with option \"QT+=testlib\"");
-    }
-    void addKeyRelease(Qt::Key qtKey,
-                       Qt::KeyboardModifiers modifiers = Qt::NoModifier,
-                       int msecs = -1 )
-    {
-        qWarning("Rerun qmake with option \"QT+=testlib\"");
-    }
-    void addMousePress(Qt::MouseButton button,
-                       Qt::KeyboardModifiers modifiers = 0,
-                       QPoint pos = QPoint(), int delay = -1 )
-    {
-        qWarning("Rerun qmake with option \"QT+=testlib\"");
-    }
-    void addMouseRelease(Qt::MouseButton button,
-                         Qt::KeyboardModifiers modifiers = 0,
-                         QPoint pos = QPoint(), int delay = -1 )
-    {
-        qWarning("Rerun qmake with option \"QT+=testlib\"");
-    }
-    void addMouseMove(Qt::MouseButtons buttons,
-                       Qt::KeyboardModifiers modifiers = 0,
-                       QPoint pos = QPoint(), int delay = -1 )
-    {
-        qWarning("Rerun qmake with option \"QT+=testlib\"");
-    }
-    void addMouseDClick(Qt::MouseButton button,
-                        Qt::KeyboardModifiers modifiers = 0,
-                        QPoint pos = QPoint(), int delay = -1 )
-    {
-        qWarning("Rerun qmake with option \"QT+=testlib\"");
-    }
-    void addAction(QString name, int delay = -1 )
-    {
-        qWarning("Rerun qmake with option \"QT+=testlib\"");
-    }
-    void addCheck(int num, int delay)
-    {
-        qWarning("Rerun qmake with option \"QT+=testlib\"");
-    }
-    void addColor(QString diagName, QString name, int delay = -1 )
-    {
-        qWarning("Rerun qmake with option \"QT+=testlib\"");
-    }
-    void addFont(QString diagName, QString name, int delay = -1  )
-    {
-        qWarning("Rerun qmake with option \"QT+=testlib\"");
-    }
-    void addDialogClose(QString diagName, int result, int delay = -1)
-    {
-        qWarning("Rerun qmake with option \"QT+=testlib\"");
-    }
-
-};
-#pragma GCC diagnostic error "-Wunused-parameter"
-}
-#endif
 #endif // WIDGETTESTS_H

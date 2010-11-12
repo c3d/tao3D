@@ -21,25 +21,45 @@
 // ****************************************************************************
 #include "widgettests.h"
 
-#include "widget.h"
+#include <QFileInfo>
+#include <QMainWindow>
 #include "qtestevent.h"
-#include "tao_utf8.h"
-#include "application.h"
-#include "widget.h"
-#include "window.h"
+
+//#include "application.h"
+//#include "widget.h"
+//#include "window.h"
 #include "save_test_dialog.h"
 
-TAO_BEGIN
+#include "taotester.h"
 
 
-WidgetTests::WidgetTests(Widget *widget, text name, text description) :
+
+
+WidgetTests::WidgetTests(QGLWidget *widget, text name, text description) :
 // ----------------------------------------------------------------------------
 //   Creates a new test.
 // ----------------------------------------------------------------------------
     widget(widget), name(+name), description(+description),
-    featureId(0), threshold(0.0)
+    featureId(0), folder("./"), threshold(0.0)
 {
-    folder = ((Window*)(widget->window()))->currentProjectFolderPath().append("/");
+//    folder = ((Window*)(widget->window()))->currentProjectFolderPath().append("/");
+
+    if ( !widget )
+    {
+        foreach (QWidget *w, QApplication::topLevelWidgets())
+        {
+            QMainWindow * win = NULL;
+            QGLWidget * qglwid = NULL;
+            if ((win = dynamic_cast<QMainWindow*>(w)) != NULL)
+            {
+                if ((qglwid = dynamic_cast<QGLWidget *>(win->centralWidget()) ) != NULL)
+                {
+                    this->widget = qglwid;
+                    break;
+                }
+            }
+        }
+    }
 }
 
 
@@ -585,8 +605,8 @@ void TestCheckEvent::simulate(QWidget *w)
 //  Perform a check againts the reference view.
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = (Widget*) w;
-    QString testName = widget->currentTest.name;
+    QGLWidget * widget = (QGLWidget *)w;
+    QString testName = taoTester::tester()->currentTest()->name;
     QFileInfo refFile(QString("image:%1_%2.png").arg(testName).arg(number));
     QImage ref(refFile.canonicalFilePath());
     QImage shot = widget->grabFrameBuffer(true);
@@ -596,13 +616,13 @@ void TestCheckEvent::simulate(QWidget *w)
 
     QString diffFilename = QString("%1/%2_diff_%3.png").arg(refFile.canonicalPath())
                            .arg(testName).arg(number);
-    double resDiff = widget->currentTest.diff(ref, shot, diffFilename);
+    double resDiff = taoTester::tester()->currentTest()->diff(ref, shot, diffFilename);
 
     std::cerr << +testName <<  "\t Intermediate check " << number ;
-    if (resDiff > widget->currentTest.threshold)
+    if (resDiff > taoTester::tester()->currentTest()->threshold)
     {
         std::cerr<< " fails by " << resDiff << "%\n";
-        widget->currentTest.nbChkPtKO++;
+        taoTester::tester()->currentTest()->nbChkPtKO++;
     }
     else
         std::cerr<< " succeeds by " << resDiff << "%\n";
@@ -687,4 +707,4 @@ void TestDialogActionEvent::simulate(QWidget *w)
     }
 
 }
-TAO_END
+

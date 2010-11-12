@@ -64,6 +64,7 @@ bool ImportedFilesChanged(import_set &done,
                     sf.changed = true;
             }
             struct stat st;
+            st.st_mtime = sf.modified;
             stat (sf.name.c_str(), &st);
             if (st.st_mtime > sf.modified)
                 result = true;

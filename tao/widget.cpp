@@ -395,7 +395,7 @@ void Widget::draw()
         {
             stereoscopic = 3 - stereoscopic;
             setup(width(), height());
-            if (false && stereoMode == stereoHARDWARE)
+            if (stereoMode == stereoHARDWARE)
                 swapBuffers();
         }
     } while (stereoscopic == 2);

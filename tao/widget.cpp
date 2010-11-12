@@ -1198,13 +1198,13 @@ void Widget::setupStereoStencil(double w, double h)
         glLineWidth(1.0);
         glDisable(GL_LINE_SMOOTH);
         glDisable(GL_LINE_STIPPLE);
+        glBegin (GL_LINES);
 	for (uint y = 0; y < h; y += 2)
 	{
-            glBegin (GL_LINES);
             glVertex2f (0, y);
             glVertex2f (w, y);
-            glEnd();
 	}
+        glEnd();
 
         // Protect stencil from now on
 	glStencilOp (GL_KEEP, GL_KEEP, GL_KEEP);

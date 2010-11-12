@@ -353,6 +353,8 @@ void Widget::draw()
                     glDrawBuffer(GL_BACK_LEFT);
                 else if (stereoscopic == 2)
                     glDrawBuffer(GL_BACK_RIGHT);
+                glClearColor(1.0, 1.0, 1.0, 1.0);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             }
             else if (stereoMode == stereoINTERLACED)
             {
@@ -1167,6 +1169,7 @@ void Widget::setupGL()
     glDisable(GL_CULL_FACE);
 }
 
+
 void Widget::setupStereoStencil(double w, double h)
 // ----------------------------------------------------------------------------
 //   For interlaced output, generate a stencil with every other line
@@ -1192,7 +1195,7 @@ void Widget::setupStereoStencil(double w, double h)
 	glStencilOp (GL_REPLACE, GL_REPLACE, GL_REPLACE); // Copy to stencil
 	glDisable(GL_DEPTH_TEST);
 	glStencilFunc(GL_ALWAYS,1,1);                     // Ignore contents
-	
+
         // Draw pattern showing every other line
 	glColor4f(1.0, 1.0, 1.0, 1.0);
         glLineWidth(1.0);
@@ -4775,7 +4778,7 @@ struct ImagePacker : XL::Action
     {
         composite.fill(0);
     }
- 
+
     void AddImage(QString file)
     {
         QFileInfo fi(file);

@@ -46,6 +46,7 @@ class SplashScreen;
 class GitToolBar;
 class Uri;
 class ToolWindow;
+class XLSourceEdit;
 
 
 class Window : public QMainWindow
@@ -63,7 +64,6 @@ public:
            QString sourceFile = "", bool ro = false);
     ~Window();
 
-    void setHtml(QString txt);
     void addError(QString txt);
     bool openProject(QString path, QString filename, bool confirm = true);
     Repository * repository() { return repo.data(); }
@@ -172,7 +172,9 @@ private:
     QSharedPointer<Repository> repo;
     QList<int>        appFontIds;
 
-    QTextEdit        *textEdit;
+public:
+    XLSourceEdit     *srcEdit;
+private:
     QTextEdit        *errorMessages;
     // currentProjectFolder : Used if repo is not used.
     QString          currentProjectFolder;

@@ -69,6 +69,8 @@
 #include "documentation.h"
 #include "formulas.h"
 #include "portability.h"
+#include "xl_source_edit.h"
+#include "context.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -2028,18 +2030,16 @@ void Widget::setSourceRenderer()
 // ----------------------------------------------------------------------------
 //   (Re-)create the XL renderer to display the source code
 // ----------------------------------------------------------------------------
+// REVISIT: move into TextEditor
 {
     if (sourceRenderer)
         delete sourceRenderer;
 
     sourceRenderer = new XL::Renderer(sourceRendererOutput);
-    QFileInfo stylesheet("xl:srcview.stylesheet");
+    QFileInfo stylesheet("xl:git.stylesheet");
     QFileInfo syntax("xl:xl.syntax");
     QString sspath(stylesheet.canonicalFilePath());
     QString sypath(syntax.canonicalFilePath());
-    IFTRACE2(srcview, paths)
-        std::cerr << "Loading source view stylesheet '" << +sspath
-                  << "' with syntax '" << +sypath << "'\n";
     sourceRenderer->SelectStyleSheet(+sspath, +sypath);
 }
 
@@ -2064,22 +2064,43 @@ void Widget::updateProgramSource()
             sourceRenderer->highlights[*i] = "selected";
         sourceRenderer->RenderFile(prog);
 
-        text html = sourceRendererOutput.str();
-        window->setHtml(+html);
-        IFTRACE(srcview)
-        {
-            QFile data("srcview.html");
-            if (data.open(QFile::WriteOnly | QFile::Truncate))
-            {
-                QTextStream out(&data);
-                out << +html;
-            }
-        }
+        txt = sourceRendererOutput.str();
+        window->srcEdit->setPlainTextKeepCursor(+txt);
     }
     else
     {
-        window->setHtml("");
+        window->srcEdit->clear();
     }
+}
+
+
+QStringList Widget::listNames()
+// ----------------------------------------------------------------------------
+//   Return list of names in current program
+// ----------------------------------------------------------------------------
+{
+    QStringList names;
+    XL::Context_p context = xlProgram->context;
+    XL::rewrite_list rlist;
+    context->ListNames("", rlist, XL::Context::SCOPE_LOOKUP, true);
+    XL::rewrite_list::iterator i;
+    for (i = rlist.begin(); i != rlist.end(); i++)
+    {
+        XL::Tree_p tree = (*i)->from;
+        Name * n = tree->AsName();
+        if (!n)
+            if (Prefix * p = tree->AsPrefix())
+                n = p->left->AsName();
+        if (n)
+        {
+            QString name = +n->value;
+            if (name == "++" || name == "--")
+                continue;
+            if (!names.contains(name))
+                names << name;
+        }
+    }
+    return names;
 }
 
 

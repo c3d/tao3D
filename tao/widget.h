@@ -180,6 +180,7 @@ public:
                     text sh = "group,shape");
     void        setSourceRenderer();
     bool        isReadOnly();
+    QStringList listNames();
 
     // Timing
     ulonglong   now();
@@ -713,8 +714,8 @@ private:
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
 
     // Source code view
-    std::ostringstream    sourceRendererOutput;
-    XL::Renderer *        sourceRenderer;
+    std::ostringstream    sourceRendererOutput; // REVISIT: movie into TextEditor
+    XL::Renderer *        sourceRenderer;  // REVISIT: movie into TextEditor
 
     static Widget *       current;
     static QColorDialog * colorDialog;

@@ -136,7 +136,9 @@ HEADERS += widget.h \
     git_toolbar.h \
     include/tao/module_api.h \
     include/tao/module_info.h \
-    module_renderer.h
+    module_renderer.h \
+    xl_source_edit.h \
+    xl_highlighter.h
 SOURCES += tao_main.cpp \
     gl2ps.c \
     coords.cpp \
@@ -214,7 +216,9 @@ SOURCES += tao_main.cpp \
     history_playback_tool.cpp \
     git_toolbar.cpp \
     module_api_p.cpp \
-    module_renderer.cpp
+    module_renderer.cpp \
+    xl_source_edit.cpp \
+    xl_highlighter.cpp
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 
@@ -243,8 +247,6 @@ OTHER_FILES += xl.syntax \
     tao.xl \
     tutorial.ddd \
     git.stylesheet \
-    srcview.stylesheet \
-    srcview.css \
     traces.tbl \
     graphics.tbl
 
@@ -280,8 +282,6 @@ xl_files.files = xlr/xlr/builtins.xl \
     xl.syntax \
     xl.stylesheet \
     git.stylesheet \
-    srcview.stylesheet \
-    srcview.css \
     tutorial.ddd
 CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
 fonts.path  = $$APPINST/fonts

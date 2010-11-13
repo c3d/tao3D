@@ -36,7 +36,15 @@ DiffHighlighter::DiffHighlighter(QTextDocument *parent)
     QColor color;
 
     rule = HighlightingRule();
-    rule.pattern = QRegExp("^\\+[^+].*");
+    rule.pattern = QRegExp("^diff.*|^index.*|^---.*|^\\+\\+\\+.*|^Identical");
+    color = QColor(Qt::black);
+    rule.format.setFontWeight(QFont::Bold);
+    color.setAlphaF(0.1);
+    rule.format.setBackground(color);
+    highlightingRules << rule;
+
+    rule = HighlightingRule();
+    rule.pattern = QRegExp("^\\+.*");
     color = QColor(Qt::darkGreen);
     rule.format.setForeground(color);
     color.setAlphaF(0.2);
@@ -44,7 +52,7 @@ DiffHighlighter::DiffHighlighter(QTextDocument *parent)
     highlightingRules << rule;
 
     rule = HighlightingRule();
-    rule.pattern = QRegExp("^-[^-].*");
+    rule.pattern = QRegExp("^-.*");
     color = QColor(Qt::darkRed);
     rule.format.setForeground(color);
     color.setAlphaF(0.1);
@@ -58,14 +66,6 @@ DiffHighlighter::DiffHighlighter(QTextDocument *parent)
     color.setAlphaF(0.1);
     rule.format.setBackground(color);
     highlightingRules << rule;
-
-    rule = HighlightingRule();
-    rule.pattern = QRegExp("^diff.*|^index.*|---.*|\\+\\+\\+.*|^Identical");
-    color = QColor(Qt::black);
-    rule.format.setFontWeight(QFont::Bold);
-    color.setAlphaF(0.1);
-    rule.format.setBackground(color);
-    highlightingRules << rule;
 }
 
 
@@ -76,15 +76,21 @@ void DiffHighlighter::highlightBlock(const QString &txt)
 {
     foreach (const HighlightingRule &rule, highlightingRules)
     {
+        bool matched;
         QRegExp expression(rule.pattern);
         int index = expression.indexIn(txt);
         while (index >= 0)
         {
             int length = expression.matchedLength();
             setFormat(index, length, rule.format);
+            index = expression.indexIn(txt, index + length);
+            matched = true;
+        }
+        if (matched)
+        {
             DiffBlockData *data = new DiffBlockData(rule.format);
             setCurrentBlockUserData(data);
-            index = expression.indexIn(txt, index + length);
+            break;
         }
     }
 }

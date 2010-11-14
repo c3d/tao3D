@@ -153,7 +153,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       zNear(2000.0), zFar(40000.0),
       zoom(1.0), eyeDistance(10.0),
       eye(0.0, 0.0, zNear), viewCenter(0.0, 0.0, -zNear),
-      dragging(false), bAutoHideCursor(false), forceRefresh(false)
+      dragging(false), bAutoHideCursor(false)
 {
     setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap
@@ -1184,14 +1184,14 @@ void Widget::setupStereoStencil(double w, double h)
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
-	// Prepare to draw in stencil buffer
-	glDrawBuffer(GL_BACK);
-	glEnable(GL_STENCIL_TEST);
-	glClearStencil(0);
-	glClear(GL_STENCIL_BUFFER_BIT);
-	glStencilOp (GL_REPLACE, GL_REPLACE, GL_REPLACE); // Copy to stencil
-	glDisable(GL_DEPTH_TEST);
-	glStencilFunc(GL_ALWAYS,1,1);                     // Ignore contents
+        // Prepare to draw in stencil buffer
+        glDrawBuffer(GL_BACK);
+        glEnable(GL_STENCIL_TEST);
+        glClearStencil(0);
+        glClear(GL_STENCIL_BUFFER_BIT);
+        glStencilOp (GL_REPLACE, GL_REPLACE, GL_REPLACE); // Copy to stencil
+        glDisable(GL_DEPTH_TEST);
+        glStencilFunc(GL_ALWAYS,1,1);                     // Ignore contents
 
         // Draw pattern showing every other line
         glColor4f(1.0, 1.0, 1.0, 1.0);
@@ -1199,11 +1199,11 @@ void Widget::setupStereoStencil(double w, double h)
         glDisable(GL_LINE_SMOOTH);
         glDisable(GL_LINE_STIPPLE);
         glBegin (GL_LINES);
-	for (uint y = 0; y < h; y += 2)
-	{
+        for (uint y = 0; y < h; y += 2)
+        {
             glVertex2f (0, y);
             glVertex2f (w, y);
-	}
+        }
         glEnd();
 
         // Protect stencil from now on

@@ -44,7 +44,8 @@ XL::Tree* portability::docToTree(const QTextDocument &doc)
 // ----------------------------------------------------------------------------
 {
     XL::Tree *t = NULL;
-
+    IFTRACE(clipboard)
+            std::cerr << "-> portability::docToTree\n";
     for ( QTextBlock block = doc.firstBlock();
          block.isValid();
          block = block.next())
@@ -63,6 +64,8 @@ XL::Tree* portability::docToTree(const QTextDocument &doc)
             t = new XL::Infix("\n", t, fragmentToTree(fragment));
         }
     }
+    IFTRACE(clipboard)
+            std::cerr << "<- portability::docToTree\n";
 
     return t;
 }
@@ -73,6 +76,8 @@ XL::Tree * portability::blockToTree(const QTextBlock &block)
 //   Translate a QTextBlock into XL::Tree
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(clipboard)
+            std::cerr << "-> portability::blockToTree\n";
     QTextBlockFormat blockFormat = block.blockFormat();
     //////////////////////////
     // Margin
@@ -132,6 +137,9 @@ XL::Tree * portability::blockToTree(const QTextBlock &block)
     lf = new XL::Infix("\n", para_space, lf);
     lf = new XL::Infix("\n", margin, lf);
 
+    IFTRACE(clipboard)
+            std::cerr << "<- portability::blockToTree\n";
+
     return lf;
 }
 
@@ -141,6 +149,9 @@ XL::Tree * portability::fragmentToTree(const QTextFragment &fragment)
 //   Translate a QTextFragment into XL::Tree
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(clipboard)
+            std::cerr << "-> portability::fragmentToTree\n";
+
     QTextCharFormat charFormat = fragment.charFormat();
     XL::Prefix * customWeight = NULL;
     XL::Prefix * customStretch = NULL;
@@ -267,5 +278,9 @@ XL::Tree * portability::fragmentToTree(const QTextFragment &fragment)
     if (customWeight)
         lf = new XL::Infix("\n", customWeight, lf);
     lf = new XL::Infix("\n", font, lf);
+
+    IFTRACE(clipboard)
+            std::cerr << "<- portability::fragmentToTree\n";
+
     return lf;
 }

@@ -53,9 +53,7 @@ struct Renormalize : TaoTreeClone
     virtual Tree *DoPrefix(Prefix *what);
     virtual Tree *DoPostfix(Postfix *what);
     virtual Tree *DoInfix(Infix *what);
-
-
-    Tree *DoBlock(Block *what);
+    virtual Tree *DoBlock(Block *what);
 };
 
 TAO_END

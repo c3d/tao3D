@@ -111,7 +111,7 @@ static inline QGL::FormatOptions TaoGLFormatOptions()
          QGL::StencilBuffer     |
          QGL::SampleBuffers     |
          QGL::AlphaChannel);
-    if (XL::MAIN->options.enable_stereoscopy)
+    if (true || XL::MAIN->options.enable_stereoscopy)
         result |= QGL::StereoBuffers;
     return result;
 }
@@ -394,7 +394,7 @@ void Widget::draw()
         {
             stereoscopic = 3 - stereoscopic;
             setup(width(), height());
-            if (stereoMode == stereoHARDWARE)
+            if (false && stereoMode == stereoHARDWARE)
                 swapBuffers();
         }
     } while (stereoscopic == 2);

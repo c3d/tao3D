@@ -238,7 +238,7 @@ void Window::checkFiles()
         if (!isUntitled && !isReadOnly && prog->tree)
         {
             import_set done;
-            if (ImportedFilesChanged(prog->tree, done, false))
+            if (ImportedFilesChanged(done, false))
                 loadFile(+prog->name, !prog->readOnly);
         }
     }
@@ -1132,7 +1132,7 @@ void Window::createMenus()
     fileMenu->addAction(newAct);
     fileMenu->addAction(openAct);
     fileMenu->addAction(openUriAct);
-    openRecentMenu = fileMenu->addMenu(tr("Open Recent"));
+    openRecentMenu = fileMenu->addMenu(tr("Open &Recent"));
     fileMenu->addAction(saveAct);
     fileMenu->addAction(saveAsAct);
     fileMenu->addAction(saveFontsAct);
@@ -1223,8 +1223,6 @@ void Window::createToolBars()
             this, SLOT(checkDetachedHead()));
     connect(gitToolBar, SIGNAL(checkedOut(QString)),
             this, SLOT(reloadCurrentFile()));
-    connect(gitToolBar, SIGNAL(documentChanged()),
-            taoWidget, SLOT(setForceRefresh()));
     connect(this, SIGNAL(projectUrlChanged(QString)),
             gitToolBar, SLOT(showProjectUrl(QString)));
     addToolBar(gitToolBar);

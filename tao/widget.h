@@ -120,7 +120,6 @@ public slots:
     void        hideCursor();
     void        resetView();
     void        saveAndCommit();
-    void        setForceRefresh();
 
 
 signals:
@@ -718,7 +717,6 @@ private:
     int                   panX, panY;
     bool                  dragging;
     bool                  bAutoHideCursor;
-    bool                  forceRefresh;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:

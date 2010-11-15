@@ -19,7 +19,7 @@
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
-//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Jerome Forissier <jerome@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -113,7 +113,7 @@ static inline QGL::FormatOptions TaoGLFormatOptions()
          QGL::StencilBuffer     |
          QGL::SampleBuffers     |
          QGL::AlphaChannel);
-    if (XL::MAIN->options.enable_stereoscopy)
+    if (true || XL::MAIN->options.enable_stereoscopy)
         result |= QGL::StereoBuffers;
     return result;
 }
@@ -155,7 +155,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       zNear(2000.0), zFar(40000.0),
       zoom(1.0), eyeDistance(10.0),
       eye(0.0, 0.0, zNear), viewCenter(0.0, 0.0, -zNear),
-      dragging(false), bAutoHideCursor(false), forceRefresh(false),
+      dragging(false), bAutoHideCursor(false),
       currentTest(this)
 {
     setObjectName(QString("Widget"));
@@ -272,7 +272,8 @@ void Widget::dawdle()
 
     // Check if it's time to commit
     longlong commitDelay = longlong (nextCommit - tick);
-    if (repo && commitDelay < 0 && repo->state == Repository::RS_NotClean &&
+    if (repo && commitDelay < 0 &&
+        repo->state == Repository::RS_NotClean &&
         !dragging)
     {
         doCommit(tick);
@@ -352,6 +353,8 @@ void Widget::draw()
                     glDrawBuffer(GL_BACK_LEFT);
                 else if (stereoscopic == 2)
                     glDrawBuffer(GL_BACK_RIGHT);
+                glClearColor(1.0, 1.0, 1.0, 1.0);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             }
             else if (stereoMode == stereoINTERLACED)
             {
@@ -474,6 +477,20 @@ void Widget::runProgram()
     XL::MAIN->EvalContextFiles(((Window*)parent())->contextFileNames);
     if (Tree *prog = xlProgram->tree)
         xl_evaluate(prog);
+
+    // If we have evaluation errors, show them (bug #498)
+    if (XL::MAIN->errors->Count())
+    {
+        std::vector<XL::Error> &errors = XL::MAIN->errors->errors;
+        std::vector<XL::Error>::iterator ei;
+        Window *window = (Window *) parentWidget();
+        for (ei = errors.begin(); ei != errors.end(); ei++)
+        {
+            text message = (*ei).Position() + ": " + (*ei).Message();
+            window->addError(+message);
+        }
+        XL::MAIN->errors->Clear();
+    }
 
     // Clean the end of the old menu list.
     for  ( ; order < orderedMenuElements.count(); order++)
@@ -998,15 +1015,6 @@ void Widget::saveAndCommit()
 }
 
 
-void Widget::setForceRefresh()
-// ----------------------------------------------------------------------------
-//    Force document reload next time the dawdle loop runs
-// ----------------------------------------------------------------------------
-{
-    forceRefresh = true;
-}
-
-
 void Widget::userMenu(QAction *p_action)
 // ----------------------------------------------------------------------------
 //   User menu slot activation
@@ -1161,6 +1169,7 @@ void Widget::setupGL()
     glDisable(GL_CULL_FACE);
 }
 
+
 void Widget::setupStereoStencil(double w, double h)
 // ----------------------------------------------------------------------------
 //   For interlaced output, generate a stencil with every other line
@@ -1186,19 +1195,19 @@ void Widget::setupStereoStencil(double w, double h)
 	glStencilOp (GL_REPLACE, GL_REPLACE, GL_REPLACE); // Copy to stencil
 	glDisable(GL_DEPTH_TEST);
 	glStencilFunc(GL_ALWAYS,1,1);                     // Ignore contents
-	
+
         // Draw pattern showing every other line
 	glColor4f(1.0, 1.0, 1.0, 1.0);
         glLineWidth(1.0);
         glDisable(GL_LINE_SMOOTH);
         glDisable(GL_LINE_STIPPLE);
+        glBegin (GL_LINES);
 	for (uint y = 0; y < h; y += 2)
 	{
-            glBegin (GL_LINES);
             glVertex2f (0, y);
             glVertex2f (w, y);
-            glEnd();
 	}
+        glEnd();
 
         // Protect stencil from now on
 	glStencilOp (GL_KEEP, GL_KEEP, GL_KEEP);
@@ -1985,7 +1994,7 @@ void Widget::applyAction(XL::Action &action)
 
     // Lookup imported files
     import_set iset;
-    ImportedFilesChanged(prog, iset, false);
+    ImportedFilesChanged(iset, false);
 
     import_set::iterator it;
     for (it = iset.begin(); it != iset.end(); it++)
@@ -2104,7 +2113,7 @@ void Widget::refreshProgram()
 
     // Loop on imported files
     import_set iset;
-    if (ImportedFilesChanged(prog, iset, false) || forceRefresh)
+    if (ImportedFilesChanged(iset, false))
     {
         import_set::iterator it;
         bool needBigHammer = false;
@@ -2116,7 +2125,7 @@ void Widget::refreshProgram()
             struct stat st;
             stat (fname.c_str(), &st);
 
-            if ((st.st_mtime > sf.modified) || forceRefresh)
+            if ((st.st_mtime > sf.modified))
             {
                 IFTRACE(filesync)
                     std::cerr << "File " << fname << " changed\n";
@@ -2135,6 +2144,9 @@ void Widget::refreshProgram()
                     replacement = parser.Parse();
                 }
 
+                // Make sure we reload only once (bug #533)
+                sf.modified = st.st_mtime;
+
                 if (!replacement)
                 {
                     // Uh oh, file went away?
@@ -2150,9 +2162,6 @@ void Widget::refreshProgram()
                     ApplyChanges changes(replacement);
                     if (!sf.tree->Do(changes))
                         needBigHammer = true;
-
-                    // Record new modification time
-                    sf.modified = st.st_mtime;
 
                     if (fname == xlProgram->name)
                         updateProgramSource();
@@ -2180,17 +2189,15 @@ void Widget::refreshProgram()
                 for (it = iset.begin(); it != iset.end(); it++)
                 {
                     XL::SourceFile &sf = **it;
-                    text fname = sf.name;
-                    XL::MAIN->LoadFile(fname);
+                    XL::LocalSave<XL::Symbols_p> save(XL::Symbols::symbols,
+                                                      sf.symbols->Parent());
+                    XL::MAIN->LoadFile(sf.name);
                     inError = false;
-                    if (fname == xlProgram->name)
-                        updateProgramSource();
                 }
+                updateProgramSource();
             }
         }
     }
-    if (forceRefresh)
-        forceRefresh = false;
 }
 
 
@@ -2227,10 +2234,10 @@ void Widget::markChanged(text reason)
     if (repo)
         repo->markChanged(reason);
 
-    if (Tree *prog = xlProgram->tree)
+    if (xlProgram->tree)
     {
         import_set done;
-        ImportedFilesChanged(prog, done, true);
+        ImportedFilesChanged(done, true);
 
         import_set::iterator f;
         for (f = done.begin(); f != done.end(); f++)
@@ -4771,7 +4778,7 @@ struct ImagePacker : XL::Action
     {
         composite.fill(0);
     }
- 
+
     void AddImage(QString file)
     {
         QFileInfo fi(file);

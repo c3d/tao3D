@@ -41,5 +41,5 @@ GITKIT=PortableGit-1.7.0.2-preview20100309.7z
 cd $THISDIR
 mkdir -p build_root/git
 cd build_root/git
-../../bin/7z x -bd ../../3rdparty/$GITKIT
+../../bin/7z -y x -bd ../../3rdparty/$GITKIT
 )

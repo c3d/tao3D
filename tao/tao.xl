@@ -216,7 +216,7 @@ vertical_align_spread                                   -> vertical_align   0, 1
 
 
 // 3D Shapes
-sphere x:real, y:real, z:real, r:real   -> sphere x,y,z,2*r,2*r,2*r,25,25
+sphere x:real, y:real, z:real, r:real   -> sphere x,y,z,r,r,r,25,25
 sphere r:real                           ->
     sphere 0.0, 0.0, 0.0, 2*r, 2*r, 2*r, 25, 25
 
@@ -660,7 +660,7 @@ menu_item "menu:insert > image...", "Image...",
         insert "Insert image",
             shape
                 color 100%,100%,100%,100%
-                image 0, 0, rel_file_path
+                image 0, 0, 100%, 100%, rel_file_path
 }
 
 toolbar_test -> {

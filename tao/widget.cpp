@@ -150,7 +150,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       nextSave(now()), nextCommit(nextSave),
       nextSync(nextSave), nextPull(nextSave),
-      pagePrintTime(0.0), pageOverscaling(1), printer(NULL),
+      pagePrintTime(0.0), pageOverscaling(2), printer(NULL),
       sourceRenderer(NULL),
       currentFileDialog(NULL),
       zNear(2000.0), zFar(40000.0),

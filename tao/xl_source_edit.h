@@ -22,6 +22,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include "renderer.h"
 #include <QTextEdit>
 
 namespace Tao {
@@ -41,9 +42,14 @@ public:
 
     void   setPlainTextKeepCursor(const QString &txt);
     void   setXLNames(const QStringList &names);
+    void   setSelectedRanges(const XL::stream_ranges &ranges);
+
+protected:
+    virtual void   keyPressEvent(QKeyEvent *e);
 
 private:
-    XLHighlighter  *highlighter;
+    XLHighlighter *    highlighter;
+    XL::stream_ranges  selected;
 };
 
 }

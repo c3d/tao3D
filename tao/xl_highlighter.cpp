@@ -22,6 +22,7 @@
 
 #include "xl_highlighter.h"
 #include "tao_utf8.h"
+#include <iostream>
 
 TAO_BEGIN
 
@@ -51,6 +52,8 @@ XLHighlighter::XLHighlighter(QTextDocument *parent)
     multiLineCommentFormat.setForeground(Qt::darkGreen);
     commentStartExpression = QRegExp("/\\*");
     commentEndExpression = QRegExp("\\*/");
+
+    selectedFormat.setBackground(QColor("#D0D0D0"));
 }
 
 
@@ -73,10 +76,14 @@ void XLHighlighter::highlightBlock(const QString &txt)
     TextCharFormat fontFormat;
     setFormat(0, txt.length(), fontFormat);
 
+    // Deal with single-line patterns
+
     if (!nameRule.pattern.isEmpty())
         applyRule(nameRule, txt);
     foreach (const HighlightingRule &rule, highlightingRules)
         applyRule(rule, txt);
+
+    // Deal with multi-line comments
 
     setCurrentBlockState(0);
 
@@ -92,7 +99,8 @@ void XLHighlighter::highlightBlock(const QString &txt)
         {
             setCurrentBlockState(1);
             commentLength = txt.length() - startIndex;
-        } else
+        }
+        else
         {
             commentLength = endIndex - startIndex
                             + commentEndExpression.matchedLength();
@@ -101,6 +109,74 @@ void XLHighlighter::highlightBlock(const QString &txt)
         startIndex = commentStartExpression.indexIn(txt, startIndex +
                                                     commentLength);
     }
+
+    // Objects that are selected in the graphical view are shown in a special
+    // way in the source code, too
+
+     QTextBlock::iterator it;
+     for (it = currentBlock().begin(); !(it.atEnd()); ++it)
+     {
+         QTextFragment currentFragment = it.fragment();
+         if (currentFragment.isValid())
+             showSelectionInFragment(currentFragment);
+     }
+}
+
+
+static XL::stream_range
+intersect(const XL::stream_range a, const XL::stream_range b)
+// ----------------------------------------------------------------------------
+//    Helper function to intersect two integer ranges
+// ----------------------------------------------------------------------------
+{
+    XL::stream_range r(-1, -1);
+    if (b.first >= a.first && b.second <= a.second)
+    {
+        r = b;
+    }
+    else if (b.first <= a.first && b.second >= a.first && b.second <= a.second)
+    {
+        r.first = a.first;
+        r.second = b.second;
+    }
+    else if (b.first >= a.first && b.first <= a.second && b.second >= a.second)
+    {
+        r.first = b.first;
+        r.second = a.second;
+    }
+    else if (b.first <= a.first && b.second >= a.second)
+    {
+        r = a;
+    }
+    return r;
+}
+
+
+bool XLHighlighter::showSelectionInFragment(QTextFragment fragment)
+// ----------------------------------------------------------------------------
+//    Highlight (part of) fragment containing code related to a selected object
+// ----------------------------------------------------------------------------
+{
+    bool matched = false;
+    int spos= fragment.position();
+    int epos = spos + fragment.length();
+    int blockstart = currentBlock().begin().fragment().position();
+
+    XL::stream_range frag(spos, epos);
+    XL::stream_ranges::iterator r;
+    for (r = selected.begin(); r != selected.end(); r++)
+    {
+        XL::stream_range i = intersect((*r), frag);
+        if (i.first != -1)
+        {
+            int hstart = (int)(i.first) - blockstart;
+            int hcount = (int)(i.second - i.first);
+            setFormat(hstart, hcount, selectedFormat);
+            matched = true;
+            break;
+        }
+    }
+    return matched;
 }
 
 
@@ -120,6 +196,32 @@ bool XLHighlighter::applyRule(const HighlightingRule &rule, const QString &txt)
         matched = true;
     }
     return matched;
+}
+
+
+void XLHighlighter::setSelectedRanges(const XL::stream_ranges &selected)
+// ----------------------------------------------------------------------------
+//   Remember the ranges of text that correspond to selected items
+// ----------------------------------------------------------------------------
+{
+    this->selected = selected;
+    IFTRACE(srcview)
+    {
+        std::cerr << "Selected objects (src pos):\n";
+        XL::stream_ranges::iterator it;
+        for (it = this->selected.begin(); it != this->selected.end(); it++)
+            std::cerr << (*it).first << " - " << (*it).second << "\n";
+    }
+}
+
+
+void XLHighlighter::clearSelectedRanges()
+// ----------------------------------------------------------------------------
+//   Clear "selected" ranges when no object has the graphical selection
+// ----------------------------------------------------------------------------
+{
+    this->selected.clear();
+    rehighlight();
 }
 
 TAO_END

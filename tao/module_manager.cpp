@@ -100,12 +100,14 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context, XL::Tree_p self,
     if (m_n != "" && m_v != "")
     {
         bool found = false, name_found = false;
+        text inst_v;
         foreach (ModuleInfoPrivate m, modules)
         {
             if (m_n == m.importName)
             {
                 name_found = true;
-                if (Repository::versionMatches(+m_v, +m.ver))
+                inst_v = m.ver;
+                if (Repository::versionMatches(+m.ver, +m_v))
                 {
                     found = true;
                     err = XL::Ooops("Not implemented: $1", self);
@@ -116,8 +118,9 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context, XL::Tree_p self,
         if (!found)
         {
             if (name_found)
-                err = XL::Ooops("Installed module $1 does not match "
-                                "requested version $2", name,
+                err = XL::Ooops("Installed module $1 version $2 does not "
+                                "match requested version $3", name,
+                                new XL::Text(inst_v, "", ""),
                                 new XL::Text(m_v, "", ""));
             else
                 err = XL::Ooops("Module $1 not found", name);

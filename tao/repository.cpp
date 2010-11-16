@@ -306,26 +306,30 @@ bool Repository::versionGreaterOrEqual(QString ver, QString ref)
 }
 
 
-bool Repository::versionMatches(QString ver, QString ref, int n)
+bool Repository::versionMatches(QString ver, QString ref)
 // ----------------------------------------------------------------------------
-//   Return true if ver is a prefix match of ref (up to nth dot if n != 0)
+//   Return true if ver.major == ref.major and ver.minor >= ref.minor
 // ----------------------------------------------------------------------------
+// versionMatches("1.0", "1.0"): true
+// versionMatches("1.0.1", "1.0"): true
+// versionMatches("1.1", "1.0"): true
+// versionMatches("2.0", "1.0"): false
+// versionMatches("1.0", "1.1"): false
 {
     QStringList v = ver.split(".");
-    QStringListIterator vit(v);
-    QStringListIterator rit(ref.split("."));
-    if (!n)
-        n = v.size();
-    while (vit.hasNext() && rit.hasNext() && n--)
-    {
-        int vi = vit.next().toInt();
-        int ri = rit.next().toInt();
-        if (vi != ri)
-            return false;
-    }
-    if (n && vit.hasNext())
+    QStringList r = ref.split(".");
+    if (!v.size())
+        return !r.size();
+    int v_major = 0, r_major = 0;
+    if (v.size())
+        v_major = v.takeFirst().toInt();
+    if (r.size())
+        r_major = r.takeFirst().toInt();
+    if (v_major != r_major)
         return false;
-    return true;
+    QString v_minor = v.join(".");
+    QString r_minor = r.join(".");
+    return versionGreaterOrEqual(v_minor, r_minor);
 }
 
 

@@ -126,9 +126,11 @@ line:
 When Tao encounters the import statement, it looks up ModuleName in the list
 of currently loaded modules, checks the version compatibility, and then makes
 the module definitions available to the Tao document.
-Version matching is a prefix match, that is: if version "1.10" is requested,
-Tao may load any module version starting with "1.10". For instance, "1.10"
-and "1.10.2" are compatible but "1", "1.11" and "2.0" are not.
+Version matching is a major/minor match. For a module to load, module.major
+must be equal to requested.major and module.minor must be greater or equal to
+requested.minor. "major" is the part before the first dot. "minor" is the
+remaining part. For instance in 1.0.2, major is 1 and minor is 0.2. Comparison
+is performed after converting to integers.
 
 Without explicit import, no definition from the module.xl are reachable from
 the document.

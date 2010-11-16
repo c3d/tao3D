@@ -44,6 +44,7 @@
 #include "new_document_wizard.h"
 #include "preferences_dialog.h"
 #include "tool_window.h"
+#include "xl_source_edit.h"
 
 #include <iostream>
 #include <sstream>
@@ -74,7 +75,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     : isUntitled(sourceFile.isEmpty()), isReadOnly(ro),
       loadInProgress(false),
       contextFileNames(context), xlRuntime(xlr),
-      repo(NULL), textEdit(NULL), errorMessages(NULL),
+      repo(NULL), srcEdit(NULL), errorMessages(NULL),
       dock(NULL), errorDock(NULL),
       taoWidget(NULL), curFile(), uri(NULL), slideShowMode(false),
       fileCheckTimer(this), splashScreen(NULL), aboutSplash(NULL),
@@ -87,8 +88,8 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     dock = new QDockWidget(tr("Document Source"));
     dock->setObjectName("dock");
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
-    textEdit = new QTextEdit(dock);
-    dock->setWidget(textEdit);
+    srcEdit = new XLSourceEdit(dock);
+    dock->setWidget(srcEdit);
     addDockWidget(Qt::RightDockWidgetArea, dock);
     connect(dock, SIGNAL(visibilityChanged(bool)),
             this, SLOT(sourceViewBecameVisible(bool)));
@@ -115,7 +116,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     createActions();
     createMenus();
     createToolBars();
-    connect(textEdit->document(), SIGNAL(contentsChanged()),
+    connect(srcEdit->document(), SIGNAL(contentsChanged()),
             this, SLOT(documentWasModified()));
 
     // Set the window attributes
@@ -161,38 +162,6 @@ Window::~Window()
 // ----------------------------------------------------------------------------
 {
     FontFileManager::UnloadEmbeddedFonts(appFontIds);
-}
-
-
-void Window::setHtml(QString txt)
-// ----------------------------------------------------------------------------
-//   Update the text edit widget with updates we made
-// ----------------------------------------------------------------------------
-//   We try not to change the scrollbars and cursor positions
-{
-    QScrollBar * hsb = textEdit->horizontalScrollBar();
-    QScrollBar * vsb = textEdit->verticalScrollBar();
-    int x = hsb->value();
-    int y = vsb->value();
-    int pos = textEdit->textCursor().position();
-
-    if (txt.isEmpty())
-        txt = "<html><head><meta http-equiv=\"Content-Type\" "
-              "content=\"text/html; charset=utf-8\"><style type=\"text/css\">"
-              "body {font-family: \"unifont\"; font-size: 16px}"
-              "<style/></head><body></body></html>";
-    textEdit->setHtml(txt);
-
-    hsb->setValue(x);
-    vsb->setValue(y);
-    QTextCursor cursor(textEdit->document());
-    int last = textEdit->document()->characterCount();
-    if (pos < last)
-    {
-        cursor.setPosition(pos);
-        textEdit->setTextCursor(cursor);
-    }
-    textEdit->update();
 }
 
 
@@ -283,7 +252,7 @@ void Window::sourceViewBecameVisible(bool visible)
 {
     if (visible)
     {
-        bool modified = textEdit->document()->isModified();
+        bool modified = srcEdit->document()->isModified();
         if (!taoWidget->inError)
             taoWidget->updateProgramSource();
         else
@@ -315,7 +284,7 @@ void Window::newFile()
         isUntitled = true;
         isReadOnly = false;
         setCurrentFile(fileName);
-        setHtml("");
+        srcEdit->clear();
         markChanged(false);
         taoWidget->updateProgram(sf);
         taoWidget->refresh();
@@ -673,8 +642,8 @@ void Window::cut()
 //    Cut the current selection into the clipboard
 // ----------------------------------------------------------------------------
 {
-    if (textEdit->hasFocus())
-        return textEdit->cut();
+    if (srcEdit->hasFocus())
+        return srcEdit->cut();
 
     if (taoWidget->hasFocus())
         return taoWidget->cut();
@@ -686,8 +655,8 @@ void Window::copy()
 //    Copy the current selection to the clipboard
 // ----------------------------------------------------------------------------
 {
-    if (textEdit->hasFocus())
-        return textEdit->copy();
+    if (srcEdit->hasFocus())
+        return srcEdit->copy();
 
     if (taoWidget->hasFocus())
         return taoWidget->copy();
@@ -700,8 +669,8 @@ void Window::paste()
 //    Paste the clipboard content into the current document or source
 // ----------------------------------------------------------------------------
 {
-    if (textEdit->hasFocus())
-        return textEdit->paste();
+    if (srcEdit->hasFocus())
+        return srcEdit->paste();
 
     if (taoWidget->hasFocus())
         return taoWidget->paste();
@@ -714,8 +683,8 @@ void Window::onFocusWidgetChanged(QWidget */*old*/, QWidget *now)
 // ----------------------------------------------------------------------------
 {
     bool enable;
-    if (now == textEdit)
-        enable = textEdit->textCursor().hasSelection();
+    if (now == srcEdit)
+        enable = srcEdit->textCursor().hasSelection();
     else if (now == taoWidget)
         enable = taoWidget->hasSelection();
     else
@@ -734,8 +703,8 @@ void Window::checkClipboard()
 {
     QWidget *now = QApplication::focusWidget();
     bool enable;
-    if (now == textEdit)
-        enable = textEdit->canPaste();
+    if (now == srcEdit)
+        enable = srcEdit->canPaste();
     else if (now == taoWidget)
         enable = taoWidget->canPaste();
     else
@@ -1092,7 +1061,7 @@ void Window::createActions()
 
     cutAct->setEnabled(false);
     copyAct->setEnabled(true);
-    connect(textEdit, SIGNAL(copyAvailable(bool)),
+    connect(srcEdit, SIGNAL(copyAvailable(bool)),
             cutAct, SLOT(setEnabled(bool)));
     connect(taoWidget, SIGNAL(copyAvailable(bool)),
             cutAct, SLOT(setEnabled(bool)));
@@ -1292,7 +1261,7 @@ bool Window::maybeSave()
 //   Check if we need to save the document
 // ----------------------------------------------------------------------------
 {
-    if (textEdit->document()->isModified())
+    if (srcEdit->document()->isModified())
     {
         QMessageBox::StandardButton ret;
         ret = QMessageBox::warning
@@ -1324,20 +1293,10 @@ bool Window::needNewWindow()
 
 void Window::loadSrcViewStyleSheet()
 // ----------------------------------------------------------------------------
-//    Load the XL and CSS stylesheet to use for syntax highlighting
+//    Load the XL stylesheet to use for syntax highlighting
 // ----------------------------------------------------------------------------
 {
     taoWidget->setSourceRenderer();
-
-    QFileInfo info("xl:srcview.css");
-    QString path = info.canonicalFilePath();
-    IFTRACE2(srcview, paths)
-       std::cerr << "Reading syntax highlighting CSS from '" << +path << "'\n";
-    QFile file(path);
-    file.open(QFile::ReadOnly | QFile::Text);
-    QTextStream css(&file);
-    QString srcViewStyleSheet = css.readAll();
-    textEdit->document()->setDefaultStyleSheet(srcViewStyleSheet);
 }
 
 
@@ -1360,7 +1319,7 @@ void Window::setReadOnly(bool ro)
 // ----------------------------------------------------------------------------
 {
     isReadOnly = ro;
-    textEdit->setReadOnly(ro);
+    srcEdit->setReadOnly(ro);
     pushAct->setEnabled(!ro);
     mergeAct->setEnabled(!ro);
     selectiveUndoAct->setEnabled(!ro);
@@ -1410,6 +1369,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     // to load a file from the project's directory.
     updateContext(docPath);
     bool hadError = updateProgram(fileName);
+    srcEdit->setXLNames(taoWidget->listNames());
 
     QApplication::restoreOverrideCursor();
 
@@ -1512,15 +1472,14 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
                                  tr("Cannot read file %1:\n%2.")
                                  .arg(fileName)
                                  .arg(file.errorString()));
-        textEdit->clear();
+        srcEdit->clear();
         return false;
     }
 
     QTextStream in(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
     loadInProgress = true;
-    textEdit->setTextColor(Qt::black);
-    textEdit->setPlainText(in.readAll());
+    srcEdit->setPlainText(in.readAll());
     loadInProgress = false;
     QApplication::restoreOverrideCursor();
     markChanged(false);
@@ -1611,7 +1570,7 @@ bool Window::saveFile(const QString &fileName)
     {
         QTextStream out(&file);
         QApplication::setOverrideCursor(Qt::WaitCursor);
-        out << textEdit->toPlainText();
+        out << srcEdit->toPlainText();
         QApplication::restoreOverrideCursor();
     } while (0); // Flush
 
@@ -1621,6 +1580,7 @@ bool Window::saveFile(const QString &fileName)
 
     showMessage(tr("File saved"), 2000);
     updateProgram(fileName);
+    srcEdit->setXLNames(taoWidget->listNames());
     isReadOnly = false;
 
     if (repo)
@@ -1645,7 +1605,7 @@ void Window::markChanged(bool changed)
 //   Someone else tells us that the window is changed or not
 // ----------------------------------------------------------------------------
 {
-    textEdit->document()->setModified(changed);
+    srcEdit->document()->setModified(changed);
     setWindowModified(changed);
 }
 

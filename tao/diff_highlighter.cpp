@@ -33,38 +33,39 @@ DiffHighlighter::DiffHighlighter(QTextDocument *parent)
 // ----------------------------------------------------------------------------
 {
     HighlightingRule rule;
-    QColor color;
+    QColor color, bgcolor;
 
     rule = HighlightingRule();
     rule.pattern = QRegExp("^diff.*|^index.*|^---.*|^\\+\\+\\+.*|^Identical");
     color = QColor(Qt::black);
     rule.format.setFontWeight(QFont::Bold);
-    color.setAlphaF(0.1);
-    rule.format.setBackground(color);
+    rule.format.setForeground(color);
+    bgcolor = QColor("#E6E6E6");
+    rule.format.setBackground(bgcolor);
     highlightingRules << rule;
 
     rule = HighlightingRule();
     rule.pattern = QRegExp("^\\+.*");
     color = QColor(Qt::darkGreen);
     rule.format.setForeground(color);
-    color.setAlphaF(0.2);
-    rule.format.setBackground(color);
+    bgcolor.setHsv(color.hue(), color.saturation() * 0.1, 255);
+    rule.format.setBackground(bgcolor);
     highlightingRules << rule;
 
     rule = HighlightingRule();
     rule.pattern = QRegExp("^-.*");
     color = QColor(Qt::darkRed);
     rule.format.setForeground(color);
-    color.setAlphaF(0.1);
-    rule.format.setBackground(color);
+    bgcolor.setHsv(color.hue(), color.saturation() * 0.1, 255);
+    rule.format.setBackground(bgcolor);
     highlightingRules << rule;
 
     rule = HighlightingRule();
     rule.pattern = QRegExp("^@@.*");
     color = QColor(Qt::darkBlue);
     rule.format.setForeground(color);
-    color.setAlphaF(0.1);
-    rule.format.setBackground(color);
+    bgcolor.setHsv(color.hue(), color.saturation() * 0.1, 255);
+    rule.format.setBackground(bgcolor);
     highlightingRules << rule;
 }
 

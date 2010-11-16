@@ -148,8 +148,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       timer(this), idleTimer(this),
       pageStartTime(1e6), pageRefresh(1e6), frozenTime(1e6), startTime(1e6),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
-      nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
-      nextPull(nextSave),
+      nextSave(now()), nextCommit(nextSave),
+      nextSync(nextSave), nextPull(nextSave),
+      pagePrintTime(0.0), printer(NULL),
       sourceRenderer(NULL),
       currentFileDialog(NULL),
       zNear(2000.0), zFar(40000.0),
@@ -397,8 +398,6 @@ void Widget::draw()
         {
             stereoscopic = 3 - stereoscopic;
             setup(width(), height());
-            if (false && stereoMode == stereoHARDWARE)
-                swapBuffers();
         }
     } while (stereoscopic == 2);
 
@@ -504,6 +503,59 @@ void Widget::runProgram()
     currentMenu    = NULL;
     currentToolBar = NULL;
     currentMenuBar = ((Window*)parent())->menuBar();
+}
+
+
+void Widget::print(QPrinter *prt)
+// ----------------------------------------------------------------------------
+//   Print the pages on the given page range
+// ----------------------------------------------------------------------------
+{
+    // Set the current printer while drawing
+    XL::LocalSave<QPrinter *> savePrinter(printer, prt);
+    XL::LocalSave<char> disableStereoscopy(stereoscopic, 0);
+    XL::LocalSave<text> savePage(pageName, "");
+
+    // Identify the page range
+    uint firstPage = printer->fromPage();
+    uint lastPage = printer->toPage();
+    if (firstPage == 0)
+        firstPage = 1;
+    if (lastPage == 0)
+        lastPage = pageTotal ? pageTotal : 1;
+
+    // Get the printable area in the page
+    QRect pageRect = printer->pageRect();
+    QPainter painter(printer);
+
+    // Set the initial time we want to set and freeze animations
+    XL::LocalSave<bool> disableAnimations(animated, false);
+    XL::LocalSave<double> setPageTime(pageStartTime, 0);
+    XL::LocalSave<double> setFrozenTime(frozenTime, 0);
+    XL::LocalSave<double> saveStartTime(startTime, 0);
+
+    // Render the given page range
+    for (pageToPrint = firstPage; pageToPrint <= lastPage; pageToPrint++)
+    {
+        XL::LocalSave<double> savePrintTime(pagePrintTime, 0);
+
+        // We draw twice so that the page-dependent information is updated
+        frozenTime = pageStartTime;
+        draw();
+        swapBuffers();
+        frozenTime = pagePrintTime;
+        draw();
+        swapBuffers();
+
+        QImage image(grabFrameBuffer(true));
+        painter.drawImage(pageRect, image);
+
+        if (pageToPrint < lastPage)
+            printer->newPage();
+    }
+
+    // Finish the job
+    painter.end();
 }
 
 
@@ -3095,7 +3147,9 @@ XL::Text_p Widget::page(Tree_p self, text name, Tree_p body)
     pageNames.push_back(name);
 
     // If the page is set, then we display it
-    if (pageName == name || drawAllPages)
+    if (printer && pageToPrint == pageId)
+        pageName = name;
+    if (drawAllPages || pageName == name)
     {
         // Initialize back-link
         pageFound = pageId;

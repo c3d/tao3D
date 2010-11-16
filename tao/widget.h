@@ -98,6 +98,7 @@ public slots:
     void        dawdle();
     void        draw();
     void        runProgram();
+    void        print(QPrinter *printer);
     void        appFocusChanged(QWidget *prev, QWidget *next);
     void        userMenu(QAction *action);
     bool        refresh(double delay = 0.0);
@@ -658,7 +659,7 @@ private:
     text                  pageName, lastPageName;
     page_map              pageLinks;
     page_list             pageNames;
-    uint                  pageId, pageFound, pageShown, pageTotal;
+    uint                  pageId, pageFound, pageShown, pageTotal, pageToPrint;
     Tree_p                pageTree;
     Tree_p                currentShape;
     QGridLayout *         currentGridLayout;
@@ -700,9 +701,12 @@ private:
     // Timing
     QTimer                timer, idleTimer;
     double                pageStartTime, pageRefresh, frozenTime, startTime;
-    double                pagePrintTime;
     ulonglong             tmin, tmax, tsum, tcount;
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
+
+    // Printing
+    double                pagePrintTime;
+    QPrinter             *printer;
 
     // Source code view
     std::ostringstream    sourceRendererOutput;

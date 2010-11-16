@@ -3129,6 +3129,17 @@ XL::Text_p Widget::pageLink(Tree_p self, text key, text name)
 }
 
 
+XL::Real_p Widget::pageSetPrintTime(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//   Set the time at which animations should be set when printing pages
+// ----------------------------------------------------------------------------
+{
+    double old = pagePrintTime;
+    pagePrintTime = t;
+    return new Real(old);
+}
+
+
 XL::Text_p Widget::gotoPage(Tree_p self, text page)
 // ----------------------------------------------------------------------------
 //   Directly go to the given page

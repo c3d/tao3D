@@ -255,6 +255,7 @@ public:
     // Getting attributes
     Text_p      page(Tree_p self, text name, Tree_p body);
     Text_p      pageLink(Tree_p self, text key, text name);
+    Real_p      pageSetPrintTime(Tree_p self, double t);
     Text_p      gotoPage(Tree_p self, text page);
     Text_p      pageLabel(Tree_p self);
     Integer_p   pageNumber(Tree_p self);
@@ -699,6 +700,7 @@ private:
     // Timing
     QTimer                timer, idleTimer;
     double                pageStartTime, pageRefresh, frozenTime, startTime;
+    double                pagePrintTime;
     ulonglong             tmin, tmax, tsum, tcount;
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
 

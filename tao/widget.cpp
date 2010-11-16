@@ -3263,7 +3263,7 @@ XL::Real_p Widget::after(Tree_p self, double delay, Tree_p code)
         frozenTime = CurrentTime();
 
     double now = frozenTime;
-    double elapsed = now - startTime;
+    double elapsed = now - pageStartTime;
 
     if (elapsed < delay)
     {

@@ -65,6 +65,24 @@ void CloneDialog::accept()
     QString newFolder = newFolderEdit->text();
     if (url.isEmpty() || folder.isEmpty())
         return;
+    QDir dir(folder);
+    if (!dir.exists())
+    {
+        int ret;
+        ret = QMessageBox::question(this, tr("Folder does not exist"),
+                                    tr("Do you want do create folder: %1?")
+                                    .arg(folder),
+                                    QMessageBox::Yes | QMessageBox::No);
+        if (ret != QMessageBox::Yes)
+            return;
+        bool ok = dir.mkpath(folder);
+        if (!ok)
+        {
+            QMessageBox::warning(this, tr("Error"),
+                                 tr("Could not create folder."));
+            return;
+        }
+    }
     TaoApp->addUrlCompletion(url);
     TaoApp->addPathCompletion(folder);
     repo = RepositoryFactory::repository(folder, RepositoryFactory::Clone);

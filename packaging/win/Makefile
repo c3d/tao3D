@@ -17,18 +17,17 @@ $(MAKENSIS) -DOUTFILE=taosetup.exe tao.nsi
 endef
 
 
-all: .tao_install $(BITMAPS)
+all: tao_install $(BITMAPS)
 	$(run-nsis)
 
 rn: $(BITMAPS)
 	$(run-nsis)
 
-.tao_install:
+tao_install:
 	[ -d build_root ] || mkdir -p build_root
 	cd ../.. && make install
 	cp -Rp $(INSTROOT)/* build_root
 	./copy_deps
-	touch $@
 
 clean:
 	$(RM_RF) build_root/ taosetup.exe *.bmp .tao_install

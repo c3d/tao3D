@@ -33,8 +33,9 @@ XLSourceEdit::XLSourceEdit(QWidget *parent)
 //   Create a source editor
 // ----------------------------------------------------------------------------
 {
-    setFontFamily("unifont");
-    setFontPointSize(16);
+    QFont font("unifont");
+    font.setPixelSize(16);
+    setFont(font);
     highlighter = new XLHighlighter(document());
 }
 

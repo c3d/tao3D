@@ -53,7 +53,12 @@ protected:
 private:
     struct TextCharFormat : public QTextCharFormat
     {
-        TextCharFormat() { setFontFamily("unifont"); setFontPointSize(16); }
+        TextCharFormat()
+        {
+            QFont font("unifont");
+            font.setPixelSize(16);
+            setFont(font);
+        }
     };
 
     struct HighlightingRule

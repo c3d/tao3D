@@ -19,7 +19,7 @@
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
-//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Jerome Forissier <jerome@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -116,7 +116,7 @@ static inline QGL::FormatOptions TaoGLFormatOptions()
          QGL::StencilBuffer     |
          QGL::SampleBuffers     |
          QGL::AlphaChannel);
-    if (XL::MAIN->options.enable_stereoscopy)
+    if (true || XL::MAIN->options.enable_stereoscopy)
         result |= QGL::StereoBuffers;
     return result;
 }
@@ -353,6 +353,8 @@ void Widget::draw()
                     glDrawBuffer(GL_BACK_LEFT);
                 else if (stereoscopic == 2)
                     glDrawBuffer(GL_BACK_RIGHT);
+                glClearColor(1.0, 1.0, 1.0, 1.0);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             }
             else if (stereoMode == stereoINTERLACED)
             {
@@ -478,6 +480,20 @@ void Widget::runProgram()
 
     // If we have evaluation errors, show them (bug #498)
     if (XL::MAIN->HadErrors())
+    {
+        std::vector<XL::Error> &errors = XL::MAIN->errors->errors;
+        std::vector<XL::Error>::iterator ei;
+        Window *window = (Window *) parentWidget();
+        for (ei = errors.begin(); ei != errors.end(); ei++)
+        {
+            text message = (*ei).Position() + ": " + (*ei).Message();
+            window->addError(+message);
+        }
+        XL::MAIN->errors->Clear();
+    }
+
+    // If we have evaluation errors, show them (bug #498)
+    if (XL::MAIN->errors->Count())
     {
         std::vector<XL::Error> &errors = XL::MAIN->errors->errors;
         std::vector<XL::Error>::iterator ei;
@@ -1164,6 +1180,7 @@ void Widget::setupGL()
     glDisable(GL_CULL_FACE);
 }
 
+
 void Widget::setupStereoStencil(double w, double h)
 // ----------------------------------------------------------------------------
 //   For interlaced output, generate a stencil with every other line
@@ -1189,19 +1206,19 @@ void Widget::setupStereoStencil(double w, double h)
 	glStencilOp (GL_REPLACE, GL_REPLACE, GL_REPLACE); // Copy to stencil
 	glDisable(GL_DEPTH_TEST);
 	glStencilFunc(GL_ALWAYS,1,1);                     // Ignore contents
-	
+
         // Draw pattern showing every other line
 	glColor4f(1.0, 1.0, 1.0, 1.0);
         glLineWidth(1.0);
         glDisable(GL_LINE_SMOOTH);
         glDisable(GL_LINE_STIPPLE);
+        glBegin (GL_LINES);
 	for (uint y = 0; y < h; y += 2)
 	{
-            glBegin (GL_LINES);
             glVertex2f (0, y);
             glVertex2f (w, y);
-            glEnd();
 	}
+        glEnd();
 
         // Protect stencil from now on
 	glStencilOp (GL_KEEP, GL_KEEP, GL_KEEP);
@@ -2133,7 +2150,6 @@ void Widget::refreshProgram()
                 IFTRACE(filesync)
                     std::cerr << "File " << fname << " changed\n";
 
-
                 Tree *replacement = NULL;
                 if (repo)
                 {
@@ -2147,6 +2163,9 @@ void Widget::refreshProgram()
                     XL::Parser parser(fname.c_str(), syntax, positions, errors);
                     replacement = parser.Parse();
                 }
+
+                // Make sure we reload only once (bug #533)
+                sf.modified = st.st_mtime;
 
                 if (!replacement)
                 {
@@ -2163,9 +2182,6 @@ void Widget::refreshProgram()
                     ApplyChanges changes(replacement);
                     if (!sf.tree->Do(changes))
                         needBigHammer = true;
-
-                    // Record new modification time
-                    sf.modified = st.st_mtime;
 
                     if (fname == xlProgram->name)
                         updateProgramSource();
@@ -4780,7 +4796,7 @@ struct ImagePacker : XL::Action
     {
         composite.fill(0);
     }
- 
+
     void AddImage(QString file)
     {
         QFileInfo fi(file);

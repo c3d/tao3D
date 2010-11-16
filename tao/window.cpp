@@ -1101,7 +1101,7 @@ void Window::createMenus()
     fileMenu->addAction(newAct);
     fileMenu->addAction(openAct);
     fileMenu->addAction(openUriAct);
-    openRecentMenu = fileMenu->addMenu(tr("Open Recent"));
+    openRecentMenu = fileMenu->addMenu(tr("Open &Recent"));
     fileMenu->addAction(saveAct);
     fileMenu->addAction(saveAsAct);
     fileMenu->addAction(saveFontsAct);

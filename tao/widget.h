@@ -134,6 +134,7 @@ public:
     void        paintGL();
     void        setup(double w, double h, const Box *picking = NULL);
     void        setupGL();
+    void        setupPage();
     void        setupStereoStencil(double w, double h);
     void        identifySelection();
     void        updateSelection();
@@ -706,6 +707,7 @@ private:
 
     // Printing
     double                pagePrintTime;
+    uint                  pageOverscaling;
     QPrinter             *printer;
 
     // Source code view

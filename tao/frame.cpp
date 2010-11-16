@@ -169,6 +169,17 @@ void FrameInfo::checkGLContext()
 }
 
 
+QImage FrameInfo::toImage()
+// ----------------------------------------------------------------------------
+//   Return the frame buffer contents as a QImage
+// ----------------------------------------------------------------------------
+{
+    checkGLContext();
+    return render_fbo->toImage();
+}
+
+
+
 // ============================================================================
 //
 //   FramePainter

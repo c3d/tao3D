@@ -148,8 +148,9 @@ Widget::Widget(Window *parent, SourceFile *sf)
       timer(this), idleTimer(this),
       pageStartTime(1e6), pageRefresh(1e6), frozenTime(1e6), startTime(1e6),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
-      nextSave(now()), nextCommit(nextSave), nextSync(nextSave),
-      nextPull(nextSave),
+      nextSave(now()), nextCommit(nextSave),
+      nextSync(nextSave), nextPull(nextSave),
+      pagePrintTime(0.0), pageOverscaling(2), printer(NULL),
       sourceRenderer(NULL),
       currentFileDialog(NULL),
       zNear(2000.0), zFar(40000.0),
@@ -297,19 +298,12 @@ void Widget::dawdle()
 }
 
 
-void Widget::draw()
+void Widget::setupPage()
 // ----------------------------------------------------------------------------
-//    Redraw the widget
+//   Setup attributes before drawing or printing a page
 // ----------------------------------------------------------------------------
 {
-    TaoSave saveCurrent(current, this);
-
-    // Timing
-    ulonglong before = now();
     w_event = NULL;
-
-    // Setup the initial drawing environment
-    double w = width(), h = height();
     pageW = (21.0 / 2.54) * logicalDpiX(); // REVISIT
     pageH = (29.7 / 2.54) * logicalDpiY();
     flowName = "";
@@ -319,9 +313,23 @@ void Widget::draw()
     pageTree = NULL;
     lastPageName = "";
     pageNames.clear();
-
-    // Clear the background
     Layout::polygonOffset = 0;
+}
+
+
+void Widget::draw()
+// ----------------------------------------------------------------------------
+//    Redraw the widget
+// ----------------------------------------------------------------------------
+{
+    TaoSave saveCurrent(current, this);
+
+    // Timing
+    ulonglong before = now();
+
+    // Setup the initial drawing environment
+    double w = width(), h = height();
+    setupPage();
 
     // Clean text selection
     TextSelect *sel = textSelection();
@@ -397,8 +405,6 @@ void Widget::draw()
         {
             stereoscopic = 3 - stereoscopic;
             setup(width(), height());
-            if (false && stereoMode == stereoHARDWARE)
-                swapBuffers();
         }
     } while (stereoscopic == 2);
 
@@ -518,6 +524,96 @@ void Widget::runProgram()
     currentMenu    = NULL;
     currentToolBar = NULL;
     currentMenuBar = ((Window*)parent())->menuBar();
+}
+
+
+void Widget::print(QPrinter *prt)
+// ----------------------------------------------------------------------------
+//   Print the pages on the given page range
+// ----------------------------------------------------------------------------
+{
+    // Set the current printer while drawing
+    TaoSave saveCurrent(current, this);
+    XL::LocalSave<QPrinter *> savePrinter(printer, prt);
+    XL::LocalSave<char> disableStereoscopy(stereoscopic, 0);
+    XL::LocalSave<text> savePage(pageName, "");
+
+    // Identify the page range
+    uint firstPage = printer->fromPage();
+    uint lastPage = printer->toPage();
+    if (firstPage == 0)
+        firstPage = 1;
+    if (lastPage == 0)
+        lastPage = pageTotal ? pageTotal : 1;
+
+    // Get the printable area in the page and create a GL frame for it
+    QRect paperRect = printer->paperRect();
+    QPainter painter(printer);
+    uint w = paperRect.width(), h = paperRect.height();
+    FrameInfo frame(w, h);
+
+    // Get the status bar
+    Window *window = (Window *) parentWidget();
+    QStatusBar *status = window->statusBar();
+
+    // Set the initial time we want to set and freeze animations
+    XL::LocalSave<bool> disableAnimations(animated, false);
+    XL::LocalSave<double> setPageTime(pageStartTime, 0);
+    XL::LocalSave<double> setFrozenTime(frozenTime, 0);
+    XL::LocalSave<double> saveStartTime(startTime, 0);
+
+    // Render the given page range
+    for (pageToPrint = firstPage; pageToPrint <= lastPage; pageToPrint++)
+    {
+        // Show crude progress information
+        status->showMessage(tr("Printing page %1/%2")
+                            .arg(pageToPrint-firstPage+1)
+                            .arg(lastPage - firstPage));
+
+        // Center display on screen
+        XL::LocalSave<double> savePrintTime(pagePrintTime, 0);
+        XL::LocalSave<Point3> saveCenter(viewCenter, Point3(0,0,-zNear));
+        XL::LocalSave<Point3> saveEye(eye, Point3(0,0,zNear));
+        
+        // Evaluate a first time so that we setup page info
+        setupPage();
+        frozenTime = pagePrintTime;
+        runProgram();
+
+        // We draw small fragments for overscaling
+        int n = pageOverscaling;
+        for (int r = -n; r <= n; r++)
+        {
+            for (int c = -n; c <= n; c++)
+            {
+                double s = 1.0 / n;
+
+                // Evaluate program to draw page
+                setupPage();
+                frozenTime = pagePrintTime;
+                runProgram();
+
+                // Draw the layout in the frame context
+                id = idDepth = 0;
+                frame.begin();
+                Box box(c*w*s, (n-1-r) * h * s, w, h);
+                setup(w, h, &box);
+                space->Draw(NULL);
+                frame.end();
+
+                // Draw fragment
+                QImage image(frame.toImage());
+                QRectF rect(c*w*s, r*h*s, w*s, h*s);
+                painter.drawImage(rect, image);
+            }
+        }
+
+        if (pageToPrint < lastPage)
+            printer->newPage();
+    }
+
+    // Finish the job
+    painter.end();
 }
 
 
@@ -1115,7 +1211,8 @@ void Widget::setup(double w, double h, const Box *picking)
 // ----------------------------------------------------------------------------
 {
     // Setup viewport
-    glViewport(0, 0, w, h);
+    uint s = printer ? pageOverscaling : 1;
+    glViewport(0, 0, w * s, h * s);
 
     // Setup the projection matrix
     glMatrixMode(GL_PROJECTION);
@@ -3115,7 +3212,9 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
     pageNames.push_back(name);
 
     // If the page is set, then we display it
-    if (pageName == name || drawAllPages)
+    if (printer && pageToPrint == pageId)
+        pageName = name;
+    if (drawAllPages || pageName == name)
     {
         // Initialize back-link
         pageFound = pageId;
@@ -3146,6 +3245,17 @@ XL::Text_p Widget::pageLink(Tree_p self, text key, text name)
     text old = pageLinks[key];
     pageLinks[key] = name;
     return new Text(old);
+}
+
+
+XL::Real_p Widget::pageSetPrintTime(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//   Set the time at which animations should be set when printing pages
+// ----------------------------------------------------------------------------
+{
+    double old = pagePrintTime;
+    pagePrintTime = t;
+    return new Real(old);
 }
 
 
@@ -3237,7 +3347,8 @@ XL::Real_p Widget::windowWidth(Tree_p self)
 //   Return the width of the window in which we display
 // ----------------------------------------------------------------------------
 {
-    return new Real(width());
+    double w = printer ? printer->paperRect().width() : width();
+    return new Real(w);
 }
 
 
@@ -3246,7 +3357,8 @@ XL::Real_p Widget::windowHeight(Tree_p self)
 //   Return the height of window in which we display
 // ----------------------------------------------------------------------------
 {
-    return new Real(height());
+    double h = printer ? printer->paperRect().height() : height();
+    return new Real(h);
 }
 
 
@@ -3283,7 +3395,7 @@ XL::Real_p Widget::after(Context *context, double delay, Tree_p code)
         frozenTime = CurrentTime();
 
     double now = frozenTime;
-    double elapsed = now - startTime;
+    double elapsed = now - pageStartTime;
 
     if (elapsed < delay)
     {

@@ -92,6 +92,8 @@ public slots:
     void sourceViewBecameVisible(bool visible);
     int  open(QString fileName = "", bool readOnly = false);
     void openUri();
+    void pageSetup();
+    void print();
     void removeSplashScreen();
     void deleteAboutSplash();
     void showMessage(QString message)  { showMessage(message, 2000); }
@@ -203,8 +205,10 @@ private:
     QAction          *openUriAct;
     QAction          *saveAct;
     QAction          *saveAsAct;
-    QAction          *recAct;
+    QAction          *consolidateAct;
     QAction          *saveFontsAct;
+    QAction          *printAct;
+    QAction          *pageSetupAct;
     QAction          *closeAct;
     QAction          *exitAct;
     QAction          *cutAct;
@@ -241,6 +245,7 @@ private:
     }                 savedState;
 
 public:
+    QPrinter         *printer;
     QMenu            *shareMenu;
     SplashScreen     *splashScreen;
     SplashScreen     *aboutSplash;

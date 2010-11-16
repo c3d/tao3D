@@ -98,6 +98,7 @@ public slots:
     void        dawdle();
     void        draw();
     void        runProgram();
+    void        print(QPrinter *printer);
     void        appFocusChanged(QWidget *prev, QWidget *next);
     void        userMenu(QAction *action);
     bool        refresh(double delay = 0.0);
@@ -133,6 +134,7 @@ public:
     void        paintGL();
     void        setup(double w, double h, const Box *picking = NULL);
     void        setupGL();
+    void        setupPage();
     void        setupStereoStencil(double w, double h);
     void        identifySelection();
     void        updateSelection();
@@ -256,6 +258,7 @@ public:
     // Getting attributes
     Text_p      page(Context *context, text name, Tree_p body);
     Text_p      pageLink(Tree_p self, text key, text name);
+    Real_p      pageSetPrintTime(Tree_p self, double t);
     Text_p      gotoPage(Tree_p self, text page);
     Text_p      pageLabel(Tree_p self);
     Integer_p   pageNumber(Tree_p self);
@@ -668,7 +671,7 @@ private:
     text                  pageName, lastPageName;
     page_map              pageLinks;
     page_list             pageNames;
-    uint                  pageId, pageFound, pageShown, pageTotal;
+    uint                  pageId, pageFound, pageShown, pageTotal, pageToPrint;
     Tree_p                pageTree;
     Tree_p                currentShape;
     QGridLayout *         currentGridLayout;
@@ -712,6 +715,11 @@ private:
     double                pageStartTime, pageRefresh, frozenTime, startTime;
     ulonglong             tmin, tmax, tsum, tcount;
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
+
+    // Printing
+    double                pagePrintTime;
+    uint                  pageOverscaling;
+    QPrinter             *printer;
 
     // Source code view
     std::ostringstream    sourceRendererOutput; // REVISIT: movie into TextEditor

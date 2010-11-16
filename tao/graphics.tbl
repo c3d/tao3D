@@ -103,6 +103,17 @@ PREFIX(PageHeight,  real,     "page_height", ,  RTAO(pageHeight(self)),
                 return_value \"real\", <<Return the height of pages>>;\
                 }\
           |*/")
+
+PREFIX(PagePrintTime, real, "page_print_time", PARM(t, real),
+       RTAO(pageSetPrintTime(self, t)),
+       "/*| docname \"page_print_time\", \"page\", do { \
+                dsyntax <<page_print_time seconds>>;\
+                synopsis \"Set the freeze time used when printing.\" ; \
+                description <<Set the time used when printing pages>> ;\
+                return_value \"real\", <<Previous time used for printing>>;\
+                }\
+          |*/")
+
 PREFIX(FrameWidth,  real,     "frame_width", ,  RTAO(frameWidth(self)),
        "/*| docname \"frame_width\", \"frame\", do { \
                 dsyntax <<frame_width>>;\

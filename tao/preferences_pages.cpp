@@ -36,10 +36,10 @@ namespace Tao {
 // ============================================================================
 
 DebugPage::DebugPage(QWidget *parent)
-     : QWidget(parent)
 // ----------------------------------------------------------------------------
 //   Create the page and show the current state of debug traces
 // ----------------------------------------------------------------------------
+     : QWidget(parent)
 {
     QStringList traces = allTraceNames();
 

@@ -558,7 +558,7 @@ void Widget::print(QPrinter *prt)
         int n = pageOverscaling;
         QImage bigPicture(w * n, h * n, QImage::Format_RGB32);
         QPainter bigPainter(&bigPicture);
-        bigPicture.fill(0);
+        bigPicture.fill(-1);
 
         // Center display on screen
         XL::LocalSave<double> savePrintTime(pagePrintTime, 0);

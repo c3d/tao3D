@@ -25,7 +25,6 @@
 #include "layout.h"
 #include "widget.h"
 #include "tao_utf8.h"
-#include "gl2ps.h"
 #include <GL/glew.h>
 #include <iostream>
 #include "text_drawing.h"
@@ -136,11 +135,7 @@ void LineWidth::Draw(Layout *where)
 {
     where->lineWidth = width;
     if (width > 0.0)
-    {
-        if (where->printing)
-            gl2psLineWidth(width);
         glLineWidth(width);
-    }
 }
 
 

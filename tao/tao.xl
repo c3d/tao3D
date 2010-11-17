@@ -9,8 +9,6 @@ module_description b:block              -> false
 key "Control-L"                         -> toggle_slide_show
 key "Escape"                            -> main_chooser
 key "Control-M"                         -> toggle_hand_cursor
-key "Control-P"                         -> print_page "toto.pdf"
-key "Control-Shift-P"                   -> print_page "toto.svg"
 key "Control-1"                         -> reset_view
 key "Control-+"                         -> zoom_in
 key "Control--"                         -> zoom_out
@@ -49,9 +47,6 @@ main_chooser ->
     chooser_choice "Enable stereoscopy", {enable_stereoscopy true}
     chooser_choice "Disable stereoscopy", {enable_stereoscopy false}
     chooser_choice "Enable stereoscopy (interleaved mode)", {enable_stereoscopy interleave}
-    chooser_choice "Print to 'toto.pdf'", {print "toto.pdf"}
-    chooser_choice "Print to 'toto.svg'", {print "toto.svg"}
-    chooser_choice "Print to 'toto.ps'", {print "toto.ps"}
     chooser_choice "Reset view", {reset_view}
     chooser_choice "Zoom in", {zoom_in}
     chooser_choice "Zoom out", {zoom_out}

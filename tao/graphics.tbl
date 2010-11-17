@@ -707,17 +707,6 @@ PREFIX(PolygonOffset, integer, "polygon_offset",
                 return_value \"integer\", <<the current polygon offset>>;\
                 }\
           |*/")
-PREFIX(PrintOnePage, boolean, "print_page", , RTAO(printPage(self, "")), "")
-PREFIX(printPage, boolean, "print_page", PARM(f, text), RTAO(printPage(self,f)),
-       "/*| docname \"print_page\", \"export\", do { \
-                dsyntax <<print_page>>;\
-                dsyntax <<print_page f>>;        \
-                synopsis \"Print a page\" ; \
-                description <<Print a page either to a file or by picking file>> ;\
-                parameters;\
-                parameter \"text\", \"f\", <<file name. If empty a dialog box pops up.>>;\
-                }\
-          |*/")
 
 
 

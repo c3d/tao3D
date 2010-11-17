@@ -31,7 +31,6 @@
 #include "runtime.h"
 #include "application.h"
 #include "apply_changes.h"
-#include "gl2ps.h"
 #include "portability.h"
 
 #include <GL/glew.h>
@@ -211,29 +210,7 @@ void TextSpan::DrawDirect(Layout *where)
     uint        i, max = str.length();
     uint        charId = ~0U;
 
-    // When printing and there is no rotation, we try to use GL2PS direct
-    if (where->printing)
-    {
-        if (!where->has3D)
-        {
-            setTexture(where);
-            if (setFillColor(where))
-            {
-                text range = str.substr(start, end - start);
-                text family = +where->font.family();
-                uint size = where->font.pointSize();
-                glRasterPos3d(pos.x, pos.y, pos.z);
-                if (where->planarRotation != 0.0)
-                    gl2psTextOpt(range.c_str(), family.c_str(), size,
-                                 GL2PS_TEXT_BL, where->planarRotation);
-                else
-                    gl2psText(range.c_str(), family.c_str(), size);
-            }
-            if (where->lineColor.alpha <= 0)
-                skip = true;
-        }
-    }
-
+    // Disable drawing of lines if we don't see them.
     if (where->lineColor.alpha <= 0)
         lw = 0;
     if (canSel && (!where->id || IsMarkedConstant(ttree) ||

@@ -561,10 +561,13 @@ void Widget::print(QPrinter *prt)
         XL::LocalSave<Point3> saveCenter(viewCenter, Point3(0,0,-zNear));
         XL::LocalSave<Point3> saveEye(eye, Point3(0,0,zNear));
         
-        // Evaluate a first time so that we setup page info
-        setupPage();
-        frozenTime = pagePrintTime;
-        runProgram();
+        // Evaluate twice time so that we correctly setup page info
+        for (uint i = 0; i < 2; i++)
+        {
+            setupPage();
+            frozenTime = pagePrintTime;
+            runProgram();
+        }
 
         // We draw small fragments for overscaling
         int n = pageOverscaling;
@@ -573,11 +576,6 @@ void Widget::print(QPrinter *prt)
             for (int c = -n; c <= n; c++)
             {
                 double s = 1.0 / n;
-
-                // Evaluate program to draw page
-                setupPage();
-                frozenTime = pagePrintTime;
-                runProgram();
 
                 // Draw the layout in the frame context
                 id = idDepth = 0;

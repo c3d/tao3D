@@ -556,7 +556,7 @@ void Widget::print(QPrinter *prt)
     for (pageToPrint = firstPage; pageToPrint <= lastPage; pageToPrint++)
     {
         int n = printOverscaling;
-        QImage bigPicture(w * n, h * n, QImage::Format_RGB32);
+        QImage bigPicture(w * n, h * n, QImage::Format_RGB888);
         QPainter bigPainter(&bigPicture);
         bigPicture.fill(-1);
 
@@ -596,6 +596,7 @@ void Widget::print(QPrinter *prt)
 
                 // Draw fragment
                 QImage image(frame.toImage());
+                image = image.convertToFormat(QImage::Format_RGB888);
                 QRect rect(c*w, r*h, w, h);
                 bigPainter.drawImage(rect, image);
             }

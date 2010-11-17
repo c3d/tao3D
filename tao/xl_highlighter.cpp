@@ -173,7 +173,6 @@ bool XLHighlighter::showSelectionInFragment(QTextFragment fragment)
             int hcount = (int)(i.second - i.first);
             setFormat(hstart, hcount, selectedFormat);
             matched = true;
-            break;
         }
     }
     return matched;

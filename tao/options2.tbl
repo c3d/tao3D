@@ -9,13 +9,13 @@ OPTVAR(save_interval, ulong,   1000)
 OPTVAR(commit_interval, ulong, 5000)
 OPTVAR(pull_interval, ulong, 5000)
 OPTION(autosync, "Interval for automatic file sync in milliseconds",
-       sync_interval = INTEGER)
+       sync_interval = INTEGER(1000, 100000))
 OPTION(autosave, "Interval for automatic save in milliseconds",
-       save_interval = INTEGER)
+       save_interval = INTEGER(1000, 100000))
 OPTION(autocommit, "Interval for automatic commit in milliseconds",
-       commit_interval = INTEGER)
+       commit_interval = INTEGER(1000, 100000))
 OPTION(autopull, "Interval for automatic pull in milliseconds",
-       pull_interval = INTEGER)
+       pull_interval = INTEGER(1000, 100000))
 
 OPTVAR(prefer_opengl, bool, false)
 OPTION(gl, "Prefer OpenGL for rendering", prefer_opengl = true)
@@ -26,5 +26,9 @@ OPTION(nostereo, "Disable stereoscopy", enable_stereoscopy = false)
 
 OPTION(nosplash, "Disable splash screen", ;)
 OPTVAR(slideshow, bool, false)
-OPTION(slideshow, "Open document in slide show mode (full screen, no source code view)", slideshow = true)
+OPTION(slideshow, "Open document in slide show mode",
+       slideshow = true)
 
+OPTVAR(printResolution, uint, 300)
+OPTION(print_resolution, "Set printer resolution in DPI",
+       printResolution = INTEGER(72, 3600))

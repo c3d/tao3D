@@ -149,7 +149,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       nextSave(now()), nextCommit(nextSave),
       nextSync(nextSave), nextPull(nextSave),
-      pagePrintTime(0.0), pageOverscaling(2), printer(NULL),
+      pagePrintTime(0.0), pageOverscaling(1), printer(NULL),
       sourceRenderer(NULL),
       currentFileDialog(NULL),
       zNear(2000.0), zFar(40000.0),
@@ -200,6 +200,11 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     // Make sure we get mouse events even when no click is made
     setMouseTracking(true);
     new MouseFocusTracker("Focus tracking", this);
+
+    // Find which page overscaling to use
+    while (pageOverscaling < 8 &&
+           pageOverscaling * 72 < XL::MAIN->options.printResolution)
+        pageOverscaling <<= 1;
 }
 
 
@@ -532,9 +537,9 @@ void Widget::print(QPrinter *prt)
         lastPage = pageTotal ? pageTotal : 1;
 
     // Get the printable area in the page and create a GL frame for it
-    QRect paperRect = printer->paperRect();
+    QRect pageRect = printer->pageRect();
     QPainter painter(printer);
-    uint w = paperRect.width(), h = paperRect.height();
+    uint w = pageRect.width(), h = pageRect.height();
     FrameInfo frame(w, h);
 
     // Get the status bar
@@ -551,6 +556,9 @@ void Widget::print(QPrinter *prt)
     for (pageToPrint = firstPage; pageToPrint <= lastPage; pageToPrint++)
     {
         int n = pageOverscaling;
+        QImage bigPicture(w * n, h * n, QImage::Format_RGB32);
+        QPainter bigPainter(&bigPicture);
+        bigPicture.fill(0);
 
         // Center display on screen
         XL::LocalSave<double> savePrintTime(pagePrintTime, 0);
@@ -581,17 +589,20 @@ void Widget::print(QPrinter *prt)
                 // Draw the layout in the frame context
                 id = idDepth = 0;
                 frame.begin();
-                Box box(c*w*s, (n-1-r) * h * s, w, h);
+                Box box(c * w * s, (n - 1 - r) * h * s, w, h);
                 setup(w, h, &box);
                 space->Draw(NULL);
                 frame.end();
 
                 // Draw fragment
                 QImage image(frame.toImage());
-                QRectF rect(c*w*s, r*h*s, w*s, h*s);
-                painter.drawImage(rect, image);
+                QRect rect(c*w, r*h, w, h);
+                bigPainter.drawImage(rect, image);
             }
         }
+
+        // Draw the resulting big picture into the printer
+        painter.drawImage(pageRect, bigPicture);
 
         if (pageToPrint < lastPage)
             printer->newPage();

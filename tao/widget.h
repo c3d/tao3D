@@ -141,6 +141,8 @@ public:
     uint        showGlErrors();
     QFont &     currentFont();
     Context *   context();
+    QPrinter *  currentPrinter() { return printer; }
+    double      printerScaling() { return printer ? printOverscaling : 1; }
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -716,7 +718,7 @@ private:
 
     // Printing
     double                pagePrintTime;
-    uint                  pageOverscaling;
+    uint                  printOverscaling;
     QPrinter             *printer;
 
     // Source code view

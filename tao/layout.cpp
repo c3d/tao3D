@@ -24,7 +24,6 @@
 #include "layout.h"
 #include "gl_keepers.h"
 #include "attributes.h"
-#include "gl2ps.h"
 
 TAO_BEGIN
 
@@ -284,8 +283,6 @@ void Layout::PolygonOffset()
     int offset = polygonOffset++;
     glPolygonOffset (factorBase + offset * factorIncrement,
                      unitBase + offset * unitIncrement);
-    if (printing)
-        gl2psEnable(GL2PS_POLYGON_OFFSET_FILL);
 }
 
 

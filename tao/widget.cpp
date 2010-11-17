@@ -149,7 +149,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       nextSave(now()), nextCommit(nextSave),
       nextSync(nextSave), nextPull(nextSave),
-      pagePrintTime(0.0), pageOverscaling(1), printer(NULL),
+      pagePrintTime(0.0), printOverscaling(1), printer(NULL),
       sourceRenderer(NULL),
       currentFileDialog(NULL),
       zNear(2000.0), zFar(40000.0),
@@ -202,9 +202,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     new MouseFocusTracker("Focus tracking", this);
 
     // Find which page overscaling to use
-    while (pageOverscaling < 8 &&
-           pageOverscaling * 72 < XL::MAIN->options.printResolution)
-        pageOverscaling <<= 1;
+    while (printOverscaling < 8 &&
+           printOverscaling * 72 < XL::MAIN->options.printResolution)
+        printOverscaling <<= 1;
 }
 
 
@@ -555,7 +555,7 @@ void Widget::print(QPrinter *prt)
     // Render the given page range
     for (pageToPrint = firstPage; pageToPrint <= lastPage; pageToPrint++)
     {
-        int n = pageOverscaling;
+        int n = printOverscaling;
         QImage bigPicture(w * n, h * n, QImage::Format_RGB32);
         QPainter bigPainter(&bigPicture);
         bigPicture.fill(-1);
@@ -1213,7 +1213,7 @@ void Widget::setup(double w, double h, const Box *picking)
 // ----------------------------------------------------------------------------
 {
     // Setup viewport
-    uint s = printer && picking ? pageOverscaling : 1;
+    uint s = printer && picking ? printOverscaling : 1;
     glViewport(0, 0, w * s, h * s);
 
     // Setup the projection matrix

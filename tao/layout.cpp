@@ -406,4 +406,13 @@ uint Layout::CharacterId()
     return ++charId;
 }
 
+
+double Layout::PrinterScaling()
+// ----------------------------------------------------------------------------
+//   Return the scaling for printing
+// ----------------------------------------------------------------------------
+{
+    return display->printerScaling();
+}
+
 TAO_END

@@ -884,7 +884,7 @@ void FixedSizePoint::Draw(Layout *where)
     setTexture(where);
     if (setFillColor(where))
     {
-        glPointSize(radius);
+        glPointSize(radius * where->PrinterScaling());
         glBegin(GL_POINTS);
         glVertex3f(center.x, center.y, center.z);
         glEnd();

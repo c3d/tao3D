@@ -1203,7 +1203,7 @@ void Widget::setup(double w, double h, const Box *picking)
 // ----------------------------------------------------------------------------
 {
     // Setup viewport
-    uint s = printer ? pageOverscaling : 1;
+    uint s = printer && picking ? pageOverscaling : 1;
     glViewport(0, 0, w * s, h * s);
 
     // Setup the projection matrix

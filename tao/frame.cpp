@@ -114,9 +114,6 @@ void FrameInfo::begin()
     glLoadIdentity();
 
     glDisable(GL_TEXTURE_2D);
-    if (TaoApp->hasGLMultisample)
-        glDisable(GL_MULTISAMPLE);
-
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }

@@ -568,7 +568,7 @@ void Widget::print(QPrinter *prt)
 
         // We draw small fragments for overscaling
         int n = pageOverscaling;
-        for (int r = -n; r <= n; r++)
+        for (int r = ~n; r <= n; r++)
         {
             for (int c = -n; c <= n; c++)
             {

@@ -557,7 +557,7 @@ void Widget::print(QPrinter *prt)
         XL::LocalSave<double> savePrintTime(pagePrintTime, 0);
         XL::LocalSave<Point3> saveCenter(viewCenter, Point3(0,0,-zNear));
         XL::LocalSave<Point3> saveEye(eye, Point3(0,0,zNear));
-        
+
         // Evaluate a first time so that we setup page info
         setupPage();
         frozenTime = pagePrintTime;
@@ -732,6 +732,8 @@ void Widget::copy()
     {
         // Build a single tree from all the selected sub-trees
         XL::Tree *tree = copySelection();
+
+        if (! tree ) return;
 
         IFTRACE(clipboard)
         {

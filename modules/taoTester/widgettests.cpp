@@ -131,10 +131,11 @@ void WidgetTests::recordAction(bool )
 
     int time = startTime.restart();
 
+    QKeySequence shortcut = act->shortcut();
     addAction(actName, time);
 
-    QString cmd = QString("    test_add_action \"%1\", %2\n")
-                  .arg(actName).arg(time);
+    QString cmd = QString("    test_add_action \"%1\", %2 // %3 \n")
+                  .arg(actName).arg(time).arg(shortcut.toString());
     taoCmd.append(cmd);
 }
 

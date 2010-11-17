@@ -211,8 +211,8 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
             QKeyEvent *e = (QKeyEvent*)evt;
             int delay = startTime.restart();
             addKeyPress((Qt::Key)e->key(), e->modifiers(), delay);
-            QString cmd = QString("    test_add_key_press %1, %2, %3\n")
-                          .arg(e->key()).arg(e->modifiers()).arg(delay);
+            QString cmd = QString("    test_add_key_press %1, %2, %3 // %4\n")
+                          .arg(e->key()).arg(e->modifiers()).arg(delay).arg(e->text());
             taoCmd.append(cmd);
             break;
         }
@@ -221,8 +221,8 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
             QKeyEvent *e = (QKeyEvent*)evt;
             int delay = startTime.restart();
             addKeyRelease((Qt::Key)e->key(), e->modifiers(), delay);
-            QString cmd = QString("    test_add_key_release %1, %2, %3\n")
-                          .arg(e->key()).arg(e->modifiers()).arg(delay);
+            QString cmd = QString("    test_add_key_release %1, %2, %3 // %4\n")
+                          .arg(e->key()).arg(e->modifiers()).arg(delay).arg(e->text());
             taoCmd.append(cmd);
             break;
         }

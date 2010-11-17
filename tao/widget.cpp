@@ -567,14 +567,14 @@ void Widget::print(QPrinter *prt)
 
         // Show crude progress information
         status->showMessage(tr("Printing page %1/%2...")
-                            .arg(pageToPrint-firstPage+1)
-                            .arg(lastPage - firstPage));
+                            .arg(pageToPrint - firstPage + 1)
+                            .arg(lastPage - firstPage + 1));
         QApplication::processEvents();
 
         // We draw small fragments for overscaling
-        for (int r = ~n; r < n; r++)
+        for (int r = -n+1; r < n; r++)
         {
-            for (int c = ~n; c < n; c++)
+            for (int c = -n+1; c < n; c++)
             {
                 double s = 1.0 / n;
 

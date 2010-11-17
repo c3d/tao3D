@@ -45,7 +45,11 @@ public:
     void   setSelectedRanges(const XL::stream_ranges &ranges);
 
 protected:
+    virtual bool   event(QEvent *e);
     virtual void   keyPressEvent(QKeyEvent *e);
+
+    bool           handleTabKey(QKeyEvent *e);
+    bool           handleShiftTabKey(QKeyEvent *e);
 
 private:
     XLHighlighter *    highlighter;

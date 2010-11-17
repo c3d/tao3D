@@ -24,6 +24,8 @@
 #include "xl_source_edit.h"
 #include "xl_highlighter.h"
 #include <QScrollBar>
+#include <QEvent>
+#include <QKeyEvent>
 
 namespace Tao {
 
@@ -81,6 +83,52 @@ void XLSourceEdit::setSelectedRanges(const XL::stream_ranges &ranges)
 // ----------------------------------------------------------------------------
 {
     highlighter->setSelectedRanges(ranges);
+}
+
+
+bool XLSourceEdit::event(QEvent *e)
+// ----------------------------------------------------------------------------
+//   Process events sent to the text edit
+// ----------------------------------------------------------------------------
+{
+    // Special handling of Tab/Shit+Tab keys has to be done here, because when
+    // keyPressEvent is called it is too late (Qt already has taken special
+    // actions such as changing focus)
+    if (e->type() == QEvent::KeyPress)
+    {
+        bool done = false;
+        QKeyEvent *ke = (QKeyEvent*)e;
+        if (ke->key() == Qt::Key_Tab)
+        {
+            if (ke->modifiers() & Qt::ShiftModifier)
+                done = handleShiftTabKey(ke);
+            else
+                done = handleTabKey(ke);
+        }
+        if (done)
+            return done;
+    }
+    return QTextEdit::event(e);
+}
+
+
+bool XLSourceEdit::handleTabKey(QKeyEvent *)
+// ----------------------------------------------------------------------------
+//   Replace tab with 4 spaces
+// ----------------------------------------------------------------------------
+{
+    textCursor().insertText(QString(4, ' '));
+    return true;
+}
+
+
+bool XLSourceEdit::handleShiftTabKey(QKeyEvent *)
+// ----------------------------------------------------------------------------
+//   Insert a real tab
+// ----------------------------------------------------------------------------
+{
+    textCursor().insertText("\t");
+    return true;
 }
 
 

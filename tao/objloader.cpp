@@ -75,6 +75,7 @@ void Object3D::Load(kstring name)
     long          vIdx, tIdx, nIdx;
     text          material;
     int           c;
+    char *        oldlocale = setlocale(LC_NUMERIC, "C");
 
     while (input.good())
     {
@@ -265,6 +266,8 @@ void Object3D::Load(kstring name)
         glEnd();
     }
     glEndList();
+
+    setlocale(LC_NUMERIC, oldlocale);
 }
 
 

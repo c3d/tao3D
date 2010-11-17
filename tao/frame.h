@@ -26,6 +26,7 @@
 #include "tree.h"
 #include "gl_keepers.h"
 #include <map>
+#include <QImage>
 
 TAO_BEGIN
 
@@ -43,11 +44,12 @@ struct FrameInfo : XL::Info
     FrameInfo(uint width = 512, uint height = 512);
     ~FrameInfo();
 
-    void resize(uint width, uint height);
-    void begin();
-    void end();
-    GLuint bind();
-    void checkGLContext();
+    void        resize(uint width, uint height);
+    void        begin();
+    void        end();
+    GLuint      bind();
+    void        checkGLContext();
+    QImage      toImage();
 
     uint    w, h;
     fbo_map render_fbos;

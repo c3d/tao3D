@@ -427,6 +427,31 @@ int Window::open(QString fileName, bool readOnly)
 }
 
 
+void Window::print()
+// ----------------------------------------------------------------------------
+//   Print a document
+// ----------------------------------------------------------------------------
+{
+    // Get print parameters
+    QPrintDialog dialog(printer, this);
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+    taoWidget->print(printer);
+}
+
+
+void Window::pageSetup()
+// ----------------------------------------------------------------------------
+//   Setup parameters for printing a document
+// ----------------------------------------------------------------------------
+{
+    // Get print parameters
+    QPageSetupDialog dialog(printer, this);
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+}
+
+
 void Window::onUriGetFailed()
 // ----------------------------------------------------------------------------
 //    Called asynchronously when open() failed to open an URI
@@ -954,10 +979,10 @@ void Window::createActions()
     saveAct->setObjectName("save");
     connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
 
-    recAct = new QAction(tr("Consolidate"), this);
-    recAct->setStatusTip(tr("Make the document self contained"));
-    recAct->setObjectName("consolidate");
-    connect(recAct, SIGNAL(triggered()), this, SLOT(consolidate()));
+    consolidateAct = new QAction(tr("Consolidate"), this);
+    consolidateAct->setStatusTip(tr("Make the document self contained"));
+    consolidateAct->setObjectName("consolidate");
+    connect(consolidateAct, SIGNAL(triggered()), this, SLOT(consolidate()));
 
     saveAsAct = new QAction(tr("Save &As..."), this);
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
@@ -966,10 +991,21 @@ void Window::createActions()
     connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
 
     saveFontsAct = new QAction(tr("Save with fonts..."), this);
-    saveFontsAct->setStatusTip(tr("Save the document and store all the "
-                                  "needed fonts alongside the documentment"));
+    saveFontsAct->setStatusTip(tr("Save the document with all required fonts"));
     saveFontsAct->setObjectName("saveFonts");
     connect(saveFontsAct, SIGNAL(triggered()), this, SLOT(saveFonts()));
+
+    printAct = new QAction(tr("&Print..."), this);
+    printAct->setStatusTip(tr("Print the document"));
+    printAct->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_P));
+    connect(printAct, SIGNAL(triggered()), this, SLOT(print()));
+
+    pageSetupAct = new QAction(tr("Page setup..."), this);
+    pageSetupAct->setStatusTip(tr("Setup page parameters for this document"));
+    connect(pageSetupAct, SIGNAL(triggered()), this, SLOT(pageSetup()));
+
+    printer = new QPrinter;
+    printer->setOrientation(QPrinter::Landscape);
 
     clearRecentAct = new QAction(tr("Clear list"), this);
     clearRecentAct->setObjectName("clearRecent");
@@ -1167,7 +1203,10 @@ void Window::createMenus()
     fileMenu->addAction(saveAct);
     fileMenu->addAction(saveAsAct);
     fileMenu->addAction(saveFontsAct);
-    fileMenu->addAction(recAct);
+    fileMenu->addAction(consolidateAct);
+    fileMenu->addSeparator();
+    fileMenu->addAction(pageSetupAct);
+    fileMenu->addAction(printAct);
     fileMenu->addSeparator();
     fileMenu->addAction(closeAct);
     fileMenu->addAction(exitAct);

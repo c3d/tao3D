@@ -63,7 +63,6 @@
 #include "objloader.h"
 #include "chooser.h"
 #include "tree_cloning.h"
-#include "gl2ps.h"
 #include "version.h"
 #include "documentation.h"
 #include "formulas.h"
@@ -3991,72 +3990,6 @@ XL::Integer_p  Widget::polygonOffset(Tree_p self,
     Layout::unitBase = u0;
     Layout::unitIncrement = u1;
     return new Integer(Layout::polygonOffset);
-}
-
-
-Name_p Widget::printPage(Tree_p self, text filename)
-// ----------------------------------------------------------------------------
-//    Print a page either to a file or by picking file
-// ----------------------------------------------------------------------------
-{
-    if (filename == "")
-    {
-        QPrintDialog printDialog(this);
-        if (printDialog.exec() != QDialog::Accepted)
-            return XL::xl_false;
-        filename = xlProgram->name + ".pdf";
-        printDialog.printer()->setDocName(+filename);
-    }
-
-
-    FILE *fp = fopen(filename.c_str(), "wb");
-    GLint buffsize = 0, state = GL2PS_OVERFLOW;
-    GLint viewport[4];
-    uint kind = GL2PS_PDF;
-
-    if (filename.rfind(".pdf") != filename.npos)
-        kind = GL2PS_PDF;
-    else if (filename.rfind(".svg") != filename.npos)
-        kind = GL2PS_SVG;
-    else if (filename.rfind(".pgf") != filename.npos)
-        kind = GL2PS_PGF;
-    else if (filename.rfind(".tex") != filename.npos)
-        kind = GL2PS_TEX;
-    else if (filename.rfind(".eps") != filename.npos)
-        kind = GL2PS_EPS;
-    else if (filename.rfind(".ps") != filename.npos)
-        kind = GL2PS_PS;
-
-    glGetIntegerv(GL_VIEWPORT, viewport);
-
-    // Disable locale if any, to avoid emitting 1,3 instead of 1.3 in files
-    char *oldlocale = setlocale(LC_NUMERIC, "C");
-
-    while(state == GL2PS_OVERFLOW)
-    {
-        buffsize += 1024*1024;
-        gl2psBeginPage ( "Tao Output", "Tao", viewport,
-                         kind, GL2PS_BSP_SORT,
-                         GL2PS_DRAW_BACKGROUND |
-                         GL2PS_SIMPLE_LINE_OFFSET |
-                         GL2PS_OCCLUSION_CULL |
-                         GL2PS_BEST_ROOT,
-                         GL_RGBA, 0, NULL, 0, 0, 0, buffsize,
-                         fp, filename.c_str());
-        gl2psLineWidth(1);
-        gl2psPointSize(1);
-        gl2psBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        gl2psEnable(GL2PS_BLEND);
-        space->printing = true;
-        space->Draw(NULL);
-        space->printing = false;
-        state = gl2psEndPage();
-    }
-
-    setlocale(LC_NUMERIC, oldlocale);
-    fclose(fp);
-
-    return XL::xl_true;
 }
 
 

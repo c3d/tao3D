@@ -53,7 +53,6 @@ linux-g++* {
 
 # Input
 HEADERS += widget.h \
-    gl2ps.h \
     window.h \
     application.h \
     frame.h \
@@ -134,7 +133,6 @@ HEADERS += widget.h \
     branch_selection_tool.h \
     git_toolbar.h
 SOURCES += tao_main.cpp \
-    gl2ps.c \
     coords.cpp \
     coords3d.cpp \
     widget.cpp \

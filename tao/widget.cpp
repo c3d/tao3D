@@ -551,10 +551,7 @@ void Widget::print(QPrinter *prt)
     // Render the given page range
     for (pageToPrint = firstPage; pageToPrint <= lastPage; pageToPrint++)
     {
-        // Show crude progress information
-        status->showMessage(tr("Printing page %1/%2")
-                            .arg(pageToPrint-firstPage+1)
-                            .arg(lastPage - firstPage));
+        int n = pageOverscaling;
 
         // Center display on screen
         XL::LocalSave<double> savePrintTime(pagePrintTime, 0);
@@ -569,11 +566,16 @@ void Widget::print(QPrinter *prt)
             runProgram();
         }
 
+        // Show crude progress information
+        status->showMessage(tr("Printing page %1/%2...")
+                            .arg(pageToPrint-firstPage+1)
+                            .arg(lastPage - firstPage));
+        QApplication::processEvents();
+
         // We draw small fragments for overscaling
-        int n = pageOverscaling;
-        for (int r = ~n; r <= n; r++)
+        for (int r = ~n; r < n; r++)
         {
-            for (int c = -n; c <= n; c++)
+            for (int c = ~n; c < n; c++)
             {
                 double s = 1.0 / n;
 
@@ -1187,8 +1189,11 @@ void Widget::paintGL()
 //    Repaint the contents of the window
 // ----------------------------------------------------------------------------
 {
-    draw();
-    showGlErrors();
+    if (!printer)
+    {
+        draw();
+        showGlErrors();
+    }
 }
 
 

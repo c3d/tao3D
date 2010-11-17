@@ -22,6 +22,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include "renderer.h"
 #include <QRegExp>
 #include <QString>
 #include <QStringList>
@@ -46,6 +47,9 @@ public:
     XLHighlighter(QTextDocument *parent);
 
     void   setXLNames(const QStringList &words);
+    void   setSelectedRanges(const XL::stream_ranges &selected);
+    bool   hasSelectedObjects()    { return !selected.empty(); }
+    void   clearSelectedRanges();
 
 protected:
     void   highlightBlock(const QString &txt);
@@ -53,7 +57,12 @@ protected:
 private:
     struct TextCharFormat : public QTextCharFormat
     {
-        TextCharFormat() { setFontFamily("unifont"); setFontPointSize(16); }
+        TextCharFormat()
+        {
+            QFont font("unifont");
+            font.setPixelSize(16);
+            setFont(font);
+        }
     };
 
     struct HighlightingRule
@@ -63,6 +72,8 @@ private:
     };
 
     bool   applyRule(const HighlightingRule &rule, const QString &txt);
+    bool   showSelectionInFragment(QTextFragment fragment);
+
 
     QVector<HighlightingRule>   highlightingRules;
     HighlightingRule            nameRule;
@@ -74,6 +85,9 @@ private:
     TextCharFormat              quotationFormat;
     TextCharFormat              singleLineCommentFormat;
     TextCharFormat              multiLineCommentFormat;
+    TextCharFormat              selectedFormat;
+
+    XL::stream_ranges           selected;
 };
 
 }

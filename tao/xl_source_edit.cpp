@@ -33,8 +33,9 @@ XLSourceEdit::XLSourceEdit(QWidget *parent)
 //   Create a source editor
 // ----------------------------------------------------------------------------
 {
-    setFontFamily("unifont");
-    setFontPointSize(16);
+    QFont font("unifont");
+    font.setPixelSize(16);
+    setFont(font);
     highlighter = new XLHighlighter(document());
 }
 
@@ -71,6 +72,26 @@ void XLSourceEdit::setXLNames(const QStringList &names)
 // ----------------------------------------------------------------------------
 {
     highlighter->setXLNames(names);
+}
+
+
+void XLSourceEdit::setSelectedRanges(const XL::stream_ranges &ranges)
+// ----------------------------------------------------------------------------
+//   Tell the highlighter the ranges of text that correspond to selected items
+// ----------------------------------------------------------------------------
+{
+    highlighter->setSelectedRanges(ranges);
+}
+
+
+void XLSourceEdit::keyPressEvent(QKeyEvent *e)
+// ----------------------------------------------------------------------------
+//   Editor receives key press
+// ----------------------------------------------------------------------------
+{
+    if (highlighter->hasSelectedObjects())
+        highlighter->clearSelectedRanges();
+    QTextEdit::keyPressEvent(e);
 }
 
 }

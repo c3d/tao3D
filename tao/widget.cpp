@@ -2166,6 +2166,7 @@ void Widget::updateProgramSource()
     Window *window = (Window *) parentWidget();
     if (window->dock->isHidden())
         return;
+    XLSourceEdit *src = window->srcEdit;
     if (Tree *prog = xlProgram->tree)
     {
         text txt = "";
@@ -2177,6 +2178,11 @@ void Widget::updateProgramSource()
         for (i = selectionTrees.begin(); i != selectionTrees.end(); i++)
             sourceRenderer->highlights[*i] = "selected";
         sourceRenderer->RenderFile(prog);
+
+        XL::stream_ranges selected;
+        if (sourceRenderer->highlighted.count("selected"))
+            selected = sourceRenderer->highlighted["selected"];
+        src->setSelectedRanges(selected);
 
         txt = sourceRendererOutput.str();
         window->srcEdit->setPlainTextKeepCursor(+txt);

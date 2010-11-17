@@ -53,10 +53,8 @@ void DiffDialog::setupEditor()
 //    Select text font and attach syntax highlighter
 // ----------------------------------------------------------------------------
 {
-    QFont font;
-    font.setFamily("unifont");
-    font.setFixedPitch(true);
-    font.setPointSize(16);
+    QFont font("unifont");
+    font.setPixelSize(16);
     textEdit->setFont(font);
     highlighter = new DiffHighlighter(textEdit->document());
     textEdit->setReadOnly(true);

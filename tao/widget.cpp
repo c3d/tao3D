@@ -4292,10 +4292,14 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
-    double w = rinfo->width * sx;
-    double h = rinfo->height * sy;
+    double w0 = rinfo->width;
+    double h0 = rinfo->height;
+    double w = w0 * sx;
+    double h = h0 * sy;
     Rectangle shape(Box(x-w/2, y-h/2, w, h));
     layout->Add(new Rectangle(shape));
+    if (sxp.Pointer() && syp.Pointer() && currentShape)
+        layout->Add(new ImageManipulator(currentShape, x, y, sxp, syp, w0, h0));
 
     return XL::xl_true;
 }

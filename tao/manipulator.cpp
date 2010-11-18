@@ -437,10 +437,10 @@ bool FrameManipulator::DrawHandles(Layout *layout)
 
     for (uint hn = 0; hn < 4; hn++)
     {
-        short  sw = (hn & 1) ? 1 : -1;  // sh < 0 ? lower : upper
-        short  sh = (hn & 2) ? 1 : -1;  // sw < 0 ? left : right
+        double sw = (hn & 1) ? ScaleX() : -ScaleX();  // sh < 0 ? lower : upper
+        double sh = (hn & 2) ? ScaleY() : -ScaleY();  // sw < 0 ? left : right
 
-        if (!DrawHandle(layout, Point3(xx + sw*ww/2, yy + sh*hh/2, 0), hn+1))
+        if (!DrawHandle(layout, Point3(xx+ww/(2*sw), yy+hh/(2*sh), 0), hn+1))
             continue;
         handle = hn+1;
 
@@ -1104,6 +1104,26 @@ bool ControlCallout::DrawHandles(Layout *layout)
         }
     }
     return changed;
+}
+
+
+
+// ============================================================================
+//
+//   Manipulate an image
+//
+// ============================================================================
+
+ImageManipulator::ImageManipulator(Tree *self,
+                                   Real *x, Real *y, Real *sx, Real *sy,
+                                   double w, double h)
+// ----------------------------------------------------------------------------
+//    Create a widget manipulator within the given rectangle
+// ----------------------------------------------------------------------------
+    : ControlRectangle(self, x,y, sx, sy), w0(w), h0(h)
+{
+    if (w0 == 0.0) w0 = 1.0;
+    if (h0 == 0.0) h0 = 1.0;
 }
 
 

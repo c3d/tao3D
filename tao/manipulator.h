@@ -104,6 +104,8 @@ struct FrameManipulator : Manipulator
     virtual bool        DrawHandles(Layout *layout);
     virtual Box3        Bounds(Layout *);
     virtual TransformMode CurrentTransformMode();
+    virtual double      ScaleX(void)       { return 1; }
+    virtual double      ScaleY(void)       { return 1; }
 
 protected:
     Real_p              x, y, w, h;
@@ -209,6 +211,21 @@ struct ControlCallout : ControlBalloon
 
 protected:
     Real_p              d;
+};
+
+
+struct ImageManipulator : ControlRectangle
+// ----------------------------------------------------------------------------
+//   Manipulators for a rectangle-bounded object
+// ----------------------------------------------------------------------------
+{
+    ImageManipulator(Tree *self,
+                     Real *x, Real *y,
+                     Real *sx, Real *sy,
+                     double w, double h);
+    virtual double   ScaleX(void)       { return 1/w0; }
+    virtual double   ScaleY(void)       { return 1/h0; }
+    double           w0, h0;
 };
 
 

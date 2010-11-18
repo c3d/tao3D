@@ -119,6 +119,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     createToolBars();
     connect(srcEdit->document(), SIGNAL(contentsChanged()),
             this, SLOT(documentWasModified()));
+    statusBar()->show();
 
     // Set the window attributes
     setAttribute(Qt::WA_DeleteOnClose);

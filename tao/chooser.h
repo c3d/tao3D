@@ -60,12 +60,12 @@ struct Chooser : Activity
     void                AddCommands(Context *ctx ,text prefix, text label);
 
 public:
-    Context *    context;
+    Context_p    context;
     text         keystrokes;
     int          item;
     int          firstItem;
     ChooserItems items;
-    XL::Tree *   selected;
+    XL::Tree_p   selected;
 };
 
 TAO_END

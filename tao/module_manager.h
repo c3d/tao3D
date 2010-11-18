@@ -291,7 +291,7 @@ public:
         bool    updateAvailable;
         bool    hasNative;
         QLibrary * native;
-        XL::Context * context;
+        XL::Context_p context;
 
         bool operator==(const ModuleInfoPrivate &o) const
         {

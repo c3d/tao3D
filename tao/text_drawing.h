@@ -136,7 +136,7 @@ struct TextSelect : Identify
     uint                formulaMode;
 
     QTextCursor         cursor;
-    Tree *              replacement_tree;
+    Tree_p              replacement_tree;
     bool                inSelection;
 };
 

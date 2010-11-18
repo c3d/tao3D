@@ -54,6 +54,7 @@ XLHighlighter::XLHighlighter(QTextDocument *parent)
     commentEndExpression = QRegExp("\\*/");
 
     selectedFormat.setBackground(QColor("#D0D0D0"));
+    nameRule.format.setForeground(QColor("#7F007F"));
 }
 
 
@@ -62,9 +63,12 @@ void XLHighlighter::setXLNames(const QStringList &words)
 //    Set the words to highlight as XL names
 // ----------------------------------------------------------------------------
 {
-    QString exp = QString("\\b(%1)\\b").arg(words.join("|"));
+    QString exp;
+    if (words.isEmpty())
+        exp = QString("");
+    else
+        exp = QString("\\b(%1)\\b").arg(words.join("|"));
     nameRule.pattern = QRegExp(exp);
-    nameRule.format.setForeground(QColor("#7F007F"));
 }
 
 

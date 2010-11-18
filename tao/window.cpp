@@ -90,6 +90,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);
     srcEdit = new XLSourceEdit(dock);
     dock->setWidget(srcEdit);
+    dock->hide();
     addDockWidget(Qt::RightDockWidgetArea, dock);
     connect(dock, SIGNAL(visibilityChanged(bool)),
             this, SLOT(sourceViewBecameVisible(bool)));

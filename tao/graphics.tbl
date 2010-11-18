@@ -1343,8 +1343,43 @@ PREFIX(Cube, tree, "cube",
 PREFIX(Cone, tree, "cone",
        PARM(x, real) PARM(y, real) PARM(z, real)
        PARM(w, real) PARM(h, real) PARM(d, real),
-       RTAO(cone(self, x, y, z, w, h, d)),
+       RTAO(cone(self, x, y, z, w, h, d, 0.0)),
        "/*| docname \"cone\", \"graph\", do { \
+                dsyntax <<cone x, y, z, w, h, d>>;\
+                synopsis \"cone\" ; \
+                description <<cone[TODO]>> ;\
+                parameters;\
+                parameter \"real\", \"x\", <<x-coordinate>>;\
+                parameter \"real\", \"y\", <<y-coordinate>>;\
+                parameter \"real\", \"z\", <<z-coordinate>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"real\", \"d\", <<depth>>;\
+                }\
+          |*/")
+PREFIX(Cylinder, tree, "cylinder",
+       PARM(x, real) PARM(y, real) PARM(z, real)
+       PARM(w, real) PARM(h, real) PARM(d, real),
+       RTAO(cone(self, x, y, z, w, h, d, 1.0)),
+       "/*| docname \"cone\", \"graph\", do { \
+                dsyntax <<cone x, y, z, w, h, d>>;\
+                synopsis \"cone\" ; \
+                description <<cone[TODO]>> ;\
+                parameters;\
+                parameter \"real\", \"x\", <<x-coordinate>>;\
+                parameter \"real\", \"y\", <<y-coordinate>>;\
+                parameter \"real\", \"z\", <<z-coordinate>>;\
+                parameter \"real\", \"w\", <<width>>;\
+                parameter \"real\", \"h\", <<height>>;\
+                parameter \"real\", \"d\", <<depth>>;\
+                }\
+          |*/")
+PREFIX(TruncatedCone, tree, "truncated_cone",
+       PARM(x, real) PARM(y, real) PARM(z, real)
+       PARM(w, real) PARM(h, real) PARM(d, real)
+       PARM(r, real),
+       RTAO(cone(self, x, y, z, w, h, d, r)),
+       "/*| docname \"truncated_cone\", \"graph\", do { \
                 dsyntax <<cone x, y, z, w, h, d>>;\
                 synopsis \"cone\" ; \
                 description <<cone[TODO]>> ;\

@@ -5012,12 +5012,13 @@ Tree_p Widget::cube(Tree_p self,
 
 Tree_p Widget::cone(Tree_p self,
                     Real_p x, Real_p y, Real_p z,
-                    Real_p w, Real_p h, Real_p d)
+                    Real_p w, Real_p h, Real_p d,
+                    double ratio)
 // ----------------------------------------------------------------------------
 //    A simple cone
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d)));
+    layout->Add(new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d), ratio));
     if (currentShape)
         layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;

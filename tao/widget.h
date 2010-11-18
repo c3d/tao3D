@@ -424,7 +424,8 @@ public:
     Tree_p      cube(Tree_p self, Real_p cx, Real_p cy, Real_p cz,
                      Real_p w, Real_p h, Real_p d);
     Tree_p      cone(Tree_p self, Real_p cx, Real_p cy, Real_p cz,
-                     Real_p w, Real_p h, Real_p d);
+                     Real_p w, Real_p h, Real_p d,
+                     double ratio);
     Tree_p      object(Tree_p self,
                        Real_p x, Real_p y, Real_p z,
                        Real_p w, Real_p h, Real_p d,

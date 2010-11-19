@@ -66,11 +66,12 @@ struct Sphere : Cube
 
 struct Cone : Cube
 // ----------------------------------------------------------------------------
-//   Draw a cone
+//   Draw a (possibly truncated) cone - Limit case is a cylinder
 // ----------------------------------------------------------------------------
 {
-    Cone(Box3 bounds) : Cube(bounds) {}
+    Cone(Box3 bounds, double tipRatio = 0.0) : Cube(bounds), ratio(tipRatio) {}
     virtual void Draw(Layout *where);
+    double ratio;
 };
 
 

@@ -140,6 +140,8 @@ public:
     uint        showGlErrors();
     QFont &     currentFont();
     Symbols *   currentSymbols();
+    QPrinter *  currentPrinter() { return printer; }
+    double      printerScaling() { return printer ? printOverscaling : 1; }
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -416,7 +418,8 @@ public:
     Tree_p      cube(Tree_p self, Real_p cx, Real_p cy, Real_p cz,
                      Real_p w, Real_p h, Real_p d);
     Tree_p      cone(Tree_p self, Real_p cx, Real_p cy, Real_p cz,
-                     Real_p w, Real_p h, Real_p d);
+                     Real_p w, Real_p h, Real_p d,
+                     double ratio);
     Tree_p      object(Tree_p self,
                        Real_p x, Real_p y, Real_p z,
                        Real_p w, Real_p h, Real_p d,
@@ -704,7 +707,7 @@ private:
 
     // Printing
     double                pagePrintTime;
-    uint                  pageOverscaling;
+    uint                  printOverscaling;
     QPrinter             *printer;
 
     // Source code view

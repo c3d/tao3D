@@ -192,7 +192,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     // Allocate extra space between characters
     scale spread = justify.spread;
     coord forSolids = just * spread;
-    coord atSolid   = forSolids / (numItems > 1 ? numItems - 2 : 1);
+    coord atSolid   = forSolids / (numItems > 2 ? numItems - 2 : 1);
 
     // Allocate extra space between breaks
     coord forBreaks = just - forSolids;

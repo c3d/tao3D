@@ -55,6 +55,7 @@ INSTROOT=$(shell pwd)/../../install
 GIT_INSTALL_PREFIX=$(shell pwd)/build_root/Tao.app/Contents/MacOS/git
 
 tao.dmg: tmp.dmg
+	rm -f $@
 	hdiutil convert -format UDBZ -o $@ tmp.dmg
 	[ "$(K)" ] || rm -f tmp.dmg
 
@@ -86,7 +87,6 @@ clean.cp_template:
 ########
 
 .tao_install_ts: .tao_install_prog_ts .tao_install_deps_ts
-	touch $@
 
 clean.tao_install: clean.tao_install_prog clean.tao_install_deps
 	rm -f .tao_install_ts
@@ -96,8 +96,8 @@ clean.tao_install: clean.tao_install_prog clean.tao_install_deps
 # ERROR: no file at "/usr/lib/libxlr.1.dylib"
 # This is not a problem, the lib is in Tao.app/Contents/Framework
 .tao_install_deps_ts: .tao_install_prog_ts
+	@echo "Note: the message 'ERROR: no file at "/usr/lib/libxlr.1.dylib"' has no consequence"
 	macdeployqt build_root/Tao.app
-	touch $@
 
 clean.tao_install_deps:
 	rm -f .tao_install_deps_ts
@@ -105,10 +105,10 @@ clean.tao_install_deps:
 ########
 
 .tao_install_prog_ts:
-	[ -d build_root ] || mkdir -p build_root
+	rm -rf build_root
+	mkdir -p build_root
 	cd ../.. && make install
 	cp -Rp $(INSTROOT)/* build_root
-	touch $@
 
 clean.tao_install_prog:
 	rm -rf build_root/Tao.app

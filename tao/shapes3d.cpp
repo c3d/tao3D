@@ -178,21 +178,21 @@ void Cone::Draw(Layout *where)
 //   Draw the cone
 // ----------------------------------------------------------------------------
 {
-    Point3 tip = bounds.Center() + where->Offset();
+    Point3 p = bounds.Center() + where->Offset();
     scale w = bounds.Width();
     scale h = bounds.Height();
     scale d = bounds.Depth();
     std::vector<Point3> tex;
     std::vector<Point3> geom;
 
-    tip.z -= d/2;
-    tex.push_back(Point3(0.5, 0.5, 0));
-    geom.push_back(Point3(tip.x, tip.y, tip.z));
-    tip.z += d;
     for (double a = 0; a <= 2 * M_PI; a += M_PI / 10)
     {
-        tex.push_back(Point3(0.5 + 0.5 * cos(a), 0.5 + 0.5 * sin(a), 1));
-        geom.push_back(Point3(tip.x + w/2*cos(a), tip.y + h/2*sin(a), tip.z));
+        double ca = cos(a);
+        double sa = sin(a);
+        tex.push_back(Point3(0.5 + 0.5 * ca, 0.5 + 0.5 * sa, 0));
+        geom.push_back(Point3(p.x + w/2* ca, p.y + h/2 * sa, p.z - d/2));
+        tex.push_back(Point3(0.5 + 0.5 * ca, 0.5 + 0.5 * sa, 1));
+        geom.push_back(Point3(p.x + w/2* ca * ratio, p.y + h/2 * sa * ratio, p.z + d/2));
     }
 
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -202,7 +202,7 @@ void Cone::Draw(Layout *where)
 
     setTexture(where);
     if (setFillColor(where))
-        glDrawArrays(GL_TRIANGLE_FAN, 0, geom.size());
+        glDrawArrays(GL_QUAD_STRIP, 0, geom.size());
     if (setLineColor(where))
         // REVISIT: Inefficient and incorrect with alpha
         for (uint i = 3; i <= geom.size(); i++)

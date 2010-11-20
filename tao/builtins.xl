@@ -54,13 +54,14 @@ main_chooser ->
     chooser_choice "Enable stereoscopy", {enable_stereoscopy true}
     chooser_choice "Disable stereoscopy", {enable_stereoscopy false}
     chooser_choice "Enable stereoscopy (interleaved mode)", {enable_stereoscopy interleave}
+    chooser_choice "Swap left and right eye", {eye_distance -eye_distance}
     chooser_choice "Reset view", {reset_view}
     chooser_choice "Zoom in", {zoom_in}
     chooser_choice "Zoom out", {zoom_out}
     chooser_choice "Toggle hand cursor", {toggle_hand_cursor}
     chooser_choice "Select page", {page_chooser}
     chooser_choice "Checkout...", {branch_chooser}
-    chooser_commands "shape_color_", "Set shape color to "
+    chooser_commands "chooser_command_", ""
 
 page_chooser ->
     chooser "Go to page..."

@@ -3530,6 +3530,10 @@ Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
         selection[id]++;
         selectNextTime.erase(self);
     }
+    // This makes sure we save argument source for Manipulator::updateArg
+    Context_p childContext = context;
+    context->ClosureValue(child, &childContext);
+    XL::LocalSave<bool> setSaveArgs(childContext->keepSource, true);
     Tree_p result = context->Evaluate(child);
     return result;
 }

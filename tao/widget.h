@@ -347,6 +347,7 @@ public:
     Tree_p      fillColorHsv(Tree_p self, double h, double s, double v, double a);
     Tree_p      fillColorCmyk(Tree_p self, double c, double m, double y, double k, double a);
     Tree_p      fillTexture(Tree_p self, text fileName);
+    Tree_p      fillAnimatedTexture(Tree_p self, text fileName);
     Tree_p      fillTextureFromSVG(Tree_p self, text svg);
     Tree_p      textureWrap(Tree_p self, bool s, bool t);
     Tree_p      textureTransform(Tree_p self, Tree_p code);

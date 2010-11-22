@@ -4235,6 +4235,30 @@ Tree_p Widget::fillTexture(Tree_p self, text img)
 }
 
 
+Tree_p Widget::fillAnimatedTexture(Tree_p self, text img)
+// ----------------------------------------------------------------------------
+//     Build a GL texture out of a movie file
+// ----------------------------------------------------------------------------
+{
+    GLuint texId = 0;
+
+    if (img != "")
+    {
+        AnimatedTextureInfo *rinfo = self->GetInfo<AnimatedTextureInfo>();
+        if (!rinfo)
+        {
+            rinfo = new AnimatedTextureInfo();
+            self->SetInfo<AnimatedTextureInfo>(rinfo);
+        }
+        texId = rinfo->bind(img);
+    }
+
+    layout->Add(new FillTexture(texId));
+    layout->hasAttributes = true;
+    return XL::xl_true;
+}
+
+
 Tree_p Widget::fillTextureFromSVG(Tree_p self, text img)
 // ----------------------------------------------------------------------------
 //    Draw an image in SVG format

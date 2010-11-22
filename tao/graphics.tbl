@@ -850,6 +850,18 @@ PREFIX(FillTextureSVG, tree,"svg", PARM(img, text),
                 return_value \"\", <<>>;\
                 }\
           |*/")
+PREFIX(FillAnimatedTexture, tree, "animated_texture", PARM(n, text),
+       RTAO(fillAnimatedTexture(self, n)),
+       "/*| docname \"animated_texture\", \"graph:attribute\", do { \
+                dsyntax <<movie img>>;\
+                synopsis \"Create a GL animated texture\" ; \
+                description <<Build a GL texture images from an animated image file. Supported format are:\n\
+GIF	Animated Graphic Interchange Format\n\
+MNG	Animated portable Network Graphics\n\
+                parameters;\
+                parameter \"text\", \"mov\", <<The movie filename.>>;\
+                }\
+          |*/")
 PREFIX(ImageA, tree,"image",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real) PARM(img, text),
        RTAO(image(self, x, y, w, h, img)), "")

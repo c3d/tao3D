@@ -326,6 +326,10 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
+    // Recursive drawing may occur with video widgets, and it's bad
+    if (current)
+        return;
+
     TaoSave saveCurrent(current, this);
 
     // Timing
@@ -6678,7 +6682,7 @@ Tree_p Widget::videoPlayer(Tree_p self,
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     videoPlayerTexture(self, w, h, url);
-    VideoPlayerSurface *surface = self->GetInfo<VideoPlayerSurface>();
+    VideoSurface *surface = self->GetInfo<VideoSurface>();
     layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
@@ -6698,11 +6702,11 @@ Tree_p Widget::videoPlayerTexture(Tree_p self, Real_p wt, Real_p ht, Text_p url)
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    VideoPlayerSurface *surface = self->GetInfo<VideoPlayerSurface>();
+    VideoSurface *surface = self->GetInfo<VideoSurface>();
     if (!surface)
     {
-        surface = new VideoPlayerSurface(self, this);
-        self->SetInfo<VideoPlayerSurface> (surface);
+        surface = new VideoSurface(self, this);
+        self->SetInfo<VideoSurface> (surface);
     }
 
     // Resize to requested size, and bind texture

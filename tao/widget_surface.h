@@ -28,6 +28,7 @@
 #include "coords.h"
 #include <GL/glew.h>
 #include <QtOpenGL>
+#include <phonon>
 
 class QWidget;
 
@@ -276,16 +277,16 @@ public slots:
 };
 
 
-struct VideoPlayerSurface : WidgetSurface
+struct VideoSurface : WidgetSurface
 // ----------------------------------------------------------------------------
-//    Hold information about a Phonon::VideoPlayer
+//    Display a Phonon::VideoWidget
 // ----------------------------------------------------------------------------
 {
     Q_OBJECT;
 public:
-    typedef VideoPlayerSurface * data_t;
-    VideoPlayerSurface(XL::Tree *t, Widget *parent);
-    ~VideoPlayerSurface();
+    typedef VideoSurface * data_t;
+    VideoSurface(XL::Tree *t, Widget *parent);
+    ~VideoSurface();
     operator data_t() { return this; }
     virtual GLuint bind(XL::Text *url);
 public:

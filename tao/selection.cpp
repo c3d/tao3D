@@ -239,7 +239,7 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
             // Forward 'focus-in' to current item
             widget->focusId = current;
         }
-        widget->refresh();
+        widget->updateGL();
     }
 
     previous = current;
@@ -290,7 +290,8 @@ Activity *Selection::Idle(void)
 //   Make the refresh rate shorter so that we animate the rectangle
 // ----------------------------------------------------------------------------
 {
-    widget->refresh();
+    widget->updateGL();
+
     return next;               // Keep doing other idle activities
 }
 
@@ -407,7 +408,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         widget->selectionChanged = true;
 
     // In all cases, we want a screen refresh
-    widget->refresh();
+    widget->updateGL();
 
     // Delete any text selection we might have if we didn't click in it
     if (!charSelected)
@@ -443,7 +444,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
 {
     if (!active)
     {
-        widget->refresh();
+        widget->updateGL();
         return next;
     }
 
@@ -470,7 +471,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
     }
     
     // Need a refresh
-    widget->refresh();
+    widget->updateGL();
 
     // We dealt with the mouse move, don't let other activities get it
     return NULL;

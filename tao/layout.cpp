@@ -24,6 +24,8 @@
 #include "layout.h"
 #include "gl_keepers.h"
 #include "attributes.h"
+#include "tao_tree.h"
+#include <sstream>
 
 TAO_BEGIN
 
@@ -47,7 +49,8 @@ LayoutState::LayoutState()
       fillColor(0,0,0,1),       // Black
       fillTexture(0), wrapS(false), wrapT(false), printing(false),
       planarRotation(0), planarScale(1),
-      rotationId(0), translationId(0), scaleId(0)
+      rotationId(0), translationId(0), scaleId(0),
+      refreshEvents(), nextRefresh(DBL_MAX)
 {}
 
 
@@ -71,7 +74,9 @@ LayoutState::LayoutState(const LayoutState &o)
         planarScale(o.planarScale),
         rotationId(o.rotationId),
         translationId(o.translationId),
-        scaleId(o.scaleId)
+        scaleId(o.scaleId),
+        refreshEvents(o.refreshEvents),
+        nextRefresh(o.nextRefresh)
 {}
 
 
@@ -83,6 +88,47 @@ void LayoutState::Clear()
 {
     LayoutState zero;
     *this = zero;
+}
+
+
+text LayoutState::ToText(QEvent::Type type)
+// ----------------------------------------------------------------------------
+//   Helper function to display an event type in human-readable form
+// ----------------------------------------------------------------------------
+{
+#define CASE(x) case QEvent::x: return #x
+    switch (type)
+    {
+        CASE(Timer);
+        CASE(MouseButtonPress);
+        CASE(MouseButtonRelease);
+        CASE(MouseButtonDblClick);
+        CASE(MouseMove);
+        CASE(KeyPress);
+        CASE(KeyRelease);
+        default: break;
+    }
+#undef CASE
+    std::ostringstream ostr;
+    ostr << type;
+    return ostr.str();
+}
+
+
+text LayoutState::ToText(qevent_ids & ids)
+// ----------------------------------------------------------------------------
+//   Helper function to dump a set of QEvent identifiers
+// ----------------------------------------------------------------------------
+{
+    std::string ret = "[]";
+    std::ostringstream ostr;
+    qevent_ids::iterator i;
+    for (i = ids.begin(); i != ids.end(); i++)
+        ostr << " " << ToText(*i);
+    if (ostr.str().size())
+        ret = "[" + ostr.str() + " ]";
+
+    return ret;
 }
 
 
@@ -119,7 +165,7 @@ Layout::~Layout()
 }
 
 
-Layout *Layout::AddChild(uint childId)
+Layout *Layout::AddChild(uint childId, Tree_p self, Context_p ctx)
 // ----------------------------------------------------------------------------
 //   Add a new layout as a child of this one
 // ----------------------------------------------------------------------------
@@ -127,6 +173,8 @@ Layout *Layout::AddChild(uint childId)
     Layout *result = NewChild();
     Add(result);
     result->id = childId;
+    result->self = self;
+    result->ctx = ctx;
     return result;
 }
 
@@ -309,6 +357,148 @@ uint Layout::Selected()
     uint selected = Display()->selected(id);
     selected &= Widget::SELECTION_MASK;
     return selected + ChildrenSelected();
+}
+
+
+text Layout::PrettyId()
+// ----------------------------------------------------------------------------
+//   Helper function: return a human-readable id for the layout
+// ----------------------------------------------------------------------------
+{
+    std::stringstream sstr;
+    sstr << (void*)this;
+    if (self)
+    {
+        Tree *sself = XL::xl_source(self);
+        if (Prefix *p = self->AsPrefix())
+        {
+            if (p->left)
+            {
+                if (Name *n = p->left->AsName())
+                {
+                    sstr << "[" << n->value;
+                    XL::TreePosition pos = sself->Position();
+                    if (pos != XL::Tree::NOWHERE)
+                        sstr << "@" << pos ;
+                    sstr << "]";
+                }
+            }
+        }
+    }
+    return sstr.str();
+}
+
+
+bool Layout::Refresh(QEvent *e, Layout *parent)
+// ----------------------------------------------------------------------------
+//   Re-compute layout on event, return true if self or child changed
+// ----------------------------------------------------------------------------
+{
+    bool result = false;
+    bool need_refresh = false;
+    Widget * widget = Widget::Tao();
+
+    if (refreshEvents.count(e->type()))
+    {
+        if (e->type() != QEvent::Timer)
+            need_refresh = true;
+        else
+            need_refresh = (nextRefresh <= widget->CurrentTime());
+    }
+
+    if (need_refresh)
+    {
+        // Refresh this layout by recomputing it and replacing it in the parent
+
+        IFTRACE(layoutevents)
+            std::cerr << "Layout " << PrettyId() << " needs updating\n";
+
+        if (parent)
+        {
+            // Create a new (empty) layout
+            Layout * layout = new Layout(this->display);
+
+            // Set new layout as the current layout in the current Widget
+            XL::LocalSave<Layout *> saveLayout(widget->layout, layout);
+
+            // Re-evaluate the source code for 'this' layout: will create a
+            //   child layout in the new layout
+            if (self && ctx)
+                ctx->Evaluate(self);
+
+            // Get the (updated) child layout
+            if (layout->items.begin() == layout->items.end())
+                return false;
+
+            layout_items::iterator b = layout->items.begin();
+            Drawing *child = (*b);
+            if (!child)
+                return false;
+
+            // Preserve id for selection
+            layout->id = id;
+
+            // In our parent, replace 'this' by the child layout
+            // REVISIT data structure for direct access (map)
+            layout_items::iterator i;
+            for (i = parent->items.begin(); i != parent->items.end(); i++)
+            {
+                if ((*i) == this)
+                {
+                    (*i) = child;
+                    break;
+                }
+            }
+
+            // Delete temporary layout (but not child!)
+            layout->items.clear();
+            delete layout;
+
+            // We're useless now
+            delete this;
+
+            return true;
+        }
+        else
+        {
+            std::cerr << "Error: Refresh called on dirty root layout\n";
+        }
+    }
+    else
+    {
+        IFTRACE(layoutevents)
+                std::cerr << "Layout " << PrettyId() << " does not need updating\n";
+    }
+
+    // Forward event to all child layouts
+    Layout *layout;
+    layout_items::iterator i;
+    layout_items items_copy = items;
+    for (i = items_copy.begin(); i != items_copy.end(); i++)
+        if ((layout = dynamic_cast<Layout*>(*i)))
+            result |= layout->Refresh(e, this);
+    return result;
+}
+
+
+double Layout::NextChildRefresh()
+// ----------------------------------------------------------------------------
+//   Find the lowest refresh time of self and all child layouts
+// ----------------------------------------------------------------------------
+{
+    double refresh = nextRefresh;
+    layout_items::iterator i;
+    for (i = items.begin(); i != items.end(); i++)
+    {
+        Layout *layout;
+        if ((layout = dynamic_cast<Layout*>(*i)))
+        {
+            double childRefresh = layout->NextChildRefresh();
+            if (childRefresh < refresh)
+                refresh = childRefresh;
+        }
+    }
+    return refresh;
 }
 
 

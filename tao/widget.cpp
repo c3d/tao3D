@@ -79,6 +79,7 @@
 #include <cmath>
 #include <QFont>
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <algorithm>
 #include <QVariant>
@@ -125,6 +126,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
 // ----------------------------------------------------------------------------
     : QGLWidget(QGLFormat(TaoGLFormatOptions()), parent),
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
+      runOnNextDraw(true),
       space(NULL), layout(NULL), path(NULL), table(NULL),
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
@@ -142,8 +144,9 @@ Widget::Widget(Window *parent, SourceFile *sf)
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
       colorAction(NULL), fontAction(NULL),
       lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
-      timer(this), idleTimer(this),
-      pageStartTime(1e6), pageRefresh(1e6), frozenTime(1e6), startTime(1e6),
+      timer(), dfltRefresh(0.04), idleTimer(this),
+      pageStartTime(DBL_MAX), frozenTime(DBL_MAX), startTime(DBL_MAX),
+      currentTime(DBL_MAX),
       tmin(~0ULL), tmax(0), tsum(0), tcount(0),
       nextSave(now()), nextCommit(nextSave),
       nextSync(nextSave), nextPull(nextSave),
@@ -166,8 +169,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
     space = new SpaceLayout(this);
     layout = space;
 
-    // Prepare the timers
-    connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
+    // Prepare the idle timer
     connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));
     idleTimer.start(100);
 
@@ -202,6 +204,17 @@ Widget::Widget(Window *parent, SourceFile *sf)
     while (printOverscaling < 8 &&
            printOverscaling * 72 < XL::MAIN->options.printResolution)
         printOverscaling <<= 1;
+
+    // Trace time with ms precision
+    IFTRACE(layoutevents)
+    {
+        std::cerr.setf(std::ios::fixed, std::ios::floatfield);
+        std::cerr.setf(std::ios::showpoint);
+        std::cerr.precision(3);
+    }
+
+    // Initialize start time
+    pageStartTime = startTime = frozenTime = CurrentTime();
 }
 
 
@@ -230,31 +243,12 @@ void Widget::dawdle()
     if (!xlProgram)
         return;
 
-    // Check if this is the first time we go idle or if time wrapped up
-    if (pageStartTime > CurrentTime())
-        pageRefresh = pageStartTime = startTime = frozenTime = CurrentTime();
-
     // Run all activities, which will get them a chance to update refresh
     for (Activity *a = activities; a; a = a->Idle()) ;
 
     // We will only auto-save and commit if we have a valid repository
     Repository *repo = repository();
     Main       *xlr  = Main::MAIN;
-
-    // Check if we need to refresh something
-    double currentTime = CurrentTime();
-    double idleInterval = 0.001 * idleTimer.interval();
-    double timerInterval = 0.001 * timer.interval();
-    double remaining = pageRefresh - currentTime;
-    if (!timer.isActive() ||
-        remaining <= timerInterval || remaining <= idleInterval)
-    {
-        if (remaining <= 0)
-            remaining = 0.001;
-        timer.stop();
-        timer.setSingleShot(true);
-        timer.start(1000 * remaining);
-    }
 
     if (xlProgram->changed && xlProgram->readOnly)
     {
@@ -330,12 +324,8 @@ void Widget::draw()
 
     TaoSave saveCurrent(current, this);
 
-    // Timing
-    ulonglong before = now();
-
     // Setup the initial drawing environment
     double w = width(), h = height();
-    setupPage();
 
     // Clean text selection
     TextSelect *sel = textSelection();
@@ -345,9 +335,12 @@ void Widget::draw()
         sel->cursor.removeSelectedText();
     }
 
-    // If there is a program, we need to run it
-    pageRefresh = CurrentTime() + 86400;        // 24 hours
-    runProgram();
+    // Make sure program has been run at least once
+    if (runOnNextDraw)
+    {
+        runOnNextDraw = false;
+        runProgram();
+    }
 
     // After we are done, draw the space with all the drawings in it
     // If we are in stereoscopice mode, we draw twice, once for each eye
@@ -413,17 +406,6 @@ void Widget::draw()
     // Clipboard management
     checkCopyAvailable();
 
-    // Check if we want to refresh something
-    ulonglong after = now();
-    double remaining = pageRefresh - CurrentTime();
-    if (remaining < 0.001)
-        remaining = 0.001;
-    timer.setSingleShot(true);
-    timer.start(1000 * remaining);
-
-    // Timing
-    elapsed(before, after);
-
     // Update page count for next run
     pageTotal = pageId ? pageId : 1;
     if (pageFound)
@@ -453,11 +435,128 @@ void Widget::draw()
 }
 
 
+bool Widget::refreshNow(QEvent *event)
+// ----------------------------------------------------------------------------
+//    Redraw the widget due to event or run program entirely
+// ----------------------------------------------------------------------------
+{
+    if (inError)
+        return false;
+
+    ulonglong before = now();
+
+    if (!event || space->refreshEvents.count(event->type()))
+    {
+        IFTRACE(layoutevents)
+        {
+            text what = event ? LayoutState::ToText(event->type()) : "NULL";
+            std::cerr << "Full refresh due to event: " << what << "\n";
+        }
+        if (current)
+        {
+            runProgram();
+        }
+        else
+        {
+            // Occurs sometimes, for instance: from Window::loadFile()
+            TaoSave saveCurrent(current, this);
+            runProgram();
+        }
+    }
+    else
+    {
+        QEvent::Type type = event->type();
+        if (refreshEvents.count(type))
+        {
+            // At least one layout subscribed to this event
+            IFTRACE(layoutevents)
+                std::cerr << "Partial refresh due to event: "
+                          << LayoutState::ToText(event->type()) << "\n";
+            space->Refresh(event);
+
+            // Make sure refresh timer is restarted if needed
+            startRefreshTimer();
+        }
+    }
+
+    // Redraw all
+    TaoSave saveCurrent(current, NULL); // draw() assumes current == NULL
+    updateGL();
+
+    ulonglong after = now();
+    elapsed(before, after);
+
+    return true;
+}
+
+
+static QDateTime fromSecsSinceEpoch(double when)
+// ----------------------------------------------------------------------------
+//    Convert the number of seconds passed since the epoch to QDateTime
+// ----------------------------------------------------------------------------
+{
+    QDateTime d;
+#if QT_VERSION >=  0x040700
+    d = d.fromMSecsSinceEpoch((qint64)(when * 1000));
+#else
+    d = d.fromTime_t(when);
+    double s, ms = modf(when, &s);
+    d.addMSecs(ms);
+#endif
+    return d;
+}
+
+
+bool Widget::refreshOn(QEvent::Type type, double nextRefresh)
+// ----------------------------------------------------------------------------
+//   Current layout (if any) should be updated on specified event
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
+
+    if (!layout)
+        return false;
+
+    if (layout->refreshEvents.count(type) == 0)
+    {
+        layout->refreshEvents.insert(type);
+        changed = true;
+    }
+    refreshEvents.insert(type);
+    if (type == QEvent::Timer)
+    {
+        double currentTime = CurrentTime();
+        if (nextRefresh == DBL_MAX)
+            nextRefresh = currentTime + dfltRefresh;
+        IFTRACE(layoutevents)
+        {
+            QDateTime d = fromSecsSinceEpoch(nextRefresh);
+            qint64 deltaMs = fromSecsSinceEpoch(trueCurrentTime()).msecsTo(d);
+            double delta = (double)deltaMs / 1000;
+            std::cerr << "Request to refresh layout "
+                      << layout->PrettyId() << " at " << nextRefresh
+                      << " (" << +d.toString("dd MMM yyyy hh:mm:ss.zzz")
+                      << " = now + " << delta << "s)\n";
+        }
+        if (layout->nextRefresh == DBL_MAX ||
+            nextRefresh < layout->nextRefresh)
+        {
+            layout->nextRefresh = nextRefresh;
+            changed = true;
+        }
+    }
+    return changed;
+}
+
+
 void Widget::runProgram()
 // ----------------------------------------------------------------------------
 //   Run the  XL program
 // ----------------------------------------------------------------------------
 {
+    setupPage();
+    setCurrentTime();
+
     XL::GarbageCollector::Collect();
 
     // Don't run anything if we detected errors running previously
@@ -522,6 +621,14 @@ void Widget::runProgram()
     currentMenu    = NULL;
     currentToolBar = NULL;
     currentMenuBar = ((Window*)parent())->menuBar();
+
+    // Program execution has updated the set of events that should trigger
+    // an update of the main layout, as well as the time of next refresh
+    // (if program is time-dependent)
+    IFTRACE(layoutevents)
+        std::cerr << "Program events: "
+                  << LayoutState::ToText(refreshEvents) << "\n";
+    startRefreshTimer();
 }
 
 
@@ -839,7 +946,7 @@ void Widget::paste()
             }
             sel->replacement_tree = portability().fromHTML(mimeData->html());
 
-            refresh();
+            updateGL();
             return;
         }
         if (mimeData->hasText())
@@ -852,7 +959,7 @@ void Widget::paste()
             sel->replacement = +mimeData->text();
             sel->replace = true;
 
-            refresh();
+            updateGL();
             return;
         }
     }
@@ -1068,6 +1175,10 @@ void Widget::enableAnimations(bool enable)
 {
     animated = enable;
     frozenTime = CurrentTime();
+    if (animated)
+        startRefreshTimer();
+    else
+        timer.stop();
 }
 
 
@@ -1077,7 +1188,7 @@ void Widget::enableStereoscopy(bool enable)
 // ----------------------------------------------------------------------------
 {
     stereoPlanes = enable ? 2 : 1;
-    refresh();
+    updateGL();
 }
 
 
@@ -1154,16 +1265,11 @@ void Widget::userMenu(QAction *p_action)
 
 bool Widget::refresh(double delay)
 // ----------------------------------------------------------------------------
-//   Refresh the screen after the given time interval
+//   Refresh current layout after the given number of seconds
 // ----------------------------------------------------------------------------
 {
     double end = CurrentTime() + delay;
-    if (pageRefresh > end)
-    {
-        pageRefresh = end;
-        return true;
-    }
-    return false;
+    return refreshOn(QEvent::Timer, end);
 }
 
 
@@ -1458,11 +1564,14 @@ Context *Widget::context()
 //
 // ============================================================================
 
+
+
 bool Widget::forwardEvent(QEvent *event)
 // ----------------------------------------------------------------------------
 //   Forward event to the focus proxy if there is any
 // ----------------------------------------------------------------------------
 {
+    refreshNow(event);
     if (QObject *focus = focusWidget)
         return focus->event(event);
 
@@ -1475,6 +1584,7 @@ bool Widget::forwardEvent(QMouseEvent *event)
 //   Forward event to the focus proxy if there is any, adjusting coordinates
 // ----------------------------------------------------------------------------
 {
+    refreshNow(event);
     if (QObject *focus = focusWidget)
     {
         int x = event->x();
@@ -2063,6 +2173,34 @@ void Widget::wheelEvent(QWheelEvent *event)
 }
 
 
+void Widget::startRefreshTimer()
+// ----------------------------------------------------------------------------
+//    Make sure refresh timer runs if it has to
+// ----------------------------------------------------------------------------
+{
+    if (inError || !animated)
+        return;
+
+    double nextRefresh = space->NextChildRefresh();
+    if (refreshEvents.count(QEvent::Timer) &&
+        nextRefresh != DBL_MAX)
+    {
+        double now = trueCurrentTime();
+        double remaining = nextRefresh - now;
+        if (remaining <= 0)
+            remaining = 0.001;
+        int ms = remaining * 1000;
+        IFTRACE(layoutevents)
+            std::cerr << "Starting refresh timer: " << ms << " ms (current "
+                         "time " << now << " next refresh " << nextRefresh
+                      << ")\n";
+        if (timer.isActive())
+            timer.stop();
+        timer.start(ms, this);
+    }
+}
+
+
 void Widget::timerEvent(QTimerEvent *event)
 // ----------------------------------------------------------------------------
 //    Timer expired
@@ -2070,8 +2208,81 @@ void Widget::timerEvent(QTimerEvent *event)
 {
     TaoSave saveCurrent(current, this);
     EventSave save(this->w_event, event);
+    bool is_refresh_timer = (event->timerId() == timer.timerId());
+    if (is_refresh_timer)
+    {
+        IFTRACE(layoutevents)
+            std::cerr << "Refresh timer expired, now = " << trueCurrentTime()
+                      << "\n";
+        timer.stop();
+        setCurrentTime();
+    }
     forwardEvent(event);
 }
+
+
+static double toSecsSinceEpoch(const QDateTime &d)
+// ----------------------------------------------------------------------------
+//    Convert QDateTime to the number of seconds passed since the epoch
+// ----------------------------------------------------------------------------
+{
+#if QT_VERSION >=  0x040700
+    return (double)d.toMSecsSinceEpoch() / 1000;
+#else
+    qint64 ret = d.toTime_t();
+    ret *= 1000;
+    ret += d.time().msec();
+    return (double)ret / 1000;
+#endif
+}
+
+
+static double nextDay(const QDateTime &d)
+// ----------------------------------------------------------------------------
+//    Return next day
+// ----------------------------------------------------------------------------
+{
+    QDateTime next(d);
+    next.setTime(QTime(0, 0, 0, 0));
+    next = next.addDays(1);
+    return toSecsSinceEpoch(next);
+}
+
+
+double Widget::CurrentTime()
+// ----------------------------------------------------------------------------
+//    Cached current time (refreshed on timer event)
+// ----------------------------------------------------------------------------
+{
+    if (currentTime == DBL_MAX)
+        setCurrentTime();
+    return currentTime;
+}
+
+
+double Widget::trueCurrentTime()
+// ----------------------------------------------------------------------------
+//    Query and return the current time (seconds since epoch, ~ms resolution)
+// ----------------------------------------------------------------------------
+{
+    QDateTime dt = QDateTime::currentDateTime();
+#if QT_VERSION >= 0x040700
+    return toSecsSinceEpoch(dt);
+#else
+    QTime t = QTime::currentTime();
+    return dt.toTime_t() +  0.001 * t.msec();
+#endif
+}
+
+
+void Widget::setCurrentTime()
+// ----------------------------------------------------------------------------
+//    Update cached current time value
+// ----------------------------------------------------------------------------
+{
+    currentTime = trueCurrentTime();
+}
+
 
 
 void Widget::startPanning(QMouseEvent *event)
@@ -2104,6 +2315,8 @@ void Widget::doPanning(QMouseEvent *event)
 
     panX = x;
     panY = y;
+
+    updateGL();
 }
 
 
@@ -2193,6 +2406,7 @@ void Widget::reloadProgram(XL::Tree *newProg)
 
     // Now update the window
     updateProgramSource();
+    refreshNow();
 }
 
 void Widget::setSourceRenderer()
@@ -2354,7 +2568,8 @@ void Widget::refreshProgram()
                 } // Replacement checked
 
                 // If a file was modified, we need to refresh the screen
-                refresh();
+                TaoSave saveCurrent(current, this);
+                refreshNow();
 
             } // If file modified
         } // For all files
@@ -2374,6 +2589,13 @@ void Widget::refreshProgram()
                 }
                 updateProgramSource();
             }
+            TaoSave saveCurrent(current, this);
+            refreshNow();
+        }
+        if (!inError)
+        {
+            Window *window = (Window *) parentWidget();
+            window->clearErrors();
         }
     }
 }
@@ -3327,6 +3549,7 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
 {
     text old = pageName;
     pageName = page;
+    refreshNow();
     return new Text(old);
 }
 
@@ -3428,7 +3651,7 @@ XL::Real_p Widget::time(Tree_p self)
 //   Return a fractional time, including milliseconds
 // ----------------------------------------------------------------------------
 {
-    refresh(0.04);
+    refreshOn(QEvent::Timer);
     if (animated)
         frozenTime = CurrentTime();
     return new XL::Real(frozenTime);
@@ -3440,7 +3663,7 @@ XL::Real_p Widget::pageTime(Tree_p self)
 //   Return a fractional time, including milliseconds
 // ----------------------------------------------------------------------------
 {
-    refresh(0.04);
+    refreshOn(QEvent::Timer);
     if (animated)
         frozenTime = CurrentTime();
     return new XL::Real(frozenTime - pageStartTime);
@@ -3460,8 +3683,7 @@ XL::Real_p Widget::after(Context *context, double delay, Tree_p code)
 
     if (elapsed < delay)
     {
-        if (pageRefresh > startTime + delay)
-            pageRefresh = startTime + delay;
+        refreshOn(QEvent::Timer, startTime + delay);
     }
     else
     {
@@ -3491,15 +3713,13 @@ XL::Real_p Widget::every(Context *context,
 
     if (active > delay)
     {
-        if (pageRefresh > start + interval)
-            pageRefresh = start + interval;
+        refreshOn(QEvent::Timer, start + interval);
     }
     else
     {
         XL::LocalSave<double> saveTime(startTime, start);
         context->Evaluate(code);
-        if (pageRefresh > start + delay)
-            pageRefresh = start + delay;
+        refreshOn(QEvent::Timer, start + delay);
     }
     return new XL::Real(elapsed);
 }
@@ -3510,6 +3730,7 @@ Real_p Widget::mouseX(Tree_p self)
 //    Return the position of the mouse
 // ----------------------------------------------------------------------------
 {
+    refreshOn(QEvent::MouseMove);
     layout->Add(new RecordMouseCoordinates(self));
     if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
         return new Real(info->coordinates.x);
@@ -3522,6 +3743,7 @@ Real_p Widget::mouseY(Tree_p self)
 //   Return the position of the mouse
 // ----------------------------------------------------------------------------
 {
+    refreshOn(QEvent::MouseMove);
     layout->Add(new RecordMouseCoordinates(self));
     if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
         return new Real(info->coordinates.y);
@@ -3534,6 +3756,7 @@ Integer_p Widget::mouseButtons(Tree_p self)
 //    Return the buttons of the last mouse event
 // ----------------------------------------------------------------------------
 {
+    refreshOn(QEvent::MouseButtonPress);
     return new Integer(lastMouseButtons);
 }
 
@@ -3553,7 +3776,9 @@ Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
 //   Evaluate the child tree while preserving the current state
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> save(layout, layout->AddChild(layout->id));
+    XL::LocalSave<Layout *> save(layout,
+                                 layout->AddChild(layout->id, self,
+                                                  context->stack));
     Tree_p result = context->Evaluate(child);
     return result;
 }
@@ -3564,7 +3789,9 @@ Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
 //   Evaluate the child and mark the current shape
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
+    XL::LocalSave<Layout *> saveLayout(layout,
+                                       layout->AddChild(selectionId(), self,
+                                                        context->stack));
     XL::LocalSave<Tree_p>   saveShape (currentShape, self);
     if (selectNextTime.count(self))
     {
@@ -3763,10 +3990,151 @@ XL::Name_p Widget::depthTest(XL::Tree_p self, bool enable)
 
 Tree_p Widget::refresh(Tree_p self, double delay)
 // ----------------------------------------------------------------------------
-//    Refresh after the given number of seconds
+//    Refresh current layout after the given number of seconds
 // ----------------------------------------------------------------------------
 {
     return refresh (delay) ? XL::xl_true : XL::xl_false;
+}
+
+
+Tree_p Widget::refreshOn(Tree_p self, int eventType)
+// ----------------------------------------------------------------------------
+//    Refresh current layout on event
+// ----------------------------------------------------------------------------
+{
+    return refreshOn((QEvent::Type)eventType) ? XL::xl_true : XL::xl_false;
+}
+
+
+Tree_p Widget::defaultRefresh(Tree_p self, double delay)
+// ----------------------------------------------------------------------------
+//    Set the default refresh time for layout that depend on QEvent::Timer
+// ----------------------------------------------------------------------------
+{
+    double prev = dfltRefresh;
+    dfltRefresh = delay;
+    return new XL::Real(prev);
+}
+
+
+Integer_p Widget::seconds(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current second, schedule refresh on next second
+// ----------------------------------------------------------------------------
+{
+    QDateTime now = QDateTime::currentDateTime();
+    int second = now.time().second();
+    QTime t = now.time();
+    t = t.addMSecs(-t.msec());
+    QDateTime next(now);
+    next.setTime(t);
+    next = next.addSecs(1);
+    double refresh = toSecsSinceEpoch(next);
+    refreshOn(QEvent::Timer, refresh);
+    return new XL::Integer(second);
+}
+
+
+Integer_p Widget::minutes(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current minute, schedule refresh on next minute
+// ----------------------------------------------------------------------------
+{
+    QDateTime now = QDateTime::currentDateTime();
+    int minute = now.time().minute();
+    QTime t = now.time();
+    t = t.addMSecs(-t.msec());
+    t.setHMS(t.hour(), t.minute(), 0);
+    QDateTime next(now);
+    next.setTime(t);
+    next = next.addSecs(60);
+    double refresh = toSecsSinceEpoch(next);
+    refreshOn(QEvent::Timer, refresh);
+    return new XL::Integer(minute);
+}
+
+
+Integer_p Widget::hours(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current hour, schedule refresh on next hour
+// ----------------------------------------------------------------------------
+{
+    QDateTime now = QDateTime::currentDateTime();
+    int hour = now.time().hour();
+    QTime t = now.time();
+    t = t.addMSecs(-t.msec());
+    t.setHMS(t.hour(), 0, 0);
+    QDateTime next(now);
+    next.setTime(t);
+    next = next.addSecs(3600);
+    double refresh = toSecsSinceEpoch(next);
+    refreshOn(QEvent::Timer, refresh);
+    return new XL::Integer(hour);
+}
+
+
+Integer_p Widget::day(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current day, schedule refresh on next day
+// ----------------------------------------------------------------------------
+{
+    QDateTime now = QDateTime::currentDateTime();
+    int day = now.date().day();
+    double refresh = nextDay(now);
+    refreshOn(QEvent::Timer, refresh);
+    return new XL::Integer(day);
+}
+
+
+Integer_p Widget::weekDay(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current week day, schedule refresh on next day
+// ----------------------------------------------------------------------------
+{
+    QDateTime now = QDateTime::currentDateTime();
+    int day = now.date().dayOfWeek();
+    double refresh = nextDay(now);
+    refreshOn(QEvent::Timer, refresh);
+    return new XL::Integer(day);
+}
+
+
+Integer_p Widget::yearDay(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current week day, schedule refresh on next day
+// ----------------------------------------------------------------------------
+{
+    QDateTime now = QDateTime::currentDateTime();
+    int day = now.date().dayOfYear();
+    double refresh = nextDay(now);
+    refreshOn(QEvent::Timer, refresh);
+    return new XL::Integer(day);
+}
+
+
+Integer_p Widget::month(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current month, schedule refresh on next day
+// ----------------------------------------------------------------------------
+{
+    QDateTime now = QDateTime::currentDateTime();
+    int month = now.date().month();
+    double refresh = nextDay(now);
+    refreshOn(QEvent::Timer, refresh);
+    return new XL::Integer(month);
+}
+
+
+Integer_p Widget::year(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current year, schedule refresh on next day
+// ----------------------------------------------------------------------------
+{
+    QDateTime now = QDateTime::currentDateTime();
+    int year = now.date().year();
+    double refresh = nextDay(now);
+    refreshOn(QEvent::Timer, refresh);
+    return new XL::Integer(year);
 }
 
 
@@ -4768,7 +5136,8 @@ Tree_p Widget::rightTriangle(Tree_p self,
 }
 
 
-Tree_p Widget::ellipse(Tree_p self, Real_p cx, Real_p cy, Real_p w, Real_p h)
+Tree_p Widget::ellipse(Tree_p self, Real_p cx, Real_p cy,
+                       Real_p w, Real_p h)
 // ----------------------------------------------------------------------------
 //   Circle centered around (cx,cy), size w * h
 // ----------------------------------------------------------------------------
@@ -5542,8 +5911,7 @@ XL::Name_p Widget::textEditKey(Tree_p self, text key)
         delete textSelection();
         delete drag();
         pageStartTime = startTime = frozenTime = CurrentTime();
-        draw();
-        refresh(0);
+        refreshNow(NULL);
         return XL::xl_true;
     }
 

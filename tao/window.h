@@ -98,6 +98,7 @@ public slots:
     void deleteAboutSplash();
     void showMessage(QString message)  { showMessage(message, 2000); }
     void setReadOnly(bool ro);
+    void clearErrors();
 
 signals:
     void projectUrlChanged(QString url);

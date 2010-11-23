@@ -27,7 +27,10 @@
 #include "color.h"
 #include "justification.h"
 #include <vector>
+#include <set>
 #include <QFont>
+#include <QEvent>
+#include <float.h>
 
 
 TAO_BEGIN
@@ -43,7 +46,12 @@ struct LayoutState
                         LayoutState(const LayoutState &o);
 
 public:
+    typedef std::set<QEvent::Type>              qevent_ids;
+
+public:
     void                Clear();
+    static text         ToText(qevent_ids & ids);
+    static text         ToText(QEvent::Type type);
 
 public:
     Vector3             offset;
@@ -60,6 +68,10 @@ public:
     double              planarRotation;
     double              planarScale;
     uint                rotationId, translationId, scaleId;
+    qevent_ids          refreshEvents;
+    double              nextRefresh;
+    Tree_p              self;
+    Context_p           ctx;
 };
 
 
@@ -83,12 +95,17 @@ struct Layout : Drawing, LayoutState
     virtual void        Add (Drawing *d);
     virtual Vector3     Offset();
     virtual Layout *    NewChild()       { return new Layout(*this); }
-    virtual Layout *    AddChild(uint id = 0);
+    virtual Layout *    AddChild(uint id = 0, Tree_p self = NULL,
+                                 Context_p ctx = NULL);
     virtual void        Clear();
     virtual Widget *    Display()        { return display; }
     virtual void        PolygonOffset();
     virtual uint        Selected();
     virtual uint        ChildrenSelected();
+
+    // Event interface
+    virtual bool        Refresh(QEvent *e, Layout *parent = NULL);
+    double              NextChildRefresh();
 
     LayoutState &       operator=(const LayoutState &o);
     void                Inherit(Layout *other);
@@ -96,6 +113,7 @@ struct Layout : Drawing, LayoutState
     void                PopLayout(Layout *where);
     uint                CharacterId();
     double              PrinterScaling();
+    text                PrettyId();
 
 public:
     // OpenGL identification for that shape and for characters within

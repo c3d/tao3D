@@ -39,6 +39,7 @@
 #include <QApplication>
 #include <QGLWidget>
 #include <QFileInfo>
+#include <QTimer>
 
 #ifdef CONFIG_MINGW
 #include <windows.h>
@@ -148,7 +149,8 @@ bool Main::Refresh(double delay)
 //   Refresh the current top-level widget if there is one
 // ----------------------------------------------------------------------------
 {
-    TAO(refresh(delay));
+    Widget *widget = Tao::Widget::Tao();
+    QTimer::singleShot(delay * 1000, widget, SLOT(refreshNow(QEvent*)));
     return true;
 }
 

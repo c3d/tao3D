@@ -152,7 +152,7 @@ void WidgetSurface::repaint()
 
     if (widget)
         if (Widget *parent = dynamic_cast<Widget *>(widget->parent()))
-            parent->refresh();
+            parent->updateGL();
 }
 
 
@@ -740,7 +740,7 @@ bool GridGroupBox::event(QEvent *event)
                                                evt->button(), evt->buttons(),
                                                evt->modifiers());
                             bool ret = ((QObject*)item->widget())->event(&clocal);
-                            ((Widget*)parent())->refresh();
+                            ((Widget*)parent())->refreshNow();
                             return ret;
                         }
                         return QGroupBox::event(event);

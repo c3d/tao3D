@@ -36,6 +36,7 @@
 #include "glyph_cache.h"
 #include "runtime.h"
 #include "font_file_manager.h"
+#include "layout.h"
 
 #include <GL/glew.h>
 #include <QtOpenGL>
@@ -49,13 +50,13 @@
 #include <iostream>
 #include <sstream>
 #include <map>
+#include <set>
 
 
 namespace Tao {
 
 struct Window;
 struct FrameInfo;
-struct Layout;
 struct PageLayout;
 struct SpaceLayout;
 struct GraphicPath;
@@ -103,6 +104,7 @@ public slots:
     void        appFocusChanged(QWidget *prev, QWidget *next);
     void        userMenu(QAction *action);
     bool        refresh(double delay = 0.0);
+    bool        refreshNow(QEvent *event = NULL);
     void        commitSuccess(QString id, QString msg);
     void        colorChosen(const QColor &);
     void        colorChanged(const QColor &);
@@ -306,6 +308,16 @@ public:
     // Setting attributes
     Name_p      depthTest(Tree_p self, bool enable);
     Tree_p      refresh(Tree_p self, double delay);
+    Tree_p      refreshOn(Tree_p self, int eventType);
+    Tree_p      defaultRefresh(Tree_p self, double delay);
+    Integer_p   seconds(Tree_p self);
+    Integer_p   minutes(Tree_p self);
+    Integer_p   hours(Tree_p self);
+    Integer_p   day(Tree_p self);
+    Integer_p   weekDay(Tree_p self);
+    Integer_p   yearDay(Tree_p self);
+    Integer_p   month(Tree_p self);
+    Integer_p   year(Tree_p self);
     Name_p      showSource(Tree_p self, bool show);
     Name_p      fullScreen(Tree_p self, bool fs);
     Name_p      toggleFullScreen(Tree_p self);
@@ -384,7 +396,8 @@ public:
                                   Real_p x, Real_p y, Real_p w, Real_p h);
     Tree_p      rightTriangle(Tree_p self,
                               Real_p x, Real_p y, Real_p w, Real_p h);
-    Tree_p      ellipse(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h);
+    Tree_p      ellipse(Tree_p self, Real_p x, Real_p y,
+                        Real_p w, Real_p h);
     Tree_p      ellipseArc(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                            Real_p start, Real_p sweep);
     Tree_p      roundedRectangle(Tree_p self,
@@ -648,6 +661,7 @@ private:
     friend class Table;
     friend class DeleteSelectionAction;
     friend class ModuleRenderer;
+    friend class Layout;
 
     typedef XL::LocalSave<QEvent *>             EventSave;
     typedef XL::LocalSave<Widget *>             TaoSave;
@@ -664,6 +678,7 @@ private:
     Context_p             formulas;
     bool                  inError;
     bool                  mustUpdateDialogs;
+    bool                  runOnNextDraw;
 
     // Rendering
     SpaceLayout *         space;
@@ -688,6 +703,7 @@ private:
     StereoMode            stereoMode;
     char                  stereoscopic;
     char                  stereoPlanes;
+    LayoutState::qevent_ids  refreshEvents;
 
     // Selection
     Activity *            activities;
@@ -717,8 +733,10 @@ private:
     int                   lastMouseX, lastMouseY, lastMouseButtons;
 
     // Timing
-    QTimer                timer, idleTimer;
-    double                pageStartTime, pageRefresh, frozenTime, startTime;
+    QBasicTimer           timer;
+    double                dfltRefresh;
+    QTimer                idleTimer;
+    double                pageStartTime, frozenTime, startTime, currentTime;
     ulonglong             tmin, tmax, tsum, tcount;
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
 
@@ -748,6 +766,14 @@ private:
     void        updateFileDialog(Tree *properties, Tree *context);
     Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child);
     bool    updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group);
+
+    bool                  refreshOn(QEvent::Type type,
+                                    double nextRefresh = DBL_MAX);
+private:
+    void                  startRefreshTimer();
+    double                CurrentTime();
+    double                trueCurrentTime();
+    void                  setCurrentTime();
 };
 
 
@@ -781,20 +807,6 @@ inline void glShowErrors()
 // ----------------------------------------------------------------------------
 {
     TAO(showGlErrors());
-}
-
-
-inline double CurrentTime()
-// ----------------------------------------------------------------------------
-//    Return the current time
-// ----------------------------------------------------------------------------
-{
-    QTime t = QTime::currentTime();
-    double d = (3600.0	 * t.hour()
-                + 60.0	 * t.minute()
-                +	   t.second()
-                +  0.001 * t.msec());
-    return d;
 }
 
 

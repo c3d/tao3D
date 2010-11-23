@@ -47,7 +47,7 @@ Chooser::Chooser(Context *context, text name, Widget *w)
       keystrokes(""), item(0), firstItem(0), selected(NULL)
 {
     // Force an immediate widget refresh
-    widget->refresh(0);
+    widget->updateGL();
 }
 
 
@@ -332,7 +332,7 @@ Activity *Chooser::Key(text key)
     }
 
     // Force an immediate widget refresh
-    widget->refresh(0);
+    widget->updateGL();
 
     // Notify caller that we intercept all keystrokes
     return NULL;

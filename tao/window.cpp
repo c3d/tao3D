@@ -375,8 +375,6 @@ int Window::open(QString fileName, bool readOnly)
 
         if (!loadFile(fileName, !isReadOnly))
             return 0;
-
-        taoWidget->refresh();
     }
     else
     {
@@ -1398,6 +1396,16 @@ void Window::setReadOnly(bool ro)
 }
 
 
+void Window::clearErrors()
+// ----------------------------------------------------------------------------
+//    Clear the error messages and close the error dock
+// ----------------------------------------------------------------------------
+{
+    errorMessages->clear();
+    errorDock->hide();
+}
+
+
 bool Window::loadFile(const QString &fileName, bool openProj)
 // ----------------------------------------------------------------------------
 //    Load a specific file (and optionally, open project repository)
@@ -1469,6 +1477,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         loadInProgress = true;
         taoWidget->updateProgramSource();
         loadInProgress = false;
+        taoWidget->refreshNow();
         QApplication::restoreOverrideCursor();
         showMessage(tr("File loaded"), 2000);
     }
@@ -1650,9 +1659,9 @@ bool Window::saveFile(const QString &fileName)
 
     xlRuntime->LoadFile(fn);
 
-    showMessage(tr("File saved"), 2000);
     updateProgram(fileName);
     srcEdit->setXLNames(taoWidget->listNames());
+    taoWidget->refreshNow();
     isReadOnly = false;
 
     if (repo)
@@ -1667,6 +1676,7 @@ bool Window::saveFile(const QString &fileName)
         sf.changed = false;
     }
     markChanged(false);
+    showMessage(tr("File saved"), 2000);
 
     return true;
 }

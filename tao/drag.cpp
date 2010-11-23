@@ -82,7 +82,7 @@ Activity *Drag::MouseMove(int x, int y, bool active)
         x2 = x;
         y2 = y;
     }
-    widget->refresh();
+    widget->refreshNow();
 
     // Pass it down the chain
     return next;

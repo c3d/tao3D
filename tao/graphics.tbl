@@ -200,6 +200,14 @@ PREFIX(Every50Pct,  real,     "every",
                 return_value \"real\", <<The real elapsed time.>>;\
                 }\
           |*/")
+PREFIX(Seconds, integer, "seconds" ,, RTAO(seconds(self)), "")
+PREFIX(Minutes, integer, "minutes" ,, RTAO(minutes(self)), "")
+PREFIX(Hours,   integer, "hours"   ,, RTAO(hours(self)),   "")
+PREFIX(Day,     integer, "day"     ,, RTAO(day(self)),     "")
+PREFIX(WeekDay, integer, "week_day",, RTAO(weekDay(self)), "")
+PREFIX(YearDay, integer, "year_day",, RTAO(yearDay(self)), "")
+PREFIX(Month,   integer, "month"   ,, RTAO(month(self)),   "")
+PREFIX(Year,    integer, "year"    ,, RTAO(year(self)),    "")
 
 PREFIX(MouseX, real, "mouse_x", ,RTAO(mouseX(self)),
        "/*| docname \"mouse_x\", \"mouse\", do { \
@@ -486,11 +494,31 @@ PREFIX(DisableDepthTest, boolean, "disable_depth_test",,
 PREFIX(Refresh, tree, "refresh", PARM(d, real), RTAO(refresh(self, d)),
        "/*| docname \"refresh\", \"code:graph:time\", do { \
                 dsyntax <<refresh d>>;\
-                synopsis \"Refresh after d second\" ; \
-                description <<Refresh the screen after the given time interval>> ;\
+                synopsis \"Refresh current layout every d second\" ; \
+                description <<Periodically refresh the current layout (locally/shape block) every d seconds>> ;\
                 parameters;\
-                parameter \"real\", \"d\", <<The delay to wait.>>;\
+                parameter \"real\", \"d\", <<The refresh delay in seconds.>>;\
                 return_value \"boolean\", <<>>;\
+                }\
+          |*/")
+PREFIX(RefreshOn, tree, "refresh_on", PARM(t, integer), RTAO(refreshOn(self, t)),
+       "/*| docname \"refresh_on\", \"code:graph:time\", do { \
+                dsyntax <<refresh_on t>>;\
+                synopsis \"Refresh layout on event\" ; \
+                description <<Refresh the current layout when specified event is received>> ;\
+                parameters;\
+                parameter \"int\", \"t\", <<The Qt event type, such as QEvent_MouseMove.>>;\
+                return_value \"boolean\", <<>>;\
+                }\
+          |*/")
+PREFIX(DefaultRefresh, tree, "default_refresh", PARM(d, real), RTAO(defaultRefresh(self, d)),
+       "/*| docname \"default_refresh\", \"code:graph:time\", do { \
+                dsyntax <<default_refresh d>>;\
+                synopsis \"Change default refresh interval for time primitives\" ; \
+                description <<Set the documents refresh interval for code blocks that depend on time due to the use of the time or page_time primitive.>> ;\
+                parameters;\
+                parameter \"real\", \"d\", <<The refresh interval in seconds>>;\
+                return_value \"real\", <<The previous value>>;\
                 }\
           |*/")
 PREFIX(ShowSource, boolean, "show_source", PARM(an, boolean),

@@ -973,7 +973,7 @@ void TextSpan::PerformInsertOperation(Layout * l,
         // Reload the program and mark the changes
         widget->reloadProgram();
         widget->markChanged("Clipboard content pasted");
-        widget->refresh();
+        widget->refreshNow();
 
     }
 
@@ -1058,7 +1058,7 @@ void TextFormula::DrawSelection(Layout *where)
             sel->point = charId;
             sel->mark = charId + length;
 
-            widget->refresh();
+            widget->updateGL();
         }
     }
 
@@ -1102,7 +1102,7 @@ void TextFormula::DrawSelection(Layout *where)
     else if (!info && sel && charId >= sel->start() && charId <= sel->end())
     {
         // First run, make sure we return here to create the editor
-        widget->refresh();
+        widget->updateGL();
     }
 }
 
@@ -1212,7 +1212,7 @@ void TextValue::DrawSelection(Layout *where)
             sel->point = charId;
             sel->mark = charId + length;
 
-            widget->refresh();
+            widget->updateGL();
         }
     }
 
@@ -1256,7 +1256,7 @@ void TextValue::DrawSelection(Layout *where)
     else if (!info && sel && charId >= sel->start() && charId <= sel->end())
     {
         // First run, make sure we return here to create the editor
-        widget->refresh();
+        widget->refreshNow();
     }
 }
 
@@ -1574,7 +1574,7 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
     }
 
     // Need a refresh
-    widget->refresh();
+    widget->updateGL();
 
     // Let a possible selection do its own stuff
     return next;
@@ -1593,7 +1593,7 @@ void TextSelect::updateSelection()
     if (textBoxId)
         widget->select(textBoxId, Widget::CONTAINER_OPENED);
     formulaMode = false;
-    widget->refresh();
+    widget->updateGL();
 }
 
 

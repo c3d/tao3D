@@ -54,6 +54,8 @@ public:
     void                resize(uint width, uint height);
     virtual GLuint      bind();
     virtual bool        requestFocus(Layout *l, coord x, coord y);
+    int                 width()         { return widget->width(); }
+    int                 height()        { return widget->height(); }
 
     QWidget *           widget;
     GLuint              textureId;

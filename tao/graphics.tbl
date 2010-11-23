@@ -2429,9 +2429,8 @@ PREFIX(Movie, tree, "movie",
                 see \"http://doc.qt.nokia.com/4.6/phonon-module.html\" \
                 }\
           |*/")
-PREFIX(MovieTexture, tree, "movie_texture",
-       PARM(w,real) PARM(h,real) PARM(u,text),
-       RTAO(movieTexture(self, w, h, u)),
+PREFIX(MovieTexture, tree, "movie_texture", PARM(u,text),
+       RTAO(movieTexture(self, u)),
        "/*| docname \"movie_texture\", \"widget\", do { \
                 dsyntax <<vmovie_texture w, h, u>>;\
                 synopsis \"Create a texture from a video.\" ; \

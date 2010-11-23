@@ -793,8 +793,8 @@ VideoSurface::VideoSurface(XL::Tree *t, Widget *parent)
     (void) parent;
     Phonon::createPath(media, audio);
     Phonon::createPath(media, (Phonon::VideoWidget *) widget);
-    widget->setVisible(true);
     widget->setAttribute(Qt::WA_DontShowOnScreen);
+    widget->setVisible(true);
 }
 
 
@@ -816,14 +816,6 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
 // ----------------------------------------------------------------------------
 {
     Phonon::VideoWidget *player = (Phonon::VideoWidget *) widget;
-    if (!fbo ||
-        fbo->width() != player->width() ||
-        fbo->height() != player->height())
-    {
-        delete fbo;
-        fbo = new QGLFramebufferObject(player->width(), player->height(),
-                                       GL_TEXTURE_2D);
-    }
 
     if (urlTree->value != url)
     {
@@ -831,13 +823,41 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
         media->setCurrentSource(Phonon::MediaSource(QUrl(+url)));
         media->play();
     }
-    dirty = true;
 
-    glClearColor(0,0,0,0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glColor4f(1,1,1,1);
-    if (false)
+    QSize hint = player->sizeHint();
+    if (hint.isValid())
     {
+        if (!fbo ||
+            fbo->width() != hint.width() ||
+            fbo->height() != hint.height())
+        {
+            delete fbo;
+            fbo = new QGLFramebufferObject(hint.width(), hint.height(),
+                                           GL_TEXTURE_2D);
+
+            // Save width and height for use by caller
+            resize(hint.width(), hint.height());
+        }
+
+        glClearColor(0,0,0,0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glColor4f(1,1,1,1);
+
+#if 0
+        // Rendering through a QImage
+        QImage image = ((Phonon::VideoWidget *) widget)->snapshot();
+
+        // Generate the GL texture
+        if (!image.isNull())
+        {
+            GLuint textureId = fbo->texture();
+            image = QGLWidget::convertToGLFormat(image);
+            glBindTexture(GL_TEXTURE_2D, textureId);
+            glTexImage2D(GL_TEXTURE_2D, 0, 3,
+                         image.width(), image.height(), 0, GL_RGBA,
+                         GL_UNSIGNED_BYTE, image.bits());
+        }
+#elif 0
         static QImage image(widget->width(), widget->height(),
                             QImage::Format_ARGB32);
         widget->setAutoFillBackground(false);
@@ -851,15 +871,18 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
                      image.width(), image.height(), 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, image.bits());
         
-    }
-    else
-    {
+#else
+        // Faster rendering through a frame buffer object
         fbo->bind();
-        widget->render(fbo);
+        widget->render(fbo, QPoint(), QRegion(),
+                       QWidget::RenderFlags(QWidget::DrawChildren));
         fbo->release();
+#endif
+        return fbo->texture();
     }
 
-    return fbo->texture();
+    // Default is to return no texture
+    return 0;
 }
 
 

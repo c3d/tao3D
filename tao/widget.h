@@ -554,11 +554,11 @@ public:
                                 double w, double h,
                                 Text_p lbl);
 
-    Tree_p      videoPlayer(Tree_p self,
-                             Real_p x, Real_p y, Real_p w, Real_p h,
-                             Text_p url);
+    Tree_p      movie(Tree_p self,
+                      Real_p x, Real_p y, Real_p w, Real_p h,
+                      Text_p url);
 
-    Tree_p      videoPlayerTexture(Tree_p self, Real_p w, Real_p h, Text_p url);
+    Tree_p      movieTexture(Tree_p self, Real_p w, Real_p h, Text_p url);
 
     Tree_p      image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                       text filename);

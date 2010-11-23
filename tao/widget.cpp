@@ -6674,25 +6674,24 @@ Tree_p Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 }
 
 
-Tree_p Widget::videoPlayer(Tree_p self,
+Tree_p Widget::movie(Tree_p self,
                            Real_p x, Real_p y, Real_p w, Real_p h, Text_p url)
 // ----------------------------------------------------------------------------
 //   Make a video player
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
-    videoPlayerTexture(self, w, h, url);
+    movieTexture(self, w, h, url);
     VideoSurface *surface = self->GetInfo<VideoSurface>();
     layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
 
     return XL::xl_true;
-
 }
 
 
-Tree_p Widget::videoPlayerTexture(Tree_p self, Real_p wt, Real_p ht, Text_p url)
+Tree_p Widget::movieTexture(Tree_p self, Real_p wt, Real_p ht, Text_p url)
 // ----------------------------------------------------------------------------
 //   Make a video player texture
 // ----------------------------------------------------------------------------

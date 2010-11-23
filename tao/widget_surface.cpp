@@ -785,10 +785,14 @@ VideoSurface::VideoSurface(XL::Tree *t, Widget *parent)
 // ----------------------------------------------------------------------------
 //   Create the video player
 // ----------------------------------------------------------------------------
-    : WidgetSurface(t, new Phonon::VideoPlayer(Phonon::VideoCategory, NULL)),
-      fbo(NULL)
+    : WidgetSurface(t, new Phonon::VideoWidget(NULL)),
+      fbo(NULL),
+      audio(new Phonon::AudioOutput(Phonon::VideoCategory, NULL)),
+      media(new Phonon::MediaObject(NULL))
 {
     (void) parent;
+    Phonon::createPath(media, audio);
+    Phonon::createPath(media, (Phonon::VideoWidget *) widget);
     widget->setVisible(true);
     widget->setAttribute(Qt::WA_DontShowOnScreen);
 }
@@ -799,9 +803,10 @@ VideoSurface::~VideoSurface()
 //    Stop the player and delete the frame buffer object
 // ----------------------------------------------------------------------------
 {
-   Phonon::VideoPlayer *player = (Phonon::VideoPlayer *) widget;
-   player->stop();
+   media->stop();
    delete fbo;
+   delete audio;
+   delete media;
 }
 
 
@@ -810,7 +815,7 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
 //    Bind the surface to the texture
 // ----------------------------------------------------------------------------
 {
-    Phonon::VideoPlayer *player = (Phonon::VideoPlayer *) widget;
+    Phonon::VideoWidget *player = (Phonon::VideoWidget *) widget;
     if (!fbo ||
         fbo->width() != player->width() ||
         fbo->height() != player->height())
@@ -823,7 +828,8 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
     if (urlTree->value != url)
     {
         url = urlTree->value;
-        player->play(Phonon::MediaSource(QUrl(+url)));
+        media->setCurrentSource(Phonon::MediaSource(QUrl(+url)));
+        media->play();
     }
     dirty = true;
 

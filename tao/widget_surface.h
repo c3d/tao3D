@@ -292,6 +292,8 @@ public:
 public:
     text url;
     QGLFramebufferObject *fbo;
+    Phonon::AudioOutput *audio;
+    Phonon::MediaObject *media;
 };
 
 

@@ -897,16 +897,22 @@ void TextSpan::PerformInsertOperation(Layout * l,
             // Delete the end of the current text_span
             source->value.erase(position);
 
-            // insert the tree from the sel
+            // generate the tree for the end of the span
             portability p;
             head = p.fromHTML(cursor.document()->toHtml());
 
+            // Go to the bottom of the replacement tree
             XL::Infix * temp = sel->replacement_tree->AsInfix();
             while (temp && temp->right != portability::xl_nil)
             {
                 temp = temp->right->AsInfix();
             }
-            temp->right = head;
+            // Hang the tree representing the end of the span to
+            // the bottom of the replacement_tree
+            if (temp)
+                temp->right = head;
+
+            // Update head and tail
             tail = p.getTail();
             head = sel->replacement_tree->AsInfix();
         }

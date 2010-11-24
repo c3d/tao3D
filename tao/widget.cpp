@@ -561,7 +561,7 @@ void Widget::print(QPrinter *prt)
         XL::LocalSave<double> savePrintTime(pagePrintTime, 0);
         XL::LocalSave<Point3> saveCenter(viewCenter, Point3(0,0,-zNear));
         XL::LocalSave<Point3> saveEye(eye, Point3(0,0,zNear));
-        
+
         // Evaluate twice time so that we correctly setup page info
         for (uint i = 0; i < 2; i++)
         {
@@ -7431,18 +7431,43 @@ XL::Name_p Widget::setAttribute(Tree_p self,
 //    Insert the tree in all shapes in the selection
 // ----------------------------------------------------------------------------
 {
-    if (Tree *program = xlProgram->tree)
+    if (XL::Block_p block = attribute->AsBlock())
+        attribute = block->child;
+
+    TextSelect *sel;
+    if ((sel = textSelection())) // Text selected
     {
-        if (XL::Block_p block = attribute->AsBlock())
-            attribute = block->child;
 
-        SetAttributeAction setAttrib(name, attribute, this, shape);
-        program->Do(setAttrib);
+        // Create tree with attribute and selected text.
+        XL::Prefix *p = new XL::Prefix(new XL::Name("text"),
+                                       new XL::Text(+sel->cursor.
+                                                    document()->toPlainText(),
+                                                    "<<", ">>" ));
+        XL::Infix *lf = new XL::Infix("\n", attribute,
+                                      new XL::Infix("\n", p, portability::xl_nil));
 
-        // We don't need to reloadProgram() because Widget::set does it
-        markChanged("Updated " + name + " attribute");
-
+        // Current selected text must be erased because it will be re-inserted
+        // with new formating
+        sel->replacement = "";
+        sel->replace = true;
+        // New tree : format and text
+        sel->replacement_tree = lf;
+        // Draw...
+        refresh();
         return XL::xl_true;
+    }
+    else
+    {
+        if (Tree *program = xlProgram->tree)
+        {
+            SetAttributeAction setAttrib(name, attribute, this, shape);
+            program->Do(setAttrib);
+
+            // We don't need to reloadProgram() because Widget::set does it
+            markChanged("Updated " + name + " attribute");
+
+            return XL::xl_true;
+        }
     }
     return XL::xl_false;
 }

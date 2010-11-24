@@ -28,16 +28,30 @@
 #include <QTextBlock>
 #include <QTextFragment>
 
+TAO_BEGIN
 struct portability
 {
 public:
-    portability();
+    portability(): head(NULL), tail(NULL){}
     QString toHTML();
-    XL::Tree * fromHTML(QString html);
+    XL::Infix * fromHTML(QString html);
 
-    XL::Tree * docToTree(const QTextDocument &doc );
-    XL::Tree * blockToTree(const QTextBlock &block );
-    XL::Tree * fragmentToTree(const QTextFragment &fragment );
+    XL::Infix * docToTree(const QTextDocument &doc );
+    XL::Infix * blockToTree(const QTextBlock &block, XL::Infix *parent );
+    XL::Infix * fragmentToTree(const QTextFragment &fragment, XL::Infix *parent );
+
+    XL::Infix * getHead() { return head;}
+    XL::Infix * getTail() { return tail;}
+
+protected:
+    XL::Infix_p head;
+    XL::Infix_p tail;
+
+public:
+    static XL::Name_p xl_nil;
+
 };
 
+
+TAO_END
 #endif // PORTABILITY_H

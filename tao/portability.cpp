@@ -25,9 +25,11 @@
 #include "tao_tree.h"
 #include "tao_utf8.h"
 #include "options.h"
-portability::portability(){}
 
-XL::Tree * portability::fromHTML(QString html)
+TAO_BEGIN
+
+
+XL::Infix * portability::fromHTML(QString html)
 // ----------------------------------------------------------------------------
 //   Translate an HTML formated text into XL::Tree
 // ----------------------------------------------------------------------------
@@ -37,41 +39,48 @@ XL::Tree * portability::fromHTML(QString html)
     return docToTree(doc);
 }
 
+XL::Name_p portability::xl_nil = new XL::Name("nil");
 
-XL::Tree* portability::docToTree(const QTextDocument &doc)
+XL::Infix* portability::docToTree(const QTextDocument &doc)
 // ----------------------------------------------------------------------------
 //   Translate a QTextDocument into XL::Tree
 // ----------------------------------------------------------------------------
 {
-    XL::Tree *t = NULL;
+    XL::Infix *t = NULL;
     IFTRACE(clipboard)
             std::cerr << "-> portability::docToTree\n";
+
+    XL::Infix *first = new XL::Infix("\n", xl_nil, xl_nil);
+
     for ( QTextBlock block = doc.firstBlock();
          block.isValid();
          block = block.next())
     {
         if (!t)
-            t = blockToTree( block );
+        {
+            t = blockToTree( block, first );
+        }
         else
         {
             // Insert a paragraph_break between two blocks
-            t = new XL::Infix("\n", t, new XL::Name("paragraph_break"));
-            t = new XL::Infix("\n", t, blockToTree( block ));
+            t->right = new XL::Infix("\n", new XL::Name("paragraph_break"), xl_nil);
+            t = blockToTree( block, t->right->AsInfix() );
         }
         for (QTextBlock::Iterator it = block.begin(); !it.atEnd(); ++it)
         {
             const QTextFragment fragment = it.fragment();
-            t = new XL::Infix("\n", t, fragmentToTree(fragment));
+            t = fragmentToTree(fragment, t);
         }
     }
     IFTRACE(clipboard)
             std::cerr << "<- portability::docToTree\n";
-
-    return t;
+    head = first->right->AsInfix();
+    tail = t;
+    return first->right->AsInfix();
 }
 
 
-XL::Tree * portability::blockToTree(const QTextBlock &block)
+XL::Infix * portability::blockToTree(const QTextBlock &block, XL::Infix *parent)
 // ----------------------------------------------------------------------------
 //   Translate a QTextBlock into XL::Tree
 // ----------------------------------------------------------------------------
@@ -133,18 +142,22 @@ XL::Tree * portability::blockToTree(const QTextBlock &block)
     // Building the resulting tree
     //////////////////////////
 
-    XL::Infix * lf = new XL::Infix("\n", vAlignment, hAlignment);
+    XL::Infix * toReturn = new XL::Infix("\n", vAlignment, xl_nil);
+    XL::Infix * lf = new XL::Infix("\n", hAlignment, toReturn);
     lf = new XL::Infix("\n", para_space, lf);
     lf = new XL::Infix("\n", margin, lf);
+
+    // hang this tree to the parent one
+    parent->right = lf;
 
     IFTRACE(clipboard)
             std::cerr << "<- portability::blockToTree\n";
 
-    return lf;
+    return toReturn;
 }
 
 
-XL::Tree * portability::fragmentToTree(const QTextFragment &fragment)
+XL::Infix * portability::fragmentToTree(const QTextFragment &fragment, XL::Infix *parent)
 // ----------------------------------------------------------------------------
 //   Translate a QTextFragment into XL::Tree
 // ----------------------------------------------------------------------------
@@ -272,15 +285,21 @@ XL::Tree * portability::fragmentToTree(const QTextFragment &fragment)
     // Building the resulting tree
     //////////////////////////
 
-    lf = new XL::Infix("\n", textColor, txt);
+    XL::Infix *toReturn = new XL::Infix("\n", txt, xl_nil);
+    lf = new XL::Infix("\n", textColor, toReturn);
     if (customStretch)
         lf = new XL::Infix("\n", customStretch, lf);
     if (customWeight)
         lf = new XL::Infix("\n", customWeight, lf);
     lf = new XL::Infix("\n", font, lf);
 
+    // hang this tree to the parent one
+    parent->right = lf;
+
     IFTRACE(clipboard)
             std::cerr << "<- portability::fragmentToTree\n";
 
-    return lf;
+    return toReturn;
 }
+
+TAO_END

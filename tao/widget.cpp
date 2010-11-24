@@ -4603,7 +4603,7 @@ Tree_p Widget::fixedSizePoint(Tree_p self, coord x,coord y,coord z, coord s)
 
 Tree_p Widget::rectangle(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h)
 // ----------------------------------------------------------------------------
-//    Draw a rectangle
+//    Draw a nice rectangle
 // ----------------------------------------------------------------------------
 {
     Rectangle shape(Box(x-w/2, y-h/2, w, h));

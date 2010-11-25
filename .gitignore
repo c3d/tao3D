@@ -9,3 +9,11 @@ object_script.*.Release
 object_script.*.Debug
 .DS_Store
 /Makefile
+TAGS
+*~
+cscope.files
+cscope.out
+[a-z]
+tao/[a-z]
+libxlr/xlr.app
+modules/canitao

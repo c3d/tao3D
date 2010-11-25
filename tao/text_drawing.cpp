@@ -903,7 +903,7 @@ void TextSpan::PerformInsertOperation(Layout * l,
 
             // Go to the bottom of the replacement tree
             XL::Infix * temp = sel->replacement_tree->AsInfix();
-            while (temp && temp->right != portability::xl_nil)
+            while (temp && temp->right != XL::xl_empty)
             {
                 temp = temp->right->AsInfix();
             }

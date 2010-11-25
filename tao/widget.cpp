@@ -296,6 +296,7 @@ void Widget::dawdle()
         refreshProgram();
         syncDelay = tick + xlr->options.sync_interval * 1000;
     }
+
 }
 
 
@@ -7476,7 +7477,7 @@ XL::Name_p Widget::setAttribute(Tree_p self,
                                                     document()->toPlainText(),
                                                     "<<", ">>" ));
         XL::Infix *lf = new XL::Infix("\n", attribute,
-                                      new XL::Infix("\n", p, portability::xl_nil));
+                                      new XL::Infix("\n", p, XL::xl_empty));
 
         // Current selected text must be erased because it will be re-inserted
         // with new formating

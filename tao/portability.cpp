@@ -39,8 +39,6 @@ XL::Infix * portability::fromHTML(QString html)
     return docToTree(doc);
 }
 
-XL::Name_p portability::xl_nil = new XL::Name("nil");
-
 XL::Infix* portability::docToTree(const QTextDocument &doc)
 // ----------------------------------------------------------------------------
 //   Translate a QTextDocument into XL::Tree
@@ -50,7 +48,7 @@ XL::Infix* portability::docToTree(const QTextDocument &doc)
     IFTRACE(clipboard)
             std::cerr << "-> portability::docToTree\n";
 
-    XL::Infix *first = new XL::Infix("\n", xl_nil, xl_nil);
+    XL::Infix *first = new XL::Infix("\n", XL::xl_empty, XL::xl_empty);
 
     for ( QTextBlock block = doc.firstBlock();
          block.isValid();
@@ -63,7 +61,7 @@ XL::Infix* portability::docToTree(const QTextDocument &doc)
         else
         {
             // Insert a paragraph_break between two blocks
-            t->right = new XL::Infix("\n", new XL::Name("paragraph_break"), xl_nil);
+            t->right = new XL::Infix("\n", new XL::Name("paragraph_break"), XL::xl_empty);
             t = blockToTree( block, t->right->AsInfix() );
         }
         for (QTextBlock::Iterator it = block.begin(); !it.atEnd(); ++it)
@@ -142,7 +140,7 @@ XL::Infix * portability::blockToTree(const QTextBlock &block, XL::Infix *parent)
     // Building the resulting tree
     //////////////////////////
 
-    XL::Infix * toReturn = new XL::Infix("\n", vAlignment, xl_nil);
+    XL::Infix * toReturn = new XL::Infix("\n", vAlignment, XL::xl_empty);
     XL::Infix * lf = new XL::Infix("\n", hAlignment, toReturn);
     lf = new XL::Infix("\n", para_space, lf);
     lf = new XL::Infix("\n", margin, lf);
@@ -285,7 +283,7 @@ XL::Infix * portability::fragmentToTree(const QTextFragment &fragment, XL::Infix
     // Building the resulting tree
     //////////////////////////
 
-    XL::Infix *toReturn = new XL::Infix("\n", txt, xl_nil);
+    XL::Infix *toReturn = new XL::Infix("\n", txt, XL::xl_empty);
     lf = new XL::Infix("\n", textColor, toReturn);
     if (customStretch)
         lf = new XL::Infix("\n", customStretch, lf);

@@ -47,9 +47,6 @@ protected:
     XL::Infix_p head;
     XL::Infix_p tail;
 
-public:
-    static XL::Name_p xl_nil;
-
 };
 
 

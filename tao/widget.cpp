@@ -326,6 +326,10 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
+    // Recursive drawing may occur with video widgets, and it's bad
+    if (current)
+        return;
+
     TaoSave saveCurrent(current, this);
 
     // Timing
@@ -1289,6 +1293,14 @@ void Widget::setupGL()
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);
+    glShadeModel(GL_SMOOTH);
+
+    // Turn on sphere map automatic texture coordinate generation
+    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+
+    // Really nice perspective calculations
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 }
 
 
@@ -4263,6 +4275,30 @@ Tree_p Widget::fillTexture(Tree_p self, text img)
 }
 
 
+Tree_p Widget::fillAnimatedTexture(Tree_p self, text img)
+// ----------------------------------------------------------------------------
+//     Build a GL texture out of a movie file
+// ----------------------------------------------------------------------------
+{
+    GLuint texId = 0;
+
+    if (img != "")
+    {
+        AnimatedTextureInfo *rinfo = self->GetInfo<AnimatedTextureInfo>();
+        if (!rinfo)
+        {
+            rinfo = new AnimatedTextureInfo();
+            self->SetInfo<AnimatedTextureInfo>(rinfo);
+        }
+        texId = rinfo->bind(img);
+    }
+
+    layout->Add(new FillTexture(texId));
+    layout->hasAttributes = true;
+    return XL::xl_true;
+}
+
+
 Tree_p Widget::fillTextureFromSVG(Tree_p self, text img)
 // ----------------------------------------------------------------------------
 //    Draw an image in SVG format
@@ -4327,7 +4363,7 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
     Rectangle shape(Box(x-w/2, y-h/2, w, h));
     layout->Add(new Rectangle(shape));
     if (sxp.Pointer() && syp.Pointer() && currentShape)
-        layout->Add(new ImageManipulator(currentShape, x, y, sxp, syp, w0, h0));
+        layout->Add(new ImageManipulator(currentShape, x,y, sxp,syp, w0,h0));
 
     return XL::xl_true;
 }
@@ -5519,7 +5555,9 @@ Tree_p Widget::tableCell(Context *context, Tree_p self,
     flows[flowName] = tbox;
 
     XL::LocalSave<Layout *> save(layout, tbox);
-    return context->Evaluate(body);
+    Tree_p result = context->Evaluate(body);
+    table->NextCell();
+    return result;
 }
 
 
@@ -5536,7 +5574,9 @@ Tree_p Widget::tableCell(Context *context, Tree_p self, Tree_p body)
     table->Add(tbox);
 
     XL::LocalSave<Layout *> save(layout, tbox);
-    return context->Evaluate(body);
+    Tree_p result = context->Evaluate(body);
+    table->NextCell();
+    return result;
 }
 
 
@@ -6659,43 +6699,39 @@ Tree_p Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 }
 
 
-Tree_p Widget::videoPlayer(Tree_p self,
-                           Real_p x, Real_p y, Real_p w, Real_p h, Text_p url)
+Tree_p Widget::movie(Tree_p self,
+                     Real_p x, Real_p y, Real_p sx, Real_p sy, Text_p url)
 // ----------------------------------------------------------------------------
 //   Make a video player
 // ----------------------------------------------------------------------------
 {
     XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
-    videoPlayerTexture(self, w, h, url);
-    VideoPlayerSurface *surface = self->GetInfo<VideoPlayerSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
+    movieTexture(self, url);
+    VideoSurface *surface = self->GetInfo<VideoSurface>();
+    double w = sx * surface->width();
+    double h = sy * surface->height();
+    layout->Add(new Rectangle(Box(x-w/2, y-h/2, w, h)));
     if (currentShape)
-        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
+        layout->Add(new ImageManipulator(currentShape, x, y, sx, sy, w, h));
 
     return XL::xl_true;
-
 }
 
 
-Tree_p Widget::videoPlayerTexture(Tree_p self, Real_p wt, Real_p ht, Text_p url)
+Tree_p Widget::movieTexture(Tree_p self, Text_p url)
 // ----------------------------------------------------------------------------
 //   Make a video player texture
 // ----------------------------------------------------------------------------
 {
-    double w = wt, h = ht;
-    if (w < 16) w = 16;
-    if (h < 16) h = 16;
-
     // Get or build the current frame if we don't have one
-    VideoPlayerSurface *surface = self->GetInfo<VideoPlayerSurface>();
+    VideoSurface *surface = self->GetInfo<VideoSurface>();
     if (!surface)
     {
-        surface = new VideoPlayerSurface(self, this);
-        self->SetInfo<VideoPlayerSurface> (surface);
+        surface = new VideoSurface(self, this);
+        self->SetInfo<VideoSurface> (surface);
     }
 
     // Resize to requested size, and bind texture
-    surface->resize(w,h);
     GLuint tex = surface->bind(url);
     layout->Add(new FillTexture(tex));
     layout->hasAttributes = true;

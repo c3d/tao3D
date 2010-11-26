@@ -28,6 +28,7 @@
 #include "coords.h"
 #include <GL/glew.h>
 #include <QtOpenGL>
+#include <phonon>
 
 class QWidget;
 
@@ -53,6 +54,8 @@ public:
     void                resize(uint width, uint height);
     virtual GLuint      bind();
     virtual bool        requestFocus(Layout *l, coord x, coord y);
+    int                 width()         { return widget->width(); }
+    int                 height()        { return widget->height(); }
 
     QWidget *           widget;
     GLuint              textureId;
@@ -276,21 +279,23 @@ public slots:
 };
 
 
-struct VideoPlayerSurface : WidgetSurface
+struct VideoSurface : WidgetSurface
 // ----------------------------------------------------------------------------
-//    Hold information about a Phonon::VideoPlayer
+//    Display a Phonon::VideoWidget
 // ----------------------------------------------------------------------------
 {
     Q_OBJECT;
 public:
-    typedef VideoPlayerSurface * data_t;
-    VideoPlayerSurface(XL::Tree *t, Widget *parent);
-    ~VideoPlayerSurface();
+    typedef VideoSurface * data_t;
+    VideoSurface(XL::Tree *t, Widget *parent);
+    ~VideoSurface();
     operator data_t() { return this; }
     virtual GLuint bind(XL::Text *url);
 public:
     text url;
     QGLFramebufferObject *fbo;
+    Phonon::AudioOutput *audio;
+    Phonon::MediaObject *media;
 };
 
 

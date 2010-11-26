@@ -54,8 +54,8 @@ QSvgRenderer * SvgRendererInfo::defaultImageRenderer()
 //   Return an image to use when the source file is invalid
 // ----------------------------------------------------------------------------
 {
-    static  QSvgRenderer * defSvg =
-            new QSvgRenderer(QString(":/images/default_image.svg"));
+    static QSvgRenderer * defSvg =
+        new QSvgRenderer(QString(":/images/default_image.svg"));
     return defSvg;
 }
 

@@ -57,7 +57,8 @@ void TextSpan::Draw(Layout *where)
     bool        hasLine    = setLineColor(where);
     bool        hasTexture = setTexture(where);
     GlyphCache &glyphs     = widget->glyphs();
-    bool        tooBig     = where->font.pointSize() > (int) glyphs.maxFontSize;
+    int         maxSize    = (int) glyphs.maxFontSize;
+    bool        tooBig     = where->font.pointSize() > maxSize;
     bool        printing   = where->printing;
     Point3      offset0    = where->Offset();
     uint        dbgMod     = (Qt::ShiftModifier | Qt::ControlModifier);

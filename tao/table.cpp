@@ -357,4 +357,20 @@ void Table::Compute(Layout *where)
     Inherit(where);
 }
 
+
+void Table::NextCell()
+// ----------------------------------------------------------------------------
+//   Increase row and column for the next cell
+// ----------------------------------------------------------------------------
+{
+    column++;
+    if (column >= columns)
+    {
+        column = 0;
+        row++;
+        if (row >= rows)
+            row = 0;
+    }
+}
+
 TAO_END

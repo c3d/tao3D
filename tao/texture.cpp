@@ -28,6 +28,12 @@
 
 TAO_BEGIN
 
+// ============================================================================
+// 
+//    Image textures
+// 
+// ============================================================================
+
 ImageTextureInfo::texture_map ImageTextureInfo::textures;
 
 ImageTextureInfo::ImageTextureInfo()
@@ -142,6 +148,103 @@ GLuint ImageTextureInfo::bind(text file)
 // ----------------------------------------------------------------------------
 {
     Texture texinfo = load(file);
+
+    glBindTexture(GL_TEXTURE_2D, texinfo.id);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glEnable(GL_TEXTURE_2D);
+    if (TaoApp->hasGLMultisample)
+        glEnable(GL_MULTISAMPLE);
+    width = texinfo.width;
+    height = texinfo.height;
+
+    return texinfo.id;
+}
+
+
+
+// ============================================================================
+// 
+//   Movie textures
+// 
+// ============================================================================
+
+AnimatedTextureInfo::AnimatedTextureInfo()
+// ----------------------------------------------------------------------------
+//   Create an empty movie
+// ----------------------------------------------------------------------------
+    : ImageTextureInfo()
+{}
+
+
+AnimatedTextureInfo::~AnimatedTextureInfo()
+// ----------------------------------------------------------------------------
+//   Delete the reference to a movie
+// ----------------------------------------------------------------------------
+{}
+
+
+AnimatedTextureInfo::Texture AnimatedTextureInfo::load(text file)
+// ----------------------------------------------------------------------------
+//   Load a movie from the given file
+// ----------------------------------------------------------------------------
+{
+    texture_map::iterator found = textures.find(file);
+    Texture texinfo = { 0, 0, 0 };
+    if (found == textures.end())
+    {
+        // Prune the map if it gets too big
+        while (textures.size() > MAX_TEXTURES)
+        {
+            texture_map::iterator first = textures.begin();
+            if ((*first).second.id != defaultTexture().id)
+                glDeleteTextures(1, &(*first).second.id);
+            textures.erase(first);
+        }
+
+        // Read the image file and convert to proper GL image format
+        movie.setFileName(+file);
+        if (!movie.isValid())
+        {
+            text qualified = "texture:" + file;
+            movie.setFileName(+qualified);
+        }
+        movie.start();
+
+
+        // Remember the texture for next time
+        textures[file] = texinfo;
+    }
+    else
+    {
+        texinfo = (*found).second;
+    }
+
+    return texinfo;
+}
+
+
+GLuint AnimatedTextureInfo::bind(text file)
+// ----------------------------------------------------------------------------
+//   Bind the current picture in the movie
+// ----------------------------------------------------------------------------
+{
+    Texture texinfo = load(file);
+
+    QImage image = movie.currentImage();
+    if (!image.isNull())
+    {
+        texinfo.width = image.width();
+        texinfo.height = image.height();
+        QImage texture = QGLWidget::convertToGLFormat(image);
+
+        // Generate the GL texture
+        glGenTextures(1, &texinfo.id);
+        glBindTexture(GL_TEXTURE_2D, texinfo.id);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                     texinfo.width, texinfo.height, 0, GL_RGBA,
+                     GL_UNSIGNED_BYTE, texture.bits());
+    }
 
     glBindTexture(GL_TEXTURE_2D, texinfo.id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

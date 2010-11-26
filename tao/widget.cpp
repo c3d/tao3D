@@ -5528,7 +5528,9 @@ Tree_p Widget::tableCell(Tree_p self, Real_p w, Real_p h, Tree_p body)
     flows[flowName] = tbox;
 
     XL::LocalSave<Layout *> save(layout, tbox);
-    return xl_evaluate(body);
+    Tree_p result = xl_evaluate(body);
+    table->NextCell();
+    return result;
 }
 
 
@@ -5547,7 +5549,9 @@ Tree_p Widget::tableCell(Tree_p self, Tree_p body)
     table->Add(tbox);
 
     XL::LocalSave<Layout *> save(layout, tbox);
-    return xl_evaluate(body);
+    Tree_p result = xl_evaluate(body);
+    table->NextCell();
+    return result;
 }
 
 

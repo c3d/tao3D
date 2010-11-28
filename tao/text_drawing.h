@@ -95,6 +95,29 @@ public:
 };
 
 
+struct TextValue : TextSpan
+// ----------------------------------------------------------------------------
+//   Like a text span, but for the result of an evaluation
+// ----------------------------------------------------------------------------
+{
+    TextValue(XL::Tree *value, Widget *wid, uint start = 0, uint end = ~0)
+        : TextSpan(NULL, start, end), value(value), widget(wid)
+    {
+        source = Format(value);
+    }
+    Text *              Format(XL::Tree *value);
+    bool                Validate(Text *source, Widget *widget);
+
+    virtual void        DrawSelection(Layout *where);
+    virtual void        Identify(Layout *where);
+
+public:
+    Tree_p              value;
+    Widget *            widget;
+    static uint         values, shows;
+};
+
+
 struct TextSelect : Identify
 // ----------------------------------------------------------------------------
 //   A text selection (contiguous range of characters)

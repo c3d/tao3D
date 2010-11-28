@@ -440,6 +440,7 @@ public:
     Text_p      textFlow(Tree_p self, text name);
     Tree_p      textSpan(Tree_p self, Text_p content);
     Tree_p      textFormula(Tree_p self, Tree_p value);
+    Tree_p      textValue(Context *, Tree_p self, Tree_p value);
     Tree_p      font(Context *context, Tree_p self, Tree_p descr);
     Tree_p      fontSize(Tree_p self, double size);
     Tree_p      fontScaling(Tree_p self, double scaling, double minSize);

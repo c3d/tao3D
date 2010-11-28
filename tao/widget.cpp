@@ -1793,20 +1793,6 @@ void Widget::keyPressEvent(QKeyEvent *event)
     // Get the name of the key
     text key = keyName(event);
 
-    // Check if we are changing pages here...
-    if (pageLinks.count(key))
-    {
-        pageName = pageLinks[key];
-        selection.clear();
-        selectionTrees.clear();
-        delete textSelection();
-        delete drag();
-        pageStartTime = startTime = frozenTime = CurrentTime();
-        draw();
-        refresh(0);
-        return;
-    }
-
     // Check if one of the activities handled the key
     bool handled = false;
     Activity *next;
@@ -3226,7 +3212,7 @@ XL::Text_p Widget::page(Tree_p self, text name, Tree_p body)
         pageFound = pageId;
         pageLinks.clear();
         if (pageId > 1)
-            pageLinks["PageUp"] = lastPageName;
+            pageLinks["Up"] = lastPageName;
         pageTree = body;
         xl_evaluate(body);
     }
@@ -3234,8 +3220,8 @@ XL::Text_p Widget::page(Tree_p self, text name, Tree_p body)
     {
         // We are executing the page following the current one:
         // Check if PageDown is set, otherwise set current page as default
-        if (pageLinks.count("PageDown") == 0)
-            pageLinks["PageDown"] = name;
+        if (pageLinks.count("Down") == 0)
+            pageLinks["Down"] = name;
     }
 
     lastPageName = name;
@@ -5428,6 +5414,21 @@ XL::Name_p Widget::textEditKey(Tree_p self, text key)
             return XL::xl_true;
         }
     }
+
+    // Check if we are changing pages here...
+    if (pageLinks.count(key))
+    {
+        pageName = pageLinks[key];
+        selection.clear();
+        selectionTrees.clear();
+        delete textSelection();
+        delete drag();
+        pageStartTime = startTime = frozenTime = CurrentTime();
+        draw();
+        refresh(0);
+        return XL::xl_true;
+    }
+
     return XL::xl_false;
 }
 

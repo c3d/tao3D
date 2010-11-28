@@ -1492,6 +1492,16 @@ PREFIX(TextFormula, tree,"formula", PARM(t, tree), RTAO(textFormula(self, t)),
                 return_value \"tree\", <<The tree t given in parameter.>>;\
                 }\
           |*/")
+PREFIX(TextValue, tree,"text_value", PARM(t, tree), RTAO(textValue(self, &t)),
+       "/*| docname \"text_value\", \"text\", do { \
+                dsyntax <<text)vakye t>>;\
+                synopsis \"Insert a block of text corresponding to the given vaue\" ; \
+                description <<Insert a block of text corresponding to the given formula>> ;\
+                parameters;\
+                parameter \"tree\", \"t\", <<The formula>>;\
+                return_value \"tree\", <<The tree t given in parameter.>>;\
+                }\
+          |*/")
 PREFIX(Font, tree, "font", PARM(f, tree), RTAO(font(self, f)),
        "/*| docname \"font\", \"text:font\", do { \
                 dsyntax <<font f>>;\

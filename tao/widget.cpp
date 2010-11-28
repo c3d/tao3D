@@ -5160,6 +5160,37 @@ Tree_p Widget::textFormula(Tree_p self, Tree_p value)
 }
 
 
+Tree_p Widget::textValue(Tree_p self, Tree_p value)
+// ----------------------------------------------------------------------------
+//   Insert a block of text corresponding to the given formula
+// ----------------------------------------------------------------------------
+{
+    XL::kind k = value->Kind();
+    if (k > XL::KIND_LEAF_LAST)
+    {
+        value = xl_evaluate(value);
+        k = value->Kind();
+    }
+
+    if (k <= XL::KIND_LEAF_LAST)
+    {
+        if (path)
+            TextValue(value, this).Draw(*path, layout);
+        else
+            layout->Add(new TextValue(value, this));        
+    }
+    else
+    {
+        Prefix *prefix = self->AsPrefix();
+        if (path)
+            TextFormula(prefix, this).Draw(*path, layout);
+        else
+            layout->Add(new TextFormula(prefix, this));
+    }
+    return value;
+}
+
+
 Tree_p Widget::font(Tree_p self, Tree_p description)
 // ----------------------------------------------------------------------------
 //   Select a font family

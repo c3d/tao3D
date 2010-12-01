@@ -87,8 +87,9 @@ class Widget : public QGLWidget
 public:
     typedef std::vector<double>         attribute_args;
     typedef std::map<GLuint, uint>      selection_map;
-    enum StereoMode { stereoHARDWARE, stereoINTERLACED };
-
+    enum StereoMode { stereoHARDWARE,
+                      stereoHORIZONTAL, stereoVERTICAL,
+                      stereoDIAGONAL, stereoANTI_DIAGONAL };
 public:
     Widget(Window *parent, XL::SourceFile *sf = NULL);
     ~Widget();
@@ -330,6 +331,7 @@ public:
 
     Name_p      enableAnimations(Tree_p self, bool fs);
     Name_p      enableStereoscopy(Tree_p self, Name_p name);
+    Name_p      setStereoPlanes(Tree_p self, uint planes);
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
 
@@ -674,6 +676,7 @@ private:
     bool                  animated;
     StereoMode            stereoMode;
     char                  stereoscopic;
+    char                  stereoPlanes;
 
     // Selection
     Activity *            activities;

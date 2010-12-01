@@ -669,6 +669,17 @@ PREFIX(EnableStereoscopy, boolean, "enable_stereoscopy", PARM(mode, symbol),
                 return_value \"\", <<True if previous state was on.>>;\
                 }\
           |*/")
+PREFIX(StereoPlanes, boolean, "stereoscopy_planes", PARM(cnt, integer),
+       RTAO(setStereoPlanes(self, cnt)),
+       "/*| docname \"enable_stereoscopy\", \"gui\", do { \
+                dsyntax <<enable_stereoscopy s>>;\
+                synopsis \"Enable or disable stereoscopie mode\" ; \
+                description <<Enable or disable stereoscopie mode>> ;\
+                parameters;\
+                parameter \"boolean\", \"s\", <<on or off>>;\
+                return_value \"\", <<True if previous state was on.>>;\
+                }\
+          |*/")
 PREFIX(EyeDistance, boolean, "eye_distance", PARM(e, real),
        RTAO(setEyeDistance(self, e)),
        "")

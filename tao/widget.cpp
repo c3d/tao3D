@@ -134,7 +134,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       currentShape(NULL), currentGridLayout(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
       drawAllPages(false), animated(true),
-      stereoMode(stereoHARDWARE), stereoscopic(false),
+      stereoMode(stereoHARDWARE), stereoscopic(0), stereoPlanes(1),
       activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
       selection(), selectionTrees(), selectNextTime(), actionMap(),
@@ -355,13 +355,11 @@ void Widget::draw()
     // If we are in stereoscopice mode, we draw twice, once for each eye
     glClearColor (1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if (stereoMode == stereoINTERLACED)
-        setupStereoStencil(w, h);
 
-    do
+    for (stereoscopic = 1; stereoscopic <= stereoPlanes; stereoscopic++)
     {
         // Select the buffer in which we draw
-        if (stereoscopic)
+        if (stereoPlanes > 1)
         {
             if (stereoMode == stereoHARDWARE)
             {
@@ -372,13 +370,11 @@ void Widget::draw()
                 glClearColor(1.0, 1.0, 1.0, 1.0);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             }
-            else if (stereoMode == stereoINTERLACED)
+            else
             {
+                setupStereoStencil(w, h);
+                glStencilFunc(GL_EQUAL, 1, 1);
                 glDrawBuffer(GL_BACK);
-                if (stereoscopic == 1)
-                    glStencilFunc(GL_NOTEQUAL,1,1);
-                else if (stereoscopic == 2)
-                    glStencilFunc(GL_EQUAL,1,1);
             }
         }
         else
@@ -388,6 +384,7 @@ void Widget::draw()
 
         // Draw the current buffer
         setup(w, h);
+        glClear(GL_DEPTH_BUFFER_BIT);
 
         id = idDepth = 0;
         space->Draw(NULL);
@@ -407,14 +404,7 @@ void Widget::draw()
         for (Activity *a = activities; a; a = a->Display()) ;
         selectionSpace.Draw(NULL);
         glEnable(GL_DEPTH_TEST);
-
-        // If we use stereoscopy, switch to other eye
-        if (stereoscopic)
-        {
-            stereoscopic = 3 - stereoscopic;
-            setup(width(), height());
-        }
-    } while (stereoscopic == 2);
+    }
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -529,7 +519,8 @@ void Widget::print(QPrinter *prt)
     // Set the current printer while drawing
     TaoSave saveCurrent(current, this);
     XL::LocalSave<QPrinter *> savePrinter(printer, prt);
-    XL::LocalSave<char> disableStereoscopy(stereoscopic, 0);
+    XL::LocalSave<char> disableStereoscopy1(stereoPlanes, 0);
+    XL::LocalSave<char> disableStereoscopy2(stereoscopic, 1);
     XL::LocalSave<text> savePage(pageName, "");
 
     // Identify the page range
@@ -1072,7 +1063,7 @@ void Widget::enableStereoscopy(bool enable)
 //   Enable or disable stereoscopy on the page
 // ----------------------------------------------------------------------------
 {
-    stereoscopic = enable;
+    stereoPlanes = enable ? 2 : 1;
     refresh();
 }
 
@@ -1240,10 +1231,7 @@ void Widget::setup(double w, double h, const Box *picking)
     double zNear = Widget::zNear, zFar = Widget::zFar;
     Point3 up(0.0, 1.0, 0.0);
     double eyeX = eye.x;
-    if (stereoscopic == 1)
-        eyeX += eyeDistance;
-    else if (stereoscopic == 2)
-        eyeX -= eyeDistance;
+    eyeX += eyeDistance * (stereoscopic - 0.5 * stereoPlanes);
 
     glFrustum ((-w/2)*zoom, (w/2)*zoom, (-h/2)*zoom, (h/2)*zoom, zNear, zFar);
     gluLookAt(eyeX, eye.y, eye.z,
@@ -1298,7 +1286,7 @@ void Widget::setupStereoStencil(double w, double h)
 //   For interlaced output, generate a stencil with every other line
 // ----------------------------------------------------------------------------
 {
-    if (stereoMode == stereoINTERLACED)
+    if (stereoMode > stereoHARDWARE)
     {
         // Setup the initial viewport and projection for drawing in stencil
         glViewport(0, 0, w, h);
@@ -1319,18 +1307,56 @@ void Widget::setupStereoStencil(double w, double h)
 	glDisable(GL_DEPTH_TEST);
 	glStencilFunc(GL_ALWAYS,1,1);                     // Ignore contents
 
-        // Draw pattern showing every other line
+        // Line properties
 	glColor4f(1.0, 1.0, 1.0, 1.0);
-        glLineWidth(1.0);
+        glLineWidth(1);
         glDisable(GL_LINE_SMOOTH);
         glDisable(GL_LINE_STIPPLE);
-        glBegin (GL_LINES);
-	for (uint y = 0; y < h; y += 2)
-	{
-            glVertex2f (0, y);
-            glVertex2f (w, y);
-	}
-        glEnd();
+
+
+        switch(stereoMode)
+        {
+        case stereoHORIZONTAL:
+            // Draw pattern showing every other line
+            glBegin (GL_LINES);
+            for (uint y = stereoscopic-1; y < h; y += stereoPlanes)
+            {
+                glVertex2f (-w, y);
+                glVertex2f (w, y);
+            }
+            glEnd();
+            break;
+        case stereoVERTICAL:
+            glBegin (GL_LINES);
+            for (uint x = stereoscopic-1; x < w; x += stereoPlanes)
+            {
+                glVertex2f (x, -h);
+                glVertex2f (x, h);
+            }
+            glEnd();
+            break;
+        case stereoANTI_DIAGONAL:
+            glBegin (GL_LINES);
+            for (uint y = stereoscopic-1; y < w + h; y += stereoPlanes)
+            {
+                glVertex2f (0, y);
+                glVertex2f (y, 0);
+            }
+            glEnd();
+            glDisable(GL_LINE_STIPPLE);
+            break;
+        case stereoDIAGONAL:
+            glBegin (GL_LINES);
+            for (uint y = stereoscopic-1; y < w + h; y += stereoPlanes)
+            {
+                glVertex2f (0, h-y);
+                glVertex2f (y, h);
+            }
+            glEnd();
+            glDisable(GL_LINE_STIPPLE);
+        default:
+            break;
+        }
 
         // Protect stencil from now on
 	glStencilOp (GL_KEEP, GL_KEEP, GL_KEEP);
@@ -3974,7 +4000,22 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
              name->value == "interleave" || name->value == "interleaved")
     {
         newState = true;
-        stereoMode = stereoINTERLACED;
+        stereoMode = stereoHORIZONTAL;
+    }
+    else if (name->value == "diagonal" || name->value == "cannes")
+    {
+        newState = true;
+        stereoMode = stereoDIAGONAL;
+    }
+    else if (name->value == "antidiagonal" || name->value == "reverse")
+    {
+        newState = true;
+        stereoMode = stereoANTI_DIAGONAL;
+    }
+    else if (name->value == "vertical")
+    {
+        newState = true;
+        stereoMode = stereoVERTICAL;
     }
     else
     {
@@ -3983,8 +4024,25 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
 
     Window *window = (Window *) parentWidget();
     if (oldState != newState)
+    {
         window->toggleStereoscopy();
+        if (newState)
+            stereoPlanes = 2;
+        else
+            stereoPlanes = 1;
+    }
     return oldState ? XL::xl_true : XL::xl_false;
+}
+
+
+XL::Name_p Widget::setStereoPlanes(XL::Tree_p self, uint planes)
+// ----------------------------------------------------------------------------
+//   Set the number of planes
+// ----------------------------------------------------------------------------
+{
+    if (planes > 1)
+        stereoPlanes = planes;
+    return XL::xl_true;
 }
 
 
@@ -5795,7 +5853,8 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
         XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
         XL::LocalSave<Point3> saveCenter(viewCenter, Point3(0,0,-zNear));
         XL::LocalSave<Point3> saveEye(eye, Point3(0,0,zNear));
-        XL::LocalSave<char> saveStereo(stereoscopic, false);
+        XL::LocalSave<char> saveStereo1(stereoPlanes, 0);
+        XL::LocalSave<char> saveStere2(stereoscopic, 1);
 
         // Clear the background and setup initial state
         frame->resize(w,h);

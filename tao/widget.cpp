@@ -369,17 +369,19 @@ void Widget::draw()
                     glDrawBuffer(GL_BACK_RIGHT);
                 glClearColor(1.0, 1.0, 1.0, 1.0);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                glDisable(GL_STENCIL_TEST);
             }
             else
             {
-                setupStereoStencil(w, h);
-                glStencilFunc(GL_EQUAL, 1, 1);
+                glStencilFunc(GL_EQUAL, stereoscopic, 63);
+                glEnable(GL_STENCIL_TEST);
                 glDrawBuffer(GL_BACK);
             }
         }
         else
         {
             glDrawBuffer(GL_BACK);
+            glDisable(GL_STENCIL_TEST);
         }
 
         // Draw the current buffer
@@ -1187,6 +1189,9 @@ void Widget::resizeGL(int width, int height)
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
     tmax = tsum = tcount = 0;
     tmin = ~tmax;
+
+    if (stereoMode > stereoHARDWARE)
+        setupStereoStencil(width, height);
 }
 
 
@@ -1300,12 +1305,10 @@ void Widget::setupStereoStencil(double w, double h)
 
 	// Prepare to draw in stencil buffer
 	glDrawBuffer(GL_BACK);
-	glEnable(GL_STENCIL_TEST);
+        glEnable(GL_STENCIL_TEST);
 	glClearStencil(0);
 	glClear(GL_STENCIL_BUFFER_BIT);
-	glStencilOp (GL_REPLACE, GL_REPLACE, GL_REPLACE); // Copy to stencil
 	glDisable(GL_DEPTH_TEST);
-	glStencilFunc(GL_ALWAYS,1,1);                     // Ignore contents
 
         // Line properties
 	glColor4f(1.0, 1.0, 1.0, 1.0);
@@ -1313,49 +1316,37 @@ void Widget::setupStereoStencil(double w, double h)
         glDisable(GL_LINE_SMOOTH);
         glDisable(GL_LINE_STIPPLE);
 
-
-        switch(stereoMode)
+        for (char s = 0; s < stereoPlanes; s++)
         {
-        case stereoHORIZONTAL:
-            // Draw pattern showing every other line
+            // Ignore contents, set value to current line
+            glStencilFunc(GL_ALWAYS, s+1, 63);
+            glStencilOp (GL_REPLACE, GL_REPLACE, GL_REPLACE); // Copy to stencil
             glBegin (GL_LINES);
-            for (uint y = stereoscopic-1; y < h; y += stereoPlanes)
+            for (uint x = s; x < w + h; x += stereoPlanes)
             {
-                glVertex2f (-w, y);
-                glVertex2f (w, y);
+                switch(stereoMode)
+                {
+                case stereoHORIZONTAL:
+                    glVertex2f (0, x);
+                    glVertex2f (w, x);
+                    break;
+                case stereoVERTICAL:
+                    glVertex2f (x, 0);
+                    glVertex2f (x, h);
+                    break;
+                case stereoDIAGONAL:
+                    glVertex2f (0, x);
+                    glVertex2f (x, 0);
+                    break;
+                case stereoANTI_DIAGONAL:
+                    glVertex2f (0, h-x);
+                    glVertex2f (x, h);
+                    break;
+                default:
+                    break;
+                }
             }
             glEnd();
-            break;
-        case stereoVERTICAL:
-            glBegin (GL_LINES);
-            for (uint x = stereoscopic-1; x < w; x += stereoPlanes)
-            {
-                glVertex2f (x, -h);
-                glVertex2f (x, h);
-            }
-            glEnd();
-            break;
-        case stereoANTI_DIAGONAL:
-            glBegin (GL_LINES);
-            for (uint y = stereoscopic-1; y < w + h; y += stereoPlanes)
-            {
-                glVertex2f (0, y);
-                glVertex2f (y, 0);
-            }
-            glEnd();
-            glDisable(GL_LINE_STIPPLE);
-            break;
-        case stereoDIAGONAL:
-            glBegin (GL_LINES);
-            for (uint y = stereoscopic-1; y < w + h; y += stereoPlanes)
-            {
-                glVertex2f (0, h-y);
-                glVertex2f (y, h);
-            }
-            glEnd();
-            glDisable(GL_LINE_STIPPLE);
-        default:
-            break;
         }
 
         // Protect stencil from now on
@@ -4026,10 +4017,14 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
     if (oldState != newState)
     {
         window->toggleStereoscopy();
+
         if (newState)
             stereoPlanes = 2;
         else
             stereoPlanes = 1;
+
+        if (stereoMode > stereoHARDWARE)
+            setupStereoStencil(width(), height());
     }
     return oldState ? XL::xl_true : XL::xl_false;
 }

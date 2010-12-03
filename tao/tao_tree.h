@@ -65,8 +65,6 @@ typedef XL::TreeList       TreeList;
 typedef XL::Symbols        Symbols;
 typedef XL::Symbols_p      Symbols_p;
 
-
-
 TAO_END
 
 #endif // TAO_TREE_H

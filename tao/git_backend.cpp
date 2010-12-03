@@ -68,7 +68,12 @@ bool GitRepository::checkGit()
 {
     bool ok;
     ok = checkGitCmd();
+#ifdef CONFIG_MACOSX
+    ok = ok && checkCmd("SshAskPass.app/Contents/MacOS/SshAskPass",
+                        "SSH_ASKPASS", sshAskPassCommand);
+#else
     ok = ok && checkCmd("SshAskPass", "SSH_ASKPASS", sshAskPassCommand);
+#endif
 #ifdef CONFIG_MINGW
     ok = ok && checkCmd("detach.exe", "TAO_DETACH", detachCommand);
 #endif

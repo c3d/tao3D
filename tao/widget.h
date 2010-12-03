@@ -89,7 +89,8 @@ public:
     typedef std::map<GLuint, uint>      selection_map;
     enum StereoMode { stereoHARDWARE,
                       stereoHORIZONTAL, stereoVERTICAL,
-                      stereoDIAGONAL, stereoANTI_DIAGONAL };
+                      stereoDIAGONAL, stereoANTI_DIAGONAL,
+                      stereoALIOSCOPY };
 public:
     Widget(Window *parent, XL::SourceFile *sf = NULL);
     ~Widget();

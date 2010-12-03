@@ -1316,13 +1316,33 @@ void Widget::setupStereoStencil(double w, double h)
         glDisable(GL_LINE_SMOOTH);
         glDisable(GL_LINE_STIPPLE);
 
+        uint numLines = 0;
+        switch(stereoMode)
+        {
+        case stereoHORIZONTAL:
+            numLines = h;
+            break;
+        case stereoVERTICAL:
+            numLines = w;
+            break;
+        case stereoDIAGONAL:
+        case stereoANTI_DIAGONAL:
+            numLines = w + h;
+            break;
+        case stereoALIOSCOPY:
+            numLines = 3 * (w + h);
+            break;
+        case stereoHARDWARE:
+            break;
+        }
+
         for (char s = 0; s < stereoPlanes; s++)
         {
             // Ignore contents, set value to current line
             glStencilFunc(GL_ALWAYS, s+1, 63);
             glStencilOp (GL_REPLACE, GL_REPLACE, GL_REPLACE); // Copy to stencil
             glBegin (GL_LINES);
-            for (uint x = s; x < w + h; x += stereoPlanes)
+            for (uint x = s; x < numLines; x += stereoPlanes)
             {
                 switch(stereoMode)
                 {
@@ -1342,7 +1362,11 @@ void Widget::setupStereoStencil(double w, double h)
                     glVertex2f (0, h-x);
                     glVertex2f (x, h);
                     break;
-                default:
+                case stereoALIOSCOPY:
+                    glVertex2f (0, x);
+                    glVertex2f (x/3.0, 0);
+                    break;
+                case stereoHARDWARE:
                     break;
                 }
             }
@@ -3993,20 +4017,26 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
         newState = true;
         stereoMode = stereoHORIZONTAL;
     }
-    else if (name->value == "diagonal" || name->value == "cannes")
-    {
-        newState = true;
-        stereoMode = stereoDIAGONAL;
-    }
-    else if (name->value == "antidiagonal" || name->value == "reverse")
-    {
-        newState = true;
-        stereoMode = stereoANTI_DIAGONAL;
-    }
     else if (name->value == "vertical")
     {
         newState = true;
         stereoMode = stereoVERTICAL;
+    }
+    else if (name->value == "diagonal")
+    {
+        newState = true;
+        stereoMode = stereoDIAGONAL;
+    }
+    else if (name->value == "antidiagonal")
+    {
+        newState = true;
+        stereoMode = stereoANTI_DIAGONAL;
+    }
+    else if (name->value == "alioscopy")
+    {
+        newState = true;
+        stereoMode = stereoALIOSCOPY;
+        stereoPlanes = 8;
     }
     else
     {
@@ -4018,14 +4048,14 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
     {
         window->toggleStereoscopy();
 
-        if (newState)
-            stereoPlanes = 2;
-        else
+        if (!newState)
             stereoPlanes = 1;
-
-        if (stereoMode > stereoHARDWARE)
-            setupStereoStencil(width(), height());
+        else if (stereoPlanes == 1)
+            stereoPlanes = 2;
     }
+    if (stereoMode > stereoHARDWARE)
+        setupStereoStencil(width(), height());
+
     return oldState ? XL::xl_true : XL::xl_false;
 }
 
@@ -4036,7 +4066,11 @@ XL::Name_p Widget::setStereoPlanes(XL::Tree_p self, uint planes)
 // ----------------------------------------------------------------------------
 {
     if (planes > 1)
+    {
         stereoPlanes = planes;
+        if (stereoMode > stereoHARDWARE)
+            setupStereoStencil(width(), height());
+    }
     return XL::xl_true;
 }
 

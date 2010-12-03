@@ -79,7 +79,10 @@ stereoscopy_settings ->
     chooser_choice "Enable stereoscopy (horizontal interleave)", {enable_stereoscopy interleave}
     chooser_choice "Enable stereoscopy (vertical interleave)", {enable_stereoscopy vertical}
     chooser_choice "Enable stereoscopy (diagonal interleave)", {enable_stereoscopy diagonal}
-    chooser_choice "Enable stereoscopy (back interleave)", {enable_stereoscopy reverse}
+    chooser_choice "Enable stereoscopy (back interleave)", {enable_stereoscopy antidiagonal}
+    chooser_choice "Enable stereoscopy (Cannes)", {enable_stereoscopy alioscopy; eye_distance 30.0}
+    chooser_choice "Increase eye distance", {eye_distance eye_distance * 1.5}
+    chooser_choice "Decrease eye distance", {eye_distance eye_distance * 0.75}
     chooser_choice "Set 2 stereo planes", {stereoscopy_planes 2}
     chooser_choice "Set 3 stereo planes", {stereoscopy_planes 3}
     chooser_choice "Set 4 stereo planes", {stereoscopy_planes 4}

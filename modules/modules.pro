@@ -15,4 +15,4 @@
 # MUST have its own version attribute in module.xl).
 
 TEMPLATE = subdirs
-SUBDIRS  = hello_world lorem_ipsum
+SUBDIRS  = hello_world lorem_ipsum taoTester

@@ -920,12 +920,14 @@ void Window::createActions()
     newDocAct->setShortcut(QKeySequence(Qt::SHIFT + Qt::CTRL + Qt::Key_N));
     newDocAct->setStatusTip(tr("Create a new document"));
     newDocAct->setIconVisibleInMenu(false);
+    newDocAct->setObjectName("newDocument");
     connect(newDocAct, SIGNAL(triggered()), this, SLOT(newDocument()));
 
     newAct = new QAction(QIcon(":/images/new.png"), tr("&New"), this);
     newAct->setShortcuts(QKeySequence::New);
     newAct->setStatusTip(tr("Create a new file"));
     newAct->setIconVisibleInMenu(false);
+    newAct->setObjectName("newFile");
     connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
 
     openAct = new QAction(QIcon(":/images/open.png"), tr("&Open File..."),
@@ -933,29 +935,35 @@ void Window::createActions()
     openAct->setShortcuts(QKeySequence::Open);
     openAct->setStatusTip(tr("Open an existing file"));
     openAct->setIconVisibleInMenu(false);
+    openAct->setObjectName("open");
     connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
 
     openUriAct = new QAction(tr("Open &URI..."), this);
     openUriAct->setStatusTip(tr("Open an URI"));
+    openUriAct->setObjectName("openURI");
     connect(openUriAct, SIGNAL(triggered()), this, SLOT(openUri()));
 
     saveAct = new QAction(QIcon(":/images/save.png"), tr("&Save"), this);
     saveAct->setShortcuts(QKeySequence::Save);
     saveAct->setStatusTip(tr("Save the document to disk"));
     saveAct->setIconVisibleInMenu(false);
+    saveAct->setObjectName("save");
     connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
 
     consolidateAct = new QAction(tr("Consolidate"), this);
     consolidateAct->setStatusTip(tr("Make the document self contained"));
+    consolidateAct->setObjectName("consolidate");
     connect(consolidateAct, SIGNAL(triggered()), this, SLOT(consolidate()));
 
     saveAsAct = new QAction(tr("Save &As..."), this);
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
     saveAsAct->setStatusTip(tr("Save the document under a new name"));
+    saveAsAct->setObjectName("saveAs");
     connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
 
     saveFontsAct = new QAction(tr("Save with fonts..."), this);
     saveFontsAct->setStatusTip(tr("Save the document with all required fonts"));
+    saveFontsAct->setObjectName("saveFonts");
     connect(saveFontsAct, SIGNAL(triggered()), this, SLOT(saveFonts()));
 
     printAct = new QAction(tr("&Print..."), this);
@@ -971,12 +979,14 @@ void Window::createActions()
     printer->setOrientation(QPrinter::Landscape);
 
     clearRecentAct = new QAction(tr("Clear list"), this);
+    clearRecentAct->setObjectName("clearRecent");
     connect(clearRecentAct, SIGNAL(triggered()),
             this, SLOT(clearRecentFileList()));
     for (int i = 0; i < MaxRecentFiles; ++i)
     {
         recentFileActs[i] = new QAction(this);
         recentFileActs[i]->setVisible(false);
+        recentFileActs[i]->setObjectName(QString("recentFile%1").arg(i));
         connect(recentFileActs[i], SIGNAL(triggered()),
                 this, SLOT(openRecentFile()));
     }
@@ -984,11 +994,13 @@ void Window::createActions()
     closeAct = new QAction(tr("&Close"), this);
     closeAct->setShortcut(tr("Ctrl+W"));
     closeAct->setStatusTip(tr("Close this window"));
+    closeAct->setObjectName("close");
     connect(closeAct, SIGNAL(triggered()), this, SLOT(close()));
 
     exitAct = new QAction(tr("E&xit"), this);
     exitAct->setShortcuts(QKeySequence::Quit);
     exitAct->setStatusTip(tr("Exit the application"));
+    exitAct->setObjectName("exit");
     connect(exitAct, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()));
 
     cutAct = new QAction(QIcon(":/images/cut.png"), tr("Cu&t"), this);
@@ -996,6 +1008,7 @@ void Window::createActions()
     cutAct->setStatusTip(tr("Cut the current selection's contents to the "
                             "clipboard"));
     cutAct->setIconVisibleInMenu(false);
+    cutAct->setObjectName("cut");
     connect(cutAct, SIGNAL(triggered()), this, SLOT(cut()));
 
     copyAct = new QAction(QIcon(":/images/copy.png"), tr("&Copy"), this);
@@ -1003,6 +1016,7 @@ void Window::createActions()
     copyAct->setStatusTip(tr("Copy the current selection's contents to the "
                              "clipboard"));
     copyAct->setIconVisibleInMenu(false);
+    copyAct->setObjectName("copy");
     connect(copyAct, SIGNAL(triggered()), this, SLOT(copy()));
 
     pasteAct = new QAction(QIcon(":/images/paste.png"), tr("&Paste"), this);
@@ -1010,6 +1024,7 @@ void Window::createActions()
     pasteAct->setStatusTip(tr("Paste the clipboard's contents into the current "
                               "selection"));
     pasteAct->setIconVisibleInMenu(false);
+    pasteAct->setObjectName("paste");
     connect(pasteAct, SIGNAL(triggered()), this, SLOT(paste()));
 
     setPullUrlAct = new QAction(tr("Synchronize..."), this);
@@ -1017,41 +1032,48 @@ void Window::createActions()
                                    "when synchronizing the current "
                                    "document with a remote one"));
     setPullUrlAct->setEnabled(false);
+    setPullUrlAct->setObjectName("pullURL");
     connect(setPullUrlAct, SIGNAL(triggered()), this, SLOT(setPullUrl()));
 
     pushAct = new QAction(tr("Push..."), this);
     pushAct->setStatusTip(tr("Push the current project to "
                                 "a specific path or URL"));
     pushAct->setEnabled(false);
+    pushAct->setObjectName("pushURL");
     connect(pushAct, SIGNAL(triggered()), this, SLOT(push()));
 
     fetchAct = new QAction(tr("Fetch..."), this);
     fetchAct->setStatusTip(tr("Fetch data from a remote Tao project "
                               "(path or URL)"));
     fetchAct->setEnabled(false);
+    fetchAct->setObjectName("fetchURL");
     connect(fetchAct, SIGNAL(triggered()), this, SLOT(fetch()));
 
     cloneAct = new QAction(tr("Clone..."), this);
     cloneAct->setStatusTip(tr("Clone (download) a Tao project "
                               "and make a local copy"));
+    cloneAct->setObjectName("clone");
     connect(cloneAct, SIGNAL(triggered()), this, SLOT(clone()));
 
     mergeAct = new QAction(tr("Merge..."), this);
     mergeAct->setStatusTip(tr("Apply the changes made in one branch into "
                               "another branch"));
     mergeAct->setEnabled(false);
+    mergeAct->setObjectName("merge");
     connect(mergeAct, SIGNAL(triggered()), this, SLOT(merge()));
 
     checkoutAct = new QAction(tr("Checkout..."), this);
     checkoutAct->setStatusTip(tr("Checkout a previous version of the document "
                                  "into a temporary branch"));
     checkoutAct->setEnabled(false);
+    checkoutAct->setObjectName("checkout");
     connect(checkoutAct, SIGNAL(triggered()), this, SLOT(checkout()));
 
     selectiveUndoAct = new QAction(tr("Selective undo..."), this);
     selectiveUndoAct->setStatusTip(tr("Pick a previous change, revert it and "
                                       "apply it to the current document"));
     selectiveUndoAct->setEnabled(false);
+    selectiveUndoAct->setObjectName("selectiveUndo");
     connect(selectiveUndoAct, SIGNAL(triggered()),
             this, SLOT(selectiveUndo()));
 
@@ -1059,10 +1081,12 @@ void Window::createActions()
     diffAct->setStatusTip(tr("View the source code difference between two "
                              "document versions"));
     diffAct->setEnabled(false);
+    diffAct->setObjectName("diff");
     connect(diffAct, SIGNAL(triggered()), this, SLOT(diff()));
 
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setStatusTip(tr("Show the application's About box"));
+    aboutAct->setObjectName("about");
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
     //aboutQtAct = new QAction(tr("About &Qt"), this);
@@ -1071,22 +1095,26 @@ void Window::createActions()
 
     preferencesAct = new QAction(tr("&Preferences"), this);
     preferencesAct->setStatusTip(tr("Set application preferences"));
+    preferencesAct->setObjectName("preferences");
     connect(preferencesAct, SIGNAL(triggered()), this, SLOT(preferences()));
 
     fullScreenAct = new QAction(tr("Full Screen"), this);
     fullScreenAct->setStatusTip(tr("Toggle full screen mode"));
     fullScreenAct->setCheckable(true);
+    fullScreenAct->setObjectName("fullScreen");
     connect(fullScreenAct, SIGNAL(triggered()), this, SLOT(toggleFullScreen()));
 
     slideShowAct = new QAction(tr("Slide show"), this);
     slideShowAct->setStatusTip(tr("Toggle slide show mode"));
     slideShowAct->setCheckable(true);
+    slideShowAct->setObjectName("slideShow");
     connect(slideShowAct, SIGNAL(triggered()), this, SLOT(toggleSlideShow()));
 
     viewAnimationsAct = new QAction(tr("Animations"), this);
     viewAnimationsAct->setStatusTip(tr("Switch animations on or off"));
     viewAnimationsAct->setCheckable(true);
     viewAnimationsAct->setChecked(taoWidget->hasAnimations());
+    viewAnimationsAct->setObjectName("viewAnimations");
     connect(viewAnimationsAct, SIGNAL(triggered()),
             this, SLOT(toggleAnimations()));
 
@@ -1094,6 +1122,7 @@ void Window::createActions()
     viewStereoscopyAct->setStatusTip(tr("Switch stereoscopy on or off"));
     viewStereoscopyAct->setCheckable(true);
     viewStereoscopyAct->setChecked(taoWidget->hasStereoscopy());
+    viewStereoscopyAct->setObjectName("viewStereoscopy");
     connect(viewStereoscopyAct, SIGNAL(triggered()),
             this, SLOT(toggleStereoscopy()));
 
@@ -1116,6 +1145,7 @@ void Window::createActions()
                                     tr("Hand cursor"), this);
     handCursorAct->setStatusTip(tr("Select hand cursor to pan around screen"));
     handCursorAct->setCheckable(true);
+    handCursorAct->setObjectName("handCursor");
     connect(handCursorAct, SIGNAL(toggled(bool)), taoWidget,
             SLOT(showHandCursor(bool)));
     // Icon copied from:
@@ -1123,6 +1153,7 @@ void Window::createActions()
     resetViewAct = new QAction(QIcon(":/images/view-restore.png"),
                                     tr("Restore default view"), this);
     resetViewAct->setStatusTip(tr("Restore default view (zoom and position)"));
+    resetViewAct->setObjectName("resetView");
     connect(resetViewAct, SIGNAL(triggered()), taoWidget,
             SLOT(resetView()));
 }

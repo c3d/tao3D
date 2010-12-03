@@ -46,7 +46,6 @@ main_chooser ->
     chooser_choice "Exit slide show", {slide_show false}
     chooser_choice "Enable stereoscopy", {enable_stereoscopy true}
     chooser_choice "Disable stereoscopy", {enable_stereoscopy false}
-    chooser_choice "Enable stereoscopy (interleaved mode)", {enable_stereoscopy interleave}
     chooser_choice "Swap left and right eye", {eye_distance -eye_distance}
     chooser_choice "Reset view", {reset_view}
     chooser_choice "Zoom in", {zoom_in}
@@ -55,6 +54,7 @@ main_chooser ->
     chooser_choice "Select page", {page_chooser}
     chooser_choice "Checkout...", {branch_chooser}
     chooser_commands "chooser_command_", ""
+    stereoscopy_settings
 
 page_chooser ->
     chooser "Go to page..."
@@ -67,6 +67,24 @@ branch_chooser ->
 commit_chooser b:text ->
     chooser "Select commit"
     chooser_commits b, checkout, ""
+
+stereoscopy_settings ->
+    chooser_choice "Enable stereoscopy (horizontal interleave)", {enable_stereoscopy interleave}
+    chooser_choice "Enable stereoscopy (vertical interleave)", {enable_stereoscopy vertical}
+    chooser_choice "Enable stereoscopy (diagonal interleave)", {enable_stereoscopy diagonal}
+    chooser_choice "Enable stereoscopy (back interleave)", {enable_stereoscopy antidiagonal}
+    chooser_choice "Enable stereoscopy (Cannes)", {enable_stereoscopy alioscopy; eye_distance 30.0}
+    chooser_choice "Increase eye distance", {eye_distance eye_distance * 1.5}
+    chooser_choice "Decrease eye distance", {eye_distance eye_distance * 0.75}
+    chooser_choice "Set 2 stereo planes", {stereoscopy_planes 2}
+    chooser_choice "Set 3 stereo planes", {stereoscopy_planes 3}
+    chooser_choice "Set 4 stereo planes", {stereoscopy_planes 4}
+    chooser_choice "Set 5 stereo planes", {stereoscopy_planes 5}
+    chooser_choice "Set 6 stereo planes", {stereoscopy_planes 6}
+    chooser_choice "Set 7 stereo planes", {stereoscopy_planes 7}
+    chooser_choice "Set 8 stereo planes", {stereoscopy_planes 8}
+    chooser_choice "Set 9 stereo planes", {stereoscopy_planes 9}
+    chooser_choice "Set 10 stereo planes", {stereoscopy_planes 10}
 
 chooser_title_font              -> font "Arial Black", 30
 chooser_item_font               -> font "Arial", 28
@@ -658,14 +676,6 @@ menu_item "menu:insert > image...", "Image...",
                 image 0, 0, 100%, 100%, rel_file_path
 }
 
-toolbar_test -> {
-toolbar "toolbar:test", "test", "N"
-menu_item "toolbar:test > start", "start","", do test_start_record
-menu_item "toolbar:test > stop", "stop","", do test_stop_record
-menu_item "toolbar:test > play", "play","", do test_replay
-menu_item "toolbar:test > save", "save","", do test_save
-menu_item "toolbar:test > reset", "reset","", do test_reset
-}
 
 toolbar_insert -> {
 toolbar   "toolbar:insert", "Insert", "N"

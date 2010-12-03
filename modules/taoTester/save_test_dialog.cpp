@@ -2,18 +2,19 @@
 #include "ui_save_test_dialog.h"
 #include <QFileDialog>
 
-namespace Tao {
 
 Save_test_dialog::Save_test_dialog(QWidget *parent,
                                    QString name, QString loc,
-                                   int fid, QString desc) :
-    QDialog(parent), name(name), loc(loc), fid(fid), desc(desc),
+                                   int fid, QString desc,
+                                   double threshold) :
+    QDialog(parent), name(name), loc(loc), fid(fid), desc(desc),threshold(threshold),
     ui(new Ui::Save_test_dialog)
 {
     ui->setupUi(this);
     ui->nameEdit->setText(name);
     ui->locEdit->setText(loc);
     ui->fidEdit->setText(QString("%1").arg(fid));
+    ui->thresholdEdit->setText(QString("%1").arg(threshold));
     ui->descEdit->setDocument(new QTextDocument(desc, this));
     connect(ui->locChange, SIGNAL(clicked()), this, SLOT(changeLoc()));
 }
@@ -39,6 +40,7 @@ void Save_test_dialog::accept()
     loc = ui->locEdit->text();
     fid = ui->fidEdit->text().toInt();
     desc = ui->descEdit->toPlainText();
+    threshold = ui->thresholdEdit->text().toDouble();
     QDialog::accept();
 }
 
@@ -46,4 +48,4 @@ void Save_test_dialog::accept()
 //{
 //    QDialog::reject();
 //}
-} // End namespace Tao
+

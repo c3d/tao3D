@@ -88,8 +88,6 @@
 
 #include <QtGui>
 
-//#include <QtTest/QtTest>
-
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
 
 #define CHECK_0_1_RANGE(var) if (var < 0) var = 0; else if (var > 1) var = 1;
@@ -134,7 +132,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       currentShape(NULL), currentGridLayout(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
       drawAllPages(false), animated(true),
-      stereoMode(stereoHARDWARE), stereoscopic(false),
+      stereoMode(stereoHARDWARE), stereoscopic(0), stereoPlanes(1),
       activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
       selection(), selectionTrees(), selectNextTime(), actionMap(),
@@ -155,8 +153,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       zNear(2000.0), zFar(40000.0),
       zoom(1.0), eyeDistance(10.0),
       eye(0.0, 0.0, zNear), viewCenter(0.0, 0.0, -zNear),
-      dragging(false), bAutoHideCursor(false),
-      currentTest(this)
+      dragging(false), bAutoHideCursor(false)
 {
     setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap
@@ -299,6 +296,7 @@ void Widget::dawdle()
         refreshProgram();
         syncDelay = tick + xlr->options.sync_interval * 1000;
     }
+
 }
 
 
@@ -355,13 +353,11 @@ void Widget::draw()
     // If we are in stereoscopice mode, we draw twice, once for each eye
     glClearColor (1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if (stereoMode == stereoINTERLACED)
-        setupStereoStencil(w, h);
 
-    do
+    for (stereoscopic = 1; stereoscopic <= stereoPlanes; stereoscopic++)
     {
         // Select the buffer in which we draw
-        if (stereoscopic)
+        if (stereoPlanes > 1)
         {
             if (stereoMode == stereoHARDWARE)
             {
@@ -371,23 +367,24 @@ void Widget::draw()
                     glDrawBuffer(GL_BACK_RIGHT);
                 glClearColor(1.0, 1.0, 1.0, 1.0);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                glDisable(GL_STENCIL_TEST);
             }
-            else if (stereoMode == stereoINTERLACED)
+            else
             {
+                glStencilFunc(GL_EQUAL, stereoscopic, 63);
+                glEnable(GL_STENCIL_TEST);
                 glDrawBuffer(GL_BACK);
-                if (stereoscopic == 1)
-                    glStencilFunc(GL_NOTEQUAL,1,1);
-                else if (stereoscopic == 2)
-                    glStencilFunc(GL_EQUAL,1,1);
             }
         }
         else
         {
             glDrawBuffer(GL_BACK);
+            glDisable(GL_STENCIL_TEST);
         }
 
         // Draw the current buffer
         setup(w, h);
+        glClear(GL_DEPTH_BUFFER_BIT);
 
         id = idDepth = 0;
         space->Draw(NULL);
@@ -407,14 +404,7 @@ void Widget::draw()
         for (Activity *a = activities; a; a = a->Display()) ;
         selectionSpace.Draw(NULL);
         glEnable(GL_DEPTH_TEST);
-
-        // If we use stereoscopy, switch to other eye
-        if (stereoscopic)
-        {
-            stereoscopic = 3 - stereoscopic;
-            setup(width(), height());
-        }
-    } while (stereoscopic == 2);
+    }
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -543,7 +533,8 @@ void Widget::print(QPrinter *prt)
     // Set the current printer while drawing
     TaoSave saveCurrent(current, this);
     XL::LocalSave<QPrinter *> savePrinter(printer, prt);
-    XL::LocalSave<char> disableStereoscopy(stereoscopic, 0);
+    XL::LocalSave<char> disableStereoscopy1(stereoPlanes, 0);
+    XL::LocalSave<char> disableStereoscopy2(stereoscopic, 1);
     XL::LocalSave<text> savePage(pageName, "");
 
     // Identify the page range
@@ -582,7 +573,7 @@ void Widget::print(QPrinter *prt)
         XL::LocalSave<double> savePrintTime(pagePrintTime, 0);
         XL::LocalSave<Point3> saveCenter(viewCenter, Point3(0,0,-zNear));
         XL::LocalSave<Point3> saveEye(eye, Point3(0,0,zNear));
-        
+
         // Evaluate twice time so that we correctly setup page info
         for (uint i = 0; i < 2; i++)
         {
@@ -764,6 +755,8 @@ void Widget::copy()
     {
         // Build a single tree from all the selected sub-trees
         XL::Tree *tree = copySelection();
+
+        if (! tree ) return;
 
         IFTRACE(clipboard)
         {
@@ -1083,7 +1076,7 @@ void Widget::enableStereoscopy(bool enable)
 //   Enable or disable stereoscopy on the page
 // ----------------------------------------------------------------------------
 {
-    stereoscopic = enable;
+    stereoPlanes = enable ? 2 : 1;
     refresh();
 }
 
@@ -1207,6 +1200,9 @@ void Widget::resizeGL(int width, int height)
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
     tmax = tsum = tcount = 0;
     tmin = ~tmax;
+
+    if (stereoMode > stereoHARDWARE)
+        setupStereoStencil(width, height);
 }
 
 
@@ -1251,10 +1247,7 @@ void Widget::setup(double w, double h, const Box *picking)
     double zNear = Widget::zNear, zFar = Widget::zFar;
     Point3 up(0.0, 1.0, 0.0);
     double eyeX = eye.x;
-    if (stereoscopic == 1)
-        eyeX += eyeDistance;
-    else if (stereoscopic == 2)
-        eyeX -= eyeDistance;
+    eyeX += eyeDistance * (stereoscopic - 0.5 * stereoPlanes);
 
     glFrustum ((-w/2)*zoom, (w/2)*zoom, (-h/2)*zoom, (h/2)*zoom, zNear, zFar);
     gluLookAt(eyeX, eye.y, eye.z,
@@ -1309,7 +1302,7 @@ void Widget::setupStereoStencil(double w, double h)
 //   For interlaced output, generate a stencil with every other line
 // ----------------------------------------------------------------------------
 {
-    if (stereoMode == stereoINTERLACED)
+    if (stereoMode > stereoHARDWARE)
     {
         // Setup the initial viewport and projection for drawing in stencil
         glViewport(0, 0, w, h);
@@ -1323,28 +1316,76 @@ void Widget::setupStereoStencil(double w, double h)
 
 	// Prepare to draw in stencil buffer
 	glDrawBuffer(GL_BACK);
-	glEnable(GL_STENCIL_TEST);
+        glEnable(GL_STENCIL_TEST);
 	glClearStencil(0);
 	glClear(GL_STENCIL_BUFFER_BIT);
-	glStencilOp (GL_REPLACE, GL_REPLACE, GL_REPLACE); // Copy to stencil
 	glDisable(GL_DEPTH_TEST);
-	glStencilFunc(GL_ALWAYS,1,1);                     // Ignore contents
 
-        // Draw pattern showing every other line
+        // Line properties
 	glColor4f(1.0, 1.0, 1.0, 1.0);
-        glLineWidth(1.0);
+        glLineWidth(1);
         glDisable(GL_LINE_SMOOTH);
         glDisable(GL_LINE_STIPPLE);
-        glBegin (GL_LINES);
-	for (uint y = 0; y < h; y += 2)
-	{
-            glVertex2f (0, y);
-            glVertex2f (w, y);
-	}
-        glEnd();
+
+        uint numLines = 0;
+        switch(stereoMode)
+        {
+        case stereoHORIZONTAL:
+            numLines = h;
+            break;
+        case stereoVERTICAL:
+            numLines = w;
+            break;
+        case stereoDIAGONAL:
+        case stereoANTI_DIAGONAL:
+            numLines = w + h;
+            break;
+        case stereoALIOSCOPY:
+            numLines = 3 * (w + h);
+            break;
+        case stereoHARDWARE:
+            break;
+        }
+
+        for (char s = 0; s < stereoPlanes; s++)
+        {
+            // Ignore contents, set value to current line
+            glStencilFunc(GL_ALWAYS, s+1, 63);
+            glStencilOp (GL_REPLACE, GL_REPLACE, GL_REPLACE); // Copy to stencil
+            glBegin (GL_LINES);
+            for (uint x = s; x < numLines; x += stereoPlanes)
+            {
+                switch(stereoMode)
+                {
+                case stereoHORIZONTAL:
+                    glVertex2f (0, x);
+                    glVertex2f (w, x);
+                    break;
+                case stereoVERTICAL:
+                    glVertex2f (x, 0);
+                    glVertex2f (x, h);
+                    break;
+                case stereoDIAGONAL:
+                    glVertex2f (0, x);
+                    glVertex2f (x, 0);
+                    break;
+                case stereoANTI_DIAGONAL:
+                    glVertex2f (0, h-x);
+                    glVertex2f (x, h);
+                    break;
+                case stereoALIOSCOPY:
+                    glVertex2f (0, x);
+                    glVertex2f (x/3.0, 0);
+                    break;
+                case stereoHARDWARE:
+                    break;
+                }
+            }
+            glEnd();
+        }
 
         // Protect stencil from now on
-	glStencilOp (GL_KEEP, GL_KEEP, GL_KEEP);
+        glStencilOp (GL_KEEP, GL_KEEP, GL_KEEP);
         glFlush();
     } // if stereoMode
 }
@@ -1934,6 +1975,8 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
+//    std::cerr << "mouseMove " <<event->pos().x() << ", "<< event->pos().y() <<
+//            ", buttons : " << event->buttons() << std::endl; // CaB
     if (cursor().shape() == Qt::ClosedHandCursor)
         return doPanning(event);
 
@@ -4002,7 +4045,28 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
              name->value == "interleave" || name->value == "interleaved")
     {
         newState = true;
-        stereoMode = stereoINTERLACED;
+        stereoMode = stereoHORIZONTAL;
+    }
+    else if (name->value == "vertical")
+    {
+        newState = true;
+        stereoMode = stereoVERTICAL;
+    }
+    else if (name->value == "diagonal")
+    {
+        newState = true;
+        stereoMode = stereoDIAGONAL;
+    }
+    else if (name->value == "antidiagonal")
+    {
+        newState = true;
+        stereoMode = stereoANTI_DIAGONAL;
+    }
+    else if (name->value == "alioscopy")
+    {
+        newState = true;
+        stereoMode = stereoALIOSCOPY;
+        stereoPlanes = 8;
     }
     else
     {
@@ -4011,8 +4075,33 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
 
     Window *window = (Window *) parentWidget();
     if (oldState != newState)
+    {
         window->toggleStereoscopy();
+
+        if (!newState)
+            stereoPlanes = 1;
+        else if (stereoPlanes == 1)
+            stereoPlanes = 2;
+    }
+    if (stereoMode > stereoHARDWARE)
+        setupStereoStencil(width(), height());
+
     return oldState ? XL::xl_true : XL::xl_false;
+}
+
+
+XL::Name_p Widget::setStereoPlanes(XL::Tree_p self, uint planes)
+// ----------------------------------------------------------------------------
+//   Set the number of planes
+// ----------------------------------------------------------------------------
+{
+    if (planes > 1)
+    {
+        stereoPlanes = planes;
+        if (stereoMode > stereoHARDWARE)
+            setupStereoStencil(width(), height());
+    }
+    return XL::xl_true;
 }
 
 
@@ -5817,7 +5906,8 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
         XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
         XL::LocalSave<Point3> saveCenter(viewCenter, Point3(0,0,-zNear));
         XL::LocalSave<Point3> saveEye(eye, Point3(0,0,zNear));
-        XL::LocalSave<char> saveStereo(stereoscopic, false);
+        XL::LocalSave<char> saveStereo1(stereoPlanes, 0);
+        XL::LocalSave<char> saveStere2(stereoscopic, 1);
 
         // Clear the background and setup initial state
         frame->resize(w,h);
@@ -6146,8 +6236,6 @@ void Widget::colorChanged(const QColor & col)
     if (!colorAction)
         return;
 
-    assert(!current);
-    TaoSave saveCurrent(current, this);
     IFTRACE (widgets)
     {
         std::cerr << "Color "<< col.name().toStdString()
@@ -6179,6 +6267,8 @@ void Widget::colorChanged(const QColor & col)
     toBeEvaluated = toBeEvaluated->Do(replacer);
 
     // Evaluate the input tree
+    assert(!current); // Recursive evaluation due to events is bad...
+    TaoSave saveCurrent(current, this);
     XL::MAIN->context->Evaluate(toBeEvaluated);
 }
 
@@ -6422,6 +6512,7 @@ Tree_p Widget::fileChooser(Tree_p self, Tree_p properties)
 
     // Setup the color dialog
     fileDialog = new QFileDialog(this);
+    fileDialog->setObjectName("fileDialog");
     currentFileDialog = fileDialog;
     fileDialog->setModal(false);
 
@@ -7502,18 +7593,43 @@ XL::Name_p Widget::setAttribute(Tree_p self,
 //    Insert the tree in all shapes in the selection
 // ----------------------------------------------------------------------------
 {
-    if (Tree *program = xlProgram->tree)
+    if (XL::Block_p block = attribute->AsBlock())
+        attribute = block->child;
+
+    TextSelect *sel;
+    if ((sel = textSelection())) // Text selected
     {
-        if (XL::Block_p block = attribute->AsBlock())
-            attribute = block->child;
 
-        SetAttributeAction setAttrib(name, attribute, this, shape);
-        program->Do(setAttrib);
+        // Create tree with attribute and selected text.
+        XL::Prefix *p = new XL::Prefix(new XL::Name("text"),
+                                       new XL::Text(+sel->cursor.
+                                                    document()->toPlainText(),
+                                                    "<<", ">>" ));
+        XL::Infix *lf = new XL::Infix("\n", attribute,
+                                      new XL::Infix("\n", p, XL::xl_empty));
 
-        // We don't need to reloadProgram() because Widget::set does it
-        markChanged("Updated " + name + " attribute");
-
+        // Current selected text must be erased because it will be re-inserted
+        // with new formating
+        sel->replacement = "";
+        sel->replace = true;
+        // New tree : format and text
+        sel->replacement_tree = lf;
+        // Draw...
+        refresh();
         return XL::xl_true;
+    }
+    else
+    {
+        if (Tree *program = xlProgram->tree)
+        {
+            SetAttributeAction setAttrib(name, attribute, this, shape);
+            program->Do(setAttrib);
+
+            // We don't need to reloadProgram() because Widget::set does it
+            markChanged("Updated " + name + " attribute");
+
+            return XL::xl_true;
+        }
     }
     return XL::xl_false;
 }
@@ -7915,163 +8031,16 @@ XL::Tree *NameToTextReplacement::DoName(XL::Name *what)
 
 // ============================================================================
 //
-//   Tests functions
+//   Helper functions
 //
 // ============================================================================
-Tree_p Widget::startRecTest(Tree_p )
-// ----------------------------------------------------------------------------
-//   Start recording a sequence of events
-// ----------------------------------------------------------------------------
-{
-    currentTest.startRecord();
-    return XL::xl_true;
-}
 
-
-Tree_p Widget::stopRecTest(Tree_p )
+void tao_widget_refresh(double delay)
 // ----------------------------------------------------------------------------
-//   Stop recording events
+//    Refresh the current widget
 // ----------------------------------------------------------------------------
 {
-    currentTest.stopRecord();
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::playTest(Tree_p )
-// ----------------------------------------------------------------------------
-//   Replay the test
-// ----------------------------------------------------------------------------
-{
-    bool res = currentTest.play();
-    currentTest.printResult();
-    return  res ? XL::xl_true : XL::xl_false;
-}
-
-
-Tree_p Widget::resetTest(Tree_p)
- // ----------------------------------------------------------------------------
- //   Reset current test
- // ----------------------------------------------------------------------------
-{
-    currentTest.stopRecord();
-    currentTest.reset();
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::saveTest(Tree_p)
-// ----------------------------------------------------------------------------
-//   Save the named test
-// ----------------------------------------------------------------------------
-{
-    currentTest.save();
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::testDef(Context *context, text_p name,
-                       Integer_p fId, text_p desc, Tree_p body)
-// ----------------------------------------------------------------------------
-//   Define a new test
-// ----------------------------------------------------------------------------
-{
-    currentTest.reset(name->value, fId->value, desc->value);
-    return xl_evaluate(context, body);
-}
-
-
-Tree_p Widget::testAddKeyPress(Tree_p , Integer_p key,
-                               Integer_p modifiers, Integer_p delay )
-// ----------------------------------------------------------------------------
-//  Add a key press event to the current test
-// ----------------------------------------------------------------------------
-{
-    currentTest.addKeyPress((Qt::Key)key->value,
-                            (Qt::KeyboardModifier)modifiers->value,
-                            delay->value);
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::testAddKeyRelease(Tree_p , Integer_p key,
-                                 Integer_p modifiers, Integer_p delay )
-// ----------------------------------------------------------------------------
-//  Add a key press event to the current test
-// ----------------------------------------------------------------------------
-{
-    currentTest.addKeyRelease((Qt::Key)key->value,
-                              (Qt::KeyboardModifier)modifiers->value,
-                              delay->value);
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::testAddMousePress(Tree_p , Integer_p button, Integer_p modifiers,
-                                 Integer_p x, Integer_p y, Integer_p delay)
-// ----------------------------------------------------------------------------
-//  Add a key press event to the current test
-// ----------------------------------------------------------------------------
-{
-    currentTest.addMousePress((Qt::MouseButton)button->value,
-                              (Qt::KeyboardModifier)modifiers->value,
-                              QPoint(x->value, y->value),
-                              delay->value);
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::testAddMouseRelease(Tree_p , Integer_p button,
-                                   Integer_p modifiers,
-                                   Integer_p x, Integer_p y, Integer_p delay)
-// ----------------------------------------------------------------------------
-//  Add a key press event to the current test
-// ----------------------------------------------------------------------------
-{
-    currentTest.addMouseRelease((Qt::MouseButton)button->value,
-                                (Qt::KeyboardModifier)modifiers->value,
-                                QPoint(x->value, y->value),
-                                delay->value);
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::testAddMouseDClick(Tree_p , Integer_p button, Integer_p modifiers,
-                                  Integer_p x, Integer_p y, Integer_p delay)
-// ----------------------------------------------------------------------------
-//  Add a key press event to the current test
-// ----------------------------------------------------------------------------
-{
-    currentTest.addMouseDClick((Qt::MouseButton)button->value,
-                               (Qt::KeyboardModifier)modifiers->value,
-                               QPoint(x->value, y->value),
-                               delay->value);
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::testAddMouseMove(Tree_p , Integer_p button, Integer_p modifiers,
-                                Integer_p x, Integer_p y,
-                                Integer_p delay)
-// ----------------------------------------------------------------------------
-//  Add a key press event to the current test
-// ----------------------------------------------------------------------------
-{
-    currentTest.addMouseMove((Qt::MouseButton)button->value,
-                             (Qt::KeyboardModifier)modifiers->value,
-                             QPoint(x->value, y->value),
-                             delay->value);
-   return XL::xl_true;
-}
-
-
-Tree_p Widget::testAddAction(Tree_p , text_p name, Integer_p delay)
-// ----------------------------------------------------------------------------
-//  Add a key press event to the current test
-// ----------------------------------------------------------------------------
-{
-    currentTest.addAction(+name->value, delay->value);
-    return XL::xl_true;
+    TAO(refresh(delay));
 }
 
 TAO_END

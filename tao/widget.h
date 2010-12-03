@@ -50,7 +50,6 @@
 #include <sstream>
 #include <map>
 
-#include "widgettests.h"
 
 namespace Tao {
 
@@ -87,8 +86,10 @@ class Widget : public QGLWidget
 public:
     typedef std::vector<double>         attribute_args;
     typedef std::map<GLuint, uint>      selection_map;
-    enum StereoMode { stereoHARDWARE, stereoINTERLACED };
-
+    enum StereoMode { stereoHARDWARE,
+                      stereoHORIZONTAL, stereoVERTICAL,
+                      stereoDIAGONAL, stereoANTI_DIAGONAL,
+                      stereoALIOSCOPY };
 public:
     Widget(Window *parent, SourceFile *sf = NULL);
     ~Widget();
@@ -331,6 +332,7 @@ public:
 
     Name_p      enableAnimations(Tree_p self, bool fs);
     Name_p      enableStereoscopy(Tree_p self, Name_p name);
+    Name_p      setStereoPlanes(Tree_p self, uint planes);
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
 
@@ -685,6 +687,7 @@ private:
     bool                  animated;
     StereoMode            stereoMode;
     char                  stereoscopic;
+    char                  stereoPlanes;
 
     // Selection
     Activity *            activities;
@@ -745,33 +748,6 @@ private:
     void        updateFileDialog(Tree *properties, Tree *context);
     Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child);
     bool    updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group);
-
-
-    //Tests // CaB
-public:
-    Tree_p startRecTest(Tree_p self);
-    Tree_p stopRecTest(Tree_p self);
-    Tree_p playTest(Tree_p self);
-    Tree_p saveTest(Tree_p self);
-    Tree_p resetTest(Tree_p self);
-    WidgetTests currentTest;
-    Tree_p testDef(Context *, text_p name,
-                   Integer_p fId, text_p desc, Tree_p body);
-    Tree_p testAddKeyPress(Tree_p self, Integer_p key,
-                           Integer_p modifiers, Integer_p delay );
-    Tree_p testAddKeyRelease(Tree_p self, Integer_p key,
-                             Integer_p modifiers, Integer_p delay );
-    Tree_p testAddMousePress(Tree_p self, Integer_p button, Integer_p modifiers,
-                             Integer_p x, Integer_p y, Integer_p delay);
-    Tree_p testAddMouseRelease(Tree_p self, Integer_p button,
-                               Integer_p modifiers,
-                               Integer_p x, Integer_p y, Integer_p delay);
-    Tree_p testAddMouseDClick(Tree_p self, Integer_p button, Integer_p modifiers,
-                              Integer_p x, Integer_p y, Integer_p delay);
-    Tree_p testAddMouseMove(Tree_p self, Integer_p button, Integer_p modifiers,
-                            Integer_p x, Integer_p y, Integer_p delay);
-    Tree_p testAddAction(Tree_p self, text_p name, Integer_p delay);
-
 };
 
 

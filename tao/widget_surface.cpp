@@ -464,6 +464,7 @@ ColorChooserSurface::ColorChooserSurface(XL::Tree *t,
     : WidgetSurface(t, new QColorDialog(parent)), action(act)
 {
     QColorDialog *diag = (QColorDialog *) widget;
+    diag->setObjectName("colorDialogSurface");
     connect(diag, SIGNAL(colorSelected (const QColor&)),
             this, SLOT(colorChosen(const QColor &)));
     diag->setModal(false);
@@ -547,6 +548,7 @@ FontChooserSurface::FontChooserSurface(XL::Tree *t,
   : WidgetSurface(t, new QFontDialog(parent)), action(act)
 {
     QFontDialog *diag = (QFontDialog *) widget;
+    diag->setObjectName("fontDialogSurface");
     connect(diag, SIGNAL(fontSelected (const QFont&)),
             this, SLOT(fontChosen(const QFont&)));
     diag->setModal(false);
@@ -625,6 +627,7 @@ FileChooserSurface::FileChooserSurface(XL::Tree *t, Widget *parent)
   : WidgetSurface(t, new QFileDialog(parent))
 {
     QFileDialog *diag = (QFileDialog *) widget;
+    diag->setObjectName("fileDialogSurface");
     connect(diag, SIGNAL(fileSelected (const QString&)),
             parent, SLOT(fileChosen(const QString&)));
     connect(diag, SIGNAL(fileSelected (const QString&)),

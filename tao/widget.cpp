@@ -85,8 +85,6 @@
 
 #include <QtGui>
 
-//#include <QtTest/QtTest>
-
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
 
 #define CHECK_0_1_RANGE(var) if (var < 0) var = 0; else if (var > 1) var = 1;
@@ -155,8 +153,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       zNear(2000.0), zFar(40000.0),
       zoom(1.0), eyeDistance(10.0),
       eye(0.0, 0.0, zNear), viewCenter(0.0, 0.0, -zNear),
-      dragging(false), bAutoHideCursor(false),
-      currentTest(this)
+      dragging(false), bAutoHideCursor(false)
 {
     setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap
@@ -299,6 +296,7 @@ void Widget::dawdle()
         refreshProgram();
         syncDelay = tick + xlr->options.sync_interval * 1000;
     }
+
 }
 
 
@@ -561,7 +559,7 @@ void Widget::print(QPrinter *prt)
         XL::LocalSave<double> savePrintTime(pagePrintTime, 0);
         XL::LocalSave<Point3> saveCenter(viewCenter, Point3(0,0,-zNear));
         XL::LocalSave<Point3> saveEye(eye, Point3(0,0,zNear));
-        
+
         // Evaluate twice time so that we correctly setup page info
         for (uint i = 0; i < 2; i++)
         {
@@ -743,6 +741,8 @@ void Widget::copy()
     {
         // Build a single tree from all the selected sub-trees
         XL::Tree *tree = copySelection();
+
+        if (! tree ) return;
 
         IFTRACE(clipboard)
         {
@@ -1374,7 +1374,7 @@ void Widget::setupStereoStencil(double w, double h)
         }
 
         // Protect stencil from now on
-	glStencilOp (GL_KEEP, GL_KEEP, GL_KEEP);
+        glStencilOp (GL_KEEP, GL_KEEP, GL_KEEP);
         glFlush();
     } // if stereoMode
 }
@@ -1968,6 +1968,8 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
+//    std::cerr << "mouseMove " <<event->pos().x() << ", "<< event->pos().y() <<
+//            ", buttons : " << event->buttons() << std::endl; // CaB
     if (cursor().shape() == Qt::ClosedHandCursor)
         return doPanning(event);
 
@@ -6212,8 +6214,6 @@ void Widget::colorChanged(const QColor & col)
     if (!colorAction)
         return;
 
-    assert(!current);
-    TaoSave saveCurrent(current, this);
     IFTRACE (widgets)
     {
         std::cerr << "Color "<< col.name().toStdString()
@@ -6248,6 +6248,8 @@ void Widget::colorChanged(const QColor & col)
     toBeEvaluated->SetSymbols(syms);
 
     // Evaluate the input tree
+  //  assert(!current); //CaB: Pourquoi ceci ?
+    TaoSave saveCurrent(current, this);
     xl_evaluate(toBeEvaluated);
 }
 
@@ -6496,6 +6498,7 @@ Tree_p Widget::fileChooser(Tree_p self, Tree_p properties)
 
     // Setup the color dialog
     fileDialog = new QFileDialog(this);
+    fileDialog->setObjectName("fileDialog");
     currentFileDialog = fileDialog;
     fileDialog->setModal(false);
 
@@ -7585,18 +7588,43 @@ XL::Name_p Widget::setAttribute(Tree_p self,
 //    Insert the tree in all shapes in the selection
 // ----------------------------------------------------------------------------
 {
-    if (Tree *program = xlProgram->tree)
+    if (XL::Block_p block = attribute->AsBlock())
+        attribute = block->child;
+
+    TextSelect *sel;
+    if ((sel = textSelection())) // Text selected
     {
-        if (XL::Block_p block = attribute->AsBlock())
-            attribute = block->child;
 
-        SetAttributeAction setAttrib(name, attribute, this, shape);
-        program->Do(setAttrib);
+        // Create tree with attribute and selected text.
+        XL::Prefix *p = new XL::Prefix(new XL::Name("text"),
+                                       new XL::Text(+sel->cursor.
+                                                    document()->toPlainText(),
+                                                    "<<", ">>" ));
+        XL::Infix *lf = new XL::Infix("\n", attribute,
+                                      new XL::Infix("\n", p, XL::xl_empty));
 
-        // We don't need to reloadProgram() because Widget::set does it
-        markChanged("Updated " + name + " attribute");
-
+        // Current selected text must be erased because it will be re-inserted
+        // with new formating
+        sel->replacement = "";
+        sel->replace = true;
+        // New tree : format and text
+        sel->replacement_tree = lf;
+        // Draw...
+        refresh();
         return XL::xl_true;
+    }
+    else
+    {
+        if (Tree *program = xlProgram->tree)
+        {
+            SetAttributeAction setAttrib(name, attribute, this, shape);
+            program->Do(setAttrib);
+
+            // We don't need to reloadProgram() because Widget::set does it
+            markChanged("Updated " + name + " attribute");
+
+            return XL::xl_true;
+        }
     }
     return XL::xl_false;
 }
@@ -8018,167 +8046,6 @@ XL::Tree *NameToTextReplacement::DoName(XL::Name *what)
     return new XL::Name(what->value, what->Position());
 }
 
-
-
-// ============================================================================
-//
-//   Tests functions
-//
-// ============================================================================
-Tree_p Widget::startRecTest(Tree_p )
-// ----------------------------------------------------------------------------
-//   Start recording a sequence of events
-// ----------------------------------------------------------------------------
-{
-    currentTest.startRecord();
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::stopRecTest(Tree_p )
-// ----------------------------------------------------------------------------
-//   Stop recording events
-// ----------------------------------------------------------------------------
-{
-    currentTest.stopRecord();
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::playTest(Tree_p )
-// ----------------------------------------------------------------------------
-//   Replay the test
-// ----------------------------------------------------------------------------
-{
-    bool res = currentTest.play();
-    currentTest.printResult();
-    return  res ? XL::xl_true : XL::xl_false;
-}
-
-
-Tree_p Widget::resetTest(Tree_p)
- // ----------------------------------------------------------------------------
- //   Reset current test
- // ----------------------------------------------------------------------------
-{
-    currentTest.stopRecord();
-    currentTest.reset();
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::saveTest(Tree_p)
-// ----------------------------------------------------------------------------
-//   Save the named test
-// ----------------------------------------------------------------------------
-{
-    currentTest.save();
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::testDef(Tree_p , text_p name, Integer_p fId, text_p desc, Tree_p body)
-// ----------------------------------------------------------------------------
-//   Define a new test
-// ----------------------------------------------------------------------------
-{
-    currentTest.reset(name->value, fId->value, desc->value);
-    return xl_evaluate(body);
-}
-
-
-Tree_p Widget::testAddKeyPress(Tree_p , Integer_p key,
-                               Integer_p modifiers, Integer_p delay )
-// ----------------------------------------------------------------------------
-//  Add a key press event to the current test
-// ----------------------------------------------------------------------------
-{
-    currentTest.addKeyPress((Qt::Key)key->value,
-                            (Qt::KeyboardModifier)modifiers->value,
-                            delay->value);
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::testAddKeyRelease(Tree_p , Integer_p key,
-                                 Integer_p modifiers, Integer_p delay )
-// ----------------------------------------------------------------------------
-//  Add a key press event to the current test
-// ----------------------------------------------------------------------------
-{
-    currentTest.addKeyRelease((Qt::Key)key->value,
-                              (Qt::KeyboardModifier)modifiers->value,
-                              delay->value);
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::testAddMousePress(Tree_p , Integer_p button, Integer_p modifiers,
-                                 Integer_p x, Integer_p y, Integer_p delay)
-// ----------------------------------------------------------------------------
-//  Add a key press event to the current test
-// ----------------------------------------------------------------------------
-{
-    currentTest.addMousePress((Qt::MouseButton)button->value,
-                              (Qt::KeyboardModifier)modifiers->value,
-                              QPoint(x->value, y->value),
-                              delay->value);
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::testAddMouseRelease(Tree_p , Integer_p button,
-                                   Integer_p modifiers,
-                                   Integer_p x, Integer_p y, Integer_p delay)
-// ----------------------------------------------------------------------------
-//  Add a key press event to the current test
-// ----------------------------------------------------------------------------
-{
-    currentTest.addMouseRelease((Qt::MouseButton)button->value,
-                                (Qt::KeyboardModifier)modifiers->value,
-                                QPoint(x->value, y->value),
-                                delay->value);
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::testAddMouseDClick(Tree_p , Integer_p button, Integer_p modifiers,
-                                  Integer_p x, Integer_p y, Integer_p delay)
-// ----------------------------------------------------------------------------
-//  Add a key press event to the current test
-// ----------------------------------------------------------------------------
-{
-    currentTest.addMouseDClick((Qt::MouseButton)button->value,
-                               (Qt::KeyboardModifier)modifiers->value,
-                               QPoint(x->value, y->value),
-                               delay->value);
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::testAddMouseMove(Tree_p , Integer_p button, Integer_p modifiers,
-                                Integer_p x, Integer_p y,
-                                Integer_p delay)
-// ----------------------------------------------------------------------------
-//  Add a key press event to the current test
-// ----------------------------------------------------------------------------
-{
-    currentTest.addMouseMove((Qt::MouseButton)button->value,
-                             (Qt::KeyboardModifier)modifiers->value,
-                             QPoint(x->value, y->value),
-                             delay->value);
-   return XL::xl_true;
-}
-
-
-Tree_p Widget::testAddAction(Tree_p , text_p name, Integer_p delay)
-// ----------------------------------------------------------------------------
-//  Add a key press event to the current test
-// ----------------------------------------------------------------------------
-{
-    currentTest.addAction(+name->value, delay->value);
-    return XL::xl_true;
-}
 
 
 // ============================================================================

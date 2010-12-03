@@ -48,7 +48,7 @@ bool ImportedFilesChanged(import_set &done,
     for (it = files.begin(); it != files.end(); it++)
     {
         SourceFile &sf = (*it).second;
-        if (!done.count(&sf))
+        if (sf.tree && !done.count(&sf))
         {
             done.insert(&sf);
             if (markChanged)
@@ -59,7 +59,7 @@ bool ImportedFilesChanged(import_set &done,
                 std::ostringstream os;
                 os << sf.tree->Get< HashInfo<> > ();
                 sf.hash = os.str();
-                
+
                 if (!prev_hash.empty() && sf.hash != prev_hash)
                     sf.changed = true;
             }

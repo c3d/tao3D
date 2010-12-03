@@ -12,4 +12,4 @@
 
 
 TEMPLATE = subdirs
-SUBDIRS  = hello_world lorem_ipsum
+SUBDIRS  = hello_world lorem_ipsum taoTester

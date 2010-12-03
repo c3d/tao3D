@@ -7,7 +7,7 @@ namespace Ui {
     class Save_test_dialog;
 }
 
-namespace Tao {
+
 class Save_test_dialog : public QDialog
 {
     Q_OBJECT
@@ -17,13 +17,15 @@ public:
                               QString name = "",
                               QString loc = "",
                               int fid = 0,
-                              QString desc = "");
+                              QString desc = "",
+                              double threshold = 0.0);
     ~Save_test_dialog();
 
     QString name;
     QString loc;
     int fid;
     QString desc;
+    double threshold;
 
 public slots:
     void changeLoc();
@@ -34,5 +36,5 @@ private:
     Ui::Save_test_dialog *ui;
 };
 
-}
+
 #endif // SAVE_TEST_DIALOG_H

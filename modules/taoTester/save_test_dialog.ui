@@ -66,7 +66,7 @@
       </property>
      </widget>
     </item>
-    <item row="5" column="0">
+    <item row="6" column="0">
      <widget class="QLabel" name="descLbl">
       <property name="text">
        <string>Description</string>
@@ -83,8 +83,18 @@
     <item row="4" column="1">
      <widget class="QLineEdit" name="fidEdit"/>
     </item>
-    <item row="5" column="1">
+    <item row="6" column="1">
      <widget class="QTextEdit" name="descEdit"/>
+    </item>
+    <item row="5" column="1">
+     <widget class="QLineEdit" name="thresholdEdit"/>
+    </item>
+    <item row="5" column="0">
+     <widget class="QLabel" name="thresholdLbl">
+      <property name="text">
+       <string comment="Authorized difference between reference and played images." extracomment="Authorized difference between reference and played images.">Threshold</string>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>

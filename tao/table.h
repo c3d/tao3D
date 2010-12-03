@@ -47,6 +47,8 @@ struct Table : Layout
     virtual void        Compute(Layout *);
     virtual void        Add (Drawing *d);
 
+    void                NextCell();
+
 public:
     Real_p                 x, y;
     uint                   rows, columns;

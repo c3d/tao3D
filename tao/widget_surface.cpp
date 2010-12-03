@@ -55,7 +55,7 @@ WidgetSurface::WidgetSurface(Tree * t, QWidget *widget)
 // ----------------------------------------------------------------------------
 //   Create a renderer with the right size
 // ----------------------------------------------------------------------------
-            : widget(widget), textureId(0), dirty(true), tree(t)
+    : widget(widget), textureId(0), dirty(true), tree(t)
 {
     IFTRACE(widgets)
     {
@@ -146,7 +146,7 @@ bool WidgetSurface::requestFocus(Layout *layout, coord x, coord y)
 {
     // Request focus for this widget
     Widget *parent = (Widget *) widget->parent();
-    if (parent->focused(layout))
+    if (parent && parent->focused(layout))
         return parent->requestFocus(widget, x, y);
     return false;
 }
@@ -460,6 +460,7 @@ void AbstractButtonSurface::toggled(bool checked)
 }
 
 
+
 // ============================================================================
 //
 //   Color Chooser
@@ -770,8 +771,9 @@ bool GridGroupBox::event(QEvent *event)
         return QGroupBox::event(event);
 
     }
-
 }
+
+
 
 // ============================================================================
 //
@@ -779,57 +781,108 @@ bool GridGroupBox::event(QEvent *event)
 //
 // ============================================================================
 
-VideoPlayerSurface::VideoPlayerSurface(XL::Tree *t, Widget *parent)
+VideoSurface::VideoSurface(XL::Tree *t, Widget *parent)
 // ----------------------------------------------------------------------------
 //   Create the video player
 // ----------------------------------------------------------------------------
-    : WidgetSurface(t, new Phonon::VideoPlayer(Phonon::VideoCategory, NULL)),
-      fbo(NULL)
+    : WidgetSurface(t, new Phonon::VideoWidget(NULL)),
+      fbo(NULL),
+      audio(new Phonon::AudioOutput(Phonon::VideoCategory, NULL)),
+      media(new Phonon::MediaObject(NULL))
 {
-    (void) parent;              // REVISIT
-    widget->setVisible(true);
+    (void) parent;
+    Phonon::createPath(media, audio);
+    Phonon::createPath(media, (Phonon::VideoWidget *) widget);
     widget->setAttribute(Qt::WA_DontShowOnScreen);
+    widget->setVisible(true);
 }
 
 
-VideoPlayerSurface::~VideoPlayerSurface()
+VideoSurface::~VideoSurface()
 // ----------------------------------------------------------------------------
 //    Stop the player and delete the frame buffer object
 // ----------------------------------------------------------------------------
 {
-   Phonon::VideoPlayer *player = (Phonon::VideoPlayer*) widget;
-   player->stop();
+   media->stop();
    delete fbo;
+   delete audio;
+   delete media;
 }
 
 
-GLuint VideoPlayerSurface::bind(XL::Text *urlTree)
+GLuint VideoSurface::bind(XL::Text *urlTree)
 // ----------------------------------------------------------------------------
 //    Bind the surface to the texture
 // ----------------------------------------------------------------------------
 {
-    Phonon::VideoPlayer *player = (Phonon::VideoPlayer*) widget;
-    if (!fbo ||
-        fbo->width() != player->width() ||
-        fbo->height() != player->height())
-    {
-        delete fbo;
-        fbo = new QGLFramebufferObject(player->width(), player->height(),
-                                       GL_TEXTURE_2D);
-    }
+    Phonon::VideoWidget *player = (Phonon::VideoWidget *) widget;
 
     if (urlTree->value != url)
     {
         url = urlTree->value;
-        player->play(Phonon::MediaSource(QUrl(+url)));
+        media->setCurrentSource(Phonon::MediaSource(QUrl(+url)));
+        media->play();
     }
-    dirty = true;
 
-    fbo->bind();
-    widget->render(fbo);
-    fbo->release();
+    QSize hint = player->sizeHint();
+    if (hint.isValid())
+    {
+        if (!fbo ||
+            fbo->width() != hint.width() ||
+            fbo->height() != hint.height())
+        {
+            delete fbo;
+            fbo = new QGLFramebufferObject(hint.width(), hint.height(),
+                                           GL_TEXTURE_2D);
 
-    return fbo->texture();
+            // Save width and height for use by caller
+            resize(hint.width(), hint.height());
+        }
+
+        glClearColor(0,0,0,0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glColor4f(1,1,1,1);
+
+#if 0
+        // Rendering through a QImage
+        QImage image = ((Phonon::VideoWidget *) widget)->snapshot();
+
+        // Generate the GL texture
+        if (!image.isNull())
+        {
+            GLuint textureId = fbo->texture();
+            image = QGLWidget::convertToGLFormat(image);
+            glBindTexture(GL_TEXTURE_2D, textureId);
+            glTexImage2D(GL_TEXTURE_2D, 0, 3,
+                         image.width(), image.height(), 0, GL_RGBA,
+                         GL_UNSIGNED_BYTE, image.bits());
+        }
+#elif 0
+        static QImage image(widget->width(), widget->height(),
+                            QImage::Format_ARGB32);
+        widget->setAutoFillBackground(false);
+        widget->render(&image);
+
+        // Generate the GL texture
+        GLuint textureId = fbo->texture();
+        image = QGLWidget::convertToGLFormat(image);
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        glTexImage2D(GL_TEXTURE_2D, 0, 3,
+                     image.width(), image.height(), 0, GL_RGBA,
+                     GL_UNSIGNED_BYTE, image.bits());
+        
+#else
+        // Faster rendering through a frame buffer object
+        fbo->bind();
+        widget->render(fbo, QPoint(), QRegion(),
+                       QWidget::RenderFlags(QWidget::DrawChildren));
+        fbo->release();
+#endif
+        return fbo->texture();
+    }
+
+    // Default is to return no texture
+    return 0;
 }
 
 
@@ -842,7 +895,7 @@ GLuint VideoPlayerSurface::bind(XL::Text *urlTree)
 
 AbstractSliderSurface::AbstractSliderSurface(XL::Tree *t,
                                              QAbstractSlider *slide) :
-        WidgetSurface(t, slide), min(0), max(0), value(NULL)
+    WidgetSurface(t, slide), min(0), max(0), value(NULL)
 {
 
 }

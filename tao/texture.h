@@ -35,9 +35,9 @@ struct ImageTextureInfo : XL::Info
 //    Hold information about an image texture
 // ----------------------------------------------------------------------------
 {
-    typedef ImageTextureInfo *          data_t;
+    typedef ImageTextureInfo *data_t;
     struct  Texture { GLuint id, width, height; };
-    typedef std::map<text, Texture>     texture_map;
+    typedef std::map<text, Texture> texture_map;
     enum { MAX_TEXTURES = 200 };
 
     ImageTextureInfo();
@@ -50,6 +50,25 @@ struct ImageTextureInfo : XL::Info
 
     static texture_map textures;
     static Texture &defaultTexture();
+};
+
+
+struct AnimatedTextureInfo : ImageTextureInfo
+// ----------------------------------------------------------------------------
+//    Hold information about an image texture
+// ----------------------------------------------------------------------------
+{
+    typedef AnimatedTextureInfo *data_t;
+
+    AnimatedTextureInfo();
+    ~AnimatedTextureInfo();
+
+    Texture load(text img);
+    GLuint bind(text img);
+    operator data_t() { return this; }
+
+public:
+    QMovie movie;
 };
 
 

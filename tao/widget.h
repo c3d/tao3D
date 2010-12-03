@@ -347,6 +347,7 @@ public:
     Tree_p      fillColorHsv(Tree_p self, double h, double s, double v, double a);
     Tree_p      fillColorCmyk(Tree_p self, double c, double m, double y, double k, double a);
     Tree_p      fillTexture(Tree_p self, text fileName);
+    Tree_p      fillAnimatedTexture(Tree_p self, text fileName);
     Tree_p      fillTextureFromSVG(Tree_p self, text svg);
     Tree_p      textureWrap(Tree_p self, bool s, bool t);
     Tree_p      textureTransform(Tree_p self, Tree_p code);
@@ -434,6 +435,7 @@ public:
     Text_p      textFlow(Tree_p self, text name);
     Tree_p      textSpan(Tree_p self, Text_p content);
     Tree_p      textFormula(Tree_p self, Tree_p value);
+    Tree_p      textValue(Tree_p self, Tree_p value);
     Tree_p      font(Tree_p self, Tree_p descr);
     Tree_p      fontSize(Tree_p self, double size);
     Tree_p      fontScaling(Tree_p self, double scaling, double minSize);
@@ -553,11 +555,11 @@ public:
                                 double w, double h,
                                 Text_p lbl);
 
-    Tree_p      videoPlayer(Tree_p self,
-                             Real_p x, Real_p y, Real_p w, Real_p h,
-                             Text_p url);
+    Tree_p      movie(Tree_p self,
+                      Real_p x, Real_p y, Real_p w, Real_p h,
+                      Text_p url);
 
-    Tree_p      videoPlayerTexture(Tree_p self, Real_p w, Real_p h, Text_p url);
+    Tree_p      movieTexture(Tree_p self, Text_p url);
 
     Tree_p      image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                       text filename);

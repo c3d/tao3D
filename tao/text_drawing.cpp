@@ -57,7 +57,8 @@ void TextSpan::Draw(Layout *where)
     bool        hasLine    = setLineColor(where);
     bool        hasTexture = setTexture(where);
     GlyphCache &glyphs     = widget->glyphs();
-    bool        tooBig     = where->font.pointSize() > (int) glyphs.maxFontSize;
+    int         maxSize    = (int) glyphs.maxFontSize;
+    bool        tooBig     = where->font.pointSize() > maxSize;
     bool        printing   = where->printing;
     Point3      offset0    = where->Offset();
     uint        dbgMod     = (Qt::ShiftModifier | Qt::ControlModifier);
@@ -1170,6 +1171,195 @@ bool TextFormula::Validate(XL::Text *source, Widget *widget)
         widget->reloadProgram();
         widget->markChanged("Replaced formula");
         return true;
+    }
+    return false;
+}
+
+
+
+// ============================================================================
+//
+//    A text value is used to display numerical / evaluated values
+//
+// ============================================================================
+
+uint TextValue::values = 0;
+uint TextValue::shows = 0;
+
+XL::Text *TextValue::Format(XL::Tree *value)
+// ----------------------------------------------------------------------------
+//   Return a formatted value for the given value
+// ----------------------------------------------------------------------------
+{
+    TextFormulaEditInfo *info = value->GetInfo<TextFormulaEditInfo>();
+    values++;
+    shows = 0;
+
+    // Check if this value is currently being edited, if so return its text
+    if (info && info->order == values)
+        return info->source;
+
+    // Evaluate the tree and turn it into a tree
+    return new XL::Text(*value);
+}
+
+
+void TextValue::DrawSelection(Layout *where)
+// ----------------------------------------------------------------------------
+//   Detect if we edit a value, if so create its FormulEditInfo
+// ----------------------------------------------------------------------------
+{
+    Widget              *widget = where->Display();
+    TextSelect          *sel    = widget->textSelection();
+    TextFormulaEditInfo *info   = value->GetInfo<TextFormulaEditInfo>();
+    uint                 charId = where->CharacterId();
+
+    // Count values to identify them uniquely
+    shows++;
+    values = 0;
+
+    // Check if value is selected and we are not editing it
+    if (sel && sel->textMode)
+    {
+        if (!info && widget->selected(charId | Widget::CHARACTER_SELECTED))
+        {
+            // No info: create one
+            text edited = text("   ") + text(*value) + "  ";
+            Text *editor = new Text(edited, "\"", "\"", value->Position());
+            info = new TextFormulaEditInfo(editor, shows);
+            value->SetInfo<TextFormulaEditInfo>(info);
+
+            // Update mark and point
+            XL::Text *source = info->source;
+            uint length = source->value.length();
+            sel->point = charId;
+            sel->mark = charId + length;
+
+            widget->refresh();
+        }
+    }
+
+    // Indicate how many characters we want to display as "value"
+    if (info && sel)
+    {
+        if (shows == info->order)
+        {
+            XL::Text *source = info->source;
+            sel->formulaMode = source->value.length() + 1;
+        }
+        else
+        {
+            XL::Text *source = this->source;
+            sel->formulaMode = source->value.length() + 1;
+        }
+    }
+
+    TextSpan::DrawSelection(where);
+
+    // Check if the cursor moves out of the selection - If so, validate
+    if (info &&info->order == shows)
+    {
+        XL::Text *source = info->source;
+        uint length = source->value.length();
+
+        if (!sel || (sel->mark == sel->point &&
+                     (sel->point < charId || sel->point > charId + length)))
+        {
+            if (Validate(info->source, widget))
+            {
+                if (sel && sel->point > charId + length)
+                {
+                    sel->point -= length;
+                    sel->mark -= length;
+                    sel->updateSelection();
+                }
+            }
+        }
+    }
+    else if (!info && sel && charId >= sel->start() && charId <= sel->end())
+    {
+        // First run, make sure we return here to create the editor
+        widget->refresh();
+    }
+}
+
+
+void TextValue::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   Give one ID to the whole value so that we can click on it
+// ----------------------------------------------------------------------------
+{
+    TextFormulaEditInfo *info   = value->GetInfo<TextFormulaEditInfo>();
+    uint                 charId = where->CharacterId();
+    Widget              *widget = where->Display();
+    TextSelect          *sel    = widget->textSelection();
+
+    if (!info && where->id)
+        glLoadName(charId | Widget::CHARACTER_SELECTED);
+
+    if (sel)
+        sel->last = charId + 1;
+
+    TextSpan::Identify(where);
+}
+
+
+bool TextValue::Validate(XL::Text *source, Widget *widget)
+// ----------------------------------------------------------------------------
+//   Check if we can parse the input. If so, update self
+// ----------------------------------------------------------------------------
+{
+    std::istringstream  input(source->value);
+    XL::Syntax          syntax (XL::MAIN->syntax);
+    XL::Positions      &positions = XL::MAIN->positions;
+    XL::Errors          errors;
+    XL::Parser          parser(input, syntax,positions,errors);
+    Tree *              newTree   = parser.Parse();
+    bool                valid = false;
+
+    if (newTree)
+    {
+        if (Real *oldReal = value->AsReal())
+        {
+            valid = true;
+            if (Real *newReal = newTree->AsReal())
+                oldReal->value = newReal->value;
+            else if (Integer *newInteger = newTree->AsInteger())
+                oldReal->value = newInteger->value;
+            else
+                valid = false;
+        }
+        else if (Integer *oldInteger = value->AsInteger())
+        {
+            valid = true;
+            if (Integer *newInteger = newTree->AsInteger())
+                oldInteger->value = newInteger->value;
+            else
+                valid = false;
+        }
+        else if (Name *oldName= value->AsName())
+        {
+            valid = true;
+            if (Name *newName = newTree->AsName())
+                oldName->value = newName->value;
+            else
+                valid = false;
+        }
+        else if (Text *oldText= value->AsText())
+        {
+            valid = true;
+            if (Text *newText = newTree->AsText())
+                oldText->value = newText->value;
+            else
+                valid = false;
+        }
+
+        if (valid)
+        {
+            widget->reloadProgram();
+            widget->markChanged("Replaced value");
+        }
+        return valid;
     }
     return false;
 }

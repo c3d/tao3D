@@ -850,6 +850,18 @@ PREFIX(FillTextureSVG, tree,"svg", PARM(img, text),
                 return_value \"\", <<>>;\
                 }\
           |*/")
+PREFIX(FillAnimatedTexture, tree, "animated_texture", PARM(n, text),
+       RTAO(fillAnimatedTexture(self, n)),
+       "/*| docname \"animated_texture\", \"graph:attribute\", do { \
+                dsyntax <<animated_texture img>>;\
+                synopsis \"Create a GL animated texture\" ; \
+                description <<Build a GL texture images from an animated image file. Supported format are:\n\
+GIF	Animated Graphic Interchange Format\n\
+MNG	Animated portable Network Graphics\n\
+                parameters;\
+                parameter \"text\", \"mov\", <<The animation filename.>>;\
+                }\
+          |*/")
 PREFIX(ImageA, tree,"image",
        PARM(x, real) PARM(y, real) PARM(w, real) PARM(h, real) PARM(img, text),
        RTAO(image(self, x, y, w, h, img)), "")
@@ -1474,6 +1486,16 @@ PREFIX(TextFormula, tree,"formula", PARM(t, tree), RTAO(textFormula(self, t)),
        "/*| docname \"formula\", \"text\", do { \
                 dsyntax <<formula t>>;\
                 synopsis \"Insert a block of text corresponding to the given formula\" ; \
+                description <<Insert a block of text corresponding to the given formula>> ;\
+                parameters;\
+                parameter \"tree\", \"t\", <<The formula>>;\
+                return_value \"tree\", <<The tree t given in parameter.>>;\
+                }\
+          |*/")
+PREFIX(TextValue, tree,"text_value", PARM(t, tree), RTAO(textValue(self, &t)),
+       "/*| docname \"text_value\", \"text\", do { \
+                dsyntax <<text)vakye t>>;\
+                synopsis \"Insert a block of text corresponding to the given vaue\" ; \
                 description <<Insert a block of text corresponding to the given formula>> ;\
                 parameters;\
                 parameter \"tree\", \"t\", <<The formula>>;\
@@ -2401,13 +2423,13 @@ PREFIX(GroupBoxTexture, tree, "group_box_texture",
           |*/")
 
 
-PREFIX(VideoPlayer, tree, "video_player",
+PREFIX(Movie, tree, "movie",
        PARM(x,real) PARM(y,real) PARM(w,real) PARM(h,real) PARM(u,text),
-       RTAO(videoPlayer(self, x, y, w, h, u)),
-       "/*| docname \"video_player\", \"widget\", do { \
-                dsyntax <<video_player x, y, w, h, u>>;\
-                synopsis \"Make a video player\" ; \
-                description <<It creates a video player based on the Phonon library. Then the supported format are platform dependant.>> ;\
+       RTAO(movie(self, x, y, w, h, u)),
+       "/*| docname \"movie\", \"widget\", do { \
+                dsyntax <<movie x, y, w, h, u>>;\
+                synopsis \"Play a movie\" ; \
+                description <<Display a movie in the rectangle specified by the given coordinates. Supported movie formats depend on the operating system.>> ;\
                 parameters;\
                 parameter \"real\", \"x\", <<x-coordinate>>;\
                 parameter \"real\", \"y\", <<y-coordinate>>;\
@@ -2417,18 +2439,17 @@ PREFIX(VideoPlayer, tree, "video_player",
                 see \"http://doc.qt.nokia.com/4.6/phonon-module.html\" \
                 }\
           |*/")
-PREFIX(VideoPlayerTexture, tree, "video_player_texture",
-       PARM(w,real) PARM(h,real) PARM(u,text),
-       RTAO(videoPlayerTexture(self, w, h, u)),
-       "/*| docname \"video_player_texture\", \"widget\", do { \
-                dsyntax <<video_player_texture w, h, u>>;\
-                synopsis \"Make a video player texture.\" ; \
-                description <<The video player texture associated.>> ;\
+PREFIX(MovieTexture, tree, "movie_texture", PARM(u,text),
+       RTAO(movieTexture(self, u)),
+       "/*| docname \"movie_texture\", \"widget\", do { \
+                dsyntax <<vmovie_texture w, h, u>>;\
+                synopsis \"Create a texture from a video.\" ; \
+                description <<Create a dynamic texture from the given movie.>> ;\
                 parameters;\
                 parameter \"real\", \"w\", <<width>>;\
                 parameter \"real\", \"h\", <<height>>;\
                 parameter \"text\", \"u\", <<The URL to play>>;\
-                see \"videlo_player\" \
+                see \"movie\" \
                 }\
           |*/")
 

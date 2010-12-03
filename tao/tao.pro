@@ -29,6 +29,7 @@ QT += webkit \
     opengl \
     svg \
     phonon
+
 QMAKE_CFLAGS += -Werror
 QMAKE_CXXFLAGS += -Werror
 QMAKE_CXXFLAGS_RELEASE += -g \
@@ -285,13 +286,4 @@ macx {
 } else {
   target.path = $$INSTROOT
   INSTALLS   += target
-}
-
-contains(QT, testlib) {
-    message(Building with qtestlib support.)
-    HEADERS += save_test_dialog.h \
-               widgettests.h
-    SOURCES += widgettests.cpp \
-               save_test_dialog.cpp
-    FORMS += save_test_dialog.ui
 }

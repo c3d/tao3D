@@ -882,7 +882,8 @@ void TextSpan::PerformInsertOperation(Layout * l,
     TextSelect *sel = widget->textSelection();
     if (sel->replacement_tree)
     {
-        Tree * t = sel->replacement_tree;
+        XL::Infix * tail = sel->replacement_tree->AsInfix();
+        XL::Infix * head = tail;
         // Cut the span at the current position
         text endOfSpan = source->value.substr(position);
         if (endOfSpan.size())
@@ -896,17 +897,33 @@ void TextSpan::PerformInsertOperation(Layout * l,
             // Delete the end of the current text_span
             source->value.erase(position);
 
-            // insert the tree from the sel
-            t = portability().fromHTML(cursor.document()->toHtml());
-            t = new XL::Infix("\n", sel->replacement_tree, t);
+            // generate the tree for the end of the span
+            portability p;
+            head = p.fromHTML(cursor.document()->toHtml());
+
+            // Go to the bottom of the replacement tree
+            XL::Infix * temp = sel->replacement_tree->AsInfix();
+            while (temp && temp->right != XL::xl_empty)
+            {
+                temp = temp->right->AsInfix();
+            }
+            // Hang the tree representing the end of the span to
+            // the bottom of the replacement_tree
+            if (temp)
+                temp->right = head;
+
+            // Update head and tail
+            tail = p.getTail();
+            head = sel->replacement_tree->AsInfix();
         }
         if (source->value.size())
         {
-            t = new XL::Infix("\n",
+            head = new XL::Infix("\n",
                               new XL::Prefix(new XL::Name("text"),
                                              new XL::Text((XL::Text*)source)),
-                              t);
+                              head);
         }
+
         sel->replacement_tree = NULL;
 
         // Insert the resulting tree in place of the parent's source:
@@ -914,6 +931,7 @@ void TextSpan::PerformInsertOperation(Layout * l,
         // its parent is the prefix text, so surch for the grand parent.
         XL::FindParentAction getGrandParent(source, 2);
         Tree * grandParent = widget->xlProgram->tree->Do(getGrandParent);
+        if ( ! getGrandParent.path.size()) return;
         char lastChar = getGrandParent.path.at(getGrandParent.path.size() - 1);
 
         XL::Infix   *inf  = grandParent->AsInfix();
@@ -923,27 +941,34 @@ void TextSpan::PerformInsertOperation(Layout * l,
         if (inf)
         {
             if (lastChar == 'l')
-                inf->left = t;
+            {
+                inf->left = head->left;
+                tail->right = inf->right;
+                inf->right = head->right;
+            }
             else
-                inf->right = t;
+                inf->right = head;
         }
         else if (bl)
         {
-            bl->child = t;
+            bl->child = head;
+            std::cerr << bl << std::endl;
         }
         else if (pre)
         {
             if (lastChar == 'l')
-                pre->left = t;
+                pre->left = head;
             else
-                pre->right = t;
+                pre->right = head;
+            std::cerr << pre << std::endl;
         }
         else if (post)
         {
             if (lastChar == 'l')
-                post->left = t;
+                post->left = head;
             else
-                post->right = t;
+                post->right = head;
+            std::cerr << post << std::endl;
         }
         // Reload the program and mark the changes
         widget->reloadProgram();

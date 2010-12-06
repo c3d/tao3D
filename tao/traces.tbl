@@ -26,6 +26,7 @@
 #endif
 
 TRACE(builtins)
+TRACE(property)
 TRACE(memory)
 TRACE(filesync)
 TRACE(menus)

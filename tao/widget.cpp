@@ -2170,6 +2170,11 @@ void Widget::wheelEvent(QWheelEvent *event)
     longlong dx = orientation == Qt::Horizontal ? d : 0;
     longlong dy = orientation == Qt::Vertical   ? d : 0;
     (XL::XLCall("wheel_event"), dx, dy)(xlProgram->context);
+    do
+    {
+        TaoSave saveCurrent(current, NULL);
+        updateGL();
+    } while (0);
 }
 
 

@@ -354,6 +354,8 @@ void Widget::draw()
     glClearColor (1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    GLint list = 0;
+
     for (stereoscopic = 1; stereoscopic <= stereoPlanes; stereoscopic++)
     {
         // Select the buffer in which we draw
@@ -387,7 +389,26 @@ void Widget::draw()
         glClear(GL_DEPTH_BUFFER_BIT);
 
         id = idDepth = 0;
-        space->Draw(NULL);
+
+        if (stereoPlanes > 1)
+        {
+            if (stereoscopic == 1)
+            {
+                list = glGenLists(1);
+                glNewList(list, GL_COMPILE_AND_EXECUTE);
+                space->Draw(NULL);
+                glEndList();
+            }
+            else
+            {
+                glCallList(list);
+            }
+        }
+        else
+        {
+            space->Draw(NULL);
+        }
+
         IFTRACE(memory)
             std::cerr << "Draw, count = " << space->count
                       << " buffer " << (int) stereoscopic << '\n';
@@ -405,6 +426,9 @@ void Widget::draw()
         selectionSpace.Draw(NULL);
         glEnable(GL_DEPTH_TEST);
     }
+
+    if (stereoPlanes > 1)
+        glDeleteLists(list, 1);
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -1283,6 +1307,7 @@ void Widget::setupGL()
 
     // Really nice perspective calculations
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
 }
 
 

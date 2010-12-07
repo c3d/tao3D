@@ -353,6 +353,16 @@ public:
     Tree_p      fillTextureFromSVG(Tree_p self, text svg);
     Tree_p      textureWrap(Tree_p self, bool s, bool t);
     Tree_p      textureTransform(Tree_p self, Tree_p code);
+    Tree_p      lightId(Tree_p self, GLuint id, bool enable);
+    Tree_p      light(Tree_p self, GLenum function, GLfloat value);
+    Tree_p      light(Tree_p self, GLenum function,
+                      GLfloat x, GLfloat y, GLfloat z);
+    Tree_p      light(Tree_p self, GLenum function,
+                      GLfloat a, GLfloat b, GLfloat c, GLfloat d);
+    Tree_p      material(Tree_p self, GLenum face, GLenum function, GLfloat d);
+    Tree_p      material(Tree_p self, GLenum face, GLenum function,
+                         GLfloat a, GLfloat b, GLfloat c, GLfloat d);
+                         
 
     // Generating a path
     Tree_p      newPath(Tree_p self, Tree_p t);

@@ -53,6 +53,7 @@
 #include "table.h"
 #include "attributes.h"
 #include "transforms.h"
+#include "lighting.h"
 #include "undo.h"
 #include "serializer.h"
 #include "binpack.h"
@@ -421,6 +422,7 @@ void Widget::draw()
         // Render all activities, e.g. the selection rectangle
         SpaceLayout selectionSpace(this);
         XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
+        setupGL();
         glDisable(GL_DEPTH_TEST);
         for (Activity *a = activities; a; a = a->Display()) ;
         selectionSpace.Draw(NULL);
@@ -1300,6 +1302,7 @@ void Widget::setupGL()
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);
     glShadeModel(GL_SMOOTH);
+    glDisable(GL_LIGHTING);
 
     // Turn on sphere map automatic texture coordinate generation
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
@@ -4461,6 +4464,72 @@ Tree_p Widget::textureTransform(Tree_p self, Tree_p code)
     Tree_p result = xl_evaluate(code);
     layout->Add(new TextureTransform(false));
     return result;
+}
+
+
+Tree_p Widget::lightId(Tree_p self, GLuint id, bool enable)
+// ----------------------------------------------------------------------------
+//   Select and enable or disable a light
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new LightId(id, enable));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::light(Tree_p self, GLuint function, GLfloat value)
+// ----------------------------------------------------------------------------
+//   Set a light parameter with a single float value
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Light(function, value));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::light(Tree_p self, GLuint function,
+                     GLfloat a, GLfloat b, GLfloat c)
+// ----------------------------------------------------------------------------
+//   Set a light parameter with four float values (direction)
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Light(function, a, b, c));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::light(Tree_p self, GLuint function,
+                     GLfloat a, GLfloat b, GLfloat c, GLfloat d)
+// ----------------------------------------------------------------------------
+//   Set a light parameter with four float values (position, color)
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Light(function, a, b, c, d));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::material(Tree_p self,
+                        GLenum face, GLenum function,
+                        GLfloat value)
+// ----------------------------------------------------------------------------
+//   Set a material parameter with a single float value
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Material(face, function, value));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::material(Tree_p self,
+                        GLenum face, GLenum function,
+                        GLfloat a, GLfloat b, GLfloat c, GLfloat d)
+// ----------------------------------------------------------------------------
+//   Set a light parameter with four float values (position, color)
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Material(face, function, a, b, c, d));
+    return XL::xl_true;
 }
 
 

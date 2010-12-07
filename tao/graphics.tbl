@@ -2465,6 +2465,118 @@ PREFIX(MovieTexture, tree, "movie_texture", PARM(u,text),
           |*/")
 
 
+// ============================================================================
+// 
+//   Lighting
+// 
+// ============================================================================
+
+PREFIX(LightID, tree, "light", PARM(l, integer) PARM(b, boolean),
+       RTAO(lightId(self, l, b)),
+       "Select which light we are working with")
+PREFIX(LightEnable, tree, "light", PARM(l, integer),
+       RTAO(lightId(self, l, true)),
+       "Select which light we are working with")
+
+PREFIX(LightAmbient, tree, "light_ambient",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(light(self, GL_AMBIENT, r, g, b, a)),
+       "Select the ambient light")
+PREFIX(LightDiffuse, tree, "light_diffuse",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(light(self, GL_DIFFUSE, r, g, b, a)),
+       "Select the diffuse light")
+PREFIX(LightSpecular, tree, "light_specular",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(light(self, GL_SPECULAR, r, g, b, a)),
+       "Select the specular light")
+PREFIX(LightPosition3, tree, "light_position",
+       PARM(x, real) PARM(y, real) PARM(z, real),
+       RTAO(light(self, GL_POSITION, x, y, z, 0)),
+       "Select the position of the light")
+PREFIX(LightPosition, tree, "light_position",
+       PARM(x, real) PARM(y, real) PARM(z, real) PARM(w, real),
+       RTAO(light(self, GL_POSITION, x, y, z, w)),
+       "Select the position of the light")
+PREFIX(LightSpotDirection, tree, "light_spot_direction",
+       PARM(x, real) PARM(y, real) PARM(z, real),
+       RTAO(light(self, GL_SPOT_DIRECTION, x, y, z)),
+       "Select the direction of spot lights")
+PREFIX(LightSpotExponent, tree, "light_spot_exponent", PARM(x, real),
+       RTAO(light(self, GL_SPOT_EXPONENT, x)),
+       "Select the cutoff exponent for spot lights")
+PREFIX(LightSpotCutoff, tree, "light_spot_cutoff", PARM(x, real),
+       RTAO(light(self, GL_SPOT_CUTOFF, x)),
+       "Select the cutoff angle for spot lights")
+PREFIX(LightAttenuation, tree, "light_attenuation",
+       PARM(x, real) PARM(y, real) PARM(z, real),
+       TAO(light(self, GL_CONSTANT_ATTENUATION, x));
+       TAO(light(self, GL_LINEAR_ATTENUATION, y));
+       TAO(light(self, GL_QUADRATIC_ATTENUATION, z));
+       return XL::xl_true,
+       "Select the light attenuation factor")
+
+PREFIX(MaterialAmbient, tree, "material_ambient",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(material(self, GL_FRONT_AND_BACK, GL_AMBIENT, r, g, b, a)),
+       "Select the ambient material")
+PREFIX(MaterialDiffuse, tree, "material_diffuse",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(material(self, GL_FRONT_AND_BACK, GL_DIFFUSE, r, g, b, a)),
+       "Select the diffuse material")
+PREFIX(MaterialSpecular, tree, "material_specular",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(material(self, GL_FRONT_AND_BACK, GL_SPECULAR, r, g, b, a)),
+       "Select the specular material")
+PREFIX(MaterialEmission, tree, "material_emission",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(material(self, GL_FRONT_AND_BACK, GL_EMISSION, r, g, b, a)),
+       "Select the emission of the material")
+PREFIX(MaterialShininess, tree, "material_shininess", PARM(x, real),
+       RTAO(material(self, GL_FRONT_AND_BACK, GL_SHININESS, x)),
+       "Select the shininess of the material")
+
+PREFIX(MaterialFrontAmbient, tree, "material_front_ambient",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(material(self, GL_FRONT, GL_AMBIENT, r, g, b, a)),
+       "Select the ambient material")
+PREFIX(MaterialFrontDiffuse, tree, "material_front_diffuse",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(material(self, GL_FRONT, GL_DIFFUSE, r, g, b, a)),
+       "Select the diffuse material")
+PREFIX(MaterialFrontSpecular, tree, "material_front_specular",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(material(self, GL_FRONT, GL_SPECULAR, r, g, b, a)),
+       "Select the specular material")
+PREFIX(MaterialFrontEmission, tree, "material_front_emission",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(material(self, GL_FRONT, GL_EMISSION, r, g, b, a)),
+       "Select the emission of the material")
+PREFIX(MaterialFrontShininess, tree, "material_front_shininess", PARM(x, real),
+       RTAO(material(self, GL_FRONT, GL_SHININESS, x)),
+       "Select the shininess of the material")
+
+PREFIX(MaterialBackAmbient, tree, "material_back_ambient",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(material(self, GL_BACK, GL_AMBIENT, r, g, b, a)),
+       "Select the ambient material")
+PREFIX(MaterialBackDiffuse, tree, "material_back_diffuse",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(material(self, GL_BACK, GL_DIFFUSE, r, g, b, a)),
+       "Select the diffuse material")
+PREFIX(MaterialBackSpecular, tree, "material_back_specular",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(material(self, GL_BACK, GL_SPECULAR, r, g, b, a)),
+       "Select the specular material")
+PREFIX(MaterialBackEmission, tree, "material_back_emission",
+       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       RTAO(material(self, GL_BACK, GL_EMISSION, r, g, b, a)),
+       "Select the emission of the material")
+PREFIX(MaterialBackShininess, tree, "material_back_shininess", PARM(x, real),
+       RTAO(material(self, GL_BACK, GL_SHININESS, x)),
+       "Select the shininess of the material")
+
+
 
 // ============================================================================
 //

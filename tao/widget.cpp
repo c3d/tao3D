@@ -3283,7 +3283,7 @@ XL::Text_p Widget::page(Tree_p self, text name, Tree_p body)
         pageFound = pageId;
         pageLinks.clear();
         if (pageId > 1)
-            pageLinks["Up"] = lastPageName;
+            pageLinks["Up"] = pageLinks["PageUp"] = lastPageName;
         pageTree = body;
         xl_evaluate(body);
     }
@@ -3292,7 +3292,7 @@ XL::Text_p Widget::page(Tree_p self, text name, Tree_p body)
         // We are executing the page following the current one:
         // Check if PageDown is set, otherwise set current page as default
         if (pageLinks.count("Down") == 0)
-            pageLinks["Down"] = name;
+            pageLinks["Down"] = pageLinks["PageDown"] = name;
     }
 
     lastPageName = name;

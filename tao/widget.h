@@ -37,7 +37,6 @@
 #include "runtime.h"
 #include "font_file_manager.h"
 
-#include <GL/glew.h>
 #include <QtOpenGL>
 #include <QImage>
 #include <QTimeLine>

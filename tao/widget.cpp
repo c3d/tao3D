@@ -1304,6 +1304,7 @@ void Widget::setupGL()
     glDisable(GL_CULL_FACE);
     glShadeModel(GL_SMOOTH);
     glDisable(GL_LIGHTING);
+    glUseProgram(0ULL);
 
     // Turn on sphere map automatic texture coordinate generation
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);

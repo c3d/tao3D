@@ -33,7 +33,6 @@
 #include "apply_changes.h"
 #include "portability.h"
 
-#include <GL/glew.h>
 #include <QtOpenGL>
 #include <QPainterPath>
 #include <QFont>
@@ -164,14 +163,14 @@ void TextSpan::DrawCached(Layout *where)
     if (count && setFillColor(where))
     {
         // Bind the glyph texture
-        glBindTexture(GL_TEXTURE_RECTANGLE, glyphs.Texture());
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, glyphs.Texture());
         GLenum blur = GL_LINEAR;
         if (!where->hasPixelBlur &&
             font.pointSizeF() < glyphs.minFontSizeForAntialiasing)
             blur = GL_NEAREST;
-        glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, blur);
-        glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, blur);
-        glEnable(GL_TEXTURE_RECTANGLE);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, blur);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, blur);
+        glEnable(GL_TEXTURE_RECTANGLE_ARB);
         if (TaoApp->hasGLMultisample)
             glEnable(GL_MULTISAMPLE);
 
@@ -183,7 +182,7 @@ void TextSpan::DrawCached(Layout *where)
         glDrawArrays(GL_QUADS, 0, count);
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-        glDisable(GL_TEXTURE_RECTANGLE);
+        glDisable(GL_TEXTURE_RECTANGLE_ARB);
     }
 
     where->offset = Point3(x, y, z);

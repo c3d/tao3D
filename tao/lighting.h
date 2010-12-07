@@ -27,7 +27,7 @@
 #include "color.h"
 #include "attributes.h"
 #include <vector>
-#include <GL/glew.h>
+#include <QtOpenGL>
 #include <QGLShaderProgram>
 
 TAO_BEGIN

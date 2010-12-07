@@ -31,7 +31,7 @@
 #include <memory.h>
 #include <fstream>
 #include <map>
-#include <GL/glew.h>
+#include <QtOpenGL>
 #include <QFileInfo>
 
 TAO_BEGIN

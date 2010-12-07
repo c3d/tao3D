@@ -138,7 +138,8 @@ HEADERS += widget.h \
     include/tao/module_info.h \
     module_renderer.h \
     xl_source_edit.h \
-    xl_highlighter.h
+    xl_highlighter.h \
+    layout_cache.h
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \
@@ -217,7 +218,8 @@ SOURCES += tao_main.cpp \
     module_api_p.cpp \
     module_renderer.cpp \
     xl_source_edit.cpp \
-    xl_highlighter.cpp
+    xl_highlighter.cpp \
+    layout_cache.cpp
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 

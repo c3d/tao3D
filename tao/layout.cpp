@@ -75,8 +75,7 @@ LayoutState::LayoutState(const LayoutState &o)
         rotationId(o.rotationId),
         translationId(o.translationId),
         scaleId(o.scaleId),
-        refreshEvents(o.refreshEvents),
-        nextRefresh(o.nextRefresh)
+        refreshEvents(), nextRefresh(DBL_MAX)
 {}
 
 
@@ -175,6 +174,8 @@ Layout *Layout::AddChild(uint childId, Tree_p self, Context_p ctx)
     result->id = childId;
     result->self = self;
     result->ctx = ctx;
+    if (ctx)
+        result->ctxHash = LayoutCache::contextHash(ctx);
     return result;
 }
 
@@ -394,9 +395,11 @@ bool Layout::Refresh(QEvent *e, Layout *parent)
 //   Re-compute layout on event, return true if self or child changed
 // ----------------------------------------------------------------------------
 {
-    bool result = false;
     bool need_refresh = false;
     Widget * widget = Widget::Tao();
+
+    if (!e)
+        return false;
 
     if (refreshEvents.count(e->type()))
     {
@@ -415,23 +418,41 @@ bool Layout::Refresh(QEvent *e, Layout *parent)
 
         if (parent)
         {
+            if (XL::MAIN->options.enable_layout_cache)
+            {
+                // Drop children: delete drawings but set aside layouts, in case
+                // they can be reused by the evaluation step below
+                layout_items::iterator it;
+                for (it = items.begin(); it != items.end(); it++)
+                {
+                    if (Layout * layout = dynamic_cast<Layout*>(*it))
+                        widget->layoutCache.insert(layout);
+                    else
+                        delete (*it);
+                }
+                items.clear();
+            }
+
             // Create a new (empty) layout
             Layout * layout = new Layout(this->display);
 
-            // Set new layout as the current layout in the current Widget
-            XL::LocalSave<Layout *> saveLayout(widget->layout, layout);
+            do
+            {
+                // Set new layout as the current layout in the current Widget
+                XL::LocalSave<Layout *> saveLayout(widget->layout, layout);
 
-            // Re-evaluate the source code for 'this' layout: will create a
-            //   child layout in the new layout
-            if (self && ctx)
-                ctx->Evaluate(self);
+                // Re-evaluate the source code for 'this' layout: will create a
+                // child layout in the new layout
+                if (self && ctx)
+                    ctx->Evaluate(self);
+            } while (0);
 
             // Get the (updated) child layout
             if (layout->items.begin() == layout->items.end())
                 return false;
 
             layout_items::iterator b = layout->items.begin();
-            Drawing *child = (*b);
+            Layout *child = dynamic_cast<Layout*>(*b);
             if (!child)
                 return false;
 
@@ -440,15 +461,18 @@ bool Layout::Refresh(QEvent *e, Layout *parent)
 
             // In our parent, replace 'this' by the child layout
             // REVISIT data structure for direct access (map)
+            bool found = false;
             layout_items::iterator i;
             for (i = parent->items.begin(); i != parent->items.end(); i++)
             {
                 if ((*i) == this)
                 {
                     (*i) = child;
+                    found = true;
                     break;
                 }
             }
+            Q_ASSERT(found);
 
             // Delete temporary layout (but not child!)
             layout->items.clear();
@@ -457,7 +481,7 @@ bool Layout::Refresh(QEvent *e, Layout *parent)
             // We're useless now
             delete this;
 
-            return true;
+            return child->RefreshChildren(e);
         }
         else
         {
@@ -467,10 +491,26 @@ bool Layout::Refresh(QEvent *e, Layout *parent)
     else
     {
         IFTRACE(layoutevents)
-                std::cerr << "Layout " << PrettyId() << " does not need updating\n";
+            std::cerr << "Layout " << PrettyId() << " does not need updating\n";
     }
 
     // Forward event to all child layouts
+    bool changed = RefreshChildren(e);
+
+    // When done with topmost layout we can clear cache
+    if (XL::MAIN->options.enable_layout_cache && !parent)
+        widget->layoutCache.clear();
+
+    return changed;
+}
+
+
+bool Layout::RefreshChildren(QEvent *e)
+// ----------------------------------------------------------------------------
+//   Refresh all child layouts
+// ----------------------------------------------------------------------------
+{
+    bool result;
     Layout *layout;
     layout_items::iterator i;
     layout_items items_copy = items;
@@ -478,27 +518,6 @@ bool Layout::Refresh(QEvent *e, Layout *parent)
         if ((layout = dynamic_cast<Layout*>(*i)))
             result |= layout->Refresh(e, this);
     return result;
-}
-
-
-double Layout::NextChildRefresh()
-// ----------------------------------------------------------------------------
-//   Find the lowest refresh time of self and all child layouts
-// ----------------------------------------------------------------------------
-{
-    double refresh = nextRefresh;
-    layout_items::iterator i;
-    for (i = items.begin(); i != items.end(); i++)
-    {
-        Layout *layout;
-        if ((layout = dynamic_cast<Layout*>(*i)))
-        {
-            double childRefresh = layout->NextChildRefresh();
-            if (childRefresh < refresh)
-                refresh = childRefresh;
-        }
-    }
-    return refresh;
 }
 
 

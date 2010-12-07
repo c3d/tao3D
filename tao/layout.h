@@ -1,7 +1,7 @@
 #ifndef LAYOUT_H
 #define LAYOUT_H
 // ****************************************************************************
-//  layout.h                                                        Tao project
+//  layout.h                                                       Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -72,6 +72,7 @@ public:
     double              nextRefresh;
     Tree_p              self;
     Context_p           ctx;
+    QByteArray          ctxHash;
 };
 
 
@@ -105,7 +106,7 @@ struct Layout : Drawing, LayoutState
 
     // Event interface
     virtual bool        Refresh(QEvent *e, Layout *parent = NULL);
-    double              NextChildRefresh();
+    bool                RefreshChildren(QEvent *e);
 
     LayoutState &       operator=(const LayoutState &o);
     void                Inherit(Layout *other);

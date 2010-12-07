@@ -135,6 +135,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       fontFileMgr(NULL),
       drawAllPages(false), animated(true),
       stereoMode(stereoHARDWARE), stereoscopic(0), stereoPlanes(1),
+      refreshEvent(NULL), nextRefresh(DBL_MAX),
       activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
       selection(), selectionTrees(), selectNextTime(), actionMap(),
@@ -443,6 +444,7 @@ bool Widget::refreshNow(QEvent *event)
     if (inError)
         return false;
 
+    bool changed = false;
     ulonglong before = now();
 
     if (!event || space->refreshEvents.count(event->type()))
@@ -452,6 +454,10 @@ bool Widget::refreshNow(QEvent *event)
             text what = event ? LayoutState::ToText(event->type()) : "NULL";
             std::cerr << "Full refresh due to event: " << what << "\n";
         }
+        if (event)
+            refreshEvents.erase(event->type());
+        nextRefresh = DBL_MAX;
+
         if (current)
         {
             runProgram();
@@ -462,6 +468,7 @@ bool Widget::refreshNow(QEvent *event)
             TaoSave saveCurrent(current, this);
             runProgram();
         }
+        changed = true;
     }
     else
     {
@@ -472,10 +479,13 @@ bool Widget::refreshNow(QEvent *event)
             IFTRACE(layoutevents)
                 std::cerr << "Partial refresh due to event: "
                           << LayoutState::ToText(event->type()) << "\n";
+
+            refreshEvents.erase(event->type());
+            nextRefresh = DBL_MAX;
+
             space->Refresh(event);
 
-            // Make sure refresh timer is restarted if needed
-            startRefreshTimer();
+            changed = true;
         }
     }
 
@@ -486,7 +496,16 @@ bool Widget::refreshNow(QEvent *event)
     ulonglong after = now();
     elapsed(before, after);
 
-    return true;
+    if (changed)
+    {
+        IFTRACE(layoutevents)
+            std::cerr << "Program events: "
+                      << LayoutState::ToText(refreshEvents) << "\n";
+        // Make sure refresh timer is restarted if needed
+        startRefreshTimer();
+    }
+
+    return changed;
 }
 
 
@@ -522,12 +541,17 @@ bool Widget::refreshOn(QEvent::Type type, double nextRefresh)
         layout->refreshEvents.insert(type);
         changed = true;
     }
-    refreshEvents.insert(type);
+    if (refreshEvents.count(type) == 0)
+    {
+        refreshEvents.insert(type);
+    }
     if (type == QEvent::Timer)
     {
         double currentTime = CurrentTime();
         if (nextRefresh == DBL_MAX)
+        {
             nextRefresh = currentTime + dfltRefresh;
+        }
         IFTRACE(layoutevents)
         {
             QDateTime d = fromSecsSinceEpoch(nextRefresh);
@@ -542,6 +566,11 @@ bool Widget::refreshOn(QEvent::Type type, double nextRefresh)
         {
             layout->nextRefresh = nextRefresh;
             changed = true;
+        }
+        if (this->nextRefresh == DBL_MAX ||
+            nextRefresh < this->nextRefresh)
+        {
+            this->nextRefresh = nextRefresh;
         }
     }
     return changed;
@@ -2185,14 +2214,13 @@ void Widget::startRefreshTimer()
     if (inError || !animated)
         return;
 
-    double nextRefresh = space->NextChildRefresh();
     if (refreshEvents.count(QEvent::Timer) &&
         nextRefresh != DBL_MAX)
     {
         double now = trueCurrentTime();
         double remaining = nextRefresh - now;
-        if (remaining <= 0)
-            remaining = 0.001;
+        if (remaining < 0)
+            remaining = 0;
         int ms = remaining * 1000;
         IFTRACE(layoutevents)
             std::cerr << "Starting refresh timer: " << ms << " ms (current "
@@ -2215,13 +2243,22 @@ void Widget::timerEvent(QTimerEvent *event)
     bool is_refresh_timer = (event->timerId() == timer.timerId());
     if (is_refresh_timer)
     {
+        timer.stop();
+        setCurrentTime();
         IFTRACE(layoutevents)
             std::cerr << "Refresh timer expired, now = " << trueCurrentTime()
                       << "\n";
-        timer.stop();
-        setCurrentTime();
+
+        if (CurrentTime() < nextRefresh)
+        {
+            // Timer expired early. Unfortunately, this occurs sometime.
+            return startRefreshTimer();
+        }
+
+        refreshEvent = event;
     }
     forwardEvent(event);
+    refreshEvent = NULL;
 }
 
 
@@ -3780,6 +3817,15 @@ Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
 //   Evaluate the child tree while preserving the current state
 // ----------------------------------------------------------------------------
 {
+    if (XL::MAIN->options.enable_layout_cache)
+    {
+        if (Layout *cached = layoutCache.take(self, context->stack))
+        {
+            layout->Add(cached);
+            return XL::xl_true;
+        }
+    }
+
     XL::LocalSave<Layout *> save(layout,
                                  layout->AddChild(layout->id, self,
                                                   context->stack));
@@ -3793,6 +3839,15 @@ Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
 //   Evaluate the child and mark the current shape
 // ----------------------------------------------------------------------------
 {
+    if (XL::MAIN->options.enable_layout_cache)
+    {
+        if (Layout *cached = layoutCache.take(self, context->stack))
+        {
+            layout->Add(cached);
+            return XL::xl_true;
+        }
+    }
+
     XL::LocalSave<Layout *> saveLayout(layout,
                                        layout->AddChild(selectionId(), self,
                                                         context->stack));
@@ -4026,14 +4081,9 @@ Integer_p Widget::seconds(Tree_p self)
 //    Return the current second, schedule refresh on next second
 // ----------------------------------------------------------------------------
 {
-    QDateTime now = QDateTime::currentDateTime();
-    int second = now.time().second();
-    QTime t = now.time();
-    t = t.addMSecs(-t.msec());
-    QDateTime next(now);
-    next.setTime(t);
-    next = next.addSecs(1);
-    double refresh = toSecsSinceEpoch(next);
+    double now = CurrentTime();
+    int second = fmod(now, 60);
+    double refresh = (double)(int)now + 1.0;
     refreshOn(QEvent::Timer, refresh);
     return new XL::Integer(second);
 }
@@ -4044,7 +4094,7 @@ Integer_p Widget::minutes(Tree_p self)
 //    Return the current minute, schedule refresh on next minute
 // ----------------------------------------------------------------------------
 {
-    QDateTime now = QDateTime::currentDateTime();
+    QDateTime now = fromSecsSinceEpoch(CurrentTime());
     int minute = now.time().minute();
     QTime t = now.time();
     t = t.addMSecs(-t.msec());
@@ -4063,7 +4113,7 @@ Integer_p Widget::hours(Tree_p self)
 //    Return the current hour, schedule refresh on next hour
 // ----------------------------------------------------------------------------
 {
-    QDateTime now = QDateTime::currentDateTime();
+    QDateTime now = fromSecsSinceEpoch(CurrentTime());
     int hour = now.time().hour();
     QTime t = now.time();
     t = t.addMSecs(-t.msec());
@@ -4082,7 +4132,7 @@ Integer_p Widget::day(Tree_p self)
 //    Return the current day, schedule refresh on next day
 // ----------------------------------------------------------------------------
 {
-    QDateTime now = QDateTime::currentDateTime();
+    QDateTime now = fromSecsSinceEpoch(CurrentTime());
     int day = now.date().day();
     double refresh = nextDay(now);
     refreshOn(QEvent::Timer, refresh);
@@ -4095,7 +4145,7 @@ Integer_p Widget::weekDay(Tree_p self)
 //    Return the current week day, schedule refresh on next day
 // ----------------------------------------------------------------------------
 {
-    QDateTime now = QDateTime::currentDateTime();
+    QDateTime now = fromSecsSinceEpoch(CurrentTime());
     int day = now.date().dayOfWeek();
     double refresh = nextDay(now);
     refreshOn(QEvent::Timer, refresh);
@@ -4108,7 +4158,7 @@ Integer_p Widget::yearDay(Tree_p self)
 //    Return the current week day, schedule refresh on next day
 // ----------------------------------------------------------------------------
 {
-    QDateTime now = QDateTime::currentDateTime();
+    QDateTime now = fromSecsSinceEpoch(CurrentTime());
     int day = now.date().dayOfYear();
     double refresh = nextDay(now);
     refreshOn(QEvent::Timer, refresh);
@@ -4121,7 +4171,7 @@ Integer_p Widget::month(Tree_p self)
 //    Return the current month, schedule refresh on next day
 // ----------------------------------------------------------------------------
 {
-    QDateTime now = QDateTime::currentDateTime();
+    QDateTime now = fromSecsSinceEpoch(CurrentTime());
     int month = now.date().month();
     double refresh = nextDay(now);
     refreshOn(QEvent::Timer, refresh);
@@ -4134,7 +4184,7 @@ Integer_p Widget::year(Tree_p self)
 //    Return the current year, schedule refresh on next day
 // ----------------------------------------------------------------------------
 {
-    QDateTime now = QDateTime::currentDateTime();
+    QDateTime now = fromSecsSinceEpoch(CurrentTime());
     int year = now.date().year();
     double refresh = nextDay(now);
     refreshOn(QEvent::Timer, refresh);
@@ -5565,9 +5615,20 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
 //   Create a new page layout and render text in it
 // ----------------------------------------------------------------------------
 {
+    if (XL::MAIN->options.enable_layout_cache)
+    {
+        if (Layout *cached = layoutCache.take(self, context->stack))
+        {
+            layout->Add(cached);
+            return XL::xl_true;
+        }
+    }
+
     PageLayout *tbox = new PageLayout(this);
     tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
     tbox->id = selectionId();
+    tbox->self = self;
+    tbox->ctx = context->stack;
     layout->Add(tbox);
     flows[flowName] = tbox;
 

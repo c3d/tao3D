@@ -90,6 +90,8 @@ public:
                       stereoHORIZONTAL, stereoVERTICAL,
                       stereoDIAGONAL, stereoANTI_DIAGONAL,
                       stereoALIOSCOPY };
+    enum ShaderKind { VERTEX, FRAGMENT };
+
 public:
     Widget(Window *parent, XL::SourceFile *sf = NULL);
     ~Widget();
@@ -362,6 +364,10 @@ public:
     Tree_p      material(Tree_p self, GLenum face, GLenum function, GLfloat d);
     Tree_p      material(Tree_p self, GLenum face, GLenum function,
                          GLfloat a, GLfloat b, GLfloat c, GLfloat d);
+    Tree_p      shaderProgram(Tree_p self, Tree_p code);
+    Tree_p      shaderFromSource(Tree_p self, ShaderKind kind, text source);
+    Tree_p      shaderFromFile(Tree_p self, ShaderKind kind, text file);
+    Text_p      shaderLog(Tree_p self);
                          
 
     // Generating a path
@@ -679,6 +685,7 @@ private:
     Tree_p                pageTree;
     Tree_p                currentShape;
     QGridLayout *         currentGridLayout;
+    QGLShaderProgram *    currentShaderProgram;
     GroupInfo   *         currentGroup;
     GlyphCache            glyphCache;
     FontFileManager *     fontFileMgr;

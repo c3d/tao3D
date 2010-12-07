@@ -2576,6 +2576,24 @@ PREFIX(MaterialBackShininess, tree, "material_back_shininess", PARM(x, real),
        RTAO(material(self, GL_BACK, GL_SHININESS, x)),
        "Select the shininess of the material")
 
+PREFIX(ShaderProgram, tree, "shader_program", PARM(code, tree),
+       RTAO(shaderProgram(self, code)),
+       "Define a shader program")
+PREFIX(VertexShaderFromSource, tree, "vertex_shader", PARM(src, text),
+       RTAO(shaderFromSource(self, Tao::Widget::VERTEX, src)),
+       "Define a vertex shader")
+PREFIX(VertexShaderFromFile, tree, "vertex_shader_file", PARM(file, text),
+       RTAO(shaderFromFile(self, Tao::Widget::VERTEX, file)),
+       "Define a vertex shader")
+PREFIX(FragmentShaderFromSource, tree, "fragment_shader", PARM(src, text),
+       RTAO(shaderFromSource(self, Tao::Widget::FRAGMENT, src)),
+       "Define a vertex shader")
+PREFIX(FragmentShaderFromFile, tree, "fragment_shader_file", PARM(file, text),
+       RTAO(shaderFromFile(self, Tao::Widget::FRAGMENT, file)),
+       "Define a vertex shader")
+PREFIX(ShaderLog, text, "shader_log", , RTAO(shaderLog(self)),
+       "Return shader log")
+
 
 
 // ============================================================================

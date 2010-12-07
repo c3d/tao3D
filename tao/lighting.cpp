@@ -67,4 +67,14 @@ void Material::Draw(Layout *where)
     glMaterialfv(face, function, &args[0]);
 }
 
+
+void ShaderProgram::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Activate the given shader program
+// ----------------------------------------------------------------------------
+{
+    (void) where;
+    program->bind();
+}
+
 TAO_END

@@ -28,6 +28,7 @@
 #include "attributes.h"
 #include <vector>
 #include <GL/glew.h>
+#include <QGLShaderProgram>
 
 TAO_BEGIN
 
@@ -94,6 +95,30 @@ struct Material : Light
         : Light(f, a, b, c, d), face(fc) {}
     virtual void Draw(Layout *where);
     GLenum      face;
+};
+
+
+struct ShaderProgramInfo : XL::Info
+// ----------------------------------------------------------------------------
+//   Hold info associated to a tree
+// ----------------------------------------------------------------------------
+{
+    ShaderProgramInfo(QGLShaderProgram *program): program(program) {}
+    ~ShaderProgramInfo() { delete program; }
+    typedef QGLShaderProgram *data_t;
+    operator data_t() { return program; }
+    QGLShaderProgram *program;
+};
+
+
+struct ShaderProgram : Lighting
+// ----------------------------------------------------------------------------
+//   Activate a shader program
+// ----------------------------------------------------------------------------
+{
+    ShaderProgram(QGLShaderProgram *program): program(program) {}
+    virtual void Draw(Layout *where);
+    QGLShaderProgram *program;
 };
 
 TAO_END

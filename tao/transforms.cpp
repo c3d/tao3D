@@ -79,7 +79,10 @@ void Rotation::Draw(Layout *where)
 //    Rotation in a drawing
 // ----------------------------------------------------------------------------
 {
-    glRotatef(amount, xaxis, yaxis, zaxis);
+    // BUG? fmod required to avoid incorrect rotations with large values
+    // (>1290000000)
+    amount = fmod(amount, 360.0);
+    glRotated(amount, xaxis, yaxis, zaxis);
     double amod90 = fmod(amount, 90.0);
     if (amod90 < -0.01 || amod90 > 0.01)
         where->hasPixelBlur = true;

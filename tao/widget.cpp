@@ -4628,8 +4628,11 @@ Tree_p Widget::shaderSet(Tree_p self, Tree_p code)
             Name *name = infix->left->AsName();
             TreeList args;
             Tree *arg = infix->right;
+            if (Block *block = arg->AsBlock())
+                arg = block->child;
             Infix *iarg = arg->AsInfix();
-            if (iarg && iarg->name == ",")
+            if (iarg &&
+                (iarg->name == "," || iarg->name == "\n" || iarg->name == ";"))
                 XL::xl_infix_to_list(iarg, args);
             else
                 args.push_back(arg);

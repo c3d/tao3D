@@ -111,13 +111,7 @@ void ShaderValue::Draw(Layout *where)
 
         if (uniform)
         {
-            switch(values.size())
-            {
-            case 1: glUniform1fv(uniform->id, 1, &values[0]); break;
-            case 2: glUniform2fv(uniform->id, 1, &values[0]); break;
-            case 3: glUniform3fv(uniform->id, 1, &values[0]); break;
-            case 4: glUniform4fv(uniform->id, 1, &values[0]); break;
-            }
+            glUniform1fv(uniform->id, values.size(), &values[0]);
         }
         else if (attribute)
         {

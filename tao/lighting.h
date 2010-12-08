@@ -26,6 +26,7 @@
 #include "drawing.h"
 #include "color.h"
 #include "attributes.h"
+#include "tao_gl.h"
 #include <vector>
 #include <QGLShaderProgram>
 

@@ -23,6 +23,8 @@
 
 #ifndef CONFIG_MACOSX
 #  include <GL/glew.h>
+#else
+#  define glewInit()
 #endif
 
 #include <QtOpenGL>

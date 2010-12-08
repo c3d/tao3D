@@ -531,8 +531,7 @@ bool Widget::refreshOn(QEvent::Type type, double nextRefresh)
         IFTRACE(layoutevents)
         {
             QDateTime d = fromSecsSinceEpoch(nextRefresh);
-            qint64 deltaMs = fromSecsSinceEpoch(trueCurrentTime()).msecsTo(d);
-            double delta = (double)deltaMs / 1000;
+            double delta = nextRefresh - currentTime;
             std::cerr << "Request to refresh layout "
                       << layout->PrettyId() << " at " << nextRefresh
                       << " (" << +d.toString("dd MMM yyyy hh:mm:ss.zzz")

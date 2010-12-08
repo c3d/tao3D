@@ -26,7 +26,6 @@
 #include "tao.h"
 #include "tao_tree.h"
 #include "coords.h"
-#include <GL/glew.h>
 #include <QtOpenGL>
 #include <phonon>
 

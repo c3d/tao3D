@@ -54,6 +54,7 @@
 #include "table.h"
 #include "attributes.h"
 #include "transforms.h"
+#include "lighting.h"
 #include "undo.h"
 #include "serializer.h"
 #include "binpack.h"
@@ -131,7 +132,8 @@ Widget::Widget(Window *parent, SourceFile *sf)
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
       pageTree(NULL),
-      currentShape(NULL), currentGridLayout(NULL), currentGroup(NULL),
+      currentShape(NULL), currentGridLayout(NULL),
+      currentShaderProgram(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
       drawAllPages(false), animated(true),
       stereoMode(stereoHARDWARE), stereoscopic(0), stereoPlanes(1),
@@ -347,6 +349,8 @@ void Widget::draw()
     glClearColor (1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    GLint list = 0;
+
     for (stereoscopic = 1; stereoscopic <= stereoPlanes; stereoscopic++)
     {
         // Select the buffer in which we draw
@@ -380,7 +384,26 @@ void Widget::draw()
         glClear(GL_DEPTH_BUFFER_BIT);
 
         id = idDepth = 0;
-        space->Draw(NULL);
+
+        if (stereoPlanes > 1)
+        {
+            if (stereoscopic == 1)
+            {
+                list = glGenLists(1);
+                glNewList(list, GL_COMPILE_AND_EXECUTE);
+                space->Draw(NULL);
+                glEndList();
+            }
+            else
+            {
+                glCallList(list);
+            }
+        }
+        else
+        {
+            space->Draw(NULL);
+        }
+
         IFTRACE(memory)
             std::cerr << "Draw, count = " << space->count
                       << " buffer " << (int) stereoscopic << '\n';
@@ -393,11 +416,15 @@ void Widget::draw()
         // Render all activities, e.g. the selection rectangle
         SpaceLayout selectionSpace(this);
         XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
+        setupGL();
         glDisable(GL_DEPTH_TEST);
         for (Activity *a = activities; a; a = a->Display()) ;
         selectionSpace.Draw(NULL);
         glEnable(GL_DEPTH_TEST);
     }
+
+    if (stereoPlanes > 1)
+        glDeleteLists(list, 1);
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -1393,6 +1420,8 @@ void Widget::setupGL()
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);
     glShadeModel(GL_SMOOTH);
+    glDisable(GL_LIGHTING);
+    glUseProgram(0);
 
     // Turn on sphere map automatic texture coordinate generation
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
@@ -1400,6 +1429,7 @@ void Widget::setupGL()
 
     // Really nice perspective calculations
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
 }
 
 
@@ -3503,7 +3533,7 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
         pageFound = pageId;
         pageLinks.clear();
         if (pageId > 1)
-            pageLinks["Up"] = lastPageName;
+            pageLinks["Up"] = pageLinks["PageUp"] = lastPageName;
         pageTree = body;
         context->Evaluate(body);
     }
@@ -3512,7 +3542,7 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
         // We are executing the page following the current one:
         // Check if PageDown is set, otherwise set current page as default
         if (pageLinks.count("Down") == 0)
-            pageLinks["Down"] = name;
+            pageLinks["Down"] = pageLinks["PageDown"] = name;
     }
 
     lastPageName = name;
@@ -4835,6 +4865,213 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
 }
 
 
+Tree_p Widget::lightId(Tree_p self, GLuint id, bool enable)
+// ----------------------------------------------------------------------------
+//   Select and enable or disable a light
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new LightId(id, enable));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::light(Tree_p self, GLuint function, GLfloat value)
+// ----------------------------------------------------------------------------
+//   Set a light parameter with a single float value
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Light(function, value));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::light(Tree_p self, GLuint function,
+                     GLfloat a, GLfloat b, GLfloat c)
+// ----------------------------------------------------------------------------
+//   Set a light parameter with four float values (direction)
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Light(function, a, b, c));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::light(Tree_p self, GLuint function,
+                     GLfloat a, GLfloat b, GLfloat c, GLfloat d)
+// ----------------------------------------------------------------------------
+//   Set a light parameter with four float values (position, color)
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Light(function, a, b, c, d));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::material(Tree_p self,
+                        GLenum face, GLenum function,
+                        GLfloat value)
+// ----------------------------------------------------------------------------
+//   Set a material parameter with a single float value
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Material(face, function, value));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::material(Tree_p self,
+                        GLenum face, GLenum function,
+                        GLfloat a, GLfloat b, GLfloat c, GLfloat d)
+// ----------------------------------------------------------------------------
+//   Set a light parameter with four float values (position, color)
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Material(face, function, a, b, c, d));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::shaderProgram(Context *context, Tree_p self, Tree_p code)
+// ----------------------------------------------------------------------------
+//    Creates a new shader program in which we will evaluate shaders
+// ----------------------------------------------------------------------------
+//    Note that we compile and evaluate the shader only once
+{
+    if (currentShaderProgram)
+    {
+        Ooops("Nested shader program $1", self);
+        return XL::xl_false;
+    }
+
+    QGLShaderProgram *program = self->Get<ShaderProgramInfo>();
+    Tree_p result = XL::xl_true;
+    if (!program)
+    {
+        XL::LocalSave<QGLShaderProgram *> prog(currentShaderProgram,
+                                               new QGLShaderProgram());
+        result = context->Evaluate(code);
+        program = currentShaderProgram;
+
+        QString message = currentShaderProgram->log();
+        if (message.length())
+        {
+            Window *window = (Window *) parentWidget();
+            window->addError(message);
+        }
+    }
+    layout->Add(new ShaderProgram(program));
+    return result;
+}
+
+
+static inline QGLShader::ShaderType ShaderType(Widget::ShaderKind kind)
+// ----------------------------------------------------------------------------
+//   Convert our shader kind into Qt shader type.
+// ----------------------------------------------------------------------------
+{
+    switch (kind)
+    {
+    case Widget::VERTEX:        return QGLShader::Vertex;
+    case Widget::FRAGMENT:      return QGLShader::Fragment;
+    }
+    return QGLShader::Vertex;
+}
+
+
+Tree_p Widget::shaderFromSource(Tree_p self, ShaderKind kind, text source)
+// ----------------------------------------------------------------------------
+//   Load a shader from shader source
+// ----------------------------------------------------------------------------
+{
+    if (!currentShaderProgram)
+    {
+        Ooops("No shader program while executing $1", self);
+        return XL::xl_false;
+    }
+
+    bool ok = currentShaderProgram->addShaderFromSourceCode(ShaderType(kind),
+                                                            +source);
+    return ok ? XL::xl_true : XL::xl_false;
+}
+
+
+Tree_p Widget::shaderFromFile(Tree_p self, ShaderKind kind, text file)
+// ----------------------------------------------------------------------------
+//   Load a shader from shader source
+// ----------------------------------------------------------------------------
+{
+    if (!currentShaderProgram)
+    {
+        Ooops("No shader program while executing $1", self);
+        return XL::xl_false;
+    }
+
+    bool ok = currentShaderProgram->addShaderFromSourceFile(ShaderType(kind),
+                                                            +file);
+    return ok ? XL::xl_true : XL::xl_false;
+}
+
+
+Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
+// ----------------------------------------------------------------------------
+//   Evaluate the code argument as an assignment for the current shader
+// ----------------------------------------------------------------------------
+{
+    if (Infix *infix = code->AsInfix())
+    {
+        if (infix->name == ":=")
+        {
+            Name *name = infix->left->AsName();
+            TreeList args;
+            Tree *arg = infix->right;
+            if (Block *block = arg->AsBlock())
+                arg = block->child;
+            Infix *iarg = arg->AsInfix();
+            if (iarg &&
+                (iarg->name == "," || iarg->name == "\n" || iarg->name == ";"))
+                XL::xl_infix_to_list(iarg, args);
+            else
+                args.push_back(arg);
+
+            ShaderValue::Values values;
+            uint i, max = args.size();
+            for (i = 0; i < max; i++)
+            {
+                arg = args[i];
+                arg = context->Evaluate(arg);
+                if (Integer *it = arg->AsInteger())
+                    arg = new Real(it->value);
+                if (Real *rt = arg->AsReal())
+                    values.push_back(rt->value);
+                else
+                    Ooops("Shader value $1 is not a number", arg);
+            }
+
+            layout->Add(new ShaderValue(name, values));
+            return XL::xl_true;
+        }
+    }
+    Ooops("Malformed shader_set statement $1", code);
+    return XL::xl_false;
+}
+
+
+Text_p Widget::shaderLog(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the log for the shader
+// ----------------------------------------------------------------------------
+{
+    if (!currentShaderProgram)
+    {
+        Ooops("No shader program while executing $1", self);
+        return new Text("");
+    }
+
+    text message = +currentShaderProgram->log();
+    return new Text(message);
+}
+
+
 
 // ============================================================================
 //
@@ -5641,7 +5878,7 @@ Tree_p Widget::textValue(Context *context, Tree_p self, Tree_p value)
     XL::kind k = value->Kind();
     if (k > XL::KIND_LEAF_LAST)
     {
-        value = xl_evaluate(context, value);
+        value = context->Evaluate(value);
         k = value->Kind();
     }
 

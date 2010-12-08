@@ -23,7 +23,6 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include <GL/glew.h>
 #include <QtOpenGL>
 #include "tao.h"
 #include "widget.h"

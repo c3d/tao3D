@@ -75,6 +75,7 @@ HEADERS += widget.h \
     binpack.h \
     glyph_cache.h \
     attributes.h \
+    lighting.h \
     transforms.h \
     layout.h \
     page_layout.h \
@@ -159,6 +160,7 @@ SOURCES += tao_main.cpp \
     binpack.cpp \
     glyph_cache.cpp \
     attributes.cpp \
+    lighting.cpp \
     transforms.cpp \
     layout.cpp \
     page_layout.cpp \
@@ -221,12 +223,6 @@ SOURCES += tao_main.cpp \
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 
-!win32 {
-    HEADERS += GL/glew.h \
-        GL/glxew.h \
-        GL/wglew.h
-    SOURCES += glew.c
-}
 macx {
     OBJECTIVE_SOURCES += font_file_manager_macos.mm
     LIBS += -framework \

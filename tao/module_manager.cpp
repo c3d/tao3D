@@ -110,7 +110,22 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context, XL::Tree_p self,
                 if (Repository::versionMatches(+m.ver, +m_v))
                 {
                     found = true;
-                    err = XL::Ooops("Not implemented: $1", self);
+                    QString xlPath = QDir(+m.path).filePath("module.xl");
+
+                    IFTRACE(modules)
+                            debug() << "  Importing module " << m_n
+                                    << " version " << inst_v << " (requested "
+                                    << m_v <<  "): " << +xlPath << "\n";
+
+                    // module_description <indent block> evaluates as nil
+                    Name *n = new Name("module_description");
+                    Block *b = new Block(new Name("x"), XL::Block::indent,
+                                         XL::Block::unindent);
+                    Prefix *from = new Prefix(n, b);
+                    Name *to = new Name("nil");
+                    context->Define(from, to);
+
+                    XL::xl_import(XL::MAIN->context/*context*/, +xlPath);
                 }
             }
         }
@@ -626,11 +641,18 @@ bool ModuleManager::load(Context *context, const ModuleInfoPrivate &m)
 }
 
 
-bool ModuleManager::loadXL(Context *context, const ModuleInfoPrivate &m)
+bool ModuleManager::loadXL(Context */*context*/, const ModuleInfoPrivate &/*m*/)
 // ----------------------------------------------------------------------------
 //   Load the XL code of a module
 // ----------------------------------------------------------------------------
 {
+    // Do not import module definitions at startup time but only on explicit
+    // import (see importModule)
+    // REVISIT: here we probably want to execute only a specific part of
+    // module.xl
+    return true;
+
+#if 0
     IFTRACE(modules)
         debug() << "  Loading XL source (module.xl)\n";
 
@@ -667,6 +689,7 @@ bool ModuleManager::loadXL(Context *context, const ModuleInfoPrivate &m)
     }
 
     return ok;
+#endif
 }
 
 

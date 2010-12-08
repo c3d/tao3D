@@ -3033,3 +3033,14 @@ PREFIX(GenAllDoc, tree, "generate_all_doc", PARM(filename, text),
 |*/")
 
 
+// ============================================================================
+//
+//   Module management
+//
+// ============================================================================
+
+// May hide primitive: import "filename" (from xlr/basics.tbl)
+// Not a problem because implementation takes care of the above syntax
+PREFIX(ImportModule, tree, "import", PARM(m, tree),
+       return Tao::ModuleManager::import(context, self, m),
+       "")

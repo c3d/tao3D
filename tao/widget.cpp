@@ -558,8 +558,7 @@ bool Widget::refreshOn(QEvent::Type type, double nextRefresh)
         IFTRACE(layoutevents)
         {
             QDateTime d = fromSecsSinceEpoch(nextRefresh);
-            qint64 deltaMs = fromSecsSinceEpoch(trueCurrentTime()).msecsTo(d);
-            double delta = (double)deltaMs / 1000;
+            double delta = nextRefresh - currentTime;
             std::cerr << "Request to refresh layout "
                       << layout->PrettyId() << " at " << nextRefresh
                       << " (" << +d.toString("dd MMM yyyy hh:mm:ss.zzz")
@@ -2200,6 +2199,11 @@ void Widget::wheelEvent(QWheelEvent *event)
     longlong dx = orientation == Qt::Horizontal ? d : 0;
     longlong dy = orientation == Qt::Vertical   ? d : 0;
     (XL::XLCall("wheel_event"), dx, dy)(xlProgram->context);
+    do
+    {
+        TaoSave saveCurrent(current, NULL);
+        updateGL();
+    } while (0);
 }
 
 

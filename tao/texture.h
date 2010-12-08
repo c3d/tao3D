@@ -25,7 +25,7 @@
 #include "tao.h"
 #include "tree.h"
 #include "widget.h"
-#include <QtOpenGL>
+#include "tao_gl.h"
 
 TAO_BEGIN
 

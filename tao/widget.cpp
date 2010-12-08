@@ -167,6 +167,9 @@ Widget::Widget(Window *parent, SourceFile *sf)
     // Make this the current context for OpenGL
     makeCurrent();
 
+    // Initialize GLEW when we use it
+    glewInit();
+
     // Create the main page we draw on
     space = new SpaceLayout(this);
     layout = space;

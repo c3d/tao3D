@@ -27,7 +27,6 @@
 #include "gl_keepers.h"
 #include "runtime.h"
 #include <QtGui>
-#include <QtOpenGL>
 
 TAO_BEGIN
 

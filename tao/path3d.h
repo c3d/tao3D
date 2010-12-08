@@ -26,7 +26,7 @@
 #include "shapes.h"
 #include "tree.h"
 #include "tao_tree.h"
-#include <QtOpenGL>
+#include "tao_gl.h"
 
 struct QPainterPath;
 

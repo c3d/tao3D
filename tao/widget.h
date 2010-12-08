@@ -37,8 +37,8 @@
 #include "runtime.h"
 #include "font_file_manager.h"
 #include "layout.h"
+#include "tao_gl.h"
 
-#include <QtOpenGL>
 #include <QImage>
 #include <QTimeLine>
 #include <QTimer>

@@ -32,8 +32,8 @@
 #include "application.h"
 #include "apply_changes.h"
 #include "portability.h"
+#include "tao_gl.h"
 
-#include <QtOpenGL>
 #include <QPainterPath>
 #include <QFont>
 #include <QFontMetrics>

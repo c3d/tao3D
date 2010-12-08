@@ -24,7 +24,7 @@
 #include "shapes3d.h"
 #include "layout.h"
 #include "widget.h"
-#include <QtOpenGL>
+#include "tao_gl.h"
 
 TAO_BEGIN
 

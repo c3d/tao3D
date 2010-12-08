@@ -25,7 +25,6 @@
 #include "layout.h"
 #include "widget.h"
 #include "tao_utf8.h"
-#include <QtOpenGL>
 #include <iostream>
 #include "text_drawing.h"
 

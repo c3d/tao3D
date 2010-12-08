@@ -36,8 +36,8 @@
 #include "glyph_cache.h"
 #include "runtime.h"
 #include "font_file_manager.h"
+#include "tao_gl.h"
 
-#include <QtOpenGL>
 #include <QImage>
 #include <QTimeLine>
 #include <QTimer>

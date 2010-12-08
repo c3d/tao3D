@@ -213,6 +213,12 @@ SOURCES += tao_main.cpp \
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 
+!macx {
+    HEADERS += GL/glew.h \
+        GL/glxew.h \
+        GL/wglew.h
+    SOURCES += GL/glew.c
+}
 macx {
     OBJECTIVE_SOURCES += font_file_manager_macos.mm
     LIBS += -framework \

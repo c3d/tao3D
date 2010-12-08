@@ -31,7 +31,6 @@
 #include <stdio.h>
 #include <QFont>
 #include <QFontMetricsF>
-#include <QtOpenGL>
 
 
 TAO_BEGIN

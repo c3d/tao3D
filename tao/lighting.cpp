@@ -25,7 +25,7 @@
 
 #include "lighting.h"
 #include "layout.h"
-#include <QtOpenGL>
+#include "tao_gl.h"
 
 
 TAO_BEGIN
@@ -40,8 +40,8 @@ void LightId::Draw(Layout *where)
     {
         glEnable(where->lightId);
         glEnable(GL_LIGHTING);
-        // glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-        // glEnable(GL_COLOR_MATERIAL);
+        glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+        glEnable(GL_COLOR_MATERIAL);
     }
     else
     {

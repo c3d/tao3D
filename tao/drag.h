@@ -25,7 +25,7 @@
 
 #include "activity.h"
 #include "coords3d.h"
-#include <QtOpenGL>
+#include "tao_gl.h"
 #include <QMap>
 
 TAO_BEGIN

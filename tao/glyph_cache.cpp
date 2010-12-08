@@ -25,7 +25,7 @@
 #include "glyph_cache.h"
 #include "tao_utf8.h"
 #include "path3d.h"
-#include <QtOpenGL>
+#include "tao_gl.h"
 #include <QFontMetricsF>
 
 TAO_BEGIN

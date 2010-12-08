@@ -26,7 +26,7 @@
 #include "tao.h"
 #include "tao_tree.h"
 #include "coords.h"
-#include <QtOpenGL>
+#include "tao_gl.h"
 #include <phonon>
 
 class QWidget;

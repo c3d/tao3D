@@ -28,7 +28,7 @@
 #include "gl_keepers.h"
 #include "application.h"
 #include "widget_surface.h"
-#include <QtOpenGL>
+#include "tao_gl.h"
 #include <QPainterPath>
 
 TAO_BEGIN

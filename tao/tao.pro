@@ -218,6 +218,7 @@ CXXTBL_SOURCES += graphics.cpp \
         GL/glxew.h \
         GL/wglew.h
     SOURCES += GL/glew.c
+    DEFINES += GLEW_STATIC
 }
 macx {
     OBJECTIVE_SOURCES += font_file_manager_macos.mm

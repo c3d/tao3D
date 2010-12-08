@@ -2593,6 +2593,9 @@ PREFIX(FragmentShaderFromFile, tree, "fragment_shader_file", PARM(file, text),
        "Define a vertex shader")
 PREFIX(ShaderLog, text, "shader_log", , RTAO(shaderLog(self)),
        "Return shader log")
+PREFIX(ShaderSet, tree, "shader_set", PARM(t, tree),
+       RTAO(shaderSet(self, t)),
+       " Set a shader uniform or attribute value");
 
 
 

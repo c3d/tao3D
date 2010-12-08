@@ -121,6 +121,39 @@ struct ShaderProgram : Lighting
     QGLShaderProgram *program;
 };
 
+
+struct ShaderUniformInfo : XL::Info
+// ----------------------------------------------------------------------------
+//   Record information about a uniform variable
+// ----------------------------------------------------------------------------
+{
+    ShaderUniformInfo(GLuint id): id(id) {}
+    GLuint id;
+};
+
+
+struct ShaderAttributeInfo : XL::Info
+// ----------------------------------------------------------------------------
+//   Record information about an attribute variable
+// ----------------------------------------------------------------------------
+{
+    ShaderAttributeInfo(GLuint id): id(id) {}
+    GLuint id;
+};
+
+
+struct ShaderValue : Lighting
+// ----------------------------------------------------------------------------
+//   Set a shader uniform or attribute value
+// ----------------------------------------------------------------------------
+{
+    typedef std::vector<float> Values;
+    ShaderValue(Name_p name, Values values): name(name), values(values) {}
+    virtual void Draw(Layout *where);
+    Name_p name;
+    Values values;
+};
+
 TAO_END
 
 #endif // LIGHTING_H

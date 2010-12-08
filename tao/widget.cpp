@@ -4616,6 +4616,47 @@ Tree_p Widget::shaderFromFile(Tree_p self, ShaderKind kind, text file)
 }
 
 
+Tree_p Widget::shaderSet(Tree_p self, Tree_p code)
+// ----------------------------------------------------------------------------
+//   Evaluate the code argument as an assignment for the current shader
+// ----------------------------------------------------------------------------
+{
+    if (Infix *infix = code->AsInfix())
+    {
+        if (infix->name == ":=")
+        {
+            Name *name = infix->left->AsName();
+            TreeList args;
+            Tree *arg = infix->right;
+            Infix *iarg = arg->AsInfix();
+            if (iarg && iarg->name == ",")
+                XL::xl_infix_to_list(iarg, args);
+            else
+                args.push_back(arg);
+
+            ShaderValue::Values values;
+            uint i, max = args.size();
+            for (i = 0; i < max; i++)
+            {
+                arg = args[i];
+                arg = xl_evaluate(arg);
+                if (Integer *it = arg->AsInteger())
+                    arg = new Real(it->value);
+                if (Real *rt = arg->AsReal())
+                    values.push_back(rt->value);
+                else
+                    Ooops("Shader value $1 is not a number", arg);
+            }
+
+            layout->Add(new ShaderValue(name, values));
+            return XL::xl_true;
+        }
+    }
+    Ooops("Malformed shader_set statement $1", code);
+    return XL::xl_false;
+}
+
+
 Text_p Widget::shaderLog(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the log for the shader

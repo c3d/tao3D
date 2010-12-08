@@ -366,6 +366,7 @@ public:
     Tree_p      shaderProgram(Tree_p self, Tree_p code);
     Tree_p      shaderFromSource(Tree_p self, ShaderKind kind, text source);
     Tree_p      shaderFromFile(Tree_p self, ShaderKind kind, text file);
+    Tree_p      shaderSet(Tree_p self, Tree_p code);
     Text_p      shaderLog(Tree_p self);
                          
 

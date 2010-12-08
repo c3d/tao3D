@@ -25,6 +25,7 @@
 
 #include "lighting.h"
 #include "layout.h"
+#include <QtOpenGL>
 
 
 TAO_BEGIN
@@ -73,8 +74,62 @@ void ShaderProgram::Draw(Layout *where)
 //   Activate the given shader program
 // ----------------------------------------------------------------------------
 {
-    (void) where;
     program->bind();
+    where->programId = program->programId();
+}
+
+
+void ShaderValue::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Set the shader value
+// ----------------------------------------------------------------------------
+{
+    if (where->programId)
+    {
+        ShaderUniformInfo   *uniform   = name->GetInfo<ShaderUniformInfo>();
+        ShaderAttributeInfo *attribute = name->GetInfo<ShaderAttributeInfo>();
+
+        if (!uniform && !attribute)
+        {
+            kstring cname = name->value.c_str();
+            GLint uni = glGetUniformLocation(where->programId, cname);
+            if (uni >= 0)
+            {
+                uniform = new ShaderUniformInfo(uni);
+                name->SetInfo<ShaderUniformInfo>(uniform);
+            }
+            else
+            {
+                GLint attri = glGetAttribLocation(where->programId, cname);
+                if (attri >= 0)
+                {
+                    attribute = new ShaderAttributeInfo(attri);
+                    name->SetInfo<ShaderAttributeInfo>(attribute);
+                }
+            }
+        }
+
+        if (uniform)
+        {
+            switch(values.size())
+            {
+            case 1: glUniform1fv(uniform->id, 1, &values[0]); break;
+            case 2: glUniform2fv(uniform->id, 1, &values[0]); break;
+            case 3: glUniform3fv(uniform->id, 1, &values[0]); break;
+            case 4: glUniform4fv(uniform->id, 1, &values[0]); break;
+            }
+        }
+        else if (attribute)
+        {
+            switch(values.size())
+            {
+            case 1: glVertexAttrib1fv(uniform->id, &values[0]); break;
+            case 2: glVertexAttrib2fv(uniform->id, &values[0]); break;
+            case 3: glVertexAttrib3fv(uniform->id, &values[0]); break;
+            case 4: glVertexAttrib4fv(uniform->id, &values[0]); break;
+            }
+        }
+    }
 }
 
 TAO_END

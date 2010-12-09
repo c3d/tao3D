@@ -45,7 +45,8 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
-      fillTexture(0), wrapS(false), wrapT(false), printing(false),
+      fillTexture(0), lightId(GL_LIGHT0), programId(0),
+      wrapS(false), wrapT(false), printing(false),
       planarRotation(0), planarScale(1),
       rotationId(0), translationId(0), scaleId(0)
 {}
@@ -64,6 +65,8 @@ LayoutState::LayoutState(const LayoutState &o)
         lineColor(o.lineColor),
         fillColor(o.fillColor),
         fillTexture(o.fillTexture),
+        lightId(o.lightId),
+        programId(o.programId),
         wrapS(o.wrapS),
         wrapT(o.wrapT),
         printing(o.printing),
@@ -351,6 +354,8 @@ void Layout::Inherit(Layout *where)
     lineColor       = where->lineColor;
     fillColor       = where->fillColor;
     fillTexture     = where->fillTexture;
+    lightId         = where->lightId;
+    programId       = where->programId;
     wrapS           = where->wrapS;
     wrapT           = where->wrapT;
     printing        = where->printing;

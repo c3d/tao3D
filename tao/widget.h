@@ -36,9 +36,8 @@
 #include "glyph_cache.h"
 #include "runtime.h"
 #include "font_file_manager.h"
+#include "tao_gl.h"
 
-#include <GL/glew.h>
-#include <QtOpenGL>
 #include <QImage>
 #include <QTimeLine>
 #include <QTimer>
@@ -86,7 +85,11 @@ class Widget : public QGLWidget
 public:
     typedef std::vector<double>         attribute_args;
     typedef std::map<GLuint, uint>      selection_map;
-    enum StereoMode { stereoHARDWARE, stereoINTERLACED };
+    enum StereoMode { stereoHARDWARE,
+                      stereoHORIZONTAL, stereoVERTICAL,
+                      stereoDIAGONAL, stereoANTI_DIAGONAL,
+                      stereoALIOSCOPY };
+    enum ShaderKind { VERTEX, FRAGMENT };
 
 public:
     Widget(Window *parent, XL::SourceFile *sf = NULL);
@@ -190,7 +193,7 @@ public:
                         bool stats = true, bool show=true);
     bool        timerIsActive()         { return timer.isActive(); }
     bool        hasAnimations(void)     { return animated; }
-    char        hasStereoscopy(void)    { return stereoscopic; }
+    char        hasStereoscopy(void)    { return stereoPlanes > 1; }
     StereoMode  currentStereoMode(void) { return stereoMode; }
 
 
@@ -329,6 +332,7 @@ public:
 
     Name_p      enableAnimations(Tree_p self, bool fs);
     Name_p      enableStereoscopy(Tree_p self, Name_p name);
+    Name_p      setStereoPlanes(Tree_p self, uint planes);
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
 
@@ -350,6 +354,21 @@ public:
     Tree_p      fillTextureFromSVG(Tree_p self, text svg);
     Tree_p      textureWrap(Tree_p self, bool s, bool t);
     Tree_p      textureTransform(Tree_p self, Tree_p code);
+    Tree_p      lightId(Tree_p self, GLuint id, bool enable);
+    Tree_p      light(Tree_p self, GLenum function, GLfloat value);
+    Tree_p      light(Tree_p self, GLenum function,
+                      GLfloat x, GLfloat y, GLfloat z);
+    Tree_p      light(Tree_p self, GLenum function,
+                      GLfloat a, GLfloat b, GLfloat c, GLfloat d);
+    Tree_p      material(Tree_p self, GLenum face, GLenum function, GLfloat d);
+    Tree_p      material(Tree_p self, GLenum face, GLenum function,
+                         GLfloat a, GLfloat b, GLfloat c, GLfloat d);
+    Tree_p      shaderProgram(Tree_p self, Tree_p code);
+    Tree_p      shaderFromSource(Tree_p self, ShaderKind kind, text source);
+    Tree_p      shaderFromFile(Tree_p self, ShaderKind kind, text file);
+    Tree_p      shaderSet(Tree_p self, Tree_p code);
+    Text_p      shaderLog(Tree_p self);
+                         
 
     // Generating a path
     Tree_p      newPath(Tree_p self, Tree_p t);
@@ -666,6 +685,7 @@ private:
     Tree_p                pageTree;
     Tree_p                currentShape;
     QGridLayout *         currentGridLayout;
+    QGLShaderProgram *    currentShaderProgram;
     GroupInfo   *         currentGroup;
     GlyphCache            glyphCache;
     FontFileManager *     fontFileMgr;
@@ -673,6 +693,7 @@ private:
     bool                  animated;
     StereoMode            stereoMode;
     char                  stereoscopic;
+    char                  stereoPlanes;
 
     // Selection
     Activity *            activities;

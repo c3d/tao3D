@@ -54,6 +54,8 @@ public:
     Color               lineColor;
     Color               fillColor;
     uint                fillTexture;
+    uint                lightId;
+    uint                programId;
     bool                wrapS : 1;                // Texture wrapping
     bool                wrapT : 1;
     bool                printing : 1;

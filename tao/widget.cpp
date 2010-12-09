@@ -53,6 +53,7 @@
 #include "table.h"
 #include "attributes.h"
 #include "transforms.h"
+#include "lighting.h"
 #include "undo.h"
 #include "serializer.h"
 #include "binpack.h"
@@ -129,10 +130,11 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
       pageTree(NULL),
-      currentShape(NULL), currentGridLayout(NULL), currentGroup(NULL),
+      currentShape(NULL), currentGridLayout(NULL),
+      currentShaderProgram(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
       drawAllPages(false), animated(true),
-      stereoMode(stereoHARDWARE), stereoscopic(false),
+      stereoMode(stereoHARDWARE), stereoscopic(0), stereoPlanes(1),
       activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
       selection(), selectionTrees(), selectNextTime(), actionMap(),
@@ -161,6 +163,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 
     // Make this the current context for OpenGL
     makeCurrent();
+
+    // Initialize GLEW when we use it
+    glewInit();
 
     // Create the main page we draw on
     space = new SpaceLayout(this);
@@ -353,13 +358,13 @@ void Widget::draw()
     // If we are in stereoscopice mode, we draw twice, once for each eye
     glClearColor (1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if (stereoMode == stereoINTERLACED)
-        setupStereoStencil(w, h);
 
-    do
+    GLint list = 0;
+
+    for (stereoscopic = 1; stereoscopic <= stereoPlanes; stereoscopic++)
     {
         // Select the buffer in which we draw
-        if (stereoscopic)
+        if (stereoPlanes > 1)
         {
             if (stereoMode == stereoHARDWARE)
             {
@@ -369,26 +374,46 @@ void Widget::draw()
                     glDrawBuffer(GL_BACK_RIGHT);
                 glClearColor(1.0, 1.0, 1.0, 1.0);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                glDisable(GL_STENCIL_TEST);
             }
-            else if (stereoMode == stereoINTERLACED)
+            else
             {
+                glStencilFunc(GL_EQUAL, stereoscopic, 63);
+                glEnable(GL_STENCIL_TEST);
                 glDrawBuffer(GL_BACK);
-                if (stereoscopic == 1)
-                    glStencilFunc(GL_NOTEQUAL,1,1);
-                else if (stereoscopic == 2)
-                    glStencilFunc(GL_EQUAL,1,1);
             }
         }
         else
         {
             glDrawBuffer(GL_BACK);
+            glDisable(GL_STENCIL_TEST);
         }
 
         // Draw the current buffer
         setup(w, h);
+        glClear(GL_DEPTH_BUFFER_BIT);
 
         id = idDepth = 0;
-        space->Draw(NULL);
+
+        if (stereoPlanes > 1)
+        {
+            if (stereoscopic == 1)
+            {
+                list = glGenLists(1);
+                glNewList(list, GL_COMPILE_AND_EXECUTE);
+                space->Draw(NULL);
+                glEndList();
+            }
+            else
+            {
+                glCallList(list);
+            }
+        }
+        else
+        {
+            space->Draw(NULL);
+        }
+
         IFTRACE(memory)
             std::cerr << "Draw, count = " << space->count
                       << " buffer " << (int) stereoscopic << '\n';
@@ -401,18 +426,15 @@ void Widget::draw()
         // Render all activities, e.g. the selection rectangle
         SpaceLayout selectionSpace(this);
         XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
+        setupGL();
         glDisable(GL_DEPTH_TEST);
         for (Activity *a = activities; a; a = a->Display()) ;
         selectionSpace.Draw(NULL);
         glEnable(GL_DEPTH_TEST);
+    }
 
-        // If we use stereoscopy, switch to other eye
-        if (stereoscopic)
-        {
-            stereoscopic = 3 - stereoscopic;
-            setup(width(), height());
-        }
-    } while (stereoscopic == 2);
+    if (stereoPlanes > 1)
+        glDeleteLists(list, 1);
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -527,7 +549,8 @@ void Widget::print(QPrinter *prt)
     // Set the current printer while drawing
     TaoSave saveCurrent(current, this);
     XL::LocalSave<QPrinter *> savePrinter(printer, prt);
-    XL::LocalSave<char> disableStereoscopy(stereoscopic, 0);
+    XL::LocalSave<char> disableStereoscopy1(stereoPlanes, 0);
+    XL::LocalSave<char> disableStereoscopy2(stereoscopic, 1);
     XL::LocalSave<text> savePage(pageName, "");
 
     // Identify the page range
@@ -1072,7 +1095,7 @@ void Widget::enableStereoscopy(bool enable)
 //   Enable or disable stereoscopy on the page
 // ----------------------------------------------------------------------------
 {
-    stereoscopic = enable;
+    stereoPlanes = enable ? 2 : 1;
     refresh();
 }
 
@@ -1196,6 +1219,9 @@ void Widget::resizeGL(int width, int height)
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
     tmax = tsum = tcount = 0;
     tmin = ~tmax;
+
+    if (stereoMode > stereoHARDWARE)
+        setupStereoStencil(width, height);
 }
 
 
@@ -1240,10 +1266,7 @@ void Widget::setup(double w, double h, const Box *picking)
     double zNear = Widget::zNear, zFar = Widget::zFar;
     Point3 up(0.0, 1.0, 0.0);
     double eyeX = eye.x;
-    if (stereoscopic == 1)
-        eyeX += eyeDistance;
-    else if (stereoscopic == 2)
-        eyeX -= eyeDistance;
+    eyeX += eyeDistance * (stereoscopic - 0.5 * stereoPlanes);
 
     glFrustum ((-w/2)*zoom, (w/2)*zoom, (-h/2)*zoom, (h/2)*zoom, zNear, zFar);
     gluLookAt(eyeX, eye.y, eye.z,
@@ -1283,6 +1306,8 @@ void Widget::setupGL()
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);
     glShadeModel(GL_SMOOTH);
+    glDisable(GL_LIGHTING);
+    glUseProgram(0);
 
     // Turn on sphere map automatic texture coordinate generation
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
@@ -1290,6 +1315,7 @@ void Widget::setupGL()
 
     // Really nice perspective calculations
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
 }
 
 
@@ -1298,7 +1324,7 @@ void Widget::setupStereoStencil(double w, double h)
 //   For interlaced output, generate a stencil with every other line
 // ----------------------------------------------------------------------------
 {
-    if (stereoMode == stereoINTERLACED)
+    if (stereoMode > stereoHARDWARE)
     {
         // Setup the initial viewport and projection for drawing in stencil
         glViewport(0, 0, w, h);
@@ -1310,27 +1336,75 @@ void Widget::setupStereoStencil(double w, double h)
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
-        // Prepare to draw in stencil buffer
-        glDrawBuffer(GL_BACK);
+	// Prepare to draw in stencil buffer
+	glDrawBuffer(GL_BACK);
         glEnable(GL_STENCIL_TEST);
-        glClearStencil(0);
-        glClear(GL_STENCIL_BUFFER_BIT);
-        glStencilOp (GL_REPLACE, GL_REPLACE, GL_REPLACE); // Copy to stencil
-        glDisable(GL_DEPTH_TEST);
-        glStencilFunc(GL_ALWAYS,1,1);                     // Ignore contents
+	glClearStencil(0);
+	glClear(GL_STENCIL_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
 
-        // Draw pattern showing every other line
-        glColor4f(1.0, 1.0, 1.0, 1.0);
-        glLineWidth(1.0);
+        // Line properties
+	glColor4f(1.0, 1.0, 1.0, 1.0);
+        glLineWidth(1);
         glDisable(GL_LINE_SMOOTH);
         glDisable(GL_LINE_STIPPLE);
-        glBegin (GL_LINES);
-        for (uint y = 0; y < h; y += 2)
+
+        uint numLines = 0;
+        switch(stereoMode)
         {
-            glVertex2f (0, y);
-            glVertex2f (w, y);
+        case stereoHORIZONTAL:
+            numLines = h;
+            break;
+        case stereoVERTICAL:
+            numLines = w;
+            break;
+        case stereoDIAGONAL:
+        case stereoANTI_DIAGONAL:
+            numLines = w + h;
+            break;
+        case stereoALIOSCOPY:
+            numLines = 3 * (w + h);
+            break;
+        case stereoHARDWARE:
+            break;
         }
-        glEnd();
+
+        for (char s = 0; s < stereoPlanes; s++)
+        {
+            // Ignore contents, set value to current line
+            glStencilFunc(GL_ALWAYS, s+1, 63);
+            glStencilOp (GL_REPLACE, GL_REPLACE, GL_REPLACE); // Copy to stencil
+            glBegin (GL_LINES);
+            for (uint x = s; x < numLines; x += stereoPlanes)
+            {
+                switch(stereoMode)
+                {
+                case stereoHORIZONTAL:
+                    glVertex2f (0, x);
+                    glVertex2f (w, x);
+                    break;
+                case stereoVERTICAL:
+                    glVertex2f (x, 0);
+                    glVertex2f (x, h);
+                    break;
+                case stereoDIAGONAL:
+                    glVertex2f (0, x);
+                    glVertex2f (x, 0);
+                    break;
+                case stereoANTI_DIAGONAL:
+                    glVertex2f (0, h-x);
+                    glVertex2f (x, h);
+                    break;
+                case stereoALIOSCOPY:
+                    glVertex2f (0, x);
+                    glVertex2f (x/3.0, 0);
+                    break;
+                case stereoHARDWARE:
+                    break;
+                }
+            }
+            glEnd();
+        }
 
         // Protect stencil from now on
         glStencilOp (GL_KEEP, GL_KEEP, GL_KEEP);
@@ -3214,7 +3288,7 @@ XL::Text_p Widget::page(Tree_p self, text name, Tree_p body)
         pageFound = pageId;
         pageLinks.clear();
         if (pageId > 1)
-            pageLinks["Up"] = lastPageName;
+            pageLinks["Up"] = pageLinks["PageUp"] = lastPageName;
         pageTree = body;
         xl_evaluate(body);
     }
@@ -3223,7 +3297,7 @@ XL::Text_p Widget::page(Tree_p self, text name, Tree_p body)
         // We are executing the page following the current one:
         // Check if PageDown is set, otherwise set current page as default
         if (pageLinks.count("Down") == 0)
-            pageLinks["Down"] = name;
+            pageLinks["Down"] = pageLinks["PageDown"] = name;
     }
 
     lastPageName = name;
@@ -3976,7 +4050,28 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
              name->value == "interleave" || name->value == "interleaved")
     {
         newState = true;
-        stereoMode = stereoINTERLACED;
+        stereoMode = stereoHORIZONTAL;
+    }
+    else if (name->value == "vertical")
+    {
+        newState = true;
+        stereoMode = stereoVERTICAL;
+    }
+    else if (name->value == "diagonal")
+    {
+        newState = true;
+        stereoMode = stereoDIAGONAL;
+    }
+    else if (name->value == "antidiagonal")
+    {
+        newState = true;
+        stereoMode = stereoANTI_DIAGONAL;
+    }
+    else if (name->value == "alioscopy")
+    {
+        newState = true;
+        stereoMode = stereoALIOSCOPY;
+        stereoPlanes = 8;
     }
     else
     {
@@ -3985,8 +4080,33 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
 
     Window *window = (Window *) parentWidget();
     if (oldState != newState)
+    {
         window->toggleStereoscopy();
+
+        if (!newState)
+            stereoPlanes = 1;
+        else if (stereoPlanes == 1)
+            stereoPlanes = 2;
+    }
+    if (stereoMode > stereoHARDWARE)
+        setupStereoStencil(width(), height());
+
     return oldState ? XL::xl_true : XL::xl_false;
+}
+
+
+XL::Name_p Widget::setStereoPlanes(XL::Tree_p self, uint planes)
+// ----------------------------------------------------------------------------
+//   Set the number of planes
+// ----------------------------------------------------------------------------
+{
+    if (planes > 1)
+    {
+        stereoPlanes = planes;
+        if (stereoMode > stereoHARDWARE)
+            setupStereoStencil(width(), height());
+    }
+    return XL::xl_true;
 }
 
 
@@ -4349,6 +4469,213 @@ Tree_p Widget::textureTransform(Tree_p self, Tree_p code)
     Tree_p result = xl_evaluate(code);
     layout->Add(new TextureTransform(false));
     return result;
+}
+
+
+Tree_p Widget::lightId(Tree_p self, GLuint id, bool enable)
+// ----------------------------------------------------------------------------
+//   Select and enable or disable a light
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new LightId(id, enable));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::light(Tree_p self, GLuint function, GLfloat value)
+// ----------------------------------------------------------------------------
+//   Set a light parameter with a single float value
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Light(function, value));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::light(Tree_p self, GLuint function,
+                     GLfloat a, GLfloat b, GLfloat c)
+// ----------------------------------------------------------------------------
+//   Set a light parameter with four float values (direction)
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Light(function, a, b, c));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::light(Tree_p self, GLuint function,
+                     GLfloat a, GLfloat b, GLfloat c, GLfloat d)
+// ----------------------------------------------------------------------------
+//   Set a light parameter with four float values (position, color)
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Light(function, a, b, c, d));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::material(Tree_p self,
+                        GLenum face, GLenum function,
+                        GLfloat value)
+// ----------------------------------------------------------------------------
+//   Set a material parameter with a single float value
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Material(face, function, value));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::material(Tree_p self,
+                        GLenum face, GLenum function,
+                        GLfloat a, GLfloat b, GLfloat c, GLfloat d)
+// ----------------------------------------------------------------------------
+//   Set a light parameter with four float values (position, color)
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Material(face, function, a, b, c, d));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::shaderProgram(Tree_p self, Tree_p code)
+// ----------------------------------------------------------------------------
+//    Creates a new shader program in which we will evaluate shaders
+// ----------------------------------------------------------------------------
+//    Note that we compile and evaluate the shader only once
+{
+    if (currentShaderProgram)
+    {
+        Ooops("Nested shader program $1", self);
+        return XL::xl_false;
+    }
+
+    QGLShaderProgram *program = self->Get<ShaderProgramInfo>();
+    Tree_p result = XL::xl_true;
+    if (!program)
+    {
+        XL::LocalSave<QGLShaderProgram *> prog(currentShaderProgram,
+                                               new QGLShaderProgram());
+        result = xl_evaluate(code);
+        program = currentShaderProgram;
+
+        QString message = currentShaderProgram->log();
+        if (message.length())
+        {
+            Window *window = (Window *) parentWidget();
+            window->addError(message);
+        }
+    }
+    layout->Add(new ShaderProgram(program));
+    return result;
+}
+
+
+static inline QGLShader::ShaderType ShaderType(Widget::ShaderKind kind)
+// ----------------------------------------------------------------------------
+//   Convert our shader kind into Qt shader type.
+// ----------------------------------------------------------------------------
+{
+    switch (kind)
+    {
+    case Widget::VERTEX:        return QGLShader::Vertex;
+    case Widget::FRAGMENT:      return QGLShader::Fragment;
+    }
+    return QGLShader::Vertex;
+}
+
+
+Tree_p Widget::shaderFromSource(Tree_p self, ShaderKind kind, text source)
+// ----------------------------------------------------------------------------
+//   Load a shader from shader source
+// ----------------------------------------------------------------------------
+{
+    if (!currentShaderProgram)
+    {
+        Ooops("No shader program while executing $1", self);
+        return XL::xl_false;
+    }
+
+    bool ok = currentShaderProgram->addShaderFromSourceCode(ShaderType(kind),
+                                                            +source);
+    return ok ? XL::xl_true : XL::xl_false;
+}
+
+
+Tree_p Widget::shaderFromFile(Tree_p self, ShaderKind kind, text file)
+// ----------------------------------------------------------------------------
+//   Load a shader from shader source
+// ----------------------------------------------------------------------------
+{
+    if (!currentShaderProgram)
+    {
+        Ooops("No shader program while executing $1", self);
+        return XL::xl_false;
+    }
+
+    bool ok = currentShaderProgram->addShaderFromSourceFile(ShaderType(kind),
+                                                            +file);
+    return ok ? XL::xl_true : XL::xl_false;
+}
+
+
+Tree_p Widget::shaderSet(Tree_p self, Tree_p code)
+// ----------------------------------------------------------------------------
+//   Evaluate the code argument as an assignment for the current shader
+// ----------------------------------------------------------------------------
+{
+    if (Infix *infix = code->AsInfix())
+    {
+        if (infix->name == ":=")
+        {
+            Name *name = infix->left->AsName();
+            TreeList args;
+            Tree *arg = infix->right;
+            if (Block *block = arg->AsBlock())
+                arg = block->child;
+            Infix *iarg = arg->AsInfix();
+            if (iarg &&
+                (iarg->name == "," || iarg->name == "\n" || iarg->name == ";"))
+                XL::xl_infix_to_list(iarg, args);
+            else
+                args.push_back(arg);
+
+            ShaderValue::Values values;
+            uint i, max = args.size();
+            for (i = 0; i < max; i++)
+            {
+                arg = args[i];
+                arg = xl_evaluate(arg);
+                if (Integer *it = arg->AsInteger())
+                    arg = new Real(it->value);
+                if (Real *rt = arg->AsReal())
+                    values.push_back(rt->value);
+                else
+                    Ooops("Shader value $1 is not a number", arg);
+            }
+
+            layout->Add(new ShaderValue(name, values));
+            return XL::xl_true;
+        }
+    }
+    Ooops("Malformed shader_set statement $1", code);
+    return XL::xl_false;
+}
+
+
+Text_p Widget::shaderLog(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the log for the shader
+// ----------------------------------------------------------------------------
+{
+    if (!currentShaderProgram)
+    {
+        Ooops("No shader program while executing $1", self);
+        return new Text("");
+    }
+
+    text message = +currentShaderProgram->log();
+    return new Text(message);
 }
 
 
@@ -5797,7 +6124,8 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
         XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
         XL::LocalSave<Point3> saveCenter(viewCenter, Point3(0,0,-zNear));
         XL::LocalSave<Point3> saveEye(eye, Point3(0,0,zNear));
-        XL::LocalSave<char> saveStereo(stereoscopic, false);
+        XL::LocalSave<char> saveStereo1(stereoPlanes, 0);
+        XL::LocalSave<char> saveStere2(stereoscopic, 1);
 
         // Clear the background and setup initial state
         frame->resize(w,h);

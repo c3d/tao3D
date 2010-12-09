@@ -27,7 +27,6 @@
 #include "utf8.h"
 #include "tao_utf8.h"
 #include "gl_keepers.h"
-#include <GL/glew.h>
 #include <wctype.h>
 #include <stdio.h>
 #include <QFont>

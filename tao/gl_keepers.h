@@ -23,10 +23,9 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include <GL/glew.h>
-#include <QtOpenGL>
 #include "tao.h"
 #include "widget.h"
+#include "tao_gl.h"
 
 
 TAO_BEGIN

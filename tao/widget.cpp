@@ -99,7 +99,7 @@ TAO_BEGIN
 //
 // ============================================================================
 
-static Point3 defaultCameraPosition(0, 0, 10000);
+static Point3 defaultCameraPosition(0, 0, 6000);
 
 static inline QGLFormat TaoGLFormat()
 // ----------------------------------------------------------------------------
@@ -154,7 +154,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
       sourceRenderer(NULL),
       currentFileDialog(NULL),
-      zNear(2000.0), zFar(60000.0),
+      zNear(1000.0), zFar(56000.0),
       zoom(1.0), eyeDistance(10.0),
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),

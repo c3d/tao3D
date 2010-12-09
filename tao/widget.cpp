@@ -101,21 +101,21 @@ TAO_BEGIN
 
 static Point3 defaultCameraPosition(0, 0, 10000);
 
-static inline QGL::FormatOptions TaoGLFormatOptions()
+static inline QGLFormat TaoGLFormat()
 // ----------------------------------------------------------------------------
 //   Return the options we will use when creating the widget
 // ----------------------------------------------------------------------------
 //   This was made necessary by Bug #251
 {
-    QGL::FormatOptions result =
+    QGL::FormatOptions options =
         (QGL::DoubleBuffer      |
          QGL::DepthBuffer       |
          QGL::StencilBuffer     |
          QGL::SampleBuffers     |
-         QGL::AlphaChannel);
-    if (true || XL::MAIN->options.enable_stereoscopy)
-        result |= QGL::StereoBuffers;
-    return result;
+         QGL::AlphaChannel      |
+         QGL::StereoBuffers);
+    QGLFormat format(options);
+    return format;
 }
 
 
@@ -123,7 +123,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create the GL widget
 // ----------------------------------------------------------------------------
-    : QGLWidget(QGLFormat(TaoGLFormatOptions()), parent),
+    : QGLWidget(TaoGLFormat(), parent),
       xlProgram(sf),
       symbolTableForFormulas(new XL::Symbols(NULL)),
       symbolTableRoot(new XL::Name("formula_symbol_table")),
@@ -154,7 +154,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
       sourceRenderer(NULL),
       currentFileDialog(NULL),
-      zNear(2000.0), zFar(50000.0),
+      zNear(2000.0), zFar(60000.0),
       zoom(1.0), eyeDistance(10.0),
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
@@ -595,7 +595,11 @@ void Widget::print(QPrinter *prt)
         XL::LocalSave<double> savePrintTime(pagePrintTime, 0);
         XL::LocalSave<Point3> saveCenter(cameraTarget, Point3(0,0,0));
         XL::LocalSave<Point3> saveEye(cameraPosition, defaultCameraPosition);
-        XL::LocalSave<Point3> saveUp(cameraUpVector, Vector3(0,1,0));
+        XL::LocalSave<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
+        XL::LocalSave<char> saveStereo1(stereoPlanes, 0);
+        XL::LocalSave<char> saveStereo2(stereoscopic, 1);
+        XL::LocalSave<double> saveZoom(zoom, 1);
+        XL::LocalSave<double> saveScaling(scaling, scalingFactorFromCamera());
 
         // Evaluate twice time so that we correctly setup page info
         for (uint i = 0; i < 2; i++)
@@ -1277,7 +1281,7 @@ void Widget::setup(double w, double h, const Box *picking)
         Point center = b.lower + size / 2;
         gluPickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
     }
-    double zf = 0.5 * zoom;
+    double zf = 0.5 * zoom / scaling;
     glFrustum (-w*zf, w*zf, -h*zf, h*zf, zNear, zFar);
 
     // Setup the model-view matrix
@@ -1290,7 +1294,6 @@ void Widget::setup(double w, double h, const Box *picking)
     gluLookAt(eyeX, cameraPosition.y, cameraPosition.z,
               cameraTarget.x, cameraTarget.y ,cameraTarget.z,
               cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
-    glScalef(scaling, scaling, scaling);
 
     // Reset default GL parameters
     setupGL();
@@ -6207,7 +6210,9 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
         XL::LocalSave<Point3> saveEye(cameraPosition, defaultCameraPosition);
         XL::LocalSave<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
         XL::LocalSave<char> saveStereo1(stereoPlanes, 0);
-        XL::LocalSave<char> saveStere2(stereoscopic, 1);
+        XL::LocalSave<char> saveStereo2(stereoscopic, 1);
+        XL::LocalSave<double> saveZoom(zoom, 1);
+        XL::LocalSave<double> saveScaling(scaling, scalingFactorFromCamera());
 
         // Clear the background and setup initial state
         frame->resize(w,h);

@@ -111,8 +111,6 @@ void FrameInfo::begin()
     if (!ok) std::cerr << "FrameInfo::begin(): unexpected result\n";
     glShowErrors();
 
-    glLoadIdentity();
-
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_STENCIL_TEST);
     glClearColor(1,1,1,0);

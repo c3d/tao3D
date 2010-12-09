@@ -145,6 +145,7 @@ public:
     Symbols *   currentSymbols();
     QPrinter *  currentPrinter() { return printer; }
     double      printerScaling() { return printer ? printOverscaling : 1; }
+    double      scalingFactorFromCamera();
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -318,6 +319,8 @@ public:
     Name_p      panView(Tree_p self, coord dx, coord dy);
     Real_p      currentZoom(Tree_p self);
     Name_p      setZoom(Tree_p self, scale z);
+    Real_p      currentScaling(Tree_p self);
+    Name_p      setScaling(Tree_p self, scale z);
     Infix_p     currentCameraPosition(Tree_p self);
     Name_p      setCameraPosition(Tree_p self, coord x, coord y, coord z);
     Infix_p     currentCameraTarget(Tree_p self);
@@ -744,7 +747,7 @@ private:
     static QFontDialog *  fontDialog;
     static QFileDialog *  fileDialog;
            QFileDialog *  currentFileDialog;
-    double                zNear, zFar, zoom, eyeDistance;
+    double                zNear, zFar, scaling, zoom, eyeDistance;
     Point3                cameraPosition, cameraTarget;
     Vector3               cameraUpVector;
     int                   panX, panY;

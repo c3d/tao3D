@@ -99,7 +99,7 @@ TAO_BEGIN
 //
 // ============================================================================
 
-static Point3 defaultCameraPosition(0, 0, 4000);
+static Point3 defaultCameraPosition(0, 0, 10000);
 
 static inline QGL::FormatOptions TaoGLFormatOptions()
 // ----------------------------------------------------------------------------
@@ -154,7 +154,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
       sourceRenderer(NULL),
       currentFileDialog(NULL),
-      zNear(2000.0), zFar(40000.0),
+      zNear(2000.0), zFar(50000.0),
       zoom(1.0), eyeDistance(10.0),
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
@@ -210,6 +210,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
     while (printOverscaling < 8 &&
            printOverscaling * 72 < XL::MAIN->options.printResolution)
         printOverscaling <<= 1;
+
+    // Compute initial zoom
+    scaling = scalingFactorFromCamera();
 }
 
 
@@ -1131,10 +1134,11 @@ void Widget::resetView()
 //   Restore default view parameters (zoom, position etc.)
 // ----------------------------------------------------------------------------
 {
-    zoom = 1.0;
     cameraPosition = defaultCameraPosition;
     cameraTarget = Point3(0, 0, 0);
     cameraUpVector = Vector3(0, 1, 0);
+    zoom = 1.0;
+    scaling = scalingFactorFromCamera();
     setup(width(), height());
 }
 
@@ -1239,6 +1243,17 @@ void Widget::paintGL()
 }
 
 
+double Widget::scalingFactorFromCamera()
+// ----------------------------------------------------------------------------
+//   Return the factor to use for zoom adjustments
+// ----------------------------------------------------------------------------
+{
+    Vector3 distance = cameraTarget - cameraPosition;
+    scale csf = distance.Length() / zNear;
+    return csf;
+}
+
+
 void Widget::setup(double w, double h, const Box *picking)
 // ----------------------------------------------------------------------------
 //   Setup an initial environment for drawing
@@ -1262,7 +1277,8 @@ void Widget::setup(double w, double h, const Box *picking)
         Point center = b.lower + size / 2;
         gluPickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
     }
-    glFrustum (-w*zoom/4, w*zoom/4, -h*zoom/4, h*zoom/4, zNear, zFar);
+    double zf = 0.5 * zoom;
+    glFrustum (-w*zf, w*zf, -h*zf, h*zf, zNear, zFar);
 
     // Setup the model-view matrix
     glMatrixMode(GL_MODELVIEW);
@@ -1274,6 +1290,7 @@ void Widget::setup(double w, double h, const Box *picking)
     gluLookAt(eyeX, cameraPosition.y, cameraPosition.z,
               cameraTarget.x, cameraTarget.y ,cameraTarget.z,
               cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
+    glScalef(scaling, scaling, scaling);
 
     // Reset default GL parameters
     setupGL();
@@ -3899,6 +3916,29 @@ Name_p Widget::setZoom(Tree_p self, scale z)
     if (z > 0)
     {
         zoom = z;
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
+
+Real_p Widget::currentScaling(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the current scaling level
+// ----------------------------------------------------------------------------
+{
+    return new Real(scaling);
+}
+
+
+Name_p Widget::setScaling(Tree_p self, scale s)
+// ----------------------------------------------------------------------------
+//   Decrease scaling level
+// ----------------------------------------------------------------------------
+{
+    if (s > 0)
+    {
+        scaling = s;
         return XL::xl_true;
     }
     return XL::xl_false;

@@ -588,6 +588,21 @@ PREFIX(SetZoom, boolean, "zoom", PARM(z, real), RTAO(setZoom(self, z)),
                 parameter \"real\", \"z\", <<the zoom factor>>;\
                 }\
           |*/")
+PREFIX(GetScaling, real, "camera_scaling", ,
+       RTAO(currentScaling(self)), "")
+PREFIX(SetScaling, boolean, "camera_scaling",
+       PARM(z, real), RTAO(setScaling(self, z)),
+       "/*| docname \"camera_scaling\", \"gui\", do { \
+                synopsis \"Camera scaling manipulation\" ; \
+                dsyntax <<camera_scaling>>;\
+                description <<Get the scaling level>> ;\
+                return_value \"real\", <<the current scaling factor>>;\
+                dsyntax <<camera_scaling z>>;\
+                description <<Set the scaling level>> ;\
+                parameters;\
+                parameter \"real\", \"z\", <<the scaling factor>>;\
+                }\
+          |*/")
 PREFIX(GetEye, infix, "camera_position", ,
        RTAO(currentCameraPosition(self)),
        "")

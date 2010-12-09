@@ -103,21 +103,23 @@ TAO_BEGIN
 //
 // ============================================================================
 
-static inline QGL::FormatOptions TaoGLFormatOptions()
+static Point3 defaultCameraPosition(0, 0, 6000);
+
+static inline QGLFormat TaoGLFormat()
 // ----------------------------------------------------------------------------
 //   Return the options we will use when creating the widget
 // ----------------------------------------------------------------------------
 //   This was made necessary by Bug #251
 {
-    QGL::FormatOptions result =
+    QGL::FormatOptions options =
         (QGL::DoubleBuffer      |
          QGL::DepthBuffer       |
          QGL::StencilBuffer     |
          QGL::SampleBuffers     |
-         QGL::AlphaChannel);
-    if (true || XL::MAIN->options.enable_stereoscopy)
-        result |= QGL::StereoBuffers;
-    return result;
+         QGL::AlphaChannel      |
+         QGL::StereoBuffers);
+    QGLFormat format(options);
+    return format;
 }
 
 
@@ -125,7 +127,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create the GL widget
 // ----------------------------------------------------------------------------
-    : QGLWidget(QGLFormat(TaoGLFormatOptions()), parent),
+    : QGLWidget(TaoGLFormat(), parent),
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
       runOnNextDraw(true),
       space(NULL), layout(NULL), path(NULL), table(NULL),
@@ -155,9 +157,10 @@ Widget::Widget(Window *parent, SourceFile *sf)
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
       sourceRenderer(NULL),
       currentFileDialog(NULL),
-      zNear(2000.0), zFar(40000.0),
+      zNear(1000.0), zFar(56000.0),
       zoom(1.0), eyeDistance(10.0),
-      eye(0.0, 0.0, zNear), viewCenter(0.0, 0.0, -zNear),
+      cameraPosition(defaultCameraPosition),
+      cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false)
 {
     setObjectName(QString("Widget"));
@@ -220,6 +223,9 @@ Widget::Widget(Window *parent, SourceFile *sf)
 
     // Initialize start time
     pageStartTime = startTime = frozenTime = CurrentTime();
+
+    // Compute initial zoom
+    scaling = scalingFactorFromCamera();
 }
 
 
@@ -707,8 +713,13 @@ void Widget::print(QPrinter *prt)
 
         // Center display on screen
         XL::LocalSave<double> savePrintTime(pagePrintTime, 0);
-        XL::LocalSave<Point3> saveCenter(viewCenter, Point3(0,0,-zNear));
-        XL::LocalSave<Point3> saveEye(eye, Point3(0,0,zNear));
+        XL::LocalSave<Point3> saveCenter(cameraTarget, Point3(0,0,0));
+        XL::LocalSave<Point3> saveEye(cameraPosition, defaultCameraPosition);
+        XL::LocalSave<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
+        XL::LocalSave<char> saveStereo1(stereoPlanes, 0);
+        XL::LocalSave<char> saveStereo2(stereoscopic, 1);
+        XL::LocalSave<double> saveZoom(zoom, 1);
+        XL::LocalSave<double> saveScaling(scaling, scalingFactorFromCamera());
 
         // Evaluate twice time so that we correctly setup page info
         for (uint i = 0; i < 2; i++)
@@ -1248,13 +1259,11 @@ void Widget::resetView()
 //   Restore default view parameters (zoom, position etc.)
 // ----------------------------------------------------------------------------
 {
+    cameraPosition = defaultCameraPosition;
+    cameraTarget = Point3(0, 0, 0);
+    cameraUpVector = Vector3(0, 1, 0);
     zoom = 1.0;
-    eye.x = 0.0;
-    eye.y = 0.0;
-    eye.z = zNear;
-    viewCenter.x = 0.0;
-    viewCenter.y = 0.0;
-    viewCenter.z = -zNear;
+    scaling = scalingFactorFromCamera();
     setup(width(), height());
 }
 
@@ -1354,6 +1363,17 @@ void Widget::paintGL()
 }
 
 
+double Widget::scalingFactorFromCamera()
+// ----------------------------------------------------------------------------
+//   Return the factor to use for zoom adjustments
+// ----------------------------------------------------------------------------
+{
+    Vector3 distance = cameraTarget - cameraPosition;
+    scale csf = distance.Length() / zNear;
+    return csf;
+}
+
+
 void Widget::setup(double w, double h, const Box *picking)
 // ----------------------------------------------------------------------------
 //   Setup an initial environment for drawing
@@ -1377,23 +1397,19 @@ void Widget::setup(double w, double h, const Box *picking)
         Point center = b.lower + size / 2;
         gluPickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
     }
+    double zf = 0.5 * zoom / scaling;
+    glFrustum (-w*zf, w*zf, -h*zf, h*zf, zNear, zFar);
 
-    // Setup the frustum for the projection
-    double zNear = Widget::zNear, zFar = Widget::zFar;
-    Point3 up(0.0, 1.0, 0.0);
-    double eyeX = eye.x;
-    eyeX += eyeDistance * (stereoscopic - 0.5 * stereoPlanes);
-
-    glFrustum ((-w/2)*zoom, (w/2)*zoom, (-h/2)*zoom, (h/2)*zoom, zNear, zFar);
-    gluLookAt(eyeX, eye.y, eye.z,
-              viewCenter.x, viewCenter.y ,viewCenter.z,
-              up.x, up.y, up.z);
-    glTranslatef(0.0, 0.0, viewCenter.z);
-    glScalef(2.0, 2.0, 2.0);
-
-    // Setup the model view matrix so that 1.0 unit = 1px
+    // Setup the model-view matrix
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+
+    // Position the camera
+    double eyeX = cameraPosition.x
+                + eyeDistance * (stereoscopic - 0.5 * stereoPlanes);
+    gluLookAt(eyeX, cameraPosition.y, cameraPosition.z,
+              cameraTarget.x, cameraTarget.y ,cameraTarget.z,
+              cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
 
     // Reset default GL parameters
     setupGL();
@@ -2345,10 +2361,10 @@ void Widget::doPanning(QMouseEvent *event)
     dx = x - panX;
     dy = y - panY;
 
-    eye.x -= 2*dx*zoom;
-    eye.y += 2*dy*zoom;
-    viewCenter.x -= 2*dx*zoom;
-    viewCenter.y += 2*dy*zoom;
+    cameraPosition.x -= dx*zoom;
+    cameraPosition.y += dy*zoom;
+    cameraTarget.x -= dx*zoom;
+    cameraTarget.y += dy*zoom;
 
     panX = x;
     panY = y;
@@ -4277,10 +4293,10 @@ XL::Name_p Widget::panView(Tree_p self, coord dx, coord dy)
 //   Pan the current view by the current amount
 // ----------------------------------------------------------------------------
 {
-    eye.x += dx;
-    eye.y += dy;
-    viewCenter.x += dx;
-    viewCenter.y += dy;
+    cameraPosition.x += dx;
+    cameraPosition.y += dy;
+    cameraTarget.x += dx;
+    cameraTarget.y += dy;
     setup(width(), height());
     return XL::xl_true;
 }
@@ -4309,44 +4325,112 @@ Name_p Widget::setZoom(Tree_p self, scale z)
 }
 
 
-Infix_p Widget::currentEyePosition(Tree_p self)
+Real_p Widget::currentScaling(Tree_p self)
 // ----------------------------------------------------------------------------
-//   Return the current eye position
+//   Return the current scaling level
 // ----------------------------------------------------------------------------
 {
-    return new Infix(",", new Real(eye.x), new Real(eye.y));
+    return new Real(scaling);
 }
 
 
-Name_p Widget::setEyePosition(Tree_p self, coord x, coord y, coord z)
+Name_p Widget::setScaling(Tree_p self, scale s)
 // ----------------------------------------------------------------------------
-//   Set the eye position and update view
+//   Decrease scaling level
 // ----------------------------------------------------------------------------
 {
-    eye.x = x;
-    eye.y = y;
-    eye.z = z;
+    if (s > 0)
+    {
+        scaling = s;
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
+
+Infix_p Widget::currentCameraPosition(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the current camera position
+// ----------------------------------------------------------------------------
+{
+    return new Infix(",",
+                     new Infix(",",
+                               new Real(cameraPosition.x),
+                               new Real(cameraPosition.y)),
+                     new Real(cameraPosition.z));
+}
+
+
+Name_p Widget::setCameraPosition(Tree_p self, coord x, coord y, coord z)
+// ----------------------------------------------------------------------------
+//   Set the cameraPosition position and update view
+// ----------------------------------------------------------------------------
+{
+    if (cameraPosition.x!=x || cameraPosition.y!=y || cameraPosition.z!=z)
+    {
+        cameraPosition.x = x;
+        cameraPosition.y = y;
+        cameraPosition.z = z;
+        refresh(0);
+    }
     return XL::xl_true;
 }
 
 
-Infix_p Widget::currentCenterPosition(Tree_p self)
+Infix_p Widget::currentCameraTarget(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the current center position
 // ----------------------------------------------------------------------------
 {
-    return new Infix(",", new Real(viewCenter.x), new Real(viewCenter.y));
+    return new Infix(",",
+                     new Infix(",",
+                               new Real(cameraTarget.x),
+                               new Real(cameraTarget.y)),
+                     new Real(cameraTarget.z));
 }
 
 
-Name_p Widget::setCenterPosition(Tree_p self, coord x, coord y, coord z)
+Name_p Widget::setCameraTarget(Tree_p self, coord x, coord y, coord z)
 // ----------------------------------------------------------------------------
 //   Set the center position and update view
 // ----------------------------------------------------------------------------
 {
-    viewCenter.x = x;
-    viewCenter.y = y;
-    viewCenter.z = z;
+    if (x != cameraTarget.x || y != cameraTarget.y || z != cameraTarget.z)
+    {
+        cameraTarget.x = x;
+        cameraTarget.y = y;
+        cameraTarget.z = z;
+        refresh(0);
+    }
+    return XL::xl_true;
+}
+
+
+Infix_p Widget::currentCameraUpVector(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the current up vector
+// ----------------------------------------------------------------------------
+{
+    return new Infix(",",
+                     new Infix(",",
+                               new Real(cameraUpVector.x),
+                               new Real(cameraUpVector.y)),
+                     new Real(cameraUpVector.z));
+}
+
+
+Name_p Widget::setCameraUpVector(Tree_p self, coord x, coord y, coord z)
+// ----------------------------------------------------------------------------
+//   Set the up vector
+// ----------------------------------------------------------------------------
+{
+    if (cameraUpVector.x!=x || cameraUpVector.y!=y || cameraUpVector.z!=z)
+    {
+        cameraUpVector.x = x;
+        cameraUpVector.y = y;
+        cameraUpVector.z = z;
+        refresh(0);
+    }
     return XL::xl_true;
 }
 
@@ -6516,10 +6600,13 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
     {
         GLAllStateKeeper saveGL;
         XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
-        XL::LocalSave<Point3> saveCenter(viewCenter, Point3(0,0,-zNear));
-        XL::LocalSave<Point3> saveEye(eye, Point3(0,0,zNear));
+        XL::LocalSave<Point3> saveCenter(cameraTarget, Point3(0,0,0));
+        XL::LocalSave<Point3> saveEye(cameraPosition, defaultCameraPosition);
+        XL::LocalSave<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
         XL::LocalSave<char> saveStereo1(stereoPlanes, 0);
-        XL::LocalSave<char> saveStere2(stereoscopic, 1);
+        XL::LocalSave<char> saveStereo2(stereoscopic, 1);
+        XL::LocalSave<double> saveZoom(zoom, 1);
+        XL::LocalSave<double> saveScaling(scaling, scalingFactorFromCamera());
 
         // Clear the background and setup initial state
         frame->resize(w,h);

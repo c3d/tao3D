@@ -12,7 +12,7 @@ BEGIN {
     b_close = ""
     t1 = ""
     t2 = ""
-    group = ""
+    group = "formula"
     syno = ""
     desc = ""
     ret = ""
@@ -20,7 +20,7 @@ BEGIN {
     nb_parm = 0
     in_description = 0;
 
-    filename = "graphic_test.tbl"
+    filename = "formula2_test.tbl"
     printf "/*start*/\n" > filename
 } 
 
@@ -38,7 +38,7 @@ function reset() {
     b_close = ""
     t1 = ""
     t2 = ""
-    group = ""
+    group = "formula"
     syno = ""
     desc = ""
     ret = ""
@@ -82,7 +82,7 @@ function write_def(){
     }
     else if (match(input_type , "INFIX"))
     {
-        printf "%s %s, %s, %s, %s, %s)\n", beg_of_def, t1, symbol, t2, code, end_of_def  >> filename
+        printf "%s %s,%s,%s,%s,%s)\n", beg_of_def, t1, symbol, t2, code, end_of_def  >> filename
     }
     else if (match(input_type , "BLOCK"))
     {
@@ -144,6 +144,10 @@ function extractStr(s){
     }
 }
 
+/NAME|TYPE/ {
+    printf "%s\n", $0 >> filename
+}
+
 /PREFIX|POSTFIX|INFIX|BLOCK/ {
     printAndReset()
 #    printf "DEB: matches PREFIX|POSTFIX|INFIX|BLOCK\n|%s|\n\n", $0
@@ -157,7 +161,13 @@ function extractStr(s){
        symbol = par[3]
     if (match ( input_type, "POSTFIX"))
        symbol = par[5]
-#    printf "DEB:input_type = |%s| name = |%s| rtype = |%s| symbol = |%s|\n\n", input_type, name, rtype, symbol
+    if (match ( input_type, "INFIX"))
+    {
+        t1     = par[3]
+        symbol = par[4]
+        t2     = par[5]
+    }
+    printf "DEB:input_type = |%s| t1 = |%s| symbol = |%s| t2 = |%s|\n\n", input_type, t1, symbol, t2
  
 }
 
@@ -183,12 +193,33 @@ function extractStr(s){
 
 /RTAO/{
      bi = index($0, "RTAO")
-     ei = index($0, ")),")
-     code = substr($0, bi, ei-bi+2)
+     line = substr($0, bi, length)
+     ei = index(line, ")),")
+     code = substr(line, 1, ei+1)
+#     printf "DEB: code %i = |%s|\n", NR, code
+}
+/XL_/{
+     bi = index($0, "XL_")
+     line = substr($0, bi, length)
+     ei = index(line, ")),")
+     l = 1
+     if (ei <= 0 )
+     {
+         ei = index(line, "),")
+         l = 0
+     }
+     code = substr(line, 1, ei+l)
+#     printf "DEB: code %i = |%s|\n", NR, code
+}
+/return/{
+     bi = index($0, "return")
+     line = substr($0, bi, length)
+     ei = index(line, "),")
+     code = substr(line, 1, ei)
 #     printf "DEB: code %i = |%s|\n", NR, code
 }
 
-/(docname )/ {
+/(  docname )/ {
 #    printf "DEB:  match docname\n|%s|\n", $0
     nb_parm = 0
 
@@ -201,14 +232,14 @@ function extractStr(s){
    
 }
 
-/(synopsis )/ {
+/(  synopsis )/ {
     
     syno = sprintf("%s", extractStr($0))
 #    printf "DEB: matches synopsis\n|%s|\n|%s|\n\n",  $0, syno
 }
 
-/(description )/ {
-    if (index($0, ">>") > 0)
+/(  description )/ {
+    if (index($0, ">>") > 0 || index($0, "\"") > 0)
     {
         desc =  sprintf("%s", extractStr($0))
         in_description = 0
@@ -230,11 +261,11 @@ function extractStr(s){
     }
     in_description = 0
 }
-/(parameters)/ {
+/(  parameters)/ {
 
 }
 
-/(parameter )/ {
+/(  parameter )/ {
     nb_parm++
     bi = index($0, "<<")
     ei = index($0, ">>")
@@ -282,6 +313,7 @@ function extractStr(s){
 }
 
 END {
+    printAndReset();
     # closes the last definition
 
 #print "BYE "

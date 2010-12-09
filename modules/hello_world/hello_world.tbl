@@ -2,4 +2,5 @@
 
 #include "tree.h"
 
-PREFIX(hello_world, tree, "hello_world", , return new XL::Text("Hello, World!"), "");
+PREFIX(hello_world, tree, "hello_world", , return new XL::Text("Hello, World!"),
+    DOC_GROUP(tutorial), DOC_SYNOPSIS(""), DOC_DESCRIPTION(""),, );

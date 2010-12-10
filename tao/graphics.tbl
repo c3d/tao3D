@@ -2657,10 +2657,16 @@ PREFIX(VertexShaderFromFile, tree, "vertex_shader_file", PARM(file, text),
        "Define a vertex shader")
 PREFIX(FragmentShaderFromSource, tree, "fragment_shader", PARM(src, text),
        RTAO(shaderFromSource(self, Tao::Widget::FRAGMENT, src)),
-       "Define a vertex shader")
+       "Define a fragment shader")
 PREFIX(FragmentShaderFromFile, tree, "fragment_shader_file", PARM(file, text),
        RTAO(shaderFromFile(self, Tao::Widget::FRAGMENT, file)),
-       "Define a vertex shader")
+       "Define a fragmentshader")
+PREFIX(GeometryShaderFromSource, tree, "geometry_shader", PARM(src, text),
+       RTAO(shaderFromSource(self, Tao::Widget::GEOMETRY, src)),
+       "Define a geometry shader")
+PREFIX(GeometryShaderFromFile, tree, "geometry_shader_file", PARM(file, text),
+       RTAO(shaderFromFile(self, Tao::Widget::GEOMETRY, file)),
+       "Define a geometry shader")
 PREFIX(ShaderLog, text, "shader_log", , RTAO(shaderLog(self)),
        "Return shader log")
 PREFIX(ShaderSet, tree, "shader_set", PARM(t, tree),

@@ -25,7 +25,7 @@ INCLUDEPATH += . \
 
 DEFINES += LIBXLR
 
-HEADERS = \
+HEADERS += \
     ../tao/xlr/xlr/compiler.h \
     ../tao/xlr/xlr/diff.h \
     ../tao/xlr/xlr/lcs.h \
@@ -59,7 +59,7 @@ HEADERS = \
     ../tao/xlr/xlr/include/types.h \
     ../tao/xlr/xlr/include/utf8.h
 
-SOURCES = \
+SOURCES += \
     ../tao/xlr/xlr/compiler.cpp \
     ../tao/xlr/xlr/context.cpp \
     ../tao/xlr/xlr/diff.cpp \
@@ -79,6 +79,12 @@ SOURCES = \
     ../tao/xlr/xlr/traces_base.cpp \
     ../tao/xlr/xlr/tree.cpp \
     ../tao/xlr/xlr/types.cpp
+
+win32 {
+      SOURCES += ../tao/xlr/xlr/winglob.cpp
+      HEADERS += ../tao/xlr/xlr/winglob.h
+}
+
 
 CXXTBL_SOURCES += \
     ../tao/xlr/xlr/basics.cpp

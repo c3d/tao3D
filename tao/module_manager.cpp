@@ -103,6 +103,8 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context, XL::Tree_p self,
         text inst_v;
         foreach (ModuleInfoPrivate m, modules)
         {
+            if (!m.enabled)
+                continue;
             if (m_n == m.importName)
             {
                 name_found = true;
@@ -138,7 +140,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context, XL::Tree_p self,
                                 new XL::Text(inst_v, "", ""),
                                 new XL::Text(m_v, "", ""));
             else
-                err = XL::Ooops("Module $1 not found", name);
+                err = XL::Ooops("Module $1 not found or disabled", name);
         }
     }
     else

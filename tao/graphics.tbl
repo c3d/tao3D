@@ -1,4 +1,3 @@
-/*start*/
 // ****************************************************************************
 //  graphics.tbl                                                    Tao project
 // ****************************************************************************
@@ -1321,7 +1320,7 @@ PREFIX(TableCell,  tree,  "table_cell",
     DOC_SYNOPSIS("Define a free-size cell in the table"),
     DOC_DESCRIPTION("Define a cell in the context of the table. Short name 'cell' can be used with both syntaxes."),
     DOC_RET( tree, "body evaluation result"),
-    DOC_MISC("                err \"Error raised when invoked outside of a table context.\" \
+    DOC_MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 PREFIX(TableMargins2,  tree,  "table_cell_margins",
     PARM(w, real, )
@@ -1339,7 +1338,7 @@ PREFIX(TableMargins,  tree,  "table_cell_margins",
     DOC_GROUP(table),
     DOC_SYNOPSIS("Set the margin rectangle for the table."),
     DOC_DESCRIPTION("Set the margin rectangle for the table. The short name of the function is margins. It can be used with both syntaxes."),,
-    DOC_MISC("  err \"Error raised when invoked outside of a table context.\" \
+    DOC_MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 PREFIX(TableFill,  tree,  "table_cell_fill",
     PARM(b, tree, "fill code body.")
@@ -1347,7 +1346,7 @@ PREFIX(TableFill,  tree,  "table_cell_fill",
     DOC_GROUP(table),
     DOC_SYNOPSIS("fill of the cell"),
     DOC_DESCRIPTION("Define the fill code for cells"),,
-    DOC_MISC("  err \"Error raised when invoked outside of a table context.\" \
+    DOC_MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 PREFIX(TableBorder,  tree,  "table_cell_border",
     PARM(b, tree, "border code body.")
@@ -1355,14 +1354,14 @@ PREFIX(TableBorder,  tree,  "table_cell_border",
     DOC_GROUP(table),
     DOC_SYNOPSIS("Define the border code for cells"),
     DOC_DESCRIPTION("Define the border code for cells. The short name is border."),,
-    DOC_MISC("  err \"Error raised when invoked outside of a table context.\" \
+    DOC_MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 PREFIX(TableCellX,  tree,  "table_cell_x", , RTAO(tableCellX(self)),
     DOC_GROUP(table),
     DOC_SYNOPSIS("x-ccordinate of the cell center"),
     DOC_DESCRIPTION("Get the horizontal center of the current table cell"),
     DOC_RET( tree, "The coordinate of the center of the current cell on x-axis"),
-    DOC_MISC("  err \"Error raised when invoked outside of a table context.\" \
+    DOC_MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 PREFIX(TableCellY,  tree,  "table_cell_y", , RTAO(tableCellY(self)),
     DOC_GROUP(table),
@@ -1379,38 +1378,38 @@ PREFIX(TableCellH,  tree,  "table_cell_h", , RTAO(tableCellH(self)),
     DOC_SYNOPSIS("Height of the cell."),
     DOC_DESCRIPTION("Get the vertical size of the current table cell"),
     DOC_RET( tree, "The size of the current cell along the y-axis"),
-    DOC_MISC("  err \"Error raised when invoked outside of a table context.\" \
+    DOC_MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 PREFIX(TableRow,  tree,  "table_cell_row", , RTAO(tableRow(self)),
     DOC_GROUP(table),
     DOC_SYNOPSIS("Return the current row"),
     DOC_DESCRIPTION("Return the current row index"),
     DOC_RET( tree, "the row index"),
-    DOC_MISC("  err \"Error raised when invoked outside of a table context.\" \
+    DOC_MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 PREFIX(TableColumn,  tree,  "table_cell_column", , RTAO(tableColumn(self)),
     DOC_GROUP(table),
     DOC_SYNOPSIS("Return the current column"),
     DOC_DESCRIPTION("Return the current column index."),
     DOC_RET( tree, "The column index."),
-    DOC_MISC("  err \"Error raised when invoked outside of a table context.\" \
+    DOC_MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 PREFIX(TableRows,  tree,  "table_rows", , RTAO(tableRows(self)),
     DOC_GROUP(table),
     DOC_SYNOPSIS("number of rows in the current table"),
     DOC_DESCRIPTION("Return the number of rows in the current table"),
     DOC_RET( tree, "Number of rows in the table"),
-    DOC_MISC("                err \"Error raised when invoked outside of a table context.\" \
+    DOC_MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 PREFIX(TableColumns,  tree,  "table_columns", , RTAO(tableColumns(self)),
     DOC_GROUP(table),
     DOC_SYNOPSIS("number of columns in the current table"),
     DOC_DESCRIPTION("Return the number of columns in the current table"),
     DOC_RET( tree, "number of columns in the table"),
-    DOC_MISC("  err \"Error raised when invoked outside of a table context.\" \
+    DOC_MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 
- 
+
 
 // ============================================================================
 //
@@ -1734,136 +1733,202 @@ PREFIX(MovieTexture,  tree,  "movie_texture",
 
 
 // ============================================================================
-// 
+//
 //   Lighting
-// 
+//
 // ============================================================================
 
-PREFIX(LightID, tree, "light", PARM(l, integer) PARM(b, boolean),
+PREFIX(LightID, tree, "light", PARM(l, integer,) PARM(b, boolean,),
        RTAO(lightId(self, l, b)),
-       "Select which light we are working with")
-PREFIX(LightEnable, tree, "light", PARM(l, integer),
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select which light we are working with"),
+       DOC_DESCRIPTION(""),, )
+PREFIX(LightEnable, tree, "light", PARM(l, integer,),
        RTAO(lightId(self, l, true)),
-       "Select which light we are working with")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select which light we are working with"),
+       DOC_DESCRIPTION(""),, )
 
 PREFIX(LightAmbient, tree, "light_ambient",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
        RTAO(light(self, GL_AMBIENT, r, g, b, a)),
-       "Select the ambient light")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the ambient light"),
+       DOC_DESCRIPTION(""),, )
 PREFIX(LightDiffuse, tree, "light_diffuse",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
        RTAO(light(self, GL_DIFFUSE, r, g, b, a)),
-       "Select the diffuse light")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the diffuse light"),
+       DOC_DESCRIPTION(""),, )
 PREFIX(LightSpecular, tree, "light_specular",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
        RTAO(light(self, GL_SPECULAR, r, g, b, a)),
-       "Select the specular light")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the specular light"),
+       DOC_DESCRIPTION(""),, )
 PREFIX(LightPosition3, tree, "light_position",
-       PARM(x, real) PARM(y, real) PARM(z, real),
+       PARM(x, real,) PARM(y, real,) PARM(z, real,),
        RTAO(light(self, GL_POSITION, x, y, z, 0)),
-       "Select the position of the light")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the position of the light"),
+       DOC_DESCRIPTION(""),, )
 PREFIX(LightPosition, tree, "light_position",
-       PARM(x, real) PARM(y, real) PARM(z, real) PARM(w, real),
+       PARM(x, real,) PARM(y, real,) PARM(z, real,) PARM(w, real,),
        RTAO(light(self, GL_POSITION, x, y, z, w)),
-       "Select the position of the light")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the position of the light"),
+       DOC_DESCRIPTION(""),, )
 PREFIX(LightSpotDirection, tree, "light_spot_direction",
-       PARM(x, real) PARM(y, real) PARM(z, real),
+       PARM(x, real,) PARM(y, real,) PARM(z, real,),
        RTAO(light(self, GL_SPOT_DIRECTION, x, y, z)),
-       "Select the direction of spot lights")
-PREFIX(LightSpotExponent, tree, "light_spot_exponent", PARM(x, real),
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the direction of spot lights"),
+       DOC_DESCRIPTION(""),, )
+PREFIX(LightSpotExponent, tree, "light_spot_exponent", PARM(x, real,),
        RTAO(light(self, GL_SPOT_EXPONENT, x)),
-       "Select the cutoff exponent for spot lights")
-PREFIX(LightSpotCutoff, tree, "light_spot_cutoff", PARM(x, real),
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the cutoff exponent for spot lights"),
+       DOC_DESCRIPTION(""),, )
+PREFIX(LightSpotCutoff, tree, "light_spot_cutoff", PARM(x, real,),
        RTAO(light(self, GL_SPOT_CUTOFF, x)),
-       "Select the cutoff angle for spot lights")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the cutoff angle for spot lights"),
+       DOC_DESCRIPTION(""),, )
 PREFIX(LightAttenuation, tree, "light_attenuation",
-       PARM(x, real) PARM(y, real) PARM(z, real),
+       PARM(x, real,) PARM(y, real,) PARM(z, real,),
        TAO(light(self, GL_CONSTANT_ATTENUATION, x));
        TAO(light(self, GL_LINEAR_ATTENUATION, y));
        TAO(light(self, GL_QUADRATIC_ATTENUATION, z));
        return XL::xl_true,
-       "Select the light attenuation factor")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the light attenuation factor"),
+       DOC_DESCRIPTION(""),, )
 
 PREFIX(MaterialAmbient, tree, "material_ambient",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
        RTAO(material(self, GL_FRONT_AND_BACK, GL_AMBIENT, r, g, b, a)),
-       "Select the ambient material")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the ambient material"),
+       DOC_DESCRIPTION(""),, )
 PREFIX(MaterialDiffuse, tree, "material_diffuse",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
        RTAO(material(self, GL_FRONT_AND_BACK, GL_DIFFUSE, r, g, b, a)),
-       "Select the diffuse material")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the diffuse material"),
+       DOC_DESCRIPTION(""),, )
 PREFIX(MaterialSpecular, tree, "material_specular",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
        RTAO(material(self, GL_FRONT_AND_BACK, GL_SPECULAR, r, g, b, a)),
-       "Select the specular material")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the specular material"),
+       DOC_DESCRIPTION(""),, )
 PREFIX(MaterialEmission, tree, "material_emission",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
        RTAO(material(self, GL_FRONT_AND_BACK, GL_EMISSION, r, g, b, a)),
-       "Select the emission of the material")
-PREFIX(MaterialShininess, tree, "material_shininess", PARM(x, real),
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the emission of the material"),
+       DOC_DESCRIPTION(""),, )
+PREFIX(MaterialShininess, tree, "material_shininess", PARM(x, real,),
        RTAO(material(self, GL_FRONT_AND_BACK, GL_SHININESS, x)),
-       "Select the shininess of the material")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the shininess of the material"),
+       DOC_DESCRIPTION(""),, )
 
 PREFIX(MaterialFrontAmbient, tree, "material_front_ambient",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
        RTAO(material(self, GL_FRONT, GL_AMBIENT, r, g, b, a)),
-       "Select the ambient material")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the ambient material"),
+       DOC_DESCRIPTION(""),, )
 PREFIX(MaterialFrontDiffuse, tree, "material_front_diffuse",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
        RTAO(material(self, GL_FRONT, GL_DIFFUSE, r, g, b, a)),
-       "Select the diffuse material")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the diffuse material"),
+       DOC_DESCRIPTION(""),, )
 PREFIX(MaterialFrontSpecular, tree, "material_front_specular",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
        RTAO(material(self, GL_FRONT, GL_SPECULAR, r, g, b, a)),
-       "Select the specular material")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the specular material"),
+       DOC_DESCRIPTION(""),, )
 PREFIX(MaterialFrontEmission, tree, "material_front_emission",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
        RTAO(material(self, GL_FRONT, GL_EMISSION, r, g, b, a)),
-       "Select the emission of the material")
-PREFIX(MaterialFrontShininess, tree, "material_front_shininess", PARM(x, real),
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the emission of the material"),
+       DOC_DESCRIPTION(""),, )
+PREFIX(MaterialFrontShininess, tree, "material_front_shininess", PARM(x, real,),
        RTAO(material(self, GL_FRONT, GL_SHININESS, x)),
-       "Select the shininess of the material")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the shininess of the material"),
+       DOC_DESCRIPTION(""),, )
 
 PREFIX(MaterialBackAmbient, tree, "material_back_ambient",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
        RTAO(material(self, GL_BACK, GL_AMBIENT, r, g, b, a)),
-       "Select the ambient material")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the ambient material"),
+       DOC_DESCRIPTION(""),, )
 PREFIX(MaterialBackDiffuse, tree, "material_back_diffuse",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
        RTAO(material(self, GL_BACK, GL_DIFFUSE, r, g, b, a)),
-       "Select the diffuse material")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the diffuse material"),
+       DOC_DESCRIPTION(""),, )
 PREFIX(MaterialBackSpecular, tree, "material_back_specular",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
        RTAO(material(self, GL_BACK, GL_SPECULAR, r, g, b, a)),
-       "Select the specular material")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the specular material"),
+       DOC_DESCRIPTION(""),, )
 PREFIX(MaterialBackEmission, tree, "material_back_emission",
-       PARM(r, real) PARM(g, real) PARM(b, real) PARM(a, real),
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
        RTAO(material(self, GL_BACK, GL_EMISSION, r, g, b, a)),
-       "Select the emission of the material")
-PREFIX(MaterialBackShininess, tree, "material_back_shininess", PARM(x, real),
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the emission of the material"),
+       DOC_DESCRIPTION(""),, )
+PREFIX(MaterialBackShininess, tree, "material_back_shininess", PARM(x, real,),
        RTAO(material(self, GL_BACK, GL_SHININESS, x)),
-       "Select the shininess of the material")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Select the shininess of the material"),
+       DOC_DESCRIPTION(""),, )
 
-PREFIX(ShaderProgram, tree, "shader_program", PARM(code, tree),
+PREFIX(ShaderProgram, tree, "shader_program", PARM(code, tree,),
        RTAO(shaderProgram(self, code)),
-       "Define a shader program")
-PREFIX(VertexShaderFromSource, tree, "vertex_shader", PARM(src, text),
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Define a shader program"),
+       DOC_DESCRIPTION(""),, )
+PREFIX(VertexShaderFromSource, tree, "vertex_shader", PARM(src, text,),
        RTAO(shaderFromSource(self, Tao::Widget::VERTEX, src)),
-       "Define a vertex shader")
-PREFIX(VertexShaderFromFile, tree, "vertex_shader_file", PARM(file, text),
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Define a vertex shader"),
+       DOC_DESCRIPTION(""),, )
+PREFIX(VertexShaderFromFile, tree, "vertex_shader_file", PARM(file, text,),
        RTAO(shaderFromFile(self, Tao::Widget::VERTEX, file)),
-       "Define a vertex shader")
-PREFIX(FragmentShaderFromSource, tree, "fragment_shader", PARM(src, text),
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Define a vertex shader"),
+       DOC_DESCRIPTION(""),, )
+PREFIX(FragmentShaderFromSource, tree, "fragment_shader", PARM(src, text,),
        RTAO(shaderFromSource(self, Tao::Widget::FRAGMENT, src)),
-       "Define a vertex shader")
-PREFIX(FragmentShaderFromFile, tree, "fragment_shader_file", PARM(file, text),
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Define a vertex shader"),
+       DOC_DESCRIPTION(""),, )
+PREFIX(FragmentShaderFromFile, tree, "fragment_shader_file", PARM(file, text,),
        RTAO(shaderFromFile(self, Tao::Widget::FRAGMENT, file)),
-       "Define a vertex shader")
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Define a vertex shader"),
+       DOC_DESCRIPTION(""),, )
 PREFIX(ShaderLog, text, "shader_log", , RTAO(shaderLog(self)),
-       "Return shader log")
-PREFIX(ShaderSet, tree, "shader_set", PARM(t, tree),
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Return shader log"),
+       DOC_DESCRIPTION(""),, )
+PREFIX(ShaderSet, tree, "shader_set", PARM(t, tree,),
        RTAO(shaderSet(self, t)),
-       " Set a shader uniform or attribute value");
+       DOC_GROUP(lighting),
+       DOC_SYNOPSIS("Set a shader uniform or attribute value"),
+       DOC_DESCRIPTION(""),, );
 
 
 
@@ -2137,6 +2202,12 @@ PREFIX(Constant,  tree,  "constant",
     DOC_SYNOPSIS("a constant tree"),
     DOC_DESCRIPTION("A tree that cannot be modify."),
     DOC_RET( tree, "the tree"), )
+
+PREFIX(Exit, integer, "exit",, exit(0);,
+    DOC_GROUP(code),
+    DOC_SYNOPSIS("Exit from Tao"),
+    DOC_DESCRIPTION("Exit from Tao"),,)
+
 PREFIX(GenDoc,  tree,  "generate_doc",
     PARM(t, tree, "The tree from wich extracting the documentation")
 , RTAO(generateDoc(self, t)),

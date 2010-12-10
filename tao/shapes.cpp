@@ -28,8 +28,7 @@
 #include "gl_keepers.h"
 #include "application.h"
 #include "widget_surface.h"
-#include <GL/glew.h>
-#include <QtOpenGL>
+#include "tao_gl.h"
 #include <QPainterPath>
 
 TAO_BEGIN
@@ -70,6 +69,7 @@ bool Shape::setTexture(Layout *where)
     {
         glDisable(GL_TEXTURE_2D);
     }
+    glUseProgram(where->programId);
 
     return where->fillTexture ? true : false;
 }

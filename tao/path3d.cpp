@@ -25,8 +25,7 @@
 #include "layout.h"
 #include "manipulator.h"
 #include "gl_keepers.h"
-#include <GL/glew.h>
-#include <QtOpenGL>
+#include "tao_gl.h"
 #include <QPainterPath>
 #include <QPainterPathStroker>
 #include <iostream>

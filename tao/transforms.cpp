@@ -25,7 +25,6 @@
 #include "shapes3d.h"
 #include "context.h"
 #include "widget.h"
-#include <GL/glew.h>
 
 
 TAO_BEGIN

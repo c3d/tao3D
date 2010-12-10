@@ -26,7 +26,6 @@
 #include "text_drawing.h"
 #include "gl_keepers.h"
 #include "runtime.h"
-#include <GL/glew.h>
 #include <QtGui>
 
 TAO_BEGIN

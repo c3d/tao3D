@@ -26,12 +26,12 @@
 #include "objloader.h"
 #include "layout.h"
 #include "tao_utf8.h"
+#include "tao_gl.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>
 #include <fstream>
 #include <map>
-#include <GL/glew.h>
 #include <QFileInfo>
 
 TAO_BEGIN

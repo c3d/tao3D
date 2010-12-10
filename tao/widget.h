@@ -38,9 +38,8 @@
 #include "font_file_manager.h"
 #include "layout.h"
 #include "layout_cache.h"
+#include "tao_gl.h"
 
-#include <GL/glew.h>
-#include <QtOpenGL>
 #include <QImage>
 #include <QTimeLine>
 #include <QTimer>
@@ -92,6 +91,8 @@ public:
                       stereoHORIZONTAL, stereoVERTICAL,
                       stereoDIAGONAL, stereoANTI_DIAGONAL,
                       stereoALIOSCOPY };
+    enum ShaderKind { VERTEX, FRAGMENT };
+
 public:
     Widget(Window *parent, SourceFile *sf = NULL);
     ~Widget();
@@ -147,6 +148,7 @@ public:
     Context *   context();
     QPrinter *  currentPrinter() { return printer; }
     double      printerScaling() { return printer ? printOverscaling : 1; }
+    double      scalingFactorFromCamera();
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -196,7 +198,7 @@ public:
                         bool stats = true, bool show=true);
     bool        timerIsActive()         { return timer.isActive(); }
     bool        hasAnimations(void)     { return animated; }
-    char        hasStereoscopy(void)    { return stereoscopic; }
+    char        hasStereoscopy(void)    { return stereoPlanes > 1; }
     StereoMode  currentStereoMode(void) { return stereoMode; }
 
 
@@ -331,10 +333,14 @@ public:
     Name_p      panView(Tree_p self, coord dx, coord dy);
     Real_p      currentZoom(Tree_p self);
     Name_p      setZoom(Tree_p self, scale z);
-    Infix_p     currentEyePosition(Tree_p self);
-    Name_p      setEyePosition(Tree_p self, coord x, coord y, coord z);
-    Infix_p     currentCenterPosition(Tree_p self);
-    Name_p      setCenterPosition(Tree_p self, coord x, coord y, coord z);
+    Real_p      currentScaling(Tree_p self);
+    Name_p      setScaling(Tree_p self, scale z);
+    Infix_p     currentCameraPosition(Tree_p self);
+    Name_p      setCameraPosition(Tree_p self, coord x, coord y, coord z);
+    Infix_p     currentCameraTarget(Tree_p self);
+    Name_p      setCameraTarget(Tree_p self, coord x, coord y, coord z);
+    Infix_p     currentCameraUpVector(Tree_p self);
+    Name_p      setCameraUpVector(Tree_p self, coord x, coord y, coord z);
     Name_p      setEyeDistance(Tree_p self, double eyeD);
     Real_p      getEyeDistance(Tree_p self);
     Name_p      setZNear(Tree_p self, double zn);
@@ -371,6 +377,20 @@ public:
     Tree_p      fillTextureFromSVG(Tree_p self, text svg);
     Tree_p      textureWrap(Tree_p self, bool s, bool t);
     Tree_p      textureTransform(Context *context, Tree_p self, Tree_p code);
+    Tree_p      lightId(Tree_p self, GLuint id, bool enable);
+    Tree_p      light(Tree_p self, GLenum function, GLfloat value);
+    Tree_p      light(Tree_p self, GLenum function,
+                      GLfloat x, GLfloat y, GLfloat z);
+    Tree_p      light(Tree_p self, GLenum function,
+                      GLfloat a, GLfloat b, GLfloat c, GLfloat d);
+    Tree_p      material(Tree_p self, GLenum face, GLenum function, GLfloat d);
+    Tree_p      material(Tree_p self, GLenum face, GLenum function,
+                         GLfloat a, GLfloat b, GLfloat c, GLfloat d);
+    Tree_p      shaderProgram(Context *, Tree_p self, Tree_p code);
+    Tree_p      shaderFromSource(Tree_p self, ShaderKind kind, text source);
+    Tree_p      shaderFromFile(Tree_p self, ShaderKind kind, text file);
+    Tree_p      shaderSet(Context *, Tree_p self, Tree_p code);
+    Text_p      shaderLog(Tree_p self);
 
     // Generating a path
     Tree_p      newPath(Context *c, Tree_p self, Tree_p t);
@@ -696,6 +716,7 @@ private:
     Tree_p                pageTree;
     Tree_p                currentShape;
     QGridLayout *         currentGridLayout;
+    QGLShaderProgram *    currentShaderProgram;
     GroupInfo   *         currentGroup;
     GlyphCache            glyphCache;
     FontFileManager *     fontFileMgr;
@@ -758,9 +779,9 @@ private:
     static QFontDialog *  fontDialog;
     static QFileDialog *  fileDialog;
            QFileDialog *  currentFileDialog;
-    double                zNear, zFar;
-    double                zoom, eyeDistance;
-    Point3                eye, viewCenter;
+    double                zNear, zFar, scaling, zoom, eyeDistance;
+    Point3                cameraPosition, cameraTarget;
+    Vector3               cameraUpVector;
     int                   panX, panY;
     bool                  dragging;
     bool                  bAutoHideCursor;

@@ -24,7 +24,7 @@
 #include "shapes3d.h"
 #include "layout.h"
 #include "widget.h"
-#include <QtOpenGL>
+#include "tao_gl.h"
 
 TAO_BEGIN
 
@@ -152,6 +152,7 @@ void Sphere::Draw(Layout *where)
 
     GLUquadric *q = gluNewQuadric();
     gluQuadricTexture (q, true);
+    gluQuadricNormals (q, GLU_SMOOTH);
     glPushMatrix();
     glTranslatef(p.x, p.y, p.z);
     glRotatef(-90.0, 1.0, 0.0, 0.0);

@@ -25,7 +25,7 @@
 #include "glyph_cache.h"
 #include "tao_utf8.h"
 #include "path3d.h"
-#include <QtOpenGL>
+#include "tao_gl.h"
 #include <QFontMetricsF>
 
 TAO_BEGIN
@@ -502,8 +502,8 @@ void GlyphCache::GenerateTexture()
 // ----------------------------------------------------------------------------
 {
     QImage texImg = QGLWidget::convertToGLFormat(image).mirrored(false, true);
-    glBindTexture(GL_TEXTURE_RECTANGLE, texture);
-    glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA,
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texture);
+    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA,
                  texImg.width(), texImg.height(), 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, texImg.bits());
 

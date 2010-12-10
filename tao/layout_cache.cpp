@@ -119,9 +119,8 @@ static QByteArray dumpContext(Context *c)
     using namespace XL;
 
     QByteArray ret;
-    context_set set;
     context_list list;
-    c->Contexts(Context::NORMAL_LOOKUP, set, list);
+    c->Contexts(Context::NORMAL_LOOKUP, list);
     for (context_list::iterator i = list.begin(); i != list.end(); i++)
         ret.append(dumpRewrites(*i));
     return ret;

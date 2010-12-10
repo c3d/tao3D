@@ -54,6 +54,7 @@
 #include "table.h"
 #include "attributes.h"
 #include "transforms.h"
+#include "lighting.h"
 #include "undo.h"
 #include "serializer.h"
 #include "binpack.h"
@@ -102,21 +103,23 @@ TAO_BEGIN
 //
 // ============================================================================
 
-static inline QGL::FormatOptions TaoGLFormatOptions()
+static Point3 defaultCameraPosition(0, 0, 6000);
+
+static inline QGLFormat TaoGLFormat()
 // ----------------------------------------------------------------------------
 //   Return the options we will use when creating the widget
 // ----------------------------------------------------------------------------
 //   This was made necessary by Bug #251
 {
-    QGL::FormatOptions result =
+    QGL::FormatOptions options =
         (QGL::DoubleBuffer      |
          QGL::DepthBuffer       |
          QGL::StencilBuffer     |
          QGL::SampleBuffers     |
-         QGL::AlphaChannel);
-    if (true || XL::MAIN->options.enable_stereoscopy)
-        result |= QGL::StereoBuffers;
-    return result;
+         QGL::AlphaChannel      |
+         QGL::StereoBuffers);
+    QGLFormat format(options);
+    return format;
 }
 
 
@@ -124,14 +127,15 @@ Widget::Widget(Window *parent, SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create the GL widget
 // ----------------------------------------------------------------------------
-    : QGLWidget(QGLFormat(TaoGLFormatOptions()), parent),
+    : QGLWidget(TaoGLFormat(), parent),
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
       runOnNextDraw(true),
       space(NULL), layout(NULL), path(NULL), table(NULL),
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
       pageTree(NULL),
-      currentShape(NULL), currentGridLayout(NULL), currentGroup(NULL),
+      currentShape(NULL), currentGridLayout(NULL),
+      currentShaderProgram(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
       drawAllPages(false), animated(true),
       stereoMode(stereoHARDWARE), stereoscopic(0), stereoPlanes(1),
@@ -154,9 +158,10 @@ Widget::Widget(Window *parent, SourceFile *sf)
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
       sourceRenderer(NULL),
       currentFileDialog(NULL),
-      zNear(2000.0), zFar(40000.0),
+      zNear(1000.0), zFar(56000.0),
       zoom(1.0), eyeDistance(10.0),
-      eye(0.0, 0.0, zNear), viewCenter(0.0, 0.0, -zNear),
+      cameraPosition(defaultCameraPosition),
+      cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false)
 {
     setObjectName(QString("Widget"));
@@ -165,6 +170,9 @@ Widget::Widget(Window *parent, SourceFile *sf)
 
     // Make this the current context for OpenGL
     makeCurrent();
+
+    // Initialize GLEW when we use it
+    glewInit();
 
     // Create the main page we draw on
     space = new SpaceLayout(this);
@@ -216,6 +224,9 @@ Widget::Widget(Window *parent, SourceFile *sf)
 
     // Initialize start time
     pageStartTime = startTime = frozenTime = CurrentTime();
+
+    // Compute initial zoom
+    scaling = scalingFactorFromCamera();
 }
 
 
@@ -348,6 +359,8 @@ void Widget::draw()
     glClearColor (1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    GLint list = 0;
+
     for (stereoscopic = 1; stereoscopic <= stereoPlanes; stereoscopic++)
     {
         // Select the buffer in which we draw
@@ -381,7 +394,26 @@ void Widget::draw()
         glClear(GL_DEPTH_BUFFER_BIT);
 
         id = idDepth = 0;
-        space->Draw(NULL);
+
+        if (stereoPlanes > 1)
+        {
+            if (stereoscopic == 1)
+            {
+                list = glGenLists(1);
+                glNewList(list, GL_COMPILE_AND_EXECUTE);
+                space->Draw(NULL);
+                glEndList();
+            }
+            else
+            {
+                glCallList(list);
+            }
+        }
+        else
+        {
+            space->Draw(NULL);
+        }
+
         IFTRACE(memory)
             std::cerr << "Draw, count = " << space->count
                       << " buffer " << (int) stereoscopic << '\n';
@@ -394,11 +426,15 @@ void Widget::draw()
         // Render all activities, e.g. the selection rectangle
         SpaceLayout selectionSpace(this);
         XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
+        setupGL();
         glDisable(GL_DEPTH_TEST);
         for (Activity *a = activities; a; a = a->Display()) ;
         selectionSpace.Draw(NULL);
         glEnable(GL_DEPTH_TEST);
     }
+
+    if (stereoPlanes > 1)
+        glDeleteLists(list, 1);
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -706,8 +742,13 @@ void Widget::print(QPrinter *prt)
 
         // Center display on screen
         XL::LocalSave<double> savePrintTime(pagePrintTime, 0);
-        XL::LocalSave<Point3> saveCenter(viewCenter, Point3(0,0,-zNear));
-        XL::LocalSave<Point3> saveEye(eye, Point3(0,0,zNear));
+        XL::LocalSave<Point3> saveCenter(cameraTarget, Point3(0,0,0));
+        XL::LocalSave<Point3> saveEye(cameraPosition, defaultCameraPosition);
+        XL::LocalSave<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
+        XL::LocalSave<char> saveStereo1(stereoPlanes, 0);
+        XL::LocalSave<char> saveStereo2(stereoscopic, 1);
+        XL::LocalSave<double> saveZoom(zoom, 1);
+        XL::LocalSave<double> saveScaling(scaling, scalingFactorFromCamera());
 
         // Evaluate twice time so that we correctly setup page info
         for (uint i = 0; i < 2; i++)
@@ -1247,13 +1288,11 @@ void Widget::resetView()
 //   Restore default view parameters (zoom, position etc.)
 // ----------------------------------------------------------------------------
 {
+    cameraPosition = defaultCameraPosition;
+    cameraTarget = Point3(0, 0, 0);
+    cameraUpVector = Vector3(0, 1, 0);
     zoom = 1.0;
-    eye.x = 0.0;
-    eye.y = 0.0;
-    eye.z = zNear;
-    viewCenter.x = 0.0;
-    viewCenter.y = 0.0;
-    viewCenter.z = -zNear;
+    scaling = scalingFactorFromCamera();
     setup(width(), height());
 }
 
@@ -1353,6 +1392,17 @@ void Widget::paintGL()
 }
 
 
+double Widget::scalingFactorFromCamera()
+// ----------------------------------------------------------------------------
+//   Return the factor to use for zoom adjustments
+// ----------------------------------------------------------------------------
+{
+    Vector3 distance = cameraTarget - cameraPosition;
+    scale csf = distance.Length() / zNear;
+    return csf;
+}
+
+
 void Widget::setup(double w, double h, const Box *picking)
 // ----------------------------------------------------------------------------
 //   Setup an initial environment for drawing
@@ -1376,23 +1426,19 @@ void Widget::setup(double w, double h, const Box *picking)
         Point center = b.lower + size / 2;
         gluPickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
     }
+    double zf = 0.5 * zoom / scaling;
+    glFrustum (-w*zf, w*zf, -h*zf, h*zf, zNear, zFar);
 
-    // Setup the frustum for the projection
-    double zNear = Widget::zNear, zFar = Widget::zFar;
-    Point3 up(0.0, 1.0, 0.0);
-    double eyeX = eye.x;
-    eyeX += eyeDistance * (stereoscopic - 0.5 * stereoPlanes);
-
-    glFrustum ((-w/2)*zoom, (w/2)*zoom, (-h/2)*zoom, (h/2)*zoom, zNear, zFar);
-    gluLookAt(eyeX, eye.y, eye.z,
-              viewCenter.x, viewCenter.y ,viewCenter.z,
-              up.x, up.y, up.z);
-    glTranslatef(0.0, 0.0, viewCenter.z);
-    glScalef(2.0, 2.0, 2.0);
-
-    // Setup the model view matrix so that 1.0 unit = 1px
+    // Setup the model-view matrix
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+
+    // Position the camera
+    double eyeX = cameraPosition.x
+                + eyeDistance * (stereoscopic - 0.5 * stereoPlanes);
+    gluLookAt(eyeX, cameraPosition.y, cameraPosition.z,
+              cameraTarget.x, cameraTarget.y ,cameraTarget.z,
+              cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
 
     // Reset default GL parameters
     setupGL();
@@ -1421,6 +1467,8 @@ void Widget::setupGL()
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);
     glShadeModel(GL_SMOOTH);
+    glDisable(GL_LIGHTING);
+    glUseProgram(0);
 
     // Turn on sphere map automatic texture coordinate generation
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
@@ -1428,6 +1476,7 @@ void Widget::setupGL()
 
     // Really nice perspective calculations
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
 }
 
 
@@ -2349,10 +2398,10 @@ void Widget::doPanning(QMouseEvent *event)
     dx = x - panX;
     dy = y - panY;
 
-    eye.x -= 2*dx*zoom;
-    eye.y += 2*dy*zoom;
-    viewCenter.x -= 2*dx*zoom;
-    viewCenter.y += 2*dy*zoom;
+    cameraPosition.x -= dx*zoom;
+    cameraPosition.y += dy*zoom;
+    cameraTarget.x -= dx*zoom;
+    cameraTarget.y += dy*zoom;
 
     panX = x;
     panY = y;
@@ -3544,7 +3593,7 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
         pageFound = pageId;
         pageLinks.clear();
         if (pageId > 1)
-            pageLinks["Up"] = lastPageName;
+            pageLinks["Up"] = pageLinks["PageUp"] = lastPageName;
         pageTree = body;
         context->Evaluate(body);
     }
@@ -3553,7 +3602,7 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
         // We are executing the page following the current one:
         // Check if PageDown is set, otherwise set current page as default
         if (pageLinks.count("Down") == 0)
-            pageLinks["Down"] = name;
+            pageLinks["Down"] = pageLinks["PageDown"] = name;
     }
 
     lastPageName = name;
@@ -4294,10 +4343,10 @@ XL::Name_p Widget::panView(Tree_p self, coord dx, coord dy)
 //   Pan the current view by the current amount
 // ----------------------------------------------------------------------------
 {
-    eye.x += dx;
-    eye.y += dy;
-    viewCenter.x += dx;
-    viewCenter.y += dy;
+    cameraPosition.x += dx;
+    cameraPosition.y += dy;
+    cameraTarget.x += dx;
+    cameraTarget.y += dy;
     setup(width(), height());
     return XL::xl_true;
 }
@@ -4326,44 +4375,112 @@ Name_p Widget::setZoom(Tree_p self, scale z)
 }
 
 
-Infix_p Widget::currentEyePosition(Tree_p self)
+Real_p Widget::currentScaling(Tree_p self)
 // ----------------------------------------------------------------------------
-//   Return the current eye position
+//   Return the current scaling level
 // ----------------------------------------------------------------------------
 {
-    return new Infix(",", new Real(eye.x), new Real(eye.y));
+    return new Real(scaling);
 }
 
 
-Name_p Widget::setEyePosition(Tree_p self, coord x, coord y, coord z)
+Name_p Widget::setScaling(Tree_p self, scale s)
 // ----------------------------------------------------------------------------
-//   Set the eye position and update view
+//   Decrease scaling level
 // ----------------------------------------------------------------------------
 {
-    eye.x = x;
-    eye.y = y;
-    eye.z = z;
+    if (s > 0)
+    {
+        scaling = s;
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
+
+Infix_p Widget::currentCameraPosition(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the current camera position
+// ----------------------------------------------------------------------------
+{
+    return new Infix(",",
+                     new Infix(",",
+                               new Real(cameraPosition.x),
+                               new Real(cameraPosition.y)),
+                     new Real(cameraPosition.z));
+}
+
+
+Name_p Widget::setCameraPosition(Tree_p self, coord x, coord y, coord z)
+// ----------------------------------------------------------------------------
+//   Set the cameraPosition position and update view
+// ----------------------------------------------------------------------------
+{
+    if (cameraPosition.x!=x || cameraPosition.y!=y || cameraPosition.z!=z)
+    {
+        cameraPosition.x = x;
+        cameraPosition.y = y;
+        cameraPosition.z = z;
+        refresh(0);
+    }
     return XL::xl_true;
 }
 
 
-Infix_p Widget::currentCenterPosition(Tree_p self)
+Infix_p Widget::currentCameraTarget(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the current center position
 // ----------------------------------------------------------------------------
 {
-    return new Infix(",", new Real(viewCenter.x), new Real(viewCenter.y));
+    return new Infix(",",
+                     new Infix(",",
+                               new Real(cameraTarget.x),
+                               new Real(cameraTarget.y)),
+                     new Real(cameraTarget.z));
 }
 
 
-Name_p Widget::setCenterPosition(Tree_p self, coord x, coord y, coord z)
+Name_p Widget::setCameraTarget(Tree_p self, coord x, coord y, coord z)
 // ----------------------------------------------------------------------------
 //   Set the center position and update view
 // ----------------------------------------------------------------------------
 {
-    viewCenter.x = x;
-    viewCenter.y = y;
-    viewCenter.z = z;
+    if (x != cameraTarget.x || y != cameraTarget.y || z != cameraTarget.z)
+    {
+        cameraTarget.x = x;
+        cameraTarget.y = y;
+        cameraTarget.z = z;
+        refresh(0);
+    }
+    return XL::xl_true;
+}
+
+
+Infix_p Widget::currentCameraUpVector(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the current up vector
+// ----------------------------------------------------------------------------
+{
+    return new Infix(",",
+                     new Infix(",",
+                               new Real(cameraUpVector.x),
+                               new Real(cameraUpVector.y)),
+                     new Real(cameraUpVector.z));
+}
+
+
+Name_p Widget::setCameraUpVector(Tree_p self, coord x, coord y, coord z)
+// ----------------------------------------------------------------------------
+//   Set the up vector
+// ----------------------------------------------------------------------------
+{
+    if (cameraUpVector.x!=x || cameraUpVector.y!=y || cameraUpVector.z!=z)
+    {
+        cameraUpVector.x = x;
+        cameraUpVector.y = y;
+        cameraUpVector.z = z;
+        refresh(0);
+    }
     return XL::xl_true;
 }
 
@@ -4886,6 +5003,213 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
     Tree_p result = context->Evaluate(code);
     layout->Add(new TextureTransform(false));
     return result;
+}
+
+
+Tree_p Widget::lightId(Tree_p self, GLuint id, bool enable)
+// ----------------------------------------------------------------------------
+//   Select and enable or disable a light
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new LightId(id, enable));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::light(Tree_p self, GLuint function, GLfloat value)
+// ----------------------------------------------------------------------------
+//   Set a light parameter with a single float value
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Light(function, value));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::light(Tree_p self, GLuint function,
+                     GLfloat a, GLfloat b, GLfloat c)
+// ----------------------------------------------------------------------------
+//   Set a light parameter with four float values (direction)
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Light(function, a, b, c));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::light(Tree_p self, GLuint function,
+                     GLfloat a, GLfloat b, GLfloat c, GLfloat d)
+// ----------------------------------------------------------------------------
+//   Set a light parameter with four float values (position, color)
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Light(function, a, b, c, d));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::material(Tree_p self,
+                        GLenum face, GLenum function,
+                        GLfloat value)
+// ----------------------------------------------------------------------------
+//   Set a material parameter with a single float value
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Material(face, function, value));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::material(Tree_p self,
+                        GLenum face, GLenum function,
+                        GLfloat a, GLfloat b, GLfloat c, GLfloat d)
+// ----------------------------------------------------------------------------
+//   Set a light parameter with four float values (position, color)
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Material(face, function, a, b, c, d));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::shaderProgram(Context *context, Tree_p self, Tree_p code)
+// ----------------------------------------------------------------------------
+//    Creates a new shader program in which we will evaluate shaders
+// ----------------------------------------------------------------------------
+//    Note that we compile and evaluate the shader only once
+{
+    if (currentShaderProgram)
+    {
+        Ooops("Nested shader program $1", self);
+        return XL::xl_false;
+    }
+
+    QGLShaderProgram *program = self->Get<ShaderProgramInfo>();
+    Tree_p result = XL::xl_true;
+    if (!program)
+    {
+        XL::LocalSave<QGLShaderProgram *> prog(currentShaderProgram,
+                                               new QGLShaderProgram());
+        result = context->Evaluate(code);
+        program = currentShaderProgram;
+
+        QString message = currentShaderProgram->log();
+        if (message.length())
+        {
+            Window *window = (Window *) parentWidget();
+            window->addError(message);
+        }
+    }
+    layout->Add(new ShaderProgram(program));
+    return result;
+}
+
+
+static inline QGLShader::ShaderType ShaderType(Widget::ShaderKind kind)
+// ----------------------------------------------------------------------------
+//   Convert our shader kind into Qt shader type.
+// ----------------------------------------------------------------------------
+{
+    switch (kind)
+    {
+    case Widget::VERTEX:        return QGLShader::Vertex;
+    case Widget::FRAGMENT:      return QGLShader::Fragment;
+    }
+    return QGLShader::Vertex;
+}
+
+
+Tree_p Widget::shaderFromSource(Tree_p self, ShaderKind kind, text source)
+// ----------------------------------------------------------------------------
+//   Load a shader from shader source
+// ----------------------------------------------------------------------------
+{
+    if (!currentShaderProgram)
+    {
+        Ooops("No shader program while executing $1", self);
+        return XL::xl_false;
+    }
+
+    bool ok = currentShaderProgram->addShaderFromSourceCode(ShaderType(kind),
+                                                            +source);
+    return ok ? XL::xl_true : XL::xl_false;
+}
+
+
+Tree_p Widget::shaderFromFile(Tree_p self, ShaderKind kind, text file)
+// ----------------------------------------------------------------------------
+//   Load a shader from shader source
+// ----------------------------------------------------------------------------
+{
+    if (!currentShaderProgram)
+    {
+        Ooops("No shader program while executing $1", self);
+        return XL::xl_false;
+    }
+
+    bool ok = currentShaderProgram->addShaderFromSourceFile(ShaderType(kind),
+                                                            +file);
+    return ok ? XL::xl_true : XL::xl_false;
+}
+
+
+Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
+// ----------------------------------------------------------------------------
+//   Evaluate the code argument as an assignment for the current shader
+// ----------------------------------------------------------------------------
+{
+    if (Infix *infix = code->AsInfix())
+    {
+        if (infix->name == ":=")
+        {
+            Name *name = infix->left->AsName();
+            TreeList args;
+            Tree *arg = infix->right;
+            if (Block *block = arg->AsBlock())
+                arg = block->child;
+            Infix *iarg = arg->AsInfix();
+            if (iarg &&
+                (iarg->name == "," || iarg->name == "\n" || iarg->name == ";"))
+                XL::xl_infix_to_list(iarg, args);
+            else
+                args.push_back(arg);
+
+            ShaderValue::Values values;
+            uint i, max = args.size();
+            for (i = 0; i < max; i++)
+            {
+                arg = args[i];
+                arg = context->Evaluate(arg);
+                if (Integer *it = arg->AsInteger())
+                    arg = new Real(it->value);
+                if (Real *rt = arg->AsReal())
+                    values.push_back(rt->value);
+                else
+                    Ooops("Shader value $1 is not a number", arg);
+            }
+
+            layout->Add(new ShaderValue(name, values));
+            return XL::xl_true;
+        }
+    }
+    Ooops("Malformed shader_set statement $1", code);
+    return XL::xl_false;
+}
+
+
+Text_p Widget::shaderLog(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the log for the shader
+// ----------------------------------------------------------------------------
+{
+    if (!currentShaderProgram)
+    {
+        Ooops("No shader program while executing $1", self);
+        return new Text("");
+    }
+
+    text message = +currentShaderProgram->log();
+    return new Text(message);
 }
 
 
@@ -5706,7 +6030,7 @@ Tree_p Widget::textValue(Context *context, Tree_p self, Tree_p value)
     XL::kind k = value->Kind();
     if (k > XL::KIND_LEAF_LAST)
     {
-        value = xl_evaluate(context, value);
+        value = context->Evaluate(value);
         k = value->Kind();
     }
 
@@ -6337,10 +6661,13 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
     {
         GLAllStateKeeper saveGL;
         XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
-        XL::LocalSave<Point3> saveCenter(viewCenter, Point3(0,0,-zNear));
-        XL::LocalSave<Point3> saveEye(eye, Point3(0,0,zNear));
+        XL::LocalSave<Point3> saveCenter(cameraTarget, Point3(0,0,0));
+        XL::LocalSave<Point3> saveEye(cameraPosition, defaultCameraPosition);
+        XL::LocalSave<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
         XL::LocalSave<char> saveStereo1(stereoPlanes, 0);
-        XL::LocalSave<char> saveStere2(stereoscopic, 1);
+        XL::LocalSave<char> saveStereo2(stereoscopic, 1);
+        XL::LocalSave<double> saveZoom(zoom, 1);
+        XL::LocalSave<double> saveScaling(scaling, scalingFactorFromCamera());
 
         // Clear the background and setup initial state
         frame->resize(w,h);

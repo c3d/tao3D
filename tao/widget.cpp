@@ -4664,8 +4664,14 @@ static inline QGLShader::ShaderType ShaderType(Widget::ShaderKind kind)
     {
     case Widget::VERTEX:        return QGLShader::Vertex;
     case Widget::FRAGMENT:      return QGLShader::Fragment;
+#if QT_VERSION >= 0x040700
+    case Widget::GEOMETRY:      return QGLShader::Geometry;
+#else
+    case Widget::GEOMETRY:      break;
+#endif // Qt has geometry
     }
-    return QGLShader::Vertex;
+    XL::Ooops("Shader type not implemented");
+    return QGLShader::ShaderType(0);
 }
 
 

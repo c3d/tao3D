@@ -89,7 +89,7 @@ public:
                       stereoHORIZONTAL, stereoVERTICAL,
                       stereoDIAGONAL, stereoANTI_DIAGONAL,
                       stereoALIOSCOPY };
-    enum ShaderKind { VERTEX, FRAGMENT };
+    enum ShaderKind { VERTEX, FRAGMENT, GEOMETRY };
 
 public:
     Widget(Window *parent, XL::SourceFile *sf = NULL);

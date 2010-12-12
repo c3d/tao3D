@@ -67,7 +67,8 @@ void Object3D::Load(kstring name)
     uint          line       = 0;
     text          token;
     coord         x, y, z;
-    char          buffer[256];
+#  define         BUFSIZE      1024
+    char *        buffer     = (char *)malloc(BUFSIZE * sizeof(char));
     char *        ptr;
     char *        end;
     bool          texture, normal;
@@ -76,21 +77,40 @@ void Object3D::Load(kstring name)
     text          material;
     int           c;
     char *        oldlocale = setlocale(LC_NUMERIC, "C");
+    char          prev_eol  = '\0';
 
     while (input.good())
     {
         // Scan a new line of text
         ptr = buffer;
-        end = buffer + sizeof(buffer) - 1;
+        end = buffer + BUFSIZE - 1;
+#       undef BUFSIZE
         line++;
 
+        bool too_long = false;
         do
         {
             c = input.get();
-            if (c && ptr < end)
-                *ptr++ = c;
+            if (c)
+            {
+                if (ptr < end)
+                    *ptr++ = c;
+                else
+                    too_long = true;
+            }
         } while (input.good() && c != '\n' && c != '\r');
         *ptr++ = 0;
+        if (too_long)
+            std::cerr << name << ":" << line << ":"
+                      << "Line too long\n";
+
+        // Do not count CR+LF as 2 lines
+        ptr = buffer;
+        if ((*ptr == '\n' && prev_eol == '\r'))
+              line--;
+        prev_eol = '\0';
+        if (c == '\n' || c == '\r')
+            prev_eol = c;
 
         // Skip spaces and blank lines
         ptr = buffer;
@@ -268,6 +288,7 @@ void Object3D::Load(kstring name)
     glEndList();
 
     setlocale(LC_NUMERIC, oldlocale);
+    free(buffer);
 }
 
 

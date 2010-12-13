@@ -5464,11 +5464,20 @@ Tree_p Widget::object(Tree_p self,
     {
         Box3 &bounds = obj->bounds;
         if (w->value <= 0)
+        {
             w->value = bounds.Width();
+            x->value += bounds.Center().x;
+        }
         if (h->value <= 0)
+        {
             h->value = bounds.Height();
+            y->value += bounds.Center().y;
+        }
         if (d->value <= 0)
+        {
             d->value = bounds.Depth();
+            z->value += bounds.Center().z;
+        }
         markChanged ("Update object dimensions");
     }
 

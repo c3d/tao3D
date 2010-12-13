@@ -2261,7 +2261,7 @@ PREFIX(Exit, integer, "exit",, exit(0);,
        SYNOPSIS("Exit from Tao")
        DESCRIPTION("Exit from Tao"))
 
-PREFIX(GenDoc,  tree,  "generate_doc",
+PREFIX(GenDoc,  text,  "generate_doc",
        PARM(t, tree, "The tree from wich extracting the documentation"),
        RTAO(generateDoc(self, t)),
        GROUP(documentation)

@@ -1756,6 +1756,9 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
     repository_ptr repo = RepositoryFactory::repository(path);
     if (!repo)
     {
+        if (RepositoryFactory::no_repo)
+            return true;
+
         bool docreate = !confirm;
         if (confirm)
         {

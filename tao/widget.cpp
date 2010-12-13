@@ -1,4 +1,4 @@
-// ****************************************************************************
+g// ****************************************************************************
 //  widget.cpp							   Tao project
 // ****************************************************************************
 //
@@ -1352,15 +1352,15 @@ void Widget::setupStereoStencil(double w, double h)
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
-	// Prepare to draw in stencil buffer
-	glDrawBuffer(GL_BACK);
+        // Prepare to draw in stencil buffer
+        glDrawBuffer(GL_BACK);
         glEnable(GL_STENCIL_TEST);
-	glClearStencil(0);
-	glClear(GL_STENCIL_BUFFER_BIT);
-	glDisable(GL_DEPTH_TEST);
+        glClearStencil(0);
+        glClear(GL_STENCIL_BUFFER_BIT);
+        glDisable(GL_DEPTH_TEST);
 
         // Line properties
-	glColor4f(1.0, 1.0, 1.0, 1.0);
+        glColor4f(1.0, 1.0, 1.0, 1.0);
         glLineWidth(1);
         glDisable(GL_LINE_SMOOTH);
         glDisable(GL_LINE_STIPPLE);
@@ -5582,7 +5582,7 @@ Tree_p Widget::textValue(Tree_p self, Tree_p value)
         if (path)
             TextValue(value, this).Draw(*path, layout);
         else
-            layout->Add(new TextValue(value, this));        
+            layout->Add(new TextValue(value, this));
     }
     else
     {
@@ -8319,11 +8319,12 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
             file.write(com.c_str());
         file.close();
     }
-    std::cerr
-        << "\n"
-        << "=========================================================\n"
-        << com << std::endl
-        << "=========================================================\n";
+
+//    std::cerr
+//        << "\n"
+//        << "=========================================================\n"
+//        << com << std::endl
+//        << "=========================================================\n";
 
     return new Text(com, "", "");
 }

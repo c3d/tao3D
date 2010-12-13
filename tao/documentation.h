@@ -27,7 +27,11 @@
 #include "tao_tree.h"
 
 
-struct ExtractDoc : public XL::Action {
+struct ExtractDoc : public XL::Action
+// ----------------------------------------------------------------------------
+//   Extract documentation from the given tree
+// ----------------------------------------------------------------------------
+{
     ExtractDoc() {}
     text extract(XL::CommentsList commentList);
 

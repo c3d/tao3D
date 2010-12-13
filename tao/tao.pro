@@ -290,3 +290,11 @@ macx {
   target.path = $$INSTROOT
   INSTALLS   += target
 }
+
+doc.depends = documentation
+
+documentation.target = $$APPINST/all_documentation.xl
+documentation.commands = (cd $$APPINST; echo \"generate_all_doc \\\"./all_documentation.xl\\\"; exit \" > genDoc.ddd; DYLD_LIBRARY_PATH=../Frameworks ./Tao -norepo -nosplash genDoc.ddd)
+documentation.depends = $$APPINST/Tao
+
+QMAKE_EXTRA_TARGETS += doc documentation

@@ -87,6 +87,9 @@ Application::Application(int & argc, char ** argv)
     if (arguments().contains("-nosplash") || arguments().contains("-h"))
         showSplash = false;
 
+    if (arguments().contains("-norepo"))
+        RepositoryFactory::no_repo = true;
+
     // Show splash screen
     if (showSplash)
     {

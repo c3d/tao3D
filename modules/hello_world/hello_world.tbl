@@ -26,4 +26,7 @@
 
 #include "tree.h"
 
-PREFIX(hello_world, tree, "hello_world", , return new XL::Text("Hello, World!"), "");
+PREFIX(hello_world, tree, "hello_world", , return new XL::Text("Hello, World!"),
+       GROUP(tutorial)
+       SYNOPSIS("Returns the \"Hello, World!\" text.")
+       DESCRIPTION("This is a very simple example of a module entry"))

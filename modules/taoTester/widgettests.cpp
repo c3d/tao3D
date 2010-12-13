@@ -71,7 +71,7 @@ text WidgetTests::toString()
     QString testDoc = QString("%1_test -> test_definition \"%1\", %2, "
                               " <<%3>>, %5, do \n%4")
             .arg(name).arg(featureId)
-            .arg(description).arg(taoCmd.isEmpty() ? "    nil" : taoCmd)
+            .arg(description).arg(taoCmd.isEmpty() ? "    empty" : taoCmd)
             .arg(threshold);
     return +testDoc;
 
@@ -385,7 +385,7 @@ void WidgetTests::save()
         after.save(afterName, "PNG");
     }
     // Store test commands
-    // If no action a nil list is written
+    // If no action an empty list is written
     QString testName = QString(folder).append(name).append("_test.ddd");
     QFile testFile(testName);
     testFile.open(QIODevice::WriteOnly | QIODevice::Text);

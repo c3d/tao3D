@@ -63,9 +63,8 @@ void Object3D::Load(kstring name)
 // ----------------------------------------------------------------------------
 {
     std::ifstream input(name);
-    uint          materialId = 0;
+    uint          materialId = (uint)-1;
     uint          line       = 0;
-    text          token;
     coord         x, y, z;
 #  define         BUFSIZE      1024
     char *        buffer     = (char *)malloc(BUFSIZE * sizeof(char));
@@ -74,10 +73,12 @@ void Object3D::Load(kstring name)
     bool          texture, normal;
     Face *        face;
     long          vIdx, tIdx, nIdx;
-    text          material;
     int           c;
     char *        oldlocale = setlocale(LC_NUMERIC, "C");
     char          prev_eol  = '\0';
+
+    IFTRACE(objloader)
+        std::cerr << "Loading " << name << "\n";
 
     while (input.good())
     {
@@ -226,12 +227,44 @@ void Object3D::Load(kstring name)
             if (*ptr++ == 's' && *ptr++ == 'e' &&
                 *ptr++ == 'm' && *ptr++ == 't' && *ptr++ == 'l')
             {
-                
+                text mtl(++ptr);
+                size_t eol = mtl.find('\r');
+                if (eol == mtl.npos)
+                    eol = mtl.find('\n');
+                if (eol != mtl.npos)
+                    mtl.resize(eol);
+                materialId = MaterialId(mtl);
             }
             else
             {
                 std::cerr << name << ":" << line << ":"
                           << "Invalid usemtl: " << ptr << '\n';
+            }
+            break;
+
+        case 'm':
+            // Material library
+            if (*ptr++ == 't' && *ptr++ == 'l' &&
+                *ptr++ == 'l' && *ptr++ == 'i' && *ptr++ == 'b')
+            {
+                text mtl(++ptr);
+                size_t eol = mtl.find('\r');
+                if (eol == mtl.npos)
+                    eol = mtl.find('\n');
+                if (eol != mtl.npos)
+                    mtl.resize(eol);
+                if (mtl[0] != '/')
+                {
+                    text dir(name);
+                    size_t pos = dir.rfind("/");
+                    if (pos != dir.npos)
+                    {
+                        dir.resize(pos+1);
+                        dir.append(mtl);
+                        mtl = dir;
+                    }
+                }
+                LoadMtl(mtl);
             }
             break;
 
@@ -245,6 +278,7 @@ void Object3D::Load(kstring name)
     uint nv = vertices.size();
     uint nn = normals.size();
     uint nt = texCoords.size();
+    uint m_id, prev_id = (uint)-1;
 
     listID = glGenLists(1);
     glNewList(listID, GL_COMPILE);
@@ -256,6 +290,7 @@ void Object3D::Load(kstring name)
         v = face.vertex.begin();
         t = face.texCoord.begin();
         n = face.normal.begin();
+        m_id = face.materialId;
 
         GLuint mode = GL_POLYGON;
         switch (face.vertex.size())
@@ -267,6 +302,24 @@ void Object3D::Load(kstring name)
         }
 
         glBegin(mode);
+
+        if (m_id != (uint)-1 && m_id != prev_id)
+        {
+            prev_id = m_id;
+            Material & m = materials[m_id];
+
+            GLfloat amb[4] = { m.ambient.x, m.ambient.y, m.ambient.z, m.alpha };
+            glMaterialfv(GL_FRONT, GL_AMBIENT, &amb[0]);
+
+            GLfloat diff[4] = { m.diffuse.x, m.diffuse.y, m.diffuse.z, m.alpha };
+            glMaterialfv(GL_FRONT, GL_DIFFUSE, &diff[0]);
+
+            GLfloat spec[4] = { m.specular.x, m.specular.y, m.specular.z, m.alpha };
+            glMaterialfv(GL_FRONT, GL_SPECULAR, &spec[0]);
+
+            if (m.shininess != 0.0)
+                glMaterialf(GL_FRONT, GL_SHININESS, m.shininess/100.0);
+        }
 
         while(v != face.vertex.end())
         {
@@ -289,6 +342,169 @@ void Object3D::Load(kstring name)
 
     setlocale(LC_NUMERIC, oldlocale);
     free(buffer);
+
+    IFTRACE(objloader)
+        std::cerr << name << ": " << vertices.size() << " vertices "
+                  << faces.size() << " faces\n";
+}
+
+
+void Object3D::LoadMtl(text name)
+// ----------------------------------------------------------------------------
+//    Load a material library file (.mtl) from disk
+// ----------------------------------------------------------------------------
+{
+    std::ifstream input(name.c_str());
+    uint          line       = 0;
+    coord         x, y, z, d;
+#  define         BUFSIZE      1024
+    char *        buffer     = (char *)malloc(BUFSIZE * sizeof(char));
+    char *        ptr;
+    char *        end;
+    int           c;
+    char *        oldlocale = setlocale(LC_NUMERIC, "C");
+    char          prev_eol  = '\0';
+    Material      material;
+
+    while (input.good())
+    {
+        // Scan a new line of text
+        ptr = buffer;
+        end = buffer + BUFSIZE - 1;
+#       undef BUFSIZE
+        line++;
+
+        bool too_long = false;
+        do
+        {
+            c = input.get();
+            if (c)
+            {
+                if (ptr < end)
+                    *ptr++ = c;
+                else
+                    too_long = true;
+            }
+        } while (input.good() && c != '\n' && c != '\r');
+        *ptr++ = 0;
+        if (too_long)
+            std::cerr << name << ":" << line << ":"
+                      << "Line too long\n";
+
+        // Do not count CR+LF as 2 lines
+        ptr = buffer;
+        if ((*ptr == '\n' && prev_eol == '\r'))
+              line--;
+        prev_eol = '\0';
+        if (c == '\n' || c == '\r')
+            prev_eol = c;
+
+        // Skip spaces and blank lines
+        ptr = buffer;
+        while(isspace(*ptr))
+            ptr++;
+        if (!*ptr)
+            continue;
+
+        // Analyze input
+        char key = *ptr++;
+        switch(key)
+        {
+        case '#':
+            // Comment: Simply skip until end of line
+            break;
+
+        case 'n':
+            // New material
+            if (*ptr++ == 'e' && *ptr++ == 'w' &&
+                *ptr++ == 'm' && *ptr++ == 't' && *ptr++ == 'l')
+            {
+                if (!material.name.empty())
+                    materials.push_back(material);
+                while(isspace(*ptr))
+                    ptr++;
+                if (!*ptr)
+                    break;
+                text name(ptr);
+                size_t eol = name.find('\r');
+                if (eol == name.npos)
+                    eol = name.find('\n');
+                if (eol != name.npos)
+                    name.resize(eol);
+                material = Material(name.c_str());
+            }
+            break;
+
+        case 'K':
+            // Ambiante/diffuse/specular reflectance
+            x = y = z = 0;
+            switch(*ptr)
+            {
+            case 'a':
+                // Ambient coordinate
+                if (sscanf(++ptr, "%lf %lf %lf", &x, &y, &z) < 2)
+                    std::cerr << name << ":" << line << ":"
+                              << "Invalid ambient coordinate: " << ptr << '\n';
+                material.ambient = Reflectance(x, y, z);
+                break;
+            case 'd':
+                // Diffuse coordinate
+                if (sscanf(++ptr, "%lf %lf %lf", &x, &y, &z) < 2)
+                    std::cerr << name << ":" << line << ":"
+                              << "Invalid ambient coordinate: " << ptr << '\n';
+                material.diffuse = Reflectance(x, y, z);
+                break;
+            case 's':
+                // Specular coordinate
+                if (sscanf(++ptr, "%lf %lf %lf", &x, &y, &z) < 2)
+                    std::cerr << name << ":" << line << ":"
+                              << "Invalid ambient coordinate: " << ptr << '\n';
+                material.specular = Reflectance(x, y, z);
+                break;
+            } // Switch secondary 'K' key
+            break;
+
+        case 'd':
+            // Dissolve factor
+            d = 1;
+            if (sscanf(++ptr, "%lf", &d) < 1)
+                std::cerr << name << ":" << line << ":"
+                          << "Invalid dissolve factor: " << ptr << '\n';
+            material.alpha = d;
+            break;
+
+        case 'N':
+            // Specular exponent
+            if (*ptr++ == 's')
+            {
+                coord Ns = 0;
+                if (sscanf(++ptr, "%lf", &Ns) < 1)
+                    std::cerr << name << ":" << line << ":"
+                            << "Invalid specular exponent: " << ptr << '\n';
+                material.shininess = Ns;
+            }
+            break;
+
+        } // Switch key
+    } // While loop
+
+    if (!material.name.empty())
+        materials.push_back(material);
+
+    setlocale(LC_NUMERIC, oldlocale);
+    free(buffer);
+}
+
+
+uint Object3D::MaterialId(text name)
+// ----------------------------------------------------------------------------
+//   Find the index of a material
+// ----------------------------------------------------------------------------
+{
+    for (size_t i = 0; i < materials.size(); i++)
+        if (materials[i].name == name)
+            return i;
+    return (uint)-1;
 }
 
 

@@ -273,8 +273,8 @@ void Object3D::Load(kstring name)
 
 
     // Now create a display list with the object data
-    Faces::iterator             f;
-    std::vector<uint>::iterator v, t, n;
+    Faces::iterator f;
+    Faces::iterator fe = faces.end();
     uint nv = vertices.size();
     uint nn = normals.size();
     uint nt = texCoords.size();
@@ -283,9 +283,17 @@ void Object3D::Load(kstring name)
     listID = glGenLists(1);
     glNewList(listID, GL_COMPILE);
 
-    for (f = faces.begin(); f != faces.end(); f++)
+    for (f = faces.begin(); f != fe; f++)
     {
         Face &face = *f;
+
+        std::vector<uint>::iterator v = face.vertex.begin();
+        std::vector<uint>::iterator t = face.texCoord.begin();
+        std::vector<uint>::iterator n = face.normal.begin();
+
+        std::vector<uint>::iterator ve = face.vertex.end();
+        std::vector<uint>::iterator te = face.texCoord.end();
+        std::vector<uint>::iterator ne = face.normal.end();
         
         v = face.vertex.begin();
         t = face.texCoord.begin();
@@ -311,23 +319,23 @@ void Object3D::Load(kstring name)
             GLfloat amb[4] = { m.ambient.x, m.ambient.y, m.ambient.z, m.alpha };
             glMaterialfv(GL_FRONT, GL_AMBIENT, &amb[0]);
 
-            GLfloat diff[4] = { m.diffuse.x, m.diffuse.y, m.diffuse.z, m.alpha };
+            GLfloat diff[4] = { m.diffuse.x,m.diffuse.y,m.diffuse.z,m.alpha };
             glMaterialfv(GL_FRONT, GL_DIFFUSE, &diff[0]);
 
-            GLfloat spec[4] = { m.specular.x, m.specular.y, m.specular.z, m.alpha };
+            GLfloat spec[4] = { m.specular.x,m.specular.y,m.specular.z,m.alpha};
             glMaterialfv(GL_FRONT, GL_SPECULAR, &spec[0]);
 
             if (m.shininess != 0.0)
                 glMaterialf(GL_FRONT, GL_SHININESS, m.shininess/100.0);
         }
 
-        while(v != face.vertex.end())
+        while(v != ve)
         {
-            if (t != face.texCoord.end())
+            if (t != te)
                 if (uint it = *t++)
                     if (it <= nt)
                         glTexCoord3dv(&texCoords[it-1].x);
-            if (n != face.normal.end())
+            if (n != ne)
                 if (uint in = *n++)
                     if (in <= nn)
                         glNormal3dv(&normals[in-1].x);

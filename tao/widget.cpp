@@ -471,6 +471,15 @@ void Widget::draw()
 }
 
 
+bool Widget::refreshNow()
+// ----------------------------------------------------------------------------
+//    Redraw the widget by running program entirely
+// ----------------------------------------------------------------------------
+{
+    return refreshNow(NULL);
+}
+
+
 bool Widget::refreshNow(QEvent *event)
 // ----------------------------------------------------------------------------
 //    Redraw the widget due to event or run program entirely

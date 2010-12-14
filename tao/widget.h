@@ -105,7 +105,8 @@ public slots:
     void        appFocusChanged(QWidget *prev, QWidget *next);
     void        userMenu(QAction *action);
     bool        refresh(double delay = 0.0);
-    bool        refreshNow(QEvent *event = NULL);
+    bool        refreshNow();
+    bool        refreshNow(QEvent *event);
     void        commitSuccess(QString id, QString msg);
     void        colorChosen(const QColor &);
     void        colorChanged(const QColor &);

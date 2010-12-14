@@ -39,15 +39,15 @@ wheel_event x, y                        ->
 // Event types for use with refresh_on
 // For instance, to have a block be re-evaluated on mouse move:
 // locally
-//     refresh_on QEvent_MouveMove
+//     refresh_on MouseMoveEvent
 //     do_something
-QEvent_Timer               -> 1
-QEvent_MouseButtonPress    -> 2
-QEvent_MouseButtonRelease  -> 3
-QEvent_MouseButtonDblClick -> 4
-QEvent_MouseMove           -> 5
-QEvent_KeyPress            -> 6
-QEvent_KeyRelease          -> 7
+TimerEvent                 -> 1
+MouseButtonPressEvent      -> 2
+MouseButtonReleaseEvent    -> 3
+MouseButtonDblClickEvent   -> 4
+MouseMoveEvent             -> 5
+KeyPressEvent              -> 6
+KeyReleaseEvent            -> 7
 
 // Chooser
 main_chooser ->

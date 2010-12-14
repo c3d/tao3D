@@ -150,6 +150,23 @@ PREFIX(Every50Pct,   real,      "every",
        DESCRIPTION("[TODO ddd: Explication...]")
        RETURNS(  real, "The real elapsed time.") )
 
+PREFIX(Seconds, integer, "seconds" ,, RTAO(seconds(self)),
+       GROUP(time) SYNOPSIS("Return seconds of current time"))
+PREFIX(Minutes, integer, "minutes" ,, RTAO(minutes(self)),
+       GROUP(time) SYNOPSIS("Return minutes of current time"))
+PREFIX(Hours,   integer, "hours"   ,, RTAO(hours(self)),
+       GROUP(time) SYNOPSIS("Return hours of current time"))
+PREFIX(Day,     integer, "day"     ,, RTAO(day(self)),
+       GROUP(time) SYNOPSIS("Return current day of month"))
+PREFIX(WeekDay, integer, "week_day",, RTAO(weekDay(self)),
+       GROUP(time) SYNOPSIS("Return current day of week"))
+PREFIX(YearDay, integer, "year_day",, RTAO(yearDay(self)),
+       GROUP(time) SYNOPSIS("Return current day of year"))
+PREFIX(Month,   integer, "month"   ,, RTAO(month(self)),
+       GROUP(time) SYNOPSIS("Return current month"))
+PREFIX(Year,    integer, "year"    ,, RTAO(year(self)),
+       GROUP(time) SYNOPSIS("Return current year"))
+
 PREFIX(MouseX,  real,  "mouse_x", , RTAO(mouseX(self)),
        GROUP(mouse)
        SYNOPSIS("Mouse x-coordinate")
@@ -163,22 +180,27 @@ PREFIX(MouseY,  real,  "mouse_y", , RTAO(mouseY(self)),
 PREFIX(MouseButtons,  integer,  "mouse_buttons", , RTAO(mouseButtons(self)),
        GROUP(mouse)
        SYNOPSIS("Return the buttons of the last mouse event")
-       DESCRIPTION("Return the buttons of the last mouse event. It is an OR combination of following values:\n\
-Qt::NoButton	0x00000000	The button state does not refer to any button (see QMouseEvent::button()).\n \
-Qt::LeftButton	0x00000001	The left button is pressed, or an event refers to the left button. (The left button may be the right button on left-handed mice.)\n \
-Qt::RightButton	0x00000002	The right button.\n                     \
-Qt::MidButton	0x00000004	The middle button.\n                    \
-Qt::XButton1	0x00000008	The first X button.\n                   \
-Qt::XButton2	0x00000010	The second X button.\n                  \
-")
-       RETURNS( integer, "Return the buttons of the last mouse event") )
+       DESCRIPTION("Return the buttons of the last mouse event. "
+                   "It is an OR combination of following values:\n"
+                   "0x00000000 The button state does not refer to any button\n"
+                   "0x00000001 The primary button is pressed. "
+                   "The primary button is generally the leftmost one."
+                   "0x00000002 The secondary button is pressed. "
+                   "The secondary button is generally the rightmost one."
+                   "0x00000004 The third mouse button is pressed. "
+                   "THis is generally the middle button."
+                   "0x00000008	(X11 only) First X button.\n"
+                   "0x00000010  (X11 only) Second X button.\n")
+       RETURNS(integer, "Button state of the last mouse event"))
 PREFIX(ShapeAction,  tree,  "on",
        PARM(n,text, "The action name")
        PARM(t,tree, "The code to execute"),
        RTAO(shapeAction(self,n,t)),
        GROUP(mouse)
        SYNOPSIS("Associate the specified code to the named action.")
-       DESCRIPTION("Associate the specified code to the named action. This code is then executed when the action occurs on the current shape."))
+       DESCRIPTION("Associate the specified code to the named action. "
+                   "This code is then executed when the action occurs on "
+                   "the current shape."))
 PREFIX(ShapeClickAction,  tree,  "on_click",
        PARM(t,tree, "The code to execute"),
        RTAO(shapeAction(self,"click",t)),
@@ -351,6 +373,32 @@ PREFIX(Refresh, tree, "refresh",
        GROUP(code:graph)
        SYNOPSIS("Set document refresh time")
        DESCRIPTION("Refresh the document after the given time interval."))
+PREFIX(RefreshOn, tree, "refresh_on",
+       PARM(event_type, integer, "Type of event to monitor (Qt value)"),
+       RTAO(refreshOn(self, event_type)),
+       GROUP(events)
+       SYNOPSIS("Refresh current layout on a specific event type")
+       DESCRIPTION("Refresh the current layout when the application receives "
+                   "the specified event type. Event type are integer values "
+                   "defined by the QEvent::Type class "
+                   "(http://doc.trolltech.com/4.6/qevent.html#Type-enum). "
+                   "The following constants are predefined for the "
+                   "most common event types:\n"
+                   "TimerEvent                  = 1\n"
+                   "MouseButtonPressEvent       = 2\n"
+                   "MouseButtonReleaseEvent     = 3\n"
+                   "MouseButtonDblClickEvent    = 4\n"
+                   "MouseMoveEvent              = 5\n"
+                   "KeyPressEvent               = 6\n"
+                   "KeyReleaseEvent             = 7\n"))
+PREFIX(DefaultRefresh, tree, "default_refresh",
+       PARM(interval, real, "Interval in seconds"), 
+       RTAO(defaultRefresh(self, interval)),
+       GROUP(time:events)
+       SYNOPSIS("Change default refresh interval for time primitives")
+       DESCRIPTION("Set the documents refresh interval for code blocks that "
+                   "depend on time due to the use of the time or "
+                   "page_time primitive."))
 PREFIX(ShowSource, boolean, "show_source",
        PARM(flag, boolean, "Flag controlling whether source is shown"),
        RTAO(showSource(self, flag)),

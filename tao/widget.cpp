@@ -472,6 +472,15 @@ void Widget::draw()
 }
 
 
+bool Widget::refreshNow()
+// ----------------------------------------------------------------------------
+//    Redraw the widget by running program entirely
+// ----------------------------------------------------------------------------
+{
+    return refreshNow(NULL);
+}
+
+
 bool Widget::refreshNow(QEvent *event)
 // ----------------------------------------------------------------------------
 //    Redraw the widget due to event or run program entirely
@@ -5114,8 +5123,14 @@ static inline QGLShader::ShaderType ShaderType(Widget::ShaderKind kind)
     {
     case Widget::VERTEX:        return QGLShader::Vertex;
     case Widget::FRAGMENT:      return QGLShader::Fragment;
+#if QT_VERSION >= 0x040700
+    case Widget::GEOMETRY:      return QGLShader::Geometry;
+#else
+    case Widget::GEOMETRY:      break;
+#endif // Qt has geometry
     }
-    return QGLShader::Vertex;
+    XL::Ooops("Shader type not implemented");
+    return QGLShader::ShaderType(0);
 }
 
 
@@ -8693,14 +8708,39 @@ Tree_p Widget::constant(Tree_p self, Tree_p tree)
 //
 // ============================================================================
 
-Tree_p Widget::generateDoc(Tree_p /*self*/, Tree_p tree)
+Text_p Widget::generateDoc(Tree_p /*self*/, Tree_p tree)
 // ----------------------------------------------------------------------------
 //   Generate documentation for a given tree
 // ----------------------------------------------------------------------------
 {
     ExtractDoc doc;
-    return tree->Do(doc);
+    Tree_p documentation = tree->Do(doc);
+    Text_p text = documentation->AsText();
+    return text;
+}
 
+
+static void generateRewriteDoc(Widget *widget, XL::Rewrite_p rewrite, text &com)
+// ----------------------------------------------------------------------------
+//   Generate documentation for a given rewrite
+// ----------------------------------------------------------------------------
+{
+    if (rewrite->from)
+    {
+        Text_p t1 = widget->generateDoc(rewrite->from, rewrite->from);
+        com += t1->value;
+    }
+
+    if (rewrite->to)
+    {
+        Text_p t2 = widget->generateDoc(rewrite->to, rewrite->to);
+        com += t2->value;
+    }
+    
+    XL::rewrite_table &rewrites = rewrite->hash;
+    XL::rewrite_table::iterator i;
+    for (i = rewrites.begin(); i != rewrites.end(); i++)
+        generateRewriteDoc(widget, i->second, com);
 }
 
 
@@ -8723,6 +8763,16 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
         com += t->AsText()->value;
     }
 
+    // Documentation from the primitives files (*.tbl)
+    for (XL::Context *globals = xlr->context; globals; globals = globals->scope)
+    {    
+        XL::rewrite_table &rewrites = globals->rewrites;
+        XL::rewrite_table::iterator i;
+        for (i = rewrites.begin(); i != rewrites.end(); i++)
+            generateRewriteDoc(this, i->second, com);
+    }
+
+    // Write the result
     if (!filename.empty())
     {
         QFile file(+filename);

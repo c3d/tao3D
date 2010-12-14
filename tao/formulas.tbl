@@ -24,122 +24,456 @@
 // ****************************************************************************
 
 // Integer arithmetic and comparisons
-INFIX(AddInt,integer, integer,"+",integer, XL_RINT(XL_INT(l) + XL_INT(r)), "")
-INFIX(SubInt,integer, integer,"-",integer, XL_RINT(XL_INT(l) - XL_INT(r)), "")
-INFIX(MulInt,integer, integer,"*",integer, XL_RINT(XL_INT(l) * XL_INT(r)), "")
-INFIX(DivInt,integer, integer,"/",integer, XL_RINT(XL_INT(l) / XL_INT(r)), "")
-INFIX(RemInt,integer, integer,"rem",integer, XL_RINT(XL_INT(l) % XL_INT(r)), "")
-INFIX(ModInt,integer, integer,"mod",integer, XL_RINT(xl_mod(l, r)), "")
-INFIX(PowerInt, integer, integer, "^", integer, XL_RINT(xl_pow(l,r)), "")
+INFIX(AddInt, integer,  integer,"+",integer,XL_RINT(XL_INT(l) + XL_INT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(SubInt, integer,  integer,"-",integer,XL_RINT(XL_INT(l) - XL_INT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(MulInt, integer,  integer,"*",integer,XL_RINT(XL_INT(l) * XL_INT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(DivInt, integer,  integer,"/",integer,XL_RINT(XL_INT(l) / XL_INT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(RemInt, integer,  integer,"rem",integer,XL_RINT(XL_INT(l) % XL_INT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(ModInt, integer,  integer,"mod",integer,XL_RINT(xl_mod(l, r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
-INFIX(LShift, integer, integer,"<<",integer, XL_RINT(XL_INT(l) << XL_INT(r)), "")
-INFIX(RShift, integer, integer,">>",integer, XL_RINT(XL_INT(l) >> XL_INT(r)), "")
+INFIX(PowerInt,  integer,  integer, "^", integer,XL_RINT(xl_pow(l,r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(LShift,  integer,  integer,"<<",integer,XL_RINT(XL_INT(l) << XL_INT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
-INFIX(And, integer, integer, "and", integer, XL_RINT(XL_INT(l) & XL_INT(r)), "")
-INFIX(Or, integer, integer, "or", integer, XL_RINT(XL_INT(l) | XL_INT(r)), "")
-INFIX(Xor, integer, integer, "xor", integer, XL_RINT(XL_INT(l) ^ XL_INT(r)), "")
+INFIX(RShift,  integer,  integer,">>",integer,XL_RINT(XL_INT(l) >> XL_INT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(And,  integer,  integer, "and", integer,XL_RINT(XL_INT(l) & XL_INT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(Or,  integer,  integer, "or", integer,XL_RINT(XL_INT(l) | XL_INT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
-INFIX(LTInt, boolean, integer, "<", integer, XL_RBOOL(XL_INT(l) < XL_INT(r)), "")
-INFIX(GTInt, boolean, integer, ">", integer, XL_RBOOL(XL_INT(l) > XL_INT(r)), "")
-INFIX(LEInt, boolean, integer, "<=", integer, XL_RBOOL(XL_INT(l) <= XL_INT(r)), "")
-INFIX(GEInt, boolean, integer, ">=", integer, XL_RBOOL(XL_INT(l) >= XL_INT(r)), "")
-INFIX(NEInt, boolean, integer, "<>", integer, XL_RBOOL(XL_INT(l) != XL_INT(r)), "")
-INFIX(EQInt, boolean, integer, "=", integer, XL_RBOOL(XL_INT(l) == XL_INT(r)), "")
+INFIX(Xor,  integer,  integer, "xor", integer,XL_RINT(XL_INT(l) ^ XL_INT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(LTInt,  boolean,  integer, "<", integer,XL_RBOOL(XL_INT(l) < XL_INT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(GTInt,  boolean,  integer, ">", integer,XL_RBOOL(XL_INT(l) > XL_INT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(LEInt,  boolean,  integer, "<=", integer,XL_RBOOL(XL_INT(l) <= XL_INT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(GEInt,  boolean,  integer, ">=", integer,XL_RBOOL(XL_INT(l) >= XL_INT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(NEInt,  boolean,  integer, "<>", integer,XL_RBOOL(XL_INT(l) != XL_INT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
-PREFIX(NegateInt, integer, "-", PARM(x, integer), XL_RINT(-x), "")
-PREFIX(BitwiseNotInt, integer, "not", PARM(x, integer), XL_RINT(~x), "")
+INFIX(EQInt,  boolean,  integer, "=", integer,XL_RBOOL(XL_INT(l) == XL_INT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(NegateInt,  integer,  "-", 
+    PARM(x, integer, )
+, XL_RINT(-x), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
 // Percents
-POSTFIX(PercentInt, real, PARM(x, integer), "%", XL_RREAL(x / 100.0), "")
-POSTFIX(PercentReal, real, PARM(x, real), "%", XL_RREAL(x / 100.0), "")
+PREFIX(BitwiseNotInt,  integer,  "not", 
+    PARM(x, integer, )
+, XL_RINT(~x), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+POSTFIX(PercentInt,  real, 
+    PARM(x, integer, )
+,  "%", XL_RREAL(x / 100.0), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
 // Real arithmetic and comparisons
-INFIX(AddReal, real, real, "+", real, XL_RREAL(XL_REAL(l) + XL_REAL(r)), "")
-INFIX(SubReal, real, real, "-", real, XL_RREAL(XL_REAL(l) - XL_REAL(r)), "")
-INFIX(MulReal, real, real, "*", real, XL_RREAL(XL_REAL(l) * XL_REAL(r)), "")
-INFIX(DivReal, real, real, "/", real, XL_RREAL(XL_REAL(l) / XL_REAL(r)), "")
-INFIX(RemReal, real, real, "rem", real, XL_RREAL(fmod(XL_REAL(l), XL_REAL(r))), "")
-INFIX(ModReal, real, real, "mod", real, XL_RREAL(xl_modf(l,r)), "")
-INFIX(PowRealInt, real, real, "^", integer, XL_RREAL(xl_powf(l,r)), "")
-INFIX(PowReal, real, real, "^", real, XL_RREAL(pow(XL_REAL(l), XL_REAL(r))), "")
+POSTFIX(PercentReal,  real, 
+    PARM(x, real, )
+,  "%", XL_RREAL(x / 100.0), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(AddReal,  real,  real, "+", real,XL_RREAL(XL_REAL(l) + XL_REAL(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(SubReal,  real,  real, "-", real,XL_RREAL(XL_REAL(l) - XL_REAL(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(MulReal,  real,  real, "*", real,XL_RREAL(XL_REAL(l) * XL_REAL(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(DivReal,  real,  real, "/", real,XL_RREAL(XL_REAL(l) / XL_REAL(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(RemReal,  real,  real, "rem", real,XL_RREAL(fmod(XL_REAL(l), XL_REAL(r))),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(ModReal,  real,  real, "mod", real,XL_RREAL(xl_modf(l,r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(PowRealInt,  real,  real, "^", integer,XL_RREAL(xl_powf(l,r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
-INFIX(LTReal, boolean, real, "<", real, XL_RBOOL(XL_REAL(l) < XL_REAL(r)), "")
-INFIX(GTReal, boolean, real, ">", real, XL_RBOOL(XL_REAL(l) > XL_REAL(r)), "")
-INFIX(LEReal, boolean, real, "<=", real, XL_RBOOL(XL_REAL(l) <= XL_REAL(r)), "")
-INFIX(GEReal, boolean, real, ">=", real, XL_RBOOL(XL_REAL(l) >= XL_REAL(r)), "")
-INFIX(NEReal, boolean, real, "<>", real, XL_RBOOL(XL_REAL(l) != XL_REAL(r)), "")
-INFIX(EQReal, boolean, real, "=", real, XL_RBOOL(XL_REAL(l) == XL_REAL(r)), "")
+INFIX(PowReal,  real,  real, "^", real,XL_RREAL(pow(XL_REAL(l), XL_REAL(r))),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(LTReal,  boolean,  real, "<", real,XL_RBOOL(XL_REAL(l) < XL_REAL(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(GTReal,  boolean,  real, ">", real,XL_RBOOL(XL_REAL(l) > XL_REAL(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(LEReal,  boolean,  real, "<=", real,XL_RBOOL(XL_REAL(l) <= XL_REAL(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(GEReal,  boolean,  real, ">=", real,XL_RBOOL(XL_REAL(l) >= XL_REAL(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(NEReal,  boolean,  real, "<>", real,XL_RBOOL(XL_REAL(l) != XL_REAL(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
-PREFIX(Negate, real, "-", PARM(r, real), XL_RREAL(-r), "")
-PREFIX(Sin, real, "sin", PARM(x, real), XL_RREAL(sin(x)), "")
-PREFIX(Cos, real, "cos", PARM(x, real), XL_RREAL(cos(x)), "")
-PREFIX(Tan, real, "tan", PARM(x, real), XL_RREAL(tan(x)), "")
-PREFIX(ArcSin, real, "asin", PARM(x, real), XL_RREAL(asin(x)), "")
-PREFIX(ArcCos, real, "acos", PARM(x, real), XL_RREAL(acos(x)), "")
-PREFIX(ArcTan, real, "atan", PARM(x, real), XL_RREAL(atan(x)), "")
-PREFIX(ArcTan2, real, "atan", PARM(y, real) PARM(x, real), XL_RREAL(atan2(y,x)), "")
-PREFIX(Exp, real, "exp", PARM(x, real), XL_RREAL(exp(x)), "")
-PREFIX(ExpMinus1, real, "expm1", PARM(x, real), XL_RREAL(expm1(x)), "")
-PREFIX(Log, real, "log", PARM(x, real), XL_RREAL(log(x)), "")
-PREFIX(Log2, real, "log2", PARM(x, real), XL_RREAL(log2(x)), "")
-PREFIX(Log10, real, "log10", PARM(x, real), XL_RREAL(log10(x)), "")
-PREFIX(LogPlus1, real, "log1p", PARM(x, real), XL_RREAL(log1p(x)), "")
-PREFIX(PiConstant, real, "pi", , XL_RREAL(M_PI), "")
+INFIX(EQReal,  boolean,  real, "=", real,XL_RBOOL(XL_REAL(l) == XL_REAL(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(Negate,  real,  "-", 
+    PARM(r, real, )
+, XL_RREAL(-r), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(Sin,  real,  "sin", 
+    PARM(x, real, )
+, XL_RREAL(sin(x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(Cos,  real,  "cos", 
+    PARM(x, real, )
+, XL_RREAL(cos(x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(Tan,  real,  "tan", 
+    PARM(x, real, )
+, XL_RREAL(tan(x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(ArcSin,  real,  "asin", 
+    PARM(x, real, )
+, XL_RREAL(asin(x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(ArcCos,  real,  "acos", 
+    PARM(x, real, )
+, XL_RREAL(acos(x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(ArcTan,  real,  "atan", 
+    PARM(x, real, )
+, XL_RREAL(atan(x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(ArcTan2,  real,  "atan", 
+    PARM(y, real, )
+    PARM(x, real, )
+, XL_RREAL(atan2(y,x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(Exp,  real,  "exp", 
+    PARM(x, real, )
+, XL_RREAL(exp(x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(ExpMinus1,  real,  "expm1", 
+    PARM(x, real, )
+, XL_RREAL(expm1(x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(Log,  real,  "log", 
+    PARM(x, real, )
+, XL_RREAL(log(x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(Log2,  real,  "log2", 
+    PARM(x, real, )
+, XL_RREAL(log2(x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(Log10,  real,  "log10", 
+    PARM(x, real, )
+, XL_RREAL(log10(x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(LogPlus1,  real,  "log1p", 
+    PARM(x, real, )
+, XL_RREAL(log1p(x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
 // Boolean operations
-INFIX(AndBool, boolean, boolean, "and", boolean, XL_RBOOL(XL_BOOL(l) & XL_BOOL(r)), "")
-INFIX(OrBool, boolean, boolean, "or", boolean, XL_RBOOL(XL_BOOL(l) | XL_BOOL(r)), "")
-INFIX(XorBool, boolean, boolean, "xor", boolean, XL_RBOOL(XL_BOOL(l) ^ XL_BOOL(r)), "")
-PREFIX(NotBool, boolean, "not", PARM(x, boolean), XL_RBOOL(!x), "")
+PREFIX(PiConstant,  real,  "pi", , XL_RREAL(M_PI), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(AndBool,  boolean,  boolean, "and", boolean,XL_RBOOL(XL_BOOL(l) & XL_BOOL(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(OrBool,  boolean,  boolean, "or", boolean,XL_RBOOL(XL_BOOL(l) | XL_BOOL(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(XorBool,  boolean,  boolean, "xor", boolean,XL_RBOOL(XL_BOOL(l) ^ XL_BOOL(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
-INFIX(NEBool, boolean, boolean, "<>", boolean, XL_RBOOL(XL_BOOL(l) != XL_BOOL(r)), "")
-INFIX(EQBool, boolean, boolean, "=", boolean, XL_RBOOL(XL_BOOL(l) == XL_BOOL(r)), "")
+PREFIX(NotBool,  boolean,  "not", 
+    PARM(x, boolean, )
+, XL_RBOOL(!x), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(NEBool,  boolean,  boolean, "<>", boolean,XL_RBOOL(XL_BOOL(l) != XL_BOOL(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
 // Text operations
-INFIX(TextConcatenate, text, text, "&", text, XL_RTEXT(XL_TEXT(l) + XL_TEXT(r)), "")
-INFIX(LTText, boolean, text, "<", text, XL_RBOOL(XL_TEXT(l) < XL_TEXT(r)), "")
-INFIX(GTText, boolean, text, ">", text, XL_RBOOL(XL_TEXT(l) > XL_TEXT(r)), "")
-INFIX(LEText, boolean, text, "<=", text, XL_RBOOL(XL_TEXT(l) <= XL_TEXT(r)), "")
-INFIX(GEText, boolean, text, ">=", text, XL_RBOOL(XL_TEXT(l) >= XL_TEXT(r)), "")
-INFIX(NEText, boolean, text, "<>", text, XL_RBOOL(XL_TEXT(l) != XL_TEXT(r)), "")
-INFIX(EQText, boolean, text, "=", text, XL_RBOOL(XL_TEXT(l) == XL_TEXT(r)), "")
+INFIX(EQBool,  boolean,  boolean, "=", boolean,XL_RBOOL(XL_BOOL(l) == XL_BOOL(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(TextConcatenate,  text,  text, "&", text,XL_RTEXT(XL_TEXT(l) + XL_TEXT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(LTText,  boolean,  text, "<", text,XL_RBOOL(XL_TEXT(l) < XL_TEXT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(GTText,  boolean,  text, ">", text,XL_RBOOL(XL_TEXT(l) > XL_TEXT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(LEText,  boolean,  text, "<=", text,XL_RBOOL(XL_TEXT(l) <= XL_TEXT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(GEText,  boolean,  text, ">=", text,XL_RBOOL(XL_TEXT(l) >= XL_TEXT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+INFIX(NEText,  boolean,  text, "<>", text,XL_RBOOL(XL_TEXT(l) != XL_TEXT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
 
 // Conversions
-PREFIX(IntToReal,  real, "real", PARM(x, integer), XL_RREAL((real_t) x), "")
-PREFIX(TextToReal, real, "real", PARM(x, text), XL_RREAL(xl_text2real(x)), "")
-PREFIX(RealToInt, integer, "integer", PARM(x, real), XL_RINT((integer_t) x), "")
-PREFIX(TextToInt, integer, "integer", PARM(x, text), XL_RINT(xl_text2int(x)), "")
-PREFIX(IntToText, text, "text", PARM(x, integer), XL_RTEXT((text) x), "")
-PREFIX(RealToText, text, "text", PARM(x, real), XL_RTEXT((text) x), "")
+INFIX(EQText,  boolean,  text, "=", text,XL_RBOOL(XL_TEXT(l) == XL_TEXT(r)),
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(IntToReal,   real,  "real", 
+    PARM(x, integer, )
+, XL_RREAL((real_t) x), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(TextToReal,  real,  "real", 
+    PARM(x, text, )
+, XL_RREAL(xl_text2real(x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(RealToInt,  integer,  "integer", 
+    PARM(x, real, )
+, XL_RINT((integer_t) x), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(TextToInt,  integer,  "integer", 
+    PARM(x, text, )
+, XL_RINT(xl_text2int(x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(IntToText,  text,  "text", 
+    PARM(x, integer, )
+, XL_RTEXT((text) x), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
 // Time computations
-PREFIX(TimeHours, integer, "hours", PARM(t, integer), XL_RTIME(tm.tm_hour), "")
-PREFIX(TimeMinutes, integer, "minutes", PARM(t, integer), XL_RTIME(tm.tm_min), "")
-PREFIX(TimeSeconds, integer, "seconds", PARM(t, integer), XL_RTIME(tm.tm_sec), "")
-PREFIX(TimeYear, integer, "year", PARM(t, integer), XL_RTIME(tm.tm_year + 1900), "")
-PREFIX(TimeMonth, integer, "month", PARM(t, integer), XL_RTIME(tm.tm_mon), "")
-PREFIX(TimeMonthDay, integer, "day", PARM(t, integer), XL_RTIME(tm.tm_mday), "")
-PREFIX(TimeWeekDay, integer, "week_day", PARM(t, integer), XL_RTIME(tm.tm_wday), "")
-PREFIX(TimeYearDay, integer, "year_day", PARM(t, integer), XL_RTIME(tm.tm_yday), "")
+PREFIX(RealToText,  text,  "text", 
+    PARM(x, real, )
+, XL_RTEXT((text) x), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(TimeHours,  integer,  "hours", 
+    PARM(t, integer, )
+, XL_RTIME(tm.tm_hour), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(TimeMinutes,  integer,  "minutes", 
+    PARM(t, integer, )
+, XL_RTIME(tm.tm_min), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(TimeSeconds,  integer,  "seconds", 
+    PARM(t, integer, )
+, XL_RTIME(tm.tm_sec), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(TimeYear,  integer,  "year", 
+    PARM(t, integer, )
+, XL_RTIME(tm.tm_year + 1900), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(TimeMonth,  integer,  "month", 
+    PARM(t, integer, )
+, XL_RTIME(tm.tm_mon), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(TimeMonthDay,  integer,  "day", 
+    PARM(t, integer, )
+, XL_RTIME(tm.tm_mday), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(TimeWeekDay,  integer,  "week_day", 
+    PARM(t, integer, )
+, XL_RTIME(tm.tm_wday), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
 // Return hour, minutes, seconds for the current time
-PREFIX(SystemTime, integer, "system_time",, XL_RINT(xl_time(1)), "")
-PREFIX(SystemHours, integer, "hours",, XL_RCTIME(tm.tm_hour, 10), "")
-PREFIX(SystemMinutes, integer, "minutes",, XL_RCTIME(tm.tm_min, 2), "")
-PREFIX(SystemSeconds, integer, "seconds",, XL_RCTIME(tm.tm_sec, 0.5), "")
-PREFIX(SystemYear, integer, "year",, XL_RCTIME(tm.tm_year + 1900, 10), "")
-PREFIX(SystemMonth, integer, "month",, XL_RCTIME(tm.tm_mon, 10), "")
-PREFIX(SystemMonthDay, integer, "day",, XL_RCTIME(tm.tm_mday, 10), "")
-PREFIX(SystemWeekDay, integer, "week_day",, XL_RCTIME(tm.tm_wday, 10), "")
-PREFIX(SystemYearDay, integer, "year_day",, XL_RCTIME(tm.tm_yday, 10), "")
+PREFIX(TimeYearDay,  integer,  "year_day", 
+    PARM(t, integer, )
+, XL_RTIME(tm.tm_yday), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(SystemTime,  integer,  "system_time", , XL_RINT(xl_time(1)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(SystemHours,  integer,  "hours", , XL_RCTIME(tm.tm_hour, 10), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(SystemMinutes,  integer,  "minutes", , XL_RCTIME(tm.tm_min, 2), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(SystemSeconds,  integer,  "seconds", , XL_RCTIME(tm.tm_sec, 0.5), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(SystemYear,  integer,  "year", , XL_RCTIME(tm.tm_year + 1900, 10), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(SystemMonth,  integer,  "month", , XL_RCTIME(tm.tm_mon, 10), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(SystemMonthDay,  integer,  "day", , XL_RCTIME(tm.tm_mday, 10), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(SystemWeekDay,  integer,  "week_day", , XL_RCTIME(tm.tm_wday, 10), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
 // Random number generator
-PREFIX(RandomNumber, real, "random", , XL_RREAL(xl_random(0.0, 1.0)), "")
-PREFIX(RandomNumber2, real, "random", PARM(low, real) PARM(high, real),
-       XL_RREAL(xl_random(XL_REAL(low), XL_REAL(high))), "")
-PREFIX(RandomNumber2i, integer, "random", PARM(low,integer) PARM(high,integer),
-       XL_RINT(xl_random(XL_INT(low), XL_INT(high))), "")
+PREFIX(SystemYearDay,  integer,  "year_day", , XL_RCTIME(tm.tm_yday, 10), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(RandomNumber,  real,  "random", , XL_RREAL(xl_random(0.0, 1.0)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(RandomNumber2,  real,  "random", 
+    PARM(low, real, )
+    PARM(high, real, )
+, XL_RREAL(xl_random(XL_REAL(low), XL_REAL(high))), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
 NAME(true);
 NAME(false);
@@ -157,18 +491,57 @@ TYPE(character);
 //
 // ============================================================================
 
-PREFIX(PageLabel,   text,     "page_label", ,   RTAO(pageLabel(self)), "")
-PREFIX(PageId,      integer,  "page_number", ,  RTAO(pageNumber(self)), "")
-PREFIX(PageCount,   integer,  "page_count", ,   RTAO(pageCount(self)), "")
-PREFIX(PageWidth,   real,     "page_width", ,   RTAO(pageWidth(self)), "")
-PREFIX(PageHeight,  real,     "page_height", ,  RTAO(pageHeight(self)), "")
-PREFIX(FrameWidth,  real,     "frame_width", ,  RTAO(frameWidth(self)), "")
-PREFIX(FrameHeight, real,     "frame_height", , RTAO(frameHeight(self)), "")
-PREFIX(FrameDepth,  real,     "frame_depth", ,  RTAO(frameDepth(self)), "")
-PREFIX(WindowWidth, real,     "window_width", , RTAO(windowWidth(self)), "")
-PREFIX(WindowHeight,real,     "window_height", ,RTAO(windowHeight(self)), "")
-PREFIX(DaySeconds,  real,     "time", ,         RTAO(time(self)), "")
-PREFIX(PageSeconds, real,     "page_time", ,    RTAO(pageTime(self)), "")
+PREFIX(RandomNumber2i,  integer,  "random", 
+    PARM(low,integer, )
+    PARM(high,integer, )
+, XL_RINT(xl_random(XL_INT(low), XL_INT(high))), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(PageLabel,    text,      "page_label", , RTAO(pageLabel(self)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(PageId,       integer,   "page_number", , RTAO(pageNumber(self)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(PageCount,    integer,   "page_count", , RTAO(pageCount(self)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(PageWidth,    real,      "page_width", , RTAO(pageWidth(self)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(PageHeight,   real,      "page_height", , RTAO(pageHeight(self)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(FrameWidth,   real,      "frame_width", , RTAO(frameWidth(self)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(FrameHeight,  real,      "frame_height", , RTAO(frameHeight(self)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(FrameDepth,   real,      "frame_depth", , RTAO(frameDepth(self)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(WindowWidth,  real,      "window_width", , RTAO(windowWidth(self)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(WindowHeight, real,      "window_height", , RTAO(windowHeight(self)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(DaySeconds,   real,      "time", , RTAO(time(self)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
 
 // ============================================================================
@@ -177,15 +550,31 @@ PREFIX(PageSeconds, real,     "page_time", ,    RTAO(pageTime(self)), "")
 //
 // ============================================================================
 
-PREFIX(ErrorMessage, tree, "error", PARM(m, text) PARM(s, tree),
-       return Tao::Widget::formulaRuntimeError(self, m, &s), "")
-PREFIX(ErrorMessage0, tree, "error", PARM(m, text),
-       return Tao::Widget::formulaRuntimeError(self, m, NULL), "")
+PREFIX(PageSeconds,  real,      "page_time", , RTAO(pageTime(self)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(ErrorMessage,  tree,  "error", 
+    PARM(m, text, )
+    PARM(s, tree, )
+, return Tao::Widget::formulaRuntimeError(self, m, &s), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
-PREFIX(ErrorMessageM, tree, "error_message_box", PARM(m, text) PARM(s, tree),
-       RTAO(runtimeError(self, m, &s)), "")
-PREFIX(ErrorMessageM0, tree, "error_message_box", PARM(m, text),
-       RTAO(runtimeError(self, m, NULL)), "")
+PREFIX(ErrorMessage0,  tree,  "error", 
+    PARM(m, text, )
+, return Tao::Widget::formulaRuntimeError(self, m, NULL), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+PREFIX(ErrorMessageM,  tree,  "error_message_box", 
+    PARM(m, text, )
+    PARM(s, tree, )
+, RTAO(runtimeError(self, m, &s)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
 
 
@@ -195,9 +584,40 @@ PREFIX(ErrorMessageM0, tree, "error_message_box", PARM(m, text),
 //
 // ============================================================================
 
-POSTFIX(FromCm,   real, PARM(x, real), "cm", RTAO(fromCm(self, x)), "")
-POSTFIX(FromMm,   real, PARM(x, real), "mm", RTAO(fromMm(self, x)), "")
-POSTFIX(FromInch, real, PARM(x, real), "inch", RTAO(fromIn(self, x)), "")
-POSTFIX(FromPt,   real, PARM(x, real), "pt", RTAO(fromPt(self, x)), "")
-POSTFIX(FromPx,   real, PARM(x, real), "px", RTAO(fromPx(self, x)), "")
+PREFIX(ErrorMessageM0,  tree,  "error_message_box", 
+    PARM(m, text, )
+, RTAO(runtimeError(self, m, NULL)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+POSTFIX(FromCm,    real, 
+    PARM(x, real, )
+,  "cm", RTAO(fromCm(self, x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+POSTFIX(FromMm,    real, 
+    PARM(x, real, )
+,  "mm", RTAO(fromMm(self, x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+POSTFIX(FromInch,  real, 
+    PARM(x, real, )
+,  "inch", RTAO(fromIn(self, x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
+POSTFIX(FromPt,    real, 
+    PARM(x, real, )
+,  "pt", RTAO(fromPt(self, x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))
 
+POSTFIX(FromPx,    real, 
+    PARM(x, real, )
+,  "px", RTAO(fromPx(self, x)), 
+    GROUP(formula)
+    SYNOPSIS("")
+    DESCRIPTION(""))

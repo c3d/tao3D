@@ -91,7 +91,7 @@ public:
                       stereoHORIZONTAL, stereoVERTICAL,
                       stereoDIAGONAL, stereoANTI_DIAGONAL,
                       stereoALIOSCOPY };
-    enum ShaderKind { VERTEX, FRAGMENT };
+    enum ShaderKind { VERTEX, FRAGMENT, GEOMETRY };
 
 public:
     Widget(Window *parent, SourceFile *sf = NULL);
@@ -106,7 +106,8 @@ public slots:
     void        appFocusChanged(QWidget *prev, QWidget *next);
     void        userMenu(QAction *action);
     bool        refresh(double delay = 0.0);
-    bool        refreshNow(QEvent *event = NULL);
+    bool        refreshNow();
+    bool        refreshNow(QEvent *event);
     void        commitSuccess(QString id, QString msg);
     void        colorChosen(const QColor &);
     void        colorChanged(const QColor &);
@@ -664,7 +665,7 @@ public:
     Name_p      ungroupSelection(Tree_p self);
 
     //Documentation
-    Tree_p generateDoc(Tree_p self, Tree_p tree);
+    Text_p generateDoc(Tree_p self, Tree_p tree);
     Text_p generateAllDoc(Tree_p self, text filename);
 
 private:

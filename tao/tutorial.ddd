@@ -1,7 +1,6 @@
-page "What is Tao?", do 
-    text_box 0, 0, 800, 600, do 
-        font "Papyrus" 
-        font_size 74 
+page "What is Tao?",
+    text_box 0, 0, 800, 600,
+        font "Papyrus", 74
         color 0, 0, 1, 80% 
         line_color 90%, 50%, 0, 70%
         line_width 2 

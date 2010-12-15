@@ -37,6 +37,7 @@
 #include "runtime.h"
 #include "font_file_manager.h"
 #include "layout.h"
+#include "layout_cache.h"
 #include "tao_gl.h"
 
 #include <QImage>
@@ -725,6 +726,9 @@ private:
     char                  stereoscopic;
     char                  stereoPlanes;
     LayoutState::qevent_ids  refreshEvents;
+    QEvent *              refreshEvent;
+    double                nextRefresh;
+    LayoutCache           layoutCache;
 
     // Selection
     Activity *            activities;

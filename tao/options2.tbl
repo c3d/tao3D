@@ -25,6 +25,7 @@ OPTION(stereo, "Enable stereoscopy", enable_stereoscopy = true)
 OPTION(nostereo, "Disable stereoscopy", enable_stereoscopy = false)
 
 OPTION(nosplash, "Disable splash screen", ;)
+
 OPTVAR(slideshow, bool, false)
 OPTION(slideshow, "Open document in slide show mode",
        slideshow = true)
@@ -35,3 +36,6 @@ OPTION(nomodules, "Disable modules", enable_modules = false)
 OPTVAR(printResolution, uint, 300)
 OPTION(print_resolution, "Set printer resolution in DPI",
        printResolution = INTEGER(72, 3600))
+
+OPTVAR(enable_layout_cache, bool, false)
+OPTION(layoutcache, "Enable 'layout cache' optimization", enable_layout_cache = true)

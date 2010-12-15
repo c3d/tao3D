@@ -242,6 +242,8 @@ struct Box3
 //   A simple 3D box, used most often as a bounding box
 // ----------------------------------------------------------------------------
 {
+#define inf 1e33
+
     Box3(): lower(inf, inf, inf), upper(-inf, -inf, -inf) {}
     Box3(const Point3 &l, const Point3 &u): lower(l), upper(u) {}
     Box3(const Point3 &l, const Vector3 &s): lower(l), upper(l+s) {}
@@ -403,7 +405,8 @@ struct Box3
 
 public:
     Point3 lower, upper;
-    static const coord inf = 1e33;
+
+#undef inf
 };
 
 

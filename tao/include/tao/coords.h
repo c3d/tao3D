@@ -219,6 +219,8 @@ struct Box
 //   A simple 2D box, used most often as a bounding box
 // ----------------------------------------------------------------------------
 {
+#define inf 1e32
+
     Box(): lower(inf, inf), upper(-inf, -inf) {}
     Box(const Point &l, const Point &u): lower(l), upper(u) {}
     Box(const Point &l, const Vector &s): lower(l), upper(l+s) {}
@@ -366,7 +368,8 @@ struct Box
 
 public:
     Point lower, upper;
-    static const coord inf = 1e32;
+
+#undef inf
 };
 
 

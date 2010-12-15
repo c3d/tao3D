@@ -20,6 +20,7 @@ TARGET = Tao
 VERSION = "0.0.3"    # Windows: version is in tao.rc
 INC = . \
     include \
+    include/tao \
     xlr/xlr/include
 DEPENDPATH += $$INC
 INCLUDEPATH += $$INC
@@ -60,8 +61,8 @@ HEADERS += widget.h \
     frame.h \
     svg.h \
     texture.h \
-    coords.h \
-    coords3d.h \
+    include/tao/coords.h \
+    include/tao/coords3d.h \
     color.h \
     gl_keepers.h \
     drawing.h \
@@ -142,8 +143,6 @@ HEADERS += widget.h \
     xl_highlighter.h \
     layout_cache.h
 SOURCES += tao_main.cpp \
-    coords.cpp \
-    coords3d.cpp \
     widget.cpp \
     window.cpp \
     frame.cpp \

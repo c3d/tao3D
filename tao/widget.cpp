@@ -2599,7 +2599,7 @@ void Widget::refreshProgram()
 {
     Repository *repo = repository();
     Tree *prog = xlProgram->tree;
-    if (!prog || !repo || xlProgram->readOnly)
+    if (!prog || xlProgram->readOnly)
         return;
 
     // Loop on imported files

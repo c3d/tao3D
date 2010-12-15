@@ -50,21 +50,39 @@ struct Object3D
 
     static Object3D *Object(text name);
 
+protected:
+    // Load a material library
+    void LoadMtl(text name);
+    uint MaterialId(text name);
+    void DrawDirect();
+
 public:
     // Types
     typedef Point3  Vertex;
-    typedef Vector3 Normal;
+    typedef Vector3 Normal, Reflectance;
     typedef Point3  TexCoord;
     struct  Face
     {
         std::vector<uint> vertex, texCoord, normal;
         uint materialId;
     };
+    struct Material
+    {
+        Material(kstring name = "")
+            : name(name), ambient(0.0, 0.0, 0.0), diffuse(0.0, 0.0, 0.0),
+              specular(0.0, 0.0, 0.0), alpha(1.0), shininess(0.0) {}
+
+        text         name;
+        Reflectance  ambient, diffuse, specular;
+        coord        alpha;
+        coord        shininess;
+    };
 
     typedef std::vector<Vertex>         Vertices;
     typedef std::vector<Normal>         Normals;
     typedef std::vector<TexCoord>       TexCoords;
     typedef std::vector<Face>           Faces;
+    typedef std::vector<Material>       Materials;
 
 public:
     // Representation of an object
@@ -72,8 +90,10 @@ public:
     Normals     normals;
     TexCoords   texCoords;
     Faces       faces;
+    Materials   materials;
     Box3        bounds;
     uint        listID;
+    bool        useCallList;
 };
 
 

@@ -210,7 +210,7 @@ void Window::checkFiles()
         {
             import_set done;
             if (ImportedFilesChanged(done, false))
-                loadFile(+prog->name, !prog->readOnly);
+                loadFile(+prog->name);
         }
     }
 }

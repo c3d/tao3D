@@ -30,7 +30,7 @@
 
 PREFIX(Page, text, "page",
        PARM(name, text, "Name of the page.")
-       PARM(body, tree, "Content of the page."),
+       PARM(body, code, "Content of the page."),
        RTAO(page(context, name, body)),
        GROUP(page)
        SYNOPSIS("Create a page in a document.")
@@ -39,7 +39,7 @@ PREFIX(Page, text, "page",
                    "The body contents will be evaluated only when the page "
                    "is being displayed. The order of pages in the document "
                    "is the order of page creation.")
-       RETURNS( text, "The name of the previous page"))
+       RETURNS(text, "The name of the previous page"))
 PREFIX(PageLink, text,  "page_link",
        PARM(key, text, "Key used to change pages")
        PARM(name, text, "The name of the page to link"),
@@ -47,19 +47,19 @@ PREFIX(PageLink, text,  "page_link",
        GROUP(page)
        SYNOPSIS("Link other pages to the current page")
        DESCRIPTION("Links the key with the named page.")
-       RETURNS( text, "The name of the page previously linked to this key."))
+       RETURNS(text, "The name of the page previously linked to this key."))
 PREFIX(GotoPage,  text,  "goto_page",
        PARM(p, text, ""),
        RTAO(gotoPage(self, p)),
        GROUP(page)
        SYNOPSIS("Directly go to the given page.")
        DESCRIPTION("Directly go to the given page.")
-       RETURNS( text, "The name of the previously shown page."))
+       RETURNS(text, "The name of the previously shown page."))
 PREFIX(PageLabel,    text,      "page_label", , RTAO(pageLabel(self)),
        GROUP(page)
        SYNOPSIS("The current page name.")
        DESCRIPTION("Return the current page name")
-       RETURNS(   text, "Return the label of the current page"))
+       RETURNS(text, "Return the label of the current page"))
 PREFIX(PageId,       integer,   "page_number", , RTAO(pageNumber(self)),
        GROUP(page)
        SYNOPSIS("The current page number")
@@ -69,17 +69,17 @@ PREFIX(PageCount,    integer,   "page_count", , RTAO(pageCount(self)),
        GROUP(page)
        SYNOPSIS("The number of page.")
        DESCRIPTION("Return the number of pages in the current document")
-       RETURNS(   integer, "Return the number of pages in the current document"))
+       RETURNS(integer, "Return the number of pages in the current document"))
 PREFIX(PageWidth,    real,      "page_width", , RTAO(pageWidth(self)),
        GROUP(page)
        SYNOPSIS("Return the width of pages")
        DESCRIPTION("Return the width of pages")
-       RETURNS(   real, "Return the width of pages"))
+       RETURNS(real, "Return the width of pages"))
 PREFIX(PageHeight,   real,      "page_height", , RTAO(pageHeight(self)),
        GROUP(page)
        SYNOPSIS("Return the height of pages")
        DESCRIPTION("Return the height of pages")
-       RETURNS(  real, "Return the height of pages"))
+       RETURNS(real, "Return the height of pages"))
 
 PREFIX(PagePrintTime,  real,  "page_print_time",
        PARM(t, real, ),
@@ -87,68 +87,75 @@ PREFIX(PagePrintTime,  real,  "page_print_time",
        GROUP(page)
        SYNOPSIS("Set the freeze time used when printing.")
        DESCRIPTION("Set the time used when printing pages")
-       RETURNS( real, "Previous time used for printing"))
+       RETURNS(real, "Previous time used for printing"))
 
 PREFIX(FrameWidth,   real,      "frame_width", , RTAO(frameWidth(self)),
        GROUP(frame)
        SYNOPSIS("Return the width of the current layout frame")
        DESCRIPTION("Return the width of the current layout frame")
-       RETURNS(  real, "Return the width of the current layout frame"))
+       RETURNS(real, "Return the width of the current layout frame"))
 PREFIX(FrameHeight,  real,      "frame_height", , RTAO(frameHeight(self)),
        GROUP(frame)
        SYNOPSIS("Return the height of the current layout frame")
        DESCRIPTION("Return the height of the current layout frame")
-       RETURNS( real, "Return the height of the current layout frame"))
+       RETURNS(real, "Return the height of the current layout frame"))
 PREFIX(FrameDepth,   real,      "frame_depth", , RTAO(frameDepth(self)),
        GROUP(frame)
        SYNOPSIS("Return the depth of the current layout frame")
        DESCRIPTION("Return the depth of the current layout frame")
-       RETURNS(  real, "Return the depth of the current layout frame"))
+       RETURNS(real, "Return the depth of the current layout frame"))
 PREFIX(WindowWidth,  real,      "window_width", ,
        RTAO(windowWidth(self)),
        GROUP(window)
        SYNOPSIS("Return the width of the window in which we display")
        DESCRIPTION("Return the width of the window in which we display")
-       RETURNS( real, "Return the width of the window in which we display"))
+       RETURNS(real, "Return the width of the window in which we display"))
 PREFIX(WindowHeight, real,      "window_height", , RTAO(windowHeight(self)),
        GROUP(window)
        SYNOPSIS("Return the height of window in which we display")
        DESCRIPTION("Return the height of window in which we display")
-       RETURNS(real, "Return the height of window in which we display") )
+       RETURNS(real, "Return the height of window in which we display"))
 PREFIX(DaySeconds,   real,      "time", , RTAO(time(self)),
        GROUP(time)
        SYNOPSIS("Return a fractional time, including milliseconds")
        DESCRIPTION("Returns the current document's time or the time at wich the document was frozen.")
-       RETURNS(  real, "Return a fractional time, including milliseconds") )
+       RETURNS(real, "Return a fractional time, including milliseconds"))
 PREFIX(PageSeconds,  real,      "page_time", , RTAO(pageTime(self)),
        GROUP(time)
-       SYNOPSIS("Returns the page time")
-       DESCRIPTION("Returns the time of the current page relatively to the current document's time, or relatively to the frozen time.")
-       RETURNS( real, "Return a fractional time, including milliseconds") )
-PREFIX(After,        real,      "after",
-       PARM(d, real, "The delay in second. Sensitive upto millisecond.")
-       PARM(c, tree, "The code to execute."),
-       RTAO(after(context, d, c)),
+       SYNOPSIS("Returns the number of seconds since page was shown.]")
+       DESCRIPTION("Returns the number of seconds since the page was shown. "
+                   "The precision is at least one millisecond. "
+                   "The time value is frozen when animations are disabled.")
+       RETURNS(real, "Return a fractional time, including milliseconds"))
+PREFIX(After, real, "after",
+       PARM(interval, real, "Interval in seconds")
+       PARM(body, code, "Code to evaluate."),
+       RTAO(after(context, interval, body)),
        GROUP(time)
-       SYNOPSIS("Wait for time to execute code")
-       DESCRIPTION("Execute the given code only after the specified amount of time.")
-       RETURNS(       real, "The real elapsed time.") )
-PREFIX(Every,        real,      "every",
-       PARM(i, real, )
-       PARM(d, real, )
-       PARM(c, tree, ),
-       RTAO(every(context, i, d, c)),
-       GROUP()
-       SYNOPSIS("")
-       DESCRIPTION(""))
-PREFIX(Every50Pct,   real,      "every",
-       PARM(i, real, "[TODO ddd: Explication...]")
-       PARM(c, tree, "[TODO ddd: Explication...]. If not given the default value is 0.5"),
-       RTAO(every(context, i, 0.5, c)),
+       SYNOPSIS("Execute some code after a delay")
+       DESCRIPTION("Execute the given code after the specified amount of time.")
+       RETURNS(real, "The real elapsed time."))
+PREFIX(Every, real, "every",
+       PARM(interval, real, "Repeat interval")
+       PARM(duty, real, "Duty cycle")
+       PARM(body, code, "Code to evaluate"),
+       RTAO(every(context, interval, duty, body)),
        GROUP(time)
-       SYNOPSIS("Code executed every interval.")
-       DESCRIPTION("[TODO ddd: Explication...]")
-       RETURNS(  real, "The real elapsed time.") )
+       SYNOPSIS("Execute some code at regular intervals")
+       DESCRIPTION("Execute the specified code at regular intervals. "
+                   "The interval is specified in seconds, with a precision "
+                   "of one millisecond. The duty cycle is the fraction of "
+                   "the time interval during which the code executes."))
+PREFIX(Every50Pct, real, "every",
+       PARM(interval, real, "Repeat interval")
+       PARM(body, code, "Code to evaluate"),
+       RTAO(every(context, interval, 0.5, body)),
+       GROUP(time)
+       SYNOPSIS("Execute some code at regular intervals")
+       DESCRIPTION("Execute the specified code at regular intervals. "
+                   "The interval is specified in seconds, with a precision "
+                   "of one millisecond. The specified code evaluates for "
+                   "approximately 50% of the time."))
 
 PREFIX(Seconds, integer, "seconds" ,, RTAO(seconds(self)),
        GROUP(time) SYNOPSIS("Return seconds of current time"))
@@ -171,12 +178,12 @@ PREFIX(MouseX,  real,  "mouse_x", , RTAO(mouseX(self)),
        GROUP(mouse)
        SYNOPSIS("Mouse x-coordinate")
        DESCRIPTION("Mouse x-coordinate")
-       RETURNS( real, "Return the position of the mouse") )
+       RETURNS(real, "Return the position of the mouse"))
 PREFIX(MouseY,  real,  "mouse_y", , RTAO(mouseY(self)),
        GROUP(mouse)
        SYNOPSIS("Mouse y-coordinate")
        DESCRIPTION("Mouse y-coordinate")
-       RETURNS( real, "Return the position of the mouse") )
+       RETURNS(real, "Return the position of the mouse"))
 PREFIX(MouseButtons,  integer,  "mouse_buttons", , RTAO(mouseButtons(self)),
        GROUP(mouse)
        SYNOPSIS("Return the buttons of the last mouse event")
@@ -193,22 +200,22 @@ PREFIX(MouseButtons,  integer,  "mouse_buttons", , RTAO(mouseButtons(self)),
                    "0x00000010  (X11 only) Second X button.\n")
        RETURNS(integer, "Button state of the last mouse event"))
 PREFIX(ShapeAction,  tree,  "on",
-       PARM(n,text, "The action name")
-       PARM(t,tree, "The code to execute"),
-       RTAO(shapeAction(self,n,t)),
+       PARM(action_name, text, "The action name")
+       PARM(action_code, code, "The code to execute"),
+       RTAO(shapeAction(self,action_name,action_code)),
        GROUP(mouse)
        SYNOPSIS("Associate the specified code to the named action.")
        DESCRIPTION("Associate the specified code to the named action. "
                    "This code is then executed when the action occurs on "
                    "the current shape."))
 PREFIX(ShapeClickAction,  tree,  "on_click",
-       PARM(t,tree, "The code to execute"),
+       PARM(t,code, "The code to execute"),
        RTAO(shapeAction(self,"click",t)),
        GROUP(mouse)
        SYNOPSIS("Associate code with click.")
        DESCRIPTION("Associate the specified code to the click"))
 PREFIX(ShapeMouseoverAction,  tree,  "on_mouseover",
-       PARM(t,tree, "The code to execute"),
+       PARM(t,code, "The code to execute"),
        RTAO(shapeAction(self,"mouseover",t)),
        GROUP(mouse)
        SYNOPSIS("Associate code with mouse over")
@@ -223,33 +230,33 @@ PREFIX(ShapeMouseoverAction,  tree,  "on_mouseover",
 // ============================================================================
 
 PREFIX(Locally,  tree,  "locally",
-       PARM(t, tree, "The code to execute in a local context"),
+       PARM(t, code, "The code to execute in a local context"),
        RTAO(locally(context, self, t)),
        GROUP(code)
        SYNOPSIS("Make a local context")
        DESCRIPTION("Evaluate the child tree while preserving the current state")
-       RETURNS( tree, "The result of the child execution.") )
+       RETURNS(tree, "The result of the child execution."))
 PREFIX(Shape,    tree,  "shape",
-       PARM(t, tree, "The code of the shape."),
+       PARM(t, code, "The code of the shape."),
        RTAO(shape(context, self, t)),
        GROUP(code:graph)
        SYNOPSIS("Make the shape selectable")
        DESCRIPTION("Evaluate the child and mark the current shape. Make the shape sensible to mosue events like selection, motion, rotation...")
-       RETURNS(   tree, "The result of the child execution.") )
+       RETURNS(tree, "The result of the child execution."))
 PREFIX(Widget,   tree,  "active_widget",
-       PARM(t,tree, "The code that represent the widget."),
+       PARM(t,code, "The code that represent the widget."),
        RTAO(activeWidget(context, self,t)),
        GROUP(code:graph:widget)
        SYNOPSIS("Make the widget clickable")
        DESCRIPTION("Create a context for active widgets, e.g. buttons")
-       RETURNS(  tree, "The result of the child execution.") )
+       RETURNS(tree, "The result of the child execution."))
 PREFIX(Anchor,   tree,  "anchor",
-       PARM(t, tree, "The code that represent the shapes to be anchored."),
+       PARM(t, code, "The code that represent the shapes to be anchored."),
        RTAO(anchor(context, self, t)),
        GROUP(graph)
        SYNOPSIS("")
        DESCRIPTION("Anchor a set of shapes to the current position")
-       RETURNS(  tree, "The result of the child execution.") )
+       RETURNS(tree, "The result of the child execution."))
 
 
 
@@ -543,14 +550,14 @@ PREFIX(EnableAnimations,  boolean,  "enable_animations",
        GROUP(gui)
        SYNOPSIS("Enable or disable animations")
        DESCRIPTION("Enable or disable animations")
-       RETURNS( boolean, "True if previous state was on.") )
+       RETURNS(boolean, "True if previous state was on."))
 PREFIX(EnableStereoscopy,  boolean,  "enable_stereoscopy",
        PARM(mode, symbol, "on or off"),
        RTAO(enableStereoscopy(self, mode)),
        GROUP(gui)
        SYNOPSIS("Enable or disable stereoscopie mode")
        DESCRIPTION("Enable or disable stereoscopie mode")
-       RETURNS( boolean, "True if previous state was on.") )
+       RETURNS(boolean, "True if previous state was on."))
 PREFIX(StereoPlanes, boolean, "stereoscopy_planes", PARM(cnt, integer, "on or off"),
        RTAO(setStereoPlanes(self, cnt)), GROUP(gui)
        SYNOPSIS("Enable or disable stereoscopie mode")
@@ -595,7 +602,7 @@ PREFIX(PolygonOffset,  integer,  "polygon_offset",
        GROUP(graph)
        SYNOPSIS("Set the polygon offset factors")
        DESCRIPTION("Set the polygon offset factors")
-       RETURNS( integer, "the current polygon offset") )
+       RETURNS(integer, "the current polygon offset"))
 
 
 
@@ -730,7 +737,7 @@ PREFIX(FillTextureSVG,  tree, "svg",
        GROUP(graph)
        SYNOPSIS("Create a texture from an SVG")
        DESCRIPTION("Draw an image from an SVG format")
-       RETURNS( tree, ""))
+       RETURNS(tree, ""))
 PREFIX(FillAnimatedTexture,  tree,  "animated_texture",
        PARM(n, text, "The animation filename."),
        RTAO(fillAnimatedTexture(self, n)),
@@ -766,12 +773,12 @@ PREFIX(TextureWrap,  tree,  "texture_wrap",
        SYNOPSIS("wrap textures or clamp them")
        DESCRIPTION("Record if we want to wrap textures or clamp them"))
 PREFIX(TextureTransform,  tree,  "texture_transform",
-       PARM(t, tree, "[TODO]"),
+       PARM(t, code, "[TODO]"),
        RTAO(textureTransform(context, self, t)),
        GROUP(graph)
        SYNOPSIS("Apply a texture transformation")
        DESCRIPTION("Apply a texture transformation.[TODO: de quel genre ?]")
-       RETURNS( tree, "The result of the child evaluation.") )
+       RETURNS(tree, "The result of the child evaluation."))
 
 
 
@@ -782,12 +789,12 @@ PREFIX(TextureTransform,  tree,  "texture_transform",
 // ============================================================================
 
 PREFIX(Path,    tree,  "path",
-       PARM(t, tree, "The definition of the path."),
+       PARM(t, code, "The definition of the path."),
        RTAO(newPath(context, self, t)),
        GROUP(graph:path)
        SYNOPSIS("Start a path")
        DESCRIPTION("Evaluate the child tree within a polygon")
-       RETURNS(   tree, "The result of the child evaluation.") )
+       RETURNS(tree, "The result of the child evaluation."))
 PREFIX(MoveTo,  tree,  "move_to",
        PARM(x, real, "x-coordinate of the point to move to.")
        PARM(y, real, "y-coordinate of the point to move to.")
@@ -845,7 +852,7 @@ PREFIX(LineRel,  tree,  "line_relative",
        GROUP(graph:path)
        SYNOPSIS("relative line to")
        DESCRIPTION("Add a relative 'lineTo' to the current path")
-       RETURNS( tree, "") )
+       RETURNS(tree, ""))
 PREFIX(PathTexCoord,  tree,  "path_texture",
        PARM(x,real, "x-coordinate")
        PARM(y,real, "y-coordinate")
@@ -874,7 +881,7 @@ PREFIX(EndpointsStyle,  tree,  "endpoints_style",
        GROUP(graph:path)
        SYNOPSIS("style of the path endpoints")
        DESCRIPTION("Specify the style of the path endpoints. Supported values are : ARROWHEAD, ARROWHEAD, POINTER, DIAMOND, CIRCLE, SQUARE, BAR, CUP, FLETCHING, HOLLOW_CIRCLEHOLLOW_SQUARE.")
-       RETURNS( tree, "") )
+       RETURNS(tree, ""))
 
 
 
@@ -1037,7 +1044,7 @@ PREFIX(PicturePacker,  tree,  "picture_packer",
        PARM(ih, integer, )
        PARM(pw, integer, )
        PARM(ph, integer, )
-       PARM(t, tree, ),
+       PARM(t, code, ),
        RTAO(picturePacker(self, tw, th, iw, ih, pw, ph, t)),
        GROUP(graph:debug)
        SYNOPSIS("Debug the bin packer")
@@ -1064,7 +1071,7 @@ PREFIX(Sphere,  tree,  "sphere",
        GROUP(graph)
        SYNOPSIS("sphere like")
        DESCRIPTION("GL sphere [TODO or ovoid ? Add the incidence of slices and stacks on the sphere rendering time.]")
-       RETURNS( tree, "") )
+       RETURNS(tree, ""))
 PREFIX(Cube,  tree,  "cube",
        PARM(x, real, "x-coordinate")
        PARM(y, real, "y-coordinate")
@@ -1136,12 +1143,12 @@ PREFIX(TextBox,  tree,  "text_box",
        PARM(y, real, "y-coordinate")
        PARM(w, real, "width")
        PARM(h, real, "height")
-       PARM(t, tree, "text description"),
+       PARM(t, code, "text description"),
        RTAO(textBox(context, self, x, y, w, h, t)),
        GROUP(text:graph)
        SYNOPSIS("Create a new page layout")
        DESCRIPTION("Create a new page layout and render text in it.")
-       RETURNS( tree, "t evaluation result"))
+       RETURNS(tree, "t evaluation result"))
 PREFIX(TextOverflow,  tree,  "text_overflow",
        PARM(x, real, "x-coordinate")
        PARM(y, real, "y-coordinate")
@@ -1157,7 +1164,7 @@ PREFIX(TextFlow,  tree,  "text_flow",
        GROUP(text)
        SYNOPSIS("Names the flow")
        DESCRIPTION("Set the name of the current text flow")
-       RETURNS( tree, "The previous name. [TODO: The name of the previous flow or the previous name of the current flow ?]") )
+       RETURNS(tree, "The previous name. [TODO: The name of the previous flow or the previous name of the current flow ?]"))
 
 PREFIX(TextSpan,  tree, "text",
        PARM(t, text, "The text to insert"),
@@ -1166,19 +1173,19 @@ PREFIX(TextSpan,  tree, "text",
        SYNOPSIS("Insert a block of text")
        DESCRIPTION("Insert a block of text with the current definition of font, color, ..."))
 PREFIX(TextFormula,  tree, "formula",
-       PARM(t, tree, "The formula"),
+       PARM(t, code, "The formula"),
        RTAO(textFormula(self, t)),
        GROUP(text)
        SYNOPSIS("Insert a block of text corresponding to the given formula")
        DESCRIPTION("Insert a block of text corresponding to the given formula")
-       RETURNS( tree, "The tree t given in parameter.") )
+       RETURNS(tree, "The tree t given in parameter."))
 PREFIX(TextValue,  tree, "text_value",
-       PARM(t, tree, "The formula"),
+       PARM(t, code, "The formula"),
        RTAO(textValue(context, self, &t)),
        GROUP(text)
        SYNOPSIS("Insert a block of text corresponding to the given vaue")
        DESCRIPTION("Insert a block of text corresponding to the given formula")
-       RETURNS( tree, "The tree t given in parameter.") )
+       RETURNS(tree, "The tree t given in parameter."))
 PREFIX(Font,  tree,  "font",
        PARM(f, tree, "The font description"),
        RTAO(font(context, self, f)),
@@ -1198,7 +1205,7 @@ PREFIX(FontScaling,  tree,  "font_scaling",
        GROUP(text:font)
        SYNOPSIS("Change the font scaling factor")
        DESCRIPTION("Change the font scaling factor")
-       RETURNS( tree, "") )
+       RETURNS(tree, ""))
 PREFIX(FontPlain,  tree,  "plain", , RTAO(fontPlain(self)),
        GROUP(text:font)
        SYNOPSIS("Set plain text")
@@ -1347,24 +1354,24 @@ PREFIX(TextEditKey,  boolean,  "text_edit_key",
        GROUP(text)
        SYNOPSIS("[TODO]")
        DESCRIPTION("Send a key to the text editing activities. [TODO: Concretementca fait quoi ???]")
-       RETURNS( boolean, "true/false [TODO]") )
+       RETURNS(boolean, "true/false [TODO]"))
 PREFIX(LoadText,  tree,  "load_text",
        PARM(f,text, "file name"),
        RTAO(loadText(self,f)),
        GROUP(text:file)
        SYNOPSIS("Load a text file from disk")
        DESCRIPTION("Load a text file from disk. It uses the 'doc' prefix to look into resources")
-       RETURNS( tree, "The content of the file.") )
+       RETURNS(tree, "The content of the file."))
 PREFIX(TaoVersion,  tree,  "tao_version", , RTAO(taoVersion(self)),
        GROUP(version)
        SYNOPSIS("The Tao version")
        DESCRIPTION("Return the version of the Tao program")
-       RETURNS( tree, "The version of the running Tao program") )
+       RETURNS(tree, "The version of the running Tao program"))
 PREFIX(DocVersion,  tree,  "doc_version", , RTAO(docVersion(self)),
        GROUP(version)
        SYNOPSIS("The document version")
        DESCRIPTION("Return the version of the current document (if known)")
-       RETURNS( tree, "The current document version") )
+       RETURNS(tree, "The current document version"))
 
 
 
@@ -1379,7 +1386,7 @@ PREFIX(NewTableAt,  tree,  "table",
        PARM(y, real, )
        PARM(r,integer, )
        PARM(c,integer, )
-       PARM(b,tree, ),
+       PARM(b,code, ),
        RTAO(newTable(context, self, x, y, r, c, b)),
        GROUP()
        SYNOPSIS("")
@@ -1387,27 +1394,27 @@ PREFIX(NewTableAt,  tree,  "table",
 PREFIX(NewTable,  tree,  "table",
        PARM(r,integer, "x-coordinate of the table. 0 if not specified.")
        PARM(c,integer, "y-coordinate of the table. 0 if not specified.")
-       PARM(b,tree, "The number of row"),
+       PARM(b,code, "The number of row"),
        RTAO(newTable(context, self, r, c, b)),
        GROUP(table)
        SYNOPSIS("Create a table")
        DESCRIPTION("Create a new table. The body is executed in the environement of the tablethat means short name can be used for table description")
-       RETURNS( tree, "The result of the body (b) evaluation.") )
+       RETURNS(tree, "The result of the body (b) evaluation."))
 PREFIX(TableSizedCell,  tree,  "table_cell",
        PARM(w, real, )
        PARM(h, real, )
-       PARM(b, tree, ),
+       PARM(b, code, ),
        RTAO(tableCell(context, self, w, h, b)),
        GROUP()
        SYNOPSIS("")
        DESCRIPTION(""))
 PREFIX(TableCell,  tree,  "table_cell",
-       PARM(b, tree, "width of the cell if specified, otherwise free size."),
+       PARM(b, code, "width of the cell if specified, otherwise free size."),
        RTAO(tableCell(context, self, b)),
        GROUP(table)
        SYNOPSIS("Define a free-size cell in the table")
        DESCRIPTION("Define a cell in the context of the table. Short name 'cell' can be used with both syntaxes.")
-       RETURNS( tree, "body evaluation result")
+       RETURNS(tree, "body evaluation result")
        MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 PREFIX(TableMargins2,  tree,  "table_cell_margins",
@@ -1428,14 +1435,14 @@ PREFIX(TableMargins,  tree,  "table_cell_margins",
        DESCRIPTION("Set the margin rectangle for the table. The short name of the function is margins. It can be used with both syntaxes.")       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 PREFIX(TableFill,  tree,  "table_cell_fill",
-       PARM(b, tree, "fill code body."),
+       PARM(b, code, "fill code body."),
        RTAO(tableFill(self, b)),
        GROUP(table)
        SYNOPSIS("fill of the cell")
        DESCRIPTION("Define the fill code for cells")       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 PREFIX(TableBorder,  tree,  "table_cell_border",
-       PARM(b, tree, "border code body."),
+       PARM(b, code, "border code body."),
        RTAO(tableBorder(self, b)),
        GROUP(table)
        SYNOPSIS("Define the border code for cells")
@@ -1445,52 +1452,52 @@ PREFIX(TableCellX,  tree,  "table_cell_x", , RTAO(tableCellX(self)),
        GROUP(table)
        SYNOPSIS("x-ccordinate of the cell center")
        DESCRIPTION("Get the horizontal center of the current table cell")
-       RETURNS( tree, "The coordinate of the center of the current cell on x-axis")
+       RETURNS(tree, "The coordinate of the center of the current cell on x-axis")
        MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 PREFIX(TableCellY,  tree,  "table_cell_y", , RTAO(tableCellY(self)),
        GROUP(table)
        SYNOPSIS("y-ccordinate of the cell center")
        DESCRIPTION("Get the vertical center of the current table cell")
-       RETURNS( tree, "The coordinate of the center of the current cell on y-axis") )
+       RETURNS(tree, "The coordinate of the center of the current cell on y-axis"))
 PREFIX(TableCellW,  tree,  "table_cell_w", , RTAO(tableCellW(self)),
        GROUP(table)
        SYNOPSIS("Width of the cell")
        DESCRIPTION("Get the horizontal size of the current table cell")
-       RETURNS( tree, "The size of the current cell along the x-axis") )
+       RETURNS(tree, "The size of the current cell along the x-axis"))
 PREFIX(TableCellH,  tree,  "table_cell_h", , RTAO(tableCellH(self)),
        GROUP(table)
        SYNOPSIS("Height of the cell.")
        DESCRIPTION("Get the vertical size of the current table cell")
-       RETURNS( tree, "The size of the current cell along the y-axis")
+       RETURNS(tree, "The size of the current cell along the y-axis")
        MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 PREFIX(TableRow,  tree,  "table_cell_row", , RTAO(tableRow(self)),
        GROUP(table)
        SYNOPSIS("Return the current row")
        DESCRIPTION("Return the current row index")
-       RETURNS( tree, "the row index")
+       RETURNS(tree, "the row index")
        MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 PREFIX(TableColumn,  tree,  "table_cell_column", , RTAO(tableColumn(self)),
        GROUP(table)
        SYNOPSIS("Return the current column")
        DESCRIPTION("Return the current column index.")
-       RETURNS( tree, "The column index.")
+       RETURNS(tree, "The column index.")
        MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 PREFIX(TableRows,  tree,  "table_rows", , RTAO(tableRows(self)),
        GROUP(table)
        SYNOPSIS("number of rows in the current table")
        DESCRIPTION("Return the number of rows in the current table")
-       RETURNS( tree, "Number of rows in the table")
+       RETURNS(tree, "Number of rows in the table")
        MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 PREFIX(TableColumns,  tree,  "table_columns", , RTAO(tableColumns(self)),
        GROUP(table)
        SYNOPSIS("number of columns in the current table")
        DESCRIPTION("Return the number of columns in the current table")
-       RETURNS( tree, "number of columns in the table")
+       RETURNS(tree, "number of columns in the table")
        MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
 "))
 
@@ -1513,21 +1520,21 @@ PREFIX(Frame,  tree,  "frame",
        PARM(y,real, "y-coordinate")
        PARM(w,real, "width")
        PARM(h,real, "height")
-       PARM(p, tree, "The program that represent the content of the frame"),
+       PARM(p, code, "The program that represent the content of the frame"),
        RTAO(framePaint(context, self, x, y, w, h, p)),
        GROUP(widget)
        SYNOPSIS("A frame with a content")
        DESCRIPTION("Draw a frame with the described content in 'prog'. This frame as no displayed border. It makes a texture of size (w,h) using 'frame_texture', and map it on a rectangle at (x) location.")
-       RETURNS( tree, "The result of 'prog' evaluation") )
+       RETURNS(tree, "The result of 'prog' evaluation"))
 PREFIX(FrameTexture,  tree,  "frame_texture",
        PARM(w,real, "width")
        PARM(h,real, "height")
-       PARM(p, tree, "The program that represent the content of the frame"),
+       PARM(p, code, "The program that represent the content of the frame"),
        RTAO(frameTexture(context, self, w, h, p)),
        GROUP(widget)
        SYNOPSIS("A texture with content")
        DESCRIPTION("Make a texture out of the described content")
-       RETURNS( tree, "The result of 'prog' evaluation") )
+       RETURNS(tree, "The result of 'prog' evaluation"))
 PREFIX(Url,  tree,  "url",
        PARM(x,real, )
        PARM(y,real, )
@@ -1592,7 +1599,7 @@ PREFIX(PushButton,  tree,  "push_button",
        PARM(h,real, "height")
        PARM(n, text, "Name that uniquely identify this button")
        PARM(l, text, "Label of the button")
-       PARM(a, tree, "The action to perform when the button is clicked."),
+       PARM(a, code, "The action to perform when the button is clicked."),
        RTAO(pushButton(self, x, y, w, h, n, l, a)),
        GROUP(widget)
        SYNOPSIS("A push button")
@@ -1602,7 +1609,7 @@ PREFIX(PushButtonTexture,  tree,  "push_button_texture",
        PARM(h,real, "height")
        PARM(n, text, "Name that uniquely identify this button")
        PARM(l, text, "Label of the button")
-       PARM(a, tree, "The action to perform when the button is clicked."),
+       PARM(a, code, "The action to perform when the button is clicked."),
        RTAO(pushButtonTexture(self, w, h, n, l, a)),
        GROUP(widget)
        SYNOPSIS("Make a texture out of a given push button")
@@ -1616,7 +1623,7 @@ PREFIX(RadioButton,  tree,  "radio_button",
        PARM(n, text, "Name that uniquely identify this button")
        PARM(l, text, "Label of the button")
        PARM(m, text, "True if the button is selected")
-       PARM(a, tree, "The action to perform when the button state change from non-selected to selected."),
+       PARM(a, code, "The action to perform when the button state change from non-selected to selected."),
        RTAO(radioButton(self, x, y, w, h, n, l, m, a)),
        GROUP(widget)
        SYNOPSIS("Draw a radio button")
@@ -1627,7 +1634,7 @@ PREFIX(RadioButtonTexture,  tree,  "radio_button_texture",
        PARM(n, text, "Name that uniquely identify this button")
        PARM(l, text, "Label of the button")
        PARM(m, text, "True if the button is selected")
-       PARM(a, tree, "The action to perform when the button state change from non-selected to selected."),
+       PARM(a, code, "The action to perform when the button state change from non-selected to selected."),
        RTAO(radioButtonTexture(self, w, h, n, l, m, a)),
        GROUP(widget)
        SYNOPSIS("Make a texture out of a given radio button")
@@ -1641,7 +1648,7 @@ PREFIX(CheckBoxButton,  tree,  "check_box_button",
        PARM(n, text, "Name that uniquely identify this button")
        PARM(l, text, "Label of the button")
        PARM(m, text, "True if the button is marked")
-       PARM(a, tree, "The action to perform when the button state change from non-sed."),
+       PARM(a, code, "The action to perform when the button state change from non-sed."),
        RTAO(checkBoxButton(self, x, y, w, h, n, l, m, a)),
        GROUP(widget)
        SYNOPSIS("Draw a check button")
@@ -1652,7 +1659,7 @@ PREFIX(CheckBoxButtonTexture,  tree,  "check_box_button_texture",
        PARM(n, text, "Name that uniquely identify this button")
        PARM(l, text, "Label of the button")
        PARM(m, text, "True if the button is marked")
-       PARM(a, tree, "The action to perform when the button state change from non-set to set"),
+       PARM(a, code, "The action to perform when the button state change from non-set to set"),
        RTAO(checkBoxButtonTexture(self, w, h, n, l, m, a)),
        GROUP(widget)
        SYNOPSIS("Make a texture out of a given checkbox button")
@@ -1738,7 +1745,7 @@ PREFIX(FileChooserTexture,  tree,  "file_chooser_texture",
        SYNOPSIS("Make a texture out of a given file chooser")
        DESCRIPTION("Make a texture out of a given file chooser"))
 PREFIX(SetFileDialogAction,  tree,  "file_chooser_action",
-       PARM(t, tree, "The action to modify and execute when file is chosen."),
+       PARM(t, code, "The action to modify and execute when file is chosen."),
        RTAO(setFileDialogAction(self, t)),
        GROUP(widget)
        SYNOPSIS("File chooser action")
@@ -1765,14 +1772,14 @@ PREFIX(SetFileDialogLabel,  tree,  "file_chooser_label",
 
 PREFIX(ButtonGroup,  tree,  "button_group",
        PARM(ex, boolean, "If true, the group is exclusive.")
-       PARM(b, tree, "The code of buttons"),
+       PARM(b, code, "The code of buttons"),
        RTAO(buttonGroup(context, self, ex, b)),
        GROUP(widget)
        SYNOPSIS("Create a button group.")
        DESCRIPTION("Create a group. Buttons included in this group are mutually exclusive. It is useful to create multiple group of radio buttons"))
 
 PREFIX(Action,  tree,  "button_group_action",
-       PARM(act, tree, "The action."),
+       PARM(act, code, "The action."),
        RTAO(setButtonGroupAction(self, act)),
        GROUP(widget)
        SYNOPSIS("Action of the group")
@@ -1784,7 +1791,7 @@ PREFIX(GroupBox,  tree,  "group_box",
        PARM(w,real, "width of this box")
        PARM(h,real, "height of this box")
        PARM(lbl, text, "The label of the box")
-       PARM(b, tree, "The tree describing the content of the box"),
+       PARM(b, code, "The tree describing the content of the box"),
        RTAO(groupBox(context, self, x, y, w, h, lbl, b)),
        GROUP(widget)
        SYNOPSIS("group box")
@@ -1979,8 +1986,8 @@ PREFIX(MaterialBackShininess, tree, "material_back_shininess", PARM(x, real,),
        SYNOPSIS("Select the shininess of the material")
        DESCRIPTION(""))
 
-PREFIX(ShaderProgram, tree, "shader_program", PARM(code, tree,),
-       RTAO(shaderProgram(context, self, code)),
+PREFIX(ShaderProgram, tree, "shader_program", PARM(program, code,),
+       RTAO(shaderProgram(context, self, program)),
        GROUP(lighting)
        SYNOPSIS("Define a shader program")
        DESCRIPTION(""))
@@ -2041,7 +2048,7 @@ PREFIX(Chooser,  tree,  "chooser",
        DESCRIPTION("Create a chooser with the given caption. A chooser shows a selection among the possible commands"))
 PREFIX(ChooserChoice,  tree,  "chooser_choice",
        PARM(n, text, "label of the command")
-       PARM(t, tree, "the command"),
+       PARM(t, code, "the command"),
        RTAO(chooserChoice(self, n, t)),
        GROUP(code:chooser)
        SYNOPSIS("Add a command in the chooser list.")
@@ -2114,7 +2121,7 @@ PREFIX(MenuItem,  tree,  "menu_item",
        PARM(icon, text, "The name of the icon (filename).")
        PARM(cable, boolean, "Should this entry carry a check box ?")
        PARM(isc, text, "If this entry carries a check box, is it cheked or not.")
-       PARM(t, tree, "The command to execute on item selection."),
+       PARM(t, code, "The command to execute on item selection."),
        RTAO(menuItem(self, n, lbl, icon, cable, isc, t)),
        GROUP(widget:menu)
        SYNOPSIS("add an entry in a menu")
@@ -2159,7 +2166,7 @@ PREFIX(ErrorMessage0,  tree,  "error",
        GROUP()
        SYNOPSIS("Display an error message from the input")
        DESCRIPTION("Display an error message from the input")
-       RETURNS( tree, "[TODO]") )
+       RETURNS(tree, "[TODO]"))
 
 
 
@@ -2228,7 +2235,7 @@ PREFIX(SendBackward,  boolean,  "send_backward", , RTAO(sendBackward(self)),
 // ============================================================================
 
 PREFIX(Group,  tree,  "group",
-       PARM(t, tree, "The code to group"),
+       PARM(t, code, "The code to group"),
        RTAO(group(context, self, t)),
        GROUP(code:group)
        SYNOPSIS("Create a logical group")
@@ -2258,35 +2265,35 @@ POSTFIX(FromCm,    real,
         GROUP(code:unit)
         SYNOPSIS("Convert from cm to pixels")
         DESCRIPTION("Convert from cm to pixels")
-        RETURNS(   real, "The value in pixel. ") )
+        RETURNS(real, "The value in pixel. "))
 POSTFIX(FromMm,    real,
         PARM(x, real, "The value in mm")
         ,  "mm", RTAO(fromMm(self, x)),
         GROUP(code:unit)
         SYNOPSIS("Convert from mm to pixels")
         DESCRIPTION("Convert from mm to pixels")
-        RETURNS(   real, "The value in pixel. ") )
+        RETURNS(real, "The value in pixel. "))
 POSTFIX(FromInch,  real,
         PARM(x, real, "The value in inch")
         ,  "inch", RTAO(fromIn(self, x)),
         GROUP(code:unit)
         SYNOPSIS("Convert from inch to pixels")
         DESCRIPTION("Convert from inch to pixels")
-        RETURNS( real, "The value in pixel. ") )
+        RETURNS(real, "The value in pixel. "))
 POSTFIX(FromPt,    real,
         PARM(x, real, "The value in point")
         ,  "pt", RTAO(fromPt(self, x)),
         GROUP(code:unit)
         SYNOPSIS("Convert from pt to pixels")
         DESCRIPTION("Convert from pt to pixels")
-        RETURNS(   real, "The value in pixel. ") )
+        RETURNS(real, "The value in pixel. "))
 POSTFIX(FromPx,    real,
         PARM(x, real, "The value in pixel")
         ,  "px", RTAO(fromPx(self, x)),
         GROUP(code:unit)
         SYNOPSIS("Convert from pixel")
         DESCRIPTION("Convert from pixel (currently 1-1 mappingcould be based on scaling?)")
-        RETURNS(   real, "The value in pixel. ") )
+        RETURNS(real, "The value in pixel. "))
 
 
 
@@ -2302,7 +2309,7 @@ PREFIX(Constant,  tree,  "constant",
        GROUP(code)
        SYNOPSIS("a constant tree")
        DESCRIPTION("A tree that cannot be modify.")
-       RETURNS( tree, "the tree") )
+       RETURNS(tree, "the tree"))
 
 PREFIX(Exit, integer, "exit",, exit(0);,
        GROUP(code)
@@ -2315,7 +2322,7 @@ PREFIX(GenDoc,  text,  "generate_doc",
        GROUP(documentation)
        SYNOPSIS("generate the doc for the specified tree ")
        DESCRIPTION("Extract the documentation from the specified tree. ")
-       RETURNS( tree, "The Text contains the documentation, ready to be parsed. ") )
+       RETURNS(tree, "The Text contains the documentation, ready to be parsed. "))
 
 PREFIX(GenAllDoc,  tree,  "generate_all_doc",
        PARM(filename, text, "File name for the documentation"),

@@ -11,14 +11,7 @@
 # ******************************************************************************
 
 
-INSTROOT = $$PWD/install
-macx {
-APPINST = $$INSTROOT/Tao.app/Contents/MacOS
-LIBINST = $$INSTROOT/Tao.app/Contents/Frameworks
-} else {
-APPINST = $$INSTROOT
-LIBINST = $$INSTROOT
-}
+include(main_defs.pri)
 
 DEFINES            += DEBUG
 macx:DEFINES       += CONFIG_MACOSX

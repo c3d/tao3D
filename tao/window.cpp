@@ -525,8 +525,9 @@ again:
 
     QString projpath = QFileInfo(fileName).absolutePath();
     QString fileNameOnly = QFileInfo(fileName).fileName();
-    if (!openProject(projpath, fileNameOnly, false))
-        return false;
+    if (XL::MAIN->options.enable_git)
+        if (!openProject(projpath, fileNameOnly, false))
+            return false;
     updateContext(projpath);
 
     return saveFile(fileName);
@@ -1417,7 +1418,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     QString msg = QString(tr("Loading %1 [%2]...")).arg(fileName);
 
     QString docPath = QFileInfo(fileName).canonicalPath();
-    if (openProj &&
+    if (XL::MAIN->options.enable_git && openProj &&
         !openProject(docPath,
                      QFileInfo(fileName).fileName()))
         return false;
@@ -1747,7 +1748,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
                                               QMessageBox::RejectRole);
             QPushButton *create = box.addButton(tr("Create"),
                                                 QMessageBox::AcceptRole);
-            box.setDefaultButton(create);
+            box.setDefaultButton(skip);
             int index = box.exec(); (void) index;
             QAbstractButton *which = box.clickedButton();
 

@@ -39,3 +39,6 @@ OPTION(print_resolution, "Set printer resolution in DPI",
 
 OPTVAR(enable_layout_cache, bool, false)
 OPTION(layoutcache, "Enable 'layout cache' optimization", enable_layout_cache = true)
+
+OPTVAR(enable_git, bool, true)
+OPTION(nogit, "Disable Git", enable_git = false)

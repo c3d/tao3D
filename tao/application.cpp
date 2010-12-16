@@ -215,7 +215,10 @@ void Application::cleanup()
     if (screenSaverBlocked)
         blockScreenSaver(false);
     if (moduleManager)
+    {
         moduleManager->unloadAll(XL::MAIN->context);
+        moduleManager->saveConfig();
+    }
 }
 
 

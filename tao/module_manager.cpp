@@ -170,9 +170,6 @@ bool ModuleManager::init()
     if (!loadConfig())
         return false;
 
-    if (!checkConfig())
-        return false;
-
     if (!checkNew())
         return false;
 
@@ -210,17 +207,15 @@ bool ModuleManager::initPaths()
 
 bool ModuleManager::loadConfig()
 // ----------------------------------------------------------------------------
-//   Read list of configured modules paths from user settings
+//   Read list of configured modules from user settings
 // ----------------------------------------------------------------------------
 {
     // The module settings are stored as child groups under the Modules main
     // group.
     //
     // Modules/<ID1>/Name = "Some module name"
-    // Modules/<ID1>/Path = "/some/path"
     // Modules/<ID1>/Enabled = true
     // Modules/<ID2>/Name = "Other module name"
-    // Modules/<ID2>/Path = "/other/path"
     // Modules/<ID2>/Enabled = false
 
     IFTRACE(modules)
@@ -233,10 +228,11 @@ bool ModuleManager::loadConfig()
     {
         settings.beginGroup(id);
 
-        QString path    = settings.value("Path").toString();
+        QString name    = settings.value("Name").toString();
         bool    enabled = settings.value("Enabled").toBool();
 
-        ModuleInfoPrivate m(+id, +path, enabled);
+        ModuleInfoPrivate m(+id, "", enabled);
+        m.name = +name;
         modules[id] = m;
 
         IFTRACE(modules)
@@ -251,48 +247,15 @@ bool ModuleManager::loadConfig()
 }
 
 
-bool ModuleManager::checkConfig()
+bool ModuleManager::saveConfig()
 // ----------------------------------------------------------------------------
-//   Check current list of modules against filesystem
+//   Save all modules into user's configuration
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(modules)
-        debug() << "Validating current module configuration\n";
-
-    unsigned total = 0, invalid = 0, removed = 0, disabled = 0;
+    bool ok = true;
     foreach (ModuleInfoPrivate m, modules)
-    {
-        total++;
-        ModuleInfoPrivate d = readModule(+m.path);
-        if (d.id != m.id)
-        {
-            invalid++;
-            IFTRACE(modules)
-                debug() << "Module '" << m.toText() << "' not found on disk "
-                           "or invalid or ID mismatch\n";
-            if (askRemove(m, tr("Module is not found or invalid")))
-            {
-                if (removeFromConfig(m))
-                    removed++;
-            }
-        }
-        else
-        {
-            modules[+m.id].copyPublicProperties(d);
-            if (!m.enabled)
-                disabled++;
-        }
-    }
-
-    IFTRACE(modules)
-    {
-        QString msg;
-        msg = QString("Modules checked - %1/%2(%3)/%4 "
-                      "total/invalid(removed)/disabled\n")
-              .arg(total).arg(invalid).arg(removed).arg(disabled);
-        debug() << +msg;
-    }
-    return true;
+        ok &= addToConfig(m);
+    return ok;
 }
 
 
@@ -331,7 +294,7 @@ bool ModuleManager::addToConfig(const ModuleInfoPrivate &m)
     QSettings settings;
     settings.beginGroup(USER_MODULES_SETTING_GROUP);
     settings.beginGroup(+m.id);
-    settings.setValue("Path", +m.path);
+    settings.setValue("Name", +m.name);
     settings.setValue("Enabled", m.enabled);
     settings.endGroup();
     settings.endGroup();
@@ -468,12 +431,14 @@ QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
 // ----------------------------------------------------------------------------
 //   Return the modules under path that are not in the user's configuration
 // ----------------------------------------------------------------------------
+//   For already configured modules, update path and all properties
 {
     QList<ModuleManager::ModuleInfoPrivate> mods;
 
     IFTRACE(modules)
-        debug() << "Checking for new modules in " << +path << "\n";
+        debug() << "Checking for modules in " << +path << "\n";
 
+    int known = 0, disabled = 0;
     QDir dir(path);
     if (dir.isReadable())
     {
@@ -497,8 +462,8 @@ QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
                 }
                 else
                 {
-                    ModuleInfoPrivate existing = modules[+m.id];
-                    if (m.path != existing.path)
+                    ModuleInfoPrivate & existing = modules[+m.id];
+                    if (existing.path != "")
                     {
                         IFTRACE(modules)
                         {
@@ -508,13 +473,22 @@ QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
                         }
                         warnDuplicateModule(m);
                     }
+                    else
+                    {
+                        existing.path = m.path;
+                        known ++;
+                        existing.copyPublicProperties(m);
+                        if (!m.enabled)
+                            disabled ++;
+                    }
                 }
             }
         }
     }
 
     IFTRACE(modules)
-        debug() << mods.size() << " new module(s) found\n";
+        debug() << known << " known modules and "
+                << mods.size() << " new module(s) found\n";
 
     return mods;
 }
@@ -928,7 +902,7 @@ void ModuleManager::debugPrintShort(const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 {
     debug() << "  ID:         " <<  m.id << "\n";
-    debug() << "  Path:       " <<  m.path << "\n";
+    debug() << "  Name:       " <<  m.name << "\n";
     debug() << "  Enabled:    " <<  m.enabled << "\n";
     debug() << "  ------------------------------------------------\n";
 }

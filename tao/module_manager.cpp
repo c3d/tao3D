@@ -30,6 +30,10 @@
 #include "runtime.h"
 #include "repository.h"
 #include <QSettings>
+#ifdef Q_OS_MACX
+#include <unistd.h> // for chdir(), fchdir()
+#include <fcntl.h>  // for open(), O_RDONLY
+#endif
 
 namespace Tao {
 
@@ -669,6 +673,63 @@ bool ModuleManager::loadXL(Context */*context*/, const ModuleInfoPrivate &/*m*/)
 }
 
 
+struct AddToLibPath
+{
+    AddToLibPath(QString path)
+        : oldLibPath(NULL)
+    {
+#define VARNAME "LD_LIBRARY_PATH"
+        if (char * p = getenv(VARNAME))
+        {
+            oldLibPath = p;
+            newLibPath = QString("%1:%2").arg(path).arg(QString(oldLibPath));
+        }
+        else
+        {
+            newLibPath = path;
+        }
+        setenv(VARNAME, newLibPath.toStdString().c_str(), 1);
+    }
+    ~AddToLibPath()
+    {
+        if (oldLibPath)
+            setenv(VARNAME, oldLibPath, 1);
+        else
+            unsetenv(VARNAME);
+    }
+
+    char *  oldLibPath;
+    QString newLibPath;
+};
+
+
+#ifdef Q_OS_MACX
+struct SetCwd
+// ----------------------------------------------------------------------------
+//   Temporarily change current directory
+// ----------------------------------------------------------------------------
+{
+    SetCwd(QString path)
+    {
+        IFTRACE(modules)
+        {
+            ModuleManager::debug() << "    Changing current directory to: "
+                                   << +path << "\n";
+        }
+        saved = open(".", O_RDONLY);
+        chdir(path.toStdString().c_str());
+    }
+    ~SetCwd()
+    {
+        IFTRACE(modules)
+            ModuleManager::debug() << "Restoring current directory\n";
+        fchdir(saved); close(saved);
+    }
+
+    int saved;
+};
+#endif
+
 bool ModuleManager::loadNative(Context * /*context*/, const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 //   Load the native code of a module (shared libraries under lib/)
@@ -679,10 +740,14 @@ bool ModuleManager::loadNative(Context * /*context*/, const ModuleInfoPrivate &m
 
     ModuleInfoPrivate * m_p = moduleById(m.id);
     bool ok = false;
+    QString libdir(+m.path + "/lib");
 #ifdef CONFIG_MINGW
-    QString path(+m.path + "/lib/module");
+    QString path(libdir + "/module");
 #else
-    QString path(+m.path + "/lib/libmodule");
+    QString path(libdir + "/libmodule");
+#endif
+#ifdef Q_OS_MACX
+    SetCwd cd(libdir);
 #endif
     QLibrary * lib = new QLibrary(path, this);
     if (lib->load())

@@ -397,6 +397,7 @@ private:
     bool                unloadXL(Context *, const ModuleInfoPrivate &m);
     bool                unloadNative(Context *, const ModuleInfoPrivate &m);
 
+    static
     std::ostream &      debug();
     void                debugPrint(const ModuleInfoPrivate &m);
     void                debugPrintShort(const ModuleInfoPrivate &m);
@@ -417,6 +418,9 @@ private:
 friend class CheckForUpdate;
 friend class CheckAllForUpdate;
 friend class UpdateModule;
+#ifdef Q_OS_MACX
+friend class SetCwd;
+#endif
 
 #   define USER_MODULES_SETTING_GROUP "Modules"
 };

@@ -7327,6 +7327,28 @@ Tree_p Widget::checkout(Tree_p self, text what)
 }
 
 
+Tree_p Widget::closeCurrentDocument(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Close the current document window
+// ----------------------------------------------------------------------------
+{
+    Window *window = (Window *) current->parentWidget();
+    if (window->close())
+        return XL::xl_true;
+    return XL::xl_false;
+}
+
+
+Tree_p Widget::quitTao(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Quit the application
+// ----------------------------------------------------------------------------
+{
+    TaoApp->quit();
+    return XL::xl_true;
+}
+
+
 // ============================================================================
 //
 //    Error management

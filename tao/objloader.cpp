@@ -40,7 +40,7 @@ Object3D::Object3D(kstring name)
 // ----------------------------------------------------------------------------
 //   Initialize an object. If a name is given, load the file
 // ----------------------------------------------------------------------------
-    : listID(0)
+    : listID(0), useCallList(false)
 {
     if (name)
         Load(name);
@@ -272,81 +272,16 @@ void Object3D::Load(kstring name)
     } // While loop
 
 
-    // Now create a display list with the object data
-    Faces::iterator f;
-    Faces::iterator fe = faces.end();
-    uint nv = vertices.size();
-    uint nn = normals.size();
-    uint nt = texCoords.size();
-    uint m_id, prev_id = (uint)-1;
-
-    listID = glGenLists(1);
-    glNewList(listID, GL_COMPILE);
-
-    for (f = faces.begin(); f != fe; f++)
+    if (useCallList)
     {
-        Face &face = *f;
+        // Now create a display list with the object data
+        listID = glGenLists(1);
+        glNewList(listID, GL_COMPILE);
 
-        std::vector<uint>::iterator v = face.vertex.begin();
-        std::vector<uint>::iterator t = face.texCoord.begin();
-        std::vector<uint>::iterator n = face.normal.begin();
+        DrawDirect();
 
-        std::vector<uint>::iterator ve = face.vertex.end();
-        std::vector<uint>::iterator te = face.texCoord.end();
-        std::vector<uint>::iterator ne = face.normal.end();
-        
-        v = face.vertex.begin();
-        t = face.texCoord.begin();
-        n = face.normal.begin();
-        m_id = face.materialId;
-
-        GLuint mode = GL_POLYGON;
-        switch (face.vertex.size())
-        {
-        case 1: mode = GL_POINTS; break;
-        case 2: mode = GL_LINES; break;
-        case 3: mode = GL_TRIANGLES; break;
-        case 4: mode = GL_QUADS; break;
-        }
-
-        glBegin(mode);
-
-        if (m_id != (uint)-1 && m_id != prev_id)
-        {
-            prev_id = m_id;
-            Material & m = materials[m_id];
-
-            GLfloat amb[4] = { m.ambient.x, m.ambient.y, m.ambient.z, m.alpha };
-            glMaterialfv(GL_FRONT, GL_AMBIENT, &amb[0]);
-
-            GLfloat diff[4] = { m.diffuse.x,m.diffuse.y,m.diffuse.z,m.alpha };
-            glMaterialfv(GL_FRONT, GL_DIFFUSE, &diff[0]);
-
-            GLfloat spec[4] = { m.specular.x,m.specular.y,m.specular.z,m.alpha};
-            glMaterialfv(GL_FRONT, GL_SPECULAR, &spec[0]);
-
-            if (m.shininess != 0.0)
-                glMaterialf(GL_FRONT, GL_SHININESS, m.shininess/100.0);
-        }
-
-        while(v != ve)
-        {
-            if (t != te)
-                if (uint it = *t++)
-                    if (it <= nt)
-                        glTexCoord3dv(&texCoords[it-1].x);
-            if (n != ne)
-                if (uint in = *n++)
-                    if (in <= nn)
-                        glNormal3dv(&normals[in-1].x);
-            if (uint iv = *v++)
-                if (iv <= nv)
-                    glVertex3dv(&vertices[iv-1].x);
-        }
-
-        glEnd();
+        glEndList();
     }
-    glEndList();
 
     setlocale(LC_NUMERIC, oldlocale);
     free(buffer);
@@ -534,8 +469,87 @@ void Object3D::Draw(Layout *where,
     glPushMatrix();
     glTranslatef(ox, oy, oz);
     glScalef(sx, sy, sz);
-    glCallList(listID);
+    if (useCallList)
+        glCallList(listID);
+    else
+        DrawDirect();
     glPopMatrix();
+}
+
+
+void Object3D::DrawDirect()
+// ----------------------------------------------------------------------------
+//   Draw object, direct GL calls
+// ----------------------------------------------------------------------------
+{
+    Faces::iterator f, fe = faces.end();
+    uint nv = vertices.size();
+    uint nn = normals.size();
+    uint nt = texCoords.size();
+    uint prev_id = (uint)-1;
+
+    for (f = faces.begin(); f != fe; f++)
+    {
+        Face &face = *f;
+
+        std::vector<uint>::iterator
+            v = face.vertex.begin(),
+            t = face.texCoord.begin(),
+            n = face.normal.begin(),
+
+            ve = face.vertex.end(),
+            te = face.texCoord.end(),
+            ne = face.normal.end();
+
+        uint m_id = face.materialId;
+
+        GLuint mode = GL_POLYGON;
+        switch (face.vertex.size())
+        {
+        case 1: mode = GL_POINTS; break;
+        case 2: mode = GL_LINES; break;
+        case 3: mode = GL_TRIANGLES; break;
+        case 4: mode = GL_QUADS; break;
+        }
+
+        glBegin(mode);
+
+        if (m_id != (uint)-1 && m_id != prev_id)
+        {
+            prev_id = m_id;
+            Material & m = materials[m_id];
+            GLfloat a = m.alpha;
+
+            GLfloat amb[4] = { m.ambient.x, m.ambient.y, m.ambient.z, a };
+            glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, &amb[0]);
+
+            GLfloat diff[4] = { m.diffuse.x, m.diffuse.y, m.diffuse.z, a };
+            glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, &diff[0]);
+
+            GLfloat spec[4] = { m.specular.x, m.specular.y, m.specular.z, a };
+            glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, &spec[0]);
+
+            if (m.shininess != 0.0)
+                glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, m.shininess/100.0);
+        }
+
+        while(v != ve)
+        {
+            if (t != te)
+                if (uint it = *t++)
+                    if (it <= nt)
+                        glTexCoord3dv(&texCoords[it-1].x);
+            if (n != ne)
+                if (uint in = *n++)
+                    if (in <= nn)
+                        glNormal3dv(&normals[in-1].x);
+            if (uint iv = *v++)
+                if (iv <= nv)
+                    glVertex3dv(&vertices[iv-1].x);
+        }
+
+        glEnd();
+    }
 }
 
 

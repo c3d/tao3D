@@ -54,6 +54,7 @@ protected:
     // Load a material library
     void LoadMtl(text name);
     uint MaterialId(text name);
+    void DrawDirect();
 
 public:
     // Types
@@ -92,6 +93,7 @@ public:
     Materials   materials;
     Box3        bounds;
     uint        listID;
+    bool        useCallList;
 };
 
 

@@ -482,21 +482,26 @@ void Object3D::DrawDirect()
 //   Draw object, direct GL calls
 // ----------------------------------------------------------------------------
 {
-    Faces::iterator             f;
-    std::vector<uint>::iterator v, t, n;
+    Faces::iterator f, fe = faces.end();
     uint nv = vertices.size();
     uint nn = normals.size();
     uint nt = texCoords.size();
-    uint m_id, prev_id = (uint)-1;
+    uint prev_id = (uint)-1;
 
-    for (f = faces.begin(); f != faces.end(); f++)
+    for (f = faces.begin(); f != fe; f++)
     {
         Face &face = *f;
 
-        v = face.vertex.begin();
-        t = face.texCoord.begin();
-        n = face.normal.begin();
-        m_id = face.materialId;
+        std::vector<uint>::iterator
+            v = face.vertex.begin(),
+            t = face.texCoord.begin(),
+            n = face.normal.begin(),
+
+            ve = face.vertex.end(),
+            te = face.texCoord.end(),
+            ne = face.normal.end();
+
+        uint m_id = face.materialId;
 
         GLuint mode = GL_POLYGON;
         switch (face.vertex.size())
@@ -513,27 +518,28 @@ void Object3D::DrawDirect()
         {
             prev_id = m_id;
             Material & m = materials[m_id];
+            GLfloat a = m.alpha;
 
-            GLfloat amb[4] = { m.ambient.x, m.ambient.y, m.ambient.z, m.alpha };
+            GLfloat amb[4] = { m.ambient.x, m.ambient.y, m.ambient.z, a };
             glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, &amb[0]);
 
-            GLfloat diff[4] = { m.diffuse.x, m.diffuse.y, m.diffuse.z, m.alpha };
+            GLfloat diff[4] = { m.diffuse.x, m.diffuse.y, m.diffuse.z, a };
             glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, &diff[0]);
 
-            GLfloat spec[4] = { m.specular.x, m.specular.y, m.specular.z, m.alpha };
+            GLfloat spec[4] = { m.specular.x, m.specular.y, m.specular.z, a };
             glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, &spec[0]);
 
             if (m.shininess != 0.0)
                 glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, m.shininess/100.0);
         }
 
-        while(v != face.vertex.end())
+        while(v != ve)
         {
-            if (t != face.texCoord.end())
+            if (t != te)
                 if (uint it = *t++)
                     if (it <= nt)
                         glTexCoord3dv(&texCoords[it-1].x);
-            if (n != face.normal.end())
+            if (n != ne)
                 if (uint in = *n++)
                     if (in <= nn)
                         glNormal3dv(&normals[in-1].x);

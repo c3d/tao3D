@@ -30,7 +30,7 @@ text ExtractDoc::extract(XL::CommentsList commentList)
 {
     bool inDoc = false;
     text theComment = "";
-    for ( uint i = 0; i < commentList.size(); i++)
+    for (uint i = 0; i < commentList.size(); i++)
     {
         if (commentList[i].find("/*|") == 0)
         {

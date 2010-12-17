@@ -375,44 +375,39 @@ void Chooser::AddCommands(Context *ctx, text prefix, text label)
 // ----------------------------------------------------------------------------
 {
     // Add all the commands that begin with the prefix in the current context
-    while (ctx)
+    rewrite_list list;
+    ctx->ListNames(prefix, list);
+    
+    // Loop over all rewrites that match
+    uint first = prefix.length();
+    rewrite_list::iterator i;
+    for (i = list.begin(); i != list.end(); i++)
     {
-        rewrite_list list;
-        ctx->ListNames(prefix, list);
-
-        // Loop over all rewrites that match
-        uint first = prefix.length();
-        rewrite_list::iterator i;
-        for (i = list.begin(); i != list.end(); i++)
+        Rewrite *rw = *i;
+        Name *name = rw->from->AsName();
+        text symname = name->value;
+        text caption = "";
+        kstring data = symname.data();
+        uint c, maxc = symname.length();
+        for (c = first; c < maxc; c = Utf8Next(data, c))
         {
-            Rewrite *rw = *i;
-            Name *name = rw->from->AsName();
-            text symname = name->value;
-            text caption = "";
-            kstring data = symname.data();
-            uint c, maxc = symname.length();
-            for (c = first; c < maxc; c = Utf8Next(data, c))
+            wchar_t wc;
+            char wcbuf[MB_LEN_MAX];
+            if (mbtowc(&wc, data + c, maxc - c) > 0)
             {
-                wchar_t wc;
-                char wcbuf[MB_LEN_MAX];
-                if (mbtowc(&wc, data + c, maxc - c) > 0)
-                {
-                    if (wc == '_')
-                        wc = ' ';
-                    else if (c == first && label.length() > 0)
-                        wc = towupper(wc);
-                }
-                int sz = wctomb(wcbuf, wc);
-                if (sz > 0)
-                    caption.insert(caption.end(), wcbuf, wcbuf + sz);
+                if (wc == '_')
+                    wc = ' ';
+                else if (c == first && label.length() > 0)
+                    wc = towupper(wc);
             }
-
-            // Create a closure from the resulting commands to remember context
-            Tree *command = ctx->CreateCode(rw->to);
-            AddItem(label + caption, command);
+            int sz = wctomb(wcbuf, wc);
+            if (sz > 0)
+                caption.insert(caption.end(), wcbuf, wcbuf + sz);
         }
-
-        ctx = ctx->scope;
+        
+        // Create a closure from the resulting commands to remember context
+        Tree *command = ctx->CreateCode(rw->to);
+        AddItem(label + caption, command);
     }
 }
 

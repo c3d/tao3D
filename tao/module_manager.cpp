@@ -30,6 +30,10 @@
 #include "runtime.h"
 #include "repository.h"
 #include <QSettings>
+#ifdef Q_OS_MACX
+#include <unistd.h> // for chdir(), fchdir()
+#include <fcntl.h>  // for open(), O_RDONLY
+#endif
 
 namespace Tao {
 
@@ -170,9 +174,6 @@ bool ModuleManager::init()
     if (!loadConfig())
         return false;
 
-    if (!checkConfig())
-        return false;
-
     if (!checkNew())
         return false;
 
@@ -210,17 +211,15 @@ bool ModuleManager::initPaths()
 
 bool ModuleManager::loadConfig()
 // ----------------------------------------------------------------------------
-//   Read list of configured modules paths from user settings
+//   Read list of configured modules from user settings
 // ----------------------------------------------------------------------------
 {
     // The module settings are stored as child groups under the Modules main
     // group.
     //
     // Modules/<ID1>/Name = "Some module name"
-    // Modules/<ID1>/Path = "/some/path"
     // Modules/<ID1>/Enabled = true
     // Modules/<ID2>/Name = "Other module name"
-    // Modules/<ID2>/Path = "/other/path"
     // Modules/<ID2>/Enabled = false
 
     IFTRACE(modules)
@@ -233,10 +232,11 @@ bool ModuleManager::loadConfig()
     {
         settings.beginGroup(id);
 
-        QString path    = settings.value("Path").toString();
+        QString name    = settings.value("Name").toString();
         bool    enabled = settings.value("Enabled").toBool();
 
-        ModuleInfoPrivate m(+id, +path, enabled);
+        ModuleInfoPrivate m(+id, "", enabled);
+        m.name = +name;
         modules[id] = m;
 
         IFTRACE(modules)
@@ -251,48 +251,15 @@ bool ModuleManager::loadConfig()
 }
 
 
-bool ModuleManager::checkConfig()
+bool ModuleManager::saveConfig()
 // ----------------------------------------------------------------------------
-//   Check current list of modules against filesystem
+//   Save all modules into user's configuration
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(modules)
-        debug() << "Validating current module configuration\n";
-
-    unsigned total = 0, invalid = 0, removed = 0, disabled = 0;
+    bool ok = true;
     foreach (ModuleInfoPrivate m, modules)
-    {
-        total++;
-        ModuleInfoPrivate d = readModule(+m.path);
-        if (d.id != m.id)
-        {
-            invalid++;
-            IFTRACE(modules)
-                debug() << "Module '" << m.toText() << "' not found on disk "
-                           "or invalid or ID mismatch\n";
-            if (askRemove(m, tr("Module is not found or invalid")))
-            {
-                if (removeFromConfig(m))
-                    removed++;
-            }
-        }
-        else
-        {
-            modules[+m.id].copyPublicProperties(d);
-            if (!m.enabled)
-                disabled++;
-        }
-    }
-
-    IFTRACE(modules)
-    {
-        QString msg;
-        msg = QString("Modules checked - %1/%2(%3)/%4 "
-                      "total/invalid(removed)/disabled\n")
-              .arg(total).arg(invalid).arg(removed).arg(disabled);
-        debug() << +msg;
-    }
-    return true;
+        ok &= addToConfig(m);
+    return ok;
 }
 
 
@@ -331,7 +298,7 @@ bool ModuleManager::addToConfig(const ModuleInfoPrivate &m)
     QSettings settings;
     settings.beginGroup(USER_MODULES_SETTING_GROUP);
     settings.beginGroup(+m.id);
-    settings.setValue("Path", +m.path);
+    settings.setValue("Name", +m.name);
     settings.setValue("Enabled", m.enabled);
     settings.endGroup();
     settings.endGroup();
@@ -468,12 +435,14 @@ QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
 // ----------------------------------------------------------------------------
 //   Return the modules under path that are not in the user's configuration
 // ----------------------------------------------------------------------------
+//   For already configured modules, update path and all properties
 {
     QList<ModuleManager::ModuleInfoPrivate> mods;
 
     IFTRACE(modules)
-        debug() << "Checking for new modules in " << +path << "\n";
+        debug() << "Checking for modules in " << +path << "\n";
 
+    int known = 0, disabled = 0;
     QDir dir(path);
     if (dir.isReadable())
     {
@@ -497,8 +466,8 @@ QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
                 }
                 else
                 {
-                    ModuleInfoPrivate existing = modules[+m.id];
-                    if (m.path != existing.path)
+                    ModuleInfoPrivate & existing = modules[+m.id];
+                    if (existing.path != "")
                     {
                         IFTRACE(modules)
                         {
@@ -508,13 +477,22 @@ QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
                         }
                         warnDuplicateModule(m);
                     }
+                    else
+                    {
+                        existing.path = m.path;
+                        known ++;
+                        existing.copyPublicProperties(m);
+                        if (!m.enabled)
+                            disabled ++;
+                    }
                 }
             }
         }
     }
 
     IFTRACE(modules)
-        debug() << mods.size() << " new module(s) found\n";
+        debug() << known << " known modules and "
+                << mods.size() << " new module(s) found\n";
 
     return mods;
 }
@@ -695,6 +673,63 @@ bool ModuleManager::loadXL(Context */*context*/, const ModuleInfoPrivate &/*m*/)
 }
 
 
+struct AddToLibPath
+{
+    AddToLibPath(QString path)
+        : oldLibPath(NULL)
+    {
+#define VARNAME "LD_LIBRARY_PATH"
+        if (char * p = getenv(VARNAME))
+        {
+            oldLibPath = p;
+            newLibPath = QString("%1:%2").arg(path).arg(QString(oldLibPath));
+        }
+        else
+        {
+            newLibPath = path;
+        }
+        setenv(VARNAME, newLibPath.toStdString().c_str(), 1);
+    }
+    ~AddToLibPath()
+    {
+        if (oldLibPath)
+            setenv(VARNAME, oldLibPath, 1);
+        else
+            unsetenv(VARNAME);
+    }
+
+    char *  oldLibPath;
+    QString newLibPath;
+};
+
+
+#ifdef Q_OS_MACX
+struct SetCwd
+// ----------------------------------------------------------------------------
+//   Temporarily change current directory
+// ----------------------------------------------------------------------------
+{
+    SetCwd(QString path)
+    {
+        IFTRACE(modules)
+        {
+            ModuleManager::debug() << "    Changing current directory to: "
+                                   << +path << "\n";
+        }
+        saved = open(".", O_RDONLY);
+        chdir(path.toStdString().c_str());
+    }
+    ~SetCwd()
+    {
+        IFTRACE(modules)
+            ModuleManager::debug() << "Restoring current directory\n";
+        fchdir(saved); close(saved);
+    }
+
+    int saved;
+};
+#endif
+
 bool ModuleManager::loadNative(Context * /*context*/, const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 //   Load the native code of a module (shared libraries under lib/)
@@ -705,10 +740,14 @@ bool ModuleManager::loadNative(Context * /*context*/, const ModuleInfoPrivate &m
 
     ModuleInfoPrivate * m_p = moduleById(m.id);
     bool ok = false;
+    QString libdir(+m.path + "/lib");
 #ifdef CONFIG_MINGW
-    QString path(+m.path + "/lib/module");
+    QString path(libdir + "/module");
 #else
-    QString path(+m.path + "/lib/libmodule");
+    QString path(libdir + "/libmodule");
+#endif
+#ifdef Q_OS_MACX
+    SetCwd cd(libdir);
 #endif
     QLibrary * lib = new QLibrary(path, this);
     if (lib->load())
@@ -928,7 +967,7 @@ void ModuleManager::debugPrintShort(const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 {
     debug() << "  ID:         " <<  m.id << "\n";
-    debug() << "  Path:       " <<  m.path << "\n";
+    debug() << "  Name:       " <<  m.name << "\n";
     debug() << "  Enabled:    " <<  m.enabled << "\n";
     debug() << "  ------------------------------------------------\n";
 }

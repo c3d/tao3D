@@ -278,7 +278,7 @@ public:
     // ------------------------------------------------------------------------
     {
         ModuleInfoPrivate() : ModuleInfo() {}
-        ModuleInfoPrivate(text id, text path, bool enabled = false)
+        ModuleInfoPrivate(text id, text path = "", bool enabled = false)
             : ModuleInfo(id, path), enabled(enabled), loaded(false),
               updateAvailable(false), hasNative(false), native(NULL),
               context(NULL)
@@ -314,6 +314,7 @@ public:
     QList<ModuleInfoPrivate>   allModules();
     void                setEnabled(QString id, bool enabled);
     bool                enabled() { return XL::MAIN->options.enable_modules; }
+    bool                saveConfig();
 
     virtual bool        askRemove(const ModuleInfoPrivate &m,
                                   QString reason = "");
@@ -374,7 +375,6 @@ private:
     bool                initPaths();
 
     bool                loadConfig();
-    bool                checkConfig();
     bool                removeFromConfig(const ModuleInfoPrivate &m);
     bool                addToConfig(const ModuleInfoPrivate &m);
 
@@ -397,6 +397,7 @@ private:
     bool                unloadXL(Context *, const ModuleInfoPrivate &m);
     bool                unloadNative(Context *, const ModuleInfoPrivate &m);
 
+    static
     std::ostream &      debug();
     void                debugPrint(const ModuleInfoPrivate &m);
     void                debugPrintShort(const ModuleInfoPrivate &m);
@@ -417,6 +418,9 @@ private:
 friend class CheckForUpdate;
 friend class CheckAllForUpdate;
 friend class UpdateModule;
+#ifdef Q_OS_MACX
+friend class SetCwd;
+#endif
 
 #   define USER_MODULES_SETTING_GROUP "Modules"
 };

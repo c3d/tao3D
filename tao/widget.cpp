@@ -2609,7 +2609,7 @@ void Widget::refreshProgram()
     {
         import_set::iterator it;
         bool needBigHammer = false;
-        bool loadError     = false;
+        bool needRefresh   = false;
         for (it = iset.begin(); it != iset.end(); it++)
         {
             XL::SourceFile &sf = **it;
@@ -2654,9 +2654,10 @@ void Widget::refreshProgram()
                     ApplyChanges changes(replacement);
                     if (!sf.tree->Do(changes))
                         needBigHammer = true;
-
-                    if (fname == xlProgram->name)
+                    else if (fname == xlProgram->name)
                         updateProgramSource();
+
+                    needRefresh = true;
 
                     IFTRACE(filesync)
                     {
@@ -2665,11 +2666,8 @@ void Widget::refreshProgram()
                         else
                             std::cerr << "Surgical replacement worked\n";
                     }
-                } // Replacement checked
 
-                // If a file was modified, we need to refresh the screen
-                TaoSave saveCurrent(current, this);
-                refreshNow();
+                } // Replacement checked
 
             } // If file modified
         } // For all files
@@ -2677,18 +2675,20 @@ void Widget::refreshProgram()
         // If we were not successful with simple changes, reload everything...
         if (needBigHammer)
         {
-            if (!loadError)
+            for (it = iset.begin(); it != iset.end(); it++)
             {
-                for (it = iset.begin(); it != iset.end(); it++)
-                {
-                    XL::SourceFile &sf = **it;
-                    XL::LocalSave<XL::Context_p> save(XL::MAIN->context,
-                                                      sf.context->scope);
-                    XL::MAIN->LoadFile(sf.name);
-                    inError = false;
-                }
-                updateProgramSource();
+                XL::SourceFile &sf = **it;
+                XL::LocalSave<XL::Context_p> save(XL::MAIN->context,
+                                                  sf.context->scope);
+                XL::MAIN->LoadFile(sf.name);
+                inError = false;
             }
+            updateProgramSource();
+            needRefresh = true;
+        }
+        if (needRefresh)
+        {
+            // If a file was modified, we need to refresh the screen
             TaoSave saveCurrent(current, this);
             refreshNow();
         }

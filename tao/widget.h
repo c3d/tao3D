@@ -621,6 +621,8 @@ public:
     Tree_p      chooserBranches(Tree_p self, Name_p prefix, text label);
     Tree_p      chooserCommits(Tree_p self, text branch, Name_p prefix, text label);
     Tree_p      checkout(Tree_p self, text what);
+    Tree_p      closeCurrentDocument(Tree_p self);
+    Tree_p      quitTao(Tree_p self);
 
     static Tree_p runtimeError(Tree_p self, text msg, Tree_p src);
     static Tree_p formulaRuntimeError(Tree_p self, text msg, Tree_p src);

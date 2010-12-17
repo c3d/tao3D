@@ -418,9 +418,7 @@ private:
 friend class CheckForUpdate;
 friend class CheckAllForUpdate;
 friend class UpdateModule;
-#ifdef Q_OS_MACX
 friend class SetCwd;
-#endif
 
 #   define USER_MODULES_SETTING_GROUP "Modules"
 };

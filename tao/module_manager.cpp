@@ -30,10 +30,9 @@
 #include "runtime.h"
 #include "repository.h"
 #include <QSettings>
-#ifdef Q_OS_MACX
-#include <unistd.h> // for chdir(), fchdir()
-#include <fcntl.h>  // for open(), O_RDONLY
-#endif
+
+#include <unistd.h>    // For chdir()
+#include <sys/param.h> // For MAXPATHLEN
 
 namespace Tao {
 
@@ -673,37 +672,6 @@ bool ModuleManager::loadXL(Context */*context*/, const ModuleInfoPrivate &/*m*/)
 }
 
 
-struct AddToLibPath
-{
-    AddToLibPath(QString path)
-        : oldLibPath(NULL)
-    {
-#define VARNAME "LD_LIBRARY_PATH"
-        if (char * p = getenv(VARNAME))
-        {
-            oldLibPath = p;
-            newLibPath = QString("%1:%2").arg(path).arg(QString(oldLibPath));
-        }
-        else
-        {
-            newLibPath = path;
-        }
-        setenv(VARNAME, newLibPath.toStdString().c_str(), 1);
-    }
-    ~AddToLibPath()
-    {
-        if (oldLibPath)
-            setenv(VARNAME, oldLibPath, 1);
-        else
-            unsetenv(VARNAME);
-    }
-
-    char *  oldLibPath;
-    QString newLibPath;
-};
-
-
-#ifdef Q_OS_MACX
 struct SetCwd
 // ----------------------------------------------------------------------------
 //   Temporarily change current directory
@@ -716,19 +684,20 @@ struct SetCwd
             ModuleManager::debug() << "    Changing current directory to: "
                                    << +path << "\n";
         }
-        saved = open(".", O_RDONLY);
+        getcwd(wd, sizeof(wd));
         chdir(path.toStdString().c_str());
     }
     ~SetCwd()
     {
         IFTRACE(modules)
             ModuleManager::debug() << "Restoring current directory\n";
-        fchdir(saved); close(saved);
+        chdir(wd);
     }
 
-    int saved;
+    char wd[MAXPATHLEN];
 };
-#endif
+
+
 
 bool ModuleManager::loadNative(Context * /*context*/, const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
@@ -746,9 +715,8 @@ bool ModuleManager::loadNative(Context * /*context*/, const ModuleInfoPrivate &m
 #else
     QString path(libdir + "/libmodule");
 #endif
-#ifdef Q_OS_MACX
+    // Change current directory, just the time to load any module dependency
     SetCwd cd(libdir);
-#endif
     QLibrary * lib = new QLibrary(path, this);
     if (lib->load())
     {

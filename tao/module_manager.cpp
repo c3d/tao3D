@@ -102,18 +102,23 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context, XL::Tree_p self,
 
     if (m_n != "" && m_v != "")
     {
-        bool found = false, name_found = false;
+        bool found = false, name_found = false, version_found = false;
+        bool enabled_found = false;
         text inst_v;
         foreach (ModuleInfoPrivate m, modules)
         {
-            if (!m.enabled)
-                continue;
             if (m_n == m.importName)
             {
                 name_found = true;
                 inst_v = m.ver;
                 if (Repository::versionMatches(+m.ver, +m_v))
                 {
+                    version_found = true;
+                    if (!m.enabled)
+                        continue;
+                    enabled_found = true;
+                    if (m.hasNative && !m.native)
+                        continue;
                     found = true;
                     QString xlPath = QDir(+m.path).filePath("module.xl");
 
@@ -138,12 +143,30 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context, XL::Tree_p self,
         if (!found)
         {
             if (name_found)
-                err = XL::Ooops("Installed module $1 version $2 does not "
-                                "match requested version $3", name,
-                                new XL::Text(inst_v, "", ""),
-                                new XL::Text(m_v, "", ""));
+            {
+                if (version_found)
+                {
+                    if (enabled_found)
+                    {
+                        err = XL::Ooops("Module $1 load error", name);
+                    }
+                    else
+                    {
+                        err = XL::Ooops("Module $1 is disabled", name);
+                    }
+                }
+                else
+                {
+                    err = XL::Ooops("Installed module $1 version $2 does not "
+                                    "match requested version $3", name,
+                                    new XL::Text(inst_v, "", ""),
+                                    new XL::Text(m_v, "", ""));
+                }
+            }
             else
-                err = XL::Ooops("Module $1 not found or disabled", name);
+            {
+                err = XL::Ooops("Module $1 not found", name);
+            }
         }
     }
     else
@@ -690,7 +713,8 @@ struct SetCwd
     ~SetCwd()
     {
         IFTRACE(modules)
-            ModuleManager::debug() << "Restoring current directory\n";
+            ModuleManager::debug() << "    Restoring current directory: "
+                                   << wd << "\n";
         chdir(wd);
     }
 
@@ -708,56 +732,68 @@ bool ModuleManager::loadNative(Context * /*context*/, const ModuleInfoPrivate &m
         debug() << "  Looking for native library\n";
 
     ModuleInfoPrivate * m_p = moduleById(m.id);
-    bool ok = false;
+    Q_ASSERT(m_p);
+    bool ok;
     QString libdir(+m.path + "/lib");
-#ifdef CONFIG_MINGW
-    QString path(libdir + "/module");
+#if   defined(CONFIG_MINGW)
+    QString path(libdir + "/module.dll");
+#elif defined(CONFIG_MACOSX)
+    QString path(libdir + "/libmodule.dylib");
+#elif defined(CONFIG_LINUX)
+    QString path(libdir + "/libmodule.so");
 #else
-    QString path(libdir + "/libmodule");
+#error Unknown OS - please define library name
 #endif
-    // Change current directory, just the time to load any module dependency
-    SetCwd cd(libdir);
-    QLibrary * lib = new QLibrary(path, this);
-    if (lib->load())
+    m_p->hasNative = QFile(path).exists();
+
+    if (m_p->hasNative)
     {
-        path = lib->fileName();
-        IFTRACE(modules)
-            debug() << "    Loaded: " << +path << "\n";
-        if (m_p)
-            m_p->hasNative = true;
-        ok = isCompatible(lib);
-        if (ok)
+        // Change current directory, just the time to load any module dependency
+        SetCwd cd(libdir);
+        QLibrary * lib = new QLibrary(path, this);
+        if (lib->load())
         {
-            enter_symbols_fn es =
-                    (enter_symbols_fn) lib->resolve("enter_symbols");
-            ok = (es != NULL);
+            path = lib->fileName();
+            IFTRACE(modules)
+                    debug() << "    Loaded: " << +path << "\n";
+            ok = isCompatible(lib);
             if (ok)
             {
-                module_init_fn mi =
-                        (module_init_fn) lib->resolve("module_init");
-                if ((mi != NULL))
+                enter_symbols_fn es =
+                        (enter_symbols_fn) lib->resolve("enter_symbols");
+                ok = (es != NULL);
+                if (ok)
                 {
-                    IFTRACE(modules)
-                            debug() << "    Calling module_init\n";
-                    mi(&api, &m);
-                }
+                    module_init_fn mi =
+                            (module_init_fn) lib->resolve("module_init");
+                    if ((mi != NULL))
+                    {
+                        IFTRACE(modules)
+                                debug() << "    Calling module_init\n";
+                        mi(&api, &m);
+                    }
 
-                IFTRACE(modules)
-                        debug() << "    Calling enter_symbols\n";
-                if (m_p)
-                    m_p->native = lib;
-                es(XL::MAIN->context);
+                    IFTRACE(modules)
+                            debug() << "    Calling enter_symbols\n";
+                    if (m_p)
+                        m_p->native = lib;
+                    es(XL::MAIN->context);
+                }
             }
+        }
+        else
+        {
+            IFTRACE(modules)
+                debug() << "    Load error: " << +lib->errorString() << "\n";
+            delete lib;
         }
     }
     else
     {
         IFTRACE(modules)
-            debug() << "    Not found or could not load\n";
+            debug() << "    Module has no native library\n";
     }
-    if (!ok)
-        delete lib;
-    return ok;
+    return (m_p->hasNative && m_p->native);
 }
 
 

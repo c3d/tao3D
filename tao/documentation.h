@@ -32,7 +32,7 @@ struct ExtractDoc : public XL::Action
 //   Extract documentation from the given tree
 // ----------------------------------------------------------------------------
 {
-    ExtractDoc() {}
+    ExtractDoc(text defGrp = "") : defaultGroup(defGrp), params_tree(0) {}
     text extract(XL::CommentsList commentList);
 
     XL::Tree *DoInteger(XL::Integer *what);
@@ -49,6 +49,14 @@ struct ExtractDoc : public XL::Action
         return what->Do(this);
     }
 
+    text formatSyntax(XL::Tree *t);
+    text formatDoc(text *c);
+    text addParam(XL::Name *name, XL::Name *ptype, text *coment);
+    text defaultGroup;
+    int params_tree;
+    text symbol;
+    text syntax;
+    text params;
 };
 
 #endif // DOCUMENTATION_H

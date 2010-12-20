@@ -8261,12 +8261,12 @@ Tree_p Widget::constant(Tree_p self, Tree_p tree)
 //
 // ============================================================================
 
-Tree_p Widget::generateDoc(Tree_p /*self*/, Tree_p tree)
+Tree_p Widget::generateDoc(Tree_p /*self*/, Tree_p tree, text defGrp)
 // ----------------------------------------------------------------------------
 //   Generate documentation for a given tree
 // ----------------------------------------------------------------------------
 {
-    ExtractDoc doc;
+    ExtractDoc doc(defGrp);
     return tree->Do(doc);
 
 }
@@ -8287,7 +8287,8 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
     {
         XL::SourceFile src = couple->second;
         if (!src.tree) continue;
-        t = generateDoc(self, src.tree);
+        QFileInfo fi(+src.name);
+        t = generateDoc(self, src.tree, +fi.baseName());
         com += t->AsText()->value;
     }
 
@@ -8298,7 +8299,7 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
     for (i = h.begin(); i != h.end(); i++)
     {
         Tree * tree = i->second->from;
-        t = generateDoc(self, tree);
+        t = generateDoc(self, tree, "glabals");
         com += t->AsText()->value;
     }
 
@@ -8308,7 +8309,7 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
     {
         Tree * tree = si->second;
         if (!tree) continue;
-        t = generateDoc(self, tree);
+        t = generateDoc(self, tree, "names");
         com += t->AsText()->value;
     }
 

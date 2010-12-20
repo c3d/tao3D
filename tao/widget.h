@@ -373,7 +373,7 @@ public:
     Tree_p      shaderFromFile(Tree_p self, ShaderKind kind, text file);
     Tree_p      shaderSet(Tree_p self, Tree_p code);
     Text_p      shaderLog(Tree_p self);
-                         
+
 
     // Generating a path
     Tree_p      newPath(Tree_p self, Tree_p t);
@@ -640,7 +640,7 @@ public:
     Name_p      ungroupSelection(Tree_p self);
 
     //Documentation
-    Tree_p generateDoc(Tree_p self, Tree_p tree);
+    Tree_p generateDoc(Tree_p self, Tree_p tree, text defGrp = "");
     Text_p generateAllDoc(Tree_p self, text filename);
 
 private:

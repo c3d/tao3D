@@ -205,8 +205,9 @@ Widget::Widget(Window *parent, SourceFile *sf)
     // Select format for source file view
     setSourceRenderer();
 
-    // Make sure we get mouse events even when no click is made
-    setMouseTracking(true);
+    // Prepare activity to process mouse events even when no click is made
+    // (but for performance reasons, mouse tracking is enabled only when program
+    // execution asks for MouseMove events)
     new MouseFocusTracker("Focus tracking", this);
 
     // Find which page overscaling to use
@@ -542,13 +543,7 @@ bool Widget::refreshNow(QEvent *event)
     elapsed(before, after);
 
     if (changed)
-    {
-        IFTRACE(layoutevents)
-            std::cerr << "Program events: "
-                      << LayoutState::ToText(refreshEvents) << "\n";
-        // Make sure refresh timer is restarted if needed
-        startRefreshTimer();
-    }
+        processProgramEvents();
 
     return changed;
 }
@@ -695,12 +690,21 @@ void Widget::runProgram()
     currentToolBar = NULL;
     currentMenuBar = ((Window*)parent())->menuBar();
 
-    // Program execution has updated the set of events that should trigger
-    // an update of the main layout, as well as the time of next refresh
-    // (if program is time-dependent)
+    processProgramEvents();
+}
+
+
+void Widget::processProgramEvents()
+// ----------------------------------------------------------------------------
+//   Process registered program events
+// ----------------------------------------------------------------------------
+{
     IFTRACE(layoutevents)
-        std::cerr << "Program events: "
-                  << LayoutState::ToText(refreshEvents) << "\n";
+            std::cerr << "Program events: "
+            << LayoutState::ToText(refreshEvents) << "\n";
+    // Trigger mouse tracking only if needed
+    setMouseTracking(refreshEvents.count(QEvent::MouseMove) != 0);
+    // Make sure refresh timer is restarted if needed
     startRefreshTimer();
 }
 

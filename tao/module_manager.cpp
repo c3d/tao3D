@@ -744,8 +744,8 @@ bool ModuleManager::loadNative(Context * /*context*/, const ModuleInfoPrivate &m
 #else
 #error Unknown OS - please define library name
 #endif
-    m_p->hasNative = QFile(path).exists();
 
+    m_p->hasNative = QFile(path).exists();
     if (m_p->hasNative)
     {
         // Change current directory, just the time to load any module dependency

@@ -29,7 +29,7 @@
 
 struct ExtractDoc : public XL::Action
 // ----------------------------------------------------------------------------
-//   Extract documentation from a tree
+//   Extract documentation from the given tree
 // ----------------------------------------------------------------------------
 {
     ExtractDoc() {}

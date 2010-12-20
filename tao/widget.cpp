@@ -555,7 +555,7 @@ void Widget::print(QPrinter *prt)
     // Set the current printer while drawing
     TaoSave saveCurrent(current, this);
     XL::LocalSave<QPrinter *> savePrinter(printer, prt);
-    XL::LocalSave<char> disableStereoscopy1(stereoPlanes, 0);
+    XL::LocalSave<char> disableStereoscopy1(stereoPlanes, 1);
     XL::LocalSave<char> disableStereoscopy2(stereoscopic, 1);
     XL::LocalSave<text> savePage(pageName, "");
 
@@ -596,7 +596,7 @@ void Widget::print(QPrinter *prt)
         XL::LocalSave<Point3> saveCenter(cameraTarget, Point3(0,0,0));
         XL::LocalSave<Point3> saveEye(cameraPosition, defaultCameraPosition);
         XL::LocalSave<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
-        XL::LocalSave<char> saveStereo1(stereoPlanes, 0);
+        XL::LocalSave<char> saveStereo1(stereoPlanes, 1);
         XL::LocalSave<char> saveStereo2(stereoscopic, 1);
         XL::LocalSave<double> saveZoom(zoom, 1);
         XL::LocalSave<double> saveScaling(scaling, scalingFactorFromCamera());
@@ -1289,8 +1289,9 @@ void Widget::setup(double w, double h, const Box *picking)
     glLoadIdentity();
 
     // Position the camera
-    double eyeX = cameraPosition.x
-                + eyeDistance * (stereoscopic - 0.5 * stereoPlanes);
+    double eyeX = cameraPosition.x;
+    if (stereoPlanes > 1)
+        eyeX += eyeDistance * (stereoscopic - 0.5 * stereoPlanes);
     gluLookAt(eyeX, cameraPosition.y, cameraPosition.z,
               cameraTarget.x, cameraTarget.y ,cameraTarget.z,
               cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
@@ -2309,7 +2310,7 @@ void Widget::refreshProgram()
 {
     Repository *repo = repository();
     Tree *prog = xlProgram->tree;
-    if (!prog || !repo || xlProgram->readOnly)
+    if (!prog || xlProgram->readOnly)
         return;
 
     // Loop on imported files
@@ -5464,11 +5465,20 @@ Tree_p Widget::object(Tree_p self,
     {
         Box3 &bounds = obj->bounds;
         if (w->value <= 0)
+        {
             w->value = bounds.Width();
+            x->value += bounds.Center().x;
+        }
         if (h->value <= 0)
+        {
             h->value = bounds.Height();
+            y->value += bounds.Center().y;
+        }
         if (d->value <= 0)
+        {
             d->value = bounds.Depth();
+            z->value += bounds.Center().z;
+        }
         markChanged ("Update object dimensions");
     }
 
@@ -6215,7 +6225,7 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
         XL::LocalSave<Point3> saveCenter(cameraTarget, Point3(0,0,0));
         XL::LocalSave<Point3> saveEye(cameraPosition, defaultCameraPosition);
         XL::LocalSave<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
-        XL::LocalSave<char> saveStereo1(stereoPlanes, 0);
+        XL::LocalSave<char> saveStereo1(stereoPlanes, 1);
         XL::LocalSave<char> saveStereo2(stereoscopic, 1);
         XL::LocalSave<double> saveZoom(zoom, 1);
         XL::LocalSave<double> saveScaling(scaling, scalingFactorFromCamera());

@@ -603,6 +603,13 @@ PREFIX(PolygonOffset,  integer,  "polygon_offset",
        SYNOPSIS("Set the polygon offset factors")
        DESCRIPTION("Set the polygon offset factors")
        RETURNS(integer, "the current polygon offset"))
+PREFIX(EnableVSync,  boolean,  "enable_vsync",
+       PARM(an, boolean, "on or off"),
+       RTAO(enableVSync(self, an)),
+       GROUP()
+       SYNOPSIS("Enable or disable VSync")
+       DESCRIPTION("Enable or disable VSynx. Enabling VSync prevents tearing, at the price of a lower framerate.")
+       RETURNS(boolean, "True if previous state was on."))
 
 
 

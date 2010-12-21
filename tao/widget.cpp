@@ -4676,6 +4676,23 @@ XL::Integer_p  Widget::polygonOffset(Tree_p self,
 }
 
 
+#if defined(Q_OS_MACX)
+#include <OpenGL.h>
+
+XL::Name_p Widget::enableVSync(Tree_p self, bool enable)
+// ----------------------------------------------------------------------------
+//   Enable or disable VSYNC (prevent tearing)
+// ----------------------------------------------------------------------------
+{
+    GLint old = 0;
+    CGLGetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &old);
+    const GLint swapInterval = enable ? 1 : 0;
+    CGLSetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &swapInterval);
+    return old ? XL::xl_true : XL::xl_false;
+}
+#endif
+
+
 static inline QColor colorByName(text name)
 // ----------------------------------------------------------------------------
 //    Return a color by name, or black if the color is invalid

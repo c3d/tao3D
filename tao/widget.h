@@ -355,9 +355,7 @@ public:
     Name_p      setStereoPlanes(Tree_p self, uint planes);
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
-#if defined(Q_OS_MACX)
     Name_p      enableVSync(Tree_p self, bool enable);
-#endif
 
     // Graphic attributes
     Tree_p      lineColorName(Tree_p self, text name, double a);

@@ -24,8 +24,10 @@
 #include "base.h"
 #include "renderer.h"
 #include <sstream>
+#include <map>
+#include <QFileInfo>
 
-text ExtractDoc::extract(XL::CommentsList commentList)
+text ExtractComment::extract(XL::CommentsList commentList)
 // ----------------------------------------------------------------------------
 //   Extract the documentation (/*| |*/) from the comments list.
 // ----------------------------------------------------------------------------
@@ -34,7 +36,7 @@ text ExtractDoc::extract(XL::CommentsList commentList)
     text theComment = "";
     for (uint i = 0; i < commentList.size(); i++)
     {
-        if (commentList[i].find("/*|") == 0)
+        if (commentList[i].find(opening) == 0)
         {
             inDoc = true;
             theComment += commentList[i].substr(3);
@@ -46,11 +48,10 @@ text ExtractDoc::extract(XL::CommentsList commentList)
             theComment += "\n";
         }
 
-        size_t pos = theComment.find("|*/");
+        size_t pos = theComment.find(closing);
         if (pos != std::string::npos)
         {
             theComment.erase(pos);
-           // theComment += "\n";
             inDoc = false;
         }
         else
@@ -64,7 +65,7 @@ text ExtractDoc::extract(XL::CommentsList commentList)
 }
 
 
-XL::Tree *ExtractDoc::DoInteger(XL::Integer *what)
+XL::Tree *ExtractComment::DoInteger(XL::Integer *what)
 // ----------------------------------------------------------------------------
 //   Extract the documentation (/*| |*/) from an Integer.
 // ----------------------------------------------------------------------------
@@ -78,7 +79,7 @@ XL::Tree *ExtractDoc::DoInteger(XL::Integer *what)
 }
 
 
-XL::Tree *ExtractDoc::DoReal(XL::Real *what)
+XL::Tree *ExtractComment::DoReal(XL::Real *what)
 // ----------------------------------------------------------------------------
 //   Extract the documentation (/*| |*/) from a Real.
 // ----------------------------------------------------------------------------
@@ -91,7 +92,7 @@ XL::Tree *ExtractDoc::DoReal(XL::Real *what)
 }
 
 
-XL::Tree *ExtractDoc::DoText(XL::Text *what)
+XL::Tree *ExtractComment::DoText(XL::Text *what)
 // ----------------------------------------------------------------------------
 //   Extract the documentation (/*| |*/) from a Text.
 // ----------------------------------------------------------------------------
@@ -104,7 +105,7 @@ XL::Tree *ExtractDoc::DoText(XL::Text *what)
 }
 
 
-XL::Tree *ExtractDoc::DoName(XL::Name *what)
+XL::Tree *ExtractComment::DoName(XL::Name *what)
 // ----------------------------------------------------------------------------
 //   Extract the documentation (/*| |*/) from a Name.
 // ----------------------------------------------------------------------------
@@ -117,7 +118,7 @@ XL::Tree *ExtractDoc::DoName(XL::Name *what)
 }
 
 
-XL::Tree *ExtractDoc::DoBlock(XL::Block *what)
+XL::Tree *ExtractComment::DoBlock(XL::Block *what)
 // ----------------------------------------------------------------------------
 //   Extract the documentation (/*| |*/) from a Block'
 // ----------------------------------------------------------------------------
@@ -138,9 +139,89 @@ XL::Tree *ExtractDoc::DoBlock(XL::Block *what)
     return new XL::Text(comment,"","");
 }
 
-XL::Tree *ExtractDoc::DoInfix(XL::Infix *what)
+XL::Tree *ExtractComment::DoInfix(XL::Infix *what)
 // ----------------------------------------------------------------------------
 //   Extract the documentation (/*| |*/) from an Infix
+// ----------------------------------------------------------------------------
+{
+    XL::Text *c = NULL;
+    text comment = "";
+    XL::CommentsInfo *info = what->GetInfo<XL::CommentsInfo>();
+    if (info)
+        comment = extract(info->before);
+
+
+    XL::Tree *left = what->left->Do(this);
+
+    if (left && (c = left->AsText()))
+        comment += c->value;
+
+    XL::Tree *right = what->right->Do(this);
+    if (right && (c = right->AsText()))
+        comment += c->value;
+
+    if (info)
+        comment+= extract(info->after);
+
+    return new XL::Text(comment,"","");
+}
+
+
+XL::Tree *ExtractComment::DoPrefix(XL::Prefix *what)
+// ----------------------------------------------------------------------------
+//   Extract the documentation (/*| |*/) from a Prefix.
+// ----------------------------------------------------------------------------
+{
+    text comment = "";
+    XL::Text *c = NULL;
+    XL::CommentsInfo *info = what->GetInfo<XL::CommentsInfo>();
+    if (info)
+        comment = extract(info->before);
+
+    XL::Tree *left = what->left->Do(this);
+    if (left && (c = left->AsText()))
+        comment += c->value;
+
+    XL::Tree *right = what->right->Do(this);
+    if (right && (c = right->AsText()))
+        comment += c->value;
+
+    if (info)
+        comment+= extract(info->after);
+
+    return new XL::Text(comment,"","");
+}
+
+
+XL::Tree *ExtractComment::DoPostfix(XL::Postfix *what)
+// ----------------------------------------------------------------------------
+//   Extract the documentation (/*| |*/) from a Postfix.
+// ----------------------------------------------------------------------------
+{
+     text comment = "";
+    XL::Text *c = NULL;
+    XL::CommentsInfo *info = what->GetInfo<XL::CommentsInfo>();
+    if (info)
+        comment = extract(info->before);
+
+    XL::Tree *left = what->left->Do(this);
+    if (left && (c = left->AsText()))
+        comment += c->value;
+
+    XL::Tree *right = what->right->Do(this);
+    if (right && (c = right->AsText()))
+        comment += c->value;
+
+    if (info)
+        comment+= extract(info->after);
+
+    return new XL::Text(comment,"","");
+}
+
+
+XL::Tree *ExtractDoc::DoInfix(XL::Infix *what)
+// ----------------------------------------------------------------------------
+//   Extract the documentation (/** **/) from an Infix
 // ----------------------------------------------------------------------------
 {
     // There are two specifics kind of Infix : the "->" that define a transformation
@@ -190,62 +271,26 @@ XL::Tree *ExtractDoc::DoInfix(XL::Infix *what)
     return new XL::Text(comment,"","");
 }
 
-
 XL::Tree *ExtractDoc::DoPrefix(XL::Prefix *what)
 // ----------------------------------------------------------------------------
-//   Extract the documentation (/*| |*/) from a Prefix.
+//   Extract the documentation (/** **/) from a Prefix.
 // ----------------------------------------------------------------------------
 {
     if ( params_tree && what && what->left && what->left->AsName())
         symbol = what->left->AsName()->value;
-
-    text comment = "";
-    XL::Text *c = NULL;
-    XL::CommentsInfo *info = what->GetInfo<XL::CommentsInfo>();
-    if (info)
-        comment = extract(info->before);
-
-    XL::Tree *left = what->left->Do(this);
-    if (left && (c = left->AsText()))
-        comment += c->value;
-
-    XL::Tree *right = what->right->Do(this);
-    if (right && (c = right->AsText()))
-        comment += c->value;
-
-    if (info)
-        comment+= extract(info->after);
-
-    return new XL::Text(comment,"","");
+    return ExtractComment::DoPrefix(what);
 }
 
 
 XL::Tree *ExtractDoc::DoPostfix(XL::Postfix *what)
 // ----------------------------------------------------------------------------
-//   Extract the documentation (/*| |*/) from a Postfix.
+//   Extract the documentation (/** **/) from a Postfix.
 // ----------------------------------------------------------------------------
 {
     if ( params_tree && what && what->right && what->right->AsName())
         symbol = what->right->AsName()->value;
 
-    text comment = "";
-    XL::Text *c = NULL;
-    XL::CommentsInfo *info = what->GetInfo<XL::CommentsInfo>();
-    if (info)
-        comment = extract(info->before);
-
-    XL::Tree *left = what->left->Do(this);
-    if (left && (c = left->AsText()))
-        comment += c->value;
-
-    XL::Tree *right = what->right->Do(this);
-    if (right && (c = right->AsText()))
-        comment += c->value;
-
-    if (info)
-        comment+= extract(info->after);
-
-    return new XL::Text(comment,"","");
+    return ExtractComment::DoPostfix(what);
 }
 
 
@@ -255,14 +300,14 @@ text ExtractDoc::formatSyntax(XL::Tree *t)
 // ----------------------------------------------------------------------------
 {
     std::ostringstream oss;
-    oss << t;
+    XL::Renderer render(oss);
+    QFileInfo fi("system:nocomment.stylesheet");
+    render.SelectStyleSheet( text(fi.absoluteFilePath().toUtf8().constData()) );
+    render.RenderFile(t);
+
     syntax = oss.str();
-    size_t begin, end;
-    while ((begin = syntax.find("/*|")) != std::string::npos )
-    {
-        end = syntax.find("|*/");
-        syntax.erase(begin, (end+3)-begin);
-    }
+    size_t begin;
+
     while ((begin = syntax.find('\n')) != std::string::npos )
     {
         syntax.erase(begin, 1);
@@ -276,7 +321,7 @@ text ExtractDoc::addParam(XL::Name *name, XL::Name *ptype, text *comment)
 //   Add one parameter description to the list of parameters.
 // ----------------------------------------------------------------------------
 {
-    params.append("    parameter \"").append(ptype->value).append("\", \"")
+    params.append("  parameter \"").append(ptype->value).append("\", \"")
             .append(name->value).append("\", <<").append(*comment).append(">>\n");
 
     return params;

@@ -32,3 +32,5 @@ OPTION(slideshow, "Open document in slide show mode",
 OPTVAR(printResolution, uint, 300)
 OPTION(print_resolution, "Set printer resolution in DPI",
        printResolution = INTEGER(72, 3600))
+
+OPTION(norepo, "Disable GIT repository", ;)

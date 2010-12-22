@@ -27,12 +27,12 @@
 #include "tao_tree.h"
 
 
-struct ExtractDoc : public XL::Action
+struct ExtractComment : public XL::Action
 // ----------------------------------------------------------------------------
-//   Extract documentation from the given tree
+//   Extract Comment surrounded by /*| |*/ from the given tree
 // ----------------------------------------------------------------------------
 {
-    ExtractDoc(text defGrp = "") : defaultGroup(defGrp), params_tree(0) {}
+    ExtractComment() : opening("/*|"), closing("|*/") {}
     text extract(XL::CommentsList commentList);
 
     XL::Tree *DoInteger(XL::Integer *what);
@@ -48,6 +48,23 @@ struct ExtractDoc : public XL::Action
     {
         return what->Do(this);
     }
+public:
+    text opening, closing;
+};
+
+struct ExtractDoc : public ExtractComment
+// ----------------------------------------------------------------------------
+//   Extract documentation surrounded by /** **/ from the given tree
+// ----------------------------------------------------------------------------
+{
+    ExtractDoc(text defGrp = "") : defaultGroup(defGrp), params_tree(0)
+    {
+        opening = "/**";
+        closing = "**/";
+    }
+    XL::Tree *DoInfix(XL::Infix *what);
+    XL::Tree *DoPrefix(XL::Prefix *what);
+    XL::Tree *DoPostfix(XL::Postfix *what);
 
     text formatSyntax(XL::Tree *t);
     text formatDoc(text *c);

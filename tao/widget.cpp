@@ -8276,6 +8276,12 @@ Tree_p Widget::generateDoc(Tree_p /*self*/, Tree_p tree, text defGrp)
 //   Generate documentation for a given tree
 // ----------------------------------------------------------------------------
 {
+    if (defGrp.empty())
+    {
+        ExtractComment com;
+        return tree->Do(com);
+    }
+
     ExtractDoc doc(defGrp);
     return tree->Do(doc);
 
@@ -8309,7 +8315,7 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
     for (i = h.begin(); i != h.end(); i++)
     {
         Tree * tree = i->second->from;
-        t = generateDoc(self, tree, "glabals");
+        t = generateDoc(self, tree);
         com += t->AsText()->value;
     }
 
@@ -8319,7 +8325,7 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
     {
         Tree * tree = si->second;
         if (!tree) continue;
-        t = generateDoc(self, tree, "names");
+        t = generateDoc(self, tree);
         com += t->AsText()->value;
     }
 

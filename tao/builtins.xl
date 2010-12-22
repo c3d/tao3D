@@ -137,14 +137,14 @@ draw_chooser_item m, x, y ->
     move_to x, y, 0
     text m
 
-draw_chooser_match m1:text /*| m1 desc |*/, m2:text /*| m2 desc |*/, m3:text /*| m3 desc |*/, x:real /*| the x-coordinate |*/, y:real /*| the y-coordinate |*/ ->
-    /*| Draw the matching__test.
+draw_chooser_match m1:text /** m1 desc **/, m2:text /** m2 desc **/, m3:text /** m3 desc **/, x:real /** the x-coordinate **/, y:real /** the y-coordinate **/ ->
+    /** Draw the matching__test.
     chooser_group
     It does something
                   and maybe more.
     @return typeret, returns something else.
     @see the tutorial
-    |*/
+    **/
     chooser_item_font
     color 100%, 100%, 100%, 70%
     move_to x, y, 0

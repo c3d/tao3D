@@ -74,7 +74,7 @@ void Drawing::DrawSelection(Layout *layout)
     if (widget->selected(layout))
     {
         Box3 bounds = Bounds(layout);
-        XL::LocalSave<Point3> zeroOffset(layout->offset, Point3(0,0,0));
+        XL::Save<Point3> zeroOffset(layout->offset, Point3(0,0,0));
         widget->drawSelection(layout, bounds, "selection", layout->id);
     }
 }

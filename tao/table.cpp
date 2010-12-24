@@ -71,7 +71,7 @@ void Table::Draw(Layout *where)
     std::vector<Drawing *>::iterator i = items.begin();
     TreeList::iterator fillI = cellFill.begin();
     TreeList::iterator borderI = cellBorder.begin();
-    XL::LocalSave<Table *> saveTable(widget->table, this);
+    XL::Save<Table *> saveTable(widget->table, this);
     Tree *fillCode = fill;
     Tree *borderCode = border;
 
@@ -99,7 +99,7 @@ void Table::Draw(Layout *where)
 
             if (Layout *cell = dynamic_cast<Layout *>(d))
             {
-                XL::LocalSave<Point3> zeroOffset(offset, Point3());
+                XL::Save<Point3> zeroOffset(offset, Point3());
                 Box3 bb = d->Space(this);
                 pos.x += (columnWidth[c]-bb.Width() ) * cell->alongX.centering;
                 pos.y += (rowHeight[r]-bb.Height()) * cell->alongY.centering;
@@ -111,7 +111,7 @@ void Table::Draw(Layout *where)
                 widget->drawTree(this, context, fillCode);
             if (d)
             {
-                XL::LocalSave<Point3> saveOffset(offset, pos + where->offset);
+                XL::Save<Point3> saveOffset(offset, pos + where->offset);
                 d->Draw(this);
             }
             if (borderI != cellBorder.end())
@@ -142,7 +142,7 @@ void Table::DrawSelection(Layout *where)
     uint    r, c;
     Widget *widget = where->Display();
     std::vector<Drawing *>::iterator i = items.begin();
-    XL::LocalSave<Table *> saveTable(widget->table, this);
+    XL::Save<Table *> saveTable(widget->table, this);
 
     for (r = 0; r < rows; r++)
     {
@@ -168,7 +168,7 @@ void Table::DrawSelection(Layout *where)
 
             if (Layout *cell = dynamic_cast<Layout *>(d))
             {
-                XL::LocalSave<Point3> zeroOffset(offset, Point3());
+                XL::Save<Point3> zeroOffset(offset, Point3());
                 Box3 bb = d->Space(this);
                 pos.x += (columnWidth[c]-bb.Width() ) * cell->alongX.centering;
                 pos.y += (rowHeight[r]-bb.Height()) * cell->alongY.centering;
@@ -176,7 +176,7 @@ void Table::DrawSelection(Layout *where)
 
             if (d)
             {
-                XL::LocalSave<Point3> saveOffset(offset, where->offset + pos);
+                XL::Save<Point3> saveOffset(offset, where->offset + pos);
                 d->DrawSelection(this);
             }
 
@@ -203,7 +203,7 @@ void Table::Identify(Layout *where)
     uint    r, c;
     Widget *widget = where->Display();
     std::vector<Drawing *>::iterator i = items.begin();
-    XL::LocalSave<Table *> saveTable(widget->table, this);
+    XL::Save<Table *> saveTable(widget->table, this);
 
     for (r = 0; r < rows; r++)
     {
@@ -229,7 +229,7 @@ void Table::Identify(Layout *where)
 
             if (Layout *cell = dynamic_cast<Layout *>(d))
             {
-                XL::LocalSave<Point3> zeroOffset(offset, Point3());
+                XL::Save<Point3> zeroOffset(offset, Point3());
                 Box3 bb = d->Space(this);
                 pos.x += (columnWidth[c]-bb.Width() ) * cell->alongX.centering;
                 pos.y += (rowHeight[r]-bb.Height()) * cell->alongY.centering;
@@ -237,7 +237,7 @@ void Table::Identify(Layout *where)
 
             if (d)
             {
-                XL::LocalSave<Point3> saveOffset(offset, where->offset + pos);
+                XL::Save<Point3> saveOffset(offset, where->offset + pos);
                 d->Identify(this);
             }
 
@@ -325,7 +325,7 @@ void Table::Compute(Layout *where)
                 break;
             Drawing *d = *i++;
             Inherit(where);
-            XL::LocalSave<Point3> zeroOffset(offset, Point3());
+            XL::Save<Point3> zeroOffset(offset, Point3());
             Box3 bb = d->Space(this);
             double lowX = colBB[c].lower.x;
             double lowY = rowBB[r].lower.y;

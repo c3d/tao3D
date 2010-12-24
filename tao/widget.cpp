@@ -425,7 +425,7 @@ void Widget::draw()
 
         // Render all activities, e.g. the selection rectangle
         SpaceLayout selectionSpace(this);
-        XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
+        XL::Save<Layout *> saveLayout(layout, &selectionSpace);
         setupGL();
         glDisable(GL_DEPTH_TEST);
         for (Activity *a = activities; a; a = a->Display()) ;
@@ -647,7 +647,7 @@ void Widget::runProgram()
     space->Clear();
     IFTRACE(memory)
         std::cerr << "cleared, count = " << space->count << ", ";
-    XL::LocalSave<Layout *> saveLayout(layout, space);
+    XL::Save<Layout *> saveLayout(layout, space);
 
     // Evaluate the program
     XL::MAIN->EvaluateContextFiles(((Window*)parent())->contextFileNames);
@@ -712,10 +712,10 @@ void Widget::print(QPrinter *prt)
 {
     // Set the current printer while drawing
     TaoSave saveCurrent(current, this);
-    XL::LocalSave<QPrinter *> savePrinter(printer, prt);
-    XL::LocalSave<char> disableStereoscopy1(stereoPlanes, 1);
-    XL::LocalSave<char> disableStereoscopy2(stereoscopic, 1);
-    XL::LocalSave<text> savePage(pageName, "");
+    XL::Save<QPrinter *> savePrinter(printer, prt);
+    XL::Save<char> disableStereoscopy1(stereoPlanes, 1);
+    XL::Save<char> disableStereoscopy2(stereoscopic, 1);
+    XL::Save<text> savePage(pageName, "");
 
     // Identify the page range
     uint firstPage = printer->fromPage();
@@ -736,10 +736,10 @@ void Widget::print(QPrinter *prt)
     QStatusBar *status = window->statusBar();
 
     // Set the initial time we want to set and freeze animations
-    XL::LocalSave<bool> disableAnimations(animated, false);
-    XL::LocalSave<double> setPageTime(pageStartTime, 0);
-    XL::LocalSave<double> setFrozenTime(frozenTime, 0);
-    XL::LocalSave<double> saveStartTime(startTime, 0);
+    XL::Save<bool> disableAnimations(animated, false);
+    XL::Save<double> setPageTime(pageStartTime, 0);
+    XL::Save<double> setFrozenTime(frozenTime, 0);
+    XL::Save<double> saveStartTime(startTime, 0);
 
     // Render the given page range
     for (pageToPrint = firstPage; pageToPrint <= lastPage; pageToPrint++)
@@ -750,14 +750,14 @@ void Widget::print(QPrinter *prt)
         bigPicture.fill(-1);
 
         // Center display on screen
-        XL::LocalSave<double> savePrintTime(pagePrintTime, 0);
-        XL::LocalSave<Point3> saveCenter(cameraTarget, Point3(0,0,0));
-        XL::LocalSave<Point3> saveEye(cameraPosition, defaultCameraPosition);
-        XL::LocalSave<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
-        XL::LocalSave<char> saveStereo1(stereoPlanes, 1);
-        XL::LocalSave<char> saveStereo2(stereoscopic, 1);
-        XL::LocalSave<double> saveZoom(zoom, 1);
-        XL::LocalSave<double> saveScaling(scaling, scalingFactorFromCamera());
+        XL::Save<double> savePrintTime(pagePrintTime, 0);
+        XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
+        XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
+        XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
+        XL::Save<char> saveStereo1(stereoPlanes, 1);
+        XL::Save<char> saveStereo2(stereoscopic, 1);
+        XL::Save<double> saveZoom(zoom, 1);
+        XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
 
         // Evaluate twice time so that we correctly setup page info
         for (uint i = 0; i < 2; i++)
@@ -2678,7 +2678,7 @@ void Widget::refreshProgram()
             for (it = iset.begin(); it != iset.end(); it++)
             {
                 XL::SourceFile &sf = **it;
-                XL::LocalSave<XL::Context_p> save(XL::MAIN->context,
+                XL::Save<XL::Context_p> save(XL::MAIN->context,
                                                   sf.context->scope);
                 XL::MAIN->LoadFile(sf.name);
                 inError = false;
@@ -3473,8 +3473,8 @@ void Widget::drawSelection(Layout *where,
     if (where && where->groupDrag)
         selName = "group_item";
 
-    XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-    GLAttribKeeper          saveGL;
+    XL::Save<Layout *> saveLayout(layout, &selectionSpace);
+    GLAttribKeeper     saveGL;
     resetLayout(layout);
     selectionSpace.id = id;
     selectionSpace.isSelection = true;
@@ -3500,8 +3500,8 @@ void Widget::drawHandle(Layout *where,
 
     SpaceLayout selectionSpace(this);
 
-    XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-    GLAttribKeeper          saveGL;
+    XL::Save<Layout *> saveLayout(layout, &selectionSpace);
+    GLAttribKeeper     saveGL;
     resetLayout(layout);
     glDisable(GL_DEPTH_TEST);
     selectionSpace.id = id | HANDLE_SELECTED;
@@ -3520,8 +3520,8 @@ void Widget::drawTree(Layout *where, Context *context, Tree *code)
 {
     SpaceLayout selectionSpace(this);
 
-    XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-    GLAttribKeeper          saveGL;
+    XL::Save<Layout *> saveLayout(layout, &selectionSpace);
+    GLAttribKeeper     saveGL;
     glDisable(GL_DEPTH_TEST);
     context->Evaluate(code);
 
@@ -3539,8 +3539,8 @@ void Widget::drawCall(Layout *where, XL::XLCall &call, uint id)
     Context *context = xlProgram->context;
     SpaceLayout selectionSpace(this);
 
-    XL::LocalSave<Layout *> saveLayout(layout, &selectionSpace);
-    GLAttribKeeper saveGL;
+    XL::Save<Layout *> saveLayout(layout, &selectionSpace);
+    GLAttribKeeper     saveGL;
     resetLayout(layout);
     selectionSpace.id = id;
     selectionSpace.isSelection = true;
@@ -3790,7 +3790,7 @@ XL::Real_p Widget::after(Context *context, double delay, Tree_p code)
     }
     else
     {
-        XL::LocalSave<double> saveTime(startTime, startTime + delay);
+        XL::Save<double> saveTime(startTime, startTime + delay);
         context->Evaluate(code);
     }
 
@@ -3820,7 +3820,7 @@ XL::Real_p Widget::every(Context *context,
     }
     else
     {
-        XL::LocalSave<double> saveTime(startTime, start);
+        XL::Save<double> saveTime(startTime, start);
         context->Evaluate(code);
         refreshOn(QEvent::Timer, start + delay);
     }
@@ -3888,9 +3888,8 @@ Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
         }
     }
 
-    XL::LocalSave<Layout *> save(layout,
-                                 layout->AddChild(layout->id, self,
-                                                  context->stack));
+    Layout *childLayout = layout->AddChild(layout->id, self, context->stack);
+    XL::Save<Layout *> save(layout, childLayout);
     Tree_p result = context->Evaluate(child);
     return result;
 }
@@ -3910,10 +3909,9 @@ Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
         }
     }
 
-    XL::LocalSave<Layout *> saveLayout(layout,
-                                       layout->AddChild(selectionId(), self,
-                                                        context->stack));
-    XL::LocalSave<Tree_p>   saveShape (currentShape, self);
+    Layout *childLayout = layout->AddChild(selectionId(), self, context->stack);
+    XL::Save<Layout *> saveLayout(layout, childLayout);
+    XL::Save<Tree_p>   saveShape (currentShape, self);
     if (selectNextTime.count(self))
     {
         selection[id]++;
@@ -3922,7 +3920,7 @@ Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
     // This makes sure we save argument source for Manipulator::updateArg
     Context_p childContext = context;
     context->ClosureValue(child, &childContext);
-    XL::LocalSave<bool> setSaveArgs(childContext->keepSource, true);
+    XL::Save<bool> setSaveArgs(childContext->keepSource, true);
     Tree_p result = context->Evaluate(child);
     return result;
 }
@@ -3935,8 +3933,8 @@ Tree_p Widget::activeWidget(Context *context, Tree_p self, Tree_p child)
 //   We set currentShape to NULL, which means that we won't create manipulator
 //   so the widget is active (it can be selected) but won't budge
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
-    XL::LocalSave<Tree_p>   saveShape (currentShape, NULL);
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
+    XL::Save<Tree_p>   saveShape (currentShape, NULL);
     if (selectNextTime.count(self))
     {
         selection[id]++;
@@ -3955,7 +3953,7 @@ Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child)
     AnchorLayout *anchor = new AnchorLayout(this);
     anchor->id = selectionId();
     layout->Add(anchor);
-    XL::LocalSave<Layout *> saveLayout(layout, anchor);
+    XL::Save<Layout *> saveLayout(layout, anchor);
     if (selectNextTime.count(self))
     {
         selection[id]++;
@@ -4968,7 +4966,7 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
 //  If w or h is 0 then the image width or height is used and assigned to it.
 {
     GLuint texId = 0;
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     double sx = sxp.Pointer() ? (double) sxp : 1.0;
     double sy = syp.Pointer() ? (double) syp : 1.0;
 
@@ -5101,8 +5099,8 @@ Tree_p Widget::shaderProgram(Context *context, Tree_p self, Tree_p code)
     Tree_p result = XL::xl_true;
     if (!program)
     {
-        XL::LocalSave<QGLShaderProgram *> prog(currentShaderProgram,
-                                               new QGLShaderProgram());
+        XL::Save<QGLShaderProgram *> prog(currentShaderProgram,
+                                          new QGLShaderProgram());
         result = context->Evaluate(code);
         program = currentShaderProgram;
 
@@ -5248,7 +5246,7 @@ Tree_p Widget::newPath(Context *context, Tree_p self, Tree_p child)
         return Ooops("Path '$1' while evaluating a path", self);
 
     TesselatedPath *localPath = new TesselatedPath(GLU_TESS_WINDING_ODD);
-    XL::LocalSave<GraphicPath *> save(path, localPath);
+    XL::Save<GraphicPath *> save(path, localPath);
     layout->Add(localPath);
     if (currentShape)
         layout->Add(new GraphicPathManipulator(currentShape, localPath, self));
@@ -5987,7 +5985,7 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
     if (currentShape)
         layout->Add(new ControlRectangle(currentShape, x, y, w, h));
 
-    XL::LocalSave<Layout *> save(layout, tbox);
+    XL::Save<Layout *> save(layout, tbox);
     Tree *result = context->Evaluate(prog);
     return result;
 }
@@ -6410,7 +6408,7 @@ Tree_p Widget::newTable(Context *context, Tree_p self,
 // ----------------------------------------------------------------------------
 {
     Table *tbl = new Table(this, context, x, y, r, c);
-    XL::LocalSave<Table *> saveTable(table, tbl);
+    XL::Save<Table *> saveTable(table, tbl);
     layout->Add(tbl);
 
     if (currentShape)
@@ -6460,7 +6458,7 @@ Tree_p Widget::tableCell(Context *context, Tree_p self,
     table->Add(tbox);
     flows[flowName] = tbox;
 
-    XL::LocalSave<Layout *> save(layout, tbox);
+    XL::Save<Layout *> save(layout, tbox);
     Tree_p result = context->Evaluate(body);
     table->NextCell();
     return result;
@@ -6479,7 +6477,7 @@ Tree_p Widget::tableCell(Context *context, Tree_p self, Tree_p body)
     Layout *tbox = new Layout(this);
     table->Add(tbox);
 
-    XL::LocalSave<Layout *> save(layout, tbox);
+    XL::Save<Layout *> save(layout, tbox);
     Tree_p result = context->Evaluate(body);
     table->NextCell();
     return result;
@@ -6656,7 +6654,7 @@ Tree_p Widget::framePaint(Context *context, Tree_p self,
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild());
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild());
     Tree_p result = frameTexture(context, self, w, h, prog);
 
     // Draw a rectangle with the resulting texture
@@ -6688,14 +6686,14 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
     do
     {
         GLAllStateKeeper saveGL;
-        XL::LocalSave<Layout *> saveLayout(layout, layout->NewChild());
-        XL::LocalSave<Point3> saveCenter(cameraTarget, Point3(0,0,0));
-        XL::LocalSave<Point3> saveEye(cameraPosition, defaultCameraPosition);
-        XL::LocalSave<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
-        XL::LocalSave<char> saveStereo1(stereoPlanes, 1);
-        XL::LocalSave<char> saveStereo2(stereoscopic, 1);
-        XL::LocalSave<double> saveZoom(zoom, 1);
-        XL::LocalSave<double> saveScaling(scaling, scalingFactorFromCamera());
+        XL::Save<Layout *> saveLayout(layout, layout->NewChild());
+        XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
+        XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
+        XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
+        XL::Save<char> saveStereo1(stereoPlanes, 1);
+        XL::Save<char> saveStereo2(stereoscopic, 1);
+        XL::Save<double> saveZoom(zoom, 1);
+        XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
 
         // Clear the background and setup initial state
         frame->resize(w,h);
@@ -6728,7 +6726,7 @@ Tree_p Widget::urlPaint(Tree_p self,
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     urlTexture(self, w, h, url, progress);
     WebViewSurface *surface = self->GetInfo<WebViewSurface>();
     layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
@@ -6772,7 +6770,7 @@ Tree_p Widget::lineEdit(Tree_p self,
 //   Draw a line editor in the current frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     lineEditTexture(self, w, h, txt);
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
     layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
@@ -6814,7 +6812,7 @@ Tree_p Widget::radioButton(Tree_p self,
 //   Draw a radio button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     radioButtonTexture(self, w, h, name, lbl, sel, act);
     return abstractButton(self, name, x, y, w, h);
 }
@@ -6854,7 +6852,7 @@ Tree_p Widget::checkBoxButton(Tree_p self,
 //   Draw a check button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     checkBoxButtonTexture(self, w, h, name, lbl, sel, act);
     return abstractButton(self, name, x, y, w, h);
 }
@@ -6895,7 +6893,7 @@ Tree_p Widget::pushButton(Tree_p self,
 //   Draw a push button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     pushButtonTexture(self, w, h, name, lbl, act);
     return abstractButton(self, name, x, y, w, h);
 }
@@ -7072,7 +7070,7 @@ void Widget::updateColorDialog()
     TaoSave saveCurrent(current, this);
 
     // Make sure we don't update the trees, only get their colors
-    XL::LocalSave<Tree_p > action(colorAction, NULL);
+    XL::Save<Tree_p > action(colorAction, NULL);
     Color c = selectionColor[colorName];
     originalColor.setRgbF(c.red, c.green, c.blue, c.alpha);
 
@@ -7201,7 +7199,7 @@ Tree_p Widget::colorChooser(Tree_p self,
 //   Draw a color chooser
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
 
     colorChooserTexture(self, w, h, action);
 
@@ -7247,7 +7245,7 @@ Tree_p Widget::fontChooser(Tree_p self,
 //   Draw a color chooser
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
 
     fontChooserTexture(self, w, h, action);
 
@@ -7471,7 +7469,7 @@ Tree_p Widget::fileChooser(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
 //   Draw a file chooser in the GL widget
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
 
     fileChooserTexture(self, w, h, properties);
 
@@ -7561,7 +7559,7 @@ Tree_p Widget::groupBox(Context *context, Tree_p self,
 //   Draw a group box in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
 
     groupBoxTexture(self, w, h, lbl);
 
@@ -7616,7 +7614,7 @@ Tree_p Widget::movie(Tree_p self,
 //   Make a video player
 // ----------------------------------------------------------------------------
 {
-    XL::LocalSave<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     movieTexture(self, url);
     VideoSurface *surface = self->GetInfo<VideoSurface>();
     double w = sx * surface->width();
@@ -8460,8 +8458,8 @@ Tree_p Widget::group(Context *context, Tree_p self, Tree_p shapes)
     GroupLayout *group = new GroupLayout(this, self);
     group->id = selectionId();
     layout->Add(group);
-    XL::LocalSave<Layout *> saveLayout(layout, group);
-    XL::LocalSave<Tree_p>   saveShape (currentShape, self);
+    XL::Save<Layout *> saveLayout(layout, group);
+    XL::Save<Tree_p>   saveShape (currentShape, self);
     if (selectNextTime.count(self))
     {
         selection[id]++;

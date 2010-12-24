@@ -84,7 +84,7 @@ template<> inline coord Justifier<line_t>::ItemOffset(line_t item, Layout *l)
 //   Since the bounds are supposed drawn at coordinates (0,0,0),
 //   the offset is the opposite of the left of the bounds
 {
-    XL::LocalSave<Point3> zeroOffset(l->offset, Point3(0,0,0));
+    XL::Save<Point3> zeroOffset(l->offset, Point3(0,0,0));
     Box3 space = item->Space(l);
     return -space.Left();
 }
@@ -138,7 +138,7 @@ template<> inline coord Justifier<page_t>::ItemOffset(page_t item, Layout *l)
 //   Since the bounds are supposed to be computed at coordinates (0,0,0),
 //   the offset for the top is Top()
 {
-    XL::LocalSave<Point3> zeroOffset(l->offset, Point3(0,0,0));
+    XL::Save<Point3> zeroOffset(l->offset, Point3(0,0,0));
     Box3 space = item->Space(l);
     return space.Top();
 }
@@ -191,8 +191,7 @@ void LayoutLine::Draw(Layout *where)
     {
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
-        XL::LocalSave<coord> saveY(where->offset.x,
-                                   where->offset.x + place.position);
+        XL::Save<coord> saveY(where->offset.x, where->offset.x+place.position);
         child->Draw(where);
     }
 }
@@ -213,8 +212,7 @@ void LayoutLine::DrawSelection(Layout *where)
     {
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
-        XL::LocalSave<coord> saveY(where->offset.x,
-                                   where->offset.x + place.position);
+        XL::Save<coord> saveY(where->offset.x, where->offset.x+place.position);
         child->DrawSelection(where);
     }
 }
@@ -234,8 +232,7 @@ void LayoutLine::Identify(Layout *where)
     {
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
-        XL::LocalSave<coord> saveY(where->offset.x,
-                                   where->offset.x + place.position);
+        XL::Save<coord> saveY(where->offset.x, where->offset.x+place.position);
         child->Identify(where);
     }
 }
@@ -256,8 +253,7 @@ Box3 LayoutLine::Bounds(Layout *where)
     {
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
-        XL::LocalSave<coord> saveY(where->offset.x,
-                                   where->offset.x + place.position);
+        XL::Save<coord> saveY(where->offset.x, where->offset.x+place.position);
         Box3 childBounds = child->Bounds(where);
         result |= childBounds;
     }
@@ -281,8 +277,7 @@ Box3 LayoutLine::Space(Layout *where)
     {
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
-        XL::LocalSave<coord> saveY(where->offset.x,
-                                   where->offset.x + place.position);
+        XL::Save<coord> saveY(where->offset.x, where->offset.x+place.position);
         Box3 childSpace = child->Space(where);
         result |= childSpace;
     }
@@ -564,7 +559,7 @@ void PageLayout::Draw(Layout *where)
     {
         PageJustifier::Place &place = *p;
         LayoutLine *child = place.item;
-        XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
+        XL::Save<coord> saveY(offset.y, offset.y + place.position);
         child->Draw(this);
     }
     PopLayout(this);
@@ -597,7 +592,7 @@ void PageLayout::DrawSelection(Layout *where)
     if (selected)
     {
         Box3 bounds = space;
-        XL::LocalSave<Point3> zeroOffset(where->offset, Point3(0,0,0));
+        XL::Save<Point3> zeroOffset(where->offset, Point3(0,0,0));
         if (selected & Widget::CONTAINER_OPENED)
             widget->drawSelection(where, bounds, "open_textbox", where->id);
         else
@@ -616,7 +611,7 @@ void PageLayout::DrawSelection(Layout *where)
         if (!sel)
         {
             // No text selection, just draw children directly
-            XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
+            XL::Save<coord> saveY(offset.y, offset.y + place.position);
             child->DrawSelection(this);
         }
         else
@@ -624,7 +619,7 @@ void PageLayout::DrawSelection(Layout *where)
             // Text selection: Draw the selection box
             sel->processLineBreak();
             lineStart = widget->selectionCurrentId();
-            XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
+            XL::Save<coord> saveY(offset.y, offset.y + place.position);
             child->DrawSelection(this);
             offset.y = saveY.saved;
             lineEnd = widget->selectionCurrentId();
@@ -645,7 +640,7 @@ void PageLayout::DrawSelection(Layout *where)
 
                 glBlendFunc(GL_DST_COLOR, GL_ZERO);
                 text mode = sel->textMode ? "text_selection" : "text_highlight";
-                XL::LocalSave<Point3> zeroOffset(where->offset, Point3());
+                XL::Save<Point3> zeroOffset(where->offset, Point3());
                 widget->drawSelection(where, sel->selBox, mode, 0);
                 sel->selBox.Empty();
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -655,7 +650,7 @@ void PageLayout::DrawSelection(Layout *where)
             {
                 glBlendFunc(GL_DST_COLOR, GL_ZERO);
                 text mode = "formula_highlight";
-                XL::LocalSave<Point3> zeroOffset(where->offset, Point3());
+                XL::Save<Point3> zeroOffset(where->offset, Point3());
                 widget->drawSelection(where, sel->formulaBox, mode, 0);
                 sel->formulaBox.Empty();
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -686,7 +681,7 @@ void PageLayout::Identify(Layout *where)
     {
         PageJustifier::Place &place = *p;
         LayoutLine *child = place.item;
-        XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
+        XL::Save<coord> saveY(offset.y, offset.y + place.position);
         child->Identify(this);
     }
     PopLayout(this);
@@ -728,7 +723,7 @@ Box3 PageLayout::Bounds(Layout *layout)
     {
         PageJustifier::Place &place = *p;
         Drawing *child = place.item;
-        XL::LocalSave<coord> saveY(offset.y, offset.y + place.position);
+        XL::Save<coord> saveY(offset.y, offset.y + place.position);
         Box3 childBounds = child->Bounds(this);
         result |= childBounds;
     }

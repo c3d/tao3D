@@ -36,8 +36,8 @@ void Transform::Draw(Layout *where)
 {
     Color line(1.0, 0.0, 0.0, 0.5);
     Color fill(0.0, 0.7, 1.0, 0.5);
-    XL::LocalSave<Color> saveLine(where->lineColor, line);
-    XL::LocalSave<Color> saveFill(where->fillColor, fill);
+    XL::Save<Color> saveLine(where->lineColor, line);
+    XL::Save<Color> saveFill(where->fillColor, fill);
     Box3 cubeBox(-25, -25, -25, 50, 50, 50);
     Cube cube(cubeBox);
     cube.Draw(where);

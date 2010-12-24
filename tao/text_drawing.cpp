@@ -72,7 +72,7 @@ void TextSpan::Draw(Layout *where)
     {
         glDisable(GL_TEXTURE_2D);
         glColor4f(0.8, 0.4, 0.3, 0.2);
-        XL::LocalSave<Point3> save(where->offset, offset0);
+        XL::Save<Point3> save(where->offset, offset0);
         Identify(where);
     }
 }
@@ -406,7 +406,7 @@ void TextSpan::DrawSelection(Layout *where)
                 {
                     glBlendFunc(GL_DST_COLOR, GL_ZERO);
                     text mode = "formula_highlight";
-                    XL::LocalSave<Point3> zeroOffset(where->offset, Point3());
+                    XL::Save<Point3> zeroOffset(where->offset, Point3());
                     widget->drawSelection(where, sel->formulaBox, mode, 0);
                     sel->formulaBox.Empty();
                     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

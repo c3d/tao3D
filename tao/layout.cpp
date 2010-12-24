@@ -213,7 +213,7 @@ void Layout::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // Inherit offset from our parent layout if there is one
-    XL::LocalSave<Point3> save(offset, offset);
+    XL::Save<Point3> save(offset, offset);
     GLAllStateKeeper glSave(hasAttributes?GL_LAYOUT_BITS:0,
                             hasMatrix, false, hasTextureMatrix);
     Inherit(where);
@@ -236,7 +236,7 @@ void Layout::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // Inherit offset from our parent layout if there is one
-    XL::LocalSave<Point3> save(offset, offset);
+    XL::Save<Point3> save(offset, offset);
     GLAllStateKeeper glSave(hasAttributes?GL_LAYOUT_BITS:0,
                             hasMatrix, false, hasTextureMatrix);
     Inherit(where);
@@ -258,7 +258,7 @@ void Layout::Identify(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // Inherit offset from our parent layout if there is one
-    XL::LocalSave<Point3> save(offset, offset);
+    XL::Save<Point3> save(offset, offset);
     GLAllStateKeeper glSave(hasAttributes?GL_LAYOUT_BITS:0,
                             hasMatrix, false, hasTextureMatrix);
     Inherit(where);
@@ -442,7 +442,7 @@ bool Layout::Refresh(QEvent *e, Layout *parent)
             do
             {
                 // Set new layout as the current layout in the current Widget
-                XL::LocalSave<Layout *> saveLayout(widget->layout, layout);
+                XL::Save<Layout *> saveLayout(widget->layout, layout);
 
                 // Re-evaluate the source code for 'this' layout: will create a
                 // child layout in the new layout

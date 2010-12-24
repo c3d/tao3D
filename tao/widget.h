@@ -687,15 +687,15 @@ private:
     friend class ModuleRenderer;
     friend class Layout;
 
-    typedef XL::LocalSave<QEvent *>             EventSave;
-    typedef XL::LocalSave<Widget *>             TaoSave;
-    typedef std::map<text, PageLayout*>         flow_map;
-    typedef std::map<text, text>                page_map;
-    typedef std::list<text>                     page_list;
-    typedef std::map<GLuint, Tree_p>            perId_action_map;
-    typedef std::map<text, perId_action_map>    action_map;
-    typedef std::map<Tree_p, GLuint>            GLid_map;
-    typedef std::set<Tree_p>                    tree_set;
+    typedef XL::Save<QEvent *>               EventSave;
+    typedef XL::Save<Widget *>               TaoSave;
+    typedef std::map<text, PageLayout*>      flow_map;
+    typedef std::map<text, text>             page_map;
+    typedef std::list<text>                  page_list;
+    typedef std::map<GLuint, Tree_p>         perId_action_map;
+    typedef std::map<text, perId_action_map> action_map;
+    typedef std::map<Tree_p, GLuint>         GLid_map;
+    typedef std::set<Tree_p>                 tree_set;
 
     // XL Runtime
     SourceFile           *xlProgram;

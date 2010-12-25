@@ -39,7 +39,7 @@ class ToolWindow : public QWidget
 public:
     ToolWindow(const QString &title, QWidget *parent = 0,
                    const QString &objName = "")
-        : QWidget(parent, Qt::Tool), needPlacement(true)
+        : QWidget(parent, Qt::Tool | Qt::SubWindow), needPlacement(true)
     {
         setWindowTitle(title);
         if (!objName.isEmpty())
@@ -47,7 +47,7 @@ public:
     }
 
     ToolWindow(QWidget *parent = 0)
-        : QWidget(parent, Qt::Tool), needPlacement(true)
+        : QWidget(parent, Qt::Tool | Qt::SubWindow), needPlacement(true)
     {
     }
 

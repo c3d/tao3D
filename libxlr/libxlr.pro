@@ -63,6 +63,15 @@ HEADERS += \
 
 SOURCES += \
     ../tao/xlr/xlr/compiler.cpp \
+    ../tao/xlr/xlr/compiler-action.cpp			\
+    ../tao/xlr/xlr/compiler-arg.cpp			\
+    ../tao/xlr/xlr/compiler-children.cpp			\
+    ../tao/xlr/xlr/compiler-decl.cpp			\
+    ../tao/xlr/xlr/compiler-envscan.cpp			\
+    ../tao/xlr/xlr/compiler-expred.cpp			\
+    ../tao/xlr/xlr/compiler-gc.cpp				\
+    ../tao/xlr/xlr/compiler-parm.cpp			\
+    ../tao/xlr/xlr/compiler-unit.cpp			\
     ../tao/xlr/xlr/context.cpp \
     ../tao/xlr/xlr/diff.cpp \
     ../tao/xlr/xlr/errors.cpp \

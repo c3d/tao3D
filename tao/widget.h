@@ -27,6 +27,7 @@
 #include "main.h"
 #include "tao.h"
 #include "tao_tree.h"
+#include "tree-clone.h"
 #include "coords3d.h"
 #include "opcodes.h"
 #include "drawing.h"
@@ -168,7 +169,6 @@ public:
 
     // XL program management
     void        updateProgram(SourceFile *sf);
-    void        applyAction(Action &action);
     void        reloadProgram(Tree *newProg = NULL);
     void        refreshProgram();
     void        preloadSelectionCode();

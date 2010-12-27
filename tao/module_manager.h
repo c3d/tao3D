@@ -241,6 +241,7 @@ Native and XL functions of a module are called by Tao in the following order:
 
 #include "tao.h"
 #include "tao_tree.h"
+#include "action.h"
 #include "repository.h"
 #include "tao_utf8.h"
 #include "tao/module_api.h"
@@ -340,7 +341,8 @@ private:
         }
     };
 
-    struct FindAttribute : Action
+
+    struct FindAttribute : XL::Action
     // ------------------------------------------------------------------------
     //   Find value of an attribute in a named section
     // ------------------------------------------------------------------------

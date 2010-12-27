@@ -62,7 +62,6 @@ typedef XL::integer_p      integer_p;
 typedef XL::text_p         text_p;
 typedef XL::symbol_p       symbol_p;
 
-typedef XL::Action         Action;
 typedef XL::TreeList       TreeList;
 
 typedef XL::Context        Context;

@@ -2015,10 +2015,6 @@ void Window::resetTaoMenus()
         }
         delete menu;
     }
-
-    // Cleanup all menus defined in the current file and all imports
-//    CleanMenuInfo cmi;
-//    taoWidget->applyAction(cmi);
 }
 
 

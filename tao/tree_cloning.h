@@ -43,13 +43,15 @@ typedef struct XL::ShallowCopyCloneMode ShallowCopyCloneMode;
 typedef struct XL::NodeOnlyCloneMode NodeOnlyCloneMode;
 
 
-template <typename mode> struct TaoCloneTemplate : Action
+template <typename mode> struct TaoCloneTemplate
 // ----------------------------------------------------------------------------
 //   Clone a tree
 // ----------------------------------------------------------------------------
 {
     TaoCloneTemplate(Widget *widget) : widget(widget){}
     virtual ~TaoCloneTemplate(){}
+
+    typedef Tree *value_type;
 
     Tree *Reselect(Tree *from, Tree *to)
     {
@@ -144,13 +146,15 @@ typedef struct TaoCloneTemplate<ShallowCopyCloneMode>TaoShallowCopyTreeClone;
 typedef struct TaoCloneTemplate<NodeOnlyCloneMode>    TaoNodeOnlyTreeClone;
 
 
-struct CopySelection : Action
+struct CopySelection
 // ----------------------------------------------------------------------------
 //   Create a copy of the selected trees.
 // ----------------------------------------------------------------------------
 {
-    CopySelection(Widget *w) : Action(), widget(w), clone(){}
+    CopySelection(Widget *w) : widget(w), clone(){}
     virtual ~CopySelection(){}
+
+    typedef Tree *value_type;
 
     Tree *DoInteger(Integer *what)
     {

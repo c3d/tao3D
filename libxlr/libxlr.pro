@@ -89,6 +89,8 @@ SOURCES += \
     ../tao/xlr/xlr/syntax.cpp \
     ../tao/xlr/xlr/traces_base.cpp \
     ../tao/xlr/xlr/tree.cpp \
+    ../tao/xlr/xlr/hash.cpp \
+    ../tao/xlr/xlr/action.cpp \
     ../tao/xlr/xlr/types.cpp
 
 win32 {

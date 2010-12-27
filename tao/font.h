@@ -26,11 +26,12 @@
 // ****************************************************************************
 
 #include "tao_tree.h"
+#include "action.h"
 #include <QFont>
 
 TAO_BEGIN
 
-struct FontParsingAction : Action
+struct FontParsingAction : XL::Action
 // ----------------------------------------------------------------------------
 //   Parse a font description
 // ----------------------------------------------------------------------------

@@ -25,6 +25,7 @@
 #include "tao.h"
 #include "tao_tree.h"
 #include "main.h"
+#include "action.h"
 #include <set>
 
 TAO_BEGIN
@@ -108,7 +109,7 @@ struct ApplyChanges : XL::Action
                 // For a declaration, we can't change test values
                 if (it->name == "->")
                 {
-                    if (!EqualTrees(it->left, what->left))
+                    if (!Tree::Equal(it->left, what->left))
                         return NULL;
                 }
                 else

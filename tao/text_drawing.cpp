@@ -33,6 +33,7 @@
 #include "apply_changes.h"
 #include "portability.h"
 #include "tao_gl.h"
+#include "tree-walk.h"
 
 #include <QPainterPath>
 #include <QFont>
@@ -926,11 +927,12 @@ void TextSpan::PerformInsertOperation(Layout * l,
         sel->replacement_tree = NULL;
 
         // Insert the resulting tree in place of the parent's source:
-        // source is the text surounded by "" or <<>> itself,
-        // its parent is the prefix text, so surch for the grand parent.
+        // Source is the text surounded by "" or <<>> itself,
+        // its parent is the prefix text, so search for the grand parent.
         XL::FindParentAction getGrandParent(source, 2);
         Tree * grandParent = widget->xlProgram->tree->Do(getGrandParent);
-        if ( ! getGrandParent.path.size()) return;
+        if (!getGrandParent.path.size())
+            return;
         char lastChar = getGrandParent.path.at(getGrandParent.path.size() - 1);
 
         XL::Infix   *inf  = grandParent->AsInfix();

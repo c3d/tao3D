@@ -71,6 +71,7 @@
 #include "portability.h"
 #include "xl_source_edit.h"
 #include "context.h"
+#include "tree-walk.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -2450,29 +2451,6 @@ void Widget::updateProgram(XL::SourceFile *source)
     }
     refreshProgram();
     inError = false;
-}
-
-
-void Widget::applyAction(XL::Action &action)
-// ----------------------------------------------------------------------------
-//   Applies an action on the tree and all the dependents
-// ----------------------------------------------------------------------------
-{
-    Tree *prog = xlProgram->tree;
-    if (!prog)
-        return;
-
-    // Lookup imported files
-    import_set iset;
-    ImportedFilesChanged(iset, false);
-
-    import_set::iterator it;
-    for (it = iset.begin(); it != iset.end(); it++)
-    {
-        XL::SourceFile &sf = **it;
-        if (sf.tree)
-            sf.tree->Do(action);
-    }
 }
 
 

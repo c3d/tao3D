@@ -27,6 +27,7 @@
 #include "tao_utf8.h"
 #include "application.h"
 #include "apply_changes.h"
+#include "tree_cloning.h"
 #include <QtWebKit>
 #include <phonon>
 #include <cstring>
@@ -421,26 +422,10 @@ void AbstractButtonSurface::toggled(bool checked)
     if (!action)
         return;
 
-    // We override name "checked" in the input tree
-    struct ToggleTreeClone : XL::TreeClone
-    {
-        ToggleTreeClone(bool c) : checked(c){}
-        XL::Tree *DoName(XL::Name *what)
-        {
-            if (what->value == "checked")
-            {
-                if (checked)
-                    return XL::xl_true;
-                else
-                    return XL::xl_false;
-            }
-            return new XL::Name(what->value, what->Position());
-        }
-        bool checked;
-    } replacer(checked);
 
     // Replace "checked" with true or false in input tree
     // REVISIT: Replace with a declaration of "checked" in the tree
+    ToggleTreeClone replacer(checked);
     XL::Tree *toBeEvaluated = action;
     toBeEvaluated = toBeEvaluated->Do(replacer);
 
@@ -500,28 +485,10 @@ void ColorChooserSurface::colorChosen(const QColor &col)
                   <<"\nand action " << action << "\n";
     }
 
-    // We override names 'red', 'green', 'blue' and 'alpha' in the input tree
-    struct ColorTreeClone : XL::TreeClone
-    {
-        ColorTreeClone(const QColor &c) : color(c){}
-        XL::Tree *DoName(XL::Name *what)
-        {
-            if (what->value == "red")
-                return new XL::Real(color.redF(), what->Position());
-            if (what->value == "green")
-                return new XL::Real(color.greenF(), what->Position());
-            if (what->value == "blue")
-                return new XL::Real(color.blueF(), what->Position());
-            if (what->value == "alpha")
-                return new XL::Real(color.alphaF(), what->Position());
-
-            return new XL::Name(what->value, what->Position());
-        }
-        QColor color;
-    } replacer(col);
 
     // Replace "red", "green", "blue" or "alpha".
     // REVISIT: Perform actual definitions of these variables
+    ColorTreeClone replacer(col);
     XL::Tree *toBeEvaluated = action;
     toBeEvaluated = toBeEvaluated->Do(replacer);
 
@@ -577,32 +544,8 @@ void FontChooserSurface::fontChosen(const QFont& ft)
                   <<"\nand action " << action << "\n";
     }
 
-    struct FontTreeClone : XL::TreeClone
-    {
-        FontTreeClone(const QFont &f) : font(f){}
-        XL::Tree *DoName(XL::Name *what)
-        {
-            if (what->value == "family")
-                return new XL::Text(+font.family(),
-                                    "\"" ,"\"",what->Position());
-            if (what->value == "pointSize")
-                return new XL::Integer(font.pointSize(), what->Position());
-            if (what->value == "weight")
-                return new XL::Integer(font.weight(), what->Position());
-            if (what->value == "italic")
-            {
-                return new XL::Name(font.italic() ?
-                                      XL::xl_true->value :
-                                      XL::xl_false->value,
-                                      what->Position());
-            }
-
-            return new XL::Name(what->value, what->Position());
-        }
-        QFont font;
-    } replacer(ft);
-
     // Replace the various keywords
+    FontTreeClone replacer(ft);
     XL::Tree *toBeEvaluated = action;
     toBeEvaluated = toBeEvaluated->Do(replacer);
 

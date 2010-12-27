@@ -7028,27 +7028,8 @@ void Widget::colorChanged(const QColor & col)
                   << "was chosen for reference "<< colorAction << "\n";
     }
 
-    // We override names 'red', 'green', 'blue' and 'alpha' in the input tree
-    struct ColorTreeClone : XL::TreeClone
-    {
-        ColorTreeClone(const QColor &c): color(c){}
-        XL::Tree *DoName(XL::Name *what)
-        {
-            if (what->value == "red")
-                return new XL::Real(color.redF(), what->Position());
-            if (what->value == "green")
-                return new XL::Real(color.greenF(), what->Position());
-            if (what->value == "blue")
-                return new XL::Real(color.blueF(), what->Position());
-            if (what->value == "alpha")
-                return new XL::Real(color.alphaF(), what->Position());
-
-            return new XL::Name(what->value, what->Position());
-        }
-        QColor color;
-    } replacer(col);
-
     // The tree to be evaluated needs its own symbol table before evaluation
+    ColorTreeClone replacer(col);
     XL::Tree *toBeEvaluated = colorAction;
     toBeEvaluated = toBeEvaluated->Do(replacer);
 
@@ -7144,34 +7125,8 @@ void Widget::fontChanged(const QFont& ft)
                   << " was chosen for reference "<< fontAction << "\n";
     }
 
-    struct FontTreeClone : XL::TreeClone
-    {
-        FontTreeClone(const QFont &f) : font(f){}
-        XL::Tree *DoName(XL::Name *what)
-        {
-            if (what->value == "font_family")
-                return new XL::Text(font.family().toStdString(),
-                                    "\"" ,"\"",what->Position());
-            if (what->value == "font_size")
-                return new XL::Integer(font.pointSize(), what->Position());
-            if (what->value == "font_weight")
-                return new XL::Integer(font.weight(), what->Position());
-            if (what->value == "font_slant")
-                return new XL::Integer((int) font.style() * 100,
-                                       what->Position());
-            if (what->value == "font_stretch")
-                return new XL::Integer(font.stretch(), what->Position());
-            if (what->value == "font_is_italic")
-                return font.italic() ? XL::xl_true : XL::xl_false;
-            if (what->value == "font_is_bold")
-                return font.bold() ? XL::xl_true : XL::xl_false;
-
-            return new XL::Name(what->value, what->Position());
-        }
-        QFont font;
-    } replacer(ft);
-
     // The tree to be evaluated needs its own symbol table before evaluation
+    FontTreeClone replacer(ft);
     XL::Tree *toBeEvaluated = fontAction;
     toBeEvaluated = toBeEvaluated->Do(replacer);
 

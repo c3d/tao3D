@@ -27,6 +27,7 @@
 #include "context.h"
 #include "runtime.h"
 #include "tao_utf8.h"
+#include "tree_cloning.h"
 #include "main.h"
 #include <iostream>
 
@@ -101,23 +102,9 @@ void GroupInfo::bClicked(QAbstractButton *button)
     if (!action)
         return;
 
-    // We override name "isChecked" in the input tree
-    struct ClickTreeClone : XL::TreeClone
-    {
-        ClickTreeClone(text c) : name(c){}
-        XL::Tree * DoName(XL::Name * what)
-        {
-            if (what->value == "button_name")
-            {
-                return new XL::Text(name);
-            }
-            return new XL::Name(what->value, what->Position());
-        }
-        text name;
-    } replacer(+button->objectName());
-
 
     // The tree to be evaluated needs its own symbol table before evaluation
+    ClickTreeClone replacer(+button->objectName());
     XL::Tree *  toBeEvaluated = action;
     toBeEvaluated = toBeEvaluated->Do(replacer);
 

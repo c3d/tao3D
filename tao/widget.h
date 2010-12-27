@@ -27,6 +27,7 @@
 #include "main.h"
 #include "tao.h"
 #include "tao_tree.h"
+#include "save.h"
 #include "tree-clone.h"
 #include "coords3d.h"
 #include "opcodes.h"

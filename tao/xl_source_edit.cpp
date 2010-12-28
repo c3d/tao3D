@@ -39,6 +39,7 @@ XLSourceEdit::XLSourceEdit(QWidget *parent)
     font.setPixelSize(16);
     setFont(font);
     highlighter = new XLHighlighter(document());
+    setLineWrapMode(QTextEdit::NoWrap);
 }
 
 

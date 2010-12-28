@@ -76,7 +76,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
       loadInProgress(false),
       contextFileNames(context), xlRuntime(xlr),
       repo(NULL), srcEdit(NULL), errorMessages(NULL),
-      dock(NULL), errorDock(NULL),
+      src(NULL), errorDock(NULL),
       taoWidget(NULL), curFile(), uri(NULL), slideShowMode(false),
       fileCheckTimer(this), splashScreen(NULL), aboutSplash(NULL),
       deleteOnOpenFailed(false)
@@ -84,15 +84,14 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Define the icon
     setWindowIcon(QIcon(":/images/tao.png"));
 
-    // Create the text edit widget
-    dock = new QDockWidget(tr("Document Source"));
-    dock->setObjectName("dock");
-    dock->setAllowedAreas(Qt::AllDockWidgetAreas);
-    srcEdit = new XLSourceEdit(dock);
-    dock->setWidget(srcEdit);
-    dock->hide();
-    addDockWidget(Qt::RightDockWidgetArea, dock);
-    connect(dock, SIGNAL(visibilityChanged(bool)),
+    // Create source editor window
+    src = new ToolWindow(tr("Document Source"), this, "Tao::Window::src");
+    srcEdit = new XLSourceEdit(src);
+    QVBoxLayout *layout = new QVBoxLayout();
+    layout->addWidget(srcEdit);
+    src->setLayout(layout);
+    src->hide();
+    connect(src, SIGNAL(visibilityChanged(bool)),
             this, SLOT(sourceViewBecameVisible(bool)));
 
     // Create the error reporting widget
@@ -1208,7 +1207,7 @@ void Window::createMenus()
     shareMenu->addAction(diffAct);
 
     viewMenu = menuBar()->addMenu(tr("&View"));
-    viewMenu->addAction(dock->toggleViewAction());
+    viewMenu->addAction(src->toggleViewAction());
     viewMenu->addAction(errorDock->toggleViewAction());
     viewMenu->addAction(fullScreenAct);
     viewMenu->addAction(slideShowAct);
@@ -1949,9 +1948,9 @@ bool Window::showSourceView(bool show)
 //   Show or hide source view
 // ----------------------------------------------------------------------------
 {
-    bool old = dock->isVisible();
-    dock->setVisible(show);
-    dock->toggleViewAction()->setChecked(show);
+    bool old = src->isVisible();
+    src->setVisible(show);
+    src->toggleViewAction()->setChecked(show);
     return old;
 }
 

@@ -25,6 +25,7 @@
 #include <QDesktopWidget>
 #include <QSettings>
 #include <QRect>
+#include <QAction>
 
 TAO_BEGIN
 
@@ -138,6 +139,24 @@ void ToolWindow::closeEvent(QCloseEvent *)
     settings.setValue("geometry", saveGeometry());
     settings.setValue("visible", !isHidden());
     settings.endGroup();
+}
+
+
+QAction * ToolWindow::toggleViewAction()
+// ----------------------------------------------------------------------------
+//   Return a checkable action that can be used to show or hide the tool window
+// ----------------------------------------------------------------------------
+{
+    if (!toggleView)
+    {
+        toggleView = new QAction(windowTitle(), this);
+        toggleView->setCheckable(true);
+        connect(toggleView, SIGNAL(triggered(bool)),
+                this,       SLOT(setVisible(bool)));
+        connect(this,       SIGNAL(visibilityChanged(bool)),
+                toggleView, SLOT(setChecked(bool)));
+    }
+    return toggleView;
 }
 
 TAO_END

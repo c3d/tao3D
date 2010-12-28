@@ -70,6 +70,7 @@
 #include "formulas.h"
 #include "portability.h"
 #include "xl_source_edit.h"
+#include "tool_window.h"
 #include "context.h"
 
 #include <QDialog>
@@ -2537,7 +2538,7 @@ void Widget::updateProgramSource()
 // ----------------------------------------------------------------------------
 {
     Window *window = (Window *) parentWidget();
-    if (window->dock->isHidden())
+    if (window->src->isHidden())
         return;
     XLSourceEdit *src = window->srcEdit;
     if (Tree *prog = xlProgram->tree)

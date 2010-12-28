@@ -39,7 +39,8 @@ class ToolWindow : public QWidget
 public:
     ToolWindow(const QString &title, QWidget *parent = 0,
                    const QString &objName = "")
-        : QWidget(parent, Qt::Tool | Qt::SubWindow), needPlacement(true)
+        : QWidget(parent, Qt::Tool | Qt::SubWindow), needPlacement(true),
+          toggleView(NULL)
     {
         setWindowTitle(title);
         if (!objName.isEmpty())
@@ -47,13 +48,15 @@ public:
     }
 
     ToolWindow(QWidget *parent = 0)
-        : QWidget(parent, Qt::Tool | Qt::SubWindow), needPlacement(true)
+        : QWidget(parent, Qt::Tool | Qt::SubWindow), needPlacement(true),
+          toggleView(NULL)
     {
     }
 
     virtual void   setVisible(bool visible);
     bool           createVisible();
     bool           doClose();
+    QAction *      toggleViewAction();
 
 public slots:
     bool           close();
@@ -68,6 +71,7 @@ private:
 
 private:
     bool           needPlacement;
+    QAction *      toggleView;
 
 private:
     static QPoint  where;

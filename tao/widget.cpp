@@ -141,7 +141,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       fontFileMgr(NULL),
       drawAllPages(false), animated(true),
       stereoMode(stereoHARDWARE), stereoscopic(0), stereoPlanes(1),
-      refreshEvent(NULL), nextRefresh(DBL_MAX),
+      nextRefresh(DBL_MAX),
       activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
       selection(), selectionTrees(), selectNextTime(), actionMap(),
@@ -2305,11 +2305,8 @@ void Widget::timerEvent(QTimerEvent *event)
             // Timer expired early. Unfortunately, this occurs sometime.
             return startRefreshTimer();
         }
-
-        refreshEvent = event;
     }
     forwardEvent(event);
-    refreshEvent = NULL;
 }
 
 

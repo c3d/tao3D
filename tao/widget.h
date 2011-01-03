@@ -731,7 +731,6 @@ private:
     char                  stereoscopic;
     char                  stereoPlanes;
     LayoutState::qevent_ids  refreshEvents;
-    QEvent *              refreshEvent;
     double                nextRefresh;
     LayoutCache           layoutCache;
 

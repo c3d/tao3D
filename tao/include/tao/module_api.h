@@ -45,8 +45,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   2
-#define TAO_MODULE_API_AGE       2
+#define TAO_MODULE_API_CURRENT   3
+#define TAO_MODULE_API_AGE       3
 
 // ========================================================================
 //
@@ -69,6 +69,11 @@ struct ModuleApi
     // This function is typically used by XL primitives that need to draw
     // something using OpenGL calls.
     bool (*scheduleRender)(render_fn callback, void *arg);
+
+    // Request that current layout be refreshed on specified event
+    // If event_type is QEvent::Timer, refresh will occur after the default
+    // refresh interval
+    bool (*refreshOn)(int event_type);
 };
 
 }

@@ -798,6 +798,9 @@ private:
 
     bool                  refreshOn(QEvent::Type type,
                                     double nextRefresh = DBL_MAX);
+public:
+    static bool           refreshOn(int event_type);
+
 private:
     void                  processProgramEvents();
     void                  startRefreshTimer();

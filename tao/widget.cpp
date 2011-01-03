@@ -606,6 +606,16 @@ bool Widget::refreshOn(QEvent::Type type, double nextRefresh)
 }
 
 
+bool Widget::refreshOn(int event_type)
+// ----------------------------------------------------------------------------
+//   Module interface to refreshOn
+// ----------------------------------------------------------------------------
+{
+    Tao()->refreshOn((QEvent::Type)event_type);
+    return true;
+}
+
+
 void Widget::runProgram()
 // ----------------------------------------------------------------------------
 //   Run the  XL program

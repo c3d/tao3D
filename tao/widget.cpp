@@ -362,7 +362,6 @@ void Widget::draw()
     glClearColor (1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
     for (stereoscopic = 1; stereoscopic <= stereoPlanes; stereoscopic++)
     {
         // Select the buffer in which we draw
@@ -1476,7 +1475,6 @@ void Widget::setupGL()
 
     // Really nice perspective calculations
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-
 }
 
 

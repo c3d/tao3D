@@ -15,6 +15,8 @@ MODINSTDIR = taoTester
 
 include(../modules.pri)
 
+release:QMAKE_CXXFLAGS -= -Werror  # Workaround QTBUG-14437 (GCC 4.4)
+
 TBL_SOURCES = taoTester.tbl
 
 QT += core gui opengl testlib

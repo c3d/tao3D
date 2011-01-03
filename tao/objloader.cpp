@@ -530,7 +530,7 @@ void Object3D::DrawDirect()
             glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, &spec[0]);
 
             if (m.shininess != 0.0)
-                glMaterialf(GL_FRONT, GL_SHININESS, m.shininess/100.0);
+                glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, m.shininess/100.0);
         }
 
         while(v != ve)

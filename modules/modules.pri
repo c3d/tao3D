@@ -28,6 +28,9 @@ INCLUDEPATH += $$INC
 DEPENDPATH  += $$INC
 win32:LIBS += -L$${TAOTOPSRC}/libxlr/release -L$${TAOTOPSRC}/libxlr/debug  # REVISIT
 LIBS += -L$${TAOTOPSRC}/libxlr -lxlr
+# A module's native library can install its dependencies in the same directory
+# Windows and MacOS look there by default, Linux does not
+linux-g++*:LIBS += -Wl,-rpath=.
 
 # How to generate *_wrap.cpp from *.tbl
 # Usage:

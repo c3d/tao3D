@@ -182,7 +182,7 @@ private:
     // currentProjectFolder : Used if repo is not used.
     QString          currentProjectFolder;
 public:
-    QDockWidget      *dock;
+    ToolWindow       *src;
 private:
     QDockWidget      *errorDock;
     Widget           *taoWidget;

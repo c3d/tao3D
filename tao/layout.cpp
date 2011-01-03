@@ -513,7 +513,7 @@ bool Layout::RefreshChildren(QEvent *e)
 //   Refresh all child layouts
 // ----------------------------------------------------------------------------
 {
-    bool result;
+    bool result = false;
     Layout *layout;
     layout_items::iterator i;
     layout_items items_copy = items;

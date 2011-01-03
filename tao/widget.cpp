@@ -70,6 +70,7 @@
 #include "formulas.h"
 #include "portability.h"
 #include "xl_source_edit.h"
+#include "tool_window.h"
 #include "context.h"
 #include "tree-walk.h"
 
@@ -206,8 +207,9 @@ Widget::Widget(Window *parent, SourceFile *sf)
     // Select format for source file view
     setSourceRenderer();
 
-    // Make sure we get mouse events even when no click is made
-    setMouseTracking(true);
+    // Prepare activity to process mouse events even when no click is made
+    // (but for performance reasons, mouse tracking is enabled only when program
+    // execution asks for MouseMove events)
     new MouseFocusTracker("Focus tracking", this);
 
     // Find which page overscaling to use
@@ -543,13 +545,7 @@ bool Widget::refreshNow(QEvent *event)
     elapsed(before, after);
 
     if (changed)
-    {
-        IFTRACE(layoutevents)
-            std::cerr << "Program events: "
-                      << LayoutState::ToText(refreshEvents) << "\n";
-        // Make sure refresh timer is restarted if needed
-        startRefreshTimer();
-    }
+        processProgramEvents();
 
     return changed;
 }
@@ -696,12 +692,21 @@ void Widget::runProgram()
     currentToolBar = NULL;
     currentMenuBar = ((Window*)parent())->menuBar();
 
-    // Program execution has updated the set of events that should trigger
-    // an update of the main layout, as well as the time of next refresh
-    // (if program is time-dependent)
+    processProgramEvents();
+}
+
+
+void Widget::processProgramEvents()
+// ----------------------------------------------------------------------------
+//   Process registered program events
+// ----------------------------------------------------------------------------
+{
     IFTRACE(layoutevents)
-        std::cerr << "Program events: "
-                  << LayoutState::ToText(refreshEvents) << "\n";
+            std::cerr << "Program events: "
+            << LayoutState::ToText(refreshEvents) << "\n";
+    // Trigger mouse tracking only if needed
+    setMouseTracking(refreshEvents.count(QEvent::MouseMove) != 0);
+    // Make sure refresh timer is restarted if needed
     startRefreshTimer();
 }
 
@@ -2511,7 +2516,7 @@ void Widget::updateProgramSource()
 // ----------------------------------------------------------------------------
 {
     Window *window = (Window *) parentWidget();
-    if (window->dock->isHidden())
+    if (window->src->isHidden())
         return;
     XLSourceEdit *src = window->srcEdit;
     if (Tree *prog = xlProgram->tree)
@@ -4645,6 +4650,28 @@ XL::Integer_p  Widget::polygonOffset(Tree_p self,
     Layout::unitBase = u0;
     Layout::unitIncrement = u1;
     return new Integer(Layout::polygonOffset);
+}
+
+
+#if defined(Q_OS_MACX)
+#include <OpenGL.h>
+#endif
+
+XL::Name_p Widget::enableVSync(Tree_p self, bool enable)
+// ----------------------------------------------------------------------------
+//   Enable or disable VSYNC (prevent tearing)
+// ----------------------------------------------------------------------------
+{
+#if defined(Q_OS_MACX)
+    GLint old = 0;
+    CGLGetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &old);
+    const GLint swapInterval = enable ? 1 : 0;
+    CGLSetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &swapInterval);
+    return old ? XL::xl_true : XL::xl_false;
+#else
+    Ooops("Command not supported: $1", self);
+    return XL::xl_false;
+#endif
 }
 
 

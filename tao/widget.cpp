@@ -486,8 +486,11 @@ bool Widget::refreshNow(QEvent *event)
             std::cerr << "Full refresh due to event: " << what << "\n";
         }
         if (event)
+        {
             refreshEvents.erase(event->type());
-        nextRefresh = DBL_MAX;
+            if (event->type() == QEvent::Timer)
+                nextRefresh = DBL_MAX;
+        }
 
         if (current)
         {
@@ -512,7 +515,8 @@ bool Widget::refreshNow(QEvent *event)
                           << LayoutState::ToText(event->type()) << "\n";
 
             refreshEvents.erase(event->type());
-            nextRefresh = DBL_MAX;
+            if (type == QEvent::Timer)
+                nextRefresh = DBL_MAX;
 
             space->Refresh(event);
 

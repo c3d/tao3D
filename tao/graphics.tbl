@@ -2033,6 +2033,18 @@ PREFIX(Checkout,  tree,  "checkout",
        GROUP(code:checkout)
        SYNOPSIS("")
        DESCRIPTION("Checkout a branch or a commit"))
+PREFIX(ChooserCloseDocument, tree, "chooser_command_Close_current_document",
+       /* No param */,
+       RTAO(closeCurrentDocument(self)),
+       GROUP(chooser)
+       SYNOPSIS("")
+       DESCRIPTION("Close the current document window"))
+PREFIX(ChooserQuitTao, tree, "chooser_command_Quit_Tao",
+       /* No param */,
+       RTAO(quitTao(self)),
+       GROUP(chooser)
+       SYNOPSIS("")
+       DESCRIPTION("Quit the application"))
 
 
 

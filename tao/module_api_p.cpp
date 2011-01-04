@@ -34,6 +34,7 @@ ModuleApiPrivate::ModuleApiPrivate()
 {
     scheduleRender = ModuleRenderer::ScheduleRender;
     refreshOn      = Widget::refreshOn;
+    addToLayout    = ModuleRenderer::AddToLayout;
 }
 
 TAO_END

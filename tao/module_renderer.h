@@ -36,17 +36,24 @@ struct ModuleRenderer : Drawing
 // ------------------------------------------------------------------------
 {
     ModuleRenderer(ModuleApi::render_fn callback, void * arg)
-        : Drawing(), callback(callback), arg(arg) {}
+        : Drawing(), callback(callback), arg(arg), del(NULL) {}
+    ModuleRenderer(ModuleApi::render_fn callback, void * arg,
+                   ModuleApi::delete_fn del)
+        : Drawing(), callback(callback), arg(arg), del(del) {}
+    virtual ~ModuleRenderer();
 
     // Drawing interface
     virtual void  Draw(Layout *where);
 
     // Exported to ModuleApi
     static bool   ScheduleRender(ModuleApi::render_fn callback, void *arg);
+    static bool   AddToLayout(ModuleApi::render_fn callback, void *arg,
+                              ModuleApi::delete_fn del);
 
 private:
     ModuleApi::render_fn  callback;
     void *                arg;
+    ModuleApi::delete_fn  del;
 };
 
 }

@@ -28,12 +28,33 @@
 namespace Tao {
 
 
+ModuleRenderer::~ModuleRenderer()
+// ----------------------------------------------------------------------------
+//   Destructor
+// ----------------------------------------------------------------------------
+{
+    if (del)
+        del(arg);
+}
+
+
 bool ModuleRenderer::ScheduleRender(ModuleApi::render_fn callback, void *arg)
 // ----------------------------------------------------------------------------
 //   Create a ModuleRendererPrivate object attached to current layout
 // ----------------------------------------------------------------------------
 {
     Widget::Tao()->layout->Add(new ModuleRenderer(callback, arg));
+    return true;
+}
+
+
+bool ModuleRenderer::AddToLayout(ModuleApi::render_fn callback, void *arg,
+                                 ModuleApi::delete_fn del)
+// ----------------------------------------------------------------------------
+//   Create a ModuleRendererPrivate object attached to current layout
+// ----------------------------------------------------------------------------
+{
+    Widget::Tao()->layout->Add(new ModuleRenderer(callback, arg, del));
     return true;
 }
 

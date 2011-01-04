@@ -45,8 +45,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   3
-#define TAO_MODULE_API_AGE       3
+#define TAO_MODULE_API_CURRENT   4
+#define TAO_MODULE_API_AGE       4
 
 // ========================================================================
 //
@@ -63,6 +63,7 @@ struct ModuleApi
 // ------------------------------------------------------------------------
 {
     typedef void (*render_fn)(void *arg);
+    typedef void (*delete_fn)(void *arg);
 
     // Add a rendering callback to the current layout. Callback will be
     // invoked when it's time to draw the layout.
@@ -74,6 +75,10 @@ struct ModuleApi
     // If event_type is QEvent::Timer, refresh will occur after the default
     // refresh interval
     bool (*refreshOn)(int event_type);
+
+    // Like scheduleRender, but current layout takes ownership of arg:
+    // when layout is destroyed, delete_fn is called with arg.
+    bool (*addToLayout)(render_fn callback, void *arg, delete_fn del);
 };
 
 }

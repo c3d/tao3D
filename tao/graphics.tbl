@@ -1124,18 +1124,6 @@ PREFIX(TruncatedCone,  tree,  "truncated_cone",
        GROUP(graph)
        SYNOPSIS("cone")
        DESCRIPTION("cone[TODO]"))
-PREFIX(Object3D,  tree,  "object",
-       PARM(x, real, "x-coordinate")
-       PARM(y, real, "y-coordinate")
-       PARM(z, real, "z-coordinate")
-       PARM(w, real, "width")
-       PARM(h, real, "height")
-       PARM(d, real, "depth")
-       PARM(f, text, "filename"),
-       RTAO(object(self, x, y, z, w, h, d, f)),
-       GROUP(graph)
-       SYNOPSIS("Load a 3D object")
-       DESCRIPTION("Load a 3D object [TODO: which format of file can be loaded ?"))
 
 
 

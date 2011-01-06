@@ -70,7 +70,6 @@ HEADERS += widget.h \
     text_drawing.h \
     shapes3d.h \
     path3d.h \
-    objloader.h \
     table.h \
     chooser.h \
     binpack.h \
@@ -154,7 +153,6 @@ SOURCES += tao_main.cpp \
     text_drawing.cpp \
     shapes3d.cpp \
     path3d.cpp \
-    objloader.cpp \
     table.cpp \
     chooser.cpp \
     binpack.cpp \

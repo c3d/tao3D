@@ -62,7 +62,6 @@
 #include "error_message_dialog.h"
 #include "group_layout.h"
 #include "font.h"
-#include "objloader.h"
 #include "chooser.h"
 #include "tree_cloning.h"
 #include "version.h"
@@ -5902,50 +5901,6 @@ Tree_p Widget::cone(Tree_p self,
     layout->Add(new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d), ratio));
     if (currentShape)
         layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::object(Tree_p self,
-                      Real_p x, Real_p y, Real_p z,
-                      Real_p w, Real_p h, Real_p d,
-                      Text_p name)
-// ----------------------------------------------------------------------------
-//   Load a 3D object
-// ----------------------------------------------------------------------------
-{
-    // Try to load the 3D object in memory and graphic card
-    Object3D *obj = Object3D::Object(name);
-    if (!obj)
-        return XL::xl_false;
-
-    // Update object dimensions if we didn't specify them
-    if (w->value <= 0 || h->value <= 0 || d->value <= 0)
-    {
-        Box3 &bounds = obj->bounds;
-        if (w->value <= 0)
-        {
-            w->value = bounds.Width();
-            x->value += bounds.Center().x;
-        }
-        if (h->value <= 0)
-        {
-            h->value = bounds.Height();
-            y->value += bounds.Center().y;
-        }
-        if (d->value <= 0)
-        {
-            d->value = bounds.Depth();
-            z->value += bounds.Center().z;
-        }
-        markChanged ("Update object dimensions");
-    }
-
-    // Add the object
-    layout->Add(new Object3DDrawing(obj, x, y, z, w, h, d));
-    if (currentShape)
-        layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
-
     return XL::xl_true;
 }
 

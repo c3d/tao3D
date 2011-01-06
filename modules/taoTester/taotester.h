@@ -23,7 +23,7 @@ public:
 
     // Definition of events to be load
     Tree_p testDef(Tree_p self, Text_p name, Integer_p fId, Text_p desc, Tree_p body,
-                   Real_p thr);
+                   Real_p thr, Integer_p width, Integer_p height);
     Tree_p testAddKeyPress(Tree_p self, Integer_p key,
                            Integer_p modifiers, Integer_p delay );
     Tree_p testAddKeyRelease(Tree_p self, Integer_p key,

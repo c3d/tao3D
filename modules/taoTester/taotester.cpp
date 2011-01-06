@@ -1,5 +1,7 @@
 #include "taotester.h"
 #include "runtime.h"
+
+#include <QDir>
 using namespace XL;
 
 
@@ -82,14 +84,15 @@ Tree_p taoTester::testCheck(Tree_p)
 
 
 Tree_p taoTester::testDef(Tree_p , Text_p name, Integer_p fId, Text_p desc,
-                          Tree_p body, Real_p thr)
+                          Tree_p body, Real_p thr, Integer_p width, Integer_p height)
 // ----------------------------------------------------------------------------
 //   Define a new test
 // ----------------------------------------------------------------------------
 {
-    currentTest()->reset(name->value, fId->value, desc->value, text("./"), thr->value);
-    return xl_evaluate(body); //TEMPO FOR BUILD CaB
-   // return XL::xl_false;
+    QStringList dirList = QDir::searchPaths("image");
+    currentTest()->reset(name->value, fId->value, desc->value, +dirList.at(1),
+                         thr->value, width->value, height->value);
+    return xl_evaluate(body);
 }
 
 

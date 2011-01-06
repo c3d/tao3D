@@ -15,4 +15,3 @@ menu_item "toolbar:test > save", "save","", do test_save
 menu_item "toolbar:test > reset", "reset","", do test_reset
 }
 
-toolbar_test

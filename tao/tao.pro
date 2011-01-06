@@ -241,7 +241,8 @@ OTHER_FILES += xl.syntax \
     srcview.stylesheet \
     srcview.css \
     traces.tbl \
-    nocomment.stylesheet
+    nocomment.stylesheet \
+    graphics.tbl
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}

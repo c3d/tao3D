@@ -22,12 +22,11 @@
 #include "widgettests.h"
 
 #include <QFileInfo>
-#include <QMainWindow>
-#include "qtestevent.h"
+#include <QDir>
+#include <QStatusBar>
+#include <QTestEvent>
+//#include "qtestevent.h"
 
-//#include "application.h"
-//#include "widget.h"
-//#include "window.h"
 #include "save_test_dialog.h"
 
 #include "taotester.h"
@@ -35,31 +34,21 @@
 
 
 
-WidgetTests::WidgetTests(QGLWidget *widget, text name, text description) :
+WidgetTests::WidgetTests(QGLWidget *glw, text name, text description) :
 // ----------------------------------------------------------------------------
 //   Creates a new test.
 // ----------------------------------------------------------------------------
-    widget(widget), name(+name), description(+description),
-    featureId(0), folder("./"), threshold(0.0)
+    widget(glw), name(+name), description(+description),
+    featureId(0), folder("./"), threshold(0.0), win(NULL)
 {
-//    folder = ((Window*)(widget->window()))->currentProjectFolderPath().append("/");
+    QStringList dirList = QDir::searchPaths("image");
+    folder = dirList.at(1);
 
-    if ( !widget )
-    {
+    if ( ! glw )
         foreach (QWidget *w, QApplication::topLevelWidgets())
-        {
-            QMainWindow * win = NULL;
-            QGLWidget * qglwid = NULL;
             if ((win = dynamic_cast<QMainWindow*>(w)) != NULL)
-            {
-                if ((qglwid = dynamic_cast<QGLWidget *>(win->centralWidget()) ) != NULL)
-                {
-                    this->widget = qglwid;
+                if ((widget = dynamic_cast<QGLWidget *>(win->centralWidget()) ) != NULL)
                     break;
-                }
-            }
-        }
-    }
 }
 
 
@@ -69,10 +58,10 @@ text WidgetTests::toString()
 // ----------------------------------------------------------------------------
 {
     QString testDoc = QString("%1_test -> test_definition \"%1\", %2, "
-                              " <<%3>>, %5, do \n%4")
+                              " <<%3>>, %5, %6, %7, do \n%4")
             .arg(name).arg(featureId)
             .arg(description).arg(taoCmd.isEmpty() ? "    empty" : taoCmd)
-            .arg(threshold);
+            .arg(threshold).arg(winSize.height()).arg(winSize.width());
     return +testDoc;
 
 }
@@ -85,6 +74,8 @@ void WidgetTests::startRecord()
     // clear lists
     testList.clear();
     checkPointList.clear();
+    win->statusBar()->showMessage("Start recording new test.");
+    winSize = win->size();
 
     //photo
     before = widget->grabFrameBuffer(true);
@@ -115,6 +106,7 @@ void WidgetTests::stopRecord()
                    this, SLOT(recordAction(bool)));
     }
     widget->removeEventFilter(this);
+    win->statusBar()->showMessage("End recording.");
 }
 
 
@@ -305,6 +297,8 @@ bool WidgetTests::play()
 //   Replay the test
 // ----------------------------------------------------------------------------
 {
+    win->resize(winSize);
+    win->statusBar()->showMessage("Playing Test " + name);
     nbChkPtKO = 0;
 
     if (! before.isNull())
@@ -354,6 +348,7 @@ bool WidgetTests::play()
         }
     }
 
+    win->statusBar()->showMessage("Test " + name + (nbChkPtKO > 0 ? " failed" : " succed"));
     return nbChkPtKO > 0;
 }
 
@@ -403,7 +398,8 @@ void WidgetTests::save()
 }
 
 
-void WidgetTests::reset(text newName, int feature, text desc, text dir, double thr)
+void WidgetTests::reset(text newName, int feature, text desc, text dir, double thr,
+                        int width, int height)
 // ----------------------------------------------------------------------------
 //   Reset the test
 // ----------------------------------------------------------------------------
@@ -415,6 +411,9 @@ void WidgetTests::reset(text newName, int feature, text desc, text dir, double t
     name = +newName;
     featureId = feature;
     threshold = thr;
+    winSize.setWidth(width);
+    winSize.setHeight(height);
+    win->statusBar()->showMessage("Loading test " + name);
 
     description = +desc;
     folder = +dir;

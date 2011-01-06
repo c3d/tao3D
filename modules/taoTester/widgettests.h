@@ -33,7 +33,7 @@
 #include <QTime>
 #include <QColorDialog>
 #include <QFontDialog>
-
+#include <QMainWindow>
 inline QString operator +(text s)
 // ----------------------------------------------------------------------------
 //   Quickly convert from text to QString
@@ -65,7 +65,7 @@ public:
     void printResult();
     void reset(text newName = text(), int feature = 0,
                text desc = text(), text folder = text("./"),
-               double thr = 0.0);
+               double thr = 0.0, int width = -1, int height = -1);
 
     void addKeyPress(Qt::Key qtKey,
                      Qt::KeyboardModifiers modifiers = Qt::NoModifier,
@@ -117,6 +117,9 @@ public:
     QString    taoCmd;
     int        nbChkPtKO;
     double     threshold;
+
+    QMainWindow * win ;
+    QSize         winSize;
 
 protected:
 

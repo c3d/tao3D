@@ -800,6 +800,8 @@ private:
                                     double nextRefresh = DBL_MAX);
 public:
     static bool           refreshOn(int event_type);
+    static bool           addControlBox(Real *x, Real *y, Real *z,
+                                        Real *w, Real *h, Real *d);
 
 private:
     void                  processProgramEvents();

@@ -35,6 +35,7 @@ ModuleApiPrivate::ModuleApiPrivate()
     scheduleRender = ModuleRenderer::ScheduleRender;
     refreshOn      = Widget::refreshOn;
     addToLayout    = ModuleRenderer::AddToLayout;
+    addControlBox  = Widget::addControlBox;
 }
 
 TAO_END

@@ -5950,6 +5950,20 @@ Tree_p Widget::object(Tree_p self,
 }
 
 
+bool Widget::addControlBox(Real *x, Real *y, Real *z,
+                           Real *w, Real *h, Real *d)
+// ----------------------------------------------------------------------------
+//   Module interface to add a control box to the current layout
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = Tao();
+    Tree_p currentShape = widget->currentShape;
+    Layout *layout = widget->layout;
+    if (currentShape)
+        layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
+    return true;
+}
+
 
 // ============================================================================
 //

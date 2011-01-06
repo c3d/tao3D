@@ -45,8 +45,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   4
-#define TAO_MODULE_API_AGE       4
+#define TAO_MODULE_API_CURRENT   5
+#define TAO_MODULE_API_AGE       5
 
 // ========================================================================
 //
@@ -54,8 +54,12 @@
 //
 // ========================================================================
 
-namespace Tao {
+namespace XL
+{
+    struct Real;
+}
 
+namespace Tao {
 
 struct ModuleApi
 // ------------------------------------------------------------------------
@@ -79,6 +83,10 @@ struct ModuleApi
     // Like scheduleRender, but current layout takes ownership of arg:
     // when layout is destroyed, delete_fn is called with arg.
     bool (*addToLayout)(render_fn callback, void *arg, delete_fn del);
+
+    // Show a control box to manipulate the object
+    bool (*addControlBox)(XL::Real *x, XL::Real *y, XL::Real *z,
+                          XL::Real *w, XL::Real *h, XL::Real *d);
 };
 
 }

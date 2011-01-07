@@ -158,7 +158,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       zoom(1.0), eyeDistance(10.0),
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
-      dragging(false), bAutoHideCursor(false)
+      dragging(false), bAutoHideCursor(false),
+      inDraw(false)
 {
     setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap
@@ -336,8 +337,10 @@ void Widget::draw()
 // ----------------------------------------------------------------------------
 {
     // Recursive drawing may occur with video widgets, and it's bad
-    if (current)
+    if (inDraw)
         return;
+
+    XL::LocalSave<bool> drawing(inDraw, true);
 
     TaoSave saveCurrent(current, this);
 

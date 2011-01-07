@@ -760,7 +760,7 @@ private:
     Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child);
     bool    updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group);
 
-
+    bool inDraw;
 };
 
 

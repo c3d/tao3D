@@ -70,6 +70,7 @@ SOURCES += \
     ../tao/xlr/xlr/compiler-envscan.cpp			\
     ../tao/xlr/xlr/compiler-expred.cpp			\
     ../tao/xlr/xlr/compiler-gc.cpp				\
+    ../tao/xlr/xlr/compiler-llvm.cpp				\
     ../tao/xlr/xlr/compiler-parm.cpp			\
     ../tao/xlr/xlr/compiler-unit.cpp			\
     ../tao/xlr/xlr/context.cpp \
@@ -112,7 +113,7 @@ OTHER_FILES = \
 !system(bash -c \"llvm-config --version >/dev/null\"):error("Can't execute llvm-config")
 
 # LLVM dependencies
-LLVM_LIBS = $$system(bash -c \"llvm-config --libs core jit native\")
+LLVM_LIBS = $$system(bash -c \"llvm-config --libs\")
 LLVM_LIBS += $$system(bash -c \"llvm-config --ldflags\")
 LLVM_INC = $$system(bash -c \"llvm-config --includedir\")
 LLVM_DEF = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")

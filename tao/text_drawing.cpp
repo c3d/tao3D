@@ -48,6 +48,8 @@ TAO_BEGIN
 //
 // ============================================================================
 
+bool TextSpan::cacheEnabled = true;
+
 void TextSpan::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Render a portion of text and advance by the width of the text
@@ -64,7 +66,8 @@ void TextSpan::Draw(Layout *where)
     uint        dbgMod     = (Qt::ShiftModifier | Qt::ControlModifier);
     bool        dbgDirect  = (widget->lastModifiers() & dbgMod) == dbgMod;
 
-    if (!printing && !hasLine && !hasTexture && !tooBig && !dbgDirect)
+    if (!printing && !hasLine && !hasTexture && !tooBig && !dbgDirect &&
+        cacheEnabled)
         DrawCached(where);
     else
         DrawDirect(where);

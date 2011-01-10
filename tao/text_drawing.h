@@ -58,6 +58,7 @@ protected:
 public:
     Text_p              source;
     uint                start, end;
+    static bool         cacheEnabled;
 };
 
 

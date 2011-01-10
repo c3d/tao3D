@@ -342,6 +342,7 @@ public:
                               double f0, double f1, double u0, double u1);
 
     // Graphic attributes
+    Tree_p      clearColor(Tree_p self, double r, double g, double b, double a);
     Tree_p      lineColorName(Tree_p self, text name, double a);
     Tree_p      lineColorRgb(Tree_p self, double r, double g, double b, double a);
     Tree_p      lineColorHsl(Tree_p self, double h, double s, double l, double a);
@@ -679,6 +680,7 @@ private:
     bool                  mustUpdateDialogs;
 
     // Rendering
+    QColor                clearCol;
     SpaceLayout *         space;
     Layout *              layout;
     GraphicPath *         path;

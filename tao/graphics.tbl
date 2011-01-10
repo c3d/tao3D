@@ -1316,7 +1316,14 @@ PREFIX(DocVersion,  tree,  "doc_version", , RTAO(docVersion(self)),
        GROUP(version)
        SYNOPSIS("The document version")
        DESCRIPTION("Return the version of the current document (if known)")
-       RETURNS( tree, "The current document version") )
+       RETURNS(tree, "The current document version"))
+PREFIX(EnableGlyphCache,  boolean,  "enable_glyph_cache",
+       PARM(an, boolean, "on or off"),
+       RTAO(enableGlyphCache(self, an)),
+       GROUP(text)
+       SYNOPSIS("Enable or disable bitmap glyph cache")
+       DESCRIPTION("Enable or disable the bitmap glyph cache. Enabled by default. When enabled, drawing text is faster, but typically lower quality especially when fullscreen antialiasing is available.")
+       RETURNS(boolean, "True if previous state was on."))
 
 
 

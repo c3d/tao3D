@@ -5889,6 +5889,16 @@ Text_p Widget::docVersion(Tree_p self)
 }
 
 
+Name_p Widget::enableGlyphCache(Tree_p self, bool enable)
+// ----------------------------------------------------------------------------
+//   Enable or disable glyph cache
+// ----------------------------------------------------------------------------
+{
+    bool old = TextSpan::cacheEnabled;
+    TextSpan::cacheEnabled = enable;
+    return old ? XL::xl_true : XL::xl_false;
+}
+
 
 // ============================================================================
 //

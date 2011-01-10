@@ -26,6 +26,7 @@
 #include "drawing.h"
 #include "color.h"
 #include "justification.h"
+#include "tao_gl.h"
 #include <vector>
 #include <set>
 #include <QFont>
@@ -129,8 +130,19 @@ public:
     bool                has3D           : 1;
     bool                hasAttributes   : 1;
     bool                hasTextureMatrix: 1;
+    bool                hasLighting     : 1;
     bool                isSelection     : 1;
     bool                groupDrag       : 1;
+
+    GLbitfield glSaveBits()
+    {
+        GLbitfield bits = 0;
+        if (hasAttributes)
+            bits |= (GL_LINE_BIT | GL_TEXTURE_BIT);
+        if (hasLighting)
+            bits |= GL_LIGHTING_BIT;
+        return bits;
+    }
 
 protected:
     // List of drawing elements

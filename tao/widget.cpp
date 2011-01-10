@@ -5019,6 +5019,7 @@ Tree_p Widget::lightId(Tree_p self, GLuint id, bool enable)
 //   Select and enable or disable a light
 // ----------------------------------------------------------------------------
 {
+    layout->hasLighting = true;
     layout->Add(new LightId(id, enable));
     return XL::xl_true;
 }
@@ -5029,6 +5030,7 @@ Tree_p Widget::light(Tree_p self, GLuint function, GLfloat value)
 //   Set a light parameter with a single float value
 // ----------------------------------------------------------------------------
 {
+    layout->hasLighting = true;
     layout->Add(new Light(function, value));
     return XL::xl_true;
 }
@@ -5040,6 +5042,7 @@ Tree_p Widget::light(Tree_p self, GLuint function,
 //   Set a light parameter with four float values (direction)
 // ----------------------------------------------------------------------------
 {
+    layout->hasLighting = true;
     layout->Add(new Light(function, a, b, c));
     return XL::xl_true;
 }
@@ -5051,6 +5054,7 @@ Tree_p Widget::light(Tree_p self, GLuint function,
 //   Set a light parameter with four float values (position, color)
 // ----------------------------------------------------------------------------
 {
+    layout->hasLighting = true;
     layout->Add(new Light(function, a, b, c, d));
     return XL::xl_true;
 }

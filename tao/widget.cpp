@@ -1387,6 +1387,10 @@ void Widget::resizeGL(int width, int height)
 
     if (stereoMode > stereoHARDWARE)
         setupStereoStencil(width, height);
+
+    TaoSave saveCurrent(current, this);
+    QEvent r(QEvent::Resize);
+    refreshNow(&r);
 }
 
 
@@ -3709,6 +3713,7 @@ XL::Real_p Widget::windowWidth(Tree_p self)
 //   Return the width of the window in which we display
 // ----------------------------------------------------------------------------
 {
+    refreshOn(QEvent::Resize);
     double w = printer ? printer->paperRect().width() : width();
     return new Real(w);
 }
@@ -3719,6 +3724,7 @@ XL::Real_p Widget::windowHeight(Tree_p self)
 //   Return the height of window in which we display
 // ----------------------------------------------------------------------------
 {
+    refreshOn(QEvent::Resize);
     double h = printer ? printer->paperRect().height() : height();
     return new Real(h);
 }

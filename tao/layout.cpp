@@ -108,6 +108,7 @@ text LayoutState::ToText(QEvent::Type type)
         CASE(MouseMove);
         CASE(KeyPress);
         CASE(KeyRelease);
+        CASE(Resize);
         default: break;
     }
 #undef CASE

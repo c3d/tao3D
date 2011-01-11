@@ -1307,6 +1307,8 @@ void Widget::resetView()
     zoom = 1.0;
     scaling = scalingFactorFromCamera();
     setup(width(), height());
+    QEvent r(QEvent::Resize);
+    refreshNow(&r);
 }
 
 

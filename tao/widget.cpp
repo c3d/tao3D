@@ -130,7 +130,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
 // ----------------------------------------------------------------------------
     : QGLWidget(TaoGLFormat(), parent),
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
-      runOnNextDraw(true), clearCol(1.0, 1.0, 1.0, 1.0),
+      runOnNextDraw(true), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), path(NULL), table(NULL),
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),

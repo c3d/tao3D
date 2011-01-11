@@ -127,7 +127,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       xlProgram(sf),
       symbolTableForFormulas(new XL::Symbols(NULL)),
       symbolTableRoot(new XL::Name("formula_symbol_table")),
-      inError(false), mustUpdateDialogs(false), clearCol(1.0, 1.0, 1.0, 1.0),
+      inError(false), mustUpdateDialogs(false), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), path(NULL), table(NULL),
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),

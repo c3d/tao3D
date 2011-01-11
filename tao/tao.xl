@@ -543,7 +543,7 @@ menu_item "menu:insert > text box", "Text Box",
             color "font"
             //line_color "font"
             font "default"
-            text_box 0, 0, 100, 100, do
+            text_box 0, 0, 100, 100,
                 text "Text"
 submenu   "menu:insert > shape", "Shape"
 menu_item "menu:insert > shape > line ---", "Line",

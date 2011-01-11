@@ -75,16 +75,6 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="1" colspan="2">
-    <widget class="Tao::BranchSelectionComboBox" name="dstBranch"/>
-   </item>
-   <item row="3" column="0" colspan="2">
-    <widget class="QLabel" name="dstLabel">
-     <property name="text">
-      <string>Destination branch</string>
-     </property>
-    </widget>
-   </item>
    <item row="4" column="0">
     <widget class="QLabel" name="conflictLabel">
      <property name="text">
@@ -123,6 +113,16 @@
      </property>
      <property name="standardButtons">
       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1" colspan="2">
+    <widget class="Tao::BranchSelectionComboBox" name="dstBranch"/>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="dstLabel">
+     <property name="text">
+      <string>Destination branch</string>
      </property>
     </widget>
    </item>

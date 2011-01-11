@@ -619,6 +619,15 @@ PREFIX(EnableVSync,  boolean,  "enable_vsync",
 //
 // ============================================================================
 
+PREFIX(ClearColor,  tree,  "clear_color",
+       PARM(r, real, )
+       PARM(g, real, )
+       PARM(b, real, )
+       PARM(a, real, ),
+       RTAO(clearColor(self, r, g, b, a)),
+       GROUP()
+       SYNOPSIS("Set the background color")
+       DESCRIPTION("Set the background color"))
 PREFIX(LineColorName,  tree,  "line_color",
        PARM(n, text, "The name of the color, which can be one of the SVG color keywork names, or in one of these formats: #RGB or #RRGGBB  (each of R, G, and B being a single hex digit).")
        PARM(a, real, "The red component of an color, is in the range 0.0 to 1.0."),

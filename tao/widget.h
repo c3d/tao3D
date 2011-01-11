@@ -359,6 +359,7 @@ public:
     Name_p      enableVSync(Tree_p self, bool enable);
 
     // Graphic attributes
+    Tree_p      clearColor(Tree_p self, double r, double g, double b, double a);
     Tree_p      lineColorName(Tree_p self, text name, double a);
     Tree_p      lineColorRgb(Tree_p self, double r, double g, double b, double a);
     Tree_p      lineColorHsl(Tree_p self, double h, double s, double l, double a);
@@ -704,6 +705,7 @@ private:
     bool                  runOnNextDraw;
 
     // Rendering
+    QColor                clearCol;
     SpaceLayout *         space;
     Layout *              layout;
     GraphicPath *         path;

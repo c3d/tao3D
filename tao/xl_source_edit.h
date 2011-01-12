@@ -24,6 +24,7 @@
 
 #include "renderer.h"
 #include <QTextEdit>
+#include <sstream>
 
 namespace Tao {
 
@@ -39,10 +40,10 @@ class XLSourceEdit : public QTextEdit
 
 public:
     XLSourceEdit(QWidget *parent = 0);
+    virtual ~XLSourceEdit();
 
-    void   setPlainTextKeepCursor(const QString &txt);
     void   setXLNames(const QStringList &names);
-    void   setSelectedRanges(const XL::stream_ranges &ranges);
+    void   render(XL::Tree_p prog, std::set<XL::Tree_p>* selected = NULL);
 
 protected:
     virtual bool   event(QEvent *e);
@@ -50,10 +51,13 @@ protected:
 
     bool           handleTabKey(QKeyEvent *e);
     bool           handleShiftTabKey(QKeyEvent *e);
+    void           setPlainTextKeepCursor(const QString &txt);
+    void           setSelectedRanges(const XL::stream_ranges &ranges);
 
 private:
     XLHighlighter *    highlighter;
-    XL::stream_ranges  selected;
+    XL::Renderer *     renderer;
+    std::ostringstream rendererOut;
 };
 
 }

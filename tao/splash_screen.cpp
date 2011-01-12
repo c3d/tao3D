@@ -29,6 +29,7 @@
 #include <QPixmap>
 #include <QPainter>
 #include <QTextDocument>
+#include <QCoreApplication>
 
 TAO_BEGIN
 
@@ -88,6 +89,8 @@ void SplashScreen::showMessage(const QString &message, int alignment,
 // ----------------------------------------------------------------------------
 {
     QSplashScreen::showMessage(message, alignment, color);
+    QCoreApplication::processEvents();
+    repaint();
 }
 
 TAO_END

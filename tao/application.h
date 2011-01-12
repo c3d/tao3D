@@ -66,6 +66,7 @@ public:
 
 public slots:
     void           saveDebugTraceSettings();
+    void           moduleIsLoading(QString name);
 
 protected:
     void           saveSettings();

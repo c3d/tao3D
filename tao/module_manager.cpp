@@ -34,6 +34,7 @@
 #include <unistd.h>    // For chdir()
 #include <sys/param.h> // For MAXPATHLEN
 
+
 namespace Tao {
 
 ModuleManager * ModuleManager::instance = NULL;
@@ -634,6 +635,8 @@ bool ModuleManager::load(Context *context, const ModuleInfoPrivate &m)
 
     IFTRACE(modules)
         debug() << "Loading module " << m.toText() << "\n";
+
+    emit loading(QString::fromStdString(m.name));
 
     ok = loadNative(context, m);
     if (ok)

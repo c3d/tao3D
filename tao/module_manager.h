@@ -325,6 +325,9 @@ public:
     virtual void        warnDuplicateModule(const ModuleInfoPrivate &m);
     virtual void        warnBinaryModuleIncompatible(QLibrary *lib);
 
+signals:
+    void                loading(QString name);
+
 private:
     ModuleManager()  {}
     ~ModuleManager() {}

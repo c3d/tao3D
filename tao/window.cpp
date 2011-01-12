@@ -1376,10 +1376,10 @@ void Window::showMessage(QString message, int timeout)
 // ----------------------------------------------------------------------------
 {
     if (splashScreen)
-        splashScreen->showMessage(message);
-    else
-        statusBar()->showMessage(message, timeout);
-    QApplication::processEvents();
+        return splashScreen->showMessage(message);
+
+    statusBar()->showMessage(message, timeout);
+    QCoreApplication::processEvents();
 }
 
 

@@ -563,6 +563,15 @@ PREFIX(PolygonOffset,  integer,  "polygon_offset",
 //
 // ============================================================================
 
+PREFIX(ClearColor,  tree,  "clear_color",
+       PARM(r, real, )
+       PARM(g, real, )
+       PARM(b, real, )
+       PARM(a, real, ),
+       RTAO(clearColor(self, r, g, b, a)),
+       GROUP()
+       SYNOPSIS("Set the background color")
+       DESCRIPTION("Set the background color"))
 PREFIX(LineColorName,  tree,  "line_color",
        PARM(n, text, "The name of the color, which can be one of the SVG color keywork names, or in one of these formats: #RGB or #RRGGBB  (each of R, G, and B being a single hex digit).")
        PARM(a, real, "The red component of an color, is in the range 0.0 to 1.0."),
@@ -1322,7 +1331,14 @@ PREFIX(DocVersion,  tree,  "doc_version", , RTAO(docVersion(self)),
        GROUP(version)
        SYNOPSIS("The document version")
        DESCRIPTION("Return the version of the current document (if known)")
-       RETURNS( tree, "The current document version") )
+       RETURNS(tree, "The current document version"))
+PREFIX(EnableGlyphCache,  boolean,  "enable_glyph_cache",
+       PARM(an, boolean, "on or off"),
+       RTAO(enableGlyphCache(self, an)),
+       GROUP(text)
+       SYNOPSIS("Enable or disable bitmap glyph cache")
+       DESCRIPTION("Enable or disable the bitmap glyph cache. Enabled by default. When enabled, drawing text is faster, but typically lower quality especially when fullscreen antialiasing is available.")
+       RETURNS(boolean, "True if previous state was on."))
 
 
 

@@ -237,6 +237,9 @@ public:
     virtual bool        askEnable(const ModuleInfo &m, QString reason = "");
     virtual void        warnDuplicateModule(const ModuleInfo &m);
 
+signals:
+    void                loading(QString name);
+
 private:
     ModuleManager()  {}
     ~ModuleManager() {}

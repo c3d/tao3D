@@ -127,7 +127,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       xlProgram(sf),
       symbolTableForFormulas(new XL::Symbols(NULL)),
       symbolTableRoot(new XL::Name("formula_symbol_table")),
-      inError(false), mustUpdateDialogs(false),
+      inError(false), mustUpdateDialogs(false), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), path(NULL), table(NULL),
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
@@ -362,7 +362,9 @@ void Widget::draw()
 
     // After we are done, draw the space with all the drawings in it
     // If we are in stereoscopice mode, we draw twice, once for each eye
-    glClearColor (1.0, 1.0, 1.0, 1.0);
+    qreal r, g, b, a;
+    clearCol.getRgbF(&r, &g, &b, &a);
+    glClearColor (r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     for (stereoscopic = 1; stereoscopic <= stereoPlanes; stereoscopic++)
@@ -376,7 +378,7 @@ void Widget::draw()
                     glDrawBuffer(GL_BACK_LEFT);
                 else if (stereoscopic == 2)
                     glDrawBuffer(GL_BACK_RIGHT);
-                glClearColor(1.0, 1.0, 1.0, 1.0);
+                glClearColor(r, g, b, a);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glDisable(GL_STENCIL_TEST);
             }
@@ -4202,6 +4204,21 @@ static inline QColor colorByName(text name)
 }
 
 
+Tree_p Widget::clearColor(Tree_p self, double r, double g, double b, double a)
+// ----------------------------------------------------------------------------
+//    Set the RGB clear (background) color
+// ----------------------------------------------------------------------------
+{
+    CHECK_0_1_RANGE(r);
+    CHECK_0_1_RANGE(g);
+    CHECK_0_1_RANGE(b);
+    CHECK_0_1_RANGE(a);
+
+    clearCol.setRgbF(r, g, b, a);
+    return XL::xl_true;
+}
+
+
 Tree_p Widget::lineColorName(Tree_p self, text name, double a)
 // ----------------------------------------------------------------------------
 //    Set the named color for lines
@@ -4547,6 +4564,7 @@ Tree_p Widget::lightId(Tree_p self, GLuint id, bool enable)
 //   Select and enable or disable a light
 // ----------------------------------------------------------------------------
 {
+    layout->hasLighting = true;
     layout->Add(new LightId(id, enable));
     return XL::xl_true;
 }
@@ -4557,6 +4575,7 @@ Tree_p Widget::light(Tree_p self, GLuint function, GLfloat value)
 //   Set a light parameter with a single float value
 // ----------------------------------------------------------------------------
 {
+    layout->hasLighting = true;
     layout->Add(new Light(function, value));
     return XL::xl_true;
 }
@@ -4568,6 +4587,7 @@ Tree_p Widget::light(Tree_p self, GLuint function,
 //   Set a light parameter with four float values (direction)
 // ----------------------------------------------------------------------------
 {
+    layout->hasLighting = true;
     layout->Add(new Light(function, a, b, c));
     return XL::xl_true;
 }
@@ -4579,6 +4599,7 @@ Tree_p Widget::light(Tree_p self, GLuint function,
 //   Set a light parameter with four float values (position, color)
 // ----------------------------------------------------------------------------
 {
+    layout->hasLighting = true;
     layout->Add(new Light(function, a, b, c, d));
     return XL::xl_true;
 }
@@ -5894,6 +5915,16 @@ Text_p Widget::docVersion(Tree_p self)
     return new XL::Text(version);
 }
 
+
+Name_p Widget::enableGlyphCache(Tree_p self, bool enable)
+// ----------------------------------------------------------------------------
+//   Enable or disable glyph cache
+// ----------------------------------------------------------------------------
+{
+    bool old = TextSpan::cacheEnabled;
+    TextSpan::cacheEnabled = enable;
+    return old ? XL::xl_true : XL::xl_false;
+}
 
 
 // ============================================================================

@@ -30,6 +30,7 @@
 #include <QSettings>
 #include <QMessageBox>
 
+
 namespace Tao {
 
 ModuleManager * ModuleManager::instance = NULL;
@@ -463,6 +464,8 @@ bool ModuleManager::load(const ModuleInfo &m)
 
     IFTRACE(modules)
         debug() << "Loading module " << m.toText() << "\n";
+
+    emit loading(m.name);
 
     ok = loadNative(m);
     if (ok)

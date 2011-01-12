@@ -342,6 +342,7 @@ public:
                               double f0, double f1, double u0, double u1);
 
     // Graphic attributes
+    Tree_p      clearColor(Tree_p self, double r, double g, double b, double a);
     Tree_p      lineColorName(Tree_p self, text name, double a);
     Tree_p      lineColorRgb(Tree_p self, double r, double g, double b, double a);
     Tree_p      lineColorHsl(Tree_p self, double h, double s, double l, double a);
@@ -483,6 +484,7 @@ public:
     Text_p      loadText(Tree_p self, text file);
     Text_p      taoVersion(Tree_p self);
     Text_p      docVersion(Tree_p self);
+    Name_p      enableGlyphCache(Tree_p self, bool enable);
 
     // Tables
     Tree_p      newTable(Tree_p self, Real_p x, Real_p y,
@@ -679,6 +681,7 @@ private:
     bool                  mustUpdateDialogs;
 
     // Rendering
+    QColor                clearCol;
     SpaceLayout *         space;
     Layout *              layout;
     GraphicPath *         path;

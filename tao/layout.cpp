@@ -97,7 +97,7 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
     : Drawing(), LayoutState(), id(0), charId(0),
       hasPixelBlur(false), hasMatrix(false), has3D(false),
-      hasAttributes(false), hasTextureMatrix(false),
+      hasAttributes(false), hasTextureMatrix(false), hasLighting(false),
       isSelection(false), groupDrag(false),
       items(), display(widget)
 {}
@@ -109,7 +109,7 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
     : Drawing(o), LayoutState(o), id(0), charId(0),
       hasPixelBlur(o.hasPixelBlur), hasMatrix(false), has3D(o.has3D),
-      hasAttributes(false), hasTextureMatrix(false),
+      hasAttributes(false), hasTextureMatrix(false), hasLighting(false),
       isSelection(o.isSelection), groupDrag(false),
       items(), display(o.display)
 {}
@@ -156,10 +156,6 @@ void Layout::Clear()
 }
 
 
-// The bit values we save for a layout
-static const GLbitfield GL_LAYOUT_BITS = GL_LINE_BIT | GL_TEXTURE_BIT;
-
-
 void Layout::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the elements in the layout
@@ -167,7 +163,7 @@ void Layout::Draw(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
-    GLAllStateKeeper glSave(hasAttributes?GL_LAYOUT_BITS:0,
+    GLAllStateKeeper glSave(glSaveBits(),
                             hasMatrix, false, hasTextureMatrix);
     Inherit(where);
 
@@ -190,7 +186,7 @@ void Layout::DrawSelection(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
-    GLAllStateKeeper glSave(hasAttributes?GL_LAYOUT_BITS:0,
+    GLAllStateKeeper glSave(glSaveBits(),
                             hasMatrix, false, hasTextureMatrix);
     Inherit(where);
 
@@ -212,7 +208,7 @@ void Layout::Identify(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
-    GLAllStateKeeper glSave(hasAttributes?GL_LAYOUT_BITS:0,
+    GLAllStateKeeper glSave(glSaveBits(),
                             hasMatrix, false, hasTextureMatrix);
     Inherit(where);
 

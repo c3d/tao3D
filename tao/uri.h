@@ -33,6 +33,7 @@
 #include "repository.h"
 #include <QUrl>
 #include <QString>
+#include <QStringList>
 #include <QProgressDialog>
 
 
@@ -45,18 +46,13 @@ class Uri : public QObject, public QUrl
     Q_OBJECT
 
 public:
-    // TODO move to cpp
-    Uri(): QUrl(), repo(NULL), done(false), progress(NULL), proc(NULL), pos(0), aborted(false) {}
-    Uri(QString uri): QUrl(uri), repo(NULL), done(false), progress(NULL),
-                      proc(NULL), pos(0), aborted(false) {}
+    Uri();
+    Uri(QString uri);
     virtual ~Uri();
 
 public:
     bool                  get();
     bool                  isLocal();
-
-public:
-    static void           gc();
 
 signals:
     void                  progressMessage(QString message);
@@ -74,9 +70,10 @@ protected:
     QString               repoUri();
     bool                  showRepoErrorDialog();
 
-    QString               localProject();
-    void                  setLocalProject(const QString &path);
+    void                  refreshSettings();
     void                  clearLocalProject();
+    bool                  addLocalProject(const QString &path);
+    QStringList           localProjects();
 
     bool                  fetchAndCheckout();
     bool                  cloneAndCheckout();
@@ -99,6 +96,9 @@ private:
     QString               project;
     bool                  aborted;
     bool                  clone;
+
+private:
+   static bool            doRefresh;
 };
 
 }

@@ -27,13 +27,14 @@
 
 #include <QSplashScreen>
 #include <QPixmap>
+#include <QBitmap>
 #include <QPainter>
 #include <QTextDocument>
 #include <QCoreApplication>
 
 TAO_BEGIN
 
-#define TEXT_COLOR "#666666"
+#define TEXT_COLOR "#FFFFFF"
 
 SplashScreen::SplashScreen(Qt::WindowFlags flags)
     : QSplashScreen(QPixmap(":/images/splash.png"), flags)
@@ -41,6 +42,7 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
 //    Splash screen constructor: load the Tao bitmap and show program version
 // ----------------------------------------------------------------------------
 {
+    setMask(QPixmap(":/images/splash.png").mask());
     QString version(QObject::tr("Version %1").arg(GITREV));
     showMessage(version);
 }
@@ -63,15 +65,17 @@ void SplashScreen::drawContents(QPainter *painter)
 {
     QSplashScreen::drawContents(painter);
 
-    const int x = 280, y = 166, w = 455, h = 225;
+    int x = 270, y = 230, w = 500, h = 225;
     const char * txt =
-            "<font color=\"" TEXT_COLOR "\"><br/><br/>"
-            "Brought to you by:<br/><br/>"
-            "Anne Lempereur<br/>"
-            "Catherine Burvelle<br/>"
-            "J\303\251r\303\264me Forissier<br/>"
-            "Lionel Schaffhauser<br/>"
-            "Christophe de Dinechin<br/>"
+            "<font color=\"" TEXT_COLOR "\">"
+            "Brought to you by "
+            "Anne Lempereur, "
+            "Catherine Burvelle, "
+            "J\303\251r\303\264me Forissier,<br>"
+            "Lionel Schaffhauser and "
+            "Christophe de Dinechin."
+            "<br><br>"
+            "\302\251 2010-2011 Taodyne SAS. All rights reserved."
             "</font>";
     QTextDocument doc;
     QRect clip = rect();
@@ -79,16 +83,27 @@ void SplashScreen::drawContents(QPainter *painter)
     painter->translate(x, y);
     doc.setHtml(trUtf8(txt));
     doc.drawContents(painter, clip);
+    painter->translate(-x, -y);
+
+    QString msg;
+    msg = QString("<font color=\"" TEXT_COLOR "\">%1</font>").arg(message);
+    x = 20;
+    y = height() - 40;
+    w = width() - 40;
+    h = 20;
+    clip.setRect(0, 0, w, h);
+    painter->translate(x, y);
+    doc.setHtml(msg);
+    doc.drawContents(painter, clip);
 }
 
 
-void SplashScreen::showMessage(const QString &message, int alignment,
-                               const QColor &color)
+void SplashScreen::showMessage(const QString &message, int, const QColor &)
 // ----------------------------------------------------------------------------
-//    Show message with our default alignment and color
+//    Customized version of showMessage, fixed location and color
 // ----------------------------------------------------------------------------
 {
-    QSplashScreen::showMessage(message, alignment, color);
+    this->message = message;
     QCoreApplication::processEvents();
     repaint();
 }

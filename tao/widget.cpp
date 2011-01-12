@@ -4286,6 +4286,16 @@ Tree_p Widget::lineColorCmyk(Tree_p self,
 }
 
 
+Tree_p Widget::visibility(Tree_p self, double v)
+// ----------------------------------------------------------------------------
+//    Select the visibility amount
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Visibility(v));
+    return XL::xl_true;
+}
+
+
 Tree_p Widget::lineWidth(Tree_p self, double lw)
 // ----------------------------------------------------------------------------
 //    Select the line width for OpenGL

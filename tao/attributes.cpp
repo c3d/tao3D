@@ -127,6 +127,18 @@ void TextureTransform::Draw(Layout *)
 }
 
 
+void Visibility::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Replay a line width change
+// ----------------------------------------------------------------------------
+{
+    if (visibility >= 0)
+        where->visibility *= visibility;
+    else
+        where->visibility = -visibility;
+}
+
+
 void LineWidth::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Replay a line width change

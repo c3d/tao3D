@@ -50,6 +50,7 @@ public:
     QFont               font;
     Justification       alongX, alongY, alongZ;
     coord               left, right, top, bottom; // Margins
+    scale               visibility;
     scale               lineWidth;
     Color               lineColor;
     Color               fillColor;

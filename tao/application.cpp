@@ -813,9 +813,6 @@ void Application::loadSettings()
     // create duplicates :(
     urlList.removeDuplicates();
     pathList.removeDuplicates();
-
-    // Cleanup obsolete URI/project mappings (QSettings) before we open any URI
-    Uri::gc();
 }
 
 

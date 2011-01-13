@@ -41,12 +41,12 @@ public:
 public slots:
     virtual void showMessage(const QString &message,
                              int alignment = Qt::AlignBottom,
-                             const QColor &color = QColor(102, 102, 102));
+                             const QColor &color = QColor(255, 255, 255));
 
 protected:
     virtual void drawContents(QPainter *painter);
 
-    QString      textColor;
+    QString      message;
 
 signals:
     void dismissed();

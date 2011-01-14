@@ -86,6 +86,7 @@ public:
     typedef std::vector<double>         attribute_args;
     typedef std::map<GLuint, uint>      selection_map;
     enum StereoMode { stereoHARDWARE,
+                      stereoHSPLIT, stereoVSPLIT,
                       stereoHORIZONTAL, stereoVERTICAL,
                       stereoDIAGONAL, stereoANTI_DIAGONAL,
                       stereoALIOSCOPY };

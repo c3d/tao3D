@@ -50,7 +50,6 @@
 #include <QColorDialog>
 #include <QFontDialog>
 #include <iostream>
-#include <sstream>
 #include <map>
 #include <set>
 
@@ -190,7 +189,6 @@ public:
                     text sh = "group,shape");
     bool        set(Tree *shape, text n, attribute_args &a,
                     text sh = "group,shape");
-    void        setSourceRenderer();
     bool        isReadOnly();
     QStringList listNames();
 
@@ -773,10 +771,6 @@ private:
     double                pagePrintTime;
     uint                  printOverscaling;
     QPrinter             *printer;
-
-    // Source code view
-    std::ostringstream    sourceRendererOutput; // REVISIT: movie into TextEditor
-    XL::Renderer *        sourceRenderer;  // REVISIT: movie into TextEditor
 
     static Widget *       current;
     static QColorDialog * colorDialog;

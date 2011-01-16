@@ -157,7 +157,6 @@ Widget::Widget(Window *parent, SourceFile *sf)
       nextSave(now()), nextCommit(nextSave),
       nextSync(nextSave), nextPull(nextSave),
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
-      sourceRenderer(NULL),
       currentFileDialog(NULL),
       zNear(1000.0), zFar(56000.0),
       zoom(1.0), eyeDistance(10.0),
@@ -203,9 +202,6 @@ Widget::Widget(Window *parent, SourceFile *sf)
     formulas = new Context(NULL, NULL);
     TaoFormulas::EnterFormulas(formulas);
 
-    // Select format for source file view
-    setSourceRenderer();
-
     // Prepare activity to process mouse events even when no click is made
     // (but for performance reasons, mouse tracking is enabled only when program
     // execution asks for MouseMove events)
@@ -239,7 +235,6 @@ Widget::~Widget()
 {
     delete space;
     delete path;
-    delete sourceRenderer;
 }
 
 
@@ -2492,23 +2487,6 @@ void Widget::reloadProgram(XL::Tree *newProg)
     refreshNow();
 }
 
-void Widget::setSourceRenderer()
-// ----------------------------------------------------------------------------
-//   (Re-)create the XL renderer to display the source code
-// ----------------------------------------------------------------------------
-// REVISIT: move into TextEditor
-{
-    if (sourceRenderer)
-        delete sourceRenderer;
-
-    sourceRenderer = new XL::Renderer(sourceRendererOutput);
-    QFileInfo stylesheet("xl:git.stylesheet");
-    QFileInfo syntax("xl:xl.syntax");
-    QString sspath(stylesheet.canonicalFilePath());
-    QString sypath(syntax.canonicalFilePath());
-    sourceRenderer->SelectStyleSheet(+sspath, +sypath);
-}
-
 
 void Widget::updateProgramSource()
 // ----------------------------------------------------------------------------
@@ -2518,31 +2496,7 @@ void Widget::updateProgramSource()
     Window *window = (Window *) parentWidget();
     if (window->src->isHidden())
         return;
-    XLSourceEdit *src = window->srcEdit;
-    if (Tree *prog = xlProgram->tree)
-    {
-        text txt = "";
-        sourceRendererOutput.str(txt);
-
-        // Tell renderer how to highlight selected items
-        std::set<Tree_p >::iterator i;
-        sourceRenderer->highlights.clear();
-        for (i = selectionTrees.begin(); i != selectionTrees.end(); i++)
-            sourceRenderer->highlights[*i] = "selected";
-        sourceRenderer->RenderFile(prog);
-
-        XL::stream_ranges selected;
-        if (sourceRenderer->highlighted.count("selected"))
-            selected = sourceRenderer->highlighted["selected"];
-        src->setSelectedRanges(selected);
-
-        txt = sourceRendererOutput.str();
-        window->srcEdit->setPlainTextKeepCursor(+txt);
-    }
-    else
-    {
-        window->srcEdit->clear();
-    }
+    window->srcEdit->render(xlProgram->tree, &selectionTrees);
 }
 
 

@@ -165,7 +165,6 @@ private:
     void     enableProjectSharingMenus();
     void     updateRecentFileActions();
     void     updateContext(QString docPath);
-    void     loadSrcViewStyleSheet();
     void     showMessage(QString message, int timeout);
     void     closeToolWindows();
 

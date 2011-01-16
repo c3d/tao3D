@@ -1361,15 +1361,6 @@ bool Window::needNewWindow()
 }
 
 
-void Window::loadSrcViewStyleSheet()
-// ----------------------------------------------------------------------------
-//    Load the XL stylesheet to use for syntax highlighting
-// ----------------------------------------------------------------------------
-{
-    taoWidget->setSourceRenderer();
-}
-
-
 void Window::showMessage(QString message, int timeout)
 // ----------------------------------------------------------------------------
 //    Show a status message, either in the status bar on on the splash screen
@@ -1473,7 +1464,6 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         showMessage(msg.arg(tr("Caching code")));
         taoWidget->preloadSelectionCode();
 
-        loadSrcViewStyleSheet();
         loadInProgress = true;
         taoWidget->updateProgramSource();
         loadInProgress = false;

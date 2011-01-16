@@ -23,9 +23,11 @@
 
 #include "xl_source_edit.h"
 #include "xl_highlighter.h"
+#include "tao_utf8.h"
 #include <QScrollBar>
 #include <QEvent>
 #include <QKeyEvent>
+#include <QFileInfo>
 
 namespace Tao {
 
@@ -40,6 +42,23 @@ XLSourceEdit::XLSourceEdit(QWidget *parent)
     setFont(font);
     highlighter = new XLHighlighter(document());
     setLineWrapMode(QTextEdit::NoWrap);
+
+    renderer = new XL::Renderer(rendererOut);
+    QFileInfo stylesheet("xl:git.stylesheet");
+    QFileInfo syntax("xl:xl.syntax");
+    QString sspath(stylesheet.canonicalFilePath());
+    QString sypath(syntax.canonicalFilePath());
+    renderer->SelectStyleSheet(+sspath, +sypath);
+}
+
+
+XLSourceEdit::~XLSourceEdit()
+// ----------------------------------------------------------------------------
+//   Destroy source editor
+// ----------------------------------------------------------------------------
+{
+    delete highlighter;
+    delete renderer;
 }
 
 
@@ -84,6 +103,35 @@ void XLSourceEdit::setSelectedRanges(const XL::stream_ranges &ranges)
 // ----------------------------------------------------------------------------
 {
     highlighter->setSelectedRanges(ranges);
+}
+
+
+void XLSourceEdit::render(XL::Tree_p prog, std::set<XL::Tree_p> *selected)
+// ----------------------------------------------------------------------------
+//   Show prog source
+// ----------------------------------------------------------------------------
+{
+    if (!prog)
+        return clear();
+
+    text txt = "";
+    rendererOut.str(txt);
+
+    // Tell renderer how to highlight selected items
+    std::set<XL::Tree_p >::iterator i;
+    renderer->highlights.clear();
+    if (selected)
+        for (i = selected->begin(); i != selected->end(); i++)
+            renderer->highlights[*i] = "selected";
+    renderer->RenderFile(prog);
+
+    XL::stream_ranges sel;
+    if (renderer->highlighted.count("selected"))
+        sel = renderer->highlighted["selected"];
+    setSelectedRanges(sel);
+
+    txt = rendererOut.str();
+    setPlainTextKeepCursor(+txt);
 }
 
 

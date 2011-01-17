@@ -23,6 +23,7 @@ FILES_COMMON = \
 FILES_macosx = \
 	libxlr \
 	libxlr/libxlr*.dylib \
+	modules/fix_qt_refs \
 	$(NULL)
 
 FILES_linux = \

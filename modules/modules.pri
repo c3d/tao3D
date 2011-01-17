@@ -64,13 +64,18 @@ isEmpty(MODINSTPATH) {
   isEmpty(MODINSTDIR):error(MODINSTDIR not defined)
   MODINSTPATH      = $${MODINSTROOT}/$$MODINSTDIR
 }
+isEmpty(FIX_QT_REFS):FIX_QT_REFS = $$PWD/fix_qt_refs
 thismod_xl.path   = $$MODINSTPATH
 thismod_xl.files  = module.xl
 INSTALLS += thismod_xl
 thismod_bin.path  = $${MODINSTPATH}/lib
 # Workaround http://bugreports.qt.nokia.com/browse/QTBUG-5558
 # thismod_bin.files = $$MODULE
-thismod_bin.extra = \$(INSTALL_PROGRAM) $$MODULE $$thismod_bin.path
+macx {
+  thismod_bin.extra = \$(INSTALL_PROGRAM) $$MODULE $$thismod_bin.path ; $$FIX_QT_REFS $$thismod_bin.path/$$MODULE
+} else {
+  thismod_bin.extra = \$(INSTALL_PROGRAM) $$MODULE $$thismod_bin.path
+}
 INSTALLS += thismod_bin
 thismod_icon.path  = $$MODINSTPATH
 thismod_icon.files = icon.png

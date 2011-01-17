@@ -377,7 +377,7 @@ bool ModuleManager::loadAll(Context *context)
     foreach (ModuleInfoPrivate m, modules)
     {
         modules[+m.id].context = context;
-        if (m.enabled && !m.loaded)
+        if (m.enabled && !m.loaded && m.path != "")
             toload.append(m);
     }
     bool ok = load(context, toload);

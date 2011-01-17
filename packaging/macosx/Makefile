@@ -24,8 +24,9 @@
 # final disk image. Its content is copied into build_root/ before
 # building the disk image (dot_DS_Store is renamed .DS_Store).
 #
-# - To change the icon of the disk image, simply replace
-# template/.VolumIcon.icns and rebuild the disk image.
+# - To change the icon of the disk image, replace
+# template/.VolumIcon.icns and follow the steps below (new
+# dot_DS_store).
 # - The appearance of the Finder window (icon position, size, window
 # size...) is controled by the file build_root/.DS_Store (copied from
 # template/dot_DS_Store).

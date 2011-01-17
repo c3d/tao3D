@@ -77,6 +77,9 @@ Application::Application(int & argc, char ** argv)
     setOrganizationDomain ("taodyne.com");
     setWindowIcon(QIcon(":/images/tao.png"));
 
+    // Set current directory
+    QDir::setCurrent(applicationDirPath());
+
     // Internal clean option
     if (arguments().contains("--internal-use-only-clean-environment"))
     {

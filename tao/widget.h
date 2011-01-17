@@ -86,6 +86,7 @@ public:
     typedef std::vector<double>         attribute_args;
     typedef std::map<GLuint, uint>      selection_map;
     enum StereoMode { stereoHARDWARE,
+                      stereoHSPLIT, stereoVSPLIT,
                       stereoHORIZONTAL, stereoVERTICAL,
                       stereoDIAGONAL, stereoANTI_DIAGONAL,
                       stereoALIOSCOPY };
@@ -348,6 +349,7 @@ public:
     Tree_p      lineColorHsl(Tree_p self, double h, double s, double l, double a);
     Tree_p      lineColorHsv(Tree_p self, double h, double s, double v, double a);
     Tree_p      lineColorCmyk(Tree_p self, double c, double m, double y, double k, double a);
+    Tree_p      visibility(Tree_p self, double lw);
     Tree_p      lineWidth(Tree_p self, double lw);
     Tree_p      lineStipple(Tree_p self, uint16 pattern, uint16 scale);
     Tree_p      fillColorName(Tree_p self, text name, double a);

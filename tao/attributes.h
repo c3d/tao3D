@@ -121,6 +121,17 @@ struct TextureTransform : Attribute
 };
 
 
+struct Visibility : Attribute
+// ----------------------------------------------------------------------------
+//    Record the visibility when drawing elements
+// ----------------------------------------------------------------------------
+{
+    Visibility(float v) : Attribute(), visibility(v) {}
+    virtual void Draw(Layout *where);
+    scale visibility;
+};
+
+
 struct LineWidth : Attribute
 // ----------------------------------------------------------------------------
 //    Record the line width when drawing elements

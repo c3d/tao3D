@@ -28,6 +28,12 @@
 //
 // ============================================================================
 
+PREFIX(ShowHide, tree, "show",
+       PARM(amount, real, "Amount of global transparency"),
+       RTAO(visibility(self, amount)),
+       GROUP(page)
+       SYNOPSIS("Show or hide elements"))
+
 PREFIX(Page, text, "page",
        PARM(name, text, "Name of the page.")
        PARM(body, code, "Content of the page."),

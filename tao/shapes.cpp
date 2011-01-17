@@ -84,9 +84,10 @@ bool Shape::setFillColor(Layout *where)
     if (where)
     {
         Color &color = where->fillColor;
-        if (color.alpha > 0.0)
+        scale visi = where->visibility;
+        if (color.alpha * visi > 0.0)
         {
-            glColor4f(color.red, color.green, color.blue, color.alpha);
+            glColor4f(color.red, color.green, color.blue, color.alpha * visi);
             where->PolygonOffset();
             return true;
         }
@@ -105,9 +106,10 @@ bool Shape::setLineColor(Layout *where)
     {
         Color &color = where->lineColor;
         scale width = where->lineWidth;
-        if (color.alpha > 0.0 && width > 0.0)
+        scale visi = where->visibility;
+        if (color.alpha * visi > 0.0 && width > 0.0)
         {
-            glColor4f(color.red, color.green, color.blue, color.alpha);
+            glColor4f(color.red, color.green, color.blue, color.alpha * visi);
             where->PolygonOffset();
             return true;
         }

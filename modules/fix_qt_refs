@@ -6,12 +6,12 @@
 # application's bundle
 
 doo(){
-  echo " $*"
-  $*
+  echo " $@"
+  "$@"
 }
-TARGET=$1
-REFS=`otool -L $TARGET | grep -e Qt -e phonon | grep -v  @executable_path | awk '{ print $1 }'`
+TARGET="$1"
+REFS=`otool -L "$TARGET" | grep -e Qt -e phonon | grep -v  @executable_path | awk '{ print $1 }'`
 for r in $REFS ; do
-  doo install_name_tool -change $r @executable_path/../Frameworks/$r $TARGET
+  doo install_name_tool -change "$r" "@executable_path/../Frameworks/$r" "$TARGET"
 done
 

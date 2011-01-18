@@ -363,8 +363,9 @@ void Widget::draw()
         // Select the buffer in which we draw
         if (stereoPlanes > 1)
         {
-            if (stereoMode == stereoHARDWARE)
+            switch (stereoMode)
             {
+            case stereoHARDWARE:
                 if (stereoscopic == 1)
                     glDrawBuffer(GL_BACK_LEFT);
                 else if (stereoscopic == 2)
@@ -372,12 +373,17 @@ void Widget::draw()
                 glClearColor(r, g, b, a);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glDisable(GL_STENCIL_TEST);
-            }
-            else
-            {
+                break;
+            case stereoHSPLIT:
+            case stereoVSPLIT:
+                glDrawBuffer(GL_BACK);
+                glDisable(GL_STENCIL_TEST);
+                break;
+            default:
                 glStencilFunc(GL_EQUAL, stereoscopic, 63);
                 glEnable(GL_STENCIL_TEST);
                 glDrawBuffer(GL_BACK);
+                break;
             }
         }
         else
@@ -1424,7 +1430,26 @@ void Widget::setup(double w, double h, const Box *picking)
 {
     // Setup viewport
     uint s = printer && picking ? printOverscaling : 1;
-    glViewport(0, 0, w * s, h * s);
+    GLint vx = 0, vy = 0, vw = w * s, vh = h * s;
+
+    if (stereoPlanes > 1)
+    {
+        switch (stereoMode)
+        {
+        case stereoHSPLIT:
+            vw /= 2;
+            if (stereoscopic == 2)
+                vx = vw;
+            break;
+        case stereoVSPLIT:
+            vh /= 2;
+            if (stereoscopic == 2)
+                vy = vh;
+        default:
+            break;
+        }
+    }
+    glViewport(vx, vy, vw, vh);
 
     // Setup the projection matrix
     glMatrixMode(GL_PROJECTION);
@@ -1499,7 +1524,7 @@ void Widget::setupStereoStencil(double w, double h)
 //   For interlaced output, generate a stencil with every other line
 // ----------------------------------------------------------------------------
 {
-    if (stereoMode > stereoHARDWARE)
+    if (stereoMode >= stereoHORIZONTAL)
     {
         // Setup the initial viewport and projection for drawing in stencil
         glViewport(0, 0, w, h);
@@ -1541,6 +1566,8 @@ void Widget::setupStereoStencil(double w, double h)
             numLines = 3 * (w + h);
             break;
         case stereoHARDWARE:
+        case stereoHSPLIT:
+        case stereoVSPLIT:
             break;
         }
 
@@ -1575,6 +1602,8 @@ void Widget::setupStereoStencil(double w, double h)
                     glVertex2f (x/3.0, 0);
                     break;
                 case stereoHARDWARE:
+                case stereoHSPLIT:
+                case stereoVSPLIT:
                     break;
                 }
             }
@@ -4529,6 +4558,16 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
     {
         newState = true;
         stereoMode = stereoHARDWARE;
+    }
+    else if (name->value == "hsplit")
+    {
+        newState = true;
+        stereoMode = stereoHSPLIT;
+    }
+    else if (name->value == "vsplit")
+    {
+        newState = true;
+        stereoMode = stereoVSPLIT;
     }
     else if (name->value == "interlace" || name->value == "interlaced" ||
              name->value == "interleave" || name->value == "interleaved")

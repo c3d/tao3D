@@ -84,6 +84,8 @@ commit_chooser b:text ->
     chooser_commits b, checkout, ""
 
 stereoscopy_settings ->
+    chooser_choice "Enable stereoscopy (horizontal split)", {enable_stereoscopy hsplit}
+    chooser_choice "Enable stereoscopy (vertical split)", {enable_stereoscopy vsplit}
     chooser_choice "Enable stereoscopy (horizontal interleave)", {enable_stereoscopy interleave}
     chooser_choice "Enable stereoscopy (vertical interleave)", {enable_stereoscopy vertical}
     chooser_choice "Enable stereoscopy (diagonal interleave)", {enable_stereoscopy diagonal}

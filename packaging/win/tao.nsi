@@ -81,6 +81,8 @@ Section "Tao (required)"
   ; Write the uninstall keys for Windows
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao" "DisplayName" "Tao"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao" "DisplayIcon" "$INSTDIR\\Tao.exe,0"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao" "Publisher" "Taodyne"
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao" "NoModify" 1
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao" "NoRepair" 1
   WriteUninstaller "uninstall.exe"

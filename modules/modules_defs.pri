@@ -1,8 +1,7 @@
 # Define useful variables for modules
-# FIXME/TODO: clean duplication in modules.pri
 
 isEmpty(TAO_SDK) {
-  TAOTOPSRC = ../..
+  TAOTOPSRC = $$PWD/..
 } else {
   TAOTOPSRC = $${TAO_SDK}
 }
@@ -21,3 +20,5 @@ isEmpty(MODINSTPATH) {
   isEmpty(MODINSTDIR):error(MODINSTDIR not defined)
   MODINSTPATH      = $${MODINSTROOT}/$$MODINSTDIR
 }
+
+isEmpty(FIX_QT_REFS):FIX_QT_REFS = $$PWD/fix_qt_refs

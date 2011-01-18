@@ -16,3 +16,9 @@
 
 TEMPLATE = subdirs
 SUBDIRS  = hello_world lorem_ipsum taoTester object_loader
+
+!exists(../main.pro) {
+    # We're building inside the Tao SDK
+    # SUBDIR should contain the example modules packaged with the Tao SDK
+    SUBDIRS = object_loader
+}

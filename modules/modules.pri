@@ -10,12 +10,7 @@
 # (C) 2010 Taodyne SAS
 # ******************************************************************************
 
-isEmpty(TAO_SDK) {
-  TAOTOPSRC = ../..
-} else {
-  TAOTOPSRC = $${TAO_SDK}
-}
-
+include(modules_defs.pri)
 include(../main.pri)
 
 TEMPLATE = lib
@@ -52,19 +47,6 @@ win32 {
     CONFIG(release, debug|release):DD=release
     MODULE = $${DD}/module.dll
 }
-# Try to install into (in this order, depending on what variable is defined):
-# 1. $$MODINSTPATH
-# 2. $$MODINSTROOT/$$MODINSTDIR
-# 3. <Tao application install dir>/$$MODINSTDIR
-isEmpty(MODINSTPATH) {
-  isEmpty(MODINSTROOT) {
-    isEmpty(APPINST):error(APPINST not defined)
-    MODINSTROOT = $${APPINST}/modules
-  }
-  isEmpty(MODINSTDIR):error(MODINSTDIR not defined)
-  MODINSTPATH      = $${MODINSTROOT}/$$MODINSTDIR
-}
-isEmpty(FIX_QT_REFS):FIX_QT_REFS = $$PWD/fix_qt_refs
 thismod_xl.path   = $$MODINSTPATH
 thismod_xl.files  = module.xl
 INSTALLS += thismod_xl

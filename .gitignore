@@ -2,6 +2,7 @@ moc_*.cpp
 qrc_*.cpp
 debug/
 release/
+install/
 *.pro.user
 *.o
 ui_*.h

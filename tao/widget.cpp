@@ -127,7 +127,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       xlProgram(sf),
       symbolTableForFormulas(new XL::Symbols(NULL)),
       symbolTableRoot(new XL::Name("formula_symbol_table")),
-      inError(false), mustUpdateDialogs(false),
+      inError(false), mustUpdateDialogs(false), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), path(NULL), table(NULL),
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
@@ -365,7 +365,9 @@ void Widget::draw()
 
     // After we are done, draw the space with all the drawings in it
     // If we are in stereoscopice mode, we draw twice, once for each eye
-    glClearColor (1.0, 1.0, 1.0, 1.0);
+    qreal r, g, b, a;
+    clearCol.getRgbF(&r, &g, &b, &a);
+    glClearColor (r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     for (stereoscopic = 1; stereoscopic <= stereoPlanes; stereoscopic++)
@@ -373,21 +375,27 @@ void Widget::draw()
         // Select the buffer in which we draw
         if (stereoPlanes > 1)
         {
-            if (stereoMode == stereoHARDWARE)
+            switch (stereoMode)
             {
+            case stereoHARDWARE:
                 if (stereoscopic == 1)
                     glDrawBuffer(GL_BACK_LEFT);
                 else if (stereoscopic == 2)
                     glDrawBuffer(GL_BACK_RIGHT);
-                glClearColor(1.0, 1.0, 1.0, 1.0);
+                glClearColor(r, g, b, a);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glDisable(GL_STENCIL_TEST);
-            }
-            else
-            {
+                break;
+            case stereoHSPLIT:
+            case stereoVSPLIT:
+                glDrawBuffer(GL_BACK);
+                glDisable(GL_STENCIL_TEST);
+                break;
+            default:
                 glStencilFunc(GL_EQUAL, stereoscopic, 63);
                 glEnable(GL_STENCIL_TEST);
                 glDrawBuffer(GL_BACK);
+                break;
             }
         }
         else
@@ -1244,7 +1252,26 @@ void Widget::setup(double w, double h, const Box *picking)
 {
     // Setup viewport
     uint s = printer && picking ? printOverscaling : 1;
-    glViewport(0, 0, w * s, h * s);
+    GLint vx = 0, vy = 0, vw = w * s, vh = h * s;
+
+    if (stereoPlanes > 1)
+    {
+        switch (stereoMode)
+        {
+        case stereoHSPLIT:
+            vw /= 2;
+            if (stereoscopic == 2)
+                vx = vw;
+            break;
+        case stereoVSPLIT:
+            vh /= 2;
+            if (stereoscopic == 2)
+                vy = vh;
+        default:
+            break;
+        }
+    }
+    glViewport(vx, vy, vw, vh);
 
     // Setup the projection matrix
     glMatrixMode(GL_PROJECTION);
@@ -1319,7 +1346,7 @@ void Widget::setupStereoStencil(double w, double h)
 //   For interlaced output, generate a stencil with every other line
 // ----------------------------------------------------------------------------
 {
-    if (stereoMode > stereoHARDWARE)
+    if (stereoMode >= stereoHORIZONTAL)
     {
         // Setup the initial viewport and projection for drawing in stencil
         glViewport(0, 0, w, h);
@@ -1361,6 +1388,8 @@ void Widget::setupStereoStencil(double w, double h)
             numLines = 3 * (w + h);
             break;
         case stereoHARDWARE:
+        case stereoHSPLIT:
+        case stereoVSPLIT:
             break;
         }
 
@@ -1395,6 +1424,8 @@ void Widget::setupStereoStencil(double w, double h)
                     glVertex2f (x/3.0, 0);
                     break;
                 case stereoHARDWARE:
+                case stereoHSPLIT:
+                case stereoVSPLIT:
                     break;
                 }
             }
@@ -4110,6 +4141,16 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
         newState = true;
         stereoMode = stereoHARDWARE;
     }
+    else if (name->value == "hsplit")
+    {
+        newState = true;
+        stereoMode = stereoHSPLIT;
+    }
+    else if (name->value == "vsplit")
+    {
+        newState = true;
+        stereoMode = stereoVSPLIT;
+    }
     else if (name->value == "interlace" || name->value == "interlaced" ||
              name->value == "interleave" || name->value == "interleaved")
     {
@@ -4206,6 +4247,21 @@ static inline QColor colorByName(text name)
 }
 
 
+Tree_p Widget::clearColor(Tree_p self, double r, double g, double b, double a)
+// ----------------------------------------------------------------------------
+//    Set the RGB clear (background) color
+// ----------------------------------------------------------------------------
+{
+    CHECK_0_1_RANGE(r);
+    CHECK_0_1_RANGE(g);
+    CHECK_0_1_RANGE(b);
+    CHECK_0_1_RANGE(a);
+
+    clearCol.setRgbF(r, g, b, a);
+    return XL::xl_true;
+}
+
+
 Tree_p Widget::lineColorName(Tree_p self, text name, double a)
 // ----------------------------------------------------------------------------
 //    Set the named color for lines
@@ -4286,6 +4342,16 @@ Tree_p Widget::lineColorCmyk(Tree_p self,
     QColor cmyk;
     cmyk.setCmykF(c, m, y, k);
     layout->Add(new LineColor(cmyk.redF(), cmyk.greenF(), cmyk.blueF(), a));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::visibility(Tree_p self, double v)
+// ----------------------------------------------------------------------------
+//    Select the visibility amount
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Visibility(v));
     return XL::xl_true;
 }
 
@@ -4541,6 +4607,7 @@ Tree_p Widget::lightId(Tree_p self, GLuint id, bool enable)
 //   Select and enable or disable a light
 // ----------------------------------------------------------------------------
 {
+    layout->hasLighting = true;
     layout->Add(new LightId(id, enable));
     return XL::xl_true;
 }
@@ -4551,6 +4618,7 @@ Tree_p Widget::light(Tree_p self, GLuint function, GLfloat value)
 //   Set a light parameter with a single float value
 // ----------------------------------------------------------------------------
 {
+    layout->hasLighting = true;
     layout->Add(new Light(function, value));
     return XL::xl_true;
 }
@@ -4562,6 +4630,7 @@ Tree_p Widget::light(Tree_p self, GLuint function,
 //   Set a light parameter with four float values (direction)
 // ----------------------------------------------------------------------------
 {
+    layout->hasLighting = true;
     layout->Add(new Light(function, a, b, c));
     return XL::xl_true;
 }
@@ -4573,6 +4642,7 @@ Tree_p Widget::light(Tree_p self, GLuint function,
 //   Set a light parameter with four float values (position, color)
 // ----------------------------------------------------------------------------
 {
+    layout->hasLighting = true;
     layout->Add(new Light(function, a, b, c, d));
     return XL::xl_true;
 }
@@ -5888,6 +5958,16 @@ Text_p Widget::docVersion(Tree_p self)
     return new XL::Text(version);
 }
 
+
+Name_p Widget::enableGlyphCache(Tree_p self, bool enable)
+// ----------------------------------------------------------------------------
+//   Enable or disable glyph cache
+// ----------------------------------------------------------------------------
+{
+    bool old = TextSpan::cacheEnabled;
+    TextSpan::cacheEnabled = enable;
+    return old ? XL::xl_true : XL::xl_false;
+}
 
 
 // ============================================================================
@@ -7303,6 +7383,28 @@ Tree_p Widget::checkout(Tree_p self, text what)
     if (repo && repo->checkout(what))
         return XL::xl_true;
     return XL::xl_false;
+}
+
+
+Tree_p Widget::closeCurrentDocument(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Close the current document window
+// ----------------------------------------------------------------------------
+{
+    Window *window = (Window *) current->parentWidget();
+    if (window->close())
+        return XL::xl_true;
+    return XL::xl_false;
+}
+
+
+Tree_p Widget::quitTao(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Quit the application
+// ----------------------------------------------------------------------------
+{
+    TaoApp->quit();
+    return XL::xl_true;
 }
 
 

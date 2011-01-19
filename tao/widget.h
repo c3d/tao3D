@@ -86,6 +86,7 @@ public:
     typedef std::vector<double>         attribute_args;
     typedef std::map<GLuint, uint>      selection_map;
     enum StereoMode { stereoHARDWARE,
+                      stereoHSPLIT, stereoVSPLIT,
                       stereoHORIZONTAL, stereoVERTICAL,
                       stereoDIAGONAL, stereoANTI_DIAGONAL,
                       stereoALIOSCOPY };
@@ -342,11 +343,13 @@ public:
                               double f0, double f1, double u0, double u1);
 
     // Graphic attributes
+    Tree_p      clearColor(Tree_p self, double r, double g, double b, double a);
     Tree_p      lineColorName(Tree_p self, text name, double a);
     Tree_p      lineColorRgb(Tree_p self, double r, double g, double b, double a);
     Tree_p      lineColorHsl(Tree_p self, double h, double s, double l, double a);
     Tree_p      lineColorHsv(Tree_p self, double h, double s, double v, double a);
     Tree_p      lineColorCmyk(Tree_p self, double c, double m, double y, double k, double a);
+    Tree_p      visibility(Tree_p self, double lw);
     Tree_p      lineWidth(Tree_p self, double lw);
     Tree_p      lineStipple(Tree_p self, uint16 pattern, uint16 scale);
     Tree_p      fillColorName(Tree_p self, text name, double a);
@@ -482,6 +485,7 @@ public:
     Text_p      loadText(Tree_p self, text file);
     Text_p      taoVersion(Tree_p self);
     Text_p      docVersion(Tree_p self);
+    Name_p      enableGlyphCache(Tree_p self, bool enable);
 
     // Tables
     Tree_p      newTable(Tree_p self, Real_p x, Real_p y,
@@ -596,6 +600,8 @@ public:
     Tree_p      chooserBranches(Tree_p self, Name_p prefix, text label);
     Tree_p      chooserCommits(Tree_p self, text branch, Name_p prefix, text label);
     Tree_p      checkout(Tree_p self, text what);
+    Tree_p      closeCurrentDocument(Tree_p self);
+    Tree_p      quitTao(Tree_p self);
 
     static Tree_p runtimeError(Tree_p self, text msg, Tree_p src);
     static Tree_p formulaRuntimeError(Tree_p self, text msg, Tree_p src);
@@ -676,6 +682,7 @@ private:
     bool                  mustUpdateDialogs;
 
     // Rendering
+    QColor                clearCol;
     SpaceLayout *         space;
     Layout *              layout;
     GraphicPath *         path;

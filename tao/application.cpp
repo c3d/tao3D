@@ -197,7 +197,22 @@ void Application::loadModules()
     moduleManager = ModuleManager::moduleManager();
     if (splash)
         splash->showMessage(tr("Loading modules"));
+    connect(moduleManager, SIGNAL(loading(QString)),
+            this, SLOT(moduleIsLoading(QString)));
     moduleManager->loadAll();
+}
+
+
+void Application::moduleIsLoading(QString name)
+// ----------------------------------------------------------------------------
+//   Show module names on splash screen as they are loading
+// ----------------------------------------------------------------------------
+{
+    if (splash)
+    {
+        QString msg = QString(tr("Loading modules [%1]")).arg(name);
+        splash->showMessage(msg);
+    }
 }
 
 
@@ -801,9 +816,6 @@ void Application::loadSettings()
     // create duplicates :(
     urlList.removeDuplicates();
     pathList.removeDuplicates();
-
-    // Cleanup obsolete URI/project mappings (QSettings) before we open any URI
-    Uri::gc();
 }
 
 

@@ -42,6 +42,7 @@ LayoutState::LayoutState()
       font(qApp->font()),
       alongX(), alongY(), alongZ(),
       left(0), right(0), top(0), bottom(0),
+      visibility(1),
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
@@ -61,6 +62,7 @@ LayoutState::LayoutState(const LayoutState &o)
         alongX(o.alongX), alongY(o.alongY), alongZ(o.alongZ),
         left(o.left), right(o.right),
         top(o.top), bottom(o.bottom),
+        visibility(1),
         lineWidth(o.lineWidth),
         lineColor(o.lineColor),
         fillColor(o.fillColor),
@@ -95,7 +97,7 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
     : Drawing(), LayoutState(), id(0), charId(0),
       hasPixelBlur(false), hasMatrix(false), has3D(false),
-      hasAttributes(false), hasTextureMatrix(false),
+      hasAttributes(false), hasTextureMatrix(false), hasLighting(false),
       isSelection(false), groupDrag(false),
       items(), display(widget)
 {}
@@ -107,7 +109,7 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
     : Drawing(o), LayoutState(o), id(0), charId(0),
       hasPixelBlur(o.hasPixelBlur), hasMatrix(false), has3D(o.has3D),
-      hasAttributes(false), hasTextureMatrix(false),
+      hasAttributes(false), hasTextureMatrix(false), hasLighting(false),
       isSelection(o.isSelection), groupDrag(false),
       items(), display(o.display)
 {}
@@ -154,10 +156,6 @@ void Layout::Clear()
 }
 
 
-// The bit values we save for a layout
-static const GLbitfield GL_LAYOUT_BITS = GL_LINE_BIT | GL_TEXTURE_BIT;
-
-
 void Layout::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the elements in the layout
@@ -165,7 +163,7 @@ void Layout::Draw(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
-    GLAllStateKeeper glSave(hasAttributes?GL_LAYOUT_BITS:0,
+    GLAllStateKeeper glSave(glSaveBits(),
                             hasMatrix, false, hasTextureMatrix);
     Inherit(where);
 
@@ -188,7 +186,7 @@ void Layout::DrawSelection(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
-    GLAllStateKeeper glSave(hasAttributes?GL_LAYOUT_BITS:0,
+    GLAllStateKeeper glSave(glSaveBits(),
                             hasMatrix, false, hasTextureMatrix);
     Inherit(where);
 
@@ -210,7 +208,7 @@ void Layout::Identify(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::LocalSave<Point3> save(offset, offset);
-    GLAllStateKeeper glSave(hasAttributes?GL_LAYOUT_BITS:0,
+    GLAllStateKeeper glSave(glSaveBits(),
                             hasMatrix, false, hasTextureMatrix);
     Inherit(where);
 
@@ -350,6 +348,7 @@ void Layout::Inherit(Layout *where)
     right           = where->right;
     top             = where->top;
     bottom          = where->bottom;
+    visibility      = where->visibility;
     lineWidth       = where->lineWidth;
     lineColor       = where->lineColor;
     fillColor       = where->fillColor;

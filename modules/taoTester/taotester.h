@@ -15,7 +15,7 @@ private:
 public:
     // Commands for toolbar
     Tree_p startRecTest(Tree_p self);
-    Tree_p stopRecTest(Tree_p self);
+    Tree_p stop(Tree_p self);
     Tree_p playTest(Tree_p self);
     Tree_p saveTest(Tree_p self);
     Tree_p resetTest(Tree_p self);

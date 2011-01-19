@@ -29,10 +29,10 @@ PREFIX(TestStartRec,  tree,  "test_start_record", , RTAO(startRecTest(self)),
        GROUP(test)
        SYNOPSIS("Start to record ")
        DESCRIPTION("Start to record events in order to replay them "))
-PREFIX(TestStopRec,  tree,  "test_stop_record", , RTAO(stopRecTest(self)),
+PREFIX(TestStop,  tree,  "test_stop", , RTAO(stop(self)),
        GROUP(test)
-       SYNOPSIS("Stop the recording ")
-       DESCRIPTION("Stop the recording "))
+       SYNOPSIS("Stop the recording or the playing of tests.")
+       DESCRIPTION("Stop the recording or the playing of tests."))
 PREFIX(TestReplay,  tree,  "test_replay", , RTAO(playTest(self)),
        GROUP(test)
        SYNOPSIS("Replay test ")

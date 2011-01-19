@@ -25,24 +25,23 @@
 #include <QDir>
 #include <QStatusBar>
 #include <QTestEvent>
+#include <QTextStream>
 //#include "qtestevent.h"
 
 #include "save_test_dialog.h"
 
 #include "taotester.h"
 
-
-
-
 WidgetTests::WidgetTests(QGLWidget *glw, text name, text description) :
 // ----------------------------------------------------------------------------
 //   Creates a new test.
 // ----------------------------------------------------------------------------
     widget(glw), name(+name), description(+description),
-    featureId(0), folder("./"), threshold(0.0), win(NULL)
+    featureId(0), folder("./"), threshold(0.0), win(NULL), logfile(NULL),
+    state(stopped), playingList(NULL)
 {
     QStringList dirList = QDir::searchPaths("image");
-    folder = dirList.at(1);
+    folder = dirList.at(1) + '/' + this->name;
 
     if ( ! glw )
         foreach (QWidget *w, QApplication::topLevelWidgets())
@@ -58,10 +57,10 @@ text WidgetTests::toString()
 // ----------------------------------------------------------------------------
 {
     QString testDoc = QString("%1_test -> test_definition \"%1\", %2, "
-                              " <<%3>>, %5, %6, %7, do \n%4")
+                              " <<%3>>, %6, %7, %5, do \n%4\n")
             .arg(name).arg(featureId)
             .arg(description).arg(taoCmd.isEmpty() ? "    empty" : taoCmd)
-            .arg(threshold).arg(winSize.height()).arg(winSize.width());
+            .arg(threshold).arg(winSize.width()).arg(winSize.height());
     return +testDoc;
 
 }
@@ -71,6 +70,7 @@ void WidgetTests::startRecord()
 //   Start recording a sequence of events
 // ----------------------------------------------------------------------------
 {
+    state = recording;
     // clear lists
     testList.clear();
     checkPointList.clear();
@@ -107,6 +107,7 @@ void WidgetTests::stopRecord()
     }
     widget->removeEventFilter(this);
     win->statusBar()->showMessage("End recording.");
+    state = stopped;
 }
 
 
@@ -291,15 +292,18 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
 
 }
 
-
-bool WidgetTests::play()
+bool WidgetTests::startPlay()
 // ----------------------------------------------------------------------------
 //   Replay the test
 // ----------------------------------------------------------------------------
 {
+    state = playing;
     win->resize(winSize);
     win->statusBar()->showMessage("Playing Test " + name);
     nbChkPtKO = 0;
+    logOpen();
+    QCoreApplication::processEvents();
+    QTest::qWait(1000);
 
     if (! before.isNull())
     {
@@ -315,19 +319,23 @@ bool WidgetTests::play()
         double diffVal = diff(before, playedBefore, diffBeforeName);
 
         if (diffVal > threshold)
-        {
-            text t = +name;
-            qWarning("Test %s: image before test is not equal to reference in %f%%",
-                     t.c_str(), diffVal);
-        }
+            nbChkPtKO++;
+
+        log(BEFORE, diffVal <= threshold, diffVal);
     }
 
     // Copy the list as the original one can be modified by a reload during simulate
     QTestEventList tempoList = QTestEventList(testList);
+    playingList = &tempoList;
     tempoList.simulate(widget);
+    playingList = NULL;
+
+    QCoreApplication::processEvents();
 
     if ( ! after.isNull() )
     {
+        if (tempoList.isEmpty())
+            QTest::qWait(800);
         // snap shot the widget
         playedAfter = widget->grabFrameBuffer(true);
 
@@ -340,18 +348,35 @@ bool WidgetTests::play()
         double diffVal = diff(after, playedAfter, diffAfterName);
 
         if (diffVal > threshold)
-        {
             nbChkPtKO++;
-            text t = +name;
-            qWarning("Test %s: image after test is not equal to reference in %f%%",
-                     t.c_str(), diffVal);
-        }
+
+        log(AFTER, diffVal <= threshold, diffVal);
     }
 
-    win->statusBar()->showMessage("Test " + name + (nbChkPtKO > 0 ? " failed" : " succed"));
+    win->statusBar()->showMessage("Test " + name + (nbChkPtKO > 0 ? " failed" : " is successful"));
+    logClose(nbChkPtKO <= 0);
+    QTest::qWait(1000);
     return nbChkPtKO > 0;
 }
 
+void WidgetTests::stopPlay()
+{
+    std::cerr << "\n\n STOP demande \n\n";
+    if (playingList)
+    {
+        playingList->clear();
+        state = stopped;
+    }
+}
+
+void WidgetTests::stop()
+{
+    switch (state) {
+        case playing : stopPlay(); return;
+        case recording : stopRecord(); return;
+        default : return;
+    }
+}
 
 void WidgetTests::save()
 // ----------------------------------------------------------------------------
@@ -426,8 +451,8 @@ void WidgetTests::reset(text newName, int feature, text desc, text dir, double t
     }
     else
     {
-        before = QImage(QString("image:").append(name).append("_before.png"));
-        after = QImage(QString("image:").append(name).append("_after.png"));
+        before = QImage(QString("image:").append(name).append('/').append(name).append("_before.png"));
+        after = QImage(QString("image:").append(name).append('/').append(name).append("_after.png"));
     }
 }
 
@@ -561,9 +586,12 @@ double WidgetTests::diff(QImage &ref, QImage &played, QString filename,
 {
     if (ref.size() != played.size())
     {
-        std::cerr << "Image size differs: ref is (" << ref.size().width() << " x " <<
-                ref.size().height() << ") and played is (" << played.size().width()
-                << " x "  << played.size().height() << ")\n";
+       QString msg = QString("Image size differs: reference is (%1 x %2) and played is (%3 x %4).").
+               arg(ref.size().width()).
+               arg(ref.size().height()).
+               arg(played.size().width()).
+               arg(played.size().height());
+        log(msg);
         return 100.0;
     }
 
@@ -584,7 +612,7 @@ double WidgetTests::diff(QImage &ref, QImage &played, QString filename,
         }
     }
 
-    double res = (nbDiff * 100.0)/ref.byteCount();
+    double res = (nbDiff * 100.0)/(ref.width()* ref.height());
 
     if (!filename.isEmpty() && (res > threshold || forceSave))
         imgDiff.save(filename, "PNG");
@@ -592,6 +620,42 @@ double WidgetTests::diff(QImage &ref, QImage &played, QString filename,
     return res;
 }
 
+#define INDENT1 "  "
+#define INDENT2 "    "
+
+// ============================================================================
+//
+//   Log facilities
+//
+// ============================================================================
+void WidgetTests::logOpen()
+{
+    logfile  = new QFile(folder+"../results.ddd");
+    logfile->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
+
+    QTextStream resFile(logfile);
+    resFile << INDENT1 << "result \"" << name << "\", <<" << description << ">>, "
+            << featureId << ", " << threshold << ", {";
+}
+void WidgetTests::logClose(bool result)
+{
+    QTextStream resFile(logfile);
+    resFile << "}, " << (result ? "true" : "false") << "\n\n";
+    resFile.flush();
+    logfile->close();
+}
+void WidgetTests::log(int No, bool isOK, double Tx)
+{
+    QTextStream resFile(logfile);
+    resFile << "\n" << INDENT2 << "check " << No << ", "
+            << (isOK ? "true": "false") << ", " << Tx;
+}
+void WidgetTests::log(QString msg)
+{
+    QTextStream resFile(logfile);
+    resFile << "\n" << INDENT2 << "paragraph_break\n"<<
+            INDENT2 << "text <<Next check reports: "<< msg << ">>";
+}
 
 // ============================================================================
 //
@@ -607,7 +671,7 @@ void TestCheckEvent::simulate(QWidget *w)
 {
     QGLWidget * widget = (QGLWidget *)w;
     QString testName = taoTester::tester()->currentTest()->name;
-    QFileInfo refFile(QString("image:%1_%2.png").arg(testName).arg(number));
+    QFileInfo refFile(QString("image:%1/%1_%2.png").arg(testName).arg(number));
     QImage ref(refFile.canonicalFilePath());
     QImage shot = widget->grabFrameBuffer(true);
 
@@ -619,14 +683,15 @@ void TestCheckEvent::simulate(QWidget *w)
     double resDiff = taoTester::tester()->currentTest()->diff(ref, shot, diffFilename);
 
     std::cerr << +testName <<  "\t Intermediate check " << number ;
-    if (resDiff > taoTester::tester()->currentTest()->threshold)
+    bool inError = resDiff > taoTester::tester()->currentTest()->threshold;
+    if (inError)
     {
-        std::cerr<< " fails by " << resDiff << "%\n";
+        std::cerr<< " fails. Diff is " << resDiff << "%\n";
         taoTester::tester()->currentTest()->nbChkPtKO++;
     }
     else
-        std::cerr<< " succeeds by " << resDiff << "%\n";
-
+        std::cerr<< " succeeds. Diff is " << resDiff << "%\n";
+    taoTester::tester()->currentTest()->log(number, !inError, resDiff);
 }
 
 

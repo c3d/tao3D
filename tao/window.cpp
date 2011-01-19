@@ -100,6 +100,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     errorMessages = new QTextEdit(errorDock);
     errorMessages->setReadOnly(true);
     errorDock->setWidget(errorMessages);
+    errorDock->setFloating(true);
     errorDock->hide();
     addDockWidget(Qt::BottomDockWidgetArea, errorDock);
 
@@ -204,6 +205,7 @@ void Window::addError(QString txt)
     QTextCursor cursor = errorMessages->textCursor();
     cursor.movePosition(QTextCursor::End);
     cursor.insertText(txt + "\n");
+    errorDock->setFloating(true);
     errorDock->show();
     statusBar()->showMessage(txt);
 }

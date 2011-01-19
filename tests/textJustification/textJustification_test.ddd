@@ -1,0 +1,16 @@
+
+textJustification_test -> test_definition "textJustification", 0, <<Test the horizontal and vertical placement of a text in boxes.>> , 1920, 1106, 0.07, do 
+    test_add_key_press 16777239, 0, 667 
+    test_add_key_release 16777239, 0, 66 
+    test_add_check 0, 620 
+    test_add_key_press 16777239, 0, 364 
+    test_add_key_release 16777239, 0, 112 
+    test_add_check 1, 450 
+    test_add_key_press 16777239, 0, 366 
+    test_add_key_release 16777239, 0, 141 
+    test_add_check 2, 557 
+    test_add_key_press 16777239, 0, 350 
+    test_add_key_release 16777239, 0, 247 
+    test_add_check 3, 557 
+    test_add_key_press 16777239, 0, 350 
+    test_add_key_release 16777239, 0, 247 

@@ -1,0 +1,38 @@
+color "tao_blue" -> color "blue"
+color "tao_red" -> color "red"
+color "tao_green" -> color "green"
+color "tao_black" -> color "black"
+
+@ X:text ->
+    factor -> 20.0
+    margins 40, 0
+    paragraph_break
+    anchor
+        circle factor * -75%, factor * 30%, factor * 20%
+    color "tao_blue"
+    text X
+
+check i:integer, res:boolean, p:real ->
+    if res then color "tao_green" else color "tao_red"
+    @ "check "
+    if i = -1 then
+        text "before"
+    else if i = -2 then
+        text "after"
+    else
+        text text i
+    text " differs from reference by " & text p & "%"
+
+result name:text, desc:text, redmine:integer, taux:real,intermediate:tree, res:boolean  ->
+    font_size 14
+    margins 0, 0
+    paragraph_break
+    if res then color "green" else color "red"
+    text name
+    line_break
+    color "tao_black"
+    text desc
+    line_break
+    text "Authorize difference between images from reference and run is : " & text taux & "%"
+    line_break
+    do intermediate

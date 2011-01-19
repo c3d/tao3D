@@ -31,12 +31,12 @@ Tree_p taoTester::startRecTest(Tree_p )
 }
 
 
-Tree_p taoTester::stopRecTest(Tree_p )
+Tree_p taoTester::stop(Tree_p )
 // ----------------------------------------------------------------------------
 //   Stop recording events
 // ----------------------------------------------------------------------------
 {
-    currentTest()->stopRecord();
+    currentTest()->stop();
     return XL::xl_true;
 }
 
@@ -46,7 +46,7 @@ Tree_p taoTester::playTest(Tree_p )
 //   Replay the test
 // ----------------------------------------------------------------------------
 {
-    bool res = currentTest()->play();
+    bool res = currentTest()->startPlay();
     currentTest()->printResult();
     return  res ? XL::xl_true : XL::xl_false;
 }
@@ -57,7 +57,7 @@ Tree_p taoTester::resetTest(Tree_p)
  //   Reset current test
  // ----------------------------------------------------------------------------
 {
-    currentTest()->stopRecord();
+    currentTest()->stop();
     currentTest()->reset();
     return XL::xl_true;
 }
@@ -90,7 +90,8 @@ Tree_p taoTester::testDef(Tree_p , Text_p name, Integer_p fId, Text_p desc,
 // ----------------------------------------------------------------------------
 {
     QStringList dirList = QDir::searchPaths("image");
-    currentTest()->reset(name->value, fId->value, desc->value, +dirList.at(1),
+    text dir = +dirList.at(1) + '/' + name->value;
+    currentTest()->reset(name->value, fId->value, desc->value, dir,
                          thr->value, width->value, height->value);
     return xl_evaluate(body);
 }

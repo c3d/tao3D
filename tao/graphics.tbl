@@ -2239,10 +2239,11 @@ PREFIX(Constant,  tree,  "constant",
        DESCRIPTION("A tree that cannot be modify.")
        RETURNS( tree, "the tree") )
 
-PREFIX(Exit, integer, "exit",, exit(0);,
+PREFIX(Exit, integer, "exit",
+       PARM(n, integer, "exit parameter"), exit(n.value);,
        GROUP(code)
        SYNOPSIS("Exit from Tao")
-       DESCRIPTION("Exit from Tao"))
+       DESCRIPTION("Exit from Tao with the given value"))
 
 PREFIX(GenDoc,  tree,  "generate_doc",
        PARM(t, tree, "The tree from wich extracting the documentation"),

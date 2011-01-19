@@ -3329,6 +3329,7 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
 {
     text old = pageName;
     pageName = page;
+    refresh();
     return new Text(old);
 }
 

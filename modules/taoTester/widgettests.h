@@ -31,6 +31,7 @@
 #include <QTestEventList>
 #include <QAction>
 #include <QTime>
+#include <QFile>
 #include <QColorDialog>
 #include <QFontDialog>
 #include <QMainWindow>
@@ -50,6 +51,14 @@ inline text operator +(QString s)
     return text(s.toUtf8().constData());
 }
 
+typedef enum PlayerState_ {
+    stopped   = 0,
+    recording = 1,
+    playing   = 2,
+} PlayerState;
+
+#define BEFORE -1
+#define AFTER -2
 
 struct WidgetTests : public QObject
 {
@@ -61,7 +70,8 @@ public:
     void stopRecord();
     void checkNow();
     void save();
-    bool play();
+    bool startPlay();
+    void stopPlay();
     void printResult();
     void reset(text newName = text(), int feature = 0,
                text desc = text(), text folder = text("./"),
@@ -95,6 +105,11 @@ public:
     text toString();
     double diff(QImage &ref, QImage &played, QString filename,
                 bool forceSave = false);
+    // logging results
+    void logOpen();
+    void log(QString t);
+    void log(int No, bool isOK, double Tx);
+    void logClose(bool result);
     // Spying events on widget
     bool eventFilter(QObject *obj, QEvent *evt);
 
@@ -103,6 +118,8 @@ public slots:
     void recordColor(QColor color);
     void recordFont(QFont font);
     void finishedDialog(int result);
+
+    void stop();
 
 public:
     QGLWidget *widget;
@@ -121,9 +138,17 @@ public:
     QMainWindow * win ;
     QSize         winSize;
 
-protected:
+    QFile    * logfile;
 
+protected:
+    PlayerState state;
     QTestEventList testList;
+
+private:
+    // This list will hold a copy of the testList for playing.
+    // It should not be modified while playing, except clearing it to stop the play.
+    QTestEventList *playingList;
+
 
 //private slots:
 //    void initTestCase()

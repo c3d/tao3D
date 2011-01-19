@@ -1,0 +1,104 @@
+toolbar_test
+lorem_ipsum_box x, y, t, col, colbg -> 
+    color colbg 
+    line_color 0.505303, 0.873304, 0.678096, 1.0 
+    rectangle x, y, 600, 240 
+    color col 
+    line_color "font" 
+    text_box x, y, 600, 240, do 
+        text t 
+        line_break 
+        text lorem_ipsum 50 
+
+lorem_ipsum_big_box x, y, t, col, colbg -> 
+    color colbg 
+    line_color 0.505303, 0.873304, 0.678096, 1.0 
+    rectangle x, y, 837, 346 
+    color col 
+    line_color "font" 
+    text_box x, y, 837, 346, do 
+        text t 
+        line_break 
+        text lorem_ipsum 50 
+
+//page "testSmallFont", do 
+page "fontRendering", do 
+    font "default" 
+    shape 
+        lorem_ipsum_box -620, 400, "default" , "font" , "white" 
+    shape 
+        font "Arial", 14, slant 0% , weight 50% , stretch 100% 
+        lorem_ipsum_box -10, 400, "Arial 14" , "blue" , "white" 
+    shape 
+        font "Arial", 18, underlined 
+        lorem_ipsum_box 600, 400, "Arial 18 underlined" , "font" , "white" 
+    shape 
+        font "Times New Roman", 14, bold 
+        lorem_ipsum_box -620, 150, "Times New Roman 14 bold" , "red" , "white" 
+    shape 
+        font "Times New Roman", 18, strike_out 
+        lorem_ipsum_box -10, 150, "Times New Roman 18 strikeout" , "font" , "white" 
+    shape 
+        font "Arial", 18, slant 100% 
+        lorem_ipsum_box 600, 150, "Arial 18 slant 100%" , "font" , "orange" 
+    shape 
+        font "Arial", 18, slant 0% , weight 50% , stretch 200% 
+        lorem_ipsum_box -620, -100, "Arial 18 strech 200%" , "font" , "white" 
+    shape 
+        font "Arial", 18, slant 0% , weight 50% , stretch 50% 
+        lorem_ipsum_box -10, -100, "Arial 18 Stretch 50%" , "font" , "white" 
+    shape 
+        font "Arial", 18, slant 0% , weight 50% , stretch 100% , small_caps 
+        lorem_ipsum_box 600, -100, "Arial 18 Small Caps" , "font" , "white" 
+    shape 
+        font "Times New Roman", 18, overline 
+        lorem_ipsum_box -620, -350, "Times New Roman 18 overline" , "font" , "white" 
+    shape 
+        font "Times New Roman", 20, slant 100% , weight 100% , stretch 150% , underlined 
+        font "plain" 
+        lorem_ipsum_box -10, -350, "Times New Roman plain" , "font" , "white" 
+    shape 
+        font "Times New Roman", 20, slant 100% , weight 100% , stretch 150% , underlined 
+        lorem_ipsum_box 600, -350, "Combined" , "green" , "pink" 
+
+page "testLargeFont1", do 
+    font "default" 
+    shape 
+        lorem_ipsum_big_box -506, 360, "default" , "font" , "white" 
+    shape 
+        font "Arial", 70, slant 0% , weight 50% , stretch 100% 
+        lorem_ipsum_big_box 340, 360, "Arial 70 no line" , "blue" , "white" 
+    shape 
+        font "Arial", 70, underlined 
+        lorem_ipsum_big_box -506, 4, "Arial 70 underlined" , "font" , "white" 
+    shape 
+        font "Times New Roman", 70, bold 
+        lorem_ipsum_big_box 340, 4, "Times New Roman 70 bold" , "red" , "white" 
+    shape 
+        font "Times New Roman", 70, strike_out 
+        lorem_ipsum_big_box -506, -350, "Times New Roman 70 strikeout" , "font" , "white" 
+    shape 
+        font "Arial", 70, slant 100% 
+        lorem_ipsum_big_box 340, -350, "Arial 70 slant 100%" , "font" , "orange" 
+
+page "testLargeFont2", do 
+    font "default" 
+    shape 
+        font "Arial", 80, slant 0% , weight 50% , stretch 200% 
+        lorem_ipsum_big_box -506, 360, "Arial 80 strech 200%" , "font" , "white" 
+    shape 
+        font "Arial", 80, slant 0% , weight 50% , stretch 50% 
+        lorem_ipsum_big_box 340, 360, "Arial 80 Stretch 50%" , "font" , "white" 
+    shape 
+        font "Arial", 80, slant 0% , weight 50% , stretch 100% , small_caps 
+        lorem_ipsum_big_box -506, 4, "Arial 80 Small Caps" , "font" , "white" 
+    shape 
+        font "Times New Roman", 80, overline 
+        lorem_ipsum_big_box 340, 4, "Times New Roman 80 overline" , "font" , "white" 
+    shape 
+        font "Times New Roman", 70, slant 100% , weight 100% , stretch 150% , underlined 
+        font "plain" 
+        lorem_ipsum_big_box -506, -350, "Times New Roman plain" , "font" , "white" 
+    shape 
+        font "Times New Roman", 80, slant 100% , weight 100% , stretch 150% , underlined 
+        lorem_ipsum_big_box 340, -350, "Combined" , "green" , "pink" 

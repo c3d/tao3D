@@ -1,0 +1,173 @@
+lorem_ipsum_box x, y -> 
+    color "white" 
+    line_color 0.505303, 0.873304, 0.678096, 1.0 
+    rectangle x, y, 475, 315 
+    color "font" 
+    line_color "font" 
+    font "default" 
+    text_box x, y, 475, 315, do 
+        text lorem_ipsum 50 
+
+lorem_ipsum_quad_box x, y -> 
+    color "white" 
+    line_color 0.505303, 0.873304, 0.678096, 1.0 
+    rectangle x, y + 160, 475, 78 
+    line_color 0.505303, 1, 0.678096, 1.0 
+    rectangle x, y + 80, 475, 78 
+    line_color 0.505303, 0.873304, 1, 1.0 
+    rectangle x, y , 475, 78 
+    line_color 1, 0.873304, 0.678096, 1.0 
+    rectangle x, y - 80, 475, 78 
+    color "font" 
+    line_color "font" 
+    font "default" 
+    font_size 14 
+    text_flow "quad_box" & text x & text y 
+    text_box x, y + 160, 475, 78, do 
+        text lorem_ipsum 195 
+    text_overflow x, y+80, 475, 78 
+    text_overflow x, y , 475, 78 
+    text_overflow x, y - 80, 475, 78 
+
+//goto_page "textJustification" -> goto_page "align_top"
+
+//page "align_top", do 
+page "textJustification", do 
+    vertical_align_top 
+
+    align_left 
+    lorem_ipsum_box -670, 345 
+
+    align_center 
+    lorem_ipsum_box -172, 345 
+
+    align_right 
+    lorem_ipsum_box 329, 345 
+
+    align_left_justify 
+    lorem_ipsum_box -670, 20 
+
+    align_full_justify 
+    lorem_ipsum_box -172, 20 
+
+    align_right_justify 
+    lorem_ipsum_box 329, 20 
+
+    align_justify 
+    lorem_ipsum_box -670, -310 
+    align_spread 
+    lorem_ipsum_box -172, -310 
+    align_full_spread 
+    lorem_ipsum_box 329, -310
+ 
+page "align_center", do 
+    vertical_align_center 
+
+    align_left 
+    lorem_ipsum_box -670, 345 
+
+    align_center 
+    lorem_ipsum_box -172, 345 
+
+    align_right 
+    lorem_ipsum_box 329, 345 
+
+    align_left_justify 
+    lorem_ipsum_box -670, 20 
+
+    align_full_justify 
+    lorem_ipsum_box -172, 20 
+
+    align_right_justify 
+    lorem_ipsum_box 329, 20 
+
+    align_justify 
+    lorem_ipsum_box -670, -310 
+    align_spread 
+    lorem_ipsum_box -172, -310 
+    align_full_spread 
+    lorem_ipsum_box 329, -310
+ 
+page "align_bottom", do 
+    vertical_align_bottom 
+
+    align_left 
+    lorem_ipsum_box -670, 345 
+
+    align_center 
+    lorem_ipsum_box -172, 345 
+
+    align_right 
+    lorem_ipsum_box 329, 345 
+
+    align_left_justify 
+    lorem_ipsum_box -670, 20 
+
+    align_full_justify 
+    lorem_ipsum_box -172, 20 
+
+    align_right_justify 
+    lorem_ipsum_box 329, 20 
+
+    align_justify 
+    lorem_ipsum_box -670, -310 
+    align_spread 
+    lorem_ipsum_box -172, -310 
+    align_full_spread 
+    lorem_ipsum_box 329, -310
+ 
+page "align_justify", do 
+    vertical_align_justify 
+
+    align_left 
+    lorem_ipsum_quad_box -670, 345 
+
+    align_center 
+    lorem_ipsum_quad_box -172, 345 
+
+    align_right 
+    lorem_ipsum_quad_box 329, 345 
+
+    align_left_justify 
+    lorem_ipsum_quad_box -670, 0 
+
+    align_full_justify 
+    lorem_ipsum_quad_box -172, 0 
+
+    align_right_justify 
+    lorem_ipsum_quad_box 329, 0 
+
+    align_justify 
+    lorem_ipsum_quad_box -670, -350 
+    align_spread 
+    lorem_ipsum_quad_box -172, -350 
+    align_full_spread 
+    lorem_ipsum_quad_box 329, -350
+ 
+page "align_spread", do 
+    vertical_align_spread 
+
+    align_left 
+    lorem_ipsum_quad_box -670, 345 
+
+    align_center 
+    lorem_ipsum_quad_box -172, 345 
+
+    align_right 
+    lorem_ipsum_quad_box 329, 345 
+
+    align_left_justify 
+    lorem_ipsum_quad_box -670, 0 
+
+    align_full_justify 
+    lorem_ipsum_quad_box -172, 0 
+
+    align_right_justify 
+    lorem_ipsum_quad_box 329, 0 
+
+    align_justify 
+    lorem_ipsum_quad_box -670, -350 
+    align_spread 
+    lorem_ipsum_quad_box -172, -350 
+    align_full_spread 
+    lorem_ipsum_quad_box 329, -350

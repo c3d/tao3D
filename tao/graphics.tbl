@@ -2366,6 +2366,12 @@ PREFIX(GenAllDoc,  tree,  "generate_all_doc",
                "The Text contains the documentation, "
                "ready to be parsed. "))
 
+PREFIX(ListFiles, tree, "list_files", PARM(pat, tree, ""),
+       RTAO(listFiles(context, self, pat)),
+       GROUP(misc)
+       SYNOPSIS("")
+       DESCRIPTION("")
+       RETURNS(tree, ""))
 
 
 // ============================================================================

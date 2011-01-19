@@ -5019,6 +5019,20 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
 }
 
 
+Tree_p Widget::listFiles(Context *context, Tree_p self, Tree_p pattern)
+// ----------------------------------------------------------------------------
+//   List files, current directory is the document directory
+// ----------------------------------------------------------------------------
+{
+    QString savePath = QDir::currentPath();
+    Window *window = (Window *) parentWidget();
+    QDir::setCurrent(window->currentProjectFolderPath());
+    Tree_p ret = XL::xl_list_files(context, pattern);
+    QDir::setCurrent(savePath);
+    return ret;
+}
+
+
 Tree_p Widget::textureWrap(Tree_p self, bool s, bool t)
 // ----------------------------------------------------------------------------
 //   Record if we want to wrap textures or clamp them

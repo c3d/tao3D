@@ -612,6 +612,7 @@ public:
     Tree_p      image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                       text filename);
     Tree_p      image(Tree_p self, Real_p x, Real_p y, text filename);
+    Tree_p      listFiles(Context *context, Tree_p self, Tree_p pattern);
 
     // Menus and widgets
     Tree_p      chooser(Context *, Tree_p self, text caption);

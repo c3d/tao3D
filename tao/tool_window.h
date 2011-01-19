@@ -23,13 +23,13 @@
 // ****************************************************************************
 
 #include "tao.h"
-#include <QWidget>
+#include <QDialog>
 #include <QPoint>
 
 namespace Tao {
 
 
-class ToolWindow : public QWidget
+class ToolWindow : public QDialog
 // ----------------------------------------------------------------------------
 //   A window with small title bar and borders suitable for tools
 // ----------------------------------------------------------------------------
@@ -37,33 +37,21 @@ class ToolWindow : public QWidget
     Q_OBJECT
 
 public:
-#   define NO_MIN_MAX (Qt::CustomizeWindowHint  | Qt::WindowTitleHint | \
-                       Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint)
-#if defined(Q_OS_MACX)
-#   define BUG534      Qt::SubWindow
-#else
-#   define BUG534     (Qt::WindowFlags)0
-#endif
-#   define FLAGS      (Qt::Tool    | /* Stay on top of main window   */ \
-                       BUG534      | /* See bug#534, MacOSX only     */ \
-                       NO_MIN_MAX)   /* No minimize/maximize buttons */
-
     ToolWindow(const QString &title, QWidget *parent = 0,
                    const QString &objName = "")
-        : QWidget(parent, FLAGS), needPlacement(true), toggleView(NULL)
+        : QDialog(parent), needPlacement(true), toggleView(NULL)
     {
+        setWindowFlags(flags());
         setWindowTitle(title);
         if (!objName.isEmpty())
             setObjectName(objName);
     }
 
     ToolWindow(QWidget *parent = 0)
-        : QWidget(parent, FLAGS), needPlacement(true), toggleView(NULL)
+        : QDialog(parent), needPlacement(true), toggleView(NULL)
     {
+        setWindowFlags(flags());
     }
-#   undef NO_MIN_MAX
-#   undef BUG534
-#   undef FLAGS
 
     virtual void   setVisible(bool visible);
     bool           createVisible();
@@ -80,6 +68,13 @@ signals:
 private:
     void           choosePosition();
     bool           restoreSavedGeometry();
+    Qt::WindowFlags flags()
+    {
+        Qt::WindowFlags flags = windowFlags();
+        flags |= Qt::CustomizeWindowHint;
+        flags &= ~Qt::WindowMaximizeButtonHint;
+        return flags;
+    }
 
 private:
     bool           needPlacement;

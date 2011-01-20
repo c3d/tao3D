@@ -91,7 +91,8 @@ CXXTBL_SOURCES += \
 
 OTHER_FILES = \
     ../tao/xlr/xlr/options.tbl \
-    ../tao/xlr/xlr/traces.tbl
+    ../tao/xlr/xlr/traces.tbl \
+    ../tao/xlr/xlr/include/basics.tbl
 
 # We need bash, llvm-config
 !system(bash -c \"bash --version >/dev/null\"):error("Can't execute bash")

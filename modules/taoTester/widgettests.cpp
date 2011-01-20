@@ -59,7 +59,7 @@ text WidgetTests::toString()
     QString testDoc = QString("%1_test -> test_definition \"%1\", %2, "
                               " <<%3>>, %6, %7, %5, do \n%4\n")
             .arg(name).arg(featureId)
-            .arg(description).arg(taoCmd.isEmpty() ? "    empty" : taoCmd)
+            .arg(description).arg(taoCmd.isEmpty() ? "    nil" : taoCmd)
             .arg(threshold).arg(winSize.width()).arg(winSize.height());
     return +testDoc;
 

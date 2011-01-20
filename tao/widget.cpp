@@ -8025,7 +8025,7 @@ XL::Name_p Widget::setAttribute(Tree_p self,
                                                     document()->toPlainText(),
                                                     "<<", ">>" ));
         XL::Infix *lf = new XL::Infix("\n", attribute,
-                                      new XL::Infix("\n", p, XL::xl_empty));
+                                      new XL::Infix("\n", p, XL::xl_nil));
 
         // Current selected text must be erased because it will be re-inserted
         // with new formating

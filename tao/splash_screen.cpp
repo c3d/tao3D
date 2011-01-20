@@ -38,7 +38,7 @@
 TAO_BEGIN
 
 #define TEXT_COLOR "#FFFFFF"
-#define LINK_COLOR "#A0A0A0"
+#define LINK_COLOR "#EEAA11"
 
 SplashScreen::SplashScreen(Qt::WindowFlags flags)
     : QSplashScreen(QPixmap(":/images/splash.png"), flags),
@@ -57,7 +57,7 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
                                "text-decoration:none;}"
                        "</style></head><body>"
                        "\302\251 2010-2011 "
-                       "<a href=\"http://taodyne.com\">Taodyne SAS.</a> "
+                       "<a href=\"http://taodyne.com\">Taodyne SAS</a>. "
                        "All rights reserved."
                        "</body></html>";
     label = new QLabel(trUtf8(cop), this);

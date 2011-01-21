@@ -3355,6 +3355,7 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
 //   Directly go to the given page
 // ----------------------------------------------------------------------------
 {
+    lastMouseButtons = 0;
     text old = pageName;
     pageName = page;
     return new Text(old);

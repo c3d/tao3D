@@ -134,7 +134,6 @@ private slots:
     void preferences();
     void documentWasModified();
     void checkFiles();
-    void toggleFullScreen();
     void clearUndoStack();
     void reloadCurrentFile();
     void onUriGetFailed();
@@ -224,7 +223,6 @@ private:
     QAction          *aboutAct;
     QAction          *preferencesAct;
     QAction          *aboutQtAct;
-    QAction          *fullScreenAct;
     QAction          *slideShowAct;
     QAction          *viewAnimationsAct;
     QAction          *viewStereoscopyAct;

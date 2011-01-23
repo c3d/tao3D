@@ -245,15 +245,6 @@ void Window::checkFiles()
 }
 
 
-void Window::toggleFullScreen()
-// ----------------------------------------------------------------------------
-//   Toggle between full-screen and normal mode
-// ----------------------------------------------------------------------------
-{
-    switchToFullScreen(!isFullScreen());
-}
-
-
 void Window::toggleAnimations()
 // ----------------------------------------------------------------------------
 //   Toggle between full-screen and normal mode
@@ -1127,14 +1118,8 @@ void Window::createActions()
     preferencesAct->setObjectName("preferences");
     connect(preferencesAct, SIGNAL(triggered()), this, SLOT(preferences()));
 
-    fullScreenAct = new QAction(tr("Full Screen"), this);
-    fullScreenAct->setStatusTip(tr("Toggle full screen mode"));
-    fullScreenAct->setCheckable(true);
-    fullScreenAct->setObjectName("fullScreen");
-    connect(fullScreenAct, SIGNAL(triggered()), this, SLOT(toggleFullScreen()));
-
-    slideShowAct = new QAction(tr("Slide show"), this);
-    slideShowAct->setStatusTip(tr("Toggle slide show mode"));
+    slideShowAct = new QAction(tr("Full Screen"), this);
+    slideShowAct->setStatusTip(tr("Toggle full screen mode"));
     slideShowAct->setCheckable(true);
     slideShowAct->setObjectName("slideShow");
     connect(slideShowAct, SIGNAL(triggered()), this, SLOT(toggleSlideShow()));
@@ -1240,7 +1225,7 @@ void Window::createMenus()
     viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(dock->toggleViewAction());
     viewMenu->addAction(errorDock->toggleViewAction());
-    viewMenu->addAction(fullScreenAct);
+    viewMenu->addAction(slideShowAct);
     viewMenu->addAction(slideShowAct);
     viewMenu->addAction(viewAnimationsAct);
     if (XL::MAIN->options.enable_stereoscopy)
@@ -1979,7 +1964,7 @@ void Window::switchToFullScreen(bool fs)
         restoreGeometry(savedState.geometry);
         restoreState(savedState.state);
     }
-    fullScreenAct->setChecked(fs);
+    slideShowAct->setChecked(fs);
 }
 
 

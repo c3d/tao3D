@@ -6272,17 +6272,19 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
 {
+    Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    FrameInfo *frame = self->GetInfo<FrameInfo>();
-    Tree_p result = XL::xl_false;
-    if (!frame)
+    MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
+    if (!multiframe)
     {
-        frame = new FrameInfo(w,h);
-        self->SetInfo<FrameInfo> (frame);
+        multiframe = new MultiFrameInfo<uint>();
+        self->SetInfo< MultiFrameInfo<uint> > (multiframe);
     }
+    uint id = selectionId();
+    FrameInfo &frame = multiframe->frame(id);
 
     do
     {
@@ -6297,14 +6299,14 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
         XL::LocalSave<double> saveScaling(scaling, scalingFactorFromCamera());
 
         // Clear the background and setup initial state
-        frame->resize(w,h);
+        frame.resize(w,h);
         setup(w, h);
         result = xl_evaluate(prog);
 
         // Draw the layout in the frame context
-        frame->begin();
+        frame.begin();
         layout->Draw(NULL);
-        frame->end();
+        frame.end();
 
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
@@ -6312,7 +6314,7 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
     } while (0); // State keeper and layout
 
     // Bind the resulting texture
-    GLuint tex = frame->bind();
+    GLuint tex = frame.bind();
     layout->Add(new FillTexture(tex));
     layout->hasAttributes = true;
 

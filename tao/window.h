@@ -188,6 +188,7 @@ private:
     QString           curFile;
     Uri              *uri;
     bool              slideShowMode;
+    bool              unifiedTitleAndToolBarOnMac;
 
     QTimer            fileCheckTimer;
     QMenu            *fileMenu;

@@ -159,7 +159,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       zoom(1.0), eyeDistance(10.0),
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
-      dragging(false), bAutoHideCursor(false)
+      dragging(false), bAutoHideCursor(false),
+      renderFramesCanceled(false)
 {
     setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap
@@ -632,6 +633,88 @@ void Widget::print(QPrinter *prt)
 
     // Finish the job
     painter.end();
+}
+
+
+void Widget::renderFrames(int w, int h, double start_time, double end_time,
+                          QString dir, double fps)
+// ----------------------------------------------------------------------------
+//    Render frames to PNG files
+// ----------------------------------------------------------------------------
+{
+    // Create output directory if needed
+    if (!QFileInfo(dir).exists())
+        QDir().mkdir(dir);
+    if (!QFileInfo(dir).isDir())
+        return;
+
+    TaoSave saveCurrent(current, this);
+
+    // Create a GL frame to render into
+    FrameInfo frame(w, h);
+
+    // Set the initial time we want to set and freeze animations
+    XL::LocalSave<bool> disableAnimations(animated, false);
+    XL::LocalSave<double> setPageTime(pageStartTime, start_time);
+    XL::LocalSave<double> setFrozenTime(frozenTime, start_time);
+    XL::LocalSave<double> saveStartTime(startTime, start_time);
+
+    // Render frames for the whole time range
+    int currentFrame = 0, frameCount = (end_time - start_time) * fps;
+    for (double t = start_time; t < end_time; t += 1.0/fps)
+    {
+        if (renderFramesCanceled)
+        {
+            renderFramesCanceled = false;
+            break;
+        }
+
+        QImage picture(w, h, QImage::Format_RGB888);
+        QPainter painter(&picture);
+        picture.fill(0);
+
+        // Center display on screen
+        XL::LocalSave<Point3> saveCenter(cameraTarget, Point3(0,0,0));
+        XL::LocalSave<Point3> saveEye(cameraPosition, defaultCameraPosition);
+        XL::LocalSave<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
+        XL::LocalSave<char> saveStereo1(stereoPlanes, 1);
+        XL::LocalSave<char> saveStereo2(stereoscopic, 1);
+        XL::LocalSave<double> saveZoom(zoom, 1);
+        XL::LocalSave<double> saveScaling(scaling, scalingFactorFromCamera());
+
+        // Set time and run program
+        frozenTime = t;
+        runProgram();
+
+        // Show progress information
+        emit renderFramesProgress(100*currentFrame++/frameCount);
+        QApplication::processEvents();
+
+        // Draw the layout in the frame context
+        id = idDepth = 0;
+        frame.begin();
+        setup(w, h);
+        space->Draw(NULL);
+        frame.end();
+
+        // Prepare background
+        int r = clearCol.red();
+        int g = clearCol.green();
+        int b = clearCol.blue();
+        picture.fill(r + (g << 8) + (b << 16));
+
+        // Draw rendered scene
+        QImage image(frame.toImage());
+        image = image.convertToFormat(QImage::Format_ARGB32);
+        painter.drawImage(image.rect(), image);
+
+        // Save frame to disk
+        // Convert to .mov with: ffmpeg -i frame%d.png output.mov
+        QString fileName = QString("%1/frame%2.png").arg(dir).arg(currentFrame);
+        picture.save(fileName);
+    }
+
+    emit renderFramesDone();
 }
 
 

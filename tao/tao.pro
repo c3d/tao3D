@@ -133,7 +133,8 @@ HEADERS += widget.h \
     history_playback_tool.h \
     tool_window.h \
     branch_selection_tool.h \
-    git_toolbar.h
+    git_toolbar.h \
+    render_to_file_dialog.h
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \
@@ -209,7 +210,8 @@ SOURCES += tao_main.cpp \
     tool_window.cpp \
     branch_selection_tool.cpp \
     history_playback_tool.cpp \
-    git_toolbar.cpp
+    git_toolbar.cpp \
+    render_to_file_dialog.cpp
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 
@@ -255,7 +257,8 @@ FORMS += pull_from_dialog.ui \
     open_uri_dialog.ui \
     fetch_push_dialog.ui \
     history_frame.ui \
-    diff_dialog.ui
+    diff_dialog.ui \
+    render_to_file_dialog.ui
 
 # Automatic embedding of Git version
 QMAKE_CLEAN += version.h

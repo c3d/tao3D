@@ -44,6 +44,7 @@
 #include "new_document_wizard.h"
 #include "preferences_dialog.h"
 #include "tool_window.h"
+#include "render_to_file_dialog.h"
 
 #include <iostream>
 #include <sstream>
@@ -975,6 +976,11 @@ void Window::createActions()
     consolidateAct->setObjectName("consolidate");
     connect(consolidateAct, SIGNAL(triggered()), this, SLOT(consolidate()));
 
+    renderToFileAct = new QAction(tr("Render to files..."), this);
+    renderToFileAct->setStatusTip(tr("Save frames to disk, e.g., to make a video"));
+    renderToFileAct->setObjectName("renderToFile");
+    connect(renderToFileAct, SIGNAL(triggered()), this, SLOT(renderToFile()));
+
     saveAsAct = new QAction(tr("Save &As..."), this);
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
     saveAsAct->setStatusTip(tr("Save the document under a new name"));
@@ -1189,6 +1195,8 @@ void Window::createMenus()
     fileMenu->addAction(saveAsAct);
     fileMenu->addAction(saveFontsAct);
     fileMenu->addAction(consolidateAct);
+    fileMenu->addSeparator();
+    fileMenu->addAction(renderToFileAct);
     fileMenu->addSeparator();
     fileMenu->addAction(pageSetupAct);
     fileMenu->addAction(printAct);
@@ -1432,6 +1440,15 @@ void Window::setReadOnly(bool ro)
     pushAct->setEnabled(!ro);
     mergeAct->setEnabled(!ro);
     selectiveUndoAct->setEnabled(!ro);
+}
+
+
+void Window::renderToFile()
+// ----------------------------------------------------------------------------
+//    Render current page to image files
+// ----------------------------------------------------------------------------
+{
+    RenderToFileDialog(taoWidget, this).exec();
 }
 
 

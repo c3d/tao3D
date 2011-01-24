@@ -98,6 +98,7 @@ public slots:
     void deleteAboutSplash();
     void showMessage(QString message)  { showMessage(message, 2000); }
     void setReadOnly(bool ro);
+    void renderToFile();
 
 signals:
     void projectUrlChanged(QString url);
@@ -204,6 +205,7 @@ private:
     QAction          *saveAct;
     QAction          *saveAsAct;
     QAction          *consolidateAct;
+    QAction          *renderToFileAct;
     QAction          *saveFontsAct;
     QAction          *printAct;
     QAction          *pageSetupAct;

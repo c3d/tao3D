@@ -10,3 +10,8 @@ object_script.*.Release
 object_script.*.Debug
 .DS_Store
 /Makefile
+tests/*/*_diff*.png
+tests/*/*_played*.png
+tests/results.ddd
+tests/runTests.ddd
+tests/Makefile

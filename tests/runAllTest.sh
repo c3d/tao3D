@@ -1,7 +1,7 @@
 #!/bin/bash
 set -a DYLD_LIBRARY_PATH
 DYLD_LIBRARY_PATH="/Users/cathy/Work/tao/install/Tao.app/Contents/Frameworks"
-TAO="cd /Users/cathy/Work/tao/install/Tao.app/Contents/MacOS; ./Tao -norepo -nosplash"
+TAO="cd /Users/cathy/Work/tao/install/Tao.app/Contents/MacOS; ./Tao -norepo "
 
 runTests="run_all_tests -> "$'\n'
 listTests="\"Tests that will run :\""$'\n'

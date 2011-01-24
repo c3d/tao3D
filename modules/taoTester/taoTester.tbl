@@ -146,6 +146,15 @@ PREFIX(TestAddFont,  tree,  "test_add_font",
        SYNOPSIS("Add an event to change the current font")
        DESCRIPTION("Check[TODO]"))
 
+PREFIX(TestAddFile,  tree,  "test_add_file",
+       PARM(diagname, text, "The objectname of the dialog box.")
+       PARM(filename, text, "The name of the selected file.")
+       PARM(delay, integer, "The delay before this action is excuted."),
+       RTAO(testAddFile(self, diagname, filename, delay)),
+       GROUP(test)
+       SYNOPSIS("Add an event to select a file name.")
+       DESCRIPTION("Add an event to select a file name."))
+
 PREFIX(TestAddColor,  tree,  "test_add_color",
        PARM(diagname, text, )
        PARM(colname, text, )

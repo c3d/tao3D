@@ -34,6 +34,7 @@
 #include <QFile>
 #include <QColorDialog>
 #include <QFontDialog>
+#include <QFileDialog>
 #include <QMainWindow>
 inline QString operator +(text s)
 // ----------------------------------------------------------------------------
@@ -99,6 +100,7 @@ public:
     void addCheck(int num, int delay);
     void addColor(QString diagName, QString name, int delay = -1 );
     void addFont(QString diagName, QString name, int delay = -1  );
+    void addFile(QString diagName, QString name, int delay = -1  );
     void addDialogClose(QString diagName, int result, int delay = -1);
 
     // Save utilities
@@ -117,6 +119,7 @@ public slots:
     void recordAction(bool triggered);
     void recordColor(QColor color);
     void recordFont(QFont font);
+    void recordFile(QString filename);
     void finishedDialog(int result);
 
     void stop();
@@ -266,6 +269,25 @@ private:
     int delay;
 };
 
+class TestFileActionEvent: public QTestEvent
+// ----------------------------------------------------------------------------
+//   Class used to store file selection events.
+// ----------------------------------------------------------------------------
+{
+public:
+    inline TestFileActionEvent(QString objName, QString name, int delay)
+        : objName(objName), fileName(name), delay(delay) {}
+    inline QTestEvent *clone() const { return new TestFileActionEvent(*this); }
+
+    void simulate(QWidget *w);
+    QString toTaoCmd();
+
+private:
+    QString objName;
+    QString fileName;
+    int delay;
+};
+
 
 class TestDialogActionEvent: public QTestEvent
 // ----------------------------------------------------------------------------
@@ -278,6 +300,7 @@ public:
     inline QTestEvent *clone() const { return new TestDialogActionEvent(*this); }
 
     void simulate(QWidget *w);
+    QString toTaoCmd();
 
 private:
     QString objName;

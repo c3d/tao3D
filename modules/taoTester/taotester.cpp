@@ -206,7 +206,7 @@ Tree_p taoTester::testAddFont(Tree_p , Text_p name, Text_p ftname, Integer_p del
 //  Add a font change event to the current test
 // ----------------------------------------------------------------------------
 {
-    currentTest()->addColor(+name->value, +ftname->value, delay->value);
+    currentTest()->addFont(+name->value, +ftname->value, delay->value);
     return XL::xl_true;
 }
 
@@ -216,7 +216,17 @@ Tree_p taoTester::testAddColor(Tree_p , Text_p name, Text_p colname, Integer_p d
 //  Add a color change event to the current test
 // ----------------------------------------------------------------------------
 {
-    currentTest()->addFont(+name->value, +colname->value, delay->value);
+    currentTest()->addColor(+name->value, +colname->value, delay->value);
+    return XL::xl_true;
+}
+
+
+Tree_p taoTester::testAddFile(Tree_p , Text_p name, Text_p filename, Integer_p delay)
+// ----------------------------------------------------------------------------
+//  Add a font change event to the current test
+// ----------------------------------------------------------------------------
+{
+    currentTest()->addFile(+name->value, +filename->value, delay->value);
     return XL::xl_true;
 }
 

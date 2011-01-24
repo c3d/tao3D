@@ -158,6 +158,20 @@ void WidgetTests::recordFont(QFont font)
     taoCmd.append(evt->toTaoCmd());
 }
 
+void WidgetTests::recordFile(QString file)
+// ----------------------------------------------------------------------------
+//   Record the font change event.
+// ----------------------------------------------------------------------------
+{
+    if (file.isEmpty()) return;
+
+    TestFileActionEvent * evt =
+            new TestFileActionEvent(QObject::sender()->objectName(),
+                                    file, startTime.restart());
+    testList.append(evt);
+    taoCmd.append(evt->toTaoCmd());
+}
+
 
 void WidgetTests::finishedDialog(int result)
 // ----------------------------------------------------------------------------
@@ -172,8 +186,11 @@ void WidgetTests::finishedDialog(int result)
         {
             disconnect(dialog, 0, this, 0);
         }
-        testList.append(new TestDialogActionEvent(sender->objectName(),
-                                                  result, startTime.restart()));
+        TestDialogActionEvent* evt =
+                new TestDialogActionEvent(sender->objectName(),
+                                          result, startTime.restart());
+        testList.append(evt);
+        taoCmd.append(evt->toTaoCmd());
     }
 }
 
@@ -283,6 +300,15 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
                 connect(diag, SIGNAL(finished(int)),
                         this, SLOT(finishedDialog(int)));
             }
+            else if (childName.contains("fileDialog") ||
+                     childName.contains("QFileDialog"))
+            {
+                QFileDialog *diag = (QFileDialog*)e->child();
+                connect(diag, SIGNAL(fileSelected(QString)),
+                        this, SLOT(recordFile(QString)));
+//                connect(diag, SIGNAL(finished(int)),
+//                        this, SLOT(finishedDialog(int)));
+            }
         }
     default:
         break;
@@ -311,7 +337,8 @@ bool WidgetTests::startPlay()
         playedBefore = widget->grabFrameBuffer(true);
 
         // save the image
-        QString playedBeforeName = QString(folder).append(name).append("_playedBefore.png");
+        QString playedBeforeName =
+                QString(folder).append(name).append("_playedBefore.png");
         playedBefore.save(playedBeforeName, "PNG");
 
         // Compute the diff between reference and played image
@@ -340,7 +367,8 @@ bool WidgetTests::startPlay()
         playedAfter = widget->grabFrameBuffer(true);
 
         // save the image
-        QString playedAfterName = QString(folder).append(name).append("_playedAfter.png");
+        QString playedAfterName =
+                QString(folder).append(name).append("_playedAfter.png");
         playedAfter.save(playedAfterName, "PNG");
 
         // Compute the diff between reference and played image
@@ -353,9 +381,11 @@ bool WidgetTests::startPlay()
         log(AFTER, diffVal <= threshold, diffVal);
     }
 
-    win->statusBar()->showMessage("Test " + name + (nbChkPtKO > 0 ? " failed" : " is successful"));
+    win->statusBar()->showMessage("Test " + name +
+                                  (nbChkPtKO > 0 ? " failed" : " is successful"));
     logClose(nbChkPtKO <= 0);
     QTest::qWait(1000);
+
     return nbChkPtKO > 0;
 }
 
@@ -570,6 +600,15 @@ void WidgetTests::addFont(QString diagName, QString ftName, int delay)
 }
 
 
+void WidgetTests::addFile(QString diagName, QString fileName, int delay)
+// ----------------------------------------------------------------------------
+// Add an action to be replayed.
+// ----------------------------------------------------------------------------
+{
+    testList.append(new TestFileActionEvent(diagName, fileName, delay));
+}
+
+
 void WidgetTests::addDialogClose(QString objName, int result,  int delay)
 // ----------------------------------------------------------------------------
 // Add an action to be replayed.
@@ -758,6 +797,34 @@ QString TestFontActionEvent::toTaoCmd()
 }
 
 
+void TestFileActionEvent::simulate(QWidget *w)
+// ----------------------------------------------------------------------------
+//  Set the current font of the QFontDialog box.
+// ----------------------------------------------------------------------------
+{
+    QFileDialog* diag = w->findChild<QFileDialog*>(objName);
+    if (diag )
+    {
+        QTest::qWait(delay);
+        diag->setVisible(false);
+        diag->selectFile(fileName);
+        QDialog *d = (QDialog *) diag;
+        d->accept();
+    }
+}
+
+
+QString TestFileActionEvent::toTaoCmd()
+// ----------------------------------------------------------------------------
+//  Return a command line for Tao.
+// ----------------------------------------------------------------------------
+{
+    QString cmd = QString("    test_add_file \"%1\", \"%2\", %3\n")
+                  .arg(objName).arg(fileName).arg(delay);
+    return cmd;
+}
+
+
 void TestDialogActionEvent::simulate(QWidget *w)
 // ----------------------------------------------------------------------------
 //  Set the result of the dialog (Accepted or Rejected) and close it.
@@ -773,3 +840,12 @@ void TestDialogActionEvent::simulate(QWidget *w)
 
 }
 
+QString TestDialogActionEvent::toTaoCmd()
+// ----------------------------------------------------------------------------
+//  Return a command line for Tao.
+// ----------------------------------------------------------------------------
+{
+    QString cmd = QString("    test_dialog_action \"%1\", \"%2\", %3\n")
+                  .arg(objName).arg(result).arg(delay);
+    return cmd;
+}

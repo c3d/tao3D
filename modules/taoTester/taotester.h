@@ -40,6 +40,7 @@ public:
     Tree_p testAddAction(Tree_p self, Text_p name, Integer_p delay);
     Tree_p testAddCheck(Tree_p self, Integer_p num, Integer_p delay );
     Tree_p testAddFont(Tree_p self, Text_p diagname, Text_p ftname, Integer_p delay);
+    Tree_p testAddFile(Tree_p self, Text_p diagname, Text_p filename, Integer_p delay);
     Tree_p testAddColor(Tree_p self, Text_p diagname, Text_p colname, Integer_p delay);
     Tree_p testAddCloseDialog(Tree_p self, Text_p diagname,
                               Integer_p result, Integer_p delay);

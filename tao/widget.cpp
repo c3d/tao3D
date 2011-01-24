@@ -6901,6 +6901,9 @@ Tree_p Widget::fileChooser(Tree_p self, Tree_p properties)
     // Setup the color dialog
     fileDialog = new QFileDialog(this);
     fileDialog->setObjectName("fileDialog");
+    // To be able to set the selectFileName programmatically.
+    // Can be revisited when tests will be integrated in new module fmw.
+    fileDialog->setOption(QFileDialog::DontUseNativeDialog, true);
     currentFileDialog = fileDialog;
     fileDialog->setModal(false);
 

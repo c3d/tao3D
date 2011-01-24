@@ -84,6 +84,7 @@ void LineColor::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     where->lineColor = color;
+    glDisable(GL_LIGHTING);
 }
 
 
@@ -93,6 +94,7 @@ void FillColor::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     where->fillColor = color;
+    glDisable(GL_LIGHTING);
 }
 
 

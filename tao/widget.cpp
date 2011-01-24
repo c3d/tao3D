@@ -129,6 +129,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       symbolTableRoot(new XL::Name("formula_symbol_table")),
       inError(false), mustUpdateDialogs(false), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), path(NULL), table(NULL),
+      pageW(21), pageH(29.7),
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
       pageTree(NULL),
@@ -3392,6 +3393,16 @@ XL::Integer_p Widget::pageCount(Tree_p self)
 }
 
 
+XL::Text_p Widget::pageNameAtIndex(Tree_p self, uint index)
+// ----------------------------------------------------------------------------
+//   Return the nth page
+// ----------------------------------------------------------------------------
+{
+    text name = index < pageNames.size() ? pageNames[index] : "<Invalid page>";
+    return new Text(name);
+}
+
+
 XL::Real_p Widget::pageWidth(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the width of the page
@@ -6265,17 +6276,19 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
 {
+    Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    FrameInfo *frame = self->GetInfo<FrameInfo>();
-    Tree_p result = XL::xl_false;
-    if (!frame)
+    MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
+    if (!multiframe)
     {
-        frame = new FrameInfo(w,h);
-        self->SetInfo<FrameInfo> (frame);
+        multiframe = new MultiFrameInfo<uint>();
+        self->SetInfo< MultiFrameInfo<uint> > (multiframe);
     }
+    uint id = selectionId();
+    FrameInfo &frame = multiframe->frame(id);
 
     do
     {
@@ -6290,14 +6303,14 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
         XL::LocalSave<double> saveScaling(scaling, scalingFactorFromCamera());
 
         // Clear the background and setup initial state
-        frame->resize(w,h);
+        frame.resize(w,h);
         setup(w, h);
         result = xl_evaluate(prog);
 
         // Draw the layout in the frame context
-        frame->begin();
+        frame.begin();
         layout->Draw(NULL);
-        frame->end();
+        frame.end();
 
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
@@ -6305,11 +6318,81 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
     } while (0); // State keeper and layout
 
     // Bind the resulting texture
-    GLuint tex = frame->bind();
+    GLuint tex = frame.bind();
     layout->Add(new FillTexture(tex));
     layout->hasAttributes = true;
 
     return result;
+}
+
+
+Tree_p Widget::thumbnail(Tree_p self, scale s, text page)
+// ----------------------------------------------------------------------------
+//   Generate a texture with a page thumbnail of the given page
+// ----------------------------------------------------------------------------
+{
+    // Prohibit recursion on thumbnails
+    if (page == pageName)
+        return XL::xl_false;
+
+    double w = width() * s;
+    double h = height() * s;
+
+    // Get or build the current frame if we don't have one
+    MultiFrameInfo<text> *multiframe = self->GetInfo< MultiFrameInfo<text> >();
+    if (!multiframe)
+    {
+        multiframe = new MultiFrameInfo<text>();
+        self->SetInfo< MultiFrameInfo<text> > (multiframe);
+    }
+    FrameInfo &frame = multiframe->frame(page);
+
+    do
+    {
+        GLAllStateKeeper saveGL;
+        XL::LocalSave<Layout *> saveLayout(layout,layout->NewChild());
+        XL::LocalSave<Point3> saveCenter(cameraTarget, cameraTarget);
+        XL::LocalSave<Point3> saveEye(cameraPosition, cameraPosition);
+        XL::LocalSave<Vector3> saveUp(cameraUpVector, cameraUpVector);
+        XL::LocalSave<char> saveStereo1(stereoPlanes, 1);
+        XL::LocalSave<char> saveStereo2(stereoscopic, 1);
+        XL::LocalSave<double> saveZoom(zoom, zoom);
+        XL::LocalSave<double> saveScaling(scaling, scaling * s);
+        XL::LocalSave<text> savePage(pageName, page);
+        XL::LocalSave<text> saveLastPage(lastPageName, page);
+        XL::LocalSave<page_map> saveLinks(pageLinks, pageLinks);
+        XL::LocalSave<page_list> saveList(pageNames, pageNames);
+        XL::LocalSave<uint> savePageId(pageId, 0);
+        XL::LocalSave<uint> savePageFound(pageFound, 0);
+        XL::LocalSave<uint> savePageShown(pageShown, pageShown);
+        XL::LocalSave<uint> savePageTotal(pageShown, pageTotal);
+        XL::LocalSave<Tree_p> savePageTree(pageTree, pageTree);
+
+        // Clear the background and setup initial state
+        frame.resize(w,h);
+        setup(w, h);
+
+        // Evaluate the program
+        XL::MAIN->EvalContextFiles(((Window*)parent())->contextFileNames);
+        if (Tree *prog = xlProgram->tree)
+            xl_evaluate(prog);
+
+        // Draw the layout in the frame context
+        frame.begin();
+        layout->Draw(NULL);
+        frame.end();
+
+        // Delete the layout (it's not a child of the outer layout)
+        delete layout;
+        layout = NULL;
+    } while (0); // State keeper and layout
+
+    // Bind the resulting texture
+    GLuint tex = frame.bind();
+    layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
+
+    return XL::xl_true;
 }
 
 

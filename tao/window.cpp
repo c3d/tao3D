@@ -913,7 +913,7 @@ void Window::deleteAboutSplash()
 //    Delete the SplashScreen object allocated by the about() method
 // ----------------------------------------------------------------------------
 {
-    delete aboutSplash;
+    aboutSplash->deleteLater();
     aboutSplash = NULL;
 }
 

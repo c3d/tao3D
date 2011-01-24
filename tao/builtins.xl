@@ -260,7 +260,7 @@ line_arrow x0:real, y0:real, s0:symbol, x1:real, y1:real, s1:symbol ->
 
 circle x:real, y:real, r:real           -> ellipse x, y, 2*r, 2*r
 circle r:real                           -> ellipse 0.0, 0.0, 2*r, 2*r
-oval t                                  -> ellipse t
+oval x, y, w, h                         -> ellipse x, y, w, h
 
 circular_sector x:real, y:real, r:real, a:real, b:real ->
     ellipse_arc x, y, 2*r, 2*r, a, b
@@ -281,37 +281,37 @@ polygram x:real, y:real, w:real, h:real, p:integer, q:integer ->
 polygon x:real, y:real, w:real, h:real, p:integer ->
     star_polygon x, y, w, h, p, 1
 
-equilateral_triangle t                  -> polygon t, constant 3
-tetragon t                              -> polygon t, constant 4
-diamond t                               -> polygon t, constant 4
-pentagon t                              -> polygon t, constant 5
-hexagon t                               -> polygon t, constant 6
-heptagon t                              -> polygon t, constant 7
-octagon t                               -> polygon t, constant 8
-nonagon t                               -> polygon t, constant 9
-decagon t                               -> polygon t, constant 10
-hendecagon t                            -> polygon t, constant 11
-dodecagon t                             -> polygon t, constant 12
-tridecagon t                            -> polygon t, constant 13
-tetradecagon t                          -> polygon t, constant 14
-pentadecagon t                          -> polygon t, constant 15
-hexadecagon t                           -> polygon t, constant 16
-heptadecagon t                          -> polygon t, constant 17
-octadecagon t                           -> polygon t, constant 18
-enneadecagon t                          -> polygon t, constant 19
-icosagon t                              -> polygon t, constant 20
+equilateral_triangle x, y, w, h          -> polygon x, y, w, h, constant 3
+tetragon x, y, w, h                      -> polygon x, y, w, h, constant 4
+diamond x, y, w, h                       -> polygon x, y, w, h, constant 4
+pentagon x, y, w, h                      -> polygon x, y, w, h, constant 5
+hexagon x, y, w, h                       -> polygon x, y, w, h, constant 6
+heptagon x, y, w, h                      -> polygon x, y, w, h, constant 7
+octagon x, y, w, h                       -> polygon x, y, w, h, constant 8
+nonagon x, y, w, h                       -> polygon x, y, w, h, constant 9
+decagon x, y, w, h                       -> polygon x, y, w, h, constant 10
+hendecagon x, y, w, h                    -> polygon x, y, w, h, constant 11
+dodecagon x, y, w, h                     -> polygon x, y, w, h, constant 12
+tridecagon x, y, w, h                    -> polygon x, y, w, h, constant 13
+tetradecagon x, y, w, h                  -> polygon x, y, w, h, constant 14
+pentadecagon x, y, w, h                  -> polygon x, y, w, h, constant 15
+hexadecagon x, y, w, h                   -> polygon x, y, w, h, constant 16
+heptadecagon x, y, w, h                  -> polygon x, y, w, h, constant 17
+octadecagon x, y, w, h                   -> polygon x, y, w, h, constant 18
+enneadecagon x, y, w, h                  -> polygon x, y, w, h, constant 19
+icosagon x, y, w, h                      -> polygon x, y, w, h, constant 20
 
-pentagram t                             -> polygram t, constant 5, constant 2
-hexagram t                              -> polygram t, constant 6, constant 2
-star_of_david t                         -> polygram t, constant 6, constant 2
-heptagram t                             -> polygram t, constant 7, constant 2
-star_of_lakshmi t                       -> polygram t, constant 8, constant 2
-octagram t                              -> polygram t, constant 8, constant 3
-nonagram t                              -> polygram t, constant 9, constant 3
-decagram t                              -> polygram t, constant 10, constant 3
+pentagram x, y, w, h                  -> polygram x, y, w, h, constant 5, constant 2
+hexagram x, y, w, h                   -> polygram x, y, w, h, constant 6, constant 2
+star_of_david x, y, w, h              -> polygram x, y, w, h, constant 6, constant 2
+heptagram x, y, w, h                  -> polygram x, y, w, h, constant 7, constant 2
+star_of_lakshmi x, y, w, h            -> polygram x, y, w, h, constant 8, constant 2
+octagram x, y, w, h                   -> polygram x, y, w, h, constant 8, constant 3
+nonagram x, y, w, h                   -> polygram x, y, w, h, constant 9, constant 3
+decagram x, y, w, h                   -> polygram x, y, w, h, constant 10, constant 3
 
-schläfli t, {p:integer}                 -> polygon t, p
-schläfli t, {p:integer/q:integer}       -> polygram t, p, q
+schläfli x, y, w, h, {p:integer}           -> polygon x, y, w, h, p
+schläfli x, y, w, h, {p:integer/q:integer} -> polygram x, y, w, h, p, q
 
 selection_color ->
     color 70%, 80%, 90%, 40%
@@ -786,6 +786,21 @@ menu_item "menu:select:format > line color", "Line Color...", do
 menu_item "menu:select:format > font", "Font...", do
     font_chooser
         set_attribute "font", {font font_family, font_size, slant font_slant%, weight font_weight%, stretch font_stretch%}
+menu_item "menu:select:format >  texture...", "Texture...", file_chooser
+            filter "All image formats (*.bmp *.gif *.jpg *.jpeg *.png *.pbm *.pgm *.ppm *.svg *.tif *.tiff *.xbm *.xpm);;" &
+                   "BMP - Windows Bitmap (*.bmp);;" &
+                   "GIF - Graphic Interchange Format (*.gif);;" &
+                   "JPEG - Joint Photographic Experts Group (*.jpg *.jpeg);;" &
+                   "PNG - Portable Network Graphics (*.png);;" &
+                   "SVG - Scalable Vector Graphics (*.svg);;" &
+                   "TIFF - Tagged Image File Format (*.tif *.tiff);;" &
+                   "PBM - Portable Bitmap (*.pbm);;" &
+                   "PGM - Portable Graymap (*.pgm);;" &
+                   "PPM - Portable Pixmap (*.ppm);;" &
+                   "XBM - X11 Bitmap (*.xbm);;" &
+                   "XPM - X11 Pixmap (*.xpm)"
+            action do
+                set_attribute "texture", {texture rel_file_path}
 }
 
 menu_arrange -> {

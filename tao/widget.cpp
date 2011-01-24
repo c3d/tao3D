@@ -132,6 +132,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
       runOnNextDraw(true), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), path(NULL), table(NULL),
+      pageW(21), pageH(29.7),
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
       pageTree(NULL),
@@ -162,7 +163,8 @@ Widget::Widget(Window *parent, SourceFile *sf)
       zoom(1.0), eyeDistance(10.0),
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
-      dragging(false), bAutoHideCursor(false)
+      dragging(false), bAutoHideCursor(false),
+      renderFramesCanceled(false)
 {
     setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap
@@ -810,6 +812,89 @@ void Widget::print(QPrinter *prt)
 
     // Finish the job
     painter.end();
+}
+
+
+void Widget::renderFrames(int w, int h, double start_time, double end_time,
+                          QString dir, double fps)
+// ----------------------------------------------------------------------------
+//    Render frames to PNG files
+// ----------------------------------------------------------------------------
+{
+    // Create output directory if needed
+    if (!QFileInfo(dir).exists())
+        QDir().mkdir(dir);
+    if (!QFileInfo(dir).isDir())
+        return;
+
+    TaoSave saveCurrent(current, this);
+
+    // Create a GL frame to render into
+    FrameInfo frame(w, h);
+
+    // Set the initial time we want to set and freeze animations
+    XL::Save<bool> disableAnimations(animated, false);
+    XL::Save<double> setPageTime(pageStartTime, start_time);
+    XL::Save<double> setFrozenTime(frozenTime, start_time);
+    XL::Save<double> saveStartTime(startTime, start_time);
+
+    // Render frames for the whole time range
+    int currentFrame = 0, frameCount = (end_time - start_time) * fps;
+    for (double t = start_time; t < end_time; t += 1.0/fps)
+    {
+        if (renderFramesCanceled)
+        {
+            renderFramesCanceled = false;
+            break;
+        }
+
+        QImage picture(w, h, QImage::Format_RGB888);
+        QPainter painter(&picture);
+        picture.fill(0);
+
+        // Center display on screen
+        XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
+        XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
+        XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
+        XL::Save<char> saveStereo1(stereoPlanes, 1);
+        XL::Save<char> saveStereo2(stereoscopic, 1);
+        XL::Save<double> saveZoom(zoom, 1);
+        XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
+
+        // Set time and run program
+        // REVISIT: use refreshNow() to avoid full program execution?
+        frozenTime = t;
+        runProgram();
+
+        // Show progress information
+        emit renderFramesProgress(100*currentFrame++/frameCount);
+        QApplication::processEvents();
+
+        // Draw the layout in the frame context
+        id = idDepth = 0;
+        frame.begin();
+        setup(w, h);
+        space->Draw(NULL);
+        frame.end();
+
+        // Prepare background
+        int r = clearCol.red();
+        int g = clearCol.green();
+        int b = clearCol.blue();
+        picture.fill(r + (g << 8) + (b << 16));
+
+        // Draw rendered scene
+        QImage image(frame.toImage());
+        image = image.convertToFormat(QImage::Format_ARGB32);
+        painter.drawImage(image.rect(), image);
+
+        // Save frame to disk
+        // Convert to .mov with: ffmpeg -i frame%d.png output.mov
+        QString fileName = QString("%1/frame%2.png").arg(dir).arg(currentFrame);
+        picture.save(fileName);
+    }
+
+    emit renderFramesDone();
 }
 
 
@@ -3648,6 +3733,16 @@ XL::Integer_p Widget::pageCount(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     return new Integer(pageTotal ? pageTotal : 1);
+}
+
+
+XL::Text_p Widget::pageNameAtIndex(Tree_p self, uint index)
+// ----------------------------------------------------------------------------
+//   Return the nth page
+// ----------------------------------------------------------------------------
+{
+    text name = index < pageNames.size() ? pageNames[index] : "<Invalid page>";
+    return new Text(name);
 }
 
 
@@ -6695,17 +6790,19 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
 {
+    Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    FrameInfo *frame = self->GetInfo<FrameInfo>();
-    Tree_p result = XL::xl_false;
-    if (!frame)
+    MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
+    if (!multiframe)
     {
-        frame = new FrameInfo(w,h);
-        self->SetInfo<FrameInfo> (frame);
+        multiframe = new MultiFrameInfo<uint>();
+        self->SetInfo< MultiFrameInfo<uint> > (multiframe);
     }
+    uint id = selectionId();
+    FrameInfo &frame = multiframe->frame(id);
 
     do
     {
@@ -6720,14 +6817,14 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
         XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
 
         // Clear the background and setup initial state
-        frame->resize(w,h);
+        frame.resize(w,h);
         setup(w, h);
         result = context->Evaluate(prog);
 
         // Draw the layout in the frame context
-        frame->begin();
+        frame.begin();
         layout->Draw(NULL);
-        frame->end();
+        frame.end();
 
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
@@ -6735,11 +6832,81 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
     } while (0); // State keeper and layout
 
     // Bind the resulting texture
-    GLuint tex = frame->bind();
+    GLuint tex = frame.bind();
     layout->Add(new FillTexture(tex));
     layout->hasAttributes = true;
 
     return result;
+}
+
+
+Tree_p Widget::thumbnail(Context *context, Tree_p self, scale s, text page)
+// ----------------------------------------------------------------------------
+//   Generate a texture with a page thumbnail of the given page
+// ----------------------------------------------------------------------------
+{
+    // Prohibit recursion on thumbnails
+    if (page == pageName)
+        return XL::xl_false;
+
+    double w = width() * s;
+    double h = height() * s;
+
+    // Get or build the current frame if we don't have one
+    MultiFrameInfo<text> *multiframe = self->GetInfo< MultiFrameInfo<text> >();
+    if (!multiframe)
+    {
+        multiframe = new MultiFrameInfo<text>();
+        self->SetInfo< MultiFrameInfo<text> > (multiframe);
+    }
+    FrameInfo &frame = multiframe->frame(page);
+
+    do
+    {
+        GLAllStateKeeper saveGL;
+        XL::Save<Layout *> saveLayout(layout,layout->NewChild());
+        XL::Save<Point3> saveCenter(cameraTarget, cameraTarget);
+        XL::Save<Point3> saveEye(cameraPosition, cameraPosition);
+        XL::Save<Vector3> saveUp(cameraUpVector, cameraUpVector);
+        XL::Save<char> saveStereo1(stereoPlanes, 1);
+        XL::Save<char> saveStereo2(stereoscopic, 1);
+        XL::Save<double> saveZoom(zoom, zoom);
+        XL::Save<double> saveScaling(scaling, scaling * s);
+        XL::Save<text> savePage(pageName, page);
+        XL::Save<text> saveLastPage(lastPageName, page);
+        XL::Save<page_map> saveLinks(pageLinks, pageLinks);
+        XL::Save<page_list> saveList(pageNames, pageNames);
+        XL::Save<uint> savePageId(pageId, 0);
+        XL::Save<uint> savePageFound(pageFound, 0);
+        XL::Save<uint> savePageShown(pageShown, pageShown);
+        XL::Save<uint> savePageTotal(pageShown, pageTotal);
+        XL::Save<Tree_p> savePageTree(pageTree, pageTree);
+
+        // Clear the background and setup initial state
+        frame.resize(w,h);
+        setup(w, h);
+
+        // Evaluate the program
+        XL::MAIN->EvaluateContextFiles(((Window*)parent())->contextFileNames);
+        if (Tree *prog = xlProgram->tree)
+            context->Evaluate(prog);
+
+        // Draw the layout in the frame context
+        frame.begin();
+        layout->Draw(NULL);
+        frame.end();
+
+        // Delete the layout (it's not a child of the outer layout)
+        delete layout;
+        layout = NULL;
+    } while (0); // State keeper and layout
+
+    // Bind the resulting texture
+    GLuint tex = frame.bind();
+    layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
+
+    return XL::xl_true;
 }
 
 

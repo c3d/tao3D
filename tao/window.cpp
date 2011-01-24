@@ -45,6 +45,7 @@
 #include "preferences_dialog.h"
 #include "tool_window.h"
 #include "xl_source_edit.h"
+#include "render_to_file_dialog.h"
 
 #include <iostream>
 #include <sstream>
@@ -212,15 +213,6 @@ void Window::checkFiles()
                 loadFile(+prog->name);
         }
     }
-}
-
-
-void Window::toggleFullScreen()
-// ----------------------------------------------------------------------------
-//   Toggle between full-screen and normal mode
-// ----------------------------------------------------------------------------
-{
-    switchToFullScreen(!isFullScreen());
 }
 
 
@@ -953,6 +945,11 @@ void Window::createActions()
     consolidateAct->setObjectName("consolidate");
     connect(consolidateAct, SIGNAL(triggered()), this, SLOT(consolidate()));
 
+    renderToFileAct = new QAction(tr("Render to files..."), this);
+    renderToFileAct->setStatusTip(tr("Save frames to disk, e.g., to make a video"));
+    renderToFileAct->setObjectName("renderToFile");
+    connect(renderToFileAct, SIGNAL(triggered()), this, SLOT(renderToFile()));
+
     saveAsAct = new QAction(tr("Save &As..."), this);
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
     saveAsAct->setStatusTip(tr("Save the document under a new name"));
@@ -1096,14 +1093,8 @@ void Window::createActions()
     preferencesAct->setObjectName("preferences");
     connect(preferencesAct, SIGNAL(triggered()), this, SLOT(preferences()));
 
-    fullScreenAct = new QAction(tr("Full Screen"), this);
-    fullScreenAct->setStatusTip(tr("Toggle full screen mode"));
-    fullScreenAct->setCheckable(true);
-    fullScreenAct->setObjectName("fullScreen");
-    connect(fullScreenAct, SIGNAL(triggered()), this, SLOT(toggleFullScreen()));
-
-    slideShowAct = new QAction(tr("Slide show"), this);
-    slideShowAct->setStatusTip(tr("Toggle slide show mode"));
+    slideShowAct = new QAction(tr("Full Screen"), this);
+    slideShowAct->setStatusTip(tr("Toggle full screen mode"));
     slideShowAct->setCheckable(true);
     slideShowAct->setObjectName("slideShow");
     connect(slideShowAct, SIGNAL(triggered()), this, SLOT(toggleSlideShow()));
@@ -1174,6 +1165,8 @@ void Window::createMenus()
     fileMenu->addAction(saveFontsAct);
     fileMenu->addAction(consolidateAct);
     fileMenu->addSeparator();
+    fileMenu->addAction(renderToFileAct);
+    fileMenu->addSeparator();
     fileMenu->addAction(pageSetupAct);
     fileMenu->addAction(printAct);
     fileMenu->addSeparator();
@@ -1209,7 +1202,7 @@ void Window::createMenus()
     viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(src->toggleViewAction());
     viewMenu->addAction(errorDock->toggleViewAction());
-    viewMenu->addAction(fullScreenAct);
+    viewMenu->addAction(slideShowAct);
     viewMenu->addAction(slideShowAct);
     viewMenu->addAction(viewAnimationsAct);
     if (XL::MAIN->options.enable_stereoscopy)
@@ -1407,6 +1400,15 @@ void Window::clearErrors()
 {
     errorMessages->clear();
     errorDock->hide();
+}
+
+
+void Window::renderToFile()
+// ----------------------------------------------------------------------------
+//    Render current page to image files
+// ----------------------------------------------------------------------------
+{
+    RenderToFileDialog(taoWidget, this).exec();
 }
 
 
@@ -1944,7 +1946,7 @@ void Window::switchToFullScreen(bool fs)
         restoreGeometry(savedState.geometry);
         restoreState(savedState.state);
     }
-    fullScreenAct->setChecked(fs);
+    slideShowAct->setChecked(fs);
 }
 
 

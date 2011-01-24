@@ -38,6 +38,16 @@ FrameInfo::FrameInfo(uint w, uint h)
 }
 
 
+FrameInfo::FrameInfo(const FrameInfo &o)
+// ----------------------------------------------------------------------------
+//   Copy constructor - Don't copy the framebuffers
+// ----------------------------------------------------------------------------
+    : XL::Info(o), w(o.w), h(o.h)
+{
+    resize(w, h);
+}
+
+
 FrameInfo::~FrameInfo()
 // ----------------------------------------------------------------------------
 //   Delete the frame buffer objects and GL tiles

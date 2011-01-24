@@ -140,7 +140,8 @@ HEADERS += widget.h \
     module_renderer.h \
     xl_source_edit.h \
     xl_highlighter.h \
-    layout_cache.h
+    layout_cache.h \
+    render_to_file_dialog.h
 SOURCES += tao_main.cpp \
     widget.cpp \
     window.cpp \
@@ -218,7 +219,8 @@ SOURCES += tao_main.cpp \
     module_renderer.cpp \
     xl_source_edit.cpp \
     xl_highlighter.cpp \
-    layout_cache.cpp
+    layout_cache.cpp \
+    render_to_file_dialog.cpp
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 
@@ -265,7 +267,8 @@ FORMS += pull_from_dialog.ui \
     open_uri_dialog.ui \
     fetch_push_dialog.ui \
     history_frame.ui \
-    diff_dialog.ui
+    diff_dialog.ui \
+    render_to_file_dialog.ui
 
 # Automatic embedding of Git version
 QMAKE_CLEAN += version.h

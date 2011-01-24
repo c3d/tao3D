@@ -42,6 +42,7 @@ struct FrameInfo : XL::Info
     typedef std::map<const QGLContext *, QGLFramebufferObject *> fbo_map;
 
     FrameInfo(uint width = 512, uint height = 512);
+    FrameInfo(const FrameInfo &other);
     ~FrameInfo();
 
     void        resize(uint width, uint height);
@@ -57,6 +58,22 @@ struct FrameInfo : XL::Info
 
 #define render_fbo  render_fbos[QGLContext::currentContext()]
 #define texture_fbo texture_fbos[QGLContext::currentContext()]
+};
+
+
+template<typename Index>
+struct MultiFrameInfo : XL::Info
+// ----------------------------------------------------------------------------
+//   Records a number of frameinfos indexed on some value
+// ----------------------------------------------------------------------------
+{
+    typedef std::map<Index, FrameInfo>        frame_map;
+
+    MultiFrameInfo() {}
+    ~MultiFrameInfo() {}
+
+    FrameInfo &frame(Index what)                { return map[what]; }
+    frame_map   map;
 };
 
 

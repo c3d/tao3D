@@ -659,6 +659,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     XL::LocalSave<double> setFrozenTime(frozenTime, start_time);
     XL::LocalSave<double> saveStartTime(startTime, start_time);
 
+    scale s = qMin((double)w / width(), (double)h / height());
     // Render frames for the whole time range
     int currentFrame = 0, frameCount = (end_time - start_time) * fps;
     for (double t = start_time; t < end_time; t += 1.0/fps)
@@ -669,49 +670,33 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
             break;
         }
 
-        QImage picture(w, h, QImage::Format_RGB888);
-        QPainter painter(&picture);
-        picture.fill(0);
-
         // Center display on screen
-        XL::LocalSave<Point3> saveCenter(cameraTarget, Point3(0,0,0));
-        XL::LocalSave<Point3> saveEye(cameraPosition, defaultCameraPosition);
-        XL::LocalSave<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
-        XL::LocalSave<char> saveStereo1(stereoPlanes, 1);
-        XL::LocalSave<char> saveStereo2(stereoscopic, 1);
-        XL::LocalSave<double> saveZoom(zoom, 1);
-        XL::LocalSave<double> saveScaling(scaling, scalingFactorFromCamera());
-
-        // Set time and run program
-        frozenTime = t;
-        runProgram();
+        GLAllStateKeeper saveGL;
+        XL::LocalSave<double> saveScaling(scaling, scaling * s);
 
         // Show progress information
         emit renderFramesProgress(100*currentFrame++/frameCount);
         QApplication::processEvents();
 
+        // Set time and run program
+        frozenTime = t;
+        runProgram();
+
         // Draw the layout in the frame context
         id = idDepth = 0;
-        frame.begin();
+        Layout::polygonOffset = 0;
         setup(w, h);
+        frame.begin();
+        glClearColor(clearCol.redF(), clearCol.greenF(), clearCol.blueF(), 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         space->Draw(NULL);
         frame.end();
-
-        // Prepare background
-        int r = clearCol.red();
-        int g = clearCol.green();
-        int b = clearCol.blue();
-        picture.fill(r + (g << 8) + (b << 16));
-
-        // Draw rendered scene
-        QImage image(frame.toImage());
-        image = image.convertToFormat(QImage::Format_ARGB32);
-        painter.drawImage(image.rect(), image);
 
         // Save frame to disk
         // Convert to .mov with: ffmpeg -i frame%d.png output.mov
         QString fileName = QString("%1/frame%2.png").arg(dir).arg(currentFrame);
-        picture.save(fileName);
+        QImage image(frame.toImage());
+        image.save(fileName);
     }
 
     emit renderFramesDone();

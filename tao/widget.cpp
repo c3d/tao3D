@@ -637,7 +637,7 @@ void Widget::print(QPrinter *prt)
 
 
 void Widget::renderFrames(int w, int h, double start_time, double end_time,
-                          QString dir, double fps)
+                          QString dir, double fps, int page)
 // ----------------------------------------------------------------------------
 //    Render frames to PNG files
 // ----------------------------------------------------------------------------
@@ -660,6 +660,14 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     XL::LocalSave<double> saveStartTime(startTime, start_time);
 
     scale s = qMin((double)w / width(), (double)h / height());
+
+    // Select page, if not current
+    if (page != -1)
+    {
+        runProgram();
+        gotoPage(NULL, pageNameAtIndex(NULL, page));
+    }
+
     // Render frames for the whole time range
     int currentFrame = 0, frameCount = (end_time - start_time) * fps;
     int percent, prevPercent = 0;
@@ -706,6 +714,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     }
 
     emit renderFramesDone();
+    QApplication::processEvents();
 }
 
 

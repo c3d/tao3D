@@ -44,6 +44,7 @@
 #include "new_document_wizard.h"
 #include "preferences_dialog.h"
 #include "tool_window.h"
+#include "render_to_file_dialog.h"
 
 #include <iostream>
 #include <sstream>
@@ -77,6 +78,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
       repo(NULL), textEdit(NULL), errorMessages(NULL),
       dock(NULL), errorDock(NULL),
       taoWidget(NULL), curFile(), uri(NULL), slideShowMode(false),
+      unifiedTitleAndToolBarOnMac(false), // see #678 below
       fileCheckTimer(this), splashScreen(NULL), aboutSplash(NULL),
       deleteOnOpenFailed(false)
 {
@@ -121,7 +123,6 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Set the window attributes
     setAttribute(Qt::WA_DeleteOnClose);
     readSettings();
-    setUnifiedTitleAndToolBarOnMac(true);
 
     // Set current document
     if (sourceFile.isEmpty())
@@ -242,15 +243,6 @@ void Window::checkFiles()
                 loadFile(+prog->name);
         }
     }
-}
-
-
-void Window::toggleFullScreen()
-// ----------------------------------------------------------------------------
-//   Toggle between full-screen and normal mode
-// ----------------------------------------------------------------------------
-{
-    switchToFullScreen(!isFullScreen());
 }
 
 
@@ -984,6 +976,11 @@ void Window::createActions()
     consolidateAct->setObjectName("consolidate");
     connect(consolidateAct, SIGNAL(triggered()), this, SLOT(consolidate()));
 
+    renderToFileAct = new QAction(tr("Render to files..."), this);
+    renderToFileAct->setStatusTip(tr("Save frames to disk, e.g., to make a video"));
+    renderToFileAct->setObjectName("renderToFile");
+    connect(renderToFileAct, SIGNAL(triggered()), this, SLOT(renderToFile()));
+
     saveAsAct = new QAction(tr("Save &As..."), this);
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
     saveAsAct->setStatusTip(tr("Save the document under a new name"));
@@ -1127,14 +1124,8 @@ void Window::createActions()
     preferencesAct->setObjectName("preferences");
     connect(preferencesAct, SIGNAL(triggered()), this, SLOT(preferences()));
 
-    fullScreenAct = new QAction(tr("Full Screen"), this);
-    fullScreenAct->setStatusTip(tr("Toggle full screen mode"));
-    fullScreenAct->setCheckable(true);
-    fullScreenAct->setObjectName("fullScreen");
-    connect(fullScreenAct, SIGNAL(triggered()), this, SLOT(toggleFullScreen()));
-
-    slideShowAct = new QAction(tr("Slide show"), this);
-    slideShowAct->setStatusTip(tr("Toggle slide show mode"));
+    slideShowAct = new QAction(tr("Full Screen"), this);
+    slideShowAct->setStatusTip(tr("Toggle full screen mode"));
     slideShowAct->setCheckable(true);
     slideShowAct->setObjectName("slideShow");
     connect(slideShowAct, SIGNAL(triggered()), this, SLOT(toggleSlideShow()));
@@ -1205,6 +1196,8 @@ void Window::createMenus()
     fileMenu->addAction(saveFontsAct);
     fileMenu->addAction(consolidateAct);
     fileMenu->addSeparator();
+    fileMenu->addAction(renderToFileAct);
+    fileMenu->addSeparator();
     fileMenu->addAction(pageSetupAct);
     fileMenu->addAction(printAct);
     fileMenu->addSeparator();
@@ -1240,7 +1233,7 @@ void Window::createMenus()
     viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(dock->toggleViewAction());
     viewMenu->addAction(errorDock->toggleViewAction());
-    viewMenu->addAction(fullScreenAct);
+    viewMenu->addAction(slideShowAct);
     viewMenu->addAction(slideShowAct);
     viewMenu->addAction(viewAnimationsAct);
     if (XL::MAIN->options.enable_stereoscopy)
@@ -1261,12 +1254,15 @@ void Window::createToolBars()
 //   Create the application tool bars
 // ----------------------------------------------------------------------------
 {
+    setUnifiedTitleAndToolBarOnMac(unifiedTitleAndToolBarOnMac);
+
     QMenu *view = findChild<QMenu*>(VIEW_MENU_NAME);
     fileToolBar = addToolBar(tr("File"));
     fileToolBar->setObjectName("fileToolBar");
     fileToolBar->addAction(newAct);
     fileToolBar->addAction(openAct);
     fileToolBar->addAction(saveAct);
+    fileToolBar->hide();
     if (view)
         view->addAction(fileToolBar->toggleViewAction());
 
@@ -1275,6 +1271,7 @@ void Window::createToolBars()
     editToolBar->addAction(cutAct);
     editToolBar->addAction(copyAct);
     editToolBar->addAction(pasteAct);
+    editToolBar->hide();
     if (view)
         view->addAction(editToolBar->toggleViewAction());
 
@@ -1282,6 +1279,7 @@ void Window::createToolBars()
     viewToolBar->setObjectName("viewToolBar");
     viewToolBar->addAction(handCursorAct);
     viewToolBar->addAction(resetViewAct);
+    viewToolBar->hide();
     if (view)
         view->addAction(viewToolBar->toggleViewAction());
 
@@ -1296,6 +1294,7 @@ void Window::createToolBars()
     connect(this, SIGNAL(projectUrlChanged(QString)),
             gitToolBar, SLOT(showProjectUrl(QString)));
     addToolBar(gitToolBar);
+    gitToolBar->hide();
     if (view)
         view->addAction(gitToolBar->toggleViewAction());
 }
@@ -1322,16 +1321,23 @@ void Window::readSettings()
 //   Load the settings from persistent user preference
 // ----------------------------------------------------------------------------
 {
-    // By default, the application's main window is centered and proportional
-    // to the screen size, p being the scaling factor
-    const float p = 0.7;
-    QRect avail = TaoApp->desktop()->availableGeometry(this);
-    int w = avail.width(), h = avail.height();
     QSettings settings;
-    QPoint pos = settings.value("pos", QPoint((w*(1-p))/2, (h*(1-p))/2)).toPoint();
-    QSize size = settings.value("size", QSize(w*p, h*p)).toSize();
-    move(pos);
-    resize(size);
+    if (!restoreGeometry(settings.value("geometry").toByteArray()))
+    {
+        // By default, the application's main window is centered and proportional
+        // to the screen size, p being the scaling factor
+        const float p = 0.7;
+        QRect avail = TaoApp->desktop()->availableGeometry(this);
+        int w = avail.width(), h = avail.height();
+        QPoint pos((w*(1-p))/2, (h*(1-p))/2);
+        QSize size(w*p, h*p);
+        move(pos);
+        resize(size);
+    }
+    // #678 - BUG:
+    // On MacOSX, the following does NOT restore the toolbar state if
+    // setUnifiedTitleAndToolBarOnMac(true) (QTBUG?).
+    restoreState(settings.value("windowState").toByteArray());
 }
 
 
@@ -1341,8 +1347,8 @@ void Window::writeSettings()
 // ----------------------------------------------------------------------------
 {
     QSettings settings;
-    settings.setValue("pos", pos());
-    settings.setValue("size", size());
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("windowState", saveState());
 }
 
 
@@ -1434,6 +1440,15 @@ void Window::setReadOnly(bool ro)
     pushAct->setEnabled(!ro);
     mergeAct->setEnabled(!ro);
     selectiveUndoAct->setEnabled(!ro);
+}
+
+
+void Window::renderToFile()
+// ----------------------------------------------------------------------------
+//    Render current page to image files
+// ----------------------------------------------------------------------------
+{
+    RenderToFileDialog(taoWidget, this).exec();
 }
 
 
@@ -1891,7 +1906,8 @@ void Window::switchToFullScreen(bool fs)
 
     if (fs)
     {
-        setUnifiedTitleAndToolBarOnMac(false);
+        if (unifiedTitleAndToolBarOnMac)
+            setUnifiedTitleAndToolBarOnMac(false);
 
         // Save state of main window and dock widgets that were added by
         // addDockWidget(). Toolbars should normally be saved, too, but see
@@ -1947,7 +1963,8 @@ void Window::switchToFullScreen(bool fs)
         showNormal();
         menuBar()->show();
         statusBar()->show();
-        setUnifiedTitleAndToolBarOnMac(true);
+        if (unifiedTitleAndToolBarOnMac)
+            setUnifiedTitleAndToolBarOnMac(true);
 
         // Restore toolbars
         foreach (QToolBar *t, savedState.visibleToolBars)
@@ -1967,7 +1984,7 @@ void Window::switchToFullScreen(bool fs)
         restoreGeometry(savedState.geometry);
         restoreState(savedState.state);
     }
-    fullScreenAct->setChecked(fs);
+    slideShowAct->setChecked(fs);
 }
 
 

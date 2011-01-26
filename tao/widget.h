@@ -124,11 +124,16 @@ public slots:
     void        hideCursor();
     void        resetView();
     void        saveAndCommit();
+    void        renderFrames(int w, int h, double startT, double endT,
+                             QString dir, double fps = 25.0);
+    void        cancelRenderFrames() { renderFramesCanceled = true; }
 
 
 signals:
     // Signals
     void        copyAvailable(bool yes = true);
+    void        renderFramesProgress(int percent);
+    void        renderFramesDone();
 
 public:
     // OpenGL and drawing
@@ -762,6 +767,7 @@ private:
     int                   panX, panY;
     bool                  dragging;
     bool                  bAutoHideCursor;
+    bool                  renderFramesCanceled;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:

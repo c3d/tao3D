@@ -46,11 +46,9 @@ wheel_event x, y                        ->
 // Chooser
 main_chooser ->
     chooser "Choose command"
-    chooser_choice "Toggle full screen", {toggle_full_screen}
-    chooser_choice "Enter full screen", {full_screen true}
-    chooser_choice "Exit full screen", {full_screen false}
-    chooser_choice "Enter slide show", {slide_show true}
-    chooser_choice "Exit slide show", {slide_show false}
+    chooser_choice "Toggle full screen", {toggle_slide_show}
+    chooser_choice "Enter full screen", {slide_show true}
+    chooser_choice "Exit full screen", {slide_show false}
     chooser_choice "Enable stereoscopy", {enable_stereoscopy true}
     chooser_choice "Disable stereoscopy", {enable_stereoscopy false}
     chooser_choice "Swap left and right eye", {eye_distance -eye_distance}

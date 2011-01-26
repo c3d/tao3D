@@ -160,7 +160,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false),
-      inDraw(false)
+      inDraw(false), renderFramesCanceled(false)
 {
     setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap
@@ -635,6 +635,73 @@ void Widget::print(QPrinter *prt)
 
     // Finish the job
     painter.end();
+}
+
+
+void Widget::renderFrames(int w, int h, double start_time, double end_time,
+                          QString dir, double fps)
+// ----------------------------------------------------------------------------
+//    Render frames to PNG files
+// ----------------------------------------------------------------------------
+{
+    // Create output directory if needed
+    if (!QFileInfo(dir).exists())
+        QDir().mkdir(dir);
+    if (!QFileInfo(dir).isDir())
+        return;
+
+    TaoSave saveCurrent(current, this);
+
+    // Create a GL frame to render into
+    FrameInfo frame(w, h);
+
+    // Set the initial time we want to set and freeze animations
+    XL::LocalSave<bool> disableAnimations(animated, false);
+    XL::LocalSave<double> setPageTime(pageStartTime, start_time);
+    XL::LocalSave<double> setFrozenTime(frozenTime, start_time);
+    XL::LocalSave<double> saveStartTime(startTime, start_time);
+
+    scale s = qMin((double)w / width(), (double)h / height());
+    // Render frames for the whole time range
+    int currentFrame = 0, frameCount = (end_time - start_time) * fps;
+    for (double t = start_time; t < end_time; t += 1.0/fps)
+    {
+        if (renderFramesCanceled)
+        {
+            renderFramesCanceled = false;
+            break;
+        }
+
+        // Center display on screen
+        GLAllStateKeeper saveGL;
+        XL::LocalSave<double> saveScaling(scaling, scaling * s);
+
+        // Show progress information
+        emit renderFramesProgress(100*currentFrame++/frameCount);
+        QApplication::processEvents();
+
+        // Set time and run program
+        frozenTime = t;
+        runProgram();
+
+        // Draw the layout in the frame context
+        id = idDepth = 0;
+        Layout::polygonOffset = 0;
+        setup(w, h);
+        frame.begin();
+        glClearColor(clearCol.redF(), clearCol.greenF(), clearCol.blueF(), 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        space->Draw(NULL);
+        frame.end();
+
+        // Save frame to disk
+        // Convert to .mov with: ffmpeg -i frame%d.png output.mov
+        QString fileName = QString("%1/frame%2.png").arg(dir).arg(currentFrame);
+        QImage image(frame.toImage());
+        image.save(fileName);
+    }
+
+    emit renderFramesDone();
 }
 
 
@@ -3359,6 +3426,7 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
 //   Directly go to the given page
 // ----------------------------------------------------------------------------
 {
+    lastMouseButtons = 0;
     text old = pageName;
     pageName = page;
     refresh();

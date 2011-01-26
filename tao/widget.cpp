@@ -662,6 +662,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     scale s = qMin((double)w / width(), (double)h / height());
     // Render frames for the whole time range
     int currentFrame = 0, frameCount = (end_time - start_time) * fps;
+    int percent, prevPercent = 0;
     for (double t = start_time; t < end_time; t += 1.0/fps)
     {
         if (renderFramesCanceled)
@@ -675,8 +676,13 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         XL::LocalSave<double> saveScaling(scaling, scaling * s);
 
         // Show progress information
-        emit renderFramesProgress(100*currentFrame++/frameCount);
-        QApplication::processEvents();
+        percent = 100*currentFrame++/frameCount;
+        if (percent != prevPercent)
+        {
+            prevPercent = percent;
+            emit renderFramesProgress(percent);
+            QApplication::processEvents();
+        }
 
         // Set time and run program
         frozenTime = t;

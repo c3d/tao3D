@@ -63,11 +63,15 @@ void XLHighlighter::setXLNames(const QStringList &words)
 //    Set the words to highlight as XL names
 // ----------------------------------------------------------------------------
 {
-    QString exp;
     if (words.isEmpty())
-        exp = QString("");
-    else
-        exp = QString("\\b(%1)\\b").arg(words.join("|"));
+    {
+        nameRule.pattern = QRegExp("");
+        return;
+    }
+    QStringList w(words);
+    w.replaceInStrings("*", "\\*");
+    w.replaceInStrings("+", "\\+");
+    QString exp = QString("\\b(%1)\\b").arg(words.join("|"));
     nameRule.pattern = QRegExp(exp);
 }
 

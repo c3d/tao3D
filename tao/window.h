@@ -243,6 +243,12 @@ private:
       QByteArray         state;
       QList<QToolBar *>  visibleToolBars;
       QMap<ToolWindow *, QByteArray> visibleTools;
+
+      void clear()
+      {
+          geometry.clear(); state.clear(); visibleToolBars.clear();
+          visibleTools.clear();
+      }
     }                 savedState;
 
 public:

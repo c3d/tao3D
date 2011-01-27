@@ -92,7 +92,8 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     QVBoxLayout *layout = new QVBoxLayout();
     layout->addWidget(srcEdit);
     src->setLayout(layout);
-    src->hide();
+    src->resize(490, 360); // Default size (overriden by saved settings)
+    src->setVisible(src->createVisible());
     connect(src, SIGNAL(visibilityChanged(bool)),
             this, SLOT(sourceViewBecameVisible(bool)));
 
@@ -103,7 +104,6 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     errorMessages = new QTextEdit(errorDock);
     errorMessages->setReadOnly(true);
     errorDock->setWidget(errorMessages);
-    errorDock->hide();
     addDockWidget(Qt::BottomDockWidgetArea, errorDock);
 
     // Create the main widget for displaying Tao stuff
@@ -125,6 +125,8 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Set the window attributes
     setAttribute(Qt::WA_DeleteOnClose);
     readSettings();
+    // Don't restore error dock
+    errorDock->hide();
 
     // Set current document
     if (sourceFile.isEmpty())
@@ -1511,7 +1513,6 @@ bool Window::switchToSlideShow(bool ss)
     bool oldMode = slideShowMode;
     switchToFullScreen(ss);
     setWindowAlwaysOnTop(ss);
-    showSourceView(!ss);
     taoWidget->autoHideCursor(NULL, ss);
     TaoApp->blockScreenSaver(ss);
     slideShowAct->setChecked(ss);
@@ -1870,6 +1871,8 @@ void Window::switchToFullScreen(bool fs)
     {
         if (unifiedTitleAndToolBarOnMac)
             setUnifiedTitleAndToolBarOnMac(false);
+
+        savedState.clear();
 
         // Save state of main window and dock widgets that were added by
         // addDockWidget(). Toolbars should normally be saved, too, but see

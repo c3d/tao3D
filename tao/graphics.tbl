@@ -586,6 +586,11 @@ PREFIX(ClearColor,  tree,  "clear_color",
        GROUP()
        SYNOPSIS("Set the background color")
        DESCRIPTION("Set the background color"))
+PREFIX(MotionBlur, tree, "motion_blur",
+       PARM(f, real, "Amount of blur, between 0 and 1"),
+       RTAO(motionBlur(self, f)),
+       GROUP(page)
+       SYNOPSIS("Set the motion blur factor"))       
 PREFIX(LineColorName,  tree,  "line_color",
        PARM(n, text, "The name of the color, which can be one of the SVG color keywork names, or in one of these formats: #RGB or #RRGGBB  (each of R, G, and B being a single hex digit).")
        PARM(a, real, "The red component of an color, is in the range 0.0 to 1.0."),

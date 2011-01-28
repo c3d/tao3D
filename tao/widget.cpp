@@ -113,6 +113,7 @@ static inline QGLFormat TaoGLFormat()
          QGL::StencilBuffer     |
          QGL::SampleBuffers     |
          QGL::AlphaChannel      |
+         QGL::AccumBuffer       |
          QGL::StereoBuffers);
     QGLFormat format(options);
     return format;
@@ -129,7 +130,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       symbolTableRoot(new XL::Name("formula_symbol_table")),
       inError(false), mustUpdateDialogs(false), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), path(NULL), table(NULL),
-      pageW(21), pageH(29.7),
+      pageW(21), pageH(29.7), blurFactor(0.0),
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
       pageTree(NULL),
@@ -429,6 +430,17 @@ void Widget::draw()
         selectionSpace.Draw(NULL);
         glEnable(GL_DEPTH_TEST);
     }
+
+
+    // Motion blur
+    if (blurFactor > 0.0 && (stereoPlanes == 1 || stereoMode != stereoHARDWARE))
+    {
+        glAccum(GL_MULT, blurFactor);
+        glAccum(GL_ACCUM, 1.0 - blurFactor);
+        glAccum(GL_RETURN, 1.0);
+    }
+
+
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -1286,6 +1298,9 @@ void Widget::resizeGL(int width, int height)
 
     if (stereoMode > stereoHARDWARE)
         setupStereoStencil(width, height);
+
+    glClearAccum(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_ACCUM_BUFFER_BIT);
 }
 
 
@@ -4337,6 +4352,17 @@ Tree_p Widget::clearColor(Tree_p self, double r, double g, double b, double a)
     CHECK_0_1_RANGE(a);
 
     clearCol.setRgbF(r, g, b, a);
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::motionBlur(Tree_p self, double f)
+// ----------------------------------------------------------------------------
+//    Set the RGB clear (background) color
+// ----------------------------------------------------------------------------
+{
+    CHECK_0_1_RANGE(f);
+    blurFactor = f;
     return XL::xl_true;
 }
 

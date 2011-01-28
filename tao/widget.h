@@ -350,6 +350,7 @@ public:
 
     // Graphic attributes
     Tree_p      clearColor(Tree_p self, double r, double g, double b, double a);
+    Tree_p      motionBlur(Tree_p self, double f);
     Tree_p      lineColorName(Tree_p self, text name, double a);
     Tree_p      lineColorRgb(Tree_p self, double r, double g, double b, double a);
     Tree_p      lineColorHsl(Tree_p self, double h, double s, double l, double a);
@@ -694,7 +695,7 @@ private:
     Layout *              layout;
     GraphicPath *         path;
     Table *               table;
-    scale                 pageW, pageH;
+    scale                 pageW, pageH, blurFactor;
     text                  flowName;
     flow_map              flows;
     text                  pageName, lastPageName;

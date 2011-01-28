@@ -219,6 +219,8 @@ void Application::cleanup()
 //   Perform last-minute cleanup before application exit
 // ----------------------------------------------------------------------------
 {
+    // Closing windows will save windows settings (geometry)
+    closeAllWindows();
     saveSettings();
     if (screenSaverBlocked)
         blockScreenSaver(false);

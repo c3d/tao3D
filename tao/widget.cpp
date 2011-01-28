@@ -159,7 +159,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       zoom(1.0), eyeDistance(10.0),
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
-      dragging(false), bAutoHideCursor(false),
+      dragging(false), bAutoHideCursor(false), bShowStatistics(true),
       renderFramesCanceled(false)
 {
     setObjectName(QString("Widget"));
@@ -444,7 +444,7 @@ void Widget::draw()
     timer.start(1000 * remaining);
 
     // Timing
-    elapsed(before, after);
+    elapsed(before, after, bShowStatistics, bShowStatistics);
 
     // Update page count for next run
     pageTotal = pageId ? pageId : 1;
@@ -3955,6 +3955,31 @@ XL::Name_p Widget::autoHideCursor(XL::Tree_p self, bool ah)
     if (ah)
         QTimer::singleShot(2000, this, SLOT(hideCursor()));
     return oldAutoHide ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::showStatistics(Tree_p self, bool ss)
+// ----------------------------------------------------------------------------
+//   Display or hide performance statistics (frames per second)
+// ----------------------------------------------------------------------------
+{
+    bool prev = bShowStatistics;
+    bShowStatistics = ss;
+    if (!ss)
+    {
+        Window *window = (Window *) parentWidget();
+        window->statusBar()->clearMessage();
+    }
+    return prev ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::toggleShowStatistics(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Toggle display of statistics
+// ----------------------------------------------------------------------------
+{
+    return showStatistics(self, !bShowStatistics);
 }
 
 

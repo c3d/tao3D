@@ -422,6 +422,15 @@ PREFIX(ToggleSlideShow, boolean, "toggle_slide_show", ,
        RTAO(toggleSlideShow(self)),
        GROUP(gui)
        SYNOPSIS("Toggle slide-show mode"))
+PREFIX(ShowStatistics, boolean, "show_statistics",
+       PARM(flag, boolean, "Flag controlling display of rendering statistics (fps)"),
+       RTAO(showStatistics(self, flag)),
+       GROUP(gui)
+       SYNOPSIS("Control the display of rendering statistics"))
+PREFIX(ToggleShowStatistics, boolean, "toggle_show_statistics", ,
+       RTAO(toggleShowStatistics(self)),
+       GROUP(gui)
+       SYNOPSIS("Toggle display of rendering statistics"))
 PREFIX(ResetView, boolean, "reset_view", ,
        RTAO(resetView(self)),
        GROUP(gui)

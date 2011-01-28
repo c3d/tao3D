@@ -322,6 +322,8 @@ public:
     Name_p      toggleHandCursor(Tree_p self);
     Name_p      autoHideCursor(XL::Tree_p self, bool autoHide);
     Name_p      toggleAutoHideCursor(XL::Tree_p self);
+    Name_p      showStatistics(Tree_p self, bool ss);
+    Name_p      toggleShowStatistics(Tree_p self);
     Name_p      resetView(Tree_p self);
     Name_p      panView(Tree_p self, coord dx, coord dy);
     Real_p      currentZoom(Tree_p self);
@@ -767,6 +769,7 @@ private:
     int                   panX, panY;
     bool                  dragging;
     bool                  bAutoHideCursor;
+    bool                  bShowStatistics;
     bool                  renderFramesCanceled;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;

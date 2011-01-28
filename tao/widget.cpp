@@ -7555,6 +7555,9 @@ Tree_p Widget::closeCurrentDocument(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     Window *window = (Window *) current->parentWidget();
+    // Make sure we are not full screen, because closing window saves the
+    // current geometry
+    window->switchToFullScreen(false);
     if (window->close())
         return XL::xl_true;
     return XL::xl_false;

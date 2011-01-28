@@ -227,6 +227,8 @@ Widget::Widget(Window *parent, SourceFile *sf)
 
     // Compute initial zoom
     scaling = scalingFactorFromCamera();
+
+    enableVSync(NULL, true);
 }
 
 
@@ -4760,7 +4762,7 @@ XL::Name_p Widget::enableVSync(Tree_p self, bool enable)
     CGLSetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &swapInterval);
     return old ? XL::xl_true : XL::xl_false;
 #else
-    Ooops("Command not supported: $1", self);
+    // Command not supported, but do it silently
     return XL::xl_false;
 #endif
 }

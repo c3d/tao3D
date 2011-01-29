@@ -141,6 +141,7 @@ struct Vector3 : Point3
 
     Vector3& Normalize()
     {
+        // REVISIT: /!\ Div by zero
         *this /= Length();
         return *this;
     }

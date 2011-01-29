@@ -767,13 +767,69 @@ void GraphicPath::Draw(const Vector3 &offset, GLenum mode, GLenum tesselation)
                     // If no tesselation is required, draw directly
                     double *vdata = &data[0].vertex.x;
                     double *tdata = &data[0].texture.x;
+                    double *ndata = &data[0].normal.x;
+                    for (uint i = 0, n = 0; i < size && n < size; )
+                    {
+                        uint i1 = 0, i2 = 0;
+                        Point3 p0, p1, p2;
+                        Vector3 v1, v2, vn;
+
+                        p0 = data[i].vertex;
+                        do {
+                            ++i1;
+                            p1 = data[(i + i1) % size].vertex;
+                        }
+                        while (p0 == p1 && i1 < size);
+                        v1 = p1 - p0;
+
+                        do {
+                            ++i2;
+                            p2 = data[(i + i1 + i2) % size].vertex;
+                        }
+                        while (p1 == p2 && (i1 + i2) < size);
+                        v2 = p2 - p1;
+
+                        IFTRACE(paths)
+                        {
+                            std::cerr << "P0 #" << i << " = x:" << p0.x << ", y:" << p0.y << ", z:" << p0.z << std::endl;
+                            std::cerr << "P1 #" << (i+i1)%size << " = x:" << p1.x << ", y:" << p1.y << ", z:" << p1.z << std::endl;
+                            std::cerr << "P2 #" << (i+i1+i2)%size << " = x:" << p2.x << ", y:" << p2.y << ", z:" << p2.z << std::endl;
+                            std::cerr << "V1 (P1 - P0) = x:" << v1.x << ", y:" << v1.y << ", z:" << v1.z << std::endl;
+                            std::cerr << "V2 (P2 - P1) = x:" << v2.x << ", y:" << v2.y << ", z:" << v2.z << std::endl;
+                        }
+
+                        if ((i1 + i2) < size)
+                        {
+                            vn = v1.Cross(v2);
+                            if (vn.Length() > 0)
+                            {
+                                vn.Normalize();
+                            }
+                            for (uint j = (i + i1); j < (i + i1 + i2); j++)
+                            {
+                                ++n;
+                                data[j%size].normal = vn;
+
+                                IFTRACE(paths)
+                                    std::cerr << "Normal #" << j%size << " = x:" << vn.x << ", y:" << vn.y << ", z:" << vn.z << std::endl;
+                            }
+                        }
+
+                        i += i1;
+                    }
+                    IFTRACE(paths)
+                        std::cerr << std::endl;
+
                     glVertexPointer(3,GL_DOUBLE,sizeof(VertexData), vdata);
                     glTexCoordPointer(3,GL_DOUBLE,sizeof(VertexData), tdata);
+                    glNormalPointer(GL_DOUBLE, sizeof(VertexData), ndata);
                     glEnableClientState(GL_VERTEX_ARRAY);
                     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                    glEnableClientState(GL_NORMAL_ARRAY);
                     glDrawArrays(mode, 0, size);
                     glDisableClientState(GL_VERTEX_ARRAY);
                     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                    glDisableClientState(GL_NORMAL_ARRAY);
                 }
 
                 data.clear();

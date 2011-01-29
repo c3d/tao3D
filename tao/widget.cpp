@@ -4786,8 +4786,12 @@ Tree_p Widget::shaderFromFile(Tree_p self, ShaderKind kind, text file)
         return XL::xl_false;
     }
 
+    QString savePath = QDir::currentPath();
+    Window *window = (Window *) parentWidget();
+    QDir::setCurrent(window->currentProjectFolderPath());
     bool ok = currentShaderProgram->addShaderFromSourceFile(ShaderType(kind),
                                                             +file);
+    QDir::setCurrent(savePath);
     return ok ? XL::xl_true : XL::xl_false;
 }
 

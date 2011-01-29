@@ -131,7 +131,7 @@ public slots:
     void        resetView();
     void        saveAndCommit();
     void        renderFrames(int w, int h, double startT, double endT,
-                             QString dir, double fps = 25.0);
+                             QString dir, double fps = 25.0, int page = -1);
     void        cancelRenderFrames() { renderFramesCanceled = true; }
 
 

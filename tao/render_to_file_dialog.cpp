@@ -127,7 +127,7 @@ void RenderToFileDialog::accept()
             this, SLOT(done()));
 
     rendering = true;
-    widget->renderFrames(x, y, start, end, folder);
+    widget->renderFrames(x, y, start, end, folder, fps);
 }
 
 

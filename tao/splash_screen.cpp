@@ -88,23 +88,22 @@ bool SplashScreen::event(QEvent *event)
     // anywhere else to dismiss it (it is closed on MB up).
     switch (event->type())
     {
-    case QEvent::MouseButtonPress:
-        mbPressed = true;
+    case QEvent::MouseButtonRelease:
+        hide();
+        emit dismissed();
+        return true;
         break;
 
-    case QEvent::MouseButtonRelease:
     case QEvent::Paint:
-        if (mbPressed)
+        // NB: we get no MouseButtonRelease event when URL is clicked, but we
+        // get a Paint event
+        if (urlClicked)
         {
-            if (!urlClicked)
-            {
-                hide();
-                emit dismissed();
-                return true;
-            }
+            hide();
+            emit dismissed();
             urlClicked = false;
+            return true;
         }
-        mbPressed = false;
         break;
 
     default:

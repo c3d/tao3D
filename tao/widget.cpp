@@ -824,7 +824,7 @@ void Widget::print(QPrinter *prt)
 
 
 void Widget::renderFrames(int w, int h, double start_time, double end_time,
-                          QString dir, double fps)
+                          QString dir, double fps, int page)
 // ----------------------------------------------------------------------------
 //    Render frames to PNG files
 // ----------------------------------------------------------------------------
@@ -846,8 +846,18 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     XL::Save<double> setFrozenTime(frozenTime, start_time);
     XL::Save<double> saveStartTime(startTime, start_time);
 
+    scale s = qMin((double)w / width(), (double)h / height());
+
+    // Select page, if not current
+    if (page != -1)
+    {
+        runProgram();
+        gotoPage(NULL, pageNameAtIndex(NULL, page));
+    }
+
     // Render frames for the whole time range
     int currentFrame = 0, frameCount = (end_time - start_time) * fps;
+    int percent, prevPercent = 0;
     for (double t = start_time; t < end_time; t += 1.0/fps)
     {
         if (renderFramesCanceled)
@@ -856,53 +866,42 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
             break;
         }
 
-        QImage picture(w, h, QImage::Format_RGB888);
-        QPainter painter(&picture);
-        picture.fill(0);
+        GLAllStateKeeper saveGL;
+        XL::Save<double> saveScaling(scaling, scaling * s);
 
-        // Center display on screen
-        XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
-        XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
-        XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
-        XL::Save<char> saveStereo1(stereoPlanes, 1);
-        XL::Save<char> saveStereo2(stereoscopic, 1);
-        XL::Save<double> saveZoom(zoom, 1);
-        XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
+        // Show progress information
+        percent = 100*currentFrame++/frameCount;
+        if (percent != prevPercent)
+        {
+            prevPercent = percent;
+            emit renderFramesProgress(percent);
+            QApplication::processEvents();
+        }
 
         // Set time and run program
         // REVISIT: use refreshNow() to avoid full program execution?
         frozenTime = t;
         runProgram();
 
-        // Show progress information
-        emit renderFramesProgress(100*currentFrame++/frameCount);
-        QApplication::processEvents();
-
         // Draw the layout in the frame context
         id = idDepth = 0;
-        frame.begin();
+        Layout::polygonOffset = 0;
         setup(w, h);
+        frame.begin();
+        glClearColor(clearCol.redF(), clearCol.greenF(), clearCol.blueF(), 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         space->Draw(NULL);
         frame.end();
-
-        // Prepare background
-        int r = clearCol.red();
-        int g = clearCol.green();
-        int b = clearCol.blue();
-        picture.fill(r + (g << 8) + (b << 16));
-
-        // Draw rendered scene
-        QImage image(frame.toImage());
-        image = image.convertToFormat(QImage::Format_ARGB32);
-        painter.drawImage(image.rect(), image);
 
         // Save frame to disk
         // Convert to .mov with: ffmpeg -i frame%d.png output.mov
         QString fileName = QString("%1/frame%2.png").arg(dir).arg(currentFrame);
-        picture.save(fileName);
+        QImage image(frame.toImage());
+        image.save(fileName);
     }
 
     emit renderFramesDone();
+    QApplication::processEvents();
 }
 
 
@@ -7956,6 +7955,9 @@ Tree_p Widget::closeCurrentDocument(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     Window *window = (Window *) current->parentWidget();
+    // Make sure we are not full screen, because closing window saves the
+    // current geometry
+    window->switchToFullScreen(false);
     if (window->close())
         return XL::xl_true;
     return XL::xl_false;

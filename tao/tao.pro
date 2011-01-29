@@ -141,7 +141,8 @@ HEADERS += widget.h \
     xl_source_edit.h \
     xl_highlighter.h \
     layout_cache.h \
-    render_to_file_dialog.h
+    render_to_file_dialog.h \
+    raster_text.h
 SOURCES += tao_main.cpp \
     widget.cpp \
     window.cpp \
@@ -220,7 +221,8 @@ SOURCES += tao_main.cpp \
     xl_source_edit.cpp \
     xl_highlighter.cpp \
     layout_cache.cpp \
-    render_to_file_dialog.cpp
+    render_to_file_dialog.cpp \
+    raster_text.cpp
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 

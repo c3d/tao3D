@@ -72,6 +72,7 @@
 #include "tool_window.h"
 #include "context.h"
 #include "tree-walk.h"
+#include "raster_text.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -154,7 +155,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       timer(), dfltRefresh(0.04), idleTimer(this),
       pageStartTime(DBL_MAX), frozenTime(DBL_MAX), startTime(DBL_MAX),
       currentTime(DBL_MAX),
-      tmin(~0ULL), tmax(0), tsum(0), tcount(0),
+      stats_interval(5000),
       nextSave(now()), nextCommit(nextSave),
       nextSync(nextSave), nextPull(nextSave),
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
@@ -163,7 +164,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       zoom(1.0), eyeDistance(10.0),
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
-      dragging(false), bAutoHideCursor(false),
+      dragging(false), bAutoHideCursor(false), bShowStatistics(false),
       renderFramesCanceled(false)
 {
     setObjectName(QString("Widget"));
@@ -413,6 +414,11 @@ void Widget::draw()
             std::cerr << "Draw, count = " << space->count
                       << " buffer " << (int) stereoscopic << '\n';
 
+
+        // Show FPS as text overlay
+        if (bShowStatistics)
+            printStatistics();
+
         id = idDepth = 0;
         selectionTrees.clear();
         space->offset.Set(0,0,0);
@@ -427,6 +433,10 @@ void Widget::draw()
         selectionSpace.Draw(NULL);
         glEnable(GL_DEPTH_TEST);
     }
+
+    // One more complete view rendered
+    if (bShowStatistics)
+        updateStatistics();
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -482,7 +492,6 @@ bool Widget::refreshNow(QEvent *event)
         return false;
 
     bool changed = false;
-    ulonglong before = now();
 
     if (!event || space->refreshEvents.count(event->type()))
     {
@@ -533,9 +542,6 @@ bool Widget::refreshNow(QEvent *event)
     // Redraw all
     TaoSave saveCurrent(current, NULL); // draw() assumes current == NULL
     updateGL();
-
-    ulonglong after = now();
-    elapsed(before, after);
 
     if (changed)
         processProgramEvents();
@@ -1474,9 +1480,8 @@ void Widget::resizeGL(int width, int height)
 // ----------------------------------------------------------------------------
 {
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
-    tmax = tsum = tcount = 0;
-    tmin = ~tmax;
-
+    stats.clear();
+    stats_start.start();
     if (stereoMode > stereoHARDWARE)
         setupStereoStencil(width, height);
 
@@ -3243,39 +3248,35 @@ ulonglong Widget::now()
 }
 
 
-ulonglong Widget::elapsed(ulonglong since, ulonglong until,
-                          bool stats, bool show)
+void Widget::printStatistics()
 // ----------------------------------------------------------------------------
-//    Record how much time passed since last measurement
+//    Print current rendering statistics
 // ----------------------------------------------------------------------------
 {
-    ulonglong t = until - since;
-    if (t == 0)
-        t = 1; // Because Windows lies
-
-    if (stats)
+    char fps[6] = "---.-";
+    int elapsed = stats_start.elapsed();
+    if (elapsed >= stats_interval)
     {
-        if (tmin > t) tmin = t;
-        if (tmax < t) tmax = t;
-        tsum += t;
-        tcount++;
+        double n = (double)stats.size() * 1000 / stats_interval;
+        snprintf(fps, sizeof(fps), "%5.1f", n);
     }
+    GLint vp[4], vx, vy, vw, vh;
+    glGetIntegerv(GL_VIEWPORT, vp);
+    vx = vp[0]; vy = vp[1]; vw = vp[2]; vh = vp[3];
+    RasterText::moveTo(vx + 20, vy + vh - 20 - 10);
+    RasterText::printf("%dx%dx%d  %s fps", vw, vh, stereoPlanes, fps);
+}
 
-    if (show && (tcount & 15) == 0)
-    {
-        char buffer[80];
-        snprintf(buffer, sizeof(buffer),
-                 "Duration=" CONFIG_UHUGE_FORMAT "-" CONFIG_UHUGE_FORMAT
-                 " (~%f) %5.2f-%5.2f FPS (~%5.2f)",
-                 tmin, tmax, double(tsum )/ tcount,
-                 (100000000ULL / tmax)*0.01,
-                 (100000000ULL / tmin)*0.01,
-                 (100000000ULL * tcount / tsum) * 0.01);
-        Window *window = (Window *) parentWidget();
-        window->statusBar()->showMessage(QString(buffer));
-    }
 
-    return t;
+void Widget::updateStatistics()
+// ----------------------------------------------------------------------------
+//    Update statistics when a frame has been drawn
+// ----------------------------------------------------------------------------
+{
+    int now = stats_start.elapsed();
+    stats.push_back(now);
+    while (now - stats.front() > stats_interval)
+        stats.pop_front();
 }
 
 
@@ -4380,6 +4381,28 @@ XL::Name_p Widget::autoHideCursor(XL::Tree_p self, bool ah)
     if (ah)
         QTimer::singleShot(2000, this, SLOT(hideCursor()));
     return oldAutoHide ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::showStatistics(Tree_p self, bool ss)
+// ----------------------------------------------------------------------------
+//   Display or hide performance statistics (frames per second)
+// ----------------------------------------------------------------------------
+{
+    bool prev = bShowStatistics;
+    bShowStatistics = ss;
+    if (ss)
+        stats_start.start();
+    return prev ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::toggleShowStatistics(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Toggle display of statistics
+// ----------------------------------------------------------------------------
+{
+    return showStatistics(self, !bShowStatistics);
 }
 
 

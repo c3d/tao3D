@@ -86,6 +86,7 @@ class Widget : public QGLWidget
 {
     Q_OBJECT
 public:
+    typedef std::list<int>              frame_times;
     typedef std::vector<double>         attribute_args;
     typedef std::map<GLuint, uint>      selection_map;
     enum StereoMode { stereoHARDWARE,
@@ -200,8 +201,8 @@ public:
 
     // Timing
     ulonglong   now();
-    ulonglong   elapsed(ulonglong since, ulonglong until,
-                        bool stats = true, bool show=true);
+    void        printStatistics();
+    void        updateStatistics();
     bool        timerIsActive()         { return timer.isActive(); }
     bool        hasAnimations(void)     { return animated; }
     char        hasStereoscopy(void)    { return stereoPlanes > 1; }
@@ -336,6 +337,8 @@ public:
     Name_p      toggleHandCursor(Tree_p self);
     Name_p      autoHideCursor(XL::Tree_p self, bool autoHide);
     Name_p      toggleAutoHideCursor(XL::Tree_p self);
+    Name_p      showStatistics(Tree_p self, bool ss);
+    Name_p      toggleShowStatistics(Tree_p self);
     Name_p      resetView(Tree_p self);
     Name_p      panView(Tree_p self, coord dx, coord dy);
     Real_p      currentZoom(Tree_p self);
@@ -773,7 +776,9 @@ private:
     double                dfltRefresh;
     QTimer                idleTimer;
     double                pageStartTime, frozenTime, startTime, currentTime;
-    ulonglong             tmin, tmax, tsum, tcount;
+    QTime                 stats_start;
+    int                   stats_interval;
+    frame_times           stats;
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
 
     // Printing
@@ -792,6 +797,7 @@ private:
     int                   panX, panY;
     bool                  dragging;
     bool                  bAutoHideCursor;
+    bool                  bShowStatistics;
     bool                  renderFramesCanceled;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;

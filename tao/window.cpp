@@ -127,6 +127,8 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     readSettings();
     // Don't restore error dock
     errorDock->hide();
+    // Show status bar immediately avoids later resize of widget
+    statusBar()->show();
 
     // Set current document
     if (sourceFile.isEmpty())

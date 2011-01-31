@@ -136,6 +136,7 @@ public:
     void        resizeGL(int width, int height);
     void        paintGL();
     void        setup(double w, double h, const Box *picking = NULL);
+    void        resetModelviewMatrix();
     void        setupGL();
     void        setupPage();
     void        setupStereoStencil(double w, double h);
@@ -696,7 +697,7 @@ private:
     flow_map              flows;
     text                  pageName, lastPageName;
     page_map              pageLinks;
-    page_list             pageNames;
+    page_list             pageNames, newPageNames;
     uint                  pageId, pageFound, pageShown, pageTotal, pageToPrint;
     Tree_p                pageTree;
     Tree_p                currentShape;

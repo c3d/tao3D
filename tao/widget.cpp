@@ -327,7 +327,7 @@ void Widget::setupPage()
     pageFound = 0;
     pageTree = NULL;
     lastPageName = "";
-    pageNames.clear();
+    newPageNames.clear();
     Layout::polygonOffset = 0;
 }
 
@@ -458,6 +458,7 @@ void Widget::draw()
     elapsed(before, after);
 
     // Update page count for next run
+    pageNames = newPageNames;
     pageTotal = pageId ? pageId : 1;
     if (pageFound)
         pageShown = pageFound;
@@ -1305,6 +1306,18 @@ void Widget::setup(double w, double h, const Box *picking)
 
     // Setup the model-view matrix
     glMatrixMode(GL_MODELVIEW);
+    resetModelviewMatrix();
+
+    // Reset default GL parameters
+    setupGL();
+}
+
+
+void Widget::resetModelviewMatrix()
+// ----------------------------------------------------------------------------
+//   Reset the model-view matrix, used by reset_transform and setup
+// ----------------------------------------------------------------------------
+{
     glLoadIdentity();
 
     // Position the camera
@@ -1314,9 +1327,6 @@ void Widget::setup(double w, double h, const Box *picking)
     gluLookAt(eyeX, cameraPosition.y, cameraPosition.z,
               cameraTarget.x, cameraTarget.y ,cameraTarget.z,
               cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
-
-    // Reset default GL parameters
-    setupGL();
 }
 
 
@@ -3316,7 +3326,7 @@ XL::Text_p Widget::page(Tree_p self, text name, Tree_p body)
 
     // Increment pageId and build page list
     pageId++;
-    pageNames.push_back(name);
+    newPageNames.push_back(name);
 
     // If the page is set, then we display it
     if (printer && pageToPrint == pageId)
@@ -3372,7 +3382,17 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
 // ----------------------------------------------------------------------------
 {
     text old = pageName;
+
+    lastMouseButtons = 0;
+    selection.clear();
+    selectionTrees.clear();
+    delete textSelection();
+    delete drag();
+    pageStartTime = startTime = frozenTime = CurrentTime();
+    refresh(0);
+
     pageName = page;
+
     return new Text(old);
 }
 
@@ -3409,7 +3429,8 @@ XL::Text_p Widget::pageNameAtIndex(Tree_p self, uint index)
 //   Return the nth page
 // ----------------------------------------------------------------------------
 {
-    text name = index < pageNames.size() ? pageNames[index] : "<Invalid page>";
+    index--;
+    text name = index < pageNames.size() ? pageNames[index] : pageName;
     return new Text(name);
 }
 
@@ -3677,6 +3698,7 @@ Tree_p Widget::resetTransform(Tree_p self)
 //   Reset transform to original projection state
 // ----------------------------------------------------------------------------
 {
+    layout->hasMatrix = true;
     layout->Add(new ResetTransform());
     return XL::xl_false;
 }
@@ -5933,14 +5955,7 @@ XL::Name_p Widget::textEditKey(Tree_p self, text key)
     // Check if we are changing pages here...
     if (pageLinks.count(key))
     {
-        pageName = pageLinks[key];
-        selection.clear();
-        selectionTrees.clear();
-        delete textSelection();
-        delete drag();
-        pageStartTime = startTime = frozenTime = CurrentTime();
-        draw();
-        refresh(0);
+        gotoPage(self, pageLinks[key]);
         return XL::xl_true;
     }
 

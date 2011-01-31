@@ -113,6 +113,7 @@ static inline QGLFormat TaoGLFormat()
          QGL::StencilBuffer     |
          QGL::SampleBuffers     |
          QGL::AlphaChannel      |
+         QGL::AccumBuffer       |
          QGL::StereoBuffers);
     QGLFormat format(options);
     return format;
@@ -129,6 +130,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       symbolTableRoot(new XL::Name("formula_symbol_table")),
       inError(false), mustUpdateDialogs(false), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), path(NULL), table(NULL),
+      pageW(21), pageH(29.7), blurFactor(0.0),
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
       pageTree(NULL),
@@ -372,8 +374,9 @@ void Widget::draw()
         // Select the buffer in which we draw
         if (stereoPlanes > 1)
         {
-            if (stereoMode == stereoHARDWARE)
+            switch (stereoMode)
             {
+            case stereoHARDWARE:
                 if (stereoscopic == 1)
                     glDrawBuffer(GL_BACK_LEFT);
                 else if (stereoscopic == 2)
@@ -381,12 +384,17 @@ void Widget::draw()
                 glClearColor(r, g, b, a);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glDisable(GL_STENCIL_TEST);
-            }
-            else
-            {
+                break;
+            case stereoHSPLIT:
+            case stereoVSPLIT:
+                glDrawBuffer(GL_BACK);
+                glDisable(GL_STENCIL_TEST);
+                break;
+            default:
                 glStencilFunc(GL_EQUAL, stereoscopic, 63);
                 glEnable(GL_STENCIL_TEST);
                 glDrawBuffer(GL_BACK);
+                break;
             }
         }
         else
@@ -419,6 +427,17 @@ void Widget::draw()
         selectionSpace.Draw(NULL);
         glEnable(GL_DEPTH_TEST);
     }
+
+
+    // Motion blur
+    if (blurFactor > 0.0 && (stereoPlanes == 1 || stereoMode != stereoHARDWARE))
+    {
+        glAccum(GL_MULT, blurFactor);
+        glAccum(GL_ACCUM, 1.0 - blurFactor);
+        glAccum(GL_RETURN, 1.0);
+    }
+
+
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -1209,6 +1228,9 @@ void Widget::resizeGL(int width, int height)
 
     if (stereoMode > stereoHARDWARE)
         setupStereoStencil(width, height);
+
+    glClearAccum(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_ACCUM_BUFFER_BIT);
 }
 
 
@@ -1243,7 +1265,26 @@ void Widget::setup(double w, double h, const Box *picking)
 {
     // Setup viewport
     uint s = printer && picking ? printOverscaling : 1;
-    glViewport(0, 0, w * s, h * s);
+    GLint vx = 0, vy = 0, vw = w * s, vh = h * s;
+
+    if (stereoPlanes > 1)
+    {
+        switch (stereoMode)
+        {
+        case stereoHSPLIT:
+            vw /= 2;
+            if (stereoscopic == 2)
+                vx = vw;
+            break;
+        case stereoVSPLIT:
+            vh /= 2;
+            if (stereoscopic == 2)
+                vy = vh;
+        default:
+            break;
+        }
+    }
+    glViewport(vx, vy, vw, vh);
 
     // Setup the projection matrix
     glMatrixMode(GL_PROJECTION);
@@ -1318,7 +1359,7 @@ void Widget::setupStereoStencil(double w, double h)
 //   For interlaced output, generate a stencil with every other line
 // ----------------------------------------------------------------------------
 {
-    if (stereoMode > stereoHARDWARE)
+    if (stereoMode >= stereoHORIZONTAL)
     {
         // Setup the initial viewport and projection for drawing in stencil
         glViewport(0, 0, w, h);
@@ -1360,6 +1401,8 @@ void Widget::setupStereoStencil(double w, double h)
             numLines = 3 * (w + h);
             break;
         case stereoHARDWARE:
+        case stereoHSPLIT:
+        case stereoVSPLIT:
             break;
         }
 
@@ -1394,6 +1437,8 @@ void Widget::setupStereoStencil(double w, double h)
                     glVertex2f (x/3.0, 0);
                     break;
                 case stereoHARDWARE:
+                case stereoHSPLIT:
+                case stereoVSPLIT:
                     break;
                 }
             }
@@ -3359,6 +3404,16 @@ XL::Integer_p Widget::pageCount(Tree_p self)
 }
 
 
+XL::Text_p Widget::pageNameAtIndex(Tree_p self, uint index)
+// ----------------------------------------------------------------------------
+//   Return the nth page
+// ----------------------------------------------------------------------------
+{
+    text name = index < pageNames.size() ? pageNames[index] : "<Invalid page>";
+    return new Text(name);
+}
+
+
 XL::Real_p Widget::pageWidth(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the width of the page
@@ -4108,6 +4163,16 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
         newState = true;
         stereoMode = stereoHARDWARE;
     }
+    else if (name->value == "hsplit")
+    {
+        newState = true;
+        stereoMode = stereoHSPLIT;
+    }
+    else if (name->value == "vsplit")
+    {
+        newState = true;
+        stereoMode = stereoVSPLIT;
+    }
     else if (name->value == "interlace" || name->value == "interlaced" ||
              name->value == "interleave" || name->value == "interleaved")
     {
@@ -4215,6 +4280,17 @@ Tree_p Widget::clearColor(Tree_p self, double r, double g, double b, double a)
     CHECK_0_1_RANGE(a);
 
     clearCol.setRgbF(r, g, b, a);
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::motionBlur(Tree_p self, double f)
+// ----------------------------------------------------------------------------
+//    Set the RGB clear (background) color
+// ----------------------------------------------------------------------------
+{
+    CHECK_0_1_RANGE(f);
+    blurFactor = f;
     return XL::xl_true;
 }
 
@@ -6222,17 +6298,19 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
 {
+    Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    FrameInfo *frame = self->GetInfo<FrameInfo>();
-    Tree_p result = XL::xl_false;
-    if (!frame)
+    MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
+    if (!multiframe)
     {
-        frame = new FrameInfo(w,h);
-        self->SetInfo<FrameInfo> (frame);
+        multiframe = new MultiFrameInfo<uint>();
+        self->SetInfo< MultiFrameInfo<uint> > (multiframe);
     }
+    uint id = selectionId();
+    FrameInfo &frame = multiframe->frame(id);
 
     do
     {
@@ -6247,14 +6325,14 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
         XL::LocalSave<double> saveScaling(scaling, scalingFactorFromCamera());
 
         // Clear the background and setup initial state
-        frame->resize(w,h);
+        frame.resize(w,h);
         setup(w, h);
         result = xl_evaluate(prog);
 
         // Draw the layout in the frame context
-        frame->begin();
+        frame.begin();
         layout->Draw(NULL);
-        frame->end();
+        frame.end();
 
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
@@ -6262,11 +6340,81 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
     } while (0); // State keeper and layout
 
     // Bind the resulting texture
-    GLuint tex = frame->bind();
+    GLuint tex = frame.bind();
     layout->Add(new FillTexture(tex));
     layout->hasAttributes = true;
 
     return result;
+}
+
+
+Tree_p Widget::thumbnail(Tree_p self, scale s, text page)
+// ----------------------------------------------------------------------------
+//   Generate a texture with a page thumbnail of the given page
+// ----------------------------------------------------------------------------
+{
+    // Prohibit recursion on thumbnails
+    if (page == pageName)
+        return XL::xl_false;
+
+    double w = width() * s;
+    double h = height() * s;
+
+    // Get or build the current frame if we don't have one
+    MultiFrameInfo<text> *multiframe = self->GetInfo< MultiFrameInfo<text> >();
+    if (!multiframe)
+    {
+        multiframe = new MultiFrameInfo<text>();
+        self->SetInfo< MultiFrameInfo<text> > (multiframe);
+    }
+    FrameInfo &frame = multiframe->frame(page);
+
+    do
+    {
+        GLAllStateKeeper saveGL;
+        XL::LocalSave<Layout *> saveLayout(layout,layout->NewChild());
+        XL::LocalSave<Point3> saveCenter(cameraTarget, cameraTarget);
+        XL::LocalSave<Point3> saveEye(cameraPosition, cameraPosition);
+        XL::LocalSave<Vector3> saveUp(cameraUpVector, cameraUpVector);
+        XL::LocalSave<char> saveStereo1(stereoPlanes, 1);
+        XL::LocalSave<char> saveStereo2(stereoscopic, 1);
+        XL::LocalSave<double> saveZoom(zoom, zoom);
+        XL::LocalSave<double> saveScaling(scaling, scaling * s);
+        XL::LocalSave<text> savePage(pageName, page);
+        XL::LocalSave<text> saveLastPage(lastPageName, page);
+        XL::LocalSave<page_map> saveLinks(pageLinks, pageLinks);
+        XL::LocalSave<page_list> saveList(pageNames, pageNames);
+        XL::LocalSave<uint> savePageId(pageId, 0);
+        XL::LocalSave<uint> savePageFound(pageFound, 0);
+        XL::LocalSave<uint> savePageShown(pageShown, pageShown);
+        XL::LocalSave<uint> savePageTotal(pageShown, pageTotal);
+        XL::LocalSave<Tree_p> savePageTree(pageTree, pageTree);
+
+        // Clear the background and setup initial state
+        frame.resize(w,h);
+        setup(w, h);
+
+        // Evaluate the program
+        XL::MAIN->EvalContextFiles(((Window*)parent())->contextFileNames);
+        if (Tree *prog = xlProgram->tree)
+            xl_evaluate(prog);
+
+        // Draw the layout in the frame context
+        frame.begin();
+        layout->Draw(NULL);
+        frame.end();
+
+        // Delete the layout (it's not a child of the outer layout)
+        delete layout;
+        layout = NULL;
+    } while (0); // State keeper and layout
+
+    // Bind the resulting texture
+    GLuint tex = frame.bind();
+    layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
+
+    return XL::xl_true;
 }
 
 

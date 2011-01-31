@@ -288,7 +288,7 @@ void RecordMouseCoordinates::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = where->Display();
-    if (widget->hasStereoscopy() < 2)
+    if (widget->stereoPlane() == 1)
     {
         widget->recordProjection();
         Point3 pos = widget->unprojectLastMouse();

@@ -801,10 +801,8 @@ void GraphicPath::Draw(const Vector3 &offset, GLenum mode, GLenum tesselation)
                         if ((i1 + i2) < size)
                         {
                             vn = v1.Cross(v2);
-                            if (vn.Length() > 0)
-                            {
-                                vn.Normalize();
-                            }
+                            vn.Normalize();
+
                             for (uint j = (i + i1); j < (i + i1 + i2); j++)
                             {
                                 ++n;

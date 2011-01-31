@@ -40,6 +40,7 @@ void LightId::Draw(Layout *where)
     {
         glEnable(where->lightId);
         glEnable(GL_LIGHTING);
+        glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
     }
     else
     {

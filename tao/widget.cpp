@@ -6367,7 +6367,7 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
 }
 
 
-Tree_p Widget::thumbnail(Tree_p self, scale s, text page)
+Tree_p Widget::thumbnail(Tree_p self, scale s, double interval, text page)
 // ----------------------------------------------------------------------------
 //   Generate a texture with a page thumbnail of the given page
 // ----------------------------------------------------------------------------
@@ -6388,7 +6388,7 @@ Tree_p Widget::thumbnail(Tree_p self, scale s, text page)
     }
     FrameInfo &frame = multiframe->frame(page);
 
-    do
+    if (frame.refreshTime < CurrentTime())
     {
         GLAllStateKeeper saveGL;
         XL::LocalSave<Layout *> saveLayout(layout,layout->NewChild());
@@ -6426,7 +6426,10 @@ Tree_p Widget::thumbnail(Tree_p self, scale s, text page)
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
         layout = NULL;
-    } while (0); // State keeper and layout
+
+        // Update refresh time
+        frame.refreshTime = fmod(CurrentTime() + interval, 86400.0);
+    }
 
     // Bind the resulting texture
     GLuint tex = frame.bind();

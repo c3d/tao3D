@@ -517,7 +517,7 @@ public:
     Tree_p      framePaint(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                            Tree_p prog);
     Tree_p      frameTexture(Tree_p self, double w, double h, Tree_p prog);
-    Tree_p      thumbnail(Tree_p self, scale s, text page);
+    Tree_p      thumbnail(Tree_p self, scale s, double i, text page);
 
     Tree_p      urlPaint(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                          text_p s, integer_p p);

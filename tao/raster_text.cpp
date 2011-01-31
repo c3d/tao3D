@@ -21,7 +21,6 @@
 // ****************************************************************************
 
 #include "raster_text.h"
-#include <QtOpenGL>
 #include <stdarg.h>
 #include <iostream>
 

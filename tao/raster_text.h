@@ -23,8 +23,8 @@
 // ****************************************************************************
 
 
-#include <QtOpenGL>
 #include "tao.h"
+#include "tao_gl.h"
 #include "coords.h"
 
 

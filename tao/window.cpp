@@ -215,6 +215,7 @@ void Window::closeEvent(QCloseEvent *event)
 //   Close the window - Save settings
 // ----------------------------------------------------------------------------
 {
+    switchToFullScreen(false);
     if (maybeSave())
     {
         writeSettings();

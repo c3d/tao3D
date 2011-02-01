@@ -163,7 +163,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false), bShowStatistics(false),
-      renderFramesCanceled(false)
+      renderFramesCanceled(false), offlineRendering(false)
 {
     setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap
@@ -819,6 +819,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     XL::LocalSave<double> saveStartTime(startTime, start_time);
 
     scale s = qMin((double)w / width(), (double)h / height());
+    offlineRendering = true;
 
     // Select page, if not current
     if (page != -1)
@@ -852,8 +853,21 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         }
 
         // Set time and run program
+        XL::LocalSave<page_list> savePageNames(pageNames, pageNames);
+        setupPage();
         frozenTime = t;
+        offlineRenderingTime = t;  // REVISIT pas besoin de nouvelle variable (-> utiliser frozenTime)
         runProgram();
+
+    // Update page count for next run
+    pageNames = newPageNames;
+    pageTotal = pageId ? pageId : 1;
+    if (pageFound)
+        pageShown = pageFound;
+    else
+        pageName = "";
+
+
 
         // Draw the layout in the frame context
         id = idDepth = 0;
@@ -864,7 +878,6 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         space->Draw(NULL);
         frame.end();
-
         // Save frame to disk
         // Convert to .mov with: ffmpeg -i frame%d.png output.mov
         QString fileName = QString("%1/frame%2.png").arg(dir).arg(currentFrame);
@@ -872,6 +885,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         image.save(fileName);
     }
 
+    offlineRendering = false;
     emit renderFramesDone();
     QApplication::processEvents();
 }
@@ -3727,6 +3741,94 @@ XL::Real_p Widget::windowHeight(Tree_p self)
 {
     double h = printer ? printer->paperRect().height() : height();
     return new Real(h);
+}
+
+
+Integer_p Widget::seconds(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current second, schedule refresh on next second
+// ----------------------------------------------------------------------------
+{
+    double now = CurrentTime();
+    int second = fmod(now, 60);
+    return new XL::Integer(second);
+}
+
+
+Integer_p Widget::minutes(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current minute, schedule refresh on next minute
+// ----------------------------------------------------------------------------
+{
+    QDateTime now = fromSecsSinceEpoch(CurrentTime());
+    int minute = now.time().minute();
+    return new XL::Integer(minute);
+}
+
+
+Integer_p Widget::hours(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current hour, schedule refresh on next hour
+// ----------------------------------------------------------------------------
+{
+    QDateTime now = fromSecsSinceEpoch(CurrentTime());
+    int hour = now.time().hour();
+    return new XL::Integer(hour);
+}
+
+
+Integer_p Widget::day(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current day, schedule refresh on next day
+// ----------------------------------------------------------------------------
+{
+    QDateTime now = fromSecsSinceEpoch(CurrentTime());
+    int day = now.date().day();
+    return new XL::Integer(day);
+}
+
+
+Integer_p Widget::weekDay(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current week day, schedule refresh on next day
+// ----------------------------------------------------------------------------
+{
+    QDateTime now = fromSecsSinceEpoch(CurrentTime());
+    int day = now.date().dayOfWeek();
+    return new XL::Integer(day);
+}
+
+
+Integer_p Widget::yearDay(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current week day, schedule refresh on next day
+// ----------------------------------------------------------------------------
+{
+    QDateTime now = fromSecsSinceEpoch(CurrentTime());
+    int day = now.date().dayOfYear();
+    return new XL::Integer(day);
+}
+
+
+Integer_p Widget::month(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current month, schedule refresh on next day
+// ----------------------------------------------------------------------------
+{
+    QDateTime now = fromSecsSinceEpoch(CurrentTime());
+    int month = now.date().month();
+    return new XL::Integer(month);
+}
+
+
+Integer_p Widget::year(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current year, schedule refresh on next day
+// ----------------------------------------------------------------------------
+{
+    QDateTime now = fromSecsSinceEpoch(CurrentTime());
+    int year = now.date().year();
+    return new XL::Integer(year);
 }
 
 

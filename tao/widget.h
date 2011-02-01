@@ -200,6 +200,7 @@ public:
     ulonglong   now();
     void        printStatistics();
     void        updateStatistics();
+    double      CurrentTime();
     bool        timerIsActive()         { return timer.isActive(); }
     bool        hasAnimations(void)     { return animated; }
     char        hasStereoscopy(void)    { return stereoPlanes > 1; }
@@ -317,6 +318,14 @@ public:
     // Setting attributes
     Name_p      depthTest(Tree_p self, bool enable);
     Tree_p      refresh(Tree_p self, double delay);
+    Integer_p   seconds(Tree_p self);
+    Integer_p   minutes(Tree_p self);
+    Integer_p   hours(Tree_p self);
+    Integer_p   day(Tree_p self);
+    Integer_p   weekDay(Tree_p self);
+    Integer_p   yearDay(Tree_p self);
+    Integer_p   month(Tree_p self);
+    Integer_p   year(Tree_p self);
     Name_p      showSource(Tree_p self, bool show);
     Name_p      fullScreen(Tree_p self, bool fs);
     Name_p      toggleFullScreen(Tree_p self);
@@ -777,6 +786,8 @@ private:
     bool                  bAutoHideCursor;
     bool                  bShowStatistics;
     bool                  renderFramesCanceled;
+    bool                  offlineRendering;
+    double                offlineRenderingTime;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:
@@ -821,17 +832,73 @@ inline void glShowErrors()
 }
 
 
-inline double CurrentTime()
+inline QDateTime fromSecsSinceEpoch(double when)
+// ----------------------------------------------------------------------------
+//    Convert the number of seconds passed since the epoch to QDateTime
+// ----------------------------------------------------------------------------
+{
+    QDateTime d;
+#if QT_VERSION >=  0x040700
+    d = d.fromMSecsSinceEpoch((qint64)(when * 1000));
+#else
+    d = d.fromTime_t(when);
+    double s, ms = modf(when, &s);
+    d.addMSecs(ms);
+#endif
+    return d;
+}
+
+
+inline double toSecsSinceEpoch(const QDateTime &d)
+// ----------------------------------------------------------------------------
+//    Convert QDateTime to the number of seconds passed since the epoch
+// ----------------------------------------------------------------------------
+{
+#if QT_VERSION >=  0x040700
+    return (double)d.toMSecsSinceEpoch() / 1000;
+#else
+    qint64 ret = d.toTime_t();
+    ret *= 1000;
+    ret += d.time().msec();
+    return (double)ret / 1000;
+#endif
+}
+
+
+inline double nextDay(const QDateTime &d)
+// ----------------------------------------------------------------------------
+//    Return next day
+// ----------------------------------------------------------------------------
+{
+    QDateTime next(d);
+    next.setTime(QTime(0, 0, 0, 0));
+    next = next.addDays(1);
+    return toSecsSinceEpoch(next);
+}
+
+inline double TrueCurrentTime()
+// ----------------------------------------------------------------------------
+//    Query and return the current time (seconds since epoch, ~ms resolution)
+// ----------------------------------------------------------------------------
+{
+    QDateTime dt = QDateTime::currentDateTime();
+#if QT_VERSION >= 0x040700
+    return toSecsSinceEpoch(dt);
+#else
+    QTime t = QTime::currentTime();
+    return dt.toTime_t() +  0.001 * t.msec();
+#endif
+}
+
+
+inline double Widget::CurrentTime()
 // ----------------------------------------------------------------------------
 //    Return the current time
 // ----------------------------------------------------------------------------
 {
-    QTime t = QTime::currentTime();
-    double d = (3600.0	 * t.hour()
-                + 60.0	 * t.minute()
-                +	   t.second()
-                +  0.001 * t.msec());
-    return d;
+    if (offlineRendering)
+        return offlineRenderingTime;
+    return TrueCurrentTime();
 }
 
 

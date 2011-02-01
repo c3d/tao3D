@@ -429,40 +429,8 @@ PREFIX(SystemTime,  integer,  "system_time", , XL_RINT(xl_time(1)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(SystemHours,  integer,  "hours", , XL_RCTIME(tm.tm_hour, 10), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
-PREFIX(SystemMinutes,  integer,  "minutes", , XL_RCTIME(tm.tm_min, 2), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
-PREFIX(SystemSeconds,  integer,  "seconds", , XL_RCTIME(tm.tm_sec, 0.5), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
-PREFIX(SystemYear,  integer,  "year", , XL_RCTIME(tm.tm_year + 1900, 10), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
-PREFIX(SystemMonth,  integer,  "month", , XL_RCTIME(tm.tm_mon, 10), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
-PREFIX(SystemMonthDay,  integer,  "day", , XL_RCTIME(tm.tm_mday, 10), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
-PREFIX(SystemWeekDay,  integer,  "week_day", , XL_RCTIME(tm.tm_wday, 10), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
 
 // Random number generator
-PREFIX(SystemYearDay,  integer,  "year_day", , XL_RCTIME(tm.tm_yday, 10), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
 PREFIX(RandomNumber,  real,  "random", , XL_RREAL(xl_random(0.0, 1.0)), 
     GROUP(formula)
     SYNOPSIS("")

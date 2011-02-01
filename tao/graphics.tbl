@@ -136,6 +136,22 @@ PREFIX(WindowHeight, real,      "window_height", , RTAO(windowHeight(self)),
        SYNOPSIS("Return the height of window in which we display")
        DESCRIPTION("Return the height of window in which we display")
        RETURNS(real, "Return the height of window in which we display") )
+PREFIX(Seconds, integer, "seconds" ,, RTAO(seconds(self)),
+       GROUP(time) SYNOPSIS("Return seconds of current time"))
+PREFIX(Minutes, integer, "minutes" ,, RTAO(minutes(self)),
+       GROUP(time) SYNOPSIS("Return minutes of current time"))
+PREFIX(Hours,   integer, "hours"   ,, RTAO(hours(self)),
+       GROUP(time) SYNOPSIS("Return hours of current time"))
+PREFIX(Day,     integer, "day"     ,, RTAO(day(self)),
+       GROUP(time) SYNOPSIS("Return current day of month"))
+PREFIX(WeekDay, integer, "week_day",, RTAO(weekDay(self)),
+       GROUP(time) SYNOPSIS("Return current day of week"))
+PREFIX(YearDay, integer, "year_day",, RTAO(yearDay(self)),
+       GROUP(time) SYNOPSIS("Return current day of year"))
+PREFIX(Month,   integer, "month"   ,, RTAO(month(self)),
+       GROUP(time) SYNOPSIS("Return current month"))
+PREFIX(Year,    integer, "year"    ,, RTAO(year(self)),
+       GROUP(time) SYNOPSIS("Return current year"))
 PREFIX(DaySeconds,   real,      "time", , RTAO(time(self)),
        GROUP(time)
        SYNOPSIS("Return a fractional time, including milliseconds")

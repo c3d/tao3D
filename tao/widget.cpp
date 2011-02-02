@@ -161,7 +161,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false),
-      inDraw(false), renderFramesCanceled(false)
+      renderFramesCanceled(false), inDraw(false)
 {
     setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap

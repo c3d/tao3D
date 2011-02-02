@@ -786,7 +786,6 @@ private:
     bool                  bAutoHideCursor;
     bool                  bShowStatistics;
     bool                  renderFramesCanceled;
-    bool                  offlineRendering;
     double                offlineRenderingTime;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
@@ -896,7 +895,7 @@ inline double Widget::CurrentTime()
 //    Return the current time
 // ----------------------------------------------------------------------------
 {
-    if (offlineRendering)
+    if (offlineRenderingTime != -1)
         return offlineRenderingTime;
     return TrueCurrentTime();
 }

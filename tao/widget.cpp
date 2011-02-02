@@ -163,7 +163,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false), bShowStatistics(false),
-      renderFramesCanceled(false), offlineRendering(false)
+      renderFramesCanceled(false), offlineRenderingTime(-1)
 {
     setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap
@@ -813,17 +813,16 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     FrameInfo frame(w, h);
 
     // Set the initial time we want to set and freeze animations
-    XL::LocalSave<bool> disableAnimations(animated, false);
     XL::LocalSave<double> setPageTime(pageStartTime, start_time);
     XL::LocalSave<double> setFrozenTime(frozenTime, start_time);
     XL::LocalSave<double> saveStartTime(startTime, start_time);
 
     scale s = qMin((double)w / width(), (double)h / height());
-    offlineRendering = true;
 
     // Select page, if not current
     if (page != -1)
     {
+        offlineRenderingTime = start_time;
         runProgram();
         gotoPage(NULL, pageNameAtIndex(NULL, page));
     }
@@ -855,8 +854,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         // Set time and run program
         XL::LocalSave<page_list> savePageNames(pageNames, pageNames);
         setupPage();
-        frozenTime = t;
-        offlineRenderingTime = t;  // REVISIT pas besoin de nouvelle variable (-> utiliser frozenTime)
+        offlineRenderingTime = t;
         runProgram();
 
     // Update page count for next run
@@ -885,7 +883,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         image.save(fileName);
     }
 
-    offlineRendering = false;
+    offlineRenderingTime = -1;
     emit renderFramesDone();
     QApplication::processEvents();
 }
@@ -6788,7 +6786,7 @@ Tree_p Widget::thumbnail(Tree_p self, scale s, double interval, text page)
         layout = NULL;
 
         // Update refresh time
-        frame.refreshTime = fmod(CurrentTime() + interval, 86400.0);
+        frame.refreshTime = CurrentTime() + interval;
     }
 
     // Bind the resulting texture

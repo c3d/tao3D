@@ -6798,6 +6798,15 @@ Tree_p Widget::thumbnail(Tree_p self, scale s, double interval, text page)
 }
 
 
+Name_p Widget::offlineRendering(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return true if we are currently rendering offline
+// ----------------------------------------------------------------------------
+{
+    return (offlineRenderingTime == -1) ? XL::xl_true : XL::xl_false;
+}
+
+
 Tree_p Widget::urlPaint(Tree_p self,
                         Real_p x, Real_p y, Real_p w, Real_p h,
                         Text_p url, Integer_p progress)

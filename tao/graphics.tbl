@@ -109,6 +109,11 @@ PREFIX(PageThumbnail, tree, "page_thumbnail",
        RTAO(thumbnail(self, s, i, p)),
        GROUP(page)
        SYNOPSIS("Generate a page thumbnail as a texture"))
+PREFIX(OffLineRendering, boolean, "offline_rendering", , RTAO(offlineRendering(self)),
+       GROUP(page)
+       SYNOPSIS("Return true if we are currently rendering to file")
+       DESCRIPTION("")
+       RETURNS(boolean, "Return the offline rendering status"))
 
 PREFIX(FrameWidth,   real,      "frame_width", , RTAO(frameWidth(self)),
        GROUP(frame)

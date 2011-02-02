@@ -104,8 +104,9 @@ PREFIX(PagePrintTime,  real,  "page_print_time",
        RETURNS( real, "Previous time used for printing"))
 PREFIX(PageThumbnail, tree, "page_thumbnail",
        PARM(s, real, "Scaling of the thumbnail")
+       PARM(i, real, "Refresh interval")
        PARM(p, text, "Page name"),
-       RTAO(thumbnail(self, s, p)),
+       RTAO(thumbnail(self, s, i, p)),
        GROUP(page)
        SYNOPSIS("Generate a page thumbnail as a texture"))
 

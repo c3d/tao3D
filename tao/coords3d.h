@@ -141,7 +141,8 @@ struct Vector3 : Point3
 
     Vector3& Normalize()
     {
-        *this /= Length();
+        if (Length() != 0)
+            *this /= Length();
         return *this;
     }
 };

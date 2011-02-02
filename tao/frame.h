@@ -53,6 +53,7 @@ struct FrameInfo : XL::Info
     QImage      toImage();
 
     uint    w, h;
+    double  refreshTime;
     fbo_map render_fbos;
     fbo_map texture_fbos;
 

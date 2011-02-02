@@ -328,7 +328,7 @@ void Widget::setupPage()
     pageFound = 0;
     pageTree = NULL;
     lastPageName = "";
-    pageNames.clear();
+    newPageNames.clear();
     Layout::polygonOffset = 0;
 }
 
@@ -461,6 +461,7 @@ void Widget::draw()
     elapsed(before, after);
 
     // Update page count for next run
+    pageNames = newPageNames;
     pageTotal = pageId ? pageId : 1;
     if (pageFound)
         pageShown = pageFound;
@@ -1375,6 +1376,18 @@ void Widget::setup(double w, double h, const Box *picking)
 
     // Setup the model-view matrix
     glMatrixMode(GL_MODELVIEW);
+    resetModelviewMatrix();
+
+    // Reset default GL parameters
+    setupGL();
+}
+
+
+void Widget::resetModelviewMatrix()
+// ----------------------------------------------------------------------------
+//   Reset the model-view matrix, used by reset_transform and setup
+// ----------------------------------------------------------------------------
+{
     glLoadIdentity();
 
     // Position the camera
@@ -1384,9 +1397,6 @@ void Widget::setup(double w, double h, const Box *picking)
     gluLookAt(eyeX, cameraPosition.y, cameraPosition.z,
               cameraTarget.x, cameraTarget.y ,cameraTarget.z,
               cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
-
-    // Reset default GL parameters
-    setupGL();
 }
 
 
@@ -3386,7 +3396,7 @@ XL::Text_p Widget::page(Tree_p self, text name, Tree_p body)
 
     // Increment pageId and build page list
     pageId++;
-    pageNames.push_back(name);
+    newPageNames.push_back(name);
 
     // If the page is set, then we display it
     if (printer && pageToPrint == pageId)
@@ -3443,6 +3453,15 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
 {
     lastMouseButtons = 0;
     text old = pageName;
+
+    lastMouseButtons = 0;
+    selection.clear();
+    selectionTrees.clear();
+    delete textSelection();
+    delete drag();
+    pageStartTime = startTime = frozenTime = CurrentTime();
+    refresh(0);
+
     pageName = page;
     refresh();
     return new Text(old);
@@ -3481,7 +3500,8 @@ XL::Text_p Widget::pageNameAtIndex(Tree_p self, uint index)
 //   Return the nth page
 // ----------------------------------------------------------------------------
 {
-    text name = index < pageNames.size() ? pageNames[index] : "<Invalid page>";
+    index--;
+    text name = index < pageNames.size() ? pageNames[index] : pageName;
     return new Text(name);
 }
 
@@ -3749,6 +3769,7 @@ Tree_p Widget::resetTransform(Tree_p self)
 //   Reset transform to original projection state
 // ----------------------------------------------------------------------------
 {
+    layout->hasMatrix = true;
     layout->Add(new ResetTransform());
     return XL::xl_false;
 }
@@ -4858,8 +4879,12 @@ Tree_p Widget::shaderFromFile(Tree_p self, ShaderKind kind, text file)
         return XL::xl_false;
     }
 
+    QString savePath = QDir::currentPath();
+    Window *window = (Window *) parentWidget();
+    QDir::setCurrent(window->currentProjectFolderPath());
     bool ok = currentShaderProgram->addShaderFromSourceFile(ShaderType(kind),
                                                             +file);
+    QDir::setCurrent(savePath);
     return ok ? XL::xl_true : XL::xl_false;
 }
 
@@ -6001,14 +6026,7 @@ XL::Name_p Widget::textEditKey(Tree_p self, text key)
     // Check if we are changing pages here...
     if (pageLinks.count(key))
     {
-        pageName = pageLinks[key];
-        selection.clear();
-        selectionTrees.clear();
-        delete textSelection();
-        delete drag();
-        pageStartTime = startTime = frozenTime = CurrentTime();
-        draw();
-        refresh(0);
+        gotoPage(self, pageLinks[key]);
         return XL::xl_true;
     }
 
@@ -6420,7 +6438,7 @@ Tree_p Widget::frameTexture(Tree_p self, double w, double h, Tree_p prog)
 }
 
 
-Tree_p Widget::thumbnail(Tree_p self, scale s, text page)
+Tree_p Widget::thumbnail(Tree_p self, scale s, double interval, text page)
 // ----------------------------------------------------------------------------
 //   Generate a texture with a page thumbnail of the given page
 // ----------------------------------------------------------------------------
@@ -6441,7 +6459,7 @@ Tree_p Widget::thumbnail(Tree_p self, scale s, text page)
     }
     FrameInfo &frame = multiframe->frame(page);
 
-    do
+    if (frame.refreshTime < CurrentTime())
     {
         GLAllStateKeeper saveGL;
         XL::LocalSave<Layout *> saveLayout(layout,layout->NewChild());
@@ -6479,7 +6497,10 @@ Tree_p Widget::thumbnail(Tree_p self, scale s, text page)
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
         layout = NULL;
-    } while (0); // State keeper and layout
+
+        // Update refresh time
+        frame.refreshTime = fmod(CurrentTime() + interval, 86400.0);
+    }
 
     // Bind the resulting texture
     GLuint tex = frame.bind();

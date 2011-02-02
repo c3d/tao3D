@@ -32,7 +32,7 @@ FrameInfo::FrameInfo(uint w, uint h)
 // ----------------------------------------------------------------------------
 //   Create the required frame buffer objects
 // ----------------------------------------------------------------------------
-    : w(w), h(h)
+    : w(w), h(h), refreshTime(-1)
 {
     resize(w, h);
 }

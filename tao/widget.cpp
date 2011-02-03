@@ -689,6 +689,14 @@ void Widget::runProgram()
     currentMenu    = NULL;
     currentToolBar = NULL;
     currentMenuBar = ((Window*)parent())->menuBar();
+
+    // Check if program asked to change page for the next run
+    if (gotoPageName != "")
+    {
+        pageName = gotoPageName;
+        frozenTime = pageStartTime = CurrentTime();
+        gotoPageName = "";
+    }
 }
 
 
@@ -3633,7 +3641,7 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
     pageStartTime = startTime = frozenTime = CurrentTime();
     refresh(0);
 
-    pageName = page;
+    gotoPageName = page;
 
     return new Text(old);
 }

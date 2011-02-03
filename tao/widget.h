@@ -713,7 +713,7 @@ private:
     scale                 pageW, pageH, blurFactor;
     text                  flowName;
     flow_map              flows;
-    text                  pageName, lastPageName;
+    text                  pageName, lastPageName, gotoPageName;
     page_map              pageLinks;
     page_list             pageNames, newPageNames;
     uint                  pageId, pageFound, pageShown, pageTotal, pageToPrint;

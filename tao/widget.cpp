@@ -817,15 +817,16 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 
     TaoSave saveCurrent(current, this);
 
-    // Create a GL frame to render into
-    FrameInfo frame(w, h);
-
     // Set the initial time we want to set and freeze animations
     XL::LocalSave<double> setPageTime(pageStartTime, start_time);
     XL::LocalSave<double> setFrozenTime(frozenTime, start_time);
     XL::LocalSave<double> saveStartTime(startTime, start_time);
 
-    scale s = qMin((double)w / width(), (double)h / height());
+    GLAllStateKeeper saveGL;
+    XL::LocalSave<double> saveScaling(scaling, scaling);
+
+    offlineRenderingWidth = w;
+    offlineRenderingHeight = h;
 
     // Select page, if not current
     if (page != -1)
@@ -834,6 +835,9 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         runProgram();
         gotoPage(NULL, pageNameAtIndex(NULL, page));
     }
+
+    // Create a GL frame to render into
+    FrameInfo frame(w, h);
 
     // Render frames for the whole time range
     int currentFrame = 0, frameCount = (end_time - start_time) * fps;
@@ -845,10 +849,6 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
             renderFramesCanceled = false;
             break;
         }
-
-        // Center display on screen
-        GLAllStateKeeper saveGL;
-        XL::LocalSave<double> saveScaling(scaling, scaling * s);
 
         // Show progress information
         percent = 100*currentFrame++/frameCount;
@@ -866,15 +866,13 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         offlineRenderingTime = t;
         runProgram();
 
-    // Update page count for next run
-    pageNames = newPageNames;
-    pageTotal = pageId ? pageId : 1;
-    if (pageFound)
-        pageShown = pageFound;
-    else
-        pageName = "";
-
-
+        // Update page count for next run
+        pageNames = newPageNames;
+        pageTotal = pageId ? pageId : 1;
+        if (pageFound)
+            pageShown = pageFound;
+        else
+            pageName = "";
 
         // Draw the layout in the frame context
         id = idDepth = 0;
@@ -895,6 +893,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         image.save(fileName);
     }
 
+    // Done with offline rendering
     offlineRenderingTime = -1;
     emit renderFramesDone();
     QApplication::processEvents();
@@ -3740,6 +3739,8 @@ XL::Real_p Widget::windowWidth(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     double w = printer ? printer->paperRect().width() : width();
+    if (offlineRenderingTime != -1)
+        w = offlineRenderingWidth;
     return new Real(w);
 }
 
@@ -3750,6 +3751,8 @@ XL::Real_p Widget::windowHeight(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     double h = printer ? printer->paperRect().height() : height();
+    if (offlineRenderingTime != -1)
+        h = offlineRenderingHeight;
     return new Real(h);
 }
 

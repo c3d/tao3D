@@ -788,6 +788,8 @@ private:
     bool                  bShowStatistics;
     bool                  renderFramesCanceled;
     double                offlineRenderingTime;
+    int                   offlineRenderingWidth;
+    int                   offlineRenderingHeight;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:

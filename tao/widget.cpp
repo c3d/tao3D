@@ -856,8 +856,9 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         {
             prevPercent = percent;
             emit renderFramesProgress(percent);
-            QApplication::processEvents();
         }
+
+        QApplication::processEvents();
 
         // Set time and run program
         XL::LocalSave<page_list> savePageNames(pageNames, pageNames);
@@ -884,6 +885,9 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         space->Draw(NULL);
         frame.end();
+
+        QApplication::processEvents();
+
         // Save frame to disk
         // Convert to .mov with: ffmpeg -i frame%d.png output.mov
         QString fileName = QString("%1/frame%2.png").arg(dir).arg(currentFrame);

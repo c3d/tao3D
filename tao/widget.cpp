@@ -340,6 +340,13 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
+    // In offline renderin mode, just keep the widget clear
+    if (offlineRenderingTime != -1)
+    {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        return;
+    }
+
     // Recursive drawing may occur with video widgets, and it's bad
     if (current)
         return;

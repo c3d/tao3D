@@ -378,8 +378,14 @@ void Widget::draw()
             "uniform float Zd;"
             "uniform float vz;"
             "uniform float Offset;"
+            "uniform sampler2D tex;"
+
             "void main(void)"
             "{"
+            "vec2 texCoord = gl_TexCoord[0].st;"
+            "vec4 fragColor = gl_Color * texture2D(tex, texCoord);"
+            "if (fragColor.a <= 0.01)"
+            "    discard;"
             "float Z = gl_FragCoord.z;"
             "float disparity = Multiplier * (1.0- vz/(Z-Zd+vz))+Offset;"
             "gl_FragColor = vec4(disparity, disparity, disparity, 1.0);"
@@ -399,10 +405,10 @@ void Widget::draw()
                     glUniform1fv(uid, 1, &x);                           \
                 } while(0)
                 pgm->bind();
-                SET(Multiplier, -1960.37 / 255);
+                SET(Multiplier, -1.55 * 1960.37 / 255);
                 SET(Zd, 0.467481);
                 SET(vz, 7.655192);
-                SET(Offset, 127.5 / 255 + 0.3);
+                SET(Offset, 127.5 / 255 + 0.55);
 #undef SET
                 depthMapper = pgm;
                 glShowErrors();
@@ -543,14 +549,12 @@ void Widget::draw()
             uchar *ptr = wowvxBluePixels;
             for (uint row = 0; row < 32; row++)
             {
-                char byte = wowvxHeader[row];
-                for (uint bit = 0; bit < 7; bit++)
+                uint byte = wowvxHeader[row];
+                for (uint bit = 0; bit < 8; bit++)
                 {
-                    uchar bluePx = ((byte >> bit) & 0x80) ? 0xFF : 0x00;
+                    uchar bluePx = ((byte << bit) & 0x80) ? 0xFF : 0x00;
                     *ptr++ = bluePx;  // B
-                    *ptr++ = 0xFF;    // Alpha
                     *ptr++ = 0;       // B odd
-                    *ptr++ = 0x00;    // Alpha
                 }
             }
         }
@@ -566,7 +570,7 @@ void Widget::draw()
         glDisable(GL_DEPTH_TEST);
         glRasterPos2i(0, h-1);
         glColor4f (1, 1, 1, 1);
-        glDrawPixels(64, 1, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, wowvxBluePixels);
+        glDrawPixels(32 * 8 * 2, 1, GL_BLUE, GL_UNSIGNED_BYTE, wowvxBluePixels);
     }
 
     // Motion blur
@@ -1495,7 +1499,7 @@ void Widget::setupGL()
     glShadeModel(GL_SMOOTH);
     glDisable(GL_LIGHTING);
     glUseProgram(0);
-    glAlphaFunc(GL_GREATER, 0.1);
+    glAlphaFunc(GL_GREATER, 0.01);
     glEnable(GL_ALPHA_TEST);
 
     // Turn on sphere map automatic texture coordinate generation

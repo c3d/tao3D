@@ -75,8 +75,11 @@ void ShaderProgram::Draw(Layout *where)
 //   Activate the given shader program
 // ----------------------------------------------------------------------------
 {
-    program->bind();
-    where->programId = program->programId();
+    if (!where->globalProgramId)
+    {
+        program->bind();
+        where->programId = program->programId();
+    }
 }
 
 

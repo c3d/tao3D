@@ -347,7 +347,7 @@ void Widget::draw()
     ulonglong before = now();
 
     // Setup the initial drawing environment
-    double w = width(), h = height();
+    uint w = width(), h = height();
     setupPage();
 
     // Clean text selection
@@ -369,7 +369,49 @@ void Widget::draw()
     glClearColor (r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (stereoscopic = 1; stereoscopic <= stereoPlanes; stereoscopic++)
+    // Generate depth map if necessary
+    static QGLShaderProgram *depthMapper = NULL;
+    if (stereoMode == stereoDEPTHMAP)
+    {
+        static char shaderSource[] =
+            "uniform float Multiplier;"
+            "uniform float Zd;"
+            "uniform float vz;"
+            "uniform float Offset;"
+            "void main(void)"
+            "{"
+            "float Z = gl_FragCoord.z;"
+            "float disparity = Multiplier * (1.0- vz/(Z-Zd+vz))+Offset;"
+            "gl_FragColor = vec4(disparity, disparity, disparity, 1.0);"
+            "}";
+        
+        if (!depthMapper)
+        {
+            QGLShaderProgram *pgm = new QGLShaderProgram();
+            if (pgm->addShaderFromSourceCode(QGLShader::Fragment, shaderSource))
+            {
+                GLuint programId = pgm->programId();
+#define SET(x, value)                                                   \
+                do                                                      \
+                {                                                       \
+                    float x = value;                                    \
+                    GLint uid = glGetUniformLocation(programId, #x);    \
+                    glUniform1fv(uid, 1, &x);                           \
+                } while(0)
+                pgm->bind();
+                SET(Multiplier, -1960.37 / 255);
+                SET(Zd, 0.467481);
+                SET(vz, 7.655192);
+                SET(Offset, 127.5 / 255 + 0.3);
+#undef SET
+                depthMapper = pgm;
+                glShowErrors();
+            }
+        }
+    }
+
+    int planes = stereoMode == stereoDEPTHMAP ? 1 : stereoPlanes;
+    for (stereoscopic = 1; stereoscopic <= planes; stereoscopic++)
     {
         // Select the buffer in which we draw
         if (stereoPlanes > 1)
@@ -387,6 +429,7 @@ void Widget::draw()
                 break;
             case stereoHSPLIT:
             case stereoVSPLIT:
+            case stereoDEPTHMAP:
                 glDrawBuffer(GL_BACK);
                 glDisable(GL_STENCIL_TEST);
                 break;
@@ -413,6 +456,24 @@ void Widget::draw()
             std::cerr << "Draw, count = " << space->count
                       << " buffer " << (int) stereoscopic << '\n';
 
+        if (stereoMode == stereoDEPTHMAP && depthMapper)
+        {
+            setup(w, h);
+            glViewport(w/2, 0, w/2, h);
+            id = idDepth = 0;
+            depthMapper->bind();
+            XL::LocalSave<uint> setPgmId(Layout::globalProgramId,
+                                         depthMapper->programId());
+            glClearColor (0, 0, 0, 1);
+            glScissor(w/2, 0, w/2, h);
+            glEnable(GL_SCISSOR_TEST);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glDisable(GL_SCISSOR_TEST);
+            space->Draw(NULL);
+            glViewport(0, 0, w/2, h);
+            glUseProgram(0);
+        }
+
         id = idDepth = 0;
         selectionTrees.clear();
         space->offset.Set(0,0,0);
@@ -425,9 +486,88 @@ void Widget::draw()
         glDisable(GL_DEPTH_TEST);
         for (Activity *a = activities; a; a = a->Display()) ;
         selectionSpace.Draw(NULL);
+        if (stereoMode == stereoDEPTHMAP && depthMapper)
+        {
+            glViewport(w/2, 0, w/2, h);
+            id = idDepth = 0;
+            depthMapper->bind();
+            XL::LocalSave<uint> setPgmId(Layout::globalProgramId,
+                                         depthMapper->programId());
+            glScissor(w/2, 0, w/2, h);
+            glEnable(GL_SCISSOR_TEST);
+            selectionSpace.Draw(NULL);
+            glDisable(GL_SCISSOR_TEST);
+            glUseProgram(0);
+        }
         glEnable(GL_DEPTH_TEST);
     }
 
+    // Generate depth map if necessary
+    if (stereoMode == stereoDEPTHMAP)
+    {
+        static uchar wowvxHeader[32] =
+        {
+            0xF1,               // Header ID
+            0x01,               // Digital signage
+            0x40,               // Depth factor
+            0x80,               // Offset (middle)
+            0x00,               // Offset and depth from type
+            0x00,               // Reserved
+            0xC4, 0x2D,         // CRC32 (slightly redundant, isn't it?
+            0xD3, 0xAF,
+
+            0xF2,               // Header 2
+            0x14, 0x00,         // 2D+Depth
+            0x00,               // Reserved
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x36, 0x95,         // CRC32
+            0x82, 0x21
+        };
+        static uchar wowvxBluePixels[32 * 8 * 2 * 2] = { 0 };
+        if (wowvxBluePixels[3] == 0)
+        {
+            // Pre-compute the pixels (silly encoding)
+            uchar *ptr = wowvxBluePixels;
+            for (uint row = 0; row < 32; row++)
+            {
+                char byte = wowvxHeader[row];
+                for (uint bit = 0; bit < 7; bit++)
+                {
+                    uchar bluePx = ((byte >> bit) & 0x80) ? 0xFF : 0x00;
+                    *ptr++ = bluePx;  // B
+                    *ptr++ = 0xFF;    // Alpha
+                    *ptr++ = 0;       // B odd
+                    *ptr++ = 0x00;    // Alpha
+                }
+            }
+        }
+
+        // Draw the pixels on screen
+        glViewport(0, 0, w/2, h);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluOrtho2D(0, w/2, 0, h);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glDisable(GL_LIGHTING);
+        glDisable(GL_DEPTH_TEST);
+        glRasterPos2i(0, h-1);
+        glColor4f (1, 1, 1, 1);
+        glDrawPixels(64, 1, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, wowvxBluePixels);
+    }
 
     // Motion blur
     if (blurFactor > 0.0 && (stereoPlanes == 1 || stereoMode != stereoHARDWARE))
@@ -1273,6 +1413,7 @@ void Widget::setup(double w, double h, const Box *picking)
         switch (stereoMode)
         {
         case stereoHSPLIT:
+        case stereoDEPTHMAP:
             vw /= 2;
             if (stereoscopic == 2)
                 vx = vw;
@@ -1354,6 +1495,8 @@ void Widget::setupGL()
     glShadeModel(GL_SMOOTH);
     glDisable(GL_LIGHTING);
     glUseProgram(0);
+    glAlphaFunc(GL_GREATER, 0.1);
+    glEnable(GL_ALPHA_TEST);
 
     // Turn on sphere map automatic texture coordinate generation
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
@@ -1413,6 +1556,7 @@ void Widget::setupStereoStencil(double w, double h)
         case stereoHARDWARE:
         case stereoHSPLIT:
         case stereoVSPLIT:
+        case stereoDEPTHMAP:
             break;
         }
 
@@ -1449,6 +1593,7 @@ void Widget::setupStereoStencil(double w, double h)
                 case stereoHARDWARE:
                 case stereoHSPLIT:
                 case stereoVSPLIT:
+                case stereoDEPTHMAP:
                     break;
                 }
             }
@@ -4221,6 +4366,12 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
         newState = true;
         stereoMode = stereoALIOSCOPY;
         stereoPlanes = 8;
+    }
+    else if (name->value == "depthmap" || name->value == "philips")
+    {
+        newState = true;
+        stereoMode = stereoDEPTHMAP;
+        stereoPlanes = 1;
     }
     else
     {

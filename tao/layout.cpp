@@ -34,6 +34,7 @@ scale Layout::factorBase      = 0;
 scale Layout::factorIncrement = -0.01; // Experimental value
 scale Layout::unitBase        = 0;
 scale Layout::unitIncrement   = -1;
+uint  Layout::globalProgramId = 0;
 
 
 LayoutState::LayoutState()

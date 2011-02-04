@@ -119,6 +119,7 @@ static inline QGLFormat TaoGLFormat()
          QGL::StencilBuffer     |
          QGL::SampleBuffers     |
          QGL::AlphaChannel      |
+         QGL::AccumBuffer       |
          QGL::StereoBuffers);
     QGLFormat format(options);
     return format;
@@ -133,7 +134,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
       runOnNextDraw(true), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), path(NULL), table(NULL),
-      pageW(21), pageH(29.7),
+      pageW(21), pageH(29.7), blurFactor(0.0),
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
       pageTree(NULL),
@@ -165,7 +166,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false), bShowStatistics(false),
-      renderFramesCanceled(false)
+      renderFramesCanceled(false), offlineRenderingTime(-1)
 {
     setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap
@@ -322,7 +323,7 @@ void Widget::setupPage()
     pageFound = 0;
     pageTree = NULL;
     lastPageName = "";
-    pageNames.clear();
+    newPageNames.clear();
     Layout::polygonOffset = 0;
 }
 
@@ -332,6 +333,13 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
+    // In offline renderin mode, just keep the widget clear
+    if (offlineRenderingTime != -1)
+    {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        return;
+    }
+
     // Recursive drawing may occur with video widgets, and it's bad
     if (current)
         return;
@@ -363,7 +371,55 @@ void Widget::draw()
     glClearColor (r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (stereoscopic = 1; stereoscopic <= stereoPlanes; stereoscopic++)
+    // Generate depth map if necessary
+    static QGLShaderProgram *depthMapper = NULL;
+    if (stereoMode == stereoDEPTHMAP)
+    {
+        static char shaderSource[] =
+            "uniform float Multiplier;"
+            "uniform float Zd;"
+            "uniform float vz;"
+            "uniform float Offset;"
+            "uniform sampler2D tex;"
+
+            "void main(void)"
+            "{"
+            "vec2 texCoord = gl_TexCoord[0].st;"
+            "vec4 fragColor = gl_Color * texture2D(tex, texCoord);"
+            "if (fragColor.a <= 0.01)"
+            "    discard;"
+            "float Z = gl_FragCoord.z;"
+            "float disparity = Multiplier * (1.0- vz/(Z-Zd+vz))+Offset;"
+            "gl_FragColor = vec4(disparity, disparity, disparity, 1.0);"
+            "}";
+        
+        if (!depthMapper)
+        {
+            QGLShaderProgram *pgm = new QGLShaderProgram();
+            if (pgm->addShaderFromSourceCode(QGLShader::Fragment, shaderSource))
+            {
+                GLuint programId = pgm->programId();
+#define SET(x, value)                                                   \
+                do                                                      \
+                {                                                       \
+                    float x = value;                                    \
+                    GLint uid = glGetUniformLocation(programId, #x);    \
+                    glUniform1fv(uid, 1, &x);                           \
+                } while(0)
+                pgm->bind();
+                SET(Multiplier, -1.55 * 1960.37 / 255);
+                SET(Zd, 0.467481);
+                SET(vz, 7.655192);
+                SET(Offset, 127.5 / 255 + 0.55);
+#undef SET
+                depthMapper = pgm;
+                glShowErrors();
+            }
+        }
+    }
+
+    int planes = stereoMode == stereoDEPTHMAP ? 1 : stereoPlanes;
+    for (stereoscopic = 1; stereoscopic <= planes; stereoscopic++)
     {
         // Select the buffer in which we draw
         if (stereoPlanes > 1)
@@ -381,6 +437,7 @@ void Widget::draw()
                 break;
             case stereoHSPLIT:
             case stereoVSPLIT:
+            case stereoDEPTHMAP:
                 glDrawBuffer(GL_BACK);
                 glDisable(GL_STENCIL_TEST);
                 break;
@@ -414,6 +471,23 @@ void Widget::draw()
             std::cerr << "Draw, count = " << space->count
                       << " buffer " << (int) stereoscopic << '\n';
 
+        if (stereoMode == stereoDEPTHMAP && depthMapper)
+        {
+            setup(w, h);
+            glViewport(w/2, 0, w/2, h);
+            id = idDepth = 0;
+            depthMapper->bind();
+            XL::Save<uint> setPgmId(Layout::globalProgramId,
+                                    depthMapper->programId());
+            glClearColor (0, 0, 0, 1);
+            glScissor(w/2, 0, w/2, h);
+            glEnable(GL_SCISSOR_TEST);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glDisable(GL_SCISSOR_TEST);
+            space->Draw(NULL);
+            glViewport(0, 0, w/2, h);
+            glUseProgram(0);
+        }
 
         // Show FPS as text overlay
         if (bShowStatistics)
@@ -431,7 +505,93 @@ void Widget::draw()
         glDisable(GL_DEPTH_TEST);
         for (Activity *a = activities; a; a = a->Display()) ;
         selectionSpace.Draw(NULL);
+        if (stereoMode == stereoDEPTHMAP && depthMapper)
+        {
+            glViewport(w/2, 0, w/2, h);
+            id = idDepth = 0;
+            depthMapper->bind();
+            XL::Save<uint> setPgmId(Layout::globalProgramId,
+                                    depthMapper->programId());
+            glScissor(w/2, 0, w/2, h);
+            glEnable(GL_SCISSOR_TEST);
+            selectionSpace.Draw(NULL);
+            glDisable(GL_SCISSOR_TEST);
+            glUseProgram(0);
+        }
         glEnable(GL_DEPTH_TEST);
+    }
+
+    // Generate depth map if necessary
+    if (stereoMode == stereoDEPTHMAP)
+    {
+        static uchar wowvxHeader[32] =
+        {
+            0xF1,               // Header ID
+            0x01,               // Digital signage
+            0x40,               // Depth factor
+            0x80,               // Offset (middle)
+            0x00,               // Offset and depth from type
+            0x00,               // Reserved
+            0xC4, 0x2D,         // CRC32 (slightly redundant, isn't it?
+            0xD3, 0xAF,
+
+            0xF2,               // Header 2
+            0x14, 0x00,         // 2D+Depth
+            0x00,               // Reserved
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x36, 0x95,         // CRC32
+            0x82, 0x21
+        };
+        static uchar wowvxBluePixels[32 * 8 * 2 * 2] = { 0 };
+        if (wowvxBluePixels[3] == 0)
+        {
+            // Pre-compute the pixels (silly encoding)
+            uchar *ptr = wowvxBluePixels;
+            for (uint row = 0; row < 32; row++)
+            {
+                uint byte = wowvxHeader[row];
+                for (uint bit = 0; bit < 8; bit++)
+                {
+                    uchar bluePx = ((byte << bit) & 0x80) ? 0xFF : 0x00;
+                    *ptr++ = bluePx;  // B
+                    *ptr++ = 0;       // B odd
+                }
+            }
+        }
+
+        // Draw the pixels on screen
+        glViewport(0, 0, w/2, h);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluOrtho2D(0, w/2, 0, h);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glDisable(GL_LIGHTING);
+        glDisable(GL_DEPTH_TEST);
+        glRasterPos2i(0, h-1);
+        glColor4f (1, 1, 1, 1);
+        glDrawPixels(32 * 8 * 2, 1, GL_BLUE, GL_UNSIGNED_BYTE, wowvxBluePixels);
+    }
+
+    // Motion blur
+    if (blurFactor > 0.0 && (stereoPlanes == 1 || stereoMode != stereoHARDWARE))
+    {
+        glAccum(GL_MULT, blurFactor);
+        glAccum(GL_ACCUM, 1.0 - blurFactor);
+        glAccum(GL_RETURN, 1.0);
     }
 
     // One more complete view rendered
@@ -444,13 +604,6 @@ void Widget::draw()
 
     // Clipboard management
     checkCopyAvailable();
-
-    // Update page count for next run
-    pageTotal = pageId ? pageId : 1;
-    if (pageFound)
-        pageShown = pageFound;
-    else
-        pageName = "";
 
     // If we must update dialogs, do it now
     if (mustUpdateDialogs)
@@ -701,6 +854,25 @@ void Widget::runProgram()
     currentToolBar = NULL;
     currentMenuBar = ((Window*)parent())->menuBar();
 
+    // Update page count for next run
+    pageNames = newPageNames;
+    pageTotal = pageId ? pageId : 1;
+    if (pageFound)
+        pageShown = pageFound;
+    else
+        pageName = "";
+
+    // Check if program asked to change page for the next run
+    if (gotoPageName != "")
+    {
+        pageName = gotoPageName;
+        frozenTime = pageStartTime = CurrentTime();
+        for (uint p = 0; p < pageNames.size(); p++)
+            if (pageNames[p] == gotoPageName)
+                pageShown = p + 1;
+        gotoPageName = "";
+    }
+
     processProgramEvents();
 }
 
@@ -837,23 +1009,27 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 
     TaoSave saveCurrent(current, this);
 
-    // Create a GL frame to render into
-    FrameInfo frame(w, h);
-
     // Set the initial time we want to set and freeze animations
-    XL::Save<bool> disableAnimations(animated, false);
     XL::Save<double> setPageTime(pageStartTime, start_time);
     XL::Save<double> setFrozenTime(frozenTime, start_time);
     XL::Save<double> saveStartTime(startTime, start_time);
 
-    scale s = qMin((double)w / width(), (double)h / height());
+    GLAllStateKeeper saveGL;
+    XL::Save<double> saveScaling(scaling, scaling);
+
+    offlineRenderingWidth = w;
+    offlineRenderingHeight = h;
 
     // Select page, if not current
     if (page != -1)
     {
+        offlineRenderingTime = start_time;
         runProgram();
         gotoPage(NULL, pageNameAtIndex(NULL, page));
     }
+
+    // Create a GL frame to render into
+    FrameInfo frame(w, h);
 
     // Render frames for the whole time range
     int currentFrame = 0, frameCount = (end_time - start_time) * fps;
@@ -866,21 +1042,20 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
             break;
         }
 
-        GLAllStateKeeper saveGL;
-        XL::Save<double> saveScaling(scaling, scaling * s);
-
         // Show progress information
         percent = 100*currentFrame++/frameCount;
         if (percent != prevPercent)
         {
             prevPercent = percent;
             emit renderFramesProgress(percent);
-            QApplication::processEvents();
         }
 
+        QApplication::processEvents();
+
         // Set time and run program
-        // REVISIT: use refreshNow() to avoid full program execution?
-        frozenTime = t;
+        XL::Save<page_list> savePageNames(pageNames, pageNames);
+        setupPage();
+        offlineRenderingTime = t;
         runProgram();
 
         // Draw the layout in the frame context
@@ -893,6 +1068,8 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         space->Draw(NULL);
         frame.end();
 
+        QApplication::processEvents();
+
         // Save frame to disk
         // Convert to .mov with: ffmpeg -i frame%d.png output.mov
         QString fileName = QString("%1/frame%2.png").arg(dir).arg(currentFrame);
@@ -900,6 +1077,8 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         image.save(fileName);
     }
 
+    // Done with offline rendering
+    offlineRenderingTime = -1;
     emit renderFramesDone();
     QApplication::processEvents();
 }
@@ -1484,6 +1663,9 @@ void Widget::resizeGL(int width, int height)
     if (stereoMode > stereoHARDWARE)
         setupStereoStencil(width, height);
 
+    glClearAccum(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_ACCUM_BUFFER_BIT);
+
     TaoSave saveCurrent(current, this);
     QEvent r(QEvent::Resize);
     refreshNow(&r);
@@ -1528,6 +1710,7 @@ void Widget::setup(double w, double h, const Box *picking)
         switch (stereoMode)
         {
         case stereoHSPLIT:
+        case stereoDEPTHMAP:
             vw /= 2;
             if (stereoscopic == 2)
                 vx = vw;
@@ -1561,6 +1744,18 @@ void Widget::setup(double w, double h, const Box *picking)
 
     // Setup the model-view matrix
     glMatrixMode(GL_MODELVIEW);
+    resetModelviewMatrix();
+
+    // Reset default GL parameters
+    setupGL();
+}
+
+
+void Widget::resetModelviewMatrix()
+// ----------------------------------------------------------------------------
+//   Reset the model-view matrix, used by reset_transform and setup
+// ----------------------------------------------------------------------------
+{
     glLoadIdentity();
 
     // Position the camera
@@ -1570,9 +1765,6 @@ void Widget::setup(double w, double h, const Box *picking)
     gluLookAt(eyeX, cameraPosition.y, cameraPosition.z,
               cameraTarget.x, cameraTarget.y ,cameraTarget.z,
               cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
-
-    // Reset default GL parameters
-    setupGL();
 }
 
 
@@ -1600,6 +1792,8 @@ void Widget::setupGL()
     glShadeModel(GL_SMOOTH);
     glDisable(GL_LIGHTING);
     glUseProgram(0);
+    glAlphaFunc(GL_GREATER, 0.01);
+    glEnable(GL_ALPHA_TEST);
 
     // Turn on sphere map automatic texture coordinate generation
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
@@ -1659,6 +1853,7 @@ void Widget::setupStereoStencil(double w, double h)
         case stereoHARDWARE:
         case stereoHSPLIT:
         case stereoVSPLIT:
+        case stereoDEPTHMAP:
             break;
         }
 
@@ -1695,6 +1890,7 @@ void Widget::setupStereoStencil(double w, double h)
                 case stereoHARDWARE:
                 case stereoHSPLIT:
                 case stereoVSPLIT:
+                case stereoDEPTHMAP:
                     break;
                 }
             }
@@ -3647,7 +3843,7 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
 
     // Increment pageId and build page list
     pageId++;
-    pageNames.push_back(name);
+    newPageNames.push_back(name);
 
     // If the page is set, then we display it
     if (printer && pageToPrint == pageId)
@@ -3703,10 +3899,14 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
 //   Directly go to the given page
 // ----------------------------------------------------------------------------
 {
-    lastMouseButtons = 0;
     text old = pageName;
-    pageName = page;
+    lastMouseButtons = 0;
+    selection.clear();
+    selectionTrees.clear();
+    delete textSelection();
+    delete drag();
     refreshNow();
+    gotoPageName = page;
     return new Text(old);
 }
 
@@ -3743,7 +3943,8 @@ XL::Text_p Widget::pageNameAtIndex(Tree_p self, uint index)
 //   Return the nth page
 // ----------------------------------------------------------------------------
 {
-    text name = index < pageNames.size() ? pageNames[index] : "<Invalid page>";
+    index--;
+    text name = index < pageNames.size() ? pageNames[index] : pageName;
     return new Text(name);
 }
 
@@ -3800,6 +4001,8 @@ XL::Real_p Widget::windowWidth(Tree_p self)
 {
     refreshOn(QEvent::Resize);
     double w = printer ? printer->paperRect().width() : width();
+    if (offlineRenderingTime != -1)
+        w = offlineRenderingWidth;
     return new Real(w);
 }
 
@@ -3811,7 +4014,156 @@ XL::Real_p Widget::windowHeight(Tree_p self)
 {
     refreshOn(QEvent::Resize);
     double h = printer ? printer->paperRect().height() : height();
+    if (offlineRenderingTime != -1)
+        h = offlineRenderingHeight;
     return new Real(h);
+}
+
+
+Integer_p Widget::seconds(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the second for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    int second = fmod(tm, 60);
+    if (t < 0)
+    {
+        double refresh = (double)(int)tm + 1.0;
+        refreshOn(QEvent::Timer, refresh);
+    }
+    return new XL::Integer(second);
+}
+
+
+Integer_p Widget::minutes(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the minute for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int minute = now.time().minute();
+    if (t < 0)
+    {
+        QTime t = now.time();
+        t = t.addMSecs(-t.msec());
+        t.setHMS(t.hour(), t.minute(), 0);
+        QDateTime next(now);
+        next.setTime(t);
+        next = next.addSecs(60);
+        double refresh = toSecsSinceEpoch(next);
+        refreshOn(QEvent::Timer, refresh);
+    }
+    return new XL::Integer(minute);
+}
+
+
+Integer_p Widget::hours(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the localtime hour for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int hour = now.time().hour();
+    if (t < 0)
+    {
+        QTime t = now.time();
+        t = t.addMSecs(-t.msec());
+        t.setHMS(t.hour(), 0, 0);
+        QDateTime next(now);
+        next.setTime(t);
+        next = next.addSecs(3600);
+        double refresh = toSecsSinceEpoch(next);
+        refreshOn(QEvent::Timer, refresh);
+    }
+    return new XL::Integer(hour);
+}
+
+
+Integer_p Widget::day(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the day (1-31) for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int day = now.date().day();
+    if (t < 0)
+    {
+        double refresh = nextDay(now);
+        refreshOn(QEvent::Timer, refresh);
+    }
+    return new XL::Integer(day);
+}
+
+
+Integer_p Widget::weekDay(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the week day (1-7) for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int day = now.date().dayOfWeek();
+    if (t < 0)
+    {
+        double refresh = nextDay(now);
+        refreshOn(QEvent::Timer, refresh);
+    }
+    return new XL::Integer(day);
+}
+
+
+Integer_p Widget::yearDay(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the year day (1-365) for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int day = now.date().dayOfYear();
+    if (t < 0)
+    {
+        double refresh = nextDay(now);
+        refreshOn(QEvent::Timer, refresh);
+    }
+    return new XL::Integer(day);
+}
+
+
+Integer_p Widget::month(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the month for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int month = now.date().month();
+    if (t < 0)
+    {
+        double refresh = nextDay(now);
+        refreshOn(QEvent::Timer, refresh);
+    }
+    return new XL::Integer(month);
+}
+
+
+Integer_p Widget::year(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the year for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int year = now.date().year();
+    if (t < 0)
+    {
+        double refresh = nextDay(now);
+        refreshOn(QEvent::Timer, refresh);
+    }
+    return new XL::Integer(year);
 }
 
 
@@ -4035,6 +4387,7 @@ Tree_p Widget::resetTransform(Tree_p self)
 //   Reset transform to original projection state
 // ----------------------------------------------------------------------------
 {
+    layout->hasMatrix = true;
     layout->Add(new ResetTransform());
     return XL::xl_false;
 }
@@ -4199,122 +4552,6 @@ Tree_p Widget::defaultRefresh(Tree_p self, double delay)
     double prev = dfltRefresh;
     dfltRefresh = delay;
     return new XL::Real(prev);
-}
-
-
-Integer_p Widget::seconds(Tree_p self)
-// ----------------------------------------------------------------------------
-//    Return the current second, schedule refresh on next second
-// ----------------------------------------------------------------------------
-{
-    double now = CurrentTime();
-    int second = fmod(now, 60);
-    double refresh = (double)(int)now + 1.0;
-    refreshOn(QEvent::Timer, refresh);
-    return new XL::Integer(second);
-}
-
-
-Integer_p Widget::minutes(Tree_p self)
-// ----------------------------------------------------------------------------
-//    Return the current minute, schedule refresh on next minute
-// ----------------------------------------------------------------------------
-{
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
-    int minute = now.time().minute();
-    QTime t = now.time();
-    t = t.addMSecs(-t.msec());
-    t.setHMS(t.hour(), t.minute(), 0);
-    QDateTime next(now);
-    next.setTime(t);
-    next = next.addSecs(60);
-    double refresh = toSecsSinceEpoch(next);
-    refreshOn(QEvent::Timer, refresh);
-    return new XL::Integer(minute);
-}
-
-
-Integer_p Widget::hours(Tree_p self)
-// ----------------------------------------------------------------------------
-//    Return the current hour, schedule refresh on next hour
-// ----------------------------------------------------------------------------
-{
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
-    int hour = now.time().hour();
-    QTime t = now.time();
-    t = t.addMSecs(-t.msec());
-    t.setHMS(t.hour(), 0, 0);
-    QDateTime next(now);
-    next.setTime(t);
-    next = next.addSecs(3600);
-    double refresh = toSecsSinceEpoch(next);
-    refreshOn(QEvent::Timer, refresh);
-    return new XL::Integer(hour);
-}
-
-
-Integer_p Widget::day(Tree_p self)
-// ----------------------------------------------------------------------------
-//    Return the current day, schedule refresh on next day
-// ----------------------------------------------------------------------------
-{
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
-    int day = now.date().day();
-    double refresh = nextDay(now);
-    refreshOn(QEvent::Timer, refresh);
-    return new XL::Integer(day);
-}
-
-
-Integer_p Widget::weekDay(Tree_p self)
-// ----------------------------------------------------------------------------
-//    Return the current week day, schedule refresh on next day
-// ----------------------------------------------------------------------------
-{
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
-    int day = now.date().dayOfWeek();
-    double refresh = nextDay(now);
-    refreshOn(QEvent::Timer, refresh);
-    return new XL::Integer(day);
-}
-
-
-Integer_p Widget::yearDay(Tree_p self)
-// ----------------------------------------------------------------------------
-//    Return the current week day, schedule refresh on next day
-// ----------------------------------------------------------------------------
-{
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
-    int day = now.date().dayOfYear();
-    double refresh = nextDay(now);
-    refreshOn(QEvent::Timer, refresh);
-    return new XL::Integer(day);
-}
-
-
-Integer_p Widget::month(Tree_p self)
-// ----------------------------------------------------------------------------
-//    Return the current month, schedule refresh on next day
-// ----------------------------------------------------------------------------
-{
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
-    int month = now.date().month();
-    double refresh = nextDay(now);
-    refreshOn(QEvent::Timer, refresh);
-    return new XL::Integer(month);
-}
-
-
-Integer_p Widget::year(Tree_p self)
-// ----------------------------------------------------------------------------
-//    Return the current year, schedule refresh on next day
-// ----------------------------------------------------------------------------
-{
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
-    int year = now.date().year();
-    double refresh = nextDay(now);
-    refreshOn(QEvent::Timer, refresh);
-    return new XL::Integer(year);
 }
 
 
@@ -4716,6 +4953,12 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
         stereoMode = stereoALIOSCOPY;
         stereoPlanes = 8;
     }
+    else if (name->value == "depthmap" || name->value == "philips")
+    {
+        newState = true;
+        stereoMode = stereoDEPTHMAP;
+        stereoPlanes = 1;
+    }
     else
     {
         std::cerr << "Stereoscopy mode " << name->value << " is unknown\n";
@@ -4818,6 +5061,17 @@ Tree_p Widget::clearColor(Tree_p self, double r, double g, double b, double a)
     CHECK_0_1_RANGE(a);
 
     clearCol.setRgbF(r, g, b, a);
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::motionBlur(Tree_p self, double f)
+// ----------------------------------------------------------------------------
+//    Set the RGB clear (background) color
+// ----------------------------------------------------------------------------
+{
+    CHECK_0_1_RANGE(f);
+    blurFactor = f;
     return XL::xl_true;
 }
 
@@ -5327,8 +5581,12 @@ Tree_p Widget::shaderFromFile(Tree_p self, ShaderKind kind, text file)
         return XL::xl_false;
     }
 
+    QString savePath = QDir::currentPath();
+    Window *window = (Window *) parentWidget();
+    QDir::setCurrent(window->currentProjectFolderPath());
     bool ok = currentShaderProgram->addShaderFromSourceFile(ShaderType(kind),
                                                             +file);
+    QDir::setCurrent(savePath);
     return ok ? XL::xl_true : XL::xl_false;
 }
 
@@ -6453,13 +6711,7 @@ XL::Name_p Widget::textEditKey(Tree_p self, text key)
     // Check if we are changing pages here...
     if (pageLinks.count(key))
     {
-        pageName = pageLinks[key];
-        selection.clear();
-        selectionTrees.clear();
-        delete textSelection();
-        delete drag();
-        pageStartTime = startTime = frozenTime = CurrentTime();
-        refreshNow(NULL);
+        gotoPage(self, pageLinks[key]);
         return XL::xl_true;
     }
 
@@ -6864,7 +7116,8 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
 }
 
 
-Tree_p Widget::thumbnail(Context *context, Tree_p self, scale s, text page)
+Tree_p Widget::thumbnail(Context *context, Tree_p self, scale s,
+                         double interval, text page)
 // ----------------------------------------------------------------------------
 //   Generate a texture with a page thumbnail of the given page
 // ----------------------------------------------------------------------------
@@ -6885,7 +7138,7 @@ Tree_p Widget::thumbnail(Context *context, Tree_p self, scale s, text page)
     }
     FrameInfo &frame = multiframe->frame(page);
 
-    do
+    if (frame.refreshTime < CurrentTime())
     {
         GLAllStateKeeper saveGL;
         XL::Save<Layout *> saveLayout(layout,layout->NewChild());
@@ -6923,7 +7176,10 @@ Tree_p Widget::thumbnail(Context *context, Tree_p self, scale s, text page)
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
         layout = NULL;
-    } while (0); // State keeper and layout
+
+        // Update refresh time
+        frame.refreshTime = CurrentTime() + interval;
+    }
 
     // Bind the resulting texture
     GLuint tex = frame.bind();
@@ -6931,6 +7187,15 @@ Tree_p Widget::thumbnail(Context *context, Tree_p self, scale s, text page)
     layout->hasAttributes = true;
 
     return XL::xl_true;
+}
+
+
+Name_p Widget::offlineRendering(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return true if we are currently rendering offline
+// ----------------------------------------------------------------------------
+{
+    return (offlineRenderingTime == -1) ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -7878,12 +8143,16 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
 {
     if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
     {
+        int pnum = 1;
         page_list::iterator p;
         for (p = pageNames.begin(); p != pageNames.end(); p++)
         {
             text name = *p;
             Tree *action = new Prefix(prefix, new Text(name));
-            chooser->AddItem(label + name, action);
+            std::ostringstream os;
+            os << label << pnum++ << " " << name;
+            std::string txt(os.str());
+            chooser->AddItem(txt, action);
         }
         return XL::xl_true;
     }

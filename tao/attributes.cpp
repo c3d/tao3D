@@ -84,7 +84,6 @@ void LineColor::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     where->lineColor = color;
-    glDisable(GL_LIGHTING);
 }
 
 
@@ -94,7 +93,6 @@ void FillColor::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     where->fillColor = color;
-    glDisable(GL_LIGHTING);
 }
 
 
@@ -290,7 +288,7 @@ void RecordMouseCoordinates::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = where->Display();
-    if (widget->hasStereoscopy() < 2)
+    if (widget->stereoPlane() == 1)
     {
         widget->recordProjection();
         Point3 pos = widget->unprojectLastMouse();

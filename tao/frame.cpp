@@ -32,7 +32,7 @@ FrameInfo::FrameInfo(uint w, uint h)
 // ----------------------------------------------------------------------------
 //   Create the required frame buffer objects
 // ----------------------------------------------------------------------------
-    : w(w), h(h)
+    : w(w), h(h), refreshTime(-1)
 {
     resize(w, h);
 }
@@ -42,7 +42,7 @@ FrameInfo::FrameInfo(const FrameInfo &o)
 // ----------------------------------------------------------------------------
 //   Copy constructor - Don't copy the framebuffers
 // ----------------------------------------------------------------------------
-    : XL::Info(o), w(o.w), h(o.h)
+    : XL::Info(o), w(o.w), h(o.h), refreshTime(o.refreshTime)
 {
     resize(w, h);
 }

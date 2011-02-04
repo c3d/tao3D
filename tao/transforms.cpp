@@ -67,9 +67,9 @@ void ResetTransform::Draw(Layout *where)
 //   Reset the transformation matrix and other parameters
 // ----------------------------------------------------------------------------
 {
-    glLoadIdentity();
+    Widget *widget = where->Display();
+    widget->resetModelviewMatrix();
     where->hasPixelBlur = false;
-    where->hasMatrix = false;
     where->has3D = false;
 }
 

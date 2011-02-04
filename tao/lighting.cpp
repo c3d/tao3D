@@ -40,6 +40,9 @@ void LightId::Draw(Layout *where)
     {
         glEnable(where->lightId);
         glEnable(GL_LIGHTING);
+        glEnable(GL_COLOR_MATERIAL);
+        glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+        glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
     }
     else
     {
@@ -72,8 +75,11 @@ void ShaderProgram::Draw(Layout *where)
 //   Activate the given shader program
 // ----------------------------------------------------------------------------
 {
-    program->bind();
-    where->programId = program->programId();
+    if (!where->globalProgramId)
+    {
+        program->bind();
+        where->programId = program->programId();
+    }
 }
 
 

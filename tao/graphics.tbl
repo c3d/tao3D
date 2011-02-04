@@ -75,7 +75,15 @@ PREFIX(PageCount,    integer,   "page_count", , RTAO(pageCount(self)),
        GROUP(page)
        SYNOPSIS("The number of page.")
        DESCRIPTION("Return the number of pages in the current document")
-       RETURNS(integer, "Return the number of pages in the current document"))
+       RETURNS(integer, "The number of pages in the current document"))
+PREFIX(PageName,    text,   "page_name",
+       PARM(n, integer, "Index of page, starting at 0"), 
+       RTAO(pageNameAtIndex(self, n)),
+       GROUP(page)
+       SYNOPSIS("The name of the nth page.")
+       DESCRIPTION("Return the name of a page given its index")
+       RETURNS(text, "The name of the nth page"))
+
 PREFIX(PageWidth,    real,      "page_width", , RTAO(pageWidth(self)),
        GROUP(page)
        SYNOPSIS("Return the width of pages")
@@ -94,6 +102,13 @@ PREFIX(PagePrintTime,  real,  "page_print_time",
        SYNOPSIS("Set the freeze time used when printing.")
        DESCRIPTION("Set the time used when printing pages")
        RETURNS(real, "Previous time used for printing"))
+PREFIX(PageThumbnail, tree, "page_thumbnail",
+       PARM(s, real, "Scaling of the thumbnail")
+       PARM(i, real, "Refresh interval")
+       PARM(p, text, "Page name"),
+       RTAO(thumbnail(context, self, s, i, p)),
+       GROUP(page)
+       SYNOPSIS("Generate a page thumbnail as a texture"))
 
 PREFIX(FrameWidth,   real,      "frame_width", , RTAO(frameWidth(self)),
        GROUP(frame)
@@ -634,6 +649,11 @@ PREFIX(ClearColor,  tree,  "clear_color",
        GROUP()
        SYNOPSIS("Set the background color")
        DESCRIPTION("Set the background color"))
+PREFIX(MotionBlur, tree, "motion_blur",
+       PARM(f, real, "Amount of blur, between 0 and 1"),
+       RTAO(motionBlur(self, f)),
+       GROUP(page)
+       SYNOPSIS("Set the motion blur factor"))       
 PREFIX(LineColorName,  tree,  "line_color",
        PARM(n, text, "The name of the color, which can be one of the SVG color keywork names, or in one of these formats: #RGB or #RRGGBB  (each of R, G, and B being a single hex digit).")
        PARM(a, real, "The red component of an color, is in the range 0.0 to 1.0."),

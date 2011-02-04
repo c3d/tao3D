@@ -118,6 +118,7 @@ static inline QGLFormat TaoGLFormat()
          QGL::StencilBuffer     |
          QGL::SampleBuffers     |
          QGL::AlphaChannel      |
+         QGL::AccumBuffer       |
          QGL::StereoBuffers);
     QGLFormat format(options);
     return format;
@@ -132,6 +133,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
       runOnNextDraw(true), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), path(NULL), table(NULL),
+      pageW(21), pageH(29.7), blurFactor(0.0),
       pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
       pageTree(NULL),
@@ -317,7 +319,7 @@ void Widget::setupPage()
     pageFound = 0;
     pageTree = NULL;
     lastPageName = "";
-    pageNames.clear();
+    newPageNames.clear();
     Layout::polygonOffset = 0;
 }
 
@@ -334,7 +336,8 @@ void Widget::draw()
     TaoSave saveCurrent(current, this);
 
     // Setup the initial drawing environment
-    double w = width(), h = height();
+    uint w = width(), h = height();
+    setupPage();
 
     // Clean text selection
     TextSelect *sel = textSelection();
@@ -358,13 +361,62 @@ void Widget::draw()
     glClearColor (r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (stereoscopic = 1; stereoscopic <= stereoPlanes; stereoscopic++)
+    // Generate depth map if necessary
+    static QGLShaderProgram *depthMapper = NULL;
+    if (stereoMode == stereoDEPTHMAP)
+    {
+        static char shaderSource[] =
+            "uniform float Multiplier;"
+            "uniform float Zd;"
+            "uniform float vz;"
+            "uniform float Offset;"
+            "uniform sampler2D tex;"
+
+            "void main(void)"
+            "{"
+            "vec2 texCoord = gl_TexCoord[0].st;"
+            "vec4 fragColor = gl_Color * texture2D(tex, texCoord);"
+            "if (fragColor.a <= 0.01)"
+            "    discard;"
+            "float Z = gl_FragCoord.z;"
+            "float disparity = Multiplier * (1.0- vz/(Z-Zd+vz))+Offset;"
+            "gl_FragColor = vec4(disparity, disparity, disparity, 1.0);"
+            "}";
+        
+        if (!depthMapper)
+        {
+            QGLShaderProgram *pgm = new QGLShaderProgram();
+            if (pgm->addShaderFromSourceCode(QGLShader::Fragment, shaderSource))
+            {
+                GLuint programId = pgm->programId();
+#define SET(x, value)                                                   \
+                do                                                      \
+                {                                                       \
+                    float x = value;                                    \
+                    GLint uid = glGetUniformLocation(programId, #x);    \
+                    glUniform1fv(uid, 1, &x);                           \
+                } while(0)
+                pgm->bind();
+                SET(Multiplier, -1.55 * 1960.37 / 255);
+                SET(Zd, 0.467481);
+                SET(vz, 7.655192);
+                SET(Offset, 127.5 / 255 + 0.55);
+#undef SET
+                depthMapper = pgm;
+                glShowErrors();
+            }
+        }
+    }
+
+    int planes = stereoMode == stereoDEPTHMAP ? 1 : stereoPlanes;
+    for (stereoscopic = 1; stereoscopic <= planes; stereoscopic++)
     {
         // Select the buffer in which we draw
         if (stereoPlanes > 1)
         {
-            if (stereoMode == stereoHARDWARE)
+            switch (stereoMode)
             {
+            case stereoHARDWARE:
                 if (stereoscopic == 1)
                     glDrawBuffer(GL_BACK_LEFT);
                 else if (stereoscopic == 2)
@@ -372,12 +424,18 @@ void Widget::draw()
                 glClearColor(r, g, b, a);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glDisable(GL_STENCIL_TEST);
-            }
-            else
-            {
+                break;
+            case stereoHSPLIT:
+            case stereoVSPLIT:
+            case stereoDEPTHMAP:
+                glDrawBuffer(GL_BACK);
+                glDisable(GL_STENCIL_TEST);
+                break;
+            default:
                 glStencilFunc(GL_EQUAL, stereoscopic, 63);
                 glEnable(GL_STENCIL_TEST);
                 glDrawBuffer(GL_BACK);
+                break;
             }
         }
         else
@@ -403,6 +461,24 @@ void Widget::draw()
             std::cerr << "Draw, count = " << space->count
                       << " buffer " << (int) stereoscopic << '\n';
 
+        if (stereoMode == stereoDEPTHMAP && depthMapper)
+        {
+            setup(w, h);
+            glViewport(w/2, 0, w/2, h);
+            id = idDepth = 0;
+            depthMapper->bind();
+            XL::Save<uint> setPgmId(Layout::globalProgramId,
+                                    depthMapper->programId());
+            glClearColor (0, 0, 0, 1);
+            glScissor(w/2, 0, w/2, h);
+            glEnable(GL_SCISSOR_TEST);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glDisable(GL_SCISSOR_TEST);
+            space->Draw(NULL);
+            glViewport(0, 0, w/2, h);
+            glUseProgram(0);
+        }
+
         id = idDepth = 0;
         selectionTrees.clear();
         space->offset.Set(0,0,0);
@@ -415,8 +491,96 @@ void Widget::draw()
         glDisable(GL_DEPTH_TEST);
         for (Activity *a = activities; a; a = a->Display()) ;
         selectionSpace.Draw(NULL);
+        if (stereoMode == stereoDEPTHMAP && depthMapper)
+        {
+            glViewport(w/2, 0, w/2, h);
+            id = idDepth = 0;
+            depthMapper->bind();
+            XL::Save<uint> setPgmId(Layout::globalProgramId,
+                                         depthMapper->programId());
+            glScissor(w/2, 0, w/2, h);
+            glEnable(GL_SCISSOR_TEST);
+            selectionSpace.Draw(NULL);
+            glDisable(GL_SCISSOR_TEST);
+            glUseProgram(0);
+        }
         glEnable(GL_DEPTH_TEST);
     }
+
+    // Generate depth map if necessary
+    if (stereoMode == stereoDEPTHMAP)
+    {
+        static uchar wowvxHeader[32] =
+        {
+            0xF1,               // Header ID
+            0x01,               // Digital signage
+            0x40,               // Depth factor
+            0x80,               // Offset (middle)
+            0x00,               // Offset and depth from type
+            0x00,               // Reserved
+            0xC4, 0x2D,         // CRC32 (slightly redundant, isn't it?
+            0xD3, 0xAF,
+
+            0xF2,               // Header 2
+            0x14, 0x00,         // 2D+Depth
+            0x00,               // Reserved
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x36, 0x95,         // CRC32
+            0x82, 0x21
+        };
+        static uchar wowvxBluePixels[32 * 8 * 2 * 2] = { 0 };
+        if (wowvxBluePixels[3] == 0)
+        {
+            // Pre-compute the pixels (silly encoding)
+            uchar *ptr = wowvxBluePixels;
+            for (uint row = 0; row < 32; row++)
+            {
+                uint byte = wowvxHeader[row];
+                for (uint bit = 0; bit < 8; bit++)
+                {
+                    uchar bluePx = ((byte << bit) & 0x80) ? 0xFF : 0x00;
+                    *ptr++ = bluePx;  // B
+                    *ptr++ = 0;       // B odd
+                }
+            }
+        }
+
+        // Draw the pixels on screen
+        glViewport(0, 0, w/2, h);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluOrtho2D(0, w/2, 0, h);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glDisable(GL_LIGHTING);
+        glDisable(GL_DEPTH_TEST);
+        glRasterPos2i(0, h-1);
+        glColor4f (1, 1, 1, 1);
+        glDrawPixels(32 * 8 * 2, 1, GL_BLUE, GL_UNSIGNED_BYTE, wowvxBluePixels);
+    }
+
+    // Motion blur
+    if (blurFactor > 0.0 && (stereoPlanes == 1 || stereoMode != stereoHARDWARE))
+    {
+        glAccum(GL_MULT, blurFactor);
+        glAccum(GL_ACCUM, 1.0 - blurFactor);
+        glAccum(GL_RETURN, 1.0);
+    }
+
+
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -426,6 +590,7 @@ void Widget::draw()
     checkCopyAvailable();
 
     // Update page count for next run
+    pageNames = newPageNames;
     pageTotal = pageId ? pageId : 1;
     if (pageFound)
         pageShown = pageFound;
@@ -1390,6 +1555,8 @@ void Widget::resizeGL(int width, int height)
     TaoSave saveCurrent(current, this);
     QEvent r(QEvent::Resize);
     refreshNow(&r);
+    glClearAccum(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_ACCUM_BUFFER_BIT);
 }
 
 
@@ -1424,7 +1591,27 @@ void Widget::setup(double w, double h, const Box *picking)
 {
     // Setup viewport
     uint s = printer && picking ? printOverscaling : 1;
-    glViewport(0, 0, w * s, h * s);
+    GLint vx = 0, vy = 0, vw = w * s, vh = h * s;
+
+    if (stereoPlanes > 1)
+    {
+        switch (stereoMode)
+        {
+        case stereoHSPLIT:
+        case stereoDEPTHMAP:
+            vw /= 2;
+            if (stereoscopic == 2)
+                vx = vw;
+            break;
+        case stereoVSPLIT:
+            vh /= 2;
+            if (stereoscopic == 2)
+                vy = vh;
+        default:
+            break;
+        }
+    }
+    glViewport(vx, vy, vw, vh);
 
     // Setup the projection matrix
     glMatrixMode(GL_PROJECTION);
@@ -1445,6 +1632,18 @@ void Widget::setup(double w, double h, const Box *picking)
 
     // Setup the model-view matrix
     glMatrixMode(GL_MODELVIEW);
+    resetModelviewMatrix();
+
+    // Reset default GL parameters
+    setupGL();
+}
+
+
+void Widget::resetModelviewMatrix()
+// ----------------------------------------------------------------------------
+//   Reset the model-view matrix, used by reset_transform and setup
+// ----------------------------------------------------------------------------
+{
     glLoadIdentity();
 
     // Position the camera
@@ -1454,9 +1653,6 @@ void Widget::setup(double w, double h, const Box *picking)
     gluLookAt(eyeX, cameraPosition.y, cameraPosition.z,
               cameraTarget.x, cameraTarget.y ,cameraTarget.z,
               cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
-
-    // Reset default GL parameters
-    setupGL();
 }
 
 
@@ -1484,6 +1680,8 @@ void Widget::setupGL()
     glShadeModel(GL_SMOOTH);
     glDisable(GL_LIGHTING);
     glUseProgram(0);
+    glAlphaFunc(GL_GREATER, 0.01);
+    glEnable(GL_ALPHA_TEST);
 
     // Turn on sphere map automatic texture coordinate generation
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
@@ -1499,7 +1697,7 @@ void Widget::setupStereoStencil(double w, double h)
 //   For interlaced output, generate a stencil with every other line
 // ----------------------------------------------------------------------------
 {
-    if (stereoMode > stereoHARDWARE)
+    if (stereoMode >= stereoHORIZONTAL)
     {
         // Setup the initial viewport and projection for drawing in stencil
         glViewport(0, 0, w, h);
@@ -1541,6 +1739,9 @@ void Widget::setupStereoStencil(double w, double h)
             numLines = 3 * (w + h);
             break;
         case stereoHARDWARE:
+        case stereoHSPLIT:
+        case stereoVSPLIT:
+        case stereoDEPTHMAP:
             break;
         }
 
@@ -1575,6 +1776,9 @@ void Widget::setupStereoStencil(double w, double h)
                     glVertex2f (x/3.0, 0);
                     break;
                 case stereoHARDWARE:
+                case stereoHSPLIT:
+                case stereoVSPLIT:
+                case stereoDEPTHMAP:
                     break;
                 }
             }
@@ -3531,7 +3735,7 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
 
     // Increment pageId and build page list
     pageId++;
-    pageNames.push_back(name);
+    newPageNames.push_back(name);
 
     // If the page is set, then we display it
     if (printer && pageToPrint == pageId)
@@ -3588,8 +3792,16 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
 // ----------------------------------------------------------------------------
 {
     text old = pageName;
+
+    lastMouseButtons = 0;
+    selection.clear();
+    selectionTrees.clear();
+    delete textSelection();
+    delete drag();
+    pageStartTime = startTime = frozenTime = CurrentTime();
     pageName = page;
     refreshNow();
+
     return new Text(old);
 }
 
@@ -3618,6 +3830,17 @@ XL::Integer_p Widget::pageCount(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     return new Integer(pageTotal ? pageTotal : 1);
+}
+
+
+XL::Text_p Widget::pageNameAtIndex(Tree_p self, uint index)
+// ----------------------------------------------------------------------------
+//   Return the nth page
+// ----------------------------------------------------------------------------
+{
+    index--;
+    text name = index < pageNames.size() ? pageNames[index] : pageName;
+    return new Text(name);
 }
 
 
@@ -3908,6 +4131,7 @@ Tree_p Widget::resetTransform(Tree_p self)
 //   Reset transform to original projection state
 // ----------------------------------------------------------------------------
 {
+    layout->hasMatrix = true;
     layout->Add(new ResetTransform());
     return XL::xl_false;
 }
@@ -4530,6 +4754,16 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
         newState = true;
         stereoMode = stereoHARDWARE;
     }
+    else if (name->value == "hsplit")
+    {
+        newState = true;
+        stereoMode = stereoHSPLIT;
+    }
+    else if (name->value == "vsplit")
+    {
+        newState = true;
+        stereoMode = stereoVSPLIT;
+    }
     else if (name->value == "interlace" || name->value == "interlaced" ||
              name->value == "interleave" || name->value == "interleaved")
     {
@@ -4556,6 +4790,12 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
         newState = true;
         stereoMode = stereoALIOSCOPY;
         stereoPlanes = 8;
+    }
+    else if (name->value == "depthmap" || name->value == "philips")
+    {
+        newState = true;
+        stereoMode = stereoDEPTHMAP;
+        stereoPlanes = 1;
     }
     else
     {
@@ -4659,6 +4899,17 @@ Tree_p Widget::clearColor(Tree_p self, double r, double g, double b, double a)
     CHECK_0_1_RANGE(a);
 
     clearCol.setRgbF(r, g, b, a);
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::motionBlur(Tree_p self, double f)
+// ----------------------------------------------------------------------------
+//    Set the RGB clear (background) color
+// ----------------------------------------------------------------------------
+{
+    CHECK_0_1_RANGE(f);
+    blurFactor = f;
     return XL::xl_true;
 }
 
@@ -5154,8 +5405,12 @@ Tree_p Widget::shaderFromFile(Tree_p self, ShaderKind kind, text file)
         return XL::xl_false;
     }
 
+    QString savePath = QDir::currentPath();
+    Window *window = (Window *) parentWidget();
+    QDir::setCurrent(window->currentProjectFolderPath());
     bool ok = currentShaderProgram->addShaderFromSourceFile(ShaderType(kind),
                                                             +file);
+    QDir::setCurrent(savePath);
     return ok ? XL::xl_true : XL::xl_false;
 }
 
@@ -6280,13 +6535,7 @@ XL::Name_p Widget::textEditKey(Tree_p self, text key)
     // Check if we are changing pages here...
     if (pageLinks.count(key))
     {
-        pageName = pageLinks[key];
-        selection.clear();
-        selectionTrees.clear();
-        delete textSelection();
-        delete drag();
-        pageStartTime = startTime = frozenTime = CurrentTime();
-        refreshNow(NULL);
+        gotoPage(self, pageLinks[key]);
         return XL::xl_true;
     }
 
@@ -6641,17 +6890,19 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
 {
+    Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
     // Get or build the current frame if we don't have one
-    FrameInfo *frame = self->GetInfo<FrameInfo>();
-    Tree_p result = XL::xl_false;
-    if (!frame)
+    MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
+    if (!multiframe)
     {
-        frame = new FrameInfo(w,h);
-        self->SetInfo<FrameInfo> (frame);
+        multiframe = new MultiFrameInfo<uint>();
+        self->SetInfo< MultiFrameInfo<uint> > (multiframe);
     }
+    uint id = selectionId();
+    FrameInfo &frame = multiframe->frame(id);
 
     do
     {
@@ -6666,14 +6917,14 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
         XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
 
         // Clear the background and setup initial state
-        frame->resize(w,h);
+        frame.resize(w,h);
         setup(w, h);
         result = context->Evaluate(prog);
 
         // Draw the layout in the frame context
-        frame->begin();
+        frame.begin();
         layout->Draw(NULL);
-        frame->end();
+        frame.end();
 
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
@@ -6681,11 +6932,85 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
     } while (0); // State keeper and layout
 
     // Bind the resulting texture
-    GLuint tex = frame->bind();
+    GLuint tex = frame.bind();
     layout->Add(new FillTexture(tex));
     layout->hasAttributes = true;
 
     return result;
+}
+
+
+Tree_p Widget::thumbnail(Context *context,
+                         Tree_p self, scale s, double interval, text page)
+// ----------------------------------------------------------------------------
+//   Generate a texture with a page thumbnail of the given page
+// ----------------------------------------------------------------------------
+{
+    // Prohibit recursion on thumbnails
+    if (page == pageName)
+        return XL::xl_false;
+
+    double w = width() * s;
+    double h = height() * s;
+
+    // Get or build the current frame if we don't have one
+    MultiFrameInfo<text> *multiframe = self->GetInfo< MultiFrameInfo<text> >();
+    if (!multiframe)
+    {
+        multiframe = new MultiFrameInfo<text>();
+        self->SetInfo< MultiFrameInfo<text> > (multiframe);
+    }
+    FrameInfo &frame = multiframe->frame(page);
+
+    if (frame.refreshTime < CurrentTime())
+    {
+        GLAllStateKeeper saveGL;
+        XL::Save<Layout *> saveLayout(layout,layout->NewChild());
+        XL::Save<Point3> saveCenter(cameraTarget, cameraTarget);
+        XL::Save<Point3> saveEye(cameraPosition, cameraPosition);
+        XL::Save<Vector3> saveUp(cameraUpVector, cameraUpVector);
+        XL::Save<char> saveStereo1(stereoPlanes, 1);
+        XL::Save<char> saveStereo2(stereoscopic, 1);
+        XL::Save<double> saveZoom(zoom, zoom);
+        XL::Save<double> saveScaling(scaling, scaling * s);
+        XL::Save<text> savePage(pageName, page);
+        XL::Save<text> saveLastPage(lastPageName, page);
+        XL::Save<page_map> saveLinks(pageLinks, pageLinks);
+        XL::Save<page_list> saveList(pageNames, pageNames);
+        XL::Save<uint> savePageId(pageId, 0);
+        XL::Save<uint> savePageFound(pageFound, 0);
+        XL::Save<uint> savePageShown(pageShown, pageShown);
+        XL::Save<uint> savePageTotal(pageShown, pageTotal);
+        XL::Save<Tree_p> savePageTree(pageTree, pageTree);
+
+        // Clear the background and setup initial state
+        frame.resize(w,h);
+        setup(w, h);
+
+        // Evaluate the program
+        XL::MAIN->EvaluateContextFiles(((Window*)parent())->contextFileNames);
+        if (Tree *prog = xlProgram->tree)
+            xl_evaluate(context, prog);
+
+        // Draw the layout in the frame context
+        frame.begin();
+        layout->Draw(NULL);
+        frame.end();
+
+        // Delete the layout (it's not a child of the outer layout)
+        delete layout;
+        layout = NULL;
+
+        // Update refresh time
+        frame.refreshTime = fmod(CurrentTime() + interval, 86400.0);
+    }
+
+    // Bind the resulting texture
+    GLuint tex = frame.bind();
+    layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
+
+    return XL::xl_true;
 }
 
 

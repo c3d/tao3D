@@ -69,7 +69,10 @@ bool Shape::setTexture(Layout *where)
     {
         glDisable(GL_TEXTURE_2D);
     }
-    glUseProgram(where->programId);
+    if (where->globalProgramId)
+        glUseProgram(where->globalProgramId);
+    else
+        glUseProgram(where->programId);
 
     return where->fillTexture ? true : false;
 }

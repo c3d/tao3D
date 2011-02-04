@@ -23,9 +23,13 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include <QWidget>
 #include <QSplashScreen>
 
+class QLabel;
+
 namespace Tao {
+
 
 class SplashScreen : public QSplashScreen
 // ----------------------------------------------------------------------------
@@ -36,17 +40,23 @@ class SplashScreen : public QSplashScreen
 
 public:
     SplashScreen(Qt::WindowFlags flags = 0);
-    virtual void mousePressEvent(QMouseEvent *event);
 
 public slots:
     virtual void showMessage(const QString &message,
                              int alignment = Qt::AlignBottom,
                              const QColor &color = QColor(255, 255, 255));
 
+protected slots:
+    void         openUrl(QString url);
+
 protected:
+    virtual void mousePressEvent(QMouseEvent *event);
     virtual void drawContents(QPainter *painter);
+    virtual bool event(QEvent *e);
 
     QString      message;
+    QLabel *     label;
+    bool         mbPressed, urlClicked;
 
 signals:
     void dismissed();

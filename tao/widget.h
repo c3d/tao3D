@@ -89,6 +89,7 @@ public:
     typedef std::vector<double>         attribute_args;
     typedef std::map<GLuint, uint>      selection_map;
     enum StereoMode { stereoHARDWARE,
+                      stereoHSPLIT, stereoVSPLIT, stereoDEPTHMAP,
                       stereoHORIZONTAL, stereoVERTICAL,
                       stereoDIAGONAL, stereoANTI_DIAGONAL,
                       stereoALIOSCOPY };
@@ -140,6 +141,7 @@ public:
     void        resizeGL(int width, int height);
     void        paintGL();
     void        setup(double w, double h, const Box *picking = NULL);
+    void        resetModelviewMatrix();
     void        setupGL();
     void        setupPage();
     void        setupStereoStencil(double w, double h);
@@ -199,6 +201,7 @@ public:
     bool        timerIsActive()         { return timer.isActive(); }
     bool        hasAnimations(void)     { return animated; }
     char        hasStereoscopy(void)    { return stereoPlanes > 1; }
+    char        stereoPlane(void)       { return stereoscopic; }
     StereoMode  currentStereoMode(void) { return stereoMode; }
 
 
@@ -271,6 +274,7 @@ public:
     Text_p      pageLabel(Tree_p self);
     Integer_p   pageNumber(Tree_p self);
     Integer_p   pageCount(Tree_p self);
+    Text_p      pageNameAtIndex(Tree_p self, uint index);
     Real_p      pageWidth(Tree_p self);
     Real_p      pageHeight(Tree_p self);
     Real_p      frameWidth(Tree_p self);
@@ -358,6 +362,7 @@ public:
 
     // Graphic attributes
     Tree_p      clearColor(Tree_p self, double r, double g, double b, double a);
+    Tree_p      motionBlur(Tree_p self, double f);
     Tree_p      lineColorName(Tree_p self, text name, double a);
     Tree_p      lineColorRgb(Tree_p self, double r, double g, double b, double a);
     Tree_p      lineColorHsl(Tree_p self, double h, double s, double l, double a);
@@ -532,6 +537,7 @@ public:
                            Tree_p prog);
     Tree_p      frameTexture(Context *context, Tree_p self,
                              double w, double h, Tree_p prog);
+    Tree_p      thumbnail(Context *, Tree_p self, scale s, double i, text page);
 
     Tree_p      urlPaint(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                          text_p s, integer_p p);
@@ -690,7 +696,7 @@ private:
     typedef XL::Save<Widget *>               TaoSave;
     typedef std::map<text, PageLayout*>      flow_map;
     typedef std::map<text, text>             page_map;
-    typedef std::list<text>                  page_list;
+    typedef std::vector<text>                page_list;
     typedef std::map<GLuint, Tree_p>         perId_action_map;
     typedef std::map<text, perId_action_map> action_map;
     typedef std::map<Tree_p, GLuint>         GLid_map;
@@ -709,12 +715,12 @@ private:
     Layout *              layout;
     GraphicPath *         path;
     Table *               table;
-    scale                 pageW, pageH;
+    scale                 pageW, pageH, blurFactor;
     text                  flowName;
     flow_map              flows;
     text                  pageName, lastPageName;
     page_map              pageLinks;
-    page_list             pageNames;
+    page_list             pageNames, newPageNames;
     uint                  pageId, pageFound, pageShown, pageTotal, pageToPrint;
     Tree_p                pageTree;
     Tree_p                currentShape;

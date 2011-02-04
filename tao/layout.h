@@ -156,6 +156,7 @@ public:
     static int          polygonOffset;
     static scale        factorBase, factorIncrement;
     static scale        unitBase, unitIncrement;
+    static uint         globalProgramId;
 };
 
 TAO_END

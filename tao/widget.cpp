@@ -7822,13 +7822,17 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
 {
     if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
     {
+        int pnum = 1;
         page_list::iterator p;
         for (p = pageNames.begin(); p != pageNames.end(); p++)
         {
             text name = *p;
             Tree *action = new Prefix(prefix, new Text(name));
             action->SetSymbols(self->Symbols());
-            chooser->AddItem(label + name, action);
+            std::ostringstream os;
+            os << label << pnum++ << " " << name;
+            std::string txt(os.str());
+            chooser->AddItem(txt, action);
         }
         return XL::xl_true;
     }

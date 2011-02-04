@@ -68,6 +68,8 @@
 #include "documentation.h"
 #include "formulas.h"
 #include "portability.h"
+#include "tool_window.h"
+#include "raster_text.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -150,7 +152,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
       timer(this), idleTimer(this),
       pageStartTime(1e6), pageRefresh(1e6), frozenTime(1e6), startTime(1e6),
-      tmin(~0ULL), tmax(0), tsum(0), tcount(0),
+      stats_interval(5000),
       nextSave(now()), nextCommit(nextSave),
       nextSync(nextSave), nextPull(nextSave),
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
@@ -160,7 +162,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       zoom(1.0), eyeDistance(10.0),
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
-      dragging(false), bAutoHideCursor(false), bShowStatistics(true),
+      dragging(false), bAutoHideCursor(false), bShowStatistics(false),
       renderFramesCanceled(false)
 {
     setObjectName(QString("Widget"));
@@ -344,9 +346,6 @@ void Widget::draw()
 
     TaoSave saveCurrent(current, this);
 
-    // Timing
-    ulonglong before = now();
-
     // Setup the initial drawing environment
     uint w = width(), h = height();
     setupPage();
@@ -481,6 +480,10 @@ void Widget::draw()
             glUseProgram(0);
         }
 
+        // Show FPS as text overlay
+        if (bShowStatistics)
+            printStatistics();
+
         id = idDepth = 0;
         selectionTrees.clear();
         space->offset.Set(0,0,0);
@@ -583,6 +586,9 @@ void Widget::draw()
     }
 
 
+    // One more complete view rendered
+    if (bShowStatistics)
+        updateStatistics();
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -592,15 +598,11 @@ void Widget::draw()
     checkCopyAvailable();
 
     // Check if we want to refresh something
-    ulonglong after = now();
     double remaining = pageRefresh - CurrentTime();
     if (remaining < 0.001)
         remaining = 0.001;
     timer.setSingleShot(true);
     timer.start(1000 * remaining);
-
-    // Timing
-    elapsed(before, after, bShowStatistics, bShowStatistics);
 
     // Update page count for next run
     pageNames = newPageNames;
@@ -1451,9 +1453,8 @@ void Widget::resizeGL(int width, int height)
 // ----------------------------------------------------------------------------
 {
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
-    tmax = tsum = tcount = 0;
-    tmin = ~tmax;
-
+    stats.clear();
+    stats_start.start();
     if (stereoMode > stereoHARDWARE)
         setupStereoStencil(width, height);
 
@@ -3155,39 +3156,35 @@ ulonglong Widget::now()
 }
 
 
-ulonglong Widget::elapsed(ulonglong since, ulonglong until,
-                          bool stats, bool show)
+void Widget::printStatistics()
 // ----------------------------------------------------------------------------
-//    Record how much time passed since last measurement
+//    Print current rendering statistics
 // ----------------------------------------------------------------------------
 {
-    ulonglong t = until - since;
-    if (t == 0)
-        t = 1; // Because Windows lies
-
-    if (stats)
+    char fps[6] = "---.-";
+    int elapsed = stats_start.elapsed();
+    if (elapsed >= stats_interval)
     {
-        if (tmin > t) tmin = t;
-        if (tmax < t) tmax = t;
-        tsum += t;
-        tcount++;
+        double n = (double)stats.size() * 1000 / stats_interval;
+        snprintf(fps, sizeof(fps), "%5.1f", n);
     }
+    GLint vp[4], vx, vy, vw, vh;
+    glGetIntegerv(GL_VIEWPORT, vp);
+    vx = vp[0]; vy = vp[1]; vw = vp[2]; vh = vp[3];
+    RasterText::moveTo(vx + 20, vy + vh - 20 - 10);
+    RasterText::printf("%dx%dx%d  %s fps", vw, vh, stereoPlanes, fps);
+}
 
-    if (show && (tcount & 15) == 0)
-    {
-        char buffer[80];
-        snprintf(buffer, sizeof(buffer),
-                 "Duration=" CONFIG_UHUGE_FORMAT "-" CONFIG_UHUGE_FORMAT
-                 " (~%f) %5.2f-%5.2f FPS (~%5.2f)",
-                 tmin, tmax, double(tsum )/ tcount,
-                 (100000000ULL / tmax)*0.01,
-                 (100000000ULL / tmin)*0.01,
-                 (100000000ULL * tcount / tsum) * 0.01);
-        Window *window = (Window *) parentWidget();
-        window->statusBar()->showMessage(QString(buffer));
-    }
 
-    return t;
+void Widget::updateStatistics()
+// ----------------------------------------------------------------------------
+//    Update statistics when a frame has been drawn
+// ----------------------------------------------------------------------------
+{
+    int now = stats_start.elapsed();
+    stats.push_back(now);
+    while (now - stats.front() > stats_interval)
+        stats.pop_front();
 }
 
 
@@ -4151,11 +4148,8 @@ Name_p Widget::showStatistics(Tree_p self, bool ss)
 {
     bool prev = bShowStatistics;
     bShowStatistics = ss;
-    if (!ss)
-    {
-        Window *window = (Window *) parentWidget();
-        window->statusBar()->clearMessage();
-    }
+    if (ss)
+        stats_start.start();
     return prev ? XL::xl_true : XL::xl_false;
 }
 

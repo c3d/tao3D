@@ -83,6 +83,7 @@ class Widget : public QGLWidget
 {
     Q_OBJECT
 public:
+    typedef std::list<int>              frame_times;
     typedef std::vector<double>         attribute_args;
     typedef std::map<GLuint, uint>      selection_map;
     enum StereoMode { stereoHARDWARE,
@@ -197,8 +198,8 @@ public:
 
     // Timing
     ulonglong   now();
-    ulonglong   elapsed(ulonglong since, ulonglong until,
-                        bool stats = true, bool show=true);
+    void        printStatistics();
+    void        updateStatistics();
     bool        timerIsActive()         { return timer.isActive(); }
     bool        hasAnimations(void)     { return animated; }
     char        hasStereoscopy(void)    { return stereoPlanes > 1; }
@@ -749,7 +750,9 @@ private:
     // Timing
     QTimer                timer, idleTimer;
     double                pageStartTime, pageRefresh, frozenTime, startTime;
-    ulonglong             tmin, tmax, tsum, tcount;
+    QTime                 stats_start;
+    int                   stats_interval;
+    frame_times           stats;
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
 
     // Printing

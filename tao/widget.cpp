@@ -3758,89 +3758,96 @@ XL::Real_p Widget::windowHeight(Tree_p self)
 }
 
 
-Integer_p Widget::seconds(Tree_p self)
+Integer_p Widget::seconds(Tree_p self, double t)
 // ----------------------------------------------------------------------------
-//    Return the current second, schedule refresh on next second
+//    Return the second for time t or the current time if t < 0
 // ----------------------------------------------------------------------------
 {
-    double now = CurrentTime();
-    int second = fmod(now, 60);
+    double tm = (t < 0) ? CurrentTime() : t;
+    int second = fmod(tm, 60);
     return new XL::Integer(second);
 }
 
 
-Integer_p Widget::minutes(Tree_p self)
+Integer_p Widget::minutes(Tree_p self, double t)
 // ----------------------------------------------------------------------------
-//    Return the current minute, schedule refresh on next minute
+//    Return the minute for time t or the current time if t < 0
 // ----------------------------------------------------------------------------
 {
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
     int minute = now.time().minute();
     return new XL::Integer(minute);
 }
 
 
-Integer_p Widget::hours(Tree_p self)
+Integer_p Widget::hours(Tree_p self, double t)
 // ----------------------------------------------------------------------------
-//    Return the current hour, schedule refresh on next hour
+//    Return the localtime hour for time t or the current time if t < 0
 // ----------------------------------------------------------------------------
 {
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
     int hour = now.time().hour();
     return new XL::Integer(hour);
 }
 
 
-Integer_p Widget::day(Tree_p self)
+Integer_p Widget::day(Tree_p self, double t)
 // ----------------------------------------------------------------------------
-//    Return the current day, schedule refresh on next day
+//    Return the day (1-31) for time t or the current time if t < 0
 // ----------------------------------------------------------------------------
 {
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
     int day = now.date().day();
     return new XL::Integer(day);
 }
 
 
-Integer_p Widget::weekDay(Tree_p self)
+Integer_p Widget::weekDay(Tree_p self, double t)
 // ----------------------------------------------------------------------------
-//    Return the current week day, schedule refresh on next day
+//    Return the week day (1-7) for time t or the current time if t < 0
 // ----------------------------------------------------------------------------
 {
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
     int day = now.date().dayOfWeek();
     return new XL::Integer(day);
 }
 
 
-Integer_p Widget::yearDay(Tree_p self)
+Integer_p Widget::yearDay(Tree_p self, double t)
 // ----------------------------------------------------------------------------
-//    Return the current week day, schedule refresh on next day
+//    Return the year day (1-365) for time t or the current time if t < 0
 // ----------------------------------------------------------------------------
 {
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
     int day = now.date().dayOfYear();
     return new XL::Integer(day);
 }
 
 
-Integer_p Widget::month(Tree_p self)
+Integer_p Widget::month(Tree_p self, double t)
 // ----------------------------------------------------------------------------
-//    Return the current month, schedule refresh on next day
+//    Return the month for time t or the current time if t < 0
 // ----------------------------------------------------------------------------
 {
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
     int month = now.date().month();
     return new XL::Integer(month);
 }
 
 
-Integer_p Widget::year(Tree_p self)
+Integer_p Widget::year(Tree_p self, double t)
 // ----------------------------------------------------------------------------
-//    Return the current year, schedule refresh on next day
+//    Return the year for time t or the current time if t < 0
 // ----------------------------------------------------------------------------
 {
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
     int year = now.date().year();
     return new XL::Integer(year);
 }

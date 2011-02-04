@@ -368,63 +368,13 @@ PREFIX(IntToText,  text,  "text",
     SYNOPSIS("")
     DESCRIPTION(""))
 
-// Time computations
 PREFIX(RealToText,  text,  "text", 
     PARM(x, real, )
 , XL_RTEXT((text) x), 
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(TimeHours,  integer,  "hours", 
-    PARM(t, integer, )
-, XL_RTIME(tm.tm_hour), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
-PREFIX(TimeMinutes,  integer,  "minutes", 
-    PARM(t, integer, )
-, XL_RTIME(tm.tm_min), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
-PREFIX(TimeSeconds,  integer,  "seconds", 
-    PARM(t, integer, )
-, XL_RTIME(tm.tm_sec), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
-PREFIX(TimeYear,  integer,  "year", 
-    PARM(t, integer, )
-, XL_RTIME(tm.tm_year + 1900), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
-PREFIX(TimeMonth,  integer,  "month", 
-    PARM(t, integer, )
-, XL_RTIME(tm.tm_mon), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
-PREFIX(TimeMonthDay,  integer,  "day", 
-    PARM(t, integer, )
-, XL_RTIME(tm.tm_mday), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
-PREFIX(TimeWeekDay,  integer,  "week_day", 
-    PARM(t, integer, )
-, XL_RTIME(tm.tm_wday), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
-
 // Return hour, minutes, seconds for the current time
-PREFIX(TimeYearDay,  integer,  "year_day", 
-    PARM(t, integer, )
-, XL_RTIME(tm.tm_yday), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
 PREFIX(SystemTime,  integer,  "system_time", , XL_RINT(xl_time(1)), 
     GROUP(formula)
     SYNOPSIS("")

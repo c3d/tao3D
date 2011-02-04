@@ -318,14 +318,14 @@ public:
     // Setting attributes
     Name_p      depthTest(Tree_p self, bool enable);
     Tree_p      refresh(Tree_p self, double delay);
-    Integer_p   seconds(Tree_p self);
-    Integer_p   minutes(Tree_p self);
-    Integer_p   hours(Tree_p self);
-    Integer_p   day(Tree_p self);
-    Integer_p   weekDay(Tree_p self);
-    Integer_p   yearDay(Tree_p self);
-    Integer_p   month(Tree_p self);
-    Integer_p   year(Tree_p self);
+    Integer_p   seconds(Tree_p self, double t);
+    Integer_p   minutes(Tree_p self, double t);
+    Integer_p   hours(Tree_p self, double t);
+    Integer_p   day(Tree_p self, double t);
+    Integer_p   weekDay(Tree_p self, double t);
+    Integer_p   yearDay(Tree_p self, double t);
+    Integer_p   month(Tree_p self, double t);
+    Integer_p   year(Tree_p self, double t);
     Name_p      showSource(Tree_p self, bool show);
     Name_p      fullScreen(Tree_p self, bool fs);
     Name_p      toggleFullScreen(Tree_p self);

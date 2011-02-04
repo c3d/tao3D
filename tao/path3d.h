@@ -90,6 +90,7 @@ public:
         VertexData(const Point3& v, const Point3& t): vertex(v), texture(t) {}
         Vector3  vertex;
         Vector3  texture;
+        Vector3  normal;
     };
     typedef std::vector<VertexData>   Vertices;
     typedef std::vector<VertexData *> DynamicVertices;

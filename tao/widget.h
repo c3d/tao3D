@@ -86,7 +86,7 @@ public:
     typedef std::vector<double>         attribute_args;
     typedef std::map<GLuint, uint>      selection_map;
     enum StereoMode { stereoHARDWARE,
-                      stereoHSPLIT, stereoVSPLIT,
+                      stereoHSPLIT, stereoVSPLIT, stereoDEPTHMAP,
                       stereoHORIZONTAL, stereoVERTICAL,
                       stereoDIAGONAL, stereoANTI_DIAGONAL,
                       stereoALIOSCOPY };
@@ -141,6 +141,7 @@ public:
     void        resizeGL(int width, int height);
     void        paintGL();
     void        setup(double w, double h, const Box *picking = NULL);
+    void        resetModelviewMatrix();
     void        setupGL();
     void        setupPage();
     void        setupStereoStencil(double w, double h);
@@ -201,6 +202,7 @@ public:
     bool        timerIsActive()         { return timer.isActive(); }
     bool        hasAnimations(void)     { return animated; }
     char        hasStereoscopy(void)    { return stereoPlanes > 1; }
+    char        stereoPlane(void)       { return stereoscopic; }
     StereoMode  currentStereoMode(void) { return stereoMode; }
 
 
@@ -352,6 +354,7 @@ public:
 
     // Graphic attributes
     Tree_p      clearColor(Tree_p self, double r, double g, double b, double a);
+    Tree_p      motionBlur(Tree_p self, double f);
     Tree_p      lineColorName(Tree_p self, text name, double a);
     Tree_p      lineColorRgb(Tree_p self, double r, double g, double b, double a);
     Tree_p      lineColorHsl(Tree_p self, double h, double s, double l, double a);
@@ -521,7 +524,7 @@ public:
     Tree_p      framePaint(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                            Tree_p prog);
     Tree_p      frameTexture(Tree_p self, double w, double h, Tree_p prog);
-    Tree_p      thumbnail(Tree_p self, scale s, text page);
+    Tree_p      thumbnail(Tree_p self, scale s, double i, text page);
 
     Tree_p      urlPaint(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                          text_p s, integer_p p);
@@ -696,12 +699,12 @@ private:
     Layout *              layout;
     GraphicPath *         path;
     Table *               table;
-    scale                 pageW, pageH;
+    scale                 pageW, pageH, blurFactor;
     text                  flowName;
     flow_map              flows;
     text                  pageName, lastPageName;
     page_map              pageLinks;
-    page_list             pageNames;
+    page_list             pageNames, newPageNames;
     uint                  pageId, pageFound, pageShown, pageTotal, pageToPrint;
     Tree_p                pageTree;
     Tree_p                currentShape;

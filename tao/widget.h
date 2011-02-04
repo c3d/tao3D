@@ -545,7 +545,7 @@ public:
                            Tree_p prog);
     Tree_p      frameTexture(Context *context, Tree_p self,
                              double w, double h, Tree_p prog);
-    Tree_p      thumbnail(Context *context, Tree_p self, scale s, double i, text page);
+    Tree_p      thumbnail(Context *, Tree_p self, scale s, double i, text page);
     Name_p      offlineRendering(Tree_p self);
 
     Tree_p      urlPaint(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,

@@ -347,7 +347,8 @@ void Widget::draw()
     TaoSave saveCurrent(current, this);
 
     // Setup the initial drawing environment
-    double w = width(), h = height();
+    uint w = width(), h = height();
+    setupPage();
 
     // Clean text selection
     TextSelect *sel = textSelection();
@@ -1663,12 +1664,11 @@ void Widget::resizeGL(int width, int height)
     if (stereoMode > stereoHARDWARE)
         setupStereoStencil(width, height);
 
-    glClearAccum(0.0, 0.0, 0.0, 1.0);
-    glClear(GL_ACCUM_BUFFER_BIT);
-
     TaoSave saveCurrent(current, this);
     QEvent r(QEvent::Resize);
     refreshNow(&r);
+    glClearAccum(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_ACCUM_BUFFER_BIT);
 }
 
 
@@ -3905,8 +3905,8 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
     selectionTrees.clear();
     delete textSelection();
     delete drag();
-    refreshNow();
     gotoPageName = page;
+    refreshNow();
     return new Text(old);
 }
 
@@ -7116,8 +7116,8 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
 }
 
 
-Tree_p Widget::thumbnail(Context *context, Tree_p self, scale s,
-                         double interval, text page)
+Tree_p Widget::thumbnail(Context *context,
+                         Tree_p self, scale s, double interval, text page)
 // ----------------------------------------------------------------------------
 //   Generate a texture with a page thumbnail of the given page
 // ----------------------------------------------------------------------------

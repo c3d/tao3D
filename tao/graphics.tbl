@@ -75,7 +75,7 @@ PREFIX(PageCount,    integer,   "page_count", , RTAO(pageCount(self)),
        GROUP(page)
        SYNOPSIS("The number of page.")
        DESCRIPTION("Return the number of pages in the current document")
-       RETURNS(integer, "Return the number of pages in the current document"))
+       RETURNS(integer, "The number of pages in the current document"))
 PREFIX(PageName,    text,   "page_name",
        PARM(n, integer, "Index of page, starting at 0"), 
        RTAO(pageNameAtIndex(self, n)),

@@ -27,7 +27,9 @@ OPTION(nostereo, "Disable stereoscopy", enable_stereoscopy = false)
 OPTION(nosplash, "Disable splash screen", ;)
 
 OPTVAR(slideshow, bool, false)
-OPTION(slideshow, "Open document in slide show mode",
+OPTION(slideshow, "Open document in slide show (full screen) mode",
+       slideshow = true)
+OPTION(fs, "Open document in slide show (full screen) mode",
        slideshow = true)
 
 OPTVAR(enable_modules, bool, true)
@@ -42,3 +44,8 @@ OPTION(layoutcache, "Enable 'layout cache' optimization", enable_layout_cache = 
 
 OPTVAR(enable_git, bool, true)
 OPTION(nogit, "Disable Git", enable_git = false)
+
+OPTVAR(rendering_options, text, "-")
+OPTION(render, "Offline rendering: -render pagenum,x,y,start,end,fps,folder. "
+               "Render frames and exit. Single document only.",
+       rendering_options = STRING)

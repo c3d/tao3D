@@ -1,0 +1,17 @@
+#!/bin/sh
+# MacOSX only -
+# Use instal_name_tool to prefix any reference to a Qt library with
+# @executable_path/../Frameworks
+# This is to make sure that the Qt libraries are always loaded form the
+# application's bundle
+
+doo(){
+  echo " $@"
+  "$@"
+}
+TARGET="$1"
+REFS=`otool -L "$TARGET" | grep -e Qt -e phonon | grep -v  @executable_path | awk '{ print $1 }'`
+for r in $REFS ; do
+  doo install_name_tool -change "$r" "@executable_path/../Frameworks/$r" "$TARGET"
+done
+

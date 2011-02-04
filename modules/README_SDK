@@ -1,0 +1,23 @@
+Tao module SDK - Instructions to build the example modules
+----------------------------------------------------------
+
+
+* MacOSX
+
+0. Install Tao
+
+Open tao.dmg, drag and drop Tao onto the Application folder.
+
+1. Build and install a local copy of the modules
+
+$ cd tao_sdk
+$ qmake modules/modules.pro -recursive -spec macx-g++
+$ (cd modules ; make install)
+
+2. Deploy and test the modules 
+
+$ mkdir -p ~/Library/Application\ Support/Tao/modules
+$ cp -R install/Tao.app/Contents/MacOS/modules/* ~/Library/Application\ Support/Tao/modules
+
+Start Tao, the new modules will be loaded automatically.
+

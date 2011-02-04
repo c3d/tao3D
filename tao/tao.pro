@@ -140,7 +140,9 @@ HEADERS += widget.h \
     module_renderer.h \
     xl_source_edit.h \
     xl_highlighter.h \
-    layout_cache.h
+    layout_cache.h \
+    render_to_file_dialog.h \
+    raster_text.h
 SOURCES += tao_main.cpp \
     widget.cpp \
     window.cpp \
@@ -218,7 +220,9 @@ SOURCES += tao_main.cpp \
     module_renderer.cpp \
     xl_source_edit.cpp \
     xl_highlighter.cpp \
-    layout_cache.cpp
+    layout_cache.cpp \
+    render_to_file_dialog.cpp \
+    raster_text.cpp
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 
@@ -232,7 +236,8 @@ CXXTBL_SOURCES += graphics.cpp \
 macx {
     OBJECTIVE_SOURCES += font_file_manager_macos.mm
     LIBS += -framework \
-        ApplicationServices
+        ApplicationServices \
+        -Wl,-macosx_version_min,10.5,-rpath,@executable_path/../Frameworks
 }
 RESOURCES += tao.qrc
 
@@ -264,7 +269,8 @@ FORMS += pull_from_dialog.ui \
     open_uri_dialog.ui \
     fetch_push_dialog.ui \
     history_frame.ui \
-    diff_dialog.ui
+    diff_dialog.ui \
+    render_to_file_dialog.ui
 
 # Automatic embedding of Git version
 QMAKE_CLEAN += version.h

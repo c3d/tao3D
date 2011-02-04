@@ -72,6 +72,7 @@
 #include "tool_window.h"
 #include "context.h"
 #include "tree-walk.h"
+#include "raster_text.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -155,7 +156,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       timer(), dfltRefresh(0.04), idleTimer(this),
       pageStartTime(DBL_MAX), frozenTime(DBL_MAX), startTime(DBL_MAX),
       currentTime(DBL_MAX),
-      tmin(~0ULL), tmax(0), tsum(0), tcount(0),
+      stats_interval(5000),
       nextSave(now()), nextCommit(nextSave),
       nextSync(nextSave), nextPull(nextSave),
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
@@ -164,7 +165,8 @@ Widget::Widget(Window *parent, SourceFile *sf)
       zoom(1.0), eyeDistance(10.0),
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
-      dragging(false), bAutoHideCursor(false)
+      dragging(false), bAutoHideCursor(false), bShowStatistics(false),
+      renderFramesCanceled(false)
 {
     setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap
@@ -227,6 +229,8 @@ Widget::Widget(Window *parent, SourceFile *sf)
 
     // Compute initial zoom
     scaling = scalingFactorFromCamera();
+
+    enableVSync(NULL, true);
 }
 
 
@@ -479,6 +483,10 @@ void Widget::draw()
             glUseProgram(0);
         }
 
+        // Show FPS as text overlay
+        if (bShowStatistics)
+            printStatistics();
+
         id = idDepth = 0;
         selectionTrees.clear();
         space->offset.Set(0,0,0);
@@ -580,7 +588,9 @@ void Widget::draw()
         glAccum(GL_RETURN, 1.0);
     }
 
-
+    // One more complete view rendered
+    if (bShowStatistics)
+        updateStatistics();
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -637,7 +647,6 @@ bool Widget::refreshNow(QEvent *event)
         return false;
 
     bool changed = false;
-    ulonglong before = now();
 
     if (!event || space->refreshEvents.count(event->type()))
     {
@@ -688,9 +697,6 @@ bool Widget::refreshNow(QEvent *event)
     // Redraw all
     TaoSave saveCurrent(current, NULL); // draw() assumes current == NULL
     updateGL();
-
-    ulonglong after = now();
-    elapsed(before, after);
 
     if (changed)
         processProgramEvents();
@@ -969,6 +975,88 @@ void Widget::print(QPrinter *prt)
 
     // Finish the job
     painter.end();
+}
+
+
+void Widget::renderFrames(int w, int h, double start_time, double end_time,
+                          QString dir, double fps, int page)
+// ----------------------------------------------------------------------------
+//    Render frames to PNG files
+// ----------------------------------------------------------------------------
+{
+    // Create output directory if needed
+    if (!QFileInfo(dir).exists())
+        QDir().mkdir(dir);
+    if (!QFileInfo(dir).isDir())
+        return;
+
+    TaoSave saveCurrent(current, this);
+
+    // Create a GL frame to render into
+    FrameInfo frame(w, h);
+
+    // Set the initial time we want to set and freeze animations
+    XL::Save<bool> disableAnimations(animated, false);
+    XL::Save<double> setPageTime(pageStartTime, start_time);
+    XL::Save<double> setFrozenTime(frozenTime, start_time);
+    XL::Save<double> saveStartTime(startTime, start_time);
+
+    scale s = qMin((double)w / width(), (double)h / height());
+
+    // Select page, if not current
+    if (page != -1)
+    {
+        runProgram();
+        gotoPage(NULL, pageNameAtIndex(NULL, page));
+    }
+
+    // Render frames for the whole time range
+    int currentFrame = 0, frameCount = (end_time - start_time) * fps;
+    int percent, prevPercent = 0;
+    for (double t = start_time; t < end_time; t += 1.0/fps)
+    {
+        if (renderFramesCanceled)
+        {
+            renderFramesCanceled = false;
+            break;
+        }
+
+        GLAllStateKeeper saveGL;
+        XL::Save<double> saveScaling(scaling, scaling * s);
+
+        // Show progress information
+        percent = 100*currentFrame++/frameCount;
+        if (percent != prevPercent)
+        {
+            prevPercent = percent;
+            emit renderFramesProgress(percent);
+            QApplication::processEvents();
+        }
+
+        // Set time and run program
+        // REVISIT: use refreshNow() to avoid full program execution?
+        frozenTime = t;
+        runProgram();
+
+        // Draw the layout in the frame context
+        id = idDepth = 0;
+        Layout::polygonOffset = 0;
+        setup(w, h);
+        frame.begin();
+        glClearColor(clearCol.redF(), clearCol.greenF(), clearCol.blueF(), 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        space->Draw(NULL);
+        frame.end();
+
+        // Save frame to disk
+        // Convert to .mov with: ffmpeg -i frame%d.png output.mov
+        QString fileName = QString("%1/frame%2.png").arg(dir).arg(currentFrame);
+        QImage image(frame.toImage());
+        image.save(fileName);
+    }
+
+    emit renderFramesDone();
+    QApplication::processEvents();
 }
 
 
@@ -1546,9 +1634,8 @@ void Widget::resizeGL(int width, int height)
 // ----------------------------------------------------------------------------
 {
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
-    tmax = tsum = tcount = 0;
-    tmin = ~tmax;
-
+    stats.clear();
+    stats_start.start();
     if (stereoMode > stereoHARDWARE)
         setupStereoStencil(width, height);
 
@@ -3331,39 +3418,35 @@ ulonglong Widget::now()
 }
 
 
-ulonglong Widget::elapsed(ulonglong since, ulonglong until,
-                          bool stats, bool show)
+void Widget::printStatistics()
 // ----------------------------------------------------------------------------
-//    Record how much time passed since last measurement
+//    Print current rendering statistics
 // ----------------------------------------------------------------------------
 {
-    ulonglong t = until - since;
-    if (t == 0)
-        t = 1; // Because Windows lies
-
-    if (stats)
+    char fps[6] = "---.-";
+    int elapsed = stats_start.elapsed();
+    if (elapsed >= stats_interval)
     {
-        if (tmin > t) tmin = t;
-        if (tmax < t) tmax = t;
-        tsum += t;
-        tcount++;
+        double n = (double)stats.size() * 1000 / stats_interval;
+        snprintf(fps, sizeof(fps), "%5.1f", n);
     }
+    GLint vp[4], vx, vy, vw, vh;
+    glGetIntegerv(GL_VIEWPORT, vp);
+    vx = vp[0]; vy = vp[1]; vw = vp[2]; vh = vp[3];
+    RasterText::moveTo(vx + 20, vy + vh - 20 - 10);
+    RasterText::printf("%dx%dx%d  %s fps", vw, vh, stereoPlanes, fps);
+}
 
-    if (show && (tcount & 15) == 0)
-    {
-        char buffer[80];
-        snprintf(buffer, sizeof(buffer),
-                 "Duration=" CONFIG_UHUGE_FORMAT "-" CONFIG_UHUGE_FORMAT
-                 " (~%f) %5.2f-%5.2f FPS (~%5.2f)",
-                 tmin, tmax, double(tsum )/ tcount,
-                 (100000000ULL / tmax)*0.01,
-                 (100000000ULL / tmin)*0.01,
-                 (100000000ULL * tcount / tsum) * 0.01);
-        Window *window = (Window *) parentWidget();
-        window->statusBar()->showMessage(QString(buffer));
-    }
 
-    return t;
+void Widget::updateStatistics()
+// ----------------------------------------------------------------------------
+//    Update statistics when a frame has been drawn
+// ----------------------------------------------------------------------------
+{
+    int now = stats_start.elapsed();
+    stats.push_back(now);
+    while (now - stats.front() > stats_interval)
+        stats.pop_front();
 }
 
 
@@ -3791,6 +3874,7 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
 //   Directly go to the given page
 // ----------------------------------------------------------------------------
 {
+    lastMouseButtons = 0;
     text old = pageName;
 
     lastMouseButtons = 0;
@@ -4480,6 +4564,28 @@ XL::Name_p Widget::autoHideCursor(XL::Tree_p self, bool ah)
 }
 
 
+Name_p Widget::showStatistics(Tree_p self, bool ss)
+// ----------------------------------------------------------------------------
+//   Display or hide performance statistics (frames per second)
+// ----------------------------------------------------------------------------
+{
+    bool prev = bShowStatistics;
+    bShowStatistics = ss;
+    if (ss)
+        stats_start.start();
+    return prev ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::toggleShowStatistics(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Toggle display of statistics
+// ----------------------------------------------------------------------------
+{
+    return showStatistics(self, !bShowStatistics);
+}
+
+
 XL::Name_p Widget::slideShow(XL::Tree_p self, bool ss)
 // ----------------------------------------------------------------------------
 //   Switch to slide show mode
@@ -4865,7 +4971,7 @@ XL::Name_p Widget::enableVSync(Tree_p self, bool enable)
     CGLSetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &swapInterval);
     return old ? XL::xl_true : XL::xl_false;
 #else
-    Ooops("Command not supported: $1", self);
+    // Command not supported, but do it silently
     return XL::xl_false;
 #endif
 }
@@ -5228,6 +5334,20 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
         layout->Add(new ImageManipulator(currentShape, x,y, sxp,syp, w0,h0));
 
     return XL::xl_true;
+}
+
+
+Tree_p Widget::listFiles(Context *context, Tree_p self, Tree_p pattern)
+// ----------------------------------------------------------------------------
+//   List files, current directory is the document directory
+// ----------------------------------------------------------------------------
+{
+    QString savePath = QDir::currentPath();
+    Window *window = (Window *) parentWidget();
+    QDir::setCurrent(window->currentProjectFolderPath());
+    Tree_p ret = XL::xl_list_files(context, pattern);
+    QDir::setCurrent(savePath);
+    return ret;
 }
 
 
@@ -6990,7 +7110,7 @@ Tree_p Widget::thumbnail(Context *context,
         // Evaluate the program
         XL::MAIN->EvaluateContextFiles(((Window*)parent())->contextFileNames);
         if (Tree *prog = xlProgram->tree)
-            xl_evaluate(context, prog);
+            context->Evaluate(prog);
 
         // Draw the layout in the frame context
         frame.begin();
@@ -8035,6 +8155,9 @@ Tree_p Widget::closeCurrentDocument(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     Window *window = (Window *) current->parentWidget();
+    // Make sure we are not full screen, because closing window saves the
+    // current geometry
+    window->switchToFullScreen(false);
     if (window->close())
         return XL::xl_true;
     return XL::xl_false;

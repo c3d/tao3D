@@ -64,6 +64,9 @@ public:
     void           loadUri(QString uri);
     void           blockScreenSaver(bool block);
 
+signals:
+    void           allWindowsReady();
+
 public slots:
     void           saveDebugTraceSettings();
     void           moduleIsLoading(QString name);
@@ -82,6 +85,9 @@ protected slots:
 #if defined (CONFIG_MACOSX) || defined (CONFIG_LINUX)
     void           simulateUserActivity();
 #endif
+    void           checkOfflineRendering();
+    void           printRenderingProgress(int percent);
+    void           onRenderingDone();
 
 protected:
     static bool    recursiveDelete(QString path);
@@ -111,6 +117,7 @@ private:
     QString      ssHeartBeatCommand;
 #endif
     ModuleManager * moduleManager;
+    bool         doNotEnterEventLoop;
 };
 
 #define TaoApp  ((Application *) qApp)

@@ -1,3 +1,8 @@
+# Makefile.sdk: create a sdk/ directory with all the files needed
+# to build Tao modules.
+# The ObjectLoader module is included as an example.
+#
+
 # Identification of the default build environment
 BUILDENV=$(BUILDENV_$(shell uname -s | sed s/CYGWIN.*/Cygwin/ | sed s/MINGW.*/MinGW/))
 BUILDENV_Darwin=macosx
@@ -6,11 +11,20 @@ BUILDENV_MinGW=mingw
 
 SDK_ROOT = sdk
 
+OBJECT_LOADER_FILES = \
+	$(shell find modules/object_loader -type d -o -name \*.h -o \( -name \*.cpp -a -not -name moc\*.cpp \) -o -name \*.c -o -name \*.pri -o -name \*.pro -o -name \*.tbl -o -name \*.png -o -name \*.xl) \
+	modules/object_loader/glc-lib/include \
+	$(shell find modules/object_loader/glc-lib/include)
+
 FILES_COMMON = \
 	main.pri \
+	main_defs.pri \
 	modules \
+	modules/modules.pro \
 	modules/modules.pri \
+	modules/modules_defs.pri \
 	modules/tbl_wrap \
+	$(OBJECT_LOADER_FILES) \
 	tao \
 	tao/include \
 	$(shell find tao/include) \
@@ -23,6 +37,7 @@ FILES_COMMON = \
 FILES_macosx = \
 	libxlr \
 	libxlr/libxlr*.dylib \
+	modules/fix_qt_refs \
 	$(NULL)
 
 FILES_linux = \

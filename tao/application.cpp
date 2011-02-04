@@ -69,13 +69,17 @@ Application::Application(int & argc, char ** argv)
 //    Build the Tao application
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false), splash(NULL),
-      pendingOpen(0), xlr(NULL), screenSaverBlocked(false), moduleManager(NULL)
+      pendingOpen(0), xlr(NULL), screenSaverBlocked(false),
+      moduleManager(NULL), doNotEnterEventLoop(false)
 {
     // Set some useful parameters for the application
     setApplicationName ("Tao");
     setOrganizationName ("Taodyne");
     setOrganizationDomain ("taodyne.com");
     setWindowIcon(QIcon(":/images/tao.png"));
+
+    // Set current directory
+    QDir::setCurrent(applicationDirPath());
 
     // Internal clean option
     if (arguments().contains("--internal-use-only-clean-environment"))
@@ -226,6 +230,8 @@ void Application::cleanup()
 //   Perform last-minute cleanup before application exit
 // ----------------------------------------------------------------------------
 {
+    // Closing windows will save windows settings (geometry)
+    closeAllWindows();
     saveSettings();
     if (screenSaverBlocked)
         blockScreenSaver(false);
@@ -251,6 +257,9 @@ bool Application::processCommandLine()
         contextFiles.push_back(+user.canonicalFilePath());
     if (theme.exists())
         contextFiles.push_back(+theme.canonicalFilePath());
+
+    connect(this, SIGNAL(allWindowsReady()),
+            this, SLOT(checkOfflineRendering()));
 
     // Create the windows for each file or URI on the command line
     hadWin = false;
@@ -311,6 +320,13 @@ bool Application::processCommandLine()
         splash->close();
         splash->deleteLater();
         splash = NULL;
+    }
+
+    if (hadWin && !pendingOpen)
+    {
+        emit allWindowsReady();
+        if (doNotEnterEventLoop)
+            return false;
     }
 
     return (hadWin || pendingOpen);
@@ -374,6 +390,7 @@ void Application::onOpenFinished(bool ok)
         splash->close();
         splash->deleteLater();
         splash = NULL;
+        emit allWindowsReady();
     }
 }
 
@@ -461,6 +478,80 @@ void Application::simulateUserActivity()
 }
 
 #endif
+
+void Application::checkOfflineRendering()
+// ----------------------------------------------------------------------------
+//   Start offline rendering if command line switch present and we have 1 doc
+// ----------------------------------------------------------------------------
+{
+    QString ropts = +XL::MAIN->options.rendering_options;
+    if (ropts == "-")
+        return;
+
+    if (ropts == "")
+    {
+        std::cerr << +tr("-render: option requires parameters\n");
+        return;
+    }
+
+    int n = 0;
+    foreach (QWidget *widget, QApplication::topLevelWidgets())
+        if (dynamic_cast<Window *>(widget))
+            n++;
+    if (n != 1)
+        return;
+
+    QStringList parms = ropts.split(",");
+    if (parms.size() != 7)
+    {
+        std::cerr << +tr("-render: too few or too many parameters\n");
+        return;
+    }
+
+    int idx = 0;
+    int page, x, y;
+    double start, end, fps;
+    QString folder;
+
+    page = parms[idx++].toInt();
+    x = parms[idx++].toInt();
+    y = parms[idx++].toInt();
+    start = parms[idx++].toDouble();
+    end = parms[idx++].toDouble();
+    fps = parms[idx++].toDouble();
+    folder = parms[idx++];
+
+    std::cout << "Starting offline rendering: page=" << page << " x=" << x
+              << " y=" << y << " start=" << start << " end=" << end
+              << " fps= " << fps << " folder=" << +folder << "\n";
+
+    Widget *widget = findFirstTaoWindow()->taoWidget;
+    connect(widget, SIGNAL(renderFramesProgress(int)),
+            this,   SLOT(printRenderingProgress(int)));
+    connect(widget, SIGNAL(renderFramesDone()),
+            this,   SLOT(onRenderingDone()));
+    widget->renderFrames(x, y, start, end, folder, fps, page);
+}
+
+
+void Application::printRenderingProgress(int percent)
+// ----------------------------------------------------------------------------
+//   Print progress when "rendering to files" command line option is active
+// ----------------------------------------------------------------------------
+{
+    std::cout << percent << "%..." << std::flush;
+}
+
+
+void Application::onRenderingDone()
+// ----------------------------------------------------------------------------
+//   Rendering option completed
+// ----------------------------------------------------------------------------
+{
+    //findFirstTaoWindow()->close();
+    doNotEnterEventLoop = true;
+}
+
 
 static void printSearchPath(QString prefix)
 // ----------------------------------------------------------------------------

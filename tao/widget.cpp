@@ -611,14 +611,6 @@ void Widget::draw()
     timer.setSingleShot(true);
     timer.start(1000 * remaining);
 
-    // Update page count for next run
-    pageNames = newPageNames;
-    pageTotal = pageId ? pageId : 1;
-    if (pageFound)
-        pageShown = pageFound;
-    else
-        pageName = "";
-
     // If we must update dialogs, do it now
     if (mustUpdateDialogs)
     {
@@ -697,11 +689,22 @@ void Widget::runProgram()
     currentToolBar = NULL;
     currentMenuBar = ((Window*)parent())->menuBar();
 
+    // Update page count for next run
+    pageNames = newPageNames;
+    pageTotal = pageId ? pageId : 1;
+    if (pageFound)
+        pageShown = pageFound;
+    else
+        pageName = "";
+
     // Check if program asked to change page for the next run
     if (gotoPageName != "")
     {
         pageName = gotoPageName;
         frozenTime = pageStartTime = CurrentTime();
+        for (uint p = 0; p < pageNames.size(); p++)
+            if (pageNames[p] == gotoPageName)
+                pageShown = p + 1;
         gotoPageName = "";
     }
 }
@@ -872,14 +875,6 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         setupPage();
         offlineRenderingTime = t;
         runProgram();
-
-        // Update page count for next run
-        pageNames = newPageNames;
-        pageTotal = pageId ? pageId : 1;
-        if (pageFound)
-            pageShown = pageFound;
-        else
-            pageName = "";
 
         // Draw the layout in the frame context
         id = idDepth = 0;
@@ -3648,7 +3643,6 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
     selectionTrees.clear();
     delete textSelection();
     delete drag();
-    pageStartTime = startTime = frozenTime = CurrentTime();
     refresh(0);
 
     gotoPageName = page;

@@ -286,6 +286,8 @@ public:
     Real_p      frameWidth(Tree_p self);
     Real_p      frameHeight(Tree_p self);
     Real_p      frameDepth(Tree_p self);
+    int         width();
+    int         height();
     Real_p      windowWidth(Tree_p self);
     Real_p      windowHeight(Tree_p self);
     Real_p      time(Tree_p self);

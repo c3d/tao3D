@@ -3734,14 +3734,34 @@ XL::Real_p Widget::frameDepth(Tree_p self)
 }
 
 
+int Widget::width()
+// ----------------------------------------------------------------------------
+//   Return the width of the drawing widget in px
+// ----------------------------------------------------------------------------
+{
+    if (offlineRenderingTime != -1)
+        return offlineRenderingWidth;
+    return QWidget::width();
+}
+
+
+int Widget::height()
+// ----------------------------------------------------------------------------
+//   Return the height of the drawing widget in px
+// ----------------------------------------------------------------------------
+{
+    if (offlineRenderingTime != -1)
+        return offlineRenderingHeight;
+    return QWidget::height();
+}
+
+
 XL::Real_p Widget::windowWidth(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the width of the window in which we display
 // ----------------------------------------------------------------------------
 {
     double w = printer ? printer->paperRect().width() : width();
-    if (offlineRenderingTime != -1)
-        w = offlineRenderingWidth;
     return new Real(w);
 }
 
@@ -3752,8 +3772,6 @@ XL::Real_p Widget::windowHeight(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     double h = printer ? printer->paperRect().height() : height();
-    if (offlineRenderingTime != -1)
-        h = offlineRenderingHeight;
     return new Real(h);
 }
 

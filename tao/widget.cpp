@@ -163,7 +163,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false), bShowStatistics(false),
-      renderFramesCanceled(false), offlineRenderingTime(-1)
+      renderFramesCanceled(false), offlineRenderingTime(-1), inDraw(false)
 {
     setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap
@@ -348,8 +348,10 @@ void Widget::draw()
     }
 
     // Recursive drawing may occur with video widgets, and it's bad
-    if (current)
+    if (inDraw)
         return;
+
+    XL::LocalSave<bool> drawing(inDraw, true);
 
     TaoSave saveCurrent(current, this);
 
@@ -1637,15 +1639,15 @@ void Widget::setupStereoStencil(double w, double h)
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
-	// Prepare to draw in stencil buffer
-	glDrawBuffer(GL_BACK);
+        // Prepare to draw in stencil buffer
+        glDrawBuffer(GL_BACK);
         glEnable(GL_STENCIL_TEST);
-	glClearStencil(0);
-	glClear(GL_STENCIL_BUFFER_BIT);
-	glDisable(GL_DEPTH_TEST);
+        glClearStencil(0);
+        glClear(GL_STENCIL_BUFFER_BIT);
+        glDisable(GL_DEPTH_TEST);
 
         // Line properties
-	glColor4f(1.0, 1.0, 1.0, 1.0);
+        glColor4f(1.0, 1.0, 1.0, 1.0);
         glLineWidth(1);
         glDisable(GL_LINE_SMOOTH);
         glDisable(GL_LINE_STIPPLE);
@@ -3646,7 +3648,6 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
     refresh(0);
 
     gotoPageName = page;
-
     return new Text(old);
 }
 
@@ -6099,7 +6100,7 @@ Tree_p Widget::textValue(Tree_p self, Tree_p value)
         if (path)
             TextValue(value, this).Draw(*path, layout);
         else
-            layout->Add(new TextValue(value, this));        
+            layout->Add(new TextValue(value, this));
     }
     else
     {
@@ -7436,6 +7437,9 @@ Tree_p Widget::fileChooser(Tree_p self, Tree_p properties)
     // Setup the color dialog
     fileDialog = new QFileDialog(this);
     fileDialog->setObjectName("fileDialog");
+    // To be able to set the selectFileName programmatically.
+    // Can be revisited when tests will be integrated in new module fmw.
+    fileDialog->setOption(QFileDialog::DontUseNativeDialog, true);
     currentFileDialog = fileDialog;
     fileDialog->setModal(false);
 
@@ -8567,7 +8571,7 @@ XL::Name_p Widget::setAttribute(Tree_p self,
                                                     document()->toPlainText(),
                                                     "<<", ">>" ));
         XL::Infix *lf = new XL::Infix("\n", attribute,
-                                      new XL::Infix("\n", p, XL::xl_empty));
+                                      new XL::Infix("\n", p, XL::xl_nil));
 
         // Current selected text must be erased because it will be re-inserted
         // with new formating
@@ -8894,12 +8898,18 @@ Tree_p Widget::constant(Tree_p self, Tree_p tree)
 //
 // ============================================================================
 
-Tree_p Widget::generateDoc(Tree_p /*self*/, Tree_p tree)
+Tree_p Widget::generateDoc(Tree_p /*self*/, Tree_p tree, text defGrp)
 // ----------------------------------------------------------------------------
 //   Generate documentation for a given tree
 // ----------------------------------------------------------------------------
 {
-    ExtractDoc doc;
+    if (defGrp.empty())
+    {
+        ExtractComment com;
+        return tree->Do(com);
+    }
+
+    ExtractDoc doc(defGrp);
     return tree->Do(doc);
 
 }
@@ -8920,7 +8930,8 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
     {
         XL::SourceFile src = couple->second;
         if (!src.tree) continue;
-        t = generateDoc(self, src.tree);
+        QFileInfo fi(+src.name);
+        t = generateDoc(self, src.tree, +fi.baseName());
         com += t->AsText()->value;
     }
 
@@ -8952,11 +8963,12 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
             file.write(com.c_str());
         file.close();
     }
-    std::cerr
-        << "\n"
-        << "=========================================================\n"
-        << com << std::endl
-        << "=========================================================\n";
+
+//    std::cerr
+//        << "\n"
+//        << "=========================================================\n"
+//        << com << std::endl
+//        << "=========================================================\n";
 
     return new Text(com, "", "");
 }

@@ -865,7 +865,7 @@ GraphicPath& GraphicPath::lineTo(Point3 dst)
 // ----------------------------------------------------------------------------
 {
     if (!elements.size())
-        moveTo(start);
+        moveTo(dst);
 
     elements.push_back(Element(LINE_TO, dst));
     position = dst;

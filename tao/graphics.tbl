@@ -109,6 +109,11 @@ PREFIX(PageThumbnail, tree, "page_thumbnail",
        RTAO(thumbnail(self, s, i, p)),
        GROUP(page)
        SYNOPSIS("Generate a page thumbnail as a texture"))
+PREFIX(OffLineRendering, boolean, "offline_rendering", , RTAO(offlineRendering(self)),
+       GROUP(page)
+       SYNOPSIS("Return true if we are currently rendering to file")
+       DESCRIPTION("")
+       RETURNS(boolean, "Return the offline rendering status"))
 
 PREFIX(FrameWidth,   real,      "frame_width", , RTAO(frameWidth(self)),
        GROUP(frame)
@@ -136,6 +141,38 @@ PREFIX(WindowHeight, real,      "window_height", , RTAO(windowHeight(self)),
        SYNOPSIS("Return the height of window in which we display")
        DESCRIPTION("Return the height of window in which we display")
        RETURNS(real, "Return the height of window in which we display") )
+PREFIX(TimeSeconds, integer,  "seconds", PARM(t, real, ), RTAO(seconds(self, t)),
+       GROUP(time) SYNOPSIS("Extract seconds from timestamp"))
+PREFIX(TimeMinutes, integer,  "minutes", PARM(t, real, ), RTAO(minutes(self, t)),
+       GROUP(time) SYNOPSIS("Extract minutes (local time) from timestamp"))
+PREFIX(TimeHours,   integer,  "hours", PARM(t, real, ), RTAO(hours(self, t)),
+       GROUP(time) SYNOPSIS("Extract hours (local time) from timestamp"))
+PREFIX(TimeDay,     integer,  "day", PARM(t, real, ), RTAO(day(self, t)),
+       GROUP(time) SYNOPSIS("Extract day (1-31) from timestamp"))
+PREFIX(TimeWeekDay, integer,  "week_day", PARM(t, real, ), RTAO(weekDay(self, t)),
+       GROUP(time) SYNOPSIS("Extract week day (1-7) from timestamp"))
+PREFIX(TimeYearDay, integer,  "year_day", PARM(t, real, ), RTAO(yearDay(self, t)),
+       GROUP(time) SYNOPSIS("Extract year day (1-365) from timestamp"))
+PREFIX(TimeMonth,   integer,  "month", PARM(t, real, ), RTAO(month(self, t)),
+       GROUP(time) SYNOPSIS("Extract month from timestamp"))
+PREFIX(TimeYear, integer,  "year", PARM(t, real, ), RTAO(year(self, t)),
+       GROUP(time) SYNOPSIS("Extract year from timestamp"))
+PREFIX(Seconds, integer, "seconds" ,, RTAO(seconds(self, -1.0)),
+       GROUP(time) SYNOPSIS("Return seconds of current time"))
+PREFIX(Minutes, integer, "minutes" ,, RTAO(minutes(self, -1.0)),
+       GROUP(time) SYNOPSIS("Return minutes of current time"))
+PREFIX(Hours,   integer, "hours"   ,, RTAO(hours(self, -1.0)),
+       GROUP(time) SYNOPSIS("Return hours of current time"))
+PREFIX(Day,     integer, "day"     ,, RTAO(day(self, -1.0)),
+       GROUP(time) SYNOPSIS("Return current day of month"))
+PREFIX(WeekDay, integer, "week_day",, RTAO(weekDay(self, -1.0)),
+       GROUP(time) SYNOPSIS("Return current day of week"))
+PREFIX(YearDay, integer, "year_day",, RTAO(yearDay(self, -1.0)),
+       GROUP(time) SYNOPSIS("Return current day of year"))
+PREFIX(Month,   integer, "month"   ,, RTAO(month(self, -1.0)),
+       GROUP(time) SYNOPSIS("Return current month"))
+PREFIX(Year,    integer, "year"    ,, RTAO(year(self, -1.0)),
+       GROUP(time) SYNOPSIS("Return current year"))
 PREFIX(DaySeconds,   real,      "time", , RTAO(time(self)),
        GROUP(time)
        SYNOPSIS("Return a fractional time, including milliseconds")
@@ -423,6 +460,15 @@ PREFIX(ToggleSlideShow, boolean, "toggle_slide_show", ,
        RTAO(toggleSlideShow(self)),
        GROUP(gui)
        SYNOPSIS("Toggle slide-show mode"))
+PREFIX(ShowStatistics, boolean, "show_statistics",
+       PARM(flag, boolean, "Flag controlling display of rendering statistics (fps)"),
+       RTAO(showStatistics(self, flag)),
+       GROUP(gui)
+       SYNOPSIS("Control the display of rendering statistics"))
+PREFIX(ToggleShowStatistics, boolean, "toggle_show_statistics", ,
+       RTAO(toggleShowStatistics(self)),
+       GROUP(gui)
+       SYNOPSIS("Toggle display of rendering statistics"))
 PREFIX(ResetView, boolean, "reset_view", ,
        RTAO(resetView(self)),
        GROUP(gui)

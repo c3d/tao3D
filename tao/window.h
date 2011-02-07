@@ -98,6 +98,7 @@ public slots:
     void deleteAboutSplash();
     void showMessage(QString message)  { showMessage(message, 2000); }
     void setReadOnly(bool ro);
+    void renderToFile();
 
 signals:
     void projectUrlChanged(QString url);
@@ -134,7 +135,6 @@ private slots:
     void preferences();
     void documentWasModified();
     void checkFiles();
-    void toggleFullScreen();
     void clearUndoStack();
     void reloadCurrentFile();
     void onUriGetFailed();
@@ -182,10 +182,13 @@ public:
     QDockWidget      *dock;
 private:
     QDockWidget      *errorDock;
+public:
     Widget           *taoWidget;
+private:
     QString           curFile;
     Uri              *uri;
     bool              slideShowMode;
+    bool              unifiedTitleAndToolBarOnMac;
 
     QTimer            fileCheckTimer;
     QMenu            *fileMenu;
@@ -204,6 +207,7 @@ private:
     QAction          *saveAct;
     QAction          *saveAsAct;
     QAction          *consolidateAct;
+    QAction          *renderToFileAct;
     QAction          *saveFontsAct;
     QAction          *printAct;
     QAction          *pageSetupAct;
@@ -223,7 +227,6 @@ private:
     QAction          *aboutAct;
     QAction          *preferencesAct;
     QAction          *aboutQtAct;
-    QAction          *fullScreenAct;
     QAction          *slideShowAct;
     QAction          *viewAnimationsAct;
     QAction          *viewStereoscopyAct;

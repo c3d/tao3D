@@ -83,6 +83,7 @@ class Widget : public QGLWidget
 {
     Q_OBJECT
 public:
+    typedef std::list<int>              frame_times;
     typedef std::vector<double>         attribute_args;
     typedef std::map<GLuint, uint>      selection_map;
     enum StereoMode { stereoHARDWARE,
@@ -124,11 +125,16 @@ public slots:
     void        hideCursor();
     void        resetView();
     void        saveAndCommit();
+    void        renderFrames(int w, int h, double startT, double endT,
+                             QString dir, double fps = 25.0, int page = -1);
+    void        cancelRenderFrames() { renderFramesCanceled = true; }
 
 
 signals:
     // Signals
     void        copyAvailable(bool yes = true);
+    void        renderFramesProgress(int percent);
+    void        renderFramesDone();
 
 public:
     // OpenGL and drawing
@@ -192,8 +198,9 @@ public:
 
     // Timing
     ulonglong   now();
-    ulonglong   elapsed(ulonglong since, ulonglong until,
-                        bool stats = true, bool show=true);
+    void        printStatistics();
+    void        updateStatistics();
+    double      CurrentTime();
     bool        timerIsActive()         { return timer.isActive(); }
     bool        hasAnimations(void)     { return animated; }
     char        hasStereoscopy(void)    { return stereoPlanes > 1; }
@@ -276,6 +283,8 @@ public:
     Real_p      frameWidth(Tree_p self);
     Real_p      frameHeight(Tree_p self);
     Real_p      frameDepth(Tree_p self);
+    int         width();
+    int         height();
     Real_p      windowWidth(Tree_p self);
     Real_p      windowHeight(Tree_p self);
     Real_p      time(Tree_p self);
@@ -311,6 +320,14 @@ public:
     // Setting attributes
     Name_p      depthTest(Tree_p self, bool enable);
     Tree_p      refresh(Tree_p self, double delay);
+    Integer_p   seconds(Tree_p self, double t);
+    Integer_p   minutes(Tree_p self, double t);
+    Integer_p   hours(Tree_p self, double t);
+    Integer_p   day(Tree_p self, double t);
+    Integer_p   weekDay(Tree_p self, double t);
+    Integer_p   yearDay(Tree_p self, double t);
+    Integer_p   month(Tree_p self, double t);
+    Integer_p   year(Tree_p self, double t);
     Name_p      showSource(Tree_p self, bool show);
     Name_p      fullScreen(Tree_p self, bool fs);
     Name_p      toggleFullScreen(Tree_p self);
@@ -319,6 +336,8 @@ public:
     Name_p      toggleHandCursor(Tree_p self);
     Name_p      autoHideCursor(XL::Tree_p self, bool autoHide);
     Name_p      toggleAutoHideCursor(XL::Tree_p self);
+    Name_p      showStatistics(Tree_p self, bool ss);
+    Name_p      toggleShowStatistics(Tree_p self);
     Name_p      resetView(Tree_p self);
     Name_p      panView(Tree_p self, coord dx, coord dy);
     Real_p      currentZoom(Tree_p self);
@@ -518,6 +537,7 @@ public:
                            Tree_p prog);
     Tree_p      frameTexture(Tree_p self, double w, double h, Tree_p prog);
     Tree_p      thumbnail(Tree_p self, scale s, double i, text page);
+    Name_p      offlineRendering(Tree_p self);
 
     Tree_p      urlPaint(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                          text_p s, integer_p p);
@@ -695,7 +715,7 @@ private:
     scale                 pageW, pageH, blurFactor;
     text                  flowName;
     flow_map              flows;
-    text                  pageName, lastPageName;
+    text                  pageName, lastPageName, gotoPageName;
     page_map              pageLinks;
     page_list             pageNames, newPageNames;
     uint                  pageId, pageFound, pageShown, pageTotal, pageToPrint;
@@ -742,7 +762,9 @@ private:
     // Timing
     QTimer                timer, idleTimer;
     double                pageStartTime, pageRefresh, frozenTime, startTime;
-    ulonglong             tmin, tmax, tsum, tcount;
+    QTime                 stats_start;
+    int                   stats_interval;
+    frame_times           stats;
     ulonglong             nextSave, nextCommit, nextSync, nextPull;
 
     // Printing
@@ -765,6 +787,11 @@ private:
     int                   panX, panY;
     bool                  dragging;
     bool                  bAutoHideCursor;
+    bool                  bShowStatistics;
+    bool                  renderFramesCanceled;
+    double                offlineRenderingTime;
+    int                   offlineRenderingWidth;
+    int                   offlineRenderingHeight;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:
@@ -809,17 +836,73 @@ inline void glShowErrors()
 }
 
 
-inline double CurrentTime()
+inline QDateTime fromSecsSinceEpoch(double when)
+// ----------------------------------------------------------------------------
+//    Convert the number of seconds passed since the epoch to QDateTime
+// ----------------------------------------------------------------------------
+{
+    QDateTime d;
+#if QT_VERSION >=  0x040700
+    d = d.fromMSecsSinceEpoch((qint64)(when * 1000));
+#else
+    d = d.fromTime_t(when);
+    double s, ms = modf(when, &s);
+    d.addMSecs(ms);
+#endif
+    return d;
+}
+
+
+inline double toSecsSinceEpoch(const QDateTime &d)
+// ----------------------------------------------------------------------------
+//    Convert QDateTime to the number of seconds passed since the epoch
+// ----------------------------------------------------------------------------
+{
+#if QT_VERSION >=  0x040700
+    return (double)d.toMSecsSinceEpoch() / 1000;
+#else
+    qint64 ret = d.toTime_t();
+    ret *= 1000;
+    ret += d.time().msec();
+    return (double)ret / 1000;
+#endif
+}
+
+
+inline double nextDay(const QDateTime &d)
+// ----------------------------------------------------------------------------
+//    Return next day
+// ----------------------------------------------------------------------------
+{
+    QDateTime next(d);
+    next.setTime(QTime(0, 0, 0, 0));
+    next = next.addDays(1);
+    return toSecsSinceEpoch(next);
+}
+
+inline double TrueCurrentTime()
+// ----------------------------------------------------------------------------
+//    Query and return the current time (seconds since epoch, ~ms resolution)
+// ----------------------------------------------------------------------------
+{
+    QDateTime dt = QDateTime::currentDateTime();
+#if QT_VERSION >= 0x040700
+    return toSecsSinceEpoch(dt);
+#else
+    QTime t = QTime::currentTime();
+    return dt.toTime_t() +  0.001 * t.msec();
+#endif
+}
+
+
+inline double Widget::CurrentTime()
 // ----------------------------------------------------------------------------
 //    Return the current time
 // ----------------------------------------------------------------------------
 {
-    QTime t = QTime::currentTime();
-    double d = (3600.0	 * t.hour()
-                + 60.0	 * t.minute()
-                +	   t.second()
-                +  0.001 * t.msec());
-    return d;
+    if (offlineRenderingTime != -1)
+        return offlineRenderingTime;
+    return TrueCurrentTime();
 }
 
 

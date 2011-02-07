@@ -71,6 +71,7 @@ SOURCES += \
     ../tao/xlr/xlr/parms.cpp			\
     ../tao/xlr/xlr/unit.cpp			\
     ../tao/xlr/xlr/context.cpp \
+    ../tao/xlr/xlr/symbols.cpp \
     ../tao/xlr/xlr/diff.cpp \
     ../tao/xlr/xlr/errors.cpp \
     ../tao/xlr/xlr/gc.cpp \

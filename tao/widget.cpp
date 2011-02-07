@@ -2939,15 +2939,15 @@ void Widget::preloadSelectionCode()
     static bool first = true;
     if (first)
     {
-        Context *c = xlProgram->context;
+        XL::Symbols *s = XL::MAIN->globals;
         double x = 0;
-        (XL::XLCall("draw_selection"), x,x,x,x).build(c);
-        (XL::XLCall("draw_selection"), x,x,x,x,x,x).build(c);
-        (XL::XLCall("draw_widget_selection"), x,x,x,x).build(c);
-        (XL::XLCall("draw_widget_selection"), x,x,x,x,x,x).build(c);
-        (XL::XLCall("draw_3D_selection"), x,x,x,x,x,x).build(c);
-        (XL::XLCall("draw_handle"), x, x, x).build(c);
-        (XL::XLCall("draw_control_point_handle"), x, x, x).build(c);
+        (XL::XLCall("draw_selection"), x,x,x,x).build(s);
+        (XL::XLCall("draw_selection"), x,x,x,x,x,x).build(s);
+        (XL::XLCall("draw_widget_selection"), x,x,x,x).build(s);
+        (XL::XLCall("draw_widget_selection"), x,x,x,x,x,x).build(s);
+        (XL::XLCall("draw_3D_selection"), x,x,x,x,x,x).build(s);
+        (XL::XLCall("draw_handle"), x, x, x).build(s);
+        (XL::XLCall("draw_control_point_handle"), x, x, x).build(s);
         first = false;
     }
 }

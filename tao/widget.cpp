@@ -5092,7 +5092,7 @@ Tree_p Widget::listFiles(Tree_p self, Tree_p pattern)
     Dir current(window->currentProjectFolderPath());
     list_files(current, pattern, parent);
     if (!result)
-        result = XL::xl_empty;
+        result = XL::xl_nil;
     return result;
 }
 

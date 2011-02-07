@@ -532,7 +532,7 @@ menu_item "menu:insert > text box", "Text Box", do
             font "default"
             text_box 0, 0, 100, 100, do
                 text "Text"
-submenu   "menu:insert > shape", "Shape"
+submenu   "menu:insert > shape", "2D Shape"
 menu_item "menu:insert > shape > line ---", "Line", do
     insert "Insert line",
         shape
@@ -625,6 +625,53 @@ menu_item "menu:insert > shape > polygon", "Polygon", do
             polygon 0, 0, 100, 100, 5
 
 menu      "menu:insert", ""
+submenu   "menu:insert > 3Dshape", "3D Shape"
+menu_item "menu:insert > 3Dshape > sphere", "Spere", do
+    insert "Insert sphere",
+        shape
+            color "fill"
+            line_color "fill"
+            sphere 0, 0, 0, 100, 100, 100, 25, 25
+
+menu_item "menu:insert > 3Dshape > cube", "Cube", do
+    insert "Insert cube",
+        shape
+            rotatex -50
+            rotatey -50
+            color "fill"
+            line_color "fill"
+            cube 0, 0, 0, 100, 100, 100
+
+menu_item "menu:insert > 3Dshape > cone", "Cone", do
+    insert "Insert cone",
+        shape
+            rotatex -50
+            rotatey -50
+            color "fill"
+            line_color "fill"
+            cone 0, 0, 0, 100, 100, 100
+
+menu_item "menu:insert > 3Dshape > cylinder", "Cylinder", do
+    insert "Insert cylinder",
+        shape
+            rotatex -50
+            rotatey -50
+            color "fill"
+            line_color "fill"
+            cylinder 0, 0, 0, 100, 100, 100
+
+menu_item "menu:insert > 3Dshape > truncated cone", "Truncated cone", do
+    insert "Insert truncated cone",
+        shape
+            rotatex -50
+            rotatey -50
+            color "fill"
+            line_color "fill"
+            truncated_cone 0, 0, 0, 100, 100, 100, 0.5
+
+
+
+menu      "menu:insert", ""
 menu_item "menu:insert > table", "Table", do
     insert "Insert table",
         shape
@@ -677,6 +724,16 @@ menu_item "menu:insert > image...", "Image...", file_chooser
             shape
                 color 100%,100%,100%,100%
                 image 0, 0, 100%, 100%, rel_file_path
+
+menu_item "menu:insert > 3D object...", "3D object...", file_chooser
+    filter "All object formats (*.obj *.3ds );;" &
+           "OBJ - object??? (*.obj);;" &
+           "3DS - 3D Studio (*.3ds);;"
+    action do
+        insert "Insert 3D object",
+            shape
+                color 100%,100%,100%,100%
+                object 0, 0, 0, 100, 100, 100, rel_file_path
 }
 
 

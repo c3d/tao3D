@@ -319,7 +319,7 @@ selection_color ->
 
 selection_rectangle_color ->
     color 70%, 90%, 80%, 40%
-    line_color 0.4 * sin seconds, 0.9 * sin (2*seconds), 0.8 * sin(3 * seconds), 0.8
+    line_color 0.4 * sin time , 0.9 * sin (2.0*time ), 0.8 * sin(3.0 * time ), 0.8
     line_width 1
 
 open_group_color ->

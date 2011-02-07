@@ -393,7 +393,7 @@ void Widget::draw()
             "float disparity = Multiplier * (1.0- vz/(Z-Zd+vz))+Offset;"
             "gl_FragColor = vec4(disparity, disparity, disparity, 1.0);"
             "}";
-        
+
         if (!depthMapper)
         {
             QGLShaderProgram *pgm = new QGLShaderProgram();
@@ -2521,7 +2521,7 @@ void Widget::updateProgramSource()
 // ----------------------------------------------------------------------------
 {
     Window *window = (Window *) parentWidget();
-    if (window->dock->isHidden())
+    if (window->dock->isHidden() || ! xlProgram)
         return;
     if (Tree *prog = xlProgram->tree)
     {

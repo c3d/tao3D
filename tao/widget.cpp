@@ -70,6 +70,7 @@
 #include "portability.h"
 #include "tool_window.h"
 #include "raster_text.h"
+#include "dir.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -5030,6 +5031,68 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
         layout->Add(new ImageManipulator(currentShape, x,y, sxp,syp, w0,h0));
 
     return XL::xl_true;
+}
+
+
+static void list_files(Dir &current, Tree *patterns,
+                       Tree_p *&parent)
+// ----------------------------------------------------------------------------
+//   Append files matching patterns (relative to directory current) to parent
+// ----------------------------------------------------------------------------
+{
+    if (Block *block = patterns->AsBlock())
+    {
+        list_files(current, block->child, parent);
+        return;
+    }
+    if (Infix *infix = patterns->AsInfix())
+    {
+        if (infix->name == "," || infix->name == ";" || infix->name == "\n")
+        {
+            list_files(current, infix->left, parent);
+            list_files(current, infix->right, parent);
+            return;
+        }
+    }
+
+    patterns = XL::xl_evaluate(patterns);
+    if (Text *glob = patterns->AsText())
+    {
+        QString filter = +glob->value;
+        QStringList files = current.entryList(QStringList() << filter);
+        foreach (QString file, files)
+        {
+            Text *listed = new Text(+file);
+            if (*parent)
+            {
+                Infix *added = new Infix(",", *parent, listed);
+                *parent = added;
+                parent = &added->right;
+            }
+            else
+            {
+                *parent = listed;
+            }
+        }
+        return;
+    }
+    Ooops("Malformed files list $1", patterns);
+}
+
+
+Tree_p Widget::listFiles(Tree_p self, Tree_p pattern)
+// ----------------------------------------------------------------------------
+//   List files, current directory is the document directory
+// ----------------------------------------------------------------------------
+{
+    Tree_p result = NULL;
+    Tree_p *parent = &result;
+    Window *window = (Window *) parentWidget();
+    Dir current(window->currentProjectFolderPath());
+    list_files(current, pattern, parent);
+    if (!result)
+        result = XL::xl_empty;
+    return result;
 }
 
 

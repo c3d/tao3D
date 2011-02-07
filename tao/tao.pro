@@ -135,7 +135,8 @@ HEADERS += widget.h \
     branch_selection_tool.h \
     git_toolbar.h \
     render_to_file_dialog.h \
-    raster_text.h
+    raster_text.h \
+    dir.h
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \
@@ -213,7 +214,8 @@ SOURCES += tao_main.cpp \
     history_playback_tool.cpp \
     git_toolbar.cpp \
     render_to_file_dialog.cpp \
-    raster_text.cpp
+    raster_text.cpp \
+    dir.cpp
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 

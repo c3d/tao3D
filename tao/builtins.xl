@@ -536,19 +536,19 @@ submenu   "menu:insert > shape", "Shape"
 menu_item "menu:insert > shape > line ---", "Line", do
     insert "Insert line",
         shape
-            color "line"
-            //line_color "line"
+            //color "line"
+            line_color "line"
             line 50, -50, -50, 50
 menu_item "menu:insert > shape > line -->", "Line with Arrowhead", do
     insert "Insert line with arrowhead",
         shape
-            color "line"
-            //line_color "line"
+            //color "line"
+            line_color "line"
             line_arrow 50, -50, none, -50, 50, arrowhead
 menu_item "menu:insert > shape > line <->", "Line with Two Arrowheads", do
     insert "Insert line with two arroheads",
         shape
-            color "line"
+            //color "line"
             line_color "line"
             line_arrow 50, -50, arrowhead, -50, 50, arrowhead
 menu_item "menu:insert > shape > rectangle", "Rectangle", do
@@ -560,6 +560,8 @@ menu_item "menu:insert > shape > rectangle", "Rectangle", do
 menu_item "menu:insert > shape > rounded rectangle", "Rounded Rectangle", do
     insert "Insert rounded rectangle",
         shape
+            color "fill"
+            line_color "fill"
             rounded_rectangle 0, 0, 100, 100, 15
 menu_item "menu:insert > shape > oval", "Oval", do
     insert "Insert oval",

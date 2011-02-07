@@ -13,5 +13,5 @@ InspectorDialog::~InspectorDialog()
     delete ui;
 }
 
-InspectorDialog::addProperty(){}
-InspectorDialog::addProperties(){}
+void InspectorDialog::addProperty(){}
+void InspectorDialog::addProperties(){}

@@ -630,7 +630,7 @@ menu_item "menu:insert > table", "Table", do
         shape
             color "font"
             line_color "font"
-            table 3, 3, do
+            table 0, 0, 3, 3, do
                 table_cell_fill
                     color 0%,0%,0%,20%
                     line_color 0%, 0%, 100%, 80%

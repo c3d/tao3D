@@ -1,19 +1,19 @@
 // ****************************************************************************
-//  xl.stylesheet                   (C) 1992-2004 Christophe de Dinechin (ddd) 
-//                                                                 XL2 project 
+//  nocomment.stylesheet             (C) 1992-2010 Christophe de Dinechin (ddd)
+//                                                                 XL2 project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
-//     Default renderer for XL
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//     Renderer for XL that omits comment.
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html for details
@@ -35,13 +35,13 @@ indents = "    "
 "infix ," = separator left "," space right separator
 "infix ;" = separator left ";" space right separator
 "infix :" = separator left ":" right separator
-"infix cr" = separator left newline right separator
-"infix else" = separator left separator self separator right separator
+"infix cr" = separator left right separator
 "postfix %" = separator left "%" separator
 "postfix !" = separator left "!" separator
 "text "" """ = """" quoted_self """"
 "text << >>" = "<<" self ">>"
 "longtext "" """ = "<<" self ">>"
 "longtext << >>" = "<<" self ">>"
-"comment " = ""
-
+"comment_after " = ''
+"comment_before " = ''
+"comment " = ''

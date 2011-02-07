@@ -31,9 +31,11 @@
 #include <QTestEventList>
 #include <QAction>
 #include <QTime>
+#include <QFile>
 #include <QColorDialog>
 #include <QFontDialog>
-
+#include <QFileDialog>
+#include <QMainWindow>
 inline QString operator +(text s)
 // ----------------------------------------------------------------------------
 //   Quickly convert from text to QString
@@ -50,6 +52,14 @@ inline text operator +(QString s)
     return text(s.toUtf8().constData());
 }
 
+typedef enum PlayerState_ {
+    stopped   = 0,
+    recording = 1,
+    playing   = 2,
+} PlayerState;
+
+#define BEFORE -1
+#define AFTER -2
 
 struct WidgetTests : public QObject
 {
@@ -61,11 +71,12 @@ public:
     void stopRecord();
     void checkNow();
     void save();
-    bool play();
+    bool startPlay();
+    void stopPlay();
     void printResult();
     void reset(text newName = text(), int feature = 0,
                text desc = text(), text folder = text("./"),
-               double thr = 0.0);
+               double thr = 0.0, int width = -1, int height = -1);
 
     void addKeyPress(Qt::Key qtKey,
                      Qt::KeyboardModifiers modifiers = Qt::NoModifier,
@@ -89,12 +100,18 @@ public:
     void addCheck(int num, int delay);
     void addColor(QString diagName, QString name, int delay = -1 );
     void addFont(QString diagName, QString name, int delay = -1  );
+    void addFile(QString diagName, QString name, int delay = -1  );
     void addDialogClose(QString diagName, int result, int delay = -1);
 
     // Save utilities
     text toString();
     double diff(QImage &ref, QImage &played, QString filename,
                 bool forceSave = false);
+    // logging results
+    void logOpen();
+    void log(QString t);
+    void log(int No, bool isOK, double Tx);
+    void logClose(bool result);
     // Spying events on widget
     bool eventFilter(QObject *obj, QEvent *evt);
 
@@ -102,7 +119,10 @@ public slots:
     void recordAction(bool triggered);
     void recordColor(QColor color);
     void recordFont(QFont font);
+    void recordFile(QString filename);
     void finishedDialog(int result);
+
+    void stop();
 
 public:
     QGLWidget *widget;
@@ -118,9 +138,20 @@ public:
     int        nbChkPtKO;
     double     threshold;
 
-protected:
+    QMainWindow * win ;
+    QSize         winSize;
 
+    QFile    * logfile;
+
+protected:
+    PlayerState state;
     QTestEventList testList;
+
+private:
+    // This list will hold a copy of the testList for playing.
+    // It should not be modified while playing, except clearing it to stop the play.
+    QTestEventList *playingList;
+
 
 //private slots:
 //    void initTestCase()
@@ -238,6 +269,25 @@ private:
     int delay;
 };
 
+class TestFileActionEvent: public QTestEvent
+// ----------------------------------------------------------------------------
+//   Class used to store file selection events.
+// ----------------------------------------------------------------------------
+{
+public:
+    inline TestFileActionEvent(QString objName, QString name, int delay)
+        : objName(objName), fileName(name), delay(delay) {}
+    inline QTestEvent *clone() const { return new TestFileActionEvent(*this); }
+
+    void simulate(QWidget *w);
+    QString toTaoCmd();
+
+private:
+    QString objName;
+    QString fileName;
+    int delay;
+};
+
 
 class TestDialogActionEvent: public QTestEvent
 // ----------------------------------------------------------------------------
@@ -250,6 +300,7 @@ public:
     inline QTestEvent *clone() const { return new TestDialogActionEvent(*this); }
 
     void simulate(QWidget *w);
+    QString toTaoCmd();
 
 private:
     QString objName;

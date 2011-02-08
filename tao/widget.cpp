@@ -2562,6 +2562,7 @@ void Widget::updateProgramSource()
 //   Update the contents of the program source window
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOSRCEDIT
     Window *window = (Window *) parentWidget();
     if (window->dock->isHidden())
         return;
@@ -2593,6 +2594,7 @@ void Widget::updateProgramSource()
     {
         window->setHtml("");
     }
+#endif
 }
 
 
@@ -4231,6 +4233,8 @@ Tree_p Widget::refresh(Tree_p self, double delay)
 }
 
 
+#ifndef CFG_NOSRCEDIT
+
 XL::Name_p Widget::showSource(XL::Tree_p self, bool show)
 // ----------------------------------------------------------------------------
 //   Show or hide source code
@@ -4241,6 +4245,7 @@ XL::Name_p Widget::showSource(XL::Tree_p self, bool show)
     return old ? XL::xl_true : XL::xl_false;
 }
 
+#endif
 
 XL::Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
 // ----------------------------------------------------------------------------
@@ -8067,9 +8072,11 @@ Tree_p Widget::runtimeError(Tree_p self, text msg, Tree_p arg)
     if (current)
     {
         current->inError = true;             // Stop refreshing
+#ifndef CFG_NOSRCEDIT
         Window *window = (Window *) current->parentWidget();
         QString fname = +(current->xlProgram->name);
         window->loadFileIntoSourceFileView(fname); // Load source as plain text
+#endif
     }
     return formulaRuntimeError(self, msg, arg);
 }

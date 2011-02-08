@@ -332,7 +332,9 @@ public:
     Integer_p   yearDay(Tree_p self, double t);
     Integer_p   month(Tree_p self, double t);
     Integer_p   year(Tree_p self, double t);
+#ifndef CFG_NOSRCEDIT
     Name_p      showSource(Tree_p self, bool show);
+#endif
     Name_p      fullScreen(Tree_p self, bool fs);
     Name_p      toggleFullScreen(Tree_p self);
     Name_p      slideShow(XL::Tree_p self, bool ss);

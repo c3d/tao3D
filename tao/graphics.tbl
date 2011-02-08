@@ -416,6 +416,7 @@ PREFIX(Refresh, tree, "refresh",
        GROUP(code:graph)
        SYNOPSIS("Set document refresh time")
        DESCRIPTION("Refresh the document after the given time interval."))
+#ifndef CFG_NOSRCEDIT
 PREFIX(ShowSource, boolean, "show_source",
        PARM(flag, boolean, "Flag controlling whether source is shown"),
        RTAO(showSource(self, flag)),
@@ -426,6 +427,7 @@ PREFIX(ShowSource, boolean, "show_source",
        RETURNS(boolean,
                "The previous visibility state of the "
                "source code panel."))
+#endif
 PREFIX(FullScreen, boolean, "full_screen",
        PARM(flag, boolean, "Flag controlling full-screen mode"),
        RTAO(fullScreen(self, flag)),

@@ -77,8 +77,11 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     : isUntitled(sourceFile.isEmpty()), isReadOnly(ro),
       loadInProgress(false),
       contextFileNames(context), xlRuntime(xlr),
-      repo(NULL), textEdit(NULL), errorMessages(NULL),
-      dock(NULL), errorDock(NULL),
+      repo(NULL),
+#ifndef CFG_NOSRCEDIT
+      textEdit(NULL), dock(NULL),
+#endif
+      errorMessages(NULL),errorDock(NULL),
       taoWidget(NULL), curFile(), uri(NULL), slideShowMode(false),
       unifiedTitleAndToolBarOnMac(false), // see #678 below
       fileCheckTimer(this), splashScreen(NULL), aboutSplash(NULL),
@@ -87,6 +90,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Define the icon
     setWindowIcon(QIcon(":/images/tao.png"));
 
+#ifndef CFG_NOSRCEDIT
     // Create the text edit widget
     dock = new QDockWidget(tr("Document Source"));
     dock->setObjectName("dock");
@@ -96,6 +100,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     addDockWidget(Qt::RightDockWidgetArea, dock);
     connect(dock, SIGNAL(visibilityChanged(bool)),
             this, SLOT(sourceViewBecameVisible(bool)));
+#endif
 
     // Create the error reporting widget
     errorDock = new QDockWidget(tr("Errors"));
@@ -119,8 +124,10 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     createActions();
     createMenus();
     createToolBars();
+#ifndef CFG_NOSRCEDIT
     connect(textEdit->document(), SIGNAL(contentsChanged()),
             this, SLOT(documentWasModified()));
+#endif
 
     // Set the window attributes
     setAttribute(Qt::WA_DeleteOnClose);
@@ -172,6 +179,20 @@ Window::~Window()
 }
 
 
+#ifndef CFG_NOSRCEDIT
+
+bool Window::showSourceView(bool show)
+// ----------------------------------------------------------------------------
+//   Show or hide source view
+// ----------------------------------------------------------------------------
+{
+    bool old = dock->isVisible();
+    dock->setVisible(show);
+    dock->toggleViewAction()->setChecked(show);
+    return old;
+}
+
+
 void Window::setHtml(QString txt)
 // ----------------------------------------------------------------------------
 //   Update the text edit widget with updates we made
@@ -203,6 +224,72 @@ void Window::setHtml(QString txt)
     textEdit->update();
 }
 
+
+void Window::sourceViewBecameVisible(bool visible)
+// ----------------------------------------------------------------------------
+//   Source code view is shown or hidden
+// ----------------------------------------------------------------------------
+{
+    if (visible)
+    {
+        bool modified = textEdit->document()->isModified();
+        if (!taoWidget->inError)
+            taoWidget->updateProgramSource();
+        else
+            loadFileIntoSourceFileView(curFile);
+        markChanged(modified);
+    }
+}
+
+
+void Window::loadSrcViewStyleSheet()
+// ----------------------------------------------------------------------------
+//    Load the XL and CSS stylesheet to use for syntax highlighting
+// ----------------------------------------------------------------------------
+{
+    taoWidget->setSourceRenderer();
+
+    QFileInfo info("xl:srcview.css");
+    QString path = info.canonicalFilePath();
+    IFTRACE2(srcview, paths)
+       std::cerr << "Reading syntax highlighting CSS from '" << +path << "'\n";
+    QFile file(path);
+    file.open(QFile::ReadOnly | QFile::Text);
+    QTextStream css(&file);
+    QString srcViewStyleSheet = css.readAll();
+    textEdit->document()->setDefaultStyleSheet(srcViewStyleSheet);
+}
+
+
+bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
+// ----------------------------------------------------------------------------
+//    Update the source file view with the plain contents of a specific file
+// ----------------------------------------------------------------------------
+{
+    QFile file(fileName);
+    if (!file.open(QFile::ReadOnly | QFile::Text))
+    {
+        if (box)
+            QMessageBox::warning(this, tr("Cannot read file"),
+                                 tr("Cannot read file %1:\n%2.")
+                                 .arg(fileName)
+                                 .arg(file.errorString()));
+        textEdit->clear();
+        return false;
+    }
+
+    QTextStream in(&file);
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    loadInProgress = true;
+    textEdit->setTextColor(Qt::black);
+    textEdit->setPlainText(in.readAll());
+    loadInProgress = false;
+    QApplication::restoreOverrideCursor();
+    markChanged(false);
+    return true;
+}
+
+#endif
 
 void Window::addError(QString txt)
 // ----------------------------------------------------------------------------
@@ -276,23 +363,6 @@ void Window::toggleStereoscopy()
 }
 
 
-void Window::sourceViewBecameVisible(bool visible)
-// ----------------------------------------------------------------------------
-//   Source code view is shown or hidden
-// ----------------------------------------------------------------------------
-{
-    if (visible)
-    {
-        bool modified = textEdit->document()->isModified();
-        if (!taoWidget->inError)
-            taoWidget->updateProgramSource();
-        else
-            loadFileIntoSourceFileView(curFile);
-        markChanged(modified);
-    }
-}
-
-
 void Window::newDocument()
 // ----------------------------------------------------------------------------
 //   Create, save and open a new document from a wizard
@@ -315,7 +385,9 @@ void Window::newFile()
         isUntitled = true;
         isReadOnly = false;
         setCurrentFile(fileName);
+#ifndef CFG_NOSRCEDIT
         setHtml("");
+#endif
         markChanged(false);
         taoWidget->updateProgram(sf);
         taoWidget->refresh();
@@ -662,8 +734,10 @@ void Window::cut()
 //    Cut the current selection into the clipboard
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOSRCEDIT
     if (textEdit->hasFocus())
         return textEdit->cut();
+#endif
 
     if (taoWidget->hasFocus())
         return taoWidget->cut();
@@ -675,8 +749,10 @@ void Window::copy()
 //    Copy the current selection to the clipboard
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOSRCEDIT
     if (textEdit->hasFocus())
         return textEdit->copy();
+#endif
 
     if (taoWidget->hasFocus())
         return taoWidget->copy();
@@ -689,8 +765,10 @@ void Window::paste()
 //    Paste the clipboard content into the current document or source
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOSRCEDIT
     if (textEdit->hasFocus())
         return textEdit->paste();
+#endif
 
     if (taoWidget->hasFocus())
         return taoWidget->paste();
@@ -703,9 +781,12 @@ void Window::onFocusWidgetChanged(QWidget */*old*/, QWidget *now)
 // ----------------------------------------------------------------------------
 {
     bool enable;
+#ifndef CFG_NOSRCEDIT
     if (now == textEdit)
         enable = textEdit->textCursor().hasSelection();
-    else if (now == taoWidget)
+    else
+#endif
+    if (now == taoWidget)
         enable = taoWidget->hasSelection();
     else
         return;
@@ -723,9 +804,12 @@ void Window::checkClipboard()
 {
     QWidget *now = QApplication::focusWidget();
     bool enable;
+#ifndef CFG_NOSRCEDIT
     if (now == textEdit)
         enable = textEdit->canPaste();
-    else if (now == taoWidget)
+    else
+#endif
+    if (now == taoWidget)
         enable = taoWidget->canPaste();
     else
         return;
@@ -1214,8 +1298,10 @@ void Window::createActions()
 
     cutAct->setEnabled(false);
     copyAct->setEnabled(true);
+#ifndef CFG_NOSRCEDIT
     connect(textEdit, SIGNAL(copyAvailable(bool)),
             cutAct, SLOT(setEnabled(bool)));
+#endif
     connect(taoWidget, SIGNAL(copyAvailable(bool)),
             cutAct, SLOT(setEnabled(bool)));
 
@@ -1301,7 +1387,9 @@ void Window::createMenus()
 #endif
 
     viewMenu = menuBar()->addMenu(tr("&View"));
+#ifndef CFG_NOSRCEDIT
     viewMenu->addAction(dock->toggleViewAction());
+#endif
     viewMenu->addAction(errorDock->toggleViewAction());
     viewMenu->addAction(slideShowAct);
     viewMenu->addAction(slideShowAct);
@@ -1440,6 +1528,7 @@ bool Window::maybeSave()
 //   Check if we need to save the document
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOSRCEDIT
     if (textEdit->document()->isModified())
     {
         QMessageBox::StandardButton ret;
@@ -1453,6 +1542,7 @@ bool Window::maybeSave()
         else if (ret == QMessageBox::Cancel)
             return false;
     }
+#endif
     return true;
 }
 
@@ -1467,25 +1557,6 @@ bool Window::needNewWindow()
 //   - Current doc is untitled and has been modified.
 {
     return isWindowModified() || !isUntitled;
-}
-
-
-void Window::loadSrcViewStyleSheet()
-// ----------------------------------------------------------------------------
-//    Load the XL and CSS stylesheet to use for syntax highlighting
-// ----------------------------------------------------------------------------
-{
-    taoWidget->setSourceRenderer();
-
-    QFileInfo info("xl:srcview.css");
-    QString path = info.canonicalFilePath();
-    IFTRACE2(srcview, paths)
-       std::cerr << "Reading syntax highlighting CSS from '" << +path << "'\n";
-    QFile file(path);
-    file.open(QFile::ReadOnly | QFile::Text);
-    QTextStream css(&file);
-    QString srcViewStyleSheet = css.readAll();
-    textEdit->document()->setDefaultStyleSheet(srcViewStyleSheet);
 }
 
 
@@ -1508,7 +1579,9 @@ void Window::setReadOnly(bool ro)
 // ----------------------------------------------------------------------------
 {
     isReadOnly = ro;
+#ifndef CFG_NOSRCEDIT
     textEdit->setReadOnly(ro);
+#endif
 #ifndef CFG_NOGIT
     pushAct->setEnabled(!ro);
     mergeAct->setEnabled(!ro);
@@ -1578,9 +1651,11 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     {
         // File not found, or parse error
         showMessage(tr("Load error"), 2000);
+#ifndef CFG_NOSRCEDIT
         // Try to show source as plain text
         if (!loadFileIntoSourceFileView(fileName, openProj))
             return false;
+#endif
     }
     else
     if (taoWidget->inError)
@@ -1594,10 +1669,12 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         showMessage(msg.arg(tr("Caching code")));
         taoWidget->preloadSelectionCode();
 
+#ifndef CFG_NOSRCEDIT
         loadSrcViewStyleSheet();
         loadInProgress = true;
         taoWidget->updateProgramSource();
         loadInProgress = false;
+#endif
         QApplication::restoreOverrideCursor();
         showMessage(tr("File loaded"), 2000);
     }
@@ -1626,7 +1703,9 @@ bool Window::switchToSlideShow(bool ss)
     bool oldMode = slideShowMode;
     switchToFullScreen(ss);
     setWindowAlwaysOnTop(ss);
+#ifndef CFG_NOSRCEDIT
     showSourceView(!ss);
+#endif
     taoWidget->autoHideCursor(NULL, ss);
     TaoApp->blockScreenSaver(ss);
     slideShowAct->setChecked(ss);
@@ -1657,35 +1736,6 @@ void Window::setWindowAlwaysOnTop(bool alwaysOnTop)
         show();
     }
 #endif
-}
-
-
-bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
-// ----------------------------------------------------------------------------
-//    Update the source file view with the plain contents of a specific file
-// ----------------------------------------------------------------------------
-{
-    QFile file(fileName);
-    if (!file.open(QFile::ReadOnly | QFile::Text))
-    {
-        if (box)
-            QMessageBox::warning(this, tr("Cannot read file"),
-                                 tr("Cannot read file %1:\n%2.")
-                                 .arg(fileName)
-                                 .arg(file.errorString()));
-        textEdit->clear();
-        return false;
-    }
-
-    QTextStream in(&file);
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    loadInProgress = true;
-    textEdit->setTextColor(Qt::black);
-    textEdit->setPlainText(in.readAll());
-    loadInProgress = false;
-    QApplication::restoreOverrideCursor();
-    markChanged(false);
-    return true;
 }
 
 
@@ -1772,7 +1822,25 @@ bool Window::saveFile(const QString &fileName)
     {
         QTextStream out(&file);
         QApplication::setOverrideCursor(Qt::WaitCursor);
+#ifndef CFG_NOSRCEDIT
         out << textEdit->toPlainText();
+#else
+        if (Tree *prog = taoWidget->xlProgram->tree)
+        {
+            std::ostringstream renderOut;
+//            XL::Renderer renderer(renderOut);
+//            QFileInfo stylesheet("xl:xl.stylesheet");
+//            QFileInfo syntax("xl:xl.syntax");
+//            QString sspath(stylesheet.canonicalFilePath());
+//            QString sypath(syntax.canonicalFilePath());
+//            renderer.SelectStyleSheet(+sspath, +sypath);
+//            text txt = "";
+//            renderOut.str(txt);
+//            renderer.RenderFile(prog);
+            renderOut << prog;
+            out << +renderOut.str();
+        }
+#endif
         QApplication::restoreOverrideCursor();
     } while (0); // Flush
 
@@ -1808,7 +1876,9 @@ void Window::markChanged(bool changed)
 //   Someone else tells us that the window is changed or not
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOGIT
     textEdit->document()->setModified(changed);
+#endif
     setWindowModified(changed);
 }
 
@@ -2064,18 +2134,6 @@ void Window::switchToFullScreen(bool fs)
         restoreState(savedState.state);
     }
     slideShowAct->setChecked(fs);
-}
-
-
-bool Window::showSourceView(bool show)
-// ----------------------------------------------------------------------------
-//   Show or hide source view
-// ----------------------------------------------------------------------------
-{
-    bool old = dock->isVisible();
-    dock->setVisible(show);
-    dock->toggleViewAction()->setChecked(show);
-    return old;
 }
 
 

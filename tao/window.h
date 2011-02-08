@@ -66,7 +66,6 @@ public:
            QString sourceFile = "", bool ro = false);
     ~Window();
 
-    void setHtml(QString txt);
     void addError(QString txt);
 #ifndef CFG_NOGIT
     bool openProject(QString path, QString filename, bool confirm = true);
@@ -77,8 +76,11 @@ public:
     void switchToFullScreen(bool fs = true);
     bool switchToSlideShow(bool ss = true);
     void setWindowAlwaysOnTop(bool alwaysOnTop);
+#ifndef CFG_NOSRCEDIT
+    void setHtml(QString txt);
     bool showSourceView(bool fs);
     bool loadFileIntoSourceFileView(const QString &fileName, bool box=false);
+#endif
     QString  currentProjectFolderPath();
     bool     needNewWindow();
 
@@ -96,7 +98,9 @@ public slots:
     void toggleAnimations();
     void toggleStereoscopy();
     bool toggleSlideShow();
+#ifndef CFG_NOSRCEDIT
     void sourceViewBecameVisible(bool visible);
+#endif
     int  open(QString fileName = "", bool readOnly = false);
 #ifndef CFG_NOGIT
     void openUri();
@@ -178,7 +182,9 @@ private:
 #endif
     void     updateRecentFileActions();
     void     updateContext(QString docPath);
+#ifndef CFG_NOSRCEDIT
     void     loadSrcViewStyleSheet();
+#endif
     void     showMessage(QString message, int timeout);
     void     closeToolWindows();
 
@@ -188,13 +194,15 @@ private:
     QSharedPointer<Repository> repo;
     QList<int>        appFontIds;
 
-    QTextEdit        *textEdit;
-    QTextEdit        *errorMessages;
     // currentProjectFolder : Used if repo is not used.
     QString          currentProjectFolder;
+#ifndef CFG_NOSRCEDIT
+    QTextEdit        *textEdit;
 public:
     QDockWidget      *dock;
+#endif
 private:
+    QTextEdit        *errorMessages;
     QDockWidget      *errorDock;
 public:
     Widget           *taoWidget;

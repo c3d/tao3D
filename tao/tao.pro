@@ -234,6 +234,9 @@ contains(DEFINES, CFG_NOGIT) {
 contains(DEFINES, CFG_NOSTEREO) {
     message("Stereoscopic display support is disabled")
 }
+contains(DEFINES, CFG_NOSRCEDIT) {
+    message("Document source editor is disabled")
+}
 
 
 CXXTBL_SOURCES += graphics.cpp \

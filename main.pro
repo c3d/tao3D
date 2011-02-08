@@ -24,6 +24,8 @@
 #     update)
 #   DEFINES += CFG_NOSTEREO
 #     Build without support for stereoscopic displays
+#   DEFINES += CFG_NOSRCEDIT
+#     Build without document source editor
 #
 # make
 # make install     # installs locally under ./install/

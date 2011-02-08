@@ -35,20 +35,16 @@ QMAKE_CXXFLAGS += -Werror
 QMAKE_CXXFLAGS_RELEASE += -g \
     \$(CXXFLAGS_\$%)
 
-DEFINES += DEBUG
 macx {
-    DEFINES += CONFIG_MACOSX
     XLRDIR = Contents/MacOS
     ICON = tao.icns
     QMAKE_INFO_PLIST = Info.plist
     QMAKE_CFLAGS += -mmacosx-version-min=10.5 # Avoid warning with font_file_manager_macos.mm
 }
 win32 {
-    DEFINES += CONFIG_MINGW
     RC_FILE  = tao.rc
 }
 linux-g++* {
-    DEFINES += CONFIG_LINUX
     LIBS += -lXss
 }
 

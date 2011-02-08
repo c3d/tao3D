@@ -106,7 +106,9 @@ public slots:
     void        appFocusChanged(QWidget *prev, QWidget *next);
     void        userMenu(QAction *action);
     bool        refresh(double delay = 0.0);
+#ifndef CFG_NOGIT
     void        commitSuccess(QString id, QString msg);
+#endif
     void        colorChosen(const QColor &);
     void        colorChanged(const QColor &);
     void        colorRejected();
@@ -182,8 +184,10 @@ public:
     bool        writeIfChanged(XL::SourceFile &sf);
     bool        setDragging(bool on);
     bool        doSave(ulonglong tick);
+#ifndef CFG_NOGIT
     bool        doPull(ulonglong tick);
     bool        doCommit(ulonglong tick);
+#endif
     Repository *repository();
     Tree *      get(Tree *shape, text name, text sh = "group,shape");
     bool        set(Tree *shape, text n, Tree *value, text sh = "group,shape");
@@ -626,6 +630,7 @@ public:
     Tree_p      chooserBranches(Tree_p self, Name_p prefix, text label);
     Tree_p      chooserCommits(Tree_p self, text branch, Name_p prefix, text label);
     Tree_p      checkout(Tree_p self, text what);
+    Name_p      currentRepository(Tree_p self);
     Tree_p      closeCurrentDocument(Tree_p self);
     Tree_p      quitTao(Tree_p self);
 
@@ -766,7 +771,10 @@ private:
     QTime                 stats_start;
     int                   stats_interval;
     frame_times           stats;
-    ulonglong             nextSave, nextCommit, nextSync, nextPull;
+    ulonglong             nextSave, nextSync;
+#ifndef CFG_NOGIT
+    ulonglong             nextCommit, nextPull;
+#endif
 
     // Printing
     double                pagePrintTime;

@@ -25,7 +25,6 @@
 #include "application.h"
 #include "widget.h"
 #include "repository.h"
-#include "git_backend.h"
 #include "tao.h"
 #include "tao_utf8.h"
 #include "tao_main.h"

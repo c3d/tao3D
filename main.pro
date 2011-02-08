@@ -11,6 +11,18 @@
 # (C) 2010 Taodyne SAS
 # ******************************************************************************
 
+# Generate Makefiles with:
+#
+# (MacOSX)  qmake -r -spec macx-g++ [options]
+# (Windows) qmake -r -spec win32-g++ [options]
+# (Linux)   qmake -r -spec linux-g++ [options]
+#
+#   Options:
+#
+#   DEFINES += CFG_NOGIT
+#     Build without Git support for Tao documents (Git is still used for module
+#     update)
+#
 # make
 # make install     # installs locally under ./install/
 # make clean

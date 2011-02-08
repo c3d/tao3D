@@ -91,45 +91,20 @@ HEADERS += widget.h \
     tao_tree.h \
     font.h \
     drag.h \
-    pull_from_dialog.h \
-    remote_selection_frame.h \
-    undo.h \
-    clone_dialog.h \
-    ansi_textedit.h \
     error_message_dialog.h \
     group_layout.h \
     resource_mgt.h \
     tree_cloning.h \
     font_file_manager.h \
     splash_screen.h \
-    branch_selection_combobox.h \
-    fetch_dialog.h \
-    merge_dialog.h \
-    commit_selection_combobox.h \
-    history_dialog.h \
-    selective_undo_dialog.h \
     documentation.h \
-    uri.h \
-    open_uri_dialog.h \
     new_document_wizard.h \
-    fetch_push_dialog_base.h \
-    commit_table_widget.h \
-    commit_table_model.h \
-    checkout_dialog.h \
-    push_dialog.h \
     preferences_dialog.h \
     preferences_pages.h \
-    history_playback.h \
-    history_frame.h \
-    diff_dialog.h \
-    diff_highlighter.h \
     module_manager.h \
     portability.h \
     tao_main.h \
-    history_playback_tool.h \
     tool_window.h \
-    branch_selection_tool.h \
-    git_toolbar.h \
     render_to_file_dialog.h \
     raster_text.h \
     dir.h
@@ -171,47 +146,93 @@ SOURCES += tao_main.cpp \
     application.cpp \
     font.cpp \
     drag.cpp \
-    pull_from_dialog.cpp \
-    remote_selection_frame.cpp \
-    undo.cpp \
-    clone_dialog.cpp \
-    ansi_textedit.cpp \
     error_message_dialog.cpp \
     group_layout.cpp \
     resource_mgt.cpp \
     tree_cloning.cpp \
     font_file_manager.cpp \
     splash_screen.cpp \
-    branch_selection_combobox.cpp \
-    fetch_dialog.cpp \
-    merge_dialog.cpp \
-    commit_selection_combobox.cpp \
-    history_dialog.cpp \
-    selective_undo_dialog.cpp \
     documentation.cpp \
-    uri.cpp \
-    open_uri_dialog.cpp \
     new_document_wizard.cpp \
-    fetch_push_dialog_base.cpp \
-    commit_table_widget.cpp \
-    commit_table_model.cpp \
-    checkout_dialog.cpp \
-    push_dialog.cpp \
     preferences_dialog.cpp \
     preferences_pages.cpp \
-    history_playback.cpp \
-    history_frame.cpp \
-    diff_dialog.cpp \
-    diff_highlighter.cpp \
     module_manager.cpp \
     portability.cpp \
     tool_window.cpp \
-    branch_selection_tool.cpp \
-    history_playback_tool.cpp \
-    git_toolbar.cpp \
     render_to_file_dialog.cpp \
     raster_text.cpp \
     dir.cpp
+
+# Check compile-time options
+
+contains(DEFINES, CFG_NOGIT) {
+    message("Document history and sharing with Git is disabled")
+} else {
+    HEADERS += \
+        ansi_textedit.h \
+        branch_selection_combobox.h \
+        branch_selection_tool.h \
+        checkout_dialog.h \
+        clone_dialog.h \
+        commit_selection_combobox.h \
+        commit_table_model.h \
+        commit_table_widget.h \
+        diff_dialog.h \
+        diff_highlighter.h \
+        fetch_dialog.h \
+        fetch_push_dialog_base.h \
+        git_toolbar.h \
+        history_dialog.h \
+        history_frame.h \
+        history_playback.h \
+        history_playback_tool.h \
+        merge_dialog.h \
+        open_uri_dialog.h \
+        pull_from_dialog.h \
+        push_dialog.h \
+        remote_selection_frame.h \
+        selective_undo_dialog.h \
+        undo.h \
+        uri.h
+    SOURCES += \
+        ansi_textedit.cpp \
+        branch_selection_combobox.cpp \
+        branch_selection_tool.cpp \
+        checkout_dialog.cpp \
+        clone_dialog.cpp \
+        commit_selection_combobox.cpp \
+        commit_table_model.cpp \
+        commit_table_widget.cpp \
+        diff_dialog.cpp \
+        diff_highlighter.cpp \
+        fetch_dialog.cpp \
+        fetch_push_dialog_base.cpp \
+        git_toolbar.cpp \
+        history_dialog.cpp \
+        history_frame.cpp \
+        history_playback.cpp \
+        history_playback_tool.cpp \
+        merge_dialog.cpp \
+        open_uri_dialog.cpp \
+        pull_from_dialog.cpp \
+        push_dialog.cpp \
+        remote_selection_frame.cpp \
+        selective_undo_dialog.cpp \
+        undo.cpp \
+        uri.cpp
+    FORMS += \
+        pull_from_dialog.ui \
+        remote_selection_frame.ui \
+        clone_dialog.ui \
+        merge_dialog.ui \
+        history_dialog.ui \
+        open_uri_dialog.ui \
+        fetch_push_dialog.ui \
+        history_frame.ui \
+        diff_dialog.ui
+}
+
+
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 
@@ -250,16 +271,7 @@ OTHER_FILES += xl.syntax \
 xlr_support.path = $${DESTDIR}/$${XLRDIR}
 xlr_support.files += $${OTHER_FILES}
 QMAKE_BUNDLE_DATA += xlr_support
-FORMS += pull_from_dialog.ui \
-    remote_selection_frame.ui \
-    clone_dialog.ui \
-    error_message_dialog.ui \
-    merge_dialog.ui \
-    history_dialog.ui \
-    open_uri_dialog.ui \
-    fetch_push_dialog.ui \
-    history_frame.ui \
-    diff_dialog.ui \
+FORMS += error_message_dialog.ui \
     render_to_file_dialog.ui
 
 # Automatic embedding of Git version

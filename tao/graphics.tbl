@@ -2105,6 +2105,11 @@ PREFIX(Checkout,  tree,  "checkout",
        GROUP(code:checkout)
        SYNOPSIS("")
        DESCRIPTION("Checkout a branch or a commit"))
+PREFIX(CurrentRepository,  boolean,  "current_repository",,
+       RTAO(currentRepository(self)),
+       GROUP(code:checkout)
+       SYNOPSIS("Return true if we use a git repository with the current document")
+       DESCRIPTION("Return true if the current document is stored in a repository, Git functionality is compiled in, and not disabled on the command line"))
 PREFIX(ChooserCloseDocument, tree, "chooser_command_Close_current_document",
        /* No param */,
        RTAO(closeCurrentDocument(self)),

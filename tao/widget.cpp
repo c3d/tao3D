@@ -40,7 +40,9 @@
 #include "drag.h"
 #include "manipulator.h"
 #include "menuinfo.h"
+#ifndef CFG_NOGIT
 #include "repository.h"
+#endif
 #include "application.h"
 #include "tao_utf8.h"
 #include "layout.h"
@@ -154,8 +156,11 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       timer(this), idleTimer(this),
       pageStartTime(1e6), pageRefresh(1e6), frozenTime(1e6), startTime(1e6),
       stats_interval(5000),
-      nextSave(now()), nextCommit(nextSave),
-      nextSync(nextSave), nextPull(nextSave),
+      nextSave(now()), nextSync(nextSave),
+#ifndef CFG_NOGIT
+      nextCommit(nextSave),
+      nextPull(nextSave),
+#endif
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
       sourceRenderer(NULL),
       currentFileDialog(NULL),
@@ -289,6 +294,7 @@ void Widget::dawdle()
         doSave(tick);
     }
 
+#ifndef CFG_NOGIT
     // Check if it's time to commit
     longlong commitDelay = longlong (nextCommit - tick);
     if (repo && commitDelay < 0 &&
@@ -305,6 +311,7 @@ void Widget::dawdle()
     {
         doPull(tick);
     }
+#endif
 
     // Check if it's time to reload
     longlong syncDelay = longlong(nextSync - tick);
@@ -1408,8 +1415,12 @@ void Widget::saveAndCommit()
 // ----------------------------------------------------------------------------
 {
     ulonglong tick = now();
+#ifdef CFG_NOGIT
+    doSave(tick);
+#else
     if (doSave(tick))
         doCommit(tick);
+#endif
 }
 
 
@@ -1448,17 +1459,6 @@ bool Widget::refresh(double delay)
     }
     return false;
 }
-
-
-void Widget::commitSuccess(QString id, QString msg)
-// ----------------------------------------------------------------------------
-//   Document was succesfully committed to repository (see doCommit())
-// ----------------------------------------------------------------------------
-{
-    Window *window = (Window *) parentWidget();
-    window->undoStack->push(new UndoCommand(repository(), id, msg));
-}
-
 
 
 // ============================================================================
@@ -2820,6 +2820,46 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
 }
 
 
+#ifndef CFG_NOGIT
+
+void Widget::commitSuccess(QString id, QString msg)
+// ----------------------------------------------------------------------------
+//   Document was succesfully committed to repository (see doCommit())
+// ----------------------------------------------------------------------------
+{
+    Window *window = (Window *) parentWidget();
+    window->undoStack->push(new UndoCommand(repository(), id, msg));
+}
+
+bool Widget::doCommit(ulonglong tick)
+// ----------------------------------------------------------------------------
+//   Commit files previously written to repository and reset next commit time
+// ----------------------------------------------------------------------------
+{
+    Repository * repo = repository();
+    if (!repo)
+        return false;
+    if (repo->state == Repository::RS_Clean)
+        return false;
+
+    IFTRACE(filesync)
+            std::cerr << "Commit\n";
+    bool done;
+    done = repo->commit();
+    if (done)
+    {
+        XL::Main *xlr = XL::MAIN;
+        nextCommit = tick + xlr->options.commit_interval * 1000;
+
+        Window *window = (Window *) parentWidget();
+        window->markChanged(false);
+
+        return true;
+    }
+    return false;
+}
+
+
 bool Widget::doPull(ulonglong tick)
 // ----------------------------------------------------------------------------
 //   Pull from remote repository and reset next pull time
@@ -2831,6 +2871,7 @@ bool Widget::doPull(ulonglong tick)
     return ok;
 }
 
+#endif
 
 bool Widget::setDragging(bool on)
 // ----------------------------------------------------------------------------
@@ -2864,35 +2905,6 @@ bool Widget::doSave(ulonglong tick)
     // Record when we will save file again
     nextSave = tick + xlr->options.save_interval * 1000;
     return changed;
-}
-
-
-bool Widget::doCommit(ulonglong tick)
-// ----------------------------------------------------------------------------
-//   Commit files previously written to repository and reset next commit time
-// ----------------------------------------------------------------------------
-{
-    Repository * repo = repository();
-    if (!repo)
-        return false;
-    if (repo->state == Repository::RS_Clean)
-        return false;
-
-    IFTRACE(filesync)
-            std::cerr << "Commit\n";
-    bool done;
-    done = repo->commit();
-    if (done)
-    {
-        XL::Main *xlr = XL::MAIN;
-        nextCommit = tick + xlr->options.commit_interval * 1000;
-
-        Window *window = (Window *) parentWidget();
-        window->markChanged(false);
-
-        return true;
-    }
-    return false;
 }
 
 
@@ -7937,6 +7949,7 @@ Tree_p Widget::chooserBranches(Tree_p self, Name_p prefix, text label)
 //   Add a list of branches to the chooser
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOGIT
     Repository *repo = repository();
     Chooser *chooser = dynamic_cast<Chooser *> (activities);
     if (chooser && repo)
@@ -7950,6 +7963,7 @@ Tree_p Widget::chooserBranches(Tree_p self, Name_p prefix, text label)
         }
         return XL::xl_true;
     }
+#endif
     return XL::xl_false;
 }
 
@@ -7960,6 +7974,7 @@ Tree_p Widget::chooserCommits(Tree_p self, text branch, Name_p prefix,
 //   Add a list of commits to the chooser
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOGIT
     Repository *repo = repository();
     Chooser *chooser = dynamic_cast<Chooser *> (activities);
     if (chooser && repo)
@@ -7976,6 +7991,7 @@ Tree_p Widget::chooserCommits(Tree_p self, text branch, Name_p prefix,
         }
         return XL::xl_true;
     }
+#endif
     return XL::xl_false;
 }
 
@@ -7985,9 +8001,25 @@ Tree_p Widget::checkout(Tree_p self, text what)
 //   Checkout a branch or a commit. Called by chooser.
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOGIT
     Repository *repo = repository();
     if (repo && repo->checkout(what))
         return XL::xl_true;
+#endif
+    return XL::xl_false;
+}
+
+
+Name_p Widget::currentRepository(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return true if we use a git repository with the current document
+// ----------------------------------------------------------------------------
+{
+#ifndef CFG_NOGIT
+    Repository *repo = repository();
+    if (repo)
+        return XL::xl_true;
+#endif
     return XL::xl_false;
 }
 
@@ -8280,9 +8312,13 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
         }
         else
         {
+#ifndef CFG_NOGIT
             if (par == currentMenuBar)
                 before = ((Window*)parent())->shareMenu->menuAction();
-
+#else
+            if (par == currentMenuBar)
+                before = ((Window*)parent())->helpMenu->menuAction();
+#endif
 //            par->addAction(currentMenu->menuAction());
         }
         par->insertAction(before, currentMenu->menuAction());

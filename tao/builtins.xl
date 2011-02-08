@@ -58,7 +58,8 @@ main_chooser ->
     chooser_choice "Toggle hand cursor", {toggle_hand_cursor}
     chooser_choice "Toggle rendering statistics (fps)", {toggle_show_statistics}
     chooser_choice "Select page", {page_chooser}
-    chooser_choice "Checkout...", {branch_chooser}
+    if current_repository then
+        chooser_choice "Checkout...", {branch_chooser}
     chooser_commands "chooser_command_", ""
     stereoscopy_settings
 

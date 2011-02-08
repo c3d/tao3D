@@ -4576,6 +4576,8 @@ XL::Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
 }
 
 
+#ifndef CFG_NOSTEREO
+
 XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
 // ----------------------------------------------------------------------------
 //   Enable or disable stereoscopie mode
@@ -4670,6 +4672,8 @@ XL::Name_p Widget::setStereoPlanes(XL::Tree_p self, uint planes)
     }
     return XL::xl_true;
 }
+
+#endif
 
 
 XL::Integer_p  Widget::polygonOffset(Tree_p self,
@@ -8987,6 +8991,23 @@ Tree_p Widget::constant(Tree_p self, Tree_p tree)
 {
     MarkAsConstant(tree);
     return tree;
+}
+
+
+Name_p Widget::taoFeatureAvailable(Tree_p self, Name_p name)
+// ----------------------------------------------------------------------------
+//   Check if a compile-time option is enabled
+// ----------------------------------------------------------------------------
+{
+#ifdef CFG_NOGIT
+    if (name->value == "git")
+        return XL::xl_false;
+#endif
+#ifdef CFG_NOSTEREO
+    if (name->value == "stereoscopy")
+        return XL::xl_false;
+#endif
+    return XL::xl_true;
 }
 
 

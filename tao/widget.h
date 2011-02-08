@@ -363,8 +363,10 @@ public:
     Integer_p   lastModifiers(Tree_p self);
 
     Name_p      enableAnimations(Tree_p self, bool fs);
+#ifndef CFG_NOSTEREO
     Name_p      enableStereoscopy(Tree_p self, Name_p name);
     Name_p      setStereoPlanes(Tree_p self, uint planes);
+#endif
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
 
@@ -664,6 +666,7 @@ public:
     Real_p      fromPx(Tree_p self, double px);
 
     Tree_p      constant(Tree_p self, Tree_p tree);
+    Name_p      taoFeatureAvailable(Tree_p self, Name_p name);
 
     // z order management
     Name_p      bringToFront(Tree_p self);

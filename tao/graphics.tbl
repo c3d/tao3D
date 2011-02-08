@@ -249,6 +249,13 @@ PREFIX(ShapeMouseoverAction,  tree,  "on_mouseover",
        GROUP(mouse)
        SYNOPSIS("Associate code with mouse over")
        DESCRIPTION("Associate the specified code to the mouse over"))
+PREFIX(TaoFeatureAvailable,  boolean,  "is_available",
+       PARM(name, symbol, "The name of the feature to test"),
+       RTAO(taoFeatureAvailable(self, name)),
+       GROUP(misc)
+       SYNOPSIS("Check if a functionality is available")
+       DESCRIPTION("Check if a specific Tao feature is available with the current version of the program")
+       RETURNS( boolean, "True if the feature is compiled in, false otherwise.") )
 
 
 
@@ -563,6 +570,7 @@ PREFIX(EnableAnimations,  boolean,  "enable_animations",
        SYNOPSIS("Enable or disable animations")
        DESCRIPTION("Enable or disable animations")
        RETURNS( boolean, "True if previous state was on.") )
+#ifndef CFG_NOSTEREO
 PREFIX(EnableStereoscopy,  boolean,  "enable_stereoscopy",
        PARM(mode, symbol, "on or off"),
        RTAO(enableStereoscopy(self, mode)),
@@ -575,6 +583,7 @@ PREFIX(StereoPlanes, boolean, "stereoscopy_planes", PARM(cnt, integer, "on or of
        SYNOPSIS("Enable or disable stereoscopie mode")
        DESCRIPTION("Enable or disable stereoscopie mode")
        RETURNS(boolean, "True if previous state was on."))
+#endif
 PREFIX(EyeDistance,  boolean,  "eye_distance",
        PARM(e, real, ),
        RTAO(setEyeDistance(self, e)),

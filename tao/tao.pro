@@ -231,6 +231,9 @@ contains(DEFINES, CFG_NOGIT) {
         history_frame.ui \
         diff_dialog.ui
 }
+contains(DEFINES, CFG_NOSTEREO) {
+    message("Stereoscopic display support is disabled")
+}
 
 
 CXXTBL_SOURCES += graphics.cpp \

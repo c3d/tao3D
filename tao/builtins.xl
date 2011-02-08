@@ -49,8 +49,9 @@ main_chooser ->
     chooser_choice "Toggle full screen", {toggle_slide_show}
     chooser_choice "Enter full screen", {slide_show true}
     chooser_choice "Exit full screen", {slide_show false}
-    chooser_choice "Enable stereoscopy", {enable_stereoscopy true}
-    chooser_choice "Disable stereoscopy", {enable_stereoscopy false}
+    if is_available stereoscopy then
+        chooser_choice "Enable stereoscopy", {enable_stereoscopy true}
+        chooser_choice "Disable stereoscopy", {enable_stereoscopy false}
     chooser_choice "Swap left and right eye", {eye_distance -eye_distance}
     chooser_choice "Reset view", {reset_view}
     chooser_choice "Zoom in", {zoom_in}
@@ -61,7 +62,8 @@ main_chooser ->
     if current_repository then
         chooser_choice "Checkout...", {branch_chooser}
     chooser_commands "chooser_command_", ""
-    stereoscopy_settings
+    if is_available stereoscopy then
+        stereoscopy_settings
 
 page_chooser ->
     chooser "Go to page..."

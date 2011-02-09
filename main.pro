@@ -19,13 +19,26 @@
 #
 #   Options:
 #
-#   DEFINES += CFG_NOGIT
+#   DEFINES+=CFG_NOGIT
 #     Build without Git support for Tao documents (Git is still used for module
 #     update)
-#   DEFINES += CFG_NOSTEREO
+#   DEFINES+=CFG_NOSTEREO
 #     Build without support for stereoscopic displays
-#   DEFINES += CFG_NOSRCEDIT
+#   DEFINES+=CFG_NOSRCEDIT
 #     Build without document source editor
+#
+#   modules=none
+#     Do not build any Tao module
+#   modules=all
+#     Build all Tao modules (default and optional ones)
+#   modules=+my_module
+#     Add my_module to default module list
+#   modules=-my_module
+#     Remove my_modules from default module list
+#   modules="all -my_module"
+#     Build all modules except my_module
+#   modules="none +my_module"
+#     Build only my_module
 #
 # make
 # make install     # installs locally under ./install/
